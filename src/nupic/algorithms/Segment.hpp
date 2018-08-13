@@ -91,7 +91,7 @@ namespace Cells4 {
  */
 class CState : Serializable<CStateProto> {
 public:
-  static const UInt VERSION = 1;
+  static const UInt VERSION = 2;
 
   CState() {
     _nCells = 0;
@@ -109,19 +109,18 @@ public:
     memcpy(_pData, o._pData, _nCells);
     return *this;
   }
-  bool operator==(const CState &other) const {
-    if (_version != other._version || _nCells != other._nCells ||
-        _fMemoryAllocatedByPython != other._fMemoryAllocatedByPython) {
-      return false;
-    }
-    if (_pData != nullptr && other._pData != nullptr) {
-      return ::memcmp(_pData, other._pData, _nCells) == 0;
-    }
-    return _pData == other._pData;
-  }
-  inline bool operator!=(const CState &other) const {
-    return !operator==(other);
-  }
+        bool equals(const CState& s) const {
+          if (s._version != _version) return false;
+          if (s._nCells != _nCells) return false;
+          if (s._fMemoryAllocatedByPython != _fMemoryAllocatedByPython) return false;
+          if (s._pData == nullptr && _pData == nullptr) return true;
+          if (s._pData == nullptr || _pData == nullptr) return false;
+          if (memcmp(s._pData, _pData, _nCells * sizeof(Byte))) return false;
+          return true;
+        }
+        bool operator==(const CState &s) const { return equals(s); }
+        bool operator!=(const CState &s) const { return !equals(s); }
+
   bool initialize(const UInt nCells) {
     if (_nCells != 0) // if already initialized
       return false;   // don't do it again
@@ -179,33 +178,47 @@ public:
       _pData[i] = pDataProto[i];
     }
   }
-  void load(std::istream &inStream) {
+  // output binary
+  inline void binary_save(std::ostream& outStream) const
+  {
+    outStream << version() << " "
+                           << _fMemoryAllocatedByPython << " "
+                           << _nCells << std::endl;
+    outStream.write((const char *)_pData, _nCells * sizeof(Byte));
+    outStream << std::endl << "end" << std::endl;
+  }
+
+  inline void load(std::istream& inStream)
+  {
     UInt version;
     inStream >> version;
-    NTA_CHECK(version == 1);
+    NTA_CHECK(version == 2);
     inStream >> _fMemoryAllocatedByPython >> _nCells;
-    for (UInt i = 0; i < _nCells; ++i) {
-      inStream >> _pData[i];
-    }
+    inStream.ignore(1);
+    inStream.read((char *)_pData, _nCells * sizeof(Byte));
     std::string token;
     inStream >> token;
     NTA_CHECK(token == "end");
   }
+
   UInt version() const { return _version; }
 
-protected:
-  UInt _version;
-  UInt _nCells; // should be static, since same size for all CStates
-  Byte *_pData; // protected in C++, but exposed to the Python code
-  bool _fMemoryAllocatedByPython;
-};
-/**
- * Add an index to CState so that we can find all On cells without
- * a sequential search of the entire array.
- */
-class CStateIndexed : public CState {
-public:
-  static const UInt VERSION = 1;
+
+      protected:
+        UInt _version;
+        UInt  _nCells;                      // should be static, since same size for all CStates
+        Byte* _pData;                       // protected in C++, but exposed to the Python code
+        bool  _fMemoryAllocatedByPython;
+      };
+
+      /**
+       * Add an index to CState so that we can find all On cells without
+       * a sequential search of the entire array.
+       */
+      class CStateIndexed : public CState
+      {
+      public:
+        static const UInt VERSION = 2;
 
   CStateIndexed() : CState() {
     _version = VERSION;
@@ -302,14 +315,31 @@ public:
       _cellsOn[i] = cellsOnProto[i];
     }
   }
+
+  // output binary
+  inline void binary_save(std::ostream& outStream) const
+        {
+          outStream << version() << " "
+                    << _fMemoryAllocatedByPython << " "
+                    << _nCells << " ";
+          outStream.write((const char *)_pData, _nCells * sizeof(Byte));
+          outStream << _countOn << " ";
+          outStream << _cellsOn.size() << " ";
+          for (auto & elem : _cellsOn)
+          {
+            outStream << elem << " ";
+          }
+          outStream << "end" << std::endl;
+  }
+
+  // input binary
   void load(std::istream &inStream) {
     UInt version;
     inStream >> version;
-    NTA_CHECK(version == 1);
+    NTA_CHECK(version == 2);
     inStream >> _fMemoryAllocatedByPython >> _nCells;
-    for (UInt i = 0; i < _nCells; ++i) {
-      inStream >> _pData[i];
-    }
+    inStream.ignore(1);
+    inStream.read((char *)_pData, _nCells * sizeof(Byte));
     inStream >> _countOn;
     UInt nCellsOn;
     inStream >> nCellsOn;
@@ -339,9 +369,9 @@ const UInt _dutyCycleTiers[] = {0,     100,   320,    1000,  3200,
 
 // This is the alpha used in each tier. dutyCycleAlphas[n] is used when
 /// iterationIdx > dutyCycleTiers[n]
-const Real _dutyCycleAlphas[] = {0.0,      0.0032,    0.0010,
-                                 0.00032,  0.00010,   0.000032,
-                                 0.000010, 0.0000032, 0.0000010};
+const Real _dutyCycleAlphas[] = {0.0f,      0.0032f,    0.0010f,
+                                 0.00032f,  0.00010f,   0.000032f,
+                                 0.000010f, 0.0000032f, 0.0000010f};
 
 //-----------------------------------------------------------------------
 // Forward declarations
@@ -369,8 +399,14 @@ public:
   Real _lastPosDutyCycle;
   UInt _lastPosDutyCycleIteration;
 
-  bool operator==(const Segment &o) const;
-  inline bool operator!=(const Segment &o) const { return !operator==(o); }
+  /**
+   * compare segments.
+   * A restored serialized segment should be the same as original.
+   */
+   bool equals(const Segment &s) const;
+
+   bool operator==(const Segment &s) const { return equals(s); }
+   bool operator!=(const Segment &s) const { return !equals(s); }
 
 private:
   bool _seqSegFlag;     // sequence segment flag
@@ -409,14 +445,14 @@ public:
    */
   inline bool invariants() const {
     static std::vector<UInt> indices;
-    static UInt highWaterSize = 0;
+    static size_t highWaterSize = 0;
     if (highWaterSize < _synapses.size()) {
       highWaterSize = _synapses.size();
       indices.reserve(highWaterSize);
     }
     indices.clear(); // purge residual data
 
-    for (UInt i = 0; i != _synapses.size(); ++i)
+    for (size_t i = 0; i != _synapses.size(); ++i)
       indices.push_back(_synapses[i].srcCellIdx());
 
 #ifndef NDEBUG
@@ -441,7 +477,7 @@ public:
   inline bool checkConnected(Real permConnected) const {
     //
     UInt nc = 0;
-    for (UInt i = 0; i != _synapses.size(); ++i)
+    for (size_t i = 0; i != _synapses.size(); ++i)
       nc += (_synapses[i].permanence() >= permConnected);
 
     if (nc != _nConnected) {
@@ -457,7 +493,7 @@ public:
    * Various accessors
    */
   inline bool empty() const { return _synapses.empty(); }
-  inline UInt size() const { return _synapses.size(); }
+  inline size_t size() const { return _synapses.size(); }
   inline bool isSequenceSegment() const { return _seqSegFlag; }
   inline Real &frequency() { return _frequency; }
   inline Real getFrequency() const { return _frequency; }
@@ -479,10 +515,10 @@ public:
   inline bool has(UInt srcCellIdx) const {
     NTA_ASSERT(srcCellIdx != (UInt)-1);
 
-    UInt lo = 0;
-    UInt hi = _synapses.size();
+    size_t lo = 0;
+    size_t hi = _synapses.size();
     while (lo < hi) {
-      const UInt test = (lo + hi) / 2;
+      const size_t test = (lo + hi) / 2;
       if (_synapses[test].srcCellIdx() < srcCellIdx)
         lo = test + 1;
       else if (_synapses[test].srcCellIdx() > srcCellIdx)
@@ -501,7 +537,7 @@ public:
    * adaptation or global decay.
    */
   inline void setPermanence(UInt idx, Real val) {
-    NTA_ASSERT(idx < _synapses.size());
+    NTA_ASSERT(idx < (UInt)_synapses.size());
 
     _synapses[idx].permanence() = val;
   }
@@ -511,7 +547,7 @@ public:
    * Returns the permanence of the idx-th synapse on this Segment as a value
    */
   inline Real getPermanence(UInt idx) const {
-    NTA_ASSERT(idx < _synapses.size());
+    NTA_ASSERT(idx < (UInt)_synapses.size());
     NTA_ASSERT(0 <= _synapses[idx].permanence());
 
     return _synapses[idx].permanence();
@@ -522,7 +558,7 @@ public:
    * Returns the source cell index of the synapse at index idx.
    */
   inline UInt getSrcCellIdx(UInt idx) const {
-    NTA_ASSERT(idx < _synapses.size());
+    NTA_ASSERT(idx < (UInt)_synapses.size());
     return _synapses[idx].srcCellIdx();
   }
 
@@ -557,7 +593,7 @@ public:
 
   //-----------------------------------------------------------------------
   inline const InSynapse &operator[](UInt idx) const {
-    NTA_ASSERT(idx < size());
+    NTA_ASSERT(idx < (UInt)size());
     return _synapses[idx];
   }
 
@@ -587,7 +623,7 @@ public:
    */
   void recomputeConnected(Real permConnected) {
     _nConnected = 0;
-    for (UInt i = 0; i != _synapses.size(); ++i)
+    for (size_t i = 0; i != _synapses.size(); ++i)
       if (_synapses[i].permanence() >= permConnected)
         ++_nConnected;
   }
@@ -606,7 +642,7 @@ private:
     // because of decay
     UInt i = 0, idel = 0, j = 0;
 
-    while (i < _synapses.size() && idel < del.size()) {
+    while (i < (UInt)_synapses.size() && idel < (UInt)del.size()) {
       if (i == del[idel]) {
         ++i;
         ++idel;
@@ -617,7 +653,7 @@ private:
       }
     }
 
-    while (i < _synapses.size())
+    while (i < (UInt)_synapses.size())
       _synapses[j++] = _synapses[i++];
 
     _synapses.resize(j);
@@ -651,21 +687,21 @@ public:
 
     std::vector<UInt> del;
 
-    UInt i1 = 0, i2 = 0;
+    size_t i1 = 0, i2 = 0;
 
     while (i1 < size() && i2 < synapses.size()) {
 
       if (_synapses[i1].srcCellIdx() == synapses[i2]) {
 
-        Real oldPerm = getPermanence(i1);
+        Real oldPerm = getPermanence((UInt)i1);
         Real newPerm = std::min(oldPerm + delta, permMax);
 
         if (newPerm <= 0) {
           removed.push_back(_synapses[i1].srcCellIdx());
-          del.push_back(i1);
+          del.push_back((UInt)i1);
         }
 
-        setPermanence(i1, newPerm);
+        setPermanence((UInt)i1, newPerm);
 
         int wasConnected = (int)(oldPerm >= permConnected);
         int isConnected = (int)(newPerm >= permConnected);
@@ -810,7 +846,7 @@ public:
   inline UInt persistentSize() const {
     std::stringstream buff;
     this->save(buff);
-    return buff.str().size();
+    return (UInt)buff.str().size();
   }
 
   //----------------------------------------------------------------------

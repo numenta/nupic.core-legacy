@@ -81,19 +81,7 @@ Segment &Segment::operator=(const Segment &o) {
   return *this;
 }
 
-//--------------------------------------------------------------------------------
-bool Segment::operator==(const Segment &other) const {
-  if (_totalActivations != other._totalActivations ||
-      _positiveActivations != other._positiveActivations ||
-      _lastActiveIteration != other._lastActiveIteration ||
-      _lastPosDutyCycle != other._lastPosDutyCycle ||
-      _lastPosDutyCycleIteration != other._lastPosDutyCycleIteration ||
-      _seqSegFlag != other._seqSegFlag || _frequency != other._frequency ||
-      _nConnected != other._nConnected) {
-    return false;
-  }
-  return _synapses == other._synapses;
-}
+
 
 //--------------------------------------------------------------------------------
 Segment::Segment(const Segment &o)
@@ -427,9 +415,43 @@ void Segment::print(std::ostream &outStream, UInt nCellsPerCol) const {
   outStream << std::endl;
 }
 
-namespace nupic {
-namespace algorithms {
-namespace Cells4 {
+/**
+ * Compare segments.
+ * Segments and synapses are added in random order
+ * to somewhat random connections.  But if comparing
+ * Serialized segments against the original they will
+ * be in exactly the same sequence.
+ */
+bool Segment::equals(const Segment& s) const
+{
+  if (s._seqSegFlag != _seqSegFlag) return false;
+  if (s._frequency != _frequency) return false;
+  if (s._nConnected != _nConnected) return false;
+  if (s._totalActivations != _totalActivations) return false;
+  if (s._positiveActivations != _positiveActivations) return false;
+  if (s._lastActiveIteration != _lastActiveIteration) return false;
+  if (s._lastPosDutyCycle != _lastPosDutyCycle) return false;
+  if (s._lastPosDutyCycleIteration != _lastPosDutyCycleIteration) return false;
+
+  // synapses
+  if (s._synapses.size() != _synapses.size()) return false;
+
+  for (Size synIdx1 = 1; synIdx1 < _synapses.size(); synIdx1++) {
+    if (s._synapses[synIdx1].srcCellIdx() != _synapses[synIdx1].srcCellIdx())
+      return false;
+    Real permanence1 = s._synapses[synIdx1].permanence();
+    Real permanence2 = _synapses[synIdx1].permanence();
+    if (abs(permanence1 - permanence2) > 0.001f) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+namespace nupic{
+  namespace algorithms {
+    namespace Cells4 {
 
 std::ostream &operator<<(std::ostream &outStream, const Segment &seg) {
   seg.print(outStream);

@@ -29,9 +29,6 @@
 #ifndef NTA_BACKTRACKINGTMCPP_HPP
 #define NTA_BACKTRACKINGTMCPP_HPP
 
-//in c++17 only #include <any>
-#include <boost/any.hpp>
-
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Random.hpp>
@@ -269,13 +266,13 @@ public:
   };
   struct predictionResults_t {
     Size totalExtras;
-    Size totalMissing; 
-    std::vector<struct score_tuple> conf; 
+    Size totalMissing;
+    std::vector<struct score_tuple> conf;
     std::shared_ptr<Real> missing;
   };
   std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t>
     _checkPrediction(std::vector<const UInt32 *> patternNZs,
-                     const Byte *predicted = nullptr, 
+                     const Byte *predicted = nullptr,
                      const Real *colConfidence = nullptr,
                      bool details = false);
 
@@ -304,11 +301,11 @@ public:
   inline UInt32 getMaxSeqLength() const  { return cells4_->getMaxSeqLength(); }
   inline Int32  getMaxSegmentsPerCell() const  { return cells4_->getMaxSegmentsPerCell(); }
   inline Int32  getMaxSynapsesPerSegment() const  { return cells4_->getMaxSynapsesPerSegment(); }
-  inline const std::string getOutputType() const  { return loc_.outputType; }
+  inline std::string getOutputType() const  { return outputType_; }
   inline Int32  getBurnIn() const  { return loc_.burnIn; }
   inline bool   getCollectStats() const  { return loc_.collectStats; }
   inline bool   getSeed() const  { return loc_.seed; }
- 
+
   inline void setVerbosity(UInt val) { cells4_->setVerbosity(val); }
   inline void setCheckSynapseConsistency(bool val) { cells4_->setCheckSynapseConsistency(val); }
   inline void setPamLength(UInt32 val) { cells4_->setPamLength(val); }
@@ -332,7 +329,7 @@ public:
   inline UInt getNumSegments() const { return cells4_->nSegments(); }
   inline UInt getNumSegmentsInCell(Size c, Size i) const { return cells4_->nSegmentsOnCell((UInt)c, (UInt)i); }
   inline Size getNumSynapses() const { return cells4_->nSynapses(); }
-  inline Real32 getNumSynapsesPerSegmentAvg() const { 
+  inline Real32 getNumSynapsesPerSegmentAvg() const {
     return ((Real32)getNumSynapses() / std::max<Size>(1, getNumSegments()));
   }
 
@@ -468,17 +465,21 @@ protected:
   virtual bool _slowIsSegmentActive(Segment &seg, const char *timestep) const;
 
   // Used by predict() to save/restore current state
-  typedef std::map<std::string, boost::any> tmSavedState_t;
+  struct ss_t {
+      std::shared_ptr<Byte> Byteptr;
+      std::shared_ptr<Real> Realptr;
+  };
+  typedef std::map<std::string, struct ss_t> tmSavedState_t;
   virtual void _getTPDynamicState(tmSavedState_t &ss);
   virtual void _setTPDynamicState(tmSavedState_t &ss);
 
-  template <typename T>
-  void deepcopySave_(tmSavedState_t &ss, std::string name, T *buf, Size count);
+  void deepcopySave_(tmSavedState_t &ss, std::string name, Byte *buf, Size count);
+  void deepcopySave_(tmSavedState_t &ss, std::string name, Real *buf, Size count);
+
+  void deepcopyRestore_(tmSavedState_t &ss, std::string name, Byte *buf, Size count);
+  void deepcopyRestore_(tmSavedState_t &ss, std::string name, Real *buf, Size count);
 
   template <typename T>
-  void deepcopyRestore_(tmSavedState_t &ss, std::string name, T *buf, Size count);
-
-  template <typename T> 
   void fastbuffercopy(T *tobuf, T *frombuf, Size size);
 
   ////// local parameters  ////////////
@@ -520,9 +521,8 @@ protected:
     // If true, always fetch the learn state pointers after every compute().
     bool retrieveLearningStates;
 
-    std::string outputType;
-
   } loc_;
+  std::string outputType_;
 
   Size nCells;  // number of cells (numberOfCols * cellsPerColumn)
 

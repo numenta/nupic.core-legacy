@@ -28,6 +28,8 @@
 #include <fstream>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
+#include <nupic/proto/Cells4.capnp.h>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <queue>
 #include <cstring>
@@ -262,7 +264,7 @@ namespace nupic {
         CBasicActivity<It> _seg;
       };
 
-      class Cells4
+      class Cells4 : public Serializable<Cells4Proto>
       {
       public:
 
@@ -619,7 +621,7 @@ namespace nupic {
         //-----------------------------------------------------------------------
 
         Cell& getCell(UInt colIdx, UInt cellIdxInCol);
-        
+
 
         //-----------------------------------------------------------------------
         UInt getCellIdx(UInt colIdx, UInt cellIdxInCol);
@@ -1101,6 +1103,20 @@ namespace nupic {
 
         //----------------------------------------------------------------------
         /**
+         * Write the state to a proto or file
+         */
+        using Serializable::write;
+        virtual void write(Cells4Proto::Builder& proto) const override;
+
+        //----------------------------------------------------------------------
+        /**
+         * Read the state into a proto or file
+         */
+        using Serializable::read;
+        virtual void read(Cells4Proto::Reader& proto) override;
+
+        //----------------------------------------------------------------------
+        /**
          * Save the state to the given file
          */
         void saveToFile(std::string filePath) const;
@@ -1123,6 +1139,13 @@ namespace nupic {
 
         //-----------------------------------------------------------------------
         void print(std::ostream& outStream) const;
+
+        //-----------------------------------------------------------------------
+        bool equals(const Cells4& other) const;
+
+        bool operator==(const Cells4 &s) { return equals(s); }
+        bool operator!=(const Cells4 &s) { return !equals(s); }
+
 
         //----------------------------------------------------------------------
         //----------------------------------------------------------------------
@@ -1206,7 +1229,9 @@ namespace nupic {
       };
 
       //-----------------------------------------------------------------------
+#ifndef SWIG
       std::ostream& operator<<(std::ostream& outStream, const Cells4& cells);
+#endif
 
       //-----------------------------------------------------------------------
     } // end namespace Cells4

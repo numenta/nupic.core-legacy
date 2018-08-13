@@ -38,9 +38,11 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
-typedef NTA_UInt64 (*RandomSeedFuncPtr)();
 
 namespace nupic {
+
+  typedef UInt64 (*RandomSeedFuncPtr)();
+
 /**
  * @b Responsibility
  * Provides standardized random number generation for the NuPIC Runtime Engine.
@@ -140,7 +142,7 @@ public:
   // randomly shuffle the elements
   template <class RandomAccessIterator>
   void shuffle(RandomAccessIterator first, RandomAccessIterator last) {
-    UInt n = last - first;
+    UInt n = (UInt)(last - first);
     while (first != last) {
       // Pick a random position between the current and the end to swap the
       // current element with.
@@ -170,26 +172,38 @@ public:
   static const UInt32 MAX32;
   static const UInt64 MAX64;
 
-  bool operator==(const Random &other) const;
-  inline bool operator!=(const Random &other) const {
-    return !operator==(other);
-  }
-
-  // called by the plugin framework so that plugins
-  // get the "global" seeder
-  static void initSeeder(const RandomSeedFuncPtr r);
+    // called by the plugin framework so that plugins
+    // get the "global" seeder
+    static void initSeeder(const RandomSeedFuncPtr r);
 
   static void shutdown();
 
-protected:
-  // each "universe" (application/plugin/python module) has its own instance,
-  // but the instance should be NULL in all but one
-  static Random *theInstanceP_;
-  // seeder_ is a function called by the constructor to get new random seeds
-  // If not set when we call Random constructor, then the singleton is allocated
-  // and seeder_ is set to a function that uses our singleton
-  // initFromPlatformServices can also be used to initialize the seeder_
-  static RandomSeedFuncPtr seeder_;
+    /**
+     * compare Random instances.
+     * RandomImpl is a singleton.
+     * They must share the same RandomImpl to be equal.
+     */
+    bool equals(const Random &r) const {
+      if (seed_ == r.seed_ && impl_ == r.impl_)
+        return true;
+      return false;
+    }
+
+    bool operator==(const Random &r) { return equals(r); }
+    bool operator!=(const Random &r) { return !equals(r); }
+
+
+
+  protected:
+
+    // each "universe" (application/plugin/python module) has its own instance,
+    // but the instance should be NULL in all but one
+    static Random *theInstanceP_;
+    // seeder_ is a function called by the constructor to get new random seeds
+    // If not set when we call Random constructor, then the singleton is allocated
+    // and seeder_ is set to a function that uses our singleton
+    // initFromPlatformServices can also be used to initialize the seeder_
+    static RandomSeedFuncPtr seeder_;
 
   void reseed(UInt64 seed);
 
@@ -199,7 +213,7 @@ protected:
   friend class RandomTest;
   friend std::ostream &operator<<(std::ostream &, const Random &);
   friend std::istream &operator>>(std::istream &, Random &);
-  friend NTA_UInt64 GetRandomSeed();
+  friend UInt64 GetRandomSeed();
 };
 
 // serialization/deserialization
@@ -212,7 +226,7 @@ std::istream &operator>>(std::istream &, Random &);
 // set to this function. The plugin framework can override this
 // behavior by explicitly setting the seeder to the RandomSeeder
 // function provided by the application.
-NTA_UInt64 GetRandomSeed();
+UInt64 GetRandomSeed();
 
 } // namespace nupic
 

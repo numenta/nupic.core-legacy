@@ -72,13 +72,28 @@ bool SegmentUpdate::invariants(Cells4 *cells) const {
   return ok;
 }
 
-bool SegmentUpdate::operator==(const SegmentUpdate &o) const {
+/**
+ * Compare segmentUpdates.
+ * SegmentUpdate and its synapses are added in random order
+ * to somewhat random connections.  But if comparing
+ * Serialized segmentUpdates against the original they will
+ * be in exactly the same sequence.
+ */
+bool SegmentUpdate::equals(const SegmentUpdate& s) const
+{
+  if (s._cellIdx != _cellIdx) return false;
+  if (s._segIdx != _segIdx) return false;
+  if (s._sequenceSegment != _sequenceSegment) return false;
+  if (s._timeStamp != _timeStamp) return false;
+  if (s._phase1Flag != _phase1Flag) return false;
+  if (s._weaklyPredicting != _weaklyPredicting) return false;
 
-  if (_cellIdx != o._cellIdx || _segIdx != o._segIdx ||
-      _sequenceSegment != o._sequenceSegment || _timeStamp != o._timeStamp ||
-      _phase1Flag != o._phase1Flag ||
-      _weaklyPredicting != o._weaklyPredicting) {
-    return false;
+  // synapses
+  if (s._synapses.size() != _synapses.size()) return false;
+  for (Size synIdx1 = 1; synIdx1 < _synapses.size(); synIdx1++)
+  {
+      if (s._synapses[synIdx1] != _synapses[synIdx1])
+        return false;
   }
-  return _synapses == o._synapses;
+  return true;
 }

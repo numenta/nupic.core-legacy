@@ -85,11 +85,6 @@ public:
     NTA_ASSERT(invariants());
     return *this;
   }
-  //---------------------------------------------------------------------
-  bool operator==(const SegmentUpdate &other) const;
-  inline bool operator!=(const SegmentUpdate &other) const {
-    return !operator==(other);
-  }
 
   //---------------------------------------------------------------------
   bool isSequenceSegment() const { return _sequenceSegment; }
@@ -99,7 +94,7 @@ public:
   UInt operator[](UInt idx) const { return _synapses[idx]; }
   const_iterator begin() const { return _synapses.begin(); }
   const_iterator end() const { return _synapses.end(); }
-  UInt size() const { return _synapses.size(); }
+  UInt size() const { return (UInt)_synapses.size(); }
   bool empty() const { return _synapses.empty(); }
   bool isNewSegment() const { return _segIdx == (UInt)-1; }
   bool isPhase1Segment() const { return _phase1Flag; }
@@ -191,16 +186,22 @@ public:
     for (UInt i = 0; i != _synapses.size(); ++i)
       outStream << _synapses[i] << ' ';
   }
-};
+  /**
+   * compare segments.
+   * A restored serialized segment should be the same as original.
+   */
+   bool equals(const SegmentUpdate &s) const;
 
-//--------------------------------------------------------------------------------
-#ifndef SWIG
-inline std::ostream &operator<<(std::ostream &outStream,
-                                const SegmentUpdate &update) {
-  update.print(outStream);
-  return outStream;
-}
-#endif
+   bool operator==(const SegmentUpdate &s) const { return this->equals(s); }
+   bool operator!=(const SegmentUpdate &s) const { return !this->equals(s); }
+};
+      //--------------------------------------------------------------------------------
+      inline std::ostream&
+       operator<<(std::ostream& outStream, const SegmentUpdate& update)
+       {
+         update.print(outStream);
+         return outStream;
+       }
 
 // End namespace
 } // namespace Cells4

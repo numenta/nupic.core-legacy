@@ -30,7 +30,7 @@
 #include <sstream>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 
 #include <assert.h>
 #include <cstring>
@@ -40,10 +40,10 @@
 #include <nupic/algorithms/SegmentUpdate.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
-#include <nupic/os/FStream.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/utils/Log.hpp>
+#include <nupic/proto/Cells4.capnp.h>
 
+using namespace nupic;
 using namespace nupic::algorithms::Cells4;
 
 // Comment or uncomment to turn on timing
@@ -67,18 +67,39 @@ static nupic::Timer chooseCellsTimer;
 
 #endif
 
-Cells4::Cells4(UInt nColumns, UInt nCellsPerCol, UInt activationThreshold,
-               UInt minThreshold, UInt newSynapseCount,
-               UInt segUpdateValidDuration, Real permInitial,
-               Real permConnected, Real permMax, Real permDec, Real permInc,
-               Real globalDecay, bool doPooling, int seed, bool initFromCpp,
-               bool checkSynapseConsistency)
-    : _rng(seed) {
+Cells4::Cells4(UInt nColumns, UInt nCellsPerCol,
+                     UInt activationThreshold,
+                     UInt minThreshold,
+                     UInt newSynapseCount,
+                     UInt segUpdateValidDuration,
+                     Real permInitial,
+                     Real permConnected,
+                     Real permMax,
+                     Real permDec,
+                     Real permInc,
+                     Real globalDecay,
+                     bool doPooling,
+                     int seed,
+                     bool initFromCpp,
+                     bool checkSynapseConsistency)
+  : _rng(seed < 0 ? rand() : seed)
+{
   _version = VERSION;
-  initialize(nColumns, nCellsPerCol, activationThreshold, minThreshold,
-             newSynapseCount, segUpdateValidDuration, permInitial,
-             permConnected, permMax, permDec, permInc, globalDecay, doPooling,
-             initFromCpp, checkSynapseConsistency);
+  initialize(nColumns,
+             nCellsPerCol,
+             activationThreshold,
+             minThreshold,
+             newSynapseCount,
+             segUpdateValidDuration,
+             permInitial,
+             permConnected,
+             permMax,
+             permDec,
+             permInc,
+             globalDecay,
+             doPooling,
+             initFromCpp,
+             checkSynapseConsistency);
 }
 
 Cells4::~Cells4() {
@@ -204,8 +225,10 @@ bool Cells4::computeUpdate(UInt cellIdx, UInt segIdx,
  */
 
 template <typename It>
-void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx, It newSynapse,
-                            It newSynapsesEnd) {
+void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
+            It newSynapse,
+            It newSynapsesEnd)
+{
   NTA_ASSERT(dstCellIdx < nCells());
   NTA_ASSERT(dstSegIdx < _cells[dstCellIdx].size());
 
@@ -264,8 +287,7 @@ void Cells4::inferBacktrack(const std::vector<UInt> &activeColumns) {
   // How much input history have we accumulated? Is it enough to backtrack?
   // The current input is always at the end of self._prevInfPatterns, but
   // it is also evaluated as a potential starting point
-  if (_prevInfPatterns.empty())
-    return;
+  if (_prevInfPatterns.empty()) return;
 
   TIMER(infBacktrackTimer.start());
 
@@ -325,10 +347,9 @@ void Cells4::inferBacktrack(const std::vector<UInt> &activeColumns) {
 
       // Compute activeState[t] given bottom-up and predictedState[t-1]
       _infPredictedStateT1 = _infPredictedStateT;
-      inSequence =
-          inferPhase1(_prevInfPatterns[offset], (offset == startOffset));
-      if (!inSequence)
-        break;
+      inSequence = inferPhase1(_prevInfPatterns[offset],
+                               (offset == startOffset));
+      if (!inSequence) break;
 
       // Compute predictedState['t'] given activeState['t']
       if (_verbosity >= 3) {
@@ -709,8 +730,8 @@ UInt Cells4::getCellForNewSegment(UInt colIdx) {
  * Compute the learning active state given the predicted state and
  * the bottom-up input.
  */
-bool Cells4::learnPhase1(const std::vector<UInt> &activeColumns,
-                         bool readOnly) {
+bool Cells4::learnPhase1(const std::vector<UInt> & activeColumns, bool readOnly)
+{
   TIMER(learnPhase1Timer.start());
 
   // Save previous active state (where?) and start out on a clean slate
@@ -742,8 +763,7 @@ bool Cells4::learnPhase1(const std::vector<UInt> &activeColumns,
       numUnpredictedColumns++;
       if (!readOnly) {
         std::pair<UInt, UInt> p;
-        p = getBestMatchingCellT1(activeColumn, _learnActiveStateT1,
-                                  _minThreshold);
+        p = getBestMatchingCellT1(activeColumn, _learnActiveStateT1, _minThreshold);
         UInt cellIdx = p.first, segIdx = p.second;
 
         // If we found a sequence segment, reinforce it
@@ -776,7 +796,8 @@ bool Cells4::learnPhase1(const std::vector<UInt> &activeColumns,
             std::cout << "Learn branch 1, no match: ";
             std::cout << "   learning on col=" << activeColumn
                       << ", newCellIdxInCol="
-                      << newCellIdx - getCellIdx(activeColumn, 0) << "\n";
+                      << newCellIdx - getCellIdx(activeColumn, 0)
+                      << "\n";
           }
           _learnActiveStateT.set(newCellIdx);
           bool newUpdate = computeUpdate(newCellIdx, (UInt)-1,
@@ -1131,8 +1152,7 @@ bool Cells4::inferPhase2() {
 
             // Incorporate the confidence into the owner cell and column
             // Use segment::getLastPosDutyCycle() here
-            Real dc =
-                _cells[cellIdx][j].dutyCycle(_nLrnIterations, false, false);
+            Real dc = _cells[cellIdx][j].dutyCycle(_nLrnIterations, false, false);
             _cellConfidenceT[cellIdx] += dc;
             _colConfidenceT[c] += dc;
 
@@ -1174,13 +1194,12 @@ bool Cells4::inferPhase2() {
 /**
  * Main compute routine, called for both learning and inference.
  */
-void Cells4::compute(Real *input, Real *output, bool doInference,
-                     bool doLearning) {
+void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearning)
+{
   TIMER(computeTimer.start());
   NTA_CHECK(doInference || doLearning);
 
-  if (doLearning)
-    _nLrnIterations++;
+  if (doLearning) _nLrnIterations++;
   ++_nIterations;
 
 #ifdef CELLS4_TIMING
@@ -1656,8 +1675,7 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
         activeSegmentIndices);
 
     // Decrement permanences of inactive synapses
-    segment.updateSynapses(synToDec, -_permDec, _permMax, _permConnected,
-                           removed);
+    segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
 
     // If any synapses were removed as the result of permanence decrements,
     // regenerate affected parameters
@@ -1666,8 +1684,9 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
       synapsesSet.insert(update.begin(), update.end());
 
       _generateListsOfSynapsesToAdjustForAdaptSegment(
-          segment, synapsesSet, synToDec, inactiveSegmentIndices, synToInc,
-          activeSegmentIndices);
+        segment, synapsesSet,
+        synToDec, inactiveSegmentIndices,
+        synToInc, activeSegmentIndices);
     }
 
     // Increment permanences of active synapses
@@ -1911,6 +1930,145 @@ struct self_t {
 };
 
 //--------------------------------------------------------------------------------
+void Cells4::write(Cells4Proto::Builder& proto) const
+{
+  proto.setVersion(version());
+  proto.setOwnsMemory(_ownsMemory);
+  auto randomProto = proto.initRng();
+  _rng.write(randomProto);
+  proto.setNColumns(_nColumns);
+  proto.setNCellsPerCol(_nCellsPerCol);
+  proto.setActivationThreshold(_activationThreshold);
+  proto.setMinThreshold(_minThreshold);
+  proto.setNewSynapseCount(_newSynapseCount);
+  proto.setNIterations(_nIterations);
+  proto.setNLrnIterations(_nLrnIterations);
+  proto.setSegUpdateValidDuration(_segUpdateValidDuration);
+  proto.setInitSegFreq(_initSegFreq);
+  proto.setPermInitial(_permInitial);
+  proto.setPermConnected(_permConnected);
+  proto.setPermMax(_permMax);
+  proto.setPermDec(_permDec);
+  proto.setPermInc(_permInc);
+  proto.setGlobalDecay(_globalDecay);
+  proto.setDoPooling(_doPooling);
+  proto.setPamLength(_pamLength);
+  proto.setMaxInfBacktrack(_maxInfBacktrack);
+  proto.setMaxLrnBacktrack(_maxLrnBacktrack);
+  proto.setMaxSeqLength(_maxSeqLength);
+  proto.setLearnedSeqLength(_learnedSeqLength);
+  proto.setAvgLearnedSeqLength(_avgLearnedSeqLength);
+  proto.setMaxAge(_maxAge);
+  proto.setVerbosity(_verbosity);
+  proto.setMaxSegmentsPerCell(_maxSegmentsPerCell);
+  proto.setMaxSynapsesPerSegment(_maxSynapsesPerSegment);
+  proto.setCheckSynapseConsistency(_checkSynapseConsistency);
+  proto.setResetCalled(_resetCalled);
+  proto.setAvgInputDensity(_avgInputDensity);
+  proto.setPamCounter(_pamCounter);
+
+  auto learnActiveStateTProto = proto.initLearnActiveStateT();
+  _learnActiveStateT.write(learnActiveStateTProto);
+  auto learnActiveStateT1Proto = proto.initLearnActiveStateT1();
+  _learnActiveStateT1.write(learnActiveStateT1Proto);
+  auto learnPredictedStateTProto = proto.initLearnPredictedStateT();
+  _learnPredictedStateT.write(learnPredictedStateTProto);
+  auto learnPredictedStateT1Proto = proto.initLearnPredictedStateT1();
+  _learnPredictedStateT1.write(learnPredictedStateT1Proto);
+
+  auto cellListProto = proto.initCells(_nCells);
+  for (UInt i = 0; i < _nCells; ++i)
+  {
+    auto cellProto = cellListProto[i];
+    _cells[i].write(cellProto);
+  }
+
+  auto segmentUpdatesListProto = proto.initSegmentUpdates(
+      _segmentUpdates.size());
+  for (UInt i = 0; i < _segmentUpdates.size(); ++i)
+  {
+    auto segmentUpdateProto = segmentUpdatesListProto[i];
+    _segmentUpdates[i].write(segmentUpdateProto);
+  }
+}
+
+
+//--------------------------------------------------------------------------------
+void Cells4::read(Cells4Proto::Reader& proto)
+{
+  NTA_CHECK(proto.getVersion() == 2);
+
+  initialize(proto.getNColumns(),
+             proto.getNCellsPerCol(),
+             proto.getActivationThreshold(),
+             proto.getMinThreshold(),
+             proto.getNewSynapseCount(),
+             proto.getSegUpdateValidDuration(),
+             proto.getPermInitial(),
+             proto.getPermConnected(),
+             proto.getPermMax(),
+             proto.getPermDec(),
+             proto.getPermInc(),
+             proto.getGlobalDecay(),
+             proto.getDoPooling(),
+             proto.getOwnsMemory());
+  auto randomProto = proto.getRng();
+  _rng.read(randomProto);
+  _nIterations = proto.getNIterations();
+  _nLrnIterations = proto.getNLrnIterations();
+  _initSegFreq = proto.getInitSegFreq();
+  _pamLength = proto.getPamLength();
+  _maxInfBacktrack = proto.getMaxInfBacktrack();
+  _maxLrnBacktrack = proto.getMaxLrnBacktrack();
+  _maxSeqLength = proto.getMaxSeqLength();
+  _learnedSeqLength = proto.getLearnedSeqLength();
+  _avgLearnedSeqLength = proto.getAvgLearnedSeqLength();
+  _maxAge = proto.getMaxAge();
+  _verbosity = proto.getVerbosity();
+  _maxSegmentsPerCell = proto.getMaxSegmentsPerCell();
+  _maxSynapsesPerSegment = proto.getMaxSynapsesPerSegment();
+  _checkSynapseConsistency = proto.getCheckSynapseConsistency();
+
+  _resetCalled = proto.getResetCalled();
+
+  _avgInputDensity = proto.getAvgInputDensity();
+  _pamCounter = proto.getPamCounter();
+
+  auto learnActiveStateTProto = proto.getLearnActiveStateT();
+  _learnActiveStateT.read(learnActiveStateTProto);
+  auto learnActiveStateT1Proto = proto.getLearnActiveStateT1();
+  _learnActiveStateT1.read(learnActiveStateT1Proto);
+  auto learnPredictedStateTProto = proto.getLearnPredictedStateT();
+  _learnPredictedStateT.read(learnPredictedStateTProto);
+  auto learnPredictedStateT1Proto = proto.getLearnPredictedStateT1();
+  _learnPredictedStateT1.read(learnPredictedStateT1Proto);
+
+  auto cellListProto = proto.getCells();
+  _nCells = cellListProto.size();
+  _cells.resize(_nCells);
+  for (UInt i = 0; i < cellListProto.size(); ++i)
+  {
+    auto cellProto = cellListProto[i];
+    _cells[i].read(cellProto);
+  }
+
+  auto segmentUpdatesListProto = proto.getSegmentUpdates();
+  _segmentUpdates.clear();
+  _segmentUpdates.resize(segmentUpdatesListProto.size());
+  for (UInt i = 0; i < segmentUpdatesListProto.size(); ++i)
+  {
+    auto segmentUpdateProto = segmentUpdatesListProto[i];
+    _segmentUpdates[i].read(segmentUpdateProto);
+  }
+
+  rebuildOutSynapses();
+  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000))
+  {
+    NTA_CHECK(invariants(true));
+  }
+
+  _version = VERSION;
+}
 
 //--------------------------------------------------------------------------------
 void Cells4::save(std::ostream &outStream) const {
@@ -1918,7 +2076,7 @@ void Cells4::save(std::ostream &outStream) const {
   if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
     NTA_CHECK(invariants(true));
   }
-/* 
+
   // Capture the class variables and write them as a binary block.
   struct self_t self;
   memset(&self, 0, sizeof(self));
@@ -1999,7 +2157,6 @@ void Cells4::save(std::ostream &outStream) const {
   }
 
   outStream << " out " << std::endl;
-  */
 }
 
 //----------------------------------------------------------------------------
@@ -2007,8 +2164,8 @@ void Cells4::save(std::ostream &outStream) const {
  * Save the state to the given file  (must be binary file).
  */
 void Cells4::saveToFile(std::string filePath) const {
-  boost::filesystem::path p(filePath.c_str());
-  boost::filesystem::create_directories(p.parent_path());
+//do later  boost::filesystem::path p(filePath.c_str());
+//do later  boost::filesystem::create_directories(p.parent_path());
   std::ofstream out(filePath.c_str(),std::ios_base::out | std::ios_base::binary);
   out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
   out.precision(std::numeric_limits<double>::digits10 + 1);
@@ -2803,7 +2960,7 @@ void Cells4::print(std::ostream &outStream) const {
   }
 }
 
-std::ostream &operator<<(std::ostream &outStream, const Cells4 &cells) {
+std::ostream &nupic::algorithms::Cells4::operator<<(std::ostream &outStream, const Cells4 &cells) {
   cells.print(outStream);
   return outStream;
 }
@@ -2993,4 +3150,67 @@ void Cells4::resetTimers() {
   getNewCellTimer.reset();
   chooseCellsTimer.reset();
 #endif
+}
+
+/**
+* Compare against another Cells4.
+*/
+bool Cells4::equals(const Cells4& c) const {
+  if (c._nColumns == _nColumns &&
+      c._nCellsPerCol == _nCellsPerCol &&
+      c._nCells == _nCells &&
+      c._activationThreshold == _activationThreshold &&
+      c._minThreshold == _minThreshold &&
+      c._newSynapseCount == _newSynapseCount &&
+      c._nIterations == _nIterations &&
+      c._nLrnIterations == _nLrnIterations &&
+      c._segUpdateValidDuration == _segUpdateValidDuration &&
+      c._initSegFreq == _initSegFreq &&
+      c._permInitial == _permInitial &&
+      c._permConnected == _permConnected &&
+      c._permMax == _permMax &&
+      c._permDec == _permDec &&
+      c._permInc == _permInc &&
+      c._globalDecay == _globalDecay &&
+      c._doPooling == _doPooling &&
+      c._pamLength == _pamLength &&
+      c._maxInfBacktrack == _maxInfBacktrack &&
+      c._maxLrnBacktrack == _maxLrnBacktrack &&
+      c._maxSeqLength == _maxSeqLength &&
+      c._learnedSeqLength == _learnedSeqLength &&
+      c._avgLearnedSeqLength == _avgLearnedSeqLength &&
+      c._maxAge == _maxAge &&
+      c._verbosity == _verbosity &&
+      c._maxSegmentsPerCell == _maxSegmentsPerCell &&
+      c._maxSynapsesPerSegment == _maxSynapsesPerSegment &&
+      c._checkSynapseConsistency == _checkSynapseConsistency &&
+      c._ownsMemory == _ownsMemory &&
+      c._avgInputDensity == _avgInputDensity &&
+      c._pamCounter == _pamCounter &&
+      c._resetCalled == _resetCalled &&
+      _rng.equals(c._rng) )
+  {
+
+      // states
+      if (!_infActiveStateT.equals(c._infActiveStateT)) return false;
+      if (!_infActiveStateT1.equals(c._infActiveStateT1)) return false;
+      if (!_infPredictedStateT.equals(c._infPredictedStateT)) return false;
+      if (!_infPredictedStateT1.equals(c._infPredictedStateT1)) return false;
+      if (!_learnActiveStateT.equals(c._learnActiveStateT)) return false;
+      if (!_learnActiveStateT1.equals(c._learnActiveStateT1)) return false;
+      if (!_learnPredictedStateT.equals(c._learnPredictedStateT)) return false;
+      if (!_learnPredictedStateT1.equals(c._learnPredictedStateT1)) return false;
+
+      // segments (Note: segmentUpdate order is normally random but
+      // a restored serialized cells4 should have segmentUpdates in
+      // exactly the same order.
+      if (c._segmentUpdates.size() != _segmentUpdates.size()) return false;
+      for (Size i = 0; i < _segmentUpdates.size(); i++) {
+        if (c._segmentUpdates[i] != _segmentUpdates[i])
+          return false;
+      }
+
+    return true;
+  }
+  return false;
 }

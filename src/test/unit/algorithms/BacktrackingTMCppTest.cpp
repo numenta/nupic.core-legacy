@@ -17,7 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- 
+
 
 
  * Author: David Keeney, April, 2018
@@ -29,15 +29,19 @@
  *
  * For those not familiar with GTest:
  * ASSERT_TRUE(value)   -- Fatal assertion that the value is true. Test
- *terminates if false. ASSERT_FALSE(value)   -- Fatal assertion that the value
- *is false. Test terminates if true. ASSERT_STREQ(str1, str2)   -- Fatal
- *assertion that the strings are equal. Test terminates if false.
+ *                         terminates if false.
+ * ASSERT_FALSE(value)   -- Fatal assertion that the value
+ *                         is false. Test terminates if true.
+ * ASSERT_STREQ(str1, str2)   -- Fatal assertion that the strings are equal.
+ *                         Test terminates if false.
  * EXPECT_TRUE(value)   -- Nonfatal assertion that the value is true. Test
- *continues if false. EXPECT_FALSE(value)   -- Nonfatal assertion that the value
- *is false. Test continues if true. EXPECT_STREQ(str1, str2) -- Nonfatal
- *assertion that the strings are equal.Test continues if false.
+ *                         continues if false.
+ * EXPECT_FALSE(value)   -- Nonfatal assertion that the value is false.
+ *                          Test continues if true.
+ * EXPECT_STREQ(str1, str2) -- Nonfatal assertion that the strings are equal.
+ *                          Test continues if false.
  * EXPECT_THROW(statement, exception_type) -- nonfatal exception, cought,
- *reported and continues.
+ *                         reported and continues.
  *---------------------------------------------------------------------
  */
 
@@ -50,7 +54,6 @@
 #include <nupic/algorithms/BacktrackingTMCpp.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Path.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/types/Exception.hpp>
 
 
@@ -109,21 +112,12 @@ static std::vector<Pattern_t> generateSequence(Size n = 10, Size numCols = 100,
   return seq;
 }
 
-/*
-static bool patternsEqual(const Real *pat1, const Real *pat2, Size len) {
-  for (Size i = 0; i < len; i++) {
-    if (pat1[i] != pat2[i])
-      return false;
-  }
-  return true;
-}
-*/
 
 //  Static function nonzero()
 // returns an array of the indexes of the non-zero elements.
 // The first element is the number of elements in the rest of the array.
 // Dynamically allocated, caller must delete.
-template <typename T> 
+template <typename T>
 static UInt32 *nonzero(const T *dence_buffer, Size len) {
   UInt32 *nz = new UInt32[len + 1];
   nz[0] = 1;
@@ -288,13 +282,13 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
   catch (std::exception &e) {
     FAIL() << "Failure: Exception: " << e.what() << "" << std::endl;
   }
-  
+
     // cleanup .
   Directory::removeTree("TestOutputDir");
 
 }
 
-TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence) 
+TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 {
     // Create a model and give it some inputs to learn.
     BacktrackingTMCpp tm1(100, 12);
@@ -381,13 +375,13 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Run a test of the TM class ported from backtracking_tm_cpp2_test.py
-TEST(BacktrackingTMTest, basicTest) { 
+TEST(BacktrackingTMTest, basicTest) {
     // Create a model and give it some inputs to learn.
-    BacktrackingTMCpp tm1(10, 3, 0.2f, 0.8f, 2, 5, 0.10f, 0.05f, 1.0f, 0.05f, 4, 
+    BacktrackingTMCpp tm1(10, 3, 0.2f, 0.8f, 2, 5, 0.10f, 0.05f, 1.0f, 0.05f, 4,
                           false, 5, 2, false, SEED, (Int32)VERBOSITY /* rest are defaults */);
     tm1.setRetrieveLearningStates(true);
     Size nCols = tm1.getnumCol();
-    
+
     // Serialize and deserialized the TM.
     Directory::create("TestOutputDir", false, true);
     std::string checkpointPath = "TestOutputDir/tm.save";
