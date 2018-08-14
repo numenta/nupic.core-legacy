@@ -423,10 +423,10 @@ public:
                    std::ostream &out = std::cout, Int32 verbosity = 0);
 
   // an alternative way to compare two tm's -- by comparing the serialized strings.
-  bool diff(const BacktrackingTMCpp& tm1, const BacktrackingTMCpp &tm2);
+  bool diff(const BacktrackingTMCpp& tm1, const BacktrackingTMCpp &tm2) const;
 
-  //bool operator==(const BacktrackingTMCpp &tm2) { return this->diff(*this, tm2); }
-  bool operator==(const BacktrackingTMCpp &tm2) { return BacktrackingTMCpp::tmDiff2(*this, tm2); }
+  bool operator==(const BacktrackingTMCpp &tm2) const { return BacktrackingTMCpp::tmDiff2(*this, tm2); } //could also use diff()
+  inline bool operator!=(const BacktrackingTMCpp &tm2) const { return !(*this==tm2); }
 
   /////// statistics ////////
   // Note: These are empty if collectSequenceStats is false.

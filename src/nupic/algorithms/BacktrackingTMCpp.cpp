@@ -1611,7 +1611,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
 // The two will be the same.
 
 bool BacktrackingTMCpp::diff(const BacktrackingTMCpp &tm1,
-                             const BacktrackingTMCpp &tm2) {
+                             const BacktrackingTMCpp &tm2) const {
   std::stringstream ss1;
   std::stringstream ss2;
   ss1.clear();
