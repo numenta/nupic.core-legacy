@@ -120,8 +120,6 @@ TEST(LinkTest, DelayedLink) {
 
     MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}
 
-    MyTestNode(capnp::AnyPointer::Reader &proto, Region *region)
-        : TestNode(proto, region) {}
 
     std::string getNodeType() { return "MyTestNode"; }
 
@@ -247,8 +245,6 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
 
     MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}
 
-    MyTestNode(capnp::AnyPointer::Reader &proto, Region *region)
-        : TestNode(proto, region) {}
 
     std::string getNodeType() { return "MyTestNode"; };
 
@@ -339,12 +335,11 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
   // We should now have two delayed array values: 10's and 100's
 
   // Serialize the current net
-  std::stringstream ss;
-  net.write(ss);
+net.save("TestOutputDir/DelayedLinkSerialization.nta");
+
 
   // De-serialize into a new net2
-  Network net2;
-  net2.read(ss);
+  Network net2("TestOutputDir/DelayedLinkSerialization.nta");
 
   net2.initialize();
 
@@ -393,8 +388,6 @@ public:
 
   TestRegionBase(BundleIO &bundle, Region *region) : RegionImpl(region) {}
 
-  TestRegionBase(capnp::AnyPointer::Reader &proto, Region *region)
-      : RegionImpl(region) {}
 
   virtual ~TestRegionBase() {}
 
@@ -404,14 +397,6 @@ public:
   // De-serialize state. Must be called from deserializing constructor
   void deserialize(BundleIO &bundle) override {}
 
-  // Serialize state with capnp
-  using RegionImpl::write;
-  void write(capnp::AnyPointer::Builder &anyProto) const override {}
-
-  // Deserialize state from capnp. Must be called from deserializing
-  // constructor.
-  using RegionImpl::read;
-  void read(capnp::AnyPointer::Reader &anyProto) override {}
 
   // Execute a command
   std::string executeCommand(const std::vector<std::string> &args,
@@ -473,8 +458,6 @@ public:
   L2TestRegion(BundleIO &bundle, Region *region)
       : TestRegionBase(bundle, region) {}
 
-  L2TestRegion(capnp::AnyPointer::Reader &proto, Region *region)
-      : TestRegionBase(proto, region) {}
 
   virtual ~L2TestRegion() {}
 
@@ -581,8 +564,6 @@ public:
   L4TestRegion(BundleIO &bundle, Region *region)
       : TestRegionBase(bundle, region), k_(0) {}
 
-  L4TestRegion(capnp::AnyPointer::Reader &proto, Region *region)
-      : TestRegionBase(proto, region), k_(0) {}
 
   virtual ~L4TestRegion() {}
 
