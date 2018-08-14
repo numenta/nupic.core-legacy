@@ -338,6 +338,16 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
       }
     }
 
+    // Restore the saved TM into tm2.
+    // Note that this resets the random generator to the same
+    // point that the first TM used when it processed that second set
+    // of patterns.
+    BacktrackingTMCpp tm2;
+    tm2.loadFromFile(checkpointPath);
+
+    ASSERT_EQ(tm1, tm2) << "Deserialized TM is equal";
+    ASSERT_TRUE(tm1 == tm2);
+
     // process the remaining patterns in train with the first TM.
     for (Size t = 0; t < train.size(); t++) {
       if (!train[t]) {
@@ -348,12 +358,8 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
       }
     }
 
-    // Restore the saved TM into tm2.
-    // Note that this resets the random generator to the same
-    // point that the first TM used when it processed that second set
-    // of patterns.
-    BacktrackingTMCpp tm2;
-    tm2.loadFromFile(checkpointPath);
+    ASSERT_TRUE(tm1 != tm2) << "TM1 moved, TM2 didn't";
+
 
     // process the same remaining patterns in the train with the second TM.
     for (Size t = 0; t < train.size(); t++) {
@@ -365,7 +371,7 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
       }
     }
 
-    // Check that the TMs are the same.
+    ASSERT_EQ(tm1, tm2) << "Both TM trained";
     ASSERT_TRUE(tm1 == tm2);
 
     // cleanup if successful.
