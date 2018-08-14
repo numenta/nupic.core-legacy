@@ -129,6 +129,9 @@ Random &Random::operator=(const Random &other) {
   return *this;
 }
 
+bool Random::operator==(const Random &o) const {
+  return seed_ == o.seed_ && (*impl_) == (*o.impl_);
+}
 
 Random::~Random() { delete impl_; }
 
@@ -372,6 +375,12 @@ std::istream &operator>>(std::istream &inStream, RandomImpl &r) {
   return inStream;
 }
 
+bool RandomImpl::operator==(const RandomImpl &o) const {
+  if (rptr_ != o.rptr_ || fptr_ != o.fptr_) {
+    return false;
+  }
+  return ::memcmp(state_, o.state_, sizeof(state_)) == 0;
+}
 
 // helper function for seeding RNGs across the plugin barrier
 // Unless there is a logic error, should not be called if

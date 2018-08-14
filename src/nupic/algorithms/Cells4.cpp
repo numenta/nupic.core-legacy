@@ -3188,7 +3188,7 @@ bool Cells4::equals(const Cells4& c) const {
       c._avgInputDensity == _avgInputDensity &&
       c._pamCounter == _pamCounter &&
       c._resetCalled == _resetCalled &&
-      _rng.equals(c._rng) )
+      _rng == c._rng)
   {
 
       // states

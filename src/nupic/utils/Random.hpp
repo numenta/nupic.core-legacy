@@ -172,26 +172,16 @@ public:
   static const UInt32 MAX32;
   static const UInt64 MAX64;
 
+  bool operator==(const Random &other) const;
+  inline bool operator!=(const Random &other) const {
+    return !operator==(other);
+  }
+
     // called by the plugin framework so that plugins
     // get the "global" seeder
     static void initSeeder(const RandomSeedFuncPtr r);
 
   static void shutdown();
-
-    /**
-     * compare Random instances.
-     * RandomImpl is a singleton.
-     * They must share the same RandomImpl to be equal.
-     */
-    bool equals(const Random &r) const {
-      if (seed_ == r.seed_ && impl_ == r.impl_)
-        return true;
-      return false;
-    }
-
-    bool operator==(const Random &r) { return equals(r); }
-    bool operator!=(const Random &r) { return !equals(r); }
-
 
 
   protected:
