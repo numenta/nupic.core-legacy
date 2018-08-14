@@ -1457,44 +1457,31 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
 
   // First check basic parameters. If we fail here, don't continue
   if (!sameTMParams(tm1, tm2)) {
-    if (verbosity > 0)
-      out << "Two TM's have different parameters\n";
+    if (verbosity > 0) out << "Two TM's have different parameters\n";
     return false;
   }
   if (checkStates) {
-    Byte *state1;
-    Byte *state2;
-
     // Compare states at T first, they usually diverge before the structure of
     // the cells starts diverging  (infActiveStateT)
-    state1 = tm1.getActiveState();
-    state2 = tm2.getActiveState();
-    if (memcmp(state1, state2, tm1.getNumCells())) {
-      if (verbosity > 0)
-        out << "Active states diverged (infActiveStateT)\n";
+    if (memcmp(tm1.getActiveState(), tm2.getActiveState(), tm1.getNumCells())) {
+      if (verbosity > 0) out << "Active states diverged (infActiveStateT)\n";
       result = false;
     }
-    state1 = tm1.getPredictedState();
-    state2 = tm2.getPredictedState();
-    if (memcmp(state1, state2, tm1.getNumCells())) {
-      if (verbosity > 0)
-        out << "Predicted states diverged (infPredictedStateT)\n";
+    if (memcmp(tm1.getPredictedState(), tm2.getPredictedState(), 
+			    tm1.getNumCells())) {
+      if (verbosity > 0) out << "Predicted states diverged (infPredictedStateT)\n";
       result = false;
     }
 
     if (checkLearn) {
-      state1 = tm1.getLearnActiveStateT();
-      state2 = tm2.getLearnActiveStateT();
-      if (memcmp(state1, state2, tm1.getNumCells())) {
-        if (verbosity > 0)
-          out << "Learn Active states diverged (lrnActiveStateT)\n";
+      if (memcmp(tm1.getLearnActiveStateT(), tm2.getLearnActiveStateT(),
+			     tm1.getNumCells())) {
+        if (verbosity > 0) out << "Learn Active states diverged (lrnActiveStateT)\n";
         result = false;
       }
-      state1 = tm1.getLearnPredictedStateT();
-      state2 = tm2.getLearnPredictedStateT();
-      if (memcmp(state1, state2, tm1.getNumCells())) {
-        if (verbosity > 0)
-          out << "Learn Predicted states diverged (lrnPredictedStateT)\n";
+      if (memcmp(tm1.getLearnPredictedStateT(), tm2.getLearnPredictedStateT(), 
+			      tm1.getNumCells())) {
+        if (verbosity > 0) out << "Learn Predicted states diverged (lrnPredictedStateT)\n";
         result = false;
       }
       Real32 rstate1 = tm1.getAvgLearnedSeqLength();
@@ -1532,13 +1519,13 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
       tm1.printCells(false, out);
       out << "TM2: ";
       tm2.printCells(false, out);
-      result = false;
     }
+    result = false;
   }
 
   // Check that each cell has the same number of segments
   for (Size c = 0; c < tm1.getnumCol(); c++) {
-    for (Size i = 0; i < tm2.getcellsPerCol(); i++) {
+    for (Size i = 0; i < tm1.getcellsPerCol(); i++) {
       if (tm1.getNumSegmentsInCell(c, i) != tm2.getNumSegmentsInCell(c, i)) {
         out << "Num segments different in cell: [" << c << "," << i << "] "
             << tm1.getNumSegmentsInCell(c, i)
@@ -1554,11 +1541,10 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
   // tm2.
   if (result && !relaxSegmentTests && checkLearn) {
     for (Size c = 0; c < tm1.getnumCol(); c++) {
-      for (Size i = 0; i < tm2.getcellsPerCol(); i++) {
+      for (Size i = 0; i < tm1.getcellsPerCol(); i++) {
         UInt32 nSegs = tm1.getNumSegmentsInCell(c, i);
         for (Size segIdx = 0; segIdx < nSegs; segIdx++) {
-          BacktrackingTMCpp::SegOnCellInfo_t tm1seg;
-          tm1seg = tm1.getSegmentOnCell(c, i, segIdx);
+          auto tm1seg = tm1.getSegmentOnCell(c, i, segIdx);
 
           // Loop through all segments in tm2seg and see if any of them match
           // tm1seg
