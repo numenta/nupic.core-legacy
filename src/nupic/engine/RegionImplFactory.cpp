@@ -22,7 +22,6 @@
 
 #include <stdexcept>
 
-#include <capnp/any.h>
 
 #include <nupic/encoders/ScalarSensor.hpp>
 #include <nupic/engine/Region.hpp>

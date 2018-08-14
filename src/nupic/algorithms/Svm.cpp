@@ -168,7 +168,7 @@ void svm_problem01::save(std::ostream &outStream) const {
   nupic::binary_save(outStream, y_);
   nupic::binary_save(outStream, nnz_);
 
-  for (int i = 0; i < size(); ++i)
+  for (size_t i = 0; i < size(); ++i)
     nupic::binary_save(outStream, x_[i], x_[i] + nnz_[i]);
   outStream << " ";
 }
@@ -274,7 +274,7 @@ size_t svm_model::persistent_size() const {
   {
     stringstream b2;
     for (auto &elem : sv_coef) {
-      for (size_t j = 0; j < size(); ++j)
+      for (int j = 0; j < size(); ++j)
         b2 << elem[j] << " ";
     }
     n += b2.str().size();
@@ -359,7 +359,7 @@ void svm_model::load(std::istream &inStream) {
 
   sv.resize(l, nullptr);
   inStream.ignore(1);
-  for (size_t i = 0; i < l; ++i) {
+  for (int i = 0; i < l; ++i) {
     sv[i] = sv_mem + i * n_dims();
     nupic::binary_load(inStream, sv[i], sv[i] + n_dims());
   }
@@ -368,9 +368,9 @@ void svm_model::load(std::istream &inStream) {
     delete[] elem;
 
   sv_coef.resize(n_class - 1, nullptr);
-  for (size_t i = 0; i < n_class - 1; ++i) {
+  for (int i = 0; i < n_class - 1; ++i) {
     sv_coef[i] = new float[l];
-    for (size_t j = 0; j < l; ++j)
+    for (int j = 0; j < l; ++j)
       inStream >> sv_coef[i][j];
   }
 

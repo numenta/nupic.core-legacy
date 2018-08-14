@@ -35,9 +35,6 @@
 
 #include <nupic/ntypes/Collection.hpp>
 
-#include <nupic/proto/NetworkProto.capnp.h>
-#include <nupic/proto/RegionProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -52,7 +49,8 @@ class Link;
  *
  * @nosubgrouping
  */
-class Network : public Serializable<NetworkProto> {
+class Network
+{
 public:
   /**
    * @name Construction and destruction
@@ -164,19 +162,6 @@ public:
                               const Dimensions &dimensions,
                               const std::string &bundlePath,
                               const std::string &label);
-
-  /**
-   * Create a new region from saved Cap'n Proto state.
-   *
-   * @param name
-   *        Name of the region, Must be unique in the network
-   * @param proto
-   *        The capnp proto reader
-   *
-   * @returns A pointer to the newly created Region
-   */
-  Region *addRegionFromProto(const std::string &name,
-                             RegionProto::Reader &proto);
 
   /**
    * Removes an existing region from the network.
@@ -377,11 +362,6 @@ public:
    */
   void resetProfiling();
 
-  // Capnp serialization methods
-  using Serializable::write;
-  virtual void write(NetworkProto::Builder &proto) const override;
-  using Serializable::read;
-  virtual void read(NetworkProto::Reader &proto) override;
 
   /**
    * @}

@@ -32,7 +32,6 @@
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/BasicType.hpp>
-#include <nupic/utils/ArrayProtoUtils.hpp>
 #include <nupic/utils/Log.hpp>
 
 // Set this to true when debugging to enable handy debug-level logging of data
@@ -450,48 +449,9 @@ void Link::shiftBufferedData() {
   }
 }
 
-void Link::write(LinkProto::Builder &proto) const {
-  proto.setType(linkType_.c_str());
-  proto.setParams(linkParams_.c_str());
-  proto.setSrcRegion(srcRegionName_.c_str());
-  proto.setSrcOutput(srcOutputName_.c_str());
-  proto.setDestRegion(destRegionName_.c_str());
-  proto.setDestInput(destInputName_.c_str());
+// NOTE: serialization for Link is handled by the Network class for now (keeney, 8/14/2018)
 
-  // Save delayed outputs
-  auto delayedOutputsBuilder = proto.initDelayedOutputs(propagationDelay_);
-  for (size_t i = 0; i < propagationDelay_; ++i) {
-    ArrayProtoUtils::copyArrayToArrayProto(srcBuffer_[i],
-                                           delayedOutputsBuilder[i]);
-  }
-}
 
-void Link::read(LinkProto::Reader &proto) {
-  const auto delayedOutputsReader = proto.getDelayedOutputs();
-
-  commonConstructorInit_(
-      proto.getType().cStr(), proto.getParams().cStr(),
-      proto.getSrcRegion().cStr(), proto.getDestRegion().cStr(),
-      proto.getSrcOutput().cStr(), proto.getDestInput().cStr(),
-      delayedOutputsReader.size() /*propagationDelay*/);
-
-  if (delayedOutputsReader.size()) {
-    // Initialize the propagation delay buffer with delay arrays having 0
-    // elements that deserialization logic will replace with appropriately-sized
-    // buffers.
-    initPropagationDelayBuffer_(
-        propagationDelay_,
-        Array(ArrayProtoUtils::getArrayTypeFromArrayProtoReader(
-            delayedOutputsReader[0])));
-
-    // Populate delayed outputs
-
-    for (size_t i = 0; i < propagationDelay_; ++i) {
-      ArrayProtoUtils::copyArrayProtoToArray(
-          delayedOutputsReader[i], srcBuffer_[i], true /*allocArrayBuffer*/);
-    }
-  }
-}
 bool Link::operator==(const Link &o) const {
   if (initialized_ != o.initialized_ ||
       propagationDelay_ != o.propagationDelay_ || linkType_ != o.linkType_ ||
@@ -513,6 +473,8 @@ std::ostream &operator<<(std::ostream &f, const Link &link) {
   f << "  <destRegion>" << link.getDestRegionName() << "</destRegion>\n";
   f << "  <srcOutput>" << link.getSrcOutputName() << "</srcOutput>\n";
   f << "  <destInput>" << link.getDestInputName() << "</destInput>\n";
+  f << "  <propagationDelay>" << link.getPropagationDelay()
+    << "</propagationDelay>\n";
   f << "</Link>\n";
   return f;
 }

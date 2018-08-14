@@ -40,8 +40,6 @@ Implementation of the Network class
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/FStream.hpp>
 #include <nupic/os/Path.hpp>
-#include <nupic/proto/NetworkProto.capnp.h>
-#include <nupic/proto/RegionProto.capnp.h>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
@@ -148,24 +146,6 @@ Region *Network::addRegionFromBundle(const std::string &name,
   return r;
 }
 
-Region *Network::addRegionFromProto(const std::string &name,
-                                    RegionProto::Reader &proto) {
-  if (regions_.contains(name)) {
-    NTA_THROW << "Cannot add region with name '" << name
-              << "' that is already in used.";
-  }
-
-  auto region = new Region(name, proto, this);
-  regions_.add(name, region);
-  initialized_ = false;
-
-  // In the normal use case (deserializing a network)
-  // this default phase will immediately be overridden with the
-  // saved phases. Having it here makes it possible for user code
-  // to safely call addRegionFromProto directly.
-  setDefaultPhase_(region);
-  return region;
-}
 
 void Network::setPhases_(Region *r, std::set<UInt32> &phases) {
   if (phases.empty())
@@ -905,88 +885,7 @@ void Network::loadFromBundle(const std::string &name) {
   } // links
 }
 
-void Network::write(NetworkProto::Builder &proto) const {
-  // Aggregate links from all of the regions
-  std::vector<Link *> links;
 
-  auto entriesProto = proto.initRegions().initEntries(regions_.getCount());
-  for (UInt i = 0; i < regions_.getCount(); i++) {
-    auto entry = entriesProto[i];
-    auto regionPair = regions_.getByIndex(i);
-    auto regionProto = entry.initValue();
-    entry.setKey(regionPair.first.c_str());
-    regionPair.second->write(regionProto);
-
-    // Aggregate this regions links in a vector to store at end
-    for (auto inputPair : regionPair.second->getInputs()) {
-      auto &newLinks = inputPair.second->getLinks();
-      links.insert(links.end(), newLinks.begin(), newLinks.end());
-    }
-  }
-
-  // Store the aggregated links
-  auto linksListProto = proto.initLinks(links.size());
-  for (UInt i = 0; i < links.size(); ++i) {
-    auto linkProto = linksListProto[i];
-    links[i]->write(linkProto);
-  }
-}
-
-void Network::read(NetworkProto::Reader &proto) {
-  // Clear any previous regions
-  while (regions_.getCount() > 0) {
-    auto pair = regions_.getByIndex(0);
-    delete pair.second;
-    regions_.remove(pair.first);
-  }
-
-  // Add regions
-  for (auto entry : proto.getRegions().getEntries()) {
-    auto regionProto = entry.getValue();
-    auto region = addRegionFromProto(entry.getKey().cStr(), regionProto);
-
-    // Initialize the phases for the region
-    std::set<UInt32> phases;
-    for (auto phase : regionProto.getPhases()) {
-      phases.insert(phase);
-    }
-    setPhases_(region, phases);
-  }
-
-  for (auto linkProto : proto.getLinks()) {
-    auto link = new Link();
-    link->read(linkProto);
-
-    if (!regions_.contains(link->getSrcRegionName())) {
-      NTA_THROW << "Link references unknown region: "
-                << link->getSrcRegionName();
-    }
-    Region *srcRegion = regions_.getByName(link->getSrcRegionName());
-    Output *srcOutput = srcRegion->getOutput(link->getSrcOutputName());
-    if (srcOutput == nullptr) {
-      NTA_THROW << "Link references unknown source output: "
-                << link->getSrcOutputName();
-    }
-
-    if (!regions_.contains(link->getDestRegionName())) {
-      NTA_THROW << "Link references unknown region: "
-                << link->getDestRegionName();
-    }
-    Region *destRegion = regions_.getByName(link->getDestRegionName());
-    Input *destInput = destRegion->getInput(link->getDestInputName());
-    if (destInput == nullptr) {
-      NTA_THROW << "Link references unknown destination input: "
-                << link->getDestInputName();
-    }
-
-    link->connectToNetwork(srcOutput, destInput);
-
-    // Add the link to the input and to the list of links on the output
-    destInput->addLink(link, srcOutput);
-  }
-
-  initialized_ = false;
-}
 
 void Network::enableProfiling() {
   for (size_t i = 0; i < regions_.getCount(); i++)

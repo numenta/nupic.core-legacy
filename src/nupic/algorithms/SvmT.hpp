@@ -1314,8 +1314,9 @@ template <typename traits> float svm<traits>::cross_validation(int nr_fold) {
 }
 
 //--------------------------------------------------------------------------------
-template <typename traits> int svm<traits>::persistent_size() const {
-  int n = 6 + param_.persistent_size();
+template <typename traits>
+size_t svm<traits>::persistent_size() const {
+  size_t n = 6 + param_.persistent_size();
 
   if (problem_)
     n += problem_->persistent_size();
