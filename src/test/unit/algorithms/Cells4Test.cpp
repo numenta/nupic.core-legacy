@@ -179,6 +179,7 @@ TEST(Cells4Test, pickleSerialization) {
   }
 }
 
+/* //TODO obsoleted, will be removed by other PR
 TEST(Cells4Test, capnpSerialization) {
   Cells4 cells(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true,
                false);
@@ -267,6 +268,8 @@ TEST(Cells4Test, capnpSerialization) {
   }
   ASSERT_TRUE(cells == secondCellsNoReset);
 }
+*/
+
 
 /*
  * Test Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment.
