@@ -35,8 +35,6 @@
 #include <nupic/engine/LinkPolicy.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/proto/LinkProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -51,7 +49,8 @@ class Input;
  * @nosubgrouping
  *
  */
-class Link : public Serializable<LinkProto> {
+class Link
+{
 public:
   /**
    * @name Initialization
@@ -268,6 +267,14 @@ public:
   const std::string &getDestInputName() const;
 
   /**
+   * Get the propogation Delay.
+   *
+   * @returns
+   *         The propogation Delay.
+   */
+  size_t getPropagationDelay() const { return propagationDelay_; }
+
+  /**
    * @}
    *
    * @name Misc
@@ -395,14 +402,32 @@ public:
    */
   friend std::ostream &operator<<(std::ostream &f, const Link &link);
 
-  using Serializable::write;
-  void write(LinkProto::Builder &proto) const;
+  bool operator==(const Link &o) const;
+  bool operator!=(const Link &o) const { return !operator==(o); }
 
-  using Serializable::read;
-  void read(LinkProto::Reader &proto);
+  /**
+   * Serialize the link to YAML.
+   *
+   * @param out
+   *            The YAML Emitter to encode into (from Network.cpp)
+   */
+ // void serialize(YAML::Emitter &out);
+ // coming later (keeney)
 
-  bool operator==(const Link &other) const;
-  inline bool operator!=(const Link &other) const { return !operator==(other); }
+  /**
+   * Deserialize the link from YAML.
+   *
+   * @param link
+   *            The YAML Node to decode from (from Network.cpp)
+   *
+   * @note After deserializing the link, caller must now call
+   *    newLink->connectToNetwork(srcOutput, destInput);
+   *
+   * After everything is deserialized caller must call
+   *    net.initialize()
+   */
+ // void deserialize(const YAML::Node &link);
+ // coming later (keeney)
 
 private:
   // common initialization for the two constructors.

@@ -643,96 +643,6 @@ template <typename traits>
 inline float svm<traits>::rbf_function(float *x, float *x_end, float *y) const {
   float sum = 0;
 
-#if defined(NTA_ASM) && defined(NTA_ARCH_32) && defined(NTA_OS_WINDOWS) &&     \
-    defined(NTA_COMPILER_MSVC)
-
-  if (with_sse) {
-
-    // VC asm
-
-    __asm {
-        mov     esi, x
-        mov     edi, y
-  
-        xorps  xmm1, xmm1
-        xorps  xmm3, xmm3
-        xorps  xmm4, xmm4
-  
-        label0:
-          movaps xmm0, [esi]
-          movaps xmm2, [esi + 16]
-          subps  xmm0, [edi]
-          subps  xmm2, [edi + 16]
-          mulps  xmm0, xmm0
-          mulps  xmm2, xmm2
-          addps  xmm1, xmm0
-          addps  xmm3, xmm2
-
-          add     esi, 32
-          add     edi, 32
-          cmp     esi, x_end
-        jne  label0
-  
-        addps  xmm1, xmm3
-        haddps  xmm1, xmm4
-        haddps  xmm1, xmm4
-        movss    sum, xmm1
-    }
-
-  } else { // no sse
-
-    while (x != x_end) {
-      float d = *x - *y;
-      sum += d * d;
-      ++x;
-      ++y;
-    }
-  }
-
-#elif defined(NTA_ASM) && defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
-
-  if (with_sse) {
-
-    asm("xorps %%xmm4,%%xmm4\n\t" // only contains zeros on purpose
-        "xorps %%xmm1,%%xmm1\n\t"
-        "xorps %%xmm3,%%xmm3\n\t"
-
-        "0:\t\n"
-        "movaps   (%%esi), %%xmm0\n\t"
-        "movaps 16(%%esi), %%xmm2\n\t"
-        "subps    (%%edi), %%xmm0\n\t"
-        "subps  16(%%edi), %%xmm2\n\t"
-        "mulps  %%xmm0, %%xmm0\n\t"
-        "mulps  %%xmm2, %%xmm2\n\t"
-        "addps  %%xmm0, %%xmm1\n\t"
-        "addps  %%xmm2, %%xmm3\n\t"
-
-        "addl $32, %%esi\n\t"
-        "addl $32, %%edi\n\t"
-        "cmpl %1, %%esi\n\t"
-        "jne 0b\n\t"
-
-        "addps %%xmm3, %%xmm1\n\t"
-        "haddps %%xmm4, %%xmm1\n\t"
-        "haddps %%xmm4, %%xmm1\n\t"
-        "movss  %%xmm1, %0\n\t"
-
-        : "=m"(sum)
-        : "m"(x_end), "S"(x), "D"(y)
-        :);
-
-  } else { // no sse
-
-    while (x != x_end) {
-      float d = *x - *y;
-      sum += d * d;
-      ++x;
-      ++y;
-    }
-  }
-
-#else // not darwin86, not win32 and VC; or not NTA_ASM
-
   while (x != x_end) {
     float d = *x - *y;
     sum += d * d;
@@ -740,7 +650,6 @@ inline float svm<traits>::rbf_function(float *x, float *x_end, float *y) const {
     ++y;
   }
 
-#endif
 
   return exp(-param_.gamma * sum);
 }
@@ -1405,8 +1314,9 @@ template <typename traits> float svm<traits>::cross_validation(int nr_fold) {
 }
 
 //--------------------------------------------------------------------------------
-template <typename traits> int svm<traits>::persistent_size() const {
-  int n = 6 + param_.persistent_size();
+template <typename traits>
+size_t svm<traits>::persistent_size() const {
+  size_t n = 6 + param_.persistent_size();
 
   if (problem_)
     n += problem_->persistent_size();

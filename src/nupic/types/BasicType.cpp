@@ -20,8 +20,11 @@
  * ---------------------------------------------------------------------
  */
 
+#include <limits>
+
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Exception.hpp>
+#include <nupic/utils/Log.hpp>
 
 using namespace nupic;
 
@@ -138,10 +141,9 @@ template <> NTA_BasicType BasicType::getType<bool>() {
 // Return the size in bits of a basic type
 size_t BasicType::getSize(NTA_BasicType t) {
   static size_t basicTypeSizes[] = {
-      sizeof(NTA_Byte),   sizeof(NTA_Int16),  sizeof(NTA_UInt16),
-      sizeof(NTA_Int32),  sizeof(NTA_UInt32), sizeof(NTA_Int64),
-      sizeof(NTA_UInt64), sizeof(NTA_Real32), sizeof(NTA_Real64),
-      sizeof(NTA_Handle), sizeof(bool),
+      sizeof(Byte),   sizeof(Int16),  sizeof(UInt16), sizeof(Int32),
+      sizeof(UInt32), sizeof(Int64),  sizeof(UInt64), sizeof(Real32),
+      sizeof(Real64), sizeof(Handle), sizeof(bool),
   };
 
   if (!isValid(t))
@@ -178,4 +180,412 @@ NTA_BasicType BasicType::parse(const std::string &s) {
   else
     throw Exception(__FILE__, __LINE__,
                     std::string("Invalid basic type name: ") + s);
+}
+
+/**
+* target is bool (0 or anything else)
+* target is same type as source.
+* target is larger type then source and same sign.
+* No range checks needed.
+*/
+template <typename T, typename F>
+static void cpyarray(void *toPtr, const void *fromPtr, size_t count) {
+  T *ptr1 = (T *)toPtr;
+  const F *ptr2 = (F *)fromPtr;
+  for (size_t i = 0; i < count; i++) {
+    *ptr1++ = (T)*ptr2++;
+  }
+}
+
+/**
+ * source type larger than source or sign different.
+ * Range checks needed
+ */
+template <typename T, typename F>
+static void cpyarray(void *toPtr, const void *fromPtr, size_t count, F minVal, F maxVal) {
+  T *ptr1 = (T *)toPtr;
+  const F *ptr2 = (F *)fromPtr;
+  for (size_t i = 0; i < count; i++) {
+    NTA_CHECK(*ptr2 >= minVal && *ptr2 <= maxVal)
+          << "Value Out of range. Value: " << *ptr2 << " ";
+    *ptr1++ = (T)*ptr2++;
+  }
+}
+
+void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
+                             NTA_BasicType fromType, size_t count) {
+  try {
+    switch (fromType) {
+    case NTA_BasicType_Byte: // char.  This might be signed or unsigned.
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, Byte>(ptr1, ptr2, count,  0, (Byte)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, Byte>(ptr1, ptr2, count, 0, (Byte)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, Byte>(ptr1, ptr2, count, 0, (Byte)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, Byte>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    case NTA_BasicType_Int16:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, Int16>(ptr1, ptr2, count, (Int16)std::numeric_limits<Byte>::min(), (Int16)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, Int16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, Int16>(ptr1, ptr2, count, 0, (UInt16)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, Int16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, Int16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, Int16>(ptr1, ptr2, count, 0, (UInt16)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, Int16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, Int16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, Int16>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+
+    case NTA_BasicType_UInt16:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, UInt16>(ptr1, ptr2, count, 0, (UInt16)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, UInt16>(ptr1, ptr2, count, 0, (UInt16)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, UInt16>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, UInt16>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    case NTA_BasicType_Int32:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, Int32>(ptr1, ptr2, count, (Int32)std::numeric_limits<Byte>::min(), (Int32)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, Int32>(ptr1, ptr2, count, (Int32)std::numeric_limits<Int16>::min(), (Int32)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, Int32>(ptr1, ptr2, count, 0, (Int32)std::numeric_limits<UInt16>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, Int32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, Int32>(ptr1, ptr2, count, 0, (Int32)std::numeric_limits<Int32>::max());
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, Int32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, Int32>(ptr1, ptr2, count, 0, (Int32)std::numeric_limits<Int32>::max());
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, Int32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, Int32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, Int32>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    case NTA_BasicType_UInt32:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, UInt32>(ptr1, ptr2, count, 0, (UInt32)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, UInt32>(ptr1, ptr2, count, 0, (UInt32)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, UInt32>(ptr1, ptr2, count, 0, (UInt32)std::numeric_limits<UInt16>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, UInt32>(ptr1, ptr2, count, 0, (UInt32)std::numeric_limits<Int32>::max());
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, UInt32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, UInt32>(ptr1, ptr2, count, 0, (UInt32)std::numeric_limits<UInt32>::max());
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, UInt32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, UInt32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, UInt32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, UInt32>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    case NTA_BasicType_Int64:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, Int64>(ptr1, ptr2, count, (Int64)std::numeric_limits<Byte>::min(), (Int64)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, Int64>(ptr1, ptr2, count, (Int64)std::numeric_limits<Int16>::min(), (Int64)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, Int64>(ptr1, ptr2, count, 0, (Int64)std::numeric_limits<UInt16>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, Int64>(ptr1, ptr2, count, (Int64)std::numeric_limits<Int32>::min(), (Int64)std::numeric_limits<Int32>::max());
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, Int64>(ptr1, ptr2, count, 0, (Int64)std::numeric_limits<UInt32>::max());
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, Int64>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, Int64>(ptr1, ptr2, count, 0, (Int64)std::numeric_limits<Int64>::max());
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, Int64>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, Int64>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, Int64>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+
+    case NTA_BasicType_UInt64:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, UInt64>(ptr1, ptr2, count, 0, (UInt64)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, UInt64>(ptr1, ptr2, count, 0, (UInt64)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, UInt64>(ptr1, ptr2, count, 0, (UInt64)std::numeric_limits<UInt16>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, UInt64>(ptr1, ptr2, count, 0, (UInt64)std::numeric_limits<Int32>::max());
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, UInt64>(ptr1, ptr2, count, 0, (UInt64)std::numeric_limits<UInt32>::max());
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, UInt64>(ptr1, ptr2, count, 0, (UInt64)std::numeric_limits<Int64>::max());
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, UInt64>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, UInt64>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, UInt64>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, UInt64>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    case NTA_BasicType_Real32:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, Real32>(ptr1, ptr2, count, (Real32)std::numeric_limits<Byte>::min(), (Real32)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, Real32>(ptr1, ptr2, count, (Real32)std::numeric_limits<Int16>::min(), (Real32)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, Real32>(ptr1, ptr2, count, 0.0f, (Real32)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, Real32>(ptr1, ptr2, count, (Real32)std::numeric_limits<Int32>::min(), (Real32)std::numeric_limits<Int32>::max());
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, Real32>(ptr1, ptr2, count, 0.0f, (Real32)std::numeric_limits<UInt32>::max());
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, Real32>(ptr1, ptr2, count, (Real32)std::numeric_limits<Int64>::min(), (Real32)std::numeric_limits<Int64>::max());
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, Real32>(ptr1, ptr2, count, 0.0f, (Real32)std::numeric_limits<UInt64>::max());
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, Real32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, Real32>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, Real32>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    case NTA_BasicType_Real64:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, Real64>(ptr1, ptr2, count, (Real64)std::numeric_limits<Byte>::min(), (Real64)std::numeric_limits<Byte>::max());
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, Real64>(ptr1, ptr2, count, (Real64)std::numeric_limits<Int16>::min(), (Real64)std::numeric_limits<Int16>::max());
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, Real64>(ptr1, ptr2, count, (Real64)std::numeric_limits<Byte>::min(), (Real64)std::numeric_limits<UInt16>::max());
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, Real64>(ptr1, ptr2, count, (Real64)std::numeric_limits<Int32>::min(), (Real64)std::numeric_limits<Int32>::max());
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, Real64>(ptr1, ptr2, count, 0.0, (Real64)std::numeric_limits<UInt32>::max());
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, Real64>(ptr1, ptr2, count, (Real64)std::numeric_limits<Int64>::min(), (Real64)std::numeric_limits<Int64>::max());
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, Real64>(ptr1, ptr2, count, 0.0, (Real64)std::numeric_limits<UInt64>::max());
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, Real64>(ptr1, ptr2, count, (Real64)-std::numeric_limits<Real32>::max(), (Real64)std::numeric_limits<Real32>::max());
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, Real64>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, Real64>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    case NTA_BasicType_Bool:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, bool>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, bool>(ptr1, ptr2, count);
+        break;
+      default:
+	break;
+      }
+      break;
+    default:
+      break;
+    }
+  } catch (nupic::Exception e) {
+    NTA_THROW << "Error Converting Array from " << BasicType::getName(fromType)
+              << " to " << BasicType::getName(toType) << " " << e.getMessage();
+  } catch (std::exception e) {
+    NTA_THROW << "Error Converting Array from " << BasicType::getName(fromType)
+              << " to " << BasicType::getName(toType) << " " << e.what();
+  }
 }

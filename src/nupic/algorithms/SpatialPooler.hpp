@@ -27,16 +27,13 @@
 #ifndef NTA_spatial_pooler_HPP
 #define NTA_spatial_pooler_HPP
 
-#include <capnp/message.h>
 #include <cstring>
 #include <iostream>
-#include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/math/SparseMatrix.hpp>
-#include <nupic/proto/SpatialPoolerProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
-#include <nupic/types/Types.hpp>
 #include <string>
 #include <vector>
+#include <nupic/math/SparseBinaryMatrix.hpp>
+#include <nupic/math/SparseMatrix.hpp>
+#include <nupic/types/Types.hpp>
 
 using namespace std;
 
@@ -67,7 +64,8 @@ namespace spatial_pooler {
  *     }
  *
  */
-class SpatialPooler : public Serializable<SpatialPoolerProto> {
+class SpatialPooler
+{
 public:
   SpatialPooler();
   SpatialPooler(vector<UInt> inputDimensions, vector<UInt> columnDimensions,
@@ -273,8 +271,6 @@ public:
    */
   virtual void save(ostream &outStream) const;
 
-  using Serializable::write;
-  virtual void write(SpatialPoolerProto::Builder &proto) const override;
 
   /**
   Load (deserialize) and initialize the spatial pooler from the
@@ -284,8 +280,6 @@ public:
    */
   virtual void load(istream &inStream);
 
-  using Serializable::read;
-  virtual void read(SpatialPoolerProto::Reader &proto) override;
 
   /**
   Returns the number of bytes that a save operation would result in.
@@ -933,10 +927,10 @@ public:
   void calculateOverlap_(UInt inputVector[], vector<UInt> &overlap);
   void calculateOverlapPct_(vector<UInt> &overlaps, vector<Real> &overlapPct);
 
-  bool isWinner_(Real score, vector<pair<UInt, Real>> &winners,
-                 UInt numWinners);
+  bool isWinner_(const Real score, const vector<pair<UInt, Real>> &winners,
+                 const UInt numWinners) const;
 
-  void addToWinners_(UInt index, Real score, vector<pair<UInt, Real>> &winners);
+  void addToWinners_(const UInt index, const Real score, vector<pair<UInt, Real>> &winners) const;
 
   /**
       Performs inhibition. This method calculates the necessary values needed to

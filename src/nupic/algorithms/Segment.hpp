@@ -34,8 +34,6 @@
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_sorted
 #include <nupic/math/StlIo.hpp>     // binary_save
-#include <nupic/proto/Segment.capnp.h>
-#include <nupic/types/Serializable.hpp>
 
 //-----------------------------------------------------------------------
 /**
@@ -89,7 +87,8 @@ namespace Cells4 {
 /**
  * Encapsulate the arrays used to maintain per-cell state.
  */
-class CState : Serializable<CStateProto> {
+class CState
+{
 public:
   static const UInt VERSION = 1;
 
@@ -160,26 +159,18 @@ public:
     }
     outStream << std::endl << "end" << std::endl;
   }
-  using Serializable::write;
-  virtual void write(CStateProto::Builder &proto) const override {
-    proto.setVersion(VERSION);
-    proto.setFMemoryAllocatedByPython(_fMemoryAllocatedByPython);
-    auto pDataProto = proto.initPData(_nCells);
-    for (UInt i = 0; i < _nCells; ++i) {
-      pDataProto[i] = _pData[i];
-    }
+  // output binary
+  inline void binary_save(std::ostream& outStream) const
+  {
+    outStream << version() << " "
+                           << _fMemoryAllocatedByPython << " "
+                           << _nCells << std::endl;
+    outStream.write((const char *)_pData, _nCells * sizeof(Byte));
+    outStream << std::endl << "end" << std::endl;
   }
-  using Serializable::read;
-  virtual void read(CStateProto::Reader &proto) override {
-    NTA_CHECK(proto.getVersion() == 1);
-    _fMemoryAllocatedByPython = proto.getFMemoryAllocatedByPython();
-    auto pDataProto = proto.getPData();
-    _nCells = pDataProto.size();
-    for (UInt i = 0; i < _nCells; ++i) {
-      _pData[i] = pDataProto[i];
-    }
-  }
-  void load(std::istream &inStream) {
+
+  inline void load(std::istream& inStream)
+  {
     UInt version;
     inStream >> version;
     NTA_CHECK(version == 1);
@@ -285,23 +276,24 @@ public:
     }
     outStream << "end" << std::endl;
   }
-  void write(CStateProto::Builder &proto) const override {
-    CState::write(proto);
-    proto.setCountOn(_countOn);
-    auto cellsOnProto = proto.initCellsOn(_cellsOn.size());
-    for (UInt i = 0; i < _cellsOn.size(); ++i) {
-      cellsOnProto.set(i, _cellsOn[i]);
-    }
+
+  // output binary
+  inline void binary_save(std::ostream& outStream) const
+        {
+          outStream << version() << " "
+                    << _fMemoryAllocatedByPython << " "
+                    << _nCells << " ";
+          outStream.write((const char *)_pData, _nCells * sizeof(Byte));
+          outStream << _countOn << " ";
+          outStream << _cellsOn.size() << " ";
+          for (auto & elem : _cellsOn)
+          {
+            outStream << elem << " ";
+          }
+          outStream << "end" << std::endl;
   }
-  void read(CStateProto::Reader &proto) override {
-    CState::read(proto);
-    _countOn = proto.getCountOn();
-    auto cellsOnProto = proto.getCellsOn();
-    _cellsOn.resize(cellsOnProto.size());
-    for (UInt i = 0; i < cellsOnProto.size(); ++i) {
-      _cellsOn[i] = cellsOnProto[i];
-    }
-  }
+
+  // input binary
   void load(std::istream &inStream) {
     UInt version;
     inStream >> version;
@@ -355,7 +347,8 @@ struct InSynapseOrder {
 };
 
 //-----------------------------------------------------------------------
-class Segment : Serializable<SegmentProto> {
+class Segment
+{
 public:
   typedef std::vector<InSynapse> InSynapses;
 
@@ -814,44 +807,6 @@ public:
   }
 
   //----------------------------------------------------------------------
-  using Serializable::write;
-  void write(SegmentProto::Builder &proto) const override {
-    NTA_ASSERT(invariants());
-    proto.setSeqSegFlag(_seqSegFlag);
-    proto.setFrequency(_frequency);
-    proto.setNConnected(_nConnected);
-    proto.setTotalActivations(_totalActivations);
-    proto.setPositiveActivations(_positiveActivations);
-    proto.setLastActiveIteration(_lastActiveIteration);
-    proto.setLastPosDutyCycle(_lastPosDutyCycle);
-    proto.setLastPosDutyCycleIteration(_lastPosDutyCycleIteration);
-    auto synapsesProto = proto.initSynapses(size());
-    for (UInt i = 0; i < size(); ++i) {
-      auto inSynapseProto = synapsesProto[i];
-      inSynapseProto.setSrcCellIdx(_synapses[i].srcCellIdx());
-      inSynapseProto.setPermanence(_synapses[i].permanence());
-    }
-  }
-
-  //----------------------------------------------------------------------
-  using Serializable::read;
-  void read(SegmentProto::Reader &proto) override {
-    _seqSegFlag = proto.getSeqSegFlag();
-    _frequency = proto.getFrequency();
-    _nConnected = proto.getNConnected();
-    _totalActivations = proto.getTotalActivations();
-    _positiveActivations = proto.getPositiveActivations();
-    _lastActiveIteration = proto.getLastActiveIteration();
-    _lastPosDutyCycle = proto.getLastPosDutyCycle();
-    _lastPosDutyCycleIteration = proto.getLastPosDutyCycleIteration();
-    _synapses.clear();
-    for (auto inSynapseProto : proto.getSynapses()) {
-      _synapses.emplace_back(inSynapseProto.getSrcCellIdx(),
-                             inSynapseProto.getPermanence());
-    }
-  }
-
-  //----------------------------------------------------------------------
   inline void save(std::ostream &outStream) const {
     NTA_ASSERT(invariants());
     outStream << size() << ' ' << _seqSegFlag << ' ' << _frequency << ' '
@@ -884,11 +839,9 @@ public:
 };
 
 //-----------------------------------------------------------------------
-#ifndef SWIG
 std::ostream &operator<<(std::ostream &outStream, const Segment &seg);
 std::ostream &operator<<(std::ostream &outStream, const CState &cstate);
 std::ostream &operator<<(std::ostream &outStream, const CStateIndexed &cstate);
-#endif
 
 //-----------------------------------------------------------------------
 } // end namespace Cells4

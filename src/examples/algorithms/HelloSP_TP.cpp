@@ -22,7 +22,6 @@
 
 #include <algorithm> // std::generate
 #include <cmath>     // pow
-#include <cstdlib>   // std::rand, std::srand
 #include <ctime>     // std::time
 #include <iostream>
 #include <vector>
@@ -30,16 +29,12 @@
 #include "nupic/algorithms/Cells4.hpp"
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/os/Timer.hpp"
+#include "nupic/utils/Random.hpp"
 
 using namespace std;
 using namespace nupic;
 using nupic::algorithms::Cells4::Cells4;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
-
-// function generator:
-int RandomNumber01() {
-  return (rand() % 2);
-} // returns random (binary) numbers from {0,1}
 
 int main(int argc, const char *argv[]) {
   const UInt DIM = 2048; // number of columns in SP, TP
@@ -58,6 +53,7 @@ int main(int argc, const char *argv[]) {
   vector<UInt> outTP(_CELLS);
   Real rIn[DIM] = {}; // input for TP (must be Reals)
   Real rOut[_CELLS] = {};
+  Random rnd;
 
   // initialize SP, TP
   SpatialPooler sp(inputDim, colDim);
@@ -69,7 +65,7 @@ int main(int argc, const char *argv[]) {
 
   // run
   for (UInt e = 0; e < EPOCHS; e++) {
-    generate(input.begin(), input.end(), RandomNumber01);
+    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());

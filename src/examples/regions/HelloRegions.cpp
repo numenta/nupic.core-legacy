@@ -84,8 +84,9 @@ int main(int argc, const char *argv[]) {
   Network net2;
   {
     std::stringstream ss;
-    net.write(ss);
-    net2.read(ss);
+// ToDo: add a full stream interface to Network
+//    net.write(ss);
+//    net2.read(ss);
   }
   net2.initialize();
 

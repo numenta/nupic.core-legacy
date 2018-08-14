@@ -33,8 +33,6 @@
 #include <utility>
 #include <vector>
 
-#include <nupic/proto/RandomProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -81,7 +79,8 @@ namespace nupic {
  */
 class RandomImpl;
 
-class Random : public Serializable<RandomProto> {
+class Random
+{
 public:
   /**
    * Retrieve the seeder. If seeder not set, allocates the
@@ -99,19 +98,11 @@ public:
   Random &operator=(const Random &);
   ~Random();
 
-  // write serialized data
-  using Serializable::write;
-  void write(RandomProto::Builder &proto) const override;
-
-  // read and deserialize data
-  using Serializable::read;
-  void read(RandomProto::Reader &proto) override;
-
-  // return a value uniformly distributed between 0 and max-1
-  UInt32 getUInt32(UInt32 max = MAX32);
-  UInt64 getUInt64(UInt64 max = MAX64);
-  // return a double uniformly distributed on 0...1.0
-  Real64 getReal64();
+    // return a value uniformly distributed between 0 and max-1
+    UInt32 getUInt32(UInt32 max = MAX32);
+    UInt64 getUInt64(UInt64 max = MAX64);
+    // return a double uniformly distributed on 0...1.0
+    Real64 getReal64();
 
   // populate choices with a random selection of nChoices elements from
   // population. throws exception when nPopulation < nChoices

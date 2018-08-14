@@ -30,8 +30,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <capnp/any.h>
-
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -54,12 +52,6 @@ VectorFileEffector::VectorFileEffector(BundleIO &bundle, Region *region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {}
 
-VectorFileEffector::VectorFileEffector(capnp::AnyPointer::Reader &proto,
-                                       Region *region)
-    : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
-      outFile_(nullptr) {
-  read(proto);
-}
 
 VectorFileEffector::~VectorFileEffector() { closeFile(); }
 
@@ -245,10 +237,5 @@ void VectorFileEffector::serialize(BundleIO &bundle) { return; }
 
 void VectorFileEffector::deserialize(BundleIO &bundle) { return; }
 
-void VectorFileEffector::write(capnp::AnyPointer::Builder &anyProto) const {
-  return;
-}
-
-void VectorFileEffector::read(capnp::AnyPointer::Reader &anyProto) { return; }
 
 } // namespace nupic

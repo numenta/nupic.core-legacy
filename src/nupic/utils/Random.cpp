@@ -29,11 +29,6 @@
 #include <ctime>
 #include <iostream> // for istream, ostream
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
-#include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/utils/StringUtils.hpp>
@@ -65,8 +60,6 @@ class RandomImpl {
 public:
   RandomImpl(UInt64 seed);
   ~RandomImpl(){};
-  void write(RandomImplProto::Builder &proto) const;
-  void read(RandomImplProto::Reader &proto);
   UInt32 getUInt32();
   bool operator==(const RandomImpl &o) const;
   inline bool operator!=(const RandomImpl &other) const {
@@ -93,23 +86,6 @@ Random::Random(const Random &r) {
   impl_ = new RandomImpl(*r.impl_);
 }
 
-void Random::write(RandomProto::Builder &proto) const {
-  // save Random state
-  proto.setSeed(seed_);
-
-  // save RandomImpl state
-  auto implProto = proto.initImpl();
-  impl_->write(implProto);
-}
-
-void Random::read(RandomProto::Reader &proto) {
-  // load Random state
-  seed_ = proto.getSeed();
-
-  // load RandomImpl state
-  auto implProto = proto.getImpl();
-  impl_->read(implProto);
-}
 
 void Random::reseed(UInt64 seed) {
   seed_ = seed;
@@ -184,19 +160,15 @@ void Random::shutdown() {
 }
 
 UInt32 Random::getUInt32(const UInt32 max) {
-  NTA_ASSERT(max > 0);
-  UInt32 smax = Random::MAX32 - (Random::MAX32 % max);
-  UInt32 sample;
-  do {
-    sample = impl_->getUInt32();
-  } while (sample > smax);
+  NTA_CHECK(max > 0);
+  const UInt32 sample = impl_->getUInt32();
 
-  // NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " <<
-  // smax;
+//NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " << smax;
   return sample % max;
 }
 
-UInt64 Random::getUInt64(const UInt64 max) {
+UInt64 Random::getUInt64(const UInt64 max)
+{
   NTA_ASSERT(max > 0);
   UInt64 smax = Random::MAX64 - (Random::MAX64 % max);
   UInt64 sample, lo, hi;
@@ -204,9 +176,8 @@ UInt64 Random::getUInt64(const UInt64 max) {
     lo = impl_->getUInt32();
     hi = impl_->getUInt32();
     sample = lo | (hi << 32);
-  } while (sample > smax);
-  // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " <<
-  // smax;
+  } while(sample > smax);
+  // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " << smax;
 
   return sample % max;
 }
@@ -214,10 +185,9 @@ UInt64 Random::getUInt64(const UInt64 max) {
 double Random::getReal64() {
   const int mantissaBits = 48;
   const UInt64 max = (UInt64)0x1U << mantissaBits;
-  UInt64 value = getUInt64(max);
-  Real64 dvalue =
-      (Real64)value; // No loss because we only need the 48 mantissa bits.
-  Real64 returnval = ::ldexp(dvalue, -mantissaBits);
+  const UInt64 value = getUInt64(max);
+  const Real64 dvalue = (Real64)value; // No loss because we only need the 48 mantissa bits.
+  const Real64 returnval = ::ldexp(dvalue, -mantissaBits);
   // NTA_WARN << "RandomReal -> " << returnval;
   return returnval;
 }
@@ -289,23 +259,6 @@ RandomImpl::RandomImpl(UInt64 seed) {
 #endif
 }
 
-void RandomImpl::write(RandomImplProto::Builder &proto) const {
-  auto state = proto.initState(stateSize_);
-  for (UInt i = 0; i < stateSize_; ++i) {
-    state.set(i, state_[i]);
-  }
-  proto.setRptr(rptr_);
-  proto.setFptr(fptr_);
-}
-
-void RandomImpl::read(RandomImplProto::Reader &proto) {
-  auto state = proto.getState();
-  for (UInt i = 0; i < state.size(); ++i) {
-    state_[i] = state[i];
-  }
-  rptr_ = proto.getRptr();
-  fptr_ = proto.getFptr();
-}
 
 namespace nupic {
 std::ostream &operator<<(std::ostream &outStream, const Random &r) {
