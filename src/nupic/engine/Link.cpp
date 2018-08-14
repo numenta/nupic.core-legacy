@@ -464,6 +464,8 @@ bool Link::operator==(const Link &o) const {
   }
   return true;
 }
+
+
 namespace nupic {
 std::ostream &operator<<(std::ostream &f, const Link &link) {
   f << "<Link>\n";

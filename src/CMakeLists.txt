@@ -298,7 +298,6 @@ set(src_nupiccore_srcs
     nupic/regions/VectorFileSensor.cpp
     nupic/types/BasicType.cpp
     nupic/types/Fraction.cpp
-    nupic/utils/ArrayProtoUtils.cpp
     nupic/utils/LoggingException.cpp
     nupic/utils/LogItem.cpp
     nupic/utils/MovingAverage.cpp
@@ -778,12 +777,6 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(DIRECTORY nupic DESTINATION include
           MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.i")
-  install(DIRECTORY nupic DESTINATION include
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.capnp")
-  install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic DESTINATION include
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.capnp.h")
 
   install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
           MESSAGE_NEVER
@@ -801,27 +794,12 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
           MESSAGE_NEVER
           DESTINATION include)
 
-  foreach(directory ${CAPNP_INCLUDE_DIRS})
-    install(DIRECTORY "${directory}/capnp"
-            MESSAGE_NEVER
-            DESTINATION include)
-    install(DIRECTORY "${directory}/kj"
-            MESSAGE_NEVER
-            DESTINATION include)
-  endforeach()
-
   install(DIRECTORY nupic/py_support DESTINATION include/nupic
           MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.c*")
   install(DIRECTORY nupic DESTINATION include/nupic
           MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.py")
-
-  install(DIRECTORY "${CAPNP_BINARIES}"
-          MESSAGE_NEVER
-          DESTINATION "${CMAKE_INSTALL_PREFIX}"
-          USE_SOURCE_PERMISSIONS
-          FILES_MATCHING PATTERN "capnp*")
 
   install(DIRECTORY "${SWIG_DIR}"
           MESSAGE_NEVER

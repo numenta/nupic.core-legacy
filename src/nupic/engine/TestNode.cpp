@@ -31,10 +31,6 @@
 #include <numeric> // std::accumulate
 #include <sstream>
 
-// Workaround windows.h collision:
-// https://github.com/sandstorm-io/capnproto/issues/213
-#undef VOID
-#include <capnp/any.h>
 
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
@@ -45,10 +41,8 @@
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Value.hpp>
-#include <nupic/proto/TestNodeProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 
-using capnp::AnyPointer;
 
 namespace nupic {
 
@@ -105,12 +99,6 @@ TestNode::TestNode(BundleIO &bundle, Region *region) : RegionImpl(region) {
   deserialize(bundle);
 }
 
-TestNode::TestNode(AnyPointer::Reader &proto, Region *region)
-    : RegionImpl(region), computeCallback_(nullptr)
-
-{
-  read(proto);
-}
 
 TestNode::~TestNode() {}
 
@@ -644,115 +632,6 @@ void TestNode::deserialize(BundleIO &bundle) {
   }
 }
 
-void TestNode::write(AnyPointer::Builder &anyProto) const {
-  TestNodeProto::Builder proto = anyProto.getAs<TestNodeProto>();
 
-  proto.setInt32Param(int32Param_);
-  proto.setUint32Param(uint32Param_);
-  proto.setInt64Param(int64Param_);
-  proto.setUint64Param(uint64Param_);
-  proto.setReal32Param(real32Param_);
-  proto.setReal64Param(real64Param_);
-  proto.setBoolParam(boolParam_);
-  proto.setStringParam(stringParam_.c_str());
-
-  auto real32ArrayProto = proto.initReal32ArrayParam(real32ArrayParam_.size());
-  for (UInt i = 0; i < real32ArrayParam_.size(); i++) {
-    real32ArrayProto.set(i, real32ArrayParam_[i]);
-  }
-
-  auto int64ArrayProto = proto.initInt64ArrayParam(int64ArrayParam_.size());
-  for (UInt i = 0; i < int64ArrayParam_.size(); i++) {
-    int64ArrayProto.set(i, int64ArrayParam_[i]);
-  }
-
-  auto boolArrayProto = proto.initBoolArrayParam(boolArrayParam_.size());
-  for (UInt i = 0; i < boolArrayParam_.size(); i++) {
-    boolArrayProto.set(i, boolArrayParam_[i]);
-  }
-
-  proto.setIterations(iter_);
-  proto.setOutputElementCount(outputElementCount_);
-  proto.setDelta(delta_);
-
-  proto.setShouldCloneParam(shouldCloneParam_);
-
-  auto unclonedParamProto = proto.initUnclonedParam(unclonedParam_.size());
-  for (UInt i = 0; i < unclonedParam_.size(); i++) {
-    unclonedParamProto.set(i, unclonedParam_[i]);
-  }
-
-  auto unclonedInt64ArrayParamProto =
-      proto.initUnclonedInt64ArrayParam(unclonedInt64ArrayParam_.size());
-  for (UInt i = 0; i < unclonedInt64ArrayParam_.size(); i++) {
-    auto innerUnclonedParamProto = unclonedInt64ArrayParamProto.init(
-        i, unclonedInt64ArrayParam_[i].size());
-    for (UInt j = 0; j < unclonedInt64ArrayParam_[i].size(); j++) {
-      innerUnclonedParamProto.set(j, unclonedInt64ArrayParam_[i][j]);
-    }
-  }
-
-  proto.setNodeCount(nodeCount_);
-}
-
-void TestNode::read(AnyPointer::Reader &anyProto) {
-  TestNodeProto::Reader proto = anyProto.getAs<TestNodeProto>();
-
-  int32Param_ = proto.getInt32Param();
-  uint32Param_ = proto.getUint32Param();
-  int64Param_ = proto.getInt64Param();
-  uint64Param_ = proto.getUint64Param();
-  real32Param_ = proto.getReal32Param();
-  real64Param_ = proto.getReal64Param();
-  boolParam_ = proto.getBoolParam();
-  stringParam_ = proto.getStringParam().cStr();
-
-  real32ArrayParam_.clear();
-  auto real32ArrayParamProto = proto.getReal32ArrayParam();
-  real32ArrayParam_.resize(real32ArrayParamProto.size());
-  for (UInt i = 0; i < real32ArrayParamProto.size(); i++) {
-    real32ArrayParam_[i] = real32ArrayParamProto[i];
-  }
-
-  int64ArrayParam_.clear();
-  auto int64ArrayParamProto = proto.getInt64ArrayParam();
-  int64ArrayParam_.resize(int64ArrayParamProto.size());
-  for (UInt i = 0; i < int64ArrayParamProto.size(); i++) {
-    int64ArrayParam_[i] = int64ArrayParamProto[i];
-  }
-
-  boolArrayParam_.clear();
-  auto boolArrayParamProto = proto.getBoolArrayParam();
-  boolArrayParam_.resize(boolArrayParamProto.size());
-  for (UInt i = 0; i < boolArrayParamProto.size(); i++) {
-    boolArrayParam_[i] = boolArrayParamProto[i];
-  }
-
-  iter_ = proto.getIterations();
-  outputElementCount_ = proto.getOutputElementCount();
-  delta_ = proto.getDelta();
-
-  shouldCloneParam_ = proto.getShouldCloneParam();
-
-  unclonedParam_.clear();
-  auto unclonedParamProto = proto.getUnclonedParam();
-  unclonedParam_.resize(unclonedParamProto.size());
-  for (UInt i = 0; i < unclonedParamProto.size(); i++) {
-    unclonedParam_[i] = unclonedParamProto[i];
-  }
-
-  unclonedInt64ArrayParam_.clear();
-  auto unclonedInt64ArrayProto = proto.getUnclonedInt64ArrayParam();
-  unclonedInt64ArrayParam_.resize(unclonedInt64ArrayProto.size());
-  for (UInt i = 0; i < unclonedInt64ArrayProto.size(); i++) {
-    auto innerProto = unclonedInt64ArrayProto[i];
-    unclonedInt64ArrayParam_[i].resize(innerProto.size());
-    for (UInt j = 0; j < innerProto.size(); j++) {
-      unclonedInt64ArrayParam_[i][j] = innerProto[j];
-    }
-  }
-
-  nodeCount_ = proto.getNodeCount();
-}
 
 } // namespace nupic

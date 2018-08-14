@@ -403,6 +403,7 @@ public:
   friend std::ostream &operator<<(std::ostream &f, const Link &link);
 
   bool operator==(const Link &o) const;
+  bool operator!=(const Link &o) const { return !operator==(o); }
 
   /**
    * Serialize the link to YAML.

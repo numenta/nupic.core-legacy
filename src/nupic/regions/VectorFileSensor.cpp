@@ -31,11 +31,8 @@
 #include <stdexcept>
 #include <string>
 
-#include <capnp/any.h>
-
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/proto/VectorFileSensorProto.capnp.h>
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
@@ -78,15 +75,6 @@ VectorFileSensor::VectorFileSensor(BundleIO &bundle, Region *region)
   deserialize(bundle);
 }
 
-VectorFileSensor::VectorFileSensor(capnp::AnyPointer::Reader &proto,
-                                   Region *region)
-    : RegionImpl(region), repeatCount_(1), iterations_(0), curVector_(0),
-      activeOutputCount_(0), hasCategoryOut_(false), hasResetOut_(false),
-      dataOut_(NTA_BasicType_Real32), categoryOut_(NTA_BasicType_Real32),
-      resetOut_(NTA_BasicType_Real32), filename_(""), scalingMode_("none"),
-      recentFile_("") {
-  read(proto);
-}
 
 void VectorFileSensor::initialize() {
   NTA_CHECK(region_ != nullptr);
@@ -451,21 +439,6 @@ void VectorFileSensor::deserialize(BundleIO &bundle) {
   f.close();
 }
 
-void VectorFileSensor::write(capnp::AnyPointer::Builder &anyProto) const {
-  auto proto = anyProto.getAs<VectorFileSensorProto>();
-  proto.setRepeatCount(repeatCount_);
-  proto.setActiveOutputCount(activeOutputCount_);
-  proto.setFilename(filename_.c_str());
-  proto.setScalingMode(scalingMode_.c_str());
-}
-
-void VectorFileSensor::read(capnp::AnyPointer::Reader &anyProto) {
-  auto proto = anyProto.getAs<VectorFileSensorProto>();
-  repeatCount_ = proto.getRepeatCount();
-  activeOutputCount_ = proto.getActiveOutputCount();
-  filename_ = proto.getFilename().cStr();
-  scalingMode_ = proto.getScalingMode().cStr();
-}
 
 Spec *VectorFileSensor::createSpec() {
   auto ns = new Spec;
