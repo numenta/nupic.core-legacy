@@ -1465,24 +1465,24 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
     // the cells starts diverging  (infActiveStateT)
     if (memcmp(tm1.getActiveState(), tm2.getActiveState(), tm1.getNumCells())) {
       if (verbosity > 0) out << "Active states diverged (infActiveStateT)\n";
-      result = false;
+      return false;
     }
     if (memcmp(tm1.getPredictedState(), tm2.getPredictedState(), 
 			    tm1.getNumCells())) {
       if (verbosity > 0) out << "Predicted states diverged (infPredictedStateT)\n";
-      result = false;
+      return false;
     }
 
     if (checkLearn) {
       if (memcmp(tm1.getLearnActiveStateT(), tm2.getLearnActiveStateT(),
 			     tm1.getNumCells())) {
         if (verbosity > 0) out << "Learn Active states diverged (lrnActiveStateT)\n";
-        result = false;
+        return false;
       }
       if (memcmp(tm1.getLearnPredictedStateT(), tm2.getLearnPredictedStateT(), 
 			      tm1.getNumCells())) {
         if (verbosity > 0) out << "Learn Predicted states diverged (lrnPredictedStateT)\n";
-        result = false;
+        return false;
       }
       Real32 rstate1 = tm1.getAvgLearnedSeqLength();
       Real32 rstate2 = tm2.getAvgLearnedSeqLength();
@@ -1490,7 +1490,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
         if (verbosity > 0)
           out << "Average learned sequence lengths differ: " << rstate1 << " "
               << rstate2 << "\n";
-        result = false;
+        return false;
       }
     }
     if (!result && verbosity > 1) {
@@ -1505,7 +1505,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
     if (verbosity > 0)
       out << "Number of segments are different: " << tm1.getNumSegments()
           << ", " << tm2.getNumSegments();
-    result = false;
+    return false;
   }
 
   // Check that each cell has the same number of synapses
@@ -1520,7 +1520,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
       out << "TM2: ";
       tm2.printCells(false, out);
     }
-    result = false;
+    return false;
   }
 
   // Check that each cell has the same number of segments
@@ -1530,7 +1530,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
         out << "Num segments different in cell: [" << c << "," << i << "] "
             << tm1.getNumSegmentsInCell(c, i)
             << " != " << tm2.getNumSegmentsInCell(c, i) << std::endl;
-        result = false;
+        return false;
       }
     }
   }
@@ -1539,7 +1539,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
   // Note that segments in tm1 can be in a different order than tm2. Here we
   // make sure that, for each segment in tm1, there is an identical segment in
   // tm2.
-  if (result && !relaxSegmentTests && checkLearn) {
+  if (!relaxSegmentTests && checkLearn) {
     for (Size c = 0; c < tm1.getnumCol(); c++) {
       for (Size i = 0; i < tm1.getcellsPerCol(); i++) {
         UInt32 nSegs = tm1.getNumSegmentsInCell(c, i);
@@ -1558,7 +1558,6 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
             }
           }
           if (!res) {
-            result = false;
             if (verbosity >= 0) {
               out << "\nSegments are different for cell: [" << c << ", " << i
                   << "]\n";
@@ -1567,19 +1566,14 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
               out << "TM2: ";
               tm2.printCell(c, i, false, out);
             }
+	    return false;
           }
         }
       }
     }
   }
-  if (result == true) {
-    if (verbosity > 1)
-      out << "TM's match" << std::endl;
-  } else {
-    if (verbosity > 1)
-      out << std::endl;
-  }
-  return result;
+  if (verbosity > 1) out << "TM's match" << std::endl;
+  return true;
 }
 
 // identify the differences between this and another TM.
