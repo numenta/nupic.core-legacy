@@ -239,8 +239,7 @@ TEST(RandomTest, CopyConstructor) {
   for (i = 0; i < 100; i++) {
     v1 = r1.getUInt32();
     v2 = r2.getUInt32();
-    if (v1 != v2)
-      break;
+    ASSERT_TRUE(v1 == v2) << "Copied instance values differ!";
   }
   ASSERT_TRUE(v1 == v2) << "copy constructor";
 }
@@ -256,12 +255,13 @@ TEST(RandomTest, OperatorEquals) {
     r2.getUInt32();
 
   r2 = r1;
+  NTA_ASSERT(r1 == r2); 
+
   UInt32 v1, v2;
   for (i = 0; i < 100; i++) {
     v1 = r1.getUInt32();
     v2 = r2.getUInt32();
-    if (v1 != v2)
-      break;
+    ASSERT_TRUE(v1 == v2) << "same values";
   }
   ASSERT_TRUE(v1 == v2) << "operator=";
 }
@@ -298,12 +298,13 @@ TEST(RandomTest, SerializationDeserialization) {
 
   // r1 and r2 should be identical
   ASSERT_EQ(r1.getSeed(), r2.getSeed());
+  ASSERT_TRUE(r1 == r2); 
 
   UInt32 v1, v2;
   for (i = 0; i < 100; i++) {
     v1 = r1.getUInt32();
     v2 = r2.getUInt32();
-    NTA_CHECK(v1 == v2);
+    ASSERT_TRUE(v1 == v2);
   }
   ASSERT_EQ(v1, v2) << "serialization";
 }
@@ -390,13 +391,8 @@ TEST(RandomTest, Sampling) {
   {
     // nChoices > nPopulation
     UInt32 choices[5];
-    bool caught = false;
-    try {
-      r.sample(population, 4, choices, 5);
-    } catch (LoggingException &exc) {
-      caught = true;
-    }
-    ASSERT_TRUE(caught) << "checking for exception from population too small";
+    EXPECT_THROW(r.sample(population, 4, choices, 5), LoggingException) 
+	    << "checking for exception from population too small";
   }
 }
 
@@ -459,15 +455,15 @@ TEST(RandomTest, CapnpSerialization) {
  */
 TEST(RandomTest, testEqualsOperator) {
   Random r1(42), r2(42), r3(3);
-  ASSERT_TRUE(r1 == r2);
-  ASSERT_TRUE(r1 != r3);
+  ASSERT_TRUE(r1 == r2) << "objects should be equal";
+  ASSERT_TRUE(r1 != r3) << "should be different";
   ASSERT_TRUE(r2 != r3);
 
   UInt32 v1, v2;
   v1 = r1.getUInt32();
-  ASSERT_TRUE(r1 != r2);
+  ASSERT_TRUE(r1 != r2) << "r1 is step ahead";
   v2 = r2.getUInt32();
-  ASSERT_TRUE(r1 == r2);
+  ASSERT_TRUE(r1 == r2) << "both after 1 step";
   ASSERT_EQ(v1, v2);
 }
 
@@ -477,6 +473,6 @@ TEST(RandomTest, testGetUIntSpeed) {
  const int RUNS = 10000000;
  for(int i=0; i<RUNS; i++) {
    rnd = r1.getUInt32(10000); //get random int [0..1M)
-   NTA_CHECK(rnd < 1000001) << "Should never happen, just here so compiler won't optimize out this loop";
+   ASSERT_TRUE(rnd < 1000001) << "Should never happen, just here so compiler won't optimize out this loop";
  }
 }
