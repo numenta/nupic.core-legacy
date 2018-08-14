@@ -311,9 +311,9 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
     NTA_THROW << "Random() deserializer -- found unexpected version string '"
               << version << "'";
   }
-  inStream >> r.seed_;
+  inStream >> r.seed_; 
   if (!r.impl_)
-    r.impl_ = new RandomImpl(0);
+    r.impl_ = new RandomImpl(r.seed_);
 
   inStream >> *r.impl_;
 
