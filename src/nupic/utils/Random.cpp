@@ -299,7 +299,7 @@ std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << r.seed_ << " ";
   NTA_CHECK(r.impl_ != nullptr);
   outStream << *r.impl_;
-  outStream << " endrandom-v1";
+  outStream << " " << "endrandom-v1" << " "; //the front/end " " are important
   return outStream;
 }
 
