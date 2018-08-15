@@ -23,28 +23,6 @@
  * Author: David Keeney, April, 2018
  * ---------------------------------------------------------------------
  */
-
-/*---------------------------------------------------------------------
- * This is a test of the backtrackingTMCpp C++ implimentation (no Python).
- *
- * For those not familiar with GTest:
- * ASSERT_TRUE(value)   -- Fatal assertion that the value is true. Test
- *                         terminates if false.
- * ASSERT_FALSE(value)   -- Fatal assertion that the value
- *                         is false. Test terminates if true.
- * ASSERT_STREQ(str1, str2)   -- Fatal assertion that the strings are equal.
- *                         Test terminates if false.
- * EXPECT_TRUE(value)   -- Nonfatal assertion that the value is true. Test
- *                         continues if false.
- * EXPECT_FALSE(value)   -- Nonfatal assertion that the value is false.
- *                          Test continues if true.
- * EXPECT_STREQ(str1, str2) -- Nonfatal assertion that the strings are equal.
- *                          Test continues if false.
- * EXPECT_THROW(statement, exception_type) -- nonfatal exception, cought,
- *                         reported and continues.
- *---------------------------------------------------------------------
- */
-
 #include <random>
 #include <vector>
 #include <iostream>
@@ -71,7 +49,7 @@ namespace testing {
 ////////////////////////////////////////////////////////////////////////////////
 //     helper routines
 ////////////////////////////////////////////////////////////////////////////////
-typedef shared_ptr<Real32> Pattern_t;
+typedef std::vector<Real> Pattern_t;
 
 
 // Generate a single test pattern of random bits with given parameters.
@@ -85,14 +63,18 @@ static Pattern_t generatePattern(Size numCols = 100, Size minOnes = 21,
                                  Size maxOnes = 25) {
   NTA_ASSERT(minOnes <= maxOnes);
   NTA_ASSERT(maxOnes < numCols);
-  Pattern_t p(new Real32[numCols], std::default_delete<Real32[]>());
-  memset(p.get(), 0, numCols);
+  Pattern_t p(numCols);
 
-  int numOnes = (int)minOnes + std::rand() % (maxOnes - minOnes + 1);
-  std::uniform_int_distribution<> distr(0, (int)numCols - 1); // define the range (requires C++11)
+  std::random_device rd;     // only used once to initialise (seed) engine
+  std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+  std::uniform_int_distribution<int> getOnes(minOnes,maxOnes); // guaranteed unbiased
+
+  const int numOnes = getOnes(rng); //in range
+
+  std::uniform_int_distribution<> getCols(0, (int)numCols - 1); // define the range (requires C++11)
   for (int n = 0; n < numOnes; n++) {
-    int idx = std::rand() % numCols;
-    p.get()[idx] = 1.0f;
+    const auto idx = getCols(rng); //0..nCols
+    p[idx] = 1.0f;
   }
   return p;
 }
@@ -106,13 +88,13 @@ static std::vector<Pattern_t> generateSequence(Size n = 10, Size numCols = 100,
   seq.push_back(p);
 
   for (Size i = 0; i < n; i++) {
-    Pattern_t p = generatePattern(numCols, minOnes, maxOnes);
+    const Pattern_t p = generatePattern(numCols, minOnes, maxOnes);
     seq.push_back(p);
   }
   return seq;
 }
 
-
+//TODO remove
 struct param_t {
   UInt32 numberOfCols;
   UInt32 cellsPerColumn;
@@ -213,12 +195,11 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
     }
 
     // process the patterns that are in the training set.
-    for (Size t = 0; t < train.size(); t++) {
-      if (!train[t]) {
+    for (auto p : train) {
+      if (p.empty()) {
         tm1.reset();
       } else {
-        Real *bottomUpInput = train[t].get();
-        tm1.compute(bottomUpInput, true, true);
+        tm1.compute(p.data(), true, true);
       }
     }
     // Serialize and deserialized the TM.
@@ -230,30 +211,29 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
     tm2.loadFromFile(checkpointPath);
 
     // Check that the TMs are the same.
-    ASSERT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm2, std::cout, 2));
+    EXPECT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm2, std::cout, 2));
 
     // Feed remaining data into the models.
     train.clear();
-    for (Size s = 3; s < sequences.size(); s++) {
-      for (Size i = 0; i < sequences[s].size(); i++) {
-        train.push_back(sequences[s][i]);
+    for (auto seq: sequences) {
+      for (auto p : seq) {
+        train.push_back(p);
       }
     }
 
-    for (Size t = 0; t < train.size(); t++) {
-      if (!train[t]) {
+    for (auto p : train) {
+      if (p.empty()) {
         tm1.reset();
         tm2.reset();
       } else {
-        Real *bottomUpInput = train[t].get();
-        Real *result1 = tm1.compute(bottomUpInput, true, true);
-        Real *result2 = tm2.compute(bottomUpInput, true, true);
+        auto result1 = tm1.compute(p.data(), true, true);
+        auto result2 = tm2.compute(p.data(), true, true);
 
-        ASSERT_TRUE(tm1 == tm2);
-        ASSERT_TRUE(tm1.getOutputBufferSize() == tm2.getOutputBufferSize());
-	ASSERT_EQ(tm1, tm2);
+        EXPECT_TRUE(tm1 == tm2);
+        EXPECT_TRUE(tm1.getOutputBufferSize() == tm2.getOutputBufferSize());
+	EXPECT_EQ(tm1, tm2) << "TMs not same!";
         for (Size i = 0; i < tm1.getOutputBufferSize(); i++) {
-          ASSERT_TRUE(result1[i] == result2[i]);
+          EXPECT_TRUE(result1[i] == result2[i]);
         }
       }
     }
@@ -277,6 +257,7 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
     }
     // separate train sets of sequences into halves
     std::vector<Pattern_t> firstHalf, secondHalf;
+    {
     const int HALF = 5*10 /2;
     int idx = 0;
     for (auto seq: sequences) {
@@ -285,14 +266,14 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 	else secondHalf.push_back(pattern);
       }
     }
+    }
 
     // compute each of the patterns in train, learn
     for (auto p: firstHalf) {
-      const auto pat = p.get();
-      if (!pat) {
+      if (p.empty()) {
         tm1.reset();
       } else {
-        tm1.compute(pat, true, true);
+        tm1.compute(p.data(), true, true);
       }
     }
 
@@ -313,29 +294,27 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 
     // process the remaining patterns in train with the first TM.
     for (auto p: secondHalf) {
-      const auto pat = p.get();
-      if (!pat) {
+      if (p.empty()) {
         tm1.reset();
       } else {
-        Real *result1 = tm1.compute(pat, true, true);
+        tm1.compute(p.data(), true, true);
       }
     }
 
-    ASSERT_TRUE(tm1 != tm2) << "TM1 moved, TM2 didn't";
+    EXPECT_TRUE(tm1 != tm2) << "TM1 moved, TM2 didn't";
 
 
     // process the same remaining patterns in the train with the second TM.
     for (auto p: secondHalf) {
-      const auto pat = p.get();
-      if (!pat) {
+      if (p.empty()) {
         tm2.reset();
       } else {
-        Real *result22= tm2.compute(pat, true, true);
+        tm2.compute(p.data(), true, true);
       }
     }
 
-    ASSERT_EQ(tm1, tm2) << "Both TM trained";
-    ASSERT_TRUE(tm1 == tm2);
+    EXPECT_EQ(tm1, tm2) << "Both TM trained";
+    EXPECT_TRUE(tm1 == tm2);
 
     // cleanup if successful.
     Directory::removeTree("TestOutputDir");
@@ -348,56 +327,58 @@ TEST(BacktrackingTMTest, basicTest) {
     BacktrackingTMCpp tm1(10, 3, 0.2f, 0.8f, 2, 5, 0.10f, 0.05f, 1.0f, 0.05f, 4,
                           false, 5, 2, false, SEED, (Int32)VERBOSITY /* rest are defaults */);
     tm1.setRetrieveLearningStates(true);
-    Size nCols = tm1.getnumCol();
+    const Size nCols = tm1.getnumCol();
 
     // Serialize and deserialized the TM.
     Directory::create("TestOutputDir", false, true);
     std::string checkpointPath = "TestOutputDir/tm.save";
     tm1.saveToFile(checkpointPath);
 
+    {
     BacktrackingTMCpp tm2;
     tm2.loadFromFile(checkpointPath);
 
     // Check that the TMs are the same.
-    ASSERT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm2, std::cout, 2));
+    EXPECT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm2, std::cout, 2));
+    }
 
     // generate some test data and NT patterns from it.
     std::vector<Pattern_t> data = generateSequence(10, nCols, 2, 2);
-    std::vector<std::vector<UInt>> nzData;
-    for (Size i = 0; i < data.size(); i++) {
-      if (data[i]) { // skip reset patterns
-        const auto indices = 
-		nupic::algorithms::backtracking_tm::nonzero<Real>(data[i].get(), nCols);
-        nzData.push_back(indices);
-      }
-    }
-
 
     // Learn
     for (Size i = 0; i < 5; i++) {
-      if (data[i])
-        tm1.learn(data[i].get());
+      if (!data[i].empty())
+        tm1.learn(data[i].data());
     }
     tm1.reset();
 
     // save and reload again after learning.
     tm1.saveToFile(checkpointPath);
+	{
     BacktrackingTMCpp tm3;
     tm3.loadFromFile(checkpointPath);
     // Check that the TMs are the same.
-    ASSERT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm3, std::cout, 2));
+    EXPECT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm3, std::cout, 2));
+	}
 
+	/*
     // Infer
+    std::vector<std::vector<UInt>> nzData;
+    for (auto p : data) {
+      if (p.empty()) continue; // skip reset patterns
+      const auto indices =
+                nupic::algorithms::backtracking_tm::nonzero<Real>(p.data(), nCols);
+      nzData.push_back(indices);
+    }
     for (Size i = 0; i < 10; i++) {
-      if (data[i]) {
-        tm1.infer(data[i].get());
-        if (i > 0)
-          tm1._checkPrediction(nzData);
+      if (!data[i].empty()) {
+        tm1.infer(data[i].data());
+        if (i > 0) tm1._checkPrediction(nzData);
       }
     }
+*/
 
     // cleanup if successful.
     Directory::removeTree("TestOutputDir");
 }
-
 } // namespace testing
