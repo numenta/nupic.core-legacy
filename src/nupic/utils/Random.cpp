@@ -26,6 +26,7 @@
 
 #include <cmath> // For ldexp.
 #include <cstdlib>
+#include <cstring> //memcmp //CAREFUL when using it for compare, see OpenSSL memcmp bug
 #include <ctime>
 #include <iostream> // for istream, ostream
 
@@ -343,7 +344,7 @@ bool RandomImpl::operator==(const RandomImpl &o) const {
   if (rptr_ != o.rptr_ || fptr_ != o.fptr_) {
     return false;
   }
-  return ::memcmp(state_, o.state_, sizeof(state_)) == 0;
+  return std::memcmp(state_, o.state_, sizeof(state_)) == 0;
 }
 
 // helper function for seeding RNGs across the plugin barrier
