@@ -186,7 +186,6 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
   param.cellsPerColumn = 12;
   param.verbosity = VERBOSITY;
 
-  try {
     // Create TM object
     BacktrackingTMCpp tm1(
         param.numberOfCols, param.cellsPerColumn, param.initialPerm,
@@ -252,19 +251,12 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
 
         ASSERT_TRUE(tm1 == tm2);
         ASSERT_TRUE(tm1.getOutputBufferSize() == tm2.getOutputBufferSize());
+	ASSERT_EQ(tm1, tm2);
         for (Size i = 0; i < tm1.getOutputBufferSize(); i++) {
           ASSERT_TRUE(result1[i] == result2[i]);
         }
       }
     }
-  }
-  catch (nupic::Exception &ex) {
-    FAIL() << "Failure: Exception: " << ex.getFilename() << "("
-           << ex.getLineNumber() << ") " << ex.getMessage() << "" << std::endl;
-  }
-  catch (std::exception &e) {
-    FAIL() << "Failure: Exception: " << e.what() << "" << std::endl;
-  }
 
     // cleanup .
   Directory::removeTree("TestOutputDir");
