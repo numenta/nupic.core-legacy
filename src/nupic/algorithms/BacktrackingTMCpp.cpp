@@ -560,16 +560,22 @@ std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp
   // Note that confidence will only be non-zero for predicted columns.
   if (colConfidence == nullptr)
     colConfidence = cells4_->getColConfidenceT();
-  for (Size p = 0; p < patternNZs.size(); p++) {
-    const UInt32 *pattern = patternNZs[p].data();
+  for (auto pattern : patternNZs) {
     struct score_tuple scores;
 
     // Sum of the column confidences for this pattern?
-    Size positiveColumnCount =
-        pattern[0]; // first element is number of elements.
+    const Size positiveColumnCount = pattern.size();
     Real positivePredictionSum = 0;
-    for (Size i = 1; i < positiveColumnCount; i++) {
-      positivePredictionSum += colConfidence[pattern[i]];
+    for (UInt i=0; i < pattern.size(); i++) {
+	    //debug
+	    std::cout << "=====================================\n";
+	   cout << "pattern= ";
+	   for (auto e : pattern) cout << e << ", ";
+	  cout << "confidences= ";
+	  for(UInt i=0; i < sizeof(colConfidence)/sizeof(colConfidence[0]); i++) cout << colConfidence[i] << ", ";
+//      NTA_ASSERT(pattern[i] < positiveColumnCount) << "BackTM: " << pattern[i] << " of " << positiveColumnCount;
+      //end-debug
+      positivePredictionSum += colConfidence[i];
     }
 
     // Sum of all the column confidences

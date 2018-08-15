@@ -361,7 +361,6 @@ TEST(BacktrackingTMTest, basicTest) {
     EXPECT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm3, std::cout, 2));
 	}
 
-	/*
     // Infer
     std::vector<std::vector<UInt>> nzData;
     for (auto p : data) {
@@ -373,10 +372,9 @@ TEST(BacktrackingTMTest, basicTest) {
     for (Size i = 0; i < 10; i++) {
       if (!data[i].empty()) {
         tm1.infer(data[i].data());
-        if (i > 0) tm1._checkPrediction(nzData);
+        if (i > 0) tm1._checkPrediction(nzData); //FIXME
       }
     }
-*/
 
     // cleanup if successful.
     Directory::removeTree("TestOutputDir");
