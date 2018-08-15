@@ -45,6 +45,18 @@ namespace nupic {
 namespace algorithms {
 namespace backtracking_tm {
 
+/////////////////////////////////////////////////////////////////
+//  Static function nonzero()
+// returns an array of the indexes of the non-zero elements.
+// TODO replace with library implementation, or move to utils
+template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt len) {
+  vector<UInt> nz;
+  for (UInt idx = 0; idx < len; idx++) {
+    if (dense_buffer[idx] != (T)0)
+      nz.push_back((UInt)idx);
+  }
+  return nz;
+}
 
 /**
  * Backtracking Temporal Memory implementation in C++.
@@ -271,7 +283,7 @@ public:
     std::shared_ptr<Real> missing;
   };
   std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t>
-    _checkPrediction(std::vector<const UInt32 *> patternNZs,
+    _checkPrediction(std::vector<std::vector<UInt>> patternNZs,
                      const Byte *predicted = nullptr,
                      const Real *colConfidence = nullptr,
                      bool details = false);

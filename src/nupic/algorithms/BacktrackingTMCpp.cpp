@@ -50,27 +50,11 @@
 
 #include <nupic/algorithms/BacktrackingTMCpp.hpp>
 #include <nupic/algorithms/Segment.hpp>
-template <typename T> static UInt32 *nonzero(const T *dence_buffer, Size len);
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::backtracking_tm;
 using namespace nupic::algorithms::Cells4;
-
-/////////////////////////////////////////////////////////////////
-//  Static function nonzero()
-// returns an array of the indexes of the non-zero elements.
-// The first element is the number of elements in the rest of the array.
-// Dynamically allocated, caller must delete.
-template <typename T> static UInt32 *nonzero(const T *dence_buffer, Size len) {
-  UInt32 *nz = new UInt32[len + 1];
-  nz[0] = 1;
-  for (Size n = 0; n < len; n++) {
-    if (dence_buffer[n] != (T)0)
-      nz[nz[0]++] = (UInt32)n;
-  }
-  return nz;
-}
 
 static const UInt TM_VERSION = 3; // - 7/14/2018 keeney
 
@@ -250,12 +234,11 @@ Real *BacktrackingTMCpp::compute(Real *bottomUpInput, bool enableLearn,
 
   Byte *predictedState;
   if (loc_.collectStats) {
-    UInt32 *activeColumns = nonzero<Real>(bottomUpInput, (Size)loc_.numberOfCols);
+    const auto activeColumns = nonzero<Real>(bottomUpInput, (Size)loc_.numberOfCols);
     predictedState = (enableInference) ? cells4_->getInfPredictedStateT1()
                                        : cells4_->getLearnPredictedStateT1();
-    _updateStatsInferEnd(internalStats_, activeColumns, predictedState,
+    _updateStatsInferEnd(internalStats_, activeColumns.data(), predictedState,
                          cells4_->getColConfidenceT1());
-    delete activeColumns;
   }
 
   _computeOutput(); // note: modifies currentOutput_
@@ -390,8 +373,8 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
     // Compute the prediction score, how well the prediction from the last
     // time step predicted the current bottom-up input  //line 945 of
     // backtracking_tm.py
-    std::vector<const UInt32 *> patternNZs;
-    patternNZs.push_back(bottomUpNZ);
+    std::vector<std::vector<UInt>> patternNZs;
+    patternNZs.push_back(std::vector<UInt>(*bottomUpNZ));
     std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> results;
     results = _checkPrediction(patternNZs, predictedState, colConfidence, false);
 
@@ -497,7 +480,7 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
  *                     This list is only returned if details is true.
  **************************************************/
 std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp::_checkPrediction(
-    std::vector<const UInt32 *> patternNZs,
+    std::vector<std::vector<UInt>> patternNZs,
     const Byte *output,
     const Real *colConfidence,
     bool details)
@@ -514,7 +497,7 @@ std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp
   // Compute the union of all the expected patterns
   std::set<UInt32> orAll;
   for (size_t i = 0; i < patternNZs.size(); i++) {
-    for (size_t n = 1; n < patternNZs[i][0]; n++) {
+    for (size_t n = 1; n < patternNZs[i].size(); n++) {
       orAll.insert(patternNZs[i][n]);
     }
   }
@@ -578,7 +561,7 @@ std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp
   if (colConfidence == nullptr)
     colConfidence = cells4_->getColConfidenceT();
   for (Size p = 0; p < patternNZs.size(); p++) {
-    const UInt32 *pattern = patternNZs[p];
+    const UInt32 *pattern = patternNZs[p].data();
     struct score_tuple scores;
 
     // Sum of the column confidences for this pattern?
@@ -1007,10 +990,9 @@ void BacktrackingTMCpp::printComputeEnd(Real *output, bool learn,
   } else if (cells4_->getVerbosity() >= 1) {
     out << "\nTM: learn:" << learn << "\n";
 
-    UInt32 *outputnz = nonzero<Real>(output, nCells);
+    const auto outputnz = nonzero<Real>(output, nCells);
     out << "\nTM: active outputs(" << outputnz[0] << ")\n";
     printActiveIndicesReal(output, false, out);
-    delete[] outputnz;
   }
 }
 

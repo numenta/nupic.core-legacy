@@ -113,23 +113,6 @@ static std::vector<Pattern_t> generateSequence(Size n = 10, Size numCols = 100,
 }
 
 
-//  Static function nonzero()
-// returns an array of the indexes of the non-zero elements.
-// The first element is the number of elements in the rest of the array.
-// Dynamically allocated, caller must delete.
-template <typename T>
-static UInt32 *nonzero(const T *dence_buffer, Size len) {
-  UInt32 *nz = new UInt32[len + 1];
-  nz[0] = 1;
-  for (Size n = 0; n < len; n++) {
-    if (dence_buffer[n] != (T)0)
-      nz[nz[0]++] = (UInt32)n;
-  }
-  return nz;
-}
-
-
-
 struct param_t {
   UInt32 numberOfCols;
   UInt32 cellsPerColumn;
@@ -388,11 +371,12 @@ TEST(BacktrackingTMTest, basicTest) {
 
     // generate some test data and NT patterns from it.
     std::vector<Pattern_t> data = generateSequence(10, nCols, 2, 2);
-    std::vector<const UInt32 *> nzData;
+    std::vector<std::vector<UInt>> nzData;
     for (Size i = 0; i < data.size(); i++) {
       if (data[i]) { // skip reset patterns
-        UInt32 *indexes = nonzero<Real>(data[i].get(), nCols);
-        nzData.push_back(indexes);
+        const auto indices = 
+		nupic::algorithms::backtracking_tm::nonzero<Real>(data[i].get(), nCols);
+        nzData.push_back(indices);
       }
     }
 
@@ -421,8 +405,6 @@ TEST(BacktrackingTMTest, basicTest) {
     }
 
     // cleanup if successful.
-    for (Size i = 0; i < nzData.size(); i++)
-      delete[] nzData[i];
     Directory::removeTree("TestOutputDir");
 }
 
