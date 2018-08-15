@@ -300,25 +300,24 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
     for (Size s = 0; s < 5; s++) {
       sequences.push_back(generateSequence());
     }
-    // train with the first 3-1/2 sets of sequences.
-    std::vector<Pattern_t> train;
-    for (Size s = 0; s < 3; s++) {
-      for (Size i = 0; i < sequences[s].size(); i++) {
-        train.push_back(sequences[s][i]);
+    // separate train sets of sequences into halves
+    std::vector<Pattern_t> firstHalf, secondHalf;
+    const int HALF = 5*10 /2;
+    int idx = 0;
+    for (auto seq: sequences) {
+      for (auto pattern : seq) {
+	if(idx++ < HALF) firstHalf.push_back(pattern);
+	else secondHalf.push_back(pattern);
       }
     }
-    for (Size i = 0; i < 5; i++) {
-      train.push_back(sequences[3][i]);
-    }
 
-    // compute each of the patterns in train
-    for (Size t = 0; t < train.size(); t++) {
-      Real *bottomUpInput1 = train[t].get();
-      if (!train[t]) {
+    // compute each of the patterns in train, learn
+    for (auto p: firstHalf) {
+      const auto pat = p.get();
+      if (!pat) {
         tm1.reset();
       } else {
-        Real *bottomUpInput = train[t].get();
-        tm1.compute(bottomUpInput, true, true);
+        tm1.compute(pat, true, true);
       }
     }
 
@@ -326,17 +325,6 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
     Directory::create("TestOutputDir", false, true);
     std::string checkpointPath = "TestOutputDir/tm.save";
     tm1.saveToFile(checkpointPath);
-
-    // Prepair the remaining data.
-    train.clear();
-    for (Size i = 5; i < sequences[3].size(); i++) {
-      train.push_back(sequences[3][i]);
-    }
-    for (Size s = 4; s < sequences.size(); s++) {
-      for (Size i = 0; i < sequences[s].size(); i++) {
-        train.push_back(sequences[s][i]);
-      }
-    }
 
     // Restore the saved TM into tm2.
     // Note that this resets the random generator to the same
@@ -349,12 +337,12 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
     ASSERT_TRUE(tm1 == tm2);
 
     // process the remaining patterns in train with the first TM.
-    for (Size t = 0; t < train.size(); t++) {
-      if (!train[t]) {
+    for (auto p: secondHalf) {
+      const auto pat = p.get();
+      if (!pat) {
         tm1.reset();
       } else {
-        Real *bottomUpInput = train[t].get();
-        Real *result1 = tm1.compute(bottomUpInput, true, true);
+        Real *result1 = tm1.compute(pat, true, true);
       }
     }
 
@@ -362,12 +350,12 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 
 
     // process the same remaining patterns in the train with the second TM.
-    for (Size t = 0; t < train.size(); t++) {
-      if (!train[t]) {
+    for (auto p: secondHalf) {
+      const auto pat = p.get();
+      if (!pat) {
         tm2.reset();
       } else {
-        Real *bottomUpInput = train[t].get();
-        Real *result1 = tm2.compute(bottomUpInput, true, true);
+        Real *result22= tm2.compute(pat, true, true);
       }
     }
 
@@ -376,7 +364,6 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 
     // cleanup if successful.
     Directory::removeTree("TestOutputDir");
-
  }
 
 ////////////////////////////////////////////////////////////////////////////////
