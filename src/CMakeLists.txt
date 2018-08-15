@@ -476,17 +476,6 @@ add_custom_target(tests_connections_performance
                   VERBATIM)
 
 #
-# Setup helloregion example
-#
-set(src_executable_helloregion helloregion)
-add_executable(${src_executable_helloregion} examples/regions/HelloRegions.cpp)
-target_link_libraries(${src_executable_helloregion} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_helloregion}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_helloregion}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-
-#
 # Setup prototest example
 #
 set(src_executable_prototest prototest)
@@ -526,6 +515,7 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
+	       test/unit/engine/HelloRegionTest.cpp
                test/unit/engine/LinkTest.cpp
                test/unit/engine/NetworkTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
@@ -821,6 +811,10 @@ install(TARGETS
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic)
+
+# install Data.csv for a test
+install(FILES "${PROJECT_SOURCE_DIR}/test/unit/engine/Data.csv"
+        DESTINATION "data/")
 
 if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(DIRECTORY nupic DESTINATION include

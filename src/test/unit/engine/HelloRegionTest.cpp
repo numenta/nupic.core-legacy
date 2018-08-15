@@ -20,19 +20,24 @@
  * ---------------------------------------------------------------------
  */
 
+#include "gtest/gtest.h"
+
 #include <iostream>
 #include <sstream>
 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
+
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
 
+namespace testing {
+
 using namespace nupic;
 
-int main(int argc, const char *argv[]) {
+TEST(HelloRegionTest, demo) {
   // Create network
   Network net = Network();
 
@@ -50,7 +55,7 @@ int main(int argc, const char *argv[]) {
 
   // Load data
   std::string path =
-      Path::makeAbsolute("../../src/examples/regions/Data.csv"); //TODO use path relative to CMake's nupic root
+      Path::makeAbsolute("../release/data/Data.csv"); //FIXME use path relative to CMake's nupic root
 
   std::cout << "Loading data from " << path << std::endl;
 
@@ -89,7 +94,7 @@ int main(int argc, const char *argv[]) {
   }
   net2.initialize();
 
-  Region *region2 = net2.getRegions().getByName("region");
+  Region *region2 = net2.getRegions().getByName("region"); //TODO add more checks and asserts here
   region2->executeCommand(loadFileArgs);
   ArrayRef outputArray2 = region2->getOutputData("dataOut");
   Real64 *buffer2 = (Real64 *)outputArray2.getBuffer();
@@ -97,11 +102,10 @@ int main(int argc, const char *argv[]) {
   net.run(1);
   net2.run(1);
 
-  NTA_ASSERT(outputArray2.getCount() == outputArray.getCount());
+  ASSERT_TRUE(outputArray2.getCount() == outputArray.getCount());
   for (size_t i = 0; i < outputArray.getCount(); i++) {
     std::cout << "  " << i << "    " << buffer[i] << "   " << buffer2[i]
               << std::endl;
   }
-
-  return 0;
 }
+} //end namespace
