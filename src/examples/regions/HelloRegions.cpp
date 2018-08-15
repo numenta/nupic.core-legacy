@@ -50,7 +50,7 @@ int main(int argc, const char *argv[]) {
 
   // Load data
   std::string path =
-      Path::makeAbsolute("../../../src/examples/regions/Data.csv");
+      Path::makeAbsolute("../../src/examples/regions/Data.csv"); //TODO use path relative to CMake's nupic root
 
   std::cout << "Loading data from " << path << std::endl;
 
