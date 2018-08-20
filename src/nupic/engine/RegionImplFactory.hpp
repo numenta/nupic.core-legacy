@@ -38,9 +38,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-// Workaround windows.h collision:
-// https://github.com/sandstorm-io/capnproto/issues/213
-#undef VOID
 
 namespace nupic {
 

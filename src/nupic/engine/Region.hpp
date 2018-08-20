@@ -40,6 +40,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -66,7 +67,7 @@ class GenericRegisteredRegionImpl;
  * Internally regions are created and owned by Network.
  *
  */
-class Region
+class Region  : public Serializable
 {
 public:
   /**
@@ -87,7 +88,7 @@ public:
    *
    * @returns The region's name
    */
-  const std::string &getName() const;
+     std::string getName() const { return name_; }
 
   /**
    * Get the dimensions of the region.
@@ -120,14 +121,15 @@ public:
    *
    * @returns The node type as a string
    */
-  const std::string &getType() const;
+    std::string getType() const { return type_; }
 
   /**
    * Get the spec of the region.
    *
    * @returns The spec that describes this region
+   *          Do not delete.
    */
-  const Spec *getSpec() const;
+  const Spec* getSpec() const { return spec_; }
 
   /**
    * Get the Spec of a region type without an instance.
@@ -617,24 +619,20 @@ public:
    * @}
    */
 
-#ifdef NTA_INTERNAL
-  // Internal methods.
+    // Internal methods.
 
   // New region from parameter spec
   Region(std::string name, const std::string &type,
          const std::string &nodeParams, Network *network = nullptr);
 
-  // New region from serialized state
-  Region(std::string name, const std::string &type,
-         const Dimensions &dimensions, BundleIO &bundle,
-         Network *network = nullptr);
 
+  Region(Network *network = nullptr); // An empty region for deserialization.
 
   virtual ~Region();
 
   void initialize();
 
-  bool isInitialized() const;
+    bool isInitialized() const { return initialized_; }
 
   // Used by RegionImpl to get inputs/outputs
   Output *getOutput(const std::string &name) const;
@@ -684,26 +682,27 @@ public:
 
   std::set<UInt32> &getPhases();
 
-  // Called by Network for serialization
-  void serializeImpl(BundleIO &bundle);
 
 
-#endif // NTA_INTERNAL
+	// These must be implemented for serialization.
+	void save(std::ostream &stream) const override;
+	void load(std::istream &stream) override;
+
+	friend class Network;
 
 private:
   // verboten
-  Region();
   Region(Region &);
 
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
   void createInputsAndOutputs_();
 
-  const std::string name_;
+  std::string name_;
 
   // pointer to the "plugin"; owned by Region
   RegionImpl *impl_;
-  const std::string type_;
+  std::string type_;
   Spec *spec_;
 
   typedef std::map<const std::string, Output *> OutputMap;

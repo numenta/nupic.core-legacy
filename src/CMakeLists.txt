@@ -346,6 +346,7 @@ include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(src_lib_static_nupiccore_combined nupic_core)
 
 set(src_external_static_libs
+    
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
@@ -433,16 +434,6 @@ set_target_properties(${src_executable_helloregion}
 set_target_properties(${src_executable_helloregion}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 
-#
-# Setup prototest example
-#
-set(src_executable_prototest prototest)
-add_executable(${src_executable_prototest} examples/prototest.cpp)
-target_link_libraries(${src_executable_prototest} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_prototest}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_prototest}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 
 #
 # Setup HelloSP_TP example
@@ -612,9 +603,6 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # all symbols to resolve at link time, so we have to add libpython for this
   # platform
   #
-  # NOTE On Windows nupic.bindings builds we presently build self-contained
-  # CAPNP_LITE, and Windows nupic/nupic.bindings presently has no
-  # dependency on pycapnp.
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND _SRC_SWIG_LINK_LIBRARIES
          ${PYTHON_LIBRARIES})

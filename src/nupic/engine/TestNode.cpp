@@ -51,6 +51,7 @@ TestNode::TestNode(const ValueMap &params, Region *region)
 
 {
   // params for get/setParameter testing
+    // Populate the parameters with values.
   int32Param_ = params.getScalarT<Int32>("int32Param", 32);
   uint32Param_ = params.getScalarT<UInt32>("uint32Param", 33);
   int64Param_ = params.getScalarT<Int64>("int64Param", 64);
@@ -106,8 +107,8 @@ void TestNode::compute() {
   if (computeCallback_ != nullptr)
     computeCallback_(getName());
 
-  const Array &outputArray = bottomUpOut_->getData();
-  NTA_CHECK(outputArray.getCount() == nodeCount_ * outputElementCount_);
+  Array &outputArray = bottomUpOut_->getData();
+  NTA_CHECK(outputArray.getCount() == outputElementCount_);
   NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
   Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
 
@@ -513,7 +514,7 @@ static void arrayIn(std::istream &s, std::vector<T> &array,
 
 void TestNode::serialize(BundleIO &bundle) {
   {
-    std::ofstream &f = bundle.getOutputStream("main");
+    std::ostream &f = bundle.getOutputStream();
     // There is more than one way to do this. We could serialize to YAML, which
     // would make a readable format, or we could serialize directly to the
     // stream Choose the easier one.
@@ -537,28 +538,24 @@ void TestNode::serialize(BundleIO &bundle) {
       name << "unclonedInt64ArrayParam[" << i << "]";
       arrayOut(f, unclonedInt64ArrayParam_[i], name.str());
     }
-    f.close();
+      // save the output buffers
+      f << "outputs [";
+      std::map<const std::string, Output *> outputs = region_->getOutputs();
+      for (auto iter : outputs) {
+        const Array &outputBuffer = iter.second->getData();
+        if (outputBuffer.getCount() != 0) {
+          f << iter.first << " ";
+          outputBuffer.binarySave(f);
+        }
+      }
+      f << "] "; // end of all output buffers
   } // main file
 
-  // auxilliary file using stream
-  {
-    std::ofstream &f = bundle.getOutputStream("aux");
-    f << "This is an auxilliary file!\n";
-    f.close();
-  }
-
-  // auxilliary file using path
-  {
-    std::string path = bundle.getPath("aux2");
-    std::ofstream f(path.c_str());
-    f << "This is another auxilliary file!\n";
-    f.close();
-  }
-}
+ }
 
 void TestNode::deserialize(BundleIO &bundle) {
   {
-    std::ifstream &f = bundle.getInputStream("main");
+    std::istream &f = bundle.getInputStream();
     // There is more than one way to do this. We could serialize to YAML, which
     // would make a readable format, or we could serialize directly to the
     // stream Choose the easier one.
@@ -589,49 +586,37 @@ void TestNode::deserialize(BundleIO &bundle) {
 
     f >> shouldCloneParam_;
 
-    std::string label;
-    f >> label;
-    if (label != "unclonedArray")
-      NTA_THROW << "Missing label for uncloned array. Got '" << label << "'";
-    size_t vecsize;
-    f >> vecsize;
-    unclonedInt64ArrayParam_.clear();
-    unclonedInt64ArrayParam_.resize(vecsize);
-    for (size_t i = 0; i < vecsize; i++) {
-      std::stringstream name;
-      name << "unclonedInt64ArrayParam[" << i << "]";
-      arrayIn(f, unclonedInt64ArrayParam_[i], name.str());
-    }
-    f.close();
-  } // main file
+      std::string tag;
+      f >> tag;
+      if (tag != "unclonedArray")
+        NTA_THROW << "Missing label for uncloned array. Got '" << tag << "'";
+      size_t vecsize;
+      f >> vecsize;
+      unclonedInt64ArrayParam_.clear();
+      unclonedInt64ArrayParam_.resize(vecsize);
+      for (size_t i = 0; i < vecsize; i++)
+      {
+        std::stringstream name;
+        name << "unclonedInt64ArrayParam[" << i << "]";
+        arrayIn(f, unclonedInt64ArrayParam_[i], name.str());
+      }
 
-  // auxilliary file using stream
-  {
-    std::ifstream &f = bundle.getInputStream("aux");
-    char line1[100];
-    f.read(line1, 100);
-    line1[f.gcount()] = '\0';
-    if (std::string(line1) != "This is an auxilliary file!\n") {
-      NTA_THROW << "Invalid auxilliary serialization file for TestNode";
-    }
-    f.close();
+	    // Restore outputs
+	    f >> tag;
+	    NTA_CHECK(tag == "outputs");
+	    f.ignore(1);
+	    NTA_CHECK(f.get() == '['); // start of outputs
+
+	    while (true) {
+	      f >> tag;
+	      f.ignore(1);
+	      if (tag == "]")
+	        break;
+	      getOutput(tag)->getData().binaryLoad(f);
+	    }
+	  }
+
   }
-
-  // auxilliary file using path
-  {
-    std::string path = bundle.getPath("aux2");
-    std::ifstream f(path.c_str());
-    char line1[100];
-    f.read(line1, 100);
-    line1[f.gcount()] = '\0';
-    if (std::string(line1) != "This is another auxilliary file!\n") {
-      NTA_THROW << "Invalid auxilliary2 serialization file for TestNode";
-    }
-
-    f.close();
-  }
-}
-
 
 
 } // namespace nupic

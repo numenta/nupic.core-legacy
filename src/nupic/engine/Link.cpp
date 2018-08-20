@@ -449,7 +449,141 @@ void Link::shiftBufferedData() {
   }
 }
 
-// NOTE: serialization for Link is handled by the Network class for now (keeney, 8/14/2018)
+void Link::serialize(std::ostream &f) {
+  size_t srcCount = ((!src_) ? (size_t)0 : src_->getData().getCount());
+  NTA_BasicType srcType =
+      ((!src_) ? BasicType::parse(getLinkType()) : src_->getData().getType());
+
+  f << "{\n";
+  f << "linkType: " <<  getLinkType() << "\n";
+  f << "params: " << getLinkParams() << "\n";
+  f << "srcRegion: " << getSrcRegionName() << "\n";
+  f << "srcOutput: " << getSrcOutputName() << "\n";
+  f << "destRegion: " << getDestRegionName() << "\n";
+  f << "destInput: " << getDestInputName() << "\n";
+  f << "propagationDelay: " << propagationDelay_ << "\n";
+  f << "propagationDelayBuffer: [ " << srcBuffer_.size() << "\n";
+  if (propagationDelay_ > 0) {
+    // we need to capture the propagationDelayBuffer_ used for propagationDelay
+    // Do not copy the last entry.  It is the same as the output buffer.
+
+    // The current contents of the Destination Input buffer also needs
+    // to be captured as if it were the top value of the propagationDelayBuffer.
+    // When restored, it will be copied to the dest input buffer and popped off
+    // before the next execution. If there is an offset, we only
+    // want to capture the amount of the input buffer contributed by
+    // this link.
+    Array a = dest_->getData().subset(destOffset_, srcCount);
+    f << a; // our part of the current Dest Input buffer.
+
+    std::deque<Array>::iterator itr;
+    for (auto itr = srcBuffer_.begin();
+         itr != srcBuffer_.end(); itr++) {
+      if (itr + 1 == srcBuffer_.end())
+        break; // skip the last buffer. Its the current output.
+      Array &buf = *itr;
+      f << buf;
+    } // end for
+  }
+  f << "]\n";  // end of list of buffers in propagationDelayBuffer
+
+  f << "}\n";  // end of sequence
+}
+
+void Link::deserialize(std::istream &f) {
+  // Each link is a map -- extract the 9 values in the map
+  // The "circularBuffer" element is a two dimentional array only present if
+  // propogationDelay > 0.
+  char bigbuffer[5000];
+  std::string tag;
+  Size count;
+  std::string linkType;
+  std::string linkParams;
+  std::string srcRegionName;
+  std::string srcOutputName;
+  std::string destRegionName;
+  std::string destInputName;
+  Size propagationDelay;
+
+  f >> tag;
+  NTA_CHECK(tag == "{") << "Invalid network structure file -- bad link (not a map)";
+
+  // 1. type
+  f >> tag;
+  NTA_CHECK(tag == "linkType:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  linkType = bigbuffer;
+
+  // 2. params
+  f >> tag;
+  NTA_CHECK(tag == "params:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  linkParams = bigbuffer;
+
+  // 3. srcRegion (name)
+  f >> tag;
+  NTA_CHECK(tag == "srcRegion:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  srcRegionName = bigbuffer;
+
+  // 4. srcOutput
+  f >> tag;
+  NTA_CHECK(tag == "srcOutput:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  srcOutputName = bigbuffer;
+
+  // 5. destRegion
+  f >> tag;
+  NTA_CHECK(tag == "destRegion:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  destRegionName = bigbuffer;
+
+  // 6. destInput
+  f >> tag;
+  NTA_CHECK(tag == "destInput:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  destInputName = bigbuffer;
+
+  // 7. propagationDelay (number of cycles to delay propagation)
+  f >> tag;
+  NTA_CHECK(tag == "propagationDelay:");
+  f >> propagationDelay;
+
+  // fill in the data for the Link object
+  commonConstructorInit_(linkType, linkParams, srcRegionName, destRegionName,
+                         srcOutputName, destInputName, propagationDelay);
+
+  // 8. propagationDelayBuffer
+  f >> tag;
+  NTA_CHECK(tag == "propagationDelayBuffer:");
+  f >> tag;
+  NTA_CHECK(tag == "[")  << "Expected start of a sequence.";
+  f >> count;
+  // if no propagationDelay (value = 0) then there should be an empty sequence.
+  NTA_CHECK(count == propagationDelay_) << "Invalid network structure file -- "
+            "link has " << count << " buffers in 'propagationDelayBuffer'. "
+            << "Expecting " << propagationDelay << ".";
+  Size idx = 0;
+  for (; idx < count; idx++) {
+    Array a;
+    f >> a;
+    srcBuffer_.push_back(a);
+  }
+  // To complete the restore, call r->prepareInputs()
+  // and then shiftBufferedData();
+  f >> tag;
+  NTA_CHECK(tag == "]");
+  f >> tag;
+  NTA_CHECK(tag == "}");
+  f.ignore(1);
+}
+
 
 
 bool Link::operator==(const Link &o) const {
@@ -466,7 +600,10 @@ bool Link::operator==(const Link &o) const {
 }
 
 
-namespace nupic {
+/**
+ * A readable display of a Link.
+ * This is not part of the save/load facility.
+ */
 std::ostream &operator<<(std::ostream &f, const Link &link) {
   f << "<Link>\n";
   f << "  <type>" << link.getLinkType() << "</type>\n";
@@ -480,6 +617,5 @@ std::ostream &operator<<(std::ostream &f, const Link &link) {
   f << "</Link>\n";
   return f;
 }
-} // namespace nupic
 
 } // namespace nupic

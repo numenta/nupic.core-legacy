@@ -427,16 +427,14 @@ VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) {
 }
 
 void VectorFileSensor::serialize(BundleIO &bundle) {
-  std::ofstream &f = bundle.getOutputStream("vfs");
+  std::ostream & f = bundle.getOutputStream();
   f << repeatCount_ << " " << activeOutputCount_ << " " << filename_ << " "
     << scalingMode_ << " ";
-  f.close();
 }
 
 void VectorFileSensor::deserialize(BundleIO &bundle) {
-  std::ifstream &f = bundle.getInputStream("vfs");
+  std::istream& f = bundle.getInputStream();
   f >> repeatCount_ >> activeOutputCount_ >> filename_ >> scalingMode_;
-  f.close();
 }
 
 

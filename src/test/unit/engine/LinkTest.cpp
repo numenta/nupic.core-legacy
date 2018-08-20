@@ -38,6 +38,7 @@
 #include <nupic/engine/TestNode.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/os/Directory.hpp>
 #include <nupic/utils/Log.hpp>
 
 using namespace nupic;
@@ -235,8 +236,8 @@ TEST(LinkTest, DelayedLink) {
   }
 }
 
-TEST(LinkTest, DelayedLinkCapnpSerialization) {
-  // Cap'n Proto serialization test of delayed link.
+TEST(LinkTest, DelayedLinkSerialization) {
+  // serialization test of delayed link.
 
   class MyTestNode : public TestNode {
   public:
@@ -335,11 +336,12 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
   // We should now have two delayed array values: 10's and 100's
 
   // Serialize the current net
-net.save("TestOutputDir/DelayedLinkSerialization.nta");
+  net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream");
 
 
   // De-serialize into a new net2
-  Network net2("TestOutputDir/DelayedLinkSerialization.nta");
+  Network net2;
+  net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream");
 
   net2.initialize();
 
@@ -471,7 +473,7 @@ public:
     /* ----- inputs ------- */
     ns->inputs.add("feedForwardIn", InputSpec("Feed-forward input for the node",
                                               NTA_BasicType_UInt64,
-                                              0,     // count. omit?
+                                              0,     // count. wildcard
                                               true,  // required?
                                               false, // isRegionLevel,
                                               false  // isDefaultInput
@@ -479,7 +481,7 @@ public:
 
     ns->inputs.add("lateralIn",
                    InputSpec("Lateral input for the node", NTA_BasicType_UInt64,
-                             0,     // count. omit?
+                             0,     // count. wildcard
                              true,  // required?
                              false, // isRegionLevel,
                              false  // isDefaultInput
@@ -548,9 +550,9 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  const Input *feedForwardIn_;
-  const Input *lateralIn_;
-  const Output *out_;
+  Input *feedForwardIn_;
+  Input *lateralIn_;
+  Output *out_;
 };
 
 class L4TestRegion : public TestRegionBase {
@@ -650,8 +652,8 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  const Input *feedbackIn_;
-  const Output *out_;
+  Input *feedbackIn_;
+  Output *out_;
 };
 
 TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {

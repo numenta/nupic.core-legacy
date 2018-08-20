@@ -415,44 +415,6 @@ TEST(RandomTest, Shuffling) {
   ASSERT_EQ(2, arr[3]) << "check element 3";
 }
 
-TEST(RandomTest, CapnpSerialization) {
-  // tests for Cap'n Proto serialization
-  Random r1, r2;
-  UInt32 v1, v2;
-
-  const char *outputPath = "RandomTest1.temp";
-
-  {
-    std::ofstream out(outputPath, std::ios::binary);
-    r1.write(out);
-    out.close();
-  }
-  {
-    std::ifstream in(outputPath, std::ios::binary);
-    r2.read(in);
-    in.close();
-  }
-  v1 = r1.getUInt32();
-  v2 = r2.getUInt32();
-  ASSERT_EQ(v1, v2) << "check serialization for unused Random object";
-
-  {
-    std::ofstream out(outputPath, std::ios::binary);
-    r1.write(out);
-    out.close();
-  }
-  {
-    std::ifstream in(outputPath, std::ios::binary);
-    r2.read(in);
-    in.close();
-  }
-  v1 = r1.getUInt32();
-  v2 = r2.getUInt32();
-  ASSERT_EQ(v1, v2) << "check serialization for used Random object";
-
-  // clean up
-  remove(outputPath);
-}
 
 /**
  * Test operator '=='

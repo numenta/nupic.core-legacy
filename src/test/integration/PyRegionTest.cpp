@@ -50,8 +50,6 @@
 #include <string>
 #include <vector>
 
-#include <capnp/message.h>
-
 bool ignore_negative_tests = false;
 #define SHOULDFAIL(statement)                                                  \
   {                                                                            \
@@ -357,8 +355,8 @@ void testWriteRead() {
   Network n2;
 
   std::stringstream ss;
-  n1.write(ss);
-  n2.read(ss);
+  n1.save(ss);
+  n2.load(ss);
 
   const Collection<Region *> &regions = n2.getRegions();
   const std::pair<std::string, Region *> &regionPair = regions.getByIndex(0);
