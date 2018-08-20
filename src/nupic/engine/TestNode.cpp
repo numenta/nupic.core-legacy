@@ -540,7 +540,7 @@ void TestNode::serialize(BundleIO &bundle) {
     }
       // save the output buffers
       f << "outputs [";
-      std::map<const std::string, Output *> outputs = region_->getOutputs();
+      std::map<std::string, Output *> outputs = region_->getOutputs();
       for (auto iter : outputs) {
         const Array &outputBuffer = iter.second->getData();
         if (outputBuffer.getCount() != 0) {

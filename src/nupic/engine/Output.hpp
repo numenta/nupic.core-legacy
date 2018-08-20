@@ -134,10 +134,11 @@ public:
    * Get the data of the output.
    *
    * @returns
-   *         A constant reference to the data of the output as an @c Array
+   *         A reference to the data of the output as an @c Array
    *
-   * @note It's important to return a const array so caller can't
-   * reallocate the buffer.
+   * @note we should return a const Array ref so caller can't
+   * reallocate the buffer. Howerver, we do need to be able to
+   * change the content of the buffer. So it cannot be const.
    */
   Array &getData() { return data_; }
 

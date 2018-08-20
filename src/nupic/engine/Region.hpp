@@ -639,10 +639,9 @@ public:
 
   Input *getInput(const std::string &name) const;
 
-  // These are used only for serialization
-  const std::map<const std::string, Input *> &getInputs() const;
+  const std::map<std::string, Input *> &getInputs() const;
 
-  const std::map<const std::string, Output *> &getOutputs() const;
+  const std::map<std::string, Output *> &getOutputs() const;
 
   // The following methods are called by Network in initialization
 
@@ -705,8 +704,8 @@ private:
   std::string type_;
   Spec *spec_;
 
-  typedef std::map<const std::string, Output *> OutputMap;
-  typedef std::map<const std::string, Input *> InputMap;
+  typedef std::map<std::string, Output *> OutputMap;
+  typedef std::map<std::string, Input *> InputMap;
 
   OutputMap outputs_;
   InputMap inputs_;

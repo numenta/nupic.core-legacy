@@ -52,11 +52,11 @@ Input *Region::getInput(const std::string &name) const {
 }
 
 // Called by Network during serialization
-const std::map<const std::string, Input *> &Region::getInputs() const {
+const std::map<std::string, Input *> &Region::getInputs() const {
   return inputs_;
 }
 
-const std::map<const std::string, Output *> &Region::getOutputs() const {
+const std::map<std::string, Output *> &Region::getOutputs() const {
   return outputs_;
 }
 

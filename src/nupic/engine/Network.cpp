@@ -577,7 +577,7 @@ void Network::save(std::ostream &f) const {
   for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
   {
     Region* r = regions_.getByIndex(regionIndex).second;
-    const std::map<const std::string, Input*> inputs = r->getInputs();
+    const std::map<std::string, Input*> inputs = r->getInputs();
     for (const auto & inputs_input : inputs)
     {
       const std::vector<Link*>& links = inputs_input.second->getLinks();
@@ -595,7 +595,7 @@ void Network::save(std::ostream &f) const {
   for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
   {
     Region* r = regions_.getByIndex(regionIndex).second;
-    const std::map<const std::string, Input*> inputs = r->getInputs();
+    const std::map<std::string, Input*> inputs = r->getInputs();
     for (const auto & inputs_input : inputs)
     {
       const std::vector<Link*>& links = inputs_input.second->getLinks();

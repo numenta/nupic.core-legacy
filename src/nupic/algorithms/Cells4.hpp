@@ -1067,10 +1067,6 @@ public:
         void print(std::ostream& outStream) const;
 
         //-----------------------------------------------------------------------
-        bool equals(const Cells4& other) const;
-
-        bool operator==(const Cells4 &s) { return equals(s); }
-        bool operator!=(const Cells4 &s) { return !equals(s); }
 
 
         //----------------------------------------------------------------------

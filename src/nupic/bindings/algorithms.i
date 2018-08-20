@@ -60,8 +60,9 @@ _ALGORITHMS = _algorithms
 #include <fstream>
 #include <vector>
 
-#include <nupic/math/Types.hpp>
+#include <nupic/types/Types.hpp>
 #include <nupic/math/Convolution.hpp>
+#include <nupic/math/Math.hpp>
 #include <nupic/math/Rotation.hpp>
 #include <nupic/math/Erosion.hpp>
 #include <nupic/algorithms/GaborNode.hpp>
@@ -82,8 +83,8 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
-
 %}
+
 
 //
 // Numpy API
@@ -1377,6 +1378,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   }
 %}
 
+
 %extend nupic::algorithms::temporal_memory::TemporalMemory
 {
   %pythoncode %{
@@ -1572,3 +1574,4 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
 
 %include <nupic/algorithms/TemporalMemory.hpp>
+%include <nupic/algorithms/Connections.hpp>
