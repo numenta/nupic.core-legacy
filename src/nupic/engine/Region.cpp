@@ -432,6 +432,7 @@ void Region::load(std::istream &f) {
   f >> tag;
   NTA_CHECK(tag == "[") << "Expecting a sequence.";
   f >> count;
+  phases_.clear();
   for (Size i = 0; i < count; i++)
   {
     UInt32 val;

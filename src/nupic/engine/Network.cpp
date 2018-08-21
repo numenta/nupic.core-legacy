@@ -119,7 +119,7 @@ void Network::setPhases_(Region *r, std::set<UInt32> &phases) {
     NTA_THROW << "Attempt to set empty phase list for region " << r->getName();
 
   UInt32 maxNewPhase = *(phases.rbegin());
-  UInt32 nextPhase = phaseInfo_.size();
+  UInt32 nextPhase = (UInt32)phaseInfo_.size();
   if (maxNewPhase >= nextPhase) {
     // It is very unlikely that someone would add a region
     // with a phase much greater than the phase of any other
@@ -358,7 +358,7 @@ void Network::run(int n) {
 
     // invoke callbacks
     for (UInt32 i = 0; i < callbacks_.getCount(); i++) {
-      std::pair<std::string, callbackItem> &callback = callbacks_.getByIndex(i);
+      const std::pair<std::string, callbackItem> &callback = callbacks_.getByIndex(i);
       callback.second.first(this, iteration_, callback.second.second);
     }
 
@@ -654,6 +654,13 @@ void Network::load(std::istream &f) {
     Region* r = new Region(this);
     r->load(f);
     regions_.add(r->getName(), r);
+
+    // We must make a copy of the phases set here because
+    // setPhases_ will be passing this back down into
+    // the region.
+    std::set<UInt32> phases = r->getPhases();
+    setPhases_(r, phases);
+
   }
   f >> tag;
   NTA_CHECK(tag == "]") << "Expected end of list of regions.";

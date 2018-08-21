@@ -41,6 +41,7 @@
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
+#include <nupic/engine/Network.hpp>
 
 namespace nupic {
 
