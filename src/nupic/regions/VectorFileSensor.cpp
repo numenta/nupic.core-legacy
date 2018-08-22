@@ -469,6 +469,7 @@ void VectorFileSensor::read(capnp::AnyPointer::Reader &anyProto) {
 
 Spec *VectorFileSensor::createSpec() {
   auto ns = new Spec;
+  ns->singleNodeOnly = true;
   ns->description =
       "VectorFileSensor is a basic sensor for reading files containing "
       "vectors.\n"

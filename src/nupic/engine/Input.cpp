@@ -474,7 +474,7 @@ void Input::initialize() {
     // Setting the destination offset makes the link usable.
     // TODO: change
     (*l)->initialize(count);
-    count += (*l)->getSrc().getData().getCount();
+    count += (*l)->getSrc().getData().getMaxElementsCount();
   }
 
   // Later we may optimize with the zeroCopyEnabled_ flag but

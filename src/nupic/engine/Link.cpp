@@ -344,12 +344,22 @@ void Link::compute() {
   }
 
   if (src_->isSparse() == dest_->isSparse()) {
-    // No conversion required, just copy the buffer over
-    ::memcpy((char *)(dest.getBuffer()) + destByteOffset, src.getBuffer(),
-             srcSize);
     if (dest_->isSparse()) {
+      size_t destIdx = 0;
+      // Sparse input/output must be NTA_UInt32. See "initialize".
+      NTA_UInt32 *destBuf = (NTA_UInt32 *)dest.getBuffer();
+      NTA_UInt32 *srcBuf = (NTA_UInt32 *)src.getBuffer();
+      size_t srcCount = src.getCount();
+      for (size_t i = 0; i < srcCount; i++) {
+        destBuf[destIdx++] = destOffset_ + srcBuf[i];
+      }
+
       // Remove 'const' to update the variable length array
-      const_cast<Array &>(dest).setCount(src.getCount());
+      const_cast<Array &>(dest).setCount(destIdx);
+    } else {
+      // No conversion required, just copy the buffer over
+      ::memcpy((char *)(dest.getBuffer()) + destByteOffset, src.getBuffer(),
+               srcSize);
     }
   } else if (dest_->isSparse()) {
     // Destination is sparse, convert source from dense to sparse

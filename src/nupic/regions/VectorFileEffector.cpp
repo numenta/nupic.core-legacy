@@ -32,6 +32,7 @@
 
 #include <capnp/any.h>
 
+#include <nupic/engine/Link.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -42,8 +43,8 @@
 namespace nupic {
 
 VectorFileEffector::VectorFileEffector(const ValueMap &params, Region *region)
-    : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
-      outFile_(nullptr) {
+    : RegionImpl(region), dataIn_(NTA_BasicType_Real32),
+      sparseDataIn_(NTA_BasicType_UInt32), filename_(""), outFile_(nullptr) {
   if (params.contains("outputFile"))
     filename_ = *params.getString("outputFile");
   else
@@ -51,13 +52,13 @@ VectorFileEffector::VectorFileEffector(const ValueMap &params, Region *region)
 }
 
 VectorFileEffector::VectorFileEffector(BundleIO &bundle, Region *region)
-    : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
-      outFile_(nullptr) {}
+    : RegionImpl(region), dataIn_(NTA_BasicType_Real32),
+      sparseDataIn_(NTA_BasicType_UInt32), filename_(""), outFile_(nullptr) {}
 
 VectorFileEffector::VectorFileEffector(capnp::AnyPointer::Reader &proto,
                                        Region *region)
-    : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
-      outFile_(nullptr) {
+    : RegionImpl(region), dataIn_(NTA_BasicType_Real32),
+      sparseDataIn_(NTA_BasicType_UInt32), filename_(""), outFile_(nullptr) {
   read(proto);
 }
 
@@ -68,16 +69,20 @@ void VectorFileEffector::initialize() {
   // We have no outputs or parameters; just need our input.
   dataIn_ = region_->getInputData("dataIn");
 
-  if (dataIn_.getCount() == 0) {
+  // Sparse data is initially empty. Check if it is linked instead
+  auto sparse = region_->getInput("sparseDataIn");
+  auto sparseLinks = sparse->getLinks();
+  if (dataIn_.getCount() == 0 && sparseLinks.size() == 0) {
     NTA_THROW << "VectorFileEffector::init - no input found\n";
   }
+  sparseDataIn_ = region_->getInputData("sparseDataIn");
 }
 
 void VectorFileEffector::compute() {
 
   // It's not necessarily an error to have no inputs. In this case we just
   // return
-  if (dataIn_.getCount() == 0)
+  if (dataIn_.getCount() == 0 && sparseDataIn_.getCount() == 0)
     return;
 
   // Don't write if there is no open file.
@@ -93,12 +98,21 @@ void VectorFileEffector::compute() {
               << filename_.c_str() << "\n";
   }
 
-  Real *inputVec = (Real *)(dataIn_.getBuffer());
-  NTA_CHECK(inputVec != nullptr);
   OFStream &outFile = *outFile_;
-  for (Size offset = 0; offset < dataIn_.getCount(); ++offset) {
-    // TBD -- could be very inefficient to do one at a time
-    outFile << inputVec[offset] << " ";
+  if (dataIn_.getCount() > 0) {
+    Real *inputVec = (Real *)(dataIn_.getBuffer());
+    NTA_CHECK(inputVec != nullptr);
+    for (Size offset = 0; offset < dataIn_.getCount(); ++offset) {
+      // TBD -- could be very inefficient to do one at a time
+      outFile << inputVec[offset] << " ";
+    }
+  } else {
+    UInt32 *inputVec = (UInt32 *)(sparseDataIn_.getBuffer());
+    NTA_CHECK(inputVec != nullptr);
+    for (Size offset = 0; offset < sparseDataIn_.getCount(); ++offset) {
+      // TBD -- could be very inefficient to do one at a time
+      outFile << inputVec[offset] << " ";
+    }
   }
   outFile << "\n";
 }
@@ -185,6 +199,8 @@ VectorFileEffector::executeCommand(const std::vector<std::string> &args,
 Spec *VectorFileEffector::createSpec() {
 
   auto ns = new Spec;
+  ns->singleNodeOnly = true;
+
   ns->description =
       "VectorFileEffector is a node that simply writes its\n"
       "input vectors to a text file. The target filename is specified\n"
@@ -199,6 +215,16 @@ Spec *VectorFileEffector::createSpec() {
                            false, // isRegionLevel
                            true   // isDefaultInput
                            ));
+
+  ns->inputs.add("sparseDataIn", InputSpec("Sparse Data to be written to file",
+                                           NTA_BasicType_UInt32,
+                                           0,     // count
+                                           false, // required?
+                                           true,  // isRegionLevel
+                                           false, // isDefaultInput
+                                           false, // requireSplitterMap
+                                           true   // sparse
+                                           ));
 
   ns->parameters.add("outputFile",
                      ParameterSpec("Writes output vectors to this file on each "
