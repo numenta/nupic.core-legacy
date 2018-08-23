@@ -451,8 +451,6 @@ void Link::shiftBufferedData() {
 
 void Link::serialize(std::ostream &f) {
   size_t srcCount = ((!src_) ? (size_t)0 : src_->getData().getCount());
-  NTA_BasicType srcType =
-      ((!src_) ? BasicType::parse(getLinkType()) : src_->getData().getType());
 
   f << "{\n";
   f << "linkType: " <<  getLinkType() << "\n";
@@ -476,7 +474,7 @@ void Link::serialize(std::ostream &f) {
     Array a = dest_->getData().subset(destOffset_, srcCount);
     f << a; // our part of the current Dest Input buffer.
 
-    std::deque<Array>::iterator itr;
+    boost::circular_buffer<Array>::iterator itr;
     for (auto itr = srcBuffer_.begin();
          itr != srcBuffer_.end(); itr++) {
       if (itr + 1 == srcBuffer_.end())

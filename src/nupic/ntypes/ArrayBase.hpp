@@ -81,7 +81,7 @@ namespace nupic
       buffer_ = other.buffer_;
       count_ = other.count_;
       capacity_ = other.capacity_;
-      own_ = own_;
+      own_ = other.own_;
     }
 
     /**
