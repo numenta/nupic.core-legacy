@@ -42,6 +42,7 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/engine/Network.hpp>
+#include <nupic/engine/Output.hpp>
 
 namespace nupic {
 
@@ -466,17 +467,11 @@ public:
    * @param inputName
    *        The name of the target input
    *
-   * @returns An @c ArrayRef that contains the input data.
+   * @returns An @c ArrayRef that references the Input object's buffer.
+   *        This buffer is shared with the Input object so when it changes the
+   *        returned ArrayRef's buffer also changes.
+   *        Note that this is read-only.
    *
-   * @internal
-   *
-   * @note The data is either stored in the
-   * the @c ArrayRef or point to the internal stored data,
-   * the actual behavior is controlled by the 'copy' argument (see below).
-   *
-   * @todo what's the copy' argument mentioned here?
-   *
-   * @endinternal
    *
    */
   virtual ArrayRef getInputData(const std::string &inputName) const;
@@ -488,50 +483,16 @@ public:
    *        The name of the target output
    *
    * @returns
-   *        An @c ArrayRef that contains the output data.
-   *
-   * @internal
-   *
-   * @note The data is either stored in the
-   * the @c ArrayRef or point to the internal stored data,
-   * the actual behavior is controlled by the 'copy' argument (see below).
-   *
-   * @todo what's the copy' argument mentioned here?
-   *
-   * @endinternal
+   *        An @c ArrayRef that references the output data buffer.
+   *        This buffer is shared with the Output object so when it changes the
+   *        returned ArrayRef's buffer also changes.
+   *        Note that this is read-only.
+   *        To obtain a writeable Array use
+   *			region->getOutput(name)->getData();
    *
    */
   virtual ArrayRef getOutputData(const std::string &outputName) const;
 
-  /**
-   * Get the count of input data.
-   *
-   * @param inputName
-   *        The name of the target input
-   *
-   * @returns
-   *        The count of input data
-   *
-   * @todo are getOutput/InputCount needed? count can be obtained from the array
-   * objects.
-   *
-   */
-  virtual size_t getInputCount(const std::string &inputName) const;
-
-  /**
-   * Get the count of output data.
-   *
-   * @param outputName
-   *        The name of the target output
-   *
-   * @returns
-   *        The count of output data
-   *
-   * @todo are getOutput/InputCount needed? count can be obtained from the array
-   * objects.
-   *
-   */
-  virtual size_t getOutputCount(const std::string &outputName) const;
 
   /**
    * @}

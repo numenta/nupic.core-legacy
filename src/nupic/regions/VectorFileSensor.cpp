@@ -78,9 +78,9 @@ VectorFileSensor::VectorFileSensor(BundleIO &bundle, Region *region)
 
 void VectorFileSensor::initialize() {
   NTA_CHECK(region_ != nullptr);
-  dataOut_ = region_->getOutputData("dataOut");
-  categoryOut_ = region_->getOutputData("categoryOut");
-  resetOut_ = region_->getOutputData("resetOut");
+  dataOut_ = region_->getOutput("dataOut")->getData();
+  categoryOut_ = region_->getOutput("categoryOut")->getData();
+  resetOut_ = region_->getOutput("resetOut")->getData();
 
   if (dataOut_.getCount() != activeOutputCount_) {
     NTA_THROW << "VectorFileSensor::init - wrong output size: "
@@ -151,9 +151,7 @@ inline const char *checkExtensions(const std::string &filename,
 
 //--------------------------------------------------------------------------------
 /// Execute a VectorFilesensor specific command
-std::string
-VectorFileSensor::executeCommand(const std::vector<std::string> &args,
-                                 Int64 index)
+std::string VectorFileSensor::executeCommand(const std::vector<std::string>& args, Int64 index)
 
 {
   UInt32 argCount = args.size();
@@ -417,7 +415,7 @@ void VectorFileSensor::seek(int n) {
   curVector_ = n - 1;
   // circular-buffer, reached one end of vector/line, continue fro the other
   if (n - 1 <= 0)
-    curVector_ = (NTA_Size)vectorFile_.vectorCount() - 1;
+    curVector_ = static_cast<UInt32>(vectorFile_.vectorCount() - 1);
 }
 
 size_t

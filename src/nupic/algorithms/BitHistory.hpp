@@ -32,6 +32,7 @@
 #include <vector>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 using namespace std;
 
@@ -48,7 +49,7 @@ namespace cla_classifier {
  * TODO: Support serialization and deserialization.
  *
  */
-class BitHistory
+class BitHistory : public Serializable
 {
 public:
   /**

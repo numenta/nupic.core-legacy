@@ -115,7 +115,7 @@
 
 #include <cstring>
 #include <nupic/ntypes/ArrayBase.hpp>
-//////// #include <nupic/ntypes/ArrayRef.hpp>
+// for later   #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -230,7 +230,7 @@ namespace nupic {
       return a;
     }
 
-/*********  For later.
+/******** for later   (after Python is removed
     // Returns an ArrayRef that points to this Array's buffer
     // An ArrayRef buffer cannot be modified.
     // The buffer remains valid until all references are deleted.
@@ -238,7 +238,7 @@ namespace nupic {
       ArrayRef a(type_, buffer_, count_);
       return a;
     }
-********/
+***********/
 
     void invariant() {
       if (!own_)

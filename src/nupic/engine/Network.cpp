@@ -581,11 +581,7 @@ void Network::save(std::ostream &f) const {
     for (const auto & inputs_input : inputs)
     {
       const std::vector<Link*>& links = inputs_input.second->getLinks();
-      for (const auto & links_link : links)
-      {
-        count++;
-      }
-
+      count += links.size();
     }
   }
 

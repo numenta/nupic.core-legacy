@@ -1296,6 +1296,84 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
   %}
 
+  void loadFromString(const::string& inString)
+  {
+	std::istringstream inStream(inString);
+        self->load(inStream);
+  }
+  PyObject* getCState()
+  {
+	SharedPythonOStream py_s(self->persistentSize());
+	std::ostream&s = py_s.getStream();
+        s.flags(ios::scientific);
+	s.precision(numeric_limits<double>::digits10 + 1);
+	self->save(s);
+	return py_s.close();
+  }
+
+
+}
+
+//--------------------------------------------------------------------------------
+// Data structures (Connections)
+%rename(ConnectionsSynapse) nupic::algorithms::connections::Synapse;
+%template(ConnectionsSynapseVector) vector<nupic::algorithms::connections::Synapse>;
+%feature("director") nupic::algorithms::connections::ConnectionsEventHandler;
+%include <nupic/algorithms/Connections.hpp>
+
+
+//--------------------------------------------------------------------------------
+%extend nupic::algorithms::connections::Connections
+{
+  %pythoncode %{
+
+    def __init__(self,
+                 numCells,
+                 maxSegmentsPerCell=255,
+                 maxSynapsesPerSegment=255):
+      self.this = _ALGORITHMS.new_Connections(numCells,
+                                              maxSegmentsPerCell,
+                                              maxSynapsesPerSegment)
+
+
+    @classmethod
+    ///No longer supporting capnprto
+    ///def read(cls, proto):
+    ///  instance = cls()
+    ///  instance.convertedRead(proto)
+    ///  return instance
+
+    ///def write(self, pyBuilder):
+    ///  """Serialize the Connections instance using capnp.
+
+    ///  :param: Destination ConnectionsProto message builder
+    ///  """
+    ///  reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes(),
+    ///                        traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
+    ///  pyBuilder.from_dict(reader.to_dict())  # copy
+
+
+    /// def convertedRead(self, proto):
+    ///   """Initialize the Connections instance from the given ConnectionsProto
+    ///   reader.
+    ///
+    ///  :param proto: ConnectionsProto message reader containing data from a
+    ///                previously serialized Connections instance.
+
+    ///  """
+    ///  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+
+  %}
+
+  //inline PyObject* _writeAsCapnpPyBytes() const
+  //{
+  //  return nupic::PyCapnpHelper::writeAsPyBytes(*self);
+  //}
+
+  //inline void _initFromCapnpPyBytes(PyObject* pyBytes)
+  //{
+  //  nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
+  //}
 
   %pythoncode %{
     def mapSegmentsToCells(self, segments):
@@ -1378,6 +1456,7 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   }
 %}
 
+%include <nupic/algorithms/TemporalMemory.hpp>
 
 %extend nupic::algorithms::temporal_memory::TemporalMemory
 {
@@ -1573,5 +1652,3 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn;
 
 
-%include <nupic/algorithms/TemporalMemory.hpp>
-%include <nupic/algorithms/Connections.hpp>

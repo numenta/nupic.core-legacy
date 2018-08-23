@@ -28,6 +28,7 @@
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <ostream>
 #include <queue>
 #include <sstream>
@@ -250,7 +251,7 @@ public:
         CBasicActivity<It> _seg;
       };
 
-      class Cells4
+      class Cells4 : public Serializable
       {
       public:
 
@@ -1040,23 +1041,12 @@ public:
           return static_cast<UInt>(tmp.str().size());
         }
 
-
         //----------------------------------------------------------------------
-        /**
-         * Save the state to the given file
-         */
-        void saveToFile(std::string filePath) const;
+  		/**
+   		* Save and load the state to/from the stream
+   		*/
+  		void save(std::ostream &outStream) const;
 
-        //----------------------------------------------------------------------
-        /**
-         * Load the state from the given file
-         */
-        void loadFromFile(std::string filePath);
-
-        //----------------------------------------------------------------------
-        void save(std::ostream& outStream) const;
-
-        //-----------------------------------------------------------------------
         /**
          * Need to load and re-propagate activities so that we can really persist
          * at any point, load back and resume inference at exactly the same point.
@@ -1066,7 +1056,6 @@ public:
         //-----------------------------------------------------------------------
         void print(std::ostream& outStream) const;
 
-        //-----------------------------------------------------------------------
 
 
         //----------------------------------------------------------------------

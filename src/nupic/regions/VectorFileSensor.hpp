@@ -324,9 +324,11 @@ private:
   bool hasResetOut_;             // determine if a reset output is needed
   nupic::VectorFile vectorFile_; // Container class for the vectors
 
-  ArrayRef dataOut_;
-  ArrayRef categoryOut_;
-  ArrayRef resetOut_;
+  // These are the instanceses of the Output buffers
+  // They contain buffers shared with the Output objects.
+  Array dataOut_;
+  Array categoryOut_;
+  Array resetOut_;
   std::string filename_; // Name of the output file
 
   std::string scalingMode_;

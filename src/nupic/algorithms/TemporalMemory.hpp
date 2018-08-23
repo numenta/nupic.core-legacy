@@ -29,6 +29,7 @@
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
 #include <vector>
 
@@ -63,7 +64,7 @@ namespace temporal_memory {
  * convert a numpy array into a std::vector is to copy it, but you can
  * access a numpy array's internal C array directly.
  */
-class TemporalMemory
+    class TemporalMemory : public Serializable
 {
 public:
   TemporalMemory();

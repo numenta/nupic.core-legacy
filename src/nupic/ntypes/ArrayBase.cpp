@@ -249,9 +249,9 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//         Binary Serialization
+//         Stream Serialization (as binary)
 ////////////////////////////////////////////////////////////////////////////////
-void ArrayBase::binarySave(std::ostream &outStream) const
+void ArrayBase::save(std::ostream &outStream) const
 {
     outStream << "[ " << count_ << " " << BasicType::getName(type_) << " ";
     if (count_ > 0) {
@@ -261,7 +261,7 @@ void ArrayBase::binarySave(std::ostream &outStream) const
     outStream << "]" << std::endl;
 
 }
-void ArrayBase::binaryLoad(std::istream &inStream) {
+void ArrayBase::load(std::istream &inStream) {
   std::string tag;
   size_t count;
 
@@ -278,7 +278,8 @@ void ArrayBase::binaryLoad(std::istream &inStream) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//         Stream Serialization
+//         Stream Serialization  (as Ascii text character strings)
+//              [ type count ( item item item ...) ... ]
 ////////////////////////////////////////////////////////////////////////////////
 
   template <typename T>
@@ -391,138 +392,7 @@ void ArrayBase::binaryLoad(std::istream &inStream) {
     return inStream;
   }
 
-  ////////////////////////////////////////////////////////////////////////////////
-  //         YAML Serialization
-  ////////////////////////////////////////////////////////////////////////////////
 
-  void ArrayBase::serialize(YAML::Emitter& out) const
-  {
-    out << YAML::BeginMap;
-    out << YAML::Key << "type" << YAML::Value  << BasicType::getName(type_);
-    out << YAML::Key << "count" << YAML::Value << count_;
-    out << YAML::Key << "buffer" << YAML::Value << YAML::BeginSeq;
-    switch (type_) {
-    case NTA_BasicType_Byte:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((unsigned char*)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_Int16:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((Int16 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_UInt16:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((UInt16 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_Int32:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((Int32 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_UInt32:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((Int16 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_Int64:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((Int64 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_UInt64:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((UInt64 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_Real32:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((Real32 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_Real64:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((Real64 *)buffer_.get())[i];
-      }
-      break;
-    case NTA_BasicType_Bool:
-      for (size_t i = 0; i < count_; i++) {
-        out << ((bool *)buffer_.get())[i];
-      }
-      break;
-    default:
-      NTA_THROW << "Serializing, Unexpected Data Type in Array: " << type_;
-      break;
-    }
-    out << YAML::EndSeq;
-    out << YAML::EndMap;
-  }
-
-
-  void ArrayBase::deserialize(const YAML::Node &doc)
-  {
-    NTA_CHECK(doc.Type() == YAML::NodeType::Map)
-        << "Invalid deserializing of Array -- expecting a map";
-    NTA_CHECK(doc.size() == 3) << "Invalid deserializing of Array -- contains "
-                               << doc.size() << " elements, expected 3.";
-    YAML::Node node;
-
-    // 1. type
-    node = doc["type"];
-    NTA_CHECK(node.IsScalar()) << "Invalid deserializing of Array-- does not have a 'type' field.";
-    std::string linkType = node.as<std::string>();
-    type_ = BasicType::parse(linkType);
-
-    // 2. count
-    node = doc["count"];
-    NTA_CHECK(node.IsScalar()) << "Invalid deserializing of Array-- does not have a 'count' field.";
-    size_t count = node.as<size_t>();
-    allocateBuffer(count);
-
-    // 3. buffer
-    node = doc["buffer"];
-    NTA_CHECK(node.IsSequence())
-        << "Invalid deserializing of Array-- does not have a 'buffer' field.";
-    size_t i = 0;
-    for (const auto &dataValiter : node) {
-      NTA_CHECK(dataValiter.IsScalar()) << "Invalid deserializing of Array-- missing element " << i << ".";
-      NTA_CHECK(i < count_)  << "Invalid deserializing of Array-- has too many data elements.";
-      char *ptr = buffer_.get();
-      switch (type_) {
-      case NTA_BasicType_Byte:
-        ((unsigned char*)ptr)[i++] = dataValiter.as<unsigned char>();
-        break;
-      case NTA_BasicType_Int16:
-        ((Int16 *)ptr)[i++] = dataValiter.as<Int16>();
-        break;
-      case NTA_BasicType_Int32:
-        ((Int32 *)ptr)[i++] = dataValiter.as<Int32>();
-        break;
-      case NTA_BasicType_Int64:
-        ((Int64 *)ptr)[i++] = dataValiter.as<Int64>();
-        break;
-      case NTA_BasicType_UInt32:
-        ((UInt32 *)ptr)[i++] = dataValiter.as<UInt32>();
-        break;
-      case NTA_BasicType_UInt64:
-        ((UInt64 *)ptr)[i++] = dataValiter.as<UInt64>();
-        break;
-      case NTA_BasicType_Real32:
-        ((Real32 *)ptr)[i++] = dataValiter.as<Real32>();
-        break;
-      case NTA_BasicType_Real64:
-        ((Real64 *)ptr)[i++] = dataValiter.as<Real64>();
-        break;
-      case NTA_BasicType_Bool:
-        ((bool *)ptr)[i++] = dataValiter.as<bool>();
-        break;
-      default:
-        NTA_THROW << "Unexpected data type in Array deserialization.";
-      } // switch
-    }   // for
-  }
 
 
 } // namespace

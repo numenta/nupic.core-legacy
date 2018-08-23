@@ -355,7 +355,7 @@ void Connections::save(std::ostream &outStream) const {
 
   // Write a starting marker.
   outStream << "Connections" << endl;
-  outStream << Connections::VERSION << endl;
+  outStream << VERSION << endl;
 
   outStream << cells_.size() << " " << endl;
 
@@ -391,9 +391,9 @@ void Connections::load(std::istream &inStream) {
   NTA_CHECK(marker == "Connections");
 
   // Check the saved version.
-  UInt version;
+  int version;
   inStream >> version;
-  NTA_CHECK(version <= Connections::VERSION);
+  NTA_CHECK(version <= 2);
 
   // Retrieve simple variables
   UInt numCells;
@@ -422,7 +422,7 @@ void Connections::load(std::istream &inStream) {
         segmentData.cell = cell;
 
         if (!destroyedSegment) {
-          segment = segments_.size();
+          segment = (Segment)segments_.size();
           cellData.segments.push_back(segment);
           segments_.push_back(segmentData);
           segmentOrdinals_.push_back(nextSegmentOrdinal_++);

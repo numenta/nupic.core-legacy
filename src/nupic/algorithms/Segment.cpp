@@ -164,7 +164,7 @@ Real Segment::dutyCycle(UInt iteration, bool active, bool readOnly) {
   }
 
   // Update duty cycle
-  dutyCycle = pow((Real64)(1.0 - alpha), (Real64)age) * _lastPosDutyCycle;
+  dutyCycle = (Real)pow((Real64)(1.0 - alpha), (Real64)age) * _lastPosDutyCycle;
   if (active)
     dutyCycle += alpha;
 

@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/algorithms/Segment.hpp>
 
 namespace nupic {
@@ -44,7 +45,7 @@ class Cells4;
  * difference is a source of mismatches in unit testing when comparing the
  * Python TP to the C++ down to the segment level.
  */
-class Cell
+class Cell : public Serializable
 {
 private:
   std::vector<Segment> _segments;  // both 'active' and 'inactive' segments
@@ -61,7 +62,7 @@ public:
   UInt nSynapses() const {
     UInt n = 0;
     for (size_t i = 0; i != _segments.size(); ++i)
-      n += _segments[i].size();
+      n += (UInt)_segments[i].size();
     return n;
   }
 
@@ -79,7 +80,7 @@ public:
    */
   UInt nSegments() const {
     NTA_ASSERT(_freeSegments.size() <= _segments.size());
-    return (UInt)_segments.size() - _freeSegments.size();
+    return (UInt)(_segments.size() - _freeSegments.size());
   }
 
   //--------------------------------------------------------------------------------
@@ -239,7 +240,7 @@ public:
   UInt persistentSize() const {
     std::stringstream buff;
     this->save(buff);
-    return buff.str().size();
+    return (UInt)buff.str().size();
   }
 
   //----------------------------------------------------------------------

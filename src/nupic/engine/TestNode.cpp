@@ -545,7 +545,7 @@ void TestNode::serialize(BundleIO &bundle) {
         const Array &outputBuffer = iter.second->getData();
         if (outputBuffer.getCount() != 0) {
           f << iter.first << " ";
-          outputBuffer.binarySave(f);
+          outputBuffer.save(f);
         }
       }
       f << "] "; // end of all output buffers
@@ -612,7 +612,7 @@ void TestNode::deserialize(BundleIO &bundle) {
 	      f.ignore(1);
 	      if (tag == "]")
 	        break;
-	      getOutput(tag)->getData().binaryLoad(f);
+	      getOutput(tag)->getData().load(f);
 	    }
 	  }
 

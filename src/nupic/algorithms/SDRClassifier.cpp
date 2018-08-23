@@ -161,7 +161,7 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
   }
 }
 
-UInt SDRClassifier::persistentSize() const {
+size_t SDRClassifier::persistentSize() const {
   stringstream s;
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);
@@ -245,7 +245,7 @@ UInt SDRClassifier::getVerbosity() const { return verbosity_; }
 
 void SDRClassifier::setVerbosity(UInt verbosity) { verbosity_ = verbosity; }
 
-UInt SDRClassifier::getAlpha() const { return alpha_; }
+Real64 SDRClassifier::getAlpha() const { return alpha_; }
 
 void SDRClassifier::save(ostream &outStream) const {
   // Write a starting marker and version.

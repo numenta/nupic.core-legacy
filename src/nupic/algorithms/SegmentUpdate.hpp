@@ -24,6 +24,7 @@
 #define NTA_SEGMENTUPDATE_HPP
 
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <vector>
 using namespace nupic;
 
@@ -43,7 +44,7 @@ class Cells4;
  * timeStamp, and they are discarded without being applied if they become
  * 'stale'.
  */
-class SegmentUpdate
+class SegmentUpdate : public Serializable
 {
 public:
   typedef std::vector<UInt>::const_iterator const_iterator;
@@ -98,7 +99,7 @@ public:
   UInt operator[](UInt idx) const { return _synapses[idx]; }
   const_iterator begin() const { return _synapses.begin(); }
   const_iterator end() const { return _synapses.end(); }
-  UInt size() const { return _synapses.size(); }
+  UInt size() const { return (UInt)_synapses.size(); }
   bool empty() const { return _synapses.empty(); }
   bool isNewSegment() const { return _segIdx == (UInt)-1; }
   bool isPhase1Segment() const { return _phase1Flag; }

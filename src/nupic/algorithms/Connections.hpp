@@ -33,6 +33,7 @@
 
 #include <nupic/math/Math.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -181,7 +182,7 @@ public:
  * iterate over segments and update the vector at index `segment`.
  *
  */
-class Connections
+class Connections : public Serializable
  {
 public:
   static const UInt16 VERSION = 2;
