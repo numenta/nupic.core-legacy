@@ -38,6 +38,7 @@
 #include <math.h>
 #include <iterator>
 #include <algorithm>
+#include <deque>
 
 #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
   #include <array>
@@ -969,6 +970,8 @@ namespace nupic {
   template <typename T1, typename T2>
   inline bool operator==(const std::map<T1,T2>& a, const std::map<T1,T2>& b)
   {
+    if (a.size() != b.size())
+      return false;
     typename std::map<T1,T2>::const_iterator ita = a.begin(), itb = b.begin();
     for (; ita != a.end(); ++ita, ++itb)
       if (ita->first != itb->first || ita->second != itb->second)
@@ -979,6 +982,26 @@ namespace nupic {
   //--------------------------------------------------------------------------------
   template <typename T1, typename T2>
   inline bool operator!=(const std::map<T1,T2>& a, const std::map<T1,T2>& b)
+  {
+    return !(a == b);
+  }
+
+  //--------------------------------------------------------------------------------
+  template <typename T1>
+  inline bool operator==(const std::deque<T1>& a, const std::deque<T1>& b)
+  {
+    if (a.size() != b.size())
+      return false;
+    typename std::deque<T1>::const_iterator ita = a.begin(), itb = b.begin();
+    for (; ita != a.end(); ++ita, ++itb)
+      if (*ita != *itb)
+        return false;
+    return true;
+  }
+
+  //--------------------------------------------------------------------------------
+  template <typename T1>
+  inline bool operator!=(const std::deque<T1>& a, const std::deque<T1>& b)
   {
     return !(a == b);
   }

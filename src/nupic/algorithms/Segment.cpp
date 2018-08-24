@@ -86,9 +86,10 @@ bool Segment::operator==(const Segment &other) const {
   if (_totalActivations != other._totalActivations ||
       _positiveActivations != other._positiveActivations ||
       _lastActiveIteration != other._lastActiveIteration ||
-      _lastPosDutyCycle != other._lastPosDutyCycle ||
-      _lastPosDutyCycleIteration != other._lastPosDutyCycleIteration ||
-      _seqSegFlag != other._seqSegFlag || _frequency != other._frequency ||
+      !nearlyEqual(_lastPosDutyCycle, other._lastPosDutyCycle) ||
+      _lastPosDutyCycleIteration  !=  other._lastPosDutyCycleIteration ||
+      _seqSegFlag != other._seqSegFlag ||
+      !nearlyEqual(_frequency, other._frequency) ||
       _nConnected != other._nConnected) {
     return false;
   }
@@ -421,9 +422,10 @@ void Segment::print(std::ostream &outStream, UInt nCellsPerCol) const {
     } else {
       outStream << _synapses[i];
     }
-    if (i < _synapses.size() - 1)
-      std::cout << " ";
+    if (i < _synapses.size() -1)
+      outStream << " ";
   }
+  outStream << std::endl;
 }
 
 namespace nupic {
