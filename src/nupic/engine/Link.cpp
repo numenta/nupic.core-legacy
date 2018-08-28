@@ -119,6 +119,16 @@ void Link::initPropagationDelayBuffer_(size_t propagationDelay,
     ::memset(srcBuffer_[i].getBuffer(), 0, dataBufferSize);
     srcBuffer_[i].setCount(0);
   }
+  if (_LINK_DEBUG) {
+    NTA_DEBUG << "Initialzed PropagationDelayBuffer: " << "\n";
+    NTA_DEBUG <<   "  <propagationDelayBuffer>\n";
+    NTA_DEBUG <<   "    <capacity> " << srcBuffer_.capacity() << " </capacity>\n";
+    NTA_DEBUG<<    "    <size> " << srcBuffer_.size() << " </size>\n";
+    for (auto buf : srcBuffer_) {
+      NTA_DEBUG << "    " << buf << "\n";
+    }
+    NTA_DEBUG <<   "  </propagationDelayBuffer>\n";
+  }
 }
 
 void Link::initialize(size_t destinationOffset) {
@@ -413,7 +423,7 @@ void Link::shiftBufferedData() {
               << " elements=" << srcBuffer_[0];
   }
 
-  srcBuffer_.pop_front();
+  //srcBuffer_.pop_front();  // the circular buffer automatically does this
 
   // Append the current src value to circular queue
 
@@ -567,19 +577,25 @@ void Link::deserialize(std::istream &f) {
   NTA_CHECK(count == propagationDelay_) << "Invalid network structure file -- "
             "link has " << count << " buffers in 'propagationDelayBuffer'. "
             << "Expecting " << propagationDelay << ".";
-  Size idx = 0;
-  for (; idx < count; idx++) {
+
+  // Establish capacity for the requested delay data elements
+  srcBuffer_.set_capacity(count);
+
+  for (Size idx = 0; idx < count; idx++) {
     Array a;
     f >> a;
     srcBuffer_.push_back(a);
   }
-  // To complete the restore, call r->prepareInputs()
-  // and then shiftBufferedData();
+  // To complete the restore, call r->prepareInputs() and then shiftBufferedData();
+  // This is performed in Network class at the end of the load().
   f >> tag;
   NTA_CHECK(tag == "]");
   f >> tag;
   NTA_CHECK(tag == "}");
   f.ignore(1);
+  
+  if (_LINK_DEBUG)
+    NTA_DEBUG << "Restored Link: " << *this;
 }
 
 
@@ -612,6 +628,15 @@ std::ostream &operator<<(std::ostream &f, const Link &link) {
   f << "  <destInput>" << link.getDestInputName() << "</destInput>\n";
   f << "  <propagationDelay>" << link.getPropagationDelay()
     << "</propagationDelay>\n";
+  if (link.getPropagationDelay() > 0) {
+  	f <<   "  <propagationDelayBuffer>\n";
+    f <<   "    <capacity> " << link.srcBuffer_.capacity() << " </capacity>\n";
+    f<<    "    <size> " << link.srcBuffer_.size() << " </size>\n";
+	  for (auto buf : link.srcBuffer_) {
+		  f << "    " << buf << "\n";
+	  }
+	  f <<   "  </propagationDelayBuffer>\n";
+  }
   f << "</Link>\n";
   return f;
 }

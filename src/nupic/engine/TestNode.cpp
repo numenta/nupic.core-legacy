@@ -59,6 +59,7 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   real32Param_ = params.getScalarT<Real32>("real32Param", 32.1);
   real64Param_ = params.getScalarT<Real64>("real64Param", 64.1);
   boolParam_ = params.getScalarT<bool>("boolParam", false);
+  outputElementCount_ = params.getScalarT<UInt32>("count", 64);
 
   shouldCloneParam_ = params.getScalarT<UInt32>("shouldCloneParam", 1) != 0;
 
@@ -91,12 +92,15 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   unclonedInt64ArrayParam_[0] = v;
 
   // params used for computation
-  outputElementCount_ = 2;
+  outputElementCount_ = 2;  // TODO: remove this when dimensions are removed.
   delta_ = 1;
   iter_ = 0;
 }
 
-TestNode::TestNode(BundleIO &bundle, Region *region) : RegionImpl(region) {
+TestNode::TestNode(BundleIO &bundle, Region *region) :
+    RegionImpl(region),
+	computeCallback_(nullptr)
+{
   deserialize(bundle);
 }
 
@@ -108,7 +112,9 @@ void TestNode::compute() {
     computeCallback_(getName());
 
   Array &outputArray = bottomUpOut_->getData();
-  NTA_CHECK(outputArray.getCount() == outputElementCount_);
+  NTA_CHECK(outputArray.getCount() == nodeCount_ * outputElementCount_)
+       			<< "buffer size: " << outputArray.getCount()
+				<< " expected: " << (nodeCount_ * outputElementCount_);
   NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
   Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
 
@@ -135,6 +141,15 @@ Spec *TestNode::createSpec() {
   auto ns = new Spec;
 
   /* ---- parameters ------ */
+    ns->parameters.add(
+      "count",
+      ParameterSpec(
+        "Buffer size override for bottomUpOut Output",  // description
+        NTA_BasicType_UInt32,
+        1,                         // elementCount
+        "",                        // constraints
+        "2",                      // defaultValue
+        ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("int32Param",
                      ParameterSpec("Int32 scalar parameter", // description
@@ -299,7 +314,9 @@ void TestNode::setParameterReal64(const std::string &name, Int64 index,
 
 void TestNode::getParameterFromBuffer(const std::string &name, Int64 index,
                                       IWriteBuffer &value) {
-  if (name == "int32Param") {
+    if (name == "count") {
+      value.write(outputElementCount_);
+    } else if (name == "int32Param") {
     value.write(int32Param_);
   } else if (name == "uint32Param") {
     value.write(uint32Param_);
@@ -354,7 +371,9 @@ void TestNode::getParameterFromBuffer(const std::string &name, Int64 index,
 
 void TestNode::setParameterFromBuffer(const std::string &name, Int64 index,
                                       IReadBuffer &value) {
-  if (name == "int32Param") {
+    if (name == "count") {
+      value.read(outputElementCount_);
+    } else if (name == "int32Param") {
     value.read(int32Param_);
   } else if (name == "uint32Param") {
     value.read(uint32Param_);
@@ -460,7 +479,7 @@ size_t TestNode::getNodeOutputElementCount(const std::string &outputName) {
   if (outputName == "bottomUpOut") {
     return outputElementCount_;
   }
-  NTA_THROW << "TestNode::getOutputSize -- unknown output " << outputName;
+    NTA_THROW << "TestNode::getNodeOutputElementCount() -- unknown output " << outputName;
 }
 
 std::string TestNode::executeCommand(const std::vector<std::string> &args,

@@ -413,7 +413,7 @@ void Region::load(std::istream &f) {
   type_ = bigbuffer;
   // 3. dimensions
   f >> tag;
-  NTA_CHECK(tag == "dimensions");
+  NTA_CHECK(tag == "dimensions:");
   f >> tag;
   NTA_CHECK(tag == "[") << "Expecting a sequence.";
   f >> count;

@@ -107,8 +107,22 @@ Region *Network::addRegion(const std::string &name, const std::string &nodeType,
   return r;
 }
 
+Region * Network::addRegion( std::istream &stream, std::string name) {
+    Region *r = new Region(this);
+    r->load(stream);
+    if (!name.empty())
+      r->name_ = name;
+    regions_.add(r->getName(), r);
+
+    // We must make a copy of the phases set here because
+    // setPhases_ will be passing this back down into
+    // the region.
+    std::set<UInt32> phases = r->getPhases();
+    setPhases_(r, phases);
+    return r;
+}
 void Network::setDefaultPhase_(Region *region) {
-  UInt32 newphase = phaseInfo_.size();
+  UInt32 newphase = (UInt32)phaseInfo_.size();
   std::set<UInt32> phases;
   phases.insert(newphase);
   setPhases_(region, phases);
@@ -725,13 +739,17 @@ void Network::load(std::istream &f) {
   for (size_t i = 0; i < regions_.getCount(); i++) {
     Region* r = regions_.getByIndex(i).second;
 
-    r->prepareInputs();
-
-    // The Link serialization saves all but the first buffer
+    // If a propogation Delay is specified, the Link serialization
+	// saves the current input buffer at the top of the
+	// propogation Delay array because it will be pushed to
+	// the input during prepareInputs();
+	// It then saves all but the back buffer
     // (the most recent) of the Propogation Delay array because
     // that buffer is the same as the most current output.
-    // So after restore we need to shift the current
-    // outputs into the Propogaton Delay array.
+	// So after restore we need to call prepareInputs() and
+	// shift the current outputs into the Propogaton Delay array.
+    r->prepareInputs();
+
     for (const auto &inputTuple : r->getInputs()) {
       for (const auto pLink : inputTuple.second->getLinks()) {
         pLink->shiftBufferedData();

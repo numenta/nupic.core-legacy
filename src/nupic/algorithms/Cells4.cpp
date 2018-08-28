@@ -1892,7 +1892,19 @@ void Cells4::reset() {
   //}
 }
 
-struct self_t {
+// This structure is used only to allow serialization to write as a binary block.
+// Therefore it must be only POD (plain old data).  Not classes, no pointers, etc.
+struct serializedState_t {
+  Real initSegFreq;
+  Real permInitial;
+  Real permConnected;
+  Real permMax;
+  Real permDec;
+  Real permInc;
+  Real globalDecay;
+  Real avgLearnedSeqLength;
+  Real avgInputDensity;
+  Real padding1;
   UInt nColumns;
   UInt nCellsPerCol;
   UInt nCells;
@@ -1902,29 +1914,20 @@ struct self_t {
   UInt nIterations;
   UInt nLrnIterations;
   UInt segUpdateValidDuration;
-  Real initSegFreq;
-  Real permInitial;
-  Real permConnected;
-  Real permMax;
-  Real permDec;
-  Real permInc;
-  Real globalDecay;
-  bool doPooling;
-  bool checkSynapseConsistency;
-  bool ownsMemory;
-  bool resetCalled;
   UInt pamLength;
   UInt maxInfBacktrack;
   UInt maxLrnBacktrack;
   UInt maxSeqLength;
   UInt learnedSeqLength;
-  Real avgLearnedSeqLength;
   UInt maxAge;
   UInt verbosity;
+  UInt pamCounter;
   Int maxSegmentsPerCell;
   Int maxSynapsesPerSegment;
-  Real avgInputDensity;
-  UInt pamCounter;
+  Int padding2;
+  bool doPooling;
+  bool checkSynapseConsistency;
+  bool resetCalled;
 };
 // NOTE:  ownsMemory cannot be saved in serialization.
 //        It indicates who currently allocated the buffers.
@@ -1939,7 +1942,7 @@ void Cells4::save(std::ostream &outStream) const {
   }
 
   // Capture the class variables and write them as a binary block.
-  struct self_t self;
+  struct serializedState_t self;
   memset(&self, 0, sizeof(self));
   self.nColumns = _nColumns;
   self.nCellsPerCol = _nCellsPerCol;
@@ -1979,7 +1982,7 @@ void Cells4::save(std::ostream &outStream) const {
   outStream << std::endl;
 
   // capture the current state of the random number generator.
-  outStream << _rng;
+  outStream << _rng << "\n";
 
   // capture the inferred states
   outStream << "infActiveStateT" << std::endl;
@@ -2067,7 +2070,7 @@ void Cells4::load(std::istream &inStream) {
   std::string tag = "";
   UInt v;
   Size len;
-  struct self_t self;
+  struct serializedState_t self;
 
   inStream >> tag;
   NTA_CHECK(tag == "Cells4")

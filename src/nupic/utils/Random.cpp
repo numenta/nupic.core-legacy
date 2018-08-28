@@ -267,7 +267,7 @@ std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << r.seed_ << " ";
   NTA_CHECK(r.impl_ != nullptr);
   outStream << *r.impl_;
-  outStream << " endrandom-v1";
+  outStream << " endrandom-v1 ";
   return outStream;
 }
 
@@ -291,6 +291,7 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
     NTA_THROW << "Random() deserializer -- found unexpected end tag '" << endtag
               << "'";
   }
+  inStream.ignore(1);
 
   return inStream;
 }

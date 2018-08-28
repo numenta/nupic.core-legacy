@@ -213,7 +213,6 @@ after_build:
   - cpp_region_test.exe
   - helloregion.exe
   - hello_sp_tp.exe
-  - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests

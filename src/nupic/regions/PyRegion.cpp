@@ -329,7 +329,7 @@ void PyRegion::serialize(BundleIO &bundle) {
 *  py::Ptr none1(node_.invoke("serializeExtraData", args1));
 ***********/
 	// pickle to a stream
-	std::ostream &f = bundle.getOutputStream();
+	//std::ostream &f = bundle.getOutputStream();
 	// @TODO
 
 }
@@ -370,7 +370,7 @@ void PyRegion::deserialize(BundleIO &bundle) {
 *  py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
 *********/
 	// unpikle from a stream
-	std::istream &f = bundle.getInputStream();
+	//std::istream &f = bundle.getInputStream();
 	// @TODO
 }
 

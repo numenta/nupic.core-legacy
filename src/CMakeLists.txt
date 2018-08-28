@@ -747,7 +747,6 @@ install(TARGETS
         ${src_executable_pyregiontest}
         ${src_executable_connectionsperformancetest}
         ${src_executable_hellosptp}
-        ${src_executable_prototest}
         ${src_executable_gtests}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
