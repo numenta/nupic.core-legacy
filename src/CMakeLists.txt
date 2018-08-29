@@ -376,7 +376,7 @@ add_dependencies(${src_lib_static_nupiccore_solo}
                  ${YAML_STATIC_LIB_TARGET}
                  ${APR1_STATIC_LIB_TARGET}
                  ${APRUTIL1_STATIC_LIB_TARGET}
-                 ${Z_STATIC_LIB_TARGET})
+		 )
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 if(${NUPIC_IWYU})
@@ -403,7 +403,7 @@ set(src_external_static_libs
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
     ${APRUTIL1_STATIC_LIB_TARGET}
-    ${Z_STATIC_LIB_TARGET})
+   )
 
 set(src_combined_nupiccore_source_archives
     ${src_lib_static_nupiccore_solo}
