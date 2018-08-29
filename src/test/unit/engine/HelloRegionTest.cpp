@@ -55,7 +55,7 @@ TEST(HelloRegionTest, demo) {
 
   // Load data
   std::string path =
-      Path::makeAbsolute("../release/data/Data.csv"); //FIXME use path relative to CMake's nupic root
+      Path::makeAbsolute("../data/Data.csv"); //FIXME use path relative to CMake's nupic root
 
   std::cout << "Loading data from " << path << std::endl;
 
