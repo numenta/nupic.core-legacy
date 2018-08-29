@@ -131,7 +131,6 @@ script:
   - "${TRAVIS_BUILD_DIR}/build/release/bin/connections_performance_test"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/cpp_region_test"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test"
-  - "${TRAVIS_BUILD_DIR}/build/release/bin/helloregion"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/hello_sp_tp"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/prototest"
   # unit tests
