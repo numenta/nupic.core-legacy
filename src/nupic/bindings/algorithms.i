@@ -1544,50 +1544,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
   %}
 
-  inline PyObject* getActiveCells()
-  {
-    const vector<CellIdx> activeCells = self->getActiveCells();
-
-    return nupic::NumpyVectorT<nupic::UInt32>(
-      activeCells.size(), activeCells.data()
-    ).forPython();
-  }
-
-  inline PyObject* getPredictiveCells()
-  {
-    const vector<CellIdx> predictiveCells = self->getPredictiveCells();
-
-    return nupic::NumpyVectorT<nupic::UInt32>(
-      predictiveCells.size(), predictiveCells.data()
-    ).forPython();
-  }
-
-  inline PyObject* getWinnerCells()
-  {
-    const vector<CellIdx> winnerCells = self->getWinnerCells();
-
-    return nupic::NumpyVectorT<nupic::UInt32>(
-      winnerCells.size(), winnerCells.data()
-    ).forPython();
-  }
-
-  inline PyObject* getActiveSegments()
-  {
-    const vector<UInt32> activeSegments = self->getActiveSegments();
-
-    return nupic::NumpyVectorT<nupic::UInt32>(
-      activeSegments.size(), activeSegments.data()
-    ).forPython();
-  }
-
-  inline PyObject* getMatchingSegments()
-  {
-    const vector<UInt32> matchingSegments = self->getMatchingSegments();
-
-    return nupic::NumpyVectorT<nupic::UInt32>(
-      matchingSegments.size(), matchingSegments.data()
-    ).forPython();
-  }
 
   inline PyObject* cellsForColumn(UInt columnIdx)
   {
@@ -1644,11 +1600,4 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   }
 }
 
-%ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveCells;
-%ignore nupic::algorithms::temporal_memory::TemporalMemory::getPredictiveCells;
-%ignore nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCells;
-%ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveSegments;
-%ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingSegments;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn;
-
-
