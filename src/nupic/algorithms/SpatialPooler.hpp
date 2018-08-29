@@ -34,6 +34,7 @@
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 using namespace std;
 
@@ -64,7 +65,7 @@ namespace spatial_pooler {
  *     }
  *
  */
-class SpatialPooler
+class SpatialPooler : public Serializable
 {
 public:
   SpatialPooler();

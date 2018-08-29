@@ -86,6 +86,13 @@ bool SegmentUpdate::invariants(Cells4 *cells) const {
   return ok;
 }
 
+/**
+ * Compare segmentUpdates.
+ * SegmentUpdate and its synapses are added in random order
+ * to somewhat random connections.  But if comparing
+ * Serialized segmentUpdates against the original they will
+ * be in exactly the same sequence.
+ */
 bool SegmentUpdate::operator==(const SegmentUpdate &o) const {
 
   if (_cellIdx != o._cellIdx || _segIdx != o._segIdx ||

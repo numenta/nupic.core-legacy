@@ -114,6 +114,9 @@ void copyTree(const std::string &source, const std::string &destination) {
 bool removeTree(const std::string &path, bool noThrow) {
   bool success = true;
   NTA_CHECK(!path.empty()) << "Can't remove directory with no name";
+  if (!Path::exists(path))
+  	return true;
+
   {
     // The scope is necessary to make sure the destructor
     // of the Iterator releases the directory so that
@@ -202,11 +205,6 @@ void create(const std::string &path, bool otherAccess, bool recursive) {
   success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
   if (!success) {
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-      // Not a hard error, due to potential race conditions.
-      std::cerr << "Path '" << path
-                << "' exists. "
-                   "Possible race condition."
-                << std::endl;
       success = Path::isDirectory(path);
     }
   }
@@ -219,11 +217,6 @@ void create(const std::string &path, bool otherAccess, bool recursive) {
   int res = ::mkdir(path.c_str(), permissions);
   if (res != 0) {
     if (errno == EEXIST) {
-      // Not a hard error, due to potential race conditions.
-      std::cerr << "Path '" << path
-                << "' exists. "
-                   "Possible race condition."
-                << std::endl;
       success = Path::isDirectory(path);
     } else {
       success = false;
@@ -248,7 +241,7 @@ void Iterator::init(const std::string &path) {
   NTA_CHECK(res == 0) << "Can't create pool";
   std::string absolutePath = Path::makeAbsolute(path);
   res = ::apr_dir_open(&handle_, absolutePath.c_str(), pool_);
-  NTA_CHECK(res == 0) << "Can't open directory " << path
+  NTA_CHECK(res == 0) << "Can't open directory " << absolutePath
                       << ". OS num: " << APR_TO_OS_ERROR(res);
 }
 

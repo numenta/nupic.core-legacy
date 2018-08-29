@@ -76,6 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nupic/math/Math.hpp>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/utils/Random.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 namespace algorithms {
@@ -104,7 +105,7 @@ template <typename label_type, typename feature_type> struct sample {
 };
 
 //------------------------------------------------------------------------------
-class svm_problem
+class svm_problem : public Serializable
 {
 public:
   typedef float label_type;
@@ -201,7 +202,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-struct svm_problem01
+struct svm_problem01  : public Serializable
 {
   typedef float label_type;
   typedef int feature_type;
@@ -325,7 +326,8 @@ struct decision_function {
  * n_sv = n_sv[n_class], number of SVs for each class
  * probA, probB = [n_class*(n_class-1)/2]
  */
-class svm_model {
+class svm_model  : public Serializable
+{
 public:
   int n_dims_;
   float *sv_mem;
@@ -786,7 +788,9 @@ struct svm_01_traits {
 };
 
 //------------------------------------------------------------------------------
-template <typename svm_traits = svm_std_traits> class svm {
+template <typename svm_traits = svm_std_traits>
+class svm  : public Serializable
+{
 public:
   typedef typename svm_traits::problem_type problem_type;
   typedef typename svm_traits::q_matrix_type q_matrix_type;
@@ -895,7 +899,8 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class svm_dense {
+class svm_dense  : public Serializable
+{
   svm<svm_std_traits> svm_;
 
 public:
@@ -955,7 +960,8 @@ public:
 };
 
 //------------------------------------------------------------------------------
-class svm_01{
+class svm_01  : public Serializable
+{
   svm<svm_01_traits> svm_;
 
 public:

@@ -291,74 +291,87 @@ PyRegion::~PyRegion() {
 }
 
 void PyRegion::serialize(BundleIO &bundle) {
-  // 1. serialize main state using pickle
-  // 2. call class method to serialize external state
+/***** pickle to a file, the original code
+*  // 1. serialize main state using pickle
+*  // 2. call class method to serialize external state
+*
+*  // 1. Serialize main state
+*
+*  // f = open(path, "wb")
+*  py::Tuple args(2);
+*  std::string path = bundle.getPath("pkl");
+*  py::String filename(path);
+*  py::String openmode("wb");
+*  args.setItem(0, filename);
+*  args.setItem(1, openmode);
+*  py::Instance f("__builtin__", "file", args);
+*
+*  // cPickle.dump(node_, f, HIGHEST_PROTOCOL)
+*  py::Module pickle("cPickle");
+*  py::Tuple args2(3);
+*  args2.setItem(0, node_);
+*  args2.setItem(1, f);
+*  args2.setItem(2, py::Int(2));
+*  py::Ptr none(pickle.invoke("dump", args2));
+*
+*  // f.close()
+*  py::Tuple args3(Py_ssize_t(0));
+*  py::Ptr none2(f.invoke("close", args3));
+*
+*
+*  // 2. External state
+*  // Call the Python serializeExtraData() method
+*  std::string externalPath = bundle.getPath("xtra");
+*  py::Tuple args1(1);
+*  args1.setItem(0, py::String(externalPath));
+*
+*  // Need to put the None result in py::Ptr to decrement the ref count
+*  py::Ptr none1(node_.invoke("serializeExtraData", args1));
+***********/
+	// pickle to a stream
+	//std::ostream &f = bundle.getOutputStream();
+	// @TODO
 
-  // 1. Serialize main state
-
-  // f = open(path, "wb")
-  py::Tuple args(2);
-  std::string path = bundle.getPath("pkl");
-  py::String filename(path);
-  py::String openmode("wb");
-  args.setItem(0, filename);
-  args.setItem(1, openmode);
-  py::Instance f("__builtin__", "file", args);
-
-  // cPickle.dump(node_, f, HIGHEST_PROTOCOL)
-  py::Module pickle("cPickle");
-  py::Tuple args2(3);
-  args2.setItem(0, node_);
-  args2.setItem(1, f);
-  args2.setItem(2, py::Int(2));
-  py::Ptr none(pickle.invoke("dump", args2));
-
-  // f.close()
-  py::Tuple args3(Py_ssize_t(0));
-  py::Ptr none2(f.invoke("close", args3));
-
-  // 2. External state
-  // Call the Python serializeExtraData() method
-  std::string externalPath = bundle.getPath("xtra");
-  py::Tuple args1(1);
-  args1.setItem(0, py::String(externalPath));
-
-  // Need to put the None result in py::Ptr to decrement the ref count
-  py::Ptr none1(node_.invoke("serializeExtraData", args1));
 }
 
 void PyRegion::deserialize(BundleIO &bundle) {
-  // 1. deserialize main state using pickle
-  // 2. call class method to deserialize external state
-
-  // 1. de-serialize main state using pickle
-  // f = open(path, "rb")  # binary mode needed on windows
-  py::Tuple args(2);
-  std::string path = bundle.getPath("pkl");
-  py::String filename(path);
-  args.setItem(0, filename);
-  py::String mode("rb");
-  args.setItem(1, mode);
-  py::Instance f("__builtin__", "file", args);
-
-  // node_ = cPickle.load(f)
-  py::Module pickle("cPickle");
-  py::Tuple args2(1);
-  args2.setItem(0, f);
-  node_.assign(py::Ptr(pickle.invoke("load", args2)));
-
-  // f.close()
-  py::Tuple args3((Py_ssize_t)0);
-  py::Ptr none2(f.invoke("close", args3));
-
-  // 2. External state
-  // Call the Python deSerializeExtraData() method
-  std::string externalPath = bundle.getPath("xtra");
-  py::Tuple args1(1);
-  args1.setItem(0, py::String(externalPath));
-
-  // Need to put the None result in py::Ptr to decrement the ref count
-  py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
+/***** un-pickle from a file, the original code
+*
+*  // 1. deserialize main state using pickle
+*  // 2. call class method to deserialize external state
+*
+*  // 1. de-serialize main state using pickle
+*  // f = open(path, "rb")  # binary mode needed on windows
+*  py::Tuple args(2);
+*  std::string path = bundle.getPath("pkl");
+*  py::String filename(path);
+*  args.setItem(0, filename);
+*  py::String mode("rb");
+*  args.setItem(1, mode);
+*  py::Instance f("__builtin__", "file", args);
+*
+*  // node_ = cPickle.load(f)
+*  py::Module pickle("cPickle");
+*  py::Tuple args2(1);
+*  args2.setItem(0, f);
+*  node_.assign(py::Ptr(pickle.invoke("load", args2)));
+*
+*  // f.close()
+*  py::Tuple args3((Py_ssize_t)0);
+*  py::Ptr none2(f.invoke("close", args3));
+*
+*  // 2. External state
+*  // Call the Python deSerializeExtraData() method
+*  std::string externalPath = bundle.getPath("xtra");
+*  py::Tuple args1(1);
+*  args1.setItem(0, py::String(externalPath));
+*
+*  // Need to put the None result in py::Ptr to decrement the ref count
+*  py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
+*********/
+	// unpikle from a stream
+	//std::istream &f = bundle.getInputStream();
+	// @TODO
 }
 
 

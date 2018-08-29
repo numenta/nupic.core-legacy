@@ -23,14 +23,16 @@
 #ifndef NTA_Cells4_HPP
 #define NTA_Cells4_HPP
 
-#include <cstring>
-#include <fstream>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/Segment.hpp>
+#include <nupic/algorithms/Cell.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <ostream>
 #include <queue>
 #include <sstream>
+#include <cstring>
+#include <fstream>
 
 //-----------------------------------------------------------------------
 /**
@@ -250,7 +252,7 @@ public:
         CBasicActivity<It> _seg;
       };
 
-      class Cells4
+      class Cells4 : public Serializable
       {
       public:
 
@@ -386,7 +388,7 @@ public:
          UInt segUpdateValidDuration = 1, Real permInitial = .5,
          Real permConnected = .8, Real permMax = 1, Real permDec = .1,
          Real permInc = .1, Real globalDecay = 0, bool doPooling = false,
-         int seed = -1, bool initFromCpp = false,
+         int seed = -1, bool initFromCpp = true,
          bool checkSynapseConsistency = false);
 
   //----------------------------------------------------------------------
@@ -399,7 +401,7 @@ public:
                   Real permInitial = .5, Real permConnected = .8,
                   Real permMax = 1, Real permDec = .1, Real permInc = .1,
                   Real globalDecay = .1, bool doPooling = false,
-                  bool initFromCpp = false,
+                  bool initFromCpp = true,
                   bool checkSynapseConsistency = false);
 
   //----------------------------------------------------------------------
@@ -477,14 +479,40 @@ public:
 
   //----------------------------------------------------------------------
   /**
+   * Get individual state buffer pointers
+   */
+  Byte *getInfActiveStateT() { return _infActiveStateT.arrayPtr(); }
+  Byte *getInfActiveStateT1() { return _infActiveStateT1.arrayPtr(); }
+  Byte *getInfPredictedStateT() { return _infPredictedStateT.arrayPtr(); }
+  Byte *getInfPredictedStateT1() { return _infPredictedStateT1.arrayPtr(); }
+  Byte *getLearnActiveStateT() { return _learnActiveStateT.arrayPtr(); }
+  Byte *getLearnActiveStateT1() { return _learnActiveStateT1.arrayPtr(); }
+  Byte *getLearnPredictedStateT() { return _learnPredictedStateT.arrayPtr(); }
+  Byte *getLearnPredictedStateT1() { return _learnPredictedStateT.arrayPtr(); }
+  Real *getCellConfidenceT() { return _cellConfidenceT; }
+  Real *getCellConfidenceT1() { return _cellConfidenceT1; }
+  Real *getColConfidenceT() { return _colConfidenceT; }
+  Real *getColConfidenceT1() { return _colConfidenceT1; }
+
+  //----------------------------------------------------------------------
+  /**
    * Accessors for getting various member variables
    */
   UInt nSegments() const;
   UInt nCells() const { return _nCells; }
   UInt nColumns() const { return _nColumns; }
   UInt nCellsPerCol() const { return _nCellsPerCol; }
+  Real getPermInitial() const { return _permInitial; }
   UInt getMinThreshold() const { return _minThreshold; }
   Real getPermConnected() const { return _permConnected; }
+  UInt getNewSynapseCount() const { return _newSynapseCount; }
+  Real getPermInc() const { return _permInc; }
+  Real getPermDec() const { return _permDec; }
+  Real getPermMax() const { return _permMax; }
+  Real getGlobalDecay() const { return _globalDecay; }
+  UInt getActivationThreshold() const { return _activationThreshold; }
+  bool getDoPooling() { return _doPooling; }
+  UInt getSegUpdateValidDuration() { return _segUpdateValidDuration; }
   UInt getVerbosity() const { return _verbosity; }
   UInt getMaxAge() const { return _maxAge; }
   UInt getPamLength() const { return _pamLength; }
@@ -1040,23 +1068,12 @@ public:
           return static_cast<UInt>(tmp.str().size());
         }
 
-
         //----------------------------------------------------------------------
-        /**
-         * Save the state to the given file
-         */
-        void saveToFile(std::string filePath) const;
+  		/**
+   		* Save and load the state to/from the stream
+   		*/
+  		void save(std::ostream &outStream) const;
 
-        //----------------------------------------------------------------------
-        /**
-         * Load the state from the given file
-         */
-        void loadFromFile(std::string filePath);
-
-        //----------------------------------------------------------------------
-        void save(std::ostream& outStream) const;
-
-        //-----------------------------------------------------------------------
         /**
          * Need to load and re-propagate activities so that we can really persist
          * at any point, load back and resume inference at exactly the same point.
@@ -1065,12 +1082,7 @@ public:
 
         //-----------------------------------------------------------------------
         void print(std::ostream& outStream) const;
-
-        //-----------------------------------------------------------------------
-        bool equals(const Cells4& other) const;
-
-        bool operator==(const Cells4 &s) { return equals(s); }
-        bool operator!=(const Cells4 &s) { return !equals(s); }
+		std::ostream& operator<<(std::ostream& outStream);
 
 
         //----------------------------------------------------------------------
@@ -1112,6 +1124,7 @@ public:
          */
         void printStates();
         void printState(UInt *state);
+        void printConfidence(Real *confidence, size_t len) const;
         void dumpPrevPatterns(std::deque<std::vector<UInt> > &patterns);
         void dumpSegmentUpdates();
 
@@ -1155,7 +1168,7 @@ public:
       };
 
       //-----------------------------------------------------------------------
-      std::ostream& operator<<(std::ostream& outStream, const Cells4& cells);
+      //std::ostream& operator<<(std::ostream& outStream, const Cells4& cells);
 
 //-----------------------------------------------------------------------
 } // end namespace Cells4

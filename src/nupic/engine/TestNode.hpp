@@ -138,8 +138,8 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  const Input *bottomUpIn_;
-  const Output *bottomUpOut_;
+  Input *bottomUpIn_;
+  Output *bottomUpOut_;
 };
 } // namespace nupic
 

@@ -57,6 +57,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 
 #include <nupic/algorithms/Svm.hpp>
+#include <nupic/math/StlIo.hpp>     // binary_save
+
 
 namespace nupic {
 namespace algorithms {

@@ -87,7 +87,7 @@ void VectorFileEffector::compute() {
 
   Real *inputVec = (Real *)(dataIn_.getBuffer());
   NTA_CHECK(inputVec != nullptr);
-  OFStream &outFile = *outFile_;
+  std::ofstream &outFile = *outFile_;
   for (Size offset = 0; offset < dataIn_.getCount(); ++offset) {
     // TBD -- could be very inefficient to do one at a time
     outFile << inputVec[offset] << " ";
@@ -110,8 +110,9 @@ void VectorFileEffector::openFile(const std::string &filename) {
   if (filename == "")
     return;
 
-  outFile_ = new OFStream(filename.c_str(), std::ios::app);
-  if (outFile_->fail()) {
+  outFile_ = new std::ofstream(filename.c_str(), std::ios::app);
+  if (outFile_->fail())
+  {
     delete outFile_;
     outFile_ = nullptr;
     NTA_THROW

@@ -35,6 +35,7 @@
 
 #include <nupic/ntypes/Collection.hpp>
 
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -49,7 +50,7 @@ class Link;
  *
  * @nosubgrouping
  */
-class Network
+  class Network : public Serializable
 {
 public:
   /**
@@ -65,16 +66,6 @@ public:
    */
   Network();
 
-  /**
-   * Create a Network by loading previously saved bundle,
-   * and register it to NuPIC.
-   *
-   * @param path The path to the previously saved bundle file, currently only
-   * support files with `.nta` extension.
-   *
-   * @note Creating a Network will auto-initialize NuPIC.
-   */
-  Network(const std::string &path);
 
   /**
    * Destructor.
@@ -102,26 +93,36 @@ public:
   /**
    * @}
    *
-   * @name Serialization
-   *
-   * @{
-   */
-
-  /**
-   * Save the network to a network bundle (extension `.nta`).
-   *
-   * @param name
-   *        Name of the bundle
-   */
-  void save(const std::string &name);
-
-  /**
-   * @}
-   *
-   * @name Region and Link operations
-   *
-   * @{
-   */
+     * @name Internal Serialization methods
+     * @{
+     */
+    /**
+     *    saveToFile(path)
+     *    save(ostream f)
+     *    f << net;
+     *          serialize everything into one stream.  This can be
+     *          opened to a file or a memory stream but must be binary.
+     *
+     *    loadFromFile(path)
+     *    load(istream f)
+     *    f >> net;
+     *          restores the streamed Network and all its parts back to
+     *          what it was before being serialized.
+     *
+     * @path The filename into which to save/load the streamed serialization.
+     * @f    The stream with which to save/load the serialization.
+     *
+	 * See Serializable base class for definitions.
+	 */
+    virtual void save(std::ostream &f) const override;
+    virtual void load(std::istream &stream)  override;
+    /**
+     * @}
+     *
+     * @name Region and Link operations
+     *
+     * @{
+     */
 
   /**
    * Create a new region in a network.
@@ -138,30 +139,19 @@ public:
   Region *addRegion(const std::string &name, const std::string &nodeType,
                     const std::string &nodeParams);
 
-  /**
-   * Create a new region from saved state.
-   *
-   * @param name
-   *        Name of the region, Must be unique in the network
-   * @param nodeType
-   *        Type of node in the region, e.g. "FDRNode"
-   * @param dimensions
-   *        Dimensions of the region
-   * @param bundlePath
-   *        The path to the bundle
-   * @param label
-   *        The label of the bundle
-   *
-   * @todo @a label is the prefix of filename of the saved bundle, should this
-   * be documented?
-   *
-   * @returns A pointer to the newly created Region
-   */
-  Region *addRegionFromBundle(const std::string &name,
-                              const std::string &nodeType,
-                              const Dimensions &dimensions,
-                              const std::string &bundlePath,
-                              const std::string &label);
+    /**
+     * Create a new region in a network from serialized region
+     *
+     * @param stream
+     *        opened stream
+     * @param name
+     *        Name of the region, Must be unique in the network.
+     *        If not given, it uses the name it was serialized with.
+     *
+     * @returns A pointer to the newly created Region
+     */
+    Region* addRegion( std::istream &stream,
+                            std::string name = "");
 
   /**
    * Removes an existing region from the network.
@@ -192,7 +182,7 @@ public:
    *            any, are initially populated with 0's. Defaults to 0=no delay
    */
   void link(const std::string &srcName, const std::string &destName,
-            const std::string &linkType, const std::string &linkParams,
+            const std::string &linkType="", const std::string &linkParams="",
             const std::string &srcOutput = "",
             const std::string &destInput = "",
             const size_t propagationDelay = 0);
@@ -398,14 +388,8 @@ private:
   // Both constructors use this common initialization method
   void commonInit();
 
-  // Used by the path-based constructor
-  void load(const std::string &path);
 
-  void loadFromBundle(const std::string &path);
 
-  // save() always calls this internal method, which creates
-  // a .nta bundle
-  void saveToBundle(const std::string &bundleName);
 
   // internal method using region pointer instead of name
   void setPhases_(Region *r, std::set<UInt32> &phases);

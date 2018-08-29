@@ -40,9 +40,10 @@
 #include <iostream> // for ostream, istream
 #include <stdlib.h> // for size_t
 #include <string>
+#include <memory>	// for shared_ptr
 
 #include <nupic/types/Types.h>
-#include <yaml-cpp/yaml.h>
+#include <nupic/types/Serializable.hpp>
 
 
 
@@ -55,7 +56,7 @@ namespace nupic
    * a client application and NuPIC, minimizing copying. It facilitates
    * both zero-copy and one-copy operations.
    */
-  class ArrayBase
+  class ArrayBase : public Serializable
   {
   public:
     /**
@@ -71,6 +72,17 @@ namespace nupic
      * ask the ArrayBase to allocate a buffer via allocateBuffer.
      */
     explicit ArrayBase(NTA_BasicType type);
+
+    /**
+     * Copy constructor.
+     */
+    ArrayBase(const ArrayBase& other) {
+      type_ = other.type_;
+      buffer_ = other.buffer_;
+      count_ = other.count_;
+      capacity_ = other.capacity_;
+      own_ = other.own_;
+    }
 
     /**
      * The destructor ensures the array doesn't leak its buffer (if
@@ -104,7 +116,7 @@ namespace nupic
     // number of elements of given type in the buffer
     size_t
     getCount() const;
-    
+
     // max number of elements this buffer can hold (capacity)
 	  size_t getMaxElementsCount() const;
 
@@ -117,20 +129,19 @@ namespace nupic
     NTA_BasicType
     getType() const;
 
-    bool 
+    bool
     isInstance(const ArrayBase &a);
 
 
     /**
     * serialization and deserialization for an Array
     */
-    virtual void serialize(YAML::Emitter& out) const;
-    virtual void deserialize(const YAML::Node& node);
+    // binary representation
+    void save(std::ostream &outStream) const;
+    void load(std::istream &inStream);
 
-    void binarySave(std::ostream &outStream) const;
-    void binaryLoad(std::istream &inStream);
-
-
+    // ascii text representation
+    //    [ type count ( item item item ...) ... ]
     friend std::ostream &operator<<(std::ostream &outStream,  const ArrayBase &a);
     friend std::istream &operator>>(std::istream &inStream, ArrayBase &a);
 
@@ -148,7 +159,7 @@ namespace nupic
     // Template defines the type of the local array.
     void NonZero(ArrayBase& a) const;
 
-    template <typename T> 
+    template <typename T>
     void NonZeroT(ArrayBase &a) const;
 
 

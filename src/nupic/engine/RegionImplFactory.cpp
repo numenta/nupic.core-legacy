@@ -182,7 +182,6 @@ private:
   destroySpecFunc destroySpec_;
   createPyNodeFunc createPyNode_;
   deserializePyNodeFunc deserializePyNode_;
-  deserializePyNodeProtoFunc deserializePyNodeProto_;
 };
 
 RegionImplFactory &RegionImplFactory::getInstance() {

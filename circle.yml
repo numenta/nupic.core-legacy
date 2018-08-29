@@ -101,7 +101,6 @@ jobs:
             ./py_region_test
             ./helloregion
             ./hello_sp_tp
-            ./prototest
             ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
 
       - store_test_results:

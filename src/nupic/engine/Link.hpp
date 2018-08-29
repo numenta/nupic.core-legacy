@@ -83,9 +83,9 @@ public:
    * Initialization Phase 1: setting parameters of the link.
    *
    * @param linkType
-   *            The type of the link
+   *            The type of the link, normally ""
    * @param linkParams
-   *            The parameters of the link
+   *            The parameters of the link, normally ""
    * @param srcRegionName
    *            The name of the source Region
    * @param destRegionName
@@ -122,10 +122,8 @@ public:
 
   /**
    * De-serialization use case. Creates a "blank" link. The caller must follow
-   * up with Link::read and Link::connectToNetwork
+   * up with Link::deserialize() and Link::connectToNetwork
    *
-   * @param proto
-   *            LinkProto::Reader
    */
   Link();
 
@@ -406,31 +404,22 @@ public:
   bool operator!=(const Link &o) const { return !operator==(o); }
 
   /**
-   * Serialize the link to YAML.
+   * Serialize the link using a stream.
    *
-   * @param out
-   *            The YAML Emitter to encode into (from Network.cpp)
+   * @param f -- The stream to output to.
    */
- // void serialize(YAML::Emitter &out);
- // coming later (keeney)
+  void serialize(std::ostream &f);
 
   /**
-   * Deserialize the link from YAML.
+   * Deserialize the link from binary stream.
    *
-   * @param link
-   *            The YAML Node to decode from (from Network.cpp)
+   * @param f -- the stream to read from
    *
-   * @note After deserializing the link, caller must now call
-   *    newLink->connectToNetwork(srcOutput, destInput);
-   *
-   * After everything is deserialized caller must call
-   *    net.initialize()
    */
- // void deserialize(const YAML::Node &link);
- // coming later (keeney)
+  void deserialize(std::istream &f);
 
 private:
-  // common initialization for the two constructors.
+  // common initialization for the two Link constructors.
   void commonConstructorInit_(const std::string &linkType,
                               const std::string &linkParams,
                               const std::string &srcRegionName,

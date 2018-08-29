@@ -34,6 +34,7 @@
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_sorted
 #include <nupic/math/StlIo.hpp>     // binary_save
+#include <nupic/types/Serializable.hpp>
 
 //-----------------------------------------------------------------------
 /**
@@ -87,10 +88,10 @@ namespace Cells4 {
 /**
  * Encapsulate the arrays used to maintain per-cell state.
  */
-class CState
+class CState : public Serializable
 {
 public:
-  static const UInt VERSION = 1;
+  static const UInt VERSION = 2;
 
   CState() {
     _nCells = 0;
@@ -151,7 +152,8 @@ public:
     // inconsistent.
     return _pData;
   }
-  void print(std::ostream &outStream) const {
+  // output ascii
+  virtual void print(std::ostream &outStream) const {
     outStream << version() << " " << _fMemoryAllocatedByPython << " " << _nCells
               << std::endl;
     for (UInt i = 0; i < _nCells; ++i) {
@@ -160,7 +162,7 @@ public:
     outStream << std::endl << "end" << std::endl;
   }
   // output binary
-  inline void binary_save(std::ostream& outStream) const
+  virtual inline void save(std::ostream& outStream) const
   {
     outStream << version() << " "
                            << _fMemoryAllocatedByPython << " "
@@ -169,15 +171,14 @@ public:
     outStream << std::endl << "end" << std::endl;
   }
 
-  inline void load(std::istream& inStream)
+  virtual inline void load(std::istream& inStream)
   {
     UInt version;
     inStream >> version;
-    NTA_CHECK(version == 1);
+    NTA_CHECK(version == 2);
     inStream >> _fMemoryAllocatedByPython >> _nCells;
-    for (UInt i = 0; i < _nCells; ++i) {
-      inStream >> _pData[i];
-    }
+    inStream.ignore(1);
+    inStream.read((char *)_pData, _nCells * sizeof(Byte));
     std::string token;
     inStream >> token;
     NTA_CHECK(token == "end");
@@ -196,7 +197,7 @@ protected:
  */
 class CStateIndexed : public CState {
 public:
-  static const UInt VERSION = 1;
+  static const UInt VERSION = 2;
 
   CStateIndexed() : CState() {
     _version = VERSION;
@@ -221,7 +222,7 @@ public:
     _isSorted = o._isSorted;
     return *this;
   }
-  bool operator==(const CStateIndexed &other) const {
+  virtual bool operator==(const CStateIndexed &other) const {
     if (_version != other._version || _countOn != other._countOn ||
         _isSorted != other._isSorted) {
       return false;
@@ -231,7 +232,7 @@ public:
     }
     return CState::operator==(other);
   }
-  inline bool operator!=(const CStateIndexed &other) const {
+  virtual inline bool operator!=(const CStateIndexed &other) const {
     return !operator==(other);
   }
   std::vector<UInt> cellsOn(bool fSorted = false) {
@@ -263,6 +264,7 @@ public:
     _countOn = 0;
     _isSorted = true;
   }
+  // output ascii
   void print(std::ostream &outStream) const {
     outStream << version() << " " << _fMemoryAllocatedByPython << " " << _nCells
               << std::endl;
@@ -278,30 +280,29 @@ public:
   }
 
   // output binary
-  inline void binary_save(std::ostream& outStream) const
-        {
-          outStream << version() << " "
-                    << _fMemoryAllocatedByPython << " "
-                    << _nCells << " ";
-          outStream.write((const char *)_pData, _nCells * sizeof(Byte));
-          outStream << _countOn << " ";
-          outStream << _cellsOn.size() << " ";
-          for (auto & elem : _cellsOn)
-          {
-            outStream << elem << " ";
-          }
-          outStream << "end" << std::endl;
+  void save(std::ostream& outStream) const
+  {
+      outStream << version() << " "
+                << _fMemoryAllocatedByPython << " "
+                << _nCells << " ";
+      outStream.write((const char *)_pData, _nCells * sizeof(Byte));
+      outStream << _countOn << " ";
+      outStream << _cellsOn.size() << " ";
+      for (auto & elem : _cellsOn)
+      {
+        outStream << elem << " ";
+      }
+      outStream << "end" << std::endl;
   }
 
   // input binary
   void load(std::istream &inStream) {
     UInt version;
     inStream >> version;
-    NTA_CHECK(version == 1);
+    NTA_CHECK(version == 2);
     inStream >> _fMemoryAllocatedByPython >> _nCells;
-    for (UInt i = 0; i < _nCells; ++i) {
-      inStream >> _pData[i];
-    }
+    inStream.ignore(1);
+    inStream.read((char *)_pData, _nCells * sizeof(Byte));
     inStream >> _countOn;
     UInt nCellsOn;
     inStream >> nCellsOn;
@@ -331,9 +332,9 @@ const UInt _dutyCycleTiers[] = {0,     100,   320,    1000,  3200,
 
 // This is the alpha used in each tier. dutyCycleAlphas[n] is used when
 /// iterationIdx > dutyCycleTiers[n]
-const Real _dutyCycleAlphas[] = {0.0,      0.0032,    0.0010,
-                                 0.00032,  0.00010,   0.000032,
-                                 0.000010, 0.0000032, 0.0000010};
+const Real _dutyCycleAlphas[] = {0.0f,      0.0032f,    0.0010f,
+                                 0.00032f,  0.00010f,   0.000032f,
+                                 0.000010f, 0.0000032f, 0.0000010f};
 
 //-----------------------------------------------------------------------
 // Forward declarations
@@ -347,7 +348,7 @@ struct InSynapseOrder {
 };
 
 //-----------------------------------------------------------------------
-class Segment
+class Segment : public Serializable
 {
 public:
   typedef std::vector<InSynapse> InSynapses;
@@ -402,14 +403,14 @@ public:
    */
   inline bool invariants() const {
     static std::vector<UInt> indices;
-    static UInt highWaterSize = 0;
+    static size_t highWaterSize = 0;
     if (highWaterSize < _synapses.size()) {
       highWaterSize = _synapses.size();
       indices.reserve(highWaterSize);
     }
     indices.clear(); // purge residual data
 
-    for (UInt i = 0; i != _synapses.size(); ++i)
+    for (size_t i = 0; i != _synapses.size(); ++i)
       indices.push_back(_synapses[i].srcCellIdx());
 
 #ifndef NDEBUG
@@ -434,7 +435,7 @@ public:
   inline bool checkConnected(Real permConnected) const {
     //
     UInt nc = 0;
-    for (UInt i = 0; i != _synapses.size(); ++i)
+    for (size_t i = 0; i != _synapses.size(); ++i)
       nc += (_synapses[i].permanence() >= permConnected);
 
     if (nc != _nConnected) {
@@ -450,7 +451,7 @@ public:
    * Various accessors
    */
   inline bool empty() const { return _synapses.empty(); }
-  inline UInt size() const { return _synapses.size(); }
+  inline size_t size() const { return _synapses.size(); }
   inline bool isSequenceSegment() const { return _seqSegFlag; }
   inline Real &frequency() { return _frequency; }
   inline Real getFrequency() const { return _frequency; }
@@ -472,10 +473,10 @@ public:
   inline bool has(UInt srcCellIdx) const {
     NTA_ASSERT(srcCellIdx != (UInt)-1);
 
-    UInt lo = 0;
-    UInt hi = _synapses.size();
+    size_t lo = 0;
+    size_t hi = _synapses.size();
     while (lo < hi) {
-      const UInt test = (lo + hi) / 2;
+      const size_t test = (lo + hi) / 2;
       if (_synapses[test].srcCellIdx() < srcCellIdx)
         lo = test + 1;
       else if (_synapses[test].srcCellIdx() > srcCellIdx)
@@ -494,7 +495,7 @@ public:
    * adaptation or global decay.
    */
   inline void setPermanence(UInt idx, Real val) {
-    NTA_ASSERT(idx < _synapses.size());
+    NTA_ASSERT(idx < (UInt)_synapses.size());
 
     _synapses[idx].permanence() = val;
   }
@@ -504,7 +505,7 @@ public:
    * Returns the permanence of the idx-th synapse on this Segment as a value
    */
   inline Real getPermanence(UInt idx) const {
-    NTA_ASSERT(idx < _synapses.size());
+    NTA_ASSERT(idx < (UInt)_synapses.size());
     NTA_ASSERT(0 <= _synapses[idx].permanence());
 
     return _synapses[idx].permanence();
@@ -515,7 +516,7 @@ public:
    * Returns the source cell index of the synapse at index idx.
    */
   inline UInt getSrcCellIdx(UInt idx) const {
-    NTA_ASSERT(idx < _synapses.size());
+    NTA_ASSERT(idx < (UInt)_synapses.size());
     return _synapses[idx].srcCellIdx();
   }
 
@@ -550,7 +551,7 @@ public:
 
   //-----------------------------------------------------------------------
   inline const InSynapse &operator[](UInt idx) const {
-    NTA_ASSERT(idx < size());
+    NTA_ASSERT(idx < (UInt)size());
     return _synapses[idx];
   }
 
@@ -580,7 +581,7 @@ public:
    */
   void recomputeConnected(Real permConnected) {
     _nConnected = 0;
-    for (UInt i = 0; i != _synapses.size(); ++i)
+    for (size_t i = 0; i != _synapses.size(); ++i)
       if (_synapses[i].permanence() >= permConnected)
         ++_nConnected;
   }
@@ -599,7 +600,7 @@ private:
     // because of decay
     UInt i = 0, idel = 0, j = 0;
 
-    while (i < _synapses.size() && idel < del.size()) {
+    while (i < (UInt)_synapses.size() && idel < (UInt)del.size()) {
       if (i == del[idel]) {
         ++i;
         ++idel;
@@ -610,7 +611,7 @@ private:
       }
     }
 
-    while (i < _synapses.size())
+    while (i < (UInt)_synapses.size())
       _synapses[j++] = _synapses[i++];
 
     _synapses.resize(j);
@@ -644,21 +645,21 @@ public:
 
     std::vector<UInt> del;
 
-    UInt i1 = 0, i2 = 0;
+    size_t i1 = 0, i2 = 0;
 
     while (i1 < size() && i2 < synapses.size()) {
 
       if (_synapses[i1].srcCellIdx() == synapses[i2]) {
 
-        Real oldPerm = getPermanence(i1);
+        Real oldPerm = getPermanence((UInt)i1);
         Real newPerm = std::min(oldPerm + delta, permMax);
 
         if (newPerm <= 0) {
           removed.push_back(_synapses[i1].srcCellIdx());
-          del.push_back(i1);
+          del.push_back((UInt)i1);
         }
 
-        setPermanence(i1, newPerm);
+        setPermanence((UInt)i1, newPerm);
 
         int wasConnected = (int)(oldPerm >= permConnected);
         int isConnected = (int)(newPerm >= permConnected);
@@ -800,10 +801,11 @@ public:
   //----------------------------------------------------------------------
   // PERSISTENCE
   //----------------------------------------------------------------------
+  //   -- do we really need to know the size?
   inline UInt persistentSize() const {
     std::stringstream buff;
     this->save(buff);
-    return buff.str().size();
+    return (UInt)buff.str().size();
   }
 
   //----------------------------------------------------------------------
@@ -813,7 +815,7 @@ public:
               << _nConnected << ' ' << _totalActivations << ' '
               << _positiveActivations << ' ' << _lastActiveIteration << ' '
               << _lastPosDutyCycle << ' ' << _lastPosDutyCycleIteration << ' ';
-    binary_save(outStream, _synapses);
+    binary_save(outStream, _synapses);  // see StIo.hpp
     outStream << ' ';
   }
 
@@ -825,7 +827,7 @@ public:
         _lastPosDutyCycle >> _lastPosDutyCycleIteration;
     _synapses.resize(n);
     inStream.ignore(1);
-    binary_load(inStream, _synapses);
+    binary_load(inStream, _synapses);  // see StIo.hpp
     NTA_ASSERT(invariants());
   }
 

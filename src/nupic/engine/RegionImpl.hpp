@@ -63,9 +63,9 @@ public:
 
   /* ------- Convenience methods  that access region data -------- */
 
-  const std::string &getType() const;
+  std::string getType() const;
 
-  const std::string &getName() const;
+  std::string getName() const;
 
   const NodeSet &getEnabledNodes() const;
 
@@ -208,8 +208,8 @@ protected:
   // These methods provide access to inputs and outputs
   // They raise an exception if the named input or output is
   // not found.
-  const Input *getInput(const std::string &name);
-  const Output *getOutput(const std::string &name);
+  Input *getInput(const std::string &name) const;
+  Output *getOutput(const std::string &name) const;
 
   const Dimensions &getDimensions();
 };

@@ -36,6 +36,8 @@
 // try to separate algorithms and write them for all types of matrices??
 // optimize kernels depending on cache sizes?
 
+// Note: cannot be made a nupic::Serializable class because it is not in nupic namespace.
+
 //--------------------------------------------------------------------------------
 /**
  * A fixed size matrix, allocated as a single contiguous chunk of memory.
