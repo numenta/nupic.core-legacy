@@ -45,7 +45,6 @@
 #else
 #include <unistd.h>
 #endif
-#include <zlib.h>
 
 using namespace nupic;
 
@@ -124,84 +123,4 @@ void OFStream::open(const char *filename, ios_base::openmode mode) {
     std::ofstream::open(filename, mode);
 #endif
   }
-}
-
-void *ZLib::fopen(const std::string &filename, const std::string &mode,
-                  std::string *errorMessage) {
-  if (mode.empty())
-    throw std::invalid_argument("Mode may not be empty.");
-
-#if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
-  std::wstring wfilename(Path::utf8ToUnicode(filename));
-  int cflags = _O_BINARY;
-  int pflags = 0;
-  if (mode[0] == 'r') {
-    cflags |= _O_RDONLY;
-  } else if (mode[0] == 'w') {
-    cflags |= _O_TRUNC | _O_CREAT | _O_WRONLY;
-    pflags |= _S_IREAD | _S_IWRITE;
-  } else if (mode[0] == 'a') {
-    cflags |= _O_APPEND | _O_CREAT | _O_WRONLY;
-    pflags |= _S_IREAD | _S_IWRITE;
-  } else {
-    throw std::invalid_argument("Mode must start with 'r', 'w' or 'a'.");
-  }
-
-  int fd = _wopen(wfilename.c_str(), cflags, pflags);
-  gzFile fs = gzdopen(fd, mode.c_str());
-
-  if (fs == 0) {
-    // TODO: Build an error message for Windows.
-  }
-
-#else
-  gzFile fs = nullptr;
-  { // zlib may not be thread-safe in its current compiled state.
-    int attempts = 0;
-    const int maxAttempts = 1;
-    int lastError = 0;
-    while (1) {
-      fs = gzopen(filename.c_str(), mode.c_str());
-      if (fs)
-        break;
-
-      int error = errno;
-      if (error != lastError) {
-        std::string message("Unknown error.");
-        // lastError = error;
-        switch (error) {
-        case Z_STREAM_ERROR:
-          message = "Zlib stream error.";
-          break;
-        case Z_DATA_ERROR:
-          message = "Zlib data error.";
-          break;
-        case Z_MEM_ERROR:
-          message = "Zlib memory error.";
-          break;
-        case Z_BUF_ERROR:
-          message = "Zlib buffer error.";
-          break;
-        case Z_VERSION_ERROR:
-          message = "Zlib version error.";
-          break;
-        default:
-          message = ::strerror(error);
-          break;
-        }
-        if (errorMessage) {
-          *errorMessage = message;
-        } else if (maxAttempts >
-                   1) { // If we will try again, warn about failure.
-          std::cerr << "Warning: Failed to open file '" << filename
-                    << "': " << message << std::endl;
-        }
-      }
-      if ((++attempts) >= maxAttempts)
-        break;
-      ::usleep(10000);
-    }
-  }
-#endif
-  return fs;
 }
