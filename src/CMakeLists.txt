@@ -87,15 +87,8 @@ set(src_compiler_definitions
     -DNTA_INTERNAL
     -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
     -DBOOST_NO_WREGEX
-    -DNUPIC2
     -DAPR_DECLARE_STATIC
     -DAPU_DECLARE_STATIC)
-
-if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
-  set(src_compiler_definitions
-      ${src_compiler_definitions}
-      -DNTA_ASM)
-endif()
 
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(src_compiler_definitions
@@ -361,6 +354,7 @@ set(src_nupiccore_srcs
     nupic/utils/MovingAverage.cpp
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
+    nupic/utils/SlidingWindow.hpp
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
@@ -383,7 +377,7 @@ add_dependencies(${src_lib_static_nupiccore_solo}
                  ${YAML_STATIC_LIB_TARGET}
                  ${APR1_STATIC_LIB_TARGET}
                  ${APRUTIL1_STATIC_LIB_TARGET}
-                 ${Z_STATIC_LIB_TARGET})
+		 )
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 if(${NUPIC_IWYU})
@@ -410,7 +404,7 @@ set(src_external_static_libs
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
     ${APRUTIL1_STATIC_LIB_TARGET}
-    ${Z_STATIC_LIB_TARGET})
+   )
 
 set(src_combined_nupiccore_source_archives
     ${src_lib_static_nupiccore_solo}
@@ -571,6 +565,7 @@ add_executable(${src_executable_gtests}
                test/unit/utils/GroupByTest.cpp
                test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
+               test/unit/utils/SlidingWindowTest.cpp
                test/unit/utils/WatcherTest.cpp)
 target_link_libraries(${src_executable_gtests}
                       ${src_lib_static_gtest}

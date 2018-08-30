@@ -50,41 +50,39 @@ static void _toScalar(const YAML::Node &node, boost::shared_ptr<Scalar> &s) {
                  "of type Byte";
     break;
   case NTA_BasicType_UInt16:
-    node >> s->value.uint16;
+    s->value.uint16 = node.as<NTA_UInt16>(); 
     break;
   case NTA_BasicType_Int16:
-    node >> s->value.int16;
+    s->value.int16 = node.as<NTA_Int16>();
     break;
   case NTA_BasicType_UInt32:
-    node >> s->value.uint32;
+    s->value.uint32 = node.as<NTA_UInt32>(); 
     break;
   case NTA_BasicType_Int32:
-    node >> s->value.int32;
+    s->value.int32 = node.as<NTA_Int32>();
     break;
   case NTA_BasicType_UInt64:
-    node >> s->value.uint64;
+    s->value.uint64 = node.as<NTA_UInt64>();
     break;
   case NTA_BasicType_Int64:
-    node >> s->value.int64;
+    s->value.int64 = node.as<NTA_Int64>();
     break;
   case NTA_BasicType_Real32:
-    node >> s->value.real32;
+    s->value.real32 = node.as<NTA_Real32>();
     break;
   case NTA_BasicType_Real64:
-    node >> s->value.real64;
+    s->value.real64 = node.as<NTA_Real64>();
     break;
   case NTA_BasicType_Bool:
-    node >> s->value.boolean;
+    s->value.boolean = node.as<bool>();
     break;
   case NTA_BasicType_Handle:
     NTA_THROW << "Attempt to specify a YAML value for a scalar of type Handle";
     break;
   default:
     // should not happen
-    std::string val;
-    node >> val;
-    NTA_THROW << "Unknown data type " << s->getType() << " for yaml node '"
-              << val << "'";
+    const std::string val = node.as<std::string>();
+    NTA_THROW << "Unknown data type " << s->getType() << " for yaml node '" << val << "'";
   }
 }
 
@@ -104,31 +102,31 @@ static void _toArray(const YAML::Node &node, boost::shared_ptr<Array> &a) {
                    "of type Byte";
       break;
     case NTA_BasicType_UInt16:
-      item.Read<UInt16>(((UInt16 *)buffer)[i]);
+      ((UInt16*)buffer)[i] = item.as<UInt16>();
       break;
     case NTA_BasicType_Int16:
-      item.Read<Int16>(((Int16 *)buffer)[i]);
+      ((Int16*)buffer)[i] = item.as<Int16>();
       break;
     case NTA_BasicType_UInt32:
-      item.Read<UInt32>(((UInt32 *)buffer)[i]);
+     ((UInt32*)buffer)[i] = item.as<UInt32>();
       break;
     case NTA_BasicType_Int32:
-      item.Read<Int32>(((Int32 *)buffer)[i]);
+     ((Int32*)buffer)[i] = item.as<Int32>();
       break;
     case NTA_BasicType_UInt64:
-      item.Read<UInt64>(((UInt64 *)buffer)[i]);
+     ((UInt64*)buffer)[i] = item.as<UInt64>();
       break;
     case NTA_BasicType_Int64:
-      item.Read<Int64>(((Int64 *)buffer)[i]);
+     ((Int64*)buffer)[i] = item.as<Int64>();
       break;
     case NTA_BasicType_Real32:
-      item.Read<Real32>(((Real32 *)buffer)[i]);
+     ((Real32*)buffer)[i] = item.as<Real32>();
       break;
     case NTA_BasicType_Real64:
-      item.Read<Real64>(((Real64 *)buffer)[i]);
+     ((Real64*)buffer)[i] = item.as<Real64>();
       break;
     case NTA_BasicType_Bool:
-      item.Read<bool>(((bool *)buffer)[i]);
+     ((bool*)buffer)[i] = item.as<bool>();
       break;
     default:
       // should not happen
@@ -145,8 +143,7 @@ static Value toValue(const YAML::Node &node, NTA_BasicType dataType) {
   if (node.Type() == YAML::NodeType::Scalar) {
     if (dataType == NTA_BasicType_Byte) {
       // node >> *str;
-      std::string val;
-      node.Read(val);
+      const std::string val = node.as<std::string>();
       boost::shared_ptr<std::string> str(new std::string(val));
       Value v(str);
       return v;
@@ -168,37 +165,11 @@ static Value toValue(const YAML::Node &node, NTA_BasicType dataType) {
 /*
  * For converting default values specified in nodespec
  */
-Value toValue(const std::string &yamlstring, NTA_BasicType dataType) {
-  // IMemStream s(yamlstring, ::strlen(yamlstring));
-
-  // yaml-cpp bug: append a space if it is only one character
-  // This is very inefficient, but should be ok since it is
-  // just used at construction time for short strings
-  std::string paddedstring(yamlstring);
-  if (paddedstring.size() < 2)
-    paddedstring = paddedstring + " ";
-  std::stringstream s(paddedstring);
-
+Value toValue(const std::string& yamlstring, NTA_BasicType dataType)
+{
   // TODO -- return value? exceptions?
-  bool success = false;
-  YAML::Node doc;
-  try {
-    YAML::Parser parser(s);
-    success = parser.GetNextDocument(doc);
-    // } catch(YAML::ParserException& e) {
-  } catch (...) {
-    success = false;
-  }
-  if (!success) {
-    std::string ys(paddedstring);
-    if (ys.size() > 30) {
-      ys = ys.substr(0, 30) + "...";
-    }
-    NTA_THROW << "Unable to parse YAML string '" << ys
-              << "' for a scalar value";
-  }
-  Value v = toValue(doc, dataType);
-  return v;
+  const YAML::Node doc = YAML::Load(yamlstring);
+  return toValue(doc, dataType);
 }
 
 /*
@@ -211,27 +182,13 @@ ValueMap toValueMap(const char *yamlstring,
 
   ValueMap vm;
 
-  // yaml-cpp bug: append a space if it is only one character
-  // This is very inefficient, but should be ok since it is
-  // just used at construction time for short strings
   std::string paddedstring(yamlstring);
   // TODO: strip white space to determine if empty
   bool empty = (paddedstring.size() == 0);
 
-  if (paddedstring.size() < 2)
-    paddedstring = paddedstring + " ";
-  std::stringstream s(paddedstring);
-  // IMemStream s(yamlstring, ::strlen(yamlstring));
-
   // TODO: utf-8 compatible?
-  YAML::Node doc;
-  if (!empty) {
-    YAML::Parser parser(s);
-    bool success = parser.GetNextDocument(doc);
-
-    if (!success)
-      NTA_THROW << "Unable to find document in YAML string";
-
+  const YAML::Node doc = YAML::Load(paddedstring);
+  if(!empty) {
     // A ValueMap is specified as a dictionary
     if (doc.Type() != YAML::NodeType::Map) {
       std::string ys(yamlstring);
@@ -244,22 +201,21 @@ ValueMap toValueMap(const char *yamlstring,
           << "Region and Link parameters must be specified at a dictionary";
     }
   }
-
   // Grab each value out of the YAML dictionary and put into the ValueMap
   // if it is allowed by the nodespec.
-  YAML::Iterator i;
-  for (i = doc.begin(); i != doc.end(); i++) {
-    const std::string key = i.first().to<std::string>();
-    if (!parameters.contains(key)) {
+  for (auto i = doc.begin(); i != doc.end(); i++)
+  {
+    const auto key = i->first.as<std::string>();
+    if (!parameters.contains(key))
+    {
       std::stringstream ss;
-      for (UInt j = 0; j < parameters.getCount(); j++) {
+      for (UInt j = 0; j < parameters.getCount(); j++){
         ss << "   " << parameters.getByIndex(j).first << "\n";
       }
-
+            
       if (nodeType == std::string("")) {
-        NTA_THROW << "Unknown parameter '" << key << "'\n"
-                  << "Valid parameters are:\n"
-                  << ss.str();
+        NTA_THROW << "Unknown parameter '" << key << "'\n" 
+                  << "Valid parameters are:\n" << ss.str();
       } else {
         NTA_CHECK(regionName != std::string(""));
         NTA_THROW << "Unknown parameter '" << key << "' for region '"
@@ -272,9 +228,11 @@ ValueMap toValueMap(const char *yamlstring,
       NTA_THROW << "Parameter '" << key
                 << "' specified more than once in YAML document";
     ParameterSpec spec = parameters.getByName(key);
-    try {
-      Value v = toValue(i.second(), spec.dataType);
-      if (v.isScalar() && spec.count != 1) {
+    try
+    {
+      Value v = toValue(i->second, spec.dataType);
+      if (v.isScalar() && spec.count != 1)
+      {
         throw std::runtime_error("Expected array value but got scalar value");
       }
       if (!v.isScalar() && spec.count == 1) {
@@ -284,18 +242,19 @@ ValueMap toValueMap(const char *yamlstring,
     } catch (std::runtime_error &e) {
       NTA_THROW << "Unable to set parameter '" << key << "'. " << e.what();
     }
-  }
+  } //end for
 
-  // Populate ValueMap with default values if they were not specified in the
-  // YAML dictionary.
-  for (size_t i = 0; i < parameters.getCount(); i++) {
-    std::pair<std::string, ParameterSpec> &item = parameters.getByIndex(i);
-    if (!vm.contains(item.first)) {
-      ParameterSpec &ps = item.second;
-      if (ps.defaultValue != "") {
-        // TODO: This check should be uncommented after dropping NuPIC 1.x nodes
-        // (which don't comply) if (ps.accessMode !=
-        // ParameterSpec::CreateAccess)
+  // Populate ValueMap with default values if they were not specified in the YAML dictionary.
+  for (size_t i = 0; i < parameters.getCount(); i++)
+  {
+    std::pair<std::string, ParameterSpec>& item = parameters.getByIndex(i);
+    if (!vm.contains(item.first))
+    {
+      ParameterSpec & ps = item.second;
+      if (ps.defaultValue != "")
+      {
+        // TODO: This check should be uncommented after dropping NuPIC 1.x nodes (which don't comply) //FIXME try this
+        // if (ps.accessMode != ParameterSpec::CreateAccess)
         // {
         //   NTA_THROW << "Default value for non-create parameter: " <<
         //   item.first;
@@ -322,5 +281,4 @@ ValueMap toValueMap(const char *yamlstring,
 }
 
 } // namespace YAMLUtils
-
 } // end of namespace nupic

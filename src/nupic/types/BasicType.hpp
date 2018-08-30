@@ -32,7 +32,9 @@ namespace nupic {
 // The supported operations are:
 // - isValid()
 // - getName()
-// - getSize() and parse().
+// - getSize() 
+// - parse()
+// - convertArray()
 //
 class BasicType {
 public:
@@ -68,9 +70,19 @@ public:
   // of NTA_BasicType_Int32 is "Int32"
   static NTA_BasicType parse(const std::string &s);
 
+  // convert elements of one array to another array of the specified types.
+  // For arrays containing negitive values converting to unsigned types you Will get strange results.
+  // For arrays containing longer types there will be truncation when going to smaller types.
+  static void convertArray(void *toPtr, NTA_BasicType toType, const void *fromPtr,
+                      NTA_BasicType fromType, size_t count);
+
+
 private:
   BasicType();
   BasicType(const BasicType &);
+
+
+
 };
 } // namespace nupic
 
