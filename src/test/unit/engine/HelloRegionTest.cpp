@@ -31,7 +31,6 @@
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
-#include <nupic/utils/Log.hpp>
 
 namespace testing {
 
@@ -54,6 +53,7 @@ TEST(HelloRegionTest, demo) {
   region->setDimensions(dims);
 
   // Load data
+  const size_t DATA_SIZE = 4; //Data is only 4 rows
   std::string path =
       Path::makeAbsolute("../data/Data.csv"); //FIXME use path relative to CMake's nupic root
 
@@ -62,7 +62,7 @@ TEST(HelloRegionTest, demo) {
   std::vector<std::string> loadFileArgs;
   loadFileArgs.push_back("loadFile");
   loadFileArgs.push_back(path);
-  loadFileArgs.push_back("2");
+  loadFileArgs.push_back("2"); //2=file format
 
   region->executeCommand(loadFileArgs);
 
@@ -80,10 +80,7 @@ TEST(HelloRegionTest, demo) {
 
   // Get output
   Real64 *buffer = (Real64 *)outputArray.getBuffer();
-
-  for (size_t i = 0; i < outputArray.getCount(); i++) {
-    std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
-  }
+  EXPECT_FLOAT_EQ(buffer[0], 0);
 
   // Serialize
   Network net2;
@@ -99,13 +96,13 @@ TEST(HelloRegionTest, demo) {
   ArrayRef outputArray2 = region2->getOutputData("dataOut");
   Real64 *buffer2 = (Real64 *)outputArray2.getBuffer();
 
-  net.run(1);
-  net2.run(1);
+  net.run(DATA_SIZE);
+  net2.run(DATA_SIZE);
 
-  ASSERT_TRUE(outputArray2.getCount() == outputArray.getCount());
-  for (size_t i = 0; i < outputArray.getCount(); i++) {
-    std::cout << "  " << i << "    " << buffer[i] << "   " << buffer2[i]
-              << std::endl;
+  ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
+  for (size_t i = 0; i < sizeof &buffer / sizeof &buffer[0]; i++) { //TODO how output all values generated during run(4) ?? 
+	  ASSERT_FLOAT_EQ(buffer[i], buffer2[i]);
+	  std::cout << " " << buffer[i];
   }
 }
 } //end namespace
