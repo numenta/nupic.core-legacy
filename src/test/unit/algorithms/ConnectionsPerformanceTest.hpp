@@ -47,20 +47,18 @@ class ConnectionsPerformanceTest {
 public:
   ConnectionsPerformanceTest() {}
   virtual ~ConnectionsPerformanceTest() {}
-  void runTemporalMemoryTest(UInt numColumns, UInt w, int numSequences,
+  float runTemporalMemoryTest(UInt numColumns, UInt w, int numSequences,
                              int numElements, std::string label);
-  void runSpatialPoolerTest(UInt numCells, UInt numInputs, UInt w,
+  float runSpatialPoolerTest(UInt numCells, UInt numInputs, UInt w,
                             UInt numWinners, std::string label);
 
 private:
-  void checkpoint(clock_t timer, std::string text);
+  float checkpoint(clock_t timer, std::string text);
   std::vector<UInt32> randomSDR(UInt n, UInt w);
   void feedTM(algorithms::temporal_memory::TemporalMemory &tm,
               std::vector<CellIdx> sdr, bool learn = true);
-  std::vector<CellIdx>
-  computeSPWinnerCells(Connections &connections, UInt numCells,
+  std::vector<CellIdx> computeSPWinnerCells(Connections &connections, UInt numCells,
                        const vector<UInt> &numActiveSynapsesForSegment);
-  ConnectionsPerformanceTest* test;
 
 }; // end class ConnectionsPerformanceTest
 
