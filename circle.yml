@@ -97,7 +97,6 @@ jobs:
           command: |
             mkdir -p tests/cpp
             pushd build/release/bin
-            ./cpp_region_test
             ./py_region_test
             ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
 

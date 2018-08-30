@@ -428,20 +428,6 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 
 
 #
-# Setup test_cpp_region
-#
-set(src_executable_cppregiontest cpp_region_test)
-add_executable(${src_executable_cppregiontest} test/integration/CppRegionTest.cpp)
-target_link_libraries(${src_executable_cppregiontest} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-add_custom_target(tests_cpp_region
-                  COMMAND ${src_executable_cppregiontest}
-                  DEPENDS ${src_executable_cppregiontest}
-                  COMMENT "Executing test ${src_executable_cppregiontest}"
-                  VERBATIM)
-
-#
 # Setup test_py_region
 #
 set(src_executable_pyregiontest py_region_test)
@@ -494,6 +480,7 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/SvmTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
+	       test/unit/engine/CppRegionTest.cpp
                test/unit/engine/InputTest.cpp
 	       test/unit/engine/HelloRegionTest.cpp
                test/unit/engine/LinkTest.cpp
@@ -558,7 +545,6 @@ add_custom_target(tests_unit
 # add_dependencies should be used to set it's dependencies on the custom targets
 # of the inidividual test runners.
 add_custom_target(tests_all
-                  DEPENDS tests_cpp_region
                   DEPENDS tests_unit
                   COMMENT "Running all tests"
                   VERBATIM)

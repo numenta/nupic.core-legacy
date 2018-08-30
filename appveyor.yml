@@ -210,7 +210,6 @@ after_build:
   - cd %NUPIC_CORE%\build\release\bin
   - py_region_test.exe
   - connections_performance_test.exe
-  - cpp_region_test.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests
