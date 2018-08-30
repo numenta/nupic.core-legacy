@@ -28,14 +28,6 @@ import unittest
 
 import numpy
 
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # RandomProto_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.proto.RandomProto_capnp import RandomProto
 
 from nupic.bindings.math import Random
 
@@ -44,21 +36,17 @@ from nupic.bindings.math import Random
 class TestNupicRandom(unittest.TestCase):
 
 
-  @unittest.skipUnless(
-    capnp, "pycapnp is not installed, skipping serialization test.")
-  def testCapnpSerialization(self):
-    """Test capnp serialization of NuPIC randomness."""
+  def testSerialization(self):
+    """Test serialization of NuPIC randomness."""
 
     # Simple test: make sure that dumping / loading works...
     r = Random(99)
 
-    builderProto = RandomProto.new_message()
-    r.write(builderProto)
-    readerProto = RandomProto.from_bytes(builderProto.to_bytes())
+    r.saveFromFile("RandomSerialization.stream")
 
     test1 = [r.getUInt32() for _ in xrange(10)]
     r = Random(1);
-    r.read(readerProto)
+    r.loadFromFile("RandomSerialization.stream")
     self.assertEqual(r.getSeed(), 99)
     test2 = [r.getUInt32() for _ in xrange(10)]
 
@@ -69,19 +57,17 @@ class TestNupicRandom(unittest.TestCase):
     # (in the first test).  Things should still work...
     # ...the idea of this test is to make sure that the pickle code isn't just
     # saving the initial seed...
-    builderProto = RandomProto.new_message()
-    r.write(builderProto)
-    readerProto = RandomProto.from_bytes(builderProto.to_bytes())
+    r.saveFromFile("RandomSerialization.stream")
 
     test3 = [r.getUInt32() for _ in xrange(10)]
     r = Random();
-    r.read(readerProto)
+    r.saveFromFile("RandomSerialization.stream")
     self.assertEqual(r.getSeed(), 99)
     test4 = [r.getUInt32() for _ in xrange(10)]
 
     self.assertEqual(
       test3, test4,
-      "NuPIC random capnp serialization check didn't work for saving later "
+      "NuPIC random serialization check didn't work for saving later "
       "state.")
 
     self.assertNotEqual(

@@ -23,14 +23,6 @@ import json
 import unittest
 import pytest
 
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # PythonDummyRegion_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.proto.NetworkProto_capnp import NetworkProto
 
 from nupic.bindings.regions.PyRegion import PyRegion
 
@@ -94,10 +86,8 @@ class NetworkTest(unittest.TestCase):
     engine.Network.registerPyRegion(TestLinks.__module__, TestLinks.__name__)
 
 
-  @unittest.skipUnless(
-    capnp, "pycapnp is not installed, skipping serialization test.")
-  def testCapnpSerializationWithPyRegion(self):
-    """Test capnp (de)serialization of network containing a python region"""
+  def testSerializationWithPyRegion(self):
+    """Test  (de)serialization of network containing a python region"""
     engine.Network.registerPyRegion(__name__,
                                     SerializationTestPyRegion.__name__)
     try:
@@ -110,14 +100,12 @@ class NetworkTest(unittest.TestCase):
                        }))
 
       # Serialize
-      builderProto = NetworkProto.new_message()
-      srcNet.write(builderProto)
+      srcNet.saveToFile("SerializationTest.stream")
 
-      # Construct NetworkProto reader from populated builder
-      readerProto = NetworkProto.from_bytes(builderProto.to_bytes())
 
       # Deserialize
-      destNet = engine.Network.read(readerProto)
+      destNet = engine.Network()
+      destNet.loadFromFile("SerializationTest.stream")
 
       destRegion = destNet.getRegions().getByName(
         SerializationTestPyRegion.__name__)

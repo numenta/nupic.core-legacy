@@ -34,6 +34,7 @@
 #include <vector>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Log.hpp>
 
 typedef NTA_UInt64 (*RandomSeedFuncPtr)();
@@ -79,8 +80,7 @@ namespace nupic {
  */
 class RandomImpl;
 
-class Random
-{
+class Random : public Serializable {
 public:
   /**
    * Retrieve the seeder. If seeder not set, allocates the
@@ -131,7 +131,7 @@ public:
   // randomly shuffle the elements
   template <class RandomAccessIterator>
   void shuffle(RandomAccessIterator first, RandomAccessIterator last) {
-    UInt n = last - first;
+    UInt n = (UInt)(last - first);
     while (first != last) {
       // Pick a random position between the current and the end to swap the
       // current element with.
@@ -171,6 +171,8 @@ public:
   static void initSeeder(const RandomSeedFuncPtr r);
 
   static void shutdown();
+  void save(std::ostream &stream) const { stream << *this; }
+  void load(std::istream &stream) { stream >> *this; }
 
 protected:
   // each "universe" (application/plugin/python module) has its own instance,
@@ -203,7 +205,7 @@ std::istream &operator>>(std::istream &, Random &);
 // set to this function. The plugin framework can override this
 // behavior by explicitly setting the seeder to the RandomSeeder
 // function provided by the application.
-NTA_UInt64 GetRandomSeed();
+UInt64 GetRandomSeed();
 
 } // namespace nupic
 
