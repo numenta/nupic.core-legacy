@@ -290,7 +290,7 @@ TEST(ConnectionsPerformanceTest, testSP) {
  */
 TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = t.runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
-  ASSERT_LE(tim, 80.0f);
+  ASSERT_LE(tim, 125.0f);
 }
 
 } // end namespace 

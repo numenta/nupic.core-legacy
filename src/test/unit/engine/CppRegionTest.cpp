@@ -55,7 +55,7 @@ bool verbose = false;
 
 
 struct MemoryMonitor {
-  MemoryMonitor(const size_t count) : maxIter(count) { 
+  MemoryMonitor(const size_t count) { 
 	    NTA_ASSERT(count > 1 && count < minCount)
     << "Run count of " << count << " specified\n" 
     << "When run in leak detection mode, count must be at least "
@@ -104,7 +104,6 @@ struct MemoryMonitor {
   size_t diff_rmem;
   size_t diff_vmem;
   size_t i = 0; //current iter
-  size_t maxIter; //run for this many iters
     // Start checking memory usage after this many iterations.
 #if defined(NTA_OS_WINDOWS)
   // takes longer to settle down on win32
