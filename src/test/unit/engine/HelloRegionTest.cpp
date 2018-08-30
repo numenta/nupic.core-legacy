@@ -80,7 +80,9 @@ TEST(HelloRegionTest, demo) {
 
   // Get output
   Real64 *buffer = (Real64 *)outputArray.getBuffer();
-  EXPECT_FLOAT_EQ(buffer[0], 0);
+  if(outputArray.getCount() >0) {
+    EXPECT_FLOAT_EQ(buffer[0], 0);
+  }
 
   // Serialize
   Network net2;
