@@ -20,23 +20,29 @@
  * ---------------------------------------------------------------------
  */
 
+#include "gtest/gtest.h"
+
 #include <algorithm> // std::generate
 #include <cmath>     // pow
 #include <ctime>     // std::time
 #include <iostream>
 #include <vector>
 
-#include "nupic/algorithms/Cells4.hpp"
+#include "nupic/algorithms/Cells4.hpp"  //TODO use TM instead
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/Random.hpp"
+
+namespace testing { 
 
 using namespace std;
 using namespace nupic;
 using nupic::algorithms::Cells4::Cells4;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 
-int main(int argc, const char *argv[]) {
+
+TEST(HelloSPTPTest, performance) {
+
   const UInt DIM = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
@@ -67,14 +73,14 @@ int main(int argc, const char *argv[]) {
   for (UInt e = 0; e < EPOCHS; e++) {
     generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     fill(outSP.begin(), outSP.end(), 0);
-    sp.compute(input.data(), true, outSP.data());
+    EXPECT_NO_THROW(sp.compute(input.data(), true, outSP.data()));
     sp.stripUnlearnedColumns(outSP.data());
 
     for (UInt i = 0; i < DIM; i++) {
       rIn[i] = (Real)(outSP[i]);
     }
 
-    tp.compute(rIn, rOut, true, true);
+    EXPECT_NO_THROW(tp.compute(rIn, rOut, true, true)); 
 
     for (UInt i = 0; i < _CELLS; i++) {
       outTP[i] = (UInt)rOut[i];
@@ -83,14 +89,19 @@ int main(int argc, const char *argv[]) {
     // print
     if (e == EPOCHS - 1) {
       cout << "Epoch = " << e << endl;
-      cout << "SP=" << outSP << endl;
-      cout << "TP=" << outTP << endl;
+//      cout << "SP=" << outSP << endl;
+//      cout << "TP=" << outTP << endl; //TODO when we have toSparse() add EXPECT_EQ test
+      ASSERT_EQ(outSP[69], 0) << "A value in SP computed incorrectly";
+      ASSERT_EQ(outTP[42], 0) << "Incorrect value in TP";
     }
   }
 
   stopwatch.stop();
-  cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds"
-       << endl;
+  const size_t timeTotal = stopwatch.getElapsed();
+  const size_t CI_avg_time = 35; //sec
+  cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
+  EXPECT_TRUE(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
+	  "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
 
-  return 0;
 }
+} //ns

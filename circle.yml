@@ -99,7 +99,6 @@ jobs:
             pushd build/release/bin
             ./cpp_region_test
             ./py_region_test
-            ./hello_sp_tp
             ./prototest
             ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
 

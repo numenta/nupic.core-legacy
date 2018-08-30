@@ -486,17 +486,6 @@ set_target_properties(${src_executable_prototest}
 set_target_properties(${src_executable_prototest}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 
-#
-# Setup HelloSP_TP example
-#
-set(src_executable_hellosptp hello_sp_tp)
-add_executable(${src_executable_hellosptp} examples/algorithms/HelloSP_TP.cpp)
-target_link_libraries(${src_executable_hellosptp} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_hellosptp}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_hellosptp}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-
 
 #
 # Setup gtests
@@ -507,6 +496,7 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
+	       test/unit/algorithms/HelloSPTPTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SDRClassifierTest.cpp
                test/unit/algorithms/SegmentTest.cpp
