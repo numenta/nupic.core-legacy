@@ -45,6 +45,9 @@ except ImportError:
 else:
   from nupic.proto.SparseMatrixProto_capnp import SparseMatrixProto
   from nupic.proto.SparseBinaryMatrixProto_capnp import SparseBinaryMatrixProto
+
+# Capnp reader traveral limit (see capnp::ReaderOptions)
+_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
 %}
 
 
@@ -423,7 +426,8 @@ def write(self, pyBuilder):
 
   :param: Destination SparseMatrixProto message builder
   """
-  reader = SparseMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  reader = SparseMatrixProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
   pyBuilder.from_dict(reader.to_dict())  # copy
 
 @classmethod
@@ -2973,7 +2977,8 @@ def write(self, pyBuilder):
 
   :param: Destination SparseBinaryMatrixProto message builder
   """
-  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
   pyBuilder.from_dict(reader.to_dict())  # copy
 
 def read(self, proto):
@@ -3484,7 +3489,8 @@ def write(self, pyBuilder):
 
   :param: Destination SparseBinaryMatrixProto message builder
   """
-  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes()) # copy
+  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes(),
+                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
   pyBuilder.from_dict(reader.to_dict())  # copy
 
 def read(self, proto):

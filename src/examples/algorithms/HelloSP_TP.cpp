@@ -20,15 +20,14 @@
  * ---------------------------------------------------------------------
  */
 
+#include <algorithm> // std::generate
+#include <cmath>     // pow
+#include <ctime>     // std::time
 #include <iostream>
 #include <vector>
-#include <algorithm>    // std::generate
-#include <ctime>        // std::time
-#include <cstdlib>      // std::rand, std::srand
-#include <cmath> 	// pow
 
-#include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/algorithms/Cells4.hpp"
+#include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
 
@@ -62,13 +61,18 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   vector<Real> rIn(COLS); // input for TP (must be Reals)
   vector<Real> rOut(tp.nCells());
 
+  // initialize SP, TP
+  SpatialPooler sp(inputDim, colDim);
+  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0,
+            false, 42, true, false);
+
   // Start a stopwatch timer
   Timer stopwatch(true);
 
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
-    generate(input.begin(), input.end(), RandomNumber01);
+    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());
@@ -78,7 +82,7 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
 
     // print
-    if (e == EPOCHS-1) {
+    if (e == EPOCHS - 1) {
       cout << "Epoch = " << e << endl;
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(outSP), ",", "SP= ");
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(VectorHelpers::cellsToColumns(outTP, CELLS)), ",", "TP= ");
@@ -86,7 +90,8 @@ const UInt EPOCHS = pow(10, 4); // number of iterations (calls to SP/TP compute(
   }
 
   stopwatch.stop();
-  cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds" << endl;
+  cout << "Total elapsed time = " << stopwatch.getElapsed() << " seconds"
+       << endl;
 
   return 0;
 }

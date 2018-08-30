@@ -20,7 +20,7 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.3)
-project(nupic_core_main CXX)
+project(nupic_core CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 include(GNUInstallDirs)
@@ -67,11 +67,6 @@ include(YamlCppLib)
 set(YAML_CPP_STATIC_LIB_TARGET ${YAML_CPP_STATIC_LIB_TARGET} PARENT_SCOPE)
 set(YAML_CPP_STATIC_LIB_INC_DIR ${YAML_CPP_STATIC_LIB_INC_DIR} PARENT_SCOPE)
 list(APPEND EXTERNAL_INCLUDE_DIRS ${YAML_CPP_STATIC_LIB_INC_DIR})
-
-include(Zlib)
-set(Z_STATIC_LIB_TARGET ${Z_STATIC_LIB_TARGET} PARENT_SCOPE)
-set(Z_STATIC_LIB_INC_DIR ${Z_STATIC_LIB_INC_DIR} PARENT_SCOPE)
-list(APPEND EXTERNAL_INCLUDE_DIRS ${Z_STATIC_LIB_INC_DIR})
 
 # Add vendored prebuilt library include paths.
 list(APPEND EXTERNAL_INCLUDE_DIRS

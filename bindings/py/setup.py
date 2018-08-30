@@ -223,7 +223,7 @@ if __name__ == "__main__":
         "nupic.bindings": ["*.so", "*.pyd"],
         "nupic.bindings.tools": ["*.capnp"],
     },
-    extras_require = {"capnp": ["pycapnp==0.5.8"]},
+    extras_require = {"capnp": ["pycapnp==0.6.3"]},
     zip_safe=False,
     cmdclass={
       "clean": CleanCommand,
