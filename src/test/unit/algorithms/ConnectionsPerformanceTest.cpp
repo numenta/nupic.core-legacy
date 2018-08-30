@@ -44,7 +44,7 @@ using nupic::algorithms::connections::Segment;
 
 #define SEED 42
 
-void ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
+float ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
                                                        int numSequences,
                                                        int numElements,
                                                        string label) {
@@ -94,10 +94,11 @@ void ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
     }
   }
 
-  checkpoint(timer, label + ": initialize + learn + test");
+  const float totalTime = checkpoint(timer, label + ": initialize + learn + test");
+  return totalTime;
 }
 
-void ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
+float ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
                                                       UInt numInputs, UInt w,
                                                       UInt numWinners,
                                                       string label) {
@@ -184,20 +185,24 @@ void ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
                                        numActiveConnectedSynapsesForSegment);
   }
 
-  checkpoint(timer, label + ": initialize + learn + test");
+  const float totalTime = checkpoint(timer, label + ": initialize + learn + test");
+  return totalTime;
 }
 
-void ConnectionsPerformanceTest::checkpoint(clock_t timer, string text) {
-  float duration = (float)(clock() - timer) / CLOCKS_PER_SEC;
+
+float ConnectionsPerformanceTest::checkpoint(clock_t timer, string text) {
+  const float duration = (float)(clock() - timer) / CLOCKS_PER_SEC;
   cout << duration << " in " << text << endl;
+  return duration;
 }
+
 
 vector<CellIdx> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w) {
   set<UInt> sdrSet = set<UInt>();
   vector<CellIdx> sdr;
 
   for (UInt i = 0; i < w; i++) {
-    sdrSet.insert(rand() % (UInt)n);
+    sdrSet.insert(rand() % (UInt)n); //TODO use our Random
   }
 
   for (UInt c : sdrSet) {
@@ -206,6 +211,7 @@ vector<CellIdx> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w) {
 
   return sdr;
 }
+
 
 void ConnectionsPerformanceTest::feedTM(TemporalMemory &tm, vector<CellIdx> sdr,
                                         bool learn) {
@@ -217,6 +223,7 @@ void ConnectionsPerformanceTest::feedTM(TemporalMemory &tm, vector<CellIdx> sdr,
 
   tm.compute(activeColumns.size(), activeColumns.data(), learn);
 }
+
 
 vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
     Connections &connections, UInt numCells,
@@ -245,6 +252,7 @@ vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
 }
 
 
+
 // TESTS
 ConnectionsPerformanceTest t;
 
@@ -257,28 +265,32 @@ void SetUp() {
  * Tests typical usage of Connections with Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTM) {
-	t.runTemporalMemoryTest(2048, 40, 20, 100, "temporal memory");
+	auto tim = t.runTemporalMemoryTest(2048, 40, 20, 100, "temporal memory");
+	ASSERT_LE(tim, 1.5f); //there are times, we must be better. Bit underestimated for slow CI
 }
 
 /**
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  t.runTemporalMemoryTest(16384, 328, 20, 100, "temporal memory (large)");
+  auto tim = t.runTemporalMemoryTest(16384, 328, 20, 100, "temporal memory (large)");
+  ASSERT_LE(tim, 20.0f);
 }
 
 /**
  * Tests typical usage of Connections with Spatial Pooler.
  */
 TEST(ConnectionsPerformanceTest, testSP) {
-  t.runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+  auto tim = t.runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+  ASSERT_LE(tim, 8.0f);
 }
 
 /**
  * Tests typical usage of Connections with Temporal Pooler.
  */
 TEST(ConnectionsPerformanceTest, testTP) {
-  t.runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
+  auto tim = t.runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
+  ASSERT_LE(tim, 80.0f);
 }
 
 } // end namespace 
