@@ -43,13 +43,6 @@ using namespace nupic;
 using nupic::algorithms::connections::Segment;
 
 #define SEED 42
-ConnectionsPerformanceTest t;
-
-void SetUp() {
-  srand(SEED);
-  t = testing::ConnectionsPerformanceTest();
-}
-
 
 void ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
                                                        int numSequences,
@@ -253,18 +246,25 @@ vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
 
 
 // TESTS
+ConnectionsPerformanceTest t;
+
+void SetUp() {
+  srand(SEED);
+  t = testing::ConnectionsPerformanceTest();
+}
+
 /**
  * Tests typical usage of Connections with Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTM) {
-	t.runTemporalMemoryTest(2048, 40, 5, 100, "temporal memory");
+	t.runTemporalMemoryTest(2048, 40, 20, 100, "temporal memory");
 }
 
 /**
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  t.runTemporalMemoryTest(16384, 328, 3, 40, "temporal memory (large)");
+  t.runTemporalMemoryTest(16384, 328, 20, 100, "temporal memory (large)");
 }
 
 /**
