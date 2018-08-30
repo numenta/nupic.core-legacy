@@ -224,7 +224,6 @@ set(src_capnp_specs_rel
   nupic/proto/SparseMatrixProto.capnp
   nupic/proto/SpatialPoolerProto.capnp
   nupic/proto/SdrClassifier.capnp
-  nupic/proto/SvmProto.capnp
   nupic/proto/TemporalMemoryProto.capnp
   nupic/proto/TestNodeProto.capnp
   nupic/proto/VectorFileSensorProto.capnp
@@ -291,8 +290,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/ClassifierResult.cpp
     nupic/algorithms/CondProbTable.cpp
     nupic/algorithms/Connections.cpp
-    nupic/algorithms/GaborNode.cpp
-    nupic/algorithms/ImageSensorLite.cpp
     nupic/algorithms/InSynapse.cpp
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/Segment.cpp
@@ -300,7 +297,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/TemporalMemory.cpp
-    nupic/algorithms/Svm.cpp
     nupic/encoders/ScalarEncoder.cpp
     nupic/encoders/ScalarSensor.cpp
     nupic/engine/Collections.cpp
@@ -522,7 +518,6 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/SDRClassifierTest.cpp
                test/unit/algorithms/SegmentTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
-               test/unit/algorithms/SvmTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
