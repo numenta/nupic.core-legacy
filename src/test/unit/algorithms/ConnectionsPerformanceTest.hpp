@@ -33,37 +33,26 @@
 
 #include <nupic/types/Types.hpp>
 
+namespace testing {
+
+using nupic::algorithms::temporal_memory::TemporalMemory; 	
+
 namespace nupic {
-
-namespace algorithms {
-namespace temporal_memory {
-class TemporalMemory;
-}
-
-namespace connections {
-typedef UInt32 Segment;
-}
-} // namespace algorithms
+  namespace algorithms {
+    namespace connections {
+      typedef UInt32 Segment;
+} } }
 
 class ConnectionsPerformanceTest {
 public:
   ConnectionsPerformanceTest() {}
   virtual ~ConnectionsPerformanceTest() {}
-
-  // Run all appropriate tests
-  virtual void RunTests();
-
-  void testTemporalMemoryUsage();
-  void testLargeTemporalMemoryUsage();
-  void testSpatialPoolerUsage();
-  void testTemporalPoolerUsage();
-
-private:
   void runTemporalMemoryTest(UInt numColumns, UInt w, int numSequences,
                              int numElements, std::string label);
   void runSpatialPoolerTest(UInt numCells, UInt numInputs, UInt w,
                             UInt numWinners, std::string label);
 
+private:
   void checkpoint(clock_t timer, std::string text);
   std::vector<UInt32> randomSDR(UInt n, UInt w);
   void feedTM(algorithms::temporal_memory::TemporalMemory &tm,
@@ -71,9 +60,10 @@ private:
   std::vector<CellIdx>
   computeSPWinnerCells(Connections &connections, UInt numCells,
                        const vector<UInt> &numActiveSynapsesForSegment);
+  ConnectionsPerformanceTest* test;
 
 }; // end class ConnectionsPerformanceTest
 
-} // end namespace nupic
+} // end namespace testing
 
 #endif // NTA_CONNECTIONS_PERFORMANCE_TEST

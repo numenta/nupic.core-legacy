@@ -20,6 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
+#include "gtest/gtest.h"
+
 /** @file
  * Implementation of performance tests for Connections
  */
@@ -34,51 +36,20 @@
 
 #include "ConnectionsPerformanceTest.hpp"
 
+namespace testing { 
+
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::temporal_memory;
-using namespace nupic::algorithms::connections;
+using nupic::algorithms::connections::Segment;
 
 #define SEED 42
+ConnectionsPerformanceTest t;
 
-namespace nupic {
-
-void ConnectionsPerformanceTest::RunTests() {
+void SetUp() {
   srand(SEED);
-
-  testTemporalMemoryUsage();
-  testLargeTemporalMemoryUsage();
-  testSpatialPoolerUsage();
-  testTemporalPoolerUsage();
+  t = testing::ConnectionsPerformanceTest();
 }
 
-/**
- * Tests typical usage of Connections with Temporal Memory.
- */
-void ConnectionsPerformanceTest::testTemporalMemoryUsage() {
-  runTemporalMemoryTest(2048, 40, 5, 100, "temporal memory");
-}
-
-/**
- * Tests typical usage of Connections with a large Temporal Memory.
- */
-void ConnectionsPerformanceTest::testLargeTemporalMemoryUsage() {
-  runTemporalMemoryTest(16384, 328, 3, 40, "temporal memory (large)");
-}
-
-/**
- * Tests typical usage of Connections with Spatial Pooler.
- */
-void ConnectionsPerformanceTest::testSpatialPoolerUsage() {
-  runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
-}
-
-/**
- * Tests typical usage of Connections with Temporal Pooler.
- */
-void ConnectionsPerformanceTest::testTemporalPoolerUsage() {
-  runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
-}
 
 void ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
                                                        int numSequences,
@@ -280,9 +251,34 @@ vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
   return vector<CellIdx>(winnerCells.begin(), winnerCells.end());
 }
 
-} // end namespace nupic
 
-int main(int argc, char *argv[]) {
-  ConnectionsPerformanceTest test = ConnectionsPerformanceTest();
-  test.RunTests();
+// TESTS
+/**
+ * Tests typical usage of Connections with Temporal Memory.
+ */
+TEST(ConnectionsPerformanceTest, testTM) {
+	t.runTemporalMemoryTest(2048, 40, 5, 100, "temporal memory");
 }
+
+/**
+ * Tests typical usage of Connections with a large Temporal Memory.
+ */
+TEST(ConnectionsPerformanceTest, testTMLarge) {
+  t.runTemporalMemoryTest(16384, 328, 3, 40, "temporal memory (large)");
+}
+
+/**
+ * Tests typical usage of Connections with Spatial Pooler.
+ */
+TEST(ConnectionsPerformanceTest, testSP) {
+  t.runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+}
+
+/**
+ * Tests typical usage of Connections with Temporal Pooler.
+ */
+TEST(ConnectionsPerformanceTest, testTP) {
+  t.runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
+}
+
+} // end namespace 

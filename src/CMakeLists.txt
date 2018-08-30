@@ -443,24 +443,6 @@ add_custom_target(tests_py_region
                   COMMENT "Executing test ${src_executable_pyregiontest}"
                   VERBATIM)
 
-#
-# Setup test_connections_performance
-#
-set(src_executable_connectionsperformancetest connections_performance_test)
-add_executable(${src_executable_connectionsperformancetest}
-               test/integration/ConnectionsPerformanceTest.cpp)
-target_link_libraries(${src_executable_connectionsperformancetest}
-                      ${src_common_test_exe_libs})
-set_target_properties(${src_executable_connectionsperformancetest}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_connectionsperformancetest}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-add_custom_target(tests_connections_performance
-                  COMMAND ${src_executable_connectionsperformancetest}
-                  DEPENDS ${src_executable_connectionsperformancetest}
-                  COMMENT "Executing test ${src_executable_connectionsperformancetest}"
-                  VERBATIM)
-
 
 #
 # Setup gtests
@@ -471,6 +453,7 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
+	       test/unit/algorithms/ConnectionsPerformanceTest.cpp
 	       test/unit/algorithms/HelloSPTPTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SDRClassifierTest.cpp
