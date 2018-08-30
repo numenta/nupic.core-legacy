@@ -291,8 +291,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/ClassifierResult.cpp
     nupic/algorithms/CondProbTable.cpp
     nupic/algorithms/Connections.cpp
-    nupic/algorithms/GaborNode.cpp
-    nupic/algorithms/ImageSensorLite.cpp
     nupic/algorithms/InSynapse.cpp
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/Segment.cpp

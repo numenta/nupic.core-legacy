@@ -79,11 +79,6 @@ _ALGORITHMS = _algorithms
 #include <vector>
 
 #include <nupic/math/Types.hpp>
-#include <nupic/math/Convolution.hpp>
-#include <nupic/math/Rotation.hpp>
-#include <nupic/math/Erosion.hpp>
-#include <nupic/algorithms/GaborNode.hpp>
-#include <nupic/algorithms/ImageSensorLite.hpp>
 #include <nupic/algorithms/Scanning.hpp>
 
 #include <nupic/math/SparseMatrix.hpp>
@@ -157,59 +152,6 @@ using namespace nupic;
 %}
 
 %naturalvar;
-
-
-// This dummy inline function exists only to force the linker
-// to keep the gaborCompute() function in the resulting
-// shared object.
-%inline {
-
-void forceRetentionOfGaborComputeWithinLibrary(void) {
- gaborCompute( NULL,                // const NUMPY_ARRAY * psGaborBank
-               NULL,                // const NUMPY_ARRAY * psInput
-               NULL,                // const NUMPY_ARRAY * psAlpha
-               NULL,                // const NUMPY_ARRAY * psBBox
-               NULL,                // const NUMPY_ARRAY * psImageBox
-               NULL,                // const NUMPY_ARRAY * psOutput
-               0.0f,                // float fGainConstant
-               (EDGE_MODE)0,        // EDGE_MODE eEdgeMode
-               0.0f,                // float fOffImageFillValue
-               (PHASE_MODE)0,       // PHASE_MODE ePhaseMode
-               (NORMALIZE_METHOD)0, // NORMALIZE_METHOD eNormalizeMethod
-               (NORMALIZE_MODE)0,   // NORMALIZE_MODE eNormalizeMode
-               (PHASENORM_MODE)0,   // PHASENORM_MODE ePhaseNormMode
-               (POSTPROC_METHOD)0,  // POSTPROC_METHOD ePostProcMethod
-               0.0f,                // float fPostProcSlope
-               0.0f,                // float fPostProcMidpoint
-               0.0f,                // float fPostProcMin
-               0.0f,                // float fPostProcMax
-               NULL,                // const NUMPY_ARRAY * psBufferIn
-               NULL,                // const NUMPY_ARRAY * psBufferOut
-               NULL,                // const NUMPY_ARRAY * psPostProcLUT
-               0.0f                 // float fPostProcScalar
-  );
-  // Initialization of log system from python disabled for now.
-  // See comments in gaborNode.cpp
-  // initFromPython(0);
-}
-
-}
-
-// These dummy inline functions exist only to force the linker
-// to keep the ImageSensorLite functions in the resulting
-// shared object.
-%inline {
-void forceRetentionOfImageSensorLiteLibrary(void) {
-  extractAuxInfo( NULL,          // const char * pCtlBufAddr
-                  NULL,          // BBOX * psBox
-                  NULL,          // int * pnAddress
-                  NULL,          // int * pnPartitionID
-                  NULL,          // int * pnCategoryID
-                  NULL,          // int * pnVideoID
-                  NULL           // int * pnAlphaAddress
-  );
-}
-}
 
 
 //--------------------------------------------------------------------------------
@@ -528,105 +470,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     std::ifstream load_file(filename.c_str());
     self->load(load_file);
     load_file.close();
-  }
-};
-
-//--------------------------------------------------------------------------------
-// CONVOLUTION
-//--------------------------------------------------------------------------------
-%include <nupic/math/Convolution.hpp>
-
-%template(Float32SeparableConvolution2D) SeparableConvolution2D<float>;
-
-%extend SeparableConvolution2D<float>
-{
-  inline void init(nupic::UInt32 nrows, nupic::UInt32 ncols,
-           nupic::UInt32 f1_size, nupic::UInt32 f2_size,
-           PyObject* pyF1, PyObject* pyF2)
-  {
-    PyArrayObject *f1 = (PyArrayObject*) pyF1;
-    PyArrayObject *f2 = (PyArrayObject*) pyF2;
-
-    self->init(nrows, ncols, f1_size, f2_size, (float*)(PyArray_DATA(f1)), (float*)(PyArray_DATA(f2)));
-  }
-
-  inline void compute(PyObject* pyData, PyObject* pyConvolved, bool rotated45 =false)
-  {
-    PyArrayObject* data = (PyArrayObject*)pyData;
-    PyArrayObject* convolved = (PyArrayObject*)pyConvolved;
-
-    self->compute((float*)(PyArray_DATA(data)), (float*)(PyArray_DATA(convolved)), rotated45);
-  }
-
-  inline void getBuffer(PyObject* pyBuffer) const
-  {
-    PyArrayObject *buffer = (PyArrayObject*)pyBuffer;
-
-    const size_t size = self->nrows_ * self->ncols_;
-    std::copy(self->buffer_, self->buffer_ + size, (float*)(PyArray_DATA(buffer)));
-  }
-};
-
-//--------------------------------------------------------------------------------
-// ROTATION
-//--------------------------------------------------------------------------------
-%include <nupic/math/Rotation.hpp>
-
-%template(Float32Rotation45) Rotation45<float>;
-
-%extend Rotation45<float>
-{
-  inline void rotate(PyObject* pyOriginal, PyObject* pyRotated,
-             nupic::UInt32 nrows, nupic::UInt32 ncols, nupic::UInt32 z)
-  {
-    PyArrayObject* original = (PyArrayObject*)pyOriginal;
-    PyArrayObject* rotated = (PyArrayObject*)pyRotated;
-
-    self->rotate((float*)(PyArray_DATA(original)), (float*)(PyArray_DATA(rotated)),
-      nrows, ncols, z);
-  }
-
-  inline void unrotate(PyObject* pyUnrotated, PyObject* pyRotated,
-               nupic::UInt32 nrows, nupic::UInt32 ncols, nupic::UInt32 z)
-  {
-    PyArrayObject* unrotated = (PyArrayObject*)pyUnrotated;
-    PyArrayObject* rotated = (PyArrayObject*)pyRotated;
-
-    self->unrotate((float*)(PyArray_DATA(unrotated)), (float*)(PyArray_DATA(rotated)),
-      nrows, ncols, z);
-  }
-};
-
-//--------------------------------------------------------------------------------
-// EROSION
-//--------------------------------------------------------------------------------
-%include <nupic/math/Erosion.hpp>
-
-%template(Float32Erosion) Erosion<float>;
-
-%extend Erosion<float>
-{
-  inline void init(nupic::UInt32 nrows, nupic::UInt32 ncols)
-  {
-    self->init(nrows, ncols);
-  }
-
-  inline void compute(PyObject* pyData, PyObject* pyEroded,
-                      nupic::UInt32 iterations, bool dilate=false)
-  {
-    PyArrayObject* data = (PyArrayObject*)pyData;
-    PyArrayObject* eroded = (PyArrayObject*)pyEroded;
-
-    self->compute((float*)(PyArray_DATA(data)), (float*)(PyArray_DATA(eroded)),
-                  iterations, dilate);
-  }
-
-  inline void getBuffer(PyObject* pyBuffer) const
-  {
-    PyArrayObject *buffer = (PyArrayObject*)pyBuffer;
-
-    const size_t size = self->nrows_ * self->ncols_;
-    std::copy(self->buffer_, self->buffer_ + size, (float*)(PyArray_DATA(buffer)));
   }
 };
 
