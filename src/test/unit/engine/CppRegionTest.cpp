@@ -315,7 +315,7 @@ TEST(CppRegionTest, testYAML) {
   const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
   Network net = Network();
-  Region *level1;
+  Region *level1 = nullptr; 
   EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});
