@@ -127,21 +127,16 @@ class SlidingWindow {
       :return T - i-th oldest value in the buffer
       :throws 0<=index<=size()
       */ 
-      T& operator[](UInt index) {
+      T operator[](UInt index) const {
         NTA_ASSERT(index <= size());
         NTA_ASSERT(size() > 0);
         //get last updated position, "current"+index(offset)
         //avoid calling getLinearizeData() as it involves copy()
         if (size() == maxCapacity) {
-          return &buffer_[(idxNext_ + index) % maxCapacity];
+          return buffer_[(idxNext_ + index) % maxCapacity];
         } else {
-          return &buffer_[index];
+          return buffer_[index];
         }
-      }
-
-
-      const T& operator[](UInt index) const {
-        return this->operator[](index); //call the overloaded operator[] above
       }
 
 
