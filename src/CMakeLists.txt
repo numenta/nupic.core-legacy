@@ -475,17 +475,6 @@ add_custom_target(tests_connections_performance
                   COMMENT "Executing test ${src_executable_connectionsperformancetest}"
                   VERBATIM)
 
-#
-# Setup prototest example
-#
-set(src_executable_prototest prototest)
-add_executable(${src_executable_prototest} examples/prototest.cpp)
-target_link_libraries(${src_executable_prototest} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_prototest}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_prototest}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-
 
 #
 # Setup gtests
@@ -500,6 +489,7 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SDRClassifierTest.cpp
                test/unit/algorithms/SegmentTest.cpp
+	       test/unit/algorithms/Serialization.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/SvmTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
@@ -787,12 +777,9 @@ endif() # NUPIC_BUILD_PYEXT_MODULES
 install(TARGETS
         ${src_lib_static_nupiccore_combined}
         ${src_lib_static_gtest}
-        ${src_executable_helloregion}
         ${src_executable_cppregiontest}
         ${src_executable_pyregiontest}
         ${src_executable_connectionsperformancetest}
-        ${src_executable_hellosptp}
-        ${src_executable_prototest}
         ${src_executable_gtests}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib

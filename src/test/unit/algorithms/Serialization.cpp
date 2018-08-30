@@ -20,6 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
+#include "gtest/gtest.h"
+
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
@@ -34,11 +36,13 @@
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Random.hpp>
 
+namespace testing {
+
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 
-void testSP() {
+TEST(Serialization, testSP) {
   Random random(10);
 
   const UInt inputSize = 500;
@@ -151,7 +155,7 @@ void testSP() {
     }
 
     for (UInt i = 0; i < numColumns; ++i) {
-      NTA_CHECK(outputBaseline[i] == outputC[i]);
+      ASSERT_EQ(outputBaseline[i], outputC[i]);
     }
   }
 
@@ -163,7 +167,10 @@ void testSP() {
   cout << "Manual: " << timeC << endl;
 }
 
-void testRandomIOStream(UInt n) {
+
+
+TEST(Serialization, testRandomIOStream) {
+	const UInt n = 1000;
   Random r1(7);
   Random r2;
 
@@ -184,11 +191,11 @@ void testRandomIOStream(UInt n) {
     is.close();
 
     // Test
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
   }
   testTimer.stop();
 
@@ -197,7 +204,10 @@ void testRandomIOStream(UInt n) {
   cout << "Cap'n Proto: " << testTimer.getElapsed() << endl;
 }
 
-void testRandomManual(UInt n) {
+
+
+TEST(serialization, testRandomManual) {
+	const UInt n=1000;
   Random r1(7);
   Random r2;
 
@@ -218,11 +228,11 @@ void testRandomManual(UInt n) {
     is.close();
 
     // Test
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
   }
   testTimer.stop();
 
@@ -231,13 +241,4 @@ void testRandomManual(UInt n) {
   cout << "Manual: " << testTimer.getElapsed() << endl;
 }
 
-int main(int argc, const char *argv[]) {
-  UInt n = 1000;
-  cout << "Timing for Random serialization (smaller is better):" << endl;
-  testRandomIOStream(n);
-  testRandomManual(n);
-
-  testSP();
-
-  return 0;
-}
+} //ns
