@@ -29,7 +29,6 @@
 
 #include <cstdio>
 #include <sstream>
-#include <zlib.h>
 
 #include <nupic/math/Math.hpp>
 
@@ -39,7 +38,6 @@ namespace nupic {
 //--------------------------------------------------------------------------------
 /**
  * A matrix where only the positions and values of runs of non-zeros are stored.
- * Optionally compresses values using zlib (off by default).
  *
  * WATCH OUT! That the Index type doesn't become too small to store parameters
  * of the matrix, such as total number of non-zeros.
