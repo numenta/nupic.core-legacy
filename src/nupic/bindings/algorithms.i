@@ -1337,31 +1337,31 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
 
 
     @classmethod
-    ///No longer supporting capnprto
-    ///def read(cls, proto):
-    ///  instance = cls()
-    ///  instance.convertedRead(proto)
-    ///  return instance
+    //No longer supporting capnprto
+    //def read(cls, proto):
+    //  instance = cls()
+    //  instance.convertedRead(proto)
+    //  return instance
 
-    ///def write(self, pyBuilder):
-    ///  """Serialize the Connections instance using capnp.
+    //def write(self, pyBuilder):
+    //  """Serialize the Connections instance using capnp.
 
-    ///  :param: Destination ConnectionsProto message builder
-    ///  """
-    ///  reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes(),
-    ///                        traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-    ///  pyBuilder.from_dict(reader.to_dict())  # copy
+    //  :param: Destination ConnectionsProto message builder
+    //  """
+    //  reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes(),
+    //                        traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
+    //  pyBuilder.from_dict(reader.to_dict())  # copy
 
 
-    /// def convertedRead(self, proto):
-    ///   """Initialize the Connections instance from the given ConnectionsProto
-    ///   reader.
-    ///
-    ///  :param proto: ConnectionsProto message reader containing data from a
-    ///                previously serialized Connections instance.
+    // def convertedRead(self, proto):
+    //   """Initialize the Connections instance from the given ConnectionsProto
+    //   reader.
+    //
+    //  :param proto: ConnectionsProto message reader containing data from a
+    //                previously serialized Connections instance.
 
-    ///  """
-    ///  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
+    //  """
+    //  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
   %}
 
