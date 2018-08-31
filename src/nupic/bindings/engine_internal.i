@@ -76,6 +76,7 @@
 #include <yaml-cpp/yaml.h>
 %}
 
+%include <nupic/types/Serializable.hpp>
 
 
 %pythoncode %{

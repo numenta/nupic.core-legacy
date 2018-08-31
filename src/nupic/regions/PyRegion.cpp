@@ -329,16 +329,16 @@ void PyRegion::serialize(BundleIO &bundle) {
 *  py::Ptr none1(node_.invoke("serializeExtraData", args1));
 ***********/
 	// pickle to a stream
-	std::ostream &f = bundle.getOutputStream();
+//	std::ostream &f = bundle.getOutputStream();
 	// cPickle.dump(node_, f, HIGHEST_PROTOCOL)
-	py::Module pickle("pickle")
-	py::Tuple args2(3);
-	args2.setItem(0, node_);
-	args2.setItem(1, f);
-	args2.setItem(2, py::Int(2));
-	py::Ptr none(pickle.invoke("dump", args2));
+//	py::Module pickle("pickle")
+//	py::Tuple args2(3);
+//	args2.setItem(0, node_);
+//	args2.setItem(1, f);
+//	args2.setItem(2, py::Int(2));
+//	py::Ptr none(pickle.invoke("dump", args2));
 	// do not close.
-
+//Figure out how to do this in another PR
 
 
 }
@@ -379,12 +379,12 @@ void PyRegion::deserialize(BundleIO &bundle) {
 *  py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
 *********/
 	// unpickle from a stream
-	std::istream &f = bundle.getInputStream();
+	//std::istream &f = bundle.getInputStream();
 	// node_ = cPickle.load(f)
-    py::Module pickle("pickle");
-    py::Tuple args2(1);
-    args2.setItem(0, f);
-    node_.assign(py::Ptr(pickle.invoke("load", args2)));
+    //py::Module pickle("pickle");
+   // py::Tuple args2(1);
+    //args2.setItem(0, f);
+    //node_.assign(py::Ptr(pickle.invoke("load", args2)));
 	// do not close.
 }
 

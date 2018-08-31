@@ -903,7 +903,7 @@ using namespace nupic;
 
   %}
 
-  void loadFromString(const::string& inString)
+  void loadFromString(const std::string& inString)
   {
 	std::istringstream inStream(inString);
         self->load(inStream);
@@ -918,6 +918,38 @@ using namespace nupic;
 	return py_s.close();
   }
 
+  PyObject* convertedCompute(UInt recordNum, const vector<UInt>& patternNZ,
+                             const vector<UInt>& bucketIdxList, 
+                             const vector<Real64>& actValueList, bool category,
+                             bool learn, bool infer)
+  {
+    ClassifierResult result;
+    self->compute(recordNum, patternNZ, bucketIdxList, actValueList, category,
+                  learn, infer, &result);
+    PyObject* d = PyDict_New();
+    for (map<Int, vector<Real64>*>::const_iterator it = result.begin();
+         it != result.end(); ++it)
+    {
+      PyObject* key;
+      if (it->first == -1)
+      {
+        key = PyString_FromString("actualValues");
+      } else {
+        key = PyInt_FromLong(it->first);
+      }
+
+      PyObject* value = PyList_New(it->second->size());
+      for (UInt i = 0; i < it->second->size(); ++i)
+      {
+        PyObject* pyActValue = PyFloat_FromDouble(it->second->at(i));
+        PyList_SetItem(value, i, pyActValue);
+      }
+
+      PyDict_SetItem(d, key, value);
+      Py_DECREF(value);
+    }
+    return d;
+  }
 
 }
 
@@ -943,44 +975,8 @@ using namespace nupic;
                                               maxSynapsesPerSegment)
 
 
-    @classmethod
-    //No longer supporting capnprto
-    //def read(cls, proto):
-    //  instance = cls()
-    //  instance.convertedRead(proto)
-    //  return instance
-
-    //def write(self, pyBuilder):
-    //  """Serialize the Connections instance using capnp.
-
-    //  :param: Destination ConnectionsProto message builder
-    //  """
-    //  reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes(),
-    //                        traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-    //  pyBuilder.from_dict(reader.to_dict())  # copy
-
-
-    // def convertedRead(self, proto):
-    //   """Initialize the Connections instance from the given ConnectionsProto
-    //   reader.
-    //
-    //  :param proto: ConnectionsProto message reader containing data from a
-    //                previously serialized Connections instance.
-
-    //  """
-    //  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
   %}
-
-  //inline PyObject* _writeAsCapnpPyBytes() const
-  //{
-  //  return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  //}
-
-  //inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  //{
-  //  nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  //}
 
   %pythoncode %{
     def mapSegmentsToCells(self, segments):
@@ -1062,8 +1058,6 @@ using namespace nupic;
     return list;
   }
 %}
-
-%include <nupic/algorithms/TemporalMemory.hpp>
 
 %extend nupic::algorithms::temporal_memory::TemporalMemory
 {
@@ -1151,6 +1145,50 @@ using namespace nupic;
 
   %}
 
+  inline PyObject* getActiveCells()
+  {
+    const vector<CellIdx> activeCells = self->getActiveCells();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      activeCells.size(), activeCells.data()
+    ).forPython();
+  }
+
+  inline PyObject* getPredictiveCells()
+  {
+    const vector<CellIdx> predictiveCells = self->getPredictiveCells();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      predictiveCells.size(), predictiveCells.data()
+    ).forPython();
+  }
+
+  inline PyObject* getWinnerCells()
+  {
+    const vector<CellIdx> winnerCells = self->getWinnerCells();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      winnerCells.size(), winnerCells.data()
+    ).forPython();
+  }
+
+  inline PyObject* getActiveSegments()
+  {
+    const vector<UInt32> activeSegments = self->getActiveSegments();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      activeSegments.size(), activeSegments.data()
+    ).forPython();
+  }
+
+  inline PyObject* getMatchingSegments()
+  {
+    const vector<UInt32> matchingSegments = self->getMatchingSegments();
+
+    return nupic::NumpyVectorT<nupic::UInt32>(
+      matchingSegments.size(), matchingSegments.data()
+    ).forPython();
+  }
 
   inline PyObject* cellsForColumn(UInt columnIdx)
   {
@@ -1207,4 +1245,12 @@ using namespace nupic;
   }
 }
 
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getPredictiveCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getWinnerCells;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getActiveSegments;
+%ignore nupic::algorithms::temporal_memory::TemporalMemory::getMatchingSegments;
 %ignore nupic::algorithms::temporal_memory::TemporalMemory::cellsForColumn;
+
+
+%include <nupic/algorithms/TemporalMemory.hpp>

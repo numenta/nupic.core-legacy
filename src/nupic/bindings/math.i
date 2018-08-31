@@ -63,6 +63,8 @@ _MATH = _math
 
 %}
 
+%include <nupic/types/Serializable.hpp>
+
 %naturalvar;
 
 //
