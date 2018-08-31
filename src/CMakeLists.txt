@@ -241,8 +241,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/ClassifierResult.cpp
     nupic/algorithms/CondProbTable.cpp
     nupic/algorithms/Connections.cpp
-    nupic/algorithms/GaborNode.cpp
-    nupic/algorithms/ImageSensorLite.cpp
     nupic/algorithms/InSynapse.cpp
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/Segment.cpp
@@ -250,7 +248,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/TemporalMemory.cpp
-    nupic/algorithms/Svm.cpp
     nupic/encoders/ScalarEncoder.cpp
     nupic/encoders/ScalarSensor.cpp
     nupic/engine/Collections.cpp
@@ -324,7 +321,7 @@ add_dependencies(${src_lib_static_nupiccore_solo}
                  ${YAML_STATIC_LIB_TARGET}
                  ${APR1_STATIC_LIB_TARGET}
                  ${APRUTIL1_STATIC_LIB_TARGET}
-                 ${Z_STATIC_LIB_TARGET})
+		 )
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
 if(${NUPIC_IWYU})
@@ -351,7 +348,7 @@ set(src_external_static_libs
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
     ${APRUTIL1_STATIC_LIB_TARGET}
-    ${Z_STATIC_LIB_TARGET})
+   )
 
 set(src_combined_nupiccore_source_archives
     ${src_lib_static_nupiccore_solo}
@@ -460,7 +457,6 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/SDRClassifierTest.cpp
                test/unit/algorithms/SegmentTest.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
-               test/unit/algorithms/SvmTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
                test/unit/engine/InputTest.cpp
