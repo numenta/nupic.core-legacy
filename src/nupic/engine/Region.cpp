@@ -455,7 +455,7 @@ void Region::load(std::istream &f) {
   impl_ = factory.deserializeRegionImpl(type_, bundle, this);
 
   f >> tag;
-  NTA_CHECK(tag == "}") << "Expected end of region";
+  NTA_CHECK(tag == "}") << "Expected end of region. Found '" << tag << "'.";
 }
 
 

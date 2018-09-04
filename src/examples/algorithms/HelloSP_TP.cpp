@@ -41,7 +41,10 @@ int main(int argc, const char *argv[]) {
   const UInt DIM_INPUT = 10000;
   const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
   const UInt EPOCHS = (UInt)pow(10, 4); // number of iterations (calls to SP/TP compute() )
-
+  std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
+  								<< ", DIM=" << DIM
+								<< ", TP_CELLS_PER_COL=" << TP_CELLS_PER_COL << std::endl;
+  std::cout << "EPOCHS = " << EPOCHS << std::endl;
   vector<UInt> inputDim = {DIM_INPUT};
   vector<UInt> colDim = {DIM};
 

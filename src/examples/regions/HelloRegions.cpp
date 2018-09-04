@@ -27,6 +27,7 @@
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -85,6 +86,9 @@ int main(int argc, const char *argv[]) {
   {
     std::stringstream ss;
     net.save(ss);
+    //std::cout << "Loading from stream. \n";
+    //std::cout << ss.str() << std::endl;
+    ss.seekg(0);
     net2.load(ss);
   }
 
@@ -102,5 +106,6 @@ int main(int argc, const char *argv[]) {
               << std::endl;
   }
 
+  std::cout << "Completed" << std::endl;
   return 0;
 }

@@ -326,7 +326,7 @@ class PyRegion(object):
     pass
 
 
-  @classmethod
+
   def executeMethod(self, methodName, args):
     """Executes a method named ``methodName`` with the specified arguments.
 

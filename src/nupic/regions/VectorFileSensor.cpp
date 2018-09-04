@@ -426,13 +426,16 @@ VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) {
 
 void VectorFileSensor::serialize(BundleIO &bundle) {
   std::ostream & f = bundle.getOutputStream();
-  f << repeatCount_ << " " << activeOutputCount_ << " " << filename_ << " "
-    << scalingMode_ << " ";
+  f << repeatCount_ << " " << activeOutputCount_ << " " 
+    << ((filename_ == "")?std::string("empty"):filename_) << " "
+    << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " ";
 }
 
 void VectorFileSensor::deserialize(BundleIO &bundle) {
   std::istream& f = bundle.getInputStream();
   f >> repeatCount_ >> activeOutputCount_ >> filename_ >> scalingMode_;
+  if (filename_ == "empty") filename_ = "";
+  if (scalingMode_ == "empty") scalingMode_ = "";
 }
 
 
