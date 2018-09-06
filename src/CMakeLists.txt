@@ -697,6 +697,8 @@ if (NUPIC_BUILD_PYEXT_MODULES)
               "(${export_map_contents}).")
 
       file(WRITE ${export_map_file} "${export_map_contents}")
+      file(READ ${export_map_file} verified_map_contents)
+      message(STATUS "Verified: ${verified_map_contents}")
     endif()
 
 
