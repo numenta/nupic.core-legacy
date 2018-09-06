@@ -39,4 +39,5 @@ bindings/py/src/nupic/bindings/*.py
 bindings/py/src/nupic/bindings/*.so
 bindings/py/src/nupic/bindings/*.pyd
 bindings/py/src/nupic/*.so
-bindings/py/src/nupic.bindings.egg-info
+bindings/py/src/nupic.bindings.egg-info/
+bindings/py/dist/

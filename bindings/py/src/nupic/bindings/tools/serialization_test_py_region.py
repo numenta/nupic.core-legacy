@@ -59,7 +59,6 @@ class SerializationTestPyRegion(PyRegion):
 
 
 
-  @classmethod
   def initialize(self, dims=None, splitterMaps=None):
     pass
 

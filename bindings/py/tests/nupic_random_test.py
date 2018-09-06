@@ -42,7 +42,7 @@ class TestNupicRandom(unittest.TestCase):
     # Simple test: make sure that dumping / loading works...
     r = Random(99)
 
-    r.saveFromFile("RandomSerialization.stream")
+    r.saveToFile("RandomSerialization.stream")
 
     test1 = [r.getUInt32() for _ in xrange(10)]
     r = Random(1);
@@ -51,24 +51,23 @@ class TestNupicRandom(unittest.TestCase):
     test2 = [r.getUInt32() for _ in xrange(10)]
 
     self.assertEqual(test1, test2,
-                     "Simple NuPIC random capnp serialization check failed.")
+                     "Simple NuPIC random serialization check failed.")
 
     # A little tricker: dump / load _after_ some numbers have been generated
     # (in the first test).  Things should still work...
     # ...the idea of this test is to make sure that the pickle code isn't just
     # saving the initial seed...
-    r.saveFromFile("RandomSerialization.stream")
+    r.saveToFile("RandomSerialization.stream")
 
     test3 = [r.getUInt32() for _ in xrange(10)]
     r = Random();
-    r.saveFromFile("RandomSerialization.stream")
+    r.loadFromFile("RandomSerialization.stream")
     self.assertEqual(r.getSeed(), 99)
     test4 = [r.getUInt32() for _ in xrange(10)]
 
     self.assertEqual(
       test3, test4,
-      "NuPIC random serialization check didn't work for saving later "
-      "state.")
+      "NuPIC random serialization check didn't work for saving later state.")
 
     self.assertNotEqual(
       test1, test3,

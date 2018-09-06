@@ -656,7 +656,8 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     #
 
     # Note: swig_add_module outputs ${swig_generated_file_fullname}
-    swig_add_module(${MODULE_NAME} python ${source_interface_file})
+    #swig_add_module(${MODULE_NAME} python ${source_interface_file})
+    SWIG_ADD_LIBRARY(${MODULE_NAME} LANGUAGE python SOURCES ${source_interface_file})
 
     set_source_files_properties(
       ${swig_generated_file_fullname} PROPERTIES

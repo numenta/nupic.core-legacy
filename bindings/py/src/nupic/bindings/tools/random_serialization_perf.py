@@ -42,7 +42,7 @@ def main():
   startSerializationTime = time.time()
 
   for i in xrange(_SERIALIZATION_LOOPS):
-    r.writeToFile("RandonSerialization.stream")
+    r.saveToFile("RandonSerialization.stream")
 
   elapsedSerializationTime = time.time() - startSerializationTime
 
@@ -50,7 +50,7 @@ def main():
   startDeserializationTime = time.time()
 
   for _ in xrange(_DESERIALIZATION_LOOPS):
-    r.readFromFile("RandonSerialization.stream")
+    r.loadFromFile("RandonSerialization.stream")
 
   elapsedDeserializationTime = time.time() - startDeserializationTime
 
