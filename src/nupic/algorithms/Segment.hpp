@@ -79,6 +79,7 @@
  */
 
 //-----------------------------------------------------------------------
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 namespace algorithms {
@@ -88,7 +89,7 @@ namespace Cells4 {
 /**
  * Encapsulate the arrays used to maintain per-cell state.
  */
-class CState : public Serializable
+class CState : public nupic::Serializable
 {
 public:
   static const UInt VERSION = 2;
@@ -348,7 +349,7 @@ struct InSynapseOrder {
 };
 
 //-----------------------------------------------------------------------
-class Segment : public Serializable
+class Segment : public nupic::Serializable
 {
 public:
   typedef std::vector<InSynapse> InSynapses;

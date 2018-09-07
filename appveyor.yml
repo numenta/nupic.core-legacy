@@ -216,8 +216,7 @@ after_build:
 
   # Run python tests
   - cd %NUPIC_CORE%
-  #### removing this test until pybind11 is implemented.
-  #### - python setup.py test
+  - python setup.py test
 
 # Disable automatic tests
 test: off

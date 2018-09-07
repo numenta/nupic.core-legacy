@@ -26,7 +26,6 @@
 
 %pythoncode %{
 import os
-
 _ALGORITHMS = _algorithms
 %}
 
@@ -76,7 +75,10 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
+#include <nupic/types/Serializable.hpp>
 %}
+
+
 
 
 //

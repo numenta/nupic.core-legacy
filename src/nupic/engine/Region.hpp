@@ -618,7 +618,7 @@ public:
 
   void initInputs() const;
 
-  void intialize();
+
 
   // Internal -- for link debugging
   void setDimensionInfo(const std::string &info);

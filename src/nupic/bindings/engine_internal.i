@@ -52,6 +52,8 @@
 #include <nupic/types/Types.h>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Exception.hpp>
+#include <nupic/types/Serializable.hpp>
+
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
@@ -76,7 +78,6 @@
 #include <yaml-cpp/yaml.h>
 %}
 
-%include <nupic/types/Serializable.hpp>
 
 
 %pythoncode %{
