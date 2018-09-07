@@ -648,7 +648,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
                                 CPLUSPLUS ON
                                 SWIG_MODULE_NAME ${MODULE_NAME})
 
-    # Regenerate SWIG bindings if any headers change.
+    # Regenerate SWIG bindings if any headers change. (used by SWIG_ADD_LIBRARY)
     set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${swig_header_deps})
 
     #
@@ -656,7 +656,6 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     #
 
     # Note: swig_add_module outputs ${swig_generated_file_fullname}
-    #swig_add_module(${MODULE_NAME} python ${source_interface_file})
     SWIG_ADD_LIBRARY(${MODULE_NAME} LANGUAGE python SOURCES ${source_interface_file})
 
     set_source_files_properties(
@@ -688,7 +687,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
       set(export_map_file
           "${CMAKE_CURRENT_BINARY_DIR}/${real_target}_generated.expmap")
 
-      list(APPEND extra_deps "${export_map_file}")
+      #list(APPEND extra_deps "${export_map_file}")
       set(link_flags "${link_flags} -Wl,--version-script=${export_map_file}")
 
       set(export_map_contents "{global: ${extension_init_func}; local: *;};")
@@ -697,8 +696,6 @@ if (NUPIC_BUILD_PYEXT_MODULES)
               "(${export_map_contents}).")
 
       file(WRITE ${export_map_file} "${export_map_contents}")
-      file(READ ${export_map_file} verified_map_contents)
-      message(STATUS "Verified: ${verified_map_contents}")
     endif()
 
 
