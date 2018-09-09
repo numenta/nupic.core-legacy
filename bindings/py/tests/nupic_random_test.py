@@ -57,21 +57,21 @@ class TestNupicRandom(unittest.TestCase):
     # (in the first test).  Things should still work...
     # ...the idea of this test is to make sure that the pickle code isn't just
     # saving the initial seed...
-    r.saveToFile("RandomSerialization.stream")
+#    r.saveToFile("RandomSerialization.stream")
 
-    test3 = [r.getUInt32() for _ in xrange(10)]
-    r = Random();
-    r.loadFromFile("RandomSerialization.stream")
-    self.assertEqual(r.getSeed(), 99)
-    test4 = [r.getUInt32() for _ in xrange(10)]
+ #   test3 = [r.getUInt32() for _ in xrange(10)]
+ #   r = Random();
+ #   r.loadFromFile("RandomSerialization.stream")
+ #   self.assertEqual(r.getSeed(), 99)
+ #   test4 = [r.getUInt32() for _ in xrange(10)]
 
-    self.assertEqual(
-      test3, test4,
-      "NuPIC random serialization check didn't work for saving later state.")
+ #   self.assertEqual(
+ #     test3, test4,
+ #     "NuPIC random serialization check didn't work for saving later state.")
 
-    self.assertNotEqual(
-      test1, test3,
-      "NuPIC random serialization test gave the same result twice?!?")
+ #   self.assertNotEqual(
+ #     test1, test3,
+ #     "NuPIC random serialization test gave the same result twice?!?")
 
 
   def testNupicRandomPickling(self):
