@@ -20,12 +20,13 @@
  * ---------------------------------------------------------------------
  */
 
-%module(package="bindings") math
+%module(package="nupic.bindings") math
 %include <nupic/bindings/exception.i>
 
 %pythoncode %{
 _MATH = _math
 %}
+
 
 %{
 /* ---------------------------------------------------------------------
@@ -60,9 +61,7 @@ _MATH = _math
 #include <nupic/math/Functions.hpp>
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/utils/Random.hpp>
-#include <nupic/types/Serializable.hpp>
 %}
-%include <nupic/types/Serializable.hpp>
 
 %naturalvar;
 

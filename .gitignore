@@ -26,6 +26,9 @@ nupic.core.kdev4
 build/
 junit-test-results.xml
 
+# Test Output files
+bindings/py/tests/*.stream
+
 # /
 /.gdb_history
 

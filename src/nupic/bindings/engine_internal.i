@@ -20,9 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
-%module(package="bindings") engine_internal
+%module(package="nupic.bindings") engine_internal
 %include <nupic/bindings/exception.i>
-
 
 
 %{

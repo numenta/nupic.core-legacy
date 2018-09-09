@@ -28,7 +28,6 @@ import numpy
 import unittest
 
 from nupic.bindings.math import Random
-from nupic.bindings.math import Serializable
 from nupic.bindings.algorithms import Cells4
 
 _RGEN = Random(43)

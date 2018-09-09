@@ -52,7 +52,7 @@ public:
   virtual inline void saveToFile(std::string filePath) const {
       std::string dirPath = Path::getParent(filePath);
 	  Directory::create(dirPath);
-	  std::ofstream out(filePath,std::ios_base::out | std::ios_base::binary);
+	  std::ofstream out(filePath, std::ios_base::out | std::ios_base::binary);
 	  out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 	  //out.precision(std::numeric_limits<double>::digits10 + 1);
 	  //out.precision(std::numeric_limits<float>::digits10 + 1);
@@ -61,7 +61,7 @@ public:
   }
 
   virtual inline void loadFromFile(std::string filePath) {
-    std::ifstream in(filePath.c_str(), std::ios_base::in | std::ios_base::binary);
+    std::ifstream in(filePath, std::ios_base::in | std::ios_base::binary);
     in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     load(in);
     in.close();

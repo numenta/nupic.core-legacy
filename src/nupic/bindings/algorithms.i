@@ -20,12 +20,13 @@
  * ---------------------------------------------------------------------
  */
 
-%module(package="bindings", directors="1") algorithms
+%module(package="nupic.bindings", directors="1") algorithms
 %include <nupic/bindings/exception.i>
 %import <nupic/bindings/math.i>
 
 %pythoncode %{
 import os
+import nupic.bindings.math
 _ALGORITHMS = _algorithms
 %}
 

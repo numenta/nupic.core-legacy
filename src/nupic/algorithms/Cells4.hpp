@@ -1071,14 +1071,15 @@ public:
         //----------------------------------------------------------------------
   		/**
    		* Save and load the state to/from the stream
+         * Need to load and re-propagate activities so that we can really persist
+         * at any point, load back and resume inference at exactly the same point.
    		*/
   		void save(std::ostream &outStream) const;
 
-        /**
-         * Need to load and re-propagate activities so that we can really persist
-         * at any point, load back and resume inference at exactly the same point.
-         */
         void load(std::istream& inStream);
+
+		virtual void saveToFile(std::string filePath) const { Serializable::saveToFile(filePath); }
+		virtual void loadFromFile(std::string filePath) { Serializable::loadFromFile(filePath); }
 
         //-----------------------------------------------------------------------
         void print(std::ostream& outStream) const;

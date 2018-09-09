@@ -98,6 +98,12 @@ public:
   Random &operator=(const Random &);
   ~Random();
 
+  // save and load serialized data
+  virtual void save(std::ostream &stream) const { stream << *this; }
+  virtual void load(std::istream &stream) { stream >> *this; }
+  virtual void saveToFile(std::string filePath) const { Serializable::saveToFile(filePath); }
+  virtual void loadFromFile(std::string filePath) { Serializable::loadFromFile(filePath); }
+
     // return a value uniformly distributed between 0 and max-1
     UInt32 getUInt32(UInt32 max = MAX32);
     UInt64 getUInt64(UInt64 max = MAX64);
@@ -171,8 +177,6 @@ public:
   static void initSeeder(const RandomSeedFuncPtr r);
 
   static void shutdown();
-  void save(std::ostream &stream) const { stream << *this; }
-  void load(std::istream &stream) { stream >> *this; }
 
 protected:
   // each "universe" (application/plugin/python module) has its own instance,
