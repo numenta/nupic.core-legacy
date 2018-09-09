@@ -99,8 +99,8 @@ public:
   ~Random();
 
   // save and load serialized data
-  virtual void save(std::ostream &stream) const { stream << *this; }
-  virtual void load(std::istream &stream) { stream >> *this; }
+  virtual void save(std::ostream &stream) const override { stream << *this; }
+  virtual void load(std::istream &stream) override { stream >> *this; }
   virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
   virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 

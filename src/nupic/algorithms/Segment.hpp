@@ -79,7 +79,6 @@
  */
 
 //-----------------------------------------------------------------------
-#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 namespace algorithms {
@@ -163,7 +162,7 @@ public:
     outStream << std::endl << "end" << std::endl;
   }
   // output binary
-  virtual inline void save(std::ostream& outStream) const
+  virtual inline void save(std::ostream& outStream) const override
   {
     outStream << version() << " "
                            << _fMemoryAllocatedByPython << " "
@@ -172,7 +171,7 @@ public:
     outStream << std::endl << "end" << std::endl;
   }
 
-  virtual inline void load(std::istream& inStream)
+  virtual inline void load(std::istream& inStream) override
   {
     UInt version;
     inStream >> version;

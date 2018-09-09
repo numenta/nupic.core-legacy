@@ -398,7 +398,7 @@ public:
    *
    * @param fd A valid file descriptor.
    */
-  virtual void save(ostream &outStream) const;
+  virtual void save(ostream &outStream) const override;
 
 
   /**
@@ -407,7 +407,7 @@ public:
    *
    * @param inStream A valid istream.
    */
-  virtual void load(istream &inStream);
+  virtual void load(istream &inStream) override;
 
 
   /**

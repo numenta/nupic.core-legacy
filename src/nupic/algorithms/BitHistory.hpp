@@ -95,12 +95,12 @@ public:
   /**
    * Save the state to the ostream.
    */
-  void save(ostream &outStream) const;
+  void save(ostream &outStream) const override;
 
   /**
    * Load state from istream.
    */
-  void load(istream &inStream);
+  void load(istream &inStream) override;
 
 
   /**

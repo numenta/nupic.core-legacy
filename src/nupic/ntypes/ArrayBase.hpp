@@ -137,8 +137,8 @@ namespace nupic
     * serialization and deserialization for an Array
     */
     // binary representation
-    void save(std::ostream &outStream) const;
-    void load(std::istream &inStream);
+    void save(std::ostream &outStream) const override;
+    void load(std::istream &inStream) override;
 
     // ascii text representation
     //    [ type count ( item item item ...) ... ]

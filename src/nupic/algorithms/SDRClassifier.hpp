@@ -123,12 +123,12 @@ public:
   /**
    * Save the state to the ostream.
    */
-  void save(std::ostream &outStream) const;
+  void save(std::ostream &outStream) const override;
 
   /**
    * Load state from istream.
    */
-  void load(std::istream &inStream);
+  void load(std::istream &inStream) override;
 
 
   /**

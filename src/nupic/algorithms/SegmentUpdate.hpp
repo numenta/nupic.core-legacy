@@ -114,7 +114,7 @@ public:
 
 
   //---------------------------------------------------------------------
-  void save(std::ostream &outStream) const {
+  void save(std::ostream &outStream) const override {
     outStream << _cellIdx << " " << _segIdx << " " << _phase1Flag << " "
               << _sequenceSegment << " " << _weaklyPredicting << " "
               << _timeStamp << std::endl;
@@ -125,7 +125,7 @@ public:
   }
 
   //---------------------------------------------------------------------
-  void load(std::istream &inStream) {
+  void load(std::istream &inStream) override {
     inStream >> _cellIdx >> _segIdx >> _phase1Flag >> _sequenceSegment >>
         _weaklyPredicting >> _timeStamp;
     UInt n, syn;

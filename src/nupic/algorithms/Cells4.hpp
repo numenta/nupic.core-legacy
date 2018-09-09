@@ -1074,9 +1074,9 @@ public:
          * Need to load and re-propagate activities so that we can really persist
          * at any point, load back and resume inference at exactly the same point.
    		*/
-  		void save(std::ostream &outStream) const;
+  		void save(std::ostream &outStream) const override;
 
-        void load(std::istream& inStream);
+        void load(std::istream& inStream) override;
 
 		virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
 		virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }

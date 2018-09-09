@@ -424,13 +424,13 @@ public:
   /**
    * Saves serialized data to output stream.
    */
-  virtual void save(std::ostream &outStream) const;
+  virtual void save(std::ostream &outStream) const override;
 
 
   /**
    * Loads serialized data from input stream.
    */
-  virtual void load(std::istream &inStream);
+  virtual void load(std::istream &inStream) override;
 
 
   // Debugging

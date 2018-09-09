@@ -244,10 +244,10 @@ public:
   }
 
   //----------------------------------------------------------------------
-  void save(std::ostream &outStream) const;
+  void save(std::ostream &outStream) const override;
 
   //----------------------------------------------------------------------
-  void load(std::istream &inStream);
+  void load(std::istream &inStream) override;
 };
 
 // end namespace
