@@ -116,8 +116,8 @@ public:
 	 */
     virtual void save(std::ostream &f) const override;
     virtual void load(std::istream &stream)  override;
-	virtual void saveToFile(std::string filePath) const { Serializable::saveToFile(filePath); }
-    virtual void loadFromFile(std::string filePath) { Serializable::loadFromFile(filePath); }
+	virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+    virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
     /**
      * @}

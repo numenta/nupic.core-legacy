@@ -1078,8 +1078,8 @@ public:
 
         void load(std::istream& inStream);
 
-		virtual void saveToFile(std::string filePath) const { Serializable::saveToFile(filePath); }
-		virtual void loadFromFile(std::string filePath) { Serializable::loadFromFile(filePath); }
+		virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+		virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
         //-----------------------------------------------------------------------
         void print(std::ostream& outStream) const;

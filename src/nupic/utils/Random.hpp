@@ -101,8 +101,8 @@ public:
   // save and load serialized data
   virtual void save(std::ostream &stream) const { stream << *this; }
   virtual void load(std::istream &stream) { stream >> *this; }
-  virtual void saveToFile(std::string filePath) const { Serializable::saveToFile(filePath); }
-  virtual void loadFromFile(std::string filePath) { Serializable::loadFromFile(filePath); }
+  virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+  virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
     // return a value uniformly distributed between 0 and max-1
     UInt32 getUInt32(UInt32 max = MAX32);
