@@ -23,9 +23,8 @@
 """NuPIC random module tests."""
 
 import cPickle as pickle
-import tempfile
 import unittest
-
+import pytest
 import numpy
 
 
@@ -35,12 +34,48 @@ from nupic.bindings.math import Random
 
 class TestNupicRandom(unittest.TestCase):
 
-
+  @pytest.fixture(autouse=True)
+  def initdir(self, tmpdir):
+    tmpdir.chdir() # change to the pytest-provided temporary directory
+	
   def testSerialization(self):
     """Test serialization of NuPIC randomness."""
+	
+    path = "RandomSerialization.stream"
 
     # Simple test: make sure that dumping / loading works...
     r = Random(99)
+
+    r.saveToFile(path)
+
+    test1 = [r.getUInt32() for _ in xrange(10)]
+    r = Random(1);
+    r.loadFromFile(path)
+    self.assertEqual(r.getSeed(), 99)
+    test2 = [r.getUInt32() for _ in xrange(10)]
+
+    self.assertEqual(test1, test2,
+				"Simple NuPIC random serialization check failed.")
+
+    # A little tricker: dump / load _after_ some numbers have been generated
+    # (in the first test).  Things should still work...
+    # ...the idea of this test is to make sure that the pickle code isn't just
+    # saving the initial seed...
+    r.saveToFile(path)
+
+    test3 = [r.getUInt32() for _ in xrange(10)]
+    r = Random();
+    r.loadFromFile(path)
+    self.assertEqual(r.getSeed(), 99)
+    test4 = [r.getUInt32() for _ in xrange(10)]
+
+    self.assertEqual(
+        test3, test4,
+        "NuPIC random serialization check didn't work for saving later state.")
+
+    self.assertNotEqual(
+        test1, test3,
+        "NuPIC random serialization test gave the same result twice?!?")
 
 
   def testNupicRandomPickling(self):
