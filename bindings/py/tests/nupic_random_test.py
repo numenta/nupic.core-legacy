@@ -46,32 +46,32 @@ class TestNupicRandom(unittest.TestCase):
 
     test1 = [r.getUInt32() for _ in xrange(10)]
     r = Random(1);
-#    r.loadFromFile("RandomSerialization.stream")
-#    self.assertEqual(r.getSeed(), 99)
-#    test2 = [r.getUInt32() for _ in xrange(10)]
+    r.loadFromFile("RandomSerialization.stream")
+    self.assertEqual(r.getSeed(), 99)
+    test2 = [r.getUInt32() for _ in xrange(10)]
 
-#    self.assertEqual(test1, test2,
-#                     "Simple NuPIC random serialization check failed.")
+    self.assertEqual(test1, test2,
+                     "Simple NuPIC random serialization check failed.")
 
     # A little tricker: dump / load _after_ some numbers have been generated
     # (in the first test).  Things should still work...
     # ...the idea of this test is to make sure that the pickle code isn't just
     # saving the initial seed...
-#    r.saveToFile("RandomSerialization.stream")
+    r.saveToFile("RandomSerialization.stream")
 
- #   test3 = [r.getUInt32() for _ in xrange(10)]
- #   r = Random();
- #   r.loadFromFile("RandomSerialization.stream")
- #   self.assertEqual(r.getSeed(), 99)
- #   test4 = [r.getUInt32() for _ in xrange(10)]
+    test3 = [r.getUInt32() for _ in xrange(10)]
+    r = Random();
+    r.loadFromFile("RandomSerialization.stream")
+    self.assertEqual(r.getSeed(), 99)
+    test4 = [r.getUInt32() for _ in xrange(10)]
 
- #   self.assertEqual(
- #     test3, test4,
- #     "NuPIC random serialization check didn't work for saving later state.")
+    self.assertEqual(
+      test3, test4,
+      "NuPIC random serialization check didn't work for saving later state.")
 
- #   self.assertNotEqual(
- #     test1, test3,
- #     "NuPIC random serialization test gave the same result twice?!?")
+    self.assertNotEqual(
+      test1, test3,
+      "NuPIC random serialization test gave the same result twice?!?")
 
 
   def testNupicRandomPickling(self):

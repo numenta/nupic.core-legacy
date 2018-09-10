@@ -31,7 +31,7 @@ from nupic.bindings.tools.serialization_test_py_region import \
      SerializationTestPyRegion
 
 
-class TestLinks(PyRegion):
+class LinkRegion(PyRegion):
   """
   Test region used to test link validation
   """
@@ -42,7 +42,7 @@ class TestLinks(PyRegion):
   @classmethod
   def getSpec(cls):
     return {
-      "description": TestLinks.__doc__,
+      "description": LinkRegion.__doc__,
       "singleNodeOnly": True,
       "inputs": {
         "UInt32": {
@@ -83,7 +83,7 @@ class NetworkTest(unittest.TestCase):
 
   def setUp(self):
     """Register test region"""
-    engine.Network.registerPyRegion(TestLinks.__module__, TestLinks.__name__)
+    engine.Network.registerPyRegion(LinkRegion.__module__, LinkRegion.__name__)
 
 
 #########################################
@@ -158,8 +158,8 @@ class NetworkTest(unittest.TestCase):
     This tests whether the links source and destination dtypes match
     """
     network = engine.Network()
-    network.addRegion("from", "py.TestLinks", "")
-    network.addRegion("to", "py.TestLinks", "")
+    network.addRegion("from", "py.LinkRegion", "")
+    network.addRegion("to", "py.LinkRegion", "")
 
     # Check for valid links
     network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")
