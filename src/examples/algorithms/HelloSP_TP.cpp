@@ -43,7 +43,7 @@ int main(int argc, const char *argv[]) {
   const UInt EPOCHS = (UInt)pow(10, 4); // number of iterations (calls to SP/TP compute() )
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
   								<< ", DIM=" << DIM
-								<< ", TP_CELLS_PER_COL=" << TP_CELLS_PER_COL << std::endl;
+  								<< ", TP_CELLS_PER_COL=" << TP_CELLS_PER_COL << std::endl;
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
   vector<UInt> inputDim = {DIM_INPUT};
   vector<UInt> colDim = {DIM};
@@ -63,6 +63,7 @@ int main(int argc, const char *argv[]) {
             false, 42, true, false);
 
   // Start a stopwatch timer
+  printf("starting:  %d iterations.", EPOCHS);
   Timer stopwatch(true);
 
   // run
