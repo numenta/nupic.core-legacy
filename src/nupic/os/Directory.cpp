@@ -35,6 +35,7 @@
 #if defined(NTA_OS_WINDOWS)
 #include <tchar.h>
 #include <windows.h>
+#include <direct.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
@@ -168,7 +169,7 @@ static std::string createRecursive(const std::string &path, bool otherAccess) {
   /// TODO: When the directory exists, confirm or update its permissions.
 
   NTA_CHECK(!path.empty()) << "Can't create directory with no name";
-  std::string p = Path::makeAbsolute(path);
+  std::string p = (path == ".")?Directory::getCWD():Path::makeAbsolute(path);
 
   if (Path::exists(p)) {
     if (!Path::isDirectory(p)) {
@@ -192,22 +193,23 @@ static std::string createRecursive(const std::string &path, bool otherAccess) {
 
 void create(const std::string &path, bool otherAccess, bool recursive) {
   /// TODO: When the directory exists, confirm or update its permissions.
+  if (path.length() == 0)
+    return;
 
   if (recursive) {
     createRecursive(path, otherAccess);
     return;
   }
 
+  if (path == "." || path == "..")
+  	return;
+
   // non-recursive case
   bool success = true;
 #if defined(NTA_OS_WINDOWS)
-  std::wstring wPath = Path::utf8ToUnicode(path);
-  success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
-  if (!success) {
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-      success = Path::isDirectory(path);
-    }
-  }
+
+  _mkdir(path.c_str());
+  success = Path::isDirectory(path);
 
 #else
   int permissions = S_IRWXU;
