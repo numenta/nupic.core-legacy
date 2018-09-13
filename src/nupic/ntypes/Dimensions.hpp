@@ -103,8 +103,8 @@ public:
    * Create a new Dimensions object from a @c std::vector<unsigned long>.
    *
    * @param v
-   *        A @c std::vector of @c unsigned long, the value with the index of @a n
-   *        is the size of the @a n th dimension
+   *        A @c std::vector of @c unsigned long, the value with the index
+   *        of @a n is the size of the @a n th dimension
    *
    */
   Dimensions(std::vector<unsigned long> v);
