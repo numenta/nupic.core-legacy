@@ -203,55 +203,6 @@ set(src_py_support_files
 )
 
 
-# List all .capnp files here. The C++ files will be generated and included
-# when compiling later on.
-set(src_capnp_specs_rel
-  nupic/proto/ArrayProto.capnp
-  nupic/proto/BitHistory.capnp
-  nupic/proto/Cell.capnp
-  nupic/proto/Cells4.capnp
-  nupic/proto/ClaClassifier.capnp
-  nupic/proto/ConnectionsProto.capnp
-  nupic/proto/LinkProto.capnp
-  nupic/proto/Map.capnp
-  nupic/proto/NetworkProto.capnp
-  nupic/proto/PyRegionProto.capnp
-  nupic/proto/RandomProto.capnp
-  nupic/proto/RegionProto.capnp
-  nupic/proto/Segment.capnp
-  nupic/proto/SegmentUpdate.capnp
-  nupic/proto/SparseBinaryMatrixProto.capnp
-  nupic/proto/SparseMatrixProto.capnp
-  nupic/proto/SpatialPoolerProto.capnp
-  nupic/proto/SdrClassifier.capnp
-  nupic/proto/TemporalMemoryProto.capnp
-  nupic/proto/TestNodeProto.capnp
-  nupic/proto/VectorFileSensorProto.capnp
-)
-
-# Create custom command for generating C++ code from .capnp schema files.
-
-foreach(spec ${src_capnp_specs_rel})
-  list(APPEND src_capnp_specs ${PROJECT_SOURCE_DIR}/${spec})
-  list(APPEND src_capnp_generated_hdrs ${PROJECT_BINARY_DIR}/${spec}.h)
-  list(APPEND src_capnp_generated_srcs ${PROJECT_BINARY_DIR}/${spec}.c++)
-endforeach(spec)
-set(src_capnp_all_spec_hdrs_and_srcs
-    ${src_capnp_generated_hdrs}
-    ${src_capnp_generated_srcs})
-
-create_capnpc_command("${src_capnp_specs}"
-                      ${PROJECT_SOURCE_DIR}
-                      ${PROJECT_SOURCE_DIR}
-                      ${PROJECT_BINARY_DIR}
-                      "${src_capnp_all_spec_hdrs_and_srcs}")
-
-
-message(STATUS "CAPNP_EXECUTABLE          = ${CAPNP_EXECUTABLE}")
-message(STATUS "CAPNP_CMAKE_DEFINITIONS   = ${CAPNP_CMAKE_DEFINITIONS}")
-message(STATUS "CAPNP_INCLUDE_DIRS        = ${CAPNP_INCLUDE_DIRS}")
-message(STATUS "CAPNP_STATIC_LIB_TARGET   = ${CAPNP_STATIC_LIB_TARGET}")
-
 message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
 message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
 
@@ -344,7 +295,6 @@ set(src_nupiccore_srcs
     nupic/regions/VectorFileSensor.cpp
     nupic/types/BasicType.cpp
     nupic/types/Fraction.cpp
-    nupic/utils/ArrayProtoUtils.cpp
     nupic/utils/LoggingException.cpp
     nupic/utils/LogItem.cpp
     nupic/utils/MovingAverage.cpp
@@ -354,7 +304,6 @@ set(src_nupiccore_srcs
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs
-    ${src_capnp_generated_srcs}
     ${src_py_support_files}
     ${src_nupiccore_srcs})
 
@@ -394,7 +343,7 @@ include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(src_lib_static_nupiccore_combined nupic_core)
 
 set(src_external_static_libs
-    ${CAPNP_STATIC_LIB_TARGET}
+    
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
     ${APR1_STATIC_LIB_TARGET}
@@ -482,16 +431,6 @@ set_target_properties(${src_executable_helloregion}
 set_target_properties(${src_executable_helloregion}
                       PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 
-#
-# Setup prototest example
-#
-set(src_executable_prototest prototest)
-add_executable(${src_executable_prototest} examples/prototest.cpp)
-target_link_libraries(${src_executable_prototest} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_prototest}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_prototest}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 
 #
 # Setup HelloSP_TP example
@@ -660,9 +599,6 @@ if (NUPIC_BUILD_PYEXT_MODULES)
   # all symbols to resolve at link time, so we have to add libpython for this
   # platform
   #
-  # NOTE On Windows nupic.bindings builds we presently build self-contained
-  # CAPNP_LITE, and Windows nupic/nupic.bindings presently has no
-  # dependency on pycapnp.
   if("${PLATFORM}" STREQUAL "windows")
     list(APPEND _SRC_SWIG_LINK_LIBRARIES
          ${PYTHON_LIBRARIES})
@@ -712,7 +648,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
                                 CPLUSPLUS ON
                                 SWIG_MODULE_NAME ${MODULE_NAME})
 
-    # Regenerate SWIG bindings if any headers change.
+    # Regenerate SWIG bindings if any headers change. (used by SWIG_ADD_LIBRARY)
     set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${swig_header_deps})
 
     #
@@ -720,7 +656,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     #
 
     # Note: swig_add_module outputs ${swig_generated_file_fullname}
-    swig_add_module(${MODULE_NAME} python ${source_interface_file})
+    SWIG_ADD_LIBRARY(${MODULE_NAME} LANGUAGE python SOURCES ${source_interface_file})
 
     set_source_files_properties(
       ${swig_generated_file_fullname} PROPERTIES
@@ -751,7 +687,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
       set(export_map_file
           "${CMAKE_CURRENT_BINARY_DIR}/${real_target}_generated.expmap")
 
-      list(APPEND extra_deps "${export_map_file}")
+      #list(APPEND extra_deps "${export_map_file}")
       set(link_flags "${link_flags} -Wl,--version-script=${export_map_file}")
 
       set(export_map_contents "{global: ${extension_init_func}; local: *;};")
@@ -807,7 +743,6 @@ install(TARGETS
         ${src_executable_pyregiontest}
         ${src_executable_connectionsperformancetest}
         ${src_executable_hellosptp}
-        ${src_executable_prototest}
         ${src_executable_gtests}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
@@ -825,12 +760,6 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(DIRECTORY nupic DESTINATION include
           MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.i")
-  install(DIRECTORY nupic DESTINATION include
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.capnp")
-  install(DIRECTORY ${PROJECT_BINARY_DIR}/nupic DESTINATION include
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.capnp.h")
 
   install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
           MESSAGE_NEVER
@@ -848,27 +777,12 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
           MESSAGE_NEVER
           DESTINATION include)
 
-  foreach(directory ${CAPNP_INCLUDE_DIRS})
-    install(DIRECTORY "${directory}/capnp"
-            MESSAGE_NEVER
-            DESTINATION include)
-    install(DIRECTORY "${directory}/kj"
-            MESSAGE_NEVER
-            DESTINATION include)
-  endforeach()
-
   install(DIRECTORY nupic/py_support DESTINATION include/nupic
           MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.c*")
   install(DIRECTORY nupic DESTINATION include/nupic
           MESSAGE_NEVER
           FILES_MATCHING PATTERN "*.py")
-
-  install(DIRECTORY "${CAPNP_BINARIES}"
-          MESSAGE_NEVER
-          DESTINATION "${CMAKE_INSTALL_PREFIX}"
-          USE_SOURCE_PERMISSIONS
-          FILES_MATCHING PATTERN "capnp*")
 
   install(DIRECTORY "${SWIG_DIR}"
           MESSAGE_NEVER

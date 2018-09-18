@@ -40,9 +40,11 @@ int main(int argc, const char *argv[]) {
   const UInt DIM = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
-  const UInt EPOCHS =
-      pow(10, 4); // number of iterations (calls to SP/TP compute() )
-
+  const UInt EPOCHS = (UInt)pow(10, 4); // number of iterations (calls to SP/TP compute() )
+  std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
+  								<< ", DIM=" << DIM
+  								<< ", TP_CELLS_PER_COL=" << TP_CELLS_PER_COL << std::endl;
+  std::cout << "EPOCHS = " << EPOCHS << std::endl;
   vector<UInt> inputDim = {DIM_INPUT};
   vector<UInt> colDim = {DIM};
 
@@ -57,10 +59,11 @@ int main(int argc, const char *argv[]) {
 
   // initialize SP, TP
   SpatialPooler sp(inputDim, colDim);
-  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0,
+  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
 
   // Start a stopwatch timer
+  printf("starting:  %d iterations.", EPOCHS);
   Timer stopwatch(true);
 
   // run

@@ -20,30 +20,13 @@
  * ---------------------------------------------------------------------
  */
 
-%module(package="bindings", directors="1") algorithms
+%module(package="nupic.bindings", directors="1") algorithms
 %include <nupic/bindings/exception.i>
 %import <nupic/bindings/math.i>
 
 %pythoncode %{
 import os
-
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # SpatialPoolerProto_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.proto.Cells4_capnp import Cells4Proto
-  from nupic.proto.ClaClassifier_capnp import ClaClassifierProto
-  from nupic.proto.ConnectionsProto_capnp import ConnectionsProto
-  from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
-  from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
-  from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
-
-# Capnp reader traveral limit (see capnp::ReaderOptions)
-_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
-
+import nupic.bindings.math
 _ALGORITHMS = _algorithms
 %}
 
@@ -93,12 +76,11 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
-
-#include <nupic/proto/Cells4.capnp.h>
-#include <nupic/proto/ConnectionsProto.capnp.h>
-#include <nupic/proto/SpatialPoolerProto.capnp.h>
-#include <nupic/proto/TemporalMemoryProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 %}
+
+
+
 
 //
 // Numpy API
@@ -112,7 +94,6 @@ _ALGORITHMS = _algorithms
 
 %{
 #include <nupic/py_support/NumpyVector.hpp>
-#include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PythonStream.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
 
@@ -414,32 +395,8 @@ using namespace nupic;
       self.this = _ALGORITHMS.new_Cells4()
       self.loadFromString(inString)
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the Cells4 instance using capnp.
-
-      :param: Destination Cells4Proto message builder
-      """
-      reader = Cells4Proto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
   %}
 
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
 
   void loadFromString(const std::string& inString)
   {
@@ -664,31 +621,6 @@ using namespace nupic;
     def _updateMinDutyCycles(self):
       self.updateMinDutyCycles_();
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the SpatialPooler instance using capnp.
-
-      :param: Destination SpatialPoolerProto message builder
-      """
-      reader = SpatialPoolerProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-
-    def convertedRead(self, proto):
-      """Initialize the SpatialPooler instance from the given SpatialPoolerProto
-      reader.
-
-      :param proto: SpatialPoolerProto message reader containing data from a
-                    previously serialized SpatialPooler instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   inline void compute(PyObject *py_inputArray, bool learn, PyObject *py_activeArray)
@@ -702,16 +634,6 @@ using namespace nupic;
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     self->stripUnlearnedColumns((nupic::UInt*) PyArray_DATA(x));
-  }
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)
@@ -982,54 +904,21 @@ using namespace nupic;
         del state["this"]
         self.__dict__.update(state)
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the SDRClassifier instance using capnp.
-
-      :param: Destination SdrClassifierProto message builder
-      """
-      reader = SdrClassifierProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-    @classmethod
-    def getSchema(cls):
-      """ Get Cap'n Proto schema. 
-      :return: Cap'n Proto schema
-      """
-      return SdrClassifierProto
-
-    def convertedRead(self, proto):
-      """Initialize the SDRClassifier instance from the given SdrClassifierProto
-      reader.
-
-      :param proto: SdrClassifierProto message reader containing data from a
-                    previously serialized SDRClassifier instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   void loadFromString(const std::string& inString)
   {
-    std::istringstream inStream(inString);
-    self->load(inStream);
+	std::istringstream inStream(inString);
+        self->load(inStream);
   }
-
   PyObject* getCState()
   {
-    SharedPythonOStream py_s(self->persistentSize());
-    std::ostream& s = py_s.getStream();
-    // TODO: Consider writing floats as binary instead.
-    s.flags(ios::scientific);
-    s.precision(numeric_limits<double>::digits10 + 1);
-    self->save(s);
-    return py_s.close();
+	SharedPythonOStream py_s(self->persistentSize());
+	std::ostream&s = py_s.getStream();
+        s.flags(ios::scientific);
+	s.precision(numeric_limits<double>::digits10 + 1);
+	self->save(s);
+	return py_s.close();
   }
 
   PyObject* convertedCompute(UInt recordNum, const vector<UInt>& patternNZ,
@@ -1065,16 +954,6 @@ using namespace nupic;
     return d;
   }
 
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
-
 }
 
 //--------------------------------------------------------------------------------
@@ -1099,43 +978,8 @@ using namespace nupic;
                                               maxSynapsesPerSegment)
 
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the Connections instance using capnp.
-
-      :param: Destination ConnectionsProto message builder
-      """
-      reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-
-    def convertedRead(self, proto):
-      """Initialize the Connections instance from the given ConnectionsProto
-      reader.
-
-      :param proto: ConnectionsProto message reader containing data from a
-                    previously serialized Connections instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
   %}
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
 
   %pythoncode %{
     def mapSegmentsToCells(self, segments):
@@ -1301,31 +1145,6 @@ using namespace nupic;
       activeColumnsArray = numpy.array(sorted(activeColumns), dtype=uintDType)
       self.convertedCompute(activeColumnsArray, learn)
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the TemporalMemory instance using capnp.
-
-      :param: Destination TemporalMemoryProto message builder
-      """
-      reader = TemporalMemoryProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-
-    def convertedRead(self, proto):
-      """Initialize the TemporalMemory instance from the given TemporalMemoryProto
-      reader.
-
-      :param proto: TemporalMemoryProto message reader containing data from a
-                    previously serialized TemporalMemory instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
   %}
 
@@ -1409,16 +1228,6 @@ using namespace nupic;
       (UInt32*)PyArray_DATA(_activeColumns);
 
     self->compute(activeColumnsSize, activeColumns, learn);
-  }
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)

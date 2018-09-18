@@ -41,8 +41,6 @@ include(ExternalProject)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 
-include(CapnProto)
-
 include(Swig)
 
 include(Apr1Lib)

@@ -25,9 +25,6 @@
 #include <nupic/math/SparseMatrixAlgorithms.hpp>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/NearestNeighbor.hpp>
-#include <nupic/proto/SparseMatrixProto.capnp.h>
-#include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
-#include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/NumpyVector.hpp>
 #include <nupic/py_support/PythonStream.hpp>
 
@@ -36,18 +33,6 @@
 %pythoncode %{
 import numbers
 
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # NetworkProto_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.proto.SparseMatrixProto_capnp import SparseMatrixProto
-  from nupic.proto.SparseBinaryMatrixProto_capnp import SparseBinaryMatrixProto
-
-# Capnp reader traveral limit (see capnp::ReaderOptions)
-_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
 %}
 
 
@@ -421,14 +406,6 @@ def __div__(self, other):
   else:
     raise Exception("Can't use type: " + t)
 
-def write(self, pyBuilder):
-  """Serialize the SparseMatrix instance using capnp.
-
-  :param: Destination SparseMatrixProto message builder
-  """
-  reader = SparseMatrixProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-  pyBuilder.from_dict(reader.to_dict())  # copy
 
 @classmethod
 def getSchema(cls):
@@ -437,14 +414,6 @@ def getSchema(cls):
   """
   return SparseMatrixProto
 
-def read(self, proto):
-  """Initialize the SparseMatrix instance from the given SparseMatrixProto
-  reader.
-
-  :param proto: SparseMatrixProto message reader containing data from a previously
-                serialized SparseMatrix instance.
-  """
-  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 %}
 
   void __initializeWithRows(const SparseMatrix ##N2& other, PyObject* py_take)
@@ -523,16 +492,6 @@ def read(self, proto):
     std::ifstream load_file(filename.c_str());
     self->fromBinary(load_file);
     load_file.close();
-  }
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void addRow(PyObject *row)
@@ -2972,24 +2931,6 @@ def __setstate__(self, inString):
     self.thisown = 1
     self.fromCSR(inString)
 
-def write(self, pyBuilder):
-  """Serialize the SparseBinaryMatrix instance using capnp.
-
-  :param: Destination SparseBinaryMatrixProto message builder
-  """
-  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-  pyBuilder.from_dict(reader.to_dict())  # copy
-
-def read(self, proto):
-  """Initialize the SparseBinaryMatrix instance from the given SparseBinaryMatrixProto
-  reader.
-
-  :param proto: SparseBinaryMatrixProto message reader containing data from a previously
-                serialized SparseBinaryMatrix instance.
-
-  """
-  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
 %}
 
@@ -3272,16 +3213,6 @@ def read(self, proto):
     load_file.close();
   }
 
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-}
-
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt16 ncols,
              PyObject *py_x, nupic::UInt16 offset =0)
   {
@@ -3484,24 +3415,6 @@ def __setstate__(self, inString):
     self.thisown = 1
     self.fromCSR(inString)
 
-def write(self, pyBuilder):
-  """Serialize the SparseBinaryMatrix instance using capnp.
-
-  :param: Destination SparseBinaryMatrixProto message builder
-  """
-  reader = SparseBinaryMatrixProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-  pyBuilder.from_dict(reader.to_dict())  # copy
-
-def read(self, proto):
-  """Initialize the SparseBinaryMatrix instance from the given SparseBinaryMatrixProto
-  reader.
-
-  :param proto: SparseBinaryMatrixProto message reader containing data from a previously
-                serialized SparseBinaryMatrix instance.
-
-  """
-  self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 %}
 
   PyObject* __getstate__()
@@ -3804,16 +3717,6 @@ def read(self, proto):
     std::ifstream load_file(filename.c_str());
     self->fromBinary(load_file);
     load_file.close();
-  }
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   inline void fromSparseVector(nupic::UInt32 nrows, nupic::UInt32 ncols,

@@ -35,9 +35,8 @@
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/math/DenseMatrix.hpp>
-#include <nupic/proto/SdrClassifier.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 namespace algorithms {
@@ -50,7 +49,8 @@ const UInt sdrClassifierVersion = 1;
 
 typedef Dense<UInt, Real64> Matrix;
 
-class SDRClassifier : public Serializable<SdrClassifierProto> {
+class SDRClassifier : public Serializable
+{
   // Make test class friend so it can unit test private members directly
   friend class SDRClassifierTest;
 
@@ -113,42 +113,23 @@ public:
   /**
    * Gets the learning rate
    */
-  UInt getAlpha() const;
+  Real64 getAlpha() const;
 
   /**
    * Get the size of the string needed for the serialized state.
    */
-  UInt persistentSize() const;
+  size_t persistentSize() const;
 
   /**
    * Save the state to the ostream.
    */
-  void save(std::ostream &outStream) const;
+  void save(std::ostream &outStream) const override;
 
   /**
    * Load state from istream.
    */
-  void load(std::istream &inStream);
+  void load(std::istream &inStream) override;
 
-  /**
-   * Save the state to the builder.
-   */
-  void write(SdrClassifierProto::Builder &proto) const override;
-
-  /**
-   * Save the state to the stream.
-   */
-  using Serializable::write;
-
-  /**
-   * Load state from reader.
-   */
-  void read(SdrClassifierProto::Reader &proto) override;
-
-  /**
-   * Load state from stream.
-   */
-  using Serializable::read;
 
   /**
    * Compare the other instance to this one.

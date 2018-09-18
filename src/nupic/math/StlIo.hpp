@@ -551,11 +551,12 @@ inline std::ostream &operator<<(std::ostream &out_stream,
 
 //--------------------------------------------------------------------------------
 // std::map
+// Warning: This will not handle elements containing whitespace.
 //--------------------------------------------------------------------------------
 template <typename T1, typename T2>
-inline std::ostream &operator<<(std::ostream &out_stream,
-                                const std::map<T1, T2> &m) {
-  out_stream << m.size() << " ";
+  inline std::ostream& operator<<(std::ostream& out_stream, const std::map<T1, T2>& m)
+  {
+    out_stream << "[ " << m.size() << "\n";
 
   typename std::map<T1, T2>::const_iterator it = m.begin(), end = m.end();
 
@@ -563,25 +564,35 @@ inline std::ostream &operator<<(std::ostream &out_stream,
     out_stream << it->first << ' ' << it->second << ' ';
     ++it;
   }
-
+    out_stream << "]\n";
   return out_stream;
 }
 
-//--------------------------------------------------------------------------------
-template <typename T1, typename T2>
-inline std::istream &operator>>(std::istream &in_stream, std::map<T1, T2> &m) {
-  int size = 0;
-  in_stream >> size;
+  //--------------------------------------------------------------------------------
+  template <typename T1, typename T2>
+  inline std::istream& operator>>(std::istream& in_stream, std::map<T1, T2>& m)
+  {
+    std::string tag;
+    size_t size = 0;
 
-  for (int i = 0; i != size; ++i) {
-    T1 k;
-    T2 v;
-    in_stream >> k >> v;
-    m.insert(std::make_pair(k, v));
+    in_stream >> tag;
+    NTA_CHECK(tag == "[");
+    in_stream >> size;
+
+    m.clear();
+    for (size_t i = 0; i != size; ++i) {
+      T1 k; T2 v;
+      in_stream >> k >> v;
+      m.insert(std::make_pair(k, v));
+    }
+    in_stream >> tag;
+    NTA_CHECK(tag == "]") << "Expected a closing ']' after map object.";
+    in_stream.ignore(1);
+
+    return in_stream;
   }
 
-  return in_stream;
-}
+
 
 //--------------------------------------------------------------------------------
 // MISCELLANEOUS

@@ -2109,26 +2109,7 @@ TEST(SpatialPoolerTest, testSaveLoad) {
   ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
 }
 
-TEST(SpatialPoolerTest, testWriteRead) {
-  const char *filename = "SpatialPoolerSerialization.tmp";
-  SpatialPooler sp1, sp2;
-  UInt numInputs = 6;
-  UInt numColumns = 12;
-  setup(sp1, numInputs, numColumns);
 
-  ofstream os(filename, ios::binary);
-  sp1.write(os);
-  os.close();
-
-  ifstream is(filename, ios::binary);
-  sp2.read(is);
-  is.close();
-
-  ASSERT_NO_FATAL_FAILURE(check_spatial_eq(sp1, sp2));
-
-  int ret = ::remove(filename);
-  ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
-}
 
 TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   // Initialize SP using the constructor

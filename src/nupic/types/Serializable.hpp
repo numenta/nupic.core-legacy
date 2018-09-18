@@ -22,16 +22,21 @@
 
 /** @file
  * Definitions for the base Serializable class in C++
+ *
+ * CapnProto serialization has been removed and replaced with binary streams.
+ *    dkeeney 8/15/2018
  */
 
-#ifndef NTA_serializable_HPP
-#define NTA_serializable_HPP
+#ifndef NTA_SERIALIZABLE_HPP
+#define NTA_SERIALIZABLE_HPP
+
 
 #include <iostream>
+#include <fstream>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Path.hpp>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
+#define SERIALIZABLE_VERSION 1
 
 namespace nupic {
 
@@ -39,31 +44,50 @@ namespace nupic {
  * Base Serializable class that any serializable class
  * should inherit from.
  */
-template <class ProtoT> class Serializable {
+class Serializable {
 public:
-  void write(std::ostream &stream) const {
-    capnp::MallocMessageBuilder message;
-    typename ProtoT::Builder proto = message.initRoot<ProtoT>();
-    write(proto);
+  Serializable() {}
+  virtual inline int getSerializableVersion() const { return SERIALIZABLE_VERSION; }
 
-    kj::std::StdOutputStream out(stream);
-    capnp::writeMessage(out, message);
+  virtual inline void saveToFile(std::string filePath) const {
+      std::string dirPath = Path::getParent(filePath);
+	  Directory::create(dirPath, true, true);
+	  std::ofstream out(filePath, std::ios_base::out | std::ios_base::binary);
+	  out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+	  //out.precision(std::numeric_limits<double>::digits10 + 1);
+	  //out.precision(std::numeric_limits<float>::digits10 + 1);
+	  save(out);
+	  out.close();
   }
 
-  void read(std::istream &stream) {
-    kj::std::StdInputStream in(stream);
-    capnp::ReaderOptions options;
-    options.traversalLimitInWords = kj::maxValue; // Don't limit.
-    capnp::InputStreamMessageReader message(in, options);
-    typename ProtoT::Reader proto = message.getRoot<ProtoT>();
-    read(proto);
+  virtual inline void loadFromFile(std::string filePath) {
+    std::ifstream in(filePath, std::ios_base::in | std::ios_base::binary);
+    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    load(in);
+    in.close();
   }
 
-  virtual void write(typename ProtoT::Builder &proto) const = 0;
-  virtual void read(typename ProtoT::Reader &proto) = 0;
+  // These must be implemented by the subclass.
+  virtual void save(std::ostream &stream) const = 0;
+  virtual void load(std::istream &stream) = 0;
 
   virtual ~Serializable() {}
 };
 
 } // end namespace nupic
-#endif // NTA_serializable_HPP
+
+/*****
+using namespace nupic::serializable;
+std::ostream &operator<<(std::ostream &outStream, const Serializable &obj) {
+  obj.save(outStream);
+  return outStream;
+}
+
+std::istream &operator>>(std::istream &inStream, Serializable &obj) {
+  obj.load(inStream);
+  return inStream;
+}
+****/
+
+#endif // NTA_SERIALIZABLE_HPP
+

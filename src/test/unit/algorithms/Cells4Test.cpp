@@ -26,16 +26,15 @@
 
 #include <set>
 #include <vector>
+#include <iostream>
+#include <sstream>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
 #include <gtest/gtest.h>
-#include <kj/std/iostream.h>
 
+#include <nupic/os/Directory.hpp>
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_in
-#include <nupic/proto/Cells4.capnp.h>
 
 using namespace nupic::algorithms::Cells4;
 
@@ -104,7 +103,7 @@ bool checkCells4Attributes(const Cells4 &c1, const Cells4 &c2) {
   return true;
 }
 
-TEST(Cells4Test, pickleSerialization) {
+TEST(Cells4Test, Serialization) {
   Cells4 cells(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true,
                false);
   std::vector<Real> input1(10, 0.0);
@@ -135,138 +134,55 @@ TEST(Cells4Test, pickleSerialization) {
     cells.compute(&input4.front(), &output.front(), true, true);
     cells.reset();
   }
+  // At this point, cells is at the beginning of
+  // a sequence because it was reset.
+
+  Directory::removeTree("TestOutputDir", true);
+  cells.saveToFile("TestOutputDir/Cells4Test");
 
   Cells4 secondCells;
-  {
-    std::stringstream ss;
-    cells.save(ss);
-    ss.seekg(0);
-    secondCells.load(ss);
-  }
-  ASSERT_TRUE(cells == secondCells);
+  secondCells.loadFromFile("TestOutputDir/Cells4Test");
+
+  NTA_CHECK(checkCells4Attributes(cells, secondCells));
+  ASSERT_TRUE(cells == secondCells) << "Not equal just after restore.";
 
   std::vector<Real> secondOutput(10 * 2);
   cells.compute(&input1.front(), &output.front(), true, true);
   secondCells.compute(&input1.front(), &secondOutput.front(), true, true);
-  ASSERT_TRUE(cells == secondCells);
 
+  ASSERT_TRUE(cells == secondCells) << "No longer equal after a compute.";
   for (UInt i = 0; i < 10; ++i) {
     ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
   }
+  NTA_CHECK(checkCells4Attributes(cells, secondCells));
 
-  // Check serialization of cells4 before calling reset
   cells.compute(&input1.front(), &output.front(), true, true);
   cells.compute(&input2.front(), &output.front(), true, true);
   cells.compute(&input3.front(), &output.front(), true, true);
   cells.compute(&input4.front(), &output.front(), true, true);
-
-  Cells4 secondCellsNoReset;
+  // At this point we are in the middle of a sequence.
+  Cells4 thirdCells;
   {
-    std::stringstream ss;
+    std::stringstream ss(std::ios_base::in | std::ios_base::out | std::ios_base::binary);
     cells.save(ss);
     ss.seekg(0);
-    secondCellsNoReset.load(ss);
+    thirdCells.load(ss);
   }
-  ASSERT_TRUE(cells == secondCellsNoReset);
+  ASSERT_TRUE(cells == thirdCells) << "Not the same after load.";
 
   cells.compute(&input1.front(), &output.front(), true, true);
-  secondCellsNoReset.compute(&input1.front(), &secondOutput.front(), true,
-                             true);
-  ASSERT_TRUE(cells == secondCellsNoReset);
+  thirdCells.compute(&input1.front(), &secondOutput.front(), true, true);
+  ASSERT_TRUE(cells == thirdCells);
 
   for (UInt i = 0; i < 10; ++i) {
     ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
   }
+
+  Directory::removeTree("TestOutputDir", true);
+
 }
 
-TEST(Cells4Test, capnpSerialization) {
-  Cells4 cells(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true,
-               false);
-  std::vector<Real> input1(10, 0.0);
-  input1[1] = 1.0;
-  input1[4] = 1.0;
-  input1[5] = 1.0;
-  input1[9] = 1.0;
-  std::vector<Real> input2(10, 0.0);
-  input2[0] = 1.0;
-  input2[2] = 1.0;
-  input2[5] = 1.0;
-  input2[6] = 1.0;
-  std::vector<Real> input3(10, 0.0);
-  input3[1] = 1.0;
-  input3[3] = 1.0;
-  input3[6] = 1.0;
-  input3[7] = 1.0;
-  std::vector<Real> input4(10, 0.0);
-  input4[2] = 1.0;
-  input4[4] = 1.0;
-  input4[7] = 1.0;
-  input4[8] = 1.0;
-  std::vector<Real> output(10 * 2);
-  for (UInt i = 0; i < 10; ++i) {
-    cells.compute(&input1.front(), &output.front(), true, true);
-    cells.compute(&input2.front(), &output.front(), true, true);
-    cells.compute(&input3.front(), &output.front(), true, true);
-    cells.compute(&input4.front(), &output.front(), true, true);
-    cells.reset();
-  }
 
-  Cells4 secondCells;
-  {
-    capnp::MallocMessageBuilder message1;
-    Cells4Proto::Builder cells4Builder = message1.initRoot<Cells4Proto>();
-    cells.write(cells4Builder);
-    std::stringstream ss;
-    kj::std::StdOutputStream out(ss);
-    capnp::writeMessage(out, message1);
-
-    kj::std::StdInputStream in(ss);
-    capnp::InputStreamMessageReader message2(in);
-    Cells4Proto::Reader cells4Reader = message2.getRoot<Cells4Proto>();
-    secondCells.read(cells4Reader);
-  }
-
-  ASSERT_TRUE(cells == secondCells);
-
-  std::vector<Real> secondOutput(10 * 2);
-  cells.compute(&input1.front(), &output.front(), true, true);
-  secondCells.compute(&input1.front(), &secondOutput.front(), true, true);
-  for (UInt i = 0; i < 10; ++i) {
-    ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
-  }
-  ASSERT_TRUE(cells == secondCells);
-
-  // Check serialization of cells4 before calling reset
-  cells.compute(&input1.front(), &output.front(), true, true);
-  cells.compute(&input2.front(), &output.front(), true, true);
-  cells.compute(&input3.front(), &output.front(), true, true);
-  cells.compute(&input4.front(), &output.front(), true, true);
-
-  Cells4 secondCellsNoReset;
-  {
-    capnp::MallocMessageBuilder message1;
-    Cells4Proto::Builder cells4Builder = message1.initRoot<Cells4Proto>();
-    cells.write(cells4Builder);
-    std::stringstream ss;
-    kj::std::StdOutputStream out(ss);
-    capnp::writeMessage(out, message1);
-
-    kj::std::StdInputStream in(ss);
-    capnp::InputStreamMessageReader message2(in);
-    Cells4Proto::Reader cells4Reader = message2.getRoot<Cells4Proto>();
-    secondCellsNoReset.read(cells4Reader);
-  }
-
-  ASSERT_TRUE(cells == secondCellsNoReset);
-
-  cells.compute(&input1.front(), &output.front(), true, true);
-  secondCellsNoReset.compute(&input1.front(), &secondOutput.front(), true,
-                             true);
-  for (UInt i = 0; i < 10; ++i) {
-    ASSERT_EQ(output[i], secondOutput[i]) << "Outputs differ at index " << i;
-  }
-  ASSERT_TRUE(cells == secondCellsNoReset);
-}
 
 /*
  * Test Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment.
@@ -276,7 +192,7 @@ TEST(Cells4Test, generateListsOfSynapsesToAdjustForAdaptSegment) {
 
   const std::set<UInt> srcCells{99, 88, 77, 66, 55, 44, 33, 22, 11, 0};
 
-  segment.addSynapses(srcCells, 0.8 /*initStrength*/, 0.5 /*permConnected*/);
+  segment.addSynapses(srcCells, 0.8f /*initStrength*/, 0.5f /*permConnected*/);
 
   std::set<UInt> synapsesSet{222, 111, 77, 55, 22, 0};
 
@@ -330,7 +246,7 @@ TEST(Cells4Test,
 
   const std::set<UInt> srcCells{99, 88, 77, 66, 55};
 
-  segment.addSynapses(srcCells, 0.8 /*initStrength*/, 0.5 /*permConnected*/);
+  segment.addSynapses(srcCells, 0.8f /*initStrength*/, 0.5f /*permConnected*/);
 
   std::set<UInt> synapsesSet{222, 111};
 
@@ -384,7 +300,7 @@ TEST(Cells4Test,
 
   const std::set<UInt> srcCells{99, 88, 77, 66, 55};
 
-  segment.addSynapses(srcCells, 0.8 /*initStrength*/, 0.5 /*permConnected*/);
+  segment.addSynapses(srcCells, 0.8f /*initStrength*/, 0.5f /*permConnected*/);
 
   std::set<UInt> synapsesSet{88, 66};
 
@@ -438,7 +354,7 @@ TEST(Cells4Test,
 
   const std::set<UInt> srcCells{88, 77, 66};
 
-  segment.addSynapses(srcCells, 0.8 /*initStrength*/, 0.5 /*permConnected*/);
+  segment.addSynapses(srcCells, 0.8f /*initStrength*/, 0.5f /*permConnected*/);
 
   std::set<UInt> synapsesSet{222, 111, 88, 77, 66};
 
@@ -492,7 +408,7 @@ TEST(Cells4Test,
 
   const std::set<UInt> srcCells{};
 
-  segment.addSynapses(srcCells, 0.8 /*initStrength*/, 0.5 /*permConnected*/);
+  segment.addSynapses(srcCells, 0.8f /*initStrength*/, 0.5f /*permConnected*/);
 
   std::set<UInt> synapsesSet{222, 111};
 
@@ -546,7 +462,7 @@ TEST(Cells4Test,
 
   const std::set<UInt> srcCells{88, 77, 66};
 
-  segment.addSynapses(srcCells, 0.8 /*initStrength*/, 0.5 /*permConnected*/);
+  segment.addSynapses(srcCells, 0.8f /*initStrength*/, 0.5f /*permConnected*/);
 
   std::set<UInt> synapsesSet{};
 
@@ -594,10 +510,8 @@ TEST(Cells4Test,
  * Test operator '=='
  */
 TEST(Cells4Test, testEqualsOperator) {
-  Cells4 cells1(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, 42, true,
-                false);
-  Cells4 cells2(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, 42, true,
-                false);
+  Cells4 cells1(10, 2, 1, 1, 1, 1, 0.5f, 0.8f, 1, 0.1f, 0.1f, 0, false, 42, true,false);
+  Cells4 cells2(10, 2, 1, 1, 1, 1, 0.5f, 0.8f, 1, 0.1f, 0.1f, 0, false, 42, true,false);
   ASSERT_TRUE(cells1 == cells2);
   std::vector<Real> input1(10, 0.0);
   input1[1] = 1.0;
