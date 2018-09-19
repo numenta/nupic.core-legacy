@@ -35,6 +35,7 @@
 #if defined(NTA_OS_WINDOWS)
 #include <tchar.h>
 #include <windows.h>
+#include <direct.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
@@ -114,6 +115,9 @@ void copyTree(const std::string &source, const std::string &destination) {
 bool removeTree(const std::string &path, bool noThrow) {
   bool success = true;
   NTA_CHECK(!path.empty()) << "Can't remove directory with no name";
+  if (!Path::exists(path))
+  	return true;
+
   {
     // The scope is necessary to make sure the destructor
     // of the Iterator releases the directory so that
@@ -165,7 +169,7 @@ static std::string createRecursive(const std::string &path, bool otherAccess) {
   /// TODO: When the directory exists, confirm or update its permissions.
 
   NTA_CHECK(!path.empty()) << "Can't create directory with no name";
-  std::string p = Path::makeAbsolute(path);
+  std::string p = (path == ".")?Directory::getCWD():Path::makeAbsolute(path);
 
   if (Path::exists(p)) {
     if (!Path::isDirectory(p)) {
@@ -189,27 +193,23 @@ static std::string createRecursive(const std::string &path, bool otherAccess) {
 
 void create(const std::string &path, bool otherAccess, bool recursive) {
   /// TODO: When the directory exists, confirm or update its permissions.
+  if (path.length() == 0)
+    return;
 
   if (recursive) {
     createRecursive(path, otherAccess);
     return;
   }
 
+  if (path == "." || path == "..")
+  	return;
+
   // non-recursive case
   bool success = true;
 #if defined(NTA_OS_WINDOWS)
-  std::wstring wPath = Path::utf8ToUnicode(path);
-  success = ::CreateDirectoryW(wPath.c_str(), NULL) != FALSE;
-  if (!success) {
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-      // Not a hard error, due to potential race conditions.
-      std::cerr << "Path '" << path
-                << "' exists. "
-                   "Possible race condition."
-                << std::endl;
-      success = Path::isDirectory(path);
-    }
-  }
+
+  _mkdir(path.c_str());
+  success = Path::isDirectory(path);
 
 #else
   int permissions = S_IRWXU;
@@ -219,11 +219,6 @@ void create(const std::string &path, bool otherAccess, bool recursive) {
   int res = ::mkdir(path.c_str(), permissions);
   if (res != 0) {
     if (errno == EEXIST) {
-      // Not a hard error, due to potential race conditions.
-      std::cerr << "Path '" << path
-                << "' exists. "
-                   "Possible race condition."
-                << std::endl;
       success = Path::isDirectory(path);
     } else {
       success = false;
@@ -248,7 +243,7 @@ void Iterator::init(const std::string &path) {
   NTA_CHECK(res == 0) << "Can't create pool";
   std::string absolutePath = Path::makeAbsolute(path);
   res = ::apr_dir_open(&handle_, absolutePath.c_str(), pool_);
-  NTA_CHECK(res == 0) << "Can't open directory " << path
+  NTA_CHECK(res == 0) << "Can't open directory " << absolutePath
                       << ". OS num: " << APR_TO_OS_ERROR(res);
 }
 

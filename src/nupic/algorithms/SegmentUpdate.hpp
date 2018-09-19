@@ -23,9 +23,8 @@
 #ifndef NTA_SEGMENTUPDATE_HPP
 #define NTA_SEGMENTUPDATE_HPP
 
-#include <nupic/proto/SegmentUpdate.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <vector>
 using namespace nupic;
 
@@ -45,7 +44,8 @@ class Cells4;
  * timeStamp, and they are discarded without being applied if they become
  * 'stale'.
  */
-class SegmentUpdate : Serializable<SegmentUpdateProto> {
+class SegmentUpdate : public Serializable
+{
 public:
   typedef std::vector<UInt>::const_iterator const_iterator;
 
@@ -99,7 +99,7 @@ public:
   UInt operator[](UInt idx) const { return _synapses[idx]; }
   const_iterator begin() const { return _synapses.begin(); }
   const_iterator end() const { return _synapses.end(); }
-  UInt size() const { return _synapses.size(); }
+  UInt size() const { return (UInt)_synapses.size(); }
   bool empty() const { return _synapses.empty(); }
   bool isNewSegment() const { return _segIdx == (UInt)-1; }
   bool isPhase1Segment() const { return _phase1Flag; }
@@ -112,39 +112,9 @@ public:
    */
   bool invariants(Cells4 *cells = nullptr) const;
 
-  //---------------------------------------------------------------------
-  using Serializable::write;
-  void write(SegmentUpdateProto::Builder &proto) const override {
-    proto.setSequenceSegment(_sequenceSegment);
-    proto.setCellIdx(_cellIdx);
-    proto.setSegIdx(_segIdx);
-    proto.setTimestamp(_timeStamp);
-    auto synapsesProto = proto.initSynapses(_synapses.size());
-    for (UInt i = 0; i < _synapses.size(); ++i) {
-      synapsesProto.set(i, _synapses[i]);
-    }
-    proto.setPhase1Flag(_phase1Flag);
-    proto.setWeaklyPredicting(_weaklyPredicting);
-  }
 
   //---------------------------------------------------------------------
-  using Serializable::read;
-  void read(SegmentUpdateProto::Reader &proto) override {
-    _sequenceSegment = proto.getSequenceSegment();
-    _cellIdx = proto.getCellIdx();
-    _segIdx = proto.getSegIdx();
-    _timeStamp = proto.getTimestamp();
-    auto synapsesProto = proto.getSynapses();
-    _synapses.resize(synapsesProto.size());
-    for (UInt i = 0; i < synapsesProto.size(); ++i) {
-      _synapses[i] = synapsesProto[i];
-    }
-    _phase1Flag = proto.getPhase1Flag();
-    _weaklyPredicting = proto.getWeaklyPredicting();
-  }
-
-  //---------------------------------------------------------------------
-  void save(std::ostream &outStream) const {
+  void save(std::ostream &outStream) const override {
     outStream << _cellIdx << " " << _segIdx << " " << _phase1Flag << " "
               << _sequenceSegment << " " << _weaklyPredicting << " "
               << _timeStamp << std::endl;
@@ -155,7 +125,7 @@ public:
   }
 
   //---------------------------------------------------------------------
-  void load(std::istream &inStream) {
+  void load(std::istream &inStream) override {
     inStream >> _cellIdx >> _segIdx >> _phase1Flag >> _sequenceSegment >>
         _weaklyPredicting >> _timeStamp;
     UInt n, syn;

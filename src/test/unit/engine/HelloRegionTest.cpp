@@ -27,7 +27,6 @@
 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
-
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
@@ -38,7 +37,7 @@ using namespace nupic;
 
 TEST(HelloRegionTest, demo) {
   // Create network
-  Network net = Network();
+  Network net;
 
   // Add VectorFileSensor region to network
   Region *region =
@@ -79,24 +78,27 @@ TEST(HelloRegionTest, demo) {
   region->compute();
 
   // Get output
-  Real64 *buffer = (Real64 *)outputArray.getBuffer();
-  if(outputArray.getCount() >0) {
+  const Real64 *buffer = (const Real64 *)outputArray.getBuffer();
+  for (size_t i = 0; i < outputArray.getCount(); i++) {
     EXPECT_FLOAT_EQ(buffer[0], 0);
+//    std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
   }
 
   // Serialize
   Network net2;
   {
     std::stringstream ss;
-    net.write(ss);
-    net2.read(ss);
+    net.save(ss);
+    //std::cout << "Loading from stream. \n";
+    //std::cout << ss.str() << std::endl;
+    ss.seekg(0);
+    net2.load(ss);
   }
-  net2.initialize();
 
   Region *region2 = net2.getRegions().getByName("region"); //TODO add more checks and asserts here
   region2->executeCommand(loadFileArgs);
   ArrayRef outputArray2 = region2->getOutputData("dataOut");
-  Real64 *buffer2 = (Real64 *)outputArray2.getBuffer();
+  const Real64 *buffer2 = (const Real64 *)outputArray2.getBuffer();
 
   net.run(DATA_SIZE);
   net2.run(DATA_SIZE);
