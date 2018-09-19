@@ -83,8 +83,6 @@ TEST(Serialization, testSP) {
 
   SpatialPooler sp2;
 
-  Real64 timeA = 0.0, timeC = 0.0;
-
   for (UInt i = 0; i < 100; ++i) {
     // Create new input
     random.shuffle(input, input + inputSize);
@@ -115,7 +113,8 @@ TEST(Serialization, testSP) {
       os.close();
 
       testTimer.stop();
-      timeC = timeC + testTimer.getElapsed();
+      cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
+      cout << "Stream: " << testTimer.getElapsed() << endl;
     }
 
     for (UInt i = 0; i < numColumns; ++i) {
@@ -124,9 +123,6 @@ TEST(Serialization, testSP) {
   }
 
   remove("outC.stream");
-
-  cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
-  cout << "Stream: " << timeC << endl;
 }
 
 
