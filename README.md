@@ -97,7 +97,6 @@ Notes:
 #### Run the tests:
 
     cd $NUPIC_CORE/build/release/bin
-    ./cpp_region_test
     ./unit_tests
     ...
 
