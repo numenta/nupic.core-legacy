@@ -273,7 +273,6 @@ set(src_nupiccore_srcs
     nupic/math/Topology.cpp
     nupic/ntypes/ArrayBase.cpp
     nupic/ntypes/Buffer.cpp
-    nupic/ntypes/BundleIO.cpp
     nupic/ntypes/Collection.cpp
     nupic/ntypes/Dimensions.cpp
     nupic/ntypes/MemParser.cpp
