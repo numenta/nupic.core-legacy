@@ -371,21 +371,22 @@ set(src_common_test_exe_libs
 message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 
 
+## Example custom executable 
 #
-# Setup test_py_region
+## Setup test_py_region
 #
-set(src_executable_pyregiontest py_region_test)
-add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
-target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_pyregiontest}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_pyregiontest}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-add_custom_target(tests_py_region
-                  COMMAND ${src_executable_pyregiontest}
-                  DEPENDS ${src_executable_pyregiontest}
-                  COMMENT "Executing test ${src_executable_pyregiontest}"
-                  VERBATIM)
+#set(src_executable_pyregiontest py_region_test)
+#add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
+#target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
+#set_target_properties(${src_executable_pyregiontest}
+#                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
+#set_target_properties(${src_executable_pyregiontest}
+#                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+#add_custom_target(tests_py_region
+#                  COMMAND ${src_executable_pyregiontest}
+#                  DEPENDS ${src_executable_pyregiontest}
+#                  COMMENT "Executing test ${src_executable_pyregiontest}"
+#                  VERBATIM)
 
 #
 # Setup gtests
@@ -410,6 +411,7 @@ add_executable(${src_executable_gtests}
 	       test/unit/engine/HelloRegionTest.cpp
                test/unit/engine/LinkTest.cpp
                test/unit/engine/NetworkTest.cpp
+	       test/unit/engine/PyRegionTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp
                test/unit/math/DenseTensorUnitTest.cpp
