@@ -266,7 +266,7 @@ void SetUp() {
  */
 TEST(ConnectionsPerformanceTest, testTM) {
 	auto tim = t.runTemporalMemoryTest(2048, 40, 20, 100, "temporal memory");
-	ASSERT_LE(tim, 2.1f); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 3.5f); //there are times, we must be better. Bit underestimated for slow CI
 }
 
 /**
@@ -274,7 +274,7 @@ TEST(ConnectionsPerformanceTest, testTM) {
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
   auto tim = t.runTemporalMemoryTest(16384, 328, 20, 100, "temporal memory (large)");
-  ASSERT_LE(tim, 20.0f);
+  ASSERT_LE(tim, 28.0f);
 }
 
 /**
