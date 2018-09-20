@@ -107,8 +107,8 @@ TEST(HelloRegionTest, demo) {
 
   ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
   for (size_t i = 0; i < sizeof &buffer / sizeof &buffer[0]; i++) { //TODO how output all values generated during run(4) ?? 
-	  ASSERT_FLOAT_EQ(buffer[i], buffer2[i]);
-	  std::cout << " " << buffer[i];
+	  EXPECT_FLOAT_EQ(buffer[i], buffer2[i]);
+	  std::cout << " buffer " << buffer[i] << " buffer2: " << buffer2[i] << std::endl;
   }
 }
 } //end namespace
