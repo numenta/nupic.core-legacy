@@ -80,9 +80,11 @@ TEST(HelloRegionTest, demo) {
   // Get output
   const Real64 *buffer = (const Real64 *)outputArray.getBuffer();
   for (size_t i = 0; i < outputArray.getCount(); i++) {
-    EXPECT_FLOAT_EQ(buffer[0], 0);
-//    std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
+//    EXPECT_FLOAT_EQ(buffer[0], 0);
+    std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
   }
+  EXPECT_FLOAT_EQ(buffer[0], 0);
+
 
   // Serialize
   Network net2;
