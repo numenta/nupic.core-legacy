@@ -39,6 +39,8 @@
 #include "nupic/utils/Log.hpp"
 #include <cstdlib>
 #include <fstream>
+#include <cstring>
+#include <errno.h>
 #if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
 #include <fcntl.h>
 #include <sys/stat.h>

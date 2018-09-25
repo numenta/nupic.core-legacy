@@ -25,16 +25,16 @@
  */
 
 #if defined(NTA_OS_WINDOWS)
-#include <shlobj.h>
 #include <windows.h>
+#include <shlobj.h>
 
-#include <boost/shared_ptr.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/DynamicLibrary.hpp>
-#include <nupic/os/Env.hpp>
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/os/Directory.hpp>
+#include <nupic/os/Env.hpp>
+#include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
+
 
 using namespace nupic;
 
@@ -84,4 +84,6 @@ std::string OS::getErrorMessage() {
   return getErrorMessageFromErrorCode(getLastErrorCode());
 }
 
+
 #endif //#if defined(NTA_OS_WINDOWS)
+

@@ -23,25 +23,32 @@
 #include <stdexcept>
 
 
-#include <nupic/encoders/ScalarSensor.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/engine/TestNode.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
-#include <nupic/os/DynamicLibrary.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
-#include <nupic/regions/PyRegion.hpp>
-#include <nupic/regions/VectorFileEffector.hpp>
-#include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
+
+#include <nupic/regions/PyRegion.hpp>
+#include <nupic/os/DynamicLibrary.hpp>
+
+
+// Built-in Plugins
+#include <nupic/engine/TestNode.hpp>
+#include <nupic/encoders/ScalarSensor.hpp>
+#include <nupic/regions/VectorFileEffector.hpp>
+#include <nupic/regions/VectorFileSensor.hpp>
+//#include <nupic/regions/SPregion.hpp>
+//#include <nupic/regions/TMregion.hpp>
+
 
 // from http://stackoverflow.com/a/9096509/1781435
 #define stringify(x) #x
@@ -267,8 +274,7 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
     impl = cppRegions[nodeType]->createRegionImpl(vm, region);
   } else if ((nodeType.find(std::string("py.")) == 0)) {
     if (!pyLib_)
-      pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+      pyLib_ = std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     impl = createPyNode(pyLib_.get(), nodeType, &vm, region);
   } else {
@@ -288,8 +294,7 @@ RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
     impl = cppRegions[nodeType]->deserializeRegionImpl(bundle, region);
   } else if (StringUtils::startsWith(nodeType, "py.")) {
     if (!pyLib_)
-      pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+      pyLib_ = std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     impl = deserializePyNode(pyLib_.get(), nodeType, bundle, region);
   } else {
@@ -338,7 +343,7 @@ Spec *RegionImplFactory::getSpec(const std::string nodeType) {
   } else if (nodeType.find(std::string("py.")) == 0) {
     if (!pyLib_)
       pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+          std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     ns = getPySpec(pyLib_.get(), nodeType);
   } else {

@@ -34,9 +34,10 @@
 #define NTA_REGION_IMPL_FACTORY_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 
-#include <boost/shared_ptr.hpp>
+
 
 
 namespace nupic {
@@ -104,7 +105,7 @@ private:
   // Using shared_ptr here to ensure the dynamic python library object
   // is deleted when the factory goes away. Can't use scoped_ptr
   // because it is not initialized in the constructor.
-  boost::shared_ptr<DynamicPythonLibrary> pyLib_;
+  std::shared_ptr<DynamicPythonLibrary> pyLib_;
 };
 } // namespace nupic
 

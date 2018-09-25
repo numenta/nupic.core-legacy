@@ -182,6 +182,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(stdlib_cxx "${stdlib_cxx} -lstdc++fs")
+  
   if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
     # NOTE When building manylinux python extensions, we want the static
     # libstdc++ due to differences in c++ ABI between the older toolchain in the
@@ -193,7 +195,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 
     # NOTE We need to use shared libgcc to be able to throw and catch exceptions
     # across different shared libraries, as may be the case when our python
-    # extensions runtime-link to capnproto symbols in pycapnp's extension.
+    # extensions runtime-link to in the C++ extension.
     set(stdlib_common "${stdlib_common} -shared-libgcc")
   else()
     set(stdlib_common "${stdlib_common} -static-libgcc")
@@ -240,7 +242,7 @@ set(allow_link_with_undefined_symbols_flags "")
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   # MS Visual C
-  set(shared_compile_flags "${shared_compile_flags} /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
+  set(shared_compile_flags "${shared_compile_flags} /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo /std:c++17")
   set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
   if("${BITNESS}" STREQUAL "32")
     set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} /MACHINE:X86")
@@ -250,7 +252,7 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
 
 else()
   # LLVM Clang / Gnu GCC
-  set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
+  set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++17 ")
 
   if (${NUPIC_BUILD_PYEXT_MODULES})
     # Hide all symbols in DLLs except the ones with explicit visibility;
@@ -393,6 +395,8 @@ foreach(compiler_definition ${COMMON_COMPILER_DEFINITIONS})
   set(COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS_STR} ${compiler_definition}")
 endforeach()
 
+message(STATUS "CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "CMAKE_CXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "INTERNAL_CXX_FLAGS_OPTIMIZED=${INTERNAL_CXX_FLAGS_OPTIMIZED}")
 message(STATUS "INTERNAL_LINKER_FLAGS_OPTIMIZED=${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 message(STATUS "EXTERNAL_C_FLAGS_UNOPTIMIZED=${EXTERNAL_C_FLAGS_UNOPTIMIZED}")

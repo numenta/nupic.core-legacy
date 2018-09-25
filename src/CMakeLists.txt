@@ -80,7 +80,6 @@ string(TOUPPER ${PLATFORM} platform_uppercase)
 
 set(src_compiler_definitions
     ${COMMON_COMPILER_DEFINITIONS}
-    ${CAPNP_COMPILER_DEFINITIONS}
     -DNTA_OS_${platform_uppercase}
     -DNTA_ARCH_${BITNESS}
     -DHAVE_CONFIG_H
@@ -318,8 +317,6 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
 add_dependencies(${src_lib_static_nupiccore_solo}
                  ${YAML_CPP_STATIC_LIB_TARGET}
                  ${YAML_STATIC_LIB_TARGET}
-                 ${APR1_STATIC_LIB_TARGET}
-                 ${APRUTIL1_STATIC_LIB_TARGET}
 		 )
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
@@ -345,8 +342,6 @@ set(src_external_static_libs
     
     ${YAML_CPP_STATIC_LIB_TARGET}
     ${YAML_STATIC_LIB_TARGET}
-    ${APR1_STATIC_LIB_TARGET}
-    ${APRUTIL1_STATIC_LIB_TARGET}
    )
 
 set(src_combined_nupiccore_source_archives
