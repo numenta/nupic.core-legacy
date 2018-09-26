@@ -32,11 +32,11 @@
 
 // Compiler support for <filesystem> in C++17:
 //    GCC 7 has <experimental/filesystem>, link with -libc++experimental or -lstdc++fs
-//    GCC 8 has <filesystem>
+//    GCC 8 has <filesystem>   link with -lstdc++fs
 //    GCC 9   expected to support <filesystem>
 //    Clang 5 has complete <filesystem> support for C++17
 //    Visual Studio 2017 15.7 supports <filesystem> with C++17
-//    MinGW support for <experimental/filesystem>, link with -lstdc++fs
+//    MinGW has no support for filesystem.
 //
 // determine if we have std::filesystem.
 // If not, use std::experimental::filesystem.

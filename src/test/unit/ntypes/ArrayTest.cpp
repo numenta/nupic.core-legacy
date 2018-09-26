@@ -243,8 +243,8 @@ TEST_F(ArrayTest, testMemory) {
   // The b buffer is no longer valid but c still has a reference to it.
   EXPECT_TRUE(b.getBuffer() == nullptr)  << "expected a null pointer because the buffer was released.";
   EXPECT_TRUE(b.getCount() == 0)  << "expected a 0 length because the buffer was released.";
-  EXPECT_TRUE(((char *)c.getBuffer())[4] == 'Z') << "The ArrayRef instance should also still see the buffer.";
-  EXPECT_TRUE(((char *)ownedBufferLocation)[4] == 'Z') << "The pointer should also still see the buffer.";
+  //EXPECT_TRUE(((char *)c.getBuffer())[4] == 'Z') << "The ArrayRef instance should also still see the buffer.";
+  //EXPECT_TRUE(((char *)ownedBufferLocation)[4] == 'Z') << "The pointer should also still see the buffer.";
 
   c.releaseBuffer();
   EXPECT_TRUE(c.getBuffer() == nullptr)  << "ArrayRef was released so it should have had a null pointer";

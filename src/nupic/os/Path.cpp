@@ -128,8 +128,8 @@ Size Path::getFileSize(const std::string &path) {
 std::string Path::normalize(const std::string &path) {
   std::string trimmed_path = StringUtils::trim(path);
   if (trimmed_path.empty()) return ".";
+  std::replace(trimmed_path.begin(), trimmed_path.end(), '\\', '/'); // in-place replace
   fs::path p(trimmed_path);
-//  p = p.make_preferred();
 //  p = p.lexically_normal();
 //  if (p.string().back() == Path::sep[0])
 //    p = p.parent_path(); // remove trailing sep if not root

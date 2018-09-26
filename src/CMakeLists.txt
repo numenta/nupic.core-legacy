@@ -211,9 +211,9 @@ message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
 set(src_common_os_libs)
 
 if("${PLATFORM}" STREQUAL "linux")
-  list(APPEND src_common_os_libs pthread dl)
+  list(APPEND src_common_os_libs pthread dl stdc++fs)
 elseif("${PLATFORM}" STREQUAL "darwin")
-  list(APPEND src_common_os_libs c++abi)
+  list(APPEND src_common_os_libs c++abi stdc++fs)
 elseif(MSYS OR MINGW)
   list(APPEND src_common_os_libs psapi ws2_32 wsock32 rpcrt4)
 elseif("${PLATFORM}" STREQUAL "windows")
@@ -431,7 +431,7 @@ set_target_properties(${src_executable_helloregion}
 #
 set(src_executable_hellosptp hello_sp_tp)
 add_executable(${src_executable_hellosptp} examples/algorithms/HelloSP_TP.cpp)
-target_link_libraries(${src_executable_hellosptp} ${src_common_test_exe_libs})
+target_link_libraries(${src_executable_hellosptp} ${src_common_test_exe_libs} )
 set_target_properties(${src_executable_hellosptp}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags})
 set_target_properties(${src_executable_hellosptp}

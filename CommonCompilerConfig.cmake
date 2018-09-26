@@ -182,7 +182,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(stdlib_cxx "${stdlib_cxx} -lstdc++fs")
+  set(stdlib_cxx "${stdlib_cxx}")
   
   if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
     # NOTE When building manylinux python extensions, we want the static
