@@ -21,12 +21,16 @@
  */
 
 #include <nupic/algorithms/Cell.hpp>
-#include <nupic/proto/Cell.capnp.h>
 
 using namespace nupic::algorithms::Cells4;
 using namespace nupic;
 
-Cell::Cell() : _segments(0), _freeSegments(0) {}
+
+Cell::Cell()
+: _segments(0),
+_freeSegments(0)
+{
+}
 
 //------------------------------------------------------------------------------
 /**
@@ -65,7 +69,7 @@ UInt Cell::getFreeSegment(const Segment::InSynapses &synapses,
   if (cellMatchPythonSegOrder) {
     // for unit tests where segment order matters
 
-    segIdx = _segments.size();
+    segIdx = (UInt)_segments.size();
     _segments.resize(_segments.size() + 1);
 
   } else {
@@ -77,7 +81,7 @@ UInt Cell::getFreeSegment(const Segment::InSynapses &synapses,
     // it to 2 different segments!
 
     if (_freeSegments.empty()) {
-      segIdx = _segments.size();
+      segIdx = (UInt)_segments.size();
       // TODO: Should we grow by larger amounts here?
       _segments.resize(_segments.size() + 1);
     } else {
@@ -86,7 +90,7 @@ UInt Cell::getFreeSegment(const Segment::InSynapses &synapses,
     }
   }
 
-  NTA_ASSERT(segIdx < _segments.size());
+  NTA_ASSERT(segIdx < (UInt)_segments.size());
   NTA_ASSERT(not_in(segIdx, _freeSegments));
   NTA_ASSERT(_segments[segIdx].empty()); // important in case we push_back
 
@@ -109,27 +113,6 @@ void Cell::updateDutyCycle(UInt iterations) {
 }
 
 //-----------------------------------------------------------------------------
-void Cell::write(CellProto::Builder &proto) const {
-  auto segmentsProto = proto.initSegments(_segments.size());
-  for (UInt i = 0; i < _segments.size(); ++i) {
-    auto segProto = segmentsProto[i];
-    _segments[i].write(segProto);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void Cell::read(CellProto::Reader &proto) {
-  auto segmentsProto = proto.getSegments();
-  _segments.resize(segmentsProto.size());
-  _freeSegments.resize(0);
-  for (UInt i = 0; i < segmentsProto.size(); ++i) {
-    auto segProto = segmentsProto[i];
-    _segments[i].read(segProto);
-    if (_segments[i].empty()) {
-      _freeSegments.push_back(i);
-    }
-  }
-}
 
 //-----------------------------------------------------------------------------
 void Cell::save(std::ostream &outStream) const {

@@ -25,18 +25,32 @@
  */
 
 #define SLEEP_MICROSECONDS (100 * 1000)
+#define SLEEP_MILLISECONDS (100)
 
-#include <apr-1/apr_time.h>
-#include <gtest/gtest.h>
-#include <math.h> // fabs
-#include <nupic/os/Timer.hpp>
+#if defined(WIN32)
+#include <windows.h>
+#elif defined(__UNIX__)
+#include <unistd.h>
+#else
+#endif
+
+
 #include <nupic/utils/Log.hpp>
+#include <nupic/os/Timer.hpp>
+#include <math.h> // fabs
+#include <gtest/gtest.h>
+
+#if defined(WIN32)
+#define nap()   Sleep(SLEEP_MILLISECONDS);
+#else
+#define nap()   usleep(SLEEP_MICROSECONDS);
+#endif
 
 using namespace nupic;
 
 TEST(TimerTest, Basic) {
-  // Tests are minimal because we have no way to run performance-sensitive tests
-  // in a controlled environment.
+// Tests are minimal because we have no way to run performance-sensitive tests in a controlled
+// environment.
 
   Timer t1;
   Timer t2(/* startme= */ true);
@@ -46,7 +60,8 @@ TEST(TimerTest, Basic) {
   ASSERT_EQ(t1.getStartCount(), 0);
   EXPECT_STREQ("[Elapsed: 0 Starts: 0]", t1.toString().c_str());
 
-  apr_sleep(SLEEP_MICROSECONDS);
+
+  nap();
 
   ASSERT_TRUE(t2.isStarted());
   ASSERT_EQ(t2.getStartCount(), 1);
@@ -54,7 +69,7 @@ TEST(TimerTest, Basic) {
   Real64 t2elapsed = t2.getElapsed();
 
   t1.start();
-  apr_sleep(SLEEP_MICROSECONDS);
+  nap();
   t1.stop();
 
   t2.stop();
@@ -69,13 +84,13 @@ TEST(TimerTest, Basic) {
 }
 
 TEST(TimerTest, Drift) {
-  // Test start/stop delay accumulation
+// Test start/stop delay accumulation
   Timer t;
   const UInt EPOCHS = 1000000; // 1M
-  const UInt EPSILON = 5;      // tolerate 5us drift on 1M restarts
-  for (UInt i = 0; i < EPOCHS; i++) {
+  const UInt EPSILON = 5; // tolerate 5us drift on 1M restarts
+  for(UInt i=0; i<EPOCHS; i++){
     t.start();
-    t.stop(); // immediately
+    t.stop(); //immediately
   }
   ASSERT_LT(t.getElapsed(), EPSILON);
 }

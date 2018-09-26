@@ -51,8 +51,6 @@ public:
   virtual RegionImpl *deserializeRegionImpl(BundleIO &params,
                                             Region *region) = 0;
 
-  virtual RegionImpl *deserializeRegionImpl(capnp::AnyPointer::Reader &proto,
-                                            Region *region) = 0;
 
   virtual Spec *createSpec() = 0;
 };
@@ -74,10 +72,6 @@ public:
     return new T(params, region);
   }
 
-  virtual RegionImpl *deserializeRegionImpl(capnp::AnyPointer::Reader &proto,
-                                            Region *region) override {
-    return new T(proto, region);
-  }
 
   virtual Spec *createSpec() override { return T::createSpec(); }
 };

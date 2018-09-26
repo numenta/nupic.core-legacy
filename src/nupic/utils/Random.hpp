@@ -33,14 +33,16 @@
 #include <utility>
 #include <vector>
 
-#include <nupic/proto/RandomProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Log.hpp>
 
-typedef NTA_UInt64 (*RandomSeedFuncPtr)();
-
 namespace nupic {
+
+typedef UInt64 (*RandomSeedFuncPtr)();
+
+
+
 /**
  * @b Responsibility
  * Provides standardized random number generation for the NuPIC Runtime Engine.
@@ -79,9 +81,33 @@ namespace nupic {
  *
  * @todo Add ability to specify different rng algorithms.
  */
-class RandomImpl;
+class RandomImpl {
+public:
+  RandomImpl(UInt64 seed);
+  ~RandomImpl(){};
+  UInt32 getUInt32();
+  bool operator==(const RandomImpl &o) const;
+  inline bool operator!=(const RandomImpl &other) const {
+    return !operator==(other);
+  }
+  // Note: copy constructor and operator= are needed
+  // The default is ok.
+private:
+  friend std::ostream &operator<<(std::ostream &outStream, const RandomImpl &r);
+  friend std::istream &operator>>(std::istream &inStream, RandomImpl &r);
+  static const UInt32 VERSION = 2;
+  // internal state
+  static const int stateSize_ = 31;
+  static const int sep_ = 3;
+  UInt32 state_[stateSize_];
+  int rptr_;
+  int fptr_;
+};
 
-class Random : public Serializable<RandomProto> {
+
+
+
+class Random : public Serializable {
 public:
   /**
    * Retrieve the seeder. If seeder not set, allocates the
@@ -99,13 +125,17 @@ public:
   Random &operator=(const Random &);
   ~Random();
 
-  // write serialized data
-  using Serializable::write;
-  void write(RandomProto::Builder &proto) const override;
+  // save and load serialized data
+  virtual void save(std::ostream &stream) const override { stream << *this; }
+  virtual void load(std::istream &stream) override { stream >> *this; }
+  virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+  virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
-  // read and deserialize data
-  using Serializable::read;
-  void read(RandomProto::Reader &proto) override;
+
+  bool operator==(const Random &other) const;
+  inline bool operator!=(const Random &other) const {
+    return !operator==(other);
+  }
 
   // return a value uniformly distributed between 0 and max-1
   UInt32 getUInt32(UInt32 max = MAX32);
@@ -140,7 +170,7 @@ public:
   // randomly shuffle the elements
   template <class RandomAccessIterator>
   void shuffle(RandomAccessIterator first, RandomAccessIterator last) {
-    UInt n = last - first;
+    UInt n = (UInt)(last - first);
     while (first != last) {
       // Pick a random position between the current and the end to swap the
       // current element with.
@@ -167,13 +197,8 @@ public:
   result_type max() { return MAX32; }
   result_type min() { return 0; }
 
-  static const UInt32 MAX32;
-  static const UInt64 MAX64;
-
-  bool operator==(const Random &other) const;
-  inline bool operator!=(const Random &other) const {
-    return !operator==(other);
-  }
+  static const UInt32 MAX32 = (UInt32)((Int32)(-1));
+  static const UInt64 MAX64 = (UInt64)((Int64)(-1));
 
   // called by the plugin framework so that plugins
   // get the "global" seeder
@@ -199,7 +224,7 @@ protected:
   friend class RandomTest;
   friend std::ostream &operator<<(std::ostream &, const Random &);
   friend std::istream &operator>>(std::istream &, Random &);
-  friend NTA_UInt64 GetRandomSeed();
+  friend UInt64 GetRandomSeed();
 };
 
 // serialization/deserialization
@@ -212,7 +237,7 @@ std::istream &operator>>(std::istream &, Random &);
 // set to this function. The plugin framework can override this
 // behavior by explicitly setting the seeder to the RandomSeeder
 // function provided by the application.
-NTA_UInt64 GetRandomSeed();
+UInt64 GetRandomSeed();
 
 } // namespace nupic
 

@@ -287,7 +287,7 @@ TEST(RandomTest, SerializationDeserialization) {
       "995051899 2794036324 2239422562 898636415 2372250535 3369849014 "
       "2122900843 1895341779 2450525880 394177447 3199534303 3887683026 "
       "656347524 48907782 1135809043 334191338 2900562231 197628021 1265227140 "
-      "569581351 466443697 843098206 7 10 endrandom-v1";
+      "569581351 466443697 843098206 7 10 endrandom-v1 ";
   ASSERT_EQ(expectedString, x);
 
   // deserialize into r2
@@ -415,44 +415,6 @@ TEST(RandomTest, Shuffling) {
   ASSERT_EQ(2, arr[3]) << "check element 3";
 }
 
-TEST(RandomTest, CapnpSerialization) {
-  // tests for Cap'n Proto serialization
-  Random r1, r2;
-  UInt32 v1, v2;
-
-  const char *outputPath = "RandomTest1.temp";
-
-  {
-    std::ofstream out(outputPath, std::ios::binary);
-    r1.write(out);
-    out.close();
-  }
-  {
-    std::ifstream in(outputPath, std::ios::binary);
-    r2.read(in);
-    in.close();
-  }
-  v1 = r1.getUInt32();
-  v2 = r2.getUInt32();
-  ASSERT_EQ(v1, v2) << "check serialization for unused Random object";
-
-  {
-    std::ofstream out(outputPath, std::ios::binary);
-    r1.write(out);
-    out.close();
-  }
-  {
-    std::ifstream in(outputPath, std::ios::binary);
-    r2.read(in);
-    in.close();
-  }
-  v1 = r1.getUInt32();
-  v2 = r2.getUInt32();
-  ASSERT_EQ(v1, v2) << "check serialization for used Random object";
-
-  // clean up
-  remove(outputPath);
-}
 
 /**
  * Test operator '=='
@@ -469,4 +431,14 @@ TEST(RandomTest, testEqualsOperator) {
   v2 = r2.getUInt32();
   ASSERT_TRUE(r1 == r2);
   ASSERT_EQ(v1, v2);
+}
+
+TEST(RandomTest, testGetUIntSpeed) {
+ Random r1(42);
+ UInt32 rnd;
+ const int RUNS = 10000000;
+ for(int i=0; i<RUNS; i++) {
+   rnd = r1.getUInt32(10000); //get random int [0..1M)
+   NTA_CHECK(rnd < 1000001) << "Should never happen, just here so compiler won't optimize out this loop";
+ }
 }

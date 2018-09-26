@@ -22,7 +22,6 @@
 
 #include <algorithm> // std::generate
 #include <cmath>     // pow
-#include <cstdlib>   // std::rand, std::srand
 #include <ctime>     // std::time
 #include <iostream>
 #include <vector>
@@ -30,24 +29,22 @@
 #include "nupic/algorithms/Cells4.hpp"
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/os/Timer.hpp"
+#include "nupic/utils/Random.hpp"
 
 using namespace std;
 using namespace nupic;
 using nupic::algorithms::Cells4::Cells4;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 
-// function generator:
-int RandomNumber01() {
-  return (rand() % 2);
-} // returns random (binary) numbers from {0,1}
-
 int main(int argc, const char *argv[]) {
   const UInt DIM = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt TP_CELLS_PER_COL = 10; // cells per column in TP
-  const UInt EPOCHS =
-      pow(10, 4); // number of iterations (calls to SP/TP compute() )
-
+  const UInt EPOCHS = (UInt)pow(10, 4); // number of iterations (calls to SP/TP compute() )
+  std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
+  								<< ", DIM=" << DIM
+  								<< ", TP_CELLS_PER_COL=" << TP_CELLS_PER_COL << std::endl;
+  std::cout << "EPOCHS = " << EPOCHS << std::endl;
   vector<UInt> inputDim = {DIM_INPUT};
   vector<UInt> colDim = {DIM};
 
@@ -58,18 +55,20 @@ int main(int argc, const char *argv[]) {
   vector<UInt> outTP(_CELLS);
   Real rIn[DIM] = {}; // input for TP (must be Reals)
   Real rOut[_CELLS] = {};
+  Random rnd;
 
   // initialize SP, TP
   SpatialPooler sp(inputDim, colDim);
-  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5, .8, 1.0, .1, .1, 0.0,
+  Cells4 tp(DIM, TP_CELLS_PER_COL, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
 
   // Start a stopwatch timer
+  printf("starting:  %d iterations.", EPOCHS);
   Timer stopwatch(true);
 
   // run
   for (UInt e = 0; e < EPOCHS; e++) {
-    generate(input.begin(), input.end(), RandomNumber01);
+    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());

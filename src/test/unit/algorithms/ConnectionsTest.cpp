@@ -465,34 +465,9 @@ TEST(ConnectionsTest, testNumSynapses) {
 
 /**
  * Creates a sample set of connections with destroyed segments/synapses,
- * computes sample activity, and makes sure that we can write to a
- * filestream and read it back correctly.
+ * computes sample activity, and makes sure that we can save to a
+ * filestream and load it back correctly.
  */
-TEST(ConnectionsTest, testWriteRead) {
-  const char *filename = "ConnectionsSerialization.tmp";
-  Connections c1(1024), c2;
-  setupSampleConnections(c1);
-
-  Segment segment = c1.createSegment(10);
-  c1.createSynapse(segment, 400, 0.5);
-  c1.destroySegment(segment);
-
-  computeSampleActivity(c1);
-
-  ofstream os(filename, ios::binary);
-  c1.write(os);
-  os.close();
-
-  ifstream is(filename, ios::binary);
-  c2.read(is);
-  is.close();
-
-  ASSERT_EQ(c1, c2);
-
-  int ret = ::remove(filename);
-  NTA_CHECK(ret == 0) << "Failed to delete " << filename;
-}
-
 TEST(ConnectionsTest, testSaveLoad) {
   Connections c1(1024), c2;
   setupSampleConnections(c1);

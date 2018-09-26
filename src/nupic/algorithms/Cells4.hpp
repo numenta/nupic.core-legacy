@@ -23,16 +23,16 @@
 #ifndef NTA_Cells4_HPP
 #define NTA_Cells4_HPP
 
-#include <cstring>
-#include <fstream>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/Segment.hpp>
-#include <nupic/proto/Cells4.capnp.h>
-#include <nupic/types/Serializable.hpp>
+#include <nupic/algorithms/Cell.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <ostream>
 #include <queue>
 #include <sstream>
+#include <cstring>
+#include <fstream>
 
 //-----------------------------------------------------------------------
 /**
@@ -201,113 +201,123 @@ public:
                 << " med=" << UInt(vectStat[_size / 2]) << std::endl;
     }
 #endif
-    // zero all the nonzero slots
-    if (_size < _dimension / 16) { // if fewer than 6.25% are nonzero
-      UInt ndx;                    // zero selectively
-      for (ndx = 0; ndx < _size; ndx++)
-        _counter[_nonzero[ndx]] = 0;
-    } else {
-      memset(_counter, 0, _dimension * sizeof(_counter[0]));
-    }
+          // zero all the nonzero slots
+          if (_size < _dimension / 16) {              // if fewer than 6.25% are nonzero
+            UInt ndx;                                 // zero selectively
+            for (ndx = 0; ndx < _size; ndx++)
+              _counter[_nonzero[ndx]] = 0;
+          }
+          else {
+            memset(_counter, 0, _dimension * sizeof(_counter[0]));
+          }
 
-    // no more nonzero slots
-    _size = 0;
-  }
+          // no more nonzero slots
+          _size = 0;
+        }
+      private:
+        It * _counter;                                // use typename here
+        UInt * _nonzero;
+        UInt _size;
+        UInt _dimension;
+      };
 
-private:
-  It *_counter; // use typename here
-  UInt *_nonzero;
-  UInt _size;
-  UInt _dimension;
-};
+      template <typename It>
+      class CCellSegActivity
+      {
+      public:
+        CCellSegActivity()
+        {
+          _cell.initialize(_MAX_CELLS);
+          _seg.initialize(_MAX_CELLS * _MAX_SEGS);
+        }
+        UInt get(UInt cellIdx)
+        {
+          return _cell.get(cellIdx);
+        }
+        UInt get(UInt cellIdx, UInt segIdx)
+        {
+          return _seg.get(cellIdx * _MAX_SEGS + segIdx);
+        }
+        void increment(UInt cellIdx, UInt segIdx)
+        {
+          _cell.max(cellIdx, _seg.increment(cellIdx * _MAX_SEGS + segIdx));
+        }
+        void reset()
+        {
+          _cell.reset();
+          _seg.reset();
+        }
+      private:
+        CBasicActivity<It> _cell;
+        CBasicActivity<It> _seg;
+      };
 
-template <typename It> class CCellSegActivity {
-public:
-  CCellSegActivity() {
-    _cell.initialize(_MAX_CELLS);
-    _seg.initialize(_MAX_CELLS * _MAX_SEGS);
-  }
-  UInt get(UInt cellIdx) { return _cell.get(cellIdx); }
-  UInt get(UInt cellIdx, UInt segIdx) {
-    return _seg.get(cellIdx * _MAX_SEGS + segIdx);
-  }
-  void increment(UInt cellIdx, UInt segIdx) {
-    _cell.max(cellIdx, _seg.increment(cellIdx * _MAX_SEGS + segIdx));
-  }
-  void reset() {
-    _cell.reset();
-    _seg.reset();
-  }
+      class Cells4 : public Serializable
+      {
+      public:
 
-private:
-  CBasicActivity<It> _cell;
-  CBasicActivity<It> _seg;
-};
+        typedef Segment::InSynapses InSynapses;
+        typedef std::vector<OutSynapse> OutSynapses;
+        typedef std::vector<SegmentUpdate> SegmentUpdates;
+        static const UInt VERSION = 3;
 
-class Cells4 : public Serializable<Cells4Proto> {
-public:
-  typedef Segment::InSynapses InSynapses;
-  typedef std::vector<OutSynapse> OutSynapses;
-  typedef std::vector<SegmentUpdate> SegmentUpdates;
-  static const UInt VERSION = 2;
+      private:
+        nupic::Random _rng;
 
-private:
-  nupic::Random _rng;
+        //-----------------------------------------------------------------------
+        /**
+         * Temporal pooler parameters, typically set by the user.
+         * See TP.py for explanations.
+         */
+        UInt _nColumns;
+        UInt _nCellsPerCol;
+        UInt _nCells;
+        UInt _activationThreshold;
+        UInt _minThreshold;
+        UInt _newSynapseCount;
+        UInt _nIterations;
+        UInt _nLrnIterations;
+        UInt _segUpdateValidDuration;
+        Real _initSegFreq;   // TODO: Can we remove this? Used anywhere?
+        Real _permInitial;
+        Real _permConnected;
+        Real _permMax;
+        Real _permDec;
+        Real _permInc;
+        Real _globalDecay;
+        bool _doPooling;
+        UInt _pamLength;
+        UInt _maxInfBacktrack;
+        UInt _maxLrnBacktrack;
+        UInt _maxSeqLength;
+        UInt _learnedSeqLength;
+        Real _avgLearnedSeqLength;
+        UInt _maxAge;
+        UInt _verbosity;
+        Int  _maxSegmentsPerCell;
+        Int  _maxSynapsesPerSegment;
+        bool _checkSynapseConsistency;    // If true, will perform time
+                                          // consuming invariance checks.
 
-  //-----------------------------------------------------------------------
-  /**
-   * Temporal pooler parameters, typically set by the user.
-   * See TP.py for explanations.
-   */
-  UInt _nColumns;
-  UInt _nCellsPerCol;
-  UInt _nCells;
-  UInt _activationThreshold;
-  UInt _minThreshold;
-  UInt _newSynapseCount;
-  UInt _nIterations;
-  UInt _nLrnIterations;
-  UInt _segUpdateValidDuration;
-  Real _initSegFreq; // TODO: Can we remove this? Used anywhere?
-  Real _permInitial;
-  Real _permConnected;
-  Real _permMax;
-  Real _permDec;
-  Real _permInc;
-  Real _globalDecay;
-  bool _doPooling;
-  UInt _pamLength;
-  UInt _maxInfBacktrack;
-  UInt _maxLrnBacktrack;
-  UInt _maxSeqLength;
-  UInt _learnedSeqLength;
-  Real _avgLearnedSeqLength;
-  UInt _maxAge;
-  UInt _verbosity;
-  Int _maxSegmentsPerCell;
-  Int _maxSynapsesPerSegment;
-  bool _checkSynapseConsistency; // If true, will perform time
-                                 // consuming invariance checks.
+        //-----------------------------------------------------------------------
+        /**
+         * Internal variables.
+         */
+        bool _resetCalled;          // True if reset() was called since the
+                                    // last call to compute.
+        Real _avgInputDensity;      // Average no. of non-zero inputs
+        UInt _pamCounter;           // pamCounter gets reset to pamLength
+                                    // whenever we detect that the learning
+                                    // state is making good predictions
+        UInt _version;
 
-  //-----------------------------------------------------------------------
-  /**
-   * Internal variables.
-   */
-  bool _resetCalled;     // True if reset() was called since the
-                         // last call to compute.
-  Real _avgInputDensity; // Average no. of non-zero inputs
-  UInt _pamCounter;      // pamCounter gets reset to pamLength
-                         // whenever we detect that the learning
-                         // state is making good predictions
-  UInt _version;
-
-  //-----------------------------------------------------------------------
-  /**
-   * The various inference and learning states. See TP.py documentation
-   *
-   * Note: 'T1' means 't-1'
-   * TODO: change to more compact data type (later)   2011-07-23 partly done.
-   */
+        //-----------------------------------------------------------------------
+        /**
+         * The various inference and learning states. See TP.py documentation
+         *
+         * Note: 'T1' means 't-1'
+         * TODO: change to more compact data type (later)   2011-07-23 partly done.
+         */
 #define SOME_STATES_NOT_INDEXED 1
 #if SOME_STATES_NOT_INDEXED
   CState _infActiveStateT;
@@ -378,7 +388,7 @@ public:
          UInt segUpdateValidDuration = 1, Real permInitial = .5,
          Real permConnected = .8, Real permMax = 1, Real permDec = .1,
          Real permInc = .1, Real globalDecay = 0, bool doPooling = false,
-         int seed = -1, bool initFromCpp = false,
+         int seed = -1, bool initFromCpp = true,
          bool checkSynapseConsistency = false);
 
   //----------------------------------------------------------------------
@@ -391,7 +401,7 @@ public:
                   Real permInitial = .5, Real permConnected = .8,
                   Real permMax = 1, Real permDec = .1, Real permInc = .1,
                   Real globalDecay = .1, bool doPooling = false,
-                  bool initFromCpp = false,
+                  bool initFromCpp = true,
                   bool checkSynapseConsistency = false);
 
   //----------------------------------------------------------------------
@@ -469,14 +479,40 @@ public:
 
   //----------------------------------------------------------------------
   /**
+   * Get individual state buffer pointers
+   */
+  Byte *getInfActiveStateT() { return _infActiveStateT.arrayPtr(); }
+  Byte *getInfActiveStateT1() { return _infActiveStateT1.arrayPtr(); }
+  Byte *getInfPredictedStateT() { return _infPredictedStateT.arrayPtr(); }
+  Byte *getInfPredictedStateT1() { return _infPredictedStateT1.arrayPtr(); }
+  Byte *getLearnActiveStateT() { return _learnActiveStateT.arrayPtr(); }
+  Byte *getLearnActiveStateT1() { return _learnActiveStateT1.arrayPtr(); }
+  Byte *getLearnPredictedStateT() { return _learnPredictedStateT.arrayPtr(); }
+  Byte *getLearnPredictedStateT1() { return _learnPredictedStateT.arrayPtr(); }
+  Real *getCellConfidenceT() { return _cellConfidenceT; }
+  Real *getCellConfidenceT1() { return _cellConfidenceT1; }
+  Real *getColConfidenceT() { return _colConfidenceT; }
+  Real *getColConfidenceT1() { return _colConfidenceT1; }
+
+  //----------------------------------------------------------------------
+  /**
    * Accessors for getting various member variables
    */
   UInt nSegments() const;
   UInt nCells() const { return _nCells; }
   UInt nColumns() const { return _nColumns; }
   UInt nCellsPerCol() const { return _nCellsPerCol; }
+  Real getPermInitial() const { return _permInitial; }
   UInt getMinThreshold() const { return _minThreshold; }
   Real getPermConnected() const { return _permConnected; }
+  UInt getNewSynapseCount() const { return _newSynapseCount; }
+  Real getPermInc() const { return _permInc; }
+  Real getPermDec() const { return _permDec; }
+  Real getPermMax() const { return _permMax; }
+  Real getGlobalDecay() const { return _globalDecay; }
+  UInt getActivationThreshold() const { return _activationThreshold; }
+  bool getDoPooling() { return _doPooling; }
+  UInt getSegUpdateValidDuration() { return _segUpdateValidDuration; }
   UInt getVerbosity() const { return _verbosity; }
   UInt getMaxAge() const { return _maxAge; }
   UInt getPamLength() const { return _pamLength; }
@@ -637,510 +673,503 @@ public:
   void computeForwardPropagation(CState &state);
 #endif
 
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
-  //
-  // ROUTINES FOR PERFORMING INFERENCE
-  //
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
+        //
+        // ROUTINES FOR PERFORMING INFERENCE
+        //
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
-  //----------------------------------------------------------------------
-  /**
-   * Update the inference state. Called from compute() on every iteration
-   *
-   * Parameters:
-   * ===========
-   *
-   * activeColumns:   Indices of active columns
-   */
-  void updateInferenceState(const std::vector<UInt> &activeColumns);
+        //----------------------------------------------------------------------
+        /**
+         * Update the inference state. Called from compute() on every iteration
+         *
+         * Parameters:
+         * ===========
+         *
+         * activeColumns:   Indices of active columns
+         */
+        void updateInferenceState(const std::vector<UInt> & activeColumns);
 
-  //----------------------------------------------------------------------
-  /**
-   * Update the inference active state from the last set of predictions
-   * and the current bottom-up.
-   *
-   * Parameters:
-   * ===========
-   *
-   * activeColumns:   Indices of active columns
-   * useStartCells:   If true, ignore previous predictions and simply
-   *                  turn on the start cells in the active columns
-   *
-   * Return value:    whether or not we are in a sequence.
-   *                  'true' if the current input was sufficiently
-   *                  predicted, OR if we started over on startCells.
-   *                  'false' indicates that the current input was NOT
-   *                  predicted, and we are now bursting on most columns.
-   *
-   */
-  bool inferPhase1(const std::vector<UInt> &activeColumns, bool useStartCells);
+        //----------------------------------------------------------------------
+        /**
+         * Update the inference active state from the last set of predictions
+         * and the current bottom-up.
+         *
+         * Parameters:
+         * ===========
+         *
+         * activeColumns:   Indices of active columns
+         * useStartCells:   If true, ignore previous predictions and simply
+         *                  turn on the start cells in the active columns
+         *
+         * Return value:    whether or not we are in a sequence.
+         *                  'true' if the current input was sufficiently
+         *                  predicted, OR if we started over on startCells.
+         *                  'false' indicates that the current input was NOT
+         *                  predicted, and we are now bursting on most columns.
+         *
+         */
+        bool inferPhase1(const std::vector<UInt> & activeColumns, bool useStartCells);
 
-  //-----------------------------------------------------------------------
-  /**
-   * Phase 2 for the inference state. The computes the predicted state,
-   * then checks to insure that the predicted state is not over-saturated,
-   * i.e. look too close like a burst. This indicates that there were so
-   * many separate paths learned from the current input columns to the
-   * predicted input columns that bursting on the current input columns
-   * is most likely generated mix and match errors on cells in the
-   * predicted columns. If we detect this situation, we instead turn on
-   * only the start cells in the current active columns and re-generate
-   * the predicted state from those.
-   *
-   * Return value:    'true' if we have at least some guess  as to the
-   *                  next input. 'false' indicates that we have reached
-   *                  the end of a learned sequence.
-   *
-   */
-  bool inferPhase2();
+        //-----------------------------------------------------------------------
+        /**
+         * Phase 2 for the inference state. The computes the predicted state,
+         * then checks to insure that the predicted state is not over-saturated,
+         * i.e. look too close like a burst. This indicates that there were so
+         * many separate paths learned from the current input columns to the
+         * predicted input columns that bursting on the current input columns
+         * is most likely generated mix and match errors on cells in the
+         * predicted columns. If we detect this situation, we instead turn on
+         * only the start cells in the current active columns and re-generate
+         * the predicted state from those.
+         *
+         * Return value:    'true' if we have at least some guess  as to the
+         *                  next input. 'false' indicates that we have reached
+         *                  the end of a learned sequence.
+         *
+         */
+        bool inferPhase2();
 
-  //-----------------------------------------------------------------------
-  /**
-   * This "backtracks" our inference state, trying to see if we can lock
-   * onto the current set of inputs by assuming the sequence started N
-   * steps ago on start cells. For details please see documentation in
-   * TP.py
-   *
-   * Parameters:
-   * ===========
-   *
-   * activeColumns:   Indices of active columns
-   */
-  void inferBacktrack(const std::vector<UInt> &activeColumns);
+        //-----------------------------------------------------------------------
+        /**
+         * This "backtracks" our inference state, trying to see if we can lock
+         * onto the current set of inputs by assuming the sequence started N
+         * steps ago on start cells. For details please see documentation in
+         * TP.py
+         *
+         * Parameters:
+         * ===========
+         *
+         * activeColumns:   Indices of active columns
+         */
+        void inferBacktrack(const std::vector<UInt> & activeColumns);
 
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
-  //
-  // ROUTINES FOR PERFORMING LEARNING
-  //
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
+        //
+        // ROUTINES FOR PERFORMING LEARNING
+        //
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
-  //----------------------------------------------------------------------
-  /**
-   * Update the learning state. Called from compute()
-   *
-   * Parameters:
-   * ===========
-   *
-   * activeColumns:   Indices of active columns
-   */
-  void updateLearningState(const std::vector<UInt> &activeColumns, Real *input);
+        //----------------------------------------------------------------------
+        /**
+         * Update the learning state. Called from compute()
+         *
+         * Parameters:
+         * ===========
+         *
+         * activeColumns:   Indices of active columns
+         */
+        void updateLearningState(const std::vector<UInt> & activeColumns,
+                                 Real* input);
 
-  //-----------------------------------------------------------------------
-  /**
-   * Compute the learning active state given the predicted state and
-   * the bottom-up input.
-   *
-   *
-   * Parameters:
-   * ===========
-   *
-   * activeColumns:   Indices of active columns
-   * readOnly:        True if being called from backtracking logic.
-   *                  This tells us not to increment any segment
-   *                  duty cycles or queue up any updates.
-   *
-   * Return value:    'true' if the current input was sufficiently
-   *                  predicted, OR if we started over on startCells.
-   *                  'false' indicates that the current input was NOT
-   *                  predicted well enough to be considered inSequence
-   *
-   */
-  bool learnPhase1(const std::vector<UInt> &activeColumns, bool readOnly);
+        //-----------------------------------------------------------------------
+        /**
+         * Compute the learning active state given the predicted state and
+         * the bottom-up input.
+         *
+         *
+         * Parameters:
+         * ===========
+         *
+         * activeColumns:   Indices of active columns
+         * readOnly:        True if being called from backtracking logic.
+         *                  This tells us not to increment any segment
+         *                  duty cycles or queue up any updates.
+         *
+         * Return value:    'true' if the current input was sufficiently
+         *                  predicted, OR if we started over on startCells.
+         *                  'false' indicates that the current input was NOT
+         *                  predicted well enough to be considered inSequence
+         *
+         */
+        bool learnPhase1(const std::vector<UInt> & activeColumns, bool readOnly);
 
-  //-----------------------------------------------------------------------
-  /**
-   * Compute the predicted segments given the current set of active cells.
-   *
-   * This computes the lrnPredictedState['t'] and queues up any segments
-   * that became active (and the list of active synapses for each
-   * segment) into the segmentUpdates queue
-   *
-   * Parameters:
-   * ===========
-   *
-   * readOnly:        True if being called from backtracking logic.
-   *                  This tells us not to increment any segment
-   *                  duty cycles or queue up any updates.
-   *
-   */
-  void learnPhase2(bool readOnly);
+        //-----------------------------------------------------------------------
+        /**
+         * Compute the predicted segments given the current set of active cells.
+         *
+         * This computes the lrnPredictedState['t'] and queues up any segments
+         * that became active (and the list of active synapses for each
+         * segment) into the segmentUpdates queue
+         *
+         * Parameters:
+         * ===========
+         *
+         * readOnly:        True if being called from backtracking logic.
+         *                  This tells us not to increment any segment
+         *                  duty cycles or queue up any updates.
+         *
+         */
+        void learnPhase2(bool readOnly);
 
-  //-----------------------------------------------------------------------
-  /**
-   * This "backtracks" our learning state, trying to see if we can lock
-   * onto the current set of inputs by assuming the sequence started
-   * up to N steps ago on start cells.
-   *
-   */
-  UInt learnBacktrack();
+        //-----------------------------------------------------------------------
+        /**
+         * This "backtracks" our learning state, trying to see if we can lock
+         * onto the current set of inputs by assuming the sequence started
+         * up to N steps ago on start cells.
+         *
+         */
+        UInt learnBacktrack();
 
-  //-----------------------------------------------------------------------
-  /**
-   * A utility method called from learnBacktrack. This will backtrack
-   * starting from the given startOffset in our prevLrnPatterns queue.
-   *
-   * It returns True if the backtrack was successful and we managed to get
-   * predictions all the way up to the current time step.
-   *
-   * If readOnly, then no segments are updated or modified, otherwise, all
-   * segment updates that belong to the given path are applied.
-   *
-   */
-  bool learnBacktrackFrom(UInt startOffset, bool readOnly);
+        //-----------------------------------------------------------------------
+        /**
+         * A utility method called from learnBacktrack. This will backtrack
+         * starting from the given startOffset in our prevLrnPatterns queue.
+         *
+         * It returns True if the backtrack was successful and we managed to get
+         * predictions all the way up to the current time step.
+         *
+         * If readOnly, then no segments are updated or modified, otherwise, all
+         * segment updates that belong to the given path are applied.
+         *
+         */
+        bool learnBacktrackFrom(UInt startOffset, bool readOnly);
 
-  //-----------------------------------------------------------------------
-  /**
-   * Update our moving average of learned sequence length.
-   */
-  void _updateAvgLearnedSeqLength(UInt prevSeqLength);
+        //-----------------------------------------------------------------------
+        /**
+         * Update our moving average of learned sequence length.
+         */
+        void _updateAvgLearnedSeqLength(UInt prevSeqLength);
 
-  //----------------------------------------------------------------------
-  /**
-   * Choose n random cells to learn from, using cells with activity in
-   * the state array. The passed in srcCells are excluded.
-   *
-   * Parameters:
-   * - cellIdx:        the destination cell to pick sources for
-   * - segIdx:         the destination segment to pick sources for
-   * - nSynToAdd:      the numbers of synapses to add
-   *
-   * Return:
-   * - srcCells:       contains the chosen source cell indices upon return
-   *
-   * NOTE: don't forget to keep cell indices sorted!!!
-   * TODO: make sure we don't pick a cell that's already a src for that seg
-   */
-  void chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx, UInt nSynToAdd,
-                              CStateIndexed &state,
-                              std::vector<UInt> &srcCells);
+        //----------------------------------------------------------------------
+        /**
+         * Choose n random cells to learn from, using cells with activity in
+         * the state array. The passed in srcCells are excluded.
+         *
+         * Parameters:
+         * - cellIdx:        the destination cell to pick sources for
+         * - segIdx:         the destination segment to pick sources for
+         * - nSynToAdd:      the numbers of synapses to add
+         *
+         * Return:
+         * - srcCells:       contains the chosen source cell indices upon return
+         *
+         * NOTE: don't forget to keep cell indices sorted!!!
+         * TODO: make sure we don't pick a cell that's already a src for that seg
+         */
+        void
+        chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx,
+                               UInt nSynToAdd, CStateIndexed& state, std::vector<UInt>& srcCells);
 
-  //----------------------------------------------------------------------
-  /**
-   * Return the index of a cell in this column which is a good candidate
-   * for adding a new segment.
-   *
-   * When we have fixed size resources in effect, we insure that we pick a
-   * cell which does not already have the max number of allowed segments.
-   * If none exists, we choose the least used segment in the column to
-   * re-allocate. Note that this routine should never return the start
-   * cell (cellIdx 0) if we have more than one cell per column.
-   *
-   * Parameters:
-   * - colIdx:        which column to look at
-   *
-   * Return:
-   * - cellIdx:       index of the chosen cell
-   *
-   */
-  UInt getCellForNewSegment(UInt colIdx);
+        //----------------------------------------------------------------------
+        /**
+         * Return the index of a cell in this column which is a good candidate
+         * for adding a new segment.
+         *
+         * When we have fixed size resources in effect, we insure that we pick a
+         * cell which does not already have the max number of allowed segments.
+         * If none exists, we choose the least used segment in the column to
+         * re-allocate. Note that this routine should never return the start
+         * cell (cellIdx 0) if we have more than one cell per column.
+         *
+         * Parameters:
+         * - colIdx:        which column to look at
+         *
+         * Return:
+         * - cellIdx:       index of the chosen cell
+         *
+         */
+        UInt getCellForNewSegment(UInt colIdx);
 
-  //----------------------------------------------------------------------
-  /**
-   * Insert a segmentUpdate data structure containing a list of proposed changes
-   * to segment segIdx. If newSynapses
-   * is true, then newSynapseCount - len(activeSynapses) synapses are added to
-   * activeSynapses. These synapses are randomly chosen from the set of cells
-   * that have learnState = 1 at timeStep.
-   *
-   * Return: true if a new segmentUpdate data structure was pushed onto
-   * the list.
-   *
-   * NOTE: called getSegmentActiveSynapses in Python
-   *
-   */
-  bool computeUpdate(UInt cellIdx, UInt segIdx, CStateIndexed &activeState,
-                     bool sequenceSegmentFlag, bool newSynapsesFlag);
 
-  //----------------------------------------------------------------------
-  /**
-   * Adds OutSynapses to the internal data structure that maintains OutSynapses
-   * for each InSynapses. This enables us to propagation activation forward,
-   * which is faster since activation is sparse.
-   *
-   * This is a templated method because sometimes we are called with
-   * std::set<UInt>::const_iterator and sometimes with
-   * std::vector<UInt>::const_iterator
-   */
+        //----------------------------------------------------------------------
+        /**
+         * Insert a segmentUpdate data structure containing a list of proposed changes
+         * to segment segIdx. If newSynapses
+         * is true, then newSynapseCount - len(activeSynapses) synapses are added to
+         * activeSynapses. These synapses are randomly chosen from the set of cells
+         * that have learnState = 1 at timeStep.
+         *
+         * Return: true if a new segmentUpdate data structure was pushed onto
+         * the list.
+         *
+         * NOTE: called getSegmentActiveSynapses in Python
+         *
+         */
+        bool computeUpdate(UInt cellIdx, UInt segIdx, CStateIndexed& activeState,
+                           bool sequenceSegmentFlag, bool newSynapsesFlag);
 
-  template <typename It>
-  void addOutSynapses(UInt dstCellIdx, UInt dstSegIdx, It newSynapse,
-                      It newSynapsesEnd);
+        //----------------------------------------------------------------------
+        /**
+         * Adds OutSynapses to the internal data structure that maintains OutSynapses
+         * for each InSynapses. This enables us to propagation activation forward, which
+         * is faster since activation is sparse.
+         *
+         * This is a templated method because sometimes we are called with
+         * std::set<UInt>::const_iterator and sometimes with
+         * std::vector<UInt>::const_iterator
+         */
 
-  //----------------------------------------------------------------------
-  /**
-   * Erases an OutSynapses. See addOutSynapses just above.
-   */
-  void eraseOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
-                        const std::vector<UInt> &srcCells);
+        template <typename It>
+        void addOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
+                            It newSynapse,
+                            It newSynapsesEnd);
 
-  //----------------------------------------------------------------------
-  /**
-   * Go through the list of accumulated segment updates and process them
-   * as follows:
-   *
-   * if       the segment update is too old, remove the update
-   *
-   * elseif   the cell received bottom-up input (activeColumns==1) update
-   *          its permanences then positively adapt this segment
-   *
-   * elseif   the cell is still being predicted, and pooling is on then leave it
-   *          in the queue
-   *
-   * else     remove it from the queue.
-   *
-   * Parameters:
-   * ===========
-   *
-   * activeColumns:   array of _nColumns columns which are currently active
-   * predictedState:  array of _nCells states representing predictions for each
-   *                  cell
-   *
-   */
-  void processSegmentUpdates(Real *input, const CState &predictedState);
+        //----------------------------------------------------------------------
+        /**
+         * Erases an OutSynapses. See addOutSynapses just above.
+         */
+        void eraseOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
+                              const std::vector<UInt>& srcCells);
 
-  //----------------------------------------------------------------------
-  /**
-   * Removes any updates that would be applied to the given col,
-   * cellIdx, segIdx.
-   */
-  void cleanUpdatesList(UInt cellIdx, UInt segIdx);
+        //----------------------------------------------------------------------
+        /**
+         * Go through the list of accumulated segment updates and process them
+         * as follows:
+         *
+         * if       the segment update is too old, remove the update
+         *
+         * elseif   the cell received bottom-up input (activeColumns==1) update
+         *          its permanences then positively adapt this segment
+         *
+         * elseif   the cell is still being predicted, and pooling is on then leave it
+         *          in the queue
+         *
+         * else     remove it from the queue.
+         *
+         * Parameters:
+         * ===========
+         *
+         * activeColumns:   array of _nColumns columns which are currently active
+         * predictedState:  array of _nCells states representing predictions for each
+         *                  cell
+         *
+         */
+        void processSegmentUpdates(Real* input, const CState& predictedState);
 
-  //----------------------------------------------------------------------
-  /**
-   * Apply age-based global decay logic and remove segments/synapses
-   * as appropriate.
-   */
-  void applyGlobalDecay();
+        //----------------------------------------------------------------------
+        /**
+         * Removes any updates that would be applied to the given col,
+         * cellIdx, segIdx.
+         */
+        void cleanUpdatesList(UInt cellIdx, UInt segIdx);
 
-  //-----------------------------------------------------------------------
-  /**
-   * Private Helper function for Cells4::adaptSegment. Generates lists of
-   * synapses to decrement, increment, add, and remove.
-   *
-   * We break it out into a separate function to facilitate unit testing.
-   *
-   * On Entry, purges resudual data from inactiveSrcCellIdxs,
-   * inactiveSynapseIdxs, activeSrcCellIdxs, and activeSynapseIdxs.
-   *
-   * segment:            The segment being adapted.
-   *
-   * synapsesSet:        IN/OUT On entry, the union of source cell indexes
-   *                     corresponding to existing active synapses in the
-   *                     segment as well as new synapses to be created. On
-   *                     return, it's former self sans elements returned
-   *                     in activeSrcCellIdxs. The remaining elements
-   *                     correspond to new synapses to be created within
-   *                     the segment.
-   *
-   * inactiveSrcCellIdxs: OUT Source cell indexes corresponding to
-   *                     inactive synapses in the segment. Ordered by
-   *                     relative position of the corresponding InSynapses
-   *                     in the segment. The elements here correlate to
-   *                     elements in inactiveSynapseIdxs.
-   *
-   * inactiveSynapseIdxs: OUT Synapse indexes corresponding to inactive
-   *                     synapses in the segment. Sorted in
-   *                     ascending order. The elements here correlate to
-   *                     elements in inactiveSrcCellIdxs.
-   *
-   * activeSrcCellIdxs:  OUT Source cell indexes corresponding to
-   *                     active synapses in the segment. Ordered by
-   *                     relative position of the corresponding InSynapses
-   *                     in the segment. The elements correlate to
-   *                     elements in activeSynapseIdxs.
-   *
-   * activeSynapseIdxs:  OUT Synapse indexes corresponding to active
-   *                     synapses in the segment. In ascending order. The
-   *                     elements correlate to elements in
-   *                     activeSrcCellIdxs.
-   *
-   */
-  static void _generateListsOfSynapsesToAdjustForAdaptSegment(
-      const Segment &segment, std::set<UInt> &synapsesSet,
-      std::vector<UInt> &inactiveSrcCellIdxs,
-      std::vector<UInt> &inactiveSynapseIdxs,
-      std::vector<UInt> &activeSrcCellIdxs,
-      std::vector<UInt> &activeSynapseIdxs);
+        //----------------------------------------------------------------------
+        /**
+         * Apply age-based global decay logic and remove segments/synapses
+         * as appropriate.
+         */
+        void applyGlobalDecay();
 
-  //-----------------------------------------------------------------------
-  /**
-   * Applies segment update information to a segment in a cell as follows:
-   *
-   * If the segment exists, synapses on the active list get their
-   * permanence counts incremented by permanenceInc. All other synapses
-   * get their permanence counts decremented by permanenceDec. If
-   * a synapse's permanence drops to zero, it is removed from the segment.
-   * If a segment does not have synapses anymore, it is removed from the
-   * Cell. We also increment the positiveActivations count of the segment.
-   *
-   * If the segment does not exist, it is created using the synapses in
-   * update.
-   *
-   * Parameters:
-   * ===========
-   *
-   * update:        segmentUpdate instance
-   */
-  void adaptSegment(const SegmentUpdate &update);
 
-  //-----------------------------------------------------------------------
-  /**
-   * This method deletes all synapses where permanence value is strictly
-   * less than minPermanence. It also deletes all segments where the
-   * number of connected synapses is strictly less than minNumSyns+1.
-   * Returns the number of segments and synapses removed.
-   *
-   * Parameters:
-   *
-   * minPermanence:      Any syn whose permamence is 0 or < minPermanence
-   *                     will be deleted. If 0 is passed in, then
-   *                     _permConnected is used.
-   * minNumSyns:         Any segment with less than minNumSyns synapses
-   *                     remaining in it will be deleted. If 0 is passed
-   *                     in, then _activationThreshold is used.
-   *
-   */
-  std::pair<UInt, UInt> trimSegments(Real minPermanence, UInt minNumSyns);
+        //-----------------------------------------------------------------------
+        /**
+         * Private Helper function for Cells4::adaptSegment. Generates lists of
+         * synapses to decrement, increment, add, and remove.
+         *
+         * We break it out into a separate function to facilitate unit testing.
+         *
+         * On Entry, purges resudual data from inactiveSrcCellIdxs,
+         * inactiveSynapseIdxs, activeSrcCellIdxs, and activeSynapseIdxs.
+         *
+         * segment:            The segment being adapted.
+         *
+         * synapsesSet:        IN/OUT On entry, the union of source cell indexes
+         *                     corresponding to existing active synapses in the
+         *                     segment as well as new synapses to be created. On
+         *                     return, it's former self sans elements returned
+         *                     in activeSrcCellIdxs. The remaining elements
+         *                     correspond to new synapses to be created within
+         *                     the segment.
+         *
+         * inactiveSrcCellIdxs: OUT Source cell indexes corresponding to
+         *                     inactive synapses in the segment. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements here correlate to
+         *                     elements in inactiveSynapseIdxs.
+         *
+         * inactiveSynapseIdxs: OUT Synapse indexes corresponding to inactive
+         *                     synapses in the segment. Sorted in
+         *                     ascending order. The elements here correlate to
+         *                     elements in inactiveSrcCellIdxs.
+         *
+         * activeSrcCellIdxs:  OUT Source cell indexes corresponding to
+         *                     active synapses in the segment. Ordered by
+         *                     relative position of the corresponding InSynapses
+         *                     in the segment. The elements correlate to
+         *                     elements in activeSynapseIdxs.
+         *
+         * activeSynapseIdxs:  OUT Synapse indexes corresponding to active
+         *                     synapses in the segment. In ascending order. The
+         *                     elements correlate to elements in
+         *                     activeSrcCellIdxs.
+         *
+         */
+        static void _generateListsOfSynapsesToAdjustForAdaptSegment(
+          const Segment& segment,
+          std::set<UInt>& synapsesSet,
+          std::vector<UInt>& inactiveSrcCellIdxs,
+          std::vector<UInt>& inactiveSynapseIdxs,
+          std::vector<UInt>& activeSrcCellIdxs,
+          std::vector<UInt>& activeSynapseIdxs);
 
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
-  //
-  // ROUTINES FOR PERSISTENCE
-  //
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
+        //-----------------------------------------------------------------------
+        /**
+         * Applies segment update information to a segment in a cell as follows:
+         *
+         * If the segment exists, synapses on the active list get their
+         * permanence counts incremented by permanenceInc. All other synapses
+         * get their permanence counts decremented by permanenceDec. If
+         * a synapse's permanence drops to zero, it is removed from the segment.
+         * If a segment does not have synapses anymore, it is removed from the
+         * Cell. We also increment the positiveActivations count of the segment.
+         *
+         * If the segment does not exist, it is created using the synapses in
+         * update.
+         *
+         * Parameters:
+         * ===========
+         *
+         * update:        segmentUpdate instance
+         */
+        void adaptSegment(const SegmentUpdate& update);
 
-  /**
-   * TODO: compute, rather than writing to a buffer.
-   * TODO: move persistence to binary, faster and easier to compute expecte
-   * size.
-   */
-  UInt persistentSize() const {
-    // TODO: this won't scale!
-    std::stringstream tmp;
-    this->save(tmp);
-    return tmp.str().size();
-  }
+        //-----------------------------------------------------------------------
+        /**
+         * This method deletes all synapses where permanence value is strictly
+         * less than minPermanence. It also deletes all segments where the
+         * number of connected synapses is strictly less than minNumSyns+1.
+         * Returns the number of segments and synapses removed.
+         *
+         * Parameters:
+         *
+         * minPermanence:      Any syn whose permamence is 0 or < minPermanence
+         *                     will be deleted. If 0 is passed in, then
+         *                     _permConnected is used.
+         * minNumSyns:         Any segment with less than minNumSyns synapses
+         *                     remaining in it will be deleted. If 0 is passed
+         *                     in, then _activationThreshold is used.
+         *
+         */
+        std::pair<UInt, UInt> trimSegments(Real minPermanence, UInt minNumSyns);
 
-  //----------------------------------------------------------------------
-  /**
-   * Write the state to a proto or file
-   */
-  using Serializable::write;
-  virtual void write(Cells4Proto::Builder &proto) const override;
 
-  //----------------------------------------------------------------------
-  /**
-   * Read the state into a proto or file
-   */
-  using Serializable::read;
-  virtual void read(Cells4Proto::Reader &proto) override;
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
+        //
+        // ROUTINES FOR PERSISTENCE
+        //
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
-  //----------------------------------------------------------------------
-  /**
-   * Save the state to the given file
-   */
-  void saveToFile(std::string filePath) const;
+        /**
+         * TODO: compute, rather than writing to a buffer.
+         * TODO: move persistence to binary, faster and easier to compute expecte size.
+         */
+        UInt persistentSize() const
+        {
+          // TODO: this won't scale!
+          std::stringstream tmp;
+          this->save(tmp);
+          return static_cast<UInt>(tmp.str().size());
+        }
 
-  //----------------------------------------------------------------------
-  /**
-   * Load the state from the given file
-   */
-  void loadFromFile(std::string filePath);
+        //----------------------------------------------------------------------
+  		/**
+   		* Save and load the state to/from the stream
+         * Need to load and re-propagate activities so that we can really persist
+         * at any point, load back and resume inference at exactly the same point.
+   		*/
+  		void save(std::ostream &outStream) const override;
 
-  //----------------------------------------------------------------------
-  void save(std::ostream &outStream) const;
+        void load(std::istream& inStream) override;
 
-  //-----------------------------------------------------------------------
-  /**
-   * Need to load and re-propagate activities so that we can really persist
-   * at any point, load back and resume inference at exactly the same point.
-   */
-  void load(std::istream &inStream);
+		virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+		virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
-  //-----------------------------------------------------------------------
-  void print(std::ostream &outStream) const;
+        //-----------------------------------------------------------------------
+        void print(std::ostream& outStream) const;
+		std::ostream& operator<<(std::ostream& outStream);
 
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
-  //
-  // MISC SUPPORT AND DEBUGGING ROUTINES
-  //
-  //----------------------------------------------------------------------
-  //----------------------------------------------------------------------
 
-  // Set the Cell class segment order
-  void setCellSegmentOrder(bool matchPythonOrder);
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
+        //
+        // MISC SUPPORT AND DEBUGGING ROUTINES
+        //
+        //----------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
-  //----------------------------------------------------------------------
-  /**
-   * Used in unit tests and debugging.
-   */
-  void addNewSegment(UInt colIdx, UInt cellIdxInCol, bool sequenceSegmentFlag,
-                     const std::vector<std::pair<UInt, UInt>> &extSynapses);
+        // Set the Cell class segment order
+        void setCellSegmentOrder(bool matchPythonOrder);
 
-  void updateSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx,
-                     const std::vector<std::pair<UInt, UInt>> &extSynapses);
+        //----------------------------------------------------------------------
+        /**
+         * Used in unit tests and debugging.
+         */
+        void
+        addNewSegment(UInt colIdx, UInt cellIdxInCol,
+                      bool sequenceSegmentFlag,
+                      const std::vector<std::pair<UInt, UInt> >& extSynapses);
 
-  //-----------------------------------------------------------------------
-  /**
-   * Rebalances and rebuilds internal structures for faster computing
-   *
-   */
-  void _rebalance();
-  void rebuildOutSynapses();
-  void trimOldSegments(UInt age);
+        void
+        updateSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx,
+                      const std::vector<std::pair<UInt, UInt> >& extSynapses);
 
-  //----------------------------------------------------------------------
-  /**
-   * Various debugging helpers
-   */
-  void printStates();
-  void printState(UInt *state);
-  void dumpPrevPatterns(std::deque<std::vector<UInt>> &patterns);
-  void dumpSegmentUpdates();
+        //-----------------------------------------------------------------------
+        /**
+         * Rebalances and rebuilds internal structures for faster computing
+         *
+         */
+        void _rebalance();
+        void rebuildOutSynapses();
+        void trimOldSegments(UInt age);
 
-  //-----------------------------------------------------------------------
-  /**
-   * Returns list of indices of segments that are *not* empty in the free list.
-   */
-  std::vector<UInt> getNonEmptySegList(UInt colIdx, UInt cellIdxInCol);
+        //----------------------------------------------------------------------
+        /**
+         * Various debugging helpers
+         */
+        void printStates();
+        void printState(UInt *state);
+        void printConfidence(Real *confidence, size_t len) const;
+        void dumpPrevPatterns(std::deque<std::vector<UInt> > &patterns);
+        void dumpSegmentUpdates();
 
-  //-----------------------------------------------------------------------
-  /**
-   * Dump timing results to stdout
-   */
-  void dumpTiming();
+        //-----------------------------------------------------------------------
+        /**
+         * Returns list of indices of segments that are *not* empty in the free list.
+         */
+        std::vector<UInt>
+        getNonEmptySegList(UInt colIdx, UInt cellIdxInCol);
 
-  //-----------------------------------------------------------------------
-  // Reset all timers to 0
-  //-----------------------------------------------------------------------
-  void resetTimers();
 
-  //-----------------------------------------------------------------------
-  // Invariants
-  //-----------------------------------------------------------------------
-  /**
-   * Performs a number of consistency checks. The test takes some time
-   * but is very helpful in development. The test is run during load/save.
-   * It is also run on every compute if _checkSynapseConsistency is true
-   */
-  bool invariants(bool verbose = false) const;
+        //-----------------------------------------------------------------------
+        /**
+         * Dump timing results to stdout
+         */
+        void dumpTiming();
 
-  //-----------------------------------------------------------------------
-  // Statistics
-  //-----------------------------------------------------------------------
-  void stats() const { return; }
-};
+        //-----------------------------------------------------------------------
+        // Reset all timers to 0
+        //-----------------------------------------------------------------------
+        void resetTimers();
 
-//-----------------------------------------------------------------------
-#ifndef SWIG
-std::ostream &operator<<(std::ostream &outStream, const Cells4 &cells);
-#endif
+        //-----------------------------------------------------------------------
+        // Invariants
+        //-----------------------------------------------------------------------
+        /**
+         * Performs a number of consistency checks. The test takes some time
+         * but is very helpful in development. The test is run during load/save.
+         * It is also run on every compute if _checkSynapseConsistency is true
+         */
+        bool invariants(bool verbose = false) const;
+
+        //-----------------------------------------------------------------------
+        // Statistics
+        //-----------------------------------------------------------------------
+        void stats() const
+        {
+          return;
+        }
+
+      };
+
+      //-----------------------------------------------------------------------
+      //std::ostream& operator<<(std::ostream& outStream, const Cells4& cells);
 
 //-----------------------------------------------------------------------
 } // end namespace Cells4

@@ -41,9 +41,9 @@
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/os/FStream.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/proto/Cells4.capnp.h>
 #include <nupic/utils/Log.hpp>
 
+using namespace nupic;
 using namespace nupic::algorithms::Cells4;
 
 // Comment or uncomment to turn on timing
@@ -75,31 +75,42 @@ Cells4::Cells4(UInt nColumns, UInt nCellsPerCol, UInt activationThreshold,
                bool checkSynapseConsistency)
     : _rng(seed < 0 ? rand() : seed) {
   _version = VERSION;
-  initialize(nColumns, nCellsPerCol, activationThreshold, minThreshold,
-             newSynapseCount, segUpdateValidDuration, permInitial,
-             permConnected, permMax, permDec, permInc, globalDecay, doPooling,
-             initFromCpp, checkSynapseConsistency);
+  _ownsMemory = true;
+  _cellConfidenceT  = nullptr;
+  _cellConfidenceT1 = nullptr;
+  _colConfidenceT   = nullptr;
+  _colConfidenceT1  = nullptr;
+  _cellConfidenceCandidate  = nullptr;
+  _colConfidenceCandidate  = nullptr;
+  _tmpInputBuffer  = nullptr;
+
+  initialize(nColumns,
+             nCellsPerCol,
+             activationThreshold,
+             minThreshold,
+             newSynapseCount,
+             segUpdateValidDuration,
+             permInitial,
+             permConnected,
+             permMax,
+             permDec,
+             permInc,
+             globalDecay,
+             doPooling,
+             initFromCpp,
+             checkSynapseConsistency);
 }
 
 Cells4::~Cells4() {
   if (_ownsMemory) {
-    delete[] _cellConfidenceT;
-    delete[] _cellConfidenceT1;
-    delete[] _colConfidenceT;
-    delete[] _colConfidenceT1;
+    if (_cellConfidenceT)       delete[] _cellConfidenceT;
+    if (_cellConfidenceT1)      delete[] _cellConfidenceT1;
+    if (_colConfidenceT)        delete[] _colConfidenceT;
+    if (_colConfidenceT1)       delete[] _colConfidenceT1;
   }
-  delete[] _cellConfidenceCandidate;
-  delete[] _colConfidenceCandidate;
-  delete[] _tmpInputBuffer;
-}
-
-//--------------------------------------------------------------------------------
-/**
- * Simple helper function for allocating our numerous state variables
- */
-template <typename It> void allocateState(It *&state, const UInt numElmts) {
-  state = new It[numElmts];
-  memset(state, 0, numElmts * sizeof(It));
+  if (_cellConfidenceCandidate) delete[] _cellConfidenceCandidate;
+  if (_colConfidenceCandidate)  delete[] _colConfidenceCandidate;
+  if (_tmpInputBuffer)          delete[] _tmpInputBuffer;
 }
 
 //--------------------------------------------------------------------------------
@@ -170,7 +181,7 @@ bool Cells4::computeUpdate(UInt cellIdx, UInt segIdx,
 
     static UInt highWaterSize = 0;
     if (highWaterSize < segment.size()) {
-      highWaterSize = segment.size();
+      highWaterSize = (UInt)segment.size();
       newSynapses.reserve(highWaterSize);
     }
     for (UInt i = 0; i < segment.size(); ++i) {
@@ -279,7 +290,7 @@ void Cells4::inferBacktrack(const std::vector<UInt> &activeColumns) {
   TIMER(infBacktrackTimer.start());
 
   // This is an easy to use label for the current time step
-  UInt currentTimeStepsOffset = _prevInfPatterns.size() - 1;
+  UInt currentTimeStepsOffset = (UInt)_prevInfPatterns.size() - 1;
 
   //---------------------------------------------------------------------------
   // Save our current active state in case we fail to find a place to restart
@@ -407,7 +418,7 @@ void Cells4::inferBacktrack(const std::vector<UInt> &activeColumns) {
   //---------------------------------------------------------------------------
   // Remove any useless patterns at the head of the previous input pattern
   // queue.
-  UInt numPrevPatterns = _prevInfPatterns.size();
+  UInt numPrevPatterns = (UInt)_prevInfPatterns.size();
   for (UInt i = 0; i < numPrevPatterns; i++) {
     std::vector<UInt>::iterator result;
     result = find(badPatterns.begin(), badPatterns.end(), i);
@@ -441,7 +452,7 @@ bool Cells4::learnBacktrackFrom(UInt startOffset, bool readOnly) {
   // index -1), but it is also evaluated as a potential starting point by
   // turning on it's start cells and seeing if it generates sufficient
   // predictions going forward.
-  UInt numPrevPatterns = _prevLrnPatterns.size();
+  UInt numPrevPatterns = (UInt)_prevLrnPatterns.size();
 
   // This is an easy to use label for the current time step
   NTA_CHECK(numPrevPatterns >= 2);
@@ -532,7 +543,7 @@ UInt Cells4::learnBacktrack() {
   // The current input is always at the end of self._prevInfPatterns (at
   // index -1), and is not a valid startingOffset to evaluate.
   UInt numPrevPatterns =
-      (_prevLrnPatterns.size() == 0 ? 0 : _prevLrnPatterns.size() - 1);
+      (UInt)(_prevLrnPatterns.size() == 0 ? 0 : _prevLrnPatterns.size() - 1);
   if (numPrevPatterns <= 0) {
     if (_verbosity >= 3) {
       std::cout << "lrnBacktrack: No available history to backtrack from\n";
@@ -657,7 +668,7 @@ UInt Cells4::getCellForNewSegment(UInt colIdx) {
   // If we found one, return with it
   if (!candidateCellIdxs.empty()) {
     candidateCellIdx =
-        candidateCellIdxs[_rng.getUInt32(candidateCellIdxs.size())];
+        candidateCellIdxs[_rng.getUInt32((UInt)candidateCellIdxs.size())];
     if (_verbosity >= 5) {
       std::cout << "Cell [" << colIdx << ","
                 << candidateCellIdx - getCellIdx(colIdx, 0)
@@ -893,7 +904,6 @@ void Cells4::updateLearningState(const std::vector<UInt> &activeColumns,
   }
   _learnedSeqLength++;
 
-  // =========================================================================
   // Phase 1 - turn on predicted cells in each column receiving bottom-up
 
   //---------------------------------------------------------------------------
@@ -968,7 +978,6 @@ void Cells4::updateLearningState(const std::vector<UInt> &activeColumns,
 
   // Done computing active state
 
-  // =========================================================================
   // Phase 2 - Compute new predicted state. When computing predictions for
   // phase 2, we predict at  most one cell per column (the one with the best
   // matching segment).
@@ -1393,15 +1402,15 @@ void Cells4::compute(Real *input, Real *output, bool doInference,
  * Update our moving average of learned sequence length.
  */
 void Cells4::_updateAvgLearnedSeqLength(UInt prevSeqLength) {
-  Real alpha = 0.1;
+  Real alpha = 0.1f;
   if (_nLrnIterations < 100)
-    alpha = 0.5;
+    alpha = 0.5f;
   if (_verbosity >= 5) {
     std::cout << "_updateAvgLearnedSeqLength before = " << _avgLearnedSeqLength
               << " prevSeqLength = " << prevSeqLength << "\n";
   }
   _avgLearnedSeqLength =
-      (1.0 - alpha) * _avgLearnedSeqLength + alpha * (Real)prevSeqLength;
+      (1.0f - alpha) * _avgLearnedSeqLength + alpha * (Real)prevSeqLength;
   if (_verbosity >= 5) {
     std::cout << "   after = " << _avgLearnedSeqLength << "\n";
   }
@@ -1522,7 +1531,7 @@ void Cells4::applyGlobalDecay() {
           nSegmentsDecayed++;
 
           seg.decaySynapses2(_globalDecay, removedSynapses, _permConnected);
-          nSynapsesRemoved += removedSynapses.size();
+          nSynapsesRemoved += (UInt)removedSynapses.size();
           if (!removedSynapses.empty()) {
             eraseOutSynapses(cellIdx, segIdx, removedSynapses);
           }
@@ -1680,7 +1689,7 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
     }
 
     // Increment permanences of active synapses
-    const UInt numRemovedBeforePermInc = removed.size();
+    const size_t numRemovedBeforePermInc = removed.size();
     segment.updateSynapses(synToInc, _permInc, _permMax, _permConnected,
                            removed);
     // Incrementing of permanences shouldn't remove synapses
@@ -1693,7 +1702,7 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
       // know, add a comment explaining it. If it exceeds, it will cause memory
       // corruption in Segment::freeNSynapses.
       UInt numToFree =
-          synapsesSet.size() + segment.size() - _maxSynapsesPerSegment;
+          (UInt)(synapsesSet.size() + segment.size() - _maxSynapsesPerSegment);
       segment.freeNSynapses(numToFree, synToDec, inactiveSegmentIndices,
                             synToInc, activeSegmentIndices, removed, _verbosity,
                             _nCellsPerCol, _permMax);
@@ -1883,231 +1892,47 @@ void Cells4::reset() {
   //}
 }
 
-//--------------------------------------------------------------------------------
-void Cells4::write(Cells4Proto::Builder &proto) const {
-  proto.setVersion(version());
-  proto.setOwnsMemory(_ownsMemory);
-  auto randomProto = proto.initRng();
-  _rng.write(randomProto);
-  proto.setNColumns(_nColumns);
-  proto.setNCellsPerCol(_nCellsPerCol);
-  proto.setActivationThreshold(_activationThreshold);
-  proto.setMinThreshold(_minThreshold);
-  proto.setNewSynapseCount(_newSynapseCount);
-  proto.setNIterations(_nIterations);
-  proto.setNLrnIterations(_nLrnIterations);
-  proto.setSegUpdateValidDuration(_segUpdateValidDuration);
-  proto.setInitSegFreq(_initSegFreq);
-  proto.setPermInitial(_permInitial);
-  proto.setPermConnected(_permConnected);
-  proto.setPermMax(_permMax);
-  proto.setPermDec(_permDec);
-  proto.setPermInc(_permInc);
-  proto.setGlobalDecay(_globalDecay);
-  proto.setDoPooling(_doPooling);
-  proto.setPamLength(_pamLength);
-  proto.setMaxInfBacktrack(_maxInfBacktrack);
-  proto.setMaxLrnBacktrack(_maxLrnBacktrack);
-  proto.setMaxSeqLength(_maxSeqLength);
-  proto.setLearnedSeqLength(_learnedSeqLength);
-  proto.setAvgLearnedSeqLength(_avgLearnedSeqLength);
-  proto.setMaxAge(_maxAge);
-  proto.setVerbosity(_verbosity);
-  proto.setMaxSegmentsPerCell(_maxSegmentsPerCell);
-  proto.setMaxSynapsesPerSegment(_maxSynapsesPerSegment);
-  proto.setCheckSynapseConsistency(_checkSynapseConsistency);
-  proto.setResetCalled(_resetCalled);
-  proto.setAvgInputDensity(_avgInputDensity);
-  proto.setPamCounter(_pamCounter);
+// This structure is used only to allow serialization to write as a binary block.
+// Therefore it must be only POD (plain old data).  Not classes, no pointers, etc.
+struct serializedState_t {
+  Real initSegFreq;
+  Real permInitial;
+  Real permConnected;
+  Real permMax;
+  Real permDec;
+  Real permInc;
+  Real globalDecay;
+  Real avgLearnedSeqLength;
+  Real avgInputDensity;
+  Real padding1;
+  UInt nColumns;
+  UInt nCellsPerCol;
+  UInt nCells;
+  UInt activationThreshold;
+  UInt minThreshold;
+  UInt newSynapseCount;
+  UInt nIterations;
+  UInt nLrnIterations;
+  UInt segUpdateValidDuration;
+  UInt pamLength;
+  UInt maxInfBacktrack;
+  UInt maxLrnBacktrack;
+  UInt maxSeqLength;
+  UInt learnedSeqLength;
+  UInt maxAge;
+  UInt verbosity;
+  UInt pamCounter;
+  Int maxSegmentsPerCell;
+  Int maxSynapsesPerSegment;
+  Int padding2;
+  bool doPooling;
+  bool checkSynapseConsistency;
+  bool resetCalled;
+};
+// NOTE:  ownsMemory cannot be saved in serialization.
+//        It indicates who currently allocated the buffers.
 
-  auto learnActiveStateTProto = proto.initLearnActiveStateT();
-  _learnActiveStateT.write(learnActiveStateTProto);
-  auto learnActiveStateT1Proto = proto.initLearnActiveStateT1();
-  _learnActiveStateT1.write(learnActiveStateT1Proto);
-  auto learnPredictedStateTProto = proto.initLearnPredictedStateT();
-  _learnPredictedStateT.write(learnPredictedStateTProto);
-  auto learnPredictedStateT1Proto = proto.initLearnPredictedStateT1();
-  _learnPredictedStateT1.write(learnPredictedStateT1Proto);
 
-  if (_ownsMemory) {
-    auto infActiveStateT = proto.initInfActiveStateT();
-    _infActiveStateT.write(infActiveStateT);
-    auto infActiveStateT1 = proto.initInfActiveStateT1();
-    _infActiveStateT1.write(infActiveStateT1);
-
-    auto infPredictedStateT = proto.initInfPredictedStateT();
-    _infPredictedStateT.write(infPredictedStateT);
-    auto infPredictedStateT1 = proto.initInfPredictedStateT1();
-    _infPredictedStateT1.write(infPredictedStateT1);
-
-    auto cellConfidenceT = proto.initCellConfidenceT(_nCells);
-    for (UInt i = 0; i < _nCells; ++i) {
-      cellConfidenceT.set(i, _cellConfidenceT[i]);
-    }
-    auto cellConfidenceT1 = proto.initCellConfidenceT1(_nCells);
-    for (UInt i = 0; i < _nCells; ++i) {
-      cellConfidenceT1.set(i, _cellConfidenceT1[i]);
-    }
-    auto colConfidenceT = proto.initColConfidenceT(_nColumns);
-    for (UInt i = 0; i < _nColumns; ++i) {
-      colConfidenceT.set(i, _colConfidenceT[i]);
-    }
-    auto colConfidenceT1 = proto.initColConfidenceT1(_nColumns);
-    for (UInt i = 0; i < _nColumns; ++i) {
-      colConfidenceT1.set(i, _colConfidenceT1[i]);
-    }
-  }
-
-  auto prevInfPatterns = proto.initPrevInfPatterns(_prevInfPatterns.size());
-  for (UInt i = 0; i < _prevInfPatterns.size(); ++i) {
-    const auto &pattern = _prevInfPatterns[i];
-    auto row = prevInfPatterns.init(i, pattern.size());
-    for (UInt j = 0; j < pattern.size(); j++) {
-      row.set(j, pattern[j]);
-    }
-  }
-  auto prevLrnPatterns = proto.initPrevLrnPatterns(_prevLrnPatterns.size());
-  for (UInt i = 0; i < _prevLrnPatterns.size(); ++i) {
-    const auto &pattern = _prevLrnPatterns[i];
-    auto row = prevLrnPatterns.init(i, pattern.size());
-    for (UInt j = 0; j < pattern.size(); j++) {
-      row.set(j, pattern[j]);
-    }
-  }
-
-  NTA_CHECK(_nCells == _cells.size());
-  auto cellListProto = proto.initCells(_nCells);
-  for (UInt i = 0; i < _nCells; ++i) {
-    auto cellProto = cellListProto[i];
-    _cells[i].write(cellProto);
-  }
-
-  auto segmentUpdatesListProto =
-      proto.initSegmentUpdates(_segmentUpdates.size());
-  for (UInt i = 0; i < _segmentUpdates.size(); ++i) {
-    auto segmentUpdateProto = segmentUpdatesListProto[i];
-    _segmentUpdates[i].write(segmentUpdateProto);
-  }
-}
-
-//--------------------------------------------------------------------------------
-void Cells4::read(Cells4Proto::Reader &proto) {
-  NTA_CHECK(proto.getVersion() == 2);
-
-  initialize(proto.getNColumns(), proto.getNCellsPerCol(),
-             proto.getActivationThreshold(), proto.getMinThreshold(),
-             proto.getNewSynapseCount(), proto.getSegUpdateValidDuration(),
-             proto.getPermInitial(), proto.getPermConnected(),
-             proto.getPermMax(), proto.getPermDec(), proto.getPermInc(),
-             proto.getGlobalDecay(), proto.getDoPooling(),
-             proto.getOwnsMemory());
-  auto randomProto = proto.getRng();
-  _rng.read(randomProto);
-  _nIterations = proto.getNIterations();
-  _nLrnIterations = proto.getNLrnIterations();
-  _initSegFreq = proto.getInitSegFreq();
-  _pamLength = proto.getPamLength();
-  _maxInfBacktrack = proto.getMaxInfBacktrack();
-  _maxLrnBacktrack = proto.getMaxLrnBacktrack();
-  _maxSeqLength = proto.getMaxSeqLength();
-  _learnedSeqLength = proto.getLearnedSeqLength();
-  _avgLearnedSeqLength = proto.getAvgLearnedSeqLength();
-  _maxAge = proto.getMaxAge();
-  _verbosity = proto.getVerbosity();
-  _maxSegmentsPerCell = proto.getMaxSegmentsPerCell();
-  _maxSynapsesPerSegment = proto.getMaxSynapsesPerSegment();
-  _checkSynapseConsistency = proto.getCheckSynapseConsistency();
-
-  _resetCalled = proto.getResetCalled();
-
-  _avgInputDensity = proto.getAvgInputDensity();
-  _pamCounter = proto.getPamCounter();
-
-  auto learnActiveStateTProto = proto.getLearnActiveStateT();
-  _learnActiveStateT.read(learnActiveStateTProto);
-  auto learnActiveStateT1Proto = proto.getLearnActiveStateT1();
-  _learnActiveStateT1.read(learnActiveStateT1Proto);
-  auto learnPredictedStateTProto = proto.getLearnPredictedStateT();
-  _learnPredictedStateT.read(learnPredictedStateTProto);
-  auto learnPredictedStateT1Proto = proto.getLearnPredictedStateT1();
-  _learnPredictedStateT1.read(learnPredictedStateT1Proto);
-
-  auto cellListProto = proto.getCells();
-  _nCells = cellListProto.size();
-  _cells.resize(_nCells);
-  for (UInt i = 0; i < cellListProto.size(); ++i) {
-    auto cellProto = cellListProto[i];
-    _cells[i].read(cellProto);
-  }
-
-  if (proto.getOwnsMemory()) {
-    _infActiveStateT.initialize(_nCells);
-    _infActiveStateT1.initialize(_nCells);
-    _infPredictedStateT.initialize(_nCells);
-    _infPredictedStateT1.initialize(_nCells);
-    auto infActiveStateT = proto.getInfActiveStateT();
-    _infActiveStateT.read(infActiveStateT);
-    auto infActiveStateT1 = proto.getInfActiveStateT1();
-    _infActiveStateT1.read(infActiveStateT1);
-    auto infPredictedStateT = proto.getInfPredictedStateT();
-    _infPredictedStateT.read(infPredictedStateT);
-    auto infPredictedStateT1 = proto.getInfPredictedStateT1();
-    _infPredictedStateT1.read(infPredictedStateT1);
-
-    allocateState(_cellConfidenceT, _nCells);
-    allocateState(_cellConfidenceT1, _nCells);
-    allocateState(_colConfidenceT, _nColumns);
-    allocateState(_colConfidenceT1, _nColumns);
-    auto cellConfidenceT = proto.getCellConfidenceT();
-    for (UInt i = 0; i < cellConfidenceT.size(); i++) {
-      _cellConfidenceT[i] = cellConfidenceT[i];
-    }
-    auto cellConfidenceT1 = proto.getCellConfidenceT1();
-    for (UInt i = 0; i < cellConfidenceT1.size(); i++) {
-      _cellConfidenceT1[i] = cellConfidenceT1[i];
-    }
-    auto colConfidenceT = proto.getColConfidenceT();
-    for (UInt i = 0; i < colConfidenceT.size(); i++) {
-      _colConfidenceT[i] = colConfidenceT[i];
-    }
-    auto colConfidenceT1 = proto.getColConfidenceT1();
-    for (UInt i = 0; i < colConfidenceT1.size(); i++) {
-      _colConfidenceT1[i] = colConfidenceT1[i];
-    }
-  }
-
-  _prevInfPatterns.clear();
-  auto prevInfPatterns = proto.getPrevInfPatterns();
-  for (UInt i = 0; i < prevInfPatterns.size(); i++) {
-    _prevInfPatterns.emplace_back(prevInfPatterns[i].size());
-    for (UInt j = 0; j < prevInfPatterns[i].size(); j++) {
-      _prevInfPatterns[i][j] = prevInfPatterns[i][j];
-    }
-  }
-
-  _prevLrnPatterns.clear();
-  auto prevLrnPatterns = proto.getPrevLrnPatterns();
-  for (UInt i = 0; i < prevLrnPatterns.size(); i++) {
-    _prevLrnPatterns.emplace_back(prevLrnPatterns[i].size());
-    for (UInt j = 0; j < prevLrnPatterns[i].size(); j++) {
-      _prevLrnPatterns[i][j] = prevLrnPatterns[i][j];
-    }
-  }
-  auto segmentUpdatesListProto = proto.getSegmentUpdates();
-  _segmentUpdates.clear();
-  _segmentUpdates.resize(segmentUpdatesListProto.size());
-  for (UInt i = 0; i < segmentUpdatesListProto.size(); ++i) {
-    auto segmentUpdateProto = segmentUpdatesListProto[i];
-    _segmentUpdates[i].read(segmentUpdateProto);
-  }
-
-  rebuildOutSynapses();
-  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
-    NTA_CHECK(invariants(true));
-  }
-
-  _version = VERSION;
-}
 
 //--------------------------------------------------------------------------------
 void Cells4::save(std::ostream &outStream) const {
@@ -2115,202 +1940,328 @@ void Cells4::save(std::ostream &outStream) const {
   if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
     NTA_CHECK(invariants(true));
   }
-  outStream.precision(std::numeric_limits<double>::digits10);
-  outStream << version() << " " << _ownsMemory << " " << _rng << " "
-            << _nColumns << " " << _nCellsPerCol << " " << _activationThreshold
-            << " " << _minThreshold << " " << _newSynapseCount << " "
-            << _nIterations << " " << _segUpdateValidDuration << " "
-            << _initSegFreq << " " << _permInitial << " " << _permConnected
-            << " " << _permMax << " " << _permDec << " " << _permInc << " "
-            << _globalDecay << " " << _doPooling << " " << _maxInfBacktrack
-            << " " << _maxLrnBacktrack << " " << _pamLength << " " << _maxAge
-            << " " << _avgInputDensity << " " << _pamCounter << " "
-            << _maxSeqLength << " " << _avgLearnedSeqLength << " "
-            << _nLrnIterations << " " << _maxSegmentsPerCell << " "
-            << _maxSynapsesPerSegment << " " << std::endl;
 
-  // Additions in version 1.
-  outStream << _learnedSeqLength << " " << _verbosity << " "
-            << _checkSynapseConsistency << " " << _resetCalled << std::endl;
-  outStream << _learnActiveStateT << " " << _learnActiveStateT1 << " "
-            << _learnPredictedStateT << " " << _learnPredictedStateT1
-            << std::endl;
+  // Capture the class variables and write them as a binary block.
+  struct serializedState_t self;
+  memset(&self, 0, sizeof(self));
+  self.nColumns = _nColumns;
+  self.nCellsPerCol = _nCellsPerCol;
+  self.nCells = _nCells;
+  self.activationThreshold = _activationThreshold;
+  self.minThreshold = _minThreshold;
+  self.newSynapseCount = _newSynapseCount;
+  self.nIterations = _nIterations;
+  self.nLrnIterations = _nLrnIterations;
+  self.segUpdateValidDuration = _segUpdateValidDuration;
+  self.initSegFreq = _initSegFreq;
+  self.permInitial = _permInitial;
+  self.permConnected = _permConnected;
+  self.permMax = _permMax;
+  self.permDec = _permDec;
+  self.permInc = _permInc;
+  self.globalDecay = _globalDecay;
+  self.doPooling = _doPooling;
+  self.pamLength = _pamLength;
+  self.maxInfBacktrack = _maxInfBacktrack;
+  self.maxLrnBacktrack = _maxLrnBacktrack;
+  self.maxSeqLength = _maxSeqLength;
+  self.learnedSeqLength = _learnedSeqLength;
+  self.avgLearnedSeqLength = _avgLearnedSeqLength;
+  self.maxAge = _maxAge;
+  self.verbosity = _verbosity;
+  self.maxSegmentsPerCell = _maxSegmentsPerCell;
+  self.maxSynapsesPerSegment = _maxSynapsesPerSegment;
+  self.checkSynapseConsistency = _checkSynapseConsistency;
+  self.avgInputDensity = _avgInputDensity;
+  self.pamCounter = _pamCounter;
+  self.resetCalled = _resetCalled;
 
-  // Additions in version 2.
-  outStream << _segmentUpdates.size() << " ";
+  outStream << "Cells4 " << _version << " ";
+  outStream << "self " << sizeof(self) << " ";
+  outStream.write((const char *)&self, sizeof(self));
+  outStream << std::endl;
+
+  // capture the current state of the random number generator.
+  outStream << _rng << "\n";
+
+  // capture the inferred states
+  outStream << "infActiveStateT" << std::endl;
+  _infActiveStateT.save(outStream);
+  outStream << "infActiveStateT1" << std::endl;
+  _infActiveStateT1.save(outStream);
+  outStream << "infPredictedStateT" << std::endl;
+  _infPredictedStateT.save(outStream);
+  outStream << "infPredictedStateT1" << std::endl;
+  _infPredictedStateT1.save(outStream);
+
+  // capture the learn states
+  outStream << "learnActiveStateT" << std::endl;
+  _learnActiveStateT.save(outStream);
+  outStream << "learnActiveStateT1" << std::endl;
+  _learnActiveStateT1.save(outStream);
+  outStream << "learnPredictedStateT" << std::endl;
+  _learnPredictedStateT.save(outStream);
+  outStream << "learnPredictedStateT1" << std::endl;
+  _learnPredictedStateT1.save(outStream);
+  outStream << std::endl;
+
+  // capture the prev states (for backtracking)
+  // (these are deque's of vectors of UInt, see StlIo.hpp)
+  outStream << "prevInfPatterns [ " << _prevInfPatterns.size() << "\n";
+  for(auto v : _prevInfPatterns) {
+    outStream << v.size() << " ";
+    binary_save(outStream, v);
+    outStream << "\n";
+  }
+  outStream << "]\n";
+
+  outStream << "prevLrnPatterns [ " << _prevLrnPatterns.size() << "\n";
+  for(auto v : _prevLrnPatterns) {
+    outStream << v.size() << " ";
+    binary_save(outStream, v);
+    outStream << "\n";
+  }
+  outStream << "]\n";
+
+  outStream << "cellConfidenceT [ " << _nCells << "\n";
+  outStream.write((const char*)_cellConfidenceT, _nCells * sizeof(Real));
+  outStream << "\n]\n";
+  outStream << "cellConfidenceT1 [ " << _nCells << "\n";
+  outStream.write((const char*)_cellConfidenceT1, _nCells * sizeof(Real));
+  outStream << "\n]\n";
+  outStream << "colConfidenceT [ " << _nColumns << "\n";
+  outStream.write((const char*)_colConfidenceT, _nColumns * sizeof(Real));
+  outStream << "\n]\n";
+  outStream << "colConfidenceT1 [ " << _nColumns << "\n";
+  outStream.write((const char*)_colConfidenceT1, _nColumns * sizeof(Real));
+  outStream << "\n]\n";
+
+
+  // Capture the Segments
+  outStream << "Segments " << _segmentUpdates.size() << "\n";
   for (auto &elem : _segmentUpdates) {
     elem.save(outStream);
   }
+  outStream << "\n";
 
+  // Capture the Cells
+  outStream << "Cells " << _nCells << "\n";
   NTA_CHECK(_nCells == _cells.size());
   for (UInt i = 0; i != _nCells; ++i) {
     _cells[i].save(outStream);
-  }
-
-  if (_ownsMemory) {
-    outStream << _infActiveStateT << " " << _infActiveStateT1 << " "
-              << _infPredictedStateT << " " << _infPredictedStateT1 << " "
-              << std::endl;
-    for (UInt i = 0; i != _nCells; ++i) {
-      outStream << _cellConfidenceT[i] << " " << _cellConfidenceT1[i] << " ";
-    }
-    outStream << std::endl;
-
-    for (UInt i = 0; i != _nColumns; ++i) {
-      outStream << _colConfidenceT[i] << " " << _colConfidenceT1[i] << " ";
-    }
     outStream << std::endl;
   }
+  outStream << "\n";
 
-  outStream << _prevLrnPatterns.size();
-  for (auto &elem : _prevLrnPatterns) {
-    outStream << std::endl << elem.size() << " ";
-    std::copy(elem.begin(), elem.end(),
-              std::ostream_iterator<UInt>(outStream, " "));
-  }
-  outStream << std::endl << _prevInfPatterns.size();
-  for (auto &elem : _prevInfPatterns) {
-    outStream << std::endl << elem.size() << " ";
-    std::copy(elem.begin(), elem.end(),
-              std::ostream_iterator<UInt>(outStream, " "));
-  }
-
-  outStream << std::endl << "out" << std::endl;
-}
-
-//----------------------------------------------------------------------------
-/**
- * Save the state to the given file
- */
-void Cells4::saveToFile(std::string filePath) const {
-  OFStream outStream(filePath.c_str(),
-                     std::ios_base::out | std::ios_base::binary);
-  // Request std::ios_base::failure exception upon logical or physical i/o error
-  outStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-  outStream.precision(std::numeric_limits<double>::digits10 + 1);
-  save(outStream);
-
-  // Explicitly close the stream so that we may get an exception on error
-  outStream.close();
-}
-
-//----------------------------------------------------------------------
-/**
- * Load the state from the given file
- */
-void Cells4::loadFromFile(std::string filePath) {
-  IFStream outStream(filePath.c_str(),
-                     std::ios_base::in | std::ios_base::binary);
-  load(outStream);
+  outStream << "out " << std::endl;
 }
 
 //------------------------------------------------------------------------------
 /**
  * Need to load and re-propagate activities so that we can really persist
  * at any point, load back and resume inference at exactly the same point.
+ *
+ * Note: Most parts are saved in binary format. The file
+ *       into which this is written must be opened in binary mode.
+ *       This also means that it must be restored on a machine
+ *       of the same architecture and compiled with same bitness.
  */
 void Cells4::load(std::istream &inStream) {
   std::string tag = "";
-  inStream >> tag;
-  // If the checkpoint starts with "cellsV4" then it is the original,
-  // otherwise the version is a UInt.
-  UInt v = 0;
-  std::stringstream ss;
-  if (tag != "cellsV4") {
-    ss << tag;
-    ss >> v;
-  }
+  UInt v;
+  Size len;
+  struct serializedState_t self;
 
-  inStream >> _ownsMemory;
+  inStream >> tag;
+  NTA_CHECK(tag == "Cells4")
+      << "first field of Cells4 serialization is invalid: " << tag;
+
+  inStream >> v;
+  NTA_CHECK(v >= 3) << "The Cells4 deserialization can only handle version 3 "
+                       "or higher. Found: "
+                    << v;
+
+  inStream >> tag;
+  NTA_CHECK(tag == "self");
+  inStream >> len;
+  inStream.ignore(1);
+  inStream.read((char *)&self, len);
+
+  NTA_CHECK(self.nColumns > 0 && self.nCellsPerCol)
+      << "No columns or cellsPerCol defined.";
+
+  // Initialize Cells4 class
+  initialize(self.nColumns, self.nCellsPerCol, self.activationThreshold,
+             self.minThreshold, self.newSynapseCount,
+             self.segUpdateValidDuration, self.permInitial, self.permConnected,
+             self.permMax, self.permDec, self.permInc, self.globalDecay,
+             self.doPooling);
+  // Note: this will create the state buffers if Python has not
+  //       already provided buffers.
+
+  _nIterations = self.nIterations;
+  _nLrnIterations = self.nLrnIterations;
+  _initSegFreq = self.initSegFreq;
+  _pamLength = self.pamLength;
+  _maxInfBacktrack = self.maxInfBacktrack;
+  _maxLrnBacktrack = self.maxLrnBacktrack;
+  _maxSeqLength = self.maxSeqLength;
+  _learnedSeqLength = self.learnedSeqLength;
+  _avgLearnedSeqLength = self.avgLearnedSeqLength;
+  _maxAge = self.maxAge;
+  _verbosity = self.verbosity;
+  _maxSegmentsPerCell = self.maxSegmentsPerCell;
+  _maxSynapsesPerSegment = self.maxSynapsesPerSegment;
+  _checkSynapseConsistency = self.checkSynapseConsistency;
+  _avgInputDensity = self.avgInputDensity;
+  _pamCounter = self.pamCounter;
+  _resetCalled = self.resetCalled;
+
+  inStream.ignore(1);
   inStream >> _rng;
 
-  UInt nColumns = 0, nCellsPerCol = 0;
-  UInt nIterations = 0;
+  inStream >> tag;
+  NTA_CHECK(tag == "infActiveStateT");
+  inStream.ignore(1);
+  _infActiveStateT.load(inStream);
 
-  inStream >> nColumns >> nCellsPerCol;
+  inStream >> tag;
+  NTA_CHECK(tag == "infActiveStateT1");
+  inStream.ignore(1);
+  _infActiveStateT1.load(inStream);
 
-  inStream >> _activationThreshold >> _minThreshold >> _newSynapseCount >>
-      nIterations >> _segUpdateValidDuration >> _initSegFreq >> _permInitial >>
-      _permConnected >> _permMax >> _permDec >> _permInc >> _globalDecay >>
-      _doPooling;
+  inStream >> tag;
+  NTA_CHECK(tag == "infPredictedStateT");
+  inStream.ignore(1);
+  _infPredictedStateT.load(inStream);
 
-  // TODO: clean up constructor/initialization and _segActivity below
-  initialize(nColumns, nCellsPerCol, _activationThreshold, _minThreshold,
-             _newSynapseCount, _segUpdateValidDuration, _permInitial,
-             _permConnected, _permMax, _permDec, _permInc, _globalDecay,
-             _doPooling, _ownsMemory);
+  inStream >> tag;
+  NTA_CHECK(tag == "infPredictedStateT1");
+  inStream.ignore(1);
+  _infPredictedStateT1.load(inStream);
 
-  _nIterations = nIterations;
+  inStream >> tag;
+  NTA_CHECK(tag == "learnActiveStateT");
+  inStream.ignore(1);
+  _learnActiveStateT.load(inStream);
 
-  inStream >> _maxInfBacktrack >> _maxLrnBacktrack >> _pamLength >> _maxAge >>
-      _avgInputDensity >> _pamCounter >> _maxSeqLength >>
-      _avgLearnedSeqLength >> _nLrnIterations >> _maxSegmentsPerCell >>
-      _maxSynapsesPerSegment;
+  inStream >> tag;
+  NTA_CHECK(tag == "learnActiveStateT1");
+  inStream.ignore(1);
+  _learnActiveStateT1.load(inStream);
 
-  if (v >= 1) {
-    inStream >> _learnedSeqLength >> _verbosity >> _checkSynapseConsistency >>
-        _resetCalled;
-    _learnActiveStateT.load(inStream);
-    _learnActiveStateT1.load(inStream);
-    _learnPredictedStateT.load(inStream);
-    _learnPredictedStateT1.load(inStream);
+  inStream >> tag;
+  NTA_CHECK(tag == "learnPredictedStateT");
+  inStream.ignore(1);
+  _learnPredictedStateT.load(inStream);
+
+  inStream >> tag;
+  NTA_CHECK(tag == "learnPredictedStateT1");
+  inStream.ignore(1);
+  _learnPredictedStateT1.load(inStream);
+
+  // restore the prev states (for backtracking)
+  // (these are deque's of vectors of UInt, see StlIo.hpp)
+  _prevInfPatterns.clear();
+  inStream >> tag;
+  NTA_CHECK(tag == "prevInfPatterns");
+  inStream >> tag;
+  NTA_CHECK(tag == "[");
+  inStream >> len;
+  for (size_t i = 0; i < len; i++) {
+    size_t count;
+    inStream >> count;
+    inStream.ignore(1);
+    std::vector<UInt> vec(count);
+    binary_load(inStream, vec);
+    _prevInfPatterns.push_back(vec);
+  }
+  inStream >> tag;
+  NTA_CHECK(tag == "]");
+
+  _prevLrnPatterns.clear();
+  inStream >> tag;
+  NTA_CHECK(tag == "prevLrnPatterns");
+  inStream >> tag;
+  NTA_CHECK(tag == "[");
+  inStream >> len;
+  for (size_t i = 0; i < len; i++) {
+    size_t count;
+    inStream >> count;
+    inStream.ignore(1);
+    std::vector<UInt> vec(count);
+    binary_load(inStream, vec);
+    _prevLrnPatterns.push_back(vec);
+  }
+  inStream >> tag;
+  NTA_CHECK(tag == "]");
+
+  inStream >> tag;
+  NTA_CHECK(tag == "cellConfidenceT");
+  inStream >> tag;
+  NTA_CHECK(tag == "[");
+  inStream >> len;
+  NTA_CHECK(len == _nCells);
+  inStream.ignore(1);
+  inStream.read((char *)_cellConfidenceT, _nCells * sizeof(Real));
+  inStream >> tag;
+  NTA_CHECK(tag == "]");
+
+
+  inStream >> tag;
+  NTA_CHECK(tag == "cellConfidenceT1");
+  inStream >> tag;
+  NTA_CHECK(tag == "[");
+  inStream >> len;
+  NTA_CHECK(len == _nCells);
+  inStream.ignore(1);
+  inStream.read((char *)_cellConfidenceT1, _nCells * sizeof(Real));
+  inStream >> tag;
+  NTA_CHECK(tag == "]");
+
+  inStream >> tag;
+  NTA_CHECK(tag == "colConfidenceT");
+  inStream >> tag;
+  NTA_CHECK(tag == "[");
+  inStream >> len;
+  NTA_CHECK(len == _nColumns);
+  inStream.ignore(1);
+  inStream.read((char *)_colConfidenceT, _nColumns* sizeof(Real));
+  inStream >> tag;
+  NTA_CHECK(tag == "]");
+
+  inStream >> tag;
+  NTA_CHECK(tag == "colConfidenceT1");
+  inStream >> tag;
+  NTA_CHECK(tag == "[");
+  inStream >> len;
+  NTA_CHECK(len == _nColumns);
+  inStream.ignore(1);
+  inStream.read((char *)_colConfidenceT1, _nColumns* sizeof(Real));
+  inStream >> tag;
+  NTA_CHECK(tag == "]");
+
+  _segmentUpdates.clear();
+  inStream >> tag;
+  NTA_CHECK(tag == "Segments");
+  inStream >> len;
+  inStream.ignore(1);
+  for (UInt i = 0; i < len; ++i) {
+    _segmentUpdates.push_back(SegmentUpdate());
+    _segmentUpdates[i].load(inStream);
   }
 
-  UInt n;
-  if (v >= 2) {
-    _segmentUpdates.clear();
-    inStream >> n;
-    for (UInt i = 0; i < n; ++i) {
-      _segmentUpdates.push_back(SegmentUpdate());
-      _segmentUpdates[i].load(inStream);
-    }
-  }
-
+  inStream >> tag;
+  NTA_CHECK(tag == "Cells");
+  inStream >> len;
+  NTA_CHECK(len == _nCells) << "Not the number of cells expected.";
+  inStream.ignore(1);
   for (UInt i = 0; i != _nCells; ++i) {
     _cells[i].load(inStream);
   }
 
-  if (_ownsMemory) {
-    _infActiveStateT.load(inStream);
-    _infActiveStateT1.load(inStream);
-    _infPredictedStateT.load(inStream);
-    _infPredictedStateT1.load(inStream);
-
-    allocateState(_cellConfidenceT, _nCells);
-    allocateState(_cellConfidenceT1, _nCells);
-    allocateState(_colConfidenceT, _nColumns);
-    allocateState(_colConfidenceT1, _nColumns);
-    for (UInt i = 0; i != _nCells; ++i) {
-      inStream >> _cellConfidenceT[i] >> _cellConfidenceT1[i];
-    }
-    for (UInt i = 0; i != _nColumns; ++i) {
-      inStream >> _colConfidenceT[i] >> _colConfidenceT1[i];
-    }
-  }
-  inStream >> n;
-  std::vector<UInt> pattern;
-  size_t size;
-  _prevLrnPatterns.clear();
-  for (UInt i = 0; i < n; i++) {
-    pattern.clear();
-    inStream >> size;
-    std::copy_n(std::istream_iterator<UInt>(inStream), size,
-                std::back_inserter(pattern));
-    _prevLrnPatterns.push_back(pattern);
-  }
-  inStream >> n;
-  _prevInfPatterns.clear();
-  for (UInt i = 0; i < n; i++) {
-    pattern.clear();
-    inStream >> size;
-    std::copy_n(std::istream_iterator<UInt>(inStream), size,
-                std::back_inserter(pattern));
-    _prevInfPatterns.push_back(pattern);
-  }
-  std::string marker;
-  inStream >> marker;
-  NTA_CHECK(marker == "out");
+  inStream >> tag;
+  NTA_CHECK(tag == "out"); // at end of file.
 
   // Restore out synapses
   rebuildOutSynapses();
@@ -2455,6 +2406,17 @@ void Cells4::updateSegment(
   _segmentUpdates.push_back(update);
 }
 
+//--------------------------------------------------------------------------------
+/**
+ * Simple helper function for allocating our numerous state variables
+ */
+template <typename It> void allocateState(It *&state, const UInt numElmts) {
+  if (state != nullptr)
+    delete[] state;
+  state = new It[numElmts];
+  memset(state, 0, numElmts * sizeof(It));
+}
+
 void Cells4::setCellSegmentOrder(bool matchPythonOrder) {
   Cell::setSegmentOrder(matchPythonOrder);
 }
@@ -2469,6 +2431,9 @@ void Cells4::initialize(UInt nColumns, UInt nCellsPerCol,
   _nColumns = nColumns;
   _nCellsPerCol = nCellsPerCol;
   _nCells = nColumns * nCellsPerCol;
+  if (_nCells == 0)
+    return;
+
   NTA_CHECK(_nCells <= _MAX_CELLS);
 
   _activationThreshold = activationThreshold;
@@ -2510,8 +2475,18 @@ void Cells4::initialize(UInt nColumns, UInt nCellsPerCol,
   // Python allocate numpy arrays and pass them to C++, or C++
   // allocate memory here (then Python gets pointers via
   // getStatePointers).
-  if (initFromCpp) {
-    _ownsMemory = true;
+  // Actually...we are going to ignore the 'initFromCpp' parameter.
+  //     At allocation of Cells4 we always allocate memory.
+  //     If Python wants to control the buffers, it
+  //     must call setStatePointers() after creating Cells4
+  //     and the previously allocated buffers are deleted.
+  //
+  //     When deserializing,
+  //      1) create Cells4 with 0 columns (the default).
+  //      2) call setStatePointers() if Python wants to control buffers.
+  //      3) call load()
+  //
+  if (_ownsMemory ) {
     _infActiveStateT.initialize(_nCells);
     _infActiveStateT1.initialize(_nCells);
     _infPredictedStateT.initialize(_nCells);
@@ -2520,8 +2495,6 @@ void Cells4::initialize(UInt nColumns, UInt nCellsPerCol,
     allocateState(_cellConfidenceT1, _nCells);
     allocateState(_colConfidenceT, _nColumns);
     allocateState(_colConfidenceT1, _nColumns);
-  } else {
-    _ownsMemory = false;
   }
 
   // Initialize the state variables that are always managed inside the class
@@ -2765,7 +2738,7 @@ void Cells4::chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx, UInt nSynToAdd,
   } else {
     vecPruned = vecCellBuffer;
   }
-  const UInt nbrCells = vecPruned.size();
+  const UInt nbrCells = (UInt)vecPruned.size();
 
   // bail out if there are no cells left to process
   if (nbrCells == 0) {
@@ -2791,9 +2764,9 @@ void Cells4::chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx, UInt nSynToAdd,
   } else {
     // choose a random subset of the cells found, and append them to the
     // caller's array
-    UInt start = srcCells.size();
+    UInt start = (UInt)srcCells.size();
     srcCells.resize(srcCells.size() + nSynToAdd);
-    _rng.sample(&vecPruned.front(), vecPruned.size(), &srcCells[start],
+    _rng.sample(&vecPruned.front(), (UInt)vecPruned.size(), &srcCells[start],
                 nSynToAdd);
 
     fSortNeeded = true;
@@ -2841,7 +2814,7 @@ std::pair<UInt, UInt> Cells4::trimSegments(Real minPermanence,
         eraseOutSynapses(cellIdx, segIdx, removedSynapses);
       }
 
-      nSynsRemoved += removedSynapses.size();
+      nSynsRemoved += (UInt)removedSynapses.size();
     }
   }
 
@@ -2930,6 +2903,15 @@ void Cells4::printStates() {
   }
 }
 
+void Cells4::printConfidence(Real *confidence, size_t len) const {
+  std::cout << "[ ";
+  for (size_t i = 0; i < len; i++) {
+    std::cout << confidence[i] << " ";
+  }
+  std::cout << "]\n";
+}
+
+
 void Cells4::dumpSegmentUpdates() {
   std::cout << _segmentUpdates.size() << " updates" << std::endl;
   for (UInt i = 0; i != _segmentUpdates.size(); ++i) {
@@ -2960,8 +2942,8 @@ void Cells4::print(std::ostream &outStream) const {
   }
 }
 
-std::ostream &operator<<(std::ostream &outStream, const Cells4 &cells) {
-  cells.print(outStream);
+std::ostream &Cells4::operator<<(std::ostream &outStream) {
+  print(outStream);
   return outStream;
 }
 

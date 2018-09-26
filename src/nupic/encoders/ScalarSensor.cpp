@@ -26,10 +26,6 @@
 
 #include <string>
 
-// Workaround windows.h collision:
-// https://github.com/sandstorm-io/capnproto/issues/213
-#undef VOID
-#include <capnp/any.h>
 
 #include <nupic/encoders/ScalarSensor.hpp>
 #include <nupic/engine/Input.hpp>
@@ -42,7 +38,6 @@
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/utils/Log.hpp>
 
-using capnp::AnyPointer;
 
 namespace nupic {
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
@@ -71,10 +66,6 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
   deserialize(bundle);
 }
 
-ScalarSensor::ScalarSensor(AnyPointer::Reader &proto, Region *region)
-    : RegionImpl(region) {
-  read(proto);
-}
 
 ScalarSensor::~ScalarSensor() { delete encoder_; }
 
@@ -228,11 +219,5 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
   NTA_THROW << "ScalarSensor::deserialize -- Not implemented";
 }
 
-void ScalarSensor::write(AnyPointer::Builder &anyProto) const {
-  NTA_THROW << "ScalarSensor::write -- Not implemented";
-}
 
-void ScalarSensor::read(AnyPointer::Reader &anyProto) {
-  NTA_THROW << "ScalarSensor::read -- Not implemented";
-}
 } // namespace nupic

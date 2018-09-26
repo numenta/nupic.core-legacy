@@ -31,9 +31,8 @@
 #include <string>
 #include <vector>
 
-#include <nupic/proto/BitHistory.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 using namespace std;
 
@@ -50,7 +49,8 @@ namespace cla_classifier {
  * TODO: Support serialization and deserialization.
  *
  */
-class BitHistory : public Serializable<BitHistoryProto> {
+class BitHistory : public Serializable
+{
 public:
   /**
    * Constructor.
@@ -95,24 +95,13 @@ public:
   /**
    * Save the state to the ostream.
    */
-  void save(ostream &outStream) const;
+  void save(ostream &outStream) const override;
 
   /**
    * Load state from istream.
    */
-  void load(istream &inStream);
+  void load(istream &inStream) override;
 
-  /**
-   * Save the state to the builder.
-   */
-  using Serializable::write;
-  void write(BitHistoryProto::Builder &builder) const;
-
-  /**
-   * Load state from reader.
-   */
-  using Serializable::read;
-  void read(BitHistoryProto::Reader &proto);
 
   /**
    * Check if the other instance matches this one.

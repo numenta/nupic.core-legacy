@@ -27,9 +27,37 @@
 
 //----------------------------------------------------------------------
 
-#include <apr-1/apr.h>
-#include <apr-1/apr_file_info.h>
 #include <string>
+#include <nupic/os/Path.hpp>
+
+// Compiler support for <filesystem> in C++17:
+//    GCC 7 has <experimental/filesystem>, link with -libc++experimental or -lstdc++fs
+//    GCC 8 has <filesystem>   link with -lstdc++fs
+//    GCC 9   expected to support <filesystem>
+//    Clang 5 has complete <filesystem> support for C++17
+//    Visual Studio 2017 15.7 supports <filesystem> with C++17
+//    MinGW has no support for filesystem.
+//
+// determine if we have std::filesystem.
+// If not, use std::experimental::filesystem.
+// If we cannot find that, try boost::filesystem
+// For the boost version link with boost system, filesystem libraries.
+#if __has_include ( <filesystem> )
+  #include <filesystem>
+  namespace fs = std::filesystem;
+  namespace er = std;
+#else
+#if __has_include ( <experimental/filesystem> )
+  #include <experimental/filesystem>
+  namespace fs = std::experimental::filesystem;
+  namespace er = std;
+#else
+  #include <boost/filesystem.hpp>
+  namespace fs = boost::filesystem;
+  namespace er = boost::system;
+  #define USE_BOOST_FILESYSTEM 1
+#endif
+#endif
 
 //----------------------------------------------------------------------
 
@@ -40,13 +68,17 @@ namespace Directory {
 // check if a directory exists
 bool exists(const std::string &path);
 
+// true if the directory is empty
 bool empty(const std::string &path);
+
+// return the amount of available space on this path's device.
+Size free_space(const std::string & path);
 
 // get current working directory
 std::string getCWD();
 
 // set current working directories
-void setCWD(const std::string &path);
+void setCWD(const std::string &path);  // be careful about using this.
 
 // Copy directory tree rooted in 'source' to 'destination'
 void copyTree(const std::string &source, const std::string &destination);
@@ -63,42 +95,46 @@ bool removeTree(const std::string &path, bool noThrow = false);
 //    if /A doesn't exist it returns /A/B/C/D
 //
 // Failures will throw an exception
-void create(const std::string &path, bool otherAccess = false,
-            bool recursive = false);
+void create(const std::string &path, bool otherAccess = false, bool recursive = false);
 
 std::string createTemporary(const std::string &templatePath);
 
-struct Entry : public apr_finfo_t {
-  enum Type { FILE, DIRECTORY, LINK };
+struct Entry
+{
+  enum Type { FILE, DIRECTORY, LINK, OTHER };
 
   Type type;
-  std::string path;
+  std::string path;         // full absolute path
+  std::string filename;     // just the filename and extension or directory name
 };
 
-class Iterator {
+class Iterator
+{
 public:
-  Iterator(const Path &path);
-  Iterator(const std::string &path);
-  ~Iterator();
+  Iterator(const nupic::Path & path);
+  Iterator(const std::string & path);
+  ~Iterator() {}
 
   // Resets directory to start. Subsequent call to next()
   // will retrieve the first entry
   void reset();
+
   // get next directory entry
-  Entry *next(Entry &e);
+  Entry * next(Entry & e);
 
 private:
-  Iterator();
-  Iterator(const Iterator &);
-
-  void init(const std::string &path);
+  Iterator() {}
+  Iterator(const Iterator &) {}
 
 private:
-  std::string path_;
-  apr_dir_t *handle_;
-  apr_pool_t *pool_;
+  fs::path p_;
+  fs::directory_iterator current_;
+  fs::directory_iterator end_;
+
 };
-} // namespace Directory
+} // namespace nupic/Directory
 } // namespace nupic
 
 #endif // NTA_DIRECTORY_HPP
+
+

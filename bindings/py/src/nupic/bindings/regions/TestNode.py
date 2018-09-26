@@ -23,13 +23,6 @@ import numpy
 
 from nupic.bindings.regions.PyRegion import PyRegion
 
-try:
-  import capnp
-except ImportError:
-  capnp = None
-if capnp:
-  from nupic.proto.TestNodeProto_capnp import TestNodeProto
-
 
 class TestNode(PyRegion):
 
@@ -62,6 +55,14 @@ class TestNode(PyRegion):
           )
         ),
       parameters=dict(
+	    count=dict(
+		  description='size of output buffer',
+		  dataType='UInt32',
+		  count=1,
+		  constraints='',
+		  defaultValue='64',
+		  accessMode='ReadWrite'
+		),
         int32Param=dict(
           description='Int32 scalar parameter',
           dataType='Int32',
@@ -186,6 +187,7 @@ class TestNode(PyRegion):
     # set these to a bunch of incorrect values, just to make
     # sure they are set correctly by the nodespec.
     self.parameters = dict(
+      count=64,
       int32Param=32,
       uint32Param=33,
       int64Param=64,
@@ -258,10 +260,6 @@ class TestNode(PyRegion):
     self.parameters[name] = numpy.array(array)
 
 
-  def getSchema():
-    return None
-
-
   def writeArray(self, regionImpl, name, dtype, castFn):
     count = self.getParameterArrayCount(name, 0)
     param = numpy.zeros(count, dtype=dtype)
@@ -269,24 +267,6 @@ class TestNode(PyRegion):
     field = regionImpl.init(name, count)
     for i in range(count):
       field[i] = castFn(param[i])
-
-
-  def write(self, proto):
-    regionImpl = proto.regionImpl.as_struct(TestNodeProto)
-    regionImpl.int32Param = self.getParameter("int32Param", 0)
-    regionImpl.uint32Param = self.getParameter("uint32Param", 0);
-    regionImpl.int64Param = self.getParameter("int64Param", 0);
-    regionImpl.uint64Param = self.getParameter("uint64Param", 0);
-    regionImpl.real32Param = self.getParameter("real32Param", 0);
-    regionImpl.real64Param = self.getParameter("real64Param", 0);
-    regionImpl.boolParam = self.getParameter("boolParam", 0);
-    regionImpl.stringParam = self.getParameter("stringParam", 0);
-    regionImpl.delta = self._delta
-    regionImpl.iterations = self._iter
-
-    self.writeArray(regionImpl, "int64ArrayParam", "Int64", lambda x: int(x))
-    self.writeArray(regionImpl, "real32ArrayParam", "Float32", lambda x: float(x))
-    self.writeArray(regionImpl, "boolArrayParam", "Bool", lambda x: bool(x))
 
 
   def readArray(self, regionImpl, name, dtype):
@@ -297,25 +277,3 @@ class TestNode(PyRegion):
       param[i] = field[i]
     self.setParameter(name, 0, param)
 
-
-  @classmethod
-  def read(cls, proto):
-    instance = cls()
-
-    regionImpl = proto.regionImpl.as_struct(TestNodeProto)
-    instance.setParameter("int32Param", 0, regionImpl.int32Param)
-    instance.setParameter("uint32Param", 0, regionImpl.uint32Param)
-    instance.setParameter("int64Param", 0, regionImpl.int64Param)
-    instance.setParameter("uint64Param", 0, regionImpl.uint64Param)
-    instance.setParameter("real32Param", 0, regionImpl.real32Param)
-    instance.setParameter("real64Param", 0, regionImpl.real64Param)
-    instance.setParameter("boolParam", 0, regionImpl.boolParam)
-    instance.setParameter("stringParam", 0, regionImpl.stringParam)
-    instance._delta = regionImpl.delta
-    instance._iter = regionImpl.iterations
-
-    instance.readArray(regionImpl, "int64ArrayParam", "Int64")
-    instance.readArray(regionImpl, "real32ArrayParam", "Float32")
-    instance.readArray(regionImpl, "boolArrayParam", "Bool")
-
-    return instance

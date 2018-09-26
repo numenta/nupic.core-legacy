@@ -26,14 +26,10 @@
 
 #include <cmath> // For ldexp.
 #include <cstdlib>
+#include <cstring> //memcmp //CAREFUL when using it for compare, see OpenSSL memcmp bug
 #include <ctime>
 #include <iostream> // for istream, ostream
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
-#include <nupic/proto/RandomProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/utils/StringUtils.hpp>
@@ -42,50 +38,11 @@ using namespace nupic;
 Random *Random::theInstanceP_ = nullptr;
 RandomSeedFuncPtr Random::seeder_ = nullptr;
 
-const UInt32 Random::MAX32 = (UInt32)((Int32)(-1));
-const UInt64 Random::MAX64 = (UInt64)((Int64)(-1));
 
-static NTA_UInt64 badSeeder() {
+static UInt64 badSeeder() {
   NTA_THROW << "Logic error in initialization of Random subsystem.";
   return 0;
 }
-
-/**
- * Using an Impl provides two things:
- * 1) ability to specify different algorithms (not yet implemented)
- * 2) constructors Random(long) and Random(string) without code duplication.
- */
-
-// Algorithm-level implementation of the random number generator.
-// When we have different algorithms RandomImpl will become an interface
-// class and subclasses will implement specific algorithms
-
-namespace nupic {
-class RandomImpl {
-public:
-  RandomImpl(UInt64 seed);
-  ~RandomImpl(){};
-  void write(RandomImplProto::Builder &proto) const;
-  void read(RandomImplProto::Reader &proto);
-  UInt32 getUInt32();
-  bool operator==(const RandomImpl &o) const;
-  inline bool operator!=(const RandomImpl &other) const {
-    return !operator==(other);
-  }
-  // Note: copy constructor and operator= are needed
-  // The default is ok.
-private:
-  friend std::ostream &operator<<(std::ostream &outStream, const RandomImpl &r);
-  friend std::istream &operator>>(std::istream &inStream, RandomImpl &r);
-  const static UInt32 VERSION = 2;
-  // internal state
-  static const int stateSize_ = 31;
-  static const int sep_ = 3;
-  UInt32 state_[stateSize_];
-  int rptr_;
-  int fptr_;
-};
-}; // namespace nupic
 
 Random::Random(const Random &r) {
   NTA_CHECK(r.impl_ != nullptr);
@@ -93,23 +50,6 @@ Random::Random(const Random &r) {
   impl_ = new RandomImpl(*r.impl_);
 }
 
-void Random::write(RandomProto::Builder &proto) const {
-  // save Random state
-  proto.setSeed(seed_);
-
-  // save RandomImpl state
-  auto implProto = proto.initImpl();
-  impl_->write(implProto);
-}
-
-void Random::read(RandomProto::Reader &proto) {
-  // load Random state
-  seed_ = proto.getSeed();
-
-  // load RandomImpl state
-  auto implProto = proto.getImpl();
-  impl_->read(implProto);
-}
 
 void Random::reseed(UInt64 seed) {
   seed_ = seed;
@@ -129,11 +69,12 @@ Random &Random::operator=(const Random &other) {
   return *this;
 }
 
+Random::~Random() { delete impl_; }
+
 bool Random::operator==(const Random &o) const {
   return seed_ == o.seed_ && (*impl_) == (*o.impl_);
 }
 
-Random::~Random() { delete impl_; }
 
 Random::Random(UInt64 seed) {
   // Get the seeder even if we don't need it, because
@@ -191,12 +132,12 @@ UInt32 Random::getUInt32(const UInt32 max) {
     sample = impl_->getUInt32();
   } while (sample > smax);
 
-  // NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " <<
-  // smax;
+  //NTA_WARN << "Random32(" << max << ") -> " << sample % max << " smax = " << smax;
   return sample % max;
 }
 
-UInt64 Random::getUInt64(const UInt64 max) {
+UInt64 Random::getUInt64(const UInt64 max)
+{
   NTA_ASSERT(max > 0);
   UInt64 smax = Random::MAX64 - (Random::MAX64 % max);
   UInt64 sample, lo, hi;
@@ -204,9 +145,8 @@ UInt64 Random::getUInt64(const UInt64 max) {
     lo = impl_->getUInt32();
     hi = impl_->getUInt32();
     sample = lo | (hi << 32);
-  } while (sample > smax);
-  // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " <<
-  // smax;
+  } while(sample > smax);
+  // NTA_WARN << "Random64(" << max << ") -> " << sample % max << " smax = " << smax;
 
   return sample % max;
 }
@@ -215,12 +155,12 @@ double Random::getReal64() {
   const int mantissaBits = 48;
   const UInt64 max = (UInt64)0x1U << mantissaBits;
   UInt64 value = getUInt64(max);
-  Real64 dvalue =
-      (Real64)value; // No loss because we only need the 48 mantissa bits.
+  Real64 dvalue = (Real64)value; // No loss because we only need the 48 mantissa bits.
   Real64 returnval = ::ldexp(dvalue, -mantissaBits);
   // NTA_WARN << "RandomReal -> " << returnval;
   return returnval;
 }
+
 
 // ---- RandomImpl follows ----
 
@@ -289,23 +229,6 @@ RandomImpl::RandomImpl(UInt64 seed) {
 #endif
 }
 
-void RandomImpl::write(RandomImplProto::Builder &proto) const {
-  auto state = proto.initState(stateSize_);
-  for (UInt i = 0; i < stateSize_; ++i) {
-    state.set(i, state_[i]);
-  }
-  proto.setRptr(rptr_);
-  proto.setFptr(fptr_);
-}
-
-void RandomImpl::read(RandomImplProto::Reader &proto) {
-  auto state = proto.getState();
-  for (UInt i = 0; i < state.size(); ++i) {
-    state_[i] = state[i];
-  }
-  rptr_ = proto.getRptr();
-  fptr_ = proto.getFptr();
-}
 
 namespace nupic {
 std::ostream &operator<<(std::ostream &outStream, const Random &r) {
@@ -313,7 +236,7 @@ std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << r.seed_ << " ";
   NTA_CHECK(r.impl_ != nullptr);
   outStream << *r.impl_;
-  outStream << " endrandom-v1";
+  outStream << " endrandom-v1 ";
   return outStream;
 }
 
@@ -334,9 +257,9 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
   std::string endtag;
   inStream >> endtag;
   if (endtag != "endrandom-v1") {
-    NTA_THROW << "Random() deserializer -- found unexpected end tag '" << endtag
-              << "'";
+    NTA_THROW << "Random() deserializer -- found unexpected end tag '" << endtag  << "'";
   }
+  inStream.ignore(1);
 
   return inStream;
 }
@@ -390,17 +313,24 @@ bool RandomImpl::operator==(const RandomImpl &o) const {
   if (rptr_ != o.rptr_ || fptr_ != o.fptr_) {
     return false;
   }
-  return ::memcmp(state_, o.state_, sizeof(state_)) == 0;
+  return std::memcmp(state_, o.state_, sizeof(state_)) == 0;
 }
 
 // helper function for seeding RNGs across the plugin barrier
 // Unless there is a logic error, should not be called if
 // the Random singleton has not been initialized.
-NTA_UInt64 GetRandomSeed() {
+UInt64 GetRandomSeed() {
   Random *r = nupic::Random::theInstanceP_;
   NTA_CHECK(r != nullptr);
-  NTA_UInt64 result = r->getUInt64();
+  UInt64 result = r->getUInt64();
   return result;
 }
 
+
+
 } // namespace nupic
+
+
+
+
+

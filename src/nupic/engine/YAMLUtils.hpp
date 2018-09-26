@@ -27,13 +27,16 @@
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/types/Types.hpp>
 
-namespace nupic {
+namespace nupic
+{
 
-namespace YAMLUtils {
-/*
- * For converting default values
- */
-Value toValue(const std::string &yamlstring, NTA_BasicType dataType);
+  namespace YAMLUtils
+  {
+    /* 
+     * For converting default values
+     * @param yamlstring - is a string in parsable format (eg. '[1 2 3]' ), not a path to yaml file!
+     */
+    Value toValue(const std::string& yamlstring, NTA_BasicType dataType);
 
 /*
  * For converting param specs for Regions and LinkPolicies

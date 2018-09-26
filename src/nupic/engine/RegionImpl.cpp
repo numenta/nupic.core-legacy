@@ -22,11 +22,6 @@
 
 #include <iostream>
 
-#include <capnp/any.h>
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
@@ -44,9 +39,9 @@ RegionImpl::RegionImpl(Region *region) : region_(region) {}
 RegionImpl::~RegionImpl() {}
 
 // convenience method
-const std::string &RegionImpl::getType() const { return region_->getType(); }
+std::string RegionImpl::getType() const { return region_->getType(); }
 
-const std::string &RegionImpl::getName() const { return region_->getName(); }
+std::string RegionImpl::getName() const { return region_->getName(); }
 
 const NodeSet &RegionImpl::getEnabledNodes() const {
   return region_->getEnabledNodes();
@@ -271,11 +266,11 @@ size_t RegionImpl::getParameterArrayCount(const std::string &name,
 
 // Provide data access for subclasses
 
-const Input *RegionImpl::getInput(const std::string &name) {
+Input *RegionImpl::getInput(const std::string &name) const {
   return region_->getInput(name);
 }
 
-const Output *RegionImpl::getOutput(const std::string &name) {
+Output *RegionImpl::getOutput(const std::string &name) const {
   return region_->getOutput(name);
 }
 

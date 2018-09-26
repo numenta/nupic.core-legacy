@@ -29,6 +29,7 @@
 
 #include <nupic/types/Types.hpp>
 #include <string>
+#include <chrono>
 
 namespace nupic {
 
@@ -87,15 +88,18 @@ public:
 
   std::string toString() const;
 
-private:
-  // internally times are stored as ticks
-  UInt64 prevElapsed_; // total time as of last stop() (in ticks)
-  UInt64 start_;       // time that start() was called (in ticks)
-  UInt64 nstarts_;     // number of times start() was called
-  bool started_;       // true if was started
+  private:
+    typedef std::chrono::high_resolution_clock my_clock;
+    my_clock::time_point start_time_;
 
-}; // class Timer
+    UInt64 prevElapsed_;   // total time as of last stop() (in ticks)
+    UInt64 start_;         // time that start() was called (in ticks)
+    UInt64 nstarts_;       // number of times start() was called
+
+    bool started_;         // true if was started
+  }; // class Timer
 
 } // namespace nupic
 
 #endif // NTA_TIMER2_HPP
+

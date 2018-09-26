@@ -50,8 +50,6 @@
 #include <string>
 #include <vector>
 
-#include <capnp/message.h>
-
 bool ignore_negative_tests = false;
 #define SHOULDFAIL(statement)                                                  \
   {                                                                            \
@@ -105,6 +103,8 @@ struct MemoryMonitor {
 };
 
 void testPynodeInputOutputAccess(Region *level2) {
+  std::cerr << "testPynodeInputOutputAccess \n";
+
   // --- input/output access for level 2 (Python py.TestNode) ---
   SHOULDFAIL(level2->getOutputData("doesnotexist"));
 
@@ -119,6 +119,8 @@ void testPynodeInputOutputAccess(Region *level2) {
 }
 
 void testPynodeArrayParameters(Region *level2) {
+  std::cerr << "testPynodeArrayParameters \n";
+
   // Array a is not allocated by us. Will be allocated inside getParameter
   Array a(NTA_BasicType_Int64);
   level2->getParameterArray("int64ArrayParam", a);
@@ -150,6 +152,7 @@ void testPynodeArrayParameters(Region *level2) {
 }
 
 void testPynodeLinking() {
+  std::cerr << "testPynodeLinking \n";
   Network net = Network();
 
   Region *region1 = net.addRegion("region1", "TestNode", "");
@@ -244,6 +247,7 @@ void testSecondTimeLeak() {
 }
 
 void testRegionDuplicateRegister() {
+  std::cerr << "testRegionDuplicateRegister \n";
   // Register a region
   Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                             "TestDuplicateNodes");
@@ -264,10 +268,12 @@ void testRegionDuplicateRegister() {
               << "region with same name but different module as existing "
               << "registered region";
   } catch (std::exception &e) {
+  	std::cerr << "exception cought as exepected.\n";
   }
 }
 
 void testCreationParamTypes() {
+  std::cerr << "testCreationParamTypes \n";
   // Verify that parameters of all types can be passed in through the creation
   // params.
 
@@ -291,6 +297,7 @@ void testCreationParamTypes() {
 }
 
 void testUnregisterRegion() {
+  NTA_DEBUG << "testUnregisterRegion started\n";
   Network n;
   n.addRegion("test", "py.TestNode", "");
 
@@ -311,6 +318,7 @@ void testUnregisterRegion() {
 }
 
 void testWriteRead() {
+  NTA_DEBUG << "testUnregisterRegion started\n";
   Int32 int32Param = 42;
   UInt32 uint32Param = 43;
   Int64 int64Param = 44;
@@ -357,8 +365,8 @@ void testWriteRead() {
   Network n2;
 
   std::stringstream ss;
-  n1.write(ss);
-  n2.read(ss);
+  n1.save(ss);
+  n2.load(ss);
 
   const Collection<Region *> &regions = n2.getRegions();
   const std::pair<std::string, Region *> &regionPair = regions.getByIndex(0);
@@ -462,11 +470,6 @@ int realmain(bool leakTest) {
     // testNuPIC1x();
     // testPynode1xLinking();
   }
-#if !CAPNP_LITE
-  // PyRegion::write is implemented only when nupic.core is compiled with
-  // CAPNP_LITE=0
-  testWriteRead();
-#endif
 
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.
@@ -483,6 +486,14 @@ int main(int argc, char *argv[]) {
   Py_Initialize();
   NTA_CHECK(Py_IsInitialized());
   nupic::initializeNumpy();
+
+  // tell Python where to find src/bindings/region/TestNode.py
+  std::string ext = Path::normalize(__FILE__ "/../../../../bindings/py/src");
+  PyRun_SimpleString("import os, sys");
+  PyRun_SimpleString(("print(\"Python test DIR="+ ext + "\")").c_str());
+  PyRun_SimpleString("sys.path.append(\".\")");
+  PyRun_SimpleString(("sys.path.append(\""+ext+"\")").c_str());
+
 
   /*
    * Without arguments, this program is a simple end-to-end demo

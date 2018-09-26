@@ -23,14 +23,6 @@ import json
 import unittest
 import pytest
 
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # PythonDummyRegion_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.proto.NetworkProto_capnp import NetworkProto
 
 from nupic.bindings.regions.PyRegion import PyRegion
 
@@ -39,7 +31,7 @@ from nupic.bindings.tools.serialization_test_py_region import \
      SerializationTestPyRegion
 
 
-class TestLinks(PyRegion):
+class LinkRegion(PyRegion):
   """
   Test region used to test link validation
   """
@@ -50,7 +42,7 @@ class TestLinks(PyRegion):
   @classmethod
   def getSpec(cls):
     return {
-      "description": TestLinks.__doc__,
+      "description": LinkRegion.__doc__,
       "singleNodeOnly": True,
       "inputs": {
         "UInt32": {
@@ -91,42 +83,43 @@ class NetworkTest(unittest.TestCase):
 
   def setUp(self):
     """Register test region"""
-    engine.Network.registerPyRegion(TestLinks.__module__, TestLinks.__name__)
+    engine.Network.registerPyRegion(LinkRegion.__module__, LinkRegion.__name__)
 
 
-  @unittest.skipUnless(
-    capnp, "pycapnp is not installed, skipping serialization test.")
-  def testCapnpSerializationWithPyRegion(self):
-    """Test capnp (de)serialization of network containing a python region"""
-    engine.Network.registerPyRegion(__name__,
-                                    SerializationTestPyRegion.__name__)
-    try:
-      srcNet = engine.Network()
-      srcNet.addRegion(SerializationTestPyRegion.__name__,
-                       "py." + SerializationTestPyRegion.__name__,
-                       json.dumps({
-                         "dataWidth": 128,
-                         "randomSeed": 99,
-                       }))
+#########################################
+#Skipping this test for now...
+#TODO: Need to implement pickle serialization of the Python code.
+#
+#  def testSerializationWithPyRegion(self):
+#    """Test  (de)serialization of network containing a python region"""
+#    engine.Network.registerPyRegion(__name__,
+#                                    SerializationTestPyRegion.__name__)
+#    try:
+#      srcNet = engine.Network()
+#      srcNet.addRegion(SerializationTestPyRegion.__name__,
+#                       "py." + SerializationTestPyRegion.__name__,
+#                       json.dumps({
+#                         "dataWidth": 128,
+#                         "randomSeed": 99,
+#                       }))
+#
+#      # Serialize
+#      srcNet.saveToFile("SerializationTest.stream")
 
-      # Serialize
-      builderProto = NetworkProto.new_message()
-      srcNet.write(builderProto)
-
-      # Construct NetworkProto reader from populated builder
-      readerProto = NetworkProto.from_bytes(builderProto.to_bytes())
-
-      # Deserialize
-      destNet = engine.Network.read(readerProto)
-
-      destRegion = destNet.getRegions().getByName(
-        SerializationTestPyRegion.__name__)
-
-      self.assertEqual(destRegion.getParameterUInt32("dataWidth"), 128)
-      self.assertEqual(destRegion.getParameterUInt32("randomSeed"), 99)
-
-    finally:
-      engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
+#
+#      # Deserialize
+#      destNet = engine.Network()
+#      destNet.loadFromFile("SerializationTest.stream")
+#
+#      destRegion = destNet.getRegions().getByName(
+#        SerializationTestPyRegion.__name__)
+#
+#      self.assertEqual(destRegion.getParameterUInt32("dataWidth"), 128)
+#      self.assertEqual(destRegion.getParameterUInt32("randomSeed"), 99)
+#
+#    finally:
+#      engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
+#################################
 
 
   def testSimpleTwoRegionNetworkIntrospection(self):
@@ -165,8 +158,8 @@ class NetworkTest(unittest.TestCase):
     This tests whether the links source and destination dtypes match
     """
     network = engine.Network()
-    network.addRegion("from", "py.TestLinks", "")
-    network.addRegion("to", "py.TestLinks", "")
+    network.addRegion("from", "py.LinkRegion", "")
+    network.addRegion("to", "py.LinkRegion", "")
 
     # Check for valid links
     network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")

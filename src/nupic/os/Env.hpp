@@ -72,8 +72,7 @@ public:
   /**
    * Get the value of the NTA_XXX environment variable.
    */
-  static std::string getOption(const std::string &optionName,
-                               std::string defaultValue = "");
+  static std::string getOption(const std::string &optionName,std::string defaultValue = "");
 
 private:
   static char **environ_;
@@ -82,3 +81,4 @@ private:
 } // namespace nupic
 
 #endif // NTA_ENV_HPP
+

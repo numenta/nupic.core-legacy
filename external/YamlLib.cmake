@@ -33,7 +33,7 @@ include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(YAML_STATIC_LIB_TARGET yaml-bundle)
 
 
-set(yamllib_url "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.5.tar.gz")
+set(yamllib_url "${REPOSITORY_DIR}/external/common/share/yaml/yaml-0.1.7.tar.gz")
 
 # NOTE Yaml lib doesn't have an install target and leaves artifacts in build dir
 set(yamllib_build_dir "${EP_BASE}/Build/YamlStaticLib")
