@@ -928,11 +928,6 @@ public:
   void calculateOverlap_(UInt inputVector[], vector<UInt> &overlap);
   void calculateOverlapPct_(vector<UInt> &overlaps, vector<Real> &overlapPct);
 
-  bool isWinner_(const Real score, const vector<pair<UInt, Real>> &winners,
-                 const UInt numWinners) const;
-
-  void addToWinners_(const UInt index, const Real score, vector<pair<UInt, Real>> &winners) const;
-
   /**
       Performs inhibition. This method calculates the necessary values needed to
       actually perform inhibition and then delegates the task of picking the
