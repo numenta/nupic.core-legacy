@@ -80,10 +80,9 @@ TEST(HelloRegionTest, demo) {
   // Get output
   const Real64 *buffer = (const Real64 *)outputArray.getBuffer();
   for (size_t i = 0; i < outputArray.getCount(); i++) {
-//    EXPECT_FLOAT_EQ(buffer[0], 0);
+//    EXPECT_FLOAT_EQ(buffer[0], 0); //TODO add test, which values should be here? 
     std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
   }
-  EXPECT_FLOAT_EQ(buffer[0], 0);
 
 
   // Serialize
@@ -96,6 +95,7 @@ TEST(HelloRegionTest, demo) {
     ss.seekg(0);
     net2.load(ss);
   }
+//  EXPECT_EQ(net, net2);
 
   Region *region2 = net2.getRegions().getByName("region"); //TODO add more checks and asserts here
   region2->executeCommand(loadFileArgs);
