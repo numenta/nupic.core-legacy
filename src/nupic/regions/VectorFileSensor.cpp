@@ -31,11 +31,8 @@
 #include <stdexcept>
 #include <string>
 
-#include <capnp/any.h>
-
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/proto/VectorFileSensorProto.capnp.h>
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
@@ -78,21 +75,12 @@ VectorFileSensor::VectorFileSensor(BundleIO &bundle, Region *region)
   deserialize(bundle);
 }
 
-VectorFileSensor::VectorFileSensor(capnp::AnyPointer::Reader &proto,
-                                   Region *region)
-    : RegionImpl(region), repeatCount_(1), iterations_(0), curVector_(0),
-      activeOutputCount_(0), hasCategoryOut_(false), hasResetOut_(false),
-      dataOut_(NTA_BasicType_Real32), categoryOut_(NTA_BasicType_Real32),
-      resetOut_(NTA_BasicType_Real32), filename_(""), scalingMode_("none"),
-      recentFile_("") {
-  read(proto);
-}
 
 void VectorFileSensor::initialize() {
   NTA_CHECK(region_ != nullptr);
-  dataOut_ = region_->getOutputData("dataOut");
-  categoryOut_ = region_->getOutputData("categoryOut");
-  resetOut_ = region_->getOutputData("resetOut");
+  dataOut_ = region_->getOutput("dataOut")->getData();
+  categoryOut_ = region_->getOutput("categoryOut")->getData();
+  resetOut_ = region_->getOutput("resetOut")->getData();
 
   if (dataOut_.getCount() != activeOutputCount_) {
     NTA_THROW << "VectorFileSensor::init - wrong output size: "
@@ -163,9 +151,7 @@ inline const char *checkExtensions(const std::string &filename,
 
 //--------------------------------------------------------------------------------
 /// Execute a VectorFilesensor specific command
-std::string
-VectorFileSensor::executeCommand(const std::vector<std::string> &args,
-                                 Int64 index)
+std::string VectorFileSensor::executeCommand(const std::vector<std::string>& args, Int64 index)
 
 {
   UInt32 argCount = args.size();
@@ -429,7 +415,7 @@ void VectorFileSensor::seek(int n) {
   curVector_ = n - 1;
   // circular-buffer, reached one end of vector/line, continue fro the other
   if (n - 1 <= 0)
-    curVector_ = (NTA_Size)vectorFile_.vectorCount() - 1;
+    curVector_ = static_cast<UInt32>(vectorFile_.vectorCount() - 1);
 }
 
 size_t
@@ -439,33 +425,19 @@ VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) {
 }
 
 void VectorFileSensor::serialize(BundleIO &bundle) {
-  std::ofstream &f = bundle.getOutputStream("vfs");
-  f << repeatCount_ << " " << activeOutputCount_ << " " << filename_ << " "
-    << scalingMode_ << " ";
-  f.close();
+  std::ostream & f = bundle.getOutputStream();
+  f << repeatCount_ << " " << activeOutputCount_ << " " 
+    << ((filename_ == "")?std::string("empty"):filename_) << " "
+    << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " ";
 }
 
 void VectorFileSensor::deserialize(BundleIO &bundle) {
-  std::ifstream &f = bundle.getInputStream("vfs");
+  std::istream& f = bundle.getInputStream();
   f >> repeatCount_ >> activeOutputCount_ >> filename_ >> scalingMode_;
-  f.close();
+  if (filename_ == "empty") filename_ = "";
+  if (scalingMode_ == "empty") scalingMode_ = "";
 }
 
-void VectorFileSensor::write(capnp::AnyPointer::Builder &anyProto) const {
-  auto proto = anyProto.getAs<VectorFileSensorProto>();
-  proto.setRepeatCount(repeatCount_);
-  proto.setActiveOutputCount(activeOutputCount_);
-  proto.setFilename(filename_.c_str());
-  proto.setScalingMode(scalingMode_.c_str());
-}
-
-void VectorFileSensor::read(capnp::AnyPointer::Reader &anyProto) {
-  auto proto = anyProto.getAs<VectorFileSensorProto>();
-  repeatCount_ = proto.getRepeatCount();
-  activeOutputCount_ = proto.getActiveOutputCount();
-  filename_ = proto.getFilename().cStr();
-  scalingMode_ = proto.getScalingMode().cStr();
-}
 
 Spec *VectorFileSensor::createSpec() {
   auto ns = new Spec;

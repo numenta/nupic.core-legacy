@@ -27,7 +27,7 @@
 // It is a sub-class of ArrayBase that owns its buffer.
 // This object is a container for most data sets that get passed around between regions.
 // This container can hold an array of any of the NTA_BasicType types.  It does not use
-// templates so the getBuffer() function which returns a void* pointer will have to 
+// templates so the getBuffer() function which returns a void* pointer will have to
 // cast to the appropreate type.
 //
 // ASSIGNMENT:
@@ -50,7 +50,7 @@
 //    A.zeroBuffer();               This will fill the buffer with 0's.
 //
 // RELEASING BUFFER:
-// Note that re-allocating the buffer or releasing the buffer will disconnect it from other 
+// Note that re-allocating the buffer or releasing the buffer will disconnect it from other
 // Array object instances. Those instances will continue to see the old buffer. The old buffer
 // will be deleted only when all instances have released the buffer or were deleted.
 //    A.allocateBuffer(count);      A new buffer is created (old one released if there was one)
@@ -61,10 +61,10 @@
 //    delete A;                     The buffer is release for this instance but other instances unaffected.
 //
 // FULL COPY OF BUFFER
-// You can make a FULL or deep copy of the buffer either using the type 2 constructor for Array 
-// or the copy() function.  
+// You can make a FULL or deep copy of the buffer either using the type 2 constructor for Array
+// or the copy() function.
 //     Array B(A.getType(), A.getBuffer(), A.getCount());
-// or 
+// or
 //     Array B = A.copy();
 // This full copy will not be affected by changes to the original buffer.
 //
@@ -75,9 +75,9 @@
 // existing buffer. However, if the existing buffer is too small it will reallocate the buffer.
 //
 // SERIALIZATION
-// Two serialization methods are supported. 
+// Two serialization methods are supported.
 // The simplest is a std::istream/std::ostream interface.
-// 
+//
 //      Array A;
 //        ... populate A
 //      std::ofstream &f = bundle.getOutputStream("Region");
@@ -102,7 +102,7 @@
 //    f.open(filename.c_str());
 //    f << out.c_str();
 //    f.close();
-//or 
+//or
 //    const YAML::Node doc = YAML::LoadFile(filename);
 //      ...
 //    Array A(type);
@@ -115,7 +115,7 @@
 
 #include <cstring>
 #include <nupic/ntypes/ArrayBase.hpp>
-//////// #include <nupic/ntypes/ArrayRef.hpp>
+// for later   #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -156,22 +156,23 @@ namespace nupic {
       Array a(type_);
       if (count_ > 0) {
         a.allocateBuffer(count_);
-        memcpy((char *)a.buffer_.get(), (char *)buffer_.get(), a.capacity_);
+        memcpy((char *)a.buffer_.get(), (char *)buffer_.get(),
+               count_ * BasicType::getSize(type_));
       }
       return a;
     }
 
     // copies the buffer into the Array.
-    void copyFrom(NTA_BasicType type, void* buf, size_t size) { 
+    void copyFrom(NTA_BasicType type, void* buf, size_t size) {
       type_ = type;
       allocateBuffer(size);
-      memcpy((char *)buffer_.get(), (char *)buf, capacity_);
+      memcpy((char *)buffer_.get(), (char *)buf, count_ * BasicType::getSize(type_));
     }
 
     // This will do a shallow copy into the target array
     // This is for when we do not want to replace the Array object but
     // want it to become a shared buffer instance.
-    void zeroCopy(Array &a) { 
+    void zeroCopy(Array &a) {
       a.buffer_ = buffer_;  // copies the shared_ptr
       a.count_ = count_;
       a.capacity_ = capacity_;
@@ -179,26 +180,26 @@ namespace nupic {
     }
 
     // Convert to a vector; copies buffer
-    std::vector<UInt32> asVector(){ 
+    std::vector<UInt32> asVector(){
       NTA_CHECK(type_ == NTA_BasicType_UInt32)  << "Expected an Array with type of UInt32.";
       std::vector<UInt32> v(buffer_.get(), buffer_.get() + count_);
       return v;
     }
 
     // from a vector; copies buffer
-    void fromVector(std::vector<UInt32>& vect) { 
+    void fromVector(std::vector<UInt32>& vect) {
       type_ = NTA_BasicType_UInt32;
       allocateBuffer(vect.size());
-      memcpy(buffer_.get(), vect.data(), capacity_);
+      memcpy(buffer_.get(), vect.data(), count_ * sizeof(UInt32));
     }
 
 /***** for later
     // Type conversion
     // Note: this will reallocate the buffer
     //       Other instances will be disconnected.
-    Array get_as(NTA_BasicType type) const { 
+    Array get_as(NTA_BasicType type) const {
       Array a(type);
-      a.allocateBuffer(count_); 
+      a.allocateBuffer(count_);
       convertInto(a);
       return a;
     }
@@ -212,7 +213,7 @@ namespace nupic {
     }
 
     // Create a NonZero array from the indexes of non-zero values of the local array.
-    Array nonZero() const { 
+    Array nonZero() const {
       Array a(NTA_BasicType_UInt32);
       ArrayBase::NonZero(a);
       return a;
@@ -221,15 +222,15 @@ namespace nupic {
 
     // Copy a subset
     // This creates a new buffer of the same type.
-    Array subset(size_t offset, size_t count) const { 
+    Array subset(size_t offset, size_t count) const {
       Array a(type_);
       a.allocateBuffer(count);
       memcpy(a.getBuffer(), buffer_.get() + offset * BasicType::getSize(type_),
-             a.capacity_);
+             count * BasicType::getSize(type_));
       return a;
     }
 
-/*********  For later.
+/******** for later   (after Python is removed
     // Returns an ArrayRef that points to this Array's buffer
     // An ArrayRef buffer cannot be modified.
     // The buffer remains valid until all references are deleted.
@@ -237,7 +238,7 @@ namespace nupic {
       ArrayRef a(type_, buffer_, count_);
       return a;
     }
-********/
+***********/
 
     void invariant() {
       if (!own_)

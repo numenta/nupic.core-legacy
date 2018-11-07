@@ -133,7 +133,6 @@ script:
   - "${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/helloregion"
   - "${TRAVIS_BUILD_DIR}/build/release/bin/hello_sp_tp"
-  - "${TRAVIS_BUILD_DIR}/build/release/bin/prototest"
   # unit tests
   - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests

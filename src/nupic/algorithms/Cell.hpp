@@ -23,11 +23,10 @@
 #ifndef NTA_CELL_HPP
 #define NTA_CELL_HPP
 
-#include <nupic/algorithms/Segment.hpp>
-#include <nupic/proto/Cell.capnp.h>
-#include <nupic/types/Serializable.hpp>
-#include <nupic/types/Types.hpp>
 #include <vector>
+#include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
+#include <nupic/algorithms/Segment.hpp>
 
 namespace nupic {
 namespace algorithms {
@@ -46,7 +45,8 @@ class Cells4;
  * difference is a source of mismatches in unit testing when comparing the
  * Python TP to the C++ down to the segment level.
  */
-class Cell : Serializable<CellProto> {
+class Cell : public Serializable
+{
 private:
   std::vector<Segment> _segments;  // both 'active' and 'inactive' segments
   std::vector<UInt> _freeSegments; // slots of the 'inactive' segments
@@ -61,8 +61,8 @@ public:
   //--------------------------------------------------------------------------------
   UInt nSynapses() const {
     UInt n = 0;
-    for (UInt i = 0; i != _segments.size(); ++i)
-      n += _segments[i].size();
+    for (size_t i = 0; i != _segments.size(); ++i)
+      n += (UInt)_segments[i].size();
     return n;
   }
 
@@ -71,7 +71,7 @@ public:
    * Returns size of _segments (see nSegments below). If using this to iterate,
    * indices less than size() might contain indices of empty segments.
    */
-  UInt size() const { return _segments.size(); }
+  UInt size() const { return (UInt)_segments.size(); }
 
   //--------------------------------------------------------------------------------
   /**
@@ -80,7 +80,7 @@ public:
    */
   UInt nSegments() const {
     NTA_ASSERT(_freeSegments.size() <= _segments.size());
-    return _segments.size() - _freeSegments.size();
+    return (UInt)(_segments.size() - _freeSegments.size());
   }
 
   //--------------------------------------------------------------------------------
@@ -125,8 +125,10 @@ public:
    * the memory allocated), or by allocating a new one.
    */
   // TODO: rename method to "addToFreeSegment" ??
-  UInt getFreeSegment(const Segment::InSynapses &synapses, Real initFrequency,
-                      bool sequenceSegmentFlag, Real permConnected,
+  UInt getFreeSegment(const Segment::InSynapses &synapses,
+                      Real initFrequency,
+                      bool sequenceSegmentFlag,
+					  Real permConnected,
                       UInt iteration);
 
   //--------------------------------------------------------------------------------
@@ -238,22 +240,14 @@ public:
   UInt persistentSize() const {
     std::stringstream buff;
     this->save(buff);
-    return buff.str().size();
+    return (UInt)buff.str().size();
   }
 
   //----------------------------------------------------------------------
-  using Serializable::write;
-  virtual void write(CellProto::Builder &proto) const override;
+  void save(std::ostream &outStream) const override;
 
   //----------------------------------------------------------------------
-  using Serializable::read;
-  virtual void read(CellProto::Reader &proto) override;
-
-  //----------------------------------------------------------------------
-  void save(std::ostream &outStream) const;
-
-  //----------------------------------------------------------------------
-  void load(std::istream &inStream);
+  void load(std::istream &inStream) override;
 };
 
 // end namespace

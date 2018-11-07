@@ -20,31 +20,13 @@
  * ---------------------------------------------------------------------
  */
 
-%module(package="bindings", directors="1") algorithms
+%module(package="nupic.bindings", directors="1") algorithms
 %include <nupic/bindings/exception.i>
 %import <nupic/bindings/math.i>
 
 %pythoncode %{
 import os
-
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # SpatialPoolerProto_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.proto.Cells4_capnp import Cells4Proto
-  from nupic.proto.ClaClassifier_capnp import ClaClassifierProto
-  from nupic.proto.ConnectionsProto_capnp import ConnectionsProto
-  from nupic.proto.SdrClassifier_capnp import SdrClassifierProto
-  from nupic.proto.SpatialPoolerProto_capnp import SpatialPoolerProto
-  from nupic.proto.SvmProto_capnp import (SvmDenseProto, Svm01Proto)
-  from nupic.proto.TemporalMemoryProto_capnp import TemporalMemoryProto
-
-# Capnp reader traveral limit (see capnp::ReaderOptions)
-_TRAVERSAL_LIMIT_IN_WORDS = 1 << 63
-
+import nupic.bindings.math
 _ALGORITHMS = _algorithms
 %}
 
@@ -79,16 +61,10 @@ _ALGORITHMS = _algorithms
 #include <vector>
 
 #include <nupic/math/Types.hpp>
-#include <nupic/math/Convolution.hpp>
-#include <nupic/math/Rotation.hpp>
-#include <nupic/math/Erosion.hpp>
-#include <nupic/algorithms/GaborNode.hpp>
-#include <nupic/algorithms/ImageSensorLite.hpp>
 #include <nupic/algorithms/Scanning.hpp>
 
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/algorithms/Svm.hpp>
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
 
@@ -100,12 +76,11 @@ _ALGORITHMS = _algorithms
 #include <nupic/algorithms/InSynapse.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
 #include <nupic/algorithms/SegmentUpdate.hpp>
-
-#include <nupic/proto/Cells4.capnp.h>
-#include <nupic/proto/ConnectionsProto.capnp.h>
-#include <nupic/proto/SpatialPoolerProto.capnp.h>
-#include <nupic/proto/TemporalMemoryProto.capnp.h>
+#include <nupic/types/Serializable.hpp>
 %}
+
+
+
 
 //
 // Numpy API
@@ -119,7 +94,6 @@ _ALGORITHMS = _algorithms
 
 %{
 #include <nupic/py_support/NumpyVector.hpp>
-#include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/py_support/PythonStream.hpp>
 #include <nupic/py_support/PyHelpers.hpp>
 
@@ -158,477 +132,6 @@ using namespace nupic;
 
 %naturalvar;
 
-
-// This dummy inline function exists only to force the linker
-// to keep the gaborCompute() function in the resulting
-// shared object.
-%inline {
-
-void forceRetentionOfGaborComputeWithinLibrary(void) {
- gaborCompute( NULL,                // const NUMPY_ARRAY * psGaborBank
-               NULL,                // const NUMPY_ARRAY * psInput
-               NULL,                // const NUMPY_ARRAY * psAlpha
-               NULL,                // const NUMPY_ARRAY * psBBox
-               NULL,                // const NUMPY_ARRAY * psImageBox
-               NULL,                // const NUMPY_ARRAY * psOutput
-               0.0f,                // float fGainConstant
-               (EDGE_MODE)0,        // EDGE_MODE eEdgeMode
-               0.0f,                // float fOffImageFillValue
-               (PHASE_MODE)0,       // PHASE_MODE ePhaseMode
-               (NORMALIZE_METHOD)0, // NORMALIZE_METHOD eNormalizeMethod
-               (NORMALIZE_MODE)0,   // NORMALIZE_MODE eNormalizeMode
-               (PHASENORM_MODE)0,   // PHASENORM_MODE ePhaseNormMode
-               (POSTPROC_METHOD)0,  // POSTPROC_METHOD ePostProcMethod
-               0.0f,                // float fPostProcSlope
-               0.0f,                // float fPostProcMidpoint
-               0.0f,                // float fPostProcMin
-               0.0f,                // float fPostProcMax
-               NULL,                // const NUMPY_ARRAY * psBufferIn
-               NULL,                // const NUMPY_ARRAY * psBufferOut
-               NULL,                // const NUMPY_ARRAY * psPostProcLUT
-               0.0f                 // float fPostProcScalar
-  );
-  // Initialization of log system from python disabled for now.
-  // See comments in gaborNode.cpp
-  // initFromPython(0);
-}
-
-}
-
-// These dummy inline functions exist only to force the linker
-// to keep the ImageSensorLite functions in the resulting
-// shared object.
-%inline {
-void forceRetentionOfImageSensorLiteLibrary(void) {
-  extractAuxInfo( NULL,          // const char * pCtlBufAddr
-                  NULL,          // BBOX * psBox
-                  NULL,          // int * pnAddress
-                  NULL,          // int * pnPartitionID
-                  NULL,          // int * pnCategoryID
-                  NULL,          // int * pnVideoID
-                  NULL           // int * pnAlphaAddress
-  );
-}
-}
-
-
-//--------------------------------------------------------------------------------
-// SVM
-//--------------------------------------------------------------------------------
-%include <nupic/algorithms/Svm.hpp>
-
-%ignore nupic::algorithms::svm::operator=;
-
-%extend nupic::algorithms::svm::svm_problem
-{
-  inline void get_samples(PyObject* samplesIn)
-  {
-    PyArrayObject* samples_py = (PyArrayObject*)samplesIn;
-    for (int i = 0; i < self->size(); ++i) {
-      float* row_it = (float*)((char *)PyArray_DATA(samples_py)+i*PyArray_STRIDES(samples_py)[0]);
-      *row_it++ = self->y_[i];
-      for (int j = 0; j < self->n_dims(); ++j, ++row_it)
-    *row_it = self->x_[i][j];
-    }
-  }
-}
-
-%extend nupic::algorithms::svm::svm_problem01
-{
-  inline void get_samples(PyObject* samplesIn)
-  {
-    PyArrayObject* samples_py = (PyArrayObject*)samplesIn;
-    for (int i = 0; i < self->size(); ++i) {
-      float* row_it = (float*)((char *)PyArray_DATA(samples_py)+i*PyArray_STRIDES(samples_py)[0]);
-      *row_it++ = self->y_[i];
-      std::fill(row_it, row_it + self->n_dims(), (float) 0);
-      for (int j = 0; j < self->nnz(i); ++j)
-    *(row_it + self->x_[i][j]) = 1;
-    }
-  }
-}
-
-%extend nupic::algorithms::svm::svm_model
-{
-  inline void get_support_vectors(PyObject* svIn)
-  {
-    PyArrayObject* sv_py = (PyArrayObject*)svIn;
-    for (int i = 0; i < self->size(); ++i) {
-      float* row_it = (float*)((char *)PyArray_DATA(sv_py)+i*PyArray_STRIDES(sv_py)[0]);
-      for (int j = 0; j < self->n_dims(); ++j, ++row_it)
-    *row_it = self->sv[i][j];
-    }
-  }
-
-  inline void get_support_vector_coefficients(PyObject* svCoeffIn)
-  {
-    PyArrayObject* sv_coeff_py = (PyArrayObject*)svCoeffIn;
-    for (size_t i = 0; i < self->sv_coef.size(); ++i) {
-      float* row_it = (float*)((char *)PyArray_DATA(sv_coeff_py)+i*PyArray_STRIDES(sv_coeff_py)[0]);
-      for (int j = 0; j < self->size(); ++j, ++row_it)
-    *row_it = self->sv_coef[i][j];
-    }
-  }
-
-  inline PyObject* get_hyperplanes()
-  {
-    if (self->n_class() == 1)
-      Py_RETURN_NONE;
-
-    size_t m = self->w.size(), n = self->w[0].size();
-    int dims[] = { int(m), int(n) };
-    nupic::NumpyMatrix out(dims);
-    for (size_t i = 0; i != m; ++i)
-      for (size_t j = 0; j != n; ++j)
-    *(out.addressOf(0,0) + i*n + j) = self->w[i][j];
-    return out.forPython();
-  }
-}
-
-%extend nupic::algorithms::svm::svm_dense
-{
-  PyObject* __getstate__()
-  {
-    SharedPythonOStream py_s(self->persistent_size());
-    std::ostream& s = py_s.getStream();
-    self->save(s);
-    return py_s.close();
-  }
-
-  %pythoncode %{
-    def __init__(self, *args, **kwargs):
-      """
-      __init__(self, kernel=0, n_dims=0, threshold=.9, cache_size=100, shrinking=1,
-        probability=False, seed=-1) -> svm_dense
-
-      nupic::algorithms::svm::svm_dense::svm_dense(int kernel=0, int n_dims=0,
-      float threshold=.9, int cache_size=100, int shrinking=1, bool
-      probability=false)
-      """
-      # Convert numpy ints to regular ints for Python 2.6
-      for k in ('kernel', 'n_dims', 'cache_size', 'shrinking'):
-          if k in kwargs:
-            kwargs[k] = int(kwargs[k])
-
-      this = _ALGORITHMS.new_svm_dense(*args, **kwargs)
-      try: self.this.append(this)
-      except: self.this = this
-
-    def __setstate__(self, inString):
-      self.this = _ALGORITHMS.new_svm_dense()
-      self.thisown = 1
-      self.loadFromString(inString)
-    
-    def convertedRead(self, proto):
-      """Initialize the svm_dense instance from the given SvmDenseProto
-      reader.
-
-      :param proto: SvmDenseProto message reader containing data from a
-                    previously serialized svm_dense instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
-
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the svm_dense instance using capnp.
-
-      :param: Destination SvmDenseProto message builder
-      """
-      reader = SvmDenseProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-    
-    @classmethod
-    def getSchema(cls):
-      """ Get Cap'n Proto schema. 
-      :return: Cap'n Proto schema
-      """
-      return SvmDenseProto  
-  %}
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
-
-  void loadFromString(const std::string& inString)
-  {
-    std::istringstream inStream(inString);
-    self->load(inStream);
-  }
-
-  inline void add_sample(float y_val, PyObject* x_vector)
-  {
-    PyArrayObject* x = (PyArrayObject*) x_vector;
-    self->add_sample(y_val, (float*)PyArray_DATA(x));
-  }
-
-  inline float predict(PyObject* x_vector)
-  {
-    PyArrayObject* x = (PyArrayObject*) x_vector;
-    return self->predict((float*)PyArray_DATA(x));
-  }
-
-  inline float predict_probability(PyObject* x_vector, PyObject* proba_vector)
-  {
-    PyArrayObject* x = (PyArrayObject*) x_vector;
-    PyArrayObject* proba = (PyArrayObject*) proba_vector;
-    return self->predict_probability((float*)PyArray_DATA(x), (float*)PyArray_DATA(proba));
-  }
-
-  inline void save(const std::string& filename)
-  {
-    std::ofstream save_file(filename.c_str());
-    self->save(save_file);
-    save_file.close();
-  }
-
-  inline void load(const std::string& filename)
-  {
-    std::ifstream load_file(filename.c_str());
-    self->load(load_file);
-    load_file.close();
-  }
-
-  inline float cross_validate(int n_fold, float gamma, float C, float eps)
-  {
-    float accuracy;
-    Py_BEGIN_ALLOW_THREADS;
-    accuracy = self->cross_validation(n_fold, gamma, C, eps);
-    Py_END_ALLOW_THREADS;
-    return accuracy;
-  }
-
-  inline void trainReleaseGIL(float gamma, float C, float eps)
-  {
-    Py_BEGIN_ALLOW_THREADS;
-    self->train(gamma, C, eps);
-    Py_END_ALLOW_THREADS;
-  }
-};
-
-%extend nupic::algorithms::svm::svm_01
-{
-  PyObject* __getstate__()
-  {
-    SharedPythonOStream py_s(self->persistent_size());
-    std::ostream& s = py_s.getStream();
-    self->save(s);
-    return py_s.close();
-  }
-
-  %pythoncode %{
-    def __setstate__(self, inString):
-      self.this = _ALGORITHMS.new_svm_01()
-      self.thisown = 1
-      self.loadFromString(inString)
-    
-    def convertedRead(self, proto):
-      """Initialize the svm_dense instance from the given Svm01Proto
-      reader.
-
-      :param proto: Svm01Proto message reader containing data from a
-                    previously serialized svm_dense instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
-
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the svm_01 instance using capnp.
-
-      :param: Destination Svm01Proto message builder
-      """
-      reader = Svm01Proto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-    
-    @classmethod
-    def getSchema(cls):
-      """ Get Cap'n Proto schema. 
-      :return: Cap'n Proto schema
-      """
-      return Svm01Proto        
-  %}
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-  
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
-
-  void loadFromString(const std::string& inString)
-  {
-    std::istringstream inStream(inString);
-    self->load(inStream);
-  }
-
-  inline void add_sample(float y_val, PyObject* x_vector)
-  {
-    PyArrayObject* x = (PyArrayObject*) x_vector;
-    self->add_sample(y_val, (float*)PyArray_DATA(x));
-  }
-
-  inline float predict(PyObject* x_vector)
-  {
-    PyArrayObject* x = (PyArrayObject*) x_vector;
-    return self->predict((float*)PyArray_DATA(x));
-  }
-
-  inline float predict_probability(PyObject* x_vector, PyObject* proba_vector)
-  {
-    PyArrayObject* x = (PyArrayObject*) x_vector;
-    PyArrayObject* proba = (PyArrayObject*) proba_vector;
-    return self->predict_probability((float*)PyArray_DATA(x), (float*)PyArray_DATA(proba));
-  }
-
-  inline float cross_validate(int n_fold, float gamma, float C, float eps)
-  {
-    float accuracy;
-    Py_BEGIN_ALLOW_THREADS;
-    accuracy = self->cross_validation(n_fold, gamma, C, eps);
-    Py_END_ALLOW_THREADS;
-    return accuracy;
-  }
-
-  inline void trainReleaseGIL(float gamma, float C, float eps)
-  {
-    Py_BEGIN_ALLOW_THREADS;
-    self->train(gamma, C, eps);
-    Py_END_ALLOW_THREADS;
-  }
-
-  inline void save(const std::string& filename)
-  {
-    std::ofstream save_file(filename.c_str());
-    self->save(save_file);
-    save_file.close();
-  }
-
-  inline void load(const std::string& filename)
-  {
-    std::ifstream load_file(filename.c_str());
-    self->load(load_file);
-    load_file.close();
-  }
-};
-
-//--------------------------------------------------------------------------------
-// CONVOLUTION
-//--------------------------------------------------------------------------------
-%include <nupic/math/Convolution.hpp>
-
-%template(Float32SeparableConvolution2D) SeparableConvolution2D<float>;
-
-%extend SeparableConvolution2D<float>
-{
-  inline void init(nupic::UInt32 nrows, nupic::UInt32 ncols,
-           nupic::UInt32 f1_size, nupic::UInt32 f2_size,
-           PyObject* pyF1, PyObject* pyF2)
-  {
-    PyArrayObject *f1 = (PyArrayObject*) pyF1;
-    PyArrayObject *f2 = (PyArrayObject*) pyF2;
-
-    self->init(nrows, ncols, f1_size, f2_size, (float*)(PyArray_DATA(f1)), (float*)(PyArray_DATA(f2)));
-  }
-
-  inline void compute(PyObject* pyData, PyObject* pyConvolved, bool rotated45 =false)
-  {
-    PyArrayObject* data = (PyArrayObject*)pyData;
-    PyArrayObject* convolved = (PyArrayObject*)pyConvolved;
-
-    self->compute((float*)(PyArray_DATA(data)), (float*)(PyArray_DATA(convolved)), rotated45);
-  }
-
-  inline void getBuffer(PyObject* pyBuffer) const
-  {
-    PyArrayObject *buffer = (PyArrayObject*)pyBuffer;
-
-    const size_t size = self->nrows_ * self->ncols_;
-    std::copy(self->buffer_, self->buffer_ + size, (float*)(PyArray_DATA(buffer)));
-  }
-};
-
-//--------------------------------------------------------------------------------
-// ROTATION
-//--------------------------------------------------------------------------------
-%include <nupic/math/Rotation.hpp>
-
-%template(Float32Rotation45) Rotation45<float>;
-
-%extend Rotation45<float>
-{
-  inline void rotate(PyObject* pyOriginal, PyObject* pyRotated,
-             nupic::UInt32 nrows, nupic::UInt32 ncols, nupic::UInt32 z)
-  {
-    PyArrayObject* original = (PyArrayObject*)pyOriginal;
-    PyArrayObject* rotated = (PyArrayObject*)pyRotated;
-
-    self->rotate((float*)(PyArray_DATA(original)), (float*)(PyArray_DATA(rotated)),
-      nrows, ncols, z);
-  }
-
-  inline void unrotate(PyObject* pyUnrotated, PyObject* pyRotated,
-               nupic::UInt32 nrows, nupic::UInt32 ncols, nupic::UInt32 z)
-  {
-    PyArrayObject* unrotated = (PyArrayObject*)pyUnrotated;
-    PyArrayObject* rotated = (PyArrayObject*)pyRotated;
-
-    self->unrotate((float*)(PyArray_DATA(unrotated)), (float*)(PyArray_DATA(rotated)),
-      nrows, ncols, z);
-  }
-};
-
-//--------------------------------------------------------------------------------
-// EROSION
-//--------------------------------------------------------------------------------
-%include <nupic/math/Erosion.hpp>
-
-%template(Float32Erosion) Erosion<float>;
-
-%extend Erosion<float>
-{
-  inline void init(nupic::UInt32 nrows, nupic::UInt32 ncols)
-  {
-    self->init(nrows, ncols);
-  }
-
-  inline void compute(PyObject* pyData, PyObject* pyEroded,
-                      nupic::UInt32 iterations, bool dilate=false)
-  {
-    PyArrayObject* data = (PyArrayObject*)pyData;
-    PyArrayObject* eroded = (PyArrayObject*)pyEroded;
-
-    self->compute((float*)(PyArray_DATA(data)), (float*)(PyArray_DATA(eroded)),
-                  iterations, dilate);
-  }
-
-  inline void getBuffer(PyObject* pyBuffer) const
-  {
-    PyArrayObject *buffer = (PyArrayObject*)pyBuffer;
-
-    const size_t size = self->nrows_ * self->ncols_;
-    std::copy(self->buffer_, self->buffer_ + size, (float*)(PyArray_DATA(buffer)));
-  }
-};
 
 //--------------------------------------------------------------------------------
 // SCANNING
@@ -892,32 +395,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       self.this = _ALGORITHMS.new_Cells4()
       self.loadFromString(inString)
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the Cells4 instance using capnp.
-
-      :param: Destination Cells4Proto message builder
-      """
-      reader = Cells4Proto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
   %}
 
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
 
   void loadFromString(const std::string& inString)
   {
@@ -1142,31 +621,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     def _updateMinDutyCycles(self):
       self.updateMinDutyCycles_();
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the SpatialPooler instance using capnp.
-
-      :param: Destination SpatialPoolerProto message builder
-      """
-      reader = SpatialPoolerProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-
-    def convertedRead(self, proto):
-      """Initialize the SpatialPooler instance from the given SpatialPoolerProto
-      reader.
-
-      :param proto: SpatialPoolerProto message reader containing data from a
-                    previously serialized SpatialPooler instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   inline void compute(PyObject *py_inputArray, bool learn, PyObject *py_activeArray)
@@ -1180,16 +634,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
   {
     PyArrayObject* x = (PyArrayObject*) py_x;
     self->stripUnlearnedColumns((nupic::UInt*) PyArray_DATA(x));
-  }
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)
@@ -1460,54 +904,21 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
         del state["this"]
         self.__dict__.update(state)
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the SDRClassifier instance using capnp.
-
-      :param: Destination SdrClassifierProto message builder
-      """
-      reader = SdrClassifierProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-    @classmethod
-    def getSchema(cls):
-      """ Get Cap'n Proto schema. 
-      :return: Cap'n Proto schema
-      """
-      return SdrClassifierProto
-
-    def convertedRead(self, proto):
-      """Initialize the SDRClassifier instance from the given SdrClassifierProto
-      reader.
-
-      :param proto: SdrClassifierProto message reader containing data from a
-                    previously serialized SDRClassifier instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
   %}
 
   void loadFromString(const std::string& inString)
   {
-    std::istringstream inStream(inString);
-    self->load(inStream);
+	std::istringstream inStream(inString);
+        self->load(inStream);
   }
-
   PyObject* getCState()
   {
-    SharedPythonOStream py_s(self->persistentSize());
-    std::ostream& s = py_s.getStream();
-    // TODO: Consider writing floats as binary instead.
-    s.flags(ios::scientific);
-    s.precision(numeric_limits<double>::digits10 + 1);
-    self->save(s);
-    return py_s.close();
+	SharedPythonOStream py_s(self->persistentSize());
+	std::ostream&s = py_s.getStream();
+        s.flags(ios::scientific);
+	s.precision(numeric_limits<double>::digits10 + 1);
+	self->save(s);
+	return py_s.close();
   }
 
   PyObject* convertedCompute(UInt recordNum, const vector<UInt>& patternNZ,
@@ -1543,16 +954,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
     return d;
   }
 
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
-
 }
 
 //--------------------------------------------------------------------------------
@@ -1577,43 +978,8 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
                                               maxSynapsesPerSegment)
 
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the Connections instance using capnp.
-
-      :param: Destination ConnectionsProto message builder
-      """
-      reader = ConnectionsProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-
-    def convertedRead(self, proto):
-      """Initialize the Connections instance from the given ConnectionsProto
-      reader.
-
-      :param proto: ConnectionsProto message reader containing data from a
-                    previously serialized Connections instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
   %}
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
-  }
 
   %pythoncode %{
     def mapSegmentsToCells(self, segments):
@@ -1779,31 +1145,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       activeColumnsArray = numpy.array(sorted(activeColumns), dtype=uintDType)
       self.convertedCompute(activeColumnsArray, learn)
 
-    @classmethod
-    def read(cls, proto):
-      instance = cls()
-      instance.convertedRead(proto)
-      return instance
-
-    def write(self, pyBuilder):
-      """Serialize the TemporalMemory instance using capnp.
-
-      :param: Destination TemporalMemoryProto message builder
-      """
-      reader = TemporalMemoryProto.from_bytes(self._writeAsCapnpPyBytes(),
-                            traversal_limit_in_words=_TRAVERSAL_LIMIT_IN_WORDS)
-      pyBuilder.from_dict(reader.to_dict())  # copy
-
-
-    def convertedRead(self, proto):
-      """Initialize the TemporalMemory instance from the given TemporalMemoryProto
-      reader.
-
-      :param proto: TemporalMemoryProto message reader containing data from a
-                    previously serialized TemporalMemory instance.
-
-      """
-      self._initFromCapnpPyBytes(proto.as_builder().to_bytes()) # copy * 2
 
   %}
 
@@ -1887,16 +1228,6 @@ void forceRetentionOfImageSensorLiteLibrary(void) {
       (UInt32*)PyArray_DATA(_activeColumns);
 
     self->compute(activeColumnsSize, activeColumns, learn);
-  }
-
-  inline PyObject* _writeAsCapnpPyBytes() const
-  {
-    return nupic::PyCapnpHelper::writeAsPyBytes(*self);
-  }
-
-  inline void _initFromCapnpPyBytes(PyObject* pyBytes)
-  {
-    nupic::PyCapnpHelper::initFromPyBytes(*self, pyBytes);
   }
 
   void loadFromString(const std::string& inString)

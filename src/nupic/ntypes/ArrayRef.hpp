@@ -74,13 +74,9 @@ public:
 
   explicit ArrayRef(NTA_BasicType type) : ArrayBase(type) {}
 
-  // The default copy constructor is ok because it is a shallow copy.
-  // The ArrayRef does not own the buffer so it cannot delete it.
-  // ArrayRef(const ArrayRef & other) : ArrayBase(other)
-  //{
-  //}
+  ArrayRef(const ArrayRef &other) : ArrayBase(other) {}
 
-  ////////===const void *getBuffer() const { return buffer_.get(); }
+  const void *getBuffer() const { return buffer_.get(); }
 
   void invariant() {
     if (own_)
@@ -91,7 +87,6 @@ private:
   // Hide some base class methods (invalid for ArrayRef)
   void allocateBuffer(size_t count) override {}
   void zeroBuffer() override {}
-  void deserialize(const YAML::Node &node) override {}
   ArrayRef(NTA_BasicType type, std::shared_ptr<char> sharedBuffer, size_t count)
       : ArrayBase(type) {
     buffer_ = sharedBuffer;
