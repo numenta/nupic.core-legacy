@@ -1,0 +1,88 @@
+# This file sets the behavior for file line endings.
+# See https://help.github.com/articles/dealing-with-line-endings/
+#     https://adaptivepatchwork.com/2012/03/01/mind-the-end-of-your-line/
+#
+# In general for nupic.cpp repository, line endings should remain Linux oriented.
+# For Text files this will enforce use of lf rather than crlf in the repository.  
+# Doing so make it much easier to avoid unexpected whitespace changes.
+#
+# left column is a filename (or wildcard for filenames) for Git to match
+# right column is the line ending configuration that Git should use for those files.
+#
+# text=auto     -Git will handle the files in whatever way it thinks is best. 
+#                This is a good default option.  On windows machines it will convert
+#                to crlf on checkout but convert back to lf when commiiting to 
+#                repository. On linux and OSX platforms it keeps them as lf on 
+#                chckout and when committing.
+#
+# text eol=crlf -Git will always convert line endings to CRLF on checkout. You should 
+#                use this for files that must keep CRLF endings, even on OSX or Linux.
+#
+# text eol=lf   -Git will always convert line endings to LF on checkout. You should 
+#                use this for files that must keep LF endings, even on Windows.
+#
+# binary        -Git will understand that the files specified are not text, and it 
+#                should not try to change them. The binary setting is also an 
+#                alias for -text -diff.
+###################################
+
+# Set default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files you want to always by normalized and converted
+# to native line endings on checkout and back to lf on commit.
+*.c text
+*.h text
+*.cpp text
+*.hpp text
+*.py text
+*.sh text
+*.bat text
+*.cs text
+
+*.txt text
+*.log text
+*.md text
+*.xml text
+*.yml text
+*.csv text
+*.jsn text
+*.cfg text
+*.cmake text
+*.make text
+*.xslt text
+*.in text
+*.i text
+
+# Explicitly declare text files that you want to always have CRLF line endings.
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.* text eol=crlf
+
+# Denote all files that are truely binary and should not be modified.
+*.zip binary
+*.tar binary
+*.tar.gz binary
+*.bz2 binary
+*.7z binary
+*.obj binary
+*.o binary
+*.exe binary
+*.a binary
+*.lib binary
+*.so binary
+*.dll binary
+*.so binary
+*.dll binary
+*.pyc binary
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.avi binary
+*.mov binary
+*.mp4 binary
+*.mpg binary
+*.wmv binary
+
+
