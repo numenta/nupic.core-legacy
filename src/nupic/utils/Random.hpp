@@ -95,10 +95,12 @@ public:
     return !operator==(other);
   }
 
+  //main API methods:
   // return a value uniformly distributed between 0 and max-1
   inline UInt32 getUInt32(const UInt32 max = MAX32) {
     NTA_ASSERT(max > 0);
-    return dist_uint_32(gen) % max;
+    return dist_uint_32(gen) % max; //TODO the modulo % is not ideal, better use w/o param here, and supply max 
+    //constructor
   }
 
   inline UInt64 getUInt64(const UInt64 max = MAX64) {
@@ -181,7 +183,7 @@ private:
   std::uniform_int_distribution<UInt64> dist_uint_64;
   std::uniform_int_distribution<UInt32> dist_uint_32;
   std::uniform_real_distribution<Real64> dist_real_64;
-//FIXME   std::random_device rd; //HW random for random seed cases
+//  std::random_device rd; //HW random for random seed cases, undeterministic -> problems with op= and copy-constructor, therefore disabled
 
 
 };

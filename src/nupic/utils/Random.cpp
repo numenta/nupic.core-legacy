@@ -31,6 +31,7 @@
 
 using namespace nupic;
 
+
 void Random::reseed(UInt64 seed) {
   seed_ = seed;
   gen.seed(seed_);
@@ -48,7 +49,7 @@ bool Random::operator==(const Random &o) const {
 
 Random::Random(UInt64 seed) {
   if (seed == 0) {
-    seed_ = 7; //FIXME rd(); //generate random value from HW RNG
+    seed_ = gen(); //generate random value from HW RNG
   } else {
     seed_ = seed;
   }
