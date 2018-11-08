@@ -140,18 +140,7 @@ public:
   // randomly shuffle the elements
   template <class RandomAccessIterator>
   void shuffle(RandomAccessIterator first, RandomAccessIterator last) {
-    UInt n = (UInt)(last - first);
-    while (first != last) {
-      // Pick a random position between the current and the end to swap the
-      // current element with.
-      UInt i = getUInt32(n);
-      std::swap(*first, *(first + i));
-
-      // Move to the next element and decrement the number of possible
-      // positions remaining.
-      first++;
-      n--;
-    }
+    std::shuffle(first, last, gen);
   }
 
   // for STL compatibility

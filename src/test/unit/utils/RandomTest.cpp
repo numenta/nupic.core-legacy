@@ -391,17 +391,16 @@ TEST(RandomTest, Sampling) {
 
 TEST(RandomTest, Shuffling) {
   // tests for shuffling
-  Random r(42);
+  Random r(1);
   UInt32 arr[] = {1, 2, 3, 4};
+  const UInt32 exp[] = {3, 4, 2, 1};
 
-  UInt32 *start = arr;
-  UInt32 *end = start + 4;
-  r.shuffle(start, end);
+  r.shuffle(std::begin(arr), std::end(arr));
 
-  ASSERT_EQ(1, arr[0]) << "check element 0";
-  ASSERT_EQ(4, arr[1]) << "check element 1";
-  ASSERT_EQ(3, arr[2]) << "check element 2";
-  ASSERT_EQ(2, arr[3]) << "check element 3";
+  EXPECT_EQ(exp[0], arr[0]) << "check shuffle 0";
+  EXPECT_EQ(exp[1], arr[1]) << "check shuffle 1";
+  EXPECT_EQ(exp[2], arr[2]) << "check shuffle 2";
+  EXPECT_EQ(exp[3], arr[3]) << "check shuffle 3";
 }
 
 
