@@ -57,7 +57,7 @@ TEST(HelloSPTPTest, performance) {
   vector<UInt> outSP(COLS); // active array, output of SP/TP
 
   // initialize SP, TP
-  SpatialPooler sp(input, outSP);
+  SpatialPooler sp(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS});
   Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
 
