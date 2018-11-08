@@ -24,8 +24,6 @@
     Random Number Generator implementation
 */
 
-#include <cstdlib>
-#include <ctime>
 #include <nupic/os/Env.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
@@ -53,15 +51,7 @@ TRandom::TRandom(std::string name) {
       seed = 1;
     }
   } else {
-    // Seed the global rng from time().
-    // Don't seed subsequent ones from time() because several random
-    // number generators may be initialized within the same second.
-    // Instead, use the global rng.
-    if (theInstanceP_ == nullptr) {
-      seed = (UInt64)time(nullptr);
-    } else {
-      seed = (*Random::getSeeder())();
-    }
+    seed = 0; //will generate rng seed
   }
 
   if (Env::isOptionSet("random_debug")) {

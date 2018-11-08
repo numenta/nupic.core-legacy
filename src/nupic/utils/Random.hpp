@@ -28,9 +28,8 @@
 #define NTA_RANDOM_HPP
 
 #include <algorithm>
-#include <cstdlib>
+#include <random>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <nupic/types/Types.hpp>
@@ -38,10 +37,6 @@
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
-
-typedef UInt64 (*RandomSeedFuncPtr)();
-
-
 
 /**
  * @b Responsibility
@@ -52,8 +47,8 @@ typedef UInt64 (*RandomSeedFuncPtr)();
  * generation.
  *
  * @b Description
- * Functionality is similar to the standard random() function that is provided
- * by C.
+ * Functionality is similar to the standard random function that is provided
+ * by C++ Uniform Random Distribution.
  *
  * Each Random object is a random number generator. There are three ways of
  * creating one:
@@ -76,54 +71,17 @@ typedef UInt64 (*RandomSeedFuncPtr)();
  * reproducibility in the case that a test failure is triggered by a particular
  * seed.
  *
- * Random should not be used if cryptographic strength is required (e.g. for
- * generating a challenge in an authentication scheme).
- *
  * @todo Add ability to specify different rng algorithms.
+ *
+ * API:
+ * there are 2 main functions,
+ * getReal()
+ * getUInt()
+ *
  */
-class RandomImpl {
+class Random : public Serializable  {
 public:
-  RandomImpl(UInt64 seed);
-  ~RandomImpl(){};
-  UInt32 getUInt32();
-  bool operator==(const RandomImpl &o) const;
-  inline bool operator!=(const RandomImpl &other) const {
-    return !operator==(other);
-  }
-  // Note: copy constructor and operator= are needed
-  // The default is ok.
-private:
-  friend std::ostream &operator<<(std::ostream &outStream, const RandomImpl &r);
-  friend std::istream &operator>>(std::istream &inStream, RandomImpl &r);
-  static const UInt32 VERSION = 2;
-  // internal state
-  static const int stateSize_ = 31;
-  static const int sep_ = 3;
-  UInt32 state_[stateSize_];
-  int rptr_;
-  int fptr_;
-};
-
-
-
-
-class Random : public Serializable {
-public:
-  /**
-   * Retrieve the seeder. If seeder not set, allocates the
-   * singleton and and initializes the seeder.
-   */
-  static RandomSeedFuncPtr getSeeder();
-
   Random(UInt64 seed = 0);
-
-  // support copy constructor and operator= -- these require non-default
-  // implementations because of the impl_ pointer.
-  // They do a deep copy of impl_ so that an RNG and its copy generate the
-  // same set of numbers.
-  Random(const Random &);
-  Random &operator=(const Random &);
-  ~Random();
 
   // save and load serialized data
   virtual void save(std::ostream &stream) const override { stream << *this; }
@@ -138,10 +96,20 @@ public:
   }
 
   // return a value uniformly distributed between 0 and max-1
-  UInt32 getUInt32(UInt32 max = MAX32);
-  UInt64 getUInt64(UInt64 max = MAX64);
+  inline UInt32 getUInt32(const UInt32 max = MAX32) {
+    NTA_ASSERT(max > 0);
+    return dist_uint_32(gen) % max;
+  }
+
+  inline UInt64 getUInt64(const UInt64 max = MAX64) {
+    NTA_ASSERT(max > 0);
+    return dist_uint_64(gen) % max;
+  }
+
   // return a double uniformly distributed on 0...1.0
-  Real64 getReal64();
+  inline double getReal64() {
+    return dist_real_64(gen);
+  }
 
   // populate choices with a random selection of nChoices elements from
   // population. throws exception when nPopulation < nChoices
@@ -188,43 +156,34 @@ public:
   UInt32 operator()(UInt32 n = MAX32) { return getUInt32(n); }
 
   // normally used for debugging only
-  UInt64 getSeed() { return seed_; }
+  UInt64 getSeed() const { return seed_; }
 
   // for STL
   typedef UInt32 argument_type;
   typedef UInt32 result_type;
 
-  result_type max() { return MAX32; }
-  result_type min() { return 0; }
+  result_type max() const { return MAX32; }
+  result_type min() const { return 0; }
 
   static const UInt32 MAX32 = (UInt32)((Int32)(-1));
   static const UInt64 MAX64 = (UInt64)((Int64)(-1));
 
-  // called by the plugin framework so that plugins
-  // get the "global" seeder
-  static void initSeeder(const RandomSeedFuncPtr r);
-
-  static void shutdown();
-
 protected:
-  // each "universe" (application/plugin/python module) has its own instance,
-  // but the instance should be NULL in all but one
-  static Random *theInstanceP_;
-  // seeder_ is a function called by the constructor to get new random seeds
-  // If not set when we call Random constructor, then the singleton is allocated
-  // and seeder_ is set to a function that uses our singleton
-  // initFromPlatformServices can also be used to initialize the seeder_
-  static RandomSeedFuncPtr seeder_;
-
   void reseed(UInt64 seed);
-
-  RandomImpl *impl_;
   UInt64 seed_;
 
   friend class RandomTest;
   friend std::ostream &operator<<(std::ostream &, const Random &);
   friend std::istream &operator>>(std::istream &, Random &);
   friend UInt64 GetRandomSeed();
+private:
+  std::mt19937_64 gen; //Standard mersenne_twister_engine 64bit seeded with seed_
+  std::uniform_int_distribution<UInt64> dist_uint_64;
+  std::uniform_int_distribution<UInt32> dist_uint_32;
+  std::uniform_real_distribution<Real64> dist_real_64;
+//FIXME   std::random_device rd; //HW random for random seed cases
+
+
 };
 
 // serialization/deserialization
