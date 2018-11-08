@@ -85,10 +85,10 @@ public:
   Random(UInt64 seed = 0);
 
   // save and load serialized data
-  virtual void save(std::ostream &stream) const override { stream << *this; }
-  virtual void load(std::istream &stream) override { stream >> *this; }
-  virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
-  virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
+  void save(std::ostream &stream) const override { stream << *this; }
+  void load(std::istream &stream) override { stream >> *this; }
+  void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+  void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
 
   bool operator==(const Random &other) const;

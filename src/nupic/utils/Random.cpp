@@ -70,7 +70,7 @@ std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << r.dist_uint_32 << " ";
   outStream << r.dist_uint_64 << " ";
   outStream << r.dist_real_64 << " ";
-  outStream << " endrandom-v2 ";
+  outStream << "endrandom-v2 ";
   return outStream;
 }
 
@@ -82,7 +82,7 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
   NTA_CHECK(version == "random-v2") << "Random() deserializer -- found unexpected version string '"
               << version << "'";
   inStream >> r.seed_;
-
+  inStream >> r.gen;
   inStream >> r.dist_uint_32;
   inStream >> r.dist_uint_64;
   inStream >> r.dist_real_64;
