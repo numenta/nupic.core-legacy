@@ -27,7 +27,6 @@
 
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
-#include <nupic/utils/StringUtils.hpp>
 
 using namespace nupic;
 
@@ -65,13 +64,13 @@ Random::Random(UInt64 seed) {
 
 namespace nupic {
 std::ostream &operator<<(std::ostream &outStream, const Random &r) {
-  outStream << "random-v1 ";
+  outStream << "random-v2" << " ";
   outStream << r.seed_ << " ";
   outStream << r.gen << " ";
   outStream << r.dist_uint_32 << " ";
   outStream << r.dist_uint_64 << " ";
   outStream << r.dist_real_64 << " ";
-  outStream << " endrandom-v1 ";
+  outStream << " endrandom-v2 ";
   return outStream;
 }
 
@@ -80,10 +79,8 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
   std::string version;
 
   inStream >> version;
-  if (version != "random-v1") {
-    NTA_THROW << "Random() deserializer -- found unexpected version string '"
+  NTA_CHECK(version == "random-v2") << "Random() deserializer -- found unexpected version string '"
               << version << "'";
-  }
   inStream >> r.seed_;
 
   inStream >> r.dist_uint_32;
@@ -92,9 +89,7 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
 
   std::string endtag;
   inStream >> endtag;
-  if (endtag != "endrandom-v1") {
-    NTA_THROW << "Random() deserializer -- found unexpected end tag '" << endtag  << "'";
-  }
+  NTA_CHECK(endtag == "endrandom-v2") << "Random() deserializer -- found unexpected end tag '" << endtag  << "'";
   inStream.ignore(1);
 
   return inStream;

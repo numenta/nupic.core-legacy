@@ -28,6 +28,7 @@
 #define NTA_RANDOM_HPP
 
 #include <algorithm>
+#include <iterator>
 #include <random>
 #include <string>
 #include <vector>
@@ -116,24 +117,18 @@ public:
   // populate choices with a random selection of nChoices elements from
   // population. throws exception when nPopulation < nChoices
   // templated functions must be defined in header
+  //TODO replace with std::sample in c++17 : https://en.cppreference.com/w/cpp/algorithm/sample 
   template <typename T>
-  void sample(T population[], UInt32 nPopulation, T choices[],
-              UInt32 nChoices) {
+  void sample(const T population[], const UInt32 nPopulation, T choices[],
+              const UInt32 nChoices) {
     if (nChoices == 0) {
       return;
     }
-    if (nChoices > nPopulation) {
-      NTA_THROW << "population size must be greater than number of choices";
-    }
-    UInt32 nextChoice = 0;
-    for (UInt32 i = 0; i < nPopulation; ++i) {
-      if (getUInt32(nPopulation - i) < (nChoices - nextChoice)) {
-        choices[nextChoice] = population[i];
-        ++nextChoice;
-        if (nextChoice == nChoices) {
-          break;
-        }
-      }
+    NTA_CHECK(nChoices <= nPopulation) << "population size must be greater than number of choices";
+    std::vector<T> pop(population, population + nPopulation); //deep copy
+    shuffle(std::begin(pop), std::end(pop));
+    for(UInt i = 0; i< nChoices; i++) {
+	    choices[i] = pop[i];
     }
   }
 
