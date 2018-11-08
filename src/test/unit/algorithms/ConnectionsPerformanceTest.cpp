@@ -20,6 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
+#include "gtest/gtest.h"
+
 /** @file
  * Implementation of performance tests for Connections
  */
@@ -34,53 +36,15 @@
 
 #include "ConnectionsPerformanceTest.hpp"
 
+namespace testing { 
+
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::temporal_memory;
-using namespace nupic::algorithms::connections;
+using nupic::algorithms::connections::Segment;
 
 #define SEED 42
 
-namespace nupic {
-
-void ConnectionsPerformanceTest::RunTests() {
-  srand(SEED);
-
-  testTemporalMemoryUsage();
-  testLargeTemporalMemoryUsage();
-  testSpatialPoolerUsage();
-  testTemporalPoolerUsage();
-}
-
-/**
- * Tests typical usage of Connections with Temporal Memory.
- */
-void ConnectionsPerformanceTest::testTemporalMemoryUsage() {
-  runTemporalMemoryTest(2048, 40, 5, 100, "temporal memory");
-}
-
-/**
- * Tests typical usage of Connections with a large Temporal Memory.
- */
-void ConnectionsPerformanceTest::testLargeTemporalMemoryUsage() {
-  runTemporalMemoryTest(16384, 328, 3, 40, "temporal memory (large)");
-}
-
-/**
- * Tests typical usage of Connections with Spatial Pooler.
- */
-void ConnectionsPerformanceTest::testSpatialPoolerUsage() {
-  runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
-}
-
-/**
- * Tests typical usage of Connections with Temporal Pooler.
- */
-void ConnectionsPerformanceTest::testTemporalPoolerUsage() {
-  runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
-}
-
-void ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
+float ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
                                                        int numSequences,
                                                        int numElements,
                                                        string label) {
@@ -130,10 +94,11 @@ void ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
     }
   }
 
-  checkpoint(timer, label + ": initialize + learn + test");
+  const float totalTime = checkpoint(timer, label + ": initialize + learn + test");
+  return totalTime;
 }
 
-void ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
+float ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
                                                       UInt numInputs, UInt w,
                                                       UInt numWinners,
                                                       string label) {
@@ -220,20 +185,24 @@ void ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
                                        numActiveConnectedSynapsesForSegment);
   }
 
-  checkpoint(timer, label + ": initialize + learn + test");
+  const float totalTime = checkpoint(timer, label + ": initialize + learn + test");
+  return totalTime;
 }
 
-void ConnectionsPerformanceTest::checkpoint(clock_t timer, string text) {
-  float duration = (float)(clock() - timer) / CLOCKS_PER_SEC;
+
+float ConnectionsPerformanceTest::checkpoint(clock_t timer, string text) {
+  const float duration = (float)(clock() - timer) / CLOCKS_PER_SEC;
   cout << duration << " in " << text << endl;
+  return duration;
 }
+
 
 vector<CellIdx> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w) {
   set<UInt> sdrSet = set<UInt>();
   vector<CellIdx> sdr;
 
   for (UInt i = 0; i < w; i++) {
-    sdrSet.insert(rand() % (UInt)n);
+    sdrSet.insert(rand() % (UInt)n); //TODO use our Random
   }
 
   for (UInt c : sdrSet) {
@@ -242,6 +211,7 @@ vector<CellIdx> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w) {
 
   return sdr;
 }
+
 
 void ConnectionsPerformanceTest::feedTM(TemporalMemory &tm, vector<CellIdx> sdr,
                                         bool learn) {
@@ -253,6 +223,7 @@ void ConnectionsPerformanceTest::feedTM(TemporalMemory &tm, vector<CellIdx> sdr,
 
   tm.compute(activeColumns.size(), activeColumns.data(), learn);
 }
+
 
 vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
     Connections &connections, UInt numCells,
@@ -280,9 +251,46 @@ vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
   return vector<CellIdx>(winnerCells.begin(), winnerCells.end());
 }
 
-} // end namespace nupic
 
-int main(int argc, char *argv[]) {
-  ConnectionsPerformanceTest test = ConnectionsPerformanceTest();
-  test.RunTests();
+
+// TESTS
+ConnectionsPerformanceTest t;
+
+void SetUp() {
+  srand(SEED);
+  t = testing::ConnectionsPerformanceTest();
 }
+
+/**
+ * Tests typical usage of Connections with Temporal Memory.
+ */
+TEST(ConnectionsPerformanceTest, testTM) {
+	auto tim = t.runTemporalMemoryTest(2048, 40, 20, 100, "temporal memory");
+	ASSERT_LE(tim, 3.5f); //there are times, we must be better. Bit underestimated for slow CI
+}
+
+/**
+ * Tests typical usage of Connections with a large Temporal Memory.
+ */
+TEST(ConnectionsPerformanceTest, testTMLarge) {
+  auto tim = t.runTemporalMemoryTest(16384, 328, 20, 100, "temporal memory (large)");
+  ASSERT_LE(tim, 28.0f);
+}
+
+/**
+ * Tests typical usage of Connections with Spatial Pooler.
+ */
+TEST(ConnectionsPerformanceTest, testSP) {
+  auto tim = t.runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+  ASSERT_LE(tim, 10.0f);
+}
+
+/**
+ * Tests typical usage of Connections with Temporal Pooler.
+ */
+TEST(ConnectionsPerformanceTest, testTP) {
+  auto tim = t.runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
+  ASSERT_LE(tim, 125.0f);
+}
+
+} // end namespace 
