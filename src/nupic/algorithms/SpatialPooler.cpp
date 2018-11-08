@@ -375,6 +375,7 @@ void SpatialPooler::initialize(
   numInputs_ = 1;
   inputDimensions_.clear();
   for (auto &inputDimension : inputDimensions) {
+    NTA_CHECK(inputDimension > 0) << "Input dimensions must be positive integers!";
     numInputs_ *= inputDimension;
     inputDimensions_.push_back(inputDimension);
   }
@@ -382,6 +383,7 @@ void SpatialPooler::initialize(
   numColumns_ = 1;
   columnDimensions_.clear();
   for (auto &columnDimension : columnDimensions) {
+    NTA_CHECK(columnDimension > 0) << "Column dimensions must be positive integers!"; 
     numColumns_ *= columnDimension;
     columnDimensions_.push_back(columnDimension);
   }
