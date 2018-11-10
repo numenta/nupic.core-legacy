@@ -28,11 +28,11 @@
 
 #include <fstream>
 #include <iostream>
-#include <stdlib.h>
 #include <time.h>
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/utils/Random.hpp>
 
 #include "ConnectionsPerformanceTest.hpp"
 
@@ -43,6 +43,8 @@ using namespace nupic;
 using nupic::algorithms::connections::Segment;
 
 #define SEED 42
+
+Random rng(SEED);
 
 float ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
                                                        int numSequences,
@@ -114,8 +116,7 @@ float ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
     segment = connections.createSegment(c);
 
     for (UInt i = 0; i < numInputs; i++) {
-      const Permanence permanence =
-          max((Permanence)0.000001, (Permanence)rand() / RAND_MAX);
+      const Permanence permanence = (Permanence)rng.getReal64();
       connections.createSynapse(segment, i, permanence);
     }
   }
@@ -202,7 +203,7 @@ vector<CellIdx> ConnectionsPerformanceTest::randomSDR(UInt n, UInt w) {
   vector<CellIdx> sdr;
 
   for (UInt i = 0; i < w; i++) {
-    sdrSet.insert(rand() % (UInt)n); //TODO use our Random
+    sdrSet.insert(rng.getUInt32(n));
   }
 
   for (UInt c : sdrSet) {
@@ -260,7 +261,6 @@ const UInt EPOCHS = 20; //epochs tests run
 const UInt COLS = 2048; //standard num of columns in SP/TM
 
 void SetUp() {
-  srand(SEED);
   t = testing::ConnectionsPerformanceTest();
 }
 
