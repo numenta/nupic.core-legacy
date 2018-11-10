@@ -255,6 +255,9 @@ vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
 
 // TESTS
 ConnectionsPerformanceTest t;
+const UInt SEQ = 100; //number of sequences ran in tests
+const UInt EPOCHS = 20; //epochs tests run
+const UInt COLS = 2048; //standard num of columns in SP/TM
 
 void SetUp() {
   srand(SEED);
@@ -263,9 +266,10 @@ void SetUp() {
 
 /**
  * Tests typical usage of Connections with Temporal Memory.
+ * format is: COLS, W(bits), EPOCHS, SEQUENCES
  */
 TEST(ConnectionsPerformanceTest, testTM) {
-	auto tim = t.runTemporalMemoryTest(2048, 40, 20, 100, "temporal memory");
+	auto tim = t.runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
 	ASSERT_LE(tim, 3.5f); //there are times, we must be better. Bit underestimated for slow CI
 }
 
@@ -273,15 +277,15 @@ TEST(ConnectionsPerformanceTest, testTM) {
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  auto tim = t.runTemporalMemoryTest(16384, 328, 20, 100, "temporal memory (large)");
-  ASSERT_LE(tim, 28.0f);
+  auto tim = t.runTemporalMemoryTest(2*COLS, 328, 10, SEQ, "temporal memory (large)");
+  ASSERT_LE(tim, 7.0f);
 }
 
 /**
  * Tests typical usage of Connections with Spatial Pooler.
  */
 TEST(ConnectionsPerformanceTest, testSP) {
-  auto tim = t.runSpatialPoolerTest(2048, 2048, 40, 40, "spatial pooler");
+  auto tim = t.runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
   ASSERT_LE(tim, 10.0f);
 }
 
@@ -289,8 +293,8 @@ TEST(ConnectionsPerformanceTest, testSP) {
  * Tests typical usage of Connections with Temporal Pooler.
  */
 TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = t.runSpatialPoolerTest(2048, 16384, 40, 400, "temporal pooler");
-  ASSERT_LE(tim, 125.0f);
+  auto tim = t.runSpatialPoolerTest(COLS, 16384, 10, SEQ, "temporal pooler");
+  ASSERT_LE(tim, 80.0f);
 }
 
 } // end namespace 
