@@ -252,7 +252,7 @@ vector<CellIdx> ConnectionsPerformanceTest::computeSPWinnerCells(
 }
 
 
-
+#ifdef NDEBUG //disable performance tests in debug mode
 // TESTS
 ConnectionsPerformanceTest t;
 const UInt SEQ = 100; //number of sequences ran in tests
@@ -296,5 +296,6 @@ TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = t.runSpatialPoolerTest(COLS, 16384, 10, SEQ, "temporal pooler");
   ASSERT_LE(tim, 80.0f);
 }
+#endif //DEBUG
 
 } // end namespace 
