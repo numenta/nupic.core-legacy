@@ -28,11 +28,11 @@
 
 #include <fstream>
 #include <iostream>
-#include <time.h>
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
 #include <nupic/utils/Random.hpp>
+#include <nupic/os/Timer.hpp>
 
 #include "ConnectionsPerformanceTest.hpp"
 
@@ -50,7 +50,7 @@ float ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
                                                        int numSequences,
                                                        int numElements,
                                                        string label) {
-  clock_t timer = clock();
+  Timer timer(true);
 
   // Initialize
 
@@ -59,7 +59,7 @@ float ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
   columnDim.push_back(numColumns);
   tm.initialize(columnDim);
 
-  checkpoint(timer, label + ": initialize");
+  cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
 
   // Learn
 
@@ -85,7 +85,7 @@ float ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
     }
   }
 
-  checkpoint(timer, label + ": initialize + learn");
+  cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
 
   // Test
 
@@ -96,15 +96,17 @@ float ConnectionsPerformanceTest::runTemporalMemoryTest(UInt numColumns, UInt w,
     }
   }
 
-  const float totalTime = checkpoint(timer, label + ": initialize + learn + test");
-  return totalTime;
+  cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
+  timer.stop();
+  return timer.getElapsed();
 }
 
 float ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
                                                       UInt numInputs, UInt w,
                                                       UInt numWinners,
                                                       string label) {
-  clock_t timer = clock();
+  Timer timer;
+  timer.start();
 
   Connections connections(numCells);
   Segment segment;
@@ -121,7 +123,7 @@ float ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
     }
   }
 
-  checkpoint(timer, label + ": initialize");
+  cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
 
   // Learn
 
@@ -170,7 +172,7 @@ float ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
     }
   }
 
-  checkpoint(timer, label + ": initialize + learn");
+  cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
 
   // Test
 
@@ -186,15 +188,9 @@ float ConnectionsPerformanceTest::runSpatialPoolerTest(UInt numCells,
                                        numActiveConnectedSynapsesForSegment);
   }
 
-  const float totalTime = checkpoint(timer, label + ": initialize + learn + test");
-  return totalTime;
-}
-
-
-float ConnectionsPerformanceTest::checkpoint(clock_t timer, string text) {
-  const float duration = (float)(clock() - timer) / CLOCKS_PER_SEC;
-  cout << duration << " in " << text << endl;
-  return duration;
+  cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
+  timer.stop();
+  return timer.getElapsed();
 }
 
 

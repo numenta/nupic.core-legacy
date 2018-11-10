@@ -53,7 +53,6 @@ public:
                             UInt numWinners, std::string label);
 
 private:
-  float checkpoint(clock_t timer, std::string text);
   std::vector<UInt32> randomSDR(UInt n, UInt w);
   void feedTM(algorithms::temporal_memory::TemporalMemory &tm,
               std::vector<CellIdx> sdr, bool learn = true);
