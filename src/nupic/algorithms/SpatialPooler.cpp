@@ -375,6 +375,7 @@ void SpatialPooler::initialize(
   numInputs_ = 1;
   inputDimensions_.clear();
   for (auto &inputDimension : inputDimensions) {
+    NTA_CHECK(inputDimension > 0) << "Input dimensions must be positive integers!";
     numInputs_ *= inputDimension;
     inputDimensions_.push_back(inputDimension);
   }
@@ -382,6 +383,7 @@ void SpatialPooler::initialize(
   numColumns_ = 1;
   columnDimensions_.clear();
   for (auto &columnDimension : columnDimensions) {
+    NTA_CHECK(columnDimension > 0) << "Column dimensions must be positive integers!"; 
     numColumns_ *= columnDimension;
     columnDimensions_.push_back(columnDimension);
   }
@@ -962,27 +964,31 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
   const UInt numDesired = (UInt)(density * numColumns_);
   NTA_CHECK(numDesired > 0) << "Not enough columns (" << numColumns_ << ") "
                             << "for desired density (" << density << ").";
-
+  // Sort the columns by the amount of overlap.  First make a list of all of the
+  // column indexes.
   activeColumns.reserve(numColumns_);
   for(UInt i = 0; i < numColumns_; i++)
     activeColumns.push_back(i);
+  // Compare the column indexes by their overlap.
   auto compare = [&overlaps](const UInt &a, const UInt &b) -> bool
     {return overlaps[a] > overlaps[b];};
+  // Do a partial sort to divide the winners from the losers.  This sort is
+  // faster than a regular sort because it stops after it partitions the
+  // elements about the Nth element, with all elements on their correct side of
+  // the Nth element.
   std::nth_element(
     activeColumns.begin(),
     activeColumns.begin() + numDesired,
     activeColumns.end(),
     compare);
+  // Remove the columns which lost the competition.
   activeColumns.resize(numDesired);
+  // Finish sorting the winner columns by their overlap.
   std::sort(activeColumns.begin(), activeColumns.end(), compare);
-
   // Remove sub-threshold winners
-  while(!activeColumns.empty()) {
-    if(overlaps[activeColumns.back()] < stimulusThreshold_)
+  while( !activeColumns.empty() &&
+         overlaps[activeColumns.back()] < stimulusThreshold_)
       activeColumns.pop_back();
-    else
-      break;
-  }
 }
 
 void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,

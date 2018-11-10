@@ -50,6 +50,8 @@
 #include <string>
 #include <vector>
 
+#include "gtest/gtest.h"
+
 bool ignore_negative_tests = false;
 #define SHOULDFAIL(statement)                                                  \
   {                                                                            \
@@ -480,7 +482,8 @@ int realmain(bool leakTest) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
+TEST(PyRegionTest, testAll) { //TODO former main method, could be splitted into separate tests
+
   // This isn't running inside one of the SWIG modules, so we need to
   // initialize the numpy C API.
   Py_Initialize();
@@ -504,14 +507,6 @@ int main(int argc, char *argv[]) {
    * grow by even one byte.
    */
 
-  // TODO: real argument parsing
-  // Optional arg is number of iterations to do.
-  NTA_CHECK(argc == 1 || argc == 2);
-  size_t count = 1;
-  if (argc == 2) {
-    std::stringstream ss(argv[1]);
-    ss >> count;
-  }
   // Start checking memory usage after this many iterations.
 #if defined(NTA_OS_WINDOWS)
   // takes longer to settle down on win32
@@ -525,6 +520,8 @@ int main(int argc, char *argv[]) {
 
   size_t minCount = memoryLeakStartIter + 5 * memoryLeakDeltaIterCheck;
 
+  size_t count = 0; //no mem leak detection, set to minCount if needed
+
   if (count > 1 && count < minCount) {
     std::cout << "Run count of " << count << " specified\n";
     std::cout << "When run in leak detection mode, count must be at least "
@@ -536,7 +533,6 @@ int main(int argc, char *argv[]) {
   size_t initial_rmem = 0;
   size_t current_vmem = 0;
   size_t current_rmem = 0;
-  try {
     for (size_t i = 0; i < count; i++) {
       // MemoryMonitor m;
       NuPIC::init();
@@ -572,23 +568,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-  } catch (nupic::Exception &e) {
-    std::cout << "Exception: " << e.getMessage() << " at: " << e.getFilename()
-              << ":" << e.getLineNumber() << std::endl;
-    return 1;
-
-  } catch (std::exception &e) {
-    std::cout << "Exception: " << e.what() << "" << std::endl;
-    return 1;
-  } catch (...) {
-    std::cout << "\nhtmtest is exiting because an exception was thrown"
-              << std::endl;
-    return 1;
-  }
   if (count > 20)
-    std::cout << "Memory leak check passed -- " << count << " iterations"
-              << std::endl;
-
+    std::cout << "Memory leak check passed -- " << count << " iterations" << std::endl;
   std::cout << "--- ALL TESTS PASSED ---" << std::endl;
-  return 0;
 }
