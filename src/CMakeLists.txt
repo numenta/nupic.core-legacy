@@ -299,7 +299,6 @@ set(src_nupiccore_srcs
     nupic/utils/MovingAverage.cpp
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
-    nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs

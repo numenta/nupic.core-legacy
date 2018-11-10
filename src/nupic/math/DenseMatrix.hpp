@@ -32,7 +32,7 @@
 #include <vector>
 
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/utils/TRandom.hpp>
+#include <nupic/utils/Random.hpp>
 
 namespace nupic {
 
@@ -50,7 +50,7 @@ template <typename Int, typename Float> struct Dense {
   Dense(Int nr = 0, Int nc = 0) : nrows(nr), ncols(nc), m(nr * nc, 0) {}
 
   Dense(Int nr, Int nc, Int nzr, bool small = false, bool emptyRows = false,
-        TRandom *r = nullptr)
+        Random *r = nullptr)
       : nrows(nr), ncols(nc), m(nr * nc, 0) {
     if (small) {
       NTA_CHECK(r != nullptr)
