@@ -1938,9 +1938,7 @@ struct serializedState_t {
 //--------------------------------------------------------------------------------
 void Cells4::save(std::ostream &outStream) const {
   // Check invariants for smaller networks or if explicitly requested
-  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
-    NTA_CHECK(invariants(true));
-  }
+  NTA_CHECK(invariants(true));
 
   // Capture the class variables and write them as a binary block.
   struct serializedState_t self;
@@ -2268,9 +2266,7 @@ void Cells4::load(std::istream &inStream) {
   rebuildOutSynapses();
 
   // Check invariants for smaller networks or if explicitly requested
-  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
-    NTA_CHECK(invariants(true));
-  }
+  NTA_CHECK(invariants(true));
 
   // Update the version after loading everything.
   _version = VERSION;
