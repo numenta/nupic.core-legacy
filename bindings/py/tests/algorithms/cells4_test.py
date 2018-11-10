@@ -131,12 +131,13 @@ class Cells4Test(unittest.TestCase):
     return result
 
 
-  def _testPersistence(self, cells):
-    """This will pickle the cells instance, unpickle it, and test to ensure
+  def _testPersistencePy(self, cells):
+    """This will pickle(Python serialization method) the cells instance, 
+       unpickle it, and test to ensure
     the unpickled instance is identical to the pre-pickled version.
     """
+    #pickle serialize in Py way
     file1 = "test.pkl"
-    file2 = "test2.bin"
     pickle.dump(cells, open(file1, "wb"))
     cells2 = pickle.load(open(file1))
 
@@ -147,17 +148,24 @@ class Cells4Test(unittest.TestCase):
         ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
         try:
           r1, r2 = ff1(), ff2()
+          resultsEqual = (r1 == r2)
         except (NotImplementedError, RuntimeError, TypeError, ValueError):
           continue
         print "For ", f1, "'", r1,"' == '",r2,"'"
-        self.assertTrue(r1 == r2, "Cells do not match!")
+        self.assertTrue(resultsEqual, "Pickle: Cells do not match!")
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
 
     os.unlink(file1)
 
+  def _testPersistenceCpp(self, cells):
+    """This will serialize (using c++ serialization) the cells instance, 
+       unpickle it, and test to ensure
+    the unpickled instance is identical to the pre-pickled version.
+    """
     # Now try the Cells4.saveToFile method.
+    file2 = "test2.bin"
     cells.saveToFile(file2)
     cells2 = Cells4()
     cells2.loadFromFile(file2)
@@ -171,13 +179,14 @@ class Cells4Test(unittest.TestCase):
         ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
         try:
           r1, r2 = ff1(), ff2()
+          resultsEqual = (r1 == r2)
         except (NotImplementedError, RuntimeError, TypeError, ValueError):
           continue
-        self.assertEquals(r1, r2, "Cells do not match.")
+        print "For ", f1, "'", r1,"' == '",r2,"'"
+        self.assertTrue(resultsEqual, "C++ save(): Cells do not match.")
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
-
     os.unlink(file2)
 
 
@@ -247,14 +256,17 @@ class Cells4Test(unittest.TestCase):
 
     cells.rebuildOutSynapses()
 	
-    self._testPersistence(cells)
+    self._testPersistenceCpp(cells)
+    self._testPersistencePy(cells)
 
     for i in xrange(100):
       x = numpy.zeros(nCols, dtype="uint32")
       _RGEN.initializeUInt32Array(x, 2)
       cells.compute(x, True, False)
 
-    self._testPersistence(cells)
+    self._testPersistenceCpp(cells)
+    self._testPersistencePy(cells)
+
 
   def testEquals(self):
     nCols = 10
