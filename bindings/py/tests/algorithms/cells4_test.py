@@ -147,10 +147,10 @@ class Cells4Test(unittest.TestCase):
         ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
         try:
           r1, r2 = ff1(), ff2()
-          resultsEqual = (r1 == r2)
         except (NotImplementedError, RuntimeError, TypeError, ValueError):
           continue
-        self.assertTrue(resultsEqual, "Cells do not match.")
+        print "For ", f1, "'", r1,"' == '",r2,"'"
+        self.assertTrue(r1 == r2, "Cells do not match!")
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
@@ -171,10 +171,9 @@ class Cells4Test(unittest.TestCase):
         ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
         try:
           r1, r2 = ff1(), ff2()
-          resultsEqual = (r1 == r2)
         except (NotImplementedError, RuntimeError, TypeError, ValueError):
           continue
-        self.assertTrue(resultsEqual, "Cells do not match.")
+        self.assertEquals(r1, r2, "Cells do not match.")
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
@@ -231,7 +230,7 @@ class Cells4Test(unittest.TestCase):
     cells.setPamLength(pamLength)
     cells.setMaxAge(maxAge)
     cells.setMaxInfBacktrack(4)
-    cells.setVerbosity(4)
+    cells.setVerbosity(0)
 
     for i in xrange(nCols):
       for j in xrange(nCellsPerCol):
