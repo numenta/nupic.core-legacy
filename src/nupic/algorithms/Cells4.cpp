@@ -127,6 +127,7 @@ static void printActiveColumns(std::ostream &out,
 }
 
 static void printCell(UInt srcCellIdx, UInt nCellsPerCol) {
+  NTA_ASSERT(nCellsPerCol != 0) << "cannot be 0, division by zero!";
   UInt col = (UInt)(srcCellIdx / nCellsPerCol);
   UInt cell = srcCellIdx - col * nCellsPerCol;
   std::cout << "[" << col << "," << cell << "]  ";
@@ -2915,7 +2916,7 @@ void Cells4::printConfidence(Real *confidence, size_t len) const {
 void Cells4::dumpSegmentUpdates() {
   std::cout << _segmentUpdates.size() << " updates" << std::endl;
   for (UInt i = 0; i != _segmentUpdates.size(); ++i) {
-    _segmentUpdates[i].print(std::cout, true);
+    _segmentUpdates[i].print(std::cout, true, nCellsPerCol()); 
     std::cout << std::endl;
   }
 }
