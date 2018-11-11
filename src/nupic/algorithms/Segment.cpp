@@ -328,8 +328,8 @@ void Segment::freeNSynapses(UInt numToFree,
                             std::vector<UInt> &activeSegmentIndices,
                             std::vector<UInt> &removed, UInt verbosity,
                             UInt nCellsPerCol, Real permMax) {
-  NTA_CHECK(inactiveSegmentIndices.size() == inactiveSynapseIndices.size());
-  NTA_CHECK(activeSegmentIndices.size() == activeSynapseIndices.size());
+  NTA_ASSERT(inactiveSegmentIndices.size() == inactiveSynapseIndices.size());
+  NTA_ASSERT(activeSegmentIndices.size() == activeSynapseIndices.size());
   NTA_ASSERT(numToFree <= _synapses.size());
   NTA_ASSERT(numToFree <=
              (inactiveSegmentIndices.size() + activeSegmentIndices.size()));

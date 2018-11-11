@@ -412,6 +412,7 @@ public:
   inline bool operator!=(const Cells4 &other) const {
     return !operator==(other);
   }
+  bool equals(const Cells4 &other) const { return operator==(other); }
 
   //----------------------------------------------------------------------
   UInt version() const { return _version; }

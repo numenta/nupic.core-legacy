@@ -1694,7 +1694,7 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
     segment.updateSynapses(synToInc, _permInc, _permMax, _permConnected,
                            removed);
     // Incrementing of permanences shouldn't remove synapses
-    NTA_CHECK(removed.size() == numRemovedBeforePermInc);
+    NTA_ASSERT(removed.size() == numRemovedBeforePermInc);
 
     // If we have fixed resources, get rid of some old synapses, if necessary
     if ((_maxSynapsesPerSegment > 0) &&
