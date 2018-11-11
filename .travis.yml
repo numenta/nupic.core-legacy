@@ -112,10 +112,10 @@ install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
   - "cmake --version"
   # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release -DPY_EXTENSIONS_DIR=$TRAVIS_BUILD_DIR/bindings/py/src/nupic/bindings"
+  - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release -DPY_EXTENSIONS_DIR=$TRAVIS_BUILD_DIR/bindings/py/src/nupic/bindings"
   # Configure bash such that a failure in any link in the pipe causes the whole pipe to fail
   - "set -o pipefail"
-  - "VERBOSE=1 make|grep -v -F '\\-\\- Installing:'"
+  - "VERBOSE=1 make -j4 |grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
   # TODO later remove, --prefix= is workaround for https://stackoverflow.com/questions/4495120/combine-user-with-prefix-error-with-setup-py-install
