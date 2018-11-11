@@ -41,12 +41,11 @@ bool Random::operator==(const Random &o) const {
   return seed_ == o.seed_ && \
 	 gen == o.gen && \
 	 dist_uint_32 == o.dist_uint_32 && \
-	 dist_uint_64 == o.dist_uint_64 && \
 	 dist_real_64 == o.dist_real_64;
 }
 
 
-Random::Random(UInt64 seed) {
+Random::Random(UInt64 seed, const UInt32 max32) {
   if (seed == 0) {
     seed_ = gen(); //generate random value from HW RNG
   } else {
@@ -56,8 +55,8 @@ Random::Random(UInt64 seed) {
   NTA_CHECK(seed_ != 0);
   reseed(seed_);
   //distribution ranges
-  dist_uint_64 = std::uniform_int_distribution<UInt64>(0, MAX64);
-  dist_uint_32 = std::uniform_int_distribution<UInt32>(0, MAX32);
+  NTA_CHECK(max32 > 0);
+  dist_uint_32 = std::uniform_int_distribution<UInt32>(0, max32);
   dist_real_64 = std::uniform_real_distribution<Real64>(0.0, 1.0);
 }
 
@@ -68,7 +67,6 @@ std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << r.seed_ << " ";
   outStream << r.gen << " ";
   outStream << r.dist_uint_32 << " ";
-  outStream << r.dist_uint_64 << " ";
   outStream << r.dist_real_64 << " ";
   outStream << "endrandom-v2 ";
   return outStream;
@@ -84,7 +82,6 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
   inStream >> r.seed_;
   inStream >> r.gen;
   inStream >> r.dist_uint_32;
-  inStream >> r.dist_uint_64;
   inStream >> r.dist_real_64;
 
   std::string endtag;
@@ -98,9 +95,9 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
 // helper function for seeding RNGs across the plugin barrier
 // Unless there is a logic error, should not be called if
 // the Random singleton has not been initialized.
-UInt64 GetRandomSeed() {
+UInt32 GetRandomSeed() {
   Random r = nupic::Random();
-  UInt64 result = r.getUInt64();
+  UInt32 result = r.getUInt32();
   return result;
 }
 } // namespace nupic

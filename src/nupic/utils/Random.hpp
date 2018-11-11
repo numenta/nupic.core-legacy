@@ -82,7 +82,7 @@ namespace nupic {
  */
 class Random : public Serializable  {
 public:
-  Random(UInt64 seed = 0);
+  Random(UInt64 seed = 0, const UInt32 max32 = Random::MAX32);
 
   // save and load serialized data
   void save(std::ostream &stream) const override { stream << *this; }
@@ -102,11 +102,6 @@ public:
     NTA_ASSERT(max > 0);
     return dist_uint_32(gen) % max; //TODO the modulo % is not ideal, better use w/o param here, and supply max 
     //constructor
-  }
-
-  inline UInt64 getUInt64(const UInt64 max = MAX64) {
-    NTA_ASSERT(max > 0);
-    return dist_uint_64(gen) % max;
   }
 
   // return a double uniformly distributed on 0...1.0
@@ -152,7 +147,6 @@ public:
   result_type min() const { return 0; }
 
   static const UInt32 MAX32 = (UInt32)((Int32)(-1));
-  static const UInt64 MAX64 = (UInt64)((Int64)(-1));
 
 protected:
   void reseed(UInt64 seed);
@@ -161,10 +155,9 @@ protected:
   friend class RandomTest;
   friend std::ostream &operator<<(std::ostream &, const Random &);
   friend std::istream &operator>>(std::istream &, Random &);
-  friend UInt64 GetRandomSeed();
+  friend UInt32 GetRandomSeed();
 private:
   std::mt19937_64 gen; //Standard mersenne_twister_engine 64bit seeded with seed_
-  std::uniform_int_distribution<UInt64> dist_uint_64;
   std::uniform_int_distribution<UInt32> dist_uint_32;
   std::uniform_real_distribution<Real64> dist_real_64;
 //  std::random_device rd; //HW random for random seed cases, undeterministic -> problems with op= and copy-constructor, therefore disabled
@@ -182,7 +175,7 @@ std::istream &operator>>(std::istream &, Random &);
 // set to this function. The plugin framework can override this
 // behavior by explicitly setting the seeder to the RandomSeeder
 // function provided by the application.
-UInt64 GetRandomSeed();
+UInt32 GetRandomSeed();
 
 } // namespace nupic
 
