@@ -105,7 +105,7 @@ before_install:
   - echo "Installing pip, setuptools, and wheel"
   - pip2 install  --user pip setuptools wheel || exit
   - echo "Installing Python dependencies"
-  - sudo pip2 install --only-binary -r bindings/py/requirements.txt --quiet || exit
+  - pip2 install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
 
 install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
