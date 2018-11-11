@@ -290,7 +290,7 @@ const UInt COLS = 2048; //standard num of columns in SP/TM
  */
 TEST(ConnectionsPerformanceTest, testTM) {
 	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
-	ASSERT_LE(tim, 1.9*getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 2.0*getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 }
 
 /**
