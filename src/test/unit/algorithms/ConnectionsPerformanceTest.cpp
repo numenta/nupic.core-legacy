@@ -298,7 +298,7 @@ TEST(ConnectionsPerformanceTest, testTM) {
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
   auto tim = runTemporalMemoryTest(2*COLS, 328, 10, SEQ, "temporal memory (large)");
-  ASSERT_LE(tim, 3.6*getSpeed());
+  ASSERT_LE(tim, 3.8*getSpeed());
 }
 
 /**
