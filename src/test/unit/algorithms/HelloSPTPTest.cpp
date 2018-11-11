@@ -47,7 +47,7 @@ TEST(HelloSPTPTest, performance) {
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt CELLS = 10; // cells per column in TP
-  const UInt EPOCHS = (UInt)pow(10, 4); // number of iterations (calls to SP/TP compute() )
+  const UInt EPOCHS = (UInt)pow(10, 3); // number of iterations (calls to SP/TP compute() )
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
   		<< ", DIM=" << COLS << ", CELLS=" << CELLS << std::endl;
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
