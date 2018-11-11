@@ -1,5 +1,3 @@
-sudo: false
-
 language: cpp
 python: 
  - 2.7 #TODO change  to 3.x later
