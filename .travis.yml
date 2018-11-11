@@ -1,4 +1,3 @@
-dist: xenial
 language: cpp
 python: 
  - 2.7 #TODO change  to 3.x later
@@ -7,19 +6,20 @@ matrix:
   include: 
     - os: linux
       compiler: gcc
+      dist: xenial
       # update required packages from Travis setup
       # https://docs.travis-ci.com/user/languages/cpp/
       addons:
         apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
+          sources:
+            - ubuntu-toolchain-r-test
           packages:
-#            - g++-4.9
+            - g++-7
             - xsltproc #only for doc transform to html , can be removed
             - python-pip-whl
             - python2.7 
       env:
-        - MATRIX_EVAL="CC=gcc-4.8 && CXX=g++-4.8"
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         - PLATFORM="linux"
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
