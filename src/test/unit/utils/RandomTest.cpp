@@ -160,6 +160,28 @@ TEST(RandomTest, getUInt64) {
 }
 */
 
+TEST(RandomTest, getUInt32) {
+  // tests for getUInt32
+  Random r1(1);
+  EXPECT_EQ(574995807, r1.getUInt32())
+      << "check getUInt64, seed 1, first call";
+  EXPECT_EQ(585863760, r1.getUInt32())
+      << "check getUInt64, seed 1, second call";
+
+  Random r2(2);
+  EXPECT_EQ(3880949741, r2.getUInt32())
+      << "check getUInt64, seed 2, first call";
+  EXPECT_EQ(3651736414, r2.getUInt32())
+      << "check getUInt64, seed 2, second call";
+
+  Random r3(7464235991977222558);
+  EXPECT_EQ(1870809658, r3.getUInt32())
+      << "check getUInt64, big seed, first call";
+  EXPECT_EQ(145236100, r3.getUInt32())
+      << "check getUInt64, big seed, second call";
+}
+
+
 TEST(RandomTest, getReal64) {
   // tests for getReal64
   Random r1(1);
