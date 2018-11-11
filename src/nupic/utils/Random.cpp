@@ -45,7 +45,7 @@ bool Random::operator==(const Random &o) const {
 }
 
 
-Random::Random(UInt64 seed, const UInt32 max32) {
+Random::Random(UInt64 seed) {
   if (seed == 0) {
     seed_ = gen(); //generate random value from HW RNG
   } else {
@@ -55,8 +55,7 @@ Random::Random(UInt64 seed, const UInt32 max32) {
   NTA_CHECK(seed_ != 0);
   reseed(seed_);
   //distribution ranges
-  NTA_CHECK(max32 > 0);
-  dist_uint_32 = std::uniform_int_distribution<UInt32>(0, max32);
+  dist_uint_32 = std::uniform_int_distribution<UInt32>(0, MAX32);
   dist_real_64 = std::uniform_real_distribution<Real64>(0.0, 1.0);
 }
 
@@ -96,8 +95,6 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
 // Unless there is a logic error, should not be called if
 // the Random singleton has not been initialized.
 UInt32 GetRandomSeed() {
-  Random r = nupic::Random();
-  UInt32 result = r.getUInt32();
-  return result;
+  return nupic::Random().getUInt32();
 }
 } // namespace nupic

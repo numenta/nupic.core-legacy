@@ -82,7 +82,7 @@ namespace nupic {
  */
 class Random : public Serializable  {
 public:
-  Random(UInt64 seed = 0, const UInt32 max32 = Random::MAX32);
+  Random(UInt64 seed = 0/*=random seed*/);
 
   // save and load serialized data
   void save(std::ostream &stream) const override { stream << *this; }
@@ -97,14 +97,13 @@ public:
   }
 
   //main API methods:
-  // return a value uniformly distributed between 0 and max-1
+  // return a value uniformly distributed between [0,max)
   inline UInt32 getUInt32(const UInt32 max = MAX32) {
     NTA_ASSERT(max > 0);
-    return dist_uint_32(gen) % max; //TODO the modulo % is not ideal, better use w/o param here, and supply max 
-    //constructor
+    return dist_uint_32(gen) % max;
   }
 
-  // return a double uniformly distributed on 0...1.0
+  // return a double uniformly distributed on [0,1.0)
   inline double getReal64() {
     return dist_real_64(gen);
   }
@@ -134,7 +133,10 @@ public:
   }
 
   // for STL compatibility
-  UInt32 operator()(UInt32 n = MAX32) { return getUInt32(n); }
+  UInt32 operator()(UInt32 n = MAX32) { 
+	  NTA_ASSERT(n > 0);
+	  return getUInt32(n); 
+  }
 
   // normally used for debugging only
   UInt64 getSeed() const { return seed_; }
@@ -142,7 +144,6 @@ public:
   // for STL
   typedef UInt32 argument_type;
   typedef UInt32 result_type;
-
   result_type max() const { return MAX32; }
   result_type min() const { return 0; }
 
