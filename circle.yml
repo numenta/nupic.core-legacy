@@ -74,7 +74,7 @@ jobs:
             mkdir -p build/scripts
             cd build/scripts
             cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../release -DPY_EXTENSIONS_DIR=../../bindings/py/src/nupic/bindings
-            make -j4 | grep -v -F '\\-\\- Installing:'
+            make | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
       - run:
           name: Build distribution
