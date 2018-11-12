@@ -156,11 +156,12 @@ install:
   - cd %NUPIC_CORE%
   #- wget -O boost_1_68_0.tar.gz https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
   #- tar xzf boost_1_68_0.tar.gz
-  - curl -o boost_1_68_0.zip https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
+  - ps: wget -O boost_1_68_0.zip https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
   - unzip boost_1_68_0.zip
   - cd boost_1_68_0
   - bootstrap.bat gcc
-  - b2 --with-system --with-filesystem stage
+  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static stage
+  - dir stage\lib
   - set BOOST_ROOT=%NUPIC_CORE%/boost_1_68_0
   - cd ..
   

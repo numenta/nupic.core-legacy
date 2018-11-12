@@ -205,7 +205,17 @@ set(src_py_support_files
 if(${NEEDS_BOOST})
   message(STATUS "Hints for find_package()")
   message(STATUS "  BOOST_ROOT  = ${BOOST_ROOT}")
-
+  if(MSVC OR MINGW)
+    # For windows, library name has lots of fields that must be matched.
+    # info about "--layout versioned" https://stackoverflow.com/questions/32991736/boost-lib-naming-are-missing/52208574#52208574
+    # filenames created by boost: https://www.boost.org/doc/libs/1_68_0/more/getting_started/unix-variants.html#library-naming
+    set(Boost_USE_STATIC_RUNTIME     OFF) 
+    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
+    set(Boost_USE_MULTITHREADED      ON)
+  endif()
+  set(Boost_DEBUG ON)
+  set(Boost_DETAILED_FAILURE_MSG ON)
+  
   find_package(Boost 1.56.0 REQUIRED COMPONENTS system filesystem)
   if(${Boost_FOUND})
 	include_directories(${Boost_INCLUDE_DIRS})
