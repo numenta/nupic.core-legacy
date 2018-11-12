@@ -29,6 +29,9 @@ jobs:
       - run:
           name: Installing cmake 
           command: brew install cmake
+      - run:
+          name: Installing boost
+          command: brew install boost
       
       - checkout
 
