@@ -59,7 +59,9 @@ std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << "random-v2" << " ";
   outStream << r.seed_ << " ";
   outStream << r.gen << " ";
-  outStream << "endrandom-v2 ";
+  outStream << r.dist_uint_32 << " ";
+  outStream << r.dist_real_64 << " ";
+  outStream << "endrandom-v2" << " ";
   return outStream;
 }
 
@@ -72,7 +74,8 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
               << version << "'";
   inStream >> r.seed_;
   inStream >> r.gen;
-
+  inStream >> r.dist_uint_32;
+  inStream >> r.dist_real_64;
   std::string endtag;
   inStream >> endtag;
   NTA_CHECK(endtag == "endrandom-v2") << "Random() deserializer -- found unexpected end tag '" << endtag  << "'";
