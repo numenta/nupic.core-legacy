@@ -141,18 +141,7 @@ class Cells4Test(unittest.TestCase):
     pickle.dump(cells, open(file1, "wb"))
     cells2 = pickle.load(open(file1))
 
-    # Test all public attributes of Cells4 that should get pickled
-    for f1, f2 in zip(dir(cells), dir(cells2)):
-      if f1[0] != "_" and f1 not in ["initialize", "setStatePointers",
-                                     "getStates", "rebuildOutSynapses"]:
-        ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
-        try:
-          r1, r2 = ff1(), ff2()
-          resultsEqual = (r1 == r2)
-        except (NotImplementedError, RuntimeError, TypeError, ValueError):
-          continue
-        print "For ", f1, "'", r1,"' == '",r2,"'"
-        self.assertTrue(resultsEqual, "Pickle: Cells do not match!")
+    self.assertEqual(cells, cells2)
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
@@ -170,20 +159,7 @@ class Cells4Test(unittest.TestCase):
     cells2 = Cells4()
     cells2.loadFromFile(file2)
 
-    self.assertTrue(self._cellsDiff(cells, cells2))
-
-    # Test all public attributes of Cells4 that should get pickled
-    for f1, f2 in zip(dir(cells), dir(cells2)):
-      if f1[0] != "_" and f1 not in ["initialize", "setStatePointers",
-                                     "getStates", "rebuildOutSynapses"]:
-        ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
-        try:
-          r1, r2 = ff1(), ff2()
-          resultsEqual = (r1 == r2)
-        except (NotImplementedError, RuntimeError, TypeError, ValueError):
-          continue
-        print "For ", f1, "'", r1,"' == '",r2,"'"
-        self.assertTrue(resultsEqual, "C++ save(): Cells do not match.")
+    self.assertTrue(cells.equals(cells2))
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
