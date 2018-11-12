@@ -109,12 +109,12 @@ before_install:
 
 install:
   # build boost
+  - "cd $TRAVIS_BUILD_DIR"
   - "wget -O boost_1_68_0.tar.gz https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz"
   - "tar xzf boost_1_68_0.tar.gz"
   - "cd boost_1_68_0"
   - "./bootstrap.sh --prefix=."
-  - "./b2 --with-system --with-filesystem install"
-  - "BOOST_ROOT=$(pwd)"
+  - "./b2 --with-system --with-filesystem stage"
   - "cd .."
   # Prepare directories
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
@@ -122,7 +122,7 @@ install:
   - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
   - "cmake --version"
   # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DCMAKE_INSTALL_PREFIX=${TRAVIS_BUILD_DIR}/build/release -DPY_EXTENSIONS_DIR=$TRAVIS_BUILD_DIR/bindings/py/src/nupic/bindings"
+  - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON -DBOOST_ROOT=${TRAVIS_BUILD_DIR}/boost_1_68_0"
   # Configure bash such that a failure in any link in the pipe causes the whole pipe to fail
   - "set -o pipefail"
   - "VERBOSE=1 make |grep -v -F '\\-\\- Installing:'"

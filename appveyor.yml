@@ -87,7 +87,7 @@ environment:
 matrix:
   allow_failures:
     # Checking if Visual Studio build is possible
-    - NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+    - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
 
 
 #---------------------------------#
@@ -152,6 +152,18 @@ install:
   # Setup MinGW GCC as a valid distutils compiler
   - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
 
+  # Install Boost
+  - cd %NUPIC_CORE%
+  #- wget -O boost_1_68_0.tar.gz https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
+  #- tar xzf boost_1_68_0.tar.gz
+  - wget https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
+  - unzip boost_1_68_0.zip
+  - cd boost_1_68_0
+  - bootstrap.bat gcc
+  - b2 --with-system --with-filesystem stage
+  - set BOOST_ROOT=%NUPIC_CORE%/boost_1_68_0
+  - cd ..
+  
   # Display the version and architecture for Python to help with diagnostics
   - "python --version"
   - "where python"
