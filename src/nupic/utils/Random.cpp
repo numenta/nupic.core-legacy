@@ -31,12 +31,6 @@
 using namespace nupic;
 
 
-void Random::reseed(UInt64 seed) {
-  seed_ = seed;
-  gen.seed(seed_);
-}
-
-
 bool Random::operator==(const Random &o) const {
   return seed_ == o.seed_ && \
 	 gen == o.gen && \
@@ -53,7 +47,7 @@ Random::Random(UInt64 seed) {
   }
   // if seed is zero at this point, there is a logic error.
   NTA_CHECK(seed_ != 0);
-  reseed(seed_);
+  gen.seed(seed_); //seed the generator
   //distribution ranges
   dist_uint_32 = std::uniform_int_distribution<UInt32>(0, MAX32);
   dist_real_64 = std::uniform_real_distribution<Real64>(0.0, 1.0);
@@ -65,8 +59,6 @@ std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << "random-v2" << " ";
   outStream << r.seed_ << " ";
   outStream << r.gen << " ";
-  outStream << r.dist_uint_32 << " ";
-  outStream << r.dist_real_64 << " ";
   outStream << "endrandom-v2 ";
   return outStream;
 }
@@ -80,8 +72,6 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
               << version << "'";
   inStream >> r.seed_;
   inStream >> r.gen;
-  inStream >> r.dist_uint_32;
-  inStream >> r.dist_real_64;
 
   std::string endtag;
   inStream >> endtag;

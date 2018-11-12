@@ -150,14 +150,12 @@ public:
   static const UInt32 MAX32 = (UInt32)((Int32)(-1));
 
 protected:
-  void reseed(UInt64 seed);
-  UInt64 seed_;
-
   friend class RandomTest;
   friend std::ostream &operator<<(std::ostream &, const Random &);
   friend std::istream &operator>>(std::istream &, Random &);
   friend UInt32 GetRandomSeed();
 private:
+  UInt64 seed_;
   std::mt19937_64 gen; //Standard mersenne_twister_engine 64bit seeded with seed_
   std::uniform_int_distribution<UInt32> dist_uint_32;
   std::uniform_real_distribution<Real64> dist_real_64;
