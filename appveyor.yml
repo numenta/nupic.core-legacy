@@ -5,7 +5,7 @@ image:
 - Visual Studio 2017
 - Previous Visual Studio 2015
 - WMF 5
-configuration: Debug
+configuration: Release
 platform: x64
 
 build:
@@ -93,9 +93,6 @@ matrix:
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
-
-# configuration values must be compatible with CMAKE_BUILD_TYPE: Debug or Release
-configuration: Release
 
 
 install:
