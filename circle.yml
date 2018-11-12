@@ -31,7 +31,7 @@ jobs:
           command: brew install cmake
       - run:
           name: Installing boost
-          command: brew install boost
+          command: brew install boost --with-filesystem --with-system
       
       - checkout
 
