@@ -157,7 +157,7 @@ public:
    * @returns
    *         A mutable reference to the data of the input as an @c Array
    */
-  const Array &getData() const;
+  Array &getData();
 
   /**
    *  Get the data type of the output

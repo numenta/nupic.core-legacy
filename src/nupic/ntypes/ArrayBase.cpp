@@ -25,27 +25,34 @@
  */
 
 #include <iostream> // for ostream
+//#include <iomanip>  // for std::setprecision
 #include <stdlib.h> // for size_t
+#include <cstring>   // for memcpy, memcmp
 
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/types/BasicType.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/ArrayBase.hpp>
 #include <nupic/utils/Log.hpp>
 
-using namespace nupic;
+namespace nupic
+{
+
+
 
 /**
  * Caller provides a buffer to use.
  * NuPIC always copies data into this buffer
  * Caller frees buffer when no longer needed.
+ * ArrayBase() does not own buffer.
  */
-ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count)
-    : buffer_((char *)buffer), count_(count), type_(type), own_(false) {
-  if (!BasicType::isValid(type)) {
-    NTA_THROW << "Invalid NTA_BasicType " << type
-              << " used in array constructor";
+ArrayBase::ArrayBase(NTA_BasicType type, void* buffer, size_t count)
+{
+  if(!BasicType::isValid(type))
+  {
+    NTA_THROW << "Invalid NTA_BasicType " << type << " used in array constructor";
   }
-  bufferSize_ = count * BasicType::getSize(type);
+  type_ = type;
+  setBuffer(buffer, count);
 }
 
 /**
@@ -54,132 +61,339 @@ ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count)
  * ask the ArrayBase to allocate a buffer via allocateBuffer.
  */
 ArrayBase::ArrayBase(NTA_BasicType type)
-    : buffer_(nullptr), count_(0), type_(type), own_(false), bufferSize_(0) {
-  if (!BasicType::isValid(type)) {
-    NTA_THROW << "Invalid NTA_BasicType " << type
-              << " used in array constructor";
+{
+  if(!BasicType::isValid(type))
+  {
+    NTA_THROW << "Invalid NTA_BasicType " << type << " used in array constructor";
   }
+  type_ = type;
+  own_ = true;
+  buffer_ = nullptr;
+  count_ = 0;
+  capacity_ = 0;
 }
 
 /**
- * The destructor calls releaseBuffer() to make sure the ArrayBase
- * doesn't leak.
+ * The destructor will result in the shared_ptr being deleted.
+ * If this is the last reference to the pointer, and this class owns the buffer,
+ * the pointer will be deleted...making sure it will not leak.
  */
-ArrayBase::~ArrayBase() { releaseBuffer(); }
+ArrayBase::~ArrayBase()
+{
+}
 
 /**
- * Ask ArrayBase to allocate its buffer
+ * Ask ArrayBase to allocate its buffer.  This class owns the buffer.
+ * If there was already a buffer allocated, it will be released.
+ * The buffer will be deleted when the last copy of this class has been deleted.
  */
-void ArrayBase::allocateBuffer(size_t count) {
-  if (buffer_ != nullptr) {
-    NTA_THROW
-        << "allocateBuffer -- buffer already set. Use releaseBuffer first";
-  }
+void
+ArrayBase::allocateBuffer(size_t count)
+{
+  //Note that you can allocate a buffer of size zero.
+  //The C++ spec (5.3.4/7) requires such a new request to return
+  //a non-NULL value which is safe to delete.  This allows us to
+  //disambiguate uninitialized ArrayBases and ArrayBases initialized with
+  //size zero.
   count_ = count;
-  // Note that you can allocate a buffer of size zero.
-  // The C++ spec (5.3.4/7) requires such a new request to return
-  // a non-NULL value which is safe to delete.  This allows us to
-  // disambiguate uninitialized ArrayBases and ArrayBases initialized with
-  // size zero.
-  bufferSize_ = count_ * BasicType::getSize(type_);
-  buffer_ = new char[bufferSize_];
+  capacity_ = count_ * BasicType::getSize(type_);
+  std::shared_ptr<char> sp(new char[capacity_], std::default_delete<char[]>());
+  buffer_ = sp;
   own_ = true;
 }
 
-void ArrayBase::setBuffer(void *buffer, size_t count) {
-  if (buffer_ != nullptr) {
-    NTA_THROW << "setBuffer -- buffer already set. Use releaseBuffer first";
-  }
-  buffer_ = (char *)buffer;
+
+/**
+ * Will fill the buffer with 0's.
+ */
+void
+ArrayBase::zeroBuffer()
+{
+  std::memset(buffer_.get(), 0, capacity_);
+}
+
+/**
+ * Use the given pointer as the buffer.
+ * The caller is responsible to delete the buffer.
+ * This class will NOT own the buffer so when this class and all copies
+ * of this class are deleted the buffer will NOT be deleted.
+ * NOTE: A crash condition WILL exists if this class is used
+ *       after the caller has deleted the pointer. No protections.
+ */
+void
+ArrayBase::setBuffer(void *buffer, size_t count)
+{
+  buffer_ = std::shared_ptr<char>((char*)buffer, nonDeleter());
   count_ = count;
+  capacity_ = count * BasicType::getSize(type_);
   own_ = false;
-  bufferSize_ = count_ * BasicType::getSize(type_);
 }
 
-void ArrayBase::releaseBuffer() {
-  if (buffer_ == nullptr)
-    return;
-  if (own_)
-    delete[] buffer_;
-  buffer_ = nullptr;
+void
+ArrayBase::releaseBuffer()
+{
+  buffer_.reset();
   count_ = 0;
-  bufferSize_ = 0;
+  capacity_ = 0;
 }
 
-void *ArrayBase::getBuffer() const { return buffer_; }
+void*
+ArrayBase::getBuffer() const
+{
+  return buffer_.get();
+}
 
-size_t ArrayBase::getBufferSize() const { return bufferSize_; }
+size_t ArrayBase::getBufferSize() const { return capacity_; }
+
 
 // number of elements of given type in the buffer
-size_t ArrayBase::getCount() const { return count_; };
+size_t
+ArrayBase::getCount() const
+{
+  return count_;
+};
 
 // max number of elements this buffer can hold
 size_t ArrayBase::getMaxElementsCount() const {
-  return bufferSize_ / BasicType::getSize(type_);
+  return capacity_ / BasicType::getSize(type_);
 };
 
-void ArrayBase::setCount(size_t count) {
-  NTA_CHECK(count * BasicType::getSize(type_) <= bufferSize_)
-      << "Invalid count value of " << count << " given, "
-      << "count must be " << bufferSize_ / BasicType::getSize(type_)
-      << " or less";
+void ArrayBase::setCount(size_t count)
+{
+  NTA_ASSERT(count <= capacity_/BasicType::getSize(type_))
+		<< "Cannot set the array count (" << count << ") greater than the capacity ("
+		<< (capacity_/BasicType::getSize(type_)) << ").";
   count_ = count;
 }
 
-NTA_BasicType ArrayBase::getType() const { return type_; };
 
-namespace nupic {
-std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a) {
-  auto const inbuf = a.getBuffer();
-  auto const numElements = a.getCount();
-  auto const elementType = a.getType();
+NTA_BasicType
+ArrayBase::getType() const
+{
+  return type_;
+};
 
-  switch (elementType) {
-  case NTA_BasicType_Byte:
-    ArrayBase::_templatedStreamBuffer<NTA_Byte>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Int16:
-    ArrayBase::_templatedStreamBuffer<NTA_Int16>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_UInt16:
-    ArrayBase::_templatedStreamBuffer<NTA_UInt16>(outStream, inbuf,
-                                                  numElements);
-    break;
-  case NTA_BasicType_Int32:
-    ArrayBase::_templatedStreamBuffer<NTA_Int32>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_UInt32:
-    ArrayBase::_templatedStreamBuffer<NTA_UInt32>(outStream, inbuf,
-                                                  numElements);
-    break;
-  case NTA_BasicType_Int64:
-    ArrayBase::_templatedStreamBuffer<NTA_Int64>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_UInt64:
-    ArrayBase::_templatedStreamBuffer<NTA_UInt64>(outStream, inbuf,
-                                                  numElements);
-    break;
-  case NTA_BasicType_Real32:
-    ArrayBase::_templatedStreamBuffer<NTA_Real32>(outStream, inbuf,
-                                                  numElements);
-    break;
-  case NTA_BasicType_Real64:
-    ArrayBase::_templatedStreamBuffer<NTA_Real64>(outStream, inbuf,
-                                                  numElements);
-    break;
-  case NTA_BasicType_Handle:
-    ArrayBase::_templatedStreamBuffer<NTA_Handle>(outStream, inbuf,
-                                                  numElements);
-    break;
-  case NTA_BasicType_Bool:
-    ArrayBase::_templatedStreamBuffer<bool>(outStream, inbuf, numElements);
-    break;
-  default:
-    NTA_THROW << "Unexpected Element Type: " << elementType;
-    break;
+
+void
+ArrayBase::convertInto(ArrayBase &a, size_t offset) const {
+  if (offset + count_ > a.getMaxElementsCount()) {
+    a.allocateBuffer(offset + count_);
   }
-
-  return outStream;
+  char *toPtr = (char *)a.getBuffer();  // type as char* so there is an element size
+  if (offset)
+    toPtr += (offset * BasicType::getSize(a.getType()));
+  const void *fromPtr = getBuffer();
+  BasicType::convertArray(toPtr, a.type_, fromPtr, type_, count_);
+  a.count_ = offset + count_;
 }
 
-} // namespace nupic
+
+bool ArrayBase::isInstance(const ArrayBase &a) {
+  if (a.buffer_ == nullptr || buffer_ == nullptr)  return false;
+  return (buffer_ == a.buffer_);
+}
+
+// populate the given array with the NZ of the current array.
+void ArrayBase::NonZero(ArrayBase& a) const {
+      switch(type_)
+      {
+      case NTA_BasicType_Byte:   ArrayBase::NonZeroT<Byte>(a);   break;
+      case NTA_BasicType_Int16:  ArrayBase::NonZeroT<Int16>(a);  break;
+      case NTA_BasicType_UInt16: ArrayBase::NonZeroT<UInt16>(a); break;
+      case NTA_BasicType_Int32:  ArrayBase::NonZeroT<Int32>(a);  break;
+      case NTA_BasicType_UInt32: ArrayBase::NonZeroT<UInt32>(a); break;
+      case NTA_BasicType_Real32: ArrayBase::NonZeroT<Real32>(a); break;
+      case NTA_BasicType_Real64: ArrayBase::NonZeroT<Real64>(a); break;
+      default:
+        NTA_THROW << "Unexpected source array type.";
+      }
+}
+
+
+template <typename T>
+void ArrayBase::NonZeroT(ArrayBase& a) const
+{
+  NTA_ASSERT(a.getType() == NTA_BasicType_UInt32)
+    << "Expected UInt32 type for NonZero() destination array";
+  T *originalBuffer = (T *)buffer_.get();
+  // find the number of elements for the NZ array
+  size_t nonZeroLen = 0;
+  for (size_t i = 0; i < count_; i++) {
+    if (originalBuffer[i])
+      nonZeroLen++;
+  }
+  // populate the new array with indexes of non-zero values.
+  a.allocateBuffer(nonZeroLen);
+  UInt32 *ptr = (UInt32 *)a.getBuffer();
+  for (size_t i = 0; i < count_; i++) {
+    if (originalBuffer[i])
+      *ptr++ = (UInt32)i;
+  }
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//    Compare operators
+///////////////////////////////////////////////////////////////////////////////
+  // Compare contents of two ArrayBase objects
+// Note: An Array and an ArrayRef could be the same if type, count, and buffer
+// contents are the same.
+bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
+  if (lhs.getType() != rhs.getType() || lhs.getCount() != rhs.getCount())
+    return false;
+  if (lhs.getCount() == 0)
+    return true;
+  return (std::memcmp(lhs.getBuffer(), rhs.getBuffer(),
+                 lhs.getCount() * BasicType::getSize(lhs.getType())) == 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//         Stream Serialization (as binary)
+////////////////////////////////////////////////////////////////////////////////
+void ArrayBase::save(std::ostream &outStream) const
+{
+    outStream << "[ " << count_ << " " << BasicType::getName(type_) << " ";
+    if (count_ > 0) {
+      Size size = count_ * BasicType::getSize(type_);
+      outStream.write((const char*)buffer_.get(), size);
+    }
+    outStream << "]" << std::endl;
+
+}
+void ArrayBase::load(std::istream &inStream) {
+  std::string tag;
+  size_t count;
+
+  NTA_CHECK(inStream.get() == '[') << "Binary load of Array, expected starting '['.";
+  inStream >> count;
+  inStream >> tag;
+  type_ = BasicType::parse(tag);
+  allocateBuffer(count);
+  inStream.ignore(1);
+  inStream.read(buffer_.get(), capacity_);
+  NTA_CHECK(inStream.get() == ']') << "Binary load of Array, expected ending ']'.";
+  inStream.ignore(1); // skip over the endl
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//         Stream Serialization  (as Ascii text character strings)
+//              [ type count ( item item item ...) ... ]
+////////////////////////////////////////////////////////////////////////////////
+
+  template <typename T>
+  static void _templatedStreamBuffer(std::ostream &outStream, const void *inbuf,
+                                     size_t numElements) {
+    outStream << "( ";
+
+    // Stream the elements
+    auto it = (const T *)inbuf;
+    auto const end = it + numElements;
+    if (it < end) {
+      for (; it < end; ++it) {
+        outStream << *it << " ";
+      }
+    }
+    outStream << ") ";
+  }
+
+  std::ostream& operator<<(std::ostream& outStream, const ArrayBase& a)
+  {
+    auto const inbuf = a.getBuffer();
+    auto const numElements = a.getCount();
+    auto const elementType = a.getType();
+
+    outStream << "[ " << BasicType::getName(elementType) << " " << numElements << " ";
+
+    switch (elementType)
+    {
+    case NTA_BasicType_Byte:    _templatedStreamBuffer<Byte>(outStream,   inbuf, numElements);  break;
+    case NTA_BasicType_Int16:   _templatedStreamBuffer<Int16>(outStream,  inbuf, numElements);  break;
+    case NTA_BasicType_UInt16:  _templatedStreamBuffer<UInt16>(outStream, inbuf, numElements);  break;
+    case NTA_BasicType_Int32:   _templatedStreamBuffer<Int32>(outStream,  inbuf, numElements);  break;
+    case NTA_BasicType_UInt32:  _templatedStreamBuffer<UInt32>(outStream, inbuf, numElements);  break;
+    case NTA_BasicType_Int64:   _templatedStreamBuffer<Int64>(outStream,  inbuf, numElements);  break;
+    case NTA_BasicType_UInt64:  _templatedStreamBuffer<UInt64>(outStream, inbuf, numElements);  break;
+    case NTA_BasicType_Real32:  _templatedStreamBuffer<Real32>(outStream, inbuf, numElements);  break;
+    case NTA_BasicType_Real64:  _templatedStreamBuffer<Real64>(outStream, inbuf, numElements);  break;
+    case NTA_BasicType_Bool:    _templatedStreamBuffer<bool>(outStream,   inbuf, numElements);  break;
+    default:
+      NTA_THROW << "Unexpected Element Type: " << elementType;
+      break;
+    }
+    outStream << " ] ";
+
+    return outStream;
+  }
+
+
+  template <typename T>
+  static void _templatedStreamBuffer(std::istream &inStream, void *buf, size_t numElements) {
+    std::string v;
+    inStream >> v;
+    NTA_CHECK (v == "(") << "deserialize Array buffer...expected an opening '(' but not found.";
+
+    // Stream the elements
+    auto it = (T *)buf;
+    auto const end = it + numElements;
+    if (it < end) {
+      for (; it < end; ++it) {
+        inStream >> *it;
+      }
+    }
+    inStream >> v;
+    NTA_CHECK (v == ")") << "deserialize Array buffer...expected a closing ')' but not found.";
+  }
+
+
+
+  std::istream &operator>>(std::istream &inStream, ArrayBase &a) {
+    std::string v;
+    size_t numElements;
+
+    inStream >> v;
+    NTA_CHECK(v == "[")  << "deserialize Array object...expected an opening '[' but not found.";
+
+    inStream >> v;
+    NTA_BasicType elementType = BasicType::parse(v);
+    inStream >> numElements;
+    if (a.own_) {
+      // An Array, the Array owns its buffer.
+      a.type_ = elementType;
+      a.allocateBuffer(numElements);
+    } else {
+      // An ArrayRef, the ArrayRef does not own the buffer
+      // but we can overwrite the buffer if there is room.
+      size_t neededSize = numElements * BasicType::getSize(elementType);
+      NTA_CHECK(a.capacity_ >= neededSize) << "deserialize into an ArrayRef object...Not enough space in buffer.";
+      a.count_ = numElements;
+      a.type_ = elementType;
+    }
+    auto inbuf = a.buffer_.get();
+
+    switch (elementType) {
+    case NTA_BasicType_Byte:   _templatedStreamBuffer<Byte>(inStream, inbuf,   numElements); break;
+    case NTA_BasicType_Int16:  _templatedStreamBuffer<Int16>(inStream, inbuf,  numElements); break;
+    case NTA_BasicType_UInt16: _templatedStreamBuffer<UInt16>(inStream, inbuf, numElements); break;
+    case NTA_BasicType_Int32:  _templatedStreamBuffer<Int32>(inStream, inbuf,  numElements); break;
+    case NTA_BasicType_UInt32: _templatedStreamBuffer<UInt32>(inStream, inbuf, numElements); break;
+    case NTA_BasicType_Int64:  _templatedStreamBuffer<Int64>(inStream, inbuf,  numElements); break;
+    case NTA_BasicType_UInt64: _templatedStreamBuffer<UInt64>(inStream, inbuf, numElements); break;
+    case NTA_BasicType_Real32: _templatedStreamBuffer<Real32>(inStream, inbuf, numElements); break;
+    case NTA_BasicType_Real64: _templatedStreamBuffer<Real64>(inStream, inbuf, numElements); break;
+    case NTA_BasicType_Bool:   _templatedStreamBuffer<bool>(inStream, inbuf,   numElements); break;
+    default:  NTA_THROW << "Unexpected Element Type: " << elementType; break;
+    }
+    inStream >> v;
+    NTA_CHECK(v == "]") << "deserialize Array buffer...expected a closing ']' but not found.";
+    inStream.ignore(1);
+
+    return inStream;
+  }
+
+
+
+
+} // namespace
+

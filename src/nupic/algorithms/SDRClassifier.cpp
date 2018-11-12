@@ -30,14 +30,10 @@
 #include <string>
 #include <vector>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/math/ArrayAlgo.hpp>
-#include <nupic/proto/SdrClassifier.capnp.h>
 #include <nupic/utils/Log.hpp>
 
 using namespace std;
@@ -165,7 +161,7 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
   }
 }
 
-UInt SDRClassifier::persistentSize() const {
+size_t SDRClassifier::persistentSize() const {
   stringstream s;
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);
@@ -249,7 +245,7 @@ UInt SDRClassifier::getVerbosity() const { return verbosity_; }
 
 void SDRClassifier::setVerbosity(UInt verbosity) { verbosity_ = verbosity; }
 
-UInt SDRClassifier::getAlpha() const { return alpha_; }
+Real64 SDRClassifier::getAlpha() const { return alpha_; }
 
 void SDRClassifier::save(ostream &outStream) const {
   // Write a starting marker and version.
@@ -392,128 +388,7 @@ void SDRClassifier::load(istream &inStream) {
   version_ = sdrClassifierVersion;
 }
 
-void SDRClassifier::write(SdrClassifierProto::Builder &proto) const {
-  auto stepsProto = proto.initSteps(steps_.size());
-  for (UInt i = 0; i < steps_.size(); i++) {
-    stepsProto.set(i, steps_[i]);
-  }
 
-  proto.setAlpha(alpha_);
-  proto.setActValueAlpha(actValueAlpha_);
-  proto.setMaxSteps(maxSteps_);
-
-  auto patternNZHistoryProto =
-      proto.initPatternNZHistory(patternNZHistory_.size());
-  for (UInt i = 0; i < patternNZHistory_.size(); i++) {
-    const auto &pattern = patternNZHistory_[i];
-    auto patternProto = patternNZHistoryProto.init(i, pattern.size());
-    for (UInt j = 0; j < pattern.size(); j++) {
-      patternProto.set(j, pattern[j]);
-    }
-  }
-
-  auto recordNumHistoryProto =
-      proto.initRecordNumHistory(recordNumHistory_.size());
-  for (UInt i = 0; i < recordNumHistory_.size(); i++) {
-    recordNumHistoryProto.set(i, recordNumHistory_[i]);
-  }
-
-  proto.setMaxBucketIdx(maxBucketIdx_);
-  proto.setMaxInputIdx(maxInputIdx_);
-
-  auto weightMatrixProtos = proto.initWeightMatrix(weightMatrix_.size());
-  UInt k = 0;
-  for (const auto &stepWeightMatrix : weightMatrix_) {
-    auto stepWeightMatrixProto = weightMatrixProtos[k];
-    stepWeightMatrixProto.setSteps(stepWeightMatrix.first);
-    auto weightProto = stepWeightMatrixProto.initWeight((maxInputIdx_ + 1) *
-                                                        (maxBucketIdx_ + 1));
-    // flatten weight matrix, serialized as a list of floats
-    UInt idx = 0;
-    for (UInt i = 0; i <= maxInputIdx_; ++i) {
-      for (UInt j = 0; j <= maxBucketIdx_; ++j) {
-        weightProto.set(idx, stepWeightMatrix.second.at(i, j));
-        idx++;
-      }
-    }
-    k++;
-  }
-
-  auto actualValuesProto = proto.initActualValues(actualValues_.size());
-  for (UInt i = 0; i < actualValues_.size(); i++) {
-    actualValuesProto.set(i, actualValues_[i]);
-  }
-
-  auto actualValuesSetProto =
-      proto.initActualValuesSet(actualValuesSet_.size());
-  for (UInt i = 0; i < actualValuesSet_.size(); i++) {
-    actualValuesSetProto.set(i, actualValuesSet_[i]);
-  }
-
-  proto.setVersion(version_);
-  proto.setVerbosity(verbosity_);
-}
-
-void SDRClassifier::read(SdrClassifierProto::Reader &proto) {
-  // Clean up the existing data structures before loading
-  steps_.clear();
-  recordNumHistory_.clear();
-  patternNZHistory_.clear();
-  actualValues_.clear();
-  actualValuesSet_.clear();
-  weightMatrix_.clear();
-
-  for (auto step : proto.getSteps()) {
-    steps_.push_back(step);
-  }
-
-  alpha_ = proto.getAlpha();
-  actValueAlpha_ = proto.getActValueAlpha();
-  maxSteps_ = proto.getMaxSteps();
-
-  auto patternNZHistoryProto = proto.getPatternNZHistory();
-  for (UInt i = 0; i < patternNZHistoryProto.size(); i++) {
-    patternNZHistory_.emplace_back(patternNZHistoryProto[i].size());
-    for (UInt j = 0; j < patternNZHistoryProto[i].size(); j++) {
-      patternNZHistory_[i][j] = patternNZHistoryProto[i][j];
-    }
-  }
-
-  auto recordNumHistoryProto = proto.getRecordNumHistory();
-  for (UInt i = 0; i < recordNumHistoryProto.size(); i++) {
-    recordNumHistory_.push_back(recordNumHistoryProto[i]);
-  }
-
-  maxBucketIdx_ = proto.getMaxBucketIdx();
-  maxInputIdx_ = proto.getMaxInputIdx();
-
-  auto weightMatrixProto = proto.getWeightMatrix();
-  for (UInt i = 0; i < weightMatrixProto.size(); ++i) {
-    auto stepWeightMatrix = weightMatrixProto[i];
-    UInt steps = stepWeightMatrix.getSteps();
-    weightMatrix_[steps] = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
-    auto weights = stepWeightMatrix.getWeight();
-    UInt j = 0;
-    // un-flatten weight matrix, serialized as a list of floats
-    for (UInt row = 0; row <= maxInputIdx_; ++row) {
-      for (UInt col = 0; col <= maxBucketIdx_; ++col) {
-        weightMatrix_[steps].at(row, col) = weights[j];
-        j++;
-      }
-    }
-  }
-
-  for (auto actValue : proto.getActualValues()) {
-    actualValues_.push_back(actValue);
-  }
-
-  for (auto actValueSet : proto.getActualValuesSet()) {
-    actualValuesSet_.push_back(actValueSet);
-  }
-
-  version_ = proto.getVersion();
-  verbosity_ = proto.getVerbosity();
-}
 
 bool SDRClassifier::operator==(const SDRClassifier &other) const {
   if (steps_.size() != other.steps_.size()) {

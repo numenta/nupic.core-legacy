@@ -29,7 +29,6 @@
 #include <nupic/engine/Link.hpp> // temporary
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Array.hpp>
 #include <nupic/types/BasicType.hpp>
 
 namespace nupic {
@@ -38,7 +37,7 @@ Output::Output(Region &region, NTA_BasicType type, bool isRegionLevel,
                bool isSparse)
     : region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"),
       nodeOutputElementCount_(0), isSparse_(isSparse) {
-  data_ = new Array(type);
+  data_ = Array(type);
 }
 
 Output::~Output() noexcept(false) {
@@ -47,7 +46,6 @@ Output::~Output() noexcept(false) {
   // from a destructor, but we need to catch this error, and it
   // should never occur if nupic internal logic is correct.
   NTA_CHECK(links_.size() == 0) << "Internal error in region deletion";
-  delete data_;
 }
 
 // allocate buffer
@@ -55,12 +53,12 @@ void Output::initialize(size_t count) {
   // reinitialization is ok
   // might happen if initial initialization failed with an
   // exception (elsewhere) and was retried.
-  if (data_->getBuffer() != nullptr)
+  if (data_.getBuffer() != nullptr)
     return;
 
   if (isSparse_) {
     NTA_CHECK(isRegionLevel_) << "Sparse data must be region level";
-    NTA_CHECK(data_->getType() == NTA_BasicType_UInt32)
+    NTA_CHECK(data_.getType() == NTA_BasicType_UInt32)
         << "Sparse data must be uint32";
   }
 
@@ -71,11 +69,11 @@ void Output::initialize(size_t count) {
   else
     dataCount = count * region_.getDimensions().getCount();
   if (dataCount != 0) {
-    data_->allocateBuffer(dataCount);
+    data_.allocateBuffer(dataCount);
     // Zero the buffer because unitialized outputs can screw up inspectors,
     // which look at the output before compute(). NPC-60
-    void *buffer = data_->getBuffer();
-    size_t byteCount = dataCount * BasicType::getSize(data_->getType());
+    void *buffer = data_.getBuffer();
+    size_t byteCount = dataCount * BasicType::getSize(data_.getType());
     memset(buffer, 0, byteCount);
   }
 }
@@ -99,7 +97,7 @@ void Output::removeLink(Link *link) {
   links_.erase(linkIter);
 }
 
-const Array &Output::getData() const { return *data_; }
+
 
 bool Output::isRegionLevel() const { return isRegionLevel_; }
 
@@ -116,6 +114,6 @@ size_t Output::getNodeOutputElementCount() const {
 
 bool Output::hasOutgoingLinks() { return (!links_.empty()); }
 
-NTA_BasicType Output::getDataType() const { return data_->getType(); }
+NTA_BasicType Output::getDataType() const { return data_.getType(); }
 
 } // namespace nupic

@@ -28,18 +28,20 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Topology.hpp>
-#include <nupic/proto/SpatialPoolerProto.capnp.h>
+
+#define VERSION 2  // version for stream serialization
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
 
-static const Real PERMANENCE_EPSILON = 0.000001;
+static const Real PERMANENCE_EPSILON = 0.000001f;
 
 // MSVC doesn't provide round() which only became standard in C99 or C++11
 #if defined(NTA_COMPILER_MSVC)
@@ -114,12 +116,28 @@ SpatialPooler::SpatialPooler(
     UInt stimulusThreshold, Real synPermInactiveDec, Real synPermActiveInc,
     Real synPermConnected, Real minPctOverlapDutyCycles, UInt dutyCyclePeriod,
     Real boostStrength, Int seed, UInt spVerbosity, bool wrapAround)
-    : SpatialPooler::SpatialPooler() {
-  initialize(inputDimensions, columnDimensions, potentialRadius, potentialPct,
-             globalInhibition, localAreaDensity, numActiveColumnsPerInhArea,
-             stimulusThreshold, synPermInactiveDec, synPermActiveInc,
-             synPermConnected, minPctOverlapDutyCycles, dutyCyclePeriod,
-             boostStrength, seed, spVerbosity, wrapAround);
+    : SpatialPooler::SpatialPooler()
+{
+  // The current version number for serialzation.
+  version_ = VERSION;
+
+  initialize(inputDimensions,
+             columnDimensions,
+             potentialRadius,
+             potentialPct,
+             globalInhibition,
+             localAreaDensity,
+             numActiveColumnsPerInhArea,
+             stimulusThreshold,
+             synPermInactiveDec,
+             synPermActiveInc,
+             synPermConnected,
+             minPctOverlapDutyCycles,
+             dutyCyclePeriod,
+             boostStrength,
+             seed,
+             spVerbosity,
+             wrapAround);
 }
 
 vector<UInt> SpatialPooler::getColumnDimensions() const {
@@ -357,6 +375,7 @@ void SpatialPooler::initialize(
   numInputs_ = 1;
   inputDimensions_.clear();
   for (auto &inputDimension : inputDimensions) {
+    NTA_CHECK(inputDimension > 0) << "Input dimensions must be positive integers!";
     numInputs_ *= inputDimension;
     inputDimensions_.push_back(inputDimension);
   }
@@ -364,6 +383,7 @@ void SpatialPooler::initialize(
   numColumns_ = 1;
   columnDimensions_.clear();
   for (auto &columnDimension : columnDimensions) {
+    NTA_CHECK(columnDimension > 0) << "Column dimensions must be positive integers!"; 
     numColumns_ *= columnDimension;
     columnDimensions_.push_back(columnDimension);
   }
@@ -772,14 +792,14 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) {
   vector<UInt> columnCoord;
   for (auto &elem : connectedSparse) {
     conv.toCoord(elem, columnCoord);
-    for (UInt j = 0; j < columnCoord.size(); j++) {
+    for (size_t j = 0; j < columnCoord.size(); j++) {
       maxCoord[j] = max(maxCoord[j], columnCoord[j]);
       minCoord[j] = min(minCoord[j], columnCoord[j]);
     }
   }
 
   UInt totalSpan = 0;
-  for (UInt j = 0; j < inputDimensions_.size(); j++) {
+  for (size_t j = 0; j < inputDimensions_.size(); j++) {
     totalSpan += maxCoord[j] - minCoord[j] + 1;
   }
 
@@ -937,36 +957,6 @@ void SpatialPooler::inhibitColumns_(const vector<Real> &overlaps,
   }
 }
 
-bool SpatialPooler::isWinner_(const Real score, const vector<pair<UInt, Real> >& winners,
-                              const UInt numWinners) const {
-  if (score < stimulusThreshold_) { //does not pass threshold, cannot win
-    return false;
-  }
-
-  NTA_ASSERT(numWinners > 0);
-  if (winners.size() < numWinners) { //we haven't populated enough winners yet, accept everybody
-    return true;
-  }
-
-  if (!winners.empty() && score >= winners.back().second) { //winners full, see if better than last accepted, replace
-    return true;
-  }
-
-  return false;
-}
-
-void SpatialPooler::addToWinners_(const UInt index, const Real score,
-                                  vector<pair<UInt, Real>> &winners) const {
-  const pair<UInt, Real> val = make_pair(index, score);
-  for (auto it = winners.begin(); it != winners.end(); it++) {
-    if (score >= it->second) {
-      winners.insert(it, val);
-      return;
-    }
-  }
-  winners.push_back(val);
-}
-
 void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
                                           Real density,
                                           vector<UInt> &activeColumns) {
@@ -974,17 +964,31 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
   const UInt numDesired = (UInt)(density * numColumns_);
   NTA_CHECK(numDesired > 0) << "Not enough columns (" << numColumns_ << ") "
                             << "for desired density (" << density << ").";
-  vector<pair<UInt, Real>> winners;
-  for (UInt i = 0; i < numColumns_; i++) {
-    if (isWinner_(overlaps[i], winners, numDesired)) {
-      addToWinners_(i, overlaps[i], winners);
-    }
-  }
-
-  const UInt numActual = min(numDesired, (UInt)winners.size());
-  for (UInt i = 0; i < numActual; i++) {
-    activeColumns.push_back(winners[i].first);
-  }
+  // Sort the columns by the amount of overlap.  First make a list of all of the
+  // column indexes.
+  activeColumns.reserve(numColumns_);
+  for(UInt i = 0; i < numColumns_; i++)
+    activeColumns.push_back(i);
+  // Compare the column indexes by their overlap.
+  auto compare = [&overlaps](const UInt &a, const UInt &b) -> bool
+    {return overlaps[a] > overlaps[b];};
+  // Do a partial sort to divide the winners from the losers.  This sort is
+  // faster than a regular sort because it stops after it partitions the
+  // elements about the Nth element, with all elements on their correct side of
+  // the Nth element.
+  std::nth_element(
+    activeColumns.begin(),
+    activeColumns.begin() + numDesired,
+    activeColumns.end(),
+    compare);
+  // Remove the columns which lost the competition.
+  activeColumns.resize(numDesired);
+  // Finish sorting the winner columns by their overlap.
+  std::sort(activeColumns.begin(), activeColumns.end(), compare);
+  // Remove sub-threshold winners
+  while( !activeColumns.empty() &&
+         overlaps[activeColumns.back()] < stimulusThreshold_)
+      activeColumns.pop_back();
 }
 
 void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
@@ -1278,185 +1282,7 @@ void SpatialPooler::load(istream &inStream) {
   boostedOverlaps_.resize(numColumns_);
 }
 
-void SpatialPooler::write(SpatialPoolerProto::Builder &proto) const {
-  auto random = proto.initRandom();
-  rng_.write(random);
-  proto.setNumInputs(numInputs_);
-  proto.setNumColumns(numColumns_);
 
-  auto columnDims = proto.initColumnDimensions(columnDimensions_.size());
-  for (UInt i = 0; i < columnDimensions_.size(); ++i) {
-    columnDims.set(i, columnDimensions_[i]);
-  }
-
-  auto inputDims = proto.initInputDimensions(inputDimensions_.size());
-  for (UInt i = 0; i < inputDimensions_.size(); ++i) {
-    inputDims.set(i, inputDimensions_[i]);
-  }
-
-  proto.setPotentialRadius(potentialRadius_);
-  proto.setPotentialPct(potentialPct_);
-  proto.setInhibitionRadius(inhibitionRadius_);
-  proto.setGlobalInhibition(globalInhibition_);
-  proto.setNumActiveColumnsPerInhArea(numActiveColumnsPerInhArea_);
-  proto.setLocalAreaDensity(localAreaDensity_);
-  proto.setStimulusThreshold(stimulusThreshold_);
-  proto.setSynPermInactiveDec(synPermInactiveDec_);
-  proto.setSynPermActiveInc(synPermActiveInc_);
-  proto.setSynPermBelowStimulusInc(synPermBelowStimulusInc_);
-  proto.setSynPermConnected(synPermConnected_);
-  proto.setMinPctOverlapDutyCycles(minPctOverlapDutyCycles_);
-  proto.setDutyCyclePeriod(dutyCyclePeriod_);
-  proto.setBoostStrength(boostStrength_);
-  proto.setWrapAround(wrapAround_);
-  proto.setSpVerbosity(spVerbosity_);
-
-  proto.setSynPermMin(synPermMin_);
-  proto.setSynPermMax(synPermMax_);
-  proto.setSynPermTrimThreshold(synPermTrimThreshold_);
-  proto.setUpdatePeriod(updatePeriod_);
-
-  proto.setVersion(version_);
-  proto.setIterationNum(iterationNum_);
-  proto.setIterationLearnNum(iterationLearnNum_);
-
-  auto potentialPools = proto.initPotentialPools();
-  potentialPools.setNumRows(numColumns_);
-  potentialPools.setNumColumns(numInputs_);
-  auto potentialPoolIndices = potentialPools.initIndices(numColumns_);
-  for (UInt i = 0; i < numColumns_; ++i) {
-    auto &pot = potentialPools_.getSparseRow(i);
-    auto indices = potentialPoolIndices.init(i, pot.size());
-    for (UInt j = 0; j < pot.size(); ++j) {
-      indices.set(j, pot[j]);
-    }
-  }
-
-  auto permanences = proto.initPermanences();
-  permanences_.write(permanences);
-
-  auto tieBreaker = proto.initTieBreaker(numColumns_);
-  for (UInt i = 0; i < numColumns_; ++i) {
-    tieBreaker.set(i, tieBreaker_[i]);
-  }
-
-  auto overlapDutyCycles = proto.initOverlapDutyCycles(numColumns_);
-  for (UInt i = 0; i < numColumns_; ++i) {
-    overlapDutyCycles.set(i, overlapDutyCycles_[i]);
-  }
-
-  auto activeDutyCycles = proto.initActiveDutyCycles(numColumns_);
-  for (UInt i = 0; i < numColumns_; ++i) {
-    activeDutyCycles.set(i, activeDutyCycles_[i]);
-  }
-
-  auto minOverlapDutyCycles = proto.initMinOverlapDutyCycles(numColumns_);
-  for (UInt i = 0; i < numColumns_; ++i) {
-    minOverlapDutyCycles.set(i, minOverlapDutyCycles_[i]);
-  }
-
-  auto boostFactors = proto.initBoostFactors(numColumns_);
-  for (UInt i = 0; i < numColumns_; ++i) {
-    boostFactors.set(i, boostFactors_[i]);
-  }
-}
-
-// Implementation note: this method sets up the instance using data from
-// proto. This method does not call initialize. As such we have to be careful
-// that everything in initialize is handled properly here.
-void SpatialPooler::read(SpatialPoolerProto::Reader &proto) {
-  auto randomProto = proto.getRandom();
-  rng_.read(randomProto);
-  numInputs_ = proto.getNumInputs();
-  numColumns_ = proto.getNumColumns();
-
-  columnDimensions_.clear();
-  for (UInt dimension : proto.getColumnDimensions()) {
-    columnDimensions_.push_back(dimension);
-  }
-
-  inputDimensions_.clear();
-  for (UInt dimension : proto.getInputDimensions()) {
-    inputDimensions_.push_back(dimension);
-  }
-
-  potentialRadius_ = proto.getPotentialRadius();
-
-  potentialPct_ = proto.getPotentialPct();
-  inhibitionRadius_ = proto.getInhibitionRadius();
-  globalInhibition_ = proto.getGlobalInhibition();
-  numActiveColumnsPerInhArea_ = proto.getNumActiveColumnsPerInhArea();
-  localAreaDensity_ = proto.getLocalAreaDensity();
-  stimulusThreshold_ = proto.getStimulusThreshold();
-  synPermInactiveDec_ = proto.getSynPermInactiveDec();
-  synPermActiveInc_ = proto.getSynPermActiveInc();
-  synPermBelowStimulusInc_ = proto.getSynPermBelowStimulusInc();
-  synPermConnected_ = proto.getSynPermConnected();
-  minPctOverlapDutyCycles_ = proto.getMinPctOverlapDutyCycles();
-  dutyCyclePeriod_ = proto.getDutyCyclePeriod();
-  boostStrength_ = proto.getBoostStrength();
-  wrapAround_ = proto.getWrapAround();
-  spVerbosity_ = proto.getSpVerbosity();
-
-  synPermMin_ = proto.getSynPermMin();
-  synPermMax_ = proto.getSynPermMax();
-  synPermTrimThreshold_ = proto.getSynPermTrimThreshold();
-  updatePeriod_ = proto.getUpdatePeriod();
-
-  version_ = proto.getVersion();
-  iterationNum_ = proto.getIterationNum();
-  iterationLearnNum_ = proto.getIterationLearnNum();
-
-  auto potentialPoolsProto = proto.getPotentialPools();
-  potentialPools_.read(potentialPoolsProto);
-
-  connectedSynapses_.resize(numColumns_, numInputs_);
-  connectedCounts_.resize(numColumns_);
-
-  // since updatePermanencesForColumn_, used below for initialization, is
-  // used elsewhere and necessarily updates permanences_, there is no need
-  // to additionally call the read function on permanences_
-  auto permanences = proto.getPermanences();
-  permanences_.resize(permanences.getNumRows(), permanences.getNumColumns());
-  auto permanenceValues = permanences.getRows();
-  for (UInt i = 0; i < numColumns_; ++i) {
-    vector<Real> colPerms(numInputs_, 0);
-    for (auto perm : permanenceValues[i].getValues()) {
-      colPerms[perm.getIndex()] = perm.getValue();
-    }
-    updatePermanencesForColumn_(colPerms, i, false);
-  }
-
-  tieBreaker_.clear();
-  for (auto value : proto.getTieBreaker()) {
-    tieBreaker_.push_back(value);
-  }
-
-  overlapDutyCycles_.clear();
-  for (auto value : proto.getOverlapDutyCycles()) {
-    overlapDutyCycles_.push_back(value);
-  }
-
-  activeDutyCycles_.clear();
-  for (auto value : proto.getActiveDutyCycles()) {
-    activeDutyCycles_.push_back(value);
-  }
-
-  minOverlapDutyCycles_.clear();
-  for (auto value : proto.getMinOverlapDutyCycles()) {
-    minOverlapDutyCycles_.push_back(value);
-  }
-
-  boostFactors_.clear();
-  for (auto value : proto.getBoostFactors()) {
-    boostFactors_.push_back(value);
-  }
-
-  // Initialize ephemerals
-  overlaps_.resize(numColumns_);
-  overlapsPct_.resize(numColumns_);
-  boostedOverlaps_.resize(numColumns_);
-}
 
 //----------------------------------------------------------------------
 // Debugging helpers

@@ -20,25 +20,26 @@
  * ---------------------------------------------------------------------
  */
 
+#include "gtest/gtest.h"
+
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <time.h>
 #include <vector>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Random.hpp>
 
+namespace testing {
+
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 
-void testSP() {
+TEST(Serialization, testSP) {
   Random random(10);
 
   const UInt inputSize = 500;
@@ -76,17 +77,11 @@ void testSP() {
   }
 
   // Save initial trained model
-  ofstream osA("outA.proto", ofstream::binary);
-  sp1.write(osA);
-  osA.close();
-
-  ofstream osC("outC.proto", ofstream::binary);
+  ofstream osC("outC.stream", ofstream::binary);
   sp1.save(osC);
   osC.close();
 
   SpatialPooler sp2;
-
-  Real64 timeA = 0.0, timeC = 0.0;
 
   for (UInt i = 0; i < 100; ++i) {
     // Create new input
@@ -95,35 +90,6 @@ void testSP() {
     // Get expected output
     UInt outputBaseline[numColumns];
     sp1.compute(input, true, outputBaseline);
-
-    // A - First do iostream version
-    UInt outputA[numColumns];
-    {
-      SpatialPooler spTemp;
-
-      nupic::Timer testTimer;
-      testTimer.start();
-
-      // Deserialize
-      ifstream is("outA.proto", ifstream::binary);
-      spTemp.read(is);
-      is.close();
-
-      // Feed new record through
-      spTemp.compute(input, true, outputA);
-
-      // Serialize
-      ofstream os("outA.proto", ofstream::binary);
-      spTemp.write(os);
-      os.close();
-
-      testTimer.stop();
-      timeA = timeA + testTimer.getElapsed();
-    }
-
-    for (UInt i = 0; i < numColumns; ++i) {
-      NTA_CHECK(outputBaseline[i] == outputA[i]);
-    }
 
     // C - Next do old version
     UInt outputC[numColumns];
@@ -134,7 +100,7 @@ void testSP() {
       testTimer.start();
 
       // Deserialize
-      ifstream is("outC.proto", ifstream::binary);
+      ifstream is("outC.stream", ifstream::binary);
       spTemp.load(is);
       is.close();
 
@@ -142,28 +108,27 @@ void testSP() {
       spTemp.compute(input, true, outputC);
 
       // Serialize
-      ofstream os("outC.proto", ofstream::binary);
+      ofstream os("outC.stream", ofstream::binary);
       spTemp.save(os);
       os.close();
 
       testTimer.stop();
-      timeC = timeC + testTimer.getElapsed();
+      cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
+      cout << "Stream: " << testTimer.getElapsed() << endl;
     }
 
     for (UInt i = 0; i < numColumns; ++i) {
-      NTA_CHECK(outputBaseline[i] == outputC[i]);
+      ASSERT_EQ(outputBaseline[i], outputC[i]);
     }
   }
 
-  remove("outA.proto");
-  remove("outC.proto");
-
-  cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
-  cout << "Cap'n Proto: " << timeA << endl;
-  cout << "Manual: " << timeC << endl;
+  remove("outC.stream");
 }
 
-void testRandomIOStream(UInt n) {
+
+
+TEST(serialization, testRandom) {
+	const UInt n=1000;
   Random r1(7);
   Random r2;
 
@@ -173,71 +138,28 @@ void testRandomIOStream(UInt n) {
     r1.getUInt32();
 
     // Serialize
-    ofstream os("random2.proto", ofstream::binary);
-    r1.write(os);
-    os.flush();
-    os.close();
-
-    // Deserialize
-    ifstream is("random2.proto", ifstream::binary);
-    r2.read(is);
-    is.close();
-
-    // Test
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-  }
-  testTimer.stop();
-
-  remove("random2.proto");
-
-  cout << "Cap'n Proto: " << testTimer.getElapsed() << endl;
-}
-
-void testRandomManual(UInt n) {
-  Random r1(7);
-  Random r2;
-
-  nupic::Timer testTimer;
-  testTimer.start();
-  for (UInt i = 0; i < n; ++i) {
-    r1.getUInt32();
-
-    // Serialize
-    ofstream os("random3.proto", ofstream::binary);
+    ofstream os("random3.stream", ofstream::binary);
     os << r1;
     os.flush();
     os.close();
 
     // Deserialize
-    ifstream is("random3.proto", ifstream::binary);
+    ifstream is("random3.stream", ifstream::binary);
     is >> r2;
     is.close();
 
     // Test
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
-    NTA_CHECK(r1.getUInt32() == r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
   }
   testTimer.stop();
 
-  remove("random3.proto");
+  remove("random3.stream");
 
-  cout << "Manual: " << testTimer.getElapsed() << endl;
+  cout << "Random serialization: " << testTimer.getElapsed() << endl;
 }
 
-int main(int argc, const char *argv[]) {
-  UInt n = 1000;
-  cout << "Timing for Random serialization (smaller is better):" << endl;
-  testRandomIOStream(n);
-  testRandomManual(n);
-
-  testSP();
-
-  return 0;
-}
+} //ns

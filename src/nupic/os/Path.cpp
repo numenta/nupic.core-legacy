@@ -34,16 +34,20 @@
 #include <apr-1/apr.h>
 #include <iterator>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 
 #if defined(NTA_OS_WINDOWS)
 extern "C" {
 #include <apr-1/arch/win32/apr_arch_utf8.h>
 }
 #include <windows.h>
+#include <io.h>
 #else
 #include <fstream>
-#include <sys/stat.h>
-#include <sys/types.h>
+
 
 #if defined(NTA_OS_DARWIN)
 #include <mach-o/dyld.h> // _NSGetExecutablePath
@@ -94,9 +98,8 @@ bool Path::exists(const std::string &path) {
   if (path.empty())
     return false;
 
-  apr_finfo_t st;
-  apr_status_t res = getInfo(path, APR_FINFO_TYPE, st);
-  return res == APR_SUCCESS;
+  return (access(path.c_str(), 0) == 0);
+
 }
 
 static apr_filetype_e getType(const std::string &path, bool check = true) {
@@ -115,11 +118,13 @@ bool Path::isFile(const std::string &path) {
 }
 
 bool Path::isDirectory(const std::string &path) {
-  return getType(path) == APR_DIR;
+  struct stat sb;
+  return (stat(path.c_str(), &sb)== 0 && (sb.st_mode & S_IFDIR));
 }
 
 bool Path::isSymbolicLink(const std::string &path) {
-  return getType(path) == APR_LNK;
+  struct stat sb;
+  return (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode));
 }
 
 bool Path::isAbsolute(const std::string &path) {

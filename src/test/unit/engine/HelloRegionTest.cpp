@@ -20,6 +20,8 @@
  * ---------------------------------------------------------------------
  */
 
+#include "gtest/gtest.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -28,13 +30,14 @@
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
-#include <nupic/utils/Log.hpp>
+
+namespace testing {
 
 using namespace nupic;
 
-int main(int argc, const char *argv[]) {
+TEST(HelloRegionTest, demo) {
   // Create network
-  Network net = Network();
+  Network net;
 
   // Add VectorFileSensor region to network
   Region *region =
@@ -49,15 +52,16 @@ int main(int argc, const char *argv[]) {
   region->setDimensions(dims);
 
   // Load data
+  const size_t DATA_SIZE = 4; //Data is only 4 rows
   std::string path =
-      Path::makeAbsolute("../../../src/examples/regions/Data.csv");
+      Path::makeAbsolute("../data/Data.csv"); //FIXME use path relative to CMake's nupic root
 
   std::cout << "Loading data from " << path << std::endl;
 
   std::vector<std::string> loadFileArgs;
   loadFileArgs.push_back("loadFile");
   loadFileArgs.push_back(path);
-  loadFileArgs.push_back("2");
+  loadFileArgs.push_back("2"); //2=file format
 
   region->executeCommand(loadFileArgs);
 
@@ -74,34 +78,37 @@ int main(int argc, const char *argv[]) {
   region->compute();
 
   // Get output
-  Real64 *buffer = (Real64 *)outputArray.getBuffer();
-
+  const Real64 *buffer = (const Real64 *)outputArray.getBuffer();
   for (size_t i = 0; i < outputArray.getCount(); i++) {
+//    EXPECT_FLOAT_EQ(buffer[0], 0); //TODO add test, which values should be here? 
     std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
   }
+
 
   // Serialize
   Network net2;
   {
     std::stringstream ss;
-    net.write(ss);
-    net2.read(ss);
+    net.save(ss);
+    //std::cout << "Loading from stream. \n";
+    //std::cout << ss.str() << std::endl;
+    ss.seekg(0);
+    net2.load(ss);
   }
-  net2.initialize();
+//  EXPECT_EQ(net, net2);
 
-  Region *region2 = net2.getRegions().getByName("region");
+  Region *region2 = net2.getRegions().getByName("region"); //TODO add more checks and asserts here
   region2->executeCommand(loadFileArgs);
   ArrayRef outputArray2 = region2->getOutputData("dataOut");
-  Real64 *buffer2 = (Real64 *)outputArray2.getBuffer();
+  const Real64 *buffer2 = (const Real64 *)outputArray2.getBuffer();
 
-  net.run(1);
-  net2.run(1);
+  net.run(DATA_SIZE);
+  net2.run(DATA_SIZE);
 
-  NTA_ASSERT(outputArray2.getCount() == outputArray.getCount());
-  for (size_t i = 0; i < outputArray.getCount(); i++) {
-    std::cout << "  " << i << "    " << buffer[i] << "   " << buffer2[i]
-              << std::endl;
+  ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
+  for (size_t i = 0; i < sizeof &buffer / sizeof &buffer[0]; i++) { //TODO how output all values generated during run(4) ?? 
+	  EXPECT_FLOAT_EQ(buffer[i], buffer2[i]);
+	  std::cout << " buffer " << buffer[i] << " buffer2: " << buffer2[i] << std::endl;
   }
-
-  return 0;
 }
+} //end namespace

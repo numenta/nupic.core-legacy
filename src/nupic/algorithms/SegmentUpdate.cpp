@@ -27,17 +27,31 @@
 using namespace nupic::algorithms::Cells4;
 
 SegmentUpdate::SegmentUpdate()
-    : _sequenceSegment(false), _cellIdx((UInt)-1), _segIdx((UInt)-1),
-      _timeStamp((UInt)-1), _synapses(), _phase1Flag(false),
-      _weaklyPredicting(false) {}
+  : _sequenceSegment(false),
+    _cellIdx((UInt) -1),
+    _segIdx((UInt) -1),
+    _timeStamp((UInt) -1),
+    _synapses(),
+    _phase1Flag(false),
+    _weaklyPredicting(false)
+{}
 
-SegmentUpdate::SegmentUpdate(UInt cellIdx, UInt segIdx, bool sequenceSegment,
-                             UInt timeStamp, std::vector<UInt> synapses,
-                             bool phase1Flag, bool weaklyPredicting,
-                             Cells4 *cells)
-    : _sequenceSegment(sequenceSegment), _cellIdx(cellIdx), _segIdx(segIdx),
-      _timeStamp(timeStamp), _synapses(std::move(synapses)),
-      _phase1Flag(phase1Flag), _weaklyPredicting(weaklyPredicting) {
+SegmentUpdate::SegmentUpdate(UInt cellIdx,
+                             UInt segIdx,
+                             bool sequenceSegment,
+							 UInt timeStamp,
+                             std::vector<UInt>  synapses,
+                             bool phase1Flag,
+                             bool weaklyPredicting,
+                             Cells4* cells)
+  : _sequenceSegment(sequenceSegment),
+    _cellIdx(cellIdx),
+    _segIdx(segIdx),
+    _timeStamp(timeStamp),
+    _synapses(std::move(synapses)),
+    _phase1Flag(phase1Flag),
+    _weaklyPredicting(weaklyPredicting)
+{
   NTA_ASSERT(invariants(cells));
 }
 
@@ -72,6 +86,13 @@ bool SegmentUpdate::invariants(Cells4 *cells) const {
   return ok;
 }
 
+/**
+ * Compare segmentUpdates.
+ * SegmentUpdate and its synapses are added in random order
+ * to somewhat random connections.  But if comparing
+ * Serialized segmentUpdates against the original they will
+ * be in exactly the same sequence.
+ */
 bool SegmentUpdate::operator==(const SegmentUpdate &o) const {
 
   if (_cellIdx != o._cellIdx || _segIdx != o._segIdx ||

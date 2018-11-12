@@ -50,7 +50,7 @@
 #include <string>
 #include <vector>
 
-#include <capnp/message.h>
+#include "gtest/gtest.h"
 
 bool ignore_negative_tests = false;
 #define SHOULDFAIL(statement)                                                  \
@@ -105,6 +105,8 @@ struct MemoryMonitor {
 };
 
 void testPynodeInputOutputAccess(Region *level2) {
+  std::cerr << "testPynodeInputOutputAccess \n";
+
   // --- input/output access for level 2 (Python py.TestNode) ---
   SHOULDFAIL(level2->getOutputData("doesnotexist"));
 
@@ -119,6 +121,8 @@ void testPynodeInputOutputAccess(Region *level2) {
 }
 
 void testPynodeArrayParameters(Region *level2) {
+  std::cerr << "testPynodeArrayParameters \n";
+
   // Array a is not allocated by us. Will be allocated inside getParameter
   Array a(NTA_BasicType_Int64);
   level2->getParameterArray("int64ArrayParam", a);
@@ -150,6 +154,7 @@ void testPynodeArrayParameters(Region *level2) {
 }
 
 void testPynodeLinking() {
+  std::cerr << "testPynodeLinking \n";
   Network net = Network();
 
   Region *region1 = net.addRegion("region1", "TestNode", "");
@@ -244,6 +249,7 @@ void testSecondTimeLeak() {
 }
 
 void testRegionDuplicateRegister() {
+  std::cerr << "testRegionDuplicateRegister \n";
   // Register a region
   Network::registerPyRegion("nupic.regions.TestDuplicateNodes",
                             "TestDuplicateNodes");
@@ -264,10 +270,12 @@ void testRegionDuplicateRegister() {
               << "region with same name but different module as existing "
               << "registered region";
   } catch (std::exception &e) {
+  	std::cerr << "exception cought as exepected.\n";
   }
 }
 
 void testCreationParamTypes() {
+  std::cerr << "testCreationParamTypes \n";
   // Verify that parameters of all types can be passed in through the creation
   // params.
 
@@ -291,6 +299,7 @@ void testCreationParamTypes() {
 }
 
 void testUnregisterRegion() {
+  NTA_DEBUG << "testUnregisterRegion started\n";
   Network n;
   n.addRegion("test", "py.TestNode", "");
 
@@ -311,6 +320,7 @@ void testUnregisterRegion() {
 }
 
 void testWriteRead() {
+  NTA_DEBUG << "testUnregisterRegion started\n";
   Int32 int32Param = 42;
   UInt32 uint32Param = 43;
   Int64 int64Param = 44;
@@ -357,8 +367,8 @@ void testWriteRead() {
   Network n2;
 
   std::stringstream ss;
-  n1.write(ss);
-  n2.read(ss);
+  n1.save(ss);
+  n2.load(ss);
 
   const Collection<Region *> &regions = n2.getRegions();
   const std::pair<std::string, Region *> &regionPair = regions.getByIndex(0);
@@ -462,11 +472,6 @@ int realmain(bool leakTest) {
     // testNuPIC1x();
     // testPynode1xLinking();
   }
-#if !CAPNP_LITE
-  // PyRegion::write is implemented only when nupic.core is compiled with
-  // CAPNP_LITE=0
-  testWriteRead();
-#endif
 
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.
@@ -477,12 +482,21 @@ int realmain(bool leakTest) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
+TEST(PyRegionTest, testAll) { //TODO former main method, could be splitted into separate tests
+
   // This isn't running inside one of the SWIG modules, so we need to
   // initialize the numpy C API.
   Py_Initialize();
   NTA_CHECK(Py_IsInitialized());
   nupic::initializeNumpy();
+
+  // tell Python where to find src/bindings/region/TestNode.py
+  std::string ext = Path::normalize(__FILE__ "/../../../../bindings/py/src");
+  PyRun_SimpleString("import os, sys");
+  PyRun_SimpleString(("print(\"Python test DIR="+ ext + "\")").c_str());
+  PyRun_SimpleString("sys.path.append(\".\")");
+  PyRun_SimpleString(("sys.path.append(\""+ext+"\")").c_str());
+
 
   /*
    * Without arguments, this program is a simple end-to-end demo
@@ -493,14 +507,6 @@ int main(int argc, char *argv[]) {
    * grow by even one byte.
    */
 
-  // TODO: real argument parsing
-  // Optional arg is number of iterations to do.
-  NTA_CHECK(argc == 1 || argc == 2);
-  size_t count = 1;
-  if (argc == 2) {
-    std::stringstream ss(argv[1]);
-    ss >> count;
-  }
   // Start checking memory usage after this many iterations.
 #if defined(NTA_OS_WINDOWS)
   // takes longer to settle down on win32
@@ -514,6 +520,8 @@ int main(int argc, char *argv[]) {
 
   size_t minCount = memoryLeakStartIter + 5 * memoryLeakDeltaIterCheck;
 
+  size_t count = 0; //no mem leak detection, set to minCount if needed
+
   if (count > 1 && count < minCount) {
     std::cout << "Run count of " << count << " specified\n";
     std::cout << "When run in leak detection mode, count must be at least "
@@ -525,7 +533,6 @@ int main(int argc, char *argv[]) {
   size_t initial_rmem = 0;
   size_t current_vmem = 0;
   size_t current_rmem = 0;
-  try {
     for (size_t i = 0; i < count; i++) {
       // MemoryMonitor m;
       NuPIC::init();
@@ -561,23 +568,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-  } catch (nupic::Exception &e) {
-    std::cout << "Exception: " << e.getMessage() << " at: " << e.getFilename()
-              << ":" << e.getLineNumber() << std::endl;
-    return 1;
-
-  } catch (std::exception &e) {
-    std::cout << "Exception: " << e.what() << "" << std::endl;
-    return 1;
-  } catch (...) {
-    std::cout << "\nhtmtest is exiting because an exception was thrown"
-              << std::endl;
-    return 1;
-  }
   if (count > 20)
-    std::cout << "Memory leak check passed -- " << count << " iterations"
-              << std::endl;
-
+    std::cout << "Memory leak check passed -- " << count << " iterations" << std::endl;
   std::cout << "--- ALL TESTS PASSED ---" << std::endl;
-  return 0;
 }

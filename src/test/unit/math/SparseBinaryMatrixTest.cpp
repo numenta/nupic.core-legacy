@@ -24,16 +24,15 @@
 #include <utility>
 #include <vector>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
 #include <gtest/gtest.h>
-#include <kj/std/iostream.h>
 
 #include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/proto/SparseBinaryMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
 using namespace nupic;
+
+
+/************************ToDo: replace with streaming serialization
 
 TEST(SparseBinaryMatrixReadWrite, EmptyMatrix) {
   SparseBinaryMatrix<UInt32, UInt32> m1, m2;
@@ -97,3 +96,4 @@ TEST(SparseBinaryMatrixReadWrite, Basic) {
   ASSERT_EQ(m1r1[0], 1) << "Invalid col index in original matrix";
   ASSERT_EQ(m1r1[0], m2r1[0]) << "Invalid col index in copied matrix";
 }
+****/

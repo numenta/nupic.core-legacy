@@ -25,6 +25,7 @@
  */
 
 #include <cstring> // memset
+#include <cstdio> //fopen
 #include <iostream>
 #include <math.h>
 #include <nupic/math/Utils.hpp> // For isSystemLittleEndian and utils::swapBytesInPlace.
@@ -35,7 +36,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <zlib.h>
 
 using namespace std;
 using namespace nupic;
@@ -372,17 +372,17 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
 
 class AutoReleaseFile {
 public:
-  void *file_;
-  AutoReleaseFile(const string &filename) : file_(ZLib::fopen(filename, "rb")) {
+  FILE *file_;
+  AutoReleaseFile(const string &filename) : file_(fopen(filename.c_str(), "rb")) {
     if (!file_)
       throw runtime_error("Unable to open file '" + filename + "'.");
   }
   ~AutoReleaseFile() {
-    ::gzclose((gzFile)file_);
+    fclose(file_);
     file_ = nullptr;
   }
-  void read(void *out, int n) {
-    int result = gzread((gzFile)file_, out, n);
+  void read(void *out, size_t objSize, int n) {
+    int result = fread(out, objSize, n, file_); //TODO remove this class? use fstream instead of cstdio::fread
     if (result < n)
       throw runtime_error("Failed to read requested bytes from file.");
   }
@@ -422,7 +422,7 @@ void VectorFile::appendFloat32File(const string &filename,
     throw logic_error("Invalid number of row labels.");
   }
 
-  Real *block = nullptr;
+  Real *block = nullptr; //TODO use Real[] block; instead of pointers! will require more changes in the file
 
   try {
     // Set up the ownership.
@@ -442,7 +442,7 @@ void VectorFile::appendFloat32File(const string &filename,
       *(cur++) = pBlock;
     }
 
-    file.read(block, int(totalBytes));
+    file.read(&block, sizeof block[0] ,int(totalBytes));
 
     if (needSwap)
       nupic::swapBytesInPlace(block, totalElements);
@@ -549,13 +549,13 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
   AutoReleaseFile file(filename);
 
   char header[4];
-  file.read(header, 4);
+  file.read(header, sizeof header[0], 4);
 
   int nDims = header[3];
   if (nDims < 1)
     throw runtime_error("Invalid number of dimensions.");
   int dims[256];
-  file.read(dims, nDims * sizeof(int));
+  file.read(dims, sizeof dims[0], nDims * sizeof(int));
   if (needSwap)
     nupic::swapBytesInPlace(dims, nDims);
 
@@ -616,7 +616,7 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
     {
       unsigned char *pRead = reinterpret_cast<unsigned char *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
-        file.read(pRead, readRow);
+        file.read(pRead, sizeof(char), readRow);
         // No need for byte swapping.
         convert(pBlock, pRead, copy, fill);
         pBlock += expectedElements;
@@ -627,7 +627,7 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
     {
       signed char *pRead = reinterpret_cast<signed char *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
-        file.read(pRead, readRow);
+        file.read(pRead, sizeof(char), readRow);
         // No need for byte swapping.
         convert(pBlock, pRead, copy, fill);
         pBlock += expectedElements;
@@ -638,7 +638,7 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
     {
       short *pRead = reinterpret_cast<short *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
-        file.read(pRead, readRow);
+        file.read(pRead, sizeof(short), readRow);
         if (needSwap)
           nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);
@@ -650,7 +650,7 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
     {
       int *pRead = reinterpret_cast<int *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
-        file.read(pRead, readRow);
+        file.read(pRead, sizeof(int), readRow);
         if (needSwap)
           nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);
@@ -658,11 +658,11 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
       }
       break;
     }
-    case 0x0D: // 32-bit float.
+    case 0x0D: // 32-bit float. //TODO this is super-ugly code! use templates to avoid the switch! 
     {
       float *pRead = reinterpret_cast<float *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
-        file.read(pRead, readRow);
+        file.read(pRead, sizeof(float), readRow);
         if (needSwap)
           nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);
@@ -674,7 +674,7 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
     {
       double *pRead = reinterpret_cast<double *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
-        file.read(pRead, readRow);
+        file.read(pRead, sizeof(double), readRow);
         if (needSwap)
           nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);

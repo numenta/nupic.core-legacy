@@ -41,9 +41,6 @@
 #include <string>
 #include <vector>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
@@ -54,7 +51,7 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
-static const Permanence EPSILON = 0.000001;
+static const Permanence EPSILON = 0.000001f;
 static const UInt TM_VERSION = 2;
 
 template <typename Iterator>
@@ -298,7 +295,7 @@ static void growSynapses(Connections &connections, Random &rng, Segment segment,
 
   // Pick nActual cells randomly.
   for (UInt32 c = 0; c < nActualWithMax; c++) {
-    size_t i = rng.getUInt32(candidates.size());
+    UInt32 i = rng.getUInt32((UInt32)candidates.size());
     connections.createSynapse(segment, candidates[i], initialPermanence);
     candidates.erase(candidates.begin() + i);
   }
@@ -628,7 +625,17 @@ vector<Segment> TemporalMemory::getMatchingSegments() const {
 
 UInt TemporalMemory::numberOfColumns() const { return numColumns_; }
 
-vector<UInt> TemporalMemory::getColumnDimensions() const {
+bool TemporalMemory::_validateCell(CellIdx cell) const
+{
+  if (cell < numberOfCells())
+    return true;
+
+  NTA_THROW << "Invalid cell " << cell;
+  return false;
+}
+
+vector<UInt> TemporalMemory::getColumnDimensions() const
+{
   return columnDimensions_;
 }
 
@@ -718,7 +725,7 @@ UInt TemporalMemory::version() const { return TM_VERSION; }
  */
 void TemporalMemory::seed_(UInt64 seed) { rng_ = Random(seed); }
 
-UInt TemporalMemory::persistentSize() const {
+size_t TemporalMemory::persistentSize() const {
   stringstream s;
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);
@@ -809,166 +816,7 @@ void TemporalMemory::save(ostream &outStream) const {
   outStream << "~TemporalMemory" << endl;
 }
 
-void TemporalMemory::write(TemporalMemoryProto::Builder &proto) const {
-  auto columnDims = proto.initColumnDimensions(columnDimensions_.size());
-  for (UInt i = 0; i < columnDimensions_.size(); i++) {
-    columnDims.set(i, columnDimensions_[i]);
-  }
 
-  proto.setCellsPerColumn(cellsPerColumn_);
-  proto.setActivationThreshold(activationThreshold_);
-  proto.setInitialPermanence(initialPermanence_);
-  proto.setConnectedPermanence(connectedPermanence_);
-  proto.setMinThreshold(minThreshold_);
-  proto.setMaxNewSynapseCount(maxNewSynapseCount_);
-  proto.setCheckInputs(checkInputs_);
-  proto.setPermanenceIncrement(permanenceIncrement_);
-  proto.setPermanenceDecrement(permanenceDecrement_);
-  proto.setPredictedSegmentDecrement(predictedSegmentDecrement_);
-
-  proto.setMaxSegmentsPerCell(maxSegmentsPerCell_);
-  proto.setMaxSynapsesPerSegment(maxSynapsesPerSegment_);
-
-  auto _connections = proto.initConnections();
-  connections.write(_connections);
-
-  auto random = proto.initRandom();
-  rng_.write(random);
-
-  auto activeCells = proto.initActiveCells(activeCells_.size());
-  UInt i = 0;
-  for (CellIdx cell : activeCells_) {
-    activeCells.set(i++, cell);
-  }
-
-  auto winnerCells = proto.initWinnerCells(winnerCells_.size());
-  i = 0;
-  for (CellIdx cell : winnerCells_) {
-    winnerCells.set(i++, cell);
-  }
-
-  auto activeSegments = proto.initActiveSegments(activeSegments_.size());
-  for (UInt i = 0; i < activeSegments_.size(); ++i) {
-    activeSegments[i].setCell(connections.cellForSegment(activeSegments_[i]));
-    activeSegments[i].setIdxOnCell(
-        connections.idxOnCellForSegment(activeSegments_[i]));
-  }
-
-  auto matchingSegments = proto.initMatchingSegments(matchingSegments_.size());
-  for (UInt i = 0; i < matchingSegments_.size(); ++i) {
-    matchingSegments[i].setCell(
-        connections.cellForSegment(matchingSegments_[i]));
-    matchingSegments[i].setIdxOnCell(
-        connections.idxOnCellForSegment(matchingSegments_[i]));
-  }
-
-  auto numActivePotentialSynapsesForSegment =
-      proto.initNumActivePotentialSynapsesForSegment(
-          numActivePotentialSynapsesForSegment_.size());
-  for (Segment segment = 0;
-       segment < numActivePotentialSynapsesForSegment_.size(); segment++) {
-    numActivePotentialSynapsesForSegment[segment].setCell(
-        connections.cellForSegment(segment));
-    numActivePotentialSynapsesForSegment[segment].setIdxOnCell(
-        connections.idxOnCellForSegment(segment));
-    numActivePotentialSynapsesForSegment[segment].setNumber(
-        numActivePotentialSynapsesForSegment_[segment]);
-  }
-
-  proto.setIteration(iteration_);
-
-  auto lastUsedIterationForSegment = proto.initLastUsedIterationForSegment(
-      lastUsedIterationForSegment_.size());
-  for (Segment segment = 0; segment < lastUsedIterationForSegment_.size();
-       ++segment) {
-    lastUsedIterationForSegment[segment].setCell(
-        connections.cellForSegment(segment));
-    lastUsedIterationForSegment[segment].setIdxOnCell(
-        connections.idxOnCellForSegment(segment));
-    lastUsedIterationForSegment[segment].setNumber(
-        lastUsedIterationForSegment_[segment]);
-  }
-}
-
-// Implementation note: this method sets up the instance using data from
-// proto. This method does not call initialize. As such we have to be careful
-// that everything in initialize is handled properly here.
-void TemporalMemory::read(TemporalMemoryProto::Reader &proto) {
-  numColumns_ = 1;
-  columnDimensions_.clear();
-  for (UInt dimension : proto.getColumnDimensions()) {
-    numColumns_ *= dimension;
-    columnDimensions_.push_back(dimension);
-  }
-
-  cellsPerColumn_ = proto.getCellsPerColumn();
-  activationThreshold_ = proto.getActivationThreshold();
-  initialPermanence_ = proto.getInitialPermanence();
-  connectedPermanence_ = proto.getConnectedPermanence();
-  minThreshold_ = proto.getMinThreshold();
-  maxNewSynapseCount_ = proto.getMaxNewSynapseCount();
-  checkInputs_ = proto.getCheckInputs();
-  permanenceIncrement_ = proto.getPermanenceIncrement();
-  permanenceDecrement_ = proto.getPermanenceDecrement();
-  predictedSegmentDecrement_ = proto.getPredictedSegmentDecrement();
-
-  maxSegmentsPerCell_ = proto.getMaxSegmentsPerCell();
-  maxSynapsesPerSegment_ = proto.getMaxSynapsesPerSegment();
-
-  auto _connections = proto.getConnections();
-  connections.read(_connections);
-
-  numActiveConnectedSynapsesForSegment_.assign(
-      connections.segmentFlatListLength(), 0);
-  numActivePotentialSynapsesForSegment_.assign(
-      connections.segmentFlatListLength(), 0);
-
-  auto random = proto.getRandom();
-  rng_.read(random);
-
-  activeCells_.clear();
-  for (auto cell : proto.getActiveCells()) {
-    activeCells_.push_back(cell);
-  }
-
-  winnerCells_.clear();
-  for (auto cell : proto.getWinnerCells()) {
-    winnerCells_.push_back(cell);
-  }
-
-  activeSegments_.clear();
-  for (auto value : proto.getActiveSegments()) {
-    const Segment segment =
-        connections.getSegment(value.getCell(), value.getIdxOnCell());
-    activeSegments_.push_back(segment);
-  }
-
-  matchingSegments_.clear();
-  for (auto value : proto.getMatchingSegments()) {
-    const Segment segment =
-        connections.getSegment(value.getCell(), value.getIdxOnCell());
-    matchingSegments_.push_back(segment);
-  }
-
-  numActivePotentialSynapsesForSegment_.clear();
-  numActivePotentialSynapsesForSegment_.resize(
-      connections.segmentFlatListLength());
-  for (auto segmentNumPair : proto.getNumActivePotentialSynapsesForSegment()) {
-    const Segment segment = connections.getSegment(
-        segmentNumPair.getCell(), segmentNumPair.getIdxOnCell());
-    numActivePotentialSynapsesForSegment_[segment] = segmentNumPair.getNumber();
-  }
-
-  iteration_ = proto.getIteration();
-
-  lastUsedIterationForSegment_.clear();
-  lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
-  for (auto segmentIterationPair : proto.getLastUsedIterationForSegment()) {
-    const Segment segment = connections.getSegment(
-        segmentIterationPair.getCell(), segmentIterationPair.getIdxOnCell());
-    lastUsedIterationForSegment_[segment] = segmentIterationPair.getNumber();
-  }
-}
 
 void TemporalMemory::load(istream &inStream) {
   // Check the marker

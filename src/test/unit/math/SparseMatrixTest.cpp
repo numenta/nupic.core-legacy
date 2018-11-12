@@ -24,17 +24,14 @@
 #include <utility>
 #include <vector>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
 #include <gtest/gtest.h>
-#include <kj/std/iostream.h>
 
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/proto/SparseMatrixProto.capnp.h>
 #include <nupic/types/Types.h>
 
 using namespace nupic;
 
+/******* todo, replace with stream serialization
 TEST(SparseMatrixReadWrite, EmptyMatrix) {
   SparseMatrix<UInt, Real> m1, m2;
 
@@ -60,7 +57,9 @@ TEST(SparseMatrixReadWrite, EmptyMatrix) {
   ASSERT_EQ(m1.nRows(), m2.nRows()) << "Number of rows don't match";
   ASSERT_EQ(m1.nCols(), m2.nCols()) << "Number of columns don't match";
 }
+*******************************/
 
+/******* todo, replace with stream serialization
 TEST(SparseMatrixReadWrite, Basic) {
   SparseMatrix<UInt, Real> m1, m2;
 
@@ -100,3 +99,4 @@ TEST(SparseMatrixReadWrite, Basic) {
   ASSERT_EQ(m1r1[0].second, 3.0) << "Invalid value in original matrix";
   ASSERT_EQ(m1r1[0].second, m2r1[0].second) << "Invalid value in copied matrix";
 }
+*************************/

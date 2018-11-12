@@ -257,18 +257,7 @@ TEST_F(ArrayTest, testBufferAllocation) {
                  " - Allocation of an ArrayBase of valid size should return a "
                  "valid pointer";
 
-      caughtException = false;
-
-      try {
-        a.allocateBuffer(10);
-      } catch (nupic::Exception) {
-        caughtException = true;
-      }
-
-      ASSERT_TRUE(caughtException)
-          << "Test case: " + testCase->first +
-                 " - allocating a buffer when one is already allocated should "
-                 "raise an exception";
+      // Note: reallocating a buffer is now allowed.  dek, 08/07/2017
 
       ASSERT_EQ((size_t)testCase->second.allocationSize, a.getCount())
           << "Test case: " + testCase->first +
@@ -299,18 +288,7 @@ TEST_F(ArrayTest, testBufferAssignment) {
     boost::scoped_array<char> buf2(new char[testCase->second.dataTypeSize *
                                             testCase->second.allocationSize]);
 
-    bool caughtException = false;
-
-    try {
-      a.setBuffer(buf2.get(), testCase->second.allocationSize);
-    } catch (nupic::Exception) {
-      caughtException = true;
-    }
-
-    ASSERT_TRUE(caughtException)
-        << "Test case: " + testCase->first +
-               " - setting a buffer when one is already set should raise an "
-               "exception";
+    // setting a buffer when one is already set is now allowed. dek 08/07/2018
   }
 }
 
