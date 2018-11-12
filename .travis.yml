@@ -108,6 +108,13 @@ before_install:
   - sudo pip2 install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
 
 install:
+  # Install Boost
+  - sudo wget -O boost_1_68_0.tar.gz https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
+  - sudo tar xzf boost_1_68_0.tar.gz
+  - cd boost_1_68_0
+  - sudo ./bootstrap --prefix=/usr/local
+  - sudo ./b2 --with-system --with-filesystem install
+  # Setup folders
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
   - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
