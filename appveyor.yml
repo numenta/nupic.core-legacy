@@ -3,8 +3,8 @@
 #---------------------------------#
 image:
 - Visual Studio 2017
-- Previous Visual Studio 2015
-- WMF 5
+  #- Previous Visual Studio 2015
+  #- WMF 5
 configuration: Release
 platform: x64
 
