@@ -2018,4 +2018,25 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   check_spatial_eq(sp1, sp2);
 }
 
+TEST(SpatialPoolerTest, testClip) {
+  SpatialPooler sp;
+  sp.setSynPermMax(1.337);
+  sp.setSynPermTrimThreshold(0.2);
+
+  vector<Real> test{-0.001, 0.1, 2.1};
+  const vector<Real> exp {0.0, 0.1, 1.337};
+  const vector<Real> exp2{0.0, 0.0, 1.337};
+
+  sp.clip_(test); //clip to 0.0 .. 1.337
+  for(UInt i=0; i< test.size(); i++) {
+    ASSERT_NEAR(exp[i], test[i], 0.0001) << "clip ";
+  }
+
+  sp.clip_(test, true); //clip trim small <0.2 to 0.0
+  for(UInt i=0; i< test.size(); i++) {
+    ASSERT_NEAR(exp2[i], test[i], 0.0001) << "clip 2";
+  }
+
+}
+
 } // end anonymous namespace
