@@ -45,13 +45,6 @@ using nupic::utils::VectorHelpers;
 
 static const Real PERMANENCE_EPSILON = 0.000001f;
 
-// MSVC doesn't provide round() which only became standard in C99 or C++11
-#if defined(NTA_COMPILER_MSVC)
-template <typename T> T round(T num) {
-  return (num > 0.0) ? floor(num + 0.5) : ceil(num - 0.5);
-}
-#endif
-
 // Round f to 5 digits of precision. This is used to set
 // permanence values and help avoid small amounts of drift between
 // platforms/implementations
