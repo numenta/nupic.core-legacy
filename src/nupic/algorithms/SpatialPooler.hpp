@@ -67,7 +67,7 @@ class SpatialPooler : public Serializable
 {
 public:
   SpatialPooler();
-  SpatialPooler(vector<UInt> inputDimensions, vector<UInt> columnDimensions,
+  SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
                 UInt potentialRadius = 16, Real potentialPct = 0.5,
                 bool globalInhibition = true, Real localAreaDensity = -1.0,
                 UInt numActiveColumnsPerInhArea = 10,
@@ -201,7 +201,7 @@ public:
 
    */
   virtual void
-  initialize(vector<UInt> inputDimensions, vector<UInt> columnDimensions,
+  initialize(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
              UInt potentialRadius = 16, Real potentialPct = 0.5,
              bool globalInhibition = true, Real localAreaDensity = -1.0,
              UInt numActiveColumnsPerInhArea = 10, UInt stimulusThreshold = 0,

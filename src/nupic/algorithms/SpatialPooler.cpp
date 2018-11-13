@@ -50,7 +50,7 @@ static Real round5_(const Real f)
   return ((Real) ((Int) (f * 100000))) / 100000.0;
 }
 
-class CoordinateConverter2D {
+class CoordinateConverter2D { //TODO move to Topology
 
 public:
   CoordinateConverter2D(UInt nrows, UInt ncols)
