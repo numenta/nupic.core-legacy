@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2015-2017, Numenta, Inc.  Unless you have purchased from
+# Copyright (C) 2015-2018, Numenta, Inc.  Unless you have purchased from
 # Numenta, Inc. a separate commercial license for this software code, the
 # following terms and conditions apply:
 #
@@ -44,14 +44,67 @@ if( POLICY CMP0054 )
   cmake_policy(SET CMP0054 OLD)
 endif()
 
-
+##############################################
+# Compiler support for <filesystem> in C++17:
+# https://en.cppreference.com/w/cpp/compiler_support
+#    GCC 7.1 has <experimental/filesystem>, link with -libc++experimental or -lstdc++fs
+#    GCC 8 has <filesystem>   link with -lstdc++fs
+#    GCC 9   expected to support <filesystem>
+#    Clang 4 (XCode10) has no support for <filesystem>, partial C++17
+#    Clang 7 has complete <filesystem> support for C++17
+#    Visual Studio 2017 15.7 (v19.14)supports <filesystem> with C++17
+#    MinGW has no support for filesystem.
 #
+# If we have support for <filesystem> and C++17, turn on the C++17 standard flag, 
+# else set standard to C++11 and install boost filesystem
+# Also allow external library for <filesystem>
+
+set(extra_lib_for_filesystem)   # sometimes -libc++experimental or -lstdc++fs
+set(INTERNAL_CPP_STANDARD "c++11")
+set(NEEDS_BOOST ON)
+
+### comment this out and save for next PR
+#if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+#    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9")
+#         set(INTERNAL_CPP_STANDARD "c++17")
+#	 set(NEEDS_BOOST OFF)
+#    elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
+#         set(INTERNAL_CPP_STANDARD "c++17")
+#	 set(extra_lib_for_filesystem "-lstdc++fs")
+#	 set(NEEDS_BOOST "OFF")
+#    endif()	 
+#elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+#    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
+#         set(INTERNAL_CPP_STANDARD "c++17")
+#	 set(NEEDS_BOOST OFF)
+#    endif()
+#elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+#      if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.14")
+#            set(INTERNAL_CPP_STANDARD "c++17")
+#	    set(NEEDS_BOOST OFF)
+#      endif()
+#endif()
+
+
+##############################################
 # Global NuPIC CMake options
 #
 option(NUPIC_BUILD_PYEXT_MODULES
        "Turn on building of python extension modules for nupic.bindings; turn off to build only static nupic_core lib with full symbol visibility."
        ON)
 
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+   # By convention, default the install folder to be 'release' even if the build time is Debug.
+   set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/release" CACHE PATH "Default Install location" FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release)
+endif()
+
+if(NOT PY_EXTENSIONS_DIR)
+	set(PY_EXTENSIONS_DIR ${REPOSITORY_DIR}/bindings/py/src/nupic/bindings)
+endif()
 message(STATUS "NUPIC_BUILD_PYEXT_MODULES = ${NUPIC_BUILD_PYEXT_MODULES}")
 message(STATUS "PY_EXTENSIONS_DIR         = ${PY_EXTENSIONS_DIR}")
 
