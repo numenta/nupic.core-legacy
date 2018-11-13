@@ -23,17 +23,16 @@
 #ifndef NTA_Cells4_HPP
 #define NTA_Cells4_HPP
 
-#include <ostream>
-#include <sstream>
-#include <fstream>
-#include <nupic/algorithms/Segment.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
-#include <nupic/proto/Cells4.capnp.h>
-#include <nupic/types/Serializable.hpp>
+#include <nupic/algorithms/Segment.hpp>
+#include <nupic/algorithms/Cell.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
+#include <ostream>
 #include <queue>
+#include <sstream>
 #include <cstring>
-
+#include <fstream>
 
 //-----------------------------------------------------------------------
 /**
@@ -68,150 +67,139 @@
  */
 
 namespace nupic {
-  namespace algorithms {
-    namespace Cells4 {
+namespace algorithms {
+namespace Cells4 {
 
-      class Cell;
-      class Cells4;
-      class SegmentUpdate;
+class Cell;
+class Cells4;
+class SegmentUpdate;
 
-      /**
-       * Class CBasicActivity:
-       * Manage activity counters
-       *
-       * This class is used by CCellSegActivity.  The counters stay well
-       * below 255, allowing us to use UChar elements.  The biggest we
-       * have seen is 33.  More important than the raw memory utilization
-       * is the reduced pressure on L2 cache.  To see the difference,
-       * benchmark this version, then try again after changing
-       *
-       * CCellSegActivity<UChar> _learnActivity;
-       * CCellSegActivity<UChar> _inferActivity;
-       *
-       * to
-       *
-       * CCellSegActivity<UInt> _learnActivity;
-       * CCellSegActivity<UInt> _inferActivity;
-       *
-       * We leave this class and CCellSegActivity templated to simplify
-       * such testing.
-       *
-       * While we typically test on just one core, our production
-       * configuration may run one engine on each core, thereby increasing
-       * the pressure on L2.
-       *
-       * Counts are collected in one function, following a reset, and
-       * used in another.
-       *
-       *                  Collected in                                     Used in
-       * _learnActivity   computeForwardPropagation(CStateIndexed& state)  getBestMatchingCellT
-       * _inferActivity   computeForwardPropagation(CState& state)         inferPhase2
-       *
-       * The _segment counts are the ones that matter.  The _cell counts
-       * are an optimization technique.  They track the maximum count
-       * for all segments in that cell.  Since segment counts are
-       * interesting only if they exceed a threshold, we can skip all of
-       * a cell's segments when the maximum is too small.
-       *
-       * Repeatedly resetting all the counters in large sparse arrays
-       * can be costly, and much of the work is unnecessary when most
-       * counters are already zero.  To address this, we track which
-       * array elements are nonzero, and at reset time zero only those.
-       * If an array is not so sparse, this selective zeroing may be
-       * slower than a full memset().  We arbitrarily choose a threshold
-       * of 6.25%, past which we use memset() instead of selective
-       * zeroing.
-       */
-      const UInt _MAX_CELLS = 1 << 18;      // power of 2 allows efficient array indexing
-      const UInt _MAX_SEGS  = 1 <<  7;      // power of 2 allows efficient array indexing
-      typedef unsigned char UChar;          // custom type, since NTA_Byte = Byte is signed
+/**
+ * Class CBasicActivity:
+ * Manage activity counters
+ *
+ * This class is used by CCellSegActivity.  The counters stay well
+ * below 255, allowing us to use UChar elements.  The biggest we
+ * have seen is 33.  More important than the raw memory utilization
+ * is the reduced pressure on L2 cache.  To see the difference,
+ * benchmark this version, then try again after changing
+ *
+ * CCellSegActivity<UChar> _learnActivity;
+ * CCellSegActivity<UChar> _inferActivity;
+ *
+ * to
+ *
+ * CCellSegActivity<UInt> _learnActivity;
+ * CCellSegActivity<UInt> _inferActivity;
+ *
+ * We leave this class and CCellSegActivity templated to simplify
+ * such testing.
+ *
+ * While we typically test on just one core, our production
+ * configuration may run one engine on each core, thereby increasing
+ * the pressure on L2.
+ *
+ * Counts are collected in one function, following a reset, and
+ * used in another.
+ *
+ *                  Collected in                                     Used in
+ * _learnActivity   computeForwardPropagation(CStateIndexed& state)
+ * getBestMatchingCellT _inferActivity   computeForwardPropagation(CState&
+ * state)         inferPhase2
+ *
+ * The _segment counts are the ones that matter.  The _cell counts
+ * are an optimization technique.  They track the maximum count
+ * for all segments in that cell.  Since segment counts are
+ * interesting only if they exceed a threshold, we can skip all of
+ * a cell's segments when the maximum is too small.
+ *
+ * Repeatedly resetting all the counters in large sparse arrays
+ * can be costly, and much of the work is unnecessary when most
+ * counters are already zero.  To address this, we track which
+ * array elements are nonzero, and at reset time zero only those.
+ * If an array is not so sparse, this selective zeroing may be
+ * slower than a full memset().  We arbitrarily choose a threshold
+ * of 6.25%, past which we use memset() instead of selective
+ * zeroing.
+ */
+const UInt _MAX_CELLS = 1 << 18; // power of 2 allows efficient array indexing
+const UInt _MAX_SEGS = 1 << 7;   // power of 2 allows efficient array indexing
+typedef unsigned char UChar;     // custom type, since NTA_Byte = Byte is signed
 
-      template <typename It>
-      class CBasicActivity
-      {
-      public:
-        CBasicActivity()
-        {
-          _counter = nullptr;
-          _nonzero = nullptr;
-          _size = 0;
-          _dimension = 0;
-        }
-        ~CBasicActivity()
-        {
-          if (_counter != nullptr)
-            delete [] _counter;
-          if (_nonzero != nullptr)
-            delete [] _nonzero;
-        }
-        void initialize(UInt n)
-        {
-          if (_counter != nullptr)
-            delete [] _counter;
-          if (_nonzero != nullptr)
-            delete [] _nonzero;
-          _counter = new It[n];                       // use typename here
-          memset(_counter, 0, n * sizeof(_counter[0]));
-          _nonzero = new UInt[n];
-          _size = 0;
-          _dimension = n;
-        }
-        UInt get(UInt cellIdx)
-        {
-          return _counter[cellIdx];
-        }
-        void add(UInt cellIdx, UInt incr)
-        {
-          // currently unused, but may need to resurrect
-          if (_counter[cellIdx] == 0)
-            _nonzero[_size++] = cellIdx;
-          _counter[cellIdx] += incr;
-        }
-        It increment(UInt cellIdx)                    // use typename here
-        {
-          // In the learning phase, the activity count appears never to
-          // reach 255.  Is this a safe assumption?
-          if (_counter[cellIdx] != 0)
-            return ++_counter[cellIdx];
-          _counter[cellIdx] = 1;                      // without this, the inefficient compiler reloads the value from memory, increments it and stores it back
-          _nonzero[_size++] = cellIdx;
-          return 1;
-        }
-        void max(UInt cellIdx, It val)                // use typename here
-        {
-          const It curr = _counter[cellIdx];          // use typename here
-          if (val > curr) {
-            _counter[cellIdx] = val;
-            if (curr == 0)
-              _nonzero[_size++] = cellIdx;
-          }
-        }
-        void reset()
-        {
+template <typename It> class CBasicActivity {
+public:
+  CBasicActivity() {
+    _counter = nullptr;
+    _nonzero = nullptr;
+    _size = 0;
+    _dimension = 0;
+  }
+  ~CBasicActivity() {
+    if (_counter != nullptr)
+      delete[] _counter;
+    if (_nonzero != nullptr)
+      delete[] _nonzero;
+  }
+  void initialize(UInt n) {
+    if (_counter != nullptr)
+      delete[] _counter;
+    if (_nonzero != nullptr)
+      delete[] _nonzero;
+    _counter = new It[n]; // use typename here
+    memset(_counter, 0, n * sizeof(_counter[0]));
+    _nonzero = new UInt[n];
+    _size = 0;
+    _dimension = n;
+  }
+  UInt get(UInt cellIdx) { return _counter[cellIdx]; }
+  void add(UInt cellIdx, UInt incr) {
+    // currently unused, but may need to resurrect
+    if (_counter[cellIdx] == 0)
+      _nonzero[_size++] = cellIdx;
+    _counter[cellIdx] += incr;
+  }
+  It increment(UInt cellIdx) // use typename here
+  {
+    // In the learning phase, the activity count appears never to
+    // reach 255.  Is this a safe assumption?
+    if (_counter[cellIdx] != 0)
+      return ++_counter[cellIdx];
+    _counter[cellIdx] =
+        1; // without this, the inefficient compiler reloads the value from
+           // memory, increments it and stores it back
+    _nonzero[_size++] = cellIdx;
+    return 1;
+  }
+  void max(UInt cellIdx, It val) // use typename here
+  {
+    const It curr = _counter[cellIdx]; // use typename here
+    if (val > curr) {
+      _counter[cellIdx] = val;
+      if (curr == 0)
+        _nonzero[_size++] = cellIdx;
+    }
+  }
+  void reset() {
 #define REPORT_ACTIVITY_STATISTICS 0
 #if REPORT_ACTIVITY_STATISTICS
-          // report the statistics for this table
-          // Without a high water counter, we can't tell for sure if a
-          // UChar counter overflowed, but it's likely there was no
-          // overflow if all the other counters are below, say, 200.
-          if (_size == 0) {
-            std::cout << "Reset width=" << sizeof(It) << " all zeroes" << std::endl;
-          }
-          else {
-            static std::vector<It> vectStat;
-            vectStat.clear();
-            UInt ndxStat;
-            for (ndxStat = 0; ndxStat < _size; ndxStat++)
-              vectStat.push_back(_counter[_nonzero[ndxStat]]);
-            std::sort(vectStat.begin(), vectStat.end());
-            std::cout << "Reset width=" << sizeof(It)
-                      << " size=" << _dimension
-                      << " nonzero=" << _size
-                      << " min=" << UInt(vectStat.front())
-                      << " max=" << UInt(vectStat.back())
-                      << " med=" << UInt(vectStat[_size/2])
-                      << std::endl;
-          }
+    // report the statistics for this table
+    // Without a high water counter, we can't tell for sure if a
+    // UChar counter overflowed, but it's likely there was no
+    // overflow if all the other counters are below, say, 200.
+    if (_size == 0) {
+      std::cout << "Reset width=" << sizeof(It) << " all zeroes" << std::endl;
+    } else {
+      static std::vector<It> vectStat;
+      vectStat.clear();
+      UInt ndxStat;
+      for (ndxStat = 0; ndxStat < _size; ndxStat++)
+        vectStat.push_back(_counter[_nonzero[ndxStat]]);
+      std::sort(vectStat.begin(), vectStat.end());
+      std::cout << "Reset width=" << sizeof(It) << " size=" << _dimension
+                << " nonzero=" << _size << " min=" << UInt(vectStat.front())
+                << " max=" << UInt(vectStat.back())
+                << " med=" << UInt(vectStat[_size / 2]) << std::endl;
+    }
 #endif
           // zero all the nonzero slots
           if (_size < _dimension / 16) {              // if fewer than 6.25% are nonzero
@@ -264,14 +252,14 @@ namespace nupic {
         CBasicActivity<It> _seg;
       };
 
-      class Cells4 : public Serializable<Cells4Proto>
+      class Cells4 : public Serializable
       {
       public:
 
         typedef Segment::InSynapses InSynapses;
         typedef std::vector<OutSynapse> OutSynapses;
         typedef std::vector<SegmentUpdate> SegmentUpdates;
-        static const UInt VERSION = 2;
+        static const UInt VERSION = 3;
 
       private:
         nupic::Random _rng;
@@ -332,352 +320,357 @@ namespace nupic {
          */
 #define SOME_STATES_NOT_INDEXED 1
 #if SOME_STATES_NOT_INDEXED
-        CState _infActiveStateT;
-        CState _infActiveStateT1;
-        CState _infPredictedStateT;
-        CState _infPredictedStateT1;
+  CState _infActiveStateT;
+  CState _infActiveStateT1;
+  CState _infPredictedStateT;
+  CState _infPredictedStateT1;
 #else
-        CStateIndexed _infActiveStateT;
-        CStateIndexed _infActiveStateT1;
-        CStateIndexed _infPredictedStateT;
-        CStateIndexed _infPredictedStateT1;
+  CStateIndexed _infActiveStateT;
+  CStateIndexed _infActiveStateT1;
+  CStateIndexed _infPredictedStateT;
+  CStateIndexed _infPredictedStateT1;
 #endif
-        Real* _cellConfidenceT;
-        Real* _cellConfidenceT1;
-        Real* _colConfidenceT;
-        Real* _colConfidenceT1;
-        bool _ownsMemory;                   // If true, this class is responsible
-                                            // for managing memory of above
-                                            // eight arrays.
+  Real *_cellConfidenceT;
+  Real *_cellConfidenceT1;
+  Real *_colConfidenceT;
+  Real *_colConfidenceT1;
+  bool _ownsMemory; // If true, this class is responsible
+                    // for managing memory of above
+                    // eight arrays.
 
+  CStateIndexed _learnActiveStateT;
+  CStateIndexed _learnActiveStateT1;
+  CStateIndexed _learnPredictedStateT;
+  CStateIndexed _learnPredictedStateT1;
 
-        CStateIndexed _learnActiveStateT;
-        CStateIndexed _learnActiveStateT1;
-        CStateIndexed _learnPredictedStateT;
-        CStateIndexed _learnPredictedStateT1;
-
-        Real* _cellConfidenceCandidate;
-        Real* _colConfidenceCandidate;
-        Real* _tmpInputBuffer;
+  Real *_cellConfidenceCandidate;
+  Real *_colConfidenceCandidate;
+  Real *_tmpInputBuffer;
 #if SOME_STATES_NOT_INDEXED
-        CState _infActiveStateCandidate;
-        CState _infPredictedStateCandidate;
-        CState _infActiveBackup;
-        CState _infPredictedBackup;
+  CState _infActiveStateCandidate;
+  CState _infPredictedStateCandidate;
+  CState _infActiveBackup;
+  CState _infPredictedBackup;
 #else
-        CStateIndexed _infActiveStateCandidate;
-        CStateIndexed _infPredictedStateCandidate;
-        CStateIndexed _infActiveBackup;
-        CStateIndexed _infPredictedBackup;
+  CStateIndexed _infActiveStateCandidate;
+  CStateIndexed _infPredictedStateCandidate;
+  CStateIndexed _infActiveBackup;
+  CStateIndexed _infPredictedBackup;
 #endif
 
-        //-----------------------------------------------------------------------
-        /**
-         * Internal data structures.
-         */
-        std::vector< Cell > _cells;
-        std::deque<std::vector<UInt> > _prevInfPatterns;
-        std::deque<std::vector<UInt> > _prevLrnPatterns;
-        SegmentUpdates _segmentUpdates;
+  //-----------------------------------------------------------------------
+  /**
+   * Internal data structures.
+   */
+  std::vector<Cell> _cells;
+  std::deque<std::vector<UInt>> _prevInfPatterns;
+  std::deque<std::vector<UInt>> _prevLrnPatterns;
+  SegmentUpdates _segmentUpdates;
 
-        //-----------------------------------------------------------------------
-        /**
-         * Internal data structures used for speed optimization.
-         */
-        std::vector<OutSynapses> _outSynapses;
-        UInt _nIterationsSinceRebalance;
-        CCellSegActivity<UChar> _learnActivity;
-        // _inferActivity and _learnActivity use identical data
-        // structures, and their use does not overlap
-        #define _inferActivity _learnActivity
+  //-----------------------------------------------------------------------
+  /**
+   * Internal data structures used for speed optimization.
+   */
+  std::vector<OutSynapses> _outSynapses;
+  UInt _nIterationsSinceRebalance;
+  CCellSegActivity<UChar> _learnActivity;
+// _inferActivity and _learnActivity use identical data
+// structures, and their use does not overlap
+#define _inferActivity _learnActivity
 
-      public:
-        //-----------------------------------------------------------------------
-        /**
-         * Default constructor needed when lifting from persistence.
-         */
-        Cells4(UInt nColumns =0, UInt nCellsPerCol =0,
-               UInt activationThreshold =1,
-               UInt minThreshold =1,
-               UInt newSynapseCount =1,
-               UInt segUpdateValidDuration =1,
-               Real permInitial =.5,
-               Real permConnected =.8,
-               Real permMax =1,
-               Real permDec =.1,
-               Real permInc =.1,
-               Real globalDecay =0,
-               bool doPooling =false,
-               int seed =-1,
-               bool initFromCpp =false,
-               bool checkSynapseConsistency =false);
+public:
+  //-----------------------------------------------------------------------
+  /**
+   * Default constructor needed when lifting from persistence.
+   */
+  Cells4(UInt nColumns = 0, UInt nCellsPerCol = 0, UInt activationThreshold = 1,
+         UInt minThreshold = 1, UInt newSynapseCount = 1,
+         UInt segUpdateValidDuration = 1, Real permInitial = .5,
+         Real permConnected = .8, Real permMax = 1, Real permDec = .1,
+         Real permInc = .1, Real globalDecay = 0, bool doPooling = false,
+         int seed = -1, bool initFromCpp = true,
+         bool checkSynapseConsistency = false);
 
+  //----------------------------------------------------------------------
+  /**
+   * This also called when lifting from persistence.
+   */
+  void initialize(UInt nColumns = 0, UInt nCellsPerCol = 0,
+                  UInt activationThreshold = 1, UInt minThreshold = 1,
+                  UInt newSynapseCount = 1, UInt segUpdateValidDuration = 1,
+                  Real permInitial = .5, Real permConnected = .8,
+                  Real permMax = 1, Real permDec = .1, Real permInc = .1,
+                  Real globalDecay = .1, bool doPooling = false,
+                  bool initFromCpp = true,
+                  bool checkSynapseConsistency = false);
 
-        //----------------------------------------------------------------------
-        /**
-         * This also called when lifting from persistence.
-         */
-        void
-        initialize(UInt nColumns =0, UInt nCellsPerCol =0,
-                   UInt activationThreshold =1,
-                   UInt minThreshold =1,
-                   UInt newSynapseCount =1,
-                   UInt segUpdateValidDuration =1,
-                   Real permInitial =.5,
-                   Real permConnected =.8,
-                   Real permMax =1,
-                   Real permDec =.1,
-                   Real permInc =.1,
-                   Real globalDecay =.1,
-                   bool doPooling =false,
-                   bool initFromCpp =false,
-                   bool checkSynapseConsistency =false);
+  //----------------------------------------------------------------------
+  ~Cells4();
 
-        //----------------------------------------------------------------------
-        ~Cells4();
+  //----------------------------------------------------------------------
+  bool operator==(const Cells4 &other) const;
+  inline bool operator!=(const Cells4 &other) const {
+    return !operator==(other);
+  }
 
-        //----------------------------------------------------------------------
-        UInt version() const
-        {
-          return _version;
-        }
+  //----------------------------------------------------------------------
+  UInt version() const { return _version; }
 
-        //----------------------------------------------------------------------
-        /**
-         * Call this when allocating numpy arrays, to have pointers use those
-         * arrays.
-         */
-        void setStatePointers(Byte* infActiveT, Byte* infActiveT1,
-                   Byte* infPredT, Byte* infPredT1,
-                   Real* colConfidenceT, Real* colConfidenceT1,
-                   Real* cellConfidenceT, Real* cellConfidenceT1)
-        {
-          if (_ownsMemory) {
-            delete [] _cellConfidenceT;
-            delete [] _cellConfidenceT1;
-            delete [] _colConfidenceT;
-            delete [] _colConfidenceT1;
-          }
+  //----------------------------------------------------------------------
+  /**
+   * Call this when allocating numpy arrays, to have pointers use those
+   * arrays.
+   */
+  void setStatePointers(Byte *infActiveT, Byte *infActiveT1, Byte *infPredT,
+                        Byte *infPredT1, Real *colConfidenceT,
+                        Real *colConfidenceT1, Real *cellConfidenceT,
+                        Real *cellConfidenceT1) {
+    if (_ownsMemory) {
+      delete[] _cellConfidenceT;
+      delete[] _cellConfidenceT1;
+      delete[] _colConfidenceT;
+      delete[] _colConfidenceT1;
+    }
 
-          _ownsMemory = false;
+    _ownsMemory = false;
 
-          _infActiveStateT.usePythonMemory(infActiveT, _nCells);
-          _infActiveStateT1.usePythonMemory(infActiveT1, _nCells);
-          _infPredictedStateT.usePythonMemory(infPredT, _nCells);
-          _infPredictedStateT1.usePythonMemory(infPredT1, _nCells);
-          _cellConfidenceT = cellConfidenceT;
-          _cellConfidenceT1 = cellConfidenceT1;
-          _colConfidenceT = colConfidenceT;
-          _colConfidenceT1 = colConfidenceT1;
-        }
+    _infActiveStateT.usePythonMemory(infActiveT, _nCells);
+    _infActiveStateT1.usePythonMemory(infActiveT1, _nCells);
+    _infPredictedStateT.usePythonMemory(infPredT, _nCells);
+    _infPredictedStateT1.usePythonMemory(infPredT1, _nCells);
+    _cellConfidenceT = cellConfidenceT;
+    _cellConfidenceT1 = cellConfidenceT1;
+    _colConfidenceT = colConfidenceT;
+    _colConfidenceT1 = colConfidenceT1;
+  }
 
-        //-----------------------------------------------------------------------
-        /**
-         * Use this when C++ allocates memory for the arrays, and Python needs to look
-         * at them.
-         */
-        void getStatePointers(Byte*& activeT, Byte*& activeT1,
-                                     Byte*& predT, Byte*& predT1,
-                                     Real*& colConfidenceT, Real*& colConfidenceT1,
-                                     Real*& confidenceT, Real*& confidenceT1) const
-        {
-          NTA_ASSERT(_ownsMemory);
+  //-----------------------------------------------------------------------
+  /**
+   * Use this when C++ allocates memory for the arrays, and Python needs to look
+   * at them.
+   */
+  void getStatePointers(Byte *&activeT, Byte *&activeT1, Byte *&predT,
+                        Byte *&predT1, Real *&colConfidenceT,
+                        Real *&colConfidenceT1, Real *&confidenceT,
+                        Real *&confidenceT1) const {
+    NTA_ASSERT(_ownsMemory);
 
-          activeT = _infActiveStateT.arrayPtr();
-          activeT1 = _infActiveStateT1.arrayPtr();
-          predT = _infPredictedStateT.arrayPtr();
-          predT1 = _infPredictedStateT1.arrayPtr();
-          confidenceT = _cellConfidenceT;
-          confidenceT1 = _cellConfidenceT1;
-          colConfidenceT = _colConfidenceT;
-          colConfidenceT1 = _colConfidenceT1;
-        }
+    activeT = _infActiveStateT.arrayPtr();
+    activeT1 = _infActiveStateT1.arrayPtr();
+    predT = _infPredictedStateT.arrayPtr();
+    predT1 = _infPredictedStateT1.arrayPtr();
+    confidenceT = _cellConfidenceT;
+    confidenceT1 = _cellConfidenceT1;
+    colConfidenceT = _colConfidenceT;
+    colConfidenceT1 = _colConfidenceT1;
+  }
 
-        //-----------------------------------------------------------------------
-        /**
-         * Use this when Python needs to look up the learn states.
-         */
-        void getLearnStatePointers(Byte*& activeT, Byte*& activeT1,
-                                   Byte*& predT, Byte*& predT1) const
-        {
-          activeT  = _learnActiveStateT.arrayPtr();
-          activeT1 = _learnActiveStateT1.arrayPtr();
-          predT    = _learnPredictedStateT.arrayPtr();
-          predT1   = _learnPredictedStateT1.arrayPtr();
-        }
+  //-----------------------------------------------------------------------
+  /**
+   * Use this when Python needs to look up the learn states.
+   */
+  void getLearnStatePointers(Byte *&activeT, Byte *&activeT1, Byte *&predT,
+                             Byte *&predT1) const {
+    activeT = _learnActiveStateT.arrayPtr();
+    activeT1 = _learnActiveStateT1.arrayPtr();
+    predT = _learnPredictedStateT.arrayPtr();
+    predT1 = _learnPredictedStateT1.arrayPtr();
+  }
 
-        //----------------------------------------------------------------------
-        /**
-         * Accessors for getting various member variables
-         */
-        UInt nSegments() const;
-        UInt nCells() const                 { return _nCells; }
-        UInt nColumns() const               { return _nColumns; }
-        UInt nCellsPerCol() const           { return _nCellsPerCol; }
-        UInt getMinThreshold() const        { return _minThreshold; }
-        Real getPermConnected() const       { return _permConnected; }
-        UInt getVerbosity() const           { return _verbosity; }
-        UInt getMaxAge() const              { return _maxAge; }
-        UInt getPamLength() const           { return _pamLength; }
-        UInt getMaxInfBacktrack() const     { return _maxInfBacktrack;}
-        UInt getMaxLrnBacktrack() const     { return _maxLrnBacktrack;}
-        UInt getPamCounter() const          { return _pamCounter;}
-        UInt getMaxSeqLength() const        { return _maxSeqLength;}
-        Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength;}
-        UInt getNLrnIterations() const      { return _nLrnIterations;}
-        Int  getMaxSegmentsPerCell() const  { return _maxSegmentsPerCell;}
-        Int  getMaxSynapsesPerSegment() const  { return _maxSynapsesPerSegment;}
-        bool getCheckSynapseConsistency() const   { return _checkSynapseConsistency;}
+  //----------------------------------------------------------------------
+  /**
+   * Get individual state buffer pointers
+   */
+  Byte *getInfActiveStateT() { return _infActiveStateT.arrayPtr(); }
+  Byte *getInfActiveStateT1() { return _infActiveStateT1.arrayPtr(); }
+  Byte *getInfPredictedStateT() { return _infPredictedStateT.arrayPtr(); }
+  Byte *getInfPredictedStateT1() { return _infPredictedStateT1.arrayPtr(); }
+  Byte *getLearnActiveStateT() { return _learnActiveStateT.arrayPtr(); }
+  Byte *getLearnActiveStateT1() { return _learnActiveStateT1.arrayPtr(); }
+  Byte *getLearnPredictedStateT() { return _learnPredictedStateT.arrayPtr(); }
+  Byte *getLearnPredictedStateT1() { return _learnPredictedStateT.arrayPtr(); }
+  Real *getCellConfidenceT() { return _cellConfidenceT; }
+  Real *getCellConfidenceT1() { return _cellConfidenceT1; }
+  Real *getColConfidenceT() { return _colConfidenceT; }
+  Real *getColConfidenceT1() { return _colConfidenceT1; }
 
+  //----------------------------------------------------------------------
+  /**
+   * Accessors for getting various member variables
+   */
+  UInt nSegments() const;
+  UInt nCells() const { return _nCells; }
+  UInt nColumns() const { return _nColumns; }
+  UInt nCellsPerCol() const { return _nCellsPerCol; }
+  Real getPermInitial() const { return _permInitial; }
+  UInt getMinThreshold() const { return _minThreshold; }
+  Real getPermConnected() const { return _permConnected; }
+  UInt getNewSynapseCount() const { return _newSynapseCount; }
+  Real getPermInc() const { return _permInc; }
+  Real getPermDec() const { return _permDec; }
+  Real getPermMax() const { return _permMax; }
+  Real getGlobalDecay() const { return _globalDecay; }
+  UInt getActivationThreshold() const { return _activationThreshold; }
+  bool getDoPooling() { return _doPooling; }
+  UInt getSegUpdateValidDuration() { return _segUpdateValidDuration; }
+  UInt getVerbosity() const { return _verbosity; }
+  UInt getMaxAge() const { return _maxAge; }
+  UInt getPamLength() const { return _pamLength; }
+  UInt getMaxInfBacktrack() const { return _maxInfBacktrack; }
+  UInt getMaxLrnBacktrack() const { return _maxLrnBacktrack; }
+  UInt getPamCounter() const { return _pamCounter; }
+  UInt getMaxSeqLength() const { return _maxSeqLength; }
+  Real getAvgLearnedSeqLength() const { return _avgLearnedSeqLength; }
+  UInt getNLrnIterations() const { return _nLrnIterations; }
+  Int getMaxSegmentsPerCell() const { return _maxSegmentsPerCell; }
+  Int getMaxSynapsesPerSegment() const { return _maxSynapsesPerSegment; }
+  bool getCheckSynapseConsistency() const { return _checkSynapseConsistency; }
 
-        //----------------------------------------------------------------------
-        /**
-         * Accessors for setting various member variables
-         */
-        void setMaxInfBacktrack(UInt t)   {_maxInfBacktrack = t;}
-        void setMaxLrnBacktrack(UInt t)   {_maxLrnBacktrack = t;}
-        void setVerbosity(UInt v)         {_verbosity = v; }
-        void setMaxAge(UInt a)            {_maxAge = a; }
-        void setMaxSeqLength(UInt v)      {_maxSeqLength = v;}
-        void setCheckSynapseConsistency(bool val)
-                                          { _checkSynapseConsistency = val;}
+  //----------------------------------------------------------------------
+  /**
+   * Accessors for setting various member variables
+   */
+  void setMaxInfBacktrack(UInt t) { _maxInfBacktrack = t; }
+  void setMaxLrnBacktrack(UInt t) { _maxLrnBacktrack = t; }
+  void setVerbosity(UInt v) { _verbosity = v; }
+  void setMaxAge(UInt a) { _maxAge = a; }
+  void setMaxSeqLength(UInt v) { _maxSeqLength = v; }
+  void setCheckSynapseConsistency(bool val) { _checkSynapseConsistency = val; }
 
-        void setMaxSegmentsPerCell(int maxSegs) {
-          if (maxSegs != -1) {
-            NTA_CHECK(maxSegs > 0);
-            NTA_CHECK(_globalDecay == 0.0);
-            NTA_CHECK(_maxAge == 0);
-          }
-          _maxSegmentsPerCell = maxSegs;
-        }
+  void setMaxSegmentsPerCell(int maxSegs) {
+    if (maxSegs != -1) {
+      NTA_CHECK(maxSegs > 0);
+      NTA_CHECK(_globalDecay == 0.0);
+      NTA_CHECK(_maxAge == 0);
+    }
+    _maxSegmentsPerCell = maxSegs;
+  }
 
-        void setMaxSynapsesPerCell(int maxSyns) {
-          if (maxSyns != -1) {
-            NTA_CHECK(maxSyns > 0);
-            NTA_CHECK(_globalDecay == 0.0);
-            NTA_CHECK(_maxAge == 0);
-          }
-          _maxSynapsesPerSegment = maxSyns;
-        }
+  void setMaxSynapsesPerCell(int maxSyns) {
+    if (maxSyns != -1) {
+      NTA_CHECK(maxSyns > 0);
+      NTA_CHECK(_globalDecay == 0.0);
+      NTA_CHECK(_maxAge == 0);
+    }
+    _maxSynapsesPerSegment = maxSyns;
+  }
 
-        void setPamLength(UInt pl)
-        {
-          NTA_CHECK(pl > 0);
-          _pamLength = pl;
-          _pamCounter = _pamLength;
-        }
+  void setPamLength(UInt pl) {
+    NTA_CHECK(pl > 0);
+    _pamLength = pl;
+    _pamCounter = _pamLength;
+  }
 
+  //-----------------------------------------------------------------------
+  /**
+   * Returns the number of segments currently in use on the given cell.
+   */
+  UInt nSegmentsOnCell(UInt colIdx, UInt cellIdxInCol) const;
 
-        //-----------------------------------------------------------------------
-        /**
-         * Returns the number of segments currently in use on the given cell.
-         */
-        UInt nSegmentsOnCell(UInt colIdx, UInt cellIdxInCol) const;
+  //-----------------------------------------------------------------------
+  UInt nSynapses() const;
 
-        //-----------------------------------------------------------------------
-        UInt nSynapses() const;
+  //-----------------------------------------------------------------------
+  /**
+   * WRONG ONE if you want the current number of segments with actual synapses
+   * on the cell!!!!
+   * This one counts the total number of segments ever allocated on a cell,
+   * which includes empty segments that have been previously freed.
+   */
+  UInt __nSegmentsOnCell(UInt cellIdx) const;
 
-        //-----------------------------------------------------------------------
-        /**
-         * WRONG ONE if you want the current number of segments with actual synapses
-         * on the cell!!!!
-         * This one counts the total number of segments ever allocated on a cell, which
-         * includes empty segments that have been previously freed.
-         */
-        UInt __nSegmentsOnCell(UInt cellIdx) const;
+  //-----------------------------------------------------------------------
+  /**
+   * Total number of synapses in a given cell (at at given point, changes all
+   * the time).
+   */
+  UInt nSynapsesInCell(UInt cellIdx) const;
 
-        //-----------------------------------------------------------------------
-        /**
-         * Total number of synapses in a given cell (at at given point, changes all the
-         * time).
-         */
-        UInt nSynapsesInCell(UInt cellIdx) const;
+  //-----------------------------------------------------------------------
+  Cell *getCell(UInt colIdx, UInt cellIdxInCol);
 
+  //-----------------------------------------------------------------------
+  UInt getCellIdx(UInt colIdx, UInt cellIdxInCol);
 
-        //-----------------------------------------------------------------------
-        Cell* getCell(UInt colIdx, UInt cellIdxInCol);
+  //-----------------------------------------------------------------------
+  /**
+   * Can return a previously freed segment (segment size == 0) if called with a
+   * segIdx which is in the "free" list of the cell.
+   */
+  Segment *getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx);
 
-        //-----------------------------------------------------------------------
-        UInt getCellIdx(UInt colIdx, UInt cellIdxInCol);
+  //-----------------------------------------------------------------------
+  /**
+   * Can return a previously freed segment (segment size == 0) if called with a
+   * segIdx which is in the "free" list of the cell.
+   */
+  Segment &segment(UInt cellIdx, UInt segIdx);
 
-        //-----------------------------------------------------------------------
-        /**
-         * Can return a previously freed segment (segment size == 0) if called with a segIdx
-         * which is in the "free" list of the cell.
-         */
-        Segment*
-        getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx);
+  //----------------------------------------------------------------------
+  //----------------------------------------------------------------------
+  //
+  // ROUTINES USED IN PERFORMING INFERENCE AND LEARNING
+  //
+  //----------------------------------------------------------------------
+  //----------------------------------------------------------------------
 
-        //-----------------------------------------------------------------------
-        /**
-         * Can return a previously freed segment (segment size == 0) if called with a segIdx
-         * which is in the "free" list of the cell.
-         */
-        Segment& segment(UInt cellIdx, UInt segIdx);
+  //-----------------------------------------------------------------------
+  /**
+   * Main compute routine, called for both learning and inference.
+   *
+   * Parameters:
+   * ===========
+   *
+   * input:           array representing bottom up input
+   * output:          array representing inference output
+   * doInference:     if true, inference output will be computed
+   * doLearning:      if true, learning will occur
+   */
+  void compute(Real *input, Real *output, bool doInference, bool doLearning);
 
-        //----------------------------------------------------------------------
-        //----------------------------------------------------------------------
-        //
-        // ROUTINES USED IN PERFORMING INFERENCE AND LEARNING
-        //
-        //----------------------------------------------------------------------
-        //----------------------------------------------------------------------
+  //-----------------------------------------------------------------------
+  /**
+   */
+  void reset();
 
-        //-----------------------------------------------------------------------
-        /**
-         * Main compute routine, called for both learning and inference.
-         *
-         * Parameters:
-         * ===========
-         *
-         * input:           array representing bottom up input
-         * output:          array representing inference output
-         * doInference:     if true, inference output will be computed
-         * doLearning:      if true, learning will occur
-         */
-        void compute(Real* input, Real* output, bool doInference, bool doLearning);
+  //----------------------------------------------------------------------
+  bool isActive(UInt cellIdx, UInt segIdx, const CState &state) const;
 
-        //-----------------------------------------------------------------------
-        /**
-         */
-        void reset();
+  //----------------------------------------------------------------------
+  /**
+   * Find weakly activated cell in column.
+   *
+   * Parameters:
+   * ==========
+   * colIdx:         index of column in which to search
+   * state:          the array of cell activities
+   * minThreshold:   only consider segments with activity >= minThreshold
+   * useSegActivity: if true, use forward prop segment activity values
+   *
+   * Return value: index and segment of most activated segment whose
+   * activity is >= minThreshold. The index returned for the cell
+   * is between 0 and _nCells, *not* a cell index inside the column.
+   * If no cells are found, return ((UInt) -1, (UInt) -1).
+   */
+  std::pair<UInt, UInt> getBestMatchingCellT(UInt colIdx, const CState &state,
+                                             UInt minThreshold);
+  std::pair<UInt, UInt> getBestMatchingCellT1(UInt colIdx, const CState &state,
+                                              UInt minThreshold);
 
-        //----------------------------------------------------------------------
-        bool isActive(UInt cellIdx, UInt segIdx, const CState& state) const;
-
-        //----------------------------------------------------------------------
-        /**
-         * Find weakly activated cell in column.
-         *
-         * Parameters:
-         * ==========
-         * colIdx:         index of column in which to search
-         * state:          the array of cell activities
-         * minThreshold:   only consider segments with activity >= minThreshold
-         * useSegActivity: if true, use forward prop segment activity values
-         *
-         * Return value: index and segment of most activated segment whose
-         * activity is >= minThreshold. The index returned for the cell
-         * is between 0 and _nCells, *not* a cell index inside the column.
-         * If no cells are found, return ((UInt) -1, (UInt) -1).
-         */
-        std::pair<UInt, UInt> getBestMatchingCellT(UInt colIdx, const CState& state, UInt minThreshold);
-        std::pair<UInt, UInt> getBestMatchingCellT1(UInt colIdx, const CState& state, UInt minThreshold);
-
-        //----------------------------------------------------------------------
-        /**
-         * Compute cell and segment activities using forward propagation
-         * and the given state variable.
-         *
-         * 2011-08-11: We will remove the CState& function if we can
-         * convert _infActiveStateT from a CState object to CStateIndexed
-         * without degrading performance.  Conversion will also require us
-         * to move all state array modifications from Python to C++.  One
-         * known offender is TP.py.
-         */
-        void computeForwardPropagation(CStateIndexed& state);
+  //----------------------------------------------------------------------
+  /**
+   * Compute cell and segment activities using forward propagation
+   * and the given state variable.
+   *
+   * 2011-08-11: We will remove the CState& function if we can
+   * convert _infActiveStateT from a CState object to CStateIndexed
+   * without degrading performance.  Conversion will also require us
+   * to move all state array modifications from Python to C++.  One
+   * known offender is TP.py.
+   */
+  void computeForwardPropagation(CStateIndexed &state);
 #if SOME_STATES_NOT_INDEXED
-        void computeForwardPropagation(CState& state);
+  void computeForwardPropagation(CState &state);
 #endif
 
         //----------------------------------------------------------------------
@@ -1072,47 +1065,26 @@ namespace nupic {
           // TODO: this won't scale!
           std::stringstream tmp;
           this->save(tmp);
-          return tmp.str().size();
+          return static_cast<UInt>(tmp.str().size());
         }
 
         //----------------------------------------------------------------------
-        /**
-         * Write the state to a proto or file
-         */
-        using Serializable::write;
-        virtual void write(Cells4Proto::Builder& proto) const override;
-
-        //----------------------------------------------------------------------
-        /**
-         * Read the state into a proto or file
-         */
-        using Serializable::read;
-        virtual void read(Cells4Proto::Reader& proto) override;
-
-        //----------------------------------------------------------------------
-        /**
-         * Save the state to the given file
-         */
-        void saveToFile(std::string filePath) const;
-
-        //----------------------------------------------------------------------
-        /**
-         * Load the state from the given file
-         */
-        void loadFromFile(std::string filePath);
-
-        //----------------------------------------------------------------------
-        void save(std::ostream& outStream) const;
-
-        //-----------------------------------------------------------------------
-        /**
+  		/**
+   		* Save and load the state to/from the stream
          * Need to load and re-propagate activities so that we can really persist
          * at any point, load back and resume inference at exactly the same point.
-         */
-        void load(std::istream& inStream);
+   		*/
+  		void save(std::ostream &outStream) const override;
+
+        void load(std::istream& inStream) override;
+
+		virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+		virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
         //-----------------------------------------------------------------------
         void print(std::ostream& outStream) const;
+		std::ostream& operator<<(std::ostream& outStream);
+
 
         //----------------------------------------------------------------------
         //----------------------------------------------------------------------
@@ -1153,6 +1125,7 @@ namespace nupic {
          */
         void printStates();
         void printState(UInt *state);
+        void printConfidence(Real *confidence, size_t len) const;
         void dumpPrevPatterns(std::deque<std::vector<UInt> > &patterns);
         void dumpSegmentUpdates();
 
@@ -1196,14 +1169,12 @@ namespace nupic {
       };
 
       //-----------------------------------------------------------------------
-#ifndef SWIG
-      std::ostream& operator<<(std::ostream& outStream, const Cells4& cells);
-#endif
+      //std::ostream& operator<<(std::ostream& outStream, const Cells4& cells);
 
-      //-----------------------------------------------------------------------
-    } // end namespace Cells4
-  } // end namespace algorithms
+//-----------------------------------------------------------------------
+} // end namespace Cells4
+} // end namespace algorithms
 } // end namespace nupic
 
-  //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 #endif // NTA_Cells4_HPP

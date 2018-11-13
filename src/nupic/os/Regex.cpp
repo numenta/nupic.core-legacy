@@ -20,53 +20,49 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
-*/
+/** @file
+ */
 
 #include <nupic/os/Regex.hpp>
 #include <nupic/utils/Log.hpp>
 #if defined(NTA_OS_WINDOWS)
-  // TODO: See https://github.com/numenta/nupic.core/issues/128
-  #include <regex>
+// TODO: See https://github.com/numenta/nupic.core/issues/128
+#include <regex>
 #else
-  //https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631
-  #include <regex.h>
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631
+#include <regex.h>
 #endif
 
-namespace nupic
-{
-  namespace regex
-  {
-    bool match(const std::string & re, const std::string & text)
-    {        
-      NTA_CHECK(!re.empty()) << "Empty regular expressions is invalid";
-      
-      // Make sure the regex will perform an exact match
-      std::string exactRegExp;
-      if (re[0] != '^')
-        exactRegExp += '^';
-      exactRegExp += re;
-      if (re[re.length()-1] != '$') 
-        exactRegExp += '$';
+namespace nupic {
+namespace regex {
+bool match(const std::string &re, const std::string &text) {
+  NTA_CHECK(!re.empty()) << "Empty regular expressions is invalid";
+
+  // Make sure the regex will perform an exact match
+  std::string exactRegExp;
+  if (re[0] != '^')
+    exactRegExp += '^';
+  exactRegExp += re;
+  if (re[re.length() - 1] != '$')
+    exactRegExp += '$';
 
 #if defined(NTA_OS_WINDOWS)
-      std::regex r(exactRegExp, std::regex::extended | std::regex::nosubs);
-      if (std::regex_match(text, r))
-        return true;
+  std::regex r(exactRegExp, std::regex::extended | std::regex::nosubs);
+  if (std::regex_match(text, r))
+    return true;
 
-      return false;
+  return false;
 #else
-      regex_t r;
-      int res = ::regcomp(&r, exactRegExp.c_str(), REG_EXTENDED|REG_NOSUB);
-      NTA_CHECK(res == 0) 
-        << "regcomp() failed to compile the regular expression: "
-        << re << " . The error code is: " << res;
-        
-      res = regexec(&r, text.c_str(), (size_t) 0, nullptr, 0);
-      ::regfree(&r);
+  regex_t r;
+  int res = ::regcomp(&r, exactRegExp.c_str(), REG_EXTENDED | REG_NOSUB);
+  NTA_CHECK(res == 0) << "regcomp() failed to compile the regular expression: "
+                      << re << " . The error code is: " << res;
 
-      return res == 0; 
+  res = regexec(&r, text.c_str(), (size_t)0, nullptr, 0);
+  ::regfree(&r);
+
+  return res == 0;
 #endif
-    }
-  }
 }
+} // namespace regex
+} // namespace nupic

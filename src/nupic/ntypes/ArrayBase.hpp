@@ -26,20 +26,28 @@
   * An ArrayBase object contains a memory buffer that is used for
   * implementing zero-copy and one-copy operations in NuPIC.
   * An ArrayBase contains:
-  * - a pointer to a buffer
+  * - a pointer to a buffer (held in a shared_ptr)
   * - a length
+  * - a capacity   (useful if buffer is larger than data in buffer)
   * - a type
   * - a flag indicating whether or not the object owns the buffer.
+  * Note: if buffer is not owned, shared_ptr will not delete it.
   */
 
 #ifndef NTA_ARRAY_BASE_HPP
 #define NTA_ARRAY_BASE_HPP
 
-#include <iostream> // for ostream
+#include <iostream> // for ostream, istream
 #include <stdlib.h> // for size_t
 #include <string>
+#include <memory>	// for shared_ptr
 
 #include <nupic/types/Types.h>
+#include <nupic/types/Serializable.hpp>
+
+
+
+
 
 namespace nupic
 {
@@ -48,7 +56,7 @@ namespace nupic
    * a client application and NuPIC, minimizing copying. It facilitates
    * both zero-copy and one-copy operations.
    */
-  class ArrayBase
+  class ArrayBase : public Serializable
   {
   public:
     /**
@@ -66,6 +74,17 @@ namespace nupic
     explicit ArrayBase(NTA_BasicType type);
 
     /**
+     * Copy constructor.
+     */
+    ArrayBase(const ArrayBase& other) {
+      type_ = other.type_;
+      buffer_ = other.buffer_;
+      count_ = other.count_;
+      capacity_ = other.capacity_;
+      own_ = other.own_;
+    }
+
+    /**
      * The destructor ensures the array doesn't leak its buffer (if
      * it owns it).
      */
@@ -73,15 +92,22 @@ namespace nupic
 
 
     /**
-     * Ask ArrayBase to allocate its buffer
-     */
-    void
+         * Ask ArrayBase to allocate its buffer
+         */
+    virtual void
     allocateBuffer(size_t count);
 
-    void
+    /**
+         * Ask ArrayBase to zero fill its buffer
+        */
+    virtual void
+    zeroBuffer();
+
+
+    virtual void
     setBuffer(void *buffer, size_t count);
 
-    void
+    virtual void
     releaseBuffer();
 
     void*
@@ -91,56 +117,80 @@ namespace nupic
     size_t
     getCount() const;
 
+    // max number of elements this buffer can hold (capacity)
+	  size_t getMaxElementsCount() const;
+
+	  // Returns the allocated buffer size in bytes independent of array length
+    size_t getBufferSize() const;
+
+
+    void setCount(size_t count);
+
     NTA_BasicType
     getType() const;
+
+    bool
+    isInstance(const ArrayBase &a);
+
+
+    /**
+    * serialization and deserialization for an Array
+    */
+    // binary representation
+    void save(std::ostream &outStream) const override;
+    void load(std::istream &inStream) override;
+
+    // ascii text representation
+    //    [ type count ( item item item ...) ... ]
+    friend std::ostream &operator<<(std::ostream &outStream,  const ArrayBase &a);
+    friend std::istream &operator>>(std::istream &inStream, ArrayBase &a);
 
   protected:
     // buffer_ is typed so that we can use new/delete
     // cast to/from void* as necessary
-    char* buffer_;
-    size_t count_;
-    NTA_BasicType type_;
+    std::shared_ptr<char> buffer_;
+    size_t count_;      // number of elements in the buffer
+    size_t capacity_;   // size of the allocated buffer in bytes
+    NTA_BasicType type_;// type of data in this buffer
     bool own_;
+    void convertInto(ArrayBase &a, size_t offset=0) const;
+
+    // Used by the Array class to return an NZ array from local array.
+    // Template defines the type of the local array.
+    void NonZero(ArrayBase& a) const;
+
+    template <typename T>
+    void NonZeroT(ArrayBase &a) const;
+
 
   private:
-    /**
-     * Element-type-specific templated function for streaming elements to
-     * ostream. Elements are comma+space-separated and enclosed in braces.
-     *
-     * @param outStream   output stream
-     * @param inbuf       input buffer
-     * @param numElements number of elements to use from the beginning of buffer
-     */
-    template <typename SourceElementT>
-    static void _templatedStreamBuffer(std::ostream& outStream,
-                                       const void* inbuf,
-                                       size_t numElements)
-    {
-      outStream << "(";
 
-      // Stream the elements
-      auto it = (const SourceElementT*)inbuf;
-      auto const end = it + numElements;
-      if (it < end)
-      {
-        for (; it < end - 1; ++it)
-        {
-          outStream << *it << ", ";
-        }
-
-        outStream << *it;  // final element without the comma
-      }
-
-      outStream << ")";
-    }
-
-    friend std::ostream& operator<<(std::ostream&, const ArrayBase&);
   };
 
-  // Serialization for diagnostic purposes
-  std::ostream& operator<<(std::ostream&, const ArrayBase&);
+  // If this class does NOT own the buffer we instantiate the shared_ptr
+  // with a version that uses this class as the deleter.  This results
+  // in the buffer not being deleted when the last instance of this class
+  // is deleted. The Caller is responsible for deleting the buffer.
+  struct nonDeleter {
+    void operator()(char *p) const {
+    }
+  };
+  ///////////////////////////////////////////////////////////
+  // for stream serialization on an Array
+  //    [ type count ( item item item ) ]
+  // for inStream the Array object must already exist and initialized with a type.
+  // The buffer will be allocated and populated with this class as owner.
+  std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a);
+  std::istream &operator>>(std::istream &inStream, ArrayBase &a);
 
-}
+  // Compare contents of two ArrayBase objects
+  // Note: An Array and an ArrayRef could be the same if type, count, and buffer
+  // contents are the same.
+  bool operator==(const ArrayBase &lhs, const ArrayBase &rhs);
+  inline bool operator!=(const ArrayBase &lhs, const ArrayBase &rhs) {return !(lhs == rhs);}
+
+} // namespace
+
 
 #endif
 

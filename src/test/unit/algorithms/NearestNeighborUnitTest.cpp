@@ -22,21 +22,19 @@
 
 /** @file
  * Implementation of unit tests for NearestNeighbor
- */     
+ */
 
-#include <nupic/math/StlIo.hpp>
-#include <nupic/math/NearestNeighbor.hpp>
 #include "../math/SparseMatrixUnitTest.hpp"
-
+#include <nupic/math/NearestNeighbor.hpp>
+#include <nupic/math/StlIo.hpp>
 
 using namespace std;
 
 namespace {
 
-#define TEST_LOOP(M)                                  \
-  for (nrows = 1, ncols = M, zr = 15;                 \
-       nrows < M;                                     \
-       nrows += M/10, ncols -= M/10, zr = ncols/10)   \
+#define TEST_LOOP(M)                                                           \
+  for (nrows = 1, ncols = M, zr = 15; nrows < M;                               \
+       nrows += M / 10, ncols -= M / 10, zr = ncols / 10)
 
 #define M 64
 //
@@ -44,11 +42,11 @@ namespace {
 //  void NearestNeighborUnitTest::unit_test_rowLpDist()
 //  {
 //    if (0) { // Visual tests, off by default
-//      
-//      UInt ncols = 11, nrows = 7, zr = 2;      
+//
+//      UInt ncols = 11, nrows = 7, zr = 2;
 //      Dense<UInt, double> dense(nrows, ncols, zr);
-//      NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols, dense.begin());
-//      std::vector<double> x(ncols, 0);
+//      NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols,
+//      dense.begin()); std::vector<double> x(ncols, 0);
 //
 //      for (UInt i = 0; i != ncols; ++i)
 //        x[i] = i % 2;
@@ -60,15 +58,15 @@ namespace {
 //      for (UInt i = 0; i != nrows; ++i) {
 //        cout << "L0 " << i << " "
 //             << dense.rowL0Dist(i, x.begin()) << " "
-//             << sparse.rowL0Dist(i, x.begin()) 
+//             << sparse.rowL0Dist(i, x.begin())
 //             << endl;
 //      }
 //
-//      // L1 
+//      // L1
 //      for (UInt i = 0; i != nrows; ++i) {
 //        cout << "L1 " << i << " "
-//             << dense.rowLpDist(1.0, i, x.begin()) << " " 
-//             << sparse.rowL1Dist(i, x.begin()) 
+//             << dense.rowLpDist(1.0, i, x.begin()) << " "
+//             << sparse.rowL1Dist(i, x.begin())
 //             << endl;
 //      }
 //
@@ -76,7 +74,7 @@ namespace {
 //      for (UInt i = 0; i != nrows; ++i) {
 //        cout << "L2 " << i << " "
 //             << dense.rowLpDist(2.0, i, x.begin()) << " "
-//             << sparse.rowL2Dist(i, x.begin()) 
+//             << sparse.rowL2Dist(i, x.begin())
 //             << endl;
 //      }
 //
@@ -84,7 +82,7 @@ namespace {
 //      for (UInt i = 0; i != nrows; ++i) {
 //        cout << "Lmax " << i << " "
 //             << dense.rowLMaxDist(i, x.begin()) << " "
-//             << sparse.rowLMaxDist(i, x.begin()) 
+//             << sparse.rowLMaxDist(i, x.begin())
 //             << endl;
 //      }
 //
@@ -92,7 +90,7 @@ namespace {
 //      for (UInt i = 0; i != nrows; ++i) {
 //        cout << "Lp " << i << " "
 //             << dense.rowLpDist(.35, i, x.begin()) << " "
-//             << sparse.rowLpDist(.35, i, x.begin()) 
+//             << sparse.rowLpDist(.35, i, x.begin())
 //             << endl;
 //      }
 //    } // End visual tests
@@ -106,7 +104,8 @@ namespace {
 //          continue;
 //
 //        Dense<UInt, double> dense(nrows, ncols, zr);
-//        NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols, dense.begin());
+//        NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols,
+//        dense.begin());
 //
 //        std::vector<double> x(ncols, 0);
 //        for (UInt i = 0; i < ncols; ++i)
@@ -148,7 +147,7 @@ namespace {
 //              << " - non compact";
 //            TEST(nupic::nearlyEqual(d1, d2));
 //        }
-//        
+//
 //        sparse.compact();
 //        d2 = sparse.rowLMaxDist(row, x.begin());
 //        {
@@ -168,23 +167,23 @@ namespace {
 //
 //      UInt ncols = 11, nrows = 7, zr = 2;
 //      Dense<UInt, double> dense(nrows, ncols, zr);
-//      NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols, dense.begin());
-//      std::vector<double> x(ncols, 0), distances(nrows, 0);
+//      NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols,
+//      dense.begin()); std::vector<double> x(ncols, 0), distances(nrows, 0);
 //
 //      for (UInt i = 0; i != ncols; ++i)
-//        x[i] = i % 2;    
+//        x[i] = i % 2;
 //
 //      cout << dense << endl << x << endl << endl;
 //
-//      // L0   
+//      // L0
 //      cout << "L0" << endl;
 //      dense.L0Dist(x.begin(), distances.begin());
 //      cout << distances << endl;
-//      sparse.L0Dist(x.begin(), distances.begin());   
+//      sparse.L0Dist(x.begin(), distances.begin());
 //      cout << distances << endl;
 //      cout << endl;
 //
-//      // L1 
+//      // L1
 //      cout << "L1" << endl;
 //      dense.LpDist(1.0, x.begin(), distances.begin());
 //      cout << distances << endl;
@@ -218,7 +217,7 @@ namespace {
 //    } // End visual tests
 //
 //    if (1) { // Automated tests
-//      
+//
 //      UInt ncols = 5, nrows = 7, zr = 2;
 //
 //      TEST_LOOP(M) {
@@ -227,12 +226,13 @@ namespace {
 //          continue;
 //
 //        Dense<UInt, double> dense(nrows, ncols, zr);
-//        NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols, dense.begin());
+//        NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols,
+//        dense.begin());
 //
 //        std::vector<double> x(ncols, 0), yref(nrows, 0), y(nrows, 0);
 //        for (UInt i = 0; i < ncols; ++i)
 //          x[i] = Real(i);
-//        
+//
 //        for (double p = 0.0; p < 2.5; p += .5) {
 //
 //          sparse.decompact();
@@ -243,8 +243,8 @@ namespace {
 //            str << "LpDist A " << nrows << "X" << ncols << "/" << zr
 //                << " - non compact";
 //            CompareVectors(nrows, y.begin(), yref.begin(), str.str().c_str());
-//          }     
-//         
+//          }
+//
 //          sparse.compact();
 //          sparse.LpDist(p, x.begin(), y.begin());
 //          {
@@ -265,7 +265,7 @@ namespace {
 //              << " - non compact";
 //          CompareVectors(nrows, y.begin(), yref.begin(), str.str().c_str());
 //        }
-//   
+//
 //        sparse.compact();
 //        sparse.LMaxDist(x.begin(), y.begin());
 //
@@ -283,15 +283,15 @@ namespace {
 //  void NearestNeighborUnitTest::unit_test_LpNearest()
 //  {
 //    if (0) { // Visual tests, off by default
-//      
+//
 //      UInt ncols = 11, nrows = 7, zr = 2;
 //
 //      Dense<UInt, double> dense(nrows, ncols, zr);
 //      for (UInt i = 0; i != nrows; ++i)
 //        for (UInt j = 0; j != ncols; ++j)
 //          dense.at(i,j) = rng_->getReal64() * 2.0;
-//      NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols, dense.begin());
-//      std::vector<double> x(ncols, 0);
+//      NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols,
+//      dense.begin()); std::vector<double> x(ncols, 0);
 //      std::vector<std::pair<UInt, double> > nn1(nrows), nn2(nrows);
 //
 //      for (UInt i = 0; i != ncols; ++i)
@@ -309,7 +309,7 @@ namespace {
 //        cout << nn2[i].first << "," << nn2[i].second << " ";
 //      cout << endl;
 //
-//      // L1 
+//      // L1
 //      cout << "L1" << endl;
 //      dense.LpNearest(1.0, x.begin(), nn1.begin(), nrows);
 //      sparse.L1Nearest(x.begin(), nn2.begin(), nrows);
@@ -319,7 +319,7 @@ namespace {
 //      for (UInt i = 0; i != nrows; ++i)
 //        cout << nn2[i].first << "," << nn2[i].second << " ";
 //      cout << endl << endl;
-//          
+//
 //      // L2
 //      cout << "L2" << endl;
 //      dense.LpNearest(2.0, x.begin(), nn1.begin(), nrows);
@@ -331,7 +331,7 @@ namespace {
 //        cout << nn2[i].first << "," << nn2[i].second << " ";
 //      cout << endl << endl;
 //
-//      // LMax     
+//      // LMax
 //      cout << "LMax" << endl;
 //      dense.LMaxNearest(x.begin(), nn1.begin(), nrows);
 //      sparse.LMaxNearest(x.begin(), nn2.begin(), nrows);
@@ -364,13 +364,14 @@ namespace {
 //          continue;
 //
 //        Dense<UInt, double> dense(nrows, ncols, zr);
-//        NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols, dense.begin());
+//        NearestNeighbor<SparseMatrix<UInt, double> > sparse(nrows, ncols,
+//        dense.begin());
 //
 //        std::vector<double> x(ncols, 0);
 //        std::vector<std::pair<UInt, double> > yref(nrows), y(nrows);
 //        for (UInt i = 0; i < ncols; ++i)
 //          x[i] = Real(i);
-//        
+//
 //        for (double p = 0.0; p < 2.5; p += .5) {
 //
 //          sparse.decompact();
@@ -381,8 +382,8 @@ namespace {
 //            str << "LpNearest A " << nrows << "X" << ncols << "/" << zr
 //                << " - non compact";
 //            Compare(y, yref, str.str().c_str());
-//          }     
-//         
+//          }
+//
 //          sparse.compact();
 //          sparse.LpNearest(p, x.begin(), y.begin(), nrows);
 //          {
@@ -401,7 +402,7 @@ namespace {
 //                << " - non compact";
 //            Compare(y, yref, str.str().c_str());
 //          }
-//          
+//
 //          sparse.compact();
 //          sparse.LpNearest(p, x.begin(), y.begin());
 //          {
@@ -413,7 +414,7 @@ namespace {
 //        }
 //      }
 //    } // End automated tests
-//  }   
+//  }
 //
 //  //--------------------------------------------------------------------------------
 //  void NearestNeighborUnitTest::unit_test_dotNearest()
@@ -431,14 +432,14 @@ namespace {
 //
 //    pair<UInt, double> res(0, 0), ref = dense.dotNearest(x.begin());
 //
-//    NearestNeighbor<SparseMatrix<UInt,Real,Int,Real> > smc(nrows, ncols, dense.begin());
-//    res = smc.dotNearest(x.begin());
-//    ComparePair(res, ref, "dotNearest compact 1");
+//    NearestNeighbor<SparseMatrix<UInt,Real,Int,Real> > smc(nrows, ncols,
+//    dense.begin()); res = smc.dotNearest(x.begin()); ComparePair(res, ref,
+//    "dotNearest compact 1");
 //
 //    {
 //      nrows *= 10;
 //      ncols *= 10;
-//    
+//
 //      Dense<UInt, double> dense2(nrows, ncols);
 //      for (i = 0; i < nrows; ++i)
 //        for (j = 0; j < ncols; ++j) {
@@ -446,15 +447,16 @@ namespace {
 //          if (dense2.at(i,j) < .8)
 //            dense2.at(i,j) = 0;
 //        }
-//    
-//      NearestNeighbor<SparseMatrix<UInt, double> > sm2(nrows, ncols, dense2.begin());
-//    
+//
+//      NearestNeighbor<SparseMatrix<UInt, double> > sm2(nrows, ncols,
+//      dense2.begin());
+//
 //      std::vector<double> x2(ncols, 0);
 //      for (j = 0; j < ncols; ++j)
 //        x2[j] = rng_->getReal64();
-//    
+//
 //      ref = dense2.dotNearest(x2.begin());
-//    
+//
 //      res.first = 0; res.second = 0;
 //      res = sm2.dotNearest(x2.begin());
 //      ComparePair(res, ref, "dotNearest compact 2");
@@ -464,7 +466,8 @@ namespace {
 //      TEST_LOOP(M) {
 //
 //        DenseMat dense2(nrows, ncols, zr);
-//        NearestNeighbor<SparseMatrix<UInt,Real,Int,Real> > sm2(nrows, ncols, dense2.begin());
+//        NearestNeighbor<SparseMatrix<UInt,Real,Int,Real> > sm2(nrows, ncols,
+//        dense2.begin());
 //
 //        std::vector<Real> x2(ncols, 0), yref2(nrows, 0), y2(nrows, 0);
 //        for (i = 0; i < ncols; ++i)
@@ -494,8 +497,5 @@ namespace {
 //    }
 //  }
 //
-  //--------------------------------------------------------------------------------
-} // end namespace nupic
-
-
-   
+//--------------------------------------------------------------------------------
+} // namespace

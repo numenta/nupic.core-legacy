@@ -38,7 +38,8 @@
 //   //--------------------------------------------------------------------------------
 //   /**
 //    * @b Responsibility
-//    *  A dense multi-dimensional array. It stores all its values, as opposed to
+//    *  A dense multi-dimensional array. It stores all its values, as opposed
+//    to
 //    *  a SparseTensor that stores only the non-zero values.
 //    *
 //    * @b Rationale
@@ -130,10 +131,11 @@
 //
 //     inline UInt getRank() const { return bounds_.size(); }
 //     inline bool isZero() const { return getNNonZeros() == 0; }
-//     inline bool isDense() const { return getNNonZeros() == product(bounds_); }
-//     inline bool isSparse() const { return getNNonZeros() != product(bounds_); }
-//     inline Index getBounds() const { return bounds_; }
-//     inline void clear() { memset(vals_, 0, product(bounds_) * sizeof(Float)); }
+//     inline bool isDense() const { return getNNonZeros() == product(bounds_);
+//     } inline bool isSparse() const { return getNNonZeros() !=
+//     product(bounds_); } inline Index getBounds() const { return bounds_; }
+//     inline void clear() { memset(vals_, 0, product(bounds_) * sizeof(Float));
+//     }
 //
 //     inline Index getNewIndex() const
 //     {
@@ -298,8 +300,8 @@
 //       }
 //
 //       auto buf = new Float[product(bounds_)];
-//       Index idx = getNewZeroIndex(), perm = getNewIndex(), newBounds = getNewIndex();
-//       nupic::permute(ind, bounds_, newBounds);
+//       Index idx = getNewZeroIndex(), perm = getNewIndex(), newBounds =
+//       getNewIndex(); nupic::permute(ind, bounds_, newBounds);
 //
 //       do {
 //         nupic::permute(ind, idx, perm);
@@ -401,7 +403,8 @@
 //     }
 //
 //     template <typename binary_functor>
-//     inline void element_apply(const DenseTensor& B, DenseTensor& C, binary_functor f)
+//     inline void element_apply(const DenseTensor& B, DenseTensor& C,
+//     binary_functor f)
 //     {
 //       {
 //         NTA_ASSERT(getBounds() == B.getBounds())
@@ -620,7 +623,8 @@
 //           << " and dim: " << dim2
 //           << " but they have different size: " << bounds_[dim1]
 //           << " and " << bounds_[dim2]
-//           << " - Can take inner product only along dimensions that have the same size";
+//           << " - Can take inner product only along dimensions that have the
+//           same size";
 //       }
 //
 //       Index idx1 = getNewZeroIndex();
@@ -651,10 +655,12 @@
 //
 //     // for debugging
 //     template <typename Idx, typename F>
-//     NTA_HIDDEN friend std::ostream& operator<<(std::ostream&, const DenseTensor<Idx, F>&);
+//     NTA_HIDDEN friend std::ostream& operator<<(std::ostream&, const
+//     DenseTensor<Idx, F>&);
 //
 //     template <typename Idx, typename F>
-//     NTA_HIDDEN friend bool operator==(const DenseTensor<Idx, F>&, const DenseTensor<Idx, F>&);
+//     NTA_HIDDEN friend bool operator==(const DenseTensor<Idx, F>&, const
+//     DenseTensor<Idx, F>&);
 //
 //   private:
 //     Index bounds_;
@@ -665,7 +671,8 @@
 //   };
 //
 //   template <typename Idx, typename F>
-//   inline std::ostream& operator<<(std::ostream& outStream, const DenseTensor<Idx, F>& dense)
+//   inline std::ostream& operator<<(std::ostream& outStream, const
+//   DenseTensor<Idx, F>& dense)
 //   {
 //     typedef typename Idx::value_type UI;
 //
@@ -697,7 +704,8 @@
 //   }
 //
 //   template <typename Idx, typename F>
-//   inline bool operator==(const DenseTensor<Idx, F>& A, const DenseTensor<Idx, F>& B)
+//   inline bool operator==(const DenseTensor<Idx, F>& A, const DenseTensor<Idx,
+//   F>& B)
 //   {
 //     typedef typename Idx::value_type UI;
 //
@@ -714,7 +722,8 @@
 //   }
 //
 //   template <typename Idx, typename F>
-//   inline bool operator!=(const DenseTensor<Idx, F>& A, const DenseTensor<Idx, F>& B)
+//   inline bool operator!=(const DenseTensor<Idx, F>& A, const DenseTensor<Idx,
+//   F>& B)
 //   {
 //     return ! (A == B);
 //   }

@@ -24,11 +24,11 @@
  * Implementation of unit tests for groupBy
  */
 
-#include <nupic/utils/GroupBy.hpp>
 #include "gtest/gtest.h"
+#include <nupic/utils/GroupBy.hpp>
 
-using std::tuple;
 using std::tie;
+using std::tuple;
 using std::vector;
 
 using nupic::groupBy;
@@ -36,372 +36,288 @@ using nupic::iterGroupBy;
 
 namespace {
 
-  struct ReturnValue1 {
+struct ReturnValue1 {
+  int key;
+  vector<int> results0;
+};
+
+TEST(GroupByTest, OneSequence) {
+  const vector<int> sequence0 = {7, 12, 12, 16};
+
+  auto identity = [](int a) { return a; };
+
+  const vector<ReturnValue1> expectedValues = {
+      {7, {7}}, {12, {12, 12}}, {16, {16}}};
+
+  //
+  // groupBy
+  //
+  size_t i = 0;
+  for (auto data : groupBy(sequence0, identity)) {
     int key;
-    vector<int> results0;
-  };
+    vector<int>::const_iterator begin0, end0;
 
-  TEST(GroupByTest, OneSequence)
-  {
-    const vector<int> sequence0 = {7, 12, 12, 16};
+    tie(key, begin0, end0) = data;
 
-    auto identity = [](int a) { return a; };
+    const ReturnValue1 actualValue = {key, {begin0, end0}};
 
-    const vector<ReturnValue1> expectedValues = {
-      {7, {7}},
-      {12, {12, 12}},
-      {16, {16}}
-    };
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
 
-    //
-    // groupBy
-    //
-    size_t i = 0;
-    for (auto data : groupBy(sequence0, identity))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0;
-
-      tie(key,
-          begin0, end0) = data;
-
-      const ReturnValue1 actualValue =
-        {key, {begin0, end0}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-
-      i++;
-    }
-
-    //
-    // iterGroupBy
-    //
-    i = 0;
-    for (auto data : iterGroupBy(
-           sequence0.begin(), sequence0.end(), identity))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0;
-
-      tie(key,
-          begin0, end0) = data;
-
-      const ReturnValue1 actualValue =
-        {key, {begin0, end0}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-
-      i++;
-    }
-
-    EXPECT_EQ(expectedValues.size(), i);
+    i++;
   }
 
-
-
-  struct ReturnValue2 {
+  //
+  // iterGroupBy
+  //
+  i = 0;
+  for (auto data : iterGroupBy(sequence0.begin(), sequence0.end(), identity)) {
     int key;
-    vector<int> results0;
-    vector<int> results1;
-  };
+    vector<int>::const_iterator begin0, end0;
 
-  TEST(GroupByTest, TwoSequences)
-  {
-    const vector<int> sequence0 = {7, 12, 16};
-    const vector<int> sequence1 = {3, 4, 5};
+    tie(key, begin0, end0) = data;
 
-    auto identity = [](int a) { return a; };
-    auto times3 = [](int a) { return a*3; };
+    const ReturnValue1 actualValue = {key, {begin0, end0}};
 
-    const vector<ReturnValue2> expectedValues = {
-      {7, {7}, {}},
-      {9, {}, {3}},
-      {12, {12}, {4}},
-      {15, {}, {5}},
-      {16, {16}, {}}
-    };
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
 
-    //
-    // groupBy
-    //
-    size_t i = 0;
-    for (auto data : groupBy(sequence0, identity,
-                             sequence1, times3))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1;
-
-      tie(key,
-          begin0, end0,
-          begin1, end1) = data;
-
-      const ReturnValue2 actualValue =
-        {key, {begin0, end0}, {begin1, end1}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-
-      i++;
-    }
-
-    //
-    // iterGroupBy
-    //
-    i = 0;
-    for (auto data : iterGroupBy(
-           sequence0.begin(), sequence0.end(), identity,
-           sequence1.begin(), sequence1.end(), times3))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1;
-
-      tie(key,
-          begin0, end0,
-          begin1, end1) = data;
-
-      const ReturnValue2 actualValue =
-        {key, {begin0, end0}, {begin1, end1}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-
-      i++;
-    }
-
-    EXPECT_EQ(expectedValues.size(), i);
+    i++;
   }
 
+  EXPECT_EQ(expectedValues.size(), i);
+}
 
+struct ReturnValue2 {
+  int key;
+  vector<int> results0;
+  vector<int> results1;
+};
 
-  struct ReturnValue3 {
+TEST(GroupByTest, TwoSequences) {
+  const vector<int> sequence0 = {7, 12, 16};
+  const vector<int> sequence1 = {3, 4, 5};
+
+  auto identity = [](int a) { return a; };
+  auto times3 = [](int a) { return a * 3; };
+
+  const vector<ReturnValue2> expectedValues = {{7, {7}, {}},
+                                               {9, {}, {3}},
+                                               {12, {12}, {4}},
+                                               {15, {}, {5}},
+                                               {16, {16}, {}}};
+
+  //
+  // groupBy
+  //
+  size_t i = 0;
+  for (auto data : groupBy(sequence0, identity, sequence1, times3)) {
     int key;
-    vector<int> results0;
-    vector<int> results1;
-    vector<int> results2;
-  };
+    vector<int>::const_iterator begin0, end0, begin1, end1;
 
-  TEST(GroupByTest, ThreeSequences)
-  {
-    const vector<int> sequence0 = {7, 12, 16};
-    const vector<int> sequence1 = {3, 4, 5};
-    const vector<int> sequence2 = {3, 3, 4, 5};
+    tie(key, begin0, end0, begin1, end1) = data;
 
-    auto identity = [](int a) { return a; };
-    auto times3 = [](int a) { return a*3; };
-    auto times4 = [](int a) { return a*4; };
+    const ReturnValue2 actualValue = {key, {begin0, end0}, {begin1, end1}};
 
-    const vector<ReturnValue3> expectedValues = {
-      {7, {7}, {}, {}},
-      {9, {}, {3}, {}},
-      {12, {12}, {4}, {3, 3}},
-      {15, {}, {5}, {}},
-      {16, {16}, {}, {4}},
-      {20, {}, {}, {5}}
-    };
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
 
-    //
-    // groupBy
-    //
-    size_t i = 0;
-    for (auto data : groupBy(sequence0, identity,
-                             sequence1, times3,
-                             sequence2, times4))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1,
-        begin2, end2;
-
-      tie(key,
-          begin0, end0,
-          begin1, end1,
-          begin2, end2) = data;
-
-      const ReturnValue3 actualValue =
-        {key, {begin0, end0}, {begin1, end1}, {begin2, end2}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-      EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
-
-      i++;
-    }
-
-    //
-    // iterGroupBy
-    //
-    i = 0;
-    for (auto data : iterGroupBy(
-           sequence0.begin(), sequence0.end(), identity,
-           sequence1.begin(), sequence1.end(), times3,
-           sequence2.begin(), sequence2.end(), times4))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1,
-        begin2, end2;
-
-      tie(key,
-          begin0, end0,
-          begin1, end1,
-          begin2, end2) = data;
-
-      const ReturnValue3 actualValue =
-        {key, {begin0, end0}, {begin1, end1}, {begin2, end2}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-      EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
-
-      i++;
-    }
-
-    EXPECT_EQ(expectedValues.size(), i);
+    i++;
   }
 
-
-  struct ReturnValue4 {
+  //
+  // iterGroupBy
+  //
+  i = 0;
+  for (auto data : iterGroupBy(sequence0.begin(), sequence0.end(), identity,
+                               sequence1.begin(), sequence1.end(), times3)) {
     int key;
-    vector<int> results0;
-    vector<int> results1;
-    vector<int> results2;
-    vector<int> results3;
-  };
+    vector<int>::const_iterator begin0, end0, begin1, end1;
 
-  TEST(GroupByTest, FourSequences)
-  {
-    const vector<int> sequence0 = {7, 12, 16};
-    const vector<int> sequence1 = {3, 4, 5};
-    const vector<int> sequence2 = {3, 3, 4, 5};
-    const vector<int> sequence3 = {3, 3, 4, 5};
+    tie(key, begin0, end0, begin1, end1) = data;
 
-    auto identity = [](int a) { return a; };
-    auto times3 = [](int a) { return a*3; };
-    auto times4 = [](int a) { return a*4; };
-    auto times5 = [](int a) { return a*5; };
+    const ReturnValue2 actualValue = {key, {begin0, end0}, {begin1, end1}};
 
-    const vector<ReturnValue4> expectedValues = {
-      {7, {7}, {}, {}, {}},
-      {9, {}, {3}, {}, {}},
-      {12, {12}, {4}, {3, 3}, {}},
-      {15, {}, {5}, {}, {3, 3}},
-      {16, {16}, {}, {4}, {}},
-      {20, {}, {}, {5}, {4}},
-      {25, {}, {}, {}, {5}}
-    };
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
 
-    //
-    // groupBy
-    //
-    size_t i = 0;
-    for (auto data : groupBy(sequence0, identity,
-                             sequence1, times3,
-                             sequence2, times4,
-                             sequence3, times5))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1,
-        begin2, end2,
+    i++;
+  }
+
+  EXPECT_EQ(expectedValues.size(), i);
+}
+
+struct ReturnValue3 {
+  int key;
+  vector<int> results0;
+  vector<int> results1;
+  vector<int> results2;
+};
+
+TEST(GroupByTest, ThreeSequences) {
+  const vector<int> sequence0 = {7, 12, 16};
+  const vector<int> sequence1 = {3, 4, 5};
+  const vector<int> sequence2 = {3, 3, 4, 5};
+
+  auto identity = [](int a) { return a; };
+  auto times3 = [](int a) { return a * 3; };
+  auto times4 = [](int a) { return a * 4; };
+
+  const vector<ReturnValue3> expectedValues = {
+      {7, {7}, {}, {}},  {9, {}, {3}, {}},    {12, {12}, {4}, {3, 3}},
+      {15, {}, {5}, {}}, {16, {16}, {}, {4}}, {20, {}, {}, {5}}};
+
+  //
+  // groupBy
+  //
+  size_t i = 0;
+  for (auto data :
+       groupBy(sequence0, identity, sequence1, times3, sequence2, times4)) {
+    int key;
+    vector<int>::const_iterator begin0, end0, begin1, end1, begin2, end2;
+
+    tie(key, begin0, end0, begin1, end1, begin2, end2) = data;
+
+    const ReturnValue3 actualValue = {
+        key, {begin0, end0}, {begin1, end1}, {begin2, end2}};
+
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
+    EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
+
+    i++;
+  }
+
+  //
+  // iterGroupBy
+  //
+  i = 0;
+  for (auto data : iterGroupBy(sequence0.begin(), sequence0.end(), identity,
+                               sequence1.begin(), sequence1.end(), times3,
+                               sequence2.begin(), sequence2.end(), times4)) {
+    int key;
+    vector<int>::const_iterator begin0, end0, begin1, end1, begin2, end2;
+
+    tie(key, begin0, end0, begin1, end1, begin2, end2) = data;
+
+    const ReturnValue3 actualValue = {
+        key, {begin0, end0}, {begin1, end1}, {begin2, end2}};
+
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
+    EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
+
+    i++;
+  }
+
+  EXPECT_EQ(expectedValues.size(), i);
+}
+
+struct ReturnValue4 {
+  int key;
+  vector<int> results0;
+  vector<int> results1;
+  vector<int> results2;
+  vector<int> results3;
+};
+
+TEST(GroupByTest, FourSequences) {
+  const vector<int> sequence0 = {7, 12, 16};
+  const vector<int> sequence1 = {3, 4, 5};
+  const vector<int> sequence2 = {3, 3, 4, 5};
+  const vector<int> sequence3 = {3, 3, 4, 5};
+
+  auto identity = [](int a) { return a; };
+  auto times3 = [](int a) { return a * 3; };
+  auto times4 = [](int a) { return a * 4; };
+  auto times5 = [](int a) { return a * 5; };
+
+  const vector<ReturnValue4> expectedValues = {
+      {7, {7}, {}, {}, {}},        {9, {}, {3}, {}, {}},
+      {12, {12}, {4}, {3, 3}, {}}, {15, {}, {5}, {}, {3, 3}},
+      {16, {16}, {}, {4}, {}},     {20, {}, {}, {5}, {4}},
+      {25, {}, {}, {}, {5}}};
+
+  //
+  // groupBy
+  //
+  size_t i = 0;
+  for (auto data : groupBy(sequence0, identity, sequence1, times3, sequence2,
+                           times4, sequence3, times5)) {
+    int key;
+    vector<int>::const_iterator begin0, end0, begin1, end1, begin2, end2,
         begin3, end3;
 
-      tie(key,
-          begin0, end0,
-          begin1, end1,
-          begin2, end2,
-          begin3, end3) = data;
+    tie(key, begin0, end0, begin1, end1, begin2, end2, begin3, end3) = data;
 
-      const ReturnValue4 actualValue =
-        {key, {begin0, end0}, {begin1, end1}, {begin2, end2}, {begin3, end3}};
+    const ReturnValue4 actualValue = {
+        key, {begin0, end0}, {begin1, end1}, {begin2, end2}, {begin3, end3}};
 
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-      EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
-      EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
+    EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
+    EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
 
-      i++;
-    }
-
-    //
-    // iterGroupBy
-    //
-    i = 0;
-    for (auto data : iterGroupBy(
-           sequence0.begin(), sequence0.end(), identity,
-           sequence1.begin(), sequence1.end(), times3,
-           sequence2.begin(), sequence2.end(), times4,
-           sequence3.begin(), sequence3.end(), times5))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1,
-        begin2, end2,
-        begin3, end3;
-
-      tie(key,
-          begin0, end0,
-          begin1, end1,
-          begin2, end2,
-          begin3, end3) = data;
-
-      const ReturnValue4 actualValue =
-        {key, {begin0, end0}, {begin1, end1}, {begin2, end2}, {begin3, end3}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-      EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
-      EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
-
-      i++;
-    }
-
-    EXPECT_EQ(expectedValues.size(), i);
+    i++;
   }
 
-
-
-  struct ReturnValue5 {
+  //
+  // iterGroupBy
+  //
+  i = 0;
+  for (auto data : iterGroupBy(sequence0.begin(), sequence0.end(), identity,
+                               sequence1.begin(), sequence1.end(), times3,
+                               sequence2.begin(), sequence2.end(), times4,
+                               sequence3.begin(), sequence3.end(), times5)) {
     int key;
-    vector<int> results0;
-    vector<int> results1;
-    vector<int> results2;
-    vector<int> results3;
-    vector<int> results4;
-  };
+    vector<int>::const_iterator begin0, end0, begin1, end1, begin2, end2,
+        begin3, end3;
 
-  TEST(GroupByTest, FiveSequences)
-  {
-    const vector<int> sequence0 = {7, 12, 16};
-    const vector<int> sequence1 = {3, 4, 5};
-    const vector<int> sequence2 = {3, 3, 4, 5};
-    const vector<int> sequence3 = {3, 3, 4, 5};
-    const vector<int> sequence4 = {2, 2, 3};
+    tie(key, begin0, end0, begin1, end1, begin2, end2, begin3, end3) = data;
 
-    auto identity = [](int a) { return a; };
-    auto times3 = [](int a) { return a*3; };
-    auto times4 = [](int a) { return a*4; };
-    auto times5 = [](int a) { return a*5; };
-    auto times6 = [](int a) { return a*6; };
+    const ReturnValue4 actualValue = {
+        key, {begin0, end0}, {begin1, end1}, {begin2, end2}, {begin3, end3}};
 
-    const vector<ReturnValue5> expectedValues = {
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
+    EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
+    EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
+
+    i++;
+  }
+
+  EXPECT_EQ(expectedValues.size(), i);
+}
+
+struct ReturnValue5 {
+  int key;
+  vector<int> results0;
+  vector<int> results1;
+  vector<int> results2;
+  vector<int> results3;
+  vector<int> results4;
+};
+
+TEST(GroupByTest, FiveSequences) {
+  const vector<int> sequence0 = {7, 12, 16};
+  const vector<int> sequence1 = {3, 4, 5};
+  const vector<int> sequence2 = {3, 3, 4, 5};
+  const vector<int> sequence3 = {3, 3, 4, 5};
+  const vector<int> sequence4 = {2, 2, 3};
+
+  auto identity = [](int a) { return a; };
+  auto times3 = [](int a) { return a * 3; };
+  auto times4 = [](int a) { return a * 4; };
+  auto times5 = [](int a) { return a * 5; };
+  auto times6 = [](int a) { return a * 6; };
+
+  const vector<ReturnValue5> expectedValues = {
       {7, {7}, {}, {}, {}, {}},
       {9, {}, {3}, {}, {}, {}},
       {12, {12}, {4}, {3, 3}, {}, {2, 2}},
@@ -409,92 +325,71 @@ namespace {
       {16, {16}, {}, {4}, {}, {}},
       {18, {}, {}, {}, {}, {3}},
       {20, {}, {}, {5}, {4}, {}},
-      {25, {}, {}, {}, {5}, {}}
-    };
+      {25, {}, {}, {}, {5}, {}}};
 
-    //
-    // groupBy
-    //
-    size_t i = 0;
-    for (auto data : groupBy(sequence0, identity,
-                             sequence1, times3,
-                             sequence2, times4,
-                             sequence3, times5,
-                             sequence4, times6))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1,
-        begin2, end2,
-        begin3, end3,
-        begin4, end4;
+  //
+  // groupBy
+  //
+  size_t i = 0;
+  for (auto data : groupBy(sequence0, identity, sequence1, times3, sequence2,
+                           times4, sequence3, times5, sequence4, times6)) {
+    int key;
+    vector<int>::const_iterator begin0, end0, begin1, end1, begin2, end2,
+        begin3, end3, begin4, end4;
 
-      tie(key,
-          begin0, end0,
-          begin1, end1,
-          begin2, end2,
-          begin3, end3,
-          begin4, end4) = data;
+    tie(key, begin0, end0, begin1, end1, begin2, end2, begin3, end3, begin4,
+        end4) = data;
 
-      const ReturnValue5 actualValue =
-        {key,
-         {begin0, end0}, {begin1, end1},
-         {begin2, end2}, {begin3, end3},
-         {begin4, end4}};
+    const ReturnValue5 actualValue = {key,
+                                      {begin0, end0},
+                                      {begin1, end1},
+                                      {begin2, end2},
+                                      {begin3, end3},
+                                      {begin4, end4}};
 
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-      EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
-      EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
-      EXPECT_EQ(expectedValues[i].results4, actualValue.results4);
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
+    EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
+    EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
+    EXPECT_EQ(expectedValues[i].results4, actualValue.results4);
 
-      i++;
-    }
-
-    //
-    // iterGroupBy
-    //
-    i = 0;
-    for (auto data : iterGroupBy(
-           sequence0.begin(), sequence0.end(), identity,
-           sequence1.begin(), sequence1.end(), times3,
-           sequence2.begin(), sequence2.end(), times4,
-           sequence3.begin(), sequence3.end(), times5,
-           sequence4.begin(), sequence4.end(), times6))
-    {
-      int key;
-      vector<int>::const_iterator
-        begin0, end0,
-        begin1, end1,
-        begin2, end2,
-        begin3, end3,
-        begin4, end4;
-
-      tie(key,
-          begin0, end0,
-          begin1, end1,
-          begin2, end2,
-          begin3, end3,
-          begin4, end4) = data;
-
-      const ReturnValue5 actualValue =
-        {key,
-         {begin0, end0}, {begin1, end1},
-         {begin2, end2}, {begin3, end3},
-         {begin4, end4}};
-
-      EXPECT_EQ(expectedValues[i].key, actualValue.key);
-      EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-      EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-      EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
-      EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
-      EXPECT_EQ(expectedValues[i].results4, actualValue.results4);
-
-      i++;
-    }
-
-    EXPECT_EQ(expectedValues.size(), i);
+    i++;
   }
+
+  //
+  // iterGroupBy
+  //
+  i = 0;
+  for (auto data : iterGroupBy(sequence0.begin(), sequence0.end(), identity,
+                               sequence1.begin(), sequence1.end(), times3,
+                               sequence2.begin(), sequence2.end(), times4,
+                               sequence3.begin(), sequence3.end(), times5,
+                               sequence4.begin(), sequence4.end(), times6)) {
+    int key;
+    vector<int>::const_iterator begin0, end0, begin1, end1, begin2, end2,
+        begin3, end3, begin4, end4;
+
+    tie(key, begin0, end0, begin1, end1, begin2, end2, begin3, end3, begin4,
+        end4) = data;
+
+    const ReturnValue5 actualValue = {key,
+                                      {begin0, end0},
+                                      {begin1, end1},
+                                      {begin2, end2},
+                                      {begin3, end3},
+                                      {begin4, end4}};
+
+    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
+    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
+    EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
+    EXPECT_EQ(expectedValues[i].results3, actualValue.results3);
+    EXPECT_EQ(expectedValues[i].results4, actualValue.results4);
+
+    i++;
+  }
+
+  EXPECT_EQ(expectedValues.size(), i);
 }
+} // namespace

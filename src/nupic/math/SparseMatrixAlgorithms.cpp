@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * External algorithms for operating on a sparse matrix.
  */
 
@@ -34,9 +34,8 @@
 
 namespace nupic {
 
-  // The two tables used when approximating logSum and logDiff.
-  std::vector<LogSumApprox::value_type> LogSumApprox::table;
-  std::vector<LogDiffApprox::value_type> LogDiffApprox::table;
+// The two tables used when approximating logSum and logDiff.
+std::vector<LogSumApprox::value_type> LogSumApprox::table;
+std::vector<LogDiffApprox::value_type> LogDiffApprox::table;
 
 } // end namespace nupic
-

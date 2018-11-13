@@ -24,19 +24,17 @@
 
 // TODO -- thread safety
 
+#include <apr-1/apr_general.h>
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/utils/Log.hpp>
-#include <apr-1/apr_general.h>
 
-namespace nupic
-{
+namespace nupic {
 
-std::set<Network*> NuPIC::networks_;
+std::set<Network *> NuPIC::networks_;
 bool NuPIC::initialized_ = false;
 
-void NuPIC::init()
-{
+void NuPIC::init() {
   if (isInitialized())
     return;
 
@@ -52,16 +50,12 @@ void NuPIC::init()
   initialized_ = true;
 }
 
-
-void NuPIC::shutdown()
-{
-  if (!isInitialized())
-  {
+void NuPIC::shutdown() {
+  if (!isInitialized()) {
     NTA_THROW << "NuPIC::shutdown -- NuPIC has not been initialized";
   }
 
-  if (!networks_.empty())
-  {
+  if (!networks_.empty()) {
     NTA_THROW << "NuPIC::shutdown -- cannot shut down NuPIC because "
               << networks_.size() << " networks still exist.";
   }
@@ -70,32 +64,26 @@ void NuPIC::shutdown()
   initialized_ = false;
 }
 
-
-void NuPIC::registerNetwork(Network* net)
-{
-  if (!isInitialized())
-  {
-    NTA_THROW << "Attempt to create a network before NuPIC has been initialized -- call NuPIC::init() before creating any networks";
+void NuPIC::registerNetwork(Network *net) {
+  if (!isInitialized()) {
+    NTA_THROW
+        << "Attempt to create a network before NuPIC has been initialized -- "
+           "call NuPIC::init() before creating any networks";
   }
 
   auto n = networks_.find(net);
   // This should not be possible
-  NTA_CHECK(n == networks_.end()) << "Internal error -- double registration of network";
+  NTA_CHECK(n == networks_.end())
+      << "Internal error -- double registration of network";
   networks_.insert(net);
-
 }
 
-void NuPIC::unregisterNetwork(Network* net)
-{
+void NuPIC::unregisterNetwork(Network *net) {
   auto n = networks_.find(net);
   NTA_CHECK(n != networks_.end()) << "Internal error -- network not registered";
   networks_.erase(n);
 }
 
-bool NuPIC::isInitialized()
-{
-  return initialized_;
-}
+bool NuPIC::isInitialized() { return initialized_; }
 
-}
-
+} // namespace nupic

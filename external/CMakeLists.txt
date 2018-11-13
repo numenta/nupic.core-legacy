@@ -20,7 +20,7 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.3)
-project(nupic_core_main CXX)
+project(nupic_core CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 include(GNUInstallDirs)
@@ -40,8 +40,6 @@ set(BIN_PRE ${EP_BASE}/Install/bin)
 include(ExternalProject)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
-
-include(CapnProto)
 
 include(Swig)
 
@@ -68,10 +66,35 @@ set(YAML_CPP_STATIC_LIB_TARGET ${YAML_CPP_STATIC_LIB_TARGET} PARENT_SCOPE)
 set(YAML_CPP_STATIC_LIB_INC_DIR ${YAML_CPP_STATIC_LIB_INC_DIR} PARENT_SCOPE)
 list(APPEND EXTERNAL_INCLUDE_DIRS ${YAML_CPP_STATIC_LIB_INC_DIR})
 
-include(Zlib)
-set(Z_STATIC_LIB_TARGET ${Z_STATIC_LIB_TARGET} PARENT_SCOPE)
-set(Z_STATIC_LIB_INC_DIR ${Z_STATIC_LIB_INC_DIR} PARENT_SCOPE)
-list(APPEND EXTERNAL_INCLUDE_DIRS ${Z_STATIC_LIB_INC_DIR})
+##################################################
+#  BOOST
+#  Boost must be pre-installed if it is needed.
+if(NEEDS_BOOST)
+  set(BOOST_ROOT ${external_BOOST_ROOT})
+  message(STATUS "Hints for Boost find_package()")
+  message(STATUS "  BOOST_ROOT  = ${BOOST_ROOT}")
+  message(STATUS "Expect some warnings from Boost about missing dependancies.  It is ok.")
+
+  #set(Boost_USE_STATIC_RUNTIME OFF)
+  #set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
+  #set(Boost_USE_MULTITHREADED      ON)
+  #set(Boost_DEBUG ON)
+  #set(Boost_DETAILED_FAILURE_MSG ON)
+  # info about "--layout versioned" https://stackoverflow.com/questions/32991736/boost-lib-naming-are-missing/52208574#52208574
+  # filenames created by boost: https://www.boost.org/doc/libs/1_68_0/more/getting_started/unix-variants.html#library-naming
+  # We already found or created Boost in Boost.cmake, so just take whatever we find in ${BOOST_ROOT}.
+
+  find_package(Boost COMPONENTS system filesystem REQUIRED)
+  if(Boost_FOUND)
+        ADD_DEFINITIONS( "-DHAS_BOOST" )
+        message(STATUS "  Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
+        message(STATUS "  Boost_LIBRARIES = ${Boost_LIBRARIES}")
+  else()
+        message(FATAL_ERROR "Fatal Error: Boost not found.")
+  endif()
+endif()
+
+##################################################
 
 # Add vendored prebuilt library include paths.
 list(APPEND EXTERNAL_INCLUDE_DIRS

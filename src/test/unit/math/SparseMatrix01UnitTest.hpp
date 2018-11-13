@@ -51,7 +51,8 @@
 //       : nrows(nr), ncols(nc), m(nr*nc, 0)
 //     {}
 //
-//     Dense01(Int nr, Int nc, Int nzr, bool small =false, bool emptyRows =false)
+//     Dense01(Int nr, Int nc, Int nzr, bool small =false, bool emptyRows
+//     =false)
 //       : nrows(nr), ncols(nc),
 //         m(nr*nc, 0)
 //     {
@@ -75,7 +76,8 @@
 //     inline iterator begin() { return m.begin(); }
 //     inline const_iterator begin() const { return m.begin(); }
 //     inline iterator begin(const Int i) { return m.begin() + i*ncols; }
-//     inline const_iterator begin(const Int i) const { return m.begin() + i*ncols; }
+//     inline const_iterator begin(const Int i) const { return m.begin() +
+//     i*ncols; }
 //
 //     inline Float& at(const Int i, const Int j)
 //     {
@@ -385,7 +387,8 @@
 //         if (sparse.nNonZerosRow(i) != dense.nNonZerosRow(i)) {
 //           std::stringstream str5;
 //           str5 << str << " nNonZerosRow(" << i << ")";
-//           Test(str5.str().c_str(), sparse.nNonZerosRow(i), dense.nNonZerosRow(i));
+//           Test(str5.str().c_str(), sparse.nNonZerosRow(i),
+//           dense.nNonZerosRow(i));
 //         }
 //
 //       ITER_2(nrows, ncols)

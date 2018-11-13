@@ -24,16 +24,14 @@
  * Implementation of BasicType test
  */
 
-#include <nupic/ntypes/Dimensions.hpp>
 #include <gtest/gtest.h>
+#include <nupic/ntypes/Dimensions.hpp>
 
 using namespace nupic;
 
-class DimensionsTest : public ::testing::Test
-{
+class DimensionsTest : public ::testing::Test {
 public:
-  DimensionsTest()
-  {
+  DimensionsTest() {
     zero.push_back(0);
 
     one_two.push_back(1);
@@ -43,19 +41,17 @@ public:
     three_four.push_back(4);
   }
 
-  Coordinate zero; // [0];
-  Coordinate one_two; // [1,2]
+  Coordinate zero;       // [0];
+  Coordinate one_two;    // [1,2]
   Coordinate three_four; // [3,4]
 
-  //internal helper method
-  static std::string vecToString(std::vector<size_t> vec)
-  {
+  // internal helper method
+  static std::string vecToString(std::vector<size_t> vec) {
     std::stringstream ss;
     ss << "[";
-    for (size_t i = 0; i < vec.size(); i++)
-    {
+    for (size_t i = 0; i < vec.size(); i++) {
       ss << vec[i];
-      if (i != vec.size()-1)
+      if (i != vec.size() - 1)
         ss << " ";
     }
     ss << "]";
@@ -63,9 +59,7 @@ public:
   }
 };
 
-
-TEST_F(DimensionsTest, EmptyDimensions)
-{
+TEST_F(DimensionsTest, EmptyDimensions) {
   // empty dimensions (unspecified)
   Dimensions d;
   ASSERT_TRUE(d.isUnspecified());
@@ -80,8 +74,7 @@ TEST_F(DimensionsTest, EmptyDimensions)
   ASSERT_EQ((unsigned int)0, d.getDimensionCount());
 }
 
-TEST_F(DimensionsTest, DontCareDimensions)
-{
+TEST_F(DimensionsTest, DontCareDimensions) {
   // dontcare dimensions [0]
   Dimensions d;
   d.push_back(0);
@@ -95,8 +88,7 @@ TEST_F(DimensionsTest, DontCareDimensions)
   ASSERT_EQ((unsigned int)1, d.getDimensionCount());
 }
 
-TEST_F(DimensionsTest, InvalidDimensions)
-{
+TEST_F(DimensionsTest, InvalidDimensions) {
   // invalid dimensions
   Dimensions d;
   d.push_back(1);
@@ -113,8 +105,7 @@ TEST_F(DimensionsTest, InvalidDimensions)
   ASSERT_EQ((unsigned int)2, d.getDimensionCount());
 }
 
-TEST_F(DimensionsTest, ValidDimensions)
-{
+TEST_F(DimensionsTest, ValidDimensions) {
   // valid dimensions [2,3]
   // two rows, three columns
   Dimensions d;
@@ -132,33 +123,29 @@ TEST_F(DimensionsTest, ValidDimensions)
   ASSERT_EQ((unsigned int)2, d.getDimensionCount());
 }
 
-TEST_F(DimensionsTest, Check2DXMajor)
-{
-  //check a two dimensional matrix for proper x-major ordering
+TEST_F(DimensionsTest, Check2DXMajor) {
+  // check a two dimensional matrix for proper x-major ordering
   std::vector<size_t> x;
   x.push_back(4);
   x.push_back(5);
   Dimensions d(x);
   size_t testDim1 = 4;
   size_t testDim2 = 5;
-  for(size_t i = 0; i < testDim1; i++)
-  {
-    for(size_t j = 0; j < testDim2; j++)
-    {
+  for (size_t i = 0; i < testDim1; i++) {
+    for (size_t j = 0; j < testDim2; j++) {
       Coordinate testCoordinate;
       testCoordinate.push_back(i);
       testCoordinate.push_back(j);
 
-      ASSERT_EQ(i+j*testDim1, d.getIndex(testCoordinate));
+      ASSERT_EQ(i + j * testDim1, d.getIndex(testCoordinate));
       ASSERT_EQ(vecToString(testCoordinate),
-                vecToString(d.getCoordinate(i+j*testDim1)));
+                vecToString(d.getCoordinate(i + j * testDim1)));
     }
   }
 }
 
-TEST_F(DimensionsTest, Check3DXMajor)
-{
-  //check a three dimensional matrix for proper x-major ordering
+TEST_F(DimensionsTest, Check3DXMajor) {
+  // check a three dimensional matrix for proper x-major ordering
   std::vector<size_t> x;
   x.push_back(3);
   x.push_back(4);
@@ -167,32 +154,26 @@ TEST_F(DimensionsTest, Check3DXMajor)
   size_t testDim1 = 3;
   size_t testDim2 = 4;
   size_t testDim3 = 5;
-  for(size_t i = 0; i < testDim1; i++)
-  {
-    for(size_t j = 0; j < testDim2; j++)
-    {
-      for(size_t k = 0; k < testDim3; k++)
-      {
+  for (size_t i = 0; i < testDim1; i++) {
+    for (size_t j = 0; j < testDim2; j++) {
+      for (size_t k = 0; k < testDim3; k++) {
         Coordinate testCoordinate;
         testCoordinate.push_back(i);
         testCoordinate.push_back(j);
         testCoordinate.push_back(k);
 
-        ASSERT_EQ(i +
-                  j*testDim1 +
-                  k*testDim1*testDim2, d.getIndex(testCoordinate));
+        ASSERT_EQ(i + j * testDim1 + k * testDim1 * testDim2,
+                  d.getIndex(testCoordinate));
 
         ASSERT_EQ(vecToString(testCoordinate),
-                  vecToString(d.getCoordinate(i +
-                                              j*testDim1 +
-                                              k*testDim1*testDim2)));
+                  vecToString(d.getCoordinate(i + j * testDim1 +
+                                              k * testDim1 * testDim2)));
       }
     }
   }
 }
 
-TEST_F(DimensionsTest, AlternateConstructor)
-{ 
+TEST_F(DimensionsTest, AlternateConstructor) {
   // alternate constructor
   std::vector<size_t> x;
   x.push_back(2);
@@ -201,7 +182,7 @@ TEST_F(DimensionsTest, AlternateConstructor)
   ASSERT_TRUE(!d.isUnspecified());
   ASSERT_TRUE(!d.isDontcare());
   ASSERT_TRUE(d.isValid());
-  
+
   ASSERT_EQ((unsigned int)2, d.getDimension(0));
   ASSERT_EQ((unsigned int)5, d.getDimension(1));
   ASSERT_ANY_THROW(d.getDimension(2));

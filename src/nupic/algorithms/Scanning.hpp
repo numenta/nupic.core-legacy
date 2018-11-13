@@ -24,17 +24,14 @@
 #define NTA_SCANNING_HPP
 
 // Performs the time-intensive steps of ScanControlNode.getAlpha
-void computeAlpha(size_t xstep, size_t ystep,
-                  size_t widthS, size_t heightS,
-                  size_t imageWidth, size_t imageHeight,
-                  size_t xcount, size_t ycount,
-                  size_t weightWidth, float sharpness,
-                  float* data, float* values, float* counts, float* weights)
-{
+void computeAlpha(size_t xstep, size_t ystep, size_t widthS, size_t heightS,
+                  size_t imageWidth, size_t imageHeight, size_t xcount,
+                  size_t ycount, size_t weightWidth, float sharpness,
+                  float *data, float *values, float *counts, float *weights) {
   size_t y0, y1, x0, x1, i, j, m, n;
   float coefficient = 0, minval = 0, maxval = 0;
   float *d, *v, *c, *w;
-  
+
   if (sharpness < 1) {
     // Calculate coefficient for sigmoid, used to scale values in range [0, 1]
     // (If sharpness is 1, the results are simply thresholded)
@@ -82,10 +79,10 @@ void computeAlpha(size_t xstep, size_t ystep,
       *v >= 0.5 ? *v = 1 : *v = 0;
     } else if (coefficient != 0) {
       // Sigmoid (coefficient was calculated from value of "sharpness")
-      *v = (1 / (1 + exp(coefficient * (*v - 0.5f))) - minval)
-         / (maxval - minval);
+      *v = (1 / (1 + exp(coefficient * (*v - 0.5f))) - minval) /
+           (maxval - minval);
     }
   }
 }
 
-#endif //NTA_SCANNING_HPP
+#endif // NTA_SCANNING_HPP

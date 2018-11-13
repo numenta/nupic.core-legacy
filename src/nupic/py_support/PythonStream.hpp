@@ -23,8 +23,8 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nupic/py_support/PyHelpers.hpp>
 #include <iosfwd>
+#include <nupic/py_support/PyHelpers.hpp>
 #include <sstream>
 
 ///////////////////////////////////////////////////////////////////
@@ -37,30 +37,24 @@
 /// @b Description
 /// After instantiation, a call to getStream() returns an ostream
 /// that collects the characters fed to it. Any subsequent call
-/// to close() will return a PyObject * to a PyString that 
+/// to close() will return a PyObject * to a PyString that
 /// contains the current contents of the ostream.
-/// 
+///
 /// @note
 /// A close() before a getStream() will return an empty PyString.
-/// 
+///
 ///////////////////////////////////////////////////////////////////
-class SharedPythonOStream
-{
+class SharedPythonOStream {
 public:
   SharedPythonOStream(size_t maxSize);
   std::ostream &getStream();
   PyObject *close();
 
 private:
-	size_t target_size_;
-	std::stringstream ss_;
+  size_t target_size_;
+  std::stringstream ss_;
 };
 
 //------------------------------------------------------------------
 
 #endif // NTA_PYTHON_STREAM_HPP
-
-
-
-
-

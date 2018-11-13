@@ -1,6 +1,14 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# NuPIC Core [![Unix-like Build Status](https://travis-ci.org/numenta/nupic.core.png?branch=master)](https://travis-ci.org/numenta/nupic.core) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/px32pcil23vunml0/branch/master?svg=true)](https://ci.appveyor.com/project/numenta-ci/nupic-core/branch/master) [![CircleCI](https://circleci.com/gh/numenta/nupic.core.svg?style=svg)](https://circleci.com/gh/numenta/nupic.core) [![Coverage Status](https://coveralls.io/repos/numenta/nupic.core/badge.png?branch=master)](https://coveralls.io/r/numenta/nupic.core?branch=master)
+# NuPIC Core 
+[![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp)  
+[![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master) 
+[![Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp)
+
+# Community NuPIC.cpp (former nupic.core) repository
+
+This fork is a community version of the `nupic.core` C++ repository with Python bindings. 
+Our aim is to provide actively developed successor to the nupic.core and nupic repositories by Numenta, which are not actively developed anymore. 
 
 This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
 
@@ -28,9 +36,10 @@ Important notes:
     - Version 2.7
 - [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
     - Version 1.12.1
-- [pycapnp](http://jparyani.github.io/pycapnp/)
-    - Version 0.5.8 (_Linux and OSX only_)
 - [CMake](http://www.cmake.org/)
+- [Boost](https://www.boost.org/users/history/version_1_68_0.html) 
+  - Linux: `apt install libboost-dev`
+  - OSX: `brew install boost --with-filesystem --with-system`
 
 > **Note**: On Windows, Python package dependencies require the following compiler package to be installed: [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-gb/download/details.aspx?id=44266)
 
@@ -92,7 +101,6 @@ Notes:
 #### Run the tests:
 
     cd $NUPIC_CORE/build/release/bin
-    ./cpp_region_test
     ./unit_tests
     ...
 

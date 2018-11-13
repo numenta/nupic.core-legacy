@@ -24,35 +24,27 @@
  * Implementation of Fraction test
  */
 
-#include <nupic/types/Exception.hpp>
 #include <gtest/gtest.h>
+#include <nupic/types/Exception.hpp>
 
 using namespace nupic;
 
-TEST(ExceptionTest, Basic)
-{
-  try
-  {
+TEST(ExceptionTest, Basic) {
+  try {
     throw nupic::Exception("FFF", 123, "MMM");
-  }
-  catch (const Exception & e)
-  {
+  } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123);
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
     ASSERT_EQ(std::string(e.getStackTrace()), std::string(""));
   }
 
-  try
-  {
+  try {
     throw nupic::Exception("FFF", 123, "MMM", "TB");
-  }
-  catch (const Exception & e)
-  {
+  } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123);
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
     ASSERT_EQ(std::string(e.getStackTrace()), std::string("TB"));
-  }  
+  }
 }
-

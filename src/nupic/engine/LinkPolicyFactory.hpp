@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Definition of the LinkPolicyFactory API
  */
 
@@ -29,32 +29,25 @@
 
 #include <string>
 
-namespace nupic
-{
+namespace nupic {
 
-  class LinkPolicy; 
-  class Link;
-  class Region;
+class LinkPolicy;
+class Link;
+class Region;
 
-  class LinkPolicyFactory
-  {
-  public:
+class LinkPolicyFactory {
+public:
+  // LinkPolicyFactory is a lightweight object
+  LinkPolicyFactory(){};
+  ~LinkPolicyFactory(){};
 
+  // Create a LinkPolicy of a specific type; caller gets ownership.
+  LinkPolicy *createLinkPolicy(const std::string policyType,
+                               const std::string policyParams, Link *link);
 
-    // LinkPolicyFactory is a lightweight object
-    LinkPolicyFactory() {};
-    ~LinkPolicyFactory() {};
-
-    // Create a LinkPolicy of a specific type; caller gets ownership.
-    LinkPolicy* createLinkPolicy(const std::string policyType, 
-                               const std::string policyParams,
-                               Link* link);
-
-  private:
-
-  };
+private:
+};
 
 } // namespace nupic
-
 
 #endif // NTA_LINKPOLICY_FACTORY_HPP

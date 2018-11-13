@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-/** @file 
+/** @file
  * Declarations for math functions
  */
 
@@ -29,97 +29,79 @@
 
 #include <nupic/utils/Log.hpp> // For NTA_ASSERT
 
-#include <cmath>
-#include <boost/math/special_functions/gamma.hpp>
-#include <boost/math/special_functions/digamma.hpp>
 #include <boost/math/special_functions/beta.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 #include <boost/math/special_functions/erf.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include <cmath>
 
 namespace nupic {
 
-  // TODO: replace other functions by boost/math
+// TODO: replace other functions by boost/math
 
-  static const double pi  =  3.14159265358979311600e+00;
+static const double pi = 3.14159265358979311600e+00;
 
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline T lgamma(T x)
-  {
-    return boost::math::lgamma(x);
+//--------------------------------------------------------------------------------
+template <typename T> inline T lgamma(T x) { return boost::math::lgamma(x); }
+
+//--------------------------------------------------------------------------------
+template <typename T> inline T digamma(T x) { return boost::math::digamma(x); }
+
+//--------------------------------------------------------------------------------
+template <typename T> inline T beta(T x, T y) {
+  return boost::math::beta(x, y);
+}
+
+//--------------------------------------------------------------------------------
+template <typename T> inline T erf(T x) { return boost::math::erf(x); }
+
+//--------------------------------------------------------------------------------
+double fact(unsigned long n) {
+  static double a[171];
+  static bool init = true;
+
+  if (init) {
+    init = false;
+    a[0] = 1.0;
+    for (size_t i = 1; i != 171; ++i)
+      a[i] = i * a[i - 1];
   }
 
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline T digamma(T x)
-  {
-    return boost::math::digamma(x);
+  if (n < 171)
+    return a[n];
+  else
+    return exp(lgamma(n + 1.0));
+}
+
+//--------------------------------------------------------------------------------
+double lfact(unsigned long n) {
+  static double a[2000];
+  static bool init = true;
+
+  if (init) {
+    for (size_t i = 0; i != 2000; ++i)
+      a[i] = lgamma(i + 1.0);
   }
 
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline T beta(T x, T y)
+  if (n < 2000)
+    return a[n];
+  else
+    return lgamma(n + 1.0);
+}
+
+//--------------------------------------------------------------------------------
+double binomial(unsigned long n, unsigned long k) {
   {
-    return boost::math::beta(x, y);
+    NTA_ASSERT(k <= n) << "binomial: Wrong arguments: n= " << n << " k= " << k;
   }
 
-  //--------------------------------------------------------------------------------
-  template <typename T>
-  inline T erf(T x)
-  {
-    return boost::math::erf(x);
-  }
+  if (n < 171)
+    return floor(0.5 + fact(n) / (fact(k) * fact(n - k)));
+  else
+    return floor(0.5 + exp(lfact(n) - lfact(k) - lfact(n - k)));
+}
 
-  //--------------------------------------------------------------------------------
-  double fact(unsigned long n)
-  {
-    static double a[171];
-    static bool init = true;
-    
-    if (init) {
-      init = false;
-      a[0] = 1.0;
-      for (size_t i = 1; i != 171; ++i)
-	a[i] = i * a[i-1];
-    }
-    
-    if (n < 171)
-      return a[n];
-    else
-      return exp(lgamma(n+1.0));
-  }
+//--------------------------------------------------------------------------------
+}; // namespace nupic
 
-  //--------------------------------------------------------------------------------
-  double lfact(unsigned long n)
-  {
-    static double a[2000];
-    static bool init = true;
-    
-    if (init) {
-      for (size_t i = 0; i != 2000; ++i)
-	a[i] = lgamma(i+1.0);
-    }
-
-    if (n < 2000)
-      return a[n];
-    else
-      return lgamma(n+1.0);
-  }
-
-  //--------------------------------------------------------------------------------
-  double binomial(unsigned long n, unsigned long k)
-  {
-    {
-      NTA_ASSERT(k <= n)
-	<< "binomial: Wrong arguments: n= " << n << " k= " << k;
-    }
-
-    if (n < 171)
-      return floor(0.5 + fact(n) / (fact(k) * fact(n-k)));
-    else
-      return floor(0.5 + exp(lfact(n) - lfact(k) - lfact(n-k)));
-  }
-
-  //--------------------------------------------------------------------------------
-};
-
-#endif //NTA_MATH_FUNCTIONS_HPP
+#endif // NTA_MATH_FUNCTIONS_HPP

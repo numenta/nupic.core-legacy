@@ -26,15 +26,66 @@ import os
 
 import numpy
 import unittest
+import pytest
 
 from nupic.bindings.math import Random
 from nupic.bindings.algorithms import Cells4
 
 _RGEN = Random(43)
 
+def createCells4(nCols=8,
+                nCellsPerCol=4,
+                activationThreshold=1,
+                minThreshold=1,
+                newSynapseCount=2,
+                segUpdateValidDuration=2,
+                permInitial=0.5,
+                permConnected=0.8,
+                permMax=1.0,
+                permDec=0.1,
+                permInc=0.2,
+                globalDecay=0.05,
+                doPooling=True,
+                pamLength=2,
+                maxAge=3,
+                seed=42,
+                initFromCpp=True,
+                checkSynapseConsistency=False):
 
+    cells = Cells4(nCols,
+                   nCellsPerCol,
+                   activationThreshold,
+                   minThreshold,
+                   newSynapseCount,
+                   segUpdateValidDuration,
+                   permInitial,
+                   permConnected,
+                   permMax,
+                   permDec,
+                   permInc,
+                   globalDecay,
+                   doPooling,
+                   seed,
+                   initFromCpp,
+                   checkSynapseConsistency)
+
+
+    cells.setPamLength(pamLength)
+    cells.setMaxAge(maxAge)
+    cells.setMaxInfBacktrack(4)
+
+    for i in xrange(nCols):
+      for j in xrange(nCellsPerCol):
+        cells.addNewSegment(i, j, True if j % 2 == 0 else False,
+                            [((i + 1) % nCols, (j + 1) % nCellsPerCol)])
+
+    return cells
 
 class Cells4Test(unittest.TestCase):
+
+  @pytest.fixture(autouse=True)
+  def initdir(self, tmpdir):
+    tmpdir.chdir() # change to the pytest-provided temporary directory
 
 
   @staticmethod
@@ -84,9 +135,10 @@ class Cells4Test(unittest.TestCase):
     """This will pickle the cells instance, unpickle it, and test to ensure
     the unpickled instance is identical to the pre-pickled version.
     """
-    pickle.dump(cells, open("test.pkl", "wb"))
-    cells.saveToFile("test2.bin")
-    cells2 = pickle.load(open("test.pkl"))
+    file1 = "test.pkl"
+    file2 = "test2.bin"
+    pickle.dump(cells, open(file1, "wb"))
+    cells2 = pickle.load(open(file1))
 
     # Test all public attributes of Cells4 that should get pickled
     for f1, f2 in zip(dir(cells), dir(cells2)):
@@ -103,13 +155,12 @@ class Cells4Test(unittest.TestCase):
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
 
-    os.unlink("test.pkl")
+    os.unlink(file1)
 
     # Now try the Cells4.saveToFile method.
-    pickle.dump(cells, open("test.pkl", "wb"))
-    cells.saveToFile("test2.bin")
+    cells.saveToFile(file2)
     cells2 = Cells4()
-    cells2.loadFromFile("test2.bin")
+    cells2.loadFromFile(file2)
 
     self.assertTrue(self._cellsDiff(cells, cells2))
 
@@ -128,7 +179,7 @@ class Cells4Test(unittest.TestCase):
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
 
-    os.unlink("test2.bin")
+    os.unlink(file2)
 
 
   def testLearn(self):
@@ -196,7 +247,7 @@ class Cells4Test(unittest.TestCase):
       cells.compute(x, True, True)
 
     cells.rebuildOutSynapses()
-
+	
     self._testPersistence(cells)
 
     for i in xrange(100):
@@ -205,3 +256,35 @@ class Cells4Test(unittest.TestCase):
       cells.compute(x, True, False)
 
     self._testPersistence(cells)
+
+  def testEquals(self):
+    nCols = 10
+    c1 = createCells4(nCols)
+    c2 = createCells4(nCols)
+    self.assertEquals(c1, c2)
+    
+    # learn
+    data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(10)]   
+    for idx in data:
+      x = numpy.zeros(nCols, dtype="float32")
+      x[idx] = 1.0
+      c1.compute(x, True, True)
+      c2.compute(x, True, True)
+      self.assertEquals(c1, c2)
+
+    self.assertEquals(c1, c2)
+
+    c1.rebuildOutSynapses()
+    c2.rebuildOutSynapses()
+    self.assertEquals(c1, c2)
+
+    # inference
+    data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(100)]
+    for idx in data:
+      x = numpy.zeros(nCols, dtype="float32")
+      x[idx] = 1.0
+      c1.compute(x, True, False)   
+      c2.compute(x, True, False)
+      self.assertEquals(c1, c2)
+
+    self.assertEquals(c1, c2)

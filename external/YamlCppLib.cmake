@@ -34,7 +34,7 @@ include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 set(YAML_CPP_STATIC_LIB_TARGET yaml-cpp-bundle)
 
 
-set(yamlcpplib_url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.3.0.tar.gz")
+set(yamlcpplib_url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.6.2.tar.gz")
 set(yamlcpplib_install_prefix "${EP_BASE}/Install/YamlCppStaticLib")
 set(yamlcpplib_install_lib_dir "${yamlcpplib_install_prefix}/lib")
 
@@ -60,6 +60,7 @@ ExternalProject_Add(YamlCppStaticLib
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
         -DYAML_CPP_BUILD_TOOLS=OFF
+	-DYAML_CPP_BUILD_TESTS=OFF # causes build errors with gtest (as of YamlCpp 0.6.2)
         -DYAML_CPP_BUILD_CONTRIB=OFF
         -DCMAKE_C_FLAGS=${c_flags}
         -DCMAKE_CXX_FLAGS=${cxx_flags}

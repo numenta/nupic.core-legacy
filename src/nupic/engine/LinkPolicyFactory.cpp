@@ -20,30 +20,23 @@
  * ---------------------------------------------------------------------
  */
 
-
 #include <nupic/engine/LinkPolicy.hpp>
 #include <nupic/engine/LinkPolicyFactory.hpp>
 #include <nupic/engine/TestFanIn2LinkPolicy.hpp>
 #include <nupic/engine/UniformLinkPolicy.hpp>
 #include <nupic/utils/Log.hpp>
 
-namespace nupic
-{
+namespace nupic {
 
-
-LinkPolicy* LinkPolicyFactory::createLinkPolicy(const std::string policyType, 
-                                             const std::string policyParams,
-                                             Link* link)
-{
+LinkPolicy *LinkPolicyFactory::createLinkPolicy(const std::string policyType,
+                                                const std::string policyParams,
+                                                Link *link) {
   LinkPolicy *lp = nullptr;
-  if (policyType == "TestFanIn2")
-  {
+  if (policyType == "TestFanIn2") {
     lp = new TestFanIn2LinkPolicy(policyParams, link);
-  } else if (policyType == "UniformLink")
-  {
+  } else if (policyType == "UniformLink") {
     lp = new UniformLinkPolicy(policyParams, link);
-  } else if (policyType == "UnitTestLink")
-  {
+  } else if (policyType == "UnitTestLink") {
     // When unit testing a link policy, a valid Link* is required to be passed
     // to the link policy's constructor.  If you pass NULL, other portions of
     // NuPIC may try to dereference it (e.g. operator<< from NTA_THROW).  So we
@@ -54,11 +47,9 @@ LinkPolicy* LinkPolicyFactory::createLinkPolicy(const std::string policyType,
     //
     // and pass this dummy link to the constructor of the real link policy
     // you wish to unit test.
-  } else if (policyType == "TestSplit")
-  {
+  } else if (policyType == "TestSplit") {
     NTA_THROW << "TestSplit not implemented yet";
-  } else if (policyType == "TestOneToOne")
-  {
+  } else if (policyType == "TestOneToOne") {
     NTA_THROW << "TestOneToOne not implemented yet";
   } else {
     NTA_THROW << "Unknown link policy '" << policyType << "'";
@@ -66,7 +57,4 @@ LinkPolicy* LinkPolicyFactory::createLinkPolicy(const std::string policyType,
   return lp;
 }
 
-
-
-}
-
+} // namespace nupic

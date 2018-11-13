@@ -28,31 +28,22 @@
 #include <numeric>
 
 using namespace std;
-using namespace::nupic;
+using namespace ::nupic;
 using namespace nupic::util;
 
-
-MovingAverage::MovingAverage(UInt wSize, const vector<Real32>& historicalValues)
-    : windowSize_(wSize)
-{
-  if (historicalValues.size() != 0)
-  {
-    copy(
-      historicalValues.begin() + historicalValues.size() - wSize,
-      historicalValues.end(),
-      back_inserter(slidingWindow_));
+MovingAverage::MovingAverage(UInt wSize, const vector<Real32> &historicalValues)
+    : windowSize_(wSize) {
+  if (historicalValues.size() != 0) {
+    copy(historicalValues.begin() + historicalValues.size() - wSize,
+         historicalValues.end(), back_inserter(slidingWindow_));
   }
   total_ = Real32(accumulate(slidingWindow_.begin(), slidingWindow_.end(), 0));
 }
 
-
 MovingAverage::MovingAverage(UInt wSize) : windowSize_(wSize), total_(0) {}
 
-
-Real32 MovingAverage::compute(Real32 newVal)
-{
-  if (windowSize_ == slidingWindow_.size())
-  {
+Real32 MovingAverage::compute(Real32 newVal) {
+  if (windowSize_ == slidingWindow_.size()) {
     total_ -= slidingWindow_.front();
     slidingWindow_.erase(slidingWindow_.begin()); // pop front element
   }
@@ -62,34 +53,21 @@ Real32 MovingAverage::compute(Real32 newVal)
   return getCurrentAvg();
 }
 
-
-std::vector<Real32> MovingAverage::getSlidingWindow() const
-{
+std::vector<Real32> MovingAverage::getSlidingWindow() const {
   return slidingWindow_;
 }
 
-
-Real32 MovingAverage::getCurrentAvg() const
-{
+Real32 MovingAverage::getCurrentAvg() const {
   return Real32(total_) / Real32(slidingWindow_.size());
 }
 
-
-bool MovingAverage::operator==(const MovingAverage& r2) const
-{
+bool MovingAverage::operator==(const MovingAverage &r2) const {
   return (windowSize_ == r2.windowSize_ &&
-          slidingWindow_ == r2.slidingWindow_ &&
-          total_ == r2.total_);
+          slidingWindow_ == r2.slidingWindow_ && total_ == r2.total_);
 }
 
-
-bool MovingAverage::operator!=(const MovingAverage& r2) const
-{
+bool MovingAverage::operator!=(const MovingAverage &r2) const {
   return !operator==(r2);
 }
 
-
-Real32 MovingAverage::getTotal() const
-{
-  return total_;
-}
+Real32 MovingAverage::getTotal() const { return total_; }

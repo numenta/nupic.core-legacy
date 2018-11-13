@@ -43,14 +43,14 @@
 #undef NO_IMPORT_ARRAY
 
 namespace nupic {
-  /**
-   * This method needs to be called some time in the process lifetime before
-   * calling the numpy C APIs.
-   *
-   * It initializes the global "NTA_NumpyArray_API" to an array of function
-   * pointers -- i.e. it dynamically links with the numpy library.
-   */
-  void initializeNumpy();
-};
+/**
+ * This method needs to be called some time in the process lifetime before
+ * calling the numpy C APIs.
+ *
+ * It initializes the global "NTA_NumpyArray_API" to an array of function
+ * pointers -- i.e. it dynamically links with the numpy library.
+ */
+void initializeNumpy();
+}; // namespace nupic
 
 #endif // NTA_NUMPY_ARRAY_OBJECT

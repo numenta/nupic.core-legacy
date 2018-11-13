@@ -19,11 +19,11 @@
  * http://numenta.org/licenses/
  * ---------------------------------------------------------------------
  */
-             
-/** @file  
+
+/** @file
  * Implementation of unit testing for class Index
- */     
-              
+ */
+
 //#include <nupic/common/version.hpp>
 // #include <nupic/math/ArrayAlgo.hpp>
 //
@@ -52,7 +52,7 @@
 //      for (UInt i = 0; i < 5; ++i)
 //        Test("Index constructor from array", i1[i], i+1);
 //    }
-//        
+//
 //    { // Constructor with ellipsis
 //      const I5 i2(5, 4, 3, 2, 1);
 //      for (int i = 5; i > 0; --i)
@@ -64,7 +64,7 @@
 //      const I5 idx2(idx1);
 //      for (UInt i = 0; i < 5; ++i)
 //        Test("Index copy constructor 1", idx2[i], (UInt)0);
-//      
+//
 //      const I5 i3(5, 4, 3, 2, 1);
 //      I5 i4(i3);
 //      for (UInt i = 0; i < 5; ++i)
@@ -93,7 +93,7 @@
 //      const I5 i4(5, 4, 3, 2, 1);
 //      for (UInt i = 0; i < 5; ++i)
 //        Test("Index operator[] const", i4[i], 5-i);
-//    }  
+//    }
 //
 //    { // begin(), end()
 //      I5 idx(5, 4, 3, 2, 1);
@@ -132,7 +132,7 @@
 //      I5 i1(5, 4, 3, 2, 1);
 //      I5 i2(1, 2, 3, 4, 5);
 //      Test("Index operator== 1 ", ! (i1 == i2), true);
-//        
+//
 //      I5 i3(5, 4, 3, 2, 1);
 //      Test("Index operator== 2 ", (i1 == i3), true);
 //    }
@@ -141,21 +141,21 @@
 //      I5 i1(5, 4, 3, 2, 1);
 //      I5 i2(1, 2, 3, 4, 5);
 //      Test("Index operator!= 1 ", (i1 != i2), true);
-//        
+//
 //      I5 i3(5, 4, 3, 2, 1);
 //      Test("Index operator!= 2 ", ! (i1 != i3), true);
 //    }
 //
-//    { // ordinal/setFromOrdinal         
+//    { // ordinal/setFromOrdinal
 //      I1 ub((UInt)5);
 //      for (UInt i = 0; i < 5; ++i) {
 //        I1 i1((UInt)i);
 //        Test("Index<1> ordinal 1", ordinal(ub, i1), i);
 //        I1 i2; setFromOrdinal(ub, i, i2);
 //        Test("Index<1> setFromOrdinal 1", i1, i2);
-//      }                 
+//      }
 //    }
-//    
+//
 //    { // increment/ordinal
 //      UInt i = 0;
 //      I1 i1, i2, ub((UInt)5);
@@ -170,7 +170,7 @@
 //    { // increment/ordinal/setFromOrdinal
 //      I5 ub(6, 7, 5, 3, 4), idx;
 //      UInt i = 0;
-//      do {   
+//      do {
 //        UInt n = ordinal(ub, idx);
 //        I5 idx2(ub, n);
 //        Test("Index increment/ordinal 1", idx, idx2);
@@ -181,11 +181,11 @@
 //        ++i;
 //      } while (increment(ub, idx));
 //    }
-//     
-//    { // incrementing between bounds 
+//
+//    { // incrementing between bounds
 //      I5 lb(4, 5, 3, 1, 2), ub(6, 7, 5, 3, 4), idx(lb);
 //      do {
-//      } while (increment(lb, ub, idx));   
+//      } while (increment(lb, ub, idx));
 //    }
 //
 //    { // incrementing between bounds, over and under => exceptions
@@ -201,7 +201,7 @@
 //        Test("Index setToZero 1", i1[i], (UInt)0);
 //
 //      I5 i2(5, 4, 3, 2, 1);
-//      setToZero(i2);  
+//      setToZero(i2);
 //      for (UInt i = 0; i < 5; ++i)
 //        Test("Index setToZero 2", i2[i], (UInt)0);
 //
@@ -235,27 +235,27 @@
 //    }
 //
 //    { // complement
-//      {           
+//      {
 //        I3 i3(0, 2, 4), c;
 //        complement(i3, c);
 //        Test("Index complement 1", c, I3(1, 3, 5));
 //      }
 //
 //      {
-//        I2 i2(0, 2); 
+//        I2 i2(0, 2);
 //        I1 c;
 //        complement(i2, c);
 //        Test("Index complement 2", c, I1(1));
 //      }
-//       
+//
 //      {
-//        I1 i1((UInt)0), c; 
+//        I1 i1((UInt)0), c;
 //        complement(i1, c);
 //        Test("Index complement 3", c, I1(1));
 //      }
 //
 //      {
-//        I2 i2(0, 1);    
+//        I2 i2(0, 1);
 //        I1 c;
 //        complement(i2, c);
 //        Test("Index complement 4", c, I1(2));
@@ -269,7 +269,7 @@
 //      }
 //    }
 //
-//    
+//
 //
 //    { // project
 //      const I3 i3(9, 7, 3);
@@ -295,8 +295,8 @@
 //        Test("Index project 6", i4[i], (UInt)3-i);
 //      }
 //    }
-//    
-//    { // embed 
+//
+//    { // embed
 //      {
 //        I3 i3A(1, 2, 3), dims(0, 1, 2), i3B;
 //        embed(dims, i3A, i3B);
@@ -305,8 +305,8 @@
 //
 //      {
 //        I6 i6;
-//        const I3 dims(1, 3, 5), i3(9, 7, 3); 
-//        embed(dims, i3, i6);     
+//        const I3 dims(1, 3, 5), i3(9, 7, 3);
+//        embed(dims, i3, i6);
 //        Test("Index embed 1A", i6, I6(0, 9, 0, 7, 0, 3));
 //
 //        I6 i6B;
@@ -316,7 +316,7 @@
 //
 //      {
 //        I6 i6;
-//        const I3 dims(0, 2, 4), i3(9, 7, 3); 
+//        const I3 dims(0, 2, 4), i3(9, 7, 3);
 //        embed(dims, i3, i6);
 //        Test("Index embed 2", i6, I6(9, 0, 7, 0, 3, 0));
 //      }
@@ -334,16 +334,16 @@
 //
 //      { // embed is the reciprocal of project
 //        I6 i6;
-//        
+//
 //        {
-//          I3 dims(1, 3, 5), i3A(9, 7, 3), i3B; 
-//          embed(dims, i3A, i6);     
+//          I3 dims(1, 3, 5), i3A(9, 7, 3), i3B;
+//          embed(dims, i3A, i6);
 //          project(dims, i6, i3B);
 //          Test("Index embed 5", i3A, i3B);
 //        }
 //
 //        {
-//          I3 dims(0, 2, 4), i3A(9, 7, 3), i3B; 
+//          I3 dims(0, 2, 4), i3A(9, 7, 3), i3B;
 //          embed(dims, i3A, i6);
 //          project(dims, i6, i3B);
 //          Test("Index embed 6", i3A, i3B);
@@ -384,7 +384,7 @@
 //      I5 i0(1, 2, 3, 4, 5);
 //      I5 i1(2, 3, 4, 5, 6);
 //      I5 i2(3, 4, 5, 6, 7);
-//        
+//
 //      Test("Index operator<= 1", (i0 <= i0), true);
 //      Test("Index operator<= 2", (i0 <= i1), true);
 //      Test("Index operator<= 3", (i1 <= i2), true);
@@ -412,10 +412,11 @@
 //      I3 ub(1, 3, 4);
 //      Test("Index positiveInBounds 4", positiveInBounds(I3(0,0,0), ub), true);
 //      Test("Index positiveInBounds 1", positiveInBounds(I3(0,2,3), ub), true);
-//      Test("Index positiveInBounds 1", positiveInBounds(I3(0,3,3), ub), false);
-//      Test("Index positiveInBounds 2", positiveInBounds(I3(0,2,4), ub), false);
-//      Test("Index positiveInBounds 3", positiveInBounds(I3(4,5,6), ub), false);
-//      Test("Index positiveInBounds 3", positiveInBounds(I3(1,2,3), ub), false);
+//      Test("Index positiveInBounds 1", positiveInBounds(I3(0,3,3), ub),
+//      false); Test("Index positiveInBounds 2", positiveInBounds(I3(0,2,4),
+//      ub), false); Test("Index positiveInBounds 3",
+//      positiveInBounds(I3(4,5,6), ub), false); Test("Index positiveInBounds
+//      3", positiveInBounds(I3(1,2,3), ub), false);
 //    }
 //  }
 //
@@ -440,10 +441,10 @@
 //  void IndexUnitTest::unitTestDynamicIndex()
 //  {
 //    typedef std::vector<UInt> Idx;
-//        
-//    {   
+//
+//    {
 //      Idx i3(5); i3[0] = 5; i3[1] = 4; i3[2] = 3; i3[3] = 2; i3[4] = 1;
-//      setToZero(i3);  
+//      setToZero(i3);
 //      for (UInt i = 0; i < 5; ++i)
 //        Test("Dynamic Index setToZero", i3[i], (UInt)0);
 //    }
@@ -458,7 +459,7 @@
 //    {
 //      Idx i(3), ub(3), j(3), iprev(3);
 //      ub[0] = 3; ub[1] = 2; ub[2] = 5;
-//      setToZero(i);  
+//      setToZero(i);
 //      UInt n = 0;
 //      do {
 //        Test("Dynamic Index ordinal", ordinal(ub, i), n);
@@ -471,7 +472,7 @@
 //      } while (increment(ub, i));
 //    }
 //
-//    { 
+//    {
 //      Idx i3(3); i3[0] = 9; i3[1] = 7; i3[2] = 3;
 //      Test("Dynamic Index product", product(i3), (UInt)9*7*3);
 //    }
@@ -482,7 +483,7 @@
 //      Test("Dynamic Index complement 1", Compare(c, I3(1, 3, 5)), true);
 //    }
 //
-//    { 
+//    {
 //      Idx i3(3); i3[0] = 9; i3[1] = 7; i3[2] = 3;
 //
 //      Idx i3p(3);
@@ -492,8 +493,8 @@
 //      Test("Dynamic Index project 2", i3p[1], (UInt)7);
 //      Test("Dynamic Index project 3", i3p[2], (UInt)3);
 //
-//      Idx i2(2);   
-//      const I2 dims1(0, 2);   
+//      Idx i2(2);
+//      const I2 dims1(0, 2);
 //      project(dims1, i3, i2);
 //      Test("Dynamic Index project 4", i2[0], (UInt)9);
 //      Test("Dynamic Index project 5", i2[1], (UInt)3);
@@ -505,23 +506,24 @@
 //        project(dims2, i4, i1);
 //        Test("Dynamic Index project 6", i4[i], (UInt)3-i);
 //      }
-//    }   
+//    }
 //
-//    {   
+//    {
 //      Idx i1(3); i1[0] = 5; i1[1] = 4; i1[2] = 3;
 //      Idx i2(3); i2[0] = 2; i2[1] = 1; i2[2] = 0;
-//      Idx i3(6);   
+//      Idx i3(6);
 //      i3 = concatenate(i1, i2);
 //      for (int i = 5; i >= 0; --i)
 //        Test("Dynamic Index concatenate", i3[5-i], (UInt)i);
-//    }       
-//       
+//    }
+//
 //    { // permutations
 //      Idx i5(5); i5[0] = 1; i5[1] = 2; i5[2] = 3; i5[3] = 4; i5[4] = 5;
 //      Idx ind(5); ind[0] = 1; ind[1] = 2; ind[2] = 3; ind[3] = 4; ind[4] = 0;
-//      Idx perm(5); 
+//      Idx perm(5);
 //      nupic::permute(ind, i5, perm);
-//      Test("Dynamic Index permutation 1", Compare(perm, I5(2, 3, 4, 5, 1)), true);
+//      Test("Dynamic Index permutation 1", Compare(perm, I5(2, 3, 4, 5, 1)),
+//      true);
 //    }
 //
 //    { // Can it be a key in a std::map?
@@ -547,22 +549,20 @@
 //      std::map<std::vector<UInt>, UInt>::const_iterator it;
 //      UInt i;
 //      for (i = 0, it = m.begin(); i < 9*7*3; ++i, ++it) {
-//        Test("Dynamic Index operator< 8", indexEq(I3(ub, i), it->first), true);
-//        Test("Dynamic Index operator< 9", i, it->second);
+//        Test("Dynamic Index operator< 8", indexEq(I3(ub, i), it->first),
+//        true); Test("Dynamic Index operator< 9", i, it->second);
 //      }
-//    }   
+//    }
 //  }
 //
-  //--------------------------------------------------------------------------------
-  // void IndexUnitTest::RunTests()
-  // {
+//--------------------------------------------------------------------------------
+// void IndexUnitTest::RunTests()
+// {
 
-    //unitTestFixedIndex();
-    //unitTestDynamicIndex();
-  // }
+// unitTestFixedIndex();
+// unitTestDynamicIndex();
+// }
 
-  //--------------------------------------------------------------------------------
-  
+//--------------------------------------------------------------------------------
+
 // } // namespace nupic
-
-
