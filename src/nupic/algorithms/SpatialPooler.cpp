@@ -24,10 +24,7 @@
  * Implementation of SpatialPooler
  */
 
-#include <cstring>
-#include <iostream>
 #include <string>
-#include <vector>
 #include <algorithm>
 
 #include <nupic/algorithms/SpatialPooler.hpp>

@@ -27,9 +27,7 @@
 #ifndef NTA_spatial_pooler_HPP
 #define NTA_spatial_pooler_HPP
 
-#include <cstring>
 #include <iostream>
-#include <string>
 #include <vector>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
