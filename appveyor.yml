@@ -115,6 +115,18 @@ install:
 
   - echo %PATH%
 
+  # Install Boost
+  - cd %NUPIC_CORE%
+  - ps: wget -O boost_1_68_0.zip https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
+  - unzip boost_1_68_0.zip
+  - cd boost_1_68_0
+  - bootstrap.bat gcc
+  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static stage
+  - dir stage\lib
+  - BOOST_ROOT=%NUPIC_CORE%/boost_1_68_0
+  - cd ..
+  
+
   #
   # Install Wheel, and NumPy
   #
@@ -152,19 +164,6 @@ install:
   # Setup MinGW GCC as a valid distutils compiler
   - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
 
-  # Install Boost
-  - cd %NUPIC_CORE%
-  #- wget -O boost_1_68_0.tar.gz https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.tar.gz
-  #- tar xzf boost_1_68_0.tar.gz
-  - ps: wget -O boost_1_68_0.zip https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
-  - unzip boost_1_68_0.zip
-  - cd boost_1_68_0
-  - bootstrap.bat gcc
-  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static stage
-  - dir stage\lib
-  - set BOOST_ROOT=%NUPIC_CORE%/boost_1_68_0
-  - cd ..
-  
   # Display the version and architecture for Python to help with diagnostics
   - "python --version"
   - "where python"
@@ -224,7 +223,7 @@ after_build:
   # Install nupic.bindings first, because py_region_test.exe depends on it.
   - pip install .\%NUPIC_BINDINGS_WHEEL_NAME%
 
-  # Run unit tests (C++)
+  # Run unit_tests (C++)
   - mkdir %ARTIFACTS_DIR%
   - cd %NUPIC_CORE%\build\release\bin
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
