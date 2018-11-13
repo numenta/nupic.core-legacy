@@ -121,11 +121,7 @@ install:
   - unzip boost_1_68_0.zip
   - cd boost_1_68_0
   - bootstrap.bat gcc
-  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static stage
-  - dir stage\lib
-  - BOOST_ROOT=%NUPIC_CORE%/boost_1_68_0
-  - cd ..
-  
+  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static
 
   #
   # Install Wheel, and NumPy
