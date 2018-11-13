@@ -18,6 +18,8 @@ version: 0.3.0.{build}
 branches:
   except:
     - gh-pages
+  only:
+    - never-build-with-this-until-we-have-MSVC
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
