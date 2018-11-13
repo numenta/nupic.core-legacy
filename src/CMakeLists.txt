@@ -80,7 +80,6 @@ string(TOUPPER ${PLATFORM} platform_uppercase)
 
 set(src_compiler_definitions
     ${COMMON_COMPILER_DEFINITIONS}
-    ${CAPNP_COMPILER_DEFINITIONS}
     -DNTA_OS_${platform_uppercase}
     -DNTA_ARCH_${BITNESS}
     -DHAVE_CONFIG_H
@@ -203,13 +202,36 @@ set(src_py_support_files
 )
 
 
+if(${NEEDS_BOOST})
+  message(STATUS "Hints for find_package()")
+  message(STATUS "  BOOST_ROOT  = ${BOOST_ROOT}")
+  if(MSVC OR MINGW)
+    # For windows, library name has lots of fields that must be matched.
+    # info about "--layout versioned" https://stackoverflow.com/questions/32991736/boost-lib-naming-are-missing/52208574#52208574
+    # filenames created by boost: https://www.boost.org/doc/libs/1_68_0/more/getting_started/unix-variants.html#library-naming
+    set(Boost_USE_STATIC_RUNTIME     OFF) 
+    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
+    set(Boost_USE_MULTITHREADED      ON)
+  endif()
+  set(Boost_DEBUG ON)
+  set(Boost_DETAILED_FAILURE_MSG ON)
+  
+  find_package(Boost 1.56.0 REQUIRED COMPONENTS system filesystem)
+  if(${Boost_FOUND})
+	include_directories(${Boost_INCLUDE_DIRS})
+	message(STATUS "  Boost_INCLUDE_DIRS        = ${Boost_INCLUDE_DIRS}")
+	message(STATUS "  Boost_LIBRARIES           = ${Boost_LIBRARIES}")
+  else()
+  	message(FATAL_ERROR "Boost not found.")
+  endif()
+endif()
 message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
 message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
 
 #
 # Common system libraries for shared libraries and executables
 #
-set(src_common_os_libs)
+set(src_common_os_libs ${extra_lib_for_filesystem})
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND src_common_os_libs pthread dl)
@@ -365,6 +387,7 @@ merge_static_libraries(${src_lib_static_nupiccore_combined}
 set(src_common_test_exe_libs
     ${src_lib_static_nupiccore_combined}
     ${PYTHON_LIBRARIES}
+    ${Boost_LIBRARIES}
     ${src_common_os_libs})
 
 message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
@@ -612,7 +635,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
       GENERATED TRUE
       COMPILE_FLAGS ${src_swig_generated_file_compile_flags})
 
-    swig_link_libraries(${MODULE_NAME} ${_SRC_SWIG_LINK_LIBRARIES})
+    swig_link_libraries(${MODULE_NAME} ${Boost_LIBRARIES} ${_SRC_SWIG_LINK_LIBRARIES})
 
     prepend_boilerplate_to_python_proxy_module(${MODULE_NAME})
 
