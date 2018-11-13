@@ -868,7 +868,7 @@ public:
     the input bits that will start off in a connected state.
   */
   vector<Real> initPermanence_(vector<UInt> &potential, Real connectedPct);
-  void clip_(vector<Real> &perm, bool trim);
+  void clip_(vector<Real> &perm, bool trim = false) const;
 
   /**
       This method updates the permanence matrix with a column's new permanence
@@ -901,9 +901,9 @@ public:
   */
   void updatePermanencesForColumn_(vector<Real> &perm, UInt column,
                                    bool raisePerm = true);
-  UInt countConnected_(const vector<Real> &perm);
+  UInt countConnected_(const vector<Real> &perm) const;
   UInt raisePermanencesToThreshold_(vector<Real> &perm,
-                                    vector<UInt> &potential);
+                                    const vector<UInt> &potential) const;
 
   /**
      This function determines each column's overlap with the current

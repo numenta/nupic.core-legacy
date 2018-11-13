@@ -590,11 +590,11 @@ vector<Real> SpatialPooler::initPermanence_(vector<UInt> &potential,
   return perm;
 }
 
-void SpatialPooler::clip_(vector<Real> &perm, bool trim = false) {
-  Real minVal = trim ? synPermTrimThreshold_ : synPermMin_;
+void SpatialPooler::clip_(vector<Real> &perm, bool trim) const {
+  const Real minVal = trim ? synPermTrimThreshold_ : synPermMin_;
   for (auto &elem : perm) {
-    elem = elem > synPermMax_ ? synPermMax_ : elem;
-    elem = elem < minVal ? synPermMin_ : elem;
+    elem = elem > synPermMax_ ? synPermMax_ : elem; //crop upper bound
+    elem = elem < minVal ? synPermMin_ : elem; //crop lower
   }
 }
 
@@ -626,7 +626,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
 }
 
 
-UInt SpatialPooler::countConnected_(const vector<Real> &perm) {
+UInt SpatialPooler::countConnected_(const vector<Real> &perm) const {
   UInt numConnected = 0;
   for (auto &elem : perm) {
     if (elem >= synPermConnected_ - PERMANENCE_EPSILON) {
@@ -637,7 +637,7 @@ UInt SpatialPooler::countConnected_(const vector<Real> &perm) {
 }
 
 UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
-                                                 vector<UInt>& potential)
+                                                 const vector<UInt>& potential) const
 {
   clip_(perm, false);
   UInt numConnected;
