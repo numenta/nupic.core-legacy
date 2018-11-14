@@ -26,6 +26,7 @@
 
 #include <string>
 #include <algorithm>
+#include <iterator> //begin()
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
@@ -479,7 +480,9 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
   }
 
   inhibitColumns_(boostedOverlaps_, activeColumns_);
-  toDense_(activeColumns_, activeArray, numColumns_);
+  const vector<UInt> spars = VectorHelpers::sparseToBinary<UInt>(activeColumns_, numColumns_);
+  copy(begin(spars), end(spars), activeArray);
+
 
   if (learn) {
     adaptSynapses_(inputArray, activeColumns_);
@@ -502,16 +505,6 @@ void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const {
   }
 }
 
-
-void SpatialPooler::toDense_(vector<UInt>& sparse, //TODO replace with VectorHelpers sparseToBinary
-                            UInt dense[],
-                            UInt n)
-{
-  std::fill(dense,dense+n, 0);
-  for (auto & elem : sparse) {
-    dense[elem] = 1;
-  }
-}
 
 void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps,
                                    vector<Real> &boosted) const {

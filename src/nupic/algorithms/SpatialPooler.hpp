@@ -770,7 +770,6 @@ public:
   // Implementation methods. all methods below this line are
   // NOT part of the public API
 
-  void toDense_(vector<UInt> &sparse, UInt dense[], UInt n);
 
   void boostOverlaps_(const vector<UInt> &overlaps, vector<Real> &boostedOverlaps) const;
 
