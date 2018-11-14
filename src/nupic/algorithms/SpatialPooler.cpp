@@ -153,14 +153,14 @@ UInt SpatialPooler::getNumInputs() const { return numInputs_; }
 UInt SpatialPooler::getPotentialRadius() const { return potentialRadius_; }
 
 void SpatialPooler::setPotentialRadius(UInt potentialRadius) {
-  NTA_ASSERT(potentialRadius < numInputs_);
+  NTA_CHECK(potentialRadius < numInputs_);
   potentialRadius_ = potentialRadius;
 }
 
 Real SpatialPooler::getPotentialPct() const { return potentialPct_; }
 
 void SpatialPooler::setPotentialPct(Real potentialPct) {
-  NTA_ASSERT(potentialPct > 0.0 && potentialPct <= 1.0); 
+  NTA_CHECK(potentialPct > 0.0 && potentialPct <= 1.0); 
   potentialPct_ = potentialPct;
 }
 
@@ -175,8 +175,8 @@ Int SpatialPooler::getNumActiveColumnsPerInhArea() const {
 }
 
 void SpatialPooler::setNumActiveColumnsPerInhArea(UInt numActiveColumnsPerInhArea) {
-  NTA_ASSERT(numActiveColumnsPerInhArea > 0);
-  NTA_ASSERT(numActiveColumnsPerInhArea <= numColumns_); //TODO this boundary could be smarter
+  NTA_CHECK(numActiveColumnsPerInhArea > 0 && 
+	     numActiveColumnsPerInhArea <= numColumns_); //TODO this boundary could be smarter
   numActiveColumnsPerInhArea_ = numActiveColumnsPerInhArea;
   localAreaDensity_ = 0; //MUTEX with localAreaDensity
 }
@@ -184,7 +184,7 @@ void SpatialPooler::setNumActiveColumnsPerInhArea(UInt numActiveColumnsPerInhAre
 Real SpatialPooler::getLocalAreaDensity() const { return localAreaDensity_; }
 
 void SpatialPooler::setLocalAreaDensity(Real localAreaDensity) {
-  NTA_ASSERT(localAreaDensity > 0 && localAreaDensity <= 1);
+  NTA_CHECK(localAreaDensity > 0 && localAreaDensity <= 1); 
   localAreaDensity_ = localAreaDensity;
   numActiveColumnsPerInhArea_ = 0; //MUTEX with numActiveColumnsPerInhArea
 }
@@ -247,7 +247,7 @@ Real SpatialPooler::getSynPermTrimThreshold() const {
 }
 
 void SpatialPooler::setSynPermTrimThreshold(Real synPermTrimThreshold) {
-  NTA_ASSERT(synPermTrimThreshold >= synPermMin_ &&
+  NTA_CHECK(synPermTrimThreshold >= synPermMin_ &&
              synPermTrimThreshold <= synPermMax_);
   synPermTrimThreshold_ = synPermTrimThreshold;
 }
@@ -255,7 +255,7 @@ void SpatialPooler::setSynPermTrimThreshold(Real synPermTrimThreshold) {
 Real SpatialPooler::getSynPermActiveInc() const { return synPermActiveInc_; }
 
 void SpatialPooler::setSynPermActiveInc(Real synPermActiveInc) {
-  NTA_ASSERT(synPermActiveInc > 0 && synPermActiveInc < synPermMax_);
+  NTA_CHECK(synPermActiveInc > 0 && synPermActiveInc < synPermMax_);
   synPermActiveInc_ = synPermActiveInc;
 }
 
@@ -264,7 +264,7 @@ Real SpatialPooler::getSynPermInactiveDec() const {
 }
 
 void SpatialPooler::setSynPermInactiveDec(Real synPermInactiveDec) {
-  NTA_ASSERT(synPermInactiveDec >= 0 && synPermInactiveDec <= synPermMax_); 
+  NTA_CHECK(synPermInactiveDec >= 0 && synPermInactiveDec <= synPermMax_); 
   synPermInactiveDec_ = synPermInactiveDec;
 }
 
@@ -273,21 +273,21 @@ Real SpatialPooler::getSynPermBelowStimulusInc() const {
 }
 
 void SpatialPooler::setSynPermBelowStimulusInc(Real synPermBelowStimulusInc) {
-  NTA_ASSERT(synPermBelowStimulusInc > 0 && synPermBelowStimulusInc <= synPermMax_);
+  NTA_CHECK(synPermBelowStimulusInc > 0 && synPermBelowStimulusInc <= synPermMax_);
   synPermBelowStimulusInc_ = synPermBelowStimulusInc;
 }
 
 Real SpatialPooler::getSynPermConnected() const { return synPermConnected_; }
 
 void SpatialPooler::setSynPermConnected(Real synPermConnected) {
-  NTA_ASSERT(synPermConnected > synPermMin_ && synPermConnected <= synPermMax_);
+  NTA_CHECK(synPermConnected > synPermMin_ && synPermConnected <= synPermMax_);
   synPermConnected_ = synPermConnected;
 }
 
 Real SpatialPooler::getSynPermMax() const { return synPermMax_; }
 
 void SpatialPooler::setSynPermMax(Real synPermMax) { 
-	NTA_ASSERT(synPermMax > synPermMin_);
+	NTA_CHECK(synPermMax > synPermMin_);
 	synPermMax_ = synPermMax; 
 }
 
@@ -296,7 +296,7 @@ Real SpatialPooler::getMinPctOverlapDutyCycles() const {
 }
 
 void SpatialPooler::setMinPctOverlapDutyCycles(Real minPctOverlapDutyCycles) {
-  NTA_ASSERT(minPctOverlapDutyCycles > 0 && minPctOverlapDutyCycles <= 1.0);
+  NTA_CHECK(minPctOverlapDutyCycles > 0 && minPctOverlapDutyCycles <= 1.0);
   minPctOverlapDutyCycles_ = minPctOverlapDutyCycles;
 }
 
@@ -342,7 +342,7 @@ void SpatialPooler::getPotential(UInt column, UInt potential[]) const {
 }
 
 void SpatialPooler::setPotential(UInt column, const UInt potential[]) {
-  NTA_ASSERT(column < numColumns_);
+  NTA_CHECK(column < numColumns_);
   potentialPools_.rowFromDense(column, &potential[0], &potential[numInputs_]);
 }
 
@@ -399,12 +399,12 @@ void SpatialPooler::initialize(
     columnDimensions_.push_back(columnDimension);
   }
 
-  NTA_ASSERT(numColumns_ > 0);
-  NTA_ASSERT(numInputs_ > 0);
-  NTA_ASSERT(inputDimensions_.size() == columnDimensions_.size());
-  NTA_ASSERT(numActiveColumnsPerInhArea > 0 ||
+  NTA_CHECK(numColumns_ > 0);
+  NTA_CHECK(numInputs_ > 0);
+  NTA_CHECK(inputDimensions_.size() == columnDimensions_.size());
+  NTA_CHECK(numActiveColumnsPerInhArea > 0 ||
              (localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY));
-  NTA_ASSERT(potentialPct > 0 && potentialPct <= 1);
+  NTA_CHECK(potentialPct > 0 && potentialPct <= 1);
 
   rng_ = Random(seed);
 
@@ -427,7 +427,7 @@ void SpatialPooler::initialize(
   synPermMin_ = 0.0;
   synPermMax_ = 1.0;
   synPermTrimThreshold_ = synPermActiveInc / 2.0;
-  NTA_ASSERT(synPermTrimThreshold_ < synPermConnected_);
+  NTA_CHECK(synPermTrimThreshold_ < synPermConnected_);
   updatePeriod_ = 50;
   initConnectedPct_ = 0.5;
   iterationNum_ = 0;
