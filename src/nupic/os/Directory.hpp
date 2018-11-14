@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2018, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -29,48 +29,7 @@
 
 #include <string>
 #include <nupic/os/Path.hpp>
-
-// Compiler support for <filesystem> in C++17:
-// https://en.cppreference.com/w/cpp/compiler_support
-//    GCC 7.1 has <experimental/filesystem>, link with -libc++experimental or -lstdc++fs
-//    GCC 8 has <filesystem>   link with -lstdc++fs
-//    GCC 9   expected to support <filesystem>
-//    Clang 4 (XCode10) has no support for <filesystem>, partial C++17
-//    Clang 7 has complete <filesystem> support for C++17
-//    Visual Studio 2017 15.7 (v19.14)supports <filesystem> with C++17
-//    MinGW has no support for filesystem.
-//
-// If >= C++17 then
-//   use std::filesystem, if it exists
-//   else, use std::experimental::filesystem if it exists.
-//   else, use boost::filesystem
-// else use boost::filesystem
-// Note: For the boost version link with boost system, filesystem libraries.
-#if __cplusplus >= 201703L || (defined(_MSC_VER) && _MSC_VER >= 1914)
-  // C++17 or greater
-  #if __has_include ( <filesystem> )
-    #include <filesystem>
-    namespace fs = std::filesystem;
-    namespace er = std;
-  #else
-    #if __has_include ( <experimental/filesystem> )
-      #include <experimental/filesystem>
-      namespace fs = std::experimental::filesystem;
-      namespace er = std;
-    #else
-      #include <boost/filesystem.hpp>
-      namespace fs = boost::filesystem;
-      namespace er = boost::system;
-      #define USE_BOOST_FILESYSTEM 1
-    #endif
-  #endif
-#else
-  // C++11
-  #include <boost/filesystem.hpp>
-  namespace fs = boost::filesystem;
-  namespace er = boost::system;
-  #define USE_BOOST_FILESYSTEM 1
-#endif
+#include <nupic/os/ImportFilesystem.hpp>  // defines fs, er, etc.
 
 //----------------------------------------------------------------------
 
@@ -134,8 +93,8 @@ public:
   Entry *next(Entry &e);
 
 private:
-  Iterator() {}
-  Iterator(const Iterator &) {}
+  Iterator() = delete;
+  Iterator(const Iterator &) = delete;
 
 private:
   fs::path p_;

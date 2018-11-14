@@ -74,6 +74,7 @@ bool Path::isSymbolicLink(const std::string &path) {
 
 bool Path::isAbsolute(const std::string &path) {
 #if defined(NTA_OS_WINDOWS)
+  // TODO: it is unclear what is_absolute() returns in Windows so do our own.
   if (path.length() == 2 && isalpha(path[0]) && path[1] == ':')
     return true; //  c:
   if (path.length() >= 3 && path[0] == '\\' && path[1] == '\\' &&
@@ -136,11 +137,12 @@ Size Path::getFileSize(const std::string &path) {
  *      7) If the last filename is dot-dot, remove any trailing directory-separator.
  *      8) If the path is empty, add a dot (normal form of ./ is .)
  *
- * Note: I expected to use fs::system_complete() or fs::canonical()
+ * TODO: I expected to use fs::system_complete() or fs::canonical()
  *       for this but it requires the path to exist.
  *       The function path.lexically_normal() does the job perfectly
  *       but it is not available in boost or <experimental/filesystem>
  *       So for now we roll our own version.
+ *       Replace this when everyone is using C++17 or better.
  */
 std::string Path::normalize(const std::string &path) {
   std::string trimmed_path = StringUtils::trim(path);
@@ -190,6 +192,7 @@ Path::StringVec Path::split(const std::string &path) {
    * Don't use boost::tokenizer because we need to handle the prefix specially.
    * Handling the prefix is messy on windows, but this is the only place we have
    * to do it
+   * TODO: replace this with filesystem iterator if it does the right thing.
    */
   StringVec parts;
   std::string::size_type curpos = 0;
@@ -362,28 +365,13 @@ void Path::setPermissions(const std::string &path, bool userRead,
                           bool otherRead, bool otherWrite) {
 
   if (Path::isDirectory(path)) {
-#ifdef USE_BOOST_FILESYSTEM
-    fs::perms prms = (userRead ? fs::perms::owner_exe | fs::perms::owner_read
-                               : fs::perms::no_perms) |
-                     (userWrite ? fs::perms::owner_all : fs::perms::no_perms) |
-                     (groupRead ? fs::perms::group_exe | fs::perms::group_read
-                                : fs::perms::no_perms) |
-                     (groupWrite ? fs::perms::group_all : fs::perms::no_perms) |
-                     (otherRead ? fs::perms::others_exe | fs::perms::others_read
-                                : fs::perms::no_perms) |
-                     (otherWrite ? fs::perms::others_all : fs::perms::no_perms);
-#else
     fs::perms prms =
-        (userRead ? fs::perms::owner_exec | fs::perms::owner_read
-                  : fs::perms::none) |
-        (userWrite ? fs::perms::owner_all : fs::perms::none) |
-        (groupRead ? fs::perms::group_exec | fs::perms::group_read
-                   : fs::perms::none) |
-        (groupWrite ? fs::perms::group_all : fs::perms::none) |
-        (otherRead ? fs::perms::others_exec | fs::perms::others_read
-                   : fs::perms::none) |
-        (otherWrite ? fs::perms::others_all : fs::perms::none);
-#endif
+	    (userRead ? fs::perms::owner_exe | fs::perms::owner_read : FS_PermNone) |
+        (userWrite ? fs::perms::owner_all : FS_PermNone) |
+        (groupRead ? FS_OthersExec | fs::perms::group_read : FS_PermNone) |
+        (groupWrite ? fs::perms::group_all : FS_PermNone) |
+        (otherRead ? FS_OthersExec | fs::perms::others_read  : FS_PermNone) |
+        (otherWrite ? fs::perms::others_all : FS_PermNone);
     fs::permissions(path, prms);
 
     Directory::Iterator iter(path);
@@ -398,21 +386,13 @@ void Path::setPermissions(const std::string &path, bool userRead,
 					 otherWrite);
     }
   } else {
-#ifdef USE_BOOST_FILESYSTEM
-    fs::perms prms = (userRead ? fs::perms::owner_read : fs::perms::no_perms) |
-                     (userWrite ? fs::perms::owner_write : fs::perms::no_perms) |
-                     (groupRead ? fs::perms::group_read : fs::perms::no_perms) |
-                     (groupWrite ? fs::perms::group_write : fs::perms::no_perms) |
-                     (otherRead ? fs::perms::others_read : fs::perms::no_perms) |
-                     (otherWrite ? fs::perms::others_write : fs::perms::no_perms);
-#else
-    fs::perms prms = (userRead ? fs::perms::owner_read : fs::perms::none) |
-                     (userWrite ? fs::perms::owner_write : fs::perms::none) |
-                     (groupRead ? fs::perms::group_read : fs::perms::none) |
-                     (groupWrite ? fs::perms::group_write : fs::perms::none) |
-                     (otherRead ? fs::perms::others_read : fs::perms::none) |
-                     (otherWrite ? fs::perms::others_write : fs::perms::none);
-#endif
+    fs::perms prms =
+	    (userRead ? fs::perms::owner_read : FS_PermNone) |
+        (userWrite ? fs::perms::owner_write : FS_PermNone) |
+        (groupRead ? fs::perms::group_read : FS_PermNone) |
+        (groupWrite ? fs::perms::group_write : FS_PermNone) |
+        (otherRead ? fs::perms::others_read : FS_PermNone) |
+        (otherWrite ? fs::perms::others_write : FS_PermNone);
     fs::permissions(path, prms);
   }
 }

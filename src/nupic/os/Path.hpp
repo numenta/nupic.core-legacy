@@ -262,7 +262,7 @@ public:
   bool exists() const           { return exists(path_); }
 
 private:
-  Path();	// disallow empty constructor.
+  Path() = delete;	// disallow empty constructor.
 
 private:
   std::string path_;

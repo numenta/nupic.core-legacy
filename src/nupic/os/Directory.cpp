@@ -80,12 +80,7 @@ void copyTree(const std::string &source, const std::string &destination) {
     // Note: this does not copy links.
     std::string to = destination + Path::sep + entry.filename;
     if (entry.type == Entry::FILE) {
-#ifdef USE_BOOST_FILESYSTEM
-      fs::copy_file(entry.path, to, fs::copy_option::overwrite_if_exists, ec);
-#else
-      fs::copy_file(entry.path, to, fs::copy_options::overwrite_existing, ec);
-#endif
-
+      fs::copy_file(entry.path, to, FS_Overwrite, ec);
     } else if (entry.type == Entry::DIRECTORY) {
       copyTree(entry.path, to);
     }
@@ -130,13 +125,8 @@ void create(const std::string &path, bool otherAccess, bool recursive) {
   }
   // Set permissions on directory.
 #if !defined(NTA_OS_WINDOWS)
-#ifdef USE_BOOST_FILESYSTEM
   fs::perms prms(fs::perms::owner_all
-    | (otherAccess ? (fs::perms::group_all | fs::perms::others_read | fs::perms::others_exe) : fs::perms::no_perms));
-#else
-  fs::perms prms(fs::perms::owner_all
-    | (otherAccess ? (fs::perms::group_all | fs::perms::others_read | fs::perms::others_exec) : fs::perms::none));
-#endif
+    | (otherAccess ? (fs::perms::group_all | fs::perms::others_read | FS_OthersExec) : FS_PermNone));
   fs::permissions(p, prms);
 #endif
 }
