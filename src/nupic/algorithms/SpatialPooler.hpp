@@ -69,7 +69,7 @@ public:
   SpatialPooler();
   SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
                 UInt potentialRadius = 16, Real potentialPct = 0.5,
-                bool globalInhibition = true, Real localAreaDensity = -1.0,
+                bool globalInhibition = true, Real localAreaDensity = 0.0,
                 UInt numActiveColumnsPerInhArea = 10,
                 UInt stimulusThreshold = 0, Real synPermInactiveDec = 0.008,
                 Real synPermActiveInc = 0.05, Real synPermConnected = 0.1,
@@ -129,12 +129,12 @@ public:
         pools of all columns). The inhibition logic will insure that at
         most N columns remain ON within a local inhibition area, where
         N = localAreaDensity * (total number of columns in inhibition
-        area). If localAreaDensity is set to a negative value output
+        area). If localAreaDensity is set to 0, output
         sparsity will be determined by the numActivePerInhArea.
 
   @param numActiveColumnsPerInhArea An alternate way to control the sparsity of
         active columns. If numActivePerInhArea is specified then
-        localAreaDensity must be less than 0, and vice versa. When
+        localAreaDensity must be == 0, and vice versa. When
         numActivePerInhArea > 0, the inhibition logic will insure that
         at most 'numActivePerInhArea' columns remain ON within a local
         inhibition area (the size of which is set by the internally
@@ -203,7 +203,7 @@ public:
   virtual void
   initialize(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
              UInt potentialRadius = 16, Real potentialPct = 0.5,
-             bool globalInhibition = true, Real localAreaDensity = -1.0,
+             bool globalInhibition = true, Real localAreaDensity = 0.0,
              UInt numActiveColumnsPerInhArea = 10, UInt stimulusThreshold = 0,
              Real synPermInactiveDec = 0.01, Real synPermActiveInc = 0.1,
              Real synPermConnected = 0.1, Real minPctOverlapDutyCycles = 0.001,
@@ -1228,6 +1228,7 @@ protected:
   Real initConnectedPct_;
   bool globalInhibition_;
   Int numActiveColumnsPerInhArea_;
+  const Real MAX_LOCALAREADENSITY = 0.5f; //require atleast 2 areas
   Real localAreaDensity_;
   UInt stimulusThreshold_;
   UInt inhibitionRadius_;

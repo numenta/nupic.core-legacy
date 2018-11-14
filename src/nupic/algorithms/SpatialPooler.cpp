@@ -178,7 +178,7 @@ void SpatialPooler::setNumActiveColumnsPerInhArea(UInt numActiveColumnsPerInhAre
   NTA_ASSERT(numActiveColumnsPerInhArea > 0);
   NTA_ASSERT(numActiveColumnsPerInhArea <= numColumns_); //TODO this boundary could be smarter
   numActiveColumnsPerInhArea_ = numActiveColumnsPerInhArea;
-  localAreaDensity_ = 0;
+  localAreaDensity_ = 0; //MUTEX with localAreaDensity
 }
 
 Real SpatialPooler::getLocalAreaDensity() const { return localAreaDensity_; }
@@ -186,7 +186,7 @@ Real SpatialPooler::getLocalAreaDensity() const { return localAreaDensity_; }
 void SpatialPooler::setLocalAreaDensity(Real localAreaDensity) {
   NTA_ASSERT(localAreaDensity > 0 && localAreaDensity <= 1);
   localAreaDensity_ = localAreaDensity;
-  numActiveColumnsPerInhArea_ = 0;
+  numActiveColumnsPerInhArea_ = 0; //MUTEX with numActiveColumnsPerInhArea
 }
 
 UInt SpatialPooler::getStimulusThreshold() const { return stimulusThreshold_; }
@@ -403,7 +403,7 @@ void SpatialPooler::initialize(
   NTA_ASSERT(numInputs_ > 0);
   NTA_ASSERT(inputDimensions_.size() == columnDimensions_.size());
   NTA_ASSERT(numActiveColumnsPerInhArea > 0 ||
-             (localAreaDensity > 0 && localAreaDensity <= 0.5));
+             (localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY));
   NTA_ASSERT(potentialPct > 0 && potentialPct <= 1);
 
   rng_ = Random(seed);
@@ -889,15 +889,15 @@ void SpatialPooler::updateBoostFactorsGlobal_() {
     UInt inhibitionArea =
         pow((Real)(2 * inhibitionRadius_ + 1), (Real)columnDimensions_.size());
     inhibitionArea = min(inhibitionArea, numColumns_);
+    NTA_ASSERT(inhibitionArea > 0);
     targetDensity = ((Real)numActiveColumnsPerInhArea_) / inhibitionArea;
-    targetDensity = min(targetDensity, (Real)0.5); //FIXME where is the 0.5 from? 
+    targetDensity = min(targetDensity, (Real)MAX_LOCALAREADENSITY);
   } else {
     targetDensity = localAreaDensity_;
   }
 
   for (UInt i = 0; i < numColumns_; ++i) {
-    boostFactors_[i] =
-        exp((targetDensity - activeDutyCycles_[i]) * boostStrength_);
+    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i]) * boostStrength_);
   }
 }
 
@@ -961,7 +961,7 @@ void SpatialPooler::inhibitColumns_(const vector<Real> &overlaps,
         pow((Real)(2 * inhibitionRadius_ + 1), (Real)columnDimensions_.size());
     inhibitionArea = min(inhibitionArea, numColumns_);
     density = ((Real)numActiveColumnsPerInhArea_) / inhibitionArea;
-    density = min(density, (Real)0.5);
+    density = min(density, (Real)MAX_LOCALAREADENSITY);
   }
 
   if (globalInhibition_ ||
