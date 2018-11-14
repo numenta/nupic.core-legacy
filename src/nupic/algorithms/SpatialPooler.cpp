@@ -825,8 +825,6 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 
 void SpatialPooler::adaptSynapses_(const UInt inputVector[], //TODO make sparse
                                    const vector<UInt> &activeColumns) {
-  NTA_ASSERT(activeColumns.size() > 0);
-
   vector<Real> permChanges(numInputs_, -1 * synPermInactiveDec_);
   for (UInt i = 0; i < numInputs_; i++) {
     if (inputVector[i] > 0) {

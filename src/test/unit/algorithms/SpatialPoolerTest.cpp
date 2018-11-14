@@ -1221,6 +1221,7 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   setup(sp, 10, 10);
   sp.setGlobalInhibition(true);
   sp.setLocalAreaDensity(0.02);
+
   vector<UInt> input(sp.getNumInputs(), 1);
   vector<UInt> out1(sp.getNumColumns(), 0);
   EXPECT_THROW(sp.compute(input.data(), false, out1.data()),
@@ -1566,8 +1567,8 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
   Real synPermConnected = 0.2;
   Real synPermMax = 1.0;
 
-  sp.setSynPermConnected(synPermConnected);
   sp.setSynPermMax(synPermMax);
+  sp.setSynPermConnected(synPermConnected);
 
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermConnected_();
