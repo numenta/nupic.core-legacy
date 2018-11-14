@@ -69,6 +69,7 @@ public:
 
   static bool startsWith(const std::string &s, const std::string &prefix);
   static bool endsWith(const std::string &s, const std::string &ending);
+  static std::string trim(const std::string &s);
 
   //--------------------------------------------------------------------------------
   /**
@@ -192,6 +193,8 @@ public:
    */
   static boost::shared_array<Byte> toByteArray(const std::string &s,
                                                Size bitCount);
+  static std::string unicodeToUtf8(const std::wstring& wstr);
+  static std::wstring utf8ToUnicode(const std::string& str);
 };
 } // namespace nupic
 

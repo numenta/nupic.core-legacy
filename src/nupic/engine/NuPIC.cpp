@@ -24,7 +24,6 @@
 
 // TODO -- thread safety
 
-#include <apr-1/apr_general.h>
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/utils/Log.hpp>
@@ -40,12 +39,6 @@ void NuPIC::init() {
 
   // internal consistency check. Nonzero should be impossible.
   NTA_CHECK(networks_.size() == 0) << "Internal error in NuPIC::init()";
-
-  // Initialize APR as a library client
-  // TODO: move to OS::initialize()?
-  int result = apr_initialize();
-  if (result)
-    NTA_THROW << "Error initializing APR (code " << result << ")";
 
   initialized_ = true;
 }

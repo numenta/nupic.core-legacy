@@ -24,9 +24,6 @@
  * Generic OS Implementations for the OS class
  */
 
-#include <apr-1/apr_errno.h>
-#include <apr-1/apr_network_io.h>
-#include <apr-1/apr_time.h>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/os/OS.hpp>
@@ -39,9 +36,13 @@ extern "C" {
 #include <mach/task.h>
 }
 #elif defined(NTA_OS_WINDOWS)
-// We only run on XP/2003 and above
+//We only run on Win 7 and above
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
+#ifndef PSAPI_VERSION
+#define PSAPI_VERSION 2  // so that Win 7 can use the new function names K32QueryWorkingSet
+#endif
+#include <Windows.h>
 #include <psapi.h>
 #endif
 
@@ -86,7 +87,7 @@ void OS::getProcessMemoryUsage(size_t &realMem, size_t &virtualMem) {
       NTA_THROW << "getProcessMemoryUsage -- unable to get memory usage";
     }
 
-    pageCount = (pWSI->NumberOfEntries + 1);
+    pageCount = static_cast<unsigned int>((pWSI->NumberOfEntries + 1));
     pageCount += pageCount >> 2;
   }
 
@@ -96,14 +97,14 @@ void OS::getProcessMemoryUsage(size_t &realMem, size_t &virtualMem) {
     NTA_THROW << "getProcessMemoryUsage -- unable to get memory usage";
   }
 
-  unsigned int actualPages;
+  UInt64 actualPages;
 
   pWSI->NumberOfEntries > pageCount ? (actualPages = pageCount)
                                     : (actualPages = pWSI->NumberOfEntries);
 
   unsigned int privateWorkingSet = 0;
 
-  for (unsigned int i = 0; i < actualPages; i++) {
+  for (auto i = 0; i < actualPages; i++) {
     if (!pWSI->WorkingSetInfo[i].Shared) {
       privateWorkingSet += si.dwPageSize;
     }
@@ -119,8 +120,9 @@ void OS::getProcessMemoryUsage(size_t &realMem, size_t &virtualMem) {
   pmcEx.cb = sizeof(PROCESS_MEMORY_COUNTERS_EX);
 
   rc = ::GetProcessMemoryInfo(
-      hProcess, reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&pmcEx),
-      sizeof(PROCESS_MEMORY_COUNTERS_EX));
+           hProcess,
+           reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&pmcEx),
+           sizeof(PROCESS_MEMORY_COUNTERS_EX));
 
   if (!rc) {
     NTA_THROW << "getProcessMemoryUsage -- unable to get memory usage";
