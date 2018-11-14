@@ -1092,14 +1092,9 @@ UInt SpatialPooler::persistentSize() const {
 }
 
 
-template <typename FloatType>
-static void saveFloat_(ostream &outStream, FloatType v) { //FIXME remove, use normal << f << " "
-  outStream << std::setprecision(std::numeric_limits<FloatType>::max_digits10)
-            << v << " ";
-}
-
 void SpatialPooler::save(ostream &outStream) const {
   // Write a starting marker and version.
+  outStream << std::setprecision(std::numeric_limits<Real>::max_digits10);
   outStream << "SpatialPooler" << endl;
   outStream << version_ << endl;
 
@@ -1107,29 +1102,22 @@ void SpatialPooler::save(ostream &outStream) const {
   outStream << numInputs_ << " " << numColumns_ << " " << potentialRadius_
             << " ";
 
-  saveFloat_(outStream, potentialPct_);
-  saveFloat_(outStream, initConnectedPct_);
-
-  outStream << globalInhibition_ << " " << numActiveColumnsPerInhArea_ << " ";
-
-  saveFloat_(outStream, localAreaDensity_);
+  outStream << potentialPct_ << " ";
+  outStream << initConnectedPct_ << " " << globalInhibition_ << " " 
+	  << numActiveColumnsPerInhArea_ << " " << localAreaDensity_ << " ";
 
   outStream << stimulusThreshold_ << " " << inhibitionRadius_ << " "
             << dutyCyclePeriod_ << " ";
 
-  saveFloat_(outStream, boostStrength_);
+  outStream << boostStrength_ << " ";
 
   outStream << iterationNum_ << " " << iterationLearnNum_ << " " << spVerbosity_
             << " " << updatePeriod_ << " ";
 
-  saveFloat_(outStream, synPermMin_);
-  saveFloat_(outStream, synPermMax_);
-  saveFloat_(outStream, synPermTrimThreshold_);
-  saveFloat_(outStream, synPermInactiveDec_);
-  saveFloat_(outStream, synPermActiveInc_);
-  saveFloat_(outStream, synPermBelowStimulusInc_);
-  saveFloat_(outStream, synPermConnected_);
-  saveFloat_(outStream, minPctOverlapDutyCycles_);
+  outStream << synPermMin_ << " " << synPermMax_ << " " 
+    << synPermTrimThreshold_ << " " << synPermInactiveDec_ << " "
+    << synPermActiveInc_ << " " << synPermBelowStimulusInc_ << " "
+    << synPermConnected_ << " " << minPctOverlapDutyCycles_ << " ";
 
   outStream << wrapAround_ << " " << endl;
 
@@ -1147,22 +1135,22 @@ void SpatialPooler::save(ostream &outStream) const {
   outStream << endl;
 
   for (UInt i = 0; i < numColumns_; i++) {
-    saveFloat_(outStream, boostFactors_[i]);
+    outStream << boostFactors_[i] << " ";
   }
   outStream << endl;
 
   for (UInt i = 0; i < numColumns_; i++) {
-    saveFloat_(outStream, overlapDutyCycles_[i]);
+    outStream << overlapDutyCycles_[i] << " ";
   }
   outStream << endl;
 
   for (UInt i = 0; i < numColumns_; i++) {
-    saveFloat_(outStream, activeDutyCycles_[i]);
+    outStream <<  activeDutyCycles_[i] << " ";
   }
   outStream << endl;
 
   for (UInt i = 0; i < numColumns_; i++) {
-    saveFloat_(outStream, minOverlapDutyCycles_[i]);
+    outStream << minOverlapDutyCycles_[i] << " ";
   }
   outStream << endl;
 
@@ -1190,8 +1178,7 @@ void SpatialPooler::save(ostream &outStream) const {
     outStream << perm.size() << endl;
     permanences_.getRowToSparse(i, perm.begin());
     for (auto &elem : perm) {
-      outStream << elem.first << " ";
-      saveFloat_(outStream, elem.second);
+      outStream << elem.first << " " << elem.second << " ";
     }
     outStream << endl;
   }
