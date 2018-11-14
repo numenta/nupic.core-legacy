@@ -40,6 +40,11 @@ namespace nupic {
 namespace algorithms {
 namespace spatial_pooler {
 
+// force small data types
+using Real = Real32;
+using UInt = UInt32;
+using Int = Int32; 
+
 /**
  * CLA spatial pooler implementation in C++.
  *
