@@ -1220,12 +1220,12 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SpatialPooler sp;
   setup(sp, 10, 10);
   sp.setGlobalInhibition(true);
-  sp.setLocalAreaDensity(0.02);
+  EXPECT_THROW(sp.setLocalAreaDensity(0.02), std::exception);
+  EXPECT_NO_THROW(sp.setLocalAreaDensity(0.1));
 
-  vector<UInt> input(sp.getNumInputs(), 1);
+  const vector<UInt> input(sp.getNumInputs(), 1);
   vector<UInt> out1(sp.getNumColumns(), 0);
-  EXPECT_THROW(sp.compute(input.data(), false, out1.data()),
-               nupic::LoggingException);
+  EXPECT_NO_THROW(sp.compute(input.data(), false, out1.data()));
 }
 
 
@@ -1580,7 +1580,7 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
 TEST(SpatialPoolerTest, testInitPermNonConnected) {
   SpatialPooler sp;
   Real synPermConnected = 0.2;
-  sp.setSynPermConnected(synPermConnected);
+  EXPECT_NO_THROW(sp.setSynPermConnected(synPermConnected))  << sp.getSynPermMax();
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermNonConnected_();
     ASSERT_GE(permVal, 0);
