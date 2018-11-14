@@ -73,14 +73,14 @@ class SpatialPooler : public Serializable
 public:
   SpatialPooler();
   SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
-                UInt potentialRadius = 16, Real potentialPct = 0.5,
-                bool globalInhibition = true, Real localAreaDensity = 0.0,
-                UInt numActiveColumnsPerInhArea = 10,
-                UInt stimulusThreshold = 0, Real synPermInactiveDec = 0.008,
-                Real synPermActiveInc = 0.05, Real synPermConnected = 0.1,
-                Real minPctOverlapDutyCycles = 0.001,
-                UInt dutyCyclePeriod = 1000, Real boostStrength = 0.0,
-                Int seed = 1, UInt spVerbosity = 0, bool wrapAround = true);
+                UInt potentialRadius = 16u, Real potentialPct = 0.5f,
+                bool globalInhibition = true, Real localAreaDensity = 0.0f,
+                UInt numActiveColumnsPerInhArea = 10u,
+                UInt stimulusThreshold = 0u, Real synPermInactiveDec = 0.008f,
+                Real synPermActiveInc = 0.05f, Real synPermConnected = 0.1f,
+                Real minPctOverlapDutyCycles = 0.001f,
+                UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
+                Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true);
 
   virtual ~SpatialPooler() {}
 
@@ -207,13 +207,13 @@ public:
    */
   virtual void
   initialize(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
-             UInt potentialRadius = 16, Real potentialPct = 0.5,
-             bool globalInhibition = true, Real localAreaDensity = 0.0,
-             UInt numActiveColumnsPerInhArea = 10, UInt stimulusThreshold = 0,
-             Real synPermInactiveDec = 0.01, Real synPermActiveInc = 0.1,
-             Real synPermConnected = 0.1, Real minPctOverlapDutyCycles = 0.001,
-             UInt dutyCyclePeriod = 1000, Real boostStrength = 0.0,
-             Int seed = 1, UInt spVerbosity = 0, bool wrapAround = true);
+             UInt potentialRadius = 16u, Real potentialPct = 0.5f,
+             bool globalInhibition = true, Real localAreaDensity = 0.0f,
+             UInt numActiveColumnsPerInhArea = 10u, UInt stimulusThreshold = 0u,
+             Real synPermInactiveDec = 0.01f, Real synPermActiveInc = 0.1f,
+             Real synPermConnected = 0.1f, Real minPctOverlapDutyCycles = 0.001f,
+             UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
+             Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true);
 
   /**
   This is the main workshorse method of the SpatialPooler class. This
@@ -1245,8 +1245,8 @@ protected:
   bool wrapAround_;
   UInt updatePeriod_;
 
-  Real synPermMin_ = 0.0;
-  Real synPermMax_ = 1.0; //TODO set in initialize(), somehow OSX does not set that?!
+  Real synPermMin_ = 0.0f;
+  Real synPermMax_ = 1.0f; //TODO set in initialize(), somehow OSX does not set that?!
   Real synPermTrimThreshold_;
   Real synPermInactiveDec_;
   Real synPermActiveInc_;
