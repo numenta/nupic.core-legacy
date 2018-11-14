@@ -1220,11 +1220,13 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SpatialPooler sp;
   setup(sp, 10, 10);
   sp.setGlobalInhibition(true);
-  EXPECT_THROW(sp.setLocalAreaDensity(0.02), std::exception);
-  EXPECT_NO_THROW(sp.setLocalAreaDensity(0.1));
-
   const vector<UInt> input(sp.getNumInputs(), 1);
   vector<UInt> out1(sp.getNumColumns(), 0);
+  //throws
+  sp.setLocalAreaDensity(0.02);
+  EXPECT_THROW(sp.compute(input.data(), false, out1.data()), nupic::LoggingException);
+  //good parameter
+  sp.setLocalAreaDensity(0.1);
   EXPECT_NO_THROW(sp.compute(input.data(), false, out1.data()));
 }
 
