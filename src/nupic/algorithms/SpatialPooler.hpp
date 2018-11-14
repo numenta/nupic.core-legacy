@@ -241,7 +241,7 @@ public:
         multi-dimensional, activeVector represents a flattened array
         of outputs.
    */
-  virtual void compute(UInt inputVector[], bool learn, UInt activeVector[]);
+  virtual void compute(const UInt inputVector[], bool learn, UInt activeVector[]);
 
   /**
    Removes the set of columns who have never been active from the set
@@ -656,7 +656,7 @@ public:
   @param overlapDutyCycles real array of the overlap duty cycles for all
   columns.
   */
-  void setOverlapDutyCycles(Real overlapDutyCycles[]);
+  void setOverlapDutyCycles(const Real overlapDutyCycles[]);
 
   /**
   Returns the activity duty cycles for all columns. 'activeDutyCycles'
@@ -673,7 +673,7 @@ public:
   @param activeDutyCycles real array of the activity duty cycles for all
   columns.
   */
-  void setActiveDutyCycles(Real activeDutyCycles[]);
+  void setActiveDutyCycles(const Real activeDutyCycles[]);
 
   /**
   Returns the minimum overlap duty cycles for all columns.
@@ -689,7 +689,7 @@ public:
   @param minOverlapDutyCycles real array of the minimum overlap duty cycles for
   all columns.
   */
-  void setMinOverlapDutyCycles(Real minOverlapDutyCycles[]);
+  void setMinOverlapDutyCycles(const Real minOverlapDutyCycles[]);
 
   /**
   Returns the potential mapping for a given column. 'potential' size
@@ -708,7 +708,7 @@ public:
 
   @param potential integer array of potential mapping for the selected column.
   */
-  void setPotential(UInt column, UInt potential[]);
+  void setPotential(UInt column, const UInt potential[]);
 
   /**
   Returns the permanence values for a given column. 'permanence' size
@@ -728,7 +728,7 @@ public:
 
   @param permanence real array of permanence values for the selected column.
   */
-  void setPermanence(UInt column, Real permanence[]);
+  void setPermanence(UInt column, const Real permanence[]);
 
   /**
   Returns the connected synapses for a given column.
@@ -772,7 +772,7 @@ public:
 
   void toDense_(vector<UInt> &sparse, UInt dense[], UInt n);
 
-  void boostOverlaps_(vector<UInt> &overlaps, vector<Real> &boostedOverlaps);
+  void boostOverlaps_(const vector<UInt> &overlaps, vector<Real> &boostedOverlaps) const;
 
   /**
     Maps a column to its respective input index, keeping to the topology of
@@ -794,7 +794,7 @@ public:
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
   */
-  UInt mapColumn_(UInt column);
+  UInt mapColumn_(UInt column) const;
 
   /**
     Maps a column to its input bits.
@@ -865,7 +865,8 @@ public:
     @param connectedPct   A real value between 0 or 1 specifying the percent of
     the input bits that will start off in a connected state.
   */
-  vector<Real> initPermanence_(vector<UInt> &potential, Real connectedPct);
+  vector<Real> initPermanence_(const vector<UInt> &potential, Real connectedPct);
+
   void clip_(vector<Real> &perm, bool trim = false) const;
 
   /**
@@ -923,8 +924,8 @@ public:
      a "connected state" (connected synapses) that are connected to
      input bits which are turned on.
   */
-  void calculateOverlap_(UInt inputVector[], vector<UInt> &overlap);
-  void calculateOverlapPct_(vector<UInt> &overlaps, vector<Real> &overlapPct);
+  void calculateOverlap_(const UInt inputVector[], vector<UInt> &overlap) const;
+  void calculateOverlapPct_(const vector<UInt> &overlaps, vector<Real> &overlapPct) const;
 
   /**
       Performs inhibition. This method calculates the necessary values needed to
@@ -941,7 +942,7 @@ public:
      columns.
   */
   void inhibitColumns_(const vector<Real> &overlaps,
-                       vector<UInt> &activeColumns);
+                       vector<UInt> &activeColumns) const;
 
   /**
      Perform global inhibition.
@@ -965,7 +966,7 @@ public:
      an int array containing the indices of the active columns.
   */
   void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
-                             vector<UInt> &activeColumns);
+                             vector<UInt> &activeColumns) const;
 
   /**
      Performs local inhibition.
@@ -994,7 +995,7 @@ public:
      an int array containing the indices of the active columns.
   */
   void inhibitColumnsLocal_(const vector<Real> &overlaps, Real density,
-                            vector<UInt> &activeColumns);
+                            vector<UInt> &activeColumns) const;
 
   /**
       The primary method in charge of learning.
@@ -1012,9 +1013,8 @@ public:
 
       @param  activeColumns  an int vector containing the indices of the columns
      that survived inhibition.
->>>>>>> master_community
-            */
-  void adaptSynapses_(UInt inputVector[], vector<UInt> &activeColumns);
+   */
+  void adaptSynapses_(const UInt inputVector[], const vector<UInt> &activeColumns);
 
   /**
       This method increases the permanence values of synapses of columns whose
@@ -1045,7 +1045,7 @@ public:
 
       @returns real number of the average number of columns per input.
   */
-  Real avgColumnsPerInput_();
+  Real avgColumnsPerInput_() const;
 
   /**
       The range of connected synapses for column. This is used to
@@ -1055,7 +1055,7 @@ public:
       @param column An int number identifying a column in the permanence,
      potential and connectivity matrices.
   */
-  Real avgConnectedSpanForColumn1D_(UInt column);
+  Real avgConnectedSpanForColumn1D_(UInt column) const;
 
   /**
       The range of connectedSynapses per column, averaged for each dimension.
@@ -1065,7 +1065,7 @@ public:
       @param column An int number identifying a column in the permanence,
      potential and connectivity matrices.
   */
-  Real avgConnectedSpanForColumn2D_(UInt column);
+  Real avgConnectedSpanForColumn2D_(UInt column) const;
 
   /**
       The range of connectedSynapses per column, averaged for each dimension.
@@ -1075,7 +1075,7 @@ public:
       @param column An int number identifying a column in the permanence,
      potential and connectivity matrices.
   */
-  Real avgConnectedSpanForColumnND_(UInt column);
+  Real avgConnectedSpanForColumnND_(UInt column) const;
 
   /**
       Updates the minimum duty cycles defining normal activity for a column. A
@@ -1126,7 +1126,7 @@ public:
       @param period         A int number indicating the period of the duty cycle
   */
   static void updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                      vector<UInt> &newValues, UInt period);
+                                      const vector<UInt> &newValues, UInt period);
 
   /**
   Updates the duty cycles for each column. The OVERLAP duty cycle is a moving
@@ -1142,7 +1142,7 @@ public:
   @param activeArray  An int array containing the indices of the active columns,
                   the sprase set of columns which survived inhibition
   */
-  void updateDutyCycles_(vector<UInt> &overlaps, UInt activeArray[]);
+  void updateDutyCycles_(const vector<UInt> &overlaps, const UInt activeArray[]);
 
   /**
     Update the boost factors for all columns. The boost factors are used to
@@ -1204,14 +1204,7 @@ public:
   @returns boolean value indicating whether enough rounds have passed to warrant
   updates of duty cycles
   */
-  bool isUpdateRound_();
-
-  /**
-  Initialize the random seed
-
-  @param seed 64bit int of random seed
-  */
-  void seed_(UInt64 seed);
+  bool isUpdateRound_() const;
 
   //-------------------------------------------------------------------
   // Debugging helpers
