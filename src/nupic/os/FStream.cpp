@@ -32,6 +32,8 @@
  * 'w' version of ifstream or ofstream
  */
 
+ // TODO: get rid of this class.
+
 #include "nupic/os/FStream.hpp"
 #include "nupic/os/Directory.hpp"
 #include "nupic/os/Env.hpp"
@@ -39,6 +41,8 @@
 #include "nupic/utils/Log.hpp"
 #include <cstdlib>
 #include <fstream>
+#include <cstring>
+#include <errno.h>
 #if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -83,22 +87,15 @@ void IFStream::diagnostics(const char *filename) {
 /// open the given file by name
 /////////////////////////////////////////////////////////////////////////
 void IFStream::open(const char *filename, ios_base::openmode mode) {
-#if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
-  std::wstring pathW = Path::utf8ToUnicode(filename);
-  std::ifstream::open(pathW.c_str(), mode);
-#else
   std::ifstream::open(filename, mode);
-#endif
 
   // Check for error
   if (!is_open()) {
     IFStream::diagnostics(filename);
 // On unix, running nfs, we occasionally get errors opening a file on an nfs
 // drive and it seems that simply doing a retry makes it successful
-#if !defined(NTA_OS_WINDOWS)
     std::ifstream::clear();
     std::ifstream::open(filename, mode);
-#endif
   }
 }
 
@@ -106,21 +103,14 @@ void IFStream::open(const char *filename, ios_base::openmode mode) {
 /// open the given file by name
 /////////////////////////////////////////////////////////////////////////
 void OFStream::open(const char *filename, ios_base::openmode mode) {
-#if defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU)
-  std::wstring pathW = Path::utf8ToUnicode(filename);
-  std::ofstream::open(pathW.c_str(), mode);
-#else
   std::ofstream::open(filename, mode);
-#endif
 
   // Check for error
   if (!is_open()) {
     IFStream::diagnostics(filename);
 // On unix, running nfs, we occasionally get errors opening a file on an nfs
 // drive and it seems that simply doing a retry makes it successful
-#if !(defined(NTA_OS_WINDOWS) && !defined(NTA_COMPILER_GNU))
     std::ofstream::clear();
     std::ofstream::open(filename, mode);
-#endif
   }
 }
