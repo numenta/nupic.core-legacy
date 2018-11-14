@@ -653,16 +653,13 @@ UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
                                                  const vector<UInt>& potential) const
 {
   clip_(perm, false);
-  UInt numConnected;
-  while (true) //TODO avoid the while-true loop, grow syns in 1 step
+  UInt numConnected = countConnected_(perm);
+  while (numConnected < stimulusThreshold_) //TODO avoid the while-true loop, grow syns in 1 step
   {
-    numConnected = countConnected_(perm);
-    if (numConnected >= stimulusThreshold_)
-      break;
-
     for (auto & elem : potential) {
       perm[elem] += synPermBelowStimulusInc_;
     }
+    numConnected = countConnected_(perm);
   }
   return numConnected;
 }
