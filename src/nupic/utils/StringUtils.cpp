@@ -23,12 +23,25 @@
 /** @file
  * Implementation of utility functions for string conversion
  */
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING 1
 
 #include <apr-1/apr_base64.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
+#include <cstring>
+#include <cstdlib> // for wcstombs and mbstowcs
 
 using namespace nupic;
+
+std::string StringUtils::trim(const std::string &s) {
+  size_t i,j;
+  for(i = 0; i < s.length(); i++)
+	if (!std::isspace(s[i])) break;
+  for(j = s.length(); j > i; j--)
+    if (!std::isspace(s[j-1])) break;
+  return s.substr(i, j-i);
+}
+
 
 bool StringUtils::toBool(const std::string &s, bool throwOnError, bool *fail) {
   if (fail)
@@ -341,3 +354,28 @@ boost::shared_array<Byte> StringUtils::toByteArray(const std::string &s,
   // Return it
   return mask;
 }
+//--------------------------------------------------------------------------------
+
+// codecvt()is deprecated in c++17 but no replacement is offered.
+// Apparently it was not actually implemented in C++11 on some compilers.
+// So we will use mbstowcs() and wcstombs()
+// Not the best but will work for filenames.
+// WARNING: not threadsafe
+std::wstring StringUtils::utf8ToUnicode(const std::string &str)
+{
+	std::wstring ws(str.size(), L' '); // overestimate number of code points
+	ws.resize(std::mbstowcs(&ws[0], str.c_str(), str.size())); // shink to fit
+	return ws;
+}
+
+std::string StringUtils::unicodeToUtf8(const std::wstring &wstr)
+{
+	size_t size = 0;
+	char * lc = ::setlocale(LC_ALL, "en_US.utf8"); // determines code page generated
+	std::string str(wstr.size()*3, ' ');  // overestimate number of bytes and create space
+	size = std::wcstombs(&str[0], &wstr[0], wstr.size());
+	::setlocale(LC_ALL, lc); // restore locale
+	str.resize(size);
+	return str;
+}
+
