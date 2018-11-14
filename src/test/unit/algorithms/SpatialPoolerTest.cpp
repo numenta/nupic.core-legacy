@@ -1581,6 +1581,7 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
 
 TEST(SpatialPoolerTest, testInitPermNonConnected) {
   SpatialPooler sp;
+  EXPECT_TRUE(sp.getSynPermMax() == 1.0) << sp.getSynPermMax(); 
   Real synPermConnected = 0.2;
   EXPECT_NO_THROW(sp.setSynPermConnected(synPermConnected))  << sp.getSynPermMax();
   for (UInt i = 0; i < 100; i++) {
