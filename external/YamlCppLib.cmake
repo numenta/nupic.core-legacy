@@ -49,7 +49,6 @@ set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 set(cxx_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
 
 ExternalProject_Add(YamlCppStaticLib
-    DEPENDS YamlStaticLib
 
     URL ${yamlcpplib_url}
 
