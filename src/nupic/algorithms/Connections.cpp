@@ -28,10 +28,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include <capnp/message.h>
-#include <capnp/serialize.h>
-#include <kj/std/iostream.h>
-
 #include <nupic/algorithms/Connections.hpp>
 
 using std::endl;
@@ -40,7 +36,7 @@ using std::vector;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
-static const Permanence EPSILON = 0.00001;
+static const Permanence EPSILON = 0.00001f;
 
 Connections::Connections(CellIdx numCells) { initialize(numCells); }
 
@@ -73,7 +69,7 @@ Segment Connections::createSegment(CellIdx cell) {
     segment = destroyedSegments_.back();
     destroyedSegments_.pop_back();
   } else {
-    segment = segments_.size();
+    segment = (Segment)segments_.size();
     segments_.push_back(SegmentData());
     segmentOrdinals_.push_back(0);
   }
@@ -92,7 +88,8 @@ Segment Connections::createSegment(CellIdx cell) {
   return segment;
 }
 
-Synapse Connections::createSynapse(Segment segment, CellIdx presynapticCell,
+Synapse Connections::createSynapse(Segment segment,
+                                   CellIdx presynapticCell,
                                    Permanence permanence) {
   NTA_CHECK(permanence > 0);
 
@@ -101,7 +98,7 @@ Synapse Connections::createSynapse(Segment segment, CellIdx presynapticCell,
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
-    synapse.flatIdx = synapses_.size();
+    synapse.flatIdx = (UInt)synapses_.size();
     synapses_.push_back(SynapseData());
     synapseOrdinals_.push_back(0);
   }
@@ -351,16 +348,14 @@ void Connections::computeActivity(
   }
 }
 
-template <typename FloatType>
-static void saveFloat_(std::ostream &outStream, FloatType v) {
-  outStream << std::setprecision(std::numeric_limits<FloatType>::max_digits10)
-            << v << " ";
-}
 
 void Connections::save(std::ostream &outStream) const {
+  outStream << std::setprecision(std::numeric_limits<Real32>::max_digits10);
+  outStream << std::setprecision(std::numeric_limits<Real64>::max_digits10);
+
   // Write a starting marker.
   outStream << "Connections" << endl;
-  outStream << Connections::VERSION << endl;
+  outStream << VERSION << endl;
 
   outStream << cells_.size() << " " << endl;
 
@@ -377,7 +372,7 @@ void Connections::save(std::ostream &outStream) const {
       for (Synapse synapse : synapses) {
         const SynapseData &synapseData = synapses_[synapse];
         outStream << synapseData.presynapticCell << " ";
-        saveFloat_(outStream, synapseData.permanence);
+        outStream << synapseData.permanence << " ";
       }
       outStream << endl;
     }
@@ -388,30 +383,6 @@ void Connections::save(std::ostream &outStream) const {
   outStream << "~Connections" << endl;
 }
 
-void Connections::write(ConnectionsProto::Builder &proto) const {
-  proto.setVersion(Connections::VERSION);
-
-  auto protoCells = proto.initCells(cells_.size());
-
-  for (CellIdx i = 0; i < cells_.size(); ++i) {
-    const vector<Segment> &segments = cells_[i].segments;
-    auto protoSegments = protoCells[i].initSegments(segments.size());
-
-    for (SegmentIdx j = 0; j < (SegmentIdx)segments.size(); ++j) {
-      const SegmentData &segmentData = segments_[segments[j]];
-      const vector<Synapse> &synapses = segmentData.synapses;
-
-      auto protoSynapses = protoSegments[j].initSynapses(synapses.size());
-
-      for (SynapseIdx k = 0; k < synapses.size(); ++k) {
-        const SynapseData &synapseData = synapses_[synapses[k]];
-
-        protoSynapses[k].setPresynapticCell(synapseData.presynapticCell);
-        protoSynapses[k].setPermanence(synapseData.permanence);
-      }
-    }
-  }
-}
 
 void Connections::load(std::istream &inStream) {
   // Check the marker
@@ -420,9 +391,9 @@ void Connections::load(std::istream &inStream) {
   NTA_CHECK(marker == "Connections");
 
   // Check the saved version.
-  UInt version;
+  int version;
   inStream >> version;
-  NTA_CHECK(version <= Connections::VERSION);
+  NTA_CHECK(version <= 2);
 
   // Retrieve simple variables
   UInt numCells;
@@ -451,7 +422,7 @@ void Connections::load(std::istream &inStream) {
         segmentData.cell = cell;
 
         if (!destroyedSegment) {
-          segment = segments_.size();
+          segment = (Segment)segments_.size();
           cellData.segments.push_back(segment);
           segments_.push_back(segmentData);
           segmentOrdinals_.push_back(nextSegmentOrdinal_++);
@@ -492,48 +463,6 @@ void Connections::load(std::istream &inStream) {
   NTA_CHECK(marker == "~Connections");
 }
 
-void Connections::read(ConnectionsProto::Reader &proto) {
-  // Check the saved version.
-  UInt version = proto.getVersion();
-  NTA_CHECK(version <= Connections::VERSION);
-
-  auto protoCells = proto.getCells();
-
-  initialize(protoCells.size());
-
-  for (CellIdx cell = 0; cell < protoCells.size(); ++cell) {
-    CellData &cellData = cells_[cell];
-
-    auto protoSegments = protoCells[cell].getSegments();
-
-    for (SegmentIdx j = 0; j < (SegmentIdx)protoSegments.size(); ++j) {
-      Segment segment;
-      {
-        const SegmentData segmentData = {vector<Synapse>(), cell};
-        segment = segments_.size();
-        cellData.segments.push_back(segment);
-        segments_.push_back(segmentData);
-        segmentOrdinals_.push_back(nextSegmentOrdinal_++);
-      }
-
-      SegmentData &segmentData = segments_[segment];
-
-      auto protoSynapses = protoSegments[j].getSynapses();
-
-      for (SynapseIdx k = 0; k < protoSynapses.size(); ++k) {
-        CellIdx presynapticCell = protoSynapses[k].getPresynapticCell();
-        SynapseData synapseData = {presynapticCell,
-                                   protoSynapses[k].getPermanence(), segment};
-        Synapse synapse = {(UInt32)synapses_.size()};
-        synapses_.push_back(synapseData);
-        synapseOrdinals_.push_back(nextSynapseOrdinal_++);
-        segmentData.synapses.push_back(synapse);
-
-        synapsesForPresynapticCell_[presynapticCell].push_back(synapse);
-      }
-    }
-  }
-}
 
 CellIdx Connections::numCells() const { return cells_.size(); }
 

@@ -24,24 +24,32 @@
  * Algorithms on arrays, dense or sparse. Contains speed-optimized asm
  * code that uses SIMD instructions provided by SSE in x86, only for darwin86
  * so far.
+ *
+ * Notes:
+ *	bind2nd() is depriciated in C++11 and removed in C++17 so
+ *            bind2nd is replaced with C++11 bind(). At some point we may
+ *            want to consider using C++14 generic lambda which they say is faster.
+ *  Compiles under Windows C++17 and Linux C++11.  Asm no used in Windows.
  */
 
 #ifndef NTA_ARRAY_ALGO_HPP
 #define NTA_ARRAY_ALGO_HPP
 
-#include <algorithm>
-#include <iterator>
 #include <math.h>
+#include <iterator>
+#include <algorithm>
+#include <functional>
+#include <deque>
 
 #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
-#include <array>
-#include <intrin.h>
+  #include <array>
+  #include <intrin.h>
 #endif
 
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Types.hpp>
 #include <nupic/utils/Random.hpp> // For the official Numenta RNG
-
+using namespace std::placeholders;
 namespace nupic {
 
 //--------------------------------------------------------------------------------
@@ -57,29 +65,33 @@ namespace nupic {
 // If 19th bit of ecx is 1, we have sse4.1.
 // If 20th bit of ecx is 1, we have sse4.2.
 //--------------------------------------------------------------------------------
-static int checkSSE() {
-  unsigned int c = 0, d = 0;
-  const unsigned int SSE = 1 << 25, SSE2 = 1 << 26, SSE3 = 1 << 0,
-                     SSE41 = 1 << 19, SSE42 = 1 << 20;
+static int checkSSE()
+{
+  unsigned int        c = 0, d = 0;
+  const unsigned int SSE = 1<<25,
+          SSE2  = 1<<26,
+          SSE3  = 1<<0,
+          SSE41 = 1<<19,
+          SSE42 = 1<<20;
 #ifdef NTA_ASM
-#if defined(NTA_ARCH_32)
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+  #if defined(NTA_ARCH_32)
+    #if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
-  // VC asm
+      // VC asm
 
-  unsigned int f = 1;
-  __asm {
+      unsigned int f = 1;
+      __asm {
         mov eax, f
         cpuid
         mov c, ecx
         mov d, edx
-  }
+      }
 
-  // TODO: add asm code for gcc/clang/... on Windows
+    // TODO: add asm code for gcc/clang/... on Windows
 
-#elif defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
+    #elif defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
-  unsigned int a = 0, b = 0, f = 1;
+      unsigned int a = 0,b = 0, f = 1;
 
   // PIC-compliant asm
   __asm__ __volatile__("pushl %%ebx\n\t"
@@ -89,9 +101,9 @@ static int checkSSE() {
                        : "=a"(a), "=r"(b), "=c"(c), "=d"(d)
                        : "a"(f)
                        : "cc");
-#endif
-#elif defined(NTA_ARCH_64)
-#if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
+    #endif
+  #elif defined(NTA_ARCH_64)
+    #if defined(NTA_OS_LINUX) || defined(NTA_OS_DARWIN)
 
   __asm__ __volatile__("pushq  %%rbx\n\t"
 
@@ -104,15 +116,15 @@ static int checkSSE() {
                        : "=c"(c), "=d"(d)
                        :
                        :);
-#elif defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
+    #elif defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
 
-  std::array<int, 4> cpui;
-  __cpuid(cpui.data(), 1);
-  c = cpui[2];
-  d = cpui[3];
-#endif
-#endif
-#endif // NTA_ASM
+      std::array<int, 4> cpui;
+       __cpuid(cpui.data(), 1);
+       c = cpui[2];
+       d = cpui[3];
+    #endif
+  #endif
+#endif //NTA_ASM
 
   int ret = -1;
   if (d & SSE)
@@ -132,8 +144,8 @@ static int checkSSE() {
 //--------------------------------------------------------------------------------
 // Highest SSE level supported by the CPU: 1, 2, 3 or 41 or 42.
 // Note that the asm routines are written for gcc only so far, so we turn them
-// off for all platforms except darwin86. Also, they won't work properly on 64
-// bits platforms for now.
+// off for all platforms except darwin86. Also, they won't work properly on 64 bits
+// platforms for now.
 //--------------------------------------------------------------------------------
 static const int SSE_LEVEL = checkSSE();
 
@@ -150,11 +162,11 @@ nearlyZeroRange(It begin, It end,
                     nupic::Epsilon) {
   { NTA_ASSERT(begin <= end) << "nearlyZeroRange: Invalid input range"; }
 
-  while (begin != end)
-    if (!nearlyZero(*begin++, epsilon))
-      return false;
-  return true;
-}
+    while (begin != end)
+      if (!nearlyZero(*begin++, epsilon))
+        return false;
+    return true;
+  }
 
 //--------------------------------------------------------------------------------
 template <typename It1, typename It2>
@@ -180,8 +192,9 @@ template <typename Container1, typename Container2>
 inline bool nearlyEqualVector(
     const Container1 &c1, const Container2 &c2,
     const typename Container1::value_type &epsilon = nupic::Epsilon) {
-  if (c1.size() != c2.size())
+  if (c1.size() != c2.size()) {
     return false;
+  }
 
   return nearlyEqualRange(c1.begin(), c1.end(), c2.begin(), c2.end());
 }
@@ -222,7 +235,7 @@ template <typename T> inline bool is_zero(const std::vector<T> &x) {
  */
 template <typename InputIterator>
 inline bool isZero_01(InputIterator x, InputIterator x_end) {
-  NTA_ASSERT(x <= x_end); 
+  NTA_ASSERT(x <= x_end);
 
   for (; x != x_end; ++x)
     if (*x > 0)
@@ -581,6 +594,8 @@ inline bool operator!=(const std::vector<T> &a, const std::vector<T> &b) {
 //--------------------------------------------------------------------------------
 template <typename T1, typename T2>
 inline bool operator==(const std::map<T1, T2> &a, const std::map<T1, T2> &b) {
+  if (a.size() != b.size())
+    return false;
   typename std::map<T1, T2>::const_iterator ita = a.begin(), itb = b.begin();
   for (; ita != a.end(); ++ita, ++itb)
     if (ita->first != itb->first || ita->second != itb->second)
@@ -593,6 +608,26 @@ template <typename T1, typename T2>
 inline bool operator!=(const std::map<T1, T2> &a, const std::map<T1, T2> &b) {
   return !(a == b);
 }
+
+  //--------------------------------------------------------------------------------
+  template <typename T1>
+  inline bool operator==(const std::deque<T1>& a, const std::deque<T1>& b)
+  {
+    if (a.size() != b.size())
+      return false;
+    typename std::deque<T1>::const_iterator ita = a.begin(), itb = b.begin();
+    for (; ita != a.end(); ++ita, ++itb)
+      if (*ita != *itb)
+        return false;
+    return true;
+  }
+
+  //--------------------------------------------------------------------------------
+  template <typename T1>
+  inline bool operator!=(const std::deque<T1>& a, const std::deque<T1>& b)
+  {
+    return !(a == b);
+  }
 
 //--------------------------------------------------------------------------------
 /**
@@ -1156,8 +1191,7 @@ inline void set_to_one(std::vector<T> &a, size_t begin, size_t end) {
 
 //--------------------------------------------------------------------------------
 /**
- * Sets a range to 0, except for a single value at pos, which will be equal to
- * val.
+ * Sets a range to 0, except for a single value at pos, which will be equal to val.
  *
  * @param pos the position of the single non-zero value
  * @param begin
@@ -1243,8 +1277,12 @@ inline void cumulative(const C1 &pmf, C2 &cdf) {
  * Finds percentiles.
  */
 template <typename It1, typename It2>
-inline void percentiles(size_t n_percentiles, It1 begin1, It1 end1, It2 begin2,
-                        It2 end2, bool alreadyNormalized = false) {
+inline void percentiles(size_t n_percentiles,
+                        It1 begin1,
+						It1 end1,
+						It2 begin2,
+                        It2 end2,
+						bool alreadyNormalized = false) {
   {
     NTA_ASSERT(begin1 <= end1) << "percentiles: Invalid input range";
     NTA_ASSERT(begin2 <= end2) << "percentiles: Invalid output range";
@@ -1277,12 +1315,13 @@ template <typename C1, typename C2>
 inline void percentiles(size_t n_percentiles, const C1 &pmf, C2 &pcts) {
   percentiles(n_percentiles, pmf.begin(), pmf.end(), pcts.begin());
 }
-
 //--------------------------------------------------------------------------------
 template <typename It, typename RNG>
-inline void rand_range(
-    It begin, It end, const typename std::iterator_traits<It>::value_type &min_,
-    const typename std::iterator_traits<It>::value_type &max_, RNG &rng) {
+inline void rand_range(It begin,
+                       It end,
+                       const typename std::iterator_traits<It>::value_type& min_,
+                       const typename std::iterator_traits<It>::value_type& max_,
+                       RNG& rng) {
   {
     NTA_ASSERT(begin <= end) << "rand_range: Invalid input range";
     NTA_ASSERT(min_ < max_)
@@ -1387,7 +1426,7 @@ inline void rand_range_01(It begin, It end, double pct, RNG &rng) {
  * @param pct the percentage of ones
  */
 template <typename It>
-inline void rand_range_01(It begin, It end, double pct = .5) {
+inline void rand_range_01(It begin, It end, double pct = 0.5) {
   nupic::Random rng;
   rand_range_01(begin, end, pct, rng);
 }
@@ -1539,9 +1578,9 @@ inline void random_perm_interval(
     typename std::iterator_traits<It>::value_type step, RNG &rng) {
   { NTA_ASSERT(begin <= end) << "random_perm_interval 1: Invalid input range"; }
 
-  ramp_range(begin, end, start, step);
-  std::random_shuffle(begin, end, rng);
-}
+    ramp_range(begin, end, start, step);
+    std::random_shuffle(begin, end, rng);
+  }
 
 //--------------------------------------------------------------------------------
 /**
@@ -1943,12 +1982,12 @@ threshold(InIter begin, InIter end, OutIter1 ind, OutIter2 nz,
           bool above = true) {
   { NTA_ASSERT(begin <= end) << "threshold: Invalid range"; }
 
-  typedef typename std::iterator_traits<InIter>::value_type value_type;
-  typedef size_t size_type;
+    typedef typename std::iterator_traits<InIter>::value_type value_type;
+    typedef size_t size_type;
 
-  size_type n = 0;
+    size_type n = 0;
 
-  if (above) {
+    if (above) {
 
     for (InIter it = begin; it != end; ++it) {
       value_type val = (value_type)*it;
@@ -1961,7 +2000,7 @@ threshold(InIter begin, InIter end, OutIter1 ind, OutIter2 nz,
       }
     }
 
-  } else {
+    } else {
 
     for (InIter it = begin; it != end; ++it) {
       value_type val = (value_type)*it;
@@ -3109,15 +3148,15 @@ inline nupic::UInt32 count_gt(nupic::Real32 *begin, nupic::Real32 *end,
     // n0 is the number of floats before we reach start and can use parallel
     //  xmm operations
     // n1 is the number floats we can process in parallel with xmm
-    // n2 is the number of "stragglers" what we will have to do one by one ( <
-    // 4)
+    // n2 is the number of "stragglers" what we will have to do one by one ( < 4)
     nupic::Real32 count = 0;
-    NTA_UIntPtr x_addr = (NTA_UIntPtr)begin; // 8 bytes on 64 bits platforms
+    uintptr_t x_addr = (uintptr_t)begin; // 8 bytes on 64 bits platforms
     nupic::Real32 *start =
         (x_addr % 16 == 0) ? begin : (nupic::Real32 *)(16 * (x_addr / 16 + 1));
     int n0 = (int)(start - begin);
-    int n1 = 4 * ((end - start) / 4);
+    int n1 = (int)(4 * ((end - start) / 4));
     int n2 = (int)(end - start - n1);
+
 
 #if defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
 
@@ -3140,8 +3179,7 @@ inline nupic::UInt32 count_gt(nupic::Real32 *begin, nupic::Real32 *end,
         // need to use 'rip relative' addressing to access a 'static' variable
         // (a global would also work) here and then load it into eax manually.
         // Then things work fine.
-        "movq  __ZZN5nupic8count_gtEPfS0_fE14localThreshold@GOTPCREL(%%rip), "
-        "%%r11\n\t"
+        "movq  __ZZN5nupic8count_gtEPfS0_fE14localThreshold@GOTPCREL(%%rip), %%r11\n\t"
         "movl  (%%r11), %%eax\n\t"
 #endif
 
@@ -3236,12 +3274,10 @@ inline nupic::UInt32 count_gt(nupic::Real32 *begin, nupic::Real32 *end,
     return (int)count;
 
 #else
-    return std::count_if(
-        begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
+    return (int)std::count_if(begin, end, std::bind(std::greater<nupic::Real32>(), _1, threshold));
 #endif
   } else {
-    return std::count_if(
-        begin, end, std::bind2nd(std::greater<nupic::Real32>(), threshold));
+    return (int)std::count_if(begin, end, std::bind(std::greater<nupic::Real32>(), _1, threshold));
   }
 }
 
@@ -3259,8 +3295,7 @@ inline nupic::UInt32 count_gte(nupic::Real32 *begin, nupic::Real32 *end,
                                nupic::Real32 threshold) {
   NTA_ASSERT(begin <= end);
 
-  return std::count_if(
-      begin, end, std::bind2nd(std::greater_equal<nupic::Real32>(), threshold));
+  return (UInt32)std::count_if(begin, end, std::bind(std::greater_equal<nupic::Real32>(), _1, threshold));
 }
 
 //--------------------------------------------------------------------------------
@@ -3312,11 +3347,9 @@ inline size_t count_non_zeros(const std::vector<std::pair<T1, T2>> &x) {
  */
 template <typename It>
 inline size_t
-count_lt(It begin, It end,
-         const typename std::iterator_traits<It>::value_type &thres) {
+count_lt(It begin, It end, const typename std::iterator_traits<It>::value_type& thres){
   typedef typename std::iterator_traits<It>::value_type value_type;
-  return std::count_if(begin, end,
-                       std::bind2nd(std::less<value_type>(), thres));
+  return std::count_if(begin, end, std::bind(std::less<value_type>(), _1, thres));
 }
 
 //--------------------------------------------------------------------------------
@@ -3347,7 +3380,7 @@ round_01(It begin, It end,
 /**
  */
 template <typename T>
-inline void round_01(T &a, const typename T::value_type &threshold = .5) {
+inline void round_01(T &a, const typename T::value_type &threshold = 0.5) {
   round_01(a.begin(), a.end(), threshold);
 }
 
@@ -3597,8 +3630,7 @@ inline void multiply(const T1 &x, const T2 &y, T3 &z) {
  * in order of increasing indices.
  */
 template <typename I, typename T>
-inline void multiply_val(T val, const Buffer<I> &indices,
-                         SparseVector<I, T> &x) {
+inline void multiply_val(T val, const Buffer<I> &indices, SparseVector<I, T> &x) {
   I n1 = indices.nnz, n2 = x.nnz, i1 = 0, i2 = 0;
 
   while (i1 != n1 && i2 != n2)
@@ -3780,8 +3812,7 @@ inline void add_ky(It1 x1, It1 x1_end,
 /**
  */
 template <typename T1, typename T2, typename T3>
-inline void add_ky(const T1 &x1, const typename T1::value_type &k, const T2 &y,
-                   T3 &x2) {
+inline void add_ky(const T1 &x1, const typename T1::value_type &k, const T2 &y,T3 &x2) {
   ////assert(y.size() >= x.size());
 
   add_ky(x1.begin(), x1.end(), k, y.begin(), x2.begin());
@@ -3840,8 +3871,7 @@ inline void axby(const typename T1::value_type &a, T1 &x,
  * exp(k * x) for all the elements of a range.
  */
 template <typename It>
-inline void range_exp(typename std::iterator_traits<It>::value_type k, It begin,
-                      It end) {
+inline void range_exp(typename std::iterator_traits<It>::value_type k, It begin, It end) {
   typedef typename std::iterator_traits<It>::value_type value_type;
 
   Exp<value_type> e_f;
@@ -3877,8 +3907,7 @@ inline void range_exp(typename std::iterator_traits<It>::value_type k1,
 /**
  */
 template <typename C>
-inline void range_exp(typename C::value_type k1, typename C::value_type k2,
-                      C &c) {
+inline void range_exp(typename C::value_type k1, typename C::value_type k2, C &c) {
   range_exp(k1, k2, c.begin(), c.end());
 }
 
@@ -3983,8 +4012,7 @@ inline void transform(const T1 &a, const T2 &b, const T3 &c, T4 &d, F3 f) {
  * Returns the position at which f takes its minimum between first and last.
  */
 template <typename ForwardIterator, typename F>
-inline ForwardIterator min_element(ForwardIterator first, ForwardIterator last,
-                                   F f) {
+inline ForwardIterator min_element(ForwardIterator first, ForwardIterator last,  F f) {
   { NTA_ASSERT(first <= last) << "min_element: Invalid range"; }
 
   typedef typename ForwardIterator::value_type value_type;
@@ -4009,8 +4037,7 @@ inline ForwardIterator min_element(ForwardIterator first, ForwardIterator last,
  * Returns the position at which f takes its maximum between first and last.
  */
 template <typename ForwardIterator, typename F>
-inline ForwardIterator max_element(ForwardIterator first, ForwardIterator last,
-                                   F f) {
+inline ForwardIterator max_element(ForwardIterator first, ForwardIterator last, F f) {
   { NTA_ASSERT(first <= last) << "max_element: Invalid range"; }
 
   typedef typename ForwardIterator::value_type value_type;
@@ -4086,8 +4113,7 @@ inline bool contains(const C &c, typename C::value_type &v) {
 //--------------------------------------------------------------------------------
 template <typename C1, typename C2>
 inline bool is_subsequence(const C1 &seq, const C2 &sub) {
-  return std::search(seq.begin(), seq.end(), sub.begin(), sub.end()) !=
-         seq.end();
+  return std::search(seq.begin(), seq.end(), sub.begin(), sub.end()) != seq.end();
 }
 
 //--------------------------------------------------------------------------------
@@ -4166,14 +4192,6 @@ inline size_t sample_one(const C1 &pdf, RNG &rng) {
  *
  * x, y and z are arrays of floats, but with 0/1 values.
  *
- * If any of the vectors is not aligned on a 16 bytes boundary, the function
- * reverts to slow C++. This can happen when using it with slices of numpy
- * arrays.
- *
- * Doesn't work on win32/win64.
- *
- * TODO: find 16 bytes aligned block that can be sent to SSE.
- * TODO: support win32/win64 for the fast path.
  */
 template <typename InputIterator, typename OutputIterator>
 inline void logical_and(InputIterator x, InputIterator x_end, InputIterator y,
@@ -4238,8 +4256,7 @@ inline void in_place_logical_or(const ByteVector &x, ByteVector &y,
 }
 
 //--------------------------------------------------------------------------------
-inline void logical_or(size_t n, const ByteVector &x, const ByteVector &y,
-                       ByteVector &z) {
+inline void logical_or(size_t n, const ByteVector &x, const ByteVector &y, ByteVector &z) {
   for (size_t i = 0; i != n; ++i)
     z[i] = x[i] || y[i];
 }
@@ -4486,8 +4503,11 @@ inline void partial_sort_2nd(size_t k, const C1 &c1, OutputIterator out_begin,
  * If resort_on_first is true, the indices of the pairs are resorted,
  * otherwise, the indices might come out in any order.
  */
-template <typename size_type, typename InIter, typename OutputIterator1,
-          typename OutputIterator2, typename Order>
+template <typename size_type,
+          typename InIter,
+          typename OutputIterator1,
+		  typename OutputIterator2,
+          typename Order>
 inline void partial_sort(size_type k, InIter in_begin, InIter in_end,
                          OutputIterator1 ind, OutputIterator2 nz, Order order,
                          size_type start_offset = 0,
@@ -4635,12 +4655,10 @@ inline void partial_argsort_rnd_tie_break(size_t k, InIter begin, InIter end,
 
   if (!real_random) {
     greater_2nd<size_type, value_type> order;
-    std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz,
-                      order);
+    std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz, order);
   } else {
     greater_2nd_rnd_ties<size_type, value_type, Random> order(rng);
-    std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz,
-                      order);
+    std::partial_sort(buff.begin(), buff.begin() + k, buff.begin() + buff.nnz, order);
   }
 
   for (size_type i = 0; i != k; ++i)
@@ -4938,33 +4956,6 @@ dendritic_activation(S nsegs, S max_dendrite_size,
     }
   }
 
-
-     // for (size_type cell = 0; cell != ncells; ++cell, ++output) {
-
-     // if (n_indices[cell] == 0) {
-     // *output = (int) -1;
-     // continue;
-     // }
-
-     // size_type w_end = n_indices[cell] - window_size + 1;
-
-     // for (size_type w_start = 0; w_start < w_end; ++w_start) {
-
-     // size_type w_end1 = w_start + window_size;
-     // value_type activation = 0;
-
-     // // Maintain activation with +/-
-     // for (size_type i = w_start; i < w_end1; ++i)
-     // activation += input[indices[cell*max_dendrite_size+i]];
-
-     // if (activation >= threshold) {
-     // *output = (int) w_start;
-     // break;
-     // }
-
-     // *output = (int) -1;
-     // }
-     // }
 
 }
 */

@@ -27,6 +27,7 @@
 #ifndef NTA_OUTPUT_HPP
 #define NTA_OUTPUT_HPP
 
+#include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp> // temporary, while impl is in this file
 #include <set>
@@ -133,12 +134,13 @@ public:
    * Get the data of the output.
    *
    * @returns
-   *         A constant reference to the data of the output as an @c Array
+   *         A reference to the data of the output as an @c Array
    *
-   * @note It's important to return a const array so caller can't
-   * reallocate the buffer.
+   * @note we should return a const Array ref so caller can't
+   * reallocate the buffer. Howerver, we do need to be able to
+   * change the content of the buffer. So it cannot be const.
    */
-  const Array &getData() const;
+  Array &getData() { return data_; }
 
   /**
    *  Get the data type of the output
@@ -182,7 +184,7 @@ public:
 
 private:
   Region &region_; // needed for number of nodes
-  Array *data_;
+  Array data_;
   bool isRegionLevel_;
   // order of links never matters, so store as a set
   // this is different from Input, where they do matter

@@ -26,10 +26,6 @@
 #include <string>
 #include <vector>
 
-// Workaround windows.h collision:
-// https://github.com/sandstorm-io/capnproto/issues/213
-#undef VOID
-#include <capnp/any.h>
 
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -65,7 +61,6 @@ public:
   typedef void (*computeCallbackFunc)(const std::string &);
   TestNode(const ValueMap &params, Region *region);
   TestNode(BundleIO &bundle, Region *region);
-  TestNode(capnp::AnyPointer::Reader &proto, Region *region);
   virtual ~TestNode();
 
   /* -----------  Required RegionImpl Interface methods ------- */
@@ -90,11 +85,6 @@ public:
   void serialize(BundleIO &bundle) override;
   void deserialize(BundleIO &bundle) override;
 
-  using RegionImpl::write;
-  virtual void write(capnp::AnyPointer::Builder &anyProto) const override;
-
-  using RegionImpl::read;
-  virtual void read(capnp::AnyPointer::Reader &anyProto) override;
 
   /* -----------  Optional RegionImpl Interface methods ------- */
 
@@ -148,8 +138,8 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  const Input *bottomUpIn_;
-  const Output *bottomUpOut_;
+  Input *bottomUpIn_;
+  Output *bottomUpOut_;
 };
 } // namespace nupic
 

@@ -26,9 +26,6 @@
 
 #if !defined(NTA_OS_WINDOWS)
 
-#include <apr-1/apr_errno.h>
-#include <apr-1/apr_network_io.h>
-#include <apr-1/apr_time.h>
 #include <cstdlib>
 #include <fstream>
 #include <nupic/os/Directory.hpp>
@@ -38,14 +35,13 @@
 #include <nupic/utils/Log.hpp>
 #include <sys/types.h>
 #include <unistd.h> // getuid()
+#include <cstring>
 
 using namespace nupic;
 
 std::string OS::getErrorMessage() {
-  char buff[1024];
-  apr_status_t st = apr_get_os_error();
-  ::apr_strerror(st, buff, 1024);
-  return std::string(buff);
+  std::string err = getErrorMessageFromErrorCode(getLastErrorCode());
+  return err;
 }
 
 std::string OS::getHomeDir() {
@@ -76,7 +72,12 @@ std::string OS::getUserName() {
   return username;
 }
 
+
+
+
+
 int OS::getLastErrorCode() { return errno; }
+
 
 std::string OS::getErrorMessageFromErrorCode(int errorCode) {
   std::stringstream errorMessage;
@@ -84,11 +85,11 @@ std::string OS::getErrorMessageFromErrorCode(int errorCode) {
   errorBuffer[0] = '\0';
 
 #if defined(__APPLE__) || (defined(NTA_ARCH_64) && defined(NTA_OS_SPARC))
-  int result = ::strerror_r(errorCode, errorBuffer, 1024);
+  int result = ::strerror_r(errorCode, errorBuffer, sizeof(errorBuffer));
   if (result == 0)
     errorMessage << errorBuffer;
 #else
-  char *result = ::strerror_r(errorCode, errorBuffer, 1024);
+  char *result = ::strerror_r(errorCode, errorBuffer, sizeof(errorBuffer));
   if (result != nullptr)
     errorMessage << errorBuffer;
 #endif

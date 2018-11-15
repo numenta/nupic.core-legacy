@@ -1108,145 +1108,6 @@ TEST(SpatialPoolerTest, testCalculateOverlapPct) {
   }
 }
 
-TEST(SpatialPoolerTest, testIsWinner) {
-  UInt numInputs = 10;
-  UInt numColumns = 5;
-  SpatialPooler sp({numInputs}, {numColumns});
-
-  vector<pair<UInt, Real>> winners;
-
-  UInt numWinners = 3;
-  Real score = -5;
-  ASSERT_FALSE(sp.isWinner_(score, winners, numWinners));
-  score = 0;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-
-  pair<UInt, Real> sc1;
-  sc1.first = 1;
-  sc1.second = 32;
-  pair<UInt, Real> sc2;
-  sc2.first = 2;
-  sc2.second = 27;
-  pair<UInt, Real> sc3;
-  sc3.first = 17;
-  sc3.second = 19.5;
-  winners.push_back(sc1);
-  winners.push_back(sc2);
-  winners.push_back(sc3);
-
-  numWinners = 3;
-  score = -5;
-  ASSERT_TRUE(!sp.isWinner_(score, winners, numWinners));
-  score = 18;
-  ASSERT_TRUE(!sp.isWinner_(score, winners, numWinners));
-  score = 18;
-  numWinners = 4;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-  numWinners = 3;
-  score = 20;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-  score = 30;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-  score = 40;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-  score = 40;
-  numWinners = 6;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-
-  pair<UInt, Real> sc4;
-  sc4.first = 34;
-  sc4.second = 17.1;
-  pair<UInt, Real> sc5;
-  sc5.first = 51;
-  sc5.second = 1.2;
-  pair<UInt, Real> sc6;
-  sc6.first = 19;
-  sc6.second = 0.3;
-  winners.push_back(sc4);
-  winners.push_back(sc5);
-  winners.push_back(sc6);
-
-  score = 40;
-  numWinners = 6;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-  score = 12;
-  numWinners = 6;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-  score = 0.1;
-  numWinners = 6;
-  ASSERT_TRUE(!sp.isWinner_(score, winners, numWinners));
-  score = 0.1;
-  numWinners = 7;
-  ASSERT_TRUE(sp.isWinner_(score, winners, numWinners));
-}
-
-TEST(SpatialPoolerTest, testAddToWinners) {
-  SpatialPooler sp;
-  vector<pair<UInt, Real>> winners;
-
-  UInt index;
-  Real score;
-
-  index = 17;
-  score = 19.5;
-  sp.addToWinners_(index, score, winners);
-  index = 1;
-  score = 32;
-  sp.addToWinners_(index, score, winners);
-  index = 2;
-  score = 27;
-  sp.addToWinners_(index, score, winners);
-
-  ASSERT_TRUE(winners[0].first == 1);
-  ASSERT_TRUE(almost_eq(winners[0].second, 32));
-  ASSERT_TRUE(winners[1].first == 2);
-  ASSERT_TRUE(almost_eq(winners[1].second, 27));
-  ASSERT_TRUE(winners[2].first == 17);
-  ASSERT_TRUE(almost_eq(winners[2].second, 19.5));
-
-  index = 15;
-  score = 20.5;
-  sp.addToWinners_(index, score, winners);
-  ASSERT_TRUE(winners[0].first == 1);
-  ASSERT_TRUE(almost_eq(winners[0].second, 32));
-  ASSERT_TRUE(winners[1].first == 2);
-  ASSERT_TRUE(almost_eq(winners[1].second, 27));
-  ASSERT_TRUE(winners[2].first == 15);
-  ASSERT_TRUE(almost_eq(winners[2].second, 20.5));
-  ASSERT_TRUE(winners[3].first == 17);
-  ASSERT_TRUE(almost_eq(winners[3].second, 19.5));
-
-  index = 7;
-  score = 100;
-  sp.addToWinners_(index, score, winners);
-  ASSERT_TRUE(winners[0].first == 7);
-  ASSERT_TRUE(almost_eq(winners[0].second, 100));
-  ASSERT_TRUE(winners[1].first == 1);
-  ASSERT_TRUE(almost_eq(winners[1].second, 32));
-  ASSERT_TRUE(winners[2].first == 2);
-  ASSERT_TRUE(almost_eq(winners[2].second, 27));
-  ASSERT_TRUE(winners[3].first == 15);
-  ASSERT_TRUE(almost_eq(winners[3].second, 20.5));
-  ASSERT_TRUE(winners[4].first == 17);
-  ASSERT_TRUE(almost_eq(winners[4].second, 19.5));
-
-  index = 22;
-  score = 1;
-  sp.addToWinners_(index, score, winners);
-  ASSERT_TRUE(winners[0].first == 7);
-  ASSERT_TRUE(almost_eq(winners[0].second, 100));
-  ASSERT_TRUE(winners[1].first == 1);
-  ASSERT_TRUE(almost_eq(winners[1].second, 32));
-  ASSERT_TRUE(winners[2].first == 2);
-  ASSERT_TRUE(almost_eq(winners[2].second, 27));
-  ASSERT_TRUE(winners[3].first == 15);
-  ASSERT_TRUE(almost_eq(winners[3].second, 20.5));
-  ASSERT_TRUE(winners[4].first == 17);
-  ASSERT_TRUE(almost_eq(winners[4].second, 19.5));
-  ASSERT_TRUE(winners[5].first == 22);
-  ASSERT_TRUE(almost_eq(winners[5].second, 1));
-}
-
 TEST(SpatialPoolerTest, testInhibitColumns) {
   SpatialPooler sp;
   setup(sp, 10, 10);
@@ -1359,11 +1220,14 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SpatialPooler sp;
   setup(sp, 10, 10);
   sp.setGlobalInhibition(true);
-  sp.setLocalAreaDensity(0.02);
-  vector<UInt> input(sp.getNumInputs(), 1);
+  const vector<UInt> input(sp.getNumInputs(), 1);
   vector<UInt> out1(sp.getNumColumns(), 0);
-  EXPECT_THROW(sp.compute(input.data(), false, out1.data()),
-               nupic::LoggingException);
+  //throws
+  sp.setLocalAreaDensity(0.02);
+  EXPECT_THROW(sp.compute(input.data(), false, out1.data()), nupic::LoggingException);
+  //good parameter
+  sp.setLocalAreaDensity(0.1);
+  EXPECT_NO_THROW(sp.compute(input.data(), false, out1.data()));
 }
 
 
@@ -1705,8 +1569,8 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
   Real synPermConnected = 0.2;
   Real synPermMax = 1.0;
 
-  sp.setSynPermConnected(synPermConnected);
   sp.setSynPermMax(synPermMax);
+  sp.setSynPermConnected(synPermConnected);
 
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermConnected_();
@@ -1717,8 +1581,9 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
 
 TEST(SpatialPoolerTest, testInitPermNonConnected) {
   SpatialPooler sp;
+  EXPECT_TRUE(sp.getSynPermMax() == 1.0) << sp.getSynPermMax(); 
   Real synPermConnected = 0.2;
-  sp.setSynPermConnected(synPermConnected);
+  EXPECT_NO_THROW(sp.setSynPermConnected(synPermConnected))  << sp.getSynPermMax();
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermNonConnected_();
     ASSERT_GE(permVal, 0);
@@ -2109,26 +1974,7 @@ TEST(SpatialPoolerTest, testSaveLoad) {
   ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
 }
 
-TEST(SpatialPoolerTest, testWriteRead) {
-  const char *filename = "SpatialPoolerSerialization.tmp";
-  SpatialPooler sp1, sp2;
-  UInt numInputs = 6;
-  UInt numColumns = 12;
-  setup(sp1, numInputs, numColumns);
 
-  ofstream os(filename, ios::binary);
-  sp1.write(os);
-  os.close();
-
-  ifstream is(filename, ios::binary);
-  sp2.read(is);
-  is.close();
-
-  ASSERT_NO_FATAL_FAILURE(check_spatial_eq(sp1, sp2));
-
-  int ret = ::remove(filename);
-  ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
-}
 
 TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   // Initialize SP using the constructor
@@ -2174,6 +2020,27 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
 
   // The two SP should be the same
   check_spatial_eq(sp1, sp2);
+}
+
+TEST(SpatialPoolerTest, testClip) {
+  SpatialPooler sp;
+  sp.setSynPermMax(1.337);
+  sp.setSynPermTrimThreshold(0.2);
+
+  vector<Real> test{-0.001, 0.1, 2.1};
+  const vector<Real> exp {0.0, 0.1, 1.337};
+  const vector<Real> exp2{0.0, 0.0, 1.337};
+
+  sp.clip_(test); //clip to 0.0 .. 1.337
+  for(UInt i=0; i< test.size(); i++) {
+    ASSERT_NEAR(exp[i], test[i], 0.0001) << "clip ";
+  }
+
+  sp.clip_(test, true); //clip trim small <0.2 to 0.0
+  for(UInt i=0; i< test.size(); i++) {
+    ASSERT_NEAR(exp2[i], test[i], 0.0001) << "clip 2";
+  }
+
 }
 
 } // end anonymous namespace

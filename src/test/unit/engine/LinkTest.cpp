@@ -25,11 +25,13 @@
  */
 
 #include <sstream>
+#include <iostream>
 
 #include "gtest/gtest.h"
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Link.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
@@ -38,7 +40,10 @@
 #include <nupic/engine/TestNode.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/os/Directory.hpp>
 #include <nupic/utils/Log.hpp>
+
+#define VERBOSE std::cerr << "[          ]"
 
 using namespace nupic;
 
@@ -120,8 +125,6 @@ TEST(LinkTest, DelayedLink) {
 
     MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}
 
-    MyTestNode(capnp::AnyPointer::Reader &proto, Region *region)
-        : TestNode(proto, region) {}
 
     std::string getNodeType() { return "MyTestNode"; }
 
@@ -237,9 +240,10 @@ TEST(LinkTest, DelayedLink) {
   }
 }
 
-TEST(LinkTest, DelayedLinkCapnpSerialization) {
-  // Cap'n Proto serialization test of delayed link.
+TEST(LinkTest, DelayedLinkSerialization) {
+  // serialization test of delayed link.
 
+  // create an subclass of TestNode plugin
   class MyTestNode : public TestNode {
   public:
     MyTestNode(const ValueMap &params, Region *region)
@@ -247,8 +251,6 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
 
     MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}
 
-    MyTestNode(capnp::AnyPointer::Reader &proto, Region *region)
-        : TestNode(proto, region) {}
 
     std::string getNodeType() { return "MyTestNode"; };
 
@@ -256,7 +258,7 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
       // Replace with no-op to preserve output
     }
   };
-
+  // Register the plugin
   RegionImplFactory::registerCPPRegion("MyTestNode",
                                        new RegisteredRegionImpl<MyTestNode>());
 
@@ -291,6 +293,7 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
   {
     const ArrayBase *ai2 = &(in2->getData());
     Real64 *idata = (Real64 *)(ai2->getBuffer());
+    ASSERT_EQ(in2->getData().getCount(), 64);
     for (UInt i = 0; i < 64; i++)
       idata[i] = 1;
   }
@@ -305,10 +308,23 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
 
   // Check extraction of first delayed value
   {
-    // This run should also pick up the 10s
+    // This run should also pick up the 10s and move them
+    // into the bottom buffer of the PropogationDelay queue.
+    // The top buffer should be 0's
     net.run(1);
 
-    // confirm that in2 is all zeroes
+    // confirm that the output still contains all 10's
+    // In other words, that our hacked up version of TestNode
+    // did not output anything that would clobber the output buffer.
+    Real64 *idata = (Real64 *)out1->getData().getBuffer();
+    // only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++) {
+      ASSERT_EQ(10, idata[i]);
+    }
+  }
+
+  {
+    // confirm that in2 is all zeroes (the buffer at the top of the queue)
     const ArrayBase *ai2 = &(in2->getData());
     Real64 *idata = (Real64 *)(ai2->getBuffer());
     // only test 4 instead of 64 to cut down on number of tests
@@ -326,6 +342,9 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
 
   // Check extraction of second delayed value
   {
+    // This will move the 100's into the end of the queue
+    // The 10's will then be at the top of the queue.
+    // The 10's are copied to the Input buffer.
     net.run(1);
 
     // confirm that in2 is all zeroes
@@ -335,49 +354,122 @@ TEST(LinkTest, DelayedLinkCapnpSerialization) {
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);
   }
+  
 
-  // We should now have two delayed array values: 10's and 100's
+
+  // At this point:
+  // The current output is all 100's
+  // The current input is all 0's
+  // We should have two delayed array values in queue: 10's and 100's
+  {
+    Link* link = in2->findLink("region1", "bottomUpOut");
+    VERBOSE << "InputLink: " << *link;
+  }
 
   // Serialize the current net
-  std::stringstream ss;
-  net.write(ss);
+  net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream");
+
+  {
+    // Output values should still be all 100's
+    // they were not modified by the save operation.
+    Real64 *idata = (Real64 *)out1->getData().getBuffer();
+    // only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++) {
+      ASSERT_EQ(100, idata[i]);
+    }
+  }
+  
+  // What is serialized in the Delay buffer should be
+  // all 0's for first row and all 10's for the second.
+  // The stored output buffer would be all 100's.
+  // When restored, the first row (all 0's) will be moved to destination input buffer
+  // and the source output buffer (all 100's) would be rolled into bottom of delay buffer.
 
   // De-serialize into a new net2
   Network net2;
-  net2.read(ss);
+  net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream");
 
   net2.initialize();
 
-  region1 = net2.getRegions().getByName("region1");
-  region2 = net2.getRegions().getByName("region2");
+  auto n2region1 = net2.getRegions().getByName("region1");
+  auto n2region2 = net2.getRegions().getByName("region2");
 
-  in2 = region2->getInput("bottomUpIn");
+  Input *n2in1 = n2region1->getInput("bottomUpIn");
+  Input *n2in2 = n2region2->getInput("bottomUpIn");
+  Output *n2out1 = n2region1->getOutput("bottomUpOut");
 
-  // Check extraction of first "generated" value
+  // Make sure that the buffers in the restored network look exactly like the original.
+  ASSERT_TRUE(n2in1->getData() == in1->getData())   << "Deserialized bottomUpIn region1 input buffer does not match";
+  ASSERT_TRUE(n2in2->getData() == in2->getData())   << "Deserialized bottomUpIn region2 does not match";
+  ASSERT_TRUE(n2out1->getData() == out1->getData()) << "Deserialized bottomUpOut region1 does not match";
+  ASSERT_EQ(n2in2->getData().getCount(), 64);
+  
   {
+	  Link* link = n2in2->findLink("region1", "bottomUpOut");
+    VERBOSE << "Input2: " << *link;
+  }
+
+  {
+    // Output values in both networks should be all 100's
+    Real64 *idata = (Real64 *)out1->getData().getBuffer();
+    Real64 *n2idata = (Real64 *)n2out1->getData().getBuffer();
+    // only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++) {
+      ASSERT_EQ(100, idata[i]);
+      ASSERT_EQ(100, n2idata[i]);
+    }
+  }
+
+  {
+    // Input values in both networks should be all 0's
+    Real64 *idata = (Real64 *)in2->getData().getBuffer();
+    Real64 *n2idata = (Real64 *)n2in2->getData().getBuffer();
+    // only test 4 instead of 64 to cut down on number of tests
+    for (UInt i = 0; i < 4; i++) {
+      ASSERT_EQ(0, idata[i]);
+      ASSERT_EQ(0, n2idata[i]);
+    }
+  }
+
+  // The restore looks good..now lets see if we can continue execution.
+  // Check extraction of first "generated" value.
+  {
+  	Link* link = n2in2->findLink("region1", "bottomUpOut");
+    VERBOSE << "Input2: " << *link;
+
+    net.run(1);
     net2.run(1);
 
-    // confirm that in2 is now all 10's
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
+	link = n2in2->findLink("region1", "bottomUpOut");
+    VERBOSE << "Input2: " << *link;
+    // confirm that n2in2 is now all 10's
+	ASSERT_EQ(n2in2->getData().getCount(), 64);
+    Real64 *idata = (Real64 *)in2->getData().getBuffer();
+    Real64 *n2idata = (Real64 *)n2in2->getData().getBuffer();
     // only test 4 instead of 64 to cut down on number of tests
-    for (UInt i = 0; i < 4; i++)
+    for (UInt i = 0; i < 4; i++) {
       ASSERT_EQ(10, idata[i]);
+      ASSERT_EQ(10, n2idata[i]);
+    }
   }
 
   // Check extraction of second "generated" value
   {
+    net.run(1);
     net2.run(1);
 
     // confirm that in2 is now all 100's
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
+    Real64 *idata = (Real64 *)in2->getData().getBuffer();
+    Real64 *n2idata = (Real64 *)n2in2->getData().getBuffer();
     // only test 4 instead of 64 to cut down on number of tests
-    for (UInt i = 0; i < 4; i++)
+    for (UInt i = 0; i < 4; i++) {
       ASSERT_EQ(100, idata[i]);
+      ASSERT_EQ(100, n2idata[i]);
+    }
   }
 
   RegionImplFactory::unregisterCPPRegion("MyTestNode");
+  Directory::removeTree("TestOutputDir");
 }
 
 /**
@@ -393,8 +485,6 @@ public:
 
   TestRegionBase(BundleIO &bundle, Region *region) : RegionImpl(region) {}
 
-  TestRegionBase(capnp::AnyPointer::Reader &proto, Region *region)
-      : RegionImpl(region) {}
 
   virtual ~TestRegionBase() {}
 
@@ -404,14 +494,6 @@ public:
   // De-serialize state. Must be called from deserializing constructor
   void deserialize(BundleIO &bundle) override {}
 
-  // Serialize state with capnp
-  using RegionImpl::write;
-  void write(capnp::AnyPointer::Builder &anyProto) const override {}
-
-  // Deserialize state from capnp. Must be called from deserializing
-  // constructor.
-  using RegionImpl::read;
-  void read(capnp::AnyPointer::Reader &anyProto) override {}
 
   // Execute a command
   std::string executeCommand(const std::vector<std::string> &args,
@@ -473,8 +555,6 @@ public:
   L2TestRegion(BundleIO &bundle, Region *region)
       : TestRegionBase(bundle, region) {}
 
-  L2TestRegion(capnp::AnyPointer::Reader &proto, Region *region)
-      : TestRegionBase(proto, region) {}
 
   virtual ~L2TestRegion() {}
 
@@ -488,7 +568,7 @@ public:
     /* ----- inputs ------- */
     ns->inputs.add("feedForwardIn", InputSpec("Feed-forward input for the node",
                                               NTA_BasicType_UInt64,
-                                              0,     // count. omit?
+                                              0,     // count. wildcard
                                               true,  // required?
                                               false, // isRegionLevel,
                                               false  // isDefaultInput
@@ -496,7 +576,7 @@ public:
 
     ns->inputs.add("lateralIn",
                    InputSpec("Lateral input for the node", NTA_BasicType_UInt64,
-                             0,     // count. omit?
+                             0,     // count. wildcard
                              true,  // required?
                              false, // isRegionLevel,
                              false  // isDefaultInput
@@ -565,9 +645,9 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  const Input *feedForwardIn_;
-  const Input *lateralIn_;
-  const Output *out_;
+  Input *feedForwardIn_;
+  Input *lateralIn_;
+  Output *out_;
 };
 
 class L4TestRegion : public TestRegionBase {
@@ -581,8 +661,6 @@ public:
   L4TestRegion(BundleIO &bundle, Region *region)
       : TestRegionBase(bundle, region), k_(0) {}
 
-  L4TestRegion(capnp::AnyPointer::Reader &proto, Region *region)
-      : TestRegionBase(proto, region), k_(0) {}
 
   virtual ~L4TestRegion() {}
 
@@ -669,8 +747,8 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  const Input *feedbackIn_;
-  const Output *out_;
+  Input *feedbackIn_;
+  Output *out_;
 };
 
 TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {

@@ -35,8 +35,6 @@
 #include <nupic/engine/LinkPolicy.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/proto/LinkProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -51,7 +49,8 @@ class Input;
  * @nosubgrouping
  *
  */
-class Link : public Serializable<LinkProto> {
+class Link
+{
 public:
   /**
    * @name Initialization
@@ -84,9 +83,9 @@ public:
    * Initialization Phase 1: setting parameters of the link.
    *
    * @param linkType
-   *            The type of the link
+   *            The type of the link, normally ""
    * @param linkParams
-   *            The parameters of the link
+   *            The parameters of the link, normally ""
    * @param srcRegionName
    *            The name of the source Region
    * @param destRegionName
@@ -123,10 +122,8 @@ public:
 
   /**
    * De-serialization use case. Creates a "blank" link. The caller must follow
-   * up with Link::read and Link::connectToNetwork
+   * up with Link::deserialize() and Link::connectToNetwork
    *
-   * @param proto
-   *            LinkProto::Reader
    */
   Link();
 
@@ -268,6 +265,14 @@ public:
   const std::string &getDestInputName() const;
 
   /**
+   * Get the propogation Delay.
+   *
+   * @returns
+   *         The propogation Delay.
+   */
+  size_t getPropagationDelay() const { return propagationDelay_; }
+
+  /**
    * @}
    *
    * @name Misc
@@ -395,17 +400,26 @@ public:
    */
   friend std::ostream &operator<<(std::ostream &f, const Link &link);
 
-  using Serializable::write;
-  void write(LinkProto::Builder &proto) const;
+  bool operator==(const Link &o) const;
+  bool operator!=(const Link &o) const { return !operator==(o); }
 
-  using Serializable::read;
-  void read(LinkProto::Reader &proto);
+  /**
+   * Serialize the link using a stream.
+   *
+   * @param f -- The stream to output to.
+   */
+  void serialize(std::ostream &f);
 
-  bool operator==(const Link &other) const;
-  inline bool operator!=(const Link &other) const { return !operator==(other); }
+  /**
+   * Deserialize the link from binary stream.
+   *
+   * @param f -- the stream to read from
+   *
+   */
+  void deserialize(std::istream &f);
 
 private:
-  // common initialization for the two constructors.
+  // common initialization for the two Link constructors.
   void commonConstructorInit_(const std::string &linkType,
                               const std::string &linkParams,
                               const std::string &srcRegionName,

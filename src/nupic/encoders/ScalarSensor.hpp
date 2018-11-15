@@ -30,10 +30,6 @@
 #include <string>
 #include <vector>
 
-// Workaround windows.h collision:
-// https://github.com/sandstorm-io/capnproto/issues/213
-#undef VOID
-#include <capnp/any.h>
 
 #include <nupic/encoders/ScalarEncoder.hpp>
 #include <nupic/engine/RegionImpl.hpp>
@@ -53,7 +49,6 @@ class ScalarSensor : public RegionImpl {
 public:
   ScalarSensor(const ValueMap &params, Region *region);
   ScalarSensor(BundleIO &bundle, Region *region);
-  ScalarSensor(capnp::AnyPointer::Reader &proto, Region *region);
   ScalarSensor();
   virtual ~ScalarSensor() override;
 
@@ -68,10 +63,6 @@ public:
   virtual void serialize(BundleIO &bundle) override;
   virtual void deserialize(BundleIO &bundle) override;
 
-  using Serializable::write;
-  virtual void write(capnp::AnyPointer::Builder &anyProto) const override;
-  using Serializable::read;
-  virtual void read(capnp::AnyPointer::Reader &anyProto) override;
 
   void compute() override;
   virtual std::string executeCommand(const std::vector<std::string> &args,
@@ -83,8 +74,8 @@ public:
 private:
   Real64 sensedValue_;
   ScalarEncoderBase *encoder_;
-  const Output *encodedOutput_;
-  const Output *bucketOutput_;
+  Output *encodedOutput_;
+  Output *bucketOutput_;
 };
 } // namespace nupic
 

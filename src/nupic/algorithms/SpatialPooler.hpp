@@ -27,22 +27,27 @@
 #ifndef NTA_spatial_pooler_HPP
 #define NTA_spatial_pooler_HPP
 
-#include <capnp/message.h>
-#include <cstring>
 #include <iostream>
+#include <vector>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/proto/SpatialPoolerProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
-#include <string>
-#include <vector>
+#include <nupic/types/Serializable.hpp>
 
 using namespace std;
 
 namespace nupic {
 namespace algorithms {
 namespace spatial_pooler {
+
+// force 32bit data types
+// FIXME because of SWIG forced to use typedef, later switch to c++11 using:
+//using Real = nupic::Real32;
+typedef nupic::Real32 Real;
+typedef nupic::UInt32 UInt;
+typedef nupic::Int32 Int;
+
+static const int DISABLED = -1; //value denoting a feature is disabled
 
 /**
  * CLA spatial pooler implementation in C++.
@@ -67,20 +72,22 @@ namespace spatial_pooler {
  *     }
  *
  */
-class SpatialPooler : public Serializable<SpatialPoolerProto> {
+class SpatialPooler : public Serializable
+{
 public:
   SpatialPooler();
-  SpatialPooler(vector<UInt> inputDimensions, vector<UInt> columnDimensions,
-                UInt potentialRadius = 16, Real potentialPct = 0.5,
-                bool globalInhibition = true, Real localAreaDensity = -1.0,
-                UInt numActiveColumnsPerInhArea = 10,
-                UInt stimulusThreshold = 0, Real synPermInactiveDec = 0.008,
-                Real synPermActiveInc = 0.05, Real synPermConnected = 0.1,
-                Real minPctOverlapDutyCycles = 0.001,
-                UInt dutyCyclePeriod = 1000, Real boostStrength = 0.0,
-                Int seed = 1, UInt spVerbosity = 0, bool wrapAround = true);
+  SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
+                UInt potentialRadius = 16u, Real potentialPct = 0.5f,
+                bool globalInhibition = true, Real localAreaDensity = DISABLED,
+                Int numActiveColumnsPerInhArea = 10u,
+                UInt stimulusThreshold = 0u, Real synPermInactiveDec = 0.008f,
+                Real synPermActiveInc = 0.05f, Real synPermConnected = 0.1f,
+                Real minPctOverlapDutyCycles = 0.001f,
+                UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
+                Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true);
 
   virtual ~SpatialPooler() {}
+
 
   /**
   Initialize the spatial pooler using the given parameters.
@@ -132,13 +139,12 @@ public:
         pools of all columns). The inhibition logic will insure that at
         most N columns remain ON within a local inhibition area, where
         N = localAreaDensity * (total number of columns in inhibition
-        area). If localAreaDensity is set to a negative value output
-        sparsity will be determined by the numActivePerInhArea.
+        area). 
+	If localAreaDensity is set to any value less than  0, 
+	output sparsity will be determined by the numActivePerInhArea.
 
   @param numActiveColumnsPerInhArea An alternate way to control the sparsity of
-        active columns. If numActivePerInhArea is specified then
-        localAreaDensity must be less than 0, and vice versa. When
-        numActivePerInhArea > 0, the inhibition logic will insure that
+        active columns. When numActivePerInhArea > 0, the inhibition logic will insure that
         at most 'numActivePerInhArea' columns remain ON within a local
         inhibition area (the size of which is set by the internally
         calculated inhibitionRadius). When using this method, as columns
@@ -148,6 +154,8 @@ public:
         localAreaDensity method, which keeps the density of active
         columns the same regardless of the size of their receptive
         fields.
+	If numActivePerInhArea is specified then 
+	localAreaDensity must be < 0, and vice versa.
 
   @param stimulusThreshold This is a number specifying the minimum
         number of synapses that must be active in order for a column to
@@ -204,14 +212,14 @@ public:
 
    */
   virtual void
-  initialize(vector<UInt> inputDimensions, vector<UInt> columnDimensions,
-             UInt potentialRadius = 16, Real potentialPct = 0.5,
-             bool globalInhibition = true, Real localAreaDensity = -1.0,
-             UInt numActiveColumnsPerInhArea = 10, UInt stimulusThreshold = 0,
-             Real synPermInactiveDec = 0.01, Real synPermActiveInc = 0.1,
-             Real synPermConnected = 0.1, Real minPctOverlapDutyCycles = 0.001,
-             UInt dutyCyclePeriod = 1000, Real boostStrength = 0.0,
-             Int seed = 1, UInt spVerbosity = 0, bool wrapAround = true);
+  initialize(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
+             UInt potentialRadius = 16u, Real potentialPct = 0.5f,
+             bool globalInhibition = true, Real localAreaDensity = DISABLED,
+             Int numActiveColumnsPerInhArea = 10u, UInt stimulusThreshold = 0u,
+             Real synPermInactiveDec = 0.01f, Real synPermActiveInc = 0.1f,
+             Real synPermConnected = 0.1f, Real minPctOverlapDutyCycles = 0.001f,
+             UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
+             Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true);
 
   /**
   This is the main workshorse method of the SpatialPooler class. This
@@ -244,7 +252,7 @@ public:
         multi-dimensional, activeVector represents a flattened array
         of outputs.
    */
-  virtual void compute(UInt inputVector[], bool learn, UInt activeVector[]);
+  virtual void compute(const UInt inputVector[], bool learn, UInt activeVector[]);
 
   /**
    Removes the set of columns who have never been active from the set
@@ -271,10 +279,8 @@ public:
 
   @param fd A valid file descriptor.
    */
-  virtual void save(ostream &outStream) const;
+  virtual void save(ostream &outStream) const override;
 
-  using Serializable::write;
-  virtual void write(SpatialPoolerProto::Builder &proto) const override;
 
   /**
   Load (deserialize) and initialize the spatial pooler from the
@@ -282,10 +288,8 @@ public:
 
   @param inStream A valid istream.
    */
-  virtual void load(istream &inStream);
+  virtual void load(istream &inStream) override;
 
-  using Serializable::read;
-  virtual void read(SpatialPoolerProto::Reader &proto) override;
 
   /**
   Returns the number of bytes that a save operation would result in.
@@ -368,13 +372,13 @@ public:
   Returns the number of active columns per inhibition area.
 
   @returns integer number of active columns per inhbition area, Returns a
-  value less than 0 if parameter is unuse.
+  value less than 0 if parameter is unused.
   */
   Int getNumActiveColumnsPerInhArea() const;
 
   /**
-  Sets the number of active columns per inhibition area. Invalidates the
-  'localAreaDensity' parameter.
+  Sets the number of active columns per inhibition area. 
+  Invalidates the 'localAreaDensity' parameter.
 
   @param numActiveColumnsPerInhArea integer number of active columns per
   inhibition area.
@@ -383,7 +387,7 @@ public:
 
   /**
   Returns the local area density. Returns a value less than 0 if parameter
-  is unused".
+  is unused.
 
   @returns real number of local area density.
   */
@@ -391,8 +395,7 @@ public:
 
   /**
   Sets the local area density. Invalidates the 'numActivePerInhArea'
-  parameter".
-
+  parameter.
   @param localAreaDensity real number of local area density.
   */
   void setLocalAreaDensity(Real localAreaDensity);
@@ -663,7 +666,7 @@ public:
   @param overlapDutyCycles real array of the overlap duty cycles for all
   columns.
   */
-  void setOverlapDutyCycles(Real overlapDutyCycles[]);
+  void setOverlapDutyCycles(const Real overlapDutyCycles[]);
 
   /**
   Returns the activity duty cycles for all columns. 'activeDutyCycles'
@@ -680,7 +683,7 @@ public:
   @param activeDutyCycles real array of the activity duty cycles for all
   columns.
   */
-  void setActiveDutyCycles(Real activeDutyCycles[]);
+  void setActiveDutyCycles(const Real activeDutyCycles[]);
 
   /**
   Returns the minimum overlap duty cycles for all columns.
@@ -696,7 +699,7 @@ public:
   @param minOverlapDutyCycles real array of the minimum overlap duty cycles for
   all columns.
   */
-  void setMinOverlapDutyCycles(Real minOverlapDutyCycles[]);
+  void setMinOverlapDutyCycles(const Real minOverlapDutyCycles[]);
 
   /**
   Returns the potential mapping for a given column. 'potential' size
@@ -715,7 +718,7 @@ public:
 
   @param potential integer array of potential mapping for the selected column.
   */
-  void setPotential(UInt column, UInt potential[]);
+  void setPotential(UInt column, const UInt potential[]);
 
   /**
   Returns the permanence values for a given column. 'permanence' size
@@ -735,7 +738,7 @@ public:
 
   @param permanence real array of permanence values for the selected column.
   */
-  void setPermanence(UInt column, Real permanence[]);
+  void setPermanence(UInt column, const Real permanence[]);
 
   /**
   Returns the connected synapses for a given column.
@@ -777,9 +780,8 @@ public:
   // Implementation methods. all methods below this line are
   // NOT part of the public API
 
-  void toDense_(vector<UInt> &sparse, UInt dense[], UInt n);
 
-  void boostOverlaps_(vector<UInt> &overlaps, vector<Real> &boostedOverlaps);
+  void boostOverlaps_(const vector<UInt> &overlaps, vector<Real> &boostedOverlaps) const;
 
   /**
     Maps a column to its respective input index, keeping to the topology of
@@ -801,7 +803,7 @@ public:
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
   */
-  UInt mapColumn_(UInt column);
+  UInt mapColumn_(UInt column) const;
 
   /**
     Maps a column to its input bits.
@@ -872,8 +874,9 @@ public:
     @param connectedPct   A real value between 0 or 1 specifying the percent of
     the input bits that will start off in a connected state.
   */
-  vector<Real> initPermanence_(vector<UInt> &potential, Real connectedPct);
-  void clip_(vector<Real> &perm, bool trim);
+  vector<Real> initPermanence_(const vector<UInt> &potential, Real connectedPct);
+
+  void clip_(vector<Real> &perm, bool trim = false) const;
 
   /**
       This method updates the permanence matrix with a column's new permanence
@@ -906,9 +909,9 @@ public:
   */
   void updatePermanencesForColumn_(vector<Real> &perm, UInt column,
                                    bool raisePerm = true);
-  UInt countConnected_(vector<Real> &perm);
+  UInt countConnected_(const vector<Real> &perm) const;
   UInt raisePermanencesToThreshold_(vector<Real> &perm,
-                                    vector<UInt> &potential);
+                                    const vector<UInt> &potential) const;
 
   /**
      This function determines each column's overlap with the current
@@ -930,13 +933,8 @@ public:
      a "connected state" (connected synapses) that are connected to
      input bits which are turned on.
   */
-  void calculateOverlap_(UInt inputVector[], vector<UInt> &overlap);
-  void calculateOverlapPct_(vector<UInt> &overlaps, vector<Real> &overlapPct);
-
-  bool isWinner_(const Real score, const vector<pair<UInt, Real>> &winners,
-                 const UInt numWinners) const;
-
-  void addToWinners_(const UInt index, const Real score, vector<pair<UInt, Real>> &winners) const;
+  void calculateOverlap_(const UInt inputVector[], vector<UInt> &overlap) const;
+  void calculateOverlapPct_(const vector<UInt> &overlaps, vector<Real> &overlapPct) const;
 
   /**
       Performs inhibition. This method calculates the necessary values needed to
@@ -953,7 +951,7 @@ public:
      columns.
   */
   void inhibitColumns_(const vector<Real> &overlaps,
-                       vector<UInt> &activeColumns);
+                       vector<UInt> &activeColumns) const;
 
   /**
      Perform global inhibition.
@@ -977,7 +975,7 @@ public:
      an int array containing the indices of the active columns.
   */
   void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
-                             vector<UInt> &activeColumns);
+                             vector<UInt> &activeColumns) const;
 
   /**
      Performs local inhibition.
@@ -1006,7 +1004,7 @@ public:
      an int array containing the indices of the active columns.
   */
   void inhibitColumnsLocal_(const vector<Real> &overlaps, Real density,
-                            vector<UInt> &activeColumns);
+                            vector<UInt> &activeColumns) const;
 
   /**
       The primary method in charge of learning.
@@ -1024,8 +1022,8 @@ public:
 
       @param  activeColumns  an int vector containing the indices of the columns
      that survived inhibition.
-            */
-  void adaptSynapses_(UInt inputVector[], vector<UInt> &activeColumns);
+   */
+  void adaptSynapses_(const UInt inputVector[], const vector<UInt> &activeColumns);
 
   /**
       This method increases the permanence values of synapses of columns whose
@@ -1056,7 +1054,7 @@ public:
 
       @returns real number of the average number of columns per input.
   */
-  Real avgColumnsPerInput_();
+  Real avgColumnsPerInput_() const;
 
   /**
       The range of connected synapses for column. This is used to
@@ -1066,7 +1064,7 @@ public:
       @param column An int number identifying a column in the permanence,
      potential and connectivity matrices.
   */
-  Real avgConnectedSpanForColumn1D_(UInt column);
+  Real avgConnectedSpanForColumn1D_(UInt column) const;
 
   /**
       The range of connectedSynapses per column, averaged for each dimension.
@@ -1076,7 +1074,7 @@ public:
       @param column An int number identifying a column in the permanence,
      potential and connectivity matrices.
   */
-  Real avgConnectedSpanForColumn2D_(UInt column);
+  Real avgConnectedSpanForColumn2D_(UInt column) const;
 
   /**
       The range of connectedSynapses per column, averaged for each dimension.
@@ -1086,7 +1084,7 @@ public:
       @param column An int number identifying a column in the permanence,
      potential and connectivity matrices.
   */
-  Real avgConnectedSpanForColumnND_(UInt column);
+  Real avgConnectedSpanForColumnND_(UInt column) const;
 
   /**
       Updates the minimum duty cycles defining normal activity for a column. A
@@ -1137,7 +1135,7 @@ public:
       @param period         A int number indicating the period of the duty cycle
   */
   static void updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                      vector<UInt> &newValues, UInt period);
+                                      const vector<UInt> &newValues, UInt period);
 
   /**
   Updates the duty cycles for each column. The OVERLAP duty cycle is a moving
@@ -1153,7 +1151,7 @@ public:
   @param activeArray  An int array containing the indices of the active columns,
                   the sprase set of columns which survived inhibition
   */
-  void updateDutyCycles_(vector<UInt> &overlaps, UInt activeArray[]);
+  void updateDutyCycles_(const vector<UInt> &overlaps, const UInt activeArray[]);
 
   /**
     Update the boost factors for all columns. The boost factors are used to
@@ -1215,14 +1213,7 @@ public:
   @returns boolean value indicating whether enough rounds have passed to warrant
   updates of duty cycles
   */
-  bool isUpdateRound_();
-
-  /**
-  Initialize the random seed
-
-  @param seed 64bit int of random seed
-  */
-  void seed_(UInt64 seed);
+  bool isUpdateRound_() const;
 
   //-------------------------------------------------------------------
   // Debugging helpers
@@ -1247,6 +1238,7 @@ protected:
   Real initConnectedPct_;
   bool globalInhibition_;
   Int numActiveColumnsPerInhArea_;
+  const Real MAX_LOCALAREADENSITY = 0.5f; //require atleast 2 areas
   Real localAreaDensity_;
   UInt stimulusThreshold_;
   UInt inhibitionRadius_;
@@ -1258,8 +1250,8 @@ protected:
   bool wrapAround_;
   UInt updatePeriod_;
 
-  Real synPermMin_;
-  Real synPermMax_;
+  Real synPermMin_ = 0.0f;
+  Real synPermMax_ = 1.0f; //TODO set in initialize(), somehow OSX does not set that?!
   Real synPermTrimThreshold_;
   Real synPermInactiveDec_;
   Real synPermActiveInc_;

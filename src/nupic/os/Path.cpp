@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -23,37 +23,29 @@
 /** @file
  */
 
-#include <boost/scoped_array.hpp>
-#include <boost/tokenizer.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/FStream.hpp>
+#include <nupic/os/Directory.hpp> // also includes <filesystem> or <experimental/filesystem>
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
-
-#include <apr-1/apr.h>
-#include <iterator>
+#include <nupic/utils/StringUtils.hpp>  // for trim
+#include <algorithm> // replace()
 #include <sstream>
-
-#if defined(NTA_OS_WINDOWS)
-extern "C" {
-#include <apr-1/arch/win32/apr_arch_utf8.h>
-}
-#include <windows.h>
-#else
+#include <string>
+#include <iterator>
+#include  <stdio.h>
+#include  <stdlib.h>
 #include <fstream>
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#if defined(NTA_OS_DARWIN)
-#include <mach-o/dyld.h> // _NSGetExecutablePath
+#if defined(NTA_OS_WINDOWS)
+  #include  <io.h>
 #else
-// linux
-#include <unistd.h> // readlink
+  #include <sys/stat.h>
+  #include <unistd.h>
 #endif
-#endif
+
 
 namespace nupic {
+
+const char *Path::parDir = "..";
 #if defined(NTA_OS_WINDOWS)
 const char *Path::sep = "\\";
 const char *Path::pathSep = ";";
@@ -61,281 +53,146 @@ const char *Path::pathSep = ";";
 const char *Path::sep = "/";
 const char *Path::pathSep = ":";
 #endif
-const char *Path::parDir = "..";
 
-Path::Path(std::string path) : path_(std::move(path)) {}
+bool Path::exists(const std::string &path) { return fs::exists(path); }
 
-static apr_status_t getInfo(const std::string &path, apr_int32_t wanted,
-                            apr_finfo_t &info) {
-  NTA_CHECK(!path.empty()) << "Can't get the info of an empty path";
-
-  apr_status_t res;
-  apr_pool_t *pool = nullptr;
-
-#if defined(NTA_OS_WINDOWS)
-  res = ::apr_pool_create(&pool, NULL);
-  if (res != APR_SUCCESS) {
-    NTA_WARN << "Internal error: unable to create APR pool when getting info "
-                "on path '"
-             << path << "'";
-  }
-#endif
-
-  res = ::apr_stat(&info, path.c_str(), wanted, pool);
-
-#if defined(NTA_OS_WINDOWS)
-  ::apr_pool_destroy(pool);
-#endif
-
-  return res;
+bool Path::equals(const std::string &path1, const std::string &path2) {
+  std::string s1 = normalize(path1);
+  std::string s2 = normalize(path2);
+  return (s1 == s2);
 }
 
-bool Path::exists(const std::string &path) {
-  if (path.empty())
-    return false;
-
-  apr_finfo_t st;
-  apr_status_t res = getInfo(path, APR_FINFO_TYPE, st);
-  return res == APR_SUCCESS;
-}
-
-static apr_filetype_e getType(const std::string &path, bool check = true) {
-  apr_finfo_t st;
-  apr_status_t res = getInfo(path, APR_FINFO_TYPE, st);
-  if (check) {
-    NTA_CHECK(res == APR_SUCCESS)
-        << "Can't get info for '" << path << "', " << OS::getErrorMessage();
-  }
-
-  return st.filetype;
-}
-
-bool Path::isFile(const std::string &path) {
-  return getType(path, false) == APR_REG;
-}
+bool Path::isFile(const std::string &path) { return fs::is_regular_file(path); }
 
 bool Path::isDirectory(const std::string &path) {
-  return getType(path) == APR_DIR;
+  return fs::is_directory(path);
 }
 
 bool Path::isSymbolicLink(const std::string &path) {
-  return getType(path) == APR_LNK;
+  return fs::is_symlink(path);
 }
 
 bool Path::isAbsolute(const std::string &path) {
-  NTA_CHECK(!path.empty()) << "Empty path is invalid";
 #if defined(NTA_OS_WINDOWS)
-  if (path.size() < 2)
-    return false;
-  else {
-    bool local = ::isalpha(path[0]) && path[1] == ':';
-    bool unc = path.size() > 2 && path[0] == '\\' && path[1] == '\\';
-    return local || unc;
-  }
-
-#else
-  return path[0] == '/';
+  // TODO: it is unclear what is_absolute() returns in Windows so do our own.
+  if (path.length() == 2 && isalpha(path[0]) && path[1] == ':')
+    return true; //  c:
+  if (path.length() >= 3 && path[0] == '\\' && path[1] == '\\' &&
+      isalpha(path[3]))
+    return true; // \\net
 #endif
+  return fs::path(path).is_absolute();
 }
 
 bool Path::areEquivalent(const std::string &path1, const std::string &path2) {
-  apr_finfo_t st1;
-  apr_finfo_t st2;
-  apr_int32_t wanted = APR_FINFO_IDENT;
-
-  apr_status_t s;
-  s = getInfo(path1.c_str(), wanted, st1);
-  // If either of the paths does not exist, then we say they are not equivalent
-  if (s != APR_SUCCESS)
+  fs::path p1(path1);
+  fs::path p2(path2);
+  if (!fs::exists(p1) || !fs::exists(p2))
     return false;
-
-  s = getInfo(path2.c_str(), wanted, st2);
-  if (s != APR_SUCCESS)
-    return false;
-
-  bool res = true;
-  res &= st1.device == st2.device;
-  res &= st1.inode == st2.inode;
-  // We do not require the names to match. Could be a hard link.
-  // res &= std::string(st1.fname) == std::string(st2.fname);
-
-  return res;
+  // must resolve to the same existing filesystem and file entry to match.
+  return fs::equivalent(p1, p2);
 }
 
-std::string Path::getParent(const std::string &path) {
-  if (path == "")
-    return "";
-
-  std::string np = Path::normalize(path);
-  Path::StringVec sv = Path::split(np);
-  sv.push_back("..");
-
-  return Path::normalize(Path::join(sv.begin(), sv.end()));
-}
-
-std::string Path::getBasename(const std::string &path) {
-  std::string::size_type index = path.find_last_of(Path::sep);
-
-  if (index == std::string::npos)
-    return path;
-
-  return path.substr(index + 1);
+std::string Path::getParent(std::string path) {
+  //std::cerr << "Initial Path " << path << std::endl;
+  path = normalize(path);
+  //std::cerr << "Normalized Path " << path << std::endl;
+  if (path.empty() || path == ".") return "..";
+  if (path.length() >= 2 && path.substr(path.length() - 2) == "..") {
+    return (path + std::string(Path::sep) + "..");
+  }
+  fs::path p(path);
+  if (p.root_path() == p) return p.string();
+  if (p.string().back() == Path::sep[0])
+    p = p.parent_path(); // remove trailing sep if not root
+  p = p.parent_path();
+  //std::cerr << "Parent Path " << p << std::endl;
+  if (p.empty())
+    return ".";
+  return p.string();
 }
 
 std::string Path::getExtension(const std::string &path) {
-  std::string basename = Path::getBasename(path);
-  std::string::size_type index = basename.find_last_of('.');
-
-  // If its a  regular or hidden filenames with no extension
-  // return an empty string
-  if (index == std::string::npos ||   // regular filename with no ext
-      index == 0 ||                   // hidden file (starts with a '.')
-      index == basename.length() - 1) // filename ends with a dot
-    return "";
-
-  // Don't include the dot, just the extension itself (unlike Python)
-  return std::string(basename.c_str() + index + 1,
-                     basename.length() - index - 1);
-}
-
-Size Path::getFileSize(const std::string &path) {
-  apr_finfo_t st;
-  apr_int32_t wanted = APR_FINFO_TYPE | APR_FINFO_SIZE;
-  apr_status_t res = getInfo(path.c_str(), wanted, st);
-  NTA_CHECK(res == APR_SUCCESS);
-  NTA_CHECK(st.filetype == APR_REG)
-      << "Can't get the size of a non-file object";
-
-  return (Size)st.size;
-}
-
-std::string Path::normalize(const std::string &path) {
-  // Easiest way is: split, then remove "." and remove a/.. (but not ../.. !)
-  // This does not get a/b/../.. so if we remove a/.., go through the string
-  // again Also need to treat rootdir/.. specially Also normalize(foo/..) -> "."
-  // but normalize(foo/bar/..) -> "foo"
-  StringVec v = Path::split(path);
-  if (v.size() == 0)
-    return "";
-
-  StringVec outv;
-  bool doAgain = true;
-  while (doAgain) {
-    doAgain = false;
-    for (unsigned int i = 0; i < v.size(); i++) {
-      if (v[i] == "")
-        continue; // remove empty fields
-      if (v[i] == "." && v.size() > 1)
-        continue; // skip "." unless it is by itself
-      if (i == 0 && isRootdir(v[i]) && i + 1 < v.size() && v[i + 1] == "..") {
-        // <root>/.. -> <root>
-        outv.push_back(v[i]);
-        i++; // skipped following ".."
-        doAgain = true;
-        continue;
-      }
-      // remove "foo/.."
-      if (i + 1 < v.size() && v[i] != ".." && v[i + 1] == "..") {
-        // but as a special case, if the full path is "foo/.." return "."
-        if (v.size() == 2)
-          return ".";
-        i++;
-        doAgain = true;
-        continue;
-      }
-      outv.push_back(v[i]);
-    }
-    if (doAgain) {
-      v = outv;
-      outv.clear();
-    }
-  }
-  return Path::join(outv.begin(), outv.end());
-}
-
-std::string Path::makeAbsolute(const std::string &path) {
-  if (Path::isAbsolute(path))
+  if (path.empty())
     return path;
-
-  std::string cwd = Directory::getCWD();
-  // If its already absolute just return the original path
-  if (::strncmp(cwd.c_str(), path.c_str(), cwd.length()) == 0)
-    return path;
-
-  // Get rid of trailing separators if any
-  if (path.find_last_of(Path::sep) == path.length() - 1) {
-    cwd = std::string(cwd.c_str(), cwd.length() - 1);
-  }
-  // join the cwd to the path and return it (handle duplicate separators)
-  std::string result = cwd;
-  if (path.find_first_of(Path::sep) == 0) {
-    return cwd + path;
-  } else {
-    return cwd + Path::sep + path;
-  }
-
+  fs::path p(path);
+  if (p.has_extension())
+    return p.extension().string().substr(1); // do not include the .
   return "";
 }
 
-#if defined(NTA_OS_WINDOWS)
-std::string Path::unicodeToUtf8(const std::wstring &path) {
-  // Assume the worst we can do is have 6 UTF-8 bytes per unicode
-  //  character.
-  apr_size_t tmpNameSize = path.size() * 6 + 1;
-
-  // Store buffer in a boost::scoped_array so it gets cleaned up for us.
-  boost::scoped_array<char> tmpNameBuf;
-  char *tmpNameP = new char[tmpNameSize];
-  tmpNameBuf.reset(tmpNameP);
-
-  apr_size_t inWords = path.size() + 1;
-  apr_size_t outChars = tmpNameSize;
-
-  apr_status_t result = ::apr_conv_ucs2_to_utf8((apr_wchar_t *)path.c_str(),
-                                                &inWords, tmpNameP, &outChars);
-  if (result != 0 || inWords != 0) {
-    std::stringstream ss;
-    ss << "Path::unicodeToUtf8() - error converting path to UTF-8:" << std::endl
-       << "error code: " << result;
-    NTA_THROW << ss.str();
-  }
-
-  return std::string(tmpNameP);
+Size Path::getFileSize(const std::string &path) {
+  return (Size)fs::file_size(path);
 }
 
-std::wstring Path::utf8ToUnicode(const std::string &path) {
-  // Assume the number of unicode characters is <= number of UTF-8 bytes.
-  apr_size_t tmpNameSize = path.size() + 1;
 
-  // Store buffer in a boost::scoped_array so it gets cleaned up for us.
-  boost::scoped_array<wchar_t> tmpNameBuf;
-  wchar_t *tmpNameP = new wchar_t[tmpNameSize];
-  tmpNameBuf.reset(tmpNameP);
+/**
+ *  A path can be normalized by following this algorithm:  (from C++17 std::filesystem::path)
+ *      1) If the path is empty, stop (normal form of an empty path is an empty path)
+ *      2) Replace each directory-separator (which may consist of multiple slashes) with a single path::preferred_separator.
+ *      3) Replace each slash character in the root-name with path::preferred_separator.
+ *      4) Remove each dot and any immediately following directory-separator.
+ *      5) Remove each non-dot-dot filename immediately followed by a directory-separator and a dot-dot, along with any immediately following directory-separator.
+ *      6) If there is root-directory, remove all dot-dots and any directory-separators immediately following them.
+ *      7) If the last filename is dot-dot, remove any trailing directory-separator.
+ *      8) If the path is empty, add a dot (normal form of ./ is .)
+ *
+ * TODO: I expected to use fs::system_complete() or fs::canonical()
+ *       for this but it requires the path to exist.
+ *       The function path.lexically_normal() does the job perfectly
+ *       but it is not available in boost or <experimental/filesystem>
+ *       So for now we roll our own version.
+ *       Replace this when everyone is using C++17 or better.
+ */
+std::string Path::normalize(const std::string &path) {
+  std::string trimmed_path = StringUtils::trim(path);
+  if (trimmed_path.empty()) return ".";
+  std::replace(trimmed_path.begin(), trimmed_path.end(), '\\', '/'); // in-place replace
+  fs::path p(trimmed_path);
+  //  p = p.lexically_normal();
+  //  if (p.string().back() == Path::sep[0])
+  //    p = p.parent_path(); // remove trailing sep if not root
+  //  return p.string();
 
-  apr_size_t inBytes = path.size() + 1;
-  apr_size_t outWords = tmpNameSize;
-
-  apr_status_t result = ::apr_conv_utf8_to_ucs2(
-      path.c_str(), &inBytes, (apr_wchar_t *)tmpNameP, &outWords);
-  if (result != 0 || inBytes != 0) {
-    char errBuffer[1024];
-    std::stringstream ss;
-    ss << "Path::utf8ToUnicode() - error converting path to Unicode"
-       << std::endl
-       << ::apr_strerror(result, errBuffer, 1024);
-
-    NTA_THROW << ss.str();
+  std::vector<std::string> normal_p;
+  // iterate the path and build a list of path elements.
+  fs::path::iterator iter = p.begin();
+  if (p.has_root_name()) normal_p.push_back((iter++)->string());
+  if (p.has_root_path()) normal_p.push_back((iter++)->string());
+  size_t j = normal_p.size();  // minimum size.
+  for ( ; iter != p.end(); iter++) {
+  	std::string ele = StringUtils::trim(iter->string());
+    if (ele == "." || ele == "") continue;
+    if (ele == ".." && normal_p.size() > j && normal_p.back() != "..") {
+      normal_p.pop_back();
+      continue;
+	}
+	normal_p.push_back(ele);
   }
+  fs::path new_p;
+  for(auto& ele : normal_p) {
+  	new_p /= ele;
+  }
+  new_p = new_p.make_preferred();
+  std::string result = new_p.string();
+  return result;
 
-  return std::wstring(tmpNameP);
 }
-#endif
+
+
+std::string Path::makeAbsolute(const std::string &path) {
+  return fs::absolute(path).string();
+}
+
+
+// unicodeToUtf8() and utf8ToUnicode() moved to StringUtil.cpp
 
 Path::StringVec Path::split(const std::string &path) {
   /**
    * Don't use boost::tokenizer because we need to handle the prefix specially.
    * Handling the prefix is messy on windows, but this is the only place we have
    * to do it
+   * TODO: replace this with filesystem iterator if it does the right thing.
    */
   StringVec parts;
   std::string::size_type curpos = 0;
@@ -408,29 +265,30 @@ Path::StringVec Path::split(const std::string &path) {
   return parts;
 }
 
-bool Path::isPrefix(const std::string &s) {
-#if defined(NTA_OS_WINDOWS)
-  size_t len = s.length();
-  if (len < 2)
-    return false;
-  if (len == 2)
-    return ::isalpha(s[0]) && s[1] == ':';
-  else if (len == 3) {
-    bool localPrefix = ::isalpha(s[0]) && s[1] == ':' && s[2] == '\\';
-    bool uncPrefix = s[0] == '\\' && s[1] == '\\' && ::isalpha(s[2]);
+std::string Path::getBasename(const std::string &path) {
+  std::string name = "";
+  if (!path.empty()) {
+    char last_ch = path[path.length() - 1];
+    if (last_ch == '/' || last_ch == '\\')
+      name = ".";
+    else {
+      fs::path p(path);
+      if (p.has_filename())
+        name = p.filename().string();
+    }
+  }
+  //std::cerr << "Basename of " << path << " is " << name << std::endl;
 
-    return localPrefix || uncPrefix;
-  } else // len > 3
-    return s[0] == '\\' && s[1] == '\\' && ::isalpha(s[2]);
-#else
-  return s == "/";
-#endif
+  return name;
 }
 
+
+// determine if it is something like  C:\ on windows or / or linux. or perhaps //hostname
 bool Path::isRootdir(const std::string &s) {
-  // redundant test on unix, but second test covers windows
-  return isPrefix(s);
+  fs::path p(s);
+  return (p.root_path().string() == s);
 }
+
 
 std::string Path::join(StringVec::const_iterator begin,
                        StringVec::const_iterator end) {
@@ -463,229 +321,6 @@ std::string Path::join(StringVec::const_iterator begin,
   return path;
 }
 
-void Path::copy(const std::string &source, const std::string &destination) {
-  NTA_CHECK(!source.empty()) << "Can't copy from an empty source";
-
-  NTA_CHECK(!destination.empty()) << "Can't copy to an empty destination";
-
-  NTA_CHECK(source != destination)
-      << "Source and destination must be different";
-
-  if (isDirectory(source)) {
-    Directory::copyTree(source, destination);
-    return;
-  }
-
-  // The target is always a filename. The input destination
-  // Can be either a directory or a filename. If the destination
-  // doesn't exist it is treated as a filename.
-  std::string target(destination);
-  if (Path::exists(destination) && isDirectory(destination))
-    target =
-        Path::normalize(Path::join(destination, Path::getBasename(source)));
-
-  bool success = true;
-#if defined(NTA_OS_WINDOWS)
-
-  // Must remove read-only or hidden files before copy
-  // because they cannot be overwritten. For simplicity
-  // I just always remove if it exists.
-  if (Path::exists(target))
-    Path::remove(target);
-
-  // This will quietly overwrite the destination file if it exists
-  std::wstring wsource(utf8ToUnicode(source));
-  std::wstring wtarget(utf8ToUnicode(target));
-  BOOL res = ::CopyFileW(wsource.c_str(), wtarget.c_str(), FALSE);
-
-  success = res != FALSE;
-#else
-
-  try {
-    OFStream out(target.c_str());
-    out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-    UInt64 size = Path::getFileSize(source);
-    if (size) {
-      IFStream in(source.c_str());
-      if (out.fail()) {
-        std::cout << OS::getErrorMessage() << std::endl;
-      }
-      in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-      out << in.rdbuf();
-    }
-  } catch (std::exception &e) {
-    std::cerr << "Path::copy('" << source << "', '" << target
-              << "'): " << e.what() << std::endl;
-  } catch (...) {
-    success = false;
-  }
-#endif
-  if (!success)
-    NTA_THROW << "Path::copy() - failed copying file " << source << " to "
-              << destination << " os error: " << OS::getErrorMessage();
-}
-
-void Path::setPermissions(const std::string &path, bool userRead,
-                          bool userWrite, bool groupRead, bool groupWrite,
-                          bool otherRead, bool otherWrite) {
-
-  if (Path::isDirectory(path)) {
-    Directory::Iterator iter(path);
-    Directory::Entry e;
-    while (iter.next(e)) {
-      std::string sub = Path::join(path, e.path);
-      setPermissions(sub, userRead, userWrite, groupRead, groupWrite, otherRead,
-                     otherWrite);
-    }
-  }
-
-#if defined(NTA_OS_WINDOWS)
-  int countFailure = 0;
-  std::wstring wpath(utf8ToUnicode(path));
-  DWORD attr = GetFileAttributesW(wpath.c_str());
-  if (attr != INVALID_FILE_ATTRIBUTES) {
-    if (userWrite)
-      attr &= ~FILE_ATTRIBUTE_READONLY;
-    BOOL res = SetFileAttributesW(wpath.c_str(), attr);
-    if (!res) {
-      NTA_WARN << "Path::setPermissions: Failed to set attributes for " << path;
-      ++countFailure;
-    }
-  } else {
-    NTA_WARN << "Path::setPermissions: Failed to get attributes for " << path;
-    ++countFailure;
-  }
-
-  if (countFailure > 0) {
-    NTA_THROW << "Path::setPermissions failed for " << path;
-  }
-
-#else
-
-  mode_t mode = 0;
-  if (userRead)
-    mode |= S_IRUSR;
-  if (userWrite)
-    mode |= S_IRUSR;
-  if (groupRead)
-    mode |= S_IRGRP;
-  if (groupWrite)
-    mode |= S_IWGRP;
-  if (otherRead)
-    mode |= S_IROTH;
-  if (otherWrite)
-    mode |= S_IWOTH;
-  chmod(path.c_str(), mode);
-
-#endif
-}
-
-void Path::remove(const std::string &path) {
-  NTA_CHECK(!path.empty()) << "Can't remove an empty path";
-
-  // Just return if it doesn't exist already
-  if (!Path::exists(path))
-    return;
-
-  if (isDirectory(path)) {
-    Directory::removeTree(path);
-    return;
-  }
-
-#if defined(NTA_OS_WINDOWS)
-  std::wstring wpath(utf8ToUnicode(path));
-  BOOL res = ::DeleteFileW(wpath.c_str());
-  if (res == FALSE)
-    NTA_THROW << "Path::remove() -- unable to delete '" << path
-              << "' error message: " << OS::getErrorMessage();
-#else
-  int res = ::remove(path.c_str());
-  if (res != 0)
-    NTA_THROW << "Path::remove() -- unable to delete '" << path
-              << "' error message: " << OS::getErrorMessage();
-#endif
-}
-
-void Path::rename(const std::string &oldPath, const std::string &newPath) {
-  NTA_CHECK(!oldPath.empty() && !newPath.empty())
-      << "Can't rename to/from empty path";
-#if defined(NTA_OS_WINDOWS)
-  std::wstring wOldPath(utf8ToUnicode(oldPath));
-  std::wstring wNewPath(utf8ToUnicode(newPath));
-  BOOL res = ::MoveFileW(wOldPath.c_str(), wNewPath.c_str());
-  if (res == FALSE)
-    NTA_THROW << "Path::rename() -- unable to rename '" << oldPath << "' to '"
-              << newPath << "' error message: " << OS::getErrorMessage();
-#else
-  int res = ::rename(oldPath.c_str(), newPath.c_str());
-  if (res == -1)
-    NTA_THROW << "Path::rename() -- unable to rename '" << oldPath << "' to '"
-              << newPath << "' error message: " << OS::getErrorMessage();
-#endif
-}
-
-Path::operator const char *() const { return path_.c_str(); }
-
-Path &Path::operator+=(const Path &path) {
-  Path::StringVec sv;
-  sv.push_back(std::string(path_));
-  sv.push_back(std::string(path.path_));
-  path_ = Path::join(sv.begin(), sv.end());
-  return *this;
-}
-
-bool Path::operator==(const Path &other) {
-  return Path::normalize(path_) == Path::normalize(other.path_);
-}
-
-Path Path::getParent() const { return Path::getParent(path_); }
-
-Path Path::getBasename() const { return Path::getBasename(path_); }
-
-Path Path::getExtension() const { return Path::getExtension(path_); }
-
-Size Path::getFileSize() const { return Path::getFileSize(path_); }
-
-Path &Path::normalize() {
-  path_ = Path::normalize(path_);
-  return *this;
-}
-
-Path &Path::makeAbsolute() {
-  if (!isAbsolute())
-    path_ = Path::makeAbsolute(path_);
-  return *this;
-}
-
-Path::StringVec Path::split() const { return Path::split(path_); }
-
-void Path::remove() const { Path::remove(path_); }
-
-void Path::rename(const std::string &newPath) {
-  Path::rename(path_, newPath);
-  path_ = newPath;
-}
-
-bool Path::isDirectory() const { return Path::isDirectory(path_); }
-
-bool Path::isFile() const { return Path::isFile(path_); }
-
-bool Path::isSymbolicLink() const { return Path::isSymbolicLink(path_); }
-bool Path::isAbsolute() const { return Path::isAbsolute(path_); }
-
-bool Path::isRootdir() const { return Path::isRootdir(path_); }
-
-bool Path::exists() const { return Path::exists(path_); }
-
-bool Path::isEmpty() const { return path_.empty(); }
-
-Path operator+(const Path &p1, const Path &p2) {
-  Path::StringVec sv;
-  sv.push_back(std::string(p1));
-  sv.push_back(std::string(p2));
-  return Path::join(sv.begin(), sv.end());
-}
-
 std::string Path::join(const std::string &path1, const std::string &path2) {
   return path1 + Path::sep + path2;
 }
@@ -700,46 +335,138 @@ std::string Path::join(const std::string &path1, const std::string &path2,
   return path1 + Path::sep + path2 + Path::sep + path3 + Path::sep + path4;
 }
 
-std::string Path::getExecutablePath() {
 
-  std::string epath = "UnknownExecutablePath";
-#if !defined(NTA_OS_WINDOWS)
-  auto buf = new char[1000];
-  UInt32 bufsize = 1000;
-  // sets bufsize to actual length.
-#if defined(NTA_OS_DARWIN)
-  _NSGetExecutablePath(buf, &bufsize);
-  if (bufsize < 1000)
-    buf[bufsize] = '\0';
-#elif defined(NTA_OS_LINUX)
-  int count = readlink("/proc/self/exe", buf, bufsize);
-  if (count < 0)
-    NTA_THROW << "Unable to read /proc/self/exe to get executable name";
-  if (count < 1000)
-    buf[count] = '\0';
-#elif defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)
-  const char *tmp = getexecname();
-  if (!tmp)
-    NTA_THROW << "Unable to determine executable name";
-  strncpy(buf, tmp, bufsize);
-#endif
+void Path::copy(const std::string &source, const std::string &destination) {
+  NTA_CHECK(!source.empty()) << "Can't copy from an empty source";
 
-  // make sure it's null-terminated
-  buf[999] = '\0';
-  epath = buf;
-  delete[] buf;
-#else
-  // windows
-  auto buf = new wchar_t[1000];
-  GetModuleFileNameW(NULL, buf, 1000);
-  // null-terminated string guaranteed unless length > 999
-  buf[999] = '\0';
-  std::wstring wpath(buf);
-  delete[] buf;
-  epath = unicodeToUtf8(wpath);
-#endif
+  NTA_CHECK(!destination.empty()) << "Can't copy to an empty destination";
 
-  return epath;
+  NTA_CHECK(!areEquivalent(source, destination))
+      << "Source and destination must be different";
+
+  if (isDirectory(source)) {
+    Directory::copyTree(source, destination);
+    return;
+  }
+  fs::path parent = fs::path(destination).parent_path();
+  er::error_code ec;
+  if (!parent.string().empty() && !fs::exists(parent)) {
+    fs::create_directories(parent, ec);
+    NTA_CHECK(!ec) << "Path::copy - failure creating destination path '"
+                   << destination << "'" << ec.message();
+  }
+  fs::copy_file(source, destination, ec);
+  NTA_CHECK(!ec) << "Path::copy - failure copying file '" << source << "' to '"
+                 << destination << "'" << ec.message();
 }
 
+void Path::setPermissions(const std::string &path, bool userRead,
+                          bool userWrite, bool groupRead, bool groupWrite,
+                          bool otherRead, bool otherWrite) {
+
+  if (Path::isDirectory(path)) {
+    fs::perms prms =
+	    (userRead ? fs::perms::owner_exe | fs::perms::owner_read : FS_PermNone) |
+        (userWrite ? fs::perms::owner_all : FS_PermNone) |
+        (groupRead ? FS_OthersExec | fs::perms::group_read : FS_PermNone) |
+        (groupWrite ? fs::perms::group_all : FS_PermNone) |
+        (otherRead ? FS_OthersExec | fs::perms::others_read  : FS_PermNone) |
+        (otherWrite ? fs::perms::others_all : FS_PermNone);
+    fs::permissions(path, prms);
+
+    Directory::Iterator iter(path);
+    Directory::Entry e;
+    while (iter.next(e)) {
+      setPermissions(e.path,
+	                 userRead,
+					 userWrite,
+					 groupRead,
+					 groupWrite,
+                     otherRead,
+					 otherWrite);
+    }
+  } else {
+    fs::perms prms =
+	    (userRead ? fs::perms::owner_read : FS_PermNone) |
+        (userWrite ? fs::perms::owner_write : FS_PermNone) |
+        (groupRead ? fs::perms::group_read : FS_PermNone) |
+        (groupWrite ? fs::perms::group_write : FS_PermNone) |
+        (otherRead ? fs::perms::others_read : FS_PermNone) |
+        (otherWrite ? fs::perms::others_write : FS_PermNone);
+    fs::permissions(path, prms);
+  }
+}
+
+void Path::remove(const std::string &path) {
+  NTA_CHECK(!path.empty()) << "Can't remove an empty path";
+
+  // Just return if it doesn't exist already
+  if (!Path::exists(path))
+    return;
+
+  if (isDirectory(path)) {
+    Directory::removeTree(path);
+    return;
+  }
+  er::error_code ec;
+  fs::remove(path, ec);
+  NTA_CHECK(!ec) << "Path::remove - failure removing file '" << path << "'"
+                 << ec.message();
+}
+
+void Path::rename(const std::string &oldPath, const std::string &newPath) {
+  NTA_CHECK(!oldPath.empty() && !newPath.empty())   << "Can't rename to/from empty path";
+  fs::path oldp = fs::absolute(oldPath);
+  fs::path newp = fs::absolute(newPath);
+
+  er::error_code ec;
+  fs::rename(oldp, newp, ec);
+  NTA_CHECK(!ec) << "Path::remove - failure renaming file '" << oldp.string()
+                 << "' to '" << newp.string() << "'" << ec.message();
+}
+
+void Path::write_all(const std::string &filename, const std::string &value) {
+  std::ofstream f;
+  f.open(filename.c_str());
+
+  f << value;
+  f.close();
+}
+
+std::string Path::read_all(const std::string &filename) {
+  std::string s;
+  std::ifstream f;
+  f.open(filename.c_str());
+  f >> s;
+  return s;
+}
+
+
+
+
+
+// Global operators
+Path operator/(const Path & p1, const Path & p2) { return Path(std::string(*p1) + Path::sep + std::string(*p2)); }
+Path operator/(const std::string & p1, const Path & p2) { return Path(p1 + Path::sep + std::string(*p2)); }
+Path operator/(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + Path::sep + p2); }
+Path operator+(const Path & p1, const Path & p2) { return Path(std::string(*p1) + std::string(*p2)); }
+Path operator+(const std::string & p1, const Path & p2) { return Path(p1 + std::string(*p2)); }
+Path operator+(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + p2); }
+
+
+/*******************************************
+* This function returns the full path of the executable that is running this code.
+* see https://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe
+*     https://stackoverflow.com/questions/1528298/get-path-of-executable
+* The above links show that this is difficult to do and not 100% reliable in the general case.
+* However, the boost solution is one of the best.
+* /
+std::string Path::getExecutablePath()
+{
+  boost::system::error_code ec;
+  boost::filesystem::path p = boost::dll::program_location(ec);
+  NTA_CHECK(!ec) << "Path::getExecutablePath() Fail. " << ec.message();
+  return p.string();
+}
+****** Removed until we find we need this function, dek 06/2018 ********/
 } // namespace nupic

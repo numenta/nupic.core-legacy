@@ -74,8 +74,5 @@ TEST(EnvTest, Basic) {
   EXPECT_STREQ("DONTCHANGEME", value.c_str());
 
   // delete a value that is not set
-  // APR response is not documented. Will see a warning if
-  // APR reports an error.
-  // Is there any way to do an actual test here?
   Env::unset(name);
 }

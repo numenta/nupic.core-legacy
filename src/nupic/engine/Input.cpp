@@ -120,7 +120,7 @@ void Input::prepare() {
   }
 }
 
-const Array &Input::getData() const {
+Array &Input::getData() {
   NTA_CHECK(initialized_);
   return data_;
 }

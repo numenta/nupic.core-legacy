@@ -28,12 +28,11 @@
 #define NTA_TEMPORAL_MEMORY_HPP
 
 #include <nupic/algorithms/Connections.hpp>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
 #include <vector>
 
-#include <nupic/proto/TemporalMemoryProto.capnp.h>
 
 using namespace std;
 using namespace nupic;
@@ -65,7 +64,8 @@ namespace temporal_memory {
  * convert a numpy array into a std::vector is to copy it, but you can
  * access a numpy array's internal C array directly.
  */
-class TemporalMemory : public Serializable<TemporalMemoryProto> {
+    class TemporalMemory : public Serializable
+{
 public:
   TemporalMemory();
 
@@ -385,16 +385,21 @@ public:
    */
   UInt getMaxSynapsesPerSegment() const;
 
+	/**
+	 * Raises an error if cell index is invalid.
+	 *
+	 * @param cell Cell index
+	 */
+	bool _validateCell(const CellIdx cell) const;
+
   /**
    * Save (serialize) the current state of the spatial pooler to the
    * specified file.
    *
    * @param fd A valid file descriptor.
    */
-  virtual void save(ostream &outStream) const;
+  virtual void save(ostream &outStream) const override;
 
-  using Serializable::write;
-  virtual void write(TemporalMemoryProto::Builder &proto) const override;
 
   /**
    * Load (deserialize) and initialize the spatial pooler from the
@@ -402,10 +407,8 @@ public:
    *
    * @param inStream A valid istream.
    */
-  virtual void load(istream &inStream);
+  virtual void load(istream &inStream) override;
 
-  using Serializable::read;
-  virtual void read(TemporalMemoryProto::Reader &proto) override;
 
   /**
    * Returns the number of bytes that a save operation would result in.
@@ -414,7 +417,7 @@ public:
    *
    * @returns Integer number of bytes
    */
-  virtual UInt persistentSize() const;
+  virtual size_t persistentSize() const;
 
   bool operator==(const TemporalMemory &other);
   bool operator!=(const TemporalMemory &other);

@@ -28,13 +28,14 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/os/Directory.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Types.h>
 #include <nupic/utils/Log.hpp>
@@ -43,22 +44,27 @@
 namespace nupic {
 
 Watcher::Watcher(std::string fileName) {
+	data_.outStream = nullptr;
+    std::string d = Path::getParent(fileName);
+    if (!d.empty())
+      Directory::create(d);
   data_.fileName = fileName;
   try {
-    data_.outStream = new OFStream(fileName.c_str());
+      data_.outStream =  new std::ofstream(fileName.c_str());
   } catch (std::exception &) {
-    NTA_THROW << "Unable to open filename " << fileName
-              << " for network watcher";
+      NTA_THROW << "Unable to open filename " << fileName << " for network watcher";
+    }
+  }
+
+Watcher::~Watcher() {
+  if (data_.outStream) {
+  	this->flushFile();
+  	this->closeFile();
+	delete data_.outStream;
   }
 }
 
-Watcher::~Watcher() {
-  this->flushFile();
-  this->closeFile();
-  delete data_.outStream;
-}
-
-unsigned int Watcher::watchParam(std::string regionName, std::string varName,
+UInt32 Watcher::watchParam(std::string regionName, std::string varName,
                                  int nodeIndex, bool sparseOutput) {
   watchData watch;
   watch.varName = varName;
@@ -66,13 +72,14 @@ unsigned int Watcher::watchParam(std::string regionName, std::string varName,
   watch.regionName = regionName;
   watch.nodeIndex = nodeIndex;
   watch.sparseOutput = sparseOutput;
-  watch.watchID = data_.watches.size() + 1;
+  watch.watchID = (UInt32)data_.watches.size() + 1;
   data_.watches.push_back(watch);
   return watch.watchID;
 }
 
-unsigned int Watcher::watchOutput(std::string regionName, std::string varName,
-                                  bool sparseOutput) {
+UInt32 Watcher::watchOutput(std::string regionName,
+                            std::string varName,
+                            bool sparseOutput) {
   watchData watch;
   watch.varName = varName;
   watch.wType = output;
@@ -80,7 +87,7 @@ unsigned int Watcher::watchOutput(std::string regionName, std::string varName,
   watch.nodeIndex = -1;
   watch.isArray = false;
   watch.sparseOutput = sparseOutput;
-  watch.watchID = data_.watches.size() + 1;
+  watch.watchID = (UInt32)data_.watches.size() + 1;
   data_.watches.push_back(watch);
   return watch.watchID;
 }
@@ -218,7 +225,7 @@ void Watcher::watcherCallback(Network *net, UInt64 iteration, void *dataIn) {
         }
         default:
           NTA_THROW << "Internal error.";
-        }
+        } // switch
       } else if (watch.nodeIndex == -1) {
         switch (watch.varType) {
         case NTA_BasicType_Int32: {
@@ -258,7 +265,7 @@ void Watcher::watcherCallback(Network *net, UInt64 iteration, void *dataIn) {
         }
         default:
           NTA_THROW << "Internal error.";
-        }
+        } // switch
       }
       // else //nodeIndex != -1
       //{
@@ -315,17 +322,17 @@ void Watcher::watcherCallback(Network *net, UInt64 iteration, void *dataIn) {
       switch (watch.varType) {
       case NTA_BasicType_Real32: {
         Real32 *outputData = (Real32 *)(watch.array->getBuffer());
-        unsigned int numOuts = watch.array->getCount();
+        size_t numOuts = watch.array->getCount();
         out << numOuts;
 
         if (watch.sparseOutput) {
-          for (UInt j = 0; j < numOuts; j++) {
+          for (size_t j = 0; j < numOuts; j++) {
             if (outputData[j] != (Real32)0) {
               out << " " << j;
             }
           }
         } else {
-          for (UInt j = 0; j < numOuts; j++) {
+          for (size_t j = 0; j < numOuts; j++) {
             out << " " << outputData[j];
           }
         }
@@ -333,17 +340,17 @@ void Watcher::watcherCallback(Network *net, UInt64 iteration, void *dataIn) {
       }
       case NTA_BasicType_Real64: {
         Real64 *outputData = (Real64 *)(watch.array->getBuffer());
-        unsigned int numOuts = watch.array->getCount();
+        size_t numOuts = watch.array->getCount();
         out << numOuts;
 
         if (watch.sparseOutput) {
-          for (UInt j = 0; j < numOuts; j++) {
+          for (size_t j = 0; j < numOuts; j++) {
             if (outputData[j] != (Real64)0) {
               out << " " << j;
             }
           }
         } else {
-          for (UInt j = 0; j < numOuts; j++) {
+          for (size_t j = 0; j < numOuts; j++) {
             out << " " << outputData[j];
           }
         }
@@ -359,9 +366,8 @@ void Watcher::watcherCallback(Network *net, UInt64 iteration, void *dataIn) {
 
     value = out.str();
 
-    (*data.outStream) << watch.watchID << ", " << iteration << ", " << value
-                      << "\n";
-  }
+    *data.outStream << watch.watchID << ", " << iteration << ", " << value << std::endl;
+  } // for
   data.outStream->flush();
 }
 
@@ -369,11 +375,11 @@ void Watcher::closeFile() { data_.outStream->close(); }
 
 void Watcher::flushFile() { data_.outStream->flush(); }
 
-// attach Watcher to a network and do initial writing to files
-void Watcher::attachToNetwork(Network &net) {
-  (*data_.outStream)
-      << "Info: watchID, regionName, nodeType, nodeIndex, varName"
-      << "\n";
+//attach Watcher to a network and do initial writing to files
+void Watcher::attachToNetwork(Network& net)
+{
+  std::ostream &out = *data_.outStream;
+    out << "Info: watchID, regionName, nodeType, nodeIndex, varName" << std::endl;
 
   // go through each watch
   watchData watch;
@@ -383,11 +389,11 @@ void Watcher::attachToNetwork(Network &net) {
     const Collection<Region *> &regions = net.getRegions();
     watch.region = regions.getByName(watch.regionName);
 
-    // output general information for each watch
-    (*data_.outStream) << watch.watchID << ", ";
-    (*data_.outStream) << watch.regionName << ", ";
-    (*data_.outStream) << watch.region->getType() << ", ";
-    (*data_.outStream) << watch.nodeIndex << ", ";
+      //output general information for each watch
+      out << watch.watchID << ", ";
+      out << watch.regionName << ", ";
+      out << watch.region->getType() << ", ";
+      out << watch.nodeIndex  << ", ";
 
     if (watch.wType == parameter) {
       // find out varType and add it to watch struct
@@ -411,10 +417,10 @@ void Watcher::attachToNetwork(Network &net) {
       watch.isArray = ((p.count == 0 || p.count > 1) &&
                        watch.varType != NTA_BasicType_Byte);
 
-      (*data_.outStream) << watch.varName << "\n";
+        out << watch.varName << "\n";
     } else if (watch.wType == output) {
       watch.output = watch.region->getOutput(watch.varName);
-      (*data_.outStream) << watch.varName << "\n";
+        out << watch.varName << "\n";
 
       watch.array = &(watch.output->getData());
 
@@ -432,8 +438,7 @@ void Watcher::attachToNetwork(Network &net) {
     data_.watches.erase(data_.watches.begin() + i + 1);
   }
 
-  (*data_.outStream) << "Data: watchID, iteration, paramValue"
-                     << "\n";
+    out << "Data: watchID, iteration, paramValue" << std::endl;
 
   // actually attach to the network
   Collection<Network::callbackItem> &callbacks = net.getCallbacks();
