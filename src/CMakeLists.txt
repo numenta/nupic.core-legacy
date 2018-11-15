@@ -86,8 +86,7 @@ set(src_compiler_definitions
     -DNTA_INTERNAL
     -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
     -DBOOST_NO_WREGEX
-    -DAPR_DECLARE_STATIC
-    -DAPU_DECLARE_STATIC)
+    )
 
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(src_compiler_definitions
@@ -338,9 +337,6 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
 # nupic_core_solo sources depend on headers installed by these external projects
 add_dependencies(${src_lib_static_nupiccore_solo}
                  ${YAML_CPP_STATIC_LIB_TARGET}
-                 ${YAML_STATIC_LIB_TARGET}
-                 ${APR1_STATIC_LIB_TARGET}
-                 ${APRUTIL1_STATIC_LIB_TARGET}
 		 )
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
@@ -365,9 +361,6 @@ set(src_lib_static_nupiccore_combined nupic_core)
 set(src_external_static_libs
     
     ${YAML_CPP_STATIC_LIB_TARGET}
-    ${YAML_STATIC_LIB_TARGET}
-    ${APR1_STATIC_LIB_TARGET}
-    ${APRUTIL1_STATIC_LIB_TARGET}
    )
 
 set(src_combined_nupiccore_source_archives
@@ -764,12 +757,6 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(PROGRAMS "${SWIG_EXECUTABLE}"
           DESTINATION bin)
 
-  install(DIRECTORY "${APR1_STATIC_LIB_INC_DIR}/"
-          MESSAGE_NEVER
-          DESTINATION include)
-  install(DIRECTORY "${APRUTIL1_STATIC_LIB_INC_DIR}/"
-          MESSAGE_NEVER
-          DESTINATION include)
           
 endif ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
 
