@@ -40,10 +40,12 @@ namespace nupic {
 namespace algorithms {
 namespace spatial_pooler {
 
-// force small data types
-using Real = Real32;
-using UInt = UInt32;
-using Int = Int32; 
+// force 32bit data types
+// FIXME because of SWIG forced to use typedef, later switch to c++11 using:
+//using Real = nupic::Real32;
+typedef nupic::Real32 Real;
+typedef nupic::UInt32 UInt;
+typedef nupic::Int32 Int;
 
 /**
  * CLA spatial pooler implementation in C++.
