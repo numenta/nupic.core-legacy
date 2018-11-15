@@ -47,6 +47,8 @@ typedef nupic::Real32 Real;
 typedef nupic::UInt32 UInt;
 typedef nupic::Int32 Int;
 
+static const int DISABLED = -1; //value denoting a feature is disabled
+
 /**
  * CLA spatial pooler implementation in C++.
  *
@@ -76,8 +78,8 @@ public:
   SpatialPooler();
   SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
                 UInt potentialRadius = 16u, Real potentialPct = 0.5f,
-                bool globalInhibition = true, Real localAreaDensity = 0.0f,
-                UInt numActiveColumnsPerInhArea = 10u,
+                bool globalInhibition = true, Real localAreaDensity = DISABLED,
+                Int numActiveColumnsPerInhArea = 10u,
                 UInt stimulusThreshold = 0u, Real synPermInactiveDec = 0.008f,
                 Real synPermActiveInc = 0.05f, Real synPermConnected = 0.1f,
                 Real minPctOverlapDutyCycles = 0.001f,
@@ -85,6 +87,7 @@ public:
                 Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true);
 
   virtual ~SpatialPooler() {}
+
 
   /**
   Initialize the spatial pooler using the given parameters.
@@ -136,13 +139,12 @@ public:
         pools of all columns). The inhibition logic will insure that at
         most N columns remain ON within a local inhibition area, where
         N = localAreaDensity * (total number of columns in inhibition
-        area). If localAreaDensity is set to 0, output
-        sparsity will be determined by the numActivePerInhArea.
+        area). 
+	If localAreaDensity is set to any value less than  0, 
+	output sparsity will be determined by the numActivePerInhArea.
 
   @param numActiveColumnsPerInhArea An alternate way to control the sparsity of
-        active columns. If numActivePerInhArea is specified then
-        localAreaDensity must be == 0, and vice versa. When
-        numActivePerInhArea > 0, the inhibition logic will insure that
+        active columns. When numActivePerInhArea > 0, the inhibition logic will insure that
         at most 'numActivePerInhArea' columns remain ON within a local
         inhibition area (the size of which is set by the internally
         calculated inhibitionRadius). When using this method, as columns
@@ -152,6 +154,8 @@ public:
         localAreaDensity method, which keeps the density of active
         columns the same regardless of the size of their receptive
         fields.
+	If numActivePerInhArea is specified then 
+	localAreaDensity must be < 0, and vice versa.
 
   @param stimulusThreshold This is a number specifying the minimum
         number of synapses that must be active in order for a column to
@@ -210,8 +214,8 @@ public:
   virtual void
   initialize(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
              UInt potentialRadius = 16u, Real potentialPct = 0.5f,
-             bool globalInhibition = true, Real localAreaDensity = 0.0f,
-             UInt numActiveColumnsPerInhArea = 10u, UInt stimulusThreshold = 0u,
+             bool globalInhibition = true, Real localAreaDensity = DISABLED,
+             Int numActiveColumnsPerInhArea = 10u, UInt stimulusThreshold = 0u,
              Real synPermInactiveDec = 0.01f, Real synPermActiveInc = 0.1f,
              Real synPermConnected = 0.1f, Real minPctOverlapDutyCycles = 0.001f,
              UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
@@ -368,13 +372,13 @@ public:
   Returns the number of active columns per inhibition area.
 
   @returns integer number of active columns per inhbition area, Returns a
-  value less than 0 if parameter is unuse.
+  value less than 0 if parameter is unused.
   */
   Int getNumActiveColumnsPerInhArea() const;
 
   /**
-  Sets the number of active columns per inhibition area. Invalidates the
-  'localAreaDensity' parameter.
+  Sets the number of active columns per inhibition area. 
+  Invalidates the 'localAreaDensity' parameter.
 
   @param numActiveColumnsPerInhArea integer number of active columns per
   inhibition area.
@@ -383,7 +387,7 @@ public:
 
   /**
   Returns the local area density. Returns a value less than 0 if parameter
-  is unused".
+  is unused.
 
   @returns real number of local area density.
   */
@@ -391,8 +395,7 @@ public:
 
   /**
   Sets the local area density. Invalidates the 'numActivePerInhArea'
-  parameter".
-
+  parameter.
   @param localAreaDensity real number of local area density.
   */
   void setLocalAreaDensity(Real localAreaDensity);

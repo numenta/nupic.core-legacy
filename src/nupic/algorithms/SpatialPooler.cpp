@@ -110,7 +110,7 @@ SpatialPooler::SpatialPooler() {
 SpatialPooler::SpatialPooler(
     const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
     UInt potentialRadius, Real potentialPct, bool globalInhibition,
-    Real localAreaDensity, UInt numActiveColumnsPerInhArea,
+    Real localAreaDensity, Int numActiveColumnsPerInhArea,
     UInt stimulusThreshold, Real synPermInactiveDec, Real synPermActiveInc,
     Real synPermConnected, Real minPctOverlapDutyCycles, UInt dutyCyclePeriod,
     Real boostStrength, Int seed, UInt spVerbosity, bool wrapAround)
@@ -175,10 +175,9 @@ Int SpatialPooler::getNumActiveColumnsPerInhArea() const {
 }
 
 void SpatialPooler::setNumActiveColumnsPerInhArea(UInt numActiveColumnsPerInhArea) {
-  NTA_CHECK(numActiveColumnsPerInhArea > 0u && 
-	     numActiveColumnsPerInhArea <= numColumns_); //TODO this boundary could be smarter
+  NTA_CHECK(numActiveColumnsPerInhArea > 0u && numActiveColumnsPerInhArea <= numColumns_); //TODO this boundary could be smarter
   numActiveColumnsPerInhArea_ = numActiveColumnsPerInhArea;
-  localAreaDensity_ = 0.0f;                                   //MUTEX with localAreaDensity
+  localAreaDensity_ = DISABLED;  //MUTEX with localAreaDensity
 }
 
 Real SpatialPooler::getLocalAreaDensity() const { return localAreaDensity_; }
@@ -186,7 +185,7 @@ Real SpatialPooler::getLocalAreaDensity() const { return localAreaDensity_; }
 void SpatialPooler::setLocalAreaDensity(Real localAreaDensity) {
   NTA_CHECK(localAreaDensity > 0.0f && localAreaDensity <= 1.0f); 
   localAreaDensity_ = localAreaDensity;
-  numActiveColumnsPerInhArea_ = 0u; //MUTEX with numActiveColumnsPerInhArea
+  numActiveColumnsPerInhArea_ = DISABLED; //MUTEX with numActiveColumnsPerInhArea
 }
 
 UInt SpatialPooler::getStimulusThreshold() const { return stimulusThreshold_; }
@@ -378,7 +377,7 @@ const vector<Real> &SpatialPooler::getBoostedOverlaps() const {
 void SpatialPooler::initialize(
     const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
     UInt potentialRadius, Real potentialPct, bool globalInhibition,
-    Real localAreaDensity, UInt numActiveColumnsPerInhArea,
+    Real localAreaDensity, Int numActiveColumnsPerInhArea,
     UInt stimulusThreshold, Real synPermInactiveDec, Real synPermActiveInc,
     Real synPermConnected, Real minPctOverlapDutyCycles, UInt dutyCyclePeriod,
     Real boostStrength, Int seed, UInt spVerbosity, bool wrapAround) {
@@ -390,7 +389,6 @@ void SpatialPooler::initialize(
     numInputs_ *= inputDimension;
     inputDimensions_.push_back(inputDimension);
   }
-
   numColumns_ = 1u;
   columnDimensions_.clear();
   for (auto &columnDimension : columnDimensions) {
@@ -398,22 +396,23 @@ void SpatialPooler::initialize(
     numColumns_ *= columnDimension;
     columnDimensions_.push_back(columnDimension);
   }
-
   NTA_CHECK(numColumns_ > 0);
   NTA_CHECK(numInputs_ > 0);
   NTA_CHECK(inputDimensions_.size() == columnDimensions_.size());
-  NTA_CHECK(numActiveColumnsPerInhArea > 0 ||
-             (localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY));
-  NTA_CHECK(potentialPct > 0 && potentialPct <= 1);
-
-  rng_ = Random(seed);
-
-  potentialRadius_ =
-      potentialRadius > numInputs_ ? numInputs_ : potentialRadius;
-  potentialPct_ = potentialPct;
-  globalInhibition_ = globalInhibition;
+  
+  NTA_CHECK((numActiveColumnsPerInhArea > 0 && localAreaDensity < 0) ||
+            (localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY 
+	     && numActiveColumnsPerInhArea < 0)
+	   ) << numActiveColumnsPerInhArea << " vs " << localAreaDensity;
   numActiveColumnsPerInhArea_ = numActiveColumnsPerInhArea;
   localAreaDensity_ = localAreaDensity;
+  
+  rng_ = Random(seed);
+
+  potentialRadius_ = potentialRadius > numInputs_ ? numInputs_ : potentialRadius;
+  NTA_CHECK(potentialPct > 0 && potentialPct <= 1);
+  potentialPct_ = potentialPct;
+  globalInhibition_ = globalInhibition;
   stimulusThreshold_ = stimulusThreshold;
   synPermInactiveDec_ = synPermInactiveDec;
   synPermActiveInc_ = synPermActiveInc;
