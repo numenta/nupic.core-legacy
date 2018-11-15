@@ -23,12 +23,25 @@
 /** @file
  * Implementation of utility functions for string conversion
  */
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING 1
 
-#include <apr-1/apr_base64.h>
+
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
+#include <cstring>
+#include <cstdlib> // for wcstombs and mbstowcs
 
 using namespace nupic;
+
+std::string StringUtils::trim(const std::string &s) {
+  size_t i,j;
+  for(i = 0; i < s.length(); i++)
+	if (!std::isspace(s[i])) break;
+  for(j = s.length(); j > i; j--)
+    if (!std::isspace(s[j-1])) break;
+  return s.substr(i, j-i);
+}
+
 
 bool StringUtils::toBool(const std::string &s, bool throwOnError, bool *fail) {
   if (fail)
@@ -44,14 +57,13 @@ bool StringUtils::toBool(const std::string &s, bool throwOnError, bool *fail) {
     if (fail)
       *fail = true;
   } else {
-    NTA_THROW << "StringUtils::toBool: tried to parse non-boolean string \""
-              << s << "\"";
+    NTA_THROW << "StringUtils::toBool: tried to parse non-boolean string \"" << s << "\"";
   }
   return b;
 }
 
-Real32 StringUtils::toReal32(const std::string &s, bool throwOnError,
-                             bool *fail) {
+
+Real32 StringUtils::toReal32(const std::string& s, bool throwOnError, bool * fail) {
   if (fail)
     *fail = false;
   Real32 r;
@@ -69,8 +81,8 @@ Real32 StringUtils::toReal32(const std::string &s, bool throwOnError,
   return r;
 }
 
-UInt32 StringUtils::toUInt32(const std::string &s, bool throwOnError,
-                             bool *fail) {
+UInt32 StringUtils::toUInt32(const std::string& s, bool throwOnError, bool * fail)
+{
   if (fail)
     *fail = false;
   UInt32 i;
@@ -88,8 +100,7 @@ UInt32 StringUtils::toUInt32(const std::string &s, bool throwOnError,
   return i;
 }
 
-Int32 StringUtils::toInt32(const std::string &s, bool throwOnError,
-                           bool *fail) {
+Int32 StringUtils::toInt32(const std::string& s, bool throwOnError, bool * fail) {
   if (fail)
     *fail = false;
   Int32 i;
@@ -107,8 +118,7 @@ Int32 StringUtils::toInt32(const std::string &s, bool throwOnError,
   return i;
 }
 
-UInt64 StringUtils::toUInt64(const std::string &s, bool throwOnError,
-                             bool *fail) {
+UInt64 StringUtils::toUInt64(const std::string& s, bool throwOnError, bool * fail) {
   if (fail)
     *fail = false;
   UInt64 i;
@@ -126,8 +136,8 @@ UInt64 StringUtils::toUInt64(const std::string &s, bool throwOnError,
   return i;
 }
 
-size_t StringUtils::toSizeT(const std::string &s, bool throwOnError,
-                            bool *fail) {
+
+size_t StringUtils::toSizeT(const std::string& s, bool throwOnError, bool * fail) {
   if (fail)
     *fail = false;
   size_t i;
@@ -144,11 +154,11 @@ size_t StringUtils::toSizeT(const std::string &s, bool throwOnError,
   return i;
 }
 
-bool StringUtils::startsWith(const std::string &s, const std::string &prefix) {
+bool StringUtils::startsWith(const std::string& s, const std::string& prefix) {
   return s.find(prefix) == 0;
 }
 
-bool StringUtils::endsWith(const std::string &s, const std::string &ending) {
+bool StringUtils::endsWith(const std::string& s, const std::string& ending) {
   if (ending.size() > s.size())
     return false;
   size_t found = s.rfind(ending);
@@ -159,44 +169,113 @@ bool StringUtils::endsWith(const std::string &s, const std::string &ending) {
   return true;
 }
 
+
+
 std::string StringUtils::fromInt(long long i) {
   std::stringstream ss;
   ss << i;
   return ss.str();
 }
 
-std::string StringUtils::base64Encode(const void *buf, Size inLen) {
-  Size len = apr_base64_encode_len((int)inLen); // int-casting for win.
-  std::string outS(len, '\0');
-  apr_base64_encode((char *)outS.data(), (const char *)buf,
-                    (int)inLen); // int-casting for win.
-  outS.resize(len - 1);          // len includes the NULL at the end
-  return outS;
+/////////////////////////////////////////////////////////////////////////
+static const std::string base64_chars =
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+
+std::string StringUtils::base64Encode(const void* bytes_to_encode, Size in_len) {
+  const unsigned char* ptr = (const unsigned char*)bytes_to_encode;
+  std::string ret;
+  int i = 0;
+  int j = 0;
+  unsigned char char_array_3[3];
+  unsigned char char_array_4[4];
+
+  while (in_len--) {
+    char_array_3[i++] = *ptr++;
+    if (i == 3) {
+      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+      char_array_4[3] = char_array_3[2] & 0x3f;
+
+      for(i = 0; (i <4) ; i++)
+        ret += base64_chars[char_array_4[i]];
+      i = 0;
+    }
+  }
+
+  if (i)
+  {
+    for(j = i; j < 3; j++)
+      char_array_3[j] = '\0';
+
+    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+    char_array_4[3] = char_array_3[2] & 0x3f;
+
+    for (j = 0; (j < i + 1); j++)
+      ret += base64_chars[char_array_4[j]];
+
+    while((i++ < 3))
+      ret += '=';
+
+  }
+
+  return ret;
+
 }
 
-std::string StringUtils::base64Encode(const std::string &s) {
-  Size len = apr_base64_encode_len((int)s.size());
-  std::string outS(len, '\0');
-  apr_base64_encode((char *)outS.data(), s.data(), (int)s.size());
-  outS.resize(len - 1); // len includes the NULL at the end
-  return outS;
+
+std::string StringUtils::base64Encode(const std::string& s)
+{
+    return StringUtils::base64Encode(&s[0], s.size());
 }
 
-std::string StringUtils::base64Decode(const void *buf, Size inLen) {
-  std::string outS(inLen + 1, '\0');
-  size_t decodedLen =
-      apr_base64_decode_binary((unsigned char *)outS.data(), (const char *)buf);
-  outS.resize(decodedLen);
-  return outS;
-}
 
-std::string StringUtils::base64Decode(const std::string &s) {
-  std::string outS(s.size() + 1, '\0');
-  size_t decodedLen =
-      apr_base64_decode_binary((unsigned char *)outS.data(), s.c_str());
-  outS.resize(decodedLen);
-  return outS;
+std::string StringUtils::base64Decode(const std::string& encoded_string) {
+  size_t in_len = encoded_string.size();
+  size_t i = 0;
+  size_t j = 0;
+  int in_ = 0;
+  unsigned char char_array_4[4], char_array_3[3];
+  std::string ret;
+
+  while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
+    char_array_4[i++] = encoded_string[in_]; in_++;
+    if (i ==4) {
+      for (i = 0; i <4; i++)
+        char_array_4[i] = static_cast<unsigned char>(base64_chars.find(char_array_4[i]));
+
+      char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+      char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+      char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+      for (i = 0; (i < 3); i++)
+        ret += char_array_3[i];
+      i = 0;
+    }
+  }
+
+  if (i) {
+    for (j = i; j <4; j++)
+      char_array_4[j] = 0;
+
+    for (j = 0; j <4; j++)
+      char_array_4[j] = static_cast<unsigned char>(base64_chars.find(char_array_4[j]));
+
+    char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+    char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+    char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+    for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
+  }
+
+  return ret;
 }
+/////////////////////////////////////////////////////////////////////////
+
 
 #define HEXIFY(val) ((val) > 9 ? ('a' + (val)-10) : ('0' + (val)))
 
@@ -214,18 +293,17 @@ std::string StringUtils::hexEncode(const void *buf, Size inLen) {
   return s;
 }
 
+
+
 //--------------------------------------------------------------------------------
-void StringUtils::toIntList(const std::string &s, std::vector<Int> &list,
-                            bool allowAll, bool asRanges) {
+void StringUtils::toIntList(const std::string &s, std::vector<Int> &list,  bool allowAll, bool asRanges) {
   if (!toIntListNoThrow(s, list, allowAll, asRanges)) {
-    const std::string errPrefix = "StringUtils::toIntList() - ";
-    throw(std::runtime_error(errPrefix + "Invalid string: " + s));
+    throw(std::runtime_error("toIntList() - Invalid string: " + s));
   }
 }
 
 //--------------------------------------------------------------------------------
-bool StringUtils::toIntListNoThrow(const std::string &s, std::vector<Int> &list,
-                                   bool allowAll, bool asRanges) {
+bool StringUtils::toIntListNoThrow(const std::string &s, std::vector<Int> &list,bool allowAll, bool asRanges) {
 
   UInt startNum, endNum;
   const char *startP = s.c_str();
@@ -314,24 +392,24 @@ bool StringUtils::toIntListNoThrow(const std::string &s, std::vector<Int> &list,
   return true;
 }
 
+
 //--------------------------------------------------------------------------------
-boost::shared_array<Byte> StringUtils::toByteArray(const std::string &s,
-                                                   Size bitCount) {
+std::shared_ptr<Byte> StringUtils::toByteArray(const std::string &s,  Size bitCount) {
   // Get list of integers
   std::vector<Int> list;
-  StringUtils::toIntList(s, list, true /*allowAll*/);
+  toIntList(s, list, true /*allowAll*/);
   if (list.empty())
-    return boost::shared_array<Byte>(nullptr);
+    return std::shared_ptr<Byte>(nullptr);
 
   // Put this into the mask
-  Size numBytes = (bitCount + 7) / 8;
-  boost::shared_array<Byte> mask(new Byte[numBytes]);
-  Byte *maskP = mask.get();
+  Size numBytes = (bitCount+7) / 8;
+  std::shared_ptr<Byte> mask(new Byte[numBytes], std::default_delete<char[]>());
+  Byte* maskP = mask.get();
   ::memset(maskP, 0, numBytes);
   for (auto &elem : list) {
     UInt entry = elem;
     if (entry >= bitCount)
-      NTA_THROW << "StringUtils::toByteArray() - "
+      NTA_THROW << "toByteArray() - "
                 << "The list " << s
                 << " contains an entry greater than the max allowed of "
                 << bitCount;
@@ -341,3 +419,28 @@ boost::shared_array<Byte> StringUtils::toByteArray(const std::string &s,
   // Return it
   return mask;
 }
+//--------------------------------------------------------------------------------
+
+// codecvt()is deprecated in c++17 but no replacement is offered.
+// Apparently it was not actually implemented in C++11 on some compilers.
+// So we will use mbstowcs() and wcstombs()
+// Not the best but will work for filenames.
+// WARNING: not threadsafe
+std::wstring StringUtils::utf8ToUnicode(const std::string &str)
+{
+	std::wstring ws(str.size(), L' '); // overestimate number of code points
+	ws.resize(std::mbstowcs(&ws[0], str.c_str(), str.size())); // shink to fit
+	return ws;
+}
+
+std::string StringUtils::unicodeToUtf8(const std::wstring &wstr)
+{
+	size_t size = 0;
+	char * lc = ::setlocale(LC_ALL, "en_US.utf8"); // determines code page generated
+	std::string str(wstr.size()*3, ' ');  // overestimate number of bytes and create space
+	size = std::wcstombs(&str[0], &wstr[0], wstr.size());
+	::setlocale(LC_ALL, lc); // restore locale
+	str.resize(size);
+	return str;
+}
+
