@@ -28,8 +28,7 @@
 #define NTA_LINK_HPP
 
 #include <string>
-
-#include <boost/circular_buffer.hpp>
+#include <deque>
 
 #include <nupic/engine/Input.hpp> // needed for splitter map
 #include <nupic/engine/LinkPolicy.hpp>
@@ -428,8 +427,7 @@ private:
                               const std::string &destInputName,
                               const size_t propagationDelay);
 
-  void initPropagationDelayBuffer_(size_t propagationDelay,
-                                   const Array &original);
+
 
   // TODO: The strings with src/dest names are redundant with
   // the src_ and dest_ objects. For unit testing links,
@@ -460,16 +458,8 @@ private:
   // input. This value is set at initialization time.
   size_t destOffset_;
 
-  // TODO: These are currently unused. Situations where we need them
-  // are rare. Would they make more sense as link policy params?
-  // Will also need a link getDestinationSize method since
-  // the amount of data contributed by this link to the destination input
-  // may not equal the size of the source output.
-  size_t srcOffset_;
-  size_t srcSize_;
-
-  // Circular buffer for delayed source data buffering
-  boost::circular_buffer<Array> srcBuffer_;
+  // Queue buffer for delayed source data buffering
+  std::deque<Array> propagationDelayBuffer_;
   // Number of delay slots
   size_t propagationDelay_;
 

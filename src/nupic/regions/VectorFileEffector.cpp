@@ -33,22 +33,21 @@
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/regions/VectorFileEffector.hpp>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
-VectorFileEffector::VectorFileEffector(const ValueMap &params, Region *region)
+VectorFileEffector::VectorFileEffector(const ValueMap &params, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {
   if (params.contains("outputFile"))
-    filename_ = *params.getString("outputFile");
+    filename_ = params.getString("outputFile");
   else
     filename_ = "";
 }
 
-VectorFileEffector::VectorFileEffector(BundleIO &bundle, Region *region)
+VectorFileEffector::VectorFileEffector(BundleIO &bundle, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {}
 

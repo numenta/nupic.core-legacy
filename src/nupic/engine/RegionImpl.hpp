@@ -37,6 +37,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <memory>
 
 
 #include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
@@ -187,7 +188,7 @@ public:
   virtual bool isParameterShared(const std::string &name);
 
 protected:
-  Region *region_;
+  std::shared_ptr<Region> region_;
 
   /* -------- Methods provided by the base class for use by subclasses --------
    */

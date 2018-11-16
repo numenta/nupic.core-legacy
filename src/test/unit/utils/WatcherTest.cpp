@@ -32,7 +32,6 @@
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/os/Path.hpp>
 
 #include <nupic/ntypes/ArrayBase.hpp>
@@ -104,21 +103,22 @@ TEST(WatcherTest, SampleNetwork) {
   w2->attachToNetwork(n);
 
   // set one of the uncloned parameters to 1 instead of 0
-  // n.getRegions().getByName("level1")->getNodeAtIndex(1).setParameterUInt32("unclonedParam",
-  // (UInt32)1); n.run(3); see if Watcher notices change in parameter values
-  // after 3 iterations
-  n.getRegions().getByName("level1")->setParameterUInt64("uint64Param",
-                                                         (UInt64)66);
+  // n.getRegions().getByName("level1")->getNodeAtIndex(1).setParameterUInt32("unclonedParam",(UInt32)1);
+  //n.run(3);
+  // see if Watcher notices change in parameter values  after 3 iterations
+  n.getRegions().getByName("level1")->setParameterUInt64("uint64Param", (UInt64)66);
   n.run(3);
 
   // test flushFile() - this should produce output
-  w.flushFile();
+  w2->flushFile();
 
   // test closeFile()
-  w.closeFile();
+  w2->closeFile();
 
   // test to make sure data is flushed when Watcher is deleted
   delete w2;
+
+  // The two generated files are used in next test.
 }
 
 TEST(WatcherTest, FileTest1) {

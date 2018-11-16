@@ -44,23 +44,21 @@
 namespace nupic {
 
 Watcher::Watcher(std::string fileName) {
-	data_.outStream = nullptr;
     std::string d = Path::getParent(fileName);
     if (!d.empty())
       Directory::create(d);
   data_.fileName = fileName;
   try {
-      data_.outStream =  new std::ofstream(fileName.c_str());
+      data_.outStream.open(fileName.c_str());
   } catch (std::exception &) {
       NTA_THROW << "Unable to open filename " << fileName << " for network watcher";
     }
   }
 
 Watcher::~Watcher() {
-  if (data_.outStream) {
+  if (data_.outStream.is_open()) {
   	this->flushFile();
   	this->closeFile();
-	delete data_.outStream;
   }
 }
 
@@ -366,27 +364,36 @@ void Watcher::watcherCallback(Network *net, UInt64 iteration, void *dataIn) {
 
     value = out.str();
 
-    *data.outStream << watch.watchID << ", " << iteration << ", " << value << std::endl;
+    data.outStream << watch.watchID << ", " << iteration << ", " << value << std::endl;
   } // for
-  data.outStream->flush();
+  data.outStream.flush();
 }
 
-void Watcher::closeFile() { data_.outStream->close(); }
+void Watcher::closeFile() {
+  if (data_.outStream.is_open()) {
+    data_.outStream << "Closing...\n";
+    data_.outStream.flush();
+    data_.outStream.close();
+  }
+}
 
-void Watcher::flushFile() { data_.outStream->flush(); }
+void Watcher::flushFile() {
+  if (data_.outStream.is_open())
+    data_.outStream.flush();
+}
 
 //attach Watcher to a network and do initial writing to files
 void Watcher::attachToNetwork(Network& net)
 {
-  std::ostream &out = *data_.outStream;
-    out << "Info: watchID, regionName, nodeType, nodeIndex, varName" << std::endl;
+  std::ostream &out = data_.outStream;
+  out << "Info: watchID, regionName, nodeType, nodeIndex, varName" << std::endl;
 
   // go through each watch
   watchData watch;
 
   for (UInt i = 0; i < data_.watches.size(); i++) {
     watch = data_.watches.at(i);
-    const Collection<Region *> &regions = net.getRegions();
+    const Collection<std::shared_ptr<Region> > &regions = net.getRegions();
     watch.region = regions.getByName(watch.regionName);
 
       //output general information for each watch

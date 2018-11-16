@@ -175,7 +175,7 @@ public:
 
 private:
   std::string rootDir_;
-  boost::shared_ptr<DynamicLibrary> pynodeLibrary_;
+  std::shared_ptr<DynamicLibrary> pynodeLibrary_;
   initPythonFunc initPython_;
   finalizePythonFunc finalizePython_;
   createSpecFunc createSpec_;
@@ -267,8 +267,7 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
     impl = cppRegions[nodeType]->createRegionImpl(vm, region);
   } else if ((nodeType.find(std::string("py.")) == 0)) {
     if (!pyLib_)
-      pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+      pyLib_ = std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     impl = createPyNode(pyLib_.get(), nodeType, &vm, region);
   } else {
@@ -288,8 +287,7 @@ RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
     impl = cppRegions[nodeType]->deserializeRegionImpl(bundle, region);
   } else if (StringUtils::startsWith(nodeType, "py.")) {
     if (!pyLib_)
-      pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+      pyLib_ = std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     impl = deserializePyNode(pyLib_.get(), nodeType, bundle, region);
   } else {
@@ -338,7 +336,7 @@ Spec *RegionImplFactory::getSpec(const std::string nodeType) {
   } else if (nodeType.find(std::string("py.")) == 0) {
     if (!pyLib_)
       pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+          std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     ns = getPySpec(pyLib_.get(), nodeType);
   } else {

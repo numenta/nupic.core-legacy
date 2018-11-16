@@ -78,7 +78,7 @@ void Output::initialize(size_t count) {
   }
 }
 
-void Output::addLink(Link *link) {
+void Output::addLink(std::shared_ptr<Link> link) {
   // Make sure we don't add the same link twice
   // It is a logic error if we add the same link twice here, since
   // this method should only be called from Input::addLink
@@ -88,7 +88,7 @@ void Output::addLink(Link *link) {
   links_.insert(link);
 }
 
-void Output::removeLink(Link *link) {
+void Output::removeLink(std::shared_ptr<Link> link) {
   auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
   NTA_CHECK(linkIter != links_.end());

@@ -66,13 +66,17 @@
 #ifdef USE_BOOST_FILESYSTEM
   namespace fs = boost::filesystem;
   namespace er = boost::system;
-  #define  FS_PermNone    fs::perms::no_perms
-  #define  FS_OthersExec fs::perms::others_exe
-  #define  FS_Overwrite   fs::copy_option::overwrite_if_exists
+  #define FS_PermNone    fs::perms::no_perms
+  #define FS_OwnerExec   fs::perms::owner_exe
+  #define FS_GroupExec   fs::perms::group_exe
+  #define FS_OthersExec  fs::perms::others_exe
+  #define FS_Overwrite   fs::copy_option::overwrite_if_exists
 #else
   namespace er = std;
-  #define FS_PermNone    fs::perm:none
-  #define FS_OthersExec fs::perms::others_exec
+  #define FS_PermNone    fs::perms::none
+  #define FS_OwnerExec   fs::perms::owner_exec
+  #define FS_GroupExec   fs::perms::group_exec
+  #define FS_OthersExec  fs::perms::others_exec
   #define FS_Overwrite   fs::copy_options::overwrite_existing
 #endif
 

@@ -24,16 +24,19 @@
  * Implementation of ArrayBase test
  */
 
+#define UNUSED(x) (void)(x)
+
 #include <nupic/utils/Log.hpp>
 
 #include <nupic/ntypes/ArrayBase.hpp>
 #include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/os/OS.hpp>
 
-#include <boost/scoped_array.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include <map>
-
+#include <memory>
 #include <limits.h>
 
 #include <gtest/gtest.h>
@@ -127,7 +130,8 @@ TEST_F(ArrayTest, testMemoryOperations) {
       for (unsigned int i = 0; i < 10; i++) {
         ((char *)ownedBufferLocation)[i] = 'A' + i;
       }
-    } catch (AccessViolationError exception) {
+    } catch (AccessViolationError& exception) {
+	  UNUSED(exception);
       wasAbleToWriteToBuffer = false;
     }
     TEST2("Write to full length of allocated buffer should succeed",
@@ -144,7 +148,8 @@ TEST_F(ArrayTest, testMemoryOperations) {
   try {
     char testRead = '\0';
     testRead = ((char *)ownedBufferLocation)[4];
-  } catch (AccessViolationError exception) {
+  } catch (AccessViolationError& exception) {
+	  UNUSED(exception);
     wasAbleToReadFromFreedBuffer = false;
   }
   ASSERT_TRUE(!wasAbleToReadFromFreedBuffer)
@@ -153,7 +158,8 @@ TEST_F(ArrayTest, testMemoryOperations) {
   bool wasAbleToWriteToFreedBuffer = true;
   try {
     ((char *)ownedBufferLocation)[4] = 'A';
-  } catch (AccessViolationError exception) {
+  } catch (AccessViolationError& exception) {
+	  UNUSED(exception);
     wasAbleToWriteToFreedBuffer = false;
   }
   ASSERT_TRUE(!wasAbleToWriteToFreedBuffer)
@@ -165,10 +171,93 @@ TEST_F(ArrayTest, testMemoryOperations) {
 
 #endif
 
+
+
+TEST_F(ArrayTest, testMemory) {
+  // We are going to try to perform the same test as above but without
+  // messing with the signal handlers.
+  char testValue;
+  char *ownedBufferLocation;
+  Array b(NTA_BasicType_Byte);
+  ArrayRef c;
+
+
+
+  {
+    Array a(NTA_BasicType_Byte);
+
+    a.allocateBuffer(100000);
+    ownedBufferLocation = (char*)a.getBuffer();
+    EXPECT_TRUE(a.getCount() == 100000);
+
+    // Verify that we can write into the buffer
+    bool wasAbleToWriteToBuffer = true;
+    try {
+      for (unsigned int i = 0; i < 9; i++) {
+        ownedBufferLocation[i] = 'A' + i;
+      }
+      ownedBufferLocation[9] = '\0';
+    } catch ( std::exception& e) {
+      UNUSED(e);
+      wasAbleToWriteToBuffer = false;
+    }
+    EXPECT_TRUE(wasAbleToWriteToBuffer) <<  "Write to full length of allocated buffer should have succeeded.";
+
+    // Verify that we can read from the buffer
+    testValue = '\0';
+    testValue = ((char *)ownedBufferLocation)[8];
+    EXPECT_TRUE(testValue == 'I')  << "Was not able to read the right thing from the buffer.";
+  }
+  // The Array object is now out of scope so its buffer should be invalid.
+
+  {
+    Array a(NTA_BasicType_Byte);
+    a.allocateBuffer(10);
+    ownedBufferLocation = (char*)a.getBuffer();
+    for (unsigned int i = 0; i < 9; i++) {
+      ownedBufferLocation[i] = 'A' + i;
+    }
+    ownedBufferLocation[9] = '\0';
+    char testRead = ownedBufferLocation[4];
+    EXPECT_TRUE(testRead == 'E') << "Should be able to write and read the Array.";
+
+    // make an asignment to another Array instance and to an ArrayRef instance.
+    b = a; // shallow copy.  Buffer not copied but remains valid after a is
+           // deleted.
+	c = ArrayRef(a.getType(), a.getBuffer(), a.getCount());
+    //c = a.ref();  // also a shallow copy
+    EXPECT_TRUE(c.getType() == NTA_BasicType_Byte)  << "The data type should have been copied to the ArrayRef.";
+
+    EXPECT_TRUE(((char *)b.getBuffer())[4] == 'E')  << "Should be able to read the new Array instance.";
+    EXPECT_TRUE(((char *)c.getBuffer())[4] == 'E')  << "Should be able to read the new ArrayRef instance.";
+    ((char *)b.getBuffer())[4] = 'Z';
+    EXPECT_TRUE(((char *)b.getBuffer())[4] == 'Z') << "Should be able to modify the new Array instance.";
+    EXPECT_TRUE(((char *)c.getBuffer())[4] == 'Z') << "The ArrayRef instance should also see the change.";
+    EXPECT_TRUE(((char *)a.getBuffer())[4] == 'Z') << "The original buffer should also change.";
+  }
+  // the Array a is now out of scope but the buffer should still be valid.
+  EXPECT_TRUE(((char *)b.getBuffer())[4] == 'Z')   << "Should still see the buffer in the new Array instance.";
+  EXPECT_TRUE(((char *)c.getBuffer())[4] == 'Z')   << "The ArrayRef instance should also still see the buffer.";
+  EXPECT_TRUE(ownedBufferLocation[4] == 'Z')  << "The pointer should also still see the buffer.";
+
+  b.releaseBuffer();
+  // The b buffer is no longer valid but c still has a reference to it.
+  EXPECT_TRUE(b.getBuffer() == nullptr)  << "expected a null pointer because the buffer was released.";
+  EXPECT_TRUE(b.getCount() == 0)  << "expected a 0 length because the buffer was released.";
+  //EXPECT_TRUE(((char *)c.getBuffer())[4] == 'Z') << "The ArrayRef instance should also still see the buffer.";
+  //EXPECT_TRUE(((char *)ownedBufferLocation)[4] == 'Z') << "The pointer should also still see the buffer.";
+
+  c.releaseBuffer();
+  EXPECT_TRUE(c.getBuffer() == nullptr)  << "ArrayRef was released so it should have had a null pointer";
+  //EXPECT_ANY_THROW(testValue = ((char *)ownedBufferLocation)[4];)
+  //    << "The pointer should no longer be valid.";   // cannot really test for a memory leak this way.
+}
+
+
 TEST_F(ArrayTest, testArrayCreation) {
   setupArrayTests();
 
-  boost::scoped_ptr<ArrayBase> arrayP;
+  ArrayBase *arrayP;
 
   TestCaseIterator testCase;
 
@@ -180,8 +269,9 @@ TEST_F(ArrayTest, testArrayCreation) {
       bool caughtException = false;
 
       try {
-        arrayP.reset(new ArrayBase(testCase->second.dataType));
-      } catch (nupic::Exception) {
+        arrayP = new ArrayBase(testCase->second.dataType);
+      } catch (nupic::Exception& e) {
+        UNUSED(e);
         caughtException = true;
       }
 
@@ -190,7 +280,7 @@ TEST_F(ArrayTest, testArrayCreation) {
                  " - Should throw an exception on trying to create an invalid "
                  "ArrayBase";
     } else {
-      arrayP.reset(new ArrayBase(testCase->second.dataType));
+      arrayP = new ArrayBase(testCase->second.dataType);
       buf = (char *)arrayP->getBuffer();
       ASSERT_EQ(buf, nullptr)
           << "Test case: " + testCase->first +
@@ -201,11 +291,11 @@ TEST_F(ArrayTest, testArrayCreation) {
                  " - When not passed a size, a newly created ArrayBase should "
                  "have a count equal to zero";
 
-      boost::scoped_array<char> buf2(new char[testCase->second.dataTypeSize *
-                                              testCase->second.allocationSize]);
+	  size_t capacity = testCase->second.dataTypeSize * testCase->second.allocationSize;
+      std::shared_ptr<char> buf2(new char[capacity], std::default_delete<char[]>());
 
-      arrayP.reset(new ArrayBase(testCase->second.dataType, buf2.get(),
-                                 testCase->second.allocationSize));
+      arrayP = new ArrayBase(testCase->second.dataType, buf2.get(),
+                                 testCase->second.allocationSize);
 
       buf = (char *)arrayP->getBuffer();
       ASSERT_EQ(buf, buf2.get()) << "Test case: " + testCase->first +
@@ -242,7 +332,8 @@ TEST_F(ArrayTest, testBufferAllocation) {
 
     try {
       a.allocateBuffer((size_t)(testCase->second.allocationSize));
-    } catch (std::exception &) {
+    } catch (std::exception &e) {
+      UNUSED(e);
       caughtException = true;
     }
 
@@ -258,8 +349,24 @@ TEST_F(ArrayTest, testBufferAllocation) {
                  "valid pointer";
 
       // Note: reallocating a buffer is now allowed.  dek, 08/07/2017
+      caughtException = false;
 
-      ASSERT_EQ((size_t)testCase->second.allocationSize, a.getCount())
+      try
+      {
+        a.allocateBuffer(10);
+      }
+      catch(nupic::Exception& e)
+      {
+        UNUSED(e);
+        caughtException = true;
+      }
+
+      ASSERT_FALSE(caughtException)
+        << "Test case: " + testCase->first +
+            " - allocating a buffer when one is already allocated should "
+            "not raise an exception. The allocation will release the previous buffer.";
+
+      ASSERT_EQ((size_t)10, a.getCount())
           << "Test case: " + testCase->first +
                  " - Size of allocated ArrayBase should match requested size";
     }
@@ -273,10 +380,10 @@ TEST_F(ArrayTest, testBufferAssignment) {
 
   TestCaseIterator testCase;
 
-  for (testCase = testCases_.begin(); testCase != testCases_.end();
-       testCase++) {
-    boost::scoped_array<char> buf(new char[testCase->second.dataTypeSize *
-                                           testCase->second.allocationSize]);
+  for (testCase = testCases_.begin(); testCase != testCases_.end();  testCase++) {
+    size_t capacity =
+        testCase->second.dataTypeSize * testCase->second.allocationSize;
+    std::shared_ptr<char> buf(new char[capacity], std::default_delete<char[]>());
 
     ArrayBase a(testCase->second.dataType);
     a.setBuffer(buf.get(), testCase->second.allocationSize);
@@ -285,10 +392,29 @@ TEST_F(ArrayTest, testBufferAssignment) {
         << "Test case: " + testCase->first +
                " - setBuffer() should used the assigned buffer";
 
-    boost::scoped_array<char> buf2(new char[testCase->second.dataTypeSize *
-                                            testCase->second.allocationSize]);
+    capacity = testCase->second.dataTypeSize * testCase->second.allocationSize;
+    std::shared_ptr<char> buf2(new char[capacity], std::default_delete<char[]>());
 
     // setting a buffer when one is already set is now allowed. dek 08/07/2018
+    bool caughtException = false;
+
+    try
+    {
+      a.setBuffer(buf2.get(), testCase->second.allocationSize);
+    }
+    catch(nupic::Exception& e)
+    {
+      UNUSED(e);
+      caughtException = true;
+    }
+
+    ASSERT_FALSE(caughtException)
+      << "Test case: " +
+          testCase->first +
+          " - setting a buffer when one is already set should not raise an "
+          "exception";
+    ASSERT_EQ(a.getCount(), (size_t)testCase->second.allocationSize)
+        << "Buffer size should be the requested amount.";
   }
 }
 
@@ -299,10 +425,9 @@ TEST_F(ArrayTest, testBufferRelease) {
 
   TestCaseIterator testCase;
 
-  for (testCase = testCases_.begin(); testCase != testCases_.end();
-       testCase++) {
-    boost::scoped_array<char> buf(new char[testCase->second.dataTypeSize *
-                                           testCase->second.allocationSize]);
+  for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
+    std::shared_ptr<char> buf(new char[testCase->second.dataTypeSize *
+                                           testCase->second.allocationSize], std::default_delete<char[]>());
 
     ArrayBase a(testCase->second.dataType);
     a.setBuffer(buf.get(), testCase->second.allocationSize);

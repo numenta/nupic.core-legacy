@@ -49,8 +49,8 @@ using namespace nupic;
 
 TEST(LinkTest, Links) {
   Network net;
-  Region *region1 = net.addRegion("region1", "TestNode", "");
-  Region *region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -85,7 +85,7 @@ TEST(LinkTest, Links) {
   ASSERT_TRUE(in2->isInitialized());
 
   // test getLinks()
-  std::vector<Link *> links = in2->getLinks();
+  std::vector<std::shared_ptr<Link> > links = in2->getLinks();
   ASSERT_EQ(1u, links.size());
   for (auto &link : links) {
     // do something to make sure l[i] is a valid Link*
@@ -95,9 +95,9 @@ TEST(LinkTest, Links) {
   }
 
   // test findLink()
-  Link *l1 = in1->findLink("region1", "bottomUpOut");
+  std::shared_ptr<Link> l1 = in1->findLink("region1", "bottomUpOut");
   ASSERT_TRUE(l1 == nullptr);
-  Link *l2 = in2->findLink("region1", "bottomUpOut");
+  std::shared_ptr<Link> l2 = in2->findLink("region1", "bottomUpOut");
   ASSERT_TRUE(l2 != nullptr);
 
   // test removeLink(), uninitialize()
@@ -137,8 +137,8 @@ TEST(LinkTest, DelayedLink) {
                                        new RegisteredRegionImpl<MyTestNode>());
 
   Network net;
-  Region *region1 = net.addRegion("region1", "MyTestNode", "");
-  Region *region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "MyTestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   RegionImplFactory::unregisterCPPRegion("MyTestNode");
 
@@ -263,8 +263,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
                                        new RegisteredRegionImpl<MyTestNode>());
 
   Network net;
-  Region *region1 = net.addRegion("region1", "MyTestNode", "");
-  Region *region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "MyTestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -293,7 +293,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   {
     const ArrayBase *ai2 = &(in2->getData());
     Real64 *idata = (Real64 *)(ai2->getBuffer());
-    ASSERT_EQ(in2->getData().getCount(), 64);
+    ASSERT_EQ(in2->getData().getCount(), 64u);
     for (UInt i = 0; i < 64; i++)
       idata[i] = 1;
   }
@@ -319,7 +319,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
     Real64 *idata = (Real64 *)out1->getData().getBuffer();
     // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++) {
-      ASSERT_EQ(10, idata[i]);
+      ASSERT_EQ(10.0f, idata[i]);
     }
   }
 
@@ -354,7 +354,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);
   }
-  
+
 
 
   // At this point:
@@ -362,8 +362,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // The current input is all 0's
   // We should have two delayed array values in queue: 10's and 100's
   {
-    Link* link = in2->findLink("region1", "bottomUpOut");
-    VERBOSE << "InputLink: " << *link;
+    std::shared_ptr<Link> link = in2->findLink("region1", "bottomUpOut");
+    VERBOSE << "InputLink: " << *(link.get());
   }
 
   // Serialize the current net
@@ -378,7 +378,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
       ASSERT_EQ(100, idata[i]);
     }
   }
-  
+
   // What is serialized in the Delay buffer should be
   // all 0's for first row and all 10's for the second.
   // The stored output buffer would be all 100's.
@@ -402,10 +402,10 @@ TEST(LinkTest, DelayedLinkSerialization) {
   ASSERT_TRUE(n2in1->getData() == in1->getData())   << "Deserialized bottomUpIn region1 input buffer does not match";
   ASSERT_TRUE(n2in2->getData() == in2->getData())   << "Deserialized bottomUpIn region2 does not match";
   ASSERT_TRUE(n2out1->getData() == out1->getData()) << "Deserialized bottomUpOut region1 does not match";
-  ASSERT_EQ(n2in2->getData().getCount(), 64);
-  
+  ASSERT_EQ(n2in2->getData().getCount(), 64u);
+
   {
-	  Link* link = n2in2->findLink("region1", "bottomUpOut");
+	  std::shared_ptr<Link> link = n2in2->findLink("region1", "bottomUpOut");
     VERBOSE << "Input2: " << *link;
   }
 
@@ -434,7 +434,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // The restore looks good..now lets see if we can continue execution.
   // Check extraction of first "generated" value.
   {
-  	Link* link = n2in2->findLink("region1", "bottomUpOut");
+  	std::shared_ptr<Link> link = n2in2->findLink("region1", "bottomUpOut");
     VERBOSE << "Input2: " << *link;
 
     net.run(1);
@@ -443,7 +443,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
 	link = n2in2->findLink("region1", "bottomUpOut");
     VERBOSE << "Input2: " << *link;
     // confirm that n2in2 is now all 10's
-	ASSERT_EQ(n2in2->getData().getCount(), 64);
+	ASSERT_EQ(n2in2->getData().getCount(), 64u);
     Real64 *idata = (Real64 *)in2->getData().getBuffer();
     Real64 *n2idata = (Real64 *)n2in2->getData().getBuffer();
     // only test 4 instead of 64 to cut down on number of tests
@@ -762,14 +762,14 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
 
   RegionImplFactory::registerCPPRegion(
       "L4TestRegion", new RegisteredRegionImpl<L4TestRegion>());
-  Region *r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
-  Region *r2 = net.addRegion("R2", "L4TestRegion", "{\"k\": 5}");
+  std::shared_ptr<Region> r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  std::shared_ptr<Region> r2 = net.addRegion("R2", "L4TestRegion", "{\"k\": 5}");
   RegionImplFactory::unregisterCPPRegion("L4TestRegion");
 
   RegionImplFactory::registerCPPRegion(
       "L2TestRegion", new RegisteredRegionImpl<L2TestRegion>());
-  Region *r3 = net.addRegion("R3", "L2TestRegion", "");
-  Region *r4 = net.addRegion("R4", "L2TestRegion", "");
+  std::shared_ptr<Region> r3 = net.addRegion("R3", "L2TestRegion", "");
+  std::shared_ptr<Region> r4 = net.addRegion("R4", "L2TestRegion", "");
   RegionImplFactory::unregisterCPPRegion("L2TestRegion");
 
   // NOTE Dimensions must be multiples of 2
@@ -944,12 +944,12 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
 
   RegionImplFactory::registerCPPRegion(
       "L4TestRegion", new RegisteredRegionImpl<L4TestRegion>());
-  Region *r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  std::shared_ptr<Region> r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
   RegionImplFactory::unregisterCPPRegion("L4TestRegion");
 
   RegionImplFactory::registerCPPRegion(
       "L2TestRegion", new RegisteredRegionImpl<L2TestRegion>());
-  Region *r3 = net.addRegion("R3", "L2TestRegion", "");
+  std::shared_ptr<Region> r3 = net.addRegion("R3", "L2TestRegion", "");
   RegionImplFactory::unregisterCPPRegion("L2TestRegion");
 
   // NOTE Dimensions must be multiples of 2
@@ -1090,7 +1090,7 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
 
   RegionImplFactory::registerCPPRegion(
       "L4TestRegion", new RegisteredRegionImpl<L4TestRegion>());
-  Region *r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  std::shared_ptr<Region> r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
   RegionImplFactory::unregisterCPPRegion("L4TestRegion");
 
   // NOTE Dimensions must be multiples of 2

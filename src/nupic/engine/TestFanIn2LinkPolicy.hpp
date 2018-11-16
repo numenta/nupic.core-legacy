@@ -54,7 +54,7 @@ public:
   bool isInitialized() const override;
 
 private:
-  Link *link_;
+  std::shared_ptr<Link> link_;
 
   Dimensions srcDimensions_;
   Dimensions destDimensions_;
