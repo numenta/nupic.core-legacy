@@ -320,6 +320,7 @@ set(src_nupiccore_srcs
     nupic/utils/MovingAverage.cpp
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
+    nupic/utils/SlidingWindow.hpp
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
@@ -464,8 +465,10 @@ add_executable(${src_executable_gtests}
                test/unit/utils/GroupByTest.cpp
                test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
+               test/unit/utils/SlidingWindowTest.cpp
                test/unit/utils/WatcherTest.cpp
-               test/unit/utils/VectorHelpersTest.cpp)
+               test/unit/utils/VectorHelpersTest.cpp
+	       )
 target_link_libraries(${src_executable_gtests}
                       ${src_lib_static_gtest}
                       ${src_common_test_exe_libs})
