@@ -16,7 +16,7 @@
  */
 
 /** @file
- * Definitions for SparseDistributedRepresentation in C++
+ * Definitions for SparseDistributedRepresentation class
  */
 
 #ifndef SDR_HPP
@@ -32,7 +32,7 @@ using namespace std;
 namespace nupic {
 
 /**
- * SparseDistributedRepresentation in C++
+ * SparseDistributedRepresentation class
  *
  * ### Description
  * This class manages the specification and momentary value of a Sparse
@@ -88,7 +88,8 @@ public:
      * this method is by calling SDR.load().  Until SDR.load() is called this
      * SDR is in an unusable state.
      */
-    SparseDistributedRepresentation();
+    SparseDistributedRepresentation()
+        { clear(); };   // No dimensions, size zero, no value.
 
     /**
      * Create an SDR object.  Initially this SDR has no value set.
@@ -105,7 +106,10 @@ public:
      *
      * @param value An SDR to replicate.
      */
-    SparseDistributedRepresentation(const SparseDistributedRepresentation value);
+    SparseDistributedRepresentation(const SparseDistributedRepresentation &value) {
+        SparseDistributedRepresentation( value.getDimensions() );
+        assign(value);
+    };
 
     /**
      * @returns A list of dimensions of the SDR.
@@ -116,11 +120,11 @@ public:
     /**
      * @returns The total number of boolean values in the SDR.
      */
-    const UInt getSize() const
-        {return size;};
+    UInt getSize() const
+        { return dense.size(); };
 
     /**
-     * Remove the value from this SDR.  Attempting to get the value of an empty
+     * Remove the value from this SDR.  Attempting to get the value of an unset
      * SDR will raise an exception.
      */
     void clear();
@@ -136,7 +140,7 @@ public:
      *
      * @param value A dense array in a vector<char> to assign to the SDR.
      */
-    void setDense( const vector<Byte> value );
+    void setDense( const vector<Byte> &value );
 
     /**
      * Assigns a new value to the SDR, overwritting the current value.
@@ -160,7 +164,7 @@ public:
      *
      * @param value A vector of indices to assign to the SDR.
      */
-    void setFlatIndex( const vector<UInt> value );
+    void setFlatIndex( const vector<UInt> &value );
 
     /**
      * Assigns an array of sparse indices to the SDR.  These indicies are into
@@ -181,7 +185,7 @@ public:
      * @param value A list of lists containing the coordinates of the true
      * values to assign to the SDR.
      */
-    void setIndex( const vector<vector<UInt>> value );
+    void setIndex( const vector<vector<UInt>> &value );
 
     /**
      * Assigns a deep copy of the given SDR to this SDR.  This overwrites the
@@ -189,7 +193,7 @@ public:
      *
      * @param value An SDR to copy the value of.
      */
-    void assign( const SparseDistributedRepresentation value );
+    void assign( const SparseDistributedRepresentation &value );
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -198,7 +202,7 @@ public:
      *
      * @returns A list of all values in the SDR.
      */
-    const vector<Byte> getDense();
+    const vector<Byte>* getDense();
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -207,7 +211,7 @@ public:
      *
      * @returns A list of the indices of the true values in the flattened SDR.
      */
-    const vector<UInt> getFlatIndex();
+    const vector<UInt>* getFlatIndex();
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -218,7 +222,7 @@ public:
      * SDR.  The outter list has an entry for each dimension in the SDR.  The
      * inner lists have an entry for each true value in the SDR.
      */
-    const vector<vector<UInt>> getIndex();
+    const vector<vector<UInt>>* getIndex();
 
     /**
      * Makes a deep copy of the SDR.  This SDR and the returned SDR have no
@@ -226,7 +230,8 @@ public:
      *
      * @returns An SDR which is identical to this SDR.
      */
-    const SparseDistributedRepresentation copy() const;
+    SparseDistributedRepresentation* copy() const
+        { return new SparseDistributedRepresentation(*this); };
 
     /**
      * Calculates the sparsity of the SDR, which is the fraction of bits which
@@ -237,7 +242,8 @@ public:
      *
      * @returns The fraction of values in the SDR which are true.
      */
-    const Real getSparsity();
+    Real getSparsity()
+        { return (Real) getFlatIndex()->size() / getSize(); };
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.
@@ -256,7 +262,6 @@ public:
 
 private:
     vector<UInt> dimensions;
-    size_t       size;
 
     vector<Byte>         dense;
     vector<UInt>         flatIndex;
@@ -267,7 +272,7 @@ private:
     bool index_valid;
 };
 
-typdef SDR SparseDistributedRepresentation;
+typedef SparseDistributedRepresentation SDR;
 
 } // end namespace nupic
 #endif // end ifndef SDR_HPP
