@@ -210,7 +210,6 @@ void Network::removeRegion(const std::string &name) {
 
   // Must uninitialize the region prior to removing incoming links
   r->uninitialize();
-  regions_.remove(name);
 
   auto phase = phaseInfo_.begin();
   for (; phase != phaseInfo_.end(); phase++) {
@@ -228,8 +227,13 @@ void Network::removeRegion(const std::string &name) {
   }
   resetEnabledPhases_();
 
-  // Region destructor cleans up all incoming links
-  r.reset();
+  regions_.remove(name);
+  // Note: the regions_ container holds shared pointers to Regions.
+  //       When a region is removed its shared pointer is deleted.
+  //       But as long as r (in this local context) is valid the pointer
+  //       to the Region remains valid. When r goes out of scope,
+  //       the Region object is deleted. When the Region object is
+  //       deleted its implementation instance is deleted in the destructor.
 
   return;
 }

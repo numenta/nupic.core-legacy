@@ -32,6 +32,9 @@ namespace nupic {
 // and copies are also stored in a vector (it's Ok to use pointers).
 // You can add items using the add() method.
 //
+// TODO: This does not contain a map. Lookups are serial.
+//       This should be fixed.  And, Collections.cpp should not be nessecary.
+
 template <typename T> class Collection {
 public:
   Collection();

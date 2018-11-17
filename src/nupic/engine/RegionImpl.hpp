@@ -37,7 +37,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <memory>
 
 
 #include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
@@ -188,7 +187,14 @@ public:
   virtual bool isParameterShared(const std::string &name);
 
 protected:
-  std::shared_ptr<Region> region_;
+    // A pointer to the Region object. This is the portion visible
+	// to the applications.  This class and it's subclasses are the
+	// hidden implementations behind the Region class.
+	// Note: this cannot be a shared_ptr. Its pointer is passed via
+	//       the API so it must be a bare pointer so we don't have
+	//       a copy of the shared_ptr held by the Collection in Network.
+	//       This pointer must NOT be deleted.
+    Region* region_;
 
   /* -------- Methods provided by the base class for use by subclasses --------
    */
