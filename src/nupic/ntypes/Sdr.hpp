@@ -33,6 +33,7 @@ namespace nupic {
 
 /**
  * SparseDistributedRepresentation class
+ * Also known as "SDR" class
  *
  * ### Description
  * This class manages the specification and momentary value of a Sparse
@@ -68,8 +69,8 @@ namespace nupic {
  *
  * Example usage:
  *
- *    // Make an SDR with 10,000 bits, arranged in a (100 x 100) gird.
- *    SparseDistributedRepresentation X({100, 100});
+ *    // Make an SDR with 10,000 bits, arranged in a (100 x 100) grid.
+ *    SDR  X({100, 100});             // SDR is an alias for SparseDistributedRepresentation
  *
  *    // Assign data in any format.
  *    X.setFlatIndex( mySparseData ); // Assigns mySparseData to SDR's value.
@@ -84,12 +85,9 @@ class SparseDistributedRepresentation : public Serializable
 {
 public:
     /**
-     * Create an uninitialized SDR.  The only way to initialize SDRs created by
-     * this method is by calling SDR.load().  Until SDR.load() is called this
-     * SDR is in an unusable state.
+     * Create a zero sized SDR.  Use this method in conjunction with SDR.load().
      */
-    SparseDistributedRepresentation()
-        { clear(); };   // No dimensions, size zero, no value.
+    SparseDistributedRepresentation() {};
 
     /**
      * Create an SDR object.  Initially this SDR has no value set.
@@ -138,16 +136,14 @@ public:
     /**
      * Assigns a new value to the SDR, overwritting the current value.
      *
-     * @param value A dense array in a vector<char> to assign to the SDR.
+     * @param value A dense array of type char to assign to the SDR.
      */
-    void setDense( const vector<Byte> &value );
+    void setDense( const Byte* value );
 
     /**
      * Assigns a new value to the SDR, overwritting the current value.
      *
-     * @param value A dense C-style array of UInt's to assign to the SDR.  The
-     * given value must have as many elements as this SDR, as given by 
-     * SDR.getSize().
+     * @param value A dense C-style array of UInt's to assign to the SDR.
      */
     void setDense( const UInt *value );
 
@@ -157,6 +153,8 @@ public:
      * @param value A dense byte Array to assign to the SDR.
      */
     void setDense( const ArrayBase *value );
+
+    void setDenseInplace();
 
     /**
      * Assigns a vector of sparse indices to the SDR.  These indicies are into
@@ -175,6 +173,8 @@ public:
      */
     void setFlatIndex( const UInt *value, const UInt num_values );
 
+    void setFlatIndexInplace();
+
     /**
      * Assign a list of indices to the SDR, overwritting the SDRs current value.
      * These indices are into the SDR space with dimensions.  The outter list
@@ -186,6 +186,8 @@ public:
      * values to assign to the SDR.
      */
     void setIndex( const vector<vector<UInt>> &value );
+
+    void setIndexInplace();
 
     /**
      * Assigns a deep copy of the given SDR to this SDR.  This overwrites the
@@ -202,7 +204,9 @@ public:
      *
      * @returns A list of all values in the SDR.
      */
-    const vector<Byte>* getDense();
+    const Byte* getDense();
+
+    Byte* getDenseMutable();
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -212,6 +216,8 @@ public:
      * @returns A list of the indices of the true values in the flattened SDR.
      */
     const vector<UInt>* getFlatIndex();
+
+    vector<UInt>* getFlatIndexMutable();
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -223,6 +229,10 @@ public:
      * inner lists have an entry for each true value in the SDR.
      */
     const vector<vector<UInt>>* getIndex();
+
+    vector<vector<UInt>>* getIndexMutable();
+
+    Byte at(vector<UInt> coordinates);
 
     /**
      * Makes a deep copy of the SDR.  This SDR and the returned SDR have no
@@ -246,6 +256,25 @@ public:
         { return (Real) getFlatIndex()->size() / getSize(); };
 
     /**
+     * Make a random SDR, overwriting the current value of the SDR.  The
+     * resulting has uniformly random activations.
+     *
+     * @param sparsity The sparsity of the randomly generated SDR.
+     */
+    void randomize(Real sparsity);
+
+    /**
+     * Modify the SDR by moving a fraction of the active bits to different
+     * locations.  This method does not change the sparsity of the SDR, it only
+     * changes which bits are active.  The resulting SDR has a controlled amount
+     * of overlap with the original.
+     *
+     * @param fractionNoise The fraction of active bits to swap out.  The
+     * original and resulting SDRs have an overlap of (1 - fractionNoise).
+     */
+    void addNoise(Real fractionNoise);
+
+    /**
      * Save (serialize) the current state of the SDR to the specified file.
      * 
      * @param stream A valid output stream, such as an open file.
@@ -262,8 +291,9 @@ public:
 
 private:
     vector<UInt> dimensions;
+    UInt         size;
 
-    vector<Byte>         dense;
+    Byte*                dense;
     vector<UInt>         flatIndex;
     vector<vector<UInt>> index;
 
