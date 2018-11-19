@@ -131,7 +131,7 @@ TEST(SdrTest, TestZero) {
     ASSERT_EQ( a.getIndex().at(1).size(),  0);
 }
 
-TEST(SdrTest, TestsetDenseVec) {
+TEST(SdrTest, TestSetDenseVec) {
     SDR a({11, 10, 4});
     auto vec = vector<Byte>(440, 1);
     a.zero();
@@ -145,7 +145,7 @@ TEST(SdrTest, TestsetDenseVec) {
     c.setDense( vector<Byte>(0) );
 }
 
-TEST(SdrTest, TestsetDenseByte) {
+TEST(SdrTest, TestSetDenseByte) {
     SDR a({11, 10, 4});
     auto vec = vector<Byte>(a.size, 1);
     a.zero();
@@ -160,7 +160,7 @@ TEST(SdrTest, TestsetDenseByte) {
     c.setDense( (Byte*) &data );
 }
 
-TEST(SdrTest, TestsetDenseUInt) {
+TEST(SdrTest, TestSetDenseUInt) {
     SDR a({11, 10, 4});
     auto vec = vector<UInt>(a.size, 1);
     a.zero();
@@ -175,7 +175,7 @@ TEST(SdrTest, TestsetDenseUInt) {
     c.setDense( (Byte*) &data );
 }
 
-TEST(DISABLED_SdrTest, TestsetDenseArray) {
+TEST(DISABLED_SdrTest, TestSetDenseArray) {
     // Overload is not implemented ...
 }
 
@@ -254,7 +254,7 @@ TEST(DISABLED_SdrTest, TestSetIndexMutableInplace) {
     // Test both mutable & inplace methods at the same time, which is the intended use case.
 }
 
-TEST(DISABLED_SdrTest, TestAssign) {
+TEST(DISABLED_SdrTest, TestSetSDR) {
     // This method has many code paths...
 }
 
@@ -316,55 +316,91 @@ TEST(SdrTest, TestGetDenseFromIndex) {
     ASSERT_EQ( z.getDense(), vector<Byte>(99, 0) );
 }
 
-TEST(DISABLED_SdrTest, TestGetFlatIndexFromDense) {
-    // // Test zero sized SDR.
-    // FAIL();
+TEST(SdrTest, TestGetFlatIndexFromDense) {
+    // Test zero sized SDR.
+    SDR z;
+    Byte data;
+    z.setDense( (Byte*) &data );
+    ASSERT_EQ( z.getFlatIndex().size(), 0 );
 
-    // // Test simple 1-D SDR.
-    // FAIL();
+    // Test simple 2-D SDR.
+    SDR a({3, 3}); a.zero();
+    auto dense = a.getDenseMutable();
+    dense[5] = 1;
+    dense[8] = 1;
+    a.setDense(dense);
+    ASSERT_EQ(a.getFlatIndex().at(0), 5);
+    ASSERT_EQ(a.getFlatIndex().at(1), 8);
 
-    // // Test simple 2-D SDR.
-    // SDR a({3, 3});
-    // auto dense = a.getDenseMutable();
-    // dense[5] = 1;
-    // dense[8] = 1;
-    // a.setDense(dense);
-    // ASSERT_EQ(a.getFlatIndex().at(0), 5);
-    // ASSERT_EQ(a.getFlatIndex().at(1), 8);
-
-    // // Test zero'd SDR.
-    // FAIL();
-
-    // // Test converting random SDRs.
-    // FAIL();
+    // Test zero'd SDR.
+    a.setDense( vector<Byte>(a.size, 0) );
+    ASSERT_EQ( a.getFlatIndex().size(), 0 );
 }
 
-TEST(DISABLED_SdrTest, TestGetFlatIndexFromIndex) {}
+TEST(SdrTest, TestGetFlatIndexFromIndex) {
+    // Test zero sized SDR.
+    SDR z;
+    z.setIndex( { } );
+    ASSERT_EQ( z.getFlatIndex().size(), 0 );
 
-TEST(DISABLED_SdrTest, TestGetIndex) {}
+    // Test simple 2-D SDR.
+    SDR a({3, 3}); a.zero();
+    auto& index = a.getIndexMutable();
+    ASSERT_EQ( index.size(), 2 );
+    ASSERT_EQ( index[0].size(), 0 );
+    ASSERT_EQ( index[1].size(), 0 );
+    // Insert flat index 4
+    index.at(0).push_back(1);
+    index.at(1).push_back(1);
+    // Insert flat index 8
+    index.at(0).push_back(2);
+    index.at(1).push_back(2);
+    // Insert flat index 5
+    index.at(0).push_back(1);
+    index.at(1).push_back(2);
+    a.setIndexInplace();
+    ASSERT_EQ(a.getFlatIndex().at(0), 4);
+    ASSERT_EQ(a.getFlatIndex().at(1), 8);
+    ASSERT_EQ(a.getFlatIndex().at(2), 5);
 
-TEST(DISABLED_SdrTest, TestAt) {}
+    // Test zero'd SDR.
+    a.setIndex( {{}, {}} );
+    ASSERT_EQ( a.getFlatIndex().size(), 0 );
+}
 
-TEST(DISABLED_SdrTest, TestCopy) {}
+TEST(DISABLED_SdrTest, TestGetIndexFromFlat) {}
 
-TEST(SdrTest, TestSparsity) {
+TEST(DISABLED_SdrTest, TestGetIndexFromDense) {}
+
+TEST(SdrTest, TestAt) {
+    SDR a({3, 3});
+    a.setFlatIndex( {4, 5, 8} );
+    ASSERT_TRUE( a.at( {1, 1} ));
+    ASSERT_TRUE( a.at( {1, 2} ));
+    ASSERT_TRUE( a.at( {2, 2} ));
+    ASSERT_FALSE( a.at( {0 , 0} ));
+    ASSERT_FALSE( a.at( {0 , 1} ));
+    ASSERT_FALSE( a.at( {0 , 2} ));
+    ASSERT_FALSE( a.at( {1 , 0} ));
+    ASSERT_FALSE( a.at( {2 , 0} ));
+    ASSERT_FALSE( a.at( {2 , 1} ));
+}
+
+TEST(SdrTest, TestSumSparsity) {
     SDR a({31, 17, 3});
     a.zero();
-    ASSERT_FLOAT_EQ( 0, a.getSparsity() );
     auto& dense = a.getDenseMutable();
     for(UInt i = 0; i < a.size; i++) {
+        ASSERT_EQ( i, a.getSum() );
+        EXPECT_FLOAT_EQ( (Real) i / a.size, a.getSparsity() );
         dense[i] = 1;
         a.setDenseInplace();
-        EXPECT_FLOAT_EQ( (Real) (i + 1) / a.size, a.getSparsity() );
     }
+    ASSERT_EQ( a.size, a.getSum() );
+    ASSERT_FLOAT_EQ( 1, a.getSparsity() );
 }
 
 TEST(DISABLED_SdrTest, TestOverlap) {
-    // TODO: THIS METHOD IS NOT IN HEADER
-    // TODO: THIS METHOD IS NOT IN IMPLEMENTATION
-}
-
-TEST(DISABLED_SdrTest, TestSum) {
     // TODO: THIS METHOD IS NOT IN HEADER
     // TODO: THIS METHOD IS NOT IN IMPLEMENTATION
 }
@@ -373,8 +409,6 @@ TEST(DISABLED_SdrTest, TestRandomize) {}
 
 TEST(DISABLED_SdrTest, TestAddNoise) {}
 
-TEST(DISABLED_SdrTest, TestSave) {}
+TEST(DISABLED_SdrTest, TestSaveLoad) {}
 
-TEST(DISABLED_SdrTest, TestLoad) {}
-
-// TODO: Test callbacks
+TEST(DISABLED_SdrTest, TestCallbacks) {}
