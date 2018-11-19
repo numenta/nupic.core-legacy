@@ -87,9 +87,9 @@ private:
     vector<UInt> dimensions_;
     UInt         size_;
 
-    Byte*                 dense;
-    vector<UInt>*         flatIndex;
-    vector<vector<UInt>>* index;
+    vector<Byte>         dense;
+    vector<UInt>         flatIndex;
+    vector<vector<UInt>> index;
 
     bool dense_valid_;
     bool flatIndex_valid_;
@@ -102,12 +102,6 @@ private:
     };
 
 public:
-    /**
-     * Create a zero sized SDR.  Use this method in conjunction with sdr.load().
-     */
-    SparseDistributedRepresentation() {
-        SparseDistributedRepresentation(vector<UInt>());
-    };
 
     /**
      * Create an SDR object.  Initially this SDR has no value set.
@@ -115,7 +109,7 @@ public:
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.
      */
-    SparseDistributedRepresentation(const vector<UInt> dimensions) {
+    SparseDistributedRepresentation( const vector<UInt> dimensions = vector<UInt>(0) ) {
         dimensions_ = dimensions;
         // Calculate the SDR's size.
         if( dimensions.size() ) {
@@ -127,16 +121,16 @@ public:
             size_ = 0;
         }
         // Initialize the dense array storage.
-        dense = new Byte[size];
-        // Initialize the flatIndex array.
-        flatIndex = new vector<UInt>;
+        dense = vector<Byte>(size_);
+        // Initialize the flatIndex array, nothing to do.
         // Initialize the index tuple.
-        index = new vector<vector<UInt>>;
         for(UInt dim : dimensions)
-            index->push_back( { } );
+            index.push_back( { } );
         // Mark the current data as invalid.
         clear();
     };
+
+    ~SparseDistributedRepresentation() {};
 
     /**
      * Initialize this SDR as a shallow copy of the given SDR.  Modifying either
@@ -144,18 +138,18 @@ public:
      *
      * @param value An SDR to connect with.
      */
-    SparseDistributedRepresentation(SparseDistributedRepresentation &value);
+    // SparseDistributedRepresentation(SparseDistributedRepresentation &value);
 
     /**
      * Initialize this SDR as a deep copy of the given SDR.
      *
      * @param value An SDR to replicate.
      */
-    SparseDistributedRepresentation(const SparseDistributedRepresentation &value) {
-        NTA_ASSERT( false /* Unimplemented */ );
-        SparseDistributedRepresentation( value.dimensions );
-        assign(value);
-    };
+    // SparseDistributedRepresentation(const SparseDistributedRepresentation &value) {
+    //     NTA_ASSERT( false /* Unimplemented */ );
+    //     SparseDistributedRepresentation( value.dimensions );
+    //     assign(value);
+    // };
 
     /**
      * @attribute dimensions A list of dimensions of the SDR.
@@ -208,7 +202,7 @@ public:
      */
     void zero() {
         clear();
-        flatIndex->clear();
+        flatIndex.clear();
         flatIndex_valid_ = true;
         do_callbacks();
     };
@@ -216,11 +210,22 @@ public:
     /**
      * Copy a new value into the SDR, overwritting the current value.
      *
+     * @param value A dense vector<char> to copy into the SDR.
+     */
+    void setDense( const vector<Byte> &value ) {
+        NTA_ASSERT(value.size() == size);
+        dense.assign( value.begin(), value.end() );
+        setDenseInplace();
+    };
+
+    /**
+     * Copy a new value into the SDR, overwritting the current value.
+     *
      * @param value A dense array of type char to copy into the SDR.
      */
-    void setDenseCopy( const Byte *value ) {
+    void setDense( const Byte *value ) {
         NTA_ASSERT(value != NULL);
-        std::copy(value, value + size, dense);
+        dense.assign( value, value + size );
         setDenseInplace();
     };
 
@@ -229,9 +234,9 @@ public:
      *
      * @param value A dense C-style array of UInt's to copy into the SDR.
      */
-    void setDenseCopy( const UInt *value ) {
+    void setDense( const UInt *value ) {
         NTA_ASSERT(value != NULL);
-        std::copy(value, value + size, dense);
+        dense.assign( value, value + size );
         setDenseInplace();
     };
 
@@ -240,27 +245,10 @@ public:
      *
      * @param value A dense byte Array to copy into the SDR.
      */
-    void setDenseCopy( const ArrayBase *value )  {
+    void setDense( const ArrayBase *value )  {
         NTA_ASSERT( false /* Unimplemented */ );
         // TODO: Assert correct size and data type.
         setDenseInplace();
-    };
-
-    /**
-     * Assign a new value to the SDR by replacing the dense pointer.  This
-     * overwrites the current SDR value.
-     *
-     * @param newDensePtr A pointer to an array containing dense-format data.
-     * This array will be used from here on.
-     *
-     * @returns A pointer to the old array which is being replaced.  It is the
-     * callers responsibility to deallocate the old array if necessary.
-     */
-    Byte *setDensePtr(Byte *newDensePtr) {
-        auto oldDensePtr = dense;
-        dense = newDensePtr;
-        setDenseInplace();
-        return oldDensePtr;
     };
 
     /**
@@ -280,8 +268,8 @@ public:
      *
      * @param value A vector of flat indices to copy into the SDR.
      */
-    void setFlatIndexCopy( const vector<UInt> &value ) {
-        flatIndex->assign( value.begin(), value.end() );
+    void setFlatIndex( const vector<UInt> &value ) {
+        flatIndex.assign( value.begin(), value.end() );
         setFlatIndexInplace();
     };
 
@@ -292,27 +280,12 @@ public:
      * @param value A C-style array of indices to copy into the SDR.
      * @param num_values The number of elements in the 'value' array.
      */
-    void setFlatIndexCopy( const UInt *value, const UInt num_values ) {
-        flatIndex->assign( value, value + num_values );
+    void setFlatIndex( const UInt *value, const UInt num_values ) {
+        flatIndex.assign( value, value + num_values );
         setFlatIndexInplace();
     };
 
-    /**
-     * Assign a new value to the SDR by replacing the flatIndex pointer.  This
-     * overwrites the current SDR value.
-     *
-     * @param newFlatIndexPtr A pointer to a vector containing flat index format
-     * data.  This vector will be used from here on.
-     *
-     * @returns A pointer to the old vector which is being replaced.  It is the
-     * callers responsibility to deallocate the old vector if necessary.
-     */
-    vector<UInt>* setFlatIndexPtr(vector<UInt>* newFlatIndexPtr) {
-        auto oldFlatIndexPtr = flatIndex;
-        flatIndex = newFlatIndexPtr;
-        setFlatIndexInplace();
-        return oldFlatIndexPtr;
-    };
+    // TODO: Overload setFlatIndex to accept an Array ...
 
     /**
      * Update the SDR to reflect the value currently inside of the flatIndex
@@ -320,8 +293,8 @@ public:
      * order to propigate any changes to the dense & index formats.
      */
     void setFlatIndexInplace() {
-        NTA_ASSERT(flatIndex->size() <= size);
-        for(auto idx : *flatIndex) {
+        NTA_ASSERT(flatIndex.size() <= size);
+        for(auto idx : flatIndex) {
             NTA_ASSERT(idx < size);
         }
         clear();
@@ -339,29 +312,12 @@ public:
      * @param value A list of lists containing the coordinates of the true
      * values to copy into the SDR.
      */
-    void setIndexCopy( const vector<vector<UInt>> &value ) {
+    void setIndex( const vector<vector<UInt>> &value ) {
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            index->at(dim).assign( value[dim].begin(), value[dim].end() );
+            index[dim].assign( value[dim].begin(), value[dim].end() );
         }
         setIndexInplace();
     };
-
-    /**
-     * Assign a new value to the SDR by replacing the index pointer.  This
-     * overwrites the current SDR value.
-     *
-     * @param newIndexPtr A pointer to a vector containing index format data.
-     * This vector will be used from here on.
-     *
-     * @returns A pointer to the old vector which is being replaced.  It is the
-     * callers responsibility to deallocate the old vector if necessary.
-     */
-    vector<vector<UInt>>* setIndexPtr(vector<vector<UInt>>* newIndexPtr) {
-        auto oldIndexPtr = index;
-        index = newIndexPtr;
-        setIndexInplace();
-        return oldIndexPtr;
-    }
 
     /**
      * Update the SDR to reflect the value currently inside of the index
@@ -369,15 +325,17 @@ public:
      * order to propigate any changes to the dense & flatIndex formats.
      */
     void setIndexInplace() {
-        NTA_ASSERT(index->size() == dimensions.size());
+        // Check data is valid.
+        NTA_ASSERT(index.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            const auto coord_vec = index->at(dim);
+            const auto coord_vec = index[dim];
             NTA_ASSERT(coord_vec.size() <= size);
-            // TODO: Assert that all inner vectors have the same length.
+            NTA_ASSERT(coord_vec.size() == index[0].size()); // All coordinate vectors have same size.
             for(auto idx : coord_vec) {
                 NTA_ASSERT(idx < size);
             }
         }
+        // Do the setter assignment.
         clear();
         index_valid_ = true;
         do_callbacks();
@@ -389,7 +347,9 @@ public:
      *
      * @param value An SDR to copy the value of.
      */
-    void assign( const SparseDistributedRepresentation &value );
+    void assign( const SparseDistributedRepresentation &value ) {
+        NTA_ASSERT( false /* Unimplemented */ );
+    };
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -398,7 +358,7 @@ public:
      *
      * @returns A pointer to an array of all the values in the SDR.
      */
-    const Byte* getDense()
+    const vector<Byte>& getDense()
         { return getDenseMutable(); };
 
     /**
@@ -409,11 +369,11 @@ public:
      *
      * @returns A pointer to an array of all the values in the SDR.
      */
-    Byte* getDenseMutable() {
+    vector<Byte>& getDenseMutable() {
         if( !dense_valid ) {
-            std::fill(dense, dense + size, 0);
             // Convert from flatIndex to dense.
-            for(auto idx : *getFlatIndex()) {
+            dense.assign( size, 0 );
+            for(const auto idx : getFlatIndex()) {
                 dense[idx] = 1;
             }
             dense_valid_ = true;
@@ -429,7 +389,7 @@ public:
      * @returns A pointer to a vector of the indices of the true values in the
      * flattened SDR.
      */
-    const vector<UInt>* getFlatIndex()
+    const vector<UInt>& getFlatIndex()
         { return getFlatIndexMutable(); };
 
     /**
@@ -441,20 +401,20 @@ public:
      * @returns A pointer to a vector of the indices of the true values in the
      * flattened SDR.
      */
-    vector<UInt>* getFlatIndexMutable() {
+    vector<UInt>& getFlatIndexMutable() {
         if( !flatIndex_valid ) {
-            flatIndex->clear(); // Clear out any old data.
+            flatIndex.clear(); // Clear out any old data.
             if( index_valid ) {
                 // Convert from index to flatIndex.
-                const auto num_nz = index->at(0).size();
-                flatIndex->reserve( num_nz );
+                const auto num_nz = index[0].size();
+                flatIndex.reserve( num_nz );
                 for(UInt nz = 0; nz < num_nz; nz++) {
                     UInt flat = 0;
-                    for(UInt i = 0; i < dimensions.size(); i++) {
-                        flat *= dimensions[i];
-                        flat += (*index)[i][nz];
+                    for(UInt dim = 0; dim < dimensions.size(); dim++) {
+                        flat *= dimensions[dim];
+                        flat += index[dim][nz];
                     }
-                    flatIndex->push_back(flat);
+                    flatIndex.push_back(flat);
                 }
                 flatIndex_valid_ = true;
             }
@@ -462,7 +422,7 @@ public:
                 // Convert from dense to flatIndex.
                 for(UInt idx = 0; idx < size; idx++)
                     if( dense[idx] != 0 )
-                        flatIndex->push_back( idx );
+                        flatIndex.push_back( idx );
                 flatIndex_valid_ = true;
             }
             else
@@ -479,7 +439,7 @@ public:
      * @returns A pointer to a list of lists of the coordinates of the true
      * values in the SDR.
      */
-    const vector<vector<UInt>>* getIndex()
+    const vector<vector<UInt>>& getIndex()
         { return getIndexMutable(); };
 
     /**
@@ -491,20 +451,20 @@ public:
      * @returns A pointer to a list of lists of the coordinates of the true
      * values in the SDR.
      */
-    vector<vector<UInt>>* getIndexMutable() {
+    vector<vector<UInt>>& getIndexMutable() {
         if( !index_valid ) {
             // Clear out any old data.
-            for( auto vec : *index ) {
+            for( auto vec : index ) {
                 vec.clear();
             }
             // Convert from flatIndex to index.
-            for( auto idx : *getFlatIndex() ) {
+            for( auto idx : getFlatIndex() ) {
                 for(UInt dim = dimensions.size() - 1; dim > 0; dim--) {
                     auto dim_sz = dimensions[dim];
-                    (*index)[dim].push_back( idx % dim_sz );
+                    (index)[dim].push_back( idx % dim_sz );
                     idx /= dim_sz;
                 }
-                (*index)[0].push_back(idx);
+                (index)[0].push_back(idx);
             }
             index_valid_ = true;
         }
@@ -519,7 +479,14 @@ public:
      *
      * @returns The value of the SDR at the given location.
      */
-    Byte at(const vector<UInt> coordinates);
+    Byte at(const vector<UInt> &coordinates) {
+        UInt flat = 0;
+        for(UInt i = 0; i < dimensions.size(); i++) {
+            flat *= dimensions[i];
+            flat += coordinates[i];
+        }
+        return getDense()[flat];
+    }
 
     /**
      * Makes a deep copy of the SDR.  This SDR and the returned SDR have no
@@ -527,8 +494,8 @@ public:
      *
      * @returns An SDR which is identical to this SDR.
      */
-    SparseDistributedRepresentation* copy() const
-        { return new SparseDistributedRepresentation((const) this); };
+    // SparseDistributedRepresentation& copy() const {
+        // { return new SparseDistributedRepresentation((const SparseDistributedRepresentation*) this); };
 
     /**
      * Calculates the sparsity of the SDR, which is the fraction of bits which
@@ -540,7 +507,17 @@ public:
      * @returns The fraction of values in the SDR which are true.
      */
     Real getSparsity()
-        { return (Real) getFlatIndex()->size() / size; };
+        { return (Real) getFlatIndex().size() / size; };
+
+    /**
+     * TODO ...
+     *
+     * @returns ...
+     */
+    UInt overlap(SparseDistributedRepresentation &sdr) {
+        NTA_ASSERT( false /* Unimplemented */ );
+        return 0;
+    };
 
     /**
      * Make a random SDR, overwriting the current value of the SDR.  The
@@ -548,7 +525,9 @@ public:
      *
      * @param sparsity The sparsity of the randomly generated SDR.
      */
-    void randomize(Real sparsity);
+    void randomize(Real sparsity) {
+        NTA_ASSERT( false /* Unimplemented */ );
+    };
 
     /**
      * Modify the SDR by moving a fraction of the active bits to different
@@ -561,14 +540,18 @@ public:
      * @param fractionNoise The fraction of active bits to swap out.  The
      * original and resulting SDRs have an overlap of (1 - fractionNoise).
      */
-    void addNoise(Real fractionNoise);
+    void addNoise(Real fractionNoise) {
+        NTA_ASSERT( false /* Unimplemented */ );
+    };
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.
      * 
      * @param stream A valid output stream, such as an open file.
      */
-    void save(std::ostream &stream) const override;
+    void save(std::ostream &stream) const override {
+        NTA_ASSERT( false /* Unimplemented */ );
+    };
 
     /**
      * Load (deserialize) and initialize the SDR from the specified input
@@ -576,10 +559,12 @@ public:
      *
      * @param stream A input valid istream, such as an open file.
      */
-    void load(std::istream &stream) override;
+    void load(std::istream &stream) override {
+        NTA_ASSERT( false /* Unimplemented */ );
+    };
 };
 
 typedef SparseDistributedRepresentation SDR;
 
-} // end namespace nupic
+}; // end namespace nupic
 #endif // end ifndef SDR_HPP
