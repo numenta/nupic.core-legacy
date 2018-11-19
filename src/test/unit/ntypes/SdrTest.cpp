@@ -22,8 +22,6 @@
 using namespace std;
 using namespace nupic;
 
-typedef vector<Byte> dense_vec;
-
 void ASSERT_SDR_NO_VALUE(SDR &sdr) {
     EXPECT_FALSE( sdr.dense_valid );
     EXPECT_FALSE( sdr.flatIndex_valid );
@@ -91,24 +89,30 @@ TEST(SdrTest, TestConstructor) {
     ASSERT_SDR_NO_VALUE(x);
 }
 
-TEST(DISABLED_SdrTest, TestConstructorCopy) {
+TEST(SdrTest, TestConstructorCopy) {
     // Test value/no-value is preserved
-    // SDR x({100});
-    // SDR x_copy(x);
-    // ASSERT_SDR_NO_VALUE( x_copy );
-    // x.zero();
-    // ASSERT_SDR_NO_VALUE( x_copy );
-    // SDR X_copy = SDR(x);
-    // ASSERT_SDR_HAS_VALUE( x_copy );
+    SDR x({23});
+    SDR x_copy(x);
+    ASSERT_EQ( x.index_valid,     x_copy.index_valid );
+    ASSERT_EQ( x.flatIndex_valid, x_copy.flatIndex_valid );
+    ASSERT_EQ( x.dense_valid,     x_copy.dense_valid );
+    ASSERT_SDR_NO_VALUE( x_copy );
+    x.zero();
+    SDR x_copy2 = SDR(x);
+    ASSERT_EQ( x.index_valid,     x_copy2.index_valid );
+    ASSERT_EQ( x.flatIndex_valid, x_copy2.flatIndex_valid );
+    ASSERT_EQ( x.dense_valid,     x_copy2.dense_valid );
+    ASSERT_SDR_NO_VALUE( x_copy );
+    ASSERT_SDR_HAS_VALUE( x_copy2 );
 
-    // // Test simple zero data
-    // SDR a({5, 5});
-    // a.zero();
-    // SDR b(a);
-
-    // const Byte *raw = a.getDense();
-
-    // Test larger SDR w/ data
+    // Test data is copied.
+    SDR a({5});
+    a.setDense({0, 1, 0, 0, 0});
+    SDR b(a);
+    ASSERT_EQ( a.index_valid,     b.index_valid );
+    ASSERT_EQ( a.flatIndex_valid, b.flatIndex_valid );
+    ASSERT_EQ( a.dense_valid,     b.dense_valid );
+    ASSERT_EQ( b.getFlatIndex(),  vector<UInt>({1}) );
 }
 
 TEST(SdrTest, TestClear) {
@@ -129,6 +133,37 @@ TEST(SdrTest, TestZero) {
     ASSERT_EQ( a.getIndex().size(),  2);
     ASSERT_EQ( a.getIndex().at(0).size(),  0);
     ASSERT_EQ( a.getIndex().at(1).size(),  0);
+}
+
+TEST(SdrTest, TestExample) {
+    // Make an SDR with 9 values, arranged in a (3 x 3) grid.
+    // "SDR" is an alias/typedef for SparseDistributedRepresentation.
+    SDR  X( {3, 3} );
+    vector<Byte> data({
+        0, 1, 0,
+        0, 1, 0,
+        0, 0, 1 });
+
+    // These three statements are equivalent.
+    X.setDense({ 0, 1, 0,
+                 0, 1, 0,
+                 0, 0, 1 });
+    ASSERT_EQ( data, X.getDense() );
+    X.setFlatIndex({ 1, 4, 8 });
+    ASSERT_EQ( data, X.getDense() );
+    X.setIndex({{ 0, 1, 2,}, { 1, 1, 2 }});
+    ASSERT_EQ( data, X.getDense() );
+
+    // Access data in any format, SDR will automatically convert data formats.
+    ASSERT_EQ( X.getDense(),     vector<Byte>({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }) );
+    ASSERT_EQ( X.getIndex(),     vector<vector<UInt>>({{ 0, 1, 2 }, {1, 1, 2}}) );
+    ASSERT_EQ( X.getFlatIndex(), vector<UInt>({ 1, 4, 8 }) );
+
+    // Data format conversions are cached, and when an SDR value changes the
+    // cache is cleared.
+    X.setFlatIndex({});  // Assign new data to the SDR, clearing the cache.
+    X.getDense();        // This line will convert formats.
+    X.getDense();        // This line will resuse the result of the previous line
 }
 
 TEST(SdrTest, TestSetDenseVec) {
@@ -177,13 +212,14 @@ TEST(SdrTest, TestSetDenseUInt) {
 
 TEST(DISABLED_SdrTest, TestSetDenseArray) {
     // Overload is not implemented ...
+    FAIL();
 }
 
 TEST(SdrTest, TestSetDenseMutableInplace) {
     SDR a({10, 10});
     a.zero();
     auto& a_data = a.getDenseMutable();
-    ASSERT_EQ( a_data, dense_vec(100, 0) );
+    ASSERT_EQ( a_data, vector<Byte>(100, 0) );
     a.clear();
     ASSERT_SDR_NO_VALUE(a);
     a_data.assign( a.size, 1 );
@@ -191,7 +227,7 @@ TEST(SdrTest, TestSetDenseMutableInplace) {
     ASSERT_SDR_HAS_VALUE(a);
     ASSERT_EQ( a.getDense().data(), a.getDenseMutable().data() );
     ASSERT_EQ( a.getDense().data(), a_data.data() );
-    ASSERT_EQ( a.getDense(), dense_vec(a.size, 1) );
+    ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 1) );
     ASSERT_EQ( a.getDense(), a_data );
 }
 
@@ -206,9 +242,9 @@ TEST(SdrTest, TestSetFlatIndexVec) {
     ASSERT_NE( a.getFlatIndex().data(), vec.data()); // true copy not a reference
     // Test size zero doesn't crash
     SDR b( vector<UInt>(0) );
-    b.setDense( vector<Byte>(0) );
+    b.setFlatIndex( vector<UInt>(0) );
     SDR c( {11, 0} );
-    c.setDense( vector<Byte>(0) );   
+    c.setFlatIndex( vector<UInt>(0) );   
 }
 
 TEST(SdrTest, TestSetFlatIndexPtr) {
@@ -222,9 +258,9 @@ TEST(SdrTest, TestSetFlatIndexPtr) {
     ASSERT_NE( a.getFlatIndex().data(), vec.data()); // true copy not a reference
     // Test size zero doesn't crash
     SDR b( vector<UInt>(0) );
-    b.setDense( vector<Byte>(0) );
+    b.setFlatIndex( vector<UInt>(0) );
     SDR c( {11, 0} );
-    c.setDense( vector<Byte>(0) );
+    c.setFlatIndex( vector<UInt>(0) );
 }
 
 TEST(SdrTest, TestSetFlatIndexMutableInplace) {
@@ -245,17 +281,81 @@ TEST(SdrTest, TestSetFlatIndexMutableInplace) {
     ASSERT_EQ( a.getFlatIndex(), vector<UInt>(1) );
     a_data.clear();
     a.setFlatIndexInplace();
-    ASSERT_EQ( a.getDense(), dense_vec(a.size, 0) );
+    ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 0) );
 }
 
-TEST(DISABLED_SdrTest, TestSetIndex) {}
+TEST(SdrTest, TestSetIndex) {
+    SDR a({4, 1, 3});
+    auto vec = vector<vector<UInt>>({
+        { 0, 1, 2, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 1, 2, 1 } });
+    a.setIndex( vec );
+    ASSERT_EQ( a.getIndex(), vec );
+    ASSERT_NE( (void*) a.getIndex().data(), (void*) vec.data()); // true copy not a reference
+    // Test size zero doesn't crash
+    SDR b( vector<UInt>(0) );
+    b.setIndex( vector<vector<UInt>>(0) );
+    SDR c( {11, 0} );
+    c.setIndex( vector<vector<UInt>>({{}, {}}) ); 
+}
 
-TEST(DISABLED_SdrTest, TestSetIndexMutableInplace) {
+TEST(SdrTest, TestSetIndexMutableInplace) {
     // Test both mutable & inplace methods at the same time, which is the intended use case.
+    SDR a({10, 10});
+    a.zero();
+    auto& a_data = a.getIndexMutable();
+    ASSERT_EQ( a_data, vector<vector<UInt>>({{}, {}}) );
+    a.clear();
+    ASSERT_SDR_NO_VALUE(a);
+    a_data[0].push_back(0);
+    a_data[1].push_back(0);
+    a_data[0].push_back(3);
+    a_data[1].push_back(7);
+    a_data[0].push_back(7);
+    a_data[1].push_back(1);
+    a.setIndexInplace();
+    ASSERT_SDR_HAS_VALUE(a);
+    ASSERT_EQ( a.getSum(), 3 );
+    // I think some of these check the same things but thats ok.
+    ASSERT_EQ( (void*) a.getIndex().data(), (void*) a.getIndexMutable().data() );
+    ASSERT_EQ( a.getIndex(), a.getIndexMutable() );
+    ASSERT_EQ( a.getIndex().data(), a_data.data() );
+    ASSERT_EQ( a.getIndex(),        a_data );
+    ASSERT_EQ( a.getFlatIndex(), vector<UInt>({0, 37, 71}) ); // Check data ok
+    a_data[0].clear();
+    a_data[1].clear();
+    a.setIndexInplace();
+    ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 0) );
 }
 
-TEST(DISABLED_SdrTest, TestSetSDR) {
-    // This method has many code paths...
+TEST(SdrTest, TestSetSDR) {
+    SDR a({5});
+    SDR b({5});
+    // Test dense assignment works
+    a.setDense({1, 1, 1, 1, 1});
+    b.clear();
+    b.setSDR(a);
+    ASSERT_TRUE(  b.dense_valid );
+    ASSERT_FALSE( b.flatIndex_valid );
+    ASSERT_FALSE( b.index_valid );
+    ASSERT_EQ( b.getFlatIndex(), vector<UInt>({0, 1, 2, 3, 4}) );
+    // Test flat index assignment works
+    a.setFlatIndex({0, 1, 2, 3, 4});
+    b.clear();
+    b.setSDR(a);
+    ASSERT_FALSE( b.dense_valid );
+    ASSERT_TRUE(  b.flatIndex_valid );
+    ASSERT_FALSE( b.index_valid );
+    ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
+    // Test index assignment works
+    a.setIndex({{0, 1, 2, 3, 4}});
+    b.clear();
+    b.setSDR(a);
+    ASSERT_FALSE( b.dense_valid );
+    ASSERT_FALSE( b.flatIndex_valid );
+    ASSERT_TRUE(  b.index_valid );
+    ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
 }
 
 TEST(SdrTest, TestGetDenseFromFlatIndex) {
@@ -368,9 +468,50 @@ TEST(SdrTest, TestGetFlatIndexFromIndex) {
     ASSERT_EQ( a.getFlatIndex().size(), 0 );
 }
 
-TEST(DISABLED_SdrTest, TestGetIndexFromFlat) {}
+TEST(SdrTest, TestGetIndexFromFlat) {
+    // Test zero sized SDR.
+    SDR z;
+    z.setFlatIndex( { } );
+    ASSERT_EQ( z.getIndex().size(), 0 );
 
-TEST(DISABLED_SdrTest, TestGetIndexFromDense) {}
+    // Test simple 2-D SDR.
+    SDR a({3, 3}); a.zero();
+    auto& index = a.getIndexMutable();
+    ASSERT_EQ( index.size(), 2 );
+    ASSERT_EQ( index[0].size(), 0 );
+    ASSERT_EQ( index[1].size(), 0 );
+    a.setFlatIndex({ 4, 8, 5 });
+    ASSERT_EQ( a.getIndex(), vector<vector<UInt>>({
+        { 1, 2, 1 },
+        { 1, 2, 2 } }) );
+
+    // Test zero'd SDR.
+    a.setFlatIndex( { } );
+    ASSERT_EQ( a.getIndex(), vector<vector<UInt>>({{}, {}}) );
+}
+
+TEST(SdrTest, TestGetIndexFromDense) {
+    // Test zero sized SDR.
+    SDR z;
+    Byte data;
+    z.setDense( {(Byte*) &data} );
+    ASSERT_EQ( z.getIndex().size(), 0 );
+
+    // Test simple 2-D SDR.
+    SDR a({3, 3}); a.zero();
+    auto dense = a.getDenseMutable();
+    dense[5] = 1;
+    dense[8] = 1;
+    a.setDense(dense);
+    ASSERT_EQ( a.getIndex(), vector<vector<UInt>>({
+        { 1, 2 },
+        { 2, 2 }}) );
+
+    // Test zero'd SDR.
+    a.setDense( vector<Byte>(a.size, 0) );
+    ASSERT_EQ( a.getIndex()[0].size(), 0 );
+    ASSERT_EQ( a.getIndex()[1].size(), 0 );
+}
 
 TEST(SdrTest, TestAt) {
     SDR a({3, 3});
@@ -384,6 +525,12 @@ TEST(SdrTest, TestAt) {
     ASSERT_FALSE( a.at( {1 , 0} ));
     ASSERT_FALSE( a.at( {2 , 0} ));
     ASSERT_FALSE( a.at( {2 , 1} ));
+
+    // These will throw exceptions if it is a debug build.
+    // SDR z; z.zero();
+    // z.at( {} );
+    // SDR q({ 3, 2, 1 }); q.zero();
+    // q.at({ 2, 2, 0 });
 }
 
 TEST(SdrTest, TestSumSparsity) {
@@ -401,14 +548,25 @@ TEST(SdrTest, TestSumSparsity) {
 }
 
 TEST(DISABLED_SdrTest, TestOverlap) {
-    // TODO: THIS METHOD IS NOT IN HEADER
-    // TODO: THIS METHOD IS NOT IN IMPLEMENTATION
+    FAIL();
 }
 
-TEST(DISABLED_SdrTest, TestRandomize) {}
+TEST(DISABLED_SdrTest, TestRandomize) {
+    FAIL();
+}
 
-TEST(DISABLED_SdrTest, TestAddNoise) {}
+TEST(DISABLED_SdrTest, TestAddNoise) {
+    FAIL();
+}
 
-TEST(DISABLED_SdrTest, TestSaveLoad) {}
+TEST(DISABLED_SdrTest, TestSaveLoad) {
+    FAIL();
+}
 
-TEST(DISABLED_SdrTest, TestCallbacks) {}
+TEST(DISABLED_SdrTest, TestCallbacks) {
+    FAIL();
+    // This could tested by writing two functions, one it insert callbacks into
+    // SDR, and another to check that they are called correctly.  Then put these
+    // callback-test-functions in all of the other unit tests so that all of the
+    // code paths are tested for callbacks.
+}
