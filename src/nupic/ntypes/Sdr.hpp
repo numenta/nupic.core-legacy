@@ -130,26 +130,19 @@ public:
         clear();
     };
 
-    ~SparseDistributedRepresentation() {};
-
     /**
-     * Initialize this SDR as a shallow copy of the given SDR.  Modifying either
-     * SDR will modify both SDRs.
-     *
-     * @param value An SDR to connect with.
-     */
-    // SparseDistributedRepresentation(SparseDistributedRepresentation &value);
-
-    /**
-     * Initialize this SDR as a deep copy of the given SDR.
+     * Initialize this SDR as a deep copy of the given SDR.  This SDR and the
+     * given SDR will have no shared data and they can be modified without
+     * affecting each other.
      *
      * @param value An SDR to replicate.
      */
-    // SparseDistributedRepresentation(const SparseDistributedRepresentation &value) {
-    //     NTA_ASSERT( false /* Unimplemented */ );
-    //     SparseDistributedRepresentation( value.dimensions );
-    //     assign(value);
-    // };
+    SparseDistributedRepresentation(const SparseDistributedRepresentation &value)
+        : SparseDistributedRepresentation( value.dimensions ) {
+        setSDR(value);
+    };
+
+    ~SparseDistributedRepresentation() {};
 
     /**
      * @attribute dimensions A list of dimensions of the SDR.
@@ -313,6 +306,7 @@ public:
      * values to copy into the SDR.
      */
     void setIndex( const vector<vector<UInt>> &value ) {
+        NTA_ASSERT(value.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
             index[dim].assign( value[dim].begin(), value[dim].end() );
         }
@@ -342,13 +336,30 @@ public:
     };
 
     /**
-     * Assigns a deep copy of the given SDR to this SDR.  This overwrites the
-     * current value of this SDR.
+     * Deep Copy the given SDR to this SDR.  This overwrites the current value of
+     * this SDR.  This SDR and the given SDR will have no shared data and they
+     * can be modified without affecting each other.
      *
      * @param value An SDR to copy the value of.
      */
-    void assign( const SparseDistributedRepresentation &value ) {
-        NTA_ASSERT( false /* Unimplemented */ );
+    void setSDR( const SparseDistributedRepresentation &value ) {
+        NTA_ASSERT( value.dimensions == dimensions );
+        clear();
+
+        dense_valid_ = value.dense_valid;
+        if( dense_valid ) {
+            dense.assign( value.dense.begin(), value.dense.end() );
+        }
+        flatIndex_valid_ = value.flatIndex_valid;
+        if( flatIndex_valid ) {
+            flatIndex.assign( value.flatIndex.begin(), value.flatIndex.end() );
+        }
+        index_valid_ = value.index_valid;
+        if( index_valid ) {
+            for(UInt dim = 0; dim < dimensions.size(); dim++)
+                index[dim].assign( value.index[dim].begin(), value.index[dim].end() );
+        }
+        do_callbacks();
     };
 
     /**
@@ -406,7 +417,7 @@ public:
             flatIndex.clear(); // Clear out any old data.
             if( index_valid ) {
                 // Convert from index to flatIndex.
-                const auto num_nz = index[0].size();
+                const auto num_nz = size ? index[0].size() : 0;
                 flatIndex.reserve( num_nz );
                 for(UInt nz = 0; nz < num_nz; nz++) {
                     UInt flat = 0;
@@ -461,10 +472,10 @@ public:
             for( auto idx : getFlatIndex() ) {
                 for(UInt dim = dimensions.size() - 1; dim > 0; dim--) {
                     auto dim_sz = dimensions[dim];
-                    (index)[dim].push_back( idx % dim_sz );
+                    index[dim].push_back( idx % dim_sz );
                     idx /= dim_sz;
                 }
-                (index)[0].push_back(idx);
+                index[0].push_back(idx);
             }
             index_valid_ = true;
         }
@@ -489,25 +500,25 @@ public:
     }
 
     /**
-     * Makes a deep copy of the SDR.  This SDR and the returned SDR have no
-     * shared data and they can be modified without affecting each other.
+     * Calculates the number of true / non-zero values in the SDR.  If the SDRs
+     * value is unset this raises an exception.
      *
-     * @returns An SDR which is identical to this SDR.
+     * @returns The number of true values in the SDR.
      */
-    // SparseDistributedRepresentation& copy() const {
-        // { return new SparseDistributedRepresentation((const SparseDistributedRepresentation*) this); };
+    UInt getSum()
+        { return getFlatIndex().size(); };
 
     /**
      * Calculates the sparsity of the SDR, which is the fraction of bits which
      * are true out of the total number of bits in the SDR.
-     * I.E.  sparsity = sdr.getFlatIndex.size() / sdr.size
+     * I.E.  sparsity = sdr.getSum() / sdr.size
      *
      * If the SDRs value is unset this raises an exception.
      *
      * @returns The fraction of values in the SDR which are true.
      */
     Real getSparsity()
-        { return (Real) getFlatIndex().size() / size; };
+        { return (Real) getSum() / size; };
 
     /**
      * TODO ...
