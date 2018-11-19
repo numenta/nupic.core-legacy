@@ -137,6 +137,7 @@ Region::~Region() {
     elem.second = nullptr;
   }
   inputs_.clear();
+
   if (impl_)
   	delete impl_;
 
@@ -237,7 +238,7 @@ std::string Region::getLinkErrors() const {
 
   std::stringstream ss;
   for (const auto &elem : inputs_) {
-    const std::vector<std::shared_ptr<Link> > &links = elem.second->getLinks();
+    const std::vector<Link *> &links = elem.second->getLinks();
     for (const auto &link : links) {
       if ((link)->getSrcDimensions().isUnspecified() ||
           (link)->getDestDimensions().isUnspecified()) {
@@ -351,7 +352,7 @@ const std::string &Region::getDimensionInfo() const { return dimensionInfo_; }
 void Region::removeAllIncomingLinks() {
   InputMap::const_iterator i = inputs_.begin();
   for (; i != inputs_.end(); i++) {
-    std::vector<std::shared_ptr<Link> > links = i->second->getLinks();
+    std::vector<Link *> links = i->second->getLinks();
     for (auto &links_link : links) {
       i->second->removeLink(links_link);
     }

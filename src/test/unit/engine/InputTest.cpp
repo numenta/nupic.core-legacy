@@ -36,8 +36,8 @@ using namespace nupic;
 
 TEST(InputTest, BasicNetworkConstruction) {
   Network net;
-  std::shared_ptr<Region> r1 = net.addRegion("r1", "TestNode", "");
-  std::shared_ptr<Region> r2 = net.addRegion("r2", "TestNode", "");
+  Region *r1 = net.addRegion("r1", "TestNode", "");
+  Region *r2 = net.addRegion("r2", "TestNode", "");
 
   // Test constructor
   Input x(*r1, NTA_BasicType_Int32, true);
@@ -46,8 +46,8 @@ TEST(InputTest, BasicNetworkConstruction) {
                std::exception);
 
   // test getRegion()
-  ASSERT_EQ(r1.get(), &(x.getRegion()));
-  ASSERT_EQ(r2.get(), &(y.getRegion()));
+  ASSERT_EQ(r1, &(x.getRegion()));
+  ASSERT_EQ(r2, &(y.getRegion()));
 
   // test isRegionLevel()
   ASSERT_TRUE(x.isRegionLevel());
@@ -89,8 +89,8 @@ TEST(InputTest, BasicNetworkConstruction) {
 
 TEST(InputTest, SplitterMap) {
   Network net;
-  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
+  Region *region1 = net.addRegion("region1", "TestNode", "");
+  Region *region2 = net.addRegion("region2", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -183,9 +183,9 @@ TEST(InputTest, SplitterMap) {
 
 TEST(InputTest, LinkTwoRegionsOneInput) {
   Network net;
-  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
-  std::shared_ptr<Region> region3 = net.addRegion("region3", "TestNode", "");
+  Region *region1 = net.addRegion("region1", "TestNode", "");
+  Region *region2 = net.addRegion("region2", "TestNode", "");
+  Region *region3 = net.addRegion("region3", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);

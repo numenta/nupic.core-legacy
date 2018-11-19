@@ -371,7 +371,7 @@ void Watcher::watcherCallback(Network *net, UInt64 iteration, void *dataIn) {
 
 void Watcher::closeFile() {
   if (data_.outStream.is_open()) {
-    data_.outStream << "Closing...\n";
+//    data_.outStream << "Closing...\n";
     data_.outStream.flush();
     data_.outStream.close();
   }
@@ -393,7 +393,7 @@ void Watcher::attachToNetwork(Network& net)
 
   for (UInt i = 0; i < data_.watches.size(); i++) {
     watch = data_.watches.at(i);
-    const Collection<std::shared_ptr<Region> > &regions = net.getRegions();
+    const Collection<Region *> &regions = net.getRegions();
     watch.region = regions.getByName(watch.regionName);
 
       //output general information for each watch

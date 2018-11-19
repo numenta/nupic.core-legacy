@@ -103,7 +103,7 @@ public:
    * @param srcOutput
    *        The output of previous Region, which is also the source of the input
    */
-  void addLink(std::shared_ptr<Link> link, Output *srcOutput);
+  void addLink(Link *link, Output *srcOutput);
 
   /**
    * Locate an existing Link to the input.
@@ -118,7 +118,7 @@ public:
    * @returns
    *     The link if found or @c NULL if no such link exists
    */
-  std::shared_ptr<Link> findLink(const std::string &srcRegionName,
+  Link *findLink(const std::string &srcRegionName,
                  const std::string &srcOutputName);
 
   /**
@@ -141,7 +141,7 @@ public:
    *        The Link to remove, possibly retrieved by findLink(), note that
    *        it is a reference to the pointer, not the pointer itself.
    */
-  void removeLink(std::shared_ptr<Link>&link);
+  void removeLink(Link *&link);
 
   /**
    * Make input data available.
@@ -180,7 +180,7 @@ public:
    * @returns
    *         All the Link objects added to the input
    */
-  const std::vector<std::shared_ptr<Link>> &getLinks();
+  const std::vector<Link *> &getLinks();
 
   /**
    *
@@ -261,7 +261,7 @@ private:
   bool isRegionLevel_;
 
   // Use a vector of links because order is important.
-  std::vector<std::shared_ptr<Link>> links_;
+  std::vector<Link *> links_;
 
   // volatile (non-serialized) state
   bool initialized_;

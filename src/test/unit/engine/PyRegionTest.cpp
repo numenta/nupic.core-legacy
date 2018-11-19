@@ -104,7 +104,7 @@ struct MemoryMonitor {
   size_t diff_vmem;
 };
 
-void testPynodeInputOutputAccess(std::shared_ptr<Region> level2) {
+void testPynodeInputOutputAccess(Region *level2) {
   std::cerr << "testPynodeInputOutputAccess \n";
 
   // --- input/output access for level 2 (Python py.TestNode) ---
@@ -120,7 +120,7 @@ void testPynodeInputOutputAccess(std::shared_ptr<Region> level2) {
   data_actual[12] = 54321;
 }
 
-void testPynodeArrayParameters(std::shared_ptr<Region> level2) {
+void testPynodeArrayParameters(Region *level2) {
   std::cerr << "testPynodeArrayParameters \n";
 
   // Array a is not allocated by us. Will be allocated inside getParameter
@@ -157,8 +157,8 @@ void testPynodeLinking() {
   std::cerr << "testPynodeLinking \n";
   Network net = Network();
 
-  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "py.TestNode", "");
+  Region *region1 = net.addRegion("region1", "TestNode", "");
+  Region *region2 = net.addRegion("region2", "py.TestNode", "");
   std::cout << "Linking region 1 to region 2" << std::endl;
   net.link("region1", "region2", "TestFanIn2", "");
 
@@ -280,7 +280,7 @@ void testCreationParamTypes() {
   // params.
 
   Network n;
-  std::shared_ptr<Region> region =
+  Region *region =
       n.addRegion("test", "py.TestNode",
                   "{"
                   "int32Param: -2000000000, uint32Param: 3000000000, "
@@ -351,7 +351,7 @@ void testWriteRead() {
   Array boolArrayParam(NTA_BasicType_Bool, boolArrayParamBuff, 4);
 
   Network n1;
-  std::shared_ptr<Region> region1 = n1.addRegion("rw1", "py.TestNode", "");
+  Region *region1 = n1.addRegion("rw1", "py.TestNode", "");
   region1->setParameterInt32("int32Param", int32Param);
   region1->setParameterUInt32("uint32Param", uint32Param);
   region1->setParameterInt64("int64Param", int64Param);
@@ -370,9 +370,9 @@ void testWriteRead() {
   n1.save(ss);
   n2.load(ss);
 
-  const Collection<std::shared_ptr<Region> > &regions = n2.getRegions();
-  const std::pair<std::string, std::shared_ptr<Region> > &regionPair = regions.getByIndex(0);
-  std::shared_ptr<Region> region2 = regionPair.second;
+  const Collection<Region *> &regions = n2.getRegions();
+  const std::pair<std::string, Region *> &regionPair = regions.getByIndex(0);
+  Region *region2 = regionPair.second;
 
   NTA_CHECK(region2->getParameterInt32("int32Param") == int32Param);
   NTA_CHECK(region2->getParameterUInt32("uint32Param") == uint32Param);
@@ -421,7 +421,7 @@ int realmain(bool leakTest) {
 
   std::cout << "Adding a PyNode region..." << std::endl;
   Network::registerPyRegion("nupic.bindings.regions.TestNode", "TestNode");
-  std::shared_ptr<nupic::Region> level2 = n.addRegion("level2", "py.TestNode", "{int32Param: 444}");
+  Region *level2 = n.addRegion("level2", "py.TestNode", "{int32Param: 444}");
 
   std::cout << "Region count is " << n.getRegions().getCount() << ""
             << std::endl;

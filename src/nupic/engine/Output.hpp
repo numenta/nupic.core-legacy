@@ -106,7 +106,7 @@ public:
    * @param link
    *        The Link to add
    */
-  void addLink(std::shared_ptr<Link> link);
+  void addLink(Link *link);
 
   /**
    * Removing an existing link from the output.
@@ -117,7 +117,7 @@ public:
    * @param link
    *        The Link to remove
    */
-  void removeLink(std::shared_ptr<Link> link);
+  void removeLink(Link *link);
 
   /**
    * Tells whether the output has outgoing links.
@@ -188,7 +188,7 @@ private:
   bool isRegionLevel_;
   // order of links never matters, so store as a set
   // this is different from Input, where they do matter
-  std::set<std::shared_ptr<Link>> links_;
+  std::set<Link *> links_;
   std::string name_;
   size_t nodeOutputElementCount_;
   // Whether or not the output is sparse

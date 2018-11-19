@@ -34,7 +34,6 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <memory>
 
 // We need the full definitions because these
 // objects are returned by value.
@@ -46,6 +45,7 @@
 #include <nupic/engine/Output.hpp>
 
 namespace nupic {
+
 class RegionImpl;
 class Output;
 class Input;
@@ -57,7 +57,6 @@ class BundleIO;
 class Timer;
 class Network;
 class GenericRegisteredRegionImpl;
-
 
 /**
  * Represents a set of one or more "identical" nodes in a Network.
@@ -698,8 +697,6 @@ private:
   Timer computeTimer_;
   Timer executeTimer_;
 };
-
-
 
 } // namespace nupic
 

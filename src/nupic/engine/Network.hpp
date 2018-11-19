@@ -29,14 +29,11 @@
 
 #include <iostream>
 #include <map>
-#include <memory>
 #include <set>
 #include <string>
 #include <vector>
 
 #include <nupic/ntypes/Collection.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Link.hpp>
 
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
@@ -140,11 +137,10 @@ public:
    * @param nodeParams
    *        A JSON-encoded string specifying writable params
    *
-   * @returns A smart pointer to the newly created Region
+   * @returns A pointer to the newly created Region
    */
-   std::shared_ptr<Region>  addRegion( const std::string& name,
-                           const std::string& nodeType,
-                           const std::string& nodeParams);
+  Region *addRegion(const std::string &name, const std::string &nodeType,
+                    const std::string &nodeParams);
 
     /**
      * Create a new region in a network from serialized region
@@ -155,9 +151,9 @@ public:
      *        Name of the region, Must be unique in the network.
      *        If not given, it uses the name it was serialized with.
      *
-     * @returns A smart pointer to the newly created Region
+     * @returns A pointer to the newly created Region
      */
-    std::shared_ptr<Region>  addRegion( std::istream &stream,
+    Region* addRegion( std::istream &stream,
                             std::string name = "");
 
   /**
@@ -223,14 +219,14 @@ public:
    *
    * @returns A Collection of Region objects in the network
    */
-  const Collection<std::shared_ptr<Region> >& getRegions() const;
+  const Collection<Region *> &getRegions() const;
 
   /**
    * Get all links between regions
    *
    * @returns A Collection of Link objects in the network
    */
-    Collection<std::shared_ptr<Link> > getLinks();
+  Collection<Link *> getLinks();
 
   /**
    * Set phases for a region.
@@ -399,10 +395,10 @@ private:
 
 
   // internal method using region pointer instead of name
-  void setPhases_(std::shared_ptr<Region> r, std::set<UInt32>& phases);
+  void setPhases_(Region *r, std::set<UInt32> &phases);
 
   // default phase assignment for a new region
-  void setDefaultPhase_(std::shared_ptr<Region> region);
+  void setDefaultPhase_(Region *region);
 
   // whenever we modify a network or change phase
   // information, we set enabled phases to min/max for
@@ -410,14 +406,14 @@ private:
   void resetEnabledPhases_();
 
   bool initialized_;
-  Collection<std::shared_ptr<Region> > regions_;
+  Collection<Region *> regions_;
 
   UInt32 minEnabledPhase_;
   UInt32 maxEnabledPhase_;
 
   // This is main data structure used to choreograph
   // network computation
-  std::vector< std::set<std::shared_ptr<Region> > > phaseInfo_;
+  std::vector<std::set<Region *>> phaseInfo_;
 
   // we invoke these callbacks at every iteration
   Collection<callbackItem> callbacks_;

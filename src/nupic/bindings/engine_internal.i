@@ -144,8 +144,8 @@ class IterablePair(object):
 %template(OutputCollection) nupic::Collection<nupic::OutputSpec>;
 %template(ParameterCollection) nupic::Collection<nupic::ParameterSpec>;
 %template(CommandCollection) nupic::Collection<nupic::CommandSpec>;
-%template(RegionCollection) nupic::Collection<std::shared_ptr<nupic::Region> >;
-%template(LinkCollection) nupic::Collection<std::shared_ptr<nupic::Link> >;
+%template(RegionCollection) nupic::Collection<nupic::Region *>;
+%template(LinkCollection) nupic::Collection<nupic::Link *>;
 %extend nupic::Collection< nupic::Link * >
 {
   %pythoncode %{
@@ -167,8 +167,8 @@ class IterablePair(object):
 %template(OutputPair) std::pair<std::string, nupic::OutputSpec>;
 %template(ParameterPair) std::pair<std::string, nupic::ParameterSpec>;
 %template(CommandPair) std::pair<std::string, nupic::CommandSpec>;
-%template(RegionPair) std::pair<std::string, std::shared_ptr<nupic::Region> >;
-%template(LinkPair) std::pair<std::string, std::shared_ptr<nupic::Link> >;
+%template(RegionPair) std::pair<std::string, nupic::Region *>;
+%template(LinkPair) std::pair<std::string, nupic::Link *>;
 %extend std::pair<std::string, nupic::Link *>
 {
   %pythoncode %{
