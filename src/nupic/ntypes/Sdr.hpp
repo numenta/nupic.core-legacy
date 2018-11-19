@@ -50,37 +50,45 @@ namespace nupic {
  *    the bits in the SDR.  This format allows random-access queries of the SDRs
  *    values.
  *
- *    Index Format: A list of lists of the indices of the true bits in the SDR.
- *    The outter list contains an entry for each dimension in the SDR.  The
- *    inner lists contain the coordinates of each true bit.  The inner lists run
- *    in parallel. This format is useful because it contains the location of
- *    each true bit inside of the SDR's dimensional space.
+ *    Sparse Flat Index Format: Contains the indices of only the true values in
+ *    the SDR.  This is a list of the indices, indexed into the flattened SDR.
+ *    This format allows for quickly accessing all of the true bits in the SDR.
  *
- *    Flat Index Format: A list of the indices of the true bits, indexed into
- *    the the flattened SDR.  This format allows for quickly accessing all of
- *    the true bits in the SDR.
+ *    Sparse Index Format: Contains the indices of only the true values in the
+ *    SDR.  This is a A list of lists: the outter list contains an entry for
+ *    each dimension in the SDR. The inner lists contain the coordinates of each
+ *    true bit.  The inner lists run in parallel. This format is useful because
+ *    it contains the location of each true bit inside of the SDR's dimensional
+ *    space.
  *
  * Flat Formats: This class uses C-order throughout, meaning that when iterating
  * through the SDR, the last/right-most index changes fastest.
  *
- * Boolean Data Type: Although the documentation for this class may refer to the
- * values in an SDR as bits they are in fact stored as bytes (of type signed
- * character).
- *
  * Example usage:
  *
- *    // Make an SDR with 10,000 bits, arranged in a (100 x 100) grid.
- *    SDR  X({100, 100});             // SDR is an alias for SparseDistributedRepresentation
+ *    // Make an SDR with 9 values, arranged in a (3 x 3) grid.
+ *    // "SDR" is an alias/typedef for SparseDistributedRepresentation.
+ *    SDR  X( {3, 3} );
  *
- *    // Assign data in any format.
- *    X.setFlatIndex( mySparseData ); // Assigns mySparseData to SDR's value.
- *    X.setDense( myDenseData );      // myDenseData overwrites mySparseData.
+ *    // These three statements are equivalent.
+ *    X.setDense({ 0, 1, 0,
+ *                 0, 1, 0,
+ *                 0, 0, 1 });
+ *    X.setFlatIndex({ 1, 4, 8 });
+ *    X.setIndex({{ 0, 1, 2,}, { 1, 1, 2 }});
  *
- *    // Access data in different formats.
- *    indices      = X.getFlatIndex(); // Calculated from myDenseData.
- *    indicesAgain = X.getFlatIndex(); // Reuses previous result, no work done.
+ *    // Access data in any format, SDR will automatically convert data formats.
+ *    X.getDense()     -> { 0, 1, 0, 0, 1, 0, 0, 0, 1 }
+ *    X.getIndex()     -> {{ 0, 1, 2 }, {1, 1, 2}}
+ *    x.getFlatIndex() -> { 1, 4, 8 }
  *
+ *    // Data format conversions are cached, and when an SDR value changes the
+ *    // cache is cleared.
+ *    X.setFlatIndex({});  // Assign new data to the SDR, clearing the cache.
+ *    X.getDense();        // This line will convert formats.
+ *    X.getDense();        // This line will resuse the result of the previous line
  */
+
 class SparseDistributedRepresentation : public Serializable
 {
 private:
@@ -326,7 +334,7 @@ public:
             NTA_ASSERT(coord_vec.size() <= size);
             NTA_ASSERT(coord_vec.size() == index[0].size()); // All coordinate vectors have same size.
             for(auto idx : coord_vec) {
-                NTA_ASSERT(idx < size);
+                NTA_ASSERT(idx < dimensions[dim]);
             }
         }
         // Do the setter assignment.
@@ -465,7 +473,7 @@ public:
     vector<vector<UInt>>& getIndexMutable() {
         if( !index_valid ) {
             // Clear out any old data.
-            for( auto vec : index ) {
+            for( auto& vec : index ) {
                 vec.clear();
             }
             // Convert from flatIndex to index.
@@ -491,8 +499,10 @@ public:
      * @returns The value of the SDR at the given location.
      */
     Byte at(const vector<UInt> &coordinates) {
+        NTA_ASSERT( size > 0 );
         UInt flat = 0;
         for(UInt i = 0; i < dimensions.size(); i++) {
+            NTA_ASSERT( coordinates[i] < dimensions[i] );
             flat *= dimensions[i];
             flat += coordinates[i];
         }
