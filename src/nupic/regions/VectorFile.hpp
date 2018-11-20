@@ -31,7 +31,7 @@
 
 //----------------------------------------------------------------------
 
-#include <nupic/os/FStream.hpp>
+#include <fstream>
 #include <nupic/types/Types.hpp>
 #include <vector>
 
@@ -55,15 +55,15 @@ public:
   /// and will be appended to the end of the list
   /// appendFile will NOT change the scaling vectors as long as the
   /// expectedElementCount is the same as previously stored vectors. The
-  /// fileFormat number corresponds to the file formats in VectorFileSensor:
-  ///           0        # Reads in unlabeled file with first number = element
-  ///           count 1        # Reads in a labeled file with first number =
-  ///           element count 2        # Reads in unlabeled file without element
-  ///           count 3        # Reads in a csv file 4        # Reads in a
-  ///           little-endian float32 binary file 5        # Reads in a
-  ///           big-endian float32 binary file 6        # Reads in a big-endian
-  ///           IDX binary file
-  void appendFile(const std::string &fileName, NTA_Size expectedElementCount,
+  /// The fileFormat number corresponds to the file formats in VectorFileSensor:
+  ///           0        # Reads in unlabeled file with first number = element count
+  ///           1        # Reads in a labeled file with first number = element count
+  ///           2        # Reads in unlabeled file without element count
+  ///           3        # Reads in a csv file
+  ///           4        # Reads in a little-endian float32 binary file
+  ///           5        # Reads in a big-endian float32 binary file
+  ///           6        # Reads in a big-endian IDX binary file
+  void appendFile(const std::string &fileName, Size expectedElementCount,
                   UInt32 fileFormat);
 
   /// Retrieve i'th vector, apply scaling and copy result into output
@@ -133,7 +133,7 @@ private:
   std::vector<std::string> vectorLabels_; // a string label for each vector
 
   //------------------- Utility routines
-  void appendCSVFile(IFStream &inFile, Size expectedElementCount);
+  void appendCSVFile(std::istream &inFile, Size expectedElementCount);
 
   /// Read vectors from a binary file.
   void appendFloat32File(const std::string &filename, Size expectedElements,

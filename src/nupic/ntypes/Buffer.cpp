@@ -37,14 +37,14 @@ namespace nupic {
 //
 // -----------------------------------------
 
-NTA_Size staticReadBufferGetSize(NTA_ReadBufferHandle handle) {
+Size staticReadBufferGetSize(NTA_ReadBufferHandle handle) {
   NTA_CHECK(handle != nullptr);
 
   ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
   return rb->getSize();
 }
 
-const NTA_Byte *staticGetData(NTA_ReadBufferHandle handle) {
+const Byte *staticGetData(NTA_ReadBufferHandle handle) {
   NTA_CHECK(handle != nullptr);
 
   ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
@@ -58,7 +58,7 @@ void staticReset(NTA_ReadBufferHandle handle) {
   return rb->reset();
 }
 
-static NTA_Int32 staticReadByte(NTA_ReadBufferHandle handle, NTA_Byte *value) {
+static Int32 staticReadByte(NTA_ReadBufferHandle handle, Byte *value) {
   if (!handle || !value)
     return -1;
 
@@ -66,8 +66,7 @@ static NTA_Int32 staticReadByte(NTA_ReadBufferHandle handle, NTA_Byte *value) {
   return rb->read(*value);
 }
 
-NTA_Int32 staticReadByteArray(NTA_ReadBufferHandle handle, NTA_Byte *value,
-                              NTA_Size *size) {
+Int32 staticReadByteArray(NTA_ReadBufferHandle handle, Byte *value, Size *size) {
   if (!handle || !value || !size || *size <= 0)
     return -1;
 
@@ -75,9 +74,11 @@ NTA_Int32 staticReadByteArray(NTA_ReadBufferHandle handle, NTA_Byte *value,
   return rb->read(value, *size);
 }
 
-NTA_Int32 staticReadString(NTA_ReadBufferHandle handle, NTA_Byte **value,
-                           NTA_UInt32 *size, NTA_Byte *(*fAlloc)(NTA_UInt32),
-                           void (*fDealloc)(NTA_Byte *)) {
+Int32 staticReadString(NTA_ReadBufferHandle handle,
+      Byte ** value,
+      UInt32 * size,
+      Byte *(*fAlloc)(UInt32),
+      void (*fDealloc)(Byte *) ) {
   if (!handle || !value) {
     return -1;
   }
@@ -86,121 +87,122 @@ NTA_Int32 staticReadString(NTA_ReadBufferHandle handle, NTA_Byte **value,
   return rb->readString(*value, *size, fAlloc, fDealloc);
 }
 
-static NTA_Int32 staticReadUInt32(NTA_ReadBufferHandle handle,
-                                  NTA_UInt32 *value) {
-  if (!handle || !value)
-    return -1;
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(*value);
-}
+  static Int32 staticReadUInt32(NTA_ReadBufferHandle handle, UInt32 * value)
+  {
+    if (!handle || !value)
+      return -1;
 
-NTA_Int32 staticReadUInt32Array(NTA_ReadBufferHandle handle, NTA_UInt32 *value,
-                                NTA_Size size) {
-  if (!handle || !value || size <= 0)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(*value);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(value, size);
-}
+  Int32 staticReadUInt32Array(NTA_ReadBufferHandle handle, UInt32 * value, Size size)
+  {
+    if (!handle || !value || size <= 0)
+      return -1;
 
-static NTA_Int32 staticReadInt32(NTA_ReadBufferHandle handle,
-                                 NTA_Int32 *value) {
-  if (!handle || !value)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(value, size);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(*value);
-}
+  static Int32 staticReadInt32(NTA_ReadBufferHandle handle, Int32 * value)
+  {
+    if (!handle || !value)
+      return -1;
 
-NTA_Int32 staticReadInt32Array(NTA_ReadBufferHandle handle, NTA_Int32 *value,
-                               NTA_Size size) {
-  if (!handle || !value || size <= 0)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(*value);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(value, size);
-}
+  Int32 staticReadInt32Array(NTA_ReadBufferHandle handle, Int32 * value, Size size)
+  {
+    if (!handle || !value || size <= 0)
+      return -1;
 
-static NTA_Int32 staticReadUInt64(NTA_ReadBufferHandle handle,
-                                  NTA_UInt64 *value) {
-  if (!handle || !value)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(value, size);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(*value);
-}
+  static Int32 staticReadUInt64(NTA_ReadBufferHandle handle, UInt64 * value)
+  {
+    if (!handle || !value)
+      return -1;
 
-NTA_Int32 staticReadUInt64Array(NTA_ReadBufferHandle handle, NTA_UInt64 *value,
-                                NTA_Size size) {
-  if (!handle || !value || size <= 0)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(*value);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(value, size);
-}
+  Int32 staticReadUInt64Array(NTA_ReadBufferHandle handle, UInt64 * value, Size size)
+  {
+    if (!handle || !value || size <= 0)
+      return -1;
 
-static NTA_Int32 staticReadInt64(NTA_ReadBufferHandle handle,
-                                 NTA_Int64 *value) {
-  if (!handle || !value)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(value, size);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(*value);
-}
+  static Int32 staticReadInt64(NTA_ReadBufferHandle handle, Int64 * value)
+  {
+    if (!handle || !value)
+      return -1;
 
-NTA_Int32 staticReadInt64Array(NTA_ReadBufferHandle handle, NTA_Int64 *value,
-                               NTA_Size size) {
-  if (!handle || !value || size <= 0)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(*value);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(value, size);
-}
+  Int32 staticReadInt64Array(NTA_ReadBufferHandle handle, Int64 * value, Size size)
+  {
+    if (!handle || !value || size <= 0)
+      return -1;
 
-static NTA_Int32 staticReadReal32(NTA_ReadBufferHandle handle,
-                                  NTA_Real32 *value) {
-  if (!handle || !value)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(value, size);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(*value);
-}
+  static Int32 staticReadReal32(NTA_ReadBufferHandle handle, Real32 * value)
+  {
+    if (!handle || !value)
+      return -1;
 
-NTA_Int32 staticReadReal32Array(NTA_ReadBufferHandle handle, NTA_Real32 *value,
-                                NTA_Size size) {
-  if (!handle || !value || size <= 0)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(*value);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(value, size);
-}
+  Int32 staticReadReal32Array(NTA_ReadBufferHandle handle, Real32 * value, Size size)
+  {
+    if (!handle || !value || size <= 0)
+      return -1;
 
-static NTA_Int32 staticReadReal64(NTA_ReadBufferHandle handle,
-                                  NTA_Real64 *value) {
-  if (!handle || !value)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(value, size);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(*value);
-}
+  static Int32 staticReadReal64(NTA_ReadBufferHandle handle, Real64 * value)
+  {
+    if (!handle || !value)
+      return -1;
 
-NTA_Int32 staticReadReal64Array(NTA_ReadBufferHandle handle, NTA_Real64 *value,
-                                NTA_Size size) {
-  if (!handle || !value || size <= 0)
-    return -1;
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(*value);
+  }
 
-  ReadBuffer *rb = reinterpret_cast<ReadBuffer *>(handle);
-  return rb->read(value, size);
-}
+  Int32 staticReadReal64Array(NTA_ReadBufferHandle handle, Real64 * value, Size size)
+  {
+    if (!handle || !value || size <= 0)
+      return -1;
 
-ReadBuffer::ReadBuffer(const char *bytes, Size size, bool copy)
-    : bytes_(copy ? new Byte[size] : nullptr),
-      memStream_(copy ? bytes_.get() : bytes, size) {
+    ReadBuffer * rb = reinterpret_cast<ReadBuffer *>(handle);
+    return rb->read(value, size);
+  }
+
+ReadBuffer::ReadBuffer(const nupic::Byte * value, Size size, bool copy) :
+      bytes_((copy ? new nupic::Byte[size] : nullptr), std::default_delete<char[]>()),
+      memStream_(copy ? bytes_.get() : value, size) {
   // Copy the buffer to the internal bytes_ array (because
   // MemStream needs persistent external storage if copy==true
   if (copy)
-    ::memcpy(bytes_.get(), bytes, size);
+    ::memcpy(bytes_.get(), value, size);
 
   // Turn on exceptions for memStream_
   memStream_.exceptions(std::ostream::failbit | std::ostream::badbit);
@@ -283,7 +285,7 @@ Int32 ReadBuffer::read(Byte &value) const { return readT(value); }
 Int32 ReadBuffer::read(Byte *bytes, Size &size) const {
   ReadBuffer *r = const_cast<ReadBuffer *>(this);
   try {
-    size = r->memStream_.readsome(bytes, size);
+    size = (Size)r->memStream_.readsome(bytes, size);
     return 0;
   } catch (...) {
     size = 0;
@@ -365,11 +367,13 @@ inline Int32 findWithLeadingWhitespace(const ReadBuffer &r, const char *s,
   return 0;
 }
 
-typedef NTA_Byte *(*fp_alloc)(NTA_UInt32);
-typedef void (*fp_dealloc)(NTA_Byte *);
+typedef Byte *(*fp_alloc)(UInt32);
+typedef void (*fp_dealloc)(Byte *);
 
-Int32 ReadBuffer::readString(NTA_Byte *&value, NTA_UInt32 &size,
-                             fp_alloc fAlloc, fp_dealloc fDealloc) const {
+Int32 ReadBuffer::readString(Byte *&value,
+                             UInt32 &size,
+                             fp_alloc fAlloc,
+							 fp_dealloc fDealloc) const {
   NTA_ASSERT(fDealloc || !fAlloc); // Assume new/delete if unspecified.
   value = nullptr;
   size = 0;
@@ -411,7 +415,7 @@ Int32 ReadBuffer::readString(NTA_Byte *&value, NTA_UInt32 &size,
     if (result != 0)
       return result;
   } else {
-    value = const_cast<NTA_Byte *>(reinterpret_cast<const NTA_Byte *>(""));
+    value = const_cast<Byte *>(reinterpret_cast<const Byte *>(""));
   }
   return findWithLeadingWhitespace(*this, "</s>", 1);
 }
@@ -455,20 +459,20 @@ const IReadBuffer *ReadBufferIterator::next() {
 }
 
 void ReadBufferIterator::reset() { index_ = 0; }
+
 // -----------------------------------------
 //
 //    W R I T E   B U F F E R
 //
 // -----------------------------------------
-NTA_Int32 staticWriteUInt32(NTA_WriteBufferHandle handle, NTA_UInt32 value) {
+Int32 staticWriteUInt32(NTA_WriteBufferHandle handle, UInt32 value) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
   return wb->write(value);
 }
 
-NTA_Int32 staticWriteUInt32Array(NTA_WriteBufferHandle handle,
-                                 const NTA_UInt32 *value, NTA_Size size) {
+Int32 staticWriteUInt32Array(NTA_WriteBufferHandle handle, const UInt32 *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
   NTA_CHECK(size > 0);
@@ -477,15 +481,14 @@ NTA_Int32 staticWriteUInt32Array(NTA_WriteBufferHandle handle,
   return wb->write(value, size);
 }
 
-NTA_Int32 staticWriteInt32(NTA_WriteBufferHandle handle, NTA_Int32 value) {
+Int32 staticWriteInt32(NTA_WriteBufferHandle handle, Int32 value) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
   return wb->write(value);
 }
 
-NTA_Int32 staticWriteInt32Array(NTA_WriteBufferHandle handle,
-                                const NTA_Int32 *value, NTA_Size size) {
+Int32 staticWriteInt32Array(NTA_WriteBufferHandle handle, const Int32 *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
   NTA_CHECK(size > 0);
@@ -494,15 +497,14 @@ NTA_Int32 staticWriteInt32Array(NTA_WriteBufferHandle handle,
   return wb->write(value, size);
 }
 
-NTA_Int32 staticWriteInt64(NTA_WriteBufferHandle handle, NTA_Int64 value) {
+Int32 staticWriteInt64(NTA_WriteBufferHandle handle, Int64 value) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
   return wb->write(value);
 }
 
-NTA_Int32 staticWriteInt64Array(NTA_WriteBufferHandle handle,
-                                const NTA_Int64 *value, NTA_Size size) {
+Int32 staticWriteInt64Array(NTA_WriteBufferHandle handle, const Int64 *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
   NTA_CHECK(size > 0);
@@ -511,15 +513,14 @@ NTA_Int32 staticWriteInt64Array(NTA_WriteBufferHandle handle,
   return wb->write(value, size);
 }
 
-NTA_Int32 staticWriteUInt64(NTA_WriteBufferHandle handle, NTA_UInt64 value) {
+Int32 staticWriteUInt64(NTA_WriteBufferHandle handle, UInt64 value) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
   return wb->write(value);
 }
 
-NTA_Int32 staticWriteUInt64Array(NTA_WriteBufferHandle handle,
-                                 const NTA_UInt64 *value, NTA_Size size) {
+Int32 staticWriteUInt64Array(NTA_WriteBufferHandle handle, const UInt64 *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
   NTA_CHECK(size > 0);
@@ -528,15 +529,14 @@ NTA_Int32 staticWriteUInt64Array(NTA_WriteBufferHandle handle,
   return wb->write(value, size);
 }
 
-NTA_Int32 staticWriteReal32(NTA_WriteBufferHandle handle, NTA_Real32 value) {
+Int32 staticWriteReal32(NTA_WriteBufferHandle handle, Real32 value) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
   return wb->write(value);
 }
 
-NTA_Int32 staticWriteReal32Array(NTA_WriteBufferHandle handle,
-                                 const NTA_Real32 *value, NTA_Size size) {
+Int32 staticWriteReal32Array(NTA_WriteBufferHandle handle, const Real32 *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
   NTA_CHECK(size > 0);
@@ -545,15 +545,14 @@ NTA_Int32 staticWriteReal32Array(NTA_WriteBufferHandle handle,
   return wb->write(value, size);
 }
 
-NTA_Int32 staticWriteReal64(NTA_WriteBufferHandle handle, NTA_Real64 value) {
+Int32 staticWriteReal64(NTA_WriteBufferHandle handle, Real64 value) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
   return wb->write(value);
 }
 
-NTA_Int32 staticWriteReal64Array(NTA_WriteBufferHandle handle,
-                                 const NTA_Real64 *value, NTA_Size size) {
+Int32 staticWriteReal64Array(NTA_WriteBufferHandle handle, const Real64 *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
   NTA_CHECK(size > 0);
@@ -562,15 +561,14 @@ NTA_Int32 staticWriteReal64Array(NTA_WriteBufferHandle handle,
   return wb->write(value, size);
 }
 
-NTA_Int32 staticWriteByte(NTA_WriteBufferHandle handle, NTA_Byte value) {
+Int32 staticWriteByte(NTA_WriteBufferHandle handle, Byte value) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
   return wb->write(value);
 }
 
-NTA_Int32 staticWriteByteArray(NTA_WriteBufferHandle handle,
-                               const NTA_Byte *value, NTA_Size size) {
+Int32 staticWriteByteArray(NTA_WriteBufferHandle handle, const Byte *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
   NTA_CHECK(size > 0);
@@ -579,8 +577,7 @@ NTA_Int32 staticWriteByteArray(NTA_WriteBufferHandle handle,
   return wb->write(value, size);
 }
 
-NTA_Int32 staticWriteString(NTA_WriteBufferHandle handle, const NTA_Byte *value,
-                            NTA_Size size) {
+Int32 staticWriteString(NTA_WriteBufferHandle handle, const Byte *value, Size size) {
   NTA_CHECK(handle != nullptr);
   NTA_CHECK(value != nullptr);
 
@@ -595,7 +592,7 @@ const Byte *staticGetData(NTA_WriteBufferHandle handle) {
   return wb->getData();
 }
 
-NTA_Size staticWriteBufferGetSize(NTA_WriteBufferHandle handle) {
+Size staticWriteBufferGetSize(NTA_WriteBufferHandle handle) {
   NTA_CHECK(handle != nullptr);
 
   WriteBuffer *wb = reinterpret_cast<WriteBuffer *>(handle);
@@ -684,8 +681,8 @@ Int32 WriteBuffer::write(const bool *value, Size size) {
   return writeT(value, size);
 }
 
-NTA_Int32 WriteBuffer::writeString(const NTA_Byte *value, NTA_Size size) {
-  NTA_Int32 result = write("<s n=", 5);
+Int32 WriteBuffer::writeString(const Byte *value, Size size) {
+  Int32 result = write("<s n=", 5);
   if (result != 0)
     return result;
   result = writeT(size, nullptr);
@@ -712,4 +709,5 @@ const Byte *WriteBuffer::getData() {
 }
 
 Size WriteBuffer::getSize() { return (Size)OMemStream::pcount(); }
+
 } // namespace nupic

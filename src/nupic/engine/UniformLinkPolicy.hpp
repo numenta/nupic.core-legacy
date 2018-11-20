@@ -35,8 +35,6 @@
 // We use the ParameterSpec which is defined in the Spec header
 #include <nupic/engine/Spec.hpp>
 
-#include <boost/shared_ptr.hpp>
-
 namespace nupic {
 class Link;
 class ValueMap;

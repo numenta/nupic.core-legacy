@@ -27,14 +27,13 @@
  * A ValueMap is essentially a map<string, Value>
  * It is used internally in the conversion of YAML strings to C++ objects.
  * The API and implementation are geared towards clarify rather than
- * performance, since it is expected to be used only during network
- * construction.
+ * performance, since it is expected to be used only during network construction.
  */
 
 #ifndef NTA_VALUE_HPP
 #define NTA_VALUE_HPP
 
-#include <boost/shared_ptr.hpp>
+
 #include <map>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Scalar.hpp>
@@ -56,15 +55,15 @@ namespace nupic {
  * A string is similar to an Array of NTA_BasicType_Byte, but
  * is handled differently, so it is separated in the API.
  *
- * The Value API uses boost::shared_ptr instead of directly
+ * The Value API uses std::shared_ptr instead of directly
  * using the underlying objects, to avoid copying, and because
  * Array may not be copied.
  */
 class Value {
 public:
-  Value(boost::shared_ptr<Scalar> &s);
-  Value(boost::shared_ptr<Array> &a);
-  Value(boost::shared_ptr<std::string> &s);
+  Value(std::shared_ptr<Scalar> &s);
+  Value(std::shared_ptr<Array> &a);
+  Value(const std::string &s);
 
   enum Category { scalarCategory, arrayCategory, stringCategory };
 
@@ -75,11 +74,11 @@ public:
 
   NTA_BasicType getType() const;
 
-  boost::shared_ptr<Scalar> getScalar() const;
+  std::shared_ptr<Scalar> getScalar() const;
 
-  boost::shared_ptr<Array> getArray() const;
+  std::shared_ptr<Array> getArray() const;
 
-  boost::shared_ptr<std::string> getString() const;
+  std::string getString() const;
 
   template <typename T> T getScalarT() const;
 
@@ -89,9 +88,9 @@ private:
   // Default constructor would not be useful
   Value();
   Category category_;
-  boost::shared_ptr<Scalar> scalar_;
-  boost::shared_ptr<Array> array_;
-  boost::shared_ptr<std::string> string_;
+  std::shared_ptr<Scalar> scalar_;
+  std::shared_ptr<Array> array_;
+  std::string string_;
 };
 
 class ValueMap {
@@ -108,9 +107,10 @@ public:
   Value &getValue(const std::string &key) const;
 
   // Method below are for convenience, bypassing the Value
-  boost::shared_ptr<Array> getArray(const std::string &key) const;
-  boost::shared_ptr<Scalar> getScalar(const std::string &key) const;
-  boost::shared_ptr<std::string> getString(const std::string &key) const;
+  std::shared_ptr<Array> getArray(const std::string &key) const;
+  std::shared_ptr<Scalar> getScalar(const std::string &key) const;
+  std::string getString(const std::string &key) const;
+  std::string getString(const std::string &key,  const std::string defaultValue) const;
 
   // More convenience methods, bypassing the Value and the contained Scalar
 

@@ -87,10 +87,10 @@ public:
   // Detaches the Watcher from the Network so the callback is no longer called
   void detachFromNetwork(Network &);
 
-  // Closes the OFStream.
+  // Closes the Stream.
   void closeFile();
 
-  // Flushes the OFStream.
+  // Flushes the Stream.
   void flushFile();
 
 private:
@@ -116,7 +116,7 @@ private:
 
     // Contains all data needed by the callback function.
     struct allData {
-        std::ofstream *outStream;
+        std::ofstream outStream;
         std::string fileName;
         std::vector<watchData> watches;
     };
