@@ -80,15 +80,13 @@ string(TOUPPER ${PLATFORM} platform_uppercase)
 
 set(src_compiler_definitions
     ${COMMON_COMPILER_DEFINITIONS}
-    ${CAPNP_COMPILER_DEFINITIONS}
     -DNTA_OS_${platform_uppercase}
     -DNTA_ARCH_${BITNESS}
     -DHAVE_CONFIG_H
     -DNTA_INTERNAL
     -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
     -DBOOST_NO_WREGEX
-    -DAPR_DECLARE_STATIC
-    -DAPU_DECLARE_STATIC)
+    )
 
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(src_compiler_definitions
@@ -203,13 +201,36 @@ set(src_py_support_files
 )
 
 
+if(${NEEDS_BOOST})
+  message(STATUS "Hints for find_package()")
+  message(STATUS "  BOOST_ROOT  = ${BOOST_ROOT}")
+  if(MSVC OR MINGW)
+    # For windows, library name has lots of fields that must be matched.
+    # info about "--layout versioned" https://stackoverflow.com/questions/32991736/boost-lib-naming-are-missing/52208574#52208574
+    # filenames created by boost: https://www.boost.org/doc/libs/1_68_0/more/getting_started/unix-variants.html#library-naming
+    set(Boost_USE_STATIC_RUNTIME     OFF) 
+    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
+    set(Boost_USE_MULTITHREADED      ON)
+  endif()
+  set(Boost_DEBUG ON)
+  set(Boost_DETAILED_FAILURE_MSG ON)
+  
+  find_package(Boost 1.56.0 REQUIRED COMPONENTS system filesystem)
+  if(${Boost_FOUND})
+	include_directories(${Boost_INCLUDE_DIRS})
+	message(STATUS "  Boost_INCLUDE_DIRS        = ${Boost_INCLUDE_DIRS}")
+	message(STATUS "  Boost_LIBRARIES           = ${Boost_LIBRARIES}")
+  else()
+  	message(FATAL_ERROR "Boost not found.")
+  endif()
+endif()
 message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
 message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
 
 #
 # Common system libraries for shared libraries and executables
 #
-set(src_common_os_libs)
+set(src_common_os_libs ${extra_lib_for_filesystem})
 
 if("${PLATFORM}" STREQUAL "linux")
   list(APPEND src_common_os_libs pthread dl)
@@ -299,6 +320,7 @@ set(src_nupiccore_srcs
     nupic/utils/MovingAverage.cpp
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
+    nupic/utils/SlidingWindow.hpp
     nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
@@ -317,9 +339,6 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
 # nupic_core_solo sources depend on headers installed by these external projects
 add_dependencies(${src_lib_static_nupiccore_solo}
                  ${YAML_CPP_STATIC_LIB_TARGET}
-                 ${YAML_STATIC_LIB_TARGET}
-                 ${APR1_STATIC_LIB_TARGET}
-                 ${APRUTIL1_STATIC_LIB_TARGET}
 		 )
 set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
                       ${src_lib_static_nupiccore_compile_flags})
@@ -344,9 +363,6 @@ set(src_lib_static_nupiccore_combined nupic_core)
 set(src_external_static_libs
     
     ${YAML_CPP_STATIC_LIB_TARGET}
-    ${YAML_STATIC_LIB_TARGET}
-    ${APR1_STATIC_LIB_TARGET}
-    ${APRUTIL1_STATIC_LIB_TARGET}
    )
 
 set(src_combined_nupiccore_source_archives
@@ -366,82 +382,28 @@ merge_static_libraries(${src_lib_static_nupiccore_combined}
 set(src_common_test_exe_libs
     ${src_lib_static_nupiccore_combined}
     ${PYTHON_LIBRARIES}
+    ${Boost_LIBRARIES}
     ${src_common_os_libs})
 
 message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 
 
+## Example custom executable 
 #
-# Setup test_cpp_region
+## Setup test_py_region
 #
-set(src_executable_cppregiontest cpp_region_test)
-add_executable(${src_executable_cppregiontest} test/integration/CppRegionTest.cpp)
-target_link_libraries(${src_executable_cppregiontest} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_cppregiontest} PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_cppregiontest} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-add_custom_target(tests_cpp_region
-                  COMMAND ${src_executable_cppregiontest}
-                  DEPENDS ${src_executable_cppregiontest}
-                  COMMENT "Executing test ${src_executable_cppregiontest}"
-                  VERBATIM)
-
-#
-# Setup test_py_region
-#
-set(src_executable_pyregiontest py_region_test)
-add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
-target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_pyregiontest}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_pyregiontest}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-add_custom_target(tests_py_region
-                  COMMAND ${src_executable_pyregiontest}
-                  DEPENDS ${src_executable_pyregiontest}
-                  COMMENT "Executing test ${src_executable_pyregiontest}"
-                  VERBATIM)
-
-#
-# Setup test_connections_performance
-#
-set(src_executable_connectionsperformancetest connections_performance_test)
-add_executable(${src_executable_connectionsperformancetest}
-               test/integration/ConnectionsPerformanceTest.cpp)
-target_link_libraries(${src_executable_connectionsperformancetest}
-                      ${src_common_test_exe_libs})
-set_target_properties(${src_executable_connectionsperformancetest}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_connectionsperformancetest}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-add_custom_target(tests_connections_performance
-                  COMMAND ${src_executable_connectionsperformancetest}
-                  DEPENDS ${src_executable_connectionsperformancetest}
-                  COMMENT "Executing test ${src_executable_connectionsperformancetest}"
-                  VERBATIM)
-
-#
-# Setup helloregion example
-#
-set(src_executable_helloregion helloregion)
-add_executable(${src_executable_helloregion} examples/regions/HelloRegions.cpp)
-target_link_libraries(${src_executable_helloregion} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_helloregion}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_helloregion}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-
-
-#
-# Setup HelloSP_TP example
-#
-set(src_executable_hellosptp hello_sp_tp)
-add_executable(${src_executable_hellosptp} examples/algorithms/HelloSP_TP.cpp)
-target_link_libraries(${src_executable_hellosptp} ${src_common_test_exe_libs})
-set_target_properties(${src_executable_hellosptp}
-                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-set_target_properties(${src_executable_hellosptp}
-                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-
+#set(src_executable_pyregiontest py_region_test)
+#add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
+#target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
+#set_target_properties(${src_executable_pyregiontest}
+#                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
+#set_target_properties(${src_executable_pyregiontest}
+#                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+#add_custom_target(tests_py_region
+#                  COMMAND ${src_executable_pyregiontest}
+#                  DEPENDS ${src_executable_pyregiontest}
+#                  COMMENT "Executing test ${src_executable_pyregiontest}"
+#                  VERBATIM)
 
 #
 # Setup gtests
@@ -452,15 +414,21 @@ add_executable(${src_executable_gtests}
                test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp
+	       test/unit/algorithms/ConnectionsPerformanceTest.cpp
+	       test/unit/algorithms/HelloSPTPTest.cpp
                test/unit/algorithms/NearestNeighborUnitTest.cpp
                test/unit/algorithms/SDRClassifierTest.cpp
                test/unit/algorithms/SegmentTest.cpp
+	       test/unit/algorithms/Serialization.cpp
                test/unit/algorithms/SpatialPoolerTest.cpp
                test/unit/algorithms/TemporalMemoryTest.cpp
                test/unit/encoders/ScalarEncoderTest.cpp
+	       test/unit/engine/CppRegionTest.cpp
                test/unit/engine/InputTest.cpp
+	       test/unit/engine/HelloRegionTest.cpp
                test/unit/engine/LinkTest.cpp
                test/unit/engine/NetworkTest.cpp
+	       test/unit/engine/PyRegionTest.cpp
                test/unit/engine/UniformLinkPolicyTest.cpp
                test/unit/engine/YAMLUtilsTest.cpp
                test/unit/math/DenseTensorUnitTest.cpp
@@ -498,7 +466,10 @@ add_executable(${src_executable_gtests}
                test/unit/utils/GroupByTest.cpp
                test/unit/utils/MovingAverageTest.cpp
                test/unit/utils/RandomTest.cpp
-               test/unit/utils/WatcherTest.cpp)
+               test/unit/utils/SlidingWindowTest.cpp
+               test/unit/utils/WatcherTest.cpp
+               test/unit/utils/VectorHelpersTest.cpp
+	       )
 target_link_libraries(${src_executable_gtests}
                       ${src_lib_static_gtest}
                       ${src_common_test_exe_libs})
@@ -522,7 +493,6 @@ add_custom_target(tests_unit
 # add_dependencies should be used to set it's dependencies on the custom targets
 # of the inidividual test runners.
 add_custom_target(tests_all
-                  DEPENDS tests_cpp_region
                   DEPENDS tests_unit
                   COMMENT "Running all tests"
                   VERBATIM)
@@ -663,7 +633,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
       GENERATED TRUE
       COMPILE_FLAGS ${src_swig_generated_file_compile_flags})
 
-    swig_link_libraries(${MODULE_NAME} ${_SRC_SWIG_LINK_LIBRARIES})
+    swig_link_libraries(${MODULE_NAME} ${Boost_LIBRARIES} ${_SRC_SWIG_LINK_LIBRARIES})
 
     prepend_boilerplate_to_python_proxy_module(${MODULE_NAME})
 
@@ -738,11 +708,9 @@ endif() # NUPIC_BUILD_PYEXT_MODULES
 install(TARGETS
         ${src_lib_static_nupiccore_combined}
         ${src_lib_static_gtest}
-        ${src_executable_helloregion}
         ${src_executable_cppregiontest}
         ${src_executable_pyregiontest}
         ${src_executable_connectionsperformancetest}
-        ${src_executable_hellosptp}
         ${src_executable_gtests}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
@@ -751,6 +719,10 @@ install(TARGETS
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic)
+
+# install Data.csv for a test
+install(FILES "${PROJECT_SOURCE_DIR}/test/unit/engine/Data.csv"
+        DESTINATION "data/")
 
 if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(DIRECTORY nupic DESTINATION include
@@ -790,12 +762,6 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
   install(PROGRAMS "${SWIG_EXECUTABLE}"
           DESTINATION bin)
 
-  install(DIRECTORY "${APR1_STATIC_LIB_INC_DIR}/"
-          MESSAGE_NEVER
-          DESTINATION include)
-  install(DIRECTORY "${APRUTIL1_STATIC_LIB_INC_DIR}/"
-          MESSAGE_NEVER
-          DESTINATION include)
           
 endif ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
 

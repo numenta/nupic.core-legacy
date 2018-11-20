@@ -1220,11 +1220,14 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SpatialPooler sp;
   setup(sp, 10, 10);
   sp.setGlobalInhibition(true);
-  sp.setLocalAreaDensity(0.02);
-  vector<UInt> input(sp.getNumInputs(), 1);
+  const vector<UInt> input(sp.getNumInputs(), 1);
   vector<UInt> out1(sp.getNumColumns(), 0);
-  EXPECT_THROW(sp.compute(input.data(), false, out1.data()),
-               nupic::LoggingException);
+  //throws
+  sp.setLocalAreaDensity(0.02);
+  EXPECT_THROW(sp.compute(input.data(), false, out1.data()), nupic::LoggingException);
+  //good parameter
+  sp.setLocalAreaDensity(0.1);
+  EXPECT_NO_THROW(sp.compute(input.data(), false, out1.data()));
 }
 
 
@@ -1566,8 +1569,8 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
   Real synPermConnected = 0.2;
   Real synPermMax = 1.0;
 
-  sp.setSynPermConnected(synPermConnected);
   sp.setSynPermMax(synPermMax);
+  sp.setSynPermConnected(synPermConnected);
 
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermConnected_();
@@ -1578,8 +1581,9 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
 
 TEST(SpatialPoolerTest, testInitPermNonConnected) {
   SpatialPooler sp;
+  EXPECT_TRUE(sp.getSynPermMax() == 1.0) << sp.getSynPermMax(); 
   Real synPermConnected = 0.2;
-  sp.setSynPermConnected(synPermConnected);
+  EXPECT_NO_THROW(sp.setSynPermConnected(synPermConnected))  << sp.getSynPermMax();
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermNonConnected_();
     ASSERT_GE(permVal, 0);
@@ -2016,6 +2020,27 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
 
   // The two SP should be the same
   check_spatial_eq(sp1, sp2);
+}
+
+TEST(SpatialPoolerTest, testClip) {
+  SpatialPooler sp;
+  sp.setSynPermMax(1.337);
+  sp.setSynPermTrimThreshold(0.2);
+
+  vector<Real> test{-0.001, 0.1, 2.1};
+  const vector<Real> exp {0.0, 0.1, 1.337};
+  const vector<Real> exp2{0.0, 0.0, 1.337};
+
+  sp.clip_(test); //clip to 0.0 .. 1.337
+  for(UInt i=0; i< test.size(); i++) {
+    ASSERT_NEAR(exp[i], test[i], 0.0001) << "clip ";
+  }
+
+  sp.clip_(test, true); //clip trim small <0.2 to 0.0
+  for(UInt i=0; i< test.size(); i++) {
+    ASSERT_NEAR(exp2[i], test[i], 0.0001) << "clip 2";
+  }
+
 }
 
 } // end anonymous namespace
