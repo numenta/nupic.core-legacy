@@ -494,7 +494,7 @@ TEST(SdrTest, TestGetIndexFromDense) {
     // Test zero sized SDR.
     SDR z;
     Byte data;
-    z.setDense( {(Byte*) &data} );
+    z.setDense( (Byte*) &data );
     ASSERT_EQ( z.getIndex().size(), 0 );
 
     // Test simple 2-D SDR.
