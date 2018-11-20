@@ -26,26 +26,40 @@
 #include <vector>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/SlidingWindow.hpp>
 
 namespace nupic {
-
 namespace util {
 
 class MovingAverage {
 public:
-  MovingAverage(UInt wSize, const std::vector<Real32> &historicalValues);
+  MovingAverage(UInt wSize, const std::vector<Real> &historicalValues);
+
   MovingAverage(UInt wSize);
-  std::vector<Real32> getSlidingWindow() const;
-  Real32 getCurrentAvg() const;
-  Real32 compute(Real32 newValue);
-  Real32 getTotal() const;
-  bool operator==(const MovingAverage &r2) const;
-  bool operator!=(const MovingAverage &r2) const;
+
+  inline std::vector<Real> getData() const {
+    return slidingWindow_.getData(); }
+
+  inline Real getCurrentAvg() const {
+    return Real(total_) / Real(slidingWindow_.size()); }
+
+  Real compute(Real newValue);
+
+  inline Real getTotal() const { return total_; }
+
+  inline bool operator==(const MovingAverage& r2) const {
+    return (slidingWindow_ == r2.slidingWindow_ &&
+          total_ == r2.total_);
+  }
+
+  inline bool operator!=(const MovingAverage &r2) const {
+    return !operator==(r2);
+  }
+
 
 private:
-  UInt32 windowSize_;
-  std::vector<Real32> slidingWindow_;
-  Real32 total_;
+  SlidingWindow<Real> slidingWindow_;
+  Real total_;
 };
 } // namespace util
 } // namespace nupic
