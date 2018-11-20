@@ -132,8 +132,7 @@ public:
         dense = vector<Byte>(size_);
         // Initialize the flatIndex array, nothing to do.
         // Initialize the index tuple.
-        for(UInt dim : dimensions)
-            index.push_back( { } );
+        index.assign( dimensions.size(), {} );
         // Mark the current data as invalid.
         clear();
     };
