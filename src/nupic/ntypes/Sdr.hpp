@@ -22,6 +22,8 @@
 #ifndef SDR_HPP
 #define SDR_HPP
 
+#define SERIALIZE_VERSION 1
+
 #include <vector>
 #include <nupic/types/Types.hpp>
 #include <nupic/ntypes/Array.hpp>
@@ -184,6 +186,14 @@ public:
         flatIndex_valid_ = false;
         index_valid_     = false;
     };
+
+    /**
+     * @returns Boolean, true if the SDR has a value assigned to it, false if
+     * there is no data in the SDR.
+     */
+    bool hasValue() const {
+        return dense_valid or flatIndex_valid or index_valid;
+    }
 
     /**
      * Hook for getting notified after every assignment to the SDR.
@@ -564,13 +574,64 @@ public:
         NTA_ASSERT( false /* Unimplemented */ );
     };
 
+    bool operator==(SparseDistributedRepresentation &sdr) {
+        // Check attributes
+        if( sdr.size != size or dimensions.size() != sdr.dimensions.size() )
+            return false;
+        for( UInt i = 0; i < dimensions.size(); i++ ) {
+            if( dimensions[i] != sdr.dimensions[i] )
+                return false;
+        }
+        if( hasValue() != sdr.hasValue() )
+            return false;
+        if( !hasValue() )
+            return true;
+
+        // Check data
+        return std::equal(
+            getDense().begin(),
+            getDense().end(), 
+            sdr.getDense().begin());
+    };
+
     /**
      * Save (serialize) the current state of the SDR to the specified file.
      * 
      * @param stream A valid output stream, such as an open file.
      */
-    void save(std::ostream &stream) const override {
-        NTA_ASSERT( false /* Unimplemented */ );
+    void save(std::ostream &outStream) const override {
+
+        auto writeVector = [&outStream] (const vector<UInt> &vec) {
+            outStream << vec.size() << " ";
+            for( auto elem : vec ) {
+                outStream << elem << " ";
+            }
+            outStream << endl;
+        };
+
+        // Write a starting marker and version.
+        outStream << "SDR " << SERIALIZE_VERSION << endl;
+
+        // Store the dimensions.
+        writeVector( dimensions );
+
+        // Store the data valid flags.
+        if( hasValue() )
+            outStream << "valid_data" << endl;
+        else
+            outStream << "no_data" << endl;
+
+        // Store the data in the flat-index format.
+        if( ! hasValue() )
+            writeVector( {} );
+        else if( flatIndex_valid )
+            writeVector( flatIndex );
+        else {
+            SparseDistributedRepresentation constWorkAround( *this );
+            writeVector( constWorkAround.getFlatIndex() );
+        }
+
+        outStream << "~SDR" << endl;
     };
 
     /**
@@ -579,8 +640,64 @@ public:
      *
      * @param stream A input valid istream, such as an open file.
      */
-    void load(std::istream &stream) override {
-        NTA_ASSERT( false /* Unimplemented */ );
+    void load(std::istream &inStream) override {
+
+        auto readVector = [&inStream] (vector<UInt> &vec) {
+            vec.clear();
+            UInt size;
+            inStream >> size;
+            vec.reserve( size );
+            for( UInt i = 0; i < size; i++ ) {
+                UInt elem;
+                inStream >> elem;
+                vec.push_back( elem );
+            }
+        };
+
+        // Read the starting marker and version.
+        string marker;
+        UInt version;
+        inStream >> marker >> version;
+        NTA_ASSERT( marker == "SDR" );
+        NTA_ASSERT( version == SERIALIZE_VERSION );
+
+        // Read the dimensions.
+        readVector( dimensions_ );
+
+
+        // Read the data valid flags.
+        string valid;
+        inStream >> valid;
+
+        // Read the data.
+        readVector( flatIndex );
+
+        if( valid == "valid_data" ) {
+            flatIndex_valid_ = true;
+        }
+        else if( valid == "no_data" ) {
+            clear();
+        }
+
+        // Consume the end marker.
+        inStream >> marker;
+        NTA_ASSERT( marker == "~SDR" );
+
+        // Initialize the SDR.
+        // Calculate the SDR's size.
+        if( dimensions.size() ) {
+            size_ = 1;
+            for(UInt dim : dimensions)
+                size_ *= dim;
+        }
+        else {
+            size_ = 0;
+        }
+        // Initialize the dense array storage.
+        dense = vector<Byte>(size);
+        // Initialize the flatIndex array, nothing to do.
+        // Initialize the index tuple.
+        index.assign( dimensions.size(), {} );
     };
 };
 
