@@ -26,12 +26,14 @@ void ASSERT_SDR_NO_VALUE(SDR &sdr) {
     EXPECT_FALSE( sdr.dense_valid );
     EXPECT_FALSE( sdr.flatIndex_valid );
     EXPECT_FALSE( sdr.index_valid );
+    EXPECT_FALSE( sdr.hasValue() );
     EXPECT_ANY_THROW( sdr.getDense() );
     EXPECT_ANY_THROW( sdr.getFlatIndex() );
     EXPECT_ANY_THROW( sdr.getIndex() );
 }
 
 void ASSERT_SDR_HAS_VALUE(SDR &sdr) {
+    EXPECT_TRUE( sdr.hasValue() );
     sdr.getDense();
     sdr.getFlatIndex();
     sdr.getIndex();
@@ -97,6 +99,7 @@ TEST(SdrTest, TestConstructorCopy) {
     ASSERT_EQ( x.flatIndex_valid, x_copy.flatIndex_valid );
     ASSERT_EQ( x.dense_valid,     x_copy.dense_valid );
     ASSERT_SDR_NO_VALUE( x_copy );
+    ASSERT_TRUE( x == x_copy );
     x.zero();
     SDR x_copy2 = SDR(x);
     ASSERT_EQ( x.index_valid,     x_copy2.index_valid );
@@ -104,6 +107,7 @@ TEST(SdrTest, TestConstructorCopy) {
     ASSERT_EQ( x.dense_valid,     x_copy2.dense_valid );
     ASSERT_SDR_NO_VALUE( x_copy );
     ASSERT_SDR_HAS_VALUE( x_copy2 );
+    ASSERT_TRUE( x == x_copy2 );
 
     // Test data is copied.
     SDR a({5});
@@ -113,6 +117,7 @@ TEST(SdrTest, TestConstructorCopy) {
     ASSERT_EQ( a.flatIndex_valid, b.flatIndex_valid );
     ASSERT_EQ( a.dense_valid,     b.dense_valid );
     ASSERT_EQ( b.getFlatIndex(),  vector<UInt>({1}) );
+    ASSERT_TRUE(a == b);
 }
 
 TEST(SdrTest, TestClear) {
@@ -559,8 +564,113 @@ TEST(DISABLED_SdrTest, TestAddNoise) {
     FAIL();
 }
 
-TEST(DISABLED_SdrTest, TestSaveLoad) {
-    FAIL();
+TEST(SdrTest, TestEquality) {
+    vector<SDR*> test_cases;
+    // Test zero dimensions
+    test_cases.push_back( new SDR() );
+    // Test zero size
+    test_cases.push_back( new SDR({1, 0, 1}) );
+    // Test different dimensions
+    test_cases.push_back( new SDR({ 11 }));
+    test_cases.push_back( new SDR({ 1, 1 }));
+    test_cases.push_back( new SDR({ 1, 2, 3 }));
+    // Test different data
+    test_cases.push_back( new SDR({ 3, 3 }));
+    test_cases.back()->setDense({0, 0, 1, 0, 1, 0, 1, 0, 0,});
+    test_cases.push_back( new SDR({ 3, 3 }));
+    test_cases.back()->setDense({0, 1, 0, 0, 1, 0, 0, 1, 0});
+    test_cases.push_back( new SDR({ 3, 3 }));
+    test_cases.back()->setDense({0, 1, 0, 0, 1, 0, 0, 0, 1});
+    test_cases.push_back( new SDR({ 3, 3 }));
+    test_cases.back()->setFlatIndex({0,});
+    test_cases.push_back( new SDR({ 3, 3 }));
+    test_cases.back()->setFlatIndex({3, 4, 6});
+
+    // Check that SDRs equal themselves
+    for(UInt x = 0; x < test_cases.size(); x++) {
+        for(UInt y = 0; y < test_cases.size(); y++) {
+            SDR *a = test_cases[x];
+            SDR *b = test_cases[y];
+            if( x == y )
+                ASSERT_TRUE( *a == *b );
+            else
+                ASSERT_FALSE( *a == *b );
+        }
+    }
+
+    for( SDR* z : test_cases )
+        delete z;
+}
+
+TEST(SdrTest, TestSaveLoad) {
+    const char *filename = "SdrSerialization.tmp";
+    ofstream outfile;
+    outfile.open(filename);
+
+    // Test zero dimensions
+    SDR zd;
+    zd.save(outfile);
+
+    // Test zero size
+    SDR zs({ 1, 0, 1 });
+    zs.save(outfile);
+
+    // Test no value
+    SDR nv({ 3, 3 });
+    nv.save( outfile );
+
+    // Test dense data
+    SDR dense({ 3, 3 });
+    dense.setDense({ 0, 1, 0, 0, 1, 0, 0, 0, 1 });
+    dense.save( outfile );
+
+    // Test flat data
+    SDR flat({ 3, 3 });
+    flat.setFlatIndex({ 1, 4, 8 });
+    flat.save( outfile );
+
+    // Test index data
+    SDR index({ 3, 3 });
+    index.setIndex({
+        { 0, 1, 2 },
+        { 1, 1, 2 }});
+    index.save( outfile );
+
+    // Now load all of the data back into SDRs.
+    outfile.close();
+    ifstream infile( filename );
+
+    if( false ) {
+        // Print the file's contents
+        std::stringstream buffer; buffer << infile.rdbuf();
+        cout << buffer.str() << "EOF" << endl;
+        infile.seekg( 0 ); // rewind to start of file.
+    }
+
+    SDR zd_2;
+    zd_2.load( infile );
+    SDR zs_2;
+    zs_2.load( infile );
+    SDR nv_2;
+    nv_2.load( infile );
+    SDR dense_2;
+    dense_2.load( infile );
+    SDR flat_2;
+    flat_2.load( infile );
+    SDR index_2;
+    index_2.load( infile );
+
+    infile.close();
+    int ret = ::remove( filename );
+    ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
+
+    // Check that all of the data is OK
+    ASSERT_TRUE( zd      == zd_2 );
+    ASSERT_TRUE( zs      == zs_2 );
+    ASSERT_TRUE( nv      == nv_2 );
+    ASSERT_TRUE( dense   == dense_2 );
+    ASSERT_TRUE( flat    == flat_2 );
+    ASSERT_TRUE( index   == index_2 );
 }
 
 TEST(DISABLED_SdrTest, TestCallbacks) {
