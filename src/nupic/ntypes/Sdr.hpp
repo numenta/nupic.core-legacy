@@ -34,6 +34,10 @@ using namespace std;
 
 namespace nupic {
 
+typedef vector<Byte>         SDR_dense_t;
+typedef vector<UInt>         SDR_flatSparse_t;
+typedef vector<vector<UInt>> SDR_sparse_t;
+
 /**
  * SparseDistributedRepresentation class
  * Also known as "SDR" class
@@ -44,8 +48,8 @@ namespace nupic {
  * represent the state of a group of neurons or their associated processes. 
  *
  * This class automatically converts between the commonly used SDR data formats:
- * which are dense, sparse, and flat-sparse.  Converted values are cached by this
- * class, so getting a value in one format many times incurs no extra
+ * which are dense, sparse, and flat-sparse.  Converted values are cached by
+ * this class, so getting a value in one format many times incurs no extra
  * performance cost.  Assigning to the SDR via a setter method will clear these
  * cached values and cause them to be recomputed as needed.
  *
@@ -93,14 +97,13 @@ namespace nupic {
  */
 class SparseDistributedRepresentation : public Serializable
 {
-protected:
-
+private:
     vector<UInt> dimensions_;
     UInt         size_;
 
-    vector<Byte>         dense;
-    vector<UInt>         flatSparse;
-    vector<vector<UInt>> sparse;
+    SDR_dense_t      dense;
+    SDR_flatSparse_t flatSparse;
+    SDR_sparse_t     sparse;
 
     /**
      * These flags remember which data formats are up-to-date and which formats
@@ -116,13 +119,12 @@ protected:
      * immediately after this operation would raise an exception.
      */
     void clear() {
-        dense_valid     = false;
+        dense_valid      = false;
         flatSparse_valid = false;
         sparse_valid     = false;
     };
 
 public:
-
     /**
      * Use this method only in conjuction with sdr.load().
      */
@@ -193,7 +195,8 @@ public:
      *
      * @param value A dense vector<char> to copy into the SDR.
      */
-    void setDense( const vector<Byte> &value ) {
+    template<typename T>
+    void setDense( const vector<T> &value ) {
         NTA_ASSERT(value.size() == size);
         dense.assign( value.begin(), value.end() );
         setDenseInplace();
@@ -202,7 +205,7 @@ public:
     /**
      * Copy a new value into the SDR, overwritting the current value.
      *
-     * @param value A dense array of type char to copy into the SDR.
+     * @param value A dense C-style array to copy into the SDR.
      */
     template<typename T>
     void setDense( const T *value ) {
@@ -214,20 +217,9 @@ public:
     /**
      * Copy a new value into the SDR, overwritting the current value.
      *
-     * @param value A dense C-style array of UInt's to copy into the SDR.
+     * @param value A dense array to copy into the SDR.
      */
-    // void setDense( const UInt *value ) {
-        // NTA_ASSERT(value != NULL);
-        // dense.assign( value, value + size );
-        // setDenseInplace();
-    // };
-
-    /**
-     * Copy a new value into the SDR, overwritting the current value.
-     *
-     * @param value A dense byte Array to copy into the SDR.
-     */
-    void setDense( const ArrayBase *value )  {
+    void setDense( const ArrayBase &value )  {
         NTA_ASSERT( false /* Unimplemented */ );
         // TODO: Assert correct size and data type.
         setDenseInplace();
@@ -244,29 +236,40 @@ public:
     };
 
     /**
-     * Copy a vector of sparse indices into the SDR.  These indicies are into
+     * Copy a vector of sparse indices of true values.  These indicies are into
      * the flattened SDR space.  This overwrites the SDR's current value.
      *
      * @param value A vector of flat indices to copy into the SDR.
      */
-    void setFlatSparse( const vector<UInt> &value ) {
+    template<typename T>
+    void setFlatSparse( const vector<T> &value ) {
         flatSparse.assign( value.begin(), value.end() );
         setFlatSparseInplace();
     };
 
     /**
-     * Copy an array of sparse indices into the SDR.  These indicies are into
+     * Copy an array of sparse indices of true values.  These indicies are into
      * the flattened SDR space.  This overwrites the SDR's current value.
      *
      * @param value A C-style array of indices to copy into the SDR.
      * @param num_values The number of elements in the 'value' array.
      */
-    void setFlatSparse( const UInt *value, const UInt num_values ) {
+    template<typename T>
+    void setFlatSparse( const T *value, const UInt num_values ) {
         flatSparse.assign( value, value + num_values );
         setFlatSparseInplace();
     };
 
-    // TODO: Overload setFlatSparse to accept an Array ...
+    /**
+     * Copy an array of sparse indices of true values.  These indicies are into
+     * the flattened SDR space.  This overwrites the SDR's current value.
+     *
+     * @param value An array of flat indices to copy into the SDR.
+     */
+    void setFlatSparse( const ArrayBase &value, UInt num_values ) {
+        NTA_ASSERT( false /* Unimplemented */ );
+        setFlatSparseInplace();
+    };
 
     /**
      * Update the SDR to reflect the value currently inside of the flatSparse
@@ -274,10 +277,12 @@ public:
      * order to propigate any changes to the dense & sparse formats.
      */
     void setFlatSparseInplace() {
+        // Check data is valid.
         NTA_ASSERT(flatSparse.size() <= size);
         for(auto idx : flatSparse) {
             NTA_ASSERT(idx < size);
         }
+        // Set the valid flags.
         clear();
         flatSparse_valid = true;
     };
@@ -292,7 +297,8 @@ public:
      * @param value A list of lists containing the coordinates of the true
      * values to copy into the SDR.
      */
-    void setSparse( const vector<vector<UInt>> &value ) {
+    template<typename T>
+    void setSparse( const vector<vector<T>> &value ) {
         NTA_ASSERT(value.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
             sparse[dim].assign( value[dim].begin(), value[dim].end() );
@@ -316,7 +322,7 @@ public:
                 NTA_ASSERT(idx < dimensions[dim]);
             }
         }
-        // Do the setter assignment.
+        // Set the valid flags.
         clear();
         sparse_valid = true;
     };
@@ -352,20 +358,20 @@ public:
      * saved inside of this SDR until the SDRs value changes.  If the value
      * is unset this raises an exception.
      *
-     * @returns A pointer to an array of all the values in the SDR.
+     * @returns A reference to an array of all the values in the SDR.
      */
-    const vector<Byte>& getDense()
+    const SDR_dense_t& getDense()
         { return getDenseMutable(); };
 
     /**
      * This method does the same thing as sdr.getDense() except that it returns
-     * a non-constant pointer.  After modifying the dense array you MUST call
+     * a non-constant reference.  After modifying the dense array you MUST call
      * sdr.setDenseInplace() in order to notify the SDR that its dense array has
      * changed and its cached data is out of date.
      *
-     * @returns A pointer to an array of all the values in the SDR.
+     * @returns A reference to an array of all the values in the SDR.
      */
-    vector<Byte>& getDenseMutable() {
+    SDR_dense_t& getDenseMutable() {
         if( !dense_valid ) {
             // Convert from flatSparse to dense.
             dense.assign( size, 0 );
@@ -382,22 +388,22 @@ public:
      * saved inside of this SDR until the SDRs value changes.  If the value is
      * unset this raises an exception.
      *
-     * @returns A pointer to a vector of the indices of the true values in the
+     * @returns A reference to a vector of the indices of the true values in the
      * flattened SDR.
      */
-    const vector<UInt>& getFlatSparse()
+    const SDR_flatSparse_t& getFlatSparse()
         { return getFlatSparseMutable(); };
 
     /**
      * This method does the same thing as sdr.getFlatSparse() except that it
-     * returns a non-constant pointer.  After modifying the flatSparse vector you
-     * MUST call sdr.setFlatSparseInplace() in order to notify the SDR that its
-     * flatSparse vector has changed and its cached data is out of date.
+     * returns a non-constant reference.  After modifying the flatSparse vector
+     * you MUST call sdr.setFlatSparseInplace() in order to notify the SDR that
+     * its flatSparse vector has changed and its cached data is out of date.    
      *
-     * @returns A pointer to a vector of the indices of the true values in the
+     * @returns A reference to a vector of the indices of the true values in the
      * flattened SDR.
      */
-    vector<UInt>& getFlatSparseMutable() {
+    SDR_flatSparse_t& getFlatSparseMutable() {
         if( !flatSparse_valid ) {
             flatSparse.clear(); // Clear out any old data.
             if( sparse_valid ) {
@@ -432,22 +438,22 @@ public:
      * saved inside of this SDR until the SDRs value changes.  If the value is
      * unset this raises an exception.
      *
-     * @returns A pointer to a list of lists of the coordinates of the true
-     * values in the SDR.
+     * @returns A reference to a list of lists which contain the coordinates of
+     * the true values in the SDR.     
      */
-    const vector<vector<UInt>>& getSparse()
+    const SDR_sparse_t& getSparse()
         { return getSparseMutable(); };
 
     /**
      * This method does the same thing as sdr.getSparse() except that it
-     * returns a non-constant pointer.  After modifying the sparse vector you
+     * returns a non-constant reference.  After modifying the sparse vector you
      * MUST call sdr.setSparseInplace() in order to notify the SDR that its
      * sparse vector has changed and its cached data is out of date.
      *
-     * @returns A pointer to a list of lists of the coordinates of the true
+     * @returns A reference to a list of lists of the coordinates of the true
      * values in the SDR.
      */
-    vector<vector<UInt>>& getSparseMutable() {
+    SDR_sparse_t& getSparseMutable() {
         if( !sparse_valid ) {
             // Clear out any old data.
             for( auto& vec : sparse ) {
@@ -469,7 +475,6 @@ public:
 
     /**
      * Query the value of the SDR at a single location.
-     * If the SDRs value is unset this raises an exception.
      *
      * @param coordinates A list of coordinates into the SDR space to query.
      *
@@ -486,8 +491,7 @@ public:
     }
 
     /**
-     * Calculates the number of true / non-zero values in the SDR.  If the SDRs
-     * value is unset this raises an exception.
+     * Calculates the number of true / non-zero values in the SDR.
      *
      * @returns The number of true values in the SDR.
      */
@@ -499,8 +503,6 @@ public:
      * are true out of the total number of bits in the SDR.
      * I.E.  sparsity = sdr.getSum() / sdr.size
      *
-     * If the SDRs value is unset this raises an exception.
-     *
      * @returns The fraction of values in the SDR which are true.
      */
     Real getSparsity()
@@ -508,8 +510,6 @@ public:
 
     /**
      * Calculates the number of true bits which both SDRs have in common.
-     *
-     * If the SDRs value is unset this raises an exception.
      *
      * @param sdr, An SDR to compare with, both SDRs must have the same
      * dimensons.
@@ -536,64 +536,62 @@ public:
      *
      * @param sparsity The sparsity of the randomly generated SDR.
      *
-     * @param seed The seed to use for the random number generator.
-     *
-     * @param rng The random number generator to draw from.
+     * @param rng The random number generator to draw from, optional.
      */
-    void randomize(Real sparsity, UInt64 seed = 0) {
-        Random rng(seed);
+    void randomize(Real sparsity) {
+        Random rng;
         randomize( sparsity, rng );
     };
 
     void randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0. and sparsity <= 1. );
         const bool invert = sparsity > .5;
-        if( invert ) {
+        if( invert )
             sparsity = 1 - sparsity;
-        }
+
         clear();
         dense.assign( size, 0 );
         UInt nbits = size * sparsity + .5;
         while( nbits > 0 ) {
             const UInt idx = rng() % size;
-            cerr << idx <<  endl;
             if( dense[idx] == 0 ) {
                 dense[idx] = 1;
                 nbits--;
             }
         }
         if( invert ) {
-            for( UInt i = 0; i < size; i++ ) {
+            for( UInt i = 0; i < size; i++ )
                 dense[i] = 1 - dense[i];
-            }
         }
         dense_valid = true;
     };
 
     /**
      * Modify the SDR by moving a fraction of the active bits to different
-     * locations.  This method does not change the sparsity of the SDR, it only
-     * changes which bits are active.  The resulting SDR has a controlled amount
-     * of overlap with the original.
-     *
-     * If the SDRs value is unset this raises an exception.
+     * locations.  This method does not change the sparsity of the SDR, it moves
+     * the locations of the true values.  The resulting SDR has a controlled
+     * amount of overlap with the original.
      *
      * @param fractionNoise The fraction of active bits to swap out.  The
      * original and resulting SDRs have an overlap of (1 - fractionNoise).
      *
-     * @param seed The seed to use for the random number generator.
-     *
-     * @param rng The random number generator to draw from.
+     * @param rng The random number generator to draw from, optional.
      */
-    void addNoise(Real fractionNoise, UInt64 seed = 0) {
-        Random rng(seed);
+    void addNoise(Real fractionNoise) {
+        Random rng;
         addNoise( fractionNoise, rng );
     }
 
     void addNoise(Real fractionNoise, Random &rng) {
+        NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
         NTA_ASSERT( false /* Unimplemented */ );
     };
 
+    /**
+     * Print a human readable version of the SDR, defaults to STDOUT.
+     *
+     * @param stream The output to write to, defaults to std::cout.
+     */
     void print(std::ostream &stream = std::cout) {
         stream << "SDR( ";
         for( UInt i = 0; i < dimensions.size(); i++ ) {
