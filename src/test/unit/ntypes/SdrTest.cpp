@@ -63,7 +63,7 @@ TEST(SdrTest, TestConstructorCopy) {
 
     // Test data is copied.
     SDR a({5});
-    a.setDense({0, 1, 0, 0, 0});
+    a.setDense( SDR_dense_t({0, 1, 0, 0, 0}));
     SDR b(a);
     ASSERT_EQ( b.getFlatSparse(),  vector<UInt>({1}) );
     ASSERT_TRUE(a == b);
@@ -90,23 +90,23 @@ TEST(SdrTest, TestExample) {
         0, 0, 1 });
 
     // These three statements are equivalent.
-    X.setDense({ 0, 1, 0,
-                 0, 1, 0,
-                 0, 0, 1 });
+    X.setDense(SDR_dense_t({ 0, 1, 0,
+                             0, 1, 0,
+                             0, 0, 1 }));
     ASSERT_EQ( data, X.getDense() );
-    X.setFlatSparse({ 1, 4, 8 });
+    X.setFlatSparse(SDR_flatSparse_t({ 1, 4, 8 }));
     ASSERT_EQ( data, X.getDense() );
-    X.setSparse({{ 0, 1, 2,}, { 1, 1, 2 }});
+    X.setSparse(SDR_sparse_t({{ 0, 1, 2,}, { 1, 1, 2 }}));
     ASSERT_EQ( data, X.getDense() );
 
     // Access data in any format, SDR will automatically convert data formats.
-    ASSERT_EQ( X.getDense(),     vector<Byte>({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }) );
-    ASSERT_EQ( X.getSparse(),     vector<vector<UInt>>({{ 0, 1, 2 }, {1, 1, 2}}) );
-    ASSERT_EQ( X.getFlatSparse(), vector<UInt>({ 1, 4, 8 }) );
+    ASSERT_EQ( X.getDense(),      SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }) );
+    ASSERT_EQ( X.getSparse(),     SDR_sparse_t({{ 0, 1, 2 }, {1, 1, 2}}) );
+    ASSERT_EQ( X.getFlatSparse(), SDR_flatSparse_t({ 1, 4, 8 }) );
 
     // Data format conversions are cached, and when an SDR value changes the
     // cache is cleared.
-    X.setFlatSparse({});  // Assign new data to the SDR, clearing the cache.
+    X.setFlatSparse(SDR_flatSparse_t({}));  // Assign new data to the SDR, clearing the cache.
     X.getDense();        // This line will convert formats.
     X.getDense();        // This line will resuse the result of the previous line
 }
@@ -176,6 +176,11 @@ TEST(SdrTest, TestSetFlatSparsePtr) {
     ASSERT_NE( a.getFlatSparse().data(), vec.data()); // true copy not a reference
 }
 
+TEST(DISABLED_SdrTest, TestSetFlatSparseArray) {
+    // Overload is not implemented ...
+    FAIL();
+}
+
 TEST(SdrTest, TestSetFlatSparseMutableInplace) {
     // Test both mutable & inplace methods at the same time, which is the intended use case.
     SDR a({10, 10});
@@ -235,15 +240,15 @@ TEST(SdrTest, TestSetSDR) {
     SDR a({5});
     SDR b({5});
     // Test dense assignment works
-    a.setDense({1, 1, 1, 1, 1});
+    a.setDense(SDR_dense_t({1, 1, 1, 1, 1}));
     b.setSDR(a);
     ASSERT_EQ( b.getFlatSparse(), vector<UInt>({0, 1, 2, 3, 4}) );
     // Test flat sparse assignment works
-    a.setFlatSparse({0, 1, 2, 3, 4});
+    a.setFlatSparse(SDR_flatSparse_t({0, 1, 2, 3, 4}));
     b.setSDR(a);
     ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
     // Test sparse assignment works
-    a.setSparse({{0, 1, 2, 3, 4}});
+    a.setSparse(SDR_sparse_t({{0, 1, 2, 3, 4}}));
     b.setSDR(a);
     ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
 }
@@ -251,17 +256,18 @@ TEST(SdrTest, TestSetSDR) {
 TEST(SdrTest, TestGetDenseFromFlatSparse) {
     // Test zeros
     SDR z({4, 4});
-    z.setFlatSparse({});
+    z.setFlatSparse(SDR_flatSparse_t({}));
     ASSERT_EQ( z.getDense(), vector<Byte>(16, 0) );
 
     // Test ones
     SDR nz({4, 4});
-    nz.setFlatSparse({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
+    nz.setFlatSparse(SDR_flatSparse_t(
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}));
     ASSERT_EQ( nz.getDense(), vector<Byte>(16, 1) );
 
     // Test 1-D
     SDR d1({30});
-    d1.setFlatSparse({1, 29, 4, 5, 7});
+    d1.setFlatSparse(SDR_flatSparse_t({1, 29, 4, 5, 7}));
     vector<Byte> ans(30, 0);
     ans[1] = 1;
     ans[29] = 1;
@@ -272,7 +278,7 @@ TEST(SdrTest, TestGetDenseFromFlatSparse) {
 
     // Test 3-D
     SDR d3({10, 10, 10});
-    d3.setFlatSparse({0, 5, 50, 55, 500, 550, 555, 999});
+    d3.setFlatSparse(SDR_flatSparse_t({0, 5, 50, 55, 500, 550, 555, 999}));
     vector<Byte> ans2(1000, 0);
     ans2[0]   = 1;
     ans2[5]   = 1;
@@ -288,7 +294,7 @@ TEST(SdrTest, TestGetDenseFromFlatSparse) {
 TEST(SdrTest, TestGetDenseFromSparse) {
     // Test simple 2-D
     SDR a({3, 3});
-    a.setSparse({{1, 0, 2}, {2, 0, 2}});
+    a.setSparse(SDR_sparse_t({{1, 0, 2}, {2, 0, 2}}));
     vector<Byte> ans(9, 0);
     ans[0] = 1;
     ans[5] = 1;
@@ -297,7 +303,7 @@ TEST(SdrTest, TestGetDenseFromSparse) {
 
     // Test zeros
     SDR z({99, 1});
-    z.setSparse({{}, {}});
+    z.setSparse(SDR_sparse_t({{}, {}}));
     ASSERT_EQ( z.getDense(), vector<Byte>(99, 0) );
 }
 
@@ -338,7 +344,7 @@ TEST(SdrTest, TestGetFlatSparseFromSparse) {
     ASSERT_EQ(a.getFlatSparse().at(2), 5);
 
     // Test zero'd SDR.
-    a.setSparse( {{}, {}} );
+    a.setSparse(SDR_sparse_t( {{}, {}} ));
     ASSERT_EQ( a.getFlatSparse().size(), 0 );
 }
 
@@ -349,13 +355,13 @@ TEST(SdrTest, TestGetSparseFromFlat) {
     ASSERT_EQ( index.size(), 2 );
     ASSERT_EQ( index[0].size(), 0 );
     ASSERT_EQ( index[1].size(), 0 );
-    a.setFlatSparse({ 4, 8, 5 });
+    a.setFlatSparse(SDR_flatSparse_t({ 4, 8, 5 }));
     ASSERT_EQ( a.getSparse(), vector<vector<UInt>>({
         { 1, 2, 1 },
         { 1, 2, 2 } }) );
 
     // Test zero'd SDR.
-    a.setFlatSparse( { } );
+    a.setFlatSparse(SDR_flatSparse_t( { } ));
     ASSERT_EQ( a.getSparse(), vector<vector<UInt>>({{}, {}}) );
 }
 
@@ -378,7 +384,7 @@ TEST(SdrTest, TestGetSparseFromDense) {
 
 TEST(SdrTest, TestAt) {
     SDR a({3, 3});
-    a.setFlatSparse( {4, 5, 8} );
+    a.setFlatSparse(SDR_flatSparse_t( {4, 5, 8} ));
     ASSERT_TRUE( a.at( {1, 1} ));
     ASSERT_TRUE( a.at( {1, 2} ));
     ASSERT_TRUE( a.at( {2, 2} ));
@@ -392,7 +398,6 @@ TEST(SdrTest, TestAt) {
 
 TEST(SdrTest, TestSumSparsity) {
     SDR a({31, 17, 3});
-    a.zero();
     auto& dense = a.getDenseMutable();
     for(UInt i = 0; i < a.size; i++) {
         ASSERT_EQ( i, a.getSum() );
@@ -404,16 +409,45 @@ TEST(SdrTest, TestSumSparsity) {
     ASSERT_FLOAT_EQ( 1, a.getSparsity() );
 }
 
-TEST(DISABLED_SdrTest, TestOverlap) {
+TEST(SdrTest, TestPrint) {
+    SDR a({100});
+    a.print(cout);
+    a.randomize(.02);
+    a.print(cout);
+    a.randomize(.02);
+    a.print(cout);
+
     FAIL();
 }
 
-TEST(DISABLED_SdrTest, TestRandomize) {
+TEST(SdrTest, TestOverlap) {
+    SDR a({3, 3});
+    a.setDense(SDR_dense_t({1, 1, 1, 1, 1, 1, 1, 1, 1}));
+    SDR b(a);
+    ASSERT_EQ( a.overlap( b ), 9 );
+    b.zero();
+    ASSERT_EQ( a.overlap( b ), 0 );
+    b.setDense(SDR_dense_t({0, 1, 0, 0, 1, 0, 0, 0, 1}));
+    ASSERT_EQ( a.overlap( b ), 3 );
+    a.zero(); b.zero();
+    ASSERT_EQ( a.overlap( b ), 0 );
+}
+
+TEST(SdrTest, TestRandomize) {
     FAIL();
 }
 
-TEST(DISABLED_SdrTest, TestAddNoise) {
-    FAIL();
+TEST(SdrTest, TestAddNoise) {
+    SDR a({1000});
+    a.randomize( .10 );
+    SDR b(a);
+    ASSERT_EQ( a.overlap( b ), 100 );
+
+    for( UInt x = 0; x < 100; x++ ) {
+        b.setSDR( a );
+        b.addNoise( (Real)x / 100. );
+        ASSERT_EQ( a.overlap( b ), 100 - x );
+    }
 }
 
 TEST(SdrTest, TestEquality) {
@@ -424,15 +458,15 @@ TEST(SdrTest, TestEquality) {
     test_cases.push_back( new SDR({ 1, 2, 3 }));
     // Test different data
     test_cases.push_back( new SDR({ 3, 3 }));
-    test_cases.back()->setDense({0, 0, 1, 0, 1, 0, 1, 0, 0,});
+    test_cases.back()->setDense(SDR_dense_t({0, 0, 1, 0, 1, 0, 1, 0, 0,}));
     test_cases.push_back( new SDR({ 3, 3 }));
-    test_cases.back()->setDense({0, 1, 0, 0, 1, 0, 0, 1, 0});
+    test_cases.back()->setDense(SDR_dense_t({0, 1, 0, 0, 1, 0, 0, 1, 0}));
     test_cases.push_back( new SDR({ 3, 3 }));
-    test_cases.back()->setDense({0, 1, 0, 0, 1, 0, 0, 0, 1});
+    test_cases.back()->setDense(SDR_dense_t({0, 1, 0, 0, 1, 0, 0, 0, 1}));
     test_cases.push_back( new SDR({ 3, 3 }));
-    test_cases.back()->setFlatSparse({0,});
+    test_cases.back()->setFlatSparse(SDR_flatSparse_t({0,}));
     test_cases.push_back( new SDR({ 3, 3 }));
-    test_cases.back()->setFlatSparse({3, 4, 6});
+    test_cases.back()->setFlatSparse(SDR_flatSparse_t({3, 4, 6}));
 
     // Check that SDRs equal themselves
     for(UInt x = 0; x < test_cases.size(); x++) {
@@ -461,19 +495,19 @@ TEST(SdrTest, TestSaveLoad) {
 
     // Test dense data
     SDR dense({ 3, 3 });
-    dense.setDense({ 0, 1, 0, 0, 1, 0, 0, 0, 1 });
+    dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
     dense.save( outfile );
 
     // Test flat data
     SDR flat({ 3, 3 });
-    flat.setFlatSparse({ 1, 4, 8 });
+    flat.setFlatSparse(SDR_flatSparse_t({ 1, 4, 8 }));
     flat.save( outfile );
 
     // Test index data
     SDR index({ 3, 3 });
-    index.setSparse({
-        { 0, 1, 2 },
-        { 1, 1, 2 }});
+    index.setSparse(SDR_sparse_t({
+            { 0, 1, 2 },
+            { 1, 1, 2 }}));
     index.save( outfile );
 
     // Now load all of the data back into SDRs.
@@ -505,21 +539,4 @@ TEST(SdrTest, TestSaveLoad) {
     ASSERT_TRUE( dense   == dense_2 );
     ASSERT_TRUE( flat    == flat_2 );
     ASSERT_TRUE( index   == index_2 );
-}
-
-TEST(SdrTest, TestPrint) {
-    SDR a({100});
-    a.print(cout);
-    a.randomize(.02);
-    a.print(cout);
-    a.randomize(.02);
-    a.print(cout);
-}
-
-TEST(DISABLED_SdrTest, TestCallbacks) {
-    FAIL();
-    // This could tested by writing two functions, one it insert callbacks into
-    // SDR, and another to check that they are called correctly.  Then put these
-    // callback-test-functions in all of the other unit tests so that all of the
-    // code paths are tested for callbacks.
 }
