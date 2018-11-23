@@ -109,6 +109,12 @@ TEST(SdrTest, TestExample) {
     X.setFlatSparse(SDR_flatSparse_t({}));  // Assign new data to the SDR, clearing the cache.
     X.getDense();        // This line will convert formats.
     X.getDense();        // This line will resuse the result of the previous line
+
+    X.zero();
+    auto & dense = X.getDenseMutable();      // The "&" is really important!
+    dense[2] = true;
+    X.setDenseInplace();                    // Notify the SDR of the changes.
+    ASSERT_EQ( X.getFlatSparse(), SDR_flatSparse_t({ 2 }) );
 }
 
 TEST(SdrTest, TestSetDenseVec) {
@@ -118,6 +124,7 @@ TEST(SdrTest, TestSetDenseVec) {
     a.setDense( vec );
     ASSERT_EQ( a.getDense(), vec );
     ASSERT_NE( a.getDense().data(), vec.data() ); // true copy not a reference
+    ASSERT_EQ( a.getDense().data(), a.getDense().data() ); // But not a copy every time.
 }
 
 TEST(SdrTest, TestSetDenseByte) {
@@ -138,7 +145,26 @@ TEST(SdrTest, TestSetDenseUInt) {
 }
 
 TEST(SdrTest, TestSetDenseArray) {
-    FAIL();
+    // Test Byte sized data
+    SDR A({ 3, 3 });
+    vector<Byte> vec_byte({ 0, 1, 0, 0, 1, 0, 0, 0, 1 });
+    auto arr = Array(NTA_BasicType_Byte, vec_byte.data(), vec_byte.size());
+    A.setDense( arr );
+    ASSERT_EQ( A.getFlatSparse(), SDR_flatSparse_t({ 1, 4, 8 }));
+
+    // Test UInt64 sized data
+    A.zero();
+    vector<UInt64> vec_uint({ 1, 1, 0, 0, 1, 0, 0, 0, 1 });
+    auto arr_uint64 = Array(NTA_BasicType_UInt64, vec_uint.data(), vec_uint.size());
+    A.setDense( arr_uint64 );
+    ASSERT_EQ( A.getFlatSparse(), SDR_flatSparse_t({ 0, 1, 4, 8 }));
+
+    // Test Real sized data
+    A.zero();
+    vector<Real> vec_real({ 1., 1., 0., 0., 1., 0., 0., 0., 1. });
+    auto arr_real = Array(NTA_BasicType_Real, vec_real.data(), vec_real.size());
+    A.setDense( arr_real );
+    ASSERT_EQ( A.getFlatSparse(), SDR_flatSparse_t({ 0, 1, 4, 8 }));
 }
 
 TEST(SdrTest, TestSetDenseMutableInplace) {
@@ -176,7 +202,26 @@ TEST(SdrTest, TestSetFlatSparsePtr) {
 }
 
 TEST(SdrTest, TestSetFlatSparseArray) {
-    FAIL();
+    SDR A({ 3, 3 });
+    // Test UInt32 sized data
+    vector<UInt32> vec_uint32({ 1, 4, 8 });
+    auto arr_uint32 = Array(NTA_BasicType_UInt32, vec_uint32.data(), vec_uint32.size());
+    A.setFlatSparse( arr_uint32 );
+    ASSERT_EQ( A.getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
+
+    // Test UInt64 sized data
+    A.zero();
+    vector<UInt64> vec_uint64({ 1, 4, 8 });
+    auto arr_uint64 = Array(NTA_BasicType_UInt64, vec_uint64.data(), vec_uint64.size());
+    A.setFlatSparse( arr_uint64 );
+    ASSERT_EQ( A.getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
+
+    // Test Real sized data
+    A.zero();
+    vector<Real> vec_real({ 1, 4, 8 });
+    auto arr_real = Array(NTA_BasicType_Real, vec_real.data(), vec_real.size());
+    A.setFlatSparse( arr_real );
+    ASSERT_EQ( A.getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
 }
 
 TEST(SdrTest, TestSetFlatSparseMutableInplace) {
@@ -426,7 +471,7 @@ TEST(SdrTest, TestPrint) {
     ASSERT_NE( str3.str().find( "SDR( 3, 3 ) 1, 4, 8" ), std::string::npos);
 
     // Check that default aruments don't crash.
-    cout << "PRINTING SDR TO STDOUT: ";
+    cout << "PRINTING \"SDR( 3, 3 ) 1, 4, 8\" TO STDOUT: ";
     sdr3.print();
 }
 
