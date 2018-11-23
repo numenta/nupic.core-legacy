@@ -137,8 +137,7 @@ TEST(SdrTest, TestSetDenseUInt) {
     ASSERT_NE( a.getDense().data(), (const char*) vec.data()); // true copy not a reference
 }
 
-TEST(DISABLED_SdrTest, TestSetDenseArray) {
-    // Overload is not implemented ...
+TEST(SdrTest, TestSetDenseArray) {
     FAIL();
 }
 
@@ -176,8 +175,7 @@ TEST(SdrTest, TestSetFlatSparsePtr) {
     ASSERT_NE( a.getFlatSparse().data(), vec.data()); // true copy not a reference
 }
 
-TEST(DISABLED_SdrTest, TestSetFlatSparseArray) {
-    // Overload is not implemented ...
+TEST(SdrTest, TestSetFlatSparseArray) {
     FAIL();
 }
 
@@ -428,6 +426,7 @@ TEST(SdrTest, TestPrint) {
     ASSERT_NE( str3.str().find( "SDR( 3, 3 ) 1, 4, 8" ), std::string::npos);
 
     // Check that default aruments don't crash.
+    cout << "PRINTING SDR TO STDOUT: ";
     sdr3.print();
 }
 
@@ -445,21 +444,89 @@ TEST(SdrTest, TestOverlap) {
 }
 
 TEST(SdrTest, TestRandomize) {
-    // Test both constructors
-    FAIL();
+    SDR a({1000});
+    a.randomize( 0. );
+    ASSERT_EQ( a.getSum(), 0 );
+    a.randomize( .25 );
+    ASSERT_EQ( a.getSum(), 250 );
+    a.randomize( .5 );
+    ASSERT_EQ( a.getSum(), 500 );
+    a.randomize( .75 );
+    ASSERT_EQ( a.getSum(), 750 );
+    a.randomize( 1. );
+    ASSERT_EQ( a.getSum(), 1000 );
+    // Test seed is deterministic
+    SDR b(a);
+    a.randomize( .02, 77 );
+    b.randomize( .02, 77 );
+    ASSERT_TRUE( a == b);
+    // Test different random seeds have different results.
+    a.randomize( .02, 1 );
+    b.randomize( .02, 2 );
+    ASSERT_TRUE( a != b);
+    // Test that this modifies PRNG state and will generate different
+    // distributions with the same PRNG.
+    Random prng( 88 );
+    a.randomize( .02, prng );
+    b.randomize( .02, prng );
+    ASSERT_TRUE( a != b);
+    // Test different random PRNG have different results.
+    Random prng2( 99 );
+    a.randomize( .02, prng );
+    b.randomize( .02, prng2 );
+    ASSERT_TRUE( a != b);
     // Methodically test by running it many times and checking for an even
     // activation frequency at every bit.
-    FAIL();
+    SDR af_test({ 251 /* prime number */ });
+    UInt iterations = 100000;
+    Real sparsity   = .10;
+    vector<Real> af( af_test.size, 0 );
+    for( UInt i = 0; i < iterations; i++ ) {
+        af_test.randomize( sparsity );
+        for( auto idx : af_test.getFlatSparse() )
+            af[ idx ] += 1;
+    }
+    for( auto f : af ) {
+        f = f / iterations / sparsity;
+        ASSERT_GT( f,  .95 );
+        ASSERT_LT( f, 1.05 );
+    }
 }
 
 TEST(SdrTest, TestAddNoise) {
-    // Test both constructors
-    FAIL();
-
     SDR a({1000});
     a.randomize( .10 );
     SDR b(a);
-    ASSERT_EQ( a.overlap( b ), 100 );
+    SDR c(a);
+    // Test seed is deteministic
+    b.setSDR(a);
+    c.setSDR(a);
+    b.addNoise( .5, 44 );
+    c.addNoise( .5, 44 );
+    ASSERT_TRUE( b == c );
+    ASSERT_FALSE( a == b );
+    // Test different seed generates different distributions
+    b.setSDR(a);
+    c.setSDR(a);
+    b.addNoise( .5, 1 );
+    c.addNoise( .5, 2 );
+    ASSERT_TRUE( b != c );
+    // Test addNoise changes PRNG state so two consequtive calls yeild different
+    // results.
+    Random prng( 55 );
+    b.setSDR(a);
+    b.addNoise( .5, prng );
+    SDR b_cpy(b);
+    b.setSDR(a);
+    b.addNoise( .5, prng );
+    ASSERT_TRUE( b_cpy != b );
+    // Test different PRNGs yield different results
+    Random prng2( 1234 );
+    b.setSDR(a);
+    c.setSDR(a);
+    b.addNoise( .5, prng );
+    c.addNoise( .5, prng2 );
+    ASSERT_TRUE( b != c );
     // Methodically test for every overlap.
     for( UInt x = 0; x <= 100; x++ ) {
         b.setSDR( a );
@@ -492,10 +559,14 @@ TEST(SdrTest, TestEquality) {
         for(UInt y = 0; y < test_cases.size(); y++) {
             SDR *a = test_cases[x];
             SDR *b = test_cases[y];
-            if( x == y )
-                ASSERT_TRUE( *a == *b );
-            else
+            if( x == y ) {
+                ASSERT_TRUE(  *a == *b );
+                ASSERT_FALSE( *a != *b );
+            }
+            else {
+                ASSERT_TRUE(  *a != *b );
                 ASSERT_FALSE( *a == *b );
+            }
         }
     }
 
