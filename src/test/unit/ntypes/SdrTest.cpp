@@ -410,14 +410,25 @@ TEST(SdrTest, TestSumSparsity) {
 }
 
 TEST(SdrTest, TestPrint) {
+    stringstream str;
     SDR a({100});
-    a.print(cout);
-    a.randomize(.02);
-    a.print(cout);
-    a.randomize(.02);
-    a.print(cout);
+    a.print(str);
+    // Use find so that trailing whitespace differences on windows/unix don't break it.
+    ASSERT_NE( str.str().find( "SDR( 100 )" ), std::string::npos);
 
-    FAIL();
+    stringstream str2;
+    SDR b({ 9, 8 });
+    b.print(str2);
+    ASSERT_NE( str2.str().find( "SDR( 9, 8 )" ), std::string::npos);
+
+    stringstream str3;
+    SDR sdr3({ 3, 3 });
+    sdr3.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
+    sdr3.print(str3);
+    ASSERT_NE( str3.str().find( "SDR( 3, 3 ) 1, 4, 8" ), std::string::npos);
+
+    // Check that default aruments don't crash.
+    sdr3.print();
 }
 
 TEST(SdrTest, TestOverlap) {
@@ -434,19 +445,27 @@ TEST(SdrTest, TestOverlap) {
 }
 
 TEST(SdrTest, TestRandomize) {
+    // Test both constructors
+    FAIL();
+    // Methodically test by running it many times and checking for an even
+    // activation frequency at every bit.
     FAIL();
 }
 
 TEST(SdrTest, TestAddNoise) {
+    // Test both constructors
+    FAIL();
+
     SDR a({1000});
     a.randomize( .10 );
     SDR b(a);
     ASSERT_EQ( a.overlap( b ), 100 );
-
-    for( UInt x = 0; x < 100; x++ ) {
+    // Methodically test for every overlap.
+    for( UInt x = 0; x <= 100; x++ ) {
         b.setSDR( a );
         b.addNoise( (Real)x / 100. );
         ASSERT_EQ( a.overlap( b ), 100 - x );
+        ASSERT_EQ( b.getSum(), 100 );
     }
 }
 
