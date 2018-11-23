@@ -94,6 +94,20 @@ typedef vector<vector<UInt>> SDR_sparse_t;
  *    X.setFlatSparse({});  // Assign new data to the SDR, clearing the cache.
  *    X.getDense();        // This line will convert formats.
  *    X.getDense();        // This line will resuse the result of the previous line
+ *
+ *
+ * Avoiding Copying:  The getter methods ending with "Mutable" return a non-
+ * constant reference to the data vector.  The setter methods ending with
+ * "Inplace" notify the SDR after its data changes, so that it can clear its
+ * cache of data format conversions.  These methods must be used in conjunction
+ * with each other.
+ *
+ * Example Usage: 
+ *    X.zero();
+ *    auto & dense = X.getDenseMutable();      // The "&" is really important!
+ *    dense[2] = true;
+ *    X.setDenseInplace();                    // Notify the SDR of the changes.
+ *    X.getFlatSparse() -> { 2 }
  */
 class SparseDistributedRepresentation : public Serializable
 {
@@ -146,7 +160,7 @@ public:
         NTA_CHECK( size > 0 ) << "SDR size is zero!";
 
         // Initialize the dense array storage.
-        dense.assign( size_, 0 );
+        dense.resize( size_ );
         dense_valid = true;
         // Initialize the flatSparse array, nothing to do.
         flatSparse_valid = true;
@@ -238,6 +252,53 @@ public:
     };
 
     /**
+     * Gets the current value of the SDR.  The result of this method call is
+     * saved inside of this SDR until the SDRs value changes.  If the value
+     * is unset this raises an exception.
+     *
+     * @returns A reference to an array of all the values in the SDR.
+     */
+    const SDR_dense_t& getDense()
+        { return getDenseMutable(); };
+
+    /**
+     * This method does the same thing as sdr.getDense() except that it returns
+     * a non-constant reference.  After modifying the dense array you MUST call
+     * sdr.setDenseInplace() in order to notify the SDR that its dense array has
+     * changed and its cached data is out of date.
+     *
+     * @returns A reference to an array of all the values in the SDR.
+     */
+    SDR_dense_t& getDenseMutable() {
+        if( !dense_valid ) {
+            // Convert from flatSparse to dense.
+            dense.assign( size, 0 );
+            for(const auto idx : getFlatSparse()) {
+                dense[idx] = 1;
+            }
+            dense_valid = true;
+        }
+        return dense;
+    };
+
+    /**
+     * Query the value of the SDR at a single location.
+     *
+     * @param coordinates A list of coordinates into the SDR space to query.
+     *
+     * @returns The value of the SDR at the given location.
+     */
+    Byte at(const vector<UInt> &coordinates) {
+        UInt flat = 0;
+        for(UInt i = 0; i < dimensions.size(); i++) {
+            NTA_ASSERT( coordinates[i] < dimensions[i] );
+            flat *= dimensions[i];
+            flat += coordinates[i];
+        }
+        return getDense()[flat];
+    }
+
+    /**
      * Copy a vector of sparse indices of true values.  These indicies are into
      * the flattened SDR space.  This overwrites the SDR's current value.
      *
@@ -269,7 +330,7 @@ public:
      * @param value An array of flat indices to copy into the SDR.
      */
     void setFlatSparse( const ArrayBase &value ) {
-        getFlatSparseMutable().assign( value.getCount(), 0 );
+        getFlatSparseMutable().resize( value.getCount() );
         BasicType::convertArray(
             getFlatSparseMutable().data(),
             #ifdef NTA_BIG_INTEGER
@@ -280,6 +341,56 @@ public:
             value.getBuffer(), value.getType(),
             value.getCount());
         setFlatSparseInplace();
+    };
+
+    /**
+     * Gets the current value of the SDR.  The result of this method call is
+     * saved inside of this SDR until the SDRs value changes.  If the value is
+     * unset this raises an exception.
+     *
+     * @returns A reference to a vector of the indices of the true values in the
+     * flattened SDR.
+     */
+    const SDR_flatSparse_t& getFlatSparse()
+        { return getFlatSparseMutable(); };
+
+    /**
+     * This method does the same thing as sdr.getFlatSparse() except that it
+     * returns a non-constant reference.  After modifying the flatSparse vector
+     * you MUST call sdr.setFlatSparseInplace() in order to notify the SDR that
+     * its flatSparse vector has changed and its cached data is out of date.    
+     *
+     * @returns A reference to a vector of the indices of the true values in the
+     * flattened SDR.
+     */
+    SDR_flatSparse_t& getFlatSparseMutable() {
+        if( !flatSparse_valid ) {
+            flatSparse.clear(); // Clear out any old data.
+            if( sparse_valid ) {
+                // Convert from sparse to flatSparse.
+                const auto num_nz = size ? sparse[0].size() : 0;
+                flatSparse.reserve( num_nz );
+                for(UInt nz = 0; nz < num_nz; nz++) {
+                    UInt flat = 0;
+                    for(UInt dim = 0; dim < dimensions.size(); dim++) {
+                        flat *= dimensions[dim];
+                        flat += sparse[dim][nz];
+                    }
+                    flatSparse.push_back(flat);
+                }
+                flatSparse_valid = true;
+            }
+            else if( dense_valid ) {
+                // Convert from dense to flatSparse.
+                for(UInt idx = 0; idx < size; idx++)
+                    if( dense[idx] != 0 )
+                        flatSparse.push_back( idx );
+                flatSparse_valid = true;
+            }
+            else
+                NTA_THROW << "SDR has no data!";
+        }
+        return flatSparse;
     };
 
     /**
@@ -339,112 +450,6 @@ public:
     };
 
     /**
-     * Deep Copy the given SDR to this SDR.  This overwrites the current value of
-     * this SDR.  This SDR and the given SDR will have no shared data and they
-     * can be modified without affecting each other.
-     *
-     * @param value An SDR to copy the value of.
-     */
-    void setSDR( const SparseDistributedRepresentation &value ) {
-        NTA_ASSERT( value.dimensions == dimensions );
-        clear();
-
-        dense_valid = value.dense_valid;
-        if( dense_valid ) {
-            dense.assign( value.dense.begin(), value.dense.end() );
-        }
-        flatSparse_valid = value.flatSparse_valid;
-        if( flatSparse_valid ) {
-            flatSparse.assign( value.flatSparse.begin(), value.flatSparse.end() );
-        }
-        sparse_valid = value.sparse_valid;
-        if( sparse_valid ) {
-            for(UInt dim = 0; dim < dimensions.size(); dim++)
-                sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
-        }
-    };
-
-    /**
-     * Gets the current value of the SDR.  The result of this method call is
-     * saved inside of this SDR until the SDRs value changes.  If the value
-     * is unset this raises an exception.
-     *
-     * @returns A reference to an array of all the values in the SDR.
-     */
-    const SDR_dense_t& getDense()
-        { return getDenseMutable(); };
-
-    /**
-     * This method does the same thing as sdr.getDense() except that it returns
-     * a non-constant reference.  After modifying the dense array you MUST call
-     * sdr.setDenseInplace() in order to notify the SDR that its dense array has
-     * changed and its cached data is out of date.
-     *
-     * @returns A reference to an array of all the values in the SDR.
-     */
-    SDR_dense_t& getDenseMutable() {
-        if( !dense_valid ) {
-            // Convert from flatSparse to dense.
-            dense.assign( size, 0 );
-            for(const auto idx : getFlatSparse()) {
-                dense[idx] = 1;
-            }
-            dense_valid = true;
-        }
-        return dense;
-    };
-
-    /**
-     * Gets the current value of the SDR.  The result of this method call is
-     * saved inside of this SDR until the SDRs value changes.  If the value is
-     * unset this raises an exception.
-     *
-     * @returns A reference to a vector of the indices of the true values in the
-     * flattened SDR.
-     */
-    const SDR_flatSparse_t& getFlatSparse()
-        { return getFlatSparseMutable(); };
-
-    /**
-     * This method does the same thing as sdr.getFlatSparse() except that it
-     * returns a non-constant reference.  After modifying the flatSparse vector
-     * you MUST call sdr.setFlatSparseInplace() in order to notify the SDR that
-     * its flatSparse vector has changed and its cached data is out of date.    
-     *
-     * @returns A reference to a vector of the indices of the true values in the
-     * flattened SDR.
-     */
-    SDR_flatSparse_t& getFlatSparseMutable() {
-        if( !flatSparse_valid ) {
-            flatSparse.clear(); // Clear out any old data.
-            if( sparse_valid ) {
-                // Convert from sparse to flatSparse.
-                const auto num_nz = size ? sparse[0].size() : 0;
-                flatSparse.reserve( num_nz );
-                for(UInt nz = 0; nz < num_nz; nz++) {
-                    UInt flat = 0;
-                    for(UInt dim = 0; dim < dimensions.size(); dim++) {
-                        flat *= dimensions[dim];
-                        flat += sparse[dim][nz];
-                    }
-                    flatSparse.push_back(flat);
-                }
-                flatSparse_valid = true;
-            }
-            else if( dense_valid ) {
-                // Convert from dense to flatSparse.
-                for(UInt idx = 0; idx < size; idx++)
-                    if( dense[idx] != 0 )
-                        flatSparse.push_back( idx );
-                flatSparse_valid = true;
-            }
-            else
-                NTA_THROW << "SDR has no data!";
-        }
-        return flatSparse;
-    };
-
-    /**
      * Gets the current value of the SDR.  The result of this method call is
      * saved inside of this SDR until the SDRs value changes.  If the value is
      * unset this raises an exception.
@@ -485,21 +490,30 @@ public:
     };
 
     /**
-     * Query the value of the SDR at a single location.
+     * Deep Copy the given SDR to this SDR.  This overwrites the current value of
+     * this SDR.  This SDR and the given SDR will have no shared data and they
+     * can be modified without affecting each other.
      *
-     * @param coordinates A list of coordinates into the SDR space to query.
-     *
-     * @returns The value of the SDR at the given location.
+     * @param value An SDR to copy the value of.
      */
-    Byte at(const vector<UInt> &coordinates) {
-        UInt flat = 0;
-        for(UInt i = 0; i < dimensions.size(); i++) {
-            NTA_ASSERT( coordinates[i] < dimensions[i] );
-            flat *= dimensions[i];
-            flat += coordinates[i];
+    void setSDR( const SparseDistributedRepresentation &value ) {
+        NTA_ASSERT( value.dimensions == dimensions );
+        clear();
+
+        dense_valid = value.dense_valid;
+        if( dense_valid ) {
+            dense.assign( value.dense.begin(), value.dense.end() );
         }
-        return getDense()[flat];
-    }
+        flatSparse_valid = value.flatSparse_valid;
+        if( flatSparse_valid ) {
+            flatSparse.assign( value.flatSparse.begin(), value.flatSparse.end() );
+        }
+        sparse_valid = value.sparse_valid;
+        if( sparse_valid ) {
+            for(UInt dim = 0; dim < dimensions.size(); dim++)
+                sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
+        }
+    };
 
     /**
      * Calculates the number of true / non-zero values in the SDR.
