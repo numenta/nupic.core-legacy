@@ -138,13 +138,12 @@ public:
      */
     SparseDistributedRepresentation( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
+        NTA_CHECK( dimensions.size() > 0 ) << "SDR has not dimensions!";
         // Calculate the SDR's size.
         size_ = 1;
         for(UInt dim : dimensions)
             size_ *= dim;
-        if ( dimensions.size() == 0 or size == 0 ) {
-            throw logic_error("SDR size is zero!");
-        }
+        NTA_CHECK( size > 0 ) << "SDR size is zero!";
 
         // Initialize the dense array storage.
         dense.assign( size_, 0 );
@@ -220,8 +219,11 @@ public:
      * @param value A dense array to copy into the SDR.
      */
     void setDense( const ArrayBase &value )  {
-        NTA_ASSERT( false /* Unimplemented */ );
-        // TODO: Assert correct size and data type.
+        NTA_ASSERT( value.getCount() == size );
+        BasicType::convertArray(
+            getDenseMutable().data(), NTA_BasicType_Byte,
+            value.getBuffer(), value.getType(),
+            size);
         setDenseInplace();
     };
 
@@ -266,8 +268,17 @@ public:
      *
      * @param value An array of flat indices to copy into the SDR.
      */
-    void setFlatSparse( const ArrayBase &value, UInt num_values ) {
-        NTA_ASSERT( false /* Unimplemented */ );
+    void setFlatSparse( const ArrayBase &value ) {
+        getFlatSparseMutable().assign( value.getCount(), 0 );
+        BasicType::convertArray(
+            getFlatSparseMutable().data(),
+            #ifdef NTA_BIG_INTEGER
+                NTA_BasicType_UInt64,
+            #else
+                NTA_BasicType_UInt32,
+            #endif
+            value.getBuffer(), value.getType(),
+            value.getCount());
         setFlatSparseInplace();
     };
 
@@ -428,7 +439,7 @@ public:
                 flatSparse_valid = true;
             }
             else
-                throw runtime_error("SDR has no valid data");
+                NTA_THROW << "SDR has no data!";
         }
         return flatSparse;
     };
@@ -538,13 +549,22 @@ public:
      *
      * @param rng The random number generator to draw from, optional.
      */
-    void randomize(Real sparsity) {
-        Random rng;
+    void randomize(Real sparsity, UInt64 seed = 0) {
+        Random rng( seed );
         randomize( sparsity, rng );
     };
 
     void randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0. and sparsity <= 1. );
+        /**
+         * This does two inversions: first it flips the sparsity, and then it
+         * flips the entire SDR.   This is a performance improvement, because of
+         * the way it's implemented.  This turns on random bits, and if the bit
+         * it selects is already on it tries again. If the sparsity is low then
+         * there should not be too many retries, but if the sparsity is 100%
+         * then it will need many retries as it fills up the entire SDR by
+         * randomly selecting every bit in it.
+         */
         const bool invert = sparsity > .5;
         if( invert )
             sparsity = 1 - sparsity;
@@ -577,8 +597,8 @@ public:
      *
      * @param rng The random number generator to draw from, optional.
      */
-    void addNoise(Real fractionNoise) {
-        Random rng;
+    void addNoise(Real fractionNoise, UInt64 seed = 0) {
+        Random rng( seed );
         addNoise( fractionNoise, rng );
     }
 
