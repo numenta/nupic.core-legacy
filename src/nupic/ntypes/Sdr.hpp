@@ -547,7 +547,10 @@ public:
      *
      * @param sparsity The sparsity of the randomly generated SDR.
      *
-     * @param rng The random number generator to draw from, optional.
+     * Both of the following parameters are optional, it neither is given then
+     * the seed 0 is used.
+     * @param seed The seed for the random number generator.
+     * @param rng The random number generator to draw from.
      */
     void randomize(Real sparsity, UInt64 seed = 0) {
         Random rng( seed );
@@ -569,7 +572,6 @@ public:
         if( invert )
             sparsity = 1 - sparsity;
 
-        clear();
         dense.assign( size, 0 );
         UInt nbits = size * sparsity + .5;
         while( nbits > 0 ) {
@@ -583,7 +585,7 @@ public:
             for( UInt i = 0; i < size; i++ )
                 dense[i] = 1 - dense[i];
         }
-        dense_valid = true;
+        setDenseInplace();
     };
 
     /**
@@ -595,7 +597,10 @@ public:
      * @param fractionNoise The fraction of active bits to swap out.  The
      * original and resulting SDRs have an overlap of (1 - fractionNoise).
      *
-     * @param rng The random number generator to draw from, optional.
+     * Both of the following parameters are optional, it neither is given then
+     * the seed 0 is used.
+     * @param seed The seed for the random number generator.
+     * @param rng The random number generator to draw from.
      */
     void addNoise(Real fractionNoise, UInt64 seed = 0) {
         Random rng( seed );
@@ -604,7 +609,32 @@ public:
 
     void addNoise(Real fractionNoise, Random &rng) {
         NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
-        NTA_ASSERT( false /* Unimplemented */ );
+        NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
+
+        UInt num_move_bits = fractionNoise * getSum() + .5;
+        vector<UInt> turn_off( num_move_bits , 0 );
+        rng.sample(
+            (UInt*) getFlatSparse().data(), getSum(),
+            (UInt*) turn_off.data(),        num_move_bits);
+
+        auto& dns = getDenseMutable();
+
+        vector<UInt> off_pop;
+        for(UInt idx = 0; idx < size; idx++) {
+            if( dns[idx] == 0 )
+                off_pop.push_back( idx );
+        }
+        vector<UInt> turn_on( num_move_bits, 0 );
+        rng.sample(
+            off_pop.data(), off_pop.size(),
+            turn_on.data(), num_move_bits);
+
+        for( auto idx : turn_on )
+            dns[ idx ] = 1;
+        for( auto idx : turn_off )
+            dns[ idx ] = 0;
+
+        setDenseInplace();
     };
 
     /**
@@ -643,6 +673,9 @@ public:
             getDense().end(), 
             sdr.getDense().begin());
     };
+
+    bool operator!=(SparseDistributedRepresentation &sdr)
+        { return not ((*this) == sdr); };
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.
