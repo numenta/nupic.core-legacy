@@ -58,7 +58,7 @@ TEST(RandomTest, Seeding) {
   Random r1b(1);
   ASSERT_NE(r1, r1b) << "different steps";
   auto x = r1b.getUInt32();
-  ASSERT_EQ(r1, r1b) << "Randoms with same seed must be the same.";
+  ASSERT_EQ(r1, r1b) << "Randoms with same seed must be the same." << x; 
   }
 
 }
