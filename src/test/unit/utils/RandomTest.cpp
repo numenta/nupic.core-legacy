@@ -61,6 +61,11 @@ TEST(RandomTest, Seeding) {
   ASSERT_EQ(r1, r1b) << "Randoms with same seed must be the same." << x; 
   }
 
+  { //MAX_INT seed
+  Random r(-1);
+  ASSERT_EQ(r(), 111299194u);
+  }
+
 }
 
 
