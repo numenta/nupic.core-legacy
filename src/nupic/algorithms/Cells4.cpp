@@ -2949,26 +2949,35 @@ bool Cells4::operator==(const Cells4 &other) const {
       _avgInputDensity != other._avgInputDensity ||
       _avgLearnedSeqLength != other._avgLearnedSeqLength ||
       _checkSynapseConsistency != other._checkSynapseConsistency ||
-      _doPooling != other._doPooling || _globalDecay != other._globalDecay ||
+      _doPooling != other._doPooling || 
+      _globalDecay != other._globalDecay ||
       _initSegFreq != other._initSegFreq ||
       _learnedSeqLength != other._learnedSeqLength ||
-      _maxAge != other._maxAge || _maxInfBacktrack != other._maxInfBacktrack ||
+      _maxAge != other._maxAge || 
+      _maxInfBacktrack != other._maxInfBacktrack ||
       _maxLrnBacktrack != other._maxLrnBacktrack ||
       _maxSegmentsPerCell != other._maxSegmentsPerCell ||
       _maxSeqLength != other._maxSeqLength ||
       _maxSynapsesPerSegment != other._maxSynapsesPerSegment ||
-      _minThreshold != other._minThreshold || _nCells != other._nCells ||
-      _nCellsPerCol != other._nCellsPerCol || _nColumns != other._nColumns ||
+      _minThreshold != other._minThreshold || 
+      _nCells != other._nCells ||
+      _nCellsPerCol != other._nCellsPerCol || 
+      _nColumns != other._nColumns ||
       _newSynapseCount != other._newSynapseCount ||
       _nIterations != other._nIterations ||
       _nLrnIterations != other._nLrnIterations ||
-      _ownsMemory != other._ownsMemory || _pamCounter != other._pamCounter ||
+      _ownsMemory != other._ownsMemory || 
+      _pamCounter != other._pamCounter ||
       _pamLength != other._pamLength ||
-      _permConnected != other._permConnected || _permDec != other._permDec ||
-      _permInc != other._permInc || _permInitial != other._permInitial ||
-      _permMax != other._permMax || _resetCalled != other._resetCalled ||
+      _permConnected != other._permConnected || 
+      _permDec != other._permDec ||
+      _permInc != other._permInc || 
+      _permInitial != other._permInitial ||
+      _permMax != other._permMax || 
+      _resetCalled != other._resetCalled ||
       _segUpdateValidDuration != other._segUpdateValidDuration ||
-      _verbosity != other._verbosity || _version != other._version) {
+      _verbosity != other._verbosity || 
+      _version != other._version) {
     return false;
   }
   if (_rng != other._rng) {
