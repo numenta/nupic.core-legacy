@@ -561,7 +561,7 @@ public:
      *
      * @param sparsity The sparsity of the randomly generated SDR.
      *
-     * Both of the following parameters are optional, it neither is given then
+     * Both of the following parameters are optional, if neither is given then
      * the seed 0 is used.
      * @param seed The seed for the random number generator.
      * @param rng The random number generator to draw from.
@@ -589,7 +589,7 @@ public:
         dense.assign( size, 0 );
         UInt nbits = size * sparsity + .5;
         while( nbits > 0 ) {
-            const UInt idx = rng() % size;
+            const UInt idx = rng( size );
             if( dense[idx] == 0 ) {
                 dense[idx] = 1;
                 nbits--;
@@ -611,7 +611,7 @@ public:
      * @param fractionNoise The fraction of active bits to swap out.  The
      * original and resulting SDRs have an overlap of (1 - fractionNoise).
      *
-     * Both of the following parameters are optional, it neither is given then
+     * Both of the following parameters are optional, if neither is given then
      * the seed 0 is used.
      * @param seed The seed for the random number generator.
      * @param rng The random number generator to draw from.
