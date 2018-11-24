@@ -112,18 +112,23 @@ public:
   // population. throws exception when nPopulation < nChoices
   // templated functions must be defined in header
   //TODO replace with std::sample in c++17 : https://en.cppreference.com/w/cpp/algorithm/sample 
-  template <typename T>
-  void sample(const T population[], const UInt32 nPopulation, T choices[],
-              const UInt32 nChoices) {
+  template <class T>
+  std::vector<T> sample(const std::vector<T>& population, UInt nChoices) {
     if (nChoices == 0) {
-      return;
+      return std::vector<T>(0);
     }
-    NTA_CHECK(nChoices <= nPopulation) << "population size must be greater than number of choices";
-    std::vector<T> pop(population, population + nPopulation); //deep copy
-    shuffle(std::begin(pop), std::end(pop));
-    for(UInt i = 0; i< nChoices; i++) {
-	    choices[i] = pop[i];
-    }
+    NTA_CHECK(nChoices <= population.size()) << "population size must be greater than number of choices";
+    std::vector<T> pop(population); //deep copy
+    this->shuffle(std::begin(pop), std::end(pop));
+    pop.resize(nChoices); //keep only first nChoices, drop rest
+    return pop;
+  }
+  //compatibility method for Py-bindings, //TODO remove with SWIG 
+  template<class T>
+  void sample(const T population[], UInt nPopulation, T choices[], UInt nChoices) {
+    std::vector<T> vPop(population, population + nPopulation); 
+    std::vector<T> vChoices = this->sample<T>(vPop, nChoices);
+    std::copy(vChoices.begin(), vChoices.end(), choices);
   }
 
   // randomly shuffle the elements

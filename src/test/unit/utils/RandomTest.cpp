@@ -31,10 +31,10 @@
 #include <nupic/utils/LoggingException.hpp>
 #include <nupic/utils/Random.hpp>
 #include <sstream>
-#include <stdio.h>
-#include <stdlib.h>
+#include <vector>
 
 using namespace nupic;
+using namespace std;
 
 TEST(RandomTest, Seeding) {
   {
@@ -213,21 +213,20 @@ TEST(RandomTest, getReal64) {
 TEST(RandomTest, Sampling) {
   // tests for sampling
 
-  const UInt32 population[] = {1u, 2u, 3u, 4u};
+  const vector<UInt> population = {1u, 2u, 3u, 4u};
   Random r(1);
 
   {
     // choose some elements
-    UInt32 choices[2];
-    r.sample(population, 4, choices, 2);
+    auto  choices = r.sample<UInt>(population, 2);
     ASSERT_EQ(3u, choices[0]) << "check sample 0";
     ASSERT_EQ(4u, choices[1]) << "check sample 1";
   }
 
   {
     // choose all elements
-    UInt32 choices[4];
-    ASSERT_NO_THROW(r.sample(population, 4, choices, 4));
+    vector<UInt> choices;
+    ASSERT_NO_THROW(choices = r.sample<UInt>(population, 4));
 
     ASSERT_EQ(4u, choices[0]) << "check sample 0";
     EXPECT_EQ(1u, choices[1]) << "check sample 1";
@@ -243,8 +242,7 @@ TEST(RandomTest, Sampling) {
 
   {
     // nChoices > nPopulation
-    UInt32 choices[5];
-    EXPECT_THROW(r.sample(population, 4, choices, 5), LoggingException) << "checking for exception from population too small";
+    EXPECT_THROW(r.sample<UInt>(population, 5), LoggingException) << "checking for exception from population too small";
   }
 }
 

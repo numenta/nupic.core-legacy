@@ -2760,10 +2760,8 @@ void Cells4::chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx, UInt nSynToAdd,
   } else {
     // choose a random subset of the cells found, and append them to the
     // caller's array
-    UInt start = (UInt)srcCells.size();
-    srcCells.resize(srcCells.size() + nSynToAdd);
-    _rng.sample(&vecPruned.front(), (UInt)vecPruned.size(), &srcCells[start],
-                nSynToAdd);
+    auto add = _rng.sample<UInt>(vecPruned, nSynToAdd);
+    srcCells.insert(srcCells.begin(), add.begin(), add.end());
 
     fSortNeeded = true;
   }

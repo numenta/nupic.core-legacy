@@ -547,16 +547,8 @@ vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround) {
   }
 
   const UInt numPotential = round(columnInputs.size() * potentialPct_);
-
-  vector<UInt> selectedInputs(numPotential, 0);
-  rng_.sample(&columnInputs.front(), columnInputs.size(),
-              &selectedInputs.front(), numPotential);
-
-  vector<UInt> potential(numInputs_, 0);
-  for (UInt input : selectedInputs) {
-    potential[input] = 1u;
-  }
-
+  const auto selectedInputs = rng_.sample<UInt>(columnInputs, numPotential);
+  const vector<UInt> potential = VectorHelpers::sparseToBinary<UInt>(selectedInputs, numInputs_);
   return potential;
 }
 

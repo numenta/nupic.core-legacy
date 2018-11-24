@@ -257,9 +257,9 @@ float getSpeed() {
   if (_SPEED == -1) {
     Timer t(true);
     //this code just wastes CPU time to estimate speed
-    vector<UInt> data(10000000);
-    for(UInt i=0; i<data.size(); i++) {
-      data[i]=rng.getUInt32(80085);
+    vector<Real> data(10000000);
+    for(Size i=0; i<data.size(); i++) {
+      data[i]=(Real)rng.getUInt32(80085);
       auto t = data[i];
       data[i] = data[data.size()-i];
       data[data.size()-i]=t;
@@ -269,9 +269,11 @@ float getSpeed() {
     for (auto d : data) {
       sins.push_back(sin(d)/cos(d));
     }
-    rng.sample(sins.data(), sins.size(), (float*)data.data(), 666);
+    data = rng.sample<Real>(sins, 666);
+    NTA_CHECK(data.size() == 666);
     t.stop();
     _SPEED = max(1.0, t.getElapsed());
+
   }
   return _SPEED;
 }
