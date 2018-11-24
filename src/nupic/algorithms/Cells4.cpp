@@ -3085,63 +3085,16 @@ void Cells4::computeForwardPropagation(CState &state) {
   // Compute cell and segment activity by following forward propagation
   // links from each source cell.  _cellActivity will be set to the total
   // activity coming into a cell.
-#ifdef NTA_ARCH_64
-  const UInt multipleOf8 = 8 * (_nCells / 8);
-  UInt i;
-  for (i = 0; i < multipleOf8; i += 8) {
-    UInt64 eightStates = *(UInt64 *)(state.arrayPtr() + i);
-    for (int k = 0; eightStates != 0 && k < 8; eightStates >>= 8, k++) {
-      if ((eightStates & 0xff) != 0) {
-        std::vector<OutSynapse> &os = _outSynapses[i + k];
-        for (UInt j = 0; j != os.size(); ++j) {
-          UInt dstCellIdx = os[j].dstCellIdx();
-          UInt dstSegIdx = os[j].dstSegIdx();
-          _inferActivity.increment(dstCellIdx, dstSegIdx);
-        }
-      }
-    }
-  }
-
-  // process the tail if (_nCells % 8) != 0
-  for (i = multipleOf8; i < _nCells; i++) {
+  for (UInt i = 0; i < _nCells; i++) {
     if (state.isSet(i)) {
-      std::vector<OutSynapse> &os = _outSynapses[i];
-      for (UInt j = 0; j != os.size(); ++j) {
-        UInt dstCellIdx = os[j].dstCellIdx();
-        UInt dstSegIdx = os[j].dstSegIdx();
+      const std::vector<OutSynapse> &os = _outSynapses[i];
+      for (auto outSyn : os) {
+        const UInt dstCellIdx = outSyn.dstCellIdx();
+        const UInt dstSegIdx = outSyn.dstSegIdx();
         _inferActivity.increment(dstCellIdx, dstSegIdx);
       }
     }
   }
-#else
-  const UInt multipleOf4 = 4 * (_nCells / 4);
-  UInt i;
-  for (i = 0; i < multipleOf4; i += 4) {
-    UInt32 fourStates = *(UInt32 *)(state.arrayPtr() + i);
-    for (int k = 0; fourStates != 0 && k < 4; fourStates >>= 8, k++) {
-      if ((fourStates & 0xff) != 0) {
-        std::vector<OutSynapse> &os = _outSynapses[i + k];
-        for (UInt j = 0; j != os.size(); ++j) {
-          UInt dstCellIdx = os[j].dstCellIdx();
-          UInt dstSegIdx = os[j].dstSegIdx();
-          _inferActivity.increment(dstCellIdx, dstSegIdx);
-        }
-      }
-    }
-  }
-
-  // process the tail if (_nCells % 4) != 0
-  for (i = multipleOf4; i < _nCells; i++) {
-    if (state.isSet(i)) {
-      std::vector<OutSynapse> &os = _outSynapses[i];
-      for (UInt j = 0; j != os.size(); ++j) {
-        UInt dstCellIdx = os[j].dstCellIdx();
-        UInt dstSegIdx = os[j].dstSegIdx();
-        _inferActivity.increment(dstCellIdx, dstSegIdx);
-      }
-    }
-  }
-#endif // NTA_ARCH_32/64
 }
 #endif // SOME_STATES_NOT_INDEXED
 
