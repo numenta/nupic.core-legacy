@@ -2966,7 +2966,8 @@ bool Cells4::operator==(const Cells4 &other) const {
       _newSynapseCount != other._newSynapseCount ||
       _nIterations != other._nIterations ||
       _nLrnIterations != other._nLrnIterations ||
-      _ownsMemory != other._ownsMemory || 
+//!      _ownsMemory != other._ownsMemory || //who owns memory (py, cpp, ..) is not part of equals, as we want
+//to compare C++ and Py Cells objects 
       _pamCounter != other._pamCounter ||
       _pamLength != other._pamLength ||
       _permConnected != other._permConnected || 

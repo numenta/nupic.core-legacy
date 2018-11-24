@@ -408,11 +408,16 @@ public:
   ~Cells4();
 
   //----------------------------------------------------------------------
+  /*
+   * equals operator
+   * None: ignores _ownsMemory as we want to compare objects from Py/C++
+   */
   bool operator==(const Cells4 &other) const;
   inline bool operator!=(const Cells4 &other) const {
     return !operator==(other);
   }
-  bool equals(const Cells4 &other) const { return operator==(other); }
+  bool equals(const Cells4 &other) const { return operator==(other); } //this is extra for python, which cannot 
+  //overload op== from bindings
 
   //----------------------------------------------------------------------
   UInt version() const { return _version; }
