@@ -243,5 +243,12 @@ class TestNupicRandom(unittest.TestCase):
     self.assertEquals(v1, v2)
     self.assertEquals(r1, r2)
 
+
+  def testPlatformSame(self): 
+    r = Random(42)
+    [r.getUInt32() for _ in xrange(80085)]
+    v = r.getUInt32()
+    self.assertEquals(v, 4010064726)
+
 if __name__ == "__main__":
   unittest.main()
