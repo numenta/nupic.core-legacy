@@ -213,15 +213,15 @@ TEST(RandomTest, getReal64) {
 TEST(RandomTest, Sampling) {
   // tests for sampling
 
-  const UInt32 population[] = {1, 2, 3, 4};
+  const UInt32 population[] = {1u, 2u, 3u, 4u};
   Random r(1);
 
   {
     // choose some elements
     UInt32 choices[2];
     r.sample(population, 4, choices, 2);
-    ASSERT_EQ(3, choices[0]) << "check sample 0";
-    ASSERT_EQ(4, choices[1]) << "check sample 1";
+    ASSERT_EQ(3u, choices[0]) << "check sample 0";
+    ASSERT_EQ(4u, choices[1]) << "check sample 1";
   }
 
   {
@@ -229,10 +229,10 @@ TEST(RandomTest, Sampling) {
     UInt32 choices[4];
     ASSERT_NO_THROW(r.sample(population, 4, choices, 4));
 
-    ASSERT_EQ(4, choices[0]) << "check sample 0";
-    EXPECT_EQ(1, choices[1]) << "check sample 1";
-    EXPECT_EQ(2, choices[2]) << "check sample 2";
-    EXPECT_EQ(3, choices[3]) << "check sample 3";
+    ASSERT_EQ(4u, choices[0]) << "check sample 0";
+    EXPECT_EQ(1u, choices[1]) << "check sample 1";
+    EXPECT_EQ(2u, choices[2]) << "check sample 2";
+    EXPECT_EQ(3u, choices[3]) << "check sample 3";
   }
 
   //check population list remained unmodified
@@ -252,8 +252,8 @@ TEST(RandomTest, Sampling) {
 TEST(RandomTest, Shuffling) {
   // tests for shuffling
   Random r(1);
-  UInt32 arr[] = {1, 2, 3, 4};
-  const UInt32 exp[] = {3, 4, 2, 1};
+  UInt32 arr[] = {1u, 2u, 3u, 4u};
+  const UInt32 exp[] = {3u, 4u, 2u, 1u};
 
   ASSERT_NO_THROW(r.shuffle(std::begin(arr), std::end(arr)));
 
@@ -288,6 +288,6 @@ TEST(RandomTest, testGetUIntSpeed) {
  const int RUNS = 10000000;
  for(int i=0; i<RUNS; i++) {
    rnd = r1.getUInt32(10000); //get random int [0..1M)
-   NTA_CHECK(rnd < 1000001) << "Should never happen, just here so compiler won't optimize out this loop";
+   NTA_CHECK(rnd < 1000001u) << "Should never happen, just here so compiler won't optimize out this loop";
  }
 }

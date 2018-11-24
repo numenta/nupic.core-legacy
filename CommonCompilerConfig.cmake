@@ -261,7 +261,7 @@ else()
 
   set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
   set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
-  set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-incompatible-pointer-types -Wno-deprecated-declarations")
+  set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-deprecated-declarations")
 
   CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
   if (compiler_supports_machine_option)

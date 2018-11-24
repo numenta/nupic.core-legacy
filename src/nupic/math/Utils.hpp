@@ -42,7 +42,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/shared_array.hpp>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
@@ -75,7 +74,7 @@ inline const SizeType padding(const SizeType &s1, const SizeType &s2) {
   the following code is known to cause -Wstrict-aliasing warning, so silence it
   here
 */
-#if !defined(NTA_OS_WINDOWS)
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
@@ -83,7 +82,7 @@ inline bool isSystemLittleEndian() {
   static const char test[2] = {1, 0};
   return (*(short *)test) == 1;
 }
-#if !defined(NTA_OS_WINDOWS)
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic pop // return back to defaults
 #endif
 
@@ -352,33 +351,59 @@ private:                                                                       \
           for (UInt m = 0; m < R; ++m)                                         \
             for (UInt n = 0; n < S; ++n)
 
-/**
- * Function object that takes a single argument, a pair (or at least
- * a class with the same interface as pair), and returns the pair's
- * first element. This is not part of the C++ standard, but usually
- * provided by implementations of STL.
- */
-template <class Pair>
-struct select1st : public std::unary_function<Pair, typename Pair::first_type> {
-  inline const typename Pair::first_type &operator()(const Pair &x) const {
-    return x.first;
-  }
-};
+  /**
+   * This is a 'C++ function object' or Functor.  An object that can be passed
+   * as if it were a C function. It is created by having a class containing an
+   * overload of the () operator.
+   *
+   * Function object that takes a single argument, a pair (or at least
+   * a class with the same interface as pair), and returns the pair's
+   * first argument.
+   */
+#if __cplusplus >= 201402L || (defined(_MSC_VER) && _MSC_VER >= 1914)
+  // C++14 or higher
+  // This replaces the std::unary_function<> which is not in C++17
+  template <typename Pair>
+  struct select1st {
+    inline const auto &operator()(Pair &x) const {
+      return x.first;
+    }
+  };
+#else
+  template <class Pair>
+  struct select1st : public std::unary_function<Pair, typename Pair::first_type> {
+    inline const typename Pair::first_type &operator()(const Pair &x) const {
+      return x.first;
+    }
+  };
+#endif
 
-/**
- * Function object that takes a single argument, a pair (or at least
- * a class with the same interface as pair), and returns the pair's
- * second element. This is not part of the C++ standard, but usually
- * provided by implementations of STL.
- */
-template <class Pair>
-struct select2nd
+  /**
+   * This is a 'C++ function object' or Functor.  An object that can be passed
+   * as if it were a C function. It is created by having a class containing an
+   * overload of the () operator.
+   *
+   * It is a Function object that takes a single argument,
+   * a pair (or at least a class with the same interface as pair), and returns the
+   * pair's second element.
+   */
+#if __cplusplus >= 201402L || (defined(_MSC_VER) && _MSC_VER >= 1914)
+  // C++14 or higher
+  // This replaces the std::unary_function<> which is not in C++17
+  template <class Pair> struct select2nd {
+    inline const auto &operator()(const Pair &x) const {
+      return x.second;
+    };
+  };
+#else
+  template <class Pair>
+  struct select2nd
     : public std::unary_function<Pair, typename Pair::second_type> {
-  inline const typename Pair::second_type &operator()(const Pair &x) const {
-    return x.second;
-  }
-};
-
+    inline const typename Pair::second_type &operator()(const Pair &x) const {
+      return x.second;
+    }
+  };
+#endif
 }; // namespace nupic
 
 #endif // NTA_UTILS_HPP

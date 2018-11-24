@@ -37,7 +37,7 @@
 
 namespace nupic {
 
-// TODO: replace other functions by boost/math
+  // TODO: replace other functions by std/math
 
 static const double pi = 3.14159265358979311600e+00;
 

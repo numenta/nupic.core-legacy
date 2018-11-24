@@ -35,7 +35,6 @@
 #include <set>
 #include <vector>
 
-#include <boost/concept_check.hpp>
 
 #include <nupic/math/Utils.hpp>
 #include <nupic/types/Types.hpp>
@@ -43,30 +42,41 @@
 //--------------------------------------------------------------------------------
 /**
  * Macros to make it easier to work with Boost concept checks
+ * But we are not going to use boost when using C++17
  */
+#if __cplusplus >= 201703L || (defined(_MSC_VER) && _MSC_VER >= 1914)
+	// C++17
+	#define ASSERT_INPUT_ITERATOR(It)
+	#define ASSERT_OUTPUT_ITERATOR(It, T)
+	#define ASSERT_UNARY_PREDICATE(UnaryPredicate, Arg1)
+	#define ASSERT_UNARY_FUNCTION(UnaryFunction, Ret, Arg1)
+	#define ASSERT_BINARY_FUNCTION(BinaryFunction, Ret, Arg1, Arg2)
+#else
+	#include <boost/concept_check.hpp>
 
-// Assert that It obeys the STL forward iterator concept
-#define ASSERT_INPUT_ITERATOR(It)                                              \
-  boost::function_requires<boost::InputIteratorConcept<It>>();
+	// Assert that It obeys the STL forward iterator concept
+	#define ASSERT_INPUT_ITERATOR(It) \
+	  boost::function_requires<boost::InputIteratorConcept<It>>();
 
-// Assert that It obeys the STL forward iterator concept
-#define ASSERT_OUTPUT_ITERATOR(It, T)                                          \
-  boost::function_requires<boost::OutputIteratorConcept<It, T>>();
+	// Assert that It obeys the STL forward iterator concept
+	#define ASSERT_OUTPUT_ITERATOR(It, T) \
+	  boost::function_requires<boost::OutputIteratorConcept<It, T>>();
 
-// Assert that UnaryPredicate obeys the STL unary predicate concept
-#define ASSERT_UNARY_PREDICATE(UnaryPredicate, Arg1)                           \
-  boost::function_requires<                                                    \
-      boost::UnaryPredicateConcept<UnaryPredicate, Arg1>>();
+	// Assert that UnaryPredicate obeys the STL unary predicate concept
+	#define ASSERT_UNARY_PREDICATE(UnaryPredicate, Arg1) \
+	  boost::function_requires< \
+	      boost::UnaryPredicateConcept<UnaryPredicate, Arg1>>();
 
-// Assert that UnaryFunction obeys the STL unary function concept
-#define ASSERT_UNARY_FUNCTION(UnaryFunction, Ret, Arg1)                        \
-  boost::function_requires<                                                    \
-      boost::UnaryFunctionConcept<UnaryFunction, Ret, Arg1>>();
+	// Assert that UnaryFunction obeys the STL unary function concept
+	#define ASSERT_UNARY_FUNCTION(UnaryFunction, Ret, Arg1) \
+	  boost::function_requires< \
+	      boost::UnaryFunctionConcept<UnaryFunction, Ret, Arg1>>();
 
-// Assert that BinaryFunction obeys the STL binary function concept
-#define ASSERT_BINARY_FUNCTION(BinaryFunction, Ret, Arg1, Arg2)                \
-  boost::function_requires<                                                    \
-      boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2>>();
+	// Assert that BinaryFunction obeys the STL binary function concept
+	#define ASSERT_BINARY_FUNCTION(BinaryFunction, Ret, Arg1, Arg2) \
+	  boost::function_requires< \
+	      boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2>>();
+#endif
 
 //--------------------------------------------------------------------------------
 namespace nupic {

@@ -293,7 +293,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   {
     const ArrayBase *ai2 = &(in2->getData());
     Real64 *idata = (Real64 *)(ai2->getBuffer());
-    ASSERT_EQ(in2->getData().getCount(), 64);
+    ASSERT_EQ(in2->getData().getCount(), 64u);
     for (UInt i = 0; i < 64; i++)
       idata[i] = 1;
   }
@@ -319,7 +319,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
     Real64 *idata = (Real64 *)out1->getData().getBuffer();
     // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++) {
-      ASSERT_EQ(10, idata[i]);
+      ASSERT_EQ(10.0f, idata[i]);
     }
   }
 
@@ -354,7 +354,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);
   }
-  
+
 
 
   // At this point:
@@ -378,7 +378,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
       ASSERT_EQ(100, idata[i]);
     }
   }
-  
+
   // What is serialized in the Delay buffer should be
   // all 0's for first row and all 10's for the second.
   // The stored output buffer would be all 100's.
@@ -402,8 +402,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
   ASSERT_TRUE(n2in1->getData() == in1->getData())   << "Deserialized bottomUpIn region1 input buffer does not match";
   ASSERT_TRUE(n2in2->getData() == in2->getData())   << "Deserialized bottomUpIn region2 does not match";
   ASSERT_TRUE(n2out1->getData() == out1->getData()) << "Deserialized bottomUpOut region1 does not match";
-  ASSERT_EQ(n2in2->getData().getCount(), 64);
-  
+  ASSERT_EQ(n2in2->getData().getCount(), 64u);
+
   {
 	  Link* link = n2in2->findLink("region1", "bottomUpOut");
     VERBOSE << "Input2: " << *link;
@@ -443,7 +443,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
 	link = n2in2->findLink("region1", "bottomUpOut");
     VERBOSE << "Input2: " << *link;
     // confirm that n2in2 is now all 10's
-	ASSERT_EQ(n2in2->getData().getCount(), 64);
+	ASSERT_EQ(n2in2->getData().getCount(), 64u);
     Real64 *idata = (Real64 *)in2->getData().getBuffer();
     Real64 *n2idata = (Real64 *)n2in2->getData().getBuffer();
     // only test 4 instead of 64 to cut down on number of tests

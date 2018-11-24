@@ -55,13 +55,13 @@ bool verbose = false;
 
 
 struct MemoryMonitor {
-  MemoryMonitor(const size_t count) { 
+  MemoryMonitor(const size_t count) {
 	    NTA_ASSERT(count > 1 && count < minCount)
-    << "Run count of " << count << " specified\n" 
+    << "Run count of " << count << " specified\n"
     << "When run in leak detection mode, count must be at least "
     << minCount << "\n";
 
-	  OS::getProcessMemoryUsage(initial_vmem, initial_rmem); 
+	  OS::getProcessMemoryUsage(initial_vmem, initial_rmem);
   }
 
   ~MemoryMonitor() {
@@ -314,7 +314,7 @@ TEST(CppRegionTest, testYAML) {
   const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
   Network net = Network();
-  Region *level1 = nullptr; 
+  Region *level1 = nullptr;
   EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});

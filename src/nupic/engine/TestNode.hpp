@@ -101,7 +101,7 @@ public:
   bool isParameterShared(const std::string &name) override;
 
 private:
-  TestNode();
+  TestNode() = delete;
 
   // parameters
   // cgs parameters for parameter testing

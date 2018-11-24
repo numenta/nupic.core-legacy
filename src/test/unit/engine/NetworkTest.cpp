@@ -125,7 +125,7 @@ TEST(NetworkTest, InitializationNoRegions) {
   Region *l2 = net.addRegion("level2", "TestNode", "");
   EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
   EXPECT_THROW(net.run(1), std::exception) << "no dimensions";
-  EXPECT_THROW(net.initialize(), std::exception) << "no dimensions"; 
+  EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
   l2->setDimensions(d);
   net.run(1);
 }

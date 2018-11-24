@@ -203,7 +203,7 @@ static PyObject *makePyValue(const Value &v) {
     return array2numpy(*(v.getArray().get()));
 
   if (v.isString()) {
-    return py::String(*(v.getString().get())).release();
+    return py::String(v.getString()).release();
   }
 
   switch (v.getType()) {
