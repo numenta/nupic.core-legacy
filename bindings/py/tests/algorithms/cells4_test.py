@@ -219,15 +219,14 @@ class Cells4Test(unittest.TestCase):
 
     for i in xrange(nCols):
       for j in xrange(nCellsPerCol):
-        print "Adding segment: ", i, j, [((i + 1) % nCols,
-                                          (j + 1) % nCellsPerCol)]
+#        print "Adding segment: ", i, j, [((i + 1) % nCols, (j + 1) % nCellsPerCol)]
         cells.addNewSegment(i, j, True if j % 2 == 0 else False,
                             [((i + 1) % nCols, (j + 1) % nCellsPerCol)])
 
     for i in xrange(10):
       x = numpy.zeros(nCols, dtype="uint32")
       _RGEN.initializeUInt32Array(x, 2)
-      print "Input:", x
+#      print "Input:", x
       cells.compute(x, True, True)
 
     cells.rebuildOutSynapses()
@@ -244,11 +243,14 @@ class Cells4Test(unittest.TestCase):
     self._testPersistencePy(cells)
 
 
+
   def testEquals(self):
     nCols = 10
     c1 = createCells4(nCols)
     c2 = createCells4(nCols)
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
+    self.assertTrue(c1 == c2)
     
     # learn
     data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(10)]   
@@ -258,12 +260,15 @@ class Cells4Test(unittest.TestCase):
       c1.compute(x, True, True)
       c2.compute(x, True, True)
       self.assertEquals(c1, c2)
+      self.assertTrue(c1.equals(c2))
 
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
 
     c1.rebuildOutSynapses()
     c2.rebuildOutSynapses()
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
 
     # inference
     data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(100)]
@@ -273,5 +278,7 @@ class Cells4Test(unittest.TestCase):
       c1.compute(x, True, False)   
       c2.compute(x, True, False)
       self.assertEquals(c1, c2)
+      self.assertTrue(c1.equals(c2))
 
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
