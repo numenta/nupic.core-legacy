@@ -501,25 +501,24 @@ TEST(SdrTest, TestRandomize) {
     ASSERT_EQ( a.getSum(), 750 );
     a.randomize( 1. );
     ASSERT_EQ( a.getSum(), 1000 );
-    // Test seed is deterministic
+    // Test RNG is deterministic
     SDR b(a);
-    a.randomize( .02, 77 );
-    b.randomize( .02, 77 );
+    Random rng(77);
+    Random rng2(77);
+    a.randomize( .02, rng );
+    b.randomize( .02, rng2 );
     ASSERT_TRUE( a == b);
-    // Test different random seeds have different results.
-    a.randomize( .02, 1 );
-    b.randomize( .02, 2 );
+    // Test different random number generators have different results.
+    Random rng3( 1 );
+    Random rng4( 2 );
+    a.randomize( .02, rng3 );
+    b.randomize( .02, rng4 );
     ASSERT_TRUE( a != b);
-    // Test that this modifies PRNG state and will generate different
-    // distributions with the same PRNG.
-    Random prng( 88 );
-    a.randomize( .02, prng );
-    b.randomize( .02, prng );
-    ASSERT_TRUE( a != b);
-    // Test different random PRNG have different results.
-    Random prng2( 99 );
-    a.randomize( .02, prng );
-    b.randomize( .02, prng2 );
+    // Test that this modifies RNG state and will generate different
+    // distributions with the same RNG.
+    Random rng5( 88 );
+    a.randomize( .02, rng5 );
+    b.randomize( .02, rng5 );
     ASSERT_TRUE( a != b);
     // Test default RNG has a different result every time
     a.randomize( .02 );
@@ -551,15 +550,19 @@ TEST(SdrTest, TestAddNoise) {
     // Test seed is deteministic
     b.setSDR(a);
     c.setSDR(a);
-    b.addNoise( .5, 44 );
-    c.addNoise( .5, 44 );
+    Random b_rng( 44 );
+    Random c_rng( 44 );
+    b.addNoise( .5, b_rng );
+    c.addNoise( .5, c_rng );
     ASSERT_TRUE( b == c );
     ASSERT_FALSE( a == b );
     // Test different seed generates different distributions
     b.setSDR(a);
     c.setSDR(a);
-    b.addNoise( .5, 1 );
-    c.addNoise( .5, 2 );
+    Random rng1( 1 );
+    Random rng2( 2 );
+    b.addNoise( .5, rng1 );
+    c.addNoise( .5, rng2 );
     ASSERT_TRUE( b != c );
     // Test addNoise changes PRNG state so two consequtive calls yeild different
     // results.
@@ -570,12 +573,11 @@ TEST(SdrTest, TestAddNoise) {
     b.setSDR(a);
     b.addNoise( .5, prng );
     ASSERT_TRUE( b_cpy != b );
-    // Test different PRNGs yield different results
-    Random prng2( 1234 );
+    // Test default seed works ok
     b.setSDR(a);
     c.setSDR(a);
-    b.addNoise( .5, prng );
-    c.addNoise( .5, prng2 );
+    b.addNoise( .5 );
+    c.addNoise( .5 );
     ASSERT_TRUE( b != c );
     // Methodically test for every overlap.
     for( UInt x = 0; x <= 100; x++ ) {
