@@ -333,11 +333,7 @@ public:
         getFlatSparseMutable().resize( value.getCount() );
         BasicType::convertArray(
             getFlatSparseMutable().data(),
-            #ifdef NTA_BIG_INTEGER
-                NTA_BasicType_UInt64,
-            #else
-                NTA_BasicType_UInt32,
-            #endif
+            NTA_BasicType_UInt,
             value.getBuffer(), value.getType(),
             value.getCount());
         setFlatSparseInplace();
@@ -566,8 +562,8 @@ public:
      * @param seed The seed for the random number generator.
      * @param rng The random number generator to draw from.
      */
-    void randomize(Real sparsity, UInt64 seed = 0) {
-        Random rng( seed );
+    void randomize(Real sparsity) {
+        Random rng( 0 );
         randomize( sparsity, rng );
     };
 
@@ -616,8 +612,8 @@ public:
      * @param seed The seed for the random number generator.
      * @param rng The random number generator to draw from.
      */
-    void addNoise(Real fractionNoise, UInt64 seed = 0) {
-        Random rng( seed );
+    void addNoise(Real fractionNoise) {
+        Random rng( 0 );
         addNoise( fractionNoise, rng );
     }
 
