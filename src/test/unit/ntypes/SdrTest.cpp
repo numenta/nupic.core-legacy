@@ -489,6 +489,7 @@ TEST(SdrTest, TestOverlap) {
 }
 
 TEST(SdrTest, TestRandomize) {
+    // Test sparsity is OK
     SDR a({1000});
     a.randomize( 0. );
     ASSERT_EQ( a.getSum(), 0 );
@@ -519,6 +520,10 @@ TEST(SdrTest, TestRandomize) {
     Random prng2( 99 );
     a.randomize( .02, prng );
     b.randomize( .02, prng2 );
+    ASSERT_TRUE( a != b);
+    // Test default RNG has a different result every time
+    a.randomize( .02 );
+    b.randomize( .02 );
     ASSERT_TRUE( a != b);
     // Methodically test by running it many times and checking for an even
     // activation frequency at every bit.
