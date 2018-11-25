@@ -216,8 +216,7 @@ inline bool is_zero(const std::pair<T1, T2> &x) {
 template <typename T>
 inline bool is_zero(const std::vector<T>& x)
   {
-   size_t vector_size = x.size();
-   Eigen::Map<const Eigen::RowVectorXf> mx(x, vector_size);
+   const Eigen::Map<const Eigen::Matrix<T, x.size(), 1>> mx(&x);
    return (mx.maxCoeff() == 0);
   }
 
@@ -226,23 +225,16 @@ inline bool is_zero(const std::vector<T>& x)
 //--------------------------------------------------------------------------------
 /**
  * Scans a binary 0/1 vector to decide whether it is uniformly zero,
- * or if it contains non-zeros (4X faster than C++ loop).
+ * or if it contains non-zeros.
  *
- * If vector x is not aligned on a 16 bytes boundary, the function
- * reverts to slow C++. This can happen when using it with slices of numpy
- * arrays.
- *
- * TODO: find 16 bytes aligned block that can be sent to SSE.
- * TODO: support win32/win64 for the fast path.
  * TODO: can we go faster if working on ints rather than floats?
  */
 template <typename InputIterator>
 inline bool isZero_01(InputIterator x, InputIterator x_end) {
   NTA_ASSERT(x <= x_end);
-
-    const size_t vector_size = (x_end - x) + 1;
-    Eigen::Map<const Eigen::RowVectorXf> mx(x, vector_size);
-    return (mx.maxCoeff() == 0);
+  const size_t sz = x_end - x;
+  const Eigen::Map<const Eigen::RowVectorXf> mx(x, sz);
+  return (mx.maxCoeff() == 0);
 }
 
 //--------------------------------------------------------------------------------
@@ -702,13 +694,12 @@ inline T2 dot(const std::vector<T1> &x, const Buffer<T2> &y) {
 
 //--------------------------------------------------------------------------------
 inline float dot(const float *x, const float *x_end, const float *y) {
-    float result = 0;
-    const size_t vector_size = (x_end - x) + 1;
-    Eigen::Map<const Eigen::RowVectorXf> mx(x, vector_size);
-    Eigen::Map<const Eigen::RowVectorXf> my(y, vector_size);
-    result = mx.dot(my);
+    NTA_ASSERT(x_end >= x);
+    const Size sz = x_end - x; 
+    const Eigen::Map<const Eigen::RowVectorXf> mx(x, sz);
+    const Eigen::Map<const Eigen::RowVectorXf> my(y, sz);
 
-    return result;
+    return mx.dot(my);
 }
 
 //--------------------------------------------------------------------------------
