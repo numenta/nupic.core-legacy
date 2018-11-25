@@ -595,7 +595,7 @@ public:
         UInt nbits = size * sparsity + .5;
 
         SDR_flatSparse_t range( size );
-        std::iota( range.begin(), range.end(), 0 );
+        iota( range.begin(), range.end(), 0 );
         flatSparse.resize( nbits );
         rng.sample( range.data(),      size,
                     flatSparse.data(), nbits);
