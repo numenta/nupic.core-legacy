@@ -113,9 +113,9 @@ public:
   template <class T>
   std::vector<T> sample(const std::vector<T>& population, UInt nChoices) {
     if (nChoices == 0) {
-      return std::vector<T>(0);
+      return std::vector<T>{};
     }
-    NTA_CHECK(nChoices <= population.size()) << "population size must be greater than number of choices";
+    NTA_ASSERT(nChoices <= population.size()) << "population size must be greater than number of choices";
     std::vector<T> pop(population); //deep copy
     this->shuffle(std::begin(pop), std::end(pop));
     pop.resize(nChoices); //keep only first nChoices, drop rest
@@ -132,7 +132,8 @@ public:
   // randomly shuffle the elements
   template <class RandomAccessIterator>
   void shuffle(RandomAccessIterator first, RandomAccessIterator last) {
-    std::shuffle(first, last, gen);
+    //std::shuffle(first, last, gen); //not platform independent results :(
+    platform_independent_shuffle(first, last);
   }
 
   // for STL compatibility
@@ -160,6 +161,21 @@ private:
   UInt64 seed_;
   std::mt19937 gen; //Standard mersenne_twister_engine 64bit seeded with seed_
 //  std::random_device rd; //HW random for random seed cases, undeterministic -> problems with op= and copy-constructor, therefore disabled
+
+  // our reimpementation of std::shuffle, 
+  // as the implementation is not dictated by the standard, 
+  // resuting in differences between impementations (OS, stdlib,...) :(
+  // https://en.cppreference.com/w/cpp/algorithm/random_shuffle 
+  template<class RandomIt>
+  void platform_independent_shuffle(RandomIt first, RandomIt last)
+  {
+    typename std::iterator_traits<RandomIt>::difference_type i, n;
+    n = last - first;
+    for (i = n-1; i > 0; --i) {
+        using std::swap;
+        swap(first[i], first[this->getUInt32(i+1)]);
+    }
+  }
 
 
 };
