@@ -313,8 +313,8 @@ TEST(ConnectionsPerformanceTest, testSP) {
  * Tests typical usage of Connections with Temporal Pooler.
  */
 TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = runSpatialPoolerTest(COLS, 16384, 10, SEQ, "temporal pooler");
-  ASSERT_LE(tim, 77*getSpeed());
+  auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/2, SEQ/50, "temporal pooler");
+  ASSERT_LE(tim, 13.0*getSpeed());
 }
 #endif //DEBUG
 
