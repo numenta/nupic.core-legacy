@@ -115,7 +115,7 @@ public:
     if (nChoices == 0) {
       return std::vector<T>{};
     }
-    NTA_ASSERT(nChoices <= population.size()) << "population size must be greater than number of choices";
+    NTA_CHECK(nChoices <= population.size()) << "population size must be greater than number of choices";
     std::vector<T> pop(population); //deep copy
     this->shuffle(std::begin(pop), std::end(pop));
     pop.resize(nChoices); //keep only first nChoices, drop rest

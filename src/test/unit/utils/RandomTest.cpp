@@ -226,7 +226,7 @@ TEST(RandomTest, Sampling) {
     // choose some elements
     auto  choices = r.sample<UInt>(population, 2);
     EXPECT_EQ(3u, choices[0]) << "check sample 0";
-    EXPECT_EQ(1u, choices[1]) << "check sample 1";
+    EXPECT_EQ(2u, choices[1]) << "check sample 1";
   }
 
   {
@@ -256,7 +256,7 @@ TEST(RandomTest, Shuffling) {
   // tests for shuffling
   Random r(1);
   UInt32 arr[] = {1u, 2u, 3u, 4u};
-  const UInt32 exp[] = {2u, 1u, 3u, 4u};
+  const UInt32 exp[] = {4u, 1u, 3u, 2u};
 
   ASSERT_NO_THROW(r.shuffle(std::begin(arr), std::end(arr)));
 
