@@ -25,6 +25,7 @@
 #define SERIALIZE_VERSION 1
 
 #include <vector>
+#include <numeric>
 #include <nupic/types/Types.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Serializable.hpp>
