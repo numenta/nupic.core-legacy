@@ -152,7 +152,7 @@ private:
   std::string module_;
   std::string className_;
   py::Instance node_;
-  std::set<boost::shared_ptr<PyArray<UInt64>>> splitterMaps_;
+  std::set<std::shared_ptr<PyArray<UInt64>>> splitterMaps_;
   // pointers rather than objects because Array doesnt
   // have a default constructor
   std::map<std::string, Array *> inputArrays_;

@@ -33,7 +33,7 @@
 #include <iomanip>
 #include <vector>
 
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/math/Math.hpp>
@@ -4451,7 +4451,7 @@ public:
         }
       }
 
-      const size_type nnzr = indb_it - indb_;
+      const size_type nnzr = static_cast<size_type>(indb_it - indb_);
 
       if (nnzr > nnzr_[*row]) {
         // It changed. Commit the changes.
@@ -4650,7 +4650,7 @@ public:
 
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
-      difference_type numNonZeros = (col_end - col_begin) - numZeros;
+      difference_type numNonZeros = (difference_type)((col_end - col_begin) - (Int64)numZeros);
       size_type numDesiredNewNonZeros = (size_type)std::max(
           (difference_type)0,
           (difference_type)(numDesiredNonzeros - numNonZeros));
@@ -5392,7 +5392,7 @@ public:
       // check that column indices in strictly increasing order
     }
 
-    boost::unordered_set<size_type> skip(it, end);
+    std::unordered_set<size_type> skip(it, end);
 
     ITERATE_ON_ALL_ROWS {
       size_type k = 0;

@@ -38,7 +38,6 @@ Implementation of the Network class
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Directory.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>

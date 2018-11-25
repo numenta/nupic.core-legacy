@@ -55,17 +55,17 @@ typedef UInt32 Segment;
  * @param flatIdx This synapse's index in flattened lists of all synapses.
  */
 struct Synapse {
-  UInt32 flatIdx;
-
   // Use Synapses as vector indices.
-  operator unsigned long() const { return flatIdx; };
+  operator unsigned long() const { return flatIdx; }; //TODO this is just UInt now, either add more
+  //functionality - SynapseData, SynapseOrdinals; or replace with using Synapse = UInt;
 
+  UInt32 flatIdx;
 private:
   // The flatIdx ordering is not meaningful.
-  bool operator<=(const Synapse &other) const;
-  bool operator<(const Synapse &other) const;
-  bool operator>=(const Synapse &other) const;
-  bool operator>(const Synapse &other) const;
+  bool operator<=(const Synapse &other) const = delete;
+  bool operator<(const Synapse &other) const = delete;
+  bool operator>=(const Synapse &other) const = delete;
+  bool operator>(const Synapse &other) const = delete;
 };
 
 /**

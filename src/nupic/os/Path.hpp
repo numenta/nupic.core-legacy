@@ -34,6 +34,7 @@
 //----------------------------------------------------------------------
 
 namespace nupic {
+
 /**
  * @b Responsibility:
  *  1. Represent a cross-platform path to a filesystem object
@@ -70,65 +71,26 @@ namespace nupic {
  *  The emphasis is on code readability and ease of use. Performance takes
  * second place, because the critical path of our codebase doesn't involve a lot
  * of path manipulation. In particular, simple ANSI C or POSIX cross-platform
- * implementation is often preffered to calling specific platform APIs. Whenever
- * possible APR is used under the covers.
+ * implementation is often preffered to calling specific platform APIs.
  *
  *  Note, that constructing a Path object (or calling the Path instance methods)
  * involve an extra copy of the path string into the new Path instance. Again,
  * this is not prohibitive in most cases. If you are concerned use plain strings
  * and the static methods.
  *
- * @b Details, details
- * Portable filesystem interfaces are tricky to get right. We are targeting a
- * simple and intuitive interface like Python rather than the
- * difficult-to-understand boost interface. The current implementation does not
- * cover every corner case, but it gets many of them. For more insight into the
- * details, see the python os.path documentation, java.io.file documentation and
- * the Wikipedia entry on Path_(computing)
- *
- * @todo We do not support unicode filenames (yet)
  */
 class Path {
 public:
-  typedef std::vector<std::string> StringVec;
 
   static const char *sep;
   static const char *pathSep;
   static const char *parDir;
+  typedef std::vector<std::string> StringVec;
 
   /**
-   * This first set of methods act symbolically on strings
-   * and don't look at an actual filesystem.
-   */
-
-  /**
-   * getParent(path) -> normalize(path/..)
-   * Examples:
-   * getParent("/foo/bar") -> "/foo"
-   * getParent("foo") -> "."
-   * getParent(foo/bar.txt) -> "foo"
-   * getParent(rootdir) -> rootdir
-   * getParent("../../a") -> "../.."
-
-   * @discussion
-   * Can't we do better?
-   * What if:  getParent(path) -> normalize(path) - lastElement
-   * The problems with this are:
-   * - getParent("../..") can't be done
-   * - Also we have to normalize first, because we don't want
-   *   getParent("foo/bar/..") -> foo/bar
-   *
-   * The main issue with adding ".." are
-   * - ".." doesn't exist if you're getting the parent of a file
-   *   This is ok because we normalize, which is a symbolic manipulation
-   *
-   * For both solutions, we have to know when we reach the "top"
-   * if we want to iterate "up" the stack of directories.
-   * With an absolute path, we can check using isRootdir(), but
-   * with a relative path, we keep adding ".." forever.
-   * The application has to be aware of this and do the right thing.
-   */
-  static std::string getParent(const std::string &path);
+  * This will first convert the path to absolute, then return the full parent path.
+  */
+  static std::string getParent(std::string path);
 
   /**
    * getBasename(foo/bar.baz) -> bar.baz
@@ -141,41 +103,22 @@ public:
   static std::string getExtension(const std::string &path);
 
   /**
-   * Normalize:
-   * - remove "../" and "./" (unless leading) c
-   * - convert "//" to "/"
-   * - remove trailing "/"
-   * - normalize(rootdir/..) -> rootdir
-   * - normalize(foo/..) -> "."
-   *
-   * Note that because we are operating symbolically, the results might
-   * be unexpected if there are symbolic links in the path.
-   * For example if /foo/bar is a link to /quux/glorp then
-   * normalize("/foo/bar/..")-> "/foo", not "/quux"
-   * Also, "path/file/.." is converted to "path" even if "path/file" is a
-   * regular file (which doesn't have a ".." entry). On windows, a path starting
-   * with "\\" is a UNC path and the prefix is not converted.
-   */
+  * Removes dot and dot-dot symbolic links from path
+  * normalize("/foo/bar/..") -> "/foo"
+  * normalize("/foo/../bar") -> "/bar"
+  * normalize("..") -> parent of current path
+  * normalize(".") -> current path
+  * Note: may convert from relative to absolute if ".." backs up over current directory
+  **/
   static std::string normalize(const std::string &path);
 
   /**
    * makeAbsolute(path) ->
    * if isAbsolute(path) -> path
-   * unix: -> join(cwd, path)
-   * windows: makeAbsolute("c:foo") -> join("c:", cwd, "foo")
-   * windows: makeAbsolute("/foo") -> join(cwd.split()[0], "foo")
+   * otherwise it combines cwd and path into an absolute path.
    */
   static std::string makeAbsolute(const std::string &path);
 
-  /**
-   * Convert a unicode string to UTF-8
-   */
-  static std::string unicodeToUtf8(const std::wstring &path);
-
-  /**
-   * Convert a UTF-8 path to a unicode string
-   */
-  static std::wstring utf8ToUnicode(const std::string &path);
 
   /**
    * When splitting a path into components, the "prefix" has to be
@@ -199,20 +142,6 @@ public:
    */
   static std::string join(StringVec::const_iterator begin,
                           StringVec::const_iterator end);
-
-  /**
-   * path == "/" on unix
-   * path == "/" or path == "a:/" on windows
-   */
-  static bool isRootdir(const std::string &path);
-
-  /**
-   * isAbsolute("/foo/bar") -> true isAbsolute("foo")->false on Unix
-   * is Absolute("a:\foo\bar") -> true isAbsolute("\foo\bar") -> false on
-   * windows
-   */
-  static bool isAbsolute(const std::string &path);
-
   /**
    * varargs through overloading
    */
@@ -223,15 +152,29 @@ public:
                           const std::string &path3, const std::string &path4);
 
   /**
-   * This second set of methods must interact with the filesystem
-   * to do their work.
+  * path == "/" on unix
+  * path == "\\" or path == "C:\\" on windows
+  */
+  static bool isRootdir(const std::string &path);
+  static bool isPrefix(const std::string &path) { return isRootdir(path);} // an alias
+
+  /**
+   * isAbsolute("/foo/bar") -> true isAbsolute("foo")->false on Unix
+   * is Absolute("a:\foo\bar") -> true isAbsolute("\foo\bar") -> false on windows
    */
+  static bool isAbsolute(const std::string &path);
+
 
   /**
    * true if path exists. false is for broken links
-   * @todo lexists()
    */
   static bool exists(const std::string &path);
+
+  /**
+  * true if both paths are lexically equal.
+  * (unix formatted paths should match with Windows formatted paths).
+  */
+  static bool equals(const std::string& path1, const std::string& path2);
 
   /**
    * getFileSize throws an exception if does not exist or is a directory
@@ -239,66 +182,103 @@ public:
   static Size getFileSize(const std::string &path);
 
   /**
-   * @todo What if source is directory? What id source is file and dest is
-   * directory?
-   * @todo What if one of source or dest is a symbolic link?
+   * If source is a file, copy the file to the destination.
+   * if a folder, copy entire folder recursivly.
    */
   static void copy(const std::string &source, const std::string &destination);
+
+  /**
+  * If source is a file, delete the file. if a directory, delete entire directory and all contents recursivly.
+  */
   static void remove(const std::string &path);
+
+  /**
+   * move or change the file or directory name.
+   */
   static void rename(const std::string &oldPath, const std::string &newPath);
+
   static bool isDirectory(const std::string &path);
   static bool isFile(const std::string &path);
   static bool isSymbolicLink(const std::string &path);
+
+  // equivalent if both point to same file system and object, regardless of symbolic links.
   static bool areEquivalent(const std::string &path1, const std::string &path2);
+
   // Get a path to the currently running executable
-  static std::string getExecutablePath();
-
-  static void setPermissions(const std::string &path, bool userRead,
-                             bool userWrite, bool groupRead, bool groupWrite,
-                             bool otherRead, bool otherWrite);
-
-  Path(std::string path);
-  operator const char *() const;
+  // don't think we need this...
+  //static std::string getExecutablePath();
 
   /**
-   * Test for symbolic equivalence, i.e. normalize(a) == normalize(b)
-   * To test if they refer to the same file/directory, use areEquivalent
+  * Set permissions on files and directories.
+  * On Windows: All permissions except write are currently ignored. There is only a single write permission;
+  *             setting write permission for owner, group, or others sets write permission for all, and
+  *             removing write permission for owner, group, or others removes write permission for all.
+  */
+  static void setPermissions(const std::string &path,
+                             bool userRead,
+                             bool userWrite,
+							 bool groupRead,
+							 bool groupWrite,
+                             bool otherRead,
+							 bool otherWrite);
+
+
+
+
+  /**
+   * Read and Write entire contents of file.
    */
-  bool operator==(const Path &other);
+  static void write_all(const std::string& filename, const std::string& value);
+  static std::string read_all(const std::string& filename);
 
-  Path &operator+=(const Path &path);
-  bool exists() const;
-  Path getParent() const;
-  Path getBasename() const;
-  Path getExtension() const;
-  Size getFileSize() const;
 
-  Path &normalize();
-  Path &makeAbsolute();
-  StringVec split() const;
+  ////////////////////////////////////////////////////////////////////////////////
 
-  void remove() const;
-  void copy(const std::string &destination) const;
-  void rename(const std::string &newPath);
+  Path(std::string path)       {  path_ = path; }
+  const char* operator*() const { return path_.c_str(); }
+  Path & operator +=(const Path & path) { path_ += Path::sep + path.path_; return *this; }
+  bool operator==(const Path & other) { return equals(path_, other.path_); }  // lexical compare
+  Path getParent() const       { return Path(getParent(path_)); }
+  Path getBasename() const     { return Path(getBasename(path_)); }  // This is the filename with extension
+  Path getExtension() const    { return Path(getExtension(path_)); }
+  Path makeAbsolute() const    { return Path(makeAbsolute(path_)); }
+  Path normalize() const       { return Path(normalize(path_)); }
+  Size getFileSize() const     { return getFileSize(path_); }
+  std::string string()const    { return path_; }
+  const char* c_str() const    { return path_.c_str(); }
 
-  bool isDirectory() const;
-  bool isFile() const;
-  bool isRootdir() const;
-  bool isAbsolute() const;
-  bool isSymbolicLink() const;
-  bool isEmpty() const;
+  void remove() const                                { remove(path_); }
+  void copy(const std::string & destination) const   { copy(path_, destination); }
+  void rename(const std::string & newPath)  { rename(path_, newPath); path_ = makeAbsolute(newPath); }
+  void write_all(const std::string& value) { write_all(path_, value); }
+  std::string read_all() { return read_all(path_); }
+
+  bool isDirectory() const      { return isDirectory(path_); }
+  bool isFile() const           { return isFile(path_); }
+  bool isRootdir() const        { return isRootdir(path_); }
+  bool isAbsolute() const       { return isAbsolute(path_); }
+  bool isSymbolicLink() const   { return isSymbolicLink(path_); }
+  bool isEmpty() const          { return path_.empty(); }
+  bool exists() const           { return exists(path_); }
 
 private:
-  // on unix: == "/"; on windows: == "/" || == "C:" || == "C:/"
-  static bool isPrefix(const std::string &);
-  Path();
+  Path() = delete;	// disallow empty constructor.
 
 private:
   std::string path_;
 };
 
-// Global operator
-Path operator+(const Path &p1, const Path &p2);
+// Global operators
+// (concatination of filename with separator)
+Path operator/(const Path & p1, const Path & p2);
+Path operator/(const std::string & p1, const Path & p2);
+Path operator/(const Path & p1, const std::string & p2);
+Path operator+(const Path & p1, const Path & p2);
+Path operator+(const std::string & p1, const Path & p2);
+Path operator+(const Path & p1, const std::string & p2);
+
 } // namespace nupic
 
 #endif // NTA_PATH_HPP
+
+

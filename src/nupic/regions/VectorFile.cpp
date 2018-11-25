@@ -25,11 +25,11 @@
  */
 
 #include <cstring> // memset
+#include <cmath>
 #include <cstdio> //fopen
 #include <iostream>
 #include <math.h>
 #include <nupic/math/Utils.hpp> // For isSystemLittleEndian and utils::swapBytesInPlace.
-#include <nupic/os/FStream.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/regions/VectorFile.hpp>
 #include <nupic/utils/Log.hpp>
@@ -71,7 +71,7 @@ void VectorFile::clear(bool clearScaling) {
 
 //----------------------------------------------------------------------------
 void VectorFile::appendFile(const string &fileName,
-                            NTA_Size expectedElementCount, UInt32 fileFormat) {
+                            Size expectedElementCount, UInt32 fileFormat) {
   bool handled = false;
   switch (fileFormat) {
   case 4: // Little-endian.
@@ -90,7 +90,7 @@ void VectorFile::appendFile(const string &fileName,
 
   if (!handled) {
     // Open up the vector file
-    IFStream inFile(fileName.c_str());
+    std::ifstream inFile(fileName.c_str());
     if (!inFile) {
       NTA_THROW << "VectorFile::appendFile - unable to open file: " << fileName;
     }
@@ -107,7 +107,7 @@ void VectorFile::appendFile(const string &fileName,
       } else {
         // Read in space separated text file
         string sLine;
-        NTA_Size elementCount = expectedElementCount;
+        Size elementCount = expectedElementCount;
         if (fileFormat != 2) {
           inFile >> elementCount;
           getline(inFile, sLine);
@@ -150,7 +150,7 @@ void VectorFile::appendFile(const string &fileName,
             inFile >> vectorLabel;
           }
 
-          auto b = new NTA_Real[elementCount];
+          auto b = new Real[elementCount];
           for (Size i = 0; i < elementCount; ++i) {
             inFile >> b[i];
           }
@@ -186,9 +186,9 @@ void VectorFile::appendFile(const string &fileName,
 // False otherwise.
 // This is a bit of a hack - if a string contains 13 or 10 it should not count,
 // but we don't support strings in files anyway.
-static bool dosEndings(IFStream &inFile) {
+static bool dosEndings(std::istream &inFile) {
   bool unixLines = true;
-  int pos = inFile.tellg();
+  std::streampos pos = inFile.tellg();
   while (!inFile.eof()) {
     int c = inFile.get();
     if (c == 10) {
@@ -382,8 +382,8 @@ public:
     file_ = nullptr;
   }
   void read(void *out, size_t objSize, int n) {
-    int result = fread(out, objSize, n, file_); //TODO remove this class? use fstream instead of cstdio::fread
-    if (result < n)
+    size_t result = fread(out, objSize, n, file_); //TODO remove this class? use fstream instead of cstdio::fread
+    if ((int)result < n)
       throw runtime_error("Failed to read requested bytes from file.");
   }
 };
@@ -477,7 +477,7 @@ void VectorFile::appendFloat32File(const string &filename,
 //    23,24,
 //    23,"42,d",55
 
-void VectorFile::appendCSVFile(IFStream &inFile, Size expectedElements) {
+void VectorFile::appendCSVFile(istream &inFile, Size expectedElements) {
   // Read in csv file one line at a time. If that line contains any errors,
   // skip it and move onto the next one.
   try {
@@ -658,7 +658,7 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
       }
       break;
     }
-    case 0x0D: // 32-bit float. //TODO this is super-ugly code! use templates to avoid the switch! 
+    case 0x0D: // 32-bit float. //TODO this is super-ugly code! use templates to avoid the switch!
     {
       float *pRead = reinterpret_cast<float *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {

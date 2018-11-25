@@ -35,7 +35,7 @@
 #include <nupic/utils/Random.hpp>
 #include <nupic/os/Timer.hpp>
 
-namespace testing { 
+namespace testing {
 
 using namespace std;
 using namespace nupic;
@@ -250,7 +250,7 @@ vector<CellIdx> _computeSPWinnerCells(Connections &connections, UInt numCells,
 
 float _SPEED = -1;
 /**
- * estimate speed (CPU & load) of the current system. 
+ * estimate speed (CPU & load) of the current system.
  * Tests must perform relative to this value
  */
 float getSpeed() {
@@ -318,4 +318,4 @@ TEST(ConnectionsPerformanceTest, testTP) {
 }
 #endif //DEBUG
 
-} // end namespace 
+} // end namespace
