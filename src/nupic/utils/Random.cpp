@@ -33,6 +33,7 @@ using namespace nupic;
 
 bool Random::operator==(const Random &o) const {
   return seed_ == o.seed_ && \
+	 steps_ == o.steps_ && \
 	 gen == o.gen;
 }
 
@@ -46,6 +47,7 @@ Random::Random(UInt64 seed) {
   // if seed is zero at this point, there is a logic error.
   NTA_CHECK(seed_ != 0);
   gen.seed(seed_); //seed the generator
+  steps_ = 0;
 }
 
 
@@ -53,7 +55,7 @@ namespace nupic {
 std::ostream &operator<<(std::ostream &outStream, const Random &r) {
   outStream << "random-v2" << " ";
   outStream << r.seed_ << " ";
-  outStream << r.gen << " ";
+  outStream << r.steps_ << " ";
   outStream << "endrandom-v2" << " ";
   return outStream;
 }
@@ -66,7 +68,11 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
   NTA_CHECK(version == "random-v2") << "Random() deserializer -- found unexpected version string '"
               << version << "'";
   inStream >> r.seed_;
-  inStream >> r.gen;
+  r.gen.seed(r.seed_); //reseed
+  inStream >> r.steps_;
+  r.gen.discard(r.steps_); //advance n steps
+  //FIXME we could de/serialize directly RNG gen, it should be multi-platform according to standard, 
+  //but on OSX CI it wasn't (25/11/2018). So "hacking" the above instead. 
   std::string endtag;
   inStream >> endtag;
   NTA_CHECK(endtag == "endrandom-v2") << "Random() deserializer -- found unexpected end tag '" << endtag  << "'";

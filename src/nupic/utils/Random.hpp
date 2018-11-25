@@ -75,7 +75,7 @@ namespace nupic {
  * getUInt()
  *
  */
-class Random : public Serializable  {
+class Random : public Serializable  { //TODO make extend random engine type
 public:
   Random(UInt64 seed = 0/*=random seed*/);
 
@@ -96,6 +96,7 @@ public:
    */
   inline UInt32 getUInt32(const UInt32 max = MAX32) {
     NTA_ASSERT(max > 0);
+    steps_++;
     return gen() % max; //uniform_int_distribution(gen) replaced, as is not same on all platforms! 
   }
 
@@ -103,6 +104,7 @@ public:
    * May not be cross-platform (but currently is to our experience)
    */
   inline double getReal64() {
+    steps_++;
     return gen() / (Real64) max();
   }
 
@@ -159,6 +161,8 @@ protected:
   friend UInt32 GetRandomSeed();
 private:
   UInt64 seed_;
+  UInt64 steps_ = 0;  //step counter, used in serialization. It is important that steps_ is in sync with number of 
+  // calls to RNG
   std::mt19937 gen; //Standard mersenne_twister_engine 64bit seeded with seed_
 //  std::random_device rd; //HW random for random seed cases, undeterministic -> problems with op= and copy-constructor, therefore disabled
 
