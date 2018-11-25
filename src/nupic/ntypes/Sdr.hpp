@@ -592,33 +592,14 @@ public:
 
     void randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0. and sparsity <= 1. );
-        /**
-         * This does two inversions: first it flips the sparsity, and then it
-         * flips the entire SDR.   This is a performance improvement, because of
-         * the way it's implemented.  This turns on random bits, and if the bit
-         * it selects is already on it tries again. If the sparsity is low then
-         * there should not be too many retries, but if the sparsity is 100%
-         * then it will need many retries as it fills up the entire SDR by
-         * randomly selecting every bit in it.
-         */
-        const bool invert = sparsity > .5;
-        if( invert )
-            sparsity = 1 - sparsity;
-
-        dense.assign( size, 0 );
         UInt nbits = size * sparsity + .5;
-        while( nbits > 0 ) {
-            const UInt idx = rng( size );
-            if( dense[idx] == 0 ) {
-                dense[idx] = 1;
-                nbits--;
-            }
-        }
-        if( invert ) {
-            for( UInt i = 0; i < size; i++ )
-                dense[i] = 1 - dense[i];
-        }
-        setDenseInplace();
+
+        SDR_flatSparse_t range( size );
+        std::iota( range.begin(), range.end(), 0 );
+        flatSparse.resize( nbits );
+        rng.sample( range.data(),      size,
+                    flatSparse.data(), nbits);
+        setFlatSparseInplace();
     };
 
     /**
