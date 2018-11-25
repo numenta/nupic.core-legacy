@@ -158,7 +158,7 @@ protected:
   friend UInt32 GetRandomSeed();
 private:
   UInt64 seed_;
-  std::mt19937_64 gen; //Standard mersenne_twister_engine 64bit seeded with seed_
+  std::mt19937 gen; //Standard mersenne_twister_engine 64bit seeded with seed_
 //  std::random_device rd; //HW random for random seed cases, undeterministic -> problems with op= and copy-constructor, therefore disabled
 
 
