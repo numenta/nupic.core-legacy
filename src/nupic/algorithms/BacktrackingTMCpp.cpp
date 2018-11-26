@@ -1138,7 +1138,7 @@ void BacktrackingTMCpp::printCell(Size c, Size i, bool onlyActiveSegments,
         << (c * loc_.cellsPerColumn + i) << ") : " << nSegs << " segment(s)\n";
     for (const auto segIdx : segList) {
       Segment* seg = cells4_->getSegment((UInt)c, (UInt)i, segIdx);
-      const bool isActive = _slowIsSegmentActive(seg, "t");
+      const bool isActive = _slowIsSegmentActive(*seg, string("t"));
       if (!onlyActiveSegments || isActive) {
         snprintf(buff, sizeof(buff), "%sSeg #%-3d %d %c %9.7f (%4d/%-4d) %4d ",
                  ((isActive) ? "*" : " "), segIdx, (int)seg->size(),
@@ -1594,15 +1594,15 @@ bool BacktrackingTMCpp::diff(const BacktrackingTMCpp &tm1,
 
 // A segment is active if it has >= activationThreshold connected
 // synapses that are active due to infActiveState. timestep is "t" or "t-1".
-bool BacktrackingTMCpp::_slowIsSegmentActive(Segment &seg,
-                                             const char *timestep) const {
+bool BacktrackingTMCpp::_slowIsSegmentActive(Segment &seg, std::string timestep) const {
   Size numActiveSyns = 0;
-  UInt32 threshold = cells4_->getActivationThreshold();
+  NTA_ASSERT(timestep == "t" || timestep == "t-1") << "Only t, t-1 timesteps expected!";
+  const UInt32 threshold = cells4_->getActivationThreshold();
   for (UInt synIdx = 0; synIdx < (UInt)seg.size(); synIdx++) {
     if (seg.getPermanence(synIdx) >= cells4_->getPermConnected()) {
-      Size srcIdx = seg.getSrcCellIdx(synIdx);
-      Byte *state = (!strcmp(timestep, "t")) ? cells4_->getInfActiveStateT()
-                                             : cells4_->getInfActiveStateT1();
+      const Size srcIdx = seg.getSrcCellIdx(synIdx);
+      Byte *state = (timestep == "t") ? cells4_->getInfActiveStateT()
+                                      : cells4_->getInfActiveStateT1();
       if (state[srcIdx]) {
         numActiveSyns += 1;
         if (numActiveSyns >= threshold)
@@ -1610,7 +1610,7 @@ bool BacktrackingTMCpp::_slowIsSegmentActive(Segment &seg,
       }
     }
   }
-  return (numActiveSyns >= threshold);
+  return false;
 }
 
 /**

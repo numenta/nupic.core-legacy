@@ -474,7 +474,11 @@ protected:
   void _inferPhase2();
   inline Size _getCellCol(Size idx) const { return idx / loc_.cellsPerColumn; }
   inline Size _getCellIdx(Size idx) const { return idx % loc_.cellsPerColumn; }
-  virtual bool _slowIsSegmentActive(Segment &seg, const char *timestep) const;
+  /*
+   * A segment is active if it has >= activationThreshold connected
+   *  synapses that are active due to infActiveState. timestep is "t" or "t-1".
+   */
+  virtual bool _slowIsSegmentActive(Segment &seg, std::string timestep) const;
 
   // Used by predict() to save/restore current state
   struct ss_t {
