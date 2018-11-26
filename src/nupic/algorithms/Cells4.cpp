@@ -39,7 +39,6 @@
 #include <nupic/algorithms/SegmentUpdate.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
-#include <nupic/os/FStream.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
 

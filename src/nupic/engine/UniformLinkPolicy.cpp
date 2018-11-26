@@ -30,8 +30,6 @@
 #include <nupic/types/Fraction.hpp>
 #include <nupic/utils/Log.hpp>
 
-#include <boost/shared_ptr.hpp>
-
 namespace nupic {
 
 // used to detect an uninitialized value
@@ -52,7 +50,8 @@ UniformLinkPolicy::~UniformLinkPolicy() {}
 void UniformLinkPolicy::readParameters(const std::string &params) {
   ValueMap paramMap = YAMLUtils::toValueMap(params.c_str(), parameters_);
 
-  boost::shared_ptr<std::string> mappingStr = paramMap.getString("mapping");
+  std::shared_ptr<std::string> mappingStr =
+  				std::make_shared<std::string>(paramMap.getString("mapping"));
 
   if (*mappingStr == "in") {
     mapping_ = inMapping;
@@ -69,8 +68,8 @@ void UniformLinkPolicy::readParameters(const std::string &params) {
 
   populateArrayParamVector<Real64>(rfOverlap_, paramMap, "rfOverlap");
 
-  boost::shared_ptr<std::string> rfGranularityStr =
-      paramMap.getString("rfGranularity");
+  std::shared_ptr<std::string> rfGranularityStr =
+  				std::make_shared<std::string>(paramMap.getString("rfGranularity"));
 
   if (*rfGranularityStr == "nodes") {
     rfGranularity_ = nodesGranularity;
@@ -89,7 +88,7 @@ void UniformLinkPolicy::readParameters(const std::string &params) {
 
   populateArrayParamVector<Real64>(span_, paramMap, "span");
 
-  boost::shared_ptr<std::string> strictStr = paramMap.getString("strict");
+  std::shared_ptr<std::string> strictStr = std::make_shared<std::string>(paramMap.getString("strict"));
 
   if (*strictStr == "true") {
     strict_ = true;
@@ -212,7 +211,7 @@ void UniformLinkPolicy::populateArrayParamVector(std::vector<T> &vec,
                                                  const std::string &paramName) {
   NTA_CHECK(vec.size() == 0);
 
-  boost::shared_ptr<Array> arrayVal = paramMap.getArray(paramName);
+  std::shared_ptr<Array> arrayVal = paramMap.getArray(paramName);
 
   T *buf = (T *)arrayVal->getBuffer();
 

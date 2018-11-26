@@ -80,7 +80,7 @@ TEST(HelloRegionTest, demo) {
   // Get output
   const Real64 *buffer = (const Real64 *)outputArray.getBuffer();
   for (size_t i = 0; i < outputArray.getCount(); i++) {
-//    EXPECT_FLOAT_EQ(buffer[0], 0); //TODO add test, which values should be here? 
+//    EXPECT_FLOAT_EQ(buffer[0], 0); //TODO add test, which values should be here?
     std::cout << "  " << i << "    " << buffer[i] << "" << std::endl;
   }
 
@@ -106,7 +106,7 @@ TEST(HelloRegionTest, demo) {
   net2.run(DATA_SIZE);
 
   ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
-  for (size_t i = 0; i < sizeof &buffer / sizeof &buffer[0]; i++) { //TODO how output all values generated during run(4) ?? 
+  for (size_t i = 0; i < sizeof &buffer / sizeof &buffer[0]; i++) { //TODO how output all values generated during run(4) ??
 	  EXPECT_FLOAT_EQ(buffer[i], buffer2[i]);
 	  std::cout << " buffer " << buffer[i] << " buffer2: " << buffer2[i] << std::endl;
   }

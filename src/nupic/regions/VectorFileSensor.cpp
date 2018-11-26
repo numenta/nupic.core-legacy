@@ -36,7 +36,6 @@
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
-//#include <nupic/os/FStream.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
 
@@ -61,7 +60,7 @@ VectorFileSensor::VectorFileSensor(const ValueMap &params, Region *region)
   if (params.contains("hasResetOut"))
     hasResetOut_ = params.getScalar("hasResetOut")->getValue<NTA_UInt32>() == 1;
   if (params.contains("inputFile"))
-    filename_ = *params.getString("inputFile");
+    filename_ = params.getString("inputFile");
   if (params.contains("repeatCount"))
     repeatCount_ = params.getScalar("repeatCount")->getValue<NTA_UInt32>();
 }
@@ -253,7 +252,7 @@ std::string VectorFileSensor::executeCommand(const std::vector<std::string>& arg
 
     NTA_CHECK(argCount <= 5) << "VectorFileSensor: too many arguments";
 
-    OFStream f(filename.c_str());
+    std::ofstream f(filename.c_str());
     if (hasEnd)
       vectorFile_.saveVectors(f, dataOut_.getCount(), format, begin, end);
     else
@@ -426,7 +425,7 @@ VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) {
 
 void VectorFileSensor::serialize(BundleIO &bundle) {
   std::ostream & f = bundle.getOutputStream();
-  f << repeatCount_ << " " << activeOutputCount_ << " " 
+  f << repeatCount_ << " " << activeOutputCount_ << " "
     << ((filename_ == "")?std::string("empty"):filename_) << " "
     << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " ";
 }

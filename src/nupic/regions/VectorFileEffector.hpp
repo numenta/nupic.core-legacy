@@ -34,7 +34,6 @@
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/types/Types.h>
 
 namespace nupic {

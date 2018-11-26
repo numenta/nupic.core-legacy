@@ -330,61 +330,61 @@ TEST(RandomTest, ReturnInCorrectRange) {
 TEST(RandomTest, getUInt64) {
   // tests for getUInt64
   Random r1(1);
-  ASSERT_EQ(3723745761376425000, r1.getUInt64())
+  ASSERT_EQ(3723745761376425000u, r1.getUInt64())
       << "check getUInt64, seed 1, first call";
-  ASSERT_EQ(7464235991977222558, r1.getUInt64())
+  ASSERT_EQ(7464235991977222558u, r1.getUInt64())
       << "check getUInt64, seed 1, second call";
 
   Random r2(2);
-  ASSERT_EQ(7543924162171776743, r2.getUInt64())
+  ASSERT_EQ(7543924162171776743u, r2.getUInt64())
       << "check getUInt64, seed 2, first call";
-  ASSERT_EQ(1206857364816002550, r2.getUInt64())
+  ASSERT_EQ(1206857364816002550u, r2.getUInt64())
       << "check getUInt64, seed 2, second call";
 
   Random r3(7464235991977222558);
-  ASSERT_EQ(3609339244249306794, r3.getUInt64())
+  ASSERT_EQ(3609339244249306794u, r3.getUInt64())
       << "check getUInt64, big seed, first call";
-  ASSERT_EQ(4084830275585779078, r3.getUInt64())
+  ASSERT_EQ(4084830275585779078u, r3.getUInt64())
       << "check getUInt64, big seed, second call";
 }
 
 TEST(RandomTest, getReal64) {
   // tests for getReal64
   Random r1(1);
-  ASSERT_FLOAT_EQ(0.40250281741114691, r1.getReal64());
-  ASSERT_FLOAT_EQ(0.29331049250469476, r1.getReal64());
+  ASSERT_DOUBLE_EQ(0.40250281741114691, r1.getReal64());
+  ASSERT_DOUBLE_EQ(0.29331049250469476, r1.getReal64());
 
   Random r2(2);
-  ASSERT_FLOAT_EQ(0.40256278127972323, r2.getReal64());
-  ASSERT_FLOAT_EQ(0.6186683429386548, r2.getReal64());
+  ASSERT_DOUBLE_EQ(0.40256278127972323, r2.getReal64());
+  ASSERT_DOUBLE_EQ(0.6186683429386548, r2.getReal64());
 
   Random r3(7464235991977222558);
-  ASSERT_FLOAT_EQ(0.94890447597450844, r3.getReal64());
-  ASSERT_FLOAT_EQ(0.23239565201722456, r3.getReal64());
+  ASSERT_DOUBLE_EQ(0.94890447597450844, r3.getReal64());
+  ASSERT_DOUBLE_EQ(0.23239565201722456, r3.getReal64());
 }
 
 TEST(RandomTest, Sampling) {
   // tests for sampling
 
-  UInt32 population[] = {1, 2, 3, 4};
+  UInt32 population[] = {1u, 2u, 3u, 4u};
   Random r(42);
 
   {
     // choose some elements
     UInt32 choices[2];
     r.sample(population, 4, choices, 2);
-    ASSERT_EQ(1, choices[0]) << "check element 0";
-    ASSERT_EQ(3, choices[1]) << "check element 1";
+    ASSERT_EQ(1u, choices[0]) << "check element 0";
+    ASSERT_EQ(3u, choices[1]) << "check element 1";
   }
 
   {
     // choose all elements
     UInt32 choices[4];
     r.sample(population, 4, choices, 4);
-    ASSERT_EQ(1, choices[0]) << "check element 0";
-    ASSERT_EQ(2, choices[1]) << "check element 1";
-    ASSERT_EQ(3, choices[2]) << "check element 2";
-    ASSERT_EQ(4, choices[3]) << "check element 3";
+    ASSERT_EQ(1u, choices[0]) << "check element 0";
+    ASSERT_EQ(2u, choices[1]) << "check element 1";
+    ASSERT_EQ(3u, choices[2]) << "check element 2";
+    ASSERT_EQ(4u, choices[3]) << "check element 3";
   }
 
   {
@@ -403,16 +403,16 @@ TEST(RandomTest, Sampling) {
 TEST(RandomTest, Shuffling) {
   // tests for shuffling
   Random r(42);
-  UInt32 arr[] = {1, 2, 3, 4};
+  UInt32 arr[] = {1u, 2u, 3u, 4u};
 
   UInt32 *start = arr;
   UInt32 *end = start + 4;
   r.shuffle(start, end);
 
-  ASSERT_EQ(1, arr[0]) << "check element 0";
-  ASSERT_EQ(4, arr[1]) << "check element 1";
-  ASSERT_EQ(3, arr[2]) << "check element 2";
-  ASSERT_EQ(2, arr[3]) << "check element 3";
+  ASSERT_EQ(1u, arr[0]) << "check element 0";
+  ASSERT_EQ(4u, arr[1]) << "check element 1";
+  ASSERT_EQ(3u, arr[2]) << "check element 2";
+  ASSERT_EQ(2u, arr[3]) << "check element 3";
 }
 
 
@@ -439,6 +439,6 @@ TEST(RandomTest, testGetUIntSpeed) {
  const int RUNS = 10000000;
  for(int i=0; i<RUNS; i++) {
    rnd = r1.getUInt32(10000); //get random int [0..1M)
-   NTA_CHECK(rnd < 1000001) << "Should never happen, just here so compiler won't optimize out this loop";
+   NTA_CHECK(rnd < 1000001u) << "Should never happen, just here so compiler won't optimize out this loop";
  }
 }

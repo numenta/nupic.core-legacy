@@ -302,7 +302,6 @@ set(src_nupiccore_srcs
     nupic/os/Directory.cpp
     nupic/os/DynamicLibrary.cpp
     nupic/os/Env.cpp
-    nupic/os/FStream.cpp
     nupic/os/OS.cpp
     nupic/os/OSUnix.cpp
     nupic/os/OSWin.cpp
