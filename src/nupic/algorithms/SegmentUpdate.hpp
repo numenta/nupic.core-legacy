@@ -159,7 +159,9 @@ public:
    * compare segments.
    * A restored serialized segment should be the same as original.
    */
-   bool equals(const SegmentUpdate &s) const;
+   inline bool equals(const SegmentUpdate &o) const { return this->operator==(o); }
+   bool operator==(const SegmentUpdate &o) const;
+   inline bool operator!=(const SegmentUpdate &o) const { return !this->operator==(o); }
 
 }; 
 
