@@ -606,7 +606,7 @@ public:
   UInt nSynapsesInCell(UInt cellIdx) const;
 
   //-----------------------------------------------------------------------
-  Cell *getCell(UInt colIdx, UInt cellIdxInCol);
+  Cell& getCell(UInt colIdx, UInt cellIdxInCol);
 
   //-----------------------------------------------------------------------
   UInt getCellIdx(UInt colIdx, UInt cellIdxInCol);
@@ -616,7 +616,7 @@ public:
    * Can return a previously freed segment (segment size == 0) if called with a
    * segIdx which is in the "free" list of the cell.
    */
-  Segment *getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx);
+  Segment& getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx);
 
   //-----------------------------------------------------------------------
   /**
