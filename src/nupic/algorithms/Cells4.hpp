@@ -554,6 +554,7 @@ public:
   void setMaxAge(UInt a) { _maxAge = a; }
   void setMaxSeqLength(UInt v) { _maxSeqLength = v; }
   void setCheckSynapseConsistency(bool val) { _checkSynapseConsistency = val; }
+  void setMaxSynapsesPerSegment(UInt v) { _maxSynapsesPerSegment = v; }
 
   void setMaxSegmentsPerCell(int maxSegs) {
     if (maxSegs != -1) {
