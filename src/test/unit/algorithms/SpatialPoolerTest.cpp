@@ -618,7 +618,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D) {
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPermanence(i, permArr[i]);
-    UInt result = sp.avgConnectedSpanForColumn1D_(i);
+    UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == trueAvgConnectedSpan[i]);
   }
 }
@@ -663,7 +663,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPermanence(i, permArr1[i]);
-    UInt result = sp.avgConnectedSpanForColumn2D_(i);
+    UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan1[i]));
   }
 
@@ -690,7 +690,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPermanence(i, permArr2[i]);
-    UInt result = sp.avgConnectedSpanForColumn2D_(i);
+    UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan2[i] + 1) / 2);
   }
 }

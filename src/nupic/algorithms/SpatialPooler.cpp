@@ -51,23 +51,6 @@ static Real round5_(const Real f)
   return ((Real) ((Int) (f * 100000.0f))) / 100000.0f;
 }
 
-class CoordinateConverter2D { //TODO move to Topology
-
-public:
-  CoordinateConverter2D(UInt nrows, UInt ncols)
-      : // TODO param nrows is unused
-        ncols_(ncols) 
-	{
-	  NTA_ASSERT(ncols > 0u);
-	}
-  UInt toRow(UInt index) const { return index / ncols_; };
-  UInt toCol(UInt index) const { return index % ncols_; };
-  UInt toIndex(UInt row, UInt col) const { return row * ncols_ + col; };
-
-private:
-  UInt ncols_;
-};
-
 class CoordinateConverterND {
 
 public:
@@ -737,48 +720,6 @@ Real SpatialPooler::avgColumnsPerInput_() const {
     columnsPerInput += col / input;
   }
   return columnsPerInput / numDim;
-}
-
-
-Real SpatialPooler::avgConnectedSpanForColumn1D_(UInt column) const {
-  NTA_ASSERT(column < numColumns_);
-  NTA_ASSERT(inputDimensions_.size() == 1);
-
-  const vector<UInt> connectedSparse = connectedSynapses_.getSparseRow(column);
-  if (connectedSparse.empty())
-    return 0;
-  auto minmax = minmax_element(connectedSparse.begin(), connectedSparse.end());
-  return *minmax.second /*max*/ - *minmax.first /*min*/ + 1;
-}
-
-
-Real SpatialPooler::avgConnectedSpanForColumn2D_(UInt column) const {
-  NTA_ASSERT(column < numColumns_);
-  NTA_ASSERT(inputDimensions_.size() == 2);
-
-  const UInt nrows = inputDimensions_[0];
-  const UInt ncols = inputDimensions_[1];
-
-  const CoordinateConverter2D conv(nrows, ncols);
-
-  const vector<UInt> connectedSparse = connectedSynapses_.getSparseRow(column);
-  vector<UInt> rows, cols;
-  for (auto &elem : connectedSparse) {
-    rows.push_back(conv.toRow(elem));
-    cols.push_back(conv.toCol(elem));
-  }
-
-  if (rows.empty() && cols.empty()) {
-    return 0;
-  }
-
-  auto minmaxRows = minmax_element(rows.begin(), rows.end());
-  const UInt rowSpan = *minmaxRows.second /*max*/ - *minmaxRows.first /*min*/ + 1;
-
-  auto minmaxCols = minmax_element(cols.begin(), cols.end());
-  const UInt colSpan = *minmaxCols.second - *minmaxCols.first + 1;
-
-  return (rowSpan + colSpan) / 2.0f;
 }
 
 
