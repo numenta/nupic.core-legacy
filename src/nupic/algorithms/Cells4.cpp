@@ -2996,30 +2996,17 @@ bool Cells4::operator==(const Cells4 &other) const {
   if (_segmentUpdates != other._segmentUpdates) {
     return false;
   }
-  if (_learnActiveStateT != other._learnActiveStateT) {
-    return false;
-  }
-  if (_learnActiveStateT1 != other._learnActiveStateT1) {
-    return false;
-  }
-  if (_learnPredictedStateT != other._learnPredictedStateT) {
-    return false;
-  }
-  if (_learnPredictedStateT1 != other._learnPredictedStateT1) {
-    return false;
-  }
-  if (_infActiveStateT != other._infActiveStateT) {
-    return false;
-  }
-  if (_infActiveStateT1 != other._infActiveStateT1) {
-    return false;
-  }
-  if (_infPredictedStateT != other._infPredictedStateT) {
-    return false;
-  }
-  if (_infPredictedStateT1 != other._infPredictedStateT1) {
-    return false;
-  }
+
+        // states
+      if (!_infActiveStateT.equals(other._infActiveStateT)) return false;
+      if (!_infActiveStateT1.equals(other._infActiveStateT1)) return false;
+      if (!_infPredictedStateT.equals(other._infPredictedStateT)) return false;
+      if (!_infPredictedStateT1.equals(other._infPredictedStateT1)) return false;
+      if (!_learnActiveStateT.equals(other._learnActiveStateT)) return false;
+      if (!_learnActiveStateT1.equals(other._learnActiveStateT1)) return false;
+      if (!_learnPredictedStateT.equals(other._learnPredictedStateT)) return false;
+      if (!_learnPredictedStateT1.equals(other._learnPredictedStateT1)) return false;
+
   if (_prevInfPatterns != other._prevInfPatterns) {
     return false;
   }
@@ -3188,67 +3175,4 @@ void Cells4::resetTimers() {
   getNewCellTimer.reset();
   chooseCellsTimer.reset();
 #endif
-}
-
-/**
-* Compare against another Cells4.
-*/
-bool Cells4::equals(const Cells4& c) const {
-  if (c._nColumns == _nColumns &&
-      c._nCellsPerCol == _nCellsPerCol &&
-      c._nCells == _nCells &&
-      c._activationThreshold == _activationThreshold &&
-      c._minThreshold == _minThreshold &&
-      c._newSynapseCount == _newSynapseCount &&
-      c._nIterations == _nIterations &&
-      c._nLrnIterations == _nLrnIterations &&
-      c._segUpdateValidDuration == _segUpdateValidDuration &&
-      c._initSegFreq == _initSegFreq &&
-      c._permInitial == _permInitial &&
-      c._permConnected == _permConnected &&
-      c._permMax == _permMax &&
-      c._permDec == _permDec &&
-      c._permInc == _permInc &&
-      c._globalDecay == _globalDecay &&
-      c._doPooling == _doPooling &&
-      c._pamLength == _pamLength &&
-      c._maxInfBacktrack == _maxInfBacktrack &&
-      c._maxLrnBacktrack == _maxLrnBacktrack &&
-      c._maxSeqLength == _maxSeqLength &&
-      c._learnedSeqLength == _learnedSeqLength &&
-      c._avgLearnedSeqLength == _avgLearnedSeqLength &&
-      c._maxAge == _maxAge &&
-      c._verbosity == _verbosity &&
-      c._maxSegmentsPerCell == _maxSegmentsPerCell &&
-      c._maxSynapsesPerSegment == _maxSynapsesPerSegment &&
-      c._checkSynapseConsistency == _checkSynapseConsistency &&
-      c._ownsMemory == _ownsMemory &&
-      c._avgInputDensity == _avgInputDensity &&
-      c._pamCounter == _pamCounter &&
-      c._resetCalled == _resetCalled &&
-      _rng == c._rng)
-  {
-
-      // states
-      if (!_infActiveStateT.equals(c._infActiveStateT)) return false;
-      if (!_infActiveStateT1.equals(c._infActiveStateT1)) return false;
-      if (!_infPredictedStateT.equals(c._infPredictedStateT)) return false;
-      if (!_infPredictedStateT1.equals(c._infPredictedStateT1)) return false;
-      if (!_learnActiveStateT.equals(c._learnActiveStateT)) return false;
-      if (!_learnActiveStateT1.equals(c._learnActiveStateT1)) return false;
-      if (!_learnPredictedStateT.equals(c._learnPredictedStateT)) return false;
-      if (!_learnPredictedStateT1.equals(c._learnPredictedStateT1)) return false;
-
-      // segments (Note: segmentUpdate order is normally random but
-      // a restored serialized cells4 should have segmentUpdates in
-      // exactly the same order.
-      if (c._segmentUpdates.size() != _segmentUpdates.size()) return false;
-      for (Size i = 0; i < _segmentUpdates.size(); i++) {
-        if (c._segmentUpdates[i] != _segmentUpdates[i])
-          return false;
-      }
-
-    return true;
-  }
-  return false;
 }
