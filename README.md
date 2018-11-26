@@ -1,6 +1,9 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# NuPIC Core [![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp) [![Windows Build status](https://ci.appveyor.com/api/projects/status/nec8cml3n3klxf88/branch/master?svg=true)](https://ci.appveyor.com/project/breznak/nupic-cpp/branch/master) [![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)  [![Coverage Status](https://coveralls.io/repos/github/htm-community/nupic.cpp/badge.svg?branch=master)](https://coveralls.io/github/htm-community/nupic.cpp?branch=master)
+# NuPIC Core 
+[![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp)  
+[![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master) 
+[![Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp)
 
 # Community NuPIC.cpp (former nupic.core) repository
 
@@ -33,13 +36,14 @@ Important notes:
     - Version 2.7
 - [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
     - Version 1.12.1
-- [pycapnp](http://jparyani.github.io/pycapnp/)
-    - Version 0.5.8 (_Linux and OSX only_)
 - [CMake](http://www.cmake.org/)
+- [Boost](https://www.boost.org/users/history/version_1_68_0.html) 
+  - Linux: `apt install libboost-dev`
+  - OSX: `brew install boost --with-filesystem --with-system`
 
 > **Note**: On Windows, Python package dependencies require the following compiler package to be installed: [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-gb/download/details.aspx?id=44266)
 
-The Python dependencies (NumPy and pycapnp) can be installed with `pip`:
+The Python dependencies (NumPy) can be installed with `pip`:
 
     pip install -r bindings/py/requirements.txt
 
@@ -97,7 +101,6 @@ Notes:
 #### Run the tests:
 
     cd $NUPIC_CORE/build/release/bin
-    ./cpp_region_test
     ./unit_tests
     ...
 

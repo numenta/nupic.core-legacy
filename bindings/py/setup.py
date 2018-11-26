@@ -98,7 +98,7 @@ def findRequirements(platform):
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
-    if not line.startswith("#") and (not line.startswith("pycapnp") or includePycapnp)
+    if not line.startswith("#") 
   ]
 
 
@@ -200,11 +200,6 @@ if __name__ == "__main__":
   # Run CMake if extension files are missing.
   getExtensionFiles(platform)
 
-  # Copy the proto files into the proto Python package.
-  destDir = os.path.relpath(os.path.join("src", "nupic", "proto"))
-  for protoPath in glob.glob(os.path.relpath(os.path.join(
-      "..", "..", "src", "nupic", "proto", "*.capnp"))):
-    shutil.copy(protoPath, destDir)
 
   print "\nSetup SWIG Python module"
   setup(
@@ -219,11 +214,9 @@ if __name__ == "__main__":
     namespace_packages=["nupic"],
     install_requires=findRequirements(platform),
     package_data={
-        "nupic.proto": ["*.capnp"],
         "nupic.bindings": ["*.so", "*.pyd"],
-        "nupic.bindings.tools": ["*.capnp"],
     },
-    extras_require = {"capnp": ["pycapnp==0.6.3"]},
+    extras_require = {},
     zip_safe=False,
     cmdclass={
       "clean": CleanCommand,

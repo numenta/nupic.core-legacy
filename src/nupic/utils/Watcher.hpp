@@ -29,6 +29,8 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include <nupic/engine/Output.hpp>
 
@@ -36,35 +38,9 @@ namespace nupic {
 class ArrayBase;
 class Network;
 class Region;
-class OFStream;
+
 
 enum watcherType { parameter, output };
-
-// Contains data specific for each individual parameter
-// to be watched.
-struct watchData {
-  unsigned int watchID; // starts at 1
-  std::string varName;
-  watcherType wType;
-  Output *output;
-  // Need regionName because we create data structure before
-  // we have the actual Network to attach it to.
-  std::string regionName;
-  Region *region;
-  Int64 nodeIndex;
-  NTA_BasicType varType;
-  std::string nodeName;
-  const ArrayBase *array;
-  bool isArray;
-  bool sparseOutput;
-};
-
-// Contains all data needed by the callback function.
-struct allData {
-  OFStream *outStream;
-  std::string fileName;
-  std::vector<watchData> watches;
-};
 
 /*
  * Writes the values of parameters and outputs to a file after each
@@ -94,11 +70,11 @@ public:
   ~Watcher();
 
   // returns watchID
-  unsigned int watchParam(std::string regionName, std::string varName,
+  UInt32 watchParam(std::string regionName, std::string varName,
                           int nodeIndex = -1, bool sparseOutput = true);
 
   // returns watchID
-  unsigned int watchOutput(std::string regionName, std::string varName,
+  UInt32 watchOutput(std::string regionName, std::string varName,
                            bool sparseOutput = true);
 
   // callback function that will be called every time network is run
@@ -111,13 +87,40 @@ public:
   // Detaches the Watcher from the Network so the callback is no longer called
   void detachFromNetwork(Network &);
 
-  // Closes the OFStream.
+  // Closes the Stream.
   void closeFile();
 
-  // Flushes the OFStream.
+  // Flushes the Stream.
   void flushFile();
 
 private:
+
+    // Contains data specific for each individual parameter
+    // to be watched.
+    struct watchData {
+        UInt32 watchID; // starts at 1
+        std::string varName;
+        watcherType wType;
+        Output *output;
+        // Need regionName because we create data structure before
+        // we have the actual Network to attach it to.
+        std::string regionName;
+        Region *region;
+        Int64 nodeIndex;
+        NTA_BasicType varType;
+        std::string nodeName;
+        const ArrayBase *array;
+        bool isArray;
+        bool sparseOutput;
+    };
+
+    // Contains all data needed by the callback function.
+    struct allData {
+        std::ofstream outStream;
+        std::string fileName;
+        std::vector<watchData> watches;
+    };
+
   typedef std::vector<watchData> allWatchData;
 
   // private data structure

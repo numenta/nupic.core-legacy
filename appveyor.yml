@@ -1,6 +1,16 @@
 #---------------------------------#
 #      general configuration      #
 #---------------------------------#
+image:
+- Visual Studio 2017
+  #- Previous Visual Studio 2015
+  #- WMF 5
+configuration: Release
+platform: x64
+
+build:
+  parallel: true
+  verbosity: minimal
 
 # version format
 version: 0.3.0.{build}
@@ -77,15 +87,12 @@ environment:
 matrix:
   allow_failures:
     # Checking if Visual Studio build is possible
-    - NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+    - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
 
 
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
-
-# configuration values must be compatible with CMAKE_BUILD_TYPE: Debug or Release
-configuration: Release
 
 
 install:
@@ -107,6 +114,14 @@ install:
   - set PATH=C:\Program Files\PatchFromGit;%PATH%
 
   - echo %PATH%
+
+  # Install Boost
+  - cd %NUPIC_CORE%
+  - ps: wget -O boost_1_68_0.zip https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
+  - unzip boost_1_68_0.zip
+  - cd boost_1_68_0
+  - bootstrap.bat gcc
+  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static
 
   #
   # Install Wheel, and NumPy
@@ -171,7 +186,6 @@ install:
   # Verify that patch command is available
   - "where patch"
 
-  # Fake KJ-Async and Capnp-RPC libs, not needed in Lite mode
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %NUPIC_CORE%\build\scripts
   - cmake -G "%NC_CMAKE_GENERATOR%"
@@ -205,15 +219,9 @@ after_build:
   # Install nupic.bindings first, because py_region_test.exe depends on it.
   - pip install .\%NUPIC_BINDINGS_WHEEL_NAME%
 
-  # Run legacy binary tests
+  # Run unit_tests (C++)
   - mkdir %ARTIFACTS_DIR%
   - cd %NUPIC_CORE%\build\release\bin
-  - py_region_test.exe
-  - connections_performance_test.exe
-  - cpp_region_test.exe
-  - helloregion.exe
-  - hello_sp_tp.exe
-  - prototest.exe
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests

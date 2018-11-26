@@ -20,20 +20,9 @@
 # ----------------------------------------------------------------------
 
 """Simple custom python region containing an extension-based Random instance
-for use in capnp network serialization test and cyclical serialization
+for use in network serialization test and cyclical serialization
 performance tool.
 """
-
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # PythonDummyRegion_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.bindings.tools.SerializationTestPyRegionProto_capnp import \
-       SerializationTestPyRegionProto
-
 
 from nupic.bindings.math import Random
 from nupic.bindings.regions.PyRegion import PyRegion
@@ -68,40 +57,6 @@ class SerializationTestPyRegion(PyRegion):
   def randomSeed(self):
     return self._rand.getSeed()
 
-
-  @staticmethod
-  def getSchema():
-    """Return the pycapnp proto type that the class uses for serialization.
-
-    This is used to convert the proto into the proper type before passing it
-    into the read or write method of the subclass.
-    """
-    return SerializationTestPyRegionProto
-
-
-  def writeToProto(self, proto):
-    """Write state to proto object.
-
-    The type of proto is determined by getSchema().
-    """
-    proto.dataWidth = self._dataWidth
-    self._rand.write(proto.random)
-
-
-  @classmethod
-  def readFromProto(cls, proto):
-    """Read state from proto object.
-
-    The type of proto is determined by getSchema().
-
-    :returns: Instance of SerializationTestPyRegion initialized from proto
-    """
-    obj = object.__new__(cls)
-    obj._dataWidth = proto.dataWidth
-    obj._rand = Random()
-    obj._rand.read(proto.random)
-
-    return obj
 
 
   def initialize(self, dims=None, splitterMaps=None):

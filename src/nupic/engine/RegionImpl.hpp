@@ -38,10 +38,8 @@
 #include <string>
 #include <vector>
 
-#include <capnp/any.h>
 
 #include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
-#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -55,7 +53,8 @@ class ArrayRef;
 class NodeSet;
 class BundleIO;
 
-class RegionImpl : public Serializable<capnp::AnyPointer> {
+class RegionImpl
+{
 public:
   // All subclasses must call this constructor from their regular constructor
   RegionImpl(Region *region);
@@ -64,9 +63,9 @@ public:
 
   /* ------- Convenience methods  that access region data -------- */
 
-  const std::string &getType() const;
+  std::string getType() const;
 
-  const std::string &getName() const;
+  std::string getName() const;
 
   const NodeSet &getEnabledNodes() const;
 
@@ -125,20 +124,11 @@ public:
   // De-serialize state. Must be called from deserializing constructor
   virtual void deserialize(BundleIO &bundle) = 0;
 
-  // Serialize state with capnp
-  using Serializable::write;
-  virtual void write(capnp::AnyPointer::Builder &anyProto) const = 0;
-
-  // Deserialize state from capnp. Must be called from deserializing
-  // constructor.
-  using Serializable::read;
-  virtual void read(capnp::AnyPointer::Reader &anyProto) = 0;
-
-  /**
-   * Inputs/Outputs are made available in initialize()
-   * It is always called after the constructor (or load from serialized state)
-   */
-  virtual void initialize() = 0;
+    /**
+     * Inputs/Outputs are made available in initialize()
+     * It is always called after the constructor (or load from serialized state)
+     */
+    virtual void initialize() = 0;
 
   // Compute outputs from inputs and internal state
   virtual void compute() = 0;
@@ -197,7 +187,14 @@ public:
   virtual bool isParameterShared(const std::string &name);
 
 protected:
-  Region *region_;
+    // A pointer to the Region object. This is the portion visible
+	// to the applications.  This class and it's subclasses are the
+	// hidden implementations behind the Region class.
+	// Note: this cannot be a shared_ptr. Its pointer is passed via
+	//       the API so it must be a bare pointer so we don't have
+	//       a copy of the shared_ptr held by the Collection in Network.
+	//       This pointer must NOT be deleted.
+    Region* region_;
 
   /* -------- Methods provided by the base class for use by subclasses --------
    */
@@ -211,15 +208,15 @@ protected:
   /// getSerializationXStream a second time automatically closes the
   /// first stream. Any open stream is closed when serialize() returns.
   // ---
-  std::ostream &getSerializationOutputStream(const std::string &name);
-  std::istream &getSerializationInputStream(const std::string &name);
-  std::string getSerializationPath(const std::string &name);
+  //std::ostream &getSerializationOutputStream(const std::string &name);
+  //std::istream &getSerializationInputStream(const std::string &name);
+  //std::string getSerializationPath(const std::string &name);
 
   // These methods provide access to inputs and outputs
   // They raise an exception if the named input or output is
   // not found.
-  const Input *getInput(const std::string &name);
-  const Output *getOutput(const std::string &name);
+  Input *getInput(const std::string &name) const;
+  Output *getOutput(const std::string &name) const;
 
   const Dimensions &getDimensions();
 };

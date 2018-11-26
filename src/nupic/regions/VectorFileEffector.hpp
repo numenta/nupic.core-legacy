@@ -31,12 +31,9 @@
 
 //----------------------------------------------------------------------
 
-#include <capnp/any.h>
-
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/types/Types.h>
 
 namespace nupic {
@@ -82,8 +79,6 @@ public:
 
   VectorFileEffector(BundleIO &bundle, Region *region);
 
-  VectorFileEffector(capnp::AnyPointer::Reader &proto, Region *region);
-
   virtual ~VectorFileEffector();
 
   // ---
@@ -96,11 +91,6 @@ public:
   // ---
   virtual void deserialize(BundleIO &bundle) override;
 
-  using RegionImpl::write;
-  virtual void write(capnp::AnyPointer::Builder &anyProto) const override;
-
-  using RegionImpl::read;
-  virtual void read(capnp::AnyPointer::Reader &anyProto) override;
 
   void compute() override;
 
@@ -111,9 +101,9 @@ private:
   void closeFile();
   void openFile(const std::string &filename);
 
-  ArrayRef dataIn_;
-  std::string filename_;     // Name of the output file
-  nupic::OFStream *outFile_; // Handle to current file
+    ArrayRef dataIn_;
+    std::string filename_;          // Name of the output file
+    std::ofstream *outFile_;        // Handle to current file
 
   /// Disable unsupported default constructors
   VectorFileEffector(const VectorFileEffector &);

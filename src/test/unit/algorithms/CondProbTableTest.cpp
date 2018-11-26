@@ -27,10 +27,6 @@
 #include <fstream>
 #include <nupic/algorithms/CondProbTable.hpp>
 #include <nupic/math/StlIo.hpp>
-// clang-format off
-#include <boost/serialization/array_wrapper.hpp> //FIXME this include is fix for the include below in boost .64, remove later when fixed upstream
-#include <boost/numeric/ublas/storage.hpp>
-// clang-format on
 #include "gtest/gtest.h"
 
 using namespace std;

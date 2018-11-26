@@ -29,8 +29,6 @@
 #include <string>
 #include <vector>
 
-#include <capnp/any.h>
-
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -52,8 +50,6 @@ public:
            const char *className = "");
   PyRegion(const char *module, BundleIO &bundle, Region *region,
            const char *className = "");
-  PyRegion(const char *module, capnp::AnyPointer::Reader &proto, Region *region,
-           const char *className = "");
   virtual ~PyRegion();
 
   // DynamicPythonLibrary functions. Originally used NTA_EXPORT
@@ -65,9 +61,6 @@ public:
   static void *NTA_deserializePyNode(const char *module, void *bundle,
                                      void *region, void **exception,
                                      const char *className = "");
-  static void *NTA_deserializePyNodeProto(const char *module, void *proto,
-                                          void *region, void **exception,
-                                          const char *className = "");
   static const char *NTA_getLastError();
   static void *NTA_createSpec(const char *nodeType, void **exception,
                               const char *className = "");
@@ -77,24 +70,6 @@ public:
   void serialize(BundleIO &bundle) override;
   void deserialize(BundleIO &bundle) override;
 
-  // Capnp serialization methods - not yet implemented for PyRegions. This
-  // method will replace serialize/deserialize once fully implemented
-  // throughout codebase.
-  using RegionImpl::write;
-  /**
-   * Serialize instance to the given message builder
-   *
-   * :param proto: PyRegionProto builder masquerading as AnyPointer builder
-   */
-  void write(capnp::AnyPointer::Builder &proto) const override;
-
-  using RegionImpl::read;
-  /**
-   * Initialize instance from the given message reader
-   *
-   * :param proto: PyRegionProto reader masquerading as AnyPointer reader
-   */
-  void read(capnp::AnyPointer::Reader &proto) override;
 
   const Spec &getSpec();
 
@@ -177,7 +152,7 @@ private:
   std::string module_;
   std::string className_;
   py::Instance node_;
-  std::set<boost::shared_ptr<PyArray<UInt64>>> splitterMaps_;
+  std::set<std::shared_ptr<PyArray<UInt64>>> splitterMaps_;
   // pointers rather than objects because Array doesnt
   // have a default constructor
   std::map<std::string, Array *> inputArrays_;

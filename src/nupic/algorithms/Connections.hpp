@@ -32,9 +32,8 @@
 #include <vector>
 
 #include <nupic/math/Math.hpp>
-#include <nupic/proto/ConnectionsProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -56,17 +55,17 @@ typedef UInt32 Segment;
  * @param flatIdx This synapse's index in flattened lists of all synapses.
  */
 struct Synapse {
-  UInt32 flatIdx;
-
   // Use Synapses as vector indices.
-  operator unsigned long() const { return flatIdx; };
+  operator unsigned long() const { return flatIdx; }; //TODO this is just UInt now, either add more
+  //functionality - SynapseData, SynapseOrdinals; or replace with using Synapse = UInt;
 
+  UInt32 flatIdx;
 private:
   // The flatIdx ordering is not meaningful.
-  bool operator<=(const Synapse &other) const;
-  bool operator<(const Synapse &other) const;
-  bool operator>=(const Synapse &other) const;
-  bool operator>(const Synapse &other) const;
+  bool operator<=(const Synapse &other) const = delete;
+  bool operator<(const Synapse &other) const = delete;
+  bool operator>=(const Synapse &other) const = delete;
+  bool operator>(const Synapse &other) const = delete;
 };
 
 /**
@@ -183,7 +182,8 @@ public:
  * iterate over segments and update the vector at index `segment`.
  *
  */
-class Connections : public Serializable<ConnectionsProto> {
+class Connections : public Serializable
+ {
 public:
   static const UInt16 VERSION = 2;
 
@@ -227,7 +227,8 @@ public:
    *
    * @reval Created synapse.
    */
-  Synapse createSynapse(Segment segment, CellIdx presynapticCell,
+  Synapse createSynapse(Segment segment,
+                        CellIdx presynapticCell,
                         Permanence permanence);
 
   /**
@@ -423,32 +424,14 @@ public:
   /**
    * Saves serialized data to output stream.
    */
-  virtual void save(std::ostream &outStream) const;
+  virtual void save(std::ostream &outStream) const override;
 
-  /**
-   * Writes serialized data to output stream.
-   */
-  using Serializable::write;
-
-  /**
-   * Writes serialized data to proto object.
-   */
-  virtual void write(ConnectionsProto::Builder &proto) const override;
 
   /**
    * Loads serialized data from input stream.
    */
-  virtual void load(std::istream &inStream);
+  virtual void load(std::istream &inStream) override;
 
-  /**
-   * Reads serialized data from input stream.
-   */
-  using Serializable::read;
-
-  /**
-   * Reads serialized data from proto object.
-   */
-  virtual void read(ConnectionsProto::Reader &proto) override;
 
   // Debugging
 

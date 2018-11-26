@@ -30,7 +30,7 @@
 using namespace nupic;
 
 TEST(ValueTest, Scalar) {
-  boost::shared_ptr<Scalar> s(new Scalar(NTA_BasicType_Int32));
+  std::shared_ptr<Scalar> s(new Scalar(NTA_BasicType_Int32));
   s->value.int32 = 10;
   Value v(s);
   ASSERT_TRUE(v.isScalar());
@@ -39,7 +39,7 @@ TEST(ValueTest, Scalar) {
   ASSERT_EQ(Value::scalarCategory, v.getCategory());
   ASSERT_EQ(NTA_BasicType_Int32, v.getType());
 
-  boost::shared_ptr<Scalar> s1 = v.getScalar();
+  std::shared_ptr<Scalar> s1 = v.getScalar();
   ASSERT_TRUE(s1 == s);
 
   ASSERT_ANY_THROW(v.getArray());
@@ -54,7 +54,7 @@ TEST(ValueTest, Scalar) {
 }
 
 TEST(ValueTest, Array) {
-  boost::shared_ptr<Array> s(new Array(NTA_BasicType_Int32));
+  std::shared_ptr<Array> s(new Array(NTA_BasicType_Int32));
   s->allocateBuffer(10);
   Value v(s);
   ASSERT_TRUE(v.isArray());
@@ -63,7 +63,7 @@ TEST(ValueTest, Array) {
   ASSERT_EQ(Value::arrayCategory, v.getCategory());
   ASSERT_EQ(NTA_BasicType_Int32, v.getType());
 
-  boost::shared_ptr<Array> s1 = v.getArray();
+  std::shared_ptr<Array> s1 = v.getArray();
   ASSERT_TRUE(s1 == s);
 
   ASSERT_ANY_THROW(v.getScalar());
@@ -74,7 +74,7 @@ TEST(ValueTest, Array) {
 }
 
 TEST(ValueTest, String) {
-  boost::shared_ptr<std::string> s(new std::string("hello world"));
+  std::string s("hello world");
   Value v(s);
   ASSERT_TRUE(!v.isArray());
   ASSERT_TRUE(v.isString());
@@ -82,8 +82,8 @@ TEST(ValueTest, String) {
   ASSERT_EQ(Value::stringCategory, v.getCategory());
   ASSERT_EQ(NTA_BasicType_Byte, v.getType());
 
-  boost::shared_ptr<std::string> s1 = v.getString();
-  EXPECT_STREQ("hello world", s1->c_str());
+  std::string s1 = v.getString();
+  EXPECT_STREQ("hello world", s1.c_str());
 
   ASSERT_ANY_THROW(v.getScalar());
   ASSERT_ANY_THROW(v.getArray());
@@ -93,10 +93,10 @@ TEST(ValueTest, String) {
 }
 
 TEST(ValueTest, ValueMap) {
-  boost::shared_ptr<Scalar> s(new Scalar(NTA_BasicType_Int32));
+  std::shared_ptr<Scalar> s(new Scalar(NTA_BasicType_Int32));
   s->value.int32 = 10;
-  boost::shared_ptr<Array> a(new Array(NTA_BasicType_Real32));
-  boost::shared_ptr<std::string> str(new std::string("hello world"));
+  std::shared_ptr<Array> a(new Array(NTA_BasicType_Real32));
+  std::string str("hello world");
 
   ValueMap vm;
   vm.add("scalar", s);
@@ -111,13 +111,13 @@ TEST(ValueTest, ValueMap) {
   ASSERT_TRUE(!vm.contains("scalar2"));
   ASSERT_TRUE(!vm.contains("xscalar"));
 
-  boost::shared_ptr<Scalar> s1 = vm.getScalar("scalar");
+  std::shared_ptr<Scalar> s1 = vm.getScalar("scalar");
   ASSERT_TRUE(s1 == s);
 
-  boost::shared_ptr<Array> a1 = vm.getArray("array");
+  std::shared_ptr<Array> a1 = vm.getArray("array");
   ASSERT_TRUE(a1 == a);
 
-  boost::shared_ptr<Scalar> def(new Scalar(NTA_BasicType_Int32));
+  std::shared_ptr<Scalar> def(new Scalar(NTA_BasicType_Int32));
   Int32 x = vm.getScalarT("scalar", (Int32)20);
   ASSERT_EQ((Int32)10, x);
 

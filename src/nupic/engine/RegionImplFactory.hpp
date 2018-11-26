@@ -34,14 +34,11 @@
 #define NTA_REGION_IMPL_FACTORY_HPP
 
 #include <map>
+#include <memory>
 #include <string>
 
-#include <boost/shared_ptr.hpp>
 
-// Workaround windows.h collision:
-// https://github.com/sandstorm-io/capnproto/issues/213
-#undef VOID
-#include <capnp/any.h>
+
 
 namespace nupic {
 
@@ -68,10 +65,6 @@ public:
   RegionImpl *deserializeRegionImpl(const std::string nodeType,
                                     BundleIO &bundle, Region *region);
 
-  // Create a RegionImpl from capnp proto; caller gets ownership.
-  RegionImpl *deserializeRegionImpl(const std::string nodeType,
-                                    capnp::AnyPointer::Reader &proto,
-                                    Region *region);
 
   // Returns nodespec for a specific node type; Factory retains ownership.
   Spec *getSpec(const std::string nodeType);
@@ -112,7 +105,7 @@ private:
   // Using shared_ptr here to ensure the dynamic python library object
   // is deleted when the factory goes away. Can't use scoped_ptr
   // because it is not initialized in the constructor.
-  boost::shared_ptr<DynamicPythonLibrary> pyLib_;
+  std::shared_ptr<DynamicPythonLibrary> pyLib_;
 };
 } // namespace nupic
 

@@ -33,7 +33,6 @@
 #include <set>
 #include <vector>
 
-#include <boost/type_traits.hpp>
 #include <iomanip>
 #include <iostream>
 
@@ -395,7 +394,7 @@ template <typename T> struct vector_loader<T, false> {
  */
 template <typename T>
 inline void vector_load(size_t n, std::istream &in_stream, std::vector<T> &v) {
-  vector_loader<T, boost::is_fundamental<T>::value> loader;
+  vector_loader<T, std::is_fundamental<T>::value > loader;
   loader.load(n, in_stream, v);
 }
 
@@ -482,7 +481,7 @@ template <typename T> struct vector_saver<T, false> {
 template <typename T>
 inline void vector_save(size_t n, std::ostream &out_stream,
                         const std::vector<T> &v) {
-  vector_saver<T, boost::is_fundamental<T>::value> saver;
+  vector_saver<T, std::is_fundamental<T>::value> saver;
   saver.save(n, out_stream, v);
 }
 
@@ -551,11 +550,12 @@ inline std::ostream &operator<<(std::ostream &out_stream,
 
 //--------------------------------------------------------------------------------
 // std::map
+// Warning: This will not handle elements containing whitespace.
 //--------------------------------------------------------------------------------
 template <typename T1, typename T2>
-inline std::ostream &operator<<(std::ostream &out_stream,
-                                const std::map<T1, T2> &m) {
-  out_stream << m.size() << " ";
+  inline std::ostream& operator<<(std::ostream& out_stream, const std::map<T1, T2>& m)
+  {
+    out_stream << "[ " << m.size() << "\n";
 
   typename std::map<T1, T2>::const_iterator it = m.begin(), end = m.end();
 
@@ -563,25 +563,35 @@ inline std::ostream &operator<<(std::ostream &out_stream,
     out_stream << it->first << ' ' << it->second << ' ';
     ++it;
   }
-
+    out_stream << "]\n";
   return out_stream;
 }
 
-//--------------------------------------------------------------------------------
-template <typename T1, typename T2>
-inline std::istream &operator>>(std::istream &in_stream, std::map<T1, T2> &m) {
-  int size = 0;
-  in_stream >> size;
+  //--------------------------------------------------------------------------------
+  template <typename T1, typename T2>
+  inline std::istream& operator>>(std::istream& in_stream, std::map<T1, T2>& m)
+  {
+    std::string tag;
+    size_t size = 0;
 
-  for (int i = 0; i != size; ++i) {
-    T1 k;
-    T2 v;
-    in_stream >> k >> v;
-    m.insert(std::make_pair(k, v));
+    in_stream >> tag;
+    NTA_CHECK(tag == "[");
+    in_stream >> size;
+
+    m.clear();
+    for (size_t i = 0; i != size; ++i) {
+      T1 k; T2 v;
+      in_stream >> k >> v;
+      m.insert(std::make_pair(k, v));
+    }
+    in_stream >> tag;
+    NTA_CHECK(tag == "]") << "Expected a closing ']' after map object.";
+    in_stream.ignore(1);
+
+    return in_stream;
   }
 
-  return in_stream;
-}
+
 
 //--------------------------------------------------------------------------------
 // MISCELLANEOUS

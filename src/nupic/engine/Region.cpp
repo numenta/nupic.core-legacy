@@ -29,6 +29,11 @@ Methods related to inputs and outputs are in Region_io.cpp
 */
 
 #include <iostream>
+#include <regex>
+#include <set>
+#include <stdexcept>
+#include <string>
+
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Output.hpp>
@@ -36,13 +41,10 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/NodeSet.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/proto/RegionProto.capnp.h>
 #include <nupic/utils/Log.hpp>
-#include <set>
-#include <stdexcept>
-#include <string>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/ntypes/NodeSet.hpp>
 
 namespace nupic {
 
@@ -69,39 +71,15 @@ Region::Region(std::string name, const std::string &nodeType,
   createInputsAndOutputs_();
 }
 
-// Deserialize region
-Region::Region(std::string name, const std::string &nodeType,
-               const Dimensions &dimensions, BundleIO &bundle, Network *network)
-    : name_(std::move(name)), type_(nodeType), initialized_(false),
-      enabledNodes_(nullptr), network_(network), profilingEnabled_(false) {
-  // Set region info before creating the RegionImpl so that the
-  // Impl has access to the region info in its constructor.
-  RegionImplFactory &factory = RegionImplFactory::getInstance();
-  spec_ = factory.getSpec(nodeType);
+Region::Region(Network *net) {
+      network_ = net;
+      spec_ = nullptr;
+      impl_ = nullptr;
+      initialized_ = false;
+      profilingEnabled_ = false;
+	  enabledNodes_ = nullptr;
+    } // for deserialization of region.
 
-  // Dimensions start off as unspecified, but if
-  // the RegionImpl only supports a single node, we
-  // can immediately set the dimensions.
-  if (spec_->singleNodeOnly)
-    if (!dimensions.isDontcare() && !dimensions.isUnspecified() &&
-        !dimensions.isOnes())
-      NTA_THROW << "Attempt to deserialize region of type " << nodeType
-                << " with dimensions " << dimensions
-                << " but region supports exactly one node.";
-
-  dims_ = dimensions;
-
-  impl_ = factory.deserializeRegionImpl(nodeType, bundle, this);
-  createInputsAndOutputs_();
-}
-
-Region::Region(std::string name, RegionProto::Reader &proto, Network *network)
-    : name_(std::move(name)), type_(proto.getNodeType().cStr()),
-      initialized_(false), enabledNodes_(nullptr), network_(network),
-      profilingEnabled_(false) {
-  read(proto);
-  createInputsAndOutputs_();
-}
 
 Network *Region::getNetwork() { return network_; }
 
@@ -141,22 +119,28 @@ bool Region::hasOutgoingLinks() const {
 }
 
 Region::~Region() {
-  // If there are any links connected to our outputs, this will fail.
-  // We should catch this error in the Network class and give the
+  if (initialized_)
+    uninitialize();
+
+  // If there are any links connected to our outputs, this should fail.
+  // We catch this error in the Network class and give the
   // user a good error message (regions may be removed either in
   // Network::removeRegion or Network::~Network())
   for (auto &elem : outputs_) {
     delete elem.second;
     elem.second = nullptr;
   }
+  outputs_.clear();
 
   for (auto &elem : inputs_) {
-    delete elem.second;
+    delete elem.second; // This is an Input object. Its destructor deletes the links.
     elem.second = nullptr;
   }
+  inputs_.clear();
 
-  delete impl_;
-  delete enabledNodes_;
+  if (impl_)
+  	delete impl_;
+
 }
 
 void Region::initialize() {
@@ -168,13 +152,6 @@ void Region::initialize() {
   initialized_ = true;
 }
 
-bool Region::isInitialized() const { return initialized_; }
-
-const std::string &Region::getName() const { return name_; }
-
-const std::string &Region::getType() const { return type_; }
-
-const Spec *Region::getSpec() const { return spec_; }
 
 const Spec *Region::getSpecFromType(const std::string &nodeType) {
   RegionImplFactory &factory = RegionImplFactory::getInstance();
@@ -291,9 +268,11 @@ size_t Region::getNodeOutputElementCount(const std::string &name) {
 }
 
 void Region::initOutputs() {
+  // Called by Network during initialization.
   // Some outputs are optional. These outputs will have 0 elementCount in the
   // node spec and also return 0 from impl->getNodeOutputElementCount(). These
-  // outputs still appear in the output map, but with an array size of 0.
+  // outputs still appear in the output map, but with an array size of 0. All
+  // other outputs we initialize to size determined by spec or by impl.
 
   for (auto &elem : outputs_) {
     const std::string &name = elem.first;
@@ -386,40 +365,100 @@ void Region::setPhases(std::set<UInt32> &phases) { phases_ = phases; }
 
 std::set<UInt32> &Region::getPhases() { return phases_; }
 
-void Region::serializeImpl(BundleIO &bundle) { impl_->serialize(bundle); }
 
-void Region::write(RegionProto::Builder &proto) const {
-  auto dimensionsProto = proto.initDimensions(dims_.size());
-  for (UInt i = 0; i < dims_.size(); ++i) {
-    dimensionsProto.set(i, dims_[i]);
-  }
-  auto phasesProto = proto.initPhases(phases_.size());
-  UInt i = 0;
-  for (auto elem : phases_) {
-    phasesProto.set(i++, elem);
-  }
-  proto.setNodeType(type_.c_str());
-  auto implProto = proto.getRegionImpl();
-  impl_->write(implProto);
+void Region::save(std::ostream &f) const {
+      f << "{\n";
+      f << "name: " << name_ << "\n";
+      f << "nodeType: " << type_ << "\n";
+	  f << "dimensions: [ " << dims_.size() << "\n";
+	  for (Size d : dims_) {
+	  	f << d << " ";
+	  }
+	  f << "]\n";
+
+      f << "phases: [ " << phases_.size() << "\n";
+      for (const auto &phases_phase : phases_) {
+        f << phases_phase << " ";
+      }
+      f << "]\n";
+      f << "RegionImpl:\n";
+      // Now serialize the RegionImpl plugin.
+      BundleIO bundle(&f);
+      impl_->serialize(bundle);
+
+      f << "}\n";
 }
 
-void Region::read(RegionProto::Reader &proto) {
-  dims_.clear();
-  for (auto elem : proto.getDimensions()) {
-    dims_.push_back(elem);
-  }
+void Region::load(std::istream &f) {
+  char bigbuffer[5000];
+  std::string tag;
+  Size count;
 
+  // Each region is a map -- extract the 4 values in the map
+  f >> tag;
+  NTA_CHECK(tag == "{") << "bad region entry (not a map)";
+
+  // 1. name
+  f >> tag;
+  NTA_CHECK(tag == "name:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  name_ = bigbuffer;
+
+  // 2. nodeType
+  f >> tag;
+  NTA_CHECK(tag == "nodeType:");
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  type_ = bigbuffer;
+  // 3. dimensions
+  f >> tag;
+  NTA_CHECK(tag == "dimensions:");
+  f >> tag;
+  NTA_CHECK(tag == "[") << "Expecting a sequence.";
+  f >> count;
+  for (size_t i = 0; i < count; i++)
+  {
+  Size val;
+  f >> val;
+    dims_.push_back(val);
+  }
+  f >> tag;
+  NTA_CHECK(tag == "]") << "Expecting end of a sequence.";
+
+  // 3. phases
+  f >> tag;
+  NTA_CHECK(tag == "phases:");
+  f >> tag;
+  NTA_CHECK(tag == "[") << "Expecting a sequence.";
+  f >> count;
   phases_.clear();
-  for (auto elem : proto.getPhases()) {
-    phases_.insert(elem);
+  for (Size i = 0; i < count; i++)
+  {
+    UInt32 val;
+    f >> val;
+    phases_.insert(val);
   }
+  f >> tag;
+  NTA_CHECK(tag == "]") << "Expected end of sequence of phases.";
 
-  auto implProto = proto.getRegionImpl();
+  // 4. impl
+  f >> tag;
+  NTA_CHECK(tag == "RegionImpl:") << "Expected beginning of RegionImpl.";
+  f.ignore(1);
+
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   spec_ = factory.getSpec(type_);
-  impl_ = factory.deserializeRegionImpl(proto.getNodeType().cStr(), implProto,
-                                        this);
+  createInputsAndOutputs_();
+
+  BundleIO bundle(&f);
+  impl_ = factory.deserializeRegionImpl(type_, bundle, this);
+
+  f >> tag;
+  NTA_CHECK(tag == "}") << "Expected end of region. Found '" << tag << "'.";
 }
+
+
 
 void Region::enableProfiling() { profilingEnabled_ = true; }
 
@@ -487,6 +526,6 @@ bool Region::operator==(const Region &o) const {
   }
 
   return true;
-} // namespace nupic
+}
 
 } // namespace nupic

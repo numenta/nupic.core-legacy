@@ -30,36 +30,27 @@
 #include <stdexcept>
 #include <string>
 
-#include <capnp/any.h>
-
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
-#include <nupic/os/FStream.hpp>
 #include <nupic/regions/VectorFileEffector.hpp>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
-VectorFileEffector::VectorFileEffector(const ValueMap &params, Region *region)
+VectorFileEffector::VectorFileEffector(const ValueMap &params, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {
   if (params.contains("outputFile"))
-    filename_ = *params.getString("outputFile");
+    filename_ = params.getString("outputFile");
   else
     filename_ = "";
 }
 
-VectorFileEffector::VectorFileEffector(BundleIO &bundle, Region *region)
+VectorFileEffector::VectorFileEffector(BundleIO &bundle, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {}
 
-VectorFileEffector::VectorFileEffector(capnp::AnyPointer::Reader &proto,
-                                       Region *region)
-    : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
-      outFile_(nullptr) {
-  read(proto);
-}
 
 VectorFileEffector::~VectorFileEffector() { closeFile(); }
 
@@ -95,7 +86,7 @@ void VectorFileEffector::compute() {
 
   Real *inputVec = (Real *)(dataIn_.getBuffer());
   NTA_CHECK(inputVec != nullptr);
-  OFStream &outFile = *outFile_;
+  std::ofstream &outFile = *outFile_;
   for (Size offset = 0; offset < dataIn_.getCount(); ++offset) {
     // TBD -- could be very inefficient to do one at a time
     outFile << inputVec[offset] << " ";
@@ -118,8 +109,9 @@ void VectorFileEffector::openFile(const std::string &filename) {
   if (filename == "")
     return;
 
-  outFile_ = new OFStream(filename.c_str(), std::ios::app);
-  if (outFile_->fail()) {
+  outFile_ = new std::ofstream(filename.c_str(), std::ios::app);
+  if (outFile_->fail())
+  {
     delete outFile_;
     outFile_ = nullptr;
     NTA_THROW
@@ -245,10 +237,5 @@ void VectorFileEffector::serialize(BundleIO &bundle) { return; }
 
 void VectorFileEffector::deserialize(BundleIO &bundle) { return; }
 
-void VectorFileEffector::write(capnp::AnyPointer::Builder &anyProto) const {
-  return;
-}
-
-void VectorFileEffector::read(capnp::AnyPointer::Reader &anyProto) { return; }
 
 } // namespace nupic

@@ -29,17 +29,17 @@
 
 using namespace nupic;
 
-Value::Value(boost::shared_ptr<Scalar> &s) {
+Value::Value(std::shared_ptr<Scalar> &s) {
   category_ = scalarCategory;
   scalar_ = s;
 }
 
-Value::Value(boost::shared_ptr<Array> &a) {
+Value::Value(std::shared_ptr<Array> &a) {
   category_ = arrayCategory;
   array_ = a;
 }
 
-Value::Value(boost::shared_ptr<std::string> &s) {
+Value::Value(const std::string& s) {
   category_ = stringCategory;
   string_ = s;
 }
@@ -65,17 +65,17 @@ NTA_BasicType Value::getType() const {
   }
 }
 
-boost::shared_ptr<Scalar> Value::getScalar() const {
+std::shared_ptr<Scalar> Value::getScalar() const {
   NTA_CHECK(category_ == scalarCategory);
   return scalar_;
 }
 
-boost::shared_ptr<Array> Value::getArray() const {
+std::shared_ptr<Array> Value::getArray() const {
   NTA_CHECK(category_ == arrayCategory);
   return array_;
 }
 
-boost::shared_ptr<std::string> Value::getString() const {
+std::string Value::getString() const {
   NTA_CHECK(category_ == stringCategory);
   return string_;
 }
@@ -93,15 +93,13 @@ template <typename T> T Value::getScalarT() const {
 const std::string Value::getDescription() const {
   switch (category_) {
   case stringCategory:
-    return std::string("string") + " (" + *string_ + ")";
+    return std::string("string") + " (" + string_ + ")";
     break;
   case scalarCategory:
-    return std::string("Scalar of type ") +
-           BasicType::getName(scalar_->getType());
+    return std::string("Scalar of type ") + BasicType::getName(scalar_->getType());
     break;
   case arrayCategory:
-    return std::string("Array of type ") +
-           BasicType::getName(array_->getType());
+    return std::string("Array of type ") +  BasicType::getName(array_->getType());
     break;
   }
   return "NOT REACHED";
@@ -197,7 +195,7 @@ T ValueMap::getScalarT(const std::string &key, T defaultValue) const {
 }
 
 template <typename T> T ValueMap::getScalarT(const std::string &key) const {
-  boost::shared_ptr<Scalar> s = getScalar(key);
+  std::shared_ptr<Scalar> s = getScalar(key);
   if (s->getType() != BasicType::getType<T>()) {
     NTA_THROW << "Invalid attempt to access parameter '" << key << "' of type "
               << BasicType::getName(s->getType()) << " as a scalar of type "
@@ -207,7 +205,7 @@ template <typename T> T ValueMap::getScalarT(const std::string &key) const {
   return s->getValue<T>();
 }
 
-boost::shared_ptr<Array> ValueMap::getArray(const std::string &key) const {
+std::shared_ptr<Array> ValueMap::getArray(const std::string &key) const {
   Value &v = getValue(key);
   if (!v.isArray()) {
     NTA_THROW << "Attempt to access element '" << key
@@ -217,7 +215,7 @@ boost::shared_ptr<Array> ValueMap::getArray(const std::string &key) const {
   return v.getArray();
 }
 
-boost::shared_ptr<Scalar> ValueMap::getScalar(const std::string &key) const {
+std::shared_ptr<Scalar> ValueMap::getScalar(const std::string &key) const {
   Value &v = getValue(key);
   if (!v.isScalar()) {
     NTA_THROW << "Attempt to access element '" << key
@@ -227,16 +225,31 @@ boost::shared_ptr<Scalar> ValueMap::getScalar(const std::string &key) const {
   return v.getScalar();
 }
 
-boost::shared_ptr<std::string>
-ValueMap::getString(const std::string &key) const {
-  Value &v = getValue(key);
-  if (!v.isString()) {
+std::string ValueMap::getString(const std::string& key) const {
+  Value& v = getValue(key);
+  if (! v.isString())
+  {
     NTA_THROW << "Attempt to access element '" << key
               << "' of value map as a string but it is a '"
               << v.getDescription();
   }
   return v.getString();
 }
+std::string ValueMap::getString(const std::string &key, const std::string defaultValue) const {
+  auto item = map_.find(key);
+  if (item == map_.end()) {
+    return defaultValue;
+  } else {
+    Value &v = getValue(key);
+    if (!v.isString()) {
+      NTA_THROW << "Attempt to access element '" << key
+                << "' of value map as a string but it is a '"
+                << v.getDescription();
+    }
+    return v.getString();
+  }
+}
+
 
 // explicit instantiations of getScalarT
 namespace nupic {

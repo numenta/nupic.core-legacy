@@ -27,17 +27,31 @@
 using namespace nupic::algorithms::Cells4;
 
 SegmentUpdate::SegmentUpdate()
-    : _sequenceSegment(false), _cellIdx((UInt)-1), _segIdx((UInt)-1),
-      _timeStamp((UInt)-1), _synapses(), _phase1Flag(false),
-      _weaklyPredicting(false) {}
+  : _sequenceSegment(false),
+    _cellIdx((UInt) -1),
+    _segIdx((UInt) -1),
+    _timeStamp((UInt) -1),
+    _synapses(),
+    _phase1Flag(false),
+    _weaklyPredicting(false)
+{}
 
-SegmentUpdate::SegmentUpdate(UInt cellIdx, UInt segIdx, bool sequenceSegment,
-                             UInt timeStamp, std::vector<UInt> synapses,
-                             bool phase1Flag, bool weaklyPredicting,
-                             Cells4 *cells)
-    : _sequenceSegment(sequenceSegment), _cellIdx(cellIdx), _segIdx(segIdx),
-      _timeStamp(timeStamp), _synapses(std::move(synapses)),
-      _phase1Flag(phase1Flag), _weaklyPredicting(weaklyPredicting) {
+SegmentUpdate::SegmentUpdate(UInt cellIdx,
+                             UInt segIdx,
+                             bool sequenceSegment,
+							 UInt timeStamp,
+                             std::vector<UInt>  synapses,
+                             bool phase1Flag,
+                             bool weaklyPredicting,
+                             Cells4* cells)
+  : _sequenceSegment(sequenceSegment),
+    _cellIdx(cellIdx),
+    _segIdx(segIdx),
+    _timeStamp(timeStamp),
+    _synapses(std::move(synapses)),
+    _phase1Flag(phase1Flag),
+    _weaklyPredicting(weaklyPredicting)
+{
   NTA_ASSERT(invariants(cells));
 }
 
@@ -79,15 +93,7 @@ bool SegmentUpdate::invariants(Cells4 *cells) const {
  * Serialized segmentUpdates against the original they will
  * be in exactly the same sequence.
  */
-bool SegmentUpdate::equals(const SegmentUpdate& s) const
-{
-  if (s._cellIdx != _cellIdx) return false;
-  if (s._segIdx != _segIdx) return false;
-  if (s._sequenceSegment != _sequenceSegment) return false;
-  if (s._timeStamp != _timeStamp) return false;
-  if (s._phase1Flag != _phase1Flag) return false;
-  if (s._weaklyPredicting != _weaklyPredicting) return false;
-
+bool SegmentUpdate::operator==(const SegmentUpdate &o) const {
   // synapses
   if (s._synapses.size() != _synapses.size()) return false;
   for (Size synIdx1 = 1; synIdx1 < _synapses.size(); synIdx1++)

@@ -581,10 +581,10 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
     default:
       break;
     }
-  } catch (nupic::Exception e) {
+  } catch (nupic::Exception &e) {
     NTA_THROW << "Error Converting Array from " << BasicType::getName(fromType)
               << " to " << BasicType::getName(toType) << " " << e.getMessage();
-  } catch (std::exception e) {
+  } catch (std::exception &e) {
     NTA_THROW << "Error Converting Array from " << BasicType::getName(fromType)
               << " to " << BasicType::getName(toType) << " " << e.what();
   }

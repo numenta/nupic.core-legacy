@@ -80,6 +80,8 @@ class PyRegion(object):
   * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.setParameter`
   * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.setParameterArray`
   * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getOutputElementCount`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.read`
+  * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.write`
 
   The :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSpec` is a class
   method, which is actually required but since
@@ -323,66 +325,6 @@ class PyRegion(object):
     """
     pass
 
-
-  @staticmethod
-  def getSchema():
-    """Return the pycapnp proto type that the class uses for serialization.
-
-    This is used to convert the proto into the proper type before passing it
-    into the read or write method of the subclass.
-
-    :returns: PyRegionProto prototype object
-    :raises: NotImplementedError if function is not implemented in subclass
-    """
-    raise NotImplementedError()
-
-
-  def write(self, proto):
-    """
-    Calls :meth:`~nupic.bindings.regions.PyRegion.PyRegion.writeToProto`
-    on subclass after converting proto to specific type using
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
-
-    :param proto: PyRegionProto capnproto object
-    """
-    regionImpl = proto.regionImpl.as_struct(self.getSchema())
-    self.writeToProto(regionImpl)
-
-
-  @classmethod
-  def read(cls, proto):
-    """
-    Calls :meth:`~nupic.bindings.regions.PyRegion.PyRegion.readFromProto`
-    on subclass after converting proto to specific type using
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
-
-    :param proto: PyRegionProto capnproto object
-    """
-    regionImpl = proto.regionImpl.as_struct(cls.getSchema())
-    return cls.readFromProto(regionImpl)
-
-
-  def writeToProto(self, proto):
-    """Write state to proto object.
-
-    The type of proto is determined by
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
-
-    :raises: NotImplementedError if function is not implemented in subclass
-    """
-    raise NotImplementedError()
-
-
-  @classmethod
-  def readFromProto(cls, proto):
-    """Read state from proto object.
-
-    The type of proto is determined by
-    :meth:`~nupic.bindings.regions.PyRegion.PyRegion.getSchema`.
-
-    :raises: NotImplementedError if function is not implemented in subclass
-    """
-    raise NotImplementedError()
 
 
   def executeMethod(self, methodName, args):

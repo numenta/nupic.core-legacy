@@ -111,8 +111,6 @@ TEST(NetworkTest, InitializationNoRegions) {
   Region *l1 = net.addRegion("level1", "TestNode", "");
 
   // Region does not yet have dimensions -- prevents network initialization
-  EXPECT_THROW(net.initialize(), std::exception);
-  EXPECT_THROW(net.run(1), std::exception);
 
   Dimensions d;
   d.push_back(4);
@@ -125,9 +123,9 @@ TEST(NetworkTest, InitializationNoRegions) {
   net.run(1);
 
   Region *l2 = net.addRegion("level2", "TestNode", "");
-  EXPECT_THROW(net.initialize(), std::exception);
-  EXPECT_THROW(net.run(1), std::exception);
-
+  EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
+  EXPECT_THROW(net.run(1), std::exception) << "no dimensions";
+  EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
   l2->setDimensions(d);
   net.run(1);
 }
@@ -177,8 +175,6 @@ TEST(NetworkTest, Modification) {
   ASSERT_EQ((UInt32)1, regions.getCount());
   EXPECT_THROW(regions.getByName("level2"), std::exception);
 
-  // network requires initialization, but this will auto-initialize
-  net.run(1);
 
   ASSERT_TRUE(l1 == regions.getByName("level1"));
   l2 = net.addRegion("level2", "TestNode", "");

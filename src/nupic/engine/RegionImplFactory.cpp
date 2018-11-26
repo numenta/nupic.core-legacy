@@ -22,7 +22,6 @@
 
 #include <stdexcept>
 
-#include <capnp/any.h>
 
 #include <nupic/encoders/ScalarSensor.hpp>
 #include <nupic/engine/Region.hpp>
@@ -134,8 +133,6 @@ public:
     finalizePython_ = (finalizePythonFunc)PyRegion::NTA_finalizePython;
     createPyNode_ = (createPyNodeFunc)PyRegion::NTA_createPyNode;
     deserializePyNode_ = (deserializePyNodeFunc)PyRegion::NTA_deserializePyNode;
-    deserializePyNodeProto_ =
-        (deserializePyNodeProtoFunc)PyRegion::NTA_deserializePyNodeProto;
     createSpec_ = (createSpecFunc)PyRegion::NTA_createSpec;
     destroySpec_ = (destroySpecFunc)PyRegion::NTA_destroySpec;
 
@@ -173,26 +170,18 @@ public:
         reinterpret_cast<void *>(region), exception, className.c_str());
   }
 
-  void *deserializePyNodeProto(const std::string &nodeType,
-                               capnp::AnyPointer::Reader *proto, Region *region,
-                               void **exception, const std::string &className) {
-    return (*deserializePyNodeProto_)(
-        nodeType.c_str(), reinterpret_cast<void *>(proto),
-        reinterpret_cast<void *>(region), exception, className.c_str());
-  }
 
   const std::string &getRootDir() const { return rootDir_; }
 
 private:
   std::string rootDir_;
-  boost::shared_ptr<DynamicLibrary> pynodeLibrary_;
+  std::shared_ptr<DynamicLibrary> pynodeLibrary_;
   initPythonFunc initPython_;
   finalizePythonFunc finalizePython_;
   createSpecFunc createSpec_;
   destroySpecFunc destroySpec_;
   createPyNodeFunc createPyNode_;
   deserializePyNodeFunc deserializePyNode_;
-  deserializePyNodeProtoFunc deserializePyNodeProto_;
 };
 
 RegionImplFactory &RegionImplFactory::getInstance() {
@@ -264,30 +253,6 @@ static RegionImpl *deserializePyNode(DynamicPythonLibrary *pyLib,
   return nullptr;
 }
 
-static RegionImpl *deserializePyNode(DynamicPythonLibrary *pyLib,
-                                     const std::string &nodeType,
-                                     capnp::AnyPointer::Reader &proto,
-                                     Region *region) {
-  std::string className(nodeType.c_str() + 3);
-  for (auto pyr = pyRegions.begin(); pyr != pyRegions.end(); pyr++) {
-    const std::string module = pyr->first;
-    std::set<std::string> classes = pyr->second;
-
-    // This module contains the class
-    if (classes.find(className) != classes.end()) {
-      void *exception = nullptr;
-      void *node = pyLib->deserializePyNodeProto(module, &proto, region,
-                                                 &exception, className);
-      if (node) {
-        return static_cast<RegionImpl *>(node);
-      }
-    }
-  }
-
-  NTA_THROW << "Unable to deserialize region " << region->getName()
-            << " of type " << className;
-  return nullptr;
-}
 
 RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
                                                 const std::string nodeParams,
@@ -302,8 +267,7 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
     impl = cppRegions[nodeType]->createRegionImpl(vm, region);
   } else if ((nodeType.find(std::string("py.")) == 0)) {
     if (!pyLib_)
-      pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+      pyLib_ = std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     impl = createPyNode(pyLib_.get(), nodeType, &vm, region);
   } else {
@@ -323,8 +287,7 @@ RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
     impl = cppRegions[nodeType]->deserializeRegionImpl(bundle, region);
   } else if (StringUtils::startsWith(nodeType, "py.")) {
     if (!pyLib_)
-      pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+      pyLib_ = std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     impl = deserializePyNode(pyLib_.get(), nodeType, bundle, region);
   } else {
@@ -333,25 +296,6 @@ RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
   return impl;
 }
 
-RegionImpl *
-RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
-                                         capnp::AnyPointer::Reader &proto,
-                                         Region *region) {
-  RegionImpl *impl = nullptr;
-
-  if (cppRegions.find(nodeType) != cppRegions.end()) {
-    impl = cppRegions[nodeType]->deserializeRegionImpl(proto, region);
-  } else if (StringUtils::startsWith(nodeType, "py.")) {
-    if (!pyLib_)
-      pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
-
-    impl = deserializePyNode(pyLib_.get(), nodeType, proto, region);
-  } else {
-    NTA_THROW << "Unsupported node type '" << nodeType << "'";
-  }
-  return impl;
-}
 
 // This function returns the node spec of a NuPIC 2 or NuPIC 1 Python node
 static Spec *getPySpec(DynamicPythonLibrary *pyLib,
@@ -392,7 +336,7 @@ Spec *RegionImplFactory::getSpec(const std::string nodeType) {
   } else if (nodeType.find(std::string("py.")) == 0) {
     if (!pyLib_)
       pyLib_ =
-          boost::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
+          std::shared_ptr<DynamicPythonLibrary>(new DynamicPythonLibrary());
 
     ns = getPySpec(pyLib_.get(), nodeType);
   } else {

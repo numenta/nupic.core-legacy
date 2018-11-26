@@ -167,6 +167,8 @@ enum LogLevel {
 
 #ifdef SWIG
 #undef NTA_INTERNAL
+#else
+#define NTA_INTERNAL 1
 #endif // SWIG
 
 #endif // NTA_TYPES_HPP

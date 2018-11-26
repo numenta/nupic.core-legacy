@@ -33,7 +33,7 @@
 #include <iomanip>
 #include <vector>
 
-#include <boost/unordered_set.hpp>
+#include <unordered_set>
 
 #include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/math/Math.hpp>
@@ -41,8 +41,6 @@
 #include <nupic/math/Utils.hpp>
 #include <nupic/ntypes/MemParser.hpp>
 #include <nupic/ntypes/MemStream.hpp>
-#include <nupic/proto/SparseMatrixProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -114,10 +112,11 @@ struct SparseMatrixAlgorithms;
 template <typename UI = nupic::UInt32, typename Real_stor = nupic::Real32,
           typename I = nupic::Int32, typename Real_prec = nupic::Real64,
           typename DTZ = nupic::DistanceToZero<Real_stor>>
-class SparseMatrix : public Serializable<SparseMatrixProto> {
+class SparseMatrix
+{
   // TODO find boost config flag to enable ullong as UnsignedInteger
   // BOOST_CLASS_REQUIRE(UI, boost, UnsignedIntegerConcept);
-  BOOST_CLASS_REQUIRE(I, boost, SignedIntegerConcept);
+  // BOOST_CLASS_REQUIRE(I, boost, SignedIntegerConcept);
 
 public:
   typedef UI size_type;              // unsigned integral for sizes
@@ -2978,54 +2977,6 @@ public:
     return out;
   }
 
-  /**
-   * Write to a Cap'n Proto object.
-   */
-  using Serializable::write;
-
-  inline void write(SparseMatrixProto::Builder &proto) const {
-    proto.setNumRows(nrows_);
-    proto.setNumColumns(ncols_);
-
-    auto protoRows = proto.initRows(nrows_);
-    for (UInt i = 0; i < nrows_; ++i) {
-      std::vector<std::pair<UInt32, Real32>> row(nNonZerosOnRow(i));
-      getRowToSparse(i, row.begin());
-
-      auto protoRow = protoRows[i].initValues(row.size());
-
-      for (UInt j = 0; j < row.size(); ++j) {
-        auto pair = protoRow[j];
-        pair.setIndex(row[j].first);
-        pair.setValue(row[j].second);
-      }
-    }
-  }
-
-  /**
-   * Read from a Cap'n Proto object.
-   */
-  using Serializable::read;
-
-  inline void read(SparseMatrixProto::Reader &proto) {
-    auto nrows = proto.getNumRows();
-    auto ncols = proto.getNumColumns();
-    resize(nrows, ncols);
-
-    auto rows = proto.getRows();
-    for (UInt i = 0; i < nrows; ++i) {
-      auto row = rows[i].getValues();
-      std::vector<UInt32> rowIndices(row.size());
-      std::vector<Real32> rowValues(row.size());
-      for (UInt j = 0; j < row.size(); ++j) {
-        auto sparseFloat = row[j];
-        rowIndices[j] = sparseFloat.getIndex();
-        rowValues[j] = sparseFloat.getValue();
-      }
-      setRowFromSparse(i, rowIndices.begin(), rowIndices.end(),
-                       rowValues.begin());
-    }
-  }
 
   /**
    * Reads this SparseMatrix from binary representation.
@@ -4500,7 +4451,7 @@ public:
         }
       }
 
-      const size_type nnzr = indb_it - indb_;
+      const size_type nnzr = static_cast<size_type>(indb_it - indb_);
 
       if (nnzr > nnzr_[*row]) {
         // It changed. Commit the changes.
@@ -4699,7 +4650,7 @@ public:
 
     for (InputIterator1 row = row_begin; row != row_end; ++row) {
       size_type numZeros = nZerosInRowOnColumns_(*row, col_begin, col_end);
-      difference_type numNonZeros = (col_end - col_begin) - numZeros;
+      difference_type numNonZeros = (difference_type)((col_end - col_begin) - (Int64)numZeros);
       size_type numDesiredNewNonZeros = (size_type)std::max(
           (difference_type)0,
           (difference_type)(numDesiredNonzeros - numNonZeros));
@@ -5441,7 +5392,7 @@ public:
       // check that column indices in strictly increasing order
     }
 
-    boost::unordered_set<size_type> skip(it, end);
+    std::unordered_set<size_type> skip(it, end);
 
     ITERATE_ON_ALL_ROWS {
       size_type k = 0;

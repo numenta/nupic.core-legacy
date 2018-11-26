@@ -28,8 +28,6 @@
 #include <memory>
 #include <sstream>
 
-#include <capnp/any.h>
-
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
@@ -40,10 +38,8 @@
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/os/Path.hpp>
-#include <nupic/proto/PyRegionProto.capnp.h>
 #include <nupic/py_support/NumpyArrayObject.hpp>
 #include <nupic/py_support/PyArray.hpp>
-#include <nupic/py_support/PyCapnp.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -121,25 +117,6 @@ void *PyRegion::NTA_deserializePyNode(const char *module, void *bundle,
   }
 }
 
-void *PyRegion::NTA_deserializePyNodeProto(const char *module, void *proto,
-                                           void *region, void **exception,
-                                           const char *className) {
-  try {
-    NTA_CHECK(region != NULL);
-
-    Region *r = static_cast<nupic::Region *>(region);
-    capnp::AnyPointer::Reader *c =
-        static_cast<capnp::AnyPointer::Reader *>(proto);
-    RegionImpl *p = NULL;
-    p = new PyRegion(module, *c, r, className);
-    return p;
-  } catch (nupic::Exception &e) {
-    *exception = new nupic::Exception(e);
-    return NULL;
-  } catch (...) {
-    return NULL;
-  }
-}
 
 // getLastError() returns the last error message
 const char *PyRegion::NTA_getLastError() { return lastError; }
@@ -226,7 +203,7 @@ static PyObject *makePyValue(const Value &v) {
     return array2numpy(*(v.getArray().get()));
 
   if (v.isString()) {
-    return py::String(*(v.getString().get())).release();
+    return py::String(v.getString()).release();
   }
 
   switch (v.getType()) {
@@ -304,13 +281,6 @@ PyRegion::PyRegion(const char *module, BundleIO &bundle, Region *region,
   // XXX ADD CHECK TO MAKE SURE THE TYPE MATCHES!
 }
 
-PyRegion::PyRegion(const char *module, capnp::AnyPointer::Reader &proto,
-                   Region *region, const char *className)
-    : RegionImpl(region), module_(module), className_(className) {
-  NTA_CHECK(region != NULL);
-
-  read(proto);
-}
 
 PyRegion::~PyRegion() {
   for (std::map<std::string, Array *>::iterator i = inputArrays_.begin();
@@ -321,199 +291,103 @@ PyRegion::~PyRegion() {
 }
 
 void PyRegion::serialize(BundleIO &bundle) {
-  // 1. serialize main state using pickle
-  // 2. call class method to serialize external state
+/***** pickle to a file, the original code
+*  // 1. serialize main state using pickle
+*  // 2. call class method to serialize external state
+*
+*  // 1. Serialize main state
+*
+*  // f = open(path, "wb")
+*  py::Tuple args(2);
+*  std::string path = bundle.getPath("pkl");
+*  py::String filename(path);
+*  py::String openmode("wb");
+*  args.setItem(0, filename);
+*  args.setItem(1, openmode);
+*  py::Instance f("__builtin__", "file", args);
+*
+*  // cPickle.dump(node_, f, HIGHEST_PROTOCOL)
+*  py::Module pickle("cPickle");
+*  py::Tuple args2(3);
+*  args2.setItem(0, node_);
+*  args2.setItem(1, f);
+*  args2.setItem(2, py::Int(2));
+*  py::Ptr none(pickle.invoke("dump", args2));
+*
+*  // f.close()
+*  py::Tuple args3(Py_ssize_t(0));
+*  py::Ptr none2(f.invoke("close", args3));
+*
+*
+*  // 2. External state
+*  // Call the Python serializeExtraData() method
+*  std::string externalPath = bundle.getPath("xtra");
+*  py::Tuple args1(1);
+*  args1.setItem(0, py::String(externalPath));
+*
+*  // Need to put the None result in py::Ptr to decrement the ref count
+*  py::Ptr none1(node_.invoke("serializeExtraData", args1));
+***********/
+	// pickle to a stream
+//	std::ostream &f = bundle.getOutputStream();
+	// cPickle.dump(node_, f, HIGHEST_PROTOCOL)
+//	py::Module pickle("pickle")
+//	py::Tuple args2(3);
+//	args2.setItem(0, node_);
+//	args2.setItem(1, f);
+//	args2.setItem(2, py::Int(2));
+//	py::Ptr none(pickle.invoke("dump", args2));
+	// do not close.
+//Figure out how to do this in another PR
 
-  // 1. Serialize main state
 
-  // f = open(path, "wb")
-  py::Tuple args(2);
-  std::string path = bundle.getPath("pkl");
-  py::String filename(path);
-  py::String openmode("wb");
-  args.setItem(0, filename);
-  args.setItem(1, openmode);
-  py::Instance f("__builtin__", "file", args);
-
-  // cPickle.dump(node_, f, HIGHEST_PROTOCOL)
-  py::Module pickle("cPickle");
-  py::Tuple args2(3);
-  args2.setItem(0, node_);
-  args2.setItem(1, f);
-  args2.setItem(2, py::Int(2));
-  py::Ptr none(pickle.invoke("dump", args2));
-
-  // f.close()
-  py::Tuple args3(Py_ssize_t(0));
-  py::Ptr none2(f.invoke("close", args3));
-
-  // 2. External state
-  // Call the Python serializeExtraData() method
-  std::string externalPath = bundle.getPath("xtra");
-  py::Tuple args1(1);
-  args1.setItem(0, py::String(externalPath));
-
-  // Need to put the None result in py::Ptr to decrement the ref count
-  py::Ptr none1(node_.invoke("serializeExtraData", args1));
 }
 
 void PyRegion::deserialize(BundleIO &bundle) {
-  // 1. deserialize main state using pickle
-  // 2. call class method to deserialize external state
-
-  // 1. de-serialize main state using pickle
-  // f = open(path, "rb")  # binary mode needed on windows
-  py::Tuple args(2);
-  std::string path = bundle.getPath("pkl");
-  py::String filename(path);
-  args.setItem(0, filename);
-  py::String mode("rb");
-  args.setItem(1, mode);
-  py::Instance f("__builtin__", "file", args);
-
-  // node_ = cPickle.load(f)
-  py::Module pickle("cPickle");
-  py::Tuple args2(1);
-  args2.setItem(0, f);
-  node_.assign(py::Ptr(pickle.invoke("load", args2)));
-
-  // f.close()
-  py::Tuple args3((Py_ssize_t)0);
-  py::Ptr none2(f.invoke("close", args3));
-
-  // 2. External state
-  // Call the Python deSerializeExtraData() method
-  std::string externalPath = bundle.getPath("xtra");
-  py::Tuple args1(1);
-  args1.setItem(0, py::String(externalPath));
-
-  // Need to put the None result in py::Ptr to decrement the ref count
-  py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
+/***** un-pickle from a file, the original code
+*
+*  // 1. deserialize main state using pickle
+*  // 2. call class method to deserialize external state
+*
+*  // 1. de-serialize main state using pickle
+*  // f = open(path, "rb")  # binary mode needed on windows
+*  py::Tuple args(2);
+*  std::string path = bundle.getPath("pkl");
+*  py::String filename(path);
+*  args.setItem(0, filename);
+*  py::String mode("rb");
+*  args.setItem(1, mode);
+*  py::Instance f("__builtin__", "file", args);
+*
+*  // node_ = cPickle.load(f)
+*  py::Module pickle("cPickle");
+*  py::Tuple args2(1);
+*  args2.setItem(0, f);
+*  node_.assign(py::Ptr(pickle.invoke("load", args2)));
+*
+*  // f.close()
+*  py::Tuple args3((Py_ssize_t)0);
+*  py::Ptr none2(f.invoke("close", args3));
+*
+*  // 2. External state
+*  // Call the Python deSerializeExtraData() method
+*  std::string externalPath = bundle.getPath("xtra");
+*  py::Tuple args1(1);
+*  args1.setItem(0, py::String(externalPath));
+*
+*  // Need to put the None result in py::Ptr to decrement the ref count
+*  py::Ptr none1(node_.invoke("deSerializeExtraData", args1));
+*********/
+	// unpickle from a stream
+	//std::istream &f = bundle.getInputStream();
+	// node_ = cPickle.load(f)
+    //py::Module pickle("pickle");
+   // py::Tuple args2(1);
+    //args2.setItem(0, f);
+    //node_.assign(py::Ptr(pickle.invoke("load", args2)));
+	// do not close.
 }
 
-void PyRegion::write(capnp::AnyPointer::Builder &proto) const {
-#if !CAPNP_LITE
-  class Helper {
-  public:
-    /**
-     * NOTE: We wrap several operations in this method to reduce the number of
-     * region data copies (could be huge memory size) that coexist on the heap.
-     */
-    static kj::Array<capnp::word> serialize(const py::Instance &node) {
-      // Request python object to write itself out and return PyRegionProto
-      // serialized as a python byte array
-      py::Class pyCapnpHelperCls("nupic.bindings.engine_internal",
-                                 "_PyCapnpHelper");
-      py::Tuple args((Py_ssize_t)0);
-      py::Dict kwargs;
-      // NOTE py::Dict::setItem doesn't accept a const PyObject*, however we
-      // know that we won't modify it, so casting trickery is okay here
-      kwargs.setItem("region", const_cast<PyObject *>(
-                                   static_cast<const PyObject *>(node)));
-      kwargs.setItem("methodName", py::String("write"));
-
-      // Wrap result in py::Ptr to force dereferencing when going out of scope
-      py::Ptr pyRegionProtoBytes(
-          pyCapnpHelperCls.invoke("writePyRegion", args, kwargs));
-
-      char *srcBytes = nullptr;
-      Py_ssize_t srcNumBytes = 0;
-      // NOTE: srcBytes will be set to point to the internal buffer inside
-      // pyRegionProtoBytes
-      PyString_AsStringAndSize(pyRegionProtoBytes, &srcBytes, &srcNumBytes);
-
-      // Ensure alignment on capnp::word boundary;
-      const int srcNumWords = srcNumBytes / sizeof(capnp::word);
-      kj::Array<capnp::word> array = kj::heapArray<capnp::word>(srcNumWords);
-      std::memcpy(array.asBytes().begin(), srcBytes, srcNumBytes); // copy
-
-      return array;
-    }
-  };
-
-  // Get flat array representation of python region's serialization
-  kj::Array<capnp::word> array = Helper::serialize(node_);
-
-  // Initialize PyRegionProto::Reader from serialized python region
-  capnp::ReaderOptions options;
-  options.traversalLimitInWords = kj::maxValue; // Don't limit.
-  capnp::FlatArrayMessageReader reader(array.asPtr(), options);
-  PyRegionProto::Reader pyRegionReader = reader.getRoot<PyRegionProto>();
-
-  // Assign python region's serialization output to the builder
-  proto.setAs<PyRegionProto>(pyRegionReader); // copy
-#else
-  throw std::logic_error(
-      "PyRegion::write is not implemented because NuPIC was compiled with "
-      "CAPNP_LITE=1.");
-#endif
-}
-
-void PyRegion::read(capnp::AnyPointer::Reader &proto) {
-#if !CAPNP_LITE
-
-  class Helper {
-  public:
-    static kj::Array<capnp::word>
-    flatArrayFromReader(PyRegionProto::Reader &reader) {
-      // NOTE: this requires conversion to builder, which incurs an additional
-      // copy, because readers aren't supported by capnp::messageToFlatArray
-      capnp::MallocMessageBuilder builder;
-      builder.setRoot(reader);                   // copy
-      return capnp::messageToFlatArray(builder); // copy
-    }
-
-    static PyObject *pyBytesFromFlatArray(kj::Array<capnp::word> flatArray) {
-      kj::ArrayPtr<kj::byte> byteArray = flatArray.asBytes();
-      // Copy from array to PyObject so that we can pass it to the Python layer
-      py::String pyRegionBytes((const char *)byteArray.begin(),
-                               byteArray.size()); // copy
-      return pyRegionBytes.release();
-    }
-  };
-
-  // Cast AnyPointer::Reader to PyRegionProto::Reader
-  PyRegionProto::Reader pyRegionReader = proto.getAs<PyRegionProto>();
-
-  // Extract data bytes from reader into PyObject so that we can pass it to the
-  // Python layer portably
-  //
-  // NOTE: the intention of this nested call is to reduce the number of
-  // sumulatneously present copies of data to no more than two at any given
-  // moment.
-  py::String pyRegionBytes(Helper::pyBytesFromFlatArray(
-      Helper::flatArrayFromReader(pyRegionReader)));
-
-  // Construct the python region instance by thunking into python
-  std::string realClassName(className_);
-  if (realClassName.empty()) {
-    realClassName = Path::getExtension(module_);
-  }
-
-  // Wrap the operation in _PyCapnpHelper.readPyRegion to simplify the interface
-  // for the target python region implementation
-  py::Class regionCls(module_, realClassName);
-
-  py::Tuple args((Py_ssize_t)0);
-  py::Dict kwargs;
-  kwargs.setItem("pyRegionProtoBytes", pyRegionBytes);
-  kwargs.setItem("regionCls", regionCls);
-  kwargs.setItem("methodName", py::String("read"));
-
-  // Deserialize the data into a new python region and assign it to node_
-  py::Class pyCapnpHelperCls("nupic.bindings.engine_internal",
-                             "_PyCapnpHelper");
-  // NOTE: wrap result in py::Ptr so that unnecessary refcount will be
-  // decremented upon it going out of scope and after node_.assign increments it
-  py::Ptr pyRegionImpl(pyCapnpHelperCls.invoke("readPyRegion", args, kwargs));
-  node_.assign(pyRegionImpl);
-  NTA_CHECK(node_);
-#else
-  throw std::logic_error(
-      "PyRegion::read is not implemented because NuPIC was compiled with "
-      "CAPNP_LITE=1.");
-#endif
-}
 
 const Spec &PyRegion::getSpec() {
   return *(PyRegion::createSpec(module_.c_str(), className_.c_str()));

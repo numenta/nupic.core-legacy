@@ -35,17 +35,7 @@ Google test main program
 using namespace std;
 using namespace nupic;
 
-// APR must be explicit initialized
-#include <apr-1/apr_general.h>
-
 int main(int argc, char **argv) {
-
-  // initialize APR
-  apr_status_t result;
-  result =
-      apr_app_initialize(&argc, (char const *const **)&argv, nullptr /*env*/);
-  if (result)
-    NTA_THROW << "error initializing APR. Err code: " << result;
 
   // initialize GoogleTest
   ::testing::InitGoogleTest(&argc, argv);

@@ -31,10 +31,6 @@
 #include <numeric> // std::accumulate
 #include <sstream>
 
-// Workaround windows.h collision:
-// https://github.com/sandstorm-io/capnproto/issues/213
-#undef VOID
-#include <capnp/any.h>
 
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
@@ -45,10 +41,8 @@
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Value.hpp>
-#include <nupic/proto/TestNodeProto.capnp.h>
 #include <nupic/utils/Log.hpp>
 
-using capnp::AnyPointer;
 
 namespace nupic {
 
@@ -57,17 +51,19 @@ TestNode::TestNode(const ValueMap &params, Region *region)
 
 {
   // params for get/setParameter testing
+    // Populate the parameters with values.
   int32Param_ = params.getScalarT<Int32>("int32Param", 32);
   uint32Param_ = params.getScalarT<UInt32>("uint32Param", 33);
   int64Param_ = params.getScalarT<Int64>("int64Param", 64);
   uint64Param_ = params.getScalarT<UInt64>("uint64Param", 65);
-  real32Param_ = params.getScalarT<Real32>("real32Param", 32.1);
+  real32Param_ = params.getScalarT<Real32>("real32Param", 32.1f);
   real64Param_ = params.getScalarT<Real64>("real64Param", 64.1);
   boolParam_ = params.getScalarT<bool>("boolParam", false);
+  outputElementCount_ = params.getScalarT<UInt32>("count", 64);
 
   shouldCloneParam_ = params.getScalarT<UInt32>("shouldCloneParam", 1) != 0;
 
-  stringParam_ = *params.getString("stringParam");
+  stringParam_ = params.getString("stringParam");
 
   real32ArrayParam_.resize(8);
   for (size_t i = 0; i < 8; i++) {
@@ -96,21 +92,18 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   unclonedInt64ArrayParam_[0] = v;
 
   // params used for computation
-  outputElementCount_ = 2;
+  outputElementCount_ = 2;  // TODO: remove this when dimensions are removed.
   delta_ = 1;
   iter_ = 0;
 }
 
-TestNode::TestNode(BundleIO &bundle, Region *region) : RegionImpl(region) {
+TestNode::TestNode(BundleIO &bundle, Region *region) :
+    RegionImpl(region),
+	computeCallback_(nullptr)
+{
   deserialize(bundle);
 }
 
-TestNode::TestNode(AnyPointer::Reader &proto, Region *region)
-    : RegionImpl(region), computeCallback_(nullptr)
-
-{
-  read(proto);
-}
 
 TestNode::~TestNode() {}
 
@@ -118,8 +111,10 @@ void TestNode::compute() {
   if (computeCallback_ != nullptr)
     computeCallback_(getName());
 
-  const Array &outputArray = bottomUpOut_->getData();
-  NTA_CHECK(outputArray.getCount() == nodeCount_ * outputElementCount_);
+  Array &outputArray = bottomUpOut_->getData();
+  NTA_CHECK(outputArray.getCount() == nodeCount_ * outputElementCount_)
+       			<< "buffer size: " << outputArray.getCount()
+				<< " expected: " << (nodeCount_ * outputElementCount_);
   NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
   Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
 
@@ -145,7 +140,19 @@ void TestNode::compute() {
 Spec *TestNode::createSpec() {
   auto ns = new Spec;
 
+  ns->description = "TestNode. Used as a plain simple plugin Region for unit tests only. "
+      "This is not useful for any real applicaton.";
+
   /* ---- parameters ------ */
+  ns->parameters.add(
+      "count",
+      ParameterSpec(
+        "Buffer size override for bottomUpOut Output",  // description
+        NTA_BasicType_UInt32,
+        1,                         // elementCount
+        "",                        // constraints
+        "2",                      // defaultValue
+        ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("int32Param",
                      ParameterSpec("Int32 scalar parameter", // description
@@ -210,67 +217,73 @@ Spec *TestNode::createSpec() {
                                    "", "", ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("int64ArrayParam",
-                     ParameterSpec("int64 array parameter", NTA_BasicType_Int64,
+                     ParameterSpec("int64 array parameter",  // description
+					               NTA_BasicType_Int64,
                                    0, // array
-                                   "", "", ParameterSpec::ReadWriteAccess));
+                                   "", // constraints
+								   "", // default Value
+								   ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("boolArrayParam",
-                     ParameterSpec("bool array parameter", NTA_BasicType_Bool,
+                     ParameterSpec("bool array parameter", // description
+					               NTA_BasicType_Bool,
                                    0, // array
-                                   "", "", ParameterSpec::ReadWriteAccess));
+                                   "", // constraints
+								   "", // default Value
+								   ParameterSpec::ReadWriteAccess));
 
-  ns->parameters.add(
-      "computeCallback",
-      ParameterSpec("address of a function that is called at every compute()",
-                    NTA_BasicType_Handle, 1, "",
-                    "", // handles must not have a default value
-                    ParameterSpec::ReadWriteAccess));
-
-  ns->parameters.add("stringParam",
-                     ParameterSpec("string parameter", NTA_BasicType_Byte,
-                                   0, // length=0 required for strings
-                                   "", "nodespec value",
+  ns->parameters.add("computeCallback",
+                     ParameterSpec("address of a function that is called at every compute()",
+                                   NTA_BasicType_Handle,
+					               1,  // element count
+					               "", // constraints
+                                   "", // handles must not have a default value
                                    ParameterSpec::ReadWriteAccess));
 
-  ns->parameters.add(
-      "unclonedParam",
-      ParameterSpec("has a separate value for each node", // description
-                    NTA_BasicType_UInt32,
-                    1,  // elementCount
-                    "", // constraints
-                    "", // defaultValue
-                    ParameterSpec::ReadWriteAccess));
+  ns->parameters.add("stringParam",
+                     ParameterSpec("string parameter",
+					               NTA_BasicType_Byte,
+                                   0, // length=0 required for strings
+                                   "",
+								   "nodespec value",
+                                   ParameterSpec::ReadWriteAccess));
 
-  ns->parameters.add(
-      "shouldCloneParam",
-      ParameterSpec("whether possiblyUnclonedParam should clone", // description
-                    NTA_BasicType_UInt32,
-                    1,            // elementCount
-                    "enum: 0, 1", // constraints
-                    "1",          // defaultValue
-                    ParameterSpec::ReadWriteAccess));
+  ns->parameters.add("unclonedParam",
+                     ParameterSpec("has a separate value for each node", // description
+                                   NTA_BasicType_UInt32,
+                                   1,  // elementCount
+                                   "", // constraints
+                                   "", // defaultValue
+                                   ParameterSpec::ReadWriteAccess));
 
-  ns->parameters.add(
-      "possiblyUnclonedParam",
-      ParameterSpec("cloned if shouldCloneParam is true", // description
-                    NTA_BasicType_UInt32,
-                    1,  // elementCount
-                    "", // constraints
-                    "", // defaultValue
-                    ParameterSpec::ReadWriteAccess));
+  ns->parameters.add("shouldCloneParam",
+				      ParameterSpec("whether possiblyUnclonedParam should clone", // description
+				                    NTA_BasicType_UInt32,
+				                    1,            // elementCount
+				                    "enum: 0, 1", // constraints
+				                    "1",          // defaultValue
+				                    ParameterSpec::ReadWriteAccess));
 
-  ns->parameters.add(
-      "unclonedInt64ArrayParam",
-      ParameterSpec("has a separate array for each node", // description
-                    NTA_BasicType_Int64,
-                    0,  // array                            //elementCount
-                    "", // constraints
-                    "", // defaultValue
-                    ParameterSpec::ReadWriteAccess));
+  ns->parameters.add("possiblyUnclonedParam",
+				      ParameterSpec("cloned if shouldCloneParam is true", // description
+				                    NTA_BasicType_UInt32,
+				                    1,  // elementCount
+				                    "", // constraints
+				                    "", // defaultValue
+				                    ParameterSpec::ReadWriteAccess));
+
+  ns->parameters.add("unclonedInt64ArrayParam",
+				      ParameterSpec("has a separate array for each node", // description
+				                    NTA_BasicType_Int64,
+				                    0,  // array                            //elementCount
+				                    "", // constraints
+				                    "", // defaultValue
+				                    ParameterSpec::ReadWriteAccess));
 
   /* ----- inputs ------- */
   ns->inputs.add("bottomUpIn",
-                 InputSpec("Primary input for the node", NTA_BasicType_Real64,
+                 InputSpec("Primary input for the node",
+				           NTA_BasicType_Real64,
                            0,     // count. omit?
                            true,  // required?
                            false, // isRegionLevel,
@@ -278,12 +291,13 @@ Spec *TestNode::createSpec() {
                            ));
 
   /* ----- outputs ------ */
-  ns->outputs.add("bottomUpOut", OutputSpec("Primary output for the node",
-                                            NTA_BasicType_Real64,
-                                            0,     // count is dynamic
-                                            false, // isRegionLevel
-                                            true   // isDefaultOutput
-                                            ));
+  ns->outputs.add("bottomUpOut",
+                  OutputSpec("Primary output for the node",
+                            NTA_BasicType_Real64,
+                            0,     // count is dynamic
+                            false, // isRegionLevel
+                            true   // isDefaultOutput
+                            ));
 
   /* ----- commands ------ */
   // commands TBD
@@ -310,7 +324,9 @@ void TestNode::setParameterReal64(const std::string &name, Int64 index,
 
 void TestNode::getParameterFromBuffer(const std::string &name, Int64 index,
                                       IWriteBuffer &value) {
-  if (name == "int32Param") {
+    if (name == "count") {
+      value.write(outputElementCount_);
+    } else if (name == "int32Param") {
     value.write(int32Param_);
   } else if (name == "uint32Param") {
     value.write(uint32Param_);
@@ -365,7 +381,9 @@ void TestNode::getParameterFromBuffer(const std::string &name, Int64 index,
 
 void TestNode::setParameterFromBuffer(const std::string &name, Int64 index,
                                       IReadBuffer &value) {
-  if (name == "int32Param") {
+    if (name == "count") {
+      value.read(outputElementCount_);
+    } else if (name == "int32Param") {
     value.read(int32Param_);
   } else if (name == "uint32Param") {
     value.read(uint32Param_);
@@ -471,7 +489,7 @@ size_t TestNode::getNodeOutputElementCount(const std::string &outputName) {
   if (outputName == "bottomUpOut") {
     return outputElementCount_;
   }
-  NTA_THROW << "TestNode::getOutputSize -- unknown output " << outputName;
+    NTA_THROW << "TestNode::getNodeOutputElementCount() -- unknown output " << outputName;
 }
 
 std::string TestNode::executeCommand(const std::vector<std::string> &args,
@@ -525,7 +543,7 @@ static void arrayIn(std::istream &s, std::vector<T> &array,
 
 void TestNode::serialize(BundleIO &bundle) {
   {
-    std::ofstream &f = bundle.getOutputStream("main");
+    std::ostream &f = bundle.getOutputStream();
     // There is more than one way to do this. We could serialize to YAML, which
     // would make a readable format, or we could serialize directly to the
     // stream Choose the easier one.
@@ -549,28 +567,24 @@ void TestNode::serialize(BundleIO &bundle) {
       name << "unclonedInt64ArrayParam[" << i << "]";
       arrayOut(f, unclonedInt64ArrayParam_[i], name.str());
     }
-    f.close();
+      // save the output buffers
+      f << "outputs [";
+      std::map<std::string, Output *> outputs = region_->getOutputs();
+      for (auto iter : outputs) {
+        const Array &outputBuffer = iter.second->getData();
+        if (outputBuffer.getCount() != 0) {
+          f << iter.first << " ";
+          outputBuffer.save(f);
+        }
+      }
+      f << "] "; // end of all output buffers
   } // main file
 
-  // auxilliary file using stream
-  {
-    std::ofstream &f = bundle.getOutputStream("aux");
-    f << "This is an auxilliary file!\n";
-    f.close();
-  }
-
-  // auxilliary file using path
-  {
-    std::string path = bundle.getPath("aux2");
-    std::ofstream f(path.c_str());
-    f << "This is another auxilliary file!\n";
-    f.close();
-  }
-}
+ }
 
 void TestNode::deserialize(BundleIO &bundle) {
   {
-    std::ifstream &f = bundle.getInputStream("main");
+    std::istream &f = bundle.getInputStream();
     // There is more than one way to do this. We could serialize to YAML, which
     // would make a readable format, or we could serialize directly to the
     // stream Choose the easier one.
@@ -601,158 +615,37 @@ void TestNode::deserialize(BundleIO &bundle) {
 
     f >> shouldCloneParam_;
 
-    std::string label;
-    f >> label;
-    if (label != "unclonedArray")
-      NTA_THROW << "Missing label for uncloned array. Got '" << label << "'";
-    size_t vecsize;
-    f >> vecsize;
-    unclonedInt64ArrayParam_.clear();
-    unclonedInt64ArrayParam_.resize(vecsize);
-    for (size_t i = 0; i < vecsize; i++) {
-      std::stringstream name;
-      name << "unclonedInt64ArrayParam[" << i << "]";
-      arrayIn(f, unclonedInt64ArrayParam_[i], name.str());
-    }
-    f.close();
-  } // main file
+      std::string tag;
+      f >> tag;
+      if (tag != "unclonedArray")
+        NTA_THROW << "Missing label for uncloned array. Got '" << tag << "'";
+      size_t vecsize;
+      f >> vecsize;
+      unclonedInt64ArrayParam_.clear();
+      unclonedInt64ArrayParam_.resize(vecsize);
+      for (size_t i = 0; i < vecsize; i++)
+      {
+        std::stringstream name;
+        name << "unclonedInt64ArrayParam[" << i << "]";
+        arrayIn(f, unclonedInt64ArrayParam_[i], name.str());
+      }
 
-  // auxilliary file using stream
-  {
-    std::ifstream &f = bundle.getInputStream("aux");
-    char line1[100];
-    f.read(line1, 100);
-    line1[f.gcount()] = '\0';
-    if (std::string(line1) != "This is an auxilliary file!\n") {
-      NTA_THROW << "Invalid auxilliary serialization file for TestNode";
-    }
-    f.close();
+	    // Restore outputs
+	    f >> tag;
+	    NTA_CHECK(tag == "outputs");
+	    f.ignore(1);
+	    NTA_CHECK(f.get() == '['); // start of outputs
+
+	    while (true) {
+	      f >> tag;
+	      f.ignore(1);
+	      if (tag == "]")
+	        break;
+	      getOutput(tag)->getData().load(f);
+	    }
+	  }
+
   }
 
-  // auxilliary file using path
-  {
-    std::string path = bundle.getPath("aux2");
-    std::ifstream f(path.c_str());
-    char line1[100];
-    f.read(line1, 100);
-    line1[f.gcount()] = '\0';
-    if (std::string(line1) != "This is another auxilliary file!\n") {
-      NTA_THROW << "Invalid auxilliary2 serialization file for TestNode";
-    }
-
-    f.close();
-  }
-}
-
-void TestNode::write(AnyPointer::Builder &anyProto) const {
-  TestNodeProto::Builder proto = anyProto.getAs<TestNodeProto>();
-
-  proto.setInt32Param(int32Param_);
-  proto.setUint32Param(uint32Param_);
-  proto.setInt64Param(int64Param_);
-  proto.setUint64Param(uint64Param_);
-  proto.setReal32Param(real32Param_);
-  proto.setReal64Param(real64Param_);
-  proto.setBoolParam(boolParam_);
-  proto.setStringParam(stringParam_.c_str());
-
-  auto real32ArrayProto = proto.initReal32ArrayParam(real32ArrayParam_.size());
-  for (UInt i = 0; i < real32ArrayParam_.size(); i++) {
-    real32ArrayProto.set(i, real32ArrayParam_[i]);
-  }
-
-  auto int64ArrayProto = proto.initInt64ArrayParam(int64ArrayParam_.size());
-  for (UInt i = 0; i < int64ArrayParam_.size(); i++) {
-    int64ArrayProto.set(i, int64ArrayParam_[i]);
-  }
-
-  auto boolArrayProto = proto.initBoolArrayParam(boolArrayParam_.size());
-  for (UInt i = 0; i < boolArrayParam_.size(); i++) {
-    boolArrayProto.set(i, boolArrayParam_[i]);
-  }
-
-  proto.setIterations(iter_);
-  proto.setOutputElementCount(outputElementCount_);
-  proto.setDelta(delta_);
-
-  proto.setShouldCloneParam(shouldCloneParam_);
-
-  auto unclonedParamProto = proto.initUnclonedParam(unclonedParam_.size());
-  for (UInt i = 0; i < unclonedParam_.size(); i++) {
-    unclonedParamProto.set(i, unclonedParam_[i]);
-  }
-
-  auto unclonedInt64ArrayParamProto =
-      proto.initUnclonedInt64ArrayParam(unclonedInt64ArrayParam_.size());
-  for (UInt i = 0; i < unclonedInt64ArrayParam_.size(); i++) {
-    auto innerUnclonedParamProto = unclonedInt64ArrayParamProto.init(
-        i, unclonedInt64ArrayParam_[i].size());
-    for (UInt j = 0; j < unclonedInt64ArrayParam_[i].size(); j++) {
-      innerUnclonedParamProto.set(j, unclonedInt64ArrayParam_[i][j]);
-    }
-  }
-
-  proto.setNodeCount(nodeCount_);
-}
-
-void TestNode::read(AnyPointer::Reader &anyProto) {
-  TestNodeProto::Reader proto = anyProto.getAs<TestNodeProto>();
-
-  int32Param_ = proto.getInt32Param();
-  uint32Param_ = proto.getUint32Param();
-  int64Param_ = proto.getInt64Param();
-  uint64Param_ = proto.getUint64Param();
-  real32Param_ = proto.getReal32Param();
-  real64Param_ = proto.getReal64Param();
-  boolParam_ = proto.getBoolParam();
-  stringParam_ = proto.getStringParam().cStr();
-
-  real32ArrayParam_.clear();
-  auto real32ArrayParamProto = proto.getReal32ArrayParam();
-  real32ArrayParam_.resize(real32ArrayParamProto.size());
-  for (UInt i = 0; i < real32ArrayParamProto.size(); i++) {
-    real32ArrayParam_[i] = real32ArrayParamProto[i];
-  }
-
-  int64ArrayParam_.clear();
-  auto int64ArrayParamProto = proto.getInt64ArrayParam();
-  int64ArrayParam_.resize(int64ArrayParamProto.size());
-  for (UInt i = 0; i < int64ArrayParamProto.size(); i++) {
-    int64ArrayParam_[i] = int64ArrayParamProto[i];
-  }
-
-  boolArrayParam_.clear();
-  auto boolArrayParamProto = proto.getBoolArrayParam();
-  boolArrayParam_.resize(boolArrayParamProto.size());
-  for (UInt i = 0; i < boolArrayParamProto.size(); i++) {
-    boolArrayParam_[i] = boolArrayParamProto[i];
-  }
-
-  iter_ = proto.getIterations();
-  outputElementCount_ = proto.getOutputElementCount();
-  delta_ = proto.getDelta();
-
-  shouldCloneParam_ = proto.getShouldCloneParam();
-
-  unclonedParam_.clear();
-  auto unclonedParamProto = proto.getUnclonedParam();
-  unclonedParam_.resize(unclonedParamProto.size());
-  for (UInt i = 0; i < unclonedParamProto.size(); i++) {
-    unclonedParam_[i] = unclonedParamProto[i];
-  }
-
-  unclonedInt64ArrayParam_.clear();
-  auto unclonedInt64ArrayProto = proto.getUnclonedInt64ArrayParam();
-  unclonedInt64ArrayParam_.resize(unclonedInt64ArrayProto.size());
-  for (UInt i = 0; i < unclonedInt64ArrayProto.size(); i++) {
-    auto innerProto = unclonedInt64ArrayProto[i];
-    unclonedInt64ArrayParam_[i].resize(innerProto.size());
-    for (UInt j = 0; j < innerProto.size(); j++) {
-      unclonedInt64ArrayParam_[i][j] = innerProto[j];
-    }
-  }
-
-  nodeCount_ = proto.getNodeCount();
-}
 
 } // namespace nupic

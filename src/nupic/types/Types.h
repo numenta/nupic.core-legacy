@@ -117,11 +117,21 @@ typedef enum NTA_BasicType {
    */
   NTA_BasicType_Last,
 
+  /**
+   * Represents a default-sized unsigned integer.
+   */
+#ifdef NTA_BIG_INTEGER
+  NTA_BasicType_UInt = NTA_BasicType_UInt64,
+#else
+  NTA_BasicType_UInt = NTA_BasicType_UInt32,
+#endif
+
+  /**
+   * Represents a default-sized real number(a floating-point number).
+   */
 #ifdef NTA_DOUBLE_PRECISION
-  /** TODO: document */
   NTA_BasicType_Real = NTA_BasicType_Real64,
 #else
-  /** TODO: document */
   NTA_BasicType_Real = NTA_BasicType_Real32,
 #endif
 

@@ -23,19 +23,10 @@
 """NuPIC random module tests."""
 
 import cPickle as pickle
-import tempfile
 import unittest
-
+import pytest
 import numpy
 
-try:
-  # NOTE need to import capnp first to activate the magic necessary for
-  # RandomProto_capnp, etc.
-  import capnp
-except ImportError:
-  capnp = None
-else:
-  from nupic.proto.RandomProto_capnp import RandomProto
 
 from nupic.bindings.math import Random
 
@@ -43,50 +34,48 @@ from nupic.bindings.math import Random
 
 class TestNupicRandom(unittest.TestCase):
 
-
-  @unittest.skipUnless(
-    capnp, "pycapnp is not installed, skipping serialization test.")
-  def testCapnpSerialization(self):
-    """Test capnp serialization of NuPIC randomness."""
+  @pytest.fixture(autouse=True)
+  def initdir(self, tmpdir):
+    tmpdir.chdir() # change to the pytest-provided temporary directory
+	
+  def testSerialization(self):
+    """Test serialization of NuPIC randomness."""
+	
+    path = "RandomSerialization.stream"
 
     # Simple test: make sure that dumping / loading works...
     r = Random(99)
 
-    builderProto = RandomProto.new_message()
-    r.write(builderProto)
-    readerProto = RandomProto.from_bytes(builderProto.to_bytes())
+    r.saveToFile(path)
 
     test1 = [r.getUInt32() for _ in xrange(10)]
     r = Random(1);
-    r.read(readerProto)
+    r.loadFromFile(path)
     self.assertEqual(r.getSeed(), 99)
     test2 = [r.getUInt32() for _ in xrange(10)]
 
     self.assertEqual(test1, test2,
-                     "Simple NuPIC random capnp serialization check failed.")
+				"Simple NuPIC random serialization check failed.")
 
     # A little tricker: dump / load _after_ some numbers have been generated
     # (in the first test).  Things should still work...
     # ...the idea of this test is to make sure that the pickle code isn't just
     # saving the initial seed...
-    builderProto = RandomProto.new_message()
-    r.write(builderProto)
-    readerProto = RandomProto.from_bytes(builderProto.to_bytes())
+    r.saveToFile(path)
 
     test3 = [r.getUInt32() for _ in xrange(10)]
     r = Random();
-    r.read(readerProto)
+    r.loadFromFile(path)
     self.assertEqual(r.getSeed(), 99)
     test4 = [r.getUInt32() for _ in xrange(10)]
 
     self.assertEqual(
-      test3, test4,
-      "NuPIC random capnp serialization check didn't work for saving later "
-      "state.")
+        test3, test4,
+        "NuPIC random serialization check didn't work for saving later state.")
 
     self.assertNotEqual(
-      test1, test3,
-      "NuPIC random serialization test gave the same result twice?!?")
+        test1, test3,
+        "NuPIC random serialization test gave the same result twice?!?")
 
 
   def testNupicRandomPickling(self):
@@ -128,8 +117,8 @@ class TestNupicRandom(unittest.TestCase):
 
     r.sample(population, choices)
 
-    self.assertEqual(choices[0], 1)
-    self.assertEqual(choices[1], 3)
+    self.assertEqual(choices[0], 2)
+    self.assertEqual(choices[1], 1)
 
 
   def testSampleNone(self):
@@ -150,10 +139,10 @@ class TestNupicRandom(unittest.TestCase):
 
     r.sample(population, choices)
 
-    self.assertEqual(choices[0], 1)
-    self.assertEqual(choices[1], 2)
-    self.assertEqual(choices[2], 3)
-    self.assertEqual(choices[3], 4)
+    self.assertEqual(choices[0], 2)
+    self.assertEqual(choices[1], 1)
+    self.assertEqual(choices[2], 4)
+    self.assertEqual(choices[3], 3)
 
 
   def testSampleWrongDimensionsPopulation(self):
@@ -217,10 +206,10 @@ class TestNupicRandom(unittest.TestCase):
 
     r.shuffle(arr)
 
-    self.assertEqual(arr[0], 1)
-    self.assertEqual(arr[1], 4)
-    self.assertEqual(arr[2], 3)
-    self.assertEqual(arr[3], 2)
+    self.assertEqual(arr[0], 2)
+    self.assertEqual(arr[1], 1)
+    self.assertEqual(arr[2], 4)
+    self.assertEqual(arr[3], 3)
 
 
   def testShuffleEmpty(self):
@@ -232,7 +221,7 @@ class TestNupicRandom(unittest.TestCase):
     self.assertEqual(arr.size, 0)
 
 
-  def testShuffleEmpty(self):
+  def testShuffleEmpty2(self):
     r = Random(42)
     arr = numpy.zeros([2, 2], dtype="uint32")
 
@@ -249,10 +238,20 @@ class TestNupicRandom(unittest.TestCase):
   def testEquals(self):
     r1 = Random(42)
     v1 = r1.getReal64()
+    i1 = r1.getUInt32()
     r2 = Random(42)
     v2 = r2.getReal64()
+    i2 = r2.getUInt32()
     self.assertEquals(v1, v2)
     self.assertEquals(r1, r2)
+    self.assertEquals(i1, i2)
+
+
+  def testPlatformSame(self): 
+    r = Random(42)
+    [r.getUInt32() for _ in xrange(80085)]
+    v = r.getUInt32()
+    self.assertEquals(v, 1651991554)
 
 if __name__ == "__main__":
   unittest.main()

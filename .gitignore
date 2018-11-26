@@ -1,3 +1,4 @@
+.kdev4
 .metadata
 .idea
 *.manifest
@@ -17,9 +18,16 @@ htmlcov/
 .vscode
 .ycm_extra_conf.py
 
+# KDevelop
+.kdev4
+nupic.core.kdev4
+
 # Build files
 build/
 junit-test-results.xml
+
+# Test Output files
+bindings/py/tests/*.stream
 
 # /
 /.gdb_history
@@ -28,8 +36,11 @@ junit-test-results.xml
 html/
 
 # SWIG
+bindings/py/nupic/bindings/
 bindings/py/src/nupic/bindings/*.cxx
 bindings/py/src/nupic/bindings/*.py
 bindings/py/src/nupic/bindings/*.so
+bindings/py/src/nupic/bindings/*.pyd
 bindings/py/src/nupic/*.so
-bindings/py/src/nupic.bindings.egg-info
+bindings/py/src/nupic.bindings.egg-info/
+bindings/py/dist/

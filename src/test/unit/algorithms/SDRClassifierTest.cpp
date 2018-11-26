@@ -33,7 +33,6 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <kj/std/iostream.h>
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
@@ -380,55 +379,6 @@ TEST_F(SDRClassifierTest, SaveLoad) {
   ASSERT_TRUE(result1 == result2);
 }
 
-TEST_F(SDRClassifierTest, WriteRead) {
-  vector<UInt> steps;
-  steps.push_back(1);
-  steps.push_back(2);
-  SDRClassifier c1 = SDRClassifier(steps, 0.1, 0.1, 0);
-  SDRClassifier c2 = SDRClassifier(steps, 0.1, 0.1, 0);
-
-  // Create a vector of input bit indices
-  vector<UInt> input1;
-  input1.push_back(1);
-  input1.push_back(5);
-  input1.push_back(9);
-  vector<UInt> bucketIdxList1;
-  bucketIdxList1.push_back(4);
-  vector<Real64> actValueList1;
-  actValueList1.push_back(34.7);
-  ClassifierResult trainResult1;
-  c1.compute(0, input1, bucketIdxList1, actValueList1, false, true, true,
-             &trainResult1);
-
-  // Create a vector of input bit indices
-  vector<UInt> input2;
-  input2.push_back(0);
-  input2.push_back(8);
-  input2.push_back(9);
-  vector<UInt> bucketIdxList2;
-  bucketIdxList2.push_back(2);
-  vector<Real64> actValueList2;
-  actValueList2.push_back(24.7);
-  ClassifierResult trainResult2;
-  c1.compute(1, input2, bucketIdxList2, actValueList2, false, true, true,
-             &trainResult2);
-
-  {
-    stringstream ss;
-    c1.write(ss);
-    c2.read(ss);
-  }
-
-  ASSERT_TRUE(c1 == c2);
-
-  ClassifierResult result1, result2;
-  c1.compute(2, input1, bucketIdxList1, actValueList1, false, true, true,
-             &result1);
-  c2.compute(2, input1, bucketIdxList1, actValueList1, false, true, true,
-             &result2);
-
-  ASSERT_TRUE(result1 == result2);
-}
 
 TEST_F(SDRClassifierTest, testSoftmaxOverflow) {
   SDRClassifier c = SDRClassifier({1}, 0.5, 0.5, 0);

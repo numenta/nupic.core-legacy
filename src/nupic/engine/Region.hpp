@@ -39,9 +39,10 @@
 // objects are returned by value.
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/proto/RegionProto.capnp.h>
-#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
+#include <nupic/engine/Network.hpp>
+#include <nupic/engine/Output.hpp>
 
 namespace nupic {
 
@@ -68,7 +69,8 @@ class GenericRegisteredRegionImpl;
  * Internally regions are created and owned by Network.
  *
  */
-class Region : public Serializable<RegionProto> {
+class Region  : public Serializable
+{
 public:
   /**
    * @name Region information
@@ -88,7 +90,7 @@ public:
    *
    * @returns The region's name
    */
-  const std::string &getName() const;
+     std::string getName() const { return name_; }
 
   /**
    * Get the dimensions of the region.
@@ -121,14 +123,15 @@ public:
    *
    * @returns The node type as a string
    */
-  const std::string &getType() const;
+    std::string getType() const { return type_; }
 
   /**
    * Get the spec of the region.
    *
    * @returns The spec that describes this region
+   *          Do not delete.
    */
-  const Spec *getSpec() const;
+  const Spec* getSpec() const { return spec_; }
 
   /**
    * Get the Spec of a region type without an instance.
@@ -464,17 +467,11 @@ public:
    * @param inputName
    *        The name of the target input
    *
-   * @returns An @c ArrayRef that contains the input data.
+   * @returns An @c ArrayRef that references the Input object's buffer.
+   *        This buffer is shared with the Input object so when it changes the
+   *        returned ArrayRef's buffer also changes.
+   *        Note that this is read-only.
    *
-   * @internal
-   *
-   * @note The data is either stored in the
-   * the @c ArrayRef or point to the internal stored data,
-   * the actual behavior is controlled by the 'copy' argument (see below).
-   *
-   * @todo what's the copy' argument mentioned here?
-   *
-   * @endinternal
    *
    */
   virtual ArrayRef getInputData(const std::string &inputName) const;
@@ -486,50 +483,16 @@ public:
    *        The name of the target output
    *
    * @returns
-   *        An @c ArrayRef that contains the output data.
-   *
-   * @internal
-   *
-   * @note The data is either stored in the
-   * the @c ArrayRef or point to the internal stored data,
-   * the actual behavior is controlled by the 'copy' argument (see below).
-   *
-   * @todo what's the copy' argument mentioned here?
-   *
-   * @endinternal
+   *        An @c ArrayRef that references the output data buffer.
+   *        This buffer is shared with the Output object so when it changes the
+   *        returned ArrayRef's buffer also changes.
+   *        Note that this is read-only.
+   *        To obtain a writeable Array use
+   *			region->getOutput(name)->getData();
    *
    */
   virtual ArrayRef getOutputData(const std::string &outputName) const;
 
-  /**
-   * Get the count of input data.
-   *
-   * @param inputName
-   *        The name of the target input
-   *
-   * @returns
-   *        The count of input data
-   *
-   * @todo are getOutput/InputCount needed? count can be obtained from the array
-   * objects.
-   *
-   */
-  virtual size_t getInputCount(const std::string &inputName) const;
-
-  /**
-   * Get the count of output data.
-   *
-   * @param outputName
-   *        The name of the target output
-   *
-   * @returns
-   *        The count of output data
-   *
-   * @todo are getOutput/InputCount needed? count can be obtained from the array
-   * objects.
-   *
-   */
-  virtual size_t getOutputCount(const std::string &outputName) const;
 
   /**
    * @}
@@ -618,37 +581,29 @@ public:
    * @}
    */
 
-#ifdef NTA_INTERNAL
-  // Internal methods.
+    // Internal methods.
 
   // New region from parameter spec
   Region(std::string name, const std::string &type,
          const std::string &nodeParams, Network *network = nullptr);
 
-  // New region from serialized state
-  Region(std::string name, const std::string &type,
-         const Dimensions &dimensions, BundleIO &bundle,
-         Network *network = nullptr);
 
-  // New region from capnp struct
-  Region(std::string name, RegionProto::Reader &proto,
-         Network *network = nullptr);
+  Region(Network *network = nullptr); // An empty region for deserialization.
 
   virtual ~Region();
 
   void initialize();
 
-  bool isInitialized() const;
+    bool isInitialized() const { return initialized_; }
 
   // Used by RegionImpl to get inputs/outputs
   Output *getOutput(const std::string &name) const;
 
   Input *getInput(const std::string &name) const;
 
-  // These are used only for serialization
-  const std::map<const std::string, Input *> &getInputs() const;
+  const std::map<std::string, Input *> &getInputs() const;
 
-  const std::map<const std::string, Output *> &getOutputs() const;
+  const std::map<std::string, Output *> &getOutputs() const;
 
   // The following methods are called by Network in initialization
 
@@ -663,7 +618,7 @@ public:
 
   void initInputs() const;
 
-  void intialize();
+
 
   // Internal -- for link debugging
   void setDimensionInfo(const std::string &info);
@@ -688,35 +643,31 @@ public:
 
   std::set<UInt32> &getPhases();
 
-  // Called by Network for serialization
-  void serializeImpl(BundleIO &bundle);
 
-  using Serializable::write;
-  void write(RegionProto::Builder &proto) const;
 
-  using Serializable::read;
-  void read(RegionProto::Reader &proto);
+	// These must be implemented for serialization.
+	void save(std::ostream &stream) const override;
+	void load(std::istream &stream) override;
 
-#endif // NTA_INTERNAL
+	friend class Network;
 
 private:
   // verboten
-  Region();
   Region(Region &);
 
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
   void createInputsAndOutputs_();
 
-  const std::string name_;
+  std::string name_;
 
   // pointer to the "plugin"; owned by Region
   RegionImpl *impl_;
-  const std::string type_;
+  std::string type_;
   Spec *spec_;
 
-  typedef std::map<const std::string, Output *> OutputMap;
-  typedef std::map<const std::string, Input *> InputMap;
+  typedef std::map<std::string, Output *> OutputMap;
+  typedef std::map<std::string, Input *> InputMap;
 
   OutputMap outputs_;
   InputMap inputs_;
