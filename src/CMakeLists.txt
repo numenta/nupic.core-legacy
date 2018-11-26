@@ -450,6 +450,7 @@ add_executable(${src_executable_gtests}
                test/unit/ntypes/NodeSetTest.cpp
                test/unit/ntypes/ScalarTest.cpp
                test/unit/ntypes/ValueTest.cpp
+               test/unit/ntypes/SdrTest.cpp
                test/unit/os/DirectoryTest.cpp
                test/unit/os/EnvTest.cpp
                test/unit/os/OSTest.cpp
