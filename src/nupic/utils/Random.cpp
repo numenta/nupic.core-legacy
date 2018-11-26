@@ -37,10 +37,11 @@ bool Random::operator==(const Random &o) const {
 	 gen == o.gen;
 }
 
+std::mt19937 static_gen;
 
 Random::Random(UInt64 seed) {
   if (seed == 0) {
-    seed_ = gen(); //generate random value from HW RNG
+    seed_ = static_gen(); //generate random value from HW RNG
   } else {
     seed_ = seed;
   }
