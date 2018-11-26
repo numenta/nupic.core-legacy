@@ -43,7 +43,7 @@ Important notes:
 
 > **Note**: On Windows, Python package dependencies require the following compiler package to be installed: [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-gb/download/details.aspx?id=44266)
 
-The Python dependencies (NumPy and pycapnp) can be installed with `pip`:
+The Python dependencies (NumPy) can be installed with `pip`:
 
     pip install -r bindings/py/requirements.txt
 

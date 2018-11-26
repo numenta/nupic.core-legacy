@@ -113,8 +113,8 @@ TEST(Serialization, testSP) {
       os.close();
 
       testTimer.stop();
-      cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
-      cout << "Stream: " << testTimer.getElapsed() << endl;
+//      cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
+//      cout << "Stream: " << testTimer.getElapsed() << endl;
     }
 
     for (UInt i = 0; i < numColumns; ++i) {

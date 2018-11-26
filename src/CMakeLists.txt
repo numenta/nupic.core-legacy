@@ -320,7 +320,6 @@ set(src_nupiccore_srcs
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
     nupic/utils/SlidingWindow.hpp
-    nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs
@@ -450,6 +449,7 @@ add_executable(${src_executable_gtests}
                test/unit/ntypes/NodeSetTest.cpp
                test/unit/ntypes/ScalarTest.cpp
                test/unit/ntypes/ValueTest.cpp
+               test/unit/ntypes/SdrTest.cpp
                test/unit/os/DirectoryTest.cpp
                test/unit/os/EnvTest.cpp
                test/unit/os/OSTest.cpp

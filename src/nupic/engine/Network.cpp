@@ -419,7 +419,6 @@ void Network::initialize() {
   size_t nLinksRemainingPrev = std::numeric_limits<size_t>::max();
   size_t nLinksRemaining = nLinksRemainingPrev - 1;
 
-  std::vector<Region *>::iterator r;
   while (nLinksRemaining > 0 && nLinksRemainingPrev > nLinksRemaining) {
     nLinksRemainingPrev = nLinksRemaining;
     nLinksRemaining = 0;

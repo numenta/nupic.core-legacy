@@ -137,16 +137,13 @@ public:
   }
 
   //---------------------------------------------------------------------
-  void print(std::ostream &outStream, bool longFormat = false,
-             UInt nCellsPerCol = 0) const {
+  void print(std::ostream &outStream, bool longFormat, UInt nCellsPerCol) const {
     if (!longFormat) {
-
       outStream << 'c' << _cellIdx << " s" << _segIdx
                 << (_phase1Flag ? " p1 " : " p2 ")
                 << (_sequenceSegment ? " ss" : " ")
                 << (_weaklyPredicting ? " wp" : " sp") << " t" << _timeStamp
                 << '/';
-
     } else {
       NTA_CHECK(nCellsPerCol > 0);
       UInt col = (UInt)(_cellIdx / nCellsPerCol);
@@ -163,11 +160,12 @@ public:
   }
 };
 
+
 //--------------------------------------------------------------------------------
 #ifndef SWIG
 inline std::ostream &operator<<(std::ostream &outStream,
                                 const SegmentUpdate &update) {
-  update.print(outStream);
+  update.print(outStream, false, 1/*unused, can pass any value*/);
   return outStream;
 }
 #endif

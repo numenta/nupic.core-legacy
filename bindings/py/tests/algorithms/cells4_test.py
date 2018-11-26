@@ -131,54 +131,38 @@ class Cells4Test(unittest.TestCase):
     return result
 
 
-  def _testPersistence(self, cells):
-    """This will pickle the cells instance, unpickle it, and test to ensure
+  def _testPersistencePy(self, cells):
+    """This will pickle(Python serialization method) the cells instance, 
+       unpickle it, and test to ensure
     the unpickled instance is identical to the pre-pickled version.
     """
+    #pickle serialize in Py way
     file1 = "test.pkl"
-    file2 = "test2.bin"
     pickle.dump(cells, open(file1, "wb"))
     cells2 = pickle.load(open(file1))
 
-    # Test all public attributes of Cells4 that should get pickled
-    for f1, f2 in zip(dir(cells), dir(cells2)):
-      if f1[0] != "_" and f1 not in ["initialize", "setStatePointers",
-                                     "getStates", "rebuildOutSynapses"]:
-        ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
-        try:
-          r1, r2 = ff1(), ff2()
-          resultsEqual = (r1 == r2)
-        except (NotImplementedError, RuntimeError, TypeError, ValueError):
-          continue
-        self.assertTrue(resultsEqual, "Cells do not match.")
+    self.assertEqual(cells, cells2)
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
 
     os.unlink(file1)
 
+  def _testPersistenceCpp(self, cells):
+    """This will serialize (using c++ serialization) the cells instance, 
+       unpickle it, and test to ensure
+    the unpickled instance is identical to the pre-pickled version.
+    """
     # Now try the Cells4.saveToFile method.
+    file2 = "test2.bin"
     cells.saveToFile(file2)
     cells2 = Cells4()
     cells2.loadFromFile(file2)
 
-    self.assertTrue(self._cellsDiff(cells, cells2))
-
-    # Test all public attributes of Cells4 that should get pickled
-    for f1, f2 in zip(dir(cells), dir(cells2)):
-      if f1[0] != "_" and f1 not in ["initialize", "setStatePointers",
-                                     "getStates", "rebuildOutSynapses"]:
-        ff1, ff2 = getattr(cells, f1), getattr(cells, f2)
-        try:
-          r1, r2 = ff1(), ff2()
-          resultsEqual = (r1 == r2)
-        except (NotImplementedError, RuntimeError, TypeError, ValueError):
-          continue
-        self.assertTrue(resultsEqual, "Cells do not match.")
+    self.assertTrue(cells.equals(cells2))
 
     # Ensure that the cells are identical
     self.assertTrue(self._cellsDiff(cells, cells2))
-
     os.unlink(file2)
 
 
@@ -231,37 +215,42 @@ class Cells4Test(unittest.TestCase):
     cells.setPamLength(pamLength)
     cells.setMaxAge(maxAge)
     cells.setMaxInfBacktrack(4)
-    cells.setVerbosity(4)
+    cells.setVerbosity(0)
 
     for i in xrange(nCols):
       for j in xrange(nCellsPerCol):
-        print "Adding segment: ", i, j, [((i + 1) % nCols,
-                                          (j + 1) % nCellsPerCol)]
+#        print "Adding segment: ", i, j, [((i + 1) % nCols, (j + 1) % nCellsPerCol)]
         cells.addNewSegment(i, j, True if j % 2 == 0 else False,
                             [((i + 1) % nCols, (j + 1) % nCellsPerCol)])
 
     for i in xrange(10):
       x = numpy.zeros(nCols, dtype="uint32")
       _RGEN.initializeUInt32Array(x, 2)
-      print "Input:", x
+#      print "Input:", x
       cells.compute(x, True, True)
 
     cells.rebuildOutSynapses()
 	
-    self._testPersistence(cells)
+    self._testPersistenceCpp(cells)
+    self._testPersistencePy(cells)
 
     for i in xrange(100):
       x = numpy.zeros(nCols, dtype="uint32")
       _RGEN.initializeUInt32Array(x, 2)
       cells.compute(x, True, False)
 
-    self._testPersistence(cells)
+    self._testPersistenceCpp(cells)
+    self._testPersistencePy(cells)
+
+
 
   def testEquals(self):
     nCols = 10
     c1 = createCells4(nCols)
     c2 = createCells4(nCols)
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
+    self.assertTrue(c1 == c2)
     
     # learn
     data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(10)]   
@@ -271,12 +260,15 @@ class Cells4Test(unittest.TestCase):
       c1.compute(x, True, True)
       c2.compute(x, True, True)
       self.assertEquals(c1, c2)
+      self.assertTrue(c1.equals(c2))
 
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
 
     c1.rebuildOutSynapses()
     c2.rebuildOutSynapses()
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
 
     # inference
     data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(100)]
@@ -286,5 +278,7 @@ class Cells4Test(unittest.TestCase):
       c1.compute(x, True, False)   
       c2.compute(x, True, False)
       self.assertEquals(c1, c2)
+      self.assertTrue(c1.equals(c2))
 
     self.assertEquals(c1, c2)
+    self.assertTrue(c1.equals(c2))
