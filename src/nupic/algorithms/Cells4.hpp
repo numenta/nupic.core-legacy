@@ -408,10 +408,16 @@ public:
   ~Cells4();
 
   //----------------------------------------------------------------------
+  /*
+   * equals operator
+   * None: ignores _ownsMemory as we want to compare objects from Py/C++
+   */
   bool operator==(const Cells4 &other) const;
   inline bool operator!=(const Cells4 &other) const {
     return !operator==(other);
   }
+  bool equals(const Cells4 &other) const { return operator==(other); } //this is extra for python, which cannot 
+  //overload op== from bindings
 
   //----------------------------------------------------------------------
   UInt version() const { return _version; }
@@ -1069,21 +1075,20 @@ public:
         }
 
         //----------------------------------------------------------------------
-  		/**
-   		* Save and load the state to/from the stream
+  	/**
+   	 * Save and load the state to/from the stream
          * Need to load and re-propagate activities so that we can really persist
          * at any point, load back and resume inference at exactly the same point.
-   		*/
-  		void save(std::ostream &outStream) const override;
-
+   	 */
+  	void save(std::ostream &outStream) const override;
         void load(std::istream& inStream) override;
 
-		virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
-		virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
+        virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+	virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
         //-----------------------------------------------------------------------
         void print(std::ostream& outStream) const;
-		std::ostream& operator<<(std::ostream& outStream);
+	std::ostream& operator<<(std::ostream& outStream);
 
 
         //----------------------------------------------------------------------
@@ -1157,15 +1162,6 @@ public:
          * It is also run on every compute if _checkSynapseConsistency is true
          */
         bool invariants(bool verbose = false) const;
-
-        //-----------------------------------------------------------------------
-        // Statistics
-        //-----------------------------------------------------------------------
-        void stats() const
-        {
-          return;
-        }
-
       };
 
       //-----------------------------------------------------------------------

@@ -320,7 +320,6 @@ set(src_nupiccore_srcs
     nupic/utils/Random.cpp
     nupic/utils/StringUtils.cpp
     nupic/utils/SlidingWindow.hpp
-    nupic/utils/TRandom.cpp
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs

@@ -126,6 +126,7 @@ static void printActiveColumns(std::ostream &out,
 }
 
 static void printCell(UInt srcCellIdx, UInt nCellsPerCol) {
+  NTA_ASSERT(nCellsPerCol != 0) << "cannot be 0, division by zero!";
   UInt col = (UInt)(srcCellIdx / nCellsPerCol);
   UInt cell = srcCellIdx - col * nCellsPerCol;
   std::cout << "[" << col << "," << cell << "]  ";
@@ -1692,7 +1693,7 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
     segment.updateSynapses(synToInc, _permInc, _permMax, _permConnected,
                            removed);
     // Incrementing of permanences shouldn't remove synapses
-    NTA_CHECK(removed.size() == numRemovedBeforePermInc);
+    NTA_ASSERT(removed.size() == numRemovedBeforePermInc) << numRemovedBeforePermInc; 
 
     // If we have fixed resources, get rid of some old synapses, if necessary
     if ((_maxSynapsesPerSegment > 0) &&
@@ -1936,9 +1937,7 @@ struct serializedState_t {
 //--------------------------------------------------------------------------------
 void Cells4::save(std::ostream &outStream) const {
   // Check invariants for smaller networks or if explicitly requested
-  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
-    NTA_CHECK(invariants(true));
-  }
+  NTA_CHECK(invariants(true));
 
   // Capture the class variables and write them as a binary block.
   struct serializedState_t self;
@@ -2266,9 +2265,7 @@ void Cells4::load(std::istream &inStream) {
   rebuildOutSynapses();
 
   // Check invariants for smaller networks or if explicitly requested
-  if (_checkSynapseConsistency || (_nCells * _maxSegmentsPerCell < 100000)) {
-    NTA_CHECK(invariants(true));
-  }
+  NTA_CHECK(invariants(true));
 
   // Update the version after loading everything.
   _version = VERSION;
@@ -2763,10 +2760,8 @@ void Cells4::chooseCellsToLearnFrom(UInt cellIdx, UInt segIdx, UInt nSynToAdd,
   } else {
     // choose a random subset of the cells found, and append them to the
     // caller's array
-    UInt start = (UInt)srcCells.size();
-    srcCells.resize(srcCells.size() + nSynToAdd);
-    _rng.sample(&vecPruned.front(), (UInt)vecPruned.size(), &srcCells[start],
-                nSynToAdd);
+    auto add = _rng.sample<UInt>(vecPruned, nSynToAdd);
+    srcCells.insert(srcCells.begin(), add.begin(), add.end());
 
     fSortNeeded = true;
   }
@@ -2914,7 +2909,7 @@ void Cells4::printConfidence(Real *confidence, size_t len) const {
 void Cells4::dumpSegmentUpdates() {
   std::cout << _segmentUpdates.size() << " updates" << std::endl;
   for (UInt i = 0; i != _segmentUpdates.size(); ++i) {
-    _segmentUpdates[i].print(std::cout, true);
+    _segmentUpdates[i].print(std::cout, true, nCellsPerCol()); 
     std::cout << std::endl;
   }
 }
@@ -2952,26 +2947,36 @@ bool Cells4::operator==(const Cells4 &other) const {
       _avgInputDensity != other._avgInputDensity ||
       _avgLearnedSeqLength != other._avgLearnedSeqLength ||
       _checkSynapseConsistency != other._checkSynapseConsistency ||
-      _doPooling != other._doPooling || _globalDecay != other._globalDecay ||
+      _doPooling != other._doPooling || 
+      _globalDecay != other._globalDecay ||
       _initSegFreq != other._initSegFreq ||
       _learnedSeqLength != other._learnedSeqLength ||
-      _maxAge != other._maxAge || _maxInfBacktrack != other._maxInfBacktrack ||
+      _maxAge != other._maxAge || 
+      _maxInfBacktrack != other._maxInfBacktrack ||
       _maxLrnBacktrack != other._maxLrnBacktrack ||
       _maxSegmentsPerCell != other._maxSegmentsPerCell ||
       _maxSeqLength != other._maxSeqLength ||
       _maxSynapsesPerSegment != other._maxSynapsesPerSegment ||
-      _minThreshold != other._minThreshold || _nCells != other._nCells ||
-      _nCellsPerCol != other._nCellsPerCol || _nColumns != other._nColumns ||
+      _minThreshold != other._minThreshold || 
+      _nCells != other._nCells ||
+      _nCellsPerCol != other._nCellsPerCol || 
+      _nColumns != other._nColumns ||
       _newSynapseCount != other._newSynapseCount ||
       _nIterations != other._nIterations ||
       _nLrnIterations != other._nLrnIterations ||
-      _ownsMemory != other._ownsMemory || _pamCounter != other._pamCounter ||
+//!      _ownsMemory != other._ownsMemory || //who owns memory (py, cpp, ..) is not part of equals, as we want
+//to compare C++ and Py Cells objects 
+      _pamCounter != other._pamCounter ||
       _pamLength != other._pamLength ||
-      _permConnected != other._permConnected || _permDec != other._permDec ||
-      _permInc != other._permInc || _permInitial != other._permInitial ||
-      _permMax != other._permMax || _resetCalled != other._resetCalled ||
+      _permConnected != other._permConnected || 
+      _permDec != other._permDec ||
+      _permInc != other._permInc || 
+      _permInitial != other._permInitial ||
+      _permMax != other._permMax || 
+      _resetCalled != other._resetCalled ||
       _segUpdateValidDuration != other._segUpdateValidDuration ||
-      _verbosity != other._verbosity || _version != other._version) {
+      _verbosity != other._verbosity || 
+      _version != other._version) {
     return false;
   }
   if (_rng != other._rng) {
@@ -3088,63 +3093,16 @@ void Cells4::computeForwardPropagation(CState &state) {
   // Compute cell and segment activity by following forward propagation
   // links from each source cell.  _cellActivity will be set to the total
   // activity coming into a cell.
-#ifdef NTA_ARCH_64
-  const UInt multipleOf8 = 8 * (_nCells / 8);
-  UInt i;
-  for (i = 0; i < multipleOf8; i += 8) {
-    UInt64 eightStates = *(UInt64 *)(state.arrayPtr() + i);
-    for (int k = 0; eightStates != 0 && k < 8; eightStates >>= 8, k++) {
-      if ((eightStates & 0xff) != 0) {
-        std::vector<OutSynapse> &os = _outSynapses[i + k];
-        for (UInt j = 0; j != os.size(); ++j) {
-          UInt dstCellIdx = os[j].dstCellIdx();
-          UInt dstSegIdx = os[j].dstSegIdx();
-          _inferActivity.increment(dstCellIdx, dstSegIdx);
-        }
-      }
-    }
-  }
-
-  // process the tail if (_nCells % 8) != 0
-  for (i = multipleOf8; i < _nCells; i++) {
+  for (UInt i = 0; i < _nCells; i++) {
     if (state.isSet(i)) {
-      std::vector<OutSynapse> &os = _outSynapses[i];
-      for (UInt j = 0; j != os.size(); ++j) {
-        UInt dstCellIdx = os[j].dstCellIdx();
-        UInt dstSegIdx = os[j].dstSegIdx();
+      const std::vector<OutSynapse> &os = _outSynapses[i];
+      for (auto outSyn : os) {
+        const UInt dstCellIdx = outSyn.dstCellIdx();
+        const UInt dstSegIdx = outSyn.dstSegIdx();
         _inferActivity.increment(dstCellIdx, dstSegIdx);
       }
     }
   }
-#else
-  const UInt multipleOf4 = 4 * (_nCells / 4);
-  UInt i;
-  for (i = 0; i < multipleOf4; i += 4) {
-    UInt32 fourStates = *(UInt32 *)(state.arrayPtr() + i);
-    for (int k = 0; fourStates != 0 && k < 4; fourStates >>= 8, k++) {
-      if ((fourStates & 0xff) != 0) {
-        std::vector<OutSynapse> &os = _outSynapses[i + k];
-        for (UInt j = 0; j != os.size(); ++j) {
-          UInt dstCellIdx = os[j].dstCellIdx();
-          UInt dstSegIdx = os[j].dstSegIdx();
-          _inferActivity.increment(dstCellIdx, dstSegIdx);
-        }
-      }
-    }
-  }
-
-  // process the tail if (_nCells % 4) != 0
-  for (i = multipleOf4; i < _nCells; i++) {
-    if (state.isSet(i)) {
-      std::vector<OutSynapse> &os = _outSynapses[i];
-      for (UInt j = 0; j != os.size(); ++j) {
-        UInt dstCellIdx = os[j].dstCellIdx();
-        UInt dstSegIdx = os[j].dstSegIdx();
-        _inferActivity.increment(dstCellIdx, dstSegIdx);
-      }
-    }
-  }
-#endif // NTA_ARCH_32/64
 }
 #endif // SOME_STATES_NOT_INDEXED
 

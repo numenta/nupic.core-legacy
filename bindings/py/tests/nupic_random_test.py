@@ -117,8 +117,8 @@ class TestNupicRandom(unittest.TestCase):
 
     r.sample(population, choices)
 
-    self.assertEqual(choices[0], 1)
-    self.assertEqual(choices[1], 3)
+    self.assertEqual(choices[0], 2)
+    self.assertEqual(choices[1], 1)
 
 
   def testSampleNone(self):
@@ -139,10 +139,10 @@ class TestNupicRandom(unittest.TestCase):
 
     r.sample(population, choices)
 
-    self.assertEqual(choices[0], 1)
-    self.assertEqual(choices[1], 2)
-    self.assertEqual(choices[2], 3)
-    self.assertEqual(choices[3], 4)
+    self.assertEqual(choices[0], 2)
+    self.assertEqual(choices[1], 1)
+    self.assertEqual(choices[2], 4)
+    self.assertEqual(choices[3], 3)
 
 
   def testSampleWrongDimensionsPopulation(self):
@@ -206,10 +206,10 @@ class TestNupicRandom(unittest.TestCase):
 
     r.shuffle(arr)
 
-    self.assertEqual(arr[0], 1)
-    self.assertEqual(arr[1], 4)
-    self.assertEqual(arr[2], 3)
-    self.assertEqual(arr[3], 2)
+    self.assertEqual(arr[0], 2)
+    self.assertEqual(arr[1], 1)
+    self.assertEqual(arr[2], 4)
+    self.assertEqual(arr[3], 3)
 
 
   def testShuffleEmpty(self):
@@ -221,7 +221,7 @@ class TestNupicRandom(unittest.TestCase):
     self.assertEqual(arr.size, 0)
 
 
-  def testShuffleEmpty(self):
+  def testShuffleEmpty2(self):
     r = Random(42)
     arr = numpy.zeros([2, 2], dtype="uint32")
 
@@ -238,10 +238,20 @@ class TestNupicRandom(unittest.TestCase):
   def testEquals(self):
     r1 = Random(42)
     v1 = r1.getReal64()
+    i1 = r1.getUInt32()
     r2 = Random(42)
     v2 = r2.getReal64()
+    i2 = r2.getUInt32()
     self.assertEquals(v1, v2)
     self.assertEquals(r1, r2)
+    self.assertEquals(i1, i2)
+
+
+  def testPlatformSame(self): 
+    r = Random(42)
+    [r.getUInt32() for _ in xrange(80085)]
+    v = r.getUInt32()
+    self.assertEquals(v, 1651991554)
 
 if __name__ == "__main__":
   unittest.main()
