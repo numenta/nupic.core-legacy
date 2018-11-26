@@ -82,7 +82,7 @@ Segment &Segment::operator=(const Segment &o) {
 }
 
 //--------------------------------------------------------------------------------
-bool Segment::operator==(const Segment &other) const {
+bool Segment::equals(const Segment &other) const {
   if (_totalActivations != other._totalActivations ||
       _positiveActivations != other._positiveActivations ||
       _lastActiveIteration != other._lastActiveIteration ||
