@@ -153,12 +153,15 @@ public:
     for (UInt i = 0; i != _synapses.size(); ++i)
       outStream << _synapses[i] << ' ';
   }
+
+
   /**
    * compare segments.
    * A restored serialized segment should be the same as original.
    */
    bool equals(const SegmentUpdate &s) const;
 
+}; 
 
 //--------------------------------------------------------------------------------
 #ifndef SWIG

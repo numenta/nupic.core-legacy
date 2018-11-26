@@ -30,8 +30,6 @@
 #include <sstream>
 #include <vector>
 
-//#include <boost/filesystem.hpp>
-
 #include <assert.h>
 #include <cstring>
 #include <map>
