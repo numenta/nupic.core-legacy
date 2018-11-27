@@ -1057,26 +1057,6 @@ public:
   Real avgColumnsPerInput_() const;
 
   /**
-      The range of connected synapses for column. This is used to
-      calculate the inhibition radius. This variation of the function only
-      supports a 1 dimensional column topology.
-
-      @param column An int number identifying a column in the permanence,
-     potential and connectivity matrices.
-  */
-  Real avgConnectedSpanForColumn1D_(UInt column) const;
-
-  /**
-      The range of connectedSynapses per column, averaged for each dimension.
-      This vaule is used to calculate the inhibition radius. This variation of
-      the  function only supports a 2 dimensional column topology.
-
-      @param column An int number identifying a column in the permanence,
-     potential and connectivity matrices.
-  */
-  Real avgConnectedSpanForColumn2D_(UInt column) const;
-
-  /**
       The range of connectedSynapses per column, averaged for each dimension.
       This vaule is used to calculate the inhibition radius. This variation of
       the function supports arbitrary column dimensions.
