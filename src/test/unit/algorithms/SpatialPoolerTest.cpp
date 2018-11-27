@@ -505,15 +505,16 @@ TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   UInt numColumns = 5;
   setup(sp, numInputs, numColumns);
   vector<UInt> overlaps;
+  SDR active({numColumns});
 
   Real initOverlapArr1[] = {1, 1, 1, 1, 1};
   sp.setOverlapDutyCycles(initOverlapArr1);
   Real overlapNewVal1[] = {1, 5, 7, 0, 0};
   overlaps.assign(overlapNewVal1, overlapNewVal1 + numColumns);
-  UInt active[] = {0, 0, 0, 0, 0};
+  active.setDense(vector<Byte>({0, 0, 0, 0, 0}));
 
   sp.setIterationNum(2);
-  sp.updateDutyCycles_(overlaps, active);
+  sp.updateDutyCycles_(overlaps, &active);
 
   Real resultOverlapArr1[5];
   sp.getOverlapDutyCycles(resultOverlapArr1);
@@ -524,7 +525,7 @@ TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   sp.setOverlapDutyCycles(initOverlapArr1);
   sp.setIterationNum(2000);
   sp.setUpdatePeriod(1000);
-  sp.updateDutyCycles_(overlaps, active);
+  sp.updateDutyCycles_(overlaps, &active);
 
   Real resultOverlapArr2[5];
   sp.getOverlapDutyCycles(resultOverlapArr2);
@@ -792,7 +793,8 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
       {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
   //    -      -      -      -      -      -      -       -
 
-  UInt inputArr1[8] = {1, 0, 0, 1, 1, 0, 1, 0};
+  SDR input1({8});
+  input1.setDense(SDR_dense_t{1, 0, 0, 1, 1, 0, 1, 0});
   UInt activeColumnsArr1[3] = {0, 1, 2};
 
   for (UInt column = 0; column < numColumns; column++) {
@@ -802,7 +804,7 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
 
   activeColumns.assign(&activeColumnsArr1[0], &activeColumnsArr1[3]);
 
-  sp.adaptSynapses_(inputArr1, activeColumns);
+  sp.adaptSynapses_(&input1, activeColumns);
   cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
@@ -832,7 +834,8 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
       {0.170, 0.000, 0.000, 0.000, 0.000, 0.000, 0.380, 0.000}};
   //  #  -    -      -      -      -       -       -     -
 
-  UInt inputArr2[8] = {1, 0, 0, 1, 1, 0, 1, 0};
+  SDR input2({8});
+  input2.setDense(SDR_dense_t{1, 0, 0, 1, 1, 0, 1, 0});
   UInt activeColumnsArr2[3] = {0, 1, 2};
 
   for (UInt column = 0; column < numColumns; column++) {
@@ -842,7 +845,7 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
 
   activeColumns.assign(&activeColumnsArr2[0], &activeColumnsArr2[3]);
 
-  sp.adaptSynapses_(inputArr2, activeColumns);
+  sp.adaptSynapses_(&input2, activeColumns);
   cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
@@ -1064,7 +1067,9 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
 
   for (UInt i = 0; i < numTrials; i++) {
     vector<UInt> overlaps;
-    sp.calculateOverlap_(inputs[i], overlaps);
+    SDR input({numInputs});
+    input.setDense(SDR_dense_t(inputs[i], inputs[i] + numInputs));
+    sp.calculateOverlap_(&input, overlaps);
     ASSERT_TRUE(check_vector_eq(trueOverlaps[i], overlaps));
   }
 }
