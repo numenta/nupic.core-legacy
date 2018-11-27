@@ -38,8 +38,6 @@
 #include <gtest/gtest.h>
 
 #define VERBOSITY 0
-#define VERBOSE if (verbose) std::cerr << "[          ] "
-static bool verbose =  true; // turn this on to print extra stuff for debugging the test.
 #define SEED 12
 
 using namespace nupic;
