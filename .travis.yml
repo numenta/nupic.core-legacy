@@ -15,13 +15,13 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-7
+            - g++-8
             - xsltproc #only for doc transform to html , can be removed
             - python-pip-whl
             - python2.7
             - libboost-all-dev
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
@@ -106,6 +106,7 @@ before_install:
   - $CXX --version
   - echo "Installing pip, setuptools, and wheel"
   - pip2 install  --user pip setuptools wheel || exit
+  - pip2 uninstall nupic.bindings
   - echo "Installing Python dependencies"
   - sudo pip2 install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
 
@@ -132,7 +133,7 @@ script:
   # unit tests
   - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
-  - "py.test ${TRAVIS_BUILD_DIR}/bindings/py/tests"
+  - "python ${TRAVIS_BUILD_DIR}/setup.py test"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html
