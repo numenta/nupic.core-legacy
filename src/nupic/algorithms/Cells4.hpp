@@ -29,10 +29,7 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <ostream>
-#include <queue>
 #include <sstream>
-#include <cstring>
-#include <fstream>
 
 //-----------------------------------------------------------------------
 /**

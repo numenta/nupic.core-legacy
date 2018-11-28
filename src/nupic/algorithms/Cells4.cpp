@@ -20,26 +20,20 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nupic/utils/Random.hpp>
-
 #include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <limits> // numeric_limits
 #include <set>
-#include <sstream>
 #include <vector>
 
-#include <assert.h>
-#include <cstring>
-#include <map>
-#include <nupic/algorithms/Cell.hpp>
 #include <nupic/algorithms/Cells4.hpp>
+
 #include <nupic/algorithms/SegmentUpdate.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/utils/Random.hpp>
 
 using namespace nupic;
 using namespace nupic::algorithms::Cells4;
@@ -80,7 +74,7 @@ Cells4::Cells4(UInt nColumns, UInt nCellsPerCol,
                      int seed,
                      bool initFromCpp,
                      bool checkSynapseConsistency)
-  : _rng(seed < 0 ? rand() : seed)
+  : _rng(seed < 0 ? 0/*rand*/ : seed)
 {
   _version = VERSION;
   _ownsMemory = true;
