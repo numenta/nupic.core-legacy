@@ -20,6 +20,7 @@ matrix:
             - python-pip-whl
             - python2.7
             - libboost-all-dev
+            - virtualenv 
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
@@ -104,11 +105,12 @@ notifications:
 before_install:
   - eval "${MATRIX_EVAL}"
   - $CXX --version
+  - virtualenv ${TRAVIS_BUILD_DIR}/pyenv
+  - source ${TRAVIS_BUILD_DIR}/pyenv/bin/activate
   - echo "Installing pip, setuptools, and wheel"
-  - pip2 install  --user pip setuptools wheel || exit
-  - pip2 uninstall nupic.bindings
+  - pip install --upgrade pip setuptools wheel || exit
   - echo "Installing Python dependencies"
-  - sudo pip2 install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
+  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
 
 install:
   # Prepare directories
@@ -120,11 +122,10 @@ install:
   - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON"
   # Configure bash such that a failure in any link in the pipe causes the whole pipe to fail
   - "set -o pipefail"
-  - "VERBOSE=1 make |grep -v -F '\\-\\- Installing:'"
+  - "VERBOSE=0 make |grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
-  # TODO later remove, --prefix= is workaround for https://stackoverflow.com/questions/4495120/combine-user-with-prefix-error-with-setup-py-install
-  - "python setup.py install --user --prefix="
+  - "python setup.py install"
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
