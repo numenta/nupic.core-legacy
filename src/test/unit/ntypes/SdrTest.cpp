@@ -719,6 +719,9 @@ TEST(SdrTest, TestSaveLoad) {
     ASSERT_TRUE( index   == index_2 );
 }
 
+TEST(SdrTest, TestCallbacks) {
+}
+
 TEST(SdrTest, TestProxy) {
     SDR A({10});
     SDR_Proxy B(A, {2, 5});

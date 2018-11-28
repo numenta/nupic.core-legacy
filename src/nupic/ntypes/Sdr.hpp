@@ -790,9 +790,15 @@ public:
 
 typedef SparseDistributedRepresentation SDR;
 
+/**
+ *
+ */
 class SDR_Proxy : public SDR
 {
 public:
+    /**
+     *
+     */
     SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
         : SDR( dimensions ) {
         parent = &sdr;
@@ -852,8 +858,14 @@ public:
         { NTA_THROW << _SDR_Proxy_setter_error_message; };
 
 private:
+    /**
+     *
+     */
     SDR *parent;
 
+    /**
+     *
+     */
     void operator() ()
         { clear(); };
 
