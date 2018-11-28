@@ -85,11 +85,6 @@ public:
     NTA_ASSERT(invariants());
     return *this;
   }
-  //---------------------------------------------------------------------
-  bool operator==(const SegmentUpdate &other) const;
-  inline bool operator!=(const SegmentUpdate &other) const {
-    return !operator==(other);
-  }
 
   //---------------------------------------------------------------------
   bool isSequenceSegment() const { return _sequenceSegment; }
@@ -158,8 +153,17 @@ public:
     for (UInt i = 0; i != _synapses.size(); ++i)
       outStream << _synapses[i] << ' ';
   }
-};
 
+
+  /**
+   * compare segments.
+   * A restored serialized segment should be the same as original.
+   */
+   inline bool equals(const SegmentUpdate &o) const { return this->operator==(o); }
+   bool operator==(const SegmentUpdate &o) const;
+   inline bool operator!=(const SegmentUpdate &o) const { return !this->operator==(o); }
+
+}; 
 
 //--------------------------------------------------------------------------------
 #ifndef SWIG
