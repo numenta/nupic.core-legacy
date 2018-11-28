@@ -256,6 +256,7 @@ set(src_lib_static_nupiccore_solo nupic_core_solo)
 
 set(src_nupiccore_srcs
     nupic/algorithms/Anomaly.cpp
+    nupic/algorithms/BacktrackingTMCpp.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cells4.cpp
@@ -409,6 +410,7 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
                test/unit/algorithms/AnomalyTest.cpp
+	       test/unit/algorithms/BacktrackingTMCppTest.cpp
                test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp

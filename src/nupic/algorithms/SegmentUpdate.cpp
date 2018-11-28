@@ -93,13 +93,13 @@ bool SegmentUpdate::invariants(Cells4 *cells) const {
  * Serialized segmentUpdates against the original they will
  * be in exactly the same sequence.
  */
-bool SegmentUpdate::operator==(const SegmentUpdate &o) const {
-
-  if (_cellIdx != o._cellIdx || _segIdx != o._segIdx ||
-      _sequenceSegment != o._sequenceSegment || _timeStamp != o._timeStamp ||
-      _phase1Flag != o._phase1Flag ||
-      _weaklyPredicting != o._weaklyPredicting) {
-    return false;
+bool SegmentUpdate::operator==(const SegmentUpdate &s) const {
+  // synapses
+  if (s._synapses.size() != _synapses.size()) return false;
+  for (Size synIdx1 = 1; synIdx1 < _synapses.size(); synIdx1++)
+  {
+      if (s._synapses[synIdx1] != _synapses[synIdx1])
+        return false;
   }
-  return _synapses == o._synapses;
+  return true;
 }

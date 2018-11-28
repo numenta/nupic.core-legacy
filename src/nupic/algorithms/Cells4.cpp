@@ -20,27 +20,20 @@
  * ---------------------------------------------------------------------
  */
 
-#include <nupic/utils/Random.hpp>
-
 #include <algorithm>
-#include <iomanip>
 #include <iostream>
 #include <limits> // numeric_limits
 #include <set>
-#include <sstream>
 #include <vector>
 
-#include "cycle_counter.hpp"
-#include <assert.h>
-#include <cstring>
-#include <map>
-#include <nupic/algorithms/Cell.hpp>
 #include <nupic/algorithms/Cells4.hpp>
+
 #include <nupic/algorithms/SegmentUpdate.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/utils/Random.hpp>
 
 using namespace nupic;
 using namespace nupic::algorithms::Cells4;
@@ -66,13 +59,23 @@ static nupic::Timer chooseCellsTimer;
 
 #endif
 
-Cells4::Cells4(UInt nColumns, UInt nCellsPerCol, UInt activationThreshold,
-               UInt minThreshold, UInt newSynapseCount,
-               UInt segUpdateValidDuration, Real permInitial,
-               Real permConnected, Real permMax, Real permDec, Real permInc,
-               Real globalDecay, bool doPooling, int seed, bool initFromCpp,
-               bool checkSynapseConsistency)
-    : _rng(seed < 0 ? rand() : seed) {
+Cells4::Cells4(UInt nColumns, UInt nCellsPerCol,
+                     UInt activationThreshold,
+                     UInt minThreshold,
+                     UInt newSynapseCount,
+                     UInt segUpdateValidDuration,
+                     Real permInitial,
+                     Real permConnected,
+                     Real permMax,
+                     Real permDec,
+                     Real permInc,
+                     Real globalDecay,
+                     bool doPooling,
+                     int seed,
+                     bool initFromCpp,
+                     bool checkSynapseConsistency)
+  : _rng(seed < 0 ? 0/*rand*/ : seed)
+{
   _version = VERSION;
   _ownsMemory = true;
   _cellConfidenceT  = nullptr;
@@ -224,8 +227,10 @@ bool Cells4::computeUpdate(UInt cellIdx, UInt segIdx,
  */
 
 template <typename It>
-void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx, It newSynapse,
-                            It newSynapsesEnd) {
+void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
+            It newSynapse,
+            It newSynapsesEnd)
+{
   NTA_ASSERT(dstCellIdx < nCells());
   NTA_ASSERT(dstSegIdx < _cells[dstCellIdx].size());
 
@@ -284,8 +289,7 @@ void Cells4::inferBacktrack(const std::vector<UInt> &activeColumns) {
   // How much input history have we accumulated? Is it enough to backtrack?
   // The current input is always at the end of self._prevInfPatterns, but
   // it is also evaluated as a potential starting point
-  if (_prevInfPatterns.empty())
-    return;
+  if (_prevInfPatterns.empty()) return;
 
   TIMER(infBacktrackTimer.start());
 
@@ -345,10 +349,9 @@ void Cells4::inferBacktrack(const std::vector<UInt> &activeColumns) {
 
       // Compute activeState[t] given bottom-up and predictedState[t-1]
       _infPredictedStateT1 = _infPredictedStateT;
-      inSequence =
-          inferPhase1(_prevInfPatterns[offset], (offset == startOffset));
-      if (!inSequence)
-        break;
+      inSequence = inferPhase1(_prevInfPatterns[offset],
+                               (offset == startOffset));
+      if (!inSequence) break;
 
       // Compute predictedState['t'] given activeState['t']
       if (_verbosity >= 3) {
@@ -729,8 +732,8 @@ UInt Cells4::getCellForNewSegment(UInt colIdx) {
  * Compute the learning active state given the predicted state and
  * the bottom-up input.
  */
-bool Cells4::learnPhase1(const std::vector<UInt> &activeColumns,
-                         bool readOnly) {
+bool Cells4::learnPhase1(const std::vector<UInt> & activeColumns, bool readOnly)
+{
   TIMER(learnPhase1Timer.start());
 
   // Save previous active state (where?) and start out on a clean slate
@@ -762,8 +765,7 @@ bool Cells4::learnPhase1(const std::vector<UInt> &activeColumns,
       numUnpredictedColumns++;
       if (!readOnly) {
         std::pair<UInt, UInt> p;
-        p = getBestMatchingCellT1(activeColumn, _learnActiveStateT1,
-                                  _minThreshold);
+        p = getBestMatchingCellT1(activeColumn, _learnActiveStateT1, _minThreshold);
         UInt cellIdx = p.first, segIdx = p.second;
 
         // If we found a sequence segment, reinforce it
@@ -796,7 +798,8 @@ bool Cells4::learnPhase1(const std::vector<UInt> &activeColumns,
             std::cout << "Learn branch 1, no match: ";
             std::cout << "   learning on col=" << activeColumn
                       << ", newCellIdxInCol="
-                      << newCellIdx - getCellIdx(activeColumn, 0) << "\n";
+                      << newCellIdx - getCellIdx(activeColumn, 0)
+                      << "\n";
           }
           _learnActiveStateT.set(newCellIdx);
           bool newUpdate = computeUpdate(newCellIdx, (UInt)-1,
@@ -1149,8 +1152,7 @@ bool Cells4::inferPhase2() {
 
             // Incorporate the confidence into the owner cell and column
             // Use segment::getLastPosDutyCycle() here
-            Real dc =
-                _cells[cellIdx][j].dutyCycle(_nLrnIterations, false, false);
+            Real dc = _cells[cellIdx][j].dutyCycle(_nLrnIterations, false, false);
             _cellConfidenceT[cellIdx] += dc;
             _colConfidenceT[c] += dc;
 
@@ -1192,13 +1194,12 @@ bool Cells4::inferPhase2() {
 /**
  * Main compute routine, called for both learning and inference.
  */
-void Cells4::compute(Real *input, Real *output, bool doInference,
-                     bool doLearning) {
+void Cells4::compute(Real* input, Real* output, bool doInference, bool doLearning)
+{
   TIMER(computeTimer.start());
   NTA_CHECK(doInference || doLearning);
 
-  if (doLearning)
-    _nLrnIterations++;
+  if (doLearning) _nLrnIterations++;
   ++_nIterations;
 
 #ifdef CELLS4_TIMING
@@ -1674,8 +1675,7 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
         activeSegmentIndices);
 
     // Decrement permanences of inactive synapses
-    segment.updateSynapses(synToDec, -_permDec, _permMax, _permConnected,
-                           removed);
+    segment.updateSynapses(synToDec, - _permDec, _permMax, _permConnected, removed);
 
     // If any synapses were removed as the result of permanence decrements,
     // regenerate affected parameters
@@ -1684,8 +1684,9 @@ void Cells4::adaptSegment(const SegmentUpdate &update) {
       synapsesSet.insert(update.begin(), update.end());
 
       _generateListsOfSynapsesToAdjustForAdaptSegment(
-          segment, synapsesSet, synToDec, inactiveSegmentIndices, synToInc,
-          activeSegmentIndices);
+        segment, synapsesSet,
+        synToDec, inactiveSegmentIndices,
+        synToInc, activeSegmentIndices);
     }
 
     // Increment permanences of active synapses
@@ -1874,6 +1875,7 @@ void Cells4::reset() {
   _learnActiveStateT1.resetAll();
   _learnPredictedStateT.resetAll();
   _learnPredictedStateT1.resetAll();
+
   memset(_cellConfidenceT, 0, _nCells * sizeof(_cellConfidenceT[0]));
   memset(_cellConfidenceT1, 0, _nCells * sizeof(_cellConfidenceT1[0]));
   memset(_colConfidenceT, 0, _nColumns * sizeof(_colConfidenceT[0]));
@@ -2546,11 +2548,11 @@ UInt Cells4::nSynapsesInCell(UInt cellIdx) const {
   return _cells[cellIdx].nSynapses();
 }
 
-Cell *Cells4::getCell(UInt colIdx, UInt cellIdxInCol) {
+Cell &Cells4::getCell(UInt colIdx, UInt cellIdxInCol) {
   NTA_ASSERT(colIdx < nColumns());
   NTA_ASSERT(cellIdxInCol < nCellsPerCol());
 
-  return &_cells[colIdx * _nCellsPerCol + cellIdxInCol];
+  return _cells[colIdx * _nCellsPerCol + cellIdxInCol];
 }
 
 UInt Cells4::getCellIdx(UInt colIdx, UInt cellIdxInCol) {
@@ -2560,7 +2562,7 @@ UInt Cells4::getCellIdx(UInt colIdx, UInt cellIdxInCol) {
   return colIdx * _nCellsPerCol + cellIdxInCol;
 }
 
-Segment *Cells4::getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx) {
+Segment &Cells4::getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx) {
   NTA_ASSERT(colIdx < nColumns());
   NTA_ASSERT(cellIdxInCol < nCellsPerCol());
 
@@ -2568,7 +2570,7 @@ Segment *Cells4::getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx) {
 
   NTA_ASSERT(segIdx < _cells[cellIdx].size());
 
-  return &segment(cellIdx, segIdx);
+  return segment(cellIdx, segIdx);
 }
 
 Segment &Cells4::segment(UInt cellIdx, UInt segIdx) {
@@ -2988,30 +2990,17 @@ bool Cells4::operator==(const Cells4 &other) const {
   if (_segmentUpdates != other._segmentUpdates) {
     return false;
   }
-  if (_learnActiveStateT != other._learnActiveStateT) {
-    return false;
-  }
-  if (_learnActiveStateT1 != other._learnActiveStateT1) {
-    return false;
-  }
-  if (_learnPredictedStateT != other._learnPredictedStateT) {
-    return false;
-  }
-  if (_learnPredictedStateT1 != other._learnPredictedStateT1) {
-    return false;
-  }
-  if (_infActiveStateT != other._infActiveStateT) {
-    return false;
-  }
-  if (_infActiveStateT1 != other._infActiveStateT1) {
-    return false;
-  }
-  if (_infPredictedStateT != other._infPredictedStateT) {
-    return false;
-  }
-  if (_infPredictedStateT1 != other._infPredictedStateT1) {
-    return false;
-  }
+
+        // states
+      if (!_infActiveStateT.equals(other._infActiveStateT)) return false;
+      if (!_infActiveStateT1.equals(other._infActiveStateT1)) return false;
+      if (!_infPredictedStateT.equals(other._infPredictedStateT)) return false;
+      if (!_infPredictedStateT1.equals(other._infPredictedStateT1)) return false;
+      if (!_learnActiveStateT.equals(other._learnActiveStateT)) return false;
+      if (!_learnActiveStateT1.equals(other._learnActiveStateT1)) return false;
+      if (!_learnPredictedStateT.equals(other._learnPredictedStateT)) return false;
+      if (!_learnPredictedStateT1.equals(other._learnPredictedStateT1)) return false;
+
   if (_prevInfPatterns != other._prevInfPatterns) {
     return false;
   }
