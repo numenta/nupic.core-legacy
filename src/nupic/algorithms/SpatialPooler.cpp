@@ -442,8 +442,6 @@ void SpatialPooler::initialize(
   connectedSynapses_.resize(numColumns_, numInputs_);
   connectedCounts_.resize(numColumns_);
 
-  activeColumns_ = new SDR( columnDimensions_ );
-
   overlapDutyCycles_.assign(numColumns_, 0);
   activeDutyCycles_.assign(numColumns_, 0);
   minOverlapDutyCycles_.assign(numColumns_, 0.0);
@@ -472,16 +470,16 @@ void SpatialPooler::initialize(
 void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArray[]) {
   SDR input( inputDimensions_ );
   input.setDense( inputArray );
-  compute( &input, learn );
+
+  SDR active( columnDimensions_ );
+  compute( input, learn, active );
   copy(
-      activeColumns_->getDense().begin(),
-      activeColumns_->getDense().end(),
+      active.getDense().begin(),
+      active.getDense().end(),
       activeArray);
 }
 
-void SpatialPooler::compute(SDR *input, bool learn) {
-  NTA_ASSERT( input != NULL );
-
+void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);
@@ -492,11 +490,11 @@ void SpatialPooler::compute(SDR *input, bool learn) {
     boostedOverlaps_.assign(overlaps_.begin(), overlaps_.end());
   }
 
-  inhibitColumns_(boostedOverlaps_, activeColumns_->getFlatSparse());
-
+  inhibitColumns_(boostedOverlaps_, active.getFlatSparse());
+  active.setFlatSparse( active.getFlatSparse() );
   if (learn) {
-    adaptSynapses_(input, activeColumns_->getFlatSparse());
-    updateDutyCycles_(overlaps_, activeColumns_);
+    adaptSynapses_(input, active);
+    updateDutyCycles_(overlaps_, active);
     bumpUpWeakColumns_();
     updateBoostFactors_();
     if (isUpdateRound_()) {
@@ -722,10 +720,10 @@ void SpatialPooler::updateMinDutyCyclesLocal_() {
 
 
 void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
-                                      SDR *active) {
+                                      SDR &active) {
   vector<UInt> newOverlapVal(numColumns_, 0);
   vector<UInt> newActiveVal(numColumns_, 0);
-  const auto activeArray = active->getDense();
+  const auto activeArray = active.getDense();
   for (UInt i = 0; i < numColumns_; i++) {
     newOverlapVal[i] = overlaps[i] > 0 ? 1 : 0;
     newActiveVal[i] = activeArray[i] > 0 ? 1 : 0;
@@ -825,18 +823,17 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 }
 
 
-void SpatialPooler::adaptSynapses_(SDR *input,
-                                   const vector<UInt> &activeColumns) {
+void SpatialPooler::adaptSynapses_(SDR &input,
+                                   SDR &active) {
   vector<Real> permChanges(numInputs_, -1 * synPermInactiveDec_);
-  const auto &inputVector = input->getDense();
+  const auto &inputVector = input.getDense();
   for (UInt i = 0; i < numInputs_; i++) {
     if (inputVector[i] > 0) {
       permChanges[i] = synPermActiveInc_;
     }
   }
 
-  for (Size i = 0; i < activeColumns.size(); i++) {
-    const UInt column = activeColumns[i];
+  for(const auto &column : active.getFlatSparse()) {
     const vector<UInt> potential = potentialPools_.getSparseRow(column);
     vector<Real> perm(numInputs_, 0);
     permanences_.getRowToDense(column, perm);
@@ -937,10 +934,10 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 }
 
 
-void SpatialPooler::calculateOverlap_(SDR *input,
+void SpatialPooler::calculateOverlap_(SDR &input,
                                       vector<UInt> &overlaps) const {
   overlaps.assign(numColumns_, 0);
-  const auto &inputVector = input->getDense();
+  const auto &inputVector = input.getDense();
   connectedSynapses_.rightVecSumAtNZ(inputVector.begin(), inputVector.end(),
                                      overlaps.begin(),    overlaps.end());
 }

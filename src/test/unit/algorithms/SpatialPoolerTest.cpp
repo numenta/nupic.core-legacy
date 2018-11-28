@@ -514,7 +514,7 @@ TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   active.setDense(vector<Byte>({0, 0, 0, 0, 0}));
 
   sp.setIterationNum(2);
-  sp.updateDutyCycles_(overlaps, &active);
+  sp.updateDutyCycles_(overlaps, active);
 
   Real resultOverlapArr1[5];
   sp.getOverlapDutyCycles(resultOverlapArr1);
@@ -525,7 +525,7 @@ TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   sp.setOverlapDutyCycles(initOverlapArr1);
   sp.setIterationNum(2000);
   sp.setUpdatePeriod(1000);
-  sp.updateDutyCycles_(overlaps, &active);
+  sp.updateDutyCycles_(overlaps, active);
 
   Real resultOverlapArr2[5];
   sp.getOverlapDutyCycles(resultOverlapArr2);
@@ -769,7 +769,7 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
   UInt numInputs = 8;
   setup(sp, numInputs, numColumns);
 
-  vector<UInt> activeColumns;
+  SDR activeColumns({numColumns});
   vector<UInt> inputVector;
 
   UInt potentialArr1[4][8] = {{1, 1, 1, 1, 0, 0, 0, 0},
@@ -802,9 +802,9 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
     sp.setPermanence(column, permanencesArr1[column]);
   }
 
-  activeColumns.assign(&activeColumnsArr1[0], &activeColumnsArr1[3]);
+  activeColumns.setFlatSparse(activeColumnsArr1, 3);
 
-  sp.adaptSynapses_(&input1, activeColumns);
+  sp.adaptSynapses_(input1, activeColumns);
   cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
@@ -843,9 +843,9 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
     sp.setPermanence(column, permanencesArr2[column]);
   }
 
-  activeColumns.assign(&activeColumnsArr2[0], &activeColumnsArr2[3]);
+  activeColumns.setFlatSparse(activeColumnsArr2, 3);
 
-  sp.adaptSynapses_(&input2, activeColumns);
+  sp.adaptSynapses_(input2, activeColumns);
   cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
@@ -1069,7 +1069,7 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
     vector<UInt> overlaps;
     SDR input({numInputs});
     input.setDense(SDR_dense_t(inputs[i], inputs[i] + numInputs));
-    sp.calculateOverlap_(&input, overlaps);
+    sp.calculateOverlap_(input, overlaps);
     ASSERT_TRUE(check_vector_eq(trueOverlaps[i], overlaps));
   }
 }
