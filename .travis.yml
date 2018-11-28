@@ -108,9 +108,9 @@ before_install:
   - virtualenv ${TRAVIS_BUILD_DIR}/pyenv
   - source ${TRAVIS_BUILD_DIR}/pyenv/bin/activate
   - echo "Installing pip, setuptools, and wheel"
-  - pip2 install --upgrade pip setuptools wheel || exit
+  - pip install --upgrade pip setuptools wheel || exit
   - echo "Installing Python dependencies"
-  - sudo pip2 install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
+  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
 
 install:
   # Prepare directories
