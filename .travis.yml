@@ -20,7 +20,7 @@ matrix:
             - python-pip-whl
             - python2.7
             - libboost-all-dev
-            - virtualenv 
+            - python2-virtualenv 
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
