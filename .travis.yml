@@ -1,4 +1,4 @@
-language: cpp
+language: python
 python: 
  - 2.7 #TODO change  to 3.x later
 
@@ -15,12 +15,12 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - build-essential 
             - g++-8
+            - cmake
+            - cmake-data
             - xsltproc #only for doc transform to html , can be removed
-            - python-pip-whl
-            - python2.7
             - libboost-all-dev
-            - virtualenv 
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
@@ -105,8 +105,6 @@ notifications:
 before_install:
   - eval "${MATRIX_EVAL}"
   - $CXX --version
-  - virtualenv ${TRAVIS_BUILD_DIR}/pyenv
-  - source ${TRAVIS_BUILD_DIR}/pyenv/bin/activate
   - echo "Installing pip, setuptools, and wheel"
   - pip install --upgrade pip setuptools wheel || exit
   - echo "Installing Python dependencies"
