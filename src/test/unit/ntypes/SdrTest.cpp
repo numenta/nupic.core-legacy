@@ -718,3 +718,9 @@ TEST(SdrTest, TestSaveLoad) {
     ASSERT_TRUE( flat    == flat_2 );
     ASSERT_TRUE( index   == index_2 );
 }
+
+TEST(SdrTest, TestProxy) {
+    SDR A({10});
+    SDR_Proxy B(A, {2, 5});
+    SDR *C = &B;
+}

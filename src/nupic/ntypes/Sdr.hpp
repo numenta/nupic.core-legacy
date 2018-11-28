@@ -38,6 +38,7 @@ namespace nupic {
 typedef vector<Byte>         SDR_dense_t;
 typedef vector<UInt>         SDR_flatSparse_t;
 typedef vector<vector<UInt>> SDR_sparse_t;
+typedef void (*SDR_callback_t)();
 
 /**
  * SparseDistributedRepresentation class
@@ -122,13 +123,15 @@ typedef vector<vector<UInt>> SDR_sparse_t;
  */
 class SparseDistributedRepresentation : public Serializable
 {
-private:
+protected:
     vector<UInt> dimensions_;
     UInt         size_;
 
     SDR_dense_t      dense;
     SDR_flatSparse_t flatSparse;
     SDR_sparse_t     sparse;
+
+    vector<SDR_callback_t> callbacks;
 
     /**
      * These flags remember which data formats are up-to-date and which formats
@@ -150,6 +153,14 @@ private:
     };
 
     /**
+     * TODO: This comment
+     */
+    void do_callbacks() {
+        for(const auto func_ptr : callbacks)
+            func_ptr();
+    }
+
+    /**
      * Update the SDR to reflect the value currently inside of the dense array.
      * Use this method after modifying the dense buffer inplace, in order to
      * propigate any changes to the sparse & flatSparse formats.
@@ -160,6 +171,7 @@ private:
         // Set the valid flags.
         clear();
         dense_valid = true;
+        do_callbacks();
     };
 
     /**
@@ -176,6 +188,7 @@ private:
         // Set the valid flags.
         clear();
         flatSparse_valid = true;
+        do_callbacks();
     };
 
     /**
@@ -197,6 +210,7 @@ private:
         // Set the valid flags.
         clear();
         sparse_valid = true;
+        do_callbacks();
     };
 
 public:
@@ -213,16 +227,15 @@ public:
      */
     SparseDistributedRepresentation( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
-        NTA_CHECK( dimensions.size() > 0 ) << "SDR has not dimensions!";
+        NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
         // Calculate the SDR's size.
         size_ = 1;
         for(UInt dim : dimensions)
             size_ *= dim;
         NTA_CHECK( size > 0 ) << "SDR size is zero!";
 
-        // Initialize the dense array storage.
-        dense.resize( size_ );
-        dense_valid = true;
+        // Initialize the dense array storage, when it's needed.
+        dense_valid = false;
         // Initialize the flatSparse array, nothing to do.
         flatSparse_valid = true;
         // Initialize the index tuple.
@@ -259,9 +272,8 @@ public:
      * SDRs current value.
      */
     void zero() {
-        clear();
         flatSparse.clear();
-        flatSparse_valid = true;
+        setFlatSparseInplace();
     };
 
     /**
@@ -754,15 +766,6 @@ public:
         // Read the dimensions.
         readVector( dimensions_ );
 
-        // Read the data.
-        clear();
-        readVector( flatSparse );
-        flatSparse_valid = true;
-
-        // Consume the end marker.
-        inStream >> marker;
-        NTA_ASSERT( marker == "~SDR" );
-
         // Initialize the SDR.
         // Calculate the SDR's size.
         size_ = 1;
@@ -770,10 +773,92 @@ public:
             size_ *= dim;
         // Initialize sparse tuple.
         sparse.assign( dimensions.size(), {} );
+
+        // Read the data.
+        readVector( flatSparse );
+        setFlatSparseInplace();
+
+        // Consume the end marker.
+        inStream >> marker;
+        NTA_ASSERT( marker == "~SDR" );
     };
+
+    void addCallback(SDR_callback_t callback) {
+        callbacks.push_back( callback );
+    }
 };
 
 typedef SparseDistributedRepresentation SDR;
+
+class SDR_Proxy : public SDR
+{
+public:
+    SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
+        : SDR( dimensions ) {
+        parent = &sdr;
+        NTA_CHECK( size == parent->size ) << "SDR Proxy must have same size as given SDR.";
+        clear();
+        parent->addCallback( (SDR_callback_t) this );
+    };
+
+    SDR_dense_t& getDense()
+        { return parent->getDense(); }
+
+    SDR_flatSparse_t& getFlatSparse()
+        { return parent->getFlatSparse(); }
+
+    void zero()
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    void setDense( SDR_dense_t &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    template<typename T>
+    void setDense( const vector<T> &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    template<typename T>
+    void setDense( const T *value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    void setDense( const ArrayBase &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    void setFlatSparse( SDR_flatSparse_t &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    template<typename T>
+    void setFlatSparse( const vector<T> &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    template<typename T>
+    void setFlatSparse( const T *value, const UInt num_values )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    void setFlatSparse( const ArrayBase &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    void setSparse( vector<vector<UInt>> &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    template<typename T>
+    void setSparse( const vector<vector<T>> &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    void setSDR( const SparseDistributedRepresentation &value )
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    void randomize(Real sparsity)
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    void randomize(Real sparsity, Random &rng)
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    void addNoise(Real fractionNoise)
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    void addNoise(Real fractionNoise, Random &rng)
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+private:
+    SDR *parent;
+
+    void operator() ()
+        { clear(); };
+
+    const string _SDR_Proxy_setter_error_message = "SDR_Proxy is read only.";
+};
 
 }; // end namespace nupic
 #endif // end ifndef SDR_HPP
