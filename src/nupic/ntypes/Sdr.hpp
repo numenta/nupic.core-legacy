@@ -30,15 +30,16 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
+#include <functional>
 
 using namespace std;
 
 namespace nupic {
 
-typedef vector<Byte>         SDR_dense_t;
-typedef vector<UInt>         SDR_flatSparse_t;
-typedef vector<vector<UInt>> SDR_sparse_t;
-typedef void (*SDR_callback_t)();
+typedef vector<Byte>          SDR_dense_t;
+typedef vector<UInt>          SDR_flatSparse_t;
+typedef vector<vector<UInt>>  SDR_sparse_t;
+typedef function<void()> SDR_callback_t;
 
 /**
  * SparseDistributedRepresentation class
@@ -156,10 +157,8 @@ protected:
      * TODO: This comment
      */
     void do_callbacks() {
-        cerr << "DO CALLBACKS" << endl;
         for(const auto func_ptr : callbacks)
             func_ptr();
-        cerr << "DONE CALLBACKS" << endl;
     }
 
     /**
@@ -808,10 +807,13 @@ public:
 
     SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
         : SDR( dimensions ) {
+        clear();
         parent = &sdr;
         NTA_CHECK( size == parent->size ) << "SDR Proxy must have same size as given SDR.";
-        clear();
-        parent->addCallback( (SDR_callback_t) this );
+        parent->addCallback( [&] () {
+            clear();
+            do_callbacks();
+        });
     };
 
     SDR_dense_t& getDense() override
@@ -828,14 +830,6 @@ private:
      * This SDR shall always have the same value as the parent SDR.
      */
     SDR *parent;
-
-    /**
-     * This method is called every time the parent SDR's value changes.
-     */
-    void operator() () {
-        clear();
-        do_callbacks();
-    };
 
     const string _SDR_Proxy_setter_error_message = "SDR_Proxy is read only.";
 

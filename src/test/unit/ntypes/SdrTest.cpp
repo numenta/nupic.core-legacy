@@ -562,9 +562,9 @@ TEST(SdrTest, TestRandomize) {
     ASSERT_TRUE( a != b);
     // Methodically test by running it many times and checking for an even
     // activation frequency at every bit.
-    SDR af_test({ 251 /* prime number */ });
-    UInt iterations = 100000;
-    Real sparsity   = .10;
+    SDR af_test({ 97 /* prime number */ });
+    UInt iterations = 50000;
+    Real sparsity   = .20;
     vector<Real> af( af_test.size, 0 );
     for( UInt i = 0; i < iterations; i++ ) {
         af_test.randomize( sparsity );
@@ -719,7 +719,8 @@ TEST(SdrTest, TestSaveLoad) {
     ASSERT_TRUE( index   == index_2 );
 }
 
-TEST(SdrTest, TestCallbacks) {
+TEST(DISABLED_SdrTest, TestCallbacks) {
+    FAIL() << "UNIT TEST UNIMPLEMENTED!";
 }
 
 TEST(SdrTest, TestProxyConstructor) {
@@ -750,24 +751,18 @@ TEST(SdrTest, TestProxyGetters) {
     SDR_Proxy B( A, { 3, 2 });
     SDR *C = &B;
     // Test getting dense
-    cerr << "TAG !" << endl;
-    A.setDense( vector<Byte>({ 0, 1, 0, 0, 1, 0 }) );
-    cerr << "TAG !" << endl;
-    ASSERT_EQ(0, 1);
+    A.setDense( SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
     ASSERT_EQ( C->getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
 
     // Test getting flat sparse
-    cerr << "TAG !" << endl;
-    A.setSparse(SDR_sparse_t({ {0, 1}, {0, 1} }));
-    ASSERT_EQ( C->getSparse(), SDR_sparse_t({ {0, 0}, {0, 2} }) );
+    A.setSparse( SDR_sparse_t({ {0, 1}, {0, 1} }));
+    ASSERT_EQ( C->getSparse(), SDR_sparse_t({ {0, 2}, {0, 0} }) );
 
     // Test getting sparse
-    cerr << "TAG !" << endl;
-    A.setFlatSparse(SDR_flatSparse_t({ 2, 3 }));
+    A.setFlatSparse( SDR_flatSparse_t({ 2, 3 }));
     ASSERT_EQ( C->getFlatSparse(), SDR_flatSparse_t({ 2, 3 }) );
 
     // Test getting sparse, a second time.
-    cerr << "TAG !" << endl;
-    A.setFlatSparse(SDR_flatSparse_t({ 2, 3 }));
-    ASSERT_EQ( C->getSparse(), SDR_sparse_t({ {1, 0}, {1, 1} }) );
+    A.setFlatSparse( SDR_flatSparse_t({ 2, 3 }));
+    ASSERT_EQ( C->getSparse(), SDR_sparse_t({ {1, 1}, {0, 1} }) );
 }
