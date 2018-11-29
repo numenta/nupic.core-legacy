@@ -1079,11 +1079,10 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
-  // Store matrices.
+  // Store matrices:
+  //potentials
   for (UInt i = 0; i < numColumns_; i++) {
-    vector<UInt> pot;
-    pot.resize(potentialPools_.nNonZerosOnRow(i));
-    pot = potentialPools_.getSparseRow(i);
+    const auto pot = potentialPools_.getSparseRow(i);
     outStream << pot.size() << endl;
     for (auto &elem : pot) {
       outStream << elem << " ";
@@ -1092,6 +1091,7 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  //permanences
   for (UInt i = 0; i < numColumns_; i++) {
     vector<pair<UInt, Real>> perm;
     perm.resize(permanences_.nNonZerosOnRow(i));
@@ -1104,6 +1104,9 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  //connected synapses get rebuilt from permanences_ updateSynapsesForColumn_(), see load()
+
+  //Random
   outStream << rng_ << endl;
 
   outStream << "~SpatialPooler" << endl;
