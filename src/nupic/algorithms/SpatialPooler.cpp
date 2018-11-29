@@ -1272,3 +1272,19 @@ void SpatialPooler::printState(vector<Real> &state) {
   }
   std::cout << "]\n";
 }
+
+/** equals implementation based on serialization */
+bool SpatialPooler::operator==(const SpatialPooler& o) const{
+  stringstream s;
+  s.flags(ios::scientific);
+  s.precision(numeric_limits<double>::digits10 + 1);
+  
+  this->save(s);
+  const string thisStr = s.str();
+
+  s.str(""); //clear stream
+  o.save(s);
+  const string otherStr = s.str();
+
+  return thisStr == otherStr;
+}
