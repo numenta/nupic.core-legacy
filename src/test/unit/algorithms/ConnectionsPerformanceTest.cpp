@@ -280,11 +280,12 @@ float getSpeed() {
 
 
 // TESTS
-const UInt SEQ = 50; //number of sequences ran in tests
 #ifdef NDEBUG
+  const UInt SEQ = 50; //number of sequences ran in tests
   const UInt EPOCHS = 20; //tests run for epochs times
 #else
-  const UInt EPOCHS = 8; //only short in debug; is epochs/2 in some tests, that's why 4
+  const UInt SEQ = 25; //number of sequences ran in tests
+  const UInt EPOCHS = 4; //only short in debug; is epochs/2 in some tests, that's why 4
 #endif
 const UInt COLS = 2048; //standard num of columns in SP/TM
 
@@ -311,7 +312,9 @@ TEST(ConnectionsPerformanceTest, testTMLarge) {
  */
 TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
+#ifdef NDEBUG
   ASSERT_LE(tim, 5.3*getSpeed());
+#endif
 }
 
 /**
@@ -319,7 +322,9 @@ TEST(ConnectionsPerformanceTest, testSP) {
  */
 TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/4, SEQ/25, "temporal pooler");
+#ifdef NDEBUG
   ASSERT_LE(tim, 10.8*getSpeed());
+#endif
 }
 
 } // end namespace
