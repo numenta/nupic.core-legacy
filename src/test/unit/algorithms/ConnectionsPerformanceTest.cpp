@@ -280,11 +280,11 @@ float getSpeed() {
 
 
 // TESTS
-const UInt SEQ = 100; //number of sequences ran in tests
+const UInt SEQ = 50; //number of sequences ran in tests
 #ifdef NDEBUG
-  const UInt EPOCHS = 20; //only short in debug; is epochs/2 in some tests, that's why 4
+  const UInt EPOCHS = 20; //tests run for epochs times
 #else
-  const UInt EPOCHS = 4; //epochs tests run
+  const UInt EPOCHS = 8; //only short in debug; is epochs/2 in some tests, that's why 4
 #endif
 const UInt COLS = 2048; //standard num of columns in SP/TM
 
@@ -295,7 +295,7 @@ const UInt COLS = 2048; //standard num of columns in SP/TM
  */
 TEST(ConnectionsPerformanceTest, testTM) {
 	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
-	ASSERT_LE(tim, 2.0*getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 1.0*getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 }
 
 /**
@@ -303,7 +303,7 @@ TEST(ConnectionsPerformanceTest, testTM) {
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
   auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
-  ASSERT_LE(tim, 3.8*getSpeed());
+  ASSERT_LE(tim, 1.9*getSpeed());
 }
 
 /**
@@ -311,15 +311,15 @@ TEST(ConnectionsPerformanceTest, testTMLarge) {
  */
 TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
-  ASSERT_LE(tim, 6.3*getSpeed());
+  ASSERT_LE(tim, 5.3*getSpeed());
 }
 
 /**
  * Tests typical usage of Connections with Temporal Pooler.
  */
 TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/2, SEQ/50, "temporal pooler");
-  ASSERT_LE(tim, 13.0*getSpeed());
+  auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/4, SEQ/25, "temporal pooler");
+  ASSERT_LE(tim, 10.8*getSpeed());
 }
 
 } // end namespace
