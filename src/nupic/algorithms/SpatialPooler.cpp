@@ -490,8 +490,13 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
     boostedOverlaps_.assign(overlaps_.begin(), overlaps_.end());
   }
 
-  inhibitColumns_(boostedOverlaps_, active.getFlatSparse());
-  active.setFlatSparse( active.getFlatSparse() );
+  auto &activeVector = active.getFlatSparse();
+  inhibitColumns_(boostedOverlaps_, activeVector);
+  // Notify the active SDR that its internal data vector has changed.  Always
+  // call SDR's setter methods even if when modifying the SDR's own data
+  // inplace.
+  active.setFlatSparse( activeVector );
+
   if (learn) {
     adaptSynapses_(input, active);
     updateDutyCycles_(overlaps_, active);
@@ -721,19 +726,22 @@ void SpatialPooler::updateMinDutyCyclesLocal_() {
 
 void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
                                       SDR &active) {
-  vector<UInt> newOverlapVal(numColumns_, 0);
-  vector<UInt> newActiveVal(numColumns_, 0);
-  const auto activeArray = active.getDense();
+
+  // Turn the overlaps array into an SDR. Convert directly to flat-sparse to
+  // avoid copies and  type convertions.
+  SDR newOverlap({ numColumns_ });
+  auto &overlapsSparseVec = newOverlap.getFlatSparse();
   for (UInt i = 0; i < numColumns_; i++) {
-    newOverlapVal[i] = overlaps[i] > 0 ? 1 : 0;
-    newActiveVal[i] = activeArray[i] > 0 ? 1 : 0;
+    if( overlaps[i] != 0 )
+      overlapsSparseVec.push_back( i );
   }
+  newOverlap.setFlatSparse( overlapsSparseVec );
 
   const UInt period =
       dutyCyclePeriod_ > iterationNum_ ? iterationNum_ : dutyCyclePeriod_;
 
-  updateDutyCyclesHelper_(overlapDutyCycles_, newOverlapVal, period);
-  updateDutyCyclesHelper_(activeDutyCycles_, newActiveVal, period);
+  updateDutyCyclesHelper_(overlapDutyCycles_, newOverlap, period);
+  updateDutyCyclesHelper_(activeDutyCycles_, active, period);
 }
 
 
@@ -826,12 +834,8 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 void SpatialPooler::adaptSynapses_(SDR &input,
                                    SDR &active) {
   vector<Real> permChanges(numInputs_, -1 * synPermInactiveDec_);
-  const auto &inputVector = input.getDense();
-  for (UInt i = 0; i < numInputs_; i++) {
-    if (inputVector[i] > 0) {
-      permChanges[i] = synPermActiveInc_;
-    }
-  }
+  for(const auto &idx : input.getFlatSparse())
+    permChanges[idx] = synPermActiveInc_;
 
   for(const auto &column : active.getFlatSparse()) {
     const vector<UInt> potential = potentialPools_.getSparseRow(column);
@@ -863,14 +867,20 @@ void SpatialPooler::bumpUpWeakColumns_() {
 
 
 void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                            const vector<UInt> &newValues,
+                                            SDR &newValues,
                                             UInt period) {
   NTA_ASSERT(period > 0);
-  NTA_ASSERT(dutyCycles.size() == newValues.size());
+  NTA_ASSERT(dutyCycles.size() == newValues.size);
 
-  for (Size i = 0; i < dutyCycles.size(); i++) {
-    dutyCycles[i] = (dutyCycles[i] * (period - 1) + newValues[i]) / period;
-  }
+  newValues.print();
+
+  const Real decay = (Real) (period - 1) / period;
+  for (Size i = 0; i < dutyCycles.size(); i++)
+    dutyCycles[i] *= decay;
+
+  const Real increment = 1. / period;
+  for(const auto &idx : newValues.getFlatSparse())
+    dutyCycles[idx] += increment;
 }
 
 

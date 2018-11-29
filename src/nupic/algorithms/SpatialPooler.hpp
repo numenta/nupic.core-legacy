@@ -254,6 +254,10 @@ public:
         of outputs.
    */
   virtual void compute(const UInt inputVector[], bool learn, UInt activeVector[]);
+
+  /**
+   * TODO: DOCUMENTATION!
+   */
   virtual void compute(SDR &input, bool learn, SDR &active);
 
   /**
@@ -1137,7 +1141,7 @@ public:
       @param period         A int number indicating the period of the duty cycle
   */
   static void updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                      const vector<UInt> &newValues, UInt period);
+                                      SDR &newValues, UInt period);
 
   /**
   Updates the duty cycles for each column. The OVERLAP duty cycle is a moving

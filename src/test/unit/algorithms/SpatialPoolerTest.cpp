@@ -910,50 +910,33 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
 TEST(SpatialPoolerTest, testUpdateDutyCyclesHelper) {
   SpatialPooler sp;
   vector<Real> dutyCycles;
-  vector<UInt> newValues;
+  SDR newValues({5});
   UInt period;
 
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr1[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
+  Real dutyCyclesArr1[] = {1., 1., 1., 1., 1.};
   Real newValues1[] = {0, 0, 0, 0, 0};
   period = 1000;
-  Real trueDutyCycles1[] = {999.0, 999.0, 999.0, 999.0, 999.0};
+  Real trueDutyCycles1[] = {0.999, 0.999, 0.999, 0.999, 0.999};
   dutyCycles.assign(dutyCyclesArr1, dutyCyclesArr1 + 5);
-  newValues.assign(newValues1, newValues1 + 5);
+  newValues.setDense(newValues1);
   sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
   ASSERT_TRUE(check_vector_eq(trueDutyCycles1, dutyCycles));
 
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr2[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
-  Real newValues2[] = {1000, 1000, 1000, 1000, 1000};
+  Real dutyCyclesArr2[] = {1., 1., 1., 1., 1.};
+  Real newValues2[] = {1, 1, 1, 1, 1};
   period = 1000;
-  Real trueDutyCycles2[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
+  Real trueDutyCycles2[] = {1., 1., 1., 1., 1.};
   dutyCycles.assign(dutyCyclesArr2, dutyCyclesArr2 + 5);
-  newValues.assign(newValues2, newValues2 + 5);
+  newValues.setDense(newValues2);
   sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
   ASSERT_TRUE(check_vector_eq(trueDutyCycles2, dutyCycles));
 
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr3[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
-  Real newValues3[] = {2000, 4000, 5000, 6000, 7000};
-  period = 1000;
-  Real trueDutyCycles3[] = {1001.0, 1003.0, 1004.0, 1005.0, 1006.0};
-  dutyCycles.assign(dutyCyclesArr3, dutyCyclesArr3 + 5);
-  newValues.assign(newValues3, newValues3 + 5);
-  sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
-  ASSERT_TRUE(check_vector_eq(trueDutyCycles3, dutyCycles));
-
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr4[] = {1000.0, 800.0, 600.0, 400.0, 2000.0};
+  Real dutyCyclesArr4[] = {1., .8, .6, .4, .2};
   Real newValues4[] = {0, 0, 0, 0, 0};
   period = 2;
-  Real trueDutyCycles4[] = {500.0, 400.0, 300.0, 200.0, 1000.0};
+  Real trueDutyCycles4[] = {.5, .4, .3, .2, .1};
   dutyCycles.assign(dutyCyclesArr4, dutyCyclesArr4 + 5);
-  newValues.assign(newValues4, newValues4 + 5);
+  newValues.setDense(newValues4);
   sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
   ASSERT_TRUE(check_vector_eq(trueDutyCycles4, dutyCycles));
 }
