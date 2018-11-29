@@ -28,7 +28,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <cmath> //for sin
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
@@ -248,35 +247,6 @@ vector<CellIdx> _computeSPWinnerCells(Connections &connections, UInt numCells,
   return vector<CellIdx>(winnerCells.begin(), winnerCells.end());
 }
 
-float _SPEED = -1;
-/**
- * estimate speed (CPU & load) of the current system.
- * Tests must perform relative to this value
- */
-float getSpeed() {
-  if (_SPEED == -1) {
-    Timer t(true);
-    //this code just wastes CPU time to estimate speed
-    vector<Real> data(10000000);
-    for(Size i=0; i<data.size(); i++) {
-      data[i]=(Real)rng.getUInt32(80085);
-      auto t = data[i];
-      data[i] = data[data.size()-i];
-      data[data.size()-i]=t;
-    }
-    rng.shuffle(begin(data), end(data));
-    vector<Real> sins;
-    for (auto d : data) {
-      sins.push_back(sin(d)/cos(d));
-    }
-    data = rng.sample<Real>(sins, 666);
-    NTA_CHECK(data.size() == 666);
-    t.stop();
-    _SPEED = max(1.0, t.getElapsed());
-
-  }
-  return _SPEED;
-}
 
 
 // TESTS
@@ -296,7 +266,7 @@ const UInt COLS = 2048; //standard num of columns in SP/TM
  */
 TEST(ConnectionsPerformanceTest, testTM) {
 	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
-	ASSERT_LE(tim, 1.0*getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 1.0*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 }
 
 /**
@@ -304,7 +274,7 @@ TEST(ConnectionsPerformanceTest, testTM) {
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
   auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
-  ASSERT_LE(tim, 1.9*getSpeed());
+  ASSERT_LE(tim, 1.9*Timer::getSpeed());
 }
 
 /**
@@ -313,7 +283,7 @@ TEST(ConnectionsPerformanceTest, testTMLarge) {
 TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
 #ifdef NDEBUG
-  ASSERT_LE(tim, 5.3*getSpeed());
+  ASSERT_LE(tim, 5.3*Timer::getSpeed());
 #endif
 }
 
@@ -323,7 +293,7 @@ TEST(ConnectionsPerformanceTest, testSP) {
 TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/4, SEQ/25, "temporal pooler");
 #ifdef NDEBUG
-  ASSERT_LE(tim, 10.8*getSpeed());
+  ASSERT_LE(tim, 10.8*Timer::getSpeed());
 #endif
 }
 
