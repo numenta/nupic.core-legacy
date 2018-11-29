@@ -24,10 +24,8 @@
  * Implementation of the ScalarSensor
  */
 
-#include <string>
+#include <nupic/regions/ScalarSensor.hpp>
 
-
-#include <nupic/encoders/ScalarSensor.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
@@ -35,11 +33,11 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
-#include <nupic/ntypes/Value.hpp>
 #include <nupic/utils/Log.hpp>
 
 
 namespace nupic {
+
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
     : RegionImpl(region) {
   const UInt32 n = params.getScalarT<UInt32>("n");
