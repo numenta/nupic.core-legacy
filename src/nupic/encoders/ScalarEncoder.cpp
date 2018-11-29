@@ -24,8 +24,8 @@
  * Implementations of the ScalarEncoder and PeriodicScalarEncoder
  */
 
+#include <algorithm> //std::fill
 #include <cmath>
-#include <cstring> // memset
 
 #include <nupic/encoders/ScalarEncoder.hpp>
 
@@ -82,10 +82,8 @@ int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   const int iBucket = round((input - minValue_) / bucketWidth_);
   const int firstBit = iBucket;
 
-  memset(output, 0, n_ * sizeof(output[0])); //TODO use std::fill
-  for (int i = 0; i < w_; i++) {
-    output[firstBit + i] = 1;
-  }
+  std::fill(&output[0], &output[n_ -1], 0);
+  std::fill_n(&output[firstBit], w_, 1);
   return iBucket;
 }
 
@@ -122,7 +120,7 @@ int PeriodicScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   const int left = floor(reach);
   const int right = ceil(reach);
 
-  memset(output, 0, n_ * sizeof(output[0]));
+  std::fill(&output[0], &output[n_ -1], 0);
   output[middleBit] = 1;
   for (int i = 1; i <= left; i++) {
     const int index = middleBit - i;
