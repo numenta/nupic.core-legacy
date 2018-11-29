@@ -30,6 +30,8 @@
 
 #include "nupic/algorithms/Cells4.hpp"  //TODO use TM instead
 #include "nupic/algorithms/SpatialPooler.hpp"
+#include "nupic/encoders/ScalarEncoder.hpp"
+
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
 #include "nupic/utils/Random.hpp" 
@@ -53,7 +55,7 @@ TEST(HelloSPTPTest, performance) {
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
 
   // generate random input
-  vector<UInt> input(DIM_INPUT);
+  ScalarEncoder enc(1337/*w*/, -1000.0, 1000.1, (int)DIM_INPUT/*n*/, 0.0, 0.0, false);
   vector<UInt> outSP(COLS); // active array, output of SP/TP
 
   // initialize SP, TP
@@ -73,7 +75,8 @@ TEST(HelloSPTPTest, performance) {
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
-    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
+    const Real val = rnd.getUInt32(1000)-(rnd.getUInt32(1000)*rnd.getReal64());
+    const auto input = enc.encode(val); 
     fill(outSP.begin(), outSP.end(), 0);
     EXPECT_NO_THROW(sp.compute(input.data(), true, outSP.data()));
     sp.stripUnlearnedColumns(outSP.data());
