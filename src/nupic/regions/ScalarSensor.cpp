@@ -157,7 +157,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
 
   /* ----- outputs ----- */
 
-  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_Real32,
+  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_UInt32,
                                         0,    // elementCount
                                         true, // isRegionLevel
                                         true  // isDefaultOutput
