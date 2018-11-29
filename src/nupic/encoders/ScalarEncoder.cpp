@@ -28,7 +28,6 @@
 #include <cstring> // memset
 
 #include <nupic/encoders/ScalarEncoder.hpp>
-#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
@@ -42,18 +41,14 @@ std::vector<UInt> ScalarEncoderBase::encode(Real input) {
 ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
                              double radius, double resolution, bool clipInput)
     : ScalarEncoderBase(w,n), minValue_(minValue), maxValue_(maxValue), clipInput_(clipInput) {
-  if ((n != 0 && (radius != 0 || resolution != 0)) ||
-      (radius != 0 && (n != 0 || resolution != 0)) ||
-      (resolution != 0 && (n != 0 || radius != 0))) {
-    NTA_THROW << "Only one of n/radius/resolution can be specified for a "
-                 "ScalarEncoder."; //TODO use NTA_CHECK
-  }
+  NTA_CHECK(!( (n && radius) || (n && resolution) || (resolution && radius) ))
+	  << "Only one of n/radius/resolution can be specified for a "
+                 "ScalarEncoder.";
 
   const double extentWidth = maxValue - minValue;
-  if (extentWidth <= 0) {
-    NTA_THROW << "minValue must be < maxValue. minValue=" << minValue
-              << " maxValue=" << maxValue;
-  }
+  NTA_CHECK(extentWidth > 0) 
+     << "minValue must be < maxValue. minValue=" << minValue
+     << " maxValue=" << maxValue;
 
   if (n != 0) {
     n_ = n;
@@ -65,33 +60,24 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
     bucketWidth_ = extentWidth / nBands;
   } else {
     bucketWidth_ = resolution || radius / w;
-    if (bucketWidth_ == 0) {
-      NTA_THROW << "One of n/radius/resolution must be nonzero.";
-    }
-
+    NTA_CHECK(bucketWidth_ > 0) << "One of n/radius/resolution must be nonzero.";
     const int neededBands = ceil(extentWidth / bucketWidth_);
     const int neededBuckets = neededBands + 1;
     n_ = neededBuckets + (w - 1);
   }
+  NTA_CHECK(bucketWidth_ > 0);
+  NTA_CHECK(n_ > 0);
+  NTA_CHECK(w_ < n_);
 }
 
 
 int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
-  if (input < minValue_) {
-    if (clipInput_) {
-      input = minValue_;
-    } else {
-      NTA_THROW << "input (" << input << ") less than range [" << minValue_
-                << ", " << maxValue_ << "]";
-    }
-  } else if (input > maxValue_) {
-    if (clipInput_) {
-      input = maxValue_;
-    } else {
-      NTA_THROW << "input (" << input << ") greater than range [" << minValue_
-                << ", " << maxValue_ << "]";
-    }
+  if(clipInput_) {
+    input = input < minValue_ ? minValue_ : input;
+    input = input > maxValue_ ? maxValue_ : input;
   }
+
+  NTA_CHECK(input >= minValue_ && input <= maxValue_) << "Input must be within [minValue, maxValue]";
 
   const int iBucket = round((input - minValue_) / bucketWidth_);
   const int firstBit = iBucket;
@@ -119,17 +105,18 @@ PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
     const int neededBuckets = ceil((maxValue - minValue) / bucketWidth_);
     n_ = (neededBuckets > w_) ? neededBuckets : w_ + 1;
   }
+
+  NTA_CHECK(bucketWidth_ > 0);
+  NTA_CHECK(n_ > 0);
+  NTA_CHECK(w_ < n_);
 }
 
 
 int PeriodicScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
-  if (input < minValue_ || input >= maxValue_) {
-    NTA_THROW << "input " << input << " not within range [" << minValue_ << ", "
-              << maxValue_ << ")";
-  }
+  NTA_CHECK(input >= minValue_ && input < maxValue_) 
+    << "input " << input << " not within range [" << minValue_ << ", " << maxValue_ << ")";
 
   const int iBucket = (int)((input - minValue_) / bucketWidth_);
-
   const int middleBit = iBucket;
   const double reach = (w_ - 1) / 2.0;
   const int left = floor(reach);

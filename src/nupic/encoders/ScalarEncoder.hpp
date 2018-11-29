@@ -71,7 +71,7 @@ namespace nupic {
     ScalarEncoderBase(int w, int n):
 	 w_(w), n_(n) {
       NTA_CHECK(w > 0) << "EncoderBase: w must be > 0";
-      NTA_CHECK(w < n) << "EncoderBase: w must be < n";
+//      NTA_CHECK(w < n) << "EncoderBase: w must be < n"; //not, because we can init with n=0 and eg resolution
     }
 
   protected:
