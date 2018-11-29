@@ -390,20 +390,20 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 
 ## Example custom executable 
 #
-## Setup test_py_region
+## Setup benchmark_hotgym
 #
-#set(src_executable_pyregiontest py_region_test)
-#add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
-#target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
-#set_target_properties(${src_executable_pyregiontest}
-#                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-#set_target_properties(${src_executable_pyregiontest}
-#                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-#add_custom_target(tests_py_region
-#                  COMMAND ${src_executable_pyregiontest}
-#                  DEPENDS ${src_executable_pyregiontest}
-#                  COMMENT "Executing test ${src_executable_pyregiontest}"
-#                  VERBATIM)
+set(src_executable_hotgym benchmark_hotgym)
+add_executable(${src_executable_hotgym} test/unit/algorithms/HelloSPTPTest.cpp)
+target_link_libraries(${src_executable_hotgym} ${src_common_test_exe_libs})
+set_target_properties(${src_executable_hotgym}
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags}) 
+set_target_properties(${src_executable_hotgym}
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+add_custom_target(hotgym
+                  COMMAND ${src_executable_hotgym}
+                  DEPENDS ${src_executable_hotgym}
+                  COMMENT "Executing test ${src_executable_hotgym}"
+                  VERBATIM)
 
 #
 # Setup gtests

@@ -42,8 +42,22 @@ using namespace nupic::utils;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::Cells4::Cells4;
 
-TEST(HelloSPTPTest, performance) {
+//forward def
+void run();
 
+//this runs gtest
+TEST(HelloSPTPTest, performance) {
+  run();
+}
+
+//this runs as executable
+int main() {
+  run();
+  return 0;
+}
+
+// work-load 
+void run() {
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt CELLS = 10; // cells per column in TP
