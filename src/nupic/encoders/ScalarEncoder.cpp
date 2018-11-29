@@ -26,19 +26,27 @@
 
 #include <cmath>
 #include <cstring> // memset
+
 #include <nupic/encoders/ScalarEncoder.hpp>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
+std::vector<UInt> ScalarEncoderBase::encode(Real input) {
+    std::vector<UInt> output(getOutputWidth());
+    encodeIntoArray(input, output.data());
+    return output;
+}
+
+
 ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
                              double radius, double resolution, bool clipInput)
-    : w_(w), minValue_(minValue), maxValue_(maxValue), clipInput_(clipInput) {
+    : ScalarEncoderBase(w,n), minValue_(minValue), maxValue_(maxValue), clipInput_(clipInput) {
   if ((n != 0 && (radius != 0 || resolution != 0)) ||
       (radius != 0 && (n != 0 || resolution != 0)) ||
       (resolution != 0 && (n != 0 || radius != 0))) {
     NTA_THROW << "Only one of n/radius/resolution can be specified for a "
-                 "ScalarEncoder.";
+                 "ScalarEncoder."; //TODO use NTA_CHECK
   }
 
   const double extentWidth = maxValue - minValue;
@@ -49,11 +57,6 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
 
   if (n != 0) {
     n_ = n;
-
-    if (w_ < 1 || w_ >= n_) {
-      NTA_THROW << "w must be within the range [1, n). w=" << w_ << " n=" << n_;
-    }
-
     // Distribute nBuckets points along the domain [minValue, maxValue],
     // including the endpoints. The resolution is the width of each band
     // between the points.
@@ -73,8 +76,6 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
 }
 
 
-ScalarEncoder::~ScalarEncoder() {}
-
 int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   if (input < minValue_) {
     if (clipInput_) {
@@ -93,10 +94,9 @@ int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   }
 
   const int iBucket = round((input - minValue_) / bucketWidth_);
-
   const int firstBit = iBucket;
 
-  memset(output, 0, n_ * sizeof(output[0]));
+  memset(output, 0, n_ * sizeof(output[0])); //TODO use std::fill
   for (int i = 0; i < w_; i++) {
     output[firstBit + i] = 1;
   }
@@ -107,49 +107,18 @@ int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
 PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
                                              double maxValue, int n,
                                              double radius, double resolution)
-    : w_(w), minValue_(minValue), maxValue_(maxValue) {
-  if ((n != 0 && (radius != 0 || resolution != 0)) ||
-      (radius != 0 && (n != 0 || resolution != 0)) ||
-      (resolution != 0 && (n != 0 || radius != 0))) {
-    NTA_THROW << "Only one of n/radius/resolution can be specified for a "
-                 "ScalarEncoder.";
-  }
-
-  const double extentWidth = maxValue - minValue;
-  if (extentWidth <= 0) {
-    NTA_THROW << "minValue must be < maxValue. minValue=" << minValue
-              << " maxValue=" << maxValue;
-  }
+    : ScalarEncoder(w, minValue, maxValue, n, radius, resolution, false) {
 
   if (n != 0) {
-    n_ = n;
-
-    if (w_ < 1 || w_ >= n_) {
-      NTA_THROW << "w must be within the range [1, n). w=" << w_ << " n=" << n_;
-    }
-
     // Distribute nBuckets equal-width bands within the domain [minValue,
     // maxValue]. The resolution is the width of each band.
     const int nBuckets = n;
+    const double extentWidth = maxValue - minValue;
     bucketWidth_ = extentWidth / nBuckets;
   } else {
-    bucketWidth_ = resolution || radius / w;
-    if (bucketWidth_ == 0) {
-      NTA_THROW << "One of n/radius/resolution must be nonzero.";
-    }
-
     const int neededBuckets = ceil((maxValue - minValue) / bucketWidth_);
     n_ = (neededBuckets > w_) ? neededBuckets : w_ + 1;
   }
-}
-
-PeriodicScalarEncoder::~PeriodicScalarEncoder() {}
-
-std::vector<UInt> ScalarEncoderBase::encode(Real input)
-{
-    std::vector<UInt> output(getOutputWidth());
-    encodeIntoArray(input, output.data());
-    return output;
 }
 
 

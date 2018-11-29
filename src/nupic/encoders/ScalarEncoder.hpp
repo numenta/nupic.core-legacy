@@ -30,6 +30,7 @@
 #include <vector>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp> //NTA_CHECK
 
 namespace nupic {
 /**
@@ -39,8 +40,7 @@ namespace nupic {
   class ScalarEncoderBase
   {
   public:
-    virtual ~ScalarEncoderBase()
-      {}
+    virtual ~ScalarEncoderBase() {}
 
     /**
      * Encodes input, puts the encoded binary value into output, and returns the a
@@ -59,13 +59,24 @@ namespace nupic {
     /**
      * Returns the output width, in bits.
      */
-    virtual UInt getOutputWidth() const = 0;
+    UInt getOutputWidth() const { return n_; };
 
     /**
      * public wrapper method for the encodeIntoArray()
      * @return binary representation of the input
      */
     std::vector<UInt> encode(Real input);
+
+  protected: 
+    ScalarEncoderBase(int w, int n):
+	 w_(w), n_(n) {
+      NTA_CHECK(w > 0) << "EncoderBase: w must be > 0";
+      NTA_CHECK(w < n) << "EncoderBase: w must be < n";
+    }
+
+  protected:
+    const int w_;
+    int n_;
   };
 
 /** Encodes a floating point number as a contiguous block of 1s.
@@ -113,17 +124,14 @@ public:
    */
   ScalarEncoder(int w, double minValue, double maxValue, int n, double radius,
                 double resolution, bool clipInput);
-  ~ScalarEncoder() override;
 
-    virtual int encodeIntoArray(Real input, UInt output[]) override;
-    virtual UInt getOutputWidth() const override { return n_; }
+  int encodeIntoArray(Real input, UInt output[]) override;
 
-private:
-  int w_;
-  int n_;
+protected:
   double minValue_;
   double maxValue_;
   double bucketWidth_;
+private:
   bool clipInput_;
 }; // end class ScalarEncoder
 
@@ -145,7 +153,7 @@ private:
  * bucket and 1.51 in the second, the PeriodicScalarEncoder will put 1.99 in
  * the first bucket and 2.0 in the second.
  */
-class PeriodicScalarEncoder : public ScalarEncoderBase {
+class PeriodicScalarEncoder : public ScalarEncoder {
 public:
   /**
    * Constructs a PeriodicScalarEncoder
@@ -170,17 +178,9 @@ public:
    */
   PeriodicScalarEncoder(int w, double minValue, double maxValue, int n,
                         double radius, double resolution);
-  virtual ~PeriodicScalarEncoder() override;
 
-    virtual int encodeIntoArray(Real input, UInt output[]) override;
-    virtual UInt getOutputWidth() const override { return n_; }
+  int encodeIntoArray(Real input, UInt output[]) override;
 
-private:
-  int w_;
-  int n_;
-  double minValue_;
-  double maxValue_;
-  double bucketWidth_;
 }; // end class PeriodicScalarEncoder
 } // end namespace nupic
 
