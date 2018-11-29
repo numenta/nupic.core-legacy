@@ -24,19 +24,15 @@
 #define NUPIC_ALGORITHMS_ANOMALY_HPP
 
 #include <memory> // Needed for smart pointer templates
+#include <nupic/algorithms/AnomalyLikelihood.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/MovingAverage.hpp> // Needed for for smart pointer templates
 #include <vector>
 
 namespace nupic {
-
-namespace util {
-class MovingAverage; // Forward declaration
-}
-
 namespace algorithms {
-
 namespace anomaly {
+
 
 /**
  * Computes the raw anomaly score.
@@ -93,24 +89,20 @@ public:
    * @param active: array of active column indices
    * @param predicted: array of columns indices predicted in this step
    *        (used for anomaly in step T+1)
-   * @param inputValue: (optional) value of current input to encoders
-   *                    (eg "cat" for category encoder)
-   *                    (used in anomaly-likelihood)
    * @param timestamp: (optional) date timestamp when the sample occured
    *                   (used in anomaly-likelihood)
    * @return the computed anomaly score; Real32 0..1
    */
-  Real32 compute(const std::vector<UInt> &active,
-                 const std::vector<UInt> &predicted, Real64 inputValue = 0,
-                 UInt timestamp = 0);
+  Real compute(const std::vector<UInt> &active,
+                 const std::vector<UInt> &predicted, 
+                 int timestamp = 0);
 
 private:
   AnomalyMode mode_;
   Real32 binaryThreshold_;
   std::unique_ptr<nupic::util::MovingAverage> movingAverage_;
+  AnomalyLikelihood likelihood_; //TODO which params/how pass them to constructor?
 };
-} // namespace anomaly
-} // namespace algorithms
-} // namespace nupic
+}}} //end-ns
 
 #endif // NUPIC_ALGORITHMS_ANOMALY_HPP
