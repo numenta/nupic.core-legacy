@@ -23,7 +23,6 @@
 #include "gtest/gtest.h"
 
 #include <algorithm> // std::generate
-#include <cmath>     // pow
 #include <ctime>     // std::time
 #include <iostream>
 #include <vector>
@@ -48,8 +47,12 @@ TEST(HelloSPTPTest, performance) {
 
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
-  const UInt CELLS = 10; // cells per column in TP
-  const UInt EPOCHS = (UInt)pow(10, 3); // number of iterations (calls to SP/TP compute() )
+  const UInt CELLS = 8; // cells per column in TP
+#ifdef NDEBUG
+  const UInt EPOCHS = 1000; // number of iterations (calls to SP/TP compute() )
+#else
+  const UInt EPOCHS = 3; //run only short test in debug
+#endif
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
   		<< ", DIM=" << COLS << ", CELLS=" << CELLS << std::endl;
   std::cout << "EPOCHS = " << EPOCHS << std::endl;

@@ -279,10 +279,13 @@ float getSpeed() {
 }
 
 
-#ifdef NDEBUG //disable performance tests in debug mode
 // TESTS
 const UInt SEQ = 100; //number of sequences ran in tests
-const UInt EPOCHS = 20; //epochs tests run
+#ifdef NDEBUG
+  const UInt EPOCHS = 20; //only short in debug; is epochs/2 in some tests, that's why 4
+#else
+  const UInt EPOCHS = 4; //epochs tests run
+#endif
 const UInt COLS = 2048; //standard num of columns in SP/TM
 
 
@@ -299,7 +302,7 @@ TEST(ConnectionsPerformanceTest, testTM) {
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  auto tim = runTemporalMemoryTest(2*COLS, 328, 10, SEQ, "temporal memory (large)");
+  auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
   ASSERT_LE(tim, 3.8*getSpeed());
 }
 
@@ -318,6 +321,5 @@ TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/2, SEQ/50, "temporal pooler");
   ASSERT_LE(tim, 13.0*getSpeed());
 }
-#endif //DEBUG
 
 } // end namespace
