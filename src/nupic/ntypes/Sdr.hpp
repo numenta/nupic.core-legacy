@@ -39,7 +39,7 @@ namespace nupic {
 typedef vector<Byte>          SDR_dense_t;
 typedef vector<UInt>          SDR_flatSparse_t;
 typedef vector<vector<UInt>>  SDR_sparse_t;
-typedef function<void()> SDR_callback_t;
+typedef function<void()>      SDR_callback_t;
 
 /**
  * SparseDistributedRepresentation class
@@ -793,17 +793,30 @@ public:
 typedef SparseDistributedRepresentation SDR;
 
 /**
- * TODO: Docs
+ * SDR_Proxy class
+ *
+ * ### Description
+ * TODO
+ *
+ * Example Usage:
+ *      TODO
+ *
  */
 class SDR_Proxy : public SDR
 {
 public:
     /**
-     * TODO: Docs
+     * Create an SDR_Proxy object.  METHOD DESCRIPTION TODO
+     *
+     * @param sdr TODO
+     *
+     * @param dimensions A list of dimension sizes, defining the shape of the
+     * SDR.  Optional, if not given then this Proxy will have the same
+     * dimensions as the given SDR.
      */
     SDR_Proxy(SDR &sdr)
         : SDR_Proxy(sdr, sdr.dimensions)
-        {}
+        {};
 
     SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
         : SDR( dimensions ) {
@@ -839,7 +852,6 @@ private:
         { NTA_THROW << _SDR_Proxy_setter_error_message; };
     void setSparseInplace() override
         { NTA_THROW << _SDR_Proxy_setter_error_message; };
-
     void setSDR( const SparseDistributedRepresentation &value ) override
         { NTA_THROW << _SDR_Proxy_setter_error_message; };
 };
