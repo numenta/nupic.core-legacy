@@ -39,40 +39,6 @@
 #include <nupic/utils/Log.hpp>
 
 
-namespace nupic
-{
-  ScalarSensor::ScalarSensor(const ValueMap& params, Region *region)
-    : RegionImpl(region)
-  {
-    const UInt32 n = params.getScalarT<UInt32>("n");
-    const UInt32 w = params.getScalarT<UInt32>("w");
-    const Real64 resolution = params.getScalarT<Real64>("resolution");
-    const Real64 radius = params.getScalarT<Real64>("radius");
-    const Real64 minValue = params.getScalarT<Real64>("minValue");
-    const Real64 maxValue = params.getScalarT<Real64>("maxValue");
-    const bool periodic = params.getScalarT<bool>("periodic");
-    const bool clipInput = params.getScalarT<bool>("clipInput");
-    if (periodic)
-    {
-      encoder_ = new PeriodicScalarEncoder(w, minValue, maxValue, n, radius,
-                                           resolution);
-    }
-    else
-    {
-      encoder_ = new ScalarEncoder(w, minValue, maxValue, n, radius, resolution,
-                                   clipInput);
-    }
-
-    sensedValue_ = params.getScalarT<Real>("sensedValue");
-  }
-
-  ScalarSensor::ScalarSensor(BundleIO& bundle, Region* region) :
-    RegionImpl(region)
-  {
-    deserialize(bundle);
-  }
-
-
 namespace nupic {
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
     : RegionImpl(region) {

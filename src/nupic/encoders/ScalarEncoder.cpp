@@ -30,6 +30,7 @@
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
+
 ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
                              double radius, double resolution, bool clipInput)
     : w_(w), minValue_(minValue), maxValue_(maxValue), clipInput_(clipInput) {
@@ -72,7 +73,9 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
 }
 
 
-int ScalarEncoder::encodeIntoArray(Real64 input, UInt output[]) {
+ScalarEncoder::~ScalarEncoder() {}
+
+int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   if (input < minValue_) {
     if (clipInput_) {
       input = minValue_;
@@ -140,6 +143,8 @@ PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
   }
 }
 
+PeriodicScalarEncoder::~PeriodicScalarEncoder() {}
+
 std::vector<UInt> ScalarEncoderBase::encode(Real input)
 {
     std::vector<UInt> output(getOutputWidth());
@@ -148,7 +153,7 @@ std::vector<UInt> ScalarEncoderBase::encode(Real input)
 }
 
 
-int PeriodicScalarEncoder::encodeIntoArray(Real64 input, UInt output[]) {
+int PeriodicScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   if (input < minValue_ || input >= maxValue_) {
     NTA_THROW << "input " << input << " not within range [" << minValue_ << ", "
               << maxValue_ << ")";
