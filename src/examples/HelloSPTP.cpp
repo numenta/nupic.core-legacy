@@ -26,8 +26,10 @@
 #include <iostream>
 #include <vector>
 
+#include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/algorithms/Cells4.hpp"  //TODO use TM instead
 #include "nupic/algorithms/SpatialPooler.hpp"
+
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
 #include "nupic/utils/Random.hpp" 
@@ -39,6 +41,8 @@ using namespace nupic;
 using namespace nupic::utils;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::Cells4::Cells4;
+using nupic::algorithms::anomaly::Anomaly;
+using nupic::algorithms::anomaly::AnomalyMode;
 
 // work-load 
 void run() {
@@ -50,20 +54,23 @@ void run() {
   		<< ", DIM=" << COLS << ", CELLS=" << CELLS << std::endl;
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
 
-  // generate random input
-  vector<UInt> input(DIM_INPUT);
-  vector<UInt> outSP(COLS); // active array, output of SP/TP
 
-  // initialize SP, TP
+  // initialize SP, TP, Anomaly, AnomalyLikelihood
   SpatialPooler sp(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS});
   Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
+  Anomaly an(5, AnomalyMode::LIKELIHOOD);
 
+  // data for processing input
+  vector<UInt> input(DIM_INPUT);
+  vector<UInt> outSP(COLS); // active array, output of SP/TP
   vector<UInt> outTP(tp.nCells());
   vector<Real> rIn(COLS); // input for TP (must be Reals)
   vector<Real> rOut(tp.nCells());
+  Real res = 0.0; //for anomaly:
+  vector<UInt> prevPred_(outSP.size());
   Random rnd;
-
+  
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
   Timer stopwatch(true);
@@ -72,6 +79,7 @@ void run() {
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
     generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
+
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());
@@ -79,6 +87,10 @@ void run() {
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
     tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
+
+    res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/); 
+    prevPred_ = outTP; //to be used as predicted T-1
+    cout << res << " "; 
 
     // print
     if (e == EPOCHS - 1) {
