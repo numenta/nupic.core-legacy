@@ -393,8 +393,8 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 ## Setup benchmark_hotgym
 #
 set(src_executable_hotgym benchmark_hotgym)
-add_executable(${src_executable_hotgym} test/unit/algorithms/HelloSPTPTest.cpp)
-target_link_libraries(${src_executable_hotgym} ${src_common_test_exe_libs})
+add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
+target_link_libraries(${src_executable_hotgym} ${src_lib_static_nupiccore_combined} ${Boost_LIBRARIES})
 set_target_properties(${src_executable_hotgym}
                       PROPERTIES COMPILE_FLAGS ${src_compile_flags}) 
 set_target_properties(${src_executable_hotgym}
@@ -402,7 +402,7 @@ set_target_properties(${src_executable_hotgym}
 add_custom_target(hotgym
                   COMMAND ${src_executable_hotgym}
                   DEPENDS ${src_executable_hotgym}
-                  COMMENT "Executing test ${src_executable_hotgym}"
+                  COMMENT "Executing ${src_executable_hotgym}"
                   VERBATIM)
 
 #
@@ -709,10 +709,8 @@ endif() # NUPIC_BUILD_PYEXT_MODULES
 install(TARGETS
         ${src_lib_static_nupiccore_combined}
         ${src_lib_static_gtest}
-        ${src_executable_cppregiontest}
-        ${src_executable_pyregiontest}
-        ${src_executable_connectionsperformancetest}
         ${src_executable_gtests}
+	${src_executable_hotgym}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
