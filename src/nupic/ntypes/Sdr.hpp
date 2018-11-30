@@ -132,7 +132,18 @@ protected:
     SDR_flatSparse_t flatSparse;
     SDR_sparse_t     sparse;
 
+    /**
+     * These hooks are called every time the SDR's value changes.
+     */
     vector<SDR_callback_t> callbacks;
+
+    /**
+     * SDR allows Proxy subclasses which synchronize their value to this SDRs
+     * value.  These proxies must be registered via methods _addProxy() &
+     * _removeProxy().  When this class is destroyed, all proxies are notified
+     * via a method call to proxy.deconstruct().
+     */
+    vector<SparseDistributedRepresentation*> proxies;
 
     /**
      * These flags remember which data formats are up-to-date and which formats
@@ -154,11 +165,13 @@ protected:
     };
 
     /**
-     * TODO: This comment
+     * Notify everyone that this SDR's value has officially changed.
      */
     void do_callbacks() {
-        for(const auto func_ptr : callbacks)
-            func_ptr();
+        for(const auto func_ptr : callbacks) {
+            if( func_ptr != NULL )
+                func_ptr();
+        }
     }
 
     /**
@@ -214,6 +227,23 @@ protected:
         do_callbacks();
     };
 
+    /**
+     * Clean up this SDR and any other SDR-like-objects which may be watching
+     * this SDR.  This method destroys (but does NOT deallocate) a subtree of
+     * SDR proxies.
+     */
+    virtual void deconstruct() {
+        clear();
+        size_ = -1;
+        // Iterate over a copy because the deconstructors may remove themselves
+        // from the proxies list via method _removeProxy().
+        vector<SparseDistributedRepresentation*> copy( proxies );
+        for( auto child : copy ) {
+            if( child != NULL )
+                child->deconstruct();
+        }
+    };
+
 public:
     /**
      * Use this method only in conjuction with sdr.load().
@@ -256,7 +286,8 @@ public:
         setSDR(value);
     };
 
-    ~SparseDistributedRepresentation() {};
+    virtual ~SparseDistributedRepresentation()
+        { deconstruct(); };
 
     /**
      * @attribute dimensions A list of dimensions of the SDR.
@@ -785,9 +816,57 @@ public:
         NTA_CHECK( marker == "~SDR" );
     };
 
-    void addCallback(SDR_callback_t callback) {
+    /**
+     * Callbacks notify you when this SDR's value changes.
+     *
+     * @param callback A function to call every time this SDRs value changes.
+     * function accepts no arguments and returns void.
+     *
+     * @returns UInt Handle for the given callback, needed to remove callback.
+     */
+    UInt addCallback(SDR_callback_t callback) {
+        UInt index = 0;
+        for( ; index < callbacks.size(); index++ ) {
+            if( callbacks[index] == NULL ) {
+                callbacks[index] = callback;
+                return index;
+            }
+        }
         callbacks.push_back( callback );
-    }
+        return index;
+    };
+
+    /**
+     * Remove a previously registered callback.
+     *
+     * @param UInt Handel which was returned by addCallback when you registered
+     * your callback.
+     */
+    void removeCallback(UInt index) {
+        callbacks[index] = NULL;
+    };
+
+    /**
+     * TODO: DOCUMENTATION
+     *
+     */
+    void _addProxy(SparseDistributedRepresentation *proxy) {
+        proxies.push_back( proxy );
+    };
+
+    /**
+     * TODO: DOCUMENTATION
+     *
+     */
+    void _removeProxy(SparseDistributedRepresentation *proxy) {
+        for(auto it = proxies.begin(); it != proxies.end(); it++ ) {
+            if( *it == proxy ) {
+                proxies.erase( it );
+                return;
+            }
+        }
+        NTA_THROW << "SDR::_removeProxy, Proxy not found!";
+    };
 };
 
 typedef SparseDistributedRepresentation SDR;
@@ -796,7 +875,7 @@ typedef SparseDistributedRepresentation SDR;
  * SDR_Proxy class
  *
  * ### Description
- * TODO
+ * SDR_Proxy is an SDR subclass which mirrors the value ... TODO
  *
  * Example Usage:
  *      TODO
@@ -823,26 +902,45 @@ public:
         clear();
         parent = &sdr;
         NTA_CHECK( size == parent->size ) << "SDR Proxy must have same size as given SDR.";
-        parent->addCallback( [&] () {
+        parent->_addProxy( this );
+        callback_handle = parent->addCallback( [&] () {
             clear();
             do_callbacks();
         });
     };
 
-    SDR_dense_t& getDense() override
-        { return parent->getDense(); }
+    ~SDR_Proxy() override
+        { deconstruct(); };
 
-    SDR_flatSparse_t& getFlatSparse() override
-        { return parent->getFlatSparse(); }
+    SDR_dense_t& getDense() override {
+        NTA_CHECK( size != (UInt) -1 ) << "Parent SDR has been destroyed!";
+        return parent->getDense();
+    }
+
+    SDR_flatSparse_t& getFlatSparse() override {
+        NTA_CHECK( size != (UInt) -1 ) << "Parent SDR has been destroyed!";
+        return parent->getFlatSparse();
+    }
 
     // Don't override getSparse().  It will call either getDense() or
     // getFlatSparse() to get its data.
 
-private:
+protected:
     /**
      * This SDR shall always have the same value as the parent SDR.
      */
     SDR *parent;
+    int callback_handle;
+
+    void deconstruct() override {
+        SDR::deconstruct();
+        // Unlink this SDR from the parent SDR.
+        if( parent != NULL ) {
+            parent->_removeProxy( this );
+            parent->removeCallback( callback_handle );
+            parent = NULL;
+        }
+    };
 
     const string _SDR_Proxy_setter_error_message = "SDR_Proxy is read only.";
 

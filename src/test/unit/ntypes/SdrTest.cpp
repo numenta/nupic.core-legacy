@@ -731,6 +731,57 @@ TEST(SdrTest, TestProxyConstructor) {
     SDR         D({ 5, 4, 3, 2, 1 });
     SDR_Proxy   E( D, {1, 1, 1, 120, 1});
     SDR_Proxy   F( D, { 20, 6 });
+
+    // Test that proxies can be safely made and destroyed.
+    SDR_Proxy *G = new SDR_Proxy( A );
+    SDR_Proxy *H = new SDR_Proxy( A );
+    SDR_Proxy *I = new SDR_Proxy( A );
+    A.zero();
+    H->getDense();
+    delete H;
+    I->getDense();
+    A.zero();
+    SDR_Proxy *J = new SDR_Proxy( A );
+    J->getDense();
+    SDR_Proxy *K = new SDR_Proxy( A );
+    delete K;
+    SDR_Proxy *L = new SDR_Proxy( A );
+    L->getSparse();
+    delete L;
+    delete G;
+    I->getSparse();
+    delete I;
+    delete J;
+    A.getDense();
+
+    // Test invalid dimensions
+    ASSERT_ANY_THROW( new SDR_Proxy( A, {2, 5}) );
+}
+
+TEST(SdrTest, TestProxyDeconstructor) {
+    SDR       *A = new SDR({12});
+    SDR_Proxy *B = new SDR_Proxy( *A );
+    SDR_Proxy *C = new SDR_Proxy( *A, {3, 4} );
+    SDR_Proxy *D = new SDR_Proxy( *C, {4, 3} );
+    SDR_Proxy *E = new SDR_Proxy( *C, {2, 6} );
+    D->getDense();
+    E->getSparse();
+    // Test subtree deletion
+    delete C;
+    ASSERT_ANY_THROW( D->getDense() );
+    ASSERT_ANY_THROW( E->getSparse() );
+    delete D;
+    // Test rest of tree is OK.
+    B->getFlatSparse();
+    A->zero();
+    B->getFlatSparse();
+    // Test delete root.
+    delete A;
+    ASSERT_ANY_THROW( B->getDense() );
+    ASSERT_ANY_THROW( E->getSparse() );
+    // Cleanup remaining Proxies.
+    delete B;
+    delete E;
 }
 
 TEST(SdrTest, TestProxyThrows) {
