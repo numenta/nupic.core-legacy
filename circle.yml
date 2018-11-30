@@ -50,8 +50,8 @@ jobs:
       - run:
           name: Installing dependencies
           command: |
-            pip install --user --upgrade --verbose pip setuptools setuptools-scm
-            pip install --no-cache-dir --user -r bindings/py/requirements.txt  --verbose || exit
+            pip install --user --upgrade pip setuptools setuptools-scm
+            pip install --no-cache-dir --user -r bindings/py/requirements.txt  || exit
 
       # Save dependency cache
       - save_cache:
