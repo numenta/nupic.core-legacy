@@ -42,7 +42,7 @@ namespace nupic {
 
 class Region;
 class Dimensions;
-class GenericRegisteredRegionImpl;
+class RegisteredRegionImpl;
 class Link;
 
 /**
@@ -361,26 +361,17 @@ public:
    */
 
   /*
-   * Adds user built region to list of regions
-   */
-  static void registerPyRegion(const std::string module,
-                               const std::string className);
-
-  /*
    * Adds a c++ region to the RegionImplFactory's packages
    */
-  static void registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper);
-
-  /*
-   * Removes a region from RegionImplFactory's packages
-   */
-  static void unregisterPyRegion(const std::string className);
-
+  static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
+	Region::registerRegion(name, wrapper);
+  }
   /*
    * Removes a c++ region from RegionImplFactory's packages
    */
-  static void unregisterCPPRegion(const std::string name);
+  static void unregisterRegion(const std::string name) {
+	Region::unregisterRegion(name);
+  }
 
   bool operator==(const Network &other) const;
   inline bool operator!=(const Network &other) const {

@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-2016, Numenta, Inc.  Unless you have purchased from
+# Copyright (C) 2013-2018, Numenta, Inc.  Unless you have purchased from
 # Numenta, Inc. a separate commercial license for this software code, the
 # following terms and conditions apply:
 #
@@ -26,363 +26,385 @@
 # NOTE SETTINGS THAT ARE SPECIFIC TO THIS OR THAT MODULE DO NOT BELONG HERE.
 
 # INPUTS:
-#
-# PLATFORM: lowercase ${CMAKE_SYSTEM_NAME}
+#	INTERNAL_CPP_STANDARD  i.e. C++11, C++14, C++17 , defaults to C++11 or C++17
+#	BITNESS   32,64, defaults to bitness of current machine.
+#	PLATFORM:   defaults to ${CMAKE_SYSTEM_NAME}  
+#	CMAKE_BUILD_TYPE   Debug, Release   defaults to Release
 
 # OUTPUTS:
 #
-# BITNESS: Platform bitness: 32 or 64
+#	INTERNAL_CPP_STANDARD  and compiler options are set in flags
+#	PLATFORM:   lowercase
+#	BITNESS: Platform bitness: 32 or 64
 #
-# COMMON_COMPILER_DEFINITIONS: list of -D define flags for the compilation of
+#	COMMON_COMPILER_DEFINITIONS: list of -D define flags for the compilation of
 #                               source files; e.g., for cmake `add_definitions()`
-# COMMON_COMPILER_DEFINITIONS_STR: string variant of COMMON_COMPILER_DEFINITIONS
+#	COMMON_COMPILER_DEFINITIONS_STR: string variant of COMMON_COMPILER_DEFINITIONS
 #
-# EXTERNAL_C_FLAGS_UNOPTIMIZED: string of C flags without explicit optimization flags for 3rd-party sources
+# 	INTERNAL_CXX_FLAGS: string of C++ flags common to both release and debug.  They do contain 'generator' statements.
+#                     so make sure the CMake function you use will process them.
 #
-# EXTERNAL_C_FLAGS_OPTIMIZED: EXTERNAL_C_FLAGS_UNOPTIMIZED plus optimizations
-#
-# EXTERNAL_CXX_FLAGS_UNOPTIMIZED: string of C++ flags without explicit optimization flags for 3rd-party sources.
-#
-# EXTERNAL_LINKER_FLAGS_UNOPTIMIZED: string of linker flags for linking 3rd-party executables
-#                      and shared libraries (DLLs) without explicit optimization
-#                      settings. This property is for use with
-#                      EXTERNAL_C_FLAGS_UNOPTIMIZED and EXTERNAL_CXX_FLAGS_UNOPTIMIZED
-#
-# EXTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking 3rd-party executables
+# 	INTERNAL_LINKER_FLAGS: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
-#                      compatible with EXTERNAL_C_FLAGS_OPTIMIZED and EXTERNAL_CXX_FLAGS_OPTIMIZED
+#                      compatible with INTERNAL_CXX_FLAGS
 #
-# EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED: list of -D cmake definitions corresponding to
-#                      EXTERNAL_C_FLAGS_OPTIMIZED (e. g. use of gcc-ar and gcc-ranlib wrappers for gcc >= 4.9
-#                      in combination with Link Time Optimization)
+# 	COMMON_OS_LIBS: the list of common runtime libraries to use for this OS.
 #
-# EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED: variant of
-#                      EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED used for
-#                      configure-based builds
+# 	CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
 #
-# INTERNAL_CXX_FLAGS_OPTIMIZED: string of C++ flags with explicit optimization flags for internal sources
+# 	CMAKE_RANLIB: Name of randomizing tool (ranlib) for static libraries. See cmake documentation
 #
-# INTERNAL_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking internal executables
-#                      and shared libraries (DLLs) with optimizations that are
-#                      compatible with INTERNAL_CXX_FLAGS_OPTIMIZED
+# 	CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake documentation
 #
-# PYEXT_LINKER_FLAGS_OPTIMIZED: string of linker flags for linking python extension
-#                      shared libraries (DLLs) with optimizations that are
-#                      compatible with EXTERNAL_CXX_FLAGS_OPTIMIZED.
 #
-# CMAKE_AR: Name of archiving tool (ar) for static libraries. See cmake documentation
-#
-# CMAKE_RANLIB: Name of randomizing tool (ranlib) for static libraries. See cmake documentation
-#
-# CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake
-#               documentation
-#
-# NOTE The XXX_OPTIMIZED flags are quite aggresive - if your code misbehaves for
-# strange reasons, try compiling without them.
-
-# NOTE much of the code below was factored out from src/CMakeLists.txt
-
-if(NOT DEFINED PLATFORM)
-    message(FATAL_ERROR "PLATFORM property not defined: PLATFORM=${PLATFORM}")
-endif()
+# USAGE:
+# Recommended, do this for each target foo
+#   	target_compile_options(foo PUBLIC "${INTERNAL_CXX_FLAGS}")
+#   	target_compile_definitions(foo PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+#   	set_target_properties(foo PROPERTIES LINK_FLAGS ${INTERNAL_LINKER_FLAGS})
+# Add any module specific options such as /DLL, etc.
+##############################################################
 
 include(CheckCXXCompilerFlag)
 
 
-# Init exported properties
-set(COMMON_COMPILER_DEFINITIONS)
-set(COMMON_COMPILER_DEFINITIONS_STR)
+# Identify platform name.
+if(NOT PLATFORM)
+  set(PLATFORM  ${CMAKE_SYSTEM_NAME})
+endif()
+string(TOLOWER ${PLATFORM} PLATFORM)
 
-set(INTERNAL_CXX_FLAGS_OPTIMIZED)
-set(INTERNAL_LINKER_FLAGS_OPTIMIZED)
 
-set(PYEXT_LINKER_FLAGS_OPTIMIZED)
+# Set the C++ standard version
+#    Compiler support for <filesystem> in C++17:
+#	https://en.cppreference.com/w/cpp/compiler_support
+#	GCC 7.1 has <experimental/filesystem>, link with -libc++experimental or -lstdc++fs
+#	GCC 8 has <filesystem>   link with -lstdc++fs
+#	GCC 9   expected to support <filesystem>
+#	Clang 4 (XCode10) has no support for <filesystem>, partial C++17
+#	Clang 7 has complete <filesystem> support for C++17
+#	Visual Studio 2017 15.7 (v19.14)supports <filesystem> with C++17
+#	MinGW has no support for filesystem.
+#
+# If we have support for <filesystem> and C++17, turn on the C++17 standard flag, 
+# else set standard to C++11 and install the boost filesystem
+# Also specify the external library for <filesystem> if needed.
 
-set(EXTERNAL_C_FLAGS_UNOPTIMIZED)
-set(EXTERNAL_C_FLAGS_OPTIMIZED)
+set(extra_lib_for_filesystem)   # sometimes -libc++experimental or -lstdc++fs
+set(INTERNAL_CPP_STANDARD "c++11")
+set(NEEDS_BOOST ON)
 
-set(EXTERNAL_CXX_FLAGS_UNOPTIMIZED)
-set(EXTERNAL_CXX_FLAGS_OPTIMIZED)
+if(NOT USE_CPP11)
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9")
+         set(INTERNAL_CPP_STANDARD "c++17")
+	 set(NEEDS_BOOST OFF)
+    elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
+         set(INTERNAL_CPP_STANDARD "c++17")
+	 set(extra_lib_for_filesystem "-lstdc++fs")
+	 set(NEEDS_BOOST "OFF")
+    endif()	 
+  elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
+         set(INTERNAL_CPP_STANDARD "c++17")
+	 set(NEEDS_BOOST OFF)
+    endif()
+  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.14")
+            set(INTERNAL_CPP_STANDARD "c++17")
+	    set(NEEDS_BOOST OFF)
+      endif()
+  endif()
+endif()
 
-set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED)
-set(EXTERNAL_LINKER_FLAGS_OPTIMIZED)
+# https://stackoverflow.com/questions/44960715/how-to-enable-stdc17-in-vs2017-with-cmake
+string(SUBSTRING ${INTERNAL_CPP_STANDARD} 3 -1 std_ver)
+set_property(GLOBAL PROPERTY CXX_STANDARD ${std_ver})
+set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED ON)
 
-set(EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED)
-set(EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED)
 
 # Identify platform "bitness".
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(BITNESS 64)
-else()
-  set(BITNESS 32)
-endif()
-
-message(STATUS "CMAKE BITNESS=${BITNESS}")
-
-
-# Check memory limits (in megabytes)
-if(CMAKE_MAJOR_VERSION GREATER 2)
-  cmake_host_system_information(RESULT available_physical_memory QUERY AVAILABLE_PHYSICAL_MEMORY)
-  cmake_host_system_information(RESULT available_virtual_memory QUERY AVAILABLE_VIRTUAL_MEMORY)
-  math(EXPR available_memory "${available_physical_memory}+${available_virtual_memory}")
-  message(STATUS "CMAKE MEMORY=${available_memory}")
-
-  # Python bindings (particularly mathPYTHON_wrap.cxx) requires more than
-  # 1GB of memory for compiling with GCC. Send a warning if available memory
-  # (physical plus virtual(swap)) is less than 1GB
-  if(${available_memory} LESS 1024)
-    message(WARNING "Less than 1GB of memory available, compilation may run out of memory!")
-  endif()
+if(NOT BITNESS)
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	  set(BITNESS 64)
+	else()
+	  set(BITNESS 32)
+	endif()
 endif()
 
 
-# Compiler `-D*` definitions
-if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
-  set(COMMON_COMPILER_DEFINITIONS
-      ${COMMON_COMPILER_DEFINITIONS}
-      -DHAVE_UNISTD_H)
-elseif(MSVC OR MSYS OR MINGW)
-  set(COMMON_COMPILER_DEFINITIONS
-      ${COMMON_COMPILER_DEFINITIONS}
-      -DPSAPI_VERSION=1
-      -DWIN32
-      -D_WINDOWS
-      -D_MBCS
-      -D_CRT_SECURE_NO_WARNINGS
-      -DNDEBUG
-      -D_VARIADIC_MAX=10
-      -DNOMINMAX)
-  if(MSYS OR MINGW)
-    set(COMMON_COMPILER_DEFINITIONS
-        ${COMMON_COMPILER_DEFINITIONS}
-        -DHAVE_UNISTD_H)
-  endif()
-endif()
+
+# Init exported properties
+set(COMMON_COMPILER_DEFINITIONS)
+set(INTERNAL_CXX_FLAGS_OPTIMIZED)
+set(INTERNAL_LINKER_FLAGS_OPTIMIZED)
+set(COMMON_OS_LIBS)
 
 
-#
-# Set linker (ld)
-# use ld.gold if available
-#
-execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE)
-if(EXIT_CODE EQUAL 0)
-  message("Using ld.gold as LINKER.")
-  set(CMAKE_LINKER "ld.gold")
-endif()
+if(MSVC)
+	# MS Visual C
+	# on Windows using Visual Studio 2015, 2017   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
+	#  /permissive- forces standards behavior.  See https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance?view=vs-2017
+	# Release Compiler flags:
+	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /nologo
+	#      Release Only:    /O2 /Oi /Gy  /MD
+	#      Debug Only:       /Od /Zi /sdl /RTC1 /MDd
+	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo
+							$<$<CONFIG:RELEASE>:/O2 /Oi /Gy  /GL /MT> 
+							$<$<CONFIG:DEBUG>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
+	#linker flags
+	if("${BITNESS}" STREQUAL "32")
+		set(machine "/MACHINE:X86")
+	else()
+		set(machine "/MACHINE:X${BITNESS}")
+	endif()
+	set(INTERNAL_LINKER_FLAGS "${machine} /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT /ignore:4099 /LTCG")
 
+	set(COMMON_COMPILER_DEFINITIONS 	
+		_CONSOLE
+		_MBCS
+		NTA_OS_WINDOWS
+		NTA_COMPILER_MSVC
+		NTA_INTERNAL=1
+		NTA_ARCH_${BITNESS}
+		_CRT_SECURE_NO_WARNINGS
+		_SCL_SECURE_NO_WARNINGS
+		_CRT_NONSTDC_NO_DEPRECATE
+		_SCL_SECURE_NO_DEPRECATE
+		BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
+		BOOST_ALL_NO_LIB
+		BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
+		BOOST_NO_WREGEX
+		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
+		VC_EXTRALEAN
+		WIN32_LEAN_AND_MEAN
+		NOMINMAX
+		NOGDI
+		)
 
-#
-# Determine stdlib settings
-#
-set(stdlib_cxx "")
-set(stdlib_common "")
+	if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_ASSERTIONS_ON)
+	endif()
+		
+	# common libs
+	set(COMMON_OS_LIBS oldnames.lib psapi.lib ws2_32.lib)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(stdlib_cxx "${stdlib_cxx} -stdlib=libc++")
-endif()
-
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
-    # NOTE When building manylinux python extensions, we want the static
-    # libstdc++ due to differences in c++ ABI between the older toolchain in the
-    # manylinux Docker image and libstdc++ in newer linux distros that is
-    # compiled with the c++11 ABI. for example, with shared libstdc++, the
-    # manylinux-built extension is unable to catch std::ios::failure exception
-    # raised by the shared libstdc++.so while running on Ubuntu 16.04.
-    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-
-    # NOTE We need to use shared libgcc to be able to throw and catch exceptions
-    # across different shared libraries, as may be the case when our python
-    # extensions runtime-link to capnproto symbols in pycapnp's extension.
-    set(stdlib_common "${stdlib_common} -shared-libgcc")
-  else()
-    set(stdlib_common "${stdlib_common} -static-libgcc")
-    set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-  endif()
-endif()
-
-
-#
-# Determine Optimization flags here
-# These are quite aggresive flags, if your code misbehaves for strange reasons,
-# try compiling without them.
-#
-if(NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(optimization_flags_cc "${optimization_flags_cc} -O2")
-  set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
-  set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
-
-  if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
-    set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
-  endif()
-
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
-    set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
-    # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
-    # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-    set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto") #TODO fix LTO for clang
-    set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
-  endif()
-endif()
-
-
-#
-# compiler specific settings and warnings here
-#
-
-set(shared_compile_flags "")
-set(internal_compiler_warning_flags "")
-set(external_compiler_warning_flags "")
-set(cxx_flags_unoptimized "")
-set(shared_linker_flags_unoptimized "")
-set(fail_link_on_undefined_symbols_flags "")
-set(allow_link_with_undefined_symbols_flags "")
-
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  # MS Visual C
-  set(shared_compile_flags "${shared_compile_flags} /Zc:wchar_t /Gm- /fp:precise /errorReport:prompt /W1 /WX- /GR /Gd /GS /Oy- /EHs /analyze- /nologo")
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT")
-  if("${BITNESS}" STREQUAL "32")
-    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} /MACHINE:X86")
-  else()
-    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} /MACHINE:X${BITNESS}")
-  endif()
 
 else()
-  # LLVM Clang / Gnu GCC
-  set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx} -std=c++11")
+	# anything other than MSVC
+	
 
-  if (${NUPIC_BUILD_PYEXT_MODULES})
-    # Hide all symbols in DLLs except the ones with explicit visibility;
-    # see https://gcc.gnu.org/wiki/Visibility
-    set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden")
-    set(shared_compile_flags "${shared_compile_flags} -fvisibility=hidden")
-  endif()
+	# Compiler `-D*` definitions
+	#
+	# Compiler definitions specific to nupic.core code
+	#
+	string(TOUPPER ${PLATFORM} platform_uppercase)
 
-  set(shared_compile_flags "${shared_compile_flags} ${stdlib_common} -fdiagnostics-show-option")
-  set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
-  set (external_compiler_warning_flags "${external_compiler_warning_flags} -Wno-unused-variable -Wno-unused-parameter -Wno-deprecated-declarations")
+	set(${COMMON_COMPILER_DEFINITIONS}
+		-DNTA_OS_${platform_uppercase}
+		-DNTA_ARCH_${BITNESS}
+		-DHAVE_CONFIG_H
+		-DNTA_INTERNAL=1
+		-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
+		-DBOOST_NO_WREGEX
+		)
 
-  CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
-  if (compiler_supports_machine_option)
-    set(shared_compile_flags "${shared_compile_flags} -m${BITNESS}")
-    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -m${BITNESS}")
-  endif()
-  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
-    set(shared_compile_flags "${shared_compile_flags} -marm")
-    set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} -marm")
-  endif()
+	if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_ASSERTIONS_ON)
+	endif()
 
-  if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(shared_compile_flags "${shared_compile_flags} -fPIC")
-    set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Wall")
+	if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
+	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
+	endif()
 
-    if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-      set(shared_compile_flags "${shared_compile_flags} -Wno-deprecated-register")
-    endif()
-  endif()
+	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_GNU)
+	elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_CLANG)
+	elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
+	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_GNU -D_hypot=hypot)
+	endif()
 
-  set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
+	#
+	# Set linker (ld)
+	# use ld.gold if available
+	#
+	execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE)
+	if(EXIT_CODE EQUAL 0)
+	  message("Using ld.gold as LINKER.")
+	  set(CMAKE_LINKER "ld.gold")
+	endif()
+
+
+	#
+	# Determine stdlib settings
+	#
+	set(stdlib_cxx "")
+	set(stdlib_common "")
+
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	  set(stdlib_cxx "${stdlib_cxx} -stdlib=libc++")
+	endif()
+
+	if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+	  if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
+		# NOTE When building manylinux python extensions, we want the static
+		# libstdc++ due to differences in c++ ABI between the older toolchain in the
+		# manylinux Docker image and libstdc++ in newer linux distros that is
+		# compiled with the c++11 ABI. for example, with shared libstdc++, the
+		# manylinux-built extension is unable to catch std::ios::failure exception
+		# raised by the shared libstdc++.so while running on Ubuntu 16.04.
+		set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+
+		# NOTE We need to use shared libgcc to be able to throw and catch exceptions
+		# across different shared libraries.
+		set(stdlib_common "${stdlib_common} -shared-libgcc")
+	  else()
+		set(stdlib_common "${stdlib_common} -static-libgcc")
+		set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+	  endif()
+	endif()
+
+
+
+	#
+	# compiler specific settings and warnings here
+	#
+
+	set(internal_compiler_warning_flags "")
+	set(cxx_flags_unoptimized "")
+	set(linker_flags_unoptimized "")
+	
+	set(optimization_flags_cc "${optimization_flags_cc} -O2")
+	set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
+	set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
+	if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
+		set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
+	endif()
+	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
+		set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
+		# NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
+		# with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
+		set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto") #TODO fix LTO for clang
+		set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
+	endif()
+
+	# LLVM Clang / Gnu GCC
+	set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx}")
+
+	if (${NUPIC_BUILD_PYEXT_MODULES})
+		# Hide all symbols in DLLs except the ones with explicit visibility;
+		# see https://gcc.gnu.org/wiki/Visibility
+		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
+	endif()
+
+	set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_common} -fdiagnostics-show-option")
+	set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
+
+	CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
+	if (compiler_supports_machine_option)
+		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -m${BITNESS}")
+		set(linker_flags_unoptimized "${linker_flags_unoptimized} -m${BITNESS}")
+	endif()
+	if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
+		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -marm")
+		set(linker_flags_unoptimized "${linker_flags_unoptimized} -marm")
+	endif()
+
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fPIC")
+		set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Wall")
+
+		if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+		  set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -Wno-deprecated-register")
+		endif()
+	endif()
+
+	set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
+
+	# Don't allow undefined symbols when linking executables
+	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+	  set(linker_flags_unoptimized "${linker_flags_unoptimized} -Wl,--no-undefined")
+	elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+	  set(linker_flags_unoptimized "${linker_flags_unoptimized} -Wl,-undefined,error")
+	endif()
+
+
+	# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for
+	# ar and ranlib in combination with LTO works also with LTO disabled
+	IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND
+		  CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "4.9")
+		set(CMAKE_AR "gcc-ar")
+		set(CMAKE_RANLIB "gcc-ranlib")
+		# EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED duplicates settings for
+		# CMAKE_AR and CMAKE_RANLIB. This is a workaround for a CMAKE bug
+		# (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
+		# the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all
+		# externals
+		list(APPEND EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
+			 -DCMAKE_AR:PATH=gcc-ar
+			 -DCMAKE_RANLIB:PATH=gcc-ranlib)
+		# And ditto for externals that use the configure-based build system
+		list(APPEND EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED
+			 AR=gcc-ar
+			 RANLIB=gcc-ranlib)
+	ENDIF()
+
+	#
+	# Set up Debug vs. Release options
+	#
+	set(debug_specific_compile_flags)
+	set(debug_specific_linker_flags)
+
+	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	  set (debug_specific_compile_flags "${debug_specific_compile_flags} -g")
+
+	  set(debug_specific_linker_flags "${debug_specific_linker_flags} -O0")
+
+	  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
+		set (debug_specific_compile_flags "${debug_specific_compile_flags} -Og")
+
+		# Enable diagnostic features of standard class templates, including ability
+		# to examine containers in gdb.
+		# See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html
+		list(APPEND COMMON_COMPILER_DEFINITIONS -D_GLIBCXX_DEBUG)
+	  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+		# NOTE: debug mode is immature in Clang, and values of _LIBCPP_DEBUG above 0
+		# require  the debug build of libc++ to be present at linktime on OS X.
+		list(APPEND COMMON_COMPILER_DEFINITIONS -D_LIBCPP_DEBUG=0)
+	  endif()
+
+	  # Disable optimizations
+	  set(optimization_flags_cc)
+	  set(optimization_flags_lt)
+	endif()
+
+
+	#
+	# Assemble compiler and linker properties
+	#
+
+	# Settings for internal nupic.core code
+	set(INTERNAL_CXX_FLAGS "${debug_specific_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc}")
+	set(INTERNAL_LINKER_FLAGS "${debug_specific_linker_flags} ${linker_flags_unoptimized} ${optimization_flags_lt}")
+	
+	#
+	# Common system libraries for shared libraries and executables
+	#
+	set(COMMON_OS_LIBS ${extra_lib_for_filesystem})
+
+	if("${PLATFORM}" STREQUAL "linux")
+	  list(APPEND COMMON_OS_LIBS pthread dl)
+	elseif("${PLATFORM}" STREQUAL "darwin")
+	  list(APPEND COMMON_OS_LIBS c++abi)
+	elseif(MSYS OR MINGW)
+	  list(APPEND COMMON_OS_LIBS psapi ws2_32 wsock32 rpcrt4)
+	endif()
+
+
+	
+
 endif()
-
-# Don't allow undefined symbols when linking executables
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(fail_link_on_undefined_symbols_flags "-Wl,--no-undefined")
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set(fail_link_on_undefined_symbols_flags "-Wl,-undefined,error")
-endif()
-
-# Don't force python extensions to link to specific libpython during build:
-# python symbols are made available to extensions atomatically once loaded
-#
-# NOTE Windows DLLs are shared executables with their own main; they require
-# all symbols to resolve at link time.
-if(NOT "${PLATFORM}" STREQUAL "windows")
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-    set(allow_link_with_undefined_symbols_flags "-Wl,--allow-shlib-undefined")
-  elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    set(allow_link_with_undefined_symbols_flags "-Wl,-undefined,dynamic_lookup")
-  endif()
-endif()
-
-
-# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for
-# ar and ranlib in combination with LTO works also with LTO disabled
-IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND
-      (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR
-       CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "4.9"))
-    set(CMAKE_AR "gcc-ar")
-    set(CMAKE_RANLIB "gcc-ranlib")
-    # EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED duplicates settings for
-    # CMAKE_AR and CMAKE_RANLIB. This is a workaround for a CMAKE bug
-    # (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
-    # the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all
-    # externals
-    list(APPEND EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
-         -DCMAKE_AR:PATH=gcc-ar
-         -DCMAKE_RANLIB:PATH=gcc-ranlib)
-    # And ditto for externals that use the configure-based build system
-    list(APPEND EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED
-         AR=gcc-ar
-         RANLIB=gcc-ranlib)
-ENDIF()
-
-#
-# Set up Debug vs. Release options
-#
-set(build_type_specific_compile_flags)
-set(build_type_specific_linker_flags)
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set (build_type_specific_compile_flags "${build_type_specific_compile_flags} -g")
-
-  set(build_type_specific_linker_flags "${build_type_specific_linker_flags} -O0")
-
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
-    set (build_type_specific_compile_flags "${build_type_specific_compile_flags} -Og")
-
-    # Enable diagnostic features of standard class templates, including ability
-    # to examine containers in gdb.
-    # See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html
-    list(APPEND COMMON_COMPILER_DEFINITIONS -D_GLIBCXX_DEBUG)
-  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    # NOTE: debug mode is immature in Clang, and values of _LIBCPP_DEBUG above 0
-    # require  the debug build of libc++ to be present at linktime on OS X.
-    list(APPEND COMMON_COMPILER_DEFINITIONS -D_LIBCPP_DEBUG=0)
-  endif()
-
-  # Disable optimizations
-  set(optimization_flags_cc)
-  set(optimization_flags_lt)
-endif()
-
-
-#
-# Assemble compiler and linker properties
-#
-
-# Settings for internal nupic.core code
-set(INTERNAL_CXX_FLAGS_OPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc}")
-
-set(complete_linker_flags_unoptimized "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
-set(complete_linker_flags_unoptimized "${complete_linker_flags_unoptimized} ${fail_link_on_undefined_symbols_flags}")
-set(INTERNAL_LINKER_FLAGS_OPTIMIZED "${complete_linker_flags_unoptimized} ${optimization_flags_lt}")
-
-# Settings for third-party code and code generated by 3rd-party tools (e.g., Swig bindings)
-# (NOTE we omit the explicit compiler warning-related flags here to avoid
-#  polluting build output with warnings from code that we don't control)
-set(EXTERNAL_C_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags}")
-set(EXTERNAL_C_FLAGS_OPTIMIZED "${EXTERNAL_C_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
-
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${build_type_specific_linker_flags} ${shared_linker_flags_unoptimized}")
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${optimization_flags_lt}")
-set(PYEXT_LINKER_FLAGS_OPTIMIZED "${PYEXT_LINKER_FLAGS_OPTIMIZED} ${allow_link_with_undefined_symbols_flags}")
-
-set(EXTERNAL_CXX_FLAGS_UNOPTIMIZED "${build_type_specific_compile_flags} ${shared_compile_flags} ${external_compiler_warning_flags} ${cxx_flags_unoptimized}")
-set(EXTERNAL_CXX_FLAGS_OPTIMIZED "${EXTERNAL_CXX_FLAGS_UNOPTIMIZED} ${optimization_flags_cc}")
-
-set(EXTERNAL_LINKER_FLAGS_UNOPTIMIZED "${complete_linker_flags_unoptimized}")
-set(EXTERNAL_LINKER_FLAGS_OPTIMIZED "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
 
 
 #
@@ -393,16 +415,4 @@ foreach(compiler_definition ${COMMON_COMPILER_DEFINITIONS})
   set(COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS_STR} ${compiler_definition}")
 endforeach()
 
-message(STATUS "INTERNAL_CXX_FLAGS_OPTIMIZED=${INTERNAL_CXX_FLAGS_OPTIMIZED}")
-message(STATUS "INTERNAL_LINKER_FLAGS_OPTIMIZED=${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-message(STATUS "EXTERNAL_C_FLAGS_UNOPTIMIZED=${EXTERNAL_C_FLAGS_UNOPTIMIZED}")
-message(STATUS "EXTERNAL_C_FLAGS_OPTIMIZED=${EXTERNAL_C_FLAGS_OPTIMIZED}")
-message(STATUS "PYEXT_LINKER_FLAGS_OPTIMIZED=${PYEXT_LINKER_FLAGS_OPTIMIZED}")
-message(STATUS "EXTERNAL_CXX_FLAGS_UNOPTIMIZED=${EXTERNAL_CXX_FLAGS_UNOPTIMIZED}")
-message(STATUS "EXTERNAL_CXX_FLAGS_OPTIMIZED=${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
-message(STATUS "EXTERNAL_LINKER_FLAGS_UNOPTIMIZED=${EXTERNAL_LINKER_FLAGS_UNOPTIMIZED}")
-message(STATUS "EXTERNAL_LINKER_FLAGS_OPTIMIZED=${EXTERNAL_LINKER_FLAGS_OPTIMIZED}")
-message(STATUS "COMMON_COMPILER_DEFINITIONS=${COMMON_COMPILER_DEFINITIONS}")
-message(STATUS "COMMON_COMPILER_DEFINITIONS_STR=${COMMON_COMPILER_DEFINITIONS_STR}")
-message(STATUS "EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED=${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}")
-message(STATUS "EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED=${EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED}")
+

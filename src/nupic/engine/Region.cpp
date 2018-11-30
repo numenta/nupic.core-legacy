@@ -158,24 +158,6 @@ const Spec *Region::getSpecFromType(const std::string &nodeType) {
   return factory.getSpec(nodeType);
 }
 
-void Region::registerPyRegion(const std::string module,
-                              const std::string className) {
-  RegionImplFactory::registerPyRegion(module, className);
-}
-
-void Region::registerCPPRegion(const std::string name,
-                               GenericRegisteredRegionImpl *wrapper) {
-  RegionImplFactory::registerCPPRegion(name, wrapper);
-}
-
-void Region::unregisterPyRegion(const std::string className) {
-  RegionImplFactory::unregisterPyRegion(className);
-}
-
-void Region::unregisterCPPRegion(const std::string name) {
-  RegionImplFactory::unregisterCPPRegion(name);
-}
-
 const Dimensions &Region::getDimensions() const { return dims_; }
 
 void Region::enable() {

@@ -45,7 +45,7 @@ Implementation of the Network class
 
 namespace nupic {
 
-class GenericRegisteredRegionImpl;
+class RegisteredRegionImpl;
 
 Network::Network() {
   commonInit();
@@ -769,24 +769,6 @@ void Network::disableProfiling() {
 void Network::resetProfiling() {
   for (size_t i = 0; i < regions_.getCount(); i++)
     regions_.getByIndex(i).second->resetProfiling();
-}
-
-void Network::registerPyRegion(const std::string module,
-                               const std::string className) {
-  Region::registerPyRegion(module, className);
-}
-
-void Network::registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper) {
-  Region::registerCPPRegion(name, wrapper);
-}
-
-void Network::unregisterPyRegion(const std::string className) {
-  Region::unregisterPyRegion(className);
-}
-
-void Network::unregisterCPPRegion(const std::string name) {
-  Region::unregisterCPPRegion(name);
 }
 
 bool Network::operator==(const Network &o) const {

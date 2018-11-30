@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2015, Numenta, Inc.  Unless you have purchased from
+# Copyright (C) 2016, Numenta, Inc.  Unless you have purchased from
 # Numenta, Inc. a separate commercial license for this software code, the
 # following terms and conditions apply:
 #
@@ -19,32 +19,24 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.11)
-project(nupic_core CXX)
+# Expands the distribution file and builds the yaml-cpp static library
+#
+# OUTPUT VARIABLES:
+#   exports 'yaml-cpp' as a target
 
+set(YAML_CPP_STATIC_LIB_TARGET yaml-cpp-lib)
+set(url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.6.2.tar.gz")
 
-if( POLICY CMP0074 )
-  # The new policy CMP0074 says use <packageName>_ROOT in findPackage search.
-  cmake_policy(SET CMP0074 NEW)
+include(FetchContent)
+FetchContent_Declare(yaml-cpp-lib
+    URL ${url}
+    UPDATE_COMMAND ""
+    CMAKE_GENERATOR ${CMAKE_GENERATOR}
+)
+FetchContent_GetProperties(yaml-cpp-lib)
+if (NOT YamlCppStaticLib_POPULATED)
+	FetchContent_Populate(yaml-cpp-lib)
+	option(YAML_CPP_BUILD_TESTS "Enable testing (builds gtest)" OFF)
+	add_subdirectory(${yaml-cpp-lib_SOURCE_DIR} ${yaml-cpp-lib_BINARY_DIR})
 endif()
 
-set(CMAKE_VERBOSE_MAKEFILE OFF)
-include(GNUInstallDirs)
-include(ExternalProject)
-
-
-################
-# Yaml-cpp
-include(yaml-cpp.cmake)
-
-##################
-#  Boost
-include(Boost.cmake)
-
-##################
-# gtest
-include(gtest.cmake)
-
-##################
-# pybind11
-#include(pybind11.cmake)

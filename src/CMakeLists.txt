@@ -25,21 +25,7 @@ project(nupic_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
-
-if( POLICY CMP0046 )
-  cmake_policy(VERSION 3.3)
-  # The new policy for add_dependencies is to now error if a dependency target
-  # is not found. The old policy didn't care and continued through configuration
-  cmake_policy(SET CMP0046 OLD)
-endif()
-
-if( POLICY CMP0054 )
-  # The OLD behavior for this policy is to dereference variables and interpret
-  # keywords even if they are quoted or bracketed. The NEW behavior is to not
-  # dereference variables or interpret keywords that have been quoted or bracketed.
-  cmake_policy(SET CMP0054 OLD)
-endif()
-
+include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 
 #
 # NuPIC CMake options
@@ -54,107 +40,8 @@ if(${NUPIC_IWYU})
   endif()
 endif()
 
-option(NUPIC_TOGGLE_INSTALL "Toggle whether to install headers, libraries, and executables to the install location for C++ clients" OFF)
-
-#
-# Set up compile flags for internal sources and for swig-generated sources
-#
-
-set(src_compile_flags "${INTERNAL_CXX_FLAGS_OPTIMIZED}")
-set(src_swig_generated_file_compile_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED}")
-
-if(MINGW)
-  # This is for GCC 4.8.x
-  # http://stackoverflow.com/questions/10660524/error-building-boost-1-49-0-with-gcc-4-7-0
-  set(src_compile_flags "${src_compile_flags} -include cmath")
-  set(src_swig_generated_file_compile_flags
-      "${src_swig_generated_file_compile_flags} -include cmath")
-endif()
 
 
-#
-# Compiler definitions specific to nupic.core code
-#
-
-string(TOUPPER ${PLATFORM} platform_uppercase)
-
-set(src_compiler_definitions
-    ${COMMON_COMPILER_DEFINITIONS}
-    -DNTA_OS_${platform_uppercase}
-    -DNTA_ARCH_${BITNESS}
-    -DHAVE_CONFIG_H
-    -DNTA_INTERNAL
-    -DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
-    -DBOOST_NO_WREGEX
-    )
-
-if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  set(src_compiler_definitions
-      ${src_compiler_definitions}
-      -DNTA_ASSERTIONS_ON)
-endif()
-
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(src_compiler_definitions
-      ${src_compiler_definitions}
-      -DNTA_COMPILER_GNU)
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  set(src_compiler_definitions
-      ${src_compiler_definitions}
-      -DNTA_COMPILER_CLANG)
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  set(src_compiler_definitions
-      ${src_compiler_definitions}
-      -DNTA_COMPILER_MSVC)
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
-  set(src_compiler_definitions
-      ${src_compiler_definitions}
-      -DNTA_COMPILER_GNU
-      -D_hypot=hypot)
-endif()
-
-
-add_definitions(${src_compiler_definitions})
-
-
-#
-# Find Python Interp, min. v2.7
-# And NumPy core directory
-#
-find_package(PythonInterp 2.7 REQUIRED)
-message(STATUS "CMAKE Found python interpreter ${PYTHON_EXECUTABLE} version=${PYTHON_VERSION_STRING}")
-execute_process(COMMAND "${PYTHON_EXECUTABLE}" "-c"
-                        "import numpy; import os; import sys; sys.stdout.write(os.path.dirname(numpy.get_include()))"
-                         OUTPUT_VARIABLE src_numpy_core)
-
-# Quick way to fixup directory paths to NumPy
-get_filename_component(src_numpy_core ${src_numpy_core}/include/.. ABSOLUTE)
-
-message(STATUS "src_numpy_core   = ${src_numpy_core}")
-
-
-#
-# Setup include paths
-#
-if("${PROJECT_BUILD_ARTIFACTS_DIR}" STREQUAL "")
-  set(PROJECT_BUILD_ARTIFACTS_DIR "${PROJECT_BINARY_DIR}/artifacts")
-endif()
-
-include_directories(SYSTEM
-                    ${src_numpy_core}/include
-                    ${PROJECT_BINARY_DIR})
-
-include_directories(${PROJECT_SOURCE_DIR})
-
-#
-# Let CMake know where all of the external files are.
-#
-set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}
-                      ${REPOSITORY_DIR}/external/common/
-                      ${REPOSITORY_DIR}/external/${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}/
-                      ${src_numpy_core}/)
-
-message(STATUS "CMAKE_PREFIX_PATH   = ${CMAKE_PREFIX_PATH}")
 
 #
 # Extract current git sha and record in nupic/Version.hpp
@@ -165,163 +52,210 @@ execute_process(COMMAND git rev-parse HEAD
 configure_file(
   "${PROJECT_SOURCE_DIR}/nupic/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")
-
-#
-# Setup gtest
-#
-set(src_lib_static_gtest gtest)
-add_library(${src_lib_static_gtest}
-            STATIC
-            ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-set_target_properties(${src_lib_static_gtest}
-                      PROPERTIES COMPILE_FLAGS "${src_compile_flags}"
-                      LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-
-#
-# Locate Python artifacts
-#
-find_package(PythonLibs REQUIRED)
-include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
-
-message(STATUS "PYTHON_EXECUTABLE   = ${PYTHON_EXECUTABLE}")
-message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
-message(STATUS "PYTHON_LIBRARIES    = ${PYTHON_LIBRARIES}")
-
-
-#
-# Python support
-#
-set(src_py_support_files
-    nupic/py_support/NumpyArrayObject.cpp
-    nupic/py_support/NumpyVector.cpp
-    nupic/py_support/PyArray.cpp
-    nupic/py_support/PyHelpers.cpp
-    nupic/py_support/PythonStream.cpp
-    nupic/bindings/PySparseTensor.cpp
-)
-
-
-if(${NEEDS_BOOST})
-  message(STATUS "Hints for find_package()")
-  message(STATUS "  BOOST_ROOT  = ${BOOST_ROOT}")
-  if(MSVC OR MINGW)
-    # For windows, library name has lots of fields that must be matched.
-    # info about "--layout versioned" https://stackoverflow.com/questions/32991736/boost-lib-naming-are-missing/52208574#52208574
-    # filenames created by boost: https://www.boost.org/doc/libs/1_68_0/more/getting_started/unix-variants.html#library-naming
-    set(Boost_USE_STATIC_RUNTIME     OFF) 
-    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
-    set(Boost_USE_MULTITHREADED      ON)
-  endif()
-  set(Boost_DEBUG ON)
-  set(Boost_DETAILED_FAILURE_MSG ON)
   
-  find_package(Boost 1.56.0 REQUIRED COMPONENTS system filesystem)
-  if(${Boost_FOUND})
-	include_directories(${Boost_INCLUDE_DIRS})
-	message(STATUS "  Boost_INCLUDE_DIRS        = ${Boost_INCLUDE_DIRS}")
-	message(STATUS "  Boost_LIBRARIES           = ${Boost_LIBRARIES}")
-  else()
-  	message(FATAL_ERROR "Boost not found.")
-  endif()
-endif()
-message(STATUS "SWIG_EXECUTABLE           = ${SWIG_EXECUTABLE}")
-message(STATUS "SWIG_DIR                  = ${SWIG_DIR}")
-
-#
-# Common system libraries for shared libraries and executables
-#
-set(src_common_os_libs ${extra_lib_for_filesystem})
-
-if("${PLATFORM}" STREQUAL "linux")
-  list(APPEND src_common_os_libs pthread dl)
-elseif("${PLATFORM}" STREQUAL "darwin")
-  list(APPEND src_common_os_libs c++abi)
-elseif(MSYS OR MINGW)
-  list(APPEND src_common_os_libs psapi ws2_32 wsock32 rpcrt4)
-elseif("${PLATFORM}" STREQUAL "windows")
-  list(APPEND src_common_os_libs oldnames.lib psapi.lib ws2_32.lib)
-endif()
-
-message(STATUS "src_common_os_libs        = ${src_common_os_libs}")
+include_directories(SYSTEM
+                    ${PROJECT_BINARY_DIR}
+					${PROJECT_SOURCE_DIR}
+					${REPOSITORY_DIR}/external/common/include
+					${yaml-cpp_INCLUDE_DIRS}
+					${Boost_INCLUDE_DIRS}
+					)
 
 
 #
-# Setup nupic_core_solo static library, consisting of our own sources;
+# Setup nupic_core static library, consisting of our own sources and yaml libraries;
 #
 # this is an intermediate archive that will be merged with external static
 # libraries in a subsequent step to produce the nupic_core "combined" static
 # library.
 #
-set(src_lib_static_nupiccore_solo nupic_core_solo)
+set(src_lib_static_nupiccore_solo nupiccore_solo)
 
-set(src_nupiccore_srcs
+
+set(algorithm_files
     nupic/algorithms/Anomaly.cpp
+    nupic/algorithms/Anomaly.hpp
     nupic/algorithms/AnomalyLikelihood.cpp
+    nupic/algorithms/AnomalyLikelihood.hpp
+    nupic/algorithms/ArrayBuffer.hpp
     nupic/algorithms/BacktrackingTMCpp.cpp
+    nupic/algorithms/BacktrackingTMCpp.hpp
     nupic/algorithms/BitHistory.cpp
+    nupic/algorithms/BitHistory.hpp
     nupic/algorithms/Cell.cpp
+    nupic/algorithms/Cell.hpp
     nupic/algorithms/Cells4.cpp
+    nupic/algorithms/Cells4.hpp
     nupic/algorithms/ClassifierResult.cpp
+    nupic/algorithms/ClassifierResult.hpp
     nupic/algorithms/CondProbTable.cpp
+    nupic/algorithms/CondProbTable.hpp
     nupic/algorithms/Connections.cpp
+    nupic/algorithms/Connections.hpp
     nupic/algorithms/InSynapse.cpp
+    nupic/algorithms/InSynapse.hpp
     nupic/algorithms/OutSynapse.cpp
-    nupic/algorithms/Segment.cpp
-    nupic/algorithms/SegmentUpdate.cpp
+    nupic/algorithms/OutSynapse.hpp
+    nupic/algorithms/Scanning.hpp
     nupic/algorithms/SDRClassifier.cpp
+    nupic/algorithms/SDRClassifier.hpp
+    nupic/algorithms/Segment.cpp
+    nupic/algorithms/Segment.hpp
+    nupic/algorithms/SegmentUpdate.cpp
+    nupic/algorithms/SegmentUpdate.hpp
     nupic/algorithms/SpatialPooler.cpp
+    nupic/algorithms/SpatialPooler.hpp
     nupic/algorithms/TemporalMemory.cpp
+    nupic/algorithms/TemporalMemory.hpp
+)
+
+
+set(encoders_files 
     nupic/encoders/ScalarEncoder.cpp
+    nupic/encoders/ScalarEncoder.hpp
     nupic/encoders/ScalarSensor.cpp
-    nupic/engine/Collections.cpp
+    nupic/encoders/ScalarSensor.hpp
+)
+    
+set(engine_files
+	nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
+    nupic/engine/Input.hpp
     nupic/engine/Link.cpp
+    nupic/engine/Link.hpp
+    nupic/engine/LinkPolicy.hpp
     nupic/engine/LinkPolicyFactory.cpp
+    nupic/engine/LinkPolicyFactory.hpp
     nupic/engine/Network.cpp
+    nupic/engine/Network.hpp
     nupic/engine/NuPIC.cpp
+    nupic/engine/NuPIC.hpp
     nupic/engine/Output.cpp
+    nupic/engine/Output.hpp
     nupic/engine/Region.cpp
+    nupic/engine/Region.hpp
     nupic/engine/RegionImpl.cpp
+    nupic/engine/RegionImpl.hpp
     nupic/engine/RegionImplFactory.cpp
+    nupic/engine/RegionImplFactory.hpp
     nupic/engine/RegionIo.cpp
     nupic/engine/RegionParameters.cpp
+    nupic/engine/RegisteredRegionImpl.hpp
+    nupic/engine/RegisteredRegionImplCpp.hpp
     nupic/engine/Spec.cpp
+    nupic/engine/Spec.hpp
     nupic/engine/TestFanIn2LinkPolicy.cpp
-    nupic/engine/TestNode.cpp
-    nupic/engine/UniformLinkPolicy.cpp
+    nupic/engine/TestFanIn2LinkPolicy.hpp
     nupic/engine/YAMLUtils.cpp
+    nupic/engine/YAMLUtils.hpp
+)
+  
+set(math_files
+    nupic/math/ArrayAlgo.hpp
+    nupic/math/DenseMatrix.hpp
+    nupic/math/Domain.hpp
+    nupic/math/Functions.hpp
+    nupic/math/Index.hpp
+    nupic/math/Math.hpp
+    nupic/math/NearestNeighbor.hpp
+    nupic/math/SegmentMatrixAdapter.hpp
+    nupic/math/Set.hpp
+    nupic/math/SparseBinaryMatrix.hpp
+    nupic/math/SparseMatrix.hpp
+    nupic/math/SparseMatrix01.hpp
     nupic/math/SparseMatrixAlgorithms.cpp
+    nupic/math/SparseMatrixAlgorithms.hpp
     nupic/math/SparseMatrixConnections.cpp
+    nupic/math/SparseMatrixConnections.hpp
+    nupic/math/SparseRLEMatrix.hpp
+    nupic/math/SparseTensor.hpp
     nupic/math/StlIo.cpp
+    nupic/math/StlIo.hpp
     nupic/math/Topology.cpp
+    nupic/math/Topology.hpp
+    nupic/math/Types.hpp
+    nupic/math/Utils.hpp
+)
+
+
+set(ntypes_files
+    nupic/ntypes/Array.hpp
     nupic/ntypes/ArrayBase.cpp
+    nupic/ntypes/ArrayBase.hpp
+    nupic/ntypes/ArrayRef.hpp
     nupic/ntypes/Buffer.cpp
+    nupic/ntypes/Buffer.hpp
+    nupic/ntypes/BundleIO.hpp
     nupic/ntypes/Collection.cpp
+    nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
+    nupic/ntypes/Dimensions.hpp
     nupic/ntypes/MemParser.cpp
+    nupic/ntypes/MemParser.hpp
+    nupic/ntypes/MemStream.hpp
+    nupic/ntypes/NodeSet.hpp
+    nupic/ntypes/ObjectModel.h
+    nupic/ntypes/ObjectModel.hpp
     nupic/ntypes/Scalar.cpp
+    nupic/ntypes/Scalar.hpp
     nupic/ntypes/Value.cpp
+    nupic/ntypes/Value.hpp
+)
+  
+set(os_files
     nupic/os/Directory.cpp
-    nupic/os/DynamicLibrary.cpp
+    nupic/os/Directory.hpp
     nupic/os/Env.cpp
+    nupic/os/Env.hpp
+    nupic/os/ImportFilesystem.hpp
     nupic/os/OS.cpp
+    nupic/os/OS.hpp
     nupic/os/OSUnix.cpp
     nupic/os/OSWin.cpp
     nupic/os/Path.cpp
+    nupic/os/Path.hpp
     nupic/os/Regex.cpp
+    nupic/os/Regex.hpp
     nupic/os/Timer.cpp
-    nupic/regions/PyRegion.cpp
+    nupic/os/Timer.hpp    
+)
+
+set(regions_files
+    nupic/regions/TestNode.cpp
+    nupic/regions/TestNode.hpp
     nupic/regions/VectorFile.cpp
+    nupic/regions/VectorFile.hpp
     nupic/regions/VectorFileEffector.cpp
+    nupic/regions/VectorFileEffector.hpp
     nupic/regions/VectorFileSensor.cpp
+    nupic/regions/VectorFileSensor.hpp   
+)
+
+set(types_files
     nupic/types/BasicType.cpp
+    nupic/types/BasicType.hpp
+    nupic/types/Exception.hpp
     nupic/types/Fraction.cpp
+    nupic/types/Fraction.hpp
+    nupic/types/Serializable.hpp
+    nupic/types/Types.h
+    nupic/types/Types.hpp
+    nupic/types/Serializable.hpp
+)
+
+set(utils_files
+    nupic/utils/GroupBy.hpp
+    nupic/utils/Log.hpp
     nupic/utils/LoggingException.cpp
+    nupic/utils/LoggingException.hpp
     nupic/utils/LogItem.cpp
+    nupic/utils/LogItem.hpp
     nupic/utils/MovingAverage.cpp
+    nupic/utils/MovingAverage.hpp
     nupic/utils/Random.cpp
-    nupic/utils/StringUtils.cpp
+    nupic/utils/Random.hpp
     nupic/utils/SlidingWindow.hpp
+<<<<<<< Updated upstream
     nupic/utils/Watcher.cpp)
 
 set(src_lib_static_nupiccore_srcs
@@ -330,59 +264,68 @@ set(src_lib_static_nupiccore_srcs
 
 set(src_lib_static_nupiccore_compile_flags
     "${src_compile_flags} -I${src_numpy_core}/include")
+=======
+    nupic/utils/StringUtils.cpp
+    nupic/utils/StringUtils.hpp
+    nupic/utils/TRandom.cpp
+    nupic/utils/TRandom.hpp
+    nupic/utils/VectorHelpers.hpp
+    nupic/utils/Watcher.cpp
+    nupic/utils/Watcher.hpp
+)
+>>>>>>> Stashed changes
 
-message(STATUS "src_compile_flags = ${src_compile_flags}")
-message(STATUS "src_lib_static_nupiccore_compile_flags = ${src_lib_static_nupiccore_compile_flags}")
+#set up file tabs in Visual Studio
+source_group("algorithms" FILES ${algorithm_files})
+source_group("encoders" FILES ${encoders_files})
+source_group("engine" FILES ${engine_files})
+source_group("math" FILES ${math_files})
+source_group("ntypes" FILES ${ntypes_files})
+source_group("os" FILES ${os_files})
+source_group("regions" FILES ${regions_files})
+source_group("types" FILES ${types_files})
+source_group("utils" FILES ${utils_files})
 
-add_library(${src_lib_static_nupiccore_solo} STATIC
-            ${src_lib_static_nupiccore_srcs})
+########################################################
+# Lib
+add_library(${src_lib_static_nupiccore_solo} STATIC 
+    ${algorithm_files} 
+    ${encoders_files} 
+    ${engine_files} 
+    ${math_files} 
+    ${ntypes_files} 
+    ${os_files} 
+    ${regions_files} 
+    ${types_files} 
+    ${utils_files} 
+)
+
 # nupic_core_solo sources depend on headers installed by these external projects
 add_dependencies(${src_lib_static_nupiccore_solo}
-                 ${YAML_CPP_STATIC_LIB_TARGET}
-		 )
-set_target_properties(${src_lib_static_nupiccore_solo} PROPERTIES COMPILE_FLAGS
-                      ${src_lib_static_nupiccore_compile_flags})
+        yaml-cpp
+		)
+message(STATUS "INTERNAL_CXX_FLAGS=${INTERNAL_CXX_FLAGS}")
+set_target_properties(${src_lib_static_nupiccore_solo} 
+		PROPERTIES COMPILE_FLAGS "${INTERNAL_CXX_FLAGS}"
+		)
+target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 if(${NUPIC_IWYU})
-  # TODO: Create a target that doesn't include the generated capnp schema files
-  # since we don't want to run iwyu on them and iwyu can only be applied to
-  # CMake targets (not source files directly).
   set_target_properties(${src_lib_static_nupiccore_solo}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
 
+################################################################get_target_property(YAML_CPP_LIB yaml-cpp property?)
 #
 # Create the nupic_core "combined" static library by merging nupic_core_solo
 # with our external static libraries
 #
-
-include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
-
-set(src_lib_static_nupiccore_combined nupic_core)
-
-set(src_external_static_libs
-    
-    ${YAML_CPP_STATIC_LIB_TARGET}
-   )
-
-set(src_combined_nupiccore_source_archives
+set(core_library   nupic_core)
+set(${src_combined_nupiccore_source_archives}
     ${src_lib_static_nupiccore_solo}
-    ${src_external_static_libs})
-
-# Create a top-level library target for the combined static lib
-merge_static_libraries(${src_lib_static_nupiccore_combined}
-                       "${src_combined_nupiccore_source_archives}")
-
-
-#
-# Build tests of the nupic_core "combined" static library
-#
-
-# Common libs for test executables
-set(src_common_test_exe_libs
-    ${src_lib_static_nupiccore_combined}
-    ${PYTHON_LIBRARIES}
+    yaml-cpp
     ${Boost_LIBRARIES}
+<<<<<<< Updated upstream
     ${src_common_os_libs})
 
 message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
@@ -602,117 +545,24 @@ if (NUPIC_BUILD_PYEXT_MODULES)
             -DTARGET_FILE=${module_filepath}
             -P ${CMAKE_SOURCE_DIR}/src/ConcatTwoFiles.cmake
       COMMENT "Prepending ${preamble_filepath} to swig-generated module ${module_filepath}"
+=======
+>>>>>>> Stashed changes
     )
-  endfunction(PREPEND_BOILERPLATE_TO_PYTHON_PROXY_MODULE)
+merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
 
-  function(BUILD_EXTENSION MODULE_NAME)
-    # Create a nupic.bindings swig extension target with the given Swig module
-    # name. Also, if PY_EXTENSIONS_DIR is specified, request
-    # installation of the extension library and python proxy module.
-    #
-    # The real target name is ${SWIG_MODULE_${MODULE_NAME}_REAL_NAME}.
-
-    set(source_interface_file nupic/bindings/${MODULE_NAME}.i)
-
-    set_source_files_properties(${source_interface_file} PROPERTIES
-                                CPLUSPLUS ON
-                                SWIG_MODULE_NAME ${MODULE_NAME})
-
-    # Regenerate SWIG bindings if any headers change. (used by SWIG_ADD_LIBRARY)
-    set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${swig_header_deps})
-
-    #
-    # Create custom command for generating files from SWIG
-    #
-
-    # Note: swig_add_module outputs ${swig_generated_file_fullname}
-    SWIG_ADD_LIBRARY(${MODULE_NAME} LANGUAGE python SOURCES ${source_interface_file})
-
-    set_source_files_properties(
-      ${swig_generated_file_fullname} PROPERTIES
-      GENERATED TRUE
-      COMPILE_FLAGS ${src_swig_generated_file_compile_flags})
-
-    swig_link_libraries(${MODULE_NAME} ${Boost_LIBRARIES} ${_SRC_SWIG_LINK_LIBRARIES})
-
-    prepend_boilerplate_to_python_proxy_module(${MODULE_NAME})
-
-    set(real_target "${SWIG_MODULE_${MODULE_NAME}_REAL_NAME}")
-
-    set(extra_deps ${_SRC_SWIG_EXTRA_DEPS})
-    set(link_flags ${_SRC_SWIG_EXTENSION_LINK_FLAGS})
-
-    # Create an export map and update extra dependencies and link flags. This
-    # export map prevents runtime-link preemption of statically-linked
-    # libraries, such as -static-libstdc++, and limits the shared object's
-    # symbol visibility to only the python extension's init function. NOTE Not
-    # sure what, if anything, to do for MSVC at this time.
-    set(extension_init_func "init${real_target}")
-
-    if("${PLATFORM}" STREQUAL "darwin")
-      set(link_flags
-          "${link_flags} -Wl,-exported_symbol,_${extension_init_func}")
-
-    elseif("${PLATFORM}" STREQUAL "linux" OR MINGW)
-      set(export_map_file
-          "${CMAKE_CURRENT_BINARY_DIR}/${real_target}_generated.expmap")
-
-      #list(APPEND extra_deps "${export_map_file}")
-      set(link_flags "${link_flags} -Wl,--version-script=${export_map_file}")
-
-      set(export_map_contents "{global: ${extension_init_func}; local: *;};")
-
-      message(STATUS "Writing export map file ${export_map_file} "
-              "(${export_map_contents}).")
-
-      file(WRITE ${export_map_file} "${export_map_contents}")
-    endif()
+#########################################################
+# Test
+# The tests were placed in a separate file to avoid clutering up this file.
+include(NupicCoreTests.cmake)
 
 
-    add_dependencies(${real_target} ${extra_deps})
-    set_target_properties(${real_target} PROPERTIES
-                          LINK_FLAGS "${link_flags}")
-
-    # If a path is specified, copy extensions files to proper location.
-    if (PY_EXTENSIONS_DIR)
-      install(TARGETS
-              ${real_target}
-              LIBRARY DESTINATION ${PY_EXTENSIONS_DIR})
-      install(FILES
-              ${PROJECT_BINARY_DIR}/${MODULE_NAME}.py
-              DESTINATION ${PY_EXTENSIONS_DIR})
-    endif(PY_EXTENSIONS_DIR)
-
-    message(
-      STATUS
-      "Created Swig target ${real_target} for swig module ${MODULE_NAME}. "
-      "extra_deps=${extra_deps}, link_flags=${link_flags}")
-  endfunction(BUILD_EXTENSION)
-
-
-  # Algorithms
-  build_extension("algorithms")
-
-  # Engine
-  build_extension("engine_internal")
-
-  # Math
-  build_extension("math")
-
-endif() # NUPIC_BUILD_PYEXT_MODULES
-
-
+##################################################
 #
 # Install targets into CMAKE_INSTALL_PREFIX
 #
 install(TARGETS
-        ${src_lib_static_nupiccore_combined}
-        ${src_lib_static_gtest}
-        ${src_executable_cppregiontest}
-        ${src_executable_pyregiontest}
-        ${src_executable_connectionsperformancetest}
-        ${src_executable_gtests}
+        ${core_library}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
@@ -725,47 +575,22 @@ install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
 install(FILES "${PROJECT_SOURCE_DIR}/test/unit/engine/Data.csv"
         DESTINATION "data/")
 
-if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
-  install(DIRECTORY nupic DESTINATION include
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.h*"
-          PATTERN "*.hpp.in" EXCLUDE)
-  install(DIRECTORY nupic DESTINATION include
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.i")
+install(DIRECTORY nupic DESTINATION include
+	  MESSAGE_NEVER
+	  FILES_MATCHING PATTERN "*.h*"
+	  PATTERN "*.hpp.in" EXCLUDE)
 
-  install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
-          MESSAGE_NEVER
-          DESTINATION include/gtest
-          FILES_MATCHING PATTERN "*.h*")
+install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
+	  MESSAGE_NEVER
+	  DESTINATION include/gtest
+	  FILES_MATCHING PATTERN "*.h*")
 
-  install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
-          MESSAGE_NEVER
-          DESTINATION include)
+install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
+	  MESSAGE_NEVER
+	  DESTINATION include)
 
-  install(DIRECTORY "${src_numpy_core}/lib/"
-          MESSAGE_NEVER
-          DESTINATION lib)
-  install(DIRECTORY "${src_numpy_core}/include/"
-          MESSAGE_NEVER
-          DESTINATION include)
-
-  install(DIRECTORY nupic/py_support DESTINATION include/nupic
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.c*")
-  install(DIRECTORY nupic DESTINATION include/nupic
-          MESSAGE_NEVER
-          FILES_MATCHING PATTERN "*.py")
-
-  install(DIRECTORY "${SWIG_DIR}"
-          MESSAGE_NEVER
-          DESTINATION share/swig)
-  install(PROGRAMS "${SWIG_EXECUTABLE}"
-          DESTINATION bin)
 
           
-endif ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
-
 #
 # `make package` results in
 # nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
