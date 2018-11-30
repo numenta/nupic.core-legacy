@@ -280,11 +280,14 @@ TEST(ConnectionsPerformanceTest, testTMLarge) {
 /**
  * Tests typical usage of Connections with Spatial Pooler.
  */
+#define UNUSED(x) (void)(x)
+
 TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
 #ifdef NDEBUG
   ASSERT_LE(tim, 5.3*Timer::getSpeed());
 #endif
+  UNUSED(tim);
 }
 
 /**
@@ -295,6 +298,7 @@ TEST(ConnectionsPerformanceTest, testTP) {
 #ifdef NDEBUG
   ASSERT_LE(tim, 10.8*Timer::getSpeed());
 #endif
+  UNUSED(tim);
 }
 
 } // end namespace
