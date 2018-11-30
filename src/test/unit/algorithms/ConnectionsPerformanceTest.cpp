@@ -284,6 +284,8 @@ TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
 #ifdef NDEBUG
   ASSERT_LE(tim, 5.3*Timer::getSpeed());
+#else
+  cout << tim << endl; //to avoid unused variable error
 #endif
 }
 
@@ -294,6 +296,8 @@ TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/4, SEQ/25, "temporal pooler");
 #ifdef NDEBUG
   ASSERT_LE(tim, 10.8*Timer::getSpeed());
+#else
+  cout << tim << endl; //to avoid unused variable error
 #endif
 }
 
