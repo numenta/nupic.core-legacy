@@ -839,10 +839,11 @@ public:
     /**
      * Remove a previously registered callback.
      *
-     * @param UInt Handel which was returned by addCallback when you registered
+     * @param UInt Handle which was returned by addCallback when you registered
      * your callback.
      */
     void removeCallback(UInt index) {
+        NTA_CHECK( index < callbacks.size() ) << "SDR::removeCallback, Invalid Handle!";
         callbacks[index] = NULL;
     };
 

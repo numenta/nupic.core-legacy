@@ -719,8 +719,79 @@ TEST(SdrTest, TestSaveLoad) {
     ASSERT_TRUE( index   == index_2 );
 }
 
-TEST(DISABLED_SdrTest, TestCallbacks) {
-    FAIL() << "UNIT TEST UNIMPLEMENTED!";
+TEST(SdrTest, TestCallbacks) {
+
+    SDR A({ 10, 20 });
+    // Add and remove these callbacks a bunch of times, and then check they're
+    // called the correct number of times.
+    int count1 = 0;
+    SDR_callback_t call1 = [&](){ count1++; };
+    int count2 = 0;
+    SDR_callback_t call2 = [&](){ count2++; };
+    int count3 = 0;
+    SDR_callback_t call3 = [&](){ count3++; };
+    int count4 = 0;
+    SDR_callback_t call4 = [&](){ count4++; };
+
+    A.zero();   // No effect on callbacks
+    A.zero();   // No effect on callbacks
+    A.zero();   // No effect on callbacks
+
+    UInt handle1 = A.addCallback( call1 );
+    UInt handle2 = A.addCallback( call2 );
+    UInt handle3 = A.addCallback( call3 );
+    // Test proxies get callbacks
+    SDR_Proxy C(A);
+    C.addCallback( call4 );
+
+    // Remove call 2 and add it back in.
+    A.removeCallback( handle2 );
+    A.zero();
+    handle2 = A.addCallback( call2 );
+
+    A.zero();
+    ASSERT_EQ( count1, 2 );
+    ASSERT_EQ( count2, 1 );
+    ASSERT_EQ( count3, 2 );
+
+    // Remove call 1
+    A.removeCallback( handle1 );
+    A.zero();
+    ASSERT_EQ( count1, 2 );
+    ASSERT_EQ( count2, 2 );
+    ASSERT_EQ( count3, 3 );
+
+    UInt handle2_2 = A.addCallback( call2 );
+    UInt handle2_3 = A.addCallback( call2 );
+    UInt handle2_4 = A.addCallback( call2 );
+    UInt handle2_5 = A.addCallback( call2 );
+    UInt handle2_6 = A.addCallback( call2 );
+    UInt handle2_7 = A.addCallback( call2 );
+    UInt handle2_8 = A.addCallback( call2 );
+    A.zero();
+    ASSERT_EQ( count1, 2 );
+    ASSERT_EQ( count2, 10 );
+    ASSERT_EQ( count3, 4 );
+
+    A.removeCallback( handle2_2 );
+    A.removeCallback( handle2_3 );
+    A.removeCallback( handle2_4 );
+    A.removeCallback( handle2_7 );
+    A.removeCallback( handle2_6 );
+    A.removeCallback( handle2_5 );
+    A.removeCallback( handle2_8 );
+    A.removeCallback( handle3 );
+    A.removeCallback( handle2 );
+
+    // Test removing junk handles.
+    ASSERT_ANY_THROW( A.removeCallback( 99 ) );
+    // Test callbacks are not copied.
+    handle1 = A.addCallback( call1 );
+    SDR B(A);
+    ASSERT_ANY_THROW( B.removeCallback( handle1 ) );
+    ASSERT_ANY_THROW( B.removeCallback( 0 ) );
+    // Check proxy got all of the callbacks.
+    ASSERT_EQ( count4, 4 );
 }
 
 TEST(SdrTest, TestProxyConstructor) {
