@@ -297,6 +297,7 @@ public:
          any columns that are not learned.
   */
   void stripUnlearnedColumns(UInt activeArray[]) const;
+  void stripUnlearnedColumns(SDR& active) const;
 
   /**
    * Get the version number of this spatial pooler.
@@ -834,6 +835,7 @@ public:
     potential and connectivity matrices.
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
+    Used only during initialization.
   */
   UInt mapColumn_(UInt column) const;
 
@@ -858,6 +860,7 @@ public:
       potentialRadius is 5, the method should return an array containing 25
       '1's, where the exact indices are to be determined by the mapping from
       1-D index to 2-D position.
+    Used only at initialization.
 
     ----------------------------
     @param column         An int index identifying a column in the permanence,

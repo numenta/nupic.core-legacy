@@ -1737,9 +1737,7 @@ TEST(SpatialPoolerTest, testMapPotential2D) {
 
 TEST(SpatialPoolerTest, testStripUnlearnedColumns) {
   SpatialPooler sp;
-  vector<UInt> inputDim, columnDim;
-  inputDim.push_back(5);
-  columnDim.push_back(3);
+  vector<UInt> inputDim{5}, columnDim{3};
   sp.initialize(inputDim, columnDim);
 
   // None learned, none active

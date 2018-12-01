@@ -450,6 +450,7 @@ void SpatialPooler::initialize(
   }
 }
 
+
 void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArray[]) {
   SDR input( inputDimensions_ );
   input.setDense( inputArray );
@@ -461,6 +462,7 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
       active.getDense().end(),
       activeArray);
 }
+
 
 void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
@@ -492,22 +494,37 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   }
 }
 
-
+// old API version 
 void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const {
-  for (Size i = 0; i < numColumns_; i++) {
-    if (activeDutyCycles_[i] == 0) { //TODO make sparse
-      activeArray[i] = 0u;
+  SDR active(columnDimensions_);
+  active.setDense(activeArray);
+  stripUnlearnedColumns(active);
+  std::copy(active.getDense().begin(), active.getDense().end(), activeArray); 
+}
+
+// performs activeColumns AND current-round learned columns: active & activeDutyCyc_ 
+void SpatialPooler::stripUnlearnedColumns(SDR& active) const {
+  auto sparseCols = active.getFlatSparse();
+  vector<UInt> res;
+  res.reserve(sparseCols.size());
+
+  for (const auto& col: sparseCols) { 
+    if (activeDutyCycles_[col] > 0) {
+      res.push_back(col);
     }
   }
+  //update original SDR with changed values
+  active.setFlatSparse(res);
 }
 
 
-void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps,
+void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps, //TODO use Eigen sparse vector here
                                    vector<Real> &boosted) const {
   for (UInt i = 0; i < numColumns_; i++) {
     boosted[i] = overlaps[i] * boostFactors_[i];
   }
 }
+
 
 UInt SpatialPooler::mapColumn_(UInt column) const {
   NTA_ASSERT(column < numColumns_);
