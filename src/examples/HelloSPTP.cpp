@@ -99,11 +99,11 @@ void run() {
     //Anomaly
     res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/); 
     prevPred_ = outTP; //to be used as predicted T-1
-    cout << res << " "; 
 
     // print
     if (e == EPOCHS - 1) {
       cout << "Epoch = " << e << endl;
+      cout << "Anomaly = " << res << endl;
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(outSP), ",", "SP= ");
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(VectorHelpers::cellsToColumns(outTP, CELLS)), ",", "TP= ");
       NTA_CHECK(outSP[69] == 0) << "A value in SP computed incorrectly";
