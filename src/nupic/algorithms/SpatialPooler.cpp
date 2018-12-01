@@ -436,7 +436,7 @@ void SpatialPooler::initialize(
   inhibitionRadius_ = 0;
 
   for (Size i = 0; i < numColumns_; ++i) {
-    vector<UInt> potential = mapPotential_(i, wrapAround_);
+    vector<UInt> potential = initMapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     potentialPools_.rowFromDense(i, potential.begin(), potential.end());
     updatePermanencesForColumn_(perm, i, true);
@@ -526,7 +526,7 @@ void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps, //TODO use Eige
 }
 
 
-UInt SpatialPooler::mapColumn_(UInt column) const {
+UInt SpatialPooler::initMapColumn_(UInt column) const {
   NTA_ASSERT(column < numColumns_);
   vector<UInt> columnCoords;
   const CoordinateConverterND columnConv(columnDimensions_);
@@ -544,9 +544,9 @@ UInt SpatialPooler::mapColumn_(UInt column) const {
   return inputConv.toIndex(inputCoords);
 }
 
-vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround) {
+vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
   NTA_ASSERT(column < numColumns_);
-  const UInt centerInput = mapColumn_(column);
+  const UInt centerInput = initMapColumn_(column);
 
   vector<UInt> columnInputs;
   if (wrapAround) {
@@ -737,8 +737,7 @@ void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
   }
   newOverlap.setFlatSparse( overlapsSparseVec );
 
-  const UInt period =
-      dutyCyclePeriod_ > iterationNum_ ? iterationNum_ : dutyCyclePeriod_;
+  const UInt period = std::min(dutyCyclePeriod_, iterationNum_);
 
   updateDutyCyclesHelper_(overlapDutyCycles_, newOverlap, period);
   updateDutyCyclesHelper_(activeDutyCycles_, active, period);
@@ -816,7 +815,7 @@ void SpatialPooler::bumpUpWeakColumns_() {
     vector<Real> perm(numInputs_, 0);
     const vector<UInt> potential = potentialPools_.getSparseRow(i);
     permanences_.getRowToDense(i, perm);
-    for (auto & elem : potential) {
+    for (const auto & elem : potential) {
       perm[elem] += synPermBelowStimulusInc_;
     }
     updatePermanencesForColumn_(perm, i, false);

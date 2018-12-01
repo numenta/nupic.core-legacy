@@ -837,7 +837,7 @@ public:
                        ignored.
     Used only during initialization.
   */
-  UInt mapColumn_(UInt column) const;
+  UInt initMapColumn_(UInt column) const;
 
   /**
     Maps a column to its input bits.
@@ -869,7 +869,7 @@ public:
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
   */
-  vector<UInt> mapPotential_(UInt column, bool wrapAround);
+  vector<UInt> initMapPotential_(UInt column, bool wrapAround);
 
   /**
   Returns a randomly generated permanence value for a synapses that is

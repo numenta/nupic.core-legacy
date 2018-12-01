@@ -1579,17 +1579,17 @@ TEST(SpatialPoolerTest, testInitPermNonConnected) {
   }
 }
 
-TEST(SpatialPoolerTest, testMapColumn) {
+TEST(SpatialPoolerTest, testinitMapColumn) {
   {
     // Test 1D.
     SpatialPooler sp(
         /*inputDimensions*/ {12},
         /*columnDimensions*/ {4});
 
-    EXPECT_EQ(1, sp.mapColumn_(0));
-    EXPECT_EQ(4, sp.mapColumn_(1));
-    EXPECT_EQ(7, sp.mapColumn_(2));
-    EXPECT_EQ(10, sp.mapColumn_(3));
+    EXPECT_EQ(1, sp.initMapColumn_(0));
+    EXPECT_EQ(4, sp.initMapColumn_(1));
+    EXPECT_EQ(7, sp.initMapColumn_(2));
+    EXPECT_EQ(10, sp.initMapColumn_(3));
   }
 
   {
@@ -1598,10 +1598,10 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {4},
         /*columnDimensions*/ {4});
 
-    EXPECT_EQ(0, sp.mapColumn_(0));
-    EXPECT_EQ(1, sp.mapColumn_(1));
-    EXPECT_EQ(2, sp.mapColumn_(2));
-    EXPECT_EQ(3, sp.mapColumn_(3));
+    EXPECT_EQ(0, sp.initMapColumn_(0));
+    EXPECT_EQ(1, sp.initMapColumn_(1));
+    EXPECT_EQ(2, sp.initMapColumn_(2));
+    EXPECT_EQ(3, sp.initMapColumn_(3));
   }
 
   {
@@ -1610,7 +1610,7 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {1},
         /*columnDimensions*/ {1});
 
-    EXPECT_EQ(0, sp.mapColumn_(0));
+    EXPECT_EQ(0, sp.initMapColumn_(0));
   }
 
   {
@@ -1619,11 +1619,11 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {36, 12},
         /*columnDimensions*/ {12, 4});
 
-    EXPECT_EQ(13, sp.mapColumn_(0));
-    EXPECT_EQ(49, sp.mapColumn_(4));
-    EXPECT_EQ(52, sp.mapColumn_(5));
-    EXPECT_EQ(58, sp.mapColumn_(7));
-    EXPECT_EQ(418, sp.mapColumn_(47));
+    EXPECT_EQ(13, sp.initMapColumn_(0));
+    EXPECT_EQ(49, sp.initMapColumn_(4));
+    EXPECT_EQ(52, sp.initMapColumn_(5));
+    EXPECT_EQ(58, sp.initMapColumn_(7));
+    EXPECT_EQ(418, sp.initMapColumn_(47));
   }
 
   {
@@ -1632,13 +1632,13 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {3, 5},
         /*columnDimensions*/ {4, 4});
 
-    EXPECT_EQ(0, sp.mapColumn_(0));
-    EXPECT_EQ(4, sp.mapColumn_(3));
-    EXPECT_EQ(14, sp.mapColumn_(15));
+    EXPECT_EQ(0, sp.initMapColumn_(0));
+    EXPECT_EQ(4, sp.initMapColumn_(3));
+    EXPECT_EQ(14, sp.initMapColumn_(15));
   }
 }
 
-TEST(SpatialPoolerTest, testMapPotential1D) {
+TEST(SpatialPoolerTest, testinitMapPotential1D) {
   vector<UInt> inputDim, columnDim;
   inputDim.push_back(12);
   columnDim.push_back(4);
@@ -1654,28 +1654,28 @@ TEST(SpatialPoolerTest, testMapPotential1D) {
   sp.setPotentialPct(1.0);
 
   UInt expectedMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
-  mask = sp.mapPotential_(0, false);
+  mask = sp.initMapPotential_(0, false);
   ASSERT_TRUE(check_vector_eq(expectedMask1, mask));
 
   UInt expectedMask2[12] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0};
-  mask = sp.mapPotential_(2, false);
+  mask = sp.initMapPotential_(2, false);
   ASSERT_TRUE(check_vector_eq(expectedMask2, mask));
 
   // Test with wrapAround and potentialPct = 1
   sp.setPotentialPct(1.0);
 
   UInt expectedMask3[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
-  mask = sp.mapPotential_(0, true);
+  mask = sp.initMapPotential_(0, true);
   ASSERT_TRUE(check_vector_eq(expectedMask3, mask));
 
   UInt expectedMask4[12] = {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
-  mask = sp.mapPotential_(3, true);
+  mask = sp.initMapPotential_(3, true);
   ASSERT_TRUE(check_vector_eq(expectedMask4, mask));
 
   // Test with potentialPct < 1
   sp.setPotentialPct(0.5);
   UInt supersetMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
-  mask = sp.mapPotential_(0, true);
+  mask = sp.initMapPotential_(0, true);
   ASSERT_TRUE(sum(mask) == 3);
 
   UInt unionMask1[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -1686,7 +1686,7 @@ TEST(SpatialPoolerTest, testMapPotential1D) {
   ASSERT_TRUE(check_vector_eq(unionMask1, supersetMask1, 12));
 }
 
-TEST(SpatialPoolerTest, testMapPotential2D) {
+TEST(SpatialPoolerTest, testinitMapPotential2D) {
   vector<UInt> inputDim, columnDim;
   inputDim.push_back(6);
   inputDim.push_back(12);
@@ -1707,14 +1707,14 @@ TEST(SpatialPoolerTest, testMapPotential2D) {
       1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  mask = sp.mapPotential_(0, false);
+  mask = sp.initMapPotential_(0, false);
   ASSERT_TRUE(check_vector_eq(expectedMask1, mask));
 
   UInt expectedMask2[72] = {
       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  mask = sp.mapPotential_(2, false);
+  mask = sp.initMapPotential_(2, false);
   ASSERT_TRUE(check_vector_eq(expectedMask2, mask));
 
   // Test with wrapAround
@@ -1724,14 +1724,14 @@ TEST(SpatialPoolerTest, testMapPotential2D) {
       1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
-  mask = sp.mapPotential_(0, true);
+  mask = sp.initMapPotential_(0, true);
   ASSERT_TRUE(check_vector_eq(expectedMask3, mask));
 
   UInt expectedMask4[72] = {
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
-  mask = sp.mapPotential_(3, true);
+  mask = sp.initMapPotential_(3, true);
   ASSERT_TRUE(check_vector_eq(expectedMask4, mask));
 }
 
