@@ -113,12 +113,10 @@ set(algorithm_files
 set(encoders_files 
     nupic/encoders/ScalarEncoder.cpp
     nupic/encoders/ScalarEncoder.hpp
-    nupic/encoders/ScalarSensor.cpp
-    nupic/encoders/ScalarSensor.hpp
 )
     
 set(engine_files
-	nupic/engine/Collections.cpp
+    nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Input.hpp
     nupic/engine/Link.cpp
@@ -223,6 +221,8 @@ set(os_files
 set(regions_files
     nupic/regions/TestNode.cpp
     nupic/regions/TestNode.hpp
+    nupic/regions/ScalarSensor.cpp
+    nupic/regions/ScalarSensor.hpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFile.hpp
     nupic/regions/VectorFileEffector.cpp

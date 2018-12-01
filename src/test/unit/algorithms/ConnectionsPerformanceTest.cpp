@@ -28,7 +28,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <cmath> //for sin
 
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
@@ -248,41 +247,16 @@ vector<CellIdx> _computeSPWinnerCells(Connections &connections, UInt numCells,
   return vector<CellIdx>(winnerCells.begin(), winnerCells.end());
 }
 
-float _SPEED = -1;
-/**
- * estimate speed (CPU & load) of the current system.
- * Tests must perform relative to this value
- */
-float getSpeed() {
-  if (_SPEED == -1) {
-    Timer t(true);
-    //this code just wastes CPU time to estimate speed
-    vector<Real> data(10000000);
-    for(Size i=0; i<data.size(); i++) {
-      data[i]=(Real)rng.getUInt32(80085);
-      auto t = data[i];
-      data[i] = data[data.size()-i];
-      data[data.size()-i]=t;
-    }
-    rng.shuffle(begin(data), end(data));
-    vector<Real> sins;
-    for (auto d : data) {
-      sins.push_back(sin(d)/cos(d));
-    }
-    data = rng.sample<Real>(sins, 666);
-    NTA_CHECK(data.size() == 666);
-    t.stop();
-    _SPEED = max(1.0, t.getElapsed());
-
-  }
-  return _SPEED;
-}
 
 
-#ifdef NDEBUG //disable performance tests in debug mode
 // TESTS
-const UInt SEQ = 100; //number of sequences ran in tests
-const UInt EPOCHS = 20; //epochs tests run
+#ifdef NDEBUG
+  const UInt SEQ = 50; //number of sequences ran in tests
+  const UInt EPOCHS = 20; //tests run for epochs times
+#else
+  const UInt SEQ = 25; //number of sequences ran in tests
+  const UInt EPOCHS = 4; //only short in debug; is epochs/2 in some tests, that's why 4
+#endif
 const UInt COLS = 2048; //standard num of columns in SP/TM
 
 
@@ -292,32 +266,39 @@ const UInt COLS = 2048; //standard num of columns in SP/TM
  */
 TEST(ConnectionsPerformanceTest, testTM) {
 	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
-	ASSERT_LE(tim, 2.0*getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 1.0*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 }
 
 /**
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  auto tim = runTemporalMemoryTest(2*COLS, 328, 10, SEQ, "temporal memory (large)");
-  ASSERT_LE(tim, 3.8*getSpeed());
+  auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
+  ASSERT_LE(tim, 1.9*Timer::getSpeed());
 }
 
 /**
  * Tests typical usage of Connections with Spatial Pooler.
  */
+#define UNUSED(x) (void)(x)
+
 TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
-  ASSERT_LE(tim, 6.3*getSpeed());
+#ifdef NDEBUG
+  ASSERT_LE(tim, 5.3*Timer::getSpeed());
+#endif
+  UNUSED(tim);
 }
 
 /**
  * Tests typical usage of Connections with Temporal Pooler.
  */
 TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/2, SEQ/50, "temporal pooler");
-  ASSERT_LE(tim, 13.0*getSpeed());
+  auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/4, SEQ/25, "temporal pooler");
+#ifdef NDEBUG
+  ASSERT_LE(tim, 10.8*Timer::getSpeed());
+#endif
+  UNUSED(tim);
 }
-#endif //DEBUG
 
 } // end namespace

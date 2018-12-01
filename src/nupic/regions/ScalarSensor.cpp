@@ -24,10 +24,8 @@
  * Implementation of the ScalarSensor
  */
 
-#include <string>
+#include <nupic/regions/ScalarSensor.hpp>
 
-
-#include <nupic/encoders/ScalarSensor.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
@@ -35,11 +33,11 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
-#include <nupic/ntypes/Value.hpp>
 #include <nupic/utils/Log.hpp>
 
 
 namespace nupic {
+
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
     : RegionImpl(region) {
   const UInt32 n = params.getScalarT<UInt32>("n");
@@ -66,14 +64,19 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
   deserialize(bundle);
 }
 
+  void ScalarSensor::compute()
+  {
+    Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
+    UInt uintArray[encoder_->getOutputWidth()];
+    const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, uintArray);
+    ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
+    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
+    {
+      array[i] = (Real32)uintArray[i]; // copy values back to SP's 'array' array
+    }
+  }
 
 ScalarSensor::~ScalarSensor() { delete encoder_; }
-
-void ScalarSensor::compute() {
-  Real32 *array = (Real32 *)encodedOutput_->getData().getBuffer();
-  const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, array);
-  ((Int32 *)bucketOutput_->getData().getBuffer())[0] = iBucket;
-}
 
 /* static */ Spec *ScalarSensor::createSpec() {
   auto ns = new Spec;
@@ -154,7 +157,7 @@ void ScalarSensor::compute() {
 
   /* ----- outputs ----- */
 
-  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_Real32,
+  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_UInt32,
                                         0,    // elementCount
                                         true, // isRegionLevel
                                         true  // isDefaultOutput
