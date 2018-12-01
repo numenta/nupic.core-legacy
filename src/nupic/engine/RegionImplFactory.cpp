@@ -23,7 +23,7 @@
 #include <stdexcept>
 
 
-#include <nupic/encoders/ScalarSensor.hpp>
+#include <nupic/regions/ScalarSensor.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
