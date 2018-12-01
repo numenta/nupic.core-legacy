@@ -1315,3 +1315,46 @@ bool SpatialPooler::operator==(const SpatialPooler& o) const{
 
   return thisStr == otherStr;
 }
+
+
+
+void SpatialPoolerTopology::inhibitColumnsGlobal_(
+        const vector<Real> &overlaps,
+        Real density,
+        vector<UInt> &activeColumns) const {
+  NTA_ASSERT(!overlaps.empty());
+  NTA_ASSERT(density > 0.0f && density <= 1.0f);
+  UInt miniColumns = columnDimensions_.back();
+  UInt macroColumns = numColumns_ / miniColumns;
+
+  activeColumns.clear();
+  const UInt numDesired = (UInt)(density * numColumns_);
+  NTA_CHECK(numDesired > 0) << "Not enough columns (" << numColumns_ << ") "
+                            << "for desired density (" << density << ").";
+  // Sort the columns by the amount of overlap.  First make a list of all of the
+  // column indexes.
+  activeColumns.reserve(numColumns_);
+  for(UInt i = 0; i < numColumns_; i++)
+    activeColumns.push_back(i);
+  // Compare the column indexes by their overlap.
+  auto compare = [&overlaps](const UInt &a, const UInt &b) -> bool
+    {return overlaps[a] > overlaps[b];};
+  // Do a partial sort to divide the winners from the losers.  This sort is
+  // faster than a regular sort because it stops after it partitions the
+  // elements about the Nth element, with all elements on their correct side of
+  // the Nth element.
+  std::nth_element(
+    activeColumns.begin(),
+    activeColumns.begin() + numDesired,
+    activeColumns.end(),
+    compare);
+  // Remove the columns which lost the competition.
+  activeColumns.resize(numDesired);
+  // Finish sorting the winner columns by their overlap.
+  std::sort(activeColumns.begin(), activeColumns.end(), compare);
+  // Remove sub-threshold winners
+  while( !activeColumns.empty() && 
+         overlaps[activeColumns.back()] < stimulusThreshold_)
+      activeColumns.pop_back();
+}
+

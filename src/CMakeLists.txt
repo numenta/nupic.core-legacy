@@ -392,18 +392,27 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 #
 ## Setup test_py_region
 #
-#set(src_executable_pyregiontest py_region_test)
-#add_executable(${src_executable_pyregiontest} test/integration/PyRegionTest.cpp)
-#target_link_libraries(${src_executable_pyregiontest} ${src_common_test_exe_libs})
-#set_target_properties(${src_executable_pyregiontest}
-#                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
-#set_target_properties(${src_executable_pyregiontest}
-#                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
-#add_custom_target(tests_py_region
-#                  COMMAND ${src_executable_pyregiontest}
-#                  DEPENDS ${src_executable_pyregiontest}
-#                  COMMENT "Executing test ${src_executable_pyregiontest}"
-#                  VERBATIM)
+#
+#
+#
+#
+
+
+# Setup MNIST_SP example
+#
+set(src_executable_mnistsp mnist_sp)
+add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
+target_link_libraries(${src_executable_mnistsp} ${src_common_test_exe_libs})
+set_target_properties(${src_executable_mnistsp}
+                      PROPERTIES COMPILE_FLAGS ${src_compile_flags})
+set_target_properties(${src_executable_mnistsp}
+                      PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_OPTIMIZED}")
+
+
+#
+#
+#
+#
 
 #
 # Setup gtests
@@ -713,6 +722,7 @@ install(TARGETS
         ${src_executable_pyregiontest}
         ${src_executable_connectionsperformancetest}
         ${src_executable_gtests}
+        ${src_executable_mnistsp}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
@@ -765,6 +775,7 @@ if ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
 
           
 endif ((NOT NUPIC_BUILD_PYEXT_MODULES) OR NUPIC_TOGGLE_INSTALL)
+
 
 #
 # `make package` results in

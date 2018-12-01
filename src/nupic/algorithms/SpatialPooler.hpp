@@ -1006,7 +1006,7 @@ public:
      @param activeColumns
      an int array containing the indices of the active columns.
   */
-  void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
+  virtual void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
                              vector<UInt> &activeColumns) const;
 
   /**
@@ -1291,6 +1291,42 @@ protected:
 
   UInt version_;
   Random rng_;
+};
+
+
+class SpatialPoolerTopology : public SpatialPooler
+{
+public:
+  SpatialPoolerTopology(const vector<UInt> inputDimensions,
+                const vector<UInt> columnDimensions,
+                UInt potentialRadius = 16u, Real potentialPct = 0.5f,
+                bool globalInhibition = true, Real localAreaDensity = DISABLED,
+                Int numActiveColumnsPerInhArea = 10u,
+                UInt stimulusThreshold = 0u, Real synPermInactiveDec = 0.008f,
+                Real synPermActiveInc = 0.05f, Real synPermConnected = 0.1f,
+                Real minPctOverlapDutyCycles = 0.001f,
+                UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
+                Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true)
+  : SpatialPooler(inputDimensions, columnDimensions,
+                potentialRadius , potentialPct,
+                globalInhibition , localAreaDensity ,
+                numActiveColumnsPerInhArea ,
+                stimulusThreshold , synPermInactiveDec ,
+                synPermActiveInc , synPermConnected ,
+                minPctOverlapDutyCycles ,
+                dutyCyclePeriod , boostStrength,
+                seed , spVerbosity, wrapAround)
+  {};
+
+
+  // virtual ~SpatialPoolerTopology() {};
+
+  // void compute(SDR &input, bool learn, SDR &active) override;
+
+  void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
+                             vector<UInt> &activeColumns) const override;
+
+// protected:
 };
 
 } // end namespace spatial_pooler
