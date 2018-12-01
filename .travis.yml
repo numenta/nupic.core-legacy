@@ -1,4 +1,4 @@
-language: cpp
+language: python
 python: 
  - 2.7 #TODO change  to 3.x later
 
@@ -15,13 +15,14 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-7
+            - build-essential 
+            - g++-8
+            - cmake
+            - cmake-data
             - xsltproc #only for doc transform to html , can be removed
-            - python-pip-whl
-            - python2.7
             - libboost-all-dev
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
@@ -105,9 +106,9 @@ before_install:
   - eval "${MATRIX_EVAL}"
   - $CXX --version
   - echo "Installing pip, setuptools, and wheel"
-  - pip2 install  --user pip setuptools wheel || exit
+  - pip install --upgrade pip setuptools wheel || exit
   - echo "Installing Python dependencies"
-  - sudo pip2 install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
+  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
 
 install:
   # Prepare directories
@@ -119,11 +120,10 @@ install:
   - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON"
   # Configure bash such that a failure in any link in the pipe causes the whole pipe to fail
   - "set -o pipefail"
-  - "VERBOSE=1 make |grep -v -F '\\-\\- Installing:'"
+  - "VERBOSE=0 make |grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
-  # TODO later remove, --prefix= is workaround for https://stackoverflow.com/questions/4495120/combine-user-with-prefix-error-with-setup-py-install
-  - "python setup.py install --user --prefix="
+  - "python setup.py install"
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
@@ -132,7 +132,7 @@ script:
   # unit tests
   - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
-  - "py.test ${TRAVIS_BUILD_DIR}/bindings/py/tests"
+  - "python ${TRAVIS_BUILD_DIR}/setup.py test"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

@@ -82,7 +82,7 @@ Segment &Segment::operator=(const Segment &o) {
 }
 
 //--------------------------------------------------------------------------------
-bool Segment::operator==(const Segment &other) const {
+bool Segment::equals(const Segment &other) const {
   if (_totalActivations != other._totalActivations ||
       _positiveActivations != other._positiveActivations ||
       _lastActiveIteration != other._lastActiveIteration ||
@@ -428,9 +428,9 @@ void Segment::print(std::ostream &outStream, UInt nCellsPerCol) const {
   outStream << std::endl;
 }
 
-namespace nupic {
-namespace algorithms {
-namespace Cells4 {
+namespace nupic{
+  namespace algorithms {
+    namespace Cells4 {
 
 std::ostream &operator<<(std::ostream &outStream, const Segment &seg) {
   seg.print(outStream);

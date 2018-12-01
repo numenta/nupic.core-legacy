@@ -51,23 +51,6 @@ static Real round5_(const Real f)
   return ((Real) ((Int) (f * 100000.0f))) / 100000.0f;
 }
 
-class CoordinateConverter2D { //TODO move to Topology
-
-public:
-  CoordinateConverter2D(UInt nrows, UInt ncols)
-      : // TODO param nrows is unused
-        ncols_(ncols) 
-	{
-	  NTA_ASSERT(ncols > 0u);
-	}
-  UInt toRow(UInt index) const { return index / ncols_; };
-  UInt toCol(UInt index) const { return index % ncols_; };
-  UInt toIndex(UInt row, UInt col) const { return row * ncols_ + col; };
-
-private:
-  UInt ncols_;
-};
-
 class CoordinateConverterND {
 
 public:
@@ -757,48 +740,6 @@ Real SpatialPooler::avgColumnsPerInput_() const {
 }
 
 
-Real SpatialPooler::avgConnectedSpanForColumn1D_(UInt column) const {
-  NTA_ASSERT(column < numColumns_);
-  NTA_ASSERT(inputDimensions_.size() == 1);
-
-  const vector<UInt> connectedSparse = connectedSynapses_.getSparseRow(column);
-  if (connectedSparse.empty())
-    return 0;
-  auto minmax = minmax_element(connectedSparse.begin(), connectedSparse.end());
-  return *minmax.second /*max*/ - *minmax.first /*min*/ + 1;
-}
-
-
-Real SpatialPooler::avgConnectedSpanForColumn2D_(UInt column) const {
-  NTA_ASSERT(column < numColumns_);
-  NTA_ASSERT(inputDimensions_.size() == 2);
-
-  const UInt nrows = inputDimensions_[0];
-  const UInt ncols = inputDimensions_[1];
-
-  const CoordinateConverter2D conv(nrows, ncols);
-
-  const vector<UInt> connectedSparse = connectedSynapses_.getSparseRow(column);
-  vector<UInt> rows, cols;
-  for (auto &elem : connectedSparse) {
-    rows.push_back(conv.toRow(elem));
-    cols.push_back(conv.toCol(elem));
-  }
-
-  if (rows.empty() && cols.empty()) {
-    return 0;
-  }
-
-  auto minmaxRows = minmax_element(rows.begin(), rows.end());
-  const UInt rowSpan = *minmaxRows.second /*max*/ - *minmaxRows.first /*min*/ + 1;
-
-  auto minmaxCols = minmax_element(cols.begin(), cols.end());
-  const UInt colSpan = *minmaxCols.second - *minmaxCols.first + 1;
-
-  return (rowSpan + colSpan) / 2.0f;
-}
-
-
 Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
   NTA_ASSERT(column < numColumns_);
   
@@ -1162,11 +1103,10 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
-  // Store matrices.
+  // Store matrices:
+  //potentials
   for (UInt i = 0; i < numColumns_; i++) {
-    vector<UInt> pot;
-    pot.resize(potentialPools_.nNonZerosOnRow(i));
-    pot = potentialPools_.getSparseRow(i);
+    const auto pot = potentialPools_.getSparseRow(i);
     outStream << pot.size() << endl;
     for (auto &elem : pot) {
       outStream << elem << " ";
@@ -1175,6 +1115,7 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  //permanences
   for (UInt i = 0; i < numColumns_; i++) {
     vector<pair<UInt, Real>> perm;
     perm.resize(permanences_.nNonZerosOnRow(i));
@@ -1187,6 +1128,9 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  //connected synapses get rebuilt from permanences_ updateSynapsesForColumn_(), see load()
+
+  //Random
   outStream << rng_ << endl;
 
   outStream << "~SpatialPooler" << endl;
@@ -1354,4 +1298,20 @@ void SpatialPooler::printState(vector<Real> &state) {
     std::printf("%6.3f ", state[i]);
   }
   std::cout << "]\n";
+}
+
+/** equals implementation based on serialization */
+bool SpatialPooler::operator==(const SpatialPooler& o) const{
+  stringstream s;
+  s.flags(ios::scientific);
+  s.precision(numeric_limits<double>::digits10 + 1);
+  
+  this->save(s);
+  const string thisStr = s.str();
+
+  s.str(""); //clear stream
+  o.save(s);
+  const string otherStr = s.str();
+
+  return thisStr == otherStr;
 }

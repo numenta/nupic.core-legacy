@@ -25,7 +25,13 @@
  */
 
 #include <nupic/os/Timer.hpp>
+
+#include <nupic/utils/Random.hpp>
+#include <nupic/utils/Log.hpp>
+#include <algorithm> //max
+#include <cmath> //for sins
 #include <sstream>
+#include <vector>
 
 namespace nupic {
 
@@ -96,6 +102,39 @@ std::string Timer::toString() const {
     ss << " (running)";
   ss << "]";
   return ss.str();
+}
+
+
+/**
+ * estimate speed (CPU & load) of the current system.
+ * Tests must perform relative to this value
+ */
+float Timer::getSpeed() {
+  if (SPEED == -1) {
+
+    Timer t(true);
+
+    //this code just wastes CPU time to estimate speed
+#define SEED 42
+    Random rng(SEED);
+    std::vector<Real> data(10000000);
+    for(Size i=0; i<data.size(); i++) {
+      data[i]=(Real)rng.getUInt32(80085);
+      auto t = data[i];
+      data[i] = data[data.size()-i];
+      data[data.size()-i]=t;
+    }
+    rng.shuffle(begin(data), end(data));
+    std::vector<Real> sins;
+    for (auto d : data) {
+      sins.push_back(sin(d)/cos(d));
+    }
+    data = rng.sample<Real>(sins, 666);
+    NTA_CHECK(data.size() == 666);
+    t.stop();
+    SPEED = std::max(1.0, t.getElapsed());
+  }
+  return SPEED;
 }
 
 } // namespace nupic

@@ -89,6 +89,11 @@ public:
 
   virtual ~SpatialPooler() {}
 
+  // equals operators
+  virtual bool operator==(const SpatialPooler& o) const;
+  inline bool operator!=(const SpatialPooler& o) const { return !this->operator==(o); }
+  inline bool equals(const SpatialPooler& o) const { return this->operator==(o); } //equals is for PY
+
 
   /**
   Initialize the spatial pooler using the given parameters.
@@ -1082,26 +1087,6 @@ public:
       @returns real number of the average number of columns per input.
   */
   Real avgColumnsPerInput_() const;
-
-  /**
-      The range of connected synapses for column. This is used to
-      calculate the inhibition radius. This variation of the function only
-      supports a 1 dimensional column topology.
-
-      @param column An int number identifying a column in the permanence,
-     potential and connectivity matrices.
-  */
-  Real avgConnectedSpanForColumn1D_(UInt column) const;
-
-  /**
-      The range of connectedSynapses per column, averaged for each dimension.
-      This vaule is used to calculate the inhibition radius. This variation of
-      the  function only supports a 2 dimensional column topology.
-
-      @param column An int number identifying a column in the permanence,
-     potential and connectivity matrices.
-  */
-  Real avgConnectedSpanForColumn2D_(UInt column) const;
 
   /**
       The range of connectedSynapses per column, averaged for each dimension.

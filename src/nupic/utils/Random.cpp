@@ -30,7 +30,6 @@
 
 using namespace nupic;
 
-
 bool Random::operator==(const Random &o) const {
   return seed_ == o.seed_ && \
 	 steps_ == o.steps_ && \

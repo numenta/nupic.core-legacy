@@ -256,6 +256,8 @@ set(src_lib_static_nupiccore_solo nupic_core_solo)
 
 set(src_nupiccore_srcs
     nupic/algorithms/Anomaly.cpp
+    nupic/algorithms/AnomalyLikelihood.cpp
+    nupic/algorithms/BacktrackingTMCpp.cpp
     nupic/algorithms/BitHistory.cpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cells4.cpp
@@ -270,7 +272,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/TemporalMemory.cpp
     nupic/encoders/ScalarEncoder.cpp
-    nupic/encoders/ScalarSensor.cpp
     nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Link.cpp
@@ -309,6 +310,7 @@ set(src_nupiccore_srcs
     nupic/os/Regex.cpp
     nupic/os/Timer.cpp
     nupic/regions/PyRegion.cpp
+    nupic/regions/ScalarSensor.cpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFileEffector.cpp
     nupic/regions/VectorFileSensor.cpp
@@ -409,6 +411,7 @@ message(STATUS "src_common_test_exe_libs = ${src_common_test_exe_libs}")
 set(src_executable_gtests unit_tests)
 add_executable(${src_executable_gtests}
                test/unit/algorithms/AnomalyTest.cpp
+	       test/unit/algorithms/BacktrackingTMCppTest.cpp
                test/unit/algorithms/Cells4Test.cpp
                test/unit/algorithms/CondProbTableTest.cpp
                test/unit/algorithms/ConnectionsTest.cpp

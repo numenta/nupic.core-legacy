@@ -180,8 +180,6 @@ private:
         swap(first[i], first[this->getUInt32(i+1)]);
     }
   }
-
-
 };
 
 // serialization/deserialization
