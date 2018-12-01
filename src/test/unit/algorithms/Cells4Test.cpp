@@ -183,7 +183,6 @@ TEST(Cells4Test, Serialization) {
 }
 
 
-
 /*
  * Test Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment.
  */

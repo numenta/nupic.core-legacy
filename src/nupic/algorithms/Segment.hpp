@@ -109,19 +109,18 @@ public:
     memcpy(_pData, o._pData, _nCells);
     return *this;
   }
-  bool operator==(const CState &other) const {
-    if (_version != other._version || _nCells != other._nCells ||
-        _fMemoryAllocatedByPython != other._fMemoryAllocatedByPython) {
-      return false;
-    }
-    if (_pData != nullptr && other._pData != nullptr) {
-      return ::memcmp(_pData, other._pData, _nCells) == 0;
-    }
-    return _pData == other._pData;
-  }
-  inline bool operator!=(const CState &other) const {
-    return !operator==(other);
-  }
+        bool equals(const CState& s) const {
+          if (s._version != _version) return false;
+          if (s._nCells != _nCells) return false;
+          if (s._fMemoryAllocatedByPython != _fMemoryAllocatedByPython) return false;
+          if (s._pData == nullptr && _pData == nullptr) return true;
+          if (s._pData == nullptr || _pData == nullptr) return false;
+          if (memcmp(s._pData, _pData, _nCells * sizeof(Byte))) return false;
+          return true;
+        }
+        bool operator==(const CState &s) const { return equals(s); }
+        bool operator!=(const CState &s) const { return !equals(s); }
+
   bool initialize(const UInt nCells) {
     if (_nCells != 0) // if already initialized
       return false;   // don't do it again
@@ -183,6 +182,7 @@ public:
     inStream >> token;
     NTA_CHECK(token == "end");
   }
+
   UInt version() const { return _version; }
 
 protected:
@@ -191,6 +191,9 @@ protected:
   Byte *_pData; // protected in C++, but exposed to the Python code
   bool _fMemoryAllocatedByPython;
 };
+
+
+
 /**
  * Add an index to CState so that we can find all On cells without
  * a sequential search of the entire array.
@@ -363,8 +366,14 @@ public:
   Real _lastPosDutyCycle;
   UInt _lastPosDutyCycleIteration;
 
-  bool operator==(const Segment &o) const;
-  inline bool operator!=(const Segment &o) const { return !operator==(o); }
+  /**
+   * compare segments.
+   * A restored serialized segment should be the same as original.
+   */
+   bool equals(const Segment &s) const;
+
+   bool operator==(const Segment &s) const { return equals(s); }
+   bool operator!=(const Segment &s) const { return !equals(s); }
 
 private:
   bool _seqSegFlag;     // sequence segment flag

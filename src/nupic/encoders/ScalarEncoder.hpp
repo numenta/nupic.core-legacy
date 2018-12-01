@@ -27,35 +27,57 @@
 #ifndef NTA_ENCODERS_SCALAR
 #define NTA_ENCODERS_SCALAR
 
+#include <vector>
+
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp> //NTA_CHECK
 
 namespace nupic {
 /**
  * @b Description
  * Base class for ScalarEncoders
  */
-class ScalarEncoderBase {
-public:
-  virtual ~ScalarEncoderBase() {}
+  class ScalarEncoderBase
+  {
+  public:
+    virtual ~ScalarEncoderBase() {}
 
-  /**
-   * Encodes input, puts the encoded value into output, and returns the a
-   * bucket number for the encoding.
-   *
-   * The bucket number is essentially the input encoded into an integer rather
-   * than an array. A bucket number is easier to "decode" or to use inside a
-   * classifier.
-   *
-   * @param input The value to encode
-   * @param output Should have length of at least getOutputWidth()
-   */
-  virtual int encodeIntoArray(Real64 input, Real32 output[]) = 0;
+    /**
+     * Encodes input, puts the encoded binary value into output, and returns the a
+     * bucket number for the encoding.
+     *
+     * The bucket number is essentially the input encoded into an integer rather
+     * than an array. A bucket number is easier to "decode" or to use inside a
+     * classifier.
+     *
+     * @param input The value to encode (Real)
+     * @param output Should have length of at least getOutputWidth(), binary output, (UInt[])
+     * @return id of bin where assigned (int)
+     */
+    virtual int encodeIntoArray(Real input, UInt output[]) = 0;
 
-  /**
-   * Returns the output width, in bits.
-   */
-  virtual int getOutputWidth() const = 0;
-};
+    /**
+     * Returns the output width, in bits.
+     */
+    UInt getOutputWidth() const { return n_; };
+
+    /**
+     * public wrapper method for the encodeIntoArray()
+     * @return binary representation of the input
+     */
+    std::vector<UInt> encode(Real input);
+
+  protected: 
+    ScalarEncoderBase(int w, int n):
+	 w_(w), n_(n) {
+      NTA_CHECK(w > 0) << "EncoderBase: w must be > 0";
+//      NTA_CHECK(w < n) << "EncoderBase: w must be < n"; //not, because we can init with n=0 and eg resolution
+    }
+
+  protected:
+    const int w_;
+    int n_;
+  };
 
 /** Encodes a floating point number as a contiguous block of 1s.
  *
@@ -102,17 +124,14 @@ public:
    */
   ScalarEncoder(int w, double minValue, double maxValue, int n, double radius,
                 double resolution, bool clipInput);
-  ~ScalarEncoder() override;
 
-  virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
-  virtual int getOutputWidth() const override { return n_; }
+  int encodeIntoArray(Real input, UInt output[]) override;
 
-private:
-  int w_;
-  int n_;
+protected:
   double minValue_;
   double maxValue_;
   double bucketWidth_;
+private:
   bool clipInput_;
 }; // end class ScalarEncoder
 
@@ -134,7 +153,7 @@ private:
  * bucket and 1.51 in the second, the PeriodicScalarEncoder will put 1.99 in
  * the first bucket and 2.0 in the second.
  */
-class PeriodicScalarEncoder : public ScalarEncoderBase {
+class PeriodicScalarEncoder : public ScalarEncoder {
 public:
   /**
    * Constructs a PeriodicScalarEncoder
@@ -159,17 +178,9 @@ public:
    */
   PeriodicScalarEncoder(int w, double minValue, double maxValue, int n,
                         double radius, double resolution);
-  virtual ~PeriodicScalarEncoder() override;
 
-  virtual int encodeIntoArray(Real64 input, Real32 output[]) override;
-  virtual int getOutputWidth() const override { return n_; }
+  int encodeIntoArray(Real input, UInt output[]) override;
 
-private:
-  int w_;
-  int n_;
-  double minValue_;
-  double maxValue_;
-  double bucketWidth_;
 }; // end class PeriodicScalarEncoder
 } // end namespace nupic
 

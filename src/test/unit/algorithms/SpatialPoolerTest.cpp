@@ -56,7 +56,7 @@ bool almost_eq(Real a, Real b) {
   return (diff > -1e-5 && diff < 1e-5);
 }
 
-bool check_vector_eq(UInt arr[], vector<UInt> vec) {
+bool check_vector_eq(UInt arr[], vector<UInt> vec) {  //TODO replace with ArrayBase, VectorHelpers or teplates
   for (UInt i = 0; i < vec.size(); i++) {
     if (arr[i] != vec[i]) {
       return false;
@@ -116,7 +116,7 @@ bool check_vector_eq(vector<Real> vec1, vector<Real> vec2) {
   return true;
 }
 
-void check_spatial_eq(SpatialPooler sp1, SpatialPooler sp2) {
+void check_spatial_eq(const SpatialPooler& sp1, const SpatialPooler& sp2) {
   UInt numColumns = sp1.getNumColumns();
   UInt numInputs = sp2.getNumInputs();
 
@@ -618,7 +618,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D) {
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPermanence(i, permArr[i]);
-    UInt result = sp.avgConnectedSpanForColumn1D_(i);
+    UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == trueAvgConnectedSpan[i]);
   }
 }
@@ -663,7 +663,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPermanence(i, permArr1[i]);
-    UInt result = sp.avgConnectedSpanForColumn2D_(i);
+    UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan1[i]));
   }
 
@@ -690,7 +690,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPermanence(i, permArr2[i]);
-    UInt result = sp.avgConnectedSpanForColumn2D_(i);
+    UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan2[i] + 1) / 2);
   }
 }
@@ -2020,6 +2020,8 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
 
   // The two SP should be the same
   check_spatial_eq(sp1, sp2);
+  EXPECT_EQ(sp1, sp2);
+  EXPECT_TRUE(sp1 == sp2) << "Spatial Poolers not equal";
 }
 
 TEST(SpatialPoolerTest, testClip) {

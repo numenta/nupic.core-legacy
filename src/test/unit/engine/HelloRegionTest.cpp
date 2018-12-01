@@ -106,7 +106,7 @@ TEST(HelloRegionTest, demo) {
   net2.run(DATA_SIZE);
 
   ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
-  for (size_t i = 0; i < sizeof &buffer / sizeof &buffer[0]; i++) { //TODO how output all values generated during run(4) ??
+  for (size_t i = 0; i < outputArray2.getCount(); i++) { //TODO how output all values generated during run(4) ??
 	  EXPECT_FLOAT_EQ(buffer[i], buffer2[i]);
 	  std::cout << " buffer " << buffer[i] << " buffer2: " << buffer2[i] << std::endl;
   }
