@@ -872,13 +872,17 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
   NTA_ASSERT(period > 0);
   NTA_ASSERT(dutyCycles.size() == newValues.size);
 
-  newValues.print();
+  // Duty cycles are exponential moving averages, typically written like:
+  //   alpha = 1 / period
+  //   DC( time ) = DC( time - 1 ) * (1 - alpha) + value( time ) * alpha
+  // However since the values are sparse this equation is split into two loops,
+  // and the second loop iterates over only the non-zero values.
 
   const Real decay = (Real) (period - 1) / period;
   for (Size i = 0; i < dutyCycles.size(); i++)
     dutyCycles[i] *= decay;
 
-  const Real increment = 1. / period;
+  const Real increment = 1. / period;  // All non-zero values are 1.
   for(const auto &idx : newValues.getFlatSparse())
     dutyCycles[idx] += increment;
 }

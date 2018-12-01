@@ -256,7 +256,28 @@ public:
   virtual void compute(const UInt inputVector[], bool learn, UInt activeVector[]);
 
   /**
-   * TODO: DOCUMENTATION!
+  This is the main workshorse method of the SpatialPooler class. This
+  method takes an input SDR and computes the set of output active
+  columns. If 'learn' is set to True, this method also performs
+  learning.
+
+  @param input An SDR that comprises the input to the spatial pooler.  The size
+        of the SDR must mach total number of input bits implied by the
+        constructor (also returned by the method getNumInputs).
+
+  @param learn A boolean value indicating whether learning should be
+        performed. Learning entails updating the permanence values of
+        the synapses, duty cycles, etc. Learning is typically on but
+        setting learning to 'off' is useful for analyzing the current
+        state of the SP. For example, you might want to feed in various
+        inputs and examine the resulting SDR's. Note that if learning
+        is off, boosting is turned off and columns that have never won
+        will be removed from activeVector.  TODO: we may want to keep
+        boosting on even when learning is off.
+
+  @param active An SDR representing the winning columns after
+        inhibition. The size of the SDR is equal to the number of
+        columns (also returned by the method getNumColumns).
    */
   virtual void compute(SDR &input, bool learn, SDR &active);
 
