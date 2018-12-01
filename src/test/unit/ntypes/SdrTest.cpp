@@ -80,7 +80,7 @@ TEST(SdrTest, TestZero) {
     ASSERT_EQ( a.getSparse().at(1).size(),  0);
 }
 
-TEST(SdrTest, TestExample) {
+TEST(SdrTest, TestSDR_Examples) {
     // Make an SDR with 9 values, arranged in a (3 x 3) grid.
     // "SDR" is an alias/typedef for SparseDistributedRepresentation.
     SDR  X( {3, 3} );
@@ -794,6 +794,15 @@ TEST(SdrTest, TestCallbacks) {
     ASSERT_EQ( count4, 4 );
 }
 
+
+TEST(SdrTest, TestProxyExamples) {
+    SDR       A(    { 4, 4 });
+    SDR_Proxy B( A, { 8, 2 });
+    A.setSparse(SDR_sparse_t({{1, 1, 2}, {0, 1, 2}}));
+    auto sparse = B.getSparse();
+    ASSERT_EQ(sparse, SDR_sparse_t({{2, 2, 5}, {0, 1, 0}}));
+}
+
 TEST(SdrTest, TestProxyConstructor) {
     SDR         A({ 11 });
     SDR_Proxy   B( A );
@@ -827,6 +836,7 @@ TEST(SdrTest, TestProxyConstructor) {
 
     // Test invalid dimensions
     ASSERT_ANY_THROW( new SDR_Proxy( A, {2, 5}) );
+    ASSERT_ANY_THROW( new SDR_Proxy( A, {11, 0}) );
 }
 
 TEST(SdrTest, TestProxyDeconstructor) {
@@ -841,6 +851,7 @@ TEST(SdrTest, TestProxyDeconstructor) {
     delete C;
     ASSERT_ANY_THROW( D->getDense() );
     ASSERT_ANY_THROW( E->getSparse() );
+    ASSERT_ANY_THROW( new SDR_Proxy( *E ) );
     delete D;
     // Test rest of tree is OK.
     B->getFlatSparse();
@@ -887,4 +898,12 @@ TEST(SdrTest, TestProxyGetters) {
     // Test getting sparse, a second time.
     A.setFlatSparse( SDR_flatSparse_t({ 2, 3 }));
     ASSERT_EQ( C->getSparse(), SDR_sparse_t({ {1, 1}, {0, 1} }) );
+
+    // Test getting sparse, when the parent SDR already has sparse computed and
+    // the dimensions are the same.
+    A.zero();
+    SDR_Proxy D( A );
+    SDR *E = &D;
+    A.setSparse( SDR_sparse_t({ {0, 1}, {0, 1} }));
+    ASSERT_EQ( E->getSparse(), SDR_sparse_t({ {0, 1}, {0, 1} }) );
 }

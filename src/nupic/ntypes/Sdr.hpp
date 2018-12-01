@@ -133,7 +133,8 @@ protected:
     SDR_sparse_t     sparse;
 
     /**
-     * These hooks are called every time the SDR's value changes.
+     * These hooks are called every time the SDR's value changes.  These can be
+     * NULL pointers!
      */
     vector<SDR_callback_t> callbacks;
 
@@ -169,7 +170,7 @@ protected:
      */
     void do_callbacks() {
         for(const auto func_ptr : callbacks) {
-            if( func_ptr != NULL )
+            if( func_ptr != nullptr )
                 func_ptr();
         }
     }
@@ -234,12 +235,13 @@ protected:
      */
     virtual void deconstruct() {
         clear();
-        size_ = -1;
+        size_ = 0;
+        dimensions_.clear();
         // Iterate over a copy because the deconstructors may remove themselves
         // from the proxies list via method _removeProxy().
         vector<SparseDistributedRepresentation*> copy( proxies );
         for( auto child : copy ) {
-            if( child != NULL )
+            if( child != nullptr )
                 child->deconstruct();
         }
     };
@@ -254,7 +256,7 @@ public:
      * Create an SDR object.  Initially SDRs value is all zeros.
      *
      * @param dimensions A list of dimension sizes, defining the shape of the
-     * SDR.
+     * SDR.  The product of the dimensions must be greater than zero.
      */
     SparseDistributedRepresentation( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
@@ -340,7 +342,7 @@ public:
      */
     template<typename T>
     void setDense( const T *value ) {
-        NTA_ASSERT(value != NULL);
+        NTA_ASSERT(value != nullptr);
         dense.assign( value, value + size );
         setDenseInplace();
     };
@@ -827,7 +829,7 @@ public:
     UInt addCallback(SDR_callback_t callback) {
         UInt index = 0;
         for( ; index < callbacks.size(); index++ ) {
-            if( callbacks[index] == NULL ) {
+            if( callbacks[index] == nullptr ) {
                 callbacks[index] = callback;
                 return index;
             }
@@ -844,20 +846,27 @@ public:
      */
     void removeCallback(UInt index) {
         NTA_CHECK( index < callbacks.size() ) << "SDR::removeCallback, Invalid Handle!";
-        callbacks[index] = NULL;
+        callbacks[index] = nullptr;
     };
 
     /**
-     * TODO: DOCUMENTATION
+     * Add SDR to this classes proxy list.  When this SDR is destroyed, all
+     * proxies on the list will be cleaned up via a call to method
+     * proxy.deconstruct()
      *
+     * @param proxy An SDR to register with this SDR for proper end-of-life
+     * handling.
      */
     void _addProxy(SparseDistributedRepresentation *proxy) {
         proxies.push_back( proxy );
     };
 
     /**
-     * TODO: DOCUMENTATION
+     * Remove an SDR from this classes proxy list.  Proxies must call this when
+     * they are destroyed so that this SDR can remove its pointers to the (now
+     * defunct) proxy.
      *
+     * @param proxy An SDR to unregister with this SDR.
      */
     void _removeProxy(SparseDistributedRepresentation *proxy) {
         for(auto it = proxies.begin(); it != proxies.end(); it++ ) {
@@ -876,19 +885,33 @@ typedef SparseDistributedRepresentation SDR;
  * SDR_Proxy class
  *
  * ### Description
- * SDR_Proxy is an SDR subclass which mirrors the value ... TODO
+
+ * SDR_Proxy presents a view onto an SDR.
+ *      + Proxies have the same value as their source SDR, at all times and
+ *        automatically.
+ *      + SDR_Proxy is a subclass of SDR and be safely typecast to an SDR.
+ *      + Proxies can have different dimensions than their source SDR.
+ *      + Proxies are read only.
+ *
+ * SDR and SDR_Proxy classes tell each other when they are created and
+ * destroyed.  Proxies can be created and destroyed as needed.  Proxies will
+ * throw an exception if they are used after their source SDR has been
+ * destroyed.
  *
  * Example Usage:
- *      TODO
- *
+ *      // Convert SDR dimensions from (4 x 4) to (8 x 2)
+ *      SDR       A(    { 4, 4 })
+ *      SDR_Proxy B( A, { 8, 2 })
+ *      A.setSparse( {1, 1, 2}, {0, 1, 2}} )
+ *      auto sparse = B.getSparse()  ->  {{2, 2, 5}, {0, 1, 0}}
  */
 class SDR_Proxy : public SDR
 {
 public:
     /**
-     * Create an SDR_Proxy object.  METHOD DESCRIPTION TODO
+     * Create an SDR_Proxy object.
      *
-     * @param sdr TODO
+     * @param sdr Source SDR to make a view of.
      *
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.  Optional, if not given then this Proxy will have the same
@@ -914,17 +937,30 @@ public:
         { deconstruct(); };
 
     SDR_dense_t& getDense() override {
-        NTA_CHECK( size != (UInt) -1 ) << "Parent SDR has been destroyed!";
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         return parent->getDense();
     }
 
     SDR_flatSparse_t& getFlatSparse() override {
-        NTA_CHECK( size != (UInt) -1 ) << "Parent SDR has been destroyed!";
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         return parent->getFlatSparse();
     }
 
-    // Don't override getSparse().  It will call either getDense() or
-    // getFlatSparse() to get its data.
+    SDR_sparse_t& getSparse() override {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        if( dimensions.size() == parent->dimensions.size() &&
+            equal( dimensions.begin(), dimensions.end(),
+                   parent->dimensions.begin() )) {
+            // All things equal, prefer reusing the parent's cached value.
+            return parent->getSparse();
+        }
+        else {
+            // Don't override getSparse().  It will call either getDense() or
+            // getFlatSparse() to get its data, and will use this proxies
+            // dimensions.
+            return SDR::getSparse();
+        }
+    }
 
 protected:
     /**
@@ -934,12 +970,12 @@ protected:
     int callback_handle;
 
     void deconstruct() override {
-        SDR::deconstruct();
         // Unlink this SDR from the parent SDR.
-        if( parent != NULL ) {
+        if( parent != nullptr ) {
             parent->_removeProxy( this );
             parent->removeCallback( callback_handle );
-            parent = NULL;
+            parent = nullptr;
+            SDR::deconstruct();
         }
     };
 
