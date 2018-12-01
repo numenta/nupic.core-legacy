@@ -113,9 +113,11 @@ void run() {
 
   stopwatch.stop();
   const size_t timeTotal = stopwatch.getElapsed();
-  const size_t CI_avg_time = 45; //sec
   cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
+#ifdef NDEBUG
+  const size_t CI_avg_time = 45; //sec
   NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
 	  "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
+#endif
 }
 } //-ns
