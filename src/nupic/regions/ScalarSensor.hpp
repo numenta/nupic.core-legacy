@@ -30,7 +30,6 @@
 #include <string>
 #include <vector>
 
-
 #include <nupic/encoders/ScalarEncoder.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Value.hpp>

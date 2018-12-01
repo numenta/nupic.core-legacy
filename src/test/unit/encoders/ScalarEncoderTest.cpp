@@ -33,46 +33,46 @@ using namespace nupic;
 
 template <typename T> std::string vec2str(std::vector<T> vec) {
   std::ostringstream oss("");
-  for (size_t i = 0; i < vec.size(); i++)
+  for (size_t i = 0; i < vec.size(); i++) //FIXME VectorHelper would have been used eg. here
     oss << vec[i];
   return oss.str();
 }
 
-std::vector<Real32> getEncoding(ScalarEncoderBase &e, Real64 input) {
-  auto actualOutput = std::vector<Real32>(e.getOutputWidth());
-  e.encodeIntoArray(input, &actualOutput[0]);
-  return actualOutput;
-}
-
-struct ScalarValueCase {
-  Real64 input;
-  std::vector<Real32> expectedOutput;
+struct ScalarValueCase
+{
+  Real input;
+  std::vector<UInt> expectedOutput;
 };
 
-std::vector<Real32> patternFromNZ(int n, std::vector<size_t> patternNZ) {
-  auto v = std::vector<Real32>(n, 0);
-  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++) {
-    v[*it] = 1;
-  }
+std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ) //TODO use vectorHelpers sparseToDense
+{
+  auto v = std::vector<UInt>(n, 0);
+  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++)
+    {
+      v[*it] = 1;
+    }
   return v;
 }
 
-void doScalarValueCases(ScalarEncoderBase &e,
-                        std::vector<ScalarValueCase> cases) {
-  for (auto c = cases.begin(); c != cases.end(); c++) {
-    auto actualOutput = getEncoding(e, c->input);
-    for (int i = 0; i < e.getOutputWidth(); i++) {
-      EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
-          << "For input " << c->input << " and index " << i << std::endl
-          << "EXPECTED:" << std::endl
-          << vec2str(c->expectedOutput) << std::endl
-          << "ACTUAL:" << std::endl
-          << vec2str(actualOutput);
+void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases)
+{
+  for (auto c = cases.begin(); c != cases.end(); c++)
+    {
+      auto actualOutput = e.encode(c->input);
+      for (UInt i = 0; i < e.getOutputWidth(); i++)
+        {
+          EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
+            << "For input " << c->input << " and index " << i << std::endl
+            << "EXPECTED:" << std::endl
+            << vec2str(c->expectedOutput) << std::endl
+            << "ACTUAL:" << std::endl
+            << vec2str(actualOutput);
+        }
     }
-  }
 }
 
-TEST(ScalarEncoder, ValidScalarInputs) {
+
+TEST(ScalarEncoder, testClippingInputs) {
   const int n = 10;
   const int w = 2;
   const double minValue = 10;
@@ -82,22 +82,20 @@ TEST(ScalarEncoder, ValidScalarInputs) {
 
   {
     const bool clipInput = false;
-    ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution,
-                          clipInput);
+    ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
 
-    EXPECT_THROW(getEncoding(encoder, 9.9), std::exception);
-    EXPECT_NO_THROW(getEncoding(encoder, 10.0));
-    EXPECT_NO_THROW(getEncoding(encoder, 20.0));
-    EXPECT_THROW(getEncoding(encoder, 20.1), std::exception);
+    EXPECT_ANY_THROW(e.encode(9.9));
+    EXPECT_NO_THROW(e.encode(10.0));
+    EXPECT_NO_THROW(e.encode(20.0));
+    EXPECT_ANY_THROW(e.encode(20.1));
   }
 
   {
     const bool clipInput = true;
-    ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution,
-                          clipInput);
+    ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
 
-    EXPECT_NO_THROW(getEncoding(encoder, 9.9));
-    EXPECT_NO_THROW(getEncoding(encoder, 20.1));
+    EXPECT_NO_THROW(e.encode(9.9));
+    EXPECT_NO_THROW(e.encode(20.1));
   }
 }
 
@@ -108,12 +106,12 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs) {
   const double maxValue = 20;
   const double radius = 0;
   const double resolution = 0;
-  PeriodicScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution);
+  PeriodicScalarEncoder e(w, minValue, maxValue, n, radius, resolution);
 
-  EXPECT_THROW(getEncoding(encoder, 9.9), std::exception);
-  EXPECT_NO_THROW(getEncoding(encoder, 10.0));
-  EXPECT_NO_THROW(getEncoding(encoder, 19.9));
-  EXPECT_THROW(getEncoding(encoder, 20.0), std::exception);
+  EXPECT_ANY_THROW(e.encode(9.9));
+  EXPECT_NO_THROW(e.encode(10.0));
+  EXPECT_NO_THROW(e.encode(19.9));
+  EXPECT_ANY_THROW(e.encode(20.0));
 }
 
 TEST(ScalarEncoder, NonIntegerBucketWidth) {
@@ -156,8 +154,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   const double radius = 0;
   const double resolution = 1;
   const bool clipInput = false;
-  ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution,
-                        clipInput);
+  ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution, clipInput);
 
   const int n = 13;
   ASSERT_EQ(n, encoder.getOutputWidth());

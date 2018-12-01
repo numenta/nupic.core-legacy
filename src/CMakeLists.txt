@@ -272,7 +272,6 @@ set(src_nupiccore_srcs
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/TemporalMemory.cpp
     nupic/encoders/ScalarEncoder.cpp
-    nupic/encoders/ScalarSensor.cpp
     nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Link.cpp
@@ -311,6 +310,7 @@ set(src_nupiccore_srcs
     nupic/os/Regex.cpp
     nupic/os/Timer.cpp
     nupic/regions/PyRegion.cpp
+    nupic/regions/ScalarSensor.cpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFileEffector.cpp
     nupic/regions/VectorFileSensor.cpp
