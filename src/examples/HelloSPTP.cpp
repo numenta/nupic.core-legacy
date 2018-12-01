@@ -21,14 +21,13 @@
  */
 
 #include <algorithm> // std::generate
-#include <cmath>     // pow
-#include <ctime>     // std::time
 #include <iostream>
 #include <vector>
 
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/algorithms/Cells4.hpp"  //TODO use TM instead
 #include "nupic/algorithms/SpatialPooler.hpp"
+#include "nupic/encoders/ScalarEncoder.hpp"
 
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
@@ -39,6 +38,7 @@ namespace examples {
 using namespace std;
 using namespace nupic;
 using namespace nupic::utils;
+using nupic::ScalarEncoder;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::Cells4::Cells4;
 using nupic::algorithms::anomaly::Anomaly;
@@ -49,13 +49,14 @@ void run() {
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt CELLS = 10; // cells per column in TP
-  const UInt EPOCHS = (UInt)pow(10, 3); // number of iterations (calls to SP/TP compute() )
+  const UInt EPOCHS = 1000; // number of iterations (calls to SP/TP compute() )
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
   		<< ", DIM=" << COLS << ", CELLS=" << CELLS << std::endl;
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
 
 
   // initialize SP, TP, Anomaly, AnomalyLikelihood
+  ScalarEncoder enc(133, -100.0, 100.0, DIM_INPUT, 0.0, 0.0, false);
   SpatialPooler sp(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS});
   Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
@@ -78,16 +79,24 @@ void run() {
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
-    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
+    //Input
+//    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
+    const Real r = rnd.getUInt32(100) - rnd.getUInt32(100)*rnd.getReal64(); //rnd from range -100..100 
 
+    //Encode
+    enc.encodeIntoArray(r, input.data());
+
+    //SP
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());
 
+    //TP
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
     tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
 
+    //Anomaly
     res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/); 
     prevPred_ = outTP; //to be used as predicted T-1
     cout << res << " "; 
@@ -108,6 +117,5 @@ void run() {
   cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
   NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
 	  "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
-
 }
 } //-ns
