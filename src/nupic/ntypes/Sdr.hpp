@@ -741,6 +741,8 @@ public:
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.
+     * This method can NOT save callbacks!  Only the dimensions and current data
+     * are saved.
      * 
      * @param stream A valid output stream, such as an open file.
      */
@@ -773,7 +775,8 @@ public:
 
     /**
      * Load (deserialize) and initialize the SDR from the specified input
-     * stream.
+     * stream.  This method does NOT load callbacks!  If the original SDR had
+     * callbacks then the user must re-add them after saving & loading the SDR.
      *
      * @param stream A input valid istream, such as an open file.
      */
@@ -820,6 +823,9 @@ public:
 
     /**
      * Callbacks notify you when this SDR's value changes.
+     *
+     * Note: callbacks are NOT serialized; after saving & loading an SDR the
+     * user must setup their callbacks again.
      *
      * @param callback A function to call every time this SDRs value changes.
      * function accepts no arguments and returns void.
@@ -904,6 +910,9 @@ typedef SparseDistributedRepresentation SDR;
  *      SDR_Proxy B( A, { 8, 2 })
  *      A.setSparse( {1, 1, 2}, {0, 1, 2}} )
  *      auto sparse = B.getSparse()  ->  {{2, 2, 5}, {0, 1, 0}}
+ *
+ * Save/Load: SDR_Proxy does not support the Serializable interface.  Users
+ * should instead serialize the source SDR and recreate the proxy.
  */
 class SDR_Proxy : public SDR
 {
@@ -989,6 +998,13 @@ protected:
         { NTA_THROW << _SDR_Proxy_setter_error_message; };
     void setSDR( const SparseDistributedRepresentation &value ) override
         { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    const string _SDR_save_load_error_message =
+        "SDR_Proxy does not support serialization, save/load the source SDR instead.";
+    void save(std::ostream &outStream) const override
+        { NTA_THROW << _SDR_save_load_error_message; };
+    void load(std::istream &inStream) override
+        { NTA_THROW << _SDR_save_load_error_message; };
 };
 
 }; // end namespace nupic
