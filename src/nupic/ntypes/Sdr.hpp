@@ -30,14 +30,16 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
+#include <functional>
 
 using namespace std;
 
 namespace nupic {
 
-typedef vector<Byte>         SDR_dense_t;
-typedef vector<UInt>         SDR_flatSparse_t;
-typedef vector<vector<UInt>> SDR_sparse_t;
+typedef vector<Byte>          SDR_dense_t;
+typedef vector<UInt>          SDR_flatSparse_t;
+typedef vector<vector<UInt>>  SDR_sparse_t;
+typedef function<void()>      SDR_callback_t;
 
 /**
  * SparseDistributedRepresentation class
@@ -122,13 +124,27 @@ typedef vector<vector<UInt>> SDR_sparse_t;
  */
 class SparseDistributedRepresentation : public Serializable
 {
-private:
+protected:
     vector<UInt> dimensions_;
     UInt         size_;
 
     SDR_dense_t      dense;
     SDR_flatSparse_t flatSparse;
     SDR_sparse_t     sparse;
+
+    /**
+     * These hooks are called every time the SDR's value changes.  These can be
+     * NULL pointers!
+     */
+    vector<SDR_callback_t> callbacks;
+
+    /**
+     * SDR allows Proxy subclasses which synchronize their value to this SDRs
+     * value.  These proxies must be registered via methods _addProxy() &
+     * _removeProxy().  When this class is destroyed, all proxies are notified
+     * via a method call to proxy.deconstruct().
+     */
+    vector<SparseDistributedRepresentation*> proxies;
 
     /**
      * These flags remember which data formats are up-to-date and which formats
@@ -141,25 +157,36 @@ private:
     /**
      * Remove the value from this SDR by clearing all of the valid flags.  Does
      * not actually change any of the data.  Attempting to get the SDR's value
-     * immediately after this operation would raise an exception.
+     * immediately after this operation will raise an exception.
      */
-    void clear() {
+    virtual void clear() {
         dense_valid      = false;
         flatSparse_valid = false;
         sparse_valid     = false;
     };
 
     /**
+     * Notify everyone that this SDR's value has officially changed.
+     */
+    void do_callbacks() {
+        for(const auto func_ptr : callbacks) {
+            if( func_ptr != nullptr )
+                func_ptr();
+        }
+    }
+
+    /**
      * Update the SDR to reflect the value currently inside of the dense array.
      * Use this method after modifying the dense buffer inplace, in order to
      * propigate any changes to the sparse & flatSparse formats.
      */
-    void setDenseInplace() {
+    virtual void setDenseInplace() {
         // Check data is valid.
         NTA_ASSERT( dense.size() == size );
         // Set the valid flags.
         clear();
         dense_valid = true;
+        do_callbacks();
     };
 
     /**
@@ -167,7 +194,7 @@ private:
      * vector. Use this method after modifying the flatSparse vector inplace, in
      * order to propigate any changes to the dense & sparse formats.
      */
-    void setFlatSparseInplace() {
+    virtual void setFlatSparseInplace() {
         // Check data is valid.
         NTA_ASSERT(flatSparse.size() <= size);
         for(auto idx : flatSparse) {
@@ -176,6 +203,7 @@ private:
         // Set the valid flags.
         clear();
         flatSparse_valid = true;
+        do_callbacks();
     };
 
     /**
@@ -183,7 +211,7 @@ private:
      * vector. Use this method after modifying the sparse vector inplace, in
      * order to propigate any changes to the dense & flatSparse formats.
      */
-    void setSparseInplace() {
+    virtual void setSparseInplace() {
         // Check data is valid.
         NTA_ASSERT(sparse.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
@@ -197,6 +225,25 @@ private:
         // Set the valid flags.
         clear();
         sparse_valid = true;
+        do_callbacks();
+    };
+
+    /**
+     * Clean up this SDR and any other SDR-like-objects which may be watching
+     * this SDR.  This method destroys (but does NOT deallocate) a subtree of
+     * SDR proxies.
+     */
+    virtual void deconstruct() {
+        clear();
+        size_ = 0;
+        dimensions_.clear();
+        // Iterate over a copy because the deconstructors may remove themselves
+        // from the proxies list via method _removeProxy().
+        vector<SparseDistributedRepresentation*> copy( proxies );
+        for( auto child : copy ) {
+            if( child != nullptr )
+                child->deconstruct();
+        }
     };
 
 public:
@@ -209,20 +256,19 @@ public:
      * Create an SDR object.  Initially SDRs value is all zeros.
      *
      * @param dimensions A list of dimension sizes, defining the shape of the
-     * SDR.
+     * SDR.  The product of the dimensions must be greater than zero.
      */
     SparseDistributedRepresentation( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
-        NTA_CHECK( dimensions.size() > 0 ) << "SDR has not dimensions!";
+        NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
         // Calculate the SDR's size.
         size_ = 1;
         for(UInt dim : dimensions)
             size_ *= dim;
         NTA_CHECK( size > 0 ) << "SDR size is zero!";
 
-        // Initialize the dense array storage.
-        dense.resize( size_ );
-        dense_valid = true;
+        // Initialize the dense array storage, when it's needed.
+        dense_valid = false;
         // Initialize the flatSparse array, nothing to do.
         flatSparse_valid = true;
         // Initialize the index tuple.
@@ -242,7 +288,8 @@ public:
         setSDR(value);
     };
 
-    ~SparseDistributedRepresentation() {};
+    virtual ~SparseDistributedRepresentation()
+        { deconstruct(); };
 
     /**
      * @attribute dimensions A list of dimensions of the SDR.
@@ -259,9 +306,8 @@ public:
      * SDRs current value.
      */
     void zero() {
-        clear();
         flatSparse.clear();
-        flatSparse_valid = true;
+        setFlatSparseInplace();
     };
 
     /**
@@ -296,7 +342,7 @@ public:
      */
     template<typename T>
     void setDense( const T *value ) {
-        NTA_ASSERT(value != NULL);
+        NTA_ASSERT(value != nullptr);
         dense.assign( value, value + size );
         setDenseInplace();
     };
@@ -323,7 +369,7 @@ public:
      *
      * @returns A reference to an array of all the values in the SDR.
      */
-    SDR_dense_t& getDense() {
+    virtual SDR_dense_t& getDense() {
         if( !dense_valid ) {
             // Convert from flatSparse to dense.
             dense.assign( size, 0 );
@@ -415,7 +461,7 @@ public:
      * @returns A reference to a vector of the indices of the true values in the
      * flattened SDR.
      */
-    SDR_flatSparse_t& getFlatSparse() {
+    virtual SDR_flatSparse_t& getFlatSparse() {
         if( !flatSparse_valid ) {
             flatSparse.clear(); // Clear out any old data.
             if( sparse_valid ) {
@@ -489,7 +535,7 @@ public:
      * @returns A reference to a list of lists which contain the coordinates of
      * the true values in the SDR.     
      */
-    SDR_sparse_t& getSparse() {
+    virtual SDR_sparse_t& getSparse() {
         if( !sparse_valid ) {
             // Clear out any old data.
             for( auto& vec : sparse ) {
@@ -516,7 +562,7 @@ public:
      *
      * @param value An SDR to copy the value of.
      */
-    void setSDR( const SparseDistributedRepresentation &value ) {
+    virtual void setSDR( const SparseDistributedRepresentation &value ) {
         NTA_ASSERT( value.dimensions == dimensions );
         clear();
 
@@ -533,6 +579,7 @@ public:
             for(UInt dim = 0; dim < dimensions.size(); dim++)
                 sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
         }
+        do_callbacks();
     };
 
     /**
@@ -694,6 +741,8 @@ public:
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.
+     * This method can NOT save callbacks!  Only the dimensions and current data
+     * are saved.
      * 
      * @param stream A valid output stream, such as an open file.
      */
@@ -726,7 +775,8 @@ public:
 
     /**
      * Load (deserialize) and initialize the SDR from the specified input
-     * stream.
+     * stream.  This method does NOT load callbacks!  If the original SDR had
+     * callbacks then the user must re-add them after saving & loading the SDR.
      *
      * @param stream A input valid istream, such as an open file.
      */
@@ -748,20 +798,11 @@ public:
         string marker;
         UInt version;
         inStream >> marker >> version;
-        NTA_ASSERT( marker == "SDR" );
-        NTA_ASSERT( version == SERIALIZE_VERSION );
+        NTA_CHECK( marker == "SDR" );
+        NTA_CHECK( version == SERIALIZE_VERSION );
 
         // Read the dimensions.
         readVector( dimensions_ );
-
-        // Read the data.
-        clear();
-        readVector( flatSparse );
-        flatSparse_valid = true;
-
-        // Consume the end marker.
-        inStream >> marker;
-        NTA_ASSERT( marker == "~SDR" );
 
         // Initialize the SDR.
         // Calculate the SDR's size.
@@ -770,10 +811,201 @@ public:
             size_ *= dim;
         // Initialize sparse tuple.
         sparse.assign( dimensions.size(), {} );
+
+        // Read the data.
+        readVector( flatSparse );
+        setFlatSparseInplace();
+
+        // Consume the end marker.
+        inStream >> marker;
+        NTA_CHECK( marker == "~SDR" );
+    };
+
+    /**
+     * Callbacks notify you when this SDR's value changes.
+     *
+     * Note: callbacks are NOT serialized; after saving & loading an SDR the
+     * user must setup their callbacks again.
+     *
+     * @param callback A function to call every time this SDRs value changes.
+     * function accepts no arguments and returns void.
+     *
+     * @returns UInt Handle for the given callback, needed to remove callback.
+     */
+    UInt addCallback(SDR_callback_t callback) {
+        UInt index = 0;
+        for( ; index < callbacks.size(); index++ ) {
+            if( callbacks[index] == nullptr ) {
+                callbacks[index] = callback;
+                return index;
+            }
+        }
+        callbacks.push_back( callback );
+        return index;
+    };
+
+    /**
+     * Remove a previously registered callback.
+     *
+     * @param UInt Handle which was returned by addCallback when you registered
+     * your callback.
+     */
+    void removeCallback(UInt index) {
+        NTA_CHECK( index < callbacks.size() ) << "SDR::removeCallback, Invalid Handle!";
+        callbacks[index] = nullptr;
+    };
+
+    /**
+     * Add SDR to this classes proxy list.  When this SDR is destroyed, all
+     * proxies on the list will be cleaned up via a call to method
+     * proxy.deconstruct()
+     *
+     * @param proxy An SDR to register with this SDR for proper end-of-life
+     * handling.
+     */
+    void _addProxy(SparseDistributedRepresentation *proxy) {
+        proxies.push_back( proxy );
+    };
+
+    /**
+     * Remove an SDR from this classes proxy list.  Proxies must call this when
+     * they are destroyed so that this SDR can remove its pointers to the (now
+     * defunct) proxy.
+     *
+     * @param proxy An SDR to unregister with this SDR.
+     */
+    void _removeProxy(SparseDistributedRepresentation *proxy) {
+        for(auto it = proxies.begin(); it != proxies.end(); it++ ) {
+            if( *it == proxy ) {
+                proxies.erase( it );
+                return;
+            }
+        }
+        NTA_THROW << "SDR::_removeProxy, Proxy not found!";
     };
 };
 
 typedef SparseDistributedRepresentation SDR;
+
+/**
+ * SDR_Proxy class
+ *
+ * ### Description
+
+ * SDR_Proxy presents a view onto an SDR.
+ *      + Proxies have the same value as their source SDR, at all times and
+ *        automatically.
+ *      + SDR_Proxy is a subclass of SDR and be safely typecast to an SDR.
+ *      + Proxies can have different dimensions than their source SDR.
+ *      + Proxies are read only.
+ *
+ * SDR and SDR_Proxy classes tell each other when they are created and
+ * destroyed.  Proxies can be created and destroyed as needed.  Proxies will
+ * throw an exception if they are used after their source SDR has been
+ * destroyed.
+ *
+ * Example Usage:
+ *      // Convert SDR dimensions from (4 x 4) to (8 x 2)
+ *      SDR       A(    { 4, 4 })
+ *      SDR_Proxy B( A, { 8, 2 })
+ *      A.setSparse( {1, 1, 2}, {0, 1, 2}} )
+ *      auto sparse = B.getSparse()  ->  {{2, 2, 5}, {0, 1, 0}}
+ *
+ * Save/Load: SDR_Proxy does not support the Serializable interface.  Users
+ * should instead serialize the source SDR and recreate the proxy.
+ */
+class SDR_Proxy : public SDR
+{
+public:
+    /**
+     * Create an SDR_Proxy object.
+     *
+     * @param sdr Source SDR to make a view of.
+     *
+     * @param dimensions A list of dimension sizes, defining the shape of the
+     * SDR.  Optional, if not given then this Proxy will have the same
+     * dimensions as the given SDR.
+     */
+    SDR_Proxy(SDR &sdr)
+        : SDR_Proxy(sdr, sdr.dimensions)
+        {};
+
+    SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
+        : SDR( dimensions ) {
+        clear();
+        parent = &sdr;
+        NTA_CHECK( size == parent->size ) << "SDR Proxy must have same size as given SDR.";
+        parent->_addProxy( this );
+        callback_handle = parent->addCallback( [&] () {
+            clear();
+            do_callbacks();
+        });
+    };
+
+    ~SDR_Proxy() override
+        { deconstruct(); };
+
+    SDR_dense_t& getDense() override {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        return parent->getDense();
+    }
+
+    SDR_flatSparse_t& getFlatSparse() override {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        return parent->getFlatSparse();
+    }
+
+    SDR_sparse_t& getSparse() override {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        if( dimensions.size() == parent->dimensions.size() &&
+            equal( dimensions.begin(), dimensions.end(),
+                   parent->dimensions.begin() )) {
+            // All things equal, prefer reusing the parent's cached value.
+            return parent->getSparse();
+        }
+        else {
+            // Don't override getSparse().  It will call either getDense() or
+            // getFlatSparse() to get its data, and will use this proxies
+            // dimensions.
+            return SDR::getSparse();
+        }
+    }
+
+protected:
+    /**
+     * This SDR shall always have the same value as the parent SDR.
+     */
+    SDR *parent;
+    int callback_handle;
+
+    void deconstruct() override {
+        // Unlink this SDR from the parent SDR.
+        if( parent != nullptr ) {
+            parent->_removeProxy( this );
+            parent->removeCallback( callback_handle );
+            parent = nullptr;
+            SDR::deconstruct();
+        }
+    };
+
+    const string _SDR_Proxy_setter_error_message = "SDR_Proxy is read only.";
+
+    void setDenseInplace() override
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    void setFlatSparseInplace() override
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    void setSparseInplace() override
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+    void setSDR( const SparseDistributedRepresentation &value ) override
+        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+
+    const string _SDR_save_load_error_message =
+        "SDR_Proxy does not support serialization, save/load the source SDR instead.";
+    void save(std::ostream &outStream) const override
+        { NTA_THROW << _SDR_save_load_error_message; };
+    void load(std::istream &inStream) override
+        { NTA_THROW << _SDR_save_load_error_message; };
+};
 
 }; // end namespace nupic
 #endif // end ifndef SDR_HPP
