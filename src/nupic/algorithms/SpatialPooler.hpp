@@ -297,6 +297,7 @@ public:
          any columns that are not learned.
   */
   void stripUnlearnedColumns(UInt activeArray[]) const;
+  void stripUnlearnedColumns(SDR& active) const;
 
   /**
    * Get the version number of this spatial pooler.
@@ -834,8 +835,9 @@ public:
     potential and connectivity matrices.
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
+    Used only during initialization.
   */
-  UInt mapColumn_(UInt column) const;
+  UInt initMapColumn_(UInt column) const;
 
   /**
     Maps a column to its input bits.
@@ -858,6 +860,7 @@ public:
       potentialRadius is 5, the method should return an array containing 25
       '1's, where the exact indices are to be determined by the mapping from
       1-D index to 2-D position.
+    Used only at initialization.
 
     ----------------------------
     @param column         An int index identifying a column in the permanence,
@@ -866,7 +869,7 @@ public:
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
   */
-  vector<UInt> mapPotential_(UInt column, bool wrapAround);
+  vector<UInt> initMapPotential_(UInt column, bool wrapAround);
 
   /**
   Returns a randomly generated permanence value for a synapses that is
@@ -941,8 +944,7 @@ public:
   */
   void updatePermanencesForColumn_(vector<Real> &perm, UInt column,
                                    bool raisePerm = true);
-  UInt countConnected_(const vector<Real> &perm) const;
-  UInt raisePermanencesToThreshold_(vector<Real> &perm,
+  void raisePermanencesToThreshold_(vector<Real> &perm,
                                     const vector<UInt> &potential) const;
 
   /**
