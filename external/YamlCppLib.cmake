@@ -72,9 +72,6 @@ ExternalProject_Add(YamlCppStaticLib
         -DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
 )
 
-find_package(yaml-cpp CONFIG REQUIRED)
-message(STATUS "yaml-cpp_FOUND=${yaml-cpp_FOUND}")
-message(STATUS "yaml-cpp_LIBARIES=${yaml-cpp_LIBARIES}")
 
 # Wrap external project-generated static library in an `add_library` target.
 merge_static_libraries(${YAML_CPP_STATIC_LIB_TARGET}

@@ -36,13 +36,14 @@ option(NEEDS_BOOST "Force compiler to install and use Boost." ON)
 option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." OFF)
 option(PYTHON3_BUILD "Toggle whether to build for Python3.x, default ON." OFF)
 
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE release)
+endif()
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
    set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install location" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release)
-endif()
 
 # Make sure we can link against any specified paths.
 include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
