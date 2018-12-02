@@ -114,7 +114,7 @@ install:
   # Prepare directories
   - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
   - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/release"
+  - "mkdir -p $TRAVIS_BUILD_DIR/build/Release"
   - "cmake --version"
   # Enable test coverage for travis-ci build
   - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON"
@@ -127,9 +127,9 @@ install:
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
   # this also matches current instructions in nupic.core/README.md
-  - "cd $TRAVIS_BUILD_DIR/build/release/bin"
+  - "cd $TRAVIS_BUILD_DIR/build/Release/bin"
   # unit tests
-  - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
+  - "${TRAVIS_BUILD_DIR}/build/Release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
 #######  - "python ${TRAVIS_BUILD_DIR}/setup.py test"
   # output unit tests report
