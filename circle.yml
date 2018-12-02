@@ -47,11 +47,12 @@ jobs:
           # unnecessary if you have your default branch configured correctly
           - v1-dep-
 
-      ###- run:
-      ###    name: Installing dependencies
-      ###    command: |
-      ###      pip install --user --upgrade pip setuptools setuptools-scm
-      ###      pip install --no-cache-dir --user -r bindings/py/requirements.txt  || exit
+            ####      - run:
+            #### name: Installing dependencies
+            #### #TODO enable py tests after pybind is ready!
+            #### command: |
+            #### pip install --user --upgrade pip setuptools setuptools-scm
+            #### pip install --no-cache-dir --user -r bindings/py/requirements.txt  || exit
 
       # Save dependency cache
       - save_cache:
@@ -111,8 +112,8 @@ jobs:
       - persist_to_workspace:
           root: dist
           paths:
-          - nupic.bindings*.whl
-          - requirements.txt
+####          - nupic.bindings*.whl
+####          - requirements.txt
           - include/nupic
 
   deploy-s3:
