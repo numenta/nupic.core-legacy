@@ -27,6 +27,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator> //begin()
+#include <cmath> //fmod
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
@@ -640,17 +641,34 @@ void SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
                                                  const vector<UInt>& potential) const
 {
   clip_(perm, false);
-  UInt numConnected = countConnected_(perm);
-  std::cout << "#connected= " << numConnected << " #perm= " << perm.size() << " #pot= " << potential.size() << std::endl;
 
-  while (numConnected < stimulusThreshold_) //TODO avoid the while-true loop, grow syns in 1 step
-  {
-    for (auto & elem : potential) {
-      perm[elem] += synPermBelowStimulusInc_;
+  // size(perm) >> size(potential) -> use sparse perm[potential] !
+  vector<Real> sparsePermV; //perm values only for potentials, with already-connected removed
+  sparsePermV.reserve(potential.size());
+  for(auto col: potential) {
+    const Real val = perm[col];
+    if(val < synPermConnected_) {
+      sparsePermV.push_back(val);
     }
-    numConnected = countConnected_(perm);
   }
 
+  const UInt alreadyConnected = potential.size() - sparsePermV.size();
+  const int toGrow = stimulusThreshold_ - alreadyConnected;
+  if(toGrow <= 0) {return; }
+
+  //get needed increment: diff of toGrow-th largest value to threshold
+  std::nth_element(sparsePermV.begin(), sparsePermV.begin() + toGrow -1, sparsePermV.end(), std::greater<Real>());
+  const Real nth = sparsePermV[toGrow -1]; //value of nth-largest permanence
+  const Real diff = synPermConnected_ - nth; 
+  const Real increment = (diff + synPermBelowStimulusInc_) - std::fmod(diff, synPermBelowStimulusInc_); //round up to multiple of synPermBSInc_ 
+  NTA_ASSERT(increment > 0);
+  NTA_ASSERT(nth + increment >= synPermConnected_); 
+
+  // grow all synapses at once
+  for (const auto& elem : potential) {
+    perm[elem] += increment;
+  }
+  NTA_ASSERT(countConnected_(perm) >= stimulusThreshold_); 
 }
 
 

@@ -1398,21 +1398,23 @@ TEST(SpatialPoolerTest, testIsUpdateRound) {
 
 TEST(SpatialPoolerTest, testRaisePermanencesToThreshold) {
   SpatialPooler sp;
-  UInt stimulusThreshold = 3;
-  Real synPermConnected = 0.1;
-  Real synPermBelowStimulusInc = 0.01;
-  UInt numInputs = 5;
-  UInt numColumns = 7;
-  setup(sp, numInputs, numColumns);
+  const UInt stimulusThreshold = 3;
+  const Real synPermConnected = 0.1;
+  const Real synPermBelowStimulusInc = 0.01;
+  const UInt nInps = 5;
+  const UInt nCols = 7;
+  setup(sp, nInps, nCols);
   sp.setStimulusThreshold(stimulusThreshold);
   sp.setSynPermConnected(synPermConnected);
   sp.setSynPermBelowStimulusInc(synPermBelowStimulusInc);
 
-  UInt potentialArr[7][5] = {{1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
+  const UInt potentialArr[nCols][nInps] = {
+	                     {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
                              {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},
                              {0, 1, 1, 1, 0}};
 
-  Real permArr[7][5] = {{0.0, 0.11, 0.095, 0.092, 0.01},
+  const Real permArr[nCols][nInps] = {
+	                {0.0, 0.11, 0.095, 0.092, 0.01},
                         {0.12, 0.15, 0.02, 0.12, 0.09},
                         {0.51, 0.081, 0.025, 0.089, 0.31},
                         {0.18, 0.0601, 0.11, 0.011, 0.03},
@@ -1420,7 +1422,7 @@ TEST(SpatialPoolerTest, testRaisePermanencesToThreshold) {
                         {0.12, 0.056, 0, 0, 0.078},
                         {0, 0.061, 0.07, 0.14, 0}};
 
-  Real truePerm[7][5] = {
+  Real truePerm[nCols][nInps] = {
       {0.01, 0.12, 0.105, 0.102, 0.02},    // incremented once
       {0.12, 0.15, 0.02, 0.12, 0.09},      // no change
       {0.53, 0.101, 0.045, 0.109, 0.33},   // increment twice
@@ -1429,20 +1431,20 @@ TEST(SpatialPoolerTest, testRaisePermanencesToThreshold) {
       {0.17, 0.106, 0, 0, 0.128},          // increment 5 times
       {0, 0.101, 0.11, 0.18, 0}};          // increment 4 times
 
-  UInt trueConnectedCount[7] = {3, 3, 4, 3, 5, 3, 3};
-
-  for (UInt i = 0; i < numColumns; i++) {
+  for (UInt i = 0; i < nCols; i++) {
     vector<Real> perm;
     vector<UInt> potential;
-    perm.assign(&permArr[i][0], &permArr[i][numInputs]);
-    for (UInt j = 0; j < numInputs; j++) {
+    perm.assign(&permArr[i][0], &permArr[i][nInps]);
+    for (UInt j = 0; j < nInps; j++) {
       if (potentialArr[i][j] > 0) {
         potential.push_back(j);
       }
     }
-    UInt connected = sp.raisePermanencesToThreshold_(perm, potential);
+    sp.raisePermanencesToThreshold_(perm, potential);
+    for(UInt j = 0; j<nInps; j++) {
+      EXPECT_FLOAT_EQ(truePerm[i][j], perm[j]); 
+    }
     ASSERT_TRUE(check_vector_eq(truePerm[i], perm));
-    ASSERT_TRUE(connected == trueConnectedCount[i]);
   }
 }
 
