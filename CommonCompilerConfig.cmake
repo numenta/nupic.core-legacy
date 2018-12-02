@@ -92,29 +92,33 @@ string(TOLOWER ${PLATFORM} PLATFORM)
 
 set(extra_lib_for_filesystem)   # sometimes -libc++experimental or -lstdc++fs
 set(INTERNAL_CPP_STANDARD "c++11")
-set(NEEDS_BOOST ON)
+set(boost_required ON)
 
 if(NOT USE_CPP11)
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9")
          set(INTERNAL_CPP_STANDARD "c++17")
-	 set(NEEDS_BOOST OFF)
+	 set(boost_required OFF)
     elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
          set(INTERNAL_CPP_STANDARD "c++17")
 	 set(extra_lib_for_filesystem "-lstdc++fs")
-	 set(NEEDS_BOOST "OFF")
+	 set(boost_required "OFF")
     endif()	 
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
          set(INTERNAL_CPP_STANDARD "c++17")
-	 set(NEEDS_BOOST OFF)
+	 set(boost_required OFF)
     endif()
   elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.14")
             set(INTERNAL_CPP_STANDARD "c++17")
-	    set(NEEDS_BOOST OFF)
+	    set(boost_required OFF)
       endif()
   endif()
+endif()
+if (boost_required)
+  set(NEEDS_BOOST ON)
+  # otherwise honors the override from parent.
 endif()
 
 # https://stackoverflow.com/questions/44960715/how-to-enable-stdc17-in-vs2017-with-cmake
@@ -145,11 +149,13 @@ if(MSVC)
 	# MS Visual C
 	# on Windows using Visual Studio 2015, 2017   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
 	#  /permissive- forces standards behavior.  See https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance?view=vs-2017
+	#  /Zc:__cplusplus   This is required to force MSVC to pay attention to the standard setting and sets __cplusplus.
+	#                    NOTE: MSVC does not support C++11.  But does C++14 and C++17.
 	# Release Compiler flags:
-	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /nologo
+	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /nologo /Zc:__cplusplus
 	#      Release Only:    /O2 /Oi /Gy  /MD
-	#      Debug Only:       /Od /Zi /sdl /RTC1 /MDd
-	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo
+	#      Debug Only:       /Od /Zi /sdl /RTC1 /MD
+	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:c++${std_ver}
 							$<$<CONFIG:RELEASE>:/O2 /Oi /Gy  /GL /MT> 
 							$<$<CONFIG:DEBUG>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
 	#linker flags
@@ -246,24 +252,12 @@ else()
 	  set(stdlib_cxx "${stdlib_cxx} -stdlib=libc++")
 	endif()
 
+# TODO: investigate if we should use static or shared stdlib and gcc lib.
 	if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-	  if (${NUPIC_BUILD_PYEXT_MODULES} AND "${PLATFORM}" STREQUAL "linux")
-		# NOTE When building manylinux python extensions, we want the static
-		# libstdc++ due to differences in c++ ABI between the older toolchain in the
-		# manylinux Docker image and libstdc++ in newer linux distros that is
-		# compiled with the c++11 ABI. for example, with shared libstdc++, the
-		# manylinux-built extension is unable to catch std::ios::failure exception
-		# raised by the shared libstdc++.so while running on Ubuntu 16.04.
-		set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-
-		# NOTE We need to use shared libgcc to be able to throw and catch exceptions
-		# across different shared libraries.
-		set(stdlib_common "${stdlib_common} -shared-libgcc")
-	  else()
 		set(stdlib_common "${stdlib_common} -static-libgcc")
 		set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-	  endif()
 	endif()
+
 
 
 
@@ -275,6 +269,7 @@ else()
 	set(cxx_flags_unoptimized "")
 	set(linker_flags_unoptimized "")
 	
+#TODO: CMake automatically generates optimisation flags. Do we need this?
 	set(optimization_flags_cc "${optimization_flags_cc} -O2")
 	set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
 	set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
@@ -291,12 +286,6 @@ else()
 
 	# LLVM Clang / Gnu GCC
 	set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx}")
-
-	if (${NUPIC_BUILD_PYEXT_MODULES})
-		# Hide all symbols in DLLs except the ones with explicit visibility;
-		# see https://gcc.gnu.org/wiki/Visibility
-		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
-	endif()
 
 	set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_common} -fdiagnostics-show-option")
 	set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")

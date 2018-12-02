@@ -72,7 +72,7 @@ namespace nupic
   template <class T>
   class RegisteredRegionImplCpp: public RegisteredRegionImpl {
     public:
-      RegisteredRegionImplCpp(const std::string& classname, const std::string& module="")
+      RegisteredRegionImplCpp(const std::string& classname="", const std::string& module="")
 	  		: RegisteredRegionImpl(classname, module) {
 	  }
 
@@ -95,6 +95,9 @@ namespace nupic
         }
         return cachedSpec_.get();
       }
+	private:
+		std::shared_ptr<Spec> cachedSpec_;
+
   };
 
 }

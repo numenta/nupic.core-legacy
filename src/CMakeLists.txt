@@ -19,7 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.7)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -43,8 +43,9 @@ endif()
 
 
 
-#
-# Extract current git sha and record in nupic/Version.hpp
+###############
+# Create Version.hpp
+# Extract current git sha and record in nupic/Version.hpp.in
 #
 execute_process(COMMAND git rev-parse HEAD
                 OUTPUT_VARIABLE NUPIC_CORE_VERSION
@@ -53,16 +54,21 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/nupic/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")
   
+##############
+# find dependancies 
 include_directories(SYSTEM
-                    ${PROJECT_BINARY_DIR}
-					${PROJECT_SOURCE_DIR}
-					${REPOSITORY_DIR}/external/common/include
-					${yaml-cpp_INCLUDE_DIRS}
-					${Boost_INCLUDE_DIRS}
-					)
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}
+  ${REPOSITORY_DIR}/external/common/include
+  ${yaml-cpp_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  )
+message(STATUS "yaml-cpp includes: ${yaml-cpp_INCLUDE_DIRS}")
+message(STATUS "boost includes: ${Boost_INCLUDE_DIRS}")
+message(STATUS "boost libs: ${Boost_LIBRARIES}")
+message(STATUS "yaml-cpp libs: ${yaml-cpp_LIBRARIES}")
 
-
-#
+#################
 # Setup nupic_core static library, consisting of our own sources and yaml libraries;
 #
 # this is an intermediate archive that will be merged with external static
@@ -144,6 +150,8 @@ set(engine_files
     nupic/engine/Spec.hpp
     nupic/engine/TestFanIn2LinkPolicy.cpp
     nupic/engine/TestFanIn2LinkPolicy.hpp
+    nupic/engine/UniformLinkPolicy.cpp
+    nupic/engine/UniformLinkPolicy.hpp
     nupic/engine/YAMLUtils.cpp
     nupic/engine/YAMLUtils.hpp
 )
@@ -184,7 +192,7 @@ set(ntypes_files
     nupic/ntypes/Buffer.cpp
     nupic/ntypes/Buffer.hpp
     nupic/ntypes/BundleIO.hpp
-    nupic/ntypes/Collection.cpp
+    #nupic/ntypes/Collection.cpp  Included directly into Collections.cpp
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
     nupic/ntypes/Dimensions.hpp
@@ -257,8 +265,6 @@ set(utils_files
     nupic/utils/SlidingWindow.hpp
     nupic/utils/StringUtils.cpp
     nupic/utils/StringUtils.hpp
-    nupic/utils/TRandom.cpp
-    nupic/utils/TRandom.hpp
     nupic/utils/VectorHelpers.hpp
     nupic/utils/Watcher.cpp
     nupic/utils/Watcher.hpp
@@ -291,12 +297,9 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
 
 # nupic_core_solo sources depend on headers installed by these external projects
 add_dependencies(${src_lib_static_nupiccore_solo}
-        yaml-cpp
+        yaml-cpp-bundle
 		)
-message(STATUS "INTERNAL_CXX_FLAGS=${INTERNAL_CXX_FLAGS}")
-set_target_properties(${src_lib_static_nupiccore_solo} 
-		PROPERTIES COMPILE_FLAGS "${INTERNAL_CXX_FLAGS}"
-		)
+set_property(TARGET ${src_lib_static_nupiccore_solo} PROPERTY COMPILE_FLAGS ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 if(${NUPIC_IWYU})
   set_target_properties(${src_lib_static_nupiccore_solo}
@@ -304,25 +307,24 @@ if(${NUPIC_IWYU})
 endif()
 
 
-################################################################get_target_property(YAML_CPP_LIB yaml-cpp property?)
 #
-# Create the nupic_core "combined" static library by merging nupic_core_solo
+# Create the nupic_core as a "combined" static library by merging nupic_core_solo
 # with our external static libraries
 #
 set(core_library   nupic_core)
-set(${src_combined_nupiccore_source_archives}
+set(src_combined_nupiccore_source_archives
     ${src_lib_static_nupiccore_solo}
-    yaml-cpp
+    ${yaml-cpp_LIBRARIES}
     ${Boost_LIBRARIES}
     )
+message(STATUS "creating nupic_core from Libraries: ${src_combined_nupiccore_source_archives}")
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
 
 #########################################################
 # Test
 # The tests were placed in a separate file to avoid clutering up this file.
-include(NupicCoreTests.cmake)
-
+add_subdirectory(test)
 
 ##################################################
 #

@@ -19,7 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.3)
 project(nupic_core CXX)
 
 
@@ -29,13 +29,14 @@ if( POLICY CMP0074 )
 endif()
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 include(GNUInstallDirs)
 include(ExternalProject)
-
+set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 
 ################
 # Yaml-cpp
-include(yaml-cpp.cmake)
+include(YamlCppLib.cmake)
 
 ##################
 #  Boost
@@ -47,4 +48,6 @@ include(gtest.cmake)
 
 ##################
 # pybind11
-#include(pybind11.cmake)
+if(PYTHON_BUILD2 OR PYTHON_BUILD3)
+  include(pybind11.cmake)
+endif()

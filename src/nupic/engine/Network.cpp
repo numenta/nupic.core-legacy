@@ -771,6 +771,19 @@ void Network::resetProfiling() {
     regions_.getByIndex(i).second->resetProfiling();
 }
 
+  /*
+   * Adds a region to the RegionImplFactory's list of packages
+   */
+void Network::registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
+	Region::registerRegion(name, wrapper);
+}
+  /*
+   * Removes a region from RegionImplFactory's list of packages
+   */
+void Network::unregisterRegion(const std::string name) {
+	Region::unregisterRegion(name);
+}
+
 bool Network::operator==(const Network &o) const {
 
   if (initialized_ != o.initialized_ || iteration_ != o.iteration_ ||

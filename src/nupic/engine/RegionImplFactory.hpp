@@ -44,7 +44,7 @@ namespace nupic {
 
 class RegionImpl;
 class Region;
-struct Spec;
+class Spec;
 class BundleIO;
 class ValueMap;
 class RegisteredRegionImpl;

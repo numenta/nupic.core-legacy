@@ -19,7 +19,7 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.7)
 project(nupic_core CXX)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
@@ -27,31 +27,17 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
 
-if( POLICY CMP0046 )
-  cmake_policy(VERSION 3.3)
-  # The new policy for add_dependencies is to now error if a dependency target
-  # is not found. The old policy didn't care and continued through configuration
-  cmake_policy(SET CMP0046 OLD)
-endif()
 
-if( POLICY CMP0054 )
-  # The OLD behavior for this policy is to dereference variables and interpret
-  # keywords even if they are quoted or bracketed. The NEW behavior is to not
-  # dereference variables or interpret keywords that have been quoted or bracketed.
-  cmake_policy(SET CMP0054 OLD)
-endif()
-
-##############################################
+#
 # Global NuPIC CMake options
 #
 option(USE_CPP11 "Force compiler to use C++11 standard." ON)
 option(NEEDS_BOOST "Force compiler to install and use Boost." ON)
-option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." ON)
-option(PYTHON3_BUILD "Toggle whether to build for Python3.x, default ON." ON)
+option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." OFF)
+option(PYTHON3_BUILD "Toggle whether to build for Python3.x, default ON." OFF)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-   # By convention, default the install folder to be 'release' even if the build time is Debug.
-   set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/release" CACHE PATH "Default Install location" FORCE)
+   set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install location" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 if(NOT CMAKE_BUILD_TYPE)

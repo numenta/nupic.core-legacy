@@ -30,7 +30,7 @@
 #include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/RegisteredRegionImplCpp.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/engine/TestNode.hpp>
+#include <nupic/regions/TestNode.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -80,7 +80,7 @@ void RegionImplFactory::registerRegion(const std::string& nodeType, RegisteredRe
 
 void RegionImplFactory::unregisterRegion(const std::string nodeType) {
   if (regionTypeMap.find(nodeType) != regionTypeMap.end()) {
-    regionNodeTypes.erase(nodeType);
+    regionTypeMap.erase(nodeType);
   }
 }
 
@@ -88,13 +88,13 @@ void RegionImplFactory::unregisterRegion(const std::string nodeType) {
 RegionImplFactory &RegionImplFactory::getInstance() {
   static RegionImplFactory instance;
 
-  // Initialize Regions
+  // Initialize the Built-in Regions
   if (!initializedRegions) {
     // Create internal C++ regions
-	instance.registerRegion("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>("ScalarSensor"));
-    instance.registerRegion("TestNode",           new RegisteredRegionImplCpp<TestNode>("TestNode"));
-    instance.registerRegion("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>("VectorFileEffector"));
-    instance.registerRegion("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>("VectorFileSensor"));
+	instance.registerRegion("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
+    instance.registerRegion("TestNode",           new RegisteredRegionImplCpp<TestNode>());
+    instance.registerRegion("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
+    instance.registerRegion("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
 
     initializedRegions = true;
   }

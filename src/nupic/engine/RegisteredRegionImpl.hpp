@@ -23,8 +23,8 @@
 /** @file
  * Definition of the RegisteredRegionImpl
  *
- * A RegisteredRegionImpl is a base class of an object that can instantiate 
- * a plugin (a subclass of RegionImpl) and get its spec.  
+ * A RegisteredRegionImpl is a base class of an object that can instantiate
+ * a plugin (a subclass of RegionImpl) and get its spec.
  *
  * Each Programming language interface to this library must create a subclass
  * of RegisteredRegionImpl which will handle the engine to plugin instantiation.
@@ -34,19 +34,19 @@
  *   - RegisteredRegionImplCs  for CSharp implemented pubgins (CsBindRegion)
  *
  * the subclasses of RegistedRegionImpl must perform the following:
- *    1) Be Registered with the CPP engine using 
+ *    1) Be Registered with the CPP engine using
  *              Network::registerCPPRegion(name, your_subclass);
- *       It only needs to be registed once even if multiple Regions will use 
+ *       It only needs to be registed once even if multiple Regions will use
  *       an instance of the same plugin. The 'name' used in this registration
- *       is the 'nodeType' when calling Network::addRegion() to create a 
+ *       is the 'nodeType' when calling Network::addRegion() to create a
  *       region. It is like declaring the type of the plugin.
  *       As a convention, the name used by C++ plugins will be the class name.
- *       The name for Python plugins should start with 'py_'. Those for CSharp 
+ *       The name for Python plugins should start with 'py_'. Those for CSharp
  *       will start with 'cs_'.
- *       
+ *
  *    2) Override the destructor if needed to cleanup your RegisteredRegionImpl subclass
  *
- *    3) Instantiate the plugin and return its pointer when createRegionImpl() 
+ *    3) Instantiate the plugin and return its pointer when createRegionImpl()
  *       is called.
  *
  *    4) Instantiate and deserialize the plugin when deserializeRegionImpl() is called,
@@ -54,7 +54,7 @@
  *       to initialize an entire network from a previous serialization bundle.
  *
  *    5) Get and return a pointer to the spec from the plugin when createSpec() is called.
- *       The pointer returned from the plugin should be cached.  The 
+ *       The pointer returned from the plugin should be cached.  The
  *       RegistedRegionImpl base class contains "std::shared_ptr<Spec> cachedSpec_;"
  *       that the subclass may use for this purpose.
  */
@@ -93,9 +93,9 @@ namespace nupic
 	  virtual std::string moduleName() { return module_; }
 
   protected:
-    std::shared_ptr<Spec> cachedSpec_;
 	std::string classname_;
 	std::string module_;
+
   };
 
 

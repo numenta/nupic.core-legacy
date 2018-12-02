@@ -36,7 +36,7 @@
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/engine/TestNode.hpp>
+#include <nupic/regions/TestNode.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer

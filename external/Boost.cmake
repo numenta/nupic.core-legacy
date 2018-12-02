@@ -46,9 +46,9 @@ if(${NEEDS_BOOST})
     # info about "--layout versioned" https://stackoverflow.com/questions/32991736/boost-lib-naming-are-missing/52208574#52208574
     # filenames created by boost: https://www.boost.org/doc/libs/1_68_0/more/getting_started/unix-variants.html#library-naming
     set(Boost_USE_STATIC_RUNTIME     OFF) 
-    set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
     set(Boost_USE_MULTITHREADED      ON)
   endif()
+  set(Boost_USE_STATIC_LIBS        ON)  # only find static libs
   #set(Boost_DEBUG ON)
   set(Boost_DETAILED_FAILURE_MSG ON)
   

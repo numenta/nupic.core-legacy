@@ -158,6 +158,14 @@ const Spec *Region::getSpecFromType(const std::string &nodeType) {
   return factory.getSpec(nodeType);
 }
 
+void Region::registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
+	RegionImplFactory::registerRegion(name, wrapper);
+}
+
+void Region::unregisterRegion(const std::string name) {
+	RegionImplFactory::unregisterRegion(name);
+}
+
 const Dimensions &Region::getDimensions() const { return dims_; }
 
 void Region::enable() {
@@ -235,7 +243,7 @@ std::string Region::getLinkErrors() const {
 size_t Region::getNodeOutputElementCount(const std::string &name) {
   // Use output count if specified in nodespec, otherwise
   // ask the Impl
-  NTA_CHECK(spec_->outputs.contains(name));
+  NTA_CHECK(spec_->outputs.contains(name)) << "No output named '" << name << "' in the spec";
   size_t count = spec_->outputs.getByName(name).count;
   if (count == 0) {
     try {

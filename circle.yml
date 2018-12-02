@@ -79,22 +79,22 @@ jobs:
             cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../release
             make | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
-      - run:
-          name: Build distribution
-          command: |
-            python setup.py bdist_wheel
-            mkdir -p dist/include/nupic
-            mv bindings/py/dist/*.whl dist/
-            cp bindings/py/requirements.txt dist/
-            cp build/release/include/nupic/Version.hpp dist/include/nupic/
+      ####      - run:
+      ####          name: Build distribution
+      ####          command: |
+      ####            python setup.py bdist_wheel
+      ####            mkdir -p dist/include/nupic
+      ####            mv bindings/py/dist/*.whl dist/
+      ####            cp bindings/py/requirements.txt dist/
+      ####            cp build/release/include/nupic/Version.hpp dist/include/nupic/
       
       # Test
-      - run:
-          name: Running python tests
-          command: |
-            mkdir -p tests/py
-            pip install --user --no-index --find-links=$CIRCLE_WORKING_DIRECTORY/dist/ nupic.bindings
-            py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
+      ####      - run:
+      ####          name: Running python tests
+      ####          command: |
+      ####            mkdir -p tests/py
+      ####            pip install --user --no-index --find-links=$CIRCLE_WORKING_DIRECTORY/dist/ nupic.bindings
+      ####            py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
       - run:
           name: Running C++ Tests
           command: |

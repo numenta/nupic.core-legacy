@@ -19,9 +19,12 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
+cmake_minimum_required(VERSION 3.7)
+project(nupic_core CXX)
+
 
 ###############################################################
-######################                   TESTS                      ######################
+###                   TESTS                      ##############
 ###############################################################
 #
 # Build TESTS of the nupic core static library
@@ -31,95 +34,94 @@
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug 
 
 
-###############
 #  Build unit_tests
 set(unit_tests_executable unit_tests)
 
 set(algorithm_tests
-	   test/unit/algorithms/AnomalyTest.cpp
-	   test/unit/algorithms/Cells4Test.cpp
-	   test/unit/algorithms/CondProbTableTest.cpp
-	   test/unit/algorithms/ConnectionsPerformanceTest.cpp
-	   test/unit/algorithms/ConnectionsTest.cpp
-	   test/unit/algorithms/HelloSPTPTest.cpp
+	   unit/algorithms/AnomalyTest.cpp
+	   unit/algorithms/Cells4Test.cpp
+	   unit/algorithms/CondProbTableTest.cpp
+	   unit/algorithms/ConnectionsPerformanceTest.cpp
+	   unit/algorithms/ConnectionsTest.cpp
+	   unit/algorithms/HelloSPTPTest.cpp
 
-	   test/unit/algorithms/NearestNeighborUnitTest.cpp
-	   test/unit/algorithms/SDRClassifierTest.cpp
-	   test/unit/algorithms/SegmentTest.cpp
-	   test/unit/algorithms/Serialization.cpp
-	   test/unit/algorithms/SpatialPoolerTest.cpp
-	   test/unit/algorithms/TemporalMemoryTest.cpp
+	   unit/algorithms/NearestNeighborUnitTest.cpp
+	   unit/algorithms/SDRClassifierTest.cpp
+	   unit/algorithms/SegmentTest.cpp
+	   unit/algorithms/Serialization.cpp
+	   unit/algorithms/SpatialPoolerTest.cpp
+	   unit/algorithms/TemporalMemoryTest.cpp
 	   )
                
 set(encoders_tests
-       test/unit/encoders/ScalarEncoderTest.cpp
-       )
+           unit/encoders/ScalarEncoderTest.cpp
+           )
 	   
 set(engine_tests
-	   test/unit/engine/CppRegionTest.cpp
-	   test/unit/engine/HelloRegionTest.cpp
-	   test/unit/engine/InputTest.cpp
-	   test/unit/engine/LinkTest.cpp
-	   test/unit/engine/NetworkTest.cpp
-       test/unit/engine/UniformLinkPolicyTest.cpp
-	   test/unit/engine/YAMLUtilsTest.cpp
+	   unit/engine/CppRegionTest.cpp
+	   unit/engine/HelloRegionTest.cpp
+	   unit/engine/InputTest.cpp
+	   unit/engine/LinkTest.cpp
+	   unit/engine/NetworkTest.cpp
+           unit/engine/UniformLinkPolicyTest.cpp
+	   unit/engine/YAMLUtilsTest.cpp
 	   )
 	   
 
 set(math_tests
-	   test/unit/math/DenseTensorUnitTest.cpp
-	   test/unit/math/DenseTensorUnitTest.hpp
-	   test/unit/math/DomainUnitTest.cpp
-	   test/unit/math/DomainUnitTest.hpp
-	   test/unit/math/IndexUnitTest.cpp
-	   test/unit/math/IndexUnitTest.hpp
-	   test/unit/math/MathsTest.cpp
-	   test/unit/math/MathsTest.hpp
-	   test/unit/math/SegmentMatrixAdapterTest.cpp
-	   test/unit/math/SparseBinaryMatrixTest.cpp
-	   test/unit/math/SparseMatrix01UnitTest.cpp
-	   test/unit/math/SparseMatrix01UnitTest.hpp
-	   test/unit/math/SparseMatrixTest.cpp
-	   test/unit/math/SparseMatrixUnitTest.cpp
-	   test/unit/math/SparseMatrixUnitTest.hpp
-	   test/unit/math/SparseTensorUnitTest.cpp
-	   test/unit/math/SparseTensorUnitTest.hpp
-	   test/unit/math/TopologyTest.cpp
+	   unit/math/DenseTensorUnitTest.cpp
+	   unit/math/DenseTensorUnitTest.hpp
+	   unit/math/DomainUnitTest.cpp
+	   unit/math/DomainUnitTest.hpp
+	   unit/math/IndexUnitTest.cpp
+	   unit/math/IndexUnitTest.hpp
+	   unit/math/MathsTest.cpp
+	   unit/math/MathsTest.hpp
+	   unit/math/SegmentMatrixAdapterTest.cpp
+	   unit/math/SparseBinaryMatrixTest.cpp
+	   unit/math/SparseMatrix01UnitTest.cpp
+	   unit/math/SparseMatrix01UnitTest.hpp
+	   unit/math/SparseMatrixTest.cpp
+	   unit/math/SparseMatrixUnitTest.cpp
+	   unit/math/SparseMatrixUnitTest.hpp
+	   unit/math/SparseTensorUnitTest.cpp
+	   unit/math/SparseTensorUnitTest.hpp
+	   unit/math/TopologyTest.cpp
 	   )
 	   
 set(ntypes_tests
-	   test/unit/ntypes/ArrayTest.cpp
-	   test/unit/ntypes/BufferTest.cpp
-	   test/unit/ntypes/CollectionTest.cpp
-	   test/unit/ntypes/DimensionsTest.cpp
-	   test/unit/ntypes/MemParserTest.cpp
-	   test/unit/ntypes/MemStreamTest.cpp
-	   test/unit/ntypes/NodeSetTest.cpp
-	   test/unit/ntypes/ScalarTest.cpp
-	   test/unit/ntypes/ValueTest.cpp
+	   unit/ntypes/ArrayTest.cpp
+	   unit/ntypes/BufferTest.cpp
+	   unit/ntypes/CollectionTest.cpp
+	   unit/ntypes/DimensionsTest.cpp
+	   unit/ntypes/MemParserTest.cpp
+	   unit/ntypes/MemStreamTest.cpp
+	   unit/ntypes/NodeSetTest.cpp
+	   unit/ntypes/ScalarTest.cpp
+	   unit/ntypes/ValueTest.cpp
 	   )
 	   
 set(os_tests
-	   test/unit/os/DirectoryTest.cpp
-	   test/unit/os/EnvTest.cpp
-	   test/unit/os/OSTest.cpp
-	   test/unit/os/PathTest.cpp
-	   test/unit/os/RegexTest.cpp
-	   test/unit/os/TimerTest.cpp
+	   unit/os/DirectoryTest.cpp
+	   unit/os/EnvTest.cpp
+	   unit/os/OSTest.cpp
+	   unit/os/PathTest.cpp
+	   unit/os/RegexTest.cpp
+	   unit/os/TimerTest.cpp
 	   )
 	   
 set(types_tests
-	   test/unit/types/BasicTypeTest.cpp
-	   test/unit/types/ExceptionTest.cpp
-	   test/unit/types/FractionTest.cpp
+	   unit/types/BasicTypeTest.cpp
+	   unit/types/ExceptionTest.cpp
+	   unit/types/FractionTest.cpp
 	   )
 	   
 set(utils_tests
-	   test/unit/utils/GroupByTest.cpp
-	   test/unit/utils/MovingAverageTest.cpp
-	   test/unit/utils/RandomTest.cpp
-	   test/unit/utils/VectorHelpersTest.cpp
-	   test/unit/utils/WatcherTest.cpp
+	   unit/utils/GroupByTest.cpp
+	   unit/utils/MovingAverageTest.cpp
+	   unit/utils/RandomTest.cpp
+	   unit/utils/VectorHelpersTest.cpp
+	   unit/utils/WatcherTest.cpp
 	   )
 	   
 
@@ -136,7 +138,7 @@ source_group("utils" FILES ${utils_tests})
 
 
 set(src_executable_gtests
-    test/unit/UnitTestMain.cpp
+    unit/UnitTestMain.cpp
     ${algorithm_tests} 
     ${encoders_tests} 
     ${engine_tests} 
@@ -149,14 +151,15 @@ set(src_executable_gtests
 
 add_executable(${unit_tests_executable} ${src_executable_gtests})
 target_link_libraries(${unit_tests_executable} 
-	${core_library}
+    ${core_library}
     gtest
     ${COMMON_OS_LIBS}
-    -OPT:NOREF
+#TODO: Do we need this?  Does not go here.
+#    -OPT:NOREF
 )
-target_include_directories(${unit_tests_executable} PUBLIC ${gtest_INCLUDE_DIR})
+target_include_directories(${unit_tests_executable} PRIVATE ${gtest_INCLUDE_DIR})
 target_compile_definitions(${unit_tests_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-target_compile_options(${unit_tests_executable} PUBLIC "${INTERNAL_CXX_FLAGS}")
+set_property(TARGET ${src_lib_static_nupiccore_solo} PROPERTY COMPILE_FLAGS ${INTERNAL_CXX_FLAGS})
 set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS}")
 add_dependencies(${unit_tests_executable} ${core_library} gtest)
 

@@ -123,7 +123,7 @@ install:
   - "VERBOSE=0 make |grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
-  - "python setup.py install"
+#####- "python setup.py install"
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
@@ -132,7 +132,7 @@ script:
   # unit tests
   - "${TRAVIS_BUILD_DIR}/build/release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
-  - "python ${TRAVIS_BUILD_DIR}/setup.py test"
+#######  - "python ${TRAVIS_BUILD_DIR}/setup.py test"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

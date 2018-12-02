@@ -23,23 +23,23 @@
 /** @file
  * Definition of the RegisteredRegionImplPy
  * This provides the plugin interface for the Python implemented Regions.
- * This is a subclass of RegisteredRegionImpl; the base class of an object that can instantiate 
- * a plugin (a subclass of RegionImpl) and get its spec.  
+ * This is a subclass of RegisteredRegionImpl; the base class of an object that can instantiate
+ * a plugin (a subclass of RegionImpl) and get its spec.
  *
  * the subclasses of RegistedRegionImpl must perform the following:
- *    1) Be Registered with the CPP engine using 
+ *    1) Be Registered with the CPP engine using
  *              Network::registerRegion( nodeType, module, classname);
- *       It only needs to be registed once even if multiple Regions will use 
+ *       It only needs to be registed once even if multiple Regions will use
  *       an instance of the same plugin. The 'nodeType' used in this registration
- *       is the 'nodeType' when calling Network::addRegion() to create a 
+ *       is the 'nodeType' when calling Network::addRegion() to create a
  *       region. It is like declaring the type of the plugin.
  *       As a convention, the nodeType used by C++ plugins will be the class name.
- *       The name for Python plugins should start with 'py_'. Those for CSharp 
+ *       The name for Python plugins should start with 'py_'. Those for CSharp
  *       will start with 'cs_'.
- *       
+ *
  *    2) Override the destructor if needed to cleanup your RegisteredRegionImpl subclass
  *
- *    3) Instantiate the plugin and return its pointer when createRegionImpl() 
+ *    3) Instantiate the plugin and return its pointer when createRegionImpl()
  *       is called.
  *
  *    4) Instantiate and deserialize the plugin when deserializeRegionImpl() is called,
@@ -48,7 +48,7 @@
  *
  *    5) Get and return a pointer to the spec from the plugin when createSpec() is called.
  *       During this call the class should be loaded.
- *       The pointer to the spec returned from the plugin should be cached in this class.  The 
+ *       The pointer to the spec returned from the plugin should be cached in this class.  The
  *       RegistedRegionImpl base class contains "std::shared_ptr<Spec> cachedSpec_;"
  *       that this subclass may use for this purpose.
  *
@@ -126,9 +126,11 @@ namespace nupic
         }
         return cachedSpec_.get();
       }
-      
+
     private:
 		static int python_region_count = 0;
+		std::shared_ptr<Spec> cachedSpec_;
+
   };
 
 }

@@ -33,6 +33,8 @@
 #include <string>
 #include <vector>
 
+#include <nupic/engine/RegisteredRegionImpl.hpp>
+#include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Collection.hpp>
 
 #include <nupic/types/Serializable.hpp>
@@ -361,17 +363,13 @@ public:
    */
 
   /*
-   * Adds a c++ region to the RegionImplFactory's packages
+   * Adds a region implementation to the RegionImplFactory's list of packages
    */
-  static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
-	Region::registerRegion(name, wrapper);
-  }
+  static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper);
   /*
-   * Removes a c++ region from RegionImplFactory's packages
+   * Removes a region implementation from the RegionImplFactory's list of packages
    */
-  static void unregisterRegion(const std::string name) {
-	Region::unregisterRegion(name);
-  }
+  static void unregisterRegion(const std::string name);
 
   bool operator==(const Network &other) const;
   inline bool operator!=(const Network &other) const {

@@ -40,6 +40,29 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 
 
+#### TODO: do we need this?
+#	if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND "${PLATFORM}" STREQUAL "linux")
+		# NOTE When building manylinux python extensions, we want the static
+		# libstdc++ due to differences in c++ ABI between the older toolchain in the
+		# manylinux Docker image and libstdc++ in newer linux distros that is
+		# compiled with the c++11 ABI. for example, with shared libstdc++, the
+		# manylinux-built extension is unable to catch std::ios::failure exception
+		# raised by the shared libstdc++.so while running on Ubuntu 16.04.
+#		set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+
+		# NOTE We need to use shared libgcc to be able to throw and catch exceptions
+		# across different shared libraries.
+#		set(stdlib_common "${stdlib_common} -shared-libgcc")
+	endif()
+
+
+### TODO: do we need this?
+#	if (${NUPIC_BUILD_PYEXT_MODULES})
+#		# Hide all symbols in DLLs except the ones with explicit visibility;
+#		# see https://gcc.gnu.org/wiki/Visibility
+#		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
+#	endif()
+
 #
 # Python support
 #

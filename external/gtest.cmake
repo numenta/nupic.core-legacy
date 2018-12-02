@@ -35,22 +35,11 @@
 # VS 2015     14           1900            std::tuple
 # VS 2017     15           >= 1910         std::tuple
 
-  # This will fetch gtest from the repository at configure time.
-  # The FetchContent directive requires CMake 3.11  
-  include(FetchContent)
-  if(MSVC)
-    set(url https://github.com/abseil/googletest/archive/release-1.8.1.zip)
-  else()
-    set(url https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz)
-  endif()
-  message(STATUS "Fetching gtest from ${url}")
-  FetchContent_Declare( googletest
-#    GIT_REPOSITORY https://github.com/google/googletest.git
-#    GIT_TAG        release-1.8.1
-    URL ${url}
-  )
-  FetchContent_GetProperties(googletest)
-  if(NOT googletest_POPULATED)
-    FetchContent_Populate(googletest)
-    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-  endif()
+#
+# Build gtest lib
+#
+add_library(gtest STATIC ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
+set_property(TARGET gtest PROPERTY COMPILE_FLAGS ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(gtest PUBLIC -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+target_include_directories(gtest PUBLIC ${REPOSITORY_DIR}/external/common/include)
+
