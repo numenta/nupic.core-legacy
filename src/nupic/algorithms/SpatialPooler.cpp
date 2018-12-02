@@ -1079,11 +1079,10 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
-  // Store matrices.
+  // Store matrices:
+  //potentials
   for (UInt i = 0; i < numColumns_; i++) {
-    vector<UInt> pot;
-    pot.resize(potentialPools_.nNonZerosOnRow(i));
-    pot = potentialPools_.getSparseRow(i);
+    const auto pot = potentialPools_.getSparseRow(i);
     outStream << pot.size() << endl;
     for (auto &elem : pot) {
       outStream << elem << " ";
@@ -1092,6 +1091,7 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  //permanences
   for (UInt i = 0; i < numColumns_; i++) {
     vector<pair<UInt, Real>> perm;
     perm.resize(permanences_.nNonZerosOnRow(i));
@@ -1104,6 +1104,9 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  //connected synapses get rebuilt from permanences_ updateSynapsesForColumn_(), see load()
+
+  //Random
   outStream << rng_ << endl;
 
   outStream << "~SpatialPooler" << endl;
@@ -1271,4 +1274,20 @@ void SpatialPooler::printState(vector<Real> &state) {
     std::printf("%6.3f ", state[i]);
   }
   std::cout << "]\n";
+}
+
+/** equals implementation based on serialization */
+bool SpatialPooler::operator==(const SpatialPooler& o) const{
+  stringstream s;
+  s.flags(ios::scientific);
+  s.precision(numeric_limits<double>::digits10 + 1);
+  
+  this->save(s);
+  const string thisStr = s.str();
+
+  s.str(""); //clear stream
+  o.save(s);
+  const string otherStr = s.str();
+
+  return thisStr == otherStr;
 }

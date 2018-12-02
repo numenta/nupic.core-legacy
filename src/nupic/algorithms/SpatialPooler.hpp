@@ -88,6 +88,11 @@ public:
 
   virtual ~SpatialPooler() {}
 
+  // equals operators
+  virtual bool operator==(const SpatialPooler& o) const;
+  inline bool operator!=(const SpatialPooler& o) const { return !this->operator==(o); }
+  inline bool equals(const SpatialPooler& o) const { return this->operator==(o); } //equals is for PY
+
 
   /**
   Initialize the spatial pooler using the given parameters.

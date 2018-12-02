@@ -95,6 +95,8 @@ TEST(RandomTest, OperatorEquals) {
     r2.getUInt32();
 
   r2 = r1;
+  NTA_ASSERT(r1 == r2); 
+
   UInt32 v1, v2;
   for (int i = 0; i < 100; i++) {
     v1 = r1.getUInt32();

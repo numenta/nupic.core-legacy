@@ -88,6 +88,9 @@ public:
 
   std::string toString() const;
 
+  // empirically estimate relative performance of the machine (HW, current load)
+  static Real getSpeed();
+
 private:
   typedef std::chrono::high_resolution_clock my_clock;
   my_clock::time_point start_time_;
@@ -99,6 +102,8 @@ private:
   bool started_;       // true if was started
 
 }; // class Timer
+
+static Real SPEED = -1; //uninitialized, for getSpeed() 
 
 } // namespace nupic
 

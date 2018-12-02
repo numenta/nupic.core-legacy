@@ -29,10 +29,7 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <ostream>
-#include <queue>
 #include <sstream>
-#include <cstring>
-#include <fstream>
 
 //-----------------------------------------------------------------------
 /**
@@ -60,146 +57,157 @@
  * which Cell's project to which Cell's and Segments.
  *
  * The Cells4 class is used extensively by Python code. Most of the
- * methods are wrapped automatically by SWIG. Some additional methods
- * are explicitly defined in algorithms_impl.i. The memory for
+ * methods are wrapped automatically. The memory buffers for
  * certain states, such as _infActiveStateT, can be initialized as
- * pointers to numpy array buffers, avoiding a copy step.
+ * pointers to numpy array buffers, avoiding a copy step. For C++
+ * implemented BacktrackingTMCpp the Cells4 class owns these state buffers.
  */
 
 namespace nupic {
-namespace algorithms {
-namespace Cells4 {
+  namespace algorithms {
+    namespace Cells4 {
 
-class Cell;
-class Cells4;
-class SegmentUpdate;
+      class Cell;
+      class Cells4;
+      class SegmentUpdate;
 
-/**
- * Class CBasicActivity:
- * Manage activity counters
- *
- * This class is used by CCellSegActivity.  The counters stay well
- * below 255, allowing us to use UChar elements.  The biggest we
- * have seen is 33.  More important than the raw memory utilization
- * is the reduced pressure on L2 cache.  To see the difference,
- * benchmark this version, then try again after changing
- *
- * CCellSegActivity<UChar> _learnActivity;
- * CCellSegActivity<UChar> _inferActivity;
- *
- * to
- *
- * CCellSegActivity<UInt> _learnActivity;
- * CCellSegActivity<UInt> _inferActivity;
- *
- * We leave this class and CCellSegActivity templated to simplify
- * such testing.
- *
- * While we typically test on just one core, our production
- * configuration may run one engine on each core, thereby increasing
- * the pressure on L2.
- *
- * Counts are collected in one function, following a reset, and
- * used in another.
- *
- *                  Collected in                                     Used in
- * _learnActivity   computeForwardPropagation(CStateIndexed& state)
- * getBestMatchingCellT _inferActivity   computeForwardPropagation(CState&
- * state)         inferPhase2
- *
- * The _segment counts are the ones that matter.  The _cell counts
- * are an optimization technique.  They track the maximum count
- * for all segments in that cell.  Since segment counts are
- * interesting only if they exceed a threshold, we can skip all of
- * a cell's segments when the maximum is too small.
- *
- * Repeatedly resetting all the counters in large sparse arrays
- * can be costly, and much of the work is unnecessary when most
- * counters are already zero.  To address this, we track which
- * array elements are nonzero, and at reset time zero only those.
- * If an array is not so sparse, this selective zeroing may be
- * slower than a full memset().  We arbitrarily choose a threshold
- * of 6.25%, past which we use memset() instead of selective
- * zeroing.
- */
-const UInt _MAX_CELLS = 1 << 18; // power of 2 allows efficient array indexing
-const UInt _MAX_SEGS = 1 << 7;   // power of 2 allows efficient array indexing
-typedef unsigned char UChar;     // custom type, since NTA_Byte = Byte is signed
+      /**
+       * Class CBasicActivity:
+       * Manage activity counters
+       *
+       * This class is used by CCellSegActivity.  The counters stay well
+       * below 255, allowing us to use UChar elements.  The biggest we
+       * have seen is 33.  More important than the raw memory utilization
+       * is the reduced pressure on L2 cache.  To see the difference,
+       * benchmark this version, then try again after changing
+       *
+       * CCellSegActivity<UChar> _learnActivity;
+       * CCellSegActivity<UChar> _inferActivity;
+       *
+       * to
+       *
+       * CCellSegActivity<UInt> _learnActivity;
+       * CCellSegActivity<UInt> _inferActivity;
+       *
+       * We leave this class and CCellSegActivity templated to simplify
+       * such testing.
+       *
+       * While we typically test on just one core, our production
+       * configuration may run one engine on each core, thereby increasing
+       * the pressure on L2.
+       *
+       * Counts are collected in one function, following a reset, and
+       * used in another.
+       *
+       *                  Collected in                                     Used in
+       * _learnActivity   computeForwardPropagation(CStateIndexed& state)  getBestMatchingCellT
+       * _inferActivity   computeForwardPropagation(CState& state)         inferPhase2
+       *
+       * The _segment counts are the ones that matter.  The _cell counts
+       * are an optimization technique.  They track the maximum count
+       * for all segments in that cell.  Since segment counts are
+       * interesting only if they exceed a threshold, we can skip all of
+       * a cell's segments when the maximum is too small.
+       *
+       * Repeatedly resetting all the counters in large sparse arrays
+       * can be costly, and much of the work is unnecessary when most
+       * counters are already zero.  To address this, we track which
+       * array elements are nonzero, and at reset time zero only those.
+       * If an array is not so sparse, this selective zeroing may be
+       * slower than a full memset().  We arbitrarily choose a threshold
+       * of 6.25%, past which we use memset() instead of selective
+       * zeroing.
+       */
+      const UInt _MAX_CELLS = 1 << 18;      // power of 2 allows efficient array indexing
+      const UInt _MAX_SEGS  = 1 <<  7;      // power of 2 allows efficient array indexing
+      typedef unsigned char UChar;          // custom type, since NTA_Byte = Byte is signed
 
-template <typename It> class CBasicActivity {
-public:
-  CBasicActivity() {
-    _counter = nullptr;
-    _nonzero = nullptr;
-    _size = 0;
-    _dimension = 0;
-  }
-  ~CBasicActivity() {
-    if (_counter != nullptr)
-      delete[] _counter;
-    if (_nonzero != nullptr)
-      delete[] _nonzero;
-  }
-  void initialize(UInt n) {
-    if (_counter != nullptr)
-      delete[] _counter;
-    if (_nonzero != nullptr)
-      delete[] _nonzero;
-    _counter = new It[n]; // use typename here
-    memset(_counter, 0, n * sizeof(_counter[0]));
-    _nonzero = new UInt[n];
-    _size = 0;
-    _dimension = n;
-  }
-  UInt get(UInt cellIdx) { return _counter[cellIdx]; }
-  void add(UInt cellIdx, UInt incr) {
-    // currently unused, but may need to resurrect
-    if (_counter[cellIdx] == 0)
-      _nonzero[_size++] = cellIdx;
-    _counter[cellIdx] += incr;
-  }
-  It increment(UInt cellIdx) // use typename here
-  {
-    // In the learning phase, the activity count appears never to
-    // reach 255.  Is this a safe assumption?
-    if (_counter[cellIdx] != 0)
-      return ++_counter[cellIdx];
-    _counter[cellIdx] =
-        1; // without this, the inefficient compiler reloads the value from
-           // memory, increments it and stores it back
-    _nonzero[_size++] = cellIdx;
-    return 1;
-  }
-  void max(UInt cellIdx, It val) // use typename here
-  {
-    const It curr = _counter[cellIdx]; // use typename here
-    if (val > curr) {
-      _counter[cellIdx] = val;
-      if (curr == 0)
-        _nonzero[_size++] = cellIdx;
-    }
-  }
-  void reset() {
+      template <typename It>
+      class CBasicActivity
+      {
+      public:
+        CBasicActivity()
+        {
+          _counter = nullptr;
+          _nonzero = nullptr;
+          _size = 0;
+          _dimension = 0;
+        }
+        ~CBasicActivity()
+        {
+          if (_counter != nullptr)
+            delete [] _counter;
+          if (_nonzero != nullptr)
+            delete [] _nonzero;
+        }
+        void initialize(UInt n)
+        {
+          if (_counter != nullptr)
+            delete [] _counter;
+          if (_nonzero != nullptr)
+            delete [] _nonzero;
+          _counter = new It[n];                       // use typename here
+          memset(_counter, 0, n * sizeof(_counter[0]));
+          _nonzero = new UInt[n];
+          _size = 0;
+          _dimension = n;
+        }
+        UInt get(UInt cellIdx)
+        {
+          return _counter[cellIdx];
+        }
+        void add(UInt cellIdx, UInt incr)
+        {
+          // currently unused, but may need to resurrect
+          if (_counter[cellIdx] == 0)
+            _nonzero[_size++] = cellIdx;
+          _counter[cellIdx] += incr;
+        }
+        It increment(UInt cellIdx)                    // use typename here
+        {
+          // In the learning phase, the activity count appears never to
+          // reach 255.  Is this a safe assumption?
+          if (_counter[cellIdx] != 0)
+            return ++_counter[cellIdx];
+          _counter[cellIdx] = 1;                      // without this, the inefficient compiler reloads the value from memory, increments it and stores it back
+          _nonzero[_size++] = cellIdx;
+          return 1;
+        }
+        void max(UInt cellIdx, It val)                // use typename here
+        {
+          const It curr = _counter[cellIdx];          // use typename here
+          if (val > curr) {
+            _counter[cellIdx] = val;
+            if (curr == 0)
+              _nonzero[_size++] = cellIdx;
+          }
+        }
+        void reset()
+        {
 #define REPORT_ACTIVITY_STATISTICS 0
 #if REPORT_ACTIVITY_STATISTICS
-    // report the statistics for this table
-    // Without a high water counter, we can't tell for sure if a
-    // UChar counter overflowed, but it's likely there was no
-    // overflow if all the other counters are below, say, 200.
-    if (_size == 0) {
-      std::cout << "Reset width=" << sizeof(It) << " all zeroes" << std::endl;
-    } else {
-      static std::vector<It> vectStat;
-      vectStat.clear();
-      UInt ndxStat;
-      for (ndxStat = 0; ndxStat < _size; ndxStat++)
-        vectStat.push_back(_counter[_nonzero[ndxStat]]);
-      std::sort(vectStat.begin(), vectStat.end());
-      std::cout << "Reset width=" << sizeof(It) << " size=" << _dimension
-                << " nonzero=" << _size << " min=" << UInt(vectStat.front())
-                << " max=" << UInt(vectStat.back())
-                << " med=" << UInt(vectStat[_size / 2]) << std::endl;
-    }
+          // report the statistics for this table
+          // Without a high water counter, we can't tell for sure if a
+          // UChar counter overflowed, but it's likely there was no
+          // overflow if all the other counters are below, say, 200.
+          if (_size == 0) {
+            std::cout << "Reset width=" << sizeof(It) << " all zeroes" << std::endl;
+          }
+          else {
+            static std::vector<It> vectStat;
+            vectStat.clear();
+            UInt ndxStat;
+            for (ndxStat = 0; ndxStat < _size; ndxStat++)
+              vectStat.push_back(_counter[_nonzero[ndxStat]]);
+            std::sort(vectStat.begin(), vectStat.end());
+            std::cout << "Reset width=" << sizeof(It)
+                      << " size=" << _dimension
+                      << " nonzero=" << _size
+                      << " min=" << UInt(vectStat.front())
+                      << " max=" << UInt(vectStat.back())
+                      << " med=" << UInt(vectStat[_size/2])
+                      << std::endl;
+          }
 #endif
           // zero all the nonzero slots
           if (_size < _dimension / 16) {              // if fewer than 6.25% are nonzero
@@ -320,42 +328,43 @@ public:
          */
 #define SOME_STATES_NOT_INDEXED 1
 #if SOME_STATES_NOT_INDEXED
-  CState _infActiveStateT;
-  CState _infActiveStateT1;
-  CState _infPredictedStateT;
-  CState _infPredictedStateT1;
+        CState _infActiveStateT;
+        CState _infActiveStateT1;
+        CState _infPredictedStateT;
+        CState _infPredictedStateT1;
 #else
-  CStateIndexed _infActiveStateT;
-  CStateIndexed _infActiveStateT1;
-  CStateIndexed _infPredictedStateT;
-  CStateIndexed _infPredictedStateT1;
+        CStateIndexed _infActiveStateT;
+        CStateIndexed _infActiveStateT1;
+        CStateIndexed _infPredictedStateT;
+        CStateIndexed _infPredictedStateT1;
 #endif
-  Real *_cellConfidenceT;
-  Real *_cellConfidenceT1;
-  Real *_colConfidenceT;
-  Real *_colConfidenceT1;
-  bool _ownsMemory; // If true, this class is responsible
-                    // for managing memory of above
-                    // eight arrays.
+        Real* _cellConfidenceT;
+        Real* _cellConfidenceT1;
+        Real* _colConfidenceT;
+        Real* _colConfidenceT1;
+        bool _ownsMemory;                   // If true, this class is responsible
+                                            // for managing memory of above
+                                            // eight arrays.
 
-  CStateIndexed _learnActiveStateT;
-  CStateIndexed _learnActiveStateT1;
-  CStateIndexed _learnPredictedStateT;
-  CStateIndexed _learnPredictedStateT1;
 
-  Real *_cellConfidenceCandidate;
-  Real *_colConfidenceCandidate;
-  Real *_tmpInputBuffer;
+        CStateIndexed _learnActiveStateT;
+        CStateIndexed _learnActiveStateT1;
+        CStateIndexed _learnPredictedStateT;
+        CStateIndexed _learnPredictedStateT1;
+
+        Real* _cellConfidenceCandidate;
+        Real* _colConfidenceCandidate;
+        Real* _tmpInputBuffer;
 #if SOME_STATES_NOT_INDEXED
-  CState _infActiveStateCandidate;
-  CState _infPredictedStateCandidate;
-  CState _infActiveBackup;
-  CState _infPredictedBackup;
+        CState _infActiveStateCandidate;
+        CState _infPredictedStateCandidate;
+        CState _infActiveBackup;
+        CState _infPredictedBackup;
 #else
-  CStateIndexed _infActiveStateCandidate;
-  CStateIndexed _infPredictedStateCandidate;
-  CStateIndexed _infActiveBackup;
-  CStateIndexed _infPredictedBackup;
+        CStateIndexed _infActiveStateCandidate;
+        CStateIndexed _infPredictedStateCandidate;
+        CStateIndexed _infActiveBackup;
+        CStateIndexed _infPredictedBackup;
 #endif
 
   //-----------------------------------------------------------------------
@@ -542,6 +551,7 @@ public:
   void setMaxAge(UInt a) { _maxAge = a; }
   void setMaxSeqLength(UInt v) { _maxSeqLength = v; }
   void setCheckSynapseConsistency(bool val) { _checkSynapseConsistency = val; }
+  void setMaxSynapsesPerSegment(UInt v) { _maxSynapsesPerSegment = v; }
 
   void setMaxSegmentsPerCell(int maxSegs) {
     if (maxSegs != -1) {
@@ -593,7 +603,7 @@ public:
   UInt nSynapsesInCell(UInt cellIdx) const;
 
   //-----------------------------------------------------------------------
-  Cell *getCell(UInt colIdx, UInt cellIdxInCol);
+  Cell& getCell(UInt colIdx, UInt cellIdxInCol);
 
   //-----------------------------------------------------------------------
   UInt getCellIdx(UInt colIdx, UInt cellIdxInCol);
@@ -603,7 +613,7 @@ public:
    * Can return a previously freed segment (segment size == 0) if called with a
    * segIdx which is in the "free" list of the cell.
    */
-  Segment *getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx);
+  Segment& getSegment(UInt colIdx, UInt cellIdxInCol, UInt segIdx);
 
   //-----------------------------------------------------------------------
   /**
@@ -676,7 +686,7 @@ public:
    */
   void computeForwardPropagation(CStateIndexed &state);
 #if SOME_STATES_NOT_INDEXED
-  void computeForwardPropagation(CState &state);
+        void computeForwardPropagation(CState& state);
 #endif
 
         //----------------------------------------------------------------------
@@ -1167,10 +1177,10 @@ public:
       //-----------------------------------------------------------------------
       //std::ostream& operator<<(std::ostream& outStream, const Cells4& cells);
 
-//-----------------------------------------------------------------------
-} // end namespace Cells4
-} // end namespace algorithms
+      //-----------------------------------------------------------------------
+    } // end namespace Cells4
+  } // end namespace algorithms
 } // end namespace nupic
 
-//-----------------------------------------------------------------------
+  //-----------------------------------------------------------------------
 #endif // NTA_Cells4_HPP

@@ -46,6 +46,8 @@
   #include <intrin.h>
 #endif
 
+#include <Eigen/Dense>
+
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Types.hpp>
 #include <nupic/utils/Random.hpp> // For the official Numenta RNG
@@ -211,36 +213,28 @@ inline bool is_zero(const std::pair<T1, T2> &x) {
 }
 
 //--------------------------------------------------------------------------------
-template <typename T> inline bool is_zero(const std::vector<T> &x) {
-  for (size_t i = 0; i != x.size(); ++i)
-    if (!is_zero(x[i]))
-      return false;
-  return true;
-}
+template <typename T>
+inline bool is_zero(const std::vector<T>& x)
+  {
+   const Eigen::Map<const Eigen::Matrix<T, x.size(), 1>> mx(&x);
+   return (mx.maxCoeff() == 0);
+  }
 
 //--------------------------------------------------------------------------------
 // DENSE isZero
 //--------------------------------------------------------------------------------
 /**
  * Scans a binary 0/1 vector to decide whether it is uniformly zero,
- * or if it contains non-zeros (4X faster than C++ loop).
+ * or if it contains non-zeros.
  *
- * If vector x is not aligned on a 16 bytes boundary, the function
- * reverts to slow C++. This can happen when using it with slices of numpy
- * arrays.
- *
- * TODO: find 16 bytes aligned block that can be sent to SSE.
- * TODO: support win32/win64 for the fast path.
  * TODO: can we go faster if working on ints rather than floats?
  */
 template <typename InputIterator>
 inline bool isZero_01(InputIterator x, InputIterator x_end) {
   NTA_ASSERT(x <= x_end);
-
-  for (; x != x_end; ++x)
-    if (*x > 0)
-      return false;
-  return true;
+  const size_t sz = x_end - x;
+  const Eigen::Map<const Eigen::RowVectorXf> mx(x, sz);
+  return (mx.maxCoeff() == 0);
 }
 
 //--------------------------------------------------------------------------------
@@ -700,10 +694,12 @@ inline T2 dot(const std::vector<T1> &x, const Buffer<T2> &y) {
 
 //--------------------------------------------------------------------------------
 inline float dot(const float *x, const float *x_end, const float *y) {
-  float result = 0;
-  for (; x != x_end; ++x, ++y)
-    result += *x * *y;
-  return result;
+    NTA_ASSERT(x_end >= x);
+    const Size sz = x_end - x; 
+    const Eigen::Map<const Eigen::RowVectorXf> mx(x, sz);
+    const Eigen::Map<const Eigen::RowVectorXf> my(y, sz);
+
+    return mx.dot(my);
 }
 
 //--------------------------------------------------------------------------------
