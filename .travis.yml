@@ -53,13 +53,13 @@ virtualenv:
 before_deploy:
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
-  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
-  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
-  - cp ${TRAVIS_BUILD_DIR}/build/release/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
-  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-  - cp ${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-  - mkdir -p $TRAVIS_BUILD_DIR/release
-  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
+###  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
+###  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
+###  - cp ${TRAVIS_BUILD_DIR}/build/release/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
+###  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
+###  - cp ${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
+###  - mkdir -p $TRAVIS_BUILD_DIR/release
+###  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
 
 deploy:
 ## AWS S3 
@@ -105,10 +105,10 @@ notifications:
 before_install:
   - eval "${MATRIX_EVAL}"
   - $CXX --version
-  - echo "Installing pip, setuptools, and wheel"
-  - pip install --upgrade pip setuptools wheel || exit
-  - echo "Installing Python dependencies"
-  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
+###  - echo "Installing pip, setuptools, and wheel"
+###  - pip install --upgrade pip setuptools wheel || exit
+###  - echo "Installing Python dependencies"
+###  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
 
 install:
   # Prepare directories
