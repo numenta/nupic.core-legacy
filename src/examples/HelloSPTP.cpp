@@ -56,11 +56,13 @@ void run() {
 
 
   // initialize SP, TP, Anomaly, AnomalyLikelihood
+  Timer tInit(true);
   ScalarEncoder enc(133, -100.0, 100.0, DIM_INPUT, 0.0, 0.0, false);
   SpatialPooler sp(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS});
   Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
   Anomaly an(5, AnomalyMode::LIKELIHOOD);
+  tInit.stop();
 
   // data for processing input
   vector<UInt> input(DIM_INPUT);
@@ -74,31 +76,42 @@ void run() {
   
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
-  Timer stopwatch(true);
+  Timer tAll(true);
+  Timer tRng, tEnc, tSP, tTP, tAn;
 
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
     //Input
 //    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
+    tRng.start();
     const Real r = rnd.getUInt32(100) - rnd.getUInt32(100)*rnd.getReal64(); //rnd from range -100..100 
+    tRng.stop();
 
     //Encode
+    tEnc.start();
     enc.encodeIntoArray(r, input.data());
+    tEnc.stop();
 
     //SP
+    tSP.start();
     fill(outSP.begin(), outSP.end(), 0);
     sp.compute(input.data(), true, outSP.data());
     sp.stripUnlearnedColumns(outSP.data());
+    tSP.stop();
 
     //TP
+    tTP.start();
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
     tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
+    tTP.stop();
 
     //Anomaly
+    tAn.start();
     res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/); 
     prevPred_ = outTP; //to be used as predicted T-1
+    tAn.stop();
 
     // print
     if (e == EPOCHS - 1) {
@@ -108,11 +121,18 @@ void run() {
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(VectorHelpers::cellsToColumns(outTP, CELLS)), ",", "TP= ");
       NTA_CHECK(outSP[69] == 0) << "A value in SP computed incorrectly";
       NTA_CHECK(outTP[42] == 0) << "Incorrect value in TP";
+      cout << "==============TIMERS============" << endl;
+      cout << "Init:\t" << tInit.getElapsed() << endl;
+      cout << "Random:\t" << tRng.getElapsed() << endl;
+      cout << "Encode:\t" << tEnc.getElapsed() << endl;
+      cout << "SP:\t" << tSP.getElapsed() << endl;
+      cout << "TP:\t" << tTP.getElapsed() << endl;
+      cout << "AN:\t" << tAn.getElapsed() << endl;
     }
   }
 
-  stopwatch.stop();
-  const size_t timeTotal = stopwatch.getElapsed();
+  tAll.stop();
+  const size_t timeTotal = tAll.getElapsed();
   cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
 #ifdef NDEBUG
   const size_t CI_avg_time = 45; //sec
