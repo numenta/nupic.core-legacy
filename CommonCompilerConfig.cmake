@@ -266,7 +266,7 @@ else()
 	#
 
 	set(internal_compiler_warning_flags "")
-	set(cxx_flags_unoptimized "")
+	set(cxx_flags_unoptimized "-std=c++${std_ver}")
 	set(linker_flags_unoptimized "")
 	
 #TODO: CMake automatically generates optimisation flags. Do we need this?

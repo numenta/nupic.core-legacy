@@ -37,7 +37,7 @@ option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." OFF)
 option(PYTHON3_BUILD "Toggle whether to build for Python3.x, default ON." OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE release)
+	set(CMAKE_BUILD_TYPE Release)
 endif()
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
