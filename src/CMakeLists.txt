@@ -299,7 +299,7 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
 add_dependencies(${src_lib_static_nupiccore_solo}
         yaml-cpp-bundle
 		)
-set_property(TARGET ${src_lib_static_nupiccore_solo} PROPERTY COMPILE_FLAGS ${INTERNAL_CXX_FLAGS})
+target_compile_options( ${src_lib_static_nupiccore_solo} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 if(${NUPIC_IWYU})
   set_target_properties(${src_lib_static_nupiccore_solo}

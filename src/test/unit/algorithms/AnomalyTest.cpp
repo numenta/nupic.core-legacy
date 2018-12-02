@@ -114,7 +114,7 @@ TEST(Anomaly, Cumulative) {
                                  3.0f / 9.0f, 2.0f / 3.0f, 8.0f / 9.0f,
                                  1.0f,        2.0f / 3.0f, 1.0f / 3.0f};
 
-  for (int index = 0; index < TEST_COUNT; index++) {
+  for (UInt index = 0; index < TEST_COUNT; index++) {
     ASSERT_FLOAT_EQ(a.compute(acts[index], preds[index]), expected[index]);
   }
 }

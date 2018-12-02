@@ -39,7 +39,7 @@
 # Build gtest lib
 #
 add_library(gtest STATIC ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-set_property(TARGET gtest PROPERTY COMPILE_FLAGS ${INTERNAL_CXX_FLAGS})
+target_compile_options(gtest PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(gtest PUBLIC -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
 target_include_directories(gtest PUBLIC ${REPOSITORY_DIR}/external/common/include)
 

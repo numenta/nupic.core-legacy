@@ -41,8 +41,9 @@
 #                               source files; e.g., for cmake `add_definitions()`
 #	COMMON_COMPILER_DEFINITIONS_STR: string variant of COMMON_COMPILER_DEFINITIONS
 #
-# 	INTERNAL_CXX_FLAGS: string of C++ flags common to both release and debug.  They do contain 'generator' statements.
+# 	INTERNAL_CXX_FLAGS: list of C++ flags common to both release and debug.  They do contain 'generator' statements.
 #                     so make sure the CMake function you use will process them.
+#		      Usable as target_compile_options(target PUBLIC ${INTERNAL_CXX_FLAGS})
 #
 # 	INTERNAL_LINKER_FLAGS: string of linker flags for linking internal executables
 #                      and shared libraries (DLLs) with optimizations that are
@@ -55,6 +56,8 @@
 # 	CMAKE_RANLIB: Name of randomizing tool (ranlib) for static libraries. See cmake documentation
 #
 # 	CMAKE_LINKER: updated, if needed; use ld.gold if available. See cmake documentation
+#
+#	EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED
 #
 #
 # USAGE:
@@ -245,17 +248,17 @@ else()
 	#
 	# Determine stdlib settings
 	#
-	set(stdlib_cxx "")
-	set(stdlib_common "")
+	set(stdlib_cxx)
+	set(stdlib_common)
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	  set(stdlib_cxx "${stdlib_cxx} -stdlib=libc++")
+	  set(stdlib_cxx ${stdlib_cxx} -stdlib=libc++)
 	endif()
 
 # TODO: investigate if we should use static or shared stdlib and gcc lib.
 	if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-		set(stdlib_common "${stdlib_common} -static-libgcc")
-		set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
+		set(stdlib_common ${stdlib_common} -static-libgcc)
+		set(stdlib_cxx ${stdlib_cxx} -static-libstdc++)
 	endif()
 
 
@@ -265,57 +268,57 @@ else()
 	# compiler specific settings and warnings here
 	#
 
-	set(internal_compiler_warning_flags "")
-	set(cxx_flags_unoptimized "-std=c++${std_ver}")
-	set(linker_flags_unoptimized "")
+	set(internal_compiler_warning_flags)
+	set(cxx_flags_unoptimized -std=c++${std_ver})
+	set(linker_flags_unoptimized)
 	
 #TODO: CMake automatically generates optimisation flags. Do we need this?
-	set(optimization_flags_cc "${optimization_flags_cc} -O2")
-	set(optimization_flags_cc "-pipe ${optimization_flags_cc}") #TODO use -Ofast instead of -O3
-	set(optimization_flags_lt "-O2 ${optimization_flags_lt}")
+	set(optimization_flags_cc ${optimization_flags_cc} -O2)
+	set(optimization_flags_cc -pipe ${optimization_flags_cc}) #TODO use -Ofast instead of -O3
+	set(optimization_flags_lt -O2 ${optimization_flags_lt})
 	if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
-		set(optimization_flags_cc "${optimization_flags_cc} -mtune=generic")
+		set(optimization_flags_cc ${optimization_flags_cc} -mtune=generic)
 	endif()
 	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
-		set(optimization_flags_cc "${optimization_flags_cc} -fuse-ld=gold")
+		set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=gold)
 		# NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
 		# with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-		set(optimization_flags_cc "${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto") #TODO fix LTO for clang
-		set(optimization_flags_lt "${optimization_flags_lt} -flto") #TODO LTO for clang too
+		set(optimization_flags_cc ${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto) #TODO fix LTO for clang
+		set(optimization_flags_lt ${optimization_flags_lt} -flto) #TODO LTO for clang too
 	endif()
 
 	# LLVM Clang / Gnu GCC
-	set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_cxx}")
+	set(cxx_flags_unoptimized ${cxx_flags_unoptimized} ${stdlib_cxx})
 
-	set(cxx_flags_unoptimized "${cxx_flags_unoptimized} ${stdlib_common} -fdiagnostics-show-option")
-	set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers")
+	set(cxx_flags_unoptimized ${cxx_flags_unoptimized} ${stdlib_common} -fdiagnostics-show-option)
+	set (internal_compiler_warning_flags ${internal_compiler_warning_flags} -Werror -Wextra -Wreturn-type -Wunused -Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers)
 
 	CHECK_CXX_COMPILER_FLAG(-m${BITNESS} compiler_supports_machine_option)
 	if (compiler_supports_machine_option)
-		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -m${BITNESS}")
-		set(linker_flags_unoptimized "${linker_flags_unoptimized} -m${BITNESS}")
+		set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -m${BITNESS})
+		set(linker_flags_unoptimized ${linker_flags_unoptimized} -m${BITNESS})
 	endif()
 	if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
-		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -marm")
-		set(linker_flags_unoptimized "${linker_flags_unoptimized} -marm")
+		set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -marm)
+		set(linker_flags_unoptimized ${linker_flags_unoptimized} -marm)
 	endif()
 
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fPIC")
-		set (internal_compiler_warning_flags "${internal_compiler_warning_flags} -Wall")
+		set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -fPIC)
+		set (internal_compiler_warning_flags ${internal_compiler_warning_flags} -Wall)
 
 		if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-		  set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -Wno-deprecated-register")
+		  set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -Wno-deprecated-register)
 		endif()
 	endif()
 
-	set(shared_linker_flags_unoptimized "${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx}")
+	set(shared_linker_flags_unoptimized ${shared_linker_flags_unoptimized} ${stdlib_common} ${stdlib_cxx})
 
 	# Don't allow undefined symbols when linking executables
 	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-	  set(linker_flags_unoptimized "${linker_flags_unoptimized} -Wl,--no-undefined")
+	  set(linker_flags_unoptimized ${linker_flags_unoptimized} -Wl,--no-undefined)
 	elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	  set(linker_flags_unoptimized "${linker_flags_unoptimized} -Wl,-undefined,error")
+	  set(linker_flags_unoptimized ${linker_flags_unoptimized} -Wl,-undefined,error)
 	endif()
 
 
@@ -346,12 +349,12 @@ else()
 	set(debug_specific_linker_flags)
 
 	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-	  set (debug_specific_compile_flags "${debug_specific_compile_flags} -g")
+	  set (debug_specific_compile_flags ${debug_specific_compile_flags} -g)
 
-	  set(debug_specific_linker_flags "${debug_specific_linker_flags} -O0")
+	  set(debug_specific_linker_flags ${debug_specific_linker_flags} -O0)
 
 	  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR MINGW)
-		set (debug_specific_compile_flags "${debug_specific_compile_flags} -Og")
+		set (debug_specific_compile_flags ${debug_specific_compile_flags} -Og)
 
 		# Enable diagnostic features of standard class templates, including ability
 		# to examine containers in gdb.
@@ -374,8 +377,8 @@ else()
 	#
 
 	# Settings for internal nupic.core code
-	set(INTERNAL_CXX_FLAGS "${debug_specific_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc}")
-	set(INTERNAL_LINKER_FLAGS "${debug_specific_linker_flags} ${linker_flags_unoptimized} ${optimization_flags_lt}")
+	set(INTERNAL_CXX_FLAGS ${debug_specific_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc})
+	set(INTERNAL_LINKER_FLAGS ${debug_specific_linker_flags} ${linker_flags_unoptimized} ${optimization_flags_lt})
 	
 	#
 	# Common system libraries for shared libraries and executables

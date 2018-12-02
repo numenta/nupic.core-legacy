@@ -48,7 +48,12 @@ if(MSVC)
        set(yamlcpplib_built_archive_file "${yamlcpplib_install_lib_dir}/libyaml-cppmdd.lib")
    endif()
 else()
-   set(flags ${INTERNAL_CXX_FLAGS})
+   # Provide a string variant of the INTERNAL_CXX_FLAGS list
+   set(flags)
+   foreach(flag_item ${INTERNAL_CXX_FLAGS})
+     set(flags "${flags} ${flag_item}")
+   endforeach()
+
    set(yamlcpplib_built_archive_file
       "${yamlcpplib_install_lib_dir}/${CMAKE_STATIC_LIBRARY_PREFIX}yaml-cpp${CMAKE_STATIC_LIBRARY_SUFFIX}")
 endif()
