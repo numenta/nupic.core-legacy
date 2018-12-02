@@ -544,6 +544,7 @@ UInt SpatialPooler::initMapColumn_(UInt column) const {
   return inputConv.toIndex(inputCoords);
 }
 
+
 vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
   NTA_ASSERT(column < numColumns_);
   const UInt centerInput = initMapColumn_(column);
@@ -621,7 +622,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
 
   UInt numConnected = 0u;
   vector<Real> connectedSparse;
-  for (Size i = 0; i < perm.size(); ++i) { //TODO use binary2Sparse
+  for (Size i = 0; i < perm.size(); ++i) {
     if (perm[i] >= synPermConnected_ - PERMANENCE_EPSILON) {
       connectedSparse.push_back(i);
       ++numConnected;
@@ -629,29 +630,19 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
   }
 
   clip_(perm, true);
-  connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(), 
-                                      connectedSparse.end());
+  connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(), connectedSparse.end());
   permanences_.setRowFromDense(column, perm);
   connectedCounts_[column] = numConnected;
 }
 
 
-UInt SpatialPooler::countConnected_(const vector<Real> &perm) const {
-  UInt numConnected = 0;
-  for (auto &elem : perm) {
-    if (elem >= synPermConnected_ - PERMANENCE_EPSILON) {
-      ++numConnected;
-    }
-  }
-  return numConnected;
-}
-
-
-UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
+void SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
                                                  const vector<UInt>& potential) const
 {
   clip_(perm, false);
   UInt numConnected = countConnected_(perm);
+  std::cout << "#connected= " << numConnected << " #perm= " << perm.size() << " #pot= " << potential.size() << std::endl;
+
   while (numConnected < stimulusThreshold_) //TODO avoid the while-true loop, grow syns in 1 step
   {
     for (auto & elem : potential) {
@@ -659,7 +650,7 @@ UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
     }
     numConnected = countConnected_(perm);
   }
-  return numConnected;
+
 }
 
 

@@ -944,8 +944,7 @@ public:
   */
   void updatePermanencesForColumn_(vector<Real> &perm, UInt column,
                                    bool raisePerm = true);
-  UInt countConnected_(const vector<Real> &perm) const;
-  UInt raisePermanencesToThreshold_(vector<Real> &perm,
+  void raisePermanencesToThreshold_(vector<Real> &perm,
                                     const vector<UInt> &potential) const;
 
   /**
