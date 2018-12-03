@@ -139,8 +139,7 @@ RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 
 
 Spec *RegionImplFactory::getSpec(const std::string nodeType) {
-  std::map<std::string, std::shared_ptr<RegisteredRegionImpl>>::iterator it;
-  it = regionTypeMap.find(nodeType);
+  auto it = regionTypeMap.find(nodeType);
   if (it == regionTypeMap.end()) {
 	NTA_THROW << "getSpec() -- unknown node type: '" << nodeType
 		      << "'.  Custom node types must be registed before they can be used.";
