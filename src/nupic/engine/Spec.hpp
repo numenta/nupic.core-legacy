@@ -116,7 +116,8 @@ public:
   AccessMode accessMode;
 };
 
-struct Spec {
+class Spec {
+public:
   // Return a printable string with Spec information
   // TODO: should this be in the base API or layered? In the API right
   // now since we do not build layered libraries.
@@ -130,6 +131,7 @@ struct Spec {
   // Description of the node as a whole
   std::string description;
 
+  // containers for the components of the spec.
   Collection<InputSpec> inputs;
   Collection<OutputSpec> outputs;
   Collection<CommandSpec> commands;
