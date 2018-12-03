@@ -668,7 +668,6 @@ void SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
   for (const auto& elem : potential) {
     perm[elem] += increment;
   }
-  NTA_ASSERT(countConnected_(perm) >= stimulusThreshold_); 
 }
 
 

@@ -27,7 +27,7 @@
 #                               of yaml-cpp library objects.
 #   YAML_CPP_STATIC_LIB_INC_DIR: directory of installed yaml-cpp lib headers
 
-include(../src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+include(${REPOSITORY_DIR}/src/NupicLibraryUtils.cmake) # for MERGE_STATIC_LIBRARIES
 
 
 # Output static library target for linking and dependencies
@@ -38,15 +38,27 @@ set(yamlcpplib_url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-re
 set(yamlcpplib_install_prefix "${EP_BASE}/Install/YamlCppStaticLib")
 set(yamlcpplib_install_lib_dir "${yamlcpplib_install_prefix}/lib")
 
-# Export directory of installed yaml-cpp lib headers to parent
-set(YAML_CPP_STATIC_LIB_INC_DIR "${yamlcpplib_install_prefix}/include")
-
+#TODO: How to get CMake to figure out this path for MSVC
 # Path to static yaml-cpp installed by external project
-set(yamlcpplib_built_archive_file
-    "${yamlcpplib_install_lib_dir}/${STATIC_PRE}yaml-cpp${STATIC_SUF}")
+if(MSVC)
+   set(flags "/W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:${INTERNAL_CPP_STANDARD} /MT") 
+   if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+       set(yamlcpplib_built_archive_file "${yamlcpplib_install_lib_dir}/libyaml-cppmd.lib")
+   else()
+       set(yamlcpplib_built_archive_file "${yamlcpplib_install_lib_dir}/libyaml-cppmdd.lib")
+   endif()
+else()
+   # Provide a string variant of the INTERNAL_CXX_FLAGS list
+   set(flags)
+   foreach(flag_item ${INTERNAL_CXX_FLAGS})
+     set(flags "${flags} ${flag_item}")
+   endforeach()
 
-set(c_flags "${EXTERNAL_C_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
-set(cxx_flags "${EXTERNAL_CXX_FLAGS_OPTIMIZED} ${COMMON_COMPILER_DEFINITIONS_STR}")
+   set(yamlcpplib_built_archive_file
+      "${yamlcpplib_install_lib_dir}/${CMAKE_STATIC_LIBRARY_PREFIX}yaml-cpp${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif()
+
+message(STATUS "FLAGS in yaml: ${flags}")
 
 ExternalProject_Add(YamlCppStaticLib
 
@@ -61,10 +73,8 @@ ExternalProject_Add(YamlCppStaticLib
         -DYAML_CPP_BUILD_TOOLS=OFF
 	-DYAML_CPP_BUILD_TESTS=OFF # causes build errors with gtest (as of YamlCpp 0.6.2)
         -DYAML_CPP_BUILD_CONTRIB=OFF
-        -DCMAKE_C_FLAGS=${c_flags}
-        -DCMAKE_CXX_FLAGS=${cxx_flags}
+        -DCMAKE_CXX_FLAGS=${flags}
         -DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
-        ${EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED}
 )
 
 
@@ -72,3 +82,7 @@ ExternalProject_Add(YamlCppStaticLib
 merge_static_libraries(${YAML_CPP_STATIC_LIB_TARGET}
                        "${yamlcpplib_built_archive_file}")
 add_dependencies(${YAML_CPP_STATIC_LIB_TARGET} YamlCppStaticLib)
+
+# Export directory of installed yaml-cpp lib headers to parent
+set(yaml-cpp_INCLUDE_DIRS "${yamlcpplib_install_prefix}/include" PARENT_SCOPE)
+set(yaml-cpp_LIBRARIES ${yamlcpplib_built_archive_file} PARENT_SCOPE)

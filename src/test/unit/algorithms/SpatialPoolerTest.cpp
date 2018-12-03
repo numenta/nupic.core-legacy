@@ -945,10 +945,10 @@ TEST(SpatialPoolerTest, testUpdateBoostFactors) {
   SpatialPooler sp;
   setup(sp, 5, 6);
 
-  Real initActiveDutyCycles1[] = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
-  Real initBoostFactors1[] = {0, 0, 0, 0, 0, 0};
-  vector<Real> trueBoostFactors1 = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-  vector<Real> resultBoostFactors1(6, 0);
+  Real32 initActiveDutyCycles1[] = {0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f};
+  Real32 initBoostFactors1[] = {0, 0, 0, 0, 0, 0};
+  vector<Real32> trueBoostFactors1 = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+  vector<Real32> resultBoostFactors1(6.0f, 0);
   sp.setGlobalInhibition(false);
   sp.setBoostStrength(10);
   sp.setBoostFactors(initBoostFactors1);
@@ -957,11 +957,11 @@ TEST(SpatialPoolerTest, testUpdateBoostFactors) {
   sp.getBoostFactors(resultBoostFactors1.data());
   ASSERT_TRUE(check_vector_eq(trueBoostFactors1, resultBoostFactors1));
 
-  Real initActiveDutyCycles2[] = {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
-  Real initBoostFactors2[] = {0, 0, 0, 0, 0, 0};
-  vector<Real> trueBoostFactors2 = {3.10599, 0.42035,    6.91251,
-                                    5.65949, 0.00769898, 2.54297};
-  vector<Real> resultBoostFactors2(6, 0);
+  Real32 initActiveDutyCycles2[] = {0.1f, 0.3f, 0.02f, 0.04f, 0.7f, 0.12f};
+  Real32 initBoostFactors2[] = {0, 0, 0, 0, 0, 0};
+  vector<Real32> trueBoostFactors2 = {3.10599f, 0.42035f,    6.91251f,
+                                    5.65949f, 0.00769898f, 2.54297f};
+  vector<Real32> resultBoostFactors2(6.0f, 0.0f);
   sp.setGlobalInhibition(false);
   sp.setBoostStrength(10);
   sp.setBoostFactors(initBoostFactors2);
@@ -971,11 +971,11 @@ TEST(SpatialPoolerTest, testUpdateBoostFactors) {
 
   ASSERT_TRUE(check_vector_eq(trueBoostFactors2, resultBoostFactors2));
 
-  Real initActiveDutyCycles3[] = {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
+  Real32 initActiveDutyCycles3[] = {0.1f, 0.3f, 0.02f, 0.04f, 0.7f, 0.12f};
   Real initBoostFactors3[] = {0, 0, 0, 0, 0, 0};
-  vector<Real> trueBoostFactors3 = {1.25441, 0.840857, 1.47207,
-                                    1.41435, 0.377822, 1.20523};
-  vector<Real> resultBoostFactors3(6, 0);
+  vector<Real32> trueBoostFactors3 = {1.25441f, 0.840857f, 1.47207f,
+                                    1.41435f, 0.377822f, 1.20523f};
+  vector<Real32> resultBoostFactors3(6.0f, 0);
   sp.setWrapAround(true);
   sp.setGlobalInhibition(false);
   sp.setBoostStrength(2.0);
@@ -988,11 +988,11 @@ TEST(SpatialPoolerTest, testUpdateBoostFactors) {
 
   ASSERT_TRUE(check_vector_eq(trueBoostFactors3, resultBoostFactors3));
 
-  Real initActiveDutyCycles4[] = {0.1, 0.3, 0.02, 0.04, 0.7, 0.12};
-  Real initBoostFactors4[] = {0, 0, 0, 0, 0, 0};
-  vector<Real> trueBoostFactors4 = {1.94773, 0.263597,   4.33476,
-                                    3.549,   0.00482795, 1.59467};
-  vector<Real> resultBoostFactors4(6, 0);
+  Real32 initActiveDutyCycles4[] = {0.1f, 0.3f, 0.02f, 0.04f, 0.7f, 0.12f};
+  Real32 initBoostFactors4[] = {0, 0, 0, 0, 0, 0};
+  vector<Real32> trueBoostFactors4 = {1.94773f, 0.263597f,   4.33476f,
+                                    3.549f,   0.00482795f, 1.59467f};
+  vector<Real32> resultBoostFactors4(6, 0);
   sp.setGlobalInhibition(true);
   sp.setBoostStrength(10);
   sp.setNumActiveColumnsPerInhArea(1);
@@ -1077,11 +1077,11 @@ TEST(SpatialPoolerTest, testCalculateOverlapPct) {
                              {5, 3, 1, 0, 0},
                              {1, 1, 1, 1, 1}};
 
-  Real trueOverlapsPct[5][5] = {{0.0, 0.0, 0.0, 0.0, 0.0},
-                                {1.0, 1.0, 1.0, 1.0, 1.0},
-                                {0.5, 0.5, 0.5, 0.5, 0.5},
-                                {0.5, 3.0 / 8, 1.0 / 6, 0, 0},
-                                {1.0 / 10, 1.0 / 8, 1.0 / 6, 1.0 / 4, 1.0 / 2}};
+  Real32 trueOverlapsPct[5][5] = {{0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+                                {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+                                {0.5f, 0.5f, 0.5f, 0.5f, 0.5f},
+                                {0.5f, 3.0f / 8, 1.0f / 6, 0, 0},
+                                {1.0f / 10, 1.0f / 8.0f, 1.0f / 6, 1.0f / 4, 1.0f / 2}};
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPermanence(i, permArr[i]);
@@ -1571,8 +1571,8 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
 
 TEST(SpatialPoolerTest, testInitPermNonConnected) {
   SpatialPooler sp;
-  EXPECT_TRUE(sp.getSynPermMax() == 1.0) << sp.getSynPermMax(); 
-  Real synPermConnected = 0.2;
+  EXPECT_TRUE(sp.getSynPermMax() == 1.0) << sp.getSynPermMax();
+  Real32 synPermConnected = 0.2f;
   EXPECT_NO_THROW(sp.setSynPermConnected(synPermConnected))  << sp.getSynPermMax();
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermNonConnected_();
@@ -1908,8 +1908,8 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
 
   // This exact number of active columns is determined by the inhibition
   // radius, which changes based on the random synapses (i.e. weird math).
-  EXPECT_GT(countNonzero(activeColumns), 2);
-  EXPECT_LT(countNonzero(activeColumns), 10);
+  EXPECT_GT(countNonzero(activeColumns), 2u);
+  EXPECT_LT(countNonzero(activeColumns), 10u);
 }
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
@@ -1918,17 +1918,17 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
 
   SpatialPooler sp({inputSize}, {nColumns},
                    /*potentialRadius*/ 10,
-                   /*potentialPct*/ 0.5,
+                   /*potentialPct*/ 0.5f,
                    /*globalInhibition*/ false,
-                   /*localAreaDensity*/ -1.0,
+                   /*localAreaDensity*/ -1.0f,
                    /*numActiveColumnsPerInhArea*/ 3,
                    /*stimulusThreshold*/ 1,
-                   /*synPermInactiveDec*/ 0.008,
-                   /*synPermActiveInc*/ 0.05,
-                   /*synPermConnected*/ 0.1,
-                   /*minPctOverlapDutyCycles*/ 0.001,
+                   /*synPermInactiveDec*/ 0.008f,
+                   /*synPermActiveInc*/ 0.05f,
+                   /*synPermConnected*/ 0.1f,
+                   /*minPctOverlapDutyCycles*/ 0.001f,
                    /*dutyCyclePeriod*/ 1000,
-                   /*boostStrength*/ 10.0,
+                   /*boostStrength*/ 10.0f,
                    /*seed*/ 1,
                    /*spVerbosity*/ 0,
                    /*wrapAround*/ true);
@@ -1970,17 +1970,17 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
       /*inputDimensions*/ {100},
       /*columnDimensions*/ {100},
       /*potentialRadius*/ 16,
-      /*potentialPct*/ 0.5,
+      /*potentialPct*/ 0.5f,
       /*globalInhibition*/ true,
-      /*localAreaDensity*/ -1.0,
+      /*localAreaDensity*/ -1.0f,
       /*numActiveColumnsPerInhArea*/ 10,
       /*stimulusThreshold*/ 0,
-      /*synPermInactiveDec*/ 0.008,
-      /*synPermActiveInc*/ 0.05,
-      /*synPermConnected*/ 0.1,
-      /*minPctOverlapDutyCycles*/ 0.001,
+      /*synPermInactiveDec*/ 0.008f,
+      /*synPermActiveInc*/ 0.05f,
+      /*synPermConnected*/ 0.1f,
+      /*minPctOverlapDutyCycles*/ 0.001f,
       /*dutyCyclePeriod*/ 1000,
-      /*boostStrength*/ 0.0,
+      /*boostStrength*/ 0.0f,
       /*seed*/ 1,
       /*spVerbosity*/ 0,
       /*wrapAround*/ true);
@@ -1991,15 +1991,15 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
       /*inputDimensions*/ {100},
       /*columnDimensions*/ {100},
       /*potentialRadius*/ 16,
-      /*potentialPct*/ 0.5,
+      /*potentialPct*/ 0.5f,
       /*globalInhibition*/ true,
-      /*localAreaDensity*/ -1.0,
+      /*localAreaDensity*/ -1.0f,
       /*numActiveColumnsPerInhArea*/ 10,
       /*stimulusThreshold*/ 0,
-      /*synPermInactiveDec*/ 0.008,
-      /*synPermActiveInc*/ 0.05,
-      /*synPermConnected*/ 0.1,
-      /*minPctOverlapDutyCycles*/ 0.001,
+      /*synPermInactiveDec*/ 0.008f,
+      /*synPermActiveInc*/ 0.05f,
+      /*synPermConnected*/ 0.1f,
+      /*minPctOverlapDutyCycles*/ 0.001f,
       /*dutyCyclePeriod*/ 1000,
       /*boostStrength*/ 0.0,
       /*seed*/ 1,
@@ -2017,18 +2017,18 @@ TEST(SpatialPoolerTest, testClip) {
   sp.setSynPermMax(1.337);
   sp.setSynPermTrimThreshold(0.2);
 
-  vector<Real> test{-0.001, 0.1, 2.1};
-  const vector<Real> exp {0.0, 0.1, 1.337};
-  const vector<Real> exp2{0.0, 0.0, 1.337};
+  vector<Real32> test{-0.001f, 0.1f, 2.1f};
+  const vector<Real32> exp {0.0f, 0.1f, 1.337f};
+  const vector<Real32> exp2{0.0f, 0.0f, 1.337f};
 
   sp.clip_(test); //clip to 0.0 .. 1.337
   for(UInt i=0; i< test.size(); i++) {
-    ASSERT_NEAR(exp[i], test[i], 0.0001) << "clip ";
+    ASSERT_NEAR(exp[i], test[i], 0.0001f) << "clip ";
   }
 
   sp.clip_(test, true); //clip trim small <0.2 to 0.0
   for(UInt i=0; i< test.size(); i++) {
-    ASSERT_NEAR(exp2[i], test[i], 0.0001) << "clip 2";
+    ASSERT_NEAR(exp2[i], test[i], 0.0001f) << "clip 2";
   }
 
 }

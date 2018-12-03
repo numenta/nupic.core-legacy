@@ -67,13 +67,20 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
   void ScalarSensor::compute()
   {
     Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
-    UInt uintArray[encoder_->getOutputWidth()];
-    const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, uintArray);
-    ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
-    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
-    {
-      array[i] = (Real32)uintArray[i]; // copy values back to SP's 'array' array
-    }
+    UInt *uintArray = new UInt[encoder_->getOutputWidth()];
+	try {
+	    const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, uintArray);
+	    ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
+	    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
+	    {
+	      array[i] = (Real32)uintArray[i]; // copy values back to SP's 'array' array
+	    }
+	}
+	catch(Exception& e) {
+    	delete[] uintArray;
+		throw e;
+	}
+    delete[] uintArray;
   }
 
 ScalarSensor::~ScalarSensor() { delete encoder_; }
@@ -145,15 +152,14 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
                                    "false", // defaultValue
                                    ParameterSpec::ReadWriteAccess));
 
-  ns->parameters.add(
-      "clipInput",
-      ParameterSpec(
-          "Whether to clip inputs if they're outside [minValue, maxValue]",
-          NTA_BasicType_Bool,
-          1,       // elementCount
-          "",      // constraints
-          "false", // defaultValue
-          ParameterSpec::ReadWriteAccess));
+  ns->parameters.add("clipInput",
+                    ParameterSpec(
+                                  "Whether to clip inputs if they're outside [minValue, maxValue]",
+                                  NTA_BasicType_Bool,
+                                  1,       // elementCount
+                                  "",      // constraints
+                                  "false", // defaultValue
+                                  ParameterSpec::ReadWriteAccess));
 
   /* ----- outputs ----- */
 

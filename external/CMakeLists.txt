@@ -22,36 +22,32 @@
 cmake_minimum_required(VERSION 3.3)
 project(nupic_core CXX)
 
+
+if( POLICY CMP0074 )
+  # The new policy CMP0074 says use <packageName>_ROOT in findPackage search.
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 include(GNUInstallDirs)
-
-set_directory_properties(PROPERTIES EP_BASE "${EP_BASE}")
-
-# Shorter aliases for static library prefix and suffix.
-set(STATIC_PRE ${CMAKE_STATIC_LIBRARY_PREFIX})
-set(STATIC_SUF ${CMAKE_STATIC_LIBRARY_SUFFIX})
-# This is the library prefix path.
-set(LIB_PRE ${EP_BASE}/Install/${CMAKE_INSTALL_LIBDIR})
-# This is the include path.
-set(INCLUDE_PRE ${EP_BASE}/Install/include)
-# The full prefix path for binaries.
-set(BIN_PRE ${EP_BASE}/Install/bin)
-
 include(ExternalProject)
+set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
 
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
+################
+# Yaml-cpp
+include(YamlCppLib.cmake)
 
-include(Swig)
+##################
+#  Boost
+include(Boost.cmake)
 
+##################
+# gtest
+include(gtest.cmake)
 
-include(YamlCppLib)
-set(YAML_CPP_STATIC_LIB_TARGET ${YAML_CPP_STATIC_LIB_TARGET} PARENT_SCOPE)
-set(YAML_CPP_STATIC_LIB_INC_DIR ${YAML_CPP_STATIC_LIB_INC_DIR} PARENT_SCOPE)
-list(APPEND EXTERNAL_INCLUDE_DIRS ${YAML_CPP_STATIC_LIB_INC_DIR})
-
-# Add vendored prebuilt library include paths.
-list(APPEND EXTERNAL_INCLUDE_DIRS
-     "${PROJECT_SOURCE_DIR}/common/include")
-
-
-set(EXTERNAL_INCLUDE_DIRS ${EXTERNAL_INCLUDE_DIRS} PARENT_SCOPE)
+##################
+# pybind11
+if(PYTHON_BUILD2 OR PYTHON_BUILD3)
+  include(pybind11.cmake)
+endif()
