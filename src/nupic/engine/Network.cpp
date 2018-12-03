@@ -45,7 +45,7 @@ Implementation of the Network class
 
 namespace nupic {
 
-class GenericRegisteredRegionImpl;
+class RegisteredRegionImpl;
 
 Network::Network() {
   commonInit();
@@ -771,22 +771,17 @@ void Network::resetProfiling() {
     regions_.getByIndex(i).second->resetProfiling();
 }
 
-void Network::registerPyRegion(const std::string module,
-                               const std::string className) {
-  Region::registerPyRegion(module, className);
+  /*
+   * Adds a region to the RegionImplFactory's list of packages
+   */
+void Network::registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
+	Region::registerRegion(name, wrapper);
 }
-
-void Network::registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper) {
-  Region::registerCPPRegion(name, wrapper);
-}
-
-void Network::unregisterPyRegion(const std::string className) {
-  Region::unregisterPyRegion(className);
-}
-
-void Network::unregisterCPPRegion(const std::string name) {
-  Region::unregisterCPPRegion(name);
+  /*
+   * Removes a region from RegionImplFactory's list of packages
+   */
+void Network::unregisterRegion(const std::string name) {
+	Region::unregisterRegion(name);
 }
 
 bool Network::operator==(const Network &o) const {

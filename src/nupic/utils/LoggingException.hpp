@@ -55,8 +55,7 @@ public:
   }
 
   // for Index.hpp: // because stringstream cant take << vector
-  LoggingException &
-  operator<<(std::vector<nupic::UInt32, std::allocator<nupic::UInt32>> v) {
+  LoggingException& operator<<(std::vector<nupic::UInt32, std::allocator<nupic::UInt32> > v) {
     lmessageValid_ = false;
     ss_ << "[";
     for (auto &elem : v)

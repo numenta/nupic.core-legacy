@@ -158,22 +158,12 @@ const Spec *Region::getSpecFromType(const std::string &nodeType) {
   return factory.getSpec(nodeType);
 }
 
-void Region::registerPyRegion(const std::string module,
-                              const std::string className) {
-  RegionImplFactory::registerPyRegion(module, className);
+void Region::registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
+	RegionImplFactory::registerRegion(name, wrapper);
 }
 
-void Region::registerCPPRegion(const std::string name,
-                               GenericRegisteredRegionImpl *wrapper) {
-  RegionImplFactory::registerCPPRegion(name, wrapper);
-}
-
-void Region::unregisterPyRegion(const std::string className) {
-  RegionImplFactory::unregisterPyRegion(className);
-}
-
-void Region::unregisterCPPRegion(const std::string name) {
-  RegionImplFactory::unregisterCPPRegion(name);
+void Region::unregisterRegion(const std::string name) {
+	RegionImplFactory::unregisterRegion(name);
 }
 
 const Dimensions &Region::getDimensions() const { return dims_; }
@@ -253,7 +243,7 @@ std::string Region::getLinkErrors() const {
 size_t Region::getNodeOutputElementCount(const std::string &name) {
   // Use output count if specified in nodespec, otherwise
   // ask the Impl
-  NTA_CHECK(spec_->outputs.contains(name));
+  NTA_CHECK(spec_->outputs.contains(name)) << "No output named '" << name << "' in the spec";
   size_t count = spec_->outputs.getByName(name).count;
   if (count == 0) {
     try {

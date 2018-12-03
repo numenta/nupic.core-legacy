@@ -43,7 +43,7 @@
 //   else, use boost::filesystem
 // else use boost::filesystem
 // Note: For the boost version link with boost system, filesystem libraries.
-#if __cplusplus >= 201703L || (defined(_MSC_VER) && _MSC_VER >= 1914)
+#if __cplusplus >= 201703L
   // C++17 or greater
   #if __has_include ( <filesystem> )
     #include <filesystem>
