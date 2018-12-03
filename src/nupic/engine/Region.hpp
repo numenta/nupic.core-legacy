@@ -51,7 +51,7 @@ class Output;
 class Input;
 class ArrayRef;
 class Array;
-struct Spec;
+class Spec;
 class NodeSet;
 class BundleIO;
 class Timer;
@@ -144,26 +144,13 @@ public:
   static const Spec *getSpecFromType(const std::string &nodeType);
 
   /*
-   * Adds a Python module and class to the RegionImplFactory's regions
-   */
-  static void registerPyRegion(const std::string module,
-                               const std::string className);
-
-  /*
    * Adds a cpp region to the RegionImplFactory's packages
    */
-  static void registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper);
-
-  /*
-   * Removes a Python module and class from the RegionImplFactory's regions
-   */
-  static void unregisterPyRegion(const std::string className);
-
+  static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper);
   /*
    * Removes a cpp region from the RegionImplFactory's packages
    */
-  static void unregisterCPPRegion(const std::string name);
+  static void unregisterRegion(const std::string name);
 
   /**
    * @}
