@@ -505,12 +505,13 @@ TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   UInt numColumns = 5;
   setup(sp, numInputs, numColumns);
   vector<UInt> overlaps;
+  SDR active({numColumns});
 
   Real initOverlapArr1[] = {1, 1, 1, 1, 1};
   sp.setOverlapDutyCycles(initOverlapArr1);
   Real overlapNewVal1[] = {1, 5, 7, 0, 0};
   overlaps.assign(overlapNewVal1, overlapNewVal1 + numColumns);
-  UInt active[] = {0, 0, 0, 0, 0};
+  active.setDense(vector<Byte>({0, 0, 0, 0, 0}));
 
   sp.setIterationNum(2);
   sp.updateDutyCycles_(overlaps, active);
@@ -768,7 +769,7 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
   UInt numInputs = 8;
   setup(sp, numInputs, numColumns);
 
-  vector<UInt> activeColumns;
+  SDR activeColumns({numColumns});
   vector<UInt> inputVector;
 
   UInt potentialArr1[4][8] = {{1, 1, 1, 1, 0, 0, 0, 0},
@@ -792,7 +793,8 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
       {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
   //    -      -      -      -      -      -      -       -
 
-  UInt inputArr1[8] = {1, 0, 0, 1, 1, 0, 1, 0};
+  SDR input1({8});
+  input1.setDense(SDR_dense_t{1, 0, 0, 1, 1, 0, 1, 0});
   UInt activeColumnsArr1[3] = {0, 1, 2};
 
   for (UInt column = 0; column < numColumns; column++) {
@@ -800,9 +802,9 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
     sp.setPermanence(column, permanencesArr1[column]);
   }
 
-  activeColumns.assign(&activeColumnsArr1[0], &activeColumnsArr1[3]);
+  activeColumns.setFlatSparse(activeColumnsArr1, 3);
 
-  sp.adaptSynapses_(inputArr1, activeColumns);
+  sp.adaptSynapses_(input1, activeColumns);
   cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
@@ -832,7 +834,8 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
       {0.170, 0.000, 0.000, 0.000, 0.000, 0.000, 0.380, 0.000}};
   //  #  -    -      -      -      -       -       -     -
 
-  UInt inputArr2[8] = {1, 0, 0, 1, 1, 0, 1, 0};
+  SDR input2({8});
+  input2.setDense(SDR_dense_t{1, 0, 0, 1, 1, 0, 1, 0});
   UInt activeColumnsArr2[3] = {0, 1, 2};
 
   for (UInt column = 0; column < numColumns; column++) {
@@ -840,9 +843,9 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
     sp.setPermanence(column, permanencesArr2[column]);
   }
 
-  activeColumns.assign(&activeColumnsArr2[0], &activeColumnsArr2[3]);
+  activeColumns.setFlatSparse(activeColumnsArr2, 3);
 
-  sp.adaptSynapses_(inputArr2, activeColumns);
+  sp.adaptSynapses_(input2, activeColumns);
   cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
@@ -907,50 +910,33 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
 TEST(SpatialPoolerTest, testUpdateDutyCyclesHelper) {
   SpatialPooler sp;
   vector<Real> dutyCycles;
-  vector<UInt> newValues;
+  SDR newValues({5});
   UInt period;
 
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr1[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
+  Real dutyCyclesArr1[] = {1., 1., 1., 1., 1.};
   Real newValues1[] = {0, 0, 0, 0, 0};
   period = 1000;
-  Real trueDutyCycles1[] = {999.0, 999.0, 999.0, 999.0, 999.0};
+  Real trueDutyCycles1[] = {0.999, 0.999, 0.999, 0.999, 0.999};
   dutyCycles.assign(dutyCyclesArr1, dutyCyclesArr1 + 5);
-  newValues.assign(newValues1, newValues1 + 5);
+  newValues.setDense(newValues1);
   sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
   ASSERT_TRUE(check_vector_eq(trueDutyCycles1, dutyCycles));
 
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr2[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
-  Real newValues2[] = {1000, 1000, 1000, 1000, 1000};
+  Real dutyCyclesArr2[] = {1., 1., 1., 1., 1.};
+  Real newValues2[] = {1, 1, 1, 1, 1};
   period = 1000;
-  Real trueDutyCycles2[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
+  Real trueDutyCycles2[] = {1., 1., 1., 1., 1.};
   dutyCycles.assign(dutyCyclesArr2, dutyCyclesArr2 + 5);
-  newValues.assign(newValues2, newValues2 + 5);
+  newValues.setDense(newValues2);
   sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
   ASSERT_TRUE(check_vector_eq(trueDutyCycles2, dutyCycles));
 
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr3[] = {1000.0, 1000.0, 1000.0, 1000.0, 1000.0};
-  Real newValues3[] = {2000, 4000, 5000, 6000, 7000};
-  period = 1000;
-  Real trueDutyCycles3[] = {1001.0, 1003.0, 1004.0, 1005.0, 1006.0};
-  dutyCycles.assign(dutyCyclesArr3, dutyCyclesArr3 + 5);
-  newValues.assign(newValues3, newValues3 + 5);
-  sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
-  ASSERT_TRUE(check_vector_eq(trueDutyCycles3, dutyCycles));
-
-  dutyCycles.clear();
-  newValues.clear();
-  Real dutyCyclesArr4[] = {1000.0, 800.0, 600.0, 400.0, 2000.0};
+  Real dutyCyclesArr4[] = {1., .8, .6, .4, .2};
   Real newValues4[] = {0, 0, 0, 0, 0};
   period = 2;
-  Real trueDutyCycles4[] = {500.0, 400.0, 300.0, 200.0, 1000.0};
+  Real trueDutyCycles4[] = {.5, .4, .3, .2, .1};
   dutyCycles.assign(dutyCyclesArr4, dutyCyclesArr4 + 5);
-  newValues.assign(newValues4, newValues4 + 5);
+  newValues.setDense(newValues4);
   sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
   ASSERT_TRUE(check_vector_eq(trueDutyCycles4, dutyCycles));
 }
@@ -1064,7 +1050,9 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
 
   for (UInt i = 0; i < numTrials; i++) {
     vector<UInt> overlaps;
-    sp.calculateOverlap_(inputs[i], overlaps);
+    SDR input({numInputs});
+    input.setDense(SDR_dense_t(inputs[i], inputs[i] + numInputs));
+    sp.calculateOverlap_(input, overlaps);
     ASSERT_TRUE(check_vector_eq(trueOverlaps[i], overlaps));
   }
 }
@@ -1410,21 +1398,23 @@ TEST(SpatialPoolerTest, testIsUpdateRound) {
 
 TEST(SpatialPoolerTest, testRaisePermanencesToThreshold) {
   SpatialPooler sp;
-  UInt stimulusThreshold = 3;
-  Real synPermConnected = 0.1;
-  Real synPermBelowStimulusInc = 0.01;
-  UInt numInputs = 5;
-  UInt numColumns = 7;
-  setup(sp, numInputs, numColumns);
+  const UInt stimulusThreshold = 3;
+  const Real synPermConnected = 0.1;
+  const Real synPermBelowStimulusInc = 0.01;
+  const UInt nInps = 5;
+  const UInt nCols = 7;
+  setup(sp, nInps, nCols);
   sp.setStimulusThreshold(stimulusThreshold);
   sp.setSynPermConnected(synPermConnected);
   sp.setSynPermBelowStimulusInc(synPermBelowStimulusInc);
 
-  UInt potentialArr[7][5] = {{1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
+  const UInt potentialArr[nCols][nInps] = {
+	                     {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
                              {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},
                              {0, 1, 1, 1, 0}};
 
-  Real permArr[7][5] = {{0.0, 0.11, 0.095, 0.092, 0.01},
+  const Real permArr[nCols][nInps] = {
+	                {0.0, 0.11, 0.095, 0.092, 0.01},
                         {0.12, 0.15, 0.02, 0.12, 0.09},
                         {0.51, 0.081, 0.025, 0.089, 0.31},
                         {0.18, 0.0601, 0.11, 0.011, 0.03},
@@ -1432,7 +1422,7 @@ TEST(SpatialPoolerTest, testRaisePermanencesToThreshold) {
                         {0.12, 0.056, 0, 0, 0.078},
                         {0, 0.061, 0.07, 0.14, 0}};
 
-  Real truePerm[7][5] = {
+  Real truePerm[nCols][nInps] = {
       {0.01, 0.12, 0.105, 0.102, 0.02},    // incremented once
       {0.12, 0.15, 0.02, 0.12, 0.09},      // no change
       {0.53, 0.101, 0.045, 0.109, 0.33},   // increment twice
@@ -1441,20 +1431,20 @@ TEST(SpatialPoolerTest, testRaisePermanencesToThreshold) {
       {0.17, 0.106, 0, 0, 0.128},          // increment 5 times
       {0, 0.101, 0.11, 0.18, 0}};          // increment 4 times
 
-  UInt trueConnectedCount[7] = {3, 3, 4, 3, 5, 3, 3};
-
-  for (UInt i = 0; i < numColumns; i++) {
+  for (UInt i = 0; i < nCols; i++) {
     vector<Real> perm;
     vector<UInt> potential;
-    perm.assign(&permArr[i][0], &permArr[i][numInputs]);
-    for (UInt j = 0; j < numInputs; j++) {
+    perm.assign(&permArr[i][0], &permArr[i][nInps]);
+    for (UInt j = 0; j < nInps; j++) {
       if (potentialArr[i][j] > 0) {
         potential.push_back(j);
       }
     }
-    UInt connected = sp.raisePermanencesToThreshold_(perm, potential);
+    sp.raisePermanencesToThreshold_(perm, potential);
+    for(UInt j = 0; j<nInps; j++) {
+      EXPECT_FLOAT_EQ(truePerm[i][j], perm[j]); 
+    }
     ASSERT_TRUE(check_vector_eq(truePerm[i], perm));
-    ASSERT_TRUE(connected == trueConnectedCount[i]);
   }
 }
 
@@ -1591,17 +1581,17 @@ TEST(SpatialPoolerTest, testInitPermNonConnected) {
   }
 }
 
-TEST(SpatialPoolerTest, testMapColumn) {
+TEST(SpatialPoolerTest, testinitMapColumn) {
   {
     // Test 1D.
     SpatialPooler sp(
         /*inputDimensions*/ {12},
         /*columnDimensions*/ {4});
 
-    EXPECT_EQ(1, sp.mapColumn_(0));
-    EXPECT_EQ(4, sp.mapColumn_(1));
-    EXPECT_EQ(7, sp.mapColumn_(2));
-    EXPECT_EQ(10, sp.mapColumn_(3));
+    EXPECT_EQ(1, sp.initMapColumn_(0));
+    EXPECT_EQ(4, sp.initMapColumn_(1));
+    EXPECT_EQ(7, sp.initMapColumn_(2));
+    EXPECT_EQ(10, sp.initMapColumn_(3));
   }
 
   {
@@ -1610,10 +1600,10 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {4},
         /*columnDimensions*/ {4});
 
-    EXPECT_EQ(0, sp.mapColumn_(0));
-    EXPECT_EQ(1, sp.mapColumn_(1));
-    EXPECT_EQ(2, sp.mapColumn_(2));
-    EXPECT_EQ(3, sp.mapColumn_(3));
+    EXPECT_EQ(0, sp.initMapColumn_(0));
+    EXPECT_EQ(1, sp.initMapColumn_(1));
+    EXPECT_EQ(2, sp.initMapColumn_(2));
+    EXPECT_EQ(3, sp.initMapColumn_(3));
   }
 
   {
@@ -1622,7 +1612,7 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {1},
         /*columnDimensions*/ {1});
 
-    EXPECT_EQ(0, sp.mapColumn_(0));
+    EXPECT_EQ(0, sp.initMapColumn_(0));
   }
 
   {
@@ -1631,11 +1621,11 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {36, 12},
         /*columnDimensions*/ {12, 4});
 
-    EXPECT_EQ(13, sp.mapColumn_(0));
-    EXPECT_EQ(49, sp.mapColumn_(4));
-    EXPECT_EQ(52, sp.mapColumn_(5));
-    EXPECT_EQ(58, sp.mapColumn_(7));
-    EXPECT_EQ(418, sp.mapColumn_(47));
+    EXPECT_EQ(13, sp.initMapColumn_(0));
+    EXPECT_EQ(49, sp.initMapColumn_(4));
+    EXPECT_EQ(52, sp.initMapColumn_(5));
+    EXPECT_EQ(58, sp.initMapColumn_(7));
+    EXPECT_EQ(418, sp.initMapColumn_(47));
   }
 
   {
@@ -1644,13 +1634,13 @@ TEST(SpatialPoolerTest, testMapColumn) {
         /*inputDimensions*/ {3, 5},
         /*columnDimensions*/ {4, 4});
 
-    EXPECT_EQ(0, sp.mapColumn_(0));
-    EXPECT_EQ(4, sp.mapColumn_(3));
-    EXPECT_EQ(14, sp.mapColumn_(15));
+    EXPECT_EQ(0, sp.initMapColumn_(0));
+    EXPECT_EQ(4, sp.initMapColumn_(3));
+    EXPECT_EQ(14, sp.initMapColumn_(15));
   }
 }
 
-TEST(SpatialPoolerTest, testMapPotential1D) {
+TEST(SpatialPoolerTest, testinitMapPotential1D) {
   vector<UInt> inputDim, columnDim;
   inputDim.push_back(12);
   columnDim.push_back(4);
@@ -1666,28 +1656,28 @@ TEST(SpatialPoolerTest, testMapPotential1D) {
   sp.setPotentialPct(1.0);
 
   UInt expectedMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
-  mask = sp.mapPotential_(0, false);
+  mask = sp.initMapPotential_(0, false);
   ASSERT_TRUE(check_vector_eq(expectedMask1, mask));
 
   UInt expectedMask2[12] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0};
-  mask = sp.mapPotential_(2, false);
+  mask = sp.initMapPotential_(2, false);
   ASSERT_TRUE(check_vector_eq(expectedMask2, mask));
 
   // Test with wrapAround and potentialPct = 1
   sp.setPotentialPct(1.0);
 
   UInt expectedMask3[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
-  mask = sp.mapPotential_(0, true);
+  mask = sp.initMapPotential_(0, true);
   ASSERT_TRUE(check_vector_eq(expectedMask3, mask));
 
   UInt expectedMask4[12] = {1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
-  mask = sp.mapPotential_(3, true);
+  mask = sp.initMapPotential_(3, true);
   ASSERT_TRUE(check_vector_eq(expectedMask4, mask));
 
   // Test with potentialPct < 1
   sp.setPotentialPct(0.5);
   UInt supersetMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
-  mask = sp.mapPotential_(0, true);
+  mask = sp.initMapPotential_(0, true);
   ASSERT_TRUE(sum(mask) == 3);
 
   UInt unionMask1[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -1698,7 +1688,7 @@ TEST(SpatialPoolerTest, testMapPotential1D) {
   ASSERT_TRUE(check_vector_eq(unionMask1, supersetMask1, 12));
 }
 
-TEST(SpatialPoolerTest, testMapPotential2D) {
+TEST(SpatialPoolerTest, testinitMapPotential2D) {
   vector<UInt> inputDim, columnDim;
   inputDim.push_back(6);
   inputDim.push_back(12);
@@ -1719,14 +1709,14 @@ TEST(SpatialPoolerTest, testMapPotential2D) {
       1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  mask = sp.mapPotential_(0, false);
+  mask = sp.initMapPotential_(0, false);
   ASSERT_TRUE(check_vector_eq(expectedMask1, mask));
 
   UInt expectedMask2[72] = {
       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  mask = sp.mapPotential_(2, false);
+  mask = sp.initMapPotential_(2, false);
   ASSERT_TRUE(check_vector_eq(expectedMask2, mask));
 
   // Test with wrapAround
@@ -1736,22 +1726,20 @@ TEST(SpatialPoolerTest, testMapPotential2D) {
       1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
-  mask = sp.mapPotential_(0, true);
+  mask = sp.initMapPotential_(0, true);
   ASSERT_TRUE(check_vector_eq(expectedMask3, mask));
 
   UInt expectedMask4[72] = {
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
-  mask = sp.mapPotential_(3, true);
+  mask = sp.initMapPotential_(3, true);
   ASSERT_TRUE(check_vector_eq(expectedMask4, mask));
 }
 
 TEST(SpatialPoolerTest, testStripUnlearnedColumns) {
   SpatialPooler sp;
-  vector<UInt> inputDim, columnDim;
-  inputDim.push_back(5);
-  columnDim.push_back(3);
+  vector<UInt> inputDim{5}, columnDim{3};
   sp.initialize(inputDim, columnDim);
 
   // None learned, none active

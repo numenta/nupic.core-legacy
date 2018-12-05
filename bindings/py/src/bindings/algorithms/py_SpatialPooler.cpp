@@ -300,20 +300,6 @@ namespace nupic_ext
             return py::array_t<Real>({ overlaps.size() }, overlaps.data());
         });
 
-        /////////////////////////
-        // calculateOverlap
-        auto calculateOverlap_func = [](SpatialPooler& self, py::array_t<UInt>& input)
-        {
-            std::vector<nupic::UInt> overlapVector;
-
-            self.calculateOverlap_(get_it(input), overlapVector);
-
-            return py::array_t<UInt>({ overlapVector.size() }, overlapVector.data());
-        };
-
-        py_SpatialPooler.def("_calculateOverlap", calculateOverlap_func);
-        py_SpatialPooler.def("calculateOverlap_", calculateOverlap_func);
-
 
         ////////////////////
         // inhibitColumns
@@ -346,17 +332,6 @@ namespace nupic_ext
         py_SpatialPooler.def("updatePermanencesForColumn_", updatePermanencesForColumn_func);
 
         //////////////////////
-        // updateDutyCycles
-        auto updateDutyCycles_func = [](SpatialPooler& self, py::array_t<UInt>& overlaps, py::array_t<UInt>& activeArray)
-        {
-            std::vector<nupic::UInt> overlapsVector(get_it(overlaps), get_end(overlaps));
-
-            self.updateDutyCycles_(overlapsVector, get_it(activeArray));
-        };
-
-        py_SpatialPooler.def("_updateDutyCycles", updateDutyCycles_func);
-        py_SpatialPooler.def("updateDutyCycles_", updateDutyCycles_func);
-
         // getIterationLearnNum
         py_SpatialPooler.def("getIterationLearnNum", &SpatialPooler::getIterationLearnNum);
 
