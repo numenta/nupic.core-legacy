@@ -43,7 +43,7 @@
 
 namespace nupic {
 
-struct Spec;
+class Spec;
 class Region;
 class Dimensions;
 class Input;
@@ -113,7 +113,7 @@ public:
 
   /**
    * Can't declare a static method in an interface. But RegionFactory
-   * expects to find this method. Caller gets ownership.
+   * expects to find this method. Caller gets ownership of Spec pointer.
    */
 
   // static Spec* createSpec();
@@ -219,6 +219,7 @@ protected:
   Output *getOutput(const std::string &name) const;
 
   const Dimensions &getDimensions();
+
 };
 
 } // namespace nupic

@@ -33,6 +33,8 @@
 #include <string>
 #include <vector>
 
+#include <nupic/engine/RegisteredRegionImpl.hpp>
+#include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Collection.hpp>
 
 #include <nupic/types/Serializable.hpp>
@@ -42,7 +44,7 @@ namespace nupic {
 
 class Region;
 class Dimensions;
-class GenericRegisteredRegionImpl;
+class RegisteredRegionImpl;
 class Link;
 
 /**
@@ -361,26 +363,13 @@ public:
    */
 
   /*
-   * Adds user built region to list of regions
+   * Adds a region implementation to the RegionImplFactory's list of packages
    */
-  static void registerPyRegion(const std::string module,
-                               const std::string className);
-
+  static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper);
   /*
-   * Adds a c++ region to the RegionImplFactory's packages
+   * Removes a region implementation from the RegionImplFactory's list of packages
    */
-  static void registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper);
-
-  /*
-   * Removes a region from RegionImplFactory's packages
-   */
-  static void unregisterPyRegion(const std::string className);
-
-  /*
-   * Removes a c++ region from RegionImplFactory's packages
-   */
-  static void unregisterCPPRegion(const std::string name);
+  static void unregisterRegion(const std::string name);
 
   bool operator==(const Network &other) const;
   inline bool operator!=(const Network &other) const {

@@ -121,8 +121,8 @@ float Timer::getSpeed() {
     for(Size i=0; i<data.size(); i++) {
       data[i]=(Real)rng.getUInt32(80085);
       auto t = data[i];
-      data[i] = data[data.size()-i];
-      data[data.size()-i]=t;
+      data[i] = data[data.size()-i-1];
+      data[data.size()-i-1]=t;
     }
     rng.shuffle(begin(data), end(data));
     std::vector<Real> sins;

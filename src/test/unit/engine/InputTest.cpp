@@ -29,7 +29,7 @@
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/engine/TestNode.hpp>
+#include <nupic/regions/TestNode.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 
 using namespace nupic;

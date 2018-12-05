@@ -79,8 +79,8 @@ BacktrackingTMCpp::BacktrackingTMCpp(
 
   // Check arguments
   NTA_ASSERT(pamLength > 0) << "This implementation must have pamLength > 0";
-  if (maxSegmentsPerCell != -1 or maxSynapsesPerSegment != -1) {
-    NTA_ASSERT(maxSegmentsPerCell > 0 and maxSynapsesPerSegment > 0);
+  if (maxSegmentsPerCell != -1 || maxSynapsesPerSegment != -1) {
+    NTA_ASSERT(maxSegmentsPerCell > 0 && maxSynapsesPerSegment > 0);
     NTA_ASSERT(globalDecay == 0.0f);
     NTA_ASSERT(maxAge == 0);
     NTA_ASSERT((UInt32)maxSynapsesPerSegment >= newSynapseCount)
@@ -568,13 +568,14 @@ std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp
     Real positivePredictionSum = 0;
     for (UInt i=0; i < pattern.size(); i++) {
 	    //debug
-	    std::cout << "=====================================\n";
+      if(getVerbosity() > 0) {
+	   std::cout << "=====================================\n";
 	   cout << "pattern= ";
 	   for (auto e : pattern) cout << e << ", ";
-	  cout << "confidences= ";
-	  for(UInt i=0; i < cells4_->nColumns(); i++) cout << colConfidence[i] << ", ";
-//      NTA_ASSERT(pattern[i] < positiveColumnCount) << "BackTM: " << pattern[i] << " of " << positiveColumnCount;
-      //end-debug
+	     cout << "confidences= ";
+	   for(UInt i=0; i < cells4_->nColumns(); i++) cout << colConfidence[i] << ", ";
+//           NTA_ASSERT(pattern[i] < positiveColumnCount) << "BackTM: " << pattern[i] << " of " << positiveColumnCount;
+      }
       positivePredictionSum += colConfidence[i];
     }
 
@@ -1455,7 +1456,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
       if (verbosity > 0) out << "Active states diverged (infActiveStateT)\n";
       return false;
     }
-    if (memcmp(tm1.getPredictedState(), tm2.getPredictedState(), 
+    if (memcmp(tm1.getPredictedState(), tm2.getPredictedState(),
 			    tm1.getNumCells())) {
       if (verbosity > 0) out << "Predicted states diverged (infPredictedStateT)\n";
       return false;
@@ -1467,7 +1468,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
         if (verbosity > 0) out << "Learn Active states diverged (lrnActiveStateT)\n";
         return false;
       }
-      if (memcmp(tm1.getLearnPredictedStateT(), tm2.getLearnPredictedStateT(), 
+      if (memcmp(tm1.getLearnPredictedStateT(), tm2.getLearnPredictedStateT(),
 			      tm1.getNumCells())) {
         if (verbosity > 0) out << "Learn Predicted states diverged (lrnPredictedStateT)\n";
         return false;
