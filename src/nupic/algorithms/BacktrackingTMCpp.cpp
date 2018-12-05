@@ -568,13 +568,14 @@ std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp
     Real positivePredictionSum = 0;
     for (UInt i=0; i < pattern.size(); i++) {
 	    //debug
-	    std::cout << "=====================================\n";
+      if(getVerbosity() > 0) {
+	   std::cout << "=====================================\n";
 	   cout << "pattern= ";
 	   for (auto e : pattern) cout << e << ", ";
-	  cout << "confidences= ";
-	  for(UInt i=0; i < cells4_->nColumns(); i++) cout << colConfidence[i] << ", ";
-//      NTA_ASSERT(pattern[i] < positiveColumnCount) << "BackTM: " << pattern[i] << " of " << positiveColumnCount;
-      //end-debug
+	     cout << "confidences= ";
+	   for(UInt i=0; i < cells4_->nColumns(); i++) cout << colConfidence[i] << ", ";
+//           NTA_ASSERT(pattern[i] < positiveColumnCount) << "BackTM: " << pattern[i] << " of " << positiveColumnCount;
+      }
       positivePredictionSum += colConfidence[i];
     }
 

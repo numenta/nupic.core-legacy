@@ -326,6 +326,24 @@ merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives
 # The tests were placed in a separate file to avoid clutering up this file.
 add_subdirectory(test)
 
+
+#########################################################
+## Example custom executable
+#
+## Setup benchmark_hotgym
+#
+set(src_executable_hotgym benchmark_hotgym)
+add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
+target_link_libraries(${src_executable_hotgym} ${core_library})
+target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS}) #TODO how to use OPTIMIZED CXX flags? 
+target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+add_custom_target(hotgym
+                  COMMAND ${src_executable_hotgym}
+                  DEPENDS ${src_executable_hotgym}
+                  COMMENT "Executing ${src_executable_hotgym}"
+                  VERBATIM)
+
+
 ##################################################
 #
 # Install targets into CMAKE_INSTALL_PREFIX
@@ -358,6 +376,11 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 	  MESSAGE_NEVER
 	  DESTINATION include)
 
+install(TARGETS
+        ${src_executable_hotgym}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
           
 #
