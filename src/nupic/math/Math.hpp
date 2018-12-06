@@ -811,11 +811,20 @@ struct Gaussian2D // : public std::binary_function<T, T, T> (SWIG pb)
 
 //--------------------------------------------------------------------------------
 /**
+ * This is a 'C++ function object' or Functor.  An object that can be passed
+ * as if it were a C function. It is created by having a class containing an
+ * overload of the ( ) operator.
+ *
+ * The std::unary_function is deprecated in C++11 and removed in C++17.
+ *
  * Compose two unary functions.
  */
-template <typename F1, typename F2>
-struct unary_compose : public std::unary_function<typename F1::argument_type,
-                                                  typename F2::result_type> {
+//template <typename F1, typename F2>
+//struct unary_compose : public std::unary_function<typename F1::argument_type,
+//                                                  typename F2::result_type> {
+//  typedef typename F1::argument_type argument_type;
+//  typedef typename F2::result_type result_type;
+template <typename F1, typename F2> struct unary_compose {
   typedef typename F1::argument_type argument_type;
   typedef typename F2::result_type result_type;
 
@@ -829,22 +838,29 @@ struct unary_compose : public std::unary_function<typename F1::argument_type,
 
 //--------------------------------------------------------------------------------
 /**
+ * This is a 'C++ function object' or Functor.  An object that can be passed
+ * as if it were a C function. It is created by having a class containing an
+ * overload of the ( ) operator.
+ *
+ * TODO: The std::binary_function is deprecated in C++11 and removed in C++17.
+ *
  * Compose an order predicate and a binary selector, so that we can write:
  * sort(x.begin(), x.end(), compose<less<float>, select2nd<pair<int, float> >
  * >()); to sort pairs in increasing order of their second element.
  */
-template <typename O, typename S>
-struct predicate_compose
-    : public std::binary_function<typename S::argument_type,
-                                  typename S::argument_type, bool> {
-  typedef bool result_type;
+//template <typename O, typename S>
+//struct predicate_compose
+//    : public std::binary_function<typename S::argument_type,
+//                                  typename S::argument_type, bool> {
+//  typedef bool result_type;
+//  typedef typename S::argument_type argument_type;
+template <typename O, typename S> struct predicate_compose {
   typedef typename S::argument_type argument_type;
 
-  O o;
-  S s;
+  O o;  // operation function object
+  S s;  // selection function object
 
-  inline result_type operator()(const argument_type &x,
-                                const argument_type &y) const {
+  inline bool operator()(const argument_type &x,  const argument_type &y) const {
     return o(s(x), s(y));
   }
 };

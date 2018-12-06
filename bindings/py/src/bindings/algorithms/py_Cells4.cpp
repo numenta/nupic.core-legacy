@@ -77,12 +77,12 @@ namespace nupic_ext
 
         // def checkConnected(self, permConnected):
         py_segment.def("checkConnected", &Segment_t::checkConnected);
-        
+
         // def empty(self):
         py_segment.def("empty", &Segment_t::empty);
-        
+
         py_segment.def("size", &Segment_t::size);
-        
+
         // def isSequenceSegment(self):
         py_segment.def("isSequenceSegment", &Segment_t::isSequenceSegment);
 
@@ -153,14 +153,14 @@ namespace nupic_ext
         // atDutyCycleTier = staticmethod(atDutyCycleTier)
         py_segment.def_static("atDutyCycleTier", &Segment_t::atDutyCycleTier);
 
-        // 
+        //
         // def persistentSize(self):
         // def write(self, *args):
         //     write(self, proto)
-        // 
+        //
         // def read(self, *args):
         //     read(self, proto)
-        // 
+        //
         // def save(self, outStream):
         // def load(self, inStream):
 
@@ -171,7 +171,7 @@ namespace nupic_ext
 
         py::class_<Cells4_t> py_cells4(m, "Cells4");
 
-        py_cells4.def(py::init<UInt   // nColumns =0, 
+        py_cells4.def(py::init<UInt   // nColumns =0,
             , UInt // nCellsPerCol =0,
             , UInt // activationThreshold =1,
             , UInt // minThreshold =1,
@@ -226,7 +226,7 @@ namespace nupic_ext
 
         py_cells4.def("version", &Cells4_t::version);
 
-        py_cells4.def("getStatePointers", /*&Cells4_t::getStatePointers*/ 
+        py_cells4.def("getStatePointers", /*&Cells4_t::getStatePointers*/
             [](Cells4_t& self
             , py::array_t<nupic::Byte>& activeT
             , py::array_t<nupic::Byte>& activeT1
@@ -238,7 +238,7 @@ namespace nupic_ext
             , py::array_t<nupic::Real32>& confidenceT1
             )
         {
-            throw std::runtime_error("Not implemented."); 
+            throw std::runtime_error("Not implemented.");
         });
 
 
@@ -288,7 +288,7 @@ namespace nupic_ext
         py_cells4.def("nSynapses", &Cells4_t::nSynapses);
 
         py_cells4.def("__nSegmentsOnCell", &Cells4_t::__nSegmentsOnCell);
-        
+
         py_cells4.def("nSynapsesInCell", &Cells4_t::nSynapsesInCell, "Total number of synapses in a given cell (at at given point, changes all the time).");
 
         py_cells4.def("getCell", &Cells4_t::getCell);
@@ -306,10 +306,10 @@ namespace nupic_ext
 
         // def getBestMatchingCellT(self, colIdx, state, minThreshold):
         py_cells4.def("getBestMatchingCellT", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
-        
+
         // def getBestMatchingCellT1(self, colIdx, state, minThreshold):
         py_cells4.def("getBestMatchingCellT1", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
-        
+
         // def computeForwardPropagation(self, *args):
         py_cells4.def("computeForwardPropagation", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
 
@@ -321,7 +321,7 @@ namespace nupic_ext
 
         // def inferPhase2(self):
         py_cells4.def("inferPhase2", &Cells4_t::inferPhase2);
-        
+
         // def inferBacktrack(self, activeColumns):
         py_cells4.def("inferBacktrack", &Cells4_t::inferBacktrack);
 
@@ -336,7 +336,7 @@ namespace nupic_ext
 
         // def learnBacktrack(self):
         py_cells4.def("learnBacktrack", &Cells4_t::learnBacktrack);
-        
+
         // def learnBacktrackFrom(self, startOffset, readOnly):
         py_cells4.def("learnBacktrackFrom", &Cells4_t::learnBacktrackFrom);
 
@@ -348,7 +348,7 @@ namespace nupic_ext
 
         // def getCellForNewSegment(self, colIdx):
         py_cells4.def("chooseCellsToLearnFrom", &Cells4_t::chooseCellsToLearnFrom);
-        
+
         // def computeUpdate(self, cellIdx, segIdx, activeState, sequenceSegmentFlag, newSynapsesFlag):
         py_cells4.def("computeUpdate", &Cells4_t::computeUpdate);
 
@@ -378,13 +378,13 @@ namespace nupic_ext
 
         // def write(self, *args):
         py_cells4.def("write", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
-        
+
         // def read(self, *args):
         py_cells4.def("read", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
-        
+
         // def saveToFile(self, filePath):
         py_cells4.def("saveToFile", &Cells4_t::saveToFile);
-       
+
         // def loadFromFile(self, filePath):
         py_cells4.def("loadFromFile", &Cells4_t::loadFromFile);
 
@@ -402,7 +402,7 @@ namespace nupic_ext
 
         // def updateSegment(self, colIdx, cellIdxInCol, segIdx, extSynapses):
         py_cells4.def("updateSegment", &Cells4_t::updateSegment);
-        
+
         // def _rebalance(self):
         py_cells4.def("_rebalance", &Cells4_t::_rebalance);
 
@@ -436,25 +436,25 @@ namespace nupic_ext
         // def invariants(self, verbose=False):
         py_cells4.def("invariants", &Cells4_t::invariants);
 
-        // def stats(self):
-        py_cells4.def("stats", &Cells4_t::stats);
+/////        // def stats(self):
+/////        py_cells4.def("stats", &Cells4_t::stats);
 
 
         // def __init__(self, *args, **kwargs):
         //   self.this = _ALGORITHMS.new_Cells4(*args, **kwargs)
-        // 
+        //
         //   self.this = _ALGORITHMS.new_Cells4()
         //   self.loadFromString(inString)
-        // 
+        //
         // def read(cls, proto):
-        // 
+        //
         // def write(self, pyBuilder):
         //   """Serialize the Cells4 instance using capnp.
-        // 
-        
+        //
+
         // def _writeAsCapnpPyBytes(self):
         py_cells4.def("_writeAsCapnpPyBytes", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
-        
+
         // def _initFromCapnpPyBytes(self, pyBytes):
         py_cells4.def("_writeAsCapnpPyBytes", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
 

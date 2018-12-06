@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -17,40 +17,25 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- *
- * Author: @chhenning, 2018
  * ---------------------------------------------------------------------
  */
 
 /** @file
-PyBind11 Module for engine classes
-*/
+ * Basic C++ type definitions used throughout `nupic.core` and rely on `Types.h`
+ */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
+#ifndef NTA_PTR_TYPES_HPP
+#define NTA_PTR_TYPES_HPP
 
-#include <pybind11/pybind11.h>
+#include <memory>
 
-namespace py = pybind11;
+namespace nupic {
+  class Link;
+  class Region;
 
-namespace nupic_ext
-{
-    void init_Engine(py::module&);
-    void init_Timer(py::module&);
-    void init_OS(py::module&);
-} // namespace nupic_ext
+  typedef std::shared_ptr<Link> Link_Ptr_t;
+  typedef std::shared_ptr<Region> Region_Ptr_t;
 
-using namespace nupic_ext; 
+} // namespace nupic
 
-PYBIND11_MODULE(engine_internal, m) {
-    m.doc() = "nupic.core.engine plugin"; // optional module docstring
-
-    init_Engine(m);
-    init_OS(m);
-    init_Timer(m);
-}
+#endif // NTA_PTR_TYPES_HPP

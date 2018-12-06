@@ -56,39 +56,19 @@ namespace nupic
         typedef std::map<std::string, Spec> SpecMap;
 
     public:
-		/**
-		* Registers a python region implementation class so that it can be instantiated
-		* when its name is used in a Network::addRegion() call.
-		*
-		* @param nodeType -- a name for the region implementation type. This is normally 
-		*                                   the class name prefixed with 'py_' to  avoid name conflicts.
-                  * @param className -- the name of the Python class that implements the region.
-                  * @param module      -- the module (shared library) in which the class resides.
-                  */
-		static void registerPyRegion(const std::string& nodeType,
-									 const std::string& module,
-                                     const std::string& className) {
-			RegisteredRegionImplPy *reg = new RegisteredRegionImplPy(className, module);
-			RegionImplFactory::registerRegion(nodeType, reg);
-		} 
-		
-		/*
-		  * Removes a region from RegionImplFactory's packages
-		  */
-		static void unregisterPyRegion(const std::string nodeType);
-
-
         // Used by RegionImplFactory via RegisterRegionImplPy  to create and cache a nodespec
-        static void createSpec(const char * nodeType, Spec& ns, const char* className = "");
+        static void createSpec(const char * module, Spec& ns, const char* classname = "");
 
+		// called by .py code  on an already instantiated instance.
+        const Spec & getSpec() { return nodeSpec_; }
 
         // Used by RegisterRegionImplPy to destroy a node spec when clearing its cache
         static void destroySpec(const char * nodeType, const char* className = "");
 
         // Constructors
         PyBindRegion() = delete;
-        PyBindRegion(const char * module, const ValueMap & nodeParams, Region * region, const char* className);
-        PyBindRegion(const char * module, BundleIO& bundle, Region * region, const char* className);
+        PyBindRegion(const char* module, const ValueMap& nodeParams, Region *region, const char* className);
+        PyBindRegion(const char* module, BundleIO& bundle, Region* region, const char* className);
 
         // no copy constructor
         PyBindRegion(const Region &) = delete;
@@ -118,7 +98,7 @@ namespace nupic
 
 
         ////////////////////////////
-        // RegionImpl 
+        // RegionImpl
         ////////////////////////////
 
         size_t getNodeOutputElementCount(const std::string& outputName) override;
@@ -138,7 +118,7 @@ namespace nupic
         virtual UInt64 getParameterUInt64(const std::string& name, Int64 index) override;
         virtual Real32 getParameterReal32(const std::string& name, Int64 index) override;
         virtual Real64 getParameterReal64(const std::string& name, Int64 index) override;
-        virtual pybind11::object getParameterHandle(const std::string& name, Int64 index) override;
+        virtual Handle getParameterHandle(const std::string& name, Int64 index) override;
         virtual bool getParameterBool(const std::string& name, Int64 index) override;
         virtual std::string getParameterString(const std::string& name, Int64 index) override;
 
@@ -169,18 +149,19 @@ namespace nupic
         std::string className_;
 
         pybind11::object node_;
-  		std::set<std::shared_ptr<PyArray<UInt64>>> splitterMaps_;
-        
+  		//std::set<std::shared_ptr<PyArray<UInt64>>> splitterMaps_;
+
         // pointers rather than objects because Array doesnt
         // have a default constructor
         std::map<std::string, Array*> inputArrays_;
 
         static std::string last_error;
-        
+
         Spec nodeSpec_;   // locally cached version of spec.
+
     };
-    
-    
+
+
 
 } // namespace nupic
 

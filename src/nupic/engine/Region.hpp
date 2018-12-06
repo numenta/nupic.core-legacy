@@ -40,6 +40,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/ptr_types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>

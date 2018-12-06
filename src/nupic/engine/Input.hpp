@@ -29,10 +29,7 @@
 #ifndef NTA_INPUT_HPP
 #define NTA_INPUT_HPP
 
-#ifdef SWIG
-#error "Input class should not be wrapped"
-#endif
-
+#include <nupic/types/ptr_types.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
 #include <vector>
@@ -103,7 +100,7 @@ public:
    * @param srcOutput
    *        The output of previous Region, which is also the source of the input
    */
-  void addLink(Link *link, Output *srcOutput);
+  void addLink(Link_Ptr_t link, Output *srcOutput);
 
   /**
    * Locate an existing Link to the input.
@@ -118,7 +115,7 @@ public:
    * @returns
    *     The link if found or @c NULL if no such link exists
    */
-  Link *findLink(const std::string &srcRegionName,
+  Link_Ptr_t findLink(const std::string &srcRegionName,
                  const std::string &srcOutputName);
 
   /**
@@ -141,7 +138,7 @@ public:
    *        The Link to remove, possibly retrieved by findLink(), note that
    *        it is a reference to the pointer, not the pointer itself.
    */
-  void removeLink(Link *&link);
+  void removeLink(Link_Ptr_t& link);
 
   /**
    * Make input data available.
@@ -180,7 +177,7 @@ public:
    * @returns
    *         All the Link objects added to the input
    */
-  const std::vector<Link *> &getLinks();
+  std::vector<Link_Ptr_t> &getLinks();
 
   /**
    *
@@ -261,7 +258,7 @@ private:
   bool isRegionLevel_;
 
   // Use a vector of links because order is important.
-  std::vector<Link *> links_;
+  std::vector<Link_Ptr_t> links_;
 
   // volatile (non-serialized) state
   bool initialized_;

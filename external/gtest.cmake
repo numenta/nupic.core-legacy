@@ -38,8 +38,18 @@
 #
 # Build gtest lib
 #
-add_library(gtest STATIC ${REPOSITORY_DIR}/external/common/src/gtest/gtest-all.cpp)
-target_compile_options(gtest PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(gtest PUBLIC -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
-target_include_directories(gtest PUBLIC ${REPOSITORY_DIR}/external/common/include)
+message(STATUS "Obtaining gtest")
+include(DownloadProject/DownloadProject.cmake)
+download_project(PROJ googletest
+	PREFIX ${EP_BASE}/gtest
+	URL https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz
+	UPDATE_DISCONNECTED 1
+	QUIET
+	)
+	
+	
+#set(gtest_force_shared_crt ON CACHE BOOL "Prevent GoogleTest from overriding our compiler/linker options" FORCE)
+add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 
+set(gtest_INCLUDE_DIRS ${googletest_SOURCE_DIR}/googletest/include)
+set(gtest_LIBRARIES GTest::GTest)

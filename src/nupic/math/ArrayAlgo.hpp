@@ -695,7 +695,7 @@ inline T2 dot(const std::vector<T1> &x, const Buffer<T2> &y) {
 //--------------------------------------------------------------------------------
 inline float dot(const float *x, const float *x_end, const float *y) {
     NTA_ASSERT(x_end >= x);
-    const Size sz = x_end - x; 
+    const Size sz = x_end - x;
     const Eigen::Map<const Eigen::RowVectorXf> mx(x, sz);
     const Eigen::Map<const Eigen::RowVectorXf> my(y, sz);
 

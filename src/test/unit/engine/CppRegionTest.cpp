@@ -137,8 +137,8 @@ void helperCppInputOutputAccess(Region *level1) {
 TEST(CppRegionTest, testCppLinkingFanIn) {
   Network net = Network();
 
-  Region *region1 = net.addRegion("region1", "TestNode", "");
-  Region *region2 = net.addRegion("region2", "TestNode", "");
+  Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
+  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
 
   net.link("region1", "region2", "TestFanIn2", ""); //the only change testCppLinking* is here
 
@@ -224,8 +224,8 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
 TEST(CppRegionTest, testCppLinkingUniformLink) {
   Network net = Network();
 
-  Region *region1 = net.addRegion("region1", "TestNode", "");
-  Region *region2 = net.addRegion("region2", "TestNode", "");
+  Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
+  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
 
   net.link("region1", "region2", "UniformLink", "{mapping: in, rfSize: [2]}"); //the only change testCppLinking* is here
 
@@ -314,7 +314,7 @@ TEST(CppRegionTest, testYAML) {
   const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
   Network net = Network();
-  Region *level1 = nullptr;
+  Region_Ptr_t level1;
   EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});
@@ -357,7 +357,7 @@ Network helperRealmain() {
             << std::endl;
 
   std::cout << "Adding a FDRNode region..." << std::endl;
-  Region *level1 = n.addRegion("level1", "TestNode", "");
+  Region_Ptr_t level1 = n.addRegion("level1", "TestNode", "");
 
   std::cout << "Region count is " << n.getRegions().getCount() << ""
             << std::endl;
@@ -438,7 +438,7 @@ TEST(CppRegionTest, realmain) {
   Dimensions d;
   d.push_back(4);
   d.push_back(4);
-  Region* level1 = n.getRegions().getByName("level1");
+  Region_Ptr_t level1 = n.getRegion("level1");
   level1->setDimensions(d);
 
   std::cout << "Initializing again..." << std::endl;
@@ -446,7 +446,7 @@ TEST(CppRegionTest, realmain) {
 
   level1->compute();
 
-  EXPECT_NO_THROW(helperCppInputOutputAccess(level1));
+  EXPECT_NO_THROW(helperCppInputOutputAccess(level1.get()));
   EXPECT_THROW(level1->getOutputData("doesnotexist"), exception);
 
 //  EXPECT_NO_THROW(testCppLinking("TestFanIn2", ""));  //now called in separate test, but could/should also be called here
@@ -475,7 +475,7 @@ TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixe
   Dimensions d;
   d.push_back(4);
   d.push_back(4);
-  Region* level1 = n.getRegions().getByName("level1");
+  Region_Ptr_t level1 = n.getRegion("level1");
   level1->setDimensions(d);
 
   std::cout << "Initializing again..." << std::endl;
@@ -483,7 +483,7 @@ TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixe
   ASSERT_TRUE(NuPIC::isInitialized()) << "now must be initialized";
 
   level1->compute();
-  helperCppInputOutputAccess(level1);
+  helperCppInputOutputAccess(level1.get());
 	//end main
 
       // testExceptionBug();

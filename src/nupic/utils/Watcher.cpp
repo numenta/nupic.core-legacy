@@ -393,8 +393,7 @@ void Watcher::attachToNetwork(Network& net)
 
   for (UInt i = 0; i < data_.watches.size(); i++) {
     watch = data_.watches.at(i);
-    const Collection<Region *> &regions = net.getRegions();
-    watch.region = regions.getByName(watch.regionName);
+    watch.region = net.getRegion(watch.regionName);
 
       //output general information for each watch
       out << watch.watchID << ", ";

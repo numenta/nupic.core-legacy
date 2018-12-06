@@ -94,7 +94,7 @@ namespace nupic
             try
             {
                 auto key = it->first.c_str();
-                
+
                 auto value = it->second;
                 if (value->isScalar())
                 {
@@ -118,13 +118,13 @@ namespace nupic
                 }
                 else if(value->isString())
                 {
-                    kwargs[key] = value->getString().get();
+                    kwargs[key] = value->getString();
                 }
                 else if (value->isArray())
                 {
                     auto a = value->getArray();
                     kwargs[key] = create_numpy_view(*a.get());
-                    
+
                 }
                 else
                 {
@@ -161,7 +161,7 @@ namespace nupic
         // node_.assign(py::Instance(module_, realClassName, args, kwargs));
         node_ = py::module::import(module_.c_str()).attr(realClassName.c_str())(*args, **kwargs);
         NTA_CHECK(node_);
-        
+
         // Make a local copy of the Spec
         createSpec(module_.c_str(), nodeSpec_, className_.c_str());
 
@@ -173,6 +173,7 @@ namespace nupic
         , className_(className)
 
     {
+
         deserialize(bundle);
         // XXX ADD CHECK TO MAKE SURE THE TYPE MATCHES!
     }
@@ -193,32 +194,59 @@ namespace nupic
         // 1. serialize main state using pickle
         // 2. call class method to serialize external state
 
-        // 1. Serialize main state
+        // 1. Serialize main state of the Python module
+		//    We want this to end up in the open stream obtained from bundle.
+		//    a. We first pickle the python into a temporary file.
+		//    b. copy the file into our open stream.
 
-        // f = open(path, "wb")
-        std::string path = bundle.getPath("pkl");   /// TODO: fix his to write into a stream
-        py::tuple args = py::make_tuple(path, "wb");
-
+		std::ifstream src;
+		std::streambuf* pbuf;
+		std::string tmp_pickle = "pickle.tmp";
+        py::tuple args = py::make_tuple(tmp_pickle, "wb");
         auto f = py::module::import("__builtin__").attr("file")(*args);
 
-		PyObject *pickle;
-		try {
-			pickle = py::module::import("_pickle");
-		} catch(...) {
-			pickle = py::module::import("cpickle");
-		}
-        args = py::make_tuple(node_, f, 2);
+#if PY_MAJOR_VERSION >= 3
+        auto pickle = py::module::import("pickle");
+#else
+        auto pickle = py::module::import("cPickle");
+#endif
+        args = py::make_tuple(node_, f, 2);   // use type 2 protocol
         pickle.attr("dump")(*args);
-
         pickle.attr("close")();
 
+		// get the out stream
+		std::ostream & out = bundle.getOutputStream();
+
+		// copy the pickle into the out stream
+		src.open(tmp_pickle.c_str(), std::ios::binary);
+		pbuf = src.rdbuf();
+		size_t size = pbuf->pubseekoff(0, src.end, src.in);
+		out << "Pickle " << size << std::endl;
+		pbuf->pubseekpos(0, src.in);
+		out << pbuf;
+		src.close();
+		out << "endPickle" << std::endl;
+		Path::remove(tmp_pickle);
+
         // 2. External state
-        // Call the Python serializeExtraData() method
-        std::string externalPath = bundle.getPath("xtra");
-        args = py::make_tuple(externalPath);
-        
+        // Call the Python serializeExtraData() method to write additional data.
+
+        args = py::make_tuple(tmp_pickle);
         // Need to put the None result in py::Ptr to decrement the ref count
         node_.attr("serializeExtraData")(*args);
+
+		// copy the extra data into the out stream
+		src.open(tmp_pickle.c_str(), std::ios::binary);
+		pbuf = src.rdbuf();
+		size = pbuf->pubseekoff(0, src.end, src.in);
+		out << "ExtraData " << size << std::endl;
+		pbuf->pubseekpos(0, src.in);
+		out << pbuf;
+		src.close();
+		Path::remove(tmp_pickle);
+		out << "endExtraData" << std::endl;
+		Path::remove(tmp_pickle);
+
     }
 
     void PyBindRegion::deserialize(BundleIO& bundle)
@@ -226,31 +254,72 @@ namespace nupic
         // 1. deserialize main state using pickle
         // 2. call class method to deserialize external state
 
-        // 1. de-serialize main state using pickle
-        // f = open(path, "rb")  # binary mode needed on windows
-        std::string path = bundle.getPath("pkl");   // TODO: fix this to read from a stream.
-        py::args args = py::make_tuple(path, "rb");
+		std::ofstream des;
+		std::streambuf *pbuf;
+		std::string tmp_pickle = "pickle.tmp";
 
+		// get the input stream
+		std::string tag;
+		size_t size;
+		char buf[10000];
+		std::istream & in = bundle.getInputStream();
+		in >> tag;
+		NTA_CHECK(tag == "Pickle") << "Deserialize error, expecting start of Pickle";
+		in >> size;
+		in.ignore(1);
+		pbuf = in.rdbuf();
+
+		// write the pickle part to pickle.tmp
+		des.open(tmp_pickle.c_str(), std::ios::binary);
+		while(size > 0) {
+			size_t len = (size >= sizeof(buf))?sizeof(buf): size;
+			pbuf->sgetn(buf, len);
+			des.write(buf, len);
+			size -= sizeof(buf);
+		}
+		des.close();
+		in >> tag;
+		NTA_CHECK(tag == "endPickle") << "Deserialize error, expected 'endPickle'\n";
+		in.ignore(1);
+
+		// Tell Python to un-pickle using what is now in the pickle.tmp file.
+        py::args args = py::make_tuple(tmp_pickle, "rb");
         auto f = py::module::import("__builtin__").attr("file")(*args);
 
-		PyObject *pickle;
-		try {
-			pickle = py::module::import("_pickle");
-		} catch(...) {
-			pickle = py::module::import("cpickle");
-		}
+#if PY_MAJOR_VERSION >= 3
+        auto pickle = py::module::import("pickle");
+#else
+        auto pickle = py::module::import("cPickle");
+#endif
 
         args = py::make_tuple(node_, f);
         pickle.attr("load")(*args);
 
         pickle.attr("close")();
+		Path::remove(tmp_pickle);
 
         // 2. External state
-        // Call the Python deSerializeExtraData() method
-        std::string externalPath = bundle.getPath("xtra");
-        args = py::make_tuple(externalPath);
+		// fetch the extraData
+		in >> tag;
+		NTA_CHECK(tag == "ExtraData") << "Deserialize error, expected start of ExtraData\n";
+		in >> size;
+		in.ignore(1);
+		des.open(tmp_pickle.c_str(), std::ios::binary);
+		while(size > 0) {
+			size_t len = (size >= sizeof(buf))?sizeof(buf): size;
+			pbuf->sgetn(buf, len);
+			des.write(buf, len);
+			size -= sizeof(buf);
+		}
+		des.close();
+		in >> tag;
+		NTA_CHECK(tag == "endExtraData") << "Deserialize error, expected 'endExtraData'\n";
+		in.ignore(1);
 
+        // Call the Python deSerializeExtraData() method
+        args = py::make_tuple(tmp_pickle);
         node_.attr("deSerializeExtraData")(*args);
+		Path::remove(tmp_pickle);
     }
 
     template<typename T>
@@ -323,12 +392,10 @@ namespace nupic
         return getParameterT<Real64>(name, index);
     }
 
-    pybind11::object PyBindRegion::getParameterHandle(const std::string& name, Int64 index)
+    Handle PyBindRegion::getParameterHandle(const std::string& name, Int64 index)
     {
-        if (name == "self")
-        {
-            return node_;
-        }
+		throw std::runtime_error("Not implemented");
+
     }
 
 
@@ -486,7 +553,7 @@ namespace nupic
                 char * end1 = begin1 + pa->getCount() * itemSize;
                 char * begin2 = (char *)a.getBuffer();
                 char * end2 = begin2 + a.getCount() * itemSize;
-            
+
                 // Copy the original input array to the stored array
                 std::copy(begin1, end1, begin2);
 
@@ -813,6 +880,7 @@ namespace nupic
     {
         node_.attr("initialize")();
     }
+
 
 } // namespace nupic
 

@@ -50,6 +50,8 @@ PyBind11 bindings for Engine classes
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
+#include <plugin/PyBindRegion.hpp>
+#include <plugin/RegisteredRegionImplPy.hpp>
 
 namespace py = pybind11;
 using namespace nupic;
@@ -70,7 +72,7 @@ namespace nupic_ext
             .def(py::init<size_t>())
             .def(py::init<size_t, size_t>())
             .def(py::init<size_t, size_t, size_t>());
-            
+
         // members
         py_Dimensions.def("getCount", &Dimensions::getCount)
             .def("getDimensionCount", &Dimensions::getDimensionCount)
@@ -124,7 +126,7 @@ namespace nupic_ext
         ///////////////////
 
         py::class_<Region, std::shared_ptr<Region>> py_Region(m, "Region");
-        
+
         py_Region.def("getName", &Region::getName)
             .def("getType", &Region::getType)
             .def("getDimensions", &Region::getDimensions)
@@ -215,13 +217,13 @@ namespace nupic_ext
         ///////////////////
 
         py::class_<Network> py_Network(m, "Network");
-        
+
         // constructors
         py_Network.def(py::init<>())
             .def(py::init<std::string>());
 
-        py_Network.def("addRegion", &nupic::Network::addRegion)
-            .def("getRegions", &nupic::Network::getRegions)
+        py_Network.def("getRegions", &nupic::Network::getRegions)
+            .def("getRegion", &nupic::Network::getRegion)
             .def("getLinks", &nupic::Network::getLinks)
             .def("getMinPhase", &nupic::Network::getMinPhase)
             .def("getMaxPhase", &nupic::Network::getMaxPhase)
@@ -232,8 +234,36 @@ namespace nupic_ext
 
         py_Network.def("initialize", &nupic::Network::initialize);
 
+		py_Network.def("addRegion",
+			(Region_Ptr_t (nupic::Network::*)(
+					const std::string&,
+  					const std::string&,
+                    const std::string&))
+					&nupic::Network::addRegion,
+					"Normal add region."
+					, py::arg("name")
+					, py::arg("nodeType" )
+					, py::arg("nodeParams"));
+		py_Network.def("addRegion",
+			(Region_Ptr_t (nupic::Network::*)(
+			 		std::istream &stream,
+                    std::string))
+					&nupic::Network::addRegion,
+					"add deserialized region."
+					, py::arg("stream")
+					, py::arg("name") = "");
+
+
+		py_Network.def("addRegionFromBundle", &nupic::Network::addRegionFromBundle
+			, "A function to load a serialized region into a Network framework."
+			, py::arg("name")
+			, py::arg("nodeType")
+			, py::arg("dimensions")
+			, py::arg("filename")
+			, py::arg("label") = "");
+
         py_Network.def("link", &nupic::Network::link
-            , ""
+            , "Defines a link between regions"
             , py::arg("srcName"), py::arg("destName")
             , py::arg("linkType"), py::arg("linkParams")
             , py::arg("srcOutput") = "", py::arg("destInput") = "", py::arg("propagationDelay") = 0);
@@ -241,10 +271,18 @@ namespace nupic_ext
 
         // plugin registration
         //     (note: we are re-directing these to static functions on the PyBindRegion class)
-        py_Network.def_static("registerPyRegion", &nupic::PyBindRegion::registerPyBindRegion);
+        py_Network.def_static("registerPyRegion",
+		                 [](const std::string& nodeType,
+							const std::string& module,
+                            const std::string& className) {
+				nupic::RegisteredRegionImplPy::registerPyRegion(nodeType, module, className);
+			});
 
 
-        py_Network.def_static("unregisterPyRegion", &nupic::PyBindRegion::unregisterPyBindRegion);
+        py_Network.def_static("unregisterPyRegion",
+			             [](const std::string& nodeType) {
+				nupic::RegisteredRegionImplPy::unregisterPyRegion(nodeType);
+			});
 
 
 
@@ -261,16 +299,16 @@ namespace nupic_ext
 
         // bare bone sequence protocol
         py_RegionCollection.def("__len__", &Region_Collection_t::getCount);
-        py_RegionCollection.def("__getitem__", [](Region_Collection_t& coll, size_t i) 
-        { 
+        py_RegionCollection.def("__getitem__", [](Region_Collection_t& coll, size_t i)
+        {
             if (i >= coll.getCount())
             {
                 throw py::index_error();
             }
 
-            return coll.getByIndex(i); 
+            return coll.getByIndex(i);
         });
-        
+
         // Links
         typedef Collection<std::shared_ptr<Link>> Link_Collection_t;
         py::class_<Link_Collection_t> py_LinkCollection(m, "Link_Collection_t");

@@ -55,19 +55,19 @@ namespace nupic_ext {
 
         Random.def(py::init<nupic::UInt64>(), py::arg("seed") = 0)
             .def("getUInt32", &Random_t::getUInt32, py::arg("max") = Random_t::MAX32)
-            .def("getUInt64", &Random_t::getUInt64, py::arg("max") = Random_t::MAX64)
+//            .def("getUInt64", &Random_t::getUInt64, py::arg("max") = Random_t::MAX64)
             .def("getReal64", &Random_t::getReal64)
             .def("max", &Random_t::max)
             .def("min", &Random_t::min)
             .def_readonly_static("MAX32", &Random_t::MAX32)
-            .def_readonly_static("MAX64", &Random_t::MAX64);
-
+//            .def_readonly_static("MAX64", &Random_t::MAX64);
+			;
 
         //////////////////
         // sample
         /////////////////
 
-        Random.def("sample", &Random_t::sample<UINT32>);
+//        Random.def("sample", &Random_t::sample<UINT32>);
 
         Random.def("sample",
             [](Random_t& r, py::array_t<nupic::UInt32>& population, py::array_t<nupic::UInt32>& choices)
