@@ -24,6 +24,7 @@
  * Implementation of Connections
  */
 
+#include <algorithm> // nth_element
 #include <climits>
 #include <iomanip>
 #include <iostream>
@@ -210,8 +211,8 @@ void Connections::updateSynapsePermanence(Synapse synapse,
     h.second->onUpdateSynapsePermanence(synapse, permanence);
   }
 
-  permanence = min(permanence, 1.);
-  permanence = max(permanence, 0.);
+  permanence = std::min(permanence, (Permanence) 1. );
+  permanence = std::max(permanence, (Permanence) 0. );
   synapses_[synapse].permanence = permanence;
 }
 
@@ -379,27 +380,27 @@ void Connections::raisePermanencesToThreshold(CellIdx    cell,
                                               SegmentIdx segment,
                                               Permanence permanenceThreshold,
                                               UInt       segmentThreshold,
-                                              Permanence synPermBelowStimulusInc,)
+                                              Permanence synPermBelowStimulusInc)
 {
   if( segmentThreshold == 0 )
     return;
 
   Segment segmentIndex = getSegment(cell, segment);
-  const vector<Synapse> &synapses = synapsesForSegment(segmentIndex);
+  vector<Synapse> &synapses = segments_[segmentIndex].synapses;
 
   // Sort the potential pool by permanence values, and look for the synapse with
   // the N'th greatest permanence, where N is the desired minimum number of
   // connected synapses.  Then calculate how much to increase the N'th synapses
   // permance by such that it becomes a connected synapse.
 
-  auto minPermSynPtr = synapses.begin() + stimulusThreshold_ - 1;
+  auto minPermSynPtr = synapses.begin() + segmentThreshold - 1;
   // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
   // its final sorted position.
   auto permanencesGreater = [&](Synapse &A, Synapse &B)
     { return synapses_[A].permanence > synapses_[B].permanence; };
-  nth_element(synapses.begin(), minPermSynPtr, synapses.end(), permanencesGreater);
+  std::nth_element(synapses.begin(), minPermSynPtr, synapses.end(), permanencesGreater);
 
-  const Real increment = synPermConnected_ - synapses_[ *minPermSynPtr ].permanence;
+  const Real increment = permanenceThreshold - synapses_[ *minPermSynPtr ].permanence;
   if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
     return;            // Enough synapses are already connected.
 

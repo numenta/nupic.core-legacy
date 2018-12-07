@@ -452,7 +452,7 @@ public:
                                     SegmentIdx segment,
                                     Permanence permanenceThreshold,
                                     UInt       segmentThreshold,
-                                    Permanence synPermBelowStimulusInc,);
+                                    Permanence synPermBelowStimulusInc);
 
   /**
    * Modify all permanence on the given segment, uniformly.
