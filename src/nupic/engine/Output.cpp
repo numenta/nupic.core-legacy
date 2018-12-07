@@ -33,7 +33,7 @@
 
 namespace nupic {
 
-Output::Output(Region_Ptr_t region, NTA_BasicType type, bool isRegionLevel,
+Output::Output(Region* region, NTA_BasicType type, bool isRegionLevel,
                bool isSparse)
     : region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"),
       nodeOutputElementCount_(0), isSparse_(isSparse) {
@@ -89,6 +89,7 @@ void Output::addLink(Link_Ptr_t link) {
 }
 
 void Output::removeLink(Link_Ptr_t link) {
+  std::cout << "Output::removeLink: " << name_ << "\n";
   auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
   NTA_CHECK(linkIter != links_.end());
@@ -101,7 +102,7 @@ void Output::removeLink(Link_Ptr_t link) {
 
 bool Output::isRegionLevel() const { return isRegionLevel_; }
 
-Region_Ptr_t Output::getRegion() const { return region_; }
+Region* Output::getRegion() const { return region_; }
 bool Output::isSparse() const { return isSparse_; }
 
 void Output::setName(const std::string &name) { name_ = name; }

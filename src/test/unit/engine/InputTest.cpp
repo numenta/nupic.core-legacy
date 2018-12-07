@@ -40,14 +40,14 @@ TEST(InputTest, BasicNetworkConstruction) {
   Region_Ptr_t r2 = net.addRegion("r2", "TestNode", "");
 
   // Test constructor
-  Input x(r1, NTA_BasicType_Int32, true);
-  Input y(r2, NTA_BasicType_Byte, false);
-  EXPECT_THROW(Input i(r1, (NTA_BasicType)(NTA_BasicType_Last + 1), true),
+  Input x(r1.get(), NTA_BasicType_Int32, true);
+  Input y(r2.get(), NTA_BasicType_Byte, false);
+  EXPECT_THROW(Input i(r1.get(), (NTA_BasicType)(NTA_BasicType_Last + 1), true),
                std::exception);
 
   // test getRegion()
-  ASSERT_EQ(r1, x.getRegion());
-  ASSERT_EQ(r2, y.getRegion());
+  ASSERT_EQ(r1.get(), x.getRegion());
+  ASSERT_EQ(r2.get(), y.getRegion());
 
   // test isRegionLevel()
   ASSERT_TRUE(x.isRegionLevel());

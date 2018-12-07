@@ -37,14 +37,19 @@
 
 namespace nupic {
 
-Input::Input(Region_Ptr_t region, NTA_BasicType dataType, bool isRegionLevel,
+Input::Input(Region* region, NTA_BasicType dataType, bool isRegionLevel,
              bool isSparse)
     : region_(region), isRegionLevel_(isRegionLevel), initialized_(false),
       data_(dataType), name_("Unnamed"), isSparse_(isSparse) {}
 
 Input::~Input() {
   uninitialize();
-  // all input links will be deleted when Input object goes out of scope.
+  for (auto &link : links_) {
+std::cout << "Input::~Input: \n";
+  	link->getSrc().removeLink(link); // remove it from the Output object.
+    // the link is a shared_ptr so it will be deleted when links_ is cleared.
+  }
+  links_.clear();
 }
 
 void Input::addLink(Link_Ptr_t link, Output * srcOutput) {
@@ -71,7 +76,6 @@ void Input::addLink(Link_Ptr_t link, Output * srcOutput) {
 }
 
 void Input::removeLink(Link_Ptr_t &link) {
-//std::cerr << "removeLink cnt=" << links_.size() << " " << link->toString() << std::endl;
   // removeLink should only be called internally -- if it
   // does not exist, it is a logic error
   auto linkiter = links_.begin();
@@ -124,7 +128,7 @@ Array &Input::getData() {
 
 NTA_BasicType Input::getDataType() const { return data_.getType(); }
 
-Region_Ptr_t Input::getRegion() { return region_; }
+Region* Input::getRegion() { return region_; }
 
 std::vector<Link_Ptr_t> &Input::getLinks() { return links_; }
 

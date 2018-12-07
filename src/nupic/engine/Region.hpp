@@ -595,6 +595,8 @@ public:
 
   const std::map<std::string, Output *> &getOutputs() const;
 
+  void clearInputs();
+
   // The following methods are called by Network in initialization
 
   // Returns number of links that could not be fully evaluated
@@ -647,7 +649,7 @@ private:
 
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
-  void createInputsAndOutputs_(Region_Ptr_t r);
+  void createInputsAndOutputs_();
 
   std::string name_;
 

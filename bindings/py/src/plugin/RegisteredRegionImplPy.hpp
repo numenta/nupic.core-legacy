@@ -166,7 +166,7 @@ namespace nupic
             delete sp;
 			NTA_THROW << "PyBindRegion::createSpec failed: unknown exception.";
           }
-          cachedSpec_.reset(sp);  // add it to shared_ptr
+          cachedSpec_.reset(sp);
         }
         return cachedSpec_.get();
       }
@@ -198,8 +198,6 @@ namespace nupic
 
 
     private:
-
-		// A place to hold a cached instance of the Spec.
 		std::shared_ptr<Spec> cachedSpec_;
 
   };

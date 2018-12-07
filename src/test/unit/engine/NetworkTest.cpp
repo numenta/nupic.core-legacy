@@ -159,7 +159,7 @@ TEST(NetworkTest, Modification) {
 
   ASSERT_EQ((UInt32)2, regions.getCount());
 
-  // Should succeed since dimensions are now set
+  // Should succeed since dimensions are set
   net.initialize();
   net.run(1);
   Region_Ptr_t l2 = regions.getByName("level2");
@@ -172,9 +172,11 @@ TEST(NetworkTest, Modification) {
 
   net.removeRegion("level2");
   // net now only contains level1
-  ASSERT_EQ((UInt32)1, regions.getCount());
+  ASSERT_EQ((UInt32)1, regions.getCount()) << "Should be only region 'level1' remaining\n";
   EXPECT_THROW(regions.getByName("level2"), std::exception);
 
+  auto links = net.getLinks();
+  ASSERT_TRUE(links.getCount() == 0) << "Removing the destination region hould have removed the link.";
 
   ASSERT_TRUE(l1 == regions.getByName("level1"));
   l2 = net.addRegion("level2", "TestNode", "");

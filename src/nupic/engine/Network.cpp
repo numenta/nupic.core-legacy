@@ -101,7 +101,7 @@ Region_Ptr_t Network::addRegion(const std::string &name, const std::string &node
     NTA_THROW << "Region with name '" << name << "' already exists in network";
   Region_Ptr_t r = std::make_shared<Region>(name, nodeType, nodeParams, this);
   regions_.add(name, r);
-  r->createInputsAndOutputs_(r);
+  r->createInputsAndOutputs_();
   initialized_ = false;
 
 
@@ -112,7 +112,6 @@ Region_Ptr_t Network::addRegion(const std::string &name, const std::string &node
 Region_Ptr_t Network::addRegion( std::istream &stream, std::string name) {
     Region_Ptr_t r = std::make_shared<Region>(this);
     r->load(stream);
-    r->createInputsAndOutputs_(r);
     if (!name.empty())
       r->name_ = name;
     regions_.add(r->getName(), r);
@@ -141,7 +140,6 @@ Region_Ptr_t Network::addRegionFromBundle(const std::string name,
     in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	Region_Ptr_t r = std::make_shared<Region>(this);
 	r->load(in);
-    r->createInputsAndOutputs_(r);
 	regions_.add(name, r);
 	initialized_ = false;
 
@@ -238,10 +236,12 @@ void Network::removeRegion(const std::string &name) {
   // Network does not have to be uninitialized -- removing a region
   // has no effect on the network as long as it has no outgoing links,
   // which we have already checked.
-  // initialized_ = false;
 
   // Must uninitialize the region prior to removing incoming links
+  // The incoming links are removed when the Input object is deleted.
   r->uninitialize();
+  r->clearInputs();
+
 
   auto phase = phaseInfo_.begin();
   for (; phase != phaseInfo_.end(); phase++) {
@@ -277,7 +277,6 @@ void Network::link(const std::string &srcRegionName,
     NTA_THROW << "Network::link -- source region '" << srcRegionName
               << "' does not exist";
   Region_Ptr_t srcRegion = regions_.getByName(srcRegionName);
-
   if (!regions_.contains(destRegionName))
     NTA_THROW << "Network::link -- dest region '" << destRegionName
               << "' does not exist";
@@ -693,7 +692,6 @@ void Network::load(std::istream &f) {
   {
     Region_Ptr_t r = std::make_shared<Region>(this);
     r->load(f);
-    r->createInputsAndOutputs_(r);
     regions_.add(r->getName(), r);
 
     // We must make a copy of the phases set here because

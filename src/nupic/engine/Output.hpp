@@ -54,7 +54,7 @@ public:
    * @param isSparse
    *        Whether the output is sparse. Default false
    */
-  Output(Region_Ptr_t region, NTA_BasicType type, bool isRegionLevel,
+  Output(Region* region, NTA_BasicType type, bool isRegionLevel,
          bool isSparse = false);
 
   /**
@@ -163,7 +163,7 @@ public:
    * @returns
    *         The mutable reference to the Region that the output belongs to
    */
-  Region_Ptr_t getRegion() const;
+  Region* getRegion() const;
 
   /**
    * Get the count of node output element.
@@ -183,7 +183,8 @@ public:
   bool isSparse() const;
 
 private:
-  Region_Ptr_t region_; // needed for number of nodes
+  // Cannot use the shared_ptr here
+  Region* region_;
   Array data_;
   bool isRegionLevel_;
   // order of links never matters, so store as a set

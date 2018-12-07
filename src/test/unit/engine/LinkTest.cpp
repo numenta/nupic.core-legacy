@@ -140,13 +140,11 @@ TEST(LinkTest, DelayedLink) {
   Region_Ptr_t region1 = net.addRegion("region1", "MyTestNode", "");
   Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
 
-  RegionImplFactory::unregisterRegion("MyTestNode");
 
   Dimensions d1;
   d1.push_back(8);
   d1.push_back(4);
   region1->setDimensions(d1);
-std::cerr << "...Problem in Link\n";
 
   // NOTE: initial delayed values are set to all 0's
   net.link("region1", "region2", "TestFanIn2", "", "", "",
@@ -239,6 +237,7 @@ std::cerr << "...Problem in Link\n";
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(100, idata[i]);
   }
+  RegionImplFactory::unregisterRegion("MyTestNode");
 }
 
 TEST(LinkTest, DelayedLinkSerialization) {
@@ -364,12 +363,11 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // We should have two delayed array values in queue: 10's and 100's
   {
     Link_Ptr_t link = in2->findLink("region1", "bottomUpOut");
-    VERBOSE << "InputLink: " << *link;
+//    VERBOSE << "InputLink: " << *link;
   }
 
   // Serialize the current net
   net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream");
-
   {
     // Output values should still be all 100's
     // they were not modified by the save operation.
@@ -389,7 +387,6 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // De-serialize into a new net2
   Network net2;
   net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream");
-
   net2.initialize();
 
   auto n2region1 = net2.getRegions().getByName("region1");
@@ -407,7 +404,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
 
   {
 	  Link_Ptr_t link = n2in2->findLink("region1", "bottomUpOut");
-    VERBOSE << "Input2: " << *link;
+//    VERBOSE << "Input2: " << *link;
   }
 
   {
@@ -436,13 +433,13 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // Check extraction of first "generated" value.
   {
   	Link_Ptr_t link = n2in2->findLink("region1", "bottomUpOut");
-    VERBOSE << "Input2: " << *link;
+//    VERBOSE << "Input2: " << *link;
 
     net.run(1);
     net2.run(1);
 
 	link = n2in2->findLink("region1", "bottomUpOut");
-    VERBOSE << "Input2: " << *link;
+//    VERBOSE << "Input2: " << *link;
     // confirm that n2in2 is now all 10's
 	ASSERT_EQ(n2in2->getData().getCount(), 64u);
     Real64 *idata = (Real64 *)in2->getData().getBuffer();
