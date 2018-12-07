@@ -127,7 +127,7 @@ namespace nupic
         }
         catch (...)
         {
-            return NULL;
+            NTA_THROW << "Something bad happed while creating a .py region";
         }
 	  }
 
@@ -147,7 +147,7 @@ namespace nupic
         }
         catch (...)
         {
-            return NULL;
+            NTA_THROW << "Something bad happed while deserializing a .py region";
         }
       }
 

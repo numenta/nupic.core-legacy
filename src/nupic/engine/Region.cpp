@@ -67,8 +67,7 @@ Region::Region(std::string name, const std::string &nodeType,
     dims_.push_back(1);
   // else dims_ = []
 
-  impl_ = factory.createRegionImpl(nodeType, nodeParams, this);
-  createInputsAndOutputs_();
+  impl_.reset(factory.createRegionImpl(nodeType, nodeParams, this));
 }
 
 Region::Region(Network *net) {
@@ -83,14 +82,14 @@ Region::Region(Network *net) {
 
 Network *Region::getNetwork() { return network_; }
 
-void Region::createInputsAndOutputs_() {
-
+void Region::createInputsAndOutputs_(Region_Ptr_t r) {
+  // Note: had to pass in a shared_ptr to itself so we can pass it to Inputs & Outputs.
   // Create all the outputs for this node type. By default outputs are zero size
   for (size_t i = 0; i < spec_->outputs.getCount(); ++i) {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
     std::string outputName = p.first;
     const OutputSpec &os = p.second;
-    auto output = new Output(*this, os.dataType, os.regionLevel, os.sparse);
+    auto output = new Output(r, os.dataType, os.regionLevel, os.sparse);
     outputs_[outputName] = output;
     // keep track of name in the output also -- see note in Region.hpp
     output->setName(outputName);
@@ -102,7 +101,7 @@ void Region::createInputsAndOutputs_() {
     std::string inputName = p.first;
     const InputSpec &is = p.second;
 
-    auto input = new Input(*this, is.dataType, is.regionLevel, is.sparse);
+    auto input = new Input(r, is.dataType, is.regionLevel, is.sparse);
     inputs_[inputName] = input;
     // keep track of name in the input also -- see note in Region.hpp
     input->setName(inputName);
@@ -138,9 +137,7 @@ Region::~Region() {
   }
   inputs_.clear();
 
-  if (impl_)
-  	delete impl_;
-
+  // Note: the impl will be deleted when the region goes out of scope.
 }
 
 void Region::initialize() {
@@ -343,8 +340,8 @@ void Region::removeAllIncomingLinks() {
   InputMap::const_iterator i = inputs_.begin();
   for (; i != inputs_.end(); i++) {
     auto &links = i->second->getLinks();
-    for (auto &links_link : links) {
-      i->second->removeLink(links_link);
+	while(links.size() > 0) {
+      i->second->removeLink(links[0]);
     }
   }
 }
@@ -439,10 +436,9 @@ void Region::load(std::istream &f) {
 
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   spec_ = factory.getSpec(type_);
-  createInputsAndOutputs_();
 
   BundleIO bundle(&f);
-  impl_ = factory.deserializeRegionImpl(type_, bundle, this);
+  impl_.reset(factory.deserializeRegionImpl(type_, bundle, this));
 
   f >> tag;
   NTA_CHECK(tag == "}") << "Expected end of region. Found '" << tag << "'.";

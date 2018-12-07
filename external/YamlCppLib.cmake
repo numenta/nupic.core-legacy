@@ -35,7 +35,8 @@ set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "prevent gtest from being build" FORCE)
 set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "prevent contrib modules" FORCE) 
 add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
 
-find_package(yaml-cpp REQUIRED HINT ${yaml-cpp_SOURCE_DIR})
+#find_package(yaml-cpp REQUIRED HINT ${yaml-cpp_SOURCE_DIR})
 set(yaml-cpp_INCLUDE_DIRS ${yaml-cpp_SOURCE_DIR}/include CACHE BOOL "include directory" FORCE) 
-set(yaml-cpp_LIBRARIES   ${YAML_CPP_LIBRARIES}  CACHE BOOL "libraries to link with" FORCE) 
+#set(yaml-cpp_LIBRARIES   ${YAML_CPP_LIBRARIES}  CACHE BOOL "libraries to link with" FORCE) 
+set(yaml-cpp_LIBRARIES   yaml-cpp  CACHE BOOL "libraries to link with" FORCE) 
 

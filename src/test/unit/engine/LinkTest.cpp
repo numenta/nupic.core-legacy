@@ -117,7 +117,6 @@ TEST(LinkTest, Links) {
     EXPECT_THROW(in1->removeLink(l1), std::exception);
   }
 }
-/******* TODO:  fix the spec
 TEST(LinkTest, DelayedLink) {
   class MyTestNode : public TestNode {
   public:
@@ -147,10 +146,11 @@ TEST(LinkTest, DelayedLink) {
   d1.push_back(8);
   d1.push_back(4);
   region1->setDimensions(d1);
+std::cerr << "...Problem in Link\n";
 
   // NOTE: initial delayed values are set to all 0's
   net.link("region1", "region2", "TestFanIn2", "", "", "",
-           2 / *propagationDelay* /);
+           2 /*propagationDelay*/);
 
   // test initialize(), which is called by net.initialize()
   net.initialize();
@@ -240,7 +240,6 @@ TEST(LinkTest, DelayedLink) {
       ASSERT_EQ(100, idata[i]);
   }
 }
-********/
 
 TEST(LinkTest, DelayedLinkSerialization) {
   // serialization test of delayed link.

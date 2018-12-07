@@ -44,6 +44,7 @@
 #include <nupic/types/Serializable.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 
 namespace nupic {
 
@@ -58,6 +59,7 @@ class BundleIO;
 class Timer;
 class Network;
 class GenericRegisteredRegionImpl;
+
 
 /**
  * Represents a set of one or more "identical" nodes in a Network.
@@ -645,12 +647,12 @@ private:
 
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
-  void createInputsAndOutputs_();
+  void createInputsAndOutputs_(Region_Ptr_t r);
 
   std::string name_;
 
   // pointer to the "plugin"; owned by Region
-  RegionImpl *impl_;
+  std::shared_ptr<RegionImpl> impl_;
   std::string type_;
   Spec *spec_;
 

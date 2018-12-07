@@ -102,11 +102,11 @@ set(src_py_math_files
     bindings/math/py_reals.cpp
     bindings/math/py_SegmentSparseMatrix.cpp
     bindings/math/py_Set.cpp
-    bindings/math/py_SparseBinaryMatrix.cpp
-    bindings/math/py_SparseMatrix.cpp
+#    bindings/math/py_SparseBinaryMatrix.cpp
+#    bindings/math/py_SparseMatrix.cpp
     bindings/math/py_SparseMatrixAlgorithms.cpp
     bindings/math/py_SparseMatrixConnections.cpp
-    bindings/math/py_SparseRLEMatrix.cpp
+#    bindings/math/py_SparseRLEMatrix.cpp
     bindings/math/py_SparseTensor.cpp
     bindings/math/PyBindSparseTensor.hpp
     bindings/math/SparseTensorIndex.hpp

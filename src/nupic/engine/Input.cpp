@@ -37,31 +37,28 @@
 
 namespace nupic {
 
-Input::Input(Region &region, NTA_BasicType dataType, bool isRegionLevel,
+Input::Input(Region_Ptr_t region, NTA_BasicType dataType, bool isRegionLevel,
              bool isSparse)
     : region_(region), isRegionLevel_(isRegionLevel), initialized_(false),
       data_(dataType), name_("Unnamed"), isSparse_(isSparse) {}
 
 Input::~Input() {
   uninitialize();
-  std::vector<Link_Ptr_t> linkscopy = links_;
-  for (auto &elem : linkscopy) {
-    removeLink(elem);
-  }
+  // all input links will be deleted when Input object goes out of scope.
 }
 
-void Input::addLink(Link_Ptr_t link, Output *srcOutput) {
+void Input::addLink(Link_Ptr_t link, Output * srcOutput) {
   if (initialized_)
     NTA_THROW << "Attempt to add link to input " << name_ << " on region "
-              << region_.getName() << " when input is already initialized";
+              << region_->getName() << " when input is already initialized";
 
   // Make sure we don't already have a link to the same output
   for (std::vector<Link_Ptr_t>::const_iterator link = links_.begin();
        link != links_.end(); link++) {
     if (srcOutput == &((*link)->getSrc())) {
       NTA_THROW << "addLink -- link from region "
-                << srcOutput->getRegion().getName() << " output "
-                << srcOutput->getName() << " to region " << region_.getName()
+                << srcOutput->getRegion()->getName() << " output "
+                << srcOutput->getName() << " to region " << region_->getName()
                 << " input " << getName() << " already exists";
     }
   }
@@ -74,7 +71,7 @@ void Input::addLink(Link_Ptr_t link, Output *srcOutput) {
 }
 
 void Input::removeLink(Link_Ptr_t &link) {
-
+//std::cerr << "removeLink cnt=" << links_.size() << " " << link->toString() << std::endl;
   // removeLink should only be called internally -- if it
   // does not exist, it is a logic error
   auto linkiter = links_.begin();
@@ -83,11 +80,11 @@ void Input::removeLink(Link_Ptr_t &link) {
       break;
   }
 
-  NTA_CHECK(linkiter != links_.end());
+  NTA_CHECK(linkiter != links_.end()) << "Cannot remove link. not found in list of links.";
 
-  if (region_.isInitialized())
+  if (region_->isInitialized())
     NTA_THROW << "Cannot remove link " << link->toString()
-              << " because destination region " << region_.getName()
+              << " because destination region " << region_->getName()
               << " is initialized. Remove the region first.";
 
   // We may have been initialized even if our containing region
@@ -104,7 +101,7 @@ Link_Ptr_t Input::findLink(const std::string &srcRegionName,
   for (; linkiter != links_.end(); linkiter++) {
     Output &output = (*linkiter)->getSrc();
     if (output.getName() == srcOutputName &&
-        output.getRegion().getName() == srcRegionName) {
+        output.getRegion()->getName() == srcRegionName) {
       return *linkiter;
     }
   }
@@ -127,7 +124,7 @@ Array &Input::getData() {
 
 NTA_BasicType Input::getDataType() const { return data_.getType(); }
 
-Region &Input::getRegion() { return region_; }
+Region_Ptr_t Input::getRegion() { return region_; }
 
 std::vector<Link_Ptr_t> &Input::getLinks() { return links_; }
 
@@ -150,8 +147,8 @@ size_t Input::evaluateLinks() {
   size_t nIncompleteLinks = 0;
   std::vector<Link_Ptr_t>::iterator l;
   for (l = links_.begin(); l != links_.end(); l++) {
-    Region &srcRegion = (*l)->getSrc().getRegion();
-    Region &destRegion = (*l)->getDest().getRegion();
+    Region& srcRegion = *((*l)->getSrc().getRegion());
+    Region& destRegion = *((*l)->getDest().getRegion());
 
     /**
      * The link and region need to be consistent at both
@@ -454,7 +451,7 @@ void Input::initialize() {
   if (initialized_)
     return;
 
-  if (region_.getDimensions().isUnspecified()) {
+  if (region_->getDimensions().isUnspecified()) {
     NTA_THROW
         << "Input region's dimensions are unspecified when Input::initialize() "
         << "was called. Region's dimensions must be specified.";
@@ -497,7 +494,7 @@ void Input::initialize() {
   if (isRegionLevel_) {
     splitterMap_.resize(1);
   } else {
-    splitterMap_.resize(region_.getDimensions().getCount());
+    splitterMap_.resize(region_->getDimensions().getCount());
   }
 
   for (std::vector<Link_Ptr_t>::const_iterator link = links_.begin();
@@ -512,7 +509,7 @@ void Input::uninitialize() {
   if (!initialized_)
     return;
 
-  NTA_CHECK(!region_.isInitialized());
+  NTA_CHECK(!region_->isInitialized());
 
   initialized_ = false;
   data_.releaseBuffer();

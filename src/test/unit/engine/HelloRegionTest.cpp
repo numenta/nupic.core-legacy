@@ -90,12 +90,13 @@ TEST(HelloRegionTest, demo) {
   {
     std::stringstream ss;
     net.save(ss);
-    //std::cout << "Loading from stream. \n";
+	//std::cout << "Loading from stream. \n";
     //std::cout << ss.str() << std::endl;
     ss.seekg(0);
     net2.load(ss);
   }
 //  EXPECT_EQ(net, net2);
+	//std::cout << "Loading complete. \n";
 
   Region_Ptr_t region2 = net2.getRegion("region"); //TODO add more checks and asserts here
   region2->executeCommand(loadFileArgs);
