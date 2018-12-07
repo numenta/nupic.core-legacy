@@ -210,6 +210,8 @@ void Connections::updateSynapsePermanence(Synapse synapse,
     h.second->onUpdateSynapsePermanence(synapse, permanence);
   }
 
+  permanence = min(permanence, 1.);
+  permanence = max(permanence, 0.);
   synapses_[synapse].permanence = permanence;
 }
 
@@ -347,6 +349,88 @@ void Connections::computeActivity(
     }
   }
 }
+
+
+void Connections::adaptSegment(CellIdx cell, SegmentIdx segment, SDR &inputs,
+                               Permanence increment,
+                               Permanence decrement)
+{
+  Segment segmentIndex = getSegment(cell, segment);
+  const vector<Synapse> &synapses = synapsesForSegment(segmentIndex);
+
+  const auto &inputArray = inputs.getDense();
+
+  for (SynapseIdx i = 0; i < synapses.size(); i++) {
+    const SynapseData &synapseData = dataForSynapse(synapses[i]);
+
+    Permanence permanence = synapseData.permanence;
+    if( inputArray[synapseData.presynapticCell] ) {
+      permanence += increment;
+    } else {
+      permanence -= decrement;
+    }
+
+    updateSynapsePermanence(synapses[i], permanence);
+  }
+}
+
+// TODO make a variant of adaptSegment which destroys segments & synapses when
+// they're zero/empty.  Use for TM.
+
+void Connections::raisePermanencesToThreshold(CellIdx    cell,
+                                              SegmentIdx segment,
+                                              Permanence permanenceThreshold,
+                                              UInt       segmentThreshold,
+                                              Permanence synPermBelowStimulusInc,)
+{
+  if( segmentThreshold == 0 )
+    return;
+
+  Segment segmentIndex = getSegment(cell, segment);
+  const vector<Synapse> &synapses = synapsesForSegment(segmentIndex);
+
+  // Sort the potential pool by permanence values, and look for the synapse with
+  // the N'th greatest permanence, where N is the desired minimum number of
+  // connected synapses.  Then calculate how much to increase the N'th synapses
+  // permance by such that it becomes a connected synapse.
+
+  auto minPermSynPtr = synapses.begin() + stimulusThreshold_ - 1;
+  // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
+  // its final sorted position.
+  auto permanencesGreater = [&](Synapse &A, Synapse &B)
+    { return synapses_[A].permanence > synapses_[B].permanence; };
+  nth_element(synapses.begin(), minPermSynPtr, synapses.end(), permanencesGreater);
+
+  const Real increment = synPermConnected_ - synapses_[ *minPermSynPtr ].permanence;
+  if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
+    return;            // Enough synapses are already connected.
+
+  //Round up to multiple of synPermBelowStimulusInc.
+  const Real inc_rounded = ((increment + synPermBelowStimulusInc) -
+                             std::fmod(increment, synPermBelowStimulusInc));
+
+  // Raise the permance of all synapses in the potential pool uniformly.
+  for( const auto &syn : synapses )
+    updateSynapsePermanence(syn, synapses_[syn].permanence + inc_rounded);
+
+  return;
+}
+
+
+void Connections::bumpSegment(CellIdx cell, Segment segment, Permanence delta) {
+  Segment segmentIndex = getSegment(cell, segment);
+  const vector<Synapse> &synapses = synapsesForSegment(segmentIndex);
+  for( const auto &syn : synapses )
+    updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
+}
+
+
+// SP NEEDS: connectedCount, Is this needed? it does have a public getter... SP
+// doesn't actually use it though ...
+
+
+// SP NEEDS: synPermTrimThreshold ??? No, its public but it shouldn't be.  I
+// suspect they made it public so that they could test it.
 
 
 void Connections::save(std::ostream &outStream) const {
