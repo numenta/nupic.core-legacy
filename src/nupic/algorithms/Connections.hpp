@@ -34,6 +34,7 @@
 #include <nupic/math/Math.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
+#include <nupic/ntypes/Sdr.hpp>
 
 namespace nupic {
 
@@ -419,6 +420,49 @@ public:
                   CellIdx activePresynapticCell,
                   Permanence connectedPermanence) const;
 
+  /**
+   * The primary method in charge of learning.   Adapts the permanence values of
+   * the synapses based on the input SDR.  Learning is applied to a single
+   * segment.  Permanence values are increased for synapses connected to input
+   * bits that are turned on, and decreased for synapses connected to inputs
+   * bits that are turned off.
+   *
+   * @param cell  Index of cell to apply learning to.
+   * @param segment  Index of segment to apply learning to.
+   * @param inputVector  An SDR
+   * @param increment  Change in permanence for synapses with active presynapses.
+   * @param decrement  Change in permanence for synapses with inactive presynapses.
+   */
+  void adaptSegment(CellIdx cell, SegmentIdx segment, SDR &inputs,
+                    Permanence increment,
+                    Permanence decrement);
+
+
+  /**
+   * Ensures a minimum number of connected synapses.  This raises permance
+   * values until the desired number of synapses have permanences above the
+   * permanenceThreshold.  This is applied to a single segment.
+   *
+   * @param cell  Index of cell
+   * @param segment  Index of segment on cell
+   * @param permanenceThreshold  Connected threshold of synapses
+   * @param segmentThreshold  Desired number of connected synapses
+   */
+  void raisePermanencesToThreshold(CellIdx    cell,
+                                    SegmentIdx segment,
+                                    Permanence permanenceThreshold,
+                                    UInt       segmentThreshold,
+                                    Permanence synPermBelowStimulusInc,);
+
+  /**
+   * Modify all permanence on the given segment, uniformly.
+   *
+   * @param cell  Index of cell
+   * @param segment  Index of segment on cell
+   * @param delta  Change in permanence value
+   */
+  void bumpSegment(CellIdx cell, Segment segment, Permanence delta);
+
   // Serialization
 
   /**
@@ -536,11 +580,11 @@ protected:
   void removeSynapseFromPresynapticMap_(Synapse synapse);
 
 private:
-  std::vector<CellData> cells_;
+  std::vector<CellData>    cells_;
   std::vector<SegmentData> segments_;
-  std::vector<Segment> destroyedSegments_;
+  std::vector<Segment>     destroyedSegments_;
   std::vector<SynapseData> synapses_;
-  std::vector<Synapse> destroyedSynapses_;
+  std::vector<Synapse>     destroyedSynapses_;
 
   // Extra bookkeeping for faster computing of segment activity.
   std::map<CellIdx, std::vector<Synapse>> synapsesForPresynapticCell_;
