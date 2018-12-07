@@ -374,8 +374,6 @@ void Connections::adaptSegment(CellIdx cell, SegmentIdx segment, SDR &inputs,
   }
 }
 
-// TODO make a variant of adaptSegment which destroys segments & synapses when
-// they're zero/empty.  Use for TM.
 
 void Connections::raisePermanencesToThreshold(CellIdx    cell,
                                               SegmentIdx segment,
