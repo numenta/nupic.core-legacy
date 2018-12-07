@@ -47,7 +47,7 @@ download_project(PROJ googletest
 	QUIET
 	)
 	
-	
+set(CMAKE_CXX_FLAGS ${INTERNAL_CXX_FLAGS_STR})
 #set(gtest_force_shared_crt ON CACHE BOOL "Prevent GoogleTest from overriding our compiler/linker options" FORCE)
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 

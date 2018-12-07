@@ -317,7 +317,7 @@ template <typename C1, typename Selector, bool f = false> struct IsIncluded {
  */
 template <typename T1, typename T2>
 struct lexicographic_2
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     if (a.first < b.first)
@@ -336,7 +336,7 @@ struct lexicographic_2
  */
 template <typename T1, typename T2>
 struct less_1st
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.first < b.first;
@@ -350,7 +350,7 @@ struct less_1st
  */
 template <typename T1, typename T2>
 struct less_2nd
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.second < b.second;
@@ -364,7 +364,7 @@ struct less_2nd
  */
 template <typename T1, typename T2>
 struct greater_1st
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.first > b.first;
@@ -378,7 +378,7 @@ struct greater_1st
  */
 template <typename T1, typename T2>
 struct greater_2nd
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.second > b.second;
@@ -388,7 +388,7 @@ struct greater_2nd
 //--------------------------------------------------------------------------------
 template <typename T1, typename T2>
 struct greater_2nd_p : public std::binary_function<bool, std::pair<T1, T2 *>,
-                                                   std::pair<T1, T2 *>> {
+                                                   std::pair<T1, T2 *> > {
   inline bool operator()(const std::pair<T1, T2 *> &a,
                          const std::pair<T1, T2 *> &b) const {
     return *(a.second) > *(b.second);
@@ -401,7 +401,7 @@ struct greater_2nd_p : public std::binary_function<bool, std::pair<T1, T2 *>,
  */
 template <typename T1, typename T2>
 struct greater_2nd_no_ties
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     if (a.second > b.second)
@@ -416,7 +416,7 @@ struct greater_2nd_no_ties
 //--------------------------------------------------------------------------------
 template <typename T1, typename T2, typename RND>
 struct greater_2nd_rnd_ties
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   RND &rng;
 
   inline greater_2nd_rnd_ties(RND &_rng) : rng(_rng) {}
