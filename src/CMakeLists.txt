@@ -24,7 +24,7 @@ project(nupic_core CXX)
 
 message(STATUS "Configuring nupic_core src")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 

@@ -56,26 +56,26 @@
 
 	// Assert that It obeys the STL forward iterator concept
 	#define ASSERT_INPUT_ITERATOR(It) \
-	  boost::function_requires<boost::InputIteratorConcept<It>>();
+	  boost::function_requires<boost::InputIteratorConcept<It> >();
 
 	// Assert that It obeys the STL forward iterator concept
 	#define ASSERT_OUTPUT_ITERATOR(It, T) \
-	  boost::function_requires<boost::OutputIteratorConcept<It, T>>();
+	  boost::function_requires<boost::OutputIteratorConcept<It, T> >();
 
 	// Assert that UnaryPredicate obeys the STL unary predicate concept
 	#define ASSERT_UNARY_PREDICATE(UnaryPredicate, Arg1) \
 	  boost::function_requires< \
-	      boost::UnaryPredicateConcept<UnaryPredicate, Arg1>>();
+	      boost::UnaryPredicateConcept<UnaryPredicate, Arg1> >();
 
 	// Assert that UnaryFunction obeys the STL unary function concept
 	#define ASSERT_UNARY_FUNCTION(UnaryFunction, Ret, Arg1) \
 	  boost::function_requires< \
-	      boost::UnaryFunctionConcept<UnaryFunction, Ret, Arg1>>();
+	      boost::UnaryFunctionConcept<UnaryFunction, Ret, Arg1> >();
 
 	// Assert that BinaryFunction obeys the STL binary function concept
 	#define ASSERT_BINARY_FUNCTION(BinaryFunction, Ret, Arg1, Arg2) \
 	  boost::function_requires< \
-	      boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2>>();
+	      boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2> >();
 #endif
 
 //--------------------------------------------------------------------------------
