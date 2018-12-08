@@ -76,7 +76,6 @@ set(math_tests
 	   unit/math/IndexUnitTest.hpp
 	   unit/math/MathsTest.cpp
 	   unit/math/MathsTest.hpp
-	   unit/math/SegmentMatrixAdapterTest.cpp
 	   unit/math/SparseBinaryMatrixTest.cpp
 	   unit/math/SparseMatrix01UnitTest.cpp
 	   unit/math/SparseMatrix01UnitTest.hpp
