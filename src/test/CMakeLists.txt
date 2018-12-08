@@ -68,18 +68,12 @@ set(engine_tests
 set(math_tests
 	   unit/math/DenseTensorUnitTest.cpp
 	   unit/math/DenseTensorUnitTest.hpp
-	   unit/math/DomainUnitTest.cpp
-	   unit/math/DomainUnitTest.hpp
-	   unit/math/IndexUnitTest.cpp
-	   unit/math/IndexUnitTest.hpp
 	   unit/math/MathsTest.cpp
 	   unit/math/MathsTest.hpp
 	   unit/math/SparseBinaryMatrixTest.cpp
 	   unit/math/SparseMatrixTest.cpp
 	   unit/math/SparseMatrixUnitTest.cpp
 	   unit/math/SparseMatrixUnitTest.hpp
-	   unit/math/SparseTensorUnitTest.cpp
-	   unit/math/SparseTensorUnitTest.hpp
 	   unit/math/TopologyTest.cpp
 	   )
 	   
