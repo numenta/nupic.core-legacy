@@ -95,8 +95,6 @@ set(algorithm_files
     nupic/algorithms/Cells4.hpp
     nupic/algorithms/ClassifierResult.cpp
     nupic/algorithms/ClassifierResult.hpp
-    nupic/algorithms/CondProbTable.cpp
-    nupic/algorithms/CondProbTable.hpp
     nupic/algorithms/Connections.cpp
     nupic/algorithms/Connections.hpp
     nupic/algorithms/InSynapse.cpp
