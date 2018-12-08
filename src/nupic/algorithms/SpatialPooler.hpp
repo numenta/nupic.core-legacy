@@ -1281,12 +1281,7 @@ protected:
 
   Real minPctOverlapDutyCycles_;
 
-  // REPLACE THESE 4 MEMBERS WITH CONNECTIONS!
-  // SparseMatrix<UInt, Real, Int, Real64> permanences_;
-  // SparseBinaryMatrix<UInt, UInt> potentialPools_;
-  // SparseBinaryMatrix<UInt, UInt> connectedSynapses_;
-  // vector<UInt> connectedCounts_;
-  connections::Connections synapses;
+  connections::Connections connections_;
 
   vector<UInt> overlaps_;
   vector<Real> overlapsPct_;
