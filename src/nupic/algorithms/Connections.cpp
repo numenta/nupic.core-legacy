@@ -352,12 +352,11 @@ void Connections::computeActivity(
 }
 
 
-void Connections::adaptSegment(CellIdx cell, SegmentIdx segment, SDR &inputs,
+void Connections::adaptSegment(Segment segment, SDR &inputs,
                                Permanence increment,
                                Permanence decrement)
 {
-  Segment segmentIndex = getSegment(cell, segment);
-  const vector<Synapse> &synapses = synapsesForSegment(segmentIndex);
+  const vector<Synapse> &synapses = synapsesForSegment(segment);
 
   const auto &inputArray = inputs.getDense();
 
@@ -376,8 +375,7 @@ void Connections::adaptSegment(CellIdx cell, SegmentIdx segment, SDR &inputs,
 }
 
 
-void Connections::raisePermanencesToThreshold(CellIdx    cell,
-                                              SegmentIdx segment,
+void Connections::raisePermanencesToThreshold(Segment    segment,
                                               Permanence permanenceThreshold,
                                               UInt       segmentThreshold,
                                               Permanence synPermBelowStimulusInc)
@@ -385,8 +383,7 @@ void Connections::raisePermanencesToThreshold(CellIdx    cell,
   if( segmentThreshold == 0 )
     return;
 
-  Segment segmentIndex = getSegment(cell, segment);
-  vector<Synapse> &synapses = segments_[segmentIndex].synapses;
+  vector<Synapse> &synapses = segments_[segment].synapses;
 
   // Sort the potential pool by permanence values, and look for the synapse with
   // the N'th greatest permanence, where N is the desired minimum number of
@@ -416,9 +413,8 @@ void Connections::raisePermanencesToThreshold(CellIdx    cell,
 }
 
 
-void Connections::bumpSegment(CellIdx cell, Segment segment, Permanence delta) {
-  Segment segmentIndex = getSegment(cell, segment);
-  const vector<Synapse> &synapses = synapsesForSegment(segmentIndex);
+void Connections::bumpSegment(Segment segment, Permanence delta) {
+  const vector<Synapse> &synapses = synapsesForSegment(segment);
   for( const auto &syn : synapses )
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
 }
