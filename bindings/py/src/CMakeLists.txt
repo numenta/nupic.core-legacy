@@ -95,7 +95,6 @@ set(src_py_math_files
     bindings/math/math_module.cpp    
     bindings/math/py_ArrayAlgo.cpp
     bindings/math/py_Domain.cpp
-    bindings/math/py_Gaussian_2D.cpp
     bindings/math/py_Math.cpp
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
