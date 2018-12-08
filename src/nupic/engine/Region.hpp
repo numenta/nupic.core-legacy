@@ -40,9 +40,11 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/ptr_types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 
 namespace nupic {
 
@@ -57,6 +59,7 @@ class BundleIO;
 class Timer;
 class Network;
 class GenericRegisteredRegionImpl;
+
 
 /**
  * Represents a set of one or more "identical" nodes in a Network.
@@ -592,6 +595,8 @@ public:
 
   const std::map<std::string, Output *> &getOutputs() const;
 
+  void clearInputs();
+
   // The following methods are called by Network in initialization
 
   // Returns number of links that could not be fully evaluated
@@ -649,7 +654,7 @@ private:
   std::string name_;
 
   // pointer to the "plugin"; owned by Region
-  RegionImpl *impl_;
+  std::shared_ptr<RegionImpl> impl_;
   std::string type_;
   Spec *spec_;
 

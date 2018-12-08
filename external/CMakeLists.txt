@@ -48,6 +48,6 @@ include(gtest.cmake)
 
 ##################
 # pybind11
-if(PYTHON_BUILD2 OR PYTHON_BUILD3)
+if(PYTHON2_BUILD OR PYTHON3_BUILD)
   include(pybind11.cmake)
 endif()

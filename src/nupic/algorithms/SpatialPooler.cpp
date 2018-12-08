@@ -637,37 +637,39 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
 }
 
 
-void SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
-                                                 const vector<UInt>& potential) const
-{
+void SpatialPooler::raisePermanencesToThreshold_(
+                      vector<Real>& perm,
+                      const vector<UInt>& potential) const {
+
+  if( stimulusThreshold_ == 0 )
+    return;
+
+  // Sort the potential pool by permanence values, and look for the synapse with
+  // the N'th greatest permanence, where N is the desired minimum number of
+  // connected synapses.  Then calculate how much to increase the N'th synapses
+  // permance by such that it becomes a connected synapse.
+
+  vector<UInt> index(potential.begin(), potential.end()); // Sort a copy, since original is const.
+  auto minPermSynPtr = index.begin() + stimulusThreshold_ - 1;
+  // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
+  // its final sorted position.
+  nth_element(index.begin(), minPermSynPtr, index.end(),
+      [&](UInt &A, UInt &B) { return perm[A] > perm[B]; });
+
+  const Real increment = synPermConnected_ - perm[ *minPermSynPtr ];
+  if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
+    return;            // Enough synapses are already connected.
+
+  //Round up to multiple of synPermBelowStimulusInc_.
+  const Real inc_rounded = ((increment + synPermBelowStimulusInc_) -
+                             std::fmod(increment, synPermBelowStimulusInc_));
+
+  // Raise the permance of all synapses in the potential pool uniformly.
+  for( auto &elem : potential )
+    perm[elem] += inc_rounded;
+
   clip_(perm, false);
-
-  // size(perm) >> size(potential) -> use sparse perm[potential] !
-  vector<Real> sparsePermV; //perm values only for potentials, with already-connected removed
-  sparsePermV.reserve(potential.size());
-  for(auto col: potential) {
-    const Real val = perm[col];
-    if(val < synPermConnected_) {
-      sparsePermV.push_back(val);
-    }
-  }
-
-  const UInt alreadyConnected = potential.size() - sparsePermV.size();
-  const int toGrow = stimulusThreshold_ - alreadyConnected;
-  if(toGrow <= 0) {return; }
-
-  //get needed increment: diff of toGrow-th largest value to threshold
-  std::nth_element(sparsePermV.begin(), sparsePermV.begin() + toGrow -1, sparsePermV.end(), std::greater<Real>());
-  const Real nth = sparsePermV[toGrow -1]; //value of nth-largest permanence
-  const Real diff = synPermConnected_ - nth; 
-  const Real increment = (diff + synPermBelowStimulusInc_) - std::fmod(diff, synPermBelowStimulusInc_); //round up to multiple of synPermBSInc_ 
-  NTA_ASSERT(increment > 0);
-  NTA_ASSERT(nth + increment >= synPermConnected_); 
-
-  // grow all synapses at once
-  for (const auto& elem : potential) {
-    perm[elem] += increment;
-  }
+  return;
 }
 
 

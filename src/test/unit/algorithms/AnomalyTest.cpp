@@ -104,7 +104,7 @@ TEST(Anomaly, Cumulative) {
   // It appears it is initializing a vector containing vectors of type UInt.
   // But TEST_COUNT is not a vector.
   // Seems to work in ubuntu but rejected by MSVC
-  std::vector<std::vector<UInt>> preds{TEST_COUNT, {1, 2, 6}};
+  std::vector<std::vector<UInt> > preds{TEST_COUNT, {1, 2, 6}};
 
   std::vector<std::vector<UInt>> acts = {
       {1, 2, 6},    {1, 2, 6},    {1, 4, 6}, {10, 11, 6}, {10, 11, 12},

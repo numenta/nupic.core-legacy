@@ -39,6 +39,6 @@ template class nupic::Collection<OutputSpec>;
 template class nupic::Collection<InputSpec>;
 template class nupic::Collection<ParameterSpec>;
 template class nupic::Collection<CommandSpec>;
-template class nupic::Collection<Region *>;
-template class nupic::Collection<Link *>;
+template class nupic::Collection<Region_Ptr_t>;
+template class nupic::Collection<Link_Ptr_t>;
 template class nupic::Collection<Network::callbackItem>;

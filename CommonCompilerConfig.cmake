@@ -407,4 +407,10 @@ foreach(compiler_definition ${COMMON_COMPILER_DEFINITIONS})
   set(COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS_STR} ${compiler_definition}")
 endforeach()
 
+# Provide a string variant of the INTERNAL_CXX_FLAGS list
+set(INTERNAL_CXX_FLAGS_STR)
+foreach(flag_item ${INTERNAL_CXX_FLAGS})
+     set(INTERNAL_CXX_FLAGS_STR "${INTERNAL_CXX_FLAGS_STR} ${flag_item}")
+endforeach()
+
 
