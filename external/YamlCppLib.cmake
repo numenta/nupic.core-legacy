@@ -18,71 +18,25 @@
 #
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
+# Note: yaml-cpp includes an older version of gtest so 
+#       turn off YAML_CPP_BUILD_TESTS to prevent it from building gtest.
 
-# Creates ExternalProject for building the yaml-cpp static library
-#
-# OUTPUT VARIABLES:
-#
-#   YAML_CPP_STATIC_LIB_TARGET: name of static library target that contains all
-#                               of yaml-cpp library objects.
-#   YAML_CPP_STATIC_LIB_INC_DIR: directory of installed yaml-cpp lib headers
+message(STATUS "Obtaining yaml-cpp")
+include(DownloadProject/DownloadProject.cmake)
+download_project(PROJ yaml-cpp
+	PREFIX ${EP_BASE}/yaml-cpp
+	URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz
+	UPDATE_DISCONNECTED 1
+	QUIET
+	)
+set(YAML_CPP_INSTALL OFF CACHE BOOL "prevent install, not needed." FORCE) 
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "prevent tools from being build" FORCE) 
+set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "prevent gtest from being build" FORCE) 
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "prevent contrib modules" FORCE) 
+add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
 
-include(${REPOSITORY_DIR}/src/NupicLibraryUtils.cmake) # for MERGE_STATIC_LIBRARIES
+#find_package(yaml-cpp REQUIRED HINT ${yaml-cpp_SOURCE_DIR})
+set(yaml-cpp_INCLUDE_DIRS ${yaml-cpp_SOURCE_DIR}/include CACHE BOOL "include directory" FORCE) 
+#set(yaml-cpp_LIBRARIES   ${YAML_CPP_LIBRARIES}  CACHE BOOL "libraries to link with" FORCE) 
+set(yaml-cpp_LIBRARIES   yaml-cpp  CACHE BOOL "libraries to link with" FORCE) 
 
-
-# Output static library target for linking and dependencies
-set(YAML_CPP_STATIC_LIB_TARGET yaml-cpp-bundle)
-
-
-set(yamlcpplib_url "${REPOSITORY_DIR}/external/common/share/yaml-cpp/yaml-cpp-release-0.6.2.tar.gz")
-set(yamlcpplib_install_prefix "${EP_BASE}/Install/YamlCppStaticLib")
-set(yamlcpplib_install_lib_dir "${yamlcpplib_install_prefix}/lib")
-
-#TODO: How to get CMake to figure out this path for MSVC
-# Path to static yaml-cpp installed by external project
-if(MSVC)
-   set(flags "/W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:${INTERNAL_CPP_STANDARD} /MT") 
-   if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-       set(yamlcpplib_built_archive_file "${yamlcpplib_install_lib_dir}/libyaml-cppmd.lib")
-   else()
-       set(yamlcpplib_built_archive_file "${yamlcpplib_install_lib_dir}/libyaml-cppmdd.lib")
-   endif()
-else()
-   # Provide a string variant of the INTERNAL_CXX_FLAGS list
-   set(flags)
-   foreach(flag_item ${INTERNAL_CXX_FLAGS})
-     set(flags "${flags} ${flag_item}")
-   endforeach()
-
-   set(yamlcpplib_built_archive_file
-      "${yamlcpplib_install_lib_dir}/${CMAKE_STATIC_LIBRARY_PREFIX}yaml-cpp${CMAKE_STATIC_LIBRARY_SUFFIX}")
-endif()
-
-message(STATUS "FLAGS in yaml: ${flags}")
-
-ExternalProject_Add(YamlCppStaticLib
-
-    URL ${yamlcpplib_url}
-
-    UPDATE_COMMAND ""
-
-    CMAKE_GENERATOR ${CMAKE_GENERATOR}
-
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DBUILD_SHARED_LIBS=OFF
-        -DYAML_CPP_BUILD_TOOLS=OFF
-	-DYAML_CPP_BUILD_TESTS=OFF # causes build errors with gtest (as of YamlCpp 0.6.2)
-        -DYAML_CPP_BUILD_CONTRIB=OFF
-        -DCMAKE_CXX_FLAGS=${flags}
-        -DCMAKE_INSTALL_PREFIX=${yamlcpplib_install_prefix}
-)
-
-
-# Wrap external project-generated static library in an `add_library` target.
-merge_static_libraries(${YAML_CPP_STATIC_LIB_TARGET}
-                       "${yamlcpplib_built_archive_file}")
-add_dependencies(${YAML_CPP_STATIC_LIB_TARGET} YamlCppStaticLib)
-
-# Export directory of installed yaml-cpp lib headers to parent
-set(yaml-cpp_INCLUDE_DIRS "${yamlcpplib_install_prefix}/include" PARENT_SCOPE)
-set(yaml-cpp_LIBRARIES ${yamlcpplib_built_archive_file} PARENT_SCOPE)

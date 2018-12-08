@@ -23,7 +23,7 @@
  */
 
 /** @file
-PyBind11 bindings for Region class
+PyBind11 bindings for Region classes
 */
 
 // the use of 'register' keyword is removed in C++17
@@ -39,8 +39,8 @@ PyBind11 bindings for Region class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/engine/PyBindRegion.hpp>
-#include <nupic/engine/TestNode.hpp>
+#include <plugin/PyBindRegion.hpp>
+#include <nupic/regions/TestNode.hpp>
 
 namespace py = pybind11;
 using namespace nupic;
@@ -58,6 +58,8 @@ namespace nupic_ext
         py_Region.def("initialize", &Region_t::initialize)
             .def("compute", &Region_t::compute);
 
+		// This would be .py code calling getSpec() to get the Spec structure
+		// on an already instantiated class.
         py_Region.def("getSpec", &Region_t::getSpec);
 
 

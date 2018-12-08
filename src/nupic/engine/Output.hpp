@@ -54,7 +54,7 @@ public:
    * @param isSparse
    *        Whether the output is sparse. Default false
    */
-  Output(Region &region, NTA_BasicType type, bool isRegionLevel,
+  Output(Region* region, NTA_BasicType type, bool isRegionLevel,
          bool isSparse = false);
 
   /**
@@ -106,7 +106,7 @@ public:
    * @param link
    *        The Link to add
    */
-  void addLink(Link *link);
+  void addLink(Link_Ptr_t link);
 
   /**
    * Removing an existing link from the output.
@@ -117,7 +117,7 @@ public:
    * @param link
    *        The Link to remove
    */
-  void removeLink(Link *link);
+  void removeLink(Link_Ptr_t link);
 
   /**
    * Tells whether the output has outgoing links.
@@ -163,7 +163,7 @@ public:
    * @returns
    *         The mutable reference to the Region that the output belongs to
    */
-  Region &getRegion() const;
+  Region* getRegion() const;
 
   /**
    * Get the count of node output element.
@@ -183,17 +183,19 @@ public:
   bool isSparse() const;
 
 private:
-  Region &region_; // needed for number of nodes
+  // Cannot use the shared_ptr here
+  Region* region_;
   Array data_;
   bool isRegionLevel_;
   // order of links never matters, so store as a set
   // this is different from Input, where they do matter
-  std::set<Link *> links_;
+  std::set<Link_Ptr_t> links_;
   std::string name_;
   size_t nodeOutputElementCount_;
   // Whether or not the output is sparse
   bool isSparse_;
 };
+
 
 } // namespace nupic
 

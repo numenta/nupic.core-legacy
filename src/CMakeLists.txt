@@ -22,8 +22,9 @@
 cmake_minimum_required(VERSION 3.7)
 project(nupic_core CXX)
 
+message(STATUS "Configuring nupic_core src")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
+set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 
@@ -63,10 +64,10 @@ include_directories(SYSTEM
   ${yaml-cpp_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   )
-message(STATUS "yaml-cpp includes: ${yaml-cpp_INCLUDE_DIRS}")
-message(STATUS "boost includes: ${Boost_INCLUDE_DIRS}")
-message(STATUS "boost libs: ${Boost_LIBRARIES}")
-message(STATUS "yaml-cpp libs: ${yaml-cpp_LIBRARIES}")
+message(STATUS "   yaml-cpp includes: ${yaml-cpp_INCLUDE_DIRS}")
+message(STATUS "   yaml-cpp libs: ${yaml-cpp_LIBRARIES}")
+message(STATUS "   boost includes: ${Boost_INCLUDE_DIRS}")
+message(STATUS "   boost libs: ${Boost_LIBRARIES}")
 
 #################
 # Setup nupic_core static library, consisting of our own sources and yaml libraries;
@@ -245,6 +246,7 @@ set(types_files
     nupic/types/Exception.hpp
     nupic/types/Fraction.cpp
     nupic/types/Fraction.hpp
+    nupic/types/ptr_types.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.h
     nupic/types/Types.hpp
@@ -297,7 +299,7 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
 
 # nupic_core_solo sources depend on headers installed by these external projects
 add_dependencies(${src_lib_static_nupiccore_solo}
-        yaml-cpp-bundle
+        yaml-cpp
 		)
 target_compile_options( ${src_lib_static_nupiccore_solo} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})

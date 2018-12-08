@@ -105,7 +105,7 @@ private:
         // Need regionName because we create data structure before
         // we have the actual Network to attach it to.
         std::string regionName;
-        Region *region;
+        Region_Ptr_t region;
         Int64 nodeIndex;
         NTA_BasicType varType;
         std::string nodeName;

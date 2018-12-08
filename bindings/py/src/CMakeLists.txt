@@ -33,12 +33,12 @@
 # For PyBind11 info See: https://pybind11.readthedocs.io/en/stable/compiling.html
 #######################################################################
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.7)
 project(nupic_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
-
+message(STATUS "Configuring Python interface")
 
 #### TODO: do we need this?
 #	if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND "${PLATFORM}" STREQUAL "linux")
@@ -53,8 +53,12 @@ set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 		# NOTE We need to use shared libgcc to be able to throw and catch exceptions
 		# across different shared libraries.
 #		set(stdlib_common "${stdlib_common} -shared-libgcc")
-	endif()
+#	endif()
 
+include_directories(
+  ${PROJECT_SOURCE_DIR}
+  ${REPOSITORY_DIR}/external/common/include
+)
 
 ### TODO: do we need this?
 #	if (${NUPIC_BUILD_PYEXT_MODULES})
@@ -98,11 +102,11 @@ set(src_py_math_files
     bindings/math/py_reals.cpp
     bindings/math/py_SegmentSparseMatrix.cpp
     bindings/math/py_Set.cpp
-    bindings/math/py_SparseBinaryMatrix.cpp
-    bindings/math/py_SparseMatrix.cpp
+#    bindings/math/py_SparseBinaryMatrix.cpp
+#    bindings/math/py_SparseMatrix.cpp
     bindings/math/py_SparseMatrixAlgorithms.cpp
     bindings/math/py_SparseMatrixConnections.cpp
-    bindings/math/py_SparseRLEMatrix.cpp
+#    bindings/math/py_SparseRLEMatrix.cpp
     bindings/math/py_SparseTensor.cpp
     bindings/math/PyBindSparseTensor.hpp
     bindings/math/SparseTensorIndex.hpp
@@ -128,23 +132,9 @@ source_group("test" FILES ${src_py_test_files})
 # set CPP standard. default for PyBind11 is C++14.  If requested standard not available it will fall back to C++11.
 if (MSVC)
   set(PYBIND11_CPP_STANDARD /std:c++latest) # Enables MSVC C++17
+else()
+  set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
 endif()
-##########################
-#  Fetch pybind11 from Git
-# This will download pybind11 at configure time, and add_subdirectory it. Then you're ready to call pybind11_add_module.
-# See https://stackoverflow.com/questions/47027741/smart-way-to-cmake-a-project-using-pybind11-by-externalproject-add?rq=1
-include(FetchContent)
-FetchContent_Declare(
-	pybind11
-    FETCHCONTENT_BASE_DIR ${EP_BASE}
-    GIT_REPOSITORY https://github.com/pybind/pybind11
-    GIT_TAG        v2.2.3
-)
-FetchContent_GetProperties(pybind11)
-if(NOT pybind11_POPULATED)
-    FetchContent_Populate(pybind11)
-    add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
-endif()	
 
 include_directories(${REPOSITORY_DIR}/src)
 include_directories(${pybind11_BINARY_DIR})
@@ -198,7 +188,7 @@ endif()
 #
 ###################################################################
 if(PYTHON2_BUILD)
-	install(TARGETS
+  install(TARGETS
         nupic.core.algorithms2
         nupic.core.engine2
         nupic.core.math2
@@ -207,7 +197,7 @@ if(PYTHON2_BUILD)
         ARCHIVE DESTINATION lib)
 endif()
 if(PYTHON3_BUILD)
-	install(TARGETS
+  install(TARGETS
         nupic.core.algorithms
         nupic.core.engine
         nupic.core.math

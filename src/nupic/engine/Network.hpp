@@ -67,7 +67,7 @@ public:
    * @note Creating a Network will auto-initialize NuPIC.
    */
   Network();
-
+  Network(const std::string& filename);
 
   /**
    * Destructor.
@@ -141,7 +141,8 @@ public:
    *
    * @returns A pointer to the newly created Region
    */
-  Region *addRegion(const std::string &name, const std::string &nodeType,
+  Region_Ptr_t addRegion(const std::string &name,
+  					const std::string &nodeType,
                     const std::string &nodeParams);
 
     /**
@@ -155,8 +156,22 @@ public:
      *
      * @returns A pointer to the newly created Region
      */
-    Region* addRegion( std::istream &stream,
-                            std::string name = "");
+    Region_Ptr_t addRegion( std::istream &stream,
+                       std::string name = "");
+
+
+    /**
+     * Create a new region in a network from serialized region
+	 * The serialized file must have been created by calling SaveToFile()
+	 * directly on the region (not on Network).  It restores just this one region.
+	 * The fields dimensions and label are not used but provided for backward
+	 * compatability.
+	 */
+    Region_Ptr_t addRegionFromBundle(const std::string name,
+					const std::string nodeType,
+					const Dimensions& dimensions,
+					const std::string& filename,
+					const std::string& label = "");
 
   /**
    * Removes an existing region from the network.
@@ -221,14 +236,15 @@ public:
    *
    * @returns A Collection of Region objects in the network
    */
-  const Collection<Region *> &getRegions() const;
+  const Collection<Region_Ptr_t > &getRegions() const;
+  Region_Ptr_t getRegion(const std::string& name) const;
 
   /**
    * Get all links between regions
    *
    * @returns A Collection of Link objects in the network
    */
-  Collection<Link *> getLinks();
+  Collection<Link_Ptr_t> getLinks();
 
   /**
    * Set phases for a region.
@@ -395,14 +411,14 @@ private:
   void resetEnabledPhases_();
 
   bool initialized_;
-  Collection<Region *> regions_;
+  Collection<Region_Ptr_t> regions_;
 
   UInt32 minEnabledPhase_;
   UInt32 maxEnabledPhase_;
 
   // This is main data structure used to choreograph
   // network computation
-  std::vector<std::set<Region *>> phaseInfo_;
+  std::vector<std::set<Region *> > phaseInfo_;
 
   // we invoke these callbacks at every iteration
   Collection<callbackItem> callbacks_;
