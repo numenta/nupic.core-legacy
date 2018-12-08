@@ -427,41 +427,37 @@ public:
    * bits that are turned on, and decreased for synapses connected to inputs
    * bits that are turned off.
    *
-   * @param cell  Index of cell to apply learning to.
-   * @param segment  Index of segment to apply learning to.
+   * @param segment  Index of segment to apply learning to.  Is returned by 
+   *        method getSegment.
    * @param inputVector  An SDR
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    */
-  void adaptSegment(CellIdx cell, SegmentIdx segment, SDR &inputs,
+  void adaptSegment(Segment segment, SDR &inputs,
                     Permanence increment,
                     Permanence decrement);
-
 
   /**
    * Ensures a minimum number of connected synapses.  This raises permance
    * values until the desired number of synapses have permanences above the
    * permanenceThreshold.  This is applied to a single segment.
    *
-   * @param cell  Index of cell
-   * @param segment  Index of segment on cell
+   * @param segment  Index of segment on cell.   Is returned by method getSegment.
    * @param permanenceThreshold  Connected threshold of synapses
    * @param segmentThreshold  Desired number of connected synapses
    */
-  void raisePermanencesToThreshold(CellIdx    cell,
-                                    SegmentIdx segment,
-                                    Permanence permanenceThreshold,
-                                    UInt       segmentThreshold,
-                                    Permanence synPermBelowStimulusInc);
+  void raisePermanencesToThreshold(Segment    segment,
+                                   Permanence permanenceThreshold,
+                                   UInt       segmentThreshold,
+                                   Permanence synPermBelowStimulusInc);
 
   /**
    * Modify all permanence on the given segment, uniformly.
    *
-   * @param cell  Index of cell
-   * @param segment  Index of segment on cell
+   * @param segment  Index of segment on cell. Is returned by method getSegment.
    * @param delta  Change in permanence value
    */
-  void bumpSegment(CellIdx cell, Segment segment, Permanence delta);
+  void bumpSegment(Segment segment, Permanence delta);
 
   // Serialization
 
