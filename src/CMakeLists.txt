@@ -164,7 +164,6 @@ set(math_files
     nupic/math/Functions.hpp
     nupic/math/Index.hpp
     nupic/math/Math.hpp
-    nupic/math/NearestNeighbor.hpp
     nupic/math/SegmentMatrixAdapter.hpp
     nupic/math/Set.hpp
     nupic/math/SparseBinaryMatrix.hpp

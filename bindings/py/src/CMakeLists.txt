@@ -97,7 +97,6 @@ set(src_py_math_files
     bindings/math/py_Domain.cpp
     bindings/math/py_Gaussian_2D.cpp
     bindings/math/py_Math.cpp
-    bindings/math/py_NearestNeighbor.cpp
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
     bindings/math/py_SegmentSparseMatrix.cpp

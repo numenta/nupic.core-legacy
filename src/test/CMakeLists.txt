@@ -45,7 +45,6 @@ set(algorithm_tests
 	   unit/algorithms/ConnectionsTest.cpp
 	   unit/algorithms/HelloSPTPTest.cpp
 
-	   unit/algorithms/NearestNeighborUnitTest.cpp
 	   unit/algorithms/SDRClassifierTest.cpp
 	   unit/algorithms/SegmentTest.cpp
 	   unit/algorithms/Serialization.cpp
