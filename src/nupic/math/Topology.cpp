@@ -26,6 +26,7 @@
 
 #include <nupic/math/Topology.hpp>
 #include <nupic/utils/Log.hpp>
+#include <algorithm>
 
 using std::vector;
 using namespace nupic;

@@ -33,6 +33,7 @@
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
+#include <nupic/ntypes/Sdr.hpp>
 
 using namespace std;
 
@@ -260,6 +261,32 @@ public:
   virtual void compute(const UInt inputVector[], bool learn, UInt activeVector[]);
 
   /**
+  This is the main workshorse method of the SpatialPooler class. This
+  method takes an input SDR and computes the set of output active
+  columns. If 'learn' is set to True, this method also performs
+  learning.
+
+  @param input An SDR that comprises the input to the spatial pooler.  The size
+        of the SDR must mach total number of input bits implied by the
+        constructor (also returned by the method getNumInputs).
+
+  @param learn A boolean value indicating whether learning should be
+        performed. Learning entails updating the permanence values of
+        the synapses, duty cycles, etc. Learning is typically on but
+        setting learning to 'off' is useful for analyzing the current
+        state of the SP. For example, you might want to feed in various
+        inputs and examine the resulting SDR's. Note that if learning
+        is off, boosting is turned off and columns that have never won
+        will be removed from activeVector.  TODO: we may want to keep
+        boosting on even when learning is off.
+
+  @param active An SDR representing the winning columns after
+        inhibition. The size of the SDR is equal to the number of
+        columns (also returned by the method getNumColumns).
+   */
+  virtual void compute(SDR &input, bool learn, SDR &active);
+
+  /**
    Removes the set of columns who have never been active from the set
    of active columns selected in the inhibition round. Such columns
    cannot represent learned pattern and are therefore meaningless if
@@ -270,6 +297,7 @@ public:
          any columns that are not learned.
   */
   void stripUnlearnedColumns(UInt activeArray[]) const;
+  void stripUnlearnedColumns(SDR& active) const;
 
   /**
    * Get the version number of this spatial pooler.
@@ -807,8 +835,9 @@ public:
     potential and connectivity matrices.
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
+    Used only during initialization.
   */
-  UInt mapColumn_(UInt column) const;
+  UInt initMapColumn_(UInt column) const;
 
   /**
     Maps a column to its input bits.
@@ -831,6 +860,7 @@ public:
       potentialRadius is 5, the method should return an array containing 25
       '1's, where the exact indices are to be determined by the mapping from
       1-D index to 2-D position.
+    Used only at initialization.
 
     ----------------------------
     @param column         An int index identifying a column in the permanence,
@@ -839,7 +869,7 @@ public:
     @param wrapAround  A boolean value indicating that boundaries should be
                        ignored.
   */
-  vector<UInt> mapPotential_(UInt column, bool wrapAround);
+  vector<UInt> initMapPotential_(UInt column, bool wrapAround);
 
   /**
   Returns a randomly generated permanence value for a synapses that is
@@ -914,8 +944,7 @@ public:
   */
   void updatePermanencesForColumn_(vector<Real> &perm, UInt column,
                                    bool raisePerm = true);
-  UInt countConnected_(const vector<Real> &perm) const;
-  UInt raisePermanencesToThreshold_(vector<Real> &perm,
+  void raisePermanencesToThreshold_(vector<Real> &perm,
                                     const vector<UInt> &potential) const;
 
   /**
@@ -938,7 +967,7 @@ public:
      a "connected state" (connected synapses) that are connected to
      input bits which are turned on.
   */
-  void calculateOverlap_(const UInt inputVector[], vector<UInt> &overlap) const;
+  void calculateOverlap_(SDR &input, vector<UInt> &overlap) const;
   void calculateOverlapPct_(const vector<UInt> &overlaps, vector<Real> &overlapPct) const;
 
   /**
@@ -1028,7 +1057,7 @@ public:
       @param  activeColumns  an int vector containing the indices of the columns
      that survived inhibition.
    */
-  void adaptSynapses_(const UInt inputVector[], const vector<UInt> &activeColumns);
+  void adaptSynapses_(SDR &input, SDR &active);
 
   /**
       This method increases the permanence values of synapses of columns whose
@@ -1120,7 +1149,7 @@ public:
       @param period         A int number indicating the period of the duty cycle
   */
   static void updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                      const vector<UInt> &newValues, UInt period);
+                                      SDR &newValues, UInt period);
 
   /**
   Updates the duty cycles for each column. The OVERLAP duty cycle is a moving
@@ -1136,7 +1165,7 @@ public:
   @param activeArray  An int array containing the indices of the active columns,
                   the sprase set of columns which survived inhibition
   */
-  void updateDutyCycles_(const vector<UInt> &overlaps, const UInt activeArray[]);
+  void updateDutyCycles_(const vector<UInt> &overlaps, SDR &active);
 
   /**
     Update the boost factors for all columns. The boost factors are used to
@@ -1259,8 +1288,8 @@ protected:
   vector<UInt> overlaps_;
   vector<Real> overlapsPct_;
   vector<Real> boostedOverlaps_;
-  vector<UInt> activeColumns_;
   vector<Real> tieBreaker_;
+
 
   UInt version_;
   Random rng_;

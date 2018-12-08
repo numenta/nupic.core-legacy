@@ -27,6 +27,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator> //begin()
+#include <cmath> //fmod
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
@@ -436,7 +437,7 @@ void SpatialPooler::initialize(
   inhibitionRadius_ = 0;
 
   for (Size i = 0; i < numColumns_; ++i) {
-    vector<UInt> potential = mapPotential_(i, wrapAround_);
+    vector<UInt> potential = initMapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     potentialPools_.rowFromDense(i, potential.begin(), potential.end());
     updatePermanencesForColumn_(perm, i, true);
@@ -450,9 +451,23 @@ void SpatialPooler::initialize(
   }
 }
 
+
 void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArray[]) {
+  SDR input( inputDimensions_ );
+  input.setDense( inputArray );
+
+  SDR active( columnDimensions_ );
+  compute( input, learn, active );
+  copy(
+      active.getDense().begin(),
+      active.getDense().end(),
+      activeArray);
+}
+
+
+void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
-  calculateOverlap_(inputArray, overlaps_);
+  calculateOverlap_(input, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);
 
   if (learn) {
@@ -461,14 +476,16 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
     boostedOverlaps_.assign(overlaps_.begin(), overlaps_.end());
   }
 
-  inhibitColumns_(boostedOverlaps_, activeColumns_);
-  const vector<UInt> spars = VectorHelpers::sparseToBinary<UInt>(activeColumns_, numColumns_);
-  copy(begin(spars), end(spars), activeArray);
-
+  auto &activeVector = active.getFlatSparse();
+  inhibitColumns_(boostedOverlaps_, activeVector);
+  // Notify the active SDR that its internal data vector has changed.  Always
+  // call SDR's setter methods even if when modifying the SDR's own data
+  // inplace.
+  active.setFlatSparse( activeVector );
 
   if (learn) {
-    adaptSynapses_(inputArray, activeColumns_);
-    updateDutyCycles_(overlaps_, activeArray);
+    adaptSynapses_(input, active);
+    updateDutyCycles_(overlaps_, active);
     bumpUpWeakColumns_();
     updateBoostFactors_();
     if (isUpdateRound_()) {
@@ -478,24 +495,39 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
   }
 }
 
-
+// old API version 
 void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const {
-  for (Size i = 0; i < numColumns_; i++) {
-    if (activeDutyCycles_[i] == 0) { //TODO make sparse
-      activeArray[i] = 0u;
+  SDR active(columnDimensions_);
+  active.setDense(activeArray);
+  stripUnlearnedColumns(active);
+  std::copy(active.getDense().begin(), active.getDense().end(), activeArray); 
+}
+
+// performs activeColumns AND current-round learned columns: active & activeDutyCyc_ 
+void SpatialPooler::stripUnlearnedColumns(SDR& active) const {
+  auto sparseCols = active.getFlatSparse();
+  vector<UInt> res;
+  res.reserve(sparseCols.size());
+
+  for (const auto& col: sparseCols) { 
+    if (activeDutyCycles_[col] > 0) {
+      res.push_back(col);
     }
   }
+  //update original SDR with changed values
+  active.setFlatSparse(res);
 }
 
 
-void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps,
+void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps, //TODO use Eigen sparse vector here
                                    vector<Real> &boosted) const {
   for (UInt i = 0; i < numColumns_; i++) {
     boosted[i] = overlaps[i] * boostFactors_[i];
   }
 }
 
-UInt SpatialPooler::mapColumn_(UInt column) const {
+
+UInt SpatialPooler::initMapColumn_(UInt column) const {
   NTA_ASSERT(column < numColumns_);
   vector<UInt> columnCoords;
   const CoordinateConverterND columnConv(columnDimensions_);
@@ -513,9 +545,10 @@ UInt SpatialPooler::mapColumn_(UInt column) const {
   return inputConv.toIndex(inputCoords);
 }
 
-vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround) {
+
+vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
   NTA_ASSERT(column < numColumns_);
-  const UInt centerInput = mapColumn_(column);
+  const UInt centerInput = initMapColumn_(column);
 
   vector<UInt> columnInputs;
   if (wrapAround) {
@@ -590,7 +623,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
 
   UInt numConnected = 0u;
   vector<Real> connectedSparse;
-  for (Size i = 0; i < perm.size(); ++i) { //TODO use binary2Sparse
+  for (Size i = 0; i < perm.size(); ++i) {
     if (perm[i] >= synPermConnected_ - PERMANENCE_EPSILON) {
       connectedSparse.push_back(i);
       ++numConnected;
@@ -598,37 +631,45 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
   }
 
   clip_(perm, true);
-  connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(), 
-                                      connectedSparse.end());
+  connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(), connectedSparse.end());
   permanences_.setRowFromDense(column, perm);
   connectedCounts_[column] = numConnected;
 }
 
 
-UInt SpatialPooler::countConnected_(const vector<Real> &perm) const {
-  UInt numConnected = 0;
-  for (auto &elem : perm) {
-    if (elem >= synPermConnected_ - PERMANENCE_EPSILON) {
-      ++numConnected;
-    }
-  }
-  return numConnected;
-}
+void SpatialPooler::raisePermanencesToThreshold_(
+                      vector<Real>& perm,
+                      const vector<UInt>& potential) const {
 
+  if( stimulusThreshold_ == 0 )
+    return;
 
-UInt SpatialPooler::raisePermanencesToThreshold_(vector<Real>& perm,
-                                                 const vector<UInt>& potential) const
-{
+  // Sort the potential pool by permanence values, and look for the synapse with
+  // the N'th greatest permanence, where N is the desired minimum number of
+  // connected synapses.  Then calculate how much to increase the N'th synapses
+  // permance by such that it becomes a connected synapse.
+
+  vector<UInt> index(potential.begin(), potential.end()); // Sort a copy, since original is const.
+  auto minPermSynPtr = index.begin() + stimulusThreshold_ - 1;
+  // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
+  // its final sorted position.
+  nth_element(index.begin(), minPermSynPtr, index.end(),
+      [&](UInt &A, UInt &B) { return perm[A] > perm[B]; });
+
+  const Real increment = synPermConnected_ - perm[ *minPermSynPtr ];
+  if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
+    return;            // Enough synapses are already connected.
+
+  //Round up to multiple of synPermBelowStimulusInc_.
+  const Real inc_rounded = ((increment + synPermBelowStimulusInc_) -
+                             std::fmod(increment, synPermBelowStimulusInc_));
+
+  // Raise the permance of all synapses in the potential pool uniformly.
+  for( auto &elem : potential )
+    perm[elem] += inc_rounded;
+
   clip_(perm, false);
-  UInt numConnected = countConnected_(perm);
-  while (numConnected < stimulusThreshold_) //TODO avoid the while-true loop, grow syns in 1 step
-  {
-    for (auto & elem : potential) {
-      perm[elem] += synPermBelowStimulusInc_;
-    }
-    numConnected = countConnected_(perm);
-  }
-  return numConnected;
+  return;
 }
 
 
@@ -694,20 +735,22 @@ void SpatialPooler::updateMinDutyCyclesLocal_() {
 
 
 void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
-                                      const UInt activeArray[]) {
-  vector<UInt> newOverlapVal(numColumns_, 0);
-  vector<UInt> newActiveVal(numColumns_, 0);
+                                      SDR &active) {
 
+  // Turn the overlaps array into an SDR. Convert directly to flat-sparse to
+  // avoid copies and  type convertions.
+  SDR newOverlap({ numColumns_ });
+  auto &overlapsSparseVec = newOverlap.getFlatSparse();
   for (UInt i = 0; i < numColumns_; i++) {
-    newOverlapVal[i] = overlaps[i] > 0 ? 1 : 0;
-    newActiveVal[i] = activeArray[i] > 0 ? 1 : 0;
+    if( overlaps[i] != 0 )
+      overlapsSparseVec.push_back( i );
   }
+  newOverlap.setFlatSparse( overlapsSparseVec );
 
-  const UInt period =
-      dutyCyclePeriod_ > iterationNum_ ? iterationNum_ : dutyCyclePeriod_;
+  const UInt period = std::min(dutyCyclePeriod_, iterationNum_);
 
-  updateDutyCyclesHelper_(overlapDutyCycles_, newOverlapVal, period);
-  updateDutyCyclesHelper_(activeDutyCycles_, newActiveVal, period);
+  updateDutyCyclesHelper_(overlapDutyCycles_, newOverlap, period);
+  updateDutyCyclesHelper_(activeDutyCycles_, active, period);
 }
 
 
@@ -755,17 +798,13 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 }
 
 
-void SpatialPooler::adaptSynapses_(const UInt inputVector[], //TODO make sparse
-                                   const vector<UInt> &activeColumns) {
+void SpatialPooler::adaptSynapses_(SDR &input,
+                                   SDR &active) {
   vector<Real> permChanges(numInputs_, -1 * synPermInactiveDec_);
-  for (UInt i = 0; i < numInputs_; i++) {
-    if (inputVector[i] > 0) {
-      permChanges[i] = synPermActiveInc_;
-    }
-  }
+  for(const auto &idx : input.getFlatSparse())
+    permChanges[idx] = synPermActiveInc_;
 
-  for (Size i = 0; i < activeColumns.size(); i++) {
-    const UInt column = activeColumns[i];
+  for(const auto &column : active.getFlatSparse()) {
     const vector<UInt> potential = potentialPools_.getSparseRow(column);
     vector<Real> perm(numInputs_, 0);
     permanences_.getRowToDense(column, perm);
@@ -786,7 +825,7 @@ void SpatialPooler::bumpUpWeakColumns_() {
     vector<Real> perm(numInputs_, 0);
     const vector<UInt> potential = potentialPools_.getSparseRow(i);
     permanences_.getRowToDense(i, perm);
-    for (auto & elem : potential) {
+    for (const auto & elem : potential) {
       perm[elem] += synPermBelowStimulusInc_;
     }
     updatePermanencesForColumn_(perm, i, false);
@@ -795,14 +834,24 @@ void SpatialPooler::bumpUpWeakColumns_() {
 
 
 void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                            const vector<UInt> &newValues,
+                                            SDR &newValues,
                                             UInt period) {
   NTA_ASSERT(period > 0);
-  NTA_ASSERT(dutyCycles.size() == newValues.size());
+  NTA_ASSERT(dutyCycles.size() == newValues.size);
 
-  for (Size i = 0; i < dutyCycles.size(); i++) {
-    dutyCycles[i] = (dutyCycles[i] * (period - 1) + newValues[i]) / period;
-  }
+  // Duty cycles are exponential moving averages, typically written like:
+  //   alpha = 1 / period
+  //   DC( time ) = DC( time - 1 ) * (1 - alpha) + value( time ) * alpha
+  // However since the values are sparse this equation is split into two loops,
+  // and the second loop iterates over only the non-zero values.
+
+  const Real decay = (Real) (period - 1) / period;
+  for (Size i = 0; i < dutyCycles.size(); i++)
+    dutyCycles[i] *= decay;
+
+  const Real increment = 1. / period;  // All non-zero values are 1.
+  for(const auto &idx : newValues.getFlatSparse())
+    dutyCycles[idx] += increment;
 }
 
 
@@ -866,11 +915,12 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 }
 
 
-void SpatialPooler::calculateOverlap_(const UInt inputVector[],
+void SpatialPooler::calculateOverlap_(SDR &input,
                                       vector<UInt> &overlaps) const {
   overlaps.assign(numColumns_, 0);
-  connectedSynapses_.rightVecSumAtNZ(inputVector, inputVector + numInputs_,
-                                     overlaps.begin(), overlaps.end());
+  const auto &inputVector = input.getDense();
+  connectedSynapses_.rightVecSumAtNZ(inputVector.begin(), inputVector.end(),
+                                     overlaps.begin(),    overlaps.end());
 }
 
 
