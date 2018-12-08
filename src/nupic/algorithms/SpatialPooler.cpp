@@ -225,16 +225,6 @@ void SpatialPooler::setUpdatePeriod(UInt updatePeriod) {
   updatePeriod_ = updatePeriod;
 }
 
-Real SpatialPooler::getSynPermTrimThreshold() const {
-  return synPermTrimThreshold_;
-}
-
-void SpatialPooler::setSynPermTrimThreshold(Real synPermTrimThreshold) {
-  NTA_CHECK(synPermTrimThreshold >= synPermMin_ &&
-             synPermTrimThreshold <= synPermMax_);
-  synPermTrimThreshold_ = synPermTrimThreshold;
-}
-
 Real SpatialPooler::getSynPermActiveInc() const { return synPermActiveInc_; }
 
 void SpatialPooler::setSynPermActiveInc(Real synPermActiveInc) {
@@ -409,8 +399,6 @@ void SpatialPooler::initialize(
   wrapAround_ = wrapAround;
   synPermMin_ = 0.0f;
   synPermMax_ = 1.0f;
-  synPermTrimThreshold_ = synPermActiveInc / 2.0f;
-  NTA_CHECK(synPermTrimThreshold_ < synPermConnected_);
   updatePeriod_ = 50u;
   initConnectedPct_ = 0.5f;
   iterationNum_ = 0u;
@@ -596,18 +584,16 @@ vector<Real> SpatialPooler::initPermanence_(const vector<UInt> &potential, //TOD
     } else {
       perm[i] = initPermNonConnected_();
     }
-    perm[i] = perm[i] < synPermTrimThreshold_ ? 0.0f : perm[i];
   }
 
   return perm;
 }
 
 
-void SpatialPooler::clip_(vector<Real> &perm, bool trim) const {
-  const Real minVal = trim ? synPermTrimThreshold_ : synPermMin_;
+void SpatialPooler::clip_(vector<Real> &perm) const {
   for (auto &elem : perm) {
     elem = elem > synPermMax_ ? synPermMax_ : elem; //crop upper bound
-    elem = elem < minVal ? synPermMin_ : elem; //crop lower
+    elem = elem < synPermMin_ ? synPermMin_ : elem; //crop lower
   }
 }
 
@@ -630,7 +616,7 @@ void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
     }
   }
 
-  clip_(perm, true);
+  clip_(perm);
   connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(), connectedSparse.end());
   permanences_.setRowFromDense(column, perm);
   connectedCounts_[column] = numConnected;
@@ -668,7 +654,7 @@ void SpatialPooler::raisePermanencesToThreshold_(
   for( auto &elem : potential )
     perm[elem] += inc_rounded;
 
-  clip_(perm, false);
+  clip_(perm);
   return;
 }
 
@@ -1085,7 +1071,7 @@ void SpatialPooler::save(ostream &outStream) const {
             << " " << updatePeriod_ << " ";
 
   outStream << synPermMin_ << " " << synPermMax_ << " " 
-    << synPermTrimThreshold_ << " " << synPermInactiveDec_ << " "
+    << " " << synPermInactiveDec_ << " "
     << synPermActiveInc_ << " " << synPermBelowStimulusInc_ << " "
     << synPermConnected_ << " " << minPctOverlapDutyCycles_ << " ";
 
@@ -1186,7 +1172,7 @@ void SpatialPooler::load(istream &inStream) {
       dutyCyclePeriod_ >> boostStrength_ >> iterationNum_ >>
       iterationLearnNum_ >> spVerbosity_ >> updatePeriod_
 
-      >> synPermMin_ >> synPermMax_ >> synPermTrimThreshold_ >>
+      >> synPermMin_ >> synPermMax_ >>
       synPermInactiveDec_ >> synPermActiveInc_ >> synPermBelowStimulusInc_ >>
       synPermConnected_ >> minPctOverlapDutyCycles_;
   inStream >> wrapAround_;
