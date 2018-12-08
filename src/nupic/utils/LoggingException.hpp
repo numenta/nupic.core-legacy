@@ -54,6 +54,15 @@ public:
     return lmessage_.c_str();
   }
 
+  // for Index.hpp: // because stringstream cant take << vector
+  LoggingException& operator<<(std::vector<nupic::UInt32, std::allocator<nupic::UInt32> > v) {
+    lmessageValid_ = false;
+    ss_ << "[";
+    for (auto &elem : v)
+      ss_ << elem << " ";
+    ss_ << "]";
+    return *this;
+  }
 
   template <typename T> LoggingException &operator<<(const T &obj) {
     // underlying stringstream changes, so let getMessage() know

@@ -94,12 +94,16 @@ set(src_py_engine_files
 set(src_py_math_files
     bindings/math/math_module.cpp    
     bindings/math/py_ArrayAlgo.cpp
+    bindings/math/py_Domain.cpp
     bindings/math/py_Math.cpp
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
     bindings/math/py_Set.cpp
 #    bindings/math/py_SparseBinaryMatrix.cpp
-    bindings/math/py_SparseMatrix.cpp
+#    bindings/math/py_SparseMatrix.cpp
+    bindings/math/py_SparseTensor.cpp
+    bindings/math/PyBindSparseTensor.hpp
+    bindings/math/SparseTensorIndex.hpp
     )
     
 set(src_py_test_files
@@ -123,7 +127,7 @@ source_group("test" FILES ${src_py_test_files})
 if (MSVC)
   set(PYBIND11_CPP_STANDARD /std:c++latest) # Enables MSVC C++17
 else()
-  set(PYBIND11_CPP_STANDARD -std=c++11)
+  set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
 endif()
 
 include_directories(${REPOSITORY_DIR}/src)

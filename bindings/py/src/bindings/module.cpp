@@ -69,6 +69,10 @@ PYBIND11_MODULE(bindings, m) {
     init_SM32(math_module);
     init_SM_01_32_32(math_module);
     init_Math_Functions(math_module);
+    init_SMC(math_module);
+    init_SparseTensor(math_module);
+    init_TensorIndex(math_module);
+    init_Domain(math_module);
     init_array_algo(math_module);
 
     auto engine_module = m.def_submodule("engine");

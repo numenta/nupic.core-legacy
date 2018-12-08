@@ -23,7 +23,7 @@
  */
 
 /** @file
-PyBind11 Module for Math 
+PyBind11 bindings for SparseTensor class
 */
 
 // the use of 'register' keyword is removed in C++17
@@ -35,44 +35,51 @@ PyBind11 Module for Math
 #endif
 
 #include <pybind11/pybind11.h>
+#include <pybind11/iostream.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+
+#include <nupic/math/SparseTensor.hpp>
+
+#include "SparseTensorIndex.hpp"
+#include "bindings/engine/py_utils.hpp"
 
 namespace py = pybind11;
+using namespace nupic;
 
 namespace nupic_ext
 {
-    void init_array_algo(py::module&);
-    void init_Domain(py::module&);
-    void init_Gaussian_2D(py::module&);
-    void init_Math_Functions(py::module&);
-    void init_NearestNeighbor(py::module&);
-    void init_Random(py::module&);
-    void init_reals(py::module&);
-    void init_Set(py::module&);
-    void init_SM_01_32_32(py::module&);
-    void init_SM32(py::module&);
-    void init_SMC(py::module&);
-    void init_SegmentSparseMatrix(py::module&);
-    void init_SparseTensor(py::module&);
-    void init_TensorIndex(py::module&);
-    void init_SparseMatrixAlgorithms(py::module&);
-    void init_SparseRLEMatrix(py::module&);
+    void init_TensorIndex(py::module& m)
+    {
+        py::class_<PyBindTensorIndex> py_TensorIndex(m, "TensorIndex");
+
+    }
+
+    void init_SparseTensor(py::module& m)
+    {
+        typedef nupic::SparseTensor<PyBindTensorIndex, nupic::Real> Tensor_t;
+
+        py::class_<Tensor_t> py_SparseTensor(m, "SparseTensor");
+
+        py_SparseTensor.def(py::init([](const std::string& state)
+        {
+            size_t rank = 0;
+            {
+                std::stringstream forRank(state);
+                forRank.exceptions(std::ios::failbit | std::ios::badbit);
+                forRank >> rank;
+            };
+
+            PyBindTensorIndex index(rank, (const size_t *)0);
+            for (size_t i = 0; i<rank; ++i) {
+                index[i] = 1;
+            }
+            Tensor_t tensor(index);
+            std::stringstream toRead(state);
+            tensor.fromStream(toRead);
+
+            return tensor;
+        }));
+    }
+
 } // namespace nupic_ext
-
-using namespace nupic_ext; 
-
-PYBIND11_MODULE(math, m) {
-    m.doc() = "nupic.bindings.math plugin"; // optional module docstring
-
-    init_array_algo(m);
-    init_Domain(m);
-    init_SM32(m); // has to be defined before NearestNeighbor
-    init_Math_Functions(m);
-    init_Random(m);
-    init_reals(m);
-    init_SegmentSparseMatrix(m);
-    init_Set(m);
-    init_SM_01_32_32(m);
-    init_SMC(m);
-    init_SparseTensor(m);
-    init_TensorIndex(m);
-}

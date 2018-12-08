@@ -268,7 +268,7 @@ namespace nupic_ext
         sm.def("nonZeroIndicesIncluded", py::overload_cast<const SparseMatrix32_t&>(&SparseMatrix32_t::nonZeroIndicesIncluded, py::const_));
 
         sm.def("transpose", py::overload_cast<>(&SparseMatrix32_t::transpose));
-//!        sm.def("transpose", py::overload_cast<SparseMatrix32_t&>(&SparseMatrix32_t::transpose, py::const_));
+        sm.def("transpose", py::overload_cast<SparseMatrix32_t&>(&SparseMatrix32_t::transpose, py::const_));
         
         sm.def("getTransposed", [](const SparseMatrix32_t& sm)
         {

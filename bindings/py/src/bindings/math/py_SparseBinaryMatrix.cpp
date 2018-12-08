@@ -44,6 +44,7 @@ PyBind11 bindings for SparseBinaryMatrix class
 
 #include <nupic/math/Math.hpp>
 #include <nupic/math/DenseMatrix.hpp>
+#include <nupic/math/Domain.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 
@@ -52,6 +53,8 @@ PyBind11 bindings for SparseBinaryMatrix class
 
 namespace py = pybind11;
 
+typedef nupic::Domain<nupic::UInt32> _Domain32;
+typedef nupic::Domain2D<nupic::UInt32> _Domain2D32;
 typedef nupic::DistanceToZero<nupic::Real32> _DistanceToZero32;
 
 typedef nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32>> SparseMatrix32_t;
