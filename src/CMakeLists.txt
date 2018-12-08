@@ -169,8 +169,6 @@ set(math_files
     nupic/math/SparseBinaryMatrix.hpp
     nupic/math/SparseMatrix.hpp
     nupic/math/SparseMatrix01.hpp
-    nupic/math/SparseMatrixConnections.cpp
-    nupic/math/SparseMatrixConnections.hpp
     nupic/math/SparseTensor.hpp
     nupic/math/StlIo.cpp
     nupic/math/StlIo.hpp
