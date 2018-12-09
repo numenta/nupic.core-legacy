@@ -65,9 +65,7 @@ PYBIND11_MODULE(math, m) {
 
     init_array_algo(m);
     init_Domain(m);
-    init_Gaussian_2D(m);
     init_SM32(m); // has to be defined before NearestNeighbor
-    init_NearestNeighbor(m);
     init_Math_Functions(m);
     init_Random(m);
     init_reals(m);
@@ -76,7 +74,5 @@ PYBIND11_MODULE(math, m) {
     init_SM_01_32_32(m);
     init_SMC(m);
     init_SparseTensor(m);
-    init_SparseMatrixAlgorithms(m);
-    init_SparseRLEMatrix(m);
     init_TensorIndex(m);
 }

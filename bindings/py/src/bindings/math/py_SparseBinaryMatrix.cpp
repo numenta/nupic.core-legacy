@@ -46,7 +46,6 @@ PyBind11 bindings for SparseBinaryMatrix class
 #include <nupic/math/DenseMatrix.hpp>
 #include <nupic/math/Domain.hpp>
 #include <nupic/math/SparseMatrix.hpp>
-#include <nupic/math/SparseMatrixAlgorithms.hpp>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 
 #include "Matrix.hpp"

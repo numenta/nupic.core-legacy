@@ -40,12 +40,9 @@ set(unit_tests_executable unit_tests)
 set(algorithm_tests
 	   unit/algorithms/AnomalyTest.cpp
 	   unit/algorithms/Cells4Test.cpp
-	   unit/algorithms/CondProbTableTest.cpp
 	   unit/algorithms/ConnectionsPerformanceTest.cpp
 	   unit/algorithms/ConnectionsTest.cpp
 	   unit/algorithms/HelloSPTPTest.cpp
-
-	   unit/algorithms/NearestNeighborUnitTest.cpp
 	   unit/algorithms/SDRClassifierTest.cpp
 	   unit/algorithms/SegmentTest.cpp
 	   unit/algorithms/Serialization.cpp
@@ -77,10 +74,7 @@ set(math_tests
 	   unit/math/IndexUnitTest.hpp
 	   unit/math/MathsTest.cpp
 	   unit/math/MathsTest.hpp
-	   unit/math/SegmentMatrixAdapterTest.cpp
 	   unit/math/SparseBinaryMatrixTest.cpp
-	   unit/math/SparseMatrix01UnitTest.cpp
-	   unit/math/SparseMatrix01UnitTest.hpp
 	   unit/math/SparseMatrixTest.cpp
 	   unit/math/SparseMatrixUnitTest.cpp
 	   unit/math/SparseMatrixUnitTest.hpp

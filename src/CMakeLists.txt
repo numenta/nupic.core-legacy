@@ -95,8 +95,6 @@ set(algorithm_files
     nupic/algorithms/Cells4.hpp
     nupic/algorithms/ClassifierResult.cpp
     nupic/algorithms/ClassifierResult.hpp
-    nupic/algorithms/CondProbTable.cpp
-    nupic/algorithms/CondProbTable.hpp
     nupic/algorithms/Connections.cpp
     nupic/algorithms/Connections.hpp
     nupic/algorithms/InSynapse.cpp
@@ -164,17 +162,9 @@ set(math_files
     nupic/math/Functions.hpp
     nupic/math/Index.hpp
     nupic/math/Math.hpp
-    nupic/math/NearestNeighbor.hpp
-    nupic/math/SegmentMatrixAdapter.hpp
     nupic/math/Set.hpp
     nupic/math/SparseBinaryMatrix.hpp
     nupic/math/SparseMatrix.hpp
-    nupic/math/SparseMatrix01.hpp
-    nupic/math/SparseMatrixAlgorithms.cpp
-    nupic/math/SparseMatrixAlgorithms.hpp
-    nupic/math/SparseMatrixConnections.cpp
-    nupic/math/SparseMatrixConnections.hpp
-    nupic/math/SparseRLEMatrix.hpp
     nupic/math/SparseTensor.hpp
     nupic/math/StlIo.cpp
     nupic/math/StlIo.hpp
