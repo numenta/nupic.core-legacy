@@ -95,18 +95,12 @@ set(src_py_math_files
     bindings/math/math_module.cpp    
     bindings/math/py_ArrayAlgo.cpp
     bindings/math/py_Domain.cpp
-    bindings/math/py_Gaussian_2D.cpp
     bindings/math/py_Math.cpp
-    bindings/math/py_NearestNeighbor.cpp
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
-    bindings/math/py_SegmentSparseMatrix.cpp
     bindings/math/py_Set.cpp
 #    bindings/math/py_SparseBinaryMatrix.cpp
 #    bindings/math/py_SparseMatrix.cpp
-    bindings/math/py_SparseMatrixAlgorithms.cpp
-    bindings/math/py_SparseMatrixConnections.cpp
-#    bindings/math/py_SparseRLEMatrix.cpp
     bindings/math/py_SparseTensor.cpp
     bindings/math/PyBindSparseTensor.hpp
     bindings/math/SparseTensorIndex.hpp
