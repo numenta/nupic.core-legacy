@@ -144,8 +144,6 @@ namespace nupic_ext
         py_SpatialPooler.def("setWrapAround", &SpatialPooler::setWrapAround);
         py_SpatialPooler.def("getUpdatePeriod", &SpatialPooler::getUpdatePeriod);
         py_SpatialPooler.def("setUpdatePeriod", &SpatialPooler::setUpdatePeriod);
-        py_SpatialPooler.def("getSynPermTrimThreshold", &SpatialPooler::getSynPermTrimThreshold);
-        py_SpatialPooler.def("setSynPermTrimThreshold", &SpatialPooler::setSynPermTrimThreshold);
         py_SpatialPooler.def("getSynPermActiveInc", &SpatialPooler::getSynPermActiveInc);
         py_SpatialPooler.def("setSynPermActiveInc", &SpatialPooler::setSynPermActiveInc);
         py_SpatialPooler.def("getSynPermInactiveDec", &SpatialPooler::getSynPermInactiveDec);
