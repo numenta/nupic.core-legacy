@@ -45,7 +45,6 @@ namespace nupic_ext
     void init_Cells4(py::module&);
     void init_SDR_Classifier(py::module&);
     void init_Spatial_Pooler(py::module&);
-    void init_NearestNeighbor(py::module&);
     void init_SparseTensor(py::module&);
     void init_Domain(py::module&);
     void init_TensorIndex(py::module&);
@@ -71,8 +70,6 @@ PYBIND11_MODULE(bindings, m) {
     init_SM_01_32_32(math_module);
     init_Math_Functions(math_module);
     init_SMC(math_module);
-    init_SegmentSparseMatrix(math_module);
-    init_NearestNeighbor(math_module);
     init_SparseTensor(math_module);
     init_TensorIndex(math_module);
     init_Domain(math_module);
