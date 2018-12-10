@@ -943,7 +943,8 @@ public:
                                    bool raisePerm = true);
   UInt countConnected_(const vector<Real> &perm) const;
   UInt raisePermanencesToThreshold_(vector<Real> &perm,
-                                    const vector<UInt> &potential) const;
+                                    const vector<UInt> &potential) const
+      { return -1; };
 
   /**
      This function determines each column's overlap with the current
@@ -1006,7 +1007,7 @@ public:
      @param activeColumns
      an int array containing the indices of the active columns.
   */
-  virtual void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
+  void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
                              vector<UInt> &activeColumns) const;
 
   /**
@@ -1225,7 +1226,7 @@ public:
   @returns boolean value indicating whether enough rounds have passed to warrant
   updates of duty cycles
   */
-  bool isUpdateRound_() const;
+  bool isUpdateRound_() const { return false; };
 
   //-------------------------------------------------------------------
   // Debugging helpers
@@ -1291,42 +1292,6 @@ protected:
 
   UInt version_;
   Random rng_;
-};
-
-
-class SpatialPoolerTopology : public SpatialPooler
-{
-public:
-  SpatialPoolerTopology(const vector<UInt> inputDimensions,
-                const vector<UInt> columnDimensions,
-                UInt potentialRadius = 16u, Real potentialPct = 0.5f,
-                bool globalInhibition = true, Real localAreaDensity = DISABLED,
-                Int numActiveColumnsPerInhArea = 10u,
-                UInt stimulusThreshold = 0u, Real synPermInactiveDec = 0.008f,
-                Real synPermActiveInc = 0.05f, Real synPermConnected = 0.1f,
-                Real minPctOverlapDutyCycles = 0.001f,
-                UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
-                Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true)
-  : SpatialPooler(inputDimensions, columnDimensions,
-                potentialRadius , potentialPct,
-                globalInhibition , localAreaDensity ,
-                numActiveColumnsPerInhArea ,
-                stimulusThreshold , synPermInactiveDec ,
-                synPermActiveInc , synPermConnected ,
-                minPctOverlapDutyCycles ,
-                dutyCyclePeriod , boostStrength,
-                seed , spVerbosity, wrapAround)
-  {};
-
-
-  // virtual ~SpatialPoolerTopology() {};
-
-  // void compute(SDR &input, bool learn, SDR &active) override;
-
-  void inhibitColumnsGlobal_(const vector<Real> &overlaps, Real density,
-                             vector<UInt> &activeColumns) const override;
-
-// protected:
 };
 
 } // end namespace spatial_pooler

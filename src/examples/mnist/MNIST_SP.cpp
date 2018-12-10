@@ -1,4 +1,13 @@
-// Written by David McDougall, 2018
+/**
+ * TODO LICENSE
+ */
+
+/**
+ * Solving the MNIST dataset with Spatial Pooler.
+ *
+ * Written by David McDougall, 2018
+ */
+
 #include <algorithm>
 #include <cmath>
 #include <ctime>
@@ -12,7 +21,7 @@
 
 using namespace std;
 using namespace nupic;
-using nupic::algorithms::spatial_pooler::SpatialPoolerTopology;
+using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::sdr_classifier::SDRClassifier;
 using nupic::algorithms::cla_classifier::ClassifierResult;
 
@@ -34,7 +43,6 @@ void keyboard_interrupt_handler(int sig) {
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
 }
-
 
 
 vector<UInt> read_mnist_labels(string path) {
@@ -63,6 +71,7 @@ vector<UInt> read_mnist_labels(string path) {
     }
     return retval;
 }
+
 
 vector<UInt*> read_mnist_images(string path) {
     ifstream file(path);
@@ -109,53 +118,64 @@ vector<UInt*> read_mnist_images(string path) {
 }
 
 
-int main(int argc, const char *argv[]) {
-  // TODO: arg for train time, verbosity
-  UInt train_time = 60000 * 1;
+int main(int argc, char **argv) {
   UInt verbosity = 1;
+  int train_dataset_iterations = 1;
+  int opt;
+  while ( (opt = getopt(argc, argv, "tv")) != -1 ) {  // for each option...
+    switch ( opt ) {
+      case 't':
+          train_dataset_iterations += 1;
+        break;
+      case 'v':
+          verbosity = 1;
+        break;
+      case '?':  // unknown option...
+          cerr << "Unknown option: '" << char(optopt) << "'!" << endl;
+        break;
+    }
+  }
+  UInt train_time = train_dataset_iterations * 60000;
 
   signal(SIGINT, keyboard_interrupt_handler);   // install stack trace printout on error
   signal(SIGSEGV, keyboard_interrupt_handler);   // install stack trace printout on error
 
-   // SpatialPoolerTopology sp(
-   //   /* inputDimensions */                 {28, 28, 2},
-   //   /* macroColumnDimensions */           {10, 10, 1},
-   //   /* miniColumns */                     100,
-   //   /* potentialRadius */                 {3.6, 3.6 , 999.},
-   //   /* potentialPct */                    1.00,
-   //   /* localAreaDensity */                .014091711495013154,
-   //   /* numActiveColumnsPerInhArea */      -1,
-   //   /* stimulusThreshold */               28,
-   //   /* synPermInactiveDec */              .009282175512186927,
-   //   /* synPermActiveInc */                .032294958166728734,
-   //   /* synPermConnected */                .4222038828631455,
-   //   /* minPctOverlapDutyCycles */         0, // .00071333,
-   //   /* dutyCyclePeriod */                 1. / 0.0007133352820011685,
-   //   /* boostStrength */                   0.,
-   //   /* seed */                            0,
-   //   /* spVerbosity */                     verbosity
-   //   /* wrapAround */                      );
-
-  SpatialPoolerTopology sp(
+  SpatialPooler sp(
     /* numInputs */                    {28, 28, 2},
     /* numColumns */                   {10, 10, 100},
-    /* potentialRadius */              3.6,
-    /* potentialPct */                 .95,
-    /* globalInhibition */             1,
-    /* localAreaDensity */             .016,
+    /* potentialRadius */              0,  // hardcoded elsewhere
+    /* potentialPct */                 .0000001, // hardcoded elsewhere
+    /* globalInhibition */             true,
+    /* localAreaDensity */             .015,
     /* numActiveColumnsPerInhArea */   -1,
     /* stimulusThreshold */             28,
     /* synPermInactiveDec */           .00928,
     /* synPermActiveInc */             .032,
     /* synPermConnected */             .422,
     /* minPctOverlapDutyCycles */      0.,
-    /* dutyCyclePeriod */              1400,
+    /* dutyCyclePeriod */              1402,
     /* boostStrength */                0,
-    /* CPP SP seed */                  93,
+    /* CPP SP seed */                  0,
     /* spVerbosity */                  verbosity,
-    /* wrapAround */                   1
+    /* wrapAround */                   0 // discarded
     );
-  int ncols = 10 * 10 * 100;
+
+  if( false ) {
+    // Print the min/mean/max potential pool size
+    UInt min = 999999;
+    Real mean = 0;
+    UInt max = 0;
+    for( UInt cell = 0; cell < sp.getNumColumns(); cell++) {
+      auto pool = sp.mapPotential_( cell, false );
+      UInt size = 0;
+      for( auto presyn : pool ) {if ( presyn ) size++; };
+      min = size < min ? size : min;
+      max = size > max ? size : max;
+      mean += size;
+    }
+    mean /= sp.getNumColumns();
+    cerr << "POTENTIAL POOL MIN / MEAN / MAX " << min << " / " << mean << " / " << max << endl;
+  }
 
   SDRClassifier clsr(
     /* steps */         {0},
@@ -164,7 +184,7 @@ int main(int argc, const char *argv[]) {
                         verbosity);
 
   UInt recordNum   = 0;
-  auto activeArray = vector<UInt>(ncols, 0);
+  auto activeArray = vector<UInt>(sp.getNumColumns(), 0);
 
   // Train
   auto train_images = read_mnist_images("./mnist_data/train-images-idx3-ubyte");
@@ -209,7 +229,7 @@ int main(int argc, const char *argv[]) {
     UInt label  = test_labels[i];
 
     // Compute
-    auto activeArray = vector<UInt>( ncols, 0);
+    auto activeArray = vector<UInt>( sp.getNumColumns(), 0);
     sp.compute(image, false, activeArray.data());
     vector<UInt> activeIndex;
     for(UInt i = 0; i < activeArray.size(); i++) {
