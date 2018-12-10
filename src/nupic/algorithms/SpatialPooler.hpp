@@ -31,6 +31,7 @@
 #include <vector>
 #include <nupic/math/SparseBinaryMatrix.hpp>
 #include <nupic/math/SparseMatrix.hpp>
+#include <nupic/algorithms/Connections.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/ntypes/Sdr.hpp>
@@ -1280,10 +1281,7 @@ protected:
 
   Real minPctOverlapDutyCycles_;
 
-  SparseMatrix<UInt, Real, Int, Real64> permanences_;
-  SparseBinaryMatrix<UInt, UInt> potentialPools_;
-  SparseBinaryMatrix<UInt, UInt> connectedSynapses_;
-  vector<UInt> connectedCounts_;
+  connections::Connections connections_;
 
   vector<UInt> overlaps_;
   vector<Real> overlapsPct_;

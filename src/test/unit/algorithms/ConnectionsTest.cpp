@@ -299,6 +299,9 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
 
   SynapseData synapseData = connections.dataForSynapse(synapse);
   ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
+
+
+  FAIL() << " TODO TEST PERMS CLIP TO RANGE [0, 1] ";
 }
 
 /**
@@ -342,6 +345,213 @@ TEST(ConnectionsTest, testComputeActivity) {
   ASSERT_EQ(2, numActiveConnectedSynapsesForSegment[segment2_1]);
   ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1]);
 }
+
+
+TEST(ConnectionsTest, testAdaptSynapses) {
+  FAIL();
+  /*
+  UInt numColumns = 4;
+  UInt numInputs = 8;
+  Connections con(numColumns);
+
+  vector<UInt> activeColumns;
+  vector<UInt> inputVector;
+
+  UInt potentialArr1[4][8] = {{1, 1, 1, 1, 0, 0, 0, 0},
+                              {1, 0, 0, 0, 1, 1, 0, 1},
+                              {0, 0, 1, 0, 0, 0, 1, 0},
+                              {1, 0, 0, 0, 0, 0, 1, 0}};
+
+  Real permanencesArr1[5][8] = {
+      {0.200, 0.120, 0.090, 0.060, 0.000, 0.000, 0.000, 0.000},
+      {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
+      {0.000, 0.000, 0.014, 0.000, 0.000, 0.000, 0.110, 0.000},
+      {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
+
+  Real truePermanences1[5][8] = {
+      {0.300, 0.110, 0.080, 0.160, 0.000, 0.000, 0.000, 0.000},
+      //   Inc     Dec   Dec    Inc      -      -      -     -
+      {0.250, 0.000, 0.000, 0.000, 0.280, 0.110, 0.000, 0.440},
+      //   Inc      -      -     -      Inc    Dec    -     Dec
+      {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.210, 0.000},
+      //   -      -     Trim     -     -     -       Inc   -
+      {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
+  //    -      -      -      -      -      -      -       -
+
+  UInt inputArr1[8] = {1, 0, 0, 1, 1, 0, 1, 0};
+  UInt activeColumnsArr1[3] = {0, 1, 2};
+
+  for (UInt column = 0; column < numColumns; column++) {
+    sp.setPotential(column, potentialArr1[column]);
+    sp.setPermanence(column, permanencesArr1[column]);
+  }
+
+  activeColumns.assign(&activeColumnsArr1[0], &activeColumnsArr1[3]);
+
+  sp.adaptSynapses_(inputArr1, activeColumns);
+  cout << endl;
+  for (UInt column = 0; column < numColumns; column++) {
+    auto permArr = new Real[numInputs];
+    sp.getPermanence(column, permArr);
+    ASSERT_TRUE(check_vector_eq(truePermanences1[column], permArr, numInputs));
+    delete[] permArr;
+  }
+
+  UInt potentialArr2[4][8] = {{1, 1, 1, 0, 0, 0, 0, 0},
+                              {0, 1, 1, 1, 0, 0, 0, 0},
+                              {0, 0, 1, 1, 1, 0, 0, 0},
+                              {1, 0, 0, 0, 0, 0, 1, 0}};
+
+  Real permanencesArr2[4][8] = {
+      {0.200, 0.120, 0.090, 0.000, 0.000, 0.000, 0.000, 0.000},
+      {0.000, 0.017, 0.232, 0.400, 0.000, 0.000, 0.000, 0.000},
+      {0.000, 0.000, 0.014, 0.051, 0.730, 0.000, 0.000, 0.000},
+      {0.170, 0.000, 0.000, 0.000, 0.000, 0.000, 0.380, 0.000}};
+
+  Real truePermanences2[4][8] = {
+      {0.30, 0.110, 0.080, 0.000, 0.000, 0.000, 0.000, 0.000},
+      //  #  Inc    Dec     Dec     -       -    -    -    -
+      {0.000, 0.000, 0.222, 0.500, 0.000, 0.000, 0.000, 0.000},
+      //  #  -     Trim    Dec    Inc    -       -      -      -
+      {0.000, 0.000, 0.000, 0.151, 0.830, 0.000, 0.000, 0.000},
+      //  #   -      -    Trim   Inc    Inc     -     -     -
+      {0.170, 0.000, 0.000, 0.000, 0.000, 0.000, 0.380, 0.000}};
+  //  #  -    -      -      -      -       -       -     -
+
+  UInt inputArr2[8] = {1, 0, 0, 1, 1, 0, 1, 0};
+  UInt activeColumnsArr2[3] = {0, 1, 2};
+
+  for (UInt column = 0; column < numColumns; column++) {
+    sp.setPotential(column, potentialArr2[column]);
+    sp.setPermanence(column, permanencesArr2[column]);
+  }
+
+  activeColumns.assign(&activeColumnsArr2[0], &activeColumnsArr2[3]);
+
+  con.adaptSynapses_(inputArr2, activeColumns);
+  cout << endl;
+  for (UInt column = 0; column < numColumns; column++) {
+    auto permArr = new Real[numInputs];
+    sp.getPermanence(column, permArr);
+    ASSERT_TRUE(check_vector_eq(truePermanences2[column], permArr, numInputs));
+    delete[] permArr;
+  }
+  */
+}
+
+
+TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
+  FAIL(); /*
+  SpatialPooler sp;
+  UInt stimulusThreshold = 3;
+  Real synPermConnected = 0.1;
+  Real synPermBelowStimulusInc = 0.01;
+  UInt numInputs = 5;
+  UInt numColumns = 7;
+  setup(sp, numInputs, numColumns);
+  sp.setStimulusThreshold(stimulusThreshold);
+  sp.setSynPermConnected(synPermConnected);
+  sp.setSynPermBelowStimulusInc(synPermBelowStimulusInc);
+
+  UInt potentialArr[7][5] = {{1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
+                             {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},
+                             {0, 1, 1, 1, 0}};
+
+  Real permArr[7][5] = {{0.0, 0.11, 0.095, 0.092, 0.01},
+                        {0.12, 0.15, 0.02, 0.12, 0.09},
+                        {0.51, 0.081, 0.025, 0.089, 0.31},
+                        {0.18, 0.0601, 0.11, 0.011, 0.03},
+                        {0.011, 0.011, 0.011, 0.011, 0.011},
+                        {0.12, 0.056, 0, 0, 0.078},
+                        {0, 0.061, 0.07, 0.14, 0}};
+
+  Real truePerm[7][5] = {
+      {0.01, 0.12, 0.105, 0.102, 0.02},    // incremented once
+      {0.12, 0.15, 0.02, 0.12, 0.09},      // no change
+      {0.53, 0.101, 0.045, 0.109, 0.33},   // increment twice
+      {0.22, 0.1001, 0.15, 0.051, 0.07},   // increment four times
+      {0.101, 0.101, 0.101, 0.101, 0.101}, // increment 9 times
+      {0.17, 0.106, 0, 0, 0.128},          // increment 5 times
+      {0, 0.101, 0.11, 0.18, 0}};          // increment 4 times
+
+  UInt trueConnectedCount[7] = {3, 3, 4, 3, 5, 3, 3};
+
+  for (UInt i = 0; i < numColumns; i++) {
+    vector<Real> perm;
+    vector<UInt> potential;
+    perm.assign(&permArr[i][0], &permArr[i][numInputs]);
+    for (UInt j = 0; j < numInputs; j++) {
+      if (potentialArr[i][j] > 0) {
+        potential.push_back(j);
+      }
+    }
+    UInt connected = sp.raisePermanencesToThreshold_(perm, potential);
+    ASSERT_TRUE(check_vector_eq(truePerm[i], perm));
+    ASSERT_TRUE(connected == trueConnectedCount[i]);
+  }
+  */
+}
+
+
+TEST(ConnectionsTest, testBumpUpWeakColumns) {
+  FAIL(); /*
+  SpatialPooler sp;
+  UInt numInputs = 8;
+  UInt numColumns = 5;
+  setup(sp, numInputs, numColumns);
+  sp.setSynPermBelowStimulusInc(0.01);
+  sp.setSynPermTrimThreshold(0.05);
+  Real overlapDutyCyclesArr[] = {0, 0.009, 0.1, 0.001, 0.002};
+  sp.setOverlapDutyCycles(overlapDutyCyclesArr);
+  Real minOverlapDutyCyclesArr[] = {0.01, 0.01, 0.01, 0.01, 0.01};
+  sp.setMinOverlapDutyCycles(minOverlapDutyCyclesArr);
+
+  UInt potentialArr[5][8] = {{1, 1, 1, 1, 0, 0, 0, 0},
+                             {1, 0, 0, 0, 1, 1, 0, 1},
+                             {0, 0, 1, 0, 1, 1, 1, 0},
+                             {1, 1, 1, 0, 0, 0, 1, 0},
+                             {1, 1, 1, 1, 1, 1, 1, 1}};
+
+  Real permArr[5][8] = {
+      {0.200, 0.120, 0.090, 0.040, 0.000, 0.000, 0.000, 0.000},
+      {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
+      {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000},
+      {0.051, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000},
+      {0.100, 0.738, 0.085, 0.002, 0.052, 0.008, 0.208, 0.034}};
+
+  Real truePermArr[5][8] = {
+      {0.210, 0.130, 0.100, 0.000, 0.000, 0.000, 0.000, 0.000},
+      //  Inc    Inc    Inc    Trim    -     -     -    -
+      {0.160, 0.000, 0.000, 0.000, 0.190, 0.130, 0.000, 0.460},
+      //  Inc   -     -    -     Inc   Inc    -     Inc
+      {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000}, // unchanged
+      //  -    -     -    -     -    -     -    -
+      {0.061, 0.000, 0.000, 0.000, 0.000, 0.000, 0.188, 0.000},
+      //   Inc   Trim    Trim    -     -      -     Inc     -
+      {0.110, 0.748, 0.095, 0.000, 0.062, 0.000, 0.218, 0.000}};
+
+  for (UInt i = 0; i < numColumns; i++) {
+    sp.setPotential(i, potentialArr[i]);
+    sp.setPermanence(i, permArr[i]);
+    Real perm[8];
+    sp.getPermanence(i, perm);
+  }
+
+  sp.bumpUpWeakColumns_();
+
+  for (UInt i = 0; i < numColumns; i++) {
+    Real perm[8];
+    sp.getPermanence(i, perm);
+    ASSERT_TRUE(check_vector_eq(truePermArr[i], perm, numInputs));
+  }
+  */
+}
+
+
+TEST(ConnectionsTest, testConnectedCount) {
+  FAIL();
+}
+
 
 /**
  * Test the mapSegmentsToCells method.
