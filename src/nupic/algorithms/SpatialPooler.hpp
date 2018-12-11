@@ -561,19 +561,6 @@ public:
   void setUpdatePeriod(UInt updatePeriod);
 
   /**
-  Returns the permanence trim threshold.
-
-  @returns real number of the permanence trim threshold.
-  */
-  Real getSynPermTrimThreshold() const;
-  /**
-  Sets the permanence trim threshold.
-
-  @param synPermTrimThreshold real number of the permanence trim threshold.
-  */
-  void setSynPermTrimThreshold(Real synPermTrimThreshold);
-
-  /**
   Returns the permanence increment amount for active synapses
   inputs.
 
@@ -911,23 +898,22 @@ public:
   */
   vector<Real> initPermanence_(const vector<UInt> &potential, Real connectedPct);
 
-  void clip_(vector<Real> &perm, bool trim = false) const;
+  void clip_(vector<Real> &perm) const;
 
   /**
       This method updates the permanence matrix with a column's new permanence
       values.
 
-      The column is identified by its index, which reflects the row in
-      the matrix, and the permanence is given in 'dense' form, i.e. a full
-      array containing all the zeros as well as the non-zero values. It is in
-      charge of implementing 'clipping' - ensuring that the permanence values
-     are always between 0 and 1 - and 'trimming' - enforcing sparsity by zeroing
-     out all permanence values below '_synPermTrimThreshold'. It also maintains
-      the consistency between 'self._permanences' (the matrix storing the
-      permanence values), 'self._connectedSynapses', (the matrix storing the
-     bits each column is connected to), and 'self._connectedCounts' (an array
-     storing the number of input bits each column is connected to). Every method
-     wishing to modify the permanence matrix should do so through this method.
+      The column is identified by its index, which reflects the row in the
+      matrix, and the permanence is given in 'dense' form, i.e. a full array
+      containing all the zeros as well as the non-zero values. It is in charge
+      of implementing 'clipping' - ensuring that the permanence values are
+      always between 0 and 1. It also maintains the consistency between
+      'self._permanences' (the matrix storing the permanence values),
+      'self._connectedSynapses', (the matrix storing the bits each column is
+      connected to), and 'self._connectedCounts' (an array storing the number of
+      input bits each column is connected to). Every method wishing to modify
+      the permanence matrix should do so through this method.
 
       ----------------------------
       @param perm           An int vector of permanence values for a column. The
@@ -1266,7 +1252,6 @@ protected:
 
   Real synPermMin_ = 0.0f;
   Real synPermMax_ = 1.0f; //TODO set in initialize(), somehow OSX does not set that?!
-  Real synPermTrimThreshold_;
   Real synPermInactiveDec_;
   Real synPermActiveInc_;
   Real synPermBelowStimulusInc_;
