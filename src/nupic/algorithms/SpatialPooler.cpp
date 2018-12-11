@@ -592,8 +592,8 @@ vector<Real> SpatialPooler::initPermanence_(const vector<UInt> &potential, //TOD
 
 void SpatialPooler::clip_(vector<Real> &perm) const {
   for (auto &elem : perm) {
-    elem = elem > synPermMax_ ? synPermMax_ : elem; //crop upper bound
-    elem = elem < synPermMin_ ? synPermMin_ : elem; //crop lower
+    elem = std::min(elem, synPermMax_); //crop upper bound
+    elem = std::max(elem, synPermMin_); //crop lower bound
   }
 }
 
