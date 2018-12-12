@@ -38,6 +38,7 @@ matrix:
 env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
+    - BINARY_DIR = ${TRAVIS_BUILD_DIR}/build/scripts
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
@@ -53,13 +54,11 @@ virtualenv:
 before_deploy:
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
-###  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
-###  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
-###  - cp ${TRAVIS_BUILD_DIR}/build/release/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
-###  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-###  - cp ${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-###  - mkdir -p $TRAVIS_BUILD_DIR/release
-###  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
+#  - mkdir $BINARY_DIR/dist
+#  - cp $TRAVIS_BUILD_DIR/bindings/py/packaging/requirements.txt $BINARY_DIR/dist/
+  - mkdir -p $BINARY_DIR/dist/include/nupic
+  - cp ${TRAVIS_BUILD_DIR}/build/Release/include/nupic/Version.hpp $BINARY_DIR/dist/include/nupic
+  - tar -zcvf $TRAVIS_BUILD_DIR/build/Release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $BINARY_DIR/dist
 
 deploy:
 ## AWS S3 
@@ -105,10 +104,10 @@ notifications:
 before_install:
   - eval "${MATRIX_EVAL}"
   - $CXX --version
-###  - echo "Installing pip, setuptools, and wheel"
-###  - pip install --upgrade pip setuptools wheel || exit
-###  - echo "Installing Python dependencies"
-###  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
+  - echo "Installing pip, setuptools, and wheel"
+  - pip install --upgrade pip setuptools wheel || exit
+  - echo "Installing Python dependencies"
+ #  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/packaging/requirements.txt --only-binary --quiet || exit
 
 install:
   # Prepare directories
@@ -122,7 +121,7 @@ install:
   - "VERBOSE=0 make |grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
-#####- "python setup.py install"
+  - "python setup.py install --user --prefix="
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
@@ -131,7 +130,8 @@ script:
   # unit tests
   - "${TRAVIS_BUILD_DIR}/build/Release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
-#######  - "python ${TRAVIS_BUILD_DIR}/setup.py test"
+  - cd ${TRAVIS_BUILD_DIR}
+  - "python setup.py test"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

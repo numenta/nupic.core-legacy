@@ -20,7 +20,7 @@
 # ----------------------------------------------------------------------
 
 """This file builds and installs the NuPIC Core Python bindings."""
-
+ 
 import glob
 import os
 import shutil
@@ -34,14 +34,16 @@ from distutils.core import Extension
 
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
-REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir))
+REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir, os.pardir))
+DISTR_DIR = os.path.join(REPO_DIR, "build", "Release", "distr")
 DARWIN_PLATFORM = "darwin"
 LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
+BUILD_TYPE = "Release" 
 
 
-def getVersion():
+def getExtensionVersion():
   """
   Get version from local file.
   """
@@ -93,7 +95,6 @@ def findRequirements(platform):
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  includePycapnp = platform not in WINDOWS_PLATFORMS
   requirementsPath = fixPath(os.path.join(PY_BINDINGS, "requirements.txt"))
   return [
     line.strip()
@@ -122,7 +123,7 @@ class TestCommand(BaseTestCommand):
     import pytest
     cwd = os.getcwd()
     try:
-      os.chdir("tests")
+      os.chdir(os.path.join(REPO_DIR, "bindings", "py", "tests"))
       errno = pytest.main(self.pytest_args)
     finally:
       os.chdir(cwd)
@@ -146,17 +147,20 @@ def getPlatformInfo():
 
 
 def getExtensionFileNames(platform):
+  # look for extension libraries in Repository/build/Release/distr/src/nupic/bindings
+  # library filenames:  
+  #     nupic.core.algorithms.so
+  #     nupic.core.engine.so
+  #     nupic.core.math.so
   if platform in WINDOWS_PLATFORMS:
     libExtension = "pyd"
   else:
     libExtension = "so"
   libNames = ("algorithms", "engine_internal", "math")
-  swigPythonFiles = ["{}.py".format(name) for name in libNames]
-  swigLibFiles = ["_{}.{}".format(name, libExtension) for name in libNames]
-  files = [os.path.join(PY_BINDINGS, "src", "nupic", "bindings", name)
-           for name in list(swigPythonFiles + swigLibFiles)]
+  libFiles = ["nupic.bindings.{}.{}".format(name, libExtension) for name in libNames]
+  files = [os.path.join(DISTR_DIR, "src", "nupic", "bindings", name)
+           for name in list(libFiles)]
   return files
-
 
 
 def getExtensionFiles(platform):
@@ -171,21 +175,33 @@ def getExtensionFiles(platform):
 
 
 def generateExtensions():
-  tmpDir = tempfile.mkdtemp()
+  """
+  This will perform a full Release build with default arguments.
+  The CMake build will copy everything in the Repository/bindings/py/packaging 
+  directory to the distr directory (Repository/build/Release/distr)
+  and then create the extension libraries in Repository/build/Release/distr/src/nupic/bindings.
+  """
   cwd = os.getcwd()
+  
+  from sys import version_info
+  if version_info > (3, 0):
+    # Build a Python 3.x library
+    PY_VER2 = "-DPYTHON2_BUILD=OFF"
+    PY_VER3 = "-DPYTHON3_BUILD=ON"  
+  else:
+    # Build a Python 2.7 library
+    PY_VER2 = "-DPYTHON2_BUILD=ON"
+    PY_VER3 = "-DPYTHON3_BUILD=OFF"
+
+  scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
   try:
-    scriptsDir = os.path.join(tmpDir, "scripts")
-    releaseDir = os.path.join(tmpDir, "release")
-    pyExtensionsDir = os.path.join(PY_BINDINGS, "src", "nupic", "bindings")
-    os.mkdir(scriptsDir)
+    if not os.path.isdir(scriptsDir): 
+	  os.makedirs(scriptsDir) 
     os.chdir(scriptsDir)
-    subprocess.check_call(
-        ["cmake", REPO_DIR, "-DCMAKE_INSTALL_PREFIX={}".format(releaseDir),
-         "-DPY_EXTENSIONS_DIR={}".format(pyExtensionsDir)])
+    subprocess.check_call(["cmake", REPO_DIR, PY_VER2, PY_VER3])
     subprocess.check_call(["make", "-j3"])
     subprocess.check_call(["make", "install"])
   finally:
-    shutil.rmtree(tmpDir, ignore_errors=True)
     os.chdir(cwd)
 
 
@@ -200,11 +216,20 @@ if __name__ == "__main__":
   # Run CMake if extension files are missing.
   getExtensionFiles(platform)
 
+  """
+  set the default directory to the distr, and package it.
+  """
+  os.chdir(DISTR_DIR)
 
-  print "\nSetup SWIG Python module"
+  print("\nSetup Pybind11 Python module in ", DISTR_DIR, "\n")
   setup(
+    # See https://docs.python.org/2/distutils/apiref.html for descriptions of arguments.
+	#     https://docs.python.org/2/distutils/setupscript.html
+	#     https://opensourceforu.com/2010/OS/extending-python-via-shared-libraries
+	#     https://docs.python.org/3/library/ctypes.html
+	#     https://docs.python.org/2/library/imp.html
     name="nupic.bindings",
-    version=getVersion(),
+    version=getExtensionVersion(),
     # This distribution contains platform-specific C++ libraries, but they are not
     # built with distutils. So we must create a dummy Extension object so when we
     # create a binary file it knows to make it platform-specific.
@@ -222,11 +247,12 @@ if __name__ == "__main__":
       "clean": CleanCommand,
       "test": TestCommand,
     },
-    description="Numenta Platform for Intelligent Computing - bindings",
+    description="Python bindings for htm-community nupic core.",
     author="Numenta",
     author_email="help@numenta.org",
-    url="https://github.com/numenta/nupic.core",
-    long_description = "Python bindings for nupic core.",
+    url="https://github.com/htm-community/nupic.cpp",
+    long_description = "Numenta Platform for Intelligent Computing HTM-Community nupic core: nupic.bindings.[algorithms,engine_internal,math]",
+	license = "GNU Affero General Public License v3 or later (AGPLv3+)",
     classifiers=[
       "Programming Language :: Python",
       "Programming Language :: Python :: 2",
@@ -246,3 +272,4 @@ if __name__ == "__main__":
       ],
     },
   )
+  

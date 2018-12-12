@@ -20,6 +20,9 @@
 * ---------------------------------------------------------------------
 */
 
+// NOTE: regards to unchecked and mutable_unchecked.
+//       See pybind11 issue #1400   https://github.com/pybind/pybind11/issues/1400
+
 #ifndef NUPIC_EXT_BINDINGS_MATRIX_HPP
 #define NUPIC_EXT_BINDINGS_MATRIX_HPP
 
@@ -45,8 +48,8 @@ namespace nupic_ext {
             , _alloc(true)
         {}
 
-        int nRows() const 
-        { 
+        int nRows() const
+        {
             if (_alloc)
             {
                 return _matrix.shape(0);
@@ -56,8 +59,8 @@ namespace nupic_ext {
                 return _bi.shape[0];
             }
         }
-        int nCols() const 
-        { 
+        int nCols() const
+        {
             if (_alloc)
             {
                 return _matrix.shape(1);
@@ -72,7 +75,7 @@ namespace nupic_ext {
         {
             if (_alloc)
             {
-                return _matrix.unchecked<2>()(r,c);
+                return _matrix.template unchecked<2>()(r,c);
             }
             else
             {
@@ -103,7 +106,7 @@ namespace nupic_ext {
         {
             if (_alloc)
             {
-                auto accessor = _matrix.mutable_unchecked<2>();
+                auto accessor = _matrix.template mutable_unchecked<2>();
                 accessor(r, c) = v;
             }
             else

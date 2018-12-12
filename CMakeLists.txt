@@ -33,7 +33,7 @@ get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
 #
 option(USE_CPP11 "Force compiler to use C++11 standard." ON)
 option(NEEDS_BOOST "Force compiler to install and use Boost." ON)
-option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." ON)
+option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." OFF)
 option(PYTHON3_BUILD "Toggle whether to build for Python3.x, default ON." OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -78,5 +78,5 @@ add_subdirectory(external)
 add_subdirectory(src)
 
 if (PYTHON2_BUILD OR PYTHON3_BUILD)
-  add_subdirectory(bindings/py/src)
+  add_subdirectory(bindings/py/cpp_src)
 endif()

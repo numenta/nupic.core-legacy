@@ -20,12 +20,12 @@ jobs:
               echo "Must set option to use OS X in CircleCI Web UI" && exit 1;
             fi
       - run: sudo systemsetup -settimezone 'GMT'
-      ###- run:
-      ###    name: Restoring system python
-      ###    command: |
-      ###      brew uninstall python
-      ###      curl https://bootstrap.pypa.io/get-pip.py | python - --user
-      ###      echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV 
+      - run:
+          name: Restoring system python
+          command: |
+            brew uninstall python
+            curl https://bootstrap.pypa.io/get-pip.py | python - --user
+            echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV 
       - run:
           name: Installing cmake 
           command: brew install cmake
@@ -47,12 +47,12 @@ jobs:
           # unnecessary if you have your default branch configured correctly
           - v1-dep-
 
-            ####      - run:
-            #### name: Installing dependencies
-            #### #TODO enable py tests after pybind is ready!
-            #### command: |
-            #### pip install --user --upgrade pip setuptools setuptools-scm
-            #### pip install --no-cache-dir --user -r bindings/py/requirements.txt  || exit
+          - run:
+             name: Installing dependencies
+             #TODO enable py tests after pybind is ready!
+             command: |
+             pip install --user --upgrade pip setuptools setuptools-scm
+             pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
       # Save dependency cache
       - save_cache:
@@ -77,25 +77,25 @@ jobs:
           command: |
             mkdir -p build/scripts
             cd build/scripts
-            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../release
+            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release
             make | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
-      ####      - run:
-      ####          name: Build distribution
-      ####          command: |
-      ####            python setup.py bdist_wheel
-      ####            mkdir -p dist/include/nupic
-      ####            mv bindings/py/dist/*.whl dist/
-      ####            cp bindings/py/requirements.txt dist/
-      ####            cp build/release/include/nupic/Version.hpp dist/include/nupic/
+            - run:
+                name: Build distribution
+                command: |
+                  python setup.py bdist_wheel
+                  mkdir -p dist/include/nupic
+                  mv build/Release/distr/dist/*.whl dist/
+                  cp bindings/py/packaging/requirements.txt dist/
+                  cp build/Release/include/nupic/Version.hpp dist/include/nupic/
       
       # Test
-      ####      - run:
-      ####          name: Running python tests
-      ####          command: |
-      ####            mkdir -p tests/py
-      ####            pip install --user --no-index --find-links=$CIRCLE_WORKING_DIRECTORY/dist/ nupic.bindings
-      ####            py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
+            - run:
+                name: Running python tests
+                command: |
+                  mkdir -p tests/py
+                  pip install --user --no-index --find-links=$CIRCLE_WORKING_DIRECTORY/dist/ nupic.bindings
+                  py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
       - run:
           name: Running C++ Tests
           command: |
@@ -109,12 +109,12 @@ jobs:
       - store_artifacts:
           path: dist/*.whl
         
-####      - persist_to_workspace:
-####          root: dist
-####          paths:
-####          - nupic.bindings*.whl
-####          - requirements.txt
-####          - include/nupic
+      - persist_to_workspace:
+          root: dist
+          paths:
+          - nupic.bindings*.whl
+          - requirements.txt
+          - include/nupic
 
   deploy-s3:
     machine: true

@@ -436,27 +436,6 @@ namespace nupic_ext
         // def invariants(self, verbose=False):
         py_cells4.def("invariants", &Cells4_t::invariants);
 
-/////        // def stats(self):
-/////        py_cells4.def("stats", &Cells4_t::stats);
-
-
-        // def __init__(self, *args, **kwargs):
-        //   self.this = _ALGORITHMS.new_Cells4(*args, **kwargs)
-        //
-        //   self.this = _ALGORITHMS.new_Cells4()
-        //   self.loadFromString(inString)
-        //
-        // def read(cls, proto):
-        //
-        // def write(self, pyBuilder):
-        //   """Serialize the Cells4 instance using capnp.
-        //
-
-        // def _writeAsCapnpPyBytes(self):
-        py_cells4.def("_writeAsCapnpPyBytes", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
-
-        // def _initFromCapnpPyBytes(self, pyBytes):
-        py_cells4.def("_writeAsCapnpPyBytes", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });
 
         // def loadFromString(self, inString):
         py_cells4.def("loadFromString", [](Cells4_t& self, const std::string& inString)

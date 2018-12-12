@@ -91,15 +91,15 @@ namespace nupic_ext
 
             SM_01_32_32_t s(1);
             s.setAllNonZeros(sm.nRows(), sm.nCols(), rows.begin(), rows.end(), cols.begin(), cols.end());
-        
+
             return s;
         }));
 
 
         // constructor from numpy array
         sbm.def(py::init(
-            [](py::array_t<nupic::UInt32>& a) 
-            { 
+            [](py::array_t<nupic::UInt32>& a)
+            {
                 if (a.ndim() != 2) { throw std::runtime_error("Number of dimensions must be two."); }
 
                 SM_01_32_32_t s(1);
@@ -112,7 +112,7 @@ namespace nupic_ext
             [](const std::string& str)
         {
             std::istringstream istr(str);
-        
+
             SM_01_32_32_t s;
             s.fromCSR(istr);
 
@@ -125,20 +125,27 @@ namespace nupic_ext
 
         // getter members
         sbm.def("nRows", &SM_01_32_32_t::nRows);
-        
-        sbm.def("nCols", py::overload_cast<>(&SM_01_32_32_t::nCols, py::const_));
+
+		// Overload conflict in SparseBinaryMatrix.hpp
+		//  149  inline nz_index_type nCols() const // this one is public  ( nz_index_type is UInt32)
+		// 1792  inline void nCols(size_type ncols) // this one is private
+		// We only want to expose the public function.
+		// pybind11 thinks these are overloaded functions and wants to see both.
+		// So, changing the name of the private function to setnCols(ncols)
+        //sbm.def("nCols", py::overload_cast<>(&SM_01_32_32_t::nCols, py::const_)); // C++14+
         //sbm.def("nCols", (void (SM_01_32_32_t::*)(nupic::UInt32)) &SM_01_32_32_t::nCols); // private
+		sbm.def("nCols", &SM_01_32_32_t::nCols);
 
         sbm.def("capacity", &SM_01_32_32_t::capacity);
-    
+
         sbm.def("getVersion", &SM_01_32_32_t::getVersion, py::arg("binary") = false);
-    
+
         sbm.def("nBytes", &SM_01_32_32_t::nBytes);
 
         sbm.def("nNonZeros", &SM_01_32_32_t::nNonZeros);
         sbm.def("nNonZerosOnRow", &SM_01_32_32_t::nNonZerosOnRow);
-    
-        sbm.def("nNonZerosPerRow", [](const SM_01_32_32_t& sbm) 
+
+        sbm.def("nNonZerosPerRow", [](const SM_01_32_32_t& sbm)
             {
                 typedef py::array_t<nupic::UInt32> out_t;
 
@@ -149,7 +156,7 @@ namespace nupic_ext
 
                 return out;
             });
-    
+
         sbm.def("nNonZerosPerCol", [](const SM_01_32_32_t& sbm)
             {
                 typedef py::array_t<nupic::UInt32> out_t;
@@ -162,7 +169,7 @@ namespace nupic_ext
                 return out;
             });
 
-    
+
         // members
 
         //////////////////
@@ -274,7 +281,7 @@ namespace nupic_ext
         {
             sbm.fromDense(a.shape(0), a.shape(1), get_it(a), get_end(a));
         });
-    
+
         //////////////////////
         // firstRowCloserThan
         sbm.def("firstRowCloserThan",
@@ -289,7 +296,7 @@ namespace nupic_ext
         //////////////////
         // fromCSR
         //
-        sbm.def("fromCSR", 
+        sbm.def("fromCSR",
             [](SM_01_32_32_t& sbm, std::string str)
         {
             if (str.empty() == false)
@@ -335,7 +342,7 @@ namespace nupic_ext
             if (two_lists == false)
             {
                 t = py::tuple(nnz);
-            
+
                 for (nupic::UInt32 i = 0; i != nnz; ++i)
                 {
                     nupic::UInt32 r = *rows.data(i);
@@ -354,8 +361,8 @@ namespace nupic_ext
 			, py::arg("two_lists") = false);
 
 
-        sbm.def("getCol", 
-            [](const SM_01_32_32_t& sbm, nupic::UInt32 col) 
+        sbm.def("getCol",
+            [](const SM_01_32_32_t& sbm, nupic::UInt32 col)
         {
             py::array_t<nupic::UInt32> dense_col(sbm.nRows());
 
@@ -383,7 +390,7 @@ namespace nupic_ext
 
             return t;
         });
-    
+
 
         //////////////////////
         // inside
@@ -481,7 +488,7 @@ namespace nupic_ext
 		// set
 		// setAllNonZeros
 		////////////////
-        sbm.def("set", [](SM_01_32_32_t& sbm, nupic::UInt32 row, nupic::UInt32 col, nupic::Real32 val) 
+        sbm.def("set", [](SM_01_32_32_t& sbm, nupic::UInt32 row, nupic::UInt32 col, nupic::Real32 val)
         {
             sbm.set(row, col, val);
         });
@@ -514,15 +521,15 @@ namespace nupic_ext
         //////////////////////
         // sums
         /////////////////////
-        sbm.def("rowSums", [](const SM_01_32_32_t& sbm) 
-        {  
+        sbm.def("rowSums", [](const SM_01_32_32_t& sbm)
+        {
             py::array_t<nupic::UInt32> a(sbm.nRows());
 
             sbm.rowSums(get_it(a), get_end(a));
 
             return a;
         });
-    
+
         sbm.def("colSums", [](const SM_01_32_32_t& sbm)
         {
             py::array_t<nupic::UInt32> a(sbm.nCols());
@@ -547,27 +554,27 @@ namespace nupic_ext
             return y;
         });
 
-        sbm.def("setSlice", [](SM_01_32_32_t& sbm, nupic::UInt32 i_begin, nupic::UInt32 j_begin, SM_01_32_32_t& other ) 
+        sbm.def("setSlice", [](SM_01_32_32_t& sbm, nupic::UInt32 i_begin, nupic::UInt32 j_begin, SM_01_32_32_t& other )
         {
             sbm.setSlice(i_begin, j_begin, other);
         }, "Set a slice at dst_first_row, dst_first_col, whose shape and contents are src.");
 
-        sbm.def("setSlice", [](SM_01_32_32_t& sbm, nupic::UInt32 i_begin, nupic::UInt32 j_begin, py::array_t<nupic::Real32>& other) 
+        sbm.def("setSlice", [](SM_01_32_32_t& sbm, nupic::UInt32 i_begin, nupic::UInt32 j_begin, py::array_t<nupic::Real32>& other)
         {
             if (other.ndim() != 2) { throw std::runtime_error("Number of dimensions must be two."); }
-    
+
             nupic_ext::Numpy_Matrix<> nm(other.request());
             sbm.setSlice(i_begin, j_begin, nm);
         }, "Set a slice at dst_first_row, dst_first_col, whose shape and contents are src.");
 
 
-        sbm.def("toDense", 
+        sbm.def("toDense",
             [](const SM_01_32_32_t& sbm) -> py::array_t<nupic::UInt32>
-            { 
+            {
 			    py::array_t<nupic::UInt32> a({ sbm.nRows(), sbm.nCols() });
-            
+
                 sbm.toDense(get_it(a), get_end(a));
-                
+
 				return a;
             });
 
@@ -576,8 +583,8 @@ namespace nupic_ext
                 std::ostringstream s;
                 sbm.toCSR(s);
 
-                return s.str(); 
-            }); 
+                return s.str();
+            });
 
         /////////////////
         // toSparseVector
@@ -683,7 +690,7 @@ namespace nupic_ext
             if (m.ndim() != 2) { throw std::runtime_error("Number of dimensions must be two."); }
 
             py::array_t<nupic::Real32> r({ (nupic::UInt32) m.shape(0), sbm.nCols() });
-        
+
             auto m_buf_info = m.request();
             auto r_buf_info = r.request();
 
@@ -697,10 +704,10 @@ namespace nupic_ext
 
                 auto r_row_it = (nupic::Real32*) (r_data + i * r_buf_info.strides[0]);
                 auto r_row_end = r_row_it + r.shape(1);
-            
+
                 sbm.leftVecSumAtNZ(m_row_it, m_row_end, r_row_it, r_row_end);
             }
-        
+
             return r;
         });
 
@@ -738,7 +745,7 @@ namespace nupic_ext
             [](const SM_01_32_32_t& sbm)
         {
             py::array_t<nupic::UInt32> res(sbm.nRows());
-        
+
             nupic::UInt32 count = sbm.zeroRowsIndicator(get_it(res), get_end(res));
 
             return py::make_tuple(count, res);
@@ -760,8 +767,8 @@ namespace nupic_ext
         //////////////////
         sbm.def("__eq__", [](const SM_01_32_32_t& a, const SM_01_32_32_t& b) { return a.equals(b); });
 
-        sbm.def("__eq__", [](const SM_01_32_32_t& self, py::array_t<nupic::UInt32> a) 
-            { 
+        sbm.def("__eq__", [](const SM_01_32_32_t& self, py::array_t<nupic::UInt32> a)
+            {
                 SM_01_32_32_t from_a(1);
 				from_a.fromDense(a.shape(0), a.shape(1), get_it(a), get_end(a));
 

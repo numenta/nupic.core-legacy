@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
+# Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
 # with Numenta, Inc., for a separate license for this software code, the
 # following terms and conditions apply:
 #
@@ -18,37 +18,40 @@
 #
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
-"""
-Based on: http://stackoverflow.com/questions/5317672/pip-not-finding-setup-file
-"""
 
-import os
+#from sys import version_info
+# if version_info > (2.6.0):
+#from ctypes import *
+#from ctypes.util import find_library
+#name = find_library("nupic.bindings.algorithms")
+#algorithms = CDLL(name)
+#
+#importlib.import_module('algorithms')
 
-from setuptools.command import egg_info
 
-REPO_DIR = os.path.dirname(os.path.realpath(__file__))
-filename = os.path.basename(__file__)
+def import_helper(name):
+  from os.path import dirname
+  import imp
+  
+      # Fast path: see if the module has already been imported.
+  try:
+    return sys.modules[name]
+  except KeyError:
+    pass
+		
+  fp = None
+  _mod = None
+  try:
+    fp, pathname, description = imp.find_module(name, [dirname(__file__)])
+  finally:
+    if fp is not None:
+      try:
+  	  _mod = imp.load_module(name, fp, pathname, description)
+      finally:
+        # Since we may exit via an exception, close fp explicitly.
+        if fp:
+            fp.close()
+  return _mod;
+  
+algorithms = import_helper('algorithms')
 
-os.chdir(os.path.join(REPO_DIR, "bindings","py","packaging"))
-setupdir = os.getcwd()
-
-egginfo = "pip-egg-info"
-
-__file__ = os.path.join(setupdir, filename)
-
-def replacement_run(self):
-  self.mkpath(self.egg_info)
-
-  installer = self.distribution.fetch_build_egg
-
-  for ep in egg_info.iter_entry_points('egg_info.writers'):
-    # require=False is the change we're making from pip
-    writer = ep.load(require=False)
-
-    if writer:
-      writer(self, ep.name, egg_info.os.path.join(self.egg_info,ep.name))
-
-  self.find_sources()
-
-egg_info.egg_info.run = replacement_run
-execfile(__file__)

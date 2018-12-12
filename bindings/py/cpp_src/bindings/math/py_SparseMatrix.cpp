@@ -50,9 +50,9 @@ PyBind11 bindings for SparseMatrix class
 namespace py = pybind11;
 
 
-typedef nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32>> SparseMatrix32_t;
+typedef nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32> > SparseMatrix32_t;
 
-typedef nupic::SparseMatrix<nupic::UInt32, nupic::Real64, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real64>> _SparseMatrix64;
+typedef nupic::SparseMatrix<nupic::UInt32, nupic::Real64, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real64> > _SparseMatrix64;
 
 namespace nupic_ext
 {
@@ -67,7 +67,7 @@ namespace nupic_ext
         // Constructors
 
         sm.def(py::init<>());
-        
+
         sm.def(py::init<nupic::UInt32, nupic::UInt32>(), py::arg("nrows"), py::arg("ncols"));
 
         sm.def(py::init([](const std::string& str)
@@ -177,8 +177,8 @@ namespace nupic_ext
         sm.def("setToZero", &SparseMatrix32_t::setToZero);
         sm.def("setFromOuter", &SparseMatrix32_t::setFromOuter, py::arg("x"), py::arg("y"), py::arg("keepMemory") = false);
         sm.def("setFromElementMultiplyWithOuter", &SparseMatrix32_t::setFromElementMultiplyWithOuter);
-        sm.def("setRowFromDense", &SparseMatrix32_t::setRowFromDense);
-        sm.def("getRowToDense", &SparseMatrix32_t::getRowToDense);
+
+		sm.def("getRowToDense", &SparseMatrix32_t::getRowToDense); // Assuming expecting a vector as an argument.
         sm.def("copyRow", &SparseMatrix32_t::copyRow);
         sm.def("getColToDense", &SparseMatrix32_t::getColToDense);
         sm.def("setColFromDense", &SparseMatrix32_t::setColFromDense);
@@ -262,14 +262,21 @@ namespace nupic_ext
         sm.def("getSchema", [](const SparseMatrix32_t& sm) { throw std::runtime_error("Cap'n Proto schema is not available."); });
 
         // member functions which are overloaded
-        sm.def("add", py::overload_cast<const nupic::Real32&>(&SparseMatrix32_t::add));
+		// Note: the overload_cast syntax requires C++14+ So rewriting them with C++11 syntax.
+        //sm.def("add", py::overload_cast<const nupic::Real32&>(&SparseMatrix32_t::add));
+		sm.def("add", (void (SparseMatrix32_t::*)(const SparseMatrix32_t& other)) &SparseMatrix32_t::add);
+		sm.def("add", (void (SparseMatrix32_t::*)(const nupic::Real32 &val))      &SparseMatrix32_t::add);
 
-        sm.def("nonZeroIndicesIncluded", py::overload_cast<nupic::UInt32, const SparseMatrix32_t&>(&SparseMatrix32_t::nonZeroIndicesIncluded, py::const_));
-        sm.def("nonZeroIndicesIncluded", py::overload_cast<const SparseMatrix32_t&>(&SparseMatrix32_t::nonZeroIndicesIncluded, py::const_));
+        //sm.def("nonZeroIndicesIncluded", py::overload_cast<nupic::UInt32, const SparseMatrix32_t&>(&SparseMatrix32_t::nonZeroIndicesIncluded, py::const_));
+        //sm.def("nonZeroIndicesIncluded", py::overload_cast<const SparseMatrix32_t&>(&SparseMatrix32_t::nonZeroIndicesIncluded, py::const_));
+        sm.def("nonZeroIndicesIncluded", (bool (SparseMatrix32_t::*)(unsigned int, const SparseMatrix32_t &B) const) &SparseMatrix32_t::nonZeroIndicesIncluded);
+        sm.def("nonZeroIndicesIncluded", (bool (SparseMatrix32_t::*)(const SparseMatrix32_t &B) const)                &SparseMatrix32_t::nonZeroIndicesIncluded);
 
-        sm.def("transpose", py::overload_cast<>(&SparseMatrix32_t::transpose));
-        sm.def("transpose", py::overload_cast<SparseMatrix32_t&>(&SparseMatrix32_t::transpose, py::const_));
-        
+        //sm.def("transpose", py::overload_cast<>(&SparseMatrix32_t::transpose));
+        //sm.def("transpose", py::overload_cast<SparseMatrix32_t&>(&SparseMatrix32_t::transpose, py::const_));
+        sm.def("transpose", (void (SparseMatrix32_t::*)(SparseMatrix32_t &tr) const) &SparseMatrix32_t::transpose);
+        sm.def("transpose", (void (SparseMatrix32_t::*)( ))                          &SparseMatrix32_t::transpose);
+
         sm.def("getTransposed", [](const SparseMatrix32_t& sm)
         {
             SparseMatrix32_t result;
@@ -278,8 +285,10 @@ namespace nupic_ext
             return result;
         });
 
-        sm.def("addToTranspose", py::overload_cast<>(&SparseMatrix32_t::addToTranspose));
-        sm.def("addToTranspose", py::overload_cast<SparseMatrix32_t&>(&SparseMatrix32_t::addToTranspose, py::const_));
+        //sm.def("addToTranspose", py::overload_cast<>(&SparseMatrix32_t::addToTranspose));
+        //sm.def("addToTranspose", py::overload_cast<SparseMatrix32_t&>(&SparseMatrix32_t::addToTranspose, py::const_));
+        sm.def("addToTranspose", (void (SparseMatrix32_t::*)(SparseMatrix32_t&) const) &SparseMatrix32_t::addToTranspose);
+        sm.def("addToTranspose", (void (SparseMatrix32_t::*)( ))                       &SparseMatrix32_t::addToTranspose);
 
 
         // overloaded functions with different return types seems to be problem
@@ -293,10 +302,12 @@ namespace nupic_ext
 
         sm.def("thresholdCol", &SparseMatrix32_t::thresholdCol);
 
-        sm.def("multiply", py::overload_cast<const nupic::Real32&>(&SparseMatrix32_t::multiply));
-        sm.def("multiply", py::overload_cast<const SparseMatrix32_t&, SparseMatrix32_t&>(&SparseMatrix32_t::multiply, py::const_));
+        //sm.def("multiply", py::overload_cast<const nupic::Real32&>(&SparseMatrix32_t::multiply));
+        //sm.def("multiply", py::overload_cast<const SparseMatrix32_t&, SparseMatrix32_t&>(&SparseMatrix32_t::multiply, py::const_));
+        sm.def("multiply", (void (SparseMatrix32_t::*)(const nupic::Real32&) )                           &SparseMatrix32_t::multiply);
+        sm.def("multiply", (void (SparseMatrix32_t::*)(const SparseMatrix32_t&, SparseMatrix32_t&) const)&SparseMatrix32_t::multiply);
 
-        
+
         ////////////////////////////
 
         sm.def("__add", [](SparseMatrix32_t& sm, nupic::Real32 val) { sm.add(val); });
@@ -309,7 +320,7 @@ namespace nupic_ext
 
         // allows Matrix + 3
 
-        sm.def("__add__", [](const SparseMatrix32_t& sm, int val) 
+        sm.def("__add__", [](const SparseMatrix32_t& sm, int val)
         {
             SparseMatrix32_t result(sm);
             result.add(val);
@@ -404,7 +415,7 @@ namespace nupic_ext
             sm.multiply(other, result);
             return result;
         });
-        
+
         sm.def("__mul__", [](const SparseMatrix32_t& sm, py::array_t<nupic::Real32> a)
         {
             if (a.ndim() == 1)
@@ -442,14 +453,14 @@ namespace nupic_ext
         ////////////////////////////
         // __truediv__
 
-        sm.def("__truediv__", [](const SparseMatrix32_t& sm, int val) 
+        sm.def("__truediv__", [](const SparseMatrix32_t& sm, int val)
         {
             SparseMatrix32_t result(sm);
             result.divide(val);
             return result;
         });
-        
-        sm.def("__truediv__", [](const SparseMatrix32_t& sm, nupic::Real32 val) 
+
+        sm.def("__truediv__", [](const SparseMatrix32_t& sm, nupic::Real32 val)
         {
             SparseMatrix32_t result(sm);
             result.divide(val);
@@ -478,7 +489,7 @@ namespace nupic_ext
 
 
 
-        sm.def("__str__", [](const SparseMatrix32_t& sm) 
+        sm.def("__str__", [](const SparseMatrix32_t& sm)
         {
             auto out = py::array_t<nupic::Real32>({ sm.nRows(), sm.nCols() });
 
@@ -508,7 +519,7 @@ namespace nupic_ext
         });
 
         //////////////////////
-        // 
+        //
 
         sm.def(py::pickle(
             [](const SparseMatrix32_t& sm)
@@ -594,7 +605,7 @@ namespace nupic_ext
 
         sm.def("setRowFromDense", [](SparseMatrix32_t& sm, nupic::UInt row, py::array_t<nupic::Real32> r)
         {
-            sm.setRowFromDense(row, get_it(r));
+            sm.setRowFromDense_itr(row, get_it(r));
         });
 
         sm.def("setRowFromSparse", [](SparseMatrix32_t& sm, nupic::UInt row, py::array_t<nupic::UInt32>& ind, py::array_t<nupic::Real32>& nz)
@@ -669,7 +680,7 @@ namespace nupic_ext
         {
             const auto ncols = sm.nCols();
             py::array_t<nupic::Real32> dense_row(ncols);
-            sm.getRowToDense(row, get_it(dense_row));
+            sm.getRowToDense_itr(row, get_it(dense_row));
 
             return dense_row;
         });
@@ -679,8 +690,8 @@ namespace nupic_ext
         sm.def("getCol", [](const SparseMatrix32_t& sm, nupic::UInt32 col)
         {
             py::array_t<nupic::Real32> dense_col(sm.nRows());
-            sm.getColToDense(col, get_it(dense_col));
-            
+            sm.getColToDense_itr(col, get_it(dense_col));
+
             return dense_col;
         });
 
@@ -708,10 +719,10 @@ namespace nupic_ext
         sm.def("rowNonZeroIndices", [](const SparseMatrix32_t& sm, nupic::UInt32 row)
         {
             const auto n = sm.nNonZerosOnRow(row);
-            py::array_t<nupic::UInt32> ind(n); 
-            
+            py::array_t<nupic::UInt32> ind(n);
+
             sm.getRowIndicesToSparse(row, get_it(ind));
-            
+
             return ind;
         });
 
@@ -721,7 +732,7 @@ namespace nupic_ext
             const auto n = sm.nNonZerosOnCol(col);
             py::array_t<nupic::UInt32> ind(n);
             py::array_t<nupic::Real32> val(n);
-            
+
             sm.getColToSparse(col, get_it(ind), get_it(val));
 
             return py::make_tuple(ind, val);
@@ -733,7 +744,7 @@ namespace nupic_ext
             const auto nNonZeroRows = sm.nNonZeroRows();
             py::array_t<nupic::UInt32> nzRows(nNonZeroRows);
             sm.nonZeroRows(get_it(nzRows));
-            
+
             return nzRows;
         });
 
@@ -763,7 +774,7 @@ namespace nupic_ext
         {
             const auto nZeroCols = sm.nZeroCols();
             py::array_t<nupic::UInt32> zCols(nZeroCols);
-            
+
             sm.zeroCols(get_it(zCols));
 
             return zCols;
@@ -804,7 +815,7 @@ namespace nupic_ext
 
             // setOuter cannot deal with py::array_t
             sm.setOuter(get_it(i), get_end(i), get_it(j), get_end(j), m);
-        
+
         }, "Sets on the outer product of the passed ranges.");
 
         //SparseMatrix32 getOuter(PyObject* py_i, PyObject* py_j) const
@@ -821,7 +832,7 @@ namespace nupic_ext
         sm.def("getAllNonZeros", [](const SparseMatrix32_t& sm, bool three_lists)
         {
             const auto nnz = sm.nNonZeros();
-            
+
             py::array_t<nupic::UInt32> rows(nnz), cols(nnz);
             py::array_t<nupic::Real32> vals(nnz);
 
@@ -836,7 +847,7 @@ namespace nupic_ext
                 {
                     toReturn[i] = py::make_tuple(rows.data(i), cols.data(i), vals.data(i));
                 }
-                
+
                 return toReturn;
             }
             else
@@ -898,12 +909,12 @@ namespace nupic_ext
             py::tuple toReturn(rows.size());
 
             py::tuple ind_list(nnz);
-            
+
             for (nupic::UInt32 i = 0; i != nnz; ++i)
             {
                 ind_list[i] = py::make_tuple(rows[i], cols[i]);
             }
-            
+
             return py::make_tuple(ind_list, vals);
         });
 
@@ -1050,7 +1061,7 @@ namespace nupic_ext
 
                 auto arg = args[0];
                 std::string as_string = py::str(arg.get_type());
-                
+
                 if (py::isinstance<py::array_t<nupic::UInt32>>(arg))
                 {
                     auto rows = arg.cast<py::array_t<nupic::UInt32>>();
@@ -1123,9 +1134,9 @@ namespace nupic_ext
         sm.def("rowBandwidths", [](const SparseMatrix32_t& sm)
         {
             py::array_t<nupic::UInt32> nnzpc(sm.nRows());
-            
+
             sm.rowBandwidths(get_it(nnzpc));
-            
+
             return nnzpc;
         });
 
@@ -1155,7 +1166,7 @@ namespace nupic_ext
             nupic::UInt32 max_row, max_col;
             nupic::Real32 max_val;
             sm.max(max_row, max_col, max_val);
-            
+
             return py::make_tuple(max_row, max_col, max_val);
         });
 
@@ -1214,7 +1225,7 @@ namespace nupic_ext
             py::array_t<nupic::Real32> val(n);
 
             sm.rowMax(get_it(ind), get_it(val));
-            
+
             return py::make_tuple(ind, val);
         });
 
@@ -1236,7 +1247,7 @@ namespace nupic_ext
             py::array_t<nupic::UInt32> ind(n);
             py::array_t<nupic::Real32> val(n);
             sm.colMax(get_it(ind), get_it(val));
-            
+
             return py::make_tuple(ind, val);
         });
 
@@ -1360,7 +1371,7 @@ namespace nupic_ext
         sm.def("colSums", [](const SparseMatrix32_t& sm)
         {
             py::array_t<nupic::Real32> m(sm.nCols());
-            
+
             sm.colSums(get_it(m));
 
             return m;
@@ -1380,7 +1391,7 @@ namespace nupic_ext
         sm.def("addListOfRows", [](const SparseMatrix32_t& sm, py::array_t<nupic::UInt32>& whichRows)
         {
             py::array_t<nupic::Real32> res(sm.nCols());
-            
+
             sm.addListOfRows(get_it(whichRows), get_end(whichRows), get_it(res), get_end(res));
 
             return res;
@@ -1390,9 +1401,9 @@ namespace nupic_ext
         sm.def("rowProds", [](const SparseMatrix32_t& sm)
         {
             py::array_t<nupic::Real32> m(sm.nRows());
-            
+
             sm.rowProds(get_it(m));
-            
+
             return m;
         });
 
@@ -1400,7 +1411,7 @@ namespace nupic_ext
         sm.def("colProds", [](const SparseMatrix32_t& sm)
         {
             py::array_t<nupic::Real32> m(sm.nCols());
-            
+
             sm.colProds(get_it(m));
 
             return m;
@@ -1512,9 +1523,9 @@ namespace nupic_ext
         sm.def("leftVecProd", [](const SparseMatrix32_t& sm, py::array_t<nupic::Real32>& xIn)
         {
             py::array_t<nupic::Real32> y(sm.nCols());
-            
+
             sm.leftVecProd(get_it(xIn), get_it(y));
-            
+
             return y;
         }, "Vector matrix product on the left, i.e. dot product of xIn and each column of the matrix.");
 
@@ -1815,16 +1826,16 @@ namespace nupic_ext
 
 
         ////////////////////////////////////
-        // 
+        //
 
 
         //inline PyObject* leftVecSumAtNZ(PyObject* xIn) const
         sm.def("leftVecSumAtNZ", [](const SparseMatrix32_t& sm, py::array_t<nupic::Real32>& xIn)
         {
             py::array_t<nupic::Real32> y(sm.nCols());
-            
+
             sm.leftVecSumAtNZ(get_it(xIn), get_it(y));
-            
+
             return y;
         }, "Regular matrix vector multiplication on the left side, assuming that the values of the non-zeros are all 1, so that we can save actually computing the multiplications. Allocates the result.");
 
@@ -1858,7 +1869,7 @@ namespace nupic_ext
             {
                 sm.leftVecProdAtNZ(m.get_row(i), r.get_row(i));
             }
-            
+
             return r.get_py_array();
         });
 
@@ -1872,7 +1883,7 @@ namespace nupic_ext
             {
                 sm.rightVecSumAtNZ(m.get_row(i), r.get_row(i));
             }
-            
+
             return r.get_py_array();
         });
 
@@ -1886,7 +1897,7 @@ namespace nupic_ext
             {
                 sm.leftVecSumAtNZ(m.get_row(i), r.get_row(i));
             }
-            
+
             return r.get_py_array();
         });
 
@@ -1900,7 +1911,7 @@ namespace nupic_ext
             {
                 sm.rightVecMaxAtNZ(m.get_row(i), r.get_row(i));
             }
-            
+
             return r.get_py_array();
         });
 
@@ -1914,7 +1925,7 @@ namespace nupic_ext
             {
                 sm.leftVecMaxAtNZ(m.get_row(i), r.get_row(i));
             }
-            
+
             return r.get_py_array();
         });
 
@@ -1932,9 +1943,9 @@ namespace nupic_ext
         sm.def("vecMaxAtNZ", [](SparseMatrix32_t& sm, py::array_t<nupic::Real32>& xIn)
         {
             py::array_t<nupic::Real32> y(sm.nRows());
-            
+
             sm.vecMaxAtNZ(get_it(xIn), get_it(y));
-            
+
             return y;
         });
 
@@ -1984,7 +1995,7 @@ namespace nupic_ext
             {
                 sm.getNonZerosSorted(ijvs.begin(), N, IJV::less_value());
             }
-            
+
             py::tuple toReturn(N);
 
             for (nupic::UInt32 i = 0; i != N; ++i)
@@ -2011,14 +2022,14 @@ namespace nupic_ext
                 std::back_inserter(cut_i),
                 std::back_inserter(cut_j),
                 std::back_inserter(cut_nz));
-            
+
             py::tuple toReturn(c);
-            
+
             for (nupic::UInt32 i = 0; i != c; ++i)
             {
                 toReturn[i] = py::make_tuple(cut_i[i], cut_j[i], cut_nz[i]);
             }
- 
+
             return toReturn;
         }, "", py::arg("threshold"), py::arg("getCuts") = false);
 

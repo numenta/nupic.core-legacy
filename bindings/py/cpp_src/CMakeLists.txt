@@ -99,8 +99,8 @@ set(src_py_math_files
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
     bindings/math/py_Set.cpp
-#    bindings/math/py_SparseBinaryMatrix.cpp
-#    bindings/math/py_SparseMatrix.cpp
+    bindings/math/py_SparseBinaryMatrix.cpp
+    bindings/math/py_SparseMatrix.cpp
     bindings/math/py_SparseTensor.cpp
     bindings/math/PyBindSparseTensor.hpp
     bindings/math/SparseTensorIndex.hpp
@@ -122,6 +122,10 @@ source_group("test" FILES ${src_py_test_files})
 #
 ############################################################
 
+# setup the distr directory
+set(distr ${CMAKE_INSTALL_PREFIX}/distr)
+file(MAKE_DIRECTORY ${distr})
+file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
 
 # set CPP standard. default for PyBind11 is C++14.  If requested standard not available it will fall back to C++11.
 if (MSVC)
@@ -135,38 +139,22 @@ include_directories(${pybind11_BINARY_DIR})
 
 
 if(PYTHON2_BUILD)
-	# build for python 2.7
+	# build for python 2.7.  (defaults to 3.x)
 	set(PYBIND11_PYTHON_VERSION 2.7)
-	pybind11_add_module(nupic.core.algorithms2 
-						${src_py_algorithms_files}
-						${core_library}
-						)
-	pybind11_add_module(nupic.core.engine2 
-						${src_py_engine_files}
-						${core_library}
-						)
-	pybind11_add_module(nupic.core.math2 
-						${src_py_math_files}
-						${core_library}
-						)
 endif()
 
-if(PYTHON3_BUILD)
-	# build for python 3.x
-	#set(PYBIND11_PYTHON_VERSION)  # defaults to 3.x
-	pybind11_add_module(nupic.core.algorithms 
-						${src_py_algorithms_files}
-						${core_library}
-						)
-	pybind11_add_module(nupic.core.engine 
-						${src_py_engine_files}
-						${core_library}
-						)
-	pybind11_add_module(nupic.core.math 
-						${src_py_math_files}
-						${core_library}
-						)
-endif()
+pybind11_add_module(algorithms 
+					${src_py_algorithms_files}
+					${core_library}
+					)
+pybind11_add_module(engine_internal
+					${src_py_engine_files}
+					${core_library}
+					)
+pybind11_add_module(math 
+					${src_py_math_files}
+					${core_library}
+					)
 ############################################################
 #
 # Build tests of the Python interface
@@ -178,24 +166,14 @@ endif()
 
 ###################################################################
 #
-# Install targets into CMAKE_INSTALL_PREFIX
+# Install targets into CMAKE_INSTALL_PREFIX/distr/src/nupic/bindings
 #
 ###################################################################
-if(PYTHON2_BUILD)
-  install(TARGETS
-        nupic.core.algorithms2
-        nupic.core.engine2
-        nupic.core.math2
+install(TARGETS
+        algorithms
+        engine_internal
+        math
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
+        LIBRARY DESTINATION ${distr}/src/nupic/bindings
         ARCHIVE DESTINATION lib)
-endif()
-if(PYTHON3_BUILD)
-  install(TARGETS
-        nupic.core.algorithms
-        nupic.core.engine
-        nupic.core.math
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-endif()
+
