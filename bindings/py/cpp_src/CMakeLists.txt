@@ -60,12 +60,11 @@ include_directories(
   ${REPOSITORY_DIR}/external/common/include
 )
 
-### TODO: do we need this?
-#	if (${NUPIC_BUILD_PYEXT_MODULES})
-#		# Hide all symbols in DLLs except the ones with explicit visibility;
-#		# see https://gcc.gnu.org/wiki/Visibility
-#		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
-#	endif()
+	if (${NUPIC_BUILD_PYEXT_MODULES})
+		# Hide all symbols in DLLs except the ones with explicit visibility;
+		# see https://gcc.gnu.org/wiki/Visibility
+		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
+	endif()
 
 #
 # Python support
