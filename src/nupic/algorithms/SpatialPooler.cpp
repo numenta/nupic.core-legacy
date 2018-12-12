@@ -225,17 +225,6 @@ void SpatialPooler::setUpdatePeriod(UInt updatePeriod) {
   updatePeriod_ = updatePeriod;
 }
 
-Real SpatialPooler::getSynPermTrimThreshold() const {
-  return synPermTrimThreshold_;
-}
-
-void SpatialPooler::setSynPermTrimThreshold(Real synPermTrimThreshold) {
-  NTA_THROW << "DEPRECATED";
-  NTA_CHECK(synPermTrimThreshold >= synPermMin_ &&
-             synPermTrimThreshold <= synPermMax_);
-  synPermTrimThreshold_ = synPermTrimThreshold;
-}
-
 Real SpatialPooler::getSynPermActiveInc() const { return synPermActiveInc_; }
 
 void SpatialPooler::setSynPermActiveInc(Real synPermActiveInc) {
@@ -268,13 +257,7 @@ void SpatialPooler::setSynPermConnected(Real synPermConnected) {
   synPermConnected_ = synPermConnected;
 }
 
-Real SpatialPooler::getSynPermMax() const { return 1.; }
-
-void SpatialPooler::setSynPermMax(Real synPermMax) { 
-  NTA_THROW << " Maximum Synaptic Permanence hardcoded to 1.";
-  NTA_CHECK(synPermMax > synPermMin_);
-  synPermMax_ = synPermMax; 
-}
+Real SpatialPooler::getSynPermMax() const { return synPermMax_; }
 
 Real SpatialPooler::getMinPctOverlapDutyCycles() const {
   return minPctOverlapDutyCycles_;
@@ -456,9 +439,7 @@ void SpatialPooler::initialize(
   spVerbosity_ = spVerbosity;
   wrapAround_ = wrapAround;
   synPermMin_ = 0.0f;
-  synPermMax_ = 1.0f;
-  synPermTrimThreshold_ = synPermActiveInc / 2.0f;
-  NTA_CHECK(synPermTrimThreshold_ < synPermConnected_);
+  synPermMax_ = connections::maxPermanence;
   updatePeriod_ = 50u;
   initConnectedPct_ = 0.5f;
   iterationNum_ = 0u;
@@ -488,7 +469,7 @@ void SpatialPooler::initialize(
     for( UInt syn = 0; syn < potential.size(); syn++ )
       connections_.createSynapse( i, potential[syn], perm[syn] );
 
-    connections_.raisePermanencesToThreshold( i, synPermConnected_, stimulusThreshold_, synPermTrimThreshold_ );
+    connections_.raisePermanencesToThreshold( i, synPermConnected_, stimulusThreshold_ );
   }
 
   updateInhibitionRadius_();
@@ -644,7 +625,6 @@ vector<Real> SpatialPooler::initPermanence_(const vector<UInt> &potential, //TOD
     } else {
       perm[i] = initPermNonConnected_();
     }
-    perm[i] = perm[i] < synPermTrimThreshold_ ? 0.0f : perm[i];
   }
 
   return perm;
@@ -781,8 +761,8 @@ void SpatialPooler::adaptSynapses_(SDR &input,
                                    SDR &active) {
   for(const auto &column : active.getFlatSparse()) {
     connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
-    connections_.raisePermanencesToThreshold( column,
-              synPermConnected_, stimulusThreshold_, synPermTrimThreshold_  );
+    connections_.raisePermanencesToThreshold(
+                                column, synPermConnected_, stimulusThreshold_);
   }
 }
 
@@ -1052,7 +1032,7 @@ void SpatialPooler::save(ostream &outStream) const {
             << " " << updatePeriod_ << " ";
 
   outStream << synPermMin_ << " " << synPermMax_ << " " 
-    << synPermTrimThreshold_ << " " << synPermInactiveDec_ << " "
+    << " " << synPermInactiveDec_ << " "
     << synPermActiveInc_ << " " << synPermBelowStimulusInc_ << " "
     << synPermConnected_ << " " << minPctOverlapDutyCycles_ << " ";
 
@@ -1128,7 +1108,7 @@ void SpatialPooler::load(istream &inStream) {
       dutyCyclePeriod_ >> boostStrength_ >> iterationNum_ >>
       iterationLearnNum_ >> spVerbosity_ >> updatePeriod_
 
-      >> synPermMin_ >> synPermMax_ >> synPermTrimThreshold_ >>
+      >> synPermMin_ >> synPermMax_ >>
       synPermInactiveDec_ >> synPermActiveInc_ >> synPermBelowStimulusInc_ >>
       synPermConnected_ >> minPctOverlapDutyCycles_;
   inStream >> wrapAround_;

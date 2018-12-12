@@ -300,8 +300,23 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
   SynapseData synapseData = connections.dataForSynapse(synapse);
   ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
 
+  // Test permanence floor
+  connections.updateSynapsePermanence(synapse, -0.02f);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)0.0f );
 
-  FAIL() << " TODO TEST PERMS CLIP TO RANGE [0, 1] ";
+  connections.updateSynapsePermanence(synapse, -EPSILON / 10.);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)0.0f );
+
+  // Test permanence ceiling
+  connections.updateSynapsePermanence(synapse, 1.02f);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)1.0f );
+
+  connections.updateSynapsePermanence(synapse, 1.0f + EPSILON / 10.);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)1.0f );
 }
 
 /**
@@ -348,95 +363,57 @@ TEST(ConnectionsTest, testComputeActivity) {
 
 
 TEST(ConnectionsTest, testAdaptSynapses) {
-  FAIL();
-  /*
   UInt numColumns = 4;
   UInt numInputs = 8;
   Connections con(numColumns);
 
   vector<UInt> activeColumns;
-  vector<UInt> inputVector;
+  SDR input({numInputs});
 
-  UInt potentialArr1[4][8] = {{1, 1, 1, 1, 0, 0, 0, 0},
+  UInt potentialArr[4][8] =  {{1, 1, 1, 1, 0, 0, 0, 0},
                               {1, 0, 0, 0, 1, 1, 0, 1},
                               {0, 0, 1, 0, 0, 0, 1, 0},
                               {1, 0, 0, 0, 0, 0, 1, 0}};
 
-  Real permanencesArr1[5][8] = {
+  Real permanences[4][8] = {
       {0.200, 0.120, 0.090, 0.060, 0.000, 0.000, 0.000, 0.000},
       {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
-      {0.000, 0.000, 0.014, 0.000, 0.000, 0.000, 0.110, 0.000},
+      {0.000, 0.000, 0.004, 0.000, 0.000, 0.000, 0.910, 0.000},
       {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
 
-  Real truePermanences1[5][8] = {
+  Real truePerms[4][8] = {
       {0.300, 0.110, 0.080, 0.160, 0.000, 0.000, 0.000, 0.000},
-      //   Inc     Dec   Dec    Inc      -      -      -     -
+      // Inc    Dec    Dec    Inc      -      -      -     -
       {0.250, 0.000, 0.000, 0.000, 0.280, 0.110, 0.000, 0.440},
-      //   Inc      -      -     -      Inc    Dec    -     Dec
-      {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.210, 0.000},
-      //   -      -     Trim     -     -     -       Inc   -
+      // Inc      -      -     -      Inc    Dec    -     Dec
+      {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 1.000, 0.000},
+      //   -      -   Floor     -     -     -    Ceiling   -
       {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
-  //    -      -      -      -      -      -      -       -
-
-  UInt inputArr1[8] = {1, 0, 0, 1, 1, 0, 1, 0};
-  UInt activeColumnsArr1[3] = {0, 1, 2};
+      //   -      -      -      -      -      -      -      -
 
   for (UInt column = 0; column < numColumns; column++) {
-    sp.setPotential(column, potentialArr1[column]);
-    sp.setPermanence(column, permanencesArr1[column]);
+    Segment seg = con.createSegment(column);
+    for(UInt inp = 0; inp < numInputs; inp++) {
+      if( potentialArr[column][inp] )
+        con.createSynapse(seg, inp, permanences[column][inp]);
+    }
   }
 
-  activeColumns.assign(&activeColumnsArr1[0], &activeColumnsArr1[3]);
+  input.setDense(SDR_dense_t({ 1, 0, 0, 1, 1, 0, 1, 0 }));
+  activeColumns.assign({0, 1, 2});
 
-  sp.adaptSynapses_(inputArr1, activeColumns);
-  cout << endl;
-  for (UInt column = 0; column < numColumns; column++) {
-    auto permArr = new Real[numInputs];
-    sp.getPermanence(column, permArr);
-    ASSERT_TRUE(check_vector_eq(truePermanences1[column], permArr, numInputs));
-    delete[] permArr;
-  }
-
-  UInt potentialArr2[4][8] = {{1, 1, 1, 0, 0, 0, 0, 0},
-                              {0, 1, 1, 1, 0, 0, 0, 0},
-                              {0, 0, 1, 1, 1, 0, 0, 0},
-                              {1, 0, 0, 0, 0, 0, 1, 0}};
-
-  Real permanencesArr2[4][8] = {
-      {0.200, 0.120, 0.090, 0.000, 0.000, 0.000, 0.000, 0.000},
-      {0.000, 0.017, 0.232, 0.400, 0.000, 0.000, 0.000, 0.000},
-      {0.000, 0.000, 0.014, 0.051, 0.730, 0.000, 0.000, 0.000},
-      {0.170, 0.000, 0.000, 0.000, 0.000, 0.000, 0.380, 0.000}};
-
-  Real truePermanences2[4][8] = {
-      {0.30, 0.110, 0.080, 0.000, 0.000, 0.000, 0.000, 0.000},
-      //  #  Inc    Dec     Dec     -       -    -    -    -
-      {0.000, 0.000, 0.222, 0.500, 0.000, 0.000, 0.000, 0.000},
-      //  #  -     Trim    Dec    Inc    -       -      -      -
-      {0.000, 0.000, 0.000, 0.151, 0.830, 0.000, 0.000, 0.000},
-      //  #   -      -    Trim   Inc    Inc     -     -     -
-      {0.170, 0.000, 0.000, 0.000, 0.000, 0.000, 0.380, 0.000}};
-  //  #  -    -      -      -      -       -       -     -
-
-  UInt inputArr2[8] = {1, 0, 0, 1, 1, 0, 1, 0};
-  UInt activeColumnsArr2[3] = {0, 1, 2};
+  for(UInt column : activeColumns)
+    con.adaptSegment(column, input, .1, .01);
 
   for (UInt column = 0; column < numColumns; column++) {
-    sp.setPotential(column, potentialArr2[column]);
-    sp.setPermanence(column, permanencesArr2[column]);
+    vector<Real> perms( numInputs, 0.0f );
+    for( Synapse syn : con.synapsesForSegment(column) ) {
+      auto synData = con.dataForSynapse( syn );
+      perms[ synData.presynapticCell ] = synData.permanence;
+    }
+    for(UInt i = 0; i < numInputs; i++)
+      ASSERT_NEAR( truePerms[column][i], perms[i], EPSILON );
   }
-
-  activeColumns.assign(&activeColumnsArr2[0], &activeColumnsArr2[3]);
-
-  con.adaptSynapses_(inputArr2, activeColumns);
-  cout << endl;
-  for (UInt column = 0; column < numColumns; column++) {
-    auto permArr = new Real[numInputs];
-    sp.getPermanence(column, permArr);
-    ASSERT_TRUE(check_vector_eq(truePermanences2[column], permArr, numInputs));
-    delete[] permArr;
-  }
-  */
 }
 
 

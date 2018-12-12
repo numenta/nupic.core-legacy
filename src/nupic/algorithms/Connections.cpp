@@ -37,8 +37,6 @@ using std::vector;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
-static const Permanence EPSILON = 0.00001f;
-
 Connections::Connections(CellIdx numCells) { initialize(numCells); }
 
 void Connections::initialize(CellIdx numCells) {
@@ -92,8 +90,6 @@ Segment Connections::createSegment(CellIdx cell) {
 Synapse Connections::createSynapse(Segment segment,
                                    CellIdx presynapticCell,
                                    Permanence permanence) {
-  NTA_CHECK(permanence > 0);
-
   Synapse synapse;
   if (destroyedSynapses_.size() > 0) {
     synapse = destroyedSynapses_.back();
@@ -211,8 +207,8 @@ void Connections::updateSynapsePermanence(Synapse synapse,
     h.second->onUpdateSynapsePermanence(synapse, permanence);
   }
 
-  permanence = std::min(permanence, (Permanence) 1. );
-  permanence = std::max(permanence, (Permanence) 0. );
+  permanence = std::min(permanence, maxPermanence );
+  permanence = std::max(permanence, minPermanence );
   synapses_[synapse].permanence = permanence;
 }
 
@@ -320,7 +316,6 @@ void Connections::computeActivity(
       const SynapseData &synapseData = synapses_[synapse];
       ++numActivePotentialSynapsesForSegment[synapseData.segment];
 
-      NTA_ASSERT(synapseData.permanence > 0);
       if (synapseData.permanence >= connectedPermanence - EPSILON) {
         ++numActiveConnectedSynapsesForSegment[synapseData.segment];
       }
@@ -342,7 +337,6 @@ void Connections::computeActivity(
         const SynapseData &synapseData = synapses_[synapse];
         ++numActivePotentialSynapsesForSegment[synapseData.segment];
 
-        NTA_ASSERT(synapseData.permanence > 0);
         if (synapseData.permanence >= connectedPermanence - EPSILON) {
           ++numActiveConnectedSynapsesForSegment[synapseData.segment];
         }
@@ -377,8 +371,7 @@ void Connections::adaptSegment(Segment segment, SDR &inputs,
 
 void Connections::raisePermanencesToThreshold(Segment    segment,
                                               Permanence permanenceThreshold,
-                                              UInt       segmentThreshold,
-                                              Permanence synPermBelowStimulusInc)
+                                              UInt       segmentThreshold)
 {
   if( segmentThreshold == 0 )
     return;
@@ -401,15 +394,9 @@ void Connections::raisePermanencesToThreshold(Segment    segment,
   if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
     return;            // Enough synapses are already connected.
 
-  //Round up to multiple of synPermBelowStimulusInc.
-  const Real inc_rounded = ((increment + synPermBelowStimulusInc) -
-                             std::fmod(increment, synPermBelowStimulusInc));
-
   // Raise the permance of all synapses in the potential pool uniformly.
   for( const auto &syn : synapses )
-    updateSynapsePermanence(syn, synapses_[syn].permanence + inc_rounded);
-
-  return;
+    updateSynapsePermanence(syn, synapses_[syn].permanence + increment);
 }
 
 
@@ -418,14 +405,6 @@ void Connections::bumpSegment(Segment segment, Permanence delta) {
   for( const auto &syn : synapses )
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
 }
-
-
-// SP NEEDS: connectedCount, Is this needed? it does have a public getter... SP
-// doesn't actually use it though ...
-
-
-// SP NEEDS: synPermTrimThreshold ??? No, its public but it shouldn't be.  I
-// suspect they made it public so that they could test it.
 
 
 void Connections::save(std::ostream &outStream) const {
