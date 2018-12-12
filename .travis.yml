@@ -48,7 +48,7 @@ env:
 #    - secure: "Ixm9TYZAZbCQicUTIZTY7XKNK82WF+f1jsaGtIxnGQmn0LKhKBjQnsZmhzQ7LDQeLUjRY3wM6xrX3YdP5T7WWiiqBiNCRz8oFxl/fBSm7LyuNo2CEGD9rsG6ZAY/sKKYNX5TuG78giJXwYZpq4LbVwy3W5ZlC626H7iXLQ6xDxw="
 
 virtualenv:
-  system_site_packages: true
+  system_site_packages: false
 
 # Successful builds are archived and uploaded to S3 for bamboo releases.
 before_deploy:
