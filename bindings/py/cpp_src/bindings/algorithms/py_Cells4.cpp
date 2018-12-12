@@ -53,17 +53,6 @@ namespace nupic_ext
     void init_Cells4(py::module& m)
     {
         //////////////////
-        // Cell
-        //////////////////
-        typedef nupic::algorithms::Cells4::Cell Cell_t;
-
-        py::class_<Cell_t> py_cell(m, "Cell");
-        py_cell.def(py::init<>());
-
-        py_cell.def("getSegment", &Cell_t::getSegment);
-
-
-        //////////////////
         // Segment
         //////////////////
         typedef nupic::algorithms::Cells4::Segment Segment_t;

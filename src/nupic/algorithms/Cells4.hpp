@@ -67,7 +67,6 @@ namespace nupic {
   namespace algorithms {
     namespace Cells4 {
 
-      class Cell;
       class Cells4;
       class SegmentUpdate;
 
