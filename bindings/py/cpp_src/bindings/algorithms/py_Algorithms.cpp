@@ -51,7 +51,6 @@ namespace nupic_ext
 {
     void init_algorithms(py::module& m)
     {
-        typedef nupic::algorithms::Cells4::Segment Segment_t;
 
         m.def("getSegmentActivityLevel", [](py::list seg
             , py::array_t<nupic::Byte>& py_state
