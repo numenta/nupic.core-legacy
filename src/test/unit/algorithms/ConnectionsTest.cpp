@@ -300,8 +300,23 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
   SynapseData synapseData = connections.dataForSynapse(synapse);
   ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
 
+  // Test permanence floor
+  connections.updateSynapsePermanence(synapse, -0.02f);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)0.0f );
 
-  FAIL() << " TODO TEST PERMS CLIP TO RANGE [0, 1] ";
+  connections.updateSynapsePermanence(synapse, -EPSILON / 10.);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)0.0f );
+
+  // Test permanence ceiling
+  connections.updateSynapsePermanence(synapse, 1.02f);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)1.0f );
+
+  connections.updateSynapsePermanence(synapse, 1.0f + EPSILON / 10.);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)1.0f );
 }
 
 /**
