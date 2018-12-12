@@ -153,7 +153,6 @@ namespace nupic_ext
         py_SpatialPooler.def("getSynPermConnected", &SpatialPooler::getSynPermConnected);
         py_SpatialPooler.def("setSynPermConnected", &SpatialPooler::setSynPermConnected);
         py_SpatialPooler.def("getSynPermMax", &SpatialPooler::getSynPermMax);
-        py_SpatialPooler.def("setSynPermMax", &SpatialPooler::setSynPermMax);
         py_SpatialPooler.def("getMinPctOverlapDutyCycles", &SpatialPooler::getMinPctOverlapDutyCycles);
         py_SpatialPooler.def("setMinPctOverlapDutyCycles", &SpatialPooler::setMinPctOverlapDutyCycles);
 
