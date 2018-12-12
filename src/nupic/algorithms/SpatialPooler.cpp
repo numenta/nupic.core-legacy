@@ -257,13 +257,7 @@ void SpatialPooler::setSynPermConnected(Real synPermConnected) {
   synPermConnected_ = synPermConnected;
 }
 
-Real SpatialPooler::getSynPermMax() const { return 1.; }
-
-void SpatialPooler::setSynPermMax(Real synPermMax) { 
-  NTA_THROW << " Maximum Synaptic Permanence hardcoded to 1.";
-  NTA_CHECK(synPermMax > synPermMin_);
-  synPermMax_ = synPermMax; 
-}
+Real SpatialPooler::getSynPermMax() const { return synPermMax_; }
 
 Real SpatialPooler::getMinPctOverlapDutyCycles() const {
   return minPctOverlapDutyCycles_;
@@ -445,7 +439,7 @@ void SpatialPooler::initialize(
   spVerbosity_ = spVerbosity;
   wrapAround_ = wrapAround;
   synPermMin_ = 0.0f;
-  synPermMax_ = 1.0f;
+  synPermMax_ = connections::maxPermanence;
   updatePeriod_ = 50u;
   initConnectedPct_ = 0.5f;
   iterationNum_ = 0u;

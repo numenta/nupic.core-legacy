@@ -29,8 +29,7 @@
 
 #include <iostream>
 #include <vector>
-#include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/math/SparseMatrix.hpp>
+#include <iomanip> // std::setprecision
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
@@ -633,14 +632,6 @@ public:
   @returns real number of the max permanence amount.
   */
   Real getSynPermMax() const;
-  /**
-  Sets the maximum permanence amount a synapse can
-  achieve.
-
-  @param synPermCMax real number of the maximum permanence
-  amount that a synapse can achieve.
-  */
-  void setSynPermMax(Real synPermMax);
 
   /**
   Returns the minimum tolerated overlaps, given as percent of
