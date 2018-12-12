@@ -24,6 +24,8 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
+        - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python2.7/site-packages/"
+
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
 #    - os: osx
