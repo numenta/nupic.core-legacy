@@ -142,9 +142,9 @@ if(PYTHON2_BUILD)
 	set(PYBIND11_PYTHON_VERSION 2.7)
 endif()
 
-pybind11_add_module(algorithms 
-					${src_py_algorithms_files}
-					)
+
+pybind11_add_module(algorithms ${src_py_algorithms_files} )
+message(STATUS "Core lib to LINK is '${core_library}' ")
 target_link_libraries(algorithms PRIVATE ${core_library})
 target_compile_options(algorithms PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(algorithms PRIVATE ${COMMON_COMPILER_DEFINITIONS})
@@ -165,7 +165,7 @@ pybind11_add_module(math
 #
 ############################################################
 
-#TODO:
+#TODO: tests should be installed here
 
 
 ###################################################################
