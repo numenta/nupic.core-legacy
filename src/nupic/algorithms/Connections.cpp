@@ -92,8 +92,6 @@ Segment Connections::createSegment(CellIdx cell) {
 Synapse Connections::createSynapse(Segment segment,
                                    CellIdx presynapticCell,
                                    Permanence permanence) {
-  NTA_CHECK(permanence > 0);
-
   Synapse synapse;
   if (destroyedSynapses_.size() > 0) {
     synapse = destroyedSynapses_.back();
@@ -342,7 +340,6 @@ void Connections::computeActivity(
         const SynapseData &synapseData = synapses_[synapse];
         ++numActivePotentialSynapsesForSegment[synapseData.segment];
 
-        NTA_ASSERT(synapseData.permanence > 0);
         if (synapseData.permanence >= connectedPermanence - EPSILON) {
           ++numActiveConnectedSynapsesForSegment[synapseData.segment];
         }
@@ -377,8 +374,7 @@ void Connections::adaptSegment(Segment segment, SDR &inputs,
 
 void Connections::raisePermanencesToThreshold(Segment    segment,
                                               Permanence permanenceThreshold,
-                                              UInt       segmentThreshold,
-                                              Permanence synPermBelowStimulusInc)
+                                              UInt       segmentThreshold)
 {
   if( segmentThreshold == 0 )
     return;
@@ -401,13 +397,9 @@ void Connections::raisePermanencesToThreshold(Segment    segment,
   if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
     return;            // Enough synapses are already connected.
 
-  //Round up to multiple of synPermBelowStimulusInc.
-  const Real inc_rounded = ((increment + synPermBelowStimulusInc) -
-                             std::fmod(increment, synPermBelowStimulusInc));
-
   // Raise the permance of all synapses in the potential pool uniformly.
   for( const auto &syn : synapses )
-    updateSynapsePermanence(syn, synapses_[syn].permanence + inc_rounded);
+    updateSynapsePermanence(syn, synapses_[syn].permanence + increment);
 
   return;
 }

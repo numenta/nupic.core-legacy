@@ -428,8 +428,7 @@ public:
    */
   void raisePermanencesToThreshold(Segment    segment,
                                    Permanence permanenceThreshold,
-                                   UInt       segmentThreshold,
-                                   Permanence synPermBelowStimulusInc);
+                                   UInt       segmentThreshold);
 
   /**
    * Modify all permanence on the given segment, uniformly.

@@ -475,7 +475,7 @@ void SpatialPooler::initialize(
     for( UInt syn = 0; syn < potential.size(); syn++ )
       connections_.createSynapse( i, potential[syn], perm[syn] );
 
-    connections_.raisePermanencesToThreshold( i, synPermConnected_, stimulusThreshold_, synPermTrimThreshold_ );
+    connections_.raisePermanencesToThreshold( i, synPermConnected_, stimulusThreshold_ );
   }
 
   updateInhibitionRadius_();
@@ -767,8 +767,8 @@ void SpatialPooler::adaptSynapses_(SDR &input,
                                    SDR &active) {
   for(const auto &column : active.getFlatSparse()) {
     connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
-    connections_.raisePermanencesToThreshold( column,
-              synPermConnected_, stimulusThreshold_, synPermTrimThreshold_  );
+    connections_.raisePermanencesToThreshold(
+                                column, synPermConnected_, stimulusThreshold_);
   }
 }
 
