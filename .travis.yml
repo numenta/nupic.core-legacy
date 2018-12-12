@@ -56,10 +56,6 @@ virtualenv:
 before_deploy:
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
-#  - mkdir $BINARY_DIR/dist
-#  - cp $TRAVIS_BUILD_DIR/bindings/py/packaging/requirements.txt $BINARY_DIR/dist/
-  - mkdir -p $BINARY_DIR/dist/include/nupic
-  - cp ${TRAVIS_BUILD_DIR}/build/Release/include/nupic/Version.hpp $BINARY_DIR/dist/include/nupic
   - tar -zcvf $TRAVIS_BUILD_DIR/build/Release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $BINARY_DIR/dist
 
 deploy:
