@@ -497,7 +497,7 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
 void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);
-  calculateOverlapPct_(overlaps_, overlapsPct_);
+  // calculateOverlapPct_(overlaps_, overlapsPct_);
 
   if (learn) {
     boostOverlaps_(overlaps_, boostedOverlaps_);

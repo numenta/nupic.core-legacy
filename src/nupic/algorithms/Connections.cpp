@@ -203,13 +203,13 @@ void Connections::destroySynapse(Synapse synapse) {
 
 void Connections::updateSynapsePermanence(Synapse synapse,
                                           Permanence permanence) {
-  for (auto h : eventHandlers_) {
-    h.second->onUpdateSynapsePermanence(synapse, permanence);
-  }
-
   permanence = std::min(permanence, maxPermanence );
   permanence = std::max(permanence, minPermanence );
   synapses_[synapse].permanence = permanence;
+
+  // for (auto h : eventHandlers_) {
+  //   h.second->onUpdateSynapsePermanence(synapse, permanence);
+  // }
 }
 
 const vector<Segment> &Connections::segmentsForCell(CellIdx cell) const {
