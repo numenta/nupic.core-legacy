@@ -42,32 +42,12 @@ namespace algorithms {
 
 namespace connections {
 typedef UInt32 CellIdx;
-typedef UInt16 SegmentIdx;
-typedef UInt16 SynapseIdx;
+typedef UInt16 SegmentIdx; /** Index of segment in cell. */
+typedef UInt16 SynapseIdx; /** Index of synapse in segment. */
 typedef Real32 Permanence;
-typedef UInt32 Segment;
+typedef UInt32 Segment;    /** Index of segment's data. */
+typedef UInt32 Synapse;    /** Index of synapse's data. */
 
-/**
- * Synapse struct used by Connections consumers.
- *
- * The Synapse struct is used to refer to a synapse. It contains a path to
- * a SynapseData.
- *
- * @param flatIdx This synapse's index in flattened lists of all synapses.
- */
-struct Synapse {
-  // Use Synapses as vector indices.
-  operator unsigned long() const { return flatIdx; }; //TODO this is just UInt now, either add more
-  //functionality - SynapseData, SynapseOrdinals; or replace with using Synapse = UInt;
-
-  UInt32 flatIdx;
-private:
-  // The flatIdx ordering is not meaningful.
-  bool operator<=(const Synapse &other) const = delete;
-  bool operator<(const Synapse &other) const = delete;
-  bool operator>=(const Synapse &other) const = delete;
-  bool operator>(const Synapse &other) const = delete;
-};
 
 /**
  * SynapseData class used in Connections.

@@ -50,6 +50,7 @@ public:
   //
 
   const std::pair<std::string, T> &getByIndex(size_t index) const;
+  std::pair<std::string, T> &getByIndex(size_t index);
 
   bool contains(const std::string &name) const;
 
@@ -62,9 +63,6 @@ public:
 
   void remove(const std::string &name);
 
-#ifdef NTA_INTERNAL
-  std::pair<std::string, T> &getByIndex(size_t index);
-#endif
 
 private:
   typedef std::vector<std::pair<std::string, T>> CollectionStorage;

@@ -40,7 +40,7 @@ template <typename T> std::string vec2str(std::vector<T> vec) {
 
 struct ScalarValueCase
 {
-  Real input;
+  Real32 input;
   std::vector<UInt> expectedOutput;
 };
 
@@ -117,8 +117,8 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs) {
 TEST(ScalarEncoder, NonIntegerBucketWidth) {
   const int n = 7;
   const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
+  const double minValue = 10.0;
+  const double maxValue = 20.0;
   const double radius = 0;
   const double resolution = 0;
   const bool clipInput = false;
@@ -134,14 +134,14 @@ TEST(ScalarEncoder, NonIntegerBucketWidth) {
 TEST(PeriodicScalarEncoder, NonIntegerBucketWidth) {
   const int n = 7;
   const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
+  const double minValue = 10.0;
+  const double maxValue = 20.0;
   const double radius = 0;
   const double resolution = 0;
   PeriodicScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution);
 
-  std::vector<ScalarValueCase> cases = {{10.0, patternFromNZ(n, {6, 0, 1})},
-                                        {19.9, patternFromNZ(n, {5, 6, 0})}};
+  std::vector<ScalarValueCase> cases = {{10.0f, patternFromNZ(n, {6, 0, 1})},
+                                        {19.9f, patternFromNZ(n, {5, 6, 0})}};
 
   doScalarValueCases(encoder, cases);
 }
@@ -149,8 +149,8 @@ TEST(PeriodicScalarEncoder, NonIntegerBucketWidth) {
 TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   const int n_in = 0;
   const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
+  const double minValue = 10.0;
+  const double maxValue = 20.0;
   const double radius = 0;
   const double resolution = 1;
   const bool clipInput = false;
@@ -160,18 +160,18 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases = {
-      {10.00, patternFromNZ(n, {0, 1, 2})},
-      {10.49, patternFromNZ(n, {0, 1, 2})},
-      {10.50, patternFromNZ(n, {1, 2, 3})},
-      {11.49, patternFromNZ(n, {1, 2, 3})},
-      {11.50, patternFromNZ(n, {2, 3, 4})},
-      {14.49, patternFromNZ(n, {4, 5, 6})},
-      {14.50, patternFromNZ(n, {5, 6, 7})},
-      {15.49, patternFromNZ(n, {5, 6, 7})},
-      {15.50, patternFromNZ(n, {6, 7, 8})},
-      {19.49, patternFromNZ(n, {9, 10, 11})},
-      {19.50, patternFromNZ(n, {10, 11, 12})},
-      {20.00, patternFromNZ(n, {10, 11, 12})}};
+      {10.00f, patternFromNZ(n, {0, 1, 2})},
+      {10.49f, patternFromNZ(n, {0, 1, 2})},
+      {10.50f, patternFromNZ(n, {1, 2, 3})},
+      {11.49f, patternFromNZ(n, {1, 2, 3})},
+      {11.50f, patternFromNZ(n, {2, 3, 4})},
+      {14.49f, patternFromNZ(n, {4, 5, 6})},
+      {14.50f, patternFromNZ(n, {5, 6, 7})},
+      {15.49f, patternFromNZ(n, {5, 6, 7})},
+      {15.50f, patternFromNZ(n, {6, 7, 8})},
+      {19.49f, patternFromNZ(n, {9, 10, 11})},
+      {19.50f, patternFromNZ(n, {10, 11, 12})},
+      {20.00f, patternFromNZ(n, {10, 11, 12})}};
 
   doScalarValueCases(encoder, cases);
 }
@@ -179,8 +179,8 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
 TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution) {
   const int n_in = 0;
   const int w = 3;
-  const double minValue = 10;
-  const double maxValue = 20;
+  const double minValue = 10.0;
+  const double maxValue = 20.0;
   const double radius = 0;
   const double resolution = 1;
   PeriodicScalarEncoder encoder(w, minValue, maxValue, n_in, radius,
@@ -189,17 +189,17 @@ TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution) {
   const int n = 10;
   ASSERT_EQ(n, encoder.getOutputWidth());
 
-  std::vector<ScalarValueCase> cases = {{10.00, patternFromNZ(n, {9, 0, 1})},
-                                        {10.99, patternFromNZ(n, {9, 0, 1})},
-                                        {11.00, patternFromNZ(n, {0, 1, 2})},
-                                        {11.99, patternFromNZ(n, {0, 1, 2})},
-                                        {12.00, patternFromNZ(n, {1, 2, 3})},
-                                        {14.00, patternFromNZ(n, {3, 4, 5})},
-                                        {14.99, patternFromNZ(n, {3, 4, 5})},
-                                        {15.00, patternFromNZ(n, {4, 5, 6})},
-                                        {15.99, patternFromNZ(n, {4, 5, 6})},
-                                        {19.00, patternFromNZ(n, {8, 9, 0})},
-                                        {19.99, patternFromNZ(n, {8, 9, 0})}};
+  std::vector<ScalarValueCase> cases = {{10.00f, patternFromNZ(n, {9, 0, 1})},
+                                        {10.99f, patternFromNZ(n, {9, 0, 1})},
+                                        {11.00f, patternFromNZ(n, {0, 1, 2})},
+                                        {11.99f, patternFromNZ(n, {0, 1, 2})},
+                                        {12.00f, patternFromNZ(n, {1, 2, 3})},
+                                        {14.00f, patternFromNZ(n, {3, 4, 5})},
+                                        {14.99f, patternFromNZ(n, {3, 4, 5})},
+                                        {15.00f, patternFromNZ(n, {4, 5, 6})},
+                                        {15.99f, patternFromNZ(n, {4, 5, 6})},
+                                        {19.00f, patternFromNZ(n, {8, 9, 0})},
+                                        {19.99f, patternFromNZ(n, {8, 9, 0})}};
 
   doScalarValueCases(encoder, cases);
 }

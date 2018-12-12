@@ -90,12 +90,12 @@ public:
    * @param predicted: array of columns indices predicted in this step
    *        (used for anomaly in step T+1)
    * @param timestamp: (optional) date timestamp when the sample occured
-   *                   (used in anomaly-likelihood)
+   *                   (used in anomaly-likelihood), -1 defaults to using iteration step
    * @return the computed anomaly score; Real32 0..1
    */
   Real compute(const std::vector<UInt> &active,
                  const std::vector<UInt> &predicted, 
-                 int timestamp = 0);
+                 int timestamp = -1);
 
 private:
   AnomalyMode mode_;

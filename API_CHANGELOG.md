@@ -8,3 +8,6 @@ and load().
 
 * The function Network::newRegionFromBundle() was replaced with newRegion(stream, name) where the stream 
 is an input stream reading a file created by region->save(steam)  or region->saveToFile(path).  PR#62
+
+* Removed methods SpatialPooler::setSynPermTrimThreshold & SpatialPooler::getSynPermTrimThreshold.
+Synapse trimming was an optimization which is no longer possible because of an implementation change.

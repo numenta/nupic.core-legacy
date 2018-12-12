@@ -136,8 +136,6 @@ void check_spatial_eq(const SpatialPooler& sp1, const SpatialPooler& sp2) {
   ASSERT_TRUE(sp1.getSpVerbosity() == sp2.getSpVerbosity());
   ASSERT_TRUE(sp1.getWrapAround() == sp2.getWrapAround());
   ASSERT_TRUE(sp1.getUpdatePeriod() == sp2.getUpdatePeriod());
-  ASSERT_TRUE(
-      almost_eq(sp1.getSynPermTrimThreshold(), sp2.getSynPermTrimThreshold()));
   cout << "check: " << sp1.getSynPermActiveInc() << " "
        << sp2.getSynPermActiveInc() << endl;
   ASSERT_TRUE(almost_eq(sp1.getSynPermActiveInc(), sp2.getSynPermActiveInc()));
@@ -244,7 +242,6 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   sp.initialize(inputDim, colDim);
   sp.setGlobalInhibition(true);
   ASSERT_TRUE(sp.getInhibitionRadius() == 57);
-
   colDim.clear();
   inputDim.clear();
   // avgColumnsPerInput = 4
@@ -777,35 +774,32 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
                               {0, 0, 1, 0, 0, 0, 1, 0},
                               {1, 0, 0, 0, 0, 0, 1, 0}};
 
-  Real permanencesArr1[5][8] = {
+  Real permanencesArr1[4][8] = {
       {0.200, 0.120, 0.090, 0.060, 0.000, 0.000, 0.000, 0.000},
       {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
       {0.000, 0.000, 0.014, 0.000, 0.000, 0.000, 0.110, 0.000},
       {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
 
-  Real truePermanences1[5][8] = {
+  Real truePermanences1[4][8] = {
       {0.300, 0.110, 0.080, 0.160, 0.000, 0.000, 0.000, 0.000},
       //   Inc     Dec   Dec    Inc      -      -      -     -
       {0.250, 0.000, 0.000, 0.000, 0.280, 0.110, 0.000, 0.440},
       //   Inc      -      -     -      Inc    Dec    -     Dec
-      {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.210, 0.000},
-      //   -      -     Trim     -     -     -       Inc   -
+      {0.000, 0.000, 0.004, 0.000, 0.000, 0.000, 0.210, 0.000},
+      //   -      -     -     -     -     -       Inc   -
       {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
   //    -      -      -      -      -      -      -       -
 
   SDR input1({8});
   input1.setDense(SDR_dense_t{1, 0, 0, 1, 1, 0, 1, 0});
-  UInt activeColumnsArr1[3] = {0, 1, 2};
+  activeColumns.setFlatSparse(SDR_flatSparse_t({ 0, 1, 2 }));
 
   for (UInt column = 0; column < numColumns; column++) {
     sp.setPotential(column, potentialArr1[column]);
     sp.setPermanence(column, permanencesArr1[column]);
   }
 
-  activeColumns.setFlatSparse(activeColumnsArr1, 3);
-
   sp.adaptSynapses_(input1, activeColumns);
-  cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
     sp.getPermanence(column, permArr);
@@ -826,13 +820,13 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
 
   Real truePermanences2[4][8] = {
       {0.30, 0.110, 0.080, 0.000, 0.000, 0.000, 0.000, 0.000},
-      //  #  Inc    Dec     Dec     -       -    -    -    -
-      {0.000, 0.000, 0.222, 0.500, 0.000, 0.000, 0.000, 0.000},
-      //  #  -     Trim    Dec    Inc    -       -      -      -
-      {0.000, 0.000, 0.000, 0.151, 0.830, 0.000, 0.000, 0.000},
-      //  #   -      -    Trim   Inc    Inc     -     -     -
+      // Inc    Dec  Dec     -       -      -       -     -
+      {0.000, 0.007, 0.222, 0.500, 0.000, 0.000, 0.000, 0.000},
+      //  -     -    Dec    Inc    -        -       -      -
+      {0.000, 0.000, 0.004, 0.151, 0.830, 0.000, 0.000, 0.000},
+      //   -      -    -     Inc    Inc     -       -     -
       {0.170, 0.000, 0.000, 0.000, 0.000, 0.000, 0.380, 0.000}};
-  //  #  -    -      -      -      -       -       -     -
+      //  -    -      -      -      -       -       -     -
 
   SDR input2({8});
   input2.setDense(SDR_dense_t{1, 0, 0, 1, 1, 0, 1, 0});
@@ -846,7 +840,6 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
   activeColumns.setFlatSparse(activeColumnsArr2, 3);
 
   sp.adaptSynapses_(input2, activeColumns);
-  cout << endl;
   for (UInt column = 0; column < numColumns; column++) {
     auto permArr = new Real[numInputs];
     sp.getPermanence(column, permArr);
@@ -861,7 +854,6 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
   UInt numColumns = 5;
   setup(sp, numInputs, numColumns);
   sp.setSynPermBelowStimulusInc(0.01);
-  sp.setSynPermTrimThreshold(0.05);
   Real overlapDutyCyclesArr[] = {0, 0.009, 0.1, 0.001, 0.002};
   sp.setOverlapDutyCycles(overlapDutyCyclesArr);
   Real minOverlapDutyCyclesArr[] = {0.01, 0.01, 0.01, 0.01, 0.01};
@@ -881,15 +873,15 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
       {0.100, 0.738, 0.085, 0.002, 0.052, 0.008, 0.208, 0.034}};
 
   Real truePermArr[5][8] = {
-      {0.210, 0.130, 0.100, 0.000, 0.000, 0.000, 0.000, 0.000},
-      //  Inc    Inc    Inc    Trim    -     -     -    -
+      {0.210, 0.130, 0.100, 0.050, 0.000, 0.000, 0.000, 0.000},
+      //  Inc    Inc    Inc    Inc    -     -     -    -
       {0.160, 0.000, 0.000, 0.000, 0.190, 0.130, 0.000, 0.460},
-      //  Inc   -     -    -     Inc   Inc    -     Inc
+      //  Inc   -     -       -     Inc   Inc     -     Inc
       {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000}, // unchanged
-      //  -    -     -    -     -    -     -    -
-      {0.061, 0.000, 0.000, 0.000, 0.000, 0.000, 0.188, 0.000},
-      //   Inc   Trim    Trim    -     -      -     Inc     -
-      {0.110, 0.748, 0.095, 0.000, 0.062, 0.000, 0.218, 0.000}};
+      //  -      -      -      -     -      -      -      -
+      {0.061, 0.010, 0.010, 0.000, 0.000, 0.000, 0.188, 0.000},
+      //   Inc   Inc    Inc    -     -      -     Inc     -
+      {0.110, 0.748, 0.095, 0.012, 0.062, 0.018, 0.218, 0.044}};
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPotential(i, potentialArr[i]);
@@ -1396,6 +1388,7 @@ TEST(SpatialPoolerTest, testIsUpdateRound) {
   ASSERT_TRUE(sp.isUpdateRound_());
 }
 
+
 TEST(SpatialPoolerTest, testInitPermanence) {
   vector<UInt> inputDim;
   vector<UInt> columnDim;
@@ -1404,11 +1397,9 @@ TEST(SpatialPoolerTest, testInitPermanence) {
 
   SpatialPooler sp;
   Real synPermConnected = 0.2;
-  Real synPermTrimThreshold = 0.1;
   Real synPermActiveInc = 0.05;
   sp.initialize(inputDim, columnDim);
   sp.setSynPermConnected(synPermConnected);
-  sp.setSynPermTrimThreshold(synPermTrimThreshold);
   sp.setSynPermActiveInc(synPermActiveInc);
 
   UInt arr[8] = {0, 1, 1, 0, 0, 1, 0, 1};
@@ -1430,7 +1421,6 @@ TEST(SpatialPoolerTest, testInitPermanence) {
   inputDim[0] = 100;
   sp.initialize(inputDim, columnDim);
   sp.setSynPermConnected(synPermConnected);
-  sp.setSynPermTrimThreshold(synPermTrimThreshold);
   sp.setSynPermActiveInc(synPermActiveInc);
   potential.clear();
 
@@ -1440,7 +1430,6 @@ TEST(SpatialPoolerTest, testInitPermanence) {
   perm = sp.initPermanence_(potential, 0.5);
   int count = 0;
   for (UInt i = 0; i < 100; i++) {
-    ASSERT_TRUE(perm[i] < 1e-5 || perm[i] >= synPermTrimThreshold);
     if (perm[i] >= synPermConnected)
       count++;
   }
@@ -1854,8 +1843,6 @@ TEST(SpatialPoolerTest, testSaveLoad) {
   int ret = ::remove(filename);
   ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
 }
-
-
 
 TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   // Initialize SP using the constructor

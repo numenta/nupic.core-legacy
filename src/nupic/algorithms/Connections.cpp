@@ -99,7 +99,7 @@ Synapse Connections::createSynapse(Segment segment,
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
-    synapse.flatIdx = (UInt)synapses_.size();
+    synapse = (UInt)synapses_.size();
     synapses_.push_back(SynapseData());
     synapseOrdinals_.push_back(0);
   }

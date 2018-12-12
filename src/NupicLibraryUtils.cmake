@@ -51,19 +51,38 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
   # add a post-build custom step that will add the objects from the given static
   # libraries
   add_library(${LIB_TARGET} STATIC ${dummy_source_file})
-  set_target_properties(${LIB_TARGET} PROPERTIES COMPILE_FLAGS
-                        ${INTERNAL_CXX_FLAGS_OPTIMIZED})
+ # set_target_properties(${LIB_TARGET} PROPERTIES COMPILE_FLAGS  ${INTERNAL_CXX_FLAGS})
 
   set(static_lib_locations)
   set(dummy_dependencies)
   set(link_libs)
-
+  set(ignore_lib)
   foreach(lib ${STATIC_LIBS})
+  
+    # for MSVC we need to be able to ignore libraries in the list not matching the build type.
+    if("${lib}" STREQUAL "optimized" )
+    	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+			set(ignore_lib ON)
+		endif()
+		continue()
+    endif()
+    if("${lib}" STREQUAL "debug" )
+    	if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+			set(ignore_lib ON)
+		endif()
+		continue()
+    endif()
+    if (ignore_lib)
+		set(ignore_lib)
+		continue()
+    endif()
+    
     list(APPEND dummy_dependencies ${lib})
 
     if (NOT TARGET ${lib})
       # Assuming a path of an externally-generated static library
       list(APPEND static_lib_locations ${lib})
+      message(STATUS "MERGE_STATIC_LIBRARIES: non-target lib ${lib}.")
     else()
       # Assuming a cmake static library target
       get_target_property(lib_type ${lib} TYPE)
@@ -78,11 +97,9 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
       get_target_property(link_iface ${lib} INTERFACE_LINK_LIBRARIES)
       if (link_iface)
         list(APPEND link_libs ${link_iface})
-        message(STATUS "MERGE_STATIC_LIBRARIES: "
-                "INTERFACE_LINK_LIBRARIES[${lib}] = ${link_iface}.")
+        message(STATUS "MERGE_STATIC_LIBRARIES: ${lib} Link interface: ${link_iface}.")
       else()
-        message(STATUS "MERGE_STATIC_LIBRARIES: "
-                "Link interface not specified in source lib ${lib}.")
+        message(STATUS "MERGE_STATIC_LIBRARIES: ${lib}")
       endif()
     endif()
   endforeach()
@@ -108,6 +125,7 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
     endforeach()
     set_target_properties(${LIB_TARGET} PROPERTIES STATIC_LIBRARY_FLAGS
                           "${msvc_library_flags}")
+    #message(STATUS "MERGE_STATIC_LIBRARIES: MSVC STATIC_LIBRARY_FLAGS=${msvc_library_flags}")
   else()
     # UNIX OR MSYS OR MINGW: use post-build command to extract objects from
     # source libs and repack them for the target library

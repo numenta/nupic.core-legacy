@@ -225,17 +225,6 @@ void SpatialPooler::setUpdatePeriod(UInt updatePeriod) {
   updatePeriod_ = updatePeriod;
 }
 
-Real SpatialPooler::getSynPermTrimThreshold() const {
-  return synPermTrimThreshold_;
-}
-
-void SpatialPooler::setSynPermTrimThreshold(Real synPermTrimThreshold) {
-  NTA_THROW << "DEPRECATED";
-  NTA_CHECK(synPermTrimThreshold >= synPermMin_ &&
-             synPermTrimThreshold <= synPermMax_);
-  synPermTrimThreshold_ = synPermTrimThreshold;
-}
-
 Real SpatialPooler::getSynPermActiveInc() const { return synPermActiveInc_; }
 
 void SpatialPooler::setSynPermActiveInc(Real synPermActiveInc) {
@@ -457,8 +446,6 @@ void SpatialPooler::initialize(
   wrapAround_ = wrapAround;
   synPermMin_ = 0.0f;
   synPermMax_ = 1.0f;
-  synPermTrimThreshold_ = synPermActiveInc / 2.0f;
-  NTA_CHECK(synPermTrimThreshold_ < synPermConnected_);
   updatePeriod_ = 50u;
   initConnectedPct_ = 0.5f;
   iterationNum_ = 0u;
@@ -644,7 +631,6 @@ vector<Real> SpatialPooler::initPermanence_(const vector<UInt> &potential, //TOD
     } else {
       perm[i] = initPermNonConnected_();
     }
-    perm[i] = perm[i] < synPermTrimThreshold_ ? 0.0f : perm[i];
   }
 
   return perm;
@@ -1052,7 +1038,7 @@ void SpatialPooler::save(ostream &outStream) const {
             << " " << updatePeriod_ << " ";
 
   outStream << synPermMin_ << " " << synPermMax_ << " " 
-    << synPermTrimThreshold_ << " " << synPermInactiveDec_ << " "
+    << " " << synPermInactiveDec_ << " "
     << synPermActiveInc_ << " " << synPermBelowStimulusInc_ << " "
     << synPermConnected_ << " " << minPctOverlapDutyCycles_ << " ";
 
@@ -1128,7 +1114,7 @@ void SpatialPooler::load(istream &inStream) {
       dutyCyclePeriod_ >> boostStrength_ >> iterationNum_ >>
       iterationLearnNum_ >> spVerbosity_ >> updatePeriod_
 
-      >> synPermMin_ >> synPermMax_ >> synPermTrimThreshold_ >>
+      >> synPermMin_ >> synPermMax_ >>
       synPermInactiveDec_ >> synPermActiveInc_ >> synPermBelowStimulusInc_ >>
       synPermConnected_ >> minPctOverlapDutyCycles_;
   inStream >> wrapAround_;
