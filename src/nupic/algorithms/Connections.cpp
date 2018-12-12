@@ -37,8 +37,6 @@ using std::vector;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
-static const Permanence EPSILON = 0.00001f;
-
 Connections::Connections(CellIdx numCells) { initialize(numCells); }
 
 void Connections::initialize(CellIdx numCells) {

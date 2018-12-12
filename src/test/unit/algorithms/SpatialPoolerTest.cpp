@@ -1441,7 +1441,6 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
   Real synPermConnected = 0.2;
   Real synPermMax = 1.0;
 
-  sp.setSynPermMax(synPermMax);
   sp.setSynPermConnected(synPermConnected);
 
   for (UInt i = 0; i < 100; i++) {
