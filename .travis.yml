@@ -113,7 +113,7 @@ install:
   - cmake --version
   - echo "Configuring..."
   # Enable test coverage for travis-ci build
-  - cmake "$TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON"
+  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON
   - set -o pipefail
   - echo "Make & Install "
   - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
