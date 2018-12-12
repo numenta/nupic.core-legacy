@@ -22,3 +22,32 @@
 """
 ## @file
 """
+import os,sys
+
+def import_helper(name):
+  from os.path import dirname
+  import imp
+  
+      # Fast path: see if the module has already been imported.
+  try:
+    return sys.modules[name]
+  except KeyError:
+    pass
+		
+  fp = None
+  _mod = None
+  try:
+    fp, pathname, description = imp.find_module(name, [dirname(__file__)])
+  finally:
+    if fp is not None:
+      try:
+  	  _mod = imp.load_module(name, fp, pathname, description)
+      finally:
+        # Since we may exit via an exception, close fp explicitly.
+        if fp:
+            fp.close()
+  return _mod;
+  
+algorithms = import_helper('algorithms')
+engine_internal = import_helper('engine_internal')
+math = import_helper('math')

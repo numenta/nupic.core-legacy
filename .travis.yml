@@ -123,7 +123,7 @@ install:
   - "VERBOSE=0 make |grep -v -F '\\-\\- Installing:'"
   - "make install 2>&1|grep -v -F 'Installing:'"
   - "cd $TRAVIS_BUILD_DIR"
-  - "python setup.py install --user --prefix="
+  - "python setup.py install"
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
