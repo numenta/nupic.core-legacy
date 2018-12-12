@@ -144,16 +144,21 @@ endif()
 
 pybind11_add_module(algorithms 
 					${src_py_algorithms_files}
-					${core_library}
 					)
+target_link_libraries(algorithms PRIVATE ${core_library})
+target_compile_options(algorithms PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(algorithms PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+
 pybind11_add_module(engine_internal
 					${src_py_engine_files}
 					${core_library}
 					)
+#target_link_libraries(mymod PRIVATE ${MY_LIBRARIES})
 pybind11_add_module(math 
 					${src_py_math_files}
 					${core_library}
 					)
+#target_link_libraries(mymod PRIVATE ${MY_LIBRARIES})
 ############################################################
 #
 # Build tests of the Python interface
