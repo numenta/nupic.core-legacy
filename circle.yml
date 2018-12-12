@@ -37,37 +37,36 @@ jobs:
 
       # Dependencies
       # Restore the dependency cache
-      - restore_cache:
-          keys:
-          # This branch if available
-          - v1-dep-{{ .Branch }}-
-          # Default branch if not
-          - v1-dep-master-
-          # Any branch if there are none on the default branch - this should be 
-          # unnecessary if you have your default branch configured correctly
-          - v1-dep-
+      #      - restore_cache:
+      #    keys:
+      #    # This branch if available
+      #    - v1-dep-{{ .Branch }}-
+      #    # Default branch if not
+      #    - v1-dep-master-
+      #    # Any branch if there are none on the default branch - this should be 
+      #    # unnecessary if you have your default branch configured correctly
+      #    - v1-dep-
 
-          - run:
-             name: Installing dependencies
-             #TODO enable py tests after pybind is ready!
+      - run:
+             name: Installing python dependencies
              command: |
              pip install --user --upgrade pip setuptools setuptools-scm
              pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
       # Save dependency cache
-      - save_cache:
-          key: v1-dep-{{ .Branch }}-{{ epoch }}
-          paths:
-          # This is a broad list of cache paths to include many possible 
-          # development environments.
-          - vendor/bundle
-          - ~/virtualenvs
-          - ~/.m2
-          - ~/.ivy2
-          - ~/.bundle
-          - ~/.go_workspace
-          - ~/.gradle
-          - ~/.cache/bower
+      #      - save_cache:
+      #    key: v1-dep-{{ .Branch }}-{{ epoch }}
+      #    paths:
+      #    # This is a broad list of cache paths to include many possible 
+      #    # development environments.
+      #    - vendor/bundle
+      #    - ~/virtualenvs
+      #    - ~/.m2
+      #    - ~/.ivy2
+      #    - ~/.bundle
+      #    - ~/.go_workspace
+      #    - ~/.gradle
+      #    - ~/.cache/bower
 
       # Build 
       - run:
