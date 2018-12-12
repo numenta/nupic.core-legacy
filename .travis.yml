@@ -104,22 +104,22 @@ before_install:
   - $CXX --version
   - echo "Installing pip, setuptools, and wheel"
   - pip install --upgrade pip setuptools wheel || exit
-  - echo "Installing Python dependencies"
- #  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/packaging/requirements.txt --only-binary --quiet || exit
 
 install:
   # Prepare directories
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
-  - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/Release"
-  - "cmake --version"
+  - mkdir -p "$TRAVIS_BUILD_DIR/build/scripts"
+  - cd "$TRAVIS_BUILD_DIR/build/scripts"
+  - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
+  - cmake --version
+  - echo "Configuring..."
   # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON"
-  - "set -o pipefail"
-  - "VERBOSE=0 make |grep -v -F '\\-\\- Installing:'"
-  - "make install 2>&1|grep -v -F 'Installing:'"
-  - "cd $TRAVIS_BUILD_DIR"
-  - "python setup.py install"
+  - cmake "$TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON"
+  - set -o pipefail
+  - echo "Make & Install "
+  - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
+  - make install 2>&1|grep -v -F 'Installing:'
+  - echo "Installing Python bindings" #TODO we'll have to make this conditional on the CMake variables
+  - python $TRAVIS_BUILD_DIR/setup.py install
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
