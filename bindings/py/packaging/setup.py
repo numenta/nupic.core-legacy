@@ -221,7 +221,7 @@ if __name__ == "__main__":
   """
   os.chdir(DISTR_DIR)
 
-  print("\nSetup Pybind11 Python module in ", DISTR_DIR, "\n")
+  print("\nSetup Pybind11 Python module in " + DISTR_DIR+ "\n")
   setup(
     # See https://docs.python.org/2/distutils/apiref.html for descriptions of arguments.
 	#     https://docs.python.org/2/distutils/setupscript.html

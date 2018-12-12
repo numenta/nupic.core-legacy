@@ -311,6 +311,7 @@ set(src_combined_nupiccore_source_archives
     )
 message(STATUS "creating nupic_core from Libraries: ${src_combined_nupiccore_source_archives}")
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
+set(core_library ${core_library} PARENT_SCOPE)
 
 
 #########################################################

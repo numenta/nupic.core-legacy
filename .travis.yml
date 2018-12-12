@@ -112,13 +112,13 @@ install:
   - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
   - cmake --version
   - echo "Configuring..."
-  # Enable test coverage for travis-ci build
-  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON
+  # Builds nupic_code library and python2.7 interface. Enable test coverage for travis-ci build
+  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DPYTHON2_BUILD -DNTA_COV_ENABLED=ON
   - set -o pipefail
   - echo "Make & Install "
   - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
   - make install 2>&1|grep -v -F 'Installing:'
-  - echo "Installing Python bindings" #TODO we'll have to make this conditional on the CMake variables
+  - echo "Installing Python bindings" 
   - python $TRAVIS_BUILD_DIR/setup.py install
 
 script:

@@ -283,7 +283,7 @@ namespace nupic_ext
         py_cells4.def("getCell", &Cells4_t::getCell);
         py_cells4.def("getCellIdx", &Cells4_t::getCellIdx);
 
-        py_cells4.def("getSegment", &Cells4_t::getSegment, py::return_value_policy::reference);
+//        py_cells4.def("getSegment", &Cells4_t::getSegment, py::return_value_policy::reference);
 
         py_cells4.def("segment", &Cells4_t::segment, py::return_value_policy::reference);
 

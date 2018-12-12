@@ -109,9 +109,9 @@ namespace nupic_ext
             , py::arg("spVerbosity") = 0
             , py::arg("wrapAround") = true);
 
-        
+
         py_SpatialPooler.def("getColumnDimensions", &SpatialPooler::getColumnDimensions);
-        py_SpatialPooler.def("getInputDimensions", &SpatialPooler::getInputDimensions);
+//        py_SpatialPooler.def("getInputDimensions", &SpatialPooler::getInputDimensions);
         py_SpatialPooler.def("getNumColumns", &SpatialPooler::getNumColumns);
         py_SpatialPooler.def("getNumInputs", &SpatialPooler::getNumInputs);
         py_SpatialPooler.def("getPotentialRadius", &SpatialPooler::getPotentialRadius);
@@ -325,7 +325,7 @@ namespace nupic_ext
 
             self.updatePermanencesForColumn_(permVector, column, raisePerm);
         };
-        
+
         py_SpatialPooler.def("_updatePermanencesForColumn", updatePermanencesForColumn_func);
         py_SpatialPooler.def("updatePermanencesForColumn_", updatePermanencesForColumn_func);
 

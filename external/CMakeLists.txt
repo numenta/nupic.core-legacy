@@ -40,7 +40,9 @@ include(YamlCppLib.cmake)
 
 ##################
 #  Boost
-include(Boost.cmake)
+if(NEEDS_BOOST)
+  include(Boost.cmake)
+endif()
 
 ##################
 # gtest

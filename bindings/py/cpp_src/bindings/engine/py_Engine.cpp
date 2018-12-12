@@ -142,7 +142,7 @@ namespace nupic_ext
         {
             auto num_args = args.size();
 
-            for (int i = 0; i < args.size(); ++i)
+            for (size_t i = 0; i < args.size(); ++i)
             {
                 auto arg = args[i];
                 std::string as_string = py::str(arg.get_type());
@@ -164,7 +164,7 @@ namespace nupic_ext
         {
             auto num_args = args.size();
 
-            for (int i = 0; i < args.size(); ++i)
+            for (size_t i = 0; i < args.size(); ++i)
             {
                 auto arg = args[i];
                 std::string as_string = py::str(arg.get_type());

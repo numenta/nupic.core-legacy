@@ -40,31 +40,15 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 message(STATUS "Configuring Python interface")
 
-#### TODO: do we need this?
-#	if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND "${PLATFORM}" STREQUAL "linux")
-		# NOTE When building manylinux python extensions, we want the static
-		# libstdc++ due to differences in c++ ABI between the older toolchain in the
-		# manylinux Docker image and libstdc++ in newer linux distros that is
-		# compiled with the c++11 ABI. for example, with shared libstdc++, the
-		# manylinux-built extension is unable to catch std::ios::failure exception
-		# raised by the shared libstdc++.so while running on Ubuntu 16.04.
-#		set(stdlib_cxx "${stdlib_cxx} -static-libstdc++")
-
-		# NOTE We need to use shared libgcc to be able to throw and catch exceptions
-		# across different shared libraries.
-#		set(stdlib_common "${stdlib_common} -shared-libgcc")
-#	endif()
 
 include_directories(
   ${PROJECT_SOURCE_DIR}
   ${REPOSITORY_DIR}/external/common/include
 )
 
-	if (${NUPIC_BUILD_PYEXT_MODULES})
-		# Hide all symbols in DLLs except the ones with explicit visibility;
-		# see https://gcc.gnu.org/wiki/Visibility
-		set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
-	endif()
+# Hide all symbols in DLLs except the ones with explicit visibility;
+# see https://gcc.gnu.org/wiki/Visibility
+set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
 
 #
 # Python support
@@ -142,23 +126,23 @@ if(PYTHON2_BUILD)
 	set(PYBIND11_PYTHON_VERSION 2.7)
 endif()
 
+message(STATUS "Core lib to LINK is '${core_library}' ")
+
 
 pybind11_add_module(algorithms ${src_py_algorithms_files} )
-message(STATUS "Core lib to LINK is '${core_library}' ")
 target_link_libraries(algorithms PRIVATE ${core_library})
 target_compile_options(algorithms PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(algorithms PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 
-pybind11_add_module(engine_internal
-					${src_py_engine_files}
-					${core_library}
-					)
-#target_link_libraries(mymod PRIVATE ${MY_LIBRARIES})
-pybind11_add_module(math 
-					${src_py_math_files}
-					${core_library}
-					)
-#target_link_libraries(mymod PRIVATE ${MY_LIBRARIES})
+pybind11_add_module(engine_internal ${src_py_engine_files})
+target_link_libraries(engine_internal PRIVATE ${core_library})
+target_compile_options(engine_internal PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(engine_internal PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+
+pybind11_add_module(math ${src_py_math_files})
+target_link_libraries(engine_internal PRIVATE ${core_library})
+target_compile_options(engine_internal PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(engine_internal PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 ############################################################
 #
 # Build tests of the Python interface
