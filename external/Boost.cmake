@@ -66,10 +66,7 @@ set(BOOST_ROOT ${BOOST_ROOT} CACHE STRING  "BOOST_ROOT points to the boost Insta
 set(Boost_INCLUDE_DIRS ${BOOST_ROOT})
 
 file(GLOB Boost_LIBRARIES ${BOOST_ROOT}/stage/lib/*)
-set(qty_libs 0)
-if(Boost_LIBRARIES)
-  list(LENGTH ${Boost_LIBRARIES} qty_libs)
-endif()
+list(LENGTH Boost_LIBRARIES qty_libs)
 if(${qty_libs} LESS 2)
   message(STATUS "Boost being installed at BOOST_ROOT = ${BOOST_ROOT}")
   if (MSVC OR MSYS OR MINGW)
