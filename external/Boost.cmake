@@ -39,7 +39,7 @@
 
 
 # Download the boost distribution (at configure time).
-message(STATUS "obtaining Boost")
+message(STATUS "obtaining Boost (download & install takes a while, go get a coffee :) ...")
 include(DownloadProject/DownloadProject.cmake)
 
   if (MSVC OR MSYS OR MINGW)
