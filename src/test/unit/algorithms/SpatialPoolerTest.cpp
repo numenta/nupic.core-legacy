@@ -869,7 +869,7 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
       {0.200, 0.120, 0.090, 0.040, 0.000, 0.000, 0.000, 0.000},
       {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
       {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000},
-      {0.051, 0.001, 0.001, 0.000, 0.000, 0.000, 0.178, 0.000},
+      {0.051, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000},
       {0.100, 0.738, 0.085, 0.002, 0.052, 0.008, 0.208, 0.034}};
 
   Real truePermArr[5][8] = {
@@ -879,15 +879,13 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
       //  Inc   -     -       -     Inc   Inc     -     Inc
       {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000}, // unchanged
       //  -      -      -      -     -      -      -      -
-      {0.061, 0.011, 0.011, 0.000, 0.000, 0.000, 0.188, 0.000},
+      {0.061, 0.010, 0.010, 0.000, 0.000, 0.000, 0.188, 0.000},
       //   Inc   Inc    Inc    -     -      -     Inc     -
       {0.110, 0.748, 0.095, 0.012, 0.062, 0.018, 0.218, 0.044}};
 
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPotential(i, potentialArr[i]);
     sp.setPermanence(i, permArr[i]);
-    Real perm[8];
-    sp.getPermanence(i, perm);
   }
 
   sp.bumpUpWeakColumns_();
@@ -895,7 +893,8 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
   for (UInt i = 0; i < numColumns; i++) {
     Real perm[8];
     sp.getPermanence(i, perm);
-    ASSERT_TRUE(check_vector_eq(truePermArr[i], perm, numInputs));
+    for(UInt z = 0; z < numInputs; z++)
+      ASSERT_FLOAT_EQ( truePermArr[i][z], perm[z] );
   }
 }
 
@@ -1037,6 +1036,8 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
                              {1, 1, 1, 1, 1}};
 
   for (UInt i = 0; i < numColumns; i++) {
+    vector<UInt> potential(permArr[i], permArr[i] + numInputs);
+    sp.setPotential(i, potential.data());
     sp.setPermanence(i, permArr[i]);
   }
 
@@ -1076,6 +1077,8 @@ TEST(SpatialPoolerTest, testCalculateOverlapPct) {
                                 {1.0f / 10, 1.0f / 8.0f, 1.0f / 6, 1.0f / 4, 1.0f / 2}};
 
   for (UInt i = 0; i < numColumns; i++) {
+    vector<UInt> potential(permArr[i], permArr[i] + numInputs);
+    sp.setPotential(i, potential.data());
     sp.setPermanence(i, permArr[i]);
   }
 

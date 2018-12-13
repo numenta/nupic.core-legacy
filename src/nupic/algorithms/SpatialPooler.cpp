@@ -345,16 +345,12 @@ void SpatialPooler::getPermanence(UInt column, Real permanences[]) const {
 
 void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
   NTA_ASSERT(column < numColumns_);
-  
-  // Remove all existing synapses.
-  const auto &synapses = connections_.synapsesForSegment( column );
-  while( synapses.size() > 0 )
-    connections_.destroySynapse( synapses[0] );
 
-  // Replace with new synapses.
-  for(UInt i = 0; i < numInputs_; i++) {
-    if( permanences[i] > 0 )
-      connections_.createSynapse( column, i, permanences[i] );
+  const auto synapses = connections_.synapsesForSegment( column );
+  for(const auto &syn : synapses) {
+    const auto &synData = connections_.dataForSynapse( syn );
+    const auto &presyn  = synData.presynapticCell;
+    connections_.updateSynapsePermanence( syn, permanences[presyn] );
   }
 }
 
