@@ -34,18 +34,12 @@ Important notes:
 
 - Python - We recommend you use the system version where possibly.
     - Version 2.7
-- [NumPy](http://www.numpy.org/) - Can be installed through some system package managers or via [pip](https://pip.pypa.io/)
-    - Version 1.12.1
 - [CMake](http://www.cmake.org/)
 - [Boost](https://www.boost.org/users/history/version_1_68_0.html) 
   - Linux: `apt install libboost-dev`
   - OSX: `brew install boost --with-filesystem --with-system`
 
 > **Note**: On Windows, Python package dependencies require the following compiler package to be installed: [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-gb/download/details.aspx?id=44266)
-
-The Python dependencies (NumPy) can be installed with `pip`:
-
-    pip install -r bindings/py/requirements.txt
 
 ### Simple Source Installation (does not support incremental builds)
 
