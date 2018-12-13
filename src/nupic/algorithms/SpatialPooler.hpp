@@ -1242,8 +1242,6 @@ protected:
   bool wrapAround_;
   UInt updatePeriod_;
 
-  Real synPermMin_ = 0.0f;
-  Real synPermMax_ = 1.0f; //TODO set in initialize(), somehow OSX does not set that?!
   Real synPermInactiveDec_;
   Real synPermActiveInc_;
   Real synPermBelowStimulusInc_;

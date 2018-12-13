@@ -42,8 +42,6 @@ using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
 using nupic::utils::VectorHelpers;
 
-static const Real PERMANENCE_EPSILON = 0.000001f;
-
 // Round f to 5 digits of precision. This is used to set
 // permanence values and help avoid small amounts of drift between
 // platforms/implementations
@@ -228,7 +226,8 @@ void SpatialPooler::setUpdatePeriod(UInt updatePeriod) {
 Real SpatialPooler::getSynPermActiveInc() const { return synPermActiveInc_; }
 
 void SpatialPooler::setSynPermActiveInc(Real synPermActiveInc) {
-  NTA_CHECK(synPermActiveInc > 0.0f && synPermActiveInc < synPermMax_);
+  NTA_CHECK( synPermActiveInc > connections::minPermanence );
+  NTA_CHECK( synPermActiveInc <= connections::maxPermanence );
   synPermActiveInc_ = synPermActiveInc;
 }
 
@@ -237,7 +236,8 @@ Real SpatialPooler::getSynPermInactiveDec() const {
 }
 
 void SpatialPooler::setSynPermInactiveDec(Real synPermInactiveDec) {
-  NTA_CHECK(synPermInactiveDec >= 0.0f && synPermInactiveDec <= synPermMax_); 
+  NTA_CHECK( synPermInactiveDec >= connections::minPermanence );
+  NTA_CHECK( synPermInactiveDec <= connections::maxPermanence );
   synPermInactiveDec_ = synPermInactiveDec;
 }
 
@@ -246,18 +246,20 @@ Real SpatialPooler::getSynPermBelowStimulusInc() const {
 }
 
 void SpatialPooler::setSynPermBelowStimulusInc(Real synPermBelowStimulusInc) {
-  NTA_CHECK(synPermBelowStimulusInc > 0.0f && synPermBelowStimulusInc <= synPermMax_);
+  NTA_CHECK( synPermBelowStimulusInc > connections::minPermanence );
+  NTA_CHECK( synPermBelowStimulusInc <= connections::maxPermanence );
   synPermBelowStimulusInc_ = synPermBelowStimulusInc;
 }
 
 Real SpatialPooler::getSynPermConnected() const { return synPermConnected_; }
 
 void SpatialPooler::setSynPermConnected(Real synPermConnected) {
-  NTA_CHECK(synPermConnected > synPermMin_ && synPermConnected <= synPermMax_);
+  NTA_CHECK( synPermConnected > connections::minPermanence );
+  NTA_CHECK( synPermConnected <= connections::maxPermanence );
   synPermConnected_ = synPermConnected;
 }
 
-Real SpatialPooler::getSynPermMax() const { return synPermMax_; }
+Real SpatialPooler::getSynPermMax() const { return connections::maxPermanence; }
 
 Real SpatialPooler::getMinPctOverlapDutyCycles() const {
   return minPctOverlapDutyCycles_;
@@ -365,7 +367,7 @@ void SpatialPooler::getConnectedSynapses(UInt column,
     const auto &synapses = connections_.synapsesForSegment( seg );
     for( const auto &syn : synapses ) {
       const auto &synData = connections_.dataForSynapse( syn );
-      if( synData.permanence >= synPermConnected_ - PERMANENCE_EPSILON )
+      if( synData.permanence >= synPermConnected_ - connections::EPSILON )
         connectedSynapses[ synData.presynapticCell ] = 1;
     }
   }
@@ -377,7 +379,7 @@ void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
     const auto &synapses = connections_.synapsesForSegment( seg );
     for( const auto &syn : synapses ) {
       const auto &synData = connections_.dataForSynapse( syn );
-      if( synData.permanence >= synPermConnected_ - PERMANENCE_EPSILON )
+      if( synData.permanence >= synPermConnected_ - connections::EPSILON )
         connectedCounts[ seg ] += 1;
     }
   }
@@ -438,8 +440,6 @@ void SpatialPooler::initialize(
   boostStrength_ = boostStrength;
   spVerbosity_ = spVerbosity;
   wrapAround_ = wrapAround;
-  synPermMin_ = 0.0f;
-  synPermMax_ = connections::maxPermanence;
   updatePeriod_ = 50u;
   initConnectedPct_ = 0.5f;
   iterationNum_ = 0u;
@@ -600,7 +600,7 @@ vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
 
 Real SpatialPooler::initPermConnected_() {
   Real p =
-      synPermConnected_ + (synPermMax_ - synPermConnected_) * rng_.getReal64();
+      synPermConnected_ + (connections::maxPermanence - synPermConnected_) * rng_.getReal64();
 
   return round5_(p);
 }
@@ -1031,8 +1031,7 @@ void SpatialPooler::save(ostream &outStream) const {
   outStream << iterationNum_ << " " << iterationLearnNum_ << " " << spVerbosity_
             << " " << updatePeriod_ << " ";
 
-  outStream << synPermMin_ << " " << synPermMax_ << " " 
-    << " " << synPermInactiveDec_ << " "
+  outStream << synPermInactiveDec_ << " "
     << synPermActiveInc_ << " " << synPermBelowStimulusInc_ << " "
     << synPermConnected_ << " " << minPctOverlapDutyCycles_ << " ";
 
@@ -1106,9 +1105,7 @@ void SpatialPooler::load(istream &inStream) {
       initConnectedPct_ >> globalInhibition_ >> numActiveColumnsPerInhArea_ >>
       localAreaDensity_ >> stimulusThreshold_ >> inhibitionRadius_ >>
       dutyCyclePeriod_ >> boostStrength_ >> iterationNum_ >>
-      iterationLearnNum_ >> spVerbosity_ >> updatePeriod_
-
-      >> synPermMin_ >> synPermMax_ >>
+      iterationLearnNum_ >> spVerbosity_ >> updatePeriod_ >>
       synPermInactiveDec_ >> synPermActiveInc_ >> synPermBelowStimulusInc_ >>
       synPermConnected_ >> minPctOverlapDutyCycles_;
   inStream >> wrapAround_;
