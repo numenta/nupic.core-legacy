@@ -23,10 +23,6 @@ cmake_minimum_required(VERSION 3.3)
 project(nupic_core CXX)
 
 
-if( POLICY CMP0074 )
-  # The new policy CMP0074 says use <packageName>_ROOT in findPackage search.
-  cmake_policy(SET CMP0074 NEW)
-endif()
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 

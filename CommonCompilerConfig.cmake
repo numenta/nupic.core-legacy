@@ -155,10 +155,10 @@ if(MSVC)
 	#  /Zc:__cplusplus   This is required to force MSVC to pay attention to the standard setting and sets __cplusplus.
 	#                    NOTE: MSVC does not support C++11.  But does C++14 and C++17.
 	# Release Compiler flags:
-	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /nologo /Zc:__cplusplus
+	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /fPIC /nologo /Zc:__cplusplus
 	#      Release Only:    /O2 /Oi /Gy  /MD
 	#      Debug Only:       /Od /Zi /sdl /RTC1 /MD
-	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:c++${std_ver}
+	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /fPIC /nologo /Zc:__cplusplus /std:c++${std_ver}
 							$<$<CONFIG:RELEASE>:/O2 /Oi /Gy  /GL /MT> 
 							$<$<CONFIG:DEBUG>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
 	#linker flags

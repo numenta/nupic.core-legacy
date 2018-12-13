@@ -55,6 +55,9 @@ function(COMBINE_UNIX_ARCHIVES
          SRC_LIB_LOCATIONS "${SRC_LIB_LOCATIONS}")
 
   set(scratch_dir ${BINARY_DIR}/combine_unix_archives_${LIB_TARGET})
+  if(EXISTS "${scratch_dir}")
+    file(REMOVE_RECURSE "${scratch_dir}")
+  endif()
   file(MAKE_DIRECTORY ${scratch_dir})
 
   # Extract archives into individual directories to avoid object file collisions
