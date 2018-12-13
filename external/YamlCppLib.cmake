@@ -33,6 +33,7 @@ set(YAML_CPP_INSTALL OFF CACHE BOOL "prevent install, not needed." FORCE)
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "prevent tools from being build" FORCE) 
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "prevent gtest from being build" FORCE) 
 set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "prevent contrib modules" FORCE) 
+set(CMAKE_CXX_FLAGS ${INTERNAL_CXX_FLAGS_STR})
 add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
 
 #find_package(yaml-cpp REQUIRED HINT ${yaml-cpp_SOURCE_DIR})

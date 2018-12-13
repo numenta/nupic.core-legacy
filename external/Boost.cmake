@@ -92,19 +92,21 @@ if(${qty_libs} LESS 2)
   if(error_result)
     message(FATAL_ERROR "Boost bootstrap has errors.   ${error_result}")
   else()
-    execute_process(COMMAND "./b2"
-  	--prefix=${BOOST_ROOT}
-  	--with-filesystem 
-	--with-system 
-	--layout=system
-	variant=release
-	threading=multi 
-	runtime-link=shared 
-	link=static 
-	cxxflags="-fPIC"
-	stage
+    execute_process(
+        COMMAND "./b2"
+  		--prefix=${BOOST_ROOT}
+  		--with-filesystem 
+		--with-system 
+		--layout=system
+		variant=release
+		threading=multi 
+		runtime-link=shared 
+		link=static 
+		cxxflags="-fPIC"
+#		cxxflags="-fvisibility=hidden"
+		stage
   	WORKING_DIRECTORY ${BOOST_ROOT} 
-	OUTPUT_QUIET
+#	OUTPUT_QUIET
 	RESULT_VARIABLE error_result
   	)
     if(error_result)
