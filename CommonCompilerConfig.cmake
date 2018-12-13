@@ -277,21 +277,6 @@ else()
 	
 
 
-#TODO: CMake automatically generates optimisation flags. Do we need this?
-	set(optimization_flags_cc ${optimization_flags_cc} -O2)
-	set(optimization_flags_cc -pipe ${optimization_flags_cc}) #TODO use -Ofast instead of -O3
-	set(optimization_flags_lt -O2 ${optimization_flags_lt})
-	if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
-		set(optimization_flags_cc ${optimization_flags_cc} -mtune=generic)
-	endif()
-	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
-		set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=gold)
-		# NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
-		# with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-		set(optimization_flags_cc ${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto) #TODO fix LTO for clang
-		set(optimization_flags_lt ${optimization_flags_lt} -flto) #TODO LTO for clang too
-	endif()
-
 	# LLVM Clang / Gnu GCC
 	set(cxx_flags_unoptimized ${cxx_flags_unoptimized} ${stdlib_cxx})
 
@@ -346,6 +331,26 @@ else()
 			 AR=gcc-ar
 			 RANLIB=gcc-ranlib)
 	ENDIF()
+
+
+        #
+        # set OPTIMIZATION flags
+	#
+	#TODO: CMake automatically generates optimisation flags. Do we need this? - "I think yes ~breznak"
+        set(optimization_flags_cc ${optimization_flags_cc} -O2)
+        set(optimization_flags_cc -pipe ${optimization_flags_cc}) #TODO use -Ofast instead of -O3
+        set(optimization_flags_lt -O2 ${optimization_flags_lt})
+        if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
+                set(optimization_flags_cc ${optimization_flags_cc} -mtune=generic)
+        endif()
+        if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
+                set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=gold)
+                # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
+                # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
+                set(optimization_flags_cc ${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto) #TODO fix LTO for clang
+                set(optimization_flags_lt ${optimization_flags_lt} -flto) #TODO LTO for clang too
+        endif()
+
 
 	#
 	# Set up Debug vs. Release options
