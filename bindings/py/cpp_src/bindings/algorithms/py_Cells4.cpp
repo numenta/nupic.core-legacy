@@ -280,10 +280,10 @@ namespace nupic_ext
 
         py_cells4.def("nSynapsesInCell", &Cells4_t::nSynapsesInCell, "Total number of synapses in a given cell (at at given point, changes all the time).");
 
-        py_cells4.def("getCell", &Cells4_t::getCell);
+        py_cells4.def("getCell", &Cells4_t::getCell); //FIXME Cell class was removed, rm this method too 
         py_cells4.def("getCellIdx", &Cells4_t::getCellIdx);
 
-//        py_cells4.def("getSegment", &Cells4_t::getSegment, py::return_value_policy::reference);
+        py_cells4.def("getSegment", &Cells4_t::getSegment, py::return_value_policy::reference);
 
         py_cells4.def("segment", &Cells4_t::segment, py::return_value_policy::reference);
 

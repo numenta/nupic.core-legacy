@@ -111,7 +111,7 @@ namespace nupic_ext
 
 
         py_SpatialPooler.def("getColumnDimensions", &SpatialPooler::getColumnDimensions);
-//        py_SpatialPooler.def("getInputDimensions", &SpatialPooler::getInputDimensions);
+        py_SpatialPooler.def("getInputDimensions", &SpatialPooler::getInputDimensions);
         py_SpatialPooler.def("getNumColumns", &SpatialPooler::getNumColumns);
         py_SpatialPooler.def("getNumInputs", &SpatialPooler::getNumInputs);
         py_SpatialPooler.def("getPotentialRadius", &SpatialPooler::getPotentialRadius);
