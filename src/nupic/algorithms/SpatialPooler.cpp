@@ -346,12 +346,30 @@ void SpatialPooler::getPermanence(UInt column, Real permanences[]) const {
 void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
   NTA_ASSERT(column < numColumns_);
 
+#ifndef NDEBUG // If DEBUG mode ...
+  // Keep track of which permanences have been successfully applied to the
+  // connections, by zeroing each out after processing.  After all synapses
+  // processed check that all permanences are zeroed.
+  vector<Real> check_data(permanences, permanences + numInputs_);
+#endif
+
   const auto synapses = connections_.synapsesForSegment( column );
   for(const auto &syn : synapses) {
     const auto &synData = connections_.dataForSynapse( syn );
     const auto &presyn  = synData.presynapticCell;
     connections_.updateSynapsePermanence( syn, permanences[presyn] );
+
+#ifndef NDEBUG
+    check_data[presyn] = 0.0f;
+#endif
   }
+
+#ifndef NDEBUG
+  for(UInt i = 0; i < numInputs_; i++) {
+    NTA_ASSERT(check_data[i] == 0.0f)
+          << "Can't setPermanence for synapse which is not in potential pool!";
+  }
+#endif
 }
 
 void SpatialPooler::getConnectedSynapses(UInt column,
@@ -359,13 +377,11 @@ void SpatialPooler::getConnectedSynapses(UInt column,
   NTA_ASSERT(column < numColumns_);
   std::fill( connectedSynapses, connectedSynapses + numInputs_, 0 );
 
-  for( UInt seg = 0; seg < numColumns_; seg++ ) {
-    const auto &synapses = connections_.synapsesForSegment( seg );
-    for( const auto &syn : synapses ) {
-      const auto &synData = connections_.dataForSynapse( syn );
-      if( synData.permanence >= synPermConnected_ - connections::EPSILON )
-        connectedSynapses[ synData.presynapticCell ] = 1;
-    }
+  const auto &synapses = connections_.synapsesForSegment( column );
+  for( const auto &syn : synapses ) {
+    const auto &synData = connections_.dataForSynapse( syn );
+    if( synData.permanence >= synPermConnected_ - connections::EPSILON )
+      connectedSynapses[ synData.presynapticCell ] = 1;
   }
 }
 
@@ -733,11 +749,11 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
                                                     inputDimensions_.end()));
   const CoordinateConverterND conv(inputDimensions_);
 
-  for (auto &elem : connectedDense) {
-    if( elem == 0 )
+  for(UInt i = 0; i < numInputs_; i++) {
+    if( connectedDense[i] == 0 )
       continue;
     vector<UInt> columnCoord;
-    conv.toCoord(elem, columnCoord);
+    conv.toCoord(i, columnCoord);
     for (size_t j = 0; j < columnCoord.size(); j++) {
       maxCoord[j] = max(maxCoord[j], columnCoord[j]); //FIXME this computation may be flawed
       minCoord[j] = min(minCoord[j], columnCoord[j]);
