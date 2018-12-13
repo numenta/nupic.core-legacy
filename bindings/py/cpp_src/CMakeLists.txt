@@ -46,10 +46,6 @@ include_directories(
   ${REPOSITORY_DIR}/external/common/include
 )
 
-# Hide all symbols in DLLs except the ones with explicit visibility;
-# see https://gcc.gnu.org/wiki/Visibility
-set(cxx_flags_unoptimized "${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden")
-
 #
 # Python support
 #

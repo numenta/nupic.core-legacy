@@ -263,15 +263,20 @@ else()
 
 
 
-
 	#
 	# compiler specific settings and warnings here
 	#
-
 	set(internal_compiler_warning_flags)
-	set(cxx_flags_unoptimized -std=c++${std_ver})
+	set(cxx_flags_unoptimized)
 	set(linker_flags_unoptimized)
+
+	# Hide all symbols in DLLs except the ones with explicit visibility;
+        # see https://gcc.gnu.org/wiki/Visibility
+        set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden)
+        set(cxx_flags_unoptimized ${cxx_flags_unoptimized}  -std=c++${std_ver})
 	
+
+
 #TODO: CMake automatically generates optimisation flags. Do we need this?
 	set(optimization_flags_cc ${optimization_flags_cc} -O2)
 	set(optimization_flags_cc -pipe ${optimization_flags_cc}) #TODO use -Ofast instead of -O3
@@ -392,9 +397,6 @@ else()
 	elseif(MSYS OR MINGW)
 	  list(APPEND COMMON_OS_LIBS psapi ws2_32 wsock32 rpcrt4)
 	endif()
-
-
-	
 
 endif()
 
