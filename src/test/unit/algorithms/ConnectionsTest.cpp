@@ -525,11 +525,6 @@ TEST(ConnectionsTest, testBumpUpWeakColumns) {
 }
 
 
-TEST(ConnectionsTest, testConnectedCount) {
-  FAIL();
-}
-
-
 /**
  * Test the mapSegmentsToCells method.
  */

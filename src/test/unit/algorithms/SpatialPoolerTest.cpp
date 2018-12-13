@@ -1392,6 +1392,55 @@ TEST(SpatialPoolerTest, testIsUpdateRound) {
 }
 
 
+TEST(SpatialPoolerTest, testSetPermanence) {
+  vector<UInt> inputDim;
+  vector<UInt> columnDim;
+  UInt numInputs = 5;
+  UInt numColumns = 5;
+  SpatialPooler sp;
+  setup(sp, numInputs, numColumns);
+  UInt potential[5] = {1, 1, 1, 1, 1}; // Fully connected, all possible synapses are potential synapses.
+  Real permArr[5][5] = {{-0.10, 0.500, 0.400, 0.010, 0.020},
+                        {0.300, 0.010, 0.020, 0.120, 0.090},
+                        {0.070, 0.050, 1.030, 0.190, 0.060},
+                        {0.180, 0.090, 0.110, 0.010, 0.030},
+                        {0.200, 0.101, 0.050, -0.09, 1.100}};
+  Real truePerm[5][5] = {{0.000, 0.500, 0.400, 0.010, 0.020},
+                         // Clip     -     -      -    -
+                         {0.300, 0.010, 0.020, 0.120, 0.090},
+                         // -      -      -      -     -
+                         {0.070, 0.050, 1.000, 0.190, 0.060},
+                         // -     -   Clip   -     -
+                         {0.180, 0.090, 0.110, 0.010, 0.030},
+                         // -     -       -       -     -
+                         {0.200, 0.101, 0.050, 0.000, 1.000}};
+                         // -      -     -      Clip   Clip
+  UInt trueConnectedSynapses[5][5] = {{0, 1, 1, 0, 0},
+                                      {1, 0, 0, 1, 0},
+                                      {0, 0, 1, 1, 0},
+                                      {1, 0, 1, 0, 0},
+                                      {1, 1, 0, 0, 1}};
+  UInt trueConnectedCount[5] = {2, 2, 2, 2, 3};
+  for (UInt i = 0; i < 5; i++) {
+    sp.setPotential(i, potential);
+    sp.setPermanence(i, permArr[i]);
+    auto permArr = new Real[numInputs];
+    auto connectedArr = new UInt[numInputs];
+    auto connectedCountsArr = new UInt[numColumns];
+    sp.getPermanence(i, permArr);
+    sp.getConnectedSynapses(i, connectedArr);
+    sp.getConnectedCounts(connectedCountsArr);
+    ASSERT_TRUE(check_vector_eq(truePerm[i], permArr, numInputs));
+    ASSERT_TRUE(
+        check_vector_eq(trueConnectedSynapses[i], connectedArr, numInputs));
+    ASSERT_TRUE(trueConnectedCount[i] == connectedCountsArr[i]);
+    delete[] permArr;
+    delete[] connectedArr;
+    delete[] connectedCountsArr;
+  }
+}
+
+
 TEST(SpatialPoolerTest, testInitPermanence) {
   vector<UInt> inputDim;
   vector<UInt> columnDim;
