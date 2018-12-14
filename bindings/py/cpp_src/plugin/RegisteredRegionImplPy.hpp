@@ -91,24 +91,11 @@ namespace nupic
   public:
 	  RegisteredRegionImplPy(const std::string& classname, const std::string& module="")
 			: RegisteredRegionImpl(classname, module) {
-		if (python_node_count <= 0) {
-			try {
-				py::initialize_interpreter();
-			}
-			catch (const std::exception& e)
-			{
-				throw Exception(__FILE__, __LINE__, e.what());
-			}
-			python_node_count = 0;
-		}
-		python_node_count++;
+	    // NOTE: If this is called by .py code (and probably is) then the python interpreter is already running
+		//       so we don't need to start it up.
 	  }
 
       ~RegisteredRegionImplPy() override {
-		python_node_count--;
-		if (python_node_count == 0) {
-            py::finalize_interpreter();
-		}
       }
 
       RegionImpl* createRegionImpl( ValueMap& params, Region *region) override

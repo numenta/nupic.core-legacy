@@ -273,6 +273,11 @@ namespace nupic_ext
         //     (note: we are re-directing these to static functions on the PyBindRegion class)
         py_Network.def_static("registerPyRegion",
 		                 [](const std::string& nodeType,
+							const std::string& module) {
+				nupic::RegisteredRegionImplPy::registerPyRegion(nodeType, module, "");
+			});
+		py_Network.def_static("registerPyRegion",
+		                 [](const std::string& nodeType,
 							const std::string& module,
                             const std::string& className) {
 				nupic::RegisteredRegionImplPy::registerPyRegion(nodeType, module, className);

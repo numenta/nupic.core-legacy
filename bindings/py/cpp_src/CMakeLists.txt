@@ -106,10 +106,6 @@ endif()
 
 
 if(PYTHON2_BUILD)
-	# build for python 2.7.  (defaults to 3.x)
-	set(PYBIND11_PYTHON_VERSION 2.7)
-endif()
-if(PYTHON2_BUILD)
   set(PYBIND11_PYTHON_VERSION 2.7)
 endif()
 set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})

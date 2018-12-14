@@ -36,8 +36,6 @@ namespace nupic_ext
     void init_SM32(py::module&);
     void init_SM_01_32_32(py::module&);
     void init_Math_Functions(py::module&);
-    void init_SMC(py::module&);
-    void init_SegmentSparseMatrix(py::module&);
 
     void init_Engine(py::module&);
     void init_HTM(py::module&);
@@ -54,7 +52,7 @@ namespace nupic_ext
 } // namespace nupic_ext
 
 
-using namespace nupic_ext; 
+using namespace nupic_ext;
 
 PYBIND11_MODULE(bindings, m) {
     m.doc() = "nupic python plugin"; // optional module docstring
@@ -62,7 +60,7 @@ PYBIND11_MODULE(bindings, m) {
     init_reals(m);
 
     auto utils_module = m.def_submodule("utils");
-    
+
     auto math_module = m.def_submodule("math");
     init_reals(math_module);
     init_Random(math_module);

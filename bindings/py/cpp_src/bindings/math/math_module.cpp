@@ -48,7 +48,6 @@ namespace nupic_ext
     void init_Set(py::module&);
     void init_SM_01_32_32(py::module&);
     void init_SM32(py::module&);
-    void init_SMC(py::module&);
     void init_SparseTensor(py::module&);
     void init_TensorIndex(py::module&);
 } // namespace nupic_ext
@@ -66,7 +65,6 @@ PYBIND11_MODULE(math, m) {
     init_reals(m);
     init_Set(m);
     init_SM_01_32_32(m);
-    init_SMC(m);
     init_SparseTensor(m);
     init_TensorIndex(m);
 }
