@@ -49,3 +49,10 @@ include(gtest.cmake)
 if(PYTHON2_BUILD OR PYTHON3_BUILD)
   include(pybind11.cmake)
 endif()
+
+set(EXTERNAL_INCLUDES
+	${yaml-cpp_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
+	${REPOSITORY_DIR}/external/common/include
+	PARENT_SCOPE
+)

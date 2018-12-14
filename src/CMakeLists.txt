@@ -41,8 +41,14 @@ if(${NUPIC_IWYU})
   endif()
 endif()
 
+###########
+# Identify includes from this directory
+set(CORE_LIB_INCLUDES  ${PROJECT_SOURCE_DIR}  # for nupic/xxx/*.h
+		       ${PROJECT_BINARY_DIR}  # for Version.hpp
+)
+set(CORE_LIB_INCLUDES  ${CORE_LIB_INCLUDES} PARENT_SCOPE)
 
-
+message(STATUS "in src: EXTERNAL_INCLUDES=${EXTERNAL_INCLUDES}")
 
 ###############
 # Create Version.hpp
@@ -55,19 +61,6 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/nupic/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")
   
-##############
-# find dependancies 
-include_directories(SYSTEM
-  ${PROJECT_BINARY_DIR}
-  ${PROJECT_SOURCE_DIR}
-  ${REPOSITORY_DIR}/external/common/include
-  ${yaml-cpp_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  )
-message(STATUS "   yaml-cpp includes: ${yaml-cpp_INCLUDE_DIRS}")
-message(STATUS "   yaml-cpp libs: ${yaml-cpp_LIBRARIES}")
-message(STATUS "   boost includes: ${Boost_INCLUDE_DIRS}")
-message(STATUS "   boost libs: ${Boost_LIBRARIES}")
 
 #################
 # Setup nupic_core static library, consisting of our own sources and yaml libraries;
@@ -293,6 +286,11 @@ add_dependencies(${src_lib_static_nupiccore_solo}
 		)
 target_compile_options( ${src_lib_static_nupiccore_solo} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${src_lib_static_nupiccore_solo} PRIVATE 
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		)
+
 if(${NUPIC_IWYU})
   set_target_properties(${src_lib_static_nupiccore_solo}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
@@ -330,6 +328,10 @@ add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
 target_link_libraries(${src_executable_hotgym} ${core_library})
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS}) #TODO how to use OPTIMIZED CXX flags? 
 target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${src_executable_hotgym} PRIVATE 
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		)
 add_custom_target(hotgym
                   COMMAND ${src_executable_hotgym}
                   DEPENDS ${src_executable_hotgym}
@@ -355,10 +357,10 @@ install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
 install(FILES "${PROJECT_SOURCE_DIR}/test/unit/engine/Data.csv"
         DESTINATION "data/")
 
-install(DIRECTORY nupic DESTINATION include
+install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 	  MESSAGE_NEVER
-	  FILES_MATCHING PATTERN "*.h*"
-	  PATTERN "*.hpp.in" EXCLUDE)
+	  FILES_MATCHING PATTERN "nupic/*/*.h*"
+	  PATTERN "nupic/*/*.hpp.in" EXCLUDE)
 
 install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
 	  MESSAGE_NEVER

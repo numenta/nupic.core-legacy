@@ -76,20 +76,6 @@ namespace nupic
         // Destructor
         virtual ~PyBindRegion();
 
-        ////////////////////////////
-        // DynamicPythonLibrary
-        ////////////////////////////
-
-        // DynamicPythonLibrary functions. Originally used NTA_EXPORT
-        //static void NTA_initPython();
-        //static void NTA_finalizePython();
-        //static void * NTA_createPyNode(const char * module, void * nodeParams, void * region, void ** exception, const char* className = "");
-        //static void * NTA_deserializePyNode(const char * module, void * bundle, void * region, void ** exception, const char* className = "");
-        //static void * NTA_deserializePyNodeProto(const char * module, void * proto, void * region, void ** exception, const char* className = "");
-        //static const char * NTA_getLastError();
-        //static void * NTA_createSpec(const char * nodeType, void ** exception, const char* className = "");
-        //static int NTA_destroySpec(const char * nodeType, const char* className = "");
-
 
         // Manual serialization methods. Current recommended method.
         void serialize(BundleIO& bundle) override;
@@ -149,11 +135,6 @@ namespace nupic
         std::string className_;
 
         pybind11::object node_;
-  		//std::set<std::shared_ptr<PyArray<UInt64>>> splitterMaps_;
-
-        // pointers rather than objects because Array doesnt
-        // have a default constructor
-        std::map<std::string, Array*> inputArrays_;
 
         static std::string last_error;
 

@@ -20,15 +20,10 @@
 # -----------------------------------------------------------------------------
 #
 # This builds the Python language interface.  This consists of the following libs
-# for Python2.7
-#   nupic.core.algorithms2.pyd
-#   nupic.core.engine2.pyd
-#   nupic.core.math2.pyd
+#   algorithms.so
+#   engine_internal.so
+#   math.so
 #
-# for Python3
-#   nupic.core.algorithms.pyd
-#   nupic.core.engine.pyd
-#   nupic.core.math.pyd
 #
 # For PyBind11 info See: https://pybind11.readthedocs.io/en/stable/compiling.html
 #######################################################################
@@ -40,11 +35,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 message(STATUS "Configuring Python interface")
 
-
-include_directories(
-  ${PROJECT_SOURCE_DIR}
-  ${REPOSITORY_DIR}/external/common/include
-)
 
 #
 # Python support
@@ -86,8 +76,8 @@ set(src_py_math_files
     )
     
 set(src_py_test_files
-	tests/main.cpp
-	tests/PyRegionTest.cpp
+	plugin/unittest/main.cpp
+	plugin/unittest/PyRegionTest.cpp
 	)
 	
 #set up file tabs in Visual Studio
@@ -113,39 +103,98 @@ else()
   set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
 endif()
 
-include_directories(${REPOSITORY_DIR}/src)
-include_directories(${pybind11_BINARY_DIR})
 
 
 if(PYTHON2_BUILD)
 	# build for python 2.7.  (defaults to 3.x)
 	set(PYBIND11_PYTHON_VERSION 2.7)
 endif()
+if(PYTHON2_BUILD)
+  set(PYBIND11_PYTHON_VERSION 2.7)
+endif()
+set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
+add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
+set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
+
+
+# It is ready to use pybind11_add_module() macro.
+# For details: https://pybind11.readthedocs.io/en/stable/compiling.html#cmake
 
 message(STATUS "Core lib to LINK is '${core_library}' ")
+message(STATUS "CORE_LIB_INCLUDES = ${CORE_LIB_INCLUDES}")
+message(STATUS "EXTERNAL_INCLUDES = ${EXTERNAL_INCLUDES}")
+message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
+
+set(algorithms_shared_lib algorithms)
+pybind11_add_module(${algorithms_shared_lib} ${src_py_algorithms_files} )
+target_link_libraries(${algorithms_shared_lib} PRIVATE ${core_library})
+target_compile_options(${algorithms_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${algorithms_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${algorithms_shared_lib} PRIVATE 
+		${PYTHON_INCLUDE_DIRS}
+		${pybind11_INCLUDE_DIRS}
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		${PROJECT_SOURCE_DIR}
+		)
 
 
-pybind11_add_module(algorithms ${src_py_algorithms_files} )
-target_link_libraries(algorithms PRIVATE ${core_library})
-target_compile_options(algorithms PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(algorithms PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+set(engine_shared_lib engine_internal)
+pybind11_add_module(${engine_shared_lib} ${src_py_engine_files})
+target_link_libraries(${engine_shared_lib} PRIVATE ${core_library})
+target_compile_options(${engine_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${engine_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${engine_shared_lib} PRIVATE 
+		${PYTHON_INCLUDE_DIRS}
+		${pybind11_INCLUDE_DIRS}
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		${PROJECT_SOURCE_DIR}
+		)
 
-pybind11_add_module(engine_internal ${src_py_engine_files})
-target_link_libraries(engine_internal PRIVATE ${core_library})
-target_compile_options(engine_internal PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(engine_internal PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+set(math_shared_lib math)
+pybind11_add_module(${math_shared_lib} ${src_py_math_files})
+target_link_libraries(${math_shared_lib} PRIVATE ${core_library})
+target_compile_options(${math_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${math_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${math_shared_lib} PRIVATE 
+		${PYTHON_INCLUDE_DIRS}
+		${pybind11_INCLUDE_DIRS}
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		${PROJECT_SOURCE_DIR}
+		)
 
-pybind11_add_module(math ${src_py_math_files})
-target_link_libraries(engine_internal PRIVATE ${core_library})
-target_compile_options(engine_internal PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(engine_internal PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+
 ############################################################
 #
 # Build tests of the Python interface
 #
 ############################################################
 
-#TODO: tests should be installed here
+### TODO: Finish these tests
+#  
+#set(py_unit_test_executable  py_unit_test)
+#add_executable(${py_unit_test_executable} ${src_py_test_files})
+#target_link_libraries(${py_unit_test_executable} 
+#    ${core_library}
+#    gtest
+#    ${COMMON_OS_LIBS}
+#)
+#target_compile_definitions(${py_unit_test_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+#target_compile_options(${py_unit_test_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
+#set_target_properties(${py_unit_test_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
+#add_dependencies(${py_unit_test_executable} ${core_library} gtest)
+#target_include_directories(${py_unit_test_executable} PRIVATE 
+#		${PYTHON_INCLUDE_DIRS}
+#		${pybind11_INCLUDE_DIRS}
+#		${CORE_LIB_INCLUDES} 
+#		${EXTERNAL_INCLUDES}
+#		${PROJECT_SOURCE_DIR}
+#		${gtest_INCLUDE_DIR}
+#		)
+
+
 
 
 ###################################################################
@@ -157,7 +206,8 @@ install(TARGETS
         algorithms
         engine_internal
         math
+	${py_unit_test_executable}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION ${distr}/src/nupic/bindings
         ARCHIVE DESTINATION lib)
-
+	

@@ -58,7 +58,9 @@ namespace nupic_ext {
             .def("getReal64", &Random_t::getReal64)
             .def("max", &Random_t::max)
             .def("min", &Random_t::min)
-            .def_readonly_static("MAX32", &Random_t::MAX32);
+            .def_property_readonly_static("MAX32", [](py::object) {
+				return Random_t::MAX32;
+			});
 
         //////////////////
         // sample

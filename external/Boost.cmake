@@ -106,7 +106,7 @@ if(${qty_libs} LESS 2)
 #		cxxflags="-fvisibility=hidden"
 		stage
   	WORKING_DIRECTORY ${BOOST_ROOT} 
-#	OUTPUT_QUIET
+	OUTPUT_QUIET
 	RESULT_VARIABLE error_result
   	)
     if(error_result)

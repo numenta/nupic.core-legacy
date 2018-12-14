@@ -400,3 +400,8 @@ foreach(flag_item ${INTERNAL_CXX_FLAGS})
      set(INTERNAL_CXX_FLAGS_STR "${INTERNAL_CXX_FLAGS_STR} ${flag_item}")
 endforeach()
 
+set(INTERNAL_LINKER_FLAGS_STR)
+foreach(flag_item ${INTERNAL_LINKER_FLAGS})
+  set(flags "${INTERNAL_LINKER_FLAGS_STR} ${flag_item}")
+endforeach()
+

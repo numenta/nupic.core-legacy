@@ -180,13 +180,6 @@ namespace nupic
 
     PyBindRegion::~PyBindRegion()
     {
-        for (std::map<std::string, Array*>::iterator i = inputArrays_.begin();
-            i != inputArrays_.end();
-            i++)
-        {
-            delete i->second;
-            i->second = NULL;
-        }
     }
 
     void PyBindRegion::serialize(BundleIO& bundle)
@@ -517,6 +510,7 @@ namespace nupic
         const Spec& ns = nodeSpec_;
 
         // Prepare the inputs dict
+		std::list<nupic::Array> splitterParts; // This keeps buffer copy alive until return from compute.
         py::dict inputs;
         for (size_t i = 0; i < ns.inputs.getCount(); ++i)
         {
@@ -527,7 +521,7 @@ namespace nupic
             NTA_CHECK(inp);
 
             // Set pa to point to the original input array
-            const Array * pa = &(inp->getData());
+            const nupic::Array * pa = &(inp->getData());
 
             // Skip unlinked inputs of size 0
     		if (!inp->isSparse() && pa->getCount() == 0)
@@ -539,33 +533,19 @@ namespace nupic
             // access.
             if (p.second.requireSplitterMap)
             {
-                // Verify that this input has a stored input array
-                NTA_ASSERT(inputArrays_.find(p.first) != inputArrays_.end());
-                Array & a = *(inputArrays_[p.first]);
-
-                // Verify that the stored input array is larger by 1  then the original input
-                NTA_ASSERT(a.getCount() == pa->getCount() + 1);
-
-                // Work at the char * level because there is no good way
-                // to work with the actual data type of the input (since the buffer is void *)
-                size_t itemSize = BasicType::getSize(p.second.dataType);
-                char * begin1 = (char *)pa->getBuffer();
-                char * end1 = begin1 + pa->getCount() * itemSize;
-                char * begin2 = (char *)a.getBuffer();
-                char * end2 = begin2 + a.getCount() * itemSize;
-
-                // Copy the original input array to the stored array
-                std::copy(begin1, end1, begin2);
-
-                // Put 0 in the last item (the sentinel value)
-                std::fill(end2 - itemSize, end2, 0);
-
+				// Make a copy of input array which is 1 element larger. Save in splitterParts.
+                size_t itemSize = BasicType::getSize(pa->getType());
+				Array a(pa->getType());
+				a.allocateBuffer(pa->getCount() + 1);
+				a.zeroBuffer();
+				memcpy(a.getBuffer(), pa->getBuffer(), pa->getCount() * itemSize);
+				splitterParts.push_back(a);
                 // Change pa to point to the stored input array (with the sentinel)
                 pa = &a;
             }
 
             // Create a numpy array from pa, which wil be either
-            // the original input array or a stored input array
+            // the original input array or a stored input array copy
             // (if a splitter map is needed)
             inputs[p.first.c_str()] = create_numpy_view(*pa);
         }
