@@ -312,6 +312,26 @@ else()
 	endif()
 
 
+	# Compatibility with gcc >= 4.9 which requires the use of gcc's own wrappers for
+	# ar and ranlib in combination with LTO works also with LTO disabled
+	IF(UNIX AND CMAKE_COMPILER_IS_GNUCXX AND (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug") AND
+		  CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "4.9")
+		set(CMAKE_AR "gcc-ar")
+		set(CMAKE_RANLIB "gcc-ranlib")
+		# EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED duplicates settings for
+		# CMAKE_AR and CMAKE_RANLIB. This is a workaround for a CMAKE bug
+		# (https://gitlab.kitware.com/cmake/cmake/issues/15547) that prevents
+		# the correct propagation of CMAKE_AR and CMAKE_RANLIB variables to all
+		# externals
+		list(APPEND EXTERNAL_STATICLIB_CMAKE_DEFINITIONS_OPTIMIZED
+			 -DCMAKE_AR:PATH=gcc-ar
+			 -DCMAKE_RANLIB:PATH=gcc-ranlib)
+		# And ditto for externals that use the configure-based build system
+		list(APPEND EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED
+			 AR=gcc-ar
+			 RANLIB=gcc-ranlib)
+	ENDIF()
+
 
         #
         # set OPTIMIZATION flags
