@@ -41,6 +41,14 @@ Connections::Connections(CellIdx numCells) { initialize(numCells); }
 
 void Connections::initialize(CellIdx numCells) {
   cells_ = vector<CellData>(numCells);
+  segments_.clear();
+  destroyedSegments_.clear();
+  synapses_.clear();
+  destroyedSynapses_.clear();
+  synapsesForPresynapticCell_.clear();
+  segmentOrdinals_.clear();
+  synapseOrdinals_.clear();
+  eventHandlers_.clear();
 
   // Every time a segment or synapse is created, we assign it an ordinal and
   // increment the nextOrdinal. Ordinals are never recycled, so they can be used
@@ -346,9 +354,9 @@ void Connections::computeActivity(
 }
 
 
-void Connections::adaptSegment(Segment segment, SDR &inputs,
-                               Permanence increment,
-                               Permanence decrement)
+void Connections::adaptSegment(const Segment segment, SDR &inputs,
+                               const Permanence increment,
+                               const Permanence decrement)
 {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
 
@@ -369,9 +377,10 @@ void Connections::adaptSegment(Segment segment, SDR &inputs,
 }
 
 
-void Connections::raisePermanencesToThreshold(Segment    segment,
-                                              Permanence permanenceThreshold,
-                                              UInt       segmentThreshold)
+void Connections::raisePermanencesToThreshold(
+                  const Segment    segment,
+                  const Permanence permanenceThreshold,
+                  const UInt       segmentThreshold)
 {
   if( segmentThreshold == 0 )
     return;
@@ -400,7 +409,7 @@ void Connections::raisePermanencesToThreshold(Segment    segment,
 }
 
 
-void Connections::bumpSegment(Segment segment, Permanence delta) {
+void Connections::bumpSegment(const Segment segment, const Permanence delta) {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
   for( const auto &syn : synapses )
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);

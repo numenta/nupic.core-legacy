@@ -360,13 +360,13 @@ void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
     connections_.updateSynapsePermanence( syn, permanences[presyn] );
 
 #ifndef NDEBUG
-    check_data[presyn] = 0.0f;
+    check_data[presyn] = connections::minPermanence;
 #endif
   }
 
 #ifndef NDEBUG
   for(UInt i = 0; i < numInputs_; i++) {
-    NTA_ASSERT(check_data[i] == 0.0f)
+    NTA_ASSERT(check_data[i] == connections::minPermanence)
           << "Can't setPermanence for synapse which is not in potential pool!";
   }
 #endif
@@ -748,10 +748,11 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
   vector<UInt> minCoord(numDimensions, *max_element(inputDimensions_.begin(),
                                                     inputDimensions_.end()));
   const CoordinateConverterND conv(inputDimensions_);
-
+  bool all_zero = true;
   for(UInt i = 0; i < numInputs_; i++) {
     if( connectedDense[i] == 0 )
       continue;
+    all_zero = false;
     vector<UInt> columnCoord;
     conv.toCoord(i, columnCoord);
     for (size_t j = 0; j < columnCoord.size(); j++) {
@@ -759,6 +760,7 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
       minCoord[j] = min(minCoord[j], columnCoord[j]);
     }
   }
+  if( all_zero ) return 0.0f;
 
   UInt totalSpan = 0;
   for (size_t j = 0; j < inputDimensions_.size(); j++) {

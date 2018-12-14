@@ -254,6 +254,7 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
+    sp.setPotential(i, vector<UInt>(numInputs, 1).data());
     Real permArr[] = {1, 1, 1};
     sp.setPermanence(i, permArr);
   }
@@ -274,6 +275,7 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
+    sp.setPotential(i, vector<UInt>(numInputs, 1).data());
     Real permArr[] = {1, 0, 0, 0, 0};
     if (i % 2 == 0) {
       permArr[0] = 0;
@@ -296,6 +298,7 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
+    sp.setPotential(i, vector<UInt>(numInputs, 1).data());
     Real permArr[] = {1, 1, 0, 0, 0};
     sp.setPermanence(i, permArr);
   }
@@ -606,6 +609,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D) {
   UInt numInputs = 8;
   setup(sp, numInputs, numColumns);
 
+  vector<UInt> potential(numInputs, 1);
   Real permArr[9][8] = {{0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 0, 1, 0, 0, 0, 1},
                         {0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 1, 0, 0, 0, 1, 0},
                         {0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 1, 0, 0, 0, 0, 0},
@@ -615,6 +619,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D) {
   UInt trueAvgConnectedSpan[9] = {7, 5, 1, 5, 0, 2, 3, 3, 8};
 
   for (UInt i = 0; i < numColumns; i++) {
+    sp.setPotential(i, potential.data());
     sp.setPermanence(i, permArr[i]);
     UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == trueAvgConnectedSpan[i]);
@@ -628,6 +633,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   UInt numInputs = 20;
 
   vector<UInt> colDim, inputDim;
+  vector<UInt> potential1(numInputs, 1);
   Real permArr1[7][20] = {
       {0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
       // rowspan = 3, colspan = 3, avg = 3
@@ -650,7 +656,6 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
       // rowspan = 0, colspan = 0, avg = 0
   };
-
   inputDim.push_back(5);
   inputDim.push_back(4);
   colDim.push_back(10);
@@ -660,6 +665,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   UInt trueAvgConnectedSpan1[7] = {3, 3, 4, 3, 2, 2, 0};
 
   for (UInt i = 0; i < numColumns; i++) {
+    sp.setPotential(i, potential1.data());
     sp.setPermanence(i, permArr1[i]);
     UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan1[i]));
@@ -678,6 +684,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
 
   sp.initialize(inputDim, colDim);
 
+  vector<UInt> potential2(numInputs, 1);
   Real permArr2[9][8] = {{0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 0, 1, 0, 0, 0, 1},
                          {0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 1, 0, 0, 0, 1, 0},
                          {0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 1, 0, 0, 0, 0, 0},
@@ -687,6 +694,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   UInt trueAvgConnectedSpan2[9] = {8, 5, 1, 5, 0, 2, 3, 3, 8};
 
   for (UInt i = 0; i < numColumns; i++) {
+    sp.setPotential(i, potential2.data());
     sp.setPermanence(i, permArr2[i]);
     UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan2[i] + 1) / 2);
@@ -709,6 +717,14 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumnND) {
 
   UInt numInputs = 160;
   UInt numColumns = 5;
+
+  // All potential synapses exist.
+  vector<UInt> ones(numInputs, 1);
+  sp.setPotential(0, (UInt *)ones.data());
+  sp.setPotential(1, (UInt *)ones.data());
+  sp.setPotential(2, (UInt *)ones.data());
+  sp.setPotential(3, (UInt *)ones.data());
+  sp.setPotential(4, (UInt *)ones.data());
 
   Real permArr0[4][4][2][5];
   Real permArr1[4][4][2][5];
@@ -756,7 +772,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumnND) {
 
   for (UInt i = 0; i < numColumns; i++) {
     Real result = sp.avgConnectedSpanForColumnND_(i);
-    ASSERT_TRUE(result == trueAvgConnectedSpan[i]);
+    ASSERT_EQ(result, trueAvgConnectedSpan[i]);
   }
 }
 

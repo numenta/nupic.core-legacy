@@ -416,9 +416,9 @@ public:
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    */
-  void adaptSegment(Segment segment, SDR &inputs,
-                    Permanence increment,
-                    Permanence decrement);
+  void adaptSegment(const Segment segment, SDR &inputs,
+                    const Permanence increment,
+                    const Permanence decrement);
 
   /**
    * Ensures a minimum number of connected synapses.  This raises permance
@@ -429,9 +429,9 @@ public:
    * @param permanenceThreshold  Connected threshold of synapses
    * @param segmentThreshold  Desired number of connected synapses
    */
-  void raisePermanencesToThreshold(Segment    segment,
-                                   Permanence permanenceThreshold,
-                                   UInt       segmentThreshold);
+  void raisePermanencesToThreshold(const Segment    segment,
+                                   const Permanence permanenceThreshold,
+                                   const UInt       segmentThreshold);
 
   /**
    * Modify all permanence on the given segment, uniformly.
@@ -439,7 +439,7 @@ public:
    * @param segment  Index of segment on cell. Is returned by method getSegment.
    * @param delta  Change in permanence value
    */
-  void bumpSegment(Segment segment, Permanence delta);
+  void bumpSegment(const Segment segment, const Permanence delta);
 
   // Serialization
 
