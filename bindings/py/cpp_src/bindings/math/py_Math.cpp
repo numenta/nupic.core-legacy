@@ -28,11 +28,12 @@ PyBind11 bindings for Math classes
 
 // the use of 'register' keyword is removed in C++17
 // Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
+// FIXME for c++17, problematic with gcc-8, disabling for now
+//#ifdef _WIN32
+//#pragma warning( disable : 5033)  // MSVC
+//#else
+//#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
+//#endif
 
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
@@ -156,6 +157,10 @@ namespace nupic_ext
             return nupic::l2_norm(get_it(x), get_end(x));
         });
     }
+
+#ifndef _WIN32
+#pragma GCC diagnostic pop  // for GCC and CLang: resume command-line arguments, ends ignored -Wregister
+#endif
 
 
 } // namespace nupic_ext
