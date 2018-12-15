@@ -361,13 +361,13 @@ TEST(ConnectionsTest, testComputeActivity) {
   ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1]);
 }
 
-
 TEST(ConnectionsTest, testAdaptSynapses) {
-  UInt numColumns = 4;
+  UInt numCells = 4;
+  // NOTE: One segment per cell.
   UInt numInputs = 8;
-  Connections con(numColumns);
+  Connections con(numCells);
 
-  vector<UInt> activeColumns;
+  vector<UInt> activeSegments;
   SDR input({numInputs});
 
   UInt potentialArr[4][8] =  {{1, 1, 1, 1, 0, 0, 0, 0},
@@ -391,44 +391,38 @@ TEST(ConnectionsTest, testAdaptSynapses) {
       {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
       //   -      -      -      -      -      -      -      -
 
-  for (UInt column = 0; column < numColumns; column++) {
-    Segment seg = con.createSegment(column);
+  for (UInt cell = 0; cell < numCells; cell++) {
+    Segment seg = con.createSegment(cell);
     for(UInt inp = 0; inp < numInputs; inp++) {
-      if( potentialArr[column][inp] )
-        con.createSynapse(seg, inp, permanences[column][inp]);
+      if( potentialArr[cell][inp] )
+        con.createSynapse(seg, inp, permanences[cell][inp]);
     }
   }
 
   input.setDense(SDR_dense_t({ 1, 0, 0, 1, 1, 0, 1, 0 }));
-  activeColumns.assign({0, 1, 2});
+  activeSegments.assign({0, 1, 2});
 
-  for(UInt column : activeColumns)
-    con.adaptSegment(column, input, .1, .01);
+  for(UInt seg : activeSegments)
+    con.adaptSegment(seg, input, .1, .01);
 
-  for (UInt column = 0; column < numColumns; column++) {
+  for (UInt cell = 0; cell < numCells; cell++) {
     vector<Real> perms( numInputs, 0.0f );
-    for( Synapse syn : con.synapsesForSegment(column) ) {
+    for( Synapse syn : con.synapsesForSegment(cell) ) {
       auto synData = con.dataForSynapse( syn );
       perms[ synData.presynapticCell ] = synData.permanence;
     }
     for(UInt i = 0; i < numInputs; i++)
-      ASSERT_NEAR( truePerms[column][i], perms[i], EPSILON );
+      ASSERT_NEAR( truePerms[cell][i], perms[i], EPSILON );
   }
 }
 
-
 TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
-  FAIL(); /*
-  SpatialPooler sp;
   UInt stimulusThreshold = 3;
   Real synPermConnected = 0.1;
   Real synPermBelowStimulusInc = 0.01;
   UInt numInputs = 5;
-  UInt numColumns = 7;
-  setup(sp, numInputs, numColumns);
-  sp.setStimulusThreshold(stimulusThreshold);
-  sp.setSynPermConnected(synPermConnected);
-  sp.setSynPermBelowStimulusInc(synPermBelowStimulusInc);
+  UInt numCells = 7;
+  Connections con(numCells);
 
   UInt potentialArr[7][5] = {{1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
                              {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},
@@ -451,37 +445,30 @@ TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
       {0.17, 0.106, 0, 0, 0.128},          // increment 5 times
       {0, 0.101, 0.11, 0.18, 0}};          // increment 4 times
 
-  UInt trueConnectedCount[7] = {3, 3, 4, 3, 5, 3, 3};
-
-  for (UInt i = 0; i < numColumns; i++) {
-    vector<Real> perm;
-    vector<UInt> potential;
-    perm.assign(&permArr[i][0], &permArr[i][numInputs]);
+  for (UInt i = 0; i < numCells; i++) {
+    // Setup this cell / segment / synapses.
+    con.createSegment(i);
     for (UInt j = 0; j < numInputs; j++) {
       if (potentialArr[i][j] > 0) {
-        potential.push_back(j);
+        con.createSynapse( i, j, permArr[i][j] );
       }
     }
-    UInt connected = sp.raisePermanencesToThreshold_(perm, potential);
-    ASSERT_TRUE(check_vector_eq(truePerm[i], perm));
-    ASSERT_TRUE(connected == trueConnectedCount[i]);
+    // Run method under test.
+    con.raisePermanencesToThreshold(i, synPermConnected, stimulusThreshold);
+    // Check results.
+    for(auto syn : con.synapsesForSegment(i)) {
+      auto synData = con.dataForSynapse( syn );
+      UInt presyn  = synData.presynapticCell;
+      ASSERT_NEAR(truePerm[i][presyn], synData.permanence,
+                                                      synPermBelowStimulusInc);
+    }
   }
-  */
 }
 
-
-TEST(ConnectionsTest, testBumpUpWeakColumns) {
-  FAIL(); /*
-  SpatialPooler sp;
+TEST(ConnectionsTest, testBumpSegment) {
   UInt numInputs = 8;
-  UInt numColumns = 5;
-  setup(sp, numInputs, numColumns);
-  sp.setSynPermBelowStimulusInc(0.01);
-  sp.setSynPermTrimThreshold(0.05);
-  Real overlapDutyCyclesArr[] = {0, 0.009, 0.1, 0.001, 0.002};
-  sp.setOverlapDutyCycles(overlapDutyCyclesArr);
-  Real minOverlapDutyCyclesArr[] = {0.01, 0.01, 0.01, 0.01, 0.01};
-  sp.setMinOverlapDutyCycles(minOverlapDutyCyclesArr);
+  UInt numSegments = 5;
+  Connections con(1);
 
   UInt potentialArr[5][8] = {{1, 1, 1, 1, 0, 0, 0, 0},
                              {1, 0, 0, 0, 1, 1, 0, 1},
@@ -496,34 +483,30 @@ TEST(ConnectionsTest, testBumpUpWeakColumns) {
       {0.051, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000},
       {0.100, 0.738, 0.085, 0.002, 0.052, 0.008, 0.208, 0.034}};
 
+  Real deltaArr[5] = {0.010, 0.750, 0.000, -0.001, -0.010};
+
   Real truePermArr[5][8] = {
-      {0.210, 0.130, 0.100, 0.000, 0.000, 0.000, 0.000, 0.000},
-      //  Inc    Inc    Inc    Trim    -     -     -    -
-      {0.160, 0.000, 0.000, 0.000, 0.190, 0.130, 0.000, 0.460},
-      //  Inc   -     -    -     Inc   Inc    -     Inc
+      {0.210, 0.130, 0.100, 0.050, 0.000, 0.000, 0.000, 0.000},
+      {0.900, 0.000, 0.000, 0.000, 0.930, 0.870, 0.000, 1.000},
       {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000}, // unchanged
-      //  -    -     -    -     -    -     -    -
-      {0.061, 0.000, 0.000, 0.000, 0.000, 0.000, 0.188, 0.000},
-      //   Inc   Trim    Trim    -     -      -     Inc     -
-      {0.110, 0.748, 0.095, 0.000, 0.062, 0.000, 0.218, 0.000}};
+      {0.050, 0.000, 0.000, 0.000, 0.000, 0.000, 0.177, 0.000},
+      {0.090, 0.728, 0.075, 0.000, 0.042, 0.000, 0.198, 0.024}};
 
-  for (UInt i = 0; i < numColumns; i++) {
-    sp.setPotential(i, potentialArr[i]);
-    sp.setPermanence(i, permArr[i]);
-    Real perm[8];
-    sp.getPermanence(i, perm);
+  for (UInt seg = 0; seg < numSegments; seg++) {
+    auto segment = con.createSegment(0);
+    for(UInt i = 0; i < numInputs; i++)
+      if( potentialArr[seg][i] )
+        con.createSynapse(segment, i, permArr[seg][i]);
+
+    con.bumpSegment( segment, deltaArr[seg] );
+
+    for(auto synapse : con.synapsesForSegment(segment)) {
+      auto synData = con.dataForSynapse( synapse );
+      auto presyn  = synData.presynapticCell;
+      ASSERT_FLOAT_EQ( synData.permanence, truePermArr[seg][presyn] );
+    }
   }
-
-  sp.bumpUpWeakColumns_();
-
-  for (UInt i = 0; i < numColumns; i++) {
-    Real perm[8];
-    sp.getPermanence(i, perm);
-    ASSERT_TRUE(check_vector_eq(truePermArr[i], perm, numInputs));
-  }
-  */
 }
-
 
 /**
  * Test the mapSegmentsToCells method.
