@@ -565,7 +565,7 @@ public:
  * Make sure each event handler gets called.
  */
 TEST(ConnectionsTest, subscribe) {
-  Connections connections(1024);
+  Connections connections(1024, 0.5f);
 
   TestConnectionsEventHandler *handler = new TestConnectionsEventHandler();
   auto token = connections.subscribe(handler);
@@ -575,7 +575,7 @@ TEST(ConnectionsTest, subscribe) {
   EXPECT_TRUE(handler->didCreateSegment);
 
   ASSERT_FALSE(handler->didCreateSynapse);
-  Synapse synapse = connections.createSynapse(segment, 41, 0.50);
+  Synapse synapse = connections.createSynapse(segment, 41, 0.25f);
   EXPECT_TRUE(handler->didCreateSynapse);
 
   ASSERT_FALSE(handler->didUpdateSynapsePermanence);
