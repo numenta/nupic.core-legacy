@@ -45,7 +45,6 @@ set(algorithm_tests
 	   unit/algorithms/HelloSPTPTest.cpp
 	   unit/algorithms/SDRClassifierTest.cpp
 	   unit/algorithms/SegmentTest.cpp
-	   unit/algorithms/Serialization.cpp
 	   unit/algorithms/SpatialPoolerTest.cpp
 	   unit/algorithms/TemporalMemoryTest.cpp
 	   )
