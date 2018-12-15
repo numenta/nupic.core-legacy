@@ -1959,7 +1959,9 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
   SpatialPooler sp2;
 
-  for (UInt i = 0; i < 100; ++i) {
+  nupic::Timer testTimer;
+
+  for (UInt i = 0; i < 10; ++i) {
     // Create new input
     random.shuffle(input, input + inputSize);
 
@@ -1972,7 +1974,6 @@ TEST(SpatialPoolerTest, testSerialization2) {
     {
       SpatialPooler spTemp;
 
-      nupic::Timer testTimer;
       testTimer.start();
 
       // Deserialize
@@ -1989,14 +1990,15 @@ TEST(SpatialPoolerTest, testSerialization2) {
       os.close();
 
       testTimer.stop();
-//      cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
-//      cout << "Stream: " << testTimer.getElapsed() << endl;
     }
 
     for (UInt i = 0; i < numColumns; ++i) {
-      ASSERT_EQ(outputBaseline[i], outputC[i]);
+      EXPECT_EQ(outputBaseline[i], outputC[i]);
     }
   }
+
+  cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
+  cout << "Stream: " << testTimer.getElapsed() << endl;
 
   remove("outC.stream");
 }
