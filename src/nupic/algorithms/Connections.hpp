@@ -85,6 +85,7 @@ struct SynapseData {
 struct SegmentData {
   std::vector<Synapse> synapses;
   CellIdx cell;
+  SynapseIdx numConnected;
 };
 
 /**
@@ -184,6 +185,8 @@ public:
    */
   Connections(CellIdx numCells);
 
+  Connections(CellIdx numCells, Permanence connectedThreshold);
+
   virtual ~Connections() {}
 
   /**
@@ -192,6 +195,8 @@ public:
    * @param numCells              Number of cells.
    */
   void initialize(CellIdx numCells);
+
+  void initialize(CellIdx numCells, Permanence connectedThreshold);
 
   /**
    * Creates a segment on the specified cell.
@@ -563,6 +568,7 @@ private:
   std::vector<Segment>     destroyedSegments_;
   std::vector<SynapseData> synapses_;
   std::vector<Synapse>     destroyedSynapses_;
+  Permanence               connectedThreshold_;
 
   // Extra bookkeeping for faster computing of segment activity.
   std::map<CellIdx, std::vector<Synapse>> synapsesForPresynapticCell_;

@@ -39,6 +39,13 @@ using namespace nupic::algorithms::connections;
 
 Connections::Connections(CellIdx numCells) { initialize(numCells); }
 
+Connections::Connections(CellIdx numCells, Permanence connectedThreshold)
+    : Connections(numCells) {
+  NTA_ASSERT(connectedThreshold >= minPermanence);
+  NTA_ASSERT(connectedThreshold <= maxPermanence);
+  connectedThreshold_ = connectedThreshold;
+}
+
 void Connections::initialize(CellIdx numCells) {
   cells_ = vector<CellData>(numCells);
   segments_.clear();
@@ -57,6 +64,13 @@ void Connections::initialize(CellIdx numCells) {
   nextSynapseOrdinal_ = 0;
 
   nextEventToken_ = 0;
+}
+
+void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
+  initialize(numCells);
+  NTA_ASSERT(connectedThreshold >= minPermanence);
+  NTA_ASSERT(connectedThreshold <= maxPermanence);
+  connectedThreshold_ = connectedThreshold;
 }
 
 UInt32 Connections::subscribe(ConnectionsEventHandler *handler) {
@@ -82,6 +96,7 @@ Segment Connections::createSegment(CellIdx cell) {
   }
 
   SegmentData &segmentData = segments_[segment];
+  segmentData.numConnected = 0;
   segmentData.cell = cell;
 
   CellData &cellData = cells_[cell];
@@ -111,7 +126,7 @@ Synapse Connections::createSynapse(Segment segment,
   SynapseData &synapseData = synapses_[synapse];
   synapseData.segment = segment;
   synapseData.presynapticCell = presynapticCell;
-  synapseData.permanence = permanence;
+  synapseData.permanence = minPermanence - 1; // Start in disconnected state.
 
   SegmentData &segmentData = segments_[segment];
   synapseOrdinals_[synapse] = nextSynapseOrdinal_++;
@@ -122,6 +137,8 @@ Synapse Connections::createSynapse(Segment segment,
   for (auto h : eventHandlers_) {
     h.second->onCreateSynapse(synapse);
   }
+
+  updateSynapsePermanence(synapse, permanence);
 
   return synapse;
 }
@@ -194,7 +211,8 @@ void Connections::destroySynapse(Synapse synapse) {
 
   removeSynapseFromPresynapticMap_(synapse);
 
-  SegmentData &segmentData = segments_[synapses_[synapse].segment];
+  SynapseData &synapseData = synapses_[synapse];
+  SegmentData &segmentData = segments_[synapseData.segment];
   const auto synapseOnSegment =
       std::lower_bound(segmentData.synapses.begin(), segmentData.synapses.end(),
                        synapse, [&](Synapse a, Synapse b) {
@@ -207,17 +225,33 @@ void Connections::destroySynapse(Synapse synapse) {
   segmentData.synapses.erase(synapseOnSegment);
 
   destroyedSynapses_.push_back(synapse);
+
+  if( synapseData.permanence > connectedThreshold_ - EPSILON )
+    segmentData.numConnected--;
 }
 
 void Connections::updateSynapsePermanence(Synapse synapse,
                                           Permanence permanence) {
   permanence = std::min(permanence, maxPermanence );
   permanence = std::max(permanence, minPermanence );
-  synapses_[synapse].permanence = permanence;
 
-  // for (auto h : eventHandlers_) {
-  //   h.second->onUpdateSynapsePermanence(synapse, permanence);
-  // }
+  auto &synData = synapses_[synapse];
+  const Permanence threshold = connectedThreshold_ - EPSILON;
+  bool prior = synData.permanence >= threshold;
+  bool post  = permanence >= threshold;
+  synData.permanence = permanence;
+
+  if( prior != post ) {
+    auto &segmentData = segments_[synData.segment];
+    if( post )
+      segmentData.numConnected++;
+    else
+      segmentData.numConnected--;
+
+    for (auto h : eventHandlers_) {
+      h.second->onUpdateSynapsePermanence(synapse, permanence);
+    }
+  }
 }
 
 const vector<Segment> &Connections::segmentsForCell(CellIdx cell) const {
@@ -385,7 +419,11 @@ void Connections::raisePermanencesToThreshold(
   if( segmentThreshold == 0 )
     return;
 
-  vector<Synapse> &synapses = segments_[segment].synapses;
+  auto &segData = segments_[segment];
+  if( segData.numConnected >= segmentThreshold )
+    return;
+
+  vector<Synapse> &synapses = segData.synapses;
 
   // Sort the potential pool by permanence values, and look for the synapse with
   // the N'th greatest permanence, where N is the desired minimum number of
@@ -425,6 +463,7 @@ void Connections::save(std::ostream &outStream) const {
   outStream << VERSION << endl;
 
   outStream << cells_.size() << " " << endl;
+  outStream << connectedThreshold_ << " " << endl;
 
   for (CellData cellData : cells_) {
     const vector<Segment> &segments = cellData.segments;
@@ -465,6 +504,7 @@ void Connections::load(std::istream &inStream) {
   // Retrieve simple variables
   UInt numCells;
   inStream >> numCells;
+  inStream >> connectedThreshold_;
 
   initialize(numCells);
 
@@ -487,6 +527,7 @@ void Connections::load(std::istream &inStream) {
       {
         SegmentData segmentData = {};
         segmentData.cell = cell;
+        segmentData.numConnected = 0;
 
         if (!destroyedSegment) {
           segment = (Segment)segments_.size();
@@ -521,6 +562,9 @@ void Connections::load(std::istream &inStream) {
 
           synapsesForPresynapticCell_[synapseData.presynapticCell].push_back(
               synapse);
+
+          if( synapseData.permanence >= connectedThreshold_ - EPSILON )
+            segmentData.numConnected++;
         }
       }
     }

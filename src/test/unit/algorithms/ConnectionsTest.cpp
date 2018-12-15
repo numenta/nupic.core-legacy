@@ -422,7 +422,7 @@ TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
   Real synPermBelowStimulusInc = 0.01;
   UInt numInputs = 5;
   UInt numCells = 7;
-  Connections con(numCells);
+  Connections con(numCells, synPermConnected);
 
   UInt potentialArr[7][5] = {{1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
                              {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},

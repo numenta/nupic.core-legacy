@@ -386,14 +386,9 @@ void SpatialPooler::getConnectedSynapses(UInt column,
 }
 
 void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
-  std::fill( connectedCounts, connectedCounts + numColumns_, 0 );
   for(UInt seg = 0; seg < numColumns_; seg++) {
-    const auto &synapses = connections_.synapsesForSegment( seg );
-    for( const auto &syn : synapses ) {
-      const auto &synData = connections_.dataForSynapse( syn );
-      if( synData.permanence >= synPermConnected_ - connections::EPSILON )
-        connectedCounts[ seg ] += 1;
-    }
+    const auto &segment = connections_.dataForSegment( seg );
+    connectedCounts[ seg ] = segment.numConnected;
   }
 }
 
@@ -472,7 +467,7 @@ void SpatialPooler::initialize(
 
   inhibitionRadius_ = 0;
 
-  connections_.initialize(numColumns_);
+  connections_.initialize(numColumns_, synPermConnected_);
   for (Size i = 0; i < numColumns_; ++i) {
     connections_.createSegment( i );
 
@@ -509,7 +504,7 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
 void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);
-  // calculateOverlapPct_(overlaps_, overlapsPct_);
+  calculateOverlapPct_(overlaps_, overlapsPct_);
 
   if (learn) {
     boostOverlaps_(overlaps_, boostedOverlaps_);
