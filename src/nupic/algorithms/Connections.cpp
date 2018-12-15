@@ -37,16 +37,11 @@ using std::vector;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
-Connections::Connections(CellIdx numCells) { initialize(numCells); }
-
-Connections::Connections(CellIdx numCells, Permanence connectedThreshold)
-    : Connections(numCells) {
-  NTA_ASSERT(connectedThreshold >= minPermanence);
-  NTA_ASSERT(connectedThreshold <= maxPermanence);
-  connectedThreshold_ = connectedThreshold;
+Connections::Connections(CellIdx numCells, Permanence connectedThreshold) {
+  initialize(numCells, connectedThreshold);
 }
 
-void Connections::initialize(CellIdx numCells) {
+void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
   cells_ = vector<CellData>(numCells);
   segments_.clear();
   destroyedSegments_.clear();
@@ -56,6 +51,9 @@ void Connections::initialize(CellIdx numCells) {
   segmentOrdinals_.clear();
   synapseOrdinals_.clear();
   eventHandlers_.clear();
+  NTA_CHECK(connectedThreshold >= minPermanence);
+  NTA_CHECK(connectedThreshold <= maxPermanence);
+  connectedThreshold_ = connectedThreshold - EPSILON;
 
   // Every time a segment or synapse is created, we assign it an ordinal and
   // increment the nextOrdinal. Ordinals are never recycled, so they can be used
@@ -64,13 +62,6 @@ void Connections::initialize(CellIdx numCells) {
   nextSynapseOrdinal_ = 0;
 
   nextEventToken_ = 0;
-}
-
-void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
-  initialize(numCells);
-  NTA_ASSERT(connectedThreshold >= minPermanence);
-  NTA_ASSERT(connectedThreshold <= maxPermanence);
-  connectedThreshold_ = connectedThreshold;
 }
 
 UInt32 Connections::subscribe(ConnectionsEventHandler *handler) {
@@ -226,7 +217,7 @@ void Connections::destroySynapse(Synapse synapse) {
 
   destroyedSynapses_.push_back(synapse);
 
-  if( synapseData.permanence > connectedThreshold_ - EPSILON )
+  if( synapseData.permanence >= connectedThreshold_ )
     segmentData.numConnected--;
 }
 
@@ -236,9 +227,8 @@ void Connections::updateSynapsePermanence(Synapse synapse,
   permanence = std::max(permanence, minPermanence );
 
   auto &synData = synapses_[synapse];
-  const Permanence threshold = connectedThreshold_ - EPSILON;
-  bool prior = synData.permanence >= threshold;
-  bool post  = permanence >= threshold;
+  bool prior = synData.permanence >= connectedThreshold_;
+  bool post  = permanence >= connectedThreshold_;
   synData.permanence = permanence;
 
   if( prior != post ) {
@@ -506,7 +496,7 @@ void Connections::load(std::istream &inStream) {
   inStream >> numCells;
   inStream >> connectedThreshold_;
 
-  initialize(numCells);
+  initialize(numCells, connectedThreshold_);
 
   // This logic is complicated by the fact that old versions of the Connections
   // serialized "destroyed" segments and synapses, which we now ignore.
@@ -563,7 +553,7 @@ void Connections::load(std::istream &inStream) {
           synapsesForPresynapticCell_[synapseData.presynapticCell].push_back(
               synapse);
 
-          if( synapseData.permanence >= connectedThreshold_ - EPSILON )
+          if( synapseData.permanence >= connectedThreshold_ )
             segmentData.numConnected++;
         }
       }

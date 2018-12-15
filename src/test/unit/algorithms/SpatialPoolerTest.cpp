@@ -1912,7 +1912,7 @@ TEST(SpatialPoolerTest, testSaveLoad) {
   int ret = ::remove(filename);
   ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
 
-  ASSERT_NO_FATAL_FAILURE(check_spatial_eq(sp1, sp2));
+  check_spatial_eq(sp1, sp2);
 }
 
 
