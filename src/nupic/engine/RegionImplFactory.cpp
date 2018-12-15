@@ -48,16 +48,12 @@
 
 namespace nupic {
 
-// Mappings for region nodeTypes that map to Class and module
-static std::map<const std::string, std::shared_ptr<RegisteredRegionImpl> > regionTypeMap;
-
-bool initializedRegions = false;
-
 
 
 void RegionImplFactory::registerRegion(const std::string& nodeType, RegisteredRegionImpl *wrapper) {
-  if (regionTypeMap.find(nodeType) != regionTypeMap.end()) {
-	std::shared_ptr<RegisteredRegionImpl>& reg = regionTypeMap[nodeType];
+  RegionImplFactory& instance = getInstance();
+  if (instance.regionTypeMap.find(nodeType) != instance.regionTypeMap.end()) {
+	std::shared_ptr<RegisteredRegionImpl>& reg = instance.regionTypeMap[nodeType];
 	if (reg->className() == wrapper->className() && reg->moduleName() == wrapper->moduleName()) {
 		NTA_WARN << "A Region Type already exists with the name '" << nodeType
 				 << "'. Overwriting it...";
@@ -73,14 +69,15 @@ void RegionImplFactory::registerRegion(const std::string& nodeType, RegisteredRe
   } else {
     std::shared_ptr<RegisteredRegionImpl> reg(wrapper);
 
-  	regionTypeMap[nodeType] = reg;
+  	instance.regionTypeMap[nodeType] = reg;
   }
 }
 
 
 void RegionImplFactory::unregisterRegion(const std::string nodeType) {
-  if (regionTypeMap.find(nodeType) != regionTypeMap.end()) {
-    regionTypeMap.erase(nodeType);
+  RegionImplFactory& instance = getInstance();
+  if (instance.regionTypeMap.find(nodeType) != instance.regionTypeMap.end()) {
+    instance.regionTypeMap.erase(nodeType);
   }
 }
 
@@ -89,14 +86,13 @@ RegionImplFactory &RegionImplFactory::getInstance() {
   static RegionImplFactory instance;
 
   // Initialize the Built-in Regions
-  if (!initializedRegions) {
+  if (instance.regionTypeMap.empty()) {
     // Create internal C++ regions
 	instance.registerRegion("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
     instance.registerRegion("TestNode",           new RegisteredRegionImplCpp<TestNode>());
     instance.registerRegion("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
     instance.registerRegion("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
 
-    initializedRegions = true;
   }
 
   return instance;
@@ -149,9 +145,8 @@ Spec *RegionImplFactory::getSpec(const std::string nodeType) {
 }
 
 void RegionImplFactory::cleanup() {
-
-  regionTypeMap.clear();
-  initializedRegions = false;
+  RegionImplFactory& instance = getInstance();
+  instance.regionTypeMap.clear();
 }
 
 } // namespace nupic

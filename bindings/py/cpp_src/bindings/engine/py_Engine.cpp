@@ -113,6 +113,8 @@ namespace nupic_ext
                 , py::arg("srcOutputName") = "", py::arg("destInputName") = ""
                 , py::arg("propagationDelay") = 0);
 
+        py_Link.def("toString", &Link::toString);
+
 
 
 
@@ -130,7 +132,29 @@ namespace nupic_ext
         py_Region.def("getName", &Region::getName)
             .def("getType", &Region::getType)
             .def("getDimensions", &Region::getDimensions)
-            .def("setDimensions", &Region::setDimensions);
+            .def("setDimensions", &Region::setDimensions)
+			.def("getNodeOutputElementCount", &Region::getNodeOutputElementCount);
+
+		py_Region.def("getParameterInt32", &Region::getParameterInt32)
+		    .def("getParameterUInt32", &Region::getParameterUInt32)
+			.def("getParameterInt64",  &Region::getParameterInt64)
+			.def("getParameterUInt64", &Region::getParameterUInt64)
+			.def("getParameterReal32", &Region::getParameterReal32)
+			.def("getParameterReal64", &Region::getParameterReal64)
+			.def("getParameterBool",   &Region::getParameterBool)
+			.def("getParameterString", &Region::getParameterString);
+
+        py_Region.def("setParameterInt32", &Region::setParameterInt32)
+		    .def("setParameterUInt32", &Region::setParameterUInt32)
+			.def("setParameterInt64",  &Region::setParameterInt64)
+			.def("setParameterUInt64", &Region::setParameterUInt64)
+			.def("setParameterReal32", &Region::setParameterReal32)
+			.def("setParameterReal64", &Region::setParameterReal64)
+			.def("setParameterBool",   &Region::setParameterBool)
+			.def("setParameterString", &Region::setParameterString);
+
+// TODO:		py_Region.def("getParameterArray", [](Region& r, const std::string &name, Array &array
+//			.def("setParameterArray",
 
         py_Region.def("__setattr__", [](Region& r, const std::string& Name, py::dict& d)
         {
@@ -222,17 +246,6 @@ namespace nupic_ext
         py_Network.def(py::init<>())
             .def(py::init<std::string>());
 
-        py_Network.def("getRegions", &nupic::Network::getRegions)
-            .def("getRegion", &nupic::Network::getRegion)
-            .def("getLinks", &nupic::Network::getLinks)
-            .def("getMinPhase", &nupic::Network::getMinPhase)
-            .def("getMaxPhase", &nupic::Network::getMaxPhase)
-            .def("setMinEnabledPhase", &nupic::Network::getMinPhase)
-            .def("setMaxEnabledPhase", &nupic::Network::getMaxPhase)
-            .def("getMinEnabledPhase", &nupic::Network::getMinPhase)
-            .def("getMaxEnabledPhase", &nupic::Network::getMaxPhase);
-
-        py_Network.def("initialize", &nupic::Network::initialize);
 
 		py_Network.def("addRegion",
 			(Region_Ptr_t (nupic::Network::*)(
@@ -253,6 +266,17 @@ namespace nupic_ext
 					, py::arg("stream")
 					, py::arg("name") = "");
 
+        py_Network.def("getRegions", &nupic::Network::getRegions)
+            .def("getRegion", &nupic::Network::getRegion)
+            .def("getLinks", &nupic::Network::getLinks)
+            .def("getMinPhase", &nupic::Network::getMinPhase)
+            .def("getMaxPhase", &nupic::Network::getMaxPhase)
+            .def("setMinEnabledPhase", &nupic::Network::getMinPhase)
+            .def("setMaxEnabledPhase", &nupic::Network::getMaxPhase)
+            .def("getMinEnabledPhase", &nupic::Network::getMinPhase)
+            .def("getMaxEnabledPhase", &nupic::Network::getMaxPhase);
+
+        py_Network.def("initialize", &nupic::Network::initialize);
 
 		py_Network.def("addRegionFromBundle", &nupic::Network::addRegionFromBundle
 			, "A function to load a serialized region into a Network framework."
@@ -288,6 +312,7 @@ namespace nupic_ext
 			             [](const std::string& nodeType) {
 				nupic::RegisteredRegionImplPy::unregisterPyRegion(nodeType);
 			});
+		py_Network.def_static("cleanup", &nupic::Network::cleanup);
 
 
 

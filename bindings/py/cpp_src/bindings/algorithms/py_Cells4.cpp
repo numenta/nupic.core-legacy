@@ -213,6 +213,7 @@ namespace nupic_ext
             , py::arg("initFromCpp") = false
             , py::arg("checkSynapseConsistency") = false);
 
+        py_cells4.def("equals", &Cells4_t::equals);
         py_cells4.def("version", &Cells4_t::version);
 
         py_cells4.def("getStatePointers", /*&Cells4_t::getStatePointers*/
@@ -280,6 +281,7 @@ namespace nupic_ext
 
         py_cells4.def("nSynapsesInCell", &Cells4_t::nSynapsesInCell, "Total number of synapses in a given cell (at at given point, changes all the time).");
 
+		py_cells4.def("getCell", &Cells4_t::getCell);
         py_cells4.def("getCellIdx", &Cells4_t::getCellIdx);
 
         py_cells4.def("getSegment", &Cells4_t::getSegment, py::return_value_policy::reference);
