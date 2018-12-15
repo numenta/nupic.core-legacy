@@ -134,7 +134,7 @@ void run() {
       const size_t timeTotal = tAll.getElapsed();
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       #ifdef NDEBUG
-        const size_t CI_avg_time = 15*Timer::getSpeed(); //sec
+        const size_t CI_avg_time = 7*Timer::getSpeed(); //sec
         NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
           "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
       #endif
