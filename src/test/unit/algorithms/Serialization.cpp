@@ -126,40 +126,4 @@ TEST(Serialization, testSP) {
 }
 
 
-
-TEST(serialization, testRandom) {
-	const UInt n=1000;
-  Random r1(7);
-  Random r2;
-
-  nupic::Timer testTimer;
-  testTimer.start();
-  for (UInt i = 0; i < n; ++i) {
-    r1.getUInt32();
-
-    // Serialize
-    ofstream os("random3.stream", ofstream::binary);
-    os << r1;
-    os.flush();
-    os.close();
-
-    // Deserialize
-    ifstream is("random3.stream", ifstream::binary);
-    is >> r2;
-    is.close();
-
-    // Test
-    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
-    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
-    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
-    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
-    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
-  }
-  testTimer.stop();
-
-  remove("random3.stream");
-
-  cout << "Random serialization: " << testTimer.getElapsed() << endl;
-}
-
 } //ns
