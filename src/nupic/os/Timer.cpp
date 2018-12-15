@@ -63,9 +63,9 @@ void Timer::stop() {
 	if (started_)
 	{
 	    const auto diff = my_clock::now() - start_time_;
-	    const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+	    const auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
 
-	    prevElapsed_ += milliseconds.count();
+	    prevElapsed_ += nanoseconds.count();
 
 	    started_ = false;
 	}
@@ -78,12 +78,12 @@ Real64 Timer::getElapsed() const {
 	if (started_)
 	{
 	    const auto diff = my_clock::now() - start_time_;
-	    const auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+	    const auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
 
-	    elapsed += milliseconds.count();
+	    elapsed += nanoseconds.count();
 	}
 
-	return static_cast<Real64>(elapsed) / 1000.0;
+	return static_cast<Real64>(elapsed) / TO_SECONDS;
 }
 
 
