@@ -1892,6 +1892,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
   EXPECT_EQ(0, countNonzero(activeColumns));
 }
 
+
 TEST(SpatialPoolerTest, testSaveLoad) {
   const char *filename = "SpatialPoolerSerialization.tmp";
   SpatialPooler sp1, sp2;
@@ -1970,7 +1971,6 @@ TEST(SpatialPoolerTest, testSerialization2) {
     sp1.compute(input, true, outputBaseline);
 
     // C - Next do old version
-    UInt outputC[numColumns];
     {
       SpatialPooler spTemp;
 
@@ -1982,6 +1982,7 @@ TEST(SpatialPoolerTest, testSerialization2) {
       is.close();
 
       // Feed new record through
+      UInt outputC[numColumns];
       spTemp.compute(input, true, outputC);
 
       // Serialize
@@ -1990,10 +1991,10 @@ TEST(SpatialPoolerTest, testSerialization2) {
       os.close();
 
       testTimer.stop();
-    }
 
-    for (UInt i = 0; i < numColumns; ++i) {
-      EXPECT_EQ(outputBaseline[i], outputC[i]);
+      for (UInt i = 0; i < numColumns; ++i) {
+        EXPECT_EQ(outputBaseline[i], outputC[i]);
+      }
     }
   }
 
