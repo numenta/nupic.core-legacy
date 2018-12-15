@@ -157,5 +157,9 @@ namespace nupic_ext
         });
     }
 
+#ifndef _WIN32
+#pragma GCC diagnostic pop  // for GCC and CLang: resume command-line arguments, ends ignored -Wregister
+#endif
+
 
 } // namespace nupic_ext
