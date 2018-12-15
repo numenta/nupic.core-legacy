@@ -1777,7 +1777,7 @@ TEST(SpatialPoolerTest, getOverlaps) {
   EXPECT_EQ(expectedBoostedOverlaps, boostedOverlaps);
 }
 
-TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
+TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition_AtLeast3Active) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
@@ -1805,7 +1805,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
   EXPECT_EQ(3, countNonzero(activeColumns));
 }
 
-TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
+TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition_B) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
@@ -1833,7 +1833,8 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
   EXPECT_EQ(0, countNonzero(activeColumns));
 }
 
-TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
+
+TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition_B) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
@@ -1860,11 +1861,10 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
 
   // This exact number of active columns is determined by the inhibition
   // radius, which changes based on the random synapses (i.e. weird math).
-  EXPECT_GT(countNonzero(activeColumns), 2u);
-  EXPECT_LT(countNonzero(activeColumns), 10u);
+  EXPECT_EQ(countNonzero(activeColumns), 10u);
 }
 
-TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
+TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition_AtLeast3Active) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
