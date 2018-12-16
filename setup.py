@@ -37,6 +37,7 @@ egginfo = "pip-egg-info"
 __file__ = os.path.join(setupdir, filename)
 
 def replacement_run(self):
+  print("setup.py::replacement_run()\n")
   self.mkpath(self.egg_info)
 
   installer = self.distribution.fetch_build_egg
@@ -50,5 +51,7 @@ def replacement_run(self):
 
   self.find_sources()
 
+print("setup.py: Calling {}\n".format(__file__)
 egg_info.egg_info.run = replacement_run
 execfile(__file__)
+print("setup.py: Exiting top level setup.py\n")

@@ -45,10 +45,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 
-# Make sure we can link against any specified paths.
-###include_directories(SYSTEM ${CMAKE_INCLUDE_PATH})
-
-
 # Determine common toolchain settings, compiler and link flags
 include(CommonCompilerConfig)
 

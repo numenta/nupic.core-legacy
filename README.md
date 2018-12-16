@@ -40,15 +40,18 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
     - Version 3.6+   (work in progress.  The Nupic Python code will need to be upgraded as well before this will be useful.
 - [CMake](http://www.cmake.org/)
 
-### Simple Source Installation On Linix or OSx for Python
+### Simple Source Installation On Linix or OSx for Python apps
 
 
 The easiest way to build from source is as follows. 
 ```
     python setup.py install --user -prefix=
 ```
-This will build everything including the Python extention libraries and install them.
-After that completes you are all set to run your .py programs which import the extentions:
+Note that `--user -prefix=` options will install the extension libaries in ~/.local
+so that you don't need su permissions.
+ 
+This will build everything including the Python extension libraries and install them.
+After that completes you are all set to run your .py programs which import the extensions:
  * nupic.bindings.algorithms
  * nupic.bindings.engine_internal
  * nupic.bindings.math
@@ -56,9 +59,35 @@ After that completes you are all set to run your .py programs which import the e
 The installation scripts will automatically download and build the dependancies it needs.
  * Boost   (Not needed by C++17 compilers that support the filesystem module)
  * Yaml-cpp
+ * Eigen
  * PyBind11
  * gtest
  
+### Simple Source Installation On Linix or OSx for C++ apps
+ 
+After downloading the repository, do the following:
+```
+	cd path-to-repository
+	mkdir -p build/scripts
+	cd build/scripts
+	cmake ../..
+	make install
+```	
+This will build the Nupic.core library without the Python interface. You will find the
+library in `build/Release/lib`. The headers will be in `build/Release/include`.
+
+A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.
+
+### Simple Source Installation On Windows (MS Visual Studio 2017) 
+
+This is a work in progress so not everything works quite yet.
+
+After downloading the repository, do the following:
+ * Double click external/MSVC/startup.bat
+ * Double click build/scripts/nupic.cpp.sln
+ * After Visual Studio starts up, Build everything.
+ 
+
 ### Testing the Installation
 
 Regardless of how you install `nupic.bindings`, the `nupic-bindings-check` command-line script should be installed. Make sure that you include the Python `bin` installation location in your `PATH` environment variable and then execute the script:
