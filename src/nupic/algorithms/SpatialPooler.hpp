@@ -1255,6 +1255,11 @@ protected:
 
   Real minPctOverlapDutyCycles_;
 
+  /*
+   * Each mini-column is represented in the connections class by a single cell.
+   * Each mini-column has a single segment.  Because all of these regularities,
+   * each mini-column's index is also its Cell and Segment index.
+   */
   connections::Connections connections_;
 
   vector<UInt> overlaps_;
