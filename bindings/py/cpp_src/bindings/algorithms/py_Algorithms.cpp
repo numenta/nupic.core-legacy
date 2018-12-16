@@ -26,7 +26,6 @@
 PyBind11 bindings for algorithms classes
 */
 
-#include <vector>
 
 
 #include <bindings/suppress_register.hpp>  //must be before pybind11.h
@@ -34,6 +33,8 @@ PyBind11 bindings for algorithms classes
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+
+#include <vector>
 
 #include <nupic/algorithms/Segment.hpp>
 
