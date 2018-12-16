@@ -324,8 +324,8 @@ namespace nupic_ext
             py::array_t<nupic::UInt32> rows(nnz);
             py::array_t<nupic::UInt32> cols(nnz);
 
-            auto rows_it = (nupic::UInt32*) rows.request().ptr;
-            auto cols_it = (nupic::UInt32*) cols.request().ptr;
+            //auto rows_it = (nupic::UInt32*) rows.request().ptr;
+            //auto cols_it = (nupic::UInt32*) cols.request().ptr;
 
             sbm.getAllNonZeros(get_it(rows), get_it(cols));
 
@@ -596,7 +596,7 @@ namespace nupic_ext
         /////////////////////
         sbm.def("getRow", [](const SM_01_32_32_t& sbm, nupic::UInt32 row)
         {
-            py::array_t<nupic::UInt32> x({ sbm.nCols() });
+            py::array_t<nupic::UInt32> x( sbm.nCols());
             sbm.getRow(row, get_it(x), get_end(x));
 
             return x;
