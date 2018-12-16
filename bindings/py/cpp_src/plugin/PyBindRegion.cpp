@@ -77,11 +77,6 @@ namespace nupic
 
     static void prepareCreationParams(const ValueMap & vm, py::kwargs& kwargs)
     {
-        if (std::distance(vm.begin(), vm.end()) > 1)
-        {
-            int pp = 9;
-        }
-
         ValueMap::const_iterator it;
         for (it = vm.begin(); it != vm.end(); ++it)
         {
@@ -623,12 +618,10 @@ namespace nupic
                         throw Exception(__FILE__, __LINE__, stream.str());
                     }
 
-                    NTA_ASSERT(input.contains("count") != nullptr)
-                        << inputMessagePrefix.str() << "count";
+                    NTA_ASSERT(input.contains("count")) << inputMessagePrefix.str() << "count";
                     auto count = input["count"].cast<UInt32>();
 
-                    NTA_ASSERT(input.contains("required"))
-                        << inputMessagePrefix.str() << "required";
+                    NTA_ASSERT(input.contains("required"))  << inputMessagePrefix.str() << "required";
                     auto required = input["required"].cast<bool>();
 
                     // make regionLevel optional and default to true.
@@ -794,7 +787,7 @@ namespace nupic
                     std::string defaultValue;
                     if (am == "Create")
                     {
-                        NTA_ASSERT(parameter.getItem("defaultValue") != nullptr)
+                        NTA_ASSERT(parameter.contains("defaultValue"))
                             << parameterMessagePrefix.str() << "defaultValue";
                         auto dv = parameter["defaultValue"];
                         defaultValue = dv.attr("__str__").cast<std::string>();
