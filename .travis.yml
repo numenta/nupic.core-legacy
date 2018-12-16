@@ -13,10 +13,10 @@ matrix:
         apt:
           update: true
           sources:
-            - ubuntu-toolchain-r-test
+            - ubuntu-toolchain-r-test  #for gcc-8
           packages:
             - build-essential 
-            - g++-8
+            - gcc-8
             - cmake
             - cmake-data
             - xsltproc #only for doc transform to html , can be removed
