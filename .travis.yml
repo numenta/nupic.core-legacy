@@ -20,7 +20,6 @@ matrix:
             - cmake
             - cmake-data
             - xsltproc #only for doc transform to html , can be removed
-            - python2.7 #update it
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
