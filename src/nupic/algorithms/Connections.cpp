@@ -494,9 +494,13 @@ void Connections::load(std::istream &inStream) {
   // Retrieve simple variables
   UInt numCells;
   inStream >> numCells;
-  inStream >> connectedThreshold_;
+  initialize(numCells);
 
-  initialize(numCells, connectedThreshold_);
+  // Don't give connectedThreshold to initialize because it will modify the
+  // threshold (by subtracting EPSILON) which will then have been done twice:
+  // once when creating the original connections object, and a second time when
+  // loading this new object.
+  inStream >> connectedThreshold_;
 
   // This logic is complicated by the fact that old versions of the Connections
   // serialized "destroyed" segments and synapses, which we now ignore.
