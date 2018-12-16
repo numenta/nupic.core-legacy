@@ -34,7 +34,7 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #include <set>
 
 
-#include <bindings/suppress_register.hpp>  //include before pybind11.h
+//#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
 #include <nupic/engine/RegionImpl.hpp>

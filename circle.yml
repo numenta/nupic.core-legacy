@@ -124,10 +124,7 @@ workflows:
   version: 2
   build-test-deploy:
     jobs:
-      - build
-        #      - deploy-s3:
-        # requires: 
-        #   - build-and-test
+      - build:
           filters:
             branches:
               only: master
