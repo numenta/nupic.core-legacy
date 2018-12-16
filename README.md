@@ -40,15 +40,25 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
     - Version 3.6+   (work in progress.  The Nupic Python code will need to be upgraded as well before this will be useful.
 - [CMake](http://www.cmake.org/)
 
-### Simple Source Installation 
+### Simple Source Installation On Linix or OSx for Python
 
 
 The easiest way to build from source is as follows. 
-
+```
     python setup.py install --user -prefix=
-
-Optionally include `--user` or other flags to determine where the package is installed.
-
+```
+This will build everything including the Python extention libraries and install them.
+After that completes you are all set to run your .py programs which import the extentions:
+ * nupic.bindings.algorithms
+ * nupic.bindings.engine_internal
+ * nupic.bindings.math
+ 
+The installation scripts will automatically download and build the dependancies it needs.
+ * Boost   (Not needed by C++17 compilers that support the filesystem module)
+ * Yaml-cpp
+ * PyBind11
+ * gtest
+ 
 ### Testing the Installation
 
 Regardless of how you install `nupic.bindings`, the `nupic-bindings-check` command-line script should be installed. Make sure that you include the Python `bin` installation location in your `PATH` environment variable and then execute the script:

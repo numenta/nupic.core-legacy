@@ -75,19 +75,16 @@ jobs:
             make install 2>&1 | grep -v -F 'Installing:'
        
       - run:
-           name: Build python bindings
-           command: python setup.py install
-                  #                  mkdir -p dist/include/nupic
-                  #mv build/Release/distr/dist/*.whl dist/
-                  #cp bindings/py/packaging/requirements.txt dist/
-                  #cp build/Release/include/nupic/Version.hpp dist/include/nupic/
+           name: Install Python extension
+           command: python setup.py install --user -prefix=
 
       # Test
       - run:
           name: Running C++ Tests
           command: |
-              mkdir -p tests/cpp
-              ./build/Release/bin/unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+              mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
+              cd ./build/Release/bin
+              ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
       - run:
           name: Running python tests
           command: |
