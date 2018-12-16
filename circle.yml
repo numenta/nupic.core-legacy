@@ -74,9 +74,9 @@ jobs:
             make | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
        
-            - run:
-                name: Build python bindings
-                command: python setup.py install
+      - run:
+           name: Build python bindings
+           command: python setup.py install
                   #                  mkdir -p dist/include/nupic
                   #mv build/Release/distr/dist/*.whl dist/
                   #cp bindings/py/packaging/requirements.txt dist/
@@ -91,8 +91,8 @@ jobs:
       - run:
           name: Running python tests
           command: |
-                  mkdir -p tests/py
-                  py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
+            mkdir -p tests/py
+            py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
 
 
       - store_test_results:

@@ -31,23 +31,21 @@ Some of the major differences between this library and Numenta's extension libra
 
 ## Building from Source
 
+Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
 
 ### Prerequisites
 
-- Python - We recommend you use the system version where possible.
-    - Version 2.7
+- [Python](https://python.org/downloads/)
+    - Version 2.7  We recommend you use the latest 2.7 version where possible. But the system version should be fine.
+    - Version 3.6+   (work in progress.  The Nupic Python code will need to be upgraded as well before this will be useful.
 - [CMake](http://www.cmake.org/)
-- [Boost](https://www.boost.org/users/history/version_1_68_0.html) 
-  - Linux: `apt install libboost-dev`
-  - OSX: `brew install boost --with-filesystem --with-system`
 
-> **Note**: On Windows, Python package dependencies require the following compiler package to be installed: [Microsoft Visual C++ Compiler for Python 2.7](https://www.microsoft.com/en-gb/download/details.aspx?id=44266)
+### Simple Source Installation 
 
-### Simple Source Installation (does not support incremental builds)
 
-The easiest way to build from source is as follows. This does not support incremental builds.
+The easiest way to build from source is as follows. 
 
-    python setup.py install
+    python setup.py install --user -prefix=
 
 Optionally include `--user` or other flags to determine where the package is installed.
 
