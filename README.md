@@ -1,38 +1,40 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# NuPIC Core 
+# NuPIC C++ Core Library
 [![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp)  
 [![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master) 
 [![Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp)
 
-# Community NuPIC.cpp (former nupic.core) repository
+## Community NuPIC.cpp (former nupic.core) repository
 
 This fork is a community version of the `nupic.core` C++ repository with Python bindings. 
-Our aim is to provide actively developed successor to the nupic.core and nupic repositories by Numenta, which are not actively developed anymore. 
+Our aim is to provide an actively developed successor to the nupic.core and nupic repositories by Numenta, 
+which are not actively developed anymore. 
 
-This repository contains the C++ source code for the Numenta Platform for Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). It will eventually contain all algorithms for NuPIC, but is currently in a transition period. For details on building NuPIC within the python environment, please see http://github.com/numenta/nupic.
+This repository contains the C++ source code for the Numenta Platform for 
+Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). 
+It will eventually contain all algorithms for NuPIC, but is currently in a transition period. 
 
-## Installing from a Release
+The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html) 
+with the aim that we don't break .py code written against the numenta's nupic.core extension library if they were to be 
+ran against this extention library.
 
-You can install the `nupic.bindings` Python package from PyPI:
+Some of the major differences between this library and Numenta's extension library are the following:
 
-    pip install nupic.bindings
-
-Optionally include `--user` or other flags to determine where the package is installed.
-
-> **Note**: On Linux this will do a source installation and will require that the prerequisites specified below are installed.
+ * Support for Python 2.7 and Python 3.x (work in progress)
+ * Support for Linux, OSx, and Windows MS Visual Studio 2017
+ * Support for C++11, C++17 (work in progress)
+ * Replaced SWIG with PyBind11 for Python interface.
+ * Removed CapnProto serialization.  It was prevasive and complicated the code considerably. It was replaced 
+ with simple binary streaming serialization.
+ * Many code optimizations.
 
 ## Building from Source
 
-Important notes:
-
- * `$NUPIC_CORE` is the current location of the repository that you downloaded from GitHub.
- * Platform specific Readme.md text files exist in some `external/` subdirectories
- * See the main [wiki](https://github.com/numenta/nupic.core/wiki) for more build notes
 
 ### Prerequisites
 
-- Python - We recommend you use the system version where possibly.
+- Python - We recommend you use the system version where possible.
     - Version 2.7
 - [CMake](http://www.cmake.org/)
 - [Boost](https://www.boost.org/users/history/version_1_68_0.html) 

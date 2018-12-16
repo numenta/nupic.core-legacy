@@ -162,8 +162,6 @@ namespace nupic_ext
 
         py_Region.def("__setattr__", [](Region& r, py::args args)
         {
-            auto num_args = args.size();
-
             for (size_t i = 0; i < args.size(); ++i)
             {
                 auto arg = args[i];
@@ -184,8 +182,6 @@ namespace nupic_ext
 
         py_Region.def("__getattr__", [](const Region& r, py::args args)
         {
-            auto num_args = args.size();
-
             for (size_t i = 0; i < args.size(); ++i)
             {
                 auto arg = args[i];
