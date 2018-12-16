@@ -281,7 +281,7 @@ namespace nupic_ext
         {
             auto overlaps = self.getOverlaps();
 
-            return py::array_t<UInt>({ overlaps.size() }, overlaps.data());
+            return py::array_t<UInt>( overlaps.size(), overlaps.data());
         });
 
         // getBoostedOverlaps
@@ -289,7 +289,7 @@ namespace nupic_ext
         {
             auto overlaps = self.getBoostedOverlaps();
 
-            return py::array_t<Real>({ overlaps.size() }, overlaps.data());
+            return py::array_t<Real>( overlaps.size(), overlaps.data());
         });
 
 
@@ -304,7 +304,7 @@ namespace nupic_ext
 
             self.inhibitColumns_(overlapsVector, activeColumnsVector);
 
-            return py::array_t<UInt>({ activeColumnsVector.size() }, activeColumnsVector.data());
+            return py::array_t<UInt>( activeColumnsVector.size() , activeColumnsVector.data());
         };
 
         py_SpatialPooler.def("_inhibitColumns", inhibitColumns_func);
