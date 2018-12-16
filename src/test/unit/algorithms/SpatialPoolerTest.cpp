@@ -1777,7 +1777,7 @@ TEST(SpatialPoolerTest, getOverlaps) {
   EXPECT_EQ(expectedBoostedOverlaps, boostedOverlaps);
 }
 
-TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition_AtLeast3Active) {
+TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
@@ -1805,7 +1805,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition_AtLeast
   EXPECT_EQ(3, countNonzero(activeColumns));
 }
 
-TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition_B) {
+TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
@@ -1834,7 +1834,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition_B) {
 }
 
 
-TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition_B) {
+TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
@@ -1864,7 +1864,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition_B) {
   EXPECT_EQ(countNonzero(activeColumns), 10u);
 }
 
-TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition_AtLeast3Active) {
+TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
 
