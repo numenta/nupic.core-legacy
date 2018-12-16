@@ -181,11 +181,10 @@ public:
   /**
    * Connections constructor.
    *
-   * @param numCells              Number of cells.
+   * @param numCells           Number of cells.
+   * @param connectedThreshold Permanence value threshold for synapses connected state.
    */
-  Connections(CellIdx numCells);
-
-  Connections(CellIdx numCells, Permanence connectedThreshold);
+  Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f);
 
   virtual ~Connections() {}
 
@@ -193,10 +192,9 @@ public:
    * Initialize connections.
    *
    * @param numCells              Number of cells.
+   * @param connectedThreshold Permanence value threshold for synapses connected state.
    */
-  void initialize(CellIdx numCells);
-
-  void initialize(CellIdx numCells, Permanence connectedThreshold);
+  void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f);
 
   /**
    * Creates a segment on the specified cell.

@@ -16,5 +16,5 @@ Synapse trimming was an optimization which is no longer possible because of an i
 nupic::algorithms::connections::maxPermancence = 1.0f;
 
 * Changed callback ConnectionsEventHandler::onUpdateSynapsePermanence().  Instead of being called
-every time a synapses permanence changes, it is not called when a synapse changes connected state,
+every time a synapses permanence changes, it is now called when a synapse changes connected state,
 IE: it is called when a synapses permanence crosses the connected threshold.
