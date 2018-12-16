@@ -27,8 +27,6 @@ PyBind11 bindings for ArrayAlgo class
 */
 
 
-#include <fstream>
-
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
@@ -36,13 +34,12 @@ PyBind11 bindings for ArrayAlgo class
 #include <pybind11/stl.h>
 
 #include <nupic/math/SparseMatrix.hpp>
-
 #include "bindings/engine/py_utils.hpp"
 
+#include <fstream>
+
 namespace py = pybind11;
-
 typedef nupic::SparseMatrix<nupic::UInt32, nupic::Real32, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real32>> SparseMatrix32_t;
-
 typedef nupic::SparseMatrix<nupic::UInt32, nupic::Real64, nupic::Int32, nupic::Real64, nupic::DistanceToZero<nupic::Real64>> _SparseMatrix64;
 
 namespace nupic_ext

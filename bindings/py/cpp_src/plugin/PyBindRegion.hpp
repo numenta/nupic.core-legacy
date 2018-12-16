@@ -41,7 +41,6 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
 
-
 namespace nupic
 {
     class PyBindRegion : public RegionImpl
