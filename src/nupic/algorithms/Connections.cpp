@@ -117,7 +117,7 @@ Synapse Connections::createSynapse(Segment segment,
   SynapseData &synapseData = synapses_[synapse];
   synapseData.segment = segment;
   synapseData.presynapticCell = presynapticCell;
-  synapseData.permanence = minPermanence - 1; // Start in disconnected state.
+  synapseData.permanence = connectedThreshold_ - 1.0f; // Start in disconnected state.
 
   SegmentData &segmentData = segments_[segment];
   synapseOrdinals_[synapse] = nextSynapseOrdinal_++;
