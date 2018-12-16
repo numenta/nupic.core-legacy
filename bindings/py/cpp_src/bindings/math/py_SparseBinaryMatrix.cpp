@@ -27,8 +27,6 @@ PyBind11 bindings for SparseBinaryMatrix class
 */
 
 
-#include <fstream>
-
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
@@ -43,6 +41,7 @@ PyBind11 bindings for SparseBinaryMatrix class
 
 #include "Matrix.hpp"
 #include "bindings/engine/py_utils.hpp"
+#include <fstream>
 
 namespace py = pybind11;
 
