@@ -29,11 +29,6 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #ifndef NTA_PYBIND_REGION_HPP
 #define NTA_PYBIND_REGION_HPP
 
-#include <string>
-#include <vector>
-#include <set>
-
-
 // the use of 'register' keyword is removed in C++17
 // Python2.7 uses 'register' in unicodeobject.h
 #ifdef _WIN32
@@ -48,6 +43,9 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
 
+#include <string>
+#include <vector>
+#include <set>
 
 namespace nupic
 {

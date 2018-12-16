@@ -64,12 +64,14 @@
 #ifndef NTA_REGISTERED_REGION_IMPL_CPP_HPP
 #define NTA_REGISTERED_REGION_IMPL_CPP_HPP
 
-#include <string>
-#include <nupic/engine/RegisteredRegionImpl.hpp>
-#include <nupic/engine/RegionImplFactory.hpp>
-#include <plugin/PyBindRegion.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
+
+#include <plugin/PyBindRegion.hpp>
+
+#include <nupic/engine/RegisteredRegionImpl.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
+#include <string>
 
 namespace py = pybind11;
 

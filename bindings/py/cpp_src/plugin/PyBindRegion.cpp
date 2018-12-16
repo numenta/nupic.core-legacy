@@ -29,21 +29,14 @@ In this case, the C++ engine is actually calling into the Python code.
 
 #include "PyBindRegion.hpp"
 
-#include <map>
-#include <string>
-#include <vector>
-
-#include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
-#include <nupic/ntypes/Value.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
