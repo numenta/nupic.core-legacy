@@ -29,16 +29,13 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #ifndef NTA_PYBIND_REGION_HPP
 #define NTA_PYBIND_REGION_HPP
 
+
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
-
-#include <string>
-#include <vector>
-#include <set>
 
 namespace nupic
 {
