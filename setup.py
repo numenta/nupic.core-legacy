@@ -51,7 +51,6 @@ def replacement_run(self):
 
   self.find_sources()
 
-print("setup.py: Calling {}\n".format(__file__)
 egg_info.egg_info.run = replacement_run
+print("setup.py: Calling {}\n".format(__file__))
 execfile(__file__)
-print("setup.py: Exiting top level setup.py\n")

@@ -38,6 +38,8 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
 - [Python](https://python.org/downloads/)
     - Version 2.7  We recommend you use the latest 2.7 version where possible. But the system version should be fine.
     - Version 3.6+   (work in progress.  The Nupic Python code will need to be upgraded as well before this will be useful.
+  be sure that your Python executable is in the Path environment variable. The Python that is in your default path is the one
+  that will determine which version of Python the extension library will be built for.
 - [CMake](http://www.cmake.org/)
 
 ### Simple Source Installation On Linix or OSx for Python apps
@@ -88,12 +90,12 @@ After downloading the repository, do the following:
  * After Visual Studio starts up, Build everything.
  
 
-### Testing the Installation
+### Testing the Python Installation
 
-Regardless of how you install `nupic.bindings`, the `nupic-bindings-check` command-line script should be installed. Make sure that you include the Python `bin` installation location in your `PATH` environment variable and then execute the script:
-
+Regardless of how you install `nupic.bindings`, the `nupic-bindings-check` command-line script should be installed. 
+```
     nupic-bindings-check
-
+```
 ### Developer Installation
 
 This option is for developers that would like the ability to do incremental builds of the C++ or for those that are using the C++ libraries directly.
