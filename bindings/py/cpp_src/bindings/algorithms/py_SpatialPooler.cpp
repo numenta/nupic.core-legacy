@@ -304,7 +304,7 @@ namespace nupic_ext
 
             self.inhibitColumns_(overlapsVector, activeColumnsVector);
 
-            return py::array_t<UInt>( activeColumnsVector.size() , activeColumnsVector.data());
+            return py::array_t<UInt>( activeColumnsVector.size(), activeColumnsVector.data());
         };
 
         py_SpatialPooler.def("_inhibitColumns", inhibitColumns_func);

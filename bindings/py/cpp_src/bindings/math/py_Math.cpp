@@ -140,7 +140,7 @@ namespace nupic_ext
                 s[c_i] = std::min(s[c_i], d_i);
             }
 
-            return py::array_t<nupic::Real32>({s.size()}, s.data());
+            return py::array_t<nupic::Real32>(s.size(), s.data());
         });
 
         // inline nupic::Real32 l2_norm(PyObject* py_x)
@@ -150,9 +150,9 @@ namespace nupic_ext
         });
     }
 
-#ifndef _WIN32
-#pragma GCC diagnostic pop  // for GCC and CLang: resume command-line arguments, ends ignored -Wregister
-#endif
+//#ifndef _WIN32
+//#pragma GCC diagnostic pop  // for GCC and CLang: resume command-line arguments, ends ignored -Wregister
+//#endif
 
 
 } // namespace nupic_ext
