@@ -133,7 +133,7 @@ public:
   virtual void onDestroySynapse(Synapse synapse) {}
 
   /**
-   * Called before a synapse's permanence is changed.
+   * Called after a synapse's permanence crosses the connected threshold.
    */
   virtual void onUpdateSynapsePermanence(Synapse synapse,
                                          Permanence permanence) {}
@@ -182,7 +182,8 @@ public:
    * Connections constructor.
    *
    * @param numCells           Number of cells.
-   * @param connectedThreshold Permanence value threshold for synapses connected state.
+   * @param connectedThreshold Permanence threshold for synapses connecting or
+   *                           disconnecting.
    */
   Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f);
 
@@ -191,8 +192,9 @@ public:
   /**
    * Initialize connections.
    *
-   * @param numCells              Number of cells.
-   * @param connectedThreshold Permanence value threshold for synapses connected state.
+   * @param numCells           Number of cells.
+   * @param connectedThreshold Permanence threshold for synapses connecting or
+   *                           disconnecting.
    */
   void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f);
 
