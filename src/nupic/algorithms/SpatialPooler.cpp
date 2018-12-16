@@ -471,10 +471,13 @@ void SpatialPooler::initialize(
   for (Size i = 0; i < numColumns_; ++i) {
     connections_.createSegment( i );
 
+    // Note: initMapPotential_ & initPermanence_ return dense arrays.
     vector<UInt> potential = initMapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
-    for( UInt syn = 0; syn < potential.size(); syn++ )
-      connections_.createSynapse( i, potential[syn], perm[syn] );
+    for(UInt presyn = 0; presyn < numInputs_; presyn++) {
+      if( potential[presyn] )
+        connections_.createSynapse( i, presyn, perm[presyn] );
+    }
 
     connections_.raisePermanencesToThreshold( i, synPermConnected_, stimulusThreshold_ );
   }

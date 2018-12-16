@@ -1861,7 +1861,8 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
 
   // This exact number of active columns is determined by the inhibition
   // radius, which changes based on the random synapses (i.e. weird math).
-  EXPECT_EQ(countNonzero(activeColumns), 10u);
+  EXPECT_GT(countNonzero(activeColumns), 2u);
+  EXPECT_LT(countNonzero(activeColumns), 10u);
 }
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
