@@ -26,14 +26,7 @@
 PyBind11 bindings for Domain class
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
-
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
@@ -69,7 +62,7 @@ namespace nupic_ext
         {
             PyBindTensorIndex bounds(self.rank(), (const nupic::UInt32 *) 0);
             self.getLB(bounds);
-            
+
             return bounds;
         });
 
@@ -85,7 +78,7 @@ namespace nupic_ext
         {
             PyBindTensorIndex bounds(self.rank(), (const nupic::UInt32 *) 0);
             self.getDims(bounds);
-            
+
             return bounds;
         });
 

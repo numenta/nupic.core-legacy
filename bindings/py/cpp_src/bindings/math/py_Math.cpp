@@ -26,15 +26,7 @@
 PyBind11 bindings for Math classes
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-// FIXME for c++17, problematic with gcc-8, disabling for now
-//#ifdef _WIN32
-//#pragma warning( disable : 5033)  // MSVC
-//#else
-//#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-//#endif
-
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
@@ -83,7 +75,7 @@ namespace nupic_ext
 
             return nupic::positive_less_than(get_it(x), get_end(x), eps);
         }, "", py::arg("x"), py::arg("eps") = nupic::Epsilon);
-    
+
 
         m.def("quantize_255", [](py::array_t<nupic::Real32>& x, nupic::Real32 x_min, nupic::Real32 x_max)
         {

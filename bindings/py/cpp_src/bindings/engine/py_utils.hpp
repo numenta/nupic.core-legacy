@@ -25,10 +25,11 @@
  */
 
 /** @file
-Utility functions for PyBind11 bindings 
+Utility functions for PyBind11 bindings
 */
 
 
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
@@ -38,12 +39,12 @@ namespace nupic_ext {
 
     template<typename T> T* get_it(py::array_t<T>& a) { return (T*)a.request().ptr; }
     template<typename T> T* get_end(py::array_t<T>& a) { return ((T*)a.request().ptr) + a.size(); }
-    
+
     template<typename T> T* get_it(py::array& a) { return (T*)a.request().ptr; }
     template<typename T> T* get_end(py::array& a) { return ((T*)a.request().ptr) + a.size(); }
 
-    template<typename T> T* get_row_it(py::array_t<T>& a, int row) 
-    { 
+    template<typename T> T* get_row_it(py::array_t<T>& a, int row)
+    {
         auto buffer_info = a.request();
 
         return (T*)((char*)buffer_info.ptr + (buffer_info.strides[0] * row));

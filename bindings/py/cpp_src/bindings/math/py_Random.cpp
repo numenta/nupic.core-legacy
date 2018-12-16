@@ -26,14 +26,7 @@
 PyBind11 bindings for Random class
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
-
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
@@ -56,6 +49,7 @@ namespace nupic_ext {
         Random.def(py::init<nupic::UInt64>(), py::arg("seed") = 0)
             .def("getUInt32", &Random_t::getUInt32, py::arg("max") = Random_t::MAX32)
             .def("getReal64", &Random_t::getReal64)
+			.def("getSeed", &Random_t::getSeed)
             .def("max", &Random_t::max)
             .def("min", &Random_t::min)
             .def_property_readonly_static("MAX32", [](py::object) {
@@ -113,7 +107,7 @@ namespace nupic_ext {
 
 
         //////////////////
-        // pickle
+        // serialization
         /////////////////
         Random.def(py::pickle(
             [](const Random_t& r)
@@ -136,6 +130,9 @@ namespace nupic_ext {
             return r;
         }
         ));
+
+        Random.def("saveToFile",   &Random_t::saveToFile);
+        Random.def("loadFromFile", &Random_t::loadFromFile);
 
     }
 

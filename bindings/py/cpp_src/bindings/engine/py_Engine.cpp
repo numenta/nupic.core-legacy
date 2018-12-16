@@ -26,14 +26,8 @@
 PyBind11 bindings for Engine classes
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
 
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
 #include <pybind11/operators.h>
@@ -114,7 +108,11 @@ namespace nupic_ext
                 , py::arg("propagationDelay") = 0);
 
         py_Link.def("toString", &Link::toString);
-
+        py_Link.def("getDestRegionName", &Link::getDestRegionName);
+        py_Link.def("getSrcRegionName",  &Link::getSrcRegionName);
+        py_Link.def("getSrcOutputName",  &Link::getSrcOutputName);
+        py_Link.def("getDestInputName",  &Link::getDestInputName);
+        py_Link.def("getLinkType",       &Link::getLinkType);
 
 
 
@@ -230,7 +228,7 @@ namespace nupic_ext
 
         py_Region.def("getOutputArray", [](const Region& self, const std::string& name)
         {
-            auto array_ref = self.getInputData(name);
+            auto array_ref = self.getOutputData(name);
 
             return py::array_t<nupic::Byte>();
         });
@@ -267,14 +265,15 @@ namespace nupic_ext
 					, py::arg("name") = "");
 
         py_Network.def("getRegions", &nupic::Network::getRegions)
-            .def("getRegion", &nupic::Network::getRegion)
-            .def("getLinks", &nupic::Network::getLinks)
-            .def("getMinPhase", &nupic::Network::getMinPhase)
-            .def("getMaxPhase", &nupic::Network::getMaxPhase)
+            .def("getRegion",          &nupic::Network::getRegion)
+            .def("getLinks",           &nupic::Network::getLinks)
+            .def("getMinPhase",        &nupic::Network::getMinPhase)
+            .def("getMaxPhase",        &nupic::Network::getMaxPhase)
             .def("setMinEnabledPhase", &nupic::Network::getMinPhase)
             .def("setMaxEnabledPhase", &nupic::Network::getMaxPhase)
             .def("getMinEnabledPhase", &nupic::Network::getMinPhase)
-            .def("getMaxEnabledPhase", &nupic::Network::getMaxPhase);
+            .def("getMaxEnabledPhase", &nupic::Network::getMaxPhase)
+			.def("run",                &nupic::Network::run);
 
         py_Network.def("initialize", &nupic::Network::initialize);
 
@@ -295,22 +294,16 @@ namespace nupic_ext
 
         // plugin registration
         //     (note: we are re-directing these to static functions on the PyBindRegion class)
+		//     (node: the typeName is "py."+className )
         py_Network.def_static("registerPyRegion",
-		                 [](const std::string& nodeType,
-							const std::string& module) {
-				nupic::RegisteredRegionImplPy::registerPyRegion(nodeType, module, "");
+		                 [](const std::string& module,
+							const std::string& className) {
+				nupic::RegisteredRegionImplPy::registerPyRegion(module, className);
 			});
-		py_Network.def_static("registerPyRegion",
-		                 [](const std::string& nodeType,
-							const std::string& module,
-                            const std::string& className) {
-				nupic::RegisteredRegionImplPy::registerPyRegion(nodeType, module, className);
-			});
-
 
         py_Network.def_static("unregisterPyRegion",
-			             [](const std::string& nodeType) {
-				nupic::RegisteredRegionImplPy::unregisterPyRegion(nodeType);
+			             [](const std::string& typeName) {
+				nupic::RegisteredRegionImplPy::unregisterPyRegion(typeName);
 			});
 		py_Network.def_static("cleanup", &nupic::Network::cleanup);
 

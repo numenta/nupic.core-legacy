@@ -118,7 +118,7 @@ class NetworkTest(unittest.TestCase):
       engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
 
 
-  @pytest.mark.skip(reason="Segfault...another PR")
+#  @pytest.mark.skip(reason="Segfault...another PR")
   def testSimpleTwoRegionNetworkIntrospection(self):
     # Create Network instance
     network = engine.Network()

@@ -162,14 +162,11 @@ namespace nupic
 		* Registers a python region implementation class so that it can be instantiated
 		* when its name is used in a Network::addRegion() call.
 		*
-		* @param nodeType  -- a name for the region implementation type. This is normally
-		*                     the class name prefixed with 'py_' to  avoid name conflicts.
 		* @param className -- the name of the Python class that implements the region.
 		* @param module    -- the module (shared library) in which the class resides.
 		*/
-		inline static void registerPyRegion(const std::string& nodeType,
-									 const std::string& module,
-                                     const std::string& className) {
+		inline static void registerPyRegion(const std::string& module, const std::string& className) {
+		    std::string nodeType = "py." + className;
 			RegisteredRegionImplPy *reg = new RegisteredRegionImplPy(className, module);
 			RegionImplFactory::registerRegion(nodeType, reg);
 		}
@@ -177,7 +174,8 @@ namespace nupic
 		/*
 		  * Removes a region from RegionImplFactory's packages
 		  */
-		inline static void unregisterPyRegion(const std::string nodeType) {
+		inline static void unregisterPyRegion(const std::string& className) {
+		    std::string nodeType = "py." + className;
 			RegionImplFactory::unregisterRegion(nodeType);
 		}
 

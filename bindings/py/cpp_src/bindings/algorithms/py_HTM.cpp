@@ -26,14 +26,8 @@
 PyBind11 bindings for HTM class
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
 
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
@@ -88,7 +82,7 @@ namespace nupic_ext
             // __getstate__
             std::ostringstream os;
             //s << self.persistentSize();
-            
+
             os.flags(std::ios::scientific);
             os.precision(std::numeric_limits<double>::digits10 + 1);
 
@@ -126,7 +120,7 @@ namespace nupic_ext
         }, "Perform one time step of the Temporal Memory algorithm."
             , py::arg("activeColumns"), py::arg("learn") = true);
 
-        py_HTM.def("getActiveCells", [](const HTM_t& self) 
+        py_HTM.def("getActiveCells", [](const HTM_t& self)
         {
             auto activeCells = self.getActiveCells();
 

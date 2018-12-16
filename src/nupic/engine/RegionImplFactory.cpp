@@ -67,9 +67,7 @@ void RegionImplFactory::registerRegion(const std::string& nodeType, RegisteredRe
                   << "different name.";
 	}
   } else {
-    std::shared_ptr<RegisteredRegionImpl> reg(wrapper);
-
-  	instance.regionTypeMap[nodeType] = reg;
+    instance.addRegionType(nodeType, wrapper);
   }
 }
 
@@ -88,16 +86,21 @@ RegionImplFactory &RegionImplFactory::getInstance() {
   // Initialize the Built-in Regions
   if (instance.regionTypeMap.empty()) {
     // Create internal C++ regions
-	instance.registerRegion("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
-    instance.registerRegion("TestNode",           new RegisteredRegionImplCpp<TestNode>());
-    instance.registerRegion("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
-    instance.registerRegion("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
+
+	instance.addRegionType("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
+    instance.addRegionType("TestNode",           new RegisteredRegionImplCpp<TestNode>());
+    instance.addRegionType("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
+    instance.addRegionType("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
 
   }
 
   return instance;
 }
 
+void RegionImplFactory::addRegionType(const std::string nodeType, RegisteredRegionImpl* wrapper) {
+	std::shared_ptr<RegisteredRegionImpl> reg(wrapper);
+  	regionTypeMap[nodeType] = reg;
+}
 
 
 RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,

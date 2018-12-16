@@ -26,14 +26,8 @@
 PyBind11 bindings for SDRClassifier class
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
 
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
@@ -60,7 +54,7 @@ namespace nupic_ext
 
         py_SDR_Classifier.def("convertedCompute", [](SDRClassifier& self, UInt recordNum, const std::vector<UInt>& patternNZ,
             const std::vector<UInt>& bucketIdxList,
-            const std::vector<Real64>& actValueList, 
+            const std::vector<Real64>& actValueList,
             bool category, bool learn, bool infer)
         {
             ClassifierResult result;

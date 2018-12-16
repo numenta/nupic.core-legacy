@@ -61,6 +61,7 @@ namespace nupic
     {
         switch (a.getType())
         {
+        case NTA_BasicType_Bool: { return py::array({ a.getCount() }, { sizeof(bool) }, (bool*)a.getBuffer(), py::capsule(a.getBuffer())); }
         case NTA_BasicType_Byte: { return py::array({ a.getCount() }, { sizeof(Byte) }, (Byte*)a.getBuffer(), py::capsule(a.getBuffer())); }
         case NTA_BasicType_Int16: { return py::array({ a.getCount() }, { sizeof(Int16) }, (Int16*)a.getBuffer(), py::capsule(a.getBuffer())); }
         case NTA_BasicType_UInt16: { return py::array({ a.getCount() }, { sizeof(UInt16) }, (UInt16*)a.getBuffer(), py::capsule(a.getBuffer())); }
@@ -654,6 +655,11 @@ namespace nupic
                     {
                         requireSplitterMap = input["requireSplitterMap"].cast<bool>();
                     }
+					bool sparse = false;
+					if (input.contains("sparse"))
+					{
+						sparse = input["sparse"].cast<bool>();
+					}
 
                     ns.inputs.add(
                         name,
@@ -664,7 +670,8 @@ namespace nupic
                             required,
                             regionLevel,
                             isDefaultInput,
-                            requireSplitterMap));
+                            requireSplitterMap,
+							sparse));
                 }
             }
 
@@ -716,6 +723,12 @@ namespace nupic
                         << outputMessagePrefix.str() << "isDefaultOutput";
                     bool isDefaultOutput = output["isDefaultOutput"].cast<bool>();
 
+					bool sparse = false;
+					if (output.contains("sparse"))
+					{
+						sparse = output["sparse"].cast<bool>();
+					}
+
                     ns.outputs.add(
                         name,
                         OutputSpec(
@@ -723,7 +736,8 @@ namespace nupic
                             dataType,
                             count,
                             regionLevel,
-                            isDefaultOutput));
+                            isDefaultOutput,
+							sparse));
                 }
             }
 

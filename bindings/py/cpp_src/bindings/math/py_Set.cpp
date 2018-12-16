@@ -26,14 +26,7 @@
 PyBind11 bindings for Set class
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
-
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/iostream.h>
 #include <pybind11/numpy.h>
@@ -73,7 +66,7 @@ namespace nupic_ext
             self.construct(m, static_cast<UInt32>(a.shape(0)), get_it(a));
         });
 
-        // 
+        //
         // inline nupic::UInt32 intersection(PyObject* py_s2, PyObject* py_r) const
         py_Set.def("intersection", [](const Set_t& self, py::array_t<nupic::UInt32>& s2, py::array_t<nupic::UInt32>& r)
         {

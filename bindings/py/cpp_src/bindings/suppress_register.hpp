@@ -23,39 +23,16 @@
  */
 
 /** @file
-PyBind11 bindings for Timer class
+Suppress warnings about register keyword.
 */
 
+// the use of 'register' keyword is removed in C++17
+// Python2.7 uses 'register' in unicodeobject.h
+// pybind11.h includes python.h which includes unicodeobject.h
 
-#include <bindings/suppress_register.hpp>  //include before pybind11.h
-#include <pybind11/pybind11.h>
-#include <pybind11/iostream.h>
-#include <pybind11/numpy.h>
-#include <pybind11/stl.h>
+//#ifdef _WIN32
+//#pragma warning( disable : 5033)  // MSVC
+//#else
+//#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
+//#endif
 
-#include <nupic/os/Timer.hpp>
-
-namespace py = pybind11;
-using namespace nupic;
-namespace nupic_ext {
-
-
-    void init_Timer(py::module& m)
-    {
-        py::class_<Timer> py_Timer(m, "Timer");
-
-        py_Timer.def(py::init<bool>(), py::arg("startme") = false);
-
-        py_Timer.def("start", &Timer::start);
-        py_Timer.def("stop", &Timer::stop);
-        py_Timer.def("elapsed", &Timer::getElapsed);
-        py_Timer.def("reset", &Timer::reset);
-        py_Timer.def("startCount", &Timer::getStartCount);
-        py_Timer.def("isStarted", &Timer::isStarted);
-        py_Timer.def("toString", &Timer::toString);
-
-        py_Timer.def("__str__", &Timer::toString);
-
-    }
-
-} // namespace nupic_ext

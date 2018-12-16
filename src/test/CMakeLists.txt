@@ -147,7 +147,7 @@ set(src_executable_gtests
 add_executable(${unit_tests_executable} ${src_executable_gtests})
 target_link_libraries(${unit_tests_executable} 
     ${core_library}
-    gtest
+    ${gtest_LIBRARIES}
     ${COMMON_OS_LIBS}
 )
 target_include_directories(${unit_tests_executable} PRIVATE 

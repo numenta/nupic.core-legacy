@@ -26,14 +26,8 @@
 PyBind11 Module for engine classes
 */
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
 
+#include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
@@ -45,7 +39,7 @@ namespace nupic_ext
     void init_OS(py::module&);
 } // namespace nupic_ext
 
-using namespace nupic_ext; 
+using namespace nupic_ext;
 
 PYBIND11_MODULE(engine_internal, m) {
     m.doc() = "nupic.core.engine plugin"; // optional module docstring
