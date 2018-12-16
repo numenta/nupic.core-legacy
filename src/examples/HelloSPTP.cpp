@@ -49,7 +49,7 @@ void run() {
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt CELLS = 10; // cells per column in TP
-  const UInt EPOCHS = 1000; // number of iterations (calls to SP/TP compute() )
+  const UInt EPOCHS = 5000; // number of iterations (calls to SP/TP compute() )
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
   		<< ", DIM=" << COLS << ", CELLS=" << CELLS << std::endl;
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
@@ -115,6 +115,8 @@ void run() {
 
     // print
     if (e == EPOCHS - 1) {
+      tAll.stop();
+
       cout << "Epoch = " << e << endl;
       cout << "Anomaly = " << res << endl;
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(outSP), ",", "SP= ");
@@ -128,16 +130,16 @@ void run() {
       cout << "SP:\t" << tSP.getElapsed() << endl;
       cout << "TP:\t" << tTP.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
-    }
-  }
 
-  tAll.stop();
-  const size_t timeTotal = tAll.getElapsed();
-  cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
-#ifdef NDEBUG
-  const size_t CI_avg_time = 45; //sec
-  NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
-	  "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
-#endif
-}
+      const size_t timeTotal = tAll.getElapsed();
+      cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
+      #ifdef NDEBUG
+        const size_t CI_avg_time = 7*Timer::getSpeed(); //sec
+        NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
+          "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
+      #endif
+    }
+  } //end for
+
+} //end run()
 } //-ns

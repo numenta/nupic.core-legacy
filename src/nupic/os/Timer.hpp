@@ -95,15 +95,16 @@ private:
   typedef std::chrono::high_resolution_clock my_clock;
   my_clock::time_point start_time_;
 
-  // time in milliseconds
-  UInt64 prevElapsed_; // total time as of last stop() (in msec)
-  UInt64 start_;       // time that start() was called (in msec)
+  // time in nanoseconds
+  UInt64 prevElapsed_; // total time as of last stop() (in ns)
+  UInt64 start_;       // time that start() was called (in ns)
   UInt64 nstarts_;     // number of times start() was called
   bool started_;       // true if was started
+  const Real64 TO_SECONDS = 1000000000.0; // ns to sec conversion
 
 }; // class Timer
 
-static Real SPEED = -1; //uninitialized, for getSpeed() 
+static Real64 SPEED = -1; //uninitialized, for getSpeed()
 
 } // namespace nupic
 
