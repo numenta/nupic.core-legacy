@@ -467,15 +467,15 @@ namespace nupic_ext
                 cpp_confidenceT, cpp_confidenceT1);
 
             return py::make_tuple(
-                py::array_t<nupic::UInt32>({ nCells }, (nupic::UInt32*) cpp_activeT)
-                , py::array_t<nupic::UInt32>({ nCells }, (nupic::UInt32*) cpp_activeT1)
-                , py::array_t<nupic::UInt32>({ nCells }, (nupic::UInt32*) cpp_predT)
-                , py::array_t<nupic::UInt32>({ nCells }, (nupic::UInt32*) cpp_predT1)
+                py::array_t<nupic::UInt32>( nCells , (nupic::UInt32*) cpp_activeT)
+                , py::array_t<nupic::UInt32>( nCells , (nupic::UInt32*) cpp_activeT1)
+                , py::array_t<nupic::UInt32>( nCells , (nupic::UInt32*) cpp_predT)
+                , py::array_t<nupic::UInt32>( nCells , (nupic::UInt32*) cpp_predT1)
 
-                , py::array_t<nupic::Real>({ nColumns }, cpp_colConfidenceT)
-                , py::array_t<nupic::Real>({ nColumns }, cpp_colConfidenceT1)
-                , py::array_t<nupic::Real>({ nColumns }, cpp_confidenceT)
-                , py::array_t<nupic::Real>({ nColumns }, cpp_confidenceT1)
+                , py::array_t<nupic::Real>( nColumns , cpp_colConfidenceT)
+                , py::array_t<nupic::Real>( nColumns , cpp_colConfidenceT1)
+                , py::array_t<nupic::Real>( nColumns , cpp_confidenceT)
+                , py::array_t<nupic::Real>( nColumns , cpp_confidenceT1)
             );
         });
 
@@ -496,14 +496,14 @@ namespace nupic_ext
                 cpp_confidenceT, cpp_confidenceT1);
 
             return py::make_tuple(py::array_t<nupic::Byte>({ nCells }, cpp_activeT)
-                , py::array_t<nupic::Byte>({ nCells }, cpp_activeT1)
-                , py::array_t<nupic::Byte>({ nCells }, cpp_predT)
-                , py::array_t<nupic::Byte>({ nCells }, cpp_predT1)
+                , py::array_t<nupic::Byte>( nCells, cpp_activeT1)
+                , py::array_t<nupic::Byte>( nCells, cpp_predT)
+                , py::array_t<nupic::Byte>( nCells, cpp_predT1)
 
-                , py::array_t<nupic::Real>({ nColumns }, cpp_colConfidenceT)
-                , py::array_t<nupic::Real>({ nColumns }, cpp_colConfidenceT1)
-                , py::array_t<nupic::Real>({ nColumns }, cpp_confidenceT)
-                , py::array_t<nupic::Real>({ nColumns }, cpp_confidenceT1)
+                , py::array_t<nupic::Real>( nColumns, cpp_colConfidenceT)
+                , py::array_t<nupic::Real>( nColumns, cpp_colConfidenceT1)
+                , py::array_t<nupic::Real>( nColumns, cpp_confidenceT)
+                , py::array_t<nupic::Real>( nColumns, cpp_confidenceT1)
                 );
 
         });
@@ -520,9 +520,9 @@ namespace nupic_ext
 
 
             return py::make_tuple(py::array_t<nupic::Byte>({ nCells }, cpp_activeT)
-                , py::array_t<nupic::Byte>({ nCells }, cpp_activeT1)
-                , py::array_t<nupic::Byte>({ nCells }, cpp_predT)
-                , py::array_t<nupic::Byte>({ nCells }, cpp_predT1)
+                , py::array_t<nupic::Byte>( nCells, cpp_activeT1)
+                , py::array_t<nupic::Byte>( nCells, cpp_predT)
+                , py::array_t<nupic::Byte>( nCells, cpp_predT1)
             );
         });
 
