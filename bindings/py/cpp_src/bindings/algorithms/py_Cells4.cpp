@@ -451,7 +451,7 @@ namespace nupic_ext
             );
         });
 
-        py_cells4.def("setStatePointers", [](const Cells4_t& self)
+        py_cells4.def("getStatePointers", [](const Cells4_t& self)
         {
             nupic::UInt32 nCells = self.nCells();
             nupic::UInt32 nColumns = self.nColumns();
@@ -495,7 +495,7 @@ namespace nupic_ext
                 cpp_colConfidenceT, cpp_colConfidenceT1,
                 cpp_confidenceT, cpp_confidenceT1);
 
-            return py::make_tuple(py::array_t<nupic::Byte>({ nCells }, cpp_activeT)
+            return py::make_tuple(py::array_t<nupic::Byte>( nCells , cpp_activeT)
                 , py::array_t<nupic::Byte>( nCells, cpp_activeT1)
                 , py::array_t<nupic::Byte>( nCells, cpp_predT)
                 , py::array_t<nupic::Byte>( nCells, cpp_predT1)
@@ -519,7 +519,7 @@ namespace nupic_ext
             self.getLearnStatePointers(cpp_activeT, cpp_activeT1, cpp_predT, cpp_predT1);
 
 
-            return py::make_tuple(py::array_t<nupic::Byte>({ nCells }, cpp_activeT)
+            return py::make_tuple(py::array_t<nupic::Byte>( nCells , cpp_activeT)
                 , py::array_t<nupic::Byte>( nCells, cpp_activeT1)
                 , py::array_t<nupic::Byte>( nCells, cpp_predT)
                 , py::array_t<nupic::Byte>( nCells, cpp_predT1)
