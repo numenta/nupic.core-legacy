@@ -124,42 +124,42 @@ namespace nupic_ext
         {
             auto activeCells = self.getActiveCells();
 
-            return py::array_t<nupic::UInt32>({ activeCells.size() }, activeCells.data());
+            return py::array_t<nupic::UInt32>(activeCells.size(), activeCells.data());
         });
 
         py_HTM.def("getPredictiveCells", [](const HTM_t& self)
         {
             auto predictiveCells = self.getPredictiveCells();
 
-            return py::array_t<nupic::UInt32>({ predictiveCells.size() }, predictiveCells.data());
+            return py::array_t<nupic::UInt32>(predictiveCells.size(), predictiveCells.data());
         });
 
         py_HTM.def("getWinnerCells", [](const HTM_t& self)
         {
             auto winnerCells = self.getWinnerCells();
 
-            return py::array_t<nupic::UInt32>({ winnerCells.size() }, winnerCells.data());
+            return py::array_t<nupic::UInt32>(winnerCells.size(), winnerCells.data());
         });
 
         py_HTM.def("getActiveSegments", [](const HTM_t& self)
         {
             auto activeSegments = self.getActiveSegments();
 
-            return py::array_t<nupic::UInt32>({ activeSegments.size() }, activeSegments.data());
+            return py::array_t<nupic::UInt32>(activeSegments.size(), activeSegments.data());
         });
 
         py_HTM.def("getMatchingSegments", [](const HTM_t& self)
         {
             auto matchingSegments = self.getMatchingSegments();
 
-            return py::array_t<nupic::UInt32>({ matchingSegments.size() }, matchingSegments.data());
+            return py::array_t<nupic::UInt32>(matchingSegments.size(), matchingSegments.data());
         });
 
         py_HTM.def("cellsForColumn", [](HTM_t& self, UInt columnIdx)
         {
             auto cells = self.cellsForColumn(columnIdx);
 
-            return py::array_t<nupic::UInt32>({ cells.size() }, cells.data());
+            return py::array_t<nupic::UInt32>(cells.size(), cells.data());
         });
 
         py_HTM.def("convertedActivateCells", [](HTM_t& self, py::array_t<nupic::UInt32>& activeColumns, bool learn)
@@ -174,6 +174,5 @@ namespace nupic_ext
         }, "", py::arg("activeColumns"), py::arg("learn") = true);
 
     }
-
 
 } // namespace nupic_ext
