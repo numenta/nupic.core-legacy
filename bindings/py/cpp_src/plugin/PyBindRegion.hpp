@@ -29,14 +29,6 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #ifndef NTA_PYBIND_REGION_HPP
 #define NTA_PYBIND_REGION_HPP
 
-// the use of 'register' keyword is removed in C++17
-// Python2.7 uses 'register' in unicodeobject.h
-#ifdef _WIN32
-#pragma warning( disable : 5033)  // MSVC
-#else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-#endif
-
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
