@@ -1734,7 +1734,7 @@ namespace nupic_ext
 
         sm.def("rightVecSumAtNZGtThreshold", [](const SparseMatrix32_t& sm, py::array_t<nupic::Real32>& denseArray, nupic::Real32 threshold)
         {
-            py::array_t<nupic::Real32> out({ sm.nRows() });
+            py::array_t<nupic::Real32> out( sm.nRows() );
 
             sm.rightVecSumAtNZGtThreshold(get_it(denseArray), get_it(out), threshold);
 
@@ -1765,7 +1765,7 @@ namespace nupic_ext
 
         sm.def("rightVecSumAtNZGtThresholdSparse", [](const SparseMatrix32_t& sm, py::array_t<nupic::UInt32>& sparseBinaryArray, nupic::Real32 threshold)
         {
-            py::array_t<nupic::Int32> out({ sm.nRows() });
+            py::array_t<nupic::Int32> out( sm.nRows());
 
             sm.rightVecSumAtNZGtThresholdSparse(get_it(sparseBinaryArray), get_end(sparseBinaryArray), get_it(out), threshold);
 
@@ -1787,7 +1787,7 @@ namespace nupic_ext
 
         sm.def("rightVecSumAtNZGteThreshold", [](const SparseMatrix32_t& sm, py::array_t<nupic::Real32>& denseArray, nupic::Real32 threshold)
         {
-            py::array_t<nupic::Real32> out({ sm.nRows() });
+            py::array_t<nupic::Real32> out( sm.nRows() );
 
             sm.rightVecSumAtNZGteThreshold(get_it(denseArray), get_it(out), threshold);
 
@@ -1809,7 +1809,7 @@ namespace nupic_ext
 
         sm.def("rightVecSumAtNZGteThresholdSparse", [](const SparseMatrix32_t& sm, py::array_t<nupic::UInt32>& sparseBinaryArray, nupic::Real32 threshold)
         {
-            py::array_t<nupic::Int32> out({ sm.nRows() });
+            py::array_t<nupic::Int32> out( sm.nRows() );
 
             sm.rightVecSumAtNZGteThresholdSparse(get_it(sparseBinaryArray), get_end(sparseBinaryArray), get_it(out), threshold);
 
