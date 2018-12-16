@@ -35,4 +35,4 @@ Suppress warnings about register keyword.
 //#else
 //#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
 //#endif
-
+#include <Python.h>

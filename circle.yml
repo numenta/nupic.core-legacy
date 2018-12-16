@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  build-and-test:
     macos:
       xcode: '9.0.1'
     working_directory: ~/numenta/nupic.core
@@ -124,7 +124,4 @@ workflows:
   version: 2
   build-test-deploy:
     jobs:
-      - build:
-          filters:
-            branches:
-              only: master
+      - build-and-test
