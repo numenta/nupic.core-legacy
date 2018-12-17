@@ -90,9 +90,7 @@ jobs:
               ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
       - run:
           name: Running python tests
-          command: |
-            mkdir -p tests/py
-            py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
+          command: python setup.py test
 
 
       - store_test_results:
