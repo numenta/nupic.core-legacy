@@ -122,4 +122,23 @@ If you get no error then python is able to load the nupic extension libraries.
 There are two sets of unit tests.
  * C++ Unit tests -- to run: `cd build/Release/bin; ./unit_tests`
  * Python Unit tests -- to run: `python setup.py test`
+### Using graphical interface
+
+#### Generate the IDE solution:
+
+ * Open CMake executable.
+ * Specify the source folder (`$NUPIC_CORE/src`).
+ * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
+ * Click `Generate`.
+ * Choose the IDE that interest you (remember that IDE choice is limited to your OS, i.e. Visual Studio is available only on CMake for Windows).
+
+#### Build:
+
+ * Open `nupic_core.*proj` solution file generated on `$NUPIC_CORE/build/scripts`.
+ * Run `ALL_BUILD` project from your IDE.
+
+#### Run the tests:
+
+ * Run any `tests_*` project from your IDE (check `output` panel to see the results).
+
 
