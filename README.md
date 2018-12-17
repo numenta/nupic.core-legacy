@@ -47,9 +47,9 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
 
 The easiest way to build from source is as follows. 
 ```
-    python setup.py install --user -prefix=
+    python setup.py install --user --prefix=
 ```
-Note that `--user -prefix=` options will install the extension libaries in ~/.local
+Note that `--user --prefix=` options will install the extension libaries in ~/.local
 so that you don't need su permissions.
  
 This will build everything including the Python extension libraries and install them.
