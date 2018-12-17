@@ -17,7 +17,7 @@ It will eventually contain all algorithms for NuPIC, but is currently in a trans
 
 The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html) 
 with the aim that we don't break .py code written against the numenta's nupic.core extension library if they were to be 
-ran against this extention library.
+ran against this extention library. If you are porting your code to this codebase, please review [API Changelog](API_CHANGELOG.md).
 
 Some of the major differences between this library and Numenta's extension library are the following:
 
@@ -42,7 +42,7 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
   that will determine which version of Python the extension library will be built for.
 - [CMake](http://www.cmake.org/)
 
-### Simple Source Installation On Linix or OSx for Python apps
+### Simple Source Installation On Linux or OSX for Python apps
 
 
 The easiest way to build from source is as follows. 
@@ -67,7 +67,7 @@ The installation scripts will automatically download and build the dependancies 
  * numpy
  * pytest
  
-### Simple Source Installation On Linix or OSx for C++ apps
+### Simple Source Installation On Linux or OSX for C++ apps
  
 After downloading the repository, do the following:
 ```
