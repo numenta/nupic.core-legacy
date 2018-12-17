@@ -11,11 +11,27 @@ This fork is a community version of the `nupic.core` C++ repository with Python 
 Our aim is to provide an actively developed successor to the nupic.core and nupic repositories by Numenta, 
 which are not actively developed anymore. 
 
+
+### Our goals
+
+- actively developed C++ core library for HTM/nupic.core (Numenta's repos are in maintanance mode only)
+- clean & lean, fast, modern codebase (dependency removal, c++11/17, modernized code, faster)
+- API-compatibility with Numenta's code *)
+- open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful), new features include: 
+  - Anomaly Likelihood
+  - BacktrackingTM
+  - much faster Spatial pooler implementation (runs on Connections)
+- stable and well tested code
+- easier portability to new platforms (due to removal of custom code (ASM,..) and reliance of C++ standardized features) 
+- [modularity](bindings/py/README.md) through bindings to the core library
+  - ie. python bindings in bindings/py 
+
+
 This repository contains the C++ source code for the Numenta Platform for 
 Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)). 
 It will eventually contain all algorithms for NuPIC, but is currently in a transition period. 
 
-The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html) 
+\*) The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html) 
 with the aim that we don't break .py code written against the numenta's nupic.core extension library if they were to be 
 ran against this extention library. If you are porting your code to this codebase, please review [API Changelog](API_CHANGELOG.md).
 
@@ -27,7 +43,9 @@ Some of the major differences between this library and Numenta's extension libra
  * Replaced SWIG with PyBind11 for Python interface.
  * Removed CapnProto serialization.  It was prevasive and complicated the code considerably. It was replaced 
  with simple binary streaming serialization.
- * Many code optimizations.
+ * Many code optimizations, modernization
+ * Modular structure
+ * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
 
 ## Building from Source
 
