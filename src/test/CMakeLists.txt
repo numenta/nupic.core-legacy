@@ -34,6 +34,7 @@ message(STATUS "Configuring nupic_core tests")
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug 
 
 
+
 #  Build unit_tests
 set(unit_tests_executable unit_tests)
 
@@ -139,23 +140,16 @@ set(src_executable_gtests
 add_executable(${unit_tests_executable} ${src_executable_gtests})
 target_link_libraries(${unit_tests_executable} 
     ${core_library}
-    gtest
+    ${gtest_LIBRARIES}
     ${COMMON_OS_LIBS}
-#TODO: Do we need this?  Does not go here.
-#    -OPT:NOREF
 )
-
-# Provide a string variant of the INTERNAL_LINKER_FLAGS list
-set(flags)
-foreach(flag_item ${INTERNAL_LINKER_FLAGS})
-  set(flags "${flags} ${flag_item}")
-endforeach()
-
-target_include_directories(${unit_tests_executable} PRIVATE ${gtest_INCLUDE_DIR})
+target_include_directories(${unit_tests_executable} PRIVATE 
+	${gtest_INCLUDE_DIR}
+	${CORE_LIB_INCLUDES}
+	${EXTERNAL_INCLUDES})
 target_compile_definitions(${unit_tests_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_compile_options(${unit_tests_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
-
-set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${flags}")
+set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
 add_dependencies(${unit_tests_executable} ${core_library} gtest)
 
 # Create the RUN_TESTS target

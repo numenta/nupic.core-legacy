@@ -463,8 +463,8 @@ Path operator+(const Path & p1, const std::string & p2) { return Path(std::strin
 * /
 std::string Path::getExecutablePath()
 {
-  boost::system::error_code ec;
-  boost::filesystem::path p = boost::dll::program_location(ec);
+  er::error_code ec;
+  er::path p = boost::dll::program_location(ec);
   NTA_CHECK(!ec) << "Path::getExecutablePath() Fail. " << ec.message();
   return p.string();
 }

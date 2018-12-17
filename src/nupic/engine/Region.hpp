@@ -146,14 +146,6 @@ public:
    */
   static const Spec *getSpecFromType(const std::string &nodeType);
 
-  /*
-   * Adds a cpp region to the RegionImplFactory's packages
-   */
-  static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper);
-  /*
-   * Removes a cpp region from the RegionImplFactory's packages
-   */
-  static void unregisterRegion(const std::string name);
 
   /**
    * @}

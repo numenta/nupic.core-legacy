@@ -3188,6 +3188,10 @@ inline nupic::UInt32 count_gt(nupic::Real32 *begin, nupic::Real32 *end,
     return (int)count;
 
 #else
+    UNUSED(count);
+    UNUSED(n0);
+    UNUSED(n2);
+
     return (int)std::count_if(begin, end, std::bind(std::greater<nupic::Real32>(), _1, threshold));
 #endif
   } else {
