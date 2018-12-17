@@ -29,8 +29,8 @@
 
 #include <iostream>
 #include <vector>
-#include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/math/SparseMatrix.hpp>
+#include <iomanip> // std::setprecision
+#include <nupic/algorithms/Connections.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/ntypes/Sdr.hpp>
@@ -632,14 +632,6 @@ public:
   @returns real number of the max permanence amount.
   */
   Real getSynPermMax() const;
-  /**
-  Sets the maximum permanence amount a synapse can
-  achieve.
-
-  @param synPermCMax real number of the maximum permanence
-  amount that a synapse can achieve.
-  */
-  void setSynPermMax(Real synPermMax);
 
   /**
   Returns the minimum tolerated overlaps, given as percent of
@@ -1250,8 +1242,6 @@ protected:
   bool wrapAround_;
   UInt updatePeriod_;
 
-  Real synPermMin_ = 0.0f;
-  Real synPermMax_ = 1.0f; //TODO set in initialize(), somehow OSX does not set that?!
   Real synPermInactiveDec_;
   Real synPermActiveInc_;
   Real synPermBelowStimulusInc_;
@@ -1265,10 +1255,12 @@ protected:
 
   Real minPctOverlapDutyCycles_;
 
-  SparseMatrix<UInt, Real, Int, Real64> permanences_;
-  SparseBinaryMatrix<UInt, UInt> potentialPools_;
-  SparseBinaryMatrix<UInt, UInt> connectedSynapses_;
-  vector<UInt> connectedCounts_;
+  /*
+   * Each mini-column is represented in the connections class by a single cell.
+   * Each mini-column has a single segment.  Because all of these regularities,
+   * each mini-column's index is also its Cell and Segment index.
+   */
+  connections::Connections connections_;
 
   vector<UInt> overlaps_;
   vector<Real> overlapsPct_;

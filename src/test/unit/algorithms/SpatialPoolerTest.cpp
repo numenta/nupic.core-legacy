@@ -30,15 +30,18 @@
 
 #include "gtest/gtest.h"
 #include <nupic/algorithms/SpatialPooler.hpp>
+
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/os/Timer.hpp>
+
+namespace testing {
 
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 
-namespace {
 UInt countNonzero(const vector<UInt> &vec) {
   UInt count = 0;
 
@@ -254,6 +257,7 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
+    sp.setPotential(i, vector<UInt>(numInputs, 1).data());
     Real permArr[] = {1, 1, 1};
     sp.setPermanence(i, permArr);
   }
@@ -274,6 +278,7 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
+    sp.setPotential(i, vector<UInt>(numInputs, 1).data());
     Real permArr[] = {1, 0, 0, 0, 0};
     if (i % 2 == 0) {
       permArr[0] = 0;
@@ -296,6 +301,7 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
+    sp.setPotential(i, vector<UInt>(numInputs, 1).data());
     Real permArr[] = {1, 1, 0, 0, 0};
     sp.setPermanence(i, permArr);
   }
@@ -606,6 +612,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D) {
   UInt numInputs = 8;
   setup(sp, numInputs, numColumns);
 
+  vector<UInt> potential(numInputs, 1);
   Real permArr[9][8] = {{0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 0, 1, 0, 0, 0, 1},
                         {0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 1, 0, 0, 0, 1, 0},
                         {0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 1, 0, 0, 0, 0, 0},
@@ -615,6 +622,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D) {
   UInt trueAvgConnectedSpan[9] = {7, 5, 1, 5, 0, 2, 3, 3, 8};
 
   for (UInt i = 0; i < numColumns; i++) {
+    sp.setPotential(i, potential.data());
     sp.setPermanence(i, permArr[i]);
     UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == trueAvgConnectedSpan[i]);
@@ -628,6 +636,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   UInt numInputs = 20;
 
   vector<UInt> colDim, inputDim;
+  vector<UInt> potential1(numInputs, 1);
   Real permArr1[7][20] = {
       {0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
       // rowspan = 3, colspan = 3, avg = 3
@@ -650,7 +659,6 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
       // rowspan = 0, colspan = 0, avg = 0
   };
-
   inputDim.push_back(5);
   inputDim.push_back(4);
   colDim.push_back(10);
@@ -660,6 +668,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   UInt trueAvgConnectedSpan1[7] = {3, 3, 4, 3, 2, 2, 0};
 
   for (UInt i = 0; i < numColumns; i++) {
+    sp.setPotential(i, potential1.data());
     sp.setPermanence(i, permArr1[i]);
     UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan1[i]));
@@ -678,6 +687,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
 
   sp.initialize(inputDim, colDim);
 
+  vector<UInt> potential2(numInputs, 1);
   Real permArr2[9][8] = {{0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 0, 1, 0, 0, 0, 1},
                          {0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 1, 0, 0, 0, 1, 0},
                          {0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 1, 0, 0, 0, 0, 0},
@@ -687,6 +697,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   UInt trueAvgConnectedSpan2[9] = {8, 5, 1, 5, 0, 2, 3, 3, 8};
 
   for (UInt i = 0; i < numColumns; i++) {
+    sp.setPotential(i, potential2.data());
     sp.setPermanence(i, permArr2[i]);
     UInt result = sp.avgConnectedSpanForColumnND_(i);
     ASSERT_TRUE(result == (trueAvgConnectedSpan2[i] + 1) / 2);
@@ -709,6 +720,14 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumnND) {
 
   UInt numInputs = 160;
   UInt numColumns = 5;
+
+  // All potential synapses exist.
+  vector<UInt> ones(numInputs, 1);
+  sp.setPotential(0, (UInt *)ones.data());
+  sp.setPotential(1, (UInt *)ones.data());
+  sp.setPotential(2, (UInt *)ones.data());
+  sp.setPotential(3, (UInt *)ones.data());
+  sp.setPotential(4, (UInt *)ones.data());
 
   Real permArr0[4][4][2][5];
   Real permArr1[4][4][2][5];
@@ -756,7 +775,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumnND) {
 
   for (UInt i = 0; i < numColumns; i++) {
     Real result = sp.avgConnectedSpanForColumnND_(i);
-    ASSERT_TRUE(result == trueAvgConnectedSpan[i]);
+    ASSERT_EQ(result, trueAvgConnectedSpan[i]);
   }
 }
 
@@ -886,8 +905,6 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
   for (UInt i = 0; i < numColumns; i++) {
     sp.setPotential(i, potentialArr[i]);
     sp.setPermanence(i, permArr[i]);
-    Real perm[8];
-    sp.getPermanence(i, perm);
   }
 
   sp.bumpUpWeakColumns_();
@@ -895,7 +912,8 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
   for (UInt i = 0; i < numColumns; i++) {
     Real perm[8];
     sp.getPermanence(i, perm);
-    ASSERT_TRUE(check_vector_eq(truePermArr[i], perm, numInputs));
+    for(UInt z = 0; z < numInputs; z++)
+      ASSERT_FLOAT_EQ( truePermArr[i][z], perm[z] );
   }
 }
 
@@ -1037,6 +1055,8 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
                              {1, 1, 1, 1, 1}};
 
   for (UInt i = 0; i < numColumns; i++) {
+    vector<UInt> potential(permArr[i], permArr[i] + numInputs);
+    sp.setPotential(i, potential.data());
     sp.setPermanence(i, permArr[i]);
   }
 
@@ -1076,6 +1096,8 @@ TEST(SpatialPoolerTest, testCalculateOverlapPct) {
                                 {1.0f / 10, 1.0f / 8.0f, 1.0f / 6, 1.0f / 4, 1.0f / 2}};
 
   for (UInt i = 0; i < numColumns; i++) {
+    vector<UInt> potential(permArr[i], permArr[i] + numInputs);
+    sp.setPotential(i, potential.data());
     sp.setPermanence(i, permArr[i]);
   }
 
@@ -1388,73 +1410,20 @@ TEST(SpatialPoolerTest, testIsUpdateRound) {
   ASSERT_TRUE(sp.isUpdateRound_());
 }
 
-TEST(SpatialPoolerTest, testRaisePermanencesToThreshold) {
-  SpatialPooler sp;
-  const UInt stimulusThreshold = 3;
-  const Real synPermConnected = 0.1;
-  const Real synPermBelowStimulusInc = 0.01;
-  const UInt nInps = 5;
-  const UInt nCols = 7;
-  setup(sp, nInps, nCols);
-  sp.setStimulusThreshold(stimulusThreshold);
-  sp.setSynPermConnected(synPermConnected);
-  sp.setSynPermBelowStimulusInc(synPermBelowStimulusInc);
 
-  const UInt potentialArr[nCols][nInps] = {
-	                     {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
-                             {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},
-                             {0, 1, 1, 1, 0}};
-
-  const Real permArr[nCols][nInps] = {
-	                {0.0, 0.11, 0.095, 0.092, 0.01},
-                        {0.12, 0.15, 0.02, 0.12, 0.09},
-                        {0.51, 0.081, 0.025, 0.089, 0.31},
-                        {0.18, 0.0601, 0.11, 0.011, 0.03},
-                        {0.011, 0.011, 0.011, 0.011, 0.011},
-                        {0.12, 0.056, 0, 0, 0.078},
-                        {0, 0.061, 0.07, 0.14, 0}};
-
-  Real truePerm[nCols][nInps] = {
-      {0.01, 0.12, 0.105, 0.102, 0.02},    // incremented once
-      {0.12, 0.15, 0.02, 0.12, 0.09},      // no change
-      {0.53, 0.101, 0.045, 0.109, 0.33},   // increment twice
-      {0.22, 0.1001, 0.15, 0.051, 0.07},   // increment four times
-      {0.101, 0.101, 0.101, 0.101, 0.101}, // increment 9 times
-      {0.17, 0.106, 0, 0, 0.128},          // increment 5 times
-      {0, 0.101, 0.11, 0.18, 0}};          // increment 4 times
-
-  for (UInt i = 0; i < nCols; i++) {
-    vector<Real> perm;
-    vector<UInt> potential;
-    perm.assign(&permArr[i][0], &permArr[i][nInps]);
-    for (UInt j = 0; j < nInps; j++) {
-      if (potentialArr[i][j] > 0) {
-        potential.push_back(j);
-      }
-    }
-    sp.raisePermanencesToThreshold_(perm, potential);
-    for(UInt j = 0; j<nInps; j++) {
-      EXPECT_FLOAT_EQ(truePerm[i][j], perm[j]); 
-    }
-    ASSERT_TRUE(check_vector_eq(truePerm[i], perm));
-  }
-}
-
-TEST(SpatialPoolerTest, testUpdatePermanencesForColumn) {
+TEST(SpatialPoolerTest, testSetPermanence) {
   vector<UInt> inputDim;
   vector<UInt> columnDim;
-
   UInt numInputs = 5;
   UInt numColumns = 5;
   SpatialPooler sp;
   setup(sp, numInputs, numColumns);
-
+  UInt potential[5] = {1, 1, 1, 1, 1}; // Fully connected, all possible synapses are potential synapses.
   Real permArr[5][5] = {{-0.10, 0.500, 0.400, 0.010, 0.020},
                         {0.300, 0.010, 0.020, 0.120, 0.090},
                         {0.070, 0.050, 1.030, 0.190, 0.060},
                         {0.180, 0.090, 0.110, 0.010, 0.030},
                         {0.200, 0.101, 0.050, -0.09, 1.100}};
-
   Real truePerm[5][5] = {{0.000, 0.500, 0.400, 0.010, 0.020},
                          // Clip     -     -      -    -
                          {0.300, 0.010, 0.020, 0.120, 0.090},
@@ -1465,18 +1434,15 @@ TEST(SpatialPoolerTest, testUpdatePermanencesForColumn) {
                          // -     -       -       -     -
                          {0.200, 0.101, 0.050, 0.000, 1.000}};
                          // -      -     -      Clip   Clip
-
   UInt trueConnectedSynapses[5][5] = {{0, 1, 1, 0, 0},
                                       {1, 0, 0, 1, 0},
                                       {0, 0, 1, 1, 0},
                                       {1, 0, 1, 0, 0},
                                       {1, 1, 0, 0, 1}};
-
   UInt trueConnectedCount[5] = {2, 2, 2, 2, 3};
-
   for (UInt i = 0; i < 5; i++) {
-    vector<Real> perm(&permArr[i][0], &permArr[i][5]);
-    sp.updatePermanencesForColumn_(perm, i, false);
+    sp.setPotential(i, potential);
+    sp.setPermanence(i, permArr[i]);
     auto permArr = new Real[numInputs];
     auto connectedArr = new UInt[numInputs];
     auto connectedCountsArr = new UInt[numColumns];
@@ -1492,6 +1458,7 @@ TEST(SpatialPoolerTest, testUpdatePermanencesForColumn) {
     delete[] connectedCountsArr;
   }
 }
+
 
 TEST(SpatialPoolerTest, testInitPermanence) {
   vector<UInt> inputDim;
@@ -1545,7 +1512,6 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
   Real synPermConnected = 0.2;
   Real synPermMax = 1.0;
 
-  sp.setSynPermMax(synPermMax);
   sp.setSynPermConnected(synPermConnected);
 
   for (UInt i = 0; i < 100; i++) {
@@ -1867,6 +1833,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
   EXPECT_EQ(0, countNonzero(activeColumns));
 }
 
+
 TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
@@ -1926,6 +1893,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
   EXPECT_EQ(0, countNonzero(activeColumns));
 }
 
+
 TEST(SpatialPoolerTest, testSaveLoad) {
   const char *filename = "SpatialPoolerSerialization.tmp";
   SpatialPooler sp1, sp2;
@@ -1942,11 +1910,101 @@ TEST(SpatialPoolerTest, testSaveLoad) {
   sp2.load(infile);
   infile.close();
 
-  ASSERT_NO_FATAL_FAILURE(check_spatial_eq(sp1, sp2));
-
   int ret = ::remove(filename);
   ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
+
+  check_spatial_eq(sp1, sp2);
 }
+
+
+TEST(SpatialPoolerTest, testSerialization2) {
+  Random random(10);
+
+  const UInt inputSize = 500;
+  const UInt numColumns = 500;
+  const UInt w = 50;
+
+  vector<UInt> inputDims{inputSize};
+  vector<UInt> colDims{numColumns};
+
+  SpatialPooler sp1;
+  sp1.initialize(inputDims, colDims);
+
+  UInt input[inputSize];
+  for (UInt i = 0; i < inputSize; ++i) {
+    if (i < w) {
+      input[i] = 1;
+    } else {
+      input[i] = 0;
+    }
+  }
+  UInt output[numColumns];
+
+  for (UInt i = 0; i < 10000; ++i) {
+    random.shuffle(input, input + inputSize);
+    sp1.compute(input, true, output);
+  }
+
+  // Now we reuse the last input to test after serialization
+
+  vector<UInt> activeColumnsBefore;
+  for (UInt i = 0; i < numColumns; ++i) {
+    if (output[i] == 1) {
+      activeColumnsBefore.push_back(i);
+    }
+  }
+
+  // Save initial trained model
+  ofstream osC("outC.stream", ofstream::binary);
+  sp1.save(osC);
+  osC.close();
+
+  SpatialPooler sp2;
+
+  nupic::Timer testTimer;
+
+  for (UInt i = 0; i < 10; ++i) {
+    // Create new input
+    random.shuffle(input, input + inputSize);
+
+    // Get expected output
+    UInt outputBaseline[numColumns];
+    sp1.compute(input, true, outputBaseline);
+
+    // C - Next do old version
+    {
+      SpatialPooler spTemp;
+
+      testTimer.start();
+
+      // Deserialize
+      ifstream is("outC.stream", ifstream::binary);
+      spTemp.load(is);
+      is.close();
+
+      // Feed new record through
+      UInt outputC[numColumns];
+      spTemp.compute(input, true, outputC);
+
+      // Serialize
+      ofstream os("outC.stream", ofstream::binary);
+      spTemp.save(os);
+      os.close();
+
+      testTimer.stop();
+
+      for (UInt i = 0; i < numColumns; ++i) {
+        EXPECT_EQ(outputBaseline[i], outputC[i]);
+      }
+    }
+  }
+
+  cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
+  cout << "Stream: " << testTimer.getElapsed() << endl;
+
+  remove("outC.stream");
+}
+
 
 TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   // Initialize SP using the constructor
@@ -1994,20 +2052,6 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   check_spatial_eq(sp1, sp2);
   EXPECT_EQ(sp1, sp2);
   EXPECT_TRUE(sp1 == sp2) << "Spatial Poolers not equal";
-}
-
-TEST(SpatialPoolerTest, testClip) {
-  SpatialPooler sp;
-  sp.setSynPermMax(1.337);
-
-  vector<Real32> test{-0.001f, 0.1f, 2.1f};
-  const vector<Real32> exp {0.0f, 0.1f, 1.337f};
-  const vector<Real32> exp2{0.0f, 0.0f, 1.337f};
-
-  sp.clip_(test); //clip to 0.0 .. 1.337
-  for(UInt i=0; i< test.size(); i++) {
-    ASSERT_NEAR(exp[i], test[i], 0.0001f) << "clip ";
-  }
 }
 
 } // end anonymous namespace
