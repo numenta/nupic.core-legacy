@@ -46,7 +46,9 @@ jobs:
 
       - run:
            name: Installing python dependencies
-           command: python -m pip install --user --upgrade pip setuptools setuptools-scm
+           command: |
+                   python -m pip install --user --upgrade pip setuptools setuptools-scm
+                   python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
 
       # Save dependency cache
       #      - save_cache:
