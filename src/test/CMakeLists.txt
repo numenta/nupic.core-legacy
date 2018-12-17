@@ -66,8 +66,6 @@ set(engine_tests
 	   
 
 set(math_tests
-	   unit/math/DenseTensorUnitTest.cpp
-	   unit/math/DenseTensorUnitTest.hpp
 	   unit/math/MathsTest.cpp
 	   unit/math/MathsTest.hpp
 	   unit/math/SparseMatrixTest.cpp
