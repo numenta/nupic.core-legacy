@@ -70,7 +70,6 @@ set(math_tests
 	   unit/math/DenseTensorUnitTest.hpp
 	   unit/math/MathsTest.cpp
 	   unit/math/MathsTest.hpp
-	   unit/math/SparseBinaryMatrixTest.cpp
 	   unit/math/SparseMatrixTest.cpp
 	   unit/math/SparseMatrixUnitTest.cpp
 	   unit/math/SparseMatrixUnitTest.hpp

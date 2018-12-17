@@ -154,7 +154,6 @@ set(math_files
     nupic/math/Functions.hpp
     nupic/math/Math.hpp
     nupic/math/Set.hpp
-    nupic/math/SparseBinaryMatrix.hpp
     nupic/math/SparseMatrix.hpp
     nupic/math/StlIo.cpp
     nupic/math/StlIo.hpp
