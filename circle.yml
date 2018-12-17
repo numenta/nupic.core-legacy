@@ -25,7 +25,8 @@ jobs:
           command: |
             brew uninstall python
             curl https://bootstrap.pypa.io/get-pip.py | python - --user
-            echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV 
+            echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV
+            echo 'pip version: ' && pip --version 
       - run:
           name: Installing cmake 
           command: brew install cmake
