@@ -25,8 +25,8 @@ jobs:
           command: |
             brew uninstall python
             curl https://bootstrap.pypa.io/get-pip.py | python - --user
-            echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV
-            echo 'pip version: ' && pip --version 
+            export PATH=$HOME/Library/Python/2.7/bin:$PATH
+            echo 'pip version: ' && python -m pip --version 
       - run:
           name: Installing cmake 
           command: brew install cmake
@@ -46,7 +46,7 @@ jobs:
 
       - run:
            name: Installing python dependencies
-           command: pip install --user --upgrade pip setuptools setuptools-scm
+           command: python -m pip install --user --upgrade pip setuptools setuptools-scm
 
       # Save dependency cache
       #      - save_cache:
