@@ -72,7 +72,6 @@ set(math_tests
 	   unit/math/MathsTest.hpp
 	   unit/math/SparseMatrixTest.cpp
 	   unit/math/SparseMatrixUnitTest.cpp
-	   unit/math/SparseMatrixUnitTest.hpp
 	   unit/math/TopologyTest.cpp
 	   )
 	   
