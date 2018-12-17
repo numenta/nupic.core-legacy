@@ -152,7 +152,6 @@ set(math_files
     nupic/math/ArrayAlgo.hpp
     nupic/math/DenseMatrix.hpp
     nupic/math/Math.hpp
-    nupic/math/Set.hpp
     nupic/math/SparseMatrix.hpp
     nupic/math/StlIo.cpp
     nupic/math/StlIo.hpp

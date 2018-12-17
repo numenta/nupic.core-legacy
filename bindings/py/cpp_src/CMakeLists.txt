@@ -66,7 +66,6 @@ set(src_py_math_files
     bindings/math/py_Math.cpp
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
-    bindings/math/py_Set.cpp
     bindings/math/py_SparseMatrix.cpp
     )
     

@@ -37,7 +37,6 @@ namespace nupic_ext
     void init_Math_Functions(py::module&);
     void init_Random(py::module&);
     void init_reals(py::module&);
-    void init_Set(py::module&);
     void init_SM32(py::module&);
 } // namespace nupic_ext
 
@@ -51,5 +50,4 @@ PYBIND11_MODULE(math, m) {
     init_Math_Functions(m);
     init_Random(m);
     init_reals(m);
-    init_Set(m);
 }
