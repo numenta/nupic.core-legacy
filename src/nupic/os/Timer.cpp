@@ -45,44 +45,47 @@ Timer::Timer(bool startme) {
     start();
 }
 
+
 void Timer::start() {
-	if (started_ == false) {
+	if (!started_) {
 	  start_time_ = my_clock::now();
 	  nstarts_++;
 	  started_ = true;
 	}
 }
 
+
 /**
 * Stop the stopwatch. When restarted, time will accumulate
 */
 void Timer::stop() {
     // stop the stopwatch
-	if (started_ == true)
+	if (started_)
 	{
-	    auto diff = my_clock::now() - start_time_;
-	    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+	    const auto diff = my_clock::now() - start_time_;
+	    const auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
 
-	    prevElapsed_ += milliseconds.count();
+	    prevElapsed_ += nanoseconds.count();
 
-	    //start_ = 0;
 	    started_ = false;
 	}
 }
+
 
 // in seconds, msec resolution
 Real64 Timer::getElapsed() const {
 	nupic::UInt64 elapsed = prevElapsed_;
 	if (started_)
 	{
-	    auto diff = my_clock::now() - start_time_;
-	    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+	    const auto diff = my_clock::now() - start_time_;
+	    const auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
 
-	    elapsed += milliseconds.count();
+	    elapsed += nanoseconds.count();
 	}
 
-	return static_cast<Real64>(elapsed) / 1000.0;
+	return static_cast<Real64>(elapsed) / TO_SECONDS;
 }
+
 
 void Timer::reset() {
 	prevElapsed_ = 0;
@@ -115,8 +118,7 @@ float Timer::getSpeed() {
     Timer t(true);
 
     //this code just wastes CPU time to estimate speed
-#define SEED 42
-    Random rng(SEED);
+    Random rng(42);
     std::vector<Real> data(10000000);
     for(Size i=0; i<data.size(); i++) {
       data[i]=(Real)rng.getUInt32(80085);

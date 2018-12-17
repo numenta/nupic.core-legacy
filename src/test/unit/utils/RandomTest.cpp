@@ -23,15 +23,19 @@
 /**
  * @file
  */
-
-#include <fstream>
 #include <gtest/gtest.h>
+#include <nupic/utils/Random.hpp>
+
 #include <nupic/ntypes/MemStream.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/utils/LoggingException.hpp>
-#include <nupic/utils/Random.hpp>
+#include <nupic/os/Timer.hpp>
+
+#include <fstream>
 #include <sstream>
 #include <vector>
+
+namespace testing {
 
 using namespace nupic;
 using namespace std;
@@ -141,6 +145,42 @@ TEST(RandomTest, SerializationDeserialization) {
     v2 = r2.getUInt32();
     EXPECT_EQ(v1, v2) << "serialization";
   }
+}
+
+
+TEST(RandomTest, testSerialization2) {
+  const UInt n=1000;
+  Random r1(7);
+  Random r2;
+
+  nupic::Timer testTimer;
+  testTimer.start();
+  for (UInt i = 0; i < n; ++i) {
+    r1.getUInt32();
+
+    // Serialize
+    ofstream os("random3.stream", ofstream::binary);
+    os << r1;
+    os.flush();
+    os.close();
+
+    // Deserialize
+    ifstream is("random3.stream", ifstream::binary);
+    is >> r2;
+    is.close();
+
+    // Test
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+    ASSERT_EQ(r1.getUInt32(), r2.getUInt32());
+  }
+  testTimer.stop();
+
+  remove("random3.stream");
+
+  cout << "Random serialization: " << testTimer.getElapsed() << endl;
 }
 
 
@@ -299,3 +339,5 @@ TEST(RandomTest, testGetUIntSpeed) {
  }
  EXPECT_EQ(rnd, 9278u);
 }
+
+} //-ns

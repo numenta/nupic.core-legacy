@@ -299,6 +299,24 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
 
   SynapseData synapseData = connections.dataForSynapse(synapse);
   ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
+
+  // Test permanence floor
+  connections.updateSynapsePermanence(synapse, -0.02f);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)0.0f );
+
+  connections.updateSynapsePermanence(synapse, -EPSILON / 10.);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)0.0f );
+
+  // Test permanence ceiling
+  connections.updateSynapsePermanence(synapse, 1.02f);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)1.0f );
+
+  connections.updateSynapsePermanence(synapse, 1.0f + EPSILON / 10.);
+  synapseData = connections.dataForSynapse(synapse);
+  ASSERT_EQ(synapseData.permanence, (Real)1.0f );
 }
 
 /**
@@ -341,6 +359,153 @@ TEST(ConnectionsTest, testComputeActivity) {
 
   ASSERT_EQ(2, numActiveConnectedSynapsesForSegment[segment2_1]);
   ASSERT_EQ(3, numActivePotentialSynapsesForSegment[segment2_1]);
+}
+
+TEST(ConnectionsTest, testAdaptSynapses) {
+  UInt numCells = 4;
+  // NOTE: One segment per cell.
+  UInt numInputs = 8;
+  Connections con(numCells);
+
+  vector<UInt> activeSegments;
+  SDR input({numInputs});
+
+  UInt potentialArr[4][8] =  {{1, 1, 1, 1, 0, 0, 0, 0},
+                              {1, 0, 0, 0, 1, 1, 0, 1},
+                              {0, 0, 1, 0, 0, 0, 1, 0},
+                              {1, 0, 0, 0, 0, 0, 1, 0}};
+
+  Real permanences[4][8] = {
+      {0.200, 0.120, 0.090, 0.060, 0.000, 0.000, 0.000, 0.000},
+      {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
+      {0.000, 0.000, 0.004, 0.000, 0.000, 0.000, 0.910, 0.000},
+      {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
+
+  Real truePerms[4][8] = {
+      {0.300, 0.110, 0.080, 0.160, 0.000, 0.000, 0.000, 0.000},
+      // Inc    Dec    Dec    Inc      -      -      -     -
+      {0.250, 0.000, 0.000, 0.000, 0.280, 0.110, 0.000, 0.440},
+      // Inc      -      -     -      Inc    Dec    -     Dec
+      {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 1.000, 0.000},
+      //   -      -   Floor     -     -     -    Ceiling   -
+      {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
+      //   -      -      -      -      -      -      -      -
+
+  for (UInt cell = 0; cell < numCells; cell++) {
+    Segment seg = con.createSegment(cell);
+    for(UInt inp = 0; inp < numInputs; inp++) {
+      if( potentialArr[cell][inp] )
+        con.createSynapse(seg, inp, permanences[cell][inp]);
+    }
+  }
+
+  input.setDense(SDR_dense_t({ 1, 0, 0, 1, 1, 0, 1, 0 }));
+  activeSegments.assign({0, 1, 2});
+
+  for(UInt seg : activeSegments)
+    con.adaptSegment(seg, input, .1, .01);
+
+  for (UInt cell = 0; cell < numCells; cell++) {
+    vector<Real> perms( numInputs, 0.0f );
+    for( Synapse syn : con.synapsesForSegment(cell) ) {
+      auto synData = con.dataForSynapse( syn );
+      perms[ synData.presynapticCell ] = synData.permanence;
+    }
+    for(UInt i = 0; i < numInputs; i++)
+      ASSERT_NEAR( truePerms[cell][i], perms[i], EPSILON );
+  }
+}
+
+TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
+  UInt stimulusThreshold = 3;
+  Real synPermConnected = 0.1;
+  Real synPermBelowStimulusInc = 0.01;
+  UInt numInputs = 5;
+  UInt numCells = 7;
+  Connections con(numCells, synPermConnected);
+
+  UInt potentialArr[7][5] = {{1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1},
+                             {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},
+                             {0, 1, 1, 1, 0}};
+
+  Real permArr[7][5] = {{0.0, 0.11, 0.095, 0.092, 0.01},
+                        {0.12, 0.15, 0.02, 0.12, 0.09},
+                        {0.51, 0.081, 0.025, 0.089, 0.31},
+                        {0.18, 0.0601, 0.11, 0.011, 0.03},
+                        {0.011, 0.011, 0.011, 0.011, 0.011},
+                        {0.12, 0.056, 0, 0, 0.078},
+                        {0, 0.061, 0.07, 0.14, 0}};
+
+  Real truePerm[7][5] = {
+      {0.01, 0.12, 0.105, 0.102, 0.02},    // incremented once
+      {0.12, 0.15, 0.02, 0.12, 0.09},      // no change
+      {0.53, 0.101, 0.045, 0.109, 0.33},   // increment twice
+      {0.22, 0.1001, 0.15, 0.051, 0.07},   // increment four times
+      {0.101, 0.101, 0.101, 0.101, 0.101}, // increment 9 times
+      {0.17, 0.106, 0, 0, 0.128},          // increment 5 times
+      {0, 0.101, 0.11, 0.18, 0}};          // increment 4 times
+
+  for (UInt i = 0; i < numCells; i++) {
+    // Setup this cell / segment / synapses.
+    con.createSegment(i);
+    for (UInt j = 0; j < numInputs; j++) {
+      if (potentialArr[i][j] > 0) {
+        con.createSynapse( i, j, permArr[i][j] );
+      }
+    }
+    // Run method under test.
+    con.raisePermanencesToThreshold(i, synPermConnected, stimulusThreshold);
+    // Check results.
+    for(auto syn : con.synapsesForSegment(i)) {
+      auto synData = con.dataForSynapse( syn );
+      UInt presyn  = synData.presynapticCell;
+      ASSERT_NEAR(truePerm[i][presyn], synData.permanence,
+                                                      synPermBelowStimulusInc);
+    }
+  }
+}
+
+TEST(ConnectionsTest, testBumpSegment) {
+  UInt numInputs = 8;
+  UInt numSegments = 5;
+  Connections con(1);
+
+  UInt potentialArr[5][8] = {{1, 1, 1, 1, 0, 0, 0, 0},
+                             {1, 0, 0, 0, 1, 1, 0, 1},
+                             {0, 0, 1, 0, 1, 1, 1, 0},
+                             {1, 1, 1, 0, 0, 0, 1, 0},
+                             {1, 1, 1, 1, 1, 1, 1, 1}};
+
+  Real permArr[5][8] = {
+      {0.200, 0.120, 0.090, 0.040, 0.000, 0.000, 0.000, 0.000},
+      {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
+      {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000},
+      {0.051, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000},
+      {0.100, 0.738, 0.085, 0.002, 0.052, 0.008, 0.208, 0.034}};
+
+  Real deltaArr[5] = {0.010, 0.750, 0.000, -0.001, -0.010};
+
+  Real truePermArr[5][8] = {
+      {0.210, 0.130, 0.100, 0.050, 0.000, 0.000, 0.000, 0.000},
+      {0.900, 0.000, 0.000, 0.000, 0.930, 0.870, 0.000, 1.000},
+      {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000}, // unchanged
+      {0.050, 0.000, 0.000, 0.000, 0.000, 0.000, 0.177, 0.000},
+      {0.090, 0.728, 0.075, 0.000, 0.042, 0.000, 0.198, 0.024}};
+
+  for (UInt seg = 0; seg < numSegments; seg++) {
+    auto segment = con.createSegment(0);
+    for(UInt i = 0; i < numInputs; i++)
+      if( potentialArr[seg][i] )
+        con.createSynapse(segment, i, permArr[seg][i]);
+
+    con.bumpSegment( segment, deltaArr[seg] );
+
+    for(auto synapse : con.synapsesForSegment(segment)) {
+      auto synData = con.dataForSynapse( synapse );
+      auto presyn  = synData.presynapticCell;
+      ASSERT_FLOAT_EQ( synData.permanence, truePermArr[seg][presyn] );
+    }
+  }
 }
 
 /**
@@ -400,7 +565,7 @@ public:
  * Make sure each event handler gets called.
  */
 TEST(ConnectionsTest, subscribe) {
-  Connections connections(1024);
+  Connections connections(1024, 0.5f);
 
   TestConnectionsEventHandler *handler = new TestConnectionsEventHandler();
   auto token = connections.subscribe(handler);
@@ -410,7 +575,7 @@ TEST(ConnectionsTest, subscribe) {
   EXPECT_TRUE(handler->didCreateSegment);
 
   ASSERT_FALSE(handler->didCreateSynapse);
-  Synapse synapse = connections.createSynapse(segment, 41, 0.50);
+  Synapse synapse = connections.createSynapse(segment, 41, 0.25f);
   EXPECT_TRUE(handler->didCreateSynapse);
 
   ASSERT_FALSE(handler->didUpdateSynapsePermanence);

@@ -34,6 +34,7 @@
 #include <nupic/math/Math.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
+#include <nupic/ntypes/Sdr.hpp>
 
 namespace nupic {
 
@@ -43,10 +44,13 @@ namespace connections {
 typedef UInt32 CellIdx;
 typedef UInt16 SegmentIdx; /** Index of segment in cell. */
 typedef UInt16 SynapseIdx; /** Index of synapse in segment. */
-typedef Real32 Permanence;
 typedef UInt32 Segment;    /** Index of segment's data. */
 typedef UInt32 Synapse;    /** Index of synapse's data. */
+typedef Real32 Permanence;
+const Permanence minPermanence = 0.0f;
+const Permanence maxPermanence = 1.0f;
 
+static const Permanence EPSILON = 0.00001f;
 
 /**
  * SynapseData class used in Connections.
@@ -81,6 +85,7 @@ struct SynapseData {
 struct SegmentData {
   std::vector<Synapse> synapses;
   CellIdx cell;
+  SynapseIdx numConnected;
 };
 
 /**
@@ -128,7 +133,7 @@ public:
   virtual void onDestroySynapse(Synapse synapse) {}
 
   /**
-   * Called before a synapse's permanence is changed.
+   * Called after a synapse's permanence crosses the connected threshold.
    */
   virtual void onUpdateSynapsePermanence(Synapse synapse,
                                          Permanence permanence) {}
@@ -176,18 +181,22 @@ public:
   /**
    * Connections constructor.
    *
-   * @param numCells              Number of cells.
+   * @param numCells           Number of cells.
+   * @param connectedThreshold Permanence threshold for synapses connecting or
+   *                           disconnecting.
    */
-  Connections(CellIdx numCells);
+  Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f);
 
   virtual ~Connections() {}
 
   /**
    * Initialize connections.
    *
-   * @param numCells              Number of cells.
+   * @param numCells           Number of cells.
+   * @param connectedThreshold Permanence threshold for synapses connecting or
+   *                           disconnecting.
    */
-  void initialize(CellIdx numCells);
+  void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f);
 
   /**
    * Creates a segment on the specified cell.
@@ -399,6 +408,44 @@ public:
                   CellIdx activePresynapticCell,
                   Permanence connectedPermanence) const;
 
+  /**
+   * The primary method in charge of learning.   Adapts the permanence values of
+   * the synapses based on the input SDR.  Learning is applied to a single
+   * segment.  Permanence values are increased for synapses connected to input
+   * bits that are turned on, and decreased for synapses connected to inputs
+   * bits that are turned off.
+   *
+   * @param segment  Index of segment to apply learning to.  Is returned by 
+   *        method getSegment.
+   * @param inputVector  An SDR
+   * @param increment  Change in permanence for synapses with active presynapses.
+   * @param decrement  Change in permanence for synapses with inactive presynapses.
+   */
+  void adaptSegment(const Segment segment, SDR &inputs,
+                    const Permanence increment,
+                    const Permanence decrement);
+
+  /**
+   * Ensures a minimum number of connected synapses.  This raises permance
+   * values until the desired number of synapses have permanences above the
+   * permanenceThreshold.  This is applied to a single segment.
+   *
+   * @param segment  Index of segment on cell.   Is returned by method getSegment.
+   * @param permanenceThreshold  Connected threshold of synapses
+   * @param segmentThreshold  Desired number of connected synapses
+   */
+  void raisePermanencesToThreshold(const Segment    segment,
+                                   const Permanence permanenceThreshold,
+                                   const UInt       segmentThreshold);
+
+  /**
+   * Modify all permanence on the given segment, uniformly.
+   *
+   * @param segment  Index of segment on cell. Is returned by method getSegment.
+   * @param delta  Change in permanence value
+   */
+  void bumpSegment(const Segment segment, const Permanence delta);
+
   // Serialization
 
   /**
@@ -516,11 +563,12 @@ protected:
   void removeSynapseFromPresynapticMap_(Synapse synapse);
 
 private:
-  std::vector<CellData> cells_;
+  std::vector<CellData>    cells_;
   std::vector<SegmentData> segments_;
-  std::vector<Segment> destroyedSegments_;
+  std::vector<Segment>     destroyedSegments_;
   std::vector<SynapseData> synapses_;
-  std::vector<Synapse> destroyedSynapses_;
+  std::vector<Synapse>     destroyedSynapses_;
+  Permanence               connectedThreshold_;
 
   // Extra bookkeeping for faster computing of segment activity.
   std::map<CellIdx, std::vector<Synapse>> synapsesForPresynapticCell_;

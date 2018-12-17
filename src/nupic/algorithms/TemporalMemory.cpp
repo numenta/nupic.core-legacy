@@ -51,7 +51,6 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using namespace nupic::algorithms::temporal_memory;
 
-static const Permanence EPSILON = 0.000001f;
 static const UInt TM_VERSION = 2;
 
 template <typename Iterator>
