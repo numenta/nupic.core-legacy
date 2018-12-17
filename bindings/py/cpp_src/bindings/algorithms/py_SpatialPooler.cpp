@@ -310,18 +310,6 @@ namespace nupic_ext
         py_SpatialPooler.def("inhibitColumns_", inhibitColumns_func);
 
 
-        //////////////////////////////
-        // updatePermanencesForColumn
-        auto updatePermanencesForColumn_func = [](SpatialPooler& self, py::array_t<Real>& perm, UInt column, bool raisePerm)
-        {
-            std::vector<nupic::Real> permVector(get_it(perm), get_end(perm));
-
-            self.updatePermanencesForColumn_(permVector, column, raisePerm);
-        };
-
-        py_SpatialPooler.def("_updatePermanencesForColumn", updatePermanencesForColumn_func);
-        py_SpatialPooler.def("updatePermanencesForColumn_", updatePermanencesForColumn_func);
-
         //////////////////////
         // getIterationLearnNum
         py_SpatialPooler.def("getIterationLearnNum", &SpatialPooler::getIterationLearnNum);
