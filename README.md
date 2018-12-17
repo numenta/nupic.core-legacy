@@ -124,13 +124,18 @@ There are two sets of unit tests.
  * Python Unit tests -- to run: `python setup.py test`
 ### Using graphical interface
 
-#### Generate the IDE solution:
+#### Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
 
  * Open CMake executable.
  * Specify the source folder (`$NUPIC_CORE/src`).
  * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
- * Choose the IDE that interest you (remember that IDE choice is limited to your OS, i.e. Visual Studio is available only on CMake for Windows).
+ * Choose the IDE that interest you (remember that IDE choice is limited to your OS).
+ 
+#### For MS Visual Studio as the IDE
+ * Double click external/MSVC/startup.bat  -- This will setup the build and create the solution file (.sln).
+ * Double click build/scripts/nupic.cpp.sln -- This starts up Visual Studio
+
 
 #### Build:
 
