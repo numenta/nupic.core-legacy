@@ -11,7 +11,6 @@ jobs:
       ARCHFLAGS: -arch x86_64
       PYTHONPATH: ~/Library/Python/2.7/lib/python/site-packages
       PYBIN: ~/Library/Python/2.7/bin
-      PATH: $HOME/Library/Python/2.7/bin:$PATH
     steps:
       # Machine Setup
       - run:
@@ -26,7 +25,8 @@ jobs:
           command: |
             brew uninstall python
             curl https://bootstrap.pypa.io/get-pip.py | python - --user
-            echo 'pip version: ' && python -m pip --version 
+            echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV
+            echo 'pip version: ' && pip --version 
       - run:
           name: Installing cmake 
           command: brew install cmake
