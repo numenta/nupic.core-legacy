@@ -33,7 +33,6 @@ PyBind11 bindings for Math classes
 #include <pybind11/stl.h>
 
 #include <nupic/math/ArrayAlgo.hpp>
-#include <nupic/math/Functions.hpp>
 
 #include "bindings/engine/py_utils.hpp"
 
@@ -43,14 +42,6 @@ namespace nupic_ext
 {
 	void init_Math_Functions(py::module& m)
 	{
-		m.def("lgamma", &nupic::lgamma<nupic::Real64>)
-		 .def("digamma", &nupic::digamma<nupic::Real64>)
-		 .def("beta", &nupic::beta<nupic::Real64>)
-		 .def("erf", &nupic::erf<nupic::Real64>)
-		 .def("beta", &nupic::digamma<nupic::Real64>);
-
-        m.def("getGlobalEpsilon", []() {return nupic::Epsilon; });
-
 
         m.def("nearlyZeroRange", [](py::array_t<nupic::Real32>& x, nupic::Real32 eps)
         {

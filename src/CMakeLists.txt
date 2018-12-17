@@ -151,7 +151,6 @@ set(engine_files
 set(math_files
     nupic/math/ArrayAlgo.hpp
     nupic/math/DenseMatrix.hpp
-    nupic/math/Functions.hpp
     nupic/math/Math.hpp
     nupic/math/Set.hpp
     nupic/math/SparseMatrix.hpp
