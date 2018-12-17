@@ -387,6 +387,12 @@ public:
    */
   static void unregisterRegion(const std::string name);
 
+  /*
+   * Removes all region registrations in RegionImplFactory.
+   * Used in unit tests to setup for next test.
+   */
+  static void cleanup();
+
   bool operator==(const Network &other) const;
   inline bool operator!=(const Network &other) const {
     return !operator==(other);

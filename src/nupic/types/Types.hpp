@@ -29,6 +29,8 @@
 
 #include <nupic/types/Types.h>
 
+#define UNUSED(x) (void)(x)
+
 //----------------------------------------------------------------------
 
 namespace nupic {

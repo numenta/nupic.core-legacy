@@ -23,6 +23,8 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
+        - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python2.7/site-packages/"
+
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
 #    - os: osx
@@ -37,6 +39,7 @@ matrix:
 env:
   global:
     - NUPICCORE = ${TRAVIS_BUILD_DIR}
+    - BINARY_DIR = ${TRAVIS_BUILD_DIR}/build/scripts
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
@@ -46,19 +49,13 @@ env:
 #    - secure: "Ixm9TYZAZbCQicUTIZTY7XKNK82WF+f1jsaGtIxnGQmn0LKhKBjQnsZmhzQ7LDQeLUjRY3wM6xrX3YdP5T7WWiiqBiNCRz8oFxl/fBSm7LyuNo2CEGD9rsG6ZAY/sKKYNX5TuG78giJXwYZpq4LbVwy3W5ZlC626H7iXLQ6xDxw="
 
 virtualenv:
-  system_site_packages: true
+  system_site_packages: false
 
 # Successful builds are archived and uploaded to S3 for bamboo releases.
 before_deploy:
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
-###  - cp $TRAVIS_BUILD_DIR/bindings/py/requirements.txt $TRAVIS_BUILD_DIR/bindings/py/dist/
-###  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
-###  - cp ${TRAVIS_BUILD_DIR}/build/release/include/nupic/Version.hpp $TRAVIS_BUILD_DIR/bindings/py/dist/include/nupic
-###  - mkdir -p $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-###  - cp ${TRAVIS_BUILD_DIR}/build/release/bin/py_region_test $TRAVIS_BUILD_DIR/bindings/py/dist/bin
-###  - mkdir -p $TRAVIS_BUILD_DIR/release
-###  - tar -zcvf $TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $TRAVIS_BUILD_DIR/bindings/py/dist
+  - tar -zcvf $TRAVIS_BUILD_DIR/build/Release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $BINARY_DIR/dist
 
 deploy:
 ## AWS S3 
@@ -104,24 +101,24 @@ notifications:
 before_install:
   - eval "${MATRIX_EVAL}"
   - $CXX --version
-###  - echo "Installing pip, setuptools, and wheel"
-###  - pip install --upgrade pip setuptools wheel || exit
-###  - echo "Installing Python dependencies"
-###  - pip install -r $TRAVIS_BUILD_DIR/bindings/py/requirements.txt --only-binary --quiet || exit
+  - echo "Installing pip, setuptools, and wheel"
+  - pip install --upgrade pip setuptools wheel || exit
 
 install:
   # Prepare directories
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/scripts"
-  - "cd $TRAVIS_BUILD_DIR/build/scripts"
-  - "mkdir -p $TRAVIS_BUILD_DIR/build/Release"
-  - "cmake --version"
-  # Enable test coverage for travis-ci build
-  - "cmake $TRAVIS_BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DNTA_COV_ENABLED=ON"
-  - "set -o pipefail"
-  - "VERBOSE=0 make |grep -v -F '\\-\\- Installing:'"
-  - "make install 2>&1|grep -v -F 'Installing:'"
-  - "cd $TRAVIS_BUILD_DIR"
-#####- "python setup.py install"
+  - mkdir -p "$TRAVIS_BUILD_DIR/build/scripts"
+  - cd "$TRAVIS_BUILD_DIR/build/scripts"
+  - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
+  - cmake --version
+  - echo "Configuring..."
+  # Builds nupic_code library and python2.7 interface. Enable test coverage for travis-ci build
+  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DPYTHON2_BUILD=ON -DNTA_COV_ENABLED=ON
+  - set -o pipefail
+  - echo "Make & Install "
+  - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
+  - make install 2>&1|grep -v -F 'Installing:'
+  - echo "Installing Python bindings" 
+  - python $TRAVIS_BUILD_DIR/setup.py install
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
@@ -130,7 +127,8 @@ script:
   # unit tests
   - "${TRAVIS_BUILD_DIR}/build/Release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
-#######  - "python ${TRAVIS_BUILD_DIR}/setup.py test"
+  - cd ${TRAVIS_BUILD_DIR}
+  - "python setup.py test"
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

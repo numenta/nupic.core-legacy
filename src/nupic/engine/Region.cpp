@@ -165,13 +165,6 @@ const Spec *Region::getSpecFromType(const std::string &nodeType) {
   return factory.getSpec(nodeType);
 }
 
-void Region::registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
-	RegionImplFactory::registerRegion(name, wrapper);
-}
-
-void Region::unregisterRegion(const std::string name) {
-	RegionImplFactory::unregisterRegion(name);
-}
 
 const Dimensions &Region::getDimensions() const { return dims_; }
 

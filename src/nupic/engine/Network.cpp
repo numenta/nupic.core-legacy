@@ -35,6 +35,7 @@ Implementation of the Network class
 #include <nupic/engine/NuPIC.hpp> // for register/unregister
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Directory.hpp>
@@ -806,13 +807,16 @@ void Network::resetProfiling() {
    * Adds a region to the RegionImplFactory's list of packages
    */
 void Network::registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
-	Region::registerRegion(name, wrapper);
+	RegionImplFactory::registerRegion(name, wrapper);
 }
   /*
    * Removes a region from RegionImplFactory's list of packages
    */
 void Network::unregisterRegion(const std::string name) {
-	Region::unregisterRegion(name);
+	RegionImplFactory::unregisterRegion(name);
+}
+void Network::cleanup() {
+    RegionImplFactory::cleanup();
 }
 
 bool Network::operator==(const Network &o) const {

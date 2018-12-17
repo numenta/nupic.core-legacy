@@ -31,13 +31,8 @@ download_project(PROJ pybind11
 	QUIET
 	)
 	
-if(PYTHON2_BUILD)
-  set(PYBIND11_PYTHON_VERSION 2.7)
-endif()
-set(PYBIND11_CPP_STANDARD -std=${CXX_STANDARD})
-add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
+# Cannot do the build here. It depends on which Python is being executed.
 
-# It is ready to use pybind11_add_module() macro.
-# For details: https://pybind11.readthedocs.io/en/stable/compiling.html#cmake
-
+set(pybind11_SOURCE_DIR ${pybind11_SOURCE_DIR} CACHE BOOL "location of pybind11 sources" FORCE) 
+set(pybind11_BINARY_DIR ${pybind11_BINARY_DIR} CACHE BOOL "location of pybind11 binary" FORCE) 
 

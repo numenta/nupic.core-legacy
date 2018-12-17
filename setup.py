@@ -29,18 +29,15 @@ from setuptools.command import egg_info
 REPO_DIR = os.path.dirname(os.path.realpath(__file__))
 filename = os.path.basename(__file__)
 
-os.chdir(os.path.join(REPO_DIR, "bindings/py"))
+os.chdir(os.path.join(REPO_DIR, "bindings","py","packaging"))
 setupdir = os.getcwd()
 
 egginfo = "pip-egg-info"
 
-if not os.path.exists(egginfo) and os.path.exists(os.path.join("../..", egginfo)):
-  print "Symlinking pip-egg-info"
-  os.symlink(os.path.join("../..", egginfo), os.path.join(REPO_DIR, "bindings/py", egginfo))
-
 __file__ = os.path.join(setupdir, filename)
 
 def replacement_run(self):
+  print("setup.py::replacement_run()\n")
   self.mkpath(self.egg_info)
 
   installer = self.distribution.fetch_build_egg
@@ -55,4 +52,5 @@ def replacement_run(self):
   self.find_sources()
 
 egg_info.egg_info.run = replacement_run
+print("setup.py: Calling {}\n".format(__file__))
 execfile(__file__)

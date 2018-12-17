@@ -2705,7 +2705,7 @@ public:
     const size_type ncols = nCols();
 
     ITERATE_ON_ALL_ROWS
-    getRowToDense(row, dense + row * ncols);
+    getRowToDense_itr(row, dense + row * ncols);
   }
 
   /**
@@ -5547,9 +5547,13 @@ public:
    *
    * @b Exceptions:
    *  @li Not enough memory (error)
+   *
+   * NOTE: The templated version of this function should not be exposed
+   *       in pybind11 so changing its name to setRowFromDense_itr()
+   *       The templated version is used in py_SparseMatrix.cpp
    */
   template <typename InputIterator>
-  inline void setRowFromDense(size_type row, InputIterator begin) {
+  inline void setRowFromDense_itr(size_type row, InputIterator begin) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
     } // End pre-conditions
@@ -5671,9 +5675,13 @@ public:
    *  @li r < 0 || r >= nrows (check)
    *
    * TODO single pass rather than ncols + nnzr?
+   * The templated version is called from
+   *             py_SparseMatrix.cpp, SparseMatrix.hpp, spatialPooler.
+   * It is overloaded with a non-templated verion that takes a vector.
+   * We don't want to expose the templated version to Python so changing its name.
    */
   template <typename OutputIterator>
-  inline void getRowToDense(size_type row, OutputIterator it) const {
+  inline void getRowToDense_itr(size_type row, OutputIterator it) const {
     { // Pre-conditions
       ASSERT_OUTPUT_ITERATOR(OutputIterator, value_type);
       assert_valid_row_(row, "getRowToDense");
@@ -5819,9 +5827,12 @@ public:
    *
    * @b Exceptions:
    *  @li if col < 0 || col >= ncols (assert)
+   *
+   * It is overloaded with a non-templated verion that takes a vector.
+   * We don't want to expose the templated version to Python so changing its name.
    */
   template <typename OutputIterator>
-  inline void getColToDense(size_type col, OutputIterator dense) const {
+  inline void getColToDense_itr(size_type col, OutputIterator dense) const {
     { // Pre-conditions
       ASSERT_OUTPUT_ITERATOR(OutputIterator, value_type);
       assert_valid_col_(col, "getColToDense");
@@ -5926,8 +5937,12 @@ public:
     return count;
   }
 
+   /**
+   * It is overloaded with a non-templated verion that takes a vector.
+   * We don't want to expose the templated version to Python so changing its name.
+   */
   template <typename InputIterator1>
-  inline void setColFromDense(size_type col, InputIterator1 it) {
+  inline void setColFromDense_itr(size_type col, InputIterator1 it) {
     { // Pre-conditions
       assert_valid_col_(col, "setColFromDense");
     } // End pre-conditions
@@ -5945,7 +5960,7 @@ public:
                                       << "number of rows= " << nRows();
     } // End pre-conditions
 
-    setColFromDense(col, x.begin());
+    setColFromDense_itr(col, x.begin());
   }
 
   // FILTERING
@@ -10764,10 +10779,13 @@ public:
    * Increments this sparse matrix with outer product of two passed vectors.
    *
    * this += outer(x,y)
+   *
+   * It is overloaded with a non-templated verion that takes a vector.
+   * We don't want to expose the templated version to Python so changing its name.
    */
   template <typename InputIterator>
   inline void
-  incrementWithOuterProduct(InputIterator x_begin, InputIterator x_end,
+  incrementWithOuterProduct_itr(InputIterator x_begin, InputIterator x_end,
                             InputIterator y_begin, InputIterator y_end) {
     { // Pre-conditions
       ASSERT_INPUT_ITERATOR(InputIterator);
@@ -10813,7 +10831,7 @@ public:
    */
   inline void incrementWithOuterProduct(const std::vector<value_type> &x,
                                         const std::vector<value_type> &y) {
-    incrementWithOuterProduct(x.begin(), x.end(), y.begin(), y.end());
+    incrementWithOuterProduct_itr(x.begin(), x.end(), y.begin(), y.end());
   }
 
   /**
@@ -10821,10 +10839,13 @@ public:
    * two ranges by val.
    *
    * this += val * (outer(x,y) != 0)
+   *
+   * It is overloaded with a non-templated verion that takes a vector.
+   * We don't want to expose the templated version to Python so changing its name.
    */
   template <typename InputIterator>
   inline void
-  incrementOnOuterProductVal(InputIterator row_begin, InputIterator row_end,
+  incrementOnOuterProductVal_itr(InputIterator row_begin, InputIterator row_end,
                              InputIterator col_begin, InputIterator col_end,
                              const value_type &val) {
     { // Pre-conditions

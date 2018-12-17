@@ -24,7 +24,7 @@
  * Definition of the RegionImpl Factory API
  *
  * A RegionImplFactory creates RegionImpls upon request.
- * Pynode creation is delegated to another class (TBD).
+ * Pynode creation is delegated to pyBindRegion via RegisteredRegionImplPy
  * Because all C++ RegionImpls are compiled in to NuPIC,
  * the RegionImpl factory knows about them explicitly.
  *
@@ -72,7 +72,8 @@ public:
   // This frees up the cached information.
   // Should be called only if there are no outstanding
   // nodespec references (e.g. in NuPIC shutdown) or pynodes.
-  void cleanup();
+  // Used in unit tests to Setup for next test.
+  static void cleanup();
 
 
   // Allows the user to load custom region types
@@ -85,6 +86,11 @@ public:
 private:
   RegionImplFactory(){};
   RegionImplFactory(const RegionImplFactory &);
+
+
+  // Mappings for region nodeTypes that map to Class and module
+  std::map<const std::string, std::shared_ptr<RegisteredRegionImpl> > regionTypeMap;
+  void addRegionType(const std::string nodeType, RegisteredRegionImpl* wrapper);
 
 };
 } // namespace nupic

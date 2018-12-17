@@ -89,7 +89,6 @@ void Output::addLink(Link_Ptr_t link) {
 }
 
 void Output::removeLink(Link_Ptr_t link) {
-  std::cout << "Output::removeLink: " << name_ << "\n";
   auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
   NTA_CHECK(linkIter != links_.end());
