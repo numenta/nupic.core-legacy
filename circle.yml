@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Restoring system python
           command: |
-            brew upgrade python pip
+            brew upgrade python
             #            curl https://bootstrap.pypa.io/get-pip.py | python - --user
             echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV
             echo 'pip version: ' && pip --version 
