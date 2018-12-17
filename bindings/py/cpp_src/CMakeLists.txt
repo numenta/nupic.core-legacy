@@ -94,7 +94,7 @@ file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
 if (MSVC)
   set(PYBIND11_CPP_STANDARD /std:c++latest) # Enables MSVC C++17
 else()
-  set(PYBIND11_CPP_STANDARD -std=c++11)
+  set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
 endif()
 
 
