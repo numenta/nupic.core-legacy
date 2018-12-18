@@ -363,4 +363,24 @@ TEST_F(SDRClassifierTest, testSoftmaxOverflow) {
   ASSERT_FALSE(std::isnan(result));
 }
 
+
+TEST_F(SDRClassifierTest, testSoftmax) {
+  SDRClassifier c = SDRClassifier({1}, 0.1, 0.3, 0);
+  std::vector<Real64> values {0.0, 1.0, 1.337, 2.018, 1.1, 0.5, 0.9};
+  const std::vector<Real64> exp {
+	  0.045123016137150938, 
+	  0.12265707481088166, 
+	  0.17181055613150184, 
+	  0.3394723335640627, 
+	  0.13555703197721547, 
+	  0.074395276503465876, 
+	  0.11098471087572169};
+  
+  softmax_(&c, values.begin(), values.end());
+  
+  for(UInt i = 0; i< exp.size(); i++) {
+    EXPECT_NEAR(values[i], exp[i], 0.000001) << "softmax ["<< i <<"]";
+  }
+}
+
 } // end namespace
