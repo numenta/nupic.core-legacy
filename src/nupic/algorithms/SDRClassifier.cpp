@@ -42,6 +42,19 @@ namespace nupic {
 namespace algorithms {
 namespace sdr_classifier {
 
+
+void resize_(Matrix& m, const UInt rows, const UInt cols, const Real64 defaultVal=0.0) {
+  for(UInt i=0; i< rows; i++) {
+    for(UInt j=0; j< cols; j++) {
+      try {
+        m[i][j];
+      } catch(std::exception& ex ) {
+        m[i][j] = defaultVal;
+      }
+    }
+  }
+}
+
 SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
                              Real64 actValueAlpha, UInt verbosity)
     : steps_(steps), alpha_(alpha), actValueAlpha_(actValueAlpha),
@@ -64,7 +77,9 @@ SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
   // to reallocate this matrix only a few times, even never if we use
   // lower bounds
   for (const auto &step : steps_) {
-    weightMatrix_.emplace(step, Matrix());
+	  Matrix m;
+	  resize_(m, maxInputIdx_ +1, maxBucketIdx_ +1);
+    weightMatrix_.emplace(step, m);
   }
 }
 
@@ -92,6 +107,19 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
     }
   }
 
+  // if input pattern has greater index than previously seen, update
+  // maxInputIdx and augment weight matrix with zero padding
+  if (patternNZ.size() > 0) {
+    const UInt maxInputIdx = *max_element(patternNZ.begin(), patternNZ.end());
+    if (maxInputIdx > maxInputIdx_) {
+      maxInputIdx_ = maxInputIdx;
+      for (const auto &step : steps_) {
+        Matrix &weights = weightMatrix_.at(step);
+        resize_(weights, maxInputIdx_ +1, maxBucketIdx_ +1);
+      }
+    }
+  }
+
   // if in inference mode, compute likelihood and update return value
   if (infer) {
     infer_(patternNZ, actValueList, result);
@@ -100,8 +128,17 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
   // update weights if in learning mode
   if (learn) {
     for (size_t categoryI = 0; categoryI < bucketIdxList.size(); categoryI++) {
-      UInt bucketIdx = bucketIdxList[categoryI];
-      Real64 actValue = actValueList[categoryI];
+      const UInt bucketIdx = bucketIdxList[categoryI];
+      const Real64 actValue = actValueList[categoryI];
+      // if bucket is greater, update maxBucketIdx_ and augment weight
+      // matrix with zero-padding
+      if (bucketIdx > maxBucketIdx_) {
+        maxBucketIdx_ = bucketIdx;
+        for (const auto &step : steps_) {
+          Matrix &weights = weightMatrix_.at(step);
+          resize_(weights, maxInputIdx_ +1, maxBucketIdx_ +1);
+        }
+      }
 
       // update rolling averages of bucket values
       while (actualValues_.size() <= maxBucketIdx_) {
@@ -463,6 +500,7 @@ bool SDRClassifier::operator==(const SDRClassifier &other) const {
 
   return true;
 }
+
 
 } // namespace sdr_classifier
 } // namespace algorithms
