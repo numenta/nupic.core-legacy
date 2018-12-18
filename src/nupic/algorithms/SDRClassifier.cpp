@@ -131,23 +131,11 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
         const vector<Real64> error = calculateError_(bucketIdxList, learnPatternNZ, nSteps);
         Matrix &weights = weightMatrix_.at(nSteps);
         for (auto &bit : learnPatternNZ) {
-	  NTA_THROW << "SDRC implement axbi()";
-          //FIXME weights.axby(bit, 1.0, alpha_, error);
-	  /* //FIXME implement this from DenseMatrix: 
-  template <typename InIter> void axby(Int r, Float a, Float b, InIter x) {
-    for (Int j = 0; j < ncols; ++j)
-      at(r, j) = a * at(r, j) + b * x[j];
-
-    threshold(r, nupic::Epsilon);
-  }
-
-  template <typename InIter> void axby(Float a, Float b, InIter x) {
-    ITER_2(nrows, ncols)
-    at(i, j) = a * at(i, j) + b * x[j];
-
-    threshold(nupic::Epsilon);
-  }
-*/
+	  auto& w = weights.at(bit);
+	  NTA_ASSERT(alpha_ > 0.0);
+          for(UInt i = 0; i < error.size(); i++) {
+            w[i] = w[i] + alpha_ * error[i];
+          }
         }
       }
     }
@@ -216,15 +204,17 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
 
   // compute target likelihoods
   vector<Real64> targetDistribution(maxBucketIdx_ + 1, 0.0);
-  Real64 numCategories = (Real64)bucketIdxList.size();
+  const Real64 numCategories = (Real64)bucketIdxList.size();
   for (size_t i = 0; i < bucketIdxList.size(); i++)
     targetDistribution[bucketIdxList[i]] = 1.0 / numCategories;
   
-  NTA_THROW << "SDRC implement axbi()";
-  //FIXME axby from DenseMatrix
-  //axby(-1.0, likelihoods, 1.0, targetDistribution);
+  NTA_ASSERT(likelihoods.size() == targetDistribution.size());
+  for(UInt i = 0; i < likelihoods.size(); i++) {
+    likelihoods[i] = targetDistribution[i] - likelihoods[i];
+  }
   return likelihoods;
 }
+
 
 void SDRClassifier::softmax_(vector<Real64>::iterator begin,
                              vector<Real64>::iterator end) {
