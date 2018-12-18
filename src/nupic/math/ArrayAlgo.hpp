@@ -695,7 +695,7 @@ inline T2 dot(const std::vector<T1> &x, const Buffer<T2> &y) {
 //--------------------------------------------------------------------------------
 inline float dot(const float *x, const float *x_end, const float *y) {
     NTA_ASSERT(x_end >= x);
-    const Size sz = x_end - x; 
+    const Size sz = x_end - x;
     const Eigen::Map<const Eigen::RowVectorXf> mx(x, sz);
     const Eigen::Map<const Eigen::RowVectorXf> my(y, sz);
 
@@ -1783,88 +1783,6 @@ inline void random_pair_sample(size_t nrows, size_t ncols, size_t nnzpr,
     for (size_t j = 0; j != nnzpr; ++j)
       a[offset + j] = std::pair<T1, T2>(x[j], init_nz_val);
   }
-}
-
-//--------------------------------------------------------------------------------
-/**
- * Generates a matrix of random (index,value) pairs from [0..ncols], with
- * nnzpr numbers per row, and n columns [generates a constant sparse matrix
- * with constant number of non-zeros per row]. This uses a 2D Gaussian
- * distribution for the on bits of each coincidence. That is, each coincidence
- * is seen as a folded 2D array, and a 2D Gaussian is used to distribute the on
- * bits of each coincidence.
- *
- * Each row is seen as an image of size (ncols / rf_x) by rf_x.
- * 'sigma' is the parameter of the Gaussian, which is centered at the center of
- * the image. Uses a symmetric Gaussian, specified only by the location of its
- * max and a single sigma parameter (no Sigma matrix). We use the symmetry of
- * the 2d gaussian to simplify computations. The conditional distribution
- * obtained from the 2d gaussian by fixing y is again a gaussian, with
- * parameters than can be easily deduced from the original 2d gaussian.
- */
-template <typename T1, typename T2>
-inline void gaussian_2d_pair_sample(size_t nrows, size_t ncols, size_t nnzpr,
-                                    size_t rf_x, T2 sigma,
-                                    std::vector<std::pair<T1, T2>> &a,
-                                    const T2 &init_nz_val, int seed = -1,
-                                    bool sorted = true) {
-  {
-    NTA_ASSERT(ncols % rf_x == 0);
-    NTA_ASSERT(nnzpr <= ncols);
-    NTA_ASSERT(0 < sigma);
-  }
-
-  a.resize(nrows * nnzpr);
-
-#if defined(NTA_ARCH_32) && defined(NTA_OS_DARWIN)
-  nupic::Random rng(seed == -1 ? arc4random() : seed);
-#else
-  nupic::Random rng(seed == -1 ? rand() : seed);
-#endif
-
-  size_t rf_y = ncols / rf_x;
-  T2 c_x = float(rf_x - 1.0) / 2.0, c_y = float(rf_y - 1.0) / 2.0;
-  Gaussian2D<float> sg2d(c_x, c_y, sigma * sigma, 0, 0, sigma * sigma);
-  std::vector<float> z(ncols);
-
-  // Renormalize because we've lost some mass
-  // with a compact domain of definition.
-  float s = 0;
-  for (size_t j = 0; j != ncols; ++j)
-    s += z[j] = sg2d(j / rf_y, j % rf_y);
-
-  for (size_t j = 0; j != ncols; ++j)
-    z[j] /= s;
-  // z[j] = 1.0f / (float)(rf_x * rf_y);
-
-  // std::vector<int> counts(ncols, 0);
-
-  // TODO: argsort z so that the bigger bins come first, and it's faster
-  // to draw samples in the area where the pdf is higher
-  for (size_t i = 0; i != nrows; ++i) {
-
-    std::set<size_t> b;
-
-    while (b.size() < nnzpr) {
-      T2 s = z[0], p = T2(rng.getReal64());
-      size_t k = 0;
-      while (s < p && k < ncols - 1)
-        s += z[++k];
-      //++counts[k];
-      b.insert(k);
-    }
-
-    size_t offset = i * nnzpr;
-    auto it = b.begin();
-    for (size_t j = 0; j != nnzpr; ++j, ++it)
-      a[offset + j] = std::pair<T1, T2>(*it, init_nz_val);
-  }
-
-  /*
-  for (size_t i = 0; i != counts.size(); ++i)
-    std::cout << counts[i] << " ";
-  std::cout << std::endl;
-  */
 }
 
 //--------------------------------------------------------------------------------
@@ -3270,6 +3188,10 @@ inline nupic::UInt32 count_gt(nupic::Real32 *begin, nupic::Real32 *end,
     return (int)count;
 
 #else
+    UNUSED(count);
+    UNUSED(n0);
+    UNUSED(n2);
+
     return (int)std::count_if(begin, end, std::bind(std::greater<nupic::Real32>(), _1, threshold));
 #endif
   } else {

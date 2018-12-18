@@ -27,11 +27,12 @@
 #include <string>
 #include <algorithm>
 #include <iterator> //begin()
+#include <cmath> //fmod
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/math/Topology.hpp>
-#include <nupic/utils/VectorHelpers.hpp> 
+#include <nupic/utils/VectorHelpers.hpp>
 
 #define VERSION 2  // version for stream serialization
 
@@ -40,8 +41,6 @@ using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
 using nupic::utils::VectorHelpers;
-
-static const Real PERMANENCE_EPSILON = 0.000001f;
 
 // Round f to 5 digits of precision. This is used to set
 // permanence values and help avoid small amounts of drift between
@@ -143,7 +142,7 @@ void SpatialPooler::setPotentialRadius(UInt potentialRadius) {
 Real SpatialPooler::getPotentialPct() const { return potentialPct_; }
 
 void SpatialPooler::setPotentialPct(Real potentialPct) {
-  NTA_CHECK(potentialPct > 0.0f && potentialPct <= 1.0f); 
+  NTA_CHECK(potentialPct > 0.0f && potentialPct <= 1.0f);
   potentialPct_ = potentialPct;
 }
 
@@ -166,7 +165,7 @@ void SpatialPooler::setNumActiveColumnsPerInhArea(UInt numActiveColumnsPerInhAre
 Real SpatialPooler::getLocalAreaDensity() const { return localAreaDensity_; }
 
 void SpatialPooler::setLocalAreaDensity(Real localAreaDensity) {
-  NTA_CHECK(localAreaDensity > 0.0f && localAreaDensity <= 1.0f); 
+  NTA_CHECK(localAreaDensity > 0.0f && localAreaDensity <= 1.0f);
   localAreaDensity_ = localAreaDensity;
   numActiveColumnsPerInhArea_ = DISABLED; //MUTEX with numActiveColumnsPerInhArea
 }
@@ -224,20 +223,11 @@ void SpatialPooler::setUpdatePeriod(UInt updatePeriod) {
   updatePeriod_ = updatePeriod;
 }
 
-Real SpatialPooler::getSynPermTrimThreshold() const {
-  return synPermTrimThreshold_;
-}
-
-void SpatialPooler::setSynPermTrimThreshold(Real synPermTrimThreshold) {
-  NTA_CHECK(synPermTrimThreshold >= synPermMin_ &&
-             synPermTrimThreshold <= synPermMax_);
-  synPermTrimThreshold_ = synPermTrimThreshold;
-}
-
 Real SpatialPooler::getSynPermActiveInc() const { return synPermActiveInc_; }
 
 void SpatialPooler::setSynPermActiveInc(Real synPermActiveInc) {
-  NTA_CHECK(synPermActiveInc > 0.0f && synPermActiveInc < synPermMax_);
+  NTA_CHECK( synPermActiveInc > connections::minPermanence );
+  NTA_CHECK( synPermActiveInc <= connections::maxPermanence );
   synPermActiveInc_ = synPermActiveInc;
 }
 
@@ -246,7 +236,8 @@ Real SpatialPooler::getSynPermInactiveDec() const {
 }
 
 void SpatialPooler::setSynPermInactiveDec(Real synPermInactiveDec) {
-  NTA_CHECK(synPermInactiveDec >= 0.0f && synPermInactiveDec <= synPermMax_); 
+  NTA_CHECK( synPermInactiveDec >= connections::minPermanence );
+  NTA_CHECK( synPermInactiveDec <= connections::maxPermanence );
   synPermInactiveDec_ = synPermInactiveDec;
 }
 
@@ -255,23 +246,20 @@ Real SpatialPooler::getSynPermBelowStimulusInc() const {
 }
 
 void SpatialPooler::setSynPermBelowStimulusInc(Real synPermBelowStimulusInc) {
-  NTA_CHECK(synPermBelowStimulusInc > 0.0f && synPermBelowStimulusInc <= synPermMax_);
+  NTA_CHECK( synPermBelowStimulusInc > connections::minPermanence );
+  NTA_CHECK( synPermBelowStimulusInc <= connections::maxPermanence );
   synPermBelowStimulusInc_ = synPermBelowStimulusInc;
 }
 
 Real SpatialPooler::getSynPermConnected() const { return synPermConnected_; }
 
 void SpatialPooler::setSynPermConnected(Real synPermConnected) {
-  NTA_CHECK(synPermConnected > synPermMin_ && synPermConnected <= synPermMax_);
+  NTA_CHECK( synPermConnected > connections::minPermanence );
+  NTA_CHECK( synPermConnected <= connections::maxPermanence );
   synPermConnected_ = synPermConnected;
 }
 
-Real SpatialPooler::getSynPermMax() const { return synPermMax_; }
-
-void SpatialPooler::setSynPermMax(Real synPermMax) { 
-	NTA_CHECK(synPermMax > synPermMin_);
-	synPermMax_ = synPermMax; 
-}
+Real SpatialPooler::getSynPermMax() const { return connections::maxPermanence; }
 
 Real SpatialPooler::getMinPctOverlapDutyCycles() const {
   return minPctOverlapDutyCycles_;
@@ -320,35 +308,88 @@ void SpatialPooler::setMinOverlapDutyCycles(const Real minOverlapDutyCycles[]) {
 
 void SpatialPooler::getPotential(UInt column, UInt potential[]) const {
   NTA_ASSERT(column < numColumns_);
-  potentialPools_.getRow(column, &potential[0], &potential[numInputs_]);
+  std::fill( potential, potential + numInputs_, 0 );
+  const auto &synapses = connections_.synapsesForSegment( column );
+  for(UInt i = 0; i < synapses.size(); i++) {
+    const auto &synData = connections_.dataForSynapse( synapses[i] );
+    potential[synData.presynapticCell] = 1;
+  }
 }
 
 void SpatialPooler::setPotential(UInt column, const UInt potential[]) {
-  NTA_CHECK(column < numColumns_);
-  potentialPools_.rowFromDense(column, &potential[0], &potential[numInputs_]);
+  NTA_ASSERT(column < numColumns_);
+
+  // Remove all existing synapses.
+  const auto &synapses = connections_.synapsesForSegment( column );
+  while( synapses.size() > 0 )
+    connections_.destroySynapse( synapses[0] );
+
+  // Replace with new synapse.
+  vector<UInt> potentialDenseVec( potential, potential + numInputs_ );
+  const auto &perm = initPermanence_( potentialDenseVec, initConnectedPct_ );
+  for(UInt i = 0; i < numInputs_; i++) {
+    if( potential[i] )
+      connections_.createSynapse( column, i, perm[i] );
+  }
 }
 
 void SpatialPooler::getPermanence(UInt column, Real permanences[]) const {
   NTA_ASSERT(column < numColumns_);
-  permanences_.getRowToDense(column, permanences);
+  std::fill( permanences, permanences + numInputs_, 0. );
+  const auto &synapses = connections_.synapsesForSegment( column );
+  for( const auto &syn : synapses ) {
+    const auto &synData = connections_.dataForSynapse( syn );
+    permanences[ synData.presynapticCell ] = synData.permanence;
+  }
 }
 
 void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
   NTA_ASSERT(column < numColumns_);
-  vector<Real> perm;
-  perm.assign(&permanences[0], &permanences[numInputs_]);
-  updatePermanencesForColumn_(perm, column, false);
+
+#ifndef NDEBUG // If DEBUG mode ...
+  // Keep track of which permanences have been successfully applied to the
+  // connections, by zeroing each out after processing.  After all synapses
+  // processed check that all permanences are zeroed.
+  vector<Real> check_data(permanences, permanences + numInputs_);
+#endif
+
+  const auto synapses = connections_.synapsesForSegment( column );
+  for(const auto &syn : synapses) {
+    const auto &synData = connections_.dataForSynapse( syn );
+    const auto &presyn  = synData.presynapticCell;
+    connections_.updateSynapsePermanence( syn, permanences[presyn] );
+
+#ifndef NDEBUG
+    check_data[presyn] = connections::minPermanence;
+#endif
+  }
+
+#ifndef NDEBUG
+  for(UInt i = 0; i < numInputs_; i++) {
+    NTA_ASSERT(check_data[i] == connections::minPermanence)
+          << "Can't setPermanence for synapse which is not in potential pool!";
+  }
+#endif
 }
 
 void SpatialPooler::getConnectedSynapses(UInt column,
                                          UInt connectedSynapses[]) const {
   NTA_ASSERT(column < numColumns_);
-  connectedSynapses_.getRow(column, &connectedSynapses[0],
-                            &connectedSynapses[numInputs_]);
+  std::fill( connectedSynapses, connectedSynapses + numInputs_, 0 );
+
+  const auto &synapses = connections_.synapsesForSegment( column );
+  for( const auto &syn : synapses ) {
+    const auto &synData = connections_.dataForSynapse( syn );
+    if( synData.permanence >= synPermConnected_ - connections::EPSILON )
+      connectedSynapses[ synData.presynapticCell ] = 1;
+  }
 }
 
 void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
-  copy(connectedCounts_.begin(), connectedCounts_.end(), connectedCounts);
+  for(UInt seg = 0; seg < numColumns_; seg++) {
+    const auto &segment = connections_.dataForSegment( seg );
+    connectedCounts[ seg ] = segment.numConnected;
+  }
 }
 
 const vector<UInt> &SpatialPooler::getOverlaps() const { return overlaps_; }
@@ -375,21 +416,21 @@ void SpatialPooler::initialize(
   numColumns_ = 1u;
   columnDimensions_.clear();
   for (auto &columnDimension : columnDimensions) {
-    NTA_CHECK(columnDimension > 0) << "Column dimensions must be positive integers!"; 
+    NTA_CHECK(columnDimension > 0) << "Column dimensions must be positive integers!";
     numColumns_ *= columnDimension;
     columnDimensions_.push_back(columnDimension);
   }
   NTA_CHECK(numColumns_ > 0);
   NTA_CHECK(numInputs_ > 0);
   NTA_CHECK(inputDimensions_.size() == columnDimensions_.size());
-  
+
   NTA_CHECK((numActiveColumnsPerInhArea > 0 && localAreaDensity < 0) ||
-            (localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY 
+            (localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY
 	     && numActiveColumnsPerInhArea < 0)
 	   ) << numActiveColumnsPerInhArea << " vs " << localAreaDensity;
   numActiveColumnsPerInhArea_ = numActiveColumnsPerInhArea;
   localAreaDensity_ = localAreaDensity;
-  
+
   rng_ = Random(seed);
 
   potentialRadius_ = potentialRadius > numInputs_ ? numInputs_ : potentialRadius;
@@ -406,10 +447,6 @@ void SpatialPooler::initialize(
   boostStrength_ = boostStrength;
   spVerbosity_ = spVerbosity;
   wrapAround_ = wrapAround;
-  synPermMin_ = 0.0f;
-  synPermMax_ = 1.0f;
-  synPermTrimThreshold_ =0;// synPermActiveInc / 2.0f;
-  NTA_CHECK(synPermTrimThreshold_ < synPermConnected_);
   updatePeriod_ = 50u;
   initConnectedPct_ = 0.5f;
   iterationNum_ = 0u;
@@ -419,11 +456,6 @@ void SpatialPooler::initialize(
   for (Size i = 0; i < numColumns_; i++) {
     tieBreaker_[i] = 0.5f * rng_.getReal64();
   }
-
-  potentialPools_.resize(numColumns_, numInputs_);
-  permanences_.resize(numColumns_, numInputs_);
-  connectedSynapses_.resize(numColumns_, numInputs_);
-  connectedCounts_.resize(numColumns_);
 
   overlapDutyCycles_.assign(numColumns_, 0);
   activeDutyCycles_.assign(numColumns_, localAreaDensity_);
@@ -435,11 +467,19 @@ void SpatialPooler::initialize(
 
   inhibitionRadius_ = 0;
 
+  connections_.initialize(numColumns_, synPermConnected_);
   for (Size i = 0; i < numColumns_; ++i) {
-    vector<UInt> potential = mapPotential_(i, wrapAround_);
+    connections_.createSegment( i );
+
+    // Note: initMapPotential_ & initPermanence_ return dense arrays.
+    vector<UInt> potential = initMapPotential_(i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
-    potentialPools_.rowFromDense(i, potential.begin(), potential.end());
-    updatePermanencesForColumn_(perm, i, true);
+    for(UInt presyn = 0; presyn < numInputs_; presyn++) {
+      if( potential[presyn] )
+        connections_.createSynapse( i, presyn, perm[presyn] );
+    }
+
+    connections_.raisePermanencesToThreshold( i, synPermConnected_, stimulusThreshold_ );
   }
 
   updateInhibitionRadius_();
@@ -449,6 +489,7 @@ void SpatialPooler::initialize(
     std::cout << "CPP SP seed                 = " << seed << std::endl;
   }
 }
+
 
 void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArray[]) {
   SDR input( inputDimensions_ );
@@ -461,6 +502,7 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
       active.getDense().end(),
       activeArray);
 }
+
 
 void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
@@ -492,17 +534,31 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   }
 }
 
-
+// old API version
 void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const {
-  for (Size i = 0; i < numColumns_; i++) {
-    if (activeDutyCycles_[i] == 0) { //TODO make sparse
-      activeArray[i] = 0u;
+  SDR active(columnDimensions_);
+  active.setDense(activeArray);
+  stripUnlearnedColumns(active);
+  std::copy(active.getDense().begin(), active.getDense().end(), activeArray);
+}
+
+// performs activeColumns AND current-round learned columns: active & activeDutyCyc_
+void SpatialPooler::stripUnlearnedColumns(SDR& active) const {
+  auto sparseCols = active.getFlatSparse();
+  vector<UInt> res;
+  res.reserve(sparseCols.size());
+
+  for (const auto& col: sparseCols) {
+    if (activeDutyCycles_[col] > 0) {
+      res.push_back(col);
     }
   }
+  //update original SDR with changed values
+  active.setFlatSparse(res);
 }
 
 
-void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps,
+void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps, //TODO use Eigen sparse vector here
                                    vector<Real> &boosted) const {
   const Real denominator = 1. / log2( localAreaDensity_ );
   for (UInt i = 0; i < numColumns_; i++) {
@@ -511,7 +567,8 @@ void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps,
    }
 }
 
-UInt SpatialPooler::mapColumn_(UInt column) const {
+
+UInt SpatialPooler::initMapColumn_(UInt column) const {
   NTA_ASSERT(column < numColumns_);
   vector<UInt> columnCoords;
   const CoordinateConverterND columnConv(columnDimensions_);
@@ -529,10 +586,9 @@ UInt SpatialPooler::mapColumn_(UInt column) const {
   return inputConv.toIndex(inputCoords);
 }
 
-
 Real SpatialPooler::initPermConnected_() {
   Real p =
-      synPermConnected_ + (synPermMax_ - synPermConnected_) * rng_.getReal64();
+      synPermConnected_ + (connections::maxPermanence - synPermConnected_) * rng_.getReal64();
 
   return round5_(p);
 }
@@ -557,56 +613,9 @@ vector<Real> SpatialPooler::initPermanence_(const vector<UInt> &potential, //TOD
     } else {
       perm[i] = initPermNonConnected_();
     }
-    perm[i] = perm[i] < synPermTrimThreshold_ ? 0.0f : perm[i];
   }
 
   return perm;
-}
-
-
-void SpatialPooler::clip_(vector<Real> &perm, bool trim) const {
-  const Real minVal = trim ? synPermTrimThreshold_ : synPermMin_;
-  for (auto &elem : perm) {
-    elem = elem > synPermMax_ ? synPermMax_ : elem; //crop upper bound
-    elem = elem < minVal ? synPermMin_ : elem; //crop lower
-  }
-}
-
-
-void SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
-                                                bool raisePerm) {
-  NTA_ASSERT(column < numColumns_);
-
-  if (raisePerm) {
-    const vector<UInt> potential = potentialPools_.getSparseRow(column);
-    raisePermanencesToThreshold_(perm, potential);
-  }
-
-  UInt numConnected = 0u;
-  vector<Real> connectedSparse;
-  for (Size i = 0; i < perm.size(); ++i) { //TODO use binary2Sparse
-    if (perm[i] >= synPermConnected_ - PERMANENCE_EPSILON) {
-      connectedSparse.push_back(i);
-      ++numConnected;
-    }
-  }
-
-  clip_(perm, true);
-  connectedSynapses_.replaceSparseRow(column, connectedSparse.begin(), 
-                                      connectedSparse.end());
-  permanences_.setRowFromDense(column, perm);
-  connectedCounts_[column] = numConnected;
-}
-
-
-UInt SpatialPooler::countConnected_(const vector<Real> &perm) const {
-  UInt numConnected = 0;
-  for (auto &elem : perm) {
-    if (elem >= synPermConnected_ - PERMANENCE_EPSILON) {
-      ++numConnected;
-    }
-  }
-  return numConnected;
 }
 
 
@@ -659,7 +668,7 @@ void SpatialPooler::updateMinDutyCyclesLocal_() {
       maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
       maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
      }
-    } else { 
+    } else {
      for(auto column: Neighborhood(i, inhibitionRadius_, columnDimensions_)) {
       maxActiveDuty = max(maxActiveDuty, activeDutyCycles_[column]);
       maxOverlapDuty = max(maxOverlapDuty, overlapDutyCycles_[column]);
@@ -684,8 +693,7 @@ void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
   }
   newOverlap.setFlatSparse( overlapsSparseVec );
 
-  const UInt period =
-      dutyCyclePeriod_ > iterationNum_ ? iterationNum_ : dutyCyclePeriod_;
+  const UInt period = std::min(dutyCyclePeriod_, iterationNum_);
 
   updateDutyCyclesHelper_(overlapDutyCycles_, newOverlap, period);
   updateDutyCyclesHelper_(activeDutyCycles_, active, period);
@@ -706,26 +714,29 @@ Real SpatialPooler::avgColumnsPerInput_() const {
 
 Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
   NTA_ASSERT(column < numColumns_);
-  
+
   const UInt numDimensions = inputDimensions_.size();
-  const vector<UInt> connectedSparse = connectedSynapses_.getSparseRow(column);
-  if (connectedSparse.empty()) {
-    return 0;
-  }
+
+  vector<UInt> connectedDense( numInputs_, 0 );
+  getConnectedSynapses( column, connectedDense.data() );
 
   vector<UInt> maxCoord(numDimensions, 0);
   vector<UInt> minCoord(numDimensions, *max_element(inputDimensions_.begin(),
                                                     inputDimensions_.end()));
   const CoordinateConverterND conv(inputDimensions_);
-
-  for (auto &elem : connectedSparse) {
+  bool all_zero = true;
+  for(UInt i = 0; i < numInputs_; i++) {
+    if( connectedDense[i] == 0 )
+      continue;
+    all_zero = false;
     vector<UInt> columnCoord;
-    conv.toCoord(elem, columnCoord);
+    conv.toCoord(i, columnCoord);
     for (size_t j = 0; j < columnCoord.size(); j++) {
       maxCoord[j] = max(maxCoord[j], columnCoord[j]); //FIXME this computation may be flawed
       minCoord[j] = min(minCoord[j], columnCoord[j]);
     }
   }
+  if( all_zero ) return 0.0f;
 
   UInt totalSpan = 0;
   for (size_t j = 0; j < inputDimensions_.size(); j++) {
@@ -738,19 +749,10 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 
 void SpatialPooler::adaptSynapses_(SDR &input,
                                    SDR &active) {
-  vector<Real> permChanges(numInputs_, -1 * synPermInactiveDec_);
-  for(const auto &idx : input.getFlatSparse())
-    permChanges[idx] = synPermActiveInc_;
-
   for(const auto &column : active.getFlatSparse()) {
-    const vector<UInt> potential = potentialPools_.getSparseRow(column);
-    vector<Real> perm(numInputs_, 0);
-    permanences_.getRowToDense(column, perm);
-    for (auto & elem : potential) {
-        perm[elem] += permChanges[elem];
-    }
-
-    updatePermanencesForColumn_(perm, column, true);
+    connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
+    connections_.raisePermanencesToThreshold(
+                                column, synPermConnected_, stimulusThreshold_);
   }
 }
 
@@ -760,13 +762,7 @@ void SpatialPooler::bumpUpWeakColumns_() {
     if (overlapDutyCycles_[i] >= minOverlapDutyCycles_[i]) {
       continue;
     }
-    vector<Real> perm(numInputs_, 0);
-    const vector<UInt> potential = potentialPools_.getSparseRow(i);
-    permanences_.getRowToDense(i, perm);
-    for (auto & elem : potential) {
-      perm[elem] += synPermBelowStimulusInc_;
-    }
-    updatePermanencesForColumn_(perm, i, false);
+    connections_.bumpSegment( i, synPermBelowStimulusInc_ );
   }
 }
 
@@ -855,19 +851,22 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 
 void SpatialPooler::calculateOverlap_(SDR &input,
                                       vector<UInt> &overlaps) const {
-  overlaps.assign(numColumns_, 0);
-  const auto &inputVector = input.getDense();
-  connectedSynapses_.rightVecSumAtNZ(inputVector.begin(), inputVector.end(),
-                                     overlaps.begin(),    overlaps.end());
+  overlaps.assign( numColumns_, 0.0f );
+  vector<UInt32> potentialOverlaps( numColumns_ );
+  connections_.computeActivity(overlaps, potentialOverlaps,
+        input.getFlatSparse(), synPermConnected_);
 }
 
 
 void SpatialPooler::calculateOverlapPct_(const vector<UInt> &overlaps,
                                          vector<Real> &overlapPct) const {
   overlapPct.assign(numColumns_, 0);
+  vector<UInt> connectedCounts( numColumns_ );
+  getConnectedCounts( connectedCounts.data() );
+
   for (UInt i = 0; i < numColumns_; i++) {
-    if (connectedCounts_[i] != 0) {
-      overlapPct[i] = ((Real)overlaps[i]) / connectedCounts_[i];
+    if (connectedCounts[i] != 0) {
+      overlapPct[i] = ((Real)overlaps[i]) / connectedCounts[i];
     } 
   }
 }
@@ -909,35 +908,23 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
   // Compare the column indexes by their overlap.
   auto compare = [&overlaps](const UInt &a, const UInt &b) -> bool
     {return overlaps[a] > overlaps[b];};
-
-  activeColumns.clear();
-  activeColumns.reserve(miniColumns + numDesired * macroColumns );
-
-  for(UInt offset = 0; offset < numColumns_; offset += miniColumns)
-  {
-    // Sort the columns by the amount of overlap.  First make a list of all of
-    // the column indexes.
-    auto outPtr = activeColumns.end();
-    for(UInt i = 0; i < miniColumns; i++)
-      activeColumns.push_back( i + offset );
-    // Do a partial sort to divide the winners from the losers.  This sort is
-    // faster than a regular sort because it stops after it partitions the
-    // elements about the Nth element, with all elements on their correct side of
-    // the Nth element.
-    std::nth_element(
-      outPtr,
-      outPtr + numDesired,
-      activeColumns.end(),
-      compare);
-    // Remove the columns which lost the competition.
-    activeColumns.resize( activeColumns.size() - (miniColumns - numDesired) );
-    // Finish sorting the winner columns by their overlap.
-    std::sort(outPtr, activeColumns.end(), compare);
-    // Remove sub-threshold winners
-    while( activeColumns.size() > offset &&
-           overlaps[activeColumns.back()] < stimulusThreshold_)
-        activeColumns.pop_back();
-  }
+  // Do a partial sort to divide the winners from the losers.  This sort is
+  // faster than a regular sort because it stops after it partitions the
+  // elements about the Nth element, with all elements on their correct side of
+  // the Nth element.
+  std::nth_element(
+    activeColumns.begin(),
+    activeColumns.begin() + numDesired,
+    activeColumns.end(),
+    compare);
+  // Remove the columns which lost the competition.
+  activeColumns.resize(numDesired);
+  // Finish sorting the winner columns by their overlap.
+  std::sort(activeColumns.begin(), activeColumns.end(), compare);
+  // Remove sub-threshold winners
+  while( !activeColumns.empty() &&
+         overlaps[activeColumns.back()] < stimulusThreshold_)
+      activeColumns.pop_back();
 }
 
 
@@ -954,7 +941,7 @@ void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
     if (overlaps[column] < stimulusThreshold_) {
       continue;
     }
-    
+
     UInt numNeighbors = 0;
     UInt numBigger = 0;
 
@@ -1015,7 +1002,7 @@ void SpatialPooler::save(ostream &outStream) const {
             << " ";
 
   outStream << potentialPct_ << " ";
-  outStream << initConnectedPct_ << " " << globalInhibition_ << " " 
+  outStream << initConnectedPct_ << " " << globalInhibition_ << " "
 	  << numActiveColumnsPerInhArea_ << " " << localAreaDensity_ << " ";
 
   outStream << stimulusThreshold_ << " " << inhibitionRadius_ << " "
@@ -1026,8 +1013,7 @@ void SpatialPooler::save(ostream &outStream) const {
   outStream << iterationNum_ << " " << iterationLearnNum_ << " " << spVerbosity_
             << " " << updatePeriod_ << " ";
 
-  outStream << synPermMin_ << " " << synPermMax_ << " " 
-    << synPermTrimThreshold_ << " " << synPermInactiveDec_ << " "
+  outStream << synPermInactiveDec_ << " "
     << synPermActiveInc_ << " " << synPermBelowStimulusInc_ << " "
     << synPermConnected_ << " " << minPctOverlapDutyCycles_ << " ";
 
@@ -1071,32 +1057,7 @@ void SpatialPooler::save(ostream &outStream) const {
   }
   outStream << endl;
 
-  // Store matrices:
-  //potentials
-  for (UInt i = 0; i < numColumns_; i++) {
-    const auto pot = potentialPools_.getSparseRow(i);
-    outStream << pot.size() << endl;
-    for (auto &elem : pot) {
-      outStream << elem << " ";
-    }
-    outStream << endl;
-  }
-  outStream << endl;
-
-  //permanences
-  for (UInt i = 0; i < numColumns_; i++) {
-    vector<pair<UInt, Real>> perm;
-    perm.resize(permanences_.nNonZerosOnRow(i));
-    outStream << perm.size() << endl;
-    permanences_.getRowToSparse(i, perm.begin());
-    for (auto &elem : perm) {
-      outStream << elem.first << " " << elem.second << " ";
-    }
-    outStream << endl;
-  }
-  outStream << endl;
-
-  //connected synapses get rebuilt from permanences_ updateSynapsesForColumn_(), see load()
+  connections_.save( outStream );
 
   //Random
   outStream << rng_ << endl;
@@ -1126,9 +1087,7 @@ void SpatialPooler::load(istream &inStream) {
       initConnectedPct_ >> globalInhibition_ >> numActiveColumnsPerInhArea_ >>
       localAreaDensity_ >> stimulusThreshold_ >> inhibitionRadius_ >>
       dutyCyclePeriod_ >> boostStrength_ >> iterationNum_ >>
-      iterationLearnNum_ >> spVerbosity_ >> updatePeriod_
-
-      >> synPermMin_ >> synPermMax_ >> synPermTrimThreshold_ >>
+      iterationLearnNum_ >> spVerbosity_ >> updatePeriod_ >>
       synPermInactiveDec_ >> synPermActiveInc_ >> synPermBelowStimulusInc_ >>
       synPermConnected_ >> minPctOverlapDutyCycles_;
   inStream >> wrapAround_;
@@ -1173,35 +1132,7 @@ void SpatialPooler::load(istream &inStream) {
     inStream >> tieBreaker_[i];
   }
 
-  // Retrieve matrices.
-  potentialPools_.resize(numColumns_, numInputs_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    UInt nNonZerosOnRow;
-    inStream >> nNonZerosOnRow;
-    vector<UInt> pot(nNonZerosOnRow, 0);
-    for (UInt j = 0; j < nNonZerosOnRow; j++) {
-      inStream >> pot[j];
-    }
-    potentialPools_.replaceSparseRow(i, pot.begin(), pot.end());
-  }
-
-  permanences_.resize(numColumns_, numInputs_);
-  connectedSynapses_.resize(numColumns_, numInputs_);
-  connectedCounts_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    UInt nNonZerosOnRow;
-    inStream >> nNonZerosOnRow;
-    vector<Real> perm(numInputs_, 0);
-
-    for (UInt j = 0; j < nNonZerosOnRow; j++) {
-      UInt index;
-      Real value;
-      inStream >> index;
-      inStream >> value;
-      perm[index] = value;
-    }
-    updatePermanencesForColumn_(perm, i, false);
-  }
+  connections_.load( inStream );
 
   inStream >> rng_;
 
@@ -1273,7 +1204,7 @@ bool SpatialPooler::operator==(const SpatialPooler& o) const{
   stringstream s;
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);
-  
+
   this->save(s);
   const string thisStr = s.str();
 
@@ -1313,7 +1244,7 @@ Real norm_dist_pdf(Real mean, Real std, Real x) {
   return mult * exp( expt );
 }
 
-vector<UInt> SpatialPooler::mapPotential_(UInt column, bool wrapAround) {
+vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
   NTA_ASSERT(column < numColumns_);
 
   UInt pp_size = 106;

@@ -24,6 +24,7 @@
  * Implementation of Watcher test
  */
 
+
 #include <exception>
 #include <sstream>
 #include <string>

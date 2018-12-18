@@ -60,16 +60,16 @@ TEST(TemporalMemoryTest, testCheckInputs_UnsortedColumns) {
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.21,
-      /*connectedPermanence*/ 0.50,
+      /*initialPermanence*/ 0.21f,
+      /*connectedPermanence*/ 0.50f,
       /*minThreshold*/ 2,
       /*maxNewSynapseCount*/ 3,
-      /*permanenceIncrement*/ 0.10,
-      /*permanenceDecrement*/ 0.10,
-      /*predictedSegmentDecrement*/ 0.0,
+      /*permanenceIncrement*/ 0.10f,
+      /*permanenceDecrement*/ 0.10f,
+      /*predictedSegmentDecrement*/ 0.0f,
       /*seed*/ 42);
 
-  const UInt activeColumns[4] = {1, 3, 2, 4};
+  const UInt activeColumns[4] = {1u, 3u, 2u, 4u};
 
   EXPECT_THROW(tm.compute(4, activeColumns), exception);
 }
@@ -83,13 +83,13 @@ TEST(TemporalMemoryTest, testCheckInputs_BinaryArray) {
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.21,
-      /*connectedPermanence*/ 0.50,
+      /*initialPermanence*/ 0.21f,
+      /*connectedPermanence*/ 0.50f,
       /*minThreshold*/ 2,
       /*maxNewSynapseCount*/ 3,
-      /*permanenceIncrement*/ 0.10,
-      /*permanenceDecrement*/ 0.10,
-      /*predictedSegmentDecrement*/ 0.0,
+      /*permanenceIncrement*/ 0.10f,
+      /*permanenceDecrement*/ 0.10f,
+      /*predictedSegmentDecrement*/ 0.0f,
       /*seed*/ 42);
 
   // Use an input that will pass an `is_sorted` check.
@@ -107,13 +107,13 @@ TEST(TemporalMemoryTest, ActivateCorrectlyPredictiveCells) {
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.21,
-      /*connectedPermanence*/ 0.50,
+      /*initialPermanence*/ 0.21f,
+      /*connectedPermanence*/ 0.50f,
       /*minThreshold*/ 2,
       /*maxNewSynapseCount*/ 3,
-      /*permanenceIncrement*/ 0.10,
-      /*permanenceDecrement*/ 0.10,
-      /*predictedSegmentDecrement*/ 0.0,
+      /*permanenceIncrement*/ 0.10f,
+      /*permanenceDecrement*/ 0.10f,
+      /*predictedSegmentDecrement*/ 0.0f,
       /*seed*/ 42);
 
   const UInt numActiveColumns = 1;
@@ -123,10 +123,10 @@ TEST(TemporalMemoryTest, ActivateCorrectlyPredictiveCells) {
   const vector<CellIdx> expectedActiveCells = {4};
 
   Segment activeSegment = tm.createSegment(expectedActiveCells[0]);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5);
+  tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
+  tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
+  tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
+  tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5f);
 
   tm.compute(numActiveColumns, previousActiveColumns, true);
   ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
@@ -144,13 +144,13 @@ TEST(TemporalMemoryTest, BurstUnpredictedColumns) {
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 4,
       /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.21,
-      /*connectedPermanence*/ 0.50,
+      /*initialPermanence*/ 0.21f,
+      /*connectedPermanence*/ 0.50f,
       /*minThreshold*/ 2,
       /*maxNewSynapseCount*/ 3,
-      /*permanenceIncrement*/ 0.10,
-      /*permanenceDecrement*/ 0.10,
-      /*predictedSegmentDecrement*/ 0.0,
+      /*permanenceIncrement*/ 0.10f,
+      /*permanenceDecrement*/ 0.10f,
+      /*predictedSegmentDecrement*/ 0.0f,
       /*seed*/ 42);
 
   const UInt activeColumns[1] = {0};
@@ -499,10 +499,10 @@ TEST(TemporalMemoryTest, NoNewSegmentIfNotEnoughWinnerCells) {
       /*predictedSegmentDecrement*/ 0.0,
       /*seed*/ 42);
 
-  const UInt zeroColumns[0] = {};
+  const UInt zeroColumns[1] = {0}; // MSVC requires at least one element.
   const UInt activeColumns[1] = {0};
 
-  tm.compute(0, zeroColumns);
+  tm.compute(0, zeroColumns);  // The actual size of the array is not relevent.
   tm.compute(1, activeColumns);
 
   EXPECT_EQ(0, tm.connections.numSegments());
@@ -1481,8 +1481,8 @@ void serializationTestVerify(TemporalMemory &tm) {
 
   // Verify the winner cell in the last column grew a segment.
   const UInt winnerCell = winnerCells[2];
-  EXPECT_GE(winnerCell, 12);
-  EXPECT_LT(winnerCell, 16);
+  EXPECT_GE(winnerCell, 12u);
+  EXPECT_LT(winnerCell, 16u);
   ASSERT_EQ(1, tm.connections.numSegments(winnerCell));
   Segment newSegment = tm.connections.segmentsForCell(winnerCell)[0];
   const vector<Synapse> syns4 = tm.connections.synapsesForSegment(newSegment);

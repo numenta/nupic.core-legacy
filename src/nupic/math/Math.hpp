@@ -56,26 +56,26 @@
 
 	// Assert that It obeys the STL forward iterator concept
 	#define ASSERT_INPUT_ITERATOR(It) \
-	  boost::function_requires<boost::InputIteratorConcept<It>>();
+	  boost::function_requires<boost::InputIteratorConcept<It> >();
 
 	// Assert that It obeys the STL forward iterator concept
 	#define ASSERT_OUTPUT_ITERATOR(It, T) \
-	  boost::function_requires<boost::OutputIteratorConcept<It, T>>();
+	  boost::function_requires<boost::OutputIteratorConcept<It, T> >();
 
 	// Assert that UnaryPredicate obeys the STL unary predicate concept
 	#define ASSERT_UNARY_PREDICATE(UnaryPredicate, Arg1) \
 	  boost::function_requires< \
-	      boost::UnaryPredicateConcept<UnaryPredicate, Arg1>>();
+	      boost::UnaryPredicateConcept<UnaryPredicate, Arg1> >();
 
 	// Assert that UnaryFunction obeys the STL unary function concept
 	#define ASSERT_UNARY_FUNCTION(UnaryFunction, Ret, Arg1) \
 	  boost::function_requires< \
-	      boost::UnaryFunctionConcept<UnaryFunction, Ret, Arg1>>();
+	      boost::UnaryFunctionConcept<UnaryFunction, Ret, Arg1> >();
 
 	// Assert that BinaryFunction obeys the STL binary function concept
 	#define ASSERT_BINARY_FUNCTION(BinaryFunction, Ret, Arg1, Arg2) \
 	  boost::function_requires< \
-	      boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2>>();
+	      boost::BinaryFunctionConcept<BinaryFunction, Ret, Arg1, Arg2> >();
 #endif
 
 //--------------------------------------------------------------------------------
@@ -317,7 +317,7 @@ template <typename C1, typename Selector, bool f = false> struct IsIncluded {
  */
 template <typename T1, typename T2>
 struct lexicographic_2
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     if (a.first < b.first)
@@ -336,7 +336,7 @@ struct lexicographic_2
  */
 template <typename T1, typename T2>
 struct less_1st
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.first < b.first;
@@ -350,7 +350,7 @@ struct less_1st
  */
 template <typename T1, typename T2>
 struct less_2nd
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.second < b.second;
@@ -364,7 +364,7 @@ struct less_2nd
  */
 template <typename T1, typename T2>
 struct greater_1st
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.first > b.first;
@@ -378,7 +378,7 @@ struct greater_1st
  */
 template <typename T1, typename T2>
 struct greater_2nd
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     return a.second > b.second;
@@ -388,7 +388,7 @@ struct greater_2nd
 //--------------------------------------------------------------------------------
 template <typename T1, typename T2>
 struct greater_2nd_p : public std::binary_function<bool, std::pair<T1, T2 *>,
-                                                   std::pair<T1, T2 *>> {
+                                                   std::pair<T1, T2 *> > {
   inline bool operator()(const std::pair<T1, T2 *> &a,
                          const std::pair<T1, T2 *> &b) const {
     return *(a.second) > *(b.second);
@@ -401,7 +401,7 @@ struct greater_2nd_p : public std::binary_function<bool, std::pair<T1, T2 *>,
  */
 template <typename T1, typename T2>
 struct greater_2nd_no_ties
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   inline bool operator()(const std::pair<T1, T2> &a,
                          const std::pair<T1, T2> &b) const {
     if (a.second > b.second)
@@ -416,7 +416,7 @@ struct greater_2nd_no_ties
 //--------------------------------------------------------------------------------
 template <typename T1, typename T2, typename RND>
 struct greater_2nd_rnd_ties
-    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2>> {
+    : public std::binary_function<bool, std::pair<T1, T2>, std::pair<T1, T2> > {
   RND &rng;
 
   inline greater_2nd_rnd_ties(RND &_rng) : rng(_rng) {}
@@ -728,94 +728,20 @@ template <typename T> struct Min : public std::binary_function<T, T, T> {
 
 //--------------------------------------------------------------------------------
 /**
- * Gaussian:
- * y = 1/(sigma * sqrt(2*pi)) * exp(-(x-mu)^2/(2*sigma^2)) as a functor.
- */
-template <typename T> struct Gaussian : public std::unary_function<T, T> {
-  T k1, k2, mu;
-
-  inline Gaussian(T m, T s) : k1(0.0), k2(0.0), mu(m) {
-    // For some reason, SWIG cannot parse 1 / (x), the parentheses in the
-    // denominator don't agree with it, so we have to initialize those
-    // constants here.
-    k1 = 1.0 / sqrt(2.0 * 3.1415926535);
-    k2 = -1.0 / (2.0 * s * s);
-  }
-
-  inline Gaussian(const Gaussian &o) : k1(o.k1), k2(o.k2), mu(o.mu) {}
-
-  inline Gaussian &operator=(const Gaussian &o) {
-    if (&o != this) {
-      k1 = o.k1;
-      k2 = o.k2;
-      mu = o.mu;
-    }
-
-    return *this;
-  }
-
-  inline T operator()(T x) const {
-    T v = x - mu;
-    return k1 * exp(k2 * v * v);
-  }
-};
-
-//--------------------------------------------------------------------------------
-/**
- * 2D Gaussian
- */
-template <typename T>
-struct Gaussian2D // : public std::binary_function<T, T, T> (SWIG pb)
-{
-  T c_x, c_y, s00, s01, s10, s11, s2, k1;
-
-  inline Gaussian2D(T c_x_, T c_y_, T s00_, T s01_, T s10_, T s11_)
-      : c_x(c_x_), c_y(c_y_), s00(s00_), s01(s01_), s10(s10_), s11(s11_),
-        s2(s10 + s01), k1(0.0) {
-    // For some reason, SWIG cannot parse 1 / (x), the parentheses in the
-    // denominator don't agree with it, so we have to initialize those
-    // constants here.
-    k1 = 1.0 / (2.0 * 3.1415926535 * sqrt(s00 * s11 - s10 * s01));
-    T d = -2.0 * (s00 * s11 - s10 * s01);
-    s00 /= d;
-    s01 /= d;
-    s10 /= d;
-    s11 /= d;
-    s2 /= d;
-  }
-
-  inline Gaussian2D(const Gaussian2D &o)
-      : c_x(o.c_x), c_y(o.c_y), s00(o.s00), s01(o.s01), s10(o.s10), s11(o.s11),
-        s2(o.s2), k1(o.k1) {}
-
-  inline Gaussian2D &operator=(const Gaussian2D &o) {
-    if (&o != this) {
-      c_x = o.c_x;
-      c_y = o.c_y;
-      s00 = o.s00;
-      s01 = o.s01;
-      s10 = o.s10;
-      s11 = o.s11;
-      s2 = o.s2;
-      k1 = o.k1;
-    }
-
-    return *this;
-  }
-
-  inline T operator()(T x, T y) const {
-    T v0 = x - c_x, v1 = y - c_y;
-    return k1 * exp(s11 * v0 * v0 + s2 * v0 * v1 + s00 * v1 * v1);
-  }
-};
-
-//--------------------------------------------------------------------------------
-/**
+ * This is a 'C++ function object' or Functor.  An object that can be passed
+ * as if it were a C function. It is created by having a class containing an
+ * overload of the ( ) operator.
+ *
+ * The std::unary_function is deprecated in C++11 and removed in C++17.
+ *
  * Compose two unary functions.
  */
-template <typename F1, typename F2>
-struct unary_compose : public std::unary_function<typename F1::argument_type,
-                                                  typename F2::result_type> {
+//template <typename F1, typename F2>
+//struct unary_compose : public std::unary_function<typename F1::argument_type,
+//                                                  typename F2::result_type> {
+//  typedef typename F1::argument_type argument_type;
+//  typedef typename F2::result_type result_type;
+template <typename F1, typename F2> struct unary_compose {
   typedef typename F1::argument_type argument_type;
   typedef typename F2::result_type result_type;
 
@@ -829,22 +755,29 @@ struct unary_compose : public std::unary_function<typename F1::argument_type,
 
 //--------------------------------------------------------------------------------
 /**
+ * This is a 'C++ function object' or Functor.  An object that can be passed
+ * as if it were a C function. It is created by having a class containing an
+ * overload of the ( ) operator.
+ *
+ * TODO: The std::binary_function is deprecated in C++11 and removed in C++17.
+ *
  * Compose an order predicate and a binary selector, so that we can write:
  * sort(x.begin(), x.end(), compose<less<float>, select2nd<pair<int, float> >
  * >()); to sort pairs in increasing order of their second element.
  */
-template <typename O, typename S>
-struct predicate_compose
-    : public std::binary_function<typename S::argument_type,
-                                  typename S::argument_type, bool> {
-  typedef bool result_type;
+//template <typename O, typename S>
+//struct predicate_compose
+//    : public std::binary_function<typename S::argument_type,
+//                                  typename S::argument_type, bool> {
+//  typedef bool result_type;
+//  typedef typename S::argument_type argument_type;
+template <typename O, typename S> struct predicate_compose {
   typedef typename S::argument_type argument_type;
 
-  O o;
-  S s;
+  O o;  // operation function object
+  S s;  // selection function object
 
-  inline result_type operator()(const argument_type &x,
-                                const argument_type &y) const {
+  inline bool operator()(const argument_type &x,  const argument_type &y) const {
     return o(s(x), s(y));
   }
 };

@@ -25,48 +25,45 @@ jobs:
           command: |
             brew uninstall python
             curl https://bootstrap.pypa.io/get-pip.py | python - --user
-            echo 'export PATH=$HOME/Library/Python/2.7/bin:$PATH' >> $BASH_ENV 
+            export PATH=$HOME/Library/Python/2.7/bin:$PATH
+            echo 'pip version: ' && python -m pip --version 
       - run:
           name: Installing cmake 
           command: brew install cmake
-      - run:
-          name: Installing boost
-          command: brew install boost --with-filesystem --with-system
-      
       - checkout
 
       # Dependencies
       # Restore the dependency cache
-      - restore_cache:
-          keys:
-          # This branch if available
-          - v1-dep-{{ .Branch }}-
-          # Default branch if not
-          - v1-dep-master-
-          # Any branch if there are none on the default branch - this should be 
-          # unnecessary if you have your default branch configured correctly
-          - v1-dep-
+      #      - restore_cache:
+      #    keys:
+      #    # This branch if available
+      #    - v1-dep-{{ .Branch }}-
+      #    # Default branch if not
+      #    - v1-dep-master-
+      #    # Any branch if there are none on the default branch - this should be 
+      #    # unnecessary if you have your default branch configured correctly
+      #    - v1-dep-
 
       - run:
-          name: Installing dependencies
-          command: |
-            pip install --user --upgrade --verbose pip setuptools setuptools-scm
-            pip install --no-cache-dir --user -r bindings/py/requirements.txt  --verbose || exit
+           name: Installing python dependencies
+           command: |
+                   python -m pip install --user --upgrade pip setuptools setuptools-scm
+                   python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
 
       # Save dependency cache
-      - save_cache:
-          key: v1-dep-{{ .Branch }}-{{ epoch }}
-          paths:
-          # This is a broad list of cache paths to include many possible 
-          # development environments.
-          - vendor/bundle
-          - ~/virtualenvs
-          - ~/.m2
-          - ~/.ivy2
-          - ~/.bundle
-          - ~/.go_workspace
-          - ~/.gradle
-          - ~/.cache/bower
+      #      - save_cache:
+      #    key: v1-dep-{{ .Branch }}-{{ epoch }}
+      #    paths:
+      #    # This is a broad list of cache paths to include many possible 
+      #    # development environments.
+      #    - vendor/bundle
+      #    - ~/virtualenvs
+      #    - ~/.m2
+      #    - ~/.ivy2
+      #    - ~/.bundle
+      #    - ~/.go_workspace
+      #    - ~/.gradle
+      #    - ~/.cache/bower
 
       # Build 
       - run:
@@ -76,31 +73,25 @@ jobs:
           command: |
             mkdir -p build/scripts
             cd build/scripts
-            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../release
+            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release -DPYTHON2_BUILD=ON
             make | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
+       
       - run:
-          name: Build distribution
-          command: |
-            python setup.py bdist_wheel
-            mkdir -p dist/include/nupic
-            mv bindings/py/dist/*.whl dist/
-            cp bindings/py/requirements.txt dist/
-            cp build/release/include/nupic/Version.hpp dist/include/nupic/
-      
+           name: Install Python extension
+           command: python setup.py install --user
+
       # Test
-      - run:
-          name: Running python tests
-          command: |
-            mkdir -p tests/py
-            pip install --user --no-index --find-links=$CIRCLE_WORKING_DIRECTORY/dist/ nupic.bindings
-            py.test --junitxml tests/py/junit-test-results.xml bindings/py/tests
       - run:
           name: Running C++ Tests
           command: |
-            mkdir -p tests/cpp
-            pushd build/release/bin
-            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+              mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
+              cd ./build/Release/bin
+              ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+      - run:
+          name: Running python tests
+          command: python setup.py test
+
 
       - store_test_results:
           path: tests
@@ -115,26 +106,20 @@ jobs:
           - requirements.txt
           - include/nupic
 
-  deploy-s3:
-    machine: true
-    steps:
-      - attach_workspace:
-          at: dist
-      - run:
-          name: Deploying to S3
-          command: |
-            pip install awscli --upgrade --user
-            tar -zcv -f nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
-            aws s3 cp nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
+            #  deploy-s3:
+            #machine: true
+            #steps:
+            #- attach_workspace:
+            #at: dist
+            #- run:
+            #name: Deploying to S3
+            #command: |
+            #pip install awscli --upgrade --user
+            #tar -zcv -f nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
+            #aws s3 cp nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
 
 workflows:
   version: 2
   build-test-deploy:
     jobs:
       - build-and-test
-      - deploy-s3:
-          requires: 
-            - build-and-test
-          filters:
-            branches:
-              only: master

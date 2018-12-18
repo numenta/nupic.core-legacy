@@ -40,9 +40,11 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/ptr_types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 
 namespace nupic {
 
@@ -51,12 +53,13 @@ class Output;
 class Input;
 class ArrayRef;
 class Array;
-struct Spec;
+class Spec;
 class NodeSet;
 class BundleIO;
 class Timer;
 class Network;
 class GenericRegisteredRegionImpl;
+
 
 /**
  * Represents a set of one or more "identical" nodes in a Network.
@@ -143,27 +146,6 @@ public:
    */
   static const Spec *getSpecFromType(const std::string &nodeType);
 
-  /*
-   * Adds a Python module and class to the RegionImplFactory's regions
-   */
-  static void registerPyRegion(const std::string module,
-                               const std::string className);
-
-  /*
-   * Adds a cpp region to the RegionImplFactory's packages
-   */
-  static void registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper);
-
-  /*
-   * Removes a Python module and class from the RegionImplFactory's regions
-   */
-  static void unregisterPyRegion(const std::string className);
-
-  /*
-   * Removes a cpp region from the RegionImplFactory's packages
-   */
-  static void unregisterCPPRegion(const std::string name);
 
   /**
    * @}
@@ -605,6 +587,8 @@ public:
 
   const std::map<std::string, Output *> &getOutputs() const;
 
+  void clearInputs();
+
   // The following methods are called by Network in initialization
 
   // Returns number of links that could not be fully evaluated
@@ -662,7 +646,7 @@ private:
   std::string name_;
 
   // pointer to the "plugin"; owned by Region
-  RegionImpl *impl_;
+  std::shared_ptr<RegionImpl> impl_;
   std::string type_;
   Spec *spec_;
 

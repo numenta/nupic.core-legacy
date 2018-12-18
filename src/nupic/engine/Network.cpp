@@ -35,6 +35,7 @@ Implementation of the Network class
 #include <nupic/engine/NuPIC.hpp> // for register/unregister
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Directory.hpp>
@@ -45,13 +46,18 @@ Implementation of the Network class
 
 namespace nupic {
 
-class GenericRegisteredRegionImpl;
+class RegisteredRegionImpl;
 
 Network::Network() {
   commonInit();
   NuPIC::registerNetwork(this);
 }
 
+Network::Network(const std::string& filename) {
+  commonInit();
+  NuPIC::registerNetwork(this);
+  loadFromFile(filename);
+}
 
 
 void Network::commonInit() {
@@ -70,44 +76,42 @@ Network::~Network() {
    * Teardown choreography:
    * - unintialize all regions because otherwise we won't be able to disconnect
    * - remove all links, because we can't delete connected regions
+   *   This also removes Input and Output objects.
    * - delete the regions themselves.
    */
 
   // 1. uninitialize
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region *r = regions_.getByIndex(i).second;
+    Region_Ptr_t r = regions_.getByIndex(i).second;
     r->uninitialize();
   }
 
   // 2. remove all links
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region *r = regions_.getByIndex(i).second;
+    Region_Ptr_t r = regions_.getByIndex(i).second;
     r->removeAllIncomingLinks();
   }
 
   // 3. delete the regions
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::pair<std::string, Region *> &item = regions_.getByIndex(i);
-    delete item.second;
-    item.second = nullptr;
-  }
+  // They are in Shared_ptr so no need to delete regions.
 }
 
-Region *Network::addRegion(const std::string &name, const std::string &nodeType,
+Region_Ptr_t Network::addRegion(const std::string &name, const std::string &nodeType,
                            const std::string &nodeParams) {
   if (regions_.contains(name))
     NTA_THROW << "Region with name '" << name << "' already exists in network";
-
-  auto r = new Region(name, nodeType, nodeParams, this);
+  Region_Ptr_t r = std::make_shared<Region>(name, nodeType, nodeParams, this);
   regions_.add(name, r);
+  r->createInputsAndOutputs_();
   initialized_ = false;
 
-  setDefaultPhase_(r);
+
+  setDefaultPhase_(r.get());
   return r;
 }
 
-Region * Network::addRegion( std::istream &stream, std::string name) {
-    Region *r = new Region(this);
+Region_Ptr_t Network::addRegion( std::istream &stream, std::string name) {
+    Region_Ptr_t r = std::make_shared<Region>(this);
     r->load(stream);
     if (!name.empty())
       r->name_ = name;
@@ -117,9 +121,33 @@ Region * Network::addRegion( std::istream &stream, std::string name) {
     // setPhases_ will be passing this back down into
     // the region.
     std::set<UInt32> phases = r->getPhases();
-    setPhases_(r, phases);
+    setPhases_(r.get(), phases);
     return r;
 }
+
+
+Region_Ptr_t Network::addRegionFromBundle(const std::string name,
+					const std::string nodeType,
+					const Dimensions& dimensions,
+					const std::string& filename,
+					const std::string& label) {
+	if (regions_.contains(name))
+		NTA_THROW << "addRegionFromBundle; region '"
+				  << name << "' already exists.";
+	if (!Path::exists(filename))
+		NTA_THROW << "addRegionFromBundle; file does not exist; '" << filename << "'";
+
+    std::ifstream in(filename, std::ios_base::in | std::ios_base::binary);
+    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	Region_Ptr_t r = std::make_shared<Region>(this);
+	r->load(in);
+	regions_.add(name, r);
+	initialized_ = false;
+
+	setDefaultPhase_(r.get());
+	return r;
+}
+
 void Network::setDefaultPhase_(Region *region) {
   UInt32 newphase = (UInt32)phaseInfo_.size();
   std::set<UInt32> phases;
@@ -177,20 +205,20 @@ void Network::setPhases(const std::string &name, std::set<UInt32> &phases) {
   if (!regions_.contains(name))
     NTA_THROW << "setPhases -- no region exists with name '" << name << "'";
 
-  Region *r = regions_.getByName(name);
-  setPhases_(r, phases);
+  Region_Ptr_t r = regions_.getByName(name);
+  setPhases_(r.get(), phases);
 }
 
 std::set<UInt32> Network::getPhases(const std::string &name) const {
   if (!regions_.contains(name))
     NTA_THROW << "setPhases -- no region exists with name '" << name << "'";
 
-  Region *r = regions_.getByName(name);
+  Region_Ptr_t r = regions_.getByName(name);
 
   std::set<UInt32> phases;
   // construct the set of phases enabled for this region
   for (UInt32 i = 0; i < phaseInfo_.size(); i++) {
-    if (phaseInfo_[i].find(r) != phaseInfo_[i].end()) {
+    if (phaseInfo_[i].find(r.get()) != phaseInfo_[i].end()) {
       phases.insert(i);
     }
   }
@@ -201,7 +229,7 @@ void Network::removeRegion(const std::string &name) {
   if (!regions_.contains(name))
     NTA_THROW << "removeRegion: no region named '" << name << "'";
 
-  Region *r = regions_.getByName(name);
+  Region_Ptr_t r = getRegion(name);
   if (r->hasOutgoingLinks())
     NTA_THROW << "Unable to remove region '" << name
               << "' because it has one or more outgoing links";
@@ -209,15 +237,16 @@ void Network::removeRegion(const std::string &name) {
   // Network does not have to be uninitialized -- removing a region
   // has no effect on the network as long as it has no outgoing links,
   // which we have already checked.
-  // initialized_ = false;
 
   // Must uninitialize the region prior to removing incoming links
+  // The incoming links are removed when the Input object is deleted.
   r->uninitialize();
-  regions_.remove(name);
+  r->clearInputs();
+
 
   auto phase = phaseInfo_.begin();
   for (; phase != phaseInfo_.end(); phase++) {
-    auto toremove = phase->find(r);
+    auto toremove = phase->find(r.get());
     if (toremove != phase->end())
       phase->erase(toremove);
   }
@@ -231,8 +260,8 @@ void Network::removeRegion(const std::string &name) {
   }
   resetEnabledPhases_();
 
-  // Region destructor cleans up all incoming links
-  delete r;
+  // Region is deleted when the Shared_ptr goes out of scope.
+  regions_.remove(name);
 
   return;
 }
@@ -248,12 +277,11 @@ void Network::link(const std::string &srcRegionName,
   if (!regions_.contains(srcRegionName))
     NTA_THROW << "Network::link -- source region '" << srcRegionName
               << "' does not exist";
-  Region *srcRegion = regions_.getByName(srcRegionName);
-
+  Region_Ptr_t srcRegion = regions_.getByName(srcRegionName);
   if (!regions_.contains(destRegionName))
     NTA_THROW << "Network::link -- dest region '" << destRegionName
               << "' does not exist";
-  Region *destRegion = regions_.getByName(destRegionName);
+  Region_Ptr_t destRegion = regions_.getByName(destRegionName);
 
   // Find the inputs/outputs
   const Spec *srcSpec = srcRegion->getSpec();
@@ -298,8 +326,7 @@ void Network::link(const std::string &srcRegionName,
   }
 
   // Create the link itself
-  auto link =
-      new Link(linkType, linkParams, srcOutput, destInput, propagationDelay);
+  auto link = std::make_shared<Link>(linkType, linkParams, srcOutput, destInput, propagationDelay);
   destInput->addLink(link, srcOutput);
 }
 
@@ -311,12 +338,12 @@ void Network::removeLink(const std::string &srcRegionName,
   if (!regions_.contains(srcRegionName))
     NTA_THROW << "Network::unlink -- source region '" << srcRegionName
               << "' does not exist";
-  Region *srcRegion = regions_.getByName(srcRegionName);
+  Region_Ptr_t srcRegion = getRegion(srcRegionName);
 
   if (!regions_.contains(destRegionName))
     NTA_THROW << "Network::unlink -- dest region '" << destRegionName
               << "' does not exist";
-  Region *destRegion = regions_.getByName(destRegionName);
+  Region_Ptr_t destRegion = getRegion(destRegionName);
 
   // Find the inputs
   const Spec *srcSpec = srcRegion->getSpec();
@@ -336,9 +363,9 @@ void Network::removeLink(const std::string &srcRegionName,
   std::string outputName = srcOutputName;
   if (outputName == "")
     outputName = srcSpec->getDefaultOutputName();
-  Link *link = destInput->findLink(srcRegionName, outputName);
+  Link_Ptr_t link = destInput->findLink(srcRegionName, outputName);
 
-  if (link == nullptr)
+  if (!link)
     NTA_THROW << "Network::unlink -- no link exists from region "
               << srcRegionName << " output " << outputName << " to region "
               << destRegionName << " input " << destInput->getName();
@@ -378,7 +405,7 @@ void Network::run(int n) {
     // Refresh all links in the network at the end of every timestamp so that
     // data in delayed links appears to change atomically between iterations
     for (size_t i = 0; i < regions_.getCount(); i++) {
-      const Region *r = regions_.getByIndex(i).second;
+      const Region_Ptr_t r = regions_.getByIndex(i).second;
 
       for (const auto &inputTuple : r->getInputs()) {
         for (const auto pLink : inputTuple.second->getLinks()) {
@@ -427,7 +454,7 @@ void Network::initialize() {
       // evaluateLinks returns the number
       // of links which still need to be
       // evaluated.
-      Region *r = regions_.getByIndex(i).second;
+      Region_Ptr_t r = regions_.getByIndex(i).second;
       nLinksRemaining += r->evaluateLinks();
     }
   }
@@ -438,7 +465,7 @@ void Network::initialize() {
     ss << "Network::initialize() -- unable to evaluate all links\n"
        << "The following links could not be evaluated:\n";
     for (size_t i = 0; i < regions_.getCount(); i++) {
-      Region *r = regions_.getByIndex(i).second;
+      Region_Ptr_t r = regions_.getByIndex(i).second;
       std::string errors = r->getLinkErrors();
       if (errors.size() == 0)
         continue;
@@ -449,7 +476,7 @@ void Network::initialize() {
 
   // Make sure all regions now have dimensions
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region *r = regions_.getByIndex(i).second;
+    Region_Ptr_t r = regions_.getByIndex(i).second;
     const Dimensions &d = r->getDimensions();
     if (d.isUnspecified()) {
       NTA_THROW << "Network::initialize() -- unable to complete initialization "
@@ -469,7 +496,7 @@ void Network::initialize() {
    *   - . Delegated to regions
    */
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region *r = regions_.getByIndex(i).second;
+    Region_Ptr_t r = regions_.getByIndex(i).second;
     r->initOutputs();
   }
 
@@ -478,7 +505,7 @@ void Network::initialize() {
    *    - Delegated to regions
    */
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region *r = regions_.getByIndex(i).second;
+    Region_Ptr_t r = regions_.getByIndex(i).second;
     r->initInputs();
   }
 
@@ -486,7 +513,7 @@ void Network::initialize() {
    * 4. initialize region/impl
    */
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region *r = regions_.getByIndex(i).second;
+    Region_Ptr_t r = regions_.getByIndex(i).second;
     r->initialize();
   }
 
@@ -501,10 +528,15 @@ void Network::initialize() {
   initialized_ = true;
 }
 
-const Collection<Region *> &Network::getRegions() const { return regions_; }
+const Collection<Region_Ptr_t> &Network::getRegions() const { return regions_; }
 
-Collection<Link *> Network::getLinks() {
-  Collection<Link *> links;
+Region_Ptr_t Network::getRegion(const std::string& name) const {
+	return regions_.getByName(name);
+}
+
+
+Collection<Link_Ptr_t> Network::getLinks() {
+  Collection<Link_Ptr_t> links;
 
   for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++) {
     for (auto r : phaseInfo_[phase]) {
@@ -577,8 +609,8 @@ void Network::save(std::ostream &f) const {
 
   for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
   {
-      const std::pair<std::string, Region*>& info = regions_.getByIndex(regionIndex);
-      Region* r = info.second;
+      const std::pair<std::string, Region_Ptr_t >& info = regions_.getByIndex(regionIndex);
+      Region_Ptr_t  r = info.second;
       r->save(f);
   }
   f << "]\n"; // end of regions
@@ -588,11 +620,11 @@ void Network::save(std::ostream &f) const {
   Size count = 0;
   for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
   {
-    Region* r = regions_.getByIndex(regionIndex).second;
+    Region_Ptr_t  r = regions_.getByIndex(regionIndex).second;
     const std::map<std::string, Input*> inputs = r->getInputs();
     for (const auto & inputs_input : inputs)
     {
-      const std::vector<Link*>& links = inputs_input.second->getLinks();
+      const std::vector<Link_Ptr_t>& links = inputs_input.second->getLinks();
       count += links.size();
     }
   }
@@ -602,11 +634,11 @@ void Network::save(std::ostream &f) const {
   // Now serialize the links
   for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
   {
-    Region* r = regions_.getByIndex(regionIndex).second;
+    Region_Ptr_t  r = regions_.getByIndex(regionIndex).second;
     const std::map<std::string, Input*> inputs = r->getInputs();
     for (const auto & inputs_input : inputs)
     {
-      const std::vector<Link*>& links = inputs_input.second->getLinks();
+      const std::vector<Link_Ptr_t>& links = inputs_input.second->getLinks();
       for (const auto & links_link : links)
       {
         auto l = links_link;
@@ -634,7 +666,7 @@ void Network::load(std::istream &f) {
   // Remove all existing regions and links
   for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
   {
-    Region* r = regions_.getByIndex(regionIndex).second;
+    Region_Ptr_t  r = regions_.getByIndex(regionIndex).second;
     removeRegion(r->getName());
   }
   initialized_ = false;
@@ -659,7 +691,7 @@ void Network::load(std::istream &f) {
   f >> count;
   for (Size n = 0; n < count; n++)
   {
-    Region* r = new Region(this);
+    Region_Ptr_t r = std::make_shared<Region>(this);
     r->load(f);
     regions_.add(r->getName(), r);
 
@@ -667,7 +699,7 @@ void Network::load(std::istream &f) {
     // setPhases_ will be passing this back down into
     // the region.
     std::set<UInt32> phases = r->getPhases();
-    setPhases_(r, phases);
+    setPhases_(r.get(), phases);
 
   }
   f >> tag;
@@ -684,19 +716,19 @@ void Network::load(std::istream &f) {
   for (Size n=0; n < count; n++)
   {
     // Create the link
-    auto newLink = new Link();
+    Link_Ptr_t newLink = std::make_shared<Link>();
     newLink->deserialize(f);
 
   // Now connect the links to the regions
     const std::string srcRegionName = newLink->getSrcRegionName();
     NTA_CHECK(regions_.contains(srcRegionName)) << "Invalid network structure file -- link specifies source region '"
           << srcRegionName << "' but no such region exists";
-    Region* srcRegion = regions_.getByName(srcRegionName);
+    Region_Ptr_t srcRegion = getRegion(srcRegionName);
 
     const std::string destRegionName = newLink->getDestRegionName();
     NTA_CHECK(regions_.contains(destRegionName)) << "Invalid network structure file -- link specifies destination region '"
                 << destRegionName << "' but no such region exists";
-    Region* destRegion = regions_.getByName(destRegionName);
+    Region_Ptr_t destRegion = getRegion(destRegionName);
 
     const std::string srcOutputName = newLink->getSrcOutputName();
     Output *srcOutput = srcRegion->getOutput(srcOutputName);
@@ -735,7 +767,7 @@ void Network::load(std::istream &f) {
   //       lost after restore.
 
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region* r = regions_.getByIndex(i).second;
+    Region_Ptr_t  r = regions_.getByIndex(i).second;
 
     // If a propogation Delay is specified, the Link serialization
 	// saves the current input buffer at the top of the
@@ -771,22 +803,20 @@ void Network::resetProfiling() {
     regions_.getByIndex(i).second->resetProfiling();
 }
 
-void Network::registerPyRegion(const std::string module,
-                               const std::string className) {
-  Region::registerPyRegion(module, className);
+  /*
+   * Adds a region to the RegionImplFactory's list of packages
+   */
+void Network::registerRegion(const std::string name, RegisteredRegionImpl *wrapper) {
+	RegionImplFactory::registerRegion(name, wrapper);
 }
-
-void Network::registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper) {
-  Region::registerCPPRegion(name, wrapper);
+  /*
+   * Removes a region from RegionImplFactory's list of packages
+   */
+void Network::unregisterRegion(const std::string name) {
+	RegionImplFactory::unregisterRegion(name);
 }
-
-void Network::unregisterPyRegion(const std::string className) {
-  Region::unregisterPyRegion(className);
-}
-
-void Network::unregisterCPPRegion(const std::string name) {
-  Region::unregisterCPPRegion(name);
+void Network::cleanup() {
+    RegionImplFactory::cleanup();
 }
 
 bool Network::operator==(const Network &o) const {
@@ -799,8 +829,8 @@ bool Network::operator==(const Network &o) const {
   }
 
   for (size_t i = 0; i < regions_.getCount(); i++) {
-    Region *r1 = regions_.getByIndex(i).second;
-    Region *r2 = o.regions_.getByIndex(i).second;
+    Region_Ptr_t r1 = regions_.getByIndex(i).second;
+    Region_Ptr_t r2 = o.regions_.getByIndex(i).second;
     if (*r1 != *r2) {
       return false;
     }

@@ -72,7 +72,7 @@ public:
   }
 
   inline SparseBinaryMatrix(size_type ncols) : ncols_(0), ind_(), buffer_() {
-    nCols(ncols);
+    setnCols(ncols);
     buffer_.resize(nCols());
   }
 
@@ -96,7 +96,7 @@ public:
     ind_.resize(o.nRows());
     for (size_type r = 0; r != o.nRows(); ++r)
       ind_[r].insert(ind_[r].end(), o.ind_[r].begin(), o.ind_[r].end());
-    nCols(o.nCols());
+    setnCols(o.nCols());
     buffer_.resize(nCols());
   }
 
@@ -1140,7 +1140,7 @@ public:
 
       size_type ncols = 0;
       inStream >> ncols;
-      nCols(ncols);
+      setnCols(ncols);
 
       buffer_.resize(nCols());
 
@@ -1171,7 +1171,7 @@ public:
 
       size_type ncols = 0;
       inStream >> ncols;
-      nCols(ncols);
+      setnCols(ncols);
 
       buffer_.resize(nCols());
 
@@ -1266,7 +1266,7 @@ public:
 
     size_type ncols = 0;
     inStream >> ncols;
-    nCols(ncols);
+    setnCols(ncols);
 
     buffer_.resize(nCols());
 
@@ -1327,7 +1327,7 @@ public:
             << "Indices need to be in strictly increasing order";
     } // End pre-conditions
 
-    nCols(ncols);
+    setnCols(ncols);
     ind_.clear();
     ind_.resize(nrows);
     buffer_.resize(nCols());
@@ -1467,7 +1467,7 @@ public:
 
     clear();
 
-    nCols(ncols);
+    setnCols(ncols);
     ind_.resize(nrows);
     buffer_.resize(nCols());
 
@@ -1789,17 +1789,25 @@ private:
     }
   }
 
-  inline void nCols(size_type ncols) {
+  // setnCols(ncols)  Sets the size of the matrix.
+  //
+  // pyBind11 Overload conflict in SparseBinaryMatrix.hpp
+  //  149  inline nz_index_type nCols() const // this one is public  ( nz_index_type is UInt32)
+  // 1792  inline void nCols(size_type ncols) // this one is private
+  // In py_SparseBinaryMatrix.cpp pybind11 thinks these are overloaded functions and wants to see both.
+  // But we only want to expose the public function.
+  // So, changing the name of the private function to setnCols(ncols)
+  inline void setnCols(size_type ncols) {
     { // Pre-conditions
       /*
       NTA_CHECK(0 < ncols)
-        << "SparseBinaryMatrix::nCols: "
+        << "SparseBinaryMatrix::setnCols: "
         << "Invalid number of columns: " << ncols
         << " - Should be > 0";
       */
 
       NTA_CHECK(ncols < std::numeric_limits<nz_index_type>::max())
-          << "SparseBinaryMatrix::nCols: "
+          << "SparseBinaryMatrix::setnCols: "
           << "Invalid number of columns: " << ncols << " - Should be less than "
           << std::numeric_limits<nz_index_type>::max();
     } // End pre-conditions

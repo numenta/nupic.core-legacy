@@ -33,7 +33,7 @@
 
 namespace nupic {
 
-Output::Output(Region &region, NTA_BasicType type, bool isRegionLevel,
+Output::Output(Region* region, NTA_BasicType type, bool isRegionLevel,
                bool isSparse)
     : region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"),
       nodeOutputElementCount_(0), isSparse_(isSparse) {
@@ -45,7 +45,7 @@ Output::~Output() noexcept(false) {
   // error in the shutdown process. Not good to thow an exception
   // from a destructor, but we need to catch this error, and it
   // should never occur if nupic internal logic is correct.
-  NTA_CHECK(links_.size() == 0) << "Internal error in region deletion";
+  NTA_CHECK(links_.size() == 0) << "Internal error in region deletion, still has links.";
 }
 
 // allocate buffer
@@ -67,7 +67,7 @@ void Output::initialize(size_t count) {
   if (isRegionLevel_)
     dataCount = count;
   else
-    dataCount = count * region_.getDimensions().getCount();
+    dataCount = count * region_->getDimensions().getCount();
   if (dataCount != 0) {
     data_.allocateBuffer(dataCount);
     // Zero the buffer because unitialized outputs can screw up inspectors,
@@ -78,7 +78,7 @@ void Output::initialize(size_t count) {
   }
 }
 
-void Output::addLink(Link *link) {
+void Output::addLink(Link_Ptr_t link) {
   // Make sure we don't add the same link twice
   // It is a logic error if we add the same link twice here, since
   // this method should only be called from Input::addLink
@@ -88,7 +88,7 @@ void Output::addLink(Link *link) {
   links_.insert(link);
 }
 
-void Output::removeLink(Link *link) {
+void Output::removeLink(Link_Ptr_t link) {
   auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
   NTA_CHECK(linkIter != links_.end());
@@ -101,7 +101,7 @@ void Output::removeLink(Link *link) {
 
 bool Output::isRegionLevel() const { return isRegionLevel_; }
 
-Region &Output::getRegion() const { return region_; }
+Region* Output::getRegion() const { return region_; }
 bool Output::isSparse() const { return isSparse_; }
 
 void Output::setName(const std::string &name) { name_ = name; }

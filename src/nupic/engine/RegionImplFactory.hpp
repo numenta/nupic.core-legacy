@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
+ * Copyright (C) 2013-2018, Numenta, Inc.  Unless you have an agreement
  * with Numenta, Inc., for a separate license for this software code, the
  * following terms and conditions apply:
  *
@@ -24,7 +24,7 @@
  * Definition of the RegionImpl Factory API
  *
  * A RegionImplFactory creates RegionImpls upon request.
- * Pynode creation is delegated to another class (TBD).
+ * Pynode creation is delegated to pyBindRegion via RegisteredRegionImplPy
  * Because all C++ RegionImpls are compiled in to NuPIC,
  * the RegionImpl factory knows about them explicitly.
  *
@@ -44,11 +44,10 @@ namespace nupic {
 
 class RegionImpl;
 class Region;
-class DynamicPythonLibrary;
-struct Spec;
+class Spec;
 class BundleIO;
 class ValueMap;
-class GenericRegisteredRegionImpl;
+class RegisteredRegionImpl;
 
 class RegionImplFactory {
 public:
@@ -73,39 +72,26 @@ public:
   // This frees up the cached information.
   // Should be called only if there are no outstanding
   // nodespec references (e.g. in NuPIC shutdown) or pynodes.
-  void cleanup();
+  // Used in unit tests to Setup for next test.
+  static void cleanup();
 
-  static void registerPyRegionPackage(const char *path);
 
-  // Allows the user to load custom Python regions
-  static void registerPyRegion(const std::string module,
-                               const std::string className);
+  // Allows the user to load custom region types
+  static void registerRegion(const std::string& regionType,
+                             RegisteredRegionImpl *wrapper);
 
-  // Allows the user to load custom C++ regions
-  static void registerCPPRegion(const std::string name,
-                                GenericRegisteredRegionImpl *wrapper);
-
-  // Allows the user to unregister Python regions
-  static void unregisterPyRegion(const std::string className);
-
-  // Allows the user to unregister C++ regions
-  static void unregisterCPPRegion(const std::string name);
+  // Allows the user to unregister region types
+  static void unregisterRegion(const std::string regionType);
 
 private:
   RegionImplFactory(){};
   RegionImplFactory(const RegionImplFactory &);
 
-  // TODO: implement locking for thread safety for this global data structure
-  // TODO: implement cleanup
 
-  // getSpec returns references to nodespecs in this cache.
-  // should not be cleaned up until those references have disappeared.
-  std::map<std::string, Spec *> nodespecCache_;
+  // Mappings for region nodeTypes that map to Class and module
+  std::map<const std::string, std::shared_ptr<RegisteredRegionImpl> > regionTypeMap;
+  void addRegionType(const std::string nodeType, RegisteredRegionImpl* wrapper);
 
-  // Using shared_ptr here to ensure the dynamic python library object
-  // is deleted when the factory goes away. Can't use scoped_ptr
-  // because it is not initialized in the constructor.
-  std::shared_ptr<DynamicPythonLibrary> pyLib_;
 };
 } // namespace nupic
 
