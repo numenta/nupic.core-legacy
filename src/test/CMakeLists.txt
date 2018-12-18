@@ -68,8 +68,6 @@ set(engine_tests
 set(math_tests
 	   unit/math/MathsTest.cpp
 	   unit/math/MathsTest.hpp
-	   unit/math/SparseMatrixTest.cpp
-	   unit/math/SparseMatrixUnitTest.cpp
 	   unit/math/TopologyTest.cpp
 	   )
 	   

@@ -34,7 +34,6 @@ namespace py = pybind11;
 namespace nupic_ext
 {
     void init_Random(py::module&);
-    void init_SM32(py::module&);
     void init_Math_Functions(py::module&);
 
     void init_Engine(py::module&);
@@ -43,9 +42,6 @@ namespace nupic_ext
     void init_Cells4(py::module&);
     void init_SDR_Classifier(py::module&);
     void init_Spatial_Pooler(py::module&);
-    void init_SparseTensor(py::module&);
-    void init_Domain(py::module&);
-    void init_TensorIndex(py::module&);
     void init_algorithms(py::module&);
     void init_array_algo(py::module&);
     void init_Regions(py::module&);
@@ -64,7 +60,6 @@ PYBIND11_MODULE(bindings, m) {
     auto math_module = m.def_submodule("math");
     init_reals(math_module);
     init_Random(math_module);
-    init_SM32(math_module);
     init_Math_Functions(math_module);
     init_array_algo(math_module);
 
