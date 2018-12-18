@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-#include <cmath>
+#include <cmath> //exp
 #include <deque>
 #include <iostream>
 #include <limits>
@@ -232,9 +232,8 @@ void SDRClassifier::softmax_(vector<Real64>::iterator begin,
   for (auto itr = begin; itr != end; ++itr) {
     *itr -= *maxItr;
   }
-  NTA_THROW << "SDRC implement range_exp";
-  //FIXME implement: range_exp(1.0, begin, end);
-  const Real64 sum = std::accumulate(begin, end, 0.0);
+  const auto lambda_exp_sum = [](Real64 a, Real64 b) { return std::move(a) + std::exp(b); }; //sum [exp(x) for x in ...]
+  const Real64 sum = std::accumulate(begin, end, 0.0, lambda_exp_sum); //sum of all elements raised to exp(elem) each.
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;
   }
