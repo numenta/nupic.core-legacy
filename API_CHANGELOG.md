@@ -1,5 +1,17 @@
 #Breaking changes to the nupic API
 
+We try to keep API as much as compatible with original [numenta/nupic.core repo](https://github.com/numenta/nupic.core). 
+The API is specified in the [API Docs](http://nupic.docs.numenta.org/prerelease/api/index.html) 
+
+## Motivation
+
+We try to remain compatible where possible, to make it easy for the users and programmers to switch/use 
+our implementation. And for developers to be easily able to navigate within the (known) codebase. 
+Despite of this, sometimes changes need to happen - be it for optimization, removal/replacement of some 
+features or implemenation detail, etc. 
+
+
+## API breaking changes in this repo
 
 * CapnProto serialization is replaced with binary streams in PR #62.  
 Calls to `read()` and `write()` are no longer available. Use `save()` and `load()`. 
