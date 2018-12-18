@@ -60,35 +60,22 @@ using namespace nupic::algorithms::cla_classifier;
 using namespace nupic::algorithms::sdr_classifier;
 namespace {
 TEST_F(SDRClassifierTest, Basic) {
-  vector<UInt> steps;
-  steps.push_back(1);
+  vector<UInt> steps{1};
   SDRClassifier c = SDRClassifier(steps, 0.1, 0.1, 0);
 
   // Create a vector of input bit indices
-  vector<UInt> input1;
-  input1.push_back(1);
-  input1.push_back(5);
-  input1.push_back(9);
-  vector<UInt> bucketIdxList1;
-  bucketIdxList1.push_back(4);
-  vector<Real64> actValueList1;
-  actValueList1.push_back(34.7);
+  vector<UInt> input1{1, 5, 9};
+  vector<UInt> bucketIdxList1{4};
+  vector<Real64> actValueList1{34.7};
   ClassifierResult result1;
-  c.compute(0, input1, bucketIdxList1, actValueList1, false, true, true,
-            &result1);
+  c.compute(0, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
 
   // Create a vector of input bit indices
-  vector<UInt> input2;
-  input2.push_back(1);
-  input2.push_back(5);
-  input2.push_back(9);
-  vector<UInt> bucketIdxList2;
-  bucketIdxList2.push_back(4);
-  vector<Real64> actValueList2;
-  actValueList2.push_back(34.7);
+  vector<UInt> input2{1, 5, 9};
+  vector<UInt> bucketIdxList2{4};
+  vector<Real64> actValueList2{ 34.7};
   ClassifierResult result2;
-  c.compute(1, input2, bucketIdxList2, actValueList2, false, true, true,
-            &result2);
+  c.compute(1, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
 
   {
     bool foundMinus1 = false;
@@ -96,14 +83,12 @@ TEST_F(SDRClassifierTest, Basic) {
     for (auto it = result2.begin(); it != result2.end(); ++it) {
       if (it->first == -1) {
         // The -1 key is used for the actual values
-        ASSERT_EQ(false, foundMinus1)
-            << "Already found key -1 in classifier result";
+        ASSERT_EQ(false, foundMinus1) << "Already found key -1 in classifier result";
         foundMinus1 = true;
         ASSERT_EQ(5, it->second->size())
             << "Expected five buckets since it has only seen bucket 4 (so it "
             << "Has buckets 0-4).";
-        ASSERT_TRUE(fabs(it->second->at(4) - 34.7) < 0.000001)
-            << "Incorrect actual value for bucket 4";
+        ASSERT_TRUE(fabs(it->second->at(4) - 34.7) < 0.000001) << "Incorrect actual value for bucket 4";
       } else if (it->first == 1) {
         // Check the one-step prediction
         ASSERT_EQ(false, found1) << "Already found key 1 in classifier result";
@@ -134,19 +119,13 @@ TEST_F(SDRClassifierTest, SingleValue) {
   SDRClassifier c = SDRClassifier(steps, 0.1, 0.1, 0);
 
   // Create a vector of input bit indices
-  vector<UInt> input1;
-  input1.push_back(1);
-  input1.push_back(5);
-  input1.push_back(9);
-  vector<UInt> bucketIdxList;
-  bucketIdxList.push_back(4);
-  vector<Real64> actValueList;
-  actValueList.push_back(34.7);
+  vector<UInt> input1{1, 5, 9};
+  vector<UInt> bucketIdxList{4};
+  vector<Real64> actValueList{34.7};
   ClassifierResult result1;
   for (UInt i = 0; i < 10; ++i) {
     ClassifierResult result1;
-    c.compute(i, input1, bucketIdxList, actValueList, false, true, true,
-              &result1);
+    c.compute(i, input1, bucketIdxList, actValueList, false, true, true, &result1);
   }
 
   {
@@ -161,6 +140,7 @@ TEST_F(SDRClassifierTest, SingleValue) {
     }
   }
 }
+
 
 TEST_F(SDRClassifierTest, ComputeComplex) {
   // More complex classification
