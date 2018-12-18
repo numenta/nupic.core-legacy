@@ -46,6 +46,11 @@ namespace sdr_classifier {
 
 const UInt sdrClassifierVersion = 2;
 
+/**
+ * 2d map used to store the data. 
+ * write with Matrix m; m[i][j] = 1.0; //map will always allocate for new i,j index
+ * access/read with get_(&m, i, j): as it handles missing values i,j and returns 0.0 for them
+ */
 typedef std::map<UInt, std::map<UInt, Real64>> Matrix; //Matrix[r][c] = 0.0d
 
 class SDRClassifier : public Serializable
