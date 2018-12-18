@@ -173,14 +173,12 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
   }
 
   for (auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps) {
-    vector<Real64> *likelihoods = result->createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
-    for (auto &bit : patternNZ) {
-      Matrix &weights = weightMatrix_.at(*nSteps);
-      NTA_THROW << "SDRC implement add()";
-      //FIXME implement add from ArrayAlgo::add()
-      //add(likelihoods->begin(), likelihoods->end(), 
-      //    weights.at(bit).begin() /* = bit * ncols*/,
-      //    weights.at(bit +1).begin());
+    vector<Real64>* likelihoods = result->createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
+    for (const auto& bit : patternNZ) {
+      auto& rowWeights = weightMatrix_.at(*nSteps).at(bit);
+      for(Size i =0; i< likelihoods->size(); i++) {
+        likelihoods->at(i) += rowWeights[i];
+      }
     }
     softmax_(likelihoods->begin(), likelihoods->end());
   }
@@ -192,13 +190,11 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
   // compute predicted likelihoods
   vector<Real64> likelihoods(maxBucketIdx_ + 1, 0);
 
-  for (auto &bit : patternNZ) {
-    const Matrix &weights = weightMatrix_.at(step);
-    NTA_THROW << "SDRC implement add()";
-    //FIXME add from ArrayAlgo
-    //add(likelihoods.begin(), likelihoods.end(), 
-    //    weights.at(bit).begin(),
-    //    weights.at(bit + 1).begin());
+  for (const auto& bit : patternNZ) {
+    auto& rowWeights = weightMatrix_.at(step).at(bit); //row
+    for(Size i=0; i< likelihoods.size(); i++) {
+      likelihoods[i] += rowWeights[i];
+    }
   }
   softmax_(likelihoods.begin(), likelihoods.end());
 
