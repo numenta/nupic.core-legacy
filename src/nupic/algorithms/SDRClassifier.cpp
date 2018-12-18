@@ -271,8 +271,6 @@ void SDRClassifier::setVerbosity(UInt verbosity) { verbosity_ = verbosity; }
 Real64 SDRClassifier::getAlpha() const { return alpha_; }
 
 void SDRClassifier::save(ostream &outStream) const {
-  NTA_THROW << "SDRClassifier save() unimplemented!";
-  /*
   // Write a starting marker and version.
   outStream << "SDRClassifier" << endl;
   outStream << version_ << endl;
@@ -308,9 +306,15 @@ void SDRClassifier::save(ostream &outStream) const {
 
   // Store weight matrix
   outStream << weightMatrix_.size() << " ";
-  for (const auto &elem : weightMatrix_) {
+  for (const auto &elem : weightMatrix_) { // elem = Matrix
     outStream << elem.first << " ";
-    outStream << elem.second;
+    auto map2d =  elem.second; //2d map: map<int<map<int, double>>
+    resize_(map2d, maxInputIdx_ +1, maxBucketIdx_ +1);
+    for(UInt i=0; i < maxInputIdx_; i++) {
+      for(UInt j=0; j< maxBucketIdx_; j++) {
+        outStream << map2d.at(i).at(j) << " "; //map2d[i][j]
+      }
+    }
   }
   outStream << endl;
 
@@ -324,12 +328,10 @@ void SDRClassifier::save(ostream &outStream) const {
 
   // Write an ending marker.
   outStream << "~SDRClassifier" << endl;
-  */
 }
 
+
 void SDRClassifier::load(istream &inStream) {
-  NTA_THROW << "SDR Classifier load() unimplemented!";
-  /*
   // Clean up the existing data structures before loading
   steps_.clear();
   recordNumHistory_.clear();
@@ -346,7 +348,7 @@ void SDRClassifier::load(istream &inStream) {
   // Check the version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= 1);
+  NTA_CHECK(version == 2);
 
   // Load the simple variables.
   inStream >> version_ >> alpha_ >> actValueAlpha_ >> maxSteps_ >>
@@ -354,12 +356,10 @@ void SDRClassifier::load(istream &inStream) {
 
   UInt recordNumHistory;
   UInt curRecordNum;
-  if (version == 1) {
-    inStream >> recordNumHistory;
-    for (UInt i = 0; i < recordNumHistory; ++i) {
+  inStream >> recordNumHistory;
+  for (UInt i = 0; i < recordNumHistory; ++i) {
       inStream >> curRecordNum;
       recordNumHistory_.push_back(curRecordNum);
-    }
   }
 
   // Load the prediction steps.
@@ -388,12 +388,14 @@ void SDRClassifier::load(istream &inStream) {
   for (UInt s = 0; s < numSteps; ++s) {
     inStream >> step;
     // Insert the step to initialize the weight matrix
-    weightMatrix_[step] = Matrix();
-    for (UInt i = 0; i <= maxInputIdx_; ++i) {
-      for (UInt j = 0; j <= maxBucketIdx_; ++j) {
-        inStream >> weightMatrix_[step].at(i, j);
+    auto m = Matrix();
+    resize_(m, maxInputIdx_ +1, maxBucketIdx_ +1);
+    for (UInt i = 0; i < maxInputIdx_; i++) {
+      for (UInt j = 0; j < maxBucketIdx_; j++) {
+        inStream >> m[i][j];
       }
     }
+    weightMatrix_[step] = m;
   }
 
   // Load the actual values for each bucket.
@@ -414,7 +416,6 @@ void SDRClassifier::load(istream &inStream) {
 
   // Update the version number.
   version_ = sdrClassifierVersion;
-  */
 }
 
 

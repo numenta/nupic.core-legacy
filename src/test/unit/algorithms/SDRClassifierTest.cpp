@@ -319,39 +319,29 @@ TEST_F(SDRClassifierTest, MultipleCategory) {
 }
 
 TEST_F(SDRClassifierTest, SaveLoad) {
-  vector<UInt> steps;
-  steps.push_back(1);
+  vector<UInt> steps{1};
   SDRClassifier c1 = SDRClassifier(steps, 0.1, 0.1, 0);
   SDRClassifier c2 = SDRClassifier(steps, 0.1, 0.1, 0);
 
   // Create a vector of input bit indices
-  vector<UInt> input1;
-  input1.push_back(1);
-  input1.push_back(5);
-  input1.push_back(9);
-  vector<UInt> bucketIdxList1;
-  bucketIdxList1.push_back(4);
-  vector<Real64> actValueList1;
-  actValueList1.push_back(34.7);
+  vector<UInt> input1{1, 5, 9};
+  vector<UInt> bucketIdxList1{4};
+  vector<Real64> actValueList1{34.7};
   ClassifierResult result;
-  c1.compute(0, input1, bucketIdxList1, actValueList1, false, true, true,
-             &result);
+  c1.compute(0, input1, bucketIdxList1, actValueList1, false, true, true, &result);
 
   {
     stringstream ss;
-    c1.save(ss);
-    c2.load(ss);
+    EXPECT_NO_THROW(c1.save(ss));
+    EXPECT_NO_THROW(c2.load(ss));
   }
-
-  ASSERT_TRUE(c1 == c2);
+  ASSERT_EQ(c1, c2);
 
   ClassifierResult result1, result2;
-  c1.compute(1, input1, bucketIdxList1, actValueList1, false, true, true,
-             &result1);
-  c2.compute(1, input1, bucketIdxList1, actValueList1, false, true, true,
-             &result2);
+  c1.compute(1, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
+  c2.compute(1, input1, bucketIdxList1, actValueList1, false, true, true, &result2);
 
-  ASSERT_TRUE(result1 == result2);
+  ASSERT_EQ(result1, result2);
 }
 
 
