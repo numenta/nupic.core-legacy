@@ -94,16 +94,11 @@ TEST_F(SDRClassifierTest, Basic) {
         ASSERT_EQ(false, found1) << "Already found key 1 in classifier result";
         found1 = true;
         ASSERT_EQ(5, it->second->size()) << "Expected five bucket predictions";
-        ASSERT_LT(fabs(it->second->at(0) - 0.2), 0.000001)
-            << "Incorrect prediction for bucket 0";
-        ASSERT_LT(fabs(it->second->at(1) - 0.2), 0.000001)
-            << "Incorrect prediction for bucket 1";
-        ASSERT_LT(fabs(it->second->at(2) - 0.2), 0.000001)
-            << "Incorrect prediction for bucket 2";
-        ASSERT_LT(fabs(it->second->at(3) - 0.2), 0.000001)
-            << "Incorrect prediction for bucket 3";
-        ASSERT_LT(fabs(it->second->at(4) - 0.2), 0.000001)
-            << "Incorrect prediction for bucket 4";
+        ASSERT_NEAR(it->second->at(0), 0.2, 0.000001) << "Incorrect prediction for bucket 0";
+        ASSERT_NEAR(it->second->at(1), 0.2, 0.000001) << "Incorrect prediction for bucket 1";
+        ASSERT_NEAR(it->second->at(2), 0.2, 0.000001) << "Incorrect prediction for bucket 2";
+        ASSERT_NEAR(it->second->at(3), 0.2, 0.000001) << "Incorrect prediction for bucket 3";
+        ASSERT_NEAR(it->second->at(4), 0.2, 0.000001) << "Incorrect prediction for bucket 4";
       }
     }
     ASSERT_TRUE(foundMinus1) << "Key -1 not found in classifier result";
