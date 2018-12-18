@@ -253,10 +253,10 @@ void SDRClassifier::softmax_(const vector<Real64>::iterator begin,
                              const vector<Real64>::iterator end) {
   const auto maxVal = *max_element(begin, end);
   for (auto itr = begin; itr != end; ++itr) { //TODO use c++17 reduce/transform
-    *itr -= maxVal;  // x[i] = x[i] - max(x)
-    *itr = std::exp(*itr); // x[i] = exp(x[i])
+    *itr = std::exp(*itr - maxVal); // x[i] = exp(x[i] - maxVal)
   }
   const Real64 sum = std::accumulate(begin, end, 0.0); //sum of all elements raised to exp(elem) each.
+  NTA_ASSERT(sum > 0.0);
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;
   }
