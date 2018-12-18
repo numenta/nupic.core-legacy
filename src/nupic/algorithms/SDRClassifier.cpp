@@ -20,11 +20,12 @@
  * ---------------------------------------------------------------------
  */
 
-#include <cmath>
+#include <cmath> //exp
 #include <deque>
 #include <iostream>
 #include <limits>
 #include <map>
+#include <numeric> //accumulate
 #include <sstream>
 #include <stdio.h>
 #include <string>
@@ -33,7 +34,6 @@
 
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
-#include <nupic/math/ArrayAlgo.hpp>
 #include <nupic/utils/Log.hpp>
 
 using namespace std;
@@ -41,6 +41,19 @@ using namespace std;
 namespace nupic {
 namespace algorithms {
 namespace sdr_classifier {
+
+/**
+ * get(x,y) accessor interface for Matrix; handles sparse (missing) values
+ * @return return value stored at map[row][col], or defaultVal if such field does not exist
+ **/
+Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal=0.0) {
+  try {
+    return m.at(row).at(col);
+  } catch(std::exception& ex ) {
+    return defaultVal;
+  }
+}
+
 
 SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
                              Real64 actValueAlpha, UInt verbosity)
@@ -64,7 +77,8 @@ SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
   // to reallocate this matrix only a few times, even never if we use
   // lower bounds
   for (const auto &step : steps_) {
-    weightMatrix_.emplace(step, Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1));
+	  Matrix m;
+    weightMatrix_.emplace(step, m);
   }
 }
 
@@ -95,13 +109,9 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
   // if input pattern has greater index than previously seen, update
   // maxInputIdx and augment weight matrix with zero padding
   if (patternNZ.size() > 0) {
-    UInt maxInputIdx = *max_element(patternNZ.begin(), patternNZ.end());
+    const UInt maxInputIdx = *max_element(patternNZ.begin(), patternNZ.end());
     if (maxInputIdx > maxInputIdx_) {
       maxInputIdx_ = maxInputIdx;
-      for (const auto &step : steps_) {
-        Matrix &weights = weightMatrix_.at(step);
-        weights.resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
-      }
     }
   }
 
@@ -113,16 +123,12 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
   // update weights if in learning mode
   if (learn) {
     for (size_t categoryI = 0; categoryI < bucketIdxList.size(); categoryI++) {
-      UInt bucketIdx = bucketIdxList[categoryI];
-      Real64 actValue = actValueList[categoryI];
+      const UInt bucketIdx = bucketIdxList[categoryI];
+      const Real64 actValue = actValueList[categoryI];
       // if bucket is greater, update maxBucketIdx_ and augment weight
       // matrix with zero-padding
       if (bucketIdx > maxBucketIdx_) {
         maxBucketIdx_ = bucketIdx;
-        for (const auto &step : steps_) {
-          Matrix &weights = weightMatrix_.at(step);
-          weights.resize(maxInputIdx_ + 1, maxBucketIdx_ + 1);
-        }
       }
 
       // update rolling averages of bucket values
@@ -150,11 +156,15 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
 
       // update weights
       if (binary_search(steps_.begin(), steps_.end(), nSteps)) {
-        vector<Real64> error =
-            calculateError_(bucketIdxList, learnPatternNZ, nSteps);
-        Matrix &weights = weightMatrix_.at(nSteps);
-        for (auto &bit : learnPatternNZ) {
-          weights.axby(bit, 1.0, alpha_, error);
+        const vector<Real64> error = calculateError_(bucketIdxList, learnPatternNZ, nSteps);
+        Matrix& w = weightMatrix_.at(nSteps);
+	NTA_ASSERT(alpha_ > 0.0);
+        for (const auto& bit : learnPatternNZ) {
+          for(UInt i = 0; i < error.size(); i++) {
+            const auto val = get_(w, bit, i) + alpha_ * error[i];
+	    if(val == 0) continue;
+	    w[bit][i] = val;
+          }
         }
       }
     }
@@ -192,12 +202,12 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
   }
 
   for (auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps) {
-    vector<Real64> *likelihoods =
-        result->createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
-    for (auto &bit : patternNZ) {
-      const Matrix &weights = weightMatrix_.at(*nSteps);
-      add(likelihoods->begin(), likelihoods->end(), weights.begin(bit),
-          weights.begin(bit + 1));
+    vector<Real64>* likelihoods = result->createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
+    for (const auto& bit : patternNZ) {
+      const Matrix& w = weightMatrix_.at(*nSteps);
+      for(Size i =0; i< likelihoods->size(); i++) {
+        likelihoods->at(i) += get_(w, bit, i);
+      }
     }
     softmax_(likelihoods->begin(), likelihoods->end());
   }
@@ -209,31 +219,36 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
   // compute predicted likelihoods
   vector<Real64> likelihoods(maxBucketIdx_ + 1, 0);
 
-  for (auto &bit : patternNZ) {
-    const Matrix &weights = weightMatrix_.at(step);
-    add(likelihoods.begin(), likelihoods.end(), weights.begin(bit),
-        weights.begin(bit + 1));
+  for (const auto& bit : patternNZ) {
+    const Matrix& w = weightMatrix_.at(step); //row
+    for(Size i=0; i< likelihoods.size(); i++) {
+      likelihoods[i] += get_(w, bit, i);
+    }
   }
   softmax_(likelihoods.begin(), likelihoods.end());
 
   // compute target likelihoods
   vector<Real64> targetDistribution(maxBucketIdx_ + 1, 0.0);
-  Real64 numCategories = (Real64)bucketIdxList.size();
+  const Real64 numCategories = (Real64)bucketIdxList.size();
   for (size_t i = 0; i < bucketIdxList.size(); i++)
     targetDistribution[bucketIdxList[i]] = 1.0 / numCategories;
-
-  axby(-1.0, likelihoods, 1.0, targetDistribution);
+  
+  NTA_ASSERT(likelihoods.size() == targetDistribution.size());
+  for(UInt i = 0; i < likelihoods.size(); i++) {
+    likelihoods[i] = targetDistribution[i] - likelihoods[i];
+  }
   return likelihoods;
 }
 
-void SDRClassifier::softmax_(vector<Real64>::iterator begin,
-                             vector<Real64>::iterator end) {
-  vector<Real64>::iterator maxItr = max_element(begin, end);
-  for (auto itr = begin; itr != end; ++itr) {
-    *itr -= *maxItr;
+
+void SDRClassifier::softmax_(const vector<Real64>::iterator begin,
+                             const vector<Real64>::iterator end) {
+  const auto maxVal = *max_element(begin, end);
+  for (auto itr = begin; itr != end; ++itr) { //TODO use c++17 reduce/transform
+    *itr = std::exp(*itr - maxVal); // x[i] = exp(x[i] - maxVal)
   }
-  range_exp(1.0, begin, end);
-  Real64 sum = accumulate(begin, end, 0.0);
+  const Real64 sum = std::accumulate(begin, end, 0.0); //sum of all elements raised to exp(elem) each.
+  NTA_ASSERT(sum > 0.0);
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;
   }
@@ -283,9 +298,15 @@ void SDRClassifier::save(ostream &outStream) const {
 
   // Store weight matrix
   outStream << weightMatrix_.size() << " ";
-  for (const auto &elem : weightMatrix_) {
+  for (const auto &elem : weightMatrix_) { // elem = Matrix
     outStream << elem.first << " ";
-    outStream << elem.second;
+    const auto map2d =  elem.second; //2d map: map<int<map<int, double>>
+    for(UInt i=0; i < maxInputIdx_; i++) {
+      for(UInt j=0; j< maxBucketIdx_; j++) {
+	const Real64 val = get_(map2d, i, j); //store dense map because indices i,j have to match in load()
+        outStream << val << " "; //map2d[i][j]
+      }
+    }
   }
   outStream << endl;
 
@@ -300,6 +321,7 @@ void SDRClassifier::save(ostream &outStream) const {
   // Write an ending marker.
   outStream << "~SDRClassifier" << endl;
 }
+
 
 void SDRClassifier::load(istream &inStream) {
   // Clean up the existing data structures before loading
@@ -318,7 +340,7 @@ void SDRClassifier::load(istream &inStream) {
   // Check the version.
   UInt version;
   inStream >> version;
-  NTA_CHECK(version <= 1);
+  NTA_CHECK(version == 2);
 
   // Load the simple variables.
   inStream >> version_ >> alpha_ >> actValueAlpha_ >> maxSteps_ >>
@@ -326,12 +348,10 @@ void SDRClassifier::load(istream &inStream) {
 
   UInt recordNumHistory;
   UInt curRecordNum;
-  if (version == 1) {
-    inStream >> recordNumHistory;
-    for (UInt i = 0; i < recordNumHistory; ++i) {
+  inStream >> recordNumHistory;
+  for (UInt i = 0; i < recordNumHistory; ++i) {
       inStream >> curRecordNum;
       recordNumHistory_.push_back(curRecordNum);
-    }
   }
 
   // Load the prediction steps.
@@ -360,12 +380,16 @@ void SDRClassifier::load(istream &inStream) {
   for (UInt s = 0; s < numSteps; ++s) {
     inStream >> step;
     // Insert the step to initialize the weight matrix
-    weightMatrix_[step] = Matrix(maxInputIdx_ + 1, maxBucketIdx_ + 1);
-    for (UInt i = 0; i <= maxInputIdx_; ++i) {
-      for (UInt j = 0; j <= maxBucketIdx_; ++j) {
-        inStream >> weightMatrix_[step].at(i, j);
+    auto m = Matrix();
+    for (UInt i = 0; i < maxInputIdx_; i++) {
+      for (UInt j = 0; j < maxBucketIdx_; j++) {
+	Real64 val;
+        inStream >> val;
+	if(val == 0.0) continue; //load sparse map only
+	m[i][j] = val;
       }
     }
+    weightMatrix_[step] = m;
   }
 
   // Load the actual values for each bucket.
@@ -443,11 +467,11 @@ bool SDRClassifier::operator==(const SDRClassifier &other) const {
     return false;
   }
   for (auto it = weightMatrix_.begin(); it != weightMatrix_.end(); it++) {
-    Matrix thisWeights = it->second;
-    Matrix otherWeights = other.weightMatrix_.at(it->first);
+    const Matrix thisWeights = it->second;
+    const Matrix otherWeights = other.weightMatrix_.at(it->first);
     for (UInt i = 0; i <= maxInputIdx_; ++i) {
       for (UInt j = 0; j <= maxBucketIdx_; ++j) {
-        if (thisWeights.at(i, j) != otherWeights.at(i, j)) {
+        if (get_(thisWeights, i, j) != get_(otherWeights, i, j)) { 
           return false;
         }
       }
@@ -471,6 +495,7 @@ bool SDRClassifier::operator==(const SDRClassifier &other) const {
 
   return true;
 }
+
 
 } // namespace sdr_classifier
 } // namespace algorithms

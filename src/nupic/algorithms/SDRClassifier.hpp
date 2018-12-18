@@ -34,7 +34,6 @@
 #include <vector>
 
 #include <nupic/algorithms/ClassifierResult.hpp>
-#include <nupic/math/DenseMatrix.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 
@@ -45,9 +44,14 @@ typedef cla_classifier::ClassifierResult ClassifierResult;
 
 namespace sdr_classifier {
 
-const UInt sdrClassifierVersion = 1;
+const UInt sdrClassifierVersion = 2;
 
-typedef Dense<UInt, Real64> Matrix;
+/**
+ * 2d map used to store the data. 
+ * write with Matrix m; m[i][j] = 1.0; //map will always allocate for new i,j index
+ * access/read with get_(&m, i, j): as it handles missing values i,j and returns 0.0 for them
+ */
+typedef std::map<UInt, std::map<UInt, Real64>> Matrix; //Matrix[r][c] = 0.0d
 
 class SDRClassifier : public Serializable
 {
