@@ -196,10 +196,12 @@ protected:
      */
     virtual void setFlatSparseInplace() {
         // Check data is valid.
-        NTA_ASSERT(flatSparse.size() <= size);
-        for(auto idx : flatSparse) {
-            NTA_ASSERT(idx < size);
-        }
+        #ifdef NTA_ASSERTIONS_ON
+            NTA_ASSERT(flatSparse.size() <= size);
+            for(auto idx : flatSparse) {
+                NTA_ASSERT(idx < size);
+            }
+        #endif
         // Set the valid flags.
         clear();
         flatSparse_valid = true;
@@ -213,15 +215,17 @@ protected:
      */
     virtual void setSparseInplace() {
         // Check data is valid.
-        NTA_ASSERT(sparse.size() == dimensions.size());
-        for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            const auto coord_vec = sparse[dim];
-            NTA_ASSERT(coord_vec.size() <= size);
-            NTA_ASSERT(coord_vec.size() == sparse[0].size()); // All coordinate vectors have same size.
-            for(auto idx : coord_vec) {
-                NTA_ASSERT(idx < dimensions[dim]);
+        #ifdef NTA_ASSERTIONS_ON
+            NTA_ASSERT(sparse.size() == dimensions.size());
+            for(UInt dim = 0; dim < dimensions.size(); dim++) {
+                const auto coord_vec = sparse[dim];
+                NTA_ASSERT(coord_vec.size() <= size);
+                NTA_ASSERT(coord_vec.size() == sparse[0].size()); // All coordinate vectors have same size.
+                for(auto idx : coord_vec) {
+                    NTA_ASSERT(idx < dimensions[dim]);
+                }
             }
-        }
+        #endif
         // Set the valid flags.
         clear();
         sparse_valid = true;
@@ -610,9 +614,11 @@ public:
      * common.
      */
     UInt overlap(SparseDistributedRepresentation &sdr) {
-        NTA_ASSERT( dimensions.size() == sdr.dimensions.size() );
-        for( UInt i = 0; i < dimensions.size(); i++ )
-            NTA_ASSERT( dimensions[i] == sdr.dimensions[i] );
+        #ifdef NTA_ASSERTIONS_ON
+            NTA_ASSERT( dimensions.size() == sdr.dimensions.size() );
+            for( UInt i = 0; i < dimensions.size(); i++ )
+                NTA_ASSERT( dimensions[i] == sdr.dimensions[i] );
+        #endif
 
         UInt ovlp = 0;
         auto a = this->getDense();

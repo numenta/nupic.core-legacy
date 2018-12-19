@@ -40,7 +40,7 @@ DARWIN_PLATFORM = "darwin"
 LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
-BUILD_TYPE = "Release" 
+
 
 
 def getExtensionVersion():

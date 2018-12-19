@@ -99,12 +99,12 @@ jobs:
       - store_artifacts:
           path: dist/*.whl
         
-      - persist_to_workspace:
-          root: dist
-          paths:
-          - nupic.bindings*.whl
-          - requirements.txt
-          - include/nupic
+      ##- persist_to_workspace:
+      ##    root: dist
+      ##    paths:
+      ##    - nupic.bindings*.whl
+      ##    - requirements.txt
+      ##    - include/nupic
 
             #  deploy-s3:
             #machine: true
