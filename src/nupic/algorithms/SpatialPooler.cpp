@@ -30,7 +30,6 @@
 #include <cmath> //fmod
 
 #include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/math/Math.hpp>
 #include <nupic/math/Topology.hpp>
 #include <nupic/utils/VectorHelpers.hpp>
 
