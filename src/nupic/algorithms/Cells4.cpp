@@ -29,7 +29,6 @@
 #include <nupic/algorithms/Cells4.hpp>
 
 #include <nupic/algorithms/SegmentUpdate.hpp>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
