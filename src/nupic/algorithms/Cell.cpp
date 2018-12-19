@@ -91,7 +91,7 @@ UInt Cell::getFreeSegment(const Segment::InSynapses &synapses,
   }
 
   NTA_ASSERT(segIdx < (UInt)_segments.size());
-  NTA_ASSERT(not_in(segIdx, _freeSegments));
+  NTA_ASSERT(std::find(_freeSegments.cbegin(), _freeSegments.cend(), segIdx) == _freeSegments.cend());
   NTA_ASSERT(_segments[segIdx].empty()); // important in case we push_back
 
   _segments[segIdx] = Segment(synapses, initFrequency, sequenceSegmentFlag,
