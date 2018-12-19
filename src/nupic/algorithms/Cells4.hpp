@@ -28,6 +28,8 @@
 #include <nupic/algorithms/Cell.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
+#include <nupic/utils/Random.hpp>
+
 #include <ostream>
 #include <sstream>
 
