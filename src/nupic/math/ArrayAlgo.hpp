@@ -3799,37 +3799,6 @@ inline void range_exp(typename std::iterator_traits<It>::value_type k, It begin,
 }
 
 //--------------------------------------------------------------------------------
-/**
- */
-template <typename C> inline void range_exp(typename C::value_type k, C &c) {
-  range_exp(k, c.begin(), c.end());
-}
-
-//--------------------------------------------------------------------------------
-/**
- * k1 * exp(k2 * x) for all the elements of a range.
- */
-template <typename It>
-inline void range_exp(typename std::iterator_traits<It>::value_type k1,
-                      typename std::iterator_traits<It>::value_type k2,
-                      It begin, It end) {
-  typedef typename std::iterator_traits<It>::value_type value_type;
-
-  Exp<value_type> e_f;
-
-  for (; begin != end; ++begin)
-    *begin = k1 * e_f(k2 * *begin);
-}
-
-//--------------------------------------------------------------------------------
-/**
- */
-template <typename C>
-inline void range_exp(typename C::value_type k1, typename C::value_type k2, C &c) {
-  range_exp(k1, k2, c.begin(), c.end());
-}
-
-//--------------------------------------------------------------------------------
 // Inner product
 //--------------------------------------------------------------------------------
 /**
