@@ -236,10 +236,10 @@ void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
   for (; newSynapse != newSynapsesEnd; ++newSynapse) {
     const UInt srcCellIdx = *newSynapse;
     const OutSynapse newOutSyn(dstCellIdx, dstSegIdx);
-    auto out = _outSynapses[srcCellIdx]; 
+    const auto out = _outSynapses[srcCellIdx]; 
 
     NTA_ASSERT(std::find(out.cbegin(), out.cend(), newOutSyn) == out.cend()); //newOutSyn is not in "out"
-    out.push_back(newOutSyn);
+    _outSynapses[srcCellIdx].push_back(newOutSyn);
   }
 }
 
