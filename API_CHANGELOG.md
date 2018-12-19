@@ -1,4 +1,4 @@
-#Breaking changes to the nupic API
+# Breaking changes to the nupic API
 
 We try to keep API as much as compatible with original [numenta/nupic.core repo](https://github.com/numenta/nupic.core). 
 The API is specified in the [API Docs](http://nupic.docs.numenta.org/prerelease/api/index.html) 
