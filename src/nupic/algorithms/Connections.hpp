@@ -28,10 +28,10 @@
 #define NTA_CONNECTIONS_HPP
 
 #include <climits>
+#include <set>
 #include <utility>
 #include <vector>
 
-#include <nupic/math/Math.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/ntypes/Sdr.hpp>
