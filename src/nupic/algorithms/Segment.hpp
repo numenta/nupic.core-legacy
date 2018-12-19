@@ -425,7 +425,7 @@ public:
     if (indices.size() != _synapses.size())
       std::cout << "Indices are not unique" << std::endl;
 
-    if (!std:is_sorted(indices))
+    if (!std::is_sorted(indices.cbegin(), indices.cend()))
       std::cout << "Indices are not sorted" << std::endl;
 
     if (_frequency < 0)
@@ -648,7 +648,7 @@ public:
                              std::vector<T2> &removed) {
     {
       NTA_ASSERT(invariants());
-      NTA_ASSERT(std::is_sorted(synapses));
+      NTA_ASSERT(std::is_sorted(synapses.cbegin(), synapses.cend()));
     }
 
     std::vector<UInt> del;
