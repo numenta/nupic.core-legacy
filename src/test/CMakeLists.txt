@@ -78,6 +78,7 @@ set(ntypes_tests
 	   unit/ntypes/MemStreamTest.cpp
 	   unit/ntypes/NodeSetTest.cpp
 	   unit/ntypes/ScalarTest.cpp
+	   unit/ntypes/SdrTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
