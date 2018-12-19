@@ -49,7 +49,12 @@ void run() {
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt CELLS = 10; // cells per column in TP
+#ifdef NDEBUG
   const UInt EPOCHS = 5000; // number of iterations (calls to SP/TP compute() )
+#else
+  const UInt EPOCHS = 500; // make test faster in Debug
+#endif
+
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
   		<< ", DIM=" << COLS << ", CELLS=" << CELLS << std::endl;
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
