@@ -21,6 +21,7 @@
  */
 
 #include <algorithm> // sort
+#include <cmath> //abs, fabs
 #include <iomanip>
 #include <iostream>
 #include <set>
@@ -36,6 +37,7 @@
 #include <nupic/algorithms/Segment.hpp>
 
 using namespace nupic::algorithms::Cells4;
+#define Epsilon  (Real32)1e-6 //FIXME include from..where (now in Math.hpp) 
 
 //----------------------------------------------------------------------
 /**
@@ -85,10 +87,10 @@ bool Segment::equals(const Segment &other) const {
   if (_totalActivations != other._totalActivations ||
       _positiveActivations != other._positiveActivations ||
       _lastActiveIteration != other._lastActiveIteration ||
-      !nearlyEqual(_lastPosDutyCycle, other._lastPosDutyCycle) ||
+      abs(_lastPosDutyCycle - other._lastPosDutyCycle) > Epsilon ||
       _lastPosDutyCycleIteration  !=  other._lastPosDutyCycleIteration ||
       _seqSegFlag != other._seqSegFlag ||
-      !nearlyEqual(_frequency, other._frequency) ||
+      abs(_frequency - other._frequency) > Epsilon||
       _nConnected != other._nConnected) {
     return false;
   }
