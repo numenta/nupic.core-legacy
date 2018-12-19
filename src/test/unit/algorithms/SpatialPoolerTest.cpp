@@ -24,6 +24,7 @@
  * Implementation of unit tests for SpatialPooler
  */
 
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <stdio.h>
@@ -1630,7 +1631,7 @@ TEST(SpatialPoolerTest, testinitMapPotential1D) {
   sp.setPotentialPct(0.5);
   UInt supersetMask1[12] = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1};
   mask = sp.initMapPotential_(0, true);
-  ASSERT_TRUE(sum(mask) == 3);
+  ASSERT_TRUE(accumulate(mask.cbegin(), mask.cend(), 0.0) == 3);
 
   UInt unionMask1[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   for (UInt i = 0; i < 12; i++) {
