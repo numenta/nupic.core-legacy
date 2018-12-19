@@ -22,6 +22,7 @@
 
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/OutSynapse.hpp>
+
 using namespace nupic::algorithms::Cells4;
 using namespace nupic;
 

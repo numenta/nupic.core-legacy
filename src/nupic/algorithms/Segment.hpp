@@ -32,7 +32,6 @@
 #include <vector>
 
 #include <nupic/algorithms/InSynapse.hpp>
-#include <nupic/math/ArrayAlgo.hpp> // is_sorted
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/types/Serializable.hpp>
 
@@ -426,14 +425,14 @@ public:
     if (indices.size() != _synapses.size())
       std::cout << "Indices are not unique" << std::endl;
 
-    if (!is_sorted(indices, true, true))
+    if (!std:is_sorted(indices))
       std::cout << "Indices are not sorted" << std::endl;
 
     if (_frequency < 0)
       std::cout << "Frequency is less than zero" << std::endl;
 #endif
 
-    return _frequency >= 0 && is_sorted(indices, true, true);
+    return _frequency >= 0 && std::is_sorted(indices.cbegin(), indices.cend());
   }
 
   //-----------------------------------------------------------------------
@@ -649,7 +648,7 @@ public:
                              std::vector<T2> &removed) {
     {
       NTA_ASSERT(invariants());
-      NTA_ASSERT(is_sorted(synapses));
+      NTA_ASSERT(std::is_sorted(synapses));
     }
 
     std::vector<UInt> del;
@@ -847,6 +846,7 @@ public:
    * cell index.
    */
   void print(std::ostream &outStream, UInt nCellsPerCol = 0) const;
+  
 };
 
 //-----------------------------------------------------------------------

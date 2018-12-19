@@ -29,7 +29,6 @@
 
 #include <assert.h>
 #include <map>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
