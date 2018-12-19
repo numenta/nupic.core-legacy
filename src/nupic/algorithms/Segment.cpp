@@ -211,7 +211,7 @@ void Segment::addSynapses(const std::set<UInt> &srcCells, Real initStrength,
       ++_nConnected;
   }
 
-  sort(_synapses, InSynapseOrder());
+  std::sort(_synapses.begin(), _synapses.end(), InSynapseOrder());
   NTA_ASSERT(invariants()); // will catch non-unique synapses
 }
 
