@@ -31,13 +31,14 @@
 #include <assert.h>
 #include <map>
 #include <nupic/math/StlIo.hpp>     // binary_save
+#include <nupic/math/Math.hpp> // Epsilon
+
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
 
 #include <nupic/algorithms/Segment.hpp>
 
 using namespace nupic::algorithms::Cells4;
-#define Epsilon  (Real32)1e-6 //FIXME include from..where (now in Math.hpp) 
 
 //----------------------------------------------------------------------
 /**
@@ -87,10 +88,10 @@ bool Segment::equals(const Segment &other) const {
   if (_totalActivations != other._totalActivations ||
       _positiveActivations != other._positiveActivations ||
       _lastActiveIteration != other._lastActiveIteration ||
-      abs(_lastPosDutyCycle - other._lastPosDutyCycle) > Epsilon ||
+      abs(_lastPosDutyCycle - other._lastPosDutyCycle) > nupic::Epsilon ||
       _lastPosDutyCycleIteration  !=  other._lastPosDutyCycleIteration ||
       _seqSegFlag != other._seqSegFlag ||
-      abs(_frequency - other._frequency) > Epsilon||
+      abs(_frequency - other._frequency) > nupic::Epsilon||
       _nConnected != other._nConnected) {
     return false;
   }

@@ -50,7 +50,6 @@ typedef Real32 Permanence;
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
 
-static const Permanence EPSILON = 0.00001f;
 
 /**
  * SynapseData class used in Connections.

@@ -27,6 +27,7 @@
 #include <cstring> // strlen
 
 #include <nupic/utils/Log.hpp>
+#include <nupic/math/Math.hpp> //Epsilon
 
 // This test accesses private methods.
 #define private public
@@ -37,7 +38,7 @@
 #include <gtest/gtest.h>
 
 using namespace nupic;
-#define Epsilon (Real)1e-6 //FIXME include from Math.hpp
+using nupic::Epsilon; 
 
 void testReadBytes_VariableSizeBufferHelper(Size buffSize) {
   std::vector<Byte> in;

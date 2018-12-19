@@ -42,9 +42,10 @@
 #include <vector>
 
 
-#include <nupic/algorithms/Connections.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+
 #include <nupic/utils/GroupBy.hpp>
+#include <nupic/math/Math.hpp> // nupic::Epsilon
 
 using namespace std;
 using namespace nupic;
@@ -200,7 +201,7 @@ static void adaptSegment(Connections &connections, Segment segment,
     permanence = min(permanence, (Permanence)1.0);
     permanence = max(permanence, (Permanence)0.0);
 
-    if (permanence < EPSILON) {
+    if (permanence < nupic::Epsilon) {
       connections.destroySynapse(synapses[i]);
       // Synapses vector is modified in-place, so don't update `i`.
     } else {
@@ -242,7 +243,7 @@ static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
 
       // Use special EPSILON logic to compensate for floating point
       // differences between C++ and other environments.
-      if (permanence < minPermanence - EPSILON) {
+      if (permanence < minPermanence - nupic::Epsilon) {
         minSynapse = synapse;
         minPermanence = permanence;
       }

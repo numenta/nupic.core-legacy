@@ -31,6 +31,7 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/math/Topology.hpp>
+#include <nupic/math/Math.hpp> // nupic::Epsilon
 #include <nupic/utils/VectorHelpers.hpp>
 
 #define VERSION 2  // version for stream serialization
@@ -379,7 +380,7 @@ void SpatialPooler::getConnectedSynapses(UInt column,
   const auto &synapses = connections_.synapsesForSegment( column );
   for( const auto &syn : synapses ) {
     const auto &synData = connections_.dataForSynapse( syn );
-    if( synData.permanence >= synPermConnected_ - connections::EPSILON )
+    if( synData.permanence >= synPermConnected_ - nupic::Epsilon )
       connectedSynapses[ synData.presynapticCell ] = 1;
   }
 }

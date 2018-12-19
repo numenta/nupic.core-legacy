@@ -31,6 +31,8 @@
 
 #include <nupic/algorithms/Connections.hpp>
 
+#include <nupic/math/Math.hpp> // nupic::Epsilon
+
 using std::endl;
 using std::string;
 using std::vector;
@@ -53,7 +55,7 @@ void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
   eventHandlers_.clear();
   NTA_CHECK(connectedThreshold >= minPermanence);
   NTA_CHECK(connectedThreshold <= maxPermanence);
-  connectedThreshold_ = connectedThreshold - EPSILON;
+  connectedThreshold_ = connectedThreshold - nupic::Epsilon;
 
   // Every time a segment or synapse is created, we assign it an ordinal and
   // increment the nextOrdinal. Ordinals are never recycled, so they can be used
@@ -323,7 +325,7 @@ Synapse Connections::minPermanenceSynapse_(Segment segment) const {
   Synapse minSynapse;
 
   for (Synapse synapse : segments_[segment].synapses) {
-    if (synapses_[synapse].permanence < minPermanence - EPSILON) {
+    if (synapses_[synapse].permanence < minPermanence - nupic::Epsilon) {
       minSynapse = synapse;
       minPermanence = synapses_[synapse].permanence;
       found = true;
@@ -348,7 +350,7 @@ void Connections::computeActivity(
       const SynapseData &synapseData = synapses_[synapse];
       ++numActivePotentialSynapsesForSegment[synapseData.segment];
 
-      if (synapseData.permanence >= connectedPermanence - EPSILON) {
+      if (synapseData.permanence >= connectedPermanence - nupic::Epsilon) {
         ++numActiveConnectedSynapsesForSegment[synapseData.segment];
       }
     }
@@ -369,7 +371,7 @@ void Connections::computeActivity(
         const SynapseData &synapseData = synapses_[synapse];
         ++numActivePotentialSynapsesForSegment[synapseData.segment];
 
-        if (synapseData.permanence >= connectedPermanence - EPSILON) {
+        if (synapseData.permanence >= connectedPermanence - nupic::Epsilon) {
           ++numActiveConnectedSynapsesForSegment[synapseData.segment];
         }
       }
