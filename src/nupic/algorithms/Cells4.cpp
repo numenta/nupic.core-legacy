@@ -1472,7 +1472,9 @@ void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
 
   } // Loop over updates
 
-  remove_at(delUpdates, _segmentUpdates);
+  for(const auto del : delUpdates) {
+    _segmentUpdates.erase(_segmentUpdates.cbegin() + del); //delete at index 'del'
+  }
 }
 
 //----------------------------------------------------------------------
@@ -1509,7 +1511,9 @@ void Cells4::cleanUpdatesList(UInt cellIdx, UInt segIdx) {
   } // Loop over updates
 
   // Remove any we found
-  remove_at(delUpdates, _segmentUpdates);
+  for(const auto del : delUpdates) {
+    _segmentUpdates.erase(_segmentUpdates.cbegin() + del); //delete at index 'del'
+  }
 }
 
 //----------------------------------------------------------------------
