@@ -25,7 +25,7 @@
  */
 
 #include <cstring> // strlen
-#include <nupic/math/Math.hpp>
+
 #include <nupic/utils/Log.hpp>
 
 // This test accesses private methods.
@@ -37,6 +37,7 @@
 #include <gtest/gtest.h>
 
 using namespace nupic;
+#define Epsilon (Real)1e-6 //FIXME include from Math.hpp
 
 void testReadBytes_VariableSizeBufferHelper(Size buffSize) {
   std::vector<Byte> in;
@@ -232,7 +233,7 @@ TEST(BufferTest, testEvenMoreComplicatedSerialization) {
              << "'";
   }
 
-  ASSERT_TRUE(nearlyEqual(xo[0].a, nupic::Real(8.8)))
+  ASSERT_NEAR(xo[0].a, nupic::Real(8.8), Epsilon)
       << "BufferTest::testComplicatedSerialization(), xo[0].a == 8.8";
   ASSERT_TRUE(xo[0].b == 6)
       << "BufferTest::testComplicatedSerialization(), xo[0].b == 6";
@@ -240,7 +241,7 @@ TEST(BufferTest, testEvenMoreComplicatedSerialization) {
       << "BufferTest::testComplicatedSerialization(), xo[0].c == 'c'";
   ASSERT_TRUE(std::string(xo[0].d, 4) == std::string("ABCD"))
       << "BufferTest::testComplicatedSerialization(), xo[0].d == ABCD";
-  ASSERT_TRUE(nearlyEqual(xo[0].e, nupic::Real(-0.04)))
+  ASSERT_NEAR(xo[0].e, nupic::Real(-0.04), Epsilon)
       << "BufferTest::testComplicatedSerialization(), xo[0].e == -0.04";
   ASSERT_TRUE(xo[0].f[0] == 100)
       << "BufferTest::testComplicatedSerialization(), xo[0].f[0] == 100";
@@ -257,7 +258,7 @@ TEST(BufferTest, testEvenMoreComplicatedSerialization) {
       << "BufferTest::testComplicatedSerialization(), xo[1].c == 't'";
   ASSERT_TRUE(std::string(xo[1].d, 4) == std::string("XBCD"))
       << "BufferTest::testComplicatedSerialization(), xo[1].d == XBCD";
-  ASSERT_TRUE(nearlyEqual(xo[1].e, nupic::Real(3.14)))
+  ASSERT_NEAR(xo[1].e, nupic::Real(3.14), Epsilon)
       << "BufferTest::testComplicatedSerialization(), xo[1].e == 3.14";
   ASSERT_TRUE(xo[1].f[0] == -999)
       << "BufferTest::testComplicatedSerialization(), xo[1].f[0] == -999";
@@ -329,7 +330,7 @@ TEST(BufferTest, testComplicatedSerialization) {
              << " " << xo[i].e;
   }
 
-  ASSERT_TRUE(nearlyEqual(xo[0].a, nupic::Real(8.8)))
+  ASSERT_NEAR(xo[0].a, nupic::Real(8.8), Epsilon)
       << "BufferTest::testComplicatedSerialization(), xo[0].a == 8.8";
   ASSERT_TRUE(xo[0].b == 6)
       << "BufferTest::testComplicatedSerialization(), xo[0].b == 6";
@@ -337,7 +338,7 @@ TEST(BufferTest, testComplicatedSerialization) {
       << "BufferTest::testComplicatedSerialization(), xo[0].c == 'c'";
   ASSERT_TRUE(std::string(xo[0].d, 4) == std::string("ABCD"))
       << "BufferTest::testComplicatedSerialization(), xo[0].d == ABCD";
-  ASSERT_TRUE(nearlyEqual(xo[0].e, nupic::Real(-0.04)))
+  ASSERT_NEAR(xo[0].e, nupic::Real(-0.04), Epsilon)
       << "BufferTest::testComplicatedSerialization(), xo[0].e == -0.04";
 
   ASSERT_TRUE(xo[1].a == nupic::Real(4.5))
@@ -348,7 +349,7 @@ TEST(BufferTest, testComplicatedSerialization) {
       << "BufferTest::testComplicatedSerialization(), xo[1].c == 't'";
   ASSERT_TRUE(std::string(xo[1].d, 4) == std::string("XBCD"))
       << "BufferTest::testComplicatedSerialization(), xo[1].d == XBCD";
-  ASSERT_TRUE(nearlyEqual(xo[1].e, nupic::Real(3.14)))
+  ASSERT_NEAR(xo[1].e, nupic::Real(3.14), Epsilon)
       << "BufferTest::testComplicatedSerialization(), xo[1].e == 3.14";
 }
 
@@ -416,6 +417,6 @@ TEST(BufferTest, testArrayMethods) {
 
     Real32 val = 0;
     reader.read(val);
-    ASSERT_TRUE(nearlyEqual(val, Real32(444.555)));
+    ASSERT_NEAR(val, Real32(444.555), Epsilon);
   }
 }
