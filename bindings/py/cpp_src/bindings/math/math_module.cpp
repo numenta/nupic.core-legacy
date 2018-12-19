@@ -33,8 +33,6 @@ namespace py = pybind11;
 
 namespace nupic_ext
 {
-    void init_array_algo(py::module&);
-    void init_Math_Functions(py::module&);
     void init_Random(py::module&);
     void init_reals(py::module&);
 } // namespace nupic_ext
@@ -44,8 +42,6 @@ using namespace nupic_ext;
 PYBIND11_MODULE(math, m) {
     m.doc() = "nupic.bindings.math plugin"; // optional module docstring
 
-    init_array_algo(m);
-    init_Math_Functions(m);
     init_Random(m);
     init_reals(m);
 }
