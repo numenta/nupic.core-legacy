@@ -78,12 +78,12 @@ TemporalMemory::TemporalMemory(
     Permanence connectedPermanence, UInt minThreshold, UInt maxNewSynapseCount,
     Permanence permanenceIncrement, Permanence permanenceDecrement,
     Permanence predictedSegmentDecrement, Int seed, UInt maxSegmentsPerCell,
-    UInt maxSynapsesPerSegment, bool checkInputs) {
+    UInt maxSynapsesPerSegment, bool checkInputs, UInt extra) {
   initialize(columnDimensions, cellsPerColumn, activationThreshold,
              initialPermanence, connectedPermanence, minThreshold,
              maxNewSynapseCount, permanenceIncrement, permanenceDecrement,
              predictedSegmentDecrement, seed, maxSegmentsPerCell,
-             maxSynapsesPerSegment, checkInputs);
+             maxSynapsesPerSegment, checkInputs, extra);
 }
 
 TemporalMemory::~TemporalMemory() {}
@@ -94,7 +94,7 @@ void TemporalMemory::initialize(
     Permanence connectedPermanence, UInt minThreshold, UInt maxNewSynapseCount,
     Permanence permanenceIncrement, Permanence permanenceDecrement,
     Permanence predictedSegmentDecrement, Int seed, UInt maxSegmentsPerCell,
-    UInt maxSynapsesPerSegment, bool checkInputs) {
+    UInt maxSynapsesPerSegment, bool checkInputs, UInt extra) {
   // Validate all input parameters
 
   if (columnDimensions.size() <= 0) {
@@ -130,6 +130,7 @@ void TemporalMemory::initialize(
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
   predictedSegmentDecrement_ = predictedSegmentDecrement;
+  extra_ = extra;
 
   // Initialize member variables
   connections = Connections(numberOfColumns() * cellsPerColumn_);
@@ -187,8 +188,6 @@ static void adaptSegment(Connections &connections, Segment segment,
 
   for (SynapseIdx i = 0; i < synapses.size();) {
     const SynapseData &synapseData = connections.dataForSynapse(synapses[i]);
-
-    NTA_ASSERT(synapseData.presynapticCell < connections.numCells());
 
     Permanence permanence = synapseData.permanence;
     if (prevActiveCellsDense[synapseData.presynapticCell]) {
@@ -454,7 +453,7 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
            "duplicates.";
   }
 
-  vector<bool> prevActiveCellsDense(numberOfCells(), false);
+  vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
   for (CellIdx cell : activeCells_) {
     prevActiveCellsDense[cell] = true;
   }
@@ -555,9 +554,21 @@ void TemporalMemory::activateDendrites(bool learn) {
 }
 
 void TemporalMemory::compute(size_t activeColumnsSize,
-                             const UInt activeColumns[], bool learn) {
-  activateCells(activeColumnsSize, activeColumns, learn);
+                             const UInt activeColumns[], bool learn,
+                             const vector<UInt> &extraActive,
+                             const vector<UInt> &extraWinners) {
+
+  for(const auto &active : extraActive) {
+    NTA_ASSERT( active < extra_ );
+    activeCells_.push_back( active + numberOfCells() );
+  }
+  for(const auto &winner : extraWinners) {
+    NTA_ASSERT( winner < extra_ );
+    winnerCells_.push_back( winner + numberOfCells() );
+  }
+
   activateDendrites(learn);
+  activateCells(activeColumnsSize, activeColumns, learn);
 }
 
 void TemporalMemory::reset(void) {

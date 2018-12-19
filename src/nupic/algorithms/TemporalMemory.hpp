@@ -137,7 +137,8 @@ public:
                  Permanence permanenceDecrement = 0.10,
                  Permanence predictedSegmentDecrement = 0.0, Int seed = 42,
                  UInt maxSegmentsPerCell = 255,
-                 UInt maxSynapsesPerSegment = 255, bool checkInputs = true);
+                 UInt maxSynapsesPerSegment = 255, bool checkInputs = true,
+                 UInt extra = 0);
 
   virtual void
   initialize(vector<UInt> columnDimensions = {2048}, UInt cellsPerColumn = 32,
@@ -148,7 +149,7 @@ public:
              Permanence permanenceDecrement = 0.10,
              Permanence predictedSegmentDecrement = 0.0, Int seed = 42,
              UInt maxSegmentsPerCell = 255, UInt maxSynapsesPerSegment = 255,
-             bool checkInputs = true);
+             bool checkInputs = true, UInt extra = 0);
 
   virtual ~TemporalMemory();
 
@@ -219,7 +220,8 @@ public:
    * Whether or not learning is enabled.
    */
   virtual void compute(size_t activeColumnsSize, const UInt activeColumns[],
-                       bool learn = true);
+                       bool learn = true, const vector<UInt> &extraActive = {},
+                       const vector<UInt> &extraWinners = {});
 
   // ==============================
   //  Helper functions
@@ -463,6 +465,7 @@ protected:
   Permanence permanenceIncrement_;
   Permanence permanenceDecrement_;
   Permanence predictedSegmentDecrement_;
+  UInt extra_;
 
   vector<CellIdx> activeCells_;
   vector<CellIdx> winnerCells_;

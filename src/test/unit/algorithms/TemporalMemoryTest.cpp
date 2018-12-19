@@ -28,11 +28,13 @@
 #include <fstream>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/ntypes/Sdr.hpp>
 #include <nupic/utils/Log.hpp>
 #include <stdio.h>
 
 #include "gtest/gtest.h"
 #include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/algorithms/Anomaly.hpp>
 
 using namespace nupic::algorithms::temporal_memory;
 using namespace std;
@@ -1520,6 +1522,72 @@ TEST(TemporalMemoryTest, testSaveLoad) {
   serializationTestVerify(tm2);
 }
 
+/*
+ * Test compute( extraActive, extraWinners )
+ *
+ * This test runs an artificial pattern through the TM.   At 10% column
+ * sparsity, there are not enough active cells to reach the activation threshold
+ * (12 < 13), unless the extra inputs are correctly included.  The extra inputs
+ * are a copy of the current cell activity.
+ */
+TEST(TemporalMemoryTest, testExtraActive) {
+
+  SDR columns({120});
+
+  vector<SDR> pattern( 10, columns.dimensions );
+  for(SDR &x : pattern) {
+    x.randomize( 0.10f );
+    auto &data = x.getFlatSparse();
+    std::sort(data.begin(), data.end());
+  }
+
+  auto tm = TemporalMemory(columns.dimensions,
+    /* cellsPerColumn */               12,
+    /* activationThreshold */          13,
+    /* initialPermanence */            0.21,
+    /* connectedPermanence */          0.50,
+    /* minThreshold */                 10,
+    /* maxNewSynapseCount */           20,
+    /* permanenceIncrement */          0.10,
+    /* permanenceDecrement */          0.03,
+    /* predictedSegmentDecrement */    0.001,
+    /* seed */                         42,
+    /* maxSegmentsPerCell */           255,
+    /* maxSynapsesPerSegment */        255,
+    /* checkInputs */                  true,
+    /* extra */                        columns.size * 12);
+  Real anom = 1.0f;
+
+  // Look at the pattern.
+  for(UInt trial = 0; trial < 20; trial++) {
+    tm.reset();
+    vector<UInt> extraActive;
+    vector<UInt> extraWinners;
+    for(auto &x : pattern) {
+      // Calculate TM output
+      const auto &sparse = x.getFlatSparse();
+      tm.compute(sparse.size(), sparse.data(), true,
+        extraActive,
+        extraWinners);
+      // Testing the test: commenting out the next two lines should cause this
+      // test to fail.
+      extraActive  = tm.getActiveCells();
+      extraWinners = tm.getWinnerCells();
+
+      // Calculate Anomaly of current input based on prior predictions.
+      auto predictedColumns = tm.getPredictiveCells();
+      for(UInt i = 0; i < predictedColumns.size(); i++) {
+        predictedColumns[i] /= tm.getCellsPerColumn();
+        if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
+          predictedColumns.erase( predictedColumns.begin() + i-- );
+      }
+      anom = algorithms::anomaly::computeRawAnomalyScore(
+                                    x.getFlatSparse(), predictedColumns);
+    }
+  }
+
+  ASSERT_LT( anom, 0.05f );
+}
 
 // Uncomment these tests individually to save/load from a file.
 // This is useful for ad-hoc testing of backwards-compatibility.
