@@ -234,10 +234,12 @@ void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
   NTA_ASSERT(dstSegIdx < _cells[dstCellIdx].size());
 
   for (; newSynapse != newSynapsesEnd; ++newSynapse) {
-    UInt srcCellIdx = *newSynapse;
-    OutSynapse newOutSyn(dstCellIdx, dstSegIdx);
-    NTA_ASSERT(not_in(newOutSyn, _outSynapses[srcCellIdx]));
-    _outSynapses[srcCellIdx].push_back(newOutSyn);
+    const UInt srcCellIdx = *newSynapse;
+    const OutSynapse newOutSyn(dstCellIdx, dstSegIdx);
+    auto out = _outSynapses[srcCellIdx]; 
+
+    NTA_ASSERT(std::find(out.cbegin(), out.cend(), newOutSyn) == out.cend()); //newOutSyn is not in "out"
+    out.push_back(newOutSyn);
   }
 }
 
@@ -1576,7 +1578,8 @@ void Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment(
 
   for (UInt i = 0; i != segment.size(); ++i) {
     const UInt srcCellIdx = segment[i].srcCellIdx();
-    if (not_in(srcCellIdx, synapsesSet)) {
+    const bool not_in = std::find(synapsesSet.cbegin(), synapsesSet.cend(), srcCellIdx) == synapsesSet.cend();
+    if (not_in) {
       inactiveSrcCellIdxs.push_back(srcCellIdx);
       inactiveSynapseIdxs.push_back(i);
     } else {
@@ -2313,7 +2316,7 @@ bool Cells4::invariants(bool verbose) const {
         stringstream buf;
         buf << i << '.' << j << '.' << seg[k].srcCellIdx();
 
-        if (is_in(buf.str(), back_map)) {
+        if (std::find(back_map.cbegin(), back_map.cend(), buf.str()) != back_map.cend() ) { //back_map contains buf
           std::cout << "\nDuplicate incoming synapse: " << std::endl;
           consistent = false;
         }
@@ -2332,7 +2335,7 @@ bool Cells4::invariants(bool verbose) const {
       stringstream buf;
       buf << syn.dstCellIdx() << '.' << syn.dstSegIdx() << '.' << i;
 
-      if (is_in(buf.str(), forward_map)) {
+      if (std::find(forward_map.cbegin(), forward_map.cend(), buf.str()) != forward_map.cend() ) { //contains buf //TODO use set.contains(x) in c++20 
         std::cout << "\nDuplicate outgoing synapse:" << std::endl;
         consistent = false;
       }
