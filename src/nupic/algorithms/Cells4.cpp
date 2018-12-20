@@ -1422,63 +1422,37 @@ void Cells4::_updateAvgLearnedSeqLength(UInt prevSeqLength) {
  * Go through the list of accumulated segment updates and process them.
  */
 void Cells4::processSegmentUpdates(const Real32 input[], const CState &predictedState) {
-  std::set<UInt> delUpdates;
 
-  for (UInt i = 0; i < _segmentUpdates.size(); i++) {
+  // Decide whether to apply the update now. If update has expired, then
+  // mark this update for deletion
+  const auto rm_expired = [&](const SegmentUpdate& update) {
+    return (_nLrnIterations - update.timeStamp() > _segUpdateValidDuration);
+  };
 
-    const SegmentUpdate &update = _segmentUpdates[i];
-
-    if (_verbosity >= 4) {
-      std::cout << "\n_nLrnIterations: " << _nLrnIterations
-                << " segment update: ";
-      update.print(std::cout, true, _nCellsPerCol);
-      std::cout << std::endl;
-    }
-
-    // Decide whether to apply the update now. If update has expired, then
-    // mark this update for deletion
-    if (_nLrnIterations - update.timeStamp() > _segUpdateValidDuration) {
-      if (_verbosity >= 4)
-        std::cout << "     Expired, deleting now.\n";
-      delUpdates.insert(i);
-      continue;
-    }
-
-    // Update has not expired
-    else {
-      UInt cellIdx = update.cellIdx();
-      UInt colIdx = (UInt)(cellIdx / _nCellsPerCol);
-
-      // If we received bottom up input, then adapt this segment and schedule
-      // update for removal
+  // If we received bottom up input, then adapt this segment and schedule
+  // update for removal
+  const auto rm_bottomUpInput = [&](const SegmentUpdate& update) {
+      const UInt colIdx = (UInt)(update.cellIdx() / _nCellsPerCol);
       if (input[colIdx] == 1) {
-
-        if (_verbosity >= 4)
-          std::cout << "     Applying update now.\n";
         adaptSegment(update);
-        delUpdates.insert(i);
-	continue;
-      } else {
-        // We didn't receive bottom up input. If we are not (pooling and still
-        // predicting) then delete this update
-        if (!(_doPooling && predictedState.isSet(cellIdx))) {
-          if (_verbosity >= 4)
-            std::cout << "     Deleting update now.\n";
-          delUpdates.insert(i);
-	  continue;
-        }
-      }
+	return true; //delete
+      } else { return false; }
+  };
 
-    } // unexpired update
+  // We didn't receive bottom up input. If we are not (pooling and still
+  // predicting) then delete this update
+  const auto rm_noInputAndPredicting = [&](const SegmentUpdate& update) {
+    return !(_doPooling && predictedState.isSet(update.cellIdx()));
+  };
 
-  } // Loop over updates
+  /**
+   * the following 3 statements are order dependant, ie you can imagine 
+   * this as: if {st 1} else { if {st 2} else {st 3}}
+   */
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), rm_expired), _segmentUpdates.end());
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), rm_bottomUpInput), _segmentUpdates.end());
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), rm_noInputAndPredicting), _segmentUpdates.end());
 
-  for(const auto del : delUpdates) {
-    if(del >= _segmentUpdates.size()) continue; 
-
-    NTA_ASSERT(del < _segmentUpdates.size()) << "size " << del; 
-    _segmentUpdates.erase(_segmentUpdates.cbegin() + del); //delete at index 'del'
-  }
 }
 
 //----------------------------------------------------------------------
