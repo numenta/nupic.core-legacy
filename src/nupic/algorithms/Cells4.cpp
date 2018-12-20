@@ -717,7 +717,6 @@ UInt Cells4::getCellForNewSegment(UInt colIdx) {
   // Remove this segment from cell and remove any pending updates to this
   // segment. Update outSynapses structure.
   std::vector<UInt> synsToRemove;
-  synsToRemove.clear(); // purge residual data
   _cells[candidateCellIdx][candidateSegmentIdx].getSrcCellIndices(synsToRemove);
   eraseOutSynapses(candidateCellIdx, candidateSegmentIdx, synsToRemove);
   cleanUpdatesList(candidateCellIdx, candidateSegmentIdx);
@@ -1422,11 +1421,10 @@ void Cells4::_updateAvgLearnedSeqLength(UInt prevSeqLength) {
 /**
  * Go through the list of accumulated segment updates and process them.
  */
-void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
-  static std::vector<UInt> delUpdates;
-  delUpdates.clear(); // purge residual data
+void Cells4::processSegmentUpdates(const Real32 input[], const CState &predictedState) {
+  std::set<UInt> delUpdates;
 
-  for (UInt i = 0; i != _segmentUpdates.size(); ++i) {
+  for (UInt i = 0; i < _segmentUpdates.size(); i++) {
 
     const SegmentUpdate &update = _segmentUpdates[i];
 
@@ -1442,7 +1440,8 @@ void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
     if (_nLrnIterations - update.timeStamp() > _segUpdateValidDuration) {
       if (_verbosity >= 4)
         std::cout << "     Expired, deleting now.\n";
-      delUpdates.push_back(i);
+      delUpdates.insert(i);
+      continue;
     }
 
     // Update has not expired
@@ -1457,14 +1456,16 @@ void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
         if (_verbosity >= 4)
           std::cout << "     Applying update now.\n";
         adaptSegment(update);
-        delUpdates.push_back(i);
+        delUpdates.insert(i);
+	continue;
       } else {
         // We didn't receive bottom up input. If we are not (pooling and still
         // predicting) then delete this update
         if (!(_doPooling && predictedState.isSet(cellIdx))) {
           if (_verbosity >= 4)
             std::cout << "     Deleting update now.\n";
-          delUpdates.push_back(i);
+          delUpdates.insert(i);
+	  continue;
         }
       }
 
@@ -1473,6 +1474,9 @@ void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
   } // Loop over updates
 
   for(const auto del : delUpdates) {
+    if(del >= _segmentUpdates.size()) continue; 
+
+    NTA_ASSERT(del < _segmentUpdates.size()) << "size " << del; 
     _segmentUpdates.erase(_segmentUpdates.cbegin() + del); //delete at index 'del'
   }
 }
@@ -1482,38 +1486,10 @@ void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
  * Removes any updates that would be applied to the given col,
  * cellIdx, segIdx.
  */
-void Cells4::cleanUpdatesList(UInt cellIdx, UInt segIdx) {
-  static std::vector<UInt> delUpdates;
-  delUpdates.clear(); // purge residual data
-
-  for (UInt i = 0; i != _segmentUpdates.size(); ++i) {
-
-    // Get the cell and column associated with this update
-    const SegmentUpdate &update = _segmentUpdates[i];
-
-    if (_verbosity >= 4) {
-      std::cout << "\nIn cleanUpdatesList. _nLrnIterations: " << _nLrnIterations
-                << " checking segment: ";
-      update.print(std::cout, true, _nCellsPerCol);
-      std::cout << std::endl;
-    }
-
-    // Decide whether to remove update. Note: we can't remove update from
-    // vector while we are iterating over it.
-    if ((update.cellIdx() == cellIdx) && (segIdx == update.segIdx())) {
-      if (_verbosity >= 4) {
-        std::cout << "    Removing it\n";
-      }
-
-      delUpdates.push_back(i);
-    }
-
-  } // Loop over updates
-
-  // Remove any we found
-  for(const auto del : delUpdates) {
-    _segmentUpdates.erase(_segmentUpdates.cbegin() + del); //delete at index 'del'
-  }
+void Cells4::cleanUpdatesList(const UInt cellIdx, const UInt segIdx) {
+  const auto remove_match = [&cellIdx, &segIdx](const SegmentUpdate& update) {
+	  return ((update.cellIdx() == cellIdx) && (segIdx == update.segIdx())); };
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), remove_match), _segmentUpdates.end());      
 }
 
 //----------------------------------------------------------------------
