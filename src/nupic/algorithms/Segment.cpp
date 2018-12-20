@@ -88,10 +88,10 @@ bool Segment::equals(const Segment &other) const {
   if (_totalActivations != other._totalActivations ||
       _positiveActivations != other._positiveActivations ||
       _lastActiveIteration != other._lastActiveIteration ||
-      abs(_lastPosDutyCycle - other._lastPosDutyCycle) > nupic::Epsilon ||
+      std::abs(_lastPosDutyCycle - other._lastPosDutyCycle) > nupic::Epsilon ||
       _lastPosDutyCycleIteration  !=  other._lastPosDutyCycleIteration ||
       _seqSegFlag != other._seqSegFlag ||
-      abs(_frequency - other._frequency) > nupic::Epsilon||
+      std::abs(_frequency - other._frequency) > nupic::Epsilon||
       _nConnected != other._nConnected) {
     return false;
   }
