@@ -54,68 +54,6 @@ using std::exception;
 bool verbose = false;
 
 
-struct MemoryMonitor {
-  MemoryMonitor(const size_t count) {
-	    NTA_ASSERT(count > 1 && count < minCount)
-    << "Run count of " << count << " specified\n"
-    << "When run in leak detection mode, count must be at least "
-    << minCount << "\n";
-
-	  OS::getProcessMemoryUsage(initial_vmem, initial_rmem);
-  }
-
-  ~MemoryMonitor() {
-    if (hasMemoryLeaks()) {
-      NTA_DEBUG << "Memory leaks detected. "
-                << "Real Memory: " << diff_rmem
-                << ", Virtual Memory: " << diff_vmem;
-    }
-  }
-
-  void update() {
-    i++;
-    if(i < memoryLeakStartIter) return; //not yet initialized
-    if(i % memoryLeakDeltaIterCheck != 0) return;
-
-    OS::getProcessMemoryUsage(current_vmem, current_rmem);
-
-    if (i == memoryLeakStartIter) { //start, re-init mem values
-      initial_rmem = current_rmem;
-      initial_vmem = current_vmem;
-      std::cout << "Memory usage: " << current_vmem << " (virtual) "
-                  << current_rmem << " (real) at iteration " << i << std::endl;
-      return;
-    }
-    diff_vmem = current_vmem - initial_vmem;
-    diff_rmem = current_rmem - initial_rmem;
-  }
-
-
-  bool hasMemoryLeaks() {
-    update();
-    return diff_vmem > 0 || diff_rmem > 0;
-  }
-
-	private:
-  size_t initial_vmem;
-  size_t initial_rmem;
-  size_t current_vmem;
-  size_t current_rmem;
-  size_t diff_rmem;
-  size_t diff_vmem;
-  size_t i = 0; //current iter
-    // Start checking memory usage after this many iterations.
-#if defined(NTA_OS_WINDOWS)
-  // takes longer to settle down on win32
-  const static size_t memoryLeakStartIter = 6000;
-#else
-  const static size_t memoryLeakStartIter = 150;
-#endif
-  // This determines how frequently we check.
-  const size_t memoryLeakDeltaIterCheck = 10;
-  const size_t minCount = memoryLeakStartIter + 5 * memoryLeakDeltaIterCheck;
-};
-
 
 void helperCppInputOutputAccess(Region *level1) {
   // --- input/output access for level 1 (C++ TestNode) ---
@@ -456,46 +394,5 @@ TEST(CppRegionTest, realmain) {
 }
 
 
-
-TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixed, but catches error -> need to fix code
-  /*
-   * With an integer argument 'count', runs the same test N times
-   * and requires that memory use stay constant -- it can't
-   * grow by even one byte.
-   */
-  const size_t count = 8000;
-
-  MemoryMonitor m(count);
-  for (size_t i = 0; i < count; i++) {
-	//call main
-  Network n = helperRealmain();
-
-  //cannot use EXPECT_THROW in EXPECT_THROW
-  std::cout << "Setting dimensions of level1..." << std::endl;
-  Dimensions d;
-  d.push_back(4);
-  d.push_back(4);
-  Region_Ptr_t level1 = n.getRegion("level1");
-  level1->setDimensions(d);
-
-  std::cout << "Initializing again..." << std::endl;
-  n.initialize();
-  ASSERT_TRUE(NuPIC::isInitialized()) << "now must be initialized";
-
-  level1->compute();
-  helperCppInputOutputAccess(level1.get());
-	//end main
-
-      // testExceptionBug();
-      // testCppLinking("TestFanIn2","");
-      //NuPIC::shutdown();
-      // memory leak detection
-      // we check even prior to the initial tracking iteration, because the act
-      // of checking potentially modifies our memory usage
-      EXPECT_FALSE(m.hasMemoryLeaks());
-  }
-
-  std::cout << "--- ALL TESTS PASSED ---" << std::endl;
-}
 
 } //ns
