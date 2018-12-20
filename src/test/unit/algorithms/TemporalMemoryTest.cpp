@@ -1288,22 +1288,26 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
   // Give the first segment some activity.
   const UInt activeColumns[3] = {1, 2, 3};
   tm.compute(3, activeColumns);
+  ASSERT_EQ( tm.getActiveSegments(), vector<Segment>({ segment1 }) );
+  tm.compute(0, nullptr);
 
-  // Create a new segment with no synapses.
-  tm.createSegment(12);
+  // Create a new segment with two synapses.
+  Segment segment3 = tm.createSegment(12);
+  tm.connections.createSynapse(segment3, 1, 0.5);
+  tm.connections.createSynapse(segment3, 2, 0.5);
 
   vector<Segment> segments = tm.connections.segmentsForCell(12);
   ASSERT_EQ(2, segments.size());
 
   // Verify first segment is still there with the same synapses.
-  vector<Synapse> synapses1 = tm.connections.synapsesForSegment(segments[0]);
+  vector<Synapse> synapses1 = tm.connections.synapsesForSegment(segment1);
   ASSERT_EQ(3, synapses1.size());
   ASSERT_EQ(1, tm.connections.dataForSynapse(synapses1[0]).presynapticCell);
   ASSERT_EQ(2, tm.connections.dataForSynapse(synapses1[1]).presynapticCell);
   ASSERT_EQ(3, tm.connections.dataForSynapse(synapses1[2]).presynapticCell);
 
   // Verify second segment has been replaced.
-  ASSERT_EQ(0, tm.connections.numSynapses(segments[1]));
+  ASSERT_EQ(2, tm.connections.numSynapses(segments[1]));
 }
 
 /**
@@ -1564,23 +1568,22 @@ TEST(TemporalMemoryTest, testExtraActive) {
     vector<UInt> extraActive;
     vector<UInt> extraWinners;
     for(auto &x : pattern) {
+      // Predict whats going to happen.
+      auto predictedColumns = tm.getPredictiveCells(extraActive, extraWinners);
+      for(UInt i = 0; i < predictedColumns.size(); i++) {
+        predictedColumns[i] /= tm.getCellsPerColumn();
+        if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
+          predictedColumns.erase( predictedColumns.begin() + i-- );
+      }
       // Calculate TM output
       const auto &sparse = x.getFlatSparse();
-      tm.compute(sparse.size(), sparse.data(), true,
-        extraActive,
-        extraWinners);
+      tm.compute(sparse.size(), sparse.data(), true);
       // Testing the test: commenting out the next two lines should cause this
       // test to fail.
       extraActive  = tm.getActiveCells();
       extraWinners = tm.getWinnerCells();
 
       // Calculate Anomaly of current input based on prior predictions.
-      auto predictedColumns = tm.getPredictiveCells();
-      for(UInt i = 0; i < predictedColumns.size(); i++) {
-        predictedColumns[i] /= tm.getCellsPerColumn();
-        if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
-          predictedColumns.erase( predictedColumns.begin() + i-- );
-      }
       anom = algorithms::anomaly::computeRawAnomalyScore(
                                     x.getFlatSparse(), predictedColumns);
     }

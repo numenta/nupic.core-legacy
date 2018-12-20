@@ -127,7 +127,7 @@ namespace nupic_ext
             return py::array_t<nupic::UInt32>(activeCells.size(), activeCells.data());
         });
 
-        py_HTM.def("getPredictiveCells", [](const HTM_t& self)
+        py_HTM.def("getPredictiveCells", [](HTM_t& self)
         {
             auto predictiveCells = self.getPredictiveCells();
 
@@ -141,14 +141,14 @@ namespace nupic_ext
             return py::array_t<nupic::UInt32>(winnerCells.size(), winnerCells.data());
         });
 
-        py_HTM.def("getActiveSegments", [](const HTM_t& self)
+        py_HTM.def("getActiveSegments", [](HTM_t& self)
         {
             auto activeSegments = self.getActiveSegments();
 
             return py::array_t<nupic::UInt32>(activeSegments.size(), activeSegments.data());
         });
 
-        py_HTM.def("getMatchingSegments", [](const HTM_t& self)
+        py_HTM.def("getMatchingSegments", [](HTM_t& self)
         {
             auto matchingSegments = self.getMatchingSegments();
 

@@ -200,7 +200,9 @@ public:
    * If true, segment activations will be recorded. This information is
    * used during segment cleanup.
    */
-  void activateDendrites(bool learn = true);
+  void activateDendrites(bool learn = true,
+                         const vector<UInt> &extraActive = {},
+                         const vector<UInt> &extraWinners = {});
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
@@ -269,7 +271,9 @@ public:
    *
    * @returns (std::vector<CellIdx>) Vector of indices of predictive cells.
    */
-  vector<CellIdx> getPredictiveCells() const;
+  vector<CellIdx> getPredictiveCells(
+                      const vector<UInt> &extraActive = {},
+                      const vector<UInt> &extraWinners = {});
 
   /**
    * Returns the indices of the winner cells.
@@ -278,8 +282,12 @@ public:
    */
   vector<CellIdx> getWinnerCells() const;
 
-  vector<Segment> getActiveSegments() const;
-  vector<Segment> getMatchingSegments() const;
+  vector<Segment> getActiveSegments(
+                      const vector<UInt> &extraActive = {},
+                      const vector<UInt> &extraWinners = {});
+  vector<Segment> getMatchingSegments(
+                      const vector<UInt> &extraActive = {},
+                      const vector<UInt> &extraWinners = {});
 
   /**
    * Returns the dimensions of the columns in the region.
@@ -469,6 +477,7 @@ protected:
 
   vector<CellIdx> activeCells_;
   vector<CellIdx> winnerCells_;
+  bool segmentsValid_;
   vector<Segment> activeSegments_;
   vector<Segment> matchingSegments_;
   vector<UInt32> numActiveConnectedSynapsesForSegment_;
