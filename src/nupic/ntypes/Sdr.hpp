@@ -1013,5 +1013,51 @@ protected:
         { NTA_THROW << _SDR_save_load_error_message; };
 };
 
+/**
+ *
+ */
+class SDR_Sparsity {
+    SDR_Sparsity( SDR &dataSource );
+    Real min();
+    Real max();
+    Real mean();
+    Real std();
+    String pretty_print(); // Uses all the metrics.
+}
+
+/**
+ *
+ */
+class SDR_ActivationFrequency {
+    SDR_ActivationFrequency( SDR &dataSource );
+    Real min();
+    Real max();
+    Real mean();
+    Real std();
+    Real entropy();
+    String pretty_print(); // Uses all the metrics.
+}
+
+/**
+ *
+ */
+class SDR_AverageOverlap {
+    SDR_AverageOverlap( SDR &dataSource );
+    Real min();
+    Real max();
+    Real mean();
+    Real std();
+    String pretty_print(); // Uses all the metrics.
+}
+
+/**
+ *
+ */
+class SDR_Metrics {
+    SDR_Metrics( SDR &dataSource );
+    String pretty_print(); // Uses all the metrics.
+    // TODO public members for the constituent metrics.
+}
+
 }; // end namespace nupic
 #endif // end ifndef SDR_HPP
