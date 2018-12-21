@@ -131,6 +131,7 @@ TEST(TemporalMemoryTest, ActivateCorrectlyPredictiveCells) {
   tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5f);
 
   tm.compute(numActiveColumns, previousActiveColumns, true);
+  tm.activateDendrites();
   ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
   tm.compute(numActiveColumns, activeColumns, true);
 
@@ -196,17 +197,15 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
   tm.compute(1, previousActiveColumns, true);
   ASSERT_FALSE(tm.getActiveCells().empty());
   ASSERT_FALSE(tm.getWinnerCells().empty());
+  tm.activateDendrites();
   ASSERT_FALSE(tm.getPredictiveCells().empty());
 
-    // zero size array is undefined behavior
-    // VS 2017: cannot allocate an array of constant size 0
-    //const UInt zeroColumns[0] = {};
-    //tm.compute(0, zeroColumns, true);
-
-    //EXPECT_TRUE(tm.getActiveCells().empty());
-    //EXPECT_TRUE(tm.getWinnerCells().empty());
-    //EXPECT_TRUE(tm.getPredictiveCells().empty());
-  }
+  tm.compute(0, nullptr, true);
+  EXPECT_TRUE(tm.getActiveCells().empty());
+  EXPECT_TRUE(tm.getWinnerCells().empty());
+  tm.activateDendrites();
+  EXPECT_TRUE(tm.getPredictiveCells().empty());
+}
 
 /**
  * All predicted active cells are winner cells, even when learning is
@@ -474,6 +473,7 @@ TEST(TemporalMemoryTest, NoChangeToMatchingSegmentsInPredictedActiveColumn) {
                                                   previousActiveCells[1], 0.3);
 
   tm.compute(1, previousActiveColumns, true);
+  tm.activateDendrites();
   ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
   tm.compute(1, activeColumns, true);
 
@@ -1145,6 +1145,7 @@ TEST(TemporalMemoryTest, MaxNewSynapseCountOverflow) {
 
   const UInt previousActiveColumns[4] = {0, 1, 3, 4};
   tm.compute(4, previousActiveColumns);
+  tm.activateDendrites();
 
   ASSERT_EQ(1, tm.getMatchingSegments().size());
 
@@ -1288,6 +1289,7 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
   // Give the first segment some activity.
   const UInt activeColumns[3] = {1, 2, 3};
   tm.compute(3, activeColumns);
+  tm.activateDendrites();
   ASSERT_EQ( tm.getActiveSegments(), vector<Segment>({ segment1 }) );
   tm.compute(0, nullptr);
 
@@ -1414,6 +1416,7 @@ void serializationTestPrepare(TemporalMemory &tm) {
 
   UInt activeColumns[] = {0};
   tm.compute(1, activeColumns);
+  tm.activateDendrites();
 
   ASSERT_EQ(1, tm.getActiveSegments().size());
   ASSERT_EQ(3, tm.getMatchingSegments().size());
@@ -1569,7 +1572,8 @@ TEST(TemporalMemoryTest, testExtraActive) {
     vector<UInt> extraWinners;
     for(auto &x : pattern) {
       // Predict whats going to happen.
-      auto predictedColumns = tm.getPredictiveCells(extraActive, extraWinners);
+      tm.activateDendrites(true, extraActive, extraWinners);
+      auto predictedColumns = tm.getPredictiveCells();
       for(UInt i = 0; i < predictedColumns.size(); i++) {
         predictedColumns[i] /= tm.getCellsPerColumn();
         if(i > 0 && predictedColumns[i] == predictedColumns[i-1])

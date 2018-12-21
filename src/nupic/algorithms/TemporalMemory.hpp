@@ -128,28 +128,40 @@ public:
    * sparsity is 2% and permanenceIncrement is 0.01, this parameter should be
    * something like 4% * 0.01 = 0.0004).
    */
-  TemporalMemory(vector<UInt> columnDimensions, UInt cellsPerColumn = 32,
-                 UInt activationThreshold = 13,
-                 Permanence initialPermanence = 0.21,
-                 Permanence connectedPermanence = 0.50, UInt minThreshold = 10,
-                 UInt maxNewSynapseCount = 20,
-                 Permanence permanenceIncrement = 0.10,
-                 Permanence permanenceDecrement = 0.10,
-                 Permanence predictedSegmentDecrement = 0.0, Int seed = 42,
-                 UInt maxSegmentsPerCell = 255,
-                 UInt maxSynapsesPerSegment = 255, bool checkInputs = true,
-                 UInt extra = 0);
+  TemporalMemory(
+      vector<UInt>    columnDimensions,
+      UInt            cellsPerColumn              = 32,
+      UInt            activationThreshold         = 13,
+      Permanence      initialPermanence           = 0.21,
+      Permanence      connectedPermanence         = 0.50,
+      UInt            minThreshold                = 10,
+      UInt            maxNewSynapseCount          = 20,
+      Permanence      permanenceIncrement         = 0.10,
+      Permanence      permanenceDecrement         = 0.10,
+      Permanence      predictedSegmentDecrement   = 0.0,
+      Int             seed                        = 42,
+      UInt            maxSegmentsPerCell          = 255,
+      UInt            maxSynapsesPerSegment       = 255,
+      bool            checkInputs                 = true,
+      UInt            extra                       = 0);
 
   virtual void
-  initialize(vector<UInt> columnDimensions = {2048}, UInt cellsPerColumn = 32,
-             UInt activationThreshold = 13, Permanence initialPermanence = 0.21,
-             Permanence connectedPermanence = 0.50, UInt minThreshold = 10,
-             UInt maxNewSynapseCount = 20,
-             Permanence permanenceIncrement = 0.10,
-             Permanence permanenceDecrement = 0.10,
-             Permanence predictedSegmentDecrement = 0.0, Int seed = 42,
-             UInt maxSegmentsPerCell = 255, UInt maxSynapsesPerSegment = 255,
-             bool checkInputs = true, UInt extra = 0);
+  initialize(
+    vector<UInt>  columnDimensions            = {2048},
+    UInt          cellsPerColumn              = 32,
+    UInt          activationThreshold         = 13,
+    Permanence    initialPermanence           = 0.21,
+    Permanence    connectedPermanence         = 0.50,
+    UInt          minThreshold                = 10,
+    UInt          maxNewSynapseCount          = 20,
+    Permanence    permanenceIncrement         = 0.10,
+    Permanence    permanenceDecrement         = 0.10,
+    Permanence    predictedSegmentDecrement   = 0.0,
+    Int           seed                        = 42,
+    UInt          maxSegmentsPerCell          = 255,
+    UInt          maxSynapsesPerSegment       = 255,
+    bool          checkInputs                 = true,
+    UInt          extra                       = 0);
 
   virtual ~TemporalMemory();
 
@@ -166,8 +178,6 @@ public:
 
   /**
    * This *only* updates _rng to a new Random using seed.
-   *
-   * @returns Integer version number.
    */
   void seed_(UInt64 seed);
 
@@ -271,9 +281,7 @@ public:
    *
    * @returns (std::vector<CellIdx>) Vector of indices of predictive cells.
    */
-  vector<CellIdx> getPredictiveCells(
-                      const vector<UInt> &extraActive = {},
-                      const vector<UInt> &extraWinners = {});
+  vector<CellIdx> getPredictiveCells() const;
 
   /**
    * Returns the indices of the winner cells.
@@ -282,12 +290,8 @@ public:
    */
   vector<CellIdx> getWinnerCells() const;
 
-  vector<Segment> getActiveSegments(
-                      const vector<UInt> &extraActive = {},
-                      const vector<UInt> &extraWinners = {});
-  vector<Segment> getMatchingSegments(
-                      const vector<UInt> &extraActive = {},
-                      const vector<UInt> &extraWinners = {});
+  vector<Segment> getActiveSegments() const;
+  vector<Segment> getMatchingSegments() const;
 
   /**
    * Returns the dimensions of the columns in the region.

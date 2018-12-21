@@ -449,11 +449,6 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
         << "The activeColumns must be a sorted list of indices without "
            "duplicates.";
   }
-  if (learn) {
-    for (Segment segment : activeSegments_) {
-      lastUsedIterationForSegment_[segment] = iteration_;
-    }
-  }
 
   vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
   for (CellIdx cell : activeCells_) {
@@ -510,13 +505,18 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
       }
     }
   }
-  if( learn )
-    iteration_++;
+  segmentsValid_ = false;
 }
 
 void TemporalMemory::activateDendrites(bool learn,
                                        const vector<UInt> &extraActive,
-                                       const vector<UInt> &extraWinners) {
+                                       const vector<UInt> &extraWinners)
+{
+  if( segmentsValid_ ) {
+    NTA_CHECK( extraActive.empty() )  << "tm.activateDendrites() already called";
+    NTA_CHECK( extraWinners.empty() ) << "tm.activateDendrites() already called";
+    return;
+  }
 
   for(const auto &active : extraActive) {
     NTA_ASSERT( active < extra_ );
@@ -547,6 +547,13 @@ void TemporalMemory::activateDendrites(bool learn,
   std::sort(
       activeSegments_.begin(), activeSegments_.end(),
       [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
+  // Update segment bookkeeping.
+  if (learn) {
+    for (const auto &segment : activeSegments_) {
+      lastUsedIterationForSegment_[segment] = iteration_;
+    }
+    iteration_++;
+  }
 
   // Matching segments, potential synapses.
   matchingSegments_.clear();
@@ -568,11 +575,8 @@ void TemporalMemory::compute(size_t activeColumnsSize,
                              const vector<UInt> &extraActive,
                              const vector<UInt> &extraWinners) {
 
-  if( !segmentsValid_ )
-    activateDendrites(learn, extraActive, extraWinners);
-
+  activateDendrites(learn, extraActive, extraWinners);
   activateCells(activeColumnsSize, activeColumns, learn);
-  segmentsValid_ = false;
 }
 
 void TemporalMemory::reset(void) {
@@ -614,12 +618,10 @@ UInt TemporalMemory::numberOfCells(void) const { return connections.numCells(); 
 
 vector<CellIdx> TemporalMemory::getActiveCells() const { return activeCells_; }
 
-vector<CellIdx> TemporalMemory::getPredictiveCells(
-      const vector<UInt> &extraActive,
-      const vector<UInt> &extraWinners) {
+vector<CellIdx> TemporalMemory::getPredictiveCells() const {
 
-  if( !segmentsValid_ )
-    activateDendrites(false, extraActive, extraWinners);
+  NTA_CHECK( segmentsValid_ )
+    << "Call TM.activateDendrites() before TM.getPredictiveCells()!";
 
   vector<CellIdx> predictiveCells;
 
@@ -636,22 +638,18 @@ vector<CellIdx> TemporalMemory::getPredictiveCells(
 
 vector<CellIdx> TemporalMemory::getWinnerCells() const { return winnerCells_; }
 
-vector<Segment> TemporalMemory::getActiveSegments(
-                             const vector<UInt> &extraActive,
-                             const vector<UInt> &extraWinners)
+vector<Segment> TemporalMemory::getActiveSegments() const
 {
-  if( !segmentsValid_ )
-    activateDendrites(false, extraActive, extraWinners);
+  NTA_CHECK( segmentsValid_ )
+    << "Call TM.activateDendrites() before TM.getActiveSegments()!";
 
   return activeSegments_;
 }
 
-vector<Segment> TemporalMemory::getMatchingSegments(
-                             const vector<UInt> &extraActive,
-                             const vector<UInt> &extraWinners)
+vector<Segment> TemporalMemory::getMatchingSegments() const
 {
-  if( !segmentsValid_ )
-    activateDendrites(false, extraActive, extraWinners);
+  NTA_CHECK( segmentsValid_ )
+    << "Call TM.activateDendrites() before TM.getActiveSegments()!";
 
   return matchingSegments_;
 }
