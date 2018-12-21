@@ -121,6 +121,12 @@ public:
    * Whether to check that the activeColumns are sorted without
    * duplicates. Disable this for a small speed boost.
    *
+   * @param extra
+   * Number of external predictive inputs.  These inputs are used in addition to
+   * the cells which are part of this TemporalMemory.  The TemporalMemory
+   * requires all external inputs be identified by an index in the
+   * range [0, extra).
+   *
    * Notes:
    *
    * predictedSegmentDecrement: A good value is just a bit larger than
@@ -209,6 +215,15 @@ public:
    * @param learn
    * If true, segment activations will be recorded. This information is
    * used during segment cleanup.
+   *
+   * @param extraActive
+   * Vector of active external predictive inputs.  External inputs must be cell
+   * indexes in the range [0, extra).
+   *
+   * @param extraWinners
+   * Vector of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  External inputs must be cell indexes in the
+   * range [0, extra).
    */
   void activateDendrites(bool learn = true,
                          const vector<UInt> &extraActive = {},
@@ -230,6 +245,15 @@ public:
    *
    * @param learn
    * Whether or not learning is enabled.
+   *
+   * @param extraActive
+   * Vector of active external predictive inputs.  External inputs must be cell
+   * indexes in the range [0, extra).
+   *
+   * @param extraWinners
+   * Vector of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  External inputs must be cell indexes in the
+   * range [0, extra).
    */
   virtual void compute(size_t activeColumnsSize, const UInt activeColumns[],
                        bool learn = true, const vector<UInt> &extraActive = {},

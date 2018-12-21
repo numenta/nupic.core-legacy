@@ -625,7 +625,7 @@ vector<CellIdx> TemporalMemory::getPredictiveCells() const {
 
   vector<CellIdx> predictiveCells;
 
-  for (auto segment = activeSegments_.begin(); segment != activeSegments_.end();
+  for (auto segment = activeSegments_.cbegin(); segment != activeSegments_.cend();
        segment++) {
     CellIdx cell = connections.cellForSegment(*segment);
     if (segment == activeSegments_.begin() || cell != predictiveCells.back()) {
