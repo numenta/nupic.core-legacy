@@ -210,7 +210,11 @@ public:
                      bool learn = true);
 
   /**
-   * Calculate dendrite segment activity, using the current active cells.
+   * Calculate dendrite segment activity, using the current active cells.  Call
+   * this method before calling getPredictiveCells, getActiveSegments, or
+   * getMatchingSegments.  In each time step, only the first call to this
+   * method has an effect, subsequent calls assume that the prior results are
+   * still valid.
    *
    * @param learn
    * If true, segment activations will be recorded. This information is
@@ -233,10 +237,9 @@ public:
   /**
    * Perform one time step of the Temporal Memory algorithm.
    *
-   * This method calls activateCells, then calls activateDendrites. Using
+   * This method calls activateDendrites, then calls activateCells. Using
    * the TemporalMemory via its compute method ensures that you'll always
-   * be able to call getPredictiveCells to get predictions for the next
-   * time step.
+   * be able to call getActiveCells at the end of the time step.
    *
    * @param activeColumnsSize
    * Number of active columns.
