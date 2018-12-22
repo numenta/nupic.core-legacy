@@ -1597,7 +1597,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
   tm.reset();
   for(auto &x : pattern) {
     // Predict whats going to happen.
-    tm.activateDendrites(true);
+    tm.activateDendrites(true, {}, {});
     auto predictedCells = tm.getPredictiveCells();
     ASSERT_TRUE( predictedCells.empty() ); // No predictions, numActive < threshold
     // Calculate TM output

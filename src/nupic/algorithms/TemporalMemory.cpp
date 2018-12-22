@@ -512,19 +512,33 @@ void TemporalMemory::activateDendrites(bool learn,
                                        const vector<UInt> &extraActive,
                                        const vector<UInt> &extraWinners)
 {
-  if( segmentsValid_ ) {
-    NTA_CHECK( extraActive.empty() )  << "tm.activateDendrites() already called";
-    NTA_CHECK( extraWinners.empty() ) << "tm.activateDendrites() already called";
+  if( segmentsValid_ )
     return;
-  }
 
-  for(const auto &active : extraActive) {
-    NTA_ASSERT( active < extra_ );
-    activeCells_.push_back( active + numberOfCells() );
+  // Handle external predictive inputs.  extraActive & extraWinners default
+  // values are `vector({ SENTINEL })`
+  const auto SENTINEL = std::numeric_limits<UInt>::max();
+  if( extra_ )
+  {
+    NTA_CHECK( extraActive.size()  != 1 || extraActive[0]  != SENTINEL )
+        << "TM.ActivateDendrites() missing argument extraActive!";
+    NTA_CHECK( extraWinners.size() != 1 || extraWinners[0] != SENTINEL )
+        << "TM.ActivateDendrites() missing argument extraWinners!";
+
+    for(const auto &active : extraActive) {
+      NTA_ASSERT( active < extra_ );
+      activeCells_.push_back( active + numberOfCells() );
+    }
+    for(const auto &winner : extraWinners) {
+      NTA_ASSERT( winner < extra_ );
+      winnerCells_.push_back( winner + numberOfCells() );
+    }
   }
-  for(const auto &winner : extraWinners) {
-    NTA_ASSERT( winner < extra_ );
-    winnerCells_.push_back( winner + numberOfCells() );
+  else {
+    NTA_CHECK( extraActive.size()  == 1 && extraActive[0]  == SENTINEL )
+        << "External predictive inputs must be declared to TM constructor!";
+    NTA_CHECK( extraWinners.size() == 1 && extraWinners[0] == SENTINEL )
+        << "External predictive inputs must be declared to TM constructor!";
   }
 
   const UInt32 length = connections.segmentFlatListLength();

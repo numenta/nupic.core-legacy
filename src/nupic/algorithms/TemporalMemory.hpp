@@ -227,8 +227,8 @@ public:
    * extra).
    */
   void activateDendrites(bool learn = true,
-                         const vector<UInt> &extraActive = {},
-                         const vector<UInt> &extraWinners = {});
+                         const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
+                         const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
@@ -258,8 +258,9 @@ public:
    * extra).
    */
   virtual void compute(size_t activeColumnsSize, const UInt activeColumns[],
-                       bool learn = true, const vector<UInt> &extraActive = {},
-                       const vector<UInt> &extraWinners = {});
+                       bool learn = true,
+                       const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
+                       const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
 
   // ==============================
   //  Helper functions
