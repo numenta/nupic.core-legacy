@@ -47,12 +47,13 @@ namespace nupic_ext {
         py::class_<Random_t> Random(m, "Random");
 
         Random.def(py::init<nupic::UInt64>(), py::arg("seed") = 0)
-            .def("getUInt32", &Random_t::getUInt32, py::arg("max") = Random_t::MAX32)
+            .def("getUInt32", &Random_t::getUInt32, py::arg("max") = (nupic::UInt32)-1l)
             .def("getReal64", &Random_t::getReal64)
 			.def("getSeed", &Random_t::getSeed)
             .def("max", &Random_t::max)
-            .def("min", &Random_t::min)
-            .def_property_readonly_static("MAX32", [](py::object) {
+            .def("min", &Random_t::min);
+
+        Random.def_property_readonly_static("MAX32", [](py::object) {
 				return Random_t::MAX32;
 			});
 

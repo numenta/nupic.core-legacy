@@ -29,6 +29,7 @@ def import_helper(name):
   import imp
   
       # Fast path: see if the module has already been imported.
+  #print("name={}".format(name))
   try:
     return sys.modules[name]
   except KeyError:
@@ -37,17 +38,22 @@ def import_helper(name):
   fp = None
   _mod = None
   try:
-    fp, pathname, description = imp.find_module(name, [dirname(__file__)])
+    basename = name[15:]
+    fp, pathname, description = imp.find_module(basename, [dirname(__file__)])
   finally:
-    if fp is not None:
+    if fp is None:
+      print("name={} no import libarary found".format(name))
+    else:
       try:
-  	  _mod = imp.load_module(name, fp, pathname, description)
+	    #print("name={}, pathname={}".format(name, pathname))
+  	    _mod = imp.load_module(name, fp, pathname, description)
       finally:
         # Since we may exit via an exception, close fp explicitly.
         if fp:
             fp.close()
   return _mod;
   
-algorithms = import_helper('algorithms')
-engine_internal = import_helper('engine_internal')
-math = import_helper('math')
+algorithms = import_helper('nupic.bindings.algorithms')
+engine_internal = import_helper('nupic.bindings.engine_internal')
+math = import_helper('nupic.bindings.math')
+
