@@ -802,6 +802,7 @@ void TemporalMemory::save(ostream &outStream) const {
   saveFloat_(outStream, permanenceDecrement_);
   saveFloat_(outStream, predictedSegmentDecrement_);
 
+  outStream << extra_ << " ";
   outStream << maxSegmentsPerCell_ << " " << maxSynapsesPerSegment_ << " "
             << iteration_ << " ";
 
@@ -830,6 +831,7 @@ void TemporalMemory::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  outStream << segmentsValid_ << " ";
   outStream << activeSegments_.size() << " ";
   for (Segment segment : activeSegments_) {
     const CellIdx cell = connections.cellForSegment(segment);
@@ -878,7 +880,7 @@ void TemporalMemory::load(istream &inStream) {
   inStream >> numColumns_ >> cellsPerColumn_ >> activationThreshold_ >>
       initialPermanence_ >> connectedPermanence_ >> minThreshold_ >>
       maxNewSynapseCount_ >> checkInputs_ >> permanenceIncrement_ >>
-      permanenceDecrement_ >> predictedSegmentDecrement_ >>
+      permanenceDecrement_ >> predictedSegmentDecrement_ >> extra_ >>
       maxSegmentsPerCell_ >> maxSynapsesPerSegment_ >> iteration_;
 
   connections.load(inStream);
@@ -923,6 +925,7 @@ void TemporalMemory::load(istream &inStream) {
     winnerCells_.push_back(cell);
   }
 
+  inStream >> segmentsValid_;
   UInt numActiveSegments;
   inStream >> numActiveSegments;
   activeSegments_.resize(numActiveSegments);
