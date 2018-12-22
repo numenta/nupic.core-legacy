@@ -85,7 +85,7 @@ TEST_F(SDRClassifierTest, Basic) {
         // The -1 key is used for the actual values
         ASSERT_EQ(false, foundMinus1) << "Already found key -1 in classifier result";
         foundMinus1 = true;
-        ASSERT_EQ(5, it->second->size())
+        ASSERT_EQ(5ul, it->second->size())
             << "Expected five buckets since it has only seen bucket 4 (so it "
             << "Has buckets 0-4).";
         ASSERT_TRUE(fabs(it->second->at(4) - 34.7) < 0.000001) << "Incorrect actual value for bucket 4";
@@ -93,7 +93,7 @@ TEST_F(SDRClassifierTest, Basic) {
         // Check the one-step prediction
         ASSERT_EQ(false, found1) << "Already found key 1 in classifier result";
         found1 = true;
-        ASSERT_EQ(5, it->second->size()) << "Expected five bucket predictions";
+        ASSERT_EQ(5ul, it->second->size()) << "Expected five bucket predictions";
         ASSERT_NEAR(it->second->at(0), 0.2, 0.000001) << "Incorrect prediction for bucket 0";
         ASSERT_NEAR(it->second->at(1), 0.2, 0.000001) << "Incorrect prediction for bucket 1";
         ASSERT_NEAR(it->second->at(2), 0.2, 0.000001) << "Incorrect prediction for bucket 2";
@@ -215,7 +215,7 @@ TEST_F(SDRClassifierTest, ComputeComplex) {
         ASSERT_EQ(false, foundMinus1)
             << "Already found key -1 in classifier result";
         foundMinus1 = true;
-        ASSERT_EQ(6, it->second->size())
+        ASSERT_EQ(6ul, it->second->size())
             << "Expected six buckets since it has only seen bucket 4-5 (so it "
             << "has buckets 0-5).";
         ASSERT_TRUE(fabs(it->second->at(4) - 35.520000457763672) < 0.000001)
@@ -227,7 +227,7 @@ TEST_F(SDRClassifierTest, ComputeComplex) {
         ASSERT_EQ(false, found1) << "Already found key 1 in classifier result";
         found1 = true;
 
-        ASSERT_EQ(6, it->second->size()) << "Expected six bucket predictions";
+        ASSERT_EQ(6ul, it->second->size()) << "Expected six bucket predictions";
         ASSERT_LT(fabs(it->second->at(0) - 0.034234), 0.000001)
             << "Incorrect prediction for bucket 0";
         ASSERT_LT(fabs(it->second->at(1) - 0.034234), 0.000001)
@@ -358,16 +358,16 @@ TEST_F(SDRClassifierTest, testSoftmax) {
   SDRClassifier c = SDRClassifier({1}, 0.1, 0.3, 0);
   std::vector<Real64> values {0.0, 1.0, 1.337, 2.018, 1.1, 0.5, 0.9};
   const std::vector<Real64> exp {
-	  0.045123016137150938, 
-	  0.12265707481088166, 
-	  0.17181055613150184, 
-	  0.3394723335640627, 
-	  0.13555703197721547, 
-	  0.074395276503465876, 
+	  0.045123016137150938,
+	  0.12265707481088166,
+	  0.17181055613150184,
+	  0.3394723335640627,
+	  0.13555703197721547,
+	  0.074395276503465876,
 	  0.11098471087572169};
-  
+
   softmax_(&c, values.begin(), values.end());
-  
+
   for(UInt i = 0; i< exp.size(); i++) {
     EXPECT_NEAR(values[i], exp[i], 0.000001) << "softmax ["<< i <<"]";
   }

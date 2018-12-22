@@ -54,7 +54,7 @@ TEST(RandomTest, Seeding) {
   }
 
   { // seed & equals
-  Random r1(1); 
+  Random r1(1);
   Random r2(2);
   ASSERT_NE(r1.getUInt32(), r2.getUInt32());
   ASSERT_NE(r1, r2) << "Randoms with different seed must be different";
@@ -62,7 +62,7 @@ TEST(RandomTest, Seeding) {
   Random r1b(1);
   ASSERT_NE(r1, r1b) << "different steps";
   auto x = r1b.getUInt32();
-  ASSERT_EQ(r1, r1b) << "Randoms with same seed must be the same." << x; 
+  ASSERT_EQ(r1, r1b) << "Randoms with same seed must be the same." << x;
   }
 
   { //MAX_INT seed
@@ -99,7 +99,7 @@ TEST(RandomTest, OperatorEquals) {
     r2.getUInt32();
 
   r2 = r1;
-  NTA_ASSERT(r1 == r2); 
+  NTA_ASSERT(r1 == r2);
 
   UInt32 v1, v2;
   for (int i = 0; i < 100; i++) {
@@ -240,7 +240,7 @@ TEST(RandomTest, getUInt32) {
   Random r3(7464235991977222558);
   EXPECT_EQ(1606095383u, r3.getUInt32())
       << "check getUInt64, big seed, first call";
-  EXPECT_EQ(59943411, r3.getUInt32())
+  EXPECT_EQ(59943411u, r3.getUInt32())
       << "check getUInt64, big seed, second call";
 }
 
@@ -285,10 +285,10 @@ TEST(RandomTest, Sampling) {
   }
 
   //check population list remained unmodified
-  ASSERT_EQ(1, population[0]) << "check sample p 0";
-  ASSERT_EQ(2, population[1]) << "check sample p 1";
-  ASSERT_EQ(3, population[2]) << "check sample p 2";
-  ASSERT_EQ(4, population[3]) << "check sample p 3";
+  ASSERT_EQ(1u, population[0]) << "check sample p 0";
+  ASSERT_EQ(2u, population[1]) << "check sample p 1";
+  ASSERT_EQ(3u, population[2]) << "check sample p 2";
+  ASSERT_EQ(4u, population[3]) << "check sample p 3";
 
   {
     // nChoices > nPopulation
