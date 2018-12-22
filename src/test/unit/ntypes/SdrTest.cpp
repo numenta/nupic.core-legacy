@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <nupic/ntypes/Sdr.hpp>
 #include <vector>
+#include <random>
 
 using namespace std;
 using namespace nupic;
@@ -907,3 +908,111 @@ TEST(SdrTest, TestProxyGetters) {
     A.setSparse( SDR_sparse_t({ {0, 1}, {0, 1} }));
     ASSERT_EQ( E->getSparse(), SDR_sparse_t({ {0, 1}, {0, 1} }) );
 }
+
+TEST(SdrTest, TestMetricSparsityUseAfterFree) {
+    SDR *A = new SDR({1});
+    Real alpha = 0.1f;
+    SDR_Sparsity S( *A, alpha );
+    A->zero();
+    A->zero();
+    A->zero();
+    delete A;
+    S.min();
+    S.max();
+    S.mean();
+    S.std();
+}
+
+/*
+ * Verify that the initial values of the SDR_Sparsity metric are OK.
+ */
+TEST(SdrTest, TestMetricSparsityShortTerm) {
+    SDR A({1});
+    Real alpha = 0.1f;
+    SDR_Sparsity S( A, alpha );
+
+    A.setDense(SDR_dense_t{ 1 });
+    ASSERT_NEAR( S.min(),  1.0f, alpha );
+    ASSERT_NEAR( S.max(),  1.0f, alpha );
+    ASSERT_NEAR( S.mean(), 1.0f, alpha );
+    ASSERT_NEAR( S.std(),  0.0f, alpha );
+
+    A.setDense(SDR_dense_t{ 0 });
+    ASSERT_NEAR( S.min(),  0.0f, alpha );
+    ASSERT_NEAR( S.max(),  1.0f, alpha );
+    ASSERT_NEAR( S.mean(), 1.0f / 2, alpha );
+    ASSERT_NEAR( S.std(),  0.5f, alpha );
+
+    A.setDense(SDR_dense_t{ 0 });
+    ASSERT_NEAR( S.min(),  0.0f, alpha );
+    ASSERT_NEAR( S.max(),  1.0f, alpha );
+    ASSERT_NEAR( S.mean(), 1.0f / 3, alpha );
+    // Standard deviation was computed in python with numpy.std([ 1, 0, 0 ])
+    ASSERT_NEAR( S.std(),  0.47140452079103168f, alpha );
+
+    A.setDense(SDR_dense_t{ 0 });
+    ASSERT_NEAR( S.mean(), 1.0f / 4, alpha );
+    ASSERT_NEAR( S.std(),  0.4330127018922193f, alpha );
+
+    A.setDense(SDR_dense_t{ 0 });
+    ASSERT_NEAR( S.mean(), 1.0f / 5, alpha );
+    ASSERT_NEAR( S.std(),  0.40000000000000008f, alpha );
+
+    A.setDense(SDR_dense_t{ 0 });
+    ASSERT_NEAR( S.mean(), 1.0f / 6, alpha );
+    ASSERT_NEAR( S.std(),  0.372677996249965f, alpha );
+    A.setDense(SDR_dense_t{ 0 });
+
+    ASSERT_NEAR( S.mean(), 1.0f / 7, alpha );
+    ASSERT_NEAR( S.std(),  0.34992710611188266f, alpha );
+    A.setDense(SDR_dense_t{ 0 });
+
+    ASSERT_NEAR( S.mean(), 1.0f / 8, alpha );
+    ASSERT_NEAR( S.std(),  0.33071891388307384f, alpha );
+    A.setDense(SDR_dense_t{ 0 });
+
+    ASSERT_NEAR( S.mean(), 1.0f / 9, alpha );
+    ASSERT_NEAR( S.std(),  0.31426968052735443f, alpha );
+    A.setDense(SDR_dense_t{ 0 });
+
+    ASSERT_NEAR( S.mean(), 1.0f / 10, alpha );
+    ASSERT_NEAR( S.std(),  0.30000000000000004f, alpha );
+}
+
+/*
+ * Verify that the longer run values of the SDR_Sparsity metric are OK.
+ * Test Protocol:
+ *      instantaneous-sparsity = Sample random distribution
+ *      for iteration in range( 1,000 ):
+ *          SDR.randomize( instantaneous-sparsity )
+ *      ASSERT_NEAR( SparsityMetric.mean(), true_mean )
+ *      ASSERT_NEAR( SparsityMetric.std(),  true_std )
+ */
+TEST(SdrTest, TestMetricSparsityLongTerm) {
+    auto alpha      = 0.01f;
+    auto iterations = 1000u;
+
+    SDR A({1000u});
+    SDR_Proxy B(A); // This should work.
+    SDR_Sparsity S( B, alpha );
+
+    vector<Real> test_means{ 0.01f,  0.05f,  0.20f, 0.50f, 0.50f, 0.75f, 0.99f };
+    vector<Real> test_stdev{ 0.001f, 0.025f, 0.10f, 0.33f, 0.01f, 0.15f, 0.01f };
+
+    std::default_random_engine generator;
+    for(auto test = 0u; test < test_means.size(); test++) {
+        const auto mean = test_means[test];
+        const auto stdv = test_stdev[test];
+        auto dist = std::normal_distribution<float>(mean, stdv);
+        for(UInt i = 0; i < iterations; i++) {
+            Real sparsity;
+            do {
+                sparsity = dist( generator );
+            } while( sparsity < 0.0f || sparsity > 1.0f);
+            A.randomize( sparsity );
+        }
+        EXPECT_NEAR( S.mean(), mean, stdv );
+        EXPECT_NEAR( S.std(),  stdv, stdv );
+    }
+}
+

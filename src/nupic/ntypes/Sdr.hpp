@@ -1016,14 +1016,67 @@ protected:
 /**
  *
  */
-class SDR_Sparsity {
-    SDR_Sparsity( SDR &dataSource );
-    Real min();
-    Real max();
-    Real mean();
-    Real std();
-    String pretty_print(); // Uses all the metrics.
-}
+class _SDR_MetricsHelper {
+protected:
+    SDR* dataSource_;
+    Real alpha_;
+    UInt samples_;
+
+    _SDR_MetricsHelper( SDR &dataSource, Real alpha ) {
+        NTA_CHECK( alpha >= 0.0f );
+        NTA_CHECK( alpha <= 1.0f );
+        dataSource_ = &dataSource;
+        alpha_      = alpha;
+        samples_    = 0;
+        dataSource.addCallback( [&](){
+            samples_++;
+            callback( *dataSource_, std::max( alpha_, 1.0f / samples_ ));
+        });
+    }
+
+    virtual void callback( SDR &dataSource, Real alpha ) = 0;
+};
+
+/**
+ *
+ */
+class SDR_Sparsity : private _SDR_MetricsHelper {
+private:
+    Real min_;
+    Real max_;
+    Real mean_;
+    Real var_;
+
+    void callback(SDR &dataSource, Real alpha) override {
+        const auto sparsity = dataSource.getSparsity();
+        min_ = std::min( min_, sparsity );
+        max_ = std::max( max_, sparsity );
+        // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
+        // See section 9.
+        const Real diff   = sparsity - mean_;
+        const Real incr   = alpha * diff;
+                   mean_ += incr;
+                   var_   = (1.0 - alpha) * (var_ + diff * incr);
+    }
+
+public:
+    SDR_Sparsity( SDR &dataSource, Real alpha )
+        : _SDR_MetricsHelper( dataSource, alpha )
+    {
+        min_        =  1234.56789;
+        max_        = -1234.56789;
+        mean_       =  1234.56789;
+        var_        =  1234.56789;
+    }
+    Real min() const { return min_; }
+    Real max() const { return max_; }
+    Real mean() const { return mean_; }
+    Real std() const { return std::sqrt( var_ ); }
+    void print(std::ostream &stream = std::cout) const {
+        stream << "Sparsity Min/Mean/Std/Max " << min() << " / " << mean()
+        << " / " << std() << " / " << max() << endl;
+    }
+};
 
 /**
  *
@@ -1035,8 +1088,8 @@ class SDR_ActivationFrequency {
     Real mean();
     Real std();
     Real entropy();
-    String pretty_print(); // Uses all the metrics.
-}
+    void print(std::ostream &stream = std::cout); // Uses all the metrics.
+};
 
 /**
  *
@@ -1047,17 +1100,17 @@ class SDR_AverageOverlap {
     Real max();
     Real mean();
     Real std();
-    String pretty_print(); // Uses all the metrics.
-}
+    void print(std::ostream &stream = std::cout); // Uses all the metrics.
+};
 
 /**
  *
  */
 class SDR_Metrics {
     SDR_Metrics( SDR &dataSource );
-    String pretty_print(); // Uses all the metrics.
+    void print(std::ostream &stream = std::cout); // Uses all the metrics.
     // TODO public members for the constituent metrics.
-}
+};
 
 }; // end namespace nupic
 #endif // end ifndef SDR_HPP
