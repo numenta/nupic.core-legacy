@@ -54,7 +54,7 @@ include(GNUInstallDirs)
 include(ExternalProject)
 set(EP_BASE ${CMAKE_BINARY_DIR})
 STRING(REGEX REPLACE "@@@" " " EXTERNAL_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS "${INTERNAL_CXX_FLAGS}" CACHE STRING "Sets compile flags" FORCE)
+set(CMAKE_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}" CACHE STRING "Sets compile flags" FORCE)
 
 
 message(STATUS "external import")
