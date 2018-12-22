@@ -222,8 +222,9 @@ public:
    *
    * @param extraWinners
    * Vector of winning external predictive inputs.  When learning, only these
-   * inputs are considered active.  External inputs must be cell indexes in the
-   * range [0, extra).
+   * inputs are considered active.  ExtraWinners should be a subset of
+   * extraActive.  External inputs must be cell indexes in the range [0,
+   * extra).
    */
   void activateDendrites(bool learn = true,
                          const vector<UInt> &extraActive = {},
@@ -252,8 +253,9 @@ public:
    *
    * @param extraWinners
    * Vector of winning external predictive inputs.  When learning, only these
-   * inputs are considered active.  External inputs must be cell indexes in the
-   * range [0, extra).
+   * inputs are considered active.  ExtraWinners should be a subset of
+   * extraActive.  External inputs must be cell indexes in the range [0,
+   * extra).
    */
   virtual void compute(size_t activeColumnsSize, const UInt activeColumns[],
                        bool learn = true, const vector<UInt> &extraActive = {},

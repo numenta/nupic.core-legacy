@@ -1582,8 +1582,6 @@ TEST(TemporalMemoryTest, testExtraActive) {
       // Calculate TM output
       const auto &sparse = x.getFlatSparse();
       tm.compute(sparse.size(), sparse.data(), true);
-      // Testing the test: commenting out the next two lines should cause this
-      // test to fail.
       extraActive  = tm.getActiveCells();
       extraWinners = tm.getWinnerCells();
 
@@ -1592,8 +1590,20 @@ TEST(TemporalMemoryTest, testExtraActive) {
                                     x.getFlatSparse(), predictedColumns);
     }
   }
-
   ASSERT_LT( anom, 0.05f );
+
+  // Test the test:  Verify that when the external inputs are missing this test
+  // fails.
+  tm.reset();
+  for(auto &x : pattern) {
+    // Predict whats going to happen.
+    tm.activateDendrites(true);
+    auto predictedCells = tm.getPredictiveCells();
+    ASSERT_TRUE( predictedCells.empty() ); // No predictions, numActive < threshold
+    // Calculate TM output
+    const auto &sparse = x.getFlatSparse();
+    tm.compute(sparse.size(), sparse.data(), true);
+  }
 }
 
 // Uncomment these tests individually to save/load from a file.
