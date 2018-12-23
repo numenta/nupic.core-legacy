@@ -909,21 +909,27 @@ TEST(SdrTest, TestProxyGetters) {
     ASSERT_EQ( E->getSparse(), SDR_sparse_t({ {0, 1}, {0, 1} }) );
 }
 
-TEST(SdrTest, TestMetricSparsityUseAfterFree) {
+/**
+ * SDR_Sparsity
+ * Test that it creates & destroys, and that nothing crashes.
+ */
+TEST(SdrTest, TestMetricSparsityConstruct) {
     SDR *A = new SDR({1});
     SDR_Sparsity S( *A, 1000u );
     A->zero();
     A->zero();
     A->zero();
-    delete A;
+    delete A; // Test use after freeing the parent SDR.
     S.min();
     S.max();
     S.mean();
     S.std();
+    ASSERT_EQ( S.sparsity, 0.0f );
 }
 
 /*
- * Verify that the initial values of the SDR_Sparsity metric are OK.
+ * SDR_Sparsity
+ * Verify that the initial 10 values of metric are OK.
  */
 TEST(SdrTest, TestMetricSparsityShortTerm) {
     SDR A({1});
@@ -932,18 +938,21 @@ TEST(SdrTest, TestMetricSparsityShortTerm) {
     SDR_Sparsity S( A, period );
 
     A.setDense(SDR_dense_t{ 1 });
+    ASSERT_FLOAT_EQ( S.sparsity, 1.0f );
     ASSERT_NEAR( S.min(),  1.0f, alpha );
     ASSERT_NEAR( S.max(),  1.0f, alpha );
     ASSERT_NEAR( S.mean(), 1.0f, alpha );
     ASSERT_NEAR( S.std(),  0.0f, alpha );
 
     A.setDense(SDR_dense_t{ 0 });
+    ASSERT_FLOAT_EQ( S.sparsity, 0.0f );
     ASSERT_NEAR( S.min(),  0.0f, alpha );
     ASSERT_NEAR( S.max(),  1.0f, alpha );
     ASSERT_NEAR( S.mean(), 1.0f / 2, alpha );
     ASSERT_NEAR( S.std(),  0.5f, alpha );
 
     A.setDense(SDR_dense_t{ 0 });
+    ASSERT_FLOAT_EQ( S.sparsity, 0.0f );
     ASSERT_NEAR( S.min(),  0.0f, alpha );
     ASSERT_NEAR( S.max(),  1.0f, alpha );
     ASSERT_NEAR( S.mean(), 1.0f / 3, alpha );
@@ -961,25 +970,26 @@ TEST(SdrTest, TestMetricSparsityShortTerm) {
     A.setDense(SDR_dense_t{ 0 });
     ASSERT_NEAR( S.mean(), 1.0f / 6, alpha );
     ASSERT_NEAR( S.std(),  0.372677996249965f, alpha );
-    A.setDense(SDR_dense_t{ 0 });
 
+    A.setDense(SDR_dense_t{ 0 });
     ASSERT_NEAR( S.mean(), 1.0f / 7, alpha );
     ASSERT_NEAR( S.std(),  0.34992710611188266f, alpha );
-    A.setDense(SDR_dense_t{ 0 });
 
+    A.setDense(SDR_dense_t{ 0 });
     ASSERT_NEAR( S.mean(), 1.0f / 8, alpha );
     ASSERT_NEAR( S.std(),  0.33071891388307384f, alpha );
-    A.setDense(SDR_dense_t{ 0 });
 
+    A.setDense(SDR_dense_t{ 0 });
     ASSERT_NEAR( S.mean(), 1.0f / 9, alpha );
     ASSERT_NEAR( S.std(),  0.31426968052735443f, alpha );
-    A.setDense(SDR_dense_t{ 0 });
 
+    A.setDense(SDR_dense_t{ 0 });
     ASSERT_NEAR( S.mean(), 1.0f / 10, alpha );
     ASSERT_NEAR( S.std(),  0.30000000000000004f, alpha );
 }
 
 /*
+ * SDR_Sparsity
  * Verify that the longer run values of the SDR_Sparsity metric are OK.
  * Test Protocol:
  *      instantaneous-sparsity = Sample random distribution
@@ -1010,9 +1020,94 @@ TEST(SdrTest, TestMetricSparsityLongTerm) {
                 sparsity = dist( generator );
             } while( sparsity < 0.0f || sparsity > 1.0f);
             A.randomize( sparsity );
+            EXPECT_NEAR( S.sparsity, sparsity, 0.501f / A.size );
         }
         EXPECT_NEAR( S.mean(), mean, stdv );
         EXPECT_NEAR( S.std(),  stdv, stdv );
     }
 }
+
+TEST(SdrTest, TestMetricSparsityPrint) {
+    FAIL();
+}
+
+
+
+
+/**
+ * SDR_ActivationFrequency
+ * Test that it creates & destroys, and that no methods crash.
+ */
+TEST(SdrTest, TestMetricAF_Construct) {
+    // Test nothing crashes with no data.
+    FAIL();
+    // Test use after freeing parent SDR.
+    FAIL();
+}
+
+/**
+ * SDR_ActivationFrequency
+ * Verify that the first 10 data points yield almost exact results.
+ */
+TEST(SdrTest, TestMetricAF_ShortTerm) {
+    FAIL();
+}
+
+/*
+ * SDR_ActivationFrequency
+ * Verify that the longer run values of this metric are OK.
+ * Test Protocol:
+ *      TODO
+ */
+TEST(SdrTest, TestMetricAF_LongTerm) {
+    FAIL();
+}
+
+/*
+ * 
+ */
+TEST(SdrTest, TestMetricAF_Entropy) {
+    FAIL();
+}
+
+TEST(SdrTest, TestMetricAF_Print) {
+    FAIL();
+}
+
+
+
+TEST(SdrTest, TestMetricOvlp_Construct) {
+    FAIL();
+}
+TEST(SdrTest, TestMetricOvlp_ShortTerm) {
+    FAIL();
+}
+TEST(SdrTest, TestMetricOvlp_LongTerm) {
+    FAIL();
+}
+TEST(SdrTest, TestMetricOvlp_Print) {
+    FAIL();
+}
+
+
+
+
+/**
+ * SDR_Metrics
+ *
+ */
+TEST(SdrTest, TestAllMetrics_Construct) {
+    // Test that it constructs.
+    FAIL();
+    // Test that each member metric updates when the dataSource is assigned to.
+    FAIL();
+}
+
+/**
+ * SDR_Metrics prints OK.
+ */
+TEST(SdrTest, TestAllMetrics_Print) {
+    FAIL();
+}
+
 

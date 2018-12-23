@@ -1095,7 +1095,7 @@ public:
         var_        =  1234.56789f;
     }
 
-    const Real &sparsity = sparsity_; // TODO: TEST THIS ATTRIBUTE
+    const Real &sparsity = sparsity_;
     Real min() const { return min_; }
     Real max() const { return max_; }
     Real mean() const { return mean_; }
@@ -1189,6 +1189,9 @@ public:
     }
 };
 
+
+// TODO: Implement this class
+// TODO: Document this class
 /**
  *
 class SDR_AverageOverlap {
