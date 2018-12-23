@@ -31,6 +31,7 @@
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
 #include <functional>
+#include <cmath> // std::log2
 
 using namespace std;
 
@@ -1033,7 +1034,7 @@ protected:
      * @param period TODO
      */
     _SDR_MetricsHelper( SDR &dataSource, UInt period ) {
-        NTA_CHECK( period > 0 );
+        NTA_CHECK( period > 0u );
         dataSource_ = &dataSource;
         period_     = period;
         samples_    = 0u;
@@ -1069,29 +1070,32 @@ private:
     Real max_;
     Real mean_;
     Real var_;
+    Real sparsity_;
 
     void callback(SDR &dataSource, Real alpha) override {
-        const auto sparsity = dataSource.getSparsity();
-        min_ = std::min( min_, sparsity );
-        max_ = std::max( max_, sparsity );
+        sparsity_ = dataSource.getSparsity();
+        min_ = std::min( min_, sparsity_ );
+        max_ = std::max( max_, sparsity_ );
         // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
         // See section 9.
-        const Real diff   = sparsity - mean_;
+        const Real diff   = sparsity_ - mean_;
         const Real incr   = alpha * diff;
                    mean_ += incr;
-                   var_   = (1.0 - alpha) * (var_ + diff * incr);
+                   var_   = (1.0f - alpha) * (var_ + diff * incr);
     }
 
 public:
     SDR_Sparsity( SDR &dataSource, UInt period )
         : _SDR_MetricsHelper( dataSource, period )
     {
-        min_        =  1234.56789;
-        max_        = -1234.56789;
-        mean_       =  1234.56789;
-        var_        =  1234.56789;
+        sparsity_   =  1234.56789f;
+        min_        =  1234.56789f;
+        max_        = -1234.56789f;
+        mean_       =  1234.56789f;
+        var_        =  1234.56789f;
     }
 
+    const Real &sparsity = sparsity_; // TODO: TEST THIS ATTRIBUTE
     Real min() const { return min_; }
     Real max() const { return max_; }
     Real mean() const { return mean_; }
@@ -1105,8 +1109,9 @@ public:
     }
 };
 
+// TODO : TEST THIS CLASS!!!
 /**
- *
+ * Measure the activation frequency of each value in an SDR.
  */
 class SDR_ActivationFrequency : public _SDR_MetricsHelper {
 private:
@@ -1115,15 +1120,12 @@ private:
     void callback(SDR &dataSource, Real alpha) override
     {
         const auto decay = 1.0f - alpha;
-        auto &dense = dataSource.getDense();
-        for(auto &value : dense)
+        for(auto &value : activationFrequency_)
             value *= decay;
 
-        // TODO: COPY FROM THE SP!
-        // const auto increment = 
-        // const auto &sparse = dataSource.getFlatSparse();
-        // for(const auto &idx : sparse)
-        //     value += increment
+        const auto &sparse = dataSource.getFlatSparse();
+        for(const auto &idx : sparse)
+            activationFrequency_[idx] += alpha;
     }
 
 public:
@@ -1132,6 +1134,8 @@ public:
     {
         activationFrequency_.assign( dataSource.size, 1234.56789f );
     }
+
+    const vector<Real> &activationFrequency = activationFrequency_;
 
     Real min() const {
         return *std::min_element(activationFrequency_.begin(),
@@ -1150,9 +1154,31 @@ public:
         return (Real) sum / activationFrequency_.size();
     }
 
-    Real std() const;
+    Real std() const {
+        const auto mean_ = mean();
+        auto sum_squares = 0.0f;
+        for(auto &frequency : activationFrequency) {
+            const auto displacement = frequency - mean_;
+            sum_squares += displacement * displacement;
+        }
+        const auto variance = sum_squares / activationFrequency.size();
 
-    Real entropy() const;
+        return std::sqrt( variance );
+    }
+
+    static Real binary_entropy_(const vector<Real> &frequencies) {
+        Real accumulator = 0.0f;
+        for(const auto &p : frequencies) {
+            const auto  p_ = 1.0f - p;
+            accumulator += -p * std::log2( p ) - p_ * std::log2( p_ );
+        }
+        return accumulator / frequencies.size();
+    }
+
+    Real entropy() const {
+        const auto max_extropy = binary_entropy_({ mean() });
+        return binary_entropy_( activationFrequency ) / max_extropy;
+    }
 
     void print(std::ostream &stream = std::cout) const
     {
@@ -1175,13 +1201,30 @@ class SDR_AverageOverlap {
 };
  */
 
+// TODO: TEST THIS CLASS
 /**
  *
  */
 class SDR_Metrics {
-    SDR_Metrics( SDR &dataSource );
-    void print(std::ostream &stream = std::cout); // Uses all the metrics.
-    // TODO public members for the constituent metrics.
+private:
+    SDR_Sparsity            sparsity_;
+    SDR_ActivationFrequency activationFrequency_;
+
+public:
+    SDR_Metrics( SDR &dataSource, UInt period )
+        : sparsity_( dataSource, period ),
+          activationFrequency_( dataSource, period )
+    { }
+
+    const SDR_Sparsity            &sparsity            = sparsity_;
+    const SDR_ActivationFrequency &activationFrequency = activationFrequency_;
+
+    void print(std::ostream &stream = std::cout) {
+        // TODO: This should print "SDR( dimensions )" first, and then manually
+        // format all of its constituent metrics so that they look nice.
+        sparsity.print( stream );
+        activationFrequency.print( stream );
+    }
 };
 
 }; // end namespace nupic
