@@ -911,8 +911,7 @@ TEST(SdrTest, TestProxyGetters) {
 
 TEST(SdrTest, TestMetricSparsityUseAfterFree) {
     SDR *A = new SDR({1});
-    Real alpha = 0.1f;
-    SDR_Sparsity S( *A, alpha );
+    SDR_Sparsity S( *A, 1000u );
     A->zero();
     A->zero();
     A->zero();
@@ -928,8 +927,9 @@ TEST(SdrTest, TestMetricSparsityUseAfterFree) {
  */
 TEST(SdrTest, TestMetricSparsityShortTerm) {
     SDR A({1});
-    Real alpha = 0.1f;
-    SDR_Sparsity S( A, alpha );
+    Real period = 10u;
+    Real alpha  = 1.0f / period;
+    SDR_Sparsity S( A, period );
 
     A.setDense(SDR_dense_t{ 1 });
     ASSERT_NEAR( S.min(),  1.0f, alpha );
@@ -989,12 +989,12 @@ TEST(SdrTest, TestMetricSparsityShortTerm) {
  *      ASSERT_NEAR( SparsityMetric.std(),  true_std )
  */
 TEST(SdrTest, TestMetricSparsityLongTerm) {
-    auto alpha      = 0.01f;
+    auto period     = 100u;
     auto iterations = 1000u;
 
     SDR A({1000u});
     SDR_Proxy B(A); // This should work.
-    SDR_Sparsity S( B, alpha );
+    SDR_Sparsity S( B, period );
 
     vector<Real> test_means{ 0.01f,  0.05f,  0.20f, 0.50f, 0.50f, 0.75f, 0.99f };
     vector<Real> test_stdev{ 0.001f, 0.025f, 0.10f, 0.33f, 0.01f, 0.15f, 0.01f };

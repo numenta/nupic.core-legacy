@@ -1014,33 +1014,56 @@ protected:
 };
 
 /**
+ * Helper for SDR metrics trackers, including: SDR_Sparsity,
+ * SDR_ActivationFrequency, and SDR_AverageOverlap classes.
  *
+ * Subclasses must override method "callback".
  */
 class _SDR_MetricsHelper {
 protected:
     SDR* dataSource_;
-    Real alpha_;
+    UInt period_;
     UInt samples_;
 
-    _SDR_MetricsHelper( SDR &dataSource, Real alpha ) {
-        NTA_CHECK( alpha >= 0.0f );
-        NTA_CHECK( alpha <= 1.0f );
+    /**
+     * @param dataSource SDR to track.  Add data to the metric by assigning to
+     * this SDR.  This class deals with adding a callback to this SDR so that
+     * your SDR-MetricsTracker is notified after every update to the SDR.
+     *
+     * @param period TODO
+     */
+    _SDR_MetricsHelper( SDR &dataSource, UInt period ) {
+        NTA_CHECK( period > 0 );
         dataSource_ = &dataSource;
-        alpha_      = alpha;
-        samples_    = 0;
+        period_     = period;
+        samples_    = 0u;
         dataSource.addCallback( [&](){
             samples_++;
-            callback( *dataSource_, std::max( alpha_, 1.0f / samples_ ));
+            callback( *dataSource_, 1.0f / std::min( period_, samples_ ));
         });
     }
 
+    /**
+     * Add another datum to the metric.
+     *
+     * @param dataSource SDR to add to the metric.
+     *
+     * @param alpha Weight for the new datum.  Metrics trackers should use an
+     * exponential weighting scheme, so that they can efficiently process
+     * streaming data.  This class deals with finding a suitable weight for each
+     * sample.
+     */
     virtual void callback( SDR &dataSource, Real alpha ) = 0;
+
+public:
+    const UInt &samples = samples_;
+    const UInt &period  = period_;
 };
 
 /**
- *
+ * Measures the sparsity of an SDR.
  */
-class SDR_Sparsity : private _SDR_MetricsHelper {
+class SDR_Sparsity : public _SDR_MetricsHelper {
 private:
     Real min_;
     Real max_;
@@ -1060,40 +1083,88 @@ private:
     }
 
 public:
-    SDR_Sparsity( SDR &dataSource, Real alpha )
-        : _SDR_MetricsHelper( dataSource, alpha )
+    SDR_Sparsity( SDR &dataSource, UInt period )
+        : _SDR_MetricsHelper( dataSource, period )
     {
         min_        =  1234.56789;
         max_        = -1234.56789;
         mean_       =  1234.56789;
         var_        =  1234.56789;
     }
+
     Real min() const { return min_; }
     Real max() const { return max_; }
     Real mean() const { return mean_; }
     Real std() const { return std::sqrt( var_ ); }
-    void print(std::ostream &stream = std::cout) const {
-        stream << "Sparsity Min/Mean/Std/Max " << min() << " / " << mean()
-        << " / " << std() << " / " << max() << endl;
+
+    void print(std::ostream &stream = std::cout) const
+    {
+        stream << "Sparsity Min/Mean/Std/Max "
+            << min() << " / " << mean() << " / "
+            << std() << " / " << max() << endl;
     }
 };
 
 /**
  *
  */
-class SDR_ActivationFrequency {
-    SDR_ActivationFrequency( SDR &dataSource );
-    Real min();
-    Real max();
-    Real mean();
-    Real std();
-    Real entropy();
-    void print(std::ostream &stream = std::cout); // Uses all the metrics.
+class SDR_ActivationFrequency : public _SDR_MetricsHelper {
+private:
+    vector<Real> activationFrequency_;
+
+    void callback(SDR &dataSource, Real alpha) override
+    {
+        const auto decay = 1.0f - alpha;
+        auto &dense = dataSource.getDense();
+        for(auto &value : dense)
+            value *= decay;
+
+        // TODO: COPY FROM THE SP!
+        // const auto increment = 
+        // const auto &sparse = dataSource.getFlatSparse();
+        // for(const auto &idx : sparse)
+        //     value += increment
+    }
+
+public:
+    SDR_ActivationFrequency( SDR &dataSource, UInt period )
+        : _SDR_MetricsHelper( dataSource, period )
+    {
+        activationFrequency_.assign( dataSource.size, 1234.56789f );
+    }
+
+    Real min() const {
+        return *std::min_element(activationFrequency_.begin(),
+                                 activationFrequency_.end());
+    }
+
+    Real max() const {
+        return *std::max_element(activationFrequency_.begin(),
+                                 activationFrequency_.end());
+    }
+
+    Real mean() const  {
+        const auto sum = std::accumulate( activationFrequency_.begin(),
+                                          activationFrequency_.end(),
+                                          0u);
+        return (Real) sum / activationFrequency_.size();
+    }
+
+    Real std() const;
+
+    Real entropy() const;
+
+    void print(std::ostream &stream = std::cout) const
+    {
+        stream << "ActivationFrequency Min/Mean/Std/Max "
+            << min() << " / " << mean() << " / "
+            << std() << " / " << max() << endl;
+        stream << "Entropy " << entropy() << endl;
+    }
 };
 
 /**
  *
- */
 class SDR_AverageOverlap {
     SDR_AverageOverlap( SDR &dataSource );
     Real min();
@@ -1102,6 +1173,7 @@ class SDR_AverageOverlap {
     Real std();
     void print(std::ostream &stream = std::cout); // Uses all the metrics.
 };
+ */
 
 /**
  *
