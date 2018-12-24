@@ -916,6 +916,7 @@ TEST(SdrTest, TestProxyGetters) {
 TEST(SdrTest, TestMetricSparsityConstruct) {
     SDR *A = new SDR({1});
     SDR_Sparsity S( *A, 1000u );
+    ASSERT_ANY_THROW( SDR_Sparsity S( *A, 0u ) ); // Period > 0!
     A->zero();
     A->zero();
     A->zero();
@@ -1023,7 +1024,7 @@ TEST(SdrTest, TestMetricSparsityLongTerm) {
             EXPECT_NEAR( S.sparsity, sparsity, 0.501f / A.size );
         }
         EXPECT_NEAR( S.mean(), mean, stdv );
-        EXPECT_NEAR( S.std(),  stdv, stdv );
+        EXPECT_NEAR( S.std(),  stdv, stdv / 2.0f );
     }
 }
 
@@ -1039,35 +1040,125 @@ TEST(SdrTest, TestMetricSparsityPrint) {
  * Test that it creates & destroys, and that no methods crash.
  */
 TEST(SdrTest, TestMetricAF_Construct) {
+    // Test creating it.
+    SDR *A = new SDR({ 5 });
+    SDR_ActivationFrequency F( *A, 100 );
+    ASSERT_ANY_THROW( SDR_ActivationFrequency F( *A, 0u ) ); // Period > 0!
     // Test nothing crashes with no data.
-    FAIL();
+    F.min();
+    F.mean();
+    F.std();
+    F.max();
+    ASSERT_EQ( F.activationFrequency.size(), A->size );
+
+    // Test with junk data.
+    A->zero(); A->randomize( 0.5f ); A->randomize( 1.0f ); A->randomize( 0.5f );
+    F.min();
+    F.mean();
+    F.std();
+    F.max();
+    ASSERT_EQ( F.activationFrequency.size(), A->size );
+
     // Test use after freeing parent SDR.
-    FAIL();
+    auto A_size = A->size;
+    delete A;
+    F.min();
+    F.mean();
+    F.std();
+    F.max();
+    ASSERT_EQ( F.activationFrequency.size(), A_size );
 }
 
 /**
  * SDR_ActivationFrequency
- * Verify that the first 10 data points yield almost exact results.
+ * Verify that the first few data points are ok.
  */
 TEST(SdrTest, TestMetricAF_ShortTerm) {
-    FAIL();
+    SDR A({ 2u });
+    SDR_ActivationFrequency F( A, 10u );
+
+    A.setDense(SDR_dense_t{ 0, 0 });
+    ASSERT_EQ( F.activationFrequency, vector<Real>({ 0.0f, 0.0f }));
+
+    A.setDense(SDR_dense_t{ 1, 1 });
+    ASSERT_EQ( F.activationFrequency, vector<Real>({ 0.5f, 0.5f }));
+
+    A.setDense(SDR_dense_t{ 0, 1 });
+    ASSERT_NEAR( F.activationFrequency[0], 0.3333333333333333f, 0.001f );
+    ASSERT_NEAR( F.activationFrequency[1], 0.6666666666666666f, 0.001f );
+    ASSERT_EQ( F.min(), F.activationFrequency[0] );
+    ASSERT_EQ( F.max(), F.activationFrequency[1] );
+    ASSERT_FLOAT_EQ( F.mean(), 0.5f );
+    ASSERT_NEAR( F.std(), 0.16666666666666666f, 0.001f );
 }
 
 /*
  * SDR_ActivationFrequency
  * Verify that the longer run values of this metric are OK.
- * Test Protocol:
- *      TODO
  */
 TEST(SdrTest, TestMetricAF_LongTerm) {
-    FAIL();
+    const auto period  =   100u;
+    const auto runtime = 10000u;
+    SDR A({ 20u });
+    SDR_ActivationFrequency F( A, period );
+
+    vector<Real> test_sparsity{ 0.0f, 0.02f, 0.05, 1.0f, 0.25f, 0.5f };
+
+    for(const auto &sparsity : test_sparsity) {
+        for(UInt i = 0; i < runtime; i++)
+            A.randomize( sparsity );
+
+        const auto epsilon = 0.10f;
+        EXPECT_GT( F.min(), sparsity - epsilon );
+        EXPECT_LT( F.max(), sparsity + epsilon );
+        EXPECT_NEAR( F.mean(), sparsity, epsilon );
+        EXPECT_NEAR( F.std(),  0.0f,     epsilon );
+    }
 }
 
 /*
  * 
  */
 TEST(SdrTest, TestMetricAF_Entropy) {
-    FAIL();
+    const auto period  =   100u;
+    const auto runtime = 10000u;
+
+    // Test all zeros.
+    SDR A({ 1000u });
+    SDR_ActivationFrequency F( A, period );
+    A.zero();
+    EXPECT_FLOAT_EQ( F.entropy(), 0.0f );
+
+    // Test all ones.
+    SDR B({ 1000u });
+    SDR_ActivationFrequency G( B, period );
+    B.randomize( 1.0f );
+    EXPECT_FLOAT_EQ( F.entropy(), 0.0f );
+
+    // Test 100% entropy
+    SDR C({ 1000u });
+    SDR_ActivationFrequency H( C, period );
+    for(UInt i = 0; i < runtime; i++)
+        C.randomize( 0.05f );
+    EXPECT_GT( H.entropy(), 0.97f );
+
+    // Test 50% entropy
+    SDR D({ C.size });
+    SDR_ActivationFrequency J( D, period );
+    for(auto i = 0u; i < runtime; i++) {
+        C.randomize( 0.10f );
+        auto &dense = D.getDense();
+        dense.assign(C.getDense().begin(), C.getDense().end());
+        for(auto z = 0u; z < D.size; z += 2u)
+            dense[z] = 0u;
+        D.setDense( dense );
+    }
+    EXPECT_NEAR( J.entropy(), 0.50f, 0.05f );
+
+    // Test 0% entropy
+    for(auto i = 0u; i < runtime; i++)
+        D.randomize( 1.0f );
+    EXPECT_LT( J.entropy(), 0.05f );
 }
 
 TEST(SdrTest, TestMetricAF_Print) {
@@ -1076,16 +1167,107 @@ TEST(SdrTest, TestMetricAF_Print) {
 
 
 
-TEST(SdrTest, TestMetricOvlp_Construct) {
-    FAIL();
+TEST(SdrTest, TestMetricOverlap_Construct) {
+    SDR *A = new SDR({ 1000u });
+    SDR_Overlap V( *A, 100u );
+    ASSERT_ANY_THROW( new SDR_Overlap( *A, 0 ) ); // Period > 0!
+    // Check that it doesn't crash, when uninitialized.
+    V.min();
+    V.mean();
+    V.std();
+    V.max();
+    // If no data, have obviously wrong result.
+    ASSERT_FALSE( V.overlap >= 0.0f and V.overlap <= 1.0f );
+
+    // Check that it doesn't crash with half enough data.
+    A->randomize( 0.20f );
+    V.min();
+    V.mean();
+    V.std();
+    V.max();
+    ASSERT_FALSE( V.overlap >= 0.0f and V.overlap <= 1.0f );
+
+    // Check no crash with data.
+    A->addNoise( 0.50f );
+    V.min();
+    V.mean();
+    V.std();
+    V.max();
+    ASSERT_EQ( V.overlap, 0.50f );
+
+    // Check overlap metric is valid after parent SDR is deleted.
+    delete A;
+    V.min();
+    V.mean();
+    V.std();
+    V.max();
+    ASSERT_EQ( V.overlap, 0.50f );
 }
-TEST(SdrTest, TestMetricOvlp_ShortTerm) {
-    FAIL();
+
+TEST(SdrTest, TestMetricOverlap_ShortTerm) {
+    SDR         A({ 1000u });
+    SDR_Overlap V( A, 10u );
+
+    A.randomize( 0.20f ); // Initial value is taken after SDR_Overlap is created
+
+    // Add overlap 50% to metric tracker.
+    A.addNoise(  0.50f );
+    ASSERT_FLOAT_EQ( V.overlap, 0.50f );
+    ASSERT_FLOAT_EQ( V.min(),   0.50f );
+    ASSERT_FLOAT_EQ( V.max(),   0.50f );
+    ASSERT_FLOAT_EQ( V.mean(),  0.50f );
+    ASSERT_FLOAT_EQ( V.std(),   0.0f );
+
+    // Add overlap 80% to metric tracker.
+    A.addNoise(  0.20f );
+    ASSERT_FLOAT_EQ( V.overlap, 0.80f );
+    ASSERT_FLOAT_EQ( V.min(),   0.50f );
+    ASSERT_FLOAT_EQ( V.max(),   0.80f );
+    ASSERT_FLOAT_EQ( V.mean(),  0.65f );
+    ASSERT_FLOAT_EQ( V.std(),   0.15f );
+
+    // Add overlap 25% to metric tracker.
+    A.addNoise(  0.75f );
+    ASSERT_FLOAT_EQ( V.overlap, 0.25f );
+    ASSERT_FLOAT_EQ( V.min(),   0.25f );
+    ASSERT_FLOAT_EQ( V.max(),   0.80f );
+    ASSERT_FLOAT_EQ( V.mean(),  0.51666666666666672f ); // Source: python numpy.mean
+    ASSERT_FLOAT_EQ( V.std(),   0.22484562605386735f ); // Source: python numpy.std
 }
-TEST(SdrTest, TestMetricOvlp_LongTerm) {
-    FAIL();
+
+TEST(SdrTest, TestMetricOverlap_LongTerm) {
+    const auto runtime = 1000u;
+    const auto period  =  100u;
+    SDR A({ 500u });
+    SDR_Overlap V( A, period );
+    A.randomize( 0.45f );
+
+    vector<Real> mean_ovlp{ 0.0f, 1.0f,
+                            0.5f, 0.25f,
+                            0.85f, 0.95f };
+
+    vector<Real> std_ovlp{  0.01f, 0.01f,
+                            0.33f, 0.05f,
+                            0.05f, 0.02f };
+
+    std::default_random_engine generator;
+    for(auto i = 0u; i < mean_ovlp.size(); i++) {
+        auto dist = std::normal_distribution<float>(mean_ovlp[i], std_ovlp[i]);
+
+        for(auto z = 0u; z < runtime; z++) {
+            Real ovlp;
+            do {
+                ovlp = dist( generator );
+            } while( ovlp < 0.0f || ovlp > 1.0f );
+            A.addNoise( 1.0f - ovlp );
+            EXPECT_NEAR( V.overlap, ovlp, 0.501f / A.getSum() );
+        }
+        EXPECT_NEAR( V.mean(), mean_ovlp[i], std_ovlp[i] );
+        EXPECT_NEAR( V.std(),  std_ovlp[i],  std_ovlp[i] / 2.0f );
+    }
 }
-TEST(SdrTest, TestMetricOvlp_Print) {
+
+TEST(SdrTest, TestMetricOverlap_Print) {
     FAIL();
 }
 
