@@ -1029,11 +1029,22 @@ TEST(SdrTest, TestMetricSparsityLongTerm) {
 }
 
 TEST(SdrTest, TestMetricSparsityPrint) {
-    FAIL();
+    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
+    // the data into real numbers and check that its acceptably near to the
+    // expected.
+    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    SDR A({ 2000u });
+    SDR_Sparsity S( A, 10u );
+
+    A.randomize( 0.30f );
+    A.randomize( 0.70f );
+    S.print();
+
+    A.randomize( 0.123456789f );
+    A.randomize( 1.0f - 0.123456789f );
+    S.print();
+    cerr << endl;
 }
-
-
-
 
 /**
  * SDR_ActivationFrequency
@@ -1162,10 +1173,23 @@ TEST(SdrTest, TestMetricAF_Entropy) {
 }
 
 TEST(SdrTest, TestMetricAF_Print) {
-    FAIL();
+    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
+    // the data into real numbers and check that its acceptably near to the
+    // expected.
+    const auto period  =  100u;
+    const auto runtime = 1000u;
+    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    SDR A({ 2000u });
+    SDR_ActivationFrequency F( A, period );
+
+    vector<Real> sparsity{ 0.0f, 0.02f, 0.05f, 0.50f, 0.0f };
+    for(const auto sp : sparsity) {
+        for(auto i = 0u; i < runtime; i++)
+            A.randomize( sp );
+        F.print();
+        cerr << endl;
+    }
 }
-
-
 
 TEST(SdrTest, TestMetricOverlap_Construct) {
     SDR *A = new SDR({ 1000u });
@@ -1268,11 +1292,25 @@ TEST(SdrTest, TestMetricOverlap_LongTerm) {
 }
 
 TEST(SdrTest, TestMetricOverlap_Print) {
-    FAIL();
+    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
+    // the data into real numbers and check that its acceptably near to the
+    // expected.
+    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    SDR A({ 2000u });
+    SDR_Overlap V( A, 100u );
+    A.randomize( 0.02f );
+
+    vector<Real> overlaps{ 0.02f, 0.05f, 0.0f, 0.50f, 0.0f };
+    for(const auto ovlp : overlaps) {
+        for(auto i = 0u; i < 1000u; i++)
+            A.addNoise( 1.0f - ovlp );
+        V.print();
+    }
+    for(auto i = 0u; i < 1000u; i++)
+        A.randomize( 0.02f );
+    V.print();
+    cerr << endl;
 }
-
-
-
 
 /**
  * SDR_Metrics
@@ -1280,16 +1318,37 @@ TEST(SdrTest, TestMetricOverlap_Print) {
  */
 TEST(SdrTest, TestAllMetrics_Construct) {
     // Test that it constructs.
-    FAIL();
-    // Test that each member metric updates when the dataSource is assigned to.
-    FAIL();
+    SDR *A = new SDR({ 100u });
+    SDR_Metrics M( *A, 10u );
+
+    A->randomize( 0.05f );
+    A->randomize( 0.05f );
+    A->randomize( 0.05f );
+
+    // Test use after freeing data source.
+    delete A;
+    M.print();
 }
 
 /**
  * SDR_Metrics prints OK.
  */
 TEST(SdrTest, TestAllMetrics_Print) {
-    FAIL();
-}
+    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
+    // the data into real numbers and check that its acceptably near to the
+    // expected.
+    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    SDR A({ 4097u });
+    SDR_Metrics M( A, 100u );
 
+    vector<Real> sparsity{ 0.02f, 0.15f, 0.06f, 0.50f, 0.0f };
+    vector<Real> overlaps{ 0.02f, 0.05f, 0.10f, 0.50f, 0.0f };
+    for(auto test = 0u; test < sparsity.size(); test++) {
+        A.randomize( sparsity[test] );
+        for(auto i = 0u; i < 1000u; i++)
+            A.addNoise( 1.0f - overlaps[test] );
+        M.print();
+        cerr << endl;
+    }
+}
 

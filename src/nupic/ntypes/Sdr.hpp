@@ -32,6 +32,7 @@
 #include <nupic/utils/Random.hpp>
 #include <functional>
 #include <cmath> // std::log2 isnan
+#include <regex>
 
 using namespace std;
 
@@ -1207,11 +1208,12 @@ private:
     Real min_;
     Real max_;
     Real mean_;
-    Real var_;
+    Real var_; // TODO: Rename to variance_, in all classes!
 
     void callback(SDR &dataSource, Real alpha) override {
         const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
-        const auto overlap = (Real) previous_.overlap( dataSource ) / nbits;
+        const auto overlap = (nbits == 0u) ? 0.0f
+                               : (Real) previous_.overlap( dataSource ) / nbits;
         previous_.setSDR( dataSource );
         // Ignore first data point, need two to compute.  Account for the
         // initial decrement to samples counter.
@@ -1262,6 +1264,7 @@ public:
  */
 class SDR_Metrics {
 private:
+    vector<UInt>            dimensions_;
     SDR_Sparsity            sparsity_;
     SDR_ActivationFrequency activationFrequency_;
     SDR_Overlap             overlap_;
@@ -1271,18 +1274,36 @@ public:
         : sparsity_( dataSource, period ),
           activationFrequency_( dataSource, period ),
           overlap_( dataSource, period )
-    { }
+    {
+        dimensions_ = dataSource.dimensions;
+    }
 
     const SDR_Sparsity            &sparsity            = sparsity_;
     const SDR_ActivationFrequency &activationFrequency = activationFrequency_;
     const SDR_Overlap             &overlap             = overlap_;
 
     void print(std::ostream &stream = std::cout) {
-        // TODO: This should print "SDR( dimensions )" first, and then manually
-        // format all of its constituent metrics so that they look nice.
-        sparsity.print( stream );
-        activationFrequency.print( stream );
-        overlap.print( stream );
+        // Introduction line:  "SDR ( dimensions )"
+        stream << "SDR( ";
+        for(const auto &dim : dimensions_)
+            stream << dim << " ";
+        stream << ")" << endl;
+
+        // Print data to temporary area for formatting.
+        stringstream data_stream;
+
+        sparsity.print( data_stream );
+        activationFrequency.print( data_stream );
+        overlap.print( data_stream );
+
+        // Indent all of the data.
+        string data = data_stream.str();
+        // Append tabs to all newlines
+        data = regex_replace( data, regex("\n"), "\n\r    " );
+        // Strip trailing whitespace
+        data = regex_replace( data, regex("\\s*$"), "" );
+        stream << "    ";
+        stream << data << endl;
     }
 };
 
