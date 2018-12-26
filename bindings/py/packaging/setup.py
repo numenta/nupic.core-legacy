@@ -40,7 +40,7 @@ DARWIN_PLATFORM = "darwin"
 LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
-BUILD_TYPE = "Release" 
+
 
 
 def getExtensionVersion():
@@ -195,8 +195,8 @@ def generateExtensions():
 
   scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
   try:
-    if not os.path.isdir(scriptsDir): 
-	  os.makedirs(scriptsDir) 
+    if not os.path.isdir(scriptsDir):
+      os.makedirs(scriptsDir)
     os.chdir(scriptsDir)
     subprocess.check_call(["cmake", REPO_DIR, PY_VER2, PY_VER3])
     subprocess.check_call(["make", "-j3"])
@@ -224,10 +224,10 @@ if __name__ == "__main__":
   print("\nbindings/py/setup.py: Setup Pybind11 Python module in " + DISTR_DIR+ "\n")
   setup(
     # See https://docs.python.org/2/distutils/apiref.html for descriptions of arguments.
-	#     https://docs.python.org/2/distutils/setupscript.html
-	#     https://opensourceforu.com/2010/OS/extending-python-via-shared-libraries
-	#     https://docs.python.org/3/library/ctypes.html
-	#     https://docs.python.org/2/library/imp.html
+    #     https://docs.python.org/2/distutils/setupscript.html
+    #     https://opensourceforu.com/2010/OS/extending-python-via-shared-libraries
+    #     https://docs.python.org/3/library/ctypes.html
+    #     https://docs.python.org/2/library/imp.html
     name="nupic.bindings",
     version=getExtensionVersion(),
     # This distribution contains platform-specific C++ libraries, but they are not
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     author_email="help@numenta.org",
     url="https://github.com/htm-community/nupic.cpp",
     long_description = "Numenta Platform for Intelligent Computing HTM-Community nupic core: nupic.bindings.[algorithms,engine_internal,math]",
-	license = "GNU Affero General Public License v3 or later (AGPLv3+)",
+    license = "GNU Affero General Public License v3 or later (AGPLv3+)",
     classifiers=[
       "Programming Language :: Python",
       "Programming Language :: Python :: 2",

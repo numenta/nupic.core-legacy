@@ -251,13 +251,14 @@ vector<CellIdx> _computeSPWinnerCells(Connections &connections, UInt numCells,
 
 // TESTS
 #ifdef NDEBUG
+  const UInt COLS = 2048; //standard num of columns in SP/TM
   const UInt SEQ = 50; //number of sequences ran in tests
   const UInt EPOCHS = 20; //tests run for epochs times
 #else
+  const UInt COLS = 20; //standard num of columns in SP/TM
   const UInt SEQ = 25; //number of sequences ran in tests
   const UInt EPOCHS = 4; //only short in debug; is epochs/2 in some tests, that's why 4
 #endif
-const UInt COLS = 2048; //standard num of columns in SP/TM
 
 
 /**
@@ -294,7 +295,7 @@ TEST(ConnectionsPerformanceTest, testSP) {
  * Tests typical usage of Connections with Temporal Pooler.
  */
 TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = runSpatialPoolerTest(COLS, 16384, EPOCHS/4, SEQ/25, "temporal pooler");
+  auto tim = runSpatialPoolerTest(COLS, 8*COLS, EPOCHS/4, SEQ/25, "temporal pooler");
 #ifdef NDEBUG
   ASSERT_LE(tim, 10.8*Timer::getSpeed());
 #endif
