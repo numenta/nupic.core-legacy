@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <algorithm> // sort
 
 
 #include <nupic/algorithms/ClassifierResult.hpp>
