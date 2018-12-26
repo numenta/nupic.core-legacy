@@ -1,11 +1,24 @@
-/**
- * TODO LICENSE
+/* ---------------------------------------------------------------------
+ * Copyright (C) 2018, David McDougall.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses.
+ * ----------------------------------------------------------------------
  */
 
 /**
  * Solving the MNIST dataset with Spatial Pooler.
- *
- * Written by David McDougall, 2018
+ * TODO: DESCRIPTION
+ * TODO: RUN INSTRUCTIONS
  */
 
 #include <algorithm>
@@ -130,7 +143,7 @@ int main(int argc, char **argv) {
       case 'v':
           verbosity = 1;
         break;
-      case '?':  // unknown option...
+      case '?':
           cerr << "Unknown option: '" << char(optopt) << "'!" << endl;
         break;
     }
@@ -140,9 +153,10 @@ int main(int argc, char **argv) {
   signal(SIGINT, keyboard_interrupt_handler);   // install stack trace printout on error
   signal(SIGSEGV, keyboard_interrupt_handler);   // install stack trace printout on error
 
+  SDR input({28, 28, 2});
   SpatialPooler sp(
-    /* numInputs */                    {28, 28, 2},
-    /* numColumns */                   {10, 10, 100},
+    /* numInputs */                    input.dimensions,
+    /* numColumns */                   {10, 10, 120},
     /* potentialRadius */              0,  // hardcoded elsewhere
     /* potentialPct */                 .0000001, // hardcoded elsewhere
     /* globalInhibition */             true,
@@ -160,13 +174,16 @@ int main(int argc, char **argv) {
     /* wrapAround */                   0 // discarded
     );
 
-  if( false ) {
+  SDR columns({sp.getNumColumns()});
+  SDR_Metrics columnStats(columns, 1402);
+
+  if( verbosity ) {
     // Print the min/mean/max potential pool size
     UInt min = 999999;
     Real mean = 0;
     UInt max = 0;
     for( UInt cell = 0; cell < sp.getNumColumns(); cell++) {
-      auto pool = sp.mapPotential_( cell, false );
+      auto pool = sp.initMapPotential_( cell, false );
       UInt size = 0;
       for( auto presyn : pool ) {if ( presyn ) size++; };
       min = size < min ? size : min;
@@ -183,9 +200,6 @@ int main(int argc, char **argv) {
     /* actValueAlpha */ .3,
                         verbosity);
 
-  UInt recordNum   = 0;
-  auto activeArray = vector<UInt>(sp.getNumColumns(), 0);
-
   // Train
   auto train_images = read_mnist_images("./mnist_data/train-images-idx3-ubyte");
   auto train_labels = read_mnist_labels("./mnist_data/train-labels-idx1-ubyte");
@@ -198,23 +212,22 @@ int main(int argc, char **argv) {
       UInt label  = train_labels[index];
 
       // Compute & Train
-      sp.compute(image, true, activeArray.data());
-      vector<UInt> activeIndex;
-      for(UInt i = 0; i < activeArray.size(); i++) {
-        if( activeArray[i] ) {
-          activeIndex.push_back(i);
-        }
-      }
+      input.setDense( image );
+      sp.compute(input, true, columns);
       ClassifierResult result;
-      clsr.compute(recordNum++, activeIndex,
+      clsr.compute(sp.getIterationNum(), columns.getFlatSparse(),
         /* bucketIdxList */   {label},
         /* actValueList */    {(Real)label},
         /* category */        true,
         /* learn */           true,
         /* infer */           false,
                               &result);
-      // cout << "." << flush;
+      if( verbosity and i % 100 == 0 )
+        cout << "." << flush;
   }
+  if( verbosity ) cout << endl;
+
+  columnStats.print();
 
   // Test
   auto test_images  = read_mnist_images("./mnist_data/t10k-images-idx3-ubyte");
@@ -229,16 +242,10 @@ int main(int argc, char **argv) {
     UInt label  = test_labels[i];
 
     // Compute
-    auto activeArray = vector<UInt>( sp.getNumColumns(), 0);
-    sp.compute(image, false, activeArray.data());
-    vector<UInt> activeIndex;
-    for(UInt i = 0; i < activeArray.size(); i++) {
-      if( activeArray[i] ) {
-        activeIndex.push_back(i);
-      }
-    }
+    input.setDense( image );
+    sp.compute(input, false, columns);
     ClassifierResult result;
-    clsr.compute(recordNum++, activeIndex,
+    clsr.compute(sp.getIterationNum(), columns.getFlatSparse(),
       /* bucketIdxList */   {},
       /* actValueList */    {},
       /* category */        true,
@@ -256,6 +263,9 @@ int main(int argc, char **argv) {
           n_samples += 1;
       }
     }
+    if( verbosity and i % 100 == 0 )
+      cout << "." << flush;
   }
+  if( verbosity ) cout << endl;
   cout << "Score: " << score / n_samples << endl;
 }
