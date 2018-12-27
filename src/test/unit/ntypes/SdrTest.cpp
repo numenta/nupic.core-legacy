@@ -1127,49 +1127,57 @@ TEST(SdrTest, TestMetricAF_LongTerm) {
     }
 }
 
-/*
- * 
- */
 TEST(SdrTest, TestMetricAF_Entropy) {
-    const auto period  =   100u;
-    const auto runtime = 10000u;
+    const auto size    = 1000u; // Num bits in SDR.
+    const auto period  =  100u; // For activation frequency exp-rolling-avg
+    const auto runtime = 1000u; // Train time for each scenario
+    const auto tolerance = 0.02f;
 
+    // Extact tests:
     // Test all zeros.
-    SDR A({ 1000u });
+    SDR A({ size });
     SDR_ActivationFrequency F( A, period );
     A.zero();
     EXPECT_FLOAT_EQ( F.entropy(), 0.0f );
 
     // Test all ones.
-    SDR B({ 1000u });
+    SDR B({ size });
     SDR_ActivationFrequency G( B, period );
     B.randomize( 1.0f );
-    EXPECT_FLOAT_EQ( F.entropy(), 0.0f );
+    EXPECT_FLOAT_EQ( G.entropy(), 0.0f );
 
-    // Test 100% entropy
-    SDR C({ 1000u });
+    // Probabilistic tests:
+    // Start with random SDRs, verify 100% entropy. Then disable cells and
+    // verify that the entropy decreases.  Disable cells by freezing their value
+    // so that the resulting SDR keeps the same sparsity.  Progresively disable
+    // more cells and verify that the entropy monotonically decreases.  Finally
+    // verify 0% entropy when all cells are disabled.
+    SDR C({ size });
     SDR_ActivationFrequency H( C, period );
-    for(UInt i = 0; i < runtime; i++)
-        C.randomize( 0.05f );
-    EXPECT_GT( H.entropy(), 0.97f );
-
-    // Test 50% entropy
-    SDR D({ C.size });
-    SDR_ActivationFrequency J( D, period );
-    for(auto i = 0u; i < runtime; i++) {
-        C.randomize( 0.10f );
-        auto &dense = D.getDense();
-        dense.assign(C.getDense().begin(), C.getDense().end());
-        for(auto z = 0u; z < D.size; z += 2u)
-            dense[z] = 0u;
-        D.setDense( dense );
+    auto last_entropy = -1.0f;
+    const UInt incr = size / 10u; // NOTE: This MUST divide perfectly, with no remainder!
+    for(auto nbits_disabled = 0u; nbits_disabled <= size; nbits_disabled += incr) {
+        for(auto i = 0u; i < runtime; i++) {
+            SDR scratch({size});
+            scratch.randomize( 0.05f );
+            // Freeze bits, such that nbits remain alive.
+            for(auto z = 0u; z < nbits_disabled; z++)
+                scratch.getDense()[z] = C.getDense()[z];
+            C.setDense( scratch.getDense() );
+        }
+        const auto entropy = H.entropy();
+        if( nbits_disabled == 0u ) {
+            // Expect 100% entropy
+            EXPECT_GT( entropy, 1.0f - tolerance );
+        }
+        else{
+            // Expect less entropy than last time, when fewer bits were disabled.
+            ASSERT_LT( entropy, last_entropy );
+        }
+        last_entropy = entropy;
     }
-    EXPECT_NEAR( J.entropy(), 0.50f, 0.05f );
-
-    // Test 0% entropy
-    for(auto i = 0u; i < runtime; i++)
-        D.randomize( 1.0f );
-    EXPECT_LT( J.entropy(), 0.05f );
+    // Expect 0% entropy.
+    EXPECT_LT( last_entropy, tolerance );
 }
 
 TEST(SdrTest, TestMetricAF_Print) {
