@@ -73,7 +73,6 @@ Region::Region(std::string name, const std::string &nodeType,
 
 Region::Region(Network *net) {
       network_ = net;
-      spec_ = nullptr;
       impl_ = nullptr;
       initialized_ = false;
       profilingEnabled_ = false;
@@ -160,7 +159,7 @@ void Region::initialize() {
 }
 
 
-const Spec *Region::getSpecFromType(const std::string &nodeType) {
+const Spec_Ptr_t& Region::getSpecFromType(const std::string &nodeType) {
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   return factory.getSpec(nodeType);
 }

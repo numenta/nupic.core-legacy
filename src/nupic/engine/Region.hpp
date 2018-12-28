@@ -132,9 +132,8 @@ public:
    * Get the spec of the region.
    *
    * @returns The spec that describes this region
-   *          Do not delete.
    */
-  const Spec* getSpec() const { return spec_; }
+  const Spec_Ptr_t& getSpec() const { return spec_; }
 
   /**
    * Get the Spec of a region type without an instance.
@@ -144,7 +143,7 @@ public:
    *
    * @returns The Spec that describes this region type
    */
-  static const Spec *getSpecFromType(const std::string &nodeType);
+  static const Spec_Ptr_t& getSpecFromType(const std::string &nodeType);
 
 
   /**
@@ -648,7 +647,7 @@ private:
   // pointer to the "plugin"; owned by Region
   std::shared_ptr<RegionImpl> impl_;
   std::string type_;
-  Spec *spec_;
+  Spec_Ptr_t spec_;
 
   typedef std::map<std::string, Output *> OutputMap;
   typedef std::map<std::string, Input *> InputMap;

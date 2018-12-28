@@ -36,6 +36,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <nupic/types/ptr_types.hpp>
 
 
 
@@ -65,8 +66,8 @@ public:
                                     BundleIO &bundle, Region *region);
 
 
-  // Returns nodespec for a specific node type; Factory retains ownership.
-  Spec *getSpec(const std::string nodeType);
+  // Returns node spec for a specific node type as a shared pointer.
+  Spec_Ptr_t& getSpec(const std::string nodeType);
 
   // RegionImplFactory caches nodespecs and the dynamic library reference
   // This frees up the cached information.
@@ -90,6 +91,7 @@ private:
 
   // Mappings for region nodeTypes that map to Class and module
   std::map<const std::string, std::shared_ptr<RegisteredRegionImpl> > regionTypeMap;
+  std::map<const std::string, std::shared_ptr<Spec> > regionSpecMap;
   void addRegionType(const std::string nodeType, RegisteredRegionImpl* wrapper);
 
 };
