@@ -39,6 +39,8 @@ class LinkRegion(PyRegion):
   def initialize(self): pass
   def compute(self): pass
   def getOutputElementCount(self): pass
+  def getNodeOutputElementCount(self, name): 
+    return 1
   @classmethod
   def getSpec(cls):
     return {
@@ -118,7 +120,6 @@ class NetworkTest(unittest.TestCase):
       engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
 
 
-  #@pytest.mark.skip(reason="SegFault in debug mode...another PR")
   def testSimpleTwoRegionNetworkIntrospection(self):
     # Create Network instance
     network = engine.Network()
@@ -150,14 +151,16 @@ class NetworkTest(unittest.TestCase):
       self.fail("Unable to iterate network links.")
 
 
-  @pytest.mark.skip(reason="pickle support needs work...another PR")
   def testNetworkLinkTypeValidation(self):
     """
     This tests whether the links source and destination dtypes match
     """
     network = engine.Network()
-    network.addRegion("from", "py.LinkRegion", "")
-    network.addRegion("to", "py.LinkRegion", "")
+    r_from = network.addRegion("from", "py.LinkRegion", "")
+    r_to = network.addRegion("to", "py.LinkRegion", "")
+    cnt = r_from.getNodeOutputElementCount("UInt32")
+    self.assertEqual(1, cnt)
+
 
     # Check for valid links
     network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")
@@ -168,6 +171,7 @@ class NetworkTest(unittest.TestCase):
       network.link("from", "to", "UniformLink", "", "Real32", "UInt32")
     with pytest.raises(RuntimeError):
       network.link("from", "to", "UniformLink", "", "UInt32", "Real32")
+	
 
   @pytest.mark.skip(reason="parameter types don't match.")
   def testParameters(self):
