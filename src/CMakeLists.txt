@@ -203,8 +203,6 @@ set(os_files
     nupic/os/OSWin.cpp
     nupic/os/Path.cpp
     nupic/os/Path.hpp
-    nupic/os/Regex.cpp
-    nupic/os/Regex.hpp
     nupic/os/Timer.cpp
     nupic/os/Timer.hpp    
 )
