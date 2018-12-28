@@ -136,17 +136,16 @@ protected:
 
     /**
      * These hooks are called every time the SDR's value changes.  These can be
-     * NULL pointers!
+     * NULL pointers!  See methods addCallback & removeCallback for API details.
      */
     vector<SDR_callback_t> callbacks;
 
     /**
-     * SDR allows Proxy subclasses which synchronize their value to this SDRs
-     * value.  These proxies must be registered via methods _addProxy() &
-     * _removeProxy().  When this class is destroyed, all proxies are notified
-     * via a method call to proxy.deconstruct().
+     * These hooks are called when the SDR is destroyed.  These can be NULL
+     * pointers!  See methods addDestroyCallback & removeDestroyCallback for API
+     * details.
      */
-    vector<SparseDistributedRepresentation*> proxies;
+    vector<SDR_callback_t> destroyCallbacks;
 
     /**
      * These flags remember which data formats are up-to-date and which formats
@@ -235,22 +234,20 @@ protected:
     };
 
     /**
-     * Clean up this SDR and any other SDR-like-objects which may be watching
-     * this SDR.  This method destroys (but does NOT deallocate) a subtree of
-     * SDR proxies.
+     * Destroy this SDR.  Makes SDR unusable, should error or clearly fail if
+     * used.  Also sends notification to all watchers via destroyCallbacks.
+     * This is a separate method from ~SDR so that SDRs can be destroyed long
+     * before they're deallocated; SDR Proxy does this.
      */
     virtual void deconstruct() {
         clear();
         size_ = 0;
         dimensions_.clear();
-        // Iterate over a copy because the deconstructors may remove themselves
-        // from the proxies list via method _removeProxy().
-        vector<SparseDistributedRepresentation*> copy( proxies );
-        for( auto child : copy ) {
-            if( child != nullptr )
-                child->deconstruct();
+        for( auto func : destroyCallbacks ) {
+            if( func != nullptr )
+                func();
         }
-    };
+    }
 
 public:
     /**
@@ -859,37 +856,49 @@ public:
      * your callback.
      */
     void removeCallback(UInt index) {
-        NTA_CHECK( index < callbacks.size() ) << "SDR::removeCallback, Invalid Handle!";
+        NTA_CHECK( index < callbacks.size() )
+            << "SDR::removeCallback, Invalid Handle!";
+        NTA_CHECK( callbacks[index] != nullptr )
+            << "SDR::removeCallback, Callback already removed!";
         callbacks[index] = nullptr;
     };
 
     /**
-     * Add SDR to this classes proxy list.  When this SDR is destroyed, all
-     * proxies on the list will be cleaned up via a call to method
-     * proxy.deconstruct()
+     * This callback notifies you when this SDR is deconstructed and freed from
+     * memory.
      *
-     * @param proxy An SDR to register with this SDR for proper end-of-life
-     * handling.
+     * Note: callbacks are NOT serialized; after saving & loading an SDR the
+     * user must setup their callbacks again.
+     *
+     * @param callback A function to call when this SDR is destroyed.  Function
+     * accepts no arguments and returns void.
+     *
+     * @returns UInt Handle for the given callback, needed to remove callback.
      */
-    void _addProxy(SparseDistributedRepresentation *proxy) {
-        proxies.push_back( proxy );
+    UInt addDestroyCallback(SDR_callback_t callback) {
+        UInt index = 0;
+        for( ; index < destroyCallbacks.size(); index++ ) {
+            if( destroyCallbacks[index] == nullptr ) {
+                destroyCallbacks[index] = callback;
+                return index;
+            }
+        }
+        destroyCallbacks.push_back( callback );
+        return index;
     };
 
     /**
-     * Remove an SDR from this classes proxy list.  Proxies must call this when
-     * they are destroyed so that this SDR can remove its pointers to the (now
-     * defunct) proxy.
+     * Remove a previously registered destroy callback.
      *
-     * @param proxy An SDR to unregister with this SDR.
+     * @param UInt Handle which was returned by addDestroyCallback when you
+     * registered your callback.
      */
-    void _removeProxy(SparseDistributedRepresentation *proxy) {
-        for(auto it = proxies.begin(); it != proxies.end(); it++ ) {
-            if( *it == proxy ) {
-                proxies.erase( it );
-                return;
-            }
-        }
-        NTA_THROW << "SDR::_removeProxy, Proxy not found!";
+    void removeDestroyCallback(UInt index) {
+        NTA_CHECK( index < destroyCallbacks.size() )
+            << "SDR::removeDestroyCallback, Invalid Handle!";
+        NTA_CHECK( destroyCallbacks[index] != nullptr )
+            << "SDR::removeDestroyCallback, Callback already removed!";
+        destroyCallbacks[index] = nullptr;
     };
 };
 
@@ -943,10 +952,12 @@ public:
         clear();
         parent = &sdr;
         NTA_CHECK( size == parent->size ) << "SDR Proxy must have same size as given SDR.";
-        parent->_addProxy( this );
         callback_handle = parent->addCallback( [&] () {
             clear();
             do_callbacks();
+        });
+        destroyCallback_handle = parent->addDestroyCallback( [&] () {
+            deconstruct();
         });
     };
 
@@ -984,13 +995,14 @@ protected:
      * This SDR shall always have the same value as the parent SDR.
      */
     SDR *parent;
-    int callback_handle;
+    UInt callback_handle;
+    UInt destroyCallback_handle;
 
     void deconstruct() override {
         // Unlink this SDR from the parent SDR.
         if( parent != nullptr ) {
-            parent->_removeProxy( this );
             parent->removeCallback( callback_handle );
+            parent->removeDestroyCallback( destroyCallback_handle );
             parent = nullptr;
             SDR::deconstruct();
         }
@@ -1026,24 +1038,44 @@ protected:
     SDR* dataSource_;
     UInt period_;
     int  samples_;
+    UInt  callback_handle_;
+    UInt  destroyCallback_handle_;
 
     /**
      * @param dataSource SDR to track.  Add data to the metric by assigning to
      * this SDR.  This class deals with adding a callback to this SDR so that
      * your SDR-MetricsTracker is notified after every update to the SDR.
      *
-     * @param period TODO
+     * @param period Time scale for exponential moving average.
      */
     _SDR_MetricsHelper( SDR &dataSource, UInt period ) {
         NTA_CHECK( period > 0u );
         dataSource_ = &dataSource;
         period_     = period;
         samples_    = 0;
-        dataSource.addCallback( [&](){
+        callback_handle_ = dataSource_->addCallback( [&](){
             samples_++;
             callback( *dataSource_, 1.0f / std::min( period_, (UInt) samples_ ));
         });
+        destroyCallback_handle_ = dataSource_->addDestroyCallback( [&](){
+            deconstruct();
+        });
     }
+
+    ~_SDR_MetricsHelper() {
+        deconstruct();
+    }
+
+    void deconstruct() {
+        if( dataSource_ != nullptr ) {
+            dataSource_->removeCallback( callback_handle_ );
+            dataSource_->removeDestroyCallback( destroyCallback_handle_ );
+            dataSource_ = nullptr;
+        }
+    }
+
+    // TODO: Unit-test for descrutor, at least one of the metrics should test
+    // this, not all need to though!
 
     /**
      * Add another datum to the metric.
@@ -1063,8 +1095,23 @@ public:
 };
 
 /**
- * Measures the sparsity of an SDR.
- * TODO: DOCUMENTATION
+ * SDR_Sparsity class
+ *
+ * ### Description
+ * Measures the sparsity of an SDR.  This accumulates measurements using an
+ * exponential moving average, and outputs a summary of results.
+ *
+ * Example Usage:
+ *      SDR A( dimensions )
+ *      SDR_Sparsity B( A, 1000 )
+ *      A.randomize( 0.01 )
+ *      A.randomize( 0.15 )
+ *      A.randomize( 0.05 )
+ *      B.sparsity ->  0.05
+ *      B.min()    ->  0.01
+ *      B.max()    ->  0.15
+ *      B.mean()   -> ~0.07
+ *      B.std()    -> ~0.06
  */
 class SDR_Sparsity : public _SDR_MetricsHelper {
 private:
@@ -1087,6 +1134,12 @@ private:
     }
 
 public:
+    /**
+     * @param dataSource SDR to track.  Add data to this sparsity metric by
+     * assigning to this SDR.
+     *
+     * @param period Time scale for exponential moving average.
+     */
     SDR_Sparsity( SDR &dataSource, UInt period )
         : _SDR_MetricsHelper( dataSource, period )
     {
@@ -1112,8 +1165,18 @@ public:
 };
 
 /**
- * Measure the activation frequency of each value in an SDR.
- * TODO: DOCUMENTATION
+ * SDR_ActivationFrequency class
+ *
+ * ### Description
+ * Measures the activation frequency of each value in an SDR.  This accumulates
+ * measurements using an exponential moving average, and outputs a summary of
+ * results.
+
+// TODO: EXPLAIN THE DATA TYPE & RANGE
+
+ *
+ * Example Usage:
+ *      TODO
  */
 class SDR_ActivationFrequency : public _SDR_MetricsHelper {
 private:
@@ -1131,6 +1194,12 @@ private:
     }
 
 public:
+    /**
+     * @param dataSource SDR to track.  Add data to this SDR_ActivationFrequency
+     * instance by assigning to this SDR.
+     *
+     * @param period Time scale for exponential moving average.
+     */
     SDR_ActivationFrequency( SDR &dataSource, UInt period )
         : _SDR_MetricsHelper( dataSource, period )
     {
@@ -1199,7 +1268,28 @@ public:
 
 
 /**
- * TODO: DOCUMENTATION
+ * SDR_Overlap class
+ *
+ * ### Description
+ * Measures the overlap between successive assignments to an SDR.  This class
+ * accumulates measurements using an exponential moving average, and outputs a
+ * summary of results.
+ *
+ * This class normalizes the overlap into the range [0, 1] by dividing by the
+ * number of active values.
+ *
+ * Example Usage:
+ *      SDR A( dimensions )
+ *      SDR_Overlap B( A, 1000 )
+ *      A.randomize( 0.05 )
+ *      A.addNoise( 0.95 )  ->  5% overlap
+ *      A.addNoise( 0.55 )  -> 45% overlap
+ *      A.addNoise( 0.72 )  -> 28% overlap
+ *      B.overlap   ->  0.28
+ *      B.min()     ->  0.05
+ *      B.max()     ->  0.45
+ *      B.mean()    ->  0.26
+ *      B.std()     -> ~0.16
  */
 class SDR_Overlap : public _SDR_MetricsHelper {
 private:
@@ -1230,6 +1320,12 @@ private:
     }
 
 public:
+    /**
+     * @param dataSource SDR to track.  Add data to this SDR_Overlap instance
+     * by assigning to this SDR.
+     *
+     * @param period Time scale for exponential moving average.
+     */
     SDR_Overlap( SDR &dataSource, UInt period )
         : _SDR_MetricsHelper( dataSource, period ),
           previous_( dataSource.dimensions )
@@ -1260,7 +1356,19 @@ public:
 };
 
 /**
- * TODO: DOCUMENTATION
+ * SDR_Metrics class
+ *
+ * ### Description
+ * Measures an SDR.  This applies the following three metrics:
+ *      SDR_Sparsity
+ *      SDR_ActivationFrequency
+ *      SDR_Overlap
+ *
+ * This accumulates measurements using an exponential moving average, and
+ * outputs a summary of results.
+ *
+ * Example Usage:
+ *      TODO
  */
 class SDR_Metrics {
 private:
@@ -1270,11 +1378,19 @@ private:
     SDR_Overlap             overlap_;
 
 public:
+    /**
+     * @param dataSource SDR to track.  Add data to this SDR_Metrics instance
+     * by assigning to this SDR.
+     *
+     * @param period Time scale for exponential moving average.
+     */
     SDR_Metrics( SDR &dataSource, UInt period )
         : sparsity_( dataSource, period ),
           activationFrequency_( dataSource, period ),
           overlap_( dataSource, period )
     {
+        // TODO: Add flags to enable/disable which metrics are turned on by
+        // default.
         dimensions_ = dataSource.dimensions;
     }
 
