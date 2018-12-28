@@ -48,7 +48,6 @@ set(CORE_LIB_INCLUDES  ${PROJECT_SOURCE_DIR}  # for nupic/xxx/*.h
 )
 set(CORE_LIB_INCLUDES  ${CORE_LIB_INCLUDES} PARENT_SCOPE)
 
-message(STATUS "in src: EXTERNAL_INCLUDES=${EXTERNAL_INCLUDES}")
 
 ###############
 # Create Version.hpp
@@ -278,10 +277,7 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
     ${utils_files} 
 )
 
-# nupic_core_solo sources depend on headers installed by these external projects
-add_dependencies(${src_lib_static_nupiccore_solo}
-        yaml-cpp
-		)
+
 target_compile_options( ${src_lib_static_nupiccore_solo} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_lib_static_nupiccore_solo} PRIVATE 
@@ -299,15 +295,12 @@ endif()
 # Create the nupic_core as a "combined" static library by merging nupic_core_solo
 # with our external static libraries
 #
-set(core_library   nupic_core)
 set(src_combined_nupiccore_source_archives
     ${src_lib_static_nupiccore_solo}
     ${yaml-cpp_LIBRARIES}
     ${Boost_LIBRARIES}
     )
-message(STATUS "creating nupic_core from Libraries: ${src_combined_nupiccore_source_archives}")
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
-set(core_library ${core_library} PARENT_SCOPE)
 
 
 #########################################################
