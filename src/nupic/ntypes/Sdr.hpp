@@ -188,7 +188,7 @@ protected:
         clear();
         dense_valid = true;
         do_callbacks();
-    };
+    }
 
     /**
      * Update the SDR to reflect the value currently inside of the flatSparse
@@ -207,7 +207,7 @@ protected:
         clear();
         flatSparse_valid = true;
         do_callbacks();
-    };
+    }
 
     /**
      * Update the SDR to reflect the value currently inside of the sparse
@@ -231,7 +231,7 @@ protected:
         clear();
         sparse_valid = true;
         do_callbacks();
-    };
+    }
 
     /**
      * Destroy this SDR.  Makes SDR unusable, should error or clearly fail if
@@ -253,7 +253,7 @@ public:
     /**
      * Use this method only in conjuction with sdr.load().
      */
-    SparseDistributedRepresentation() {};
+    SparseDistributedRepresentation() {}
 
     /**
      * Create an SDR object.  Initially SDRs value is all zeros.
@@ -277,7 +277,7 @@ public:
         // Initialize the index tuple.
         sparse.assign( dimensions.size(), {} );
         sparse_valid = true;
-    };
+    }
 
     /**
      * Initialize this SDR as a deep copy of the given SDR.  This SDR and the
@@ -289,10 +289,10 @@ public:
     SparseDistributedRepresentation(const SparseDistributedRepresentation &value)
         : SparseDistributedRepresentation( value.dimensions ) {
         setSDR(value);
-    };
+    }
 
     virtual ~SparseDistributedRepresentation()
-        { deconstruct(); };
+        { deconstruct(); }
 
     /**
      * @attribute dimensions A list of dimensions of the SDR.
@@ -311,7 +311,7 @@ public:
     void zero() {
         flatSparse.clear();
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Swap a new value into the SDR, replacng the current value.  This
@@ -324,7 +324,7 @@ public:
         NTA_ASSERT(value.size() == size);
         dense.swap( value );
         setDenseInplace();
-    };
+    }
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
@@ -336,7 +336,7 @@ public:
         NTA_ASSERT(value.size() == size);
         dense.assign( value.begin(), value.end() );
         setDenseInplace();
-    };
+    }
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
@@ -348,7 +348,7 @@ public:
         NTA_ASSERT(value != nullptr);
         dense.assign( value, value + size );
         setDenseInplace();
-    };
+    }
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
@@ -362,7 +362,7 @@ public:
             value.getBuffer(), value.getType(),
             size);
         setDenseInplace();
-    };
+    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -382,7 +382,7 @@ public:
             dense_valid = true;
         }
         return dense;
-    };
+    }
 
     /**
      * Query the value of the SDR at a single location.
@@ -411,7 +411,7 @@ public:
     void setFlatSparse( SDR_flatSparse_t &value ) {
         flatSparse.swap( value );
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Copy a vector of sparse indices of true values.  These indicies are into
@@ -423,7 +423,7 @@ public:
     void setFlatSparse( const vector<T> &value ) {
         flatSparse.assign( value.begin(), value.end() );
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Copy an array of sparse indices of true values.  These indicies are into
@@ -436,7 +436,7 @@ public:
     void setFlatSparse( const T *value, const UInt num_values ) {
         flatSparse.assign( value, value + num_values );
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Copy an array of sparse indices of true values.  These indicies are into
@@ -452,7 +452,7 @@ public:
             value.getBuffer(), value.getType(),
             value.getCount());
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -492,7 +492,7 @@ public:
                 NTA_THROW << "SDR has no data!";
         }
         return flatSparse;
-    };
+    }
 
     /**
      * Swap a list of indices into the SDR, replacing the SDRs current value.
@@ -510,7 +510,7 @@ public:
     void setSparse( vector<vector<UInt>> &value ) {
         sparse.swap( value );
         setSparseInplace();
-    };
+    }
 
     /**
      * Copy a list of indices into the SDR, overwritting the SDRs current value.
@@ -529,7 +529,7 @@ public:
             sparse[dim].assign( value[dim].begin(), value[dim].end() );
         }
         setSparseInplace();
-    };
+    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -556,7 +556,7 @@ public:
             sparse_valid = true;
         }
         return sparse;
-    };
+    }
 
     /**
      * Deep Copy the given SDR to this SDR.  This overwrites the current value of
@@ -583,7 +583,7 @@ public:
                 sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
         }
         do_callbacks();
-    };
+    }
 
     /**
      * Calculates the number of true / non-zero values in the SDR.
@@ -591,7 +591,7 @@ public:
      * @returns The number of true values in the SDR.
      */
     UInt getSum()
-        { return getFlatSparse().size(); };
+        { return getFlatSparse().size(); }
 
     /**
      * Calculates the sparsity of the SDR, which is the fraction of bits which
@@ -601,7 +601,7 @@ public:
      * @returns The fraction of values in the SDR which are true.
      */
     Real getSparsity()
-        { return (Real) getSum() / size; };
+        { return (Real) getSum() / size; }
 
     /**
      * Calculates the number of true bits which both SDRs have in common.
@@ -625,7 +625,7 @@ public:
         for( UInt i = 0u; i < size; i++ )
             ovlp += a[i] && b[i];
         return ovlp;
-    };
+    }
 
     /**
      * Make a random SDR, overwriting the current value of the SDR.  The
@@ -641,7 +641,7 @@ public:
     void randomize(Real sparsity) {
         Random rng( 0 );
         randomize( sparsity, rng );
-    };
+    }
 
     void randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0. and sparsity <= 1. );
@@ -653,7 +653,7 @@ public:
         rng.sample( range.data(),      size,
                     flatSparse.data(), nbits);
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Modify the SDR by moving a fraction of the active bits to different
@@ -702,7 +702,7 @@ public:
             dns[ idx ] = 0;
 
         setDenseInplace();
-    };
+    }
 
     /**
      * Print a human readable version of the SDR, defaults to STDOUT.
@@ -739,10 +739,10 @@ public:
             getDense().begin(),
             getDense().end(), 
             sdr.getDense().begin());
-    };
+    }
 
     bool operator!=(SparseDistributedRepresentation &sdr)
-        { return not ((*this) == sdr); };
+        { return not ((*this) == sdr); }
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.
@@ -776,7 +776,7 @@ public:
         }
 
         outStream << "~SDR" << endl;
-    };
+    }
 
     /**
      * Load (deserialize) and initialize the SDR from the specified input
@@ -824,7 +824,7 @@ public:
         // Consume the end marker.
         inStream >> marker;
         NTA_CHECK( marker == "~SDR" );
-    };
+    }
 
     /**
      * Callbacks notify you when this SDR's value changes.
@@ -847,7 +847,7 @@ public:
         }
         callbacks.push_back( callback );
         return index;
-    };
+    }
 
     /**
      * Remove a previously registered callback.
@@ -861,7 +861,7 @@ public:
         NTA_CHECK( callbacks[index] != nullptr )
             << "SDR::removeCallback, Callback already removed!";
         callbacks[index] = nullptr;
-    };
+    }
 
     /**
      * This callback notifies you when this SDR is deconstructed and freed from
@@ -885,7 +885,7 @@ public:
         }
         destroyCallbacks.push_back( callback );
         return index;
-    };
+    }
 
     /**
      * Remove a previously registered destroy callback.
@@ -899,7 +899,7 @@ public:
         NTA_CHECK( destroyCallbacks[index] != nullptr )
             << "SDR::removeDestroyCallback, Callback already removed!";
         destroyCallbacks[index] = nullptr;
-    };
+    }
 };
 
 typedef SparseDistributedRepresentation SDR;
@@ -945,7 +945,7 @@ public:
      */
     SDR_Proxy(SDR &sdr)
         : SDR_Proxy(sdr, sdr.dimensions)
-        {};
+        {}
 
     SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
         : SDR( dimensions ) {
@@ -959,10 +959,10 @@ public:
         destroyCallback_handle = parent->addDestroyCallback( [&] () {
             deconstruct();
         });
-    };
+    }
 
     ~SDR_Proxy() override
-        { deconstruct(); };
+        { deconstruct(); }
 
     SDR_dense_t& getDense() override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
@@ -1006,25 +1006,25 @@ protected:
             parent = nullptr;
             SDR::deconstruct();
         }
-    };
+    }
 
     const string _SDR_Proxy_setter_error_message = "SDR_Proxy is read only.";
 
     void setDenseInplace() override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+        { NTA_THROW << _SDR_Proxy_setter_error_message; }
     void setFlatSparseInplace() override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+        { NTA_THROW << _SDR_Proxy_setter_error_message; }
     void setSparseInplace() override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+        { NTA_THROW << _SDR_Proxy_setter_error_message; }
     void setSDR( const SparseDistributedRepresentation &value ) override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
+        { NTA_THROW << _SDR_Proxy_setter_error_message; }
 
     const string _SDR_save_load_error_message =
         "SDR_Proxy does not support serialization, save/load the source SDR instead.";
     void save(std::ostream &outStream) const override
-        { NTA_THROW << _SDR_save_load_error_message; };
+        { NTA_THROW << _SDR_save_load_error_message; }
     void load(std::istream &inStream) override
-        { NTA_THROW << _SDR_save_load_error_message; };
+        { NTA_THROW << _SDR_save_load_error_message; }
 };
 
 /**
@@ -1398,7 +1398,7 @@ public:
     const SDR_ActivationFrequency &activationFrequency = activationFrequency_;
     const SDR_Overlap             &overlap             = overlap_;
 
-    void print(std::ostream &stream = std::cout) {
+    void print(std::ostream &stream = std::cout) const {
         // Introduction line:  "SDR ( dimensions )"
         stream << "SDR( ";
         for(const auto &dim : dimensions_)
@@ -1423,5 +1423,5 @@ public:
     }
 };
 
-}; // end namespace nupic
+} // end namespace nupic
 #endif // end ifndef SDR_HPP
