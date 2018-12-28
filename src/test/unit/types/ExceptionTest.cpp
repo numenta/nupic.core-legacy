@@ -31,19 +31,19 @@ using namespace nupic;
 
 TEST(ExceptionTest, Basic) {
   try {
-    throw nupic::Exception("FFF", 123, "MMM");
+    throw nupic::Exception("FFF", 123ul, "MMM");
   } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
-    ASSERT_EQ(e.getLineNumber(), 123);
+    ASSERT_EQ(e.getLineNumber(), 123ul);
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
     ASSERT_EQ(std::string(e.getStackTrace()), std::string(""));
   }
 
   try {
-    throw nupic::Exception("FFF", 123, "MMM", "TB");
+    throw nupic::Exception("FFF", 123ul, "MMM", "TB");
   } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
-    ASSERT_EQ(e.getLineNumber(), 123);
+    ASSERT_EQ(e.getLineNumber(), 123l);
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
     ASSERT_EQ(std::string(e.getStackTrace()), std::string("TB"));
   }

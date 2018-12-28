@@ -18,21 +18,66 @@
 #
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
+#  Features:
+#  - All third party modules are downloaded form the internet and build.
+#
+#  - Isolated so does not require being downloaded more than once.
+#
+#  - It is possible to manually preload the distribution packages (for air gap computers)
+#     1) On some other machine, download the following:
+#        https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
+#        https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz
+#        https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz
+#        https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz
+#        http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
+#     2) copy these to <repository>/build/ThirdParty/share/
+#
+#  NOTE:  This is executed by the top level CMakeLists.txt via the bootstrap.cmake
+#         by executing "cd build/scripts; cmake ../.."
+#         Resulting paths are passed back via the file "build/ThirdParty/results.txt".
+#
+#         This has a separate cache so not affected by make clean.
+#          
+# If you need to re-build the ThirdParty libaries, 
+#  - cd to repository
+#  - delete build  (rm -r build)
+#  - create build/scripts (mkdir -d build/scripts)
+#  - cd build/scripts
+#  - cmake ../..
 
 cmake_minimum_required(VERSION 3.3)
 project(nupic_core CXX)
-
-
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include(GNUInstallDirs)
 include(ExternalProject)
-set(EP_BASE ${CMAKE_BINARY_DIR}/ThirdParty)
+set(EP_BASE ${CMAKE_BINARY_DIR})
+STRING(REGEX REPLACE "@@@" " " EXTERNAL_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}" CACHE STRING "Sets compile flags" FORCE)
+
+
+message(STATUS "external import")
+message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "   CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
+message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
+message(STATUS "   NEEDS_BOOST           = ${NEEDS_BOOST}")
+message(STATUS "   PYTHON2_BUILD         = ${PYTHON2_BUILD}")
+message(STATUS "   PYTHON3_BUILD         = ${PYTHON3_BUILD}")
+
+
+set(EXPORT_FILE_NAME "${EP_BASE}/results.txt")
+FILE(REMOVE "${EXPORT_FILE_NAME}")
 
 ################
 # Yaml-cpp
 include(YamlCppLib.cmake)
+
+
+################
+# Eigen
+include(eigen.cmake)
+
 
 ##################
 #  Boost
@@ -50,9 +95,5 @@ if(PYTHON2_BUILD OR PYTHON3_BUILD)
   include(pybind11.cmake)
 endif()
 
-set(EXTERNAL_INCLUDES
-	${yaml-cpp_INCLUDE_DIRS}
-	${Boost_INCLUDE_DIRS}
-	${REPOSITORY_DIR}/external/common/include
-	PARENT_SCOPE
-)
+
+

@@ -116,10 +116,6 @@ set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
 # It is ready to use pybind11_add_module() macro.
 # For details: https://pybind11.readthedocs.io/en/stable/compiling.html#cmake
 
-message(STATUS "Core lib to LINK is '${core_library}' ")
-message(STATUS "CORE_LIB_INCLUDES = ${CORE_LIB_INCLUDES}")
-message(STATUS "EXTERNAL_INCLUDES = ${EXTERNAL_INCLUDES}")
-message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
 
 set(algorithms_shared_lib algorithms)
 pybind11_add_module(${algorithms_shared_lib} ${src_py_algorithms_files} )
