@@ -1354,64 +1354,37 @@ TEST(SdrTest, TestMetricOverlap_Print) {
  */
 TEST(SdrTest, TestAllMetrics_Construct) {
     // Test that it constructs.
-    cerr << "TAG  A" << endl;
     SDR *A = new SDR({ 100u });
-    cerr << "TAG  B" << endl;
     SDR_Metrics M( *A, 10u );
-    cerr << "TAG  C" << endl;
 
     A->randomize( 0.05f );
-    cerr << "TAG  D" << endl;
     A->randomize( 0.05f );
-    cerr << "TAG  D2" << endl;
     A->randomize( 0.05f );
 
     // Test use after freeing data source.
-    cerr << "TAG  E" << endl;
     delete A;
-    cerr << "TAG  F" << endl;
     stringstream devnull;
-    cerr << "TAG  G" << endl;
     M.print( devnull );
-    cerr << "TAG  H" << endl;
 
     // Test delete Metric and keep using SDR.
     A = new SDR({ 100u });
-    cerr << "TAG  I" << endl;
     SDR_Metrics *B = new SDR_Metrics( *A, 99u );
-    cerr << "TAG  J" << endl;
     SDR_Metrics *C = new SDR_Metrics( *A, 98u );
-    cerr << "TAG  K" << endl;
     A->randomize( 0.20f );
-    cerr << "TAG  K2" << endl;
     A->randomize( 0.20f );
-    cerr << "TAG  L" << endl;
     B->print( devnull );
-    cerr << "TAG  M" << endl;
     delete B;                   // First deletion
-    cerr << "TAG  N" << endl;
     A->randomize( 0.20f );
-    cerr << "TAG  N2" << endl;
     A->addNoise( 0.20f );
-    cerr << "TAG  O" << endl;
     B = new SDR_Metrics( *A, 99u );    // Remove & Recreate
-    cerr << "TAG  P" << endl;
     A->randomize( 0.20f );
-    cerr << "TAG  P2" << endl;
     A->randomize( 0.20f );
-    cerr << "TAG  Q" << endl;
     A->print( devnull );
-    cerr << "TAG  R" << endl;
     delete A;
-    cerr << "TAG  S" << endl;
     C->print( devnull );
-    cerr << "TAG  T" << endl;
     delete C;
-    cerr << "TAG  U" << endl;
     B->print( devnull );
-    cerr << "TAG  V" << endl;
     delete B;
-    cerr << "TAG  W" << endl;
 }
 
 /**
