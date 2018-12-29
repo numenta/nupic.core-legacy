@@ -38,8 +38,7 @@ class LinkRegion(PyRegion):
   def __init__(self): pass
   def initialize(self): pass
   def compute(self): pass
-  def getOutputElementCount(self): pass
-  def getNodeOutputElementCount(self, name): 
+  def getOutputElementCount(self, name): 
     return 1
   @classmethod
   def getSpec(cls):
@@ -151,7 +150,6 @@ class NetworkTest(unittest.TestCase):
       self.fail("Unable to iterate network links.")
 
 
-  @pytest.mark.skip(reason="getNodeOutputElementCount() needs work...another PR")
   def testNetworkLinkTypeValidation(self):
     """
     This tests whether the links source and destination dtypes match
@@ -159,7 +157,7 @@ class NetworkTest(unittest.TestCase):
     network = engine.Network()
     r_from = network.addRegion("from", "py.LinkRegion", "")
     r_to = network.addRegion("to", "py.LinkRegion", "")
-    cnt = r_from.getNodeOutputElementCount("UInt32")
+    cnt = r_from.getOutputElementCount("UInt32")
     self.assertEqual(1, cnt)
 
 

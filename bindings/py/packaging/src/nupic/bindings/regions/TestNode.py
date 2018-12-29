@@ -233,7 +233,7 @@ class TestNode(PyRegion):
       assert False, 'TestNode.compute() Failing on purpose as requested'
 
 
-  def getNodeOutputElementCount(self, name):
+  def getOutputElementCount(self, name):
     assert name == 'bottomUpOut'
     return self.outputElementCount
 
