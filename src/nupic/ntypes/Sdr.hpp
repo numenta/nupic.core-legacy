@@ -1436,40 +1436,40 @@ public:
     const SDR_Overlap             &overlap             = overlap_;
 
     void print(std::ostream &stream = std::cout) const {
-        cerr << "M PRINT"
+        cerr << "M PRINT";
         // Introduction line:  "SDR ( dimensions )"
         stream << "SDR( ";
-        cerr << "M PRINT 1"
+        cerr << "M PRINT 1";
         for(const auto &dim : dimensions_)
             stream << dim << " ";
-        cerr << "M PRINT 2"
+        cerr << "M PRINT 2";
         stream << ")" << endl;
 
         // Print data to temporary area for formatting.
-        cerr << "M PRINT 3"
+        cerr << "M PRINT 3";
         stringstream data_stream;
-        cerr << "M PRINT 4"
+        cerr << "M PRINT 4";
 
         sparsity.print( data_stream );
-        cerr << "M PRINT 5"
+        cerr << "M PRINT 5";
         activationFrequency.print( data_stream );
-        cerr << "M PRINT 6"
+        cerr << "M PRINT 6";
         overlap.print( data_stream );
-        cerr << "M PRINT 7"
+        cerr << "M PRINT 7";
 
         // Indent all of the data.
         string data = data_stream.str();
-        cerr << "M PRINT 8"
+        cerr << "M PRINT 8";
         // Append tabs to all newlines
         data = regex_replace( data, regex("\n"), "\n\r    " );
-        cerr << "M PRINT 9"
+        cerr << "M PRINT 9";
         // Strip trailing whitespace
         data = regex_replace( data, regex("\\s+$"), "" );
-        cerr << "M PRINT 10"
+        cerr << "M PRINT 10";
         stream << "    ";
-        cerr << "M PRINT 11"
+        cerr << "M PRINT 11";
         stream << data << endl;
-        cerr << "M PRINT 12"
+        cerr << "M PRINT 12";
     }
 };
 
