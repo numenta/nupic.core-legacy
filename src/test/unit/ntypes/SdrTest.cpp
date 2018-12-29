@@ -928,6 +928,19 @@ TEST(SdrTest, TestMetricSparsityConstruct) {
     ASSERT_EQ( S.sparsity, 0.0f );
 }
 
+TEST(SdrTest, TestMetricSparsityExample) {
+    SDR A( { 1000u } );
+    SDR_Sparsity B( A, 1000u );
+    A.randomize( 0.01f );
+    A.randomize( 0.15f );
+    A.randomize( 0.05f );
+    ASSERT_EQ( B.sparsity, 0.05f);
+    ASSERT_EQ( B.min(),    0.01f);
+    ASSERT_EQ( B.max(),    0.15f);
+    ASSERT_NEAR( B.mean(),   0.07f, 0.005f );
+    ASSERT_NEAR( B.std(),    0.06f, 0.005f );
+}
+
 /*
  * SDR_Sparsity
  * Verify that the initial 10 values of metric are OK.
@@ -1084,7 +1097,7 @@ TEST(SdrTest, TestMetricAF_Construct) {
  * SDR_ActivationFrequency
  * Verify that the first few data points are ok.
  */
-TEST(SdrTest, TestMetricAF_ShortTerm) {
+TEST(SdrTest, TestMetricAF_Example) {
     SDR A({ 2u });
     SDR_ActivationFrequency F( A, 10u );
 
@@ -1101,6 +1114,7 @@ TEST(SdrTest, TestMetricAF_ShortTerm) {
     ASSERT_EQ( F.max(), F.activationFrequency[1] );
     ASSERT_FLOAT_EQ( F.mean(), 0.5f );
     ASSERT_NEAR( F.std(), 0.16666666666666666f, 0.001f );
+    ASSERT_NEAR( F.entropy(), 0.9182958340544896f, 0.001f );
 }
 
 /*
@@ -1236,6 +1250,20 @@ TEST(SdrTest, TestMetricOverlap_Construct) {
     ASSERT_EQ( V.overlap, 0.50f );
 }
 
+TEST(SdrTest, TestMetricOverlap_Example) {
+    SDR A({ 10000u });
+    SDR_Overlap B( A, 1000u );
+    A.randomize( 0.05 );
+    A.addNoise( 0.95 );         //   5% overlap
+    A.addNoise( 0.55 );         //  45% overlap
+    A.addNoise( 0.72 );         //  28% overlap
+    ASSERT_EQ( B.overlap,  0.28f );
+    ASSERT_EQ( B.min(),    0.05f );
+    ASSERT_EQ( B.max(),    0.45f );
+    ASSERT_NEAR( B.mean(), 0.26f, 0.005f );
+    ASSERT_NEAR( B.std(),  0.16f, 0.005f );
+}
+
 TEST(SdrTest, TestMetricOverlap_ShortTerm) {
     SDR         A({ 1000u });
     SDR_Overlap V( A, 10u );
@@ -1335,7 +1363,28 @@ TEST(SdrTest, TestAllMetrics_Construct) {
 
     // Test use after freeing data source.
     delete A;
-    M.print();
+    stringstream devnull;
+    M.print( devnull );
+
+    // Test delete Metric and keep using SDR.
+    A = new SDR({ 100u });
+    SDR_Metrics *B = new SDR_Metrics( *A, 99u );
+    SDR_Metrics *C = new SDR_Metrics( *A, 98u );
+    A->randomize( 0.20f );
+    A->randomize( 0.20f );
+    B->print( devnull );
+    delete B;                   // First deletion
+    A->randomize( 0.20f );
+    A->addNoise( 0.20f );
+    B = new SDR_Metrics( *A, 99u );    // Remove & Recreate
+    A->randomize( 0.20f );
+    A->randomize( 0.20f );
+    A->print( devnull );
+    delete A;
+    C->print( devnull );
+    delete C;
+    B->print( devnull );
+    delete B;
 }
 
 /**

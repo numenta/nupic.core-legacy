@@ -1074,9 +1074,6 @@ protected:
         }
     }
 
-    // TODO: Unit-test for descrutor, at least one of the metrics should test
-    // this, not all need to though!
-
     /**
      * Add another datum to the metric.
      *
@@ -1171,12 +1168,22 @@ public:
  * Measures the activation frequency of each value in an SDR.  This accumulates
  * measurements using an exponential moving average, and outputs a summary of
  * results.
-
-// TODO: EXPLAIN THE DATA TYPE & RANGE
-
+ *
+ * Activation frequencies are Real numbers in the range [0, 1], where zero
+ * indicates never active, and one indicates always active.
  *
  * Example Usage:
- *      TODO
+ *      SDR A( 2 )
+ *      SDR_ActivationFrequency B( A, 1000 )
+ *      A.setDense({ 0, 0 })
+ *      A.setDense({ 1, 1 })
+ *      A.setDense({ 0, 1 })
+ *      B.activationFrequency -> { 0.33, 0.66 }
+ *      B.min()     -> ~0.33
+ *      B.max()     -> ~0.66
+ *      B.mean()    ->  0.50
+ *      B.std()     -> ~0.16
+ *      B.entropy() -> ~0.92
  */
 class SDR_ActivationFrequency : public _SDR_MetricsHelper {
 private:
@@ -1248,7 +1255,15 @@ public:
     }
 
     /**
-     * TODO: DOCUMENTATION
+     * Binary entropy is a measurement of information.  It measures how well the
+     * SDR utilizes its resources (bits).  A low entropy indicates that many
+     * bits in the SDR are under-utilized and do not transmit as much
+     * information as they could.  A high entropy indicates that the SDR
+     * optimally utilizes its resources.  The most optimal use of SDR resources
+     * is when all bits have an equal activation frequency.  For convenience,
+     * the entropy is scaled by the theoretical maximum into the range [0, 1].
+     *
+     * @returns Binary entropy of SDR, scaled to range [0, 1].
      */
     Real entropy() const {
         const auto max_extropy = binary_entropy_({ mean() });
@@ -1368,7 +1383,13 @@ public:
  * outputs a summary of results.
  *
  * Example Usage:
- *      TODO
+ *      SDR A( dimensions )
+ *      SDR_Metrics M( A, 1000 )
+ *
+ *      Run program:
+ *          A.setData( ... )
+ *
+ *      M.print()
  */
 class SDR_Metrics {
 private:
