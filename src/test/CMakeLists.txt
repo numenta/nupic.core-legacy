@@ -101,7 +101,6 @@ set(os_tests
 	   unit/os/EnvTest.cpp
 	   unit/os/OSTest.cpp
 	   unit/os/PathTest.cpp
-	   unit/os/RegexTest.cpp
 	   unit/os/TimerTest.cpp
 	   )
 	   
