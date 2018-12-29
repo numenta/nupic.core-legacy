@@ -240,13 +240,16 @@ protected:
      * before they're deallocated; SDR Proxy does this.
      */
     virtual void deconstruct() {
+        cerr << "SDR DECON" << endl;
         clear();
         size_ = 0;
         dimensions_.clear();
         for( auto func : destroyCallbacks ) {
+            cerr << "SDR DECON 1" << endl;
             if( func != nullptr )
                 func();
         }
+        cerr << "SDR DECON DONE" << endl;
     }
 
 public:
@@ -1049,29 +1052,42 @@ protected:
      * @param period Time scale for exponential moving average.
      */
     _SDR_MetricsHelper( SDR &dataSource, UInt period ) {
+        cerr << "METRIC CONSTRUCT" << endl;
         NTA_CHECK( period > 0u );
         dataSource_ = &dataSource;
         period_     = period;
         samples_    = 0;
+        cerr << "METRIC CONSTRUCT 1" << endl;
         callback_handle_ = dataSource_->addCallback( [&](){
+            cerr << "METRIC CALLBACK" << endl;
             samples_++;
             callback( *dataSource_, 1.0f / std::min( period_, (UInt) samples_ ));
+            cerr << "METRIC CALLBACK DONE" << endl;
         });
+        cerr << "METRIC CONSTRUCT 2" << endl;
         destroyCallback_handle_ = dataSource_->addDestroyCallback( [&](){
+            cerr << "METRIC DESTROY CALLBACK" << endl;
             deconstruct();
         });
+        cerr << "METRIC CONSTRUCT DONE" << endl;
     }
 
     ~_SDR_MetricsHelper() {
+        cerr << "METRIC DESTROY" << endl;
         deconstruct();
     }
 
     void deconstruct() {
+        cerr << "METRIC DECON" << endl;
         if( dataSource_ != nullptr ) {
+            cerr << "METRIC DECON 1" << endl;
             dataSource_->removeCallback( callback_handle_ );
+            cerr << "METRIC DECON 2" << endl;
             dataSource_->removeDestroyCallback( destroyCallback_handle_ );
+            cerr << "METRIC DECON 3" << endl;
             dataSource_ = nullptr;
         }
+        cerr << "METRIC DECON DONE" << endl;
     }
 
     /**
