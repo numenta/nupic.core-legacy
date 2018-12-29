@@ -1059,10 +1059,10 @@ protected:
         samples_    = 0;
         cerr << "METRIC CONSTRUCT 1" << endl;
         callback_handle_ = dataSource_->addCallback( [&](){
-            cerr << "METRIC CALLBACK" << endl;
+            // cerr << "METRIC CALLBACK" << endl;
             samples_++;
             callback( *dataSource_, 1.0f / std::min( period_, (UInt) samples_ ));
-            cerr << "METRIC CALLBACK DONE" << endl;
+            // cerr << "METRIC CALLBACK DONE" << endl;
         });
         cerr << "METRIC CONSTRUCT 2" << endl;
         destroyCallback_handle_ = dataSource_->addDestroyCallback( [&](){
