@@ -1115,7 +1115,7 @@ private:
     Real min_;
     Real max_;
     Real mean_;
-    Real var_;
+    Real variance_;
     Real sparsity_;
 
     void callback(SDR &dataSource, Real alpha) override {
@@ -1124,10 +1124,10 @@ private:
         max_ = std::max( max_, sparsity_ );
         // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
         // See section 9.
-        const Real diff   = sparsity_ - mean_;
-        const Real incr   = alpha * diff;
-                   mean_ += incr;
-                   var_   = (1.0f - alpha) * (var_ + diff * incr);
+        const Real diff      = sparsity_ - mean_;
+        const Real incr      = alpha * diff;
+                   mean_    += incr;
+                   variance_ = (1.0f - alpha) * (variance_ + diff * incr);
     }
 
 public:
@@ -1144,14 +1144,14 @@ public:
         min_        =  1234.56789f;
         max_        = -1234.56789f;
         mean_       =  1234.56789f;
-        var_        =  1234.56789f;
+        variance_   =  1234.56789f;
     }
 
     const Real &sparsity = sparsity_;
     Real min() const { return min_; }
     Real max() const { return max_; }
     Real mean() const { return mean_; }
-    Real std() const { return std::sqrt( var_ ); }
+    Real std() const { return std::sqrt( variance_ ); }
 
     void print(std::ostream &stream = std::cout) const
     {
@@ -1235,7 +1235,7 @@ public:
     Real std() const {
         const auto mean_ = mean();
         auto sum_squares = 0.0f;
-        for(auto &frequency : activationFrequency) {
+        for(const auto &frequency : activationFrequency) {
             const auto displacement = frequency - mean_;
             sum_squares += displacement * displacement;
         }
@@ -1313,7 +1313,7 @@ private:
     Real min_;
     Real max_;
     Real mean_;
-    Real var_; // TODO: Rename to variance_, in all classes!
+    Real variance_;
 
     void callback(SDR &dataSource, Real alpha) override {
         const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
@@ -1328,10 +1328,10 @@ private:
         max_     = std::max( max_, overlap );
         // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
         // See section 9.
-        const Real diff   = overlap - mean_;
-        const Real incr   = alpha * diff;
-                   mean_ += incr;
-                   var_   = (1.0f - alpha) * (var_ + diff * incr);
+        const Real diff      = overlap - mean_;
+        const Real incr      = alpha * diff;
+                   mean_    += incr;
+                   variance_ = (1.0f - alpha) * (variance_ + diff * incr);
     }
 
 public:
@@ -1353,14 +1353,14 @@ public:
         min_        =  1234.56789f;
         max_        = -1234.56789f;
         mean_       =  1234.56789f;
-        var_        =  1234.56789f;
+        variance_   =  1234.56789f;
     }
 
     const Real &overlap = overlap_; // TODO: Should this be a method, for consistency with min/mean/max?
     Real min() const { return min_; }
     Real max() const { return max_; }
     Real mean() const { return mean_; }
-    Real std() const { return std::sqrt( var_ ); }
+    Real std() const { return std::sqrt( variance_ ); }
 
     void print(std::ostream &stream = std::cout) const
     {
@@ -1391,6 +1391,7 @@ public:
  *
  *      M.print()
  */
+// TODO: Add flags to enable/disable which metrics this uses?
 class SDR_Metrics {
 private:
     vector<UInt>            dimensions_;
@@ -1410,8 +1411,6 @@ public:
           activationFrequency_( dataSource, period ),
           overlap_( dataSource, period )
     {
-        // TODO: Add flags to enable/disable which metrics are turned on by
-        // default.
         dimensions_ = dataSource.dimensions;
     }
 
