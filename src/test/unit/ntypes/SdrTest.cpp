@@ -492,24 +492,24 @@ TEST(SdrTest, TestSumSparsity) {
 TEST(SdrTest, TestPrint) {
     stringstream str;
     SDR a({100});
-    a.print(str);
+    str << a;
     // Use find so that trailing whitespace differences on windows/unix don't break it.
     ASSERT_NE( str.str().find( "SDR( 100 )" ), std::string::npos);
 
     stringstream str2;
     SDR b({ 9, 8 });
-    b.print(str2);
+    str2 << b;
     ASSERT_NE( str2.str().find( "SDR( 9, 8 )" ), std::string::npos);
 
     stringstream str3;
     SDR sdr3({ 3, 3 });
     sdr3.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
-    sdr3.print(str3);
+    str3 << sdr3;
     ASSERT_NE( str3.str().find( "SDR( 3, 3 ) 1, 4, 8" ), std::string::npos);
 
     // Check that default aruments don't crash.
     cout << "PRINTING \"SDR( 3, 3 ) 1, 4, 8\" TO STDOUT: ";
-    sdr3.print();
+    cout << sdr3;
 }
 
 TEST(SdrTest, TestOverlap) {
@@ -1051,11 +1051,11 @@ TEST(SdrTest, TestMetricSparsityPrint) {
 
     A.randomize( 0.30f );
     A.randomize( 0.70f );
-    S.print();
+    cerr << S;
 
     A.randomize( 0.123456789f );
     A.randomize( 1.0f - 0.123456789f );
-    S.print();
+    cerr << S;
     cerr << endl;
 }
 
@@ -1208,7 +1208,7 @@ TEST(SdrTest, TestMetricAF_Print) {
     for(const auto sp : sparsity) {
         for(auto i = 0u; i < runtime; i++)
             A.randomize( sp );
-        F.print();
+        cerr << F;
         cerr << endl;
     }
 }
@@ -1340,11 +1340,11 @@ TEST(SdrTest, TestMetricOverlap_Print) {
     for(const auto ovlp : overlaps) {
         for(auto i = 0u; i < 1000u; i++)
             A.addNoise( 1.0f - ovlp );
-        V.print();
+        cerr << V;
     }
     for(auto i = 0u; i < 1000u; i++)
         A.randomize( 0.02f );
-    V.print();
+    cerr << V;
     cerr << endl;
 }
 
@@ -1364,7 +1364,7 @@ TEST(SdrTest, TestAllMetrics_Construct) {
     // Test use after freeing data source.
     delete A;
     stringstream devnull;
-    M.print( devnull );
+    devnull << M;
 
     // Test delete Metric and keep using SDR.
     A = new SDR({ 100u });
@@ -1372,18 +1372,18 @@ TEST(SdrTest, TestAllMetrics_Construct) {
     SDR_Metrics *C = new SDR_Metrics( *A, 98u );
     A->randomize( 0.20f );
     A->randomize( 0.20f );
-    B->print( devnull );
+    devnull << *B;
     delete B;                   // First deletion
     A->randomize( 0.20f );
     A->addNoise( 0.20f );
     B = new SDR_Metrics( *A, 99u );    // Remove & Recreate
     A->randomize( 0.20f );
     A->randomize( 0.20f );
-    A->print( devnull );
+    devnull << *A;
     delete A;
-    C->print( devnull );
+    devnull << *C;
     delete C;
-    B->print( devnull );
+    devnull << *B;
     delete B;
 }
 
@@ -1404,7 +1404,7 @@ TEST(SdrTest, TestAllMetrics_Print) {
         A.randomize( sparsity[test] );
         for(auto i = 0u; i < 1000u; i++)
             A.addNoise( 1.0f - overlaps[test] );
-        M.print();
+        cerr << M;
         cerr << endl;
     }
 }

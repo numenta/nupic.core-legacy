@@ -705,25 +705,25 @@ public:
     }
 
     /**
-     * Print a human readable version of the SDR, defaults to STDOUT.
-     *
-     * @param stream The output to write to, defaults to std::cout.
+     * Print a human readable version of the SDR.
      */
-    void print(std::ostream &stream = std::cout) {
+    friend std::ostream& operator<< (std::ostream& stream,
+                                     SparseDistributedRepresentation &sdr)
+    {
         stream << "SDR( ";
-        for( UInt i = 0; i < dimensions.size(); i++ ) {
-            stream << dimensions[i];
-            if( i + 1 != dimensions.size() )
+        for( UInt i = 0; i < sdr.dimensions.size(); i++ ) {
+            stream << sdr.dimensions[i];
+            if( i + 1 != sdr.dimensions.size() )
                 stream << ", ";
         }
         stream << " ) ";
-        auto data = getFlatSparse();
+        auto data = sdr.getFlatSparse();
         for( UInt i = 0; i < data.size(); i++ ) {
             stream << data[i];
             if( i + 1 != data.size() )
                 stream << ", ";
         }
-        stream << endl;
+        return stream << endl;
     }
 
     bool operator==(SparseDistributedRepresentation &sdr) {
@@ -1153,11 +1153,11 @@ public:
     Real mean() const { return mean_; }
     Real std() const { return std::sqrt( variance_ ); }
 
-    void print(std::ostream &stream = std::cout) const
+    friend std::ostream& operator<<(std::ostream& stream, const SDR_Sparsity &S)
     {
-        stream << "Sparsity Min/Mean/Std/Max "
-            << min() << " / " << mean() << " / "
-            << std() << " / " << max() << endl;
+        return stream << "Sparsity Min/Mean/Std/Max "
+            << S.min() << " / " << S.mean() << " / "
+            << S.std() << " / " << S.max() << endl;
     }
 };
 
@@ -1272,12 +1272,13 @@ public:
         return binary_entropy_( activationFrequency ) / max_extropy;
     }
 
-    void print(std::ostream &stream = std::cout) const
+    friend std::ostream& operator<< (std::ostream& stream,
+                                     const SDR_ActivationFrequency &F)
     {
         stream << "Activation Frequency Min/Mean/Std/Max "
-            << min() << " / " << mean() << " / "
-            << std() << " / " << max() << endl;
-        stream << "Entropy " << entropy() << endl;
+            << F.min() << " / " << F.mean() << " / "
+            << F.std() << " / " << F.max() << endl;
+        return stream << "Entropy " << F.entropy() << endl;
     }
 };
 
@@ -1362,11 +1363,11 @@ public:
     Real mean() const { return mean_; }
     Real std() const { return std::sqrt( variance_ ); }
 
-    void print(std::ostream &stream = std::cout) const
+    friend std::ostream& operator<<(std::ostream& stream, const SDR_Overlap &V)
     {
-        stream << "Overlap Min/Mean/Std/Max "
-            << min() << " / " << mean() << " / "
-            << std() << " / " << max() << endl;
+        return stream << "Overlap Min/Mean/Std/Max "
+            << V.min() << " / " << V.mean() << " / "
+            << V.std() << " / " << V.max() << endl;
     }
 };
 
@@ -1389,7 +1390,7 @@ public:
  *      Run program:
  *          A.setData( ... )
  *
- *      M.print()
+ *      cout << M;
  */
 // TODO: Add flags to enable/disable which metrics this uses?
 class SDR_Metrics {
@@ -1418,28 +1419,27 @@ public:
     const SDR_ActivationFrequency &activationFrequency = activationFrequency_;
     const SDR_Overlap             &overlap             = overlap_;
 
-    void print(std::ostream &stream = std::cout) const {
+    friend std::ostream& operator<<(std::ostream& stream, const SDR_Metrics &M)
+    {
         // Introduction line:  "SDR ( dimensions )"
         stream << "SDR( ";
-        for(const auto &dim : dimensions_)
+        for(const auto &dim : M.dimensions_)
             stream << dim << " ";
         stream << ")" << endl;
 
         // Print data to temporary area for formatting.
         stringstream data_stream;
-
-        sparsity.print( data_stream );
-        activationFrequency.print( data_stream );
-        overlap.print( data_stream );
-
-        // Indent all of the data.
+        data_stream << M.sparsity;
+        data_stream << M.activationFrequency;
+        data_stream << M.overlap;
         string data = data_stream.str();
-        // Append tabs to all newlines
+
+        // Indent all of the data text (4 spaces).  Append indent to newlines.
         data = regex_replace( data, regex("\n"), "\n\r    " );
         // Strip trailing whitespace
         data = regex_replace( data, regex("\\s+$"), "" );
-        stream << "    ";
-        stream << data << endl;
+        // Insert first indent, append trailing newline.
+        return stream << "    " << data << endl;
     }
 };
 
