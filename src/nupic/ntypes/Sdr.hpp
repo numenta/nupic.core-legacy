@@ -1356,7 +1356,7 @@ public:
         variance_   =  1234.56789f;
     }
 
-    const Real &overlap = overlap_; // TODO: Should this be a method, for consistency with min/mean/max?
+    const Real &overlap = overlap_;
     Real min() const { return min_; }
     Real max() const { return max_; }
     Real mean() const { return mean_; }
