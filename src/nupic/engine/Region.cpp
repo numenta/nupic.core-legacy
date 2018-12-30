@@ -29,7 +29,6 @@ Methods related to inputs and outputs are in Region_io.cpp
 */
 
 #include <iostream>
-#include <regex>
 #include <set>
 #include <stdexcept>
 #include <string>

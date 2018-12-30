@@ -271,7 +271,7 @@ TEST(TemporalMemoryTest, ChooseOneWinnerCellInBurstingColumn) {
   tm.compute(1, activeColumns, false);
 
   vector<CellIdx> winnerCells = tm.getWinnerCells();
-  ASSERT_EQ(1, winnerCells.size());
+  ASSERT_EQ(1ul, winnerCells.size());
   EXPECT_TRUE(burstingCells.find(winnerCells[0]) != burstingCells.end());
 }
 
@@ -507,7 +507,7 @@ TEST(TemporalMemoryTest, NoNewSegmentIfNotEnoughWinnerCells) {
   tm.compute(0, zeroColumns);  // The actual size of the array is not relevent.
   tm.compute(1, activeColumns);
 
-  EXPECT_EQ(0, tm.connections.numSegments());
+  EXPECT_EQ(0ul, tm.connections.numSegments());
 }
 
 /**
@@ -534,16 +534,16 @@ TEST(TemporalMemoryTest, NewSegmentAddSynapsesToSubsetOfWinnerCells) {
   tm.compute(3, previousActiveColumns);
 
   vector<CellIdx> prevWinnerCells = tm.getWinnerCells();
-  ASSERT_EQ(3, prevWinnerCells.size());
+  ASSERT_EQ(3ul, prevWinnerCells.size());
 
   tm.compute(1, activeColumns);
 
   vector<CellIdx> winnerCells = tm.getWinnerCells();
-  ASSERT_EQ(1, winnerCells.size());
+  ASSERT_EQ(1ul, winnerCells.size());
   vector<Segment> segments = tm.connections.segmentsForCell(winnerCells[0]);
-  ASSERT_EQ(1, segments.size());
+  ASSERT_EQ(1ul, segments.size());
   vector<Synapse> synapses = tm.connections.synapsesForSegment(segments[0]);
-  ASSERT_EQ(2, synapses.size());
+  ASSERT_EQ(2ul, synapses.size());
   for (Synapse synapse : synapses) {
     SynapseData synapseData = tm.connections.dataForSynapse(synapse);
     EXPECT_NEAR(0.21, synapseData.permanence, EPSILON);
@@ -577,16 +577,16 @@ TEST(TemporalMemoryTest, NewSegmentAddSynapsesToAllWinnerCells) {
   tm.compute(3, previousActiveColumns);
 
   vector<CellIdx> prevWinnerCells = tm.getWinnerCells();
-  ASSERT_EQ(3, prevWinnerCells.size());
+  ASSERT_EQ(3ul, prevWinnerCells.size());
 
   tm.compute(1, activeColumns);
 
   vector<CellIdx> winnerCells = tm.getWinnerCells();
-  ASSERT_EQ(1, winnerCells.size());
+  ASSERT_EQ(1ul, winnerCells.size());
   vector<Segment> segments = tm.connections.segmentsForCell(winnerCells[0]);
-  ASSERT_EQ(1, segments.size());
+  ASSERT_EQ(1ul, segments.size());
   vector<Synapse> synapses = tm.connections.synapsesForSegment(segments[0]);
-  ASSERT_EQ(3, synapses.size());
+  ASSERT_EQ(3ul, synapses.size());
 
   vector<CellIdx> presynapticCells;
   for (Synapse synapse : synapses) {
@@ -632,7 +632,7 @@ TEST(TemporalMemoryTest, MatchingSegmentAddSynapsesToSubsetOfWinnerCells) {
   tm.compute(1, activeColumns);
 
   vector<Synapse> synapses = tm.connections.synapsesForSegment(matchingSegment);
-  ASSERT_EQ(3, synapses.size());
+  ASSERT_EQ(3ul, synapses.size());
   for (SynapseIdx i = 1; i < synapses.size(); i++) {
     SynapseData synapseData = tm.connections.dataForSynapse(synapses[i]);
     EXPECT_NEAR(0.21, synapseData.permanence, EPSILON);
@@ -676,7 +676,7 @@ TEST(TemporalMemoryTest, MatchingSegmentAddSynapsesToAllWinnerCells) {
   tm.compute(1, activeColumns);
 
   vector<Synapse> synapses = tm.connections.synapsesForSegment(matchingSegment);
-  ASSERT_EQ(2, synapses.size());
+  ASSERT_EQ(2ul, synapses.size());
 
   SynapseData synapseData = tm.connections.dataForSynapse(synapses[1]);
   EXPECT_NEAR(0.21, synapseData.permanence, EPSILON);
@@ -721,7 +721,7 @@ TEST(TemporalMemoryTest, ActiveSegmentGrowSynapsesAccordingToPotentialOverlap) {
 
   vector<Synapse> synapses = tm.connections.synapsesForSegment(activeSegment);
 
-  ASSERT_EQ(4, synapses.size());
+  ASSERT_EQ(4ul, synapses.size());
 
   SynapseData synapseData = tm.connections.dataForSynapse(synapses[3]);
   EXPECT_NEAR(0.21, synapseData.permanence, EPSILON);
@@ -764,7 +764,7 @@ TEST(TemporalMemoryTest, DestroyWeakSynapseOnWrongPrediction) {
   tm.compute(numActiveColumns, previousActiveColumns, true);
   tm.compute(numActiveColumns, activeColumns, true);
 
-  EXPECT_EQ(3, tm.connections.numSynapses(activeSegment));
+  EXPECT_EQ(3ul, tm.connections.numSynapses(activeSegment));
 }
 
 /**
@@ -802,7 +802,7 @@ TEST(TemporalMemoryTest, DestroyWeakSynapseOnActiveReinforce) {
   tm.compute(numActiveColumns, previousActiveColumns, true);
   tm.compute(numActiveColumns, activeColumns, true);
 
-  EXPECT_EQ(3, tm.connections.numSynapses(activeSegment));
+  EXPECT_EQ(3ul, tm.connections.numSynapses(activeSegment));
 }
 
 /**
@@ -853,7 +853,7 @@ TEST(TemporalMemoryTest, RecycleWeakestSynapseToMakeRoomForNewSynapse) {
   // There should now be 3 synapses, and none of them should be to cell 0.
   const vector<Synapse> &synapses =
       tm.connections.synapsesForSegment(matchingSegment);
-  ASSERT_EQ(4, synapses.size());
+  ASSERT_EQ(4ul, synapses.size());
 
   std::set<CellIdx> presynapticCells;
   for (Synapse synapse : synapses) {
@@ -893,14 +893,14 @@ TEST(TemporalMemoryTest,
   tm.compute(3, previousActiveColumns1);
   tm.compute(1, activeColumns);
 
-  ASSERT_EQ(1, tm.connections.numSegments(9));
+  ASSERT_EQ(1ul, tm.connections.numSegments(9));
   Segment oldestSegment = tm.connections.segmentsForCell(9)[0];
 
   tm.reset();
   tm.compute(3, previousActiveColumns2);
   tm.compute(1, activeColumns);
 
-  ASSERT_EQ(2, tm.connections.numSegments(9));
+  ASSERT_EQ(2ul, tm.connections.numSegments(9));
 
   set<CellIdx> oldPresynaptic;
   for (Synapse synapse : tm.connections.synapsesForSegment(oldestSegment)) {
@@ -912,7 +912,7 @@ TEST(TemporalMemoryTest,
   tm.compute(3, previousActiveColumns3);
   tm.compute(1, activeColumns);
 
-  ASSERT_EQ(2, tm.connections.numSegments(9));
+  ASSERT_EQ(2ul, tm.connections.numSegments(9));
 
   // Verify none of the segments are connected to the cells the old segment
   // was connected to.
@@ -967,7 +967,7 @@ TEST(TemporalMemoryTest, DestroySegmentsWithTooFewSynapsesToBeMatching) {
   tm.compute(numActiveColumns, previousActiveColumns, true);
   tm.compute(numActiveColumns, activeColumns, true);
 
-  EXPECT_EQ(0, tm.connections.numSegments(expectedActiveCell));
+  EXPECT_EQ(0ul, tm.connections.numSegments(expectedActiveCell));
 }
 
 /**
@@ -1075,11 +1075,11 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
 
     ASSERT_EQ(activeCells, tm.getActiveCells());
 
-    EXPECT_EQ(3, tm.connections.numSegments());
-    EXPECT_EQ(1, tm.connections.segmentsForCell(0).size());
-    EXPECT_EQ(1, tm.connections.segmentsForCell(3).size());
-    EXPECT_EQ(1, tm.connections.numSynapses(segment1));
-    EXPECT_EQ(1, tm.connections.numSynapses(segment2));
+    EXPECT_EQ(3ul, tm.connections.numSegments());
+    EXPECT_EQ(1ul, tm.connections.segmentsForCell(0).size());
+    EXPECT_EQ(1ul, tm.connections.segmentsForCell(3).size());
+    EXPECT_EQ(1ul, tm.connections.numSynapses(segment1));
+    EXPECT_EQ(1ul, tm.connections.numSynapses(segment2));
 
     vector<Segment> segments = tm.connections.segmentsForCell(1);
     if (segments.empty()) {
@@ -1091,9 +1091,9 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
       grewOnCell1 = true;
     }
 
-    ASSERT_EQ(1, segments.size());
+    ASSERT_EQ(1ul, segments.size());
     vector<Synapse> synapses = tm.connections.synapsesForSegment(segments[0]);
-    EXPECT_EQ(4, synapses.size());
+    EXPECT_EQ(4ul, synapses.size());
 
     set<CellIdx> columnChecklist(previousActiveColumns,
                                  previousActiveColumns + 4);
@@ -1147,7 +1147,7 @@ TEST(TemporalMemoryTest, MaxNewSynapseCountOverflow) {
   tm.compute(4, previousActiveColumns);
   tm.activateDendrites();
 
-  ASSERT_EQ(1, tm.getMatchingSegments().size());
+  ASSERT_EQ(1ul, tm.getMatchingSegments().size());
 
   const UInt activeColumns[1] = {2};
   tm.compute(1, activeColumns);
@@ -1156,7 +1156,7 @@ TEST(TemporalMemoryTest, MaxNewSynapseCountOverflow) {
   ASSERT_NEAR(0.3, tm.connections.dataForSynapse(sampleSynapse).permanence,
               EPSILON);
 
-  EXPECT_EQ(8, tm.connections.numSynapses(segment));
+  EXPECT_EQ(8ul, tm.connections.numSynapses(segment));
 }
 
 /**
@@ -1232,20 +1232,20 @@ TEST(TemporalMemoryTest, DestroySegmentsThenReachLimit) {
   {
     Segment segment1 = tm.createSegment(11);
     Segment segment2 = tm.createSegment(11);
-    ASSERT_EQ(2, tm.connections.numSegments());
+    ASSERT_EQ(2ul, tm.connections.numSegments());
     tm.connections.destroySegment(segment1);
     tm.connections.destroySegment(segment2);
-    ASSERT_EQ(0, tm.connections.numSegments());
+    ASSERT_EQ(0ul, tm.connections.numSegments());
   }
 
   {
     tm.createSegment(11);
-    EXPECT_EQ(1, tm.connections.numSegments());
+    EXPECT_EQ(1ul, tm.connections.numSegments());
     tm.createSegment(11);
-    EXPECT_EQ(2, tm.connections.numSegments());
+    EXPECT_EQ(2ul, tm.connections.numSegments());
     tm.createSegment(11);
-    EXPECT_EQ(2, tm.connections.numSegments());
-    EXPECT_EQ(2, tm.connections.numSegments(11));
+    EXPECT_EQ(2ul, tm.connections.numSegments());
+    EXPECT_EQ(2ul, tm.connections.numSegments(11));
   }
 }
 
@@ -1299,17 +1299,17 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
   tm.connections.createSynapse(segment3, 2, 0.5);
 
   vector<Segment> segments = tm.connections.segmentsForCell(12);
-  ASSERT_EQ(2, segments.size());
+  ASSERT_EQ(2ul, segments.size());
 
   // Verify first segment is still there with the same synapses.
   vector<Synapse> synapses1 = tm.connections.synapsesForSegment(segment1);
-  ASSERT_EQ(3, synapses1.size());
-  ASSERT_EQ(1, tm.connections.dataForSynapse(synapses1[0]).presynapticCell);
-  ASSERT_EQ(2, tm.connections.dataForSynapse(synapses1[1]).presynapticCell);
-  ASSERT_EQ(3, tm.connections.dataForSynapse(synapses1[2]).presynapticCell);
+  ASSERT_EQ(3ul, synapses1.size());
+  ASSERT_EQ(1ul, tm.connections.dataForSynapse(synapses1[0]).presynapticCell);
+  ASSERT_EQ(2ul, tm.connections.dataForSynapse(synapses1[1]).presynapticCell);
+  ASSERT_EQ(3ul, tm.connections.dataForSynapse(synapses1[2]).presynapticCell);
 
   // Verify second segment has been replaced.
-  ASSERT_EQ(2, tm.connections.numSynapses(segments[1]));
+  ASSERT_EQ(2ul, tm.connections.numSynapses(segments[1]));
 }
 
 /**
@@ -1332,33 +1332,33 @@ TEST(ConnectionsTest, ReachSegmentLimitMultipleTimes) {
       /*maxSegmentsPerCell*/ 2);
 
   tm.createSegment(10);
-  ASSERT_EQ(1, tm.connections.numSegments());
+  ASSERT_EQ(1ul, tm.connections.numSegments());
   tm.createSegment(10);
-  ASSERT_EQ(2, tm.connections.numSegments());
+  ASSERT_EQ(2ul, tm.connections.numSegments());
   tm.createSegment(10);
-  ASSERT_EQ(2, tm.connections.numSegments());
+  ASSERT_EQ(2ul, tm.connections.numSegments());
   tm.createSegment(10);
-  EXPECT_EQ(2, tm.connections.numSegments());
+  EXPECT_EQ(2ul, tm.connections.numSegments());
 }
 
 TEST(TemporalMemoryTest, testColumnForCell1D) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{2048}, 5);
 
-  ASSERT_EQ(0, tm.columnForCell(0));
-  ASSERT_EQ(0, tm.columnForCell(4));
-  ASSERT_EQ(1, tm.columnForCell(5));
-  ASSERT_EQ(2047, tm.columnForCell(10239));
+  ASSERT_EQ(0ul, tm.columnForCell(0));
+  ASSERT_EQ(0ul, tm.columnForCell(4));
+  ASSERT_EQ(1ul, tm.columnForCell(5));
+  ASSERT_EQ(2047ul, tm.columnForCell(10239));
 }
 
 TEST(TemporalMemoryTest, testColumnForCell2D) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{64, 64}, 4);
 
-  ASSERT_EQ(0, tm.columnForCell(0));
-  ASSERT_EQ(0, tm.columnForCell(3));
-  ASSERT_EQ(1, tm.columnForCell(4));
-  ASSERT_EQ(4095, tm.columnForCell(16383));
+  ASSERT_EQ(0ul, tm.columnForCell(0));
+  ASSERT_EQ(0ul, tm.columnForCell(3));
+  ASSERT_EQ(1ul, tm.columnForCell(4));
+  ASSERT_EQ(4095ul, tm.columnForCell(16383));
 }
 
 TEST(TemporalMemoryTest, testColumnForCellInvalidCell) {
@@ -1418,8 +1418,8 @@ void serializationTestPrepare(TemporalMemory &tm) {
   tm.compute(1, activeColumns);
   tm.activateDendrites();
 
-  ASSERT_EQ(1, tm.getActiveSegments().size());
-  ASSERT_EQ(3, tm.getMatchingSegments().size());
+  ASSERT_EQ(1ul, tm.getActiveSegments().size());
+  ASSERT_EQ(3ul, tm.getMatchingSegments().size());
 }
 
 void serializationTestVerify(TemporalMemory &tm) {
@@ -1430,7 +1430,7 @@ void serializationTestVerify(TemporalMemory &tm) {
   // and synapse counts.
 
   const vector<UInt> prevWinnerCells = tm.getWinnerCells();
-  ASSERT_EQ(1, prevWinnerCells.size());
+  ASSERT_EQ(1ul, prevWinnerCells.size());
 
   UInt activeColumns[] = {1, 2, 3};
   tm.compute(3, activeColumns);
@@ -1439,63 +1439,63 @@ void serializationTestVerify(TemporalMemory &tm) {
   EXPECT_EQ((vector<UInt>{4, 8, 9, 10, 11, 12, 13, 14, 15}),
             tm.getActiveCells());
   const vector<UInt> winnerCells = tm.getWinnerCells();
-  ASSERT_EQ(3, winnerCells.size());
-  EXPECT_EQ(4, winnerCells[0]);
-  EXPECT_EQ(9, winnerCells[1]);
+  ASSERT_EQ(3ul, winnerCells.size());
+  EXPECT_EQ(4ul, winnerCells[0]);
+  EXPECT_EQ(9ul, winnerCells[1]);
 
-  EXPECT_EQ(4, tm.connections.numSegments());
+  EXPECT_EQ(4ul, tm.connections.numSegments());
 
   // Verify the active segment learned.
-  ASSERT_EQ(1, tm.connections.numSegments(4));
+  ASSERT_EQ(1ul, tm.connections.numSegments(4));
   Segment activeSegment = tm.connections.segmentsForCell(4)[0];
   const vector<Synapse> syns1 =
       tm.connections.synapsesForSegment(activeSegment);
-  ASSERT_EQ(4, syns1.size());
-  EXPECT_EQ(0, tm.connections.dataForSynapse(syns1[0]).presynapticCell);
+  ASSERT_EQ(4ul, syns1.size());
+  EXPECT_EQ(0ul, tm.connections.dataForSynapse(syns1[0]).presynapticCell);
   EXPECT_NEAR(0.6, tm.connections.dataForSynapse(syns1[0]).permanence, EPSILON);
-  EXPECT_EQ(1, tm.connections.dataForSynapse(syns1[1]).presynapticCell);
+  EXPECT_EQ(1ul, tm.connections.dataForSynapse(syns1[1]).presynapticCell);
   EXPECT_NEAR(0.6, tm.connections.dataForSynapse(syns1[1]).permanence, EPSILON);
-  EXPECT_EQ(2, tm.connections.dataForSynapse(syns1[2]).presynapticCell);
+  EXPECT_EQ(2ul, tm.connections.dataForSynapse(syns1[2]).presynapticCell);
   EXPECT_NEAR(0.6, tm.connections.dataForSynapse(syns1[2]).permanence, EPSILON);
-  EXPECT_EQ(3, tm.connections.dataForSynapse(syns1[3]).presynapticCell);
+  EXPECT_EQ(3ul, tm.connections.dataForSynapse(syns1[3]).presynapticCell);
   EXPECT_NEAR(0.6, tm.connections.dataForSynapse(syns1[3]).permanence, EPSILON);
 
   // Verify the non-best matching segment is unchanged.
-  ASSERT_EQ(1, tm.connections.numSegments(8));
+  ASSERT_EQ(1ul, tm.connections.numSegments(8));
   Segment matchingSegment1 = tm.connections.segmentsForCell(8)[0];
   const vector<Synapse> syns2 =
       tm.connections.synapsesForSegment(matchingSegment1);
-  ASSERT_EQ(3, syns2.size());
-  EXPECT_EQ(0, tm.connections.dataForSynapse(syns2[0]).presynapticCell);
+  ASSERT_EQ(3ul, syns2.size());
+  EXPECT_EQ(0ul, tm.connections.dataForSynapse(syns2[0]).presynapticCell);
   EXPECT_NEAR(0.4, tm.connections.dataForSynapse(syns2[0]).permanence, EPSILON);
-  EXPECT_EQ(1, tm.connections.dataForSynapse(syns2[1]).presynapticCell);
+  EXPECT_EQ(1ul, tm.connections.dataForSynapse(syns2[1]).presynapticCell);
   EXPECT_NEAR(0.4, tm.connections.dataForSynapse(syns2[1]).permanence, EPSILON);
-  EXPECT_EQ(2, tm.connections.dataForSynapse(syns2[2]).presynapticCell);
+  EXPECT_EQ(2ul, tm.connections.dataForSynapse(syns2[2]).presynapticCell);
   EXPECT_NEAR(0.4, tm.connections.dataForSynapse(syns2[2]).permanence, EPSILON);
 
   // Verify the best matching segment learned.
-  ASSERT_EQ(1, tm.connections.numSegments(9));
+  ASSERT_EQ(1ul, tm.connections.numSegments(9));
   Segment matchingSegment2 = tm.connections.segmentsForCell(9)[0];
   const vector<Synapse> syns3 =
       tm.connections.synapsesForSegment(matchingSegment2);
-  ASSERT_EQ(4, syns3.size());
-  EXPECT_EQ(0, tm.connections.dataForSynapse(syns3[0]).presynapticCell);
+  ASSERT_EQ(4ul, syns3.size());
+  EXPECT_EQ(0ul, tm.connections.dataForSynapse(syns3[0]).presynapticCell);
   EXPECT_NEAR(0.5, tm.connections.dataForSynapse(syns3[0]).permanence, EPSILON);
-  EXPECT_EQ(1, tm.connections.dataForSynapse(syns3[1]).presynapticCell);
+  EXPECT_EQ(1ul, tm.connections.dataForSynapse(syns3[1]).presynapticCell);
   EXPECT_NEAR(0.5, tm.connections.dataForSynapse(syns3[1]).permanence, EPSILON);
-  EXPECT_EQ(2, tm.connections.dataForSynapse(syns3[2]).presynapticCell);
+  EXPECT_EQ(2ul, tm.connections.dataForSynapse(syns3[2]).presynapticCell);
   EXPECT_NEAR(0.5, tm.connections.dataForSynapse(syns3[2]).permanence, EPSILON);
-  EXPECT_EQ(3, tm.connections.dataForSynapse(syns3[3]).presynapticCell);
+  EXPECT_EQ(3ul, tm.connections.dataForSynapse(syns3[3]).presynapticCell);
   EXPECT_NEAR(0.5, tm.connections.dataForSynapse(syns3[3]).permanence, EPSILON);
 
   // Verify the winner cell in the last column grew a segment.
   const UInt winnerCell = winnerCells[2];
   EXPECT_GE(winnerCell, 12u);
   EXPECT_LT(winnerCell, 16u);
-  ASSERT_EQ(1, tm.connections.numSegments(winnerCell));
+  ASSERT_EQ(1ul, tm.connections.numSegments(winnerCell));
   Segment newSegment = tm.connections.segmentsForCell(winnerCell)[0];
   const vector<Synapse> syns4 = tm.connections.synapsesForSegment(newSegment);
-  ASSERT_EQ(1, syns4.size());
+  ASSERT_EQ(1ul, syns4.size());
   EXPECT_EQ(prevWinnerCells[0],
             tm.connections.dataForSynapse(syns4[0]).presynapticCell);
   EXPECT_NEAR(0.21, tm.connections.dataForSynapse(syns4[0]).permanence,

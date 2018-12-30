@@ -156,7 +156,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   const bool clipInput = false;
   ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution, clipInput);
 
-  const int n = 13;
+  const unsigned int n = 13u;
   ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases = {
@@ -186,7 +186,7 @@ TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution) {
   PeriodicScalarEncoder encoder(w, minValue, maxValue, n_in, radius,
                                 resolution);
 
-  const int n = 10;
+  const unsigned int n = 10u;
   ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases = {{10.00f, patternFromNZ(n, {9, 0, 1})},

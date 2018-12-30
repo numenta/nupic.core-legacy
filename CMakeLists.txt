@@ -33,7 +33,7 @@ get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
 #
 option(USE_CPP11 "Force compiler to use C++11 standard." ON)
 option(NEEDS_BOOST "Force compiler to install and use Boost." ON)
-option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." ON)
+option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." OFF)
 option(PYTHON3_BUILD "Toggle whether to build for Python3.x, default ON." OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -48,6 +48,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 # Determine common toolchain settings, compiler and link flags
 include(CommonCompilerConfig)
 
+message(STATUS "REPOSITORY_DIR       = ${REPOSITORY_DIR}")
 message(STATUS "CMAKE_CXX_COMPILER_ID= ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "CMAKE_C_COMPILER     = ${CMAKE_C_COMPILER}")
 message(STATUS "CMAKE_CXX_COMPILER   = ${CMAKE_CXX_COMPILER}")
@@ -68,9 +69,10 @@ message(STATUS "PYTHON3_BUILD        = ${PYTHON3_BUILD}")
 
 # Set up builds of external dependencies and get their exports.
 # (see individual external/*.cmake modules for exported settings and functions)
-add_subdirectory(external)
-
+include(external/bootstrap.cmake)
+ 
 # Now build nupic_core project.
+set(core_library   nupic_core)
 add_subdirectory(src)
 
 if (PYTHON2_BUILD OR PYTHON3_BUILD)
