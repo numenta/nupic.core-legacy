@@ -155,9 +155,9 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
   net.initialize();
 
   const Dimensions &r2dims = region2->getDimensions();
-  EXPECT_EQ(r2dims.size(), 2) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[0], 3) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[1], 2) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[0], 3u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[1], 2u) << " actual dims: " << r2dims.toString();
 
   EXPECT_THROW(region2->setDimensions(r1dims), exception);
 
@@ -202,7 +202,7 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
     // 4 nodes in r1 fan in to 1 node in r2
     int row = node / 3;
     int col = node - (row * 3);
-    EXPECT_EQ(r2NodeInput.size(), 8);
+    EXPECT_EQ(r2NodeInput.size(), 8u);
     EXPECT_EQ(r2NodeInput[0], 0);
     EXPECT_EQ(r2NodeInput[2], 0);
     EXPECT_EQ(r2NodeInput[4], 0);
@@ -243,9 +243,9 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
   net.initialize();
 
   const Dimensions &r2dims = region2->getDimensions();
-  EXPECT_EQ(r2dims.size(), 2) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[0], 3) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[1], 2) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[0], 3u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[1], 2u) << " actual dims: " << r2dims.toString();
 
   EXPECT_THROW(region2->setDimensions(r1dims), exception);
 
@@ -289,7 +289,7 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
     // 4 nodes in r1 fan in to 1 node in r2
     int row = node / 3;
     int col = node - (row * 3);
-    EXPECT_EQ(r2NodeInput.size(), 8);
+    EXPECT_EQ(r2NodeInput.size(), 8u);
     EXPECT_EQ(r2NodeInput[0], 0);
     EXPECT_EQ(r2NodeInput[2], 0);
     EXPECT_EQ(r2NodeInput[4], 0);

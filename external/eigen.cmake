@@ -19,18 +19,18 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-# Fetch pybind11 from GitHub archive
+# Fetch Eigen from GitHub archive
 #
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/pybind11-2.2.4.tar.gz)
-    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/pybind11-2.2.4.tar.gz)
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/eigen-eigen-323c052e1731.tar.bz2)
+    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/eigen-eigen-323c052e1731.tar.bz2)
 else()
-    set(URL https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz)
+    set(URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2)
 endif()
 
-message(STATUS "obtaining PyBind11")
+message(STATUS "obtaining Eigen")
 include(DownloadProject/DownloadProject.cmake)
-download_project(PROJ pybind11
-	PREFIX ${EP_BASE}/pybind11
+download_project(PROJ eigen
+	PREFIX ${EP_BASE}/eigen
 	URL ${URL}
 	UPDATE_DISCONNECTED 1
 	QUIET
@@ -39,5 +39,4 @@ download_project(PROJ pybind11
 # No build. This is a header only package
 
 
-FILE(APPEND "${EXPORT_FILE_NAME}" "pybind11_SOURCE_DIR@@@${pybind11_SOURCE_DIR}\n")
-FILE(APPEND "${EXPORT_FILE_NAME}" "pybind11_BINARY_DIR@@@${pybind11_BINARY_DIR}\n")
+FILE(APPEND "${EXPORT_FILE_NAME}" "eigen_INCLUDE_DIRS@@@${eigen_SOURCE_DIR}\n")

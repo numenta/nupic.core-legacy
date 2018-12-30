@@ -33,24 +33,24 @@ TEST(SdrTest, TestConstructor) {
     // Test 1-D
     vector<UInt> b_dims = {3};
     SDR b(b_dims);
-    ASSERT_EQ( b.size, 3 );
+    ASSERT_EQ( b.size, 3ul );
     ASSERT_EQ( b.dimensions, b_dims );
-    ASSERT_EQ( b.getSparse().size(), 1 );
+    ASSERT_EQ( b.getSparse().size(), 1ul );
     // zero initialized
     ASSERT_EQ( b.getDense(),     vector<Byte>({0, 0, 0}) );
     ASSERT_EQ( b.getFlatSparse(), vector<UInt>(0) );
     ASSERT_EQ( b.getSparse(),     vector<vector<UInt>>({{}}) );
 
     // Test 3-D
-    vector<UInt> c_dims = {11, 15, 3};
+    vector<UInt> c_dims = {11u, 15u, 3u};
     SDR c(c_dims);
-    ASSERT_EQ( c.size, 11 * 15 * 3 );
+    ASSERT_EQ( c.size, 11u * 15u * 3u );
     ASSERT_EQ( c.dimensions, c_dims );
-    ASSERT_EQ( c.getSparse().size(), 3 );
-    ASSERT_EQ( c.getFlatSparse().size(), 0 );
+    ASSERT_EQ( c.getSparse().size(), 3ul );
+    ASSERT_EQ( c.getFlatSparse().size(), 0ul );
     // Test dimensions are copied not referenced
     c_dims.push_back(7);
-    ASSERT_EQ( c.dimensions, vector<UInt>({11, 15, 3}) );
+    ASSERT_EQ( c.dimensions, vector<UInt>({11u, 15u, 3u}) );
 }
 
 TEST(SdrTest, TestConstructorCopy) {
@@ -75,10 +75,10 @@ TEST(SdrTest, TestZero) {
     a.setDense( vector<Byte>(16, 1) );
     a.zero();
     ASSERT_EQ( vector<Byte>(16, 0), a.getDense() );
-    ASSERT_EQ( a.getFlatSparse().size(),  0);
-    ASSERT_EQ( a.getSparse().size(),  2);
-    ASSERT_EQ( a.getSparse().at(0).size(),  0);
-    ASSERT_EQ( a.getSparse().at(1).size(),  0);
+    ASSERT_EQ( a.getFlatSparse().size(),  0ul);
+    ASSERT_EQ( a.getSparse().size(),  2ul);
+    ASSERT_EQ( a.getSparse().at(0).size(),  0ul);
+    ASSERT_EQ( a.getSparse().at(1).size(),  0ul);
 }
 
 TEST(SdrTest, TestSDR_Examples) {
@@ -303,7 +303,7 @@ TEST(SdrTest, TestSetSparseInplace) {
     a_data[0].push_back(7);
     a_data[1].push_back(1);
     a.setSparse( a_data );
-    ASSERT_EQ( a.getSum(), 3 );
+    ASSERT_EQ( a.getSum(), 3ul );
     // I think some of these check the same things but thats ok.
     ASSERT_EQ( (void*) a.getSparse().data(), (void*) a.getSparse().data() );
     ASSERT_EQ( a.getSparse(), a.getSparse() );
@@ -394,21 +394,21 @@ TEST(SdrTest, TestGetFlatSparseFromDense) {
     dense[5] = 1;
     dense[8] = 1;
     a.setDense(dense);
-    ASSERT_EQ(a.getFlatSparse().at(0), 5);
-    ASSERT_EQ(a.getFlatSparse().at(1), 8);
+    ASSERT_EQ(a.getFlatSparse().at(0), 5ul);
+    ASSERT_EQ(a.getFlatSparse().at(1), 8ul);
 
     // Test zero'd SDR.
     a.setDense( vector<Byte>(a.size, 0) );
-    ASSERT_EQ( a.getFlatSparse().size(), 0 );
+    ASSERT_EQ( a.getFlatSparse().size(), 0ul );
 }
 
 TEST(SdrTest, TestGetFlatSparseFromSparse) {
     // Test simple 2-D SDR.
     SDR a({3, 3}); a.zero();
     auto& index = a.getSparse();
-    ASSERT_EQ( index.size(), 2 );
-    ASSERT_EQ( index[0].size(), 0 );
-    ASSERT_EQ( index[1].size(), 0 );
+    ASSERT_EQ( index.size(), 2ul );
+    ASSERT_EQ( index[0].size(), 0ul );
+    ASSERT_EQ( index[1].size(), 0ul );
     // Insert flat index 4
     index.at(0).push_back(1);
     index.at(1).push_back(1);
@@ -419,22 +419,22 @@ TEST(SdrTest, TestGetFlatSparseFromSparse) {
     index.at(0).push_back(1);
     index.at(1).push_back(2);
     a.setSparse( index );
-    ASSERT_EQ(a.getFlatSparse().at(0), 4);
-    ASSERT_EQ(a.getFlatSparse().at(1), 8);
-    ASSERT_EQ(a.getFlatSparse().at(2), 5);
+    ASSERT_EQ(a.getFlatSparse().at(0), 4ul);
+    ASSERT_EQ(a.getFlatSparse().at(1), 8ul);
+    ASSERT_EQ(a.getFlatSparse().at(2), 5ul);
 
     // Test zero'd SDR.
     a.setSparse(SDR_sparse_t( {{}, {}} ));
-    ASSERT_EQ( a.getFlatSparse().size(), 0 );
+    ASSERT_EQ( a.getFlatSparse().size(), 0ul );
 }
 
 TEST(SdrTest, TestGetSparseFromFlat) {
     // Test simple 2-D SDR.
     SDR a({3, 3}); a.zero();
     auto& index = a.getSparse();
-    ASSERT_EQ( index.size(), 2 );
-    ASSERT_EQ( index[0].size(), 0 );
-    ASSERT_EQ( index[1].size(), 0 );
+    ASSERT_EQ( index.size(), 2ul );
+    ASSERT_EQ( index[0].size(), 0ul );
+    ASSERT_EQ( index[1].size(), 0ul );
     a.setFlatSparse(SDR_flatSparse_t({ 4, 8, 5 }));
     ASSERT_EQ( a.getSparse(), vector<vector<UInt>>({
         { 1, 2, 1 },
@@ -458,8 +458,8 @@ TEST(SdrTest, TestGetSparseFromDense) {
 
     // Test zero'd SDR.
     a.setDense( vector<Byte>(a.size, 0) );
-    ASSERT_EQ( a.getSparse()[0].size(), 0 );
-    ASSERT_EQ( a.getSparse()[1].size(), 0 );
+    ASSERT_EQ( a.getSparse()[0].size(), 0ul );
+    ASSERT_EQ( a.getSparse()[1].size(), 0ul );
 }
 
 TEST(SdrTest, TestAt) {
@@ -516,28 +516,28 @@ TEST(SdrTest, TestOverlap) {
     SDR a({3, 3});
     a.setDense(SDR_dense_t({1, 1, 1, 1, 1, 1, 1, 1, 1}));
     SDR b(a);
-    ASSERT_EQ( a.overlap( b ), 9 );
+    ASSERT_EQ( a.overlap( b ), 9ul );
     b.zero();
-    ASSERT_EQ( a.overlap( b ), 0 );
+    ASSERT_EQ( a.overlap( b ), 0ul );
     b.setDense(SDR_dense_t({0, 1, 0, 0, 1, 0, 0, 0, 1}));
-    ASSERT_EQ( a.overlap( b ), 3 );
+    ASSERT_EQ( a.overlap( b ), 3ul );
     a.zero(); b.zero();
-    ASSERT_EQ( a.overlap( b ), 0 );
+    ASSERT_EQ( a.overlap( b ), 0ul );
 }
 
 TEST(SdrTest, TestRandomize) {
     // Test sparsity is OK
     SDR a({1000});
     a.randomize( 0. );
-    ASSERT_EQ( a.getSum(), 0 );
+    ASSERT_EQ( a.getSum(), 0ul );
     a.randomize( .25 );
-    ASSERT_EQ( a.getSum(), 250 );
+    ASSERT_EQ( a.getSum(), 250ul );
     a.randomize( .5 );
-    ASSERT_EQ( a.getSum(), 500 );
+    ASSERT_EQ( a.getSum(), 500ul );
     a.randomize( .75 );
-    ASSERT_EQ( a.getSum(), 750 );
+    ASSERT_EQ( a.getSum(), 750ul );
     a.randomize( 1. );
-    ASSERT_EQ( a.getSum(), 1000 );
+    ASSERT_EQ( a.getSum(), 1000ul );
     // Test RNG is deterministic
     SDR b(a);
     Random rng(77);
@@ -574,14 +574,14 @@ TEST(SdrTest, TestRandomize) {
     }
     for( auto f : af ) {
         f = f / iterations / sparsity;
-        ASSERT_GT( f,  .95 );
+        ASSERT_GT( f, 0.95 );
         ASSERT_LT( f, 1.05 );
     }
 }
 
 TEST(SdrTest, TestAddNoise) {
     SDR a({1000});
-    a.randomize( .10 );
+    a.randomize( 0.10 );
     SDR b(a);
     SDR c(a);
     // Test seed is deteministic
@@ -589,8 +589,8 @@ TEST(SdrTest, TestAddNoise) {
     c.setSDR(a);
     Random b_rng( 44 );
     Random c_rng( 44 );
-    b.addNoise( .5, b_rng );
-    c.addNoise( .5, c_rng );
+    b.addNoise( 0.5, b_rng );
+    c.addNoise( 0.5, c_rng );
     ASSERT_TRUE( b == c );
     ASSERT_FALSE( a == b );
     // Test different seed generates different distributions
@@ -598,30 +598,30 @@ TEST(SdrTest, TestAddNoise) {
     c.setSDR(a);
     Random rng1( 1 );
     Random rng2( 2 );
-    b.addNoise( .5, rng1 );
-    c.addNoise( .5, rng2 );
+    b.addNoise( 0.5, rng1 );
+    c.addNoise( 0.5, rng2 );
     ASSERT_TRUE( b != c );
     // Test addNoise changes PRNG state so two consequtive calls yeild different
     // results.
     Random prng( 55 );
     b.setSDR(a);
-    b.addNoise( .5, prng );
+    b.addNoise( 0.5, prng );
     SDR b_cpy(b);
     b.setSDR(a);
-    b.addNoise( .5, prng );
+    b.addNoise( 0.5, prng );
     ASSERT_TRUE( b_cpy != b );
     // Test default seed works ok
     b.setSDR(a);
     c.setSDR(a);
-    b.addNoise( .5 );
-    c.addNoise( .5 );
+    b.addNoise( 0.5 );
+    c.addNoise( 0.5 );
     ASSERT_TRUE( b != c );
     // Methodically test for every overlap.
     for( UInt x = 0; x <= 100; x++ ) {
         b.setSDR( a );
-        b.addNoise( (Real)x / 100. );
+        b.addNoise( (Real)x / 100.0 );
         ASSERT_EQ( a.overlap( b ), 100 - x );
-        ASSERT_EQ( b.getSum(), 100 );
+        ASSERT_EQ( b.getSum(), 100ul );
     }
 }
 
