@@ -284,7 +284,7 @@ void Network::link(const std::string &srcRegionName,
   Region_Ptr_t destRegion = regions_.getByName(destRegionName);
 
   // Find the inputs/outputs
-  const Spec *srcSpec = srcRegion->getSpec();
+  const Spec_Ptr_t& srcSpec = srcRegion->getSpec();
   std::string outputName = srcOutputName;
   if (outputName == "")
     outputName = srcSpec->getDefaultOutputName();
@@ -294,7 +294,7 @@ void Network::link(const std::string &srcRegionName,
     NTA_THROW << "Network::link -- output " << outputName
               << " does not exist on region " << srcRegionName;
 
-  const Spec *destSpec = destRegion->getSpec();
+  const Spec_Ptr_t& destSpec = destRegion->getSpec();
   std::string inputName;
   if (destInputName == "")
     inputName = destSpec->getDefaultInputName();
@@ -346,8 +346,8 @@ void Network::removeLink(const std::string &srcRegionName,
   Region_Ptr_t destRegion = getRegion(destRegionName);
 
   // Find the inputs
-  const Spec *srcSpec = srcRegion->getSpec();
-  const Spec *destSpec = destRegion->getSpec();
+  const Spec_Ptr_t& srcSpec = srcRegion->getSpec();
+  const Spec_Ptr_t& destSpec = destRegion->getSpec();
   std::string inputName;
   if (destInputName == "")
     inputName = destSpec->getDefaultInputName();

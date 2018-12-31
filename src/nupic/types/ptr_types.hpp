@@ -32,9 +32,11 @@
 namespace nupic {
   class Link;
   class Region;
+  class Spec;
 
   typedef std::shared_ptr<Link> Link_Ptr_t;
   typedef std::shared_ptr<Region> Region_Ptr_t;
+  typedef std::shared_ptr<Spec> Spec_Ptr_t;
 
 } // namespace nupic
 
