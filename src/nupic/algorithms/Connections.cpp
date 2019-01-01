@@ -494,7 +494,7 @@ void Connections::load(std::istream &inStream) {
   // Retrieve simple variables
   UInt numCells;
   inStream >> numCells;
-  initialize(numCells);
+  initialize( numCells );
 
   // Don't give connectedThreshold to initialize because it will modify the
   // threshold (by subtracting EPSILON) which will then have been done twice:
@@ -504,9 +504,7 @@ void Connections::load(std::istream &inStream) {
 
   // This logic is complicated by the fact that old versions of the Connections
   // serialized "destroyed" segments and synapses, which we now ignore.
-  cells_.resize(numCells);
   for (UInt cell = 0; cell < numCells; cell++) {
-    CellData &cellData = cells_[cell];
 
     UInt numSegments;
     inStream >> numSegments;
@@ -518,48 +516,28 @@ void Connections::load(std::istream &inStream) {
       }
 
       Segment segment = {(UInt32)-1};
-      {
-        SegmentData segmentData = {};
-        segmentData.cell = cell;
-        segmentData.numConnected = 0;
-
-        if (!destroyedSegment) {
-          segment = (Segment)segments_.size();
-          cellData.segments.push_back(segment);
-          segments_.push_back(segmentData);
-          segmentOrdinals_.push_back(nextSegmentOrdinal_++);
-        }
-      }
+      if (!destroyedSegment)
+        segment = createSegment( cell );
 
       UInt numSynapses;
       inStream >> numSynapses;
 
       for (SynapseIdx k = 0; k < numSynapses; k++) {
-        SynapseData synapseData = {};
-        inStream >> synapseData.presynapticCell;
-        inStream >> synapseData.permanence;
+        CellIdx     presyn;
+        Permanence  perm;
+        inStream >> presyn;
+        inStream >> perm;
 
-        bool destroyedSynapse = false;
         if (version < 2) {
+          bool destroyedSynapse = false;
           inStream >> destroyedSynapse;
+          if( destroyedSynapse )
+            continue;
         }
+        if( destroyedSegment )
+          continue;
 
-        if (!destroyedSegment && !destroyedSynapse) {
-          synapseData.segment = segment;
-
-          SegmentData &segmentData = segments_[segment];
-
-          Synapse synapse = {(UInt32)synapses_.size()};
-          segmentData.synapses.push_back(synapse);
-          synapses_.push_back(synapseData);
-          synapseOrdinals_.push_back(nextSynapseOrdinal_++);
-
-          synapsesForPresynapticCell_[synapseData.presynapticCell].push_back(
-              synapse);
-
-          if( synapseData.permanence >= connectedThreshold_ )
-            segmentData.numConnected++;
-        }
+        createSynapse( segment, presyn, perm );
       }
     }
   }
