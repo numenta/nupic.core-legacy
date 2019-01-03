@@ -171,12 +171,11 @@ void Connections::destroySegment(Segment segment) {
   }
 
   SegmentData &segmentData = segments_[segment];
-  for (Synapse synapse : segmentData.synapses) {
-    // Don't call destroySynapse, since it's unnecessary to do index-shifting.
-    removeSynapseFromPresynapticMap_(synapse);
-    destroyedSynapses_.push_back(synapse);
-  }
-  segmentData.synapses.clear();
+
+  // Destroy synapses from the end of the list, so that the index-shifting is
+  // easier to do.
+  while( !segmentData.synapses.empty() )
+    destroySynapse(segmentData.synapses.back());
 
   CellData &cellData = cells_[segmentData.cell];
 
@@ -602,34 +601,6 @@ bool Connections::operator==(const Connections &other) const {
         // Two functionally identical instances may have different flatIdxs.
         NTA_ASSERT(synapseData.segment == segment);
         NTA_ASSERT(otherSynapseData.segment == otherSegment);
-      }
-    }
-  }
-
-  if (synapsesForPresynapticCell_.size() !=
-      other.synapsesForPresynapticCell_.size())
-    return false;
-
-  for (auto i = synapsesForPresynapticCell_.begin();
-       i != synapsesForPresynapticCell_.end(); ++i) {
-    const vector<Synapse> &synapses = i->second;
-    const vector<Synapse> &otherSynapses =
-        other.synapsesForPresynapticCell_.at(i->first);
-
-    if (synapses.size() != otherSynapses.size())
-      return false;
-
-    for (SynapseIdx j = 0; j < synapses.size(); ++j) {
-      Synapse synapse = synapses[j];
-      const SynapseData &synapseData = synapses_[synapse];
-      const SegmentData &segmentData = segments_[synapseData.segment];
-      Synapse otherSynapse = otherSynapses[j];
-      const SynapseData &otherSynapseData = other.synapses_[otherSynapse];
-      const SegmentData &otherSegmentData =
-          other.segments_[otherSynapseData.segment];
-
-      if (segmentData.cell != otherSegmentData.cell) {
-        return false;
       }
     }
   }
