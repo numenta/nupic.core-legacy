@@ -162,7 +162,7 @@ bool Connections::synapseExists_(Synapse synapse) const {
  * last synapse in the list over this synapse.
  */
 void Connections::removeSynapseFromPresynapticMap_(
-    UInt index,
+    const UInt index,
     vector<Synapse> &preSynapses,
     vector<Segment> &preSegments)
 {
@@ -216,26 +216,32 @@ void Connections::destroySynapse(Synapse synapse) {
 
   const SynapseData &synapseData = synapses_[synapse];
         SegmentData &segmentData = segments_[synapseData.segment];
+  const auto         presynCell  = synapseData.presynapticCell;
 
   if( synapseData.permanence >= connectedThreshold_ ) {
+    segmentData.numConnected--;
+
     removeSynapseFromPresynapticMap_(
       synapseData.presynapticMapIndex_,
-      connectedSynapsesForPresynapticCell_.at( synapseData.presynapticCell ),
-      connectedSegmentsForPresynapticCell_.at( synapseData.presynapticCell ));
+      connectedSynapsesForPresynapticCell_.at( presynCell ),
+      connectedSegmentsForPresynapticCell_.at( presynCell ));
 
-    segmentData.numConnected--;
+    if( connectedSynapsesForPresynapticCell_.at( presynCell ).empty() ){
+      connectedSynapsesForPresynapticCell_.erase( presynCell );
+      connectedSegmentsForPresynapticCell_.erase( presynCell );
+    }
   }
   else {
     removeSynapseFromPresynapticMap_(
       synapseData.presynapticMapIndex_,
-      potentialSynapsesForPresynapticCell_.at( synapseData.presynapticCell ),
-      potentialSegmentsForPresynapticCell_.at( synapseData.presynapticCell ));
-  }
+      potentialSynapsesForPresynapticCell_.at( presynCell ),
+      potentialSegmentsForPresynapticCell_.at( presynCell ));
 
-  // TODO:
-  // if (presynapticSynapses.size() == 0) {
-  //   synapsesForPresynapticCell_.erase(synapseData.presynapticCell);
-  // }
+    if( potentialSynapsesForPresynapticCell_.at( presynCell ).empty() ){
+      potentialSynapsesForPresynapticCell_.erase( presynCell );
+      potentialSegmentsForPresynapticCell_.erase( presynCell );
+    }
+  }
 
   const auto synapseOnSegment =
       std::lower_bound(segmentData.synapses.begin(), segmentData.synapses.end(),
@@ -439,12 +445,9 @@ void Connections::computeActivity(
              numActiveConnectedSynapsesForSegment.end(),
              numActivePotentialSynapsesForSegment.begin());
   for (CellIdx cell : activePresynapticCells) {
-    if (potentialSynapsesForPresynapticCell_.count(cell)) {
-      // TODO: Use potentialSegmentsForPresynapticCell_ !!!
-      for (Synapse synapse : potentialSynapsesForPresynapticCell_.at(cell)) {
-        const SynapseData &synapseData = synapses_[synapse];
-        ++numActivePotentialSynapsesForSegment[synapseData.segment];
-        NTA_ASSERT( synapseData.permanence < connectedThreshold_ );
+    if (potentialSegmentsForPresynapticCell_.count(cell)) {
+      for( Segment segment : potentialSegmentsForPresynapticCell_.at(cell)) {
+        ++numActivePotentialSynapsesForSegment[segment];
       }
     }
   }

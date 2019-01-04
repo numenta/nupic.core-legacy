@@ -565,11 +565,17 @@ protected:
    *
    * @param Synapse Index of synapse in presynaptic vector.
    *
-   * @param TODO
+   * @param vector<Synapse> synapsesForPresynapticCell must a vector from be
+   * either potentialSynapsesForPresynapticCell_ or
+   * connectedSynapsesForPresynapticCell_, depending on whether the synapse is
+   * connected or not.
    *
-   * @param TODO
+   * @param vector<Synapse> segmentsForPresynapticCell must be a vector from
+   * either potentialSegmentsForPresynapticCell_ or
+   * connectedSegmentsForPresynapticCell_, depending on whether the synapse is
+   * connected or not.
    */
-  void removeSynapseFromPresynapticMap_(Synapse index,
+  void removeSynapseFromPresynapticMap_(const Synapse index,
                                   vector<Synapse> &synapsesForPresynapticCell,
                                   vector<Synapse> &segmentsForPresynapticCell);
 
