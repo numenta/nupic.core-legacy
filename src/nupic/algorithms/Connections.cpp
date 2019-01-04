@@ -314,27 +314,6 @@ Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
   return synapsesForPresynapticCell_.at(presynapticCell);
 }
 
-Synapse Connections::minPermanenceSynapse_(Segment segment) const {
-  // Use special EPSILON logic to compensate for floating point differences
-  // between C++ and other environments.
-
-  bool found = false;
-  Permanence minPermanence = std::numeric_limits<Permanence>::max();
-  Synapse minSynapse;
-
-  for (Synapse synapse : segments_[segment].synapses) {
-    if (synapses_[synapse].permanence < minPermanence - EPSILON) {
-      minSynapse = synapse;
-      minPermanence = synapses_[synapse].permanence;
-      found = true;
-    }
-  }
-
-  NTA_CHECK(found);
-
-  return minSynapse;
-}
-
 void Connections::computeActivity(
     vector<UInt32> &numActiveConnectedSynapsesForSegment,
     vector<UInt32> &numActivePotentialSynapsesForSegment,
