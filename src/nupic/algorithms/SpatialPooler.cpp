@@ -874,9 +874,7 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 void SpatialPooler::calculateOverlap_(SDR &input,
                                       vector<UInt> &overlaps) const {
   overlaps.assign( numColumns_, 0.0f );
-  vector<UInt32> potentialOverlaps( numColumns_ );
-  connections_.computeActivity(overlaps, potentialOverlaps,
-        input.getFlatSparse(), synPermConnected_);
+  connections_.computeActivity(overlaps, input.getFlatSparse());
 }
 
 
