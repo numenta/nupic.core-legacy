@@ -48,9 +48,8 @@
  *
  *    5) Get and return a pointer to the spec from the plugin when createSpec() is called.
  *       During this call the class should be loaded.
- *       The pointer to the spec returned from the plugin should be cached in this class.  The
- *       RegistedRegionImpl base class contains "std::shared_ptr<Spec> cachedSpec_;"
- *       that this subclass may use for this purpose.
+ *       The pointer to the spec returned from the plugin should be dynamically allocated
+ *       and the caller takes ownership.
  *
  *    6)  Before doing anything with a python region, we must initialize the python interpreter.
  *
@@ -142,7 +141,6 @@ namespace nupic
 
       Spec* createSpec() override
       {
-        if (!cachedSpec_) {
           Spec* sp = new Spec();
           try {
 			PyBindRegion::createSpec(module_.c_str(), *sp, classname_.c_str());
@@ -155,9 +153,7 @@ namespace nupic
             delete sp;
 			NTA_THROW << "PyBindRegion::createSpec failed: unknown exception.";
           }
-          cachedSpec_.reset(sp);
-        }
-        return cachedSpec_.get();
+          return sp;
       }
 
 		/**
@@ -183,9 +179,6 @@ namespace nupic
 
 
 
-
-    private:
-		std::shared_ptr<Spec> cachedSpec_;
 
   };
 

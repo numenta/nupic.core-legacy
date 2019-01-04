@@ -134,12 +134,16 @@ TEST(LinkTest, DelayedLink) {
   };
 
   RegionImplFactory::registerRegion("MyTestNode",
+                    new RegisteredRegionImplCpp<TestNode>("MyTestNode"));
+  // second registration with the same name should just replace.
+  RegionImplFactory::registerRegion("MyTestNode",
                     new RegisteredRegionImplCpp<MyTestNode>("MyTestNode"));
 
   Network net;
   Region_Ptr_t region1 = net.addRegion("region1", "MyTestNode", "");
   Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
 
+  RegionImplFactory::unregisterRegion("MyTestNode");
 
   Dimensions d1;
   d1.push_back(8);

@@ -47,9 +47,7 @@
  *       to initialize an entire network from a previous serialization file.
  *
  *    5) Get and return a pointer to the spec from the plugin when createSpec() is called.
- *       The pointer returned from the plugin should be cached.  The
- *       RegistedRegionImpl base class contains "std::shared_ptr<Spec> cachedSpec_;"
- *       that the subclass may use for this purpose.
+ *       The pointer returned from the plugin is cached by the RegionImplFactory class.
  *
 
  */
@@ -89,15 +87,8 @@ namespace nupic
 
       Spec* createSpec() override
       {
-        if (!cachedSpec_) {
-          Spec *sp = T::createSpec();
-          cachedSpec_.reset(sp);
-        }
-        return cachedSpec_.get();
+          return T::createSpec();
       }
-	private:
-		std::shared_ptr<Spec> cachedSpec_;
-
   };
 
 }
