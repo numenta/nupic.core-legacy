@@ -93,6 +93,8 @@ set(ntypes_tests
 	   unit/ntypes/NodeSetTest.cpp
 	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/SdrTest.cpp
+	   unit/ntypes/SdrProxyTest.cpp
+	   unit/ntypes/SdrMetricsTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
