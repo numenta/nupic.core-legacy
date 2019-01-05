@@ -515,29 +515,6 @@ public:
               << outputName;
   }
 
-  /**
-   * Get a parameter from a write buffer.
-   * This method is called only by the typed getParameter*
-   * methods in the RegionImpl base class
-   *
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   *
-   */
-  void getParameterFromBuffer(const std::string &name, Int64 index,
-                              IWriteBuffer &value) override {}
-
-  /**
-   * Set a parameter from a read buffer.
-   * This method is called only by the RegionImpl base class
-   * type-specific setParameter* methods
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   */
-  void setParameterFromBuffer(const std::string &name, Int64 index,
-                              IReadBuffer &value) override {}
 
 private:
   TestRegionBase();

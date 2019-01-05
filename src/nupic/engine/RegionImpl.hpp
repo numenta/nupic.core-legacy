@@ -38,9 +38,6 @@
 #include <string>
 #include <vector>
 
-
-#include <nupic/ntypes/ObjectModel.hpp> // IWriteBuffer
-
 namespace nupic {
 
 class Spec;
@@ -80,7 +77,6 @@ public:
   virtual UInt64 getParameterUInt64(const std::string &name, Int64 index);
   virtual Real32 getParameterReal32(const std::string &name, Int64 index);
   virtual Real64 getParameterReal64(const std::string &name, Int64 index);
-  virtual Handle getParameterHandle(const std::string &name, Int64 index);
   virtual bool getParameterBool(const std::string &name, Int64 index);
 
   virtual void setParameterInt32(const std::string &name, Int64 index,
@@ -95,8 +91,6 @@ public:
                                   Real32 value);
   virtual void setParameterReal64(const std::string &name, Int64 index,
                                   Real64 value);
-  virtual void setParameterHandle(const std::string &name, Int64 index,
-                                  Handle value);
   virtual void setParameterBool(const std::string &name, Int64 index,
                                 bool value);
 
@@ -142,30 +136,6 @@ public:
   // This method is called only for outputs whose size is not
   // specified in the nodespec.
   virtual size_t getNodeOutputElementCount(const std::string &outputName) = 0;
-
-  /**
-   * Get a parameter from a write buffer.
-   * This method is called only by the typed getParameter*
-   * methods in the RegionImpl base class
-   *
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   *
-   */
-  virtual void getParameterFromBuffer(const std::string &name, Int64 index,
-                                      IWriteBuffer &value) = 0;
-
-  /**
-   * Set a parameter from a read buffer.
-   * This method is called only by the RegionImpl base class
-   * type-specific setParameter* methods
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   */
-  virtual void setParameterFromBuffer(const std::string &name, Int64 index,
-                                      IReadBuffer &value) = 0;
 
   /* -------- Methods that may be overridden by subclasses -------- */
 
