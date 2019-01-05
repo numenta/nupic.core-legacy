@@ -94,16 +94,13 @@ public:
   }
 
   template <typename UI>
-  NTA_HIDDEN friend std::ostream &operator<<(std::ostream &,
-                                             const DimRange<UI> &);
+  friend std::ostream &operator<<(std::ostream &, const DimRange<UI> &);
 
   template <typename UI>
-  NTA_HIDDEN friend bool operator==(const DimRange<UI> &r1,
-                                    const DimRange<UI> &r2);
+  friend bool operator==(const DimRange<UI> &r1, const DimRange<UI> &r2);
 
   template <typename UI>
-  NTA_HIDDEN friend bool operator!=(const DimRange<UI> &r1,
-                                    const DimRange<UI> &r2);
+  friend bool operator!=(const DimRange<UI> &r1, const DimRange<UI> &r2);
 
 private:
   UInt dim_;
@@ -295,14 +292,13 @@ public:
   }
 
   template <typename UI>
-  NTA_HIDDEN friend std::ostream &operator<<(std::ostream &outStream,
-                                             const Domain<UI> &dom);
+  friend std::ostream &operator<<(std::ostream &outStream,const Domain<UI> &dom);
 
   template <typename UI>
-  NTA_HIDDEN friend bool operator==(const Domain<UI> &d1, const Domain<UI> &d2);
+  friend bool operator==(const Domain<UI> &d1, const Domain<UI> &d2);
 
   template <typename UI>
-  NTA_HIDDEN friend bool operator!=(const Domain<UI> &d1, const Domain<UI> &d2);
+  friend bool operator!=(const Domain<UI> &d1, const Domain<UI> &d2);
 
 protected:
   // Could be a compile time dimension, as it used to be,
