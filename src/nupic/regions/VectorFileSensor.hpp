@@ -37,7 +37,7 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/regions/VectorFile.hpp>
-#include <nupic/types/Types.h>
+#include <nupic/types/Types.hpp>
 
 namespace nupic {
 class ValueMap;
