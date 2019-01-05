@@ -221,17 +221,6 @@ VectorFileEffector::getNodeOutputElementCount(const std::string &outputName) {
       << outputName << "'";
 }
 
-void VectorFileEffector::getParameterFromBuffer(const std::string &name,
-                                                Int64 index,
-                                                IWriteBuffer &value) {
-  NTA_THROW << "VectorFileEffector -- unknown parameter '" << name << "'";
-}
-
-void VectorFileEffector::setParameterFromBuffer(const std::string &name,
-                                                Int64 index,
-                                                IReadBuffer &value) {
-  NTA_THROW << "VectorFileEffector -- unknown parameter '" << name << "'";
-}
 
 void VectorFileEffector::serialize(BundleIO &bundle) { return; }
 
