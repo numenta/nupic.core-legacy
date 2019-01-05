@@ -53,10 +53,9 @@ public:
 
   static Spec *createSpec();
 
-  virtual void getParameterFromBuffer(const std::string &name, Int64 index,
-                                      IWriteBuffer &value) override;
-  virtual void setParameterFromBuffer(const std::string &name, Int64 index,
-                                      IReadBuffer &value) override;
+  virtual Real64 getParameterReal64(const std::string &name, Int64 index = -1) override;
+  virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
+  virtual void setParameterReal64(const std::string &name, Int64 index, Real64 value) override;
   virtual void initialize() override;
 
   virtual void serialize(BundleIO &bundle) override;
