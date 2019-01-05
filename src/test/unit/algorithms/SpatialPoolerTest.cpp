@@ -2054,4 +2054,43 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   EXPECT_TRUE(sp1 == sp2) << "Spatial Poolers not equal";
 }
 
+TEST(SpatialPoolerTest, ExactOutput) {
+  string gold =
+    "SDR 1 "
+    "1 200 "
+    "10 190 172 23 118 178 129 113 71 185 182 "
+    "~SDR"; // This is all one string.
+
+  stringstream gold_stream( gold );
+  SDR gold_sdr;
+  gold_sdr.load( gold_stream );
+
+  SDR inputs({ 1000 });
+  SDR columns({ 200 });
+  SpatialPooler sp({inputs.dimensions}, {columns.dimensions},
+                   /*potentialRadius*/ 99999,
+                   /*potentialPct*/ 0.5f,
+                   /*globalInhibition*/ true,
+                   /*localAreaDensity*/ 0.05f,
+                   /*numActiveColumnsPerInhArea*/ -1,
+                   /*stimulusThreshold*/ 3u,
+                   /*synPermInactiveDec*/ 0.008f,
+                   /*synPermActiveInc*/ 0.05f,
+                   /*synPermConnected*/ 0.1f,
+                   /*minPctOverlapDutyCycles*/ 0.001f,
+                   /*dutyCyclePeriod*/ 200,
+                   /*boostStrength*/ 10.0f,
+                   /*seed*/ 42,
+                   /*spVerbosity*/ 0,
+                   /*wrapAround*/ true);
+
+  for(UInt i = 0; i < 1000; i++) {
+    Random rng(i + 1); // Random seed 0 is magic, don't use it.
+    inputs.randomize( 0.15f, rng );
+    sp.compute(inputs, true, columns);
+  }
+  cerr << "OUTPUT SDR:" << endl; columns.save( cerr ); cerr << endl;
+  ASSERT_TRUE( columns == gold_sdr );
+}
+
 } // end anonymous namespace
