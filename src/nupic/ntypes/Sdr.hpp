@@ -759,7 +759,7 @@ public:
      * @param stream A valid output stream, such as an open file.
      */
     void save(std::ostream &outStream) const override {
-        NTA_THROW << "Can not save constant SDR!";
+        NTA_THROW << "Can not save constant SDR!"; // TODO
     }
 
     void save(std::ostream &outStream) {
