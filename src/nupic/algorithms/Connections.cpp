@@ -403,10 +403,11 @@ void Connections::computeActivity(
     vector<UInt32> &numActiveConnectedSynapsesForSegment,
     vector<UInt32> &numActivePotentialSynapsesForSegment,
     CellIdx activePresynapticCell, Permanence connectedPermanence) const {
+  std::vector<UInt32> activePresynapticCells({activePresynapticCell});
   computeActivity(
     numActiveConnectedSynapsesForSegment,
     numActivePotentialSynapsesForSegment,
-    {activePresynapticCell}, connectedPermanence);
+    activePresynapticCells, connectedPermanence);
 }
 
 
