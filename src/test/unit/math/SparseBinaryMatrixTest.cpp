@@ -27,7 +27,6 @@
 #include <gtest/gtest.h>
 
 #include <nupic/math/SparseBinaryMatrix.hpp>
-#include <nupic/types/Types.h>
 
 using namespace nupic;
 

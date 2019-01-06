@@ -23,7 +23,7 @@
 #ifndef NTA_BASIC_TYPE_HPP
 #define NTA_BASIC_TYPE_HPP
 
-#include <nupic/types/Types.h>
+#include <nupic/types/Types.hpp>
 #include <string>
 
 namespace nupic {
@@ -32,7 +32,7 @@ namespace nupic {
 // The supported operations are:
 // - isValid()
 // - getName()
-// - getSize() 
+// - getSize()
 // - parse()
 // - convertArray()
 //
