@@ -85,7 +85,6 @@ set(math_tests
 	   
 set(ntypes_tests
 	   unit/ntypes/ArrayTest.cpp
-	   unit/ntypes/BufferTest.cpp
 	   unit/ntypes/CollectionTest.cpp
 	   unit/ntypes/DimensionsTest.cpp
 	   unit/ntypes/MemParserTest.cpp
@@ -93,6 +92,8 @@ set(ntypes_tests
 	   unit/ntypes/NodeSetTest.cpp
 	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/SdrTest.cpp
+	   unit/ntypes/SdrProxyTest.cpp
+	   unit/ntypes/SdrMetricsTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   

@@ -28,7 +28,6 @@
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/types/Types.h>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
@@ -59,10 +58,6 @@ void Region::setParameterReal64(const std::string &name, Real64 value) {
   impl_->setParameterReal64(name, (Int64)-1, value);
 }
 
-void Region::setParameterHandle(const std::string &name, Handle value) {
-  impl_->setParameterHandle(name, (Int64)-1, value);
-}
-
 void Region::setParameterBool(const std::string &name, bool value) {
   impl_->setParameterBool(name, (Int64)-1, value);
 }
@@ -91,10 +86,6 @@ Real32 Region::getParameterReal32(const std::string &name) const {
 
 Real64 Region::getParameterReal64(const std::string &name) const {
   return impl_->getParameterReal64(name, (Int64)-1);
-}
-
-Handle Region::getParameterHandle(const std::string &name) const {
-  return impl_->getParameterHandle(name, (Int64)-1);
 }
 
 bool Region::getParameterBool(const std::string &name) const {

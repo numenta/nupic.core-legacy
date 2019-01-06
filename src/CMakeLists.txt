@@ -172,8 +172,6 @@ set(ntypes_files
     nupic/ntypes/ArrayBase.cpp
     nupic/ntypes/ArrayBase.hpp
     nupic/ntypes/ArrayRef.hpp
-    nupic/ntypes/Buffer.cpp
-    nupic/ntypes/Buffer.hpp
     nupic/ntypes/BundleIO.hpp
     #nupic/ntypes/Collection.cpp  Included directly into Collections.cpp
     nupic/ntypes/Collection.hpp
@@ -183,8 +181,6 @@ set(ntypes_files
     nupic/ntypes/MemParser.hpp
     nupic/ntypes/MemStream.hpp
     nupic/ntypes/NodeSet.hpp
-    nupic/ntypes/ObjectModel.h
-    nupic/ntypes/ObjectModel.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
     nupic/ntypes/Value.cpp
@@ -228,7 +224,6 @@ set(types_files
     nupic/types/Fraction.hpp
     nupic/types/ptr_types.hpp
     nupic/types/Serializable.hpp
-    nupic/types/Types.h
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
 )

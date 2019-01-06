@@ -919,6 +919,11 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
   NTA_ASSERT(!overlaps.empty());
   NTA_ASSERT(density > 0.0f && density <= 1.0f);
 
+  // Add a tiebreaker to the overlaps so that the output is deterministic.
+  vector<Real> overlaps_(overlaps.begin(), overlaps.end());
+  for(UInt i = 0; i < numColumns_; i++)
+    overlaps_[i] += tieBreaker_[i];
+
   activeColumns.clear();
   const UInt numDesired = (UInt)(density * numColumns_);
   NTA_CHECK(numDesired > 0) << "Not enough columns (" << numColumns_ << ") "
@@ -929,8 +934,8 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
   for(UInt i = 0; i < numColumns_; i++)
     activeColumns.push_back(i);
   // Compare the column indexes by their overlap.
-  auto compare = [&overlaps](const UInt &a, const UInt &b) -> bool
-    {return overlaps[a] > overlaps[b];};
+  auto compare = [&overlaps_](const UInt &a, const UInt &b) -> bool
+    {return overlaps_[a] > overlaps_[b];};
   // Do a partial sort to divide the winners from the losers.  This sort is
   // faster than a regular sort because it stops after it partitions the
   // elements about the Nth element, with all elements on their correct side of

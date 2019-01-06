@@ -210,10 +210,11 @@ namespace nupic_ext
         getSpecFromType
         */
 
-        py_Region.def("getSelf", [](const Region& self)
-        {
-            return self.getParameterHandle("self");
-        });
+		// TODO: do we need a function like this?
+        //py_Region.def("getSelf", [](const Region& self)
+        //{
+        //    return self.getParameterHandle("self");
+        //});
 
         py_Region.def("getInputArray", [](const Region& self, const std::string& name)
         {
