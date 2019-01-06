@@ -29,8 +29,6 @@
 #include <nupic/ntypes/Collection.hpp>
 #include <sstream>
 
-// Collection implementation needed for explicit instantiation
-#include <nupic/ntypes/Collection.cpp>
 
 using namespace nupic;
 
@@ -192,4 +190,18 @@ TEST_F(CollectionTest, testCollectionAddRemove) {
   // c is now empty
   ASSERT_TRUE(c.getCount() == 0);
   ASSERT_TRUE(!c.contains("2"));
+}
+
+TEST_F(CollectionTest, testCollectionIterator) {
+  Collection<int> c;
+  c.add("0", 0);
+  c.add("1", 1);
+  c.add("2", 2);
+  // c is now: 0,1,2
+  int i = 0;
+  for (auto itr :  c) {
+  	ASSERT_EQ(i, itr.second);
+	i++;
+  }
+  ASSERT_EQ(3, i);
 }
