@@ -113,7 +113,6 @@ set(encoders_files
 )
     
 set(engine_files
-    nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Input.hpp
     nupic/engine/Link.cpp
@@ -173,7 +172,6 @@ set(ntypes_files
     nupic/ntypes/ArrayBase.hpp
     nupic/ntypes/ArrayRef.hpp
     nupic/ntypes/BundleIO.hpp
-    #nupic/ntypes/Collection.cpp  Included directly into Collections.cpp
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
     nupic/ntypes/Dimensions.hpp
