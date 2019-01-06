@@ -126,7 +126,8 @@ float Timer::getSpeed() {
       data[i] = data[data.size()-i-1];
       data[data.size()-i-1]=t;
     }
-    rng.shuffle(begin(data), end(data));
+    for(auto i = 0u; i < 10u; i++)
+      rng.shuffle(begin(data), end(data)); // hurt the cache.
     std::vector<Real> sins;
     for (auto d : data) {
       sins.push_back(sin(d)/cos(d));
