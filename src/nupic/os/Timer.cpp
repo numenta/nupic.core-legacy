@@ -139,6 +139,7 @@ float Timer::getSpeed() {
     NTA_CHECK(data.size() == 666);
     t.stop();
     SPEED = std::max(1.0, t.getElapsed());
+    NTA_INFO << "Timer::getSpeed() -> " << SPEED << " seconds.";
   }
   return SPEED;
 }

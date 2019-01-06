@@ -110,8 +110,13 @@ float runSpatialPoolerTest(
                   Real   columnSparsity,
                   string label)
 {
+#ifdef NDEBUG
   const auto trainTime = 1000u;
   const auto testTime  =  500u;
+#else
+  const auto trainTime = 10u;
+  const auto testTime  =  5u;
+#endif
 
   Timer timer;
   timer.start();
@@ -218,15 +223,14 @@ TEST(ConnectionsPerformanceTest, testTMLarge) {
  */
 TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(
-    /* numInputs */          COLS,
+    /* numInputs */          1024,
     /* inputSparsity */      0.15f,
-    /* numColumns */         COLS,
+    /* numColumns */         1024,
     /* columnSparsity */     0.05f,
     /* label */              "spatial pooler");
 
 #ifdef NDEBUG
-  cout << "Time baseline speed: " << Timer::getSpeed() << endl;
-  ASSERT_LE(tim, 3.0f * Timer::getSpeed());
+  ASSERT_LE(tim, 5.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
@@ -236,14 +240,14 @@ TEST(ConnectionsPerformanceTest, testSP) {
  */
 TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = runSpatialPoolerTest(
-    /* numInputs */          8 * COLS,
+    /* numInputs */          4 * 1024,
     /* inputSparsity */      0.02f,
-    /* numColumns */         COLS / 2,
+    /* numColumns */         1024 / 2,
     /* columnSparsity */     0.05f,
     /* label */              "temporal pooler");
 
 #ifdef NDEBUG
-  ASSERT_LE(tim, 3.0f * Timer::getSpeed());
+  ASSERT_LE(tim, 5.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
