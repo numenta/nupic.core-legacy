@@ -75,10 +75,6 @@ public:
                              Int64 index) override;
 
   size_t getNodeOutputElementCount(const std::string &outputName) override;
-  void getParameterFromBuffer(const std::string &name, Int64 index,
-                              IWriteBuffer &value) override;
-  void setParameterFromBuffer(const std::string &name, Int64 index,
-                              IReadBuffer &value) override;
 
   void initialize() override;
 
@@ -90,13 +86,26 @@ public:
 
   size_t getParameterArrayCount(const std::string &name, Int64 index) override;
 
-  // Override for Real64 only
-  // We choose Real64 in the test node to preserve precision. All other type
-  // go through read/write buffer serialization, and floating point values may
-  // get truncated in the conversion to/from ascii.
-  Real64 getParameterReal64(const std::string &name, Int64 index) override;
-  void setParameterReal64(const std::string &name, Int64 index,
-                          Real64 value) override;
+  virtual Int32 getParameterInt32(const std::string &name, Int64 index) override;
+  virtual UInt32 getParameterUInt32(const std::string &name, Int64 index) override;
+  virtual Int64 getParameterInt64(const std::string &name, Int64 index) override;
+  virtual UInt64 getParameterUInt64(const std::string &name, Int64 index) override;
+  virtual Real32 getParameterReal32(const std::string &name, Int64 index) override;
+  virtual Real64 getParameterReal64(const std::string &name, Int64 index) override;
+  virtual bool getParameterBool(const std::string &name, Int64 index) override;
+  virtual std::string getParameterString(const std::string &name, Int64 index) override;
+  virtual void getParameterArray(const std::string &name, Int64 index, Array &array) override;
+
+  virtual void setParameterInt32(const std::string &name, Int64 index, Int32 value) override;
+  virtual void setParameterUInt32(const std::string &name, Int64 index, UInt32 value) override;
+  virtual void setParameterInt64(const std::string &name, Int64 index, Int64 value) override;
+  virtual void setParameterUInt64(const std::string &name, Int64 index, UInt64 value) override;
+  virtual void setParameterReal32(const std::string &name, Int64 index, Real32 value) override;
+  virtual void setParameterReal64(const std::string &name, Int64 index, Real64 value) override;
+  virtual void setParameterBool(const std::string &name, Int64 index, bool value) override;
+  virtual void setParameterString(const std::string &name, Int64 index, const std::string &s) override;
+  virtual void setParameterArray(const std::string &name, Int64 index, const Array &array) override;
+
 
   bool isParameterShared(const std::string &name) override;
 

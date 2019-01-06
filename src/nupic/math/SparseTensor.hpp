@@ -2619,8 +2619,7 @@ public:
    * See print().
    */
   template <typename I, typename F>
-  NTA_HIDDEN friend std::ostream &operator<<(std::ostream &,
-                                             const SparseTensor<I, F> &);
+  friend std::ostream &operator<<(std::ostream &,const SparseTensor<I, F> &);
 
   /**
    * Whether two sparse tensors are equal or not.
@@ -2629,16 +2628,14 @@ public:
    * Equality of floating point numbers is controlled by nupic::Epsilon.
    */
   template <typename I, typename F>
-  NTA_HIDDEN friend bool operator==(const SparseTensor<I, F> &,
-                                    const SparseTensor<I, F> &);
+  friend bool operator==(const SparseTensor<I, F> &,const SparseTensor<I, F> &);
 
   /**
    * Whether two sparse tensors are different or not.
    * See operator==.
    */
   template <typename I, typename F>
-  NTA_HIDDEN friend bool operator!=(const SparseTensor<I, F> &,
-                                    const SparseTensor<I, F> &);
+  friend bool operator!=(const SparseTensor<I, F> &,const SparseTensor<I, F> &);
 
   /**
    * Prints out this tensor to a stream.

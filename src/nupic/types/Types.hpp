@@ -21,13 +21,13 @@
  */
 
 /** @file
- * Basic C++ type definitions used throughout `nupic.core` and rely on `Types.h`
+ * Basic C++ type definitions used throughout `nupic.core`
  */
+#include <cstdlib>  // defines size_t
 
 #ifndef NTA_TYPES_HPP
 #define NTA_TYPES_HPP
 
-#include <nupic/types/Types.h>
 
 #define UNUSED(x) (void)(x)
 
@@ -36,6 +36,7 @@
 namespace nupic {
 /**
  * @name Basic types
+ *  see https://en.cppreference.com/w/cpp/language/types
  *
  * @{
  */
@@ -43,57 +44,58 @@ namespace nupic {
 /**
  * Represents a 8-bit byte.
  */
-typedef NTA_Byte Byte;
+typedef char Byte;
 
 /**
  * Represents a 16-bit signed integer.
  */
-typedef NTA_Int16 Int16;
+typedef short Int16;
 
 /**
  * Represents a 16-bit unsigned integer.
  */
-typedef NTA_UInt16 UInt16;
+typedef unsigned short UInt16;
 
 /**
  * Represents a 32-bit signed integer.
  */
-typedef NTA_Int32 Int32;
+typedef int Int32;
 
 /**
  * Represents a 32-bit unsigned integer.
  */
-typedef NTA_UInt32 UInt32;
+typedef unsigned int UInt32;
 
 /**
  * Represents a 64-bit signed integer.
  */
-typedef NTA_Int64 Int64;
+typedef long long Int64;
 
 /**
  * Represents a 64-bit unsigned integer.
  */
-typedef NTA_UInt64 UInt64;
+typedef unsigned long long UInt64;
 
 /**
  * Represents a 32-bit real number(a floating-point number).
  */
-typedef NTA_Real32 Real32;
+typedef float Real32;
 
 /**
  * Represents a 64-bit real number(a floating-point number).
  */
-typedef NTA_Real64 Real64;
+typedef double Real64;
 
 /**
- * Represents an opaque handle/pointer, same as `void *`
+ * Represents an opaque handle/pointer
  */
-typedef NTA_Handle Handle;
+typedef void* Handle;
+
 
 /**
- * Represents an opaque pointer, same as `uintptr_t`
+ * Represents lengths of arrays, strings and so on.
  */
-typedef NTA_UIntPtr UIntPtr;
+typedef std::size_t Size;
 
 /**
  * @}
@@ -115,14 +117,22 @@ typedef NTA_UIntPtr UIntPtr;
  * Same as nupic::Real64 if `NTA_DOUBLE_PRECISION` is defined, nupic::Real32
  * otherwise.
  */
-typedef NTA_Real Real;
+#ifdef NTA_DOUBLE_PRECISION
+  typedef Real64 Real;
+#else
+  typedef Real32 Real;
+#endif
 
 /**
  * Represents a signed integer.
  *
  * Same as nupic::Int64 if `NTA_BIG_INTEGER` is defined, nupic::Int32 otherwise.
  */
-typedef NTA_Int Int;
+#ifdef NTA_BIG_INTEGER
+  typedef Int64 Int;
+#else
+  typedef Int32 Int;
+#endif
 
 /**
  * Represents a unsigned integer.
@@ -130,16 +140,103 @@ typedef NTA_Int Int;
  * Same as nupic::UInt64 if `NTA_BIG_INTEGER` is defined, nupic::UInt32
  * otherwise.
  */
-typedef NTA_UInt UInt;
+#ifdef NTA_BIG_INTEGER
+  typedef UInt64 UInt;
+#else
+  typedef UInt32 UInt;
+#endif
 
-/**
- * Represents lengths of arrays, strings and so on.
- */
-typedef NTA_Size Size;
 
 /**
  * @}
  */
+
+ /**
+ * Basic types enumeration
+ */
+typedef enum NTA_BasicType {
+  /**
+   * Represents a 8-bit byte.
+   */
+  NTA_BasicType_Byte,
+
+  /**
+   * Represents a 16-bit signed integer.
+   */
+  NTA_BasicType_Int16,
+
+  /**
+   * Represents a 16-bit unsigned integer.
+   */
+  NTA_BasicType_UInt16,
+
+  /**
+   * Represents a 32-bit signed integer.
+   */
+  NTA_BasicType_Int32,
+
+  /**
+   * Represents a 32-bit unsigned integer.
+   */
+  NTA_BasicType_UInt32,
+
+  /**
+   * Represents a 64-bit signed integer.
+   */
+  NTA_BasicType_Int64,
+
+  /**
+   * Represents a 64-bit unsigned integer.
+   */
+  NTA_BasicType_UInt64,
+
+  /**
+   * Represents a 32-bit real number(a floating-point number).
+   */
+  NTA_BasicType_Real32,
+
+  /**
+   * Represents a 64-bit real number(a floating-point number).
+   */
+  NTA_BasicType_Real64,
+
+  /**
+   * Represents a opaque handle/pointer, same as `void *`
+   */
+  NTA_BasicType_Handle,
+
+  /**
+   * Represents a boolean. The size is compiler-defined.
+   *
+   * There is no typedef'd "Bool" or "NTA_Bool". We just need a way to refer
+   * to bools with a NTA_BasicType.
+   */
+  NTA_BasicType_Bool,
+
+  /**
+   * @note This is not an actual type, just a marker for validation purposes
+   */
+  NTA_BasicType_Last,
+
+  /**
+   * Represents a default-sized unsigned integer.
+   */
+#ifdef NTA_BIG_INTEGER
+  NTA_BasicType_UInt = NTA_BasicType_UInt64,
+#else
+  NTA_BasicType_UInt = NTA_BasicType_UInt32,
+#endif
+
+  /**
+   * Represents a default-sized real number(a floating-point number).
+   */
+#ifdef NTA_DOUBLE_PRECISION
+  NTA_BasicType_Real = NTA_BasicType_Real64,
+#else
+  NTA_BasicType_Real = NTA_BasicType_Real32,
+#endif
+
+} NTA_BasicType;
 
 /**
  * This enum represents the documented logging level of the debug logger.
@@ -150,7 +247,7 @@ enum LogLevel {
   /**
    * Log level: None.
    */
-  LogLevel_None = NTA_LogLevel_None,
+  LogLevel_None = 0,
   /**
    * Log level: Minimal.
    */
@@ -167,10 +264,6 @@ enum LogLevel {
 
 } // end namespace nupic
 
-#ifdef SWIG
-#undef NTA_INTERNAL
-#else
 #define NTA_INTERNAL 1
-#endif // SWIG
 
 #endif // NTA_TYPES_HPP

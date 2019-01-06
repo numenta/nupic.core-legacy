@@ -773,7 +773,7 @@ public:
         };
 
         // Write a starting marker and version.
-        outStream << "SDR " << SERIALIZE_VERSION << endl;
+        outStream << "SDR " << SERIALIZE_VERSION << " " << endl;
 
         // Store the dimensions.
         writeVector( dimensions );
