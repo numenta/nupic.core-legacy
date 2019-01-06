@@ -53,16 +53,16 @@ VectorFileSensor::VectorFileSensor(const ValueMap &params, Region *region)
       resetOut_(NTA_BasicType_Real32), filename_(""), scalingMode_("none"),
       recentFile_("") {
   activeOutputCount_ =
-      params.getScalar("activeOutputCount")->getValue<NTA_UInt32>();
+      params.getScalar("activeOutputCount")->getValue<UInt32>();
   if (params.contains("hasCategoryOut"))
     hasCategoryOut_ =
-        params.getScalar("hasCategoryOut")->getValue<NTA_UInt32>() == 1;
+        params.getScalar("hasCategoryOut")->getValue<UInt32>() == 1;
   if (params.contains("hasResetOut"))
-    hasResetOut_ = params.getScalar("hasResetOut")->getValue<NTA_UInt32>() == 1;
+    hasResetOut_ = params.getScalar("hasResetOut")->getValue<UInt32>() == 1;
   if (params.contains("inputFile"))
     filename_ = params.getString("inputFile");
   if (params.contains("repeatCount"))
-    repeatCount_ = params.getScalar("repeatCount")->getValue<NTA_UInt32>();
+    repeatCount_ = params.getScalar("repeatCount")->getValue<UInt32>();
 }
 
 VectorFileSensor::VectorFileSensor(BundleIO &bundle, Region *region)
