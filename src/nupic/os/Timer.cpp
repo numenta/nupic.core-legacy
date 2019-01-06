@@ -72,7 +72,7 @@ void Timer::stop() {
 }
 
 
-// in seconds, msec resolution
+/* In seconds, msec resolution */
 Real64 Timer::getElapsed() const {
 	nupic::UInt64 elapsed = prevElapsed_;
 	if (started_)
@@ -109,28 +109,31 @@ std::string Timer::toString() const {
 
 
 /**
- * estimate speed (CPU & load) of the current system.
+ * Estimate speed (CPU & load) of the current system.
  * Tests must perform relative to this value
  */
 float Timer::getSpeed() {
   if (SPEED == -1) {
 
+    // This code just wastes CPU time to estimate speed.
     Timer t(true);
 
-    //this code just wastes CPU time to estimate speed
     Random rng(42);
+    // Make 10 million 4-byte Reals.  Each synapse take approx 30-40 bytes to
+    // represent, so this is enough memory for 1 million synapses.
     std::vector<Real> data(10000000);
-    for(Size i=0; i<data.size(); i++) {
-      data[i]=(Real)rng.getUInt32(80085);
-      auto t = data[i];
+    for( Size i = 0; i < data.size(); i++ ) {
+      data[i] = (Real)rng.getUInt32(80085);
+      auto t  = data[i];
       data[i] = data[data.size()-i-1];
-      data[data.size()-i-1]=t;
+      data[data.size()-i-1] = t;
     }
-    for(auto i = 0u; i < 10u; i++)
-      rng.shuffle(begin(data), end(data)); // hurt the cache.
+    // Hurt the cache with random accesses.
+    rng.shuffle(begin(data), end(data));
+    // Test floating-point arithmatic.
     std::vector<Real> sins;
     for (auto d : data) {
-      sins.push_back(sin(d)/cos(d));
+      sins.push_back( sin(d) / cos(d) );
     }
     data = rng.sample<Real>(sins, 666);
     NTA_CHECK(data.size() == 666);
