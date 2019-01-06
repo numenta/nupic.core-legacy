@@ -224,7 +224,6 @@ set(types_files
     nupic/types/Fraction.hpp
     nupic/types/ptr_types.hpp
     nupic/types/Serializable.hpp
-    nupic/types/Types.h
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
 )

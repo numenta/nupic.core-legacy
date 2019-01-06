@@ -37,7 +37,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/BasicType.hpp>
-#include <nupic/types/Types.h>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Watcher.hpp>
 

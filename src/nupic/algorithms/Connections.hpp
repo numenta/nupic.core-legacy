@@ -529,15 +529,6 @@ public:
 
 protected:
   /**
-   * Gets the synapse with the lowest permanence on the segment.
-   *
-   * @param segment Segment whose synapses to consider.
-   *
-   * @retval Synapse with the lowest permanence.
-   */
-  Synapse minPermanenceSynapse_(Segment segment) const;
-
-  /**
    * Check whether this segment still exists on its cell.
    *
    * @param Segment

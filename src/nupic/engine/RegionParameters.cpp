@@ -28,7 +28,6 @@
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/types/Types.h>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
