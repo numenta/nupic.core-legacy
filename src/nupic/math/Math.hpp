@@ -34,6 +34,7 @@
 #include <numeric>
 #include <set>
 #include <vector>
+#include <algorithm>
 
 
 #include <nupic/math/Utils.hpp>
@@ -762,7 +763,7 @@ template <typename F1, typename F2> struct unary_compose {
  * TODO: The std::binary_function is deprecated in C++11 and removed in C++17.
  *
  * Compose an order predicate and a binary selector, so that we can write:
- * sort(x.begin(), x.end(), compose<less<float>, select2nd<pair<int, float> >
+ * sort(x.begin(), x.end(), predicate_compose<less<float>, select2nd<pair<int, float> >
  * >()); to sort pairs in increasing order of their second element.
  */
 //template <typename O, typename S>

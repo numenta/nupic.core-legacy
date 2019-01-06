@@ -366,9 +366,9 @@ void Path::setPermissions(const std::string &path, bool userRead,
 
   if (Path::isDirectory(path)) {
     fs::perms prms =
-	    (userRead ? fs::perms::owner_exe | fs::perms::owner_read : FS_PermNone) |
+	    (userRead ? FS_OwnerExec | fs::perms::owner_read : FS_PermNone) |
         (userWrite ? fs::perms::owner_all : FS_PermNone) |
-        (groupRead ? FS_OthersExec | fs::perms::group_read : FS_PermNone) |
+        (groupRead ? FS_GroupExec | fs::perms::group_read : FS_PermNone) |
         (groupWrite ? fs::perms::group_all : FS_PermNone) |
         (otherRead ? FS_OthersExec | fs::perms::others_read  : FS_PermNone) |
         (otherWrite ? fs::perms::others_all : FS_PermNone);
