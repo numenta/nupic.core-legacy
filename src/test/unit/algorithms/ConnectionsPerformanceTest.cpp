@@ -195,7 +195,7 @@ void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn) {
   const UInt SEQ = 50; //number of sequences ran in tests
   const UInt EPOCHS = 20; //tests run for epochs times
 #else
-  const UInt COLS = 50; //standard num of columns in SP/TM
+  const UInt COLS = 20; //standard num of columns in SP/TM
   const UInt SEQ = 25; //number of sequences ran in tests
   const UInt EPOCHS = 4; //only short in debug; is epochs/2 in some tests, that's why 4
 #endif
@@ -215,7 +215,7 @@ TEST(ConnectionsPerformanceTest, testTM) {
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
   auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
-  ASSERT_LE(tim, 1.0*Timer::getSpeed());
+  ASSERT_LE(tim, 1.9*Timer::getSpeed());
 }
 
 /**
