@@ -465,33 +465,44 @@ public:
      */
     virtual SDR_flatSparse_t& getFlatSparse() {
         if( !flatSparse_valid ) {
-            flatSparse.clear(); // Clear out any old data.
-            if( sparse_valid ) {
-                // Convert from sparse to flatSparse.
-                const auto num_nz = size ? sparse[0].size() : 0;
-                flatSparse.reserve( num_nz );
-                for(UInt nz = 0; nz < num_nz; nz++) {
-                    UInt flat = 0;
-                    for(UInt dim = 0; dim < dimensions.size(); dim++) {
-                        flat *= dimensions[dim];
-                        flat += sparse[dim][nz];
-                    }
-                    flatSparse.push_back(flat);
-                }
-                flatSparse_valid = true;
-            }
-            else if( dense_valid ) {
-                // Convert from dense to flatSparse.
-                for(UInt idx = 0; idx < size; idx++)
-                    if( dense[idx] != 0 )
-                        flatSparse.push_back( idx );
-                flatSparse_valid = true;
-            }
-            else
-                NTA_THROW << "SDR has no data!";
+            constGetFlatSparse_( flatSparse );
+            flatSparse_valid = true;
         }
         return flatSparse;
     }
+private:
+    // It's useful to be able to extract the data from a constant SDR.  It's not
+    // ideal though so keep this method private.
+    void constGetFlatSparse_(SDR_flatSparse_t &flatSparseArg) const {
+        if( flatSparse_valid ) {
+            if( &flatSparseArg != &flatSparse )
+                flatSparseArg.assign( flatSparse.cbegin(), flatSparse.cend() );
+            return;
+        }
+        flatSparseArg.clear(); // Clear out any old data.
+        if( sparse_valid ) {
+            // Convert from sparse to flatSparse.
+            const auto num_nz = size ? sparse[0].size() : 0;
+            flatSparseArg.reserve( num_nz );
+            for(UInt nz = 0; nz < num_nz; nz++) {
+                UInt flat = 0;
+                for(UInt dim = 0; dim < dimensions.size(); dim++) {
+                    flat *= dimensions[dim];
+                    flat += sparse[dim][nz];
+                }
+                flatSparseArg.push_back(flat);
+            }
+        }
+        else if( dense_valid ) {
+            // Convert from dense to flatSparse.
+            for(UInt idx = 0; idx < size; idx++)
+                if( dense[idx] != 0 )
+                    flatSparseArg.push_back( idx );
+        }
+        else
+            NTA_THROW << "SDR has no data!";
+    }
+public:
 
     /**
      * Swap a list of indices into the SDR, replacing the SDRs current value.
@@ -582,7 +593,8 @@ public:
                 sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
         }
         // If no data is privately available, then try calling a public getter
-        // method.
+        // method.  Subclasses may override these getters and ignore the valid
+        // flags...
         if( !dense_valid and !flatSparse_valid and !sparse_valid ) {
             const auto data = value.getFlatSparse();
             flatSparse.assign( data.begin(), data.end() );
@@ -759,10 +771,6 @@ public:
      * @param stream A valid output stream, such as an open file.
      */
     void save(std::ostream &outStream) const override {
-        NTA_THROW << "Can not save constant SDR!"; // TODO
-    }
-
-    void save(std::ostream &outStream) {
 
         auto writeVector = [&outStream] (const vector<UInt> &vec) {
             outStream << vec.size() << " ";
@@ -779,7 +787,9 @@ public:
         writeVector( dimensions );
 
         // Store the data in the flat-sparse format.
-        writeVector( getFlatSparse() );
+        SDR_flatSparse_t data;
+        constGetFlatSparse_( data );
+        writeVector( data );
 
         outStream << "~SDR" << endl;
     }
