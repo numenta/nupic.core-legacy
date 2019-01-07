@@ -230,7 +230,7 @@ TEST(ConnectionsPerformanceTest, testSP) {
     /* label */              "spatial pooler");
 
 #ifdef NDEBUG
-  ASSERT_LE(tim, 5.0f * Timer::getSpeed());
+  ASSERT_LE(tim, 4.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
@@ -247,7 +247,7 @@ TEST(ConnectionsPerformanceTest, testTP) {
     /* label */              "temporal pooler");
 
 #ifdef NDEBUG
-  ASSERT_LE(tim, 5.0f * Timer::getSpeed());
+  ASSERT_LE(tim, 4.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
