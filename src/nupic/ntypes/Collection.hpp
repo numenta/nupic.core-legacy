@@ -25,49 +25,103 @@
 
 #include <string>
 #include <vector>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 // A collection is a templated class that contains items of type t.
-// It supports lookup by name and by index. The items are stored in a map
-// and copies are also stored in a vector (it's Ok to use pointers).
-// You can add items using the add() method.
+// The items are stored in a vector and keys are also stored in a map.
+// It supports lookup by name and by index. O(nlogn)
+// Iteration is either by consecutive indexes or by iterator. O(1)
+// You can add items using the add() method. O(nlogn)
+// You can delete itmes using the remove() method. O(n)
 //
-// TODO: This does not contain a map. Lookups are serial.
-//       This should be fixed.  And, Collections.cpp should not be nessecary.
+// The collections are expected to be fairly static and small.
+// The deletions are rare so we can affort O(n) for delete.
+//
+// This has been re-implemnted as an inline header-only class.
+// The map holds the key (always a string) and an index into vector.
+// The vector holds a std::pair<key, Object>
 
-template <typename T> class Collection {
+
+template <class T>
+class Collection {
 public:
-  Collection();
-  virtual ~Collection();
-  bool operator==(const Collection<T> &other) const;
+  Collection() {}
+  virtual ~Collection() {}
+
+  typedef typename std::vector<std::pair<std::string, T>>::iterator Iterator;
+
+  inline bool operator==(const Collection<T> &other) const {
+      const static auto compare = [](std::pair<std::string, T> a,
+                                     std::pair<std::string, T> b) {
+          return a.first == b.first && a.second == b.second;
+      };
+    return std::equal(vec_.begin(), vec_.end(), other.vec_.begin(), compare);
+  }
   inline bool operator!=(const Collection<T> &other) const {
     return !operator==(other);
   }
-  size_t getCount() const;
+  inline size_t getCount() const { return vec_.size(); }
 
   // This method provides access by index to the contents of the collection
   // The indices are in insertion order.
   //
+  inline const std::pair<std::string, T> &getByIndex(size_t index) const {
+  	NTA_CHECK(index < vec_.size()) << "Collection index out-of-range.";
+	return vec_[index];
+  }
+  inline std::pair<std::string, T> &getByIndex(size_t index) {
+  	NTA_CHECK(index < vec_.size()) << "Collection index out-of-range.";
+	return vec_[index];
+  }
 
-  const std::pair<std::string, T> &getByIndex(size_t index) const;
-  std::pair<std::string, T> &getByIndex(size_t index);
+  inline bool contains(const std::string &name) const {
+    return (map_.find(name) != map_.end());
+  }
 
-  bool contains(const std::string &name) const;
+  inline T getByName(const std::string &name) const {
+     auto itr = map_.find(name);
+	 NTA_CHECK(itr != map_.end()) << "No item named: " << name;
+	 return vec_[itr->second].second;
+  }
 
-  T getByName(const std::string &name) const;
+  inline Iterator begin() {
+  	return vec_.begin();
+  }
+  inline Iterator end() {
+  	return vec_.end();
+  }
 
-  // TODO: move add/remove to a ModifiableCollection subclass
-  // This method should be internal but is currently tested
-  // in net_test.py in test_node_spec
-  void add(const std::string &name, const T &item);
+  inline void add(const std::string &name, const T &item) {
+    NTA_CHECK(!contains(name)) << "Unable to add item '" << name << "' to collection "
+                << "because it already exists";
+    // Add the new item to the vector
+    vec_.push_back(std::make_pair(name, item));
+	// Add the new item to the map
+	size_t idx = vec_.size() - 1;
+	map_[name] = idx;
+  }
 
-  void remove(const std::string &name);
+  void remove(const std::string &name) {
+    auto itr = map_.find(name);
+    NTA_CHECK(itr != map_.end()) << "No item named '" << name << "' in collection";
+	size_t idx = itr->second;
+	map_.erase(itr);
+	vec_.erase(vec_.begin() + idx);
+	// reset the indexes in the map
+	for (size_t i = idx; i < vec_.size(); i++) {
+		itr = map_.find(vec_[i].first);
+		itr->second = i;
+	 }
+  }
 
 
 private:
-  typedef std::vector<std::pair<std::string, T>> CollectionStorage;
-  CollectionStorage vec_;
+  std::vector<std::pair<std::string, T>> vec_;
+  std::map<std::string, size_t> map_;
+
 };
+
 } // namespace nupic
 
 #endif
