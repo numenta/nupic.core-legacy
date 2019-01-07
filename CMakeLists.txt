@@ -44,7 +44,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
    set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install location" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-
+message(STATUS "CXX = $ENV{CXX}")
 # Determine common toolchain settings, compiler and link flags
 include(CommonCompilerConfig)
 
