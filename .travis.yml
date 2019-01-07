@@ -100,6 +100,8 @@ notifications:
 
 before_install:
   - eval "${MATRIX_EVAL}"
+  - export CC
+  - export CXX
   - $CXX --version
   - echo "Installing pip, setuptools, and wheel"
   - pip install --upgrade pip setuptools wheel || exit
@@ -110,13 +112,6 @@ install:
   - cd "$TRAVIS_BUILD_DIR/build/scripts"
   - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
   - cmake --version
-  - eval "${MATRIX_EVAL}"
-  - export CC=gcc-8
-  - export CXX=g++-8
-  - $CXX --version
-  - echo $CXX
-  - which g++-8
-  - ls /usr/bin/g++*
   - echo "Configuring..."
   # Builds nupic_code library and python2.7 interface. Enable test coverage for travis-ci build
   - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DPYTHON2_BUILD=ON -DNTA_COV_ENABLED=ON

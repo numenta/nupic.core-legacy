@@ -28,11 +28,16 @@
 #define NTA_MATH_FUNCTIONS_HPP
 
 #include <nupic/utils/Log.hpp> // For NTA_ASSERT
-
-#include <boost/math/special_functions/beta.hpp>
-#include <boost/math/special_functions/digamma.hpp>
-#include <boost/math/special_functions/erf.hpp>
-#include <boost/math/special_functions/gamma.hpp>
+#if __cplusplus >= 201703L
+  // C++17 or greater
+  namespace funcs = std;
+#else
+  #include <boost/math/special_functions/beta.hpp>
+//  #include <boost/math/special_functions/digamma.hpp>
+  #include <boost/math/special_functions/erf.hpp>
+  #include <boost/math/special_functions/gamma.hpp>
+  namespace funcs = boost::math;
+#endif
 #include <cmath>
 
 namespace nupic {
@@ -42,18 +47,18 @@ namespace nupic {
 static const double pi = 3.14159265358979311600e+00;
 
 //--------------------------------------------------------------------------------
-template <typename T> inline T lgamma(T x) { return boost::math::lgamma(x); }
+template <typename T> inline T lgamma(T x) { return funcs::lgamma(x); }
 
 //--------------------------------------------------------------------------------
-template <typename T> inline T digamma(T x) { return boost::math::digamma(x); }
+//template <typename T> inline T digamma(T x) { return boost::math::digamma(x); }
 
 //--------------------------------------------------------------------------------
 template <typename T> inline T beta(T x, T y) {
-  return boost::math::beta(x, y);
+  return funcs::beta(x, y);
 }
 
 //--------------------------------------------------------------------------------
-template <typename T> inline T erf(T x) { return boost::math::erf(x); }
+template <typename T> inline T erf(T x) { return funcs::erf(x); }
 
 //--------------------------------------------------------------------------------
 double fact(unsigned long n) {
