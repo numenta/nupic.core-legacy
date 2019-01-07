@@ -81,10 +81,13 @@ string(TOLOWER ${PLATFORM} PLATFORM)
 # Set the C++ standard version
 #    Compiler support for <filesystem> in C++17:
 #	https://en.cppreference.com/w/cpp/compiler_support
+#       https://en.wikipedia.org/wiki/Xcode#Latest_versions
+#
 #	GCC 7.1 has <experimental/filesystem>, link with -libc++experimental or -lstdc++fs
 #	GCC 8 has <filesystem>   link with -lstdc++fs
 #	GCC 9   expected to support <filesystem>
-#	Clang 4 (XCode10) has no support for <filesystem>, partial C++17
+#       AppleClang as of (XCode 10.1) does not support C++17 or filesystem
+#           (although you can get llvm 7 from brew)
 #	Clang 7 has complete <filesystem> support for C++17
 #	Visual Studio 2017 15.7 (v19.14)supports <filesystem> with C++17
 #	MinGW has no support for filesystem.
@@ -92,6 +95,7 @@ string(TOLOWER ${PLATFORM} PLATFORM)
 # If we have support for <filesystem> and C++17, turn on the C++17 standard flag, 
 # else set standard to C++11 and install the boost filesystem
 # Also specify the external library for <filesystem> if needed.
+# 
 
 set(extra_lib_for_filesystem)   # sometimes -libc++experimental or -lstdc++fs
 set(INTERNAL_CPP_STANDARD "c++11")
@@ -107,6 +111,8 @@ if(NOT USE_CPP11)
 	 set(extra_lib_for_filesystem "stdc++fs")
 	 set(boost_required "OFF")
     endif()	 
+  elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")  # see CMake Policy CMP0025
+    # does not support C++17 and filesystem (as of XCode 10.1)
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
          set(INTERNAL_CPP_STANDARD "c++17")

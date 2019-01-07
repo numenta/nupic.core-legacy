@@ -25,6 +25,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
