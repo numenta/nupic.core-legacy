@@ -28,12 +28,12 @@
 #define NTA_MATH_FUNCTIONS_HPP
 
 #include <nupic/utils/Log.hpp> // For NTA_ASSERT
-#if __cplusplus >= 201703L
-  // C++17 or greater
+#include <cmath>
+
+#if __cplusplus >= 201703L // C++17 or greater
   namespace funcs = std;
 #else
   #include <boost/math/special_functions/beta.hpp>
-//  #include <boost/math/special_functions/digamma.hpp>
   #include <boost/math/special_functions/erf.hpp>
   #include <boost/math/special_functions/gamma.hpp>
   namespace funcs = boost::math;
@@ -49,8 +49,6 @@ static const double pi = 3.14159265358979311600e+00;
 //--------------------------------------------------------------------------------
 template <typename T> inline T lgamma(T x) { return funcs::lgamma(x); }
 
-//--------------------------------------------------------------------------------
-//template <typename T> inline T digamma(T x) { return boost::math::digamma(x); }
 
 //--------------------------------------------------------------------------------
 template <typename T> inline T beta(T x, T y) {
@@ -59,6 +57,23 @@ template <typename T> inline T beta(T x, T y) {
 
 //--------------------------------------------------------------------------------
 template <typename T> inline T erf(T x) { return funcs::erf(x); }
+
+
+//--------------------------------------------------------------------------------
+//   digamma(T x) is not defined in std:: under C++17 so we include a resonable
+//                implementation derived from http://web.science.mq.edu.au/~mjohnson/code/digamma.c
+template <typename T> inline T digamma(T x) {
+  T result = 0, xx, xx2, xx4;
+  NTA_ASSERT(x > 0);
+  for ( ; x < 7.0; ++x)
+    result -= 1.0/x;
+  x -= 1.0/2.0;
+  xx = 1.0/x;
+  xx2 = xx*xx;
+  xx4 = xx2*xx2;
+  result += log(x)+(1.0/24.0)*xx2-(7.0/960.0)*xx4+(31.0/8064.0)*xx4*xx2-(127.0/30720.0)*xx4*xx4;
+  return result;
+}
 
 //--------------------------------------------------------------------------------
 double fact(unsigned long n) {
