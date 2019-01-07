@@ -68,6 +68,7 @@ struct SynapseData {
   CellIdx presynapticCell;
   Permanence permanence;
   Segment segment;
+  Synapse presynapticMapIndex_;
 };
 
 /**
@@ -383,6 +384,10 @@ public:
                   const std::vector<CellIdx> &activePresynapticCells,
                   Permanence connectedPermanence) const;
 
+  void
+  computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
+                  const std::vector<CellIdx> &activePresynapticCells) const;
+
   /**
    * Compute the segment excitations for a single active presynaptic cell.
    *
@@ -547,11 +552,23 @@ protected:
   bool synapseExists_(Synapse synapse) const;
 
   /**
-   * Remove a synapse from synapsesForPresynapticCell_.
+   * Remove a synapse from presynaptic maps.
    *
-   * @param Synapse
+   * @param Synapse Index of synapse in presynaptic vector.
+   *
+   * @param vector<Synapse> synapsesForPresynapticCell must a vector from be
+   * either potentialSynapsesForPresynapticCell_ or
+   * connectedSynapsesForPresynapticCell_, depending on whether the synapse is
+   * connected or not.
+   *
+   * @param vector<Synapse> segmentsForPresynapticCell must be a vector from
+   * either potentialSegmentsForPresynapticCell_ or
+   * connectedSegmentsForPresynapticCell_, depending on whether the synapse is
+   * connected or not.
    */
-  void removeSynapseFromPresynapticMap_(Synapse synapse);
+  void removeSynapseFromPresynapticMap_(const Synapse index,
+                                  vector<Synapse> &synapsesForPresynapticCell,
+                                  vector<Synapse> &segmentsForPresynapticCell);
 
 private:
   std::vector<CellData>    cells_;
@@ -562,7 +579,10 @@ private:
   Permanence               connectedThreshold_;
 
   // Extra bookkeeping for faster computing of segment activity.
-  std::map<CellIdx, std::vector<Synapse>> synapsesForPresynapticCell_;
+  std::map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
+  std::map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
+  std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
+  std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
   std::vector<UInt64> segmentOrdinals_;
   std::vector<UInt64> synapseOrdinals_;
