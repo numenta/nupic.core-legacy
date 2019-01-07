@@ -33,6 +33,8 @@ Suppress warnings about register keyword.
 #ifdef _WIN32
 #pragma warning( disable : 5033)  // MSVC
 #else
-#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
+  #if __cplusplus >= 201703L  // C++17 or higher
+    #pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
+  #endif
 #endif
 #include <Python.h>
