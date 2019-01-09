@@ -62,8 +62,7 @@ message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "   CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
 message(STATUS "   NEEDS_BOOST           = ${NEEDS_BOOST}")
-message(STATUS "   PYTHON2_BUILD         = ${PYTHON2_BUILD}")
-message(STATUS "   PYTHON3_BUILD         = ${PYTHON3_BUILD}")
+message(STATUS "   BINDING_BUILD         = ${BINDING_BUILD}")
 
 
 set(EXPORT_FILE_NAME "${EP_BASE}/results.txt")
@@ -91,7 +90,8 @@ include(gtest.cmake)
 
 ##################
 # pybind11
-if(PYTHON2_BUILD OR PYTHON3_BUILD)
+string(REGEX MATCH "Python" match ${BINDING_BUILD})
+if(match)
   include(pybind11.cmake)
 endif()
 

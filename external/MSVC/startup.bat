@@ -8,16 +8,13 @@ rem // by running this script from within one of the special command prompts pro
 rem // with Visual Studio. see https://msdn.microsoft.com/en-us/library/f2ccy3wt.aspx
 rem //
 rem // Prerequisites:
-rem //      Boost:  optionally requires modules filesystem and system. 
-rem //                  See external/common/share/boost/README.md
 rem //
-rem //     CMake:  Download CMake from https://cmake.org/download/
+rem //     Microsoft Visual Studio 2017 or newer (any flavor)
 rem //
-rem //     Python 2.7 or 3.x   with numpy
-rem //                   Download from https://www.python.org/downloads/windows/
+rem //     CMake: 3.7+ Download CMake from https://cmake.org/download/
+rem //
+rem //     Python 2.7 or 3.x Download from https://www.python.org/downloads/windows/
 rem // 
-rem // Arguments: %1  - path to Boost Root (Optional)
-rem //                             NOTE:  This is the path where a full Boost was installed.
 rem //
 rem //   This script will create a Vsual Studio solution file at build/scripts/nupic_core.sln
 rem //   Double click nupic_core.sln to start up Visual Studio.  Then perform a full build.
@@ -28,7 +25,7 @@ goto CheckCMake
 
   
 :CheckCMake
-rem  // make sure CMake is installed.  (version 3.12 minimum)
+rem  // make sure CMake is installed.  (version 3.7 minimum)
 cmake -version > NUL 2> NUL 
 if %errorlevel% neq 0 (
   @echo startup.bat;  CMake was not found. 
@@ -73,7 +70,7 @@ if defined VS150COMNTOOLS goto CheckVS
   )
   if not [%vsDev%]==[] call %vsDev%
   if %errorlevel% neq 0 (
-  	@echo An error setting tool chain.
+        @echo  Try executing this command using "Developer Command Prompt for VS2017" to set the tool chain.
 	popd
   	pause
 	exit /B 0
@@ -86,7 +83,7 @@ if defined VS150COMNTOOLS (
   cd %NUPIC_BASE%\%BUILDDIR%\scripts
 
   rem // Run CMake using the Visual Studio generator for VS 2017
-  cmake ../.. -G "Visual Studio 15 2017 Win64"  -DCMAKE_INSTALL_PREFIX=%BUILDDIR% 
+  cmake ../.. 
   
   if exist "nupic_core.sln" (
   	@echo You can now start Visual Studio using solution file %BUILDDIR%\scripts\nupic_core.sln

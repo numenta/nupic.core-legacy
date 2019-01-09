@@ -30,15 +30,21 @@
 #  - cd build/scripts
 #  - cmake ../..
 
+if (MSVC)
+  set(EHsc -D EXTERNAL_CXX_FLAGS:STRING="/EHsc")
+else()
+  set(PIC -D EXTERNAL_CXX_FLAGS:STRING="-fPIC")
+endif()
+
 FILE(MAKE_DIRECTORY  ${REPOSITORY_DIR}/build/ThirdParty)
 execute_process(COMMAND ${CMAKE_COMMAND} 
                         -G ${CMAKE_GENERATOR}
 			-D CMAKE_INSTALL_PREFIX=. 
 			-D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                        -D EXTERNAL_CXX_FLAGS:STRING="-fPIC"
                         -D NEEDS_BOOST:BOOL=${NEEDS_BOOST}
-                        -D PYTHON2_BUILD:BOOL=${PYTHON2_BUILD}
-                        -D PYTHON3_BUILD:BOOL=${PYTHON3_BUILD}
+                        -D BINDING_BUILD:STRING=${BINDING_BUILD}
+                        ${PIC}
+			${EHsc}
 			 ../../external
                 WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                 RESULT_VARIABLE result

@@ -662,8 +662,8 @@ public:
     }
 
     void randomize(Real sparsity, Random &rng) {
-        NTA_ASSERT( sparsity >= 0. and sparsity <= 1. );
-        UInt nbits = size * sparsity + .5;
+        NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
+        UInt nbits = (UInt)(size * (sparsity + 0.5f));
 
         SDR_flatSparse_t range( size );
         iota( range.begin(), range.end(), 0 );
@@ -696,7 +696,7 @@ public:
         NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
         NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
 
-        UInt num_move_bits = fractionNoise * getSum() + .5;
+        UInt num_move_bits = (UInt)(fractionNoise * (getSum() + 0.5f));
         vector<UInt> turn_off( num_move_bits , 0 );
         rng.sample(
             (UInt*) getFlatSparse().data(), getSum(),

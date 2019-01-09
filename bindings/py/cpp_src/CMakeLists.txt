@@ -104,9 +104,10 @@ else()
 endif()
 
 
-
-if(PYTHON2_BUILD)
+# determine which version of binding to build
+if ("${BINDING_BUILD}" STREQUAL "Python2")
   set(PYBIND11_PYTHON_VERSION 2.7)
+  # else Python3
 endif()
 set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
 add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})

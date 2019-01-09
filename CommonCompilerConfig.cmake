@@ -101,7 +101,7 @@ set(extra_lib_for_filesystem)   # sometimes -libc++experimental or -lstdc++fs
 set(INTERNAL_CPP_STANDARD "c++11")
 set(boost_required ON)
 
-if(NOT USE_CPP11)
+if(NOT FORCE_CPP11)
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9")
          set(INTERNAL_CPP_STANDARD "c++17")
@@ -118,7 +118,7 @@ if(NOT USE_CPP11)
          set(INTERNAL_CPP_STANDARD "c++17")
 	 set(boost_required OFF)
     endif()
-  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  elseif(MSVC)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.14")
             set(INTERNAL_CPP_STANDARD "c++17")
 	    set(boost_required OFF)
@@ -127,7 +127,9 @@ if(NOT USE_CPP11)
 endif()
 if (boost_required)
   set(NEEDS_BOOST ON)
+else()
   # otherwise honors the override from parent.
+  set(NEEDS_BOOST ${FORCE_BOOST})
 endif()
 
 # https://stackoverflow.com/questions/44960715/how-to-enable-stdc17-in-vs2017-with-cmake
@@ -161,10 +163,10 @@ if(MSVC)
 	#  /Zc:__cplusplus   This is required to force MSVC to pay attention to the standard setting and sets __cplusplus.
 	#                    NOTE: MSVC does not support C++11.  But does C++14 and C++17.
 	# Release Compiler flags:
-	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /fPIC /nologo /Zc:__cplusplus
+	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /nologo /Zc:__cplusplus
 	#      Release Only:    /O2 /Oi /Gy  /MD
 	#      Debug Only:       /Od /Zi /sdl /RTC1 /MD
-	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /fPIC /nologo /Zc:__cplusplus /std:c++${std_ver}
+	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:c++${std_ver}
 							$<$<CONFIG:RELEASE>:/O2 /Oi /Gy  /GL /MT> 
 							$<$<CONFIG:DEBUG>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
 	#linker flags
