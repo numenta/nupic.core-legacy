@@ -509,11 +509,7 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   calculateOverlap_(input, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);
 
-  if (learn) {
-    boostOverlaps_(overlaps_, boostedOverlaps_);
-  } else {
-    boostedOverlaps_.assign(overlaps_.begin(), overlaps_.end());
-  }
+  boostOverlaps_(overlaps_, boostedOverlaps_);
 
   auto &activeVector = active.getFlatSparse();
   inhibitColumns_(boostedOverlaps_, activeVector);
