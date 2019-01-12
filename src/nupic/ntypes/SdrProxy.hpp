@@ -55,8 +55,8 @@ namespace nupic {
  *      A.setSparse( {1, 1, 2}, {0, 1, 2}} )
  *      auto sparse = B.getSparse()  ->  {{2, 2, 5}, {0, 1, 0}}
  *
- * Save/Load: SDR_Proxy does not support the Serializable interface.  Users
- * should instead serialize the source SDR and recreate the proxy.
+ * SDR_Proxy partially supports the Serializable interface.  SDR_Proxies can be
+ * saved but can not be loaded.
  */
 class SDR_Proxy : public SDR
 {
@@ -117,6 +117,15 @@ public:
         }
     }
 
+    void save(std::ostream &outStream) const override {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        parent->save( outStream );
+    }
+
+    void load(std::istream &inStream) override {
+        NTA_THROW << "Can not load into SDR_Proxy, SDR_Proxy is read only.";
+    }
+
 protected:
     /**
      * This SDR shall always have the same value as the parent SDR.
@@ -145,13 +154,6 @@ protected:
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
     void setSDR( SparseDistributedRepresentation &value ) override
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
-
-    const string _SDR_save_load_error_message =
-        "SDR_Proxy does not support serialization, save/load the source SDR instead.";
-    void save(std::ostream &outStream) const override
-        { NTA_THROW << _SDR_save_load_error_message; }
-    void load(std::istream &inStream) override
-        { NTA_THROW << _SDR_save_load_error_message; }
 };
 
 } // end namespace nupic
