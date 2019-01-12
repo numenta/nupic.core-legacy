@@ -180,8 +180,8 @@ class NetworkTest(unittest.TestCase):
     scalars = [
       ("int32Param", l1.getParameterInt32, l1.setParameterInt32, 32, int, 35),
       ("uint32Param", l1.getParameterUInt32, l1.setParameterUInt32, 33, int, 36),
-      ("int64Param", l1.getParameterInt64, l1.setParameterInt64, 64, long, 74),
-      ("uint64Param", l1.getParameterUInt64, l1.setParameterUInt64, 65, long, 75),
+      ("int64Param", l1.getParameterInt64, l1.setParameterInt64, 64, int, 74),
+      ("uint64Param", l1.getParameterUInt64, l1.setParameterUInt64, 65, int, 75),
       ("real32Param", l1.getParameterReal32, l1.setParameterReal32, 32.1, float, 33.1),
       ("real64Param", l1.getParameterReal64, l1.setParameterReal64, 64.1, float, 65.1),
       ("stringParam", l1.getParameterString, l1.setParameterString, "nodespec value", str, "new value")]

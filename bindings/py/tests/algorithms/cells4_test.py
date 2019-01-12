@@ -21,7 +21,7 @@
 
 """Unit tests for Cells4."""
 
-import cPickle as pickle
+import pickle
 import os
 
 import numpy
@@ -74,8 +74,8 @@ def createCells4(nCols=8,
     cells.setMaxAge(maxAge)
     cells.setMaxInfBacktrack(4)
 
-    for i in xrange(nCols):
-      for j in xrange(nCellsPerCol):
+    for i in range(nCols):
+      for j in range(nCellsPerCol):
         cells.addNewSegment(i, j, True if j % 2 == 0 else False,
                             [((i + 1) % nCols, (j + 1) % nCellsPerCol)])
 
@@ -94,26 +94,26 @@ class Cells4Test(unittest.TestCase):
     result = True
 
     # Check that each cell has the same number of segments and synapses
-    for c in xrange(cell1.nColumns()):
+    for c in range(cell1.nColumns()):
       if not result:
         break
-      for i in xrange(cell1.nCellsPerCol()):
+      for i in range(cell1.nCellsPerCol()):
         if cell1.nSegmentsOnCell(c, i) != cell2.nSegmentsOnCell(c, i):
-          print "Num segments different in cell:", c, i,
-          print "numbers = ", cell1.nSegmentsOnCell(c, i), \
-              cell2.nSegmentsOnCell(c, i)
+          print("Num segments different in cell:", c, i, end=' ')
+          print("numbers = ", cell1.nSegmentsOnCell(c, i), \
+              cell2.nSegmentsOnCell(c, i))
           result = False
           break
         else:
           c1 = cell1.getCell(c, i)
           c2 = cell2.getCell(c, i)
-          for j in xrange(cell1.nSegmentsOnCell(c, i)):
+          for j in range(cell1.nSegmentsOnCell(c, i)):
             seg1 = c1.getSegment(j)
             seg2 = c2.getSegment(j)
             if seg1.size() != seg2.size():
               result = False
               break
-            for k in xrange(seg1.size()):
+            for k in range(seg1.size()):
               sourceCellIdx1 = seg1.getSrcCellIdx(k)
               sourceCellIdx2 = seg1.getSrcCellIdx(k)
               if sourceCellIdx1 != sourceCellIdx2:
@@ -126,7 +126,7 @@ class Cells4Test(unittest.TestCase):
                 break
 
     if result == True:
-      print "TP's match"
+      print("TP's match")
 
     return result
 
@@ -218,13 +218,13 @@ class Cells4Test(unittest.TestCase):
     cells.setMaxInfBacktrack(4)
     cells.setVerbosity(0)
 
-    for i in xrange(nCols):
-      for j in xrange(nCellsPerCol):
+    for i in range(nCols):
+      for j in range(nCellsPerCol):
 #        print "Adding segment: ", i, j, [((i + 1) % nCols, (j + 1) % nCellsPerCol)]
         cells.addNewSegment(i, j, True if j % 2 == 0 else False,
                             [((i + 1) % nCols, (j + 1) % nCellsPerCol)])
 
-    for i in xrange(10):
+    for i in range(10):
       x = numpy.zeros(nCols, dtype="uint32")
       _RGEN.initializeUInt32Array(x, 2)
 #      print "Input:", x
@@ -235,7 +235,7 @@ class Cells4Test(unittest.TestCase):
     self._testPersistenceCpp(cells)
     self._testPersistencePy(cells)
 
-    for i in xrange(100):
+    for i in range(100):
       x = numpy.zeros(nCols, dtype="uint32")
       _RGEN.initializeUInt32Array(x, 2)
       cells.compute(x, True, False)
@@ -250,37 +250,37 @@ class Cells4Test(unittest.TestCase):
     nCols = 10
     c1 = createCells4(nCols)
     c2 = createCells4(nCols)
-    self.assertEquals(c1, c2)
+    self.assertEqual(c1, c2)
     self.assertTrue(c1.equals(c2))
     self.assertTrue(c1 == c2)
     
     # learn
-    data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(10)]   
+    data = [numpy.random.choice(nCols, nCols/3, False) for _ in range(10)]
     for idx in data:
       x = numpy.zeros(nCols, dtype="float32")
       x[idx] = 1.0
       c1.compute(x, True, True)
       c2.compute(x, True, True)
-      self.assertEquals(c1, c2)
+      self.assertEqual(c1, c2)
       self.assertTrue(c1.equals(c2))
 
-    self.assertEquals(c1, c2)
+    self.assertEqual(c1, c2)
     self.assertTrue(c1.equals(c2))
 
     c1.rebuildOutSynapses()
     c2.rebuildOutSynapses()
-    self.assertEquals(c1, c2)
+    self.assertEqual(c1, c2)
     self.assertTrue(c1.equals(c2))
 
     # inference
-    data = [numpy.random.choice(nCols, nCols/3, False) for _ in xrange(100)]
+    data = [numpy.random.choice(nCols, nCols/3, False) for _ in range(100)]
     for idx in data:
       x = numpy.zeros(nCols, dtype="float32")
       x[idx] = 1.0
       c1.compute(x, True, False)   
       c2.compute(x, True, False)
-      self.assertEquals(c1, c2)
+      self.assertEqual(c1, c2)
       self.assertTrue(c1.equals(c2))
 
-    self.assertEquals(c1, c2)
+    self.assertEqual(c1, c2)
     self.assertTrue(c1.equals(c2))
