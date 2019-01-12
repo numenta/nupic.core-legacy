@@ -53,4 +53,5 @@ def replacement_run(self):
 
 egg_info.egg_info.run = replacement_run
 print("setup.py: Calling {}\n".format(__file__))
-execfile(__file__)
+import runpy
+runpy.run_path(__file__, run_name=__name__)
