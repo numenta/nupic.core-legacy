@@ -333,7 +333,10 @@ public:
     template<typename T>
     void setDense( const vector<T> &value ) {
         NTA_ASSERT(value.size() == size);
-        dense.assign( value.begin(), value.end() );
+        dense.resize( size );
+        const T zero = (T) 0;
+        for(auto i = 0u; i < size; i++)
+            dense[i] = value[i] != zero;
         setDenseInplace();
     }
 
@@ -345,7 +348,10 @@ public:
     template<typename T>
     void setDense( const T *value ) {
         NTA_ASSERT(value != nullptr);
-        dense.assign( value, value + size );
+        dense.resize( size );
+        const T zero = (T) 0;
+        for(auto i = 0u; i < size; i++)
+            dense[i] = value[i] != zero;
         setDenseInplace();
     }
 
@@ -663,7 +669,7 @@ public:
 
     void randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
-        UInt nbits = (UInt)(size * (sparsity + 0.5f));
+        UInt nbits = (UInt) std::round( size * sparsity );
 
         SDR_flatSparse_t range( size );
         iota( range.begin(), range.end(), 0 );
@@ -696,7 +702,7 @@ public:
         NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
         NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
 
-        UInt num_move_bits = (UInt)(fractionNoise * (getSum() + 0.5f));
+        UInt num_move_bits = (UInt) std::round( fractionNoise * getSum() );
         vector<UInt> turn_off( num_move_bits , 0 );
         rng.sample(
             (UInt*) getFlatSparse().data(), getSum(),
