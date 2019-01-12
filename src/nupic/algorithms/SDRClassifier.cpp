@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 
 #include <nupic/algorithms/ClassifierResult.hpp>
@@ -232,7 +233,7 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
   const Real64 numCategories = (Real64)bucketIdxList.size();
   for (size_t i = 0; i < bucketIdxList.size(); i++)
     targetDistribution[bucketIdxList[i]] = 1.0 / numCategories;
-  
+
   NTA_ASSERT(likelihoods.size() == targetDistribution.size());
   for(UInt i = 0; i < likelihoods.size(); i++) {
     likelihoods[i] = targetDistribution[i] - likelihoods[i];
@@ -471,7 +472,7 @@ bool SDRClassifier::operator==(const SDRClassifier &other) const {
     const Matrix otherWeights = other.weightMatrix_.at(it->first);
     for (UInt i = 0; i <= maxInputIdx_; ++i) {
       for (UInt j = 0; j <= maxBucketIdx_; ++j) {
-        if (get_(thisWeights, i, j) != get_(otherWeights, i, j)) { 
+        if (get_(thisWeights, i, j) != get_(otherWeights, i, j)) {
           return false;
         }
       }

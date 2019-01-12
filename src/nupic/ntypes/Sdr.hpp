@@ -285,9 +285,11 @@ public:
      *
      * @param value An SDR to replicate.
      */
-    SparseDistributedRepresentation( SparseDistributedRepresentation &value )
+    SparseDistributedRepresentation( const SparseDistributedRepresentation &value )
         : SparseDistributedRepresentation( value.dimensions ) {
-        setSDR( value );
+        clear();
+        value.constGetFlatSparse_( flatSparse );
+        flatSparse_valid = true;
     }
 
     virtual ~SparseDistributedRepresentation()

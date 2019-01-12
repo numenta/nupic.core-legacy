@@ -41,13 +41,6 @@ namespace nupic {
 namespace algorithms {
 namespace spatial_pooler {
 
-// force 32bit data types
-// FIXME because of SWIG forced to use typedef, later switch to c++11 using:
-//using Real = nupic::Real32;
-typedef nupic::Real32 Real;
-typedef nupic::UInt32 UInt;
-typedef nupic::Int32 Int;
-
 static const int DISABLED = -1; //value denoting a feature is disabled
 
 /**

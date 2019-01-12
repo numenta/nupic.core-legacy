@@ -113,7 +113,6 @@ set(encoders_files
 )
     
 set(engine_files
-    nupic/engine/Collections.cpp
     nupic/engine/Input.cpp
     nupic/engine/Input.hpp
     nupic/engine/Link.cpp
@@ -173,7 +172,6 @@ set(ntypes_files
     nupic/ntypes/ArrayBase.hpp
     nupic/ntypes/ArrayRef.hpp
     nupic/ntypes/BundleIO.hpp
-    #nupic/ntypes/Collection.cpp  Included directly into Collections.cpp
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
     nupic/ntypes/Dimensions.hpp
@@ -311,7 +309,10 @@ add_subdirectory(test)
 #
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
-target_link_libraries(${src_executable_hotgym} ${core_library})
+target_link_libraries(${src_executable_hotgym} 
+		${core_library}
+		${COMMON_OS_LIBS}
+		)
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS}) #TODO how to use OPTIMIZED CXX flags? 
 target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_executable_hotgym} PRIVATE 
