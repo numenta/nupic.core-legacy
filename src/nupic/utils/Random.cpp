@@ -24,6 +24,7 @@
     Random Number Generator implementation
 */
 #include <iostream> // for istream, ostream
+#include <chrono>   // for random seeds
 
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
@@ -36,10 +37,21 @@ bool Random::operator==(const Random &o) const {
 	 gen == o.gen;
 }
 
+bool static_gen_seeded = false;
 std::mt19937 static_gen;
 
 Random::Random(UInt64 seed) {
   if (seed == 0) {
+    if( !static_gen_seeded ) {
+      #if NDEBUG
+        unsigned int static_seed = std::chrono::system_clock::now().time_since_epoch().count();
+      #else
+        unsigned int static_seed = DEBUG_RANDOM_SEED;
+      #endif
+      static_gen.seed( static_seed );
+      static_gen_seeded = true;
+      NTA_INFO << "Random seed: " << static_seed;
+    }
     seed_ = static_gen(); //generate random value from HW RNG
   } else {
     seed_ = seed;
