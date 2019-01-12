@@ -259,17 +259,17 @@ class SparseMatrixTest(unittest.TestCase):
       a[rgen.randint(0,m)] = 0
       a[:,rgen.randint(0,n)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
-      nnzpb = sm.nNonZerosPerBox([m/2,m],[n/2,n])
+      nnzpb = sm.nNonZerosPerBox([m//2,m],[n//2,n])
       ans = zeros((2,2))
-      ans[0,0] = sum(a[:m/2,:n/2])
-      ans[0,1] = sum(a[:m/2,n/2:])
-      ans[1,0] = sum(a[m/2:,:n/2])
-      ans[1,1] = sum(a[m/2:,n/2:])
+      ans[0,0] = sum(a[:m//2,:n//2])
+      ans[0,1] = sum(a[:m//2,n//2:])
+      ans[1,0] = sum(a[m//2:,:n//2])
+      ans[1,1] = sum(a[m//2:,n//2:])
       if (nnzpb.toDense() != ans).any():
         error('nNonZerosPerBox')
 
@@ -287,8 +287,8 @@ class SparseMatrixTest(unittest.TestCase):
       a[:,rgen.randint(0,n)] = 0
       a[where(a < 25)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
@@ -311,15 +311,15 @@ class SparseMatrixTest(unittest.TestCase):
       a[:,rgen.randint(0,n)] = 0
       a[where(a < 25)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
-      b = rgen.randint(0,100,(m/4,n/4)).astype(float32)
+      b = rgen.randint(0,100,(m//4,n//4)).astype(float32)
       b[where(b < 50)] = 0
       slice = SM32(b)
-      x,y = rgen.randint(0,m/2), rgen.randint(0,n/2)
+      x,y = rgen.randint(0,m//2), rgen.randint(0,n//2)
 
       sm.setSlice(x,y,slice)
 
@@ -341,13 +341,13 @@ class SparseMatrixTest(unittest.TestCase):
       a[:,rgen.randint(0,n)] = 0
       a[where(a < 25)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
-      slice = rgen.randint(0,100,(m/4,n/4)).astype(float32)
-      x,y = rgen.randint(0,m/2), rgen.randint(0,n/2)
+      slice = rgen.randint(0,100,(m//4,n//4)).astype(float32)
+      x,y = rgen.randint(0,m//2), rgen.randint(0,n//2)
 
       sm.setSlice(x,y,slice)
 
@@ -1450,8 +1450,8 @@ class SparseMatrixTest(unittest.TestCase):
       y = mat * x
       if (y != yr).any():
         error('rightVecProd 2')
-      rows = [j for j in range(m/2)]
-      yr = dot(a[:m/2], x)
+      rows = [j for j in range(m//2)]
+      yr = dot(a[:m//2], x)
       y = mat.rightVecProd(rows, x)
       if (y != yr).any():
         error('rightVecProd 3')
@@ -1510,8 +1510,8 @@ class SparseMatrixTest(unittest.TestCase):
       y = mat.leftVecProd(x)
       if (y != yr).any():
         error('leftVecProd 1')
-      cols = [j for j in range(n/2)]
-      yr = dot(x, a[:,:n/2])[:n/2]
+      cols = [j for j in range(n//2)]
+      yr = dot(x, a[:,:n//2])[:n//2]
       y = mat.leftVecProd(cols, x)
       if (y != yr).any():
         error('leftVecProd 2')
@@ -1955,7 +1955,7 @@ class SparseMatrixTest(unittest.TestCase):
       for j in range(10):
 
         x = rgen.randint(-100,100,(n))
-        x[n/2] = 0
+        x[n//2] = 0
 
         ans = zeros((m))
         for r in range(m):
@@ -1988,7 +1988,7 @@ class SparseMatrixTest(unittest.TestCase):
       for j in range(10):
 
         x = rgen.randint(-100,100,(n))
-        x[n/2] = 0
+        x[n//2] = 0
 
         ans = zeros((m))
         for r in range(m):
@@ -2021,7 +2021,7 @@ class SparseMatrixTest(unittest.TestCase):
       for j in range(10):
 
         x = rgen.randint(0,100,(n))
-        x[n/2] = 0
+        x[n//2] = 0
 
         ans = zeros((m))
         for r in range(m):
@@ -2119,9 +2119,9 @@ class SparseMatrixTest(unittest.TestCase):
       a[numpy.where(a < 10)] = 0
       a[rgen.randint(0,m)] = 0
       a[:,rgen.randint(0,n)] = 0
-      box_row_start = rgen.randint(1,m/2)
+      box_row_start = rgen.randint(1,m//2)
       box_row_end = rgen.randint(box_row_start,m)
-      box_col_start = rgen.randint(1,n/2)
+      box_col_start = rgen.randint(1,n//2)
       box_col_end = rgen.randint(box_col_start,n)
       sm = SM32(a)
       n_sm = sm.nNonZerosInBox(box_row_start, box_row_end,
@@ -2147,9 +2147,9 @@ class SparseMatrixTest(unittest.TestCase):
       a[numpy.where(a < 10)] = 0
       a[rgen.randint(0,m)] = 0
       a[:,rgen.randint(0,n)] = 0
-      box_row_start = rgen.randint(1,m/2)
+      box_row_start = rgen.randint(1,m//2)
       box_row_end = rgen.randint(box_row_start,m)
-      box_col_start = rgen.randint(1,n/2)
+      box_col_start = rgen.randint(1,n//2)
       box_col_end = rgen.randint(box_col_start,n)
       sm = SM32(a)
       nnz = sm.getNonZerosInBox(box_row_start, box_row_end,
@@ -2179,8 +2179,8 @@ class SparseMatrixTest(unittest.TestCase):
       n = rgen.randint(10,20)
       A = SM32(rgen.randint(0,100,(m,n)))
       A.threshold(70)
-      A.setRowToZero(m/2)
-      A.setColToZero(n/2)
+      A.setRowToZero(m//2)
+      A.setColToZero(n//2)
 
       z1 = list(A.getNonZerosSorted())
       z11 = list(A.getNonZerosSorted(3))
@@ -2332,8 +2332,8 @@ class SparseMatrixTest(unittest.TestCase):
       n = rgen.randint(10,200)
       A = SM32(rgen.randint(0,100,(m,n)))
       A.threshold(70)
-      A.setRowToZero(m/2)
-      A.setColToZero(n/2)
+      A.setRowToZero(m//2)
+      A.setColToZero(n//2)
       A.normalize()
       s = A.toPyString()
 
@@ -2352,8 +2352,8 @@ class SparseMatrixTest(unittest.TestCase):
       n = rgen.randint(10,200)
       A = SM32(rgen.randint(0,100,(m,n)))
       A.threshold(70)
-      A.setRowToZero(m/2)
-      A.setColToZero(n/2)
+      A.setRowToZero(m//2)
+      A.setColToZero(n//2)
       A.normalize()
       s1 = A.__getstate__()
       B = SM32()
@@ -2400,10 +2400,10 @@ class SparseMatrixTest(unittest.TestCase):
       error('sameNonZeroIndices 2B')
 
     # Test with zero row (should return true)
-    A.setRowToZero(m/2)
-    B.setRowToZero(m/2)
+    A.setRowToZero(m//2)
+    B.setRowToZero(m//2)
 
-    if A.sameRowNonZeroIndices(m/2, B) != True:
+    if A.sameRowNonZeroIndices(m//2, B) != True:
       error('sameRowNonZeroIndices 3')
 
 
@@ -2443,16 +2443,16 @@ class SparseMatrixTest(unittest.TestCase):
       error('nonZeroIndicesIncluded 2B')
 
     # Test with zero row (should return true)
-    A.setRowToZero(m/2)
-    B.setRowToZero(m/2)
+    A.setRowToZero(m//2)
+    B.setRowToZero(m//2)
 
-    if A.nonZeroIndicesIncluded(m/2, B) != True:
+    if A.nonZeroIndicesIncluded(m//2, B) != True:
       error('nonZeroIndicesIncluded 3')
 
     # Non-zeros of B included in those of A
     B = SM32(A)
-    B.setRowToZero(m/2)
-    B.setColToZero(n/2)
+    B.setRowToZero(m//2)
+    B.setColToZero(n//2)
 
     if B.nonZeroIndicesIncluded(A) != True:
       error('nonZeroIndicesIncluded 4')
@@ -2537,8 +2537,8 @@ class SparseMatrixTest(unittest.TestCase):
 
         B = SM32(A)
         B *= rgen.uniform(0,2)
-        B.setRowToZero(m/2)
-        B.setColToZero(n/2)
+        B.setRowToZero(m//2)
+        B.setColToZero(n//2)
         B_ref = B.toDense()
 
         SM_logSumNoAlloc(A, B, min_floor)
@@ -2658,8 +2658,8 @@ class SparseMatrixTest(unittest.TestCase):
           for j in range(n):
             if B[i,j] != 0:
               B[i,j] -= 1e-3
-        B.setRowToZero(m/2)
-        B.setColToZero(n/2)
+        B.setRowToZero(m//2)
+        B.setColToZero(n//2)
         B_ref = B.toDense()
 
         SM_logDiffNoAlloc(A, B, min_floor)
