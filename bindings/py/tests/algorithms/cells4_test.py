@@ -21,6 +21,7 @@
 
 """Unit tests for Cells4."""
 
+from __future__ import print_function
 import pickle
 import os
 
