@@ -104,8 +104,8 @@ TEST(SdrTest, TestProxyThrows) {
     ASSERT_ANY_THROW( C->setFlatSparse( SDR_flatSparse_t({ 0, 1, 2 }) ));
     SDR X({10});
     ASSERT_ANY_THROW( C->setSDR( X ));
-    ASSERT_ANY_THROW( C->randomize(.10) );
-    ASSERT_ANY_THROW( C->addNoise(.10) );
+    ASSERT_ANY_THROW( C->randomize(0.10f) );
+    ASSERT_ANY_THROW( C->addNoise(0.10f) );
 }
 
 TEST(SdrTest, TestProxyGetters) {

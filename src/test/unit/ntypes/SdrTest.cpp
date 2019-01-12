@@ -273,8 +273,8 @@ TEST(SdrTest, TestSetSparseCopy) {
     SDR a({ 3, 3 });
     void *before = a.getSparse().data();
     auto vec = vector<vector<Real>>({
-        { 0., 1., 2. },
-        { 1., 1., 2. } });
+        { 0.0f, 1.0f, 2.0f },
+        { 1.0f, 1.0f, 2.0f } });
     void *data = vec.data();
     a.setSparse( vec );
     void *after = a.getSparse().data();
@@ -535,30 +535,30 @@ TEST(SdrTest, TestRandomize) {
     SDR b(a);
     Random rng(77);
     Random rng2(77);
-    a.randomize( .02, rng );
-    b.randomize( .02, rng2 );
+    a.randomize( 0.02f, rng );
+    b.randomize( 0.02f, rng2 );
     ASSERT_TRUE( a == b);
     // Test different random number generators have different results.
     Random rng3( 1 );
     Random rng4( 2 );
-    a.randomize( .02, rng3 );
-    b.randomize( .02, rng4 );
+    a.randomize( 0.02f, rng3 );
+    b.randomize( 0.02f, rng4 );
     ASSERT_TRUE( a != b);
     // Test that this modifies RNG state and will generate different
     // distributions with the same RNG.
     Random rng5( 88 );
-    a.randomize( .02, rng5 );
-    b.randomize( .02, rng5 );
+    a.randomize( 0.02f, rng5 );
+    b.randomize( 0.02f, rng5 );
     ASSERT_TRUE( a != b);
     // Test default RNG has a different result every time
-    a.randomize( .02 );
-    b.randomize( .02 );
+    a.randomize( 0.02f );
+    b.randomize( 0.02f );
     ASSERT_TRUE( a != b);
     // Methodically test by running it many times and checking for an even
     // activation frequency at every bit.
     SDR af_test({ 97 /* prime number */ });
     UInt iterations = 50000;
-    Real sparsity   = .20;
+    Real sparsity   = 0.20f;
     vector<Real> af( af_test.size, 0 );
     for( UInt i = 0; i < iterations; i++ ) {
         af_test.randomize( sparsity );
@@ -567,14 +567,14 @@ TEST(SdrTest, TestRandomize) {
     }
     for( auto f : af ) {
         f = f / iterations / sparsity;
-        ASSERT_GT( f, 0.95 );
-        ASSERT_LT( f, 1.05 );
+        ASSERT_GT( f, 0.95f );
+        ASSERT_LT( f, 1.05f );
     }
 }
 
 TEST(SdrTest, TestAddNoise) {
     SDR a({1000});
-    a.randomize( 0.10 );
+    a.randomize( 0.10f );
     SDR b(a);
     SDR c(a);
     // Test seed is deteministic
@@ -612,7 +612,7 @@ TEST(SdrTest, TestAddNoise) {
     // Methodically test for every overlap.
     for( UInt x = 0; x <= 100; x++ ) {
         b.setSDR( a );
-        b.addNoise( (Real)x / 100.0 );
+        b.addNoise( (Real)x / 100.0f );
         ASSERT_EQ( a.overlap( b ), 100 - x );
         ASSERT_EQ( b.getSum(), 100ul );
     }

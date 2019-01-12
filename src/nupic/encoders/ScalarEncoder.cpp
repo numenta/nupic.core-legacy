@@ -61,7 +61,7 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
   } else {
     bucketWidth_ = resolution || radius / w;
     NTA_CHECK(bucketWidth_ > 0) << "One of n/radius/resolution must be nonzero.";
-    const int neededBands = ceil(extentWidth / bucketWidth_);
+    const int neededBands = (int)ceil(extentWidth / bucketWidth_);
     const int neededBuckets = neededBands + 1;
     n_ = neededBuckets + (w - 1);
   }
@@ -73,13 +73,13 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
 
 int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   if(clipInput_) {
-    input = input < minValue_ ? minValue_ : input;
-    input = input > maxValue_ ? maxValue_ : input;
+    input = input < minValue_ ? (Real)minValue_ : input;
+    input = input > maxValue_ ? (Real)maxValue_ : input;
   }
 
   NTA_CHECK(input >= minValue_ && input <= maxValue_) << "Input must be within [minValue, maxValue]";
 
-  const int iBucket = round((input - minValue_) / bucketWidth_);
+  const int iBucket = (int)round((input - minValue_) / bucketWidth_);
   const int firstBit = iBucket;
 
   std::fill(&output[0], &output[n_ -1], 0);
@@ -100,7 +100,7 @@ PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
     const double extentWidth = maxValue - minValue;
     bucketWidth_ = extentWidth / nBuckets;
   } else {
-    const int neededBuckets = ceil((maxValue - minValue) / bucketWidth_);
+    const int neededBuckets = (int)ceil((maxValue - minValue) / bucketWidth_);
     n_ = (neededBuckets > w_) ? neededBuckets : w_ + 1;
   }
 
@@ -117,8 +117,8 @@ int PeriodicScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
   const int iBucket = (int)((input - minValue_) / bucketWidth_);
   const int middleBit = iBucket;
   const double reach = (w_ - 1) / 2.0;
-  const int left = floor(reach);
-  const int right = ceil(reach);
+  const int left = (int)floor(reach);
+  const int right = (int)ceil(reach);
 
   std::fill(&output[0], &output[n_ -1], 0);
   output[middleBit] = 1;

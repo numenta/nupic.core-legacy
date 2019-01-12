@@ -116,7 +116,7 @@ void Neighborhood::Iterator::advance_() {
   // When it overflows, we need to "carry the 1" to the next dimension.
   bool overflowed = true;
 
-  for (Int i = offset_.size() - 1; i >= 0; i--) {
+  for (Int i = (Int)offset_.size() - 1; i >= 0; i--) {
     offset_[i]++;
 
     overflowed = offset_[i] > (Int)neighborhood_.radius_ ||
@@ -195,7 +195,7 @@ void WrappingNeighborhood::Iterator::advance_() {
   // When it overflows, we need to "carry the 1" to the next dimension.
   bool overflowed = true;
 
-  for (Int i = offset_.size() - 1; i >= 0; i--) {
+  for (Int i = (Int)offset_.size() - 1; i >= 0; i--) {
     offset_[i]++;
 
     // If the offset has moved by more than the dimension size, i.e. if

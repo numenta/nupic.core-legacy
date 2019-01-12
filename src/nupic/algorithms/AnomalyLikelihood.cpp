@@ -66,7 +66,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     
       // On a rolling basis we re-estimate the distribution
       if ((timeElapsed >= initialTimestamp_ + reestimationPeriod)   || distribution_.name == "unknown" ) {
-        auto numSkipRecords = calcSkipRecords_(this->iteration_, this->runningAverageAnomalies_.size(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
+        auto numSkipRecords = calcSkipRecords_(this->iteration_, (UInt)this->runningAverageAnomalies_.size(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
         estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_; 
         if  (timeElapsed >= initialTimestamp_ + reestimationPeriod)  { initialTimestamp_ = -1; } //reset init T
       }
@@ -212,7 +212,7 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& a
   vector<Real> likelihoods;
   likelihoods.reserve(runningAverageAnomalies_.size()); 
   for (size_t i = 0; i < runningAverageAnomalies_.size(); i++) { //TODO we could use transform() here (? or would it be less clear?) 
-    auto newAverage = runningAverageAnomalies_[i];
+    auto newAverage = runningAverageAnomalies_[(UInt)i];
     likelihoods.push_back(tailProbability_(newAverage)); 
   }
 

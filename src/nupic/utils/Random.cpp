@@ -46,7 +46,7 @@ Random::Random(UInt64 seed) {
   }
   // if seed is zero at this point, there is a logic error.
   NTA_CHECK(seed_ != 0);
-  gen.seed(seed_); //seed the generator
+  gen.seed((unsigned int)seed_); //seed the generator
   steps_ = 0;
 }
 
@@ -68,7 +68,7 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
   NTA_CHECK(version == "random-v2") << "Random() deserializer -- found unexpected version string '"
               << version << "'";
   inStream >> r.seed_;
-  r.gen.seed(r.seed_); //reseed
+  r.gen.seed((unsigned int)r.seed_); //reseed
   inStream >> r.steps_;
   r.gen.discard(r.steps_); //advance n steps
   //FIXME we could de/serialize directly RNG gen, it should be multi-platform according to standard, 

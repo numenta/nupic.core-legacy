@@ -556,7 +556,7 @@ public:
             }
             // Convert from flatSparse to sparse.
             for( auto idx : getFlatSparse() ) {
-                for(UInt dim = dimensions.size() - 1; dim > 0; dim--) {
+                for(UInt dim = (UInt)(dimensions.size() - 1); dim > 0; dim--) {
                     auto dim_sz = dimensions[dim];
                     sparse[dim].push_back( idx % dim_sz );
                     idx /= dim_sz;
@@ -609,7 +609,7 @@ public:
      * @returns The number of true values in the SDR.
      */
     UInt getSum()
-        { return getFlatSparse().size(); }
+        { return (UInt)getFlatSparse().size(); }
 
     /**
      * Calculates the sparsity of the SDR, which is the fraction of bits which
@@ -663,7 +663,7 @@ public:
 
     void randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
-        UInt nbits = (UInt)(size * (sparsity + 0.5f));
+        UInt nbits = (UInt)round(size * sparsity);
 
         SDR_flatSparse_t range( size );
         iota( range.begin(), range.end(), 0 );
@@ -696,7 +696,7 @@ public:
         NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
         NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
 
-        UInt num_move_bits = (UInt)(fractionNoise * (getSum() + 0.5f));
+        UInt num_move_bits = (UInt)round(fractionNoise * getSum());
         vector<UInt> turn_off( num_move_bits , 0 );
         rng.sample(
             (UInt*) getFlatSparse().data(), getSum(),
@@ -711,7 +711,7 @@ public:
         }
         vector<UInt> turn_on( num_move_bits, 0 );
         rng.sample(
-            off_pop.data(), off_pop.size(),
+            off_pop.data(), (UInt)off_pop.size(),
             turn_on.data(), num_move_bits);
 
         for( auto idx : turn_on )
@@ -729,9 +729,9 @@ public:
                                      SparseDistributedRepresentation &sdr)
     {
         stream << "SDR( ";
-        for( UInt i = 0; i < sdr.dimensions.size(); i++ ) {
+        for( UInt i = 0; i < (UInt)sdr.dimensions.size(); i++ ) {
             stream << sdr.dimensions[i];
-            if( i + 1 != sdr.dimensions.size() )
+            if( i + 1 != (UInt)sdr.dimensions.size() )
                 stream << ", ";
         }
         stream << " ) ";

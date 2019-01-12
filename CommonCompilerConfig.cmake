@@ -161,14 +161,14 @@ if(MSVC)
 	# on Windows using Visual Studio 2015, 2017   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
 	#  /permissive- forces standards behavior.  See https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance?view=vs-2017
 	#  /Zc:__cplusplus   This is required to force MSVC to pay attention to the standard setting and sets __cplusplus.
-	#                    NOTE: MSVC does not support C++11.  But does C++14 and C++17.
+	#                    NOTE: MSVC does not support C++11.  But does support C++14 and C++17.
 	# Release Compiler flags:
-	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /nologo /Zc:__cplusplus
-	#      Release Only:    /O2 /Oi /Gy  /MD
-	#      Debug Only:       /Od /Zi /sdl /RTC1 /MD
+	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /EHsc /FC /nologo /Zc:__cplusplus
+	#      Release Only:    /O2 /Oi /Gy  /MT
+	#      Debug Only:       /Od /Zi /sdl /RTC1 /MTd
 	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:c++${std_ver}
-							$<$<CONFIG:RELEASE>:/O2 /Oi /Gy  /GL /MT> 
-							$<$<CONFIG:DEBUG>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
+							$<$<CONFIG:Release>:/O2 /Oi /Gy  /GL /MT> 
+							$<$<CONFIG:Debug>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
 	#linker flags
 	if("${BITNESS}" STREQUAL "32")
 		set(machine "/MACHINE:X86")
@@ -199,11 +199,12 @@ if(MSVC)
 		NOGDI
 		)
 
-	if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_ASSERTIONS_ON)
-	endif()
+	set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} $<$<CONFIG:Release>:-DNTA_ASSERTIONS_ON>)
 		
 	# common libs
+	# Libraries linked by defaultwith all C++ applications
+	# CMAKE_CXX_STANDARD_LIBRARIES:STRING=kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+        # Identify any additional system libs
 	set(COMMON_OS_LIBS oldnames.lib psapi.lib ws2_32.lib)
 
 

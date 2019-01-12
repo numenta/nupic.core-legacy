@@ -51,6 +51,7 @@ Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaul
   try {
     return m.at(row).at(col);
   } catch(std::exception& ex ) {
+    UNUSED(ex);
     return defaultVal;
   }
 }
@@ -187,8 +188,8 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
   // been seen yet, the actual value doesn't matter since it will have
   // zero likelihood.
   vector<Real64> *actValueVector =
-      result->createVector(-1, actualValues_.size(), 0.0);
-  for (UInt i = 0; i < actualValues_.size(); ++i) {
+      result->createVector(-1, (UInt)actualValues_.size(), 0.0);
+  for (UInt i = 0; i < (UInt)actualValues_.size(); ++i) {
     if (actualValuesSet_[i]) {
       (*actValueVector)[i] = actualValues_[i];
     } else {
@@ -206,7 +207,7 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
     vector<Real64>* likelihoods = result->createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
     for (const auto& bit : patternNZ) {
       const Matrix& w = weightMatrix_.at(*nSteps);
-      for(Size i =0; i< likelihoods->size(); i++) {
+      for(UInt i =0; i< (UInt)likelihoods->size(); i++) {
         likelihoods->at(i) += get_(w, bit, i);
       }
     }
@@ -222,7 +223,7 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
 
   for (const auto& bit : patternNZ) {
     const Matrix& w = weightMatrix_.at(step); //row
-    for(Size i=0; i< likelihoods.size(); i++) {
+    for(UInt i=0; i< (UInt)likelihoods.size(); i++) {
       likelihoods[i] += get_(w, bit, i);
     }
   }

@@ -32,19 +32,22 @@
 
 if (MSVC)
   set(EHsc -D EXTERNAL_CXX_FLAGS:STRING="/EHsc")
+  set(build_type --config Release)
 else()
   set(PIC -D EXTERNAL_CXX_FLAGS:STRING="-fPIC")
+  set(build_type -D CMAKE_BUILD_TYPE=Release)
 endif()
+
 
 FILE(MAKE_DIRECTORY  ${REPOSITORY_DIR}/build/ThirdParty)
 execute_process(COMMAND ${CMAKE_COMMAND} 
                         -G ${CMAKE_GENERATOR}
 			-D CMAKE_INSTALL_PREFIX=. 
-			-D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                         -D NEEDS_BOOST:BOOL=${NEEDS_BOOST}
                         -D BINDING_BUILD:STRING=${BINDING_BUILD}
                         ${PIC}
 			${EHsc}
+			${build_type}
 			 ../../external
                 WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                 RESULT_VARIABLE result
@@ -54,14 +57,39 @@ if(result)
     message(FATAL_ERROR "CMake step for Third Party builds failed: ${result}")
 endif()
 
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
+if(MSVC)
+  # We need to build for both Release and Debug fpr MSVC because
+  # it will not re-run this build if the build_type changes in ide.
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Release
+                    WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
+                    RESULT_VARIABLE result
+  #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
+  )
+  if(result)
+    message(FATAL_ERROR "build step for MSVC Release Third Party builds failed: ${result}")
+  endif()
+  
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Debug
+                    WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
+                    RESULT_VARIABLE result
+  #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
+  )
+  if(result)
+    message(FATAL_ERROR "build step for MSVC Debug Third Party builds failed: ${result}")
+  endif()
+  
+else(MSVC)
+  # for linux we only do this once for the current build_type.  To switch
+  # build type the user would have to clear everyting and re-run cmake.
+  execute_process(COMMAND ${CMAKE_COMMAND} --build .
                     WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                     RESULT_VARIABLE result
 #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
-)
-if(result)
+  )
+  if(result)
     message(FATAL_ERROR "build step for Third Party builds failed: ${result}")
-endif()
+  endif()
+endif(MSVC)
 
 # extract the external directory paths
 #    The external third party modules are being built

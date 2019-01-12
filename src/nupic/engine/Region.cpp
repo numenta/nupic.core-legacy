@@ -215,7 +215,7 @@ void Region::compute() {
  */
 
 size_t Region::evaluateLinks() {
-  int nIncompleteLinks = 0;
+  size_t nIncompleteLinks = 0;
   for (auto &elem : inputs_) {
     nIncompleteLinks += (elem.second)->evaluateLinks();
   }

@@ -200,8 +200,8 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
       std::cout << "" << std::endl;
     }
     // 4 nodes in r1 fan in to 1 node in r2
-    int row = node / 3;
-    int col = node - (row * 3);
+    int row = (int)node / 3;
+    int col = (int)node - (row * 3);
     EXPECT_EQ(r2NodeInput.size(), 8u);
     EXPECT_EQ(r2NodeInput[0], 0);
     EXPECT_EQ(r2NodeInput[2], 0);
@@ -287,8 +287,8 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
       std::cout << "" << std::endl;
     }
     // 4 nodes in r1 fan in to 1 node in r2
-    int row = node / 3;
-    int col = node - (row * 3);
+    int row = (int)node / 3;
+    int col = (int)node - (row * 3);
     EXPECT_EQ(r2NodeInput.size(), 8u);
     EXPECT_EQ(r2NodeInput[0], 0);
     EXPECT_EQ(r2NodeInput[2], 0);

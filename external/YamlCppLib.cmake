@@ -42,7 +42,11 @@ set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "prevent contrib modules" FORCE)
 add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
 
 set(yaml-cpp_INCLUDE_DIRS ${yaml-cpp_SOURCE_DIR}/include) 
-set(yaml-cpp_LIBRARIES   ${yaml-cpp_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}yaml-cpp${CMAKE_STATIC_LIBRARY_SUFFIX}) 
+if (MSVC)
+  set(yaml-cpp_LIBRARIES   "${yaml-cpp_BINARY_DIR}$<$<CONFIG:Release>:/Release/libyaml-cppmd.lib>$<$<CONFIG:Debug>:/Debug/libyaml-cppmdd.lib>") 
+else()
+  set(yaml-cpp_LIBRARIES   ${yaml-cpp_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}yaml-cpp${CMAKE_STATIC_LIBRARY_SUFFIX}) 
+endif()
 FILE(APPEND "${EXPORT_FILE_NAME}" "yaml-cpp_INCLUDE_DIRS@@@${yaml-cpp_SOURCE_DIR}/include\n")
 FILE(APPEND "${EXPORT_FILE_NAME}" "yaml-cpp_LIBRARIES@@@${yaml-cpp_LIBRARIES}\n")
 

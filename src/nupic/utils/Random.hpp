@@ -117,7 +117,7 @@ public:
     if (nChoices == 0) {
       return std::vector<T>{};
     }
-    NTA_CHECK(nChoices <= population.size()) << "population size must be greater than number of choices";
+    NTA_CHECK(nChoices <= (UInt)population.size()) << "population size must be greater than number of choices";
     std::vector<T> pop(population); //deep copy
     this->shuffle(std::begin(pop), std::end(pop));
     pop.resize(nChoices); //keep only first nChoices, drop rest
@@ -177,7 +177,7 @@ private:
     n = last - first;
     for (i = n-1; i > 0; --i) {
         using std::swap;
-        swap(first[i], first[this->getUInt32(i+1)]);
+        swap(first[i], first[this->getUInt32((UInt32)(i+1))]);
     }
   }
 };
