@@ -244,13 +244,13 @@ TEST(SdrMetrics, TestAF_Example) {
  * Verify that the longer run values of this metric are OK.
  */
 TEST(SdrMetrics, TestAF_LongTerm) {
-    const auto period  =   100u;
+    const auto period  =  1000u;
     const auto runtime = 10000u;
     SDR A({ 20u });
     SDR_Proxy B( A );
     SDR_ActivationFrequency F( B, period );
 
-    vector<Real> test_sparsity{ 0.0f, 0.02f, 0.05f, 1.0f, 0.25f, 0.5f };
+    vector<Real> test_sparsity{ 0.0f, 0.05f, 1.0f, 0.25f, 0.5f };
 
     for(const auto &sparsity : test_sparsity) {
         for(UInt i = 0; i < runtime; i++)

@@ -557,8 +557,8 @@ TEST(SdrTest, TestRandomize) {
     // Methodically test by running it many times and checking for an even
     // activation frequency at every bit.
     SDR af_test({ 97 /* prime number */ });
-    UInt iterations = 50000;
-    Real sparsity   = 0.20f;
+    UInt iterations = 10000;
+    Real sparsity   = .25f;
     vector<Real> af( af_test.size, 0 );
     for( UInt i = 0; i < iterations; i++ ) {
         af_test.randomize( sparsity );
@@ -567,8 +567,8 @@ TEST(SdrTest, TestRandomize) {
     }
     for( auto f : af ) {
         f = f / iterations / sparsity;
-        ASSERT_GT( f, 0.95f );
-        ASSERT_LT( f, 1.05f );
+        ASSERT_GT( f, 0.90f );
+        ASSERT_LT( f, 1.10f );
     }
 }
 
