@@ -27,7 +27,7 @@ import numpy
 from numpy import *
 import math
 import os
-import cPickle
+import pickle
 import copy
 import time
 import unittest
@@ -42,7 +42,7 @@ rgen = numpy.random.RandomState(37)
 
 def error(str):
 
-  print 'Error:', str
+  print('Error:', str)
   assert(False)
 
 
@@ -53,7 +53,7 @@ class SparseMatrixTest(unittest.TestCase):
   @pytest.mark.skip(reason="incompatible constructor arguments...another PR")
   def test_construction(self):
 
-    print 'Testing constructors'
+    print('Testing constructors')
 
     s1 = SparseMatrix(3,3)
     if s1.nRows() != 3 or s1.nCols() != 3 or s1.nNonZeros() != 0:
@@ -85,7 +85,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_getAllNonZeros(self):
 
-    print 'Testing getAllNonZeros'
+    print('Testing getAllNonZeros')
 
     for i in range(5):
 
@@ -120,7 +120,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setAllNonZeros(self):
 
-    print 'Testing setAllNonZeros'
+    print('Testing setAllNonZeros')
 
     for i in range(5):
 
@@ -249,7 +249,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_nNonZerosPerBox(self):
 
-    print 'Testing nNonZerosPerBox'
+    print('Testing nNonZerosPerBox')
 
     for i in range(5):
 
@@ -259,24 +259,24 @@ class SparseMatrixTest(unittest.TestCase):
       a[rgen.randint(0,m)] = 0
       a[:,rgen.randint(0,n)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
-      nnzpb = sm.nNonZerosPerBox([m/2,m],[n/2,n])
+      nnzpb = sm.nNonZerosPerBox([m//2,m],[n//2,n])
       ans = zeros((2,2))
-      ans[0,0] = sum(a[:m/2,:n/2])
-      ans[0,1] = sum(a[:m/2,n/2:])
-      ans[1,0] = sum(a[m/2:,:n/2])
-      ans[1,1] = sum(a[m/2:,n/2:])
+      ans[0,0] = sum(a[:m//2,:n//2])
+      ans[0,1] = sum(a[:m//2,n//2:])
+      ans[1,0] = sum(a[m//2:,:n//2])
+      ans[1,1] = sum(a[m//2:,n//2:])
       if (nnzpb.toDense() != ans).any():
         error('nNonZerosPerBox')
 
 
   def test_getCol(self):
 
-    print 'Testing getCol'
+    print('Testing getCol')
 
     for i in range(5):
 
@@ -287,8 +287,8 @@ class SparseMatrixTest(unittest.TestCase):
       a[:,rgen.randint(0,n)] = 0
       a[where(a < 25)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
@@ -299,7 +299,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setSlice(self):
 
-    print 'Testing setSlice'
+    print('Testing setSlice')
 
     # With a sparse matrix
     for i in range(5):
@@ -311,15 +311,15 @@ class SparseMatrixTest(unittest.TestCase):
       a[:,rgen.randint(0,n)] = 0
       a[where(a < 25)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
-      b = rgen.randint(0,100,(m/4,n/4)).astype(float32)
+      b = rgen.randint(0,100,(m//4,n//4)).astype(float32)
       b[where(b < 50)] = 0
       slice = SM32(b)
-      x,y = rgen.randint(0,m/2), rgen.randint(0,n/2)
+      x,y = rgen.randint(0,m//2), rgen.randint(0,n//2)
 
       sm.setSlice(x,y,slice)
 
@@ -341,13 +341,13 @@ class SparseMatrixTest(unittest.TestCase):
       a[:,rgen.randint(0,n)] = 0
       a[where(a < 25)] = 0
       a[0,0] = 1
-      a[m/2] = 0
-      a[:,n/2] = 0
+      a[m//2] = 0
+      a[:,n//2] = 0
 
       sm = SM32(a)
 
-      slice = rgen.randint(0,100,(m/4,n/4)).astype(float32)
-      x,y = rgen.randint(0,m/2), rgen.randint(0,n/2)
+      slice = rgen.randint(0,100,(m//4,n//4)).astype(float32)
+      x,y = rgen.randint(0,m//2), rgen.randint(0,n//2)
 
       sm.setSlice(x,y,slice)
 
@@ -363,7 +363,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_transpose(self):
 
-    print 'Testing transpose'
+    print('Testing transpose')
 
     for k in range(5):
       nrows = rgen.randint(1,5)
@@ -388,7 +388,7 @@ class SparseMatrixTest(unittest.TestCase):
       if (a != m.toDense()).any():
         error('transpose 2')
 
-    for k in xrange(5):
+    for k in range(5):
       nrows = rgen.randint(1,5)
       ncols = rgen.randint(5,12)
       a = rgen.randint(0,100,size=(nrows,ncols))
@@ -404,7 +404,7 @@ class SparseMatrixTest(unittest.TestCase):
 
     return
 
-    print 'Testing aX_plus_bXY'
+    print('Testing aX_plus_bXY')
 
     x0 = SM64([[10, 20, 30], [40, 50, 60]])
     x = SM64(x0)
@@ -428,7 +428,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_mat_prod(self):
 
-    print 'Testing mat_prod'
+    print('Testing mat_prod')
 
     for i in range(5):
       a = rgen.randint(0,2,(6,8))
@@ -448,7 +448,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_leftDenseMatMaxAtNZ(self):
 
-    print 'Testing leftDenseMatMaxAtNZ'
+    print('Testing leftDenseMatMaxAtNZ')
 
     for i in range(5):
 
@@ -464,16 +464,16 @@ class SparseMatrixTest(unittest.TestCase):
 
       d = SM32(a).leftDenseMatMaxAtNZ(b).astype(int32)
       if (c != d).any():
-        print a
-        print b
-        print c
-        print d
+        print(a)
+        print(b)
+        print(c)
+        print(d)
         error('leftDenseMatMaxAtNZ')
 
 
   def test_rightDenseMatProdAtNZ(self):
 
-    print 'Testing rightDenseMatProdAtNZ'
+    print('Testing rightDenseMatProdAtNZ')
 
     for i in range(5):
       a = rgen.randint(0,2,(6,8))
@@ -486,7 +486,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_denseMatExtract(self):
 
-    print 'Testing denseMatExtract'
+    print('Testing denseMatExtract')
 
     a = numpy.zeros((4,4))
     a[1,0] = 1; a[2,1] = 1; a[3,2] = 1
@@ -499,7 +499,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_threshold(self):
 
-    print 'Testing threshold'
+    print('Testing threshold')
 
     for k in range(5):
       a = rgen.randint(0,100,(4,4))
@@ -522,7 +522,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_clip(self):
 
-    print 'Testing clip'
+    print('Testing clip')
 
     # clip calls clipRow
 
@@ -552,7 +552,7 @@ class SparseMatrixTest(unittest.TestCase):
         error('clip below')
 
 
-    print 'Testing clipCol'
+    print('Testing clipCol')
 
     # clip col above
     for k in range(5):
@@ -582,7 +582,7 @@ class SparseMatrixTest(unittest.TestCase):
         error('clipCol below')
 
 
-    print 'Testing clip above and below'
+    print('Testing clip above and below')
 
     # clip whole matrix below and above (calls clipRowBelowAndAbove)
     for k in range(5):
@@ -625,7 +625,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_increment(self):
 
-    print 'Testing increment'
+    print('Testing increment')
 
     a = rgen.randint(0,100,(4,4))
     a[numpy.where(a < 75)] = 0
@@ -639,7 +639,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_incrementOnOuterWNZ(self):
 
-    print 'Testing incrementOnOuterWNZ'
+    print('Testing incrementOnOuterWNZ')
 
     a = rgen.randint(0,100,(4,4))
     a[numpy.where(a < 75)] = 0
@@ -654,7 +654,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_incrementNonZerosOnOuter(self):
 
-    print "Testing incrementNonZerosOnOuter"
+    print("Testing incrementNonZerosOnOuter")
 
     for name, start, rows, cols, delta, expected in (
         ("Test 1",
@@ -705,7 +705,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_incrementNonZerosOnRowsExcludingCols(self):
 
-    print "Testing incrementNonZerosOnRowsExcludingCols"
+    print("Testing incrementNonZerosOnRowsExcludingCols")
 
     for name, start, rows, cols, delta, expected in (
         ("Test 1",
@@ -756,7 +756,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setZerosOnOuter(self):
 
-    print "Testing setZerosOnOuter"
+    print("Testing setZerosOnOuter")
 
     for name, start, rows, cols, value, expected in (
         ("Test 1",
@@ -798,7 +798,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setRandomZerosOnOuter_single(self):
 
-    print "Testing setRandomZerosOnOuter with a numerical numNewNonzeros"
+    print("Testing setRandomZerosOnOuter with a numerical numNewNonzeros")
 
     rng = Random()
 
@@ -852,8 +852,8 @@ class SparseMatrixTest(unittest.TestCase):
                       ("Every value that was nonzero should not have changed."
                        "%s != %s" % (nonzeroBeforeUpdated, nonzeroBefore)))
 
-      otherRows = [x for x in xrange(numRows) if x not in rows]
-      otherCols = [x for x in xrange(numCols) if x not in cols]
+      otherRows = [x for x in range(numRows) if x not in rows]
+      otherCols = [x for x in range(numCols) if x not in cols]
       if len(otherRows) > 0 and len(otherCols) > 0:
         unselectedBefore = before[numpy.ix_(otherRows, otherCols)]
         unselectedAfter = after[numpy.ix_(otherRows, otherCols)]
@@ -889,7 +889,7 @@ class SparseMatrixTest(unittest.TestCase):
          2, 42),
     ):
       success = False
-      for _ in xrange(5):
+      for _ in range(5):
         m2 = SparseMatrix(before)
         m2.setRandomZerosOnOuter(rows, cols, numNew, value, rng)
         if m2 != m:
@@ -900,7 +900,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setRandomZerosOnOuter_multi(self):
 
-    print "Testing setRandomZerosOnOuter with multiple numNewNonzeros"
+    print("Testing setRandomZerosOnOuter with multiple numNewNonzeros")
 
     rng = Random()
 
@@ -954,8 +954,8 @@ class SparseMatrixTest(unittest.TestCase):
                       ("Every value that was nonzero should not have changed."
                        "%s != %s" % (nonzeroBeforeUpdated, nonzeroBefore)))
 
-      otherRows = [x for x in xrange(numRows) if x not in rows]
-      otherCols = [x for x in xrange(numCols) if x not in cols]
+      otherRows = [x for x in range(numRows) if x not in rows]
+      otherCols = [x for x in range(numCols) if x not in cols]
       if len(otherRows) > 0 and len(otherCols) > 0:
         unselectedBefore = before[numpy.ix_(otherRows, otherCols)]
         unselectedAfter = after[numpy.ix_(otherRows, otherCols)]
@@ -991,7 +991,7 @@ class SparseMatrixTest(unittest.TestCase):
          [2, 2, 2, 2, 2, 2], 42),
     ):
       success = False
-      for _ in xrange(5):
+      for _ in range(5):
         m2 = SparseMatrix(before)
         m2.setRandomZerosOnOuter(rows, cols, numNewByRow, value, rng)
         if m2 != m:
@@ -1002,7 +1002,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_increaseRowNonZeroCountsOnOuterTo(self):
 
-    print "Testing increaseRowNonZeroCountsOnOuterTo"
+    print("Testing increaseRowNonZeroCountsOnOuterTo")
 
     rng = Random()
 
@@ -1061,8 +1061,8 @@ class SparseMatrixTest(unittest.TestCase):
                       ("Every value that was nonzero should not have changed."
                        "%s != %s" % (nonzeroBeforeUpdated, nonzeroBefore)))
 
-      otherRows = [x for x in xrange(numRows) if x not in rows]
-      otherCols = [x for x in xrange(numCols) if x not in cols]
+      otherRows = [x for x in range(numRows) if x not in rows]
+      otherCols = [x for x in range(numCols) if x not in cols]
       if len(otherRows) > 0 and len(otherCols) > 0:
         unselectedBefore = before[numpy.ix_(otherRows, otherCols)]
         unselectedAfter = after[numpy.ix_(otherRows, otherCols)]
@@ -1099,7 +1099,7 @@ class SparseMatrixTest(unittest.TestCase):
          4, 42),
     ):
       success = False
-      for _ in xrange(5):
+      for _ in range(5):
         m2 = SparseMatrix(before)
         m2.increaseRowNonZeroCountsOnOuterTo(rows, cols, numDesiredNonzeros,
                                              value, rng)
@@ -1129,7 +1129,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_boxMin_boxMax(self):
 
-    print 'Testing boxMin, boxMax'
+    print('Testing boxMin, boxMax')
 
     a = rgen.randint(0,100,(11,8))
     a[numpy.where(a < 75)] = 0
@@ -1162,7 +1162,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_getSlice(self):
 
-    print 'Testing getSlice'
+    print('Testing getSlice')
 
     a = rgen.randint(0,100,(11,8))
     a[numpy.where(a < 75)] = 0
@@ -1189,7 +1189,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_addTwoRows(self):
 
-    print 'Testing addTwoRows'
+    print('Testing addTwoRows')
 
     a = rgen.randint(0,100,(11,8))
     a[numpy.where(a < 75)] = 0
@@ -1205,7 +1205,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setRowFromDense(self):
 
-    print 'Testing setRowFromDense'
+    print('Testing setRowFromDense')
 
     a = rgen.randint(0,100,(11,8))
     a[numpy.where(a < 75)] = 0
@@ -1221,7 +1221,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setRowFromSparse(self):
 
-    print 'Testing setRowFromSparse'
+    print('Testing setRowFromSparse')
 
     a = rgen.randint(0,100,(11,8))
     a[numpy.where(a < 75)] = 0
@@ -1241,7 +1241,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_copyRow(self):
 
-    print 'Testing copyRow'
+    print('Testing copyRow')
 
     a = rgen.randint(0,100,(11,8))
     a[numpy.where(a < 75)] = 0
@@ -1259,7 +1259,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_zeroRowAndCol(self):
 
-    print 'Testing zeroRowAndCol'
+    print('Testing zeroRowAndCol')
 
     for k in range(5):
       a = rgen.randint(0,100,(11,11))
@@ -1276,7 +1276,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setColsToZero(self):
 
-    print 'Testing setColsToZero'
+    print('Testing setColsToZero')
 
     for k in range(5):
 
@@ -1293,7 +1293,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_leftDenseMatSumAtNZ(self):
 
-    print 'Testing leftDenseMatSumAtNZ'
+    print('Testing leftDenseMatSumAtNZ')
 
     for i in range(5):
       a = rgen.randint(0,100,(12,13))
@@ -1313,7 +1313,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_elementRowMultiply(self):
 
-    print 'Testing elementRowMultiply'
+    print('Testing elementRowMultiply')
 
     a = rgen.randint(0,100,(11,12))
     a[numpy.where(a < 75)] = 0
@@ -1329,7 +1329,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_elementColMultiply(self):
 
-    print 'Testing elementColMultiply'
+    print('Testing elementColMultiply')
 
     a = rgen.randint(0,100,(11,12))
     a[numpy.where(a < 75)] = 0
@@ -1345,7 +1345,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_scaleRows(self):
 
-    print 'Testing scaleRows'
+    print('Testing scaleRows')
 
     a = rgen.randint(0,100,(11,12))
     a[numpy.where(a < 75)] = 0
@@ -1361,7 +1361,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_scaleCols(self):
 
-    print 'Testing scaleCols'
+    print('Testing scaleCols')
 
     a = rgen.randint(0,100,(11,12))
     a[numpy.where(a < 75)] = 0
@@ -1377,7 +1377,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setDiagonalToZero(self):
 
-    print 'Testing setDiagonalToZero'
+    print('Testing setDiagonalToZero')
 
     for i in range(5):
       m = rgen.randint(1,10)
@@ -1393,7 +1393,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setDiagonalToVal(self):
 
-    print 'Testing setDiagonalToVal'
+    print('Testing setDiagonalToVal')
 
     for i in range(5):
       m = rgen.randint(1,10)
@@ -1409,7 +1409,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setDiagonal(self):
 
-    print 'Testing setDiagonal'
+    print('Testing setDiagonal')
 
     for i in range(5):
       m = rgen.randint(1,10)
@@ -1427,7 +1427,7 @@ class SparseMatrixTest(unittest.TestCase):
   @pytest.mark.skip(reason="incompatable argument types...another PR")
   def test_rightVecProd(self):
 
-    print 'Testing rightVecProd'
+    print('Testing rightVecProd')
 
     # Right vec prod is the traditional matrix vector product, on the right side.
     # The argument vector has the same number of elements as the number of columns
@@ -1450,8 +1450,8 @@ class SparseMatrixTest(unittest.TestCase):
       y = mat * x
       if (y != yr).any():
         error('rightVecProd 2')
-      rows = [j for j in range(m/2)]
-      yr = dot(a[:m/2], x)
+      rows = [j for j in range(m//2)]
+      yr = dot(a[:m//2], x)
       y = mat.rightVecProd(rows, x)
       if (y != yr).any():
         error('rightVecProd 3')
@@ -1465,7 +1465,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_rightVecProd_fast(self):
 
-    print 'Testing rightVecProd_fast'
+    print('Testing rightVecProd_fast')
 
     # Right vec prod is the traditional matrix vector product, on the right side.
     # The argument vector has the same number of elements as the number of columns
@@ -1491,7 +1491,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_leftVecProd(self):
 
-    print 'Testing leftVecProd'
+    print('Testing leftVecProd')
 
     # Left vec prod is a matrix vector multiplication where the argument x vector
     # has as many elements as there are rows in the matrix, and the result vector
@@ -1510,8 +1510,8 @@ class SparseMatrixTest(unittest.TestCase):
       y = mat.leftVecProd(x)
       if (y != yr).any():
         error('leftVecProd 1')
-      cols = [j for j in range(n/2)]
-      yr = dot(x, a[:,:n/2])[:n/2]
+      cols = [j for j in range(n//2)]
+      yr = dot(x, a[:,:n//2])[:n//2]
       y = mat.leftVecProd(cols, x)
       if (y != yr).any():
         error('leftVecProd 2')
@@ -1525,7 +1525,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_rightVecSumAtNZ(self):
 
-    print 'Testing rightVecSumAtNZ'
+    print('Testing rightVecSumAtNZ')
 
     # This is like rightVecProd, except that we assume that the values stored
     # in the sparse matrix are 1 (even if they are not), so that we can skip
@@ -1557,7 +1557,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_rightVecSumAtNZSparse(self):
 
-    print 'Testing rightVecSumAtNZSparse'
+    print('Testing rightVecSumAtNZSparse')
 
     # This is like rightVecSumAtNZ, but the right vector is described as a list
     # of indices of the value 1.0.
@@ -1587,7 +1587,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_rightVecSumAtNZGtThreshold(self):
 
-    print 'Testing rightVecSumAtNZGtThreshold'
+    print('Testing rightVecSumAtNZGtThreshold')
 
     for name, matrix, rightVec, threshold, expected in (
         ("Test 1",
@@ -1622,7 +1622,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_rightVecSumAtNZGtThresholdSparse(self):
 
-    print 'Testing rightVecSumAtNZGtThresholdSparse'
+    print('Testing rightVecSumAtNZGtThresholdSparse')
 
     for name, matrix, sparseRightVec, threshold, expected in (
         ("Test 1",
@@ -1658,7 +1658,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_rightVecSumAtNZGteThreshold(self):
 
-    print 'Testing rightVecSumAtNZGteThreshold'
+    print('Testing rightVecSumAtNZGteThreshold')
 
     for name, matrix, rightVec, threshold, expected in (
         ("Test 1",
@@ -1693,7 +1693,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_rightVecSumAtNZGteThresholdSparse(self):
 
-    print 'Testing rightVecSumAtNZGteThresholdSparse'
+    print('Testing rightVecSumAtNZGteThresholdSparse')
 
     for name, matrix, sparseRightVec, threshold, expected in (
         ("Test 1",
@@ -1729,7 +1729,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_leftVecSumAtNZ(self):
 
-    print 'Testing leftVecSumAtNZ'
+    print('Testing leftVecSumAtNZ')
 
     # This is like leftVecProd, except that we assume that the values stored
     # in the sparse matrix are 1 (even if they are not), so that we can skip
@@ -1761,7 +1761,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_multiply(self):
 
-    print 'Testing multiply'
+    print('Testing multiply')
 
     # Multiply is the multiplication of two sparse matrices. The result is a third
     # sparse matrix.
@@ -1786,7 +1786,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_elementMultiply(self):
 
-    print 'Testing elementMultiply'
+    print('Testing elementMultiply')
 
     # This multiplies elements at the same positions in matrices a and b. The
     # result is another matrix.
@@ -1811,7 +1811,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_incrementWithOuterProduct(self):
 
-    print 'Testing incrementWithOuterProduct'
+    print('Testing incrementWithOuterProduct')
 
     for i in range(5):
       m = rgen.randint(2,10)
@@ -1834,7 +1834,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_incrementOnOuterProductVal(self):
 
-    print 'Testing incrementOnOuterProductVal'
+    print('Testing incrementOnOuterProductVal')
 
     for i in range(5):
       m = rgen.randint(2,10)
@@ -1860,7 +1860,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setFromOuter(self):
 
-    print 'Testing setFromOuter with variable amount of memory'
+    print('Testing setFromOuter with variable amount of memory')
 
     for i in range(5):
       m = rgen.randint(1,10)
@@ -1877,7 +1877,7 @@ class SparseMatrixTest(unittest.TestCase):
       if (a.toDense() != r).any():
         error('setFromOuter 1')
 
-    print 'Testing setFromOuter with fixed amount of memory'
+    print('Testing setFromOuter with fixed amount of memory')
 
     for i in range(5):
       m = rgen.randint(2,10)
@@ -1898,7 +1898,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setFromElementMultiplyWithOuter(self):
 
-    print 'Testing setFromElementMultiplyWithOuter'
+    print('Testing setFromElementMultiplyWithOuter')
 
     for i in range(5):
       m = rgen.randint(1,10)
@@ -1919,7 +1919,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_add(self):
 
-    print 'Testing add'
+    print('Testing add')
 
     for i in range(5):
       m = rgen.randint(2,10)
@@ -1941,7 +1941,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_vecMaxAtNZ(self):
 
-    print 'Testing vecMaxAtNZ'
+    print('Testing vecMaxAtNZ')
 
     for i in range(5):
 
@@ -1955,7 +1955,7 @@ class SparseMatrixTest(unittest.TestCase):
       for j in range(10):
 
         x = rgen.randint(-100,100,(n))
-        x[n/2] = 0
+        x[n//2] = 0
 
         ans = zeros((m))
         for r in range(m):
@@ -1974,7 +1974,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_vecArgMaxAtNZ(self):
 
-    print 'Testing vecArgMaxAtNZ'
+    print('Testing vecArgMaxAtNZ')
 
     for i in range(5):
 
@@ -1988,7 +1988,7 @@ class SparseMatrixTest(unittest.TestCase):
       for j in range(10):
 
         x = rgen.randint(-100,100,(n))
-        x[n/2] = 0
+        x[n//2] = 0
 
         ans = zeros((m))
         for r in range(m):
@@ -2007,7 +2007,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_vecArgMaxProd(self):
 
-    print 'Testing vecArgMaxProd'
+    print('Testing vecArgMaxProd')
 
     for i in range(5):
 
@@ -2021,7 +2021,7 @@ class SparseMatrixTest(unittest.TestCase):
       for j in range(10):
 
         x = rgen.randint(0,100,(n))
-        x[n/2] = 0
+        x[n//2] = 0
 
         ans = zeros((m))
         for r in range(m):
@@ -2041,7 +2041,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_setBoxToZero(self):
 
-    print 'Testing setBoxToZero'
+    print('Testing setBoxToZero')
 
     for i in range(5):
       m = rgen.randint(2,10)
@@ -2063,7 +2063,7 @@ class SparseMatrixTest(unittest.TestCase):
   @pytest.mark.skip(reason="Segfault...another PR")
   def test_setBox(self):
 
-    print 'Testing setBox'
+    print('Testing setBox')
 
     for i in range(5):
       m = rgen.randint(2,10)
@@ -2086,7 +2086,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_nNonZerosInRowRange(self):
 
-    print 'Testing nNonZerosInRowRange'
+    print('Testing nNonZerosInRowRange')
 
     for i in range(5):
       m = rgen.randint(2,20)
@@ -2110,7 +2110,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_nNonZerosInBox(self):
 
-    print 'Testing nNonZerosInBox'
+    print('Testing nNonZerosInBox')
 
     for i in range(5):
       m = rgen.randint(4,20)
@@ -2119,9 +2119,9 @@ class SparseMatrixTest(unittest.TestCase):
       a[numpy.where(a < 10)] = 0
       a[rgen.randint(0,m)] = 0
       a[:,rgen.randint(0,n)] = 0
-      box_row_start = rgen.randint(1,m/2)
+      box_row_start = rgen.randint(1,m//2)
       box_row_end = rgen.randint(box_row_start,m)
-      box_col_start = rgen.randint(1,n/2)
+      box_col_start = rgen.randint(1,n//2)
       box_col_end = rgen.randint(box_col_start,n)
       sm = SM32(a)
       n_sm = sm.nNonZerosInBox(box_row_start, box_row_end,
@@ -2138,7 +2138,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_getNonZerosInBox(self):
 
-    print 'Testing getNonZerosInBox'
+    print('Testing getNonZerosInBox')
 
     for i in range(5):
       m = rgen.randint(4,20)
@@ -2147,9 +2147,9 @@ class SparseMatrixTest(unittest.TestCase):
       a[numpy.where(a < 10)] = 0
       a[rgen.randint(0,m)] = 0
       a[:,rgen.randint(0,n)] = 0
-      box_row_start = rgen.randint(1,m/2)
+      box_row_start = rgen.randint(1,m//2)
       box_row_end = rgen.randint(box_row_start,m)
-      box_col_start = rgen.randint(1,n/2)
+      box_col_start = rgen.randint(1,n//2)
       box_col_end = rgen.randint(box_col_start,n)
       sm = SM32(a)
       nnz = sm.getNonZerosInBox(box_row_start, box_row_end,
@@ -2171,7 +2171,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_getNonZerosSorted(self):
 
-    print 'Testing getNonZerosSorted'
+    print('Testing getNonZerosSorted')
 
     for i in range(5):
 
@@ -2179,8 +2179,8 @@ class SparseMatrixTest(unittest.TestCase):
       n = rgen.randint(10,20)
       A = SM32(rgen.randint(0,100,(m,n)))
       A.threshold(70)
-      A.setRowToZero(m/2)
-      A.setColToZero(n/2)
+      A.setRowToZero(m//2)
+      A.setColToZero(n//2)
 
       z1 = list(A.getNonZerosSorted())
       z11 = list(A.getNonZerosSorted(3))
@@ -2195,9 +2195,9 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_shiftRows(self):
 
-   print 'Testing shiftRows'
+   print('Testing shiftRows')
 
-   for test in xrange(5):
+   for test in range(5):
     r, c = rgen.randint(10, size=2)
     m = rgen.randint(5, size=(r, c))
     sm = SM32(m)
@@ -2214,23 +2214,23 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_shiftCols(self):
 
-   print 'Testing shiftCols'
+   print('Testing shiftCols')
 
-   for test in xrange(5):
+   for test in range(5):
     r, c = rgen.randint(10, size=2)
     m = rgen.randint(5, size=(r, c))
     sm = SM32(m)
     sm2 = SM32(sm)
     s = rgen.randint(-c, c+1)
-    shifted = sorted(set(xrange(c)).intersection(xrange(-s, c-s)))
-    rotated = sorted(set(xrange(c)).difference(shifted))
+    shifted = sorted(set(range(c)).intersection(range(-s, c-s)))
+    rotated = sorted(set(range(c)).difference(shifted))
     if s > 0:
      permutation = rotated + shifted
-     zero = range(0, s)
+     zero = list(range(0, s))
      m2 = numpy.hstack((numpy.zeros((r, s)), m[..., 0:(c-s)]))
     else:
      permutation = shifted + rotated
-     zero = range(c+s, c)
+     zero = list(range(c+s, c))
      m2 = numpy.hstack((m[..., (-s):], numpy.zeros((r, -s))))
 
     start = time.time()
@@ -2252,7 +2252,7 @@ class SparseMatrixTest(unittest.TestCase):
   def test_logRowSums(self):
 
     return # precision issue, function almost obsolete
-    print 'Testing logRowSums'
+    print('Testing logRowSums')
 
     for i in range(5):
 
@@ -2275,7 +2275,7 @@ class SparseMatrixTest(unittest.TestCase):
   def test_logColSums(self):
 
     return # precision issue, function almost obsolete
-    print 'Testing logColSums'
+    print('Testing logColSums')
 
     for i in range(5):
 
@@ -2297,7 +2297,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_addRows(self):
 
-    print 'Testing addRows'
+    print('Testing addRows')
 
     for i in range(5):
 
@@ -2324,7 +2324,7 @@ class SparseMatrixTest(unittest.TestCase):
 
 
   def test_CSRSize(self):
-    print 'Testing CSRSize'
+    print('Testing CSRSize')
 
     for i in range(5):
 
@@ -2332,8 +2332,8 @@ class SparseMatrixTest(unittest.TestCase):
       n = rgen.randint(10,200)
       A = SM32(rgen.randint(0,100,(m,n)))
       A.threshold(70)
-      A.setRowToZero(m/2)
-      A.setColToZero(n/2)
+      A.setRowToZero(m//2)
+      A.setColToZero(n//2)
       A.normalize()
       s = A.toPyString()
 
@@ -2344,7 +2344,7 @@ class SparseMatrixTest(unittest.TestCase):
   @pytest.mark.skip(reason="__getstate__/__setstate__ not equal...another PR")
   def test_getstate_setstate(self):
 
-    print 'Testing __getstate__/__setstate__'
+    print('Testing __getstate__/__setstate__')
 
     for i in range(5):
 
@@ -2352,8 +2352,8 @@ class SparseMatrixTest(unittest.TestCase):
       n = rgen.randint(10,200)
       A = SM32(rgen.randint(0,100,(m,n)))
       A.threshold(70)
-      A.setRowToZero(m/2)
-      A.setColToZero(n/2)
+      A.setRowToZero(m//2)
+      A.setColToZero(n//2)
       A.normalize()
       s1 = A.__getstate__()
       B = SM32()
@@ -2366,7 +2366,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_sameRowNonZeroIndices(self):
 
-    print 'Testing sameRowNonZeroIndices'
+    print('Testing sameRowNonZeroIndices')
 
     m = rgen.randint(5,10)
     n = rgen.randint(5,10)
@@ -2391,25 +2391,25 @@ class SparseMatrixTest(unittest.TestCase):
 
     for i in range(m):
       if A.sameRowNonZeroIndices(i, B) != False:
-        print A
-        print B
-        print i
+        print(A)
+        print(B)
+        print(i)
         error('sameRowNonZeroIndices 2')
 
     if A.sameNonZeroIndices(B) != False:
       error('sameNonZeroIndices 2B')
 
     # Test with zero row (should return true)
-    A.setRowToZero(m/2)
-    B.setRowToZero(m/2)
+    A.setRowToZero(m//2)
+    B.setRowToZero(m//2)
 
-    if A.sameRowNonZeroIndices(m/2, B) != True:
+    if A.sameRowNonZeroIndices(m//2, B) != True:
       error('sameRowNonZeroIndices 3')
 
 
   def test_nonZeroIndicesIncluded(self):
 
-    print 'Testing nonZeroIndicesIncluded'
+    print('Testing nonZeroIndicesIncluded')
 
     m = rgen.randint(2,10)
     n = rgen.randint(2,10)
@@ -2443,16 +2443,16 @@ class SparseMatrixTest(unittest.TestCase):
       error('nonZeroIndicesIncluded 2B')
 
     # Test with zero row (should return true)
-    A.setRowToZero(m/2)
-    B.setRowToZero(m/2)
+    A.setRowToZero(m//2)
+    B.setRowToZero(m//2)
 
-    if A.nonZeroIndicesIncluded(m/2, B) != True:
+    if A.nonZeroIndicesIncluded(m//2, B) != True:
       error('nonZeroIndicesIncluded 3')
 
     # Non-zeros of B included in those of A
     B = SM32(A)
-    B.setRowToZero(m/2)
-    B.setColToZero(n/2)
+    B.setRowToZero(m//2)
+    B.setColToZero(n//2)
 
     if B.nonZeroIndicesIncluded(A) != True:
       error('nonZeroIndicesIncluded 4')
@@ -2462,7 +2462,7 @@ class SparseMatrixTest(unittest.TestCase):
   def test_binaryLoadSave(self):
 
 #     return # doesn't work on win32
-      print 'Testing binary load and save'
+      print('Testing binary load and save')
 
       _kNumRows = 1000
       _kNumCols = 1000
@@ -2470,7 +2470,7 @@ class SparseMatrixTest(unittest.TestCase):
       _kTempFileToSaveTo = "sm_save_test.bin"
 
       a = SM32(_kNumRows, _kNumCols)
-      for i in xrange(_kNumActive):
+      for i in range(_kNumActive):
           x = random.randint(0, _kNumCols-1)
           y = random.randint(0, _kNumRows-1)
           a.set(y, x, random.random())
@@ -2490,7 +2490,7 @@ class SparseMatrixTest(unittest.TestCase):
   def test_logSumNoAlloc(self):
 
     return # precision issue, function almost obsolete
-    print 'Testing logSumNoAlloc'
+    print('Testing logSumNoAlloc')
 
     for min_floor in [0, .76]:
 
@@ -2537,8 +2537,8 @@ class SparseMatrixTest(unittest.TestCase):
 
         B = SM32(A)
         B *= rgen.uniform(0,2)
-        B.setRowToZero(m/2)
-        B.setColToZero(n/2)
+        B.setRowToZero(m//2)
+        B.setColToZero(n//2)
         B_ref = B.toDense()
 
         SM_logSumNoAlloc(A, B, min_floor)
@@ -2575,7 +2575,7 @@ class SparseMatrixTest(unittest.TestCase):
   def test_logAddValNoAlloc(self):
 
     return # precision issue, function almost obsolete
-    print 'Testing logAddValNoAlloc'
+    print('Testing logAddValNoAlloc')
 
     for min_floor in [0, .76]:
 
@@ -2607,7 +2607,7 @@ class SparseMatrixTest(unittest.TestCase):
   def test_logDiffNoAlloc(self):
 
     return # precision issue, function almost obsolete
-    print 'Testing logDiffNoAlloc'
+    print('Testing logDiffNoAlloc')
 
     for min_floor in [0, 3.45]:
 
@@ -2658,8 +2658,8 @@ class SparseMatrixTest(unittest.TestCase):
           for j in range(n):
             if B[i,j] != 0:
               B[i,j] -= 1e-3
-        B.setRowToZero(m/2)
-        B.setColToZero(n/2)
+        B.setRowToZero(m//2)
+        B.setColToZero(n//2)
         B_ref = B.toDense()
 
         SM_logDiffNoAlloc(A, B, min_floor)
@@ -2703,7 +2703,7 @@ class SparseMatrixTest(unittest.TestCase):
   def test_LBP_piPrime(self):
 
     return # obsolete
-    print 'Testing LBP_piPrime'
+    print('Testing LBP_piPrime')
 
     m = rgen.randint(5, 10)
     n = rgen.randint(5, 10)
@@ -2734,7 +2734,7 @@ class SparseMatrixTest(unittest.TestCase):
   @unittest.skip("Doesn't play nicely with py.test.")
   def test_LogSumApprox(self):
 
-    print 'Testing LogSumApprox'
+    print('Testing LogSumApprox')
 
     # On darwin86:
     # Sum of logs table: 20000000 -28 28 5.6e-06 76MB
@@ -2772,7 +2772,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_binarize_with_threshold(self):
 
-    print 'Testing binarize_with_threshold'
+    print('Testing binarize_with_threshold')
 
     for i in range(5):
 
@@ -2792,7 +2792,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_logicalAnd(self):
 
-    print 'Testing logicalAnd'
+    print('Testing logicalAnd')
 
     # To make sure SSE works (it requires 16 bytes alignment)
     # Test with variable length vectors whose size is not a multiple of 16
@@ -2823,7 +2823,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_logicalAnd2(self):
 
-    print 'Testing logicalAnd2'
+    print('Testing logicalAnd2')
 
     # To make sure SSE works (it requires 16 bytes alignment)
     # Test with variable length vectors whose size is not a multiple of 16
@@ -2858,7 +2858,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_initialize_random_01(self):
 
-    print 'Testing initialize_random_01'
+    print('Testing initialize_random_01')
 
     # Initializes a sparse matrix with random 0s and 1s.
 
@@ -2889,7 +2889,7 @@ class SparseMatrixTest(unittest.TestCase):
 
   def test_partial_argsort(self):
 
-    print 'Testing partial_argsort'
+    print('Testing partial_argsort')
 
     # In C++, the ties are controlled by prefering the values stored at
     # lower indices.
@@ -2922,15 +2922,15 @@ class SparseMatrixTest(unittest.TestCase):
         if (ans_vals != x_vals).any():
           error('partial_argsort')
 
-    print "\tnumpy time=", t1
-    print "\tC++ time=", t2
+    print("\tnumpy time=", t1)
+    print("\tC++ time=", t2)
     if t2 > 0:
-      print "\tspeed-up=", t1/t2
+      print("\tspeed-up=", t1/t2)
 
 
   def test_count_gt(self):
 
-    print 'Testing count_gt'
+    print('Testing count_gt')
 
     # Counts the number of elements greater than a given threshold in a vector.
     # Checking with slicing and odd number of elements, to make sure asm code
@@ -2955,18 +2955,18 @@ class SparseMatrixTest(unittest.TestCase):
       t2 += time.time() - t0
 
       if ans != res:
-        print threshold, ans, res, (res - ans)
+        print(threshold, ans, res, (res - ans))
         error('count_gt')
 
-    print "\tnumpy time=", t1
-    print "\tC++ time=", t2
+    print("\tnumpy time=", t1)
+    print("\tC++ time=", t2)
     if t2 > 0:
-      print "\tspeed-up=", t1/t2
+      print("\tspeed-up=", t1/t2)
 
 
   def test_count_lt(self):
 
-    print 'Testing count_lt'
+    print('Testing count_lt')
 
     # Counts the number of elements less than a given threshold in a vector.
 
@@ -2989,16 +2989,16 @@ class SparseMatrixTest(unittest.TestCase):
       if ans != res:
         error('count_gt')
 
-    print "\tnumpy time=", t1
-    print "\tC++ time=", t2
+    print("\tnumpy time=", t1)
+    print("\tC++ time=", t2)
     if t2 > 0:
-      print "\tspeed-up=", t1/t2
+      print("\tspeed-up=", t1/t2)
 
 
   @pytest.mark.skip(reason="error(Set construction)...another PR")
   def test_test_nta_set(self):
 
-      print 'Testing nta set'
+      print('Testing nta set')
       # Mac PowerBook 2.8 GHz Core 2 Duo, 10.6.3, -O3 -DNDEBUG, gcc 4.2.1 (Apple 5659)
       # m = 50000, n1 = 40, n2 = 10000: 0.00274658203125 0.00162267684937 1.69262415516
       # m = 50000, n1 = 80, n2 = 10000: 0.00458002090454 0.00179862976074 2.54639448568
@@ -3026,7 +3026,7 @@ class SparseMatrixTest(unittest.TestCase):
 
       T_py = 0; T_cpp = 0
 
-      for i in xrange(100):
+      for i in range(100):
 
           t0 = time.time()
           nr = ss2.intersection(a, r_cpp)
@@ -3036,14 +3036,14 @@ class SparseMatrixTest(unittest.TestCase):
           T_py = T_py + time.time() - t0
           rs = set(r_cpp[:nr])
           if rs != r:
-              print a
-              print b
-              print r
-              print rs
+              print(a)
+              print(b)
+              print(r)
+              print(rs)
               error('set intersection')
 
       if T_cpp != 0:
-          print T_py, T_cpp, T_py/T_cpp
+          print(T_py, T_cpp, T_py/T_cpp)
 
       if 0:
           f = open('/Users/frank/Desktop/h1.txt')
@@ -3056,7 +3056,7 @@ class SparseMatrixTest(unittest.TestCase):
           for n1,ncalls in ll:
 
               T_cpp = 0
-              for i in xrange(10):
+              for i in range(10):
                   a = rgen.permutation(m)[:n1].astype('uint32')
                   s1 = set(a)
                   t0 = time.time()
@@ -3066,7 +3066,7 @@ class SparseMatrixTest(unittest.TestCase):
               T_cpp = T_cpp / 10
               avg_T = avg_T + T_cpp * ncalls
               total_calls = total_calls + ncalls
-          print avg_T, total_calls, avg_T / float(total_calls)
+          print(avg_T, total_calls, avg_T / float(total_calls))
 
 
 

@@ -41,7 +41,7 @@ def main():
   # Measure serialization
   startSerializationTime = time.time()
 
-  for i in xrange(_SERIALIZATION_LOOPS):
+  for i in range(_SERIALIZATION_LOOPS):
     r.saveToFile("RandonSerialization.stream")
 
   elapsedSerializationTime = time.time() - startSerializationTime
@@ -49,19 +49,19 @@ def main():
   # Measure deserialization
   startDeserializationTime = time.time()
 
-  for _ in xrange(_DESERIALIZATION_LOOPS):
+  for _ in range(_DESERIALIZATION_LOOPS):
     r.loadFromFile("RandonSerialization.stream")
 
   elapsedDeserializationTime = time.time() - startDeserializationTime
 
   # Print report
-  print _SERIALIZATION_LOOPS, "Serialization loops in", \
-        elapsedSerializationTime, "seconds."
-  print "\t", elapsedSerializationTime/_SERIALIZATION_LOOPS, "seconds per loop."
+  print(_SERIALIZATION_LOOPS, "Serialization loops in", \
+        elapsedSerializationTime, "seconds.")
+  print("\t", elapsedSerializationTime/_SERIALIZATION_LOOPS, "seconds per loop.")
 
-  print deserializationCount, "Deserialization loops in", \
-        elapsedDeserializationTime, "seconds."
-  print "\t", elapsedDeserializationTime/deserializationCount, "seconds per loop."
+  print(deserializationCount, "Deserialization loops in", \
+        elapsedDeserializationTime, "seconds.")
+  print("\t", elapsedDeserializationTime/deserializationCount, "seconds per loop.")
 
 if __name__ == "__main__":
   main()

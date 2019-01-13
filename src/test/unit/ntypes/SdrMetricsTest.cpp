@@ -250,6 +250,7 @@ TEST(SdrMetrics, TestAF_LongTerm) {
     SDR_Proxy B( A );
     SDR_ActivationFrequency F( B, period );
 
+
     vector<Real> test_sparsity{ 0.0f, 0.05f, 1.0f, 0.25f, 0.5f };
 
     for(const auto &sparsity : test_sparsity) {
