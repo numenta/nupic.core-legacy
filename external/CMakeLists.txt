@@ -54,13 +54,11 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 include(GNUInstallDirs)
 include(ExternalProject)
 set(EP_BASE ${CMAKE_BINARY_DIR})
-STRING(REGEX REPLACE "@@@" " " EXTERNAL_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}" CACHE STRING "Sets compile flags" FORCE)
 
 
 message(STATUS "external import")
 message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
+message(STATUS "   CXXFLAGS              = ${CXXFLAGS}")
 message(STATUS "   NEEDS_BOOST           = ${NEEDS_BOOST}")
 message(STATUS "   BINDING_BUILD         = ${BINDING_BUILD}")
 

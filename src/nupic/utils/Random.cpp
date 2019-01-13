@@ -44,7 +44,7 @@ Random::Random(UInt64 seed) {
   if (seed == 0) {
     if( !static_gen_seeded ) {
       #if NDEBUG
-        unsigned int static_seed = std::chrono::system_clock::now().time_since_epoch().count();
+        unsigned int static_seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count();
       #else
         unsigned int static_seed = DEBUG_RANDOM_SEED;
       #endif

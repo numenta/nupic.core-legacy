@@ -51,7 +51,7 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
   # add a post-build custom step that will add the objects from the given static
   # libraries
   add_library(${LIB_TARGET} STATIC ${dummy_source_file})
- # set_target_properties(${LIB_TARGET} PROPERTIES COMPILE_FLAGS  ${INTERNAL_CXX_FLAGS})
+  target_compile_options( ${LIB_TARGET} PUBLIC ${INTERNAL_CXX_FLAGS})
 
   set(static_lib_locations)
   set(dummy_dependencies)

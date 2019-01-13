@@ -542,7 +542,10 @@ public:
     void setSparse( const vector<vector<T>> &value ) {
         NTA_ASSERT(value.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            sparse[dim].assign( value[dim].begin(), value[dim].end() );
+            sparse[dim].clear();
+            for(auto itm: value[dim]) {
+                sparse[dim].push_back((UInt)itm);
+            }
         }
         setSparseInplace();
     }

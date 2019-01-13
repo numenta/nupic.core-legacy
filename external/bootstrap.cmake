@@ -31,10 +31,10 @@
 #  - cmake ../..
 
 if (MSVC)
-  set(EHsc -D EXTERNAL_CXX_FLAGS:STRING="/EHsc")
+  set(FLAGS -D CXXFLAGS:STRING="${INTERNAL_CXX_FLAGS_STR}")
   set(build_type --config Release)
 else()
-  set(PIC -D EXTERNAL_CXX_FLAGS:STRING="-fPIC")
+  set(FLAGS -DCXXFLAGS:STRING="-fPIC")
   set(build_type -D CMAKE_BUILD_TYPE=Release)
 endif()
 
@@ -45,8 +45,7 @@ execute_process(COMMAND ${CMAKE_COMMAND}
 			-D CMAKE_INSTALL_PREFIX=. 
                         -D NEEDS_BOOST:BOOL=${NEEDS_BOOST}
                         -D BINDING_BUILD:STRING=${BINDING_BUILD}
-                        ${PIC}
-			${EHsc}
+                        ${FLAGS}
 			${build_type}
 			 ../../external
                 WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
