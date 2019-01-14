@@ -137,14 +137,10 @@ void helperCppInputOutputAccess(Region *level1) {
 TEST(CppRegionTest, testCppLinkingFanIn) {
   Network net = Network();
 
-  std::cerr << "CppRegionTest 1\n";
   Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
-  std::cerr << "CppRegionTest 2\n";
   Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
-  std::cerr << "CppRegionTest 3\n";
 
   net.link("region1", "region2", "TestFanIn2", ""); //the only change testCppLinking* is here
-  std::cerr << "CppRegionTest 4\n";
 
   std::cout << "Initialize should fail..." << std::endl;
   EXPECT_THROW(net.initialize(), exception);
@@ -357,17 +353,15 @@ Network helperRealmain() {
   std::cout << "Creating network..." << std::endl;
   Network n;
 
-  std::cout << "Region count is " << n.getRegions().getCount() << ""
-            << std::endl;
-
-  std::cout << "Adding a FDRNode region..." << std::endl;
+  size_t count = n.getRegions().getCount();
+  EXPECT_TRUE(count == 0);
   Region_Ptr_t level1 = n.addRegion("level1", "TestNode", "");
-
-  std::cout << "Region count is " << n.getRegions().getCount() << ""
-            << std::endl;
-  std::cout << "Node type: " << level1->getType() << "" << std::endl;
-  std::cout << "Nodespec is:\n"
-            << level1->getSpec()->toString() << "" << std::endl;
+  count = n.getRegions().getCount();
+  EXPECT_TRUE(count == 1);
+  std::string region_type = level1->getType();
+  EXPECT_STREQ(region_type.c_str(), "TestNode");
+  std::string ns = level1->getSpec()->toString();
+  EXPECT_GT(ns.length(), 20); // make sure we got something.
 
   Int64 val;
   Real64 rval;
@@ -381,10 +375,8 @@ Network helperRealmain() {
 
   val = 20;
   level1->setParameterInt64(int64Param, val);
-  val = 0;
   val = level1->getParameterInt64(int64Param);
-  std::cout << "level1.int64Param = " << val << " after setting to 20"
-            << std::endl;
+  EXPECT_EQ(val, 20) << "Value for level1.int64Param not set to 20.";
 
   rval = 30.1;
   level1->setParameterReal64(real64Param, rval);
@@ -468,7 +460,6 @@ TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixe
    * grow by even one byte.
    */
   const size_t count = 8000;
-
   MemoryMonitor m(count);
   for (size_t i = 0; i < count; i++) {
 	//call main
