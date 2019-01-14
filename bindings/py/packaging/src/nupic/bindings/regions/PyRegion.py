@@ -23,6 +23,7 @@
 This file defines the base class for Python regions.
 """
 
+import sys
 import numpy
 import collections
 
@@ -47,7 +48,17 @@ class DictReadOnlyWrapper(collections.Mapping):
   def __getitem__(self, key):
     return self._d[key]
 
-class PyRegion(object):
+if sys.version_info[0] >= 3:
+  # Compile the metaclass at runtime because it's invalid python2 syntax.
+  exec("""
+class _PyRegionMeta(object, metaclass=ABCMeta):
+  pass
+""")
+else:
+  class _PyRegionMeta(object):
+    __metaclass__ = ABCMeta
+
+class PyRegion(_PyRegionMeta):
   """
   PyRegion provides services to its sub-classes (the actual regions):
 
@@ -99,8 +110,6 @@ class PyRegion(object):
   * :meth:`~nupic.bindings.regions.PyRegion.PyRegion.executeMethod`
 
   """
-
-  __metaclass__ = ABCMeta
 
 
   @classmethod
