@@ -28,11 +28,13 @@
 #include <fstream>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/ntypes/Sdr.hpp>
 #include <nupic/utils/Log.hpp>
 #include <stdio.h>
 
 #include "gtest/gtest.h"
 #include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/algorithms/Anomaly.hpp>
 
 using namespace nupic::algorithms::temporal_memory;
 using namespace std;
@@ -129,6 +131,7 @@ TEST(TemporalMemoryTest, ActivateCorrectlyPredictiveCells) {
   tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5f);
 
   tm.compute(numActiveColumns, previousActiveColumns, true);
+  tm.activateDendrites();
   ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
   tm.compute(numActiveColumns, activeColumns, true);
 
@@ -194,17 +197,15 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
   tm.compute(1, previousActiveColumns, true);
   ASSERT_FALSE(tm.getActiveCells().empty());
   ASSERT_FALSE(tm.getWinnerCells().empty());
+  tm.activateDendrites();
   ASSERT_FALSE(tm.getPredictiveCells().empty());
 
-    // zero size array is undefined behavior
-    // VS 2017: cannot allocate an array of constant size 0
-    //const UInt zeroColumns[0] = {};
-    //tm.compute(0, zeroColumns, true);
-
-    //EXPECT_TRUE(tm.getActiveCells().empty());
-    //EXPECT_TRUE(tm.getWinnerCells().empty());
-    //EXPECT_TRUE(tm.getPredictiveCells().empty());
-  }
+  tm.compute(0, nullptr, true);
+  EXPECT_TRUE(tm.getActiveCells().empty());
+  EXPECT_TRUE(tm.getWinnerCells().empty());
+  tm.activateDendrites();
+  EXPECT_TRUE(tm.getPredictiveCells().empty());
+}
 
 /**
  * All predicted active cells are winner cells, even when learning is
@@ -472,6 +473,7 @@ TEST(TemporalMemoryTest, NoChangeToMatchingSegmentsInPredictedActiveColumn) {
                                                   previousActiveCells[1], 0.3);
 
   tm.compute(1, previousActiveColumns, true);
+  tm.activateDendrites();
   ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
   tm.compute(1, activeColumns, true);
 
@@ -1143,6 +1145,7 @@ TEST(TemporalMemoryTest, MaxNewSynapseCountOverflow) {
 
   const UInt previousActiveColumns[4] = {0, 1, 3, 4};
   tm.compute(4, previousActiveColumns);
+  tm.activateDendrites();
 
   ASSERT_EQ(1ul, tm.getMatchingSegments().size());
 
@@ -1286,22 +1289,27 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
   // Give the first segment some activity.
   const UInt activeColumns[3] = {1, 2, 3};
   tm.compute(3, activeColumns);
+  tm.activateDendrites();
+  ASSERT_EQ( tm.getActiveSegments(), vector<Segment>({ segment1 }) );
+  tm.compute(0, nullptr);
 
-  // Create a new segment with no synapses.
-  tm.createSegment(12);
+  // Create a new segment with two synapses.
+  Segment segment3 = tm.createSegment(12);
+  tm.connections.createSynapse(segment3, 1, 0.5);
+  tm.connections.createSynapse(segment3, 2, 0.5);
 
   vector<Segment> segments = tm.connections.segmentsForCell(12);
   ASSERT_EQ(2ul, segments.size());
 
   // Verify first segment is still there with the same synapses.
-  vector<Synapse> synapses1 = tm.connections.synapsesForSegment(segments[0]);
+  vector<Synapse> synapses1 = tm.connections.synapsesForSegment(segment1);
   ASSERT_EQ(3ul, synapses1.size());
   ASSERT_EQ(1ul, tm.connections.dataForSynapse(synapses1[0]).presynapticCell);
   ASSERT_EQ(2ul, tm.connections.dataForSynapse(synapses1[1]).presynapticCell);
   ASSERT_EQ(3ul, tm.connections.dataForSynapse(synapses1[2]).presynapticCell);
 
   // Verify second segment has been replaced.
-  ASSERT_EQ(0ul, tm.connections.numSynapses(segments[1]));
+  ASSERT_EQ(2ul, tm.connections.numSynapses(segments[1]));
 }
 
 /**
@@ -1408,6 +1416,7 @@ void serializationTestPrepare(TemporalMemory &tm) {
 
   UInt activeColumns[] = {0};
   tm.compute(1, activeColumns);
+  tm.activateDendrites();
 
   ASSERT_EQ(1ul, tm.getActiveSegments().size());
   ASSERT_EQ(3ul, tm.getMatchingSegments().size());
@@ -1520,6 +1529,82 @@ TEST(TemporalMemoryTest, testSaveLoad) {
   serializationTestVerify(tm2);
 }
 
+/*
+ * Test compute( extraActive, extraWinners )
+ *
+ * This test runs an artificial pattern through the TM.   At 10% column
+ * sparsity, there are not enough active cells to reach the activation threshold
+ * (12 < 13), unless the extra inputs are correctly included.  The extra inputs
+ * are a copy of the current cell activity.
+ */
+TEST(TemporalMemoryTest, testExtraActive) {
+
+  SDR columns({120});
+
+  vector<SDR> pattern( 10, columns.dimensions );
+  for(SDR &x : pattern) {
+    x.randomize( 0.10f );
+    auto &data = x.getFlatSparse();
+    std::sort(data.begin(), data.end());
+  }
+
+  auto tm = TemporalMemory(columns.dimensions,
+    /* cellsPerColumn */               12,
+    /* activationThreshold */          13,
+    /* initialPermanence */            0.21,
+    /* connectedPermanence */          0.50,
+    /* minThreshold */                 10,
+    /* maxNewSynapseCount */           20,
+    /* permanenceIncrement */          0.10,
+    /* permanenceDecrement */          0.03,
+    /* predictedSegmentDecrement */    0.001,
+    /* seed */                         42,
+    /* maxSegmentsPerCell */           255,
+    /* maxSynapsesPerSegment */        255,
+    /* checkInputs */                  true,
+    /* extra */                        columns.size * 12);
+  Real anom = 1.0f;
+
+  // Look at the pattern.
+  for(UInt trial = 0; trial < 20; trial++) {
+    tm.reset();
+    vector<UInt> extraActive;
+    vector<UInt> extraWinners;
+    for(auto &x : pattern) {
+      // Predict whats going to happen.
+      tm.activateDendrites(true, extraActive, extraWinners);
+      auto predictedColumns = tm.getPredictiveCells();
+      for(UInt i = 0; i < predictedColumns.size(); i++) {
+        predictedColumns[i] /= tm.getCellsPerColumn();
+        if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
+          predictedColumns.erase( predictedColumns.begin() + i-- );
+      }
+      // Calculate TM output
+      const auto &sparse = x.getFlatSparse();
+      tm.compute(sparse.size(), sparse.data(), true);
+      extraActive  = tm.getActiveCells();
+      extraWinners = tm.getWinnerCells();
+
+      // Calculate Anomaly of current input based on prior predictions.
+      anom = algorithms::anomaly::computeRawAnomalyScore(
+                                    x.getFlatSparse(), predictedColumns);
+    }
+  }
+  ASSERT_LT( anom, 0.05f );
+
+  // Test the test:  Verify that when the external inputs are missing this test
+  // fails.
+  tm.reset();
+  for(auto &x : pattern) {
+    // Predict whats going to happen.
+    tm.activateDendrites(true, {}, {});
+    auto predictedCells = tm.getPredictiveCells();
+    ASSERT_TRUE( predictedCells.empty() ); // No predictions, numActive < threshold
+    // Calculate TM output
+    const auto &sparse = x.getFlatSparse();
+    tm.compute(sparse.size(), sparse.data(), true);
+  }
+}
 
 // Uncomment these tests individually to save/load from a file.
 // This is useful for ad-hoc testing of backwards-compatibility.

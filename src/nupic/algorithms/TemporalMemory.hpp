@@ -121,6 +121,12 @@ public:
    * Whether to check that the activeColumns are sorted without
    * duplicates. Disable this for a small speed boost.
    *
+   * @param extra
+   * Number of external predictive inputs.  These inputs are used in addition to
+   * the cells which are part of this TemporalMemory.  The TemporalMemory
+   * requires all external inputs be identified by an index in the
+   * range [0, extra).
+   *
    * Notes:
    *
    * predictedSegmentDecrement: A good value is just a bit larger than
@@ -128,27 +134,40 @@ public:
    * sparsity is 2% and permanenceIncrement is 0.01, this parameter should be
    * something like 4% * 0.01 = 0.0004).
    */
-  TemporalMemory(vector<UInt> columnDimensions, UInt cellsPerColumn = 32,
-                 UInt activationThreshold = 13,
-                 Permanence initialPermanence = 0.21,
-                 Permanence connectedPermanence = 0.50, UInt minThreshold = 10,
-                 UInt maxNewSynapseCount = 20,
-                 Permanence permanenceIncrement = 0.10,
-                 Permanence permanenceDecrement = 0.10,
-                 Permanence predictedSegmentDecrement = 0.0, Int seed = 42,
-                 UInt maxSegmentsPerCell = 255,
-                 UInt maxSynapsesPerSegment = 255, bool checkInputs = true);
+  TemporalMemory(
+      vector<UInt>    columnDimensions,
+      UInt            cellsPerColumn              = 32,
+      UInt            activationThreshold         = 13,
+      Permanence      initialPermanence           = 0.21,
+      Permanence      connectedPermanence         = 0.50,
+      UInt            minThreshold                = 10,
+      UInt            maxNewSynapseCount          = 20,
+      Permanence      permanenceIncrement         = 0.10,
+      Permanence      permanenceDecrement         = 0.10,
+      Permanence      predictedSegmentDecrement   = 0.0,
+      Int             seed                        = 42,
+      UInt            maxSegmentsPerCell          = 255,
+      UInt            maxSynapsesPerSegment       = 255,
+      bool            checkInputs                 = true,
+      UInt            extra                       = 0);
 
   virtual void
-  initialize(vector<UInt> columnDimensions = {2048}, UInt cellsPerColumn = 32,
-             UInt activationThreshold = 13, Permanence initialPermanence = 0.21,
-             Permanence connectedPermanence = 0.50, UInt minThreshold = 10,
-             UInt maxNewSynapseCount = 20,
-             Permanence permanenceIncrement = 0.10,
-             Permanence permanenceDecrement = 0.10,
-             Permanence predictedSegmentDecrement = 0.0, Int seed = 42,
-             UInt maxSegmentsPerCell = 255, UInt maxSynapsesPerSegment = 255,
-             bool checkInputs = true);
+  initialize(
+    vector<UInt>  columnDimensions            = {2048},
+    UInt          cellsPerColumn              = 32,
+    UInt          activationThreshold         = 13,
+    Permanence    initialPermanence           = 0.21,
+    Permanence    connectedPermanence         = 0.50,
+    UInt          minThreshold                = 10,
+    UInt          maxNewSynapseCount          = 20,
+    Permanence    permanenceIncrement         = 0.10,
+    Permanence    permanenceDecrement         = 0.10,
+    Permanence    predictedSegmentDecrement   = 0.0,
+    Int           seed                        = 42,
+    UInt          maxSegmentsPerCell          = 255,
+    UInt          maxSynapsesPerSegment       = 255,
+    bool          checkInputs                 = true,
+    UInt          extra                       = 0);
 
   virtual ~TemporalMemory();
 
@@ -165,8 +184,6 @@ public:
 
   /**
    * This *only* updates _rng to a new Random using seed.
-   *
-   * @returns Integer version number.
    */
   void seed_(UInt64 seed);
 
@@ -193,21 +210,36 @@ public:
                      bool learn = true);
 
   /**
-   * Calculate dendrite segment activity, using the current active cells.
+   * Calculate dendrite segment activity, using the current active cells.  Call
+   * this method before calling getPredictiveCells, getActiveSegments, or
+   * getMatchingSegments.  In each time step, only the first call to this
+   * method has an effect, subsequent calls assume that the prior results are
+   * still valid.
    *
    * @param learn
    * If true, segment activations will be recorded. This information is
    * used during segment cleanup.
+   *
+   * @param extraActive
+   * Vector of active external predictive inputs.  External inputs must be cell
+   * indexes in the range [0, extra).
+   *
+   * @param extraWinners
+   * Vector of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  ExtraWinners should be a subset of
+   * extraActive.  External inputs must be cell indexes in the range [0,
+   * extra).
    */
-  void activateDendrites(bool learn = true);
+  void activateDendrites(bool learn = true,
+                         const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
+                         const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
    *
-   * This method calls activateCells, then calls activateDendrites. Using
+   * This method calls activateDendrites, then calls activateCells. Using
    * the TemporalMemory via its compute method ensures that you'll always
-   * be able to call getPredictiveCells to get predictions for the next
-   * time step.
+   * be able to call getActiveCells at the end of the time step.
    *
    * @param activeColumnsSize
    * Number of active columns.
@@ -217,9 +249,21 @@ public:
    *
    * @param learn
    * Whether or not learning is enabled.
+   *
+   * @param extraActive
+   * Vector of active external predictive inputs.  External inputs must be cell
+   * indexes in the range [0, extra).
+   *
+   * @param extraWinners
+   * Vector of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  ExtraWinners should be a subset of
+   * extraActive.  External inputs must be cell indexes in the range [0,
+   * extra).
    */
   virtual void compute(size_t activeColumnsSize, const UInt activeColumns[],
-                       bool learn = true);
+                       bool learn = true,
+                       const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
+                       const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
 
   // ==============================
   //  Helper functions
@@ -463,9 +507,11 @@ protected:
   Permanence permanenceIncrement_;
   Permanence permanenceDecrement_;
   Permanence predictedSegmentDecrement_;
+  UInt extra_;
 
   vector<CellIdx> activeCells_;
   vector<CellIdx> winnerCells_;
+  bool segmentsValid_;
   vector<Segment> activeSegments_;
   vector<Segment> matchingSegments_;
   vector<UInt32> numActiveConnectedSynapsesForSegment_;
