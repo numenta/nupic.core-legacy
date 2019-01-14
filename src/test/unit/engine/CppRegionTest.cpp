@@ -137,10 +137,14 @@ void helperCppInputOutputAccess(Region *level1) {
 TEST(CppRegionTest, testCppLinkingFanIn) {
   Network net = Network();
 
+  std::cerr << "CppRegionTest 1\n";
   Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
+  std::cerr << "CppRegionTest 2\n";
   Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
+  std::cerr << "CppRegionTest 3\n";
 
   net.link("region1", "region2", "TestFanIn2", ""); //the only change testCppLinking* is here
+  std::cerr << "CppRegionTest 4\n";
 
   std::cout << "Initialize should fail..." << std::endl;
   EXPECT_THROW(net.initialize(), exception);
@@ -457,13 +461,12 @@ TEST(CppRegionTest, realmain) {
 
 
 // TODO: This test was disabled mostly because we cannot do memLeak tests within gtest.
-/******
 TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixed, but catches error -> need to fix code
-  / *
+  /*
    * With an integer argument 'count', runs the same test N times
    * and requires that memory use stay constant -- it can't
    * grow by even one byte.
-   * /
+   */
   const size_t count = 8000;
 
   MemoryMonitor m(count);
@@ -498,6 +501,5 @@ TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixe
 
   std::cout << "--- ALL TESTS PASSED ---" << std::endl;
 }
-*/
 
 } //ns

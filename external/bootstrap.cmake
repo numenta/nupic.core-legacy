@@ -31,11 +31,9 @@
 #  - cmake ../..
 
 if (MSVC)
-  set(FLAGS -D CXXFLAGS:STRING="${INTERNAL_CXX_FLAGS_STR}")
   set(build_type --config Release)
 else()
-  set(FLAGS -DCXXFLAGS:STRING="-fPIC")
-  set(build_type -D CMAKE_BUILD_TYPE=Release)
+  set(build_type CMAKE_BUILD_TYPE=Release)
 endif()
 
 
@@ -45,8 +43,7 @@ execute_process(COMMAND ${CMAKE_COMMAND}
 			-D CMAKE_INSTALL_PREFIX=. 
                         -D NEEDS_BOOST:BOOL=${NEEDS_BOOST}
                         -D BINDING_BUILD:STRING=${BINDING_BUILD}
-                        ${FLAGS}
-			${build_type}
+			-D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 			 ../../external
                 WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                 RESULT_VARIABLE result
@@ -80,7 +77,7 @@ if(MSVC)
 else(MSVC)
   # for linux we only do this once for the current build_type.  To switch
   # build type the user would have to clear everyting and re-run cmake.
-  execute_process(COMMAND ${CMAKE_COMMAND} --build .
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE} 
                     WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                     RESULT_VARIABLE result
 #                    OUTPUT_QUIET      ### Disable this to debug external buiilds

@@ -509,10 +509,7 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   calculateOverlap_(input, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);
 
-  boostedOverlaps_.clear();
-  for(auto ele : overlaps_) {
-    boostedOverlaps_.push_back((Real)ele);
-  }
+  boostOverlaps_(overlaps_, boostedOverlaps_);
 
   auto &activeVector = active.getFlatSparse();
   inhibitColumns_(boostedOverlaps_, activeVector);
@@ -886,7 +883,7 @@ void SpatialPooler::calculateOverlapPct_(const vector<UInt> &overlaps,
   for (UInt i = 0; i < numColumns_; i++) {
     if (connectedCounts[i] != 0) {
       overlapPct[i] = ((Real)overlaps[i]) / connectedCounts[i];
-    } 
+    }
   }
 }
 

@@ -164,11 +164,11 @@ if(MSVC)
 	#                    NOTE: MSVC does not support C++11.  But does support C++14 and C++17.
 	# Release Compiler flags:
 	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /EHsc /FC /nologo /Zc:__cplusplus
-	#      Release Only:    /O2 /Oi /Gy  /MT
-	#      Debug Only:       /Od /Zi /sdl /RTC1 /MTd
+	#      Release Only:    /O2 /Oi /Gy  /MD
+	#      Debug Only:       /Od /Zi /sdl /RTC1 /MDd
 	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:c++${std_ver}
-							$<$<CONFIG:Release>:/O2 /Oi /Gy  /GL /MT> 
-							$<$<CONFIG:Debug>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
+							$<$<CONFIG:Release>:/O2 /Oi /Gy  /GL /MD> 
+							$<$<CONFIG:Debug>:/Ob0 /Od /Zi /sdl /RTC1 /MDd>)
 	#linker flags
 	if("${BITNESS}" STREQUAL "32")
 		set(machine "/MACHINE:X86")

@@ -96,123 +96,29 @@ install:
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
-  # Make unix-compatible patch.exe available to the build by copying it from
-  # Git\usr\bin (that we remove from PATH) to another directory and adding it to
-  # PATH; the reason we copy it is that logic below removes
-  # C:\Program Files\Git\usr\bin from Path to avoid build issue resulting from
-  # sh.exe being on the path.
-  - mkdir "C:\Program Files\PatchFromGit"
-  - ps: copy "C:\Program Files\Git\usr\bin\patch.exe" "C:\Program Files\PatchFromGit"
-  - ps: copy "C:\Program Files\Git\usr\bin\msys*.dll" "C:\Program Files\PatchFromGit"
-  - set PATH=C:\Program Files\PatchFromGit;%PATH%
-
-  - echo %PATH%
-
-  # Install Boost
-  - cd %NUPIC_CORE%
-  - ps: wget -O boost_1_68_0.zip https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
-  - unzip boost_1_68_0.zip
-  - cd boost_1_68_0
-  - bootstrap.bat gcc
-  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static
-
-  #
-  # Install Wheel, and NumPy
-  #
-  - ps:  $python_path = $env:PYTHONHOME + "/python.exe"
-  - ps:   $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
-
-  # pip needs to be updated or Appveyor fails
-  - ps: Write-Host "pip install --upgrade pip"
-  - ps: "& $python_path -m pip install --upgrade pip"
-
-  - ps:  Write-Host "pip install " wheel==0.25.0
-  - ps:  "& $pip_path install wheel==0.25.0"
-
-#  - ps:  Write-Host "pip install " boto
-#  - ps:  & $pip_path install boto
-
-#  - ps:  Write-Host "pip install " twine
-#  - ps:  & $pip_path install twine
-
-  - ps:  Write-Host "pip install " numpy==1.12.1
-  - ps:  "& $pip_path install numpy==1.12.1"
-
-  #
-  # Install mingwpy toolchain
-  #
-  - ECHO "Installing MinGW toolchain for Python"
-  # Install the version of mingwpy toolchain that generates targets compatible
-  # with the installed python (Win32 vs. Win64). The compiler tools are
-  # installed into %PYTHONHOME%/Scripts/
-  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
-  - cmd: "where g++"
-  - cmd: "g++ --version"
-  - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
-
-  # Setup MinGW GCC as a valid distutils compiler
-  - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
-
-  # Display the version and architecture for Python to help with diagnostics
-  - "python --version"
-  - "where python"
-  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
-
-  # It's useful to know our cmake version
-  - cmd: where cmake
-  - cmd: cmake --version
-
-  # Check NumPy, etc. installed correctly
-  - cmd: pip list
 
   - cd %NUPIC_CORE%
   - mkdir %NUPIC_CORE%\build\
-  - mkdir %NUPIC_CORE%\build\release
   - mkdir %NUPIC_CORE%\build\scripts
-
-  # Remove sh.exe from the paths (CMake doesn't like it)
-  - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
-  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
-  - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
-
-
-  # Verify that patch command is available
-  - "where patch"
 
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %NUPIC_CORE%\build\scripts
-  - cmake -G "%NC_CMAKE_GENERATOR%"
-      -DCMAKE_BUILD_TYPE=%configuration%
-      -DCMAKE_INSTALL_PREFIX=%NUPIC_CORE%\build\release
-      -DPY_EXTENSIONS_DIR=%NUPIC_CORE%\bindings\py\src\nupic\bindings
-      %NUPIC_CORE%
+  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration%  %NUPIC_CORE%
 
 build_script:
   - cd %NUPIC_CORE%\build\scripts
 
-  # Run build, using portable, toolchain-agnostic mechanism to start it
+  # Run build (i.e. make install), using portable, toolchain-agnostic mechanism to start it
   - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration%
 
   - cd %NUPIC_CORE%
 
-  - python setup.py sdist bdist bdist_wheel
-
-  - set NUPIC_BINDINGS_WHEEL_NAME=nupic.bindings-%BINDINGS_VERSION%-cp27-none-%wheel_name_suffix%.whl
-
-  # Copy final wheel to NUPIC_CORE, so that AppVeyor can see it as an artifact
-  - ps: copy .\bindings\py\dist\$env:NUPIC_BINDINGS_WHEEL_NAME .
-
-  # Copy final wheel, to appropriately named wheel for use with NuPIC
-  # iterative builds (via nupic\.nupic_modules long-SHA reference).
-  # Ties in with this Pip regex;
-  # https://github.com/pypa/pip/blob/develop/pip/wheel.py#L616
-  - ps: copy .\$env:NUPIC_BINDINGS_WHEEL_NAME .\nupic.bindings-$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
+  - python setup.py install --user
 
 after_build:
-  # Install nupic.bindings first, because py_region_test.exe depends on it.
-  - pip install .\%NUPIC_BINDINGS_WHEEL_NAME%
 
   # Run unit_tests (C++)
+  - cd %NUPIC_CORE%
   - mkdir %ARTIFACTS_DIR%
   - cd %NUPIC_CORE%\build\release\bin
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
@@ -255,12 +161,13 @@ deploy:
 #    folder: "numenta/nupic.core/releases/nupic.bindings"
 #    on:
 #      branch: master
+
 ## GitHub
 # Deploy to GitHub Releases
- - provider: GitHub
-   artifact: '*.whl'           # upload all NuGet packages to release assets
-   draft: false
-   prerelease: false
-   on:
-     branch: master                # release from master branch only
-     appveyor_repo_tag: true       # deploy on tag push only
+# - provider: GitHub
+#   artifact: '*.whl'           # upload all NuGet packages to release assets
+#   draft: false
+#   prerelease: false
+#   on:
+#     branch: master                # release from master branch only
+#     appveyor_repo_tag: true       # deploy on tag push only

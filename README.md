@@ -105,6 +105,7 @@ with the `make install` command to use multiple threads.
 ### Simple Build On Windows (MS Visual Studio 2017) 
 
 After downloading the repository, do the following:
+ * CD to top of repository.
  * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
  * Double click build/scripts/nupic.cpp.sln -- This starts up Visual Studio
  * After Visual Studio starts up, Build everything.  -- This will build the C++ library.
