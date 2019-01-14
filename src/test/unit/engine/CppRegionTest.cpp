@@ -361,7 +361,7 @@ Network helperRealmain() {
   std::string region_type = level1->getType();
   EXPECT_STREQ(region_type.c_str(), "TestNode");
   std::string ns = level1->getSpec()->toString();
-  EXPECT_GT(ns.length(), 20); // make sure we got something.
+  EXPECT_GT(ns.length(), 20u); // make sure we got something.
 
   Int64 val;
   Real64 rval;
