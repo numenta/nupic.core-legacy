@@ -315,7 +315,7 @@ namespace nupic_ext
         sm.def("__add__", [](const SparseMatrix32_t& sm, int val)
         {
             SparseMatrix32_t result(sm);
-            result.add(val);
+            result.add((Real)val);
             return result;
         });
 

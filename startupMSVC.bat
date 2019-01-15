@@ -60,11 +60,16 @@ cd "%BUILDDIR%"
 cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release"  ../..
   
 if exist "nupic_core.sln" (
-    rem // msbuild %NUPIC_BASE%\build\scripts\nupic_core.sln
-  	@echo You can now start Visual Studio using solution file %NUPIC_BASE%\build\scripts\nupic_core.sln
-	popd
-  	pause
-	exit /B 0
+    cmake --build . --target install --config "Release"
+    @echo
+    @echo You can now start Visual Studio using solution file %NUPIC_BASE%\build\scripts\nupic_core.sln
+    pause
+
+    rem // %NUPIC_BASE%\build\scripts\nupic_core.sln
+    nupic_core.sln
+
+    popd
+    exit /B 0
 ) else (
     @echo An error occured. Correct problem. Delete %NUPIC_BASE%\build before trying again.
     popd

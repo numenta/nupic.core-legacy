@@ -135,7 +135,7 @@ namespace nupic_ext
 
             // @todo Not sure why no just take the size()?
             // int nScores = int(c.end() - c.begin());
-            int nScores = c.size();
+            int nScores = (int)c.size();
             for (int i = 0; i != nScores; ++i)
             {
                 if (i >= c.size()) { throw std::runtime_error("Buffer access out of bounds."); }

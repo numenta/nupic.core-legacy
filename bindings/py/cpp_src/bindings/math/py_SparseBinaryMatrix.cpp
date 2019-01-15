@@ -404,7 +404,7 @@ namespace nupic_ext
             if (box_i.ndim() != 1) { throw std::runtime_error("Number of dimensions must be two."); }
             if (box_j.ndim() != 1) { throw std::runtime_error("Number of dimensions must be two."); }
 
-            SparseMatrix32_t result(box_i.size(), box_j.size());
+            SparseMatrix32_t result((UInt)box_i.size(), (UInt)box_j.size());
 
             sbm.nNonZerosPerBox(get_it(box_i), get_end(box_i), get_it(box_j), get_end(box_j), result);
 

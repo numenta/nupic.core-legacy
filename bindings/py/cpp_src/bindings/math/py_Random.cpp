@@ -70,7 +70,7 @@ namespace nupic_ext {
                 throw std::runtime_error("Number of dimensions must be one.");
             }
 
-            r.sample(get_it(population), population.size(), get_it(choices), choices.size());
+            r.sample(get_it(population), (UInt)population.size(), get_it(choices), (UInt)choices.size());
 
             return choices;
         });
