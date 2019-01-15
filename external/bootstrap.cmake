@@ -47,16 +47,36 @@ execute_process(COMMAND ${CMAKE_COMMAND}
 if(result)
     message(FATAL_ERROR "CMake step for Third Party builds failed: ${result}")
 endif()
-
-
-execute_process(COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE} 
+if(MSVC)
+  # for MSVC builds we need to build both Release and Debug builds
+  # because this will not be ran again if we switch modes in the IDE.
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Release 
                     WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                     RESULT_VARIABLE result
 #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
         )
-if(result)
+  if(result)
+    message(FATAL_ERROR "build step for MSVC Relase Third Party builds failed: ${result}")
+  endif()
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Debug 
+                    WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
+                    RESULT_VARIABLE result
+#                    OUTPUT_QUIET      ### Disable this to debug external buiilds
+        )
+  if(result)
+    message(FATAL_ERROR "build step for MSVC Debug Third Party builds failed: ${result}")
+  endif()
+else(MSVC)
+  # for linux and OSx builds
+  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE} 
+                    WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
+                    RESULT_VARIABLE result
+#                    OUTPUT_QUIET      ### Disable this to debug external buiilds
+        )
+  if(result)
     message(FATAL_ERROR "build step for Third Party builds failed: ${result}")
-endif()
+  endif()
+endif(MSVC)
 
 # extract the external directory paths
 #    The external third party modules are being built

@@ -53,9 +53,12 @@ TEST(HelloRegionTest, demo) {
 
   // Load data
   const size_t DATA_SIZE = 4; //Data is only 4 rows
-  std::string path =
-      Path::makeAbsolute("../data/Data.csv"); //FIXME use path relative to CMake's nupic root
-
+  // try to find data file in the source
+  std::string path = Path::join(Path::getParent(__FILE__), "Data.csv");
+  if (!Path::exists(path)) {
+    // look for it where the install may have put it.
+    path = Path::makeAbsolute("../data/Data.csv");
+  }
   std::cout << "Loading data from " << path << std::endl;
 
   std::vector<std::string> loadFileArgs;
