@@ -199,7 +199,7 @@ if(MSVC)
 		NOGDI
 		)
 
-	set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} $<$<CONFIG:Release>:-DNTA_ASSERTIONS_ON>)
+	set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} $<$<CONFIG:Debug>:-DNTA_ASSERTIONS_ON>)
 		
 	# common libs
 	# Libraries linked by defaultwith all C++ applications

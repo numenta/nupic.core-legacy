@@ -65,7 +65,7 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
 
 The easiest way to build from source is as follows. 
 ```
-    cd to-repository-top
+    cd to-repository-root
     python setup.py install --user --prefix=
 ```
 Note that `--user --prefix=` options will install the extension libaries in ~/.local

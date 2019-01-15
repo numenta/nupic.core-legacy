@@ -54,7 +54,7 @@ if(result)
 endif()
 
 if(MSVC)
-  # We need to build for both Release and Debug fpr MSVC because
+  # We need to build for both Release and Debug for MSVC because
   # it will not re-run this build if the build_type changes in ide.
   execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Release
                     WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
