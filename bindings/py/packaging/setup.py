@@ -27,7 +27,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import platform
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
@@ -192,9 +191,6 @@ def generateExtensions():
     # Build a Python 2.7 library
     PY_VER = "-DBINDING_BUILD=Python2"
 
-  if platform.system == "Windows":
-    GEN = '-G "Visual Studio 15 2017 Win64"'
-	
   scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
   try:
     if not os.path.isdir(scriptsDir):
