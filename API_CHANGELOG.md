@@ -35,4 +35,4 @@ IE: it is called when a synapses permanence crosses the connected threshold. PR 
 * Removed (private) method `SpatialPooler::updatePermanencesForColumn_(vector<Real> &perm, UInt column,
 bool raisePerm = true)`  due to SP implementation now using Connections. PR #153
 
-
+* SpatialPooler now always applies boosting, even when `learn=false`. PR #206
