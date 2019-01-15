@@ -1551,18 +1551,18 @@ TEST(TemporalMemoryTest, testExtraActive) {
   auto tm = TemporalMemory(columns.dimensions,
     /* cellsPerColumn */               12,
     /* activationThreshold */          13,
-    /* initialPermanence */            0.21,
-    /* connectedPermanence */          0.50,
+    /* initialPermanence */            0.21f,
+    /* connectedPermanence */          0.50f,
     /* minThreshold */                 10,
     /* maxNewSynapseCount */           20,
-    /* permanenceIncrement */          0.10,
-    /* permanenceDecrement */          0.03,
-    /* predictedSegmentDecrement */    0.001,
+    /* permanenceIncrement */          0.10f,
+    /* permanenceDecrement */          0.03f,
+    /* predictedSegmentDecrement */    0.001f,
     /* seed */                         42,
     /* maxSegmentsPerCell */           255,
     /* maxSynapsesPerSegment */        255,
     /* checkInputs */                  true,
-    /* extra */                        columns.size * 12);
+    /* extra */                        (UInt)(columns.size * 12u));
   Real anom = 1.0f;
 
   // Look at the pattern.

@@ -30,11 +30,6 @@
 #  - cd build/scripts
 #  - cmake ../..
 
-if (MSVC)
-  set(build_type --config Release)
-else()
-  set(build_type CMAKE_BUILD_TYPE=Release)
-endif()
 
 
 FILE(MAKE_DIRECTORY  ${REPOSITORY_DIR}/build/ThirdParty)
@@ -53,39 +48,15 @@ if(result)
     message(FATAL_ERROR "CMake step for Third Party builds failed: ${result}")
 endif()
 
-if(MSVC)
-  # We need to build for both Release and Debug for MSVC because
-  # it will not re-run this build if the build_type changes in ide.
-  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Release
-                    WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
-                    RESULT_VARIABLE result
-  #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
-  )
-  if(result)
-    message(FATAL_ERROR "build step for MSVC Release Third Party builds failed: ${result}")
-  endif()
-  
-  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Debug
-                    WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
-                    RESULT_VARIABLE result
-  #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
-  )
-  if(result)
-    message(FATAL_ERROR "build step for MSVC Debug Third Party builds failed: ${result}")
-  endif()
-  
-else(MSVC)
-  # for linux we only do this once for the current build_type.  To switch
-  # build type the user would have to clear everyting and re-run cmake.
-  execute_process(COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE} 
+
+execute_process(COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE} 
                     WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                     RESULT_VARIABLE result
 #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
-  )
-  if(result)
+        )
+if(result)
     message(FATAL_ERROR "build step for Third Party builds failed: ${result}")
-  endif()
-endif(MSVC)
+endif()
 
 # extract the external directory paths
 #    The external third party modules are being built
