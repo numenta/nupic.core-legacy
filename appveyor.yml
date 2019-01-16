@@ -12,8 +12,6 @@ build:
   parallel: true
   verbosity: minimal
 
-image: Visual Studio 2015
-
 # version format
 version: 0.3.0.{build}
 
