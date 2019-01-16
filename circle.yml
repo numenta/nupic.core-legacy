@@ -9,8 +9,6 @@ jobs:
       XCODE_SCHEME: nupic
       XCODE_WORKSPACE: nupic
       ARCHFLAGS: -arch x86_64
-      PYTHONPATH: ~/Library/Python/2.7/lib/python/site-packages
-      PYBIN: ~/Library/Python/2.7/bin
     steps:
       # Machine Setup
       - run:
@@ -23,9 +21,7 @@ jobs:
       - run:
           name: Restoring system python
           command: |
-            brew uninstall python
-            curl https://bootstrap.pypa.io/get-pip.py | python - --user
-            export PATH=$HOME/Library/Python/2.7/bin:$PATH
+            echo 'python version: ' && python --version
             echo 'pip version: ' && python -m pip --version 
       - run:
           name: Installing cmake 
