@@ -28,6 +28,7 @@
 #define NTA_CONNECTIONS_HPP
 
 #include <climits>
+#include <map>
 #include <set>
 #include <utility>
 #include <vector>
