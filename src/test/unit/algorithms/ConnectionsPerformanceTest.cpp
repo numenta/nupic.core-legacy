@@ -243,7 +243,7 @@ TEST(ConnectionsPerformanceTest, testTP) {
     /* numInputs */          2 * COLS,
     /* inputSparsity */      0.02f,
     /* numColumns */         COLS / 2,
-    /* columnSparsity */     0.05f,
+    /* columnSparsity */     0.1f,
     /* label */              "temporal pooler");
 
 #ifdef NDEBUG
