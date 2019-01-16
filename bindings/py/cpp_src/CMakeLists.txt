@@ -96,19 +96,11 @@ set(distr ${CMAKE_INSTALL_PREFIX}/distr)
 file(MAKE_DIRECTORY ${distr})
 file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
 
-# set CPP standard. default for PyBind11 is C++14.  If requested standard not available it will fall back to C++11.
-if (MSVC)
-  set(PYBIND11_CPP_STANDARD /std:c++latest) # Enables MSVC C++17
-else()
-  set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
-endif()
-
 
 
 if(PYTHON2_BUILD)
   set(PYBIND11_PYTHON_VERSION 2.7)
 endif()
-set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
 add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
 set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
 
