@@ -2,7 +2,7 @@ version: 2
 jobs:
   build-and-test:
     macos:
-      xcode: '9.0.1'
+      xcode: '10.1.0'
     working_directory: ~/numenta/nupic.core
     parallelism: 1
     environment:
