@@ -29,7 +29,6 @@ Methods related to inputs and outputs are in Region_io.cpp
 */
 
 #include <iostream>
-#include <regex>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -73,7 +72,6 @@ Region::Region(std::string name, const std::string &nodeType,
 
 Region::Region(Network *net) {
       network_ = net;
-      spec_ = nullptr;
       impl_ = nullptr;
       initialized_ = false;
       profilingEnabled_ = false;
@@ -160,7 +158,7 @@ void Region::initialize() {
 }
 
 
-const Spec *Region::getSpecFromType(const std::string &nodeType) {
+const Spec_Ptr_t& Region::getSpecFromType(const std::string &nodeType) {
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   return factory.getSpec(nodeType);
 }

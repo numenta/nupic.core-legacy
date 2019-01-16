@@ -134,12 +134,16 @@ TEST(LinkTest, DelayedLink) {
   };
 
   RegionImplFactory::registerRegion("MyTestNode",
+                    new RegisteredRegionImplCpp<TestNode>("MyTestNode"));
+  // second registration with the same name should just replace.
+  RegionImplFactory::registerRegion("MyTestNode",
                     new RegisteredRegionImplCpp<MyTestNode>("MyTestNode"));
 
   Network net;
   Region_Ptr_t region1 = net.addRegion("region1", "MyTestNode", "");
   Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
 
+  RegionImplFactory::unregisterRegion("MyTestNode");
 
   Dimensions d1;
   d1.push_back(8);
@@ -511,29 +515,6 @@ public:
               << outputName;
   }
 
-  /**
-   * Get a parameter from a write buffer.
-   * This method is called only by the typed getParameter*
-   * methods in the RegionImpl base class
-   *
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   *
-   */
-  void getParameterFromBuffer(const std::string &name, Int64 index,
-                              IWriteBuffer &value) override {}
-
-  /**
-   * Set a parameter from a read buffer.
-   * This method is called only by the RegionImpl base class
-   * type-specific setParameter* methods
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   */
-  void setParameterFromBuffer(const std::string &name, Int64 index,
-                              IReadBuffer &value) override {}
 
 private:
   TestRegionBase();

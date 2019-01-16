@@ -71,7 +71,6 @@ set(math_tests
 	   
 set(ntypes_tests
 	   unit/ntypes/ArrayTest.cpp
-	   unit/ntypes/BufferTest.cpp
 	   unit/ntypes/CollectionTest.cpp
 	   unit/ntypes/DimensionsTest.cpp
 	   unit/ntypes/MemParserTest.cpp
@@ -79,6 +78,8 @@ set(ntypes_tests
 	   unit/ntypes/NodeSetTest.cpp
 	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/SdrTest.cpp
+	   unit/ntypes/SdrProxyTest.cpp
+	   unit/ntypes/SdrMetricsTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
@@ -87,7 +88,6 @@ set(os_tests
 	   unit/os/EnvTest.cpp
 	   unit/os/OSTest.cpp
 	   unit/os/PathTest.cpp
-	   unit/os/RegexTest.cpp
 	   unit/os/TimerTest.cpp
 	   )
 	   
@@ -137,13 +137,13 @@ target_link_libraries(${unit_tests_executable}
     ${COMMON_OS_LIBS}
 )
 target_include_directories(${unit_tests_executable} PRIVATE 
-	${gtest_INCLUDE_DIR}
+	${gtest_INCLUDE_DIRS}
 	${CORE_LIB_INCLUDES}
 	${EXTERNAL_INCLUDES})
 target_compile_definitions(${unit_tests_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_compile_options(${unit_tests_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
 set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
-add_dependencies(${unit_tests_executable} ${core_library} gtest)
+add_dependencies(${unit_tests_executable} ${core_library})
 
 # Create the RUN_TESTS target
 enable_testing()

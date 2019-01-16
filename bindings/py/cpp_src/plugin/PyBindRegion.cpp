@@ -36,10 +36,10 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
-#include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
+#include <nupic/types/Types.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
@@ -374,11 +374,6 @@ namespace nupic
         return getParameterT<Real64>(name, index);
     }
 
-    Handle PyBindRegion::getParameterHandle(const std::string& name, Int64 index)
-    {
-		throw std::runtime_error("Not implemented");
-
-    }
 
 
     void PyBindRegion::setParameterBool(const std::string& name, Int64 index, bool value)
@@ -421,11 +416,6 @@ namespace nupic
         setParameterT(name, index, value);
     }
 
-    void PyBindRegion::setParameterHandle(const std::string& name, Int64 index, Handle value)
-    {
-        throw std::runtime_error("Not implemented");
-    }
-
     void PyBindRegion::getParameterArray(const std::string& name, Int64 index, Array & a)
     {
         auto args = py::make_tuple(name, index, create_numpy_view(a));
@@ -451,19 +441,6 @@ namespace nupic
     }
 
 
-    void PyBindRegion::getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value)
-    {
-        // we override getParameterX for every type, so this should never
-        // be called
-        NTA_THROW << "::getParameterFromBuffer should not have been called";
-    }
-
-    void PyBindRegion::setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value)
-    {
-        // we override getParameterX for every type, so this should never
-        // be called
-        NTA_THROW << "::setParameterFromBuffer should not have been called";
-    }
 
     size_t PyBindRegion::getParameterArrayCount(const std::string& name, Int64 index)
     {

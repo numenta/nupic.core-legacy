@@ -30,9 +30,11 @@ Suppress warnings about register keyword.
 // Python2.7 uses 'register' in unicodeobject.h
 // pybind11.h includes python.h which includes unicodeobject.h
 
-//#ifdef _WIN32
-//#pragma warning( disable : 5033)  // MSVC
-//#else
-//#pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
-//#endif
+#ifdef _WIN32
+#pragma warning( disable : 5033)  // MSVC
+#else
+  #if __cplusplus >= 201703L  // C++17 or higher
+    #pragma GCC diagnostic ignored "-Wregister"  // for GCC and CLang
+  #endif
+#endif
 #include <Python.h>

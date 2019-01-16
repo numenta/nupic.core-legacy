@@ -33,6 +33,7 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
+#include <nupic/types/Types.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -76,8 +77,6 @@ namespace nupic
         ////////////////////////////
 
         size_t getNodeOutputElementCount(const std::string& outputName) override;
-        void getParameterFromBuffer(const std::string& name, Int64 index, IWriteBuffer& value) override;
-        void setParameterFromBuffer(const std::string& name, Int64 index, IReadBuffer& value) override;
 
         void initialize() override;
         void compute() override;
@@ -92,7 +91,6 @@ namespace nupic
         virtual UInt64 getParameterUInt64(const std::string& name, Int64 index) override;
         virtual Real32 getParameterReal32(const std::string& name, Int64 index) override;
         virtual Real64 getParameterReal64(const std::string& name, Int64 index) override;
-        virtual Handle getParameterHandle(const std::string& name, Int64 index) override;
         virtual bool getParameterBool(const std::string& name, Int64 index) override;
         virtual std::string getParameterString(const std::string& name, Int64 index) override;
 
@@ -103,7 +101,6 @@ namespace nupic
         virtual void setParameterUInt64(const std::string& name, Int64 index, UInt64 value) override;
         virtual void setParameterReal32(const std::string& name, Int64 index, Real32 value) override;
         virtual void setParameterReal64(const std::string& name, Int64 index, Real64 value) override;
-        virtual void setParameterHandle(const std::string& name, Int64 index, Handle value) override;
         virtual void setParameterBool(const std::string& name, Int64 index, bool value) override;
         virtual void setParameterString(const std::string& name, Int64 index, const std::string& value) override;
 

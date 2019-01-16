@@ -1287,7 +1287,7 @@ TEST(SpatialPoolerTest, testInhibitColumnsLocal) {
     UInt trueActive[5] = {1, 2, 5, 6, 9};
     sp.setInhibitionRadius(inhibitionRadius);
     sp.inhibitColumnsLocal_(overlaps, density, active);
-    ASSERT_EQ(5, active.size());
+    ASSERT_EQ(5ul, active.size());
     ASSERT_TRUE(check_vector_eq(trueActive, active));
 
     Real overlapsArray2[10] = {1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
@@ -1352,7 +1352,7 @@ TEST(SpatialPoolerTest, testInhibitColumnsLocal) {
     UInt trueActive[6] = {1, 2, 5, 6, 8, 9};
     sp.setInhibitionRadius(inhibitionRadius);
     sp.inhibitColumnsLocal_(overlaps, density, active);
-    ASSERT_EQ(6, active.size());
+    ASSERT_EQ(6ul, active.size());
     ASSERT_TRUE(check_vector_eq(trueActive, active));
 
     Real overlapsArray2[10] = {1, 2, 7, 0, 3, 4, 16, 1, 1.5, 1.7};
@@ -1377,7 +1377,7 @@ TEST(SpatialPoolerTest, testInhibitColumnsLocal) {
     sp.setInhibitionRadius(inhibitionRadius);
     sp.inhibitColumnsLocal_(overlaps, density, active);
 
-    ASSERT_TRUE(active.size() == 4);
+    ASSERT_TRUE(active.size() == 4ul);
     ASSERT_TRUE(check_vector_eq(trueActive3, active));
   }
 }
@@ -1541,10 +1541,10 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
         /*inputDimensions*/ {12},
         /*columnDimensions*/ {4});
 
-    EXPECT_EQ(1, sp.initMapColumn_(0));
-    EXPECT_EQ(4, sp.initMapColumn_(1));
-    EXPECT_EQ(7, sp.initMapColumn_(2));
-    EXPECT_EQ(10, sp.initMapColumn_(3));
+    EXPECT_EQ(1ul, sp.initMapColumn_(0));
+    EXPECT_EQ(4ul, sp.initMapColumn_(1));
+    EXPECT_EQ(7ul, sp.initMapColumn_(2));
+    EXPECT_EQ(10ul, sp.initMapColumn_(3));
   }
 
   {
@@ -1553,10 +1553,10 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
         /*inputDimensions*/ {4},
         /*columnDimensions*/ {4});
 
-    EXPECT_EQ(0, sp.initMapColumn_(0));
-    EXPECT_EQ(1, sp.initMapColumn_(1));
-    EXPECT_EQ(2, sp.initMapColumn_(2));
-    EXPECT_EQ(3, sp.initMapColumn_(3));
+    EXPECT_EQ(0ul, sp.initMapColumn_(0));
+    EXPECT_EQ(1ul, sp.initMapColumn_(1));
+    EXPECT_EQ(2ul, sp.initMapColumn_(2));
+    EXPECT_EQ(3ul, sp.initMapColumn_(3));
   }
 
   {
@@ -1565,7 +1565,7 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
         /*inputDimensions*/ {1},
         /*columnDimensions*/ {1});
 
-    EXPECT_EQ(0, sp.initMapColumn_(0));
+    EXPECT_EQ(0ul, sp.initMapColumn_(0));
   }
 
   {
@@ -1574,11 +1574,11 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
         /*inputDimensions*/ {36, 12},
         /*columnDimensions*/ {12, 4});
 
-    EXPECT_EQ(13, sp.initMapColumn_(0));
-    EXPECT_EQ(49, sp.initMapColumn_(4));
-    EXPECT_EQ(52, sp.initMapColumn_(5));
-    EXPECT_EQ(58, sp.initMapColumn_(7));
-    EXPECT_EQ(418, sp.initMapColumn_(47));
+    EXPECT_EQ(13ul, sp.initMapColumn_(0));
+    EXPECT_EQ(49ul, sp.initMapColumn_(4));
+    EXPECT_EQ(52ul, sp.initMapColumn_(5));
+    EXPECT_EQ(58ul, sp.initMapColumn_(7));
+    EXPECT_EQ(418ul, sp.initMapColumn_(47));
   }
 
   {
@@ -1587,9 +1587,9 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
         /*inputDimensions*/ {3, 5},
         /*columnDimensions*/ {4, 4});
 
-    EXPECT_EQ(0, sp.initMapColumn_(0));
-    EXPECT_EQ(4, sp.initMapColumn_(3));
-    EXPECT_EQ(14, sp.initMapColumn_(15));
+    EXPECT_EQ(0ul, sp.initMapColumn_(0));
+    EXPECT_EQ(4ul, sp.initMapColumn_(3));
+    EXPECT_EQ(14ul, sp.initMapColumn_(15));
   }
 }
 
@@ -1803,7 +1803,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
   vector<UInt> activeColumns(nColumns, 0);
   sp.compute(input.data(), true, activeColumns.data());
 
-  EXPECT_EQ(3, countNonzero(activeColumns));
+  EXPECT_EQ(3ul, countNonzero(activeColumns));
 }
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
@@ -1831,7 +1831,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
   vector<UInt> activeColumns(nColumns, 0);
   sp.compute(input.data(), true, activeColumns.data());
 
-  EXPECT_EQ(0, countNonzero(activeColumns));
+  EXPECT_EQ(0ul, countNonzero(activeColumns));
 }
 
 
@@ -1891,7 +1891,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
   vector<UInt> activeColumns(nColumns, 0);
   sp.compute(input.data(), true, activeColumns.data());
 
-  EXPECT_EQ(0, countNonzero(activeColumns));
+  EXPECT_EQ(0ul, countNonzero(activeColumns));
 }
 
 
@@ -2053,6 +2053,45 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   check_spatial_eq(sp1, sp2);
   EXPECT_EQ(sp1, sp2);
   EXPECT_TRUE(sp1 == sp2) << "Spatial Poolers not equal";
+}
+
+TEST(SpatialPoolerTest, ExactOutput) {
+  string gold =
+    "SDR 1 "
+    "1 200 "
+    "10 190 172 23 118 178 129 113 71 185 182 "
+    "~SDR"; // This is all one string.
+
+  stringstream gold_stream( gold );
+  SDR gold_sdr;
+  gold_sdr.load( gold_stream );
+
+  SDR inputs({ 1000 });
+  SDR columns({ 200 });
+  SpatialPooler sp({inputs.dimensions}, {columns.dimensions},
+                   /*potentialRadius*/ 99999,
+                   /*potentialPct*/ 0.5f,
+                   /*globalInhibition*/ true,
+                   /*localAreaDensity*/ 0.05f,
+                   /*numActiveColumnsPerInhArea*/ -1,
+                   /*stimulusThreshold*/ 3u,
+                   /*synPermInactiveDec*/ 0.008f,
+                   /*synPermActiveInc*/ 0.05f,
+                   /*synPermConnected*/ 0.1f,
+                   /*minPctOverlapDutyCycles*/ 0.001f,
+                   /*dutyCyclePeriod*/ 200,
+                   /*boostStrength*/ 10.0f,
+                   /*seed*/ 42,
+                   /*spVerbosity*/ 0,
+                   /*wrapAround*/ true);
+
+  for(UInt i = 0; i < 1000; i++) {
+    Random rng(i + 1); // Random seed 0 is magic, don't use it.
+    inputs.randomize( 0.15f, rng );
+    sp.compute(inputs, true, columns);
+  }
+  cerr << "OUTPUT SDR:" << endl; columns.save( cerr ); cerr << endl;
+  ASSERT_TRUE( columns == gold_sdr );
 }
 
 } // end anonymous namespace

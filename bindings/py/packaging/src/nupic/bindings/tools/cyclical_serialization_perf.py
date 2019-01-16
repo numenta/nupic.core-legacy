@@ -51,7 +51,7 @@ def _runTest():
   startSerializationTime = time.time()
 
   # serialize 100000 times to a file.
-  for i in xrange(_SERIALIZATION_LOOPS):
+  for i in range(_SERIALIZATION_LOOPS):
     net.saveToFile("SerializationTest.stream")
 
   elapsedSerializationTime = time.time() - startSerializationTime
@@ -60,20 +60,20 @@ def _runTest():
   startDeserializationTime = time.time()
 
   deserializationCount = 0
-  for i in xrange(_DESERIALIZATION_LOOPS):
+  for i in range(_DESERIALIZATION_LOOPS):
     net = engine.Network()
     net.loadFromFile("SerializationTest.stream")
 
   elapsedDeserializationTime = time.time() - startDeserializationTime
 
   # Print report
-  print _SERIALIZATION_LOOPS, "Serialization loops in", \
-        elapsedSerializationTime, "seconds."
-  print "\t", elapsedSerializationTime/_SERIALIZATION_LOOPS, "seconds per loop."
+  print(_SERIALIZATION_LOOPS, "Serialization loops in", \
+        elapsedSerializationTime, "seconds.")
+  print("\t", elapsedSerializationTime/_SERIALIZATION_LOOPS, "seconds per loop.")
 
-  print deserializationCount, "Deserialization loops in", \
-        elapsedDeserializationTime, "seconds."
-  print "\t", elapsedDeserializationTime/deserializationCount, "seconds per loop."
+  print(deserializationCount, "Deserialization loops in", \
+        elapsedDeserializationTime, "seconds.")
+  print("\t", elapsedDeserializationTime/deserializationCount, "seconds per loop.")
 
 
 

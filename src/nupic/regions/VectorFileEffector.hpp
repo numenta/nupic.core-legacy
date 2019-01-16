@@ -34,7 +34,7 @@
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
-#include <nupic/types/Types.h>
+#include <nupic/types/Types.hpp>
 
 namespace nupic {
 
@@ -63,12 +63,6 @@ class VectorFileEffector : public RegionImpl {
 public:
   static Spec *createSpec();
   size_t getNodeOutputElementCount(const std::string &outputName) override;
-  void getParameterFromBuffer(const std::string &name, Int64 index,
-                              IWriteBuffer &value) override;
-
-  void setParameterFromBuffer(const std::string &name, Int64 index,
-                              IReadBuffer &value) override;
-
   void setParameterString(const std::string &name, Int64 index,
                           const std::string &s) override;
   std::string getParameterString(const std::string &name, Int64 index) override;

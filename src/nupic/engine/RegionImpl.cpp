@@ -26,7 +26,6 @@
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/Buffer.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/BasicType.hpp>
@@ -59,23 +58,17 @@ const NodeSet &RegionImpl::getEnabledNodes() const {
   Type RegionImpl::getParameter##MethodT(const std::string &name,              \
                                          Int64 index) {                        \
     if (!region_->getSpec()->parameters.contains(name))                        \
-      NTA_THROW << "getParameter" #Type ": parameter " << name                 \
-                << " does not exist in nodespec";                              \
+      NTA_THROW << "getParameter" #Type ": Region type " << getType()          \
+	            << ", parameter " << name                                      \
+                << " does not exist in region spec";                              \
     ParameterSpec p = region_->getSpec()->parameters.getByName(name);          \
     if (p.dataType != NTA_BasicType_##MethodT)                                 \
-      NTA_THROW << "getParameter" #Type ": parameter " << name                 \
+      NTA_THROW << "getParameter" #Type ": Region type " << getType()          \
+	            << ", parameter " << name                                      \
                 << " is of type " << BasicType::getName(p.dataType)            \
                 << " not " #Type;                                              \
-    WriteBuffer wb;                                                            \
-    getParameterFromBuffer(name, index, wb);                                   \
-    ReadBuffer rb(wb.getData(), wb.getSize(), false /* copy */);               \
-    Type val;                                                                  \
-    int rc = rb.read(val);                                                     \
-    if (rc != 0) {                                                             \
-      NTA_THROW << "getParameter" #Type " -- failure to get parameter '"       \
-                << name << "' on node of type " << getType();                  \
-    }                                                                          \
-    return val;                                                                \
+    NTA_THROW << "getParameter" #Type " --  parameter '"       \
+                << name << "' on region of type " << getType() << " not implemented"; \
   }
 
 #define getParameterT(Type) getParameterInternalT(Type, Type)
@@ -90,10 +83,20 @@ getParameterInternalT(Bool, bool);
 #define setParameterInternalT(MethodT, Type)                                   \
   void RegionImpl::setParameter##MethodT(const std::string &name, Int64 index, \
                                          Type value) {                         \
-    WriteBuffer wb;                                                            \
-    wb.write((Type)value);                                                     \
-    ReadBuffer rb(wb.getData(), wb.getSize(), false /* copy */);               \
-    setParameterFromBuffer(name, index, rb);                                   \
+    if (!region_->getSpec()->parameters.contains(name))                        \
+      NTA_THROW << "setParameter" #Type ": Region type " << getType()          \
+	            << ", parameter " << name                                      \
+                << " does not exist in Spec";                                  \
+    ParameterSpec p = region_->getSpec()->parameters.getByName(name);          \
+    if (p.dataType != NTA_BasicType_##MethodT)                                 \
+      NTA_THROW << "setParameter" #Type ": Region type " << getType()          \
+	            << ", parameter " << name                                      \
+                << " is of type " << BasicType::getName(p.dataType)            \
+                << " not " #Type;                                              \
+    if (p.accessMode != ParameterSpec::ReadWriteAccess)                        \
+      NTA_THROW << "setParameter" #Type " --  parameter '" << name << " is Readonly"; \
+    NTA_THROW << "setParameter" #Type " -- Region type " << getType()          \
+			    << ", parameter '" << name << "' not implemented";             \
   }
 
 #define setParameterT(Type) setParameterInternalT(Type, Type)
@@ -101,127 +104,70 @@ getParameterInternalT(Bool, bool);
 setParameterT(Int32);
 setParameterT(UInt32);
 setParameterT(Int64);
-setParameterT(UInt64) setParameterT(Real32);
+setParameterT(UInt64);
+setParameterT(Real32);
 setParameterT(Real64);
 setParameterInternalT(Bool, bool);
 
-// buffer mechanism can't handle Handles. RegionImpl must override these
-// methods.
-Handle RegionImpl::getParameterHandle(const std::string &name, Int64 index) {
-  NTA_THROW << "Unknown parameter '" << name << "' of type Handle.";
-}
-
-void RegionImpl::setParameterHandle(const std::string &name, Int64 index,
-                                    Handle h) {
-  NTA_THROW << "Unknown parameter '" << name << "' of type Handle.";
-}
-
-void RegionImpl::getParameterArray(const std::string &name, Int64 index,
-                                   Array &array) {
-  WriteBuffer wb;
-  getParameterFromBuffer(name, index, wb);
-  ReadBuffer rb(wb.getData(), wb.getSize(), false /* copy */);
-  size_t count = array.getCount();
-  void *buffer = array.getBuffer();
-
-  for (size_t i = 0; i < count; i++) {
-    int rc;
-    switch (array.getType()) {
-
-    case NTA_BasicType_Byte:
-      rc = rb.read(((Byte *)buffer)[i]);
-      break;
-    case NTA_BasicType_Int32:
-      rc = rb.read(((Int32 *)buffer)[i]);
-      break;
-    case NTA_BasicType_UInt32:
-      rc = rb.read(((UInt32 *)buffer)[i]);
-      break;
-    case NTA_BasicType_Int64:
-      rc = rb.read(((Int64 *)buffer)[i]);
-      break;
-    case NTA_BasicType_UInt64:
-      rc = rb.read(((UInt64 *)buffer)[i]);
-      break;
-    case NTA_BasicType_Real32:
-      rc = rb.read(((Real32 *)buffer)[i]);
-      break;
-    case NTA_BasicType_Real64:
-      rc = rb.read(((Real64 *)buffer)[i]);
-      break;
-    default:
-      NTA_THROW << "Unsupported basic type "
-                << BasicType::getName(array.getType())
-                << " in getParameterArray for parameter " << name;
-      break;
-    }
-
-    if (rc != 0) {
-      NTA_THROW << "getParameterArray -- failure to get parameter '" << name
-                << "' on node of type " << getType();
-    }
+void RegionImpl::getParameterArray(const std::string &name, Int64 index, Array &array) {
+  if (!region_->getSpec()->parameters.contains(name))
+      NTA_THROW << "setParameterArray: parameter " << name
+                << " does not exist in Spec";
+  ParameterSpec p = region_->getSpec()->parameters.getByName(name);
+  if (p.dataType != array.getType()) {
+      NTA_THROW << "setParameterArray: parameter " << name
+                << " is of type " << BasicType::getName(p.dataType)
+                << " not " << BasicType::getName(array.getType());
   }
-  return;
+  NTA_THROW << "getParameterArray: parameter '" << name
+            << "' an array with a type of "
+			<< BasicType::getName(p.dataType)
+			<< " is found in the region spec but is not implemented.";
 }
 
-void RegionImpl::setParameterArray(const std::string &name, Int64 index,
-                                   const Array &array) {
-  WriteBuffer wb;
-  size_t count = array.getCount();
-  void *buffer = array.getBuffer();
-  for (size_t i = 0; i < count; i++) {
-    int rc;
-    switch (array.getType()) {
-
-    case NTA_BasicType_Byte:
-      rc = wb.write(((Byte *)buffer)[i]);
-      break;
-    case NTA_BasicType_Int32:
-      rc = wb.write(((Int32 *)buffer)[i]);
-      break;
-    case NTA_BasicType_UInt32:
-      rc = wb.write(((UInt32 *)buffer)[i]);
-      break;
-    case NTA_BasicType_Int64:
-      rc = wb.write(((Int64 *)buffer)[i]);
-      break;
-    case NTA_BasicType_UInt64:
-      rc = wb.write(((UInt64 *)buffer)[i]);
-      break;
-    case NTA_BasicType_Real32:
-      rc = wb.write(((Real32 *)buffer)[i]);
-      break;
-    case NTA_BasicType_Real64:
-      rc = wb.write(((Real64 *)buffer)[i]);
-      break;
-    default:
-      NTA_THROW << "Unsupported basic type "
-                << BasicType::getName(array.getType())
-                << " in setParameterArray for parameter " << name;
-      break;
-    }
-
-    if (rc != 0) {
-      NTA_THROW << "setParameterArray - failure to set parameter '" << name
-                << "' on node of type " << getType();
-    }
+void RegionImpl::setParameterArray(const std::string &name, Int64 index, const Array &array) {
+  if (!region_->getSpec()->parameters.contains(name))
+      NTA_THROW << "setParameterArray: parameter " << name
+                << " does not exist in Spec for this region.";
+  ParameterSpec p = region_->getSpec()->parameters.getByName(name);
+  if (p.dataType != array.getType()) {
+      NTA_THROW << "setParameterArray: parameter " << name
+                << " is of type " << BasicType::getName(p.dataType)
+                << " not " << BasicType::getName(array.getType());
   }
-
-  ReadBuffer rb(wb.getData(), wb.getSize(), false);
-  setParameterFromBuffer(name, index, rb);
+  NTA_THROW	<< "setParameterArray: parameter '" << name
+            << " is found in the spec for " << getType() <<" but is not implemented.";
 }
 
 void RegionImpl::setParameterString(const std::string &name, Int64 index,
                                     const std::string &s) {
-  ReadBuffer rb(s.c_str(), s.size(), false);
-  setParameterFromBuffer(name, index, rb);
+  if (!region_->getSpec()->parameters.contains(name))
+      NTA_THROW << "setParameterString: parameter " << name
+                << " does not exist in Spec";
+  ParameterSpec p = region_->getSpec()->parameters.getByName(name);
+  if (p.dataType != NTA_BasicType_Byte) {
+      NTA_THROW << "setParameterString: parameter " << name
+                << " is of type " << BasicType::getName(p.dataType)
+                << " not Byte (string)";
+  }
+  NTA_THROW << "setParameterString: parameter '" << name
+			<< " is found in the spec for " << getType() <<" but is not implemented.";
 }
 
 std::string RegionImpl::getParameterString(const std::string &name,
                                            Int64 index) {
-  WriteBuffer wb;
-  getParameterFromBuffer(name, index, wb);
-  return std::string(wb.getData(), wb.getSize());
+  if (!region_->getSpec()->parameters.contains(name))
+      NTA_THROW << "getParameterString: parameter " << name
+                << " does not exist in Spec";
+  ParameterSpec p = region_->getSpec()->parameters.getByName(name);
+  if (p.dataType != NTA_BasicType_Byte) {
+      NTA_THROW << "getParameterString: parameter " << name
+                << " is of type " << BasicType::getName(p.dataType)
+                << " not Byte (string)";
+  }
+  NTA_THROW << "getParameterString: parameter '" << name
+			<< " is found in the spec for " << getType() <<" but is not implemented.";
+  return "";
 }
 
 // Must be overridden by subclasses
@@ -230,17 +176,6 @@ bool RegionImpl::isParameterShared(const std::string &name) {
             << getType();
 }
 
-void RegionImpl::getParameterFromBuffer(const std::string &name, Int64 index,
-                                        IWriteBuffer &value) {
-  NTA_THROW
-      << "RegionImpl::getParameterFromBuffer must be overridden by subclasses";
-}
-
-void RegionImpl::setParameterFromBuffer(const std::string &name, Int64 index,
-                                        IReadBuffer &value) {
-  NTA_THROW
-      << "RegionImpl::setParameterFromBuffer must be overridden by subclasses";
-}
 
 size_t RegionImpl::getParameterArrayCount(const std::string &name,
                                           Int64 index) {

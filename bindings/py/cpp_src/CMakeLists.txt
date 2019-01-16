@@ -107,14 +107,13 @@ set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
 # It is ready to use pybind11_add_module() macro.
 # For details: https://pybind11.readthedocs.io/en/stable/compiling.html#cmake
 
-message(STATUS "Core lib to LINK is '${core_library}' ")
-message(STATUS "CORE_LIB_INCLUDES = ${CORE_LIB_INCLUDES}")
-message(STATUS "EXTERNAL_INCLUDES = ${EXTERNAL_INCLUDES}")
-message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
 
 set(algorithms_shared_lib algorithms)
 pybind11_add_module(${algorithms_shared_lib} ${src_py_algorithms_files} )
-target_link_libraries(${algorithms_shared_lib} PRIVATE ${core_library})
+target_link_libraries(${algorithms_shared_lib} PRIVATE 
+		${core_library}
+		${COMMON_OS_LIBS}
+		)
 target_compile_options(${algorithms_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${algorithms_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${algorithms_shared_lib} PRIVATE 
@@ -128,7 +127,10 @@ target_include_directories(${algorithms_shared_lib} PRIVATE
 
 set(engine_shared_lib engine_internal)
 pybind11_add_module(${engine_shared_lib} ${src_py_engine_files})
-target_link_libraries(${engine_shared_lib} PRIVATE ${core_library})
+target_link_libraries(${engine_shared_lib} PRIVATE
+		${core_library}
+		${COMMON_OS_LIBS}
+		)
 target_compile_options(${engine_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${engine_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${engine_shared_lib} PRIVATE 
@@ -141,7 +143,10 @@ target_include_directories(${engine_shared_lib} PRIVATE
 
 set(math_shared_lib math)
 pybind11_add_module(${math_shared_lib} ${src_py_math_files})
-target_link_libraries(${math_shared_lib} PRIVATE ${core_library})
+target_link_libraries(${math_shared_lib} PRIVATE 
+		${core_library}
+		${COMMON_OS_LIBS}
+		)
 target_compile_options(${math_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${math_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${math_shared_lib} PRIVATE 

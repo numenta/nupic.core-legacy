@@ -38,7 +38,8 @@ class LinkRegion(PyRegion):
   def __init__(self): pass
   def initialize(self): pass
   def compute(self): pass
-  def getOutputElementCount(self): pass
+  def getOutputElementCount(self, name): 
+    return 1
   @classmethod
   def getSpec(cls):
     return {
@@ -118,7 +119,6 @@ class NetworkTest(unittest.TestCase):
       engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
 
 
-  @pytest.mark.skip(reason="SegFault in debug mode...another PR")
   def testSimpleTwoRegionNetworkIntrospection(self):
     # Create Network instance
     network = engine.Network()
@@ -150,14 +150,16 @@ class NetworkTest(unittest.TestCase):
       self.fail("Unable to iterate network links.")
 
 
-  @pytest.mark.skip(reason="pickle support needs work...another PR")
   def testNetworkLinkTypeValidation(self):
     """
     This tests whether the links source and destination dtypes match
     """
     network = engine.Network()
-    network.addRegion("from", "py.LinkRegion", "")
-    network.addRegion("to", "py.LinkRegion", "")
+    r_from = network.addRegion("from", "py.LinkRegion", "")
+    r_to = network.addRegion("to", "py.LinkRegion", "")
+    cnt = r_from.getOutputElementCount("UInt32")
+    self.assertEqual(1, cnt)
+
 
     # Check for valid links
     network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")
@@ -168,6 +170,7 @@ class NetworkTest(unittest.TestCase):
       network.link("from", "to", "UniformLink", "", "Real32", "UInt32")
     with pytest.raises(RuntimeError):
       network.link("from", "to", "UniformLink", "", "UInt32", "Real32")
+	
 
   @pytest.mark.skip(reason="parameter types don't match.")
   def testParameters(self):
@@ -177,8 +180,8 @@ class NetworkTest(unittest.TestCase):
     scalars = [
       ("int32Param", l1.getParameterInt32, l1.setParameterInt32, 32, int, 35),
       ("uint32Param", l1.getParameterUInt32, l1.setParameterUInt32, 33, int, 36),
-      ("int64Param", l1.getParameterInt64, l1.setParameterInt64, 64, long, 74),
-      ("uint64Param", l1.getParameterUInt64, l1.setParameterUInt64, 65, long, 75),
+      ("int64Param", l1.getParameterInt64, l1.setParameterInt64, 64, int, 74),
+      ("uint64Param", l1.getParameterUInt64, l1.setParameterUInt64, 65, int, 75),
       ("real32Param", l1.getParameterReal32, l1.setParameterReal32, 32.1, float, 33.1),
       ("real64Param", l1.getParameterReal64, l1.setParameterReal64, 64.1, float, 65.1),
       ("stringParam", l1.getParameterString, l1.setParameterString, "nodespec value", str, "new value")]
