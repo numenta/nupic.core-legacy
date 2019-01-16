@@ -30,6 +30,7 @@
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
 
+#include <deque>
 #include <ostream>
 #include <sstream>
 
