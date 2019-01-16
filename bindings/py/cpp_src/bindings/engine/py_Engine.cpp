@@ -131,7 +131,7 @@ namespace nupic_ext
             .def("getType", &Region::getType)
             .def("getDimensions", &Region::getDimensions)
             .def("setDimensions", &Region::setDimensions)
-			.def("getNodeOutputElementCount", &Region::getNodeOutputElementCount);
+			.def("getOutputElementCount", &Region::getNodeOutputElementCount);
 
 		py_Region.def("getParameterInt32", &Region::getParameterInt32)
 		    .def("getParameterUInt32", &Region::getParameterUInt32)
@@ -210,10 +210,11 @@ namespace nupic_ext
         getSpecFromType
         */
 
-        py_Region.def("getSelf", [](const Region& self)
-        {
-            return self.getParameterHandle("self");
-        });
+		// TODO: do we need a function like this?
+        //py_Region.def("getSelf", [](const Region& self)
+        //{
+        //    return self.getParameterHandle("self");
+        //});
 
         py_Region.def("getInputArray", [](const Region& self, const std::string& name)
         {

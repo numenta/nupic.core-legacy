@@ -42,7 +42,7 @@ namespace nupic {
 
 // Represents 'zero' scalar value used to compare Input/Output buffer contents
 // for non-zero values
-const static NTA_Real64 ZERO_VALUE = 0;
+const static Real64 ZERO_VALUE = 0;
 
 Link::Link(const std::string &linkType, const std::string &linkParams,
            const std::string &srcRegionName, const std::string &destRegionName,
@@ -347,9 +347,8 @@ void Link::compute() {
   } else if (dest_->isSparse()) {
     // Destination is sparse, convert source from dense to sparse
 
-    // Sparse Output must be NTA_UInt32. See "initialize".
-    NTA_UInt32 *destBuf =
-        (NTA_UInt32 *)((char *)(dest.getBuffer()) + destByteOffset);
+    // Sparse Output must be UInt32. See "initialize".
+    UInt32 *destBuf = (UInt32 *)((char *)(dest.getBuffer()) + destByteOffset);
 
     // Dense source can be any scalar type. The scalar values will be lost
     // and only the indexes of the non-zero values will be stored.
@@ -370,7 +369,7 @@ void Link::compute() {
     // Destination is dense, convert source from sparse to dense
 
     // Sparse Input must be NTA_UInt32. See "initialize".
-    NTA_UInt32 *srcBuf = (NTA_UInt32 *)src.getBuffer();
+    UInt32 *srcBuf = (UInt32 *)src.getBuffer();
 
     // Dense destination links must be bool. See "initialize".
 	// Really? TODO: allow this to be written to any dest buffer type.

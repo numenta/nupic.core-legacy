@@ -100,6 +100,8 @@ notifications:
 
 before_install:
   - eval "${MATRIX_EVAL}"
+  - export CC
+  - export CXX
   - $CXX --version
   - echo "Installing pip, setuptools, and wheel"
   - pip install --upgrade pip setuptools wheel || exit

@@ -37,7 +37,7 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/regions/VectorFile.hpp>
-#include <nupic/types/Types.h>
+#include <nupic/types/Types.hpp>
 
 namespace nupic {
 class ValueMap;
@@ -271,22 +271,15 @@ public:
 
   static Spec *createSpec();
   size_t getNodeOutputElementCount(const std::string &outputName) override;
-  void getParameterFromBuffer(const std::string &name, Int64 index,
-                              IWriteBuffer &value) override;
 
-  void setParameterFromBuffer(const std::string &name, Int64 index,
-                              IReadBuffer &value) override;
+  virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
+  virtual std::string getParameterString(const std::string &name, Int64 index = -1) override;
+  virtual void getParameterArray(const std::string &name, Int64 index, Array &array) override;
+  virtual size_t getParameterArrayCount(const std::string &name, Int64 index) override;
 
-  size_t getParameterArrayCount(const std::string &name, Int64 index) override;
-
-  virtual void getParameterArray(const std::string &name, Int64 index,
-                                 Array &array) override;
-  virtual void setParameterArray(const std::string &name, Int64 index,
-                                 const Array &array) override;
-
-  // void setParameterString(const std::string& name, Int64 index, const
-  // std::string& s); std::string getParameterString(const std::string& name,
-  // Int64 index);
+  virtual void setParameterUInt32(const std::string &name, Int64 index, UInt32 value) override;
+  virtual void setParameterString(const std::string &name, Int64 index, const std::string& value) override;
+  virtual void setParameterArray(const std::string &name, Int64 index,const Array &array) override;
 
   void initialize() override;
 

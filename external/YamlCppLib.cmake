@@ -21,11 +21,17 @@
 # Note: yaml-cpp includes an older version of gtest so 
 #       turn off YAML_CPP_BUILD_TESTS to prevent it from building gtest.
 
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
+    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
+else()
+    set(URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz)
+endif()
+
 message(STATUS "Obtaining yaml-cpp")
 include(DownloadProject/DownloadProject.cmake)
 download_project(PROJ yaml-cpp
 	PREFIX ${EP_BASE}/yaml-cpp
-	URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz
+	URL ${URL}
 	UPDATE_DISCONNECTED 1
 	QUIET
 	)
@@ -33,9 +39,10 @@ set(YAML_CPP_INSTALL OFF CACHE BOOL "prevent install, not needed." FORCE)
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "prevent tools from being build" FORCE) 
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "prevent gtest from being build" FORCE) 
 set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "prevent contrib modules" FORCE) 
-set(CMAKE_CXX_FLAGS ${INTERNAL_CXX_FLAGS_STR})
 add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
 
-set(yaml-cpp_INCLUDE_DIRS ${yaml-cpp_SOURCE_DIR}/include CACHE BOOL "include directory" FORCE) 
-set(yaml-cpp_LIBRARIES   yaml-cpp  CACHE BOOL "libraries to link with" FORCE) 
+set(yaml-cpp_INCLUDE_DIRS ${yaml-cpp_SOURCE_DIR}/include) 
+set(yaml-cpp_LIBRARIES   ${yaml-cpp_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}yaml-cpp${CMAKE_STATIC_LIBRARY_SUFFIX}) 
+FILE(APPEND "${EXPORT_FILE_NAME}" "yaml-cpp_INCLUDE_DIRS@@@${yaml-cpp_SOURCE_DIR}/include\n")
+FILE(APPEND "${EXPORT_FILE_NAME}" "yaml-cpp_LIBRARIES@@@${yaml-cpp_LIBRARIES}\n")
 

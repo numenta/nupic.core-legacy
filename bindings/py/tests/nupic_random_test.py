@@ -22,7 +22,7 @@
 
 """NuPIC random module tests."""
 
-import cPickle as pickle
+import pickle
 import unittest
 import pytest
 import numpy
@@ -48,11 +48,11 @@ class TestNupicRandom(unittest.TestCase):
 
     r.saveToFile(path)
 
-    test1 = [r.getUInt32() for _ in xrange(10)]
+    test1 = [r.getUInt32() for _ in range(10)]
     r = Random(1);
     r.loadFromFile(path)
     self.assertEqual(r.getSeed(), 99)
-    test2 = [r.getUInt32() for _ in xrange(10)]
+    test2 = [r.getUInt32() for _ in range(10)]
 
     self.assertEqual(test1, test2,
 				"Simple NuPIC random serialization check failed.")
@@ -63,11 +63,11 @@ class TestNupicRandom(unittest.TestCase):
     # saving the initial seed...
     r.saveToFile(path)
 
-    test3 = [r.getUInt32() for _ in xrange(10)]
+    test3 = [r.getUInt32() for _ in range(10)]
     r = Random();
     r.loadFromFile(path)
     self.assertEqual(r.getSeed(), 99)
-    test4 = [r.getUInt32() for _ in xrange(10)]
+    test4 = [r.getUInt32() for _ in range(10)]
 
     self.assertEqual(
         test3, test4,
@@ -85,9 +85,9 @@ class TestNupicRandom(unittest.TestCase):
     r = Random(42)
     pickledR = pickle.dumps(r)
 
-    test1 = [r.getUInt32() for _ in xrange(10)]
+    test1 = [r.getUInt32() for _ in range(10)]
     r = pickle.loads(pickledR)
-    test2 = [r.getUInt32() for _ in xrange(10)]
+    test2 = [r.getUInt32() for _ in range(10)]
 
     self.assertEqual(test1, test2,
                      "Simple NuPIC random pickle/unpickle failed.")
@@ -98,9 +98,9 @@ class TestNupicRandom(unittest.TestCase):
     # saving the initial seed...
     pickledR = pickle.dumps(r)
 
-    test3 = [r.getUInt32() for _ in xrange(10)]
+    test3 = [r.getUInt32() for _ in range(10)]
     r = pickle.loads(pickledR)
-    test4 = [r.getUInt32() for _ in xrange(10)]
+    test4 = [r.getUInt32() for _ in range(10)]
 
     self.assertEqual(
         test3, test4,
@@ -251,16 +251,16 @@ class TestNupicRandom(unittest.TestCase):
     r2 = Random(42)
     v2 = r2.getReal64()
     i2 = r2.getUInt32()
-    self.assertEquals(v1, v2)
-    self.assertEquals(r1, r2)
-    self.assertEquals(i1, i2)
+    self.assertEqual(v1, v2)
+    self.assertEqual(r1, r2)
+    self.assertEqual(i1, i2)
 
 
   def testPlatformSame(self): 
     r = Random(42)
-    [r.getUInt32() for _ in xrange(80085)]
+    [r.getUInt32() for _ in range(80085)]
     v = r.getUInt32()
-    self.assertEquals(v, 1651991554)
+    self.assertEqual(v, 1651991554)
 
 if __name__ == "__main__":
   unittest.main()

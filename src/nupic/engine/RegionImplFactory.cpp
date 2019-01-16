@@ -100,6 +100,9 @@ RegionImplFactory &RegionImplFactory::getInstance() {
 void RegionImplFactory::addRegionType(const std::string nodeType, RegisteredRegionImpl* wrapper) {
 	std::shared_ptr<RegisteredRegionImpl> reg(wrapper);
   	regionTypeMap[nodeType] = reg;
+
+	std::shared_ptr<Spec> ns(reg->createSpec());
+	regionSpecMap[nodeType] = ns;
 }
 
 
@@ -108,7 +111,7 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
                                                 Region *region) {
 
   RegionImpl *impl = nullptr;
-  Spec *ns = getSpec(nodeType);
+  Spec_Ptr_t& ns = getSpec(nodeType);
   ValueMap vm = YAMLUtils::toValueMap(nodeParams.c_str(), ns->parameters,
                                       nodeType, region->getName());
 
@@ -137,19 +140,19 @@ RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 
 
 
-Spec *RegionImplFactory::getSpec(const std::string nodeType) {
-  auto it = regionTypeMap.find(nodeType);
-  if (it == regionTypeMap.end()) {
+Spec_Ptr_t& RegionImplFactory::getSpec(const std::string nodeType) {
+  auto it = regionSpecMap.find(nodeType);
+  if (it == regionSpecMap.end()) {
 	NTA_THROW << "getSpec() -- unknown node type: '" << nodeType
 		      << "'.  Custom node types must be registed before they can be used.";
   }
-  Spec *ns = it->second->createSpec();
-  return ns;
+  return it->second;
 }
 
 void RegionImplFactory::cleanup() {
   RegionImplFactory& instance = getInstance();
   instance.regionTypeMap.clear();
+  instance.regionSpecMap.clear();
 }
 
 } // namespace nupic

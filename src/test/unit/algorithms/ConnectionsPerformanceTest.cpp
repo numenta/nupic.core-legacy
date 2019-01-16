@@ -29,16 +29,17 @@
 #include <fstream>
 #include <iostream>
 
-#include <nupic/algorithms/Connections.hpp>
+#include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/os/Timer.hpp>
+#include <nupic/types/Types.hpp> // macro "UNUSED"
 
 namespace testing {
 
 using namespace std;
 using namespace nupic;
-using ::nupic::algorithms::connections::Segment;
+using ::nupic::algorithms::spatial_pooler::SpatialPooler;
 using ::nupic::algorithms::temporal_memory::TemporalMemory;
 
 #define SEED 42
@@ -47,8 +48,6 @@ Random rng(SEED);
 
 std::vector<UInt32> _randomSDR(UInt n, UInt w);
 void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn = true);
-std::vector<CellIdx> _computeSPWinnerCells(Connections &connections, UInt numCells,
-                       const vector<UInt> &numActiveSynapsesForSegment);
 
 float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
                                                        int numElements,
@@ -104,91 +103,59 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
   return timer.getElapsed();
 }
 
-float runSpatialPoolerTest(UInt numCells, UInt numInputs, UInt w,
-                           UInt numWinners, string label) {
+float runSpatialPoolerTest(
+                  UInt   numInputs,
+                  Real   inputSparsity,
+                  UInt   numColumns,
+                  Real   columnSparsity,
+                  string label)
+{
+#ifdef NDEBUG
+  const auto trainTime = 1000u;
+  const auto testTime  =  500u;
+#else
+  const auto trainTime = 10u;
+  const auto testTime  =  5u;
+#endif
+
   Timer timer;
   timer.start();
 
-  Connections connections(numCells);
-  Segment segment;
-  vector<CellIdx> sdr;
-
   // Initialize
-
-  for (UInt c = 0; c < numCells; c++) {
-    segment = connections.createSegment(c);
-
-    for (UInt i = 0; i < numInputs; i++) {
-      const Permanence permanence = (Permanence)rng.getReal64();
-      connections.createSynapse(segment, i, permanence);
-    }
-  }
-
+  SpatialPooler sp(
+    /* inputDimensions */               { numInputs },
+    /* columnDimensions */              { numColumns },
+    /* potentialRadius */               (numInputs + numColumns),
+    /* potentialPct */                  0.5f,
+    /* globalInhibition */              true,
+    /* localAreaDensity */              columnSparsity,
+    /* numActiveColumnsPerInhArea */    -1,
+    /* stimulusThreshold */             6u,
+    /* synPermInactiveDec */            0.01f,
+    /* synPermActiveInc */              0.03f,
+    /* synPermConnected */              0.4f,
+    /* minPctOverlapDutyCycles */       0.001f,
+    /* dutyCyclePeriod */               1000u,
+    /* boostStrength */                 1.0f,
+    /* seed */                          rng(),
+    /* spVerbosity */                   0u,
+    /* wrapAround */                    true);
+  SDR input( sp.getInputDimensions() );
+  SDR columns( sp.getColumnDimensions() );
   cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
 
   // Learn
-
-  vector<CellIdx> winnerCells;
-  Permanence permanence;
-
-  for (int i = 0; i < 500; i++) {
-    sdr = _randomSDR(numInputs, w);
-    vector<UInt32> numActiveConnectedSynapsesForSegment(
-        connections.segmentFlatListLength(), 0);
-    vector<UInt32> numActivePotentialSynapsesForSegment(
-        connections.segmentFlatListLength(), 0);
-    connections.computeActivity(numActiveConnectedSynapsesForSegment,
-                                numActivePotentialSynapsesForSegment, sdr, 0.5);
-    winnerCells = _computeSPWinnerCells(connections, numWinners,
-                                       numActiveConnectedSynapsesForSegment);
-
-    for (CellIdx winnerCell : winnerCells) {
-      segment = connections.getSegment(winnerCell, 0);
-
-      const vector<Synapse> &synapses = connections.synapsesForSegment(segment);
-
-      for (SynapseIdx i = 0; i < (SynapseIdx)synapses.size();) {
-        const Synapse synapse = synapses[i];
-        const SynapseData &synapseData = connections.dataForSynapse(synapse);
-        permanence = synapseData.permanence;
-
-        if (find(sdr.begin(), sdr.end(), synapseData.presynapticCell) !=
-            sdr.end()) {
-          permanence += 0.2;
-        } else {
-          permanence -= 0.1;
-        }
-
-        permanence = max(permanence, (Permanence)0);
-        permanence = min(permanence, (Permanence)1);
-
-        if (permanence == 0) {
-          connections.destroySynapse(synapse);
-          // The synapses list is updated in-place, so don't update `i`.
-        } else {
-          connections.updateSynapsePermanence(synapse, permanence);
-          i++;
-        }
-      }
-    }
+  for (auto i = 0u; i < trainTime; i++) {
+    input.randomize( inputSparsity, rng );
+    sp.compute( input, true, columns );
   }
-
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
 
   // Test
-
-  for (int i = 0; i < 500; i++) {
-    sdr = _randomSDR(numInputs, w);
-    vector<UInt32> numActiveConnectedSynapsesForSegment(
-        connections.segmentFlatListLength(), 0);
-    vector<UInt32> numActivePotentialSynapsesForSegment(
-        connections.segmentFlatListLength(), 0);
-    connections.computeActivity(numActiveConnectedSynapsesForSegment,
-                                numActivePotentialSynapsesForSegment, sdr, 0.5);
-    winnerCells = _computeSPWinnerCells(connections, numWinners,
-                                       numActiveConnectedSynapsesForSegment);
+  for (auto i = 0u; i < testTime; i++) {
+    input.randomize( inputSparsity, rng );
+    sp.compute( input, false, columns );
   }
-
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
   return timer.getElapsed();
@@ -220,33 +187,6 @@ void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn) {
 
   tm.compute(activeColumns.size(), activeColumns.data(), learn);
 }
-
-
-vector<CellIdx> _computeSPWinnerCells(Connections &connections, UInt numCells,
-    const vector<UInt> &numActiveSynapsesForSegment) {
-  // Activate every segment, then choose the top few.
-  vector<Segment> activeSegments;
-  for (Segment segment = 0; segment < numActiveSynapsesForSegment.size();
-       segment++) {
-    activeSegments.push_back(segment);
-  }
-
-  set<CellIdx> winnerCells;
-  std::sort(
-      activeSegments.begin(), activeSegments.end(), [&](Segment a, Segment b) {
-        return numActiveSynapsesForSegment[a] > numActiveSynapsesForSegment[b];
-      });
-
-  for (Segment segment : activeSegments) {
-    winnerCells.insert(connections.cellForSegment(segment));
-    if (winnerCells.size() >= numCells) {
-      break;
-    }
-  }
-
-  return vector<CellIdx>(winnerCells.begin(), winnerCells.end());
-}
-
 
 
 // TESTS
@@ -281,12 +221,16 @@ TEST(ConnectionsPerformanceTest, testTMLarge) {
 /**
  * Tests typical usage of Connections with Spatial Pooler.
  */
-#define UNUSED(x) (void)(x)
-
 TEST(ConnectionsPerformanceTest, testSP) {
-  auto tim = runSpatialPoolerTest(COLS, COLS, EPOCHS, SEQ, "spatial pooler");
+  auto tim = runSpatialPoolerTest(
+    /* numInputs */          1024,
+    /* inputSparsity */      0.15f,
+    /* numColumns */         1024,
+    /* columnSparsity */     0.05f,
+    /* label */              "spatial pooler");
+
 #ifdef NDEBUG
-  ASSERT_LE(tim, 5.3*Timer::getSpeed());
+  ASSERT_LE(tim, 4.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
@@ -295,9 +239,15 @@ TEST(ConnectionsPerformanceTest, testSP) {
  * Tests typical usage of Connections with Temporal Pooler.
  */
 TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = runSpatialPoolerTest(COLS, 8*COLS, EPOCHS/4, SEQ/25, "temporal pooler");
+  auto tim = runSpatialPoolerTest(
+    /* numInputs */          4 * 1024,
+    /* inputSparsity */      0.02f,
+    /* numColumns */         1024 / 2,
+    /* columnSparsity */     0.05f,
+    /* label */              "temporal pooler");
+
 #ifdef NDEBUG
-  ASSERT_LE(tim, 10.8*Timer::getSpeed());
+  ASSERT_LE(tim, 4.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
