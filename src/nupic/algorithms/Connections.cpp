@@ -415,7 +415,7 @@ void Connections::computeActivity(
     Permanence connectedPermanence) const {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
   NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
-  NTA_CHECK( abs(connectedPermanence - EPSILON - connectedThreshold_) <= EPSILON );
+  NTA_CHECK( abs(connectedPermanence - nupic::Epsilon - connectedThreshold_) <= nupic::Epsilon );
 
   // Iterate through all connected synapses.
   computeActivity(
@@ -513,7 +513,7 @@ void Connections::save(std::ostream &outStream) const {
   outStream << cells_.size() << " " << endl;
   // Save the original permanence threshold, not the private copy which is used
   // only for floating point comparisons.
-  outStream << connectedThreshold_ + EPSILON << " " << endl;
+  outStream << connectedThreshold_ + nupic::Epsilon << " " << endl;
 
   for (CellData cellData : cells_) {
     const vector<Segment> &segments = cellData.segments;
