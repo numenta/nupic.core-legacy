@@ -84,18 +84,18 @@ TEST(ScalarEncoder, testClippingInputs) {
     const bool clipInput = false;
     ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
 
-    EXPECT_ANY_THROW(e.encode(9.9));
-    EXPECT_NO_THROW(e.encode(10.0));
-    EXPECT_NO_THROW(e.encode(20.0));
-    EXPECT_ANY_THROW(e.encode(20.1));
+    EXPECT_ANY_THROW(e.encode(9.9f));
+    EXPECT_NO_THROW(e.encode(10.0f));
+    EXPECT_NO_THROW(e.encode(20.0f));
+    EXPECT_ANY_THROW(e.encode(20.1f));
   }
 
   {
     const bool clipInput = true;
     ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
 
-    EXPECT_NO_THROW(e.encode(9.9));
-    EXPECT_NO_THROW(e.encode(20.1));
+    EXPECT_NO_THROW(e.encode(9.9f));
+    EXPECT_NO_THROW(e.encode(20.1f));
   }
 }
 
@@ -108,10 +108,10 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs) {
   const double resolution = 0;
   PeriodicScalarEncoder e(w, minValue, maxValue, n, radius, resolution);
 
-  EXPECT_ANY_THROW(e.encode(9.9));
-  EXPECT_NO_THROW(e.encode(10.0));
-  EXPECT_NO_THROW(e.encode(19.9));
-  EXPECT_ANY_THROW(e.encode(20.0));
+  EXPECT_ANY_THROW(e.encode(9.9f));
+  EXPECT_NO_THROW(e.encode(10.0f));
+  EXPECT_NO_THROW(e.encode(19.9f));
+  EXPECT_ANY_THROW(e.encode(20.0f));
 }
 
 TEST(ScalarEncoder, NonIntegerBucketWidth) {

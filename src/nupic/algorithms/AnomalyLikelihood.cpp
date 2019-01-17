@@ -66,7 +66,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     
       // On a rolling basis we re-estimate the distribution
       if ((timeElapsed >= initialTimestamp_ + reestimationPeriod)   || distribution_.name == "unknown" ) {
-        auto numSkipRecords = calcSkipRecords_(this->iteration_, this->runningAverageAnomalies_.size(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
+        auto numSkipRecords = calcSkipRecords_(this->iteration_, (UInt)this->runningAverageAnomalies_.size(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
         estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_; 
         if  (timeElapsed >= initialTimestamp_ + reestimationPeriod)  { initialTimestamp_ = -1; } //reset init T
       }
@@ -74,7 +74,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     const auto likelihoods = updateAnomalyLikelihoods_(anomalies);
 
       NTA_ASSERT(likelihoods.size() > 0); 
-      likelihood = 1.0 - likelihoods[0]; 
+      likelihood = 1.0f - likelihoods[0]; 
       NTA_ASSERT(likelihood >= 0.0 && likelihood <= 1.0);
 
     this->runningLikelihoods_.append(likelihood);
@@ -132,8 +132,8 @@ Real AnomalyLikelihood::tailProbability_(Real x) const {
   // Calculate the Q function with the complementary error function, explained
   // here: http://www.gaussianwaves.com/2012/07/q-function-and-error-functions
   Real z = (x - distribution_.mean) / distribution_.stdev;
-  return 0.5 * erfc(z/1.4142);
-  }
+  return (Real)(0.5 * erfc(z/1.4142));
+}
 
 
 DistributionParams AnomalyLikelihood::estimateNormal_(const vector<Real>& anomalyScores, bool performLowerBoundCheck) {
@@ -174,8 +174,8 @@ DistributionParams AnomalyLikelihood::estimateNormal_(const vector<Real>& anomal
   :returns: A new list of floats likelihoods containing the filtered values.
   **/
 static vector<Real> filterLikelihoods_(const vector<Real>& likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor() 
-  redThreshold    = 1.0 - redThreshold;  //TODO maybe we could use the true meaning already in the parameters
-  yellowThreshold = 1.0 - yellowThreshold;
+  redThreshold    = 1.0f - redThreshold;  //TODO maybe we could use the true meaning already in the parameters
+  yellowThreshold = 1.0f - yellowThreshold;
 
   NTA_CHECK(redThreshold > 0.0 && redThreshold < 1.0);
   NTA_CHECK(yellowThreshold > 0.0 && yellowThreshold < 1.0);
@@ -212,7 +212,7 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& a
   vector<Real> likelihoods;
   likelihoods.reserve(runningAverageAnomalies_.size()); 
   for (size_t i = 0; i < runningAverageAnomalies_.size(); i++) { //TODO we could use transform() here (? or would it be less clear?) 
-    auto newAverage = runningAverageAnomalies_[i];
+    auto newAverage = runningAverageAnomalies_[(UInt)i];
     likelihoods.push_back(tailProbability_(newAverage)); 
   }
 
@@ -280,14 +280,14 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(const vector<Real>& 
 /// HELPER methods (only used internaly in this cpp file)
 Real compute_mean(const vector<Real>& v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
   NTA_ASSERT(v.size() > 0); //avoid division by zero! 
-    Real sum = std::accumulate(v.begin(), v.end(), 0.0);
+    Real sum = (Real)(std::accumulate(v.begin(), v.end(), 0.0));
     return sum / v.size();
 }
 
 
 Real compute_var(const vector<Real>& v, Real mean)  {
   NTA_ASSERT(v.size() > 0); //avoid division by zero!
-    Real sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
+    Real sq_sum = (Real)(std::inner_product(v.begin(), v.end(), v.begin(), 0.0));
     return (sq_sum / v.size()) - (mean * mean);
 }
 

@@ -119,7 +119,7 @@ namespace nupic_ext
 
         py_Domain.def("__getitem__", [](Domain_t& self, size_t i)
         {
-            nupic::DimRange<nupic::UInt32> r = self[i];
+            nupic::DimRange<nupic::UInt32> r = self[(UInt32)i];
             nupic::UInt32 v[3];
             v[0] = r.getDim();
             v[1] = r.getLB();

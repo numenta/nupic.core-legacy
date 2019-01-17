@@ -52,15 +52,20 @@ download_project(PROJ googletest
 	UPDATE_DISCONNECTED 1
 	QUIET
 	)
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(DEBUG_POSTFIX d)
-endif()
 set(INSTALL_GTEST OFF CACHE BOOL "prevents installing gtest" FORCE)
 set(BUILD_GMOCK   OFF CACHE BOOL "prevents building gmock"   FORCE)
 #set(gtest_force_shared_crt ON CACHE BOOL "Prevent GoogleTest from overriding our compiler/linker options" FORCE)
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 
+if(MSVC)
+  set(gtest_LIBRARIES ${googletest_BINARY_DIR}/googletest/$<$<CONFIG:Release>:Release>$<$<CONFIG:Debug>:Debug>/${CMAKE_STATIC_LIBRARY_PREFIX}gtest$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+  if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    set(DEBUG_POSTFIX d)
+  endif()
+  set(gtest_LIBRARIES ${googletest_BINARY_DIR}/googletest/${CMAKE_STATIC_LIBRARY_PREFIX}gtest$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
 FILE(APPEND "${EXPORT_FILE_NAME}" "gtest_INCLUDE_DIRS@@@${googletest_SOURCE_DIR}/googletest/include\n")
-FILE(APPEND "${EXPORT_FILE_NAME}" "gtest_LIBRARIES@@@${googletest_BINARY_DIR}/googletest/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}\n")
+FILE(APPEND "${EXPORT_FILE_NAME}" "gtest_LIBRARIES@@@${gtest_LIBRARIES}\n")
 
 

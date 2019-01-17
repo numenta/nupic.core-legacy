@@ -130,6 +130,7 @@ source_group("ntypes" FILES ${ntypes_tests})
 source_group("os" FILES ${os_tests})
 source_group("types" FILES ${types_tests})
 source_group("utils" FILES ${utils_tests})
+source_group("main" FILES unit/UnitTestMain.cpp)
 
 
 set(src_executable_gtests
@@ -159,7 +160,9 @@ target_compile_options(${unit_tests_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
 set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
 add_dependencies(${unit_tests_executable} ${core_library})
 
+
 # Create the RUN_TESTS target
+#  This displays its output differently in Visual Studio
 enable_testing()
 add_test(NAME ${unit_tests_executable} COMMAND ${unit_tests_executable})
 

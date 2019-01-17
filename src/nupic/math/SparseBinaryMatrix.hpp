@@ -477,7 +477,7 @@ public:
   }
 
   struct lexicographic_order
-      : public std::binary_function<bool, std::pair<size_type, size_type>,
+      : public binary_function<bool, std::pair<size_type, size_type>,
                                     std::pair<size_type, size_type>> {
     inline bool operator()(const std::pair<size_type, size_type> &a,
                            const std::pair<size_type, size_type> &b) const {
