@@ -111,7 +111,7 @@ TEST(HelloRegionTest, demo) {
 
   ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
   for (size_t i = 0; i < outputArray2.getCount(); i++) { //TODO how output all values generated during run(4) ??
-	  EXPECT_DOUBLE_EQ(buffer[i], buffer2[i]);
+	  EXPECT_NEAR(buffer[i], buffer2[i], 0.001);
 	  std::cout << " buffer " << buffer[i] << " buffer2: " << buffer2[i] << std::endl;
   }
 }
