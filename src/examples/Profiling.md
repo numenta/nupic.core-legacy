@@ -14,7 +14,7 @@ More classes should be added as they are ported (Encoders, Classifier, Anomaly, 
 For ongoing optimization goals, we need a simple but complete code to run benchmarks and profile. 
 You can easily change the constants (`EPOCHS, DIM,...`) and try this code on your branch. 
 
-### Using `valgrind` profiler (for memory, #calls usage)
+### Using `valgrind` profiler (for memory, #calls usage) Linux
 
 Steps to profile methods' execution time with `valgrind`'s extension `callgrind`: 
 

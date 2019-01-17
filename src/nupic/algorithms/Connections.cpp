@@ -125,7 +125,8 @@ Synapse Connections::createSynapse(Segment segment,
   synapseOrdinals_[synapse]   = nextSynapseOrdinal_++;
   // Start in disconnected state.
   synapseData.permanence           = connectedThreshold_ - 1.0f;
-  synapseData.presynapticMapIndex_ = potentialSynapsesForPresynapticCell_[presynapticCell].size();
+  synapseData.presynapticMapIndex_ = 
+    (Synapse)potentialSynapsesForPresynapticCell_[presynapticCell].size();
   potentialSynapsesForPresynapticCell_[presynapticCell].push_back(synapse);
   potentialSegmentsForPresynapticCell_[presynapticCell].push_back(segment);
 
@@ -283,7 +284,7 @@ void Connections::updateSynapsePermanence(Synapse synapse,
                                         potentialPresyn, potentialPreseg );
 
       // Add this synapse to the presynaptic connected synapses.
-      synData.presynapticMapIndex_ = connectedPresyn.size();
+      synData.presynapticMapIndex_ = (Synapse)connectedPresyn.size();
       connectedPresyn.push_back( synapse );
       connectedPreseg.push_back( segment );
     }
@@ -295,7 +296,7 @@ void Connections::updateSynapsePermanence(Synapse synapse,
                                         connectedPresyn, connectedPreseg );
 
       // Add this synapse to the presynaptic connected synapses.
-      synData.presynapticMapIndex_ = potentialPresyn.size();
+      synData.presynapticMapIndex_ = (Synapse)potentialPresyn.size();
       potentialPresyn.push_back( synapse );
       potentialPreseg.push_back( segment );
     }
@@ -326,7 +327,7 @@ SegmentIdx Connections::idxOnCellForSegment(Segment segment) const {
   const vector<Segment> &segments = segmentsForCell(cellForSegment(segment));
   const auto it = std::find(segments.begin(), segments.end(), segment);
   NTA_ASSERT(it != segments.end());
-  return std::distance(segments.begin(), it);
+  return (SegmentIdx)std::distance(segments.begin(), it);
 }
 
 void Connections::mapSegmentsToCells(const Segment *segments_begin,
@@ -353,7 +354,7 @@ const SynapseData &Connections::dataForSynapse(Synapse synapse) const {
   return synapses_[synapse];
 }
 
-UInt32 Connections::segmentFlatListLength() const { return segments_.size(); }
+UInt32 Connections::segmentFlatListLength() const { return (UInt32)segments_.size(); }
 
 bool Connections::compareSegments(Segment a, Segment b) const {
   const SegmentData &aData = segments_[a];
@@ -601,22 +602,22 @@ void Connections::load(std::istream &inStream) {
 }
 
 
-CellIdx Connections::numCells() const { return cells_.size(); }
+CellIdx Connections::numCells() const { return (CellIdx)cells_.size(); }
 
 UInt Connections::numSegments() const {
-  return segments_.size() - destroyedSegments_.size();
+  return (UInt)(segments_.size() - destroyedSegments_.size());
 }
 
 UInt Connections::numSegments(CellIdx cell) const {
-  return cells_[cell].segments.size();
+  return (UInt)cells_[cell].segments.size();
 }
 
 UInt Connections::numSynapses() const {
-  return synapses_.size() - destroyedSynapses_.size();
+  return (UInt)(synapses_.size() - destroyedSynapses_.size());
 }
 
 UInt Connections::numSynapses(Segment segment) const {
-  return segments_[segment].synapses.size();
+  return (UInt)segments_[segment].synapses.size();
 }
 
 bool Connections::operator==(const Connections &other) const {

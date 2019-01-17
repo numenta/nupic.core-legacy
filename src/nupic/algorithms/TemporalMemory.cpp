@@ -837,7 +837,7 @@ void TemporalMemory::save(ostream &outStream) const {
     const CellIdx cell = connections.cellForSegment(segment);
     const vector<Segment> &segments = connections.segmentsForCell(cell);
 
-    SegmentIdx idx = std::distance(
+    SegmentIdx idx = (SegmentIdx)std::distance(
         segments.begin(), std::find(segments.begin(), segments.end(), segment));
 
     outStream << idx << " ";
@@ -851,7 +851,7 @@ void TemporalMemory::save(ostream &outStream) const {
     const CellIdx cell = connections.cellForSegment(segment);
     const vector<Segment> &segments = connections.segmentsForCell(cell);
 
-    SegmentIdx idx = std::distance(
+    SegmentIdx idx = (SegmentIdx)std::distance(
         segments.begin(), std::find(segments.begin(), segments.end(), segment));
 
     outStream << idx << " ";

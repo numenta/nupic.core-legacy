@@ -141,7 +141,7 @@ float Timer::getSpeed() {
     SPEED = std::max(1.0, t.getElapsed());
     NTA_INFO << "Timer::getSpeed() -> " << SPEED << " seconds.";
   }
-  return SPEED;
+  return (float)SPEED;
 }
 
 } // namespace nupic

@@ -573,7 +573,7 @@ UInt32 Network::getMaxPhase() const {
   if (phaseInfo_.empty())
     return 0;
 
-  return phaseInfo_.size() - 1;
+  return (UInt32)(phaseInfo_.size() - 1);
 }
 
 void Network::setMinEnabledPhase(UInt32 minPhase) {

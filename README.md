@@ -47,10 +47,6 @@ Some of the major differences between this library and Numenta's extension libra
  * Modular structure
  * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
 
-## Building from Source
-
-Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
-
 ### Prerequisites
 
 - [Python](https://python.org/downloads/)
@@ -60,15 +56,20 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
   that will determine which version of Python the extension library will be built for.
 - [CMake](http://www.cmake.org/)
 
-### Simple Source Installation On Linux or OSX for Python apps
 
+## Building from Source
+
+Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
+
+### Simple Build for Python users (any platform)
 
 The easiest way to build from source is as follows. 
 ```
+    cd to-repository-root
     python setup.py install --user --prefix=
 ```
 Note that `--user --prefix=` options will install the extension libaries in ~/.local
-so that you don't need su permissions.
+so that you don't need superuser permissions.
  
 This will build everything including the Python extension libraries and install them.
 After that completes you are all set to run your .py programs which import the extensions:
@@ -85,7 +86,7 @@ The installation scripts will automatically download and build the dependancies 
  * numpy
  * pytest
  
-### Simple Source Installation On Linux or OSX for C++ apps
+### Simple Build On Linux or OSX for C++ apps
  
 After downloading the repository, do the following:
 ```
@@ -101,30 +102,35 @@ library in `build/Release/lib`. The headers will be in `build/Release/include`.
 A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.  The -j3 could be used 
 with the `make install` command to use multiple threads.
 
-### Simple Source Installation On Windows (MS Visual Studio 2017) 
-
-This is a work in progress so not everything works quite yet.
+### Simple Build On Windows (MS Visual Studio 2017) 
 
 After downloading the repository, do the following:
- * Double click external/MSVC/startup.bat  -- This will setup the build and create the solution file (.sln).
+ * CD to top of repository.
+ * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
  * Double click build/scripts/nupic.cpp.sln -- This starts up Visual Studio
- * After Visual Studio starts up, Build everything.  -- This will build the C++ library and the Python extensions.
- 
+ * Select `Release` or `Debug` as the Solution Configuration. Solution Platform must remain at x64.
+ * Build everything.  -- This will build the C++ library.
+ * Right Click on the 'unit_tests' target and specify it as `Set as startup Project` so debugger will work.
 
-### Testing the Python Installation
 
-Regardless of how you install `nupic.bindings`, the `nupic-bindings-check` command-line script should be installed. 
+## Testing
+### Testing Python Installation
+
+Regardless of how you install the nupic.bindings, the `nupic-bindings-check` command-line script should be installed. 
 ```
     python bindings/py/tests/check_test.py
 ```
 If you get no error then python is able to load the nupic extension libraries.
 
+### Unit tests for the library
+
 There are two sets of unit tests.
  * C++ Unit tests -- to run: `cd build/Release/bin; ./unit_tests`
  * Python Unit tests -- to run: `python setup.py test`
-### Using graphical interface
+ 
+## Using graphical interface
 
-#### Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
+### Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
 
  * Open CMake executable.
  * Specify the source folder (`$NUPIC_CORE/src`).
@@ -132,18 +138,9 @@ There are two sets of unit tests.
  * Click `Generate`.
  * Choose the IDE that interest you (remember that IDE choice is limited to your OS).
  
-#### For MS Visual Studio as the IDE
- * Double click external/MSVC/startup.bat  -- This will setup the build and create the solution file (.sln).
+### For MS Visual Studio as the IDE
+ * Double click external/startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
  * Double click build/scripts/nupic.cpp.sln -- This starts up Visual Studio
-
-
-#### Build:
-
- * Open `nupic_core.*proj` solution file generated on `$NUPIC_CORE/build/scripts`.
- * Run `ALL_BUILD` project from your IDE.
-
-#### Run the tests:
-
- * Run any `tests_*` project from your IDE (check `output` panel to see the results).
+ * Run `ALL_BUILD` project to build the library.
 
 

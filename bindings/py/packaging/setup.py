@@ -186,21 +186,18 @@ def generateExtensions():
   from sys import version_info
   if version_info > (3, 0):
     # Build a Python 3.x library
-    PY_VER2 = "-DPYTHON2_BUILD=OFF"
-    PY_VER3 = "-DPYTHON3_BUILD=ON"  
+    PY_VER = "-DBINDING_BUILD=Python3"
   else:
     # Build a Python 2.7 library
-    PY_VER2 = "-DPYTHON2_BUILD=ON"
-    PY_VER3 = "-DPYTHON3_BUILD=OFF"
+    PY_VER = "-DBINDING_BUILD=Python2"
 
   scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
   try:
     if not os.path.isdir(scriptsDir):
       os.makedirs(scriptsDir)
     os.chdir(scriptsDir)
-    subprocess.check_call(["cmake", REPO_DIR, PY_VER2, PY_VER3])
-    subprocess.check_call(["make", "-j3"])
-    subprocess.check_call(["make", "install"])
+    subprocess.check_call(["cmake", PY_VER, REPO_DIR])
+    subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", "Release"])
   finally:
     os.chdir(cwd)
 
@@ -256,6 +253,7 @@ if __name__ == "__main__":
     classifiers=[
       "Programming Language :: Python",
       "Programming Language :: Python :: 2",
+      "Programming Language :: Python :: 3",
       "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
       "Operating System :: MacOS :: MacOS X",
       "Operating System :: POSIX :: Linux",

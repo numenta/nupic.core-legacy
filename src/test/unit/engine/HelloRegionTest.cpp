@@ -53,9 +53,12 @@ TEST(HelloRegionTest, demo) {
 
   // Load data
   const size_t DATA_SIZE = 4; //Data is only 4 rows
-  std::string path =
-      Path::makeAbsolute("../data/Data.csv"); //FIXME use path relative to CMake's nupic root
-
+  // try to find data file in the source
+  std::string path = Path::join(Path::getParent(__FILE__), "Data.csv");
+  if (!Path::exists(path)) {
+    // look for it where the install may have put it.
+    path = Path::makeAbsolute("../data/Data.csv");
+  }
   std::cout << "Loading data from " << path << std::endl;
 
   std::vector<std::string> loadFileArgs;
@@ -108,7 +111,7 @@ TEST(HelloRegionTest, demo) {
 
   ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
   for (size_t i = 0; i < outputArray2.getCount(); i++) { //TODO how output all values generated during run(4) ??
-	  EXPECT_FLOAT_EQ(buffer[i], buffer2[i]);
+	  EXPECT_NEAR(buffer[i], buffer2[i], 0.001);
 	  std::cout << " buffer " << buffer[i] << " buffer2: " << buffer2[i] << std::endl;
   }
 }

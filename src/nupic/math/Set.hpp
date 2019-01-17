@@ -90,7 +90,7 @@ public:
 
   inline T n_elements() const { return n; }
   inline T max_index() const { return m; }
-  inline T n_bytes() const { return s.size(); }
+  inline T n_bytes() const { return (T)s.size(); }
 
   /**
    * Computes the intersection between this and another set (n2, s2).

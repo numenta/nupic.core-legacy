@@ -41,9 +41,10 @@
 # If you need to re-build the ThirdParty libaries, 
 #  - cd to repository
 #  - delete build  (rm -r build)
-#  - create build/scripts (mkdir -d build/scripts)
+#  - create folders build/scripts (mkdir -d build/scripts)
 #  - cd build/scripts
 #  - cmake ../..
+# Note: on MSVC, run startupMSVC.bat after deleting the build folder.
 
 cmake_minimum_required(VERSION 3.3)
 project(nupic_core CXX)
@@ -53,17 +54,19 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 include(GNUInstallDirs)
 include(ExternalProject)
 set(EP_BASE ${CMAKE_BINARY_DIR})
-STRING(REGEX REPLACE "@@@" " " EXTERNAL_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS "${EXTERNAL_CXX_FLAGS}" CACHE STRING "Sets compile flags" FORCE)
-
+if (MSVC)
+  set(EXTERNAL_CXX_FLAGS /EHsc "$<$<CONFIG:Release>:/MD>" "$<$<CONFIG:Debug>:/MDd>")
+else()
+  set(EXTERNAL_CXX_FLAGS -fPIC)
+endif()
+add_compile_options(${EXTERNAL_CXX_FLAGS})
 
 message(STATUS "external import")
 message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "   CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
 message(STATUS "   NEEDS_BOOST           = ${NEEDS_BOOST}")
-message(STATUS "   PYTHON2_BUILD         = ${PYTHON2_BUILD}")
-message(STATUS "   PYTHON3_BUILD         = ${PYTHON3_BUILD}")
+message(STATUS "   BINDING_BUILD         = ${BINDING_BUILD}")
 
 
 set(EXPORT_FILE_NAME "${EP_BASE}/results.txt")
@@ -85,13 +88,16 @@ if(NEEDS_BOOST)
   include(Boost.cmake)
 endif()
 
+
 ##################
 # gtest
 include(gtest.cmake)
 
+
 ##################
 # pybind11
-if(PYTHON2_BUILD OR PYTHON3_BUILD)
+string(REGEX MATCH "Python" match ${BINDING_BUILD})
+if(match)
   include(pybind11.cmake)
 endif()
 

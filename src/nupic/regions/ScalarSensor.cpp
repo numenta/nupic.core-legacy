@@ -68,7 +68,7 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
     Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
     UInt *uintArray = new UInt[encoder_->getOutputWidth()];
 	try {
-	    const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, uintArray);
+	    const Int32 iBucket = encoder_->encodeIntoArray((Real)sensedValue_, uintArray);
 	    ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
 	    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
 	    {
@@ -192,7 +192,7 @@ UInt32 ScalarSensor::getParameterUInt32(const std::string &name, Int64 index) {
     return (UInt32)encoder_->getOutputWidth();
   }
   else {
-    return RegionImpl::getParameterReal64(name, index);
+    return RegionImpl::getParameterUInt32(name, index);
   }
 }
 

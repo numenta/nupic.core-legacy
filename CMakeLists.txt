@@ -26,15 +26,15 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 get_filename_component(REPOSITORY_DIR ${PROJECT_SOURCE_DIR} ABSOLUTE)
-
+set($ENV{NUPIC_CPP} ${REPOSITORY_DIR})
 
 #
 # Global NuPIC CMake options
 #
-option(USE_CPP11 "Force compiler to use C++11 standard." OFF)
-option(NEEDS_BOOST "Force compiler to install and use Boost." OFF)
-option(PYTHON2_BUILD "Toggle whether to build for Python2.7, default ON." OFF)
-option(PYTHON3_BUILD "Toggle whether to build for Python3.x, default ON." OFF)
+option(FORCE_CPP11 "Force compiler to use C++11 standard." OFF)
+option(FORCE_BOOST "Force compiler to install and use Boost." OFF)
+set(BINDING_BUILD "none" CACHE STRING "Specify the Binding to build 'Python2','Python3' or 'none', default 'none'." )
+# Note: by setting the CXX environment variable, a non-default c++ compiler can be specified.
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
@@ -44,17 +44,22 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
    set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install location" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-message(STATUS "CXX = $ENV{CXX}")
+message(STATUS "REPOSITORY_DIR       = ${REPOSITORY_DIR}")
+message(STATUS "CMAKE_BINARY_DIR     = ${CMAKE_BINARY_DIR}")
+message(STATUS "CMAKE_BUILD_TYPE     = ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "FORCE_CPP11          = ${FORCE_CPP11}")
+message(STATUS "FORCE_BOOST          = ${FORCE_BOOST}")
+message(STATUS "BINDING_BUILD        = ${BINDING_BUILD}")
+message(STATUS "Environment var CXX  = $ENV{CXX}")
+message("")
+
 # Determine common toolchain settings, compiler and link flags
 include(CommonCompilerConfig)
 
-message(STATUS "REPOSITORY_DIR       = ${REPOSITORY_DIR}")
 message(STATUS "CMAKE_CXX_COMPILER_ID= ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "CMAKE_CXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "CMAKE_C_COMPILER     = ${CMAKE_C_COMPILER}")
 message(STATUS "CMAKE_CXX_COMPILER   = ${CMAKE_CXX_COMPILER}")
-message(STATUS "CMAKE_BUILD_TYPE     = ${CMAKE_BUILD_TYPE}")
-message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "INTERNAL_CPP_STANDARD= ${INTERNAL_CPP_STANDARD}")
 message(STATUS "PLATFORM             = ${PLATFORM}")
 message(STATUS "BITNESS              = ${BITNESS}")
@@ -63,10 +68,6 @@ message(STATUS "INTERNAL_CXX_FLAGS   = ${INTERNAL_CXX_FLAGS}")
 message(STATUS "INTERNAL_LINKER_FLAGS= ${INTERNAL_LINKER_FLAGS}")
 message(STATUS "COMMON_COMPILER_DEFINITIONS_STR=${COMMON_COMPILER_DEFINITIONS_STR}")
 message(STATUS "COMMON_OS_LIBS       = ${COMMON_OS_LIBS}")
-message(STATUS "PYTHON2_BUILD        = ${PYTHON2_BUILD}")
-message(STATUS "PYTHON3_BUILD        = ${PYTHON3_BUILD}")
-
-
 
 # Set up builds of external dependencies and get their exports.
 # (see individual external/*.cmake modules for exported settings and functions)
@@ -76,6 +77,7 @@ include(external/bootstrap.cmake)
 set(core_library   nupic_core)
 add_subdirectory(src)
 
-if (PYTHON2_BUILD OR PYTHON3_BUILD)
+string(REGEX MATCH "Python" match ${BINDING_BUILD})
+if(match)
   add_subdirectory(bindings/py/cpp_src)
 endif()

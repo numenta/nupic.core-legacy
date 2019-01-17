@@ -104,28 +104,28 @@ bool checkCells4Attributes(const Cells4 &c1, const Cells4 &c2) {
 }
 
 TEST(Cells4Test, Serialization) {
-  Cells4 cells(10, 2, 1, 1, 1, 1, 0.5, 0.8, 1, 0.1, 0.1, 0, false, -1, true,
+  Cells4 cells(10, 2, 1, 1, 1, 1, 0.5f, 0.8f, 1, 0.1f, 0.1f, 0, false, -1, true,
                false);
-  std::vector<Real> input1(10, 0.0);
-  input1[1] = 1.0;
-  input1[4] = 1.0;
-  input1[5] = 1.0;
-  input1[9] = 1.0;
-  std::vector<Real> input2(10, 0.0);
-  input2[0] = 1.0;
-  input2[2] = 1.0;
-  input2[5] = 1.0;
-  input2[6] = 1.0;
-  std::vector<Real> input3(10, 0.0);
-  input3[1] = 1.0;
-  input3[3] = 1.0;
-  input3[6] = 1.0;
-  input3[7] = 1.0;
-  std::vector<Real> input4(10, 0.0);
-  input4[2] = 1.0;
-  input4[4] = 1.0;
-  input4[7] = 1.0;
-  input4[8] = 1.0;
+  std::vector<Real> input1(10, 0.0f);
+  input1[1] = 1.0f;
+  input1[4] = 1.0f;
+  input1[5] = 1.0f;
+  input1[9] = 1.0f;
+  std::vector<Real> input2(10, 0.0f);
+  input2[0] = 1.0f;
+  input2[2] = 1.0f;
+  input2[5] = 1.0f;
+  input2[6] = 1.0f;
+  std::vector<Real> input3(10, 0.0f);
+  input3[1] = 1.0f;
+  input3[3] = 1.0f;
+  input3[6] = 1.0f;
+  input3[7] = 1.0f;
+  std::vector<Real> input4(10, 0.0f);
+  input4[2] = 1.0f;
+  input4[4] = 1.0f;
+  input4[7] = 1.0f;
+  input4[8] = 1.0f;
   std::vector<Real> output(10 * 2);
   for (UInt i = 0; i < 10; ++i) {
     cells.compute(&input1.front(), &output.front(), true, true);
