@@ -43,34 +43,34 @@ void setupSampleConnections(Connections &connections) {
   // - 1 connected synapse: active
   // - 2 matching synapses
   const Segment segment1_1 = connections.createSegment(10);
-  connections.createSynapse(segment1_1, 150, 0.85);
-  connections.createSynapse(segment1_1, 151, 0.15);
+  connections.createSynapse(segment1_1, 150, 0.85f);
+  connections.createSynapse(segment1_1, 151, 0.15f);
 
   // Cell with 2 segments.
   // Segment with:
   // - 2 connected synapses: 2 active
   // - 3 matching synapses: 3 active
   const Segment segment2_1 = connections.createSegment(20);
-  connections.createSynapse(segment2_1, 80, 0.85);
-  connections.createSynapse(segment2_1, 81, 0.85);
-  Synapse synapse = connections.createSynapse(segment2_1, 82, 0.85);
-  connections.updateSynapsePermanence(synapse, 0.15);
+  connections.createSynapse(segment2_1, 80, 0.85f);
+  connections.createSynapse(segment2_1, 81, 0.85f);
+  Synapse synapse = connections.createSynapse(segment2_1, 82, 0.85f);
+  connections.updateSynapsePermanence(synapse, 0.15f);
 
   // Segment with:
   // - 2 connected synapses: 1 active, 1 inactive
   // - 3 matching synapses: 2 active, 1 inactive
   // - 1 non-matching synapse: 1 active
   const Segment segment2_2 = connections.createSegment(20);
-  connections.createSynapse(segment2_2, 50, 0.85);
-  connections.createSynapse(segment2_2, 51, 0.85);
-  connections.createSynapse(segment2_2, 52, 0.15);
-  connections.createSynapse(segment2_2, 53, 0.05);
+  connections.createSynapse(segment2_2, 50, 0.85f);
+  connections.createSynapse(segment2_2, 51, 0.85f);
+  connections.createSynapse(segment2_2, 52, 0.15f);
+  connections.createSynapse(segment2_2, 53, 0.05f);
 
   // Cell with one segment.
   // Segment with:
   // - 1 non-matching synapse: 1 active
   const Segment segment3_1 = connections.createSegment(30);
-  connections.createSynapse(segment3_1, 53, 0.05);
+  connections.createSynapse(segment3_1, 53, 0.05f);
 }
 
 void computeSampleActivity(Connections &connections) {
@@ -81,7 +81,7 @@ void computeSampleActivity(Connections &connections) {
   vector<UInt32> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
-                              numActivePotentialSynapsesForSegment, input, 0.5);
+                              numActivePotentialSynapsesForSegment, input, 0.5f);
 }
 
 /**
@@ -113,10 +113,10 @@ TEST(ConnectionsTest, testCreateSynapse) {
   UInt32 cell = 10;
   Segment segment = connections.createSegment(cell);
 
-  Synapse synapse1 = connections.createSynapse(segment, 50, 0.34);
+  Synapse synapse1 = connections.createSynapse(segment, 50, 0.34f);
   ASSERT_EQ(segment, connections.segmentForSynapse(synapse1));
 
-  Synapse synapse2 = connections.createSynapse(segment, 150, 0.48);
+  Synapse synapse2 = connections.createSynapse(segment, 150, 0.48f);
   ASSERT_EQ(segment, connections.segmentForSynapse(synapse2));
 
   vector<Synapse> synapses = connections.synapsesForSegment(segment);
@@ -146,9 +146,9 @@ TEST(ConnectionsTest, testDestroySegment) {
   /*      segment3*/ connections.createSegment(20);
   /*      segment4*/ connections.createSegment(30);
 
-  connections.createSynapse(segment2, 80, 0.85);
-  connections.createSynapse(segment2, 81, 0.85);
-  connections.createSynapse(segment2, 82, 0.15);
+  connections.createSynapse(segment2, 80, 0.85f);
+  connections.createSynapse(segment2, 81, 0.85f);
+  connections.createSynapse(segment2, 82, 0.15f);
 
   ASSERT_EQ(4ul, connections.numSegments());
   ASSERT_EQ(3ul, connections.numSynapses());
@@ -164,7 +164,7 @@ TEST(ConnectionsTest, testDestroySegment) {
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
-                              {80, 81, 82}, 0.5);
+                              {80, 81, 82}, 0.5f);
 
   ASSERT_EQ(0ul, numActiveConnectedSynapsesForSegment[segment2]);
   ASSERT_EQ(0ul, numActivePotentialSynapsesForSegment[segment2]);
@@ -178,9 +178,9 @@ TEST(ConnectionsTest, testDestroySynapse) {
   Connections connections(1024);
 
   Segment segment = connections.createSegment(20);
-  /*      synapse1*/ connections.createSynapse(segment, 80, 0.85);
-  Synapse synapse2 = connections.createSynapse(segment, 81, 0.85);
-  /*      synapse3*/ connections.createSynapse(segment, 82, 0.15);
+  /*      synapse1*/ connections.createSynapse(segment, 80, 0.85f);
+  Synapse synapse2 = connections.createSynapse(segment, 81, 0.85f);
+  /*      synapse3*/ connections.createSynapse(segment, 82, 0.15f);
 
   ASSERT_EQ(3ul, connections.numSynapses());
 
@@ -195,7 +195,7 @@ TEST(ConnectionsTest, testDestroySynapse) {
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
-                              {80, 81, 82}, 0.5);
+                              {80, 81, 82}, 0.5f);
 
   ASSERT_EQ(1ul, numActiveConnectedSynapsesForSegment[segment]);
   ASSERT_EQ(2ul, numActivePotentialSynapsesForSegment[segment]);
@@ -213,11 +213,11 @@ TEST(ConnectionsTest, PathsNotInvalidatedByOtherDestroys) {
   /*      segment2*/ connections.createSegment(12);
 
   Segment segment3 = connections.createSegment(13);
-  Synapse synapse1 = connections.createSynapse(segment3, 201, 0.85);
-  /*      synapse2*/ connections.createSynapse(segment3, 202, 0.85);
-  Synapse synapse3 = connections.createSynapse(segment3, 203, 0.85);
-  /*      synapse4*/ connections.createSynapse(segment3, 204, 0.85);
-  Synapse synapse5 = connections.createSynapse(segment3, 205, 0.85);
+  Synapse synapse1 = connections.createSynapse(segment3, 201, 0.85f);
+  /*      synapse2*/ connections.createSynapse(segment3, 202, 0.85f);
+  Synapse synapse3 = connections.createSynapse(segment3, 203, 0.85f);
+  /*      synapse4*/ connections.createSynapse(segment3, 204, 0.85f);
+  Synapse synapse5 = connections.createSynapse(segment3, 205, 0.85f);
 
   /*      segment4*/ connections.createSegment(14);
   Segment segment5 = connections.createSegment(15);
@@ -245,9 +245,9 @@ TEST(ConnectionsTest, DestroySegmentWithDestroyedSynapses) {
   Segment segment1 = connections.createSegment(11);
   Segment segment2 = connections.createSegment(12);
 
-  /*      synapse1_1*/ connections.createSynapse(segment1, 101, 0.85);
-  Synapse synapse2_1 = connections.createSynapse(segment2, 201, 0.85);
-  /*      synapse2_2*/ connections.createSynapse(segment2, 202, 0.85);
+  /*      synapse1_1*/ connections.createSynapse(segment1, 101, 0.85f);
+  Synapse synapse2_1 = connections.createSynapse(segment2, 201, 0.85f);
+  /*      synapse2_2*/ connections.createSynapse(segment2, 202, 0.85f);
 
   ASSERT_EQ(3ul, connections.numSynapses());
 
@@ -272,8 +272,8 @@ TEST(ConnectionsTest, ReuseSegmentWithDestroyedSynapses) {
 
   Segment segment = connections.createSegment(11);
 
-  Synapse synapse1 = connections.createSynapse(segment, 201, 0.85);
-  /*      synapse2*/ connections.createSynapse(segment, 202, 0.85);
+  Synapse synapse1 = connections.createSynapse(segment, 201, 0.85f);
+  /*      synapse2*/ connections.createSynapse(segment, 202, 0.85f);
 
   connections.destroySynapse(synapse1);
 
@@ -293,9 +293,9 @@ TEST(ConnectionsTest, ReuseSegmentWithDestroyedSynapses) {
 TEST(ConnectionsTest, testUpdateSynapsePermanence) {
   Connections connections(1024);
   Segment segment = connections.createSegment(10);
-  Synapse synapse = connections.createSynapse(segment, 50, 0.34);
+  Synapse synapse = connections.createSynapse(segment, 50, 0.34f);
 
-  connections.updateSynapsePermanence(synapse, 0.21);
+  connections.updateSynapsePermanence(synapse, 0.21f);
 
   SynapseData synapseData = connections.dataForSynapse(synapse);
   ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
@@ -305,7 +305,7 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)0.0f );
 
-  connections.updateSynapsePermanence(synapse, -EPSILON / 10.);
+  connections.updateSynapsePermanence(synapse, (Real)(-EPSILON / 10.0));
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)0.0f );
 
@@ -314,7 +314,7 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)1.0f );
 
-  connections.updateSynapsePermanence(synapse, 1.0f + EPSILON / 10.);
+  connections.updateSynapsePermanence(synapse, 1.0f + (Real)(EPSILON / 10.0));
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)1.0f );
 }
@@ -332,18 +332,18 @@ TEST(ConnectionsTest, testComputeActivity) {
   // - 1 connected synapse: active
   // - 2 matching synapses: active
   const Segment segment1_1 = connections.createSegment(10);
-  connections.createSynapse(segment1_1, 150, 0.85);
-  connections.createSynapse(segment1_1, 151, 0.15);
+  connections.createSynapse(segment1_1, 150, 0.85f);
+  connections.createSynapse(segment1_1, 151, 0.15f);
 
   // Cell with 1 segments.
   // Segment with:
   // - 2 connected synapses: 2 active
   // - 3 matching synapses: 3 active
   const Segment segment2_1 = connections.createSegment(20);
-  connections.createSynapse(segment2_1, 80, 0.85);
-  connections.createSynapse(segment2_1, 81, 0.85);
-  Synapse synapse = connections.createSynapse(segment2_1, 82, 0.85);
-  connections.updateSynapsePermanence(synapse, 0.15);
+  connections.createSynapse(segment2_1, 80, 0.85f);
+  connections.createSynapse(segment2_1, 81, 0.85f);
+  Synapse synapse = connections.createSynapse(segment2_1, 82, 0.85f);
+  connections.updateSynapsePermanence(synapse, 0.15f);
 
   vector<UInt32> input = {50, 52, 53, 80, 81, 82, 150, 151};
 
@@ -352,7 +352,7 @@ TEST(ConnectionsTest, testComputeActivity) {
   vector<UInt32> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
-                              numActivePotentialSynapsesForSegment, input, 0.5);
+                              numActivePotentialSynapsesForSegment, input, 0.5f);
 
   ASSERT_EQ(1ul, numActiveConnectedSynapsesForSegment[segment1_1]);
   ASSERT_EQ(2ul, numActivePotentialSynapsesForSegment[segment1_1]);
@@ -376,20 +376,20 @@ TEST(ConnectionsTest, testAdaptSynapses) {
                               {1, 0, 0, 0, 0, 0, 1, 0}};
 
   Real permanences[4][8] = {
-      {0.200, 0.120, 0.090, 0.060, 0.000, 0.000, 0.000, 0.000},
-      {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
-      {0.000, 0.000, 0.004, 0.000, 0.000, 0.000, 0.910, 0.000},
-      {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
+      {0.200f, 0.120f, 0.090f, 0.060f, 0.000f, 0.000f, 0.000f, 0.000f},
+      {0.150f, 0.000f, 0.000f, 0.000f, 0.180f, 0.120f, 0.000f, 0.450f},
+      {0.000f, 0.000f, 0.004f, 0.000f, 0.000f, 0.000f, 0.910f, 0.000f},
+      {0.070f, 0.000f, 0.000f, 0.000f, 0.000f, 0.000f, 0.178f, 0.000f}};
 
   Real truePerms[4][8] = {
-      {0.300, 0.110, 0.080, 0.160, 0.000, 0.000, 0.000, 0.000},
-      // Inc    Dec    Dec    Inc      -      -      -     -
-      {0.250, 0.000, 0.000, 0.000, 0.280, 0.110, 0.000, 0.440},
-      // Inc      -      -     -      Inc    Dec    -     Dec
-      {0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 1.000, 0.000},
-      //   -      -   Floor     -     -     -    Ceiling   -
-      {0.070, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000}};
-      //   -      -      -      -      -      -      -      -
+      {0.300f, 0.110f, 0.080f, 0.160f, 0.000f, 0.000f, 0.000f, 0.000f},
+      // Inc     Dec     Dec     Inc     -       -       -       -
+      {0.250f, 0.000f, 0.000f, 0.000f, 0.280f, 0.110f, 0.000f, 0.440f},
+      // Inc     -       -       -       Inc     Dec     -       Dec
+      {0.000f, 0.000f, 0.000f, 0.000f, 0.000f, 0.000f, 1.000f, 0.000f},
+      // -       -      Floor    -      -        -     Ceiling   -
+      {0.070f, 0.000f, 0.000f, 0.000f, 0.000f, 0.000f, 0.178f, 0.000f}};
+      // -       -       -       -       -       -       -       -
 
   for (UInt cell = 0; cell < numCells; cell++) {
     Segment seg = con.createSegment(cell);
@@ -403,7 +403,7 @@ TEST(ConnectionsTest, testAdaptSynapses) {
   activeSegments.assign({0, 1, 2});
 
   for(UInt seg : activeSegments)
-    con.adaptSegment(seg, input, .1, .01);
+    con.adaptSegment(seg, input, 0.1f, 0.01f);
 
   for (UInt cell = 0; cell < numCells; cell++) {
     vector<Real> perms( numInputs, 0.0f );
@@ -418,8 +418,8 @@ TEST(ConnectionsTest, testAdaptSynapses) {
 
 TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
   UInt stimulusThreshold = 3;
-  Real synPermConnected = 0.1;
-  Real synPermBelowStimulusInc = 0.01;
+  Real synPermConnected = 0.1f;
+  Real synPermBelowStimulusInc = 0.01f;
   UInt numInputs = 5;
   UInt numCells = 7;
   Connections con(numCells, synPermConnected);
@@ -428,22 +428,22 @@ TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
                              {1, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 1, 0, 0, 1},
                              {0, 1, 1, 1, 0}};
 
-  Real permArr[7][5] = {{0.0, 0.11, 0.095, 0.092, 0.01},
-                        {0.12, 0.15, 0.02, 0.12, 0.09},
-                        {0.51, 0.081, 0.025, 0.089, 0.31},
-                        {0.18, 0.0601, 0.11, 0.011, 0.03},
-                        {0.011, 0.011, 0.011, 0.011, 0.011},
-                        {0.12, 0.056, 0, 0, 0.078},
-                        {0, 0.061, 0.07, 0.14, 0}};
+  Real permArr[7][5] = {{0.000f, 0.110f,  0.095f, 0.092f, 0.010f},
+                        {0.120f, 0.150f,  0.020f, 0.120f, 0.090f},
+                        {0.510f, 0.081f,  0.025f, 0.089f, 0.310f},
+                        {0.180f, 0.0601f, 0.110f, 0.011f, 0.030f},
+                        {0.011f, 0.011f,  0.011f, 0.011f, 0.011f},
+                        {0.120f, 0.056f,  0.000f, 0.000f, 0.078f},
+                        {0.000f, 0.061f,  0.070f, 0.140f, 0.000f}};
 
   Real truePerm[7][5] = {
-      {0.01, 0.12, 0.105, 0.102, 0.02},    // incremented once
-      {0.12, 0.15, 0.02, 0.12, 0.09},      // no change
-      {0.53, 0.101, 0.045, 0.109, 0.33},   // increment twice
-      {0.22, 0.1001, 0.15, 0.051, 0.07},   // increment four times
-      {0.101, 0.101, 0.101, 0.101, 0.101}, // increment 9 times
-      {0.17, 0.106, 0, 0, 0.128},          // increment 5 times
-      {0, 0.101, 0.11, 0.18, 0}};          // increment 4 times
+      {0.010f, 0.120f, 0.105f, 0.102f, 0.020f},    // incremented once
+      {0.120f, 0.150f, 0.020f, 0.120f, 0.090f},    // no change
+      {0.530f, 0.101f, 0.045f, 0.109f, 0.330f},    // increment twice
+      {0.220f, 0.1001f,0.150f, 0.051f, 0.070f},    // increment four times
+      {0.101f, 0.101f, 0.101f, 0.101f, 0.101f},    // increment 9 times
+      {0.170f, 0.106f, 0.000f, 0.000f, 0.128f},    // increment 5 times
+      {0.000f, 0.101f, 0.110f, 0.180f, 0.000f}};   // increment 4 times
 
   for (UInt i = 0; i < numCells; i++) {
     // Setup this cell / segment / synapses.
@@ -477,20 +477,20 @@ TEST(ConnectionsTest, testBumpSegment) {
                              {1, 1, 1, 1, 1, 1, 1, 1}};
 
   Real permArr[5][8] = {
-      {0.200, 0.120, 0.090, 0.040, 0.000, 0.000, 0.000, 0.000},
-      {0.150, 0.000, 0.000, 0.000, 0.180, 0.120, 0.000, 0.450},
-      {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000},
-      {0.051, 0.000, 0.000, 0.000, 0.000, 0.000, 0.178, 0.000},
-      {0.100, 0.738, 0.085, 0.002, 0.052, 0.008, 0.208, 0.034}};
+      {0.200f, 0.120f, 0.090f, 0.040f, 0.000f, 0.000f, 0.000f, 0.000f},
+      {0.150f, 0.000f, 0.000f, 0.000f, 0.180f, 0.120f, 0.000f, 0.450f},
+      {0.000f, 0.000f, 0.074f, 0.000f, 0.062f, 0.054f, 0.110f, 0.000f},
+      {0.051f, 0.000f, 0.000f, 0.000f, 0.000f, 0.000f, 0.178f, 0.000f},
+      {0.100f, 0.738f, 0.085f, 0.002f, 0.052f, 0.008f, 0.208f, 0.034f}};
 
-  Real deltaArr[5] = {0.010, 0.750, 0.000, -0.001, -0.010};
+  Real deltaArr[5] = {0.010f, 0.750f, 0.000f, -0.001f, -0.010f};
 
   Real truePermArr[5][8] = {
-      {0.210, 0.130, 0.100, 0.050, 0.000, 0.000, 0.000, 0.000},
-      {0.900, 0.000, 0.000, 0.000, 0.930, 0.870, 0.000, 1.000},
-      {0.000, 0.000, 0.074, 0.000, 0.062, 0.054, 0.110, 0.000}, // unchanged
-      {0.050, 0.000, 0.000, 0.000, 0.000, 0.000, 0.177, 0.000},
-      {0.090, 0.728, 0.075, 0.000, 0.042, 0.000, 0.198, 0.024}};
+      {0.210f, 0.130f, 0.100f, 0.050f, 0.000f, 0.000f, 0.000f, 0.000f},
+      {0.900f, 0.000f, 0.000f, 0.000f, 0.930f, 0.870f, 0.000f, 1.000f},
+      {0.000f, 0.000f, 0.074f, 0.000f, 0.062f, 0.054f, 0.110f, 0.000f}, // unchanged
+      {0.050f, 0.000f, 0.000f, 0.000f, 0.000f, 0.000f, 0.177f, 0.000f},
+      {0.090f, 0.728f, 0.075f, 0.000f, 0.042f, 0.000f, 0.198f, 0.024f}};
 
   for (UInt seg = 0; seg < numSegments; seg++) {
     auto segment = con.createSegment(0);
@@ -579,7 +579,7 @@ TEST(ConnectionsTest, subscribe) {
   EXPECT_TRUE(handler->didCreateSynapse);
 
   ASSERT_FALSE(handler->didUpdateSynapsePermanence);
-  connections.updateSynapsePermanence(synapse, 0.60);
+  connections.updateSynapsePermanence(synapse, 0.60f);
   EXPECT_TRUE(handler->didUpdateSynapsePermanence);
 
   ASSERT_FALSE(handler->didDestroySynapse);

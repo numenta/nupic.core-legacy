@@ -36,7 +36,5 @@ namespace nupic {
  *   numeric_limits<double>::epsilon() == 2.22045e-16
  */
 static const nupic::Real32 Epsilon = nupic::Real(1e-6);
-
-}; // namespace nupic
-
-#endif // NTA_MATH_HPP
+}
+#endif

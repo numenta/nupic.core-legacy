@@ -153,7 +153,7 @@ inline const char *checkExtensions(const std::string &filename,
 std::string VectorFileSensor::executeCommand(const std::vector<std::string>& args, Int64 index)
 
 {
-  UInt32 argCount = args.size();
+  UInt32 argCount = (UInt32)args.size();
   // Get the first argument (command string)
   NTA_CHECK(argCount > 0) << "VectorFileSensor: No command name";
   string command = args[0];
@@ -515,7 +515,7 @@ Spec *VectorFileSensor::createSpec() {
 //--------------------------------------------------------------------------------
 UInt32 VectorFileSensor::getParameterUInt32(const std::string &name, Int64 index) {
   if (name == "vectorCount") {
-    return vectorFile_.vectorCount();
+    return (UInt32)vectorFile_.vectorCount();
   } else if (name == "position") {
     return curVector_ + 1;
   } else if (name == "repeatCount") {
@@ -523,7 +523,7 @@ UInt32 VectorFileSensor::getParameterUInt32(const std::string &name, Int64 index
   } else if (name == "activeOutputCount") {
     return activeOutputCount_;
   } else if (name == "maxOutputVectorCount") {
-    return vectorFile_.vectorCount() * repeatCount_;
+    return (UInt32)vectorFile_.vectorCount() * repeatCount_;
   } else if (name == "hasCategoryOut") {
     return (UInt32)hasCategoryOut_;
   } else if (name == "hasResetOut") {

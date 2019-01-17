@@ -360,7 +360,7 @@ void Link::compute() {
       if (::memcmp(srcBuf + i * typeSize, &ZERO_VALUE, typeSize)) {
         NTA_CHECK(destIdx < destLen) << "Link destination is too small. "
                                      << "It should be at least " << destIdx + 1;
-        destBuf[destIdx++] = i;
+        destBuf[destIdx++] = (UInt32)i;
       }
     }
     // update the variable length array size.

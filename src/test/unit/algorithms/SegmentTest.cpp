@@ -43,7 +43,7 @@ void setUpSegment(Segment &segment, vector<UInt> &inactiveSegmentIndices,
     srcCells.clear();
     srcCells.insert(i);
 
-    segment.addSynapses(srcCells, permanences[i], 0.5);
+    segment.addSynapses(srcCells, (Real)permanences[i], 0.5f);
 
     if (i < 5) {
       inactiveSegmentIndices.push_back(i);

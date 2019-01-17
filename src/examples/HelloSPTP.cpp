@@ -90,7 +90,7 @@ void run() {
     //Input
 //    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     tRng.start();
-    const Real r = rnd.getUInt32(100) - rnd.getUInt32(100)*rnd.getReal64(); //rnd from range -100..100 
+    const Real r = (Real)(rnd.getUInt32(100) - rnd.getUInt32(100)*rnd.getReal64()); //rnd from range -100..100 
     tRng.stop();
 
     //Encode
@@ -136,10 +136,10 @@ void run() {
       cout << "TP:\t" << tTP.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
 
-      const size_t timeTotal = tAll.getElapsed();
+      const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       #ifdef NDEBUG
-        const size_t CI_avg_time = 7*Timer::getSpeed(); //sec
+        const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
         NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
           "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
       #endif

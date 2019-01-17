@@ -100,7 +100,7 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
 
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
-  return timer.getElapsed();
+  return (float)timer.getElapsed();
 }
 
 float runSpatialPoolerTest(
@@ -158,7 +158,7 @@ float runSpatialPoolerTest(
   }
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
-  return timer.getElapsed();
+  return (float)timer.getElapsed();
 }
 
 

@@ -997,7 +997,7 @@ void BacktrackingTMCpp::printComputeEnd(Real *output, bool learn,
   } else if (cells4_->getVerbosity() >= 1) {
     out << "\nTM: learn:" << learn << "\n";
 
-    const auto outputnz = nonzero<Real>(output, nCells);
+    const auto outputnz = nonzero<Real>(output, (UInt)nCells);
     out << "\nTM: active outputs(" << outputnz[0] << ")\n";
     printActiveIndicesReal(output, false, out);
   }

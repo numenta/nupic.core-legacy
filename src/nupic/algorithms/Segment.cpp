@@ -55,7 +55,7 @@ void printSynapse(UInt srcCellIdx, UInt nCellsPerCol) {
 Segment::Segment(InSynapses _s, Real frequency, bool seqSegFlag,
                  Real permConnected, UInt iteration)
     : _totalActivations(1), _positiveActivations(1), _lastActiveIteration(0),
-      _lastPosDutyCycle(1.0 / iteration), _lastPosDutyCycleIteration(iteration),
+      _lastPosDutyCycle(1.0f / iteration), _lastPosDutyCycleIteration(iteration),
       _seqSegFlag(seqSegFlag), _frequency(frequency), _synapses(std::move(_s)),
       _nConnected(0) {
   for (UInt i = 0; i != _synapses.size(); ++i)

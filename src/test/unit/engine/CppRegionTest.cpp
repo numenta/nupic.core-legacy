@@ -138,8 +138,8 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
       std::cout << "" << std::endl;
     }
     // 4 nodes in r1 fan in to 1 node in r2
-    int row = node / 3;
-    int col = node - (row * 3);
+    int row = (int)node / 3;
+    int col = (int)node - (row * 3);
     EXPECT_EQ(r2NodeInput.size(), 8u);
     EXPECT_EQ(r2NodeInput[0], 0);
     EXPECT_EQ(r2NodeInput[2], 0);
@@ -225,8 +225,8 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
       std::cout << "" << std::endl;
     }
     // 4 nodes in r1 fan in to 1 node in r2
-    int row = node / 3;
-    int col = node - (row * 3);
+    int row = (int)node / 3;
+    int col = (int)node - (row * 3);
     EXPECT_EQ(r2NodeInput.size(), 8u);
     EXPECT_EQ(r2NodeInput[0], 0);
     EXPECT_EQ(r2NodeInput[2], 0);
@@ -291,17 +291,15 @@ Network helperRealmain() {
   std::cout << "Creating network..." << std::endl;
   Network n;
 
-  std::cout << "Region count is " << n.getRegions().getCount() << ""
-            << std::endl;
-
-  std::cout << "Adding a FDRNode region..." << std::endl;
+  size_t count = n.getRegions().getCount();
+  EXPECT_TRUE(count == 0);
   Region_Ptr_t level1 = n.addRegion("level1", "TestNode", "");
-
-  std::cout << "Region count is " << n.getRegions().getCount() << ""
-            << std::endl;
-  std::cout << "Node type: " << level1->getType() << "" << std::endl;
-  std::cout << "Nodespec is:\n"
-            << level1->getSpec()->toString() << "" << std::endl;
+  count = n.getRegions().getCount();
+  EXPECT_TRUE(count == 1);
+  std::string region_type = level1->getType();
+  EXPECT_STREQ(region_type.c_str(), "TestNode");
+  std::string ns = level1->getSpec()->toString();
+  EXPECT_GT(ns.length(), 20u); // make sure we got something.
 
   Int64 val;
   Real64 rval;
@@ -315,10 +313,8 @@ Network helperRealmain() {
 
   val = 20;
   level1->setParameterInt64(int64Param, val);
-  val = 0;
   val = level1->getParameterInt64(int64Param);
-  std::cout << "level1.int64Param = " << val << " after setting to 20"
-            << std::endl;
+  EXPECT_EQ(val, 20) << "Value for level1.int64Param not set to 20.";
 
   rval = 30.1;
   level1->setParameterReal64(real64Param, rval);
@@ -394,5 +390,45 @@ TEST(CppRegionTest, realmain) {
 }
 
 
+// TODO: This test was disabled mostly because we cannot do memLeak tests within gtest.
+TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixed, but catches error -> need to fix code
+  /*
+   * With an integer argument 'count', runs the same test N times
+   * and requires that memory use stay constant -- it can't
+   * grow by even one byte.
+   */
+  const size_t count = 8000;
+  MemoryMonitor m(count);
+  for (size_t i = 0; i < count; i++) {
+	//call main
+  Network n = helperRealmain();
+
+  //cannot use EXPECT_THROW in EXPECT_THROW
+  std::cout << "Setting dimensions of level1..." << std::endl;
+  Dimensions d;
+  d.push_back(4);
+  d.push_back(4);
+  Region_Ptr_t level1 = n.getRegion("level1");
+  level1->setDimensions(d);
+
+  std::cout << "Initializing again..." << std::endl;
+  n.initialize();
+  ASSERT_TRUE(NuPIC::isInitialized()) << "now must be initialized";
+
+  level1->compute();
+  helperCppInputOutputAccess(level1.get());
+	//end main
+
+      // testExceptionBug();
+      // testCppLinking("TestFanIn2","");
+      //NuPIC::shutdown();
+      // memory leak detection
+      // we check even prior to the initial tracking iteration, because the act
+      // of checking potentially modifies our memory usage
+      EXPECT_FALSE(m.hasMemoryLeaks());
+  }
+
+  std::cout << "--- ALL TESTS PASSED ---" << std::endl;
+}
 
 } //ns
