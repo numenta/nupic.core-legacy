@@ -52,11 +52,11 @@ namespace nupic_ext {
         {
             if (_alloc)
             {
-                (int)return _matrix.shape(0);
+                return (int)_matrix.shape(0);
             }
             else
             {
-                (int)return _bi.shape[0];
+                return (int)_bi.shape[0];
             }
         }
         int nCols() const

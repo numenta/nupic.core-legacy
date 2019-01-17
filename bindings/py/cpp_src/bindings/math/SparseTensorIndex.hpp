@@ -26,7 +26,7 @@
 /** @file 
  */
 
-
+#include <nupic/types/Types.hpp>
 #include <nupic/math/Index.hpp>
 #include <nupic/math/Domain.hpp>
 #include <nupic/math/SparseTensor.hpp>
@@ -107,7 +107,7 @@ public:
     index_[5] = n;
   }
 
-  PyBindTensorIndex(const TIV &i) : rank_((UInt32)i.size())
+  PyBindTensorIndex(const TIV &i) : rank_((nupic::UInt32)i.size())
   {
     if (rank_ > maxRank) {
       char errBuf[512];
@@ -164,7 +164,7 @@ public:
       rank_ = 0;
       throw std::runtime_error(errBuf);
     }
-    rank_ = (UInt32)i.size();
+    rank_ = (nupic::UInt32)i.size();
     std::copy(i.begin(), i.end(), index_);
     return *this;
   }
