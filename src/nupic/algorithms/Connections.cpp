@@ -667,3 +667,14 @@ bool Connections::operator==(const Connections &other) const {
 bool Connections::operator!=(const Connections &other) const {
   return !(*this == other);
 }
+
+void Connections::setConnectedThreshold(Permanence connectedThreshold) {
+  connectedThreshold_ = connectedThreshold - EPSILON;
+  for(const CellData &cell : cells_) {
+    for(const Segment &segment : cell.segments) {
+      for(const Synapse &synapse : segments_[segment].synapses ) {
+        updateSynapsePermanence( synapse, synapses_[synapse].permanence );
+      }
+    }
+  }
+}

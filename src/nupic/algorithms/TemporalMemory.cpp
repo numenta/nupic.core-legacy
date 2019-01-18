@@ -708,6 +708,7 @@ Permanence TemporalMemory::getConnectedPermanence() const {
 
 void TemporalMemory::setConnectedPermanence(Permanence connectedPermanence) {
   connectedPermanence_ = connectedPermanence;
+  connections.setConnectedThreshold( connectedPermanence_ );
 }
 
 UInt TemporalMemory::getMinThreshold() const { return minThreshold_; }

@@ -200,6 +200,11 @@ public:
   void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f);
 
   /**
+   * Update the synapses connected threshold.
+   */
+  void setConnectedThreshold(Permanence connectedThreshold);
+
+  /**
    * Creates a segment on the specified cell.
    *
    * @param cell Cell to create segment on.

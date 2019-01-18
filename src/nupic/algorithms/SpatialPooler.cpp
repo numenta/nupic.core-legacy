@@ -257,6 +257,7 @@ void SpatialPooler::setSynPermConnected(Real synPermConnected) {
   NTA_CHECK( synPermConnected > connections::minPermanence );
   NTA_CHECK( synPermConnected <= connections::maxPermanence );
   synPermConnected_ = synPermConnected;
+  connections_.setConnectedThreshold( synPermConnected_ );
 }
 
 Real SpatialPooler::getSynPermMax() const { return connections::maxPermanence; }
