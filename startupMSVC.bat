@@ -61,7 +61,7 @@ cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CON
   
 if exist "nupic_core.sln" (
     cmake --build . --target install --config "Release"
-    @echo
+    @echo " "
     @echo You can now start Visual Studio using solution file %NUPIC_BASE%\build\scripts\nupic_core.sln
     pause
 

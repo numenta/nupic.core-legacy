@@ -40,7 +40,7 @@ TEST(HelloRegionTest, demo) {
   Network net;
 
   // Add VectorFileSensor region to network
-  Region_Ptr_t region =
+  std::shared_ptr<Region> region =
       net.addRegion("region", "VectorFileSensor", "{activeOutputCount: 1}");
 
   // Set region dimensions
@@ -101,7 +101,7 @@ TEST(HelloRegionTest, demo) {
 //  EXPECT_EQ(net, net2);
 	//std::cout << "Loading complete. \n";
 
-  Region_Ptr_t region2 = net2.getRegion("region"); //TODO add more checks and asserts here
+  std::shared_ptr<Region> region2 = net2.getRegion("region"); //TODO add more checks and asserts here
   region2->executeCommand(loadFileArgs);
   ArrayRef outputArray2 = region2->getOutputData("dataOut");
   const Real64 *buffer2 = (const Real64 *)outputArray2.getBuffer();
