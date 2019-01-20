@@ -52,6 +52,9 @@ using namespace nupic;
 
 namespace nupic_ext
 {
+
+	typedef std::shared_ptr<Region> Region_Ptr_t;
+
     void init_Engine(py::module& m)
     {
         ///////////////////
@@ -236,7 +239,6 @@ namespace nupic_ext
         ///////////////////
 
         py::class_<Network> py_Network(m, "Network");
-		typedef std::make_shared<Region> Region_Ptr_t
 
         // constructors
         py_Network.def(py::init<>())
