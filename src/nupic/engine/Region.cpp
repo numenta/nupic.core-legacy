@@ -43,7 +43,10 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/NodeSet.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/types/BasicType.hpp>
+
 
 namespace nupic {
 
@@ -158,7 +161,7 @@ void Region::initialize() {
 }
 
 
-const Spec_Ptr_t& Region::getSpecFromType(const std::string &nodeType) {
+const std::shared_ptr<Spec>& Region::getSpecFromType(const std::string &nodeType) {
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   return factory.getSpec(nodeType);
 }
@@ -226,7 +229,7 @@ std::string Region::getLinkErrors() const {
 
   std::stringstream ss;
   for (const auto &elem : inputs_) {
-    const std::vector<Link_Ptr_t> &links = elem.second->getLinks();
+    const std::vector<std::shared_ptr<Link>> &links = elem.second->getLinks();
     for (const auto &link : links) {
       if ((link)->getSrcDimensions().isUnspecified() ||
           (link)->getDestDimensions().isUnspecified()) {
@@ -306,30 +309,8 @@ void Region::setDimensions(Dimensions &newDims) {
               << dims_.toString();
   }
 
-  // can only create the enabled node set after we know the number of dimensions
-  setupEnabledNodeSet();
 }
 
-void Region::setupEnabledNodeSet() {
-  NTA_CHECK(dims_.isValid());
-
-  if (enabledNodes_ != nullptr) {
-    delete enabledNodes_;
-  }
-
-  size_t nnodes = dims_.getCount();
-  enabledNodes_ = new NodeSet(nnodes);
-
-  enabledNodes_->allOn();
-}
-
-const NodeSet &Region::getEnabledNodes() const {
-  if (enabledNodes_ == nullptr) {
-    NTA_THROW << "Attempt to access enabled nodes set before region has been "
-                 "initialized";
-  }
-  return *enabledNodes_;
-}
 
 void Region::setDimensionInfo(const std::string &info) {
   dimensionInfo_ = info;
@@ -514,6 +495,166 @@ bool Region::operator==(const Region &o) const {
   }
 
   return true;
+}
+
+
+
+
+
+// Internal methods called by RegionImpl.
+
+Output *Region::getOutput(const std::string &name) const {
+  auto o = outputs_.find(name);
+  if (o == outputs_.end())
+    return nullptr;
+  return o->second;
+}
+
+Input *Region::getInput(const std::string &name) const {
+  auto i = inputs_.find(name);
+  if (i == inputs_.end())
+    return nullptr;
+  return i->second;
+}
+
+// Called by Network during serialization
+const std::map<std::string, Input *> &Region::getInputs() const {
+  return inputs_;
+}
+
+const std::map<std::string, Output *> &Region::getOutputs() const {
+  return outputs_;
+}
+
+
+ArrayRef Region::getOutputData(const std::string &outputName) const {
+  auto oi = outputs_.find(outputName);
+  if (oi == outputs_.end())
+    NTA_THROW << "getOutputData -- unknown output '" << outputName
+              << "' on region " << getName();
+
+  const Array& data = oi->second->getData();
+  // for later.     return data.ref();
+  ArrayRef ref(data.getType(), data.getBuffer(), data.getCount());
+  return ref;
+}
+
+ArrayRef Region::getInputData(const std::string &inputName) const {
+  auto ii = inputs_.find(inputName);
+  if (ii == inputs_.end())
+    NTA_THROW << "getInput -- unknown input '" << inputName << "' on region "
+              << getName();
+
+  const Array & data = ii->second->getData();
+  // for later.     return data.ref();
+  ArrayRef ref(data.getType(), data.getBuffer(), data.getCount());
+  return ref;
+}
+
+void Region::prepareInputs() {
+  // Ask each input to prepare itself
+  for (InputMap::const_iterator i = inputs_.begin(); i != inputs_.end(); i++) {
+    i->second->prepare();
+  }
+}
+
+
+// setParameter
+
+void Region::setParameterInt32(const std::string &name, Int32 value) {
+  impl_->setParameterInt32(name, (Int64)-1, value);
+}
+
+void Region::setParameterUInt32(const std::string &name, UInt32 value) {
+  impl_->setParameterUInt32(name, (Int64)-1, value);
+}
+
+void Region::setParameterInt64(const std::string &name, Int64 value) {
+  impl_->setParameterInt64(name, (Int64)-1, value);
+}
+
+void Region::setParameterUInt64(const std::string &name, UInt64 value) {
+  impl_->setParameterUInt64(name, (Int64)-1, value);
+}
+
+void Region::setParameterReal32(const std::string &name, Real32 value) {
+  impl_->setParameterReal32(name, (Int64)-1, value);
+}
+
+void Region::setParameterReal64(const std::string &name, Real64 value) {
+  impl_->setParameterReal64(name, (Int64)-1, value);
+}
+
+void Region::setParameterBool(const std::string &name, bool value) {
+  impl_->setParameterBool(name, (Int64)-1, value);
+}
+
+// getParameter
+
+Int32 Region::getParameterInt32(const std::string &name) const {
+  return impl_->getParameterInt32(name, (Int64)-1);
+}
+
+Int64 Region::getParameterInt64(const std::string &name) const {
+  return impl_->getParameterInt64(name, (Int64)-1);
+}
+
+UInt32 Region::getParameterUInt32(const std::string &name) const {
+  return impl_->getParameterUInt32(name, (Int64)-1);
+}
+
+UInt64 Region::getParameterUInt64(const std::string &name) const {
+  return impl_->getParameterUInt64(name, (Int64)-1);
+}
+
+Real32 Region::getParameterReal32(const std::string &name) const {
+  return impl_->getParameterReal32(name, (Int64)-1);
+}
+
+Real64 Region::getParameterReal64(const std::string &name) const {
+  return impl_->getParameterReal64(name, (Int64)-1);
+}
+
+bool Region::getParameterBool(const std::string &name) const {
+  return impl_->getParameterBool(name, (Int64)-1);
+}
+
+// array parameters
+
+void Region::getParameterArray(const std::string &name, Array &array) const {
+  size_t count = impl_->getParameterArrayCount(name, (Int64)(-1));
+  // Make sure we have a buffer to put the data in
+  if (array.getBuffer() != nullptr) {
+    // Buffer has already been allocated. Make sure it is big enough
+    if (array.getCount() > count)
+      NTA_THROW << "getParameterArray -- supplied buffer for parameter " << name
+                << " can hold " << array.getCount()
+                << " elements but parameter count is " << count;
+  } else {
+    array.allocateBuffer(count);
+  }
+
+  impl_->getParameterArray(name, (Int64)-1, array);
+}
+
+void Region::setParameterArray(const std::string &name, const Array &array) {
+  // We do not check the array size here because it would be
+  // expensive -- involving a check against the nodespec,
+  // and only usable in the rare case that the nodespec specified
+  // a fixed size. Instead, the implementation can check the size.
+  impl_->setParameterArray(name, (Int64)-1, array);
+}
+
+void Region::setParameterString(const std::string &name, const std::string &s) {
+  impl_->setParameterString(name, (Int64)-1, s);
+}
+
+std::string Region::getParameterString(const std::string &name) {
+  return impl_->getParameterString(name, (Int64)-1);
+}
+
+bool Region::isParameterShared(const std::string &name) const {
+  return impl_->isParameterShared(name);
 }
 
 } // namespace nupic

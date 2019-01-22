@@ -132,8 +132,6 @@ set(engine_files
     nupic/engine/RegionImpl.hpp
     nupic/engine/RegionImplFactory.cpp
     nupic/engine/RegionImplFactory.hpp
-    nupic/engine/RegionIo.cpp
-    nupic/engine/RegionParameters.cpp
     nupic/engine/RegisteredRegionImpl.hpp
     nupic/engine/RegisteredRegionImplCpp.hpp
     nupic/engine/Spec.cpp
@@ -178,7 +176,6 @@ set(ntypes_files
     nupic/ntypes/MemParser.cpp
     nupic/ntypes/MemParser.hpp
     nupic/ntypes/MemStream.hpp
-    nupic/ntypes/NodeSet.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
     nupic/ntypes/Sdr.hpp
@@ -223,7 +220,6 @@ set(types_files
     nupic/types/Exception.hpp
     nupic/types/Fraction.cpp
     nupic/types/Fraction.hpp
-    nupic/types/ptr_types.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
