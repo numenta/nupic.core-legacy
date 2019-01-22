@@ -336,26 +336,27 @@ std::set<UInt32> &Region::getPhases() { return phases_; }
 
 
 void Region::save(std::ostream &f) const {
-      f << "{\n";
-      f << "name: " << name_ << "\n";
-      f << "nodeType: " << type_ << "\n";
-	  f << "dimensions: [ " << dims_.size() << "\n";
-	  for (Size d : dims_) {
-	  	f << d << " ";
-	  }
-	  f << "]\n";
+  f << "{\n";
+  f << "name: " << name_ << "\n";
+  f << "nodeType: " << type_ << "\n";
+  f << "dimensions: [ " << dims_.size() << "\n";
+  for (Size d : dims_) {
+	  f << d << " ";
+  }
+  f << "]\n";
+  f << "dimensionInfo: " << dimensionInfo_ << "\n";
 
-      f << "phases: [ " << phases_.size() << "\n";
-      for (const auto &phases_phase : phases_) {
-        f << phases_phase << " ";
-      }
-      f << "]\n";
-      f << "RegionImpl:\n";
-      // Now serialize the RegionImpl plugin.
-      BundleIO bundle(&f);
-      impl_->serialize(bundle);
+  f << "phases: [ " << phases_.size() << "\n";
+  for (const auto &phases_phase : phases_) {
+      f << phases_phase << " ";
+  }
+  f << "]\n";
+  f << "RegionImpl:\n";
+  // Now serialize the RegionImpl plugin.
+  BundleIO bundle(&f);
+  impl_->serialize(bundle);
 
-      f << "}\n";
+  f << "}\n";
 }
 
 void Region::load(std::istream &f) {
@@ -363,7 +364,7 @@ void Region::load(std::istream &f) {
   std::string tag;
   Size count;
 
-  // Each region is a map -- extract the 4 values in the map
+  // Each region is a map -- extract the 5 values in the map
   f >> tag;
   NTA_CHECK(tag == "{") << "bad region entry (not a map)";
 
@@ -380,6 +381,7 @@ void Region::load(std::istream &f) {
   f.ignore(1);
   f.getline(bigbuffer, sizeof(bigbuffer));
   type_ = bigbuffer;
+
   // 3. dimensions
   f >> tag;
   NTA_CHECK(tag == "dimensions:");
@@ -394,8 +396,13 @@ void Region::load(std::istream &f) {
   }
   f >> tag;
   NTA_CHECK(tag == "]") << "Expecting end of a sequence.";
+  f >> tag;
+  NTA_CHECK(tag == "dimensionInfo:") << "Expecting dimensionInfo";
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  dimensionInfo_ = bigbuffer;
 
-  // 3. phases
+  // 4. phases
   f >> tag;
   NTA_CHECK(tag == "phases:");
   f >> tag;
@@ -411,7 +418,7 @@ void Region::load(std::istream &f) {
   f >> tag;
   NTA_CHECK(tag == "]") << "Expected end of sequence of phases.";
 
-  // 4. impl
+  // 5. impl
   f >> tag;
   NTA_CHECK(tag == "RegionImpl:") << "Expected beginning of RegionImpl.";
   f.ignore(1);
@@ -622,26 +629,10 @@ bool Region::getParameterBool(const std::string &name) const {
 // array parameters
 
 void Region::getParameterArray(const std::string &name, Array &array) const {
-  size_t count = impl_->getParameterArrayCount(name, (Int64)(-1));
-  // Make sure we have a buffer to put the data in
-  if (array.getBuffer() != nullptr) {
-    // Buffer has already been allocated. Make sure it is big enough
-    if (array.getCount() > count)
-      NTA_THROW << "getParameterArray -- supplied buffer for parameter " << name
-                << " can hold " << array.getCount()
-                << " elements but parameter count is " << count;
-  } else {
-    array.allocateBuffer(count);
-  }
-
   impl_->getParameterArray(name, (Int64)-1, array);
 }
 
 void Region::setParameterArray(const std::string &name, const Array &array) {
-  // We do not check the array size here because it would be
-  // expensive -- involving a check against the nodespec,
-  // and only usable in the rare case that the nodespec specified
-  // a fixed size. Instead, the implementation can check the size.
   impl_->setParameterArray(name, (Int64)-1, array);
 }
 

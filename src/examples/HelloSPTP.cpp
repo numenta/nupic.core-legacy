@@ -52,7 +52,7 @@ void run() {
 #ifdef NDEBUG
   const UInt EPOCHS = 5000; // number of iterations (calls to SP/TP compute() )
 #else
-  const UInt EPOCHS = 500; // make test faster in Debug
+  const UInt EPOCHS = 2; // make test faster in Debug
 #endif
 
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT

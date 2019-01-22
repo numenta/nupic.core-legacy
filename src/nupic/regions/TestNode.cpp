@@ -390,7 +390,7 @@ std::string TestNode::getParameterString(const std::string &name, Int64 index) {
 void TestNode::getParameterArray(const std::string &name, Int64 index, Array &array) {
   if (name == "int64ArrayParam") {
   	Array a(NTA_BasicType_Int64, &int64ArrayParam_[0], int64ArrayParam_.size());
-	array = a;
+	  array = a;
   }
   else if (name == "real32ArrayParam") {
   	Array a(NTA_BasicType_Real32, &real32ArrayParam_[0], real32ArrayParam_.size());

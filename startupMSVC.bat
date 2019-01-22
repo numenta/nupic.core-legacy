@@ -63,7 +63,8 @@ if exist "nupic_core.sln" (
     cmake --build . --target install --config "Release"
     @echo " "
     @echo You can now start Visual Studio using solution file %NUPIC_BASE%\build\scripts\nupic_core.sln
-    pause
+    @echo Press any key to start Visual Studio 
+    pause >nul
 
     rem // %NUPIC_BASE%\build\scripts\nupic_core.sln
     nupic_core.sln

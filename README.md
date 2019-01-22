@@ -110,7 +110,7 @@ After downloading the repository, do the following:
  * Double click build/scripts/nupic.cpp.sln -- This starts up Visual Studio
  * Select `Release` or `Debug` as the Solution Configuration. Solution Platform must remain at x64.
  * Build everything.  -- This will build the C++ library.
- * Right Click on the 'unit_tests' target and specify it as `Set as startup Project` so debugger will work.
+ * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
 
 
 ## Testing

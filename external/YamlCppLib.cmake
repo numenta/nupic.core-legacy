@@ -24,14 +24,17 @@
 if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
     set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
 else()
-    set(URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz)
+    #set(URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz)
+    set(REPO https://github.com/jbeder/yaml-cpp.git)
 endif()
 
 message(STATUS "Obtaining yaml-cpp")
 include(DownloadProject/DownloadProject.cmake)
 download_project(PROJ yaml-cpp
 	PREFIX ${EP_BASE}/yaml-cpp
-	URL ${URL}
+	#URL ${URL}
+	GIT_REPOSITORY ${REPO}
+	GIT_SHALLOW ON
 	UPDATE_DISCONNECTED 1
 	QUIET
 	)
