@@ -215,7 +215,7 @@ std::string VectorFileSensor::executeCommand(const std::vector<std::string>& arg
   }
 
   else if (command == "dump") {
-    nupic::Byte message[256];
+    char message[256];
     Size n = ::sprintf(message,
                        "VectorFileSensor isLabeled = %d repeatCount = %d "
                        "vectorCount = %d iterations = %d\n",

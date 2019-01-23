@@ -176,7 +176,7 @@ bool toIntListNoThrow(const std::string& s, std::vector<Int>& list,
  * @retval          std::shared_ptr containing the dynamically allocated mask
  *
  */
-std::shared_ptr<Byte> toByteArray(const std::string& s, Size bitCount);
+std::shared_ptr<char> toByteArray(const std::string& s, Size bitCount);
 
 
   /**

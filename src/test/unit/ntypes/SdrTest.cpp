@@ -152,7 +152,7 @@ TEST(SdrTest, TestSetDenseUInt) {
     auto vec = vector<UInt>(a.size, 1);
     a.setDense( (UInt*) vec.data() );
     ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 1) );
-    ASSERT_NE( a.getDense().data(), (const char*) vec.data()); // true copy not a reference
+    ASSERT_NE( a.getDense().data(), (const Byte*) vec.data()); // true copy not a reference
 }
 
 TEST(SdrTest, TestSetDenseArray) {

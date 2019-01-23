@@ -44,7 +44,7 @@ namespace nupic {
 /**
  * Represents a 8-bit byte.
  */
-typedef char Byte;
+typedef int8_t Byte;
 
 /**
  * Represents a 16-bit signed integer.
