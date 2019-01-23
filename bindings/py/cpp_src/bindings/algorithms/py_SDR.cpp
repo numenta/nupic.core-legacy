@@ -47,14 +47,13 @@ namespace nupic_ext
         // TODO: Reshape dense to correct dimensions!
         py_SDR.def_property("dense",
             [](SDR &self) {
-                auto capsule = py::capsule(&self, [](void *v) {});
+                auto capsule = py::capsule(&self, [](void *self) {});
                 return py::array(self.size, self.getDense().data(), capsule);
             },
-            [](SDR &self, py::array_t<Byte>) {
-                py::print("HELLO SETTER");
-
+            [](SDR &self, SDR_dense_t data) {
+                // TODO: CHECK DATA SIZE & DIMS VALID!
+                self.setDense( data );
             }
-
         );
 
         // getters setters for sparse, index
