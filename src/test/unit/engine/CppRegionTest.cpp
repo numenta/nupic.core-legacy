@@ -136,7 +136,7 @@ void helperCppInputOutputAccess(Region *level1) {
 
 
 TEST(CppRegionTest, testCppLinkingFanIn) {
-  Network net = Network();
+  Network net;
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
@@ -223,7 +223,7 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
 
 
 TEST(CppRegionTest, testCppLinkingUniformLink) {
-  Network net = Network();
+  Network net;
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
@@ -314,7 +314,7 @@ TEST(CppRegionTest, testYAML) {
   //  badparams contains a non-existent parameter
   const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
-  Network net = Network();
+  Network net;
   std::shared_ptr<Region> level1;
   EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
