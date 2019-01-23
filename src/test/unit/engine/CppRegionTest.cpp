@@ -385,7 +385,7 @@ void helperRealmain(Network& n) {
   // Array a is not allocated by us. Will be allocated inside getParameter
   Array a(NTA_BasicType_Int64);
   level1->getParameterArray("int64ArrayParam", a);
-  EXPECT_EQ(a.getCount(), 4) << "size set in initializer of TestNode is 4";
+  EXPECT_EQ(a.getCount(), 4u) << "size set in initializer of TestNode is 4";
   Int64 expected1[4] = { 0, 64, 128, 192 };
   Int64 *buff = (Int64 *)a.getBuffer();
   for (size_t i = 0; i < std::max<size_t>(a.getCount(), 4u); ++i)
@@ -404,7 +404,7 @@ void helperRealmain(Network& n) {
   // want, but the buffer should be reused if we just pass it again.
   // a.releaseBuffer();
   level1->getParameterArray("int64ArrayParam", a);
-  EXPECT_EQ(a.getCount(), 5) << "set size of TestNode::int64ArrayParam is 5";
+  EXPECT_EQ(a.getCount(), 5u) << "set size of TestNode::int64ArrayParam is 5";
   buff = (Int64 *)a.getBuffer();
   for (size_t i = 0; i < std::max<size_t>(a.getCount(), 5u); ++i)
     EXPECT_EQ(buff[i], v[i]) << "Invalid value for index " << i;
@@ -481,13 +481,6 @@ TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixe
       EXPECT_FALSE(m.hasMemoryLeaks());
   }
 
-}
-
-TEST(CppRegionTest, ending) {
-  // This is not really a test.  Its just a place to put the breakpoint
-  // after all tests in this set have completed. Had a problem with realmain
-  // corupting the stack.
-  std::cout << "--- CppRegionTest Completed ---" << std::endl;
 }
 
 } //ns
