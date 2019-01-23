@@ -97,6 +97,9 @@ install:
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
+  - python -m pip install --user --upgrade pip setuptools setuptools-scm
+  - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
+
 
   - cd %NUPIC_CORE%
   - mkdir %NUPIC_CORE%\build\
