@@ -72,6 +72,7 @@ environment:
       PYTHON_VERSION: "3.6.6"
       PYTHON_ARCH: "64"
       PYTHONHOME: "C:\\Python36-x64"
+      #PYTHONHOME: "C:\\Users\\appveyor\\AppData\\Roaming\\Python\\Python36"
       PYTHONPATH: "%PYTHONHOME%"
       PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
       wheel_name_suffix: "win_amd64"
