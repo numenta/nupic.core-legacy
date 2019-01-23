@@ -25,6 +25,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <string>
 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
@@ -44,11 +45,11 @@ TEST(HelloRegionTest, demo) {
   std::string path = Path::join("TestOutputDir", "Data.csv");
 
   // enter some arbitrary test data.
-  std::vector<std::vector<Real32>> testdata = {{0, 1.5f, 2.5f}, 
-                                               {1, 1.5f, 2.5f}, 
+  std::vector<std::vector<Real32>> testdata = {{0, 1.5f, 2.5f},
+                                               {1, 1.5f, 2.5f},
                                                {2, 1.5f, 2.5f},
                                                {3, 1.5f, 2.5f}};
-  size_t data_rows = testdata.size(); 
+  size_t data_rows = testdata.size();
   size_t data_cols = testdata[0].size();
   std::ofstream f(path);
   for (auto row : testdata) {
@@ -63,8 +64,8 @@ TEST(HelloRegionTest, demo) {
   // Create network
   Network net;
 
-  char params[100];
-  sprintf_s(params, sizeof(params), "{activeOutputCount: %zd}", data_cols);
+
+  std::string params = "{activeOutputCount: "+std::to_string(data_cols)+"}";
 
   // Add VectorFileSensor region to network
   std::shared_ptr<Region> region =
@@ -112,7 +113,7 @@ TEST(HelloRegionTest, demo) {
   }
   EXPECT_EQ(net, net2) << "Restored network should be the same as original.";
 
-  std::shared_ptr<Region> region2 = net2.getRegion("region"); 
+  std::shared_ptr<Region> region2 = net2.getRegion("region");
   ArrayRef outputArray2 = region2->getOutputData("dataOut");
 
   // fetch the data rows for both networks.
@@ -127,7 +128,7 @@ TEST(HelloRegionTest, demo) {
     EXPECT_NEAR(buffer[i], testdata[data_rows -1][i], 0.001);
 	  EXPECT_NEAR(buffer[i], buffer2[i], 0.001);
 	  std::cout << "testdata=" << testdata[data_rows -1][i]
-              << ", buffer=" << buffer[i] 
+              << ", buffer=" << buffer[i]
               << ", buffer2=" << buffer2[i] << std::endl;
   }
 

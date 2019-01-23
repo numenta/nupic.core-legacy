@@ -342,10 +342,6 @@ install(TARGETS
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic)
 
-# install Data.csv for a test
-install(FILES "${PROJECT_SOURCE_DIR}/test/unit/engine/Data.csv"
-        DESTINATION "data/")
-
 install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 	  MESSAGE_NEVER
 	  FILES_MATCHING PATTERN "nupic/*/*.h*"
