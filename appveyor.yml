@@ -69,11 +69,12 @@ environment:
 
     # Win64-Visual Studio
     - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
-      PYTHON_VERSION: "3.7"
+      PYTHON_VERSION: "3.7.1"
       PYTHON_ARCH: "64"
       PYTHONHOME: "C:\\Python37-x64"
       PYTHONPATH: "%PYTHONHOME%"
-      PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
+      FORTRANPATH: "C:\\mingw-w64\\x86_64-7.2.0-posix-seh-rt_v5-rev1\\bin"
+      PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%;%FORTRANPATH%"
       wheel_name_suffix: "win_amd64"
 
 matrix:
