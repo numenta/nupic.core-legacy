@@ -1,8 +1,7 @@
 #---------------------------------#
 #      general configuration      #
 #---------------------------------#
-image:
-- Visual Studio 2017
+image: Visual Studio 2017
 configuration: Release
 platform: x64
 
@@ -32,7 +31,7 @@ skip_commits:
 init:
   - git config --global core.autocrlf input
 
-clone_folder: c:\projects\nupic-core
+clone_folder: c:\projects\nupic-cpp
 clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
@@ -41,7 +40,7 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: MSVC
-  NUPIC_CORE: "C:\\projects\\nupic-core"
+  NUPIC_CORE: "C:\\projects\\nupic-cpp"
   ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
 
 ## AWS S3 support (pip install boto)
@@ -60,24 +59,25 @@ environment:
 #      external_static_subdir: "windows64-gcc"
 #      wheel_name_suffix: "win_amd64"
 
-    # Win32-gcc
-#    - PYTHON_VERSION: "2.7.9"
+#    # Win32-gcc
+#    - NC_CMAKE_GENERATOR: "MinGW Makefiles"
+#      PYTHON_VERSION: "2.7.9"
 #      PYTHON_ARCH: "32"
 #      PYTHONHOME: "C:\\Python27"
-#      NC_CMAKE_GENERATOR: "MinGW Makefiles"
 #      external_static_subdir: "windows32-gcc"
 #      wheel_name_suffix: "win32"
 
     # Win64-Visual Studio
-    - PYTHON_VERSION: "2.7.9"
+    - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+      PYTHON_VERSION: "3.7"
       PYTHON_ARCH: "64"
-      PYTHONHOME: "C:\\Python27-x64"
+      PYTHONHOME: "C:\\Python37-x64"
       PYTHONPATH: "%PYTHONHOME%"
       PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
-      NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
       wheel_name_suffix: "win_amd64"
 
 matrix:
+  #fast_finish: true
   allow_failures:
     # Checking if Visual Studio build is possible
     - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
@@ -120,7 +120,7 @@ after_build:
   # Run unit_tests (C++)
   - cd %NUPIC_CORE%
   - mkdir %ARTIFACTS_DIR%
-  - cd %NUPIC_CORE%\build\release\bin
+  - cd %NUPIC_CORE%\build\Release\bin
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests
