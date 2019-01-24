@@ -140,7 +140,7 @@ void run() {
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       #ifdef NDEBUG
 	    #ifdef _MSC_VER
-          const size_t CI_avg_time = (size_t)floor(12*Timer::getSpeed()); //sec
+          const size_t CI_avg_time = (size_t)floor(14*Timer::getSpeed()); //sec
 		#else
           const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
 		#endif
