@@ -99,7 +99,7 @@ install:
   - echo Binding version = %BINDINGS_VERSION%
 
   - python -m pip install --user --upgrade pip setuptools setuptools-scm
-  - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
+  - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
 
   - cd %NUPIC_CORE%
@@ -137,7 +137,7 @@ test: off
 
 artifacts:
   # Non-recursive search in build folder for Wheels
-  - path: '*.whl'
+#  - path: '*.whl'
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt
