@@ -139,7 +139,7 @@ void run() {
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       #ifdef NDEBUG
-	    #ifdef NTA_COMPILER_MSVC
+	    #ifdef _MSC_VER
           const size_t CI_avg_time = (size_t)floor(9*Timer::getSpeed()); //sec
 		#else
           const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
