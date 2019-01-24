@@ -44,7 +44,8 @@ namespace nupic_ext
         py_SDR.def("zero", &SDR::zero);
 
 
-        // TODO: Reshape dense to correct dimensions!
+        // TODO: Reshape dense to correct dimensions!  This eliminates the need
+        // for the "at" method since numpy can then do that just fine.
         py_SDR.def_property("dense",
             [](SDR &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
@@ -56,7 +57,34 @@ namespace nupic_ext
             }
         );
 
-        // getters setters for sparse, index
+        py_SDR.def("setDenseInplace", [](SDR &self) {
+            self.setDense( self.getDense() );
+        });
+
+        py_SDR.def_property("flatSparse",
+            [](SDR &self) {
+                auto capsule = py::capsule(&self, [](void *self) {});
+                return py::array(self.getSum(), self.getFlatSparse().data(), capsule);
+            },
+            [](SDR &self, SDR_flatSparse_t data) {
+                self.setFlatSparse( data );
+            }
+        );
+
+        py_SDR.def_property("sparse",
+            [](SDR &self) {
+                auto capsule = py::capsule(&self, [](void *self) {});
+                auto outer = py::list(capsule);
+                for(auto dim = 0u; dim < self.dimensions.size(); dim++) {
+                    auto vec = py::array(self.getSum(), self.getFlatSparse().data(), capsule);
+                    outer.append(vec);
+                }
+                return outer;
+            },
+            [](SDR &self, SDR_sparse_t data) {
+                self.setSparse( data );
+            }
+        );
 
         py_SDR.def("getSum",      &SDR::getSum);
         py_SDR.def("getSparsity", &SDR::getSparsity);
