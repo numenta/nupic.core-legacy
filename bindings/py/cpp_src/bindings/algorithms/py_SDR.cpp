@@ -1,4 +1,22 @@
-// TODO: LICENSE & COPYRIGHT
+/* ----------------------------------------------------------------------
+ * Numenta Platform for Intelligent Computing (NuPIC)
+ * Copyright (C) 2019, David McDougall
+ * The following terms and conditions apply:
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero Public License version 3 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses.
+ *
+ * http://numenta.org/licenses/
+ * ---------------------------------------------------------------------- */
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
@@ -41,16 +59,18 @@ namespace nupic_ext
 
         py_SDR.def("zero", &SDR::zero);
 
-
-        // TODO: Reshape dense to correct dimensions!  This eliminates the need
-        // for the "at" method since numpy can then do that just fine.
         py_SDR.def_property("dense",
             [](SDR &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
-                return py::array(self.size, self.getDense().data(), capsule);
+                vector<UInt> strides( self.dimensions.size(), 0u );
+                uint z = sizeof(Byte);
+                for(int i = self.dimensions.size() - 1; i >= 0; --i) {
+                    strides[i] = z;
+                    z *= self.dimensions[i];
+                }
+                return py::array(self.dimensions, strides, self.getDense().data(), capsule);
             },
             [](SDR &self, SDR_dense_t data) {
-                // TODO: CHECK DATA SIZE & DIMS VALID!
                 self.setDense( data );
             }
         );
@@ -72,7 +92,7 @@ namespace nupic_ext
         py_SDR.def_property("sparse",
             [](SDR &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
-                auto outer = py::list(capsule);
+                auto outer = py::list();
                 for(auto dim = 0u; dim < self.dimensions.size(); dim++) {
                     auto vec = py::array(self.getSum(), self.getFlatSparse().data(), capsule);
                     outer.append(vec);
@@ -89,17 +109,20 @@ namespace nupic_ext
         py_SDR.def("getSparsity", &SDR::getSparsity);
         py_SDR.def("overlap",     &SDR::overlap);
 
-        // TODO: DEFAULT ARGUMENT FOR SEED = 0!
-        py_SDR.def("randomize", [](SDR &self, Real sparsity, UInt seed = 0){
+        py_SDR.def("randomize",
+            [](SDR &self, Real sparsity, UInt seed){
             Random rng( seed );
             self.randomize( sparsity, rng );
-        });
+        },
+            py::arg("sparsity"),
+            py::arg("seed") = 0u);
 
-        // TODO: DEFAULT ARGUMENT FOR SEED = 0!
         py_SDR.def("addNoise", [](SDR &self, Real fractionNoise, UInt seed = 0){
             Random rng( seed );
             self.addNoise( fractionNoise, rng );
-        });
+        },
+            py::arg("sparsity"),
+            py::arg("seed") = 0u);
 
         py_SDR.def("__str__", [](SDR &self){
             stringstream buf;
