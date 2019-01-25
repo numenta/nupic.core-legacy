@@ -70,6 +70,12 @@ public:
   Network(const std::string& filename);
 
   /**
+   * Cannot copy or assign a Network object.
+   */
+  Network(const Network&) = delete;
+  void operator=(const Network&) = delete;
+
+  /**
    * Destructor.
    *
    * Destruct the network and unregister it from NuPIC:
@@ -95,39 +101,39 @@ public:
   /**
    * @}
    *
-     * @name Internal Serialization methods
-     * @{
-     */
-    /**
-     *    saveToFile(path)
-     *    save(ostream f)
-     *    f << net;
-     *          serialize everything into one stream.  This can be
-     *          opened to a file or a memory stream but must be binary.
-     *
-     *    loadFromFile(path)
-     *    load(istream f)
-     *    f >> net;
-     *          restores the streamed Network and all its parts back to
-     *          what it was before being serialized.
-     *
-     * @path The filename into which to save/load the streamed serialization.
-     * @f    The stream with which to save/load the serialization.
-     *
+   * @name Internal Serialization methods
+   * @{
+   */
+  /**
+   *    saveToFile(path)
+   *    save(ostream f)
+   *    f << net;
+   *          serialize everything into one stream.  This can be
+   *          opened to a file or a memory stream but must be binary.
+   *
+   *    loadFromFile(path)
+   *    load(istream f)
+   *    f >> net;
+   *          restores the streamed Network and all its parts back to
+   *          what it was before being serialized.
+   *
+   * @path The filename into which to save/load the streamed serialization.
+   * @f    The stream with which to save/load the serialization.
+   *
 	 * See Serializable base class for definitions.
 	 */
-    virtual void save(std::ostream &f) const override;
-    virtual void load(std::istream &stream)  override;
-	virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
-    virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
+  virtual void save(std::ostream &f) const override;
+  virtual void load(std::istream &stream)  override;
+  virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+  virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
-    /**
-     * @}
-     *
-     * @name Region and Link operations
-     *
-     * @{
-     */
+  /**
+   * @}
+   *
+   * @name Region and Link operations
+   *
+   * @{
+   */
 
   /**
    * Create a new region in a network.

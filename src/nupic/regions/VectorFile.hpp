@@ -77,7 +77,7 @@ public:
   /// Return the number of stored vectors
   size_t vectorCount() const { return fileVectors_.size(); }
 
-  /// Return the size of each vevtor (number of elements per vector)
+  /// Return the size of each vector (number of elements per vector)
   size_t getElementCount() const;
 
   /// Set the scale and offset vectors to correspond to standard form
@@ -122,14 +122,16 @@ public:
   void saveVectors(std::ostream &out, Size nColumns, UInt32 fileFormat,
                    Int64 begin, Int64 end, const char *lineEndings = nullptr);
 
+  void save(std::ostream &f);
+  void load(std::istream &f);
+
 private:
   std::vector<Real *> fileVectors_; // list of vectors
   std::vector<bool> own_;           // memory ownership flags
   std::vector<Real> scaleVector_;   // the scaling vector
   std::vector<Real> offsetVector_;  // the offset vector
 
-  std::vector<std::string>
-      elementLabels_; // string denoting the meaning of each element
+  std::vector<std::string> elementLabels_; // string denoting the meaning of each element
   std::vector<std::string> vectorLabels_; // a string label for each vector
 
   //------------------- Utility routines
@@ -142,7 +144,7 @@ private:
   /// Read vectors from a binary IDX file.
   void appendIDXFile(const std::string &filename, int expectedElements,
                      bool bigEndian);
-
+  void loadVectors(std::istream &f, size_t nRows, size_t nCols, int format);
 }; // end class VectorFile
 
 //----------------------------------------------------------------------

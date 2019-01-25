@@ -287,16 +287,33 @@ VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) {
 
 void VectorFileSensor::serialize(BundleIO &bundle) {
   std::ostream & f = bundle.getOutputStream();
-  f << repeatCount_ << " " << activeOutputCount_ << " "
+  f << repeatCount_ << " " << activeOutputCount_ << " " << curVector_ << " "
+    << iterations_ << " " << hasCategoryOut_ << " " << hasResetOut_ << " "
     << ((filename_ == "")?std::string("empty"):filename_) << " "
-    << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " ";
+    << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " "
+    << ((recentFile_ == "")?std::string("empty"):recentFile_) << std::endl;
+  f << "[" << std::endl;
+  vectorFile_.save(f);
+  f << "]" << std::endl;
+  f.flush();
 }
 
 void VectorFileSensor::deserialize(BundleIO &bundle) {
   std::istream& f = bundle.getInputStream();
-  f >> repeatCount_ >> activeOutputCount_ >> filename_ >> scalingMode_;
+  std::string tag;
+  f >> repeatCount_ >> activeOutputCount_ >> curVector_ >> iterations_ >>
+      hasCategoryOut_ >> hasResetOut_;
+  f >>  filename_ >> scalingMode_ >> recentFile_;
   if (filename_ == "empty") filename_ = "";
   if (scalingMode_ == "empty") scalingMode_ = "";
+  if (recentFile_ == "empty") recentFile_ = "";
+  f >> tag;
+  NTA_CHECK(tag == "[");
+  f.ignore(1);
+  vectorFile_.load(f);
+  f >> tag;
+  NTA_CHECK(tag == "]") << "Expected the end of vectorFile.load";
+  f.ignore(1);
 }
 
 
