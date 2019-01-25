@@ -30,7 +30,6 @@ namespace py = pybind11;
 
 using namespace nupic;
 
-// TODO: docstrings everywhere!
 namespace nupic_ext
 {
     void init_SDR(py::module& m)
@@ -39,25 +38,28 @@ namespace nupic_ext
 
         py_SDR.def(
             py::init<vector<UInt>>(),
-            py::arg("inputDimensions")
+            "TODO: DOCSTRING",
+            py::arg("dimensions")
         );
 
         py_SDR.def(
             py::init<SDR>(),
-            py::arg("deepCopy")
+            "TODO: DOCSTRING",
+            py::arg("sdr")
         );
-
-        // TODO: Deconstruct
 
         py_SDR.def_property_readonly("dimensions",
             [](const SDR &self) {
-                return self.dimensions; });
+                return self.dimensions; },
+            "TODO: DOCSTRING");
 
         py_SDR.def_property_readonly("size",
             [](const SDR &self) {
-                return self.size; });
+                return self.size; },
+            "TODO: DOCSTRING");
 
-        py_SDR.def("zero", &SDR::zero);
+        py_SDR.def("zero", &SDR::zero,
+            "TODO: DOCSTRING");
 
         py_SDR.def_property("dense",
             [](SDR &self) {
@@ -72,12 +74,13 @@ namespace nupic_ext
             },
             [](SDR &self, SDR_dense_t data) {
                 self.setDense( data );
-            }
+            },
+            "TODO: DOCSTRING"
         );
 
-        py_SDR.def("setDenseInplace", [](SDR &self) {
-            self.setDense( self.getDense() );
-        });
+        py_SDR.def("setDenseInplace", [](SDR &self)
+            { self.setDense( self.getDense() ); },
+            "TODO: DOCSTRING");
 
         py_SDR.def_property("flatSparse",
             [](SDR &self) {
@@ -86,7 +89,8 @@ namespace nupic_ext
             },
             [](SDR &self, SDR_flatSparse_t data) {
                 self.setFlatSparse( data );
-            }
+            },
+            "TODO: DOCSTRING"
         );
 
         py_SDR.def_property("sparse",
@@ -101,19 +105,28 @@ namespace nupic_ext
             },
             [](SDR &self, SDR_sparse_t data) {
                 self.setSparse( data );
-            }
+            },
+            "TODO: DOCSTRING"
         );
 
-        py_SDR.def("setSDR",      &SDR::setSDR);
-        py_SDR.def("getSum",      &SDR::getSum);
-        py_SDR.def("getSparsity", &SDR::getSparsity);
-        py_SDR.def("overlap",     &SDR::overlap);
+        py_SDR.def("setSDR", &SDR::setSDR,
+            "TODO: DOCSTRING");
+
+        py_SDR.def("getSum", &SDR::getSum,
+            "TODO: DOCSTRING");
+
+        py_SDR.def("getSparsity", &SDR::getSparsity,
+            "TODO: DOCSTRING");
+
+        py_SDR.def("getOverlap", &SDR::getOverlap,
+            "TODO: DOCSTRING");
 
         py_SDR.def("randomize",
             [](SDR &self, Real sparsity, UInt seed){
             Random rng( seed );
             self.randomize( sparsity, rng );
         },
+            "TODO: DOCSTRING",
             py::arg("sparsity"),
             py::arg("seed") = 0u);
 
@@ -121,6 +134,7 @@ namespace nupic_ext
             Random rng( seed );
             self.addNoise( fractionNoise, rng );
         },
+            "TODO: DOCSTRING",
             py::arg("sparsity"),
             py::arg("seed") = 0u);
 

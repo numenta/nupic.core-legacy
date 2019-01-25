@@ -641,7 +641,7 @@ public:
      * @returns Integer, the number of true values which both SDRs have in
      * common.
      */
-    UInt overlap(SparseDistributedRepresentation &sdr) {
+    UInt getOverlap(SparseDistributedRepresentation &sdr) {
         #ifdef NTA_ASSERTIONS_ON
             NTA_ASSERT( dimensions.size() == sdr.dimensions.size() );
             for( UInt i = 0u; i < dimensions.size(); i++ )

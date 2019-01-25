@@ -328,7 +328,7 @@ private:
     void callback(SDR &dataSource, Real alpha) override {
         const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
         const auto overlap = (nbits == 0u) ? 0.0f
-                               : (Real) previous_.overlap( dataSource ) / nbits;
+                               : (Real) previous_.getOverlap( dataSource ) / nbits;
         previous_.setSDR( dataSource );
         // Ignore first data point, need two to compute.  Account for the
         // initial decrement to samples counter.

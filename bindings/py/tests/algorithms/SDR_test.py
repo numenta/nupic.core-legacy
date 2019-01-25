@@ -31,11 +31,12 @@ class SdrTest(unittest.TestCase):
         A = SDR((103,))
         B = SDR((100, 100, 1))
         assert(tuple(B.dimensions) == (100, 100, 1))
-        C = SDR((2, 4, 5, 1,1,1,1, 3))
+        # Test crazy dimensions, also test keyword arguments.
+        C = SDR(dimensions = (2, 4, 5, 1,1,1,1, 3) )
         assert(C.size == 2*4*5*3)
 
         # Test copy constructor
-        D = SDR( C )
+        D = SDR( sdr = C ) # also test KW-arg
         assert( D.dimensions == C.dimensions )
         C.randomize( .5 )
         assert( D != C )
@@ -154,32 +155,32 @@ class SdrTest(unittest.TestCase):
         A.setDenseInplace()
         assert(A.getSparsity() == 1)
 
-    def testOverlap(self):
+    def testGetOverlap(self):
         A = SDR((103,))
         B = SDR((103,))
-        assert(A.overlap(B) == 0)
+        assert(A.getOverlap(B) == 0)
 
         A.dense[:10] = 1
         B.dense[:20] = 1
         A.setDenseInplace()
         B.setDenseInplace()
-        assert(A.overlap(B) == 10)
+        assert(A.getOverlap(B) == 10)
 
         A.dense[:20] = 1
         A.setDenseInplace()
-        assert(A.overlap(B) == 20)
+        assert(A.getOverlap(B) == 20)
 
         A.dense[50:60] = 1
         B.dense[0] = 0
         A.setDenseInplace()
         B.setDenseInplace()
-        assert(A.overlap(B) == 19)
+        assert(A.getOverlap(B) == 19)
 
         # Test wrong dimensions
         C = SDR((1,1,1,1, 103))
         C.randomize( .5 )
         try:
-            A.overlap(C)
+            A.getOverlap(C)
         except RuntimeError:
             pass
         else:
@@ -204,7 +205,7 @@ class SdrTest(unittest.TestCase):
         A.randomize( .1 )
         B.setSDR( A )
         A.addNoise( .5 )
-        assert( A.overlap(B) == 5 )
+        assert( A.getOverlap(B) == 5 )
 
         A.randomize( .3, 42 )
         B.randomize( .3, 42 )
