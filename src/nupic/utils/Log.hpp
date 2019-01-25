@@ -56,7 +56,7 @@
 
 // The difference between CHECK and ASSERT is that ASSERT is for
 // performance critical code and can be disabled in a release
-// build. Both throw an exception on error.
+// build. Both throw an exception on error (if NTA_ASSERTIONS_ON is set).
 
 #define NTA_CHECK(condition)                                                   \
   if (condition) {                                                             \
@@ -64,16 +64,16 @@
     NTA_THROW << "CHECK FAILED: \"" << #condition << "\" "
 
 #ifdef NTA_ASSERTIONS_ON
-
+// With NTA_ASSERTIONS_ON, NTA_ASSERT macro throws exception if condition is false.
+// NTA_ASSERTIONS_ON should be set ON only in debug mode.
 #define NTA_ASSERT(condition)                                                  \
   if (condition) {                                                             \
   } else                                                                       \
     NTA_THROW << "ASSERTION FAILED: \"" << #condition << "\" "
 
 #else
-
-// NTA_ASSERT macro does nothing.
-// The second line should never be executed, or even compiled, but we
+// Without NTA_ASSERTIONS_ON, NTA_ASSERT macro does nothing.
+// The second line (with LogItem) should never be executed, or even compiled, but we
 // need something that is syntactically compatible with NTA_ASSERT
 #define NTA_ASSERT(condition)                                                  \
   if (1) {                                                                     \

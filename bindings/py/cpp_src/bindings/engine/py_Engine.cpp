@@ -52,6 +52,9 @@ using namespace nupic;
 
 namespace nupic_ext
 {
+
+	typedef std::shared_ptr<Region> Region_Ptr_t;
+
     void init_Engine(py::module& m)
     {
         ///////////////////

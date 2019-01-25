@@ -100,7 +100,7 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
 
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
-  return timer.getElapsed();
+  return (float)timer.getElapsed();
 }
 
 float runSpatialPoolerTest(
@@ -158,7 +158,7 @@ float runSpatialPoolerTest(
   }
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
-  return timer.getElapsed();
+  return (float)timer.getElapsed();
 }
 
 
@@ -207,7 +207,10 @@ void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn) {
  */
 TEST(ConnectionsPerformanceTest, testTM) {
 	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
+#ifdef NDEBUG
 	ASSERT_LE(tim, 1.0*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+#endif
+  UNUSED(tim);
 }
 
 /**
@@ -215,7 +218,10 @@ TEST(ConnectionsPerformanceTest, testTM) {
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
   auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
+#ifdef NDEBUG
   ASSERT_LE(tim, 1.9*Timer::getSpeed());
+#endif
+  UNUSED(tim);
 }
 
 /**

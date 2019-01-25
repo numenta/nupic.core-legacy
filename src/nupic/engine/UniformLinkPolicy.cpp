@@ -491,7 +491,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
       // Then: R_d,i = (S_i - V_i)/(F_s,i - V_i) * (R_s,i + 2 * H_i)/S_i
       // ---
 
-      for (size_t i = 0; i < dims.size(); i++) {
+      for (int i = 0; i < (int)dims.size(); i++) {
         // ---
         // If the span for this dimension is zero (indicating no atomic
         // groups of overlapping nodes), then S_i = R_s,i + 2 * H_i
@@ -503,7 +503,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
 
         if (workingParams_.span[i].getNumerator() == 0) {
           Fraction validityCheck =
-              (Fraction(dims[i]) + workingParams_.overhang[i] * 2 -
+              (Fraction((int)dims[i]) + workingParams_.overhang[i] * 2 -
                workingParams_.rfSize[i]) %
               (workingParams_.rfSize[i] - workingParams_.rfOverlap[i]);
 
@@ -533,7 +533,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
                          "amount added by successive receptive fields.";
           }
 
-          validityCheck = workingParams_.rfSize[i] * elementCount_;
+          validityCheck = workingParams_.rfSize[i] * (int)elementCount_;
 
           if (!validityCheck.isNaturalNumber()) {
             NTA_THROW << "Invalid source dimensions " << dims.toString()
@@ -557,7 +557,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
 
           // R_d,i = (R_s,i + 2 * H_i - V_i)/(F_s,i - V_i)
           Fraction inducedDim =
-              (Fraction(dims[i]) + workingParams_.overhang[i] * 2 -
+              (Fraction((int)dims[i]) + workingParams_.overhang[i] * 2 -
                workingParams_.rfOverlap[i]) /
               (workingParams_.rfSize[i] - workingParams_.rfOverlap[i]);
 
@@ -567,7 +567,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
           inducedDims.push_back(inducedDim.getNumerator());
         } else {
           Fraction validityCheck =
-              ((Fraction(dims[i])) + workingParams_.overhang[i] * 2) %
+              ((Fraction((int)dims[i])) + workingParams_.overhang[i] * 2) %
               workingParams_.span[i];
 
           if (validityCheck.getNumerator() != 0) {
@@ -611,7 +611,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
                          "receptive fields.";
           }
 
-          validityCheck = workingParams_.rfSize[i] * elementCount_;
+          validityCheck = workingParams_.rfSize[i] * (int)elementCount_;
 
           if (!validityCheck.isNaturalNumber()) {
             NTA_THROW << "Invalid source dimensions " << dims.toString()
@@ -637,7 +637,7 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
           Fraction inducedDim =
               (workingParams_.span[i] - workingParams_.rfOverlap[i]) /
               (workingParams_.rfSize[i] - workingParams_.rfOverlap[i]) *
-              (Fraction(dims[i]) + workingParams_.overhang[i] * 2) /
+              (Fraction((int)dims[i]) + workingParams_.overhang[i] * 2) /
               workingParams_.span[i];
 
           NTA_CHECK(inducedDim.isNaturalNumber());
@@ -659,16 +659,16 @@ void UniformLinkPolicy::setSrcDimensions(Dimensions &specifiedDims) {
       // n - delta source nodes.  This implies rounding down.
       // ---
 
-      for (size_t i = 0; i < dims.size(); i++) {
+      for (int i = 0; i < (int)dims.size(); i++) {
         Fraction inducedDim;
 
         if (workingParams_.span[i].getNumerator() == 0) {
           // R_d,i = (R_s,i + 2 * H_i - V_i)/(F_s,i - V_i)
-          inducedDim = (Fraction(dims[i]) + workingParams_.overhang[i] * 2) /
+          inducedDim = (Fraction((int)dims[i]) + workingParams_.overhang[i] * 2) /
                        (workingParams_.rfSize[i] - workingParams_.rfOverlap[i]);
         } else {
           Fraction numSpans =
-              (Fraction(dims[i]) + workingParams_.overhang[i] * 2) /
+              (Fraction((int)dims[i]) + workingParams_.overhang[i] * 2) /
               workingParams_.span[i];
 
           Fraction nodesPerSpan =
@@ -757,7 +757,7 @@ void UniformLinkPolicy::setDestDimensions(Dimensions &specifiedDims) {
       // Then: R_s,i = (R_d,i * S_i * (F_s,i - V_i))/(S_i - V_i) - 2 * H_i
       // ---
 
-      for (size_t i = 0; i < dims.size(); i++) {
+      for (int i = 0; i < (int)dims.size(); i++) {
         if (!workingParams_.rfSize[i].isNaturalNumber()) {
           if (rfGranularity_ != elementsGranularity) {
             NTA_THROW << "Invalid dest dimensions " << dims.toString()
@@ -775,7 +775,7 @@ void UniformLinkPolicy::setDestDimensions(Dimensions &specifiedDims) {
                          "rfGranularity is set to elements.";
           }
 
-          Fraction validityCheck = workingParams_.rfSize[i] * elementCount_;
+          Fraction validityCheck = workingParams_.rfSize[i] * (int)elementCount_;
 
           if (!validityCheck.isNaturalNumber()) {
             NTA_THROW << "Invalid dest dimensions " << dims.toString()
@@ -809,7 +809,7 @@ void UniformLinkPolicy::setDestDimensions(Dimensions &specifiedDims) {
         if (workingParams_.span[i].getNumerator() == 0) {
           // R_s,i = R_d,i * (F_s,i - V_i) + V_i - 2 * H_i
           Fraction inducedDim =
-              Fraction(dims[i]) *
+              Fraction((int)dims[i]) *
                   (workingParams_.rfSize[i] - workingParams_.rfOverlap[i]) +
               workingParams_.rfOverlap[i] - workingParams_.overhang[i] * 2;
 
@@ -820,7 +820,7 @@ void UniformLinkPolicy::setDestDimensions(Dimensions &specifiedDims) {
         } else {
           // R_s,i = (R_d,i * S_i * (F_s,i - V_i))/(S_i - V_i) - 2 * H_i
           Fraction inducedDim =
-              (Fraction(dims[i]) * workingParams_.span[i] *
+              (Fraction((int)dims[i]) * workingParams_.span[i] *
                (workingParams_.rfSize[i] - workingParams_.rfOverlap[i])) /
                   (workingParams_.span[i] - workingParams_.rfOverlap[i]) -
               workingParams_.overhang[i] * 2;
@@ -845,19 +845,19 @@ void UniformLinkPolicy::setDestDimensions(Dimensions &specifiedDims) {
       // implies rounding up.
       // ---
 
-      for (size_t i = 0; i < dims.size(); i++) {
+      for (int i = 0; i < (int)dims.size(); i++) {
         Fraction inducedDim;
 
         if (workingParams_.span[i].getNumerator() == 0) {
           // R_s,i = R_d,i * (F_s,i - V_i) + V_i - 2 * H_i
           inducedDim =
-              Fraction(dims[i]) *
+              Fraction((int)dims[i]) *
                   (workingParams_.rfSize[i] - workingParams_.rfOverlap[i]) +
               workingParams_.rfOverlap[i] - workingParams_.overhang[i] * 2;
         } else {
           // R_s,i = (R_d,i * S_i * (F_s,i - V_i))/(S_i - V_i) - 2 * H_i
           inducedDim =
-              (Fraction(dims[i]) * workingParams_.span[i] *
+              (Fraction((int)dims[i]) * workingParams_.span[i] *
                (workingParams_.rfSize[i] - workingParams_.rfOverlap[i])) /
                   (workingParams_.span[i] - workingParams_.rfOverlap[i]) -
               workingParams_.overhang[i] * 2;
@@ -965,13 +965,13 @@ UniformLinkPolicy::getInputBoundsForNode(Coordinate nodeCoordinate,
                                    workingParams_.rfOverlap[dimension]);
 
       Fraction nodeInSpanFrac =
-          Fraction(nodeCoordinate[dimension]) / destNodesPerSpan;
+          Fraction((int)nodeCoordinate[dimension]) / destNodesPerSpan;
 
-      size_t nodeInSpan =
+      int nodeInSpan =
           nodeInSpanFrac.getNumerator() / nodeInSpanFrac.getDenominator();
 
       lowerIndex = workingParams_.span[dimension] * nodeInSpan +
-                   (Fraction(nodeCoordinate[dimension]) -
+                   (Fraction((int)nodeCoordinate[dimension]) -
                     destNodesPerSpan * nodeInSpan) *
                        (workingParams_.rfSize[dimension] -
                         workingParams_.rfOverlap[dimension]) -
@@ -991,12 +991,12 @@ UniformLinkPolicy::getInputBoundsForNode(Coordinate nodeCoordinate,
       // fractional results are okay.
       // ---
 
-      Fraction srcNodeOverage = (Fraction(srcDimensions_[dimension]) +
+      Fraction srcNodeOverage = (Fraction((int)srcDimensions_[dimension]) +
                                  workingParams_.overhang[dimension] * 2) %
                                 workingParams_.span[dimension];
 
       Fraction numberOfSpans =
-          (Fraction(srcDimensions_[dimension]) +
+          (Fraction((int)srcDimensions_[dimension]) +
            workingParams_.overhang[dimension] * 2 - srcNodeOverage) /
           workingParams_.span[dimension];
 
@@ -1021,13 +1021,13 @@ UniformLinkPolicy::getInputBoundsForNode(Coordinate nodeCoordinate,
                                    workingParams_.rfOverlap[dimension]);
 
       Fraction nodeInSpanFrac =
-          Fraction(nodeCoordinate[dimension]) / destNodesPerSpan;
+          Fraction((int)nodeCoordinate[dimension]) / destNodesPerSpan;
 
-      size_t nodeInSpan =
+      int nodeInSpan =
           nodeInSpanFrac.getNumerator() / nodeInSpanFrac.getDenominator();
 
       lowerIndex = effectiveSpan * nodeInSpan +
-                   (Fraction(nodeCoordinate[dimension]) -
+                   (Fraction((int)nodeCoordinate[dimension]) -
                     destNodesPerSpan * nodeInSpan) *
                        (effectiveRfSize - workingParams_.rfOverlap[dimension]) -
                    workingParams_.overhang[dimension];
@@ -1045,21 +1045,21 @@ UniformLinkPolicy::getInputBoundsForNode(Coordinate nodeCoordinate,
               Fraction(upperIndex.getNumerator() / upperIndex.getDenominator());
         }
       } else {
-        Fraction wholeElementCheck = lowerIndex * elementCount_;
+        Fraction wholeElementCheck = lowerIndex * (int)elementCount_;
 
         if (!wholeElementCheck.isNaturalNumber()) {
           lowerIndex = Fraction((wholeElementCheck.getNumerator() /
                                  wholeElementCheck.getDenominator()) +
                                 1) /
-                       Fraction(elementCount_);
+                       Fraction((int)elementCount_);
         }
 
-        wholeElementCheck = upperIndex * elementCount_;
+        wholeElementCheck = upperIndex * (int)elementCount_;
 
         if (!wholeElementCheck.isNaturalNumber()) {
           upperIndex = Fraction((wholeElementCheck.getNumerator() /
                                  wholeElementCheck.getDenominator())) /
-                       Fraction(elementCount_);
+                       Fraction((int)elementCount_);
         }
       }
     }
@@ -1188,13 +1188,13 @@ void UniformLinkPolicy::populateInputElements(
           switch (workingParams_.overhangType[x]) {
           case wrapOverhang: {
             Fraction effectiveSubCoordinate =
-                Fraction(srcDimensions_[x]) + subCoordinate[x];
+                Fraction((int)srcDimensions_[x]) + subCoordinate[x];
 
             nodeCoordinate.push_back(effectiveSubCoordinate.getNumerator() /
                                      effectiveSubCoordinate.getDenominator());
 
             Fraction fractionalComponent =
-                (effectiveSubCoordinate - nodeCoordinate[x]) * elementCount_;
+                (effectiveSubCoordinate - (int)nodeCoordinate[x]) * (int)elementCount_;
 
             NTA_CHECK(fractionalComponent.isNaturalNumber());
 
@@ -1261,13 +1261,13 @@ void UniformLinkPolicy::populateInputElements(
           switch (workingParams_.overhangType[x]) {
           case wrapOverhang: {
             Fraction effectiveSubCoordinate =
-                subCoordinate[x] - Fraction(srcDimensions_[x]);
+                subCoordinate[x] - Fraction((int)srcDimensions_[x]);
 
             nodeCoordinate.push_back(effectiveSubCoordinate.getNumerator() /
                                      effectiveSubCoordinate.getDenominator());
 
             Fraction fractionalComponent =
-                (effectiveSubCoordinate - nodeCoordinate[x]) * elementCount_;
+                (effectiveSubCoordinate - (int)nodeCoordinate[x]) * (int)elementCount_;
 
             NTA_CHECK(fractionalComponent.isNaturalNumber());
 
@@ -1325,7 +1325,7 @@ void UniformLinkPolicy::populateInputElements(
                                    subCoordinate[x].getDenominator());
 
           Fraction fractionalComponent =
-              (subCoordinate[x] - nodeCoordinate[x]) * elementCount_;
+              (subCoordinate[x] - (int)nodeCoordinate[x]) * (int)elementCount_;
 
           NTA_CHECK(fractionalComponent.isNaturalNumber());
 
@@ -1421,13 +1421,13 @@ void UniformLinkPolicy::initialize() {
     }
   }
 
-  for (size_t i = 0; i < workingParams_.span.size(); i++) {
+  for (int i = 0; i < (int)workingParams_.span.size(); i++) {
     if (workingParams_.span[i].getNumerator() == 0) {
       switch (mapping_) {
       case inMapping: {
         if (strict_) {
           workingParams_.span[i] =
-              Fraction(srcDimensions_[i]) + workingParams_.overhang[i] * 2;
+              Fraction((int)srcDimensions_[i]) + workingParams_.overhang[i] * 2;
         } else {
           // ---
           // We aren't strict, so we want our span to be the ideal span as
@@ -1437,8 +1437,8 @@ void UniformLinkPolicy::initialize() {
           // ---
 
           workingParams_.span[i] =
-              Fraction(srcDimensions_[i]) -
-              ((Fraction(srcDimensions_[i]) + workingParams_.overhang[i] * 2 -
+              Fraction((int)srcDimensions_[i]) -
+              ((Fraction((int)srcDimensions_[i]) + workingParams_.overhang[i] * 2 -
                 workingParams_.rfSize[i]) %
                (workingParams_.rfSize[i] - workingParams_.rfOverlap[i]));
         }
@@ -1447,7 +1447,7 @@ void UniformLinkPolicy::initialize() {
       }
       case outMapping: {
         workingParams_.span[i] =
-            Fraction(destDimensions_[i]) + workingParams_.overhang[i] * 2;
+            Fraction((int)destDimensions_[i]) + workingParams_.overhang[i] * 2;
 
         break;
       }
@@ -1461,8 +1461,8 @@ void UniformLinkPolicy::initialize() {
   // we couldn't perform this check in validateParameterConsistency().  Now
   // that we know our dimensions, we'll perform the check.
   // ---
-  for (size_t i = 0; i < parameterDimensionality_; i++) {
-    if (workingParams_.overhang[i] > srcDimensions_[i]) {
+  for (int i = 0; i < (int)parameterDimensionality_; i++) {
+    if (workingParams_.overhang[i] > (int)srcDimensions_[i]) {
       NTA_THROW << "The overhang can't exceed the size of the source "
                    "dimensions";
     }

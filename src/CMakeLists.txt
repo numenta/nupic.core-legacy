@@ -41,7 +41,7 @@ if(${NUPIC_IWYU})
   endif()
 endif()
 
-###########
+#--------------------------------------------------------
 # Identify includes from this directory
 set(CORE_LIB_INCLUDES  ${PROJECT_SOURCE_DIR}  # for nupic/xxx/*.h
 		       ${PROJECT_BINARY_DIR}  # for Version.hpp
@@ -49,7 +49,7 @@ set(CORE_LIB_INCLUDES  ${PROJECT_SOURCE_DIR}  # for nupic/xxx/*.h
 set(CORE_LIB_INCLUDES  ${CORE_LIB_INCLUDES} PARENT_SCOPE)
 
 
-###############
+#--------------------------------------------------------
 # Create Version.hpp
 # Extract current git sha and record in nupic/Version.hpp.in
 #
@@ -61,7 +61,7 @@ configure_file(
   "${PROJECT_BINARY_DIR}/Version.hpp")
   
 
-#################
+############ nupic_core Library ######################################
 # Setup nupic_core static library, consisting of our own sources and yaml libraries;
 #
 # this is an intermediate archive that will be merged with external static
@@ -132,8 +132,6 @@ set(engine_files
     nupic/engine/RegionImpl.hpp
     nupic/engine/RegionImplFactory.cpp
     nupic/engine/RegionImplFactory.hpp
-    nupic/engine/RegionIo.cpp
-    nupic/engine/RegionParameters.cpp
     nupic/engine/RegisteredRegionImpl.hpp
     nupic/engine/RegisteredRegionImplCpp.hpp
     nupic/engine/Spec.cpp
@@ -178,9 +176,11 @@ set(ntypes_files
     nupic/ntypes/MemParser.cpp
     nupic/ntypes/MemParser.hpp
     nupic/ntypes/MemStream.hpp
-    nupic/ntypes/NodeSet.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
+    nupic/ntypes/Sdr.hpp
+    nupic/ntypes/SdrMetrics.hpp
+    nupic/ntypes/SdrProxy.hpp
     nupic/ntypes/Value.cpp
     nupic/ntypes/Value.hpp
 )
@@ -220,7 +220,6 @@ set(types_files
     nupic/types/Exception.hpp
     nupic/types/Fraction.cpp
     nupic/types/Fraction.hpp
-    nupic/types/ptr_types.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
@@ -256,7 +255,7 @@ source_group("regions" FILES ${regions_files})
 source_group("types" FILES ${types_files})
 source_group("utils" FILES ${utils_files})
 
-########################################################
+#--------------------------------------------------------
 # Lib
 add_library(${src_lib_static_nupiccore_solo} STATIC 
     ${algorithm_files} 
@@ -284,6 +283,7 @@ if(${NUPIC_IWYU})
 endif()
 
 
+#--------------------------------------------------------
 #
 # Create the nupic_core as a "combined" static library by merging nupic_core_solo
 # with our external static libraries
@@ -296,24 +296,26 @@ set(src_combined_nupiccore_source_archives
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
 
-#########################################################
+############ TEST #############################################
 # Test
 # The tests were placed in a separate file to avoid clutering up this file.
 add_subdirectory(test)
 
 
-#########################################################
+########### EXAMPLES ##############################################
 ## Example custom executable
 #
 ## Setup benchmark_hotgym
 #
+source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
+
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
 target_link_libraries(${src_executable_hotgym} 
 		${core_library}
 		${COMMON_OS_LIBS}
 		)
-target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS}) #TODO how to use OPTIMIZED CXX flags? 
+target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_executable_hotgym} PRIVATE 
 		${CORE_LIB_INCLUDES} 
@@ -326,7 +328,7 @@ add_custom_target(hotgym
                   VERBATIM)
 
 
-##################################################
+############ INSTALL ######################################
 #
 # Install targets into CMAKE_INSTALL_PREFIX
 #
@@ -339,10 +341,6 @@ install(TARGETS
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic)
-
-# install Data.csv for a test
-install(FILES "${PROJECT_SOURCE_DIR}/test/unit/engine/Data.csv"
-        DESTINATION "data/")
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 	  MESSAGE_NEVER

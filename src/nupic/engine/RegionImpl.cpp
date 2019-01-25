@@ -41,9 +41,6 @@ std::string RegionImpl::getType() const { return region_->getType(); }
 
 std::string RegionImpl::getName() const { return region_->getName(); }
 
-const NodeSet &RegionImpl::getEnabledNodes() const {
-  return region_->getEnabledNodes();
-}
 
 /* ------------- Parameter support --------------- */
 // By default, all typed getParameter calls forward to the
@@ -188,7 +185,7 @@ size_t RegionImpl::getParameterArrayCount(const std::string &name,
     NTA_THROW << "getParameterArrayCount -- no parameter named '" << name
               << "' in node of type " << getType();
   }
-  UInt32 count = region_->getSpec()->parameters.getByName(name).count;
+  UInt32 count = (UInt32)region_->getSpec()->parameters.getByName(name).count;
   if (count == 0) {
     NTA_THROW << "Internal Error -- unknown element count for "
               << "node type " << getType() << ". The RegionImpl "

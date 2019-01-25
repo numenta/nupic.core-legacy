@@ -78,12 +78,12 @@ TemporalMemory::TemporalMemory(
     Permanence connectedPermanence, UInt minThreshold, UInt maxNewSynapseCount,
     Permanence permanenceIncrement, Permanence permanenceDecrement,
     Permanence predictedSegmentDecrement, Int seed, UInt maxSegmentsPerCell,
-    UInt maxSynapsesPerSegment, bool checkInputs) {
+    UInt maxSynapsesPerSegment, bool checkInputs, UInt extra) {
   initialize(columnDimensions, cellsPerColumn, activationThreshold,
              initialPermanence, connectedPermanence, minThreshold,
              maxNewSynapseCount, permanenceIncrement, permanenceDecrement,
              predictedSegmentDecrement, seed, maxSegmentsPerCell,
-             maxSynapsesPerSegment, checkInputs);
+             maxSynapsesPerSegment, checkInputs, extra);
 }
 
 TemporalMemory::~TemporalMemory() {}
@@ -94,7 +94,7 @@ void TemporalMemory::initialize(
     Permanence connectedPermanence, UInt minThreshold, UInt maxNewSynapseCount,
     Permanence permanenceIncrement, Permanence permanenceDecrement,
     Permanence predictedSegmentDecrement, Int seed, UInt maxSegmentsPerCell,
-    UInt maxSynapsesPerSegment, bool checkInputs) {
+    UInt maxSynapsesPerSegment, bool checkInputs, UInt extra) {
   // Validate all input parameters
 
   if (columnDimensions.size() <= 0) {
@@ -130,6 +130,7 @@ void TemporalMemory::initialize(
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
   predictedSegmentDecrement_ = predictedSegmentDecrement;
+  extra_ = extra;
 
   // Initialize member variables
   connections = Connections(numberOfColumns() * cellsPerColumn_);
@@ -139,10 +140,7 @@ void TemporalMemory::initialize(
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
 
-  activeCells_.clear();
-  winnerCells_.clear();
-  activeSegments_.clear();
-  matchingSegments_.clear();
+  reset();
 }
 
 static CellIdx getLeastUsedCell(Random &rng, UInt column,
@@ -187,8 +185,6 @@ static void adaptSegment(Connections &connections, Segment segment,
 
   for (SynapseIdx i = 0; i < synapses.size();) {
     const SynapseData &synapseData = connections.dataForSynapse(synapses[i]);
-
-    NTA_ASSERT(synapseData.presynapticCell < connections.numCells());
 
     Permanence permanence = synapseData.permanence;
     if (prevActiveCellsDense[synapseData.presynapticCell]) {
@@ -454,7 +450,7 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
            "duplicates.";
   }
 
-  vector<bool> prevActiveCellsDense(numberOfCells(), false);
+  vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
   for (CellIdx cell : activeCells_) {
     prevActiveCellsDense[cell] = true;
   }
@@ -509,9 +505,42 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
       }
     }
   }
+  segmentsValid_ = false;
 }
 
-void TemporalMemory::activateDendrites(bool learn) {
+void TemporalMemory::activateDendrites(bool learn,
+                                       const vector<UInt> &extraActive,
+                                       const vector<UInt> &extraWinners)
+{
+  if( segmentsValid_ )
+    return;
+
+  // Handle external predictive inputs.  extraActive & extraWinners default
+  // values are `vector({ SENTINEL })`
+  const auto SENTINEL = std::numeric_limits<UInt>::max();
+  if( extra_ )
+  {
+    NTA_CHECK( extraActive.size()  != 1 || extraActive[0]  != SENTINEL )
+        << "TM.ActivateDendrites() missing argument extraActive!";
+    NTA_CHECK( extraWinners.size() != 1 || extraWinners[0] != SENTINEL )
+        << "TM.ActivateDendrites() missing argument extraWinners!";
+
+    for(const auto &active : extraActive) {
+      NTA_ASSERT( active < extra_ );
+      activeCells_.push_back( active + numberOfCells() );
+    }
+    for(const auto &winner : extraWinners) {
+      NTA_ASSERT( winner < extra_ );
+      winnerCells_.push_back( winner + numberOfCells() );
+    }
+  }
+  else {
+    NTA_CHECK( extraActive.size()  == 1 && extraActive[0]  == SENTINEL )
+        << "External predictive inputs must be declared to TM constructor!";
+    NTA_CHECK( extraWinners.size() == 1 && extraWinners[0] == SENTINEL )
+        << "External predictive inputs must be declared to TM constructor!";
+  }
+
   const UInt32 length = connections.segmentFlatListLength();
 
   numActiveConnectedSynapsesForSegment_.assign(length, 0);
@@ -532,6 +561,13 @@ void TemporalMemory::activateDendrites(bool learn) {
   std::sort(
       activeSegments_.begin(), activeSegments_.end(),
       [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
+  // Update segment bookkeeping.
+  if (learn) {
+    for (const auto &segment : activeSegments_) {
+      lastUsedIterationForSegment_[segment] = iteration_;
+    }
+    iteration_++;
+  }
 
   // Matching segments, potential synapses.
   matchingSegments_.clear();
@@ -545,19 +581,16 @@ void TemporalMemory::activateDendrites(bool learn) {
       matchingSegments_.begin(), matchingSegments_.end(),
       [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
 
-  if (learn) {
-    for (Segment segment : activeSegments_) {
-      lastUsedIterationForSegment_[segment] = iteration_;
-    }
-
-    iteration_++;
-  }
+  segmentsValid_ = true;
 }
 
 void TemporalMemory::compute(size_t activeColumnsSize,
-                             const UInt activeColumns[], bool learn) {
+                             const UInt activeColumns[], bool learn,
+                             const vector<UInt> &extraActive,
+                             const vector<UInt> &extraWinners) {
+
+  activateDendrites(learn, extraActive, extraWinners);
   activateCells(activeColumnsSize, activeColumns, learn);
-  activateDendrites(learn);
 }
 
 void TemporalMemory::reset(void) {
@@ -565,6 +598,7 @@ void TemporalMemory::reset(void) {
   winnerCells_.clear();
   activeSegments_.clear();
   matchingSegments_.clear();
+  segmentsValid_ = false;
 }
 
 // ==============================
@@ -599,9 +633,13 @@ UInt TemporalMemory::numberOfCells(void) const { return connections.numCells(); 
 vector<CellIdx> TemporalMemory::getActiveCells() const { return activeCells_; }
 
 vector<CellIdx> TemporalMemory::getPredictiveCells() const {
+
+  NTA_CHECK( segmentsValid_ )
+    << "Call TM.activateDendrites() before TM.getPredictiveCells()!";
+
   vector<CellIdx> predictiveCells;
 
-  for (auto segment = activeSegments_.begin(); segment != activeSegments_.end();
+  for (auto segment = activeSegments_.cbegin(); segment != activeSegments_.cend();
        segment++) {
     CellIdx cell = connections.cellForSegment(*segment);
     if (segment == activeSegments_.begin() || cell != predictiveCells.back()) {
@@ -614,11 +652,19 @@ vector<CellIdx> TemporalMemory::getPredictiveCells() const {
 
 vector<CellIdx> TemporalMemory::getWinnerCells() const { return winnerCells_; }
 
-vector<Segment> TemporalMemory::getActiveSegments() const {
+vector<Segment> TemporalMemory::getActiveSegments() const
+{
+  NTA_CHECK( segmentsValid_ )
+    << "Call TM.activateDendrites() before TM.getActiveSegments()!";
+
   return activeSegments_;
 }
 
-vector<Segment> TemporalMemory::getMatchingSegments() const {
+vector<Segment> TemporalMemory::getMatchingSegments() const
+{
+  NTA_CHECK( segmentsValid_ )
+    << "Call TM.activateDendrites() before TM.getActiveSegments()!";
+
   return matchingSegments_;
 }
 
@@ -756,6 +802,7 @@ void TemporalMemory::save(ostream &outStream) const {
   saveFloat_(outStream, permanenceDecrement_);
   saveFloat_(outStream, predictedSegmentDecrement_);
 
+  outStream << extra_ << " ";
   outStream << maxSegmentsPerCell_ << " " << maxSynapsesPerSegment_ << " "
             << iteration_ << " ";
 
@@ -784,12 +831,13 @@ void TemporalMemory::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  outStream << segmentsValid_ << " ";
   outStream << activeSegments_.size() << " ";
   for (Segment segment : activeSegments_) {
     const CellIdx cell = connections.cellForSegment(segment);
     const vector<Segment> &segments = connections.segmentsForCell(cell);
 
-    SegmentIdx idx = std::distance(
+    SegmentIdx idx = (SegmentIdx)std::distance(
         segments.begin(), std::find(segments.begin(), segments.end(), segment));
 
     outStream << idx << " ";
@@ -803,7 +851,7 @@ void TemporalMemory::save(ostream &outStream) const {
     const CellIdx cell = connections.cellForSegment(segment);
     const vector<Segment> &segments = connections.segmentsForCell(cell);
 
-    SegmentIdx idx = std::distance(
+    SegmentIdx idx = (SegmentIdx)std::distance(
         segments.begin(), std::find(segments.begin(), segments.end(), segment));
 
     outStream << idx << " ";
@@ -832,7 +880,7 @@ void TemporalMemory::load(istream &inStream) {
   inStream >> numColumns_ >> cellsPerColumn_ >> activationThreshold_ >>
       initialPermanence_ >> connectedPermanence_ >> minThreshold_ >>
       maxNewSynapseCount_ >> checkInputs_ >> permanenceIncrement_ >>
-      permanenceDecrement_ >> predictedSegmentDecrement_ >>
+      permanenceDecrement_ >> predictedSegmentDecrement_ >> extra_ >>
       maxSegmentsPerCell_ >> maxSynapsesPerSegment_ >> iteration_;
 
   connections.load(inStream);
@@ -877,6 +925,7 @@ void TemporalMemory::load(istream &inStream) {
     winnerCells_.push_back(cell);
   }
 
+  inStream >> segmentsValid_;
   UInt numActiveSegments;
   inStream >> numActiveSegments;
   activeSegments_.resize(numActiveSegments);
