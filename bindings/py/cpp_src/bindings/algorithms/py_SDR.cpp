@@ -34,32 +34,93 @@ namespace nupic_ext
 {
     void init_SDR(py::module& m)
     {
-        py::class_<SDR> py_SDR(m, "SDR");
+        py::class_<SDR> py_SDR(m, "SDR",
+R"(Sparse Distributed Representation
+
+This class manages the specification and momentary value of a Sparse Distributed
+Representation (SDR).  An SDR is a group of boolean values which represent the
+state of a group of neurons or their associated processes.
+
+SDR's have three commonly used data formats which are:
+*   dense
+*   sparse
+*   flatSparse
+The SDR class has three magic properties, one for each of these data formats.
+These properties are the primary way of accessing the SDR's data.  When these
+properties are read from, the data is automatically converted to the requested
+format and is cached so getting a value in one format many times incurs no extra
+performance cost.  Assigning to the SDR via any one of these properties clears
+the cached values and causes them to be recomputed as needed.
+
+Example usage:
+    # Make an SDR with 9 values, arranged in a (3 x 3) grid.
+    X = SDR(dimensions = (3, 3))
+
+    # These three statements are equivalent.
+    X.dense = [0, 1, 0,
+               0, 1, 0,
+               0, 0, 1]
+    X.sparse = [[0, 1, 2], [1, 1, 2]]
+    X.flatSparse = [ 1, 4, 8 ]
+
+    # Access data in any format, SDR will automatically convert data formats,
+    # even if it was not the format used by the most recent assignment to the
+    # SDR.
+    X.dense      -> [[ 0, 1, 0 ],
+                     [ 0, 1, 0 ],
+                     [ 0, 0, 1 ]]
+    X.sparse     -> [[ 0, 1, 2 ], [1, 1, 2 ]]
+    x.flatSparse -> [ 1, 4, 8 ]
+
+    # Data format conversions are cached, and when an SDR value changes the
+    # cache is cleared.
+    X.flatSparse = [1, 2, 3] # Assign new data to the SDR, clearing the cache.
+    X.dense     # This line will convert formats.
+    X.dense     # This line will resuse the result of the previous line
+
+Assigning a value to the SDR requires copying the data from Python into C++. To
+avoid this copy operation: modify sdr.dense inplace, and call method
+sdr.setDenseInplace() when done to notify the SDR that it's data has changed.
+
+Example Usage:
+    X = SDR((1000, 1000))
+    data = X.dense
+    data[  0,   4] = 1
+    data[444, 444] = 1
+    X.setDenseInplace()
+    X.flatSparse -> [ 4, 444444 ]
+)");
 
         py_SDR.def(
             py::init<vector<UInt>>(),
-            "TODO: DOCSTRING",
+R"(Create an SDR object.  Initially SDRs value is all zeros.
+
+Argument dimensions is a list of dimension sizes, defining the shape of the SDR.
+The product of the dimensions must be greater than zero.)",
             py::arg("dimensions")
         );
 
         py_SDR.def(
             py::init<SDR>(),
-            "TODO: DOCSTRING",
+R"(Initialize this SDR as a deep copy of the given SDR.  This SDR and the given
+SDR will have no shared data and they can be modified without affecting each
+other.)",
             py::arg("sdr")
         );
 
         py_SDR.def_property_readonly("dimensions",
             [](const SDR &self) {
                 return self.dimensions; },
-            "TODO: DOCSTRING");
+            "A list of dimensions of the SDR.");
 
         py_SDR.def_property_readonly("size",
             [](const SDR &self) {
                 return self.size; },
-            "TODO: DOCSTRING");
+            "The total number of boolean values in the SDR.");
 
         py_SDR.def("zero", &SDR::zero,
-            "TODO: DOCSTRING");
+R"(Set all of the values in the SDR to false.  This method overwrites the SDRs
+current value.)");
 
         py_SDR.def_property("dense",
             [](SDR &self) {
@@ -75,12 +136,17 @@ namespace nupic_ext
             [](SDR &self, SDR_dense_t data) {
                 self.setDense( data );
             },
-            "TODO: DOCSTRING"
-        );
+R"(A numpy array of boolean values, representing all of the bits in the SDR.
+This format allows random-access queries of the SDRs values.
+
+After modifying the dense array you MUST call sdr.setDenseInplace() in order to
+notify the SDR that its dense array has changed and its cached data is out of
+date.)");
 
         py_SDR.def("setDenseInplace", [](SDR &self)
             { self.setDense( self.getDense() ); },
-            "TODO: DOCSTRING");
+R"(Notify the SDR that its dense formatted data has been changed, and that it needs
+to update the other data formats.)");
 
         py_SDR.def_property("flatSparse",
             [](SDR &self) {
@@ -90,15 +156,17 @@ namespace nupic_ext
             [](SDR &self, SDR_flatSparse_t data) {
                 self.setFlatSparse( data );
             },
-            "TODO: DOCSTRING"
-        );
+R"(A numpy array containing the indices of only the true values in the SDR.
+These are indices into the flattened SDR. This format allows for quickly
+accessing all of the true bits in the SDR.)");
 
         py_SDR.def_property("sparse",
             [](SDR &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
-                auto outer = py::list();
+                auto outer   = py::list();
+                auto sparse  = self.getSparse().data();
                 for(auto dim = 0u; dim < self.dimensions.size(); dim++) {
-                    auto vec = py::array(self.getSum(), self.getFlatSparse().data(), capsule);
+                    auto vec = py::array(sparse[dim].size(), sparse[dim].data(), capsule);
                     outer.append(vec);
                 }
                 return outer;
@@ -106,27 +174,42 @@ namespace nupic_ext
             [](SDR &self, SDR_sparse_t data) {
                 self.setSparse( data );
             },
-            "TODO: DOCSTRING"
-        );
+R"(List of numpy arrays, containing the indices of only the true values in the
+SDR.  This is a list of lists: the outter list contains an entry for each
+dimension in the SDR. The inner lists contain the coordinates of each true bit.
+The inner lists run in parallel. This format is useful because it contains the
+location of each true bit inside of the SDR's dimensional space.)");
 
         py_SDR.def("setSDR", &SDR::setSDR,
-            "TODO: DOCSTRING");
+R"(Deep Copy the given SDR to this SDR.  This overwrites the current value of this
+SDR.  This SDR and the given SDR will have no shared data and they can be
+modified without affecting each other.)");
 
         py_SDR.def("getSum", &SDR::getSum,
-            "TODO: DOCSTRING");
+            "Calculates the number of true values in the SDR.");
 
         py_SDR.def("getSparsity", &SDR::getSparsity,
-            "TODO: DOCSTRING");
+R"(Calculates the sparsity of the SDR, which is the fraction of bits which are
+true out of the total number of bits in the SDR.
+I.E.  sparsity = sdr.getSum() / sdr.size)");
 
         py_SDR.def("getOverlap", &SDR::getOverlap,
-            "TODO: DOCSTRING");
+            "Calculates the number of true bits which both SDRs have in common.");
 
         py_SDR.def("randomize",
             [](SDR &self, Real sparsity, UInt seed){
             Random rng( seed );
             self.randomize( sparsity, rng );
         },
-            "TODO: DOCSTRING",
+R"(Make a random SDR, overwriting the current value of the SDR.  The result has
+uniformly random activations.
+
+Argument sparsity is the fraction of bits to set to true.  After calling this
+method sdr.getSparsity() will return this sparsity, rounded to the nearest
+fraction of self.size.
+
+Optional argument seed is used for the random number generator.  Seed 0 is
+special, it is replaced with the system time  The default seed is 0.)",
             py::arg("sparsity"),
             py::arg("seed") = 0u);
 
@@ -134,8 +217,18 @@ namespace nupic_ext
             Random rng( seed );
             self.addNoise( fractionNoise, rng );
         },
-            "TODO: DOCSTRING",
-            py::arg("sparsity"),
+R"(Modify the SDR by moving a fraction of the active bits to different
+locations.  This method does not change the sparsity of the SDR, it moves
+the locations of the true values.  The resulting SDR has a controlled
+amount of overlap with the original.
+
+Argument fractionNoise is the fraction of active bits to swap out.  The original
+and resulting SDRs have the following relationship:
+    originalSDR.getOverlap( newSDR ) / sparsity == 1 - fractionNoise
+
+Optional argument seed is used for the random number generator.  Seed 0 is
+special, it is replaced with the system time.  The default seed is 0.)",
+            py::arg("fractionNoise"),
             py::arg("seed") = 0u);
 
         py_SDR.def("__str__", [](SDR &self){

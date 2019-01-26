@@ -27,6 +27,43 @@ import unittest
 from nupic.bindings.algorithms import SDR
 
 class SdrTest(unittest.TestCase):
+    def testExampleUsage(self):
+        # Make an SDR with 9 values, arranged in a (3 x 3) grid.
+        X = SDR(dimensions = (3, 3))
+
+        # These three statements are equivalent.
+        X.dense = [0, 1, 0,
+                   0, 1, 0,
+                   0, 0, 1]
+        assert( X.dense.tolist() == [[ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ]] )
+        assert( [list(v) for v in X.sparse] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
+        assert( list(X.flatSparse) == [ 1, 4, 8 ] )
+        X.sparse = [[0, 1, 2], [1, 1, 2]]
+        assert( X.dense.tolist() == [[ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ]] )
+        assert( [list(v) for v in X.sparse] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
+        assert( list(X.flatSparse) == [ 1, 4, 8 ] )
+        X.flatSparse = [ 1, 4, 8 ]
+
+        # Access data in any format, SDR will automatically convert data formats,
+        # even if it was not the format used by the most recent assignment to the
+        # SDR.
+        assert( X.dense.tolist() == [[ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ]] )
+        assert( [list(v) for v in X.sparse] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
+        assert( list(X.flatSparse) == [ 1, 4, 8 ] )
+
+        # Data format conversions are cached, and when an SDR value changes the
+        # cache is cleared.
+        X.flatSparse = [1, 2, 3] # Assign new data to the SDR, clearing the cache.
+        X.dense     # This line will convert formats.
+        X.dense     # This line will resuse the result of the previous line
+
+        X = SDR((1000, 1000))
+        data = X.dense
+        data[  0,   4] = 1
+        data[444, 444] = 1
+        X.setDenseInplace()
+        assert(list(X.flatSparse) == [ 4, 444444 ])
+
     def testConstructor(self):
         A = SDR((103,))
         B = SDR((100, 100, 1))

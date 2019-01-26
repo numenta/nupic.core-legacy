@@ -662,10 +662,8 @@ public:
      *
      * @param sparsity The sparsity of the randomly generated SDR.
      *
-     * Both of the following parameters are optional, if neither is given then
-     * the seed 0 is used.
-     * @param seed The seed for the random number generator.
-     * @param rng The random number generator to draw from.
+     * @param rng The random number generator to draw from.  If not given, this
+     * makes one using the magic seed 0.
      */
     void randomize(Real sparsity) {
         Random rng( 0 );
@@ -693,10 +691,8 @@ public:
      * @param fractionNoise The fraction of active bits to swap out.  The
      * original and resulting SDRs have an overlap of (1 - fractionNoise).
      *
-     * Both of the following parameters are optional, if neither is given then
-     * the seed 0 is used.
-     * @param seed The seed for the random number generator.
-     * @param rng The random number generator to draw from.
+     * @param rng The random number generator to draw from.  If not given, this
+     * makes one using the magic seed 0.
      */
     void addNoise(Real fractionNoise) {
         Random rng( 0 );
