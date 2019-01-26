@@ -36,3 +36,5 @@ IE: it is called when a synapses permanence crosses the connected threshold. PR 
 bool raisePerm = true)`  due to SP implementation now using Connections. PR #153
 
 * SpatialPooler now always applies boosting, even when `learn=false`. PR #206
+
+* Removed methods `SpatialPooler::setSynPermConnected` and `TemporalMemory::setConnectedPermanence`. The connected synapse permanence threshold should instead be given to the constructor or the initialize method. PR #221
