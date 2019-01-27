@@ -244,9 +244,9 @@ special, it is replaced with the system time.  The default seed is 0.)",
             [](const SDR& self) {
                 std::stringstream ss;
                 self.save(ss);
-                return ss.str();
+                return py::bytes(ss.str());
         },
-            [](std::string& s) {
+            [](py::bytes& s) {
                 std::istringstream ss(s);
                 SDR self;
                 self.load(ss);
