@@ -250,7 +250,7 @@ protected:
 
 public:
     /**
-     * Use this method only in conjuction with sdr.load().
+     * Use this method only in conjuction with sdr.initialize() or sdr.load().
      */
     SparseDistributedRepresentation() {}
 
