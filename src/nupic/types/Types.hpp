@@ -214,6 +214,16 @@ typedef enum NTA_BasicType {
   NTA_BasicType_Bool,
 
   /**
+   * Represents an SDR object as pyload.  Not an array.
+   */
+  NTA_BasicType_SDR,
+
+  /**
+   * Represents an array of UInt containing indexes of the non-zero values of an SDR.
+   */
+  NTA_BasicType_Sparse,
+
+  /**
    * @note This is not an actual type, just a marker for validation purposes
    */
   NTA_BasicType_Last,

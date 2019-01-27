@@ -43,6 +43,7 @@
 #include <memory>	// for shared_ptr
 
 #include <nupic/types/Types.hpp>
+#include <nupic/ntypes/Sdr.hpp>
 #include <nupic/types/Serializable.hpp>
 
 
@@ -63,8 +64,10 @@ namespace nupic
      * Caller provides a buffer to use.
      * NuPIC always copies data into this buffer
      * Caller frees buffer when no longer needed.
+     * For NTA_BasicType_SDR, use 0 for count.
      */
-    ArrayBase(NTA_BasicType type, void* buffer, size_t count);
+    template<typename T>
+    ArrayBase::ArrayBase(NTA_BasicType type, T *buffer, size_t count);
 
     /**
      * Caller does not provide a buffer --
@@ -72,6 +75,7 @@ namespace nupic
      * ask the ArrayBase to allocate a buffer via allocateBuffer.
      */
     explicit ArrayBase(NTA_BasicType type);
+
 
     /**
      * Copy constructor.
@@ -92,45 +96,49 @@ namespace nupic
 
 
     /**
-         * Ask ArrayBase to allocate its buffer
-         */
-    virtual void
-    allocateBuffer(size_t count);
+     * Ask ArrayBase to allocate its buffer
+     */
+    virtual void allocateBuffer(size_t count);
+    virtual void allocateBuffer(std::vector<UInt>dimensions);  // only for SDR
 
     /**
-         * Ask ArrayBase to zero fill its buffer
-        */
-    virtual void
-    zeroBuffer();
+     * Ask ArrayBase to zero fill its buffer
+     */
+    virtual void zeroBuffer();
 
+    /** 
+     * resets the shared_ptr. The Array object is now empty.
+     */
+    virtual void releaseBuffer();
 
-    virtual void
-    setBuffer(void *buffer, size_t count);
+    /**
+     * Returns a pointer to the beginning of the buffer.
+     * For SDR, this returns a pointer to getDense().data();
+     */
+    void* getBuffer();
 
-    virtual void
-    releaseBuffer();
-
-    void*
-    getBuffer() const;
+    /**
+     * Returns a pointer to the underlining SDR.
+     * If it is not an SDR type, throws exception.
+     */
+    SDR *getSDR();
+    const SDR *getSDR() const;
 
     // number of elements of given type in the buffer
-    size_t
-    getCount() const;
+    size_t getCount() const;
 
     // max number of elements this buffer can hold (capacity)
 	  size_t getMaxElementsCount() const;
 
 	  // Returns the allocated buffer size in bytes independent of array length
-    size_t getBufferSize() const;
+    size_t getBufferSize();
 
 
     void setCount(size_t count);
 
-    NTA_BasicType
-    getType() const;
+    NTA_BasicType getType() const;
 
-    bool
-    isInstance(const ArrayBase &a);
+    bool isInstance(const ArrayBase &a);
 
 
     /**
@@ -153,15 +161,13 @@ namespace nupic
     size_t capacity_;   // size of the allocated buffer in bytes
     NTA_BasicType type_;// type of data in this buffer
     bool own_;
-    void convertInto(ArrayBase &a, size_t offset=0) const;
+    void convertInto(ArrayBase &a, size_t offset=0);
 
     // Used by the Array class to return an NZ array from local array.
-    // Template defines the type of the local array.
-    void NonZero(ArrayBase& a) const;
-
-    template <typename T>
-    void NonZeroT(ArrayBase &a) const;
-
+    // The SDR class makes this function obsolete but we keep it for conversions.
+    void toSparse(ArrayBase& a, UInt32 offset);
+    void fromSparse(ArrayBase &a, UInt32 size, UInt32 offset);
+    virtual void setBuffer(void *buffer, size_t count);
 
   private:
 
