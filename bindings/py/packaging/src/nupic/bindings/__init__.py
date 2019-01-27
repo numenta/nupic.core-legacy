@@ -36,7 +36,7 @@ def import_helper(name):
 		
   _mod = None
   basename = name[15:]
-  if sys.version_info[0]+sys.version_info[1]/10 < 3.4 :	
+  if sys.version_info[0]+sys.version_info[1]/10 <= 3.4 :	
     # for Python 2.7	
     import imp
     fp = None

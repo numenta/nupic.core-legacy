@@ -44,11 +44,29 @@ namespace nupic {
  */
 class _SDR_MetricsHelper {
 protected:
-    SDR* dataSource_;
     UInt period_;
     int  samples_;
+    vector<UInt> dimensions_;
+    SDR*  dataSource_;
     UInt  callback_handle_;
     UInt  destroyCallback_handle_;
+
+    /**
+     * @param dimensions of SDR.  Add data to this metric by calling method
+     * addData(SDR&) with an SDR which has these dimensions.
+     *
+     * @param period Time scale for exponential moving average.
+     */
+    _SDR_MetricsHelper( const vector<UInt> dimensions, UInt period ) {
+        NTA_CHECK( period > 0u );
+        NTA_CHECK( dimensions.size() > 0 );
+        dimensions_ = dimensions,
+        period_     = period;
+        samples_    = 0;
+        dataSource_ = nullptr;
+        callback_handle_        = -1;
+        destroyCallback_handle_ = -1;
+    }
 
     /**
      * @param dataSource SDR to track.  Add data to the metric by assigning to
@@ -57,14 +75,12 @@ protected:
      *
      * @param period Time scale for exponential moving average.
      */
-    _SDR_MetricsHelper( SDR &dataSource, UInt period ) {
-        NTA_CHECK( period > 0u );
+    _SDR_MetricsHelper( SDR &dataSource, UInt period )
+        : _SDR_MetricsHelper(dataSource.dimensions, period)
+    {
         dataSource_ = &dataSource;
-        period_     = period;
-        samples_    = 0;
         callback_handle_ = dataSource_->addCallback( [&](){
-            samples_++;
-            callback( *dataSource_, 1.0f / std::min( period_, (UInt) samples_ ));
+            callback( *dataSource_, 1.0f / std::min( period_, (UInt) ++samples_ ));
         });
         destroyCallback_handle_ = dataSource_->addDestroyCallback( [&](){
             deconstruct();
@@ -96,8 +112,21 @@ protected:
     virtual void callback( SDR &dataSource, Real alpha ) = 0;
 
 public:
-    const int  &samples = samples_;
-    const UInt &period  = period_;
+    const int          &samples    = samples_;
+    const UInt         &period     = period_;
+    const vector<UInt> &dimensions = dimensions_;
+
+    /**
+     * Add an SDR datum to this Metric.  This method can only be called if the
+     * Metric was constructed with dimensions and NOT an SDR.
+     *
+     * The given SDR's dimensions must be the same as this Metric's dimensions.
+     */
+    void addData(SDR &data) {
+        NTA_CHECK( dataSource_ == nullptr );
+        NTA_CHECK( dimensions_ == data.dimensions );
+        callback( data, 1.0f / std::min( period_, (UInt) ++samples_ ));
+    }
 };
 
 /**
@@ -127,6 +156,14 @@ private:
     Real variance_;
     Real sparsity_;
 
+    void initialize() {
+        sparsity_   =  1234.56789f;
+        min_        =  1234.56789f;
+        max_        = -1234.56789f;
+        mean_       =  1234.56789f;
+        variance_   =  1234.56789f;
+    }
+
     void callback(SDR &dataSource, Real alpha) override {
         sparsity_ = dataSource.getSparsity();
         min_ = std::min( min_, sparsity_ );
@@ -148,13 +185,17 @@ public:
      */
     SDR_Sparsity( SDR &dataSource, UInt period )
         : _SDR_MetricsHelper( dataSource, period )
-    {
-        sparsity_   =  1234.56789f;
-        min_        =  1234.56789f;
-        max_        = -1234.56789f;
-        mean_       =  1234.56789f;
-        variance_   =  1234.56789f;
-    }
+        { initialize(); }
+
+    /**
+     * @param dimensions of SDR.  Add data to this sparsity metric by calling
+     * method addData(SDR&) with an SDR which has these dimensions.
+     *
+     * @param period Time scale for exponential moving average.
+     */
+    SDR_Sparsity( const vector<UInt> dimensions, UInt period )
+        : _SDR_MetricsHelper( dimensions, period )
+        { initialize(); }
 
     const Real &sparsity = sparsity_;
     Real min() const { return min_; }
@@ -198,6 +239,10 @@ class SDR_ActivationFrequency : public _SDR_MetricsHelper {
 private:
     vector<Real> activationFrequency_;
 
+    void initialize(UInt size) {
+        activationFrequency_.assign( size, 1234.56789f );
+    }
+
     void callback(SDR &dataSource, Real alpha) override
     {
         const auto decay = 1.0f - alpha;
@@ -218,9 +263,23 @@ public:
      */
     SDR_ActivationFrequency( SDR &dataSource, UInt period )
         : _SDR_MetricsHelper( dataSource, period )
-    {
-        activationFrequency_.assign( dataSource.size, 1234.56789f );
-    }
+        { initialize( dataSource.size ); }
+
+    /**
+     * @param dimensions of SDR.  Add data to this SDR_ActivationFrequency
+     * instance by calling method addData(SDR&) with an SDR which has
+     * these dimensions.
+     *
+     * @param period Time scale for exponential moving average.
+     */
+    SDR_ActivationFrequency( const vector<UInt> dimensions, UInt period )
+        : _SDR_MetricsHelper( dimensions, period )
+        {
+            UInt size = 1;
+            for(const auto &dim : dimensions)
+                size *= dim;
+            initialize( size );
+        }
 
     const vector<Real> &activationFrequency = activationFrequency_;
 
@@ -325,6 +384,19 @@ private:
     Real mean_;
     Real variance_;
 
+    void initialize() {
+        // This class needs two samples before its data is valid, instead of one
+        // sample like _SDR_MetricsHelper class  expects, so start the samples
+        // counter one behind.
+        samples_   -=  1;
+        overlap_    =  1234.56789f;
+        min_        =  1234.56789f;
+        max_        = -1234.56789f;
+        mean_       =  1234.56789f;
+        variance_   =  1234.56789f;
+        previous_.getFlatSparse();
+    }
+
     void callback(SDR &dataSource, Real alpha) override {
         const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
         const auto overlap = (nbits == 0u) ? 0.0f
@@ -354,18 +426,18 @@ public:
     SDR_Overlap( SDR &dataSource, UInt period )
         : _SDR_MetricsHelper( dataSource, period ),
           previous_( dataSource.dimensions )
-    {
-        // This class needs two samples before its data is valid, instead of one
-        // sample like _SDR_MetricsHelper class  expects, so start the samples
-        // counter one behind.
-        samples_   -=  1;
-        overlap_    =  1234.56789f;
-        min_        =  1234.56789f;
-        max_        = -1234.56789f;
-        mean_       =  1234.56789f;
-        variance_   =  1234.56789f;
-        previous_.getFlatSparse();
-    }
+        { initialize(); }
+
+    /**
+     * @param dimensions of SDR.  Add data to this SDR_Overlap instance
+     * by calling method addData(SDR&) with an SDR which has these dimensions.
+     *
+     * @param period Time scale for exponential moving average.
+     */
+    SDR_Overlap( const vector<UInt> dimensions, UInt period )
+        : _SDR_MetricsHelper( dimensions, period ),
+          previous_( dimensions )
+        { initialize(); }
 
     const Real &overlap = overlap_;
     Real min() const { return min_; }
@@ -418,16 +490,41 @@ public:
      * @param period Time scale for exponential moving average.
      */
     SDR_Metrics( SDR &dataSource, UInt period )
-        : sparsity_( dataSource, period ),
+        : dimensions_( dataSource.dimensions ),
+          sparsity_(            dataSource, period ),
           activationFrequency_( dataSource, period ),
-          overlap_( dataSource, period )
-    {
-        dimensions_ = dataSource.dimensions;
-    }
+          overlap_(             dataSource, period )
+          {};
 
+    /**
+     * @param dimensions of SDR.  Add data to this SDR_Metrics instance
+     * by calling method addData(SDR&) with an SDR which has these dimensions.
+     *
+     * @param period Time scale for exponential moving average.
+     */
+    SDR_Metrics( const vector<UInt> dimensions, UInt period )
+        : dimensions_( dimensions ),
+          sparsity_(            dimensions, period ),
+          activationFrequency_( dimensions, period ),
+          overlap_(             dimensions, period )
+          {};
+
+    const vector<UInt>            &dimensions          = dimensions_;
     const SDR_Sparsity            &sparsity            = sparsity_;
     const SDR_ActivationFrequency &activationFrequency = activationFrequency_;
     const SDR_Overlap             &overlap             = overlap_;
+
+    /**
+     * Add an SDR datum to these Metrics.  This method can only be called if
+     * SDR_Metrics was constructed with dimensions and NOT an SDR.
+     *
+     * The given SDR's dimensions must be the same as this Metric's dimensions.
+     */
+    void addData(SDR &data) {
+        sparsity_.addData( data );
+        activationFrequency_.addData( data );
+        overlap_.addData( data );
+    }
 
     friend std::ostream& operator<<(std::ostream& stream, const SDR_Metrics &M)
     {
