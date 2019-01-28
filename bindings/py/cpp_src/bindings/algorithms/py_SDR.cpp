@@ -255,11 +255,30 @@ special, it is replaced with the system time.  The default seed is 0.)",
         }));
 
 
-        py::class_<SDR_Proxy, SDR> py_Proxy(m, "SDR_Proxy");
+        py::class_<SDR_Proxy, SDR> py_Proxy(m, "SDR_Proxy",
+R"(SDR_Proxy presents a view onto an SDR.
+    * Proxies can have different dimensions than their source SDR.
+    * Proxies are read only.
+    * Proxies always have the same value as their source SDR.
+    * Proxies can be used in place of an SDR.
 
-        py_Proxy.def( py::init<SDR&>() );
+Example Usage:
+    // Convert SDR dimensions from (4 x 4) to (8 x 2)
+    A = SDR([ 4, 4 ])
+    B = SDR_Proxy( A, [8, 2])
+    A.sparse =  ([1, 1, 2], [0, 1, 2])
+    B.sparse -> ([2, 2, 5], [0, 1, 0])
 
-        py_Proxy.def( py::init<SDR&, vector<UInt>>() );
+SDR_Proxy does not support pickle)");
 
+        py_Proxy.def( py::init<SDR&, vector<UInt>>(),
+R"(Argument sdr is the data source make a view of.
+
+Argument dimensions A list of dimension sizes, defining the shape of the SDR.
+Optional, if not given then this Proxy will have the same dimensions as the
+given SDR.)",
+            py::arg("sdr"), py::arg("dimensions"));
+
+        py_Proxy.def( py::init<SDR&>(), py::arg("sdr"));
     }
 }

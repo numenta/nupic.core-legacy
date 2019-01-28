@@ -147,6 +147,7 @@ public:
  *      B.max()    ->  0.15
  *      B.mean()   -> ~0.07
  *      B.std()    -> ~0.06
+ *      cout << B  -> Sparsity Min/Mean/Std/Max 0.01 / 0.0700033 / 0.0588751 / 0.15
  */
 class SDR_Sparsity : public _SDR_MetricsHelper {
 private:
@@ -234,6 +235,7 @@ public:
  *      B.mean()    ->  0.50
  *      B.std()     -> ~0.16
  *      B.entropy() -> ~0.92
+ *      cout << B   ->              TODO
  */
 class SDR_ActivationFrequency : public _SDR_MetricsHelper {
 private:
@@ -374,6 +376,7 @@ public:
  *      B.max()     ->  0.45
  *      B.mean()    ->  0.26
  *      B.std()     -> ~0.16
+ *      cout << B   ->              TODO
  */
 class SDR_Overlap : public _SDR_MetricsHelper {
 private:
@@ -473,6 +476,7 @@ public:
  *          A.setData( ... )
  *
  *      cout << M;
+                        TODO: SHOW EXAMPLE OUTPUT
  */
 // TODO: Add flags to enable/disable which metrics this uses?
 class SDR_Metrics {
