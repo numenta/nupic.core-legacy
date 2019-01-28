@@ -87,10 +87,6 @@ protected:
         });
     }
 
-    ~_SDR_MetricsHelper() {
-        deconstruct();
-    }
-
     void deconstruct() {
         if( dataSource_ != nullptr ) {
             dataSource_->removeCallback( callback_handle_ );
@@ -126,6 +122,10 @@ public:
         NTA_CHECK( dataSource_ == nullptr );
         NTA_CHECK( dimensions_ == data.dimensions );
         callback( data, 1.0f / std::min( period_, (UInt) ++samples_ ));
+    }
+
+    ~_SDR_MetricsHelper() {
+        deconstruct();
     }
 };
 
