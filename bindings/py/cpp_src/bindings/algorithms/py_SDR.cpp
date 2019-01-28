@@ -24,6 +24,7 @@
 #include <pybind11/stl.h>
 
 #include <nupic/ntypes/Sdr.hpp>
+#include <nupic/ntypes/SdrProxy.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
 
 namespace py = pybind11;
@@ -246,11 +247,19 @@ special, it is replaced with the system time.  The default seed is 0.)",
                 self.save(ss);
                 return py::bytes(ss.str());
         },
-            [](py::bytes& s) {
+            [](const py::bytes& s) {
                 std::istringstream ss(s);
                 SDR self;
                 self.load(ss);
                 return self;
         }));
+
+
+        py::class_<SDR_Proxy, SDR> py_Proxy(m, "SDR_Proxy");
+
+        py_Proxy.def( py::init<SDR&>() );
+
+        py_Proxy.def( py::init<SDR&, vector<UInt>>() );
+
     }
 }
