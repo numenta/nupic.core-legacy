@@ -534,28 +534,24 @@ const std::map<std::string, Output *> &Region::getOutputs() const {
 }
 
 
-ArrayRef Region::getOutputData(const std::string &outputName) const {
+const Array& Region::getOutputData(const std::string &outputName) const {
   auto oi = outputs_.find(outputName);
   if (oi == outputs_.end())
     NTA_THROW << "getOutputData -- unknown output '" << outputName
               << "' on region " << getName();
 
   const Array& data = oi->second->getData();
-  // for later.     return data.ref();
-  ArrayRef ref(data.getType(), data.getBuffer(), data.getCount());
-  return ref;
+  return data;
 }
 
-ArrayRef Region::getInputData(const std::string &inputName) const {
+const Array& Region::getInputData(const std::string &inputName) const {
   auto ii = inputs_.find(inputName);
   if (ii == inputs_.end())
     NTA_THROW << "getInput -- unknown input '" << inputName << "' on region "
               << getName();
 
   const Array & data = ii->second->getData();
-  // for later.     return data.ref();
-  ArrayRef ref(data.getType(), data.getBuffer(), data.getCount());
-  return ref;
+  return data;
 }
 
 void Region::prepareInputs() {

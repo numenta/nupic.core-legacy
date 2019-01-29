@@ -31,7 +31,8 @@
   * - a capacity   (useful if buffer is larger than data in buffer)
   * - a type
   * - a flag indicating whether or not the object owns the buffer.
-  * Note: if buffer is not owned, shared_ptr will not delete it.
+  * Note: if buffer is not owned, shared_ptr will not delete it. 
+  *       But it also does not provide any protections either.
   */
 
 #ifndef NTA_ARRAY_BASE_HPP
@@ -52,6 +53,7 @@
 
 namespace nupic
 {
+
   /**
    * An ArrayBase is used for passing arrays of data back and forth between
    * a client application and NuPIC, minimizing copying. It facilitates
@@ -67,33 +69,32 @@ namespace nupic
      * For NTA_BasicType_SDR, use 0 for count.
      */
     template<typename T>
-    ArrayBase::ArrayBase(NTA_BasicType type, T *buffer, size_t count);
+    ArrayBase(NTA_BasicType type, T *buffer, size_t count);
 
     /**
      * Caller does not provide a buffer --
      * Nupic will either provide a buffer via setBuffer or
      * ask the ArrayBase to allocate a buffer via allocateBuffer.
      */
-    explicit ArrayBase(NTA_BasicType type);
+    ArrayBase(NTA_BasicType type);
 
 
     /**
      * Copy constructor.
      */
-    ArrayBase(const ArrayBase& other) {
-      type_ = other.type_;
-      buffer_ = other.buffer_;
-      count_ = other.count_;
-      capacity_ = other.capacity_;
-      own_ = other.own_;
-    }
+    //ArrayBase(const ArrayBase& other) {
+    //  type_ = other.type_;
+    //  buffer_ = other.buffer_;
+    //  count_ = other.count_;
+    //  capacity_ = other.capacity_;
+    //  own_ = other.own_;
+    //}
 
     /**
      * The destructor ensures the array doesn't leak its buffer (if
      * it owns it).
      */
     virtual ~ArrayBase();
-
 
     /**
      * Ask ArrayBase to allocate its buffer
@@ -116,13 +117,14 @@ namespace nupic
      * For SDR, this returns a pointer to getDense().data();
      */
     void* getBuffer();
+    const void* getBuffer() const;
 
     /**
      * Returns a pointer to the underlining SDR.
      * If it is not an SDR type, throws exception.
      */
-    SDR *getSDR();
-    const SDR *getSDR() const;
+    SDR* getSDR();
+    const SDR* getSDR() const;
 
     // number of elements of given type in the buffer
     size_t getCount() const;
@@ -131,7 +133,7 @@ namespace nupic
 	  size_t getMaxElementsCount() const;
 
 	  // Returns the allocated buffer size in bytes independent of array length
-    size_t getBufferSize();
+    size_t getBufferSize() const;
 
 
     void setCount(size_t count);
@@ -161,12 +163,12 @@ namespace nupic
     size_t capacity_;   // size of the allocated buffer in bytes
     NTA_BasicType type_;// type of data in this buffer
     bool own_;
-    void convertInto(ArrayBase &a, size_t offset=0);
+    void convertInto(ArrayBase &a, size_t offset=0) const;
 
     // Used by the Array class to return an NZ array from local array.
     // The SDR class makes this function obsolete but we keep it for conversions.
-    void toSparse(ArrayBase& a, UInt32 offset);
-    void fromSparse(ArrayBase &a, UInt32 size, UInt32 offset);
+    void toSparse(ArrayBase& a, size_t offset) const;
+    void fromSparse(ArrayBase &a, size_t size, size_t offset) const;
     virtual void setBuffer(void *buffer, size_t count);
 
   private:
@@ -186,14 +188,14 @@ namespace nupic
   //    [ type count ( item item item ) ]
   // for inStream the Array object must already exist and initialized with a type.
   // The buffer will be allocated and populated with this class as owner.
-  std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a);
+  std::ostream &operator<<(std::ostream &outStream, ArrayBase &a);
   std::istream &operator>>(std::istream &inStream, ArrayBase &a);
 
   // Compare contents of two ArrayBase objects
   // Note: An Array and an ArrayRef could be the same if type, count, and buffer
   // contents are the same.
-  bool operator==(const ArrayBase &lhs, const ArrayBase &rhs);
-  inline bool operator!=(const ArrayBase &lhs, const ArrayBase &rhs) {return !(lhs == rhs);}
+  bool operator==(ArrayBase &lhs, ArrayBase &rhs);
+  inline bool operator!=(ArrayBase &lhs, ArrayBase &rhs) {return !(lhs == rhs);}
 
 } // namespace
 

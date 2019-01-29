@@ -28,7 +28,6 @@
 #include <numeric>
 #include <algorithm> // std::sort
 #include <nupic/types/Types.hpp>
-#include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
 #include <functional> // function
@@ -129,9 +128,9 @@ protected:
     vector<UInt> dimensions_;
     UInt         size_;
 
-    SDR_dense_t      dense;
-    SDR_flatSparse_t flatSparse;
-    SDR_sparse_t     sparse;
+    mutable SDR_dense_t      dense;
+    mutable SDR_flatSparse_t flatSparse;
+    mutable SDR_sparse_t     sparse;
 
     /**
      * These hooks are called every time the SDR's value changes.  These can be
@@ -150,16 +149,16 @@ protected:
      * These flags remember which data formats are up-to-date and which formats
      * need to be updated.
      */
-    bool dense_valid;
-    bool flatSparse_valid;
-    bool sparse_valid;
+    mutable bool dense_valid;
+    mutable bool flatSparse_valid;
+    mutable bool sparse_valid;
 
     /**
      * Remove the value from this SDR by clearing all of the valid flags.  Does
      * not actually change any of the data.  Attempting to get the SDR's value
      * immediately after this operation will raise an exception.
      */
-    virtual void clear() {
+    virtual void clear() const {
         dense_valid      = false;
         flatSparse_valid = false;
         sparse_valid     = false;
@@ -357,19 +356,6 @@ public:
         setDenseInplace();
     }
 
-    /**
-     * Copy a new value into the SDR, overwritting the current value.
-     *
-     * @param value A dense array to copy into the SDR.
-     */
-    void setDense( const ArrayBase &value )  {
-        NTA_ASSERT( value.getCount() == size );
-        BasicType::convertArray(
-            getDense().data(), NTA_BasicType_Byte,
-            value.getBuffer(), value.getType(),
-            size);
-        setDenseInplace();
-    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -379,7 +365,7 @@ public:
      *
      * @returns A reference to an array of all the values in the SDR.
      */
-    virtual SDR_dense_t& getDense() {
+    virtual SDR_dense_t& getDense() const {
         if( !dense_valid ) {
             // Convert from flatSparse to dense.
             dense.assign( size, 0 );
@@ -445,21 +431,6 @@ public:
         setFlatSparseInplace();
     }
 
-    /**
-     * Copy an array of sparse indices of true values.  These indicies are into
-     * the flattened SDR space.  This overwrites the SDR's current value.
-     *
-     * @param value An array of flat indices to copy into the SDR.
-     */
-    void setFlatSparse( const ArrayBase &value ) {
-        getFlatSparse().resize( value.getCount() );
-        BasicType::convertArray(
-            getFlatSparse().data(),
-            NTA_BasicType_UInt,
-            value.getBuffer(), value.getType(),
-            value.getCount());
-        setFlatSparseInplace();
-    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -471,7 +442,7 @@ public:
      * @returns A reference to a vector of the indices of the true values in the
      * flattened SDR.
      */
-    virtual SDR_flatSparse_t& getFlatSparse() {
+    virtual SDR_flatSparse_t& getFlatSparse() const {
         if( !flatSparse_valid ) {
             constGetFlatSparse_( flatSparse );
             flatSparse_valid = true;
@@ -559,7 +530,7 @@ public:
      * @returns A reference to a list of lists which contain the coordinates of
      * the true values in the SDR.     
      */
-    virtual SDR_sparse_t& getSparse() {
+    virtual SDR_sparse_t& getSparse() const {
         if( !sparse_valid ) {
             // Clear out any old data.
             for( auto& vec : sparse ) {
@@ -619,7 +590,7 @@ public:
      *
      * @returns The number of true values in the SDR.
      */
-    UInt getSum()
+    UInt getSum() const
         { return (UInt)getFlatSparse().size(); }
 
     /**
@@ -629,7 +600,7 @@ public:
      *
      * @returns The fraction of values in the SDR which are true.
      */
-    Real getSparsity()
+    Real getSparsity() const
         { return (Real) getSum() / size; }
 
     /**
@@ -641,7 +612,7 @@ public:
      * @returns Integer, the number of true values which both SDRs have in
      * common.
      */
-    UInt overlap(SparseDistributedRepresentation &sdr) {
+    UInt overlap(SparseDistributedRepresentation &sdr) const {
         #ifdef NTA_ASSERTIONS_ON
             NTA_ASSERT( dimensions.size() == sdr.dimensions.size() );
             for( UInt i = 0u; i < dimensions.size(); i++ )
@@ -737,7 +708,7 @@ public:
      * Print a human readable version of the SDR.
      */
     friend std::ostream& operator<< (std::ostream& stream,
-                                     SparseDistributedRepresentation &sdr)
+                                     const SparseDistributedRepresentation &sdr)
     {
         stream << "SDR( ";
         for( UInt i = 0; i < (UInt)sdr.dimensions.size(); i++ ) {
@@ -756,7 +727,7 @@ public:
         return stream << endl;
     }
 
-    bool operator==(SparseDistributedRepresentation &sdr) {
+    bool operator==(SparseDistributedRepresentation &sdr) const {
         // Check attributes
         if( sdr.size != size or dimensions.size() != sdr.dimensions.size() )
             return false;
@@ -771,8 +742,9 @@ public:
             sdr.getDense().begin());
     }
 
-    bool operator!=(SparseDistributedRepresentation &sdr)
-        { return not ((*this) == sdr); }
+    bool operator!=(SparseDistributedRepresentation &sdr) const {
+        return not ((*this) == sdr); 
+    }
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.

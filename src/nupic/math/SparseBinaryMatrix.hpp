@@ -1110,7 +1110,7 @@ public:
 
     b << getVersion() << " " << nRows() << " " << nCols() << " ";
 
-    size_type n = b.str().size();
+    size_type n = (size_type)b.str().size();
     for (size_type row = 0; row != nRows(); ++row) {
       size_type nnzr = nNonZerosOnRow(row);
       n += sprintf(buffer, "%ld ", (long)nnzr);

@@ -62,12 +62,25 @@
 #define NTA_ARRAY_REF_HPP
 
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/utils/Log.hpp>
+#include <nupic/ntypes/Array.hpp>
+//#include <nupic/utils/Log.hpp>
+
 
 namespace nupic {
+//typedef const Array ArrayRef;
+
+#if 0
 class ArrayRef : public ArrayBase {
 public:
+  /**
+   * Create an arrayRef object which is basically a read-only version of the Array.
+   */
   ArrayRef() : ArrayBase(NTA_BasicType_Int32) {}
+
+  ArrayRef(ArrayBase& a) : ArrayBase(a) {
+      own_ = false;
+  }
+
   ArrayRef(NTA_BasicType type, void *buffer, size_t count) : ArrayBase(type) {
     setBuffer(buffer, count);
   }
@@ -76,7 +89,7 @@ public:
 
   ArrayRef(const ArrayRef &other) : ArrayBase(other) {}
 
-  const void *getBuffer() const { return buffer_.get(); }
+  const void *getBuffer() const { return getBuffer(); }
 
   void invariant() {
     if (own_)
@@ -96,6 +109,6 @@ private:
   }
   friend class Array;
 };
+#endif
 } // namespace nupic
-
 #endif

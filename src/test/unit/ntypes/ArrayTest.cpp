@@ -179,7 +179,7 @@ TEST_F(ArrayTest, testMemory) {
   char testValue;
   char *ownedBufferLocation;
   Array b(NTA_BasicType_Byte);
-  ArrayRef c;
+  const Array c;
 
 
 
@@ -224,8 +224,7 @@ TEST_F(ArrayTest, testMemory) {
     // make an asignment to another Array instance and to an ArrayRef instance.
     b = a; // shallow copy.  Buffer not copied but remains valid after a is
            // deleted.
-	c = ArrayRef(a.getType(), a.getBuffer(), a.getCount());
-    //c = a.ref();  // also a shallow copy
+	c = Array(a.getType(), a.getBuffer(), a.getCount());
     EXPECT_TRUE(c.getType() == NTA_BasicType_Byte)  << "The data type should have been copied to the ArrayRef.";
 
     EXPECT_TRUE(((char *)b.getBuffer())[4] == 'E')  << "Should be able to read the new Array instance.";

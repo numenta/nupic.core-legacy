@@ -125,7 +125,7 @@ void helperCppInputOutputAccess(Region *level1) {
 
   // getting access via zero-copy
   std::cout << "Getting output for zero-copy access" << std::endl;
-  ArrayRef output = level1->getOutputData("bottomUpOut");
+  const Array& output = level1->getOutputData("bottomUpOut");
   std::cout << "Element count in bottomUpOut is " << output.getCount() << ""
             << std::endl;
   Real64 *data_actual = (Real64 *)output.getBuffer();
@@ -162,7 +162,7 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
 
   EXPECT_THROW(region2->setDimensions(r1dims), exception);
 
-  ArrayRef r1OutputArray = region1->getOutputData("bottomUpOut");
+  const Array r1OutputArray = region1->getOutputData("bottomUpOut");
 
   region1->compute();
   std::cout << "Checking region1 output after first iteration..." << std::endl;
@@ -176,7 +176,7 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
   }
 
   region2->prepareInputs();
-  ArrayRef r2InputArray = region2->getInputData("bottomUpIn");
+  const Array r2InputArray = region2->getInputData("bottomUpIn");
   std::cout << "Region 2 input after first iteration:" << std::endl;
   Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
   EXPECT_TRUE(buffer != buffer2);
@@ -250,7 +250,7 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
 
   EXPECT_THROW(region2->setDimensions(r1dims), exception);
 
-  ArrayRef r1OutputArray = region1->getOutputData("bottomUpOut");
+  const Array r1OutputArray = region1->getOutputData("bottomUpOut");
 
   region1->compute();
   std::cout << "Checking region1 output after first iteration..." << std::endl;
@@ -263,7 +263,7 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
   }
 
   region2->prepareInputs();
-  ArrayRef r2InputArray = region2->getInputData("bottomUpIn");
+  const Array r2InputArray = region2->getInputData("bottomUpIn");
   std::cout << "Region 2 input after first iteration:" << std::endl;
   Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
   EXPECT_TRUE(buffer != buffer2);

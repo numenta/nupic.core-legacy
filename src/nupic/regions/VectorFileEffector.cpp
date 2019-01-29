@@ -57,7 +57,7 @@ VectorFileEffector::~VectorFileEffector() { closeFile(); }
 void VectorFileEffector::initialize() {
   NTA_CHECK(region_ != nullptr);
   // We have no outputs or parameters; just need our input.
-  dataIn_ = region_->getInputData("dataIn");
+  dataIn_ = region_->getInput("dataIn")->getData();
 
   if (dataIn_.getCount() == 0) {
     NTA_THROW << "VectorFileEffector::init - no input found\n";
