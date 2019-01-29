@@ -250,7 +250,7 @@ protected:
 
 public:
     /**
-     * Use this method only in conjuction with sdr.load().
+     * Use this method only in conjuction with sdr.initialize() or sdr.load().
      */
     SparseDistributedRepresentation() {}
 
@@ -260,7 +260,10 @@ public:
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.  The product of the dimensions must be greater than zero.
      */
-    SparseDistributedRepresentation( const vector<UInt> dimensions ) {
+    SparseDistributedRepresentation( const vector<UInt> dimensions )
+        { initialize( dimensions ); }
+
+    void initialize( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
         NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
         // Calculate the SDR's size.
