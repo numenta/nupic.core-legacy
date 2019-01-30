@@ -133,7 +133,7 @@ script:
   - cd ${TRAVIS_BUILD_DIR}
   - "python setup.py test"
   # run memory leak tests with valgrind
-  - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=3 ${TRAVIS_BUILD_DIR}/build/Release/bin/memleak_hotgym 5 || exit(1) 
+  - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=3 ${TRAVIS_BUILD_DIR}/build/Release/bin/memleak_hotgym 5 || exit 1 
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html
