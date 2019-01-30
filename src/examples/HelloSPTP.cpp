@@ -45,14 +45,12 @@ using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
 // work-load
-void run() {
+void run(UInt EPOCHS = 5000) {
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
   const UInt CELLS = 10; // cells per column in TP
-#ifdef NDEBUG
-  const UInt EPOCHS = 5000; // number of iterations (calls to SP/TP compute() )
-#else
-  const UInt EPOCHS = 2; // make test faster in Debug
+#ifndef NDEBUG
+  EPOCHS = 2; // make test faster in Debug
 #endif
 
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
