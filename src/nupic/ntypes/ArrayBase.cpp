@@ -39,31 +39,34 @@ namespace nupic {
 /**
  * This makes a deep copy of the buffer so this class will own the buffer.
  *
- * Note: for NTA_BasicType_SDR, the count variable is ignored. Its size is
- *       taken from the internal SDR object.
+ * Note: for NTA_BasicType_SDR, 
  */
-template <typename T>
-ArrayBase::ArrayBase(NTA_BasicType type, T *buffer, size_t count) {
+ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count) {
   if (!BasicType::isValid(type)) {
     NTA_THROW << "Invalid NTA_BasicType " << type
               << " used in array constructor";
   }
   type_ = type;
-  if (typeid(T) == typeid(SDR)) {
-    auto dim = buffer->dimensions;
-    allocateBuffer(dim);
-    if (count > 0) {
-      std::memcpy((char *)getBuffer(), (char *)buffer,
-              count * BasicType::getSize(type));
-    }
-  } else {
-    allocateBuffer(count);
-    if (count > 0) {
-      std::memcpy((char *)getBuffer(), (char *)buffer,
-              count * BasicType::getSize(type));
-    }
+  allocateBuffer(count);
+  if (count > 0) {
+    std::memcpy((char *)getBuffer(), (char *)buffer,
+            count * BasicType::getSize(type));
   }
 }
+
+/**
+  * constructor for Array object containing an SDR.
+  */
+ArrayBase::ArrayBase(const SDR &sdr)  {
+  type_ = NTA_BasicType_SDR;
+  auto dim = sdr.dimensions;
+  allocateBuffer(dim);
+  if (count_ > 0) {
+    std::memcpy((char *)getBuffer(), (char *)sdr.getDense().data(), count_);
+  }
+  //sdr.setDenseInplace();
+}
+
 
 /**
  * Caller does not provide a buffer --
@@ -102,7 +105,7 @@ void ArrayBase::allocateBuffer(size_t count) {
   // size zero.
   if (type_ == NTA_BasicType_SDR) {
     std::vector<UInt> dimension;
-    dimension[0] = (UInt)count;
+    dimension.push_back((UInt)count);
     allocateBuffer(dimension);
   } else {
     count_ = count;
@@ -121,8 +124,8 @@ void ArrayBase::allocateBuffer(std::vector<UInt> dimensions) { // only for SDR
   std::shared_ptr<char> sp((char *)(sdr));
   buffer_ = sp;
   own_ = true;
-  capacity_ = 0; // not used
-  count_ = 0;    // not used
+  count_ = sdr->size;  
+  capacity_ = count_ * sizeof(Byte);
 }
 
 /**
@@ -161,12 +164,14 @@ void ArrayBase::releaseBuffer() {
 }
 
 void *ArrayBase::getBuffer() {
-  if (type_ == NTA_BasicType_SDR)
+  if (buffer_ != nullptr && type_ == NTA_BasicType_SDR) {
+    SDR *sdr = getSDR();
     return getSDR()->getDense().data();
+  }
   return buffer_.get();
 }
 const void *ArrayBase::getBuffer() const {
-  if (type_ == NTA_BasicType_SDR) {
+  if (buffer_ != nullptr && type_ == NTA_BasicType_SDR) {
     return getSDR()->getDense().data();
   }
   return buffer_.get();
@@ -174,12 +179,12 @@ const void *ArrayBase::getBuffer() const {
 
 SDR *ArrayBase::getSDR() {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  NTA_CHECK(buffer_ == nullptr) << "Empty, does not contain an SDR object";
+  NTA_CHECK(buffer_.get() != nullptr) << "Empty, does not contain an SDR object";
   return (SDR *)buffer_.get();
 }
 const SDR *ArrayBase::getSDR() const {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  NTA_CHECK(buffer_ == nullptr) << "Empty, does not contain an SDR object";
+  NTA_CHECK(buffer_ != nullptr) << "Empty, does not contain an SDR object";
   const SDR *sdr = (SDR *)buffer_.get();
   return sdr;
 }
@@ -237,15 +242,20 @@ NTA_BasicType ArrayBase::getType() const { return type_; };
  * Convert the buffer contents of the current ArrayBase into
  * the type of the incoming ArrayBase type. Applying an offset if specified.
  * If there is not enough room in the destination buffer a new one is created.
+ *
  * For Fan-In condition, be sure there is enough space in the buffer before
- * the first conversion to avoid loosing data during re-allocation.
+ * the first conversion to avoid loosing data during re-allocation. Then do
+ * them in order so that the largest index is last.
+ *
+ * Be care when using this with SDR...it will remove dimensions if buffer is 
+ * not big enough.
  */
 void ArrayBase::convertInto(ArrayBase &a, size_t offset) const {
-  if (offset + count_ > a.getMaxElementsCount()) {
-    a.allocateBuffer(offset + count_);
+  if (offset + getCount() > a.getMaxElementsCount()) {
+    a.allocateBuffer(offset + getCount());
   }
   if (type_ == NTA_BasicType_Sparse)
-    fromSparse(a, offset, a.count_);
+    fromSparse(a, offset, a.getCount());
   else if (a.getType() == NTA_BasicType_Sparse)
     toSparse(a, offset);
   else {
@@ -253,15 +263,15 @@ void ArrayBase::convertInto(ArrayBase &a, size_t offset) const {
     if (offset)
       toPtr += (offset * BasicType::getSize(a.getType()));
     const void *fromPtr = getBuffer();
-    BasicType::convertArray(toPtr, a.type_, fromPtr, type_, count_);
-    a.count_ = offset + count_;
+    BasicType::convertArray(toPtr, a.type_, fromPtr, type_, getCount());
+    a.count_ = offset + getCount();
   }
 }
 
-bool ArrayBase::isInstance(const ArrayBase &a) {
+bool ArrayBase::isInstance(const ArrayBase &a) const {
   if (a.buffer_ == nullptr || buffer_ == nullptr)
     return false;
-  return (buffer_ == a.buffer_);
+  return (buffer_.get() == a.buffer_.get());
 }
 
 template <typename T> static void NonZeroT(ArrayBase& a, const ArrayBase* b) {
@@ -483,7 +493,7 @@ static void _templatedStreamBuffer(std::ostream &outStream, const void *inbuf,
   outStream << ") ";
 }
 
-std::ostream &operator<<(std::ostream &outStream, ArrayBase &a) {
+std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a) {
   auto const inbuf = a.getBuffer();
   auto const numElements = a.getCount();
   auto const elementType = a.getType();

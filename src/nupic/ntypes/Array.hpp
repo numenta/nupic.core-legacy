@@ -136,39 +136,37 @@ public:
   Array() : ArrayBase(NTA_BasicType_Int32) {}
 
   /**
-   * Initialize by copying in from a raw C-type buffer.  See ArrayBase
-   */
-  template <typename T>
-  Array(NTA_BasicType type, T *buffer, size_t count)
-      : ArrayBase(type, buffer, count) {}
-
-  /**
    * constructor for empty Array with a known type.
    */
   Array(NTA_BasicType type) : ArrayBase(type) {}
 
   /**
-   * constructor for Array object containing an SDR.
+   * Initialize by copying in from a raw C-type buffer.  See ArrayBase
    */
-  Array(SDR &sdr) : ArrayBase(NTA_BasicType_SDR, &sdr, 0) {}
+  Array(NTA_BasicType type, void *buffer, size_t count) : ArrayBase(type, buffer, count) {}
+
+  /**
+    * Create an ArrayBase containing a copy of an SDR.
+    */
+  Array(const SDR &sdr) : ArrayBase(sdr) {}
 
   // copy constructor
-  // by default, a copy constructor is a shallow copy which would result in two
-  // Array objects pointing to the same buffer. However, this is stored in a
-  // shared smart pointer so both Array objects must be deleted before the
-  // buffer is deleted. So the default copy and assignment constructor is ok.
-  //Array(const Array &other) : ArrayBase(other) 
-  //Array& operator=(const Array& other)
-
+  // by default, a copy constructor is a shallow copy which would result in
+  // two Array objects pointing to the same buffer. However, this is stored
+  // in a shared smart pointer so both Array objects must be deleted before
+  // the buffer is deleted. So the default copy and assignment constructor
+  // is ok.
+  // Array(const Array &other) : ArrayBase(other)
+  // Array& operator=(const Array& other)
 
   /////////////////////////////////////
   //   Copy tools
 
   /**
-   * There are times when we do want a deep copy.  The copy() function
-   * will make a full copy of the buffer and becomes the buffer owner.
-   */
-  Array copy() const {
+    * There are times when we do want a deep copy.  The copy() function
+    * will make a full copy of the buffer and becomes the buffer owner.
+    */
+  Array copy() {
     Array a(type_);
     if (count_ > 0) {
       a.allocateBuffer(count_);
@@ -195,7 +193,7 @@ public:
    * The buffer data is not copied, but becomes shared.
    * Same as an assignment.
    */
-  void share(Array &a) {
+  void share(Array &a) const {
     a.buffer_ = buffer_; // copies the shared_ptr
     a.count_ = count_;
     a.capacity_ = capacity_;
@@ -272,15 +270,6 @@ public:
            count * BasicType::getSize(type_));
     return a;
   }
-
-  void invariant() {
-    if (!own_)
-      NTA_THROW << "Array must own its buffer";
-  }
-
-private:
-  // Hide base class method (invalid for Array)
-  void setBuffer(void *buffer, size_t count) override {}
 };
 } // namespace nupic
 

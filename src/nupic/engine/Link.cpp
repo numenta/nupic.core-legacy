@@ -177,13 +177,11 @@ void Link::initialize(size_t destinationOffset) {
     // because the buffer size is not known prior to then.
     // front of queue will be the next value to be copied to the dest Input buffer.
     // back of queue will be the same as the current contents of source Output.
-    NTA_BasicType dataElementType = src_->getData().getType();
-    size_t dataElementCount = src_->getData().getCount();
+    Array &output_buffer = src_->getData();
     for (size_t i = 0; i < (propagationDelay_); i++) {
-      Array arrayTemplate(dataElementType);
-      arrayTemplate.allocateBuffer(dataElementCount);
-      arrayTemplate.zeroBuffer();
-      propagationDelayBuffer_.push_back(arrayTemplate);
+      Array delayedbuffer = output_buffer.copy();
+      delayedbuffer.zeroBuffer();
+      propagationDelayBuffer_.push_back(delayedbuffer);
     }
   }
 
@@ -427,7 +425,7 @@ void Link::serialize(std::ostream &f) {
     // want to capture the amount of the input buffer contributed by
     // this link.
     Array a = dest_->getData().subset(destOffset_, srcCount);
-    f << a; // our part of the current Dest Input buffer.
+    a.save(f); // our part of the current Dest Input buffer.
 
     std::deque<Array>::iterator itr;
     for (auto itr = propagationDelayBuffer_.begin();
@@ -435,7 +433,7 @@ void Link::serialize(std::ostream &f) {
       if (itr + 1 == propagationDelayBuffer_.end())
         break; // skip the last buffer. Its the current output.
       Array &buf = *itr;
-      f << buf;
+      buf.save(f);
     } // end for
   }
   f << "]\n";  // end of list of buffers in propagationDelayBuffer
@@ -525,7 +523,7 @@ void Link::deserialize(std::istream &f) {
   Size idx = 0;
   for (; idx < count; idx++) {
     Array a;
-    f >> a;
+    a.load(f);
     propagationDelayBuffer_.push_back(a);
   }
   // To complete the restore, call r->prepareInputs() and then shiftBufferedData();
