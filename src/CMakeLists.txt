@@ -79,8 +79,6 @@ set(algorithm_files
     nupic/algorithms/ArrayBuffer.hpp
     nupic/algorithms/BacktrackingTMCpp.cpp
     nupic/algorithms/BacktrackingTMCpp.hpp
-    nupic/algorithms/BitHistory.cpp
-    nupic/algorithms/BitHistory.hpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cell.hpp
     nupic/algorithms/Cells4.cpp
@@ -93,7 +91,6 @@ set(algorithm_files
     nupic/algorithms/InSynapse.hpp
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/OutSynapse.hpp
-    nupic/algorithms/Scanning.hpp
     nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SDRClassifier.hpp
     nupic/algorithms/Segment.cpp
@@ -132,8 +129,6 @@ set(engine_files
     nupic/engine/RegionImpl.hpp
     nupic/engine/RegionImplFactory.cpp
     nupic/engine/RegionImplFactory.hpp
-    nupic/engine/RegionIo.cpp
-    nupic/engine/RegionParameters.cpp
     nupic/engine/RegisteredRegionImpl.hpp
     nupic/engine/RegisteredRegionImplCpp.hpp
     nupic/engine/Spec.cpp
@@ -169,7 +164,6 @@ set(ntypes_files
     nupic/ntypes/MemParser.cpp
     nupic/ntypes/MemParser.hpp
     nupic/ntypes/MemStream.hpp
-    nupic/ntypes/NodeSet.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
     nupic/ntypes/Sdr.hpp
@@ -214,7 +208,6 @@ set(types_files
     nupic/types/Exception.hpp
     nupic/types/Fraction.cpp
     nupic/types/Fraction.hpp
-    nupic/types/ptr_types.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
@@ -336,10 +329,6 @@ install(TARGETS
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
         DESTINATION include/nupic)
-
-# install Data.csv for a test
-install(FILES "${PROJECT_SOURCE_DIR}/test/unit/engine/Data.csv"
-        DESTINATION "data/")
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 	  MESSAGE_NEVER

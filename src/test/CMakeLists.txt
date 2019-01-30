@@ -75,7 +75,6 @@ set(ntypes_tests
 	   unit/ntypes/DimensionsTest.cpp
 	   unit/ntypes/MemParserTest.cpp
 	   unit/ntypes/MemStreamTest.cpp
-	   unit/ntypes/NodeSetTest.cpp
 	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/SdrTest.cpp
 	   unit/ntypes/SdrProxyTest.cpp
@@ -152,11 +151,6 @@ add_dependencies(${unit_tests_executable} ${core_library})
 enable_testing()
 add_test(NAME ${unit_tests_executable} COMMAND ${unit_tests_executable})
 
-add_custom_target(unit_tests_run_with_output
-                  COMMAND ${unit_tests_executable}
-                  DEPENDS ${unit_tests_executable}
-                  COMMENT "Executing test ${unit_tests_executable}"
-                  VERBATIM)
                   
 		  
 		  

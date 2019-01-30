@@ -36,6 +36,10 @@ option(FORCE_BOOST "Force compiler to install and use Boost." OFF)
 set(BINDING_BUILD "none" CACHE STRING "Specify the Binding to build 'Python2','Python3' or 'none', default 'none'." )
 # Note: by setting the CXX environment variable, a non-default c++ compiler can be specified.
 
+if(MSVC AND BINDING_BUILD STREQUAL "Python2")
+  message(FATAL_ERROR "The Extension library cannot be built for Python 2 using MSVC.  Use Python 3.x")
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()

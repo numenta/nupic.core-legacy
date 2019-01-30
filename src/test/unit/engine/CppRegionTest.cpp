@@ -44,6 +44,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <algorithm>  // for max()
 
 
 namespace testing {
@@ -73,10 +74,10 @@ void helperCppInputOutputAccess(Region *level1) {
 
 
 TEST(CppRegionTest, testCppLinkingFanIn) {
-  Network net = Network();
+  Network net;
 
-  Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
-  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   net.link("region1", "region2", "TestFanIn2", ""); //the only change testCppLinking* is here
 
@@ -160,10 +161,10 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
 
 
 TEST(CppRegionTest, testCppLinkingUniformLink) {
-  Network net = Network();
+  Network net;
 
-  Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
-  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   net.link("region1", "region2", "UniformLink", "{mapping: in, rfSize: [2]}"); //the only change testCppLinking* is here
 
@@ -251,8 +252,8 @@ TEST(CppRegionTest, testYAML) {
   //  badparams contains a non-existent parameter
   const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
-  Network net = Network();
-  Region_Ptr_t level1;
+  Network net;
+  std::shared_ptr<Region> level1;
   EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});
@@ -283,17 +284,14 @@ TEST(CppRegionTest, testYAML) {
 
 
 
-Network helperRealmain() {
+void helperRealmain(Network& n) {
   // verbose == true turns on extra output that is useful for
   // debugging the test (e.g. when the TestNode compute()
   // algorithm changes)
 
-  std::cout << "Creating network..." << std::endl;
-  Network n;
-
   size_t count = n.getRegions().getCount();
   EXPECT_TRUE(count == 0);
-  Region_Ptr_t level1 = n.addRegion("level1", "TestNode", "");
+  std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "");
   count = n.getRegions().getCount();
   EXPECT_TRUE(count == 1);
   std::string region_type = level1->getType();
@@ -307,9 +305,9 @@ Network helperRealmain() {
   std::string real64Param("real64Param");
 
   val = level1->getParameterInt64(int64Param);
+  EXPECT_EQ(val, 64) << "Default value for int64Param should be 64";
   rval = level1->getParameterReal64(real64Param);
-  std::cout << "level1.int64Param = " << val << "" << std::endl;
-  std::cout << "level1.real64Param = " << rval << "" << std::endl;
+  EXPECT_DOUBLE_EQ(rval, 64.1) << "Default value for real64Param should be 64.1";
 
   val = 20;
   level1->setParameterInt64(int64Param, val);
@@ -318,27 +316,23 @@ Network helperRealmain() {
 
   rval = 30.1;
   level1->setParameterReal64(real64Param, rval);
-  rval = 0.0;
   rval = level1->getParameterReal64(real64Param);
-  std::cout << "level1.real64Param = " << rval << " after setting to 30.1"
-            << std::endl;
+  EXPECT_DOUBLE_EQ(rval, 30.1) << " after setting to 30.1";
 
   // --- test getParameterInt64Array ---
   // Array a is not allocated by us. Will be allocated inside getParameter
   Array a(NTA_BasicType_Int64);
   level1->getParameterArray("int64ArrayParam", a);
-  std::cout << "level1.int64ArrayParam size = " << a.getCount() << std::endl;
-  std::cout << "level1.int64ArrayParam = [ ";
+  EXPECT_EQ(a.getCount(), 4u) << "size set in initializer of TestNode is 4";
+  Int64 expected1[4] = { 0, 64, 128, 192 };
   Int64 *buff = (Int64 *)a.getBuffer();
-  for (int i = 0; i < int(a.getCount()); ++i)
-    std::cout << buff[i] << " ";
-  std::cout << "]" << std::endl;
+  for (size_t i = 0; i < std::max<size_t>(a.getCount(), 4u); ++i)
+    EXPECT_EQ(buff[i], expected1[i]) << "Invalid value for index " << i;
 
   // --- test setParameterInt64Array ---
-  std::cout << "Setting level1.int64ArrayParam to [ 1 2 3 4 ]" << std::endl;
-  std::vector<Int64> v(4);
-  for (int i = 0; i < 4; ++i)
-    v[i] = i + 1;
+  std::vector<Int64> v(5);
+  for (size_t i = 0; i < 5; ++i)
+    v[i] = i + 10;
   Array newa(NTA_BasicType_Int64, &v[0], v.size());
   level1->setParameterArray("int64ArrayParam", newa);
 
@@ -348,23 +342,20 @@ Network helperRealmain() {
   // want, but the buffer should be reused if we just pass it again.
   // a.releaseBuffer();
   level1->getParameterArray("int64ArrayParam", a);
-  std::cout << "level1.int64ArrayParam size = " << a.getCount() << std::endl;
-  std::cout << "level1.int64ArrayParam = [ ";
+  EXPECT_EQ(a.getCount(), 5u) << "set size of TestNode::int64ArrayParam is 5";
   buff = (Int64 *)a.getBuffer();
-  for (int i = 0; i < int(a.getCount()); ++i)
-    std::cout << buff[i] << " ";
-  std::cout << "]" << std::endl;
+  for (size_t i = 0; i < std::max<size_t>(a.getCount(), 5u); ++i)
+    EXPECT_EQ(buff[i], v[i]) << "Invalid value for index " << i;
 
-  return n;
 }
 
 
 TEST(CppRegionTest, realmain) {
-  Network n = helperRealmain();
+  Network n;
+  helperRealmain(n);
 
   // should fail because network has not been initialized
   EXPECT_THROW(n.run(1), exception);
-
   // should fail because network can't be initialized
   EXPECT_THROW(n.initialize(), exception);
 
@@ -372,7 +363,7 @@ TEST(CppRegionTest, realmain) {
   Dimensions d;
   d.push_back(4);
   d.push_back(4);
-  Region_Ptr_t level1 = n.getRegion("level1");
+  std::shared_ptr<Region> level1 = n.getRegion("level1");
   level1->setDimensions(d);
 
   std::cout << "Initializing again..." << std::endl;
@@ -386,7 +377,6 @@ TEST(CppRegionTest, realmain) {
 //  EXPECT_NO_THROW(testCppLinking("TestFanIn2", ""));  //now called in separate test, but could/should also be called here
 //  EXPECT_NO_THROW(testCppLinking("UniformLink", "{mapping: in, rfSize: [2]}"));
 //  EXPECT_NO_THROW(testYAML());
-
 }
 
 
@@ -401,14 +391,15 @@ TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixe
   MemoryMonitor m(count);
   for (size_t i = 0; i < count; i++) {
 	//call main
-  Network n = helperRealmain();
+    Network n;
+    helperRealmain(n);
 
   //cannot use EXPECT_THROW in EXPECT_THROW
   std::cout << "Setting dimensions of level1..." << std::endl;
   Dimensions d;
   d.push_back(4);
   d.push_back(4);
-  Region_Ptr_t level1 = n.getRegion("level1");
+  std::shared_ptr<Region> level1 = n.getRegion("level1");
   level1->setDimensions(d);
 
   std::cout << "Initializing again..." << std::endl;
@@ -428,7 +419,6 @@ TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixe
       EXPECT_FALSE(m.hasMemoryLeaks());
   }
 
-  std::cout << "--- ALL TESTS PASSED ---" << std::endl;
 }
 
 } //ns

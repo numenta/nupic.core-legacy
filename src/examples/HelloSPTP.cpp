@@ -31,7 +31,7 @@
 
 #include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
-#include "nupic/utils/Random.hpp" 
+#include "nupic/utils/Random.hpp"
 
 namespace examples {
 
@@ -44,7 +44,7 @@ using nupic::algorithms::Cells4::Cells4;
 using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
-// work-load 
+// work-load
 void run() {
   const UInt COLS = 2048; // number of columns in SP, TP
   const UInt DIM_INPUT = 10000;
@@ -52,7 +52,7 @@ void run() {
 #ifdef NDEBUG
   const UInt EPOCHS = 5000; // number of iterations (calls to SP/TP compute() )
 #else
-  const UInt EPOCHS = 50; // make test faster in Debug
+  const UInt EPOCHS = 2; // make test faster in Debug
 #endif
 
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
@@ -78,7 +78,7 @@ void run() {
   Real res = 0.0; //for anomaly:
   vector<UInt> prevPred_(outSP.size());
   Random rnd;
-  
+
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
   Timer tAll(true);
@@ -90,7 +90,7 @@ void run() {
     //Input
 //    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     tRng.start();
-    const Real r = (Real)(rnd.getUInt32(100) - rnd.getUInt32(100)*rnd.getReal64()); //rnd from range -100..100 
+    const Real r = (Real)(rnd.getUInt32(100) - rnd.getUInt32(100)*rnd.getReal64()); //rnd from range -100..100
     tRng.stop();
 
     //Encode
@@ -114,7 +114,7 @@ void run() {
 
     //Anomaly
     tAn.start();
-    res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/); 
+    res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
     prevPred_ = outTP; //to be used as predicted T-1
     tAn.stop();
 
@@ -139,7 +139,11 @@ void run() {
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       #ifdef NDEBUG
-        const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
+	    #ifdef _MSC_VER
+          const size_t CI_avg_time = (size_t)floor(14*Timer::getSpeed()); //sec
+		#else
+          const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
+		#endif
         NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
           "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
       #endif
