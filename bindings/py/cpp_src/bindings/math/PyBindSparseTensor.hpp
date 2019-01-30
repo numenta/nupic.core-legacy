@@ -107,7 +107,7 @@ public:
     index_[5] = n;
   }
 
-  PyBindTensorIndex(const TIV &i) : rank_(i.size())
+  PyBindTensorIndex(const TIV &i) : rank_((UInt32)i.size())
   {
     if (rank_ > maxRank) {
       char errBuf[512];

@@ -188,7 +188,7 @@ TEST(RandomTest, ReturnInCorrectRange) {
   // make sure that we are returning values in the correct range
   // @todo perform statistical tests
   Random r;
-  UInt32 seed = r.getSeed();
+  UInt64 seed = r.getSeed();
   ASSERT_TRUE(seed != 0) << "seed not zero";
   int i;
   UInt32 max32 = 10000000;

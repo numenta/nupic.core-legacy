@@ -119,14 +119,14 @@ class AnomalyLikelihood {
     * returned at the beginning until the system is burned-in; 
     * 0.5 (from <0..1>) means "neither anomalous, neither expected"
     */
-    const Real DEFAULT_ANOMALY = 0.5; 
+    const Real DEFAULT_ANOMALY = 0.5f; 
 
     /**
      * minimal thresholds of standard distribution, if values get lower (rounding err, constant values)
      * we round to these minimal defaults
      */
-    const Real THRESHOLD_MEAN = 0.03;
-    const Real THRESHOLD_VARIANCE = 0.0003; 
+    const Real THRESHOLD_MEAN = 0.03f;
+    const Real THRESHOLD_VARIANCE = 0.0003f; 
 
     const UInt learningPeriod; //these 3 are from constructor
     const UInt reestimationPeriod;

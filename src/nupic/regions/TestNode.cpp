@@ -321,7 +321,7 @@ UInt32 TestNode::getParameterUInt32(const std::string &name, Int64 index) {
     if (index < 0) {
       NTA_THROW << "uncloned parameters cannot be accessed at region level";
     }
-    return unclonedParam_[index];
+    return unclonedParam_[(size_t)index];
   } else if (name == "shouldCloneParam") {
     return ((UInt32)(shouldCloneParam_ ? 1 : 0));
   } else if (name == "possiblyUnclonedParam") {
@@ -390,7 +390,7 @@ std::string TestNode::getParameterString(const std::string &name, Int64 index) {
 void TestNode::getParameterArray(const std::string &name, Int64 index, Array &array) {
   if (name == "int64ArrayParam") {
   	Array a(NTA_BasicType_Int64, &int64ArrayParam_[0], int64ArrayParam_.size());
-	array = a;
+	  array = a;
   }
   else if (name == "real32ArrayParam") {
   	Array a(NTA_BasicType_Real32, &real32ArrayParam_[0], real32ArrayParam_.size());
@@ -402,7 +402,7 @@ void TestNode::getParameterArray(const std::string &name, Int64 index, Array &ar
 	if (index >= (Int64)unclonedInt64ArrayParam_.size()) {
       NTA_THROW << "uncloned parameter index out of range";
 	}
-	Array a(NTA_BasicType_Int64, &unclonedInt64ArrayParam_[index][0], unclonedInt64ArrayParam_[index].size());
+	Array a(NTA_BasicType_Int64, &unclonedInt64ArrayParam_[(size_t)index][0], unclonedInt64ArrayParam_[(size_t)index].size());
     array = a;
   } else {
     NTA_THROW << "TestNode::getParameterArray -- unknown parameter " << name;
@@ -429,7 +429,7 @@ void TestNode::setParameterUInt32(const std::string &name, Int64 index, UInt32 v
     if (index < 0 || index >= (Int64)unclonedParam_.size()) {
       NTA_THROW << "uncloned parameters index out of range";
     }
-	unclonedParam_[index] = value;
+	unclonedParam_[(size_t)index] = value;
   }
   else if (name == "shouldCloneParam") {
       shouldCloneParam_ = !(value == 0);
@@ -441,7 +441,7 @@ void TestNode::setParameterUInt32(const std::string &name, Int64 index, UInt32 v
       if (index < 0 || index >= (Int64)possiblyUnclonedParam_.size()) {
         NTA_THROW << "uncloned parameters index out of range.";
       }
-      possiblyUnclonedParam_[index] = value;
+      possiblyUnclonedParam_[(size_t)index] = value;
     }
   } else {
 	RegionImpl::setParameterUInt32(name, index, value);
@@ -516,7 +516,7 @@ void TestNode::setParameterArray(const std::string &name, Int64 index, const Arr
     if (index < 0) {
       NTA_THROW << "uncloned parameters cannot be accessed at region level";
     }
-    unclonedInt64ArrayParam_[index] = array.asVector<Int64>();
+    unclonedInt64ArrayParam_[(size_t)index] = array.asVector<Int64>();
   }
   else {
     RegionImpl::setParameterArray(name, index, array);

@@ -1,10 +1,7 @@
 #---------------------------------#
 #      general configuration      #
 #---------------------------------#
-image:
-- Visual Studio 2017
-  #- Previous Visual Studio 2015
-  #- WMF 5
+image: Visual Studio 2017
 configuration: Release
 platform: x64
 
@@ -34,7 +31,7 @@ skip_commits:
 init:
   - git config --global core.autocrlf input
 
-clone_folder: c:\projects\nupic-core
+clone_folder: c:\projects\nupic-cpp
 clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
@@ -42,15 +39,9 @@ clone_depth: 1
 shallow_clone: false
 
 environment:
-  COMPILER_FAMILY: GCC
-  PYTHON_VERSION: "2.7.9"
-  PYTHON_ARCH: "64"
-  PYTHONHOME: "C:\\Python27-x64"
-  NUPIC_CORE: "C:\\projects\\nupic-core"
-  EXTERNAL_WINDOWS_DIR: "%NUPIC_CORE%\\external\\%external_static_subdir%"
+  COMPILER_FAMILY: MSVC
+  NUPIC_CORE: "C:\\projects\\nupic-cpp"
   ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
-  PYTHONPATH: "%PYTHONHOME%"
-  PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
 
 ## AWS S3 support (pip install boto)
 #  AWS_ACCESS_KEY_ID:
@@ -63,31 +54,35 @@ environment:
 #    secure: UgABryPYZg823OcD1XRosA==
 
   matrix:
-    # Win64-gcc
-    - NC_CMAKE_GENERATOR: "MinGW Makefiles"
-      external_static_subdir: "windows64-gcc"
-      wheel_name_suffix: "win_amd64"
+#    # Win64-gcc
+#    - NC_CMAKE_GENERATOR: "MinGW Makefiles"
+#      external_static_subdir: "windows64-gcc"
+#      wheel_name_suffix: "win_amd64"
 
-    # Win32-gcc
-#    - PYTHON_VERSION: "2.7.9"
+#    # Win32-gcc
+#    - NC_CMAKE_GENERATOR: "MinGW Makefiles"
+#      PYTHON_VERSION: "2.7.9"
 #      PYTHON_ARCH: "32"
 #      PYTHONHOME: "C:\\Python27"
-#      NC_CMAKE_GENERATOR: "MinGW Makefiles"
 #      external_static_subdir: "windows32-gcc"
 #      wheel_name_suffix: "win32"
 
-#    # Win64-Visual Studio
-#    - PYTHON_VERSION: "2.7.9"
-#      PYTHON_ARCH: "64"
-#      PYTHONHOME: "C:\\Python27-x64"
-#      NC_CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
-#      external_static_subdir: "windows64"
-#      wheel_name_suffix: "win_amd64"
+    # Win64-Visual Studio
+    - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+      PYTHON_VERSION: "3.6.6"
+      PYTHON_ARCH: "64"
+      PYTHONHOME: "C:\\Python36-x64"
+      #PYTHONHOME: "C:\\Users\\appveyor\\AppData\\Roaming\\Python\\Python36"
+      PYTHONPATH: "%PYTHONHOME%"
+      PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
+      wheel_name_suffix: "win_amd64"
 
 matrix:
-  allow_failures:
-    # Checking if Visual Studio build is possible
-    - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+  fast_finish: true
+  
+  #allow_failures:
+  #  # enable this to prevent CI from failing even if there are errors.
+  #  - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
 
 
 #---------------------------------#
@@ -103,125 +98,34 @@ install:
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
-  # Make unix-compatible patch.exe available to the build by copying it from
-  # Git\usr\bin (that we remove from PATH) to another directory and adding it to
-  # PATH; the reason we copy it is that logic below removes
-  # C:\Program Files\Git\usr\bin from Path to avoid build issue resulting from
-  # sh.exe being on the path.
-  - mkdir "C:\Program Files\PatchFromGit"
-  - ps: copy "C:\Program Files\Git\usr\bin\patch.exe" "C:\Program Files\PatchFromGit"
-  - ps: copy "C:\Program Files\Git\usr\bin\msys*.dll" "C:\Program Files\PatchFromGit"
-  - set PATH=C:\Program Files\PatchFromGit;%PATH%
+  - python -m pip install --user --upgrade pip setuptools setuptools-scm
+  - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
-  - echo %PATH%
-
-  # Install Boost
-  - cd %NUPIC_CORE%
-  - ps: wget -O boost_1_68_0.zip https://dl.bintray.com/boostorg/release/1.68.0/source/boost_1_68_0.zip
-  - unzip boost_1_68_0.zip
-  - cd boost_1_68_0
-  - bootstrap.bat gcc
-  - b2 --with-system --with-filesystem runtime-link=shared threading=multi link=static
-
-  #
-  # Install Wheel, and NumPy
-  #
-  - ps:  $python_path = $env:PYTHONHOME + "/python.exe"
-  - ps:   $pip_path = $env:PYTHONHOME + "/Scripts/pip.exe"
-
-  # pip needs to be updated or Appveyor fails
-  - ps: Write-Host "pip install --upgrade pip"
-  - ps: "& $python_path -m pip install --upgrade pip"
-
-  - ps:  Write-Host "pip install " wheel==0.25.0
-  - ps:  "& $pip_path install wheel==0.25.0"
-
-#  - ps:  Write-Host "pip install " boto
-#  - ps:  & $pip_path install boto
-
-#  - ps:  Write-Host "pip install " twine
-#  - ps:  & $pip_path install twine
-
-  - ps:  Write-Host "pip install " numpy==1.12.1
-  - ps:  "& $pip_path install numpy==1.12.1"
-
-  #
-  # Install mingwpy toolchain
-  #
-  - ECHO "Installing MinGW toolchain for Python"
-  # Install the version of mingwpy toolchain that generates targets compatible
-  # with the installed python (Win32 vs. Win64). The compiler tools are
-  # installed into %PYTHONHOME%/Scripts/
-  - cmd: "%PYTHONHOME%\\Scripts\\pip.exe install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
-  - cmd: "where g++"
-  - cmd: "g++ --version"
-  - cmd: "dir %PYTHONHOME%\\share\\mingwpy"
-
-  # Setup MinGW GCC as a valid distutils compiler
-  - cp %EXTERNAL_WINDOWS_DIR%\bin\distutils.cfg %PYTHONHOME%\Lib\distutils\distutils.cfg
-
-  # Display the version and architecture for Python to help with diagnostics
-  - "python --version"
-  - "where python"
-  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
-
-  # It's useful to know our cmake version
-  - cmd: where cmake
-  - cmd: cmake --version
-
-  # Check NumPy, etc. installed correctly
-  - cmd: pip list
 
   - cd %NUPIC_CORE%
   - mkdir %NUPIC_CORE%\build\
-  - mkdir %NUPIC_CORE%\build\release
   - mkdir %NUPIC_CORE%\build\scripts
-
-  # Remove sh.exe from the paths (CMake doesn't like it)
-  - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
-  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
-  - set PATH=%PATH:C:\MinGW\msys\1.0\bin;=%
-
-
-  # Verify that patch command is available
-  - "where patch"
 
   # http://www.cmake.org/Wiki/CmakeMingw
   - cd %NUPIC_CORE%\build\scripts
-  - cmake -G "%NC_CMAKE_GENERATOR%"
-      -DCMAKE_BUILD_TYPE=%configuration%
-      -DCMAKE_INSTALL_PREFIX=%NUPIC_CORE%\build\release
-      -DPY_EXTENSIONS_DIR=%NUPIC_CORE%\bindings\py\src\nupic\bindings
-      %NUPIC_CORE%
+  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration%  %NUPIC_CORE%
 
 build_script:
   - cd %NUPIC_CORE%\build\scripts
 
-  # Run build, using portable, toolchain-agnostic mechanism to start it
+  # Run build (i.e. make install), using portable, toolchain-agnostic mechanism to start it
   - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration%
 
   - cd %NUPIC_CORE%
 
-  - python setup.py sdist bdist bdist_wheel
-
-  - set NUPIC_BINDINGS_WHEEL_NAME=nupic.bindings-%BINDINGS_VERSION%-cp27-none-%wheel_name_suffix%.whl
-
-  # Copy final wheel to NUPIC_CORE, so that AppVeyor can see it as an artifact
-  - ps: copy .\bindings\py\dist\$env:NUPIC_BINDINGS_WHEEL_NAME .
-
-  # Copy final wheel, to appropriately named wheel for use with NuPIC
-  # iterative builds (via nupic\.nupic_modules long-SHA reference).
-  # Ties in with this Pip regex;
-  # https://github.com/pypa/pip/blob/develop/pip/wheel.py#L616
-  - ps: copy .\$env:NUPIC_BINDINGS_WHEEL_NAME .\nupic.bindings-$env:APPVEYOR_REPO_COMMIT-cp27-none-$env:wheel_name_suffix.whl
+  - python setup.py install --user
 
 after_build:
-  # Install nupic.bindings first, because py_region_test.exe depends on it.
-  - pip install .\%NUPIC_BINDINGS_WHEEL_NAME%
 
   # Run unit_tests (C++)
+  - cd %NUPIC_CORE%
   - mkdir %ARTIFACTS_DIR%
-  - cd %NUPIC_CORE%\build\release\bin
+  - cd %NUPIC_CORE%\build\Release\bin
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests
@@ -233,7 +137,7 @@ test: off
 
 artifacts:
   # Non-recursive search in build folder for Wheels
-  - path: '*.whl'
+#  - path: '*.whl'
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt
@@ -262,12 +166,13 @@ deploy:
 #    folder: "numenta/nupic.core/releases/nupic.bindings"
 #    on:
 #      branch: master
+
 ## GitHub
 # Deploy to GitHub Releases
- - provider: GitHub
-   artifact: '*.whl'           # upload all NuGet packages to release assets
-   draft: false
-   prerelease: false
-   on:
-     branch: master                # release from master branch only
-     appveyor_repo_tag: true       # deploy on tag push only
+# - provider: GitHub
+#   artifact: '*.whl'           # upload all NuGet packages to release assets
+#   draft: false
+#   prerelease: false
+#   on:
+#     branch: master                # release from master branch only
+#     appveyor_repo_tag: true       # deploy on tag push only

@@ -24,10 +24,6 @@
 Google test main program
 */
 
-#if defined(NTA_OS_WINDOWS)
-// Exclude rarely-used stuff from Windows headers
-#define WIN32_LEAN_AND_MEAN
-#endif
 
 #include <gtest/gtest.h>
 #include <nupic/utils/Log.hpp>

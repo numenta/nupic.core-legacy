@@ -153,7 +153,7 @@ inline const char *checkExtensions(const std::string &filename,
 std::string VectorFileSensor::executeCommand(const std::vector<std::string>& args, Int64 index)
 
 {
-  UInt32 argCount = args.size();
+  UInt32 argCount = (UInt32)args.size();
   // Get the first argument (command string)
   NTA_CHECK(argCount > 0) << "VectorFileSensor: No command name";
   string command = args[0];
@@ -287,16 +287,33 @@ VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) {
 
 void VectorFileSensor::serialize(BundleIO &bundle) {
   std::ostream & f = bundle.getOutputStream();
-  f << repeatCount_ << " " << activeOutputCount_ << " "
+  f << repeatCount_ << " " << activeOutputCount_ << " " << curVector_ << " "
+    << iterations_ << " " << hasCategoryOut_ << " " << hasResetOut_ << " "
     << ((filename_ == "")?std::string("empty"):filename_) << " "
-    << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " ";
+    << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " "
+    << ((recentFile_ == "")?std::string("empty"):recentFile_) << std::endl;
+  f << "[" << std::endl;
+  vectorFile_.save(f);
+  f << "]" << std::endl;
+  f.flush();
 }
 
 void VectorFileSensor::deserialize(BundleIO &bundle) {
   std::istream& f = bundle.getInputStream();
-  f >> repeatCount_ >> activeOutputCount_ >> filename_ >> scalingMode_;
+  std::string tag;
+  f >> repeatCount_ >> activeOutputCount_ >> curVector_ >> iterations_ >>
+      hasCategoryOut_ >> hasResetOut_;
+  f >>  filename_ >> scalingMode_ >> recentFile_;
   if (filename_ == "empty") filename_ = "";
   if (scalingMode_ == "empty") scalingMode_ = "";
+  if (recentFile_ == "empty") recentFile_ = "";
+  f >> tag;
+  NTA_CHECK(tag == "[");
+  f.ignore(1);
+  vectorFile_.load(f);
+  f >> tag;
+  NTA_CHECK(tag == "]") << "Expected the end of vectorFile.load";
+  f.ignore(1);
 }
 
 
@@ -515,7 +532,7 @@ Spec *VectorFileSensor::createSpec() {
 //--------------------------------------------------------------------------------
 UInt32 VectorFileSensor::getParameterUInt32(const std::string &name, Int64 index) {
   if (name == "vectorCount") {
-    return vectorFile_.vectorCount();
+    return (UInt32)vectorFile_.vectorCount();
   } else if (name == "position") {
     return curVector_ + 1;
   } else if (name == "repeatCount") {
@@ -523,7 +540,7 @@ UInt32 VectorFileSensor::getParameterUInt32(const std::string &name, Int64 index
   } else if (name == "activeOutputCount") {
     return activeOutputCount_;
   } else if (name == "maxOutputVectorCount") {
-    return vectorFile_.vectorCount() * repeatCount_;
+    return (UInt32)vectorFile_.vectorCount() * repeatCount_;
   } else if (name == "hasCategoryOut") {
     return (UInt32)hasCategoryOut_;
   } else if (name == "hasResetOut") {

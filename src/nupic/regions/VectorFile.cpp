@@ -105,63 +105,7 @@ void VectorFile::appendFile(const string &fileName,
       if (fileFormat == 3) {
         appendCSVFile(inFile, expectedElementCount);
       } else {
-        // Read in space separated text file
-        string sLine;
-        Size elementCount = expectedElementCount;
-        if (fileFormat != 2) {
-          inFile >> elementCount;
-          getline(inFile, sLine);
-
-          if (elementCount != expectedElementCount) {
-            NTA_THROW << "VectorFile::appendFile - number of elements"
-                      << " in file (" << elementCount << ") does not match"
-                      << " output element count (" << expectedElementCount
-                      << ")";
-          }
-        }
-
-        // If format is 'labeled', read in the next line, which is a label per
-        // elmnt
-        if (fileFormat == 1) {
-          getline(inFile, sLine);
-
-          // Pull out all the words from the first line
-          istringstream aLine(sLine.c_str());
-          while (1) {
-            string aWord;
-            aLine >> aWord;
-            if (aLine.fail())
-              break;
-            elementLabels_.push_back(aWord);
-          }
-
-          // Ensure we have the right number of words
-          if (elementLabels_.size() != elementCount) {
-            NTA_THROW
-                << "VectorFile::appendFile - wrong number of element labels ("
-                << elementLabels_.size() << ") in file " << fileName;
-          }
-        }
-
-        // Read each vector in, including labels if so indicated
-        while (!inFile.eof()) {
-          string vectorLabel;
-          if (fileFormat == 1) {
-            inFile >> vectorLabel;
-          }
-
-          auto b = new Real[elementCount];
-          for (Size i = 0; i < elementCount; ++i) {
-            inFile >> b[i];
-          }
-
-          if (!inFile.eof()) {
-            fileVectors_.push_back(b);
-            own_.push_back(true);
-            vectorLabels_.push_back(vectorLabel);
-          } else
-            delete[] b;
-        }
+        loadVectors(inFile, 0, expectedElementCount, fileFormat);
       }
     } catch (ios_base::failure &) {
       if (!inFile.eof())
@@ -180,6 +124,74 @@ void VectorFile::appendFile(const string &fileName,
     resetScaling((UInt)expectedElementCount);
   }
 }
+
+
+//----------------------------------------------------------------------------
+// use this when loading from a file or when loading from a serialization stream.
+void VectorFile::loadVectors(std::istream& inFile, 
+                             size_t nRows, // 0 means go to end of file.
+                             size_t expectedElementCount, 
+                             int fileFormat) {
+  // Read in space separated text file
+  string sLine;
+  Size elementCount = expectedElementCount;
+  if (fileFormat != 2) {
+    inFile >> elementCount;
+    getline(inFile, sLine);
+
+    if (elementCount != expectedElementCount) {
+      NTA_THROW << "VectorFile::appendFile - number of elements"
+                << " in file (" << elementCount << ") does not match"
+                << " output element count (" << expectedElementCount
+                << ")";
+    }
+  }
+
+  // If format is 'labeled', read in the next line, which is a label per element.
+  if (fileFormat == 1) {
+    getline(inFile, sLine);
+
+    // Pull out all the words from the first line
+    istringstream aLine(sLine.c_str());
+    while (1) {
+      string aWord;
+      aLine >> aWord;
+      if (aLine.fail())
+        break;
+      elementLabels_.push_back(aWord);
+    }
+
+    // Ensure we have the right number of words
+    if (elementLabels_.size() != elementCount) {
+      NTA_THROW
+          << "VectorFile::appendFile - wrong number of element labels ("
+          << elementLabels_.size() << ") in file ";
+    }
+  }
+
+  // Read each vector in, including labels if so indicated
+  while (!inFile.eof()) {
+    if (nRows > 0 && fileVectors_.size() >= nRows)
+      break;
+    string vectorLabel;
+    if (fileFormat == 1) {
+      inFile >> vectorLabel;
+    }
+
+    auto b = new Real[elementCount];
+    for (Size i = 0; i < elementCount; ++i) {
+      inFile >> b[i];
+    }
+
+    if (!inFile.eof()) {
+      fileVectors_.push_back(b);
+      own_.push_back(true);
+      vectorLabels_.push_back(vectorLabel);
+    } else
+      delete[] b;
+  }
+}
+
 
 // Determine if the file is a DOS file (ASCII 13, or CTRL-M line ending)
 // Searches for ASCII 13 or 10. Return true if ASCII 13 is found before ASCII 10
@@ -369,6 +381,29 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
   }
   out.flush();
 }
+
+
+// For serialization
+void VectorFile::save(std::ostream &f) { 
+  UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
+  f << scaleVector_.size() << " "        // columns in vector
+    << fileVectors_.size() << " "        // number of rows
+    << format << " ";
+  saveState(f); 
+  saveVectors(f, scaleVector_.size(), format);
+}
+void VectorFile::load(std::istream &f) { 
+  size_t nCols;
+  size_t nRows;
+  int format;
+  f >> nCols >> nRows >> format;
+
+  scaleVector_.resize(nCols);
+  offsetVector_.resize(nCols);
+  readState(f);
+  loadVectors(f, nRows, nCols, format);
+}
+
 
 class AutoReleaseFile {
 public:

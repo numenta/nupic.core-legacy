@@ -3071,7 +3071,6 @@ inline nupic::UInt32 count_gt(nupic::Real32 *begin, nupic::Real32 *end,
     int n1 = (int)(4 * ((end - start) / 4));
     int n2 = (int)(end - start - n1);
 
-
 #if defined(NTA_ARCH_64) && !defined(NTA_OS_WINDOWS)
 
 #if defined(NTA_OS_DARWIN)

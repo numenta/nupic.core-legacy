@@ -80,7 +80,7 @@ Neighborhood::Neighborhood(UInt centerIndex, UInt radius,
 
 Neighborhood::Iterator::Iterator(const Neighborhood &neighborhood, bool end)
     : neighborhood_(neighborhood),
-      offset_(neighborhood.dimensions_.size(), -neighborhood.radius_),
+      offset_(neighborhood.dimensions_.size(), -(Int)neighborhood.radius_),
       finished_(end) {
   // Choose the first offset that has positive resulting coordinates.
   for (size_t i = 0; i < offset_.size(); i++) {
@@ -116,7 +116,7 @@ void Neighborhood::Iterator::advance_() {
   // When it overflows, we need to "carry the 1" to the next dimension.
   bool overflowed = true;
 
-  for (Int i = offset_.size() - 1; i >= 0; i--) {
+  for (Int i = (Int)offset_.size() - 1; i >= 0; i--) {
     offset_[i]++;
 
     overflowed = offset_[i] > (Int)neighborhood_.radius_ ||
@@ -155,7 +155,7 @@ WrappingNeighborhood::WrappingNeighborhood(UInt centerIndex, UInt radius,
 WrappingNeighborhood::Iterator::Iterator(
     const WrappingNeighborhood &neighborhood, bool end)
     : neighborhood_(neighborhood),
-      offset_(neighborhood.dimensions_.size(), -neighborhood.radius_),
+      offset_(neighborhood.dimensions_.size(), -(Int)neighborhood.radius_),
       finished_(end) {}
 
 bool WrappingNeighborhood::Iterator::operator!=(const Iterator &other) const {
@@ -195,7 +195,7 @@ void WrappingNeighborhood::Iterator::advance_() {
   // When it overflows, we need to "carry the 1" to the next dimension.
   bool overflowed = true;
 
-  for (Int i = offset_.size() - 1; i >= 0; i--) {
+  for (Int i = (Int)offset_.size() - 1; i >= 0; i--) {
     offset_[i]++;
 
     // If the offset has moved by more than the dimension size, i.e. if
@@ -207,7 +207,7 @@ void WrappingNeighborhood::Iterator::advance_() {
                      (Int)neighborhood_.dimensions_[i];
 
     if (overflowed) {
-      offset_[i] = -neighborhood_.radius_;
+      offset_[i] = -(Int)neighborhood_.radius_;
     } else {
       // There's no overflow. The remaining coordinates don't need to change.
       break;

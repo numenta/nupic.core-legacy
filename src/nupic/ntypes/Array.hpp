@@ -183,7 +183,7 @@ namespace nupic {
     template<typename T>
 	std::vector<T> asVector() const {
       NTA_CHECK(type_ == BasicType::getType<T>())  << "Expected an Array with type of " << BasicType::getName<T>();
-      std::vector<T> v(buffer_.get(), buffer_.get() + count_* BasicType::getSize(type_));
+      std::vector<T> v((T*)buffer_.get(), (T*)((char*)buffer_.get() + count_* BasicType::getSize(type_)));
       return v;
     }
 
@@ -195,7 +195,6 @@ namespace nupic {
       memcpy(buffer_.get(), vect.data(), count_ * BasicType::getSize(type_));
     }
 
-/***** for later
     // Type conversion
     // Note: this will reallocate the buffer
     //       Other instances will be disconnected.
@@ -205,7 +204,7 @@ namespace nupic {
       convertInto(a);
       return a;
     }
-******/
+
     // Type conversion
     // Note: this will attempt to reuse the same buffer
     //       so that the instances will not be disconnected.
@@ -232,15 +231,6 @@ namespace nupic {
       return a;
     }
 
-/******** for later   (after Python is removed
-    // Returns an ArrayRef that points to this Array's buffer
-    // An ArrayRef buffer cannot be modified.
-    // The buffer remains valid until all references are deleted.
-    ArrayRef ref() const {
-      ArrayRef a(type_, buffer_, count_);
-      return a;
-    }
-***********/
 
     void invariant() {
       if (!own_)

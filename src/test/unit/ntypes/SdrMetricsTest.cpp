@@ -67,7 +67,7 @@ TEST(SdrMetrics, TestSparsityShortTerm) {
     SDR_Proxy B( A );
     Real period = 10u;
     Real alpha  = 1.0f / period;
-    SDR_Sparsity S( B, period );
+    SDR_Sparsity S( B, (UInt)period );
 
     A.setDense(SDR_dense_t{ 1 });
     ASSERT_FLOAT_EQ( S.sparsity, 1.0f );
@@ -250,7 +250,8 @@ TEST(SdrMetrics, TestAF_LongTerm) {
     SDR_Proxy B( A );
     SDR_ActivationFrequency F( B, period );
 
-    vector<Real> test_sparsity{ 0.0f, 0.05, 1.0f, 0.25f, 0.5f };
+
+    vector<Real> test_sparsity{ 0.0f, 0.05f, 1.0f, 0.25f, 0.5f };
 
     for(const auto &sparsity : test_sparsity) {
         for(UInt i = 0; i < runtime; i++)
@@ -378,10 +379,10 @@ TEST(SdrMetrics, TestOverlap_Example) {
     SDR A({ 10000u });
     SDR_Proxy Px( A );
     SDR_Overlap B( Px, 1000u );
-    A.randomize( 0.05 );
-    A.addNoise( 0.95 );         //   5% overlap
-    A.addNoise( 0.55 );         //  45% overlap
-    A.addNoise( 0.72 );         //  28% overlap
+    A.randomize( 0.05f );
+    A.addNoise( 0.95f );         //   5% overlap
+    A.addNoise( 0.55f );         //  45% overlap
+    A.addNoise( 0.72f );         //  28% overlap
     ASSERT_EQ( B.overlap,  0.28f );
     ASSERT_EQ( B.min(),    0.05f );
     ASSERT_EQ( B.max(),    0.45f );
@@ -538,3 +539,31 @@ TEST(SdrMetrics, TestAllMetrics_Print) {
     }
 }
 
+/**
+ * Test constructor with dimensions instead of SDR,
+ * Test addData() methods.
+ */
+TEST(SdrMetrics, TestAddData) {
+    SDR_Metrics M( {10u, 5u, 2u}, 100u );
+
+    // Check error checking
+    SDR badDims({2u, 5u, 10u});
+    ASSERT_ANY_THROW( M.addData(badDims) );
+    // Check that addData() only works when using the correct initializer.
+    SDR A({100u});
+    SDR_Metrics otherInit(A, 100u);
+    ASSERT_ANY_THROW( otherInit.addData(A) );
+    SDR B(A);
+    ASSERT_ANY_THROW( otherInit.addData(B) );
+
+    // Sanity check that data is used, not discarded.
+    SDR C( M.dimensions );
+    C.randomize( 0.20f );
+    for(auto i = 0u; i < 10u; i++) {
+        C.addNoise( 0.5f );
+        M.addData( C );
+    }
+    ASSERT_NEAR( M.sparsity.mean(), 0.2f, 0.01f );
+    ASSERT_NEAR( M.overlap.mean(),  0.5f, 0.01f );
+    ASSERT_NEAR( M.activationFrequency.mean(), 0.2f, 0.01f );
+}
