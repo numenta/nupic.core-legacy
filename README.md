@@ -3,7 +3,7 @@
 # NuPIC C++ Core Library
 [![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp)  
 [![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master) 
-[![Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
 
 ## Community NuPIC.cpp (former nupic.core) repository
 
