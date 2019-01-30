@@ -20,6 +20,7 @@ matrix:
             - cmake
             - cmake-data
             - xsltproc #only for doc transform to html , can be removed
+            - valgrind
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
@@ -131,6 +132,8 @@ script:
   # run python tests
   - cd ${TRAVIS_BUILD_DIR}
   - "python setup.py test"
+  # run memory leak tests with valgrind
+  - "valgrind ${TRAVIS_BUILD_DIR}/build/Release/bin/memleak_hotgym "
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html
