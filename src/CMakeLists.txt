@@ -324,28 +324,6 @@ add_custom_target(hotgym
                   COMMENT "Executing ${src_executable_hotgym}"
                   VERBATIM)
 
-## Setup benchmark_hotgym for memory leak detection (with valgrind, debug mode) 
-#
-set(src_executable_memleak_hotgym memleak_hotgym)
-add_executable(${src_executable_memleak_hotgym} examples/Hotgym.cpp)
-target_link_libraries(${src_executable_memleak_hotgym}
-                ${core_library}
-                ${COMMON_OS_LIBS}
-                )
-target_compile_options( ${src_executable_memleak_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS}) # add debug flag, required for valgrind
-target_compile_definitions(${src_executable_memleak_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-target_include_directories(${src_executable_memleak_hotgym} PRIVATE
-                ${CORE_LIB_INCLUDES}
-                ${EXTERNAL_INCLUDES}
-                )
-add_custom_target(test_memleak_hotgym
-	          -DMAKE_BUILD_TYPE:STRING=Debug
-                  COMMAND "valgrind ${src_executable_hotgym}"
-                  DEPENDS ${src_executable_memleak_hotgym}
-                  COMMENT "Executing valgrind ${src_executable_memleak_hotgym}"
-                  VERBATIM)
-
-
 
 ############ INSTALL ######################################
 #
@@ -377,12 +355,6 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 
 install(TARGETS
         ${src_executable_hotgym}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-
-install(TARGETS
-        ${src_executable_memleak_hotgym}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
