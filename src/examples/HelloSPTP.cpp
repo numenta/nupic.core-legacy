@@ -136,15 +136,15 @@ void run(UInt EPOCHS = 5000) {
 
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
-      #ifdef NDEBUG
-	    #ifdef _MSC_VER
+      if(EPOCHS >= 100) { //show only relevant values, ie don't run in valgrind (ndebug, epochs=5) run
+#ifdef _MSC_VER
           const size_t CI_avg_time = (size_t)floor(14*Timer::getSpeed()); //sec
-		#else
+#else
           const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
-		#endif
+#endif
         NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
           "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
-      #endif
+      }
     }
   } //end for
 
