@@ -79,8 +79,6 @@ set(algorithm_files
     nupic/algorithms/ArrayBuffer.hpp
     nupic/algorithms/BacktrackingTMCpp.cpp
     nupic/algorithms/BacktrackingTMCpp.hpp
-    nupic/algorithms/BitHistory.cpp
-    nupic/algorithms/BitHistory.hpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cell.hpp
     nupic/algorithms/Cells4.cpp
@@ -93,7 +91,6 @@ set(algorithm_files
     nupic/algorithms/InSynapse.hpp
     nupic/algorithms/OutSynapse.cpp
     nupic/algorithms/OutSynapse.hpp
-    nupic/algorithms/Scanning.hpp
     nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SDRClassifier.hpp
     nupic/algorithms/Segment.cpp
