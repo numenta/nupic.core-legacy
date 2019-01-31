@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * Copyright (C) 2018, David McDougall.
+ * Copyright (C) 2018-2019, David McDougall.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -26,13 +26,12 @@
 
 #include <vector>
 #include <numeric>
+#include <algorithm> // std::sort
 #include <nupic/types/Types.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
-#include <functional>
-#include <cmath> // std::log2 isnan
-#include <regex>
+#include <functional> // function
 
 using namespace std;
 
@@ -136,17 +135,16 @@ protected:
 
     /**
      * These hooks are called every time the SDR's value changes.  These can be
-     * NULL pointers!
+     * NULL pointers!  See methods addCallback & removeCallback for API details.
      */
     vector<SDR_callback_t> callbacks;
 
     /**
-     * SDR allows Proxy subclasses which synchronize their value to this SDRs
-     * value.  These proxies must be registered via methods _addProxy() &
-     * _removeProxy().  When this class is destroyed, all proxies are notified
-     * via a method call to proxy.deconstruct().
+     * These hooks are called when the SDR is destroyed.  These can be NULL
+     * pointers!  See methods addDestroyCallback & removeDestroyCallback for API
+     * details.
      */
-    vector<SparseDistributedRepresentation*> proxies;
+    vector<SDR_callback_t> destroyCallbacks;
 
     /**
      * These flags remember which data formats are up-to-date and which formats
@@ -189,7 +187,7 @@ protected:
         clear();
         dense_valid = true;
         do_callbacks();
-    };
+    }
 
     /**
      * Update the SDR to reflect the value currently inside of the flatSparse
@@ -208,7 +206,7 @@ protected:
         clear();
         flatSparse_valid = true;
         do_callbacks();
-    };
+    }
 
     /**
      * Update the SDR to reflect the value currently inside of the sparse
@@ -232,31 +230,29 @@ protected:
         clear();
         sparse_valid = true;
         do_callbacks();
-    };
+    }
 
     /**
-     * Clean up this SDR and any other SDR-like-objects which may be watching
-     * this SDR.  This method destroys (but does NOT deallocate) a subtree of
-     * SDR proxies.
+     * Destroy this SDR.  Makes SDR unusable, should error or clearly fail if
+     * used.  Also sends notification to all watchers via destroyCallbacks.
+     * This is a separate method from ~SDR so that SDRs can be destroyed long
+     * before they're deallocated; SDR Proxy does this.
      */
     virtual void deconstruct() {
         clear();
         size_ = 0;
         dimensions_.clear();
-        // Iterate over a copy because the deconstructors may remove themselves
-        // from the proxies list via method _removeProxy().
-        vector<SparseDistributedRepresentation*> copy( proxies );
-        for( auto child : copy ) {
-            if( child != nullptr )
-                child->deconstruct();
+        for( auto func : destroyCallbacks ) {
+            if( func != nullptr )
+                func();
         }
-    };
+    }
 
 public:
     /**
-     * Use this method only in conjuction with sdr.load().
+     * Use this method only in conjuction with sdr.initialize() or sdr.load().
      */
-    SparseDistributedRepresentation() {};
+    SparseDistributedRepresentation() {}
 
     /**
      * Create an SDR object.  Initially SDRs value is all zeros.
@@ -264,7 +260,10 @@ public:
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.  The product of the dimensions must be greater than zero.
      */
-    SparseDistributedRepresentation( const vector<UInt> dimensions ) {
+    SparseDistributedRepresentation( const vector<UInt> dimensions )
+        { initialize( dimensions ); }
+
+    void initialize( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
         NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
         // Calculate the SDR's size.
@@ -280,7 +279,7 @@ public:
         // Initialize the index tuple.
         sparse.assign( dimensions.size(), {} );
         sparse_valid = true;
-    };
+    }
 
     /**
      * Initialize this SDR as a deep copy of the given SDR.  This SDR and the
@@ -289,13 +288,15 @@ public:
      *
      * @param value An SDR to replicate.
      */
-    SparseDistributedRepresentation(const SparseDistributedRepresentation &value)
+    SparseDistributedRepresentation( const SparseDistributedRepresentation &value )
         : SparseDistributedRepresentation( value.dimensions ) {
-        setSDR(value);
-    };
+        clear();
+        value.constGetFlatSparse_( flatSparse );
+        flatSparse_valid = true;
+    }
 
     virtual ~SparseDistributedRepresentation()
-        { deconstruct(); };
+        { deconstruct(); }
 
     /**
      * @attribute dimensions A list of dimensions of the SDR.
@@ -314,7 +315,7 @@ public:
     void zero() {
         flatSparse.clear();
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Swap a new value into the SDR, replacng the current value.  This
@@ -327,7 +328,7 @@ public:
         NTA_ASSERT(value.size() == size);
         dense.swap( value );
         setDenseInplace();
-    };
+    }
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
@@ -337,9 +338,12 @@ public:
     template<typename T>
     void setDense( const vector<T> &value ) {
         NTA_ASSERT(value.size() == size);
-        dense.assign( value.begin(), value.end() );
+        dense.resize( size );
+        const T zero = (T) 0;
+        for(auto i = 0u; i < size; i++)
+            dense[i] = value[i] != zero;
         setDenseInplace();
-    };
+    }
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
@@ -349,9 +353,12 @@ public:
     template<typename T>
     void setDense( const T *value ) {
         NTA_ASSERT(value != nullptr);
-        dense.assign( value, value + size );
+        dense.resize( size );
+        const T zero = (T) 0;
+        for(auto i = 0u; i < size; i++)
+            dense[i] = value[i] != zero;
         setDenseInplace();
-    };
+    }
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
@@ -365,7 +372,7 @@ public:
             value.getBuffer(), value.getType(),
             size);
         setDenseInplace();
-    };
+    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -385,7 +392,7 @@ public:
             dense_valid = true;
         }
         return dense;
-    };
+    }
 
     /**
      * Query the value of the SDR at a single location.
@@ -414,7 +421,7 @@ public:
     void setFlatSparse( SDR_flatSparse_t &value ) {
         flatSparse.swap( value );
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Copy a vector of sparse indices of true values.  These indicies are into
@@ -426,7 +433,7 @@ public:
     void setFlatSparse( const vector<T> &value ) {
         flatSparse.assign( value.begin(), value.end() );
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Copy an array of sparse indices of true values.  These indicies are into
@@ -439,7 +446,7 @@ public:
     void setFlatSparse( const T *value, const UInt num_values ) {
         flatSparse.assign( value, value + num_values );
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Copy an array of sparse indices of true values.  These indicies are into
@@ -455,7 +462,7 @@ public:
             value.getBuffer(), value.getType(),
             value.getCount());
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -469,33 +476,44 @@ public:
      */
     virtual SDR_flatSparse_t& getFlatSparse() {
         if( !flatSparse_valid ) {
-            flatSparse.clear(); // Clear out any old data.
-            if( sparse_valid ) {
-                // Convert from sparse to flatSparse.
-                const auto num_nz = size ? sparse[0].size() : 0;
-                flatSparse.reserve( num_nz );
-                for(UInt nz = 0; nz < num_nz; nz++) {
-                    UInt flat = 0;
-                    for(UInt dim = 0; dim < dimensions.size(); dim++) {
-                        flat *= dimensions[dim];
-                        flat += sparse[dim][nz];
-                    }
-                    flatSparse.push_back(flat);
-                }
-                flatSparse_valid = true;
-            }
-            else if( dense_valid ) {
-                // Convert from dense to flatSparse.
-                for(UInt idx = 0; idx < size; idx++)
-                    if( dense[idx] != 0 )
-                        flatSparse.push_back( idx );
-                flatSparse_valid = true;
-            }
-            else
-                NTA_THROW << "SDR has no data!";
+            constGetFlatSparse_( flatSparse );
+            flatSparse_valid = true;
         }
         return flatSparse;
-    };
+    }
+private:
+    // It's useful to be able to extract the data from a constant SDR.  It's not
+    // ideal though so keep this method private.
+    void constGetFlatSparse_(SDR_flatSparse_t &flatSparseArg) const {
+        if( flatSparse_valid ) {
+            if( &flatSparseArg != &flatSparse )
+                flatSparseArg.assign( flatSparse.cbegin(), flatSparse.cend() );
+            return;
+        }
+        flatSparseArg.clear(); // Clear out any old data.
+        if( sparse_valid ) {
+            // Convert from sparse to flatSparse.
+            const auto num_nz = size ? sparse[0].size() : 0;
+            flatSparseArg.reserve( num_nz );
+            for(UInt nz = 0; nz < num_nz; nz++) {
+                UInt flat = 0;
+                for(UInt dim = 0; dim < dimensions.size(); dim++) {
+                    flat *= dimensions[dim];
+                    flat += sparse[dim][nz];
+                }
+                flatSparseArg.push_back(flat);
+            }
+        }
+        else if( dense_valid ) {
+            // Convert from dense to flatSparse.
+            for(UInt idx = 0; idx < size; idx++)
+                if( dense[idx] != 0 )
+                    flatSparseArg.push_back( idx );
+        }
+        else
+            NTA_THROW << "SDR has no data!";
+    }
+public:
 
     /**
      * Swap a list of indices into the SDR, replacing the SDRs current value.
@@ -513,7 +531,7 @@ public:
     void setSparse( vector<vector<UInt>> &value ) {
         sparse.swap( value );
         setSparseInplace();
-    };
+    }
 
     /**
      * Copy a list of indices into the SDR, overwritting the SDRs current value.
@@ -529,10 +547,13 @@ public:
     void setSparse( const vector<vector<T>> &value ) {
         NTA_ASSERT(value.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            sparse[dim].assign( value[dim].begin(), value[dim].end() );
+            sparse[dim].clear();
+            for(auto itm: value[dim]) {
+                sparse[dim].push_back((UInt)itm);
+            }
         }
         setSparseInplace();
-    };
+    }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -549,7 +570,7 @@ public:
             }
             // Convert from flatSparse to sparse.
             for( auto idx : getFlatSparse() ) {
-                for(UInt dim = dimensions.size() - 1; dim > 0; dim--) {
+                for(UInt dim = (UInt)(dimensions.size() - 1); dim > 0; dim--) {
                     auto dim_sz = dimensions[dim];
                     sparse[dim].push_back( idx % dim_sz );
                     idx /= dim_sz;
@@ -559,7 +580,7 @@ public:
             sparse_valid = true;
         }
         return sparse;
-    };
+    }
 
     /**
      * Deep Copy the given SDR to this SDR.  This overwrites the current value of
@@ -568,7 +589,7 @@ public:
      *
      * @param value An SDR to copy the value of.
      */
-    virtual void setSDR( const SparseDistributedRepresentation &value ) {
+    virtual void setSDR( SparseDistributedRepresentation &value ) {
         NTA_ASSERT( value.dimensions == dimensions );
         clear();
 
@@ -585,8 +606,16 @@ public:
             for(UInt dim = 0; dim < dimensions.size(); dim++)
                 sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
         }
+        // If no data is privately available, then try calling a public getter
+        // method.  Subclasses may override these getters and ignore the valid
+        // flags...
+        if( !dense_valid and !flatSparse_valid and !sparse_valid ) {
+            const auto data = value.getFlatSparse();
+            flatSparse.assign( data.begin(), data.end() );
+            flatSparse_valid = true;
+        }
         do_callbacks();
-    };
+    }
 
     /**
      * Calculates the number of true / non-zero values in the SDR.
@@ -594,7 +623,7 @@ public:
      * @returns The number of true values in the SDR.
      */
     UInt getSum()
-        { return getFlatSparse().size(); };
+        { return (UInt)getFlatSparse().size(); }
 
     /**
      * Calculates the sparsity of the SDR, which is the fraction of bits which
@@ -604,7 +633,7 @@ public:
      * @returns The fraction of values in the SDR which are true.
      */
     Real getSparsity()
-        { return (Real) getSum() / size; };
+        { return (Real) getSum() / size; }
 
     /**
      * Calculates the number of true bits which both SDRs have in common.
@@ -628,7 +657,7 @@ public:
         for( UInt i = 0u; i < size; i++ )
             ovlp += a[i] && b[i];
         return ovlp;
-    };
+    }
 
     /**
      * Make a random SDR, overwriting the current value of the SDR.  The
@@ -644,11 +673,11 @@ public:
     void randomize(Real sparsity) {
         Random rng( 0 );
         randomize( sparsity, rng );
-    };
+    }
 
     void randomize(Real sparsity, Random &rng) {
-        NTA_ASSERT( sparsity >= 0. and sparsity <= 1. );
-        UInt nbits = size * sparsity + .5;
+        NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
+        UInt nbits = (UInt) std::round( size * sparsity );
 
         SDR_flatSparse_t range( size );
         iota( range.begin(), range.end(), 0 );
@@ -656,7 +685,7 @@ public:
         rng.sample( range.data(),      size,
                     flatSparse.data(), nbits);
         setFlatSparseInplace();
-    };
+    }
 
     /**
      * Modify the SDR by moving a fraction of the active bits to different
@@ -681,7 +710,7 @@ public:
         NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
         NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
 
-        UInt num_move_bits = fractionNoise * getSum() + .5;
+        UInt num_move_bits = (UInt) std::round( fractionNoise * getSum() );
         vector<UInt> turn_off( num_move_bits , 0 );
         rng.sample(
             (UInt*) getFlatSparse().data(), getSum(),
@@ -696,7 +725,7 @@ public:
         }
         vector<UInt> turn_on( num_move_bits, 0 );
         rng.sample(
-            off_pop.data(), off_pop.size(),
+            off_pop.data(), (UInt)off_pop.size(),
             turn_on.data(), num_move_bits);
 
         for( auto idx : turn_on )
@@ -705,28 +734,29 @@ public:
             dns[ idx ] = 0;
 
         setDenseInplace();
-    };
+    }
 
     /**
-     * Print a human readable version of the SDR, defaults to STDOUT.
-     *
-     * @param stream The output to write to, defaults to std::cout.
+     * Print a human readable version of the SDR.
      */
-    void print(std::ostream &stream = std::cout) {
+    friend std::ostream& operator<< (std::ostream& stream,
+                                     SparseDistributedRepresentation &sdr)
+    {
         stream << "SDR( ";
-        for( UInt i = 0; i < dimensions.size(); i++ ) {
-            stream << dimensions[i];
-            if( i + 1 != dimensions.size() )
+        for( UInt i = 0; i < (UInt)sdr.dimensions.size(); i++ ) {
+            stream << sdr.dimensions[i];
+            if( i + 1 != (UInt)sdr.dimensions.size() )
                 stream << ", ";
         }
         stream << " ) ";
-        auto data = getFlatSparse();
+        auto data = sdr.getFlatSparse();
+        std::sort( data.begin(), data.end() );
         for( UInt i = 0; i < data.size(); i++ ) {
             stream << data[i];
             if( i + 1 != data.size() )
                 stream << ", ";
         }
-        stream << endl;
+        return stream << endl;
     }
 
     bool operator==(SparseDistributedRepresentation &sdr) {
@@ -742,10 +772,10 @@ public:
             getDense().begin(),
             getDense().end(), 
             sdr.getDense().begin());
-    };
+    }
 
     bool operator!=(SparseDistributedRepresentation &sdr)
-        { return not ((*this) == sdr); };
+        { return not ((*this) == sdr); }
 
     /**
      * Save (serialize) the current state of the SDR to the specified file.
@@ -765,21 +795,18 @@ public:
         };
 
         // Write a starting marker and version.
-        outStream << "SDR " << SERIALIZE_VERSION << endl;
+        outStream << "SDR " << SERIALIZE_VERSION << " " << endl;
 
         // Store the dimensions.
         writeVector( dimensions );
 
         // Store the data in the flat-sparse format.
-        if( flatSparse_valid )
-            writeVector( flatSparse );
-        else {
-            SparseDistributedRepresentation constWorkAround( *this );
-            writeVector( constWorkAround.getFlatSparse() );
-        }
+        SDR_flatSparse_t data;
+        constGetFlatSparse_( data );
+        writeVector( data );
 
         outStream << "~SDR" << endl;
-    };
+    }
 
     /**
      * Load (deserialize) and initialize the SDR from the specified input
@@ -827,7 +854,7 @@ public:
         // Consume the end marker.
         inStream >> marker;
         NTA_CHECK( marker == "~SDR" );
-    };
+    }
 
     /**
      * Callbacks notify you when this SDR's value changes.
@@ -850,7 +877,7 @@ public:
         }
         callbacks.push_back( callback );
         return index;
-    };
+    }
 
     /**
      * Remove a previously registered callback.
@@ -859,453 +886,53 @@ public:
      * your callback.
      */
     void removeCallback(UInt index) {
-        NTA_CHECK( index < callbacks.size() ) << "SDR::removeCallback, Invalid Handle!";
+        NTA_CHECK( index < callbacks.size() )
+            << "SDR::removeCallback, Invalid Handle!";
+        NTA_CHECK( callbacks[index] != nullptr )
+            << "SDR::removeCallback, Callback already removed!";
         callbacks[index] = nullptr;
-    };
+    }
 
     /**
-     * Add SDR to this classes proxy list.  When this SDR is destroyed, all
-     * proxies on the list will be cleaned up via a call to method
-     * proxy.deconstruct()
+     * This callback notifies you when this SDR is deconstructed and freed from
+     * memory.
      *
-     * @param proxy An SDR to register with this SDR for proper end-of-life
-     * handling.
-     */
-    void _addProxy(SparseDistributedRepresentation *proxy) {
-        proxies.push_back( proxy );
-    };
-
-    /**
-     * Remove an SDR from this classes proxy list.  Proxies must call this when
-     * they are destroyed so that this SDR can remove its pointers to the (now
-     * defunct) proxy.
+     * Note: callbacks are NOT serialized; after saving & loading an SDR the
+     * user must setup their callbacks again.
      *
-     * @param proxy An SDR to unregister with this SDR.
+     * @param callback A function to call when this SDR is destroyed.  Function
+     * accepts no arguments and returns void.
+     *
+     * @returns UInt Handle for the given callback, needed to remove callback.
      */
-    void _removeProxy(SparseDistributedRepresentation *proxy) {
-        for(auto it = proxies.begin(); it != proxies.end(); it++ ) {
-            if( *it == proxy ) {
-                proxies.erase( it );
-                return;
+    UInt addDestroyCallback(SDR_callback_t callback) {
+        UInt index = 0;
+        for( ; index < destroyCallbacks.size(); index++ ) {
+            if( destroyCallbacks[index] == nullptr ) {
+                destroyCallbacks[index] = callback;
+                return index;
             }
         }
-        NTA_THROW << "SDR::_removeProxy, Proxy not found!";
-    };
+        destroyCallbacks.push_back( callback );
+        return index;
+    }
+
+    /**
+     * Remove a previously registered destroy callback.
+     *
+     * @param UInt Handle which was returned by addDestroyCallback when you
+     * registered your callback.
+     */
+    void removeDestroyCallback(UInt index) {
+        NTA_CHECK( index < destroyCallbacks.size() )
+            << "SDR::removeDestroyCallback, Invalid Handle!";
+        NTA_CHECK( destroyCallbacks[index] != nullptr )
+            << "SDR::removeDestroyCallback, Callback already removed!";
+        destroyCallbacks[index] = nullptr;
+    }
 };
 
 typedef SparseDistributedRepresentation SDR;
 
-/**
- * SDR_Proxy class
- *
- * ### Description
-
- * SDR_Proxy presents a view onto an SDR.
- *      + Proxies have the same value as their source SDR, at all times and
- *        automatically.
- *      + SDR_Proxy is a subclass of SDR and be safely typecast to an SDR.
- *      + Proxies can have different dimensions than their source SDR.
- *      + Proxies are read only.
- *
- * SDR and SDR_Proxy classes tell each other when they are created and
- * destroyed.  Proxies can be created and destroyed as needed.  Proxies will
- * throw an exception if they are used after their source SDR has been
- * destroyed.
- *
- * Example Usage:
- *      // Convert SDR dimensions from (4 x 4) to (8 x 2)
- *      SDR       A(    { 4, 4 })
- *      SDR_Proxy B( A, { 8, 2 })
- *      A.setSparse( {1, 1, 2}, {0, 1, 2}} )
- *      auto sparse = B.getSparse()  ->  {{2, 2, 5}, {0, 1, 0}}
- *
- * Save/Load: SDR_Proxy does not support the Serializable interface.  Users
- * should instead serialize the source SDR and recreate the proxy.
- */
-class SDR_Proxy : public SDR
-{
-public:
-    /**
-     * Create an SDR_Proxy object.
-     *
-     * @param sdr Source SDR to make a view of.
-     *
-     * @param dimensions A list of dimension sizes, defining the shape of the
-     * SDR.  Optional, if not given then this Proxy will have the same
-     * dimensions as the given SDR.
-     */
-    SDR_Proxy(SDR &sdr)
-        : SDR_Proxy(sdr, sdr.dimensions)
-        {};
-
-    SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
-        : SDR( dimensions ) {
-        clear();
-        parent = &sdr;
-        NTA_CHECK( size == parent->size ) << "SDR Proxy must have same size as given SDR.";
-        parent->_addProxy( this );
-        callback_handle = parent->addCallback( [&] () {
-            clear();
-            do_callbacks();
-        });
-    };
-
-    ~SDR_Proxy() override
-        { deconstruct(); };
-
-    SDR_dense_t& getDense() override {
-        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        return parent->getDense();
-    }
-
-    SDR_flatSparse_t& getFlatSparse() override {
-        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        return parent->getFlatSparse();
-    }
-
-    SDR_sparse_t& getSparse() override {
-        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        if( dimensions.size() == parent->dimensions.size() &&
-            equal( dimensions.begin(), dimensions.end(),
-                   parent->dimensions.begin() )) {
-            // All things equal, prefer reusing the parent's cached value.
-            return parent->getSparse();
-        }
-        else {
-            // Don't override getSparse().  It will call either getDense() or
-            // getFlatSparse() to get its data, and will use this proxies
-            // dimensions.
-            return SDR::getSparse();
-        }
-    }
-
-protected:
-    /**
-     * This SDR shall always have the same value as the parent SDR.
-     */
-    SDR *parent;
-    int callback_handle;
-
-    void deconstruct() override {
-        // Unlink this SDR from the parent SDR.
-        if( parent != nullptr ) {
-            parent->_removeProxy( this );
-            parent->removeCallback( callback_handle );
-            parent = nullptr;
-            SDR::deconstruct();
-        }
-    };
-
-    const string _SDR_Proxy_setter_error_message = "SDR_Proxy is read only.";
-
-    void setDenseInplace() override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
-    void setFlatSparseInplace() override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
-    void setSparseInplace() override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
-    void setSDR( const SparseDistributedRepresentation &value ) override
-        { NTA_THROW << _SDR_Proxy_setter_error_message; };
-
-    const string _SDR_save_load_error_message =
-        "SDR_Proxy does not support serialization, save/load the source SDR instead.";
-    void save(std::ostream &outStream) const override
-        { NTA_THROW << _SDR_save_load_error_message; };
-    void load(std::istream &inStream) override
-        { NTA_THROW << _SDR_save_load_error_message; };
-};
-
-/**
- * Helper for SDR metrics trackers, including: SDR_Sparsity,
- * SDR_ActivationFrequency, and SDR_Overlap classes.
- *
- * Subclasses must override method "callback".
- */
-class _SDR_MetricsHelper {
-protected:
-    SDR* dataSource_;
-    UInt period_;
-    int  samples_;
-
-    /**
-     * @param dataSource SDR to track.  Add data to the metric by assigning to
-     * this SDR.  This class deals with adding a callback to this SDR so that
-     * your SDR-MetricsTracker is notified after every update to the SDR.
-     *
-     * @param period TODO
-     */
-    _SDR_MetricsHelper( SDR &dataSource, UInt period ) {
-        NTA_CHECK( period > 0u );
-        dataSource_ = &dataSource;
-        period_     = period;
-        samples_    = 0;
-        dataSource.addCallback( [&](){
-            samples_++;
-            callback( *dataSource_, 1.0f / std::min( period_, (UInt) samples_ ));
-        });
-    }
-
-    /**
-     * Add another datum to the metric.
-     *
-     * @param dataSource SDR to add to the metric.
-     *
-     * @param alpha Weight for the new datum.  Metrics trackers should use an
-     * exponential weighting scheme, so that they can efficiently process
-     * streaming data.  This class deals with finding a suitable weight for each
-     * sample.
-     */
-    virtual void callback( SDR &dataSource, Real alpha ) = 0;
-
-public:
-    const int  &samples = samples_;
-    const UInt &period  = period_;
-};
-
-/**
- * Measures the sparsity of an SDR.
- * TODO: DOCUMENTATION
- */
-class SDR_Sparsity : public _SDR_MetricsHelper {
-private:
-    Real min_;
-    Real max_;
-    Real mean_;
-    Real var_;
-    Real sparsity_;
-
-    void callback(SDR &dataSource, Real alpha) override {
-        sparsity_ = dataSource.getSparsity();
-        min_ = std::min( min_, sparsity_ );
-        max_ = std::max( max_, sparsity_ );
-        // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
-        // See section 9.
-        const Real diff   = sparsity_ - mean_;
-        const Real incr   = alpha * diff;
-                   mean_ += incr;
-                   var_   = (1.0f - alpha) * (var_ + diff * incr);
-    }
-
-public:
-    SDR_Sparsity( SDR &dataSource, UInt period )
-        : _SDR_MetricsHelper( dataSource, period )
-    {
-        sparsity_   =  1234.56789f;
-        min_        =  1234.56789f;
-        max_        = -1234.56789f;
-        mean_       =  1234.56789f;
-        var_        =  1234.56789f;
-    }
-
-    const Real &sparsity = sparsity_;
-    Real min() const { return min_; }
-    Real max() const { return max_; }
-    Real mean() const { return mean_; }
-    Real std() const { return std::sqrt( var_ ); }
-
-    void print(std::ostream &stream = std::cout) const
-    {
-        stream << "Sparsity Min/Mean/Std/Max "
-            << min() << " / " << mean() << " / "
-            << std() << " / " << max() << endl;
-    }
-};
-
-/**
- * Measure the activation frequency of each value in an SDR.
- * TODO: DOCUMENTATION
- */
-class SDR_ActivationFrequency : public _SDR_MetricsHelper {
-private:
-    vector<Real> activationFrequency_;
-
-    void callback(SDR &dataSource, Real alpha) override
-    {
-        const auto decay = 1.0f - alpha;
-        for(auto &value : activationFrequency_)
-            value *= decay;
-
-        const auto &sparse = dataSource.getFlatSparse();
-        for(const auto &idx : sparse)
-            activationFrequency_[idx] += alpha;
-    }
-
-public:
-    SDR_ActivationFrequency( SDR &dataSource, UInt period )
-        : _SDR_MetricsHelper( dataSource, period )
-    {
-        activationFrequency_.assign( dataSource.size, 1234.56789f );
-    }
-
-    const vector<Real> &activationFrequency = activationFrequency_;
-
-    Real min() const {
-        return *std::min_element(activationFrequency_.begin(),
-                                 activationFrequency_.end());
-    }
-
-    Real max() const {
-        return *std::max_element(activationFrequency_.begin(),
-                                 activationFrequency_.end());
-    }
-
-    Real mean() const  {
-        const auto sum = std::accumulate( activationFrequency_.begin(),
-                                          activationFrequency_.end(),
-                                          0.0f);
-        return (Real) sum / activationFrequency_.size();
-    }
-
-    Real std() const {
-        const auto mean_ = mean();
-        auto sum_squares = 0.0f;
-        for(auto &frequency : activationFrequency) {
-            const auto displacement = frequency - mean_;
-            sum_squares += displacement * displacement;
-        }
-        const auto variance = sum_squares / activationFrequency.size();
-
-        return std::sqrt( variance );
-    }
-
-    static Real binary_entropy_(const vector<Real> &frequencies) {
-        Real accumulator = 0.0f;
-        for(const auto &p  : frequencies) {
-            const auto  p_ = 1.0f - p;
-            const auto  e  = -p * std::log2( p ) - p_ * std::log2( p_ );
-            accumulator   += isnan(e) ? 0.0f : e;
-        }
-        return accumulator / frequencies.size();
-    }
-
-    /**
-     * TODO: DOCUMENTATION
-     */
-    Real entropy() const {
-        const auto max_extropy = binary_entropy_({ mean() });
-        if( max_extropy == 0.0f )
-            return 0.0f;
-        return binary_entropy_( activationFrequency ) / max_extropy;
-    }
-
-    void print(std::ostream &stream = std::cout) const
-    {
-        stream << "Activation Frequency Min/Mean/Std/Max "
-            << min() << " / " << mean() << " / "
-            << std() << " / " << max() << endl;
-        stream << "Entropy " << entropy() << endl;
-    }
-};
-
-
-/**
- * TODO: DOCUMENTATION
- */
-class SDR_Overlap : public _SDR_MetricsHelper {
-private:
-    SDR  previous_;
-    Real overlap_;
-    Real min_;
-    Real max_;
-    Real mean_;
-    Real var_; // TODO: Rename to variance_, in all classes!
-
-    void callback(SDR &dataSource, Real alpha) override {
-        const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
-        const auto overlap = (nbits == 0u) ? 0.0f
-                               : (Real) previous_.overlap( dataSource ) / nbits;
-        previous_.setSDR( dataSource );
-        // Ignore first data point, need two to compute.  Account for the
-        // initial decrement to samples counter.
-        if( samples + 1 < 2 ) return;
-        overlap_ = overlap; // Don't overwrite initial value until have valid data.
-        min_     = std::min( min_, overlap );
-        max_     = std::max( max_, overlap );
-        // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
-        // See section 9.
-        const Real diff   = overlap - mean_;
-        const Real incr   = alpha * diff;
-                   mean_ += incr;
-                   var_   = (1.0f - alpha) * (var_ + diff * incr);
-    }
-
-public:
-    SDR_Overlap( SDR &dataSource, UInt period )
-        : _SDR_MetricsHelper( dataSource, period ),
-          previous_( dataSource.dimensions )
-    {
-        // This class needs two samples before its data is valid, instead of one
-        // sample like _SDR_MetricsHelper class  expects, so start the samples
-        // counter one behind.
-        samples_   -=  1;
-        overlap_    =  1234.56789f;
-        min_        =  1234.56789f;
-        max_        = -1234.56789f;
-        mean_       =  1234.56789f;
-        var_        =  1234.56789f;
-    }
-
-    const Real &overlap = overlap_; // TODO: Should this be a method, for consistency with min/mean/max?
-    Real min() const { return min_; }
-    Real max() const { return max_; }
-    Real mean() const { return mean_; }
-    Real std() const { return std::sqrt( var_ ); }
-
-    void print(std::ostream &stream = std::cout) const
-    {
-        stream << "Overlap Min/Mean/Std/Max "
-            << min() << " / " << mean() << " / "
-            << std() << " / " << max() << endl;
-    }
-};
-
-/**
- * TODO: DOCUMENTATION
- */
-class SDR_Metrics {
-private:
-    vector<UInt>            dimensions_;
-    SDR_Sparsity            sparsity_;
-    SDR_ActivationFrequency activationFrequency_;
-    SDR_Overlap             overlap_;
-
-public:
-    SDR_Metrics( SDR &dataSource, UInt period )
-        : sparsity_( dataSource, period ),
-          activationFrequency_( dataSource, period ),
-          overlap_( dataSource, period )
-    {
-        dimensions_ = dataSource.dimensions;
-    }
-
-    const SDR_Sparsity            &sparsity            = sparsity_;
-    const SDR_ActivationFrequency &activationFrequency = activationFrequency_;
-    const SDR_Overlap             &overlap             = overlap_;
-
-    void print(std::ostream &stream = std::cout) {
-        // Introduction line:  "SDR ( dimensions )"
-        stream << "SDR( ";
-        for(const auto &dim : dimensions_)
-            stream << dim << " ";
-        stream << ")" << endl;
-
-        // Print data to temporary area for formatting.
-        stringstream data_stream;
-
-        sparsity.print( data_stream );
-        activationFrequency.print( data_stream );
-        overlap.print( data_stream );
-
-        // Indent all of the data.
-        string data = data_stream.str();
-        // Append tabs to all newlines
-        data = regex_replace( data, regex("\n"), "\n\r    " );
-        // Strip trailing whitespace
-        data = regex_replace( data, regex("\\s*$"), "" );
-        stream << "    ";
-        stream << data << endl;
-    }
-};
-
-}; // end namespace nupic
+} // end namespace nupic
 #endif // end ifndef SDR_HPP

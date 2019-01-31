@@ -35,6 +35,12 @@
 # VS 2015     14           1900            std::tuple
 # VS 2017     15           >= 1910         std::tuple
 
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/googletest-release-1.8.1.tar.gz)
+    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/googletest-release-1.8.1.tar.gz)
+else()
+    set(URL https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz)
+endif()
+
 #
 # Build gtest lib
 #
@@ -46,12 +52,20 @@ download_project(PROJ googletest
 	UPDATE_DISCONNECTED 1
 	QUIET
 	)
-	
-set(INSTALL_GTEST OFF)
-set(BUILD_GMOCK OFF)
-set(CMAKE_CXX_FLAGS ${INTERNAL_CXX_FLAGS_STR})
+set(INSTALL_GTEST OFF CACHE BOOL "prevents installing gtest" FORCE)
+set(BUILD_GMOCK   OFF CACHE BOOL "prevents building gmock"   FORCE)
 #set(gtest_force_shared_crt ON CACHE BOOL "Prevent GoogleTest from overriding our compiler/linker options" FORCE)
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 
-set(gtest_INCLUDE_DIRS ${googletest_SOURCE_DIR}/googletest/include PARENT_SCOPE)
-set(gtest_LIBRARIES gtest PARENT_SCOPE)
+if(MSVC)
+  set(gtest_LIBRARIES ${googletest_BINARY_DIR}/googletest/$<$<CONFIG:Release>:Release>$<$<CONFIG:Debug>:Debug>/${CMAKE_STATIC_LIBRARY_PREFIX}gtest$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+  if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    set(DEBUG_POSTFIX d)
+  endif()
+  set(gtest_LIBRARIES ${googletest_BINARY_DIR}/googletest/${CMAKE_STATIC_LIBRARY_PREFIX}gtest$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+FILE(APPEND "${EXPORT_FILE_NAME}" "gtest_INCLUDE_DIRS@@@${googletest_SOURCE_DIR}/googletest/include\n")
+FILE(APPEND "${EXPORT_FILE_NAME}" "gtest_LIBRARIES@@@${gtest_LIBRARIES}\n")
+
+

@@ -81,10 +81,13 @@ string(TOLOWER ${PLATFORM} PLATFORM)
 # Set the C++ standard version
 #    Compiler support for <filesystem> in C++17:
 #	https://en.cppreference.com/w/cpp/compiler_support
+#       https://en.wikipedia.org/wiki/Xcode#Latest_versions
+#
 #	GCC 7.1 has <experimental/filesystem>, link with -libc++experimental or -lstdc++fs
 #	GCC 8 has <filesystem>   link with -lstdc++fs
 #	GCC 9   expected to support <filesystem>
-#	Clang 4 (XCode10) has no support for <filesystem>, partial C++17
+#       AppleClang as of (XCode 10.1) does not support C++17 or filesystem
+#           (although you can get llvm 7 from brew)
 #	Clang 7 has complete <filesystem> support for C++17
 #	Visual Studio 2017 15.7 (v19.14)supports <filesystem> with C++17
 #	MinGW has no support for filesystem.
@@ -92,27 +95,30 @@ string(TOLOWER ${PLATFORM} PLATFORM)
 # If we have support for <filesystem> and C++17, turn on the C++17 standard flag, 
 # else set standard to C++11 and install the boost filesystem
 # Also specify the external library for <filesystem> if needed.
+# 
 
 set(extra_lib_for_filesystem)   # sometimes -libc++experimental or -lstdc++fs
 set(INTERNAL_CPP_STANDARD "c++11")
 set(boost_required ON)
 
-if(NOT USE_CPP11)
+if(NOT FORCE_CPP11)
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9")
          set(INTERNAL_CPP_STANDARD "c++17")
 	 set(boost_required OFF)
     elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
          set(INTERNAL_CPP_STANDARD "c++17")
-	 set(extra_lib_for_filesystem "-lstdc++fs")
+	 set(extra_lib_for_filesystem "stdc++fs")
 	 set(boost_required "OFF")
     endif()	 
+  elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")  # see CMake Policy CMP0025
+    # does not support C++17 and filesystem (as of XCode 10.1)
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
          set(INTERNAL_CPP_STANDARD "c++17")
 	 set(boost_required OFF)
     endif()
-  elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  elseif(MSVC)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.14")
             set(INTERNAL_CPP_STANDARD "c++17")
 	    set(boost_required OFF)
@@ -121,7 +127,9 @@ if(NOT USE_CPP11)
 endif()
 if (boost_required)
   set(NEEDS_BOOST ON)
+else()
   # otherwise honors the override from parent.
+  set(NEEDS_BOOST ${FORCE_BOOST})
 endif()
 
 # https://stackoverflow.com/questions/44960715/how-to-enable-stdc17-in-vs2017-with-cmake
@@ -153,14 +161,14 @@ if(MSVC)
 	# on Windows using Visual Studio 2015, 2017   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
 	#  /permissive- forces standards behavior.  See https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance?view=vs-2017
 	#  /Zc:__cplusplus   This is required to force MSVC to pay attention to the standard setting and sets __cplusplus.
-	#                    NOTE: MSVC does not support C++11.  But does C++14 and C++17.
+	#                    NOTE: MSVC does not support C++11.  But does support C++14 and C++17.
 	# Release Compiler flags:
-	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /MD /EHsc /FC /fPIC /nologo /Zc:__cplusplus
+	#	Common Stuff:  /permissive- /W3 /Gy /Gm- /O2 /Oi /EHsc /FC /nologo /Zc:__cplusplus
 	#      Release Only:    /O2 /Oi /Gy  /MD
-	#      Debug Only:       /Od /Zi /sdl /RTC1 /MD
-	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /fPIC /nologo /Zc:__cplusplus /std:c++${std_ver}
-							$<$<CONFIG:RELEASE>:/O2 /Oi /Gy  /GL /MT> 
-							$<$<CONFIG:DEBUG>:/Ob0 /Od /Zi /sdl /RTC1 /MTd>)
+	#      Debug Only:       /Od /Zi /sdl /RTC1 /MDd
+	set(INTERNAL_CXX_FLAGS /permissive- /W3 /Gm- /EHsc /FC /nologo /Zc:__cplusplus /std:c++${std_ver}
+							$<$<CONFIG:Release>:/O2 /Oi /Gy  /GL /MD> 
+							$<$<CONFIG:Debug>:/Ob0 /Od /Zi /sdl /RTC1 /MDd>)
 	#linker flags
 	if("${BITNESS}" STREQUAL "32")
 		set(machine "/MACHINE:X86")
@@ -191,11 +199,12 @@ if(MSVC)
 		NOGDI
 		)
 
-	if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_ASSERTIONS_ON)
-	endif()
+	set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} $<$<CONFIG:Debug>:NTA_ASSERTIONS_ON>)
 		
 	# common libs
+	# Libraries linked by defaultwith all C++ applications
+	# CMAKE_CXX_STANDARD_LIBRARIES:STRING=kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+        # Identify any additional system libs
 	set(COMMON_OS_LIBS oldnames.lib psapi.lib ws2_32.lib)
 
 

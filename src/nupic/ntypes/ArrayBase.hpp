@@ -42,7 +42,7 @@
 #include <string>
 #include <memory>	// for shared_ptr
 
-#include <nupic/types/Types.h>
+#include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 
 

@@ -35,21 +35,21 @@
 #
 #######################################
 
-
-
-
-# Download the boost distribution (at configure time).
-message(STATUS "obtaining Boost (download & install takes a while, go get a coffee :) ...")
-include(DownloadProject/DownloadProject.cmake)
-
-  if (MSVC OR MSYS OR MINGW)
-    set(BOOST_URL "${REPOSITORY_DIR}/external/common/share/boost/boost_1_69_0_subset.zip")
-    set(BOOST_HASH "d074bcbcc0501c4917b965fc890e303ee70d8b01ff5712bae4a6c54f2b6b4e52")
-  else()
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/boost_1_69_0.tar.gz)
+    set(BOOST_URL ${REPOSITORY_DIR}/build/ThirdParty/share/boost_1_69_0.tar.gz)
+    set(BOOST_HASH "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb")
+else()
     set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz")
     set(BOOST_HASH "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb")
-  endif()
+endif()
 
+# Download the boost distribution (at configure time).
+message(STATUS "obtaining Boost")
+if(IS_DIRECTORY ${EP_BASE}/boost)
+else()
+  message(STATUS "   Boost download & install takes a while, go get a coffee :) ...")
+endif()
+include(DownloadProject/DownloadProject.cmake)
 #  note: this will not download if it already exists.
 download_project(PROJ Boost_download
 	PREFIX ${EP_BASE}/boost
@@ -62,13 +62,12 @@ download_project(PROJ Boost_download
 
 # Set some parameters
 set(BOOST_ROOT ${Boost_download_SOURCE_DIR})
-set(BOOST_ROOT ${BOOST_ROOT} CACHE STRING  "BOOST_ROOT points to the boost Installation." FORCE)
 set(Boost_INCLUDE_DIRS ${BOOST_ROOT})
 
 file(GLOB Boost_LIBRARIES ${BOOST_ROOT}/stage/lib/*)
 list(LENGTH Boost_LIBRARIES qty_libs)
 if(${qty_libs} LESS 2)
-  message(STATUS "Boost being installed at BOOST_ROOT = ${BOOST_ROOT}")
+  #message(STATUS "Boost being installed at BOOST_ROOT = ${BOOST_ROOT}")
   if (MSVC OR MSYS OR MINGW)
     if (MSYS OR MINGW)
 	  set(bootstrap "bootstrap.bat gcc")
@@ -103,7 +102,6 @@ if(${qty_libs} LESS 2)
 		runtime-link=shared 
 		link=static 
 		cxxflags="-fPIC"
-#		cxxflags="-fvisibility=hidden"
 		stage
   	WORKING_DIRECTORY ${BOOST_ROOT} 
 	OUTPUT_QUIET
@@ -118,11 +116,12 @@ if(${qty_libs} LESS 2)
   endif()
 endif()
 
-set(Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} PARENT_SCOPE)
-set(Boost_LIBRARIES ${Boost_LIBRARIES} PARENT_SCOPE)
-message(STATUS "  Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
-message(STATUS "  Boost_LIBRARIES = ${Boost_LIBRARIES}")
+#message(STATUS "  Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
+#message(STATUS "  Boost_LIBRARIES = ${Boost_LIBRARIES}")
 
-
+STRING(REGEX REPLACE ";" "@@@" Boost_LIBRARIES "${Boost_LIBRARIES}")
+FILE(APPEND "${EXPORT_FILE_NAME}" "BOOST_ROOT@@@${BOOST_ROOT}\n")
+FILE(APPEND "${EXPORT_FILE_NAME}" "Boost_INCLUDE_DIRS@@@${Boost_INCLUDE_DIRS}\n")
+FILE(APPEND "${EXPORT_FILE_NAME}" "Boost_LIBRARIES@@@${Boost_LIBRARIES}\n")
 
 

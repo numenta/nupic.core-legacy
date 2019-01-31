@@ -381,16 +381,16 @@ TEST(UniformLinkPolicyTest, StrictMappingSplitOverReceptiveFields) {
   std::vector<CoordBounds> expectedBoundVec;
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(0, 0), 0, std::pair<size_t, size_t>(0, 1)));
+      CoordBounds(makeCoordinate(0, 0), 0, std::pair<Fraction, Fraction>(0, 1)));
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(1, 0), 0, std::pair<size_t, size_t>(2, 3)));
+      CoordBounds(makeCoordinate(1, 0), 0, std::pair<Fraction, Fraction>(2, 3)));
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(2, 0), 0, std::pair<size_t, size_t>(4, 5)));
+      CoordBounds(makeCoordinate(2, 0), 0, std::pair<Fraction, Fraction>(4, 5)));
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(3, 0), 0, std::pair<size_t, size_t>(6, 7)));
+      CoordBounds(makeCoordinate(3, 0), 0, std::pair<Fraction, Fraction>(6, 7)));
 
   EXPECT_TRUE(inspector.setDimensionsAndCheckBounds(
       srcLinkSide, Dimensions(8, 6), expectedBoundVec,
@@ -407,16 +407,16 @@ TEST(UniformLinkPolicyTest, NonStrictMappingSplitOverReceptiveFields) {
   std::vector<CoordBounds> expectedBoundVec;
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(0, 0), 0, std::pair<size_t, size_t>(0, 1)));
+      CoordBounds(makeCoordinate(0, 0), 0, std::pair<Fraction, Fraction>(0, 1)));
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(1, 0), 0, std::pair<size_t, size_t>(2, 3)));
+      CoordBounds(makeCoordinate(1, 0), 0, std::pair<Fraction, Fraction>(2, 3)));
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(2, 0), 0, std::pair<size_t, size_t>(4, 5)));
+      CoordBounds(makeCoordinate(2, 0), 0, std::pair<Fraction, Fraction>(4, 5)));
 
   expectedBoundVec.push_back(
-      CoordBounds(makeCoordinate(3, 0), 0, std::pair<size_t, size_t>(6, 8)));
+      CoordBounds(makeCoordinate(3, 0), 0, std::pair<Fraction, Fraction>(6, 8)));
 
   EXPECT_TRUE(inspector.setDimensionsAndCheckBounds(
       srcLinkSide, Dimensions(9, 6), expectedBoundVec,

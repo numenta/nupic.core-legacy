@@ -33,7 +33,6 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/BasicType.hpp>
-#include <nupic/types/ptr_types.hpp>
 
 namespace nupic {
 
@@ -52,13 +51,13 @@ std::cout << "Input::~Input: \n";
   links_.clear();
 }
 
-void Input::addLink(Link_Ptr_t link, Output * srcOutput) {
+void Input::addLink(std::shared_ptr<Link> link, Output * srcOutput) {
   if (initialized_)
     NTA_THROW << "Attempt to add link to input " << name_ << " on region "
               << region_->getName() << " when input is already initialized";
 
   // Make sure we don't already have a link to the same output
-  for (std::vector<Link_Ptr_t>::const_iterator link = links_.begin();
+  for (std::vector<std::shared_ptr<Link>>::const_iterator link = links_.begin();
        link != links_.end(); link++) {
     if (srcOutput == &((*link)->getSrc())) {
       NTA_THROW << "addLink -- link from region "
@@ -75,7 +74,7 @@ void Input::addLink(Link_Ptr_t link, Output * srcOutput) {
   // is calculated at initialization time
 }
 
-void Input::removeLink(Link_Ptr_t &link) {
+void Input::removeLink(std::shared_ptr<Link> &link) {
   // removeLink should only be called internally -- if it
   // does not exist, it is a logic error
   auto linkiter = links_.begin();
@@ -96,12 +95,12 @@ void Input::removeLink(Link_Ptr_t &link) {
   uninitialize();
   link->getSrc().removeLink(link);
   links_.erase(linkiter);
-  // Link is deleted when the Link_Ptr_t goes out of scope.
+  // Link is deleted when the std::shared_ptr<Link> goes out of scope.
 }
 
-Link_Ptr_t Input::findLink(const std::string &srcRegionName,
+std::shared_ptr<Link> Input::findLink(const std::string &srcRegionName,
                       const std::string &srcOutputName) {
-  std::vector<Link_Ptr_t>::const_iterator linkiter = links_.begin();
+  std::vector<std::shared_ptr<Link>>::const_iterator linkiter = links_.begin();
   for (; linkiter != links_.end(); linkiter++) {
     Output &output = (*linkiter)->getSrc();
     if (output.getName() == srcOutputName &&
@@ -130,7 +129,7 @@ NTA_BasicType Input::getDataType() const { return data_.getType(); }
 
 Region* Input::getRegion() { return region_; }
 
-std::vector<Link_Ptr_t> &Input::getLinks() { return links_; }
+std::vector<std::shared_ptr<Link>> &Input::getLinks() { return links_; }
 
 bool Input::isRegionLevel() { return isRegionLevel_; }
 
@@ -149,7 +148,7 @@ size_t Input::evaluateLinks() {
     return 0;
 
   size_t nIncompleteLinks = 0;
-  std::vector<Link_Ptr_t>::iterator l;
+  std::vector<std::shared_ptr<Link>>::iterator l;
   for (l = links_.begin(); l != links_.end(); l++) {
     Region& srcRegion = *((*l)->getSrc().getRegion());
     Region& destRegion = *((*l)->getDest().getRegion());
@@ -469,7 +468,7 @@ void Input::initialize() {
 
   // Calculate our size and the offset of each link
   size_t count = 0;
-  for (std::vector<Link_Ptr_t>::const_iterator l = links_.begin();
+  for (std::vector<std::shared_ptr<Link>>::const_iterator l = links_.begin();
        l != links_.end(); l++) {
     linkOffsets_.push_back(count);
     // Setting the destination offset makes the link usable.
@@ -501,7 +500,7 @@ void Input::initialize() {
     splitterMap_.resize(region_->getDimensions().getCount());
   }
 
-  for (std::vector<Link_Ptr_t>::const_iterator link = links_.begin();
+  for (std::vector<std::shared_ptr<Link>>::const_iterator link = links_.begin();
        link != links_.end(); link++) {
     (*link)->buildSplitterMap(splitterMap_);
   }

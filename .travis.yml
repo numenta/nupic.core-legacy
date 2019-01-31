@@ -20,6 +20,7 @@ matrix:
             - cmake
             - cmake-data
             - xsltproc #only for doc transform to html , can be removed
+            - valgrind
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
@@ -100,6 +101,8 @@ notifications:
 
 before_install:
   - eval "${MATRIX_EVAL}"
+  - export CC
+  - export CXX
   - $CXX --version
   - echo "Installing pip, setuptools, and wheel"
   - pip install --upgrade pip setuptools wheel || exit
@@ -112,7 +115,7 @@ install:
   - cmake --version
   - echo "Configuring..."
   # Builds nupic_code library and python2.7 interface. Enable test coverage for travis-ci build
-  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DPYTHON2_BUILD=ON -DNTA_COV_ENABLED=ON
+  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release 
   - set -o pipefail
   - echo "Make & Install "
   - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
@@ -122,13 +125,15 @@ install:
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
-  # this also matches current instructions in nupic.core/README.md
-  - "cd $TRAVIS_BUILD_DIR/build/Release/bin"
+  #      this also matches current instructions in nupic.core/README.md
   # unit tests
+  - "cd $TRAVIS_BUILD_DIR/build/Release/bin"
   - "${TRAVIS_BUILD_DIR}/build/Release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
   # run python tests
   - cd ${TRAVIS_BUILD_DIR}
   - "python setup.py test"
+  # run memory leak tests with valgrind
+  - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=3 ${TRAVIS_BUILD_DIR}/build/Release/bin/benchmark_hotgym 5 || exit 1 
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html

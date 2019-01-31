@@ -105,18 +105,25 @@ namespace nupic_ext
             //return y;
         });
 
-        m.def("winnerTakesAll_3", [](size_t k, size_t seg_size, py::array_t<nupic::Real32>& x)
-        {
-            if (x.ndim() != 1) { throw std::runtime_error("Number of dimensions must be one."); }
 
-            std::vector<int> ind;
-            std::vector<nupic::Real32> nz;
-
-            nupic::winnerTakesAll3(k, seg_size, get_it(x), get_end(x),
-                std::back_inserter(ind), std::back_inserter(nz));
-
-            return py::make_tuple(ind, nz);
-        });
+////////////////////// TODO: fix
+// This calls winnerTakesAll3() which eventually makes a call to
+// nupic/math/Math.hpp:776 where it instantiates struct predicate_compose()
+// There is an error setting the type of argument_type.
+//
+//        m.def("winnerTakesAll_3", [](size_t k, size_t seg_size, py::array_t<nupic::Real32>& x)
+//        {
+//            if (x.ndim() != 1) { throw std::runtime_error("Number of dimensions must be one."); }
+//
+//            std::vector<int> ind;
+//            std::vector<nupic::Real32> nz;
+//
+//            nupic::winnerTakesAll3(k, seg_size, get_it(x), get_end(x),
+//                std::back_inserter(ind), std::back_inserter(nz));
+//
+//            return py::make_tuple(ind, nz);
+//        });
+//
 
         m.def("min_score_per_category", [](nupic::UInt32 maxCategoryIdx
             , py::array_t<nupic::UInt32>& c
@@ -128,7 +135,7 @@ namespace nupic_ext
 
             // @todo Not sure why no just take the size()?
             // int nScores = int(c.end() - c.begin());
-            int nScores = c.size();
+            int nScores = (int)c.size();
             for (int i = 0; i != nScores; ++i)
             {
                 if (i >= c.size()) { throw std::runtime_error("Buffer access out of bounds."); }

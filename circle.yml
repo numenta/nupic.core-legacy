@@ -27,9 +27,10 @@ jobs:
             curl https://bootstrap.pypa.io/get-pip.py | python - --user
             export PATH=$HOME/Library/Python/2.7/bin:$PATH
             echo 'pip version: ' && python -m pip --version 
+            echo 'python version: ' && python --version
       - run:
           name: Installing cmake 
-          command: brew install cmake
+          command: brew install cmake || brew install cmake
       - checkout
 
       # Dependencies

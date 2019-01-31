@@ -50,8 +50,8 @@ using namespace nupic;
 
 TEST(LinkTest, Links) {
   Network net;
-  Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
-  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -86,7 +86,7 @@ TEST(LinkTest, Links) {
   ASSERT_TRUE(in2->isInitialized());
 
   // test getLinks()
-  std::vector<Link_Ptr_t> links = in2->getLinks();
+  std::vector<std::shared_ptr<Link>> links = in2->getLinks();
   ASSERT_EQ(1u, links.size());
   for (auto &link : links) {
     // do something to make sure l[i] is a valid Link*
@@ -96,9 +96,9 @@ TEST(LinkTest, Links) {
   }
 
   // test findLink()
-  Link_Ptr_t l1 = in1->findLink("region1", "bottomUpOut");
+  std::shared_ptr<Link> l1 = in1->findLink("region1", "bottomUpOut");
   ASSERT_TRUE(l1 == nullptr);
-  Link_Ptr_t l2 = in2->findLink("region1", "bottomUpOut");
+  std::shared_ptr<Link> l2 = in2->findLink("region1", "bottomUpOut");
   ASSERT_TRUE(l2 != nullptr);
 
   // test removeLink(), uninitialize()
@@ -134,12 +134,16 @@ TEST(LinkTest, DelayedLink) {
   };
 
   RegionImplFactory::registerRegion("MyTestNode",
+                    new RegisteredRegionImplCpp<TestNode>("MyTestNode"));
+  // second registration with the same name should just replace.
+  RegionImplFactory::registerRegion("MyTestNode",
                     new RegisteredRegionImplCpp<MyTestNode>("MyTestNode"));
 
   Network net;
-  Region_Ptr_t region1 = net.addRegion("region1", "MyTestNode", "");
-  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "MyTestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
+  RegionImplFactory::unregisterRegion("MyTestNode");
 
   Dimensions d1;
   d1.push_back(8);
@@ -263,8 +267,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
                                        new RegisteredRegionImplCpp<MyTestNode>());
 
   Network net;
-  Region_Ptr_t region1 = net.addRegion("region1", "MyTestNode", "");
-  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "MyTestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -362,7 +366,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // The current input is all 0's
   // We should have two delayed array values in queue: 10's and 100's
   {
-    Link_Ptr_t link = in2->findLink("region1", "bottomUpOut");
+    std::shared_ptr<Link> link = in2->findLink("region1", "bottomUpOut");
 //    VERBOSE << "InputLink: " << *link;
   }
 
@@ -403,7 +407,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   ASSERT_EQ(n2in2->getData().getCount(), 64u);
 
   {
-	  Link_Ptr_t link = n2in2->findLink("region1", "bottomUpOut");
+	  std::shared_ptr<Link> link = n2in2->findLink("region1", "bottomUpOut");
 //    VERBOSE << "Input2: " << *link;
   }
 
@@ -432,7 +436,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // The restore looks good..now lets see if we can continue execution.
   // Check extraction of first "generated" value.
   {
-  	Link_Ptr_t link = n2in2->findLink("region1", "bottomUpOut");
+  	std::shared_ptr<Link> link = n2in2->findLink("region1", "bottomUpOut");
 //    VERBOSE << "Input2: " << *link;
 
     net.run(1);
@@ -511,29 +515,6 @@ public:
               << outputName;
   }
 
-  /**
-   * Get a parameter from a write buffer.
-   * This method is called only by the typed getParameter*
-   * methods in the RegionImpl base class
-   *
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   *
-   */
-  void getParameterFromBuffer(const std::string &name, Int64 index,
-                              IWriteBuffer &value) override {}
-
-  /**
-   * Set a parameter from a read buffer.
-   * This method is called only by the RegionImpl base class
-   * type-specific setParameter* methods
-   * Must be implemented by all subclasses.
-   *
-   * @param index A node index. (-1) indicates a region-level parameter
-   */
-  void setParameterFromBuffer(const std::string &name, Int64 index,
-                              IReadBuffer &value) override {}
 
 private:
   TestRegionBase();
@@ -761,14 +742,14 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
 
   RegionImplFactory::registerRegion(
       "L4TestRegion", new RegisteredRegionImplCpp<L4TestRegion>("L4TestRegion"));
-  Region_Ptr_t r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
-  Region_Ptr_t r2 = net.addRegion("R2", "L4TestRegion", "{\"k\": 5}");
+  std::shared_ptr<Region> r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  std::shared_ptr<Region> r2 = net.addRegion("R2", "L4TestRegion", "{\"k\": 5}");
   RegionImplFactory::unregisterRegion("L4TestRegion");
 
   RegionImplFactory::registerRegion(
       "L2TestRegion", new RegisteredRegionImplCpp<L2TestRegion>());
-  Region_Ptr_t r3 = net.addRegion("R3", "L2TestRegion", "");
-  Region_Ptr_t r4 = net.addRegion("R4", "L2TestRegion", "");
+  std::shared_ptr<Region> r3 = net.addRegion("R3", "L2TestRegion", "");
+  std::shared_ptr<Region> r4 = net.addRegion("R4", "L2TestRegion", "");
   RegionImplFactory::unregisterRegion("L2TestRegion");
 
   // NOTE Dimensions must be multiples of 2
@@ -943,12 +924,12 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
 
   RegionImplFactory::registerRegion(
       "L4TestRegion", new RegisteredRegionImplCpp<L4TestRegion>());
-  Region_Ptr_t r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  std::shared_ptr<Region> r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
   RegionImplFactory::unregisterRegion("L4TestRegion");
 
   RegionImplFactory::registerRegion(
       "L2TestRegion", new RegisteredRegionImplCpp<L2TestRegion>());
-  Region_Ptr_t r3 = net.addRegion("R3", "L2TestRegion", "");
+  std::shared_ptr<Region> r3 = net.addRegion("R3", "L2TestRegion", "");
   RegionImplFactory::unregisterRegion("L2TestRegion");
 
   // NOTE Dimensions must be multiples of 2
@@ -1089,7 +1070,7 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
 
   RegionImplFactory::registerRegion(
       "L4TestRegion", new RegisteredRegionImplCpp<L4TestRegion>());
-  Region_Ptr_t r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
+  std::shared_ptr<Region> r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
   RegionImplFactory::unregisterRegion("L4TestRegion");
 
   // NOTE Dimensions must be multiples of 2

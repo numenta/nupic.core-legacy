@@ -53,7 +53,7 @@ def checkMain():
   except ImportError as e:
     print ("Could not import nupic.bindings. It must be installed before use. "
            "Error message:")
-    print e.message
+    print(e.message)
     return
 
   try:
@@ -61,7 +61,7 @@ def checkMain():
   except ImportError as e:
     print ("Could not import C extensions for nupic.bindings. Make sure that "
            "the package was properly installed. Error message:")
-    print e.message
+    print(e.message)
     return
 
-  print "Successfully imported nupic.bindings."
+  print("Successfully imported nupic.bindings.")

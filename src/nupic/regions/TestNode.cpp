@@ -39,9 +39,9 @@
 #include <nupic/regions/TestNode.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/types/Types.hpp>
 
 
 namespace nupic {
@@ -144,15 +144,14 @@ Spec *TestNode::createSpec() {
       "This is not useful for any real applicaton.";
 
   /* ---- parameters ------ */
-  ns->parameters.add(
-      "count",
-      ParameterSpec(
-        "Buffer size override for bottomUpOut Output",  // description
-        NTA_BasicType_UInt32,
-        1,                         // elementCount
-        "",                        // constraints
-        "2",                      // defaultValue
-        ParameterSpec::ReadWriteAccess));
+  ns->parameters.add( "count",
+                     ParameterSpec(
+							       "Buffer size override for bottomUpOut Output",  // description
+	                               NTA_BasicType_UInt32,
+							       1,                         // elementCount
+							       "",                        // constraints
+							       "2",                      // defaultValue
+							       ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("int32Param",
                      ParameterSpec("Int32 scalar parameter", // description
@@ -234,7 +233,7 @@ Spec *TestNode::createSpec() {
 
   ns->parameters.add("computeCallback",
                      ParameterSpec("address of a function that is called at every compute()",
-                                   NTA_BasicType_Handle,
+                                   NTA_BasicType_UInt64,
 					               1,  // element count
 					               "", // constraints
                                    "", // handles must not have a default value
@@ -304,143 +303,226 @@ Spec *TestNode::createSpec() {
 
   return ns;
 }
+Int32 TestNode::getParameterInt32(const std::string &name, Int64 index) {
+  if (name == "count") {
+    return outputElementCount_;
+  }
+  else if (name == "int32Param") {
+  	return int32Param_;
+  } else {
+    return RegionImpl::getParameterInt32(name, index);
+  }
+}
+
+UInt32 TestNode::getParameterUInt32(const std::string &name, Int64 index) {
+  if (name == "uint32Param") {
+    return uint32Param_;
+  } else if (name == "unclonedParam") {
+    if (index < 0) {
+      NTA_THROW << "uncloned parameters cannot be accessed at region level";
+    }
+    return unclonedParam_[(size_t)index];
+  } else if (name == "shouldCloneParam") {
+    return ((UInt32)(shouldCloneParam_ ? 1 : 0));
+  } else if (name == "possiblyUnclonedParam") {
+    if (shouldCloneParam_) {
+      return (possiblyUnclonedParam_[0]);
+    } else {
+      if (index < 0) {
+        NTA_THROW << "uncloned parameters cannot be accessed at region level";
+      }
+      return (possiblyUnclonedParam_[(UInt)index]);
+    }
+  } else {
+    return RegionImpl::getParameterUInt32(name, index);
+  }
+}
+Int64 TestNode::getParameterInt64(const std::string &name, Int64 index) {
+  if (name == "int64Param") {
+    return int64Param_;
+  } else {
+    return RegionImpl::getParameterInt64(name, index);
+  }
+}
+UInt64 TestNode::getParameterUInt64(const std::string &name, Int64 index) {
+  if (name == "uint64Param") {
+    return uint64Param_;
+  } else if (name == "computeCallback") {
+    return (UInt64)computeCallback_;
+  } else {
+    return RegionImpl::getParameterUInt64(name, index);
+  }
+}
+
+Real32 TestNode::getParameterReal32(const std::string &name, Int64 index) {
+  if (name == "real32Param") {
+    return real32Param_;
+  } else {
+    return RegionImpl::getParameterReal32(name, index);
+  }
+}
 
 Real64 TestNode::getParameterReal64(const std::string &name, Int64 index) {
   if (name == "real64Param") {
     return real64Param_;
   } else {
-    NTA_THROW << "TestNode::getParameter<Int64> -- unknown parameter " << name;
+    return RegionImpl::getParameterReal64(name, index);
   }
 }
 
-void TestNode::setParameterReal64(const std::string &name, Int64 index,
-                                  Real64 value) {
+bool TestNode::getParameterBool(const std::string &name, Int64 index) {
+  if (name == "boolParam") {
+    return boolParam_;
+  } else {
+    return RegionImpl::getParameterBool(name, index);
+  }
+}
+
+
+std::string TestNode::getParameterString(const std::string &name, Int64 index) {
+  if (name == "stringParam") {
+    return stringParam_;
+  } else {
+    return RegionImpl::getParameterString(name, index);
+  }
+}
+
+void TestNode::getParameterArray(const std::string &name, Int64 index, Array &array) {
+  if (name == "int64ArrayParam") {
+  	Array a(NTA_BasicType_Int64, &int64ArrayParam_[0], int64ArrayParam_.size());
+	  array = a;
+  }
+  else if (name == "real32ArrayParam") {
+  	Array a(NTA_BasicType_Real32, &real32ArrayParam_[0], real32ArrayParam_.size());
+	array = a;
+  } else if (name == "unclonedInt64ArrayParam") {
+    if (index < 0) {
+      NTA_THROW << "uncloned parameters cannot be accessed at region level";
+    }
+	if (index >= (Int64)unclonedInt64ArrayParam_.size()) {
+      NTA_THROW << "uncloned parameter index out of range";
+	}
+	Array a(NTA_BasicType_Int64, &unclonedInt64ArrayParam_[(size_t)index][0], unclonedInt64ArrayParam_[(size_t)index].size());
+    array = a;
+  } else {
+    NTA_THROW << "TestNode::getParameterArray -- unknown parameter " << name;
+  }
+}
+
+
+
+void TestNode::setParameterInt32(const std::string &name, Int64 index, Int32 value) {
+  if (name == "count") {
+     outputElementCount_ = value;
+  }
+  else if (name == "int32Param") {
+    int32Param_ = value;
+  } else {
+	RegionImpl::setParameterInt32(name, index, value);
+  }
+}
+void TestNode::setParameterUInt32(const std::string &name, Int64 index, UInt32 value) {
+  if (name == "uint32Param") {
+    uint32Param_ = value;
+  }
+  else if (name == "unclonedParam") {
+    if (index < 0 || index >= (Int64)unclonedParam_.size()) {
+      NTA_THROW << "uncloned parameters index out of range";
+    }
+	unclonedParam_[(size_t)index] = value;
+  }
+  else if (name == "shouldCloneParam") {
+      shouldCloneParam_ = !(value == 0);
+  }
+  else if (name == "possiblyUnclonedParam") {
+    if (shouldCloneParam_) {
+      possiblyUnclonedParam_[0] = value;
+    } else {
+      if (index < 0 || index >= (Int64)possiblyUnclonedParam_.size()) {
+        NTA_THROW << "uncloned parameters index out of range.";
+      }
+      possiblyUnclonedParam_[(size_t)index] = value;
+    }
+  } else {
+	RegionImpl::setParameterUInt32(name, index, value);
+  }
+}
+
+void TestNode::setParameterInt64(const std::string &name, Int64 index, Int64 value) {
+  if (name == "int64Param") {
+    int64Param_ = value;
+  } else {
+	RegionImpl::setParameterInt64(name, index, value);
+  }
+}
+
+void TestNode::setParameterUInt64(const std::string &name, Int64 index, UInt64 value) {
+  if (name == "uint64Param") {
+    uint64Param_ = value;
+  } else if (name == "computeCallback") {
+    computeCallback_ = (computeCallbackFunc)value;
+  } else {
+	RegionImpl::setParameterUInt64(name, index, value);
+  }
+}
+
+void TestNode::setParameterReal32(const std::string &name, Int64 index, Real32 value) {
+  if (name == "real32Param") {
+    real32Param_ = value;
+  } else {
+	RegionImpl::setParameterReal32(name, index, value);
+  }
+}
+
+void TestNode::setParameterReal64(const std::string &name, Int64 index, Real64 value) {
   if (name == "real64Param") {
     real64Param_ = value;
   } else {
-    NTA_THROW << "TestNode::setParameter<Int64> -- unknown parameter " << name;
+	RegionImpl::setParameterReal64(name, index, value);
   }
 }
 
-void TestNode::getParameterFromBuffer(const std::string &name, Int64 index,
-                                      IWriteBuffer &value) {
-    if (name == "count") {
-      value.write(outputElementCount_);
-    } else if (name == "int32Param") {
-    value.write(int32Param_);
-  } else if (name == "uint32Param") {
-    value.write(uint32Param_);
-  } else if (name == "int64Param") {
-    value.write(int64Param_);
-  } else if (name == "uint64Param") {
-    value.write(uint64Param_);
-  } else if (name == "real32Param") {
-    value.write(real32Param_);
-  } else if (name == "real64Param") {
-    value.write(real64Param_);
-  } else if (name == "boolParam") {
-    value.write(boolParam_);
-  } else if (name == "stringParam") {
-    value.write(stringParam_.c_str(), stringParam_.size());
-  } else if (name == "int64ArrayParam") {
-    for (auto &elem : int64ArrayParam_) {
-      value.write(elem);
-    }
-  } else if (name == "real32ArrayParam") {
-    for (auto &elem : real32ArrayParam_) {
-      value.write(elem);
-    }
-  } else if (name == "unclonedParam") {
-    if (index < 0) {
-      NTA_THROW << "uncloned parameters cannot be accessed at region level";
-    }
-    value.write(unclonedParam_[(UInt)index]);
-  } else if (name == "shouldCloneParam") {
-    value.write((UInt32)(shouldCloneParam_ ? 1 : 0));
-  } else if (name == "possiblyUnclonedParam") {
-    if (shouldCloneParam_) {
-      value.write(possiblyUnclonedParam_[0]);
-    } else {
-      if (index < 0) {
-        NTA_THROW << "uncloned parameters cannot be accessed at region level";
-      }
-      value.write(possiblyUnclonedParam_[(UInt)index]);
-    }
-  } else if (name == "unclonedInt64ArrayParam") {
-    if (index < 0) {
-      NTA_THROW << "uncloned parameters cannot be accessed at region level";
-    }
-    UInt nodeIndex = (UInt)index;
-    for (auto &elem : unclonedInt64ArrayParam_[nodeIndex]) {
-      value.write(elem);
-    }
+void TestNode::setParameterBool(const std::string &name, Int64 index, bool value) {
+  if (name == "boolParam") {
+    boolParam_ = value;
   } else {
-    NTA_THROW << "TestNode::getParameter -- Unknown parameter " << name;
+	RegionImpl::setParameterBool(name, index, value);
   }
 }
 
-void TestNode::setParameterFromBuffer(const std::string &name, Int64 index,
-                                      IReadBuffer &value) {
-    if (name == "count") {
-      value.read(outputElementCount_);
-    } else if (name == "int32Param") {
-    value.read(int32Param_);
-  } else if (name == "uint32Param") {
-    value.read(uint32Param_);
-  } else if (name == "int64Param") {
-    value.read(int64Param_);
-  } else if (name == "uint64Param") {
-    value.read(uint64Param_);
-  } else if (name == "real32Param") {
-    value.read(real32Param_);
-  } else if (name == "real64Param") {
-    value.read(real64Param_);
-  } else if (name == "boolParam") {
-    value.read(boolParam_);
-  } else if (name == "stringParam") {
-    stringParam_ = std::string(value.getData(), value.getSize());
-  } else if (name == "int64ArrayParam") {
-    for (auto &elem : int64ArrayParam_) {
-      value.read(elem);
-    }
-  } else if (name == "real32ArrayParam") {
-    for (auto &elem : real32ArrayParam_) {
-      value.read(elem);
-    }
-  } else if (name == "unclonedParam") {
-    if (index < 0) {
-      NTA_THROW << "uncloned parameters cannot be accessed at region level";
-    }
-    value.read(unclonedParam_[(UInt)index]);
-  } else if (name == "shouldCloneParam") {
-    UInt64 ival;
-    value.read(ival);
-    shouldCloneParam_ = (ival ? 1 : 0);
-  } else if (name == "possiblyUnclonedParam") {
-    if (shouldCloneParam_) {
-      value.read(possiblyUnclonedParam_[0]);
-    } else {
-      if (index < 0) {
-        NTA_THROW << "uncloned parameters cannot be accessed at region level";
-      }
-      value.read(possiblyUnclonedParam_[(UInt)index]);
-    }
-  } else if (name == "unclonedInt64ArrayParam") {
-    if (index < 0) {
-      NTA_THROW << "uncloned parameters cannot be accessed at region level";
-    }
-    UInt nodeIndex = (UInt)index;
-    for (auto &elem : unclonedInt64ArrayParam_[nodeIndex]) {
-      value.read(elem);
-    }
-  } else if (name == "computeCallback") {
-    UInt64 ival;
-    value.read(ival);
-    computeCallback_ = (computeCallbackFunc)ival;
+
+void TestNode::setParameterString(const std::string &name, Int64 index, const std::string& value) {
+  if (name == "stringParam") {
+    stringParam_ = value;
   } else {
-    NTA_THROW << "TestNode::setParameter -- Unknown parameter " << name;
+	RegionImpl::setParameterString(name, index, value);
   }
 }
+
+void TestNode::setParameterArray(const std::string &name, Int64 index, const Array &array) {
+  if (name == "int64ArrayParam" && array.getType() == NTA_BasicType_Int64) {
+    int64ArrayParam_ = array.asVector<Int64>();
+  }
+  else if (name == "real32ArrayParam" && array.getType() == NTA_BasicType_Real32) {
+    real32ArrayParam_ = array.asVector<Real32>();
+  }
+  else if (name == "unclonedParam" && array.getType() == NTA_BasicType_UInt32) {
+    unclonedParam_ = array.asVector<UInt32>();
+    if (index < 0) {
+      NTA_THROW << "uncloned parameters cannot be accessed at region level";
+    }
+  }
+  else if (name == "unclonedInt64ArrayParam" && array.getType() == NTA_BasicType_Int64) {
+    if (index < 0) {
+      NTA_THROW << "uncloned parameters cannot be accessed at region level";
+    }
+    unclonedInt64ArrayParam_[(size_t)index] = array.asVector<Int64>();
+  }
+  else {
+    RegionImpl::setParameterArray(name, index, array);
+  }
+}
+
 
 size_t TestNode::getParameterArrayCount(const std::string &name, Int64 index) {
   if (name == "int64ArrayParam") {

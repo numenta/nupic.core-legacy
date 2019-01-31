@@ -32,7 +32,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/ObjectModel.hpp> // IWrite/ReadBuffer
 #include <nupic/utils/Log.hpp>
 
 
@@ -69,7 +68,7 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
     Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
     UInt *uintArray = new UInt[encoder_->getOutputWidth()];
 	try {
-	    const Int32 iBucket = encoder_->encodeIntoArray(sensedValue_, uintArray);
+	    const Int32 iBucket = encoder_->encodeIntoArray((Real)sensedValue_, uintArray);
 	    ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
 	    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
 	    {
@@ -179,26 +178,33 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
   return ns;
 }
 
-void ScalarSensor::getParameterFromBuffer(const std::string &name, Int64 index,
-                                          IWriteBuffer &value) {
+Real64 ScalarSensor::getParameterReal64(const std::string &name, Int64 index) {
   if (name == "sensedValue") {
-    value.write(sensedValue_);
-  } else if (name == "n") {
-    // Cast to UInt32 to avoid call resolution ambiguity on the write() method
-    value.write((UInt32)encoder_->getOutputWidth());
-  } else {
-    NTA_THROW << "ScalarSensor::getParameter -- Unknown parameter " << name;
+    return sensedValue_;
+  }
+  else {
+    return RegionImpl::getParameterReal64(name, index);
   }
 }
 
-void ScalarSensor::setParameterFromBuffer(const std::string &name, Int64 index,
-                                          IReadBuffer &value) {
-  if (name == "sensedValue") {
-    value.read(sensedValue_);
-  } else {
-    NTA_THROW << "ScalarSensor::setParameter -- Unknown parameter " << name;
+UInt32 ScalarSensor::getParameterUInt32(const std::string &name, Int64 index) {
+  if (name == "n") {
+    return (UInt32)encoder_->getOutputWidth();
+  }
+  else {
+    return RegionImpl::getParameterUInt32(name, index);
   }
 }
+
+void ScalarSensor::setParameterReal64(const std::string &name, Int64 index, Real64 value) {
+  if (name == "sensedValue") {
+    sensedValue_ = value;
+  } else {
+	RegionImpl::setParameterReal64(name, index, value);
+  }
+}
+
+
 
 void ScalarSensor::initialize() {
   encodedOutput_ = getOutput("encoded");

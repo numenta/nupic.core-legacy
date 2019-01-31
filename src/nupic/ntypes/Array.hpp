@@ -179,21 +179,22 @@ namespace nupic {
       a.type_ = type_;
     }
 
-    // Convert to a vector; copies buffer
-    std::vector<UInt32> asVector(){
-      NTA_CHECK(type_ == NTA_BasicType_UInt32)  << "Expected an Array with type of UInt32.";
-      std::vector<UInt32> v(buffer_.get(), buffer_.get() + count_);
+    // Convert to a vector; copies buffer, example: vector<Int32> v = array.asVector<Int32>();
+    template<typename T>
+	std::vector<T> asVector() const {
+      NTA_CHECK(type_ == BasicType::getType<T>())  << "Expected an Array with type of " << BasicType::getName<T>();
+      std::vector<T> v((T*)buffer_.get(), (T*)((char*)buffer_.get() + count_* BasicType::getSize(type_)));
       return v;
     }
 
-    // from a vector; copies buffer
-    void fromVector(std::vector<UInt32>& vect) {
-      type_ = NTA_BasicType_UInt32;
+    // from a vector; copies buffer, example:   array.fromVector<Int32>(v);
+	template<typename T>
+    void fromVector(std::vector<T>& vect) {
+      type_ = BasicType::getType<T>();
       allocateBuffer(vect.size());
-      memcpy(buffer_.get(), vect.data(), count_ * sizeof(UInt32));
+      memcpy(buffer_.get(), vect.data(), count_ * BasicType::getSize(type_));
     }
 
-/***** for later
     // Type conversion
     // Note: this will reallocate the buffer
     //       Other instances will be disconnected.
@@ -203,7 +204,7 @@ namespace nupic {
       convertInto(a);
       return a;
     }
-******/
+
     // Type conversion
     // Note: this will attempt to reuse the same buffer
     //       so that the instances will not be disconnected.
@@ -230,15 +231,6 @@ namespace nupic {
       return a;
     }
 
-/******** for later   (after Python is removed
-    // Returns an ArrayRef that points to this Array's buffer
-    // An ArrayRef buffer cannot be modified.
-    // The buffer remains valid until all references are deleted.
-    ArrayRef ref() const {
-      ArrayRef a(type_, buffer_, count_);
-      return a;
-    }
-***********/
 
     void invariant() {
       if (!own_)

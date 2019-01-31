@@ -576,7 +576,7 @@ TEST(SparseMatrixTest, increaseRowNonZeroCountsOnOuterTo) {
         }
       }
 
-      int numSelectedNonZeros = test.outerCols.size() - numSelectedZeros;
+      int numSelectedNonZeros = (int)test.outerCols.size() - numSelectedZeros;
       int numDesiredToAdd =
           std::max(0, test.numDesiredNonzeros - numSelectedNonZeros);
       int numToAdd = std::min(numSelectedZeros, numDesiredToAdd);

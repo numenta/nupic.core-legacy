@@ -84,18 +84,18 @@ TEST(ScalarEncoder, testClippingInputs) {
     const bool clipInput = false;
     ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
 
-    EXPECT_ANY_THROW(e.encode(9.9));
-    EXPECT_NO_THROW(e.encode(10.0));
-    EXPECT_NO_THROW(e.encode(20.0));
-    EXPECT_ANY_THROW(e.encode(20.1));
+    EXPECT_ANY_THROW(e.encode(9.9f));
+    EXPECT_NO_THROW(e.encode(10.0f));
+    EXPECT_NO_THROW(e.encode(20.0f));
+    EXPECT_ANY_THROW(e.encode(20.1f));
   }
 
   {
     const bool clipInput = true;
     ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
 
-    EXPECT_NO_THROW(e.encode(9.9));
-    EXPECT_NO_THROW(e.encode(20.1));
+    EXPECT_NO_THROW(e.encode(9.9f));
+    EXPECT_NO_THROW(e.encode(20.1f));
   }
 }
 
@@ -108,10 +108,10 @@ TEST(PeriodicScalarEncoder, ValidScalarInputs) {
   const double resolution = 0;
   PeriodicScalarEncoder e(w, minValue, maxValue, n, radius, resolution);
 
-  EXPECT_ANY_THROW(e.encode(9.9));
-  EXPECT_NO_THROW(e.encode(10.0));
-  EXPECT_NO_THROW(e.encode(19.9));
-  EXPECT_ANY_THROW(e.encode(20.0));
+  EXPECT_ANY_THROW(e.encode(9.9f));
+  EXPECT_NO_THROW(e.encode(10.0f));
+  EXPECT_NO_THROW(e.encode(19.9f));
+  EXPECT_ANY_THROW(e.encode(20.0f));
 }
 
 TEST(ScalarEncoder, NonIntegerBucketWidth) {
@@ -156,7 +156,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   const bool clipInput = false;
   ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution, clipInput);
 
-  const int n = 13;
+  const unsigned int n = 13u;
   ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases = {
@@ -186,7 +186,7 @@ TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution) {
   PeriodicScalarEncoder encoder(w, minValue, maxValue, n_in, radius,
                                 resolution);
 
-  const int n = 10;
+  const unsigned int n = 10u;
   ASSERT_EQ(n, encoder.getOutputWidth());
 
   std::vector<ScalarValueCase> cases = {{10.00f, patternFromNZ(n, {9, 0, 1})},

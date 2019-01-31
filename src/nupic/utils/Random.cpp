@@ -24,6 +24,7 @@
     Random Number Generator implementation
 */
 #include <iostream> // for istream, ostream
+#include <chrono>   // for random seeds
 
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
@@ -36,17 +37,28 @@ bool Random::operator==(const Random &o) const {
 	 gen == o.gen;
 }
 
+bool static_gen_seeded = false;
 std::mt19937 static_gen;
 
 Random::Random(UInt64 seed) {
   if (seed == 0) {
+    if( !static_gen_seeded ) {
+      #if NDEBUG
+        unsigned int static_seed = (unsigned int)std::chrono::system_clock::now().time_since_epoch().count();
+      #else
+        unsigned int static_seed = DEBUG_RANDOM_SEED;
+      #endif
+      static_gen.seed( static_seed );
+      static_gen_seeded = true;
+      NTA_INFO << "Random seed: " << static_seed;
+    }
     seed_ = static_gen(); //generate random value from HW RNG
   } else {
     seed_ = seed;
   }
   // if seed is zero at this point, there is a logic error.
   NTA_CHECK(seed_ != 0);
-  gen.seed(seed_); //seed the generator
+  gen.seed((unsigned int)seed_); //seed the generator
   steps_ = 0;
 }
 
@@ -68,7 +80,7 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
   NTA_CHECK(version == "random-v2") << "Random() deserializer -- found unexpected version string '"
               << version << "'";
   inStream >> r.seed_;
-  r.gen.seed(r.seed_); //reseed
+  r.gen.seed((unsigned int)r.seed_); //reseed
   inStream >> r.steps_;
   r.gen.discard(r.steps_); //advance n steps
   //FIXME we could de/serialize directly RNG gen, it should be multi-platform according to standard, 

@@ -335,7 +335,7 @@ void SpatialPooler::setPotential(UInt column, const UInt potential[]) {
 
 void SpatialPooler::getPermanence(UInt column, Real permanences[]) const {
   NTA_ASSERT(column < numColumns_);
-  std::fill( permanences, permanences + numInputs_, 0. );
+  std::fill( permanences, permanences + numInputs_, 0.0f );
   const auto &synapses = connections_.synapsesForSegment( column );
   for( const auto &syn : synapses ) {
     const auto &synData = connections_.dataForSynapse( syn );
@@ -454,7 +454,7 @@ void SpatialPooler::initialize(
 
   tieBreaker_.resize(numColumns_);
   for (Size i = 0; i < numColumns_; i++) {
-    tieBreaker_[i] = 0.5f * rng_.getReal64();
+    tieBreaker_[i] = (Real)(0.01 * rng_.getReal64());
   }
 
   overlapDutyCycles_.assign(numColumns_, 0);
@@ -469,17 +469,17 @@ void SpatialPooler::initialize(
 
   connections_.initialize(numColumns_, synPermConnected_);
   for (Size i = 0; i < numColumns_; ++i) {
-    connections_.createSegment( i );
+    connections_.createSegment( (connections::CellIdx)i );
 
     // Note: initMapPotential_ & initPermanence_ return dense arrays.
-    vector<UInt> potential = initMapPotential_(i, wrapAround_);
+    vector<UInt> potential = initMapPotential_((UInt)i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     for(UInt presyn = 0; presyn < numInputs_; presyn++) {
       if( potential[presyn] )
-        connections_.createSynapse( i, presyn, perm[presyn] );
+        connections_.createSynapse( (connections::Segment)i, presyn, perm[presyn] );
     }
 
-    connections_.raisePermanencesToThreshold( i, synPermConnected_, stimulusThreshold_ );
+    connections_.raisePermanencesToThreshold( (connections::Segment)i, synPermConnected_, stimulusThreshold_ );
   }
 
   updateInhibitionRadius_();
@@ -509,11 +509,7 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   calculateOverlap_(input, overlaps_);
   // calculateOverlapPct_(overlaps_, overlapsPct_);
 
-  // if (learn) {
-    boostOverlaps_(overlaps_, boostedOverlaps_);
-  // } else {
-  //   boostedOverlaps_.assign(overlaps_.begin(), overlaps_.end());
-  // }
+  boostOverlaps_(overlaps_, boostedOverlaps_);
 
   auto &activeVector = active.getFlatSparse();
   inhibitColumns_(boostedOverlaps_, activeVector);
@@ -579,23 +575,47 @@ UInt SpatialPooler::initMapColumn_(UInt column) const {
   for (Size i = 0; i < columnCoords.size(); i++) {
     const Real inputCoord = ((Real)columnCoords[i] + 0.5f) *
                             (inputDimensions_[i] / (Real)columnDimensions_[i]);
-    inputCoords.push_back(floor(inputCoord));
+    inputCoords.push_back((UInt32)floor(inputCoord));
   }
 
   const CoordinateConverterND inputConv(inputDimensions_);
   return inputConv.toIndex(inputCoords);
 }
 
+
+vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
+  NTA_ASSERT(column < numColumns_);
+  const UInt centerInput = initMapColumn_(column);
+
+  vector<UInt> columnInputs;
+  if (wrapAround) {
+    for (UInt input : WrappingNeighborhood(centerInput, potentialRadius_, inputDimensions_)) {
+      columnInputs.push_back(input);
+    }
+  } else {
+    for (UInt input :
+         Neighborhood(centerInput, potentialRadius_, inputDimensions_)) {
+      columnInputs.push_back(input);
+    }
+  }
+
+  const UInt numPotential = (UInt)round(columnInputs.size() * potentialPct_);
+  const auto selectedInputs = rng_.sample<UInt>(columnInputs, numPotential);
+  const vector<UInt> potential = VectorHelpers::sparseToBinary<UInt>(selectedInputs, numInputs_);
+  return potential;
+}
+
+
 Real SpatialPooler::initPermConnected_() {
   Real p =
-      synPermConnected_ + (connections::maxPermanence - synPermConnected_) * rng_.getReal64();
+      synPermConnected_ + (Real)((connections::maxPermanence - synPermConnected_) * rng_.getReal64());
 
   return round5_(p);
 }
 
 
 Real SpatialPooler::initPermNonConnected_() {
-  Real p = synPermConnected_ * rng_.getReal64();
+  Real p = (Real)(synPermConnected_ * rng_.getReal64());
   return round5_(p);
 }
 
@@ -701,11 +721,11 @@ void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
 
 
 Real SpatialPooler::avgColumnsPerInput_() const {
-  const UInt numDim = max(columnDimensions_.size(), inputDimensions_.size());
+  const size_t numDim = max(columnDimensions_.size(), inputDimensions_.size());
   Real columnsPerInput = 0.0f;
-  for (UInt i = 0; i < numDim; i++) {
-    const Real col = (i < columnDimensions_.size()) ? columnDimensions_[i] : 1;
-    const Real input = (i < inputDimensions_.size()) ? inputDimensions_[i] : 1;
+  for (size_t i = 0; i < numDim; i++) {
+    const Real col = (Real)((i < columnDimensions_.size()) ? columnDimensions_[i] : 1);
+    const Real input = (Real)((i < inputDimensions_.size()) ? inputDimensions_[i] : 1);
     columnsPerInput += col / input;
   }
   return columnsPerInput / numDim;
@@ -715,7 +735,7 @@ Real SpatialPooler::avgColumnsPerInput_() const {
 Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
   NTA_ASSERT(column < numColumns_);
 
-  const UInt numDimensions = inputDimensions_.size();
+  const UInt numDimensions = (UInt)inputDimensions_.size();
 
   vector<UInt> connectedDense( numInputs_, 0 );
   getConnectedSynapses( column, connectedDense.data() );
@@ -783,7 +803,7 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
   for (Size i = 0; i < dutyCycles.size(); i++)
     dutyCycles[i] *= decay;
 
-  const Real increment = 1. / period;  // All non-zero values are 1.
+  const Real increment = 1.0f / period;  // All non-zero values are 1.
   for(const auto &idx : newValues.getFlatSparse())
     dutyCycles[idx] += increment;
 }
@@ -802,7 +822,7 @@ void SpatialPooler::updateBoostFactorsGlobal_() {
   Real targetDensity;
   if (numActiveColumnsPerInhArea_ > 0) {
     UInt inhibitionArea =
-        pow((Real)(2 * inhibitionRadius_ + 1), (Real)columnDimensions_.size());
+        (UInt)(pow((Real)(2 * inhibitionRadius_ + 1), (Real)columnDimensions_.size()));
     inhibitionArea = min(inhibitionArea, numColumns_);
     NTA_ASSERT(inhibitionArea > 0);
     targetDensity = ((Real)numActiveColumnsPerInhArea_) / inhibitionArea;
@@ -851,10 +871,8 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 
 void SpatialPooler::calculateOverlap_(SDR &input,
                                       vector<UInt> &overlaps) const {
-  overlaps.assign( numColumns_, 0.0f );
-  vector<UInt32> potentialOverlaps( numColumns_ );
-  connections_.computeActivity(overlaps, potentialOverlaps,
-        input.getFlatSparse(), synPermConnected_);
+  overlaps.assign( numColumns_, 0 );
+  connections_.computeActivity(overlaps, input.getFlatSparse());
 }
 
 
@@ -867,7 +885,7 @@ void SpatialPooler::calculateOverlapPct_(const vector<UInt> &overlaps,
   for (UInt i = 0; i < numColumns_; i++) {
     if (connectedCounts[i] != 0) {
       overlapPct[i] = ((Real)overlaps[i]) / connectedCounts[i];
-    } 
+    }
   }
 }
 
@@ -877,7 +895,7 @@ void SpatialPooler::inhibitColumns_(const vector<Real> &overlaps,
   Real density = localAreaDensity_;
   if (numActiveColumnsPerInhArea_ > 0) {
     UInt inhibitionArea =
-        pow((Real)(2 * inhibitionRadius_ + 1), (Real)columnDimensions_.size());
+      (UInt)(pow((Real)(2 * inhibitionRadius_ + 1), (Real)columnDimensions_.size()));
     inhibitionArea = min(inhibitionArea, numColumns_);
     density = ((Real)numActiveColumnsPerInhArea_) / inhibitionArea;
     density = min(density, (Real)MAX_LOCALAREADENSITY);
@@ -899,44 +917,37 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
 {  
   NTA_ASSERT(!overlaps.empty());
   NTA_ASSERT(density > 0.0f && density <= 1.0f);
-  const UInt miniColumns = columnDimensions_.back();
-  const UInt macroColumns = numColumns_ / miniColumns;
-  const UInt numDesired = (UInt)(density * miniColumns + .5);
-  NTA_CHECK(numDesired > 0) << "Not enough columns (" << miniColumns << ") "
+
+  // Add a tiebreaker to the overlaps so that the output is deterministic.
+  vector<Real> overlaps_(overlaps.begin(), overlaps.end());
+  for(UInt i = 0; i < numColumns_; i++)
+    overlaps_[i] += tieBreaker_[i];
+
+  activeColumns.clear();
+  const UInt numDesired = (UInt)(density * numColumns_);
+  NTA_CHECK(numDesired > 0) << "Not enough columns (" << numColumns_ << ") "
                             << "for desired density (" << density << ").";
 
   // Compare the column indexes by their overlap.
-  auto compare = [&overlaps](const UInt &a, const UInt &b) -> bool
-    {return overlaps[a] > overlaps[b];};
-
-  activeColumns.clear();
-  activeColumns.reserve(miniColumns + numDesired * macroColumns );
-
-  for(UInt offset = 0; offset < numColumns_; offset += miniColumns)
-  {
-    // Sort the columns by the amount of overlap.  First make a list of all of
-    // the mini-column indexes.
-    auto outPtr = activeColumns.end();
-    for(UInt i = 0; i < miniColumns; i++)
-      activeColumns.push_back( i + offset );
-    // Do a partial sort to divide the winners from the losers.  This sort is
-    // faster than a regular sort because it stops after it partitions the
-    // elements about the Nth element, with all elements on their correct side of
-    // the Nth element.
-    std::nth_element(
-      outPtr,
-      outPtr + numDesired,
-      activeColumns.end(),
-      compare);
-    // Remove the columns which lost the competition.
-    activeColumns.resize( activeColumns.size() - (miniColumns - numDesired) );
-    // Finish sorting the winner columns by their overlap.
-    std::sort(outPtr, activeColumns.end(), compare);
-    // Remove sub-threshold winners
-    while( activeColumns.size() > offset &&
-           overlaps[activeColumns.back()] < stimulusThreshold_)
-        activeColumns.pop_back();
-  }
+  auto compare = [&overlaps_](const UInt &a, const UInt &b) -> bool
+    {return overlaps_[a] > overlaps_[b];};
+  // Do a partial sort to divide the winners from the losers.  This sort is
+  // faster than a regular sort because it stops after it partitions the
+  // elements about the Nth element, with all elements on their correct side of
+  // the Nth element.
+  std::nth_element(
+    activeColumns.begin(),
+    activeColumns.begin() + numDesired,
+    activeColumns.end(),
+    compare);
+  // Remove the columns which lost the competition.
+  activeColumns.resize(numDesired);
+  // Finish sorting the winner columns by their overlap.
+  std::sort(activeColumns.begin(), activeColumns.end(), compare);
+  // Remove sub-threshold winners
+  while( !activeColumns.empty() &&
+         overlaps[activeColumns.back()] < stimulusThreshold_)
+      activeColumns.pop_back();
 }
 
 
@@ -999,7 +1010,7 @@ UInt SpatialPooler::persistentSize() const {
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);
   this->save(s);
-  return s.str().size();
+  return (UInt)s.str().size();
 }
 
 

@@ -40,7 +40,6 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp>
-#include <nupic/types/ptr_types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
@@ -132,9 +131,8 @@ public:
    * Get the spec of the region.
    *
    * @returns The spec that describes this region
-   *          Do not delete.
    */
-  const Spec* getSpec() const { return spec_; }
+  const std::shared_ptr<Spec>& getSpec() const { return spec_; }
 
   /**
    * Get the Spec of a region type without an instance.
@@ -144,7 +142,7 @@ public:
    *
    * @returns The Spec that describes this region type
    */
-  static const Spec *getSpecFromType(const std::string &nodeType);
+  static const std::shared_ptr<Spec>& getSpecFromType(const std::string &nodeType);
 
 
   /**
@@ -648,7 +646,7 @@ private:
   // pointer to the "plugin"; owned by Region
   std::shared_ptr<RegionImpl> impl_;
   std::string type_;
-  Spec *spec_;
+  std::shared_ptr<Spec> spec_;
 
   typedef std::map<std::string, Output *> OutputMap;
   typedef std::map<std::string, Input *> InputMap;
