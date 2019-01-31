@@ -255,13 +255,22 @@ public:
     SparseDistributedRepresentation() {}
 
     /**
-     * Create an SDR object.  Initially SDRs value is all zeros.
+     * Create an SDR object.  The initial value is all zeros.
      *
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.  The product of the dimensions must be greater than zero.
      */
     SparseDistributedRepresentation( const vector<UInt> dimensions )
         { initialize( dimensions ); }
+
+    /**
+     * Create an SDR object.  The initial value is all zeros.
+     *
+     * @param dimensions A single integer dimension size, defining a
+     * 1-dimensional SDR.  Must be greater than zero.
+     */
+    SparseDistributedRepresentation( UInt dimensions )
+        { initialize( {dimensions} ); }
 
     void initialize( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;

@@ -41,6 +41,9 @@ TEST(SdrTest, TestConstructor) {
     ASSERT_EQ( b.getDense(),     vector<Byte>({0, 0, 0}) );
     ASSERT_EQ( b.getFlatSparse(), vector<UInt>(0) );
     ASSERT_EQ( b.getSparse(),     vector<vector<UInt>>({{}}) );
+    // Test 1-D Convenience constructor.
+    SDR convenience( 99u ); // Just a single number, don't need a vector.
+    ASSERT_EQ( convenience.size, 99u );
 
     // Test 3-D
     vector<UInt> c_dims = {11u, 15u, 3u};
