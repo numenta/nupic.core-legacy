@@ -23,8 +23,9 @@
 import pickle
 import numpy as np
 import unittest
+import pytest
 
-from nupic.bindings.algorithms import SDR
+from nupic.bindings.algorithms import SDR, SDR_Proxy
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -271,6 +272,7 @@ class SdrTest(unittest.TestCase):
         B.setDenseInplace()
         assert(str(B) == "SDR( 100, 100, 1 ) 0, 9999")
 
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
     def testPickle(self):
         for sparsity in (0, .3, 1):
             A = SDR((103,))
@@ -278,3 +280,31 @@ class SdrTest(unittest.TestCase):
             P = pickle.dumps( A )
             B = pickle.loads( P )
             assert( A == B )
+
+
+class SdrProxyTest(unittest.TestCase):
+    def testExampleUsage(self):
+        assert( issubclass(SDR_Proxy, SDR) )
+        # Convert SDR dimensions from (4 x 4) to (8 x 2)
+        A = SDR([ 4, 4 ])
+        B = SDR_Proxy( A, [8, 2])
+        A.sparse =  ([1, 1, 2], [0, 1, 2])
+        assert( (np.array(B.sparse) == ([2, 2, 5], [0, 1, 0]) ).all() )
+
+    def testLostSDR(self):
+        # You need to keep a reference to the SDR, since SDR class does not use smart pointers.
+        B = SDR_Proxy(SDR((1000,)))
+        with self.assertRaises(RuntimeError):
+            B.dense
+
+    def testChaining(self):
+        A = SDR([10,10])
+        B = SDR_Proxy(A)
+        C = SDR_Proxy(B)
+        D = SDR_Proxy(B)
+
+        A.dense.fill( 1 )
+        A.setDenseInplace()
+        assert( len(C.flatSparse) == A.size )
+        assert( len(D.flatSparse) == A.size )
+        del B

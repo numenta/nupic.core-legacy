@@ -20,6 +20,7 @@
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include <nupic/ntypes/SdrMetrics.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
@@ -54,7 +55,7 @@ exponential moving average, and outputs a summary of results.
 
 Example Usage:
     A = SDR( dimensions )
-    B = SDR_Sparsity( A, 1000 )
+    B = SDR_Sparsity( A, period = 1000 )
     A.randomize( 0.01 )
     A.randomize( 0.15 )
     A.randomize( 0.05 )
@@ -99,18 +100,19 @@ results.
 Activation frequencies are Real numbers in the range [0, 1], where zero
 indicates never active, and one indicates always active.
 Example Usage:
-    SDR A( 2 )
-    SDR_ActivationFrequency B( A, 1000 )
-    A.setDense({ 0, 0 })
-    A.setDense({ 1, 1 })
-    A.setDense({ 0, 1 })
+    A = SDR( 2 )
+    B = SDR_ActivationFrequency( A, period = 1000 )
+    A.dense = [0, 0]
+    A.dense = [1, 1]
+    A.dense = [0, 1]
     B.activationFrequency -> { 0.33, 0.66 }
-    B.min()     -> ~0.33
-    B.max()     -> ~0.66
-    B.mean()    ->  0.50
+    B.min()     -> 1/3
+    B.max()     -> 2/3
+    B.mean()    -> 1/2
     B.std()     -> ~0.16
     B.entropy() -> ~0.92
-    str(B)      ->                  TODO)");
+    str(B)      -> Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
+                   Entropy 0.918296)");
         py_ActivationFrequency.def( py::init<SDR&, UInt>(),
 R"(Argument sdr is data source to track.  Add data to this SDR_ActivationFrequency
 instance by assigning to this SDR.
@@ -158,18 +160,18 @@ This class normalizes the overlap into the range [0, 1] by dividing by the
 number of active values.
 
 Example Usage:
-     SDR A( dimensions )
-     SDR_Overlap B( A, 1000 )
-     A.randomize( 0.05 )
-     A.addNoise( 0.95 )  ->  5% overlap
-     A.addNoise( 0.55 )  -> 45% overlap
-     A.addNoise( 0.72 )  -> 28% overlap
-     B.overlap   ->  0.28
-     B.min()     ->  0.05
-     B.max()     ->  0.45
-     B.mean()    ->  0.26
-     B.std()     -> ~0.16
-     str(B)      ->             TODO)");
+    A = SDR( dimensions = 1000 )
+    B = SDR_Overlap( A, period = 1000 )
+    A.randomize( 0.20 )
+    A.addNoise( 0.95 )  ->  5% overlap
+    A.addNoise( 0.55 )  -> 45% overlap
+    A.addNoise( 0.72 )  -> 28% overlap
+    B.overlap   ->  0.28
+    B.min()     ->  0.05
+    B.max()     ->  0.45
+    B.mean()    ->  0.26
+    B.std()     -> ~0.16
+    str(B)      -> Overlap Min/Mean/Std/Max 0.05 / 0.260016 / 0.16389 / 0.45)");
         py_Overlap.def( py::init<SDR&, UInt>(),
 R"(Argument sdr is data source to track.  Add data to this SDR_Overlap instance
 by assigning to this SDR.
@@ -205,14 +207,20 @@ This accumulates measurements using an exponential moving average, and
 outputs a summary of results.
 
 Example Usage:
-     SDR A( dimensions )
-     SDR_Metrics M( A, 1000 )
-     Run program:
-         A.setData( ... )
-     cout << M;
-     TODO NEW EXAMPLE
+    A = SDR( dimensions = 2000 )
+    M = SDR_Metrics( A, period = 1000 )
+    A.randomize( 0.10 )
+    for i in range( 20 ):
+        A.addNoise( 0.55 )
 
-)");
+    M.sparsity            -> SDR_Sparsity
+    M.activationFrequency -> SDR_ActivationFrequency
+    M.overlap             -> SDR_Overlap
+    str(M) -> SDR( 2000 )
+                Sparsity Min/Mean/Std/Max 0.1 / 0.1 / 0 / 0.1
+                Activation Frequency Min/Mean/Std/Max 0 / 0.1 / 0.100464 / 0.666667
+                Entropy 0.822222
+                Overlap Min/Mean/Std/Max 0.45 / 0.45 / 0 / 0.45)");
         py_Metrics.def( py::init<SDR&, UInt>(),
 R"(Argument sdr is data source to track.  Add data to this SDR_Metrics instance
 by assigning to this SDR.
@@ -234,11 +242,14 @@ dimensions.)", py::arg("sdr"));
         py_Metrics.def_property_readonly("dimensions",
             [](const SDR_Metrics &self) { return self.dimensions; });
         py_Metrics.def_property_readonly("sparsity",
-            [](const SDR_Metrics &self) { return self.sparsity; });
+            [](const SDR_Metrics &self) -> const SDR_Sparsity &
+                { return self.sparsity; });
         py_Metrics.def_property_readonly("activationFrequency",
-            [](const SDR_Metrics &self) { return self.activationFrequency; });
+            [](const SDR_Metrics &self) -> const SDR_ActivationFrequency &
+                { return self.activationFrequency; });
         py_Metrics.def_property_readonly("overlap",
-            [](const SDR_Metrics &self) { return self.overlap; });
+            [](const SDR_Metrics &self) -> const SDR_Overlap &
+                { return self.overlap; });
         py_Metrics.def("__str__", [](SDR_Metrics &self){
             stringstream buf;
             buf << self;

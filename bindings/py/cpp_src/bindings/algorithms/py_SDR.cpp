@@ -94,10 +94,17 @@ Example Usage:
 
         py_SDR.def(
             py::init<vector<UInt>>(),
-R"(Create an SDR object.  Initially SDRs value is all zeros.
+R"(Create an SDR object.  The SDRs initial value is all zeros.
 
 Argument dimensions is a list of dimension sizes, defining the shape of the SDR.
 The product of the dimensions must be greater than zero.)",
+            py::arg("dimensions")
+        );
+
+        /* Convenience: argument dimensions accepts a single integer instead of a list. */
+        py_SDR.def(
+            py::init([](UInt dimensions)
+                { return SDR({dimensions}); }),
             py::arg("dimensions")
         );
 
@@ -257,13 +264,13 @@ special, it is replaced with the system time.  The default seed is 0.)",
 
         py::class_<SDR_Proxy, SDR> py_Proxy(m, "SDR_Proxy",
 R"(SDR_Proxy presents a view onto an SDR.
-    * Proxies can have different dimensions than their source SDR.
-    * Proxies are read only.
     * Proxies always have the same value as their source SDR.
     * Proxies can be used in place of an SDR.
+    * Proxies are read only.
+    * Proxies can have different dimensions than their source SDR.
 
 Example Usage:
-    // Convert SDR dimensions from (4 x 4) to (8 x 2)
+    # Convert SDR dimensions from (4 x 4) to (8 x 2)
     A = SDR([ 4, 4 ])
     B = SDR_Proxy( A, [8, 2])
     A.sparse =  ([1, 1, 2], [0, 1, 2])
