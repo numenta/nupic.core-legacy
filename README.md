@@ -50,7 +50,8 @@ Some of the major differences between this library and Numenta's extension libra
  * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
  * Much easier installation (reduced dependencies, all are handeled by CMake) 
 
-## Instalation 
+
+## Installation 
 
 ### Prerequisites
 
