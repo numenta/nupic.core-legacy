@@ -76,13 +76,13 @@ class SdrMetricsTest(unittest.TestCase):
         A.dense = [0, 0]
         A.dense = [1, 1]
         A.dense = [0, 1]
-        self.assertAlmostEqual( B.activationFrequency[0], 1/3, places = 2)
-        self.assertAlmostEqual( B.activationFrequency[1], 2/3, places = 2)
-        self.assertAlmostEqual( B.min(),                  1/3, places = 2)
-        self.assertAlmostEqual( B.max(),                  2/3, places = 2)
-        self.assertAlmostEqual( B.mean(),                 1/2, places = 2)
-        self.assertAlmostEqual( B.std(),                  0.16666, places = 2)
-        self.assertAlmostEqual( B.entropy(),              0.92, places = 2)
+        self.assertAlmostEqual( B.activationFrequency[0], 1 / 3., places = 2)
+        self.assertAlmostEqual( B.activationFrequency[1], 2 / 3., places = 2)
+        self.assertAlmostEqual( B.min(),                  1 / 3., places = 2)
+        self.assertAlmostEqual( B.max(),                  2 / 3., places = 2)
+        self.assertAlmostEqual( B.mean(),                 1 / 2., places = 2)
+        self.assertAlmostEqual( B.std(),                  0.1666, places = 2)
+        self.assertAlmostEqual( B.entropy(),              0.92,   places = 2)
         assert(str(B) ==
 """Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
 Entropy 0.918296""")
@@ -104,19 +104,20 @@ Entropy 0.918296""")
     def testMetricsExample(self):
         A = SDR( dimensions = 2000 )
         M = SDR_Metrics( A, period = 1000 )
-        A.randomize( 0.10 )
+        seed = 42 # Never use seed 0.
+        A.randomize( 0.10, seed )
         for i in range( 20 ):
-            A.addNoise( 0.55 )
+            A.addNoise( 0.55, seed + i )
 
         assert( type(M.sparsity)            == SDR_Sparsity)
         assert( type(M.activationFrequency) == SDR_ActivationFrequency)
         assert( type(M.overlap)             == SDR_Overlap)
-        string = """SDR( 2000 )
-            Sparsity Min/Mean/Std/Max 0.1 / 0.0999989 / 5.20038e-06 / 0.1
-            Activation Frequency Min/Mean/Std/Max 0 / 0.100001 / 0.100464 / 0.666667
-            Entropy 0.822222
-            Overlap Min/Mean/Std/Max 0.45 / 0.449998 / 1.06406e-05 / 0.45"""
+        gold = """SDR( 2000 )
+    Sparsity Min/Mean/Std/Max 0.1 / 0.0999989 / 5.20038e-06 / 0.1
+    Activation Frequency Min/Mean/Std/Max 0 / 0.100001 / 0.0974391 / 0.619048
+    Entropy 0.830798
+    Overlap Min/Mean/Std/Max 0.45 / 0.449998 / 1.06406e-05 / 0.45"""
         import re
-        string1 = re.sub(r'\s+', ' ', string)
-        string2 = re.sub(r'\s+', ' ', str(M))
-        assert(string1 == string2)
+        gold = re.sub(r'\s+', ' ', gold)
+        real = re.sub(r'\s+', ' ', str(M))
+        assert(gold == real)
