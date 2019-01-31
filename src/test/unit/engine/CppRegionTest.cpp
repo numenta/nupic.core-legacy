@@ -33,7 +33,6 @@
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Env.hpp>
-#include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Path.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Exception.hpp>
@@ -53,8 +52,6 @@ using namespace nupic;
 using std::exception;
 
 bool verbose = false;
-
-
 
 void helperCppInputOutputAccess(Region *level1) {
   // --- input/output access for level 1 (C++ TestNode) ---
@@ -379,46 +376,5 @@ TEST(CppRegionTest, realmain) {
 //  EXPECT_NO_THROW(testYAML());
 }
 
-
-// TODO: This test was disabled mostly because we cannot do memLeak tests within gtest.
-TEST(DISABLED_CppRegionTest, memLeak) { //FIXME this mem leak test is newly fixed, but catches error -> need to fix code
-  /*
-   * With an integer argument 'count', runs the same test N times
-   * and requires that memory use stay constant -- it can't
-   * grow by even one byte.
-   */
-  const size_t count = 8000;
-  MemoryMonitor m(count);
-  for (size_t i = 0; i < count; i++) {
-	//call main
-    Network n;
-    helperRealmain(n);
-
-  //cannot use EXPECT_THROW in EXPECT_THROW
-  std::cout << "Setting dimensions of level1..." << std::endl;
-  Dimensions d;
-  d.push_back(4);
-  d.push_back(4);
-  std::shared_ptr<Region> level1 = n.getRegion("level1");
-  level1->setDimensions(d);
-
-  std::cout << "Initializing again..." << std::endl;
-  n.initialize();
-  ASSERT_TRUE(NuPIC::isInitialized()) << "now must be initialized";
-
-  level1->compute();
-  helperCppInputOutputAccess(level1.get());
-	//end main
-
-      // testExceptionBug();
-      // testCppLinking("TestFanIn2","");
-      //NuPIC::shutdown();
-      // memory leak detection
-      // we check even prior to the initial tracking iteration, because the act
-      // of checking potentially modifies our memory usage
-      EXPECT_FALSE(m.hasMemoryLeaks());
-  }
-
-}
 
 } //ns
