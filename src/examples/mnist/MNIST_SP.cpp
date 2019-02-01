@@ -31,6 +31,7 @@
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
+#include "nupic/ntypes/SdrMetrics.hpp"
 
 using namespace std;
 using namespace nupic;
@@ -227,7 +228,7 @@ int main(int argc, char **argv) {
   }
   if( verbosity ) cout << endl;
 
-  columnStats.print();
+  cout << columnStats << endl;
 
   // Test
   auto test_images  = read_mnist_images("./mnist_data/t10k-images-idx3-ubyte");
