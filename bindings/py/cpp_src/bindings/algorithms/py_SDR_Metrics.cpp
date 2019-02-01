@@ -103,8 +103,8 @@ Example Usage:
     A = SDR( 2 )
     B = SDR_ActivationFrequency( A, period = 1000 )
     A.dense = [0, 0]
-    A.dense = [1, 1]
     A.dense = [0, 1]
+    A.dense = [1, 1]
     B.activationFrequency -> { 0.33, 0.66 }
     B.min()     -> 1/3
     B.max()     -> 2/3

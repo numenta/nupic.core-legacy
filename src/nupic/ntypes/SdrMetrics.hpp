@@ -235,7 +235,8 @@ public:
  *      B.mean()    ->  0.50
  *      B.std()     -> ~0.16
  *      B.entropy() -> ~0.92
- *      cout << B   ->              TODO
+ *      cout << B   -> Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
+ *                     Entropy 0.918296
  */
 class SDR_ActivationFrequency : public _SDR_MetricsHelper {
 private:
@@ -376,7 +377,7 @@ public:
  *      B.max()     ->  0.45
  *      B.mean()    ->  0.26
  *      B.std()     -> ~0.16
- *      cout << B   ->              TODO
+ *      cout << B   -> Overlap Min/Mean/Std/Max 0.05 / 0.260016 / 0.16389 / 0.45
  */
 class SDR_Overlap : public _SDR_MetricsHelper {
 private:
@@ -472,11 +473,19 @@ public:
  *      SDR A( dimensions )
  *      SDR_Metrics M( A, 1000 )
  *
- *      Run program:
- *          A.setData( ... )
+ *      A.randomize( 0.10 )
+ *      for(int i = 0; i < 20; i++)
+ *          A.addNoise( 0.55 )
  *
- *      cout << M;
-                        TODO: SHOW EXAMPLE OUTPUT
+ *      M.sparsity            -> SDR_Sparsity
+ *      M.activationFrequency -> SDR_ActivationFrequency
+ *      M.overlap             -> SDR_Overlap
+ *      cout << M; ->
+ *         SDR( 2000 )
+ *            Sparsity Min/Mean/Std/Max 0.1 / 0.1 / 0 / 0.1
+ *            Activation Frequency Min/Mean/Std/Max 0 / 0.1 / 0.100464 / 0.666667
+ *            Entropy 0.822222
+ *            Overlap Min/Mean/Std/Max 0.45 / 0.45 / 0 / 0.45
  */
 // TODO: Add flags to enable/disable which metrics this uses?
 class SDR_Metrics {

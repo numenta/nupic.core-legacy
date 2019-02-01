@@ -537,7 +537,7 @@ public:
      * @param value A vector<vector<UInt>> containing the coordinates of the
      * true values to swap into the SDR.
      */
-    void setSparse( vector<vector<UInt>> &value ) {
+    void setSparse( SDR_sparse_t &value ) {
         sparse.swap( value );
         setSparseInplace();
     }
@@ -556,10 +556,7 @@ public:
     void setSparse( const vector<vector<T>> &value ) {
         NTA_ASSERT(value.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            sparse[dim].clear();
-            for(auto itm: value[dim]) {
-                sparse[dim].push_back((UInt)itm);
-            }
+            sparse[dim].assign( value[dim].begin(), value[dim].end() );
         }
         setSparseInplace();
     }
@@ -654,11 +651,7 @@ public:
      * common.
      */
     UInt getOverlap(SparseDistributedRepresentation &sdr) {
-        #ifdef NTA_ASSERTIONS_ON
-            NTA_ASSERT( dimensions.size() == sdr.dimensions.size() );
-            for( UInt i = 0u; i < dimensions.size(); i++ )
-                NTA_ASSERT( dimensions[i] == sdr.dimensions[i] );
-        #endif
+        NTA_ASSERT( dimensions == sdr.dimensions );
 
         UInt ovlp = 0u;
         const auto a = this->getDense();
