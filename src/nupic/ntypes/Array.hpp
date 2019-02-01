@@ -243,6 +243,8 @@ public:
             Destptr[j++] = (UInt32)i;
         }
         setCount(j); // set the size.  capacity remain size of dense buffer.
+      } else if (getType() == NTA_BasicType_SDR) {
+        getSDR()->setDense( v );
       } else {
         BasicType::convertArray(getBuffer(), getType(), v.data(), fromType, v.size());
       }
@@ -256,7 +258,7 @@ public:
    */
   Array get_as(NTA_BasicType type) const {
     Array a(type);
-    a.allocateBuffer(count_);
+    a.allocateBuffer( getCount() );
     convertInto(a);
     return a;
   }

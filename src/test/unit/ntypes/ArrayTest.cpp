@@ -565,31 +565,31 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       SDR sdr(dim);
       Array s(sdr); // makes a copy of sdr
       EXPECT_TRUE(s.getSDR() != &sdr);
-      EXPECT_EQ(s.getCount(), 100);
+      EXPECT_EQ(s.getCount(), 100u);
 
       std::vector<UInt> dim2({10, 20});
       s.allocateBuffer(dim2);  // re-creates sdr
-      EXPECT_EQ(s.getCount(), 200);
+      EXPECT_EQ(s.getCount(), 200u);
 
       // wrapper an existing sdr
       Array m(NTA_BasicType_SDR);
       m.setBuffer(sdr);
       EXPECT_TRUE(m.getSDR() == &sdr);
-      EXPECT_EQ(m.getCount(), 100);
+      EXPECT_EQ(m.getCount(), 100u);
 
       std::vector<Byte> row = a.asVector<Byte>();
       SDR *sdr_a = a.getSDR();
       SDR_flatSparse_t &v = a.getSDR()->getFlatSparse();
 
-      EXPECT_EQ(v.size(), 10);
+      EXPECT_EQ(v.size(), 10u);
 
 
     } else {
       // SDR cannot do subsets
       Array q = a.subset(5, 2);
-      EXPECT_EQ(q.getCount(), 2);
+      EXPECT_EQ(q.getCount(), 2u);
       std::vector<Int32> v = q.asVector<Int32>();
-      EXPECT_EQ(v.size(), 2);
+      EXPECT_EQ(v.size(), 2u);
       if (testCase->second.dataType == NTA_BasicType_Bool) {
         EXPECT_EQ(v[0], 1);
         EXPECT_EQ(v[1], 1);
@@ -602,7 +602,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     // toSparse
     Array e = a.get_as(NTA_BasicType_Sparse);
     EXPECT_EQ(e.getType(), NTA_BasicType_Sparse);
-    EXPECT_EQ(e.getCount(), 10); // There are 10 non-zero values a's data.
+    EXPECT_EQ(e.getCount(), 10u); // There are 10 non-zero values a's data.
     EXPECT_EQ(e.getMaxElementsCount(), a.getCount());
 
 
