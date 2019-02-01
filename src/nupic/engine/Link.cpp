@@ -154,16 +154,6 @@ void Link::initialize(size_t destinationOffset) {
               destD == dest_->getRegion()->getDimensions());
   }
 
-  // Validate sparse link
-  if (src_->isSparse() && !dest_->isSparse()) {
-    // Sparse to dense: unit32 -> bool
-    NTA_CHECK(dest_->getDataType() == NTA_BasicType_Bool)
-        << "Sparse to Dense link destination must be boolean";
-  } else if (!src_->isSparse() && dest_->isSparse()) {
-    // Dense to sparse:  NTA_BasicType -> uint32
-    NTA_CHECK(dest_->getDataType() == NTA_BasicType_UInt32)
-        << "Dense to Sparse link destination must be uint32";
-  }
 
   destOffset_ = destinationOffset;
   impl_->initialize();
@@ -322,67 +312,21 @@ void Link::compute() {
 
   Array &dest = dest_->getData();
 
-  size_t srcSize = src.getBufferSize();
   size_t typeSize = BasicType::getSize(src.getType());
   size_t destByteOffset = destOffset_ * typeSize;
 
   if (_LINK_DEBUG) {
     NTA_DEBUG << "Link::compute: " << getMoniker() << "; copying to dest input"
-              << "; delay=" << propagationDelay_ << "; " << src.getCount()
-              << " elements=" << src;
+              << "; delay=" << propagationDelay_ << "; size=" << src.getCount()
+              << " type=" << BasicType::getName(src.getType()) 
+              << " --> " << BasicType::getName(dest.getType()) << std::endl;
   }
 
-  if (src_->isSparse() == dest_->isSparse()) {
-    // No conversion required, just copy the buffer over
-	NTA_CHECK(src.getCount() + destOffset_ <= dest.getMaxElementsCount())
-        << "Not enough room in buffer to propogate to " << destRegionName_
-        << " " << destInputName_ << ". ";
-    // This does a deep copy of the buffer, and if needed it also does a type
-    // conversion at the same time. It is copied into the destination Input
-    // buffer at the specified offset so an Input with multiple incoming links
-    // has the Output buffers appended into a single large Input buffer.
+  if (src.getType() == dest.getType() && destOffset_ == 0)
+    dest = src;   // Performs a shallow copy. Data not copied but passed in shared_ptr.
+  else {
+    // we must perform a deep copy with possible type conversion.
     src.convertInto(dest, destOffset_);
-  } else if (dest_->isSparse()) {
-    // Destination is sparse, convert source from dense to sparse
-
-    // Sparse Output must be UInt32. See "initialize".
-    UInt32 *destBuf = (UInt32 *)((char *)(dest.getBuffer()) + destByteOffset);
-
-    // Dense source can be any scalar type. The scalar values will be lost
-    // and only the indexes of the non-zero values will be stored.
-    char *srcBuf = (char *)src.getBuffer();
-    size_t destLen = dest.getBufferSize();
-    size_t destIdx = 0;
-    for (size_t i = 0; i < srcSize; i++) {
-      // Check for any non-zero scalar value
-      if (::memcmp(srcBuf + i * typeSize, &ZERO_VALUE, typeSize)) {
-        NTA_CHECK(destIdx < destLen) << "Link destination is too small. "
-                                     << "It should be at least " << destIdx + 1;
-        destBuf[destIdx++] = (UInt32)i;
-      }
-    }
-    // update the variable length array size.
-    dest.setCount(destIdx);
-  } else {
-    // Destination is dense, convert source from sparse to dense
-
-    // Sparse Input must be NTA_UInt32. See "initialize".
-    UInt32 *srcBuf = (UInt32 *)src.getBuffer();
-
-    // Dense destination links must be bool. See "initialize".
-	// Really? TODO: allow this to be written to any dest buffer type.
-    bool *destBuf = (bool *)((char *)dest.getBuffer() + destByteOffset);
-
-    size_t srcLen = src.getCount();
-    size_t destLen = dest.getBufferSize();
-    ::memset(destBuf, 0, destLen);
-    size_t destIdx;
-    for (size_t i = 0; i < srcLen; i++) {
-      destIdx = srcBuf[i];
-      NTA_CHECK(destIdx < destLen) << "Link destination is too small. "
-                                   << "It should be at least " << destIdx + 1;
-      destBuf[destIdx] = true;
-    }
   }
 }
 

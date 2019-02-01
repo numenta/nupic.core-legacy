@@ -51,11 +51,8 @@ public:
    *        The type of the output, TODO
    * @param isRegionLevel
    *        Whether the output is region level, i.e. TODO
-   * @param isSparse
-   *        Whether the output is sparse. Default false
    */
-  Output(Region* region, NTA_BasicType type, bool isRegionLevel,
-         bool isSparse = false);
+  Output(Region* region, NTA_BasicType type, bool isRegionLevel);
 
   /**
    * Destructor
@@ -173,14 +170,6 @@ public:
    */
   size_t getNodeOutputElementCount() const;
 
-  /**
-   *
-   * Tells whether the output is sparse.
-   *
-   * @returns
-   *     Whether the output is sparse.
-   */
-  bool isSparse() const;
 
 private:
   // Cannot use the shared_ptr here
@@ -192,8 +181,6 @@ private:
   std::set<std::shared_ptr<Link>> links_;
   std::string name_;
   size_t nodeOutputElementCount_;
-  // Whether or not the output is sparse
-  bool isSparse_;
 };
 
 

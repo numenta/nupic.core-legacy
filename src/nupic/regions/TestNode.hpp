@@ -147,8 +147,12 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  Input *bottomUpIn_;
-  Output *bottomUpOut_;
+  Input *bottomUpIn_;   // required
+  Input *sdrIn_;        // optional
+  Input *sparseIn_;     // optional
+  Output *bottomUpOut_; // required
+  Output *sdrOut_;      // optional
+  Output *sparseOut_;   // optional
 };
 } // namespace nupic
 

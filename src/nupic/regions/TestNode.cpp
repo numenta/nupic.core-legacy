@@ -97,8 +97,7 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   iter_ = 0;
 }
 
-TestNode::TestNode(BundleIO &bundle, Region *region) :
-    RegionImpl(region),
+TestNode::TestNode(BundleIO &bundle, Region *region) : RegionImpl(region),
 	computeCallback_(nullptr)
 {
   deserialize(bundle);
@@ -111,30 +110,60 @@ void TestNode::compute() {
   if (computeCallback_ != nullptr)
     computeCallback_(getName());
 
-  Array &outputArray = bottomUpOut_->getData();
-  NTA_CHECK(outputArray.getCount() == nodeCount_ * outputElementCount_)
-       			<< "buffer size: " << outputArray.getCount()
-				<< " expected: " << (nodeCount_ * outputElementCount_);
-  NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
-  Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
 
+  ////////////////////////////////////////////////////
+  //    The algorithm code would be called here
+
+  // Computation for bottomUpIn --> bottomUpOut
   // See TestNode.hpp for description of the computation
-  std::vector<Real64> nodeInput;
-  Real64 *nodeOutputBuffer;
-  for (UInt32 node = 0; node < nodeCount_; node++) {
-    nodeOutputBuffer = baseOutputBuffer + node * outputElementCount_;
-    bottomUpIn_->getInputForNode(node, nodeInput);
+  //
+  // Note: don't blame me for this strange computation for bottomUpOut.
+  //       this was ported from python a long time ago.  Most of the
+  //       unit tests use this class and expect this computation.
+  //       d.keeney, 2019
+  if (bottomUpOut_) {
+    // We have an output connection.
+    Array &outputArray = bottomUpOut_->getData();
+    NTA_CHECK(outputArray.getCount() == outputElementCount_)
+       			  << "buffer size: " << outputArray.getCount()
+				  << " expected: " <<  outputElementCount_;
+    NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
+    Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
 
-    // output[0] = number of inputs to this baby node + current iteration number
-    nodeOutputBuffer[0] = nupic::Real64(nodeInput.size() + iter_);
+    std::vector<Real64> nodeInput;
+    nodeInput.resize(outputElementCount_);            // set the size
+    std::fill(nodeInput.begin(), nodeInput.end(), 0); // zero it out
+    bottomUpIn_->getInputForNode(1, nodeInput);       // populate with data
 
-    // output[n] = node + sum(inputs) + (n-1) * delta
+    // output[0] = number of inputs to this baby, + current iteration number
+    baseOutputBuffer[0] = nupic::Real64(nodeInput.size() + iter_);
+    iter_++;
+
+    // output[n] = 1 + sum(inputs) + (n-1) * delta
     Real64 sum = std::accumulate(nodeInput.begin(), nodeInput.end(), 0.0);
     for (size_t i = 1; i < outputElementCount_; i++)
-      nodeOutputBuffer[i] = node + sum + (i - 1) * delta_;
+      baseOutputBuffer[i] = 1 + sum + (i - 1) * delta_;
   }
 
-  iter_++;
+  // Computation for sdrIn -- > sdrOut and sparseIn --> sparseOut
+  // Data comining in on sdrIn or sparseIn is sent unchanged to 
+  // both sdrOut and sparseOut. If data in on both, use sdrIn.  
+  // If neither, output 0's to both if connected.
+  Input *in = (sdrIn_) ? sdrIn_ : (sparseIn_) ? sparseIn_ : nullptr;
+  if (in) {
+    const Array &src = in->getData();
+    if (sdrOut_) {
+      Array &out = sdrOut_->getData();
+      src.convertInto(out, 0);
+    }
+    if (sparseOut_) {
+      Array &out = sparseOut_->getData();
+      src.convertInto(out, 0);
+    }
+  }
+
+  //
+  ////////////////////////////////////////////////////////
 }
 
 Spec *TestNode::createSpec() {
@@ -283,10 +312,26 @@ Spec *TestNode::createSpec() {
   ns->inputs.add("bottomUpIn",
                  InputSpec("Primary input for the node",
 				           NTA_BasicType_Real64,
-                           0,     // count. omit?
+                           0,     // size depends on sending region
                            true,  // required?
                            false, // isRegionLevel,
                            true   // isDefaultInput
+                           ));
+  ns->inputs.add("sdrIn",
+                 InputSpec("SDR input for the node",
+				           NTA_BasicType_SDR,
+                           0,      // size depends on sending region
+                           false,  // required?
+                           false,  // isRegionLevel,
+                           false   // isDefaultInput
+                           ));
+  ns->inputs.add("sparseIn",
+                 InputSpec("Sparse input for the node",
+				           NTA_BasicType_Sparse,
+                           0,      // size depends on sending region
+                           false,  // required?
+                           false,  // isRegionLevel,
+                           false   // isDefaultInput
                            ));
 
   /* ----- outputs ------ */
@@ -296,6 +341,20 @@ Spec *TestNode::createSpec() {
                             0,     // count is dynamic
                             false, // isRegionLevel
                             true   // isDefaultOutput
+                            ));
+  ns->outputs.add("sdrOut",
+                  OutputSpec("SDR output for the node",
+                            NTA_BasicType_SDR,
+                            0,     // count is dynamic
+                            false, // isRegionLevel
+                            false   // isDefaultOutput
+                            ));
+  ns->outputs.add("sparseOut",
+                  OutputSpec("Sparse output for the node",
+                            NTA_BasicType_Sparse,
+                            0,     // count is dynamic
+                            false, // isRegionLevel
+                            false   // isDefaultOutput
                             ));
 
   /* ----- commands ------ */
@@ -544,8 +603,18 @@ size_t TestNode::getParameterArrayCount(const std::string &name, Int64 index) {
 
 void TestNode::initialize() {
   nodeCount_ = getDimensions().getCount();
+
+  // Get inputs and Outputs.  If no links attached, will return null.
   bottomUpOut_ = getOutput("bottomUpOut");
   bottomUpIn_ = getInput("bottomUpIn");
+
+  sdrOut_ = getOutput("sdrOut");
+  sdrIn_ = getInput("sdrIn");
+
+  sparseOut_ = getOutput("sparseOut");
+  sparseIn_ = getInput("sparseIn");
+
+  // Setup the data
 
   unclonedParam_.resize(nodeCount_);
   for (unsigned int i = 1; i < nodeCount_; i++) {

@@ -36,15 +36,14 @@
 
 namespace nupic {
 
-Input::Input(Region* region, NTA_BasicType dataType, bool isRegionLevel,
-             bool isSparse)
+Input::Input(Region* region, NTA_BasicType dataType, bool isRegionLevel)
     : region_(region), isRegionLevel_(isRegionLevel), initialized_(false),
-      data_(dataType), name_("Unnamed"), isSparse_(isSparse) {}
+      data_(dataType), name_("Unnamed") {}
 
 Input::~Input() {
   uninitialize();
   for (auto &link : links_) {
-std::cout << "Input::~Input: \n";
+    std::cout << "Input::~Input: \n";
   	link->getSrc().removeLink(link); // remove it from the Output object.
     // the link is a shared_ptr so it will be deleted when links_ is cleared.
   }
@@ -131,9 +130,11 @@ Region* Input::getRegion() { return region_; }
 
 std::vector<std::shared_ptr<Link>> &Input::getLinks() { return links_; }
 
+/**
+ * Returns true if dimensions are specified on the region
+ * rather than on the link.
+ */
 bool Input::isRegionLevel() { return isRegionLevel_; }
-
-bool Input::isSparse() { return isSparse_; }
 
 // See header file for documentation
 size_t Input::evaluateLinks() {
@@ -460,12 +461,6 @@ void Input::initialize() {
         << "was called. Region's dimensions must be specified.";
   }
 
-  if (isSparse_) {
-    NTA_CHECK(isRegionLevel_) << "Sparse data must be region level";
-    NTA_CHECK(data_.getType() == NTA_BasicType_UInt32)
-        << "Sparse data must be uint32";
-  }
-
   // Calculate our size and the offset of each link
   size_t count = 0;
   for (std::vector<std::shared_ptr<Link>>::const_iterator l = links_.begin();
@@ -479,16 +474,10 @@ void Input::initialize() {
 
   // Later we may optimize with the zeroCopyEnabled_ flag but
   // for now we always allocate our own buffer.
+  // Create the Input buffer.
   data_.allocateBuffer(count);
+  data_.zeroBuffer();
 
-  // Zero the inputs (required for inspectors)
-  if (count != 0) {
-    void *buffer = data_.getBuffer();
-    ::memset(buffer, 0, data_.getBufferSize());
-    if (isSparse_) {
-      data_.setCount(0);
-    }
-  }
 
   NTA_CHECK(splitterMap_.size() == 0);
 
@@ -537,6 +526,7 @@ const std::vector<std::vector<size_t>> &Input::getSplitterMap() const {
 
 template <typename T>
 void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
+  // NOTE: nodeIndex is always 1 because we no longer support nodes.
   NTA_CHECK(initialized_);
   const SplitterMap &sm = getSplitterMap();
   NTA_CHECK(nodeIndex < sm.size());

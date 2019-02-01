@@ -185,7 +185,8 @@ Spec *VectorFileEffector::createSpec() {
       "to the file.\n";
 
   ns->inputs.add("dataIn",
-                 InputSpec("Data to be written to file", NTA_BasicType_Real32,
+                 InputSpec("Data to be written to file", 
+                           NTA_BasicType_Real32,
                            0,     // count
                            false, // required?
                            false, // isRegionLevel

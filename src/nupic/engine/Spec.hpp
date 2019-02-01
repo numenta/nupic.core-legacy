@@ -36,9 +36,13 @@ namespace nupic {
 class InputSpec {
 public:
   InputSpec() {}
-  InputSpec(std::string description, NTA_BasicType dataType, UInt32 count,
-            bool required, bool regionLevel, bool isDefaultInput,
-            bool requireSplitterMap = true, bool sparse = false);
+  InputSpec(std::string description, 
+            NTA_BasicType dataType, 
+            UInt32 count,
+            bool required, 
+            bool regionLevel, 
+            bool isDefaultInput = false,
+            bool requireSplitterMap = true);
   bool operator==(const InputSpec &other) const;
   inline bool operator!=(const InputSpec &other) const {
     return !operator==(other);
@@ -53,15 +57,16 @@ public:
   bool regionLevel;
   bool isDefaultInput;
   bool requireSplitterMap;
-  bool sparse;
 };
 
 class OutputSpec {
 public:
   OutputSpec() {}
-  OutputSpec(std::string description, const NTA_BasicType dataType,
-             size_t count, bool regionLevel, bool isDefaultOutput,
-             bool sparse = false);
+  OutputSpec(std::string description, 
+             const NTA_BasicType dataType,
+             size_t count, 
+             bool regionLevel, 
+             bool isDefaultOutput);
   bool operator==(const OutputSpec &other) const;
   inline bool operator!=(const OutputSpec &other) const {
     return !operator==(other);
@@ -73,7 +78,6 @@ public:
   size_t count;
   bool regionLevel;
   bool isDefaultOutput;
-  bool sparse;
 };
 
 class CommandSpec {

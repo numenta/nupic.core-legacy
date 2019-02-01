@@ -42,8 +42,12 @@ namespace nupic {
  */
 
 /**
- * Represents a 8-bit byte.
+ * Represents a signed 8-bit byte.
+ * (note that std::byte is unsigned char.)
  */
+#ifdef Byte
+#undef Byte
+#endif
 typedef char Byte;
 
 /**

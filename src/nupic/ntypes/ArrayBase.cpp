@@ -38,8 +38,6 @@ namespace nupic {
 
 /**
  * This makes a deep copy of the buffer so this class will own the buffer.
- *
- * Note: for NTA_BasicType_SDR, 
  */
 ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count) {
   if (!BasicType::isValid(type)) {
@@ -48,7 +46,7 @@ ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count) {
   }
   type_ = type;
   allocateBuffer(count);
-  if (count > 0) {
+  if (getCount() > 0) {
     std::memcpy((char *)getBuffer(), (char *)buffer,
             count * BasicType::getSize(type));
   }
@@ -56,6 +54,7 @@ ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count) {
 
 /**
   * constructor for Array object containing an SDR.
+  * The SDR is copied. Array is the owner of the copy.
   */
 ArrayBase::ArrayBase(const SDR &sdr)  {
   type_ = NTA_BasicType_SDR;
@@ -117,7 +116,7 @@ void ArrayBase::allocateBuffer(size_t count) {
   }
 }
 
-void ArrayBase::allocateBuffer(std::vector<UInt> dimensions) { // only for SDR
+void ArrayBase::allocateBuffer(const std::vector<UInt> dimensions) { // only for SDR
   NTA_CHECK(type_ == NTA_BasicType_SDR)
       << "Dimensions can only be set on the SDR payload";
   SDR *sdr = new SDR(dimensions);
@@ -140,6 +139,7 @@ void ArrayBase::zeroBuffer() {
   }
 }
 
+
 /**
  * Internal function
  * Use the given pointer as the buffer.
@@ -156,6 +156,7 @@ void ArrayBase::setBuffer(void *buffer, size_t count) {
   capacity_ = count * BasicType::getSize(type_);
   own_ = false;
 }
+
 
 void ArrayBase::releaseBuffer() {
   buffer_.reset();
@@ -240,14 +241,14 @@ NTA_BasicType ArrayBase::getType() const { return type_; };
 
 /**
  * Convert the buffer contents of the current ArrayBase into
- * the type of the incoming ArrayBase type. Applying an offset if specified.
+ * the type of the incoming ArrayBase 'a'. Applying an offset if specified.
  * If there is not enough room in the destination buffer a new one is created.
  *
  * For Fan-In condition, be sure there is enough space in the buffer before
  * the first conversion to avoid loosing data during re-allocation. Then do
  * them in order so that the largest index is last.
  *
- * Be care when using this with SDR...it will remove dimensions if buffer is 
+ * Be careful when using this with SDR...it will remove dimensions if buffer is 
  * not big enough.
  */
 void ArrayBase::convertInto(ArrayBase &a, size_t offset) const {
@@ -309,6 +310,12 @@ void ArrayBase::toSparse(ArrayBase &a, size_t offset) const {
   case NTA_BasicType_UInt32:
     NonZeroT<UInt32>(a, this);
     break;
+  case NTA_BasicType_Int64:
+    NonZeroT<Int64>(a, this);
+    break;
+  case NTA_BasicType_UInt64:
+    NonZeroT<UInt64>(a, this);
+    break;
   case NTA_BasicType_Real32:
     NonZeroT<Real32>(a, this);
     break;
@@ -349,7 +356,7 @@ template <typename T>
 static void DenseT(ArrayBase &a, size_t size, UInt32 *Fromptr, size_t count, size_t offset) {
   // populate the new array with indexes of non-zero values.
   // NOTE: NTA_BasicType_SDR and NTA_BasicType_Sparse not handled here.
-  a.allocateBuffer(size); // allocating more space than we need, just to be sure.
+  a.allocateBuffer(size); 
   a.zeroBuffer();
   T *newBuffer = (T *)a.getBuffer() + offset;
   for (UInt32 i = 0u; i < count; i++) {
@@ -382,6 +389,12 @@ void ArrayBase::fromSparse(ArrayBase &a, size_t offset, size_t size) const {
     break;
   case NTA_BasicType_UInt32:
     DenseT<UInt32>(a, size, value, count_, offset);
+    break;
+  case NTA_BasicType_Int64:
+    DenseT<Int64>(a, size, value, count_, offset);
+    break;
+  case NTA_BasicType_UInt64:
+    DenseT<UInt64>(a, size, value, count_, offset);
     break;
   case NTA_BasicType_Real32:
     DenseT<Real32>(a, size, value, count_, offset);

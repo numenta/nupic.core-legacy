@@ -33,10 +33,9 @@
 
 namespace nupic {
 
-Output::Output(Region* region, NTA_BasicType type, bool isRegionLevel,
-               bool isSparse)
+Output::Output(Region* region, NTA_BasicType type, bool isRegionLevel)
     : region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"),
-      nodeOutputElementCount_(0), isSparse_(isSparse) {
+      nodeOutputElementCount_(0) {
   data_ = Array(type);
 }
 
@@ -56,12 +55,6 @@ void Output::initialize(size_t count) {
   if (data_.getBuffer() != nullptr)
     return;
 
-  if (isSparse_) {
-    NTA_CHECK(isRegionLevel_) << "Sparse data must be region level";
-    NTA_CHECK(data_.getType() == NTA_BasicType_UInt32)
-        << "Sparse data must be uint32";
-  }
-
   nodeOutputElementCount_ = count;
   size_t dataCount;
   if (isRegionLevel_)
@@ -69,12 +62,16 @@ void Output::initialize(size_t count) {
   else
     dataCount = count * region_->getDimensions().getCount();
   if (dataCount != 0) {
-    data_.allocateBuffer(dataCount);
-    // Zero the buffer because unitialized outputs can screw up inspectors,
-    // which look at the output before compute(). NPC-60
-    void *buffer = data_.getBuffer();
-    size_t byteCount = dataCount * BasicType::getSize(data_.getType());
-    memset(buffer, 0, byteCount);
+    if (data_.getType() == NTA_BasicType_SDR && isRegionLevel_) {
+      const vector<UInt> dim = region_->getDimensions();
+      data_.allocateBuffer(dim);
+    } else {
+      data_.allocateBuffer(dataCount);
+      // Zero the buffer because unitialized outputs can screw up inspectors,
+      // which look at the output before compute(). NPC-60
+      data_.zeroBuffer();
+      void *buffer = data_.getBuffer();
+    }
   }
 }
 
@@ -102,7 +99,6 @@ void Output::removeLink(std::shared_ptr<Link> link) {
 bool Output::isRegionLevel() const { return isRegionLevel_; }
 
 Region* Output::getRegion() const { return region_; }
-bool Output::isSparse() const { return isSparse_; }
 
 void Output::setName(const std::string &name) { name_ = name; }
 

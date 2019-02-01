@@ -70,6 +70,7 @@ namespace nupic
      */
     ArrayBase(NTA_BasicType type, void *buffer, size_t count);
 
+
     /**
      * Create an ArrayBase containing a copy of an SDR.
      */
@@ -102,9 +103,10 @@ namespace nupic
 
     /**
      * Ask ArrayBase to allocate its buffer
+     * NOTE: for NTA_BasicTypeSparse this sets the size of the dense buffer is describes.
      */
     virtual void allocateBuffer(size_t count);
-    virtual void allocateBuffer(std::vector<UInt>dimensions);  // only for SDR
+    virtual void allocateBuffer(const std::vector<UInt> dimensions);  // only for SDR
 
     /**
      * Ask ArrayBase to zero fill its buffer
@@ -148,13 +150,16 @@ namespace nupic
     /**
      * Put an external buffer into the ArrayBase which is not owned by this class.
      * This allows the Array to transport .py numpy buffers without copy.
+     * This allows wrapping an existing SDR without copying it.
      * Caller must ensure that the pointer remains valid over the life of this instance.
      * ArrayBase will not free the pointer when this instance goes out of scope.
      */
     virtual void setBuffer(void *buffer, size_t count);
+    virtual void setBuffer(SDR & sdr) { setBuffer(&sdr, 0); }
 
     /**
      * Set the number of elements.  This is used to truncate the array.
+     * For NTA_BasicTypeSparse, this sets the current length of the sparse array.
      */
     void setCount(size_t count);
 

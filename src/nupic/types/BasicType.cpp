@@ -97,7 +97,7 @@ template <> const char *BasicType::getName<SDR>() {
   return getName(NTA_BasicType_SDR);
 }
 
-// getType<T>
+// getType<T>()
 template <> NTA_BasicType BasicType::getType<Byte>() {
   return NTA_BasicType_Byte;
 }

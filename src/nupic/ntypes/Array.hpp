@@ -201,24 +201,52 @@ public:
   }
 
   /**
-   * Convert to a vector; copies buffer,
+   * Convert to a vector; copies buffer, With conversion
    * example: vector<Int32> v = array.asVector<Int32>();
    */
   template <typename T> std::vector<T> asVector() const {
-    NTA_CHECK(type_ == BasicType::getType<T>())
-        << "Expected an Array with type of " << BasicType::getName<T>();
-    std::vector<T> v((T *)getBuffer(), (T *)getBuffer() + count_);
+    std::vector<T> v;
+    NTA_BasicType to_type = BasicType::getType<T>();
+    v.resize(count_);
+    BasicType::convertArray(v.data(), to_type, getBuffer(), getType(), getCount());
     return v;
   }
 
   /**
-   * from a vector; copies buffer into this object,
+   * from a vector; copies buffer into this object, with no type conversion.
+   * Array type becomes the type of the vector elements.
    *   example:   array.fromVector(v);
    */
-  template <typename T> void fromVector(std::vector<T> &vect) {
+  template <typename T> void fromVector(const std::vector<T> &vect) {
     type_ = BasicType::getType<T>();
     allocateBuffer(vect.size());
     memcpy(getBuffer(), vect.data(), count_ * BasicType::getSize(type_));
+  }
+
+  /**
+   * Type Conversion
+   * This populates our array from a templeted vector.
+   * The buffer is copied and a coversion is provided if
+   * vector element types are not the same as the Array type.
+   * The vector is assumed to contain only dense format arrays.
+   */
+  template<typename T>
+  void populate(const std::vector<T>& v) { 
+    NTA_BasicType fromType = BasicType::getType<T>();                                 
+    allocateBuffer(v.size());                                              
+    if (getCount() > 0) {                                                  
+      if (getType() == NTA_BasicType_Sparse) {
+        UInt32 j = 0u;
+        UInt32 *Destptr = (UInt32 *)getBuffer();
+        for (UInt32 i = 0u; i < getCount(); i++) {
+          if (v[i])
+            Destptr[j++] = (UInt32)i;
+        }
+        setCount(j); // set the size.  capacity remain size of dense buffer.
+      } else {
+        BasicType::convertArray(getBuffer(), getType(), v.data(), fromType, v.size());
+      }
+    }                                                                      
   }
 
   /**
@@ -244,15 +272,6 @@ public:
     ArrayBase::convertInto(a, offset);
   }
 
-  /**
-   * Create a sparse array from the indexes of non-zero values of the local
-   * array and return the new Array.
-   */
-  Array sparse() const {
-    Array a(NTA_BasicType_Sparse);
-    ArrayBase::toSparse(a, 0);
-    return a;
-  }
 
   /**
    * Copy a subset
@@ -260,9 +279,10 @@ public:
    * range of values from this Array.
    */
   Array subset(size_t offset, size_t count) const {
-    NTA_CHECK(getCount() <= count + offset) << "Requested subset out of range.";
-    NTA_CHECK(type_ != NTA_BasicType_SDR)
-        << "SDR support for a subset not supported";
+    NTA_CHECK(getCount() >= count + offset) << "Requested subset out of range; "
+                            << " offset(" << offset  << ")+ count=(" << count
+                            << ") is larger than array size (" << getCount() << ").";
+    NTA_CHECK(type_ != NTA_BasicType_SDR) << "subset() not valid for SDR";
     Array a(type_);
     a.allocateBuffer(count);
     memcpy(a.getBuffer(),

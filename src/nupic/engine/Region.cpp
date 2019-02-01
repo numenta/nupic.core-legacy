@@ -91,7 +91,7 @@ void Region::createInputsAndOutputs_() {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
     std::string outputName = p.first;
     const OutputSpec &os = p.second;
-    auto output = new Output(this, os.dataType, os.regionLevel, os.sparse);
+    auto output = new Output(this, os.dataType, os.regionLevel);
     outputs_[outputName] = output;
     // keep track of name in the output also -- see note in Region.hpp
     output->setName(outputName);
@@ -103,7 +103,7 @@ void Region::createInputsAndOutputs_() {
     std::string inputName = p.first;
     const InputSpec &is = p.second;
 
-    auto input = new Input(this, is.dataType, is.regionLevel, is.sparse);
+    auto input = new Input(this, is.dataType, is.regionLevel);
     inputs_[inputName] = input;
     // keep track of name in the input also -- see note in Region.hpp
     input->setName(inputName);
@@ -340,7 +340,7 @@ void Region::save(std::ostream &f) const {
   f << "name: " << name_ << "\n";
   f << "nodeType: " << type_ << "\n";
   f << "dimensions: [ " << dims_.size() << "\n";
-  for (Size d : dims_) {
+  for (UInt32 d : dims_) {
 	  f << d << " ";
   }
   f << "]\n";
@@ -390,8 +390,8 @@ void Region::load(std::istream &f) {
   f >> count;
   for (size_t i = 0; i < count; i++)
   {
-  Size val;
-  f >> val;
+    UInt32 val;
+    f >> val;
     dims_.push_back(val);
   }
   f >> tag;
@@ -465,8 +465,7 @@ bool Region::operator==(const Region &o) const {
   // Compare Regions's Input
   static auto compareInput = [](decltype(*inputs_.begin()) a, decltype(a) b) {
     if (a.first != b.first ||
-        a.second->isRegionLevel() != b.second->isRegionLevel() ||
-        a.second->isSparse() != b.second->isSparse()) {
+        a.second->isRegionLevel() != b.second->isRegionLevel()) {
       return false;
     }
     auto links1 = a.second->getLinks();
@@ -489,7 +488,6 @@ bool Region::operator==(const Region &o) const {
   static auto compareOutput = [](decltype(*outputs_.begin()) a, decltype(a) b) {
     if (a.first != b.first ||
         a.second->isRegionLevel() != b.second->isRegionLevel() ||
-        a.second->isSparse() != b.second->isSparse() ||
         a.second->getNodeOutputElementCount() !=
             b.second->getNodeOutputElementCount()) {
       return false;
