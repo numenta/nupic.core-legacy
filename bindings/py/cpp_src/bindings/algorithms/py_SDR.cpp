@@ -134,7 +134,7 @@ current value.)");
             [](SDR &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
                 vector<UInt> strides( self.dimensions.size(), 0u );
-                uint z = sizeof(Byte);
+                auto z = sizeof(Byte);
                 for(int i = self.dimensions.size() - 1; i >= 0; --i) {
                     strides[i] = z;
                     z *= self.dimensions[i];
