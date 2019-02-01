@@ -101,7 +101,8 @@ The product of the dimensions must be greater than zero.)",
             py::arg("dimensions"));
 
         py_SDR.def(
-            py::init<UInt>(),
+            py::init( [](UInt dimensions) {
+                return SDR({ dimensions }); }),
 R"(Create an SDR object.  The initial value is all zeros.
 
 Argument dimensions is a single integer dimension size, defining a 1-dimensional

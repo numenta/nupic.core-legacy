@@ -263,15 +263,6 @@ public:
     SparseDistributedRepresentation( const vector<UInt> dimensions )
         { initialize( dimensions ); }
 
-    /**
-     * Create an SDR object.  The initial value is all zeros.
-     *
-     * @param dimensions A single integer dimension size, defining a
-     * 1-dimensional SDR.  Must be greater than zero.
-     */
-    SparseDistributedRepresentation( UInt dimensions )
-        { initialize( {dimensions} ); }
-
     void initialize( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
         NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";

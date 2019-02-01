@@ -80,6 +80,9 @@ class SdrTest(unittest.TestCase):
         assert( D != C )
         D = SDR( C )
         assert( D == C )
+        # Test convenience constructor, integer argument instead of list.
+        V = SDR( 999 )
+        assert( V.size == 999 )
 
     def testZero(self):
         A = SDR((103,))

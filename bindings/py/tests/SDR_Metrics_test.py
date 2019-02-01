@@ -104,7 +104,7 @@ Entropy 0.918296""")
     def testMetricsExample(self):
         A = SDR( dimensions = 2000 )
         M = SDR_Metrics( A, period = 1000 )
-        seed = 42 # Never use seed 0.
+        seed = 42 # Use hardcoded seed. Seed 0 will seed from system time, not what we want here.
         A.randomize( 0.10, seed )
         for i in range( 20 ):
             A.addNoise( 0.55, seed + i )
