@@ -199,10 +199,12 @@ set(os_files
 )
 
 set(regions_files
-    nupic/regions/TestNode.cpp
-    nupic/regions/TestNode.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
+    nupic/regions/SPRegion.cpp
+    nupic/regions/SPRegion.hpp
+    nupic/regions/TestNode.cpp
+    nupic/regions/TestNode.hpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFile.hpp
     nupic/regions/VectorFileEffector.cpp
