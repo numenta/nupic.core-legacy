@@ -1168,7 +1168,7 @@ public:
   @returns boolean value indicating whether enough rounds have passed to warrant
   updates of duty cycles
   */
-  bool isUpdateRound_() const { return false; };
+  bool isUpdateRound_() const;
 
   //-------------------------------------------------------------------
   // Debugging helpers
