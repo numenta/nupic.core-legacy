@@ -466,7 +466,9 @@ void Connections::raisePermanencesToThreshold(
   if( segmentThreshold == 0 )
     return;
 
+  NTA_ASSERT(segment < segments_.size()) << "Accessing segment out of bounds."; 
   auto &segData = segments_[segment];
+
   if( segData.numConnected >= segmentThreshold )
     return;
 
@@ -477,10 +479,12 @@ void Connections::raisePermanencesToThreshold(
   // connected synapses.  Then calculate how much to increase the N'th synapses
   // permance by such that it becomes a connected synapse.
 
-  auto minPermSynPtr = synapses.begin() + segmentThreshold - 1;
+  NTA_ASSERT(synapses.size() <= segmentThreshold) << "Threshold too large";
+  NTA_ASSERT(segmentThreshold >= 1) << "Threshold must be >= 1, otherwise overflows here";
+  auto minPermSynPtr = synapses.begin() + segmentThreshold - 1; //FIXME I suspect in edge conditions this causes some err
   // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
   // its final sorted position.
-  auto permanencesGreater = [&](Synapse &A, Synapse &B)
+  const auto permanencesGreater = [&](Synapse &A, Synapse &B)
     { return synapses_[A].permanence > synapses_[B].permanence; };
   std::nth_element(synapses.begin(), minPermSynPtr, synapses.end(), permanencesGreater);
 
@@ -489,15 +493,19 @@ void Connections::raisePermanencesToThreshold(
     return;            // Enough synapses are already connected.
 
   // Raise the permance of all synapses in the potential pool uniformly.
-  for( const auto &syn : synapses )
+  for( const auto &syn : synapses ) {
+    NTA_ASSERT(syn < synapses_.size()) << "Synapse out of bounds.";
     updateSynapsePermanence(syn, synapses_[syn].permanence + increment);
+  }
 }
 
 
 void Connections::bumpSegment(const Segment segment, const Permanence delta) {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
-  for( const auto &syn : synapses )
+  for( const auto &syn : synapses ) {
+    NTA_ASSERT(syn < synapses_.size()) << "Synapse out of range!";
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
+  }
 }
 
 
