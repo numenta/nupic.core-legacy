@@ -140,8 +140,9 @@ current value.)");
                 }
                 return py::array(self.dimensions, strides, self.getDense().data(), capsule);
             },
-            [](SDR &self, SDR_dense_t data)
-                { self.setDense( data ); },
+            [](SDR &self, SDR_dense_t data) {
+                NTA_CHECK( data.size() == self.size );
+                self.setDense( data ); },
 R"(A numpy array of boolean values, representing all of the bits in the SDR.
 This format allows random-access queries of the SDRs values.
 
@@ -159,8 +160,9 @@ to update the other data formats.)");
                 auto capsule = py::capsule(&self, [](void *self) {});
                 return py::array(self.getSum(), self.getFlatSparse().data(), capsule);
             },
-            [](SDR &self, SDR_flatSparse_t data)
-                { self.setFlatSparse( data ); },
+            [](SDR &self, SDR_flatSparse_t data) {
+                NTA_CHECK( data.size() <= self.size );
+                self.setFlatSparse( data ); },
 R"(A numpy array containing the indices of only the true values in the SDR.
 These are indices into the flattened SDR. This format allows for quickly
 accessing all of the true bits in the SDR.)");
@@ -176,15 +178,18 @@ accessing all of the true bits in the SDR.)");
                 }
                 return outer;
             },
-            [](SDR &self, SDR_sparse_t data)
-                { self.setSparse( data ); },
+            [](SDR &self, SDR_sparse_t data) {
+                NTA_CHECK( data.size() == self.dimensions.size() );
+                self.setSparse( data ); },
 R"(List of numpy arrays, containing the indices of only the true values in the
 SDR.  This is a list of lists: the outter list contains an entry for each
 dimension in the SDR. The inner lists contain the coordinates of each true bit.
 The inner lists run in parallel. This format is useful because it contains the
 location of each true bit inside of the SDR's dimensional space.)");
 
-        py_SDR.def("setSDR", &SDR::setSDR,
+        py_SDR.def("setSDR", [](SDR &self, SDR &other) {
+            NTA_CHECK( self.dimensions == other.dimensions );
+            self.setSDR( other ); },
 R"(Deep Copy the given SDR to this SDR.  This overwrites the current value of this
 SDR.  This SDR and the given SDR will have no shared data and they can be
 modified without affecting each other.)");
@@ -197,8 +202,10 @@ R"(Calculates the sparsity of the SDR, which is the fraction of bits which are
 true out of the total number of bits in the SDR.
 I.E.  sparsity = sdr.getSum() / sdr.size)");
 
-        py_SDR.def("getOverlap", &SDR::getOverlap,
-            "Calculates the number of true bits which both SDRs have in common.");
+        py_SDR.def("getOverlap", [](SDR &self, SDR &other) {
+            NTA_CHECK( self.dimensions == other.dimensions );
+            return self.getOverlap( other ); },
+"Calculates the number of true bits which both SDRs have in common.");
 
         py_SDR.def("randomize",
             [](SDR &self, Real sparsity, UInt seed) {
