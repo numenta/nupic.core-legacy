@@ -403,7 +403,7 @@ std::shared_ptr<Byte> StringUtils::toByteArray(const std::string &s,  Size bitCo
 
   // Put this into the mask
   Size numBytes = (bitCount+7) / 8;
-  std::shared_ptr<Byte> mask(new Byte[numBytes], std::default_delete<char[]>());
+  std::shared_ptr<Byte> mask(new Byte[numBytes], std::default_delete<Byte[]>());
   Byte* maskP = mask.get();
   ::memset(maskP, 0, numBytes);
   for (auto &elem : list) {

@@ -163,7 +163,7 @@ protected:
         dense_valid      = false;
         flatSparse_valid = false;
         sparse_valid     = false;
-    };
+    }
 
     /**
      * Notify everyone that this SDR's value has officially changed.
@@ -255,7 +255,7 @@ public:
     SparseDistributedRepresentation() {}
 
     /**
-     * Create an SDR object.  Initially SDRs value is all zeros.
+     * Create an SDR object.  The initial value is all zeros.
      *
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.  The product of the dimensions must be greater than zero.
@@ -528,7 +528,7 @@ public:
      * @param value A vector<vector<UInt>> containing the coordinates of the
      * true values to swap into the SDR.
      */
-    void setSparse( vector<vector<UInt>> &value ) {
+    void setSparse( SDR_sparse_t &value ) {
         sparse.swap( value );
         setSparseInplace();
     }
@@ -547,10 +547,7 @@ public:
     void setSparse( const vector<vector<T>> &value ) {
         NTA_ASSERT(value.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            sparse[dim].clear();
-            for(auto itm: value[dim]) {
-                sparse[dim].push_back((UInt)itm);
-            }
+            sparse[dim].assign( value[dim].begin(), value[dim].end() );
         }
         setSparseInplace();
     }
@@ -644,12 +641,8 @@ public:
      * @returns Integer, the number of true values which both SDRs have in
      * common.
      */
-    UInt overlap(SparseDistributedRepresentation &sdr) {
-        #ifdef NTA_ASSERTIONS_ON
-            NTA_ASSERT( dimensions.size() == sdr.dimensions.size() );
-            for( UInt i = 0u; i < dimensions.size(); i++ )
-                NTA_ASSERT( dimensions[i] == sdr.dimensions[i] );
-        #endif
+    UInt getOverlap(SparseDistributedRepresentation &sdr) {
+        NTA_ASSERT( dimensions == sdr.dimensions );
 
         UInt ovlp = 0u;
         const auto a = this->getDense();
@@ -665,10 +658,8 @@ public:
      *
      * @param sparsity The sparsity of the randomly generated SDR.
      *
-     * Both of the following parameters are optional, if neither is given then
-     * the seed 0 is used.
-     * @param seed The seed for the random number generator.
-     * @param rng The random number generator to draw from.
+     * @param rng The random number generator to draw from.  If not given, this
+     * makes one using the magic seed 0.
      */
     void randomize(Real sparsity) {
         Random rng( 0 );
@@ -696,10 +687,8 @@ public:
      * @param fractionNoise The fraction of active bits to swap out.  The
      * original and resulting SDRs have an overlap of (1 - fractionNoise).
      *
-     * Both of the following parameters are optional, if neither is given then
-     * the seed 0 is used.
-     * @param seed The seed for the random number generator.
-     * @param rng The random number generator to draw from.
+     * @param rng The random number generator to draw from.  If not given, this
+     * makes one using the magic seed 0.
      */
     void addNoise(Real fractionNoise) {
         Random rng( 0 );

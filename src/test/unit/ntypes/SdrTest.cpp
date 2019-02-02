@@ -152,7 +152,7 @@ TEST(SdrTest, TestSetDenseUInt) {
     auto vec = vector<UInt>(a.size, 1);
     a.setDense( (UInt*) vec.data() );
     ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 1) );
-    ASSERT_NE( a.getDense().data(), (const char*) vec.data()); // true copy not a reference
+    ASSERT_NE( a.getDense().data(), (const Byte*) vec.data()); // true copy not a reference
 }
 
 TEST(SdrTest, TestSetDenseArray) {
@@ -505,17 +505,17 @@ TEST(SdrTest, TestPrint) {
     cout << sdr3;
 }
 
-TEST(SdrTest, TestOverlap) {
+TEST(SdrTest, TestGetOverlap) {
     SDR a({3, 3});
     a.setDense(SDR_dense_t({1, 1, 1, 1, 1, 1, 1, 1, 1}));
     SDR b(a);
-    ASSERT_EQ( a.overlap( b ), 9ul );
+    ASSERT_EQ( a.getOverlap( b ), 9ul );
     b.zero();
-    ASSERT_EQ( a.overlap( b ), 0ul );
+    ASSERT_EQ( a.getOverlap( b ), 0ul );
     b.setDense(SDR_dense_t({0, 1, 0, 0, 1, 0, 0, 0, 1}));
-    ASSERT_EQ( a.overlap( b ), 3ul );
+    ASSERT_EQ( a.getOverlap( b ), 3ul );
     a.zero(); b.zero();
-    ASSERT_EQ( a.overlap( b ), 0ul );
+    ASSERT_EQ( a.getOverlap( b ), 0ul );
 }
 
 TEST(SdrTest, TestRandomize) {
@@ -613,7 +613,7 @@ TEST(SdrTest, TestAddNoise) {
     for( UInt x = 0; x <= 100; x++ ) {
         b.setSDR( a );
         b.addNoise( (Real)x / 100.0f );
-        ASSERT_EQ( a.overlap( b ), 100 - x );
+        ASSERT_EQ( a.getOverlap( b ), 100 - x );
         ASSERT_EQ( b.getSum(), 100ul );
     }
 }
