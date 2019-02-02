@@ -32,7 +32,7 @@
 
 #include <iostream>
 
-#include "regionTestUtilities.hpp"
+#include "RegionTestUtilities.hpp"
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
