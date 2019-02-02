@@ -104,6 +104,11 @@ set(os_tests
 	   unit/os/TimerTest.cpp
 	   )
 	   
+set(regions_tests
+       unit/regions/BacktrackingTMRegionTest.cpp
+       unit/regions/TMRegionTest.cpp
+       )
+	   
 set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
