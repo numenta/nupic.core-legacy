@@ -304,7 +304,8 @@ Example Usage:
     A.sparse =  ([1, 1, 2], [0, 1, 2])
     B.sparse -> ([2, 2, 5], [0, 1, 0])
 
-SDR_Proxy does not support pickle)");
+SDR_Proxy supports pickle, however loading a pickled SDR proxy will return an
+SDR, not an SDR_Proxy.)");
 
         py_Proxy.def( py::init<SDR&, vector<UInt>>(),
 R"(Argument sdr is the data source make a view of.

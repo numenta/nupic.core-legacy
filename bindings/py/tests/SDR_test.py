@@ -346,3 +346,7 @@ class SdrProxyTest(unittest.TestCase):
         assert( len(C.flatSparse) == A.size )
         assert( len(D.flatSparse) == A.size )
         del B
+
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    def testPickle(self):
+        assert(False) # TODO: Unimplemented
