@@ -177,7 +177,7 @@ void SPRegion::compute() {
     if (!logPathOutput_.empty()) {
       FILE *fp = fopen(logPathOutput_.c_str(), "a");
       if (fp) {
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
           if (outputVector[i])
             fprintf(fp, "%d ", i);
         }
@@ -190,7 +190,7 @@ void SPRegion::compute() {
     if (!logPathInput_.empty()) {
       FILE *fp = fopen(logPathInput_.c_str(), "a");
       if (fp) {
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
           if (outputVector[i])
             fprintf(fp, "%d ", i);
         }
