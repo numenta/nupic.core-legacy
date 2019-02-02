@@ -179,7 +179,7 @@ void SPRegion::compute() {
       if (fp) {
         for (size_t i = 0; i < size; i++) {
           if (outputVector[i])
-            fprintf(fp, "%d ", i);
+            fprintf(fp, "%zu ", i);
         }
         fprintf(fp, "\n");
         fclose(fp);
@@ -192,7 +192,7 @@ void SPRegion::compute() {
       if (fp) {
         for (size_t i = 0; i < size; i++) {
           if (outputVector[i])
-            fprintf(fp, "%d ", i);
+            fprintf(fp, "%zu ", i);
         }
         fprintf(fp, "\n");
         fclose(fp);
