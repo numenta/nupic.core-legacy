@@ -24,6 +24,7 @@ import pickle
 import numpy as np
 import unittest
 import pytest
+import time
 
 from nupic.bindings.algorithms import SDR, SDR_Proxy
 
@@ -33,9 +34,9 @@ class SdrTest(unittest.TestCase):
         X = SDR(dimensions = (3, 3))
 
         # These three statements are equivalent.
-        X.dense = [0, 1, 0,
-                   0, 1, 0,
-                   0, 0, 1]
+        X.dense = [[0, 1, 0],
+                   [0, 1, 0],
+                   [0, 0, 1]]
         assert( X.dense.tolist() == [[ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ]] )
         assert( [list(v) for v in X.sparse] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
         assert( list(X.flatSparse) == [ 1, 4, 8 ] )
@@ -62,7 +63,7 @@ class SdrTest(unittest.TestCase):
         data = X.dense
         data[  0,   4] = 1
         data[444, 444] = 1
-        X.setDenseInplace()
+        X.dense = data
         assert(list(X.flatSparse) == [ 4, 444444 ])
 
     def testConstructor(self):
@@ -100,7 +101,7 @@ class SdrTest(unittest.TestCase):
         A.dense[99] = 1
         assert(A.dense[0] + A.dense[99] == 2)
         # Test modify in-place
-        A.setDenseInplace()
+        A.dense = A.dense
         assert(set(A.flatSparse) == set((0, 99)))
         # Test dense dimensions
         assert(B.dense.shape == (100, 100, 1))
@@ -108,7 +109,7 @@ class SdrTest(unittest.TestCase):
         B.dense[0, 0, 0] += 1
         B.dense[66, 2, 0] += 1
         B.dense[99, 99, 0] += 1
-        B.dense = B.dense.reshape(-1)
+        B.dense = B.dense
         # Test wrong dimensions assigned
         C = SDR(( A.size + 1 ))
         C.randomize( .5 )
@@ -123,6 +124,28 @@ class SdrTest(unittest.TestCase):
         A.dense = np.ones(  A.size, dtype=np.uint64 )
         A.dense = np.zeros( A.size, dtype=np.int8 )
         A.dense = [1] * A.size
+        B.dense = [[[1]] * 100 for _ in range(100)]
+
+    def testDenseInplace(self):
+        # Check that assigning dense data to itself (ie: sdr.dense = sdr.dense)
+        # is significantly faster than copying the data on assignment.
+
+        # Also, it should not be *too* much faster because this test-case is
+        # tuned to very fast in both situations.
+        A = SDR( 10*1000 )
+        B = np.copy(A.dense)
+
+        copy_time = time.clock()
+        for i in range(100):
+            A.dense = B
+        copy_time = time.clock() - copy_time
+
+        inplace_time = time.clock()
+        for i in range(100):
+            A.dense = A.dense
+        inplace_time = time.clock() - inplace_time
+
+        assert( inplace_time < copy_time / 3 )
 
     def testFlatSparse(self):
         A = SDR((103,))
@@ -173,7 +196,7 @@ class SdrTest(unittest.TestCase):
         assert( B.dense[66] == 1 )
         assert( B.getSum() == 1 )
         B.dense[77] = 1
-        B.setDenseInplace()
+        B.dense = B.dense
         A.setSDR( B )
         assert( set(A.flatSparse) == set((66, 77)) )
 
@@ -190,15 +213,13 @@ class SdrTest(unittest.TestCase):
     def testGetSum(self):
         A = SDR((103,))
         assert(A.getSum() == 0)
-        A.dense.fill(1)
-        A.setDenseInplace()
+        A.dense = np.ones( A.size )
         assert(A.getSum() == 103)
 
     def testGetSparsity(self):
         A = SDR((103,))
         assert(A.getSparsity() == 0)
-        A.dense.fill(1)
-        A.setDenseInplace()
+        A.dense = np.ones( A.size )
         assert(A.getSparsity() == 1)
 
     def testGetOverlap(self):
@@ -208,18 +229,18 @@ class SdrTest(unittest.TestCase):
 
         A.dense[:10] = 1
         B.dense[:20] = 1
-        A.setDenseInplace()
-        B.setDenseInplace()
+        A.dense = A.dense
+        B.dense = B.dense
         assert(A.getOverlap(B) == 10)
 
         A.dense[:20] = 1
-        A.setDenseInplace()
+        A.dense = A.dense
         assert(A.getOverlap(B) == 20)
 
         A.dense[50:60] = 1
         B.dense[0] = 0
-        A.setDenseInplace()
-        B.setDenseInplace()
+        A.dense = A.dense
+        B.dense = B.dense
         assert(A.getOverlap(B) == 19)
 
         # Test wrong dimensions
@@ -271,13 +292,13 @@ class SdrTest(unittest.TestCase):
         A.dense[0] = 1
         A.dense[9] = 1
         A.dense[102] = 1
-        A.setDenseInplace()
+        A.dense = A.dense
         assert(str(A) == "SDR( 103 ) 0, 9, 102")
         A.zero()
         assert(str(A) == "SDR( 103 )")
         B.dense[0, 0, 0] = 1
         B.dense[99, 99, 0] = 1
-        B.setDenseInplace()
+        B.dense = B.dense
         assert(str(B) == "SDR( 100, 100, 1 ) 0, 9999")
 
     @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
@@ -312,7 +333,7 @@ class SdrProxyTest(unittest.TestCase):
         D = SDR_Proxy(B)
 
         A.dense.fill( 1 )
-        A.setDenseInplace()
+        A.dense = A.dense
         assert( len(C.flatSparse) == A.size )
         assert( len(D.flatSparse) == A.size )
         del B

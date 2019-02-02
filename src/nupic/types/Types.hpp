@@ -44,11 +44,7 @@ namespace nupic {
 /**
  * Represents a 8-bit byte.
  */
-#if defined(NTA_OS_WINDOWS) && defined(NTA_COMPILER_MSVC)
-  typedef __int8 Byte;
-#else
-  typedef int8_t Byte;
-#endif
+typedef char Byte;
 
 /**
  * Represents a 16-bit signed integer.

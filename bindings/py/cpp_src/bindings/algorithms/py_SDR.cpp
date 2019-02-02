@@ -58,9 +58,9 @@ Example usage:
     X = SDR(dimensions = (3, 3))
 
     # These three statements are equivalent.
-    X.dense = [0, 1, 0,
-               0, 1, 0,
-               0, 0, 1]
+    X.dense  = [[0, 1, 0],
+                [0, 1, 0],
+                [0, 0, 1]]
     X.sparse = [[0, 1, 2], [1, 1, 2]]
     X.flatSparse = [ 1, 4, 8 ]
 
@@ -80,15 +80,16 @@ Example usage:
     X.dense     # This line will resuse the result of the previous line
 
 Assigning a value to the SDR requires copying the data from Python into C++. To
-avoid this copy operation: modify sdr.dense inplace, and call method
-sdr.setDenseInplace() when done to notify the SDR that it's data has changed.
+avoid this copy operation: modify sdr.dense inplace, and assign it to itself.
+This class will detect that it's being given it's own data and will omit the
+copy operation.
 
-Example Usage:
-    X = SDR((1000, 1000))
+Example Usage of In-Place Assignment:
+    X    = SDR((1000, 1000))
     data = X.dense
     data[  0,   4] = 1
     data[444, 444] = 1
-    X.setDenseInplace()
+    X.dense = data
     X.flatSparse -> [ 4, 444444 ]
 )");
 
@@ -141,20 +142,22 @@ current value.)");
                 }
                 return py::array(self.dimensions, strides, self.getDense().data(), capsule);
             },
-            [](SDR &self, SDR_dense_t data) {
-                NTA_CHECK( data.size() == self.size );
-                self.setDense( data ); },
+            [](SDR &self, py::array_t<Byte> dense) {
+                py::buffer_info buf = dense.request();
+                NTA_CHECK( (UInt) buf.size == self.size );
+                NTA_CHECK( (UInt) buf.ndim == self.dimensions.size() );
+                Byte *data = (Byte*) buf.ptr;
+                if( data == self.getDense().data() )
+                    // We got our own data back, set inplace instead of copying.
+                    self.setDense( self.getDense() );
+                else
+                    self.setDense( data ); },
 R"(A numpy array of boolean values, representing all of the bits in the SDR.
 This format allows random-access queries of the SDRs values.
 
-After modifying the dense array you MUST call sdr.setDenseInplace() in order to
-notify the SDR that its dense array has changed and its cached data is out of
-date.)");
-
-        py_SDR.def("setDenseInplace", [](SDR &self)
-            { self.setDense( self.getDense() ); },
-R"(Notify the SDR that its dense formatted data has been changed, and that it needs
-to update the other data formats.)");
+After modifying this array you MUST assign the array back into the SDR, in order
+to notify the SDR that its dense array has changed and its cached data is out of
+date.  If you did't copy this data, then SDR won't copy either.)");
 
         py_SDR.def_property("flatSparse",
             [](SDR &self) {

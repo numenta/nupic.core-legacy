@@ -163,7 +163,7 @@ protected:
         dense_valid      = false;
         flatSparse_valid = false;
         sparse_valid     = false;
-    };
+    }
 
     /**
      * Notify everyone that this SDR's value has officially changed.
