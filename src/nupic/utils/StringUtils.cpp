@@ -394,17 +394,17 @@ bool StringUtils::toIntListNoThrow(const std::string &s, std::vector<Int> &list,
 
 
 //--------------------------------------------------------------------------------
-std::shared_ptr<char> StringUtils::toByteArray(const std::string &s,  Size bitCount) {
+std::shared_ptr<Byte> StringUtils::toByteArray(const std::string &s,  Size bitCount) {
   // Get list of integers
   std::vector<Int> list;
   toIntList(s, list, true /*allowAll*/);
   if (list.empty())
-    return std::shared_ptr<char>(nullptr);
+    return std::shared_ptr<Byte>(nullptr);
 
   // Put this into the mask
   Size numBytes = (bitCount+7) / 8;
-  std::shared_ptr<char> mask(new char[numBytes], std::default_delete<char[]>());
-  char* maskP = mask.get();
+  std::shared_ptr<Byte> mask(new Byte[numBytes], std::default_delete<Byte[]>());
+  Byte* maskP = mask.get();
   ::memset(maskP, 0, numBytes);
   for (auto &elem : list) {
     UInt entry = elem;
