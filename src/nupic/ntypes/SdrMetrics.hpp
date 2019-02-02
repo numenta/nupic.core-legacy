@@ -42,7 +42,7 @@ namespace nupic {
  *
  * Subclasses must override method "callback".
  */
-class _SDR_MetricsHelper {
+class SDR_MetricsHelper_ {
 protected:
     UInt period_;
     int  samples_;
@@ -57,7 +57,7 @@ protected:
      *
      * @param period Time scale for exponential moving average.
      */
-    _SDR_MetricsHelper( const vector<UInt> dimensions, UInt period ) {
+    SDR_MetricsHelper_( const vector<UInt> dimensions, UInt period ) {
         NTA_CHECK( period > 0u );
         NTA_CHECK( dimensions.size() > 0 );
         dimensions_ = dimensions,
@@ -75,8 +75,8 @@ protected:
      *
      * @param period Time scale for exponential moving average.
      */
-    _SDR_MetricsHelper( SDR &dataSource, UInt period )
-        : _SDR_MetricsHelper(dataSource.dimensions, period)
+    SDR_MetricsHelper_( SDR &dataSource, UInt period )
+        : SDR_MetricsHelper_(dataSource.dimensions, period)
     {
         dataSource_ = &dataSource;
         callback_handle_ = dataSource_->addCallback( [&](){
@@ -124,7 +124,7 @@ public:
         callback( data, 1.0f / std::min( period_, (UInt) ++samples_ ));
     }
 
-    ~_SDR_MetricsHelper() {
+    ~SDR_MetricsHelper_() {
         deconstruct();
     }
 };
@@ -149,7 +149,7 @@ public:
  *      B.std()    -> ~0.06
  *      cout << B  -> Sparsity Min/Mean/Std/Max 0.01 / 0.0700033 / 0.0588751 / 0.15
  */
-class SDR_Sparsity : public _SDR_MetricsHelper {
+class SDR_Sparsity : public SDR_MetricsHelper_ {
 private:
     Real min_;
     Real max_;
@@ -185,7 +185,7 @@ public:
      * @param period Time scale for exponential moving average.
      */
     SDR_Sparsity( SDR &dataSource, UInt period )
-        : _SDR_MetricsHelper( dataSource, period )
+        : SDR_MetricsHelper_( dataSource, period )
         { initialize(); }
 
     /**
@@ -195,7 +195,7 @@ public:
      * @param period Time scale for exponential moving average.
      */
     SDR_Sparsity( const vector<UInt> dimensions, UInt period )
-        : _SDR_MetricsHelper( dimensions, period )
+        : SDR_MetricsHelper_( dimensions, period )
         { initialize(); }
 
     const Real &sparsity = sparsity_;
@@ -238,7 +238,7 @@ public:
  *      cout << B   -> Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
  *                     Entropy 0.918296
  */
-class SDR_ActivationFrequency : public _SDR_MetricsHelper {
+class SDR_ActivationFrequency : public SDR_MetricsHelper_ {
 private:
     vector<Real> activationFrequency_;
 
@@ -265,7 +265,7 @@ public:
      * @param period Time scale for exponential moving average.
      */
     SDR_ActivationFrequency( SDR &dataSource, UInt period )
-        : _SDR_MetricsHelper( dataSource, period )
+        : SDR_MetricsHelper_( dataSource, period )
         { initialize( dataSource.size ); }
 
     /**
@@ -276,7 +276,7 @@ public:
      * @param period Time scale for exponential moving average.
      */
     SDR_ActivationFrequency( const vector<UInt> dimensions, UInt period )
-        : _SDR_MetricsHelper( dimensions, period )
+        : SDR_MetricsHelper_( dimensions, period )
         {
             UInt size = 1;
             for(const auto &dim : dimensions)
@@ -379,7 +379,7 @@ public:
  *      B.std()     -> ~0.16
  *      cout << B   -> Overlap Min/Mean/Std/Max 0.05 / 0.260016 / 0.16389 / 0.45
  */
-class SDR_Overlap : public _SDR_MetricsHelper {
+class SDR_Overlap : public SDR_MetricsHelper_ {
 private:
     SDR  previous_;
     Real overlap_;
@@ -390,7 +390,7 @@ private:
 
     void initialize() {
         // This class needs two samples before its data is valid, instead of one
-        // sample like _SDR_MetricsHelper class  expects, so start the samples
+        // sample like SDR_MetricsHelper_ class  expects, so start the samples
         // counter one behind.
         samples_   -=  1;
         overlap_    =  1234.56789f;
@@ -428,7 +428,7 @@ public:
      * @param period Time scale for exponential moving average.
      */
     SDR_Overlap( SDR &dataSource, UInt period )
-        : _SDR_MetricsHelper( dataSource, period ),
+        : SDR_MetricsHelper_( dataSource, period ),
           previous_( dataSource.dimensions )
         { initialize(); }
 
@@ -439,7 +439,7 @@ public:
      * @param period Time scale for exponential moving average.
      */
     SDR_Overlap( const vector<UInt> dimensions, UInt period )
-        : _SDR_MetricsHelper( dimensions, period ),
+        : SDR_MetricsHelper_( dimensions, period ),
           previous_( dimensions )
         { initialize(); }
 

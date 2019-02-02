@@ -33,23 +33,23 @@ namespace nupic_ext
 {
     void init_SDR_Metrics(py::module& m)
     {
-        py::class_<_SDR_MetricsHelper> py_Helper(m, "_SDR_MetricsHelper");
-        py_Helper.def( "addData", &_SDR_MetricsHelper::addData,
+        py::class_<SDR_MetricsHelper_> py_Helper(m, "SDR_MetricsHelper_");
+        py_Helper.def( "addData", &SDR_MetricsHelper_::addData,
 R"(Add an SDR datum to this Metric.  This method can only be called if the
 Metric was constructed with dimensions and NOT an SDR.
 
 Argument sdr is data source, its dimensions must be the same as this Metric's
 dimensions.)");
         py_Helper.def_property_readonly( "period",
-            [](const _SDR_MetricsHelper &self){ return self.period; });
+            [](const SDR_MetricsHelper_ &self){ return self.period; });
         py_Helper.def_property_readonly( "samples",
-            [](const _SDR_MetricsHelper &self){ return self.samples; });
+            [](const SDR_MetricsHelper_ &self){ return self.samples; });
         py_Helper.def_property_readonly( "dimensions",
-            [](const _SDR_MetricsHelper &self){ return self.dimensions; });
+            [](const SDR_MetricsHelper_ &self){ return self.dimensions; });
 
         // =====================================================================
         // SDR SPARSITY
-        py::class_<SDR_Sparsity, _SDR_MetricsHelper> py_Sparsity(m, "SDR_Sparsity",
+        py::class_<SDR_Sparsity, SDR_MetricsHelper_> py_Sparsity(m, "SDR_Sparsity",
 R"(Measures the sparsity of an SDR.  This accumulates measurements using an
 exponential moving average, and outputs a summary of results.
 
@@ -91,7 +91,7 @@ Argument period is time scale for exponential moving average.)",
 
         // =====================================================================
         // SDR ACTIVATION FREQUENCY
-        py::class_<SDR_ActivationFrequency, _SDR_MetricsHelper>
+        py::class_<SDR_ActivationFrequency, SDR_MetricsHelper_>
             py_ActivationFrequency(m, "SDR_ActivationFrequency",
 R"(Measures the activation frequency of each value in an SDR.  This accumulates
 measurements using an exponential moving average, and outputs a summary of
@@ -151,7 +151,7 @@ Returns binary entropy of SDR, scaled to range [0, 1].)");
 
         // =====================================================================
         // SDR OVERLAP
-        py::class_<SDR_Overlap, _SDR_MetricsHelper> py_Overlap(m, "SDR_Overlap",
+        py::class_<SDR_Overlap, SDR_MetricsHelper_> py_Overlap(m, "SDR_Overlap",
 R"(Measures the overlap between successive assignments to an SDR.  This class
 accumulates measurements using an exponential moving average, and outputs a
 summary of results.
