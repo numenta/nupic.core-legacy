@@ -113,12 +113,18 @@ class SdrTest(unittest.TestCase):
         # Test wrong dimensions assigned
         C = SDR(( A.size + 1 ))
         C.randomize( .5 )
-        try:
-            A.dense = C.dense.reshape(-1)
-        except RuntimeError:
-            pass
-        else:
-            self.fail()
+        test_cases = [
+            (SDR(1), SDR(2)),
+            (SDR(100),      SDR((100, 1))),
+            (SDR((1, 100)), SDR((100, 1))),
+        ]
+        for left, right in test_cases:
+            try:
+                left.dense = right.dense
+            except RuntimeError:
+                pass
+            else:
+                self.fail()
         # Test assign data.
         A.dense = np.zeros( A.size, dtype=np.int16 )
         A.dense = np.ones(  A.size, dtype=np.uint64 )
@@ -154,6 +160,9 @@ class SdrTest(unittest.TestCase):
         A.flatSparse
         B.flatSparse = [1,2,3,4]
         assert(all(B.flatSparse == np.array([1,2,3,4])))
+
+        B.flatSparse = []
+        assert( not B.dense.any() )
 
         # Test wrong dimensions assigned
         C = SDR( 1000 )

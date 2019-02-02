@@ -91,6 +91,28 @@ Example Usage of In-Place Assignment:
     data[444, 444] = 1
     X.dense = data
     X.flatSparse -> [ 4, 444444 ]
+
+Data Validity Warning:  The SDR allocates and frees its data when it is
+constructed and deconstructed, respectively.  If you have a numpy array which
+came from an SDR, then you either need to copy the data or ensure that the SDR
+remains in scope by holding a reference to it.
+Examples of Invalid Data Accesses:
+    A = SDR( dimensions )
+    use_after_free = A.dense
+    del A
+    # The variable "use_after_free" now references data which has been deallocated.
+    # Another way this can happen is:
+    use_after_free = SDR( dimensions ).sparse
+    use_after_free = SDR( dimensions ).flatSparse
+
+Data Validity Warning:  After assigning a new value to the SDR, all existing
+numpy arrays of data are invalid.  In order to get the latest copy of the data,
+re-access the data from the SDR.  Examples:
+    A = SDR( dimensions )
+    out_of_date = A.dense
+    A.flatSparse = []
+    # The variable "out_of_date" is now liable to be overwritten.
+    A.dense = out_of_date   # This does not work, since the data is invalid.
 )");
 
         py_SDR.def(
@@ -144,8 +166,10 @@ current value.)");
             },
             [](SDR &self, py::array_t<Byte> dense) {
                 py::buffer_info buf = dense.request();
-                NTA_CHECK( (UInt) buf.size == self.size );
                 NTA_CHECK( (UInt) buf.ndim == self.dimensions.size() );
+                for(auto dim = 0u; dim < self.dimensions.size(); dim++) {
+                    NTA_CHECK( (UInt) buf.shape[dim] == self.dimensions[dim] );
+                }
                 Byte *data = (Byte*) buf.ptr;
                 if( data == self.getDense().data() )
                     // We got our own data back, set inplace instead of copying.
