@@ -537,6 +537,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     EXPECT_TRUE(a == b);
 
     a.populate(testdata);
+    //std::cerr << "ArrayTest:testArrayBasefunctions a=" << a << std::endl;
     nCols = testdata.size();
 
     // getMaxElementsCount, getCount, setCount, copy
@@ -554,7 +555,8 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     EXPECT_EQ(c.getCount(), a.getCount());
     EXPECT_TRUE(c.getBuffer() == a.getBuffer());
     EXPECT_EQ(a.getMaxElementsCount(), nCols);
-    EXPECT_EQ(a.getCount(), nCols);
+    if (testCase->second.dataType != NTA_BasicType_Sparse)
+      EXPECT_EQ(a.getCount(), nCols);
     EXPECT_EQ(a.getBufferSize(), nCols * testCase->second.dataTypeSize );
 
 
@@ -593,7 +595,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       if (testCase->second.dataType == NTA_BasicType_Bool) {
         EXPECT_EQ(v[0], 1);
         EXPECT_EQ(v[1], 1);
-      } else {
+      } else if (testCase->second.dataType != NTA_BasicType_Sparse){
         EXPECT_EQ(v[0], 6);
         EXPECT_EQ(v[1], 7);
       }
@@ -601,9 +603,10 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
 
     // toSparse
     Array e = a.get_as(NTA_BasicType_Sparse);
+    //std::cerr << "ArrayTest:testArrayBasefunctions e=" << e << std::endl;
     EXPECT_EQ(e.getType(), NTA_BasicType_Sparse);
-    EXPECT_EQ(e.getCount(), 10u); // There are 10 non-zero values a's data.
-    EXPECT_EQ(e.getMaxElementsCount(), a.getCount());
+    EXPECT_EQ(e.getCount(), 10u); // There are 10 non-zero values in a's data.
+    EXPECT_EQ(e.getMaxElementsCount(), a.getMaxElementsCount());
 
 
 
@@ -612,13 +615,13 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       EXPECT_TRUE(a == e); // both are Sparse formats.
 
       Array f(NTA_BasicType_Real32);
-      a.convertInto(f, 0);
-      EXPECT_EQ(f.getMaxElementsCount(), a.getCount());
+      a.convertInto(f);
+      //std::cerr << "ArrayTest:testArrayBasefunctions f=" << f << std::endl;
+      EXPECT_EQ(f.getMaxElementsCount(), a.getMaxElementsCount());
       Real32 *ptr_f = (Real32*)f.getBuffer();
       Int32 *ptr_a = (Int32*)a.getBuffer();
-      for (size_t i = 0; i < f.getCount(); i++)
+      for (size_t i = 0; i < a.getCount(); i++)
         EXPECT_TRUE((ptr_f[ptr_a[i]] != 0.0f));
-
     }
   }
 }

@@ -103,7 +103,7 @@ function(MERGE_STATIC_LIBRARIES LIB_TARGET STATIC_LIBS)
     get_filename_component(lib_path "${CMAKE_LINKER}" DIRECTORY)
     add_custom_command(
       TARGET ${LIB_TARGET} POST_BUILD
-      COMMAND "${lib_path}/Lib.exe" ARGS "/VERBOSE" "/OUT:$<TARGET_FILE:${LIB_TARGET}>" ${static_lib_locations}
+      COMMAND "${lib_path}/Lib.exe" ARGS  "/OUT:$<TARGET_FILE:${LIB_TARGET}>" ${static_lib_locations}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       COMMAND_EXPAND_LISTS
       VERBATIM

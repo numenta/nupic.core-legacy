@@ -173,7 +173,12 @@ namespace nupic
      */
     bool isInstance(const ArrayBase &a) const;
 
-
+    void inline RefreshCache() {
+      if (type_ == NTA_BasicType_SDR) {
+        SDR *sdr = getSDR();
+        sdr->setDense(sdr->getDense());
+      }
+    }
     /**
     * serialization and deserialization for an Array and ArrayBase
     */
@@ -196,12 +201,12 @@ namespace nupic
     bool own_;
 
     // Buffer array conversion routines
-    void convertInto(ArrayBase &a, size_t offset=0) const;
+    void convertInto(ArrayBase &a, size_t offset=0, size_t maxsize=0) const;
 
     // Used by the Array class to return an NZ array from local array.
     // The SDR class makes this function obsolete but we keep it for conversions.
     void toSparse(ArrayBase& a, size_t offset) const;
-    void fromSparse(ArrayBase &a, size_t size, size_t offset) const;
+    void fromSparse(ArrayBase &a, size_t offset) const;
 
   private:
 
