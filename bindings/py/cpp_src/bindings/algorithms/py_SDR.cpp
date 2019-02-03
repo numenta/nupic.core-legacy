@@ -23,8 +23,8 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/ntypes/Sdr.hpp>
-#include <nupic/ntypes/SdrProxy.hpp>
+#include <nupic/types/Sdr.hpp>
+#include <nupic/types/SdrProxy.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
 
 namespace py = pybind11;

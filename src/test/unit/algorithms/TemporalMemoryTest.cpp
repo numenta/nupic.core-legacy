@@ -28,7 +28,7 @@
 #include <fstream>
 #include <nupic/math/StlIo.hpp>
 #include <nupic/types/Types.hpp>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 #include <nupic/utils/Log.hpp>
 #include <stdio.h>
 
