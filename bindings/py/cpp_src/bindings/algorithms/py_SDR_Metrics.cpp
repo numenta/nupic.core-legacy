@@ -22,7 +22,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <nupic/ntypes/SdrMetrics.hpp>
+#include <nupic/utils/SdrMetrics.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
 
 namespace py = pybind11;
