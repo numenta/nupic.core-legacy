@@ -33,7 +33,7 @@
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 
 using namespace std;
 

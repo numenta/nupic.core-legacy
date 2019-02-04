@@ -44,7 +44,7 @@
 #include <memory>	// for shared_ptr
 
 #include <nupic/types/Types.hpp>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 #include <nupic/types/Serializable.hpp>
 
 

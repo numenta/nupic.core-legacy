@@ -259,7 +259,7 @@ public:
       type_ = NTA_BasicType_SDR;
       allocateBuffer(dim);
     }
-    FreshenCache(); 
+    RefreshCache(); 
     getSDR()->setFlatSparse(vect);
   }
   /**

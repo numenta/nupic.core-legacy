@@ -23,7 +23,7 @@
 #define SDR_PROXY_HPP
 
 #include <vector>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 
@@ -101,7 +101,7 @@ public:
         return parent->getFlatSparse();
     }
 
-    SDR_sparse_t& getSparse() const override {
+    SDR_sparse_t& getSparse() override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         if( dimensions.size() == parent->dimensions.size() &&
             equal( dimensions.begin(), dimensions.end(),

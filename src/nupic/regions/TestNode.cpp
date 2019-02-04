@@ -640,6 +640,12 @@ size_t TestNode::getNodeOutputElementCount(const std::string &outputName) {
   if (outputName == "bottomUpOut") {
     return outputElementCount_;
   }
+  if (outputName == "sdrOut") {
+    return outputElementCount_;
+  }
+  if (outputName == "sparseOut") {
+    return outputElementCount_;
+  }
     NTA_THROW << "TestNode::getNodeOutputElementCount() -- unknown output " << outputName;
 }
 

@@ -16,8 +16,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Sdr.hpp>
-#include <nupic/ntypes/SdrProxy.hpp>
+#include <nupic/types/Sdr.hpp>
+#include <nupic/types/SdrProxy.hpp>
 #include <vector>
 #include <random>
 

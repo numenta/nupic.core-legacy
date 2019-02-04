@@ -103,6 +103,8 @@ void ArrayBase::allocateBuffer(size_t count) {
   // disambiguate uninitialized ArrayBases and ArrayBases initialized with
   // size zero.
   if (type_ == NTA_BasicType_SDR) {
+    count_ = count;
+    capacity_ = count_;
     std::vector<UInt> dimension;
     dimension.push_back((UInt)count);
     allocateBuffer(dimension);
@@ -117,8 +119,7 @@ void ArrayBase::allocateBuffer(size_t count) {
 }
 
 void ArrayBase::allocateBuffer(const std::vector<UInt> dimensions) { // only for SDR
-  NTA_CHECK(type_ == NTA_BasicType_SDR)
-      << "Dimensions can only be set on the SDR payload";
+  NTA_CHECK(type_ == NTA_BasicType_SDR) << "Dimensions can only be set on the SDR payload";
   SDR *sdr = new SDR(dimensions);
   std::shared_ptr<char> sp((char *)(sdr));
   buffer_ = sp;
@@ -132,8 +133,11 @@ void ArrayBase::allocateBuffer(const std::vector<UInt> dimensions) { // only for
  */
 void ArrayBase::zeroBuffer() {
   if (buffer_) {
-    if (type_ == NTA_BasicType_SDR)
-      ((SDR *)(buffer_.get()))->zero();
+    if (type_ == NTA_BasicType_SDR) {
+      if (count_ > 0) {
+        getSDR()->zero();
+      }
+    }
     else
       std::memset(buffer_.get(), 0, capacity_);
   }
@@ -165,8 +169,7 @@ void ArrayBase::releaseBuffer() {
 }
 
 void *ArrayBase::getBuffer() {
-  if (buffer_ != nullptr && type_ == NTA_BasicType_SDR) {
-    SDR *sdr = getSDR();
+  if (type_ == NTA_BasicType_SDR) {
     return getSDR()->getDense().data();
   }
   return buffer_.get();
@@ -315,7 +318,8 @@ template <typename T> static void NonZeroT(ArrayBase& a, const ArrayBase* b, siz
 // multiple times to populate different offsets in the buffer. Each new index
 // is appended to the buffer.
 void ArrayBase::toSparse(ArrayBase &a, size_t offset) const {
-  UInt32 *p1, *p2;
+  UInt32 *p1;
+  const UInt32 *p2;
 
   a.type_ = NTA_BasicType_Sparse;  // to Array of type Sparse
   switch (type_) {   // coming from Array of this type
@@ -351,9 +355,9 @@ void ArrayBase::toSparse(ArrayBase &a, size_t offset) const {
     break;
   case NTA_BasicType_SDR: 
     {
-      // from sparse part of SDR
+      // from the sparse portion of the SDR
       const SDR *sdr = getSDR();
-      SDR_flatSparse_t &v = sdr->getFlatSparse();
+      const SDR_flatSparse_t &v = sdr->getFlatSparse();
       p1 = (UInt32 *)a.getBuffer(); 
       p2 = v.data();
       size_t j = a.getCount(); // current end of buffer.

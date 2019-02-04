@@ -25,7 +25,7 @@
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Exception.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 
 
 using namespace nupic;
