@@ -40,9 +40,6 @@
 
 namespace nupic {
 
-// Represents 'zero' scalar value used to compare Input/Output buffer contents
-// for non-zero values
-const static Real64 ZERO_VALUE = 0;
 
 Link::Link(const std::string &linkType, const std::string &linkParams,
            const std::string &srcRegionName, const std::string &destRegionName,
