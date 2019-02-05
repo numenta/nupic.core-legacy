@@ -85,6 +85,7 @@ void Link::commonConstructorInit_(const std::string &linkType,
   destInputName_ = destInputName;
   propagationDelay_ = propagationDelay;
   destOffset_ = 0;
+  is_FanIn_ = false;
   src_ = nullptr;
   dest_ = nullptr;
   initialized_ = false;
@@ -96,7 +97,7 @@ Link::~Link() { delete impl_; }
 
 
 
-void Link::initialize(size_t destinationOffset) {
+void Link::initialize(size_t destinationOffset, bool is_FanIn) {
   // Make sure all information is specified and
   // consistent. Unless there is a NuPIC implementation
   // error, all these checks are guaranteed to pass
@@ -156,6 +157,7 @@ void Link::initialize(size_t destinationOffset) {
 
 
   destOffset_ = destinationOffset;
+  is_FanIn_ = is_FanIn;
   impl_->initialize();
 
   // ---
@@ -322,10 +324,17 @@ void Link::compute() {
               << " --> " << BasicType::getName(dest.getType()) << std::endl;
   }
 
-  if (src.getType() == dest.getType() && destOffset_ == 0)
+	NTA_CHECK(src.getCount() + destOffset_ <= dest.getMaxElementsCount())
+        << "Not enough room in buffer to propogate to " << destRegionName_
+        << " " << destInputName_ << ". ";
+				
+  if (src.getType() == dest.getType() && !is_FanIn_)
     dest = src;   // Performs a shallow copy. Data not copied but passed in shared_ptr.
   else {
     // we must perform a deep copy with possible type conversion.
+    // It is copied into the destination Input
+    // buffer at the specified offset so an Input with multiple incoming links
+    // has the Output buffers appended into a single large Input buffer.
     src.convertInto(dest, destOffset_);
   }
 }
@@ -460,6 +469,7 @@ void Link::deserialize(std::istream &f) {
   f >> tag;
   NTA_CHECK(tag == "[")  << "Expected start of a sequence.";
   f >> count;
+  f.ignore(1);
   // if no propagationDelay (value = 0) then there should be an empty sequence.
   NTA_CHECK(count == propagationDelay_) << "Invalid network structure file -- "
             "link has " << count << " buffers in 'propagationDelayBuffer'. "

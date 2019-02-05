@@ -159,10 +159,10 @@ namespace nupic
      * This allows the Array to transport .py numpy buffers without copy.
      * This allows wrapping an existing SDR without copying it.
      * Caller must ensure that the pointer remains valid over the life of this instance.
-     * ArrayBase will not free the pointer when this instance goes out of scope.
+     * ArrayBase will NOT free the pointer when this instance goes out of scope.
      */
     virtual void setBuffer(void *buffer, size_t count);
-    virtual void setBuffer(SDR & sdr) { setBuffer(&sdr, 0); }
+    virtual void setBuffer(SDR &sdr);
 
     /**
      * Set the number of elements.  This is used to truncate the array.

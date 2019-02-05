@@ -468,13 +468,15 @@ void Input::initialize() {
   // Calculate our size and the offset of each link
   // The offset is location within the input buffer where
   // this link will place its data in a Fan-In type situation.
-  // Count will be the entire buffer size.
+  // The final count will be the entire buffer size.
+  // If there is more than one link to this same input, its a FanIn.
   size_t count = 0;
+  bool is_FanIn = links_.size() > 1;
   for (std::vector<std::shared_ptr<Link>>::const_iterator l = links_.begin();
        l != links_.end(); l++) {
     linkOffsets_.push_back(count);
     // Setting the destination offset makes the link usable.
-    (*l)->initialize(count);
+    (*l)->initialize(count, is_FanIn);
     count += (*l)->getSrc().getData().getCount();
   }
 

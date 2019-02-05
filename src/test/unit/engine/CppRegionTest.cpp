@@ -69,8 +69,7 @@ void helperCppInputOutputAccess(Region *level1) {
 }
 
 
-// disabled because link policy is not working. 
-TEST(CppRegionTest, DISABLED_testCppLinkingFanIn) {
+TEST(CppRegionTest, testCppLinkingFanIn) {
   Network net;
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
@@ -78,16 +77,16 @@ TEST(CppRegionTest, DISABLED_testCppLinkingFanIn) {
 
   net.link("region1", "region2", "TestFanIn2", ""); //the only change testCppLinking* is here
 
-  std::cout << "Initialize should fail..." << std::endl;
+  if (verbose) std::cout << "Initialize should fail..." << std::endl;
   EXPECT_THROW(net.initialize(), exception);
 
-  std::cout << "Setting region1 dims" << std::endl;
+  if (verbose) std::cout << "Setting region1 dims" << std::endl;
   Dimensions r1dims;
   r1dims.push_back(6);
   r1dims.push_back(4);
   region1->setDimensions(r1dims);
 
-  std::cout << "Initialize should now succeed" << std::endl;
+  if (verbose) std::cout << "Initialize should now succeed" << std::endl;
   net.initialize();
 
   const Dimensions &r2dims = region2->getDimensions();
@@ -99,12 +98,12 @@ TEST(CppRegionTest, DISABLED_testCppLinkingFanIn) {
 
   const Array r1OutputArray = region1->getOutputData("bottomUpOut");
 
-  std::cout << "region1 Dims: " << region1->getDimensions() << std::endl;
-  std::cout << "region2 Dims: " << region2->getDimensions() << std::endl;
+  if (verbose) std::cout << "region1 Dims: " << region1->getDimensions() << std::endl;
+  if (verbose) std::cout << "region2 Dims: " << region2->getDimensions() << std::endl;
 
   region1->compute();
-  std::cout << "Checking region1 output after first iteration..." << std::endl;
-  std::cout << r1OutputArray << std::endl;
+  if (verbose) std::cout << "Checking region1 output after first iteration..." << std::endl;
+  if (verbose) std::cout << r1OutputArray << std::endl;
   Real64 *buffer = (Real64 *)r1OutputArray.getBuffer();
   for (size_t i = 0; i < r1OutputArray.getCount(); i++) {
     if (i % 2 == 0)
@@ -115,9 +114,9 @@ TEST(CppRegionTest, DISABLED_testCppLinkingFanIn) {
 
   region2->prepareInputs();
   const Array r2InputArray = region2->getInputData("bottomUpIn");
-  std::cout << "Region 2 input after first iteration:" << std::endl;
+  if (verbose) std::cout << "Region 2 input after first iteration:" << std::endl;
   Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
-  std::cout << r2InputArray << std::endl;
+  if (verbose) std::cout << r2InputArray << std::endl;
   EXPECT_TRUE(buffer == buffer2);
 
   for (size_t i = 0; i < r2InputArray.getCount(); i++) {
@@ -127,7 +126,7 @@ TEST(CppRegionTest, DISABLED_testCppLinkingFanIn) {
       ASSERT_EQ(buffer[i], (i - 1) / 2);
   }
 
-  std::cout << "Region 2 input by node" << std::endl;
+  if (verbose) std::cout << "Region 2 input by node" << std::endl;
   std::vector<Real64> r2NodeInput;
 
   for (size_t node = 0; node < 6; node++) {
@@ -160,8 +159,7 @@ TEST(CppRegionTest, DISABLED_testCppLinkingFanIn) {
 }
 
 
-// Disabled because link policy is not working.
-TEST(CppRegionTest, DISABLED_testCppLinkingUniformLink) {
+TEST(CppRegionTest, testCppLinkingUniformLink) {
   Network net;
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
@@ -170,16 +168,16 @@ TEST(CppRegionTest, DISABLED_testCppLinkingUniformLink) {
   net.link("region1", "region2", "UniformLink", "{mapping: in, rfSize: [2]}"); //the only change testCppLinking* is here
 
 
-  std::cout << "Initialize should fail..." << std::endl;
+  if (verbose) std::cout << "Initialize should fail..." << std::endl;
   EXPECT_THROW(net.initialize(), exception);
 
-  std::cout << "Setting region1 dims" << std::endl;
+  if (verbose) std::cout << "Setting region1 dims" << std::endl;
   Dimensions r1dims;
   r1dims.push_back(6);
   r1dims.push_back(4);
   region1->setDimensions(r1dims);
 
-  std::cout << "Initialize should now succeed" << std::endl;
+  if (verbose) std::cout << "Initialize should now succeed" << std::endl;
   net.initialize();
 
   const Dimensions &r2dims = region2->getDimensions();
@@ -192,7 +190,7 @@ TEST(CppRegionTest, DISABLED_testCppLinkingUniformLink) {
   const Array r1OutputArray = region1->getOutputData("bottomUpOut");
 
   region1->compute();
-  std::cout << "Checking region1 output after first iteration..." << std::endl;
+  if (verbose) std::cout << "Checking region1 output after first iteration..." << std::endl;
   Real64 *buffer = (Real64 *)r1OutputArray.getBuffer();
   for (size_t i = 0; i < r1OutputArray.getCount(); i++) {
     if (i % 2 == 0)
@@ -203,18 +201,18 @@ TEST(CppRegionTest, DISABLED_testCppLinkingUniformLink) {
 
   region2->prepareInputs();
   const Array r2InputArray = region2->getInputData("bottomUpIn");
-  std::cout << "Region 2 input after first iteration:" << std::endl;
+  if (verbose) std::cout << "Region 2 input after first iteration:" << std::endl;
   Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
-  EXPECT_TRUE(buffer != buffer2);
-
+  // only one link to this input so buffer is passed without copy.
+  EXPECT_TRUE(buffer == buffer2);  // 
   for (size_t i = 0; i < r2InputArray.getCount(); i++) {
     if (i % 2 == 0)
-      ASSERT_EQ(buffer[i], 0);
+      ASSERT_EQ(buffer2[i], 0);
     else
-      ASSERT_EQ(buffer[i], (i - 1) / 2);
+      ASSERT_EQ(buffer2[i], (i - 1) / 2);
   }
 
-  std::cout << "Region 2 input by node" << std::endl;
+  if (verbose) std::cout << "Region 2 input by node" << std::endl;
   std::vector<Real64> r2NodeInput;
 
   for (size_t node = 0; node < 6; node++) {
@@ -234,7 +232,7 @@ TEST(CppRegionTest, DISABLED_testCppLinkingUniformLink) {
     EXPECT_EQ(r2NodeInput[2], 0);
     EXPECT_EQ(r2NodeInput[4], 0);
     EXPECT_EQ(r2NodeInput[6], 0);
-    // these values are specific to the fanin2 link policy
+    // these values are specific to the link policy
     EXPECT_EQ(r2NodeInput[1], row * 12 + col * 2)
         << "row: " << row << " col: " << col << " val: " << r2NodeInput[1];
     EXPECT_EQ(r2NodeInput[3], row * 12 + col * 2 + 1)
@@ -278,7 +276,7 @@ TEST(CppRegionTest, testYAML) {
   // TODO: if we get the real64 param with getParameterInt32
   // it works -- should we flag an error?
 
-  std::cout
+  if (verbose) std::cout
       << "Got the correct values for all parameters set at region creation"
       << std::endl;
 }
@@ -360,14 +358,14 @@ TEST(CppRegionTest, realmain) {
   // should fail because network can't be initialized
   EXPECT_THROW(n.initialize(), exception);
 
-  std::cout << "Setting dimensions of level1..." << std::endl;
+  if (verbose) std::cout << "Setting dimensions of level1..." << std::endl;
   Dimensions d;
   d.push_back(4);
   d.push_back(4);
   std::shared_ptr<Region> level1 = n.getRegion("level1");
   level1->setDimensions(d);
 
-  std::cout << "Initializing again..." << std::endl;
+  if (verbose) std::cout << "Initializing again..." << std::endl;
   EXPECT_NO_THROW(n.initialize());
 
   level1->compute();
@@ -375,9 +373,6 @@ TEST(CppRegionTest, realmain) {
   EXPECT_NO_THROW(helperCppInputOutputAccess(level1.get()));
   EXPECT_THROW(level1->getOutputData("doesnotexist"), exception);
 
-//  EXPECT_NO_THROW(testCppLinking("TestFanIn2", ""));  //now called in separate test, but could/should also be called here
-//  EXPECT_NO_THROW(testCppLinking("UniformLink", "{mapping: in, rfSize: [2]}"));
-//  EXPECT_NO_THROW(testYAML());
 }
 
 

@@ -101,39 +101,26 @@ void ArrayBase::allocateBuffer(size_t count) {
   // size zero.
   count_ = count;
   capacity_ = count_ * BasicType::getSize(type_);
-  if (count_ > 0) {
-    if (type_ == NTA_BasicType_SDR) {
-      std::vector<UInt> dimension;
-      dimension.push_back((UInt)count);
-      allocateBuffer(dimension);
-    } else {
-      std::shared_ptr<char> sp(new char[capacity_],
-                               std::default_delete<char[]>());
-      buffer_ = sp;
-      own_ = true;
-    }
+  if (type_ == NTA_BasicType_SDR) {
+    std::vector<UInt> dimension;
+    dimension.push_back((UInt)count);
+    allocateBuffer(dimension);
   } else {
-    releaseBuffer();
+    std::shared_ptr<char> sp(new char[capacity_],
+                             std::default_delete<char[]>());
+    buffer_ = sp;
+    own_ = true;
   }
 }
 
-void ArrayBase::allocateBuffer(
-    const std::vector<UInt> dimensions) { // only for SDR
-  NTA_CHECK(type_ == NTA_BasicType_SDR)
-      << "Dimensions can only be set on the SDR payload";
-  size_t s = 1;
-  for (UInt dim : dimensions)
-    s *= dim;
-  if (dimensions.size() > 0 && s > 0) {
-    SDR *sdr = new SDR(dimensions);
-    std::shared_ptr<char> sp((char *)(sdr));
-    buffer_ = sp;
-    own_ = true;
-    count_ = sdr->size;
-    capacity_ = count_ * sizeof(Byte);
-  } else {
-    releaseBuffer();
-  }
+void ArrayBase::allocateBuffer( const std::vector<UInt> dimensions) { // only for SDR
+  NTA_CHECK(type_ == NTA_BasicType_SDR) << "Dimensions can only be set on the SDR payload";
+  SDR *sdr = new SDR(dimensions);
+  std::shared_ptr<char> sp((char *)(sdr));
+  buffer_ = sp;
+  own_ = true;
+  count_ = sdr->size;
+  capacity_ = count_ * sizeof(Byte);
 }
 
 /**
@@ -142,7 +129,7 @@ void ArrayBase::allocateBuffer(
 void ArrayBase::zeroBuffer() {
   if (has_buffer()) {
     if (type_ == NTA_BasicType_SDR) {
-      getSDR()->zero();
+        getSDR()->zero();
     } else
       std::memset(buffer_.get(), 0, capacity_);
   }
@@ -159,15 +146,21 @@ void ArrayBase::zeroBuffer() {
  * This allows external buffers to be carried in the Array structure.
  */
 void ArrayBase::setBuffer(void *buffer, size_t count) {
+  NTA_CHECK(type_ != NTA_BasicType_SDR);
   count_ = count;
   capacity_ = count * BasicType::getSize(type_);
-  if (count > 0) {
-    buffer_ = std::shared_ptr<char>((char *)buffer, nonDeleter());
-    own_ = false;
-  } else {
-    releaseBuffer();
-  }
+  buffer_ = std::shared_ptr<char>((char *)buffer, nonDeleter());
+  own_ = false;
 }
+void ArrayBase::setBuffer(SDR &sdr) {
+  type_ = NTA_BasicType_SDR;
+  buffer_ = std::shared_ptr<char>((char *)&sdr, nonDeleter());
+  count_ = sdr.size;
+  capacity_ = count_ * BasicType::getSize(type_);
+  own_ = false;
+}
+
+
 
 void ArrayBase::releaseBuffer() {
   buffer_.reset();
@@ -181,31 +174,33 @@ void *ArrayBase::getBuffer() {
       return getSDR()->getDense().data();
     }
     return buffer_.get();
-  } else
-    return nullptr;
+  }
+  return nullptr;
 }
+
 const void *ArrayBase::getBuffer() const {
   if (has_buffer()) {
     if (buffer_ != nullptr && type_ == NTA_BasicType_SDR) {
       return getSDR()->getDense().data();
     }
     return buffer_.get();
-  } else
-    return nullptr;
+  }
+  return nullptr;
 }
 
 SDR *ArrayBase::getSDR() {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  NTA_CHECK(has_buffer()) << "Empty, does not contain an SDR object";
   SDR *sdr = (SDR *)buffer_.get();
   sdr->setDense(sdr->getDense()); // cleanup cache
   return sdr;
 }
 const SDR *ArrayBase::getSDR() const {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  NTA_CHECK(has_buffer()) << "Empty, does not contain an SDR object";
-  const SDR *sdr = (SDR *)buffer_.get();
-  return sdr;
+  if (has_buffer()) {
+    const SDR *sdr = (SDR *)buffer_.get();
+    return sdr;
+  }
+  return nullptr;
 }
 
 /**
@@ -262,7 +257,7 @@ NTA_BasicType ArrayBase::getType() const { return type_; };
 /**
  * Return true if a buffer has been allocated.
  */
-bool ArrayBase::has_buffer() const { return (capacity_ > 0); }
+bool ArrayBase::has_buffer() const { return (buffer_.get() != nullptr); }
 
 /**
  * Convert the buffer contents of the current ArrayBase into
@@ -346,7 +341,7 @@ void ArrayBase::toSparse(ArrayBase &a, size_t offset) const {
 
   a.type_ = NTA_BasicType_Sparse; // to Array of type Sparse
   if (!has_buffer()) {
-    a.setCount(0); // buffer is empty.
+    a.setCount(0); // source buffer is empty.
     return;
   }
   switch (type_) { // coming from Array of this type
@@ -428,7 +423,7 @@ static void DenseT(ArrayBase &a, UInt32 *Fromptr, size_t count, size_t offset) {
 void ArrayBase::fromSparse(ArrayBase &a, size_t offset) const {
   NTA_CHECK(type_ == NTA_BasicType_Sparse)
       << "This buffer does not contain a sparse type.";
-  if (!has_buffer()) {
+  if (getCount() == 0) {
     a.zeroBuffer();
     return;
   }

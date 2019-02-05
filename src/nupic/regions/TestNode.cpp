@@ -17,7 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
+ * --------------------------------------------------------------------- 
  */
 
 #if defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)
@@ -97,7 +97,8 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   iter_ = 0;
 }
 
-TestNode::TestNode(BundleIO &bundle, Region *region) : RegionImpl(region),
+TestNode::TestNode(BundleIO &bundle, Region *region) :
+    RegionImpl(region),
 	computeCallback_(nullptr)
 {
   deserialize(bundle);
@@ -110,55 +111,30 @@ void TestNode::compute() {
   if (computeCallback_ != nullptr)
     computeCallback_(getName());
 
+  Array &outputArray = bottomUpOut_->getData();
+  NTA_CHECK(outputArray.getCount() == nodeCount_ * outputElementCount_)
+       			<< "buffer size: " << outputArray.getCount()
+				<< " expected: " << (nodeCount_ * outputElementCount_);
+  NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
+  Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
 
-  ////////////////////////////////////////////////////
-  //    The algorithm code would be called here
-
-  // Computation for bottomUpIn --> bottomUpOut
   // See TestNode.hpp for description of the computation
-  if (bottomUpOut_) {
-    std::cout << " raw bottomUpIn: " << bottomUpIn_ << std::endl;
+  std::vector<Real64> nodeInput;
+  Real64 *nodeOutputBuffer;
+  for (UInt32 node = 0; node < nodeCount_; node++) {
+    nodeOutputBuffer = baseOutputBuffer + node * outputElementCount_;
+    bottomUpIn_->getInputForNode(node, nodeInput);
 
-    std::vector<Real64> nodeInput;  
-    bottomUpIn_->getInputForNode(1, nodeInput); // populate nodeInput using splittermap
+    // output[0] = number of inputs to this baby node + current iteration number
+    nodeOutputBuffer[0] = nupic::Real64(nodeInput.size() + iter_);
+
+    // output[n] = node + sum(inputs) + (n-1) * delta
     Real64 sum = std::accumulate(nodeInput.begin(), nodeInput.end(), 0.0);
-
-    // We have an output.
-    Array &outputArray = bottomUpOut_->getData();
-    outputElementCount_ = (UInt32)outputArray.getCount();
-    NTA_CHECK(outputElementCount_ > 0);
-    NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
-    Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
-
-    // output[0] = number of inputs to this baby, + current iteration number
-    baseOutputBuffer[0] = nupic::Real64(nodeInput.size() + iter_);
-    iter_++;
-
-    // output[n] = 1 + sum(inputs) + (n-1) * delta
     for (size_t i = 1; i < outputElementCount_; i++)
-      baseOutputBuffer[i] = 1 + sum + (i - 1) * delta_;
+      nodeOutputBuffer[i] = node + sum + (i - 1) * delta_;
   }
 
-  // Computation for [sdrIn -- > sdrOut] and [sparseIn --> sparseOut]
-  // Data comining in on sdrIn or sparseIn is sent unchanged to 
-  // both sdrOut and sparseOut. If data is coming in on both, use sdrIn.  
-  // If neither, output 0's to both if connected.
-  Input *in = (sdrIn_->hasIncomingLinks()) ? sdrIn_ 
-         : (sparseIn_->hasIncomingLinks()) ? sparseIn_ : nullptr;
-  if (in) {
-    const Array &src = in->getData();
-    if (sdrOut_->hasOutgoingLinks()) {
-      Array &out = sdrOut_->getData();
-      src.convertInto(out, 0);
-    }
-    if (sparseOut_->hasOutgoingLinks()) {
-      Array &out = sparseOut_->getData();
-      src.convertInto(out, 0);
-    }
-  }
-
-  //
-  ////////////////////////////////////////////////////////
+  iter_++;
 }
 
 Spec *TestNode::createSpec() {
@@ -307,26 +283,10 @@ Spec *TestNode::createSpec() {
   ns->inputs.add("bottomUpIn",
                  InputSpec("Primary input for the node",
 				           NTA_BasicType_Real64,
-                           0,     // size depends on sending region
+                           0,     // count. omit?
                            true,  // required?
                            false, // isRegionLevel,
                            true   // isDefaultInput
-                           ));
-  ns->inputs.add("sdrIn",
-                 InputSpec("SDR input for the node",
-				           NTA_BasicType_SDR,
-                           0,      // size depends on sending region
-                           false,  // required?
-                           false,  // isRegionLevel,
-                           false   // isDefaultInput
-                           ));
-  ns->inputs.add("sparseIn",
-                 InputSpec("Sparse input for the node",
-				           NTA_BasicType_Sparse,
-                           0,      // size depends on sending region
-                           false,  // required?
-                           false,  // isRegionLevel,
-                           false   // isDefaultInput
                            ));
 
   /* ----- outputs ------ */
@@ -336,20 +296,6 @@ Spec *TestNode::createSpec() {
                             0,     // count is dynamic
                             false, // isRegionLevel
                             true   // isDefaultOutput
-                            ));
-  ns->outputs.add("sdrOut",
-                  OutputSpec("SDR output for the node",
-                            NTA_BasicType_SDR,
-                            0,     // count is dynamic
-                            false, // isRegionLevel
-                            false   // isDefaultOutput
-                            ));
-  ns->outputs.add("sparseOut",
-                  OutputSpec("Sparse output for the node",
-                            NTA_BasicType_Sparse,
-                            0,     // count is dynamic
-                            false, // isRegionLevel
-                            false   // isDefaultOutput
                             ));
 
   /* ----- commands ------ */
@@ -598,18 +544,8 @@ size_t TestNode::getParameterArrayCount(const std::string &name, Int64 index) {
 
 void TestNode::initialize() {
   nodeCount_ = getDimensions().getCount();
-
-  // Get inputs and Outputs.  If no links attached, will return null.
   bottomUpOut_ = getOutput("bottomUpOut");
   bottomUpIn_ = getInput("bottomUpIn");
-
-  sdrOut_ = getOutput("sdrOut");
-  sdrIn_ = getInput("sdrIn");
-
-  sparseOut_ = getOutput("sparseOut");
-  sparseIn_ = getInput("sparseIn");
-
-  // Setup the data
 
   unclonedParam_.resize(nodeCount_);
   for (unsigned int i = 1; i < nodeCount_; i++) {
@@ -631,15 +567,8 @@ void TestNode::initialize() {
 }
 
 // This is the per-node output size
-// These are overridden by any dimensions defined for the region.
 size_t TestNode::getNodeOutputElementCount(const std::string &outputName) {
   if (outputName == "bottomUpOut") {
-    return outputElementCount_;
-  }
-  if (outputName == "sdrOut") {
-    return outputElementCount_;
-  }
-  if (outputName == "sparseOut") {
     return outputElementCount_;
   }
     NTA_THROW << "TestNode::getNodeOutputElementCount() -- unknown output " << outputName;
