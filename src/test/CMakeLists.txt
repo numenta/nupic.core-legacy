@@ -90,9 +90,6 @@ set(ntypes_tests
 	   unit/ntypes/MemParserTest.cpp
 	   unit/ntypes/MemStreamTest.cpp
 	   unit/ntypes/ScalarTest.cpp
-	   unit/ntypes/SdrTest.cpp
-	   unit/ntypes/SdrProxyTest.cpp
-	   unit/ntypes/SdrMetricsTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
@@ -108,6 +105,8 @@ set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
 	   unit/types/FractionTest.cpp
+	   unit/types/SdrTest.cpp
+	   unit/types/SdrProxyTest.cpp
 	   )
 	   
 set(utils_tests
@@ -115,6 +114,7 @@ set(utils_tests
 	   unit/utils/MovingAverageTest.cpp
 	   unit/utils/RandomTest.cpp
 	   unit/utils/VectorHelpersTest.cpp
+	   unit/utils/SdrMetricsTest.cpp
 	   unit/utils/WatcherTest.cpp
 	   )
 	   
