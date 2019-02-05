@@ -269,7 +269,6 @@ public:
         size_ = 1;
         for(UInt dim : dimensions)
             size_ *= dim;
-        NTA_CHECK( size > 0 ) << "SDR size is zero!";
 
         // Initialize the dense array storage, when it's needed.
         dense_valid = false;

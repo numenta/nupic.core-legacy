@@ -26,10 +26,11 @@ using namespace nupic;
 
 /* This also tests the size and dimensions are correct */
 TEST(SdrTest, TestConstructor) {
+    // Test 0 dimensions
+    EXPECT_ANY_THROW( SDR( vector<UInt>(0) ));
     // Test 0 size
-    ASSERT_ANY_THROW( SDR( vector<UInt>(0) ));
-    ASSERT_ANY_THROW( SDR({ 0 }) );
-    ASSERT_ANY_THROW( SDR({ 3, 2, 1, 0 }) );
+    EXPECT_NO_THROW( SDR({ 0 }) );
+    EXPECT_NO_THROW( SDR({ 3, 2, 1, 0 }) );
 
     // Test 1-D
     vector<UInt> b_dims = {3};
