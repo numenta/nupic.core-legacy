@@ -101,7 +101,7 @@ public:
         return parent->getFlatSparse();
     }
 
-    SDR_sparse_t& getSparse() override {
+    SDR_sparse_t& getSparse() const override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         if( dimensions.size() == parent->dimensions.size() &&
             equal( dimensions.begin(), dimensions.end(),
@@ -152,7 +152,7 @@ protected:
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
     void setSparseInplace() override
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
-    void setSDR( SparseDistributedRepresentation &value ) override
+    void setSDR( const SparseDistributedRepresentation &value ) override
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
 };
 

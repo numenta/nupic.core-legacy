@@ -206,7 +206,8 @@ public:
   void copyFrom(NTA_BasicType type, void *buf, size_t size) {
     type_ = type;
     allocateBuffer(size);
-    memcpy((char *)getBuffer(), (char *)buf,
+    if (size > 0)
+      memcpy((char *)getBuffer(), (char *)buf,
            count_ * BasicType::getSize(type_));
   }
 
@@ -232,9 +233,11 @@ public:
   std::vector<T> asVector() const {
     std::vector<T> v;
     NTA_BasicType to_type = BasicType::getType<T>();
-    v.resize(count_);
-    BasicType::convertArray(v.data(), to_type, getBuffer(), getType(),
-                            getCount());
+    if (has_buffer()) {
+      v.resize(count_);
+      BasicType::convertArray(v.data(), to_type, 
+                              getBuffer(), getType(), getCount());
+    }
     return v;
   }
 
@@ -242,20 +245,34 @@ public:
    * from a vector; copies dense buffer into this object, with no type
    * conversion. Array type becomes the type of the vector elements. example:
    * array.fromDenseVector(v);
+   * Note: a dense array is a normal sequence of data as opposed to a sparse array
+   *       which is a sequence of indexes of non-zero values.
    */
   template <typename T> 
   void fromDenseVector(const std::vector<T> &vect) {
     type_ = BasicType::getType<T>();
     allocateBuffer(vect.size());
-    memcpy(getBuffer(), vect.data(), count_ * BasicType::getSize(type_));
+    if (has_buffer())
+      memcpy(getBuffer(), vect.data(), count_ * BasicType::getSize(type_));
   }
   /**
    * from a vector; copies sparse buffer into this object, with no type
    * conversion. Array type becomes SDR with its Flat Sparse array populated.
    *   example:   array.fromSparseVector(sparse_v, dim);
+   * Note: a dense array is a normal sequence of data as opposed to a sparse array
+   *       which is a sequence of indexes of non-zero values.
+   *
+   * args: 
+   *  vect  - a vector containing indexes of non-zero values.
+   *  dim   - a vector which defines the size/shape of the original dense SDR buffer.
    */
   void fromSparseVector(const std::vector<Int32> &vect, const Dimensions &dim) {
+    size_t s = 1;
+    for (UInt d : dim)
+      s *= d;
+    NTA_CHECK(dim.size() == 0 || s == 0) << "fromSparseVector(); no dimensions given.";
     if (type_ != NTA_BasicType_SDR || getSDR()->dimensions != dim) {
+      // re-allocate the buffer if needed.
       type_ = NTA_BasicType_SDR;
       allocateBuffer(dim);
     }

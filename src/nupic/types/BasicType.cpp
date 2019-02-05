@@ -235,6 +235,9 @@ static void cpyIntoSDR(Byte *toPtr, const T *fromPtr, size_t count) {
 
 void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
                              NTA_BasicType fromType, size_t count) {
+  if (ptr2 == nullptr || count == 0)
+    return;
+  NTA_CHECK(ptr1 != nullptr);
   try {
     switch (fromType) {
     case NTA_BasicType_Byte: // char.  This might be signed or unsigned.

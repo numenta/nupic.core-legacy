@@ -239,6 +239,9 @@ public:
   template <typename T>
   void getInputForNode(size_t nodeIndex, std::vector<T> &input) const;
 
+  bool hasIncomingLinks() { return !links_.empty(); }
+
+
 
 private:
   // Cannot use the shared_ptr here.

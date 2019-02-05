@@ -450,7 +450,11 @@ size_t Input::evaluateLinks() {
 // all inputs have been initialized. Now we can calculate
 // our size and set up any data structures needed
 // for copying data over a link.
-
+//
+// Any Input that does not have a link attached will be
+// a Zero Length buffer. A region implementation should
+// ignore any zero length input buffers.
+//
 void Input::initialize() {
   if (initialized_)
     return;
@@ -462,18 +466,20 @@ void Input::initialize() {
   }
 
   // Calculate our size and the offset of each link
+  // The offset is location within the input buffer where
+  // this link will place its data in a Fan-In type situation.
+  // Count will be the entire buffer size.
   size_t count = 0;
   for (std::vector<std::shared_ptr<Link>>::const_iterator l = links_.begin();
        l != links_.end(); l++) {
     linkOffsets_.push_back(count);
     // Setting the destination offset makes the link usable.
-    // TODO: change
     (*l)->initialize(count);
     count += (*l)->getSrc().getData().getCount();
   }
 
   // Later we may optimize with the zeroCopyEnabled_ flag but
-  // for now we always allocate our own buffer.
+  // for now we always allocate our own input buffer.
   // Create the Input buffer.
   data_.allocateBuffer(count);
   data_.zeroBuffer();

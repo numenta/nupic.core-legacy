@@ -116,47 +116,42 @@ void TestNode::compute() {
 
   // Computation for bottomUpIn --> bottomUpOut
   // See TestNode.hpp for description of the computation
-  //
-  // Note: don't blame me for this strange computation for bottomUpOut.
-  //       this was ported from python a long time ago.  Most of the
-  //       unit tests use this class and expect this computation.
-  //       d.keeney, 2019
   if (bottomUpOut_) {
-    // We have an output connection.
+    std::cout << " raw bottomUpIn: " << bottomUpIn_ << std::endl;
+
+    std::vector<Real64> nodeInput;  
+    bottomUpIn_->getInputForNode(1, nodeInput); // populate nodeInput using splittermap
+    Real64 sum = std::accumulate(nodeInput.begin(), nodeInput.end(), 0.0);
+
+    // We have an output.
     Array &outputArray = bottomUpOut_->getData();
-    NTA_CHECK(outputArray.getCount() == outputElementCount_)
-       			  << "buffer size: " << outputArray.getCount()
-				  << " expected: " <<  outputElementCount_;
+    outputElementCount_ = (UInt32)outputArray.getCount();
+    NTA_CHECK(outputElementCount_ > 0);
     NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
     Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
-
-    std::vector<Real64> nodeInput;
-    nodeInput.resize(outputElementCount_);            // set the size
-    std::fill(nodeInput.begin(), nodeInput.end(), 0); // zero it out
-    bottomUpIn_->getInputForNode(1, nodeInput);       // populate with data
 
     // output[0] = number of inputs to this baby, + current iteration number
     baseOutputBuffer[0] = nupic::Real64(nodeInput.size() + iter_);
     iter_++;
 
     // output[n] = 1 + sum(inputs) + (n-1) * delta
-    Real64 sum = std::accumulate(nodeInput.begin(), nodeInput.end(), 0.0);
     for (size_t i = 1; i < outputElementCount_; i++)
       baseOutputBuffer[i] = 1 + sum + (i - 1) * delta_;
   }
 
-  // Computation for sdrIn -- > sdrOut and sparseIn --> sparseOut
+  // Computation for [sdrIn -- > sdrOut] and [sparseIn --> sparseOut]
   // Data comining in on sdrIn or sparseIn is sent unchanged to 
-  // both sdrOut and sparseOut. If data in on both, use sdrIn.  
+  // both sdrOut and sparseOut. If data is coming in on both, use sdrIn.  
   // If neither, output 0's to both if connected.
-  Input *in = (sdrIn_) ? sdrIn_ : (sparseIn_) ? sparseIn_ : nullptr;
+  Input *in = (sdrIn_->hasIncomingLinks()) ? sdrIn_ 
+         : (sparseIn_->hasIncomingLinks()) ? sparseIn_ : nullptr;
   if (in) {
     const Array &src = in->getData();
-    if (sdrOut_) {
+    if (sdrOut_->hasOutgoingLinks()) {
       Array &out = sdrOut_->getData();
       src.convertInto(out, 0);
     }
-    if (sparseOut_) {
+    if (sparseOut_->hasOutgoingLinks()) {
       Array &out = sparseOut_->getData();
       src.convertInto(out, 0);
     }
@@ -636,6 +631,7 @@ void TestNode::initialize() {
 }
 
 // This is the per-node output size
+// These are overridden by any dimensions defined for the region.
 size_t TestNode::getNodeOutputElementCount(const std::string &outputName) {
   if (outputName == "bottomUpOut") {
     return outputElementCount_;

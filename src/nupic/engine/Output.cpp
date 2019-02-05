@@ -48,11 +48,12 @@ Output::~Output() noexcept(false) {
 }
 
 // allocate buffer
+// The 'count' argument comes from the impl by calling getNodeOutputElementCount()
 void Output::initialize(size_t count) {
   // reinitialization is ok
   // might happen if initial initialization failed with an
   // exception (elsewhere) and was retried.
-  if (data_.getBuffer() != nullptr)
+  if (data_.has_buffer())
     return;
 
   nodeOutputElementCount_ = count;
@@ -70,7 +71,6 @@ void Output::initialize(size_t count) {
       // Zero the buffer because unitialized outputs can screw up inspectors,
       // which look at the output before compute(). NPC-60
       data_.zeroBuffer();
-      void *buffer = data_.getBuffer();
     }
   }
 }

@@ -40,7 +40,7 @@ public:
             NTA_BasicType dataType, 
             UInt32 count,
             bool required, 
-            bool regionLevel, 
+            bool regionLevel,
             bool isDefaultInput = false,
             bool requireSplitterMap = true);
   bool operator==(const InputSpec &other) const;
@@ -72,11 +72,19 @@ public:
     return !operator==(other);
   }
   std::string description;
+
+       // The type of the output buffer.
   NTA_BasicType dataType;
-  // Size, in number of elements. If size is fixed, specify it here.
-  // Value of 0 means it is determined dynamically
+
+       // count: Size, in number of elements. If size is fixed, specify it here.
+       // Value of 0 means it is determined dynamically by logic in link
   size_t count;
-  bool regionLevel;
+
+       // regonLevel: if true, region impl will determine output buffer size.
+       // else, dimensions are required but might be inharited. See link logic.
+  bool regionLevel;   
+
+      // Default: if true, use this output for region if output name not given.
   bool isDefaultOutput;
 };
 

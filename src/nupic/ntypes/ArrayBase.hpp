@@ -148,6 +148,13 @@ namespace nupic
     size_t getBufferSize() const;
 
     /**
+     * Returns true if the buffer is allocated a size > 0.  A capacity == 0 could
+     * indicate that data is not provided or that a buffer is unused. A zero
+     * length buffer is a valid condition.
+     */
+    bool has_buffer() const;
+
+    /**
      * Put an external buffer into the ArrayBase which is not owned by this class.
      * This allows the Array to transport .py numpy buffers without copy.
      * This allows wrapping an existing SDR without copying it.
