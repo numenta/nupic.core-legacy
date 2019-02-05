@@ -555,8 +555,9 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     EXPECT_EQ(c.getCount(), a.getCount());
     EXPECT_TRUE(c.getBuffer() == a.getBuffer());
     EXPECT_EQ(a.getMaxElementsCount(), nCols);
-    if (testCase->second.dataType != NTA_BasicType_Sparse)
+    if (testCase->second.dataType != NTA_BasicType_Sparse) {
       EXPECT_EQ(a.getCount(), nCols);
+    }
     EXPECT_EQ(a.getBufferSize(), nCols * testCase->second.dataTypeSize );
 
 
@@ -620,8 +621,9 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       EXPECT_EQ(f.getMaxElementsCount(), a.getMaxElementsCount());
       Real32 *ptr_f = (Real32*)f.getBuffer();
       Int32 *ptr_a = (Int32*)a.getBuffer();
-      for (size_t i = 0; i < a.getCount(); i++)
+      for (size_t i = 0; i < a.getCount(); i++) {
         EXPECT_TRUE((ptr_f[ptr_a[i]] != 0.0f));
+      }
     }
   }
 }

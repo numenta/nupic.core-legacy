@@ -314,9 +314,6 @@ void Link::compute() {
 
   Array &dest = dest_->getData();
 
-  size_t typeSize = BasicType::getSize(src.getType());
-  size_t destByteOffset = destOffset_ * typeSize;
-
   if (_LINK_DEBUG) {
     NTA_DEBUG << "Link::compute: " << getMoniker() << "; copying to dest input"
               << "; delay=" << propagationDelay_ << "; size=" << src.getCount()

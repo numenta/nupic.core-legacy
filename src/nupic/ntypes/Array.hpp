@@ -86,12 +86,12 @@
 //
 // POPULATING:
 //   constructor A(type)                   - Empty buffer of specified type.
-//   constructor A(type, buff, size)
-//   constructor A(sdr)
+//   constructor A(type, buff, size)       - Buffer filled from C array
+//   constructor A(sdr)                    - Buffer initialized from SDR
 //   B = A;                                - Shallow copy, B has same, type, buffer, size
 //   A.share(B)                            - Shallow copy, B has same, type, buffer, size
 //   A.copyfrom(type,buff, size)           - fills A with buff[size], sets type.
-//   B = A.copy()
+//   B = A.copy()                          - Creates B as a copy of A.
 //   A.populate(vector)                    - fills A, with conversion, A retains type.
 //   A.fromDenseVector(vector)             - fills A, A becomes type of vector.
 //   A.fromSparseVector(vector, dimensions)- fills A with sparse data, A becomes SDR type
@@ -99,10 +99,10 @@
 //
 //
 // ACCESSING:
-//   vector = A.asVector()     
-//   B = A.get_as(type)           - fills B with conversion, to specified type.
+//   vector = A.asVector()        - creates vector and populates it from A
+//   B = A.get_as(type)           - creates B with conversion, to specified type.
 //   A.convertInto(B, offset)     - fills B with conversion, B retains type.
-//   B = A.subset(offset, length) - fills B with subset, same type.
+//   B = A.subset(offset, length) - fills B with subset of A, same type.
 //
 //
 // SERIALIZATION
