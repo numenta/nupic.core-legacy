@@ -38,14 +38,11 @@
 #define NTA_ARRAY_BASE_HPP
 
 #include <iostream> // for ostream, istream
-#include <stdlib.h> // for size_t
 #include <string>
 #include <memory>	// for shared_ptr
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
-
-
 
 
 

@@ -32,7 +32,6 @@
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
@@ -172,6 +171,8 @@ void SPRegion::compute() {
     // Prepare the output
     nzOutputValid_ = false;
 
+    /* //logging disabled as not used, can be uncommented here
+
     size_t size = sp_->getNumColumns();
     // Direct logging of SP non-zero outputs if requested
     if (!logPathOutput_.empty()) {
@@ -198,6 +199,7 @@ void SPRegion::compute() {
         fclose(fp);
       }
     }
+    */ 
   }
 }
 
