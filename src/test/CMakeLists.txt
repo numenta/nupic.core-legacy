@@ -51,8 +51,8 @@ set(algorithm_tests
 	   )
                
 set(encoders_tests
-       unit/encoders/ScalarEncoderTest.cpp
-       )
+           unit/encoders/ScalarEncoderTest.cpp
+           )
 	   
 set(engine_tests
 	   unit/engine/CppRegionTest.cpp
@@ -60,7 +60,7 @@ set(engine_tests
 	   unit/engine/InputTest.cpp
 	   unit/engine/LinkTest.cpp
 	   unit/engine/NetworkTest.cpp
-       unit/engine/UniformLinkPolicyTest.cpp
+           unit/engine/UniformLinkPolicyTest.cpp
 	   unit/engine/YAMLUtilsTest.cpp
 	   )
 	   

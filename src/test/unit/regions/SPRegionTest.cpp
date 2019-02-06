@@ -151,8 +151,8 @@ namespace testing
     ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter) << "  Expected number of regions to increase by one.  ";
     ASSERT_TRUE(region2->getType() == "SPRegionCustom") << " Expected type for region2 to be \"SPRegionCustom\" but type is: " << region2->getType();
 
-    EXPECT_EQ(region2->getParameterUInt32("columnCount"), 2048);
-    EXPECT_EQ(region2->getParameterUInt32("potentialRadius"), 16);
+    EXPECT_EQ(region2->getParameterUInt32("columnCount"), 2048u);
+    EXPECT_EQ(region2->getParameterUInt32("potentialRadius"), 16u);
 
     // compute() should fail because network has not been initialized
     EXPECT_THROW(net.run(1), std::exception);
@@ -218,7 +218,7 @@ namespace testing
 
 
 	  // check actual dimensions
-    ASSERT_EQ(region2->getParameterUInt32("columnCount"), 100);
+    ASSERT_EQ(region2->getParameterUInt32("columnCount"), 100u);
     ASSERT_EQ(region2->getParameterUInt32("inputWidth"), (UInt32)dataWidth);
 
     VERBOSE << "Execute once." << std::endl;
