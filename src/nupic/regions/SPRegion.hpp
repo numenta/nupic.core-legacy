@@ -39,28 +39,28 @@ using namespace nupic::algorithms::spatial_pooler;
 
 namespace nupic
 {
-	class SPRegion  : public RegionImpl
-	{
-		typedef void (*computeCallbackFunc)(const std::string&);
-		typedef std::map<std::string, Spec> SpecMap;
+class SPRegion  : public RegionImpl
+{
+    typedef void (*computeCallbackFunc)(const std::string&);
+    typedef std::map<std::string, Spec> SpecMap;
 		
-	public:
-		SPRegion(const ValueMap& params, Region *region);
-		SPRegion(BundleIO& bundle, Region* region);
-		virtual ~SPRegion();
+  public:
+    SPRegion(const ValueMap& params, Region *region);
+    SPRegion(BundleIO& bundle, Region* region);
+    virtual ~SPRegion();
 
 
-		/* -----------  Required RegionImpl Interface methods ------- */
+/* -----------  Required RegionImpl Interface methods ------- */
 
-		// Used by RegionImplFactory to create and cache
-		// a nodespec. Ownership is transferred to the caller.
-		static Spec* createSpec();
+    // Used by RegionImplFactory to create and cache
+    // a nodespec. Ownership is transferred to the caller.
+    static Spec* createSpec();
 
-		std::string getNodeType() { return "SPRegion"; };
+    std::string getNodeType() { return "SPRegion"; };
 
     // Compute outputs from inputs and internal state
     void compute() override;
-		std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;
+    std::string executeCommand(const std::vector<std::string>& args, Int64 index) override;
 
     /**
     * Inputs/Outputs are made available in initialize()
@@ -68,8 +68,8 @@ namespace nupic
     */
     void initialize() override;
 
-		void serialize(BundleIO& bundle) override;
-		void deserialize(BundleIO& bundle) override;
+    void serialize(BundleIO& bundle) override;
+    void deserialize(BundleIO& bundle) override;
 
 
     // Per-node size (in elements) of the given output.
@@ -95,8 +95,8 @@ namespace nupic
     void setParameterString(const std::string& name, Int64 index, const std::string& s) override;
 
 	
-	private:
-		SPRegion();  // empty constructor not allowed
+private:
+    SPRegion() = delete;  // empty constructor not allowed
 
     struct {
       UInt inputWidth;
@@ -122,7 +122,8 @@ namespace nupic
       bool topDownMode;
       int  iter;
     } args_;
-		computeCallbackFunc computeCallback_;
+
+    computeCallbackFunc computeCallback_;
     Array nzInput_;
     Array nzOutput_;
     bool nzInputValid_;
@@ -136,11 +137,7 @@ namespace nupic
 
     SpatialPooler* sp_;
 
-
-
-	};
-
-
+};
 } // namespace nupic
 
 #endif // NTA_SPREGION_HPP
