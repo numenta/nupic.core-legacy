@@ -148,11 +148,7 @@ private:
 
   // Input/output buffers for the whole region
   Input *bottomUpIn_;   // required
-  Input *sdrIn_;        // optional
-  Input *sparseIn_;     // optional
   Output *bottomUpOut_; // required
-  Output *sdrOut_;      // optional
-  Output *sparseOut_;   // optional
 };
 } // namespace nupic
 

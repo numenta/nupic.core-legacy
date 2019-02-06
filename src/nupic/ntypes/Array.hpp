@@ -95,15 +95,33 @@
 //   A.populate(vector)                    - fills A, with conversion, A retains type.
 //   A.fromDenseVector(vector)             - fills A, A becomes type of vector.
 //   A.fromSparseVector(vector, dimensions)- fills A with sparse data, A becomes SDR type
-//   A.zeroBuffer()                        - fills A with 0's, A retains type and size.
 //
 //
 // ACCESSING:
-//   vector = A.asVector()        - creates vector and populates it from A
-//   B = A.get_as(type)           - creates B with conversion, to specified type.
-//   A.convertInto(B, offset)     - fills B with conversion, B retains type.
-//   B = A.subset(offset, length) - fills B with subset of A, same type.
+//   vector = A.asVector()                 - creates vector and populates it from A
+//   B = A.get_as(type)                    - creates B with conversion, to specified type.
+//   A.convertInto(B, offset, maxsize)     - fills B with conversion, B retains type.
+//   B = A.subset(offset, length)          - fills B with subset of A, same type.
 //
+//
+// FROM ArrayBase:
+// A.AllocateBuffer(count)           -- single dimension buffer allocation
+// A.AllocateBuffer(dimensions)      -- multi dimensional buffer allocation (for SDR)
+// A.getBuffer()                     -- returns a void* pointer to beginning of buffer.
+// A.setBuffer(ptr, count)           -- set un-owned buffer
+// A.setBuffer(sdr)                  -- set un-owned SDR
+// A.zeroBuffer()                    -- fills A with 0's, A retains type and size.
+// A.releaseBuffer()                 -- free everything (if owned)
+// A.getSDR()                        -- get pointer to enclosed SDR
+// A.getBufferSize( )                -- size of buffer in bytes
+// A.getMaxElementsCount()           -- capacity in number of elements 
+// A.setCount(count)                 -- truncate buffer size to this length, keeping capacity.   (not SDR)
+// A.getType()                       -- return NTA_BasicType of buffer
+// A.has_buffer()                    -- returns true if a buffer has been allocated.
+// A.is_instance(B)                  -- returns true if B is shared with A
+// A.RefreshCache()                  -- tells SDR to update cache
+// A.save(stream)                    -- serialize
+// A.load(stream)                    -- deserialize
 //
 // SERIALIZATION
 // Two serialization methods are supported.
