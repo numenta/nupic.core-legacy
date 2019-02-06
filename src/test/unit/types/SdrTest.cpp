@@ -16,8 +16,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Sdr.hpp>
-#include <nupic/ntypes/SdrProxy.hpp>
+#include <nupic/types/Sdr.hpp>
+#include <nupic/types/SdrProxy.hpp>
 #include <vector>
 #include <random>
 
@@ -26,10 +26,11 @@ using namespace nupic;
 
 /* This also tests the size and dimensions are correct */
 TEST(SdrTest, TestConstructor) {
+    // Test 0 dimensions
+    EXPECT_ANY_THROW( SDR( vector<UInt>(0) ));
     // Test 0 size
-    ASSERT_ANY_THROW( SDR( vector<UInt>(0) ));
-    ASSERT_ANY_THROW( SDR({ 0 }) );
-    ASSERT_ANY_THROW( SDR({ 3, 2, 1, 0 }) );
+    EXPECT_NO_THROW( SDR({ 0 }) );
+    EXPECT_NO_THROW( SDR({ 3, 2, 1, 0 }) );
 
     // Test 1-D
     vector<UInt> b_dims = {3};
@@ -152,30 +153,7 @@ TEST(SdrTest, TestSetDenseUInt) {
     auto vec = vector<UInt>(a.size, 1);
     a.setDense( (UInt*) vec.data() );
     ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 1) );
-    ASSERT_NE( a.getDense().data(), (const char*) vec.data()); // true copy not a reference
-}
-
-TEST(SdrTest, TestSetDenseArray) {
-    // Test Byte sized data
-    SDR A({ 3, 3 });
-    vector<Byte> vec_byte({ 0, 1, 0, 0, 1, 0, 0, 0, 1 });
-    auto arr = Array(NTA_BasicType_Byte, vec_byte.data(), vec_byte.size());
-    A.setDense( arr );
-    ASSERT_EQ( A.getFlatSparse(), SDR_flatSparse_t({ 1, 4, 8 }));
-
-    // Test UInt64 sized data
-    A.zero();
-    vector<UInt64> vec_uint({ 1, 1, 0, 0, 1, 0, 0, 0, 1 });
-    auto arr_uint64 = Array(NTA_BasicType_UInt64, vec_uint.data(), vec_uint.size());
-    A.setDense( arr_uint64 );
-    ASSERT_EQ( A.getFlatSparse(), SDR_flatSparse_t({ 0, 1, 4, 8 }));
-
-    // Test Real sized data
-    A.zero();
-    vector<Real> vec_real({ 1., 1., 0., 0., 1., 0., 0., 0., 1. });
-    auto arr_real = Array(NTA_BasicType_Real, vec_real.data(), vec_real.size());
-    A.setDense( arr_real );
-    ASSERT_EQ( A.getFlatSparse(), SDR_flatSparse_t({ 0, 1, 4, 8 }));
+    ASSERT_NE( a.getDense().data(), (const Byte*) vec.data()); // true copy not a reference
 }
 
 TEST(SdrTest, TestSetDenseInplace) {
@@ -212,29 +190,6 @@ TEST(SdrTest, TestSetFlatSparsePtr) {
     a.setFlatSparse( (UInt*) vec.data(), a.size );
     ASSERT_EQ( a.getFlatSparse(), vec );
     ASSERT_NE( a.getFlatSparse().data(), vec.data()); // true copy not a reference
-}
-
-TEST(SdrTest, TestSetFlatSparseArray) {
-    SDR A({ 3, 3 });
-    // Test UInt32 sized data
-    vector<UInt32> vec_uint32({ 1, 4, 8 });
-    auto arr_uint32 = Array(NTA_BasicType_UInt32, vec_uint32.data(), vec_uint32.size());
-    A.setFlatSparse( arr_uint32 );
-    ASSERT_EQ( A.getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
-
-    // Test UInt64 sized data
-    A.zero();
-    vector<UInt64> vec_uint64({ 1, 4, 8 });
-    auto arr_uint64 = Array(NTA_BasicType_UInt64, vec_uint64.data(), vec_uint64.size());
-    A.setFlatSparse( arr_uint64 );
-    ASSERT_EQ( A.getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
-
-    // Test Real sized data
-    A.zero();
-    vector<Real> vec_real({ 1, 4, 8 });
-    auto arr_real = Array(NTA_BasicType_Real, vec_real.data(), vec_real.size());
-    A.setFlatSparse( arr_real );
-    ASSERT_EQ( A.getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
 }
 
 TEST(SdrTest, TestSetFlatSparseInplace) {
@@ -505,17 +460,17 @@ TEST(SdrTest, TestPrint) {
     cout << sdr3;
 }
 
-TEST(SdrTest, TestOverlap) {
+TEST(SdrTest, TestGetOverlap) {
     SDR a({3, 3});
     a.setDense(SDR_dense_t({1, 1, 1, 1, 1, 1, 1, 1, 1}));
     SDR b(a);
-    ASSERT_EQ( a.overlap( b ), 9ul );
+    ASSERT_EQ( a.getOverlap( b ), 9ul );
     b.zero();
-    ASSERT_EQ( a.overlap( b ), 0ul );
+    ASSERT_EQ( a.getOverlap( b ), 0ul );
     b.setDense(SDR_dense_t({0, 1, 0, 0, 1, 0, 0, 0, 1}));
-    ASSERT_EQ( a.overlap( b ), 3ul );
+    ASSERT_EQ( a.getOverlap( b ), 3ul );
     a.zero(); b.zero();
-    ASSERT_EQ( a.overlap( b ), 0ul );
+    ASSERT_EQ( a.getOverlap( b ), 0ul );
 }
 
 TEST(SdrTest, TestRandomize) {
@@ -613,7 +568,7 @@ TEST(SdrTest, TestAddNoise) {
     for( UInt x = 0; x <= 100; x++ ) {
         b.setSDR( a );
         b.addNoise( (Real)x / 100.0f );
-        ASSERT_EQ( a.overlap( b ), 100 - x );
+        ASSERT_EQ( a.getOverlap( b ), 100 - x );
         ASSERT_EQ( b.getSum(), 100ul );
     }
 }

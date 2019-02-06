@@ -175,9 +175,6 @@ set(ntypes_files
     nupic/ntypes/MemStream.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
-    nupic/ntypes/Sdr.hpp
-    nupic/ntypes/SdrMetrics.hpp
-    nupic/ntypes/SdrProxy.hpp
     nupic/ntypes/Value.cpp
     nupic/ntypes/Value.hpp
 )
@@ -222,6 +219,8 @@ set(types_files
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
+    nupic/types/Sdr.hpp
+    nupic/types/SdrProxy.hpp
 )
 
 set(utils_files
@@ -239,6 +238,7 @@ set(utils_files
     nupic/utils/StringUtils.cpp
     nupic/utils/StringUtils.hpp
     nupic/utils/VectorHelpers.hpp
+    nupic/utils/SdrMetrics.hpp
     nupic/utils/Watcher.cpp
     nupic/utils/Watcher.hpp
 )

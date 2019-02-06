@@ -82,12 +82,16 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
 The easiest way to build from source is as follows. 
 ```
     cd to-repository-root
-    python setup.py install --user --prefix=
+    python setup.py install --user --force
 ```
-Note that `--user --prefix=` options will install the extension libaries in ~/.local
-so that you don't need superuser permissions.
- 
+Note that `--force` option will overwrite any existing files even if they are
+the same version, which is useful when developing the library & bindings.
+
+Note that `--user` option will install the extension libaries in ~/.local so
+that you don't need superuser permissions.
+
 This will build everything including the nupic.cpp static library and Python extension libraries and then install them.
+
 After that completes you are all set to run your .py programs which import the extensions:
  * nupic.bindings.algorithms
  * nupic.bindings.engine_internal
