@@ -37,7 +37,6 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
