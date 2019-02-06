@@ -29,7 +29,6 @@
 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
 

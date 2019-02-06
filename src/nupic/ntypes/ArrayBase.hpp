@@ -103,7 +103,7 @@ namespace nupic
 
     /**
      * Ask ArrayBase to allocate its buffer
-     * NOTE: for NTA_BasicTypeSparse this sets the size of the dense buffer is describes.
+     * NOTE: for NTA_BasicType_Sparse this sets the size of the dense buffer is describes.
      */
     virtual void allocateBuffer(size_t count);
     virtual void allocateBuffer(const std::vector<UInt> dimensions);  // only for SDR
@@ -180,6 +180,10 @@ namespace nupic
      */
     bool isInstance(const ArrayBase &a) const;
 
+    /**
+     * Call this to refresh the cache in the SDR after making a lot of changes 
+     * to the dense buffer.  Call this just before doing anything else with the SDR.
+     */
     void inline RefreshCache() {
       if (type_ == NTA_BasicType_SDR) {
         SDR *sdr = getSDR();
@@ -210,10 +214,6 @@ namespace nupic
     // Buffer array conversion routines
     void convertInto(ArrayBase &a, size_t offset=0, size_t maxsize=0) const;
 
-    // Used by the Array class to return an NZ array from local array.
-    // The SDR class makes this function obsolete but we keep it for conversions.
-    void toSparse(ArrayBase& a, size_t offset) const;
-    void fromSparse(ArrayBase &a, size_t offset) const;
 
   private:
 
@@ -238,8 +238,8 @@ namespace nupic
   // Compare contents of two ArrayBase objects
   // Note: An Array and an ArrayRef could be the same if type, count, and buffer
   // contents are the same.
-  bool operator==(ArrayBase &lhs, ArrayBase &rhs);
-  inline bool operator!=(ArrayBase &lhs, ArrayBase &rhs) {return !(lhs == rhs);}
+  bool operator==(const ArrayBase &lhs,const  ArrayBase &rhs);
+  inline bool operator!=(const ArrayBase &lhs, const ArrayBase &rhs) {return !(lhs == rhs);}
 
 } // namespace
 

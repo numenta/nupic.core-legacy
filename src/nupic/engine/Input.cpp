@@ -465,11 +465,14 @@ void Input::initialize() {
         << "was called. Region's dimensions must be specified.";
   }
 
-  // Calculate our size and the offset of each link
-  // The offset is location within the input buffer where
-  // this link will place its data in a Fan-In type situation.
-  // The final count will be the entire buffer size.
-  // If there is more than one link to this same input, its a FanIn.
+  /**
+   * Called during initialization to allocate the input buffers.
+   * Calculate our size and the offset of each link
+   * The offset is location within the input buffer where
+   * this link will place its data in a Fan-In type situation.
+   * The final count will be the entire buffer size.
+   * If there is more than one link to this same input, its a FanIn.
+   */
   size_t count = 0;
   bool is_FanIn = links_.size() > 1;
   for (std::vector<std::shared_ptr<Link>>::const_iterator l = links_.begin();
@@ -532,9 +535,15 @@ const std::vector<std::vector<size_t>> &Input::getSplitterMap() const {
   return splitterMap_;
 }
 
+
+/**
+ * Optionally called by Region Implementations to map a row of an input buffer
+ * into a vector using a splitter map to re-arrange the bits.
+ * NOTE: if you don't need a splitter map or don't have dimensions
+ *       then use the Input's Buffer directly and avoid a copy.
+ */
 template <typename T>
 void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
-  // NOTE: nodeIndex is always 1 because we no longer support nodes.
   NTA_CHECK(initialized_);
   const SplitterMap &sm = getSplitterMap();
   NTA_CHECK(nodeIndex < sm.size());
@@ -547,7 +556,8 @@ void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
   for (size_t i = 0; i < map.size(); i++)
     input[i] = fullInput[map[i]];
 }
-
+template void Input::getInputForNode(size_t nodeIndex,
+                                     std::vector<Byte> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
                                      std::vector<Real64> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
@@ -561,6 +571,6 @@ template void Input::getInputForNode(size_t nodeIndex,
 template void Input::getInputForNode(size_t nodeIndex,
                                      std::vector<UInt32> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Byte> &input) const;
+                                     std::vector<bool> &input) const;
 
 } // namespace nupic

@@ -126,7 +126,7 @@ TEST(InputTest, SplitterMap) {
     ArrayBase *ao1 = &(out1->getData());
     Real64 *ptr = (Real64*)ao1->getBuffer();
     for (size_t i = 0; i < ao1->getCount(); i++)
-      *ptr++ = 10;
+      ptr[i] = 10;
 
     // confirm that in2 is still all zeroes
     Real64* idata = (Real64 *)ai2->getBuffer();

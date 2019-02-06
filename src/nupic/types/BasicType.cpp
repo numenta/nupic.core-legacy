@@ -37,7 +37,7 @@ bool BasicType::isValid(NTA_BasicType t) {
 const char *BasicType::getName(NTA_BasicType t) {
   static const char *names[] = {
       "Byte",   "Int16",  "UInt16", "Int32",  "UInt32", "Int64",
-      "UInt64", "Real32", "Real64", "Handle", "Bool", "SDR", "Sparse"
+      "UInt64", "Real32", "Real64", "Handle", "Bool", "SDR"
   };
 
   if (!isValid(t))
@@ -151,8 +151,7 @@ size_t BasicType::getSize(NTA_BasicType t) {
   static size_t basicTypeSizes[] = {
       sizeof(Byte),   sizeof(Int16),  sizeof(UInt16), sizeof(Int32),
       sizeof(UInt32), sizeof(Int64),  sizeof(UInt64), sizeof(Real32),
-      sizeof(Real64), sizeof(Handle), sizeof(bool),   sizeof(char), 
-      sizeof(UInt32)
+      sizeof(Real64), sizeof(Handle), sizeof(bool),   sizeof(char)
   };
 
   if (!isValid(t))
@@ -188,8 +187,6 @@ NTA_BasicType BasicType::parse(const std::string &s) {
     return NTA_BasicType_Bool;
   else if (s == std::string("SDR"))
     return NTA_BasicType_SDR;
-  else if (s == std::string("Sparse"))
-    return NTA_BasicType_Sparse;
   else
     throw Exception(__FILE__, __LINE__,
                     std::string("Invalid basic type name: ") + s);

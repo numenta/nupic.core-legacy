@@ -260,7 +260,7 @@ TEST_F(ArrayTest, testMemory) {
   EXPECT_TRUE(((char *)d.getBuffer())[4] == 'Z')   << "The const Array instance should also still see the buffer.";
   EXPECT_TRUE(ownedBufferLocation[4] == 'Z')  << "The pointer should also still see the buffer.";
 
-  b.share(g);
+  g = b;
   EXPECT_TRUE(g.isInstance(b)); 
 
   b.releaseBuffer();
@@ -554,10 +554,8 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     c = a; // shallow copy
     EXPECT_EQ(c.getCount(), a.getCount());
     EXPECT_TRUE(c.getBuffer() == a.getBuffer());
+    EXPECT_EQ(a.getCount(), nCols);
     EXPECT_EQ(a.getMaxElementsCount(), nCols);
-    if (testCase->second.dataType != NTA_BasicType_Sparse) {
-      EXPECT_EQ(a.getCount(), nCols);
-    }
     EXPECT_EQ(a.getBufferSize(), nCols * testCase->second.dataTypeSize );
 
 
@@ -595,35 +593,9 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       if (testCase->second.dataType == NTA_BasicType_Bool) {
         EXPECT_EQ(v[0], 1);
         EXPECT_EQ(v[1], 1);
-      } else if (testCase->second.dataType != NTA_BasicType_Sparse){
-        EXPECT_EQ(v[0], 6);
-        EXPECT_EQ(v[1], 7);
       }
     }
 
-    // toSparse
-    Array e = a.get_as(NTA_BasicType_Sparse);
-    //std::cerr << "ArrayTest:testArrayBasefunctions e=" << e << std::endl;
-    EXPECT_EQ(e.getType(), NTA_BasicType_Sparse);
-    EXPECT_EQ(e.getCount(), 10u); // There are 10 non-zero values in a's data.
-    EXPECT_EQ(e.getMaxElementsCount(), a.getMaxElementsCount());
-
-
-
-    // fromSparse
-    if (testCase->second.dataType == NTA_BasicType_Sparse) {
-      EXPECT_TRUE(a == e); // both are Sparse formats.
-
-      Array f(NTA_BasicType_Real32);
-      a.convertInto(f);
-      //std::cerr << "ArrayTest:testArrayBasefunctions f=" << f << std::endl;
-      EXPECT_EQ(f.getMaxElementsCount(), a.getMaxElementsCount());
-      Real32 *ptr_f = (Real32*)f.getBuffer();
-      Int32 *ptr_a = (Int32*)a.getBuffer();
-      for (size_t i = 0; i < a.getCount(); i++) {
-        EXPECT_TRUE((ptr_f[ptr_a[i]] != 0.0f));
-      }
-    }
   }
 }
 
@@ -658,8 +630,6 @@ void ArrayTest::setupArrayTests() {
       ArrayTestParameters(NTA_BasicType_Bool, sizeof(bool), 10, "Bool", false);
   testCases_["NTA_BasicType_SDR"] =
       ArrayTestParameters(NTA_BasicType_SDR, sizeof(char), 10, "SDR", false);
-  testCases_["NTA_BasicType_Sparse"] =
-      ArrayTestParameters(NTA_BasicType_Sparse, sizeof(UInt32), 10, "Sparse", false);
 #ifdef NTA_DOUBLE_PRECISION
   testCases_["NTA_BasicType_Real"] =
       ArrayTestParameters(NTA_BasicType_Real, 8, 10, "Real64", false);

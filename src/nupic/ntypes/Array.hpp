@@ -85,23 +85,20 @@
 // small it will reallocate the buffer.
 //
 // POPULATING:
-//   constructor A(type)                   - Empty buffer of specified type.
-//   constructor A(type, buff, size)       - Buffer filled from C array
-//   constructor A(sdr)                    - Buffer initialized from SDR
-//   B = A;                                - Shallow copy, B has same, type, buffer, size
-//   A.share(B)                            - Shallow copy, B has same, type, buffer, size
-//   A.copyfrom(type,buff, size)           - fills A with buff[size], sets type.
-//   B = A.copy()                          - Creates B as a copy of A.
-//   A.populate(vector)                    - fills A, with conversion, A retains type.
-//   A.fromDenseVector(vector)             - fills A, A becomes type of vector.
-//   A.fromSparseVector(vector, dimensions)- fills A with sparse data, A becomes SDR type
+//   constructor A(type)              - Empty buffer of specified type.
+//   constructor A(type, buff, size)  - Buffer filled from C array
+//   constructor A(sdr)               - Buffer initialized from SDR
+//   constructor A(vector)            - Buffer initialized from vector
+//   B = A;                           - Shallow copy, B has same, type, buffer, size
+//   B = A.copy()                     - Creates B as a copy of A.
+//   A.populate(vector)               - fills A from vector, with conversion, A retains type.
 //
 //
 // ACCESSING:
-//   vector = A.asVector()                 - creates vector and populates it from A
-//   B = A.get_as(type)                    - creates B with conversion, to specified type.
-//   A.convertInto(B, offset, maxsize)     - fills B with conversion, B retains type.
-//   B = A.subset(offset, length)          - fills B with subset of A, same type.
+//   vector = A.asVector()            - creates vector and populates it from A
+//   B = A.get_as(type)               - creates B with conversion, to specified type.
+//   A.convertInto(B, offset, maxsize)- fills B with conversion at offset, B retains type.
+//   B = A.subset(offset, length)     - fills B with subset of A, same type.
 //
 //
 // FROM ArrayBase:
@@ -122,6 +119,10 @@
 // A.RefreshCache()                  -- tells SDR to update cache
 // A.save(stream)                    -- serialize
 // A.load(stream)                    -- deserialize
+// cout << A << std::endl;           -- stream out
+// cin  >> A;                        -- stream in
+// A == B                            -- equals overload
+// A != B                            -- not equals overload
 //
 // SERIALIZATION
 // Two serialization methods are supported.
@@ -192,6 +193,17 @@ public:
    */
   Array(const SDR &sdr) : ArrayBase(sdr) {}
 
+  /**
+   * Create an ArrayBase with type and data from vector
+   */
+  template <typename T> 
+  Array(const std::vector<T> &vect) {
+    type_ = BasicType::getType<T>();
+    allocateBuffer(vect.size());
+    if (has_buffer())
+      memcpy(getBuffer(), vect.data(), count_ * BasicType::getSize(type_));
+  }
+
   // copy constructor
   // by default, a copy constructor is a shallow copy which would result in
   // two Array objects pointing to the same buffer. However, this is stored
@@ -208,7 +220,7 @@ public:
    * There are times when we do want a deep copy.  The copy() function
    * will make a full copy of the buffer and becomes the buffer owner.
    */
-  Array copy() {
+  Array copy() const {
     Array a(type_);
     if (count_ > 0) {
       a.allocateBuffer(count_);
@@ -218,30 +230,6 @@ public:
     return a;
   }
 
-  /**
-   * copies the buffer into the Array, setting a new type.
-   */
-  void copyFrom(NTA_BasicType type, void *buf, size_t size) {
-    type_ = type;
-    allocateBuffer(size);
-    if (size > 0)
-      memcpy((char *)getBuffer(), (char *)buf,
-           count_ * BasicType::getSize(type_));
-  }
-
-  /**
-   * This will do a shallow copy into the Array in the argument.
-   * This is for when we do not want to replace the Array object but
-   * want it to become a shared buffer instance.
-   * The buffer data is not copied, but becomes shared.
-   * Same as an assignment.
-   */
-  void share(Array &a) const {
-    a.buffer_ = buffer_; // copies the shared_ptr
-    a.count_ = count_;
-    a.capacity_ = capacity_;
-    a.type_ = type_;
-  }
 
   /**
    * Convert to a vector; copies buffer, With conversion
@@ -259,44 +247,7 @@ public:
     return v;
   }
 
-  /**
-   * from a vector; copies dense buffer into this object, with no type
-   * conversion. Array type becomes the type of the vector elements. example:
-   * array.fromDenseVector(v);
-   * Note: a dense array is a normal sequence of data as opposed to a sparse array
-   *       which is a sequence of indexes of non-zero values.
-   */
-  template <typename T> 
-  void fromDenseVector(const std::vector<T> &vect) {
-    type_ = BasicType::getType<T>();
-    allocateBuffer(vect.size());
-    if (has_buffer())
-      memcpy(getBuffer(), vect.data(), count_ * BasicType::getSize(type_));
-  }
-  /**
-   * from a vector; copies sparse buffer into this object, with no type
-   * conversion. Array type becomes SDR with its Flat Sparse array populated.
-   *   example:   array.fromSparseVector(sparse_v, dim);
-   * Note: a dense array is a normal sequence of data as opposed to a sparse array
-   *       which is a sequence of indexes of non-zero values.
-   *
-   * args: 
-   *  vect  - a vector containing indexes of non-zero values.
-   *  dim   - a vector which defines the size/shape of the original dense SDR buffer.
-   */
-  void fromSparseVector(const std::vector<Int32> &vect, const Dimensions &dim) {
-    size_t s = 1;
-    for (UInt d : dim)
-      s *= d;
-    NTA_CHECK(dim.size() == 0 || s == 0) << "fromSparseVector(); no dimensions given.";
-    if (type_ != NTA_BasicType_SDR || getSDR()->dimensions != dim) {
-      // re-allocate the buffer if needed.
-      type_ = NTA_BasicType_SDR;
-      allocateBuffer(dim);
-    }
-    RefreshCache(); 
-    getSDR()->setFlatSparse(vect);
-  }
+
   /**
     * Type Conversion
     * This populates our Array from a templeted vector.
@@ -305,19 +256,13 @@ public:
     * The vector is assumed to contain only dense format data.
     */
   template <typename T> void populate(const std::vector<T> &v) {
+    NTA_CHECK(typeid(T) != typeid(SDR)) << "A vector<SDR> not allowed.";
     NTA_BasicType fromType = BasicType::getType<T>();
     allocateBuffer(v.size());
     if (getCount() > 0) {
-      if (getType() == NTA_BasicType_Sparse) {
-        UInt32 j = 0u;
-        UInt32 *Destptr = (UInt32 *)getBuffer();
-        for (UInt32 i = 0u; i < getCount(); i++) {
-          if (v[i])
-            Destptr[j++] = (UInt32)i;
-        }
-        setCount(j); // set the size.  capacity remain size of dense buffer.
-      } else if (getType() == NTA_BasicType_SDR) {
+      if (getType() == NTA_BasicType_SDR) {
         getSDR()->setDense(v);
+        RefreshCache(); 
       } else {
         BasicType::convertArray(getBuffer(), getType(), v.data(), fromType,v.size());
       }

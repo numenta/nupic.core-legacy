@@ -289,25 +289,15 @@ void ArrayBase::convertInto(ArrayBase &a, size_t offset, size_t maxsize) const {
   }
   if (offset == 0) {
     // This should be the first set of a Fan-In.
-    if (a.getType() == NTA_BasicType_Sparse)
-      a.setCount(0);
-    else
-      a.setCount(maxsize);
+    a.setCount(maxsize);
   }
   NTA_CHECK(getCount() + offset <= maxsize);
-  if (type_ == NTA_BasicType_Sparse)
-    fromSparse(a, offset);
-  else if (a.getType() == NTA_BasicType_Sparse)
-    toSparse(a, offset);
-  else {
-    char *toPtr =
-        (char *)a.getBuffer(); // type as char* so there is an element size
-    if (offset)
-      toPtr += (offset * BasicType::getSize(a.getType()));
-    const void *fromPtr = getBuffer();
-    BasicType::convertArray(toPtr, a.type_, fromPtr, type_, getCount());
-    a.setCount(offset + getCount());
-  }
+  char *toPtr =  (char *)a.getBuffer(); // char* so it has size
+  if (offset)
+    toPtr += (offset * BasicType::getSize(a.getType()));
+  const void *fromPtr = getBuffer();
+  BasicType::convertArray(toPtr, a.type_, fromPtr, type_, getCount());
+  a.setCount(offset + getCount());
 }
 
 bool ArrayBase::isInstance(const ArrayBase &a) const {
@@ -316,174 +306,6 @@ bool ArrayBase::isInstance(const ArrayBase &a) const {
   return (buffer_.get() == a.buffer_.get());
 }
 
-template <typename T>
-static void NonZeroT(ArrayBase &a, const ArrayBase *b, size_t offset) {
-  // Helper function for toSparse().
-  // populate the new array in a with indexes of non-zero values in b.
-  // NOTE: NTA_BasicType_SDR and NTA_BasicType_Sparse not handled here.
-  T *from = (T *)b->getBuffer();
-  size_t j = a.getCount(); // current end of buffer.
-  UInt32 *Destptr = (UInt32 *)a.getBuffer();
-  for (size_t i = 0u; i < b->getCount(); i++) {
-    if (from[i])
-      Destptr[j++] = (UInt32)i + (UInt32)offset;
-  }
-  a.setCount(j); // set new end of buffer.
-}
-
-// populate the given array a with the a sparse version of the current array.
-// Destination buffer already allocated and checked for size.  Could be called
-// multiple times to populate different offsets in the buffer. Each new index
-// is appended to the buffer.
-void ArrayBase::toSparse(ArrayBase &a, size_t offset) const {
-  UInt32 *p1;
-  const UInt32 *p2;
-
-  a.type_ = NTA_BasicType_Sparse; // to Array of type Sparse
-  if (!has_buffer()) {
-    a.setCount(0); // source buffer is empty.
-    return;
-  }
-  switch (type_) { // coming from Array of this type
-  case NTA_BasicType_Byte:
-    NonZeroT<Byte>(a, this, offset);
-    break;
-  case NTA_BasicType_Int16:
-    NonZeroT<Int16>(a, this, offset);
-    break;
-  case NTA_BasicType_UInt16:
-    NonZeroT<UInt16>(a, this, offset);
-    break;
-  case NTA_BasicType_Int32:
-    NonZeroT<Int32>(a, this, offset);
-    break;
-  case NTA_BasicType_UInt32:
-    NonZeroT<UInt32>(a, this, offset);
-    break;
-  case NTA_BasicType_Int64:
-    NonZeroT<Int64>(a, this, offset);
-    break;
-  case NTA_BasicType_UInt64:
-    NonZeroT<UInt64>(a, this, offset);
-    break;
-  case NTA_BasicType_Real32:
-    NonZeroT<Real32>(a, this, offset);
-    break;
-  case NTA_BasicType_Real64:
-    NonZeroT<Real64>(a, this, offset);
-    break;
-  case NTA_BasicType_Bool:
-    NonZeroT<bool>(a, this, offset);
-    break;
-  case NTA_BasicType_SDR: {
-    // from the sparse portion of the SDR
-    const SDR *sdr = getSDR();
-    const SDR_flatSparse_t &v = sdr->getFlatSparse();
-    p1 = (UInt32 *)a.getBuffer();
-    p2 = v.data();
-    size_t j = a.getCount(); // current end of buffer.
-    for (size_t i = 0u; i < v.size(); i++) {
-      p1[j++] = (*p2++) + (UInt32)offset;
-    }
-    a.setCount(j); // New end of buffer
-  } break;
-  case NTA_BasicType_Sparse: {
-    // already sparse, just append values with offset
-    size_t j = a.getCount(); // current end of buffer.
-    p1 = (UInt32 *)a.getBuffer();
-    p2 = (UInt32 *)getBuffer();
-    for (size_t i = 0u; i < count_; i++) {
-      p1[j] = p2[i] + (UInt32)offset;
-    }
-    a.setCount(j); // New end of buffer
-  } break;
-  default:
-    NTA_THROW << "Unexpected source array type.";
-  }
-}
-
-template <typename T>
-static void DenseT(ArrayBase &a, UInt32 *Fromptr, size_t count, size_t offset) {
-  // Helper function for fromSparse( )
-  // populate the new array with indexes of non-zero values.
-  // NOTE: NTA_BasicType_SDR and NTA_BasicType_Sparse not handled here.
-  size_t maxsize = a.getMaxElementsCount();
-  T *newBuffer = (T *)a.getBuffer() + offset;
-  for (size_t i = 0u; i < count; i++) {
-    if (Fromptr[i] + offset < maxsize)
-      newBuffer[Fromptr[i]] = (T)1;
-  }
-}
-
-//  populate the given Array a with a flat dense version in a's type.
-//  The offset is provided for handling the Fan-in case. It is where this
-//  buffer's contribution should be inserted.
-//  Destination buffer allready allocated and checked for size.  Could be called
-//  multiple times to populate different offsets in the buffer.
-void ArrayBase::fromSparse(ArrayBase &a, size_t offset) const {
-  NTA_CHECK(type_ == NTA_BasicType_Sparse)
-      << "This buffer does not contain a sparse type.";
-  if (getCount() == 0) {
-    a.zeroBuffer();
-    return;
-  }
-  UInt32 *value = (UInt32 *)getBuffer();
-  switch (a.getType()) { // to an Array of this type.
-  case NTA_BasicType_Byte:
-    DenseT<Byte>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_Int16:
-    DenseT<Int16>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_UInt16:
-    DenseT<UInt16>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_Int32:
-    DenseT<Int32>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_UInt32:
-    DenseT<UInt32>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_Int64:
-    DenseT<Int64>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_UInt64:
-    DenseT<UInt64>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_Real32:
-    DenseT<Real32>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_Real64:
-    DenseT<Real64>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_Bool:
-    DenseT<bool>(a, value, count_, offset);
-    break;
-  case NTA_BasicType_SDR: {
-    UInt *fromBuf = (UInt *)getBuffer();
-    SDR *sdr = a.getSDR();
-    SDR_flatSparse_t &flatSparse = sdr->getFlatSparse();
-    for (size_t i = 0; i < count_; i++)
-      flatSparse.push_back(fromBuf[i] + (UInt)offset);
-    sdr->setFlatSparse(sdr->getFlatSparse()); // reset cache
-    // Note: before making this conversion, clear the destination SDR
-    //       to avoid duplicates during a Fan-in.
-  } break;
-  case NTA_BasicType_Sparse: {
-    UInt32 *newBuffer = (UInt32 *)a.getBuffer();
-    UInt32 *originalBuffer = (UInt32 *)getBuffer();
-    size_t j = a.getCount(); // end of buffer
-    for (size_t i = 0u; i < count_; i++) {
-      newBuffer[j++] = originalBuffer[i] + (UInt32)offset;
-    }
-    a.setCount(j);
-    // Note: before making this conversion, clear the destination buffer
-    //       to avoid duplicates during a Fan-in.
-  } break;
-  default:
-    NTA_THROW << "Unexpected source array type.";
-  }
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 //    Compare operators
@@ -491,7 +313,7 @@ void ArrayBase::fromSparse(ArrayBase &a, size_t offset) const {
 // Compare contents of two ArrayBase objects
 // Note: An Array and an ArrayRef could be the same if type, count, and buffer
 // contents are the same.
-bool operator==(ArrayBase &lhs, ArrayBase &rhs) {
+bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
   if (lhs.getType() != rhs.getType() || lhs.getCount() != rhs.getCount())
     return false;
   if (lhs.getCount() == 0)
@@ -604,9 +426,6 @@ std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a) {
     break;
   case NTA_BasicType_SDR:
     _templatedStreamBuffer<Byte>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Sparse:
-    _templatedStreamBuffer<UInt32>(outStream, inbuf, numElements);
     break;
   default:
     NTA_THROW << "Unexpected Element Type: " << elementType;
