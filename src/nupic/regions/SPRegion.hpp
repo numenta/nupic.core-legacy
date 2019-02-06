@@ -31,6 +31,8 @@
 #ifndef NTA_SPREGION_HPP
 #define NTA_SPREGION_HPP
 
+#include <memory> //unique_ptr
+
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/algorithms/SpatialPooler.hpp>
 //----------------------------------------------------------------------
@@ -135,7 +137,7 @@ private:
     std::string logPathOutput_;  
     std::string logPathOutputDense_; // can be set and get but not used for anything.
 
-    SpatialPooler* sp_;
+    std::unique_ptr<SpatialPooler> sp_;
 
 };
 } // namespace nupic

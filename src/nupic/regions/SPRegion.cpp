@@ -120,13 +120,13 @@ void SPRegion::initialize() {
   if (args_.potentialRadius == 0)
     args_.potentialRadius = args_.inputWidth;
 
-  sp_ = new SpatialPooler(
+  sp_ = std::unique_ptr<SpatialPooler>(new SpatialPooler(
       inputDimensions, columnDimensions, args_.potentialRadius,
       args_.potentialPct, args_.globalInhibition, args_.localAreaDensity,
       args_.numActiveColumnsPerInhArea, args_.stimulusThreshold,
       args_.synPermInactiveDec, args_.synPermActiveInc, args_.synPermConnected,
       args_.minPctOverlapDutyCycles, args_.dutyCyclePeriod, args_.boostStrength,
-      args_.seed, args_.spVerbosity, args_.wrapAround);
+      args_.seed, args_.spVerbosity, args_.wrapAround));
 }
 
 void SPRegion::compute() {
@@ -1259,7 +1259,7 @@ void SPRegion::deserialize(BundleIO &bundle) {
   f >> init;
   f.ignore(1);
   if (init) {
-    sp_ = new SpatialPooler();
+    sp_ = std::unique_ptr<SpatialPooler>(new SpatialPooler());
     sp_->load(f);
   } else
     sp_ = nullptr;
