@@ -25,14 +25,13 @@
  */
 
 
-#define VERBOSE                                                                \
-  if (verbose)                                                                 \
-  std::cerr << "[          ] "
+#define VERBOSE  if (verbose)  std::cerr << "[          ] "
 
 
 #include <iostream>
 
 #include "RegionTestUtilities.hpp"
+
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
@@ -341,7 +340,7 @@ void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose)
   case NTA_BasicType_UInt32:
     buf1 = (UInt32 *)array1.getBuffer();
     buf2 = (UInt32 *)array2.getBuffer();
-    for (int i = 0; i < len1; i++) {
+    for (size_t i = 0; i < len1; i++) {
       if (buf1[i] != buf2[i]) {
         return ::testing::AssertionFailure()
                << "Failure: Array element for parameter '" << parameter << "["
@@ -353,7 +352,7 @@ void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose)
   case NTA_BasicType_Real32:
     buf3 = (Real32 *)array1.getBuffer();
     buf4 = (Real32 *)array2.getBuffer();
-    for (int i = 0; i < len1; i++) {
+    for (size_t i = 0; i < len1; i++) {
       if (buf3[i] != buf4[i]) {
         return ::testing::AssertionFailure()
                << "Failure: Array element for parameter '" << parameter << "["
@@ -365,13 +364,15 @@ void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose)
   case NTA_BasicType_Real64:
     buf5 = (Real64 *)array1.getBuffer();
     buf6 = (Real64 *)array2.getBuffer();
-    for (int i = 0; i < len1; i++) {
+    for (size_t i = 0; i < len1; i++) {
       if (buf5[i] != buf6[i]) {
         return ::testing::AssertionFailure()
                << "Failure: Array element for parameter '" << parameter << "["
                << i << "]' is not the same after restore.";
       }
     }
+    break;
+  default:
     break;
   } // end switch
   return ::testing::AssertionSuccess();

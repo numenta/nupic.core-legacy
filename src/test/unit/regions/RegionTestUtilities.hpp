@@ -26,13 +26,12 @@
  *  Includes some routines for testing Region implementations.
  *
  ***********/
-#ifndef _REGIONTESTUITLITIES_HPP_
-#define _REGIONTESTUITLITIES_HPP_
+#ifndef REGIONTESTUITLITIES_HPP
+#define REGIONTESTUITLITIES_HPP
  
 #include <iostream>
 #include <nupic/engine/Region.hpp>
 #include <nupic/algorithms/BacktrackingTMCpp.hpp>
-
 
 #include "gtest/gtest.h"
 
@@ -44,12 +43,10 @@ typedef std::shared_ptr<Region> Region_Ptr_t;
   void checkGetSetAgainstSpec(Region_Ptr_t region1,size_t expectedSpecCount, bool verbose);
   void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose);
 
-	::testing::AssertionResult compareParameterArrays(Region_Ptr_t region1,Region_Ptr_t region2, std::string parameter, NTA_BasicType type);
-	::testing::AssertionResult captureParameters(Region_Ptr_t region1, std::map<std::string, std::string>& parameters);
-	::testing::AssertionResult compareParameters(Region_Ptr_t region1, std::map<std::string, std::string>& parameters);
+  ::testing::AssertionResult compareParameterArrays(Region_Ptr_t region1,Region_Ptr_t region2, std::string parameter, NTA_BasicType type);
+  ::testing::AssertionResult captureParameters(Region_Ptr_t region1, std::map<std::string, std::string>& parameters);
+  ::testing::AssertionResult compareParameters(Region_Ptr_t region1, std::map<std::string, std::string>& parameters);
   ::testing::AssertionResult compareOutputs(Region_Ptr_t region1, Region_Ptr_t region2, std::string name);
-
-
 } // namespace testing
 
-#endif _REGIONTESTUITLITIES_HPP_
+#endif //REGIONTESTUITLITIES_HPP
