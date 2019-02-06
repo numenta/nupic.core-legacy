@@ -581,7 +581,6 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       EXPECT_EQ(m.getCount(), 100u);
 
       std::vector<Byte> row = a.asVector<Byte>();
-      SDR *sdr_a = a.getSDR();
       SDR_flatSparse_t &v = a.getSDR()->getFlatSparse();
 
       EXPECT_EQ(v.size(), 10u);
