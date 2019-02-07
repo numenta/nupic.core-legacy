@@ -25,6 +25,8 @@
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Exception.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/types/Sdr.hpp>
+
 
 using namespace nupic;
 
@@ -35,7 +37,7 @@ bool BasicType::isValid(NTA_BasicType t) {
 const char *BasicType::getName(NTA_BasicType t) {
   static const char *names[] = {
       "Byte",   "Int16",  "UInt16", "Int32",  "UInt32", "Int64",
-      "UInt64", "Real32", "Real64", "Handle", "Bool",
+      "UInt64", "Real32", "Real64", "Handle", "Bool", "SDR"
   };
 
   if (!isValid(t))
@@ -91,8 +93,11 @@ template <> const char *BasicType::getName<Handle>() {
 template <> const char *BasicType::getName<bool>() {
   return getName(NTA_BasicType_Bool);
 }
+template <> const char *BasicType::getName<SDR>() {
+  return getName(NTA_BasicType_SDR);
+}
 
-// getType<T>
+// getType<T>()
 template <> NTA_BasicType BasicType::getType<Byte>() {
   return NTA_BasicType_Byte;
 }
@@ -136,6 +141,9 @@ template <> NTA_BasicType BasicType::getType<Handle>() {
 template <> NTA_BasicType BasicType::getType<bool>() {
   return NTA_BasicType_Bool;
 }
+template <> NTA_BasicType BasicType::getType<SDR>() {
+  return NTA_BasicType_SDR;
+}
 } // namespace nupic
 
 // Return the size in bits of a basic type
@@ -143,7 +151,7 @@ size_t BasicType::getSize(NTA_BasicType t) {
   static size_t basicTypeSizes[] = {
       sizeof(Byte),   sizeof(Int16),  sizeof(UInt16), sizeof(Int32),
       sizeof(UInt32), sizeof(Int64),  sizeof(UInt64), sizeof(Real32),
-      sizeof(Real64), sizeof(Handle), sizeof(bool),
+      sizeof(Real64), sizeof(Handle), sizeof(bool),   sizeof(char)
   };
 
   if (!isValid(t))
@@ -177,6 +185,8 @@ NTA_BasicType BasicType::parse(const std::string &s) {
     return NTA_BasicType_Handle;
   else if (s == std::string("Bool"))
     return NTA_BasicType_Bool;
+  else if (s == std::string("SDR"))
+    return NTA_BasicType_SDR;
   else
     throw Exception(__FILE__, __LINE__,
                     std::string("Invalid basic type name: ") + s);
@@ -212,8 +222,19 @@ static void cpyarray(void *toPtr, const void *fromPtr, size_t count, F minVal, F
   }
 }
 
+template <typename T>
+static void cpyIntoSDR(Byte *toPtr, const T *fromPtr, size_t count) {
+  const T zero = (T)0;
+  for(size_t i = 0u; i < count; i++)
+    toPtr[i] = fromPtr[i] != zero; // 1 or 0
+}
+
+
 void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
                              NTA_BasicType fromType, size_t count) {
+  if (ptr2 == nullptr || count == 0)
+    return;
+  NTA_CHECK(ptr1 != nullptr);
   try {
     switch (fromType) {
     case NTA_BasicType_Byte: // char.  This might be signed or unsigned.
@@ -248,8 +269,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Byte>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (Byte*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     case NTA_BasicType_Int16:
@@ -284,8 +309,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Int16>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (Int16*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
 
@@ -321,8 +350,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, UInt16>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (UInt16*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     case NTA_BasicType_Int32:
@@ -357,8 +390,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Int32>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (Int32*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     case NTA_BasicType_UInt32:
@@ -393,8 +430,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, UInt32>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (UInt32*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     case NTA_BasicType_Int64:
@@ -429,8 +470,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Int64>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (Int64*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
 
@@ -466,8 +511,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, UInt64>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (UInt64*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     case NTA_BasicType_Real32:
@@ -502,8 +551,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Real32>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (Real32*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     case NTA_BasicType_Real64:
@@ -538,8 +591,12 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, Real64>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (Real64*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     case NTA_BasicType_Bool:
@@ -574,8 +631,52 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_Bool:
         cpyarray<bool, bool>(ptr1, ptr2, count);
         break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (bool*)ptr2, count);
+        break;
       default:
-	break;
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
+      }
+      break;
+    case NTA_BasicType_SDR:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyarray<Byte, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int16:
+        cpyarray<Int16, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt16:
+        cpyarray<UInt16, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int32:
+        cpyarray<Int32, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt32:
+        cpyarray<UInt32, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Int64:
+        cpyarray<Int64, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyarray<UInt64, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real32:
+        cpyarray<Real32, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyarray<Real64, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyarray<bool, Byte>(ptr1, ptr2, count);
+        break;
+      case NTA_BasicType_SDR:
+        cpyIntoSDR((Byte*)ptr1, (Byte*)ptr2, count);
+        break;
+      default:
+        NTA_THROW << "Could not perform array type conversion.";
+	      break;
       }
       break;
     default:

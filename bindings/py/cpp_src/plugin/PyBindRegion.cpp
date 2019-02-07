@@ -37,7 +37,6 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
@@ -476,7 +475,7 @@ namespace nupic
         const Spec& ns = nodeSpec_;
 
         // Prepare the inputs dict
-		std::list<nupic::Array> splitterParts; // This keeps buffer copy alive until return from compute.
+		    std::list<nupic::Array> splitterParts; // This keeps buffer copy alive until return from compute.
         py::dict inputs;
         for (size_t i = 0; i < ns.inputs.getCount(); ++i)
         {
@@ -490,7 +489,7 @@ namespace nupic
             const nupic::Array * pa = &(inp->getData());
 
             // Skip unlinked inputs of size 0
-    		if (!inp->isSparse() && pa->getCount() == 0)
+    		    if (pa->getCount() == 0)
                 continue;
 
             // If the input requires a splitter map then
@@ -499,13 +498,13 @@ namespace nupic
             // access.
             if (p.second.requireSplitterMap)
             {
-				// Make a copy of input array which is 1 element larger. Save in splitterParts.
-                size_t itemSize = BasicType::getSize(pa->getType());
-				Array a(pa->getType());
-				a.allocateBuffer(pa->getCount() + 1);
-				a.zeroBuffer();
-				memcpy(a.getBuffer(), pa->getBuffer(), pa->getCount() * itemSize);
-				splitterParts.push_back(a);
+				        // Make a copy of input array which is 1 element larger. Save in splitterParts.
+                        size_t itemSize = BasicType::getSize(pa->getType());
+				        Array a(pa->getType());
+				        a.allocateBuffer(pa->getCount() + 1);
+				        a.zeroBuffer();
+				        memcpy(a.getBuffer(), pa->getBuffer(), pa->getCount() * itemSize);
+				        splitterParts.push_back(a);
                 // Change pa to point to the stored input array (with the sentinel)
                 pa = &a;
             }
@@ -618,11 +617,6 @@ namespace nupic
                     {
                         requireSplitterMap = input["requireSplitterMap"].cast<bool>();
                     }
-					bool sparse = false;
-					if (input.contains("sparse"))
-					{
-						sparse = input["sparse"].cast<bool>();
-					}
 
                     ns.inputs.add(
                         name,
@@ -633,8 +627,8 @@ namespace nupic
                             required,
                             regionLevel,
                             isDefaultInput,
-                            requireSplitterMap,
-							sparse));
+                            requireSplitterMap )
+                    );
                 }
             }
 
@@ -686,12 +680,6 @@ namespace nupic
                         << outputMessagePrefix.str() << "isDefaultOutput";
                     bool isDefaultOutput = output["isDefaultOutput"].cast<bool>();
 
-					bool sparse = false;
-					if (output.contains("sparse"))
-					{
-						sparse = output["sparse"].cast<bool>();
-					}
-
                     ns.outputs.add(
                         name,
                         OutputSpec(
@@ -699,8 +687,8 @@ namespace nupic
                             dataType,
                             count,
                             regionLevel,
-                            isDefaultOutput,
-							sparse));
+                            isDefaultOutput)
+                    );
                 }
             }
 

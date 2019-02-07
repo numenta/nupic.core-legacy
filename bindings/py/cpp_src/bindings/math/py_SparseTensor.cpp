@@ -56,7 +56,7 @@ namespace nupic_ext
 
         py_SparseTensor.def(py::init([](const std::string& state)
         {
-            size_t rank = 0;
+            int rank = 0;
             {
                 std::stringstream forRank(state);
                 forRank.exceptions(std::ios::failbit | std::ios::badbit);
@@ -64,7 +64,7 @@ namespace nupic_ext
             };
 
             PyBindTensorIndex index(rank, (const size_t *)0);
-            for (size_t i = 0; i<rank; ++i) {
+            for (int i = 0; i<rank; ++i) {
                 index[i] = 1;
             }
             Tensor_t tensor(index);

@@ -115,8 +115,8 @@ void TestFanIn2LinkPolicy::buildProtoSplitterMap(
       splitter[i / 2].push_back(i);
     }
   } else if (srcDimensions_.size() == 2) {
-    for (size_t y = 0; y < srcDimensions_[1]; y++) {
-      for (size_t x = 0; x < srcDimensions_[0]; x++) {
+    for (UInt y = 0; y < srcDimensions_[1]; y++) {
+      for (UInt x = 0; x < srcDimensions_[0]; x++) {
         size_t srcIndex = srcDimensions_.getIndex(Dimensions(x, y));
         size_t destIndex = destDimensions_.getIndex(Dimensions(x / 2, y / 2));
 

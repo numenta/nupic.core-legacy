@@ -95,7 +95,7 @@ namespace nupic_ext
                 if (a.ndim() != 2) { throw std::runtime_error("Number of dimensions must be two."); }
 
                 SM_01_32_32_t s(1);
-                s.fromDense(a.shape(0), a.shape(1), get_it(a), get_end(a));
+                s.fromDense((nupic::UInt32)a.shape(0), (nupic::UInt32)a.shape(1), get_it(a), get_end(a));
 
                 return s;
             }));
@@ -271,7 +271,7 @@ namespace nupic_ext
         sbm.def("fromDense",
             [](SM_01_32_32_t& sbm, py::array_t<nupic::UInt32>& a)
         {
-            sbm.fromDense(a.shape(0), a.shape(1), get_it(a), get_end(a));
+            sbm.fromDense((nupic::UInt32)a.shape(0), (nupic::UInt32)a.shape(1), get_it(a), get_end(a));
         });
 
         //////////////////////
@@ -762,7 +762,7 @@ namespace nupic_ext
         sbm.def("__eq__", [](const SM_01_32_32_t& self, py::array_t<nupic::UInt32> a)
             {
                 SM_01_32_32_t from_a(1);
-				from_a.fromDense(a.shape(0), a.shape(1), get_it(a), get_end(a));
+				from_a.fromDense((nupic::UInt32)a.shape(0), (nupic::UInt32)a.shape(1), get_it(a), get_end(a));
 
                 return self.equals(from_a);
             });
@@ -774,7 +774,7 @@ namespace nupic_ext
         sbm.def("__ne__", [](const SM_01_32_32_t& self, py::array_t<nupic::UInt32> a)
         {
 			SM_01_32_32_t from_a(1);
-			from_a.fromDense(a.shape(0), a.shape(1), get_it(a), get_end(a));
+			from_a.fromDense((nupic::UInt32)a.shape(0), (nupic::UInt32)a.shape(1), get_it(a), get_end(a));
 
 			return !self.equals(from_a);
         });

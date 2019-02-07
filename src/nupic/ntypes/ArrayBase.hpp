@@ -31,7 +31,8 @@
   * - a capacity   (useful if buffer is larger than data in buffer)
   * - a type
   * - a flag indicating whether or not the object owns the buffer.
-  * Note: if buffer is not owned, shared_ptr will not delete it.
+  * Note: if buffer is not owned, shared_ptr will not delete it. 
+  *       But it also does not provide any protections either.
   */
 
 #ifndef NTA_ARRAY_BASE_HPP
@@ -43,6 +44,7 @@
 #include <memory>	// for shared_ptr
 
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Sdr.hpp>
 #include <nupic/types/Serializable.hpp>
 
 
@@ -51,6 +53,7 @@
 
 namespace nupic
 {
+
   /**
    * An ArrayBase is used for passing arrays of data back and forth between
    * a client application and NuPIC, minimizing copying. It facilitates
@@ -63,26 +66,34 @@ namespace nupic
      * Caller provides a buffer to use.
      * NuPIC always copies data into this buffer
      * Caller frees buffer when no longer needed.
+     * For NTA_BasicType_SDR, use ArrayBase(SDR&) so dimensions are set.
      */
-    ArrayBase(NTA_BasicType type, void* buffer, size_t count);
+    ArrayBase(NTA_BasicType type, void *buffer, size_t count);
+
+
+    /**
+     * Create an ArrayBase containing a copy of an SDR.
+     */
+    ArrayBase(const SDR &sdr);
 
     /**
      * Caller does not provide a buffer --
      * Nupic will either provide a buffer via setBuffer or
      * ask the ArrayBase to allocate a buffer via allocateBuffer.
      */
-    explicit ArrayBase(NTA_BasicType type);
+    ArrayBase(NTA_BasicType type);
+
 
     /**
-     * Copy constructor.
+     * It is ok to use the default copy and assign constructors.
      */
-    ArrayBase(const ArrayBase& other) {
-      type_ = other.type_;
-      buffer_ = other.buffer_;
-      count_ = other.count_;
-      capacity_ = other.capacity_;
-      own_ = other.own_;
-    }
+    //ArrayBase(const ArrayBase& other) {
+    //  type_ = other.type_;
+    //  buffer_ = other.buffer_;
+    //  count_ = other.count_;
+    //  capacity_ = other.capacity_;
+    //  own_ = other.own_;
+    //}
 
     /**
      * The destructor ensures the array doesn't leak its buffer (if
@@ -90,51 +101,97 @@ namespace nupic
      */
     virtual ~ArrayBase();
 
+    /**
+     * Ask ArrayBase to allocate its buffer
+     * NOTE: for NTA_BasicType_Sparse this sets the size of the dense buffer is describes.
+     */
+    virtual void allocateBuffer(size_t count);
+    virtual void allocateBuffer(const std::vector<UInt> dimensions);  // only for SDR
 
     /**
-         * Ask ArrayBase to allocate its buffer
-         */
-    virtual void
-    allocateBuffer(size_t count);
+     * Ask ArrayBase to zero fill its buffer
+     */
+    virtual void zeroBuffer();
+
+    /** 
+     * resets the shared_ptr. The Array object is now empty.
+     */
+    virtual void releaseBuffer();
 
     /**
-         * Ask ArrayBase to zero fill its buffer
-        */
-    virtual void
-    zeroBuffer();
+     * Returns a pointer to the beginning of the buffer.
+     * For SDR, this returns a pointer to getDense().data();
+     */
+    void* getBuffer();
+    const void* getBuffer() const;
 
+    /**
+     * Returns a pointer to the underlining SDR.
+     * If it is not an SDR type, throws exception.
+     */
+    SDR* getSDR();
+    const SDR* getSDR() const;
 
-    virtual void
-    setBuffer(void *buffer, size_t count);
+    /**
+     * number of elements of given type in the buffer
+     */
+    size_t getCount() const;
 
-    virtual void
-    releaseBuffer();
-
-    void*
-    getBuffer() const;
-
-    // number of elements of given type in the buffer
-    size_t
-    getCount() const;
-
-    // max number of elements this buffer can hold (capacity)
+    /**
+     * max number of elements this buffer can hold (capacity)
+     */
 	  size_t getMaxElementsCount() const;
 
-	  // Returns the allocated buffer size in bytes independent of array length
+	  /**
+     * Returns the allocated buffer size in bytes independent of array length
+     */
     size_t getBufferSize() const;
 
-
-    void setCount(size_t count);
-
-    NTA_BasicType
-    getType() const;
-
-    bool
-    isInstance(const ArrayBase &a);
-
+    /**
+     * Returns true if the buffer is allocated a size > 0.  A capacity == 0 could
+     * indicate that data is not provided or that a buffer is unused. A zero
+     * length buffer is a valid condition.
+     */
+    bool has_buffer() const;
 
     /**
-    * serialization and deserialization for an Array
+     * Put an external buffer into the ArrayBase which is not owned by this class.
+     * This allows the Array to transport .py numpy buffers without copy.
+     * This allows wrapping an existing SDR without copying it.
+     * Caller must ensure that the pointer remains valid over the life of this instance.
+     * ArrayBase will NOT free the pointer when this instance goes out of scope.
+     */
+    virtual void setBuffer(void *buffer, size_t count);
+    virtual void setBuffer(SDR &sdr);
+
+    /**
+     * Set the number of elements.  This is used to truncate the array.
+     * For NTA_BasicTypeSparse, this sets the current length of the sparse array.
+     */
+    void setCount(size_t count);
+
+    /**
+     * Return the type of data contained in the ArrayBase object.
+     */
+    NTA_BasicType getType() const;
+
+    /**
+     * Determines if the argument contains a pointer to the same Shared_ptr.
+     */
+    bool isInstance(const ArrayBase &a) const;
+
+    /**
+     * Call this to refresh the cache in the SDR after making a lot of changes 
+     * to the dense buffer.  Call this just before doing anything else with the SDR.
+     */
+    void inline RefreshCache() {
+      if (type_ == NTA_BasicType_SDR) {
+        SDR *sdr = getSDR();
+        sdr->setDense(sdr->getDense());
+      }
+    }
+    /**
+    * serialization and deserialization for an Array and ArrayBase
     */
     // binary representation
     void save(std::ostream &outStream) const override;
@@ -142,7 +199,7 @@ namespace nupic
 
     // ascii text representation
     //    [ type count ( item item item ...) ... ]
-    friend std::ostream &operator<<(std::ostream &outStream,  const ArrayBase &a);
+    friend std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a);
     friend std::istream &operator>>(std::istream &inStream, ArrayBase &a);
 
   protected:
@@ -153,14 +210,9 @@ namespace nupic
     size_t capacity_;   // size of the allocated buffer in bytes
     NTA_BasicType type_;// type of data in this buffer
     bool own_;
-    void convertInto(ArrayBase &a, size_t offset=0) const;
 
-    // Used by the Array class to return an NZ array from local array.
-    // Template defines the type of the local array.
-    void NonZero(ArrayBase& a) const;
-
-    template <typename T>
-    void NonZeroT(ArrayBase &a) const;
+    // Buffer array conversion routines
+    void convertInto(ArrayBase &a, size_t offset=0, size_t maxsize=0) const;
 
 
   private:
@@ -186,7 +238,7 @@ namespace nupic
   // Compare contents of two ArrayBase objects
   // Note: An Array and an ArrayRef could be the same if type, count, and buffer
   // contents are the same.
-  bool operator==(const ArrayBase &lhs, const ArrayBase &rhs);
+  bool operator==(const ArrayBase &lhs,const  ArrayBase &rhs);
   inline bool operator!=(const ArrayBase &lhs, const ArrayBase &rhs) {return !(lhs == rhs);}
 
 } // namespace
