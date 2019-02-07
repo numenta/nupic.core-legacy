@@ -33,14 +33,11 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <stdexcept>
 #include <string>
 
-#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
-#include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Array.hpp>

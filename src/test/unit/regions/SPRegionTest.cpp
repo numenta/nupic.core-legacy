@@ -52,7 +52,6 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/Exception.hpp>
-#include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Env.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/os/Timer.hpp>
@@ -98,7 +97,6 @@ namespace testing
 
     checkGetSetAgainstSpec(region1, EXPECTED_SPEC_COUNT, verbose);
     checkInputOutputsAgainstSpec(region1, verbose);
-
 
   }
 
@@ -200,7 +198,7 @@ namespace testing
 
     // Explicit parameters:  (Yaml format...but since YAML is a superset of JSON, you can use JSON format as well)
 
-	  Region_Ptr_t region1 = net.addRegion("region1", "VectorFileSensor", "{activeOutputCount: "+std::to_string(dataWidth) +"}");
+    Region_Ptr_t region1 = net.addRegion("region1", "VectorFileSensor", "{activeOutputCount: "+std::to_string(dataWidth) +"}");
     Region_Ptr_t region2 = net.addRegion("region2", "SPRegion", "{columnCount: 100}");
     Region_Ptr_t region3 = net.addRegion("region3", "VectorFileEffector", "{outputFile: '"+ test_output_file + "'}");
 
@@ -256,8 +254,8 @@ namespace testing
     VERBOSE << "Checking Output Data." << std::endl;
     VERBOSE << "  SPRegion output" << std::endl;
     UInt32 columnCount = region2->getParameterUInt32("columnCount");
-	  ArrayRef r2OutputArray = region2->getOutputData("bottomUpOut");
-	  ASSERT_TRUE(r2OutputArray.getCount() == columnCount)
+    ArrayRef r2OutputArray = region2->getOutputData("bottomUpOut");
+    ASSERT_TRUE(r2OutputArray.getCount() == columnCount)
 		 << "Buffer length different. Output from SPRegion is " << r2OutputArray.getCount() << ", should be " << columnCount;
     const UInt32 *buffer3 = (const UInt32*)r2OutputArray.getBuffer();
     for (size_t i = 0; i < r2OutputArray.getCount(); i++)
@@ -282,11 +280,11 @@ namespace testing
     // cleanup
     region3->executeCommand({ "closeFile" });
 
-	}
+}
 
 
-	TEST(SPRegionTest, testSerialization)
-	{
+TEST(SPRegionTest, testSerialization)
+{
 	  // use default parameters the first time
 	  Network* net1 = new Network();
 	  Network* net2 = nullptr;
@@ -302,7 +300,7 @@ namespace testing
 
       n1region1->setParameterReal64("sensedValue", 5.5);
       n1region1->prepareInputs();
-		  n1region1->compute();
+      n1region1->compute();
 
       n1region2->prepareInputs();
       n1region2->compute();

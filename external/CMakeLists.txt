@@ -57,7 +57,7 @@ set(EP_BASE ${CMAKE_BINARY_DIR})
 if (MSVC)
   set(EXTERNAL_CXX_FLAGS /EHsc "$<$<CONFIG:Release>:/MD>" "$<$<CONFIG:Debug>:/MDd>")
 else()
-	set(EXTERNAL_CXX_FLAGS -fPIC)
+  set(EXTERNAL_CXX_FLAGS -fPIC)
 endif()
 add_compile_options(${EXTERNAL_CXX_FLAGS})
 

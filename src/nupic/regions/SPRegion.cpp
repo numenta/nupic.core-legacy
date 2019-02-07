@@ -170,36 +170,6 @@ void SPRegion::compute() {
 
     // Prepare the output
     nzOutputValid_ = false;
-
-    /* //logging disabled as not used, can be uncommented here
-
-    size_t size = sp_->getNumColumns();
-    // Direct logging of SP non-zero outputs if requested
-    if (!logPathOutput_.empty()) {
-      FILE *fp = fopen(logPathOutput_.c_str(), "a");
-      if (fp) {
-        for (size_t i = 0; i < size; i++) {
-          if (outputVector[i])
-            fprintf(fp, "%zu ", i);
-        }
-        fprintf(fp, "\n");
-        fclose(fp);
-      }
-    }
-
-    // Direct logging of SP non-zero inputs if requested
-    if (!logPathInput_.empty()) {
-      FILE *fp = fopen(logPathInput_.c_str(), "a");
-      if (fp) {
-        for (size_t i = 0; i < size; i++) {
-          if (outputVector[i])
-            fprintf(fp, "%zu ", i);
-        }
-        fprintf(fp, "\n");
-        fclose(fp);
-      }
-    }
-    */ 
   }
 }
 
