@@ -38,7 +38,7 @@ PyBind11 bindings for Engine classes
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Timer.hpp>
 
-#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/ntypes/Array.hpp>
 
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Network.hpp>
