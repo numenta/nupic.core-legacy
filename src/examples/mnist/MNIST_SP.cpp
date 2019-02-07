@@ -31,7 +31,7 @@
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
-#include "nupic/ntypes/SdrMetrics.hpp"
+#include "nupic/utils/SdrMetrics.hpp"
 
 using namespace std;
 using namespace nupic;
