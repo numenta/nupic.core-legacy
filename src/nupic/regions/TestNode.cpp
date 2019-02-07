@@ -17,7 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
+ * --------------------------------------------------------------------- 
  */
 
 #if defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)

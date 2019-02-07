@@ -58,11 +58,8 @@ public:
    *        The type of the input, i.e. TODO
    * @param isRegionLevel
    *        Whether the input is region level, i.e. TODO
-   * @param isSparse
-   *        Whether the input is sparse. Default false
    */
-  Input(Region* region, NTA_BasicType type, bool isRegionLevel,
-        bool isSparse = false);
+  Input(Region* region, NTA_BasicType type, bool isRegionLevel);
 
   /**
    *
@@ -242,13 +239,9 @@ public:
   template <typename T>
   void getInputForNode(size_t nodeIndex, std::vector<T> &input) const;
 
-  /*
-   * Tells whether the input is sparse.
-   *
-   * @returns
-   *     Whether the input is sparse
-   */
-  bool isSparse();
+  bool hasIncomingLinks() { return !links_.empty(); }
+
+
 
 private:
   // Cannot use the shared_ptr here.
@@ -280,9 +273,6 @@ private:
 
   // Useful for us to know our own name
   std::string name_;
-
-  // Whether or not to use sparse data
-  bool isSparse_;
 
   // Internal methods
 

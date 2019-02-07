@@ -87,28 +87,32 @@ std::string Spec::getDefaultOutputName() const {
   return name;
 }
 
-InputSpec::InputSpec(std::string description, NTA_BasicType dataType,
-                     UInt32 count, bool required, bool regionLevel,
-                     bool isDefaultInput, bool requireSplitterMap, bool sparse)
+InputSpec::InputSpec(std::string description, 
+                     NTA_BasicType dataType,
+                     UInt32 count, 
+                     bool required, 
+                     bool regionLevel,
+                     bool isDefaultInput, 
+                     bool requireSplitterMap)
     : description(std::move(description)), dataType(dataType), count(count),
       required(required), regionLevel(regionLevel),
-      isDefaultInput(isDefaultInput), requireSplitterMap(requireSplitterMap),
-      sparse(sparse) {}
+      isDefaultInput(isDefaultInput), requireSplitterMap(requireSplitterMap) {}
 bool InputSpec::operator==(const InputSpec &o) const {
   return required == o.required && regionLevel == o.regionLevel &&
-         isDefaultInput == o.isDefaultInput && sparse == o.sparse &&
+         isDefaultInput == o.isDefaultInput && 
          requireSplitterMap == o.requireSplitterMap && dataType == o.dataType &&
          count == o.count && description == o.description;
 }
-OutputSpec::OutputSpec(std::string description, NTA_BasicType dataType,
-                       size_t count, bool regionLevel, bool isDefaultOutput,
-                       bool sparse)
+OutputSpec::OutputSpec(std::string description, 
+                       NTA_BasicType dataType,
+                       size_t count, 
+                       bool regionLevel, 
+                       bool isDefaultOutput)
     : description(std::move(description)), dataType(dataType), count(count),
-      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput),
-      sparse(sparse) {}
+      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput) {}
 bool OutputSpec::operator==(const OutputSpec &o) const {
   return regionLevel == o.regionLevel && isDefaultOutput == o.isDefaultOutput &&
-         sparse == o.sparse && dataType == o.dataType && count == o.count &&
+         dataType == o.dataType && count == o.count &&
          description == o.description;
 }
 

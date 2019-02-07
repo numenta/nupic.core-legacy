@@ -36,15 +36,14 @@
 
 namespace nupic {
 
-Input::Input(Region* region, NTA_BasicType dataType, bool isRegionLevel,
-             bool isSparse)
+Input::Input(Region* region, NTA_BasicType dataType, bool isRegionLevel)
     : region_(region), isRegionLevel_(isRegionLevel), initialized_(false),
-      data_(dataType), name_("Unnamed"), isSparse_(isSparse) {}
+      data_(dataType), name_("Unnamed") {}
 
 Input::~Input() {
   uninitialize();
   for (auto &link : links_) {
-std::cout << "Input::~Input: \n";
+    std::cout << "Input::~Input: \n";
   	link->getSrc().removeLink(link); // remove it from the Output object.
     // the link is a shared_ptr so it will be deleted when links_ is cleared.
   }
@@ -131,9 +130,11 @@ Region* Input::getRegion() { return region_; }
 
 std::vector<std::shared_ptr<Link>> &Input::getLinks() { return links_; }
 
+/**
+ * Returns true if dimensions are specified on the region
+ * rather than on the link.
+ */
 bool Input::isRegionLevel() { return isRegionLevel_; }
-
-bool Input::isSparse() { return isSparse_; }
 
 // See header file for documentation
 size_t Input::evaluateLinks() {
@@ -449,7 +450,11 @@ size_t Input::evaluateLinks() {
 // all inputs have been initialized. Now we can calculate
 // our size and set up any data structures needed
 // for copying data over a link.
-
+//
+// Any Input that does not have a link attached will be
+// a Zero Length buffer. A region implementation should
+// ignore any zero length input buffers.
+//
 void Input::initialize() {
   if (initialized_)
     return;
@@ -460,35 +465,30 @@ void Input::initialize() {
         << "was called. Region's dimensions must be specified.";
   }
 
-  if (isSparse_) {
-    NTA_CHECK(isRegionLevel_) << "Sparse data must be region level";
-    NTA_CHECK(data_.getType() == NTA_BasicType_UInt32)
-        << "Sparse data must be uint32";
-  }
-
-  // Calculate our size and the offset of each link
+  /**
+   * Called during initialization to allocate the input buffers.
+   * Calculate our size and the offset of each link
+   * The offset is location within the input buffer where
+   * this link will place its data in a Fan-In type situation.
+   * The final count will be the entire buffer size.
+   * If there is more than one link to this same input, its a FanIn.
+   */
   size_t count = 0;
+  bool is_FanIn = links_.size() > 1;
   for (std::vector<std::shared_ptr<Link>>::const_iterator l = links_.begin();
        l != links_.end(); l++) {
     linkOffsets_.push_back(count);
     // Setting the destination offset makes the link usable.
-    // TODO: change
-    (*l)->initialize(count);
+    (*l)->initialize(count, is_FanIn);
     count += (*l)->getSrc().getData().getCount();
   }
 
   // Later we may optimize with the zeroCopyEnabled_ flag but
-  // for now we always allocate our own buffer.
+  // for now we always allocate our own input buffer.
+  // Create the Input buffer.
   data_.allocateBuffer(count);
+  data_.zeroBuffer();
 
-  // Zero the inputs (required for inspectors)
-  if (count != 0) {
-    void *buffer = data_.getBuffer();
-    ::memset(buffer, 0, data_.getBufferSize());
-    if (isSparse_) {
-      data_.setCount(0);
-    }
-  }
 
   NTA_CHECK(splitterMap_.size() == 0);
 
@@ -535,6 +535,13 @@ const std::vector<std::vector<size_t>> &Input::getSplitterMap() const {
   return splitterMap_;
 }
 
+
+/**
+ * Optionally called by Region Implementations to map a row of an input buffer
+ * into a vector using a splitter map to re-arrange the bits.
+ * NOTE: if you don't need a splitter map or don't have dimensions
+ *       then use the Input's Buffer directly and avoid a copy.
+ */
 template <typename T>
 void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
   NTA_CHECK(initialized_);
@@ -549,7 +556,8 @@ void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
   for (size_t i = 0; i < map.size(); i++)
     input[i] = fullInput[map[i]];
 }
-
+template void Input::getInputForNode(size_t nodeIndex,
+                                     std::vector<Byte> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
                                      std::vector<Real64> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
@@ -563,6 +571,6 @@ template void Input::getInputForNode(size_t nodeIndex,
 template void Input::getInputForNode(size_t nodeIndex,
                                      std::vector<UInt32> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Byte> &input) const;
+                                     std::vector<bool> &input) const;
 
 } // namespace nupic

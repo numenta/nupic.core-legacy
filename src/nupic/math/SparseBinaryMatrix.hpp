@@ -151,7 +151,7 @@ public:
   inline size_type capacity() const {
     size_type n = 0;
     for (size_type i = 0; i != nRows(); ++i)
-      n += ind_[i].capacity();
+      n += (size_type)ind_[i].capacity();
     return n;
   }
 
@@ -408,8 +408,7 @@ public:
       size_type prev_col = 0, box_j = 0;
       for (InputIterator col = col_inds_begin; col != col_inds_end;
            ++col, ++box_j) {
-        summary.set(box_i, box_j,
-                    nNonZerosInBox(prev_row, *row, prev_col, *col));
+        summary.set(box_i, box_j, nNonZerosInBox(prev_row, *row, prev_col, *col));
         prev_col = *col;
       }
       prev_row = *row;
@@ -905,7 +904,7 @@ public:
   inline void logicalNot() {
     for (size_type row = 0; row != nRows(); ++row) {
 
-      size_type nnzr = ind_[row].size();
+      size_type nnzr = (size_type)ind_[row].size();
       Row new_row;
       new_row.reserve(nCols() - nnzr);
 
@@ -937,7 +936,7 @@ public:
 
     for (size_type row = 0; row != nRows(); ++row) {
 
-      size_type k = sparseOr(nCols(), ind_[row], o.ind_[row], buffer_);
+      size_type k = (size_type)sparseOr(nCols(), ind_[row], o.ind_[row], buffer_);
       replaceSparseRow(row, buffer_.begin(), buffer_.begin() + k);
     }
   }
@@ -955,7 +954,7 @@ public:
 
     for (size_type row = 0; row != nRows(); ++row) {
 
-      size_type k = sparseAnd(nCols(), ind_[row], o.ind_[row], ind_[row]);
+      size_type k = (size_type)sparseAnd(nCols(), ind_[row], o.ind_[row], ind_[row]);
       ind_[row].resize(k);
       // replaceSparseRow(row, buffer_.begin(), buffer_.begin() + k);
     }
@@ -1110,7 +1109,7 @@ public:
 
     b << getVersion() << " " << nRows() << " " << nCols() << " ";
 
-    size_type n = b.str().size();
+    size_type n = (size_type)b.str().size();
     for (size_type row = 0; row != nRows(); ++row) {
       size_type nnzr = nNonZerosOnRow(row);
       n += sprintf(buffer, "%ld ", (long)nnzr);

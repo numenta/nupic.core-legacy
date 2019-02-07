@@ -182,7 +182,7 @@ public:
    *            The offset in the destination Input, i.e. TODO
    *
    */
-  void initialize(size_t destinationOffset);
+  void initialize(size_t destinationOffset, bool is_FanIn);
 
   /**
    * Destructor
@@ -457,6 +457,7 @@ private:
   // input. The link needs to know its offset within the destination
   // input. This value is set at initialization time.
   size_t destOffset_;
+  bool is_FanIn_;
 
   // Queue buffer for delayed source data buffering
   std::deque<Array> propagationDelayBuffer_;

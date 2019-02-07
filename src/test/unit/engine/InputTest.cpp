@@ -119,20 +119,17 @@ TEST(InputTest, SplitterMap) {
   // test prepare
   {
     // set in2 to all zeroes
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    for (UInt i = 0; i < 64; i++)
-      idata[i] = 0;
+    ArrayBase *ai2 = &(in2->getData());
+    ai2->zeroBuffer();
 
     // set out1 to all 10's
-    const ArrayBase *ao1 = &(out1->getData());
-    idata = (Real64 *)(ao1->getBuffer());
-    for (UInt i = 0; i < 64; i++)
-      idata[i] = 10;
+    ArrayBase *ao1 = &(out1->getData());
+    Real64 *ptr = (Real64*)ao1->getBuffer();
+    for (size_t i = 0; i < ao1->getCount(); i++)
+      ptr[i] = 10;
 
     // confirm that in2 is still all zeroes
-    ai2 = &(in2->getData());
-    idata = (Real64 *)(ai2->getBuffer());
+    Real64* idata = (Real64 *)ai2->getBuffer();
     // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);

@@ -33,6 +33,7 @@ PyBind11 bindings for SparseMatrix class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
+#include <nupic/types/Types.hpp>
 #include <nupic/math/SparseMatrix.hpp>
 
 #include "Matrix.hpp"
@@ -76,7 +77,7 @@ namespace nupic_ext
         {
             if (a.ndim() != 2) { throw std::runtime_error("Number of dimensions must be two."); }
 
-            SparseMatrix32_t s(a.shape(0), a.shape(1), get_it(a));
+            SparseMatrix32_t s((nupic::UInt32)(a.shape(0)), (nupic::UInt32)(a.shape(1)), get_it(a));
 
             return s;
         }));

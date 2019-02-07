@@ -46,7 +46,6 @@ class Dimensions;
 class Input;
 class Output;
 class Array;
-class ArrayRef;
 class NodeSet;
 class BundleIO;
 

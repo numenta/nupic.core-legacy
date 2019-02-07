@@ -165,7 +165,6 @@ set(ntypes_files
     nupic/ntypes/Array.hpp
     nupic/ntypes/ArrayBase.cpp
     nupic/ntypes/ArrayBase.hpp
-    nupic/ntypes/ArrayRef.hpp
     nupic/ntypes/BundleIO.hpp
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
