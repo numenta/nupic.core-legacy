@@ -57,7 +57,7 @@ VectorFileEffector::~VectorFileEffector() { closeFile(); }
 void VectorFileEffector::initialize() {
   NTA_CHECK(region_ != nullptr);
   // We have no outputs or parameters; just need our input.
-  dataIn_ = region_->getInputData("dataIn");
+  dataIn_ = region_->getInput("dataIn")->getData();
 
   if (dataIn_.getCount() == 0) {
     NTA_THROW << "VectorFileEffector::init - no input found\n";
@@ -185,7 +185,8 @@ Spec *VectorFileEffector::createSpec() {
       "to the file.\n";
 
   ns->inputs.add("dataIn",
-                 InputSpec("Data to be written to file", NTA_BasicType_Real32,
+                 InputSpec("Data to be written to file", 
+                           NTA_BasicType_Real32,
                            0,     // count
                            false, // required?
                            false, // isRegionLevel

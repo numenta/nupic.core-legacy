@@ -16,10 +16,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Sdr.hpp>
-#include <nupic/ntypes/SdrMetrics.hpp>
+#include <nupic/types/Sdr.hpp>
+#include <nupic/utils/SdrMetrics.hpp>
 /* Many of these tests also test SDR proxies. */
-#include <nupic/ntypes/SdrProxy.hpp>
+#include <nupic/types/SdrProxy.hpp>
 #include <vector>
 #include <random>
 

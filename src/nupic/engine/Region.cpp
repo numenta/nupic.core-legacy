@@ -44,7 +44,6 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/BasicType.hpp>
 
 
@@ -91,7 +90,7 @@ void Region::createInputsAndOutputs_() {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
     std::string outputName = p.first;
     const OutputSpec &os = p.second;
-    auto output = new Output(this, os.dataType, os.regionLevel, os.sparse);
+    auto output = new Output(this, os.dataType, os.regionLevel);
     outputs_[outputName] = output;
     // keep track of name in the output also -- see note in Region.hpp
     output->setName(outputName);
@@ -103,7 +102,7 @@ void Region::createInputsAndOutputs_() {
     std::string inputName = p.first;
     const InputSpec &is = p.second;
 
-    auto input = new Input(this, is.dataType, is.regionLevel, is.sparse);
+    auto input = new Input(this, is.dataType, is.regionLevel);
     inputs_[inputName] = input;
     // keep track of name in the input also -- see note in Region.hpp
     input->setName(inputName);
@@ -340,7 +339,7 @@ void Region::save(std::ostream &f) const {
   f << "name: " << name_ << "\n";
   f << "nodeType: " << type_ << "\n";
   f << "dimensions: [ " << dims_.size() << "\n";
-  for (Size d : dims_) {
+  for (UInt32 d : dims_) {
 	  f << d << " ";
   }
   f << "]\n";
@@ -390,8 +389,8 @@ void Region::load(std::istream &f) {
   f >> count;
   for (size_t i = 0; i < count; i++)
   {
-  Size val;
-  f >> val;
+    UInt32 val;
+    f >> val;
     dims_.push_back(val);
   }
   f >> tag;
@@ -465,8 +464,7 @@ bool Region::operator==(const Region &o) const {
   // Compare Regions's Input
   static auto compareInput = [](decltype(*inputs_.begin()) a, decltype(a) b) {
     if (a.first != b.first ||
-        a.second->isRegionLevel() != b.second->isRegionLevel() ||
-        a.second->isSparse() != b.second->isSparse()) {
+        a.second->isRegionLevel() != b.second->isRegionLevel()) {
       return false;
     }
     auto links1 = a.second->getLinks();
@@ -489,7 +487,6 @@ bool Region::operator==(const Region &o) const {
   static auto compareOutput = [](decltype(*outputs_.begin()) a, decltype(a) b) {
     if (a.first != b.first ||
         a.second->isRegionLevel() != b.second->isRegionLevel() ||
-        a.second->isSparse() != b.second->isSparse() ||
         a.second->getNodeOutputElementCount() !=
             b.second->getNodeOutputElementCount()) {
       return false;
@@ -534,28 +531,24 @@ const std::map<std::string, Output *> &Region::getOutputs() const {
 }
 
 
-ArrayRef Region::getOutputData(const std::string &outputName) const {
+const Array& Region::getOutputData(const std::string &outputName) const {
   auto oi = outputs_.find(outputName);
   if (oi == outputs_.end())
     NTA_THROW << "getOutputData -- unknown output '" << outputName
               << "' on region " << getName();
 
   const Array& data = oi->second->getData();
-  // for later.     return data.ref();
-  ArrayRef ref(data.getType(), data.getBuffer(), data.getCount());
-  return ref;
+  return data;
 }
 
-ArrayRef Region::getInputData(const std::string &inputName) const {
+const Array& Region::getInputData(const std::string &inputName) const {
   auto ii = inputs_.find(inputName);
   if (ii == inputs_.end())
     NTA_THROW << "getInput -- unknown input '" << inputName << "' on region "
               << getName();
 
   const Array & data = ii->second->getData();
-  // for later.     return data.ref();
-  ArrayRef ref(data.getType(), data.getBuffer(), data.getCount());
-  return ref;
+  return data;
 }
 
 void Region::prepareInputs() {

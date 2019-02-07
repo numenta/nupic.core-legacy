@@ -276,7 +276,7 @@ template <typename D> struct IsNearlyZero {
  */
 template <typename T>
 inline bool nearlyZero(const T &a, const T &epsilon = T(nupic::Epsilon)) {
-  return a >= -epsilon && a <= epsilon;
+  return (std::is_signed<T>())?(a >= -epsilon && a <= epsilon): (a <= epsilon);
 }
 
 //--------------------------------------------------------------------------------

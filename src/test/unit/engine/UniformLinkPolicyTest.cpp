@@ -127,7 +127,7 @@ public:
 
 UniformLinkPolicyInspector inspector;
 
-Coordinate makeCoordinate(size_t x, size_t y) {
+Coordinate makeCoordinate(UInt x, UInt y) {
   Coordinate coord;
 
   coord.push_back(x);

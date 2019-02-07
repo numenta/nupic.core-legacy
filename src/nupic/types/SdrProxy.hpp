@@ -23,7 +23,7 @@
 #define SDR_PROXY_HPP
 
 #include <vector>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 
@@ -91,17 +91,17 @@ public:
     ~SDR_Proxy() override
         { deconstruct(); }
 
-    SDR_dense_t& getDense() override {
+    SDR_dense_t& getDense() const override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         return parent->getDense();
     }
 
-    SDR_flatSparse_t& getFlatSparse() override {
+    SDR_flatSparse_t& getFlatSparse() const override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         return parent->getFlatSparse();
     }
 
-    SDR_sparse_t& getSparse() override {
+    SDR_sparse_t& getSparse() const override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         if( dimensions.size() == parent->dimensions.size() &&
             equal( dimensions.begin(), dimensions.end(),
@@ -152,7 +152,7 @@ protected:
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
     void setSparseInplace() override
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
-    void setSDR( SparseDistributedRepresentation &value ) override
+    void setSDR( const SparseDistributedRepresentation &value ) override
         { NTA_THROW << _SDR_Proxy_setter_error_message; }
 };
 

@@ -29,17 +29,17 @@ using namespace nupic;
 
 Dimensions::Dimensions(){};
 
-Dimensions::Dimensions(std::vector<size_t> v)
-    : std::vector<size_t>(std::move(v)){};
+Dimensions::Dimensions(std::vector<UInt> v)
+    : std::vector<UInt>(std::move(v)){};
 
-Dimensions::Dimensions(size_t x) { push_back(x); }
+Dimensions::Dimensions(UInt x) { push_back(x); }
 
-Dimensions::Dimensions(size_t x, size_t y) {
+Dimensions::Dimensions(UInt x, UInt y) {
   push_back(x);
   push_back(y);
 }
 
-Dimensions::Dimensions(size_t x, size_t y, size_t z) {
+Dimensions::Dimensions(UInt x, UInt y, UInt z) {
   push_back(x);
   push_back(y);
   push_back(z);
@@ -96,7 +96,7 @@ bool Dimensions::isSpecified() const {
 }
 
 // internal helper method
-static std::string vecToString(std::vector<size_t> vec) {
+static std::string vecToString(std::vector<UInt> vec) {
   std::stringstream ss;
   for (size_t i = 0; i < vec.size(); i++) {
     ss << vec[i];
@@ -160,7 +160,7 @@ Coordinate Dimensions::getCoordinate(const size_t index) const {
 
   for (size_type i = size() - 1; i != (size_type)-1; i--) {
     product /= at(i);
-    coordinate.insert(coordinate.begin(), x / product);
+    coordinate.insert(coordinate.begin(), (UInt)( x / product));
     x %= product;
   }
 
@@ -181,7 +181,7 @@ void Dimensions::promote(size_t newDimensionality) {
 }
 
 bool Dimensions::operator==(const Dimensions &dims2) const {
-  if ((std::vector<size_t>)(*this) == (std::vector<size_t>)dims2)
+  if ((std::vector<UInt>)(*this) == (std::vector<UInt>)dims2)
     return true;
 
   if (isOnes() && dims2.isOnes())

@@ -21,6 +21,10 @@ skip_commits:
   # Add [ci skip] to skip Travis and AppVeyor building
   message: /\[av skip\]/
 
+# Do not build feature branch with open Pull Requests
+# prevents two builds when a PR is pushed.
+skip_branch_with_pr: true
+
 #---------------------------------#
 #    environment configuration    #
 #---------------------------------#
@@ -79,7 +83,7 @@ environment:
 
 matrix:
   fast_finish: true
-  
+  ##  Dont know where this goes: skip_branch_with_pr: true
   #allow_failures:
   #  # enable this to prevent CI from failing even if there are errors.
   #  - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"

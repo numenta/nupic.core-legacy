@@ -46,7 +46,7 @@ public:
   Coordinate three_four; // [3,4]
 
   // internal helper method
-  static std::string vecToString(std::vector<size_t> vec) {
+  static std::string vecToString(std::vector<UInt> vec) {
     std::stringstream ss;
     ss << "[";
     for (size_t i = 0; i < vec.size(); i++) {
@@ -125,14 +125,14 @@ TEST_F(DimensionsTest, ValidDimensions) {
 
 TEST_F(DimensionsTest, Check2DXMajor) {
   // check a two dimensional matrix for proper x-major ordering
-  std::vector<size_t> x;
+  std::vector<UInt> x;
   x.push_back(4);
   x.push_back(5);
   Dimensions d(x);
-  size_t testDim1 = 4;
-  size_t testDim2 = 5;
-  for (size_t i = 0; i < testDim1; i++) {
-    for (size_t j = 0; j < testDim2; j++) {
+  UInt testDim1 = 4;
+  UInt testDim2 = 5;
+  for (UInt i = 0; i < testDim1; i++) {
+    for (UInt j = 0; j < testDim2; j++) {
       Coordinate testCoordinate;
       testCoordinate.push_back(i);
       testCoordinate.push_back(j);
@@ -146,17 +146,17 @@ TEST_F(DimensionsTest, Check2DXMajor) {
 
 TEST_F(DimensionsTest, Check3DXMajor) {
   // check a three dimensional matrix for proper x-major ordering
-  std::vector<size_t> x;
+  std::vector<UInt> x;
   x.push_back(3);
   x.push_back(4);
   x.push_back(5);
   Dimensions d(x);
-  size_t testDim1 = 3;
-  size_t testDim2 = 4;
-  size_t testDim3 = 5;
-  for (size_t i = 0; i < testDim1; i++) {
-    for (size_t j = 0; j < testDim2; j++) {
-      for (size_t k = 0; k < testDim3; k++) {
+  UInt testDim1 = 3;
+  UInt testDim2 = 4;
+  UInt testDim3 = 5;
+  for (UInt i = 0; i < testDim1; i++) {
+    for (UInt j = 0; j < testDim2; j++) {
+      for (UInt k = 0; k < testDim3; k++) {
         Coordinate testCoordinate;
         testCoordinate.push_back(i);
         testCoordinate.push_back(j);
@@ -175,7 +175,7 @@ TEST_F(DimensionsTest, Check3DXMajor) {
 
 TEST_F(DimensionsTest, AlternateConstructor) {
   // alternate constructor
-  std::vector<size_t> x;
+  std::vector<UInt> x;
   x.push_back(2);
   x.push_back(5);
   Dimensions d(x);
