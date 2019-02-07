@@ -35,7 +35,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/regions/SPRegion.hpp>
