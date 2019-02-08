@@ -858,11 +858,13 @@ UInt32 BacktrackingTMRegion::getParameterUInt32(const std::string &name, Int64 i
     break;
 
   case 'i':
-    if (name == "inputWidth")
+    if (name == "inputWidth") {
       NTA_CHECK(getInput("bottomUpIn") != nullptr) << "Unknown Input: 'bottomUpIn'";
-      if (!getInput("bottomUpIn")->isInitialized())
+      if (!getInput("bottomUpIn")->isInitialized()) {
         return 0; // might not be any links defined.
+      }
       return (UInt32)getInput("bottomUpIn")->getData().getCount();
+    }
     break;
 
   case 'm':
