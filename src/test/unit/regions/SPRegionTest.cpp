@@ -50,7 +50,6 @@
 #include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/RegisteredRegionImplCpp.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/Exception.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/os/Path.hpp>
@@ -224,7 +223,7 @@ namespace testing
 
 	  VERBOSE << "Checking data after first iteration..." << std::endl;
     VERBOSE << "  VectorFileSensor Output" << std::endl;
-    ArrayRef r1OutputArray = region1->getOutputData("dataOut");
+    Array r1OutputArray = region1->getOutputData("dataOut");
     EXPECT_EQ(r1OutputArray.getCount(), dataWidth);
     EXPECT_TRUE(r1OutputArray.getType() == NTA_BasicType_Real32);
     Real32 *buffer1 = (Real32*) r1OutputArray.getBuffer();
@@ -234,7 +233,7 @@ namespace testing
 	  //}
 
     VERBOSE << "  SPRegion input" << std::endl;
-    ArrayRef r2InputArray = region2->getInputData("bottomUpIn");
+    Array r2InputArray = region2->getInputData("bottomUpIn");
 	  ASSERT_TRUE (r1OutputArray.getCount() == r2InputArray.getCount()) 
 		<< "Buffer length different. Output from VectorFileSensor is " << r1OutputArray.getCount() << ", input to SPRegion is " << r2InputArray.getCount();
     EXPECT_TRUE(r2InputArray.getType() == NTA_BasicType_UInt32);
@@ -254,7 +253,7 @@ namespace testing
     VERBOSE << "Checking Output Data." << std::endl;
     VERBOSE << "  SPRegion output" << std::endl;
     UInt32 columnCount = region2->getParameterUInt32("columnCount");
-    ArrayRef r2OutputArray = region2->getOutputData("bottomUpOut");
+    Array r2OutputArray = region2->getOutputData("bottomUpOut");
     ASSERT_TRUE(r2OutputArray.getCount() == columnCount)
 		 << "Buffer length different. Output from SPRegion is " << r2OutputArray.getCount() << ", should be " << columnCount;
     const UInt32 *buffer3 = (const UInt32*)r2OutputArray.getBuffer();
@@ -267,7 +266,7 @@ namespace testing
 
 
     VERBOSE << "  VectorFileEffector input" << std::endl;
-    ArrayRef r3InputArray = region3->getInputData("dataIn");
+    Array r3InputArray = region3->getInputData("dataIn");
     ASSERT_TRUE(r3InputArray.getCount() == columnCount);
     const Real32 *buffer4 = (const Real32*)r3InputArray.getBuffer();
     for (size_t i = 0; i < r3InputArray.getCount(); i++)
