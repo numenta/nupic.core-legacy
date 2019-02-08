@@ -473,6 +473,7 @@ void Connections::raisePermanencesToThreshold(
     return;
 
   vector<Synapse> &synapses = segData.synapses;
+  if(synapses.size() <= 0) return; 
 
   // Sort the potential pool by permanence values, and look for the synapse with
   // the N'th greatest permanence, where N is the desired minimum number of
@@ -481,20 +482,21 @@ void Connections::raisePermanencesToThreshold(
 
   NTA_ASSERT(synapses.size() <= segmentThreshold) << "Threshold too large";
   NTA_ASSERT(segmentThreshold >= 1) << "Threshold must be >= 1, otherwise overflows here";
-  auto minPermSynPtr = synapses.begin() + segmentThreshold - 1; //FIXME I suspect in edge conditions this causes some err
+  const auto minPermSynPtr = synapses.begin() + segmentThreshold - 1;
+
   // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
   // its final sorted position.
-  const auto permanencesGreater = [&](Synapse &A, Synapse &B)
+  const auto permanencesGreater = [&](const Synapse &A, const Synapse &B)
     { return synapses_[A].permanence > synapses_[B].permanence; };
+  NTA_ASSERT(minPermSynPtr <= synapses.end());
   std::nth_element(synapses.begin(), minPermSynPtr, synapses.end(), permanencesGreater);
 
-  const Real increment = permanenceThreshold - synapses_[ *minPermSynPtr ].permanence;
+  const Real increment = permanenceThreshold - synapses_[*minPermSynPtr].permanence;
   if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
     return;            // Enough synapses are already connected.
 
   // Raise the permance of all synapses in the potential pool uniformly.
   for( const auto &syn : synapses ) {
-    NTA_ASSERT(syn < synapses_.size()) << "Synapse out of bounds.";
     updateSynapsePermanence(syn, synapses_[syn].permanence + increment);
   }
 }
@@ -503,7 +505,6 @@ void Connections::raisePermanencesToThreshold(
 void Connections::bumpSegment(const Segment segment, const Permanence delta) {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
   for( const auto &syn : synapses ) {
-    NTA_ASSERT(syn < synapses_.size()) << "Synapse out of range!";
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
   }
 }
