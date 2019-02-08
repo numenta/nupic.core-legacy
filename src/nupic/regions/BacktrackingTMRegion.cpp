@@ -911,6 +911,7 @@ UInt32 BacktrackingTMRegion::getParameterUInt32(const std::string &name, Int64 i
   case 'o':
     if (name == "outputWidth")
       return args_.outputWidth;
+    break;
 
   case 'p':
     if (name == "pamLength") {
