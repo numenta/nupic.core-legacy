@@ -21,6 +21,7 @@
  * Author: David Keeney, June 2018
  * ---------------------------------------------------------------------
  */
+#include <cstring> //strncpy
 #include <fstream>
 #include <iomanip> // setprecision() in stream
 #include <iostream>
@@ -79,8 +80,9 @@ BacktrackingTMRegion::BacktrackingTMRegion(const ValueMap &params, Region *regio
   args_.maxSeqLength = params.getScalarT<UInt32>("maxSeqLength", 32);
   args_.maxSegmentsPerCell = params.getScalarT<Int32>("maxSegmentsPerCell", -1);
   args_.maxSynapsesPerSegment = params.getScalarT<Int32>("maxSynapsesPerSegment", -1);
+
   memset((void *)args_.outputType, 0, sizeof(args_.outputType));
-  strcpy_s(args_.outputType, sizeof(args_.outputType), params.getString("outputType", "normal").c_str());
+  strncpy(args_.outputType, params.getString("outputType", "normal").c_str(), sizeof(args_.outputType));
 
   // variables used by this class and not passed on
   args_.learningMode = params.getScalarT<bool>("learningMode", true);
