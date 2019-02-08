@@ -195,10 +195,14 @@ set(os_files
 )
 
 set(regions_files
-    nupic/regions/TestNode.cpp
-    nupic/regions/TestNode.hpp
+    nupic/regions/BacktrackingTMRegion.cpp
+    nupic/regions/BacktrackingTMRegion.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
+    nupic/regions/TestNode.cpp
+    nupic/regions/TestNode.hpp
+    nupic/regions/TMRegion.cpp
+    nupic/regions/TMRegion.hpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFile.hpp
     nupic/regions/VectorFileEffector.cpp
