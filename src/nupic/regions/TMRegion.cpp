@@ -38,7 +38,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/regions/TMRegion.hpp>
@@ -477,11 +476,13 @@ UInt32 TMRegion::getParameterUInt32(const std::string &name, Int64 index) {
     break;
 
   case 'i':
-    if (name == "inputWidth")
+    if (name == "inputWidth") {
       NTA_CHECK(getInput("bottomUpIn") != nullptr) << "Unknown Input: 'bottomUpIn'";
-      if (!getInput("bottomUpIn")->isInitialized())
+      if (!getInput("bottomUpIn")->isInitialized()) {
         return 0; // might not be any links defined.
+      }
       return (UInt32)getInput("bottomUpIn")->getData().getCount();
+    }
     break;
 
   case 'm':
