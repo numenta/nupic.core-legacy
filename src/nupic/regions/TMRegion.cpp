@@ -455,8 +455,6 @@ Spec *TMRegion::createSpec() {
 
 UInt32 TMRegion::getParameterUInt32(const std::string &name, Int64 index) {
 
-  switch (name[0]) {
-  case 'a':
     if (name == "activationThreshold") {
       if (tm_)
         return tm_->getActivationThreshold();
@@ -465,17 +463,11 @@ UInt32 TMRegion::getParameterUInt32(const std::string &name, Int64 index) {
     if (name == "activeOutputCount") {
       return args_.outputWidth;
     }
-    break;
-
-  case 'c':
     if (name == "cellsPerColumn") {
       if (tm_)
         return (UInt32)tm_->getCellsPerColumn();
       return args_.cellsPerColumn;
     }
-    break;
-
-  case 'i':
     if (name == "inputWidth") {
       NTA_CHECK(getInput("bottomUpIn") != nullptr) << "Unknown Input: 'bottomUpIn'";
       if (!getInput("bottomUpIn")->isInitialized()) {
@@ -483,9 +475,6 @@ UInt32 TMRegion::getParameterUInt32(const std::string &name, Int64 index) {
       }
       return (UInt32)getInput("bottomUpIn")->getData().getCount();
     }
-    break;
-
-  case 'm':
     if (name == "maxNewSynapseCount") {
       if (tm_)
         return tm_->getMaxNewSynapseCount();
@@ -506,23 +495,17 @@ UInt32 TMRegion::getParameterUInt32(const std::string &name, Int64 index) {
         return tm_->getMinThreshold();
       return args_.minThreshold;
     }
-    break;
-
-  case 'n':
     if (name == "numberOfCols") {
       if (tm_)
         return (UInt32)tm_->numberOfColumns();
       return args_.numberOfCols;
     }
-    break;
-
-  case 'o':
     if (name == "outputWidth")
       return args_.outputWidth;
 
-  } // end switch
   return this->RegionImpl::getParameterUInt32(name, index); // default
 }
+
 
 Int32 TMRegion::getParameterInt32(const std::string &name, Int64 index) {
   if (name == "activationThreshold") {
@@ -546,25 +529,19 @@ Int32 TMRegion::getParameterInt32(const std::string &name, Int64 index) {
   return this->RegionImpl::getParameterInt32(name, index); // default
 }
 
+
 Real32 TMRegion::getParameterReal32(const std::string &name, Int64 index) {
 
-  switch (name[0]) {
-  case 'c':
     if (name == "connectedPermanence") {
       if (tm_)
         return tm_->getConnectedPermanence();
       return args_.connectedPermanence;
     }
-    break;
-
-  case 'i':
     if (name == "initialPermanence") {
       if (tm_)
         return tm_->getInitialPermanence();
       return args_.initialPermanence;
     }
-    break;
-  case 'p':
     if (name == "permanenceIncrement") {
       if (tm_)
         return tm_->getPermanenceIncrement();
@@ -581,10 +558,9 @@ Real32 TMRegion::getParameterReal32(const std::string &name, Int64 index) {
       return args_.predictedSegmentDecrement;
     }
 
-    break;
-  }
   return this->RegionImpl::getParameterReal32(name, index); // default
 }
+
 
 bool TMRegion::getParameterBool(const std::string &name, Int64 index) {
   if (name == "checkInputs") {
@@ -603,6 +579,7 @@ std::string TMRegion::getParameterString(const std::string &name, Int64 index) {
   return this->RegionImpl::getParameterString(name, index);
 }
 
+
 void TMRegion::setParameterUInt32(const std::string &name, Int64 index, UInt32 value) {
   if (name == "maxNewSynapseCount") {
     if (tm_)
@@ -619,6 +596,7 @@ void TMRegion::setParameterUInt32(const std::string &name, Int64 index, UInt32 v
   RegionImpl::setParameterUInt32(name, index, value);
 }
 
+
 void TMRegion::setParameterInt32(const std::string &name, Int64 index, Int32 value) {
   if (name == "activationThreshold") {
     if (tm_)
@@ -632,6 +610,7 @@ void TMRegion::setParameterInt32(const std::string &name, Int64 index, Int32 val
   }
   RegionImpl::setParameterInt32(name, index, value);
 }
+
 
 void TMRegion::setParameterReal32(const std::string &name, Int64 index, Real32 value) {
   if (name == "initialPermanence") {
@@ -656,6 +635,7 @@ void TMRegion::setParameterReal32(const std::string &name, Int64 index, Real32 v
   RegionImpl::setParameterReal32(name, index, value);
 }
 
+
 void TMRegion::setParameterBool(const std::string &name, Int64 index, bool value) 
 {
 
@@ -672,6 +652,7 @@ void TMRegion::setParameterBool(const std::string &name, Int64 index, bool value
 
   RegionImpl::setParameterBool(name, index, value);
 }
+
 
 void TMRegion::setParameterString(const std::string &name, Int64 index,
                                   const std::string &value) {
@@ -701,6 +682,7 @@ void TMRegion::serialize(BundleIO &bundle) {
     // Note: tm_ saves the output buffers
     tm_->save(f);
 }
+
 
 void TMRegion::deserialize(BundleIO &bundle) {
   std::istream &f = bundle.getInputStream();
