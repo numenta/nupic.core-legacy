@@ -925,15 +925,17 @@ void SPRegion::getParameterArray(const std::string &name, Int64 index, Array &ar
     getOutput("bottomUpOut")->getData().convertInto(array);
   } else if (name == "spInputNonZeros") {
     if (!nzInputValid_) {
-      const Array &incoming = getInput("bottomUpIn")->getData();
-      nzInput_ = incoming.nonZero();
+      const Array &incoming = getInput("bottomUpIn")->getData(); //transform incoming to sparse format
+      const SDR nonZero = *incoming.getSDR();
+      nzInput_ = Array(nonZero);
       nzInputValid_ = true;
     }
     nzInput_.convertInto(array);
   } else if (name == "spOutputNonZeros") {
     if (!nzOutputValid_) {
       const Array &output = getOutput("bottomUpOut")->getData();
-      nzOutput_ = output.nonZero();
+      const SDR nonZero = *output.getSDR();
+      nzOutput_ = Array(nonZero);
       nzOutputValid_ = true;
     }
     nzOutput_.convertInto(array);
