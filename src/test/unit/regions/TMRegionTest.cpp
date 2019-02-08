@@ -58,7 +58,6 @@
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Env.hpp>
-#include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Path.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/regions/TMRegion.hpp>

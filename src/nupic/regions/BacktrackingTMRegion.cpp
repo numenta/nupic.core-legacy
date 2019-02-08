@@ -173,11 +173,11 @@ void BacktrackingTMRegion::compute() {
                               args_.learningMode, args_.inferenceMode);
   args_.sequencePos++;
 
+  const Real32 *ptr = (Real32 *)tmOutput.getBuffer();
   if (args_.orColumnOutputs) {
     // OR'ing together the output cells in each column?
     // This reduces the output buffer size to [columnCount] otherwise
     // The size is [columnCount X cellsPerColumn].
-    Real *ptr = (Real32 *)tmOutput.getBuffer();
     for (size_t i = 0; i < args_.numberOfCols; i++) {
       for (size_t j = 0; j < args_.cellsPerColumn; j++) {
         ptr[i] = std::max(output[i], output[(i * args_.cellsPerColumn) + j]);
@@ -186,28 +186,11 @@ void BacktrackingTMRegion::compute() {
     tmOutput.setCount(args_.numberOfCols);
   } else {
     // copy tm buffer to bottomUpOut buffer.  (and type conversion)
-    Real *ptr = (Real32 *)tmOutput.getBuffer();
     for (size_t i = 0; i < args_.numberOfCols * args_.cellsPerColumn; i++) {
       ptr[i] = output[i];
     }
   }
 
-  /***
-  // Direct logging of TM non-zero outputs if requested
-  if (!logPathOutput_.empty()) {
-    Real32 *ptr = (Real32 *)tmOutput.getBuffer();
-    Size size = tmOutput.getCount();
-    FILE *fp = fopen(logPathOutput_.c_str(), "a");
-    if (fp) {
-      for (int i = 0; i < size; i++) {
-        if (ptr[i])
-          fprintf(fp, "%d ", i);
-      }
-      fprintf(fp, "\n");
-      fclose(fp);
-    }
-  }
-  *****/
   if (args_.topDownMode) {
     // Top - down compute
     Real *tdout = tm_->topDownCompute();
@@ -599,14 +582,6 @@ Spec *BacktrackingTMRegion::createSpec() {
                     "",                   // defaultValue
                     ParameterSpec::ReadOnlyAccess)); // access
 
-  //ns->parameters.add(
-  //    "predictedSegmentDecrement",
-  //    ParameterSpec("(float) Predicted segment decrement",
-  //                  NTA_BasicType_Real32, // type
-  //                  1,                    // elementCount
-  //                  "",                   // constraints
-  //                  "",                   // defaultValue
-  //                  ParameterSpec::ReadOnlyAccess)); // access
 
   ns->parameters.add(
       "orColumnOutputs",
@@ -830,113 +805,85 @@ Spec *BacktrackingTMRegion::createSpec() {
 
 UInt32 BacktrackingTMRegion::getParameterUInt32(const std::string &name, Int64 index) {
 
-  switch (name[0]) {
-  case 'a':
+  NTA_CHECK(!name.empty()) << "name must not be empty";
     if (name == "activationThreshold") {
-      if (tm_)
-        return tm_->getActivationThreshold();
+      if (tm_) return tm_->getActivationThreshold();
       return args_.activationThreshold;
     }
-    if (name == "activeOutputCount") {
+    else if (name == "activeOutputCount") {
       return args_.outputWidth;
     }
-    break;
-  case 'b':
-    if (name == "burnIn") {
-      if (tm_)
-        return tm_->getBurnIn();
+    else if (name == "burnIn") {
+      if (tm_) return tm_->getBurnIn();
       return args_.burnIn;
     }
-    break;
-
-  case 'c':
-    if (name == "cellsPerColumn") {
+    else if (name == "cellsPerColumn") {
       if (tm_)
         return (UInt32)tm_->getcellsPerCol();
       return args_.cellsPerColumn;
     }
-    break;
-
-  case 'i':
-    if (name == "inputWidth") {
+    else if (name == "inputWidth") {
       NTA_CHECK(getInput("bottomUpIn") != nullptr) << "Unknown Input: 'bottomUpIn'";
       if (!getInput("bottomUpIn")->isInitialized()) {
         return 0; // might not be any links defined.
       }
       return (UInt32)getInput("bottomUpIn")->getData().getCount();
     }
-    break;
-
-  case 'm':
-    if (name == "maxAge") {
+    else if (name == "maxAge") {
       if (tm_)
         return tm_->getMaxAge();
       return args_.maxAge;
     }
-    if (name == "maxInfBacktrack") {
+    else if (name == "maxInfBacktrack") {
       if (tm_)
         return tm_->getMaxInfBacktrack();
       return args_.maxInfBacktrack;
     }
-    if (name == "maxLrnBacktrack") {
+    else if (name == "maxLrnBacktrack") {
       if (tm_)
         return tm_->getMaxLrnBacktrack();
       return args_.maxLrnBacktrack;
     }
-    if (name == "minThreshold") {
+    else if (name == "minThreshold") {
       if (tm_)
         return tm_->getMinThreshold();
       return args_.minThreshold;
     }
-    if (name == "maxSeqLength") {
+    else if (name == "maxSeqLength") {
       if (tm_)
         return tm_->getMaxSeqLength();
       return args_.maxSeqLength;
     }
-    break;
-
-  case 'n':
-    if (name == "numberOfCols") {
+    else if (name == "numberOfCols") {
       if (tm_)
         return (UInt32)tm_->getnumCol();
       return args_.numberOfCols;
     }
-    if (name == "newSynapseCount") {
+    else if (name == "newSynapseCount") {
       if (tm_)
         return tm_->getNewSynapseCount();
       return args_.newSynapseCount;
     }
-    break;
-
-  case 'o':
-    if (name == "outputWidth")
+    else if (name == "outputWidth") {
       return args_.outputWidth;
-    break;
-
-  case 'p':
-    if (name == "pamLength") {
+    }
+    else if (name == "pamLength") {
       if (tm_)
         return tm_->getPamLength();
       return args_.pamLength;
     }
-    break;
-
-  case 's':
-    if (name == "segUpdateValidDuration") {
+    else if (name == "segUpdateValidDuration") {
       if (tm_)
         return tm_->getSegUpdateValidDuration();
       return args_.segUpdateValidDuration;
     }
-    break;
-  case 'v':
-    if (name == "verbosity") {
+    else if (name == "verbosity") {
       if (tm_)
         return tm_->getVerbosity();
       return args_.verbosity;
+    } else {
+      return this->RegionImpl::getParameterUInt32(name, index); // default
     }
-    break;
-  } // end switch
-  return this->RegionImpl::getParameterUInt32(name, index); // default
 }
 
 Int32 BacktrackingTMRegion::getParameterInt32(const std::string &name, Int64 index) {
@@ -945,126 +892,109 @@ Int32 BacktrackingTMRegion::getParameterInt32(const std::string &name, Int64 ind
       return tm_->getMaxSegmentsPerCell();
     return args_.maxSegmentsPerCell;
   }
-  if (name == "maxSynapsesPerSegment") {
+  else if (name == "maxSynapsesPerSegment") {
     if (tm_)
       return tm_->getMaxSynapsesPerSegment();
     return args_.maxSynapsesPerSegment;
   }
-  if (name == "seed") {
+  else if (name == "seed") {
     if (tm_)
       return tm_->getSeed();
     return args_.seed;
+  } else {
+    return this->RegionImpl::getParameterInt32(name, index); // default
   }
-  return this->RegionImpl::getParameterInt32(name, index); // default
 }
 
 Real32 BacktrackingTMRegion::getParameterReal32(const std::string &name, Int64 index) {
 
-  switch (name[0]) {
-  case 'c':
     if (name == "connectedPerm") {
       if (tm_)
         return tm_->getConnectedPerm();
       return args_.connectedPerm;
     }
-    break;
-  case 'g':
-    if (name == "globalDecay") {
+    else if (name == "globalDecay") {
       if (tm_)
         return tm_->getGlobalDecay();
       return args_.globalDecay;
     }
-    break;
-
-  case 'i':
-    if (name == "initialPerm") {
+    else if (name == "initialPerm") {
       if (tm_)
         return tm_->getInitialPerm();
       return args_.initialPerm;
     }
-    break;
-  case 'p':
-    if (name == "permanenceInc") {
+    else if (name == "permanenceInc") {
       if (tm_)
         return tm_->getPermanenceInc();
       return args_.permanenceInc;
     }
-    if (name == "permanenceDec") {
+    else if (name == "permanenceDec") {
       if (tm_)
         return tm_->getPermanenceDec();
       return args_.permanenceDec;
     }
-    if (name == "permanenceMax") {
+    else if (name == "permanenceMax") {
       if (tm_)
         return tm_->getPermanenceMax();
       return args_.permanenceMax;
+    } else {
+      return this->RegionImpl::getParameterReal32(name, index); // default
     }
-
-    break;
-  }
-  return this->RegionImpl::getParameterReal32(name, index); // default
 }
 
-bool BacktrackingTMRegion::getParameterBool(const std::string &name, Int64 index) {
-  if (name == "anomalyMode")
-    return args_.anomalyMode;
 
-  if (name == "collectStats") {
+bool BacktrackingTMRegion::getParameterBool(const std::string &name, Int64 index) {
+  if (name == "anomalyMode") {
+    return args_.anomalyMode;
+  }
+  else if (name == "collectStats") {
     if (tm_)
       return tm_->getCollectStats();
     return args_.collectStats;
   }
-  if (name == "checkSynapseConsistency") {
+  else if (name == "checkSynapseConsistency") {
     if (tm_)
       return tm_->getCheckSynapseConsistency();
     return args_.checkSynapseConsistency;
   }
-  if (name == "computePredictedActiveCellIndices") {
+  else if (name == "computePredictedActiveCellIndices") {
     return args_.computePredictedActiveCellIndices;
   }
-  if (name == "doPooling") {
+  else if (name == "doPooling") {
     if (tm_)
       return tm_->getDoPooling();
     return args_.doPooling;
   }
-  if (name == "learningMode")
+  else if (name == "learningMode")
     return args_.learningMode;
-  if (name == "inferenceMode")
+  else if (name == "inferenceMode")
     return args_.inferenceMode;
-  if (name == "orColumnOutputs")
+  else if (name == "orColumnOutputs")
     return args_.orColumnOutputs;
-  if (name == "topDownMode")
+  else if (name == "topDownMode")
     return args_.topDownMode;
-  if (name == "storeDenseOutput")
+  else if (name == "storeDenseOutput")
     return args_.storeDenseOutput;
-
-  return this->RegionImpl::getParameterBool(name, index); // default
+  else {
+    return this->RegionImpl::getParameterBool(name, index); // default
+  }
 }
 
 
 std::string BacktrackingTMRegion::getParameterString(const std::string &name, Int64 index) {
-  //if (name == "cellsSavePath") {
-  //  return cellsSavePath_;
-  //}
-  //if (name == "logPathOutput") {
-  //  return logPathOutput_;
-  //}
   if (name == "outputType") {
     if (tm_)
       return tm_->getOutputType();
     return args_.outputType;
   }
-  return this->RegionImpl::getParameterString(name, index);
+  else 
+    return this->RegionImpl::getParameterString(name, index);
 }
 
 void BacktrackingTMRegion::setParameterUInt32(const std::string &name, Int64 index, UInt32 value) {
-  switch (name[0]) {
-  case 'b':
     if (name == "burnIn") {
       args_.burnIn = value;
     }
-    break;
-  case 'm':
     if (name == "maxInfBacktrack") {
       if (tm_)
         tm_->setMaxInfBacktrack(value);
@@ -1089,34 +1019,27 @@ void BacktrackingTMRegion::setParameterUInt32(const std::string &name, Int64 ind
       args_.maxSeqLength = value;
       return;
     }
-    break;
-  case 'p':
     if (name == "pamLength") {
       if (tm_)
         tm_->setPamLength( value);
       args_.pamLength = value;
       return;
     }
-    break;
-  case 's':
     if (name == "segUpdateValidDuration") {
       NTA_CHECK(!tm_) << "Cannot set segUpdateValidDuration after initialization.";
       args_.segUpdateValidDuration = value;
       return;
     }
-    break;
-  case 'v':
     if (name == "verbosity") {
       if (tm_)
         tm_->setVerbosity(value);
       args_.verbosity = value;
       return;
     }
-    break;
 
-  } // switch
-  RegionImpl::setParameterUInt32(name, index, value);
+  RegionImpl::setParameterUInt32(name, index, value); //default
 }
+
 
 void BacktrackingTMRegion::setParameterInt32(const std::string &name, Int64 index,
                                  Int32 value) {
@@ -1134,6 +1057,7 @@ void BacktrackingTMRegion::setParameterInt32(const std::string &name, Int64 inde
   }
   RegionImpl::setParameterInt32(name, index, value);
 }
+
 
 void BacktrackingTMRegion::setParameterBool(const std::string &name, Int64 index, bool value) 
 {
@@ -1182,16 +1106,11 @@ void BacktrackingTMRegion::setParameterBool(const std::string &name, Int64 index
   RegionImpl::setParameterBool(name, index, value);
 }
 
+
 void BacktrackingTMRegion::setParameterString(const std::string &name, Int64 index,
                                   const std::string &value) {
-  //if (name == "cellsSavePath") {
-  //  cellsSavePath_ = value;
-  //} else if (name == "logPathOutput") {
-  //  logPathOutput_ = value;
-  //} else
     this->RegionImpl::setParameterString(name, index, value);
 }
-
 
 
 void BacktrackingTMRegion::serialize(BundleIO &bundle) {
@@ -1215,6 +1134,7 @@ void BacktrackingTMRegion::serialize(BundleIO &bundle) {
     // Note: tm_ saves the output buffers
     tm_->save(f);
 }
+
 
 void BacktrackingTMRegion::deserialize(BundleIO &bundle) {
   std::istream &f = bundle.getInputStream();

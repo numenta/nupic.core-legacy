@@ -53,7 +53,7 @@ public:
   // a nodespec. Ownership is transferred to the caller.
   static Spec *createSpec();
 
-  std::string getNodeType() { return "SPRegion"; };
+  std::string getNodeType() { return "TMRegion"; };
 
   // Compute outputs from inputs and internal state
   void compute() override;

@@ -44,6 +44,8 @@
  *---------------------------------------------------------------------
  */
 
+#include <nupic/regions/BacktrackingTMRegion.hpp>
+
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Network.hpp>
@@ -58,10 +60,8 @@
 #include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Env.hpp>
-#include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Path.hpp>
 #include <nupic/os/Timer.hpp>
-#include <nupic/regions/TMRegion.hpp>
 #include <nupic/types/Exception.hpp>
 
 #include <cmath>   // fabs/abs
@@ -77,9 +77,7 @@
 #include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 
-#define VERBOSE                                                                \
-  if (verbose)                                                                 \
-  std::cerr << "[          ] "
+#define VERBOSE if (verbose) std::cerr << "[          ] "
 static bool verbose = true; // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually
