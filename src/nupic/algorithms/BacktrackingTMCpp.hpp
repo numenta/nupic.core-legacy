@@ -35,15 +35,15 @@
 #include <vector>
 #include <string>
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::Cells4;
-
-
 
 namespace nupic {
 namespace algorithms {
 namespace backtracking_tm {
+
+using namespace std;
+using namespace nupic;
+using namespace nupic::algorithms::Cells4;
+
 
 /////////////////////////////////////////////////////////////////
 //  Static function nonzero()

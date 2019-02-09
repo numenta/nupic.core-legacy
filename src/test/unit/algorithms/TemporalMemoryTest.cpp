@@ -36,12 +36,13 @@
 #include <nupic/algorithms/TemporalMemory.hpp>
 #include <nupic/algorithms/Anomaly.hpp>
 
+
+namespace testing {
+
 using namespace nupic::algorithms::temporal_memory;
 using namespace std;
-
 #define EPSILON 0.0000001
 
-namespace {
 
 TEST(TemporalMemoryTest, testInitInvalidParams) {
   // Invalid columnDimensions

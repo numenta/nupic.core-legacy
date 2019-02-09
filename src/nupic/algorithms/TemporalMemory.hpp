@@ -34,13 +34,14 @@
 #include <vector>
 
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::connections;
-
 namespace nupic {
 namespace algorithms {
 namespace temporal_memory {
+
+
+using namespace std;
+using namespace nupic;
+using namespace nupic::algorithms::connections;
 
 /**
  * Temporal Memory implementation in C++.

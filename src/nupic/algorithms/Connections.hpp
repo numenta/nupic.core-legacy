@@ -37,10 +37,9 @@
 #include <nupic/types/Sdr.hpp>
 
 namespace nupic {
-
 namespace algorithms {
-
 namespace connections {
+
 typedef UInt32 CellIdx;
 typedef UInt16 SegmentIdx; /** Index of segment in cell. */
 typedef UInt16 SynapseIdx; /** Index of synapse in segment. */
