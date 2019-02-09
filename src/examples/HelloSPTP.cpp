@@ -61,7 +61,12 @@ void run(UInt EPOCHS = 5000) {
   // initialize SP, TP, Anomaly, AnomalyLikelihood
   Timer tInit(true);
   ScalarEncoder enc(133, -100.0, 100.0, DIM_INPUT, 0.0, 0.0, false);
-  SpatialPooler sp(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS});
+  NTA_INFO << "SP (l) local inhibition is slow, so we reduce its data 10x smaller"; //to make it reasonably fast for test, for comparison x10
+  SpatialPooler spGlobal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with globalInh
+  SpatialPooler spLocal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS/10u}); // Spatial pooler with local inh
+  spGlobal.setGlobalInhibition(true);
+  spLocal.setGlobalInhibition(false);
+
   Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
   Anomaly an(5, AnomalyMode::PURE);
@@ -81,7 +86,7 @@ void run(UInt EPOCHS = 5000) {
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
   Timer tAll(true);
-  Timer tRng, tEnc, tSP, tTP, tAn, tAnLikelihood;
+  Timer tRng, tEnc, tSPloc, tSPglob, tTP, tAn, tAnLikelihood;
 
 
   //run
@@ -97,12 +102,19 @@ void run(UInt EPOCHS = 5000) {
     enc.encodeIntoArray(r, input.data());
     tEnc.stop();
 
-    //SP
-    tSP.start();
+    //SP (global x local) 
+    tSPloc.start();
     fill(outSP.begin(), outSP.end(), 0);
-    sp.compute(input.data(), true, outSP.data());
-    sp.stripUnlearnedColumns(outSP.data());
-    tSP.stop();
+    spLocal.compute(input.data(), true, outSP.data());
+    spLocal.stripUnlearnedColumns(outSP.data());
+    tSPloc.stop();
+
+    tSPglob.start();
+    fill(outSP.begin(), outSP.end(), 0);
+    spGlobal.compute(input.data(), true, outSP.data());
+    spGlobal.stripUnlearnedColumns(outSP.data());
+    tSPglob.stop();
+
 
     //TP
     tTP.start();
@@ -111,7 +123,7 @@ void run(UInt EPOCHS = 5000) {
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
     tTP.stop();
 
-    //Anomaly
+    //Anomaly (pure x likelihood)
     tAn.start();
     res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
     tAn.stop();
@@ -136,7 +148,8 @@ void run(UInt EPOCHS = 5000) {
       cout << "Init:\t" << tInit.getElapsed() << endl;
       cout << "Random:\t" << tRng.getElapsed() << endl;
       cout << "Encode:\t" << tEnc.getElapsed() << endl;
-      cout << "SP:\t" << tSP.getElapsed() << endl;
+      cout << "SP (l):\t" << tSPloc.getElapsed() << "(x10)" << endl;
+      cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
       cout << "TP:\t" << tTP.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
