@@ -35,6 +35,7 @@
 #include <fstream>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Path.hpp>
+#include <nupic/os/ImportFilesystem.hpp>
 
 #define SERIALIZABLE_VERSION 1
 
