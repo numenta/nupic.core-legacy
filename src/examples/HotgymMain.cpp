@@ -1,6 +1,8 @@
 #include "examples/HelloSPTP.cpp"
 #include <string> // stoi
 
+namespace examples {
+
 //this runs as executable
 int main(int argc, char* argv[]) {
   using namespace examples;
@@ -14,3 +16,4 @@ int main(int argc, char* argv[]) {
   run(EPOCHS);
   return 0;
 }
+} 
