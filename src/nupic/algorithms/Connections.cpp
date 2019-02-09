@@ -471,6 +471,7 @@ void Connections::raisePermanencesToThreshold(
     return;
 
   vector<Synapse> &synapses = segData.synapses;
+  if( synapses.empty()) return; //otherwise crashes! can empty segments/synapses naturally occur? 
 
   // Sort the potential pool by permanence values, and look for the synapse with
   // the N'th greatest permanence, where N is the desired minimum number of
