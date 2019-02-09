@@ -269,6 +269,7 @@ public:
         size_ = 1;
         for(UInt dim : dimensions)
             size_ *= dim;
+	NTA_CHECK(size_ > 0) << "SDR: all dimensions must be > 0";
 
         // Initialize the dense array storage, when it's needed.
         dense_valid = false;
@@ -333,11 +334,7 @@ public:
     template<typename T>
     void setDense( const vector<T> &value ) {
         NTA_ASSERT(value.size() == size);
-        dense.resize( size );
-        const T zero = (T) 0;
-        for(auto i = 0u; i < size; i++)
-            dense[i] = value[i] != zero;
-        setDenseInplace();
+	setDense(value.data());
     }
 
     /**
@@ -384,6 +381,7 @@ public:
      */
     Byte at(const vector<UInt> &coordinates) const {
         UInt flat = 0;
+	NTA_ASSERT(coordinates.size() == dimensions.size()) << "SDR: coordinates must have same dimensions as SDR";
         for(UInt i = 0; i < dimensions.size(); i++) {
             NTA_ASSERT( coordinates[i] < dimensions[i] );
             flat *= dimensions[i];
@@ -501,9 +499,7 @@ public:
         NTA_ASSERT(value.size() == dimensions.size());
         for(UInt dim = 0; dim < dimensions.size(); dim++) {
             sparse[dim].clear();
-            for(auto itm: value[dim]) {
-                sparse[dim].push_back((UInt)itm);
-            }
+	    sparse[dim].assign(value[dim].cbegin(), value[dim].cend());
         }
         setSparseInplace();
     }
