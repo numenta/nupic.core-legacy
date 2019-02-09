@@ -64,7 +64,8 @@ void run(UInt EPOCHS = 5000) {
   SpatialPooler sp(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS});
   Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
-  Anomaly an(5, AnomalyMode::LIKELIHOOD);
+  Anomaly an(5, AnomalyMode::PURE);
+  Anomaly anLikelihood(5, AnomalyMode::LIKELIHOOD);
   tInit.stop();
 
   // data for processing input
@@ -80,7 +81,7 @@ void run(UInt EPOCHS = 5000) {
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
   Timer tAll(true);
-  Timer tRng, tEnc, tSP, tTP, tAn;
+  Timer tRng, tEnc, tSP, tTP, tAn, tAnLikelihood;
 
 
   //run
@@ -113,8 +114,13 @@ void run(UInt EPOCHS = 5000) {
     //Anomaly
     tAn.start();
     res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
-    prevPred_ = outTP; //to be used as predicted T-1
     tAn.stop();
+
+    tAnLikelihood.start();
+    anLikelihood.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
+    tAnLikelihood.stop();
+
+    prevPred_ = outTP; //to be used as predicted T-1
 
     // print
     if (e == EPOCHS - 1) {
@@ -133,6 +139,7 @@ void run(UInt EPOCHS = 5000) {
       cout << "SP:\t" << tSP.getElapsed() << endl;
       cout << "TP:\t" << tTP.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
+      cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
 
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
