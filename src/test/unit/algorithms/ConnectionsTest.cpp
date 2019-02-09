@@ -463,12 +463,26 @@ TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
                                                       synPermBelowStimulusInc);
     }
   }
+ }
 
+
+TEST(ConnectionsTest, testRaisePermanencesToThresholdOutOfBounds) {
+  Connections con(1001, 0.21f);
+ 	
   // check empty segment (with no synapse data) 
   auto emptySegment = con.createSegment(0);
   auto synapses = con.synapsesForSegment(emptySegment);
   NTA_CHECK(synapses.empty()) << "We want to create a Segment with none synapses";
   EXPECT_NO_THROW( con.raisePermanencesToThreshold(emptySegment, (Permanence)0.1337, 3u) ) << "raisePermanence fails when empty Segment encountered";
+
+  // check segment with 3 synapses, but wanted to raise 5
+  auto segWith3Syn = con.createSegment(0);
+  //add 3 synapses
+  con.createSynapse( segWith3Syn, 33, 0.001f);
+  con.createSynapse( segWith3Syn, 18, 0.25f);
+  con.createSynapse( segWith3Syn, 121, 0.00001f);
+  NTA_CHECK(con.synapsesForSegment(segWith3Syn).size() == 3) << "We failed to create 3 synapses on a segment";
+  EXPECT_NO_THROW( con.raisePermanencesToThreshold(segWith3Syn, (Permanence)0.666, 5u) ) << "raisePermanence fails when lower number of available synapses than requested by threshold";
 
 }
 
