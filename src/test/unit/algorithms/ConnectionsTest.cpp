@@ -463,6 +463,13 @@ TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
                                                       synPermBelowStimulusInc);
     }
   }
+
+  // check empty segment (with no synapse data) 
+  auto emptySegment = con.createSegment(0);
+  auto synapses = con.synapsesForSegment(emptySegment);
+  NTA_CHECK(synapses.empty()) << "We want to create a Segment with none synapses";
+  EXPECT_NO_THROW( con.raisePermanencesToThreshold(emptySegment, (Permanence)0.1337, 3u) ) << "raisePermanence fails when empty Segment encountered";
+
 }
 
 TEST(ConnectionsTest, testBumpSegment) {
