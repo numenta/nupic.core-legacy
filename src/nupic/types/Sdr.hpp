@@ -24,13 +24,12 @@
 
 #define SERIALIZE_VERSION 1
 
+#include <algorithm> //sort
+#include <functional>
 #include <vector>
-#include <numeric>
-#include <algorithm> // std::sort
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
-#include <functional> // function
 
 using namespace std;
 
@@ -158,78 +157,33 @@ protected:
      * not actually change any of the data.  Attempting to get the SDR's value
      * immediately after this operation will raise an exception.
      */
-    virtual void clear() {
-        dense_valid      = false;
-        flatSparse_valid = false;
-        sparse_valid     = false;
-    }
+    virtual void clear();
 
     /**
      * Notify everyone that this SDR's value has officially changed.
      */
-    void do_callbacks() {
-        for(const auto func_ptr : callbacks) {
-            if( func_ptr != nullptr )
-                func_ptr();
-        }
-    }
+    void do_callbacks();
 
     /**
      * Update the SDR to reflect the value currently inside of the dense array.
      * Use this method after modifying the dense buffer inplace, in order to
      * propigate any changes to the sparse & flatSparse formats.
      */
-    virtual void setDenseInplace() {
-        // Check data is valid.
-        NTA_ASSERT( dense.size() == size );
-        // Set the valid flags.
-        clear();
-        dense_valid = true;
-        do_callbacks();
-    }
+    virtual void setDenseInplace();
 
     /**
      * Update the SDR to reflect the value currently inside of the flatSparse
      * vector. Use this method after modifying the flatSparse vector inplace, in
      * order to propigate any changes to the dense & sparse formats.
      */
-    virtual void setFlatSparseInplace() {
-        // Check data is valid.
-        #ifdef NTA_ASSERTIONS_ON
-            NTA_ASSERT(flatSparse.size() <= size);
-            for(auto idx : flatSparse) {
-                NTA_ASSERT(idx < size);
-            }
-        #endif
-        // Set the valid flags.
-        clear();
-        flatSparse_valid = true;
-        do_callbacks();
-    }
+    virtual void setFlatSparseInplace();
 
     /**
      * Update the SDR to reflect the value currently inside of the sparse
      * vector. Use this method after modifying the sparse vector inplace, in
      * order to propigate any changes to the dense & flatSparse formats.
      */
-    virtual void setSparseInplace() {
-        // Check data is valid.
-        #ifdef NTA_ASSERTIONS_ON
-            NTA_ASSERT(sparse.size() == dimensions.size());
-            for(UInt dim = 0; dim < dimensions.size(); dim++) {
-                const auto coord_vec = sparse[dim];
-                NTA_ASSERT(coord_vec.size() <= size);
-                NTA_ASSERT(coord_vec.size() == sparse[0].size()); // All coordinate vectors have same size.
-                for(auto idx : coord_vec) {
-                    NTA_ASSERT(idx < dimensions[dim]);
-                }
-            }
-        #endif
-        // Set the valid flags.
-        clear();
-        sparse_valid = true;
-        do_callbacks();
-    }
+    virtual void setSparseInplace();
 
     /**
      * Destroy this SDR.  Makes SDR unusable, should error or clearly fail if
@@ -237,21 +191,13 @@ protected:
      * This is a separate method from ~SDR so that SDRs can be destroyed long
      * before they're deallocated; SDR Proxy does this.
      */
-    virtual void deconstruct() {
-        clear();
-        size_ = 0;
-        dimensions_.clear();
-        for( auto func : destroyCallbacks ) {
-            if( func != nullptr )
-                func();
-        }
-    }
+    virtual void deconstruct();
 
 public:
     /**
      * Use this method only in conjuction with sdr.initialize() or sdr.load().
      */
-    SparseDistributedRepresentation() {}
+    SparseDistributedRepresentation();
 
     /**
      * Create an SDR object.  The initial value is all zeros.
@@ -259,26 +205,9 @@ public:
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.  The product of the dimensions must be greater than zero.
      */
-    SparseDistributedRepresentation( const vector<UInt> dimensions )
-        { initialize( dimensions ); }
+    SparseDistributedRepresentation( const vector<UInt> dimensions );
 
-    void initialize( const vector<UInt> dimensions ) {
-        dimensions_ = dimensions;
-        NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
-        // Calculate the SDR's size.
-        size_ = 1;
-        for(UInt dim : dimensions)
-            size_ *= dim;
-	NTA_CHECK(size_ > 0) << "SDR: all dimensions must be > 0";
-
-        // Initialize the dense array storage, when it's needed.
-        dense_valid = false;
-        // Initialize the flatSparse array, nothing to do.
-        flatSparse_valid = true;
-        // Initialize the index tuple.
-        sparse.assign( dimensions.size(), {} );
-        sparse_valid = true;
-    }
+    void initialize( const vector<UInt> dimensions );
 
     /**
      * Initialize this SDR as a deep copy of the given SDR.  This SDR and the
@@ -287,12 +216,9 @@ public:
      *
      * @param value An SDR to replicate.
      */
-    SparseDistributedRepresentation( const SparseDistributedRepresentation &value )
-        : SparseDistributedRepresentation( value.dimensions )
-        { setSDR( value ); }
+    SparseDistributedRepresentation( const SparseDistributedRepresentation &value );
 
-    virtual ~SparseDistributedRepresentation()
-        { deconstruct(); }
+    virtual ~SparseDistributedRepresentation();
 
     /**
      * @attribute dimensions A list of dimensions of the SDR.
@@ -308,10 +234,7 @@ public:
      * Set all of the values in the SDR to false.  This method overwrites the
      * SDRs current value.
      */
-    void zero() {
-        flatSparse.clear();
-        setFlatSparseInplace();
-    }
+    void zero();
 
     /**
      * Swap a new value into the SDR, replacng the current value.  This
@@ -320,37 +243,34 @@ public:
      *
      * @param value A dense vector<char> to swap into the SDR.
      */
-    void setDense( SDR_dense_t &value ) {
-        NTA_ASSERT(value.size() == size);
-        dense.swap( value );
-        setDenseInplace();
-    }
+    void setDense( SDR_dense_t &value );
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
      *
      * @param value A dense vector to copy into the SDR.
      */
-    template<typename T>
-    void setDense( const vector<T> &value ) {
-        NTA_ASSERT(value.size() == size);
-	setDense(value.data());
-    }
+     template<typename T>
+     void setDense( const vector<T> &value ) {
+       NTA_ASSERT(value.size() == size);
+       setDense(value.data());
+     }
+
 
     /**
      * Copy a new value into the SDR, overwritting the current value.
      *
      * @param value A dense C-style array to copy into the SDR.
      */
-    template<typename T>
-    void setDense( const T *value ) {
-        NTA_ASSERT(value != nullptr);
-        dense.resize( size );
-        const T zero = (T) 0;
-        for(auto i = 0u; i < size; i++)
-            dense[i] = value[i] != zero;
-        setDenseInplace();
-    }
+     template<typename T>
+     void setDense( const T *value ) {
+       NTA_ASSERT(value != nullptr);
+       dense.resize( size );
+       const T zero = (T) 0;
+       for(auto i = 0u; i < size; i++)
+         dense[i] = value[i] != zero;
+       setDenseInplace();
+     }
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -360,17 +280,7 @@ public:
      *
      * @returns A reference to an array of all the values in the SDR.
      */
-    virtual SDR_dense_t& getDense() const {
-        if( !dense_valid ) {
-            // Convert from flatSparse to dense.
-            dense.assign( size, 0 );
-            for(const auto idx : getFlatSparse()) {
-                dense[idx] = 1;
-            }
-            dense_valid = true;
-        }
-        return dense;
-    }
+    virtual SDR_dense_t& getDense() const;
 
     /**
      * Query the value of the SDR at a single location.
@@ -379,16 +289,7 @@ public:
      *
      * @returns The value of the SDR at the given location.
      */
-    Byte at(const vector<UInt> &coordinates) const {
-        UInt flat = 0;
-	NTA_ASSERT(coordinates.size() == dimensions.size()) << "SDR: coordinates must have same dimensions as SDR";
-        for(UInt i = 0; i < dimensions.size(); i++) {
-            NTA_ASSERT( coordinates[i] < dimensions[i] );
-            flat *= dimensions[i];
-            flat += coordinates[i];
-        }
-        return getDense()[flat];
-    }
+    Byte at(const vector<UInt> &coordinates) const;
 
     /**
      * Swap a new value into the SDR, replacing the current value.  This
@@ -397,10 +298,8 @@ public:
      *
      * @param value A sparse vector<UInt> to swap into the SDR.
      */
-    void setFlatSparse( SDR_flatSparse_t &value ) {
-        flatSparse.swap( value );
-        setFlatSparseInplace();
-    }
+    void setFlatSparse( SDR_flatSparse_t &value );
+
 
     /**
      * Copy a vector of sparse indices of true values.  These indicies are into
@@ -410,10 +309,11 @@ public:
      */
     template<typename T>
     void setFlatSparse( const vector<T> &value ) {
-        flatSparse.assign( value.begin(), value.end() );
-        setFlatSparseInplace();
+      flatSparse.assign( value.begin(), value.end() );
+      setFlatSparseInplace();
     }
 
+    
     /**
      * Copy an array of sparse indices of true values.  These indicies are into
      * the flattened SDR space.  This overwrites the SDR's current value.
@@ -423,9 +323,10 @@ public:
      */
     template<typename T>
     void setFlatSparse( const T *value, const UInt num_values ) {
-        flatSparse.assign( value, value + num_values );
-        setFlatSparseInplace();
+      flatSparse.assign( value, value + num_values );
+      setFlatSparseInplace();
     }
+
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -437,34 +338,7 @@ public:
      * @returns A reference to a vector of the indices of the true values in the
      * flattened SDR.
      */
-    virtual SDR_flatSparse_t& getFlatSparse() const {
-        if( !flatSparse_valid ) {
-            flatSparse.clear(); // Clear out any old data.
-            if( sparse_valid ) {
-                // Convert from sparse to flatSparse.
-                const auto num_nz = size ? sparse[0].size() : 0;
-                flatSparse.reserve( num_nz );
-                for(UInt nz = 0; nz < num_nz; nz++) {
-                    UInt flat = 0;
-                    for(UInt dim = 0; dim < dimensions.size(); dim++) {
-                        flat *= dimensions[dim];
-                        flat += sparse[dim][nz];
-                    }
-                    flatSparse.push_back(flat);
-                }
-            }
-            else if( dense_valid ) {
-                // Convert from dense to flatSparse.
-                for(UInt idx = 0; idx < size; idx++)
-                    if( dense[idx] != 0 )
-                        flatSparse.push_back( idx );
-            }
-            else
-                NTA_THROW << "SDR has no data!";
-            flatSparse_valid = true;
-        }
-        return flatSparse;
-    }
+    virtual SDR_flatSparse_t& getFlatSparse() const;
 
     /**
      * Swap a list of indices into the SDR, replacing the SDRs current value.
@@ -479,10 +353,7 @@ public:
      * @param value A vector<vector<UInt>> containing the coordinates of the
      * true values to swap into the SDR.
      */
-    void setSparse( SDR_sparse_t &value ) {
-        sparse.swap( value );
-        setSparseInplace();
-    }
+    void setSparse( SDR_sparse_t &value );
 
     /**
      * Copy a list of indices into the SDR, overwritting the SDRs current value.
@@ -496,13 +367,14 @@ public:
      */
     template<typename T>
     void setSparse( const vector<vector<T>> &value ) {
-        NTA_ASSERT(value.size() == dimensions.size());
-        for(UInt dim = 0; dim < dimensions.size(); dim++) {
-            sparse[dim].clear();
-	    sparse[dim].assign(value[dim].cbegin(), value[dim].cend());
-        }
-        setSparseInplace();
+      NTA_ASSERT(value.size() == dimensions.size());
+      for(UInt dim = 0; dim < dimensions.size(); dim++) {
+        sparse[dim].clear();
+        sparse[dim].assign(value[dim].cbegin(), value[dim].cend());
+      }
+      setSparseInplace();
     }
+
 
     /**
      * Gets the current value of the SDR.  The result of this method call is
@@ -511,25 +383,7 @@ public:
      * @returns A reference to a list of lists which contain the coordinates of
      * the true values in the SDR.     
      */
-    virtual SDR_sparse_t& getSparse() const {
-        if( !sparse_valid ) {
-            // Clear out any old data.
-            for( auto& vec : sparse ) {
-                vec.clear();
-            }
-            // Convert from flatSparse to sparse.
-            for( auto idx : getFlatSparse() ) {
-                for(UInt dim = (UInt)(dimensions.size() - 1); dim > 0; dim--) {
-                    auto dim_sz = dimensions[dim];
-                    sparse[dim].push_back( idx % dim_sz );
-                    idx /= dim_sz;
-                }
-                sparse[0].push_back(idx);
-            }
-            sparse_valid = true;
-        }
-        return sparse;
-    }
+    virtual SDR_sparse_t& getSparse() const;
 
     /**
      * Deep Copy the given SDR to this SDR.  This overwrites the current value of
@@ -538,40 +392,14 @@ public:
      *
      * @param value An SDR to copy the value of.
      */
-    virtual void setSDR( const SparseDistributedRepresentation &value ) {
-        NTA_ASSERT( value.dimensions == dimensions );
-        clear();
-
-        dense_valid = value.dense_valid;
-        if( dense_valid ) {
-            dense.assign( value.dense.begin(), value.dense.end() );
-        }
-        flatSparse_valid = value.flatSparse_valid;
-        if( flatSparse_valid ) {
-            flatSparse.assign( value.flatSparse.begin(), value.flatSparse.end() );
-        }
-        sparse_valid = value.sparse_valid;
-        if( sparse_valid ) {
-            for(UInt dim = 0; dim < dimensions.size(); dim++)
-                sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
-        }
-        // If no data is privately available, then try calling a public getter
-        // method.  Subclasses may override these getters and ignore the valid
-        // flags...
-        if( !dense_valid and !flatSparse_valid and !sparse_valid ) {
-            const auto data = value.getFlatSparse();
-            flatSparse.assign( data.begin(), data.end() );
-            flatSparse_valid = true;
-        }
-        do_callbacks();
-    }
+    virtual void setSDR( const SparseDistributedRepresentation &value );
 
     /**
      * Calculates the number of true / non-zero values in the SDR.
      *
      * @returns The number of true values in the SDR.
      */
-    UInt getSum() const
+    inline UInt getSum() const
         { return (UInt)getFlatSparse().size(); }
 
     /**
@@ -581,7 +409,7 @@ public:
      *
      * @returns The fraction of values in the SDR which are true.
      */
-    Real getSparsity() const
+    inline Real getSparsity() const
         { return (Real) getSum() / size; }
 
     /**
@@ -593,16 +421,7 @@ public:
      * @returns Integer, the number of true values which both SDRs have in
      * common.
      */
-    UInt getOverlap(const SparseDistributedRepresentation &sdr) const {
-        NTA_ASSERT( dimensions == sdr.dimensions );
-
-        UInt ovlp = 0u;
-        const auto a = this->getDense();
-        const auto b = sdr.getDense();
-        for( UInt i = 0u; i < size; i++ )
-            ovlp += a[i] && b[i];
-        return ovlp;
-    }
+    UInt getOverlap(const SparseDistributedRepresentation &sdr) const;
 
     /**
      * Make a random SDR, overwriting the current value of the SDR.  The
@@ -613,22 +432,9 @@ public:
      * @param rng The random number generator to draw from.  If not given, this
      * makes one using the magic seed 0.
      */
-    void randomize(Real sparsity) {
-        Random rng( 0 );
-        randomize( sparsity, rng );
-    }
+    void randomize(Real sparsity);
 
-    void randomize(Real sparsity, Random &rng) {
-        NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
-        UInt nbits = (UInt) std::round( size * sparsity );
-
-        SDR_flatSparse_t range( size );
-        iota( range.begin(), range.end(), 0 );
-        flatSparse.resize( nbits );
-        rng.sample( range.data(),      size,
-                    flatSparse.data(), nbits);
-        setFlatSparseInplace();
-    }
+    void randomize(Real sparsity, Random &rng);
 
     /**
      * Modify the SDR by moving a fraction of the active bits to different
@@ -642,46 +448,14 @@ public:
      * @param rng The random number generator to draw from.  If not given, this
      * makes one using the magic seed 0.
      */
-    void addNoise(Real fractionNoise) {
-        Random rng( 0 );
-        addNoise( fractionNoise, rng );
-    }
+    void addNoise(Real fractionNoise);
 
-    void addNoise(Real fractionNoise, Random &rng) {
-        NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
-        NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
-
-        UInt num_move_bits = (UInt) std::round( fractionNoise * getSum() );
-        vector<UInt> turn_off( num_move_bits , 0 );
-        rng.sample(
-            (UInt*) getFlatSparse().data(), getSum(),
-            (UInt*) turn_off.data(),        num_move_bits);
-
-        auto& dns = getDense();
-
-        vector<UInt> off_pop;
-        for(UInt idx = 0; idx < size; idx++) {
-            if( dns[idx] == 0 )
-                off_pop.push_back( idx );
-        }
-        vector<UInt> turn_on( num_move_bits, 0 );
-        rng.sample(
-            off_pop.data(), (UInt)off_pop.size(),
-            turn_on.data(), num_move_bits);
-
-        for( auto idx : turn_on )
-            dns[ idx ] = 1;
-        for( auto idx : turn_off )
-            dns[ idx ] = 0;
-
-        setDenseInplace();
-    }
+    void addNoise(Real fractionNoise, Random &rng);
 
     /**
      * Print a human readable version of the SDR.
      */
-    friend std::ostream& operator<< (std::ostream& stream,
-                                     const SparseDistributedRepresentation &sdr)
+    friend std::ostream& operator<< (std::ostream& stream, const SparseDistributedRepresentation &sdr)
     {
         stream << "SDR( ";
         for( UInt i = 0; i < (UInt)sdr.dimensions.size(); i++ ) {
@@ -700,22 +474,9 @@ public:
         return stream << endl;
     }
 
-    bool operator==(const SparseDistributedRepresentation &sdr) const {
-        // Check attributes
-        if( sdr.size != size or dimensions.size() != sdr.dimensions.size() )
-            return false;
-        for( UInt i = 0; i < dimensions.size(); i++ ) {
-            if( dimensions[i] != sdr.dimensions[i] )
-                return false;
-        }
-        // Check data
-        return std::equal(
-            getDense().begin(),
-            getDense().end(), 
-            sdr.getDense().begin());
-    }
+    bool operator==(const SparseDistributedRepresentation &sdr) const;
 
-    bool operator!=(const SparseDistributedRepresentation &sdr) const
+    inline bool operator!=(const SparseDistributedRepresentation &sdr) const
         { return not ((*this) == sdr); }
 
     /**
@@ -725,27 +486,7 @@ public:
      * 
      * @param stream A valid output stream, such as an open file.
      */
-    void save(std::ostream &outStream) const override {
-
-        auto writeVector = [&outStream] (const vector<UInt> &vec) {
-            outStream << vec.size() << " ";
-            for( auto elem : vec ) {
-                outStream << elem << " ";
-            }
-            outStream << endl;
-        };
-
-        // Write a starting marker and version.
-        outStream << "SDR " << SERIALIZE_VERSION << " " << endl;
-
-        // Store the dimensions.
-        writeVector( dimensions );
-
-        // Store the data in the flat-sparse format.
-        writeVector( getFlatSparse() );
-
-        outStream << "~SDR" << endl;
-    }
+    void save(std::ostream &outStream) const override;
 
     /**
      * Load (deserialize) and initialize the SDR from the specified input
@@ -754,46 +495,7 @@ public:
      *
      * @param stream A input valid istream, such as an open file.
      */
-    void load(std::istream &inStream) override {
-
-        auto readVector = [&inStream] (vector<UInt> &vec) {
-            vec.clear();
-            UInt size;
-            inStream >> size;
-            vec.reserve( size );
-            for( UInt i = 0; i < size; i++ ) {
-                UInt elem;
-                inStream >> elem;
-                vec.push_back( elem );
-            }
-        };
-
-        // Read the starting marker and version.
-        string marker;
-        UInt version;
-        inStream >> marker >> version;
-        NTA_CHECK( marker == "SDR" );
-        NTA_CHECK( version == SERIALIZE_VERSION );
-
-        // Read the dimensions.
-        readVector( dimensions_ );
-
-        // Initialize the SDR.
-        // Calculate the SDR's size.
-        size_ = 1;
-        for(UInt dim : dimensions)
-            size_ *= dim;
-        // Initialize sparse tuple.
-        sparse.assign( dimensions.size(), {} );
-
-        // Read the data.
-        readVector( flatSparse );
-        setFlatSparseInplace();
-
-        // Consume the end marker.
-        inStream >> marker;
-        NTA_CHECK( marker == "~SDR" );
-    }
+    void load(std::istream &inStream) override;
 
     /**
      * Callbacks notify you when this SDR's value changes.
@@ -806,17 +508,7 @@ public:
      *
      * @returns UInt Handle for the given callback, needed to remove callback.
      */
-    UInt addCallback(SDR_callback_t callback) {
-        UInt index = 0;
-        for( ; index < callbacks.size(); index++ ) {
-            if( callbacks[index] == nullptr ) {
-                callbacks[index] = callback;
-                return index;
-            }
-        }
-        callbacks.push_back( callback );
-        return index;
-    }
+    UInt addCallback(SDR_callback_t callback);
 
     /**
      * Remove a previously registered callback.
@@ -824,13 +516,7 @@ public:
      * @param UInt Handle which was returned by addCallback when you registered
      * your callback.
      */
-    void removeCallback(UInt index) {
-        NTA_CHECK( index < callbacks.size() )
-            << "SDR::removeCallback, Invalid Handle!";
-        NTA_CHECK( callbacks[index] != nullptr )
-            << "SDR::removeCallback, Callback already removed!";
-        callbacks[index] = nullptr;
-    }
+    void removeCallback(UInt index);
 
     /**
      * This callback notifies you when this SDR is deconstructed and freed from
@@ -844,17 +530,7 @@ public:
      *
      * @returns UInt Handle for the given callback, needed to remove callback.
      */
-    UInt addDestroyCallback(SDR_callback_t callback) {
-        UInt index = 0;
-        for( ; index < destroyCallbacks.size(); index++ ) {
-            if( destroyCallbacks[index] == nullptr ) {
-                destroyCallbacks[index] = callback;
-                return index;
-            }
-        }
-        destroyCallbacks.push_back( callback );
-        return index;
-    }
+    UInt addDestroyCallback(SDR_callback_t callback);
 
     /**
      * Remove a previously registered destroy callback.
@@ -862,13 +538,7 @@ public:
      * @param UInt Handle which was returned by addDestroyCallback when you
      * registered your callback.
      */
-    void removeDestroyCallback(UInt index) {
-        NTA_CHECK( index < destroyCallbacks.size() )
-            << "SDR::removeDestroyCallback, Invalid Handle!";
-        NTA_CHECK( destroyCallbacks[index] != nullptr )
-            << "SDR::removeDestroyCallback, Callback already removed!";
-        destroyCallbacks[index] = nullptr;
-    }
+    void removeDestroyCallback(UInt index);
 };
 
 typedef SparseDistributedRepresentation SDR;
