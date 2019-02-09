@@ -16,7 +16,7 @@
  */
 
 /** @file
- * Definitions for SparseDistributedRepresentation class
+ * Implementation of the SparseDistributedRepresentation class
  */
 
 #include "nupic/types/Sdr.hpp"
@@ -32,99 +32,14 @@ namespace nupic {
 /**
  * SparseDistributedRepresentation class
  * Also known as "SDR" class
- *
- * ### Description
- * This class manages the specification and momentary value of a Sparse
- * Distributed Representation (SDR).  An SDR is a group of boolean values which
- * represent the state of a group of neurons or their associated processes. 
- *
- * This class automatically converts between the commonly used SDR data formats:
- * which are dense, sparse, and flat-sparse.  Converted values are cached by
- * this class, so getting a value in one format many times incurs no extra
- * performance cost.  Assigning to the SDR via a setter method will clear these
- * cached values and cause them to be recomputed as needed.
- *
- *    Dense Format: A contiguous array of boolean values, representing all of
- *    the bits in the SDR.  This format allows random-access queries of the SDRs
- *    values.
- *
- *    Sparse Flat Index Format: Contains the indices of only the true values in
- *    the SDR.  This is a list of the indices, indexed into the flattened SDR.
- *    This format allows for quickly accessing all of the true bits in the SDR.
- *
- *    Sparse Index Format: Contains the indices of only the true values in the
- *    SDR.  This is a list of lists: the outter list contains an entry for
- *    each dimension in the SDR. The inner lists contain the coordinates of each
- *    true bit.  The inner lists run in parallel. This format is useful because
- *    it contains the location of each true bit inside of the SDR's dimensional
- *    space.
- *
- * Flat Formats: This class uses C-order throughout, meaning that when iterating
- * through the SDR, the last/right-most index changes fastest.
- *
- * Example usage:
- *
- *    // Make an SDR with 9 values, arranged in a (3 x 3) grid.
- *    // "SDR" is an alias/typedef for SparseDistributedRepresentation.
- *    SDR  X( {3, 3} );
- *
- *    // These three statements are equivalent.
- *    X.setDense({ 0, 1, 0,
- *                 0, 1, 0,
- *                 0, 0, 1 });
- *    X.setFlatSparse({ 1, 4, 8 });
- *    X.setSparse({{ 0, 1, 2,}, { 1, 1, 2 }});
- *
- *    // Access data in any format, SDR will automatically convert data formats.
- *    X.getDense()     -> { 0, 1, 0, 0, 1, 0, 0, 0, 1 }
- *    X.getSparse()     -> {{ 0, 1, 2 }, {1, 1, 2}}
- *    x.getFlatSparse() -> { 1, 4, 8 }
- *
- *    // Data format conversions are cached, and when an SDR value changes the
- *    // cache is cleared.
- *    X.setFlatSparse({});  // Assign new data to the SDR, clearing the cache.
- *    X.getDense();        // This line will convert formats.
- *    X.getDense();        // This line will resuse the result of the previous line
- *
- *
- * Avoiding Copying:  To avoid copying call the setter methods with the correct
- * data types and non-constant variables.  This allows for a fast swap instead
- * of a slow copy operation.  The data vectors returned by the getter methods
- * can be modified and reassigned to the SDR, or the caller can allocate their
- * own data vectors as one of the following types:
- *     vector<Byte>            aka SDR_dense_t
- *     vector<UInt>            aka SDR_flatSparse_t
- *     vector<vector<UInt>>    aka SDR_sparse_t
- *
- * Example Usage:
- *    X.zero();
- *    SDR_dense_t newData({ 1, 0, 0, 1, 0, 0, 1, 0, 0 });
- *    X.setDense( newData );
- *    // X now points to newData, and newData points to X's old data.
- *
- *    X.zero();
- *    // The "&" is really important!  Otherwise vector copies.
- *    auto & dense = X.getDense();
- *    dense[2] = true;
- *    // Notify the SDR of the changes, even if using the SDR's own data inplace.
- *    X.setDense( dense );
- *    X.getFlatSparse() -> { 2 }
  */
     
-    /**
-     * Remove the value from this SDR by clearing all of the valid flags.  Does
-     * not actually change any of the data.  Attempting to get the SDR's value
-     * immediately after this operation will raise an exception.
-     */
     void SparseDistributedRepresentation::clear() {
         dense_valid      = false;
         flatSparse_valid = false;
         sparse_valid     = false;
     }
 
-    /**
-     * Notify everyone that this SDR's value has officially changed.
-     */
     void SparseDistributedRepresentation::do_callbacks() {
         for(const auto func_ptr : callbacks) {
             if( func_ptr != nullptr )
@@ -132,11 +47,6 @@ namespace nupic {
         }
     }
 
-    /**
-     * Update the SDR to reflect the value currently inside of the dense array.
-     * Use this method after modifying the dense buffer inplace, in order to
-     * propigate any changes to the sparse & flatSparse formats.
-     */
     void SparseDistributedRepresentation::setDenseInplace() {
         // Check data is valid.
         NTA_ASSERT( dense.size() == size );
@@ -146,11 +56,6 @@ namespace nupic {
         do_callbacks();
     }
 
-    /**
-     * Update the SDR to reflect the value currently inside of the flatSparse
-     * vector. Use this method after modifying the flatSparse vector inplace, in
-     * order to propigate any changes to the dense & sparse formats.
-     */
     void SparseDistributedRepresentation::setFlatSparseInplace() {
         // Check data is valid.
         #ifdef NTA_ASSERTIONS_ON
@@ -165,11 +70,6 @@ namespace nupic {
         do_callbacks();
     }
 
-    /**
-     * Update the SDR to reflect the value currently inside of the sparse
-     * vector. Use this method after modifying the sparse vector inplace, in
-     * order to propigate any changes to the dense & flatSparse formats.
-     */
     void SparseDistributedRepresentation::setSparseInplace() {
         // Check data is valid.
         #ifdef NTA_ASSERTIONS_ON
@@ -189,12 +89,6 @@ namespace nupic {
         do_callbacks();
     }
 
-    /**
-     * Destroy this SDR.  Makes SDR unusable, should error or clearly fail if
-     * used.  Also sends notification to all watchers via destroyCallbacks.
-     * This is a separate method from ~SDR so that SDRs can be destroyed long
-     * before they're deallocated; SDR Proxy does this.
-     */
     void SparseDistributedRepresentation::deconstruct() {
         clear();
         size_ = 0;
@@ -205,17 +99,8 @@ namespace nupic {
         }
     }
 
-    /**
-     * Use this method only in conjuction with sdr.initialize() or sdr.load().
-     */
     SparseDistributedRepresentation::SparseDistributedRepresentation() {}
 
-    /**
-     * Create an SDR object.  The initial value is all zeros.
-     *
-     * @param dimensions A list of dimension sizes, defining the shape of the
-     * SDR.  The product of the dimensions must be greater than zero.
-     */
     SparseDistributedRepresentation::SparseDistributedRepresentation( const vector<UInt> dimensions )
         { initialize( dimensions ); }
 
@@ -237,13 +122,6 @@ namespace nupic {
         sparse_valid = true;
     }
 
-    /**
-     * Initialize this SDR as a deep copy of the given SDR.  This SDR and the
-     * given SDR will have no shared data and they can be modified without
-     * affecting each other.
-     *
-     * @param value An SDR to replicate.
-     */
     SparseDistributedRepresentation::SparseDistributedRepresentation( const SparseDistributedRepresentation &value )
         : SparseDistributedRepresentation( value.dimensions )
         { setSDR( value ); }
@@ -252,22 +130,11 @@ namespace nupic {
         { deconstruct(); }
 
 
-    /**
-     * Set all of the values in the SDR to false.  This method overwrites the
-     * SDRs current value.
-     */
     void SparseDistributedRepresentation::zero() {
         flatSparse.clear();
         setFlatSparseInplace();
     }
 
-    /**
-     * Swap a new value into the SDR, replacng the current value.  This
-     * method is fast since it copies no data.  This method modifies its
-     * argument!
-     *
-     * @param value A dense vector<char> to swap into the SDR.
-     */
     void SparseDistributedRepresentation::setDense( SDR_dense_t &value ) {
         NTA_ASSERT(value.size() == size);
         dense.swap( value );
@@ -275,14 +142,6 @@ namespace nupic {
     }
 
 
-    /**
-     * Gets the current value of the SDR.  The result of this method call is
-     * cached inside of this SDR until the SDRs value changes.  After modifying
-     * the dense array you MUST call sdr.setDense() in order to notify the SDR
-     * that its dense array has changed and its cached data is out of date.
-     *
-     * @returns A reference to an array of all the values in the SDR.
-     */
     SDR_dense_t& SparseDistributedRepresentation::getDense() const {
         if( !dense_valid ) {
             // Convert from flatSparse to dense.
@@ -295,13 +154,6 @@ namespace nupic {
         return dense;
     }
 
-    /**
-     * Query the value of the SDR at a single location.
-     *
-     * @param coordinates A list of coordinates into the SDR space to query.
-     *
-     * @returns The value of the SDR at the given location.
-     */
     Byte SparseDistributedRepresentation::at(const vector<UInt> &coordinates) const {
         UInt flat = 0;
 	NTA_ASSERT(coordinates.size() == dimensions.size()) << "SDR: coordinates must have same dimensions as SDR";
@@ -313,29 +165,12 @@ namespace nupic {
         return getDense()[flat];
     }
 
-    /**
-     * Swap a new value into the SDR, replacing the current value.  This
-     * method is fast since it copies no data.  This method modifies its
-     * argument!
-     *
-     * @param value A sparse vector<UInt> to swap into the SDR.
-     */
     void SparseDistributedRepresentation::setFlatSparse( SDR_flatSparse_t &value ) {
         flatSparse.swap( value );
         setFlatSparseInplace();
     }
 
 
-    /**
-     * Gets the current value of the SDR.  The result of this method call is
-     * saved inside of this SDR until the SDRs value changes.  After modifying
-     * the flatSparse vector you MUST call sdr.setFlatSparse() in order to
-     * notify the SDR that its flatSparse vector has changed and its cached data
-     * is out of date.
-     *
-     * @returns A reference to a vector of the indices of the true values in the
-     * flattened SDR.
-     */
     SDR_flatSparse_t& SparseDistributedRepresentation::getFlatSparse() const {
         if( !flatSparse_valid ) {
             flatSparse.clear(); // Clear out any old data.
@@ -365,32 +200,12 @@ namespace nupic {
         return flatSparse;
     }
 
-    /**
-     * Swap a list of indices into the SDR, replacing the SDRs current value.
-     * These indices are into the SDR space with dimensions.  The outter list is
-     * indexed using an index into the sdr.dimensions list.  The inner lists are
-     * indexed in parallel, they contain the coordinates of the true values in
-     * the SDR.
-     *
-     * This method is fast since it swaps the vector content, however it does
-     * modify its argument!
-     *
-     * @param value A vector<vector<UInt>> containing the coordinates of the
-     * true values to swap into the SDR.
-     */
     void SparseDistributedRepresentation::setSparse( SDR_sparse_t &value ) {
         sparse.swap( value );
         setSparseInplace();
     }
 
 
-    /**
-     * Gets the current value of the SDR.  The result of this method call is
-     * saved inside of this SDR until the SDRs value changes.
-     *
-     * @returns A reference to a list of lists which contain the coordinates of
-     * the true values in the SDR.     
-     */
     SDR_sparse_t& SparseDistributedRepresentation::getSparse() const {
       if( !sparse_valid ) {
         // Clear out any old data.
@@ -412,13 +227,6 @@ namespace nupic {
     }
 
 
-    /**
-     * Deep Copy the given SDR to this SDR.  This overwrites the current value of
-     * this SDR.  This SDR and the given SDR will have no shared data and they
-     * can be modified without affecting each other.
-     *
-     * @param value An SDR to copy the value of.
-     */
     void SparseDistributedRepresentation::setSDR( const SparseDistributedRepresentation &value ) {
         NTA_ASSERT( value.dimensions == dimensions );
         clear();
@@ -446,15 +254,7 @@ namespace nupic {
         do_callbacks();
     }
 
-    /**
-     * Calculates the number of true bits which both SDRs have in common.
-     *
-     * @param sdr, An SDR to compare with, both SDRs must have the same
-     * dimensons.
-     *
-     * @returns Integer, the number of true values which both SDRs have in
-     * common.
-     */
+
     UInt SparseDistributedRepresentation::getOverlap(const SparseDistributedRepresentation &sdr) const {
         NTA_ASSERT( dimensions == sdr.dimensions );
 
@@ -466,19 +266,12 @@ namespace nupic {
         return ovlp;
     }
 
-    /**
-     * Make a random SDR, overwriting the current value of the SDR.  The
-     * result has uniformly random activations.
-     *
-     * @param sparsity The sparsity of the randomly generated SDR.
-     *
-     * @param rng The random number generator to draw from.  If not given, this
-     * makes one using the magic seed 0.
-     */
+
     void SparseDistributedRepresentation::randomize(Real sparsity) {
         Random rng( 0 );
         randomize( sparsity, rng );
     }
+
 
     void SparseDistributedRepresentation::randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
@@ -492,22 +285,12 @@ namespace nupic {
         setFlatSparseInplace();
     }
 
-    /**
-     * Modify the SDR by moving a fraction of the active bits to different
-     * locations.  This method does not change the sparsity of the SDR, it moves
-     * the locations of the true values.  The resulting SDR has a controlled
-     * amount of overlap with the original.
-     *
-     * @param fractionNoise The fraction of active bits to swap out.  The
-     * original and resulting SDRs have an overlap of (1 - fractionNoise).
-     *
-     * @param rng The random number generator to draw from.  If not given, this
-     * makes one using the magic seed 0.
-     */
+
     void SparseDistributedRepresentation::addNoise(Real fractionNoise) {
         Random rng( 0 );
         addNoise( fractionNoise, rng );
     }
+
 
     void SparseDistributedRepresentation::addNoise(Real fractionNoise, Random &rng) {
         NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
@@ -555,13 +338,7 @@ namespace nupic {
             sdr.getDense().begin());
     }
 
-    /**
-     * Save (serialize) the current state of the SDR to the specified file.
-     * This method can NOT save callbacks!  Only the dimensions and current data
-     * are saved.
-     * 
-     * @param stream A valid output stream, such as an open file.
-     */
+
     void SparseDistributedRepresentation::save(std::ostream &outStream) const {
 
         auto writeVector = [&outStream] (const vector<UInt> &vec) {
@@ -584,13 +361,7 @@ namespace nupic {
         outStream << "~SDR" << endl;
     }
 
-    /**
-     * Load (deserialize) and initialize the SDR from the specified input
-     * stream.  This method does NOT load callbacks!  If the original SDR had
-     * callbacks then the user must re-add them after saving & loading the SDR.
-     *
-     * @param stream A input valid istream, such as an open file.
-     */
+
     void SparseDistributedRepresentation::load(std::istream &inStream) {
 
         auto readVector = [&inStream] (vector<UInt> &vec) {
@@ -632,17 +403,7 @@ namespace nupic {
         NTA_CHECK( marker == "~SDR" );
     }
 
-    /**
-     * Callbacks notify you when this SDR's value changes.
-     *
-     * Note: callbacks are NOT serialized; after saving & loading an SDR the
-     * user must setup their callbacks again.
-     *
-     * @param callback A function to call every time this SDRs value changes.
-     * function accepts no arguments and returns void.
-     *
-     * @returns UInt Handle for the given callback, needed to remove callback.
-     */
+
     UInt SparseDistributedRepresentation::addCallback(SDR_callback_t callback) {
         UInt index = 0;
         for( ; index < callbacks.size(); index++ ) {
@@ -655,12 +416,7 @@ namespace nupic {
         return index;
     }
 
-    /**
-     * Remove a previously registered callback.
-     *
-     * @param UInt Handle which was returned by addCallback when you registered
-     * your callback.
-     */
+
     void SparseDistributedRepresentation::removeCallback(UInt index) {
         NTA_CHECK( index < callbacks.size() )
             << "SparseDistributedRepresentation::removeCallback, Invalid Handle!";
@@ -669,18 +425,7 @@ namespace nupic {
         callbacks[index] = nullptr;
     }
 
-    /**
-     * This callback notifies you when this SDR is deconstructed and freed from
-     * memory.
-     *
-     * Note: callbacks are NOT serialized; after saving & loading an SDR the
-     * user must setup their callbacks again.
-     *
-     * @param callback A function to call when this SDR is destroyed.  Function
-     * accepts no arguments and returns void.
-     *
-     * @returns UInt Handle for the given callback, needed to remove callback.
-     */
+
     UInt SparseDistributedRepresentation::addDestroyCallback(SDR_callback_t callback) {
         UInt index = 0;
         for( ; index < destroyCallbacks.size(); index++ ) {
@@ -693,12 +438,7 @@ namespace nupic {
         return index;
     }
 
-    /**
-     * Remove a previously registered destroy callback.
-     *
-     * @param UInt Handle which was returned by addDestroyCallback when you
-     * registered your callback.
-     */
+
     void SparseDistributedRepresentation::removeDestroyCallback(UInt index) {
         NTA_CHECK( index < destroyCallbacks.size() )
             << "SparseDistributedRepresentation::removeDestroyCallback, Invalid Handle!";
