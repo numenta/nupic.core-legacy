@@ -109,26 +109,29 @@ int main(int argc, char **argv) {
   UInt verbosity = 1;
   auto train_dataset_iterations = 1u;
 
-  SDR input({28, 28, 2});
+  SDR input({28, 28, 1});
   SpatialPooler sp(
     /* numInputs */                    input.dimensions,
-    /* numColumns */                   {56, 56, 4},
-    /* potentialRadius */              4,  // hardcoded elsewhere
-    /* potentialPct */                 .000001, // hardcoded elsewhere
-    /* globalInhibition */             true,
-    /* localAreaDensity */             .015,
-    /* numActiveColumnsPerInhArea */   -1,
-    /* stimulusThreshold */             28,
-    /* synPermInactiveDec */           .00928,
-    /* synPermActiveInc */             .032,
-    /* synPermConnected */             .422,
-    /* minPctOverlapDutyCycles */      0.,
-    /* dutyCyclePeriod */              1402,
-    /* boostStrength */                0,
-    /* CPP SP seed */                  0,
-    /* spVerbosity */                  verbosity,
-    /* wrapAround */                   0 // discarded
-  );
+    /* numColumns */                   {7, 7, 8}
+    );
+  sp.setGlobalInhibition(false);
+  // mapping to input
+  sp.setPotentialRadius(5); //receptive field (hyper-cube) how each col maps to input
+  sp.setPotentialPct(0.5); //of the recept. field above, how much % of inputs individual col connects to?
+  sp.setStimulusThreshold(0); //FIXME no learning if this > 0
+  sp.setSynPermConnected(0.4);
+  sp.setSynPermActiveInc(0.2);
+  sp.setSynPermInactiveDec(0.02);
+
+  sp.setSpVerbosity(verbosity);
+  // on columnar level
+  sp.setLocalAreaDensity(.05); // 5% sparsity
+  sp.setMinPctOverlapDutyCycles(0.4);
+  //boost
+  sp.setBoostStrength(1.8);
+  sp.setDutyCyclePeriod(1000);
+
+  sp.setWrapAround(false);
 
 
   SDR columns({sp.getNumColumns()});
@@ -215,5 +218,5 @@ int main(int argc, char **argv) {
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }
   if( verbosity ) cout << endl;
-  cout << "Score: " << score / n_samples << endl;
+  cout << "Score: " << 100.0 * score / n_samples << "% " << endl;
 }
