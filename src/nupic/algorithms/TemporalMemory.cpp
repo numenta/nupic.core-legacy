@@ -48,8 +48,17 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
-using namespace nupic::algorithms::temporal_memory;
+using nupic::algorithms::temporal_memory::TemporalMemory;
+using nupic::algorithms::connections::SynapseIdx;
+using nupic::algorithms::connections::SynapseData;
+using nupic::algorithms::connections::EPSILON;
+using nupic::algorithms::connections::SegmentIdx;
+using nupic::algorithms::connections::CellIdx;
+using nupic::algorithms::connections::Connections;
+using nupic::algorithms::connections::Segment;
+using nupic::algorithms::connections::Permanence;
+using nupic::algorithms::connections::Synapse;
+
 
 static const UInt TM_VERSION = 2;
 

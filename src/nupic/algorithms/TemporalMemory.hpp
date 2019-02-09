@@ -41,7 +41,11 @@ namespace temporal_memory {
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
+using nupic::algorithms::connections::Connections;
+using nupic::algorithms::connections::Permanence;
+using nupic::algorithms::connections::Segment;
+using nupic::algorithms::connections::CellIdx;
+using nupic::algorithms::connections::Synapse;
 
 /**
  * Temporal Memory implementation in C++.

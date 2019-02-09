@@ -42,7 +42,8 @@ namespace backtracking_tm {
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::Cells4;
+using nupic::algorithms::Cells4::Cells4;
+using nupic::algorithms::Cells4::Segment;
 
 
 /////////////////////////////////////////////////////////////////
@@ -552,7 +553,7 @@ protected:
   std::shared_ptr<Real> confHistogram_; // for stats if collectSequenceStats is true
 
 
-  Cells4::Cells4 *cells4_;
+  Cells4 *cells4_;
 };
 
 
