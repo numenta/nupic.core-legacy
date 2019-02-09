@@ -333,16 +333,20 @@ add_custom_target(hotgym
 ## MNIST Spatial Pooler Example
 #
 set(src_executable_mnistsp mnist_sp)
+#! set(MNIST_DIR ${mnist-SOURCE_DIR})
+#! find_package(MNIST  REQUIRED)
 add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
 target_link_libraries(${src_executable_mnistsp} ${src_exacutable_mnistsp}
         ${core_library}
         ${COMMON_OS_LIBS}
+	${mnist_LIBRARIES}
 	)
 target_compile_options(${src_executable_mnistsp} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_executable_mnistsp} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_executable_mnistsp} PRIVATE 
         ${CORE_LIB_INCLUDES} 
         ${EXTERNAL_INCLUDES}
+	${mnist_INCLUDE_DIRS}
         )
 add_custom_target(mnist
                   COMMAND ${src_executable_mnistsp}

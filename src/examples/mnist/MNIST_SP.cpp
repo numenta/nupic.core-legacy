@@ -33,7 +33,8 @@
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include "nupic/utils/SdrMetrics.hpp"
-#include "nupic/os/ImportFilesystem.hpp"
+
+#include "mnist/mnist_reader_less.hpp"
 
 namespace examples {
 
@@ -44,7 +45,7 @@ using nupic::algorithms::sdr_classifier::SDRClassifier;
 using nupic::algorithms::cla_classifier::ClassifierResult;
 
 typedef vector<UInt> image_t;
-
+/*
 const vector<UInt> read_mnist_labels(string path) {
     ifstream file(path);
     NTA_CHECK( file.is_open() )  << "ERROR: Failed to open file " << path;
@@ -106,7 +107,7 @@ const vector<image_t> read_mnist_images(string path) {
     }
     return retval;
 }
-
+*/
 class MNIST {
 
   private:
