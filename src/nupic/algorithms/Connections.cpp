@@ -494,7 +494,7 @@ void Connections::raisePermanencesToThreshold(
   // permance by such that it becomes a connected synapse.
   // After that there will be at least N synapses connected.
 
-  auto minPermSynPtr = synapses.begin() + segmentThreshold - 1;
+  auto minPermSynPtr = synapses.begin() + threshold - 1;
   // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
   // its final sorted position.
   const auto permanencesGreater = [&](const Synapse &A, const Synapse &B)
