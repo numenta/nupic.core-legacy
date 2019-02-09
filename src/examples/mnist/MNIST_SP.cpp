@@ -34,6 +34,8 @@
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include "nupic/utils/SdrMetrics.hpp"
 
+namespace examples {
+
 using namespace std;
 using namespace nupic;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
@@ -219,4 +221,6 @@ int main(int argc, char **argv) {
   }
   if( verbosity ) cout << endl;
   cout << "Score: " << 100.0 * score / n_samples << "% " << endl;
+}
+
 }
