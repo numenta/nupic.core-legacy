@@ -27,7 +27,9 @@ namespace testing {
 
 TEST(HelloSPTPTest, performance) {
   using namespace examples;
-  run();
+
+  HelloSPTP h;
+  h.run();
 }
 
 } //ns

@@ -44,6 +44,9 @@ using nupic::algorithms::Cells4::Cells4;
 using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
+class HelloSPTP { 
+
+public: 
 // work-load
 void run(UInt EPOCHS = 5000) {
   const UInt COLS = 2048; // number of columns in SP, TP
@@ -149,4 +152,5 @@ void run(UInt EPOCHS = 5000) {
   } //end for
 
 } //end run()
+};
 } //-ns

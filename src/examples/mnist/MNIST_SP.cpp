@@ -33,6 +33,7 @@
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include "nupic/utils/SdrMetrics.hpp"
+#include "nupic/os/ImportFilesystem.hpp"
 
 namespace examples {
 
@@ -106,13 +107,23 @@ const vector<image_t> read_mnist_images(string path) {
     return retval;
 }
 
+class MNIST {
 
-int main(int argc, char **argv) {
-  UInt verbosity = 1;
-  auto train_dataset_iterations = 1u;
+  private:
+    SpatialPooler sp;
+    SDR input;
+    SDR columns;
+    SDRClassifier clsr;
 
-  SDR input({28, 28, 1});
-  SpatialPooler sp(
+    UInt verbosity = 1;
+    const UInt train_dataset_iterations = 1u;
+
+  public:
+
+void setup() {
+
+  input.initialize({28, 28, 1});
+  sp.initialize(
     /* numInputs */                    input.dimensions,
     /* numColumns */                   {7, 7, 8}
     );
@@ -136,22 +147,26 @@ int main(int argc, char **argv) {
   sp.setWrapAround(false);
 
 
-  SDR columns({sp.getNumColumns()});
-  SDR_Metrics columnStats(columns, 1402);
+  columns.initialize({sp.getNumColumns()});
 
-  SDRClassifier clsr(
+  clsr.initialize(
     /* steps */         {0},
     /* alpha */         .001,
     /* actValueAlpha */ .3,
                         verbosity);
+}
 
+void train() {
   // Train
   const auto train_images = read_mnist_images("./mnist_data/train-images-idx3-ubyte");
   const auto train_labels = read_mnist_labels("./mnist_data/train-labels-idx1-ubyte");
+
   if(verbosity)
     cout << "Training for " << (train_dataset_iterations * train_labels.size())
          << " cycles ..." << endl;
   size_t i = 0;
+  SDR_Metrics columnStats(columns, 1402);
+
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
     // Shuffle the training data.
     NTA_WARN << "epoch " << epoch;
@@ -181,8 +196,9 @@ int main(int argc, char **argv) {
   cout << "epoch ended" << endl;
   cout << columnStats << endl;
   }
+}
 
-
+void test() {
   // Test
   auto test_images  = read_mnist_images("./mnist_data/t10k-images-idx3-ubyte");
   auto test_labels  = read_mnist_labels("./mnist_data/t10k-labels-idx1-ubyte");
@@ -222,5 +238,15 @@ int main(int argc, char **argv) {
   if( verbosity ) cout << endl;
   cout << "Score: " << 100.0 * score / n_samples << "% " << endl;
 }
-
+};
 }
+
+int main(int argc, char **argv) {
+  examples::MNIST m;
+  m.setup();
+  m.train();
+  m.test();
+
+  return 0;
+}
+
