@@ -57,18 +57,25 @@ Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaul
 }
 
 
-SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
-                             Real64 actValueAlpha, UInt verbosity)
-    : steps_(steps), alpha_(alpha), actValueAlpha_(actValueAlpha),
-      maxInputIdx_(0), maxBucketIdx_(0), actualValues_({0.0}),
-      actualValuesSet_({false}), version_(sdrClassifierVersion),
-      verbosity_(verbosity) {
-  sort(steps_.begin(), steps_.end());
-  if (steps_.size() > 0) {
-    maxSteps_ = steps_.at(steps_.size() - 1) + 1;
-  } else {
-    maxSteps_ = 1;
-  }
+void SDRClassifier::initialize(const vector<UInt> &steps, Real64 alpha,
+                             Real64 actValueAlpha, UInt verbosity) {
+   steps_ = steps;
+   alpha_ = alpha; 
+   actValueAlpha_ = actValueAlpha;
+   maxInputIdx_ = 0;
+   maxBucketIdx_ = 0; 
+   actualValues_ = {0.0};
+   actualValuesSet_ = {false}; 
+   version_ = sdrClassifierVersion;
+   verbosity_ = verbosity;
+
+   sort(steps_.begin(), steps_.end());
+   if (steps_.size() > 0) {
+     maxSteps_ = steps_.at(steps_.size() - 1) + 1;
+   } else {
+     maxSteps_ = 1;
+   }
+
 
   // TODO: insert maxBucketIdx / maxInputIdx hint as parameter?
   // There can be great overhead reallocating the array every time a new
@@ -83,6 +90,9 @@ SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
     weightMatrix_.emplace(step, m);
   }
 }
+
+SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
+                             UInt verbosity) { initialize(steps, alpha, actValueAlpha, verbosity); }
 
 SDRClassifier::~SDRClassifier() {}
 

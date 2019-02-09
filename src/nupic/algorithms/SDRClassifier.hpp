@@ -63,6 +63,8 @@ public:
    * Constructor for use when deserializing.
    */
   SDRClassifier() {}
+  void initialize(const vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
+                  UInt verbosity);
 
   /**
    * Constructor.
