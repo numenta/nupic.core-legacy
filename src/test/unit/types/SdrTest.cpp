@@ -29,7 +29,7 @@ TEST(SdrTest, TestConstructor) {
     // Test 0 dimensions
     EXPECT_ANY_THROW( SDR( vector<UInt>(0) ));
     // Test 0 size
-    EXPECT_ANY_THROW( SDR({ 0 }) );
+    EXPECT_NO_THROW( SDR({ 0 }) );
     EXPECT_ANY_THROW( SDR({ 3, 2, 1, 0 }) );
     EXPECT_NO_THROW(  SDR({ 3, 2, 1}) );
 
@@ -54,6 +54,11 @@ TEST(SdrTest, TestConstructor) {
     // Test dimensions are copied not referenced
     c_dims.push_back(7);
     ASSERT_EQ( c.dimensions, vector<UInt>({11u, 15u, 3u}) );
+}
+
+TEST(SdrTest, TestEmptyPlaceholder) { //for NetworkAPI
+    EXPECT_NO_THROW( SDR({0})  );
+    EXPECT_EQ( SDR({0}).size, 0u  );
 }
 
 TEST(SdrTest, TestConstructorCopy) {
