@@ -74,7 +74,7 @@ template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt le
  *        <get input vector, streaming spatiotemporal information>
  *        sp.compute(inputVector, learn, activeColumns)
  *        tm.compute(number of activeColumns, activeColumns, learn)
- *        <do something with the tm, e.g. classify tm.getActiveCells()>
+ *        <do something with the tm, e.g. classify tm.getActiveState()>
  *     }
  *
  * The public API uses C arrays, not std::vectors, as inputs. C arrays are

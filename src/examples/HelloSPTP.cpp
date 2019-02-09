@@ -25,8 +25,12 @@
 #include <vector>
 
 #include "nupic/algorithms/Anomaly.hpp"
+
 #include "nupic/algorithms/Cells4.hpp"  //TODO use TM instead
+#include "nupic/algorithms/BacktrackingTMCpp.hpp"
+
 #include "nupic/algorithms/SpatialPooler.hpp"
+
 #include "nupic/encoders/ScalarEncoder.hpp"
 
 #include "nupic/os/Timer.hpp"
@@ -38,9 +42,14 @@ namespace examples {
 using namespace std;
 using namespace nupic;
 using namespace nupic::utils;
+
 using nupic::ScalarEncoder;
+
 using nupic::algorithms::spatial_pooler::SpatialPooler;
-using nupic::algorithms::Cells4::Cells4;
+
+using TP = nupic::algorithms::Cells4::Cells4;
+using BackTM = nupic::algorithms::backtracking_tm::BacktrackingTMCpp;
+
 using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
@@ -67,8 +76,10 @@ void run(UInt EPOCHS = 5000) {
   spGlobal.setGlobalInhibition(true);
   spLocal.setGlobalInhibition(false);
 
-  Cells4 tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
+  TP tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
+  BackTM backTM(COLS, CELLS); 
+
   Anomaly an(5, AnomalyMode::PURE);
   Anomaly anLikelihood(5, AnomalyMode::LIKELIHOOD);
   tInit.stop();
@@ -86,7 +97,7 @@ void run(UInt EPOCHS = 5000) {
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
   Timer tAll(true);
-  Timer tRng, tEnc, tSPloc, tSPglob, tTP, tAn, tAnLikelihood;
+  Timer tRng, tEnc, tSPloc, tSPglob, tTP, tBackTM, tAn, tAnLikelihood;
 
 
   //run
@@ -116,12 +127,21 @@ void run(UInt EPOCHS = 5000) {
     tSPglob.stop();
 
 
-    //TP
+    //TP (TP x BackTM)
     tTP.start();
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
     tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
     tTP.stop();
+
+    tBackTM.start();
+    backTM.compute(rIn.data(), true /*learn*/, true /*infer*/);
+    const auto backAct = backTM.getActiveState();
+    const auto backPred = backTM.getPredictedState();
+    const vector<char> vAct(backAct, backAct + backTM.getNumCells());
+    const vector<char> bPred(backPred, backPred + backTM.getNumCells());
+    tBackTM.stop();
+ 
 
     //Anomaly (pure x likelihood)
     tAn.start();
@@ -151,6 +171,7 @@ void run(UInt EPOCHS = 5000) {
       cout << "SP (l):\t" << tSPloc.getElapsed() << "(x10)" << endl;
       cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
       cout << "TP:\t" << tTP.getElapsed() << endl;
+      cout << "BackTM:\t" << tBackTM.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
 
