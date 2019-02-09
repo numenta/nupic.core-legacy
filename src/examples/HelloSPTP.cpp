@@ -47,8 +47,11 @@ using nupic::ScalarEncoder;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 
-using TP = nupic::algorithms::Cells4::Cells4;
+using TP =     nupic::algorithms::Cells4::Cells4;
 using BackTM = nupic::algorithms::backtracking_tm::BacktrackingTMCpp;
+using namespace nupic::algorithms::temporal_memory;
+
+//!?FIXME does not work     using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
 
 using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
@@ -78,7 +81,8 @@ void run(UInt EPOCHS = 5000) {
 
   TP tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
-  BackTM backTM(COLS, CELLS); 
+  BackTM backTM(COLS, CELLS); //TODO get all, described parameters
+  TM tm(COLS, CELLS);
 
   Anomaly an(5, AnomalyMode::PURE);
   Anomaly anLikelihood(5, AnomalyMode::LIKELIHOOD);
@@ -97,7 +101,8 @@ void run(UInt EPOCHS = 5000) {
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
   Timer tAll(true);
-  Timer tRng, tEnc, tSPloc, tSPglob, tTP, tBackTM, tAn, tAnLikelihood;
+  Timer tRng, tEnc, tSPloc, tSPglob, tTP, tBackTM, tTM, 
+	tAn, tAnLikelihood;
 
 
   //run
@@ -127,7 +132,7 @@ void run(UInt EPOCHS = 5000) {
     tSPglob.stop();
 
 
-    //TP (TP x BackTM)
+    //TP (TP x BackTM x TM)
     tTP.start();
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
     tp.compute(rIn.data(), rOut.data(), true, true);
@@ -141,6 +146,14 @@ void run(UInt EPOCHS = 5000) {
     const vector<char> vAct(backAct, backAct + backTM.getNumCells());
     const vector<char> bPred(backPred, backPred + backTM.getNumCells());
     tBackTM.stop();
+
+    tTM.start();
+    tm.compute(COLS, outSP.data(), true /*learn*/);
+    const auto tmAct = tm.getActiveCells();
+    const auto tmPred = tm.getPredictedCells();
+    //TODO assert tmAct == spOut
+    //TODO merge Act + Pred and use for anomaly from TM
+    tTM.stop();
  
 
     //Anomaly (pure x likelihood)
