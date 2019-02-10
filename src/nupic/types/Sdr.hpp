@@ -129,9 +129,9 @@ private:
 
     // internal representation in given data format (not all must match at a time),
     // see *_valid below
-    mutable SDR_dense_t      dense;
-    mutable SDR_flatSparse_t flatSparse;
-    mutable SDR_sparse_t     sparse;
+    mutable SDR_dense_t      dense_;
+    mutable SDR_flatSparse_t flatSparse_;
+    mutable SDR_sparse_t     sparse_;
 
     /**
      * These flags remember which data formats are up-to-date and which formats
@@ -268,10 +268,10 @@ public:
      template<typename T>
      void setDense( const T *value ) {
        NTA_ASSERT(value != nullptr);
-       dense.resize( size );
+       dense_.resize( size );
        const T zero = (T) 0;
        for(auto i = 0u; i < size; i++)
-         dense[i] = value[i] != zero;
+         dense_[i] = value[i] != zero;
        setDenseInplace();
      }
 
@@ -312,7 +312,7 @@ public:
      */
     template<typename T>
     void setFlatSparse( const vector<T> &value ) {
-      flatSparse.assign( value.begin(), value.end() );
+      flatSparse_.assign( value.begin(), value.end() );
       setFlatSparseInplace();
     }
 
@@ -326,7 +326,7 @@ public:
      */
     template<typename T>
     void setFlatSparse( const T *value, const UInt num_values ) {
-      flatSparse.assign( value, value + num_values );
+      flatSparse_.assign( value, value + num_values );
       setFlatSparseInplace();
     }
 
@@ -372,8 +372,8 @@ public:
     void setSparse( const vector<vector<T>> &value ) {
       NTA_ASSERT(value.size() == dimensions.size());
       for(UInt dim = 0; dim < dimensions.size(); dim++) {
-        sparse[dim].clear();
-        sparse[dim].assign(value[dim].cbegin(), value[dim].cend());
+        sparse_[dim].clear();
+        sparse_[dim].assign(value[dim].cbegin(), value[dim].cend());
       }
       setSparseInplace();
     }

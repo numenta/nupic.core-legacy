@@ -49,7 +49,7 @@ namespace nupic {
 
     void SparseDistributedRepresentation::setDenseInplace() {
         // Check data is valid.
-        NTA_ASSERT( dense.size() == size );
+        NTA_ASSERT( dense_.size() == size );
         // Set the valid flags.
         clear();
         dense_valid = true;
@@ -59,8 +59,8 @@ namespace nupic {
     void SparseDistributedRepresentation::setFlatSparseInplace() {
         // Check data is valid.
         #ifdef NTA_ASSERTIONS_ON
-            NTA_ASSERT(flatSparse.size() <= size);
-            for(auto idx : flatSparse) {
+            NTA_ASSERT(flatSparse_.size() <= size);
+            for(auto idx : flatSparse_) {
                 NTA_ASSERT(idx < size);
             }
         #endif
@@ -73,11 +73,11 @@ namespace nupic {
     void SparseDistributedRepresentation::setSparseInplace() {
         // Check data is valid.
         #ifdef NTA_ASSERTIONS_ON
-            NTA_ASSERT(sparse.size() == dimensions.size());
+            NTA_ASSERT(sparse_.size() == dimensions.size());
             for(UInt dim = 0; dim < dimensions.size(); dim++) {
-                const auto coord_vec = sparse[dim];
+                const auto coord_vec = sparse_[dim];
                 NTA_ASSERT(coord_vec.size() <= size);
-                NTA_ASSERT(coord_vec.size() == sparse[0].size()); // All coordinate vectors have same size.
+                NTA_ASSERT(coord_vec.size() == sparse_[0].size()); // All coordinate vectors have same size.
                 for(auto idx : coord_vec) {
                     NTA_ASSERT(idx < dimensions[dim]);
                 }
@@ -125,7 +125,7 @@ namespace nupic {
         // Initialize the flatSparse array, nothing to do.
         flatSparse_valid = true;
         // Initialize the index tuple.
-        sparse.assign( dimensions.size(), {} );
+        sparse_.assign( dimensions.size(), {} );
         sparse_valid = true;
     }
 
@@ -138,13 +138,13 @@ namespace nupic {
 
 
     void SparseDistributedRepresentation::zero() {
-        flatSparse.clear();
+        flatSparse_.clear();
         setFlatSparseInplace();
     }
 
     void SparseDistributedRepresentation::setDense( SDR_dense_t &value ) {
         NTA_ASSERT(value.size() == size);
-        dense.swap( value );
+        dense_.swap( value );
         setDenseInplace();
     }
 
@@ -152,13 +152,13 @@ namespace nupic {
     SDR_dense_t& SparseDistributedRepresentation::getDense() const {
         if( !dense_valid ) {
             // Convert from flatSparse to dense.
-            dense.assign( size, 0 );
+            dense_.assign( size, 0 );
             for(const auto idx : getFlatSparse()) {
-                dense[idx] = 1;
+                dense_[idx] = 1;
             }
             dense_valid = true;
         }
-        return dense;
+        return dense_;
     }
 
     Byte SparseDistributedRepresentation::at(const vector<UInt> &coordinates) const {
@@ -173,42 +173,42 @@ namespace nupic {
     }
 
     void SparseDistributedRepresentation::setFlatSparse( SDR_flatSparse_t &value ) {
-        flatSparse.swap( value );
+        flatSparse_.swap( value );
         setFlatSparseInplace();
     }
 
 
     SDR_flatSparse_t& SparseDistributedRepresentation::getFlatSparse() const {
         if( !flatSparse_valid ) {
-            flatSparse.clear(); // Clear out any old data.
+            flatSparse_.clear(); // Clear out any old data.
             if( sparse_valid ) {
                 // Convert from sparse to flatSparse.
-                const auto num_nz = size ? sparse[0].size() : 0;
-                flatSparse.reserve( num_nz );
+                const auto num_nz = size ? sparse_[0].size() : 0;
+                flatSparse_.reserve( num_nz );
                 for(UInt nz = 0; nz < num_nz; nz++) {
                     UInt flat = 0;
                     for(UInt dim = 0; dim < dimensions.size(); dim++) {
                         flat *= dimensions[dim];
-                        flat += sparse[dim][nz];
+                        flat += sparse_[dim][nz];
                     }
-                    flatSparse.push_back(flat);
+                    flatSparse_.push_back(flat);
                 }
             }
             else if( dense_valid ) {
                 // Convert from dense to flatSparse.
                 for(UInt idx = 0; idx < size; idx++)
-                    if( dense[idx] != 0 )
-                        flatSparse.push_back( idx );
+                    if( dense_[idx] != 0 )
+                        flatSparse_.push_back( idx );
             }
             else
                 NTA_THROW << "SDR has no data!";
             flatSparse_valid = true;
         }
-        return flatSparse;
+        return flatSparse_;
     }
 
     void SparseDistributedRepresentation::setSparse( SDR_sparse_t &value ) {
-        sparse.swap( value );
+        sparse_.swap( value );
         setSparseInplace();
     }
 
@@ -216,21 +216,21 @@ namespace nupic {
     SDR_sparse_t& SparseDistributedRepresentation::getSparse() const {
       if( !sparse_valid ) {
         // Clear out any old data.
-        for( auto& vec : sparse ) {
+        for( auto& vec : sparse_ ) {
           vec.clear();
         }
         // Convert from flatSparse to sparse.
         for( auto idx : getFlatSparse() ) {
           for(UInt dim = (UInt)(dimensions.size() - 1); dim > 0; dim--) {
             auto dim_sz = dimensions[dim];
-            sparse[dim].push_back( idx % dim_sz );
+            sparse_[dim].push_back( idx % dim_sz );
             idx /= dim_sz;
           }
-          sparse[0].push_back(idx);
+          sparse_[0].push_back(idx);
         }
         sparse_valid = true;
       }
-      return sparse;
+      return sparse_;
     }
 
 
@@ -240,22 +240,22 @@ namespace nupic {
 
         dense_valid = value.dense_valid;
         if( dense_valid ) {
-            dense.assign( value.dense.begin(), value.dense.end() );
+            dense_.assign( value.dense_.begin(), value.dense_.end() );
         }
         flatSparse_valid = value.flatSparse_valid;
         if( flatSparse_valid ) {
-            flatSparse.assign( value.flatSparse.begin(), value.flatSparse.end() );
+            flatSparse_.assign( value.flatSparse_.begin(), value.flatSparse_.end() );
         }
         sparse_valid = value.sparse_valid;
         if( sparse_valid ) {
             for(UInt dim = 0; dim < dimensions.size(); dim++)
-                sparse[dim].assign( value.sparse[dim].begin(), value.sparse[dim].end() );
+                sparse_[dim].assign( value.sparse_[dim].begin(), value.sparse_[dim].end() );
         }
         // method.  Subclasses may override these getters and ignore the valid
         // flags...
         if( !dense_valid and !flatSparse_valid and !sparse_valid ) {
             const auto data = value.getFlatSparse();
-            flatSparse.assign( data.begin(), data.end() );
+            flatSparse_.assign( data.begin(), data.end() );
             flatSparse_valid = true;
         }
         do_callbacks();
@@ -286,9 +286,9 @@ namespace nupic {
 
         SDR_flatSparse_t range( size );
         iota( range.begin(), range.end(), 0 );
-        flatSparse.resize( nbits );
+        flatSparse_.resize( nbits );
         rng.sample( range.data(),      size,
-                    flatSparse.data(), nbits);
+                    flatSparse_.data(), nbits);
         setFlatSparseInplace();
     }
 
@@ -371,7 +371,7 @@ namespace nupic {
 
     void SparseDistributedRepresentation::load(std::istream &inStream) {
 
-        auto readVector = [&inStream] (vector<UInt> &vec) {
+        auto readVector = [&inStream] (vector<UInt> &vec) { //TODO add to Serializable
             vec.clear();
             UInt size;
             inStream >> size;
@@ -399,10 +399,10 @@ namespace nupic {
         for(UInt dim : dimensions)
             size_ *= dim;
         // Initialize sparse tuple.
-        sparse.assign( dimensions.size(), {} );
+        sparse_.assign( dimensions.size(), {} );
 
         // Read the data.
-        readVector( flatSparse );
+        readVector( flatSparse_ );
         setFlatSparseInplace();
 
         // Consume the end marker.
