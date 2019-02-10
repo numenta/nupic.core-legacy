@@ -99,6 +99,7 @@ namespace nupic {
         }
     }
 
+    //constructors
     SparseDistributedRepresentation::SparseDistributedRepresentation() {}
 
     SparseDistributedRepresentation::SparseDistributedRepresentation( const vector<UInt> dimensions )
@@ -107,6 +108,12 @@ namespace nupic {
     void SparseDistributedRepresentation::initialize( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
         NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
+	//special case: placeholder for SDR type used in NetworkAPI
+	if(dimensions == vector<UInt>{0}) {
+	  size_ = 0;
+	  return;
+	}
+
         // Calculate the SDR's size.
         size_ = 1;
         for(UInt dim : dimensions)
