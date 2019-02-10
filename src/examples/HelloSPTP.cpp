@@ -128,6 +128,7 @@ void run(UInt EPOCHS = 5000) {
     fill(outSP.begin(), outSP.end(), 0);
     spGlobal.compute(input.data(), true, outSP.data());
     spGlobal.stripUnlearnedColumns(outSP.data());
+    vector<UInt> outSPsparse = VectorHelpers::binaryToSparse(outSP);
     tSPglob.stop();
 
 
@@ -147,8 +148,9 @@ void run(UInt EPOCHS = 5000) {
     tBackTM.stop();
 
     tTM.start();
-    tm.compute(COLS, outSP.data(), true /*learn*/);
+    tm.compute(outSPsparse.size(), outSPsparse.data(), true /*learn*/);
     const auto tmAct = tm.getActiveCells();
+    tm.activateDendrites(); //must be called before getPredictiveCells 
     const auto tmPred = tm.getPredictiveCells();
     //TODO assert tmAct == spOut
     //TODO merge Act + Pred and use for anomaly from TM
@@ -183,6 +185,7 @@ void run(UInt EPOCHS = 5000) {
       cout << "SP (l):\t" << tSPloc.getElapsed() << "(x10)" << endl;
       cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
       cout << "TP:\t" << tTP.getElapsed() << endl;
+      cout << "TM:\t" << tTM.getElapsed() << endl;
       cout << "BackTM:\t" << tBackTM.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
