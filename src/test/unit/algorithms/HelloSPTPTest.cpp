@@ -26,8 +26,7 @@
 namespace testing {
 
 TEST(HelloSPTPTest, performance) {
-  using namespace examples;
-  run();
+  examples::run();
 }
 
 } //ns
