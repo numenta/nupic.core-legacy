@@ -203,7 +203,7 @@ public:
    * dendrite segments. Grow and reinforce synapses.
    *
    * @param activeColumnsSize
-   * Size of activeColumns.
+   * Size of activeColumns array (the 2nd param)
    *
    * @param activeColumns
    * A sorted list of active column indices.
@@ -211,7 +211,7 @@ public:
    * @param learn
    * If true, reinforce / punish / grow synapses.
    */
-  void activateCells(size_t activeColumnsSize, const UInt activeColumns[],
+  void activateCells(const size_t activeColumnsSize, const UInt activeColumns[],
                      bool learn = true);
 
   /**

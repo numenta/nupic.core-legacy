@@ -63,19 +63,16 @@ using nupic::algorithms::connections::Synapse;
 static const UInt TM_VERSION = 2;
 
 template <typename Iterator>
-bool isSortedWithoutDuplicates(Iterator begin, Iterator end) {
-  if (std::distance(begin, end) >= 2) {
+bool isSortedWithoutDuplicates(const Iterator begin, const Iterator end) {
+    NTA_ASSERT(begin < end) << "provide begin, and end";
+
     Iterator now = begin;
-    Iterator next = begin + 1;
-    while (next != end) {
-      if (*now >= *next) {
+    while (now != end) {
+      if (*now >= *(now+1)) {
         return false;
       }
-
-      now = next++;
+      now++;
     }
-  }
-
   return true;
 }
 
@@ -454,7 +451,7 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
                                    const UInt activeColumns[], bool learn) {
   if (checkInputs_) {
     NTA_CHECK(isSortedWithoutDuplicates(activeColumns,
-                                        activeColumns + activeColumnsSize))
+                                        activeColumns + activeColumnsSize-1))
         << "The activeColumns must be a sorted list of indices without "
            "duplicates.";
   }
@@ -593,8 +590,9 @@ void TemporalMemory::activateDendrites(bool learn,
   segmentsValid_ = true;
 }
 
-void TemporalMemory::compute(size_t activeColumnsSize,
-                             const UInt activeColumns[], bool learn,
+void TemporalMemory::compute(const size_t activeColumnsSize,
+                             const UInt activeColumns[], 
+			     bool learn,
                              const vector<UInt> &extraActive,
                              const vector<UInt> &extraWinners) {
 
