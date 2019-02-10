@@ -28,6 +28,7 @@ Environment Interface
 #define NTA_ENV_HPP
 
 #include <string>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 

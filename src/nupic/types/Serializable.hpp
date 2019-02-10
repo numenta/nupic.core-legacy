@@ -76,18 +76,6 @@ public:
 
 } // end namespace nupic
 
-/*****
-using namespace nupic::serializable;
-std::ostream &operator<<(std::ostream &outStream, const Serializable &obj) {
-  obj.save(outStream);
-  return outStream;
-}
-
-std::istream &operator>>(std::istream &inStream, Serializable &obj) {
-  obj.load(inStream);
-  return inStream;
-}
-****/
 
 #endif // NTA_SERIALIZABLE_HPP
 

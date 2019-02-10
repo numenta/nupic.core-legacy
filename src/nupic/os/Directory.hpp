@@ -36,40 +36,42 @@
 namespace nupic {
 class Path;
 
-namespace Directory {
-// check if a directory exists
-bool exists(const std::string &path);
+class Directory {
+	// check if a directory exists
+	static bool exists(const std::string &path);
 
-// true if the directory is empty
-bool empty(const std::string &path);
+	// true if the directory is empty
+	static bool empty(const std::string &path);
 
-// return the amount of available space on this path's device.
-Size free_space(const std::string & path);
+	// return the amount of available space on this path's device.
+	static Size free_space(const std::string & path);
 
-// get current working directory
-std::string getCWD();
+	// get current working directory
+	static std::string getCWD();
 
-// set current working directories
-void setCWD(const std::string &path);  // be careful about using this.
+	// set current working directories
+	static void setCWD(const std::string &path);  // be careful about using this.
 
-// Copy directory tree rooted in 'source' to 'destination'
-void copyTree(const std::string &source, const std::string &destination);
+	// Copy directory tree rooted in 'source' to 'destination'
+	static void copyTree(const std::string &source, const std::string &destination);
 
-// Remove directory tree rooted in 'path'
-bool removeTree(const std::string &path, bool noThrow = false);
+	// Remove directory tree rooted in 'path'
+	static bool removeTree(const std::string &path, bool noThrow = false);
 
-// Create directory 'path' including all parent directories if missing
-// returns the first directory that was actually created.
-//
-// For example if path is /A/B/C/D
-//    if /A/B/C/D exists it returns ""
-//    if /A/B exists it returns /A/B/C
-//    if /A doesn't exist it returns /A/B/C/D
-//
-// Failures will throw an exception
-void create(const std::string &path, bool otherAccess = false, bool recursive = false);
+	// Create directory 'path' including all parent directories if missing
+	// returns the first directory that was actually created.
+	//
+	// For example if path is /A/B/C/D
+	//    if /A/B/C/D exists it returns ""
+	//    if /A/B exists it returns /A/B/C
+	//    if /A doesn't exist it returns /A/B/C/D
+	//
+	// Failures will throw an exception
+	static void create(const std::string &path, bool otherAccess = false, bool recursive = false);
 
-std::string list(const std::string &path, std::string indent = "");
+	static std::string list(const std::string &path, std::string indent = "");
+};
+
 
 struct Entry {
   enum Type { FILE, DIRECTORY, LINK, OTHER };
@@ -102,7 +104,6 @@ private:
   fs::directory_iterator end_;
 
 };
-} // namespace nupic/Directory
 } // namespace nupic
 
 #endif // NTA_DIRECTORY_HPP

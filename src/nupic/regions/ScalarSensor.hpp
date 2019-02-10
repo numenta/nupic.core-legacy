@@ -48,7 +48,7 @@ class ScalarSensor : public RegionImpl {
 public:
   ScalarSensor(const ValueMap &params, Region *region);
   ScalarSensor(BundleIO &bundle, Region *region);
-  ScalarSensor();
+
   virtual ~ScalarSensor() override;
 
   static Spec *createSpec();

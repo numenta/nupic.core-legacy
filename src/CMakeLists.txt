@@ -293,6 +293,35 @@ set(src_combined_nupiccore_source_archives
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
 
+############ Building Shared LIB #############################################
+# builds nupic_core_shared.so for Linux,OSx and 
+# NOTE: This does not work for Windows.
+#       If there is community demand for a Windows DLL interface, we can add it later.
+#
+# For Linux, OSx; the .so file will contain all symbols.
+#
+set( src_lib_shared  nupic_core_shared)
+
+if(MSVC)
+else()
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(load_all_symbols "-all_load")
+    else
+        set (load_all_symbols "--whole-archive")
+    endif()
+    set(dummy_source_file "${CMAKE_CURRENT_BINARY_DIR}/${src_lib_shared}_dummy.c++")
+    add_library(${src_lib_shared} SHARED ${dummy_source_file} )
+    target_link_libraries(${src_lib_shared}
+        ${core_library}
+        )
+    target_compile_options( ${src_lib_shared} PUBLIC ${INTERNAL_CXX_FLAGS} ${load_all_sysmbols})
+    target_compile_definitions(${src_lib_shared} PRIVATE ${COMMON_COMPILER_DEFINITIONS} )
+    target_include_directories(${src_lib_shared} PRIVATE 
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		)
+endif()	
+		
 ############ TEST #############################################
 # Test
 # The tests were placed in a separate file to avoid clutering up this file.
@@ -304,6 +333,7 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
+
 source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
 
 set(src_executable_hotgym benchmark_hotgym)
@@ -331,9 +361,12 @@ add_custom_target(hotgym
 #
 install(TARGETS
         ${core_library}
+	${core_library_shared}
+        ${src_executable_hotgym}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
+	
 
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
@@ -344,20 +377,11 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 	  FILES_MATCHING PATTERN "nupic/*/*.h*"
 	  PATTERN "nupic/*/*.hpp.in" EXCLUDE)
 
-install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
-	  MESSAGE_NEVER
-	  DESTINATION include/gtest
-	  FILES_MATCHING PATTERN "*.h*")
 
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 	  MESSAGE_NEVER
 	  DESTINATION include)
 
-install(TARGETS
-        ${src_executable_hotgym}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
 
           
 #

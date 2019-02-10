@@ -445,14 +445,6 @@ std::string Path::read_all(const std::string &filename) {
 
 
 
-// Global operators
-Path operator/(const Path & p1, const Path & p2) { return Path(std::string(*p1) + Path::sep + std::string(*p2)); }
-Path operator/(const std::string & p1, const Path & p2) { return Path(p1 + Path::sep + std::string(*p2)); }
-Path operator/(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + Path::sep + p2); }
-Path operator+(const Path & p1, const Path & p2) { return Path(std::string(*p1) + std::string(*p2)); }
-Path operator+(const std::string & p1, const Path & p2) { return Path(p1 + std::string(*p2)); }
-Path operator+(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + p2); }
-
 
 /*******************************************
 * This function returns the full path of the executable that is running this code.

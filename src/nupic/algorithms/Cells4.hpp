@@ -266,9 +266,9 @@ namespace nupic {
         typedef Segment::InSynapses InSynapses;
         typedef std::vector<OutSynapse> OutSynapses;
         typedef std::vector<SegmentUpdate> SegmentUpdates;
-        static const UInt VERSION = 3;
 
       private:
+        static const UInt VERSION = 3;
         nupic::Random _rng;
 
         //-----------------------------------------------------------------------

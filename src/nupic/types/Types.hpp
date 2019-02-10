@@ -24,6 +24,7 @@
  * Basic C++ type definitions used throughout `nupic.core`
  */
 #include <cstdlib>  // defines size_t
+#include <nupic/utils/Log.hpp>  // includes exception handling
 
 #ifndef NTA_TYPES_HPP
 #define NTA_TYPES_HPP

@@ -78,9 +78,7 @@ public:
 };
 
 //--------------------------------------------------------------------------------
-#ifndef SWIG
 std::ostream &operator<<(std::ostream &outStream, const InSynapse &s);
-#endif
 
 // end namespace
 } // namespace Cells4

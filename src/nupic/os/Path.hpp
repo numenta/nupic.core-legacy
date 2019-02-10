@@ -268,14 +268,17 @@ private:
   std::string path_;
 };
 
+
 // Global operators
-// (concatination of filename with separator)
-Path operator/(const Path & p1, const Path & p2);
-Path operator/(const std::string & p1, const Path & p2);
-Path operator/(const Path & p1, const std::string & p2);
-Path operator+(const Path & p1, const Path & p2);
-Path operator+(const std::string & p1, const Path & p2);
-Path operator+(const Path & p1, const std::string & p2);
+//    path concatination with path seperator
+Path operator/(const Path & p1, const Path & p2) { return Path(std::string(*p1) + Path::sep + std::string(*p2)); }
+Path operator/(const std::string & p1, const Path & p2) { return Path(p1 + Path::sep + std::string(*p2)); }
+Path operator/(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + Path::sep + p2); }
+
+//     path concatination without seperator
+Path operator+(const Path & p1, const Path & p2) { return Path(std::string(*p1) + std::string(*p2)); }
+Path operator+(const std::string & p1, const Path & p2) { return Path(p1 + std::string(*p2)); }
+Path operator+(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + p2); }
 
 } // namespace nupic
 
