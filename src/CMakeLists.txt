@@ -217,6 +217,7 @@ set(types_files
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
     nupic/types/Sdr.hpp
+    nupic/types/Sdr.cpp
     nupic/types/SdrProxy.hpp
 )
 
