@@ -123,7 +123,7 @@ typedef function<void()>      SDR_callback_t;
  */
 class SparseDistributedRepresentation : public Serializable
 {
-private:
+protected:
     vector<UInt> dimensions_;
     UInt         size_;
 
@@ -141,7 +141,6 @@ private:
     mutable bool flatSparse_valid;
     mutable bool sparse_valid;
 
-protected:
     /**
      * These hooks are called every time the SDR's value changes.  These can be
      * NULL pointers!  See methods addCallback & removeCallback for API details.
