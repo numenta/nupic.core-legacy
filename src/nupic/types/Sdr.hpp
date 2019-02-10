@@ -123,7 +123,7 @@ typedef function<void()>      SDR_callback_t;
  */
 class SparseDistributedRepresentation : public Serializable
 {
-protected:
+private:
     vector<UInt> dimensions_;
     UInt         size_;
 
@@ -154,6 +154,7 @@ protected:
      */
     vector<SDR_callback_t> destroyCallbacks;
 
+protected:
     /**
      * Remove the value from this SDR by clearing all of the valid flags.  Does
      * not actually change any of the data.  Attempting to get the SDR's value

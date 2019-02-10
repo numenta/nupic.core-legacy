@@ -108,17 +108,16 @@ namespace nupic {
     void SparseDistributedRepresentation::initialize( const vector<UInt> dimensions ) {
         dimensions_ = dimensions;
         NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
-	//special case: placeholder for SDR type used in NetworkAPI
-	if(dimensions == vector<UInt>{0}) {
-	  size_ = 0;
-	  return;
-	}
 
         // Calculate the SDR's size.
         size_ = 1;
         for(UInt dim : dimensions)
             size_ *= dim;
-	NTA_CHECK(size_ > 0) << "SDR: all dimensions must be > 0";
+
+        // Special case: placeholder for SDR type used in NetworkAPI
+        if(dimensions != vector<UInt>{0}) {
+            NTA_CHECK(size_ > 0) << "SDR: all dimensions must be > 0";
+        }
 
         // Initialize the dense array storage, when it's needed.
         dense_valid = false;
@@ -163,7 +162,7 @@ namespace nupic {
 
     Byte SparseDistributedRepresentation::at(const vector<UInt> &coordinates) const {
         UInt flat = 0;
-	NTA_ASSERT(coordinates.size() == dimensions.size()) << "SDR: coordinates must have same dimensions as SDR";
+        NTA_ASSERT(coordinates.size() == dimensions.size()) << "SDR: coordinates must have same dimensions as SDR";
         for(UInt i = 0; i < dimensions.size(); i++) {
             NTA_ASSERT( coordinates[i] < dimensions[i] );
             flat *= dimensions[i];
