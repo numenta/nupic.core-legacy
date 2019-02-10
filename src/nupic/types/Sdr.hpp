@@ -123,14 +123,25 @@ typedef function<void()>      SDR_callback_t;
  */
 class SparseDistributedRepresentation : public Serializable
 {
-protected:
+private:
     vector<UInt> dimensions_;
     UInt         size_;
 
+    // internal representation in given data format (not all must match at a time),
+    // see *_valid below
     mutable SDR_dense_t      dense;
     mutable SDR_flatSparse_t flatSparse;
     mutable SDR_sparse_t     sparse;
 
+    /**
+     * These flags remember which data formats are up-to-date and which formats
+     * need to be updated.
+     */
+    mutable bool dense_valid;
+    mutable bool flatSparse_valid;
+    mutable bool sparse_valid;
+
+protected:
     /**
      * These hooks are called every time the SDR's value changes.  These can be
      * NULL pointers!  See methods addCallback & removeCallback for API details.
@@ -143,14 +154,6 @@ protected:
      * details.
      */
     vector<SDR_callback_t> destroyCallbacks;
-
-    /**
-     * These flags remember which data formats are up-to-date and which formats
-     * need to be updated.
-     */
-    mutable bool dense_valid;
-    mutable bool flatSparse_valid;
-    mutable bool sparse_valid;
 
     /**
      * Remove the value from this SDR by clearing all of the valid flags.  Does
