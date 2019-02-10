@@ -306,14 +306,12 @@ if(MSVC)
 else()
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         set(load_all_symbols "-all_load")
-    else
-        set (load_all_symbols "--whole-archive")
+    else()
+        set(load_all_symbols "--whole-archive")
     endif()
     set(dummy_source_file "${CMAKE_CURRENT_BINARY_DIR}/${src_lib_shared}_dummy.c++")
     add_library(${src_lib_shared} SHARED ${dummy_source_file} )
-    target_link_libraries(${src_lib_shared}
-        ${core_library}
-        )
+    target_link_libraries(${src_lib_shared}  ${core_library} )
     target_compile_options( ${src_lib_shared} PUBLIC ${INTERNAL_CXX_FLAGS} ${load_all_sysmbols})
     target_compile_definitions(${src_lib_shared} PRIVATE ${COMMON_COMPILER_DEFINITIONS} )
     target_include_directories(${src_lib_shared} PRIVATE 
