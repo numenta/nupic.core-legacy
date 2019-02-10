@@ -185,6 +185,7 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
       /*predictedSegmentDecrement*/ 0.02f,
       /*seed*/ 42);
 
+
   // Make some cells predictive.
   const UInt previousActiveColumns[1] = {0};
   const vector<CellIdx> previousActiveCells = {0, 1, 2, 3};
@@ -195,14 +196,13 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
   tm.connections.createSynapse(segment, previousActiveCells[1], 0.5f);
   tm.connections.createSynapse(segment, previousActiveCells[2], 0.5f);
   tm.connections.createSynapse(segment, previousActiveCells[3], 0.5f);
-
   tm.compute(1, previousActiveColumns, true);
   ASSERT_FALSE(tm.getActiveCells().empty());
   ASSERT_FALSE(tm.getWinnerCells().empty());
   tm.activateDendrites();
   ASSERT_FALSE(tm.getPredictiveCells().empty());
 
-  tm.compute(0, nullptr, true);
+  EXPECT_NO_THROW(tm.compute(0, nullptr, true)) << "failed with empty compute";
   EXPECT_TRUE(tm.getActiveCells().empty());
   EXPECT_TRUE(tm.getWinnerCells().empty());
   tm.activateDendrites();

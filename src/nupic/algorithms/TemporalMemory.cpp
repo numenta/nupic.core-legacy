@@ -64,7 +64,7 @@ static const UInt TM_VERSION = 2;
 
 template <typename Iterator>
 bool isSortedWithoutDuplicates(const Iterator begin, const Iterator end) {
-    NTA_ASSERT(begin < end) << "provide begin, and end";
+    NTA_ASSERT(begin <= end) << "provide begin, and end";
 
     Iterator now = begin;
     while (now != end) {
@@ -447,9 +447,9 @@ static void punishPredictedColumn(
   }
 }
 
-void TemporalMemory::activateCells(size_t activeColumnsSize,
+void TemporalMemory::activateCells(const size_t activeColumnsSize,
                                    const UInt activeColumns[], bool learn) {
-  if (checkInputs_) {
+  if (checkInputs_ && activeColumnsSize > 0) {
     NTA_CHECK(isSortedWithoutDuplicates(activeColumns,
                                         activeColumns + activeColumnsSize-1))
         << "The activeColumns must be a sorted list of indices without "
@@ -468,7 +468,7 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
     return connections.cellForSegment(segment) / cellsPerColumn_;
   };
 
-  for (auto &columnData : iterGroupBy(
+  for (auto &columnData : iterGroupBy( //TODO explain this
            activeColumns, activeColumns + activeColumnsSize, identity<UInt>,
            activeSegments_.begin(), activeSegments_.end(), columnForSegment,
            matchingSegments_.begin(), matchingSegments_.end(),
