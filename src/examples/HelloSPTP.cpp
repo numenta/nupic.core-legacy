@@ -194,7 +194,7 @@ void run(UInt EPOCHS = 5000) {
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       if(EPOCHS >= 100) { //show only relevant values, ie don't run in valgrind (ndebug, epochs=5) run
 #ifdef _MSC_VER
-          const size_t CI_avg_time = (size_t)floor(14*Timer::getSpeed()); //sec
+          const size_t CI_avg_time = (size_t)floor(30*Timer::getSpeed()); //sec
 #else
           const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
 #endif
