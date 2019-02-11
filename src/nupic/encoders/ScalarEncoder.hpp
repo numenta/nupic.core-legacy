@@ -97,7 +97,7 @@ namespace nupic {
  * makes sense because, for example, with the input space [1, 10] and 10
  * buckets, 1.49 is in the first bucket and 1.51 is in the second.
  */
-class DllEXPORT ScalarEncoder : public ScalarEncoderBase {
+class ScalarEncoder : public ScalarEncoderBase {
 public:
   /**
    * Constructs a ScalarEncoder
@@ -153,7 +153,7 @@ private:
  * bucket and 1.51 in the second, the PeriodicScalarEncoder will put 1.99 in
  * the first bucket and 2.0 in the second.
  */
-class DllEXPORT PeriodicScalarEncoder : public ScalarEncoder {
+class PeriodicScalarEncoder : public ScalarEncoder {
 public:
   /**
    * Constructs a PeriodicScalarEncoder
