@@ -52,6 +52,7 @@ set(algorithm_tests
                
 set(encoders_tests
            unit/encoders/ScalarEncoderTest.cpp
+           unit/encoders/CategoryEncoderTest.cpp
            )
 	   
 set(engine_tests
