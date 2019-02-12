@@ -288,19 +288,17 @@ if(${NUPIC_IWYU})
 endif()
 
 ############ Building Static LIB #############################################
-# build static lib without yaml and boost.
+# build static libnupic_core_solo.a without yaml and boost.
 # uses objects compiled for src_objlib
 
-set(src_lib_static nupic_core_static)
+set(src_lib_static nupic_core_solo)
 add_library(${src_lib_static} STATIC $<TARGET_OBJECTS:${src_objlib}>)
-target_link_libraries(${src_lib_static}  PRIVATE
-		    ${yaml-cpp_LIBRARIES}
-		    ${Boost_LIBRARIES}
-	            )
 
 #
-# Create the nupic_core as a "combined" static library by merging nupic_core_static
+# Create the libnupic_core.a as a "combined" static library by merging nupic_core_static
 # with our external static libraries
+# NOTE: cannot use target_link_libraries( ) with the add_library for STATIC.
+#       so we have to merge them in a different way.
 #
 set(src_combined_nupiccore_source_archives
     ${src_lib_static}
@@ -310,7 +308,7 @@ set(src_combined_nupiccore_source_archives
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
 ############ Building Shared LIB #############################################
-# builds nupic_core_shared.so for Linux,OSx and 
+# builds libnupic_core.so for Linux,OSx and 
 # NOTE: This does not work for Windows.
 #       If there is community demand for a Windows DLL interface, we can add it later.
 #
@@ -350,7 +348,8 @@ source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
 target_link_libraries(${src_executable_hotgym} 
-		${core_library}
+	#	${core_library}        # to link with static lib
+		${src_lib_shared}      # to link with dynamic lib
 		${COMMON_OS_LIBS}
 		)
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
