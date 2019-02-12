@@ -565,7 +565,7 @@ TEST(Cells4Test, testEqualsOperator) {
 
 
 TEST(Cells4Test, testPerformanceInputSizeImpact) {
-  const auto time10kInput = examples::run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 10000/*dim input*/);
-  const auto time100kInput = examples::run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 100000/*dim input*/);
+  const auto time10kInput  = examples::BenchmarkHotgym::run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 10000/*dim input*/);
+  const auto time100kInput = examples::BenchmarkHotgym::run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 100000/*dim input*/);
   ASSERT_TRUE(time100kInput <= time10kInput*1.1) << "Cells4 time must be same for different SP input sizes"; //within 10% tolerance
 }
