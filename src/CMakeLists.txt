@@ -318,7 +318,6 @@ if(MSVC)
 else()
 	# build shared lib with yaml and boost resolved
 	# uses objects compiled for src_objlib
-	set(src_lib_shared nupic_core_shared)
 	add_library(${src_lib_shared} SHARED $<TARGET_OBJECTS:${src_objlib}>)
 	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
 	target_link_libraries(${src_lib_shared}  

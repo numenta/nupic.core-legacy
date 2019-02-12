@@ -79,6 +79,7 @@ include(external/bootstrap.cmake)
  
 # Now build nupic_core project.
 set(core_library   nupic_core)
+set(src_lib_shared nupic_core_shared)
 add_subdirectory(src)
 
 string(REGEX MATCH "Python" match ${BINDING_BUILD})
