@@ -61,11 +61,11 @@ void run(UInt EPOCHS = 5000,
 	 bool useSPglobal=true, 
 	 bool useTP=true,
 	 bool useBackTM=true,
-	 bool useTM=true
+	 bool useTM=true,
+	 const UInt COLS = 2048, // number of columns in SP, TP
+         const UInt DIM_INPUT = 10000,
+         const UInt CELLS = 10 // cells per column in TP
 	 ) {
-  const UInt COLS = 2048; // number of columns in SP, TP
-  const UInt DIM_INPUT = 10000;
-  const UInt CELLS = 10; // cells per column in TP
 #ifndef NDEBUG
   EPOCHS = 2; // make test faster in Debug
 #endif
