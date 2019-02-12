@@ -37,6 +37,7 @@ namespace nupic {
 class Path;
 
 class Directory {
+public:
 	// check if a directory exists
 	static bool exists(const std::string &path);
 

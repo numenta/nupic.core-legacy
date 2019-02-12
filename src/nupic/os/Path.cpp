@@ -374,8 +374,8 @@ void Path::setPermissions(const std::string &path, bool userRead,
         (otherWrite ? fs::perms::others_all : FS_PermNone);
     fs::permissions(path, prms);
 
-    Directory::Iterator iter(path);
-    Directory::Entry e;
+    Iterator iter(path);
+    Entry e;
     while (iter.next(e)) {
       setPermissions(e.path,
 	                 userRead,
@@ -444,6 +444,14 @@ std::string Path::read_all(const std::string &filename) {
 
 
 
+
+// Global operators
+Path operator/(const Path & p1, const Path & p2) { return Path(std::string(*p1) + Path::sep + std::string(*p2)); }
+Path operator/(const std::string & p1, const Path & p2) { return Path(p1 + Path::sep + std::string(*p2)); }
+Path operator/(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + Path::sep + p2); }
+Path operator+(const Path & p1, const Path & p2) { return Path(std::string(*p1) + std::string(*p2)); }
+Path operator+(const std::string & p1, const Path & p2) { return Path(p1 + std::string(*p2)); }
+Path operator+(const Path & p1, const std::string & p2) { return Path(std::string(*p1) + p2); }
 
 
 /*******************************************

@@ -68,7 +68,7 @@ configure_file(
 # libraries in a subsequent step to produce the nupic_core "combined" static
 # library.
 #
-set(src_lib_static_nupiccore_solo nupiccore_solo)
+set(src_objlib LibrarySource)
 
 
 set(algorithm_files
@@ -253,8 +253,16 @@ source_group("types" FILES ${types_files})
 source_group("utils" FILES ${utils_files})
 
 #--------------------------------------------------------
-# Lib
-add_library(${src_lib_static_nupiccore_solo} STATIC 
+# Create an OBJECT library (compiles sources only once)
+# from the CMake docs:
+#   An object library compiles source files but does not archive or link their object 
+#   files into a library. Instead other targets created by  add_library() or add_executable() 
+#   may reference the objects using an expression of the form $<TARGET_OBJECTS:objlib> as a 
+#   source, where objlib is the object library name.
+#
+# The price you pay is that the object files must be built as position-independent code.
+#
+add_library(${src_objlib} OBJECT 
     ${algorithm_files} 
     ${encoders_files} 
     ${engine_files} 
@@ -265,33 +273,36 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
     ${types_files} 
     ${utils_files} 
 )
-
-
-target_compile_options( ${src_lib_static_nupiccore_solo} PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-target_include_directories(${src_lib_static_nupiccore_solo} PRIVATE 
+# shared libraries need PIC
+target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
+set_property(TARGET ${src_objlib} PROPERTY POSITION_INDEPENDENT_CODE 1)
+target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
 		${EXTERNAL_INCLUDES}
 		)
 
 if(${NUPIC_IWYU})
-  set_target_properties(${src_lib_static_nupiccore_solo}
+  set_target_properties(${src_objlib}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
+############ Building Static LIB #############################################
+# build static lib without yaml and boost.
+# uses objects compile for src_objlib
+set(src_lib_static nupic_core_solo)
+add_library(${src_lib_static} STATIC $<TARGET_OBJECTS:${src_objlib}>)
 
-#--------------------------------------------------------
 #
 # Create the nupic_core as a "combined" static library by merging nupic_core_solo
 # with our external static libraries
 #
 set(src_combined_nupiccore_source_archives
-    ${src_lib_static_nupiccore_solo}
+    ${src_lib_static}
     ${yaml-cpp_LIBRARIES}
     ${Boost_LIBRARIES}
     )
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
-
 
 ############ Building Shared LIB #############################################
 # builds nupic_core_shared.so for Linux,OSx and 
@@ -300,26 +311,22 @@ merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives
 #
 # For Linux, OSx; the .so file will contain all symbols.
 #
-set( src_lib_shared  nupic_core_shared)
-
 if(MSVC)
 else()
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(load_all_symbols "-all_load")
-    else()
-        set(load_all_symbols "--whole-archive")
-    endif()
-    set(dummy_source_file "${CMAKE_CURRENT_BINARY_DIR}/${src_lib_shared}_dummy.c++")
-    file(TOUCH ${dummy_source_file})
-    add_library(${src_lib_shared} SHARED ${dummy_source_file} )
-    target_link_libraries(${src_lib_shared}  ${core_library} )
-    target_compile_options( ${src_lib_shared} PUBLIC ${INTERNAL_CXX_FLAGS} ${load_all_sysmbols})
-    target_compile_definitions(${src_lib_shared} PRIVATE ${COMMON_COMPILER_DEFINITIONS} )
-    target_include_directories(${src_lib_shared} PRIVATE 
-		${CORE_LIB_INCLUDES} 
-		${EXTERNAL_INCLUDES}
-		)
-endif()	
+	# build shared lib with yaml and boost resolved
+	# uses objects compile for src_objlib
+	set(src_lib_shared nupic_core_shared)
+	add_library(${src_lib_shared} SHARED $<TARGET_OBJECTS:${src_objlib}>)
+	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
+	target_link_libraries(${src_lib_shared}  
+		    ${yaml-cpp_LIBRARIES}
+		    ${Boost_LIBRARIES}
+	            )
+endif()
+
+
+
+
 		
 ############ TEST #############################################
 # Test
@@ -360,7 +367,7 @@ add_custom_target(hotgym
 #
 install(TARGETS
         ${core_library}
-	${core_library_shared}
+	${src_lib_shared}
         ${src_executable_hotgym}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
