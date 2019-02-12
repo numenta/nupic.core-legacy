@@ -289,12 +289,17 @@ endif()
 
 ############ Building Static LIB #############################################
 # build static lib without yaml and boost.
-# uses objects compile for src_objlib
-set(src_lib_static nupic_core_solo)
+# uses objects compiled for src_objlib
+
+set(src_lib_static nupic_core_static)
 add_library(${src_lib_static} STATIC $<TARGET_OBJECTS:${src_objlib}>)
+target_link_libraries(${src_lib_static}  PRIVATE
+		    ${yaml-cpp_LIBRARIES}
+		    ${Boost_LIBRARIES}
+	            )
 
 #
-# Create the nupic_core as a "combined" static library by merging nupic_core_solo
+# Create the nupic_core as a "combined" static library by merging nupic_core_static
 # with our external static libraries
 #
 set(src_combined_nupiccore_source_archives
@@ -314,7 +319,7 @@ merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives
 if(MSVC)
 else()
 	# build shared lib with yaml and boost resolved
-	# uses objects compile for src_objlib
+	# uses objects compiled for src_objlib
 	set(src_lib_shared nupic_core_shared)
 	add_library(${src_lib_shared} SHARED $<TARGET_OBJECTS:${src_objlib}>)
 	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
