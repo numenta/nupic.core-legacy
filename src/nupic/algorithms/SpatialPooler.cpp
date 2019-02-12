@@ -36,9 +36,8 @@
 
 #define VERSION 2  // version for stream serialization
 
-using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::spatial_pooler;
+using nupic::algorithms::spatial_pooler::SpatialPooler;
 using namespace nupic::math::topology;
 using nupic::utils::VectorHelpers;
 

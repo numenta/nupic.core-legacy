@@ -48,25 +48,31 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
-using namespace nupic::algorithms::temporal_memory;
+using nupic::algorithms::temporal_memory::TemporalMemory;
+using nupic::algorithms::connections::SynapseIdx;
+using nupic::algorithms::connections::SynapseData;
+using nupic::algorithms::connections::EPSILON;
+using nupic::algorithms::connections::SegmentIdx;
+using nupic::algorithms::connections::CellIdx;
+using nupic::algorithms::connections::Connections;
+using nupic::algorithms::connections::Segment;
+using nupic::algorithms::connections::Permanence;
+using nupic::algorithms::connections::Synapse;
+
 
 static const UInt TM_VERSION = 2;
 
 template <typename Iterator>
-bool isSortedWithoutDuplicates(Iterator begin, Iterator end) {
-  if (std::distance(begin, end) >= 2) {
+bool isSortedWithoutDuplicates(const Iterator begin, const Iterator end) {
+    NTA_ASSERT(begin <= end) << "provide begin, and end";
+
     Iterator now = begin;
-    Iterator next = begin + 1;
-    while (next != end) {
-      if (*now >= *next) {
+    while (now != end) {
+      if (*now >= *(now+1)) {
         return false;
       }
-
-      now = next++;
+      now++;
     }
-  }
-
   return true;
 }
 
@@ -441,11 +447,11 @@ static void punishPredictedColumn(
   }
 }
 
-void TemporalMemory::activateCells(size_t activeColumnsSize,
+void TemporalMemory::activateCells(const size_t activeColumnsSize,
                                    const UInt activeColumns[], bool learn) {
-  if (checkInputs_) {
+  if (checkInputs_ && activeColumnsSize > 0) {
     NTA_CHECK(isSortedWithoutDuplicates(activeColumns,
-                                        activeColumns + activeColumnsSize))
+                                        activeColumns + activeColumnsSize-1))
         << "The activeColumns must be a sorted list of indices without "
            "duplicates.";
   }
@@ -462,7 +468,7 @@ void TemporalMemory::activateCells(size_t activeColumnsSize,
     return connections.cellForSegment(segment) / cellsPerColumn_;
   };
 
-  for (auto &columnData : iterGroupBy(
+  for (auto &columnData : iterGroupBy( //TODO explain this
            activeColumns, activeColumns + activeColumnsSize, identity<UInt>,
            activeSegments_.begin(), activeSegments_.end(), columnForSegment,
            matchingSegments_.begin(), matchingSegments_.end(),
@@ -584,8 +590,9 @@ void TemporalMemory::activateDendrites(bool learn,
   segmentsValid_ = true;
 }
 
-void TemporalMemory::compute(size_t activeColumnsSize,
-                             const UInt activeColumns[], bool learn,
+void TemporalMemory::compute(const size_t activeColumnsSize,
+                             const UInt activeColumns[], 
+			     bool learn,
                              const vector<UInt> &extraActive,
                              const vector<UInt> &extraWinners) {
 
