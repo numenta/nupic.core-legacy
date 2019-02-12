@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-#include "examples/HelloSPTP.cpp" // run()
+#include "examples/hotgym/HelloSPTP.cpp" // run()
 #include "gtest/gtest.h"
 
 namespace testing {

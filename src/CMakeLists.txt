@@ -304,10 +304,10 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
-source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
+source_group("examples" FILES examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.cpp)
 
 set(src_executable_hotgym benchmark_hotgym)
-add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
+add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp)
 target_link_libraries(${src_executable_hotgym} 
 		${core_library}
 		${COMMON_OS_LIBS}
