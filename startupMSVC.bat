@@ -57,13 +57,15 @@ rem //   -DCMAKE_CONFIGURATION_TYPES="Debug;Release"   Specify the build types a
 rem //   ../..                       set the source directory (top of repository)
 
 cd "%BUILDDIR%"
+rem // cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release" -DBINDING_BUILD=Python3 ../..
 cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release"  ../..
   
 if exist "nupic_core.sln" (
     cmake --build . --target install --config "Release"
-    @echo
+    @echo " "
     @echo You can now start Visual Studio using solution file %NUPIC_BASE%\build\scripts\nupic_core.sln
-    pause
+    @echo Press any key to start Visual Studio 
+    pause >nul
 
     rem // %NUPIC_BASE%\build\scripts\nupic_core.sln
     nupic_core.sln

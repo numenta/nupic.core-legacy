@@ -34,13 +34,18 @@
 #include <vector>
 
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::connections;
-
 namespace nupic {
 namespace algorithms {
 namespace temporal_memory {
+
+
+using namespace std;
+using namespace nupic;
+using nupic::algorithms::connections::Connections;
+using nupic::algorithms::connections::Permanence;
+using nupic::algorithms::connections::Segment;
+using nupic::algorithms::connections::CellIdx;
+using nupic::algorithms::connections::Synapse;
 
 /**
  * Temporal Memory implementation in C++.
@@ -198,7 +203,7 @@ public:
    * dendrite segments. Grow and reinforce synapses.
    *
    * @param activeColumnsSize
-   * Size of activeColumns.
+   * Size of activeColumns array (the 2nd param)
    *
    * @param activeColumns
    * A sorted list of active column indices.
@@ -206,7 +211,7 @@ public:
    * @param learn
    * If true, reinforce / punish / grow synapses.
    */
-  void activateCells(size_t activeColumnsSize, const UInt activeColumns[],
+  void activateCells(const size_t activeColumnsSize, const UInt activeColumns[],
                      bool learn = true);
 
   /**

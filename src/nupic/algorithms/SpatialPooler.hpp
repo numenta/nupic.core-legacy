@@ -33,14 +33,14 @@
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 
-using namespace std;
 
 namespace nupic {
 namespace algorithms {
 namespace spatial_pooler {
 
+using namespace std;
 static const int DISABLED = -1; //value denoting a feature is disabled
 
 /**

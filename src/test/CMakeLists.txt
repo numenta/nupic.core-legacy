@@ -89,11 +89,7 @@ set(ntypes_tests
 	   unit/ntypes/DimensionsTest.cpp
 	   unit/ntypes/MemParserTest.cpp
 	   unit/ntypes/MemStreamTest.cpp
-	   unit/ntypes/NodeSetTest.cpp
 	   unit/ntypes/ScalarTest.cpp
-	   unit/ntypes/SdrTest.cpp
-	   unit/ntypes/SdrProxyTest.cpp
-	   unit/ntypes/SdrMetricsTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
@@ -109,6 +105,8 @@ set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
 	   unit/types/FractionTest.cpp
+	   unit/types/SdrTest.cpp
+	   unit/types/SdrProxyTest.cpp
 	   )
 	   
 set(utils_tests
@@ -116,6 +114,7 @@ set(utils_tests
 	   unit/utils/MovingAverageTest.cpp
 	   unit/utils/RandomTest.cpp
 	   unit/utils/VectorHelpersTest.cpp
+	   unit/utils/SdrMetricsTest.cpp
 	   unit/utils/WatcherTest.cpp
 	   )
 	   
@@ -166,11 +165,6 @@ add_dependencies(${unit_tests_executable} ${core_library})
 enable_testing()
 add_test(NAME ${unit_tests_executable} COMMAND ${unit_tests_executable})
 
-add_custom_target(unit_tests_run_with_output
-                  COMMAND ${unit_tests_executable}
-                  DEPENDS ${unit_tests_executable}
-                  COMMENT "Executing test ${unit_tests_executable}"
-                  VERBATIM)
                   
 		  
 		  

@@ -33,7 +33,6 @@
 
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
@@ -95,7 +94,7 @@ private:
   void closeFile();
   void openFile(const std::string &filename);
 
-    ArrayRef dataIn_;
+    Array dataIn_;
     std::string filename_;          // Name of the output file
     std::ofstream *outFile_;        // Handle to current file
 
