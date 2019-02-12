@@ -56,7 +56,7 @@ using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
 // work-load
-void run(UInt EPOCHS = 5000, 
+Real64 run(UInt EPOCHS = 5000, 
 	 bool useSPlocal=true, //can toggle which (long running) components are tested, default all
 	 bool useSPglobal=true, 
 	 bool useTP=true,
@@ -227,6 +227,6 @@ void run(UInt EPOCHS = 5000,
       }
     }
   } //end for
-
+  return tAll.getElapsed(); 
 } //end run()
 } //-ns
