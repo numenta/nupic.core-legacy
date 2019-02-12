@@ -26,7 +26,8 @@
 namespace testing {
 
 TEST(HelloSPTPTest, performance) {
-  examples::BenchmarkHotgym::run();
+  auto bench = examples::BenchmarkHotgym();
+  bench.run();
 }
 
 } //ns

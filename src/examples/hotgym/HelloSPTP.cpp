@@ -36,7 +36,6 @@
 
 #include "nupic/encoders/ScalarEncoder.hpp"
 
-#include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
 #include "nupic/utils/Random.hpp"
 
@@ -73,7 +72,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
 
   // initialize SP, TP, Anomaly, AnomalyLikelihood
-  Timer tInit(true);
+  tInit.start();
   ScalarEncoder enc(133, -100.0, 100.0, DIM_INPUT, 0.0, 0.0, false);
   NTA_INFO << "SP (l) local inhibition is slow, so we reduce its data 10x smaller"; //to make it reasonably fast for test, for comparison x10
   SpatialPooler spGlobal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with globalInh
@@ -93,7 +92,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   // data for processing input
   vector<UInt> input(DIM_INPUT);
   vector<UInt> outSP(COLS); // active array, output of SP/TP
-  vector<UInt> outSPsparse; 
+  vector<UInt> outSPsparse;
   vector<UInt> outTP(tp.nCells());
   vector<Real> rIn(COLS); // input for TP (must be Reals)
   vector<Real> rOut(tp.nCells());
@@ -103,10 +102,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
-  Timer tAll(true);
-  Timer tRng, tEnc, tSPloc, tSPglob, tTP, tBackTM, tTM, 
-	tAn, tAnLikelihood;
-
+  tAll.start();
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {

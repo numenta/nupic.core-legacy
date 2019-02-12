@@ -3,14 +3,18 @@
 #define NTA_EXAMPLES_HOTGYM_
 
 #include <nupic/types/Types.hpp>
+#include <nupic/os/Timer.hpp>
 
 namespace examples {
+
 using nupic::Real64;
 using nupic::UInt;
+using nupic::Timer;
 
 class BenchmarkHotgym {
+
 public:	
-  static Real64 run(
+  Real64 run(
     UInt EPOCHS = 5000,
     bool useSPlocal=true, //can toggle which (long running) components are tested, default all
     bool useSPglobal=true,
@@ -21,6 +25,11 @@ public:
     const UInt DIM_INPUT = 10000,
     const UInt CELLS = 10 // cells per column in TP
   );
+
+  //timers
+  Timer tInit, tAll, tRng, tEnc, tSPloc, tSPglob, tTP, tBackTM, tTM,
+        tAn, tAnLikelihood;
+
 };
 
 } //-ns

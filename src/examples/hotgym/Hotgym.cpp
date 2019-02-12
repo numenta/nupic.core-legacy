@@ -10,6 +10,7 @@ int main(int argc, char* argv[]) {
     EPOCHS = std::stoi(argv[1]);
   }
 
-  examples::BenchmarkHotgym::run(EPOCHS);
+  auto bench = examples::BenchmarkHotgym();
+  bench.run(EPOCHS);
   return 0;
 }
