@@ -35,6 +35,8 @@
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/Segment.hpp>
 #include <nupic/math/ArrayAlgo.hpp> // is_in
+#include <examples/hotgym/HelloSPTP.hpp>
+
 
 using namespace nupic::algorithms::Cells4;
 
@@ -559,4 +561,11 @@ TEST(Cells4Test, testEqualsOperator) {
     cells2.reset();
     ASSERT_TRUE(cells1 == cells2);
   }
+}
+
+
+TEST(Cells4Test, testPerformanceInputSizeImpact) {
+  const auto time10kInput = examples::run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 10000/*dim input*/);
+  const auto time100kInput = examples::run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 100000/*dim input*/);
+  ASSERT_TRUE(time100kInput <= time10kInput*1.1) << "Cells4 time must be same for different SP input sizes"; //within 10% tolerance
 }
