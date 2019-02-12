@@ -24,6 +24,8 @@
 #include <iostream>
 #include <vector>
 
+#include "HelloSPTP.hpp"
+
 #include "nupic/algorithms/Anomaly.hpp"
 
 #include "nupic/algorithms/Cells4.hpp"
@@ -56,16 +58,7 @@ using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
 // work-load
-Real64 run(UInt EPOCHS = 5000, 
-	 bool useSPlocal=true, //can toggle which (long running) components are tested, default all
-	 bool useSPglobal=true, 
-	 bool useTP=true,
-	 bool useBackTM=true,
-	 bool useTM=true,
-	 const UInt COLS = 2048, // number of columns in SP, TP
-         const UInt DIM_INPUT = 10000,
-         const UInt CELLS = 10 // cells per column in TP
-	 ) {
+Real64 run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool useTP, bool useBackTM, bool useTM, const UInt COLS, const UInt DIM_INPUT, const UInt CELLS) {
 #ifndef NDEBUG
   EPOCHS = 2; // make test faster in Debug
 #endif

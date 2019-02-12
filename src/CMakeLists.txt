@@ -241,6 +241,12 @@ set(utils_files
     nupic/utils/Watcher.hpp
 )
 
+set(examples_files
+    examples/hotgym/Hotgym.cpp
+    examples/hotgym/HelloSPTP.cpp
+    examples/hotgym/HelloSPTP.hpp
+)
+
 #set up file tabs in Visual Studio
 source_group("algorithms" FILES ${algorithm_files})
 source_group("encoders" FILES ${encoders_files})
@@ -251,6 +257,8 @@ source_group("os" FILES ${os_files})
 source_group("regions" FILES ${regions_files})
 source_group("types" FILES ${types_files})
 source_group("utils" FILES ${utils_files})
+source_group("examples" FILES ${examples_files})
+
 
 #--------------------------------------------------------
 # Lib
@@ -263,7 +271,8 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
     ${os_files} 
     ${regions_files} 
     ${types_files} 
-    ${utils_files} 
+    ${utils_files}
+    ${examples_files} 
 )
 
 
@@ -304,10 +313,8 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
-source_group("examples" FILES examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.cpp)
-
 set(src_executable_hotgym benchmark_hotgym)
-add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp)
+add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp)
 target_link_libraries(${src_executable_hotgym} 
 		${core_library}
 		${COMMON_OS_LIBS}
