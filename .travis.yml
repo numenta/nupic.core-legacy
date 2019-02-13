@@ -133,7 +133,7 @@ script:
   - cd ${TRAVIS_BUILD_DIR}
   - "python setup.py test"
   # run memory leak tests with valgrind
-  - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${TRAVIS_BUILD_DIR}/build/Release/lib
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${TRAVIS_BUILD_DIR}/build/Release/lib
   - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=3 ${TRAVIS_BUILD_DIR}/build/Release/bin/benchmark_hotgym 5 || exit 1 
   # output unit tests report
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"

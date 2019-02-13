@@ -371,12 +371,19 @@ add_custom_target(hotgym
 #
 install(TARGETS
         ${core_library}
-	${src_lib_shared}
         ${src_executable_hotgym}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-	
+
+if(MSVC)
+else()	
+  install(TARGETS
+	${src_lib_shared}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+endif()
 
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
