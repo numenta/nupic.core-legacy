@@ -321,9 +321,10 @@ else()
 	add_library(${src_lib_shared} SHARED $<TARGET_OBJECTS:${src_objlib}>)
 	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
 	target_link_libraries(${src_lib_shared}  
-		    ${yaml-cpp_LIBRARIES}
-		    ${Boost_LIBRARIES}
-	            )
+	        ${yaml-cpp_LIBRARIES}
+                ${Boost_LIBRARIES}
+    		${COMMON_OS_LIBS}
+	        )
 endif()
 
 
