@@ -334,7 +334,6 @@ else()
 	    "${CMAKE_CURRENT_BINARY_DIR}"
 	    "${CMAKE_AR}"
 	    )
-message(STATUS "all_object_locations=${all_object_locations}")
 	# build shared lib with yaml and boost resolved
 	# uses objects compiled for src_objlib
 	add_library(${src_lib_shared} SHARED 
