@@ -27,6 +27,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
 include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+include(src/ExpandStaticLib)   # for creating objects from a static lib
 
 #
 # NuPIC CMake options
@@ -275,7 +276,6 @@ add_library(${src_objlib} OBJECT
 )
 # shared libraries need PIC
 target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
-set_property(TARGET ${src_objlib} PROPERTY POSITION_INDEPENDENT_CODE 1)
 target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
@@ -315,14 +315,33 @@ merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives
 # For Linux, OSx; the .so file will contain all symbols.
 #
 if(MSVC)
+	# NOTE: this disables shared lib for Windows.
 else()
+        # First extract static libraries into an Object Library
+	# Note that these libraries must already exist (from depenancies)
+	set(all_object_locations)
+	set(src_externLibs
+            ${yaml-cpp_LIBRARIES}
+            ${Boost_LIBRARIES}
+            )
+	set(lib_locations_separator "++++")
+        string(REPLACE ";" ${lib_locations_separator}
+           escaped_lib_locations_arg "${src_externLibs}")
+
+	ExpandStaticLib( ${src_lib_shared}
+	    "${escaped_lib_locations_arg}"
+	    "${lib_locations_separator}"
+	    "${CMAKE_CURRENT_BINARY_DIR}"
+	    "${CMAKE_AR}"
+	    )
+message(STATUS "all_object_locations=${all_object_locations}")
 	# build shared lib with yaml and boost resolved
 	# uses objects compiled for src_objlib
-	add_library(${src_lib_shared} SHARED $<TARGET_OBJECTS:${src_objlib}>)
+	add_library(${src_lib_shared} SHARED 
+		$<TARGET_OBJECTS:${src_objlib}>
+		${all_object_locations})
 	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
 	target_link_libraries(${src_lib_shared}  
-	        ${yaml-cpp_LIBRARIES}
-                ${Boost_LIBRARIES}
     		${COMMON_OS_LIBS}
 	        )
 endif()
@@ -342,22 +361,24 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
-# for Windows, link with the static library
-# for Linux,OSx, link with the shared library
-if(MSVC)
-    set(libraryToUse ${core_library})
-else()
-    set(libraryToUse ${src_lib_shared} )
-endif()
 
 source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
 
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
-target_link_libraries(${src_executable_hotgym} 
-                ${libraryToUse}
+if(MSVC)
+  # for Windows, link with the static library
+  target_link_libraries(${src_executable_hotgym} 
+                ${core_library}
 		${COMMON_OS_LIBS}
 		)
+else()
+  # for Linux,OSx, link with the shared library
+  target_link_libraries(${src_executable_hotgym} 
+                ${src_lib_shared}
+		${COMMON_OS_LIBS}
+		)
+endif()
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_executable_hotgym} PRIVATE 
