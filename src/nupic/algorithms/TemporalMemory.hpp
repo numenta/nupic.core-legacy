@@ -371,7 +371,6 @@ public:
    * @returns Returns the connected permanance
    */
   Permanence getConnectedPermanence() const;
-  void setConnectedPermanence(Permanence);
 
   /**
    * Returns the minimum threshold.

@@ -713,10 +713,6 @@ Permanence TemporalMemory::getConnectedPermanence() const {
   return connectedPermanence_;
 }
 
-void TemporalMemory::setConnectedPermanence(Permanence connectedPermanence) {
-  connectedPermanence_ = connectedPermanence;
-}
-
 UInt TemporalMemory::getMinThreshold() const { return minThreshold_; }
 
 void TemporalMemory::setMinThreshold(UInt minThreshold) {
