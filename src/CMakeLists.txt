@@ -342,14 +342,20 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
+# for Windows, link with the static library
+# for Linux,OSx, link with the shared library
+if(MSVC)
+    set(libraryToUse ${core_library})
+else()
+    set(libraryToUse ${src_lib_shared} )
+endif()
 
 source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
 
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
 target_link_libraries(${src_executable_hotgym} 
-	#	${core_library}        # to link with static lib
-		${src_lib_shared}      # to link with dynamic lib
+                ${libraryToUse}
 		${COMMON_OS_LIBS}
 		)
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
