@@ -19,11 +19,9 @@
 # http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
-# Expand a static library into an object library
-# NOTE: for now this only works with Unix like OS's (Linux, OSx) using AR.
-#
-# This script is intended to be invoked via `${CMAKE_COMMAND} -DLIB_TARGET= ...`.
-#
+# Expand a list of static libraries into a directory full of object files.
+# NOTE: This only works if the static libraries already exist at configure time.
+#       In other words, it is inteneded to be used with our dependancy libraries.
 # ARGS:
 #
 #   LIB_TARGET: target name of resulting object library (unique identifier for call)
@@ -32,14 +30,12 @@
 #     SRC_LIB_LOCATIONS; NOTE with cmake 2.8.11+, caller could use the generator
 #     "$<SEMICOLON>" in SRC_LIB_LOCATIONS, and this arg would be unnecessary.
 #   BINARY_DIR: The value of ${CMAKE_CURRENT_BINARY_DIR} from caller
-#   CMAKE_AR: The value of ${CMAKE_AR} from caller
 
 function(ExpandStaticLib
          LIB_TARGET
          SRC_LIB_LOCATIONS
          LIST_SEPARATOR
-         BINARY_DIR
-         CMAKE_AR)
+         BINARY_DIR)
 
  # message(STATUS
  #         "ExpandStaticLib("
@@ -50,9 +46,6 @@ function(ExpandStaticLib
 
   string(REPLACE ${LIST_SEPARATOR} ";"
          SRC_LIB_LOCATIONS "${SRC_LIB_LOCATIONS}")
-  if(MSVC)
-    message(FATAL_ERROR "ExpandStaticLib does not work with Windows.")
-  endif()
 
   set(scratch_dir ${BINARY_DIR}/ExpandStaticLib_${LIB_TARGET})
   if(EXISTS "${scratch_dir}")
@@ -68,16 +61,32 @@ function(ExpandStaticLib
     get_filename_component(basename ${lib} NAME)
     set(working_dir ${scratch_dir}/${basename}.dir)
     file(MAKE_DIRECTORY ${working_dir})
-
-    # Extract objects from current source lib 
-    execute_process(COMMAND ${CMAKE_AR} -x ${lib}
-                    WORKING_DIRECTORY ${working_dir}
-                    RESULT_VARIABLE exe_result)
-    if(NOT "${exe_result}" STREQUAL "0")
-      message(FATAL_ERROR "ExpandStaticLib: obj extraction process failed exe_result='${exe_result}'")
-    endif()
     
-    set(globbing_ext "o")
+    # Extract objects from current source lib 
+    if(UNIX)
+      # Unix like (i.e. Linux, OSx)
+      execute_process(COMMAND ${CMAKE_AR} -x ${lib}
+                      WORKING_DIRECTORY ${working_dir}
+                      RESULT_VARIABLE exe_result)
+      if(NOT "${exe_result}" STREQUAL "0")
+        message(FATAL_ERROR "ExpandStaticLib: obj extraction process failed exe_result='${exe_result}'")
+      endif()
+    
+      set(globbing_ext "o")
+    else()
+      # Windows (i.e. MSVC, Mingw)
+      # The Lib command can only extract one object at a time
+      # But a .lib is just an archive containing object files so lets use tar.
+      # And yes, CMake does make this work in windows.
+      execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfv "${lib}"
+                      WORKING_DIRECTORY "${working_dir}"
+                      RESULT_VARIABLE exe_result)
+      if(NOT "${exe_result}" STREQUAL "0")
+        message(FATAL_ERROR "ExpandStaticLib: obj extraction process failed exe_result='${exe_result}'")
+      endif()
+      
+      set(globbing_ext "obj")
+    endif()
 
     file(GLOB_RECURSE objects "${working_dir}/*.${globbing_ext}")
     if (NOT objects)

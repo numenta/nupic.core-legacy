@@ -287,52 +287,62 @@ if(${NUPIC_IWYU})
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
-#---------------------------------
-# Extract static dependancy libraries into a directory full of object files.
-# Note that these libraries must already exist at configure time (from depenancies)
-set(src_externLibs
+############ Building Static LIB #############################################
+# build static libnupic_core_solo.a without yaml and boost.
+# uses objects compiled for src_objlib
+
+set(src_lib_static nupic_core_solo)
+add_library(${src_lib_static} STATIC $<TARGET_OBJECTS:${src_objlib}>)
+
+#
+# Create the libnupic_core.a as a "combined" static library by merging nupic_core_static
+# with our external static libraries
+# NOTE: cannot use target_link_libraries( ) with the add_library for STATIC.
+#       so we have to merge them in a different way.
+#
+set(src_combined_nupiccore_source_archives
+    ${src_lib_static}
     ${yaml-cpp_LIBRARIES}
     ${Boost_LIBRARIES}
     )
-set(lib_locations_separator "++++")
-string(REPLACE ";" ${lib_locations_separator}
-   escaped_lib_locations_arg "${src_externLibs}")
-set(all_object_locations)
-ExpandStaticLib("extermal"
-    "${escaped_lib_locations_arg}"
-    "${lib_locations_separator}"
-    "${CMAKE_CURRENT_BINARY_DIR}"
-    )
-
-
-############ Building Static LIB #############################################
-# build static libnupic_core.a (with yaml and boost).
-# uses objects compiled for src_objlib
-
-add_library(${core_library} STATIC 
-            $<TARGET_OBJECTS:${src_objlib}>
-	    ${all_object_locations}
-	    )
-
+merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
 ############ Building Shared LIB #############################################
 # builds libnupic_core.so for Linux,OSx and 
 # NOTE: This does not work for Windows.
 #       If there is community demand for a Windows DLL interface, we can add it later.
 #
-# For Linux, OSx; the .so file will contain nupic_core objects with yaml and boost.
+# For Linux, OSx; the .so file will contain all symbols.
 #
 if(MSVC)
 	# NOTE: this disables shared lib for Windows.
 else()
+        # First extract static libraries into an Object Library
+	# Note that these libraries must already exist (from depenancies)
+	set(all_object_locations)
+	set(src_externLibs
+            ${yaml-cpp_LIBRARIES}
+            ${Boost_LIBRARIES}
+            )
+	set(lib_locations_separator "++++")
+        string(REPLACE ";" ${lib_locations_separator}
+           escaped_lib_locations_arg "${src_externLibs}")
+
+	ExpandStaticLib( ${src_lib_shared}
+	    "${escaped_lib_locations_arg}"
+	    "${lib_locations_separator}"
+	    "${CMAKE_CURRENT_BINARY_DIR}"
+	    "${CMAKE_AR}"
+	    )
 	# build shared lib with yaml and boost resolved
 	# uses objects compiled for src_objlib
 	add_library(${src_lib_shared} SHARED 
 		$<TARGET_OBJECTS:${src_objlib}>
-		${all_object_locations}
-		)
+		${all_object_locations})
 	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
-	target_link_libraries(${src_lib_shared}  ${COMMON_OS_LIBS})
+	target_link_libraries(${src_lib_shared}  
+    		${COMMON_OS_LIBS}
+	        )
 endif()
 
 
