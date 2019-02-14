@@ -26,7 +26,6 @@ message(STATUS "Configuring nupic_core src")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
 
-include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 include(src/ExpandStaticLib)   # for creating objects from a static lib
 
 #
