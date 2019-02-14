@@ -25,7 +25,8 @@ project(nupic_core CXX)
 message(STATUS "Configuring nupic_core src")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
-include(src/NupicLibraryUtils) # for combining static libs
+
+include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
 include(src/ExpandStaticLib)   # for creating objects from a static lib
 
 #
@@ -316,7 +317,7 @@ merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives
 if(MSVC)
 	# NOTE: this disables shared lib for Windows.
 else()
-    # First extract static libraries into an Object Library
+        # First extract static libraries into an Object Library
 	# Note that these libraries must already exist (from depenancies)
 	set(all_object_locations)
 	set(src_externLibs
@@ -324,7 +325,7 @@ else()
             ${Boost_LIBRARIES}
             )
 	set(lib_locations_separator "++++")
-    string(REPLACE ";" ${lib_locations_separator}
+        string(REPLACE ";" ${lib_locations_separator}
            escaped_lib_locations_arg "${src_externLibs}")
 
 	ExpandStaticLib( ${src_lib_shared}
@@ -343,6 +344,7 @@ else()
     		${COMMON_OS_LIBS}
 	        )
 endif()
+
 
 
 
@@ -366,13 +368,13 @@ add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
 if(MSVC)
   # for Windows, link with the static library
   target_link_libraries(${src_executable_hotgym} 
-        ${core_library}
+                ${core_library}
 		${COMMON_OS_LIBS}
 		)
 else()
   # for Linux,OSx, link with the shared library
   target_link_libraries(${src_executable_hotgym} 
-        ${src_lib_shared}
+                ${src_lib_shared}
 		${COMMON_OS_LIBS}
 		)
 endif()
@@ -383,10 +385,10 @@ target_include_directories(${src_executable_hotgym} PRIVATE
 		${EXTERNAL_INCLUDES}
 		)
 add_custom_target(hotgym
-          COMMAND ${src_executable_hotgym}
-          DEPENDS ${src_executable_hotgym}
-          COMMENT "Executing ${src_executable_hotgym}"
-          VERBATIM)
+                  COMMAND ${src_executable_hotgym}
+                  DEPENDS ${src_executable_hotgym}
+                  COMMENT "Executing ${src_executable_hotgym}"
+                  VERBATIM)
 
 
 ############ INSTALL ######################################
@@ -403,7 +405,7 @@ install(TARGETS
 if(MSVC)
 else()	
   install(TARGETS
-	    ${src_lib_shared}
+	${src_lib_shared}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
