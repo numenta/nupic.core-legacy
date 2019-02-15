@@ -177,20 +177,20 @@ TEST(DirectoryTest, Iterator) {
   Directory::create("TestOutputDir/A/B", false, true);
   Directory::create("TestOutputDir/A/C", false, true);
 
-  Directory::Iterator di("TestOutputDir/A");
-  Directory::Entry entry;
-  Directory::Entry * e = nullptr;
+  Iterator di("TestOutputDir/A");
+  Entry entry;
+  Entry * e = nullptr;
 
   vector<std::string> subdirs;
   e = di.next(entry);
   ASSERT_TRUE(e != nullptr);
-  ASSERT_TRUE(e->type == Directory::Entry::DIRECTORY);
+  ASSERT_TRUE(e->type == Entry::DIRECTORY);
   subdirs.push_back(e->filename);
   string first = e->filename;
 
   e = di.next(entry);
   ASSERT_TRUE(e != nullptr);
-  ASSERT_TRUE(e->type == Directory::Entry::DIRECTORY);
+  ASSERT_TRUE(e->type == Entry::DIRECTORY);
   subdirs.push_back(e->filename);
 
 
@@ -206,7 +206,7 @@ TEST(DirectoryTest, Iterator) {
   di.reset();
   e = di.next(entry);
   ASSERT_TRUE(e != nullptr);
-  ASSERT_TRUE(e->type == Directory::Entry::DIRECTORY);
+  ASSERT_TRUE(e->type == Entry::DIRECTORY);
   ASSERT_TRUE(e->filename == first);
 
   // Cleanup test dirs
