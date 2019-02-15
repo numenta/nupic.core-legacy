@@ -29,12 +29,12 @@
 #include <iostream>
 #include <vector>
 
-#include "nupic/algorithms/SpatialPooler.hpp"
+#include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/algorithms/ClassifierResult.hpp>
-#include "nupic/utils/SdrMetrics.hpp"
+#include <nupic/utils/SdrMetrics.hpp>
 
-#include "mnist/mnist_reader_less.hpp"
+#include <mnist/mnist_reader_less.hpp>
 
 namespace examples {
 
@@ -73,7 +73,7 @@ const vector<UInt> read_mnist_labels(string path) {
 const vector<image_t> read_mnist_images(string path) {
     ifstream file(path);
     NTA_CHECK(file.is_open() )  << "ERROR: Failed to open file " << path;
-    
+
     int magic_number     = 0;
     int number_of_images = 0;
     int n_rows           = 0;
@@ -101,7 +101,7 @@ const vector<image_t> read_mnist_images(string path) {
         image_t data(img_size);
         // Apply a threshold to the image, yielding a B & W image.
         for(const auto pixel: data_raw) {
-            data.push_back(pixel >= 128 ? 1u : 0u); 
+            data.push_back(pixel >= 128 ? 1u : 0u);
         }
         retval.push_back(data);
     }
@@ -175,7 +175,7 @@ void train() {
     index.assign(train_labels.cbegin(), train_labels.cend());
     Random().shuffle( index.begin(), index.end() );
 
-    for(const auto idx : index) { // index = order of label (shuffeled) 
+    for(const auto idx : index) { // index = order of label (shuffeled)
       // Get the input & label
       const image_t image = train_images.at(idx);
       const UInt label  = train_labels.at(idx);

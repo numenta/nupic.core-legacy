@@ -54,7 +54,6 @@
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::backtracking_tm;
-using namespace nupic::algorithms::Cells4;
 
 static const UInt TM_VERSION = 3; // - 7/14/2018 keeney
 
@@ -138,7 +137,7 @@ BacktrackingTMCpp::BacktrackingTMCpp(
   loc_.retrieveLearningStates = false;
   nCells = loc_.numberOfCols * loc_.cellsPerColumn;
 
-  cells4_ = new Cells4::Cells4(
+  cells4_ = new Cells4(
       loc_.numberOfCols, loc_.cellsPerColumn, activationThreshold, minThreshold,
       newSynapseCount, segUpdateValidDuration, initialPerm, connectedPerm,
       permanenceMax, permanenceDec, permanenceInc, globalDecay, doPooling,
@@ -1776,7 +1775,7 @@ void BacktrackingTMCpp::load(std::istream &in) {
   UInt version;
   Size len;
 
-  cells4_ = new Cells4::Cells4();
+  cells4_ = new Cells4();
   cells4_->load(in);
 
   loc_.numberOfCols = cells4_->nColumns();

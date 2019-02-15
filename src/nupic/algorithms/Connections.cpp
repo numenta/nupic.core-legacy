@@ -125,7 +125,7 @@ Synapse Connections::createSynapse(Segment segment,
   synapseOrdinals_[synapse]   = nextSynapseOrdinal_++;
   // Start in disconnected state.
   synapseData.permanence           = connectedThreshold_ - 1.0f;
-  synapseData.presynapticMapIndex_ = 
+  synapseData.presynapticMapIndex_ =
     (Synapse)potentialSynapsesForPresynapticCell_[presynapticCell].size();
   potentialSynapsesForPresynapticCell_[presynapticCell].push_back(synapse);
   potentialSegmentsForPresynapticCell_[presynapticCell].push_back(segment);
@@ -457,28 +457,33 @@ void Connections::adaptSegment(const Segment segment, SDR &inputs,
   }
 }
 
-
+/** called for under-performing Segments. (can have synapses pruned, etc.)
+ * After the call, Segment will have at least
+ * segmentThreshold synapses connected (>= permanenceThreshold).
+ * So the Segment could likely be active next time.
+ */
 void Connections::raisePermanencesToThreshold(
                   const Segment    segment,
                   const Permanence permanenceThreshold,
                   const UInt       segmentThreshold)
 {
-  if( segmentThreshold == 0 )
+  if( segmentThreshold == 0 ) //no synapses requested to be connected, done.
     return;
 
-  NTA_ASSERT(segment < segments_.size()) << "Accessing segment out of bounds."; 
+  NTA_ASSERT(segment < segments_.size()) << "Accessing segment out of bounds.";
   auto &segData = segments_[segment];
 
   if( segData.numConnected >= segmentThreshold )
     return;
 
   vector<Synapse> &synapses = segData.synapses;
-  if(synapses.size() <= 0) return; 
+  if(synapses.size() <= 0) return;
 
   // Sort the potential pool by permanence values, and look for the synapse with
   // the N'th greatest permanence, where N is the desired minimum number of
   // connected synapses.  Then calculate how much to increase the N'th synapses
   // permance by such that it becomes a connected synapse.
+  // After that there will be at least N synapses connected.
 
   NTA_ASSERT(synapses.size() <= segmentThreshold) << "Threshold too large";
   NTA_ASSERT(segmentThreshold >= 1) << "Threshold must be >= 1, otherwise overflows here";

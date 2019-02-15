@@ -52,14 +52,18 @@ namespace nupic_ext
         py_SDR_Classifier.def(py::init<>())
             .def(py::init<steps_t, Real64, Real64, UInt>(), py::arg("steps"), py::arg("alpha") = 0.001, py::arg("actValueAlpha") = 0.3, py::arg("verbosity") = 0);
 
-        py_SDR_Classifier.def("convertedCompute", [](SDRClassifier& self, UInt recordNum, const std::vector<UInt>& patternNZ,
-            const std::vector<UInt>& bucketIdxList,
-            const std::vector<Real64>& actValueList,
+        py_SDR_Classifier.def("compute", [](
+            SDRClassifier& self,
+            UInt recordNum,
+            const std::vector<UInt>& patternNZ,
+            const std::vector<UInt>& bucketIdx,
+            const std::vector<Real64>& actValue,
             bool category, bool learn, bool infer)
         {
             ClassifierResult result;
 
-            self.compute(recordNum, patternNZ, bucketIdxList, actValueList, category, learn, infer, &result);
+            self.compute(recordNum, patternNZ, bucketIdx, actValue,
+                                    category, learn, infer, &result);
 
             py::dict dict;
 
@@ -83,7 +87,15 @@ namespace nupic_ext
             }
 
             return dict;
-        });
+        },
+        py::arg("recordNum") = 0u,
+        py::arg("patternNZ") = std::vector<UInt>({}),
+        py::arg("bucketIdx") = std::vector<UInt>({}),
+        py::arg("actValue") = std::vector<Real64>({}),
+        py::arg("category") = false,
+        py::arg("learn") = true,
+        py::arg("infer") = true
+        );
 
         py_SDR_Classifier.def("loadFromString", [](SDRClassifier& self, const std::string& inString)
         {

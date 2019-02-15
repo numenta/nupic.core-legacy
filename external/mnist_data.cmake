@@ -21,8 +21,8 @@
 
 # Fetch MNIST dataset from online archive
 #
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/eigen-master.zip)
-    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/eigen-master.zip)
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/mnist.zip)
+    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/mnist.zip)
 else()
     set(URL "https://github.com/wichtounet/mnist/archive/master.zip")
     set(HASH "0bcecef3aaed7c619f0baac02697a76dff3da54f0c17f1aaaa92a2928ca300f3")
@@ -31,20 +31,19 @@ endif()
 message(STATUS "obtaining MNIST data")
 include(DownloadProject/DownloadProject.cmake)
 download_project(PROJ mnist
-	            PREFIX ${EP_BASE}/mnist_data
-		    URL    ${URL}
-		    URL_HASH SHA256=${HASH}
-                    UPDATE_DISCONNECTED 1
-		    #           QUIET
+	PREFIX ${EP_BASE}/mnist_data
+	URL    ${URL}
+	URL_HASH SHA256=${HASH}
+    UPDATE_DISCONNECTED 1
+#    QUIET
    )	
+   
 # No build. This is a data only package
+# But we do need to run its CMakeLists.txt to unpack the files.
+
 add_subdirectory(${mnist_SOURCE_DIR}/example/ ${mnist_BINARY_DIR})
-set(mnist_INCLUDE_DIRS ${mnist_SOURCE_DIR}/include/mnist)
-if (MSVC)
-set(mnist_LIBRARIES   "${mnist_BINARY_DIR}$<$<CONFIG:Release>:/Release/mnist.lib>$<$<CONFIG:Debug>:/Debug/mnist.lib>")
-else()
-set(mnist_LIBRARIES   ${mnist_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}mnist${CMAKE_STATIC_LIBRARY_SUFFIX})
-endif()
-FILE(APPEND "${EXPORT_FILE_NAME}" "mnist_INCLUDE_DIRS@@@${mnist_SOURCE_DIR}/include/mnist\n")
-FILE(APPEND "${EXPORT_FILE_NAME}" "mnist_LIBRARIES@@@${mnist_LIBRARIES}\n")
+FILE(APPEND "${EXPORT_FILE_NAME}" "mnist_INCLUDE_DIRS@@@${mnist_SOURCE_DIR}/include\n")
 FILE(APPEND "${EXPORT_FILE_NAME}" "mnist_SOURCE_DIR@@@${mnist_SOURCE_DIR}\n")
+
+# includes will be found with  #include <mnist/mnist_reader_less.hpp>
+# data will be found in folder ${mnist_SOURCE_DIR}

@@ -49,6 +49,7 @@ Some of the major differences between this library and Numenta's extension libra
  * Modular structure
  * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
  * Much easier installation (reduced dependencies, all are handeled by CMake) 
+ * static and shared lib files for use with C++ applications.
 
 
 ## Installation 
@@ -64,7 +65,7 @@ Some of the major differences between this library and Numenta's extension libra
 - Python tools: In a command prompt execute the following.
 ```
   cd to-repository-root
-  python -m pip install --user --upgrade pip setuptools setuptools-scm
+  python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
   python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt
 ```
 
@@ -116,11 +117,13 @@ After downloading the repository, do the following:
 	cmake ../..
 	make install
 ```	
-This will build the Nupic.core library without the Python interface. You will find the
-library in `build/Release/lib`. The headers will be in `build/Release/include`.
+This will build the Nupic.core library without the Python interface. 
+ * build/Release/lib/libnupic-core.a   static library
+ * build/Release/lib/libnupic-core.so  shared library
+ * The headers will be in `build/Release/include`.
 
 A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.  The -j3 could be used 
-with the `make install` command to use multiple threads.
+with the `make install` command to compile with multiple threads.
 
 #### Simple Build On Windows (MS Visual Studio 2017) 
 
