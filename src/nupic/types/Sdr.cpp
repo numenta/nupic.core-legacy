@@ -33,21 +33,21 @@ namespace nupic {
  * SparseDistributedRepresentation class
  * Also known as "SDR" class
  */
-    
-    void SparseDistributedRepresentation::clear() {
+
+    void SparseDistributedRepresentation::clear() const {
         dense_valid      = false;
         flatSparse_valid = false;
         sparse_valid     = false;
     }
 
-    void SparseDistributedRepresentation::do_callbacks() {
+    void SparseDistributedRepresentation::do_callbacks() const {
         for(const auto func_ptr : callbacks) {
             if( func_ptr != nullptr )
                 func_ptr();
         }
     }
 
-    void SparseDistributedRepresentation::setDenseInplace() {
+    void SparseDistributedRepresentation::setDenseInplace() const {
         // Check data is valid.
         NTA_ASSERT( dense_.size() == size );
         // Set the valid flags.
@@ -56,7 +56,7 @@ namespace nupic {
         do_callbacks();
     }
 
-    void SparseDistributedRepresentation::setFlatSparseInplace() {
+    void SparseDistributedRepresentation::setFlatSparseInplace() const {
         // Check data is valid.
         #ifdef NTA_ASSERTIONS_ON
             NTA_ASSERT(flatSparse_.size() <= size);
@@ -70,7 +70,7 @@ namespace nupic {
         do_callbacks();
     }
 
-    void SparseDistributedRepresentation::setSparseInplace() {
+    void SparseDistributedRepresentation::setSparseInplace() const {
         // Check data is valid.
         #ifdef NTA_ASSERTIONS_ON
             NTA_ASSERT(sparse_.size() == dimensions.size());
@@ -93,7 +93,7 @@ namespace nupic {
         clear();
         size_ = 0;
         dimensions_.clear();
-        for( auto func : destroyCallbacks ) {
+        for( auto &func : destroyCallbacks ) {
             if( func != nullptr )
                 func();
         }
@@ -182,21 +182,23 @@ namespace nupic {
             flatSparse_.clear(); // Clear out any old data.
             if( sparse_valid ) {
                 // Convert from sparse to flatSparse.
-                const auto num_nz = size ? sparse_[0].size() : 0;
+                const auto &sparse = getSparse();
+                const auto num_nz = size ? sparse[0].size() : 0;
                 flatSparse_.reserve( num_nz );
                 for(UInt nz = 0; nz < num_nz; nz++) {
                     UInt flat = 0;
                     for(UInt dim = 0; dim < dimensions.size(); dim++) {
                         flat *= dimensions[dim];
-                        flat += sparse_[dim][nz];
+                        flat += sparse[dim][nz];
                     }
                     flatSparse_.push_back(flat);
                 }
             }
             else if( dense_valid ) {
                 // Convert from dense to flatSparse.
+                const auto &dense = getDense();
                 for(UInt idx = 0; idx < size; idx++)
-                    if( dense_[idx] != 0 )
+                    if( dense[idx] != 0 )
                         flatSparse_.push_back( idx );
             }
             else
