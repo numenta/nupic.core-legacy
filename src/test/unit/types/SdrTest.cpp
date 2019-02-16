@@ -749,3 +749,19 @@ TEST(SdrTest, TestCallbacks) {
     ASSERT_EQ( count4, 4 );
 }
 
+
+TEST(SdrTest, TestIntersection) {
+    SDR A({1000});
+    SDR B({1000});
+    A.randomize(.5);
+    B.randomize(.5);
+    auto X = new SDR_Intersection(A, B);
+    SDR *Y = (SDR *) X;
+    Y->getDense();
+    ASSERT_GT( Y->getSparsity(), .25 / 2. );
+    ASSERT_LT( Y->getSparsity(), .25 * 2. );
+
+    A.zero();
+    ASSERT_EQ( Y->getSum(), 0u );
+    delete Y;
+}

@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Proxy
+from nupic.bindings.algorithms import SDR, SDR_Proxy,SDR_Intersection
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -350,3 +350,78 @@ class SdrProxyTest(unittest.TestCase):
     @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
     def testPickle(self):
         assert(False) # TODO: Unimplemented
+
+
+class SdrIntersectionTest(unittest.TestCase):
+    def testExampleUsage(self):
+        A = SDR( 10 )
+        B = SDR( 10 )
+        A.flatSparse = [2, 3, 4, 5]
+        B.flatSparse = [0, 1, 2, 3]
+        X = SDR_Intersection(A, B)
+        assert((X.flatSparse == [2, 3]).all())
+        B.zero()
+        assert(X.getSparsity() == 0)
+
+    def testConstructor(self):
+        assert( issubclass(SDR_Intersection, SDR) )
+        # Convert SDR dimensions from (4 x 4) to (8 x 2)
+        A = SDR( 2000 )
+        B = SDR( A.size )
+        X = SDR_Intersection(A, B)
+        A.randomize( .20 )
+        B.randomize( .20 )
+        assert( X.getSum() > 0 )
+        A.zero()
+        assert( X.getSum() == 0 )
+        del X
+        A.zero()
+        B.zero()
+        del B
+        del A
+
+        A = SDR( 2000 )
+        B = SDR( 2000 )
+        C = SDR( 2000 )
+        X = SDR_Intersection(A, B, C)
+        A.randomize( .6 )
+        B.randomize( .6 )
+        C.randomize( .6 )
+        assert( X.getSparsity() >  .75 * ( .6 ** 3 ))
+        assert( X.getSparsity() < 1.25 * ( .6 ** 3 ))
+        del B
+        del A
+        del X
+        del C
+
+        A = SDR( 2000 )
+        B = SDR( 2000 )
+        C = SDR( 2000 )
+        D = SDR( 2000 )
+        X = SDR_Intersection(A, B, C, D)
+
+    def testSparsity(self):
+        test_cases = [
+            ( 0.5,  0.5 ),
+            ( 0.1,  0.9 ),
+            ( 0.25, 0.3 ),
+            ( 0.5,  0.5,  0.5 ),
+            ( 0.95, 0.95, 0.95 ),
+            ( 0.10, 0.10, 0.60 ),
+            ( 0.0,  1.0,  1.0 ),
+            ( 0.5,  0.5,  0.5, 0.5),
+            ( 0.10, 0.25, 0.05, 0.5),
+        ]
+
+        seed = 99
+        for sparsities in test_cases:
+            sdrs = []
+            for S in sparsities:
+                inp = SDR( 2000 )
+                inp.randomize( S, seed)
+                seed += 1
+                sdrs.append( inp )
+            X = SDR_Intersection( *sdrs )
+            mean_sparsity = np.product( sparsities )
+            assert( X.getSparsity() >= (2/3) * mean_sparsity )
+            assert( X.getSparsity() <= (4/3) * mean_sparsity )

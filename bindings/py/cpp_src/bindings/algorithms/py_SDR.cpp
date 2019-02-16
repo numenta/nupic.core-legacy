@@ -125,7 +125,7 @@ The product of the dimensions must be greater than zero.)",
 
         py_SDR.def(
             py::init( [](UInt dimensions) {
-                return SDR({ dimensions }); }),
+                return new SDR({ dimensions }); }),
 R"(Create an SDR object.  The initial value is all zeros.
 
 Argument dimensions is a single integer dimension size, defining a 1-dimensional
@@ -316,5 +316,35 @@ given SDR.)",
             py::arg("sdr"), py::arg("dimensions"));
 
         py_Proxy.def( py::init<SDR&>(), py::arg("sdr"));
+
+
+        py::class_<SDR_Intersection, SDR> py_Intersect(m, "SDR_Intersection",
+R"(SDR_Intersection presents a view onto a group of SDRs, which always shows the
+set-intersection of the active bits in each input SDR.
+
+Example Usage:
+    # Setup 2 SDRs to hold the inputs.
+    A = SDR( 10 )
+    B = SDR( 10 )
+    A.flatSparse =       [2, 3, 4, 5]
+    B.flatSparse = [0, 1, 2, 3]
+
+    # Calculate the logical intersection
+    X = SDR_Intersection(A, B)
+    X.flatSparse -> [2, 3]
+
+    # Assignments to the input SDRs are propigated to the SDR_Intersection
+    B.zero()
+    X.getSparsity() -> 0.0
+)");
+        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2) {
+            return new SDR_Intersection({    &inp1,     &inp2});
+        }));
+        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3) {
+            return new SDR_Intersection({   &inp1,     &inp2,     &inp3});
+        }));
+        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
+            return new SDR_Intersection({   &inp1,     &inp2,     &inp3,     &inp4});
+        }));
     }
 }
