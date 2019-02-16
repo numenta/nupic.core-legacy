@@ -374,8 +374,8 @@ void Path::setPermissions(const std::string &path, bool userRead,
         (otherWrite ? fs::perms::others_all : FS_PermNone);
     fs::permissions(path, prms);
 
-    Directory::Iterator iter(path);
-    Directory::Entry e;
+    Iterator iter(path);
+    Entry e;
     while (iter.next(e)) {
       setPermissions(e.path,
 	                 userRead,

@@ -155,6 +155,7 @@ set(src_executable_gtests
 add_executable(${unit_tests_executable} ${src_executable_gtests})
 target_link_libraries(${unit_tests_executable} 
     ${core_library}
+#    ${src_lib_shared}
     ${gtest_LIBRARIES}
     ${COMMON_OS_LIBS}
 )
@@ -165,7 +166,8 @@ target_include_directories(${unit_tests_executable} PRIVATE
 target_compile_definitions(${unit_tests_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_compile_options(${unit_tests_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
 set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
-add_dependencies(${unit_tests_executable} ${core_library})
+add_dependencies(${unit_tests_executable} ${core_library}) 
+#add_dependencies(${unit_tests_executable} ${src_lib_shared})
 
 
 # Create the RUN_TESTS target

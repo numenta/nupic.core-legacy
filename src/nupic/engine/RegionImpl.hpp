@@ -63,7 +63,6 @@ public:
 
   std::string getName() const;
 
-  const NodeSet &getEnabledNodes() const;
 
   /* ------- Parameter support in the base class. ---------*/
   // The default implementation of all of these methods goes through
