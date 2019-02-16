@@ -138,7 +138,7 @@ class SdrTest(unittest.TestCase):
 
         # Also, it should not be *too* much faster because this test-case is
         # tuned to very fast in both situations.
-        A = SDR( 10*1000 )
+        A = SDR( 100*1000 )
         B = np.copy(A.dense)
 
         copy_time = time.clock()
