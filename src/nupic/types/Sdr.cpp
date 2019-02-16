@@ -41,7 +41,7 @@ namespace nupic {
     }
 
     void SparseDistributedRepresentation::do_callbacks() const {
-        for(const auto func_ptr : callbacks) {
+        for(const auto &func_ptr : callbacks) {
             if( func_ptr != nullptr )
                 func_ptr();
         }
@@ -97,6 +97,8 @@ namespace nupic {
             if( func != nullptr )
                 func();
         }
+        callbacks.clear();
+        destroyCallbacks.clear();
     }
 
     //constructors
