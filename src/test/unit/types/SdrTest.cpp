@@ -764,4 +764,12 @@ TEST(SdrTest, TestIntersection) {
     A.zero();
     ASSERT_EQ( Y->getSum(), 0u );
     delete Y;
+
+    SDR C({A.size});
+    X = new SDR_Intersection(A, B, C);
+    delete X;
+    SDR D({A.size});
+    X = new SDR_Intersection(A, B, C, D);
+    ASSERT_EQ(X->inputs, vector<SDR*>({&A, &B, &C, &D}));
+    delete X;
 }
