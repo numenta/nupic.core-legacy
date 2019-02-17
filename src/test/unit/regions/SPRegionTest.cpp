@@ -271,7 +271,6 @@ namespace testing
     Array r2OutputArray = region2->getOutputData("bottomUpOut");
     ASSERT_TRUE(r2OutputArray.getType() == NTA_BasicType_SDR)
       << "actual type is " << BasicType::getName(r2OutputArray.getType());
-
     ASSERT_TRUE(r2OutputArray.getCount() == columnCount)
 		  << "Buffer length different. Output from SPRegion is " 
       << r2OutputArray.getCount() << ", should be " << columnCount;
