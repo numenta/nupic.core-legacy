@@ -96,9 +96,7 @@ namespace testing
     // create an SP region with default parameters
     std::shared_ptr<Region> region1 = net.addRegion("region1", "SPRegion", "");  // use default configuration
 
-    std::set<std::string> excluded;
-    //= {"localAreaDensity",
-    //                                     "numActiveColumnsPerInhArea"};
+    std::set<std::string> excluded = {"inputWidth"};
     checkGetSetAgainstSpec(region1, EXPECTED_SPEC_COUNT, excluded, verbose);
     checkInputOutputsAgainstSpec(region1, verbose);
 
