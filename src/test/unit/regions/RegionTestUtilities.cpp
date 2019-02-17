@@ -39,7 +39,6 @@
 #include <nupic/ntypes/Array.hpp>
 
 using namespace nupic;
-using namespace nupic::algorithms::backtracking_tm;
 namespace testing {
 
 
@@ -47,7 +46,10 @@ namespace testing {
 // Assumes that the default value in the Spec is the same as the default when
 // creating a region with default constructor.  The Set checks might not work if
 // the range of a ReadWriteAccess parameter is restricted. In this case, add a constraint to Spec.
-void checkGetSetAgainstSpec(Region_Ptr_t region1, size_t expectedSpecCount,bool verbose) {
+void checkGetSetAgainstSpec(std::shared_ptr<Region> region1, 
+                            size_t expectedSpecCount,
+                            std::set<std::string>& excluded,
+                            bool verbose) {
   // check spec cache
   const std::shared_ptr<Spec> ns = region1->getSpec();
   ASSERT_TRUE(ns == region1->getSpec())
@@ -66,6 +68,8 @@ void checkGetSetAgainstSpec(Region_Ptr_t region1, size_t expectedSpecCount,bool 
   for (size_t i = 0; i < specCount; i++) {
     std::pair<string, ParameterSpec> p = ns->parameters.getByIndex(i);
     string name = p.first;
+    if (excluded.find(name) != excluded.end())
+      continue;
     try {
       if (p.second.count == 1) {
         switch (p.second.dataType) {
@@ -221,7 +225,8 @@ void checkGetSetAgainstSpec(Region_Ptr_t region1, size_t expectedSpecCount,bool 
 
         // Array types
         switch (p.second.dataType) {
-        case NTA_BasicType_Byte: {
+        case NTA_BasicType_Byte: 
+        {
           std::string v = region1->getParameterString(name);
           if (!p.second.defaultValue.empty()) {
             std::string d = p.second.defaultValue;
@@ -244,6 +249,8 @@ void checkGetSetAgainstSpec(Region_Ptr_t region1, size_t expectedSpecCount,bool 
         }
         case NTA_BasicType_UInt32:  // array of UInt32
         case NTA_BasicType_Real32:  // array of Real32
+        case NTA_BasicType_SDR:     // array of Byte
+          // getters only
           break;
 
         default:
@@ -268,7 +275,7 @@ void checkGetSetAgainstSpec(Region_Ptr_t region1, size_t expectedSpecCount,bool 
 }
 
 // --- Tests the input/output access for a C++ implemented region against the Spec.
-void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose) 
+void checkInputOutputsAgainstSpec(std::shared_ptr<Region> region1, bool verbose) 
 {
   const std::shared_ptr<Spec> ns = region1->getSpec();
 
@@ -300,8 +307,8 @@ void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose)
 }
 
 // a utility function to compare two parameter arrays
-::testing::AssertionResult compareParameterArrays(Region_Ptr_t region1,
-                                                  Region_Ptr_t region2,
+::testing::AssertionResult compareParameterArrays(std::shared_ptr<Region> region1,
+                                                  std::shared_ptr<Region> region2,
                                                   std::string parameter,
                                                   NTA_BasicType type) {
   UInt32 *buf1;
@@ -310,6 +317,8 @@ void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose)
   Real32 *buf4;
   Real64 *buf5;
   Real64 *buf6;
+  Byte   *buf7;
+  Byte   *buf8;
   Array array1(type);
   Array array2(type);
   region1->getParameterArray(parameter, array1);
@@ -372,6 +381,18 @@ void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose)
       }
     }
     break;
+  case NTA_BasicType_Byte:
+  case NTA_BasicType_SDR:
+    buf7 = (Byte *)array1.getBuffer();
+    buf8 = (Byte *)array2.getBuffer();
+    for (size_t i = 0; i < len1; i++) {
+      if (buf7[i] != buf8[i]) {
+        return ::testing::AssertionFailure()
+               << "Failure: Array element for parameter '" << parameter << "["
+               << i << "]' is not the same after restore.";
+      }
+    }
+    break;
   default:
     break;
   } // end switch
@@ -381,7 +402,7 @@ void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose)
 // uses the Spec to capture the non-array parameters and write them into the
 // provided map.
 ::testing::AssertionResult
-captureParameters(Region_Ptr_t region,
+captureParameters(std::shared_ptr<Region> region,
                   std::map<std::string, std::string> &parameters) {
   parameters.clear();
   const std::shared_ptr<Spec> ns = region->getSpec();
@@ -436,7 +457,7 @@ captureParameters(Region_Ptr_t region,
 // uses the Spec to find non-array parameters in the region and compare them to
 // contents of the provided map.
 ::testing::AssertionResult
-compareParameters(Region_Ptr_t region,
+compareParameters(std::shared_ptr<Region> region,
                   std::map<std::string, std::string> &parameters) {
   const std::shared_ptr<Spec> ns = region->getSpec();
   size_t specCount = ns->parameters.getCount();
@@ -518,7 +539,9 @@ compareParameters(Region_Ptr_t region,
 }
 
 ::testing::AssertionResult
-compareOutputs(Region_Ptr_t region1, Region_Ptr_t region2, std::string name) {
+compareOutputs(std::shared_ptr<Region> region1, 
+               std::shared_ptr<Region> region2, 
+               std::string name) {
   // Compare the Array objects.
   if (region1->getOutput(name)->getData() ==
       region2->getOutput(name)->getData())

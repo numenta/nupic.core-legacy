@@ -222,10 +222,13 @@ public:
    */
   Array copy() const {
     Array a(type_);
-    if (count_ > 0) {
-      a.allocateBuffer(count_);
+    if (getCount() > 0) {
+      if (type_ == NTA_BasicType_SDR)
+        a.allocateBuffer(getSDR()->dimensions);
+      else
+        a.allocateBuffer(getCount());
       memcpy((char *)a.getBuffer(), (char *)getBuffer(),
-             count_ * BasicType::getSize(type_));
+             getCount() * BasicType::getSize(type_));
     }
     return a;
   }

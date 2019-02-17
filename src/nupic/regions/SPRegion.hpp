@@ -94,7 +94,6 @@ class SPRegion  : public RegionImpl
     void setParameterInt32(const std::string& name, Int64 index, Int32 value) override;
     void setParameterReal32(const std::string& name, Int64 index, Real32 value) override;
     void setParameterBool(const std::string& name, Int64 index, bool value) override;
-    void setParameterString(const std::string& name, Int64 index, const std::string& s) override;
 
 	
 private:
@@ -119,23 +118,12 @@ private:
       UInt spVerbosity;
       bool wrapAround;
       bool learningMode;
-      bool inferenceMode;  // This mode not implemented.
-      bool anomalyMode;
-      bool topDownMode;
       int  iter;
     } args_;
 
     computeCallbackFunc computeCallback_;
-    Array nzInput_;
-    Array nzOutput_;
-    bool nzInputValid_;
-    bool nzOutputValid_;
 
-
-    std::string spatialImp_;
-    std::string logPathInput_; 
-    std::string logPathOutput_;  
-    std::string logPathOutputDense_; // can be set and get but not used for anything.
+    std::string spatialImp_;         // SP variation selector. Currently not used.
 
     std::unique_ptr<SpatialPooler> sp_;
 

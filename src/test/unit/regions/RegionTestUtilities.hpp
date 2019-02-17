@@ -31,22 +31,32 @@
  
 #include <iostream>
 #include <nupic/engine/Region.hpp>
-#include <nupic/algorithms/BacktrackingTMCpp.hpp>
 
 #include "gtest/gtest.h"
 
 using namespace nupic;
 namespace testing 
 {
-typedef std::shared_ptr<Region> Region_Ptr_t;
 
-  void checkGetSetAgainstSpec(Region_Ptr_t region1,size_t expectedSpecCount, bool verbose);
-  void checkInputOutputsAgainstSpec(Region_Ptr_t region1, bool verbose);
+  void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
+                              size_t expectedSpecCount, 
+                              std::set<std::string>& excluded,
+                              bool verbose);
+  void checkInputOutputsAgainstSpec(std::shared_ptr<Region> region1, bool verbose);
 
-  ::testing::AssertionResult compareParameterArrays(Region_Ptr_t region1,Region_Ptr_t region2, std::string parameter, NTA_BasicType type);
-  ::testing::AssertionResult captureParameters(Region_Ptr_t region1, std::map<std::string, std::string>& parameters);
-  ::testing::AssertionResult compareParameters(Region_Ptr_t region1, std::map<std::string, std::string>& parameters);
-  ::testing::AssertionResult compareOutputs(Region_Ptr_t region1, Region_Ptr_t region2, std::string name);
+  ::testing::AssertionResult compareParameterArrays(std::shared_ptr<Region> region1,
+                                                    std::shared_ptr<Region> region2, 
+                                                    std::string parameter, 
+                                                    NTA_BasicType type);
+  ::testing::AssertionResult captureParameters(std::shared_ptr<Region> 
+                                               region1, std::map<std::string, 
+                                               std::string>& parameters);
+  ::testing::AssertionResult compareParameters(std::shared_ptr<Region> region1, 
+                                               std::map<std::string, 
+                                               std::string>& parameters);
+  ::testing::AssertionResult compareOutputs(std::shared_ptr<Region> region1, 
+                                            std::shared_ptr<Region> region2, 
+                                            std::string name);
 } // namespace testing
 
 #endif //REGIONTESTUITLITIES_HPP
