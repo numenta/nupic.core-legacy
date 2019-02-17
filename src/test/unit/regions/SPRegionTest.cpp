@@ -343,12 +343,8 @@ TEST(SPRegionTest, testSerialization)
       EXPECT_TRUE(compareParameters(n2region2, parameterMap)) 
         << "Conflict when comparing SPRegion parameters after restore with before save.";
       
-      EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spatialPoolerInput", NTA_BasicType_SDR))
-          << " comparing Input arrays after restore with before save.";
       EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spatialPoolerOutput", NTA_BasicType_SDR))
           << " comparing Output arrays after restore with before save.";
-      EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spInputNonZeros", NTA_BasicType_SDR))
-          << " comparing NZ in arrays after restore with before save.";
       EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spOutputNonZeros", NTA_BasicType_SDR))
           << " comparing NZ out arrays after restore with before save.";
 
