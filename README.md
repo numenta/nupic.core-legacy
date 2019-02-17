@@ -106,6 +106,18 @@ The installation scripts will automatically download and build the dependancies 
  * gtest
  * numpy
  * pytest
+ * nmist_data (optional)
+ 
+If you are installing on an air-gap computer (no internet) or if you want to provide
+a different version for any of the prerequisites, you can manually download and rename
+the prerequisites using some other machine and copy them to 
+<repository>/build/ThirdParty/share/  using the following names:
+ * boost.tar.gz      from https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
+ * yaml-cpp.tar.gz   from https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz
+ * pybind11.tar.gz   from https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz
+ * googletest.tar.gz from https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz
+ * eigen.tar.bz2     from http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
+ * nmist.zip         from https://github.com/wichtounet/mnist/archive/master.zip
  
 #### Simple Build On Linux or OSX for C++ apps
  

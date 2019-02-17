@@ -35,8 +35,8 @@
 # VS 2015     14           1900            std::tuple
 # VS 2017     15           >= 1910         std::tuple
 
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/googletest-release-1.8.1.tar.gz)
-    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/googletest-release-1.8.1.tar.gz)
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/googletest.tar.gz)
+    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/googletest.tar.gz)
 else()
     set(URL https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz)
 endif()

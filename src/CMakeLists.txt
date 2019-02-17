@@ -400,25 +400,24 @@ add_custom_target(hotgym
 ## MNIST Spatial Pooler Example
 #
 set(src_executable_mnistsp mnist_sp)
-#! set(MNIST_DIR ${mnist-SOURCE_DIR})
-#! find_package(MNIST  REQUIRED)
-add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
-target_link_libraries(${src_executable_mnistsp} ${src_exacutable_mnistsp}
+if(EXISTS ${mnist-SOURCE_DIR})
+  add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
+  target_link_libraries(${src_executable_mnistsp} ${src_exacutable_mnistsp}
         ${core_library}
         ${COMMON_OS_LIBS}
 	    )
-target_compile_options(${src_executable_mnistsp} PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(${src_executable_mnistsp} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-target_include_directories(${src_executable_mnistsp} PRIVATE 
+  target_compile_options(${src_executable_mnistsp} PUBLIC ${INTERNAL_CXX_FLAGS})
+  target_compile_definitions(${src_executable_mnistsp} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+  target_include_directories(${src_executable_mnistsp} PRIVATE 
         ${CORE_LIB_INCLUDES} 
         ${EXTERNAL_INCLUDES}
         )
-add_custom_target(mnist
+  add_custom_target(mnist
                   COMMAND ${src_executable_mnistsp}
                   DEPENDS ${src_executable_mnistsp}
                   COMMENT "Executing ${src_executable_mnistsp}"
                   VERBATIM)
-
+endif()
 
 ############ INSTALL ######################################
 #
@@ -454,13 +453,13 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 	  MESSAGE_NEVER
 	  DESTINATION include)
 
-
-install(TARGETS
+if(EXISTS ${mnist-SOURCE_DIR})
+  install(TARGETS
         ${src_executable_mnistsp}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-
+endif()
           
 #
 # `make package` results in

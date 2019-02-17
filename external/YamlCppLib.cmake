@@ -21,8 +21,8 @@
 # Note: yaml-cpp includes an older version of gtest so 
 #       turn off YAML_CPP_BUILD_TESTS to prevent it from building gtest.
 
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
-    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.tar.gz)
+    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.tar.gz)
 else()
     #set(URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz)
     set(REPO https://github.com/jbeder/yaml-cpp.git)
