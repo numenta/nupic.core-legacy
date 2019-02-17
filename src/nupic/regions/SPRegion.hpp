@@ -43,8 +43,6 @@ namespace nupic
 {
 class SPRegion  : public RegionImpl
 {
-    typedef void (*computeCallbackFunc)(const std::string&);
-    typedef std::map<std::string, Spec> SpecMap;
 		
   public:
     SPRegion(const ValueMap& params, Region *region);
@@ -121,7 +119,6 @@ private:
       int  iter;
     } args_;
 
-    computeCallbackFunc computeCallback_;
 
     std::string spatialImp_;         // SP variation selector. Currently not used.
 

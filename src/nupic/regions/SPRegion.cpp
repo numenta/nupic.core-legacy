@@ -45,7 +45,7 @@
 namespace nupic {
 
 SPRegion::SPRegion(const ValueMap &values, Region *region)
-    : RegionImpl(region), computeCallback_(nullptr) {
+    : RegionImpl(region) {
   // Note: the ValueMap gets destroyed on return so we need to get all of the
   // parameters out of the map and set aside so we can pass them to the SpatialPooler
   // algorithm when we create it during initialization().
@@ -577,6 +577,7 @@ UInt32 SPRegion::getParameterUInt32(const std::string &name, Int64 index) {
       else
         return (Int32)args_.inputWidth;
     }
+    break;
   case 'l':
     if (name == "learningMode") {
       return args_.learningMode;
