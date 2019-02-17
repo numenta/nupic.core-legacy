@@ -26,32 +26,92 @@
 #define NTA_ENCODERS_CATEGORY
 
 #include <map>
-#include <nupic/types/Types.hpp>
 #include <nupic/types/Sdr.hpp>
+#include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
-// template<typename CategoryType>
-  typedef UInt CategoryType;
-class CategoryEncoder {
+/**
+ * TODO DOCUMENTATION
+ */
+template<typename CategoryType>
+class CategoryEncoder // : public Serializable // TODO Serializable unimplemented!
+{
 private:
-  UInt size_;
-  Real sparsity_;
-  std::map<CategoryType, SDR> map_;
+  UInt   size_;
+  Real   sparsity_;
+  Random rng_;
+  std::map<CategoryType, UInt> inputSeedMap_;
 
 public:
-  // TODO DOCUMENTATION
-  CategoryEncoder(UInt size, Real sparsity);
+  /**
+   * TODO DOCUMENTATION
+   */
+  CategoryEncoder(UInt size, Real sparsity) {
+    Random rng( 0 );
+    initialize(size, sparsity, rng);
+  }
+  CategoryEncoder(UInt size, Real sparsity, Random rng)
+    { initialize(size, sparsity, rng); }
+  void initialize(UInt size, Real sparsity, Random rng) {
+    size_     = size;
+    sparsity_ = sparsity;
+    rng_      = rng;
+  }
 
-  const Real &size                       = size_;
-  const Real &sparsity                   = sparsity_;
-  const std::map<CategoryType, SDR> &map = map_;
+  const UInt                         &size         = size_;
+  const Real                         &sparsity     = sparsity_;
+  const std::map<CategoryType, UInt> &inputSeedMap = inputSeedMap_;
 
   /**
-  TODO DOCUMENTATION
+   * TODO DOCUMENTATION
    */
-  void encode(const CategoryType value, SDR &output);
+  void encode(const CategoryType value, SDR &output) {
+    if( inputSeedMap.count( value ) == 0 ) {
+      // Insert new value
+      UInt seed;
+      do{
+        seed = randomSeed_();
+        encodeFromSeed_(seed, output);
+      } while( maximumOverlap_( output ) >= 0.50f );
+      inputSeedMap_[value] = seed;
+    }
+    else {
+      encodeFromSeed_(inputSeedMap.at(value), output);
+    }
+  }
 
-};
+  const CategoryType decode(const SDR &encoding) {
+    // TODO
+  }
 
-#endif // NTA_ENCODERS_CATEGORY
+private:
+  UInt randomSeed_() {
+    UInt seed = 0;
+    do {
+      seed = rng_();
+    } while( seed == 0 );
+    return seed;
+  }
+
+  void encodeFromSeed_(UInt seed, SDR &output) {
+    NTA_ASSERT( seed != 0u );
+    NTA_CHECK( output.size == size );
+    Random rng( seed );
+    output.randomize( sparsity, rng );
+  }
+
+  Real maximumOverlap_(SDR &newCategory) {
+    Real maxOvlp = 0.0f;
+    const UInt n_active = std::round(size * sparsity);
+    SDR X({ size });
+    for( const auto &encoding : inputSeedMap ) {
+      encodeFromSeed_( encoding.second, X );
+      maxOvlp = std::max( maxOvlp, (Real) X.getOverlap( newCategory ) / n_active);
+    }
+    return maxOvlp;
+  }
+};     // End class CategoryEncoder
+}      // End namespace nupic
+#endif // End ifdef NTA_ENCODERS_CATEGORY

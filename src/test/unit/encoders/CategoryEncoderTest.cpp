@@ -38,9 +38,9 @@ TEST(CategoryEncoder, testErrorChecks) {
 
 TEST(CategoryEncoder, testIntegers) {
   auto A = nupic::CategoryEncoder<UInt>(1003u, 0.02f);
-  ASSERT(A.size == 1003u);
-  ASSERT(A.sparsity == 0.02f);
-  UNUSED(A.map);
+  ASSERT_EQ(A.size, 1003u);
+  ASSERT_EQ(A.sparsity, 0.02f);
+  UNUSED(A.inputSeedMap);
 
   SDR B({ A.size });
   A.encode( 1234u, B );
@@ -53,5 +53,29 @@ TEST(CategoryEncoder, testIntegers) {
 }
 
 TEST(CategoryEncoder, testStrings) {
-  // nupic
+  auto A = nupic::CategoryEncoder<string>(1003u, 0.02f);
+  SDR B({ A.size });
+  SDR C({ A.size });
+  A.encode("foobar", B);
+  A.encode("foobar", C);
+  ASSERT_EQ( B, C );
+  SDR D({ A.size });
+  ASSERT_LT( D.getOverlap( C ), 10u );
+}
+
+TEST(CategoryEncoder, testMinimumOverlap) {
+  // Make a lot of categories and make sure they don't conflict.
+  nupic::CategoryEncoder<UInt> enc(100u, 0.10f);
+
+  vector<SDR*> allResults;
+  for(UInt category = 0; category < 100; category++) {
+    SDR *output = new SDR({ enc.size });
+    enc.encode( category, *output );
+    for(SDR *other : allResults) {
+      ASSERT_LT( output->getOverlap( *other ), 0.50f * output->getSum() );
+    }
+    allResults.push_back( output );
+  }
+  for(SDR *x : allResults)
+    delete x;
 }

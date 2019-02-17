@@ -107,7 +107,6 @@ set(algorithm_files
 set(encoders_files 
     nupic/encoders/ScalarEncoder.cpp
     nupic/encoders/ScalarEncoder.hpp
-    nupic/encoders/CategoryEncoder.cpp
     nupic/encoders/CategoryEncoder.hpp
 )
     
