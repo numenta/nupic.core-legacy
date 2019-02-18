@@ -24,6 +24,7 @@
  */
 
 #include <algorithm>
+#include <cstdint> //uint8_t
 #include <iostream>
 #include <vector>
 
@@ -50,7 +51,7 @@ class MNIST {
     SDR input;
     SDR columns;
     SDRClassifier clsr;
-    mnist::MNIST_dataset dataset;
+    mnist::MNIST_dataset<uint8_t, uint8_t> dataset;
 
   public:
     UInt verbosity = 1;
@@ -69,7 +70,6 @@ void setup() {
   sp.setPotentialRadius(5); //receptive field (hyper-cube) how each col maps to input
   sp.setPotentialPct(0.5); //of the recept. field above, how much % of inputs individual col connects to?
   sp.setStimulusThreshold(0); //FIXME no learning if this > 0
-  sp.setSynPermConnected(0.4);
   sp.setSynPermActiveInc(0.2);
   sp.setSynPermInactiveDec(0.02);
 
@@ -92,7 +92,7 @@ void setup() {
     /* actValueAlpha */ .3,
                         verbosity);
 
-  dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(MNIST_DATA_LOCATION); //from CMake
+  dataset = mnist::read_dataset(string(MNIST_DATA_LOCATION)); //from CMake
 }
 
 void train() {
