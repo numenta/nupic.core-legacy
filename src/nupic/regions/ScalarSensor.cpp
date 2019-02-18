@@ -39,23 +39,33 @@ namespace nupic {
 
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
     : RegionImpl(region) {
-  const UInt32 n = params.getScalarT<UInt32>("n");
-  const UInt32 w = params.getScalarT<UInt32>("w");
-  const Real64 resolution = params.getScalarT<Real64>("resolution");
-  const Real64 radius = params.getScalarT<Real64>("radius");
-  const Real64 minValue = params.getScalarT<Real64>("minValue");
-  const Real64 maxValue = params.getScalarT<Real64>("maxValue");
-  const bool periodic = params.getScalarT<bool>("periodic");
-  const bool clipInput = params.getScalarT<bool>("clipInput");
-  if (periodic) {
+  params_.n = params.getScalarT<UInt32>("n");
+  params_.w = params.getScalarT<UInt32>("w");
+  params_.resolution = params.getScalarT<Real64>("resolution");
+  params_.radius = params.getScalarT<Real64>("radius");
+  params_.minValue = params.getScalarT<Real64>("minValue");
+  params_.maxValue = params.getScalarT<Real64>("maxValue");
+  params_.periodic = params.getScalarT<bool>("periodic");
+  params_.clipInput = params.getScalarT<bool>("clipInput");
+  if (params_.periodic) {
     encoder_ =
-        new PeriodicScalarEncoder(w, minValue, maxValue, n, radius, resolution);
+        new PeriodicScalarEncoder(params_.w, 
+                                  params_.minValue, 
+                                  params_.maxValue, 
+                                  params_.n, 
+                                  params_.radius, 
+                                  params_.resolution);
   } else {
-    encoder_ = new ScalarEncoder(w, minValue, maxValue, n, radius, resolution,
-                                 clipInput);
+    encoder_ = new ScalarEncoder( params_.w, 
+                                  params_.minValue, 
+                                  params_.maxValue, 
+                                  params_.n, 
+                                  params_.radius, 
+                                  params_.resolution, 
+                                  params_.clipInput);
   }
 
-  sensedValue_ = params.getScalarT<Real64>("sensedValue");
+  params_.sensedValue_ = params.getScalarT<Real64>("sensedValue");
 }
 
 ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
@@ -68,7 +78,7 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
     Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
     UInt *uintArray = new UInt[encoder_->getOutputWidth()];
 	try {
-	    const Int32 iBucket = encoder_->encodeIntoArray((Real)sensedValue_, uintArray);
+	    const Int32 iBucket = encoder_->encodeIntoArray((Real)params_.sensedValue_, uintArray);
 	    ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
 	    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
 	    {
@@ -180,7 +190,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
 
 Real64 ScalarSensor::getParameterReal64(const std::string &name, Int64 index) {
   if (name == "sensedValue") {
-    return sensedValue_;
+    return params_.sensedValue_;
   }
   else {
     return RegionImpl::getParameterReal64(name, index);
@@ -198,9 +208,9 @@ UInt32 ScalarSensor::getParameterUInt32(const std::string &name, Int64 index) {
 
 void ScalarSensor::setParameterReal64(const std::string &name, Int64 index, Real64 value) {
   if (name == "sensedValue") {
-    sensedValue_ = value;
+    params_.sensedValue_ = value;
   } else {
-	RegionImpl::setParameterReal64(name, index, value);
+	  RegionImpl::setParameterReal64(name, index, value);
   }
 }
 
@@ -227,11 +237,43 @@ std::string ScalarSensor::executeCommand(const std::vector<std::string> &args,
 }
 
 void ScalarSensor::serialize(BundleIO &bundle) {
-  NTA_THROW << "ScalarSensor::serialize -- Not implemented";
+    std::ostream &f = bundle.getOutputStream();
+    f << "ScalerSensor ";
+    f.write((char*)&params_, sizeof(params_));
+    f << "~ScalerSensor" << std::endl;
 }
 
 void ScalarSensor::deserialize(BundleIO &bundle) {
-  NTA_THROW << "ScalarSensor::deserialize -- Not implemented";
+  std::istream &f = bundle.getInputStream();
+  std::string tag;
+  f >> tag;
+  NTA_CHECK(tag == "ScalerSensor");
+  f.ignore(1);
+  f.read((char *)&params_, sizeof(params_));
+  f >> tag;
+  NTA_CHECK(tag == "~ScalerSensor");
+  f.ignore(1);
+
+  if (params_.periodic) {
+    encoder_ = new PeriodicScalarEncoder(params_.w, 
+                                  params_.minValue, 
+                                  params_.maxValue, 
+                                  params_.n, 
+                                  params_.radius, 
+                                  params_.resolution);
+  } else {
+    encoder_ = new ScalarEncoder( params_.w, 
+                                  params_.minValue, 
+                                  params_.maxValue, 
+                                  params_.n, 
+                                  params_.radius, 
+                                  params_.resolution, 
+                                  params_.clipInput);
+  }
+  initialize();
+  encodedOutput_->initialize(getNodeOutputElementCount("encoded"));
+  bucketOutput_->initialize(getNodeOutputElementCount("bucket"));
+  compute();
 }
 
 

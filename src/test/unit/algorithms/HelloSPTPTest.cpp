@@ -20,16 +20,14 @@
  * ---------------------------------------------------------------------
  */
 
-#include "examples/HelloSPTP.cpp" // run()
+#include "examples/hotgym/HelloSPTP.hpp" // run()
 #include "gtest/gtest.h"
 
 namespace testing {
 
 TEST(HelloSPTPTest, performance) {
-  using namespace examples;
-
-  HelloSPTP h;
-  h.run();
+  auto bench = examples::BenchmarkHotgym();
+  bench.run();
 }
 
 } //ns

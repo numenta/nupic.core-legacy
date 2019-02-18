@@ -24,6 +24,8 @@
 #include <iostream>
 #include <vector>
 
+#include "HelloSPTP.hpp"
+
 #include "nupic/algorithms/Anomaly.hpp"
 
 #include "nupic/algorithms/Cells4.hpp"
@@ -34,7 +36,6 @@
 
 #include "nupic/encoders/ScalarEncoder.hpp"
 
-#include "nupic/os/Timer.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
 #include "nupic/utils/Random.hpp"
 
@@ -55,17 +56,16 @@ using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
 using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
-class HelloSPTP { 
 
-public: 
 // work-load
-void run(UInt EPOCHS = 5000) {
-  const UInt COLS = 2048; // number of columns in SP, TP
-  const UInt DIM_INPUT = 10000;
-  const UInt CELLS = 10; // cells per column in TP
+Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool useTP, bool useBackTM, bool useTM, const UInt COLS, const UInt DIM_INPUT, const UInt CELLS) {
 #ifndef NDEBUG
   EPOCHS = 2; // make test faster in Debug
 #endif
+
+  if(useTP or useTM or useBackTM) {
+	  NTA_CHECK(useSPlocal or useSPglobal) << "using TM requires a SP too";
+  }
 
   std::cout << "starting test. DIM_INPUT=" << DIM_INPUT
   		<< ", DIM=" << COLS << ", CELLS=" << CELLS << std::endl;
@@ -73,7 +73,7 @@ void run(UInt EPOCHS = 5000) {
 
 
   // initialize SP, TP, Anomaly, AnomalyLikelihood
-  Timer tInit(true);
+  tInit.start();
   ScalarEncoder enc(133, -100.0, 100.0, DIM_INPUT, 0.0, 0.0, false);
   NTA_INFO << "SP (l) local inhibition is slow, so we reduce its data 10x smaller"; //to make it reasonably fast for test, for comparison x10
   SpatialPooler spGlobal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with globalInh
@@ -93,6 +93,7 @@ void run(UInt EPOCHS = 5000) {
   // data for processing input
   vector<UInt> input(DIM_INPUT);
   vector<UInt> outSP(COLS); // active array, output of SP/TP
+  vector<UInt> outSPsparse;
   vector<UInt> outTP(tp.nCells());
   vector<Real> rIn(COLS); // input for TP (must be Reals)
   vector<Real> rOut(tp.nCells());
@@ -102,10 +103,7 @@ void run(UInt EPOCHS = 5000) {
 
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
-  Timer tAll(true);
-  Timer tRng, tEnc, tSPloc, tSPglob, tTP, tBackTM, tTM, 
-	tAn, tAnLikelihood;
-
+  tAll.start();
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
@@ -121,35 +119,47 @@ void run(UInt EPOCHS = 5000) {
     tEnc.stop();
 
     //SP (global x local) 
+    if(useSPlocal) {
     tSPloc.start();
     fill(outSP.begin(), outSP.end(), 0);
     spLocal.compute(input.data(), true, outSP.data());
     spLocal.stripUnlearnedColumns(outSP.data());
     tSPloc.stop();
+    NTA_CHECK(outSP.size() == COLS);
+    }
 
+    if(useSPglobal) {
     tSPglob.start();
     fill(outSP.begin(), outSP.end(), 0);
     spGlobal.compute(input.data(), true, outSP.data());
     spGlobal.stripUnlearnedColumns(outSP.data());
-    vector<UInt> outSPsparse = VectorHelpers::binaryToSparse(outSP);
     tSPglob.stop();
+    NTA_CHECK(outSP.size() == COLS);
+    }
+    outSPsparse = VectorHelpers::binaryToSparse(outSP);
+    NTA_CHECK(outSPsparse.size() < COLS);
 
 
     //TP (TP x BackTM x TM)
+    if(useTP) {
     tTP.start();
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
     tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
     tTP.stop();
+    }
 
+    if(useBackTM) {
     tBackTM.start();
     backTM.compute(rIn.data(), true /*learn*/, true /*infer*/);
     const auto backAct = backTM.getActiveState();
     const auto backPred = backTM.getPredictedState();
     const vector<char> vAct(backAct, backAct + backTM.getNumCells());
-    const vector<char> bPred(backPred, backPred + backTM.getNumCells());
+    const vector<char> vPred(backPred, backPred + backTM.getNumCells());
     tBackTM.stop();
+    }
 
+    if(useTM) {
     tTM.start();
     tm.compute(outSPsparse.size(), outSPsparse.data(), true /*learn*/);
     const auto tmAct = tm.getActiveCells();
@@ -158,6 +168,7 @@ void run(UInt EPOCHS = 5000) {
     //TODO assert tmAct == spOut
     //TODO merge Act + Pred and use for anomaly from TM
     tTM.stop();
+    }
  
 
     //Anomaly (pure x likelihood)
@@ -185,11 +196,11 @@ void run(UInt EPOCHS = 5000) {
       cout << "Init:\t" << tInit.getElapsed() << endl;
       cout << "Random:\t" << tRng.getElapsed() << endl;
       cout << "Encode:\t" << tEnc.getElapsed() << endl;
-      cout << "SP (l):\t" << tSPloc.getElapsed() << "(x10)" << endl;
-      cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
-      cout << "TP:\t" << tTP.getElapsed() << endl;
-      cout << "TM:\t" << tTM.getElapsed() << endl;
-      cout << "BackTM:\t" << tBackTM.getElapsed() << endl;
+      if(useSPlocal)  cout << "SP (l):\t" << tSPloc.getElapsed() << "(x10)" << endl;
+      if(useSPglobal) cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
+      if(useTP) cout << "TP:\t" << tTP.getElapsed() << endl;
+      if(useTM) cout << "TM:\t" << tTM.getElapsed() << endl;
+      if(useBackTM) cout << "BackTM:\t" << tBackTM.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
 
@@ -206,7 +217,6 @@ void run(UInt EPOCHS = 5000) {
       }
     }
   } //end for
-
+  return tAll.getElapsed(); 
 } //end run()
-};
 } //-ns

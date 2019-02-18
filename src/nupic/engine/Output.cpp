@@ -64,8 +64,11 @@ void Output::initialize(size_t count) {
     dataCount = count * region_->getDimensions().getCount();
   if (dataCount != 0) {
     if (data_.getType() == NTA_BasicType_SDR && isRegionLevel_) {
-      const vector<UInt> dim = region_->getDimensions();
-      data_.allocateBuffer(dim);
+      const Dimensions& dim = region_->getDimensions();
+      if (dim.isDontcare() || dim.isOnes()) 
+        data_.allocateBuffer(dataCount);
+      else
+        data_.allocateBuffer(dim);
     } else {
       data_.allocateBuffer(dataCount);
       // Zero the buffer because unitialized outputs can screw up inspectors,

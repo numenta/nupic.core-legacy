@@ -70,7 +70,18 @@ public:
   getNodeOutputElementCount(const std::string &outputName) override;
 
 private:
-  Real64 sensedValue_;
+  struct {
+    Real64 sensedValue_;
+    Real64 resolution;
+    Real64 radius;
+    Real64 minValue;
+    Real64 maxValue;
+    UInt32 n;
+    UInt32 w;
+    bool periodic;
+    bool clipInput;
+  } params_;
+
   ScalarEncoderBase *encoder_;
   Output *encodedOutput_;
   Output *bucketOutput_;
