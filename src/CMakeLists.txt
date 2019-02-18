@@ -380,13 +380,13 @@ if(MSVC)
   # for Windows, link with the static library
   target_link_libraries(${src_executable_hotgym} 
     ${core_library}
-		${COMMON_OS_LIBS}
+    ${COMMON_OS_LIBS}
 		)
 else()
   # for Linux,OSx, link with the shared library
   target_link_libraries(${src_executable_hotgym} 
     ${src_lib_shared}
-		${COMMON_OS_LIBS}
+    ${COMMON_OS_LIBS}
 		)
 endif()
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
