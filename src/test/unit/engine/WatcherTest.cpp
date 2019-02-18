@@ -34,10 +34,8 @@
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
-
 #include <nupic/ntypes/ArrayBase.hpp>
-
-#include <nupic/utils/Watcher.hpp>
+#include <nupic/engine/Watcher.hpp>
 
 #include <gtest/gtest.h>
 
@@ -54,8 +52,8 @@ TEST(WatcherTest, SampleNetwork) {
   d.push_back(8);
   d.push_back(4);
   n.getRegions().getByName("level1")->setDimensions(d);
-  n.link("level1", "level2", "TestFanIn2", "");
-  n.link("level2", "level3", "TestFanIn2", "");
+  n.link("level1", "level2");
+  n.link("level2", "level3");
   n.initialize();
 
 

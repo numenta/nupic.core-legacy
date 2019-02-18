@@ -60,8 +60,8 @@ set(engine_tests
 	   unit/engine/InputTest.cpp
 	   unit/engine/LinkTest.cpp
 	   unit/engine/NetworkTest.cpp
-           unit/engine/UniformLinkPolicyTest.cpp
 	   unit/engine/YAMLUtilsTest.cpp
+	   unit/engine/WatcherTest.cpp
 	   )
 	   
 
@@ -115,7 +115,6 @@ set(utils_tests
 	   unit/utils/RandomTest.cpp
 	   unit/utils/VectorHelpersTest.cpp
 	   unit/utils/SdrMetricsTest.cpp
-	   unit/utils/WatcherTest.cpp
 	   )
 	   
 

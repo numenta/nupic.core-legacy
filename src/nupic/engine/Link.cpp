@@ -26,8 +26,6 @@
 #include <cstring> // memcpy,memset
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
-#include <nupic/engine/LinkPolicy.hpp>
-#include <nupic/engine/LinkPolicyFactory.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Array.hpp>
@@ -87,10 +85,9 @@ void Link::commonConstructorInit_(const std::string &linkType,
   dest_ = nullptr;
   initialized_ = false;
 
-  impl_ = LinkPolicyFactory().createLinkPolicy(linkType, linkParams, this);
 }
 
-Link::~Link() { delete impl_; }
+Link::~Link() {  }
 
 
 
@@ -155,7 +152,6 @@ void Link::initialize(size_t destinationOffset, bool is_FanIn) {
 
   destOffset_ = destinationOffset;
   is_FanIn_ = is_FanIn;
-  impl_->initialize();
 
   // ---
   // Initialize the propagation delay buffer
@@ -181,36 +177,37 @@ void Link::setSrcDimensions(Dimensions &dims) {
   NTA_CHECK(src_ != nullptr && dest_ != nullptr)
       << "Link::setSrcDimensions() can only be called on a connected link";
 
-  size_t nodeElementCount = src_->getNodeOutputElementCount();
-  if (nodeElementCount == 0) {
-    nodeElementCount =
+  elementCount_ = src_->getNodeOutputElementCount();
+  if (elementCount_ == 0) {
+    elementCount_ =
         src_->getRegion()->getNodeOutputElementCount(src_->getName());
   }
-  impl_->setNodeOutputElementCount(nodeElementCount);
-
-  impl_->setSrcDimensions(dims);
+   srcDimensions_ = dims;
+   if (destDimensions_.isUnspecified())
+     destDimensions_ = dims;
 }
 
 void Link::setDestDimensions(Dimensions &dims) {
   NTA_CHECK(src_ != nullptr && dest_ != nullptr)
       << "Link::setDestDimensions() can only be called on a connected link";
 
-  size_t nodeElementCount = src_->getNodeOutputElementCount();
-  if (nodeElementCount == 0) {
-    nodeElementCount =
+  elementCount_ = src_->getNodeOutputElementCount();
+  if (elementCount_ == 0) {
+    elementCount_ =
         src_->getRegion()->getNodeOutputElementCount(src_->getName());
   }
-  impl_->setNodeOutputElementCount(nodeElementCount);
 
-  impl_->setDestDimensions(dims);
+  destDimensions_ = dims;
+  if (srcDimensions_.isUnspecified())
+    srcDimensions_ = dims;
 }
 
 const Dimensions &Link::getSrcDimensions() const {
-  return impl_->getSrcDimensions();
+  return srcDimensions_;
 };
 
 const Dimensions &Link::getDestDimensions() const {
-  return impl_->getDestDimensions();
+  return destDimensions_;
 };
 
 // Return constructor params
@@ -272,30 +269,6 @@ Input &Link::getDest() const {
   return *dest_;
 }
 
-void Link::buildSplitterMap(Input::SplitterMap &splitter) {
-  // The link policy generates a splitter map
-  // at the element level.  Here we convert it
-  // to a full splitter map
-  //
-  // if protoSplitter[destNode][x] == srcElement for some x
-  // means that the output srcElement is sent to destNode
-
-  Input::SplitterMap protoSplitter;
-  protoSplitter.resize(splitter.size());
-  size_t nodeElementCount = src_->getNodeOutputElementCount();
-  impl_->setNodeOutputElementCount(nodeElementCount);
-  impl_->buildProtoSplitterMap(protoSplitter);
-
-  for (size_t destNode = 0; destNode < splitter.size(); destNode++) {
-    // convert proto-splitter values into real
-    // splitter values;
-    for (auto &elem : protoSplitter[destNode]) {
-      size_t srcElement = elem;
-      size_t elementOffset = srcElement + destOffset_;
-      splitter[destNode].push_back(elementOffset);
-    }
-  }
-}
 
 void Link::compute() {
   NTA_CHECK(initialized_);
@@ -314,14 +287,14 @@ void Link::compute() {
   if (_LINK_DEBUG) {
     NTA_DEBUG << "Link::compute: " << getMoniker() << "; copying to dest input"
               << "; delay=" << propagationDelay_ << "; size=" << src.getCount()
-              << " type=" << BasicType::getName(src.getType()) 
+              << " type=" << BasicType::getName(src.getType())
               << " --> " << BasicType::getName(dest.getType()) << std::endl;
   }
 
 	NTA_CHECK(src.getCount() + destOffset_ <= dest.getMaxElementsCount())
         << "Not enough room in buffer to propogate to " << destRegionName_
         << " " << destInputName_ << ". ";
-				
+
   if (src.getType() == dest.getType() && !is_FanIn_)
     dest = src;   // Performs a shallow copy. Data not copied but passed in shared_ptr.
   else {

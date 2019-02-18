@@ -219,25 +219,6 @@ public:
 
   /* ------------ Methods normally called by the RegionImpl ------------- */
 
-  /**
-   *
-   * @see Link.buildSplitterMap()
-   *
-   */
-  typedef std::vector<std::vector<size_t>> SplitterMap;
-
-  /**
-   *
-   * Get splitter map from an initialized input
-   *
-   * @returns
-   *         The splitter map
-   */
-  const SplitterMap &getSplitterMap() const;
-
-  /** explicitly instantiated for various types */
-  template <typename T>
-  void getInputForNode(size_t nodeIndex, std::vector<T> &input) const;
 
   bool hasIncomingLinks() { return !links_.empty(); }
 
@@ -256,12 +237,6 @@ private:
   bool initialized_;
   Array data_;
 
-  /*
-   * cached splitter map -- only created if requested
-   * mutable because getSplitterMap() is const and logically
-   * getting the splitter map doesn't change the Input
-   */
-  mutable SplitterMap splitterMap_;
 
   /*
    * Cache of information about link offsets so we can

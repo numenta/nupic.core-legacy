@@ -475,7 +475,6 @@ namespace nupic
         const Spec& ns = nodeSpec_;
 
         // Prepare the inputs dict
-		    std::list<nupic::Array> splitterParts; // This keeps buffer copy alive until return from compute.
         py::dict inputs;
         for (size_t i = 0; i < ns.inputs.getCount(); ++i)
         {
@@ -492,22 +491,6 @@ namespace nupic
     		    if (pa->getCount() == 0)
                 continue;
 
-            // If the input requires a splitter map then
-            // Copy the original input array to the stored input array, which is larger
-            // by one element and put 0 in the extra element. This is needed for splitter map
-            // access.
-            if (p.second.requireSplitterMap)
-            {
-				        // Make a copy of input array which is 1 element larger. Save in splitterParts.
-                        size_t itemSize = BasicType::getSize(pa->getType());
-				        Array a(pa->getType());
-				        a.allocateBuffer(pa->getCount() + 1);
-				        a.zeroBuffer();
-				        memcpy(a.getBuffer(), pa->getBuffer(), pa->getCount() * itemSize);
-				        splitterParts.push_back(a);
-                // Change pa to point to the stored input array (with the sentinel)
-                pa = &a;
-            }
 
             // Create a numpy array from pa, which wil be either
             // the original input array or a stored input array copy

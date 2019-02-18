@@ -38,7 +38,7 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/utils/Watcher.hpp>
+#include <nupic/engine/Watcher.hpp>
 
 namespace nupic {
 

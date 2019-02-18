@@ -58,7 +58,7 @@ TEST(LinkTest, Links) {
   d1.push_back(4);
   region1->setDimensions(d1);
 
-  net.link("region1", "region2", "TestFanIn2", "");
+  net.link("region1", "region2");
 
   // test initialize(), which is called by net.initialize()
   // also test evaluateLinks() which is called here
@@ -151,8 +151,7 @@ TEST(LinkTest, DelayedLink) {
   region1->setDimensions(d1);
 
   // NOTE: initial delayed values are set to all 0's
-  net.link("region1", "region2", "TestFanIn2", "", "", "",
-           2 /*propagationDelay*/);
+  net.link("region1", "region2", "", "", "", "", 2 /*propagationDelay*/);
 
   // test initialize(), which is called by net.initialize()
   net.initialize();
@@ -264,7 +263,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   };
   // Register the plugin
   RegionImplFactory::registerRegion("MyTestNode",
-                                       new RegisteredRegionImplCpp<MyTestNode>());
+                   new RegisteredRegionImplCpp<MyTestNode>());
 
   Network net;
   std::shared_ptr<Region> region1 = net.addRegion("region1", "MyTestNode", "");
@@ -276,7 +275,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   region1->setDimensions(d1);
 
   // NOTE: initial delayed values are set to all 0's
-  net.link("region1", "region2", "TestFanIn2", "", "", "",
+  net.link("region1", "region2", "", "", "", "",
            2 /*propagationDelay*/);
 
   net.initialize();
@@ -594,19 +593,12 @@ public:
     NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
     UInt64 *baseOutputBuffer = (UInt64 *)outputArray.getBuffer();
 
-    std::vector<UInt64> ffInput;
-    feedForwardIn_->getInputForNode(0, ffInput);
-    NTA_CHECK(ffInput.size() > 1);
-
-    NTA_DEBUG << getName() << ".compute: ffInput size=" << ffInput.size()
-              << "; inputValue=" << ffInput[0];
-
-    std::vector<UInt64> latInput;
-    lateralIn_->getInputForNode(0, latInput);
-    NTA_CHECK(latInput.size() > 1);
-
-    NTA_DEBUG << getName() << ".compute: latInput size=" << latInput.size()
-              << "; inputValue=" << latInput[0];
+    const Array& ffInputArray = feedForwardIn_->getData();
+    const Array& latInputArray = lateralIn_->getData();
+    NTA_CHECK(ffInputArray.getCount() >= 1);
+    NTA_CHECK(latInputArray.getCount() >= 1);
+    UInt64 *ffInput = (UInt64 *)ffInputArray.getBuffer();
+    UInt64 *latInput = (UInt64 *)latInputArray.getBuffer();
 
     // Only the first element of baseOutputBuffer represents region output. We
     // keep track of inputs to the region using the rest of the baseOutputBuffer
@@ -654,20 +646,22 @@ public:
     ns->parameters.add(
         "k",
         ParameterSpec("Constant k value for output computation", // description
-                      NTA_BasicType_UInt64,
-                      1,  // elementCount
-                      "", // constraints
-                      "", // defaultValue
-                      ParameterSpec::ReadWriteAccess));
+          NTA_BasicType_UInt64,
+          1,  // elementCount
+          "", // constraints
+          "", // defaultValue
+          ParameterSpec::ReadWriteAccess));
 
     /* ----- inputs ------- */
-    ns->inputs.add("feedbackIn", InputSpec("Feedback input for the node",
-                                           NTA_BasicType_UInt64,
-                                           0,     // count. omit?
-                                           true,  // required?
-                                           false, // isRegionLevel,
-                                           false  // isDefaultInput
-                                           ));
+    ns->inputs.add(
+        "feedbackIn",
+        InputSpec("Feedback input for the node",
+           NTA_BasicType_UInt64,
+           0,     // count. omit?
+           true,  // required?
+           false, // isRegionLevel,
+           false  // isDefaultInput
+           ));
 
     /* ----- outputs ------ */
     ns->outputs.add(
@@ -702,18 +696,18 @@ public:
     NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
     UInt64 *baseOutputBuffer = (UInt64 *)outputArray.getBuffer();
 
-    std::vector<UInt64> nodeInput;
-    feedbackIn_->getInputForNode(0, nodeInput);
-    NTA_CHECK(nodeInput.size() >= 1);
+    const Array &inputArray = feedbackIn_->getData();
+    UInt64 *inputBuffer = (UInt64*)inputArray.getBuffer();
+    NTA_CHECK(inputArray.getCount() >= 1);
 
-    NTA_DEBUG << getName() << ".compute: fbInput size=" << nodeInput.size()
-              << "; inputValue=" << nodeInput[0];
+    NTA_DEBUG << getName() << ".compute: fbInput size=" << inputArray.getCount()
+              << "; inputValue=" << inputBuffer[0];
 
     // Only the first element of baseOutputBuffer represents region output. We
     // keep track of inputs to the region using the rest of the baseOutputBuffer
     // vector. These inputs are used in the tests.
-    baseOutputBuffer[0] = k_ + nodeInput[0];
-    baseOutputBuffer[1] = nodeInput[0];
+    baseOutputBuffer[0] = k_ + inputBuffer[0];
+    baseOutputBuffer[1] = inputBuffer[0];
 
     NTA_DEBUG << getName() << ".compute: out=" << baseOutputBuffer[0];
   }
@@ -731,7 +725,6 @@ private:
   Output *out_;
 };
 
-/*********** TODO: fix spec
 TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // This test simulates a network with L2 and L4, structured as follows:
   // o R1/R2 ("L4") are in phase 1; R3/R4 ("L2") are in phase 2;
@@ -778,7 +771,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R1 output
   net.link("R1",            // srcName
            "R3",            // destName
-           "UniformLink",   // linkType
+           "",              // linkType
            "",              // linkParams
            "out",           // srcOutput
            "feedForwardIn", // destInput
@@ -788,7 +781,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R2 output
   net.link("R2",            // srcName
            "R4",            // destName
-           "UniformLink",   // linkType
+           "",              // linkType
            "",              // linkParams
            "out",           // srcOutput
            "feedForwardIn", // destInput
@@ -798,7 +791,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R3 outputs
   net.link("R3",          // srcName
            "R1",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -807,7 +800,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
 
   net.link("R3",          // srcName
            "R4",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "lateralIn",   // destInput
@@ -817,7 +810,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R4 outputs
   net.link("R4",          // srcName
            "R2",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -826,7 +819,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
 
   net.link("R4",          // srcName
            "R3",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "lateralIn",   // destInput
@@ -954,7 +947,7 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
   // R1 output
   net.link("R1",            // srcName
            "R3",            // destName
-           "UniformLink",   // linkType
+           "",              // linkType
            "",              // linkParams
            "out",           // srcOutput
            "feedForwardIn", // destInput
@@ -964,7 +957,7 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
   // R3 outputs
   net.link("R3",          // srcName
            "R1",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -973,7 +966,7 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
 
   net.link("R3",          // srcName
            "R3",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "lateralIn",   // destInput
@@ -1090,7 +1083,7 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
   // R1 output (loopback)
   net.link("R1",          // srcName
            "R1",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -1143,4 +1136,3 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
   ASSERT_EQ(2u, r1OutBuf[1]); // feedbackIn from R3; delay=1
   ASSERT_EQ(3u, r1OutBuf[0]); // out (1 + feedbackIn)
 }
-********/

@@ -31,7 +31,6 @@
 #include <deque>
 
 #include <nupic/engine/Input.hpp> // needed for splitter map
-#include <nupic/engine/LinkPolicy.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/Types.hpp>
@@ -317,59 +316,6 @@ public:
    */
   void compute();
 
-  /**
-   * Build a splitter map from the link.
-   *
-   * @param[out] splitter
-   *            The built SplitterMap
-   *
-   * A splitter map is a matrix that maps the full input
-   * of a region to the inputs of individual nodes within
-   * the region.
-   * A splitter map "sm" is declared as:
-   *
-   *     vector< vector<size_t> > sm;
-   *
-   *     sm.length() == number of nodes
-   *
-   * `sm[i]` is a "sparse vector" used to gather the input
-   * for node i. `sm[i].size()` is the size (in elements) of
-   * the input for node i.
-   *
-   * `sm[i]` gathers the inputs as follows:
-   *
-   *     T *regionInput; // input buffer for the whole region
-   *     T *nodeInput; // pre-allocated
-   *     for (size_t elem = 0; elem < sm[i].size; elem++)
-   *        nodeInput[elem] = regionInput[sm[i][elem]];
-   *
-   * The offset specified by `sm[i][j]` is in units of elements.
-   * To get byte offsets, you'd multiply by the size of an input/output
-   * element.
-   *
-   * An input to a region may come from several links.
-   * Each link contributes a contiguous block of the region input
-   * starting from a certain offset. The splitter map indices are
-   * with respect to the full region input, not the partial region
-   * input contributed by this link, so the destinationOffset for this
-   * link is included in each of the splitter map entries.
-   *
-   * Finally, the API is designed so that each link associated with
-   * an input can contribute its portion to a full splitter map.
-   * Thus the splitter map is an input-output parameter. This method
-   * appends data to each row of the splitter map, assuming that
-   * existing data in the splitter map comes from other links.
-   *
-   * For region-level inputs, a splitter map has just a single row.
-   *
-   * ### Splitter map ownership
-   *
-   * The splitter map is owned by the containing Input. Each Link
-   * in the input contributes a portion to the splitter map, through
-   * the buildSplitterMap method.
-   *
-   */
-  void buildSplitterMap(Input::SplitterMap &splitter);
 
   /*
    * No-op for links without delay; for delayed links, remove head element of
@@ -442,13 +388,27 @@ private:
   std::string srcOutputName_;
   std::string destInputName_;
 
-  // We store the values given to use. Use these for
-  // serialization instead of serializing the LinkPolicy
-  // itself.
+  // We store the values given to use. No longer used.
   std::string linkType_;
   std::string linkParams_;
 
-  LinkPolicy *impl_;
+  // ---
+  // The dimensions of the source Region, as specified by a call to
+  // setSrcDimensions() or induced by a call to setDestDimensions().
+  // ---
+  Dimensions srcDimensions_;
+
+  // ---
+  // The dimensions of the destination Region, as specified by a call to
+  // setDestDimensions() or induced by a call to setSrcDimensions().
+  // ---
+  Dimensions destDimensions_;
+
+  // ---
+  // The amount of elements per Node as specified by a call to
+  // setNodeOutputElementCount()
+  // ---
+  size_t elementCount_;
 
   Output *src_;
   Input *dest_;

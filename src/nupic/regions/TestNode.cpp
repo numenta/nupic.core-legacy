@@ -17,7 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * --------------------------------------------------------------------- 
+ * ---------------------------------------------------------------------
  */
 
 #if defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)
@@ -92,7 +92,7 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   unclonedInt64ArrayParam_[0] = v;
 
   // params used for computation
-  outputElementCount_ = 2;  // TODO: remove this when dimensions are removed.
+  outputElementCount_ = 2;
   delta_ = 1;
   iter_ = 0;
 }
@@ -116,23 +116,21 @@ void TestNode::compute() {
        			<< "buffer size: " << outputArray.getCount()
 				<< " expected: " << (nodeCount_ * outputElementCount_);
   NTA_CHECK(outputArray.getType() == NTA_BasicType_Real64);
-  Real64 *baseOutputBuffer = (Real64 *)outputArray.getBuffer();
+  Real64 *outputBuffer = (Real64 *)outputArray.getBuffer();
 
+  // get the incoming buffer
+  Array &inputArray = bottomUpIn_->getData();
+  Real64* inputBuffer = (Real64*)inputArray.getBuffer();
+  size_t count = inputArray.getCount();
   // See TestNode.hpp for description of the computation
-  std::vector<Real64> nodeInput;
-  Real64 *nodeOutputBuffer;
-  for (UInt32 node = 0; node < nodeCount_; node++) {
-    nodeOutputBuffer = baseOutputBuffer + node * outputElementCount_;
-    bottomUpIn_->getInputForNode(node, nodeInput);
 
-    // output[0] = number of inputs to this baby node + current iteration number
-    nodeOutputBuffer[0] = nupic::Real64(nodeInput.size() + iter_);
+  // output[0] = number of inputs + current iteration number
+  outputBuffer[0] = nupic::Real64(count + iter_);
 
-    // output[n] = node + sum(inputs) + (n-1) * delta
-    Real64 sum = std::accumulate(nodeInput.begin(), nodeInput.end(), 0.0);
-    for (size_t i = 1; i < outputElementCount_; i++)
-      nodeOutputBuffer[i] = node + sum + (i - 1) * delta_;
-  }
+  // output[n] = node + sum(inputs) + (n-1) * delta
+  Real64 sum = std::accumulate(inputBuffer, inputBuffer+count, 0.0);
+  for (size_t i = 1; i < outputElementCount_; i++)
+      outputBuffer[i] = sum + (i - 1) * delta_;
 
   iter_++;
 }

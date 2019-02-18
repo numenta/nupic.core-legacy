@@ -125,36 +125,6 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
       ASSERT_EQ(buffer[i], (i - 1) / 2);
   }
 
-  if (verbose) std::cout << "Region 2 input by node" << std::endl;
-  std::vector<Real64> r2NodeInput;
-
-  for (size_t node = 0; node < 6; node++) {
-    region2->getInput("bottomUpIn")->getInputForNode(node, r2NodeInput);
-    if (verbose) {
-      std::cout << "Node " << node << ": ";
-      for (auto &elem : r2NodeInput) {
-        std::cout << elem << " ";
-      }
-      std::cout << "" << std::endl;
-    }
-    // 4 nodes in r1 fan in to 1 node in r2
-    int row = (int)node / 3;
-    int col = (int)node - (row * 3);
-    EXPECT_EQ(r2NodeInput.size(), 8u);
-    EXPECT_EQ(r2NodeInput[0], 0);
-    EXPECT_EQ(r2NodeInput[2], 0);
-    EXPECT_EQ(r2NodeInput[4], 0);
-    EXPECT_EQ(r2NodeInput[6], 0);
-    // these values are specific to the fanin2 link policy
-    EXPECT_EQ(r2NodeInput[1], row * 12 + col * 2)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[1];
-    EXPECT_EQ(r2NodeInput[3], row * 12 + col * 2 + 1)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[3];
-    EXPECT_EQ(r2NodeInput[5], row * 12 + 6 + col * 2)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[5];
-    EXPECT_EQ(r2NodeInput[7], row * 12 + 6 + col * 2 + 1)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[7];
-  }
 }
 
 
@@ -203,7 +173,7 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
   if (verbose) std::cout << "Region 2 input after first iteration:" << std::endl;
   Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
   // only one link to this input so buffer is passed without copy.
-  EXPECT_TRUE(buffer == buffer2);  // 
+  EXPECT_TRUE(buffer == buffer2);  //
   for (size_t i = 0; i < r2InputArray.getCount(); i++) {
     if (i % 2 == 0)
       ASSERT_EQ(buffer2[i], 0);
@@ -211,36 +181,7 @@ TEST(CppRegionTest, testCppLinkingUniformLink) {
       ASSERT_EQ(buffer2[i], (i - 1) / 2);
   }
 
-  if (verbose) std::cout << "Region 2 input by node" << std::endl;
-  std::vector<Real64> r2NodeInput;
 
-  for (size_t node = 0; node < 6; node++) {
-    region2->getInput("bottomUpIn")->getInputForNode(node, r2NodeInput);
-    if (verbose) {
-      std::cout << "Node " << node << ": ";
-      for (auto &elem : r2NodeInput) {
-        std::cout << elem << " ";
-      }
-      std::cout << "" << std::endl;
-    }
-    // 4 nodes in r1 fan in to 1 node in r2
-    int row = (int)node / 3;
-    int col = (int)node - (row * 3);
-    EXPECT_EQ(r2NodeInput.size(), 8u);
-    EXPECT_EQ(r2NodeInput[0], 0);
-    EXPECT_EQ(r2NodeInput[2], 0);
-    EXPECT_EQ(r2NodeInput[4], 0);
-    EXPECT_EQ(r2NodeInput[6], 0);
-    // these values are specific to the link policy
-    EXPECT_EQ(r2NodeInput[1], row * 12 + col * 2)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[1];
-    EXPECT_EQ(r2NodeInput[3], row * 12 + col * 2 + 1)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[3];
-    EXPECT_EQ(r2NodeInput[5], row * 12 + 6 + col * 2)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[5];
-    EXPECT_EQ(r2NodeInput[7], row * 12 + 6 + col * 2 + 1)
-        << "row: " << row << " col: " << col << " val: " << r2NodeInput[7];
-  }
 }
 
 

@@ -98,7 +98,7 @@ TEST(InputTest, SplitterMap) {
   region1->setDimensions(d1);
 
   // test addLink() indirectly - it is called by Network::link()
-  net.link("region1", "region2", "TestFanIn2", "");
+  net.link("region1", "region2");
 
   // test initialize(), which is called by net.initialize()
   net.initialize();
@@ -146,26 +146,6 @@ TEST(InputTest, SplitterMap) {
 
   net.run(2);
 
-  // test getSplitterMap()
-  std::vector<std::vector<size_t>> sm;
-  sm = in2->getSplitterMap();
-  ASSERT_EQ(8u, sm.size());
-  ASSERT_EQ(8u, sm[0].size());
-  ASSERT_EQ(16u, sm[0][4]);
-  ASSERT_EQ(12u, sm[3][0]);
-  ASSERT_EQ(31u, sm[3][7]);
-
-  // test getInputForNode()
-  std::vector<Real64> input;
-  in2->getInputForNode(0, input);
-  ASSERT_EQ(1, input[0]);
-  ASSERT_EQ(0, input[1]);
-  ASSERT_EQ(8, input[5]);
-  ASSERT_EQ(9, input[7]);
-  in2->getInputForNode(3, input);
-  ASSERT_EQ(1, input[0]);
-  ASSERT_EQ(6, input[1]);
-  ASSERT_EQ(15, input[7]);
 
   // test getData()
   const ArrayBase *pa = &(in2->getData());
@@ -190,8 +170,8 @@ TEST(InputTest, LinkTwoRegionsOneInput) {
   region1->setDimensions(d1);
   region2->setDimensions(d1);
 
-  net.link("region1", "region3", "TestFanIn2", "");
-  net.link("region2", "region3", "TestFanIn2", "");
+  net.link("region1", "region3");
+  net.link("region2", "region3");
 
   net.initialize();
 
@@ -204,26 +184,6 @@ TEST(InputTest, LinkTwoRegionsOneInput) {
 
   net.run(2);
 
-  // test getSplitterMap()
-  std::vector<std::vector<size_t>> sm;
-  sm = in3->getSplitterMap();
-  ASSERT_EQ(8u, sm.size());
-  ASSERT_EQ(16u, sm[0].size());
-  ASSERT_EQ(16u, sm[0][4]);
-  ASSERT_EQ(12u, sm[3][0]);
-  ASSERT_EQ(31u, sm[3][7]);
-
-  // test getInputForNode()
-  std::vector<Real64> input;
-  in3->getInputForNode(0, input);
-  ASSERT_EQ(1, input[0]);
-  ASSERT_EQ(0, input[1]);
-  ASSERT_EQ(8, input[5]);
-  ASSERT_EQ(9, input[7]);
-  in3->getInputForNode(3, input);
-  ASSERT_EQ(1, input[0]);
-  ASSERT_EQ(6, input[1]);
-  ASSERT_EQ(15, input[7]);
 
   // test getData()
   const ArrayBase *pa = &(in3->getData());

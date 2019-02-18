@@ -490,20 +490,6 @@ void Input::initialize() {
   data_.zeroBuffer();
 
 
-  NTA_CHECK(splitterMap_.size() == 0);
-
-  // create the splitter map by getting the contributions
-  // from each link.
-  if (isRegionLevel_) {
-    splitterMap_.resize(1);
-  } else {
-    splitterMap_.resize(region_->getDimensions().getCount());
-  }
-
-  for (std::vector<std::shared_ptr<Link>>::const_iterator link = links_.begin();
-       link != links_.end(); link++) {
-    (*link)->buildSplitterMap(splitterMap_);
-  }
 
   initialized_ = true;
 }
@@ -516,7 +502,6 @@ void Input::uninitialize() {
 
   initialized_ = false;
   data_.releaseBuffer();
-  splitterMap_.clear();
 }
 
 bool Input::isInitialized() { return (initialized_); }
@@ -525,52 +510,5 @@ void Input::setName(const std::string &name) { name_ = name; }
 
 const std::string &Input::getName() const { return name_; }
 
-const std::vector<std::vector<size_t>> &Input::getSplitterMap() const {
-  NTA_CHECK(initialized_);
-  // Originally the splitter map was created on demand in this method.
-  // For now we have moved splitter map creation to initialize() because
-  // we have dual heap/libstdc++ allocation/deallocation problems if
-  // this method is called from a node DLL/.so (including pynode).
-
-  return splitterMap_;
-}
-
-
-/**
- * Optionally called by Region Implementations to map a row of an input buffer
- * into a vector using a splitter map to re-arrange the bits.
- * NOTE: if you don't need a splitter map or don't have dimensions
- *       then use the Input's Buffer directly and avoid a copy.
- */
-template <typename T>
-void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
-  NTA_CHECK(initialized_);
-  const SplitterMap &sm = getSplitterMap();
-  NTA_CHECK(nodeIndex < sm.size());
-
-  const std::vector<size_t> &map = sm[nodeIndex];
-  // NTA_CHECK(map.size() > 0);
-
-  input.resize(map.size());
-  T *fullInput = (T *)(data_.getBuffer());
-  for (size_t i = 0; i < map.size(); i++)
-    input[i] = fullInput[map[i]];
-}
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Byte> &input) const;
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Real64> &input) const;
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Real32> &input) const;
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Int64> &input) const;
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Int32> &input) const;
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<UInt64> &input) const;
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<UInt32> &input) const;
-template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<bool> &input) const;
 
 } // namespace nupic

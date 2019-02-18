@@ -153,7 +153,7 @@ TEST(NetworkTest, Modification) {
   ASSERT_EQ((UInt32)1, phases.size());
   ASSERT_TRUE(phases.find(1) != phases.end());
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
 
   auto &regions = net.getRegions();
 
@@ -190,7 +190,7 @@ TEST(NetworkTest, Modification) {
   // because level2 is not initialized
   EXPECT_THROW(net.run(1), std::exception);
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
 
   // network can be initialized now
   net.run(1);
@@ -217,7 +217,7 @@ TEST(NetworkTest, Modification) {
   // because level3 is not initialized
   EXPECT_THROW(net.run(1), std::exception);
 
-  net.link("level2", "level3", "TestFanIn2", "");
+  net.link("level2", "level3");
   net.initialize();
   d2 = l3->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
@@ -246,8 +246,8 @@ TEST(NetworkTest, Modification) {
   l1->setDimensions(d);
   net.addRegion("level2", "TestNode", "");
   net.addRegion("level3", "TestNode", "");
-  net.link("level1", "level2", "TestFanIn2", "");
-  net.link("level1", "level3", "TestFanIn2", "");
+  net.link("level1", "level2");
+  net.link("level1", "level3");
   net.initialize();
 
   // build it up one more time and let the destructor take care of it
@@ -258,8 +258,8 @@ TEST(NetworkTest, Modification) {
   l2 = net.addRegion("level2", "TestNode", "");
   l3 = net.addRegion("level3", "TestNode", "");
   // try links in reverse order
-  net.link("level2", "level3", "TestFanIn2", "");
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level2", "level3");
+  net.link("level1", "level2");
   net.initialize();
   d2 = l3->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
@@ -284,7 +284,7 @@ TEST(NetworkTest, Unlinking) {
   d.push_back(2);
   net.getRegions().getByName("level1")->setDimensions(d);
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   ASSERT_TRUE(
       net.getRegion("level2")->getDimensions().isUnspecified());
 
@@ -305,18 +305,18 @@ TEST(NetworkTest, Unlinking) {
   EXPECT_THROW(net.removeLink("level1", "level2"), std::exception);
 
   // remove, specifying output/input names
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn");
   EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn"),
                std::exception);
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   net.removeLink("level1", "level2", "bottomUpOut");
   EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut"),
                std::exception);
 
   // add the link back and initialize (inducing dimensions)
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   net.initialize();
 
   d = net.getRegion("level2")->getDimensions();
@@ -566,9 +566,9 @@ TEST(NetworkTest, testEqualsOperator) {
   n2.addRegion("level2", "TestNode", "");
   ASSERT_TRUE(n1 == n2);
 
-  n1.link("level1", "level2", "TestFanIn2", "");
+  n1.link("level1", "level2");
   ASSERT_TRUE(n1 != n2);
-  n2.link("level1", "level2", "TestFanIn2", "");
+  n2.link("level1", "level2");
   ASSERT_TRUE(n1 == n2);
 
   n1.run(1);
