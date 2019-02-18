@@ -166,13 +166,10 @@ public:
 }; 
 
 //--------------------------------------------------------------------------------
-#ifndef SWIG
-inline std::ostream &operator<<(std::ostream &outStream,
-                                const SegmentUpdate &update) {
+inline std::ostream &operator<<(std::ostream &outStream, const SegmentUpdate &update) {
   update.print(outStream, false, 1/*unused, can pass any value*/);
   return outStream;
 }
-#endif
 
 // End namespace
 } // namespace Cells4

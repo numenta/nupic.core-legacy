@@ -37,11 +37,14 @@ PyBind11 bindings for HTM class
 
 #include "bindings/engine/py_utils.hpp"
 
-namespace py = pybind11;
-using namespace nupic;
 
 namespace nupic_ext
 {
+
+namespace py = pybind11;
+using namespace nupic;
+using nupic::algorithms::connections::Permanence; 
+
     void init_HTM(py::module& m)
     {
         typedef nupic::algorithms::temporal_memory::TemporalMemory HTM_t;

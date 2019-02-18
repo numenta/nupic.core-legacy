@@ -668,8 +668,6 @@ private:
   // were set.
   std::string dimensionInfo_;
 
-  // private helper methods
-  void setupEnabledNodeSet();
 
   // Profiling related methods and variables.
   bool profilingEnabled_;
