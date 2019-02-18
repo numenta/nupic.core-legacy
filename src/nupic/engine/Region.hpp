@@ -614,7 +614,6 @@ public:
 
   void removeAllIncomingLinks();
 
-  const NodeSet &getEnabledNodes() const;
 
   // TODO: sort our phases api. Users should never call Region::setPhases
   // and it is here for serialization only.
@@ -668,8 +667,6 @@ private:
   // were set.
   std::string dimensionInfo_;
 
-  // private helper methods
-  void setupEnabledNodeSet();
 
   // Profiling related methods and variables.
   bool profilingEnabled_;

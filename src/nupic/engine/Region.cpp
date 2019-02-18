@@ -33,14 +33,11 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <stdexcept>
 #include <string>
 
-#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
-#include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Array.hpp>
@@ -61,13 +58,16 @@ Region::Region(std::string name, const std::string &nodeType,
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   spec_ = factory.getSpec(nodeType);
 
+  // Dimensions start off as don't care but can be changed by user. dek 02/2019
+  // singleNodeOnly is ignored.
+  //dims_.push_back(1);
 
+  //---original code
   // Dimensions start off as unspecified, but if
   // the RegionImpl only supports a single node, we
   // can immediately set the dimensions.
   if (spec_->singleNodeOnly)
     dims_.push_back(1);
-  // else dims_ = []
 
   impl_.reset(factory.createRegionImpl(nodeType, nodeParams, this));
 }
@@ -290,7 +290,8 @@ void Region::setDimensions(Dimensions &newDims) {
   if (dims_ == newDims)
     return;
 
-  if (dims_.isUnspecified()) {
+  if (dims_.isUnspecified()) {  
+  //if (!initialized_) {  // make dimensions optional...defaulting to dont care. dek 02/2019
     if (newDims.isDontcare()) {
       NTA_THROW << "Invalid attempt to set region dimensions to dontcare value";
     }
@@ -303,11 +304,12 @@ void Region::setDimensions(Dimensions &newDims) {
     dims_ = newDims;
     dimensionInfo_ = "Specified explicitly in setDimensions()";
   } else {
-    NTA_THROW << "Attempt to set dimensions of region " << getName() << " to "
+    NTA_THROW << "Attempt to set dimensions of region " << getName() << " to " 
               << newDims.toString() << " but region already has dimensions "
               << dims_.toString();
+    //NTA_THROW << "Attempt to set dimensions of region " << getName() << " to "
+    //          << newDims.toString() << " but region already initialized.";
   }
-
 }
 
 

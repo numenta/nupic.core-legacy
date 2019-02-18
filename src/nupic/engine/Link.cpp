@@ -329,7 +329,7 @@ void Link::compute() {
     // It is copied into the destination Input
     // buffer at the specified offset so an Input with multiple incoming links
     // has the Output buffers appended into a single large Input buffer.
-    src.convertInto(dest, destOffset_);
+    src.convertInto(dest, destOffset_, dest.getMaxElementsCount());
   }
 }
 

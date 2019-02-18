@@ -609,14 +609,6 @@ public:
   that qualifies a synapse as being connected.
   */
   Real getSynPermConnected() const;
-  /**
-  Sets the permanence amount that qualifies a synapse as
-  being connected.
-
-  @param synPermConnected real number of the permanence amount that qualifies a
-  synapse as being connected.
-  */
-  void setSynPermConnected(Real synPermConnected);
 
   /**
   Returns the maximum permanence amount a synapse can
