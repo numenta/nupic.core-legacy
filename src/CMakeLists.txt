@@ -408,6 +408,8 @@ if(EXISTS ${mnist-SOURCE_DIR})
 	    )
   target_compile_options(${src_executable_mnistsp} PUBLIC ${INTERNAL_CXX_FLAGS})
   target_compile_definitions(${src_executable_mnistsp} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+  # Pass MNIST data directory to main.cpp
+  target_compile_definitions(${src_executable_mnistsp} PRIVATE MNIST_DATA_LOCATION="${mnist_SOURCE_DIR}")
   target_include_directories(${src_executable_mnistsp} PRIVATE 
         ${CORE_LIB_INCLUDES} 
         ${EXTERNAL_INCLUDES}

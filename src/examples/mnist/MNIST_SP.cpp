@@ -24,8 +24,6 @@
  */
 
 #include <algorithm>
-#include <cmath>
-#include <ctime>
 #include <iostream>
 #include <vector>
 
@@ -34,80 +32,17 @@
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
 
-#include <mnist/mnist_reader_less.hpp>
+#include <mnist/mnist_reader_less.hpp> // MNIST data itself + read methods, namespace mnist::
 
 namespace examples {
 
 using namespace std;
 using namespace nupic;
+
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::sdr_classifier::SDRClassifier;
 using nupic::algorithms::cla_classifier::ClassifierResult;
 
-typedef vector<UInt> image_t;
-/*
-const vector<UInt> read_mnist_labels(string path) {
-    ifstream file(path);
-    NTA_CHECK( file.is_open() )  << "ERROR: Failed to open file " << path;
-
-    int magic_number     = 0;
-    int number_of_labels = 0;
-    file.read( (char*) &magic_number,     4);
-    file.read( (char*) &number_of_labels, 4);
-    if(magic_number != 0x00000801) {
-        std::reverse((char*) &magic_number,      (char*) &magic_number + 4);
-        std::reverse((char*) &number_of_labels,  (char*) &number_of_labels + 4);
-    }
-    NTA_CHECK(magic_number == 0x00000801)  << "ERROR: MNIST data is compressed or corrupt";
-
-    vector<UInt> retval;
-    for(int i = 0; i < number_of_labels; ++i) {
-        unsigned char label = 0;
-        file.read( (char*) &label, 1);
-        retval.push_back((UInt) label);
-    }
-    return retval;
-}
-
-
-const vector<image_t> read_mnist_images(string path) {
-    ifstream file(path);
-    NTA_CHECK(file.is_open() )  << "ERROR: Failed to open file " << path;
-
-    int magic_number     = 0;
-    int number_of_images = 0;
-    int n_rows           = 0;
-    int n_cols           = 0;
-    file.read( (char*) &magic_number,     4);
-    file.read( (char*) &number_of_images, 4);
-    file.read( (char*) &n_rows,           4);
-    file.read( (char*) &n_cols,           4);
-    if(magic_number != 0x00000803) {
-        std::reverse((char*) &magic_number,      (char*) &magic_number + 4);
-        std::reverse((char*) &number_of_images,  (char*) &number_of_images + 4);
-        std::reverse((char*) &n_rows,            (char*) &n_rows + 4);
-        std::reverse((char*) &n_cols,            (char*) &n_cols + 4);
-    }
-    NTA_CHECK(magic_number == 0x00000803)  << "ERROR: MNIST data is compressed or corrupt";
-    NTA_ASSERT(n_rows == 28);
-    NTA_ASSERT(n_cols == 28);
-
-    const UInt img_size = n_rows * n_cols;
-    vector<image_t > retval;
-    for(int i = 0; i < number_of_images; ++i) {
-        vector<unsigned char> data_raw(img_size);
-        file.read( (char*) data_raw.data(), img_size);
-        // Copy the data into an array of UInt's
-        image_t data(img_size);
-        // Apply a threshold to the image, yielding a B & W image.
-        for(const auto pixel: data_raw) {
-            data.push_back(pixel >= 128 ? 1u : 0u);
-        }
-        retval.push_back(data);
-    }
-    return retval;
-}
-*/
 class MNIST {
 
   private:
@@ -115,11 +50,12 @@ class MNIST {
     SDR input;
     SDR columns;
     SDRClassifier clsr;
+    mnist::MNIST_dataset dataset;
 
+  public:
     UInt verbosity = 1;
     const UInt train_dataset_iterations = 1u;
 
-  public:
 
 void setup() {
 
@@ -155,30 +91,30 @@ void setup() {
     /* alpha */         .001,
     /* actValueAlpha */ .3,
                         verbosity);
+
+  dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(MNIST_DATA_LOCATION); //from CMake
 }
 
 void train() {
   // Train
-  const auto train_images = read_mnist_images("./mnist_data/train-images-idx3-ubyte");
-  const auto train_labels = read_mnist_labels("./mnist_data/train-labels-idx1-ubyte");
 
   if(verbosity)
-    cout << "Training for " << (train_dataset_iterations * train_labels.size())
+    cout << "Training for " << (train_dataset_iterations * dataset.training_labels.size())
          << " cycles ..." << endl;
   size_t i = 0;
   SDR_Metrics columnStats(columns, 1402);
 
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
-    // Shuffle the training data.
     NTA_WARN << "epoch " << epoch;
-    vector<UInt> index( train_labels.size() );
+    // Shuffle the training data.
+    vector<UInt> index( dataset.training_labels.size() );
     index.assign(train_labels.cbegin(), train_labels.cend());
     Random().shuffle( index.begin(), index.end() );
 
     for(const auto idx : index) { // index = order of label (shuffeled)
       // Get the input & label
-      const image_t image = train_images.at(idx);
-      const UInt label  = train_labels.at(idx);
+      const auto image = dataset.training_images.at(idx);
+      const UInt label  = dataset.training_labels.at(idx);
 
       // Compute & Train
       input.setDense( image );
@@ -201,16 +137,14 @@ void train() {
 
 void test() {
   // Test
-  auto test_images  = read_mnist_images("./mnist_data/t10k-images-idx3-ubyte");
-  auto test_labels  = read_mnist_labels("./mnist_data/t10k-labels-idx1-ubyte");
   Real score = 0;
   UInt n_samples = 0;
   if(verbosity)
-    cout << "Testing for " << test_labels.size() << " cycles ..." << endl;
-  for(UInt i = 0; i < test_labels.size(); i++) {
+    cout << "Testing for " << dataset.test_labels.size() << " cycles ..." << endl;
+  for(UInt i = 0; i < dataset.test_labels.size(); i++) {
     // Get the input & label
-    const image_t image = test_images.at(i);
-    const UInt label  = test_labels.at(i);
+    const auto image  = dataset.test_images.at(i);
+    const UInt label  = dataset.test_labels.at(i);
 
     // Compute
     input.setDense( image );
