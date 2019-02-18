@@ -400,9 +400,8 @@ add_custom_target(hotgym
 ## MNIST Spatial Pooler Example
 #
 set(src_executable_mnistsp mnist_sp)
-if(EXISTS ${mnist-SOURCE_DIR})
-  add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
-  target_link_libraries(${src_executable_mnistsp} ${src_exacutable_mnistsp}
+add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
+target_link_libraries(${src_executable_mnistsp} ${src_exacutable_mnistsp}
         ${core_library}
         ${COMMON_OS_LIBS}
 	    )
@@ -414,12 +413,12 @@ if(EXISTS ${mnist-SOURCE_DIR})
         ${CORE_LIB_INCLUDES} 
         ${EXTERNAL_INCLUDES}
         )
-  add_custom_target(mnist
+add_custom_target(mnist
                   COMMAND ${src_executable_mnistsp}
                   DEPENDS ${src_executable_mnistsp}
                   COMMENT "Executing ${src_executable_mnistsp}"
                   VERBATIM)
-endif()
+
 
 ############ INSTALL ######################################
 #
@@ -455,13 +454,13 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 	  MESSAGE_NEVER
 	  DESTINATION include)
 
-if(EXISTS ${mnist-SOURCE_DIR})
-  install(TARGETS
+
+install(TARGETS
         ${src_executable_mnistsp}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-endif()
+
           
 #
 # `make package` results in

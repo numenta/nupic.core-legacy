@@ -35,8 +35,8 @@
 #
 #######################################
 
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/boost.tar.gz)
-    set(BOOST_URL ${REPOSITORY_DIR}/build/ThirdParty/share/boost.tar.gz)
+if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/boost_1_69_0.tar.gz)
+    set(BOOST_URL ${REPOSITORY_DIR}/build/ThirdParty/share/boost_1_69_0.tar.gz)
     set(BOOST_HASH "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb")
 else()
     set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz")
