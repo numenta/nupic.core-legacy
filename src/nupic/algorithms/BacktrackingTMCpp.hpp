@@ -35,15 +35,16 @@
 #include <vector>
 #include <string>
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::Cells4;
-
-
 
 namespace nupic {
 namespace algorithms {
 namespace backtracking_tm {
+
+using namespace std;
+using namespace nupic;
+using nupic::algorithms::Cells4::Cells4;
+using nupic::algorithms::Cells4::Segment;
+
 
 /////////////////////////////////////////////////////////////////
 //  Static function nonzero()
@@ -74,7 +75,7 @@ template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt le
  *        <get input vector, streaming spatiotemporal information>
  *        sp.compute(inputVector, learn, activeColumns)
  *        tm.compute(number of activeColumns, activeColumns, learn)
- *        <do something with the tm, e.g. classify tm.getActiveCells()>
+ *        <do something with the tm, e.g. classify tm.getActiveState()>
  *     }
  *
  * The public API uses C arrays, not std::vectors, as inputs. C arrays are
@@ -552,7 +553,7 @@ protected:
   std::shared_ptr<Real> confHistogram_; // for stats if collectSequenceStats is true
 
 
-  Cells4::Cells4 *cells4_;
+  Cells4 *cells4_;
 };
 
 
