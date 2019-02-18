@@ -35,18 +35,17 @@
 
 
 namespace nupic {
-namespace Directory {
-bool exists(const std::string &fpath) { return fs::exists(fpath); }
+bool Directory::exists(const std::string &fpath) { return fs::exists(fpath); }
 
-std::string getCWD() { return fs::current_path().string(); }
+std::string Directory::getCWD() { return fs::current_path().string(); }
 
-bool empty(const std::string &path) { return fs::is_empty(path); }
-Size free_space(const std::string &path) {
+bool Directory::empty(const std::string &path) { return fs::is_empty(path); }
+Size Directory::free_space(const std::string &path) {
   fs::space_info si = fs::space(path);
   return (Size)si.available; // disk space available to non-privalaged pocesses.
 }
 
-void setCWD(const std::string &path) { fs::current_path(path); }
+void Directory::setCWD(const std::string &path) { fs::current_path(path); }
 
 
 // copy a directory recursively.
@@ -55,7 +54,7 @@ void setCWD(const std::string &path) { fs::current_path(path); }
 // If the destination is an existing directory, the contents of
 // the source directory are copied into the destination directory.
 // Note: this is NOT like a cp command.
-void copyTree(const std::string &source, const std::string &destination) {
+void Directory::copyTree(const std::string &source, const std::string &destination) {
   er::error_code ec;
 
   NTA_CHECK(Path::isDirectory(source)) << "copyTree() source is not a directory. " << source;
@@ -74,8 +73,8 @@ void copyTree(const std::string &source, const std::string &destination) {
     NTA_CHECK(!ec) << "copyTree: Could not create destination directory. '"
                    << destination << "' " << ec.message();
   }
-  Directory::Iterator it(source);
-  Directory::Entry entry;
+  Iterator it(source);
+  Entry entry;
   while (it.next(entry) != nullptr) {
     // Note: this does not copy links.
     std::string to = destination + Path::sep + entry.filename;
@@ -87,7 +86,7 @@ void copyTree(const std::string &source, const std::string &destination) {
   }
 }
 
-bool removeTree(const std::string &path, bool noThrow) {
+bool Directory::removeTree(const std::string &path, bool noThrow) {
   er::error_code ec;
   if (fs::exists(path)) {
     if (fs::is_directory(path, ec)) {
@@ -101,7 +100,7 @@ bool removeTree(const std::string &path, bool noThrow) {
 }
 
 // create directory
-void create(const std::string &path, bool otherAccess, bool recursive) {
+void Directory::create(const std::string &path, bool otherAccess, bool recursive) {
   NTA_CHECK(!path.empty())  << "Directory::create -- Can't create directory with no name";
   fs::path p = fs::absolute(path);
   if (fs::exists(p)) {
@@ -131,18 +130,18 @@ void create(const std::string &path, bool otherAccess, bool recursive) {
 #endif
 }
 
-std::string list(const std::string &path, std::string indent) {
+std::string Directory::list(const std::string &path, std::string indent) {
   if (!fs::exists(path))
     return "";
   if (!Path::isDirectory(path))
     return indent + Path::getBasename(path) + "\n";
   std::string ls = indent +  Path::getBasename(path) + "\n";
   indent += "  ";
-  Directory::Iterator di(path);
-  Directory::Entry entry;
-  Directory::Entry * e = nullptr;
+  Iterator di(path);
+  Entry entry;
+  Entry * e = nullptr;
   while ((e = di.next(entry))) {
-    if (e->type == Directory::Entry::DIRECTORY)
+    if (e->type == Entry::DIRECTORY)
       ls += Directory::list(e->path, indent);
     else
       ls += indent + e->filename + "\n";
@@ -175,5 +174,4 @@ Entry * Iterator::next(Entry & e) {
 
 
 
-} // namespace nupic::Directory
 } // namespace nupic

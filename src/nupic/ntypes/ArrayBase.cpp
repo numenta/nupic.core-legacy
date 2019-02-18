@@ -277,19 +277,20 @@ bool ArrayBase::has_buffer() const { return (buffer_.get() != nullptr); }
  * args:
  *    a         - Destination buffer
  *    offset    - Index used as starting index. (defaults to 0)
- *    maxsize   - Total size of destination buffer (if 0, use source capacity)
+ *    maxsize   - Total size of destination buffer (if 0, use source size)
  *                This is used to allocate destination buffer size (in counts).
  */
 void ArrayBase::convertInto(ArrayBase &a, size_t offset, size_t maxsize) const {
   if (maxsize == 0)
-    maxsize = getMaxElementsCount() + offset;
+    maxsize = getCount() + offset;
   if (maxsize > a.getMaxElementsCount()) {
     a.allocateBuffer(maxsize);
     a.zeroBuffer();
   }
   if (offset == 0) {
-    // This should be the first set of a Fan-In.
-    a.setCount(maxsize);
+    // This could be the first buffer of a Fan-In set.
+    if (a.getCount() != maxsize)
+      a.setCount(maxsize);
   }
   NTA_CHECK(getCount() + offset <= maxsize);
   char *toPtr =  (char *)a.getBuffer(); // char* so it has size
@@ -297,7 +298,6 @@ void ArrayBase::convertInto(ArrayBase &a, size_t offset, size_t maxsize) const {
     toPtr += (offset * BasicType::getSize(a.getType()));
   const void *fromPtr = getBuffer();
   BasicType::convertArray(toPtr, a.type_, fromPtr, type_, getCount());
-  a.setCount(offset + getCount());
 }
 
 bool ArrayBase::isInstance(const ArrayBase &a) const {
@@ -353,6 +353,8 @@ void ArrayBase::load(std::istream &inStream) {
     sdr->load(inStream);
     std::shared_ptr<char> sp((char *)(sdr));
     buffer_ = sp;
+    count_ = sdr->size;
+    capacity_ = sdr->size;
   } else {
     allocateBuffer(count);
     inStream.ignore(1);

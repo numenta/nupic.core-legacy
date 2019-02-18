@@ -36,12 +36,14 @@
 #include <nupic/algorithms/TemporalMemory.hpp>
 #include <nupic/algorithms/Anomaly.hpp>
 
-using namespace nupic::algorithms::temporal_memory;
-using namespace std;
 
+namespace testing {
+
+using namespace nupic::algorithms::temporal_memory;
+using namespace nupic::algorithms::connections;
+using namespace std;
 #define EPSILON 0.0000001
 
-namespace {
 
 TEST(TemporalMemoryTest, testInitInvalidParams) {
   // Invalid columnDimensions
@@ -183,6 +185,7 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
       /*predictedSegmentDecrement*/ 0.02f,
       /*seed*/ 42);
 
+
   // Make some cells predictive.
   const UInt previousActiveColumns[1] = {0};
   const vector<CellIdx> previousActiveCells = {0, 1, 2, 3};
@@ -193,14 +196,13 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
   tm.connections.createSynapse(segment, previousActiveCells[1], 0.5f);
   tm.connections.createSynapse(segment, previousActiveCells[2], 0.5f);
   tm.connections.createSynapse(segment, previousActiveCells[3], 0.5f);
-
   tm.compute(1, previousActiveColumns, true);
   ASSERT_FALSE(tm.getActiveCells().empty());
   ASSERT_FALSE(tm.getWinnerCells().empty());
   tm.activateDendrites();
   ASSERT_FALSE(tm.getPredictiveCells().empty());
 
-  tm.compute(0, nullptr, true);
+  EXPECT_NO_THROW(tm.compute(0, nullptr, true)) << "failed with empty compute";
   EXPECT_TRUE(tm.getActiveCells().empty());
   EXPECT_TRUE(tm.getWinnerCells().empty());
   tm.activateDendrites();
@@ -1542,9 +1544,11 @@ TEST(TemporalMemoryTest, testExtraActive) {
   SDR columns({120});
 
   vector<SDR> pattern( 10, columns.dimensions );
-  for(SDR &x : pattern) {
-    x.randomize( 0.10f );
-    auto &data = x.getFlatSparse();
+  for(auto i = 0u; i < pattern.size(); i++) {
+    Random rng( i + 99u );             // Use deterministic seeds for unit tests.
+    auto &sdr = pattern[i];
+    sdr.randomize( 0.10f, rng );
+    auto &data = sdr.getFlatSparse();
     std::sort(data.begin(), data.end());
   }
 
