@@ -25,7 +25,7 @@ if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/mnist.zip)
     set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/mnist.zip)
 else()
     set(URL "https://github.com/wichtounet/mnist/archive/master.zip")
-    set(HASH "0bcecef3aaed7c619f0baac02697a76dff3da54f0c17f1aaaa92a2928ca300f3")
+    set(HASH "855cb8c60f84e2fc6bea08c4a9df9a3cbd6230bddc55def635a938665c512ffc")
 endif()
 
 message(STATUS "obtaining MNIST data")
