@@ -221,7 +221,7 @@ public:
 
 
   bool hasIncomingLinks() { return !links_.empty(); }
-
+  bool hasSplitterMap() { return !splitterMap_.empty(); }
 
 
 private:

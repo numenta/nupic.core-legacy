@@ -94,20 +94,6 @@ public:
    */
      std::string getName() const { return name_; }
 
-  /**
-   * Get the dimensions of the region.
-   *
-   * @returns The region's dimensions
-   */
-  const Dimensions &getDimensions() const;
-
-  /**
-   * Assign width and height to the region.
-   *
-   * @param dimensions
-   *        A Dimensions object that describes the width and height
-   */
-  void setDimensions(Dimensions &dimensions);
 
   /**
    * @}
@@ -614,7 +600,6 @@ public:
 
   void removeAllIncomingLinks();
 
-  const NodeSet &getEnabledNodes() const;
 
   // TODO: sort our phases api. Users should never call Region::setPhases
   // and it is here for serialization only.
@@ -652,21 +637,13 @@ private:
   InputMap inputs_;
   // used for serialization only
   std::set<UInt32> phases_;
-  Dimensions dims_; // topology of nodes; starts as []
   bool initialized_;
 
-  NodeSet *enabledNodes_;
 
   // Region contains a backpointer to network_ only to be able
   // to retrieve the containing network via getNetwork() for inspectors.
   // The implementation should not use network_ in any other methods.
   Network *network_;
-
-  // Figuring out how a region's dimensions were set
-  // can be difficult because any link can induce
-  // dimensions. This field says how a region's dimensions
-  // were set.
-  std::string dimensionInfo_;
 
 
   // Profiling related methods and variables.

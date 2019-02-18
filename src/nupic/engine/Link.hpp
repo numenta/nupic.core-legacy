@@ -183,10 +183,6 @@ public:
    */
   void initialize(size_t destinationOffset, bool is_FanIn);
 
-  /**
-   * Destructor
-   */
-  ~Link();
 
   /**
    * @}

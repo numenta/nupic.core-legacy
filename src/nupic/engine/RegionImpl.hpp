@@ -104,10 +104,12 @@ public:
   /* -------- Methods that must be implemented by subclasses -------- */
 
   /**
+   * Region implimentations must implement createSpec().
    * Can't declare a static method in an interface. But RegionFactory
    * expects to find this method. Caller gets ownership of Spec pointer.
+   * The returned spec pointer is cached by RegionImplFactory in regionSpecMap
+   * which is a map of shared_ptr's.
    */
-
   // static Spec* createSpec();
 
   // Serialize state.
@@ -129,13 +131,25 @@ public:
   virtual std::string executeCommand(const std::vector<std::string> &args,
                                      Int64 index) = 0;
 
-  // Per-node size (in elements) of the given output.
-  // For per-region outputs, it is the total element count.
+  // Buffer size (in elements) of the given output.
+  // It is the total element count.
   // This method is called only for outputs whose size is not
-  // specified in the nodespec.
+  // specified in the nodespec.  This is used to allocate
+  // output buffers for non-SDR types.
+  // Return 0 for outputs that are not used.
   virtual size_t getNodeOutputElementCount(const std::string &outputName) = 0;
 
   /* -------- Methods that may be overridden by subclasses -------- */
+
+  // The dimensions for the specified output.  This is called by
+  // Link when it allocates SDR type buffers during initialization.
+  // If this region sets topology (an SP for example) and will be
+  // setting the output dimensions (i.e. from parameters) then
+  // return the dimensions that should be placed in its output Array.
+  // Return an empty Dimension if this region should inhereted output
+  // dimensions from its input.
+  virtual const Dimensions &getDimensions(const std::string &outputName);
+
 
   /**
    * Array-valued parameters may have a size determined at runtime.
@@ -152,7 +166,7 @@ public:
    * Default implementation -- all parameters are shared
    * Tests whether a parameter is node or region level
    */
-  virtual bool isParameterShared(const std::string &name);
+  //virtual bool isParameterShared(const std::string &name);
 
 protected:
     // A pointer to the Region object. This is the portion visible
@@ -186,7 +200,6 @@ protected:
   Input *getInput(const std::string &name) const;
   Output *getOutput(const std::string &name) const;
 
-  const Dimensions &getDimensions();
 
 };
 
