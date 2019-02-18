@@ -70,16 +70,9 @@ public:
   void encode(const CategoryType value, SDR &output) {
     if( inputSeedMap.count( value ) == 0 ) {
       // Insert new value
-      UInt seed;
-      do{
-        seed = randomSeed_();
-        encodeFromSeed_(seed, output);
-      } while( maximumOverlap_( output ) >= 0.50f );
-      inputSeedMap_[value] = seed;
+      inputSeedMap_[value] = randomSeed_();
     }
-    else {
-      encodeFromSeed_(inputSeedMap.at(value), output);
-    }
+    encodeFromSeed_(inputSeedMap.at(value), output);
   }
 
   const CategoryType decode(const SDR &encoding) {
@@ -100,17 +93,6 @@ private:
     NTA_CHECK( output.size == size );
     Random rng( seed );
     output.randomize( sparsity, rng );
-  }
-
-  Real maximumOverlap_(SDR &newCategory) {
-    Real maxOvlp = 0.0f;
-    const UInt n_active = std::round(size * sparsity);
-    SDR X({ size });
-    for( const auto &encoding : inputSeedMap ) {
-      encodeFromSeed_( encoding.second, X );
-      maxOvlp = std::max( maxOvlp, (Real) X.getOverlap( newCategory ) / n_active);
-    }
-    return maxOvlp;
   }
 };     // End class CategoryEncoder
 }      // End namespace nupic

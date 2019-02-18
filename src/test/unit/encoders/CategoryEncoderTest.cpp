@@ -65,14 +65,15 @@ TEST(CategoryEncoder, testStrings) {
 
 TEST(CategoryEncoder, testMinimumOverlap) {
   // Make a lot of categories and make sure they don't conflict.
-  nupic::CategoryEncoder<UInt> enc(100u, 0.10f);
+  UInt num_categories = 1000u;
+  nupic::CategoryEncoder<UInt> enc(1000u, 0.05f);
 
   vector<SDR*> allResults;
-  for(UInt category = 0; category < 100; category++) {
+  for(UInt category = 0; category < num_categories; category++) {
     SDR *output = new SDR({ enc.size });
     enc.encode( category, *output );
     for(SDR *other : allResults) {
-      ASSERT_LT( output->getOverlap( *other ), 0.50f * output->getSum() );
+      EXPECT_LT( output->getOverlap( *other ), 0.50f * output->getSum() );
     }
     allResults.push_back( output );
   }
