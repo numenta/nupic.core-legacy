@@ -62,6 +62,7 @@ Region::Region(std::string name, const std::string &nodeType,
   // singleNodeOnly is ignored.
   //dims_.push_back(1);
 
+  //---original code
   // Dimensions start off as unspecified, but if
   // the RegionImpl only supports a single node, we
   // can immediately set the dimensions.

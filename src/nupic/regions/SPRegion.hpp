@@ -37,13 +37,13 @@
 #include <nupic/algorithms/SpatialPooler.hpp>
 //----------------------------------------------------------------------
 
-using namespace nupic::algorithms::spatial_pooler;
 
 namespace nupic
 {
+
+
 class SPRegion  : public RegionImpl
-{
-		
+{		
   public:
     SPRegion(const ValueMap& params, Region *region);
     SPRegion(BundleIO& bundle, Region* region);
@@ -81,6 +81,7 @@ class SPRegion  : public RegionImpl
 		/* -----------  Optional RegionImpl Interface methods ------- */
     UInt32 getParameterUInt32(const std::string& name, Int64 index) override;
     Int32 getParameterInt32(const std::string& name, Int64 index) override;
+    UInt64 getParameterUInt64(const std::string &name, Int64 index) override;
     Real32 getParameterReal32(const std::string& name, Int64 index) override;
     bool   getParameterBool(const std::string& name, Int64 index) override;
     std::string getParameterString(const std::string& name, Int64 index) override;
@@ -90,6 +91,7 @@ class SPRegion  : public RegionImpl
 
     void setParameterUInt32(const std::string& name, Int64 index, UInt32 value) override;
     void setParameterInt32(const std::string& name, Int64 index, Int32 value) override;
+    void setParameterUInt64(const std::string &name, Int64 index, UInt64 value) override;
     void setParameterReal32(const std::string& name, Int64 index, Real32 value) override;
     void setParameterBool(const std::string& name, Int64 index, bool value) override;
 
@@ -116,13 +118,14 @@ private:
       UInt spVerbosity;
       bool wrapAround;
       bool learningMode;
-      int  iter;
     } args_;
 
+    typedef void (*computeCallbackFunc)(const std::string &);
+    computeCallbackFunc computeCallback_;
 
     std::string spatialImp_;         // SP variation selector. Currently not used.
 
-    std::unique_ptr<SpatialPooler> sp_;
+    std::unique_ptr<algorithms::spatial_pooler::SpatialPooler> sp_;
 
 };
 } // namespace nupic

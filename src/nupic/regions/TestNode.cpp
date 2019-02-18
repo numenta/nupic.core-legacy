@@ -143,8 +143,6 @@ Spec *TestNode::createSpec() {
   ns->description = "TestNode. Used as a plain simple plugin Region for unit tests only. "
       "This is not useful for any real applicaton.";
 
-  ns->singleNodeOnly = false; // this means we allow dimensions;
-
   /* ---- parameters ------ */
   ns->parameters.add( "count",
                      ParameterSpec(

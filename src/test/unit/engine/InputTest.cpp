@@ -227,7 +227,7 @@ TEST(InputTest, LinkTwoRegionsOneInput) {
 
   // test getData()
   const Array *pa = &(in3->getData());
-  std::cerr << *pa << std::endl;
+  //std::cerr << *pa << std::endl;
   ASSERT_EQ(128u, pa->getCount());
   Real64 *data = (Real64 *)(pa->getBuffer());
   ASSERT_EQ(1, data[0]);

@@ -45,7 +45,7 @@
 namespace nupic {
 
 SPRegion::SPRegion(const ValueMap &values, Region *region)
-    : RegionImpl(region) {
+    : RegionImpl(region), computeCallback_(nullptr)  {
   // Note: the ValueMap gets destroyed on return so we need to get all of the
   // parameters out of the map and set aside so we can pass them to the SpatialPooler
   // algorithm when we create it during initialization().
@@ -69,11 +69,11 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
 
   // variables used by this class and not passed on to the SpatialPooler class
   args_.learningMode = (1 == values.getScalarT<UInt32>("learningMode", true));
-  args_.iter = 0;
 
 }
 
-SPRegion::SPRegion(BundleIO &bundle, Region *region) : RegionImpl(region) {
+SPRegion::SPRegion(BundleIO &bundle, Region *region) 
+  : RegionImpl(region), computeCallback_(nullptr) {
 
   deserialize(bundle);
 }
@@ -96,6 +96,7 @@ void SPRegion::initialize() {
   // If there are more than one input link (FAN-IN), the input buffer will be the
   // concatination of all incomming buffers.  
   Input *in = getInput("bottomUpIn");
+  NTA_CHECK(in != nullptr);
   if (!in->hasIncomingLinks())
      NTA_THROW << "SPRegion::initialize - No input links were configured for this SP region.\n";
   Array &inputBuffer = in->getData();
@@ -112,7 +113,8 @@ void SPRegion::initialize() {
     args_.potentialRadius = args_.inputWidth;
 
   // instantiate a SpatialPooler.
-  sp_ = std::unique_ptr<SpatialPooler>(new SpatialPooler(
+  sp_ = std::unique_ptr<algorithms::spatial_pooler::SpatialPooler>(
+          new algorithms::spatial_pooler::SpatialPooler(
       inputDimensions, columnDimensions, args_.potentialRadius,
       args_.potentialPct, args_.globalInhibition, args_.localAreaDensity,
       args_.numActiveColumnsPerInhArea, args_.stimulusThreshold,
@@ -126,8 +128,9 @@ void SPRegion::initialize() {
 void SPRegion::compute() {
   NTA_ASSERT(sp_) << "SP not initialized";
 
-  // BOTTOM-UP compute mode
-  args_.iter++;
+  if (computeCallback_ != nullptr)
+    computeCallback_(getName());
+
 
   // prepare the input
   Array &inputBuffer  = getInput("bottomUpIn")->getData();
@@ -548,6 +551,7 @@ Spec *SPRegion::createSpec() {
 ////////////////////////////////////////////////////////////////////////
 
 UInt32 SPRegion::getParameterUInt32(const std::string &name, Int64 index) {
+  NTA_CHECK(name.size() > 0);
   switch (name[0]) {
   case 'a':
     if (name == "activeOutputCount") {
@@ -621,6 +625,13 @@ Int32 SPRegion::getParameterInt32(const std::string &name, Int64 index) {
     return args_.seed;
   }
   return this->RegionImpl::getParameterInt32(name, index); // default
+}
+
+UInt64 SPRegion::getParameterUInt64(const std::string &name, Int64 index) {
+  if (name == "computeCallback") {
+    return (UInt64)computeCallback_;
+  }
+  return this->RegionImpl::getParameterUInt64(name, index); // default
 }
 
 Real32 SPRegion::getParameterReal32(const std::string &name, Int64 index) {
@@ -794,6 +805,14 @@ void SPRegion::setParameterInt32(const std::string &name, Int64 index, Int32 val
   RegionImpl::setParameterInt32(name, index, value);
 }
 
+void SPRegion::setParameterUInt64(const std::string &name, Int64 index, UInt64 value) {
+  if (name == "computeCallback") {
+    computeCallback_ = (computeCallbackFunc)value;
+  } else {
+	RegionImpl::setParameterUInt64(name, index, value);
+  }
+}
+
 void SPRegion::setParameterReal32(const std::string &name, Int64 index, Real32 value) {
   switch (name[0]) {
   case 'b':
@@ -936,7 +955,8 @@ void SPRegion::deserialize(BundleIO &bundle) {
   f >> init;
   f.ignore(1);
   if (init) {
-    sp_ = std::unique_ptr<SpatialPooler>(new SpatialPooler());
+    sp_ = std::unique_ptr<algorithms::spatial_pooler::SpatialPooler>(
+            new algorithms::spatial_pooler::SpatialPooler());
     sp_->load(f);
   } else
     sp_ = nullptr;
