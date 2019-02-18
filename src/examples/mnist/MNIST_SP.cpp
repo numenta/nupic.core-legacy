@@ -92,7 +92,7 @@ void setup() {
     /* actValueAlpha */ .3,
                         verbosity);
 
-  dataset = mnist::read_dataset(string(MNIST_DATA_LOCATION)); //from CMake
+  dataset = mnist::read_dataset<uint8_t, uint8_t>(string(MNIST_DATA_LOCATION)); //from CMake
 }
 
 void train() {
@@ -108,7 +108,7 @@ void train() {
     NTA_WARN << "epoch " << epoch;
     // Shuffle the training data.
     vector<UInt> index( dataset.training_labels.size() );
-    index.assign(train_labels.cbegin(), train_labels.cend());
+    index.assign(dataset.training_labels.cbegin(), dataset.training_labels.cend());
     Random().shuffle( index.begin(), index.end() );
 
     for(const auto idx : index) { // index = order of label (shuffeled)
