@@ -1544,9 +1544,11 @@ TEST(TemporalMemoryTest, testExtraActive) {
   SDR columns({120});
 
   vector<SDR> pattern( 10, columns.dimensions );
-  for(SDR &x : pattern) {
-    x.randomize( 0.10f );
-    auto &data = x.getFlatSparse();
+  for(auto i = 0u; i < pattern.size(); i++) {
+    Random rng( i + 99u );             // Use deterministic seeds for unit tests.
+    auto &sdr = pattern[i];
+    sdr.randomize( 0.10f, rng );
+    auto &data = sdr.getFlatSparse();
     std::sort(data.begin(), data.end());
   }
 
