@@ -365,13 +365,14 @@ class SdrIntersectionTest(unittest.TestCase):
 
     def testConstructor(self):
         assert( issubclass(SDR_Intersection, SDR) )
-        # Convert SDR dimensions from (4 x 4) to (8 x 2)
+        # Test 2 Arguments
         A = SDR( 2000 )
         B = SDR( A.size )
         X = SDR_Intersection(A, B)
         A.randomize( .20 )
         B.randomize( .20 )
         assert( X.getSum() > 0 )
+        assert( X.inputs == [A, B] )
         A.zero()
         assert( X.getSum() == 0 )
         del X
@@ -379,7 +380,7 @@ class SdrIntersectionTest(unittest.TestCase):
         B.zero()
         del B
         del A
-
+        # Test 3 Arguments
         A = SDR( 2000 )
         B = SDR( 2000 )
         C = SDR( 2000 )
@@ -387,18 +388,28 @@ class SdrIntersectionTest(unittest.TestCase):
         A.randomize( .6 )
         B.randomize( .6 )
         C.randomize( .6 )
+        assert( X.inputs == [A, B, C] )
         assert( X.getSparsity() >  .75 * ( .6 ** 3 ))
         assert( X.getSparsity() < 1.25 * ( .6 ** 3 ))
         del B
         del A
         del X
         del C
-
-        A = SDR( 2000 )
-        B = SDR( 2000 )
-        C = SDR( 2000 )
-        D = SDR( 2000 )
+        # Test 4 Arguments
+        A = SDR( 2000 ); A.randomize( .9 )
+        B = SDR( 2000 ); B.randomize( .9 )
+        C = SDR( 2000 ); C.randomize( .9 )
+        D = SDR( 2000 ); D.randomize( .9 )
         X = SDR_Intersection(A, B, C, D)
+        assert( X.inputs == [A, B, C, D] )
+        # Test list constructor
+        X = SDR_Intersection( [A, B, C, D] )
+        assert( X.size       == 2000 )
+        assert( X.dimensions == [2000] )
+        assert( X.getSum()    > 0 )
+        A.zero()
+        assert( X.getSum()   == 0 )
+        assert( X.inputs     == [A, B, C, D] )
 
     def testSparsity(self):
         test_cases = [

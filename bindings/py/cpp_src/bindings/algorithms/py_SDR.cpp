@@ -346,6 +346,13 @@ Example Usage:
         py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
             return new SDR_Intersection({   &inp1,     &inp2,     &inp3,     &inp4});
         }));
+        py_Intersect.def( py::init( [] (vector<SDR*> inputs) {
+            return new SDR_Intersection(inputs);
+        }));
+        py_Intersect.def_property_readonly("inputs",
+            [] (const SDR_Intersection &self)
+                { return self.inputs; },
+            "TODO DOCUMENTATION");
 
 
         py::class_<SDR_Concatenation, SDR> py_Concatenation(m, "SDR_Concatenation",
@@ -364,5 +371,13 @@ TODO DOCUMENTATION!
         py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
             return new SDR_Concatenation(input, axis);
         }));
+        py_Concatenation.def_property_readonly("inputs",
+            [] (const SDR_Concatenation &self)
+                { return self.inputs; },
+            "TODO DOCUMENTATION");
+        py_Concatenation.def_property_readonly("axis",
+            [] (const SDR_Concatenation &self)
+                { return self.axis; },
+            "TODO DOCUMENTATION");
     }
 }
