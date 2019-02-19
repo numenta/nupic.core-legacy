@@ -428,9 +428,11 @@ class SdrIntersectionTest(unittest.TestCase):
 
 
 class SdrConcatenationTest(unittest.TestCase):
+    @pytest.mark.skip(reason="TODO UNIMPLEMENTED!")
     def testExampleUsage(self):
         1/0
 
+    @pytest.mark.skip(reason="TODO UNIMPLEMENTED!")
     def testConstructor(self):
         assert( issubclass(SDR_Intersection, SDR) )
         1/0
