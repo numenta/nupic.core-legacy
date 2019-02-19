@@ -411,6 +411,7 @@ namespace nupic {
         // Consume the end marker.
         inStream >> marker;
         NTA_CHECK( marker == "~SDR" );
+        inStream.ignore(1);  // skip past endl.
     }
 
 
