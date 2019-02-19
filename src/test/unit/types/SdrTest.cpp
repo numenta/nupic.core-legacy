@@ -755,21 +755,26 @@ TEST(SdrTest, TestIntersection) {
     SDR B({1000});
     A.randomize(.5);
     B.randomize(.5);
-    auto X = new SDR_Intersection(A, B);
-    SDR *Y = (SDR *) X;
-    Y->getDense();
-    ASSERT_GT( Y->getSparsity(), .25 / 2. );
-    ASSERT_LT( Y->getSparsity(), .25 * 2. );
 
+    // Test basic functionality
+    SDR_Intersection X(A, B);
+    SDR *Xp = &X;
+    Xp->getDense();
+    ASSERT_GT( Xp->getSparsity(), .25 / 2. );
+    ASSERT_LT( Xp->getSparsity(), .25 * 2. );
     A.zero();
-    ASSERT_EQ( Y->getSum(), 0u );
+    ASSERT_EQ( Xp->getSum(), 0u );
+
+    // Test deleting input SDR before SDR_Intersection
+    SDR *C = new SDR({A.size});
+    SDR *Y = new SDR_Intersection(A, B, *C);
+    delete C;
     delete Y;
 
-    SDR C({A.size});
-    X = new SDR_Intersection(A, B, C);
-    delete X;
+    // Test subclass attribute access
+    SDR C2({A.size});
     SDR D({A.size});
-    X = new SDR_Intersection(A, B, C, D);
-    ASSERT_EQ(X->inputs, vector<SDR*>({&A, &B, &C, &D}));
-    delete X;
+    SDR_Intersection Z(A, B, C2, D);
+    ASSERT_EQ(Z.size, A.size);                            // Access SDR
+    ASSERT_EQ(Z.inputs, vector<SDR*>({&A, &B, &C2, &D})); // Access SDR_Intersection
 }

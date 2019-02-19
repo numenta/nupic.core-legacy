@@ -346,5 +346,23 @@ Example Usage:
         py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
             return new SDR_Intersection({   &inp1,     &inp2,     &inp3,     &inp4});
         }));
+
+
+        py::class_<SDR_Concatenation, SDR> py_Concatenation(m, "SDR_Concatenation",
+R"(SDR_Concatenation presents a view onto a group of SDRs, which always shows the
+TODO DOCUMENTATION!
+)");
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, UInt axis) {
+            return new SDR_Concatenation(   {&inp1,     &inp2},     axis);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, UInt axis) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3},     axis);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4, UInt axis) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3,     &inp4},     axis);
+        }));
+        py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
+            return new SDR_Concatenation(input, axis);
+        }));
     }
 }

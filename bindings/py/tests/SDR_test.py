@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Proxy,SDR_Intersection
+from nupic.bindings.algorithms import SDR, SDR_Proxy, SDR_Intersection, SDR_Concatenation
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -425,3 +425,33 @@ class SdrIntersectionTest(unittest.TestCase):
             mean_sparsity = np.product( sparsities )
             assert( X.getSparsity() >= (2/3) * mean_sparsity )
             assert( X.getSparsity() <= (4/3) * mean_sparsity )
+
+
+class SdrConcatenationTest(unittest.TestCase):
+    def testExampleUsage(self):
+        1/0
+
+    def testConstructor(self):
+        assert( issubclass(SDR_Intersection, SDR) )
+        1/0
+
+    def testVersusNumpy(self):
+        # Each testcase is a pair of lists of SDR dimensions and axis
+        # dimensions.
+        test_cases = [
+            ([(9, 30, 40),  (2, 30, 40)],          0),
+            ([(2, 30, 40),  (2, 99, 40)],          1),
+            ([(2, 30, 40),  (2, 30, 99)],          2),
+            ([(100,), (10), (30)],                 0),
+            ([(100,2), (10,2), (30,2)],            0),
+            ([(1,77), (1,99), (1,88)],             1),
+            ([(1,77,2), (1,99,2), (1,88,2)],       1),
+        ]
+        for sdr_dims, axis in test_cases:
+            sdrs = [SDR(dims) for dims in sdr_dims]
+            [sdr.randomize(.50) for sdr in sdrs]
+
+            cat = SDR_Concatenation( sdrs, axis )
+
+            np_cat = np.concatenate([sdr.dense for sdr in sdrs], axis=axis)
+            assert((cat.dense == np_cat).all())
