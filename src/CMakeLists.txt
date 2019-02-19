@@ -417,7 +417,7 @@ target_link_libraries(${src_executable_mnistsp} ${src_exacutable_mnistsp}
   target_compile_options(${src_executable_mnistsp} PUBLIC ${INTERNAL_CXX_FLAGS})
   target_compile_definitions(${src_executable_mnistsp} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
   # Pass MNIST data directory to main.cpp
-  target_compile_definitions(${src_executable_mnistsp} PRIVATE MNIST_DATA_LOCATION="${mnist_SOURCE_DIR}")
+  target_compile_definitions(${src_executable_mnistsp} PRIVATE MNIST_DATA_LOCATION=${mnist_SOURCE_DIR})
   target_include_directories(${src_executable_mnistsp} PRIVATE 
         ${CORE_LIB_INCLUDES} 
         ${EXTERNAL_INCLUDES}
@@ -436,14 +436,15 @@ add_custom_target(mnist
 install(TARGETS
         ${core_library}
         ${src_executable_hotgym}
-        RUNTIME DESTINATION bin
+        ${src_executable_mnistsp}
+	RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
 if(MSVC)
 else()	
   install(TARGETS
-	    ${src_lib_shared}
+        ${src_lib_shared}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
@@ -462,13 +463,6 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 	  MESSAGE_NEVER
 	  DESTINATION include)
-
-
-install(TARGETS
-        ${src_executable_mnistsp}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
 
           
 #
