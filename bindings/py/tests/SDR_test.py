@@ -423,19 +423,18 @@ class SdrIntersectionTest(unittest.TestCase):
             ( 0.5,  0.5,  0.5, 0.5),
             ( 0.10, 0.25, 0.05, 0.5),
         ]
-
         seed = 99
         for sparsities in test_cases:
             sdrs = []
             for S in sparsities:
-                inp = SDR( 2000 )
+                inp = SDR( 10000 )
                 inp.randomize( S, seed)
                 seed += 1
                 sdrs.append( inp )
             X = SDR_Intersection( *sdrs )
             mean_sparsity = np.product( sparsities )
-            assert( X.getSparsity() >= (2/3) * mean_sparsity )
-            assert( X.getSparsity() <= (4/3) * mean_sparsity )
+            assert( X.getSparsity() >= (2./3.) * mean_sparsity )
+            assert( X.getSparsity() <= (4./3.) * mean_sparsity )
 
 
 class SdrConcatenationTest(unittest.TestCase):
@@ -463,8 +462,6 @@ class SdrConcatenationTest(unittest.TestCase):
         for sdr_dims, axis in test_cases:
             sdrs = [SDR(dims) for dims in sdr_dims]
             [sdr.randomize(.50) for sdr in sdrs]
-
-            cat = SDR_Concatenation( sdrs, axis )
-
+            cat    = SDR_Concatenation( sdrs, axis )
             np_cat = np.concatenate([sdr.dense for sdr in sdrs], axis=axis)
             assert((cat.dense == np_cat).all())
