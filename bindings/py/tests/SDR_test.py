@@ -421,7 +421,7 @@ class SdrIntersectionTest(unittest.TestCase):
             ( 0.10, 0.10, 0.60 ),
             ( 0.0,  1.0,  1.0 ),
             ( 0.5,  0.5,  0.5, 0.5),
-            ( 0.10, 0.25, 0.05, 0.5),
+            ( 0.11, 0.25, 0.33, 0.5, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98),
         ]
         seed = 99
         for sparsities in test_cases:
@@ -431,7 +431,7 @@ class SdrIntersectionTest(unittest.TestCase):
                 inp.randomize( S, seed)
                 seed += 1
                 sdrs.append( inp )
-            X = SDR_Intersection( *sdrs )
+            X = SDR_Intersection( sdrs )
             mean_sparsity = np.product( sparsities )
             assert( X.getSparsity() >= (2./3.) * mean_sparsity )
             assert( X.getSparsity() <= (4./3.) * mean_sparsity )
