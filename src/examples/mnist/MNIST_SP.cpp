@@ -63,22 +63,22 @@ void setup() {
   input.initialize({28, 28, 1});
   sp.initialize(
     /* numInputs */                    input.dimensions,
-    /* numColumns */                   {7, 7, 8}
+    /* numColumns */                   {20, 20, 10}
     );
-  sp.setGlobalInhibition(false);
+  sp.setGlobalInhibition(true);
   // mapping to input
-  sp.setPotentialRadius(5); //receptive field (hyper-cube) how each col maps to input
-  sp.setPotentialPct(0.5); //of the recept. field above, how much % of inputs individual col connects to?
-  sp.setStimulusThreshold(0); //FIXME no learning if this > 0
-  sp.setSynPermActiveInc(0.2);
+  sp.setPotentialRadius(2); //receptive field (hyper-cube) how each col maps to input
+  sp.setPotentialPct(0.2); //of the recept. field above, how much % of inputs individual col connects to?
+  sp.setStimulusThreshold(10); //FIXME no learning if this > 0
+  sp.setSynPermActiveInc(0.1);
   sp.setSynPermInactiveDec(0.02);
 
   sp.setSpVerbosity(verbosity);
   // on columnar level
-  sp.setLocalAreaDensity(.05); // 5% sparsity
+  sp.setLocalAreaDensity(.04); // 2% sparsity
   sp.setMinPctOverlapDutyCycles(0.4);
   //boost
-  sp.setBoostStrength(1.8);
+  sp.setBoostStrength(1.5);
   sp.setDutyCyclePeriod(1000);
 
   sp.setWrapAround(false);
@@ -128,6 +128,7 @@ void train() {
         /* infer */           false,
                               &result);
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
+      if( verbosity && (i % (10*1000) == 0)) cout << endl;
   }
   if( verbosity ) cout << endl;
   cout << "epoch ended" << endl;
