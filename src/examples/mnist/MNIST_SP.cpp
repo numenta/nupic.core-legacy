@@ -33,7 +33,7 @@
 #include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
 
-#include <mnist/mnist_reader_less.hpp> // MNIST data itself + read methods, namespace mnist::
+#include <mnist/mnist_reader.hpp> // MNIST data itself + read methods, namespace mnist::
 
 namespace examples {
 
@@ -51,7 +51,7 @@ class MNIST {
     SDR input;
     SDR columns;
     SDRClassifier clsr;
-    mnist::MNIST_dataset<uint8_t, uint8_t> dataset;
+    mnist::MNIST_dataset<std::vector, std::vector<uint8_t>, uint8_t> dataset;
 
   public:
     UInt verbosity = 1;
@@ -92,7 +92,7 @@ void setup() {
     /* actValueAlpha */ .3,
                         verbosity);
 
-  dataset = mnist::read_dataset<uint8_t, uint8_t>(string(MNIST_DATA_LOCATION)); //from CMake
+  dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(string("../ThirdParty/mnist_data/mnist-src/")); //from CMake
 }
 
 void train() {
