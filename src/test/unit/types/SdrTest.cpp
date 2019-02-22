@@ -750,6 +750,23 @@ TEST(SdrTest, TestCallbacks) {
 }
 
 
+TEST(SdrTest, TestIntersectionExampleUsage) {
+    // Setup 2 SDRs to hold the inputs.
+    SDR A({ 10u });
+    SDR B({ 10u });
+    A.setFlatSparse(SDR_flatSparse_t(      {2, 3, 4, 5}));
+    B.setFlatSparse(SDR_flatSparse_t({0, 1, 2, 3}));
+
+    // Calculate the logical intersection
+    SDR_Intersection X(A, B);
+    ASSERT_EQ(X.getFlatSparse(), SDR_flatSparse_t({2, 3}));
+
+    // Assignments to the input SDRs are propigated to the SDR_Intersection
+    B.zero();
+    ASSERT_EQ(X.getSparsity(), 0.0f);
+}
+
+
 TEST(SdrTest, TestIntersection) {
     SDR A({1000});
     SDR B({1000});

@@ -58,7 +58,6 @@ private:
  * SDR_Proxy class
  *
  * ### Description
-
  * SDR_Proxy presents a view onto an SDR.
  *      + Proxies have the same value as their source SDR, at all times and
  *        automatically.
@@ -297,7 +296,25 @@ public:
 
 
 /**
- * TODO COPY DOCS FROM PYTHON BINDINGS!
+ * SDR_Intersection class
+ *
+ * This class presents a view onto a group of SDRs, which always shows the set
+ * intersection of the active bits in each input SDR.
+ *
+ * Example Usage:
+ *     // Setup 2 SDRs to hold the inputs.
+ *     SDR A({ 10 });
+ *     SDR B({ 10 });
+ *     A.setFlatSparse(      {2, 3, 4, 5});
+ *     B.setFlatSparse({0, 1, 2, 3});
+ *
+ *     // Calculate the logical intersection
+ *     SDR_Intersection X(A, B);
+ *     X.getFlatSparse() -> {2, 3}
+ *
+ *     // Assignments to the input SDRs are propigated to the SDR_Intersection
+ *     B.zero();
+ *     X.getSparsity() -> 0.0
  */
 class SDR_Intersection : public SDR_ReadOnly_
 {
