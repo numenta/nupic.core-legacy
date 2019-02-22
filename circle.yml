@@ -75,7 +75,7 @@ jobs:
        
       - run:
            name: Install Python extension
-           command: python setup.py install --user
+           command: python setup.py install --user --prefix=
 
       # Test
       - run:
