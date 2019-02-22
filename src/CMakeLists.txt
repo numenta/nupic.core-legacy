@@ -370,13 +370,6 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
-source_group("examples" FILES 
-    examples/hotgym/Hotgym.cpp 
-    examples/hotgym/HelloSPTP.hpp
-    examples/hotgym/HelloSPTP.cpp
-    examples/mnist/MNIST_SP.cpp
-    )
-
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp)
 if(MSVC)
