@@ -33,10 +33,9 @@
 
 namespace nupic {
 
-Output::Output(Region* region, NTA_BasicType type, bool isRegionLevel,
-               bool isSparse)
+Output::Output(Region* region, NTA_BasicType type, bool isRegionLevel)
     : region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"),
-      nodeOutputElementCount_(0), isSparse_(isSparse) {
+      nodeOutputElementCount_(0) {
   data_ = Array(type);
 }
 
@@ -49,18 +48,13 @@ Output::~Output() noexcept(false) {
 }
 
 // allocate buffer
+// The 'count' argument comes from the impl by calling getNodeOutputElementCount()
 void Output::initialize(size_t count) {
   // reinitialization is ok
   // might happen if initial initialization failed with an
   // exception (elsewhere) and was retried.
-  if (data_.getBuffer() != nullptr)
+  if (data_.has_buffer())
     return;
-
-  if (isSparse_) {
-    NTA_CHECK(isRegionLevel_) << "Sparse data must be region level";
-    NTA_CHECK(data_.getType() == NTA_BasicType_UInt32)
-        << "Sparse data must be uint32";
-  }
 
   nodeOutputElementCount_ = count;
   size_t dataCount;
@@ -69,16 +63,22 @@ void Output::initialize(size_t count) {
   else
     dataCount = count * region_->getDimensions().getCount();
   if (dataCount != 0) {
-    data_.allocateBuffer(dataCount);
-    // Zero the buffer because unitialized outputs can screw up inspectors,
-    // which look at the output before compute(). NPC-60
-    void *buffer = data_.getBuffer();
-    size_t byteCount = dataCount * BasicType::getSize(data_.getType());
-    memset(buffer, 0, byteCount);
+    if (data_.getType() == NTA_BasicType_SDR && isRegionLevel_) {
+      const Dimensions& dim = region_->getDimensions();
+      if (dim.isDontcare() || dim.isOnes()) 
+        data_.allocateBuffer(dataCount);
+      else
+        data_.allocateBuffer(dim);
+    } else {
+      data_.allocateBuffer(dataCount);
+      // Zero the buffer because unitialized outputs can screw up inspectors,
+      // which look at the output before compute(). NPC-60
+      data_.zeroBuffer();
+    }
   }
 }
 
-void Output::addLink(Link_Ptr_t link) {
+void Output::addLink(std::shared_ptr<Link> link) {
   // Make sure we don't add the same link twice
   // It is a logic error if we add the same link twice here, since
   // this method should only be called from Input::addLink
@@ -88,7 +88,7 @@ void Output::addLink(Link_Ptr_t link) {
   links_.insert(link);
 }
 
-void Output::removeLink(Link_Ptr_t link) {
+void Output::removeLink(std::shared_ptr<Link> link) {
   auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
   NTA_CHECK(linkIter != links_.end());
@@ -102,7 +102,6 @@ void Output::removeLink(Link_Ptr_t link) {
 bool Output::isRegionLevel() const { return isRegionLevel_; }
 
 Region* Output::getRegion() const { return region_; }
-bool Output::isSparse() const { return isSparse_; }
 
 void Output::setName(const std::string &name) { name_ = name; }
 

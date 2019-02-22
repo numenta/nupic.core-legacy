@@ -269,10 +269,12 @@ private:
 };
 
 // Global operators
-// (concatination of filename with separator)
+//    path concatination with path seperator
 Path operator/(const Path & p1, const Path & p2);
 Path operator/(const std::string & p1, const Path & p2);
 Path operator/(const Path & p1, const std::string & p2);
+
+//     path concatination without seperator
 Path operator+(const Path & p1, const Path & p2);
 Path operator+(const std::string & p1, const Path & p2);
 Path operator+(const Path & p1, const std::string & p2);

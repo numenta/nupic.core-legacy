@@ -30,6 +30,7 @@
 
 #include <sstream>
 #include <vector>
+#include <nupic/types/Types.hpp>
 
 namespace nupic {
 /**
@@ -52,7 +53,7 @@ namespace nupic {
  *
  * @endinternal
  */
-typedef std::vector<size_t> Coordinate;
+typedef std::vector<UInt> Coordinate;
 
 /**
  * Represents the dimensions of a Region.
@@ -70,7 +71,7 @@ typedef std::vector<size_t> Coordinate;
  * @nosubgrouping
  *
  */
-class Dimensions : public std::vector<size_t> {
+class Dimensions : public std::vector<UInt> {
 public:
   /**
    *
@@ -89,14 +90,14 @@ public:
   Dimensions();
 
   /**
-   * Create a new Dimensions object from a @c std::vector<size_t>.
+   * Create a new Dimensions object from a @c std::vector<UInt>.
    *
    * @param v
-   *        A @c std::vector of @c size_t, the value with the index of @a n
+   *        A @c std::vector of @c UInt, the value with the index of @a n
    *        is the size of the @a n th dimension
    *
    */
-  Dimensions(std::vector<size_t> v);
+  Dimensions(std::vector<UInt> v);
 
   /** Create a new 1-dimension Dimensions object.
 
@@ -104,7 +105,7 @@ public:
    *        The size of the 1st dimension
    *
    */
-  Dimensions(size_t x);
+  Dimensions(UInt x);
 
   /**
    * Create a new 2-dimension Dimensions.
@@ -114,7 +115,7 @@ public:
    * @param y
    *        The size of the 2nd dimension
    */
-  Dimensions(size_t x, size_t y);
+  Dimensions(UInt x, UInt y);
 
   /**
    * Create a new 3-dimension Dimensions.
@@ -126,7 +127,7 @@ public:
    * @param z
    *        The size of the 3rd dimension
    */
-  Dimensions(size_t x, size_t y, size_t z);
+  Dimensions(UInt x, UInt y, UInt z);
 
   /**
    *

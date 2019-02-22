@@ -37,8 +37,11 @@
 #include <nupic/os/Env.hpp>
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
+
 #include <nupic/regions/VectorFileEffector.hpp>
 #include <nupic/regions/VectorFileSensor.hpp>
+#include <nupic/regions/SPRegion.hpp>
+
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
 
@@ -87,10 +90,11 @@ RegionImplFactory &RegionImplFactory::getInstance() {
   if (instance.regionTypeMap.empty()) {
     // Create internal C++ regions
 
-	instance.addRegionType("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
+	  instance.addRegionType("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
     instance.addRegionType("TestNode",           new RegisteredRegionImplCpp<TestNode>());
     instance.addRegionType("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
     instance.addRegionType("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
+    instance.addRegionType("SPRegion",           new RegisteredRegionImplCpp<SPRegion>());
 
   }
 
@@ -111,7 +115,7 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
                                                 Region *region) {
 
   RegionImpl *impl = nullptr;
-  Spec_Ptr_t& ns = getSpec(nodeType);
+  std::shared_ptr<Spec>& ns = getSpec(nodeType);
   ValueMap vm = YAMLUtils::toValueMap(nodeParams.c_str(), ns->parameters,
                                       nodeType, region->getName());
 
@@ -140,7 +144,7 @@ RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
 
 
 
-Spec_Ptr_t& RegionImplFactory::getSpec(const std::string nodeType) {
+std::shared_ptr<Spec>& RegionImplFactory::getSpec(const std::string nodeType) {
   auto it = regionSpecMap.find(nodeType);
   if (it == regionSpecMap.end()) {
 	NTA_THROW << "getSpec() -- unknown node type: '" << nodeType

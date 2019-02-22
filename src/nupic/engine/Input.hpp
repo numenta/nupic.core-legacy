@@ -29,7 +29,6 @@
 #ifndef NTA_INPUT_HPP
 #define NTA_INPUT_HPP
 
-#include <nupic/types/ptr_types.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
 #include <vector>
@@ -59,11 +58,8 @@ public:
    *        The type of the input, i.e. TODO
    * @param isRegionLevel
    *        Whether the input is region level, i.e. TODO
-   * @param isSparse
-   *        Whether the input is sparse. Default false
    */
-  Input(Region* region, NTA_BasicType type, bool isRegionLevel,
-        bool isSparse = false);
+  Input(Region* region, NTA_BasicType type, bool isRegionLevel);
 
   /**
    *
@@ -100,7 +96,7 @@ public:
    * @param srcOutput
    *        The output of previous Region, which is also the source of the input
    */
-  void addLink(Link_Ptr_t link, Output *srcOutput);
+  void addLink(std::shared_ptr<Link> link, Output *srcOutput);
 
   /**
    * Locate an existing Link to the input.
@@ -115,7 +111,7 @@ public:
    * @returns
    *     The link if found or @c NULL if no such link exists
    */
-  Link_Ptr_t findLink(const std::string &srcRegionName,
+  std::shared_ptr<Link> findLink(const std::string &srcRegionName,
                  const std::string &srcOutputName);
 
   /**
@@ -138,7 +134,7 @@ public:
    *        The Link to remove, possibly retrieved by findLink(), note that
    *        it is a reference to the pointer, not the pointer itself.
    */
-  void removeLink(Link_Ptr_t& link);
+  void removeLink(std::shared_ptr<Link>& link);
 
   /**
    * Make input data available.
@@ -177,7 +173,7 @@ public:
    * @returns
    *         All the Link objects added to the input
    */
-  std::vector<Link_Ptr_t> &getLinks();
+  std::vector<std::shared_ptr<Link>> &getLinks();
 
   /**
    *
@@ -243,13 +239,9 @@ public:
   template <typename T>
   void getInputForNode(size_t nodeIndex, std::vector<T> &input) const;
 
-  /*
-   * Tells whether the input is sparse.
-   *
-   * @returns
-   *     Whether the input is sparse
-   */
-  bool isSparse();
+  bool hasIncomingLinks() { return !links_.empty(); }
+  bool hasSplitterMap() { return !splitterMap_.empty(); }
+
 
 private:
   // Cannot use the shared_ptr here.
@@ -258,7 +250,7 @@ private:
   bool isRegionLevel_;
 
   // Use a vector of links because order is important.
-  std::vector<Link_Ptr_t> links_;
+  std::vector<std::shared_ptr<Link>> links_;
 
   // volatile (non-serialized) state
   bool initialized_;
@@ -268,6 +260,26 @@ private:
    * cached splitter map -- only created if requested
    * mutable because getSplitterMap() is const and logically
    * getting the splitter map doesn't change the Input
+   *
+   * What is a SplitterMap?
+   * When there is more than one output going to one input (FAN-IN)
+   * then we need a way to determine how to combine them.
+   * By default each output is appended to the width of the
+   * input buffer. But if you want some other behaviour then
+   * you use a splitterMap to re-map where each bit goes
+   * in the resulting input buffer.  
+   *
+   * There are cases where remapping of incoming data
+   * may be useful even if it is not a FAN-IN condition.
+   *
+   * The mapping in the splitterMap is determined by the
+   * LinkPolicy.
+   * 
+   * The SplitterMap is a vector of vectors.  The inner
+   * vector is the index of where the correspoinding bit 
+   * should go in the resulting input buffer.  The outter
+   * vector is which output is being sent to the input.
+   *
    */
   mutable SplitterMap splitterMap_;
 
@@ -281,9 +293,6 @@ private:
 
   // Useful for us to know our own name
   std::string name_;
-
-  // Whether or not to use sparse data
-  bool isSparse_;
 
   // Internal methods
 

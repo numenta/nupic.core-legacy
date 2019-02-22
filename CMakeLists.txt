@@ -36,6 +36,10 @@ option(FORCE_BOOST "Force compiler to install and use Boost." OFF)
 set(BINDING_BUILD "none" CACHE STRING "Specify the Binding to build 'Python2','Python3' or 'none', default 'none'." )
 # Note: by setting the CXX environment variable, a non-default c++ compiler can be specified.
 
+if(MSVC AND BINDING_BUILD STREQUAL "Python2")
+  message(FATAL_ERROR "The Extension library cannot be built for Python 2 using MSVC.  Use Python 3.x")
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -75,6 +79,11 @@ include(external/bootstrap.cmake)
  
 # Now build nupic_core project.
 set(core_library   nupic_core)
+if(MSVC)
+    set(src_lib_shared)
+else()
+    set(src_lib_shared nupic_core_shared)
+endif()
 add_subdirectory(src)
 
 string(REGEX MATCH "Python" match ${BINDING_BUILD})

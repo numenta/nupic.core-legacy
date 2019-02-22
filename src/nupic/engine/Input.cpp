@@ -33,32 +33,30 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/BasicType.hpp>
-#include <nupic/types/ptr_types.hpp>
 
 namespace nupic {
 
-Input::Input(Region* region, NTA_BasicType dataType, bool isRegionLevel,
-             bool isSparse)
+Input::Input(Region* region, NTA_BasicType dataType, bool isRegionLevel)
     : region_(region), isRegionLevel_(isRegionLevel), initialized_(false),
-      data_(dataType), name_("Unnamed"), isSparse_(isSparse) {}
+      data_(dataType), name_("Unnamed") {}
 
 Input::~Input() {
   uninitialize();
   for (auto &link : links_) {
-std::cout << "Input::~Input: \n";
+    std::cout << "Input::~Input: \n";
   	link->getSrc().removeLink(link); // remove it from the Output object.
     // the link is a shared_ptr so it will be deleted when links_ is cleared.
   }
   links_.clear();
 }
 
-void Input::addLink(Link_Ptr_t link, Output * srcOutput) {
+void Input::addLink(std::shared_ptr<Link> link, Output * srcOutput) {
   if (initialized_)
     NTA_THROW << "Attempt to add link to input " << name_ << " on region "
               << region_->getName() << " when input is already initialized";
 
   // Make sure we don't already have a link to the same output
-  for (std::vector<Link_Ptr_t>::const_iterator link = links_.begin();
+  for (std::vector<std::shared_ptr<Link>>::const_iterator link = links_.begin();
        link != links_.end(); link++) {
     if (srcOutput == &((*link)->getSrc())) {
       NTA_THROW << "addLink -- link from region "
@@ -75,7 +73,7 @@ void Input::addLink(Link_Ptr_t link, Output * srcOutput) {
   // is calculated at initialization time
 }
 
-void Input::removeLink(Link_Ptr_t &link) {
+void Input::removeLink(std::shared_ptr<Link> &link) {
   // removeLink should only be called internally -- if it
   // does not exist, it is a logic error
   auto linkiter = links_.begin();
@@ -96,12 +94,12 @@ void Input::removeLink(Link_Ptr_t &link) {
   uninitialize();
   link->getSrc().removeLink(link);
   links_.erase(linkiter);
-  // Link is deleted when the Link_Ptr_t goes out of scope.
+  // Link is deleted when the std::shared_ptr<Link> goes out of scope.
 }
 
-Link_Ptr_t Input::findLink(const std::string &srcRegionName,
+std::shared_ptr<Link> Input::findLink(const std::string &srcRegionName,
                       const std::string &srcOutputName) {
-  std::vector<Link_Ptr_t>::const_iterator linkiter = links_.begin();
+  std::vector<std::shared_ptr<Link>>::const_iterator linkiter = links_.begin();
   for (; linkiter != links_.end(); linkiter++) {
     Output &output = (*linkiter)->getSrc();
     if (output.getName() == srcOutputName &&
@@ -130,11 +128,13 @@ NTA_BasicType Input::getDataType() const { return data_.getType(); }
 
 Region* Input::getRegion() { return region_; }
 
-std::vector<Link_Ptr_t> &Input::getLinks() { return links_; }
+std::vector<std::shared_ptr<Link>> &Input::getLinks() { return links_; }
 
+/**
+ * Returns true if dimensions are specified on the region
+ * rather than on the link.
+ */
 bool Input::isRegionLevel() { return isRegionLevel_; }
-
-bool Input::isSparse() { return isSparse_; }
 
 // See header file for documentation
 size_t Input::evaluateLinks() {
@@ -149,7 +149,7 @@ size_t Input::evaluateLinks() {
     return 0;
 
   size_t nIncompleteLinks = 0;
-  std::vector<Link_Ptr_t>::iterator l;
+  std::vector<std::shared_ptr<Link>>::iterator l;
   for (l = links_.begin(); l != links_.end(); l++) {
     Region& srcRegion = *((*l)->getSrc().getRegion());
     Region& destRegion = *((*l)->getDest().getRegion());
@@ -450,7 +450,11 @@ size_t Input::evaluateLinks() {
 // all inputs have been initialized. Now we can calculate
 // our size and set up any data structures needed
 // for copying data over a link.
-
+//
+// Any Input that does not have a link attached will be
+// a Zero Length buffer. A region implementation should
+// ignore any zero length input buffers.
+//
 void Input::initialize() {
   if (initialized_)
     return;
@@ -461,35 +465,30 @@ void Input::initialize() {
         << "was called. Region's dimensions must be specified.";
   }
 
-  if (isSparse_) {
-    NTA_CHECK(isRegionLevel_) << "Sparse data must be region level";
-    NTA_CHECK(data_.getType() == NTA_BasicType_UInt32)
-        << "Sparse data must be uint32";
-  }
-
-  // Calculate our size and the offset of each link
+  /**
+   * Called during initialization to allocate the input buffers.
+   * Calculate our size and the offset of each link
+   * The offset is location within the input buffer where
+   * this link will place its data in a Fan-In type situation.
+   * The final count will be the entire buffer size.
+   * If there is more than one link to this same input, its a FanIn.
+   */
   size_t count = 0;
-  for (std::vector<Link_Ptr_t>::const_iterator l = links_.begin();
+  bool is_FanIn = links_.size() > 1;
+  for (std::vector<std::shared_ptr<Link>>::const_iterator l = links_.begin();
        l != links_.end(); l++) {
     linkOffsets_.push_back(count);
     // Setting the destination offset makes the link usable.
-    // TODO: change
-    (*l)->initialize(count);
+    (*l)->initialize(count, is_FanIn);
     count += (*l)->getSrc().getData().getCount();
   }
 
   // Later we may optimize with the zeroCopyEnabled_ flag but
-  // for now we always allocate our own buffer.
+  // for now we always allocate our own input buffer.
+  // Create the Input buffer.
   data_.allocateBuffer(count);
+  data_.zeroBuffer();
 
-  // Zero the inputs (required for inspectors)
-  if (count != 0) {
-    void *buffer = data_.getBuffer();
-    ::memset(buffer, 0, data_.getBufferSize());
-    if (isSparse_) {
-      data_.setCount(0);
-    }
-  }
 
   NTA_CHECK(splitterMap_.size() == 0);
 
@@ -501,7 +500,7 @@ void Input::initialize() {
     splitterMap_.resize(region_->getDimensions().getCount());
   }
 
-  for (std::vector<Link_Ptr_t>::const_iterator link = links_.begin();
+  for (std::vector<std::shared_ptr<Link>>::const_iterator link = links_.begin();
        link != links_.end(); link++) {
     (*link)->buildSplitterMap(splitterMap_);
   }
@@ -536,6 +535,13 @@ const std::vector<std::vector<size_t>> &Input::getSplitterMap() const {
   return splitterMap_;
 }
 
+
+/**
+ * Optionally called by Region Implementations to map a row of an input buffer
+ * into a vector using a splitter map to re-arrange the bits.
+ * NOTE: if you don't need a splitter map or don't have dimensions
+ *       then use the Input's Buffer directly and avoid a copy.
+ */
 template <typename T>
 void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
   NTA_CHECK(initialized_);
@@ -550,7 +556,8 @@ void Input::getInputForNode(size_t nodeIndex, std::vector<T> &input) const {
   for (size_t i = 0; i < map.size(); i++)
     input[i] = fullInput[map[i]];
 }
-
+template void Input::getInputForNode(size_t nodeIndex,
+                                     std::vector<Byte> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
                                      std::vector<Real64> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
@@ -564,6 +571,6 @@ template void Input::getInputForNode(size_t nodeIndex,
 template void Input::getInputForNode(size_t nodeIndex,
                                      std::vector<UInt32> &input) const;
 template void Input::getInputForNode(size_t nodeIndex,
-                                     std::vector<Byte> &input) const;
+                                     std::vector<bool> &input) const;
 
 } // namespace nupic

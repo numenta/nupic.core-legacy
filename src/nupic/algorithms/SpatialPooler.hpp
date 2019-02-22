@@ -33,14 +33,14 @@
 #include <nupic/algorithms/Connections.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 
-using namespace std;
 
 namespace nupic {
 namespace algorithms {
 namespace spatial_pooler {
 
+using namespace std;
 static const int DISABLED = -1; //value denoting a feature is disabled
 
 /**
@@ -609,14 +609,6 @@ public:
   that qualifies a synapse as being connected.
   */
   Real getSynPermConnected() const;
-  /**
-  Sets the permanence amount that qualifies a synapse as
-  being connected.
-
-  @param synPermConnected real number of the permanence amount that qualifies a
-  synapse as being connected.
-  */
-  void setSynPermConnected(Real synPermConnected);
 
   /**
   Returns the maximum permanence amount a synapse can

@@ -1,8 +1,7 @@
 #---------------------------------#
 #      general configuration      #
 #---------------------------------#
-image:
-- Visual Studio 2017
+image: Visual Studio 2017
 configuration: Release
 platform: x64
 
@@ -22,6 +21,10 @@ skip_commits:
   # Add [ci skip] to skip Travis and AppVeyor building
   message: /\[av skip\]/
 
+# Do not build feature branch with open Pull Requests
+# prevents two builds when a PR is pushed.
+skip_branch_with_pr: true
+
 #---------------------------------#
 #    environment configuration    #
 #---------------------------------#
@@ -32,7 +35,7 @@ skip_commits:
 init:
   - git config --global core.autocrlf input
 
-clone_folder: c:\projects\nupic-core
+clone_folder: c:\projects\nupic-cpp
 clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
@@ -41,7 +44,7 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: MSVC
-  NUPIC_CORE: "C:\\projects\\nupic-core"
+  NUPIC_CORE: "C:\\projects\\nupic-cpp"
   ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
 
 ## AWS S3 support (pip install boto)
@@ -60,27 +63,30 @@ environment:
 #      external_static_subdir: "windows64-gcc"
 #      wheel_name_suffix: "win_amd64"
 
-    # Win32-gcc
-#    - PYTHON_VERSION: "2.7.9"
+#    # Win32-gcc
+#    - NC_CMAKE_GENERATOR: "MinGW Makefiles"
+#      PYTHON_VERSION: "2.7.9"
 #      PYTHON_ARCH: "32"
 #      PYTHONHOME: "C:\\Python27"
-#      NC_CMAKE_GENERATOR: "MinGW Makefiles"
 #      external_static_subdir: "windows32-gcc"
 #      wheel_name_suffix: "win32"
 
     # Win64-Visual Studio
-    - PYTHON_VERSION: "2.7.9"
+    - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+      PYTHON_VERSION: "3.6.6"
       PYTHON_ARCH: "64"
-      PYTHONHOME: "C:\\Python27-x64"
+      PYTHONHOME: "C:\\Python36-x64"
+      #PYTHONHOME: "C:\\Users\\appveyor\\AppData\\Roaming\\Python\\Python36"
       PYTHONPATH: "%PYTHONHOME%"
       PATH: "%PYTHONHOME%\\Scripts;%PYTHONHOME%;%PATH%"
-      NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
       wheel_name_suffix: "win_amd64"
 
 matrix:
-  allow_failures:
-    # Checking if Visual Studio build is possible
-    - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+  fast_finish: true
+  ##  Dont know where this goes: skip_branch_with_pr: true
+  #allow_failures:
+  #  # enable this to prevent CI from failing even if there are errors.
+  #  - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
 
 
 #---------------------------------#
@@ -95,6 +101,9 @@ install:
 
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
+
+  - python -m pip install --user --upgrade pip setuptools setuptools-scm
+  - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
 
   - cd %NUPIC_CORE%
@@ -120,7 +129,7 @@ after_build:
   # Run unit_tests (C++)
   - cd %NUPIC_CORE%
   - mkdir %ARTIFACTS_DIR%
-  - cd %NUPIC_CORE%\build\release\bin
+  - cd %NUPIC_CORE%\build\Release\bin
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests
@@ -132,7 +141,7 @@ test: off
 
 artifacts:
   # Non-recursive search in build folder for Wheels
-  - path: '*.whl'
+#  - path: '*.whl'
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt

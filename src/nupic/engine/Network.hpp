@@ -70,6 +70,12 @@ public:
   Network(const std::string& filename);
 
   /**
+   * Cannot copy or assign a Network object.
+   */
+  Network(const Network&) = delete;
+  void operator=(const Network&) = delete;
+
+  /**
    * Destructor.
    *
    * Destruct the network and unregister it from NuPIC:
@@ -95,39 +101,39 @@ public:
   /**
    * @}
    *
-     * @name Internal Serialization methods
-     * @{
-     */
-    /**
-     *    saveToFile(path)
-     *    save(ostream f)
-     *    f << net;
-     *          serialize everything into one stream.  This can be
-     *          opened to a file or a memory stream but must be binary.
-     *
-     *    loadFromFile(path)
-     *    load(istream f)
-     *    f >> net;
-     *          restores the streamed Network and all its parts back to
-     *          what it was before being serialized.
-     *
-     * @path The filename into which to save/load the streamed serialization.
-     * @f    The stream with which to save/load the serialization.
-     *
+   * @name Internal Serialization methods
+   * @{
+   */
+  /**
+   *    saveToFile(path)
+   *    save(ostream f)
+   *    f << net;
+   *          serialize everything into one stream.  This can be
+   *          opened to a file or a memory stream but must be binary.
+   *
+   *    loadFromFile(path)
+   *    load(istream f)
+   *    f >> net;
+   *          restores the streamed Network and all its parts back to
+   *          what it was before being serialized.
+   *
+   * @path The filename into which to save/load the streamed serialization.
+   * @f    The stream with which to save/load the serialization.
+   *
 	 * See Serializable base class for definitions.
 	 */
-    virtual void save(std::ostream &f) const override;
-    virtual void load(std::istream &stream)  override;
-	virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
-    virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
+  virtual void save(std::ostream &f) const override;
+  virtual void load(std::istream &stream)  override;
+  virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
+  virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
-    /**
-     * @}
-     *
-     * @name Region and Link operations
-     *
-     * @{
-     */
+  /**
+   * @}
+   *
+   * @name Region and Link operations
+   *
+   * @{
+   */
 
   /**
    * Create a new region in a network.
@@ -141,7 +147,7 @@ public:
    *
    * @returns A pointer to the newly created Region
    */
-  Region_Ptr_t addRegion(const std::string &name,
+  std::shared_ptr<Region> addRegion(const std::string &name,
   					const std::string &nodeType,
                     const std::string &nodeParams);
 
@@ -156,7 +162,7 @@ public:
      *
      * @returns A pointer to the newly created Region
      */
-    Region_Ptr_t addRegion( std::istream &stream,
+    std::shared_ptr<Region> addRegion( std::istream &stream,
                        std::string name = "");
 
 
@@ -167,7 +173,7 @@ public:
 	 * The fields dimensions and label are not used but provided for backward
 	 * compatability.
 	 */
-    Region_Ptr_t addRegionFromBundle(const std::string name,
+    std::shared_ptr<Region> addRegionFromBundle(const std::string name,
 					const std::string nodeType,
 					const Dimensions& dimensions,
 					const std::string& filename,
@@ -236,15 +242,15 @@ public:
    *
    * @returns A Collection of Region objects in the network
    */
-  const Collection<Region_Ptr_t > &getRegions() const;
-  Region_Ptr_t getRegion(const std::string& name) const;
+  const Collection<std::shared_ptr<Region> > &getRegions() const;
+  std::shared_ptr<Region> getRegion(const std::string& name) const;
 
   /**
    * Get all links between regions
    *
    * @returns A Collection of Link objects in the network
    */
-  Collection<Link_Ptr_t> getLinks();
+  Collection<std::shared_ptr<Link>> getLinks();
 
   /**
    * Set phases for a region.
@@ -417,7 +423,7 @@ private:
   void resetEnabledPhases_();
 
   bool initialized_;
-  Collection<Region_Ptr_t> regions_;
+  Collection<std::shared_ptr<Region>> regions_;
 
   UInt32 minEnabledPhase_;
   UInt32 maxEnabledPhase_;

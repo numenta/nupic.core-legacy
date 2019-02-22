@@ -67,7 +67,7 @@ TEST(NetworkTest, AutoInitialization) {
   {
     Network net;
     ASSERT_TRUE(NuPIC::isInitialized());
-    Region_Ptr_t l1 = net.addRegion("level1", "TestNode", "");
+    std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
 
     // Use l1 to avoid a compiler warning
     EXPECT_STREQ("level1", l1->getName().c_str());
@@ -85,7 +85,7 @@ TEST(NetworkTest, RegionAccess) {
                std::exception);
 
   // Should be able to add a region
-  Region_Ptr_t l1 = net.addRegion("level1", "TestNode", "");
+  std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
 
   ASSERT_TRUE(l1->getNetwork() == &net);
 
@@ -94,7 +94,7 @@ TEST(NetworkTest, RegionAccess) {
   // Make sure partial matches don't work
   EXPECT_THROW(net.getRegions().getByName("level"), std::exception);
 
-  Region_Ptr_t l1a = net.getRegions().getByName("level1");
+  std::shared_ptr<Region> l1a = net.getRegions().getByName("level1");
   ASSERT_TRUE(l1a == l1);
 
   // Should not be able to add a second region with the same name
@@ -108,7 +108,7 @@ TEST(NetworkTest, InitializationBasic) {
 
 TEST(NetworkTest, InitializationNoRegions) {
   Network net;
-  Region_Ptr_t l1 = net.addRegion("level1", "TestNode", "");
+  std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
 
   // Region does not yet have dimensions -- prevents network initialization
 
@@ -122,7 +122,7 @@ TEST(NetworkTest, InitializationNoRegions) {
   net.initialize();
   net.run(1);
 
-  Region_Ptr_t l2 = net.addRegion("level2", "TestNode", "");
+  std::shared_ptr<Region> l2 = net.addRegion("level2", "TestNode", "");
   EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
   EXPECT_THROW(net.run(1), std::exception) << "no dimensions";
   EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
@@ -134,7 +134,7 @@ TEST(NetworkTest, Modification) {
   NTA_DEBUG << "Running network modification tests";
 
   Network net;
-  Region_Ptr_t l1 = net.addRegion("level1", "TestNode", "");
+  std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
 
   // should have been added at phase0
   std::set<UInt32> phases = net.getPhases("level1");
@@ -162,7 +162,7 @@ TEST(NetworkTest, Modification) {
   // Should succeed since dimensions are set
   net.initialize();
   net.run(1);
-  Region_Ptr_t l2 = regions.getByName("level2");
+  std::shared_ptr<Region> l2 = regions.getByName("level2");
   Dimensions d2 = l2->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
   ASSERT_EQ((UInt32)2, d2[0]);
@@ -204,7 +204,7 @@ TEST(NetworkTest, Modification) {
   ASSERT_EQ((UInt32)2, d2[1]);
 
   // add a third region
-  Region_Ptr_t l3 = net.addRegion("level3", "TestNode", "");
+  std::shared_ptr<Region> l3 = net.addRegion("level3", "TestNode", "");
 
   // should have been added at phase 2
   phases = net.getPhases("level3");
@@ -339,7 +339,7 @@ callbackData mydata;
 void testCallback(Network *net, UInt64 iteration, void *data) {
   callbackData &thedata = *(static_cast<callbackData *>(data));
   // push region names onto callback data
-  const nupic::Collection<Region_Ptr_t> &regions = net->getRegions();
+  const nupic::Collection<std::shared_ptr<Region>> &regions = net->getRegions();
   for (size_t i = 0; i < regions.getCount(); i++) {
     thedata.push_back(regions.getByIndex(i).first);
   }
@@ -354,7 +354,7 @@ TEST(NetworkTest, Phases) {
   Network net;
 
   // should auto-initialize with max phase
-  Region_Ptr_t l1 = net.addRegion("level1", "TestNode", "");
+  std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
   // Use l1 to avoid a compiler warning
   EXPECT_STREQ("level1", l1->getName().c_str());
 
@@ -362,7 +362,7 @@ TEST(NetworkTest, Phases) {
   ASSERT_EQ((UInt32)1, phaseSet.size());
   ASSERT_TRUE(phaseSet.find(0) != phaseSet.end());
 
-  Region_Ptr_t l2 = net.addRegion("level2", "TestNode", "");
+  std::shared_ptr<Region> l2 = net.addRegion("level2", "TestNode", "");
   EXPECT_STREQ("level2", l2->getName().c_str());
   phaseSet = net.getPhases("level2");
   ASSERT_TRUE(phaseSet.size() == 1);
@@ -417,9 +417,9 @@ TEST(NetworkTest, MinMaxPhase) {
 
   EXPECT_THROW(n.setMinEnabledPhase(1), std::exception);
   EXPECT_THROW(n.setMaxEnabledPhase(1), std::exception);
-  Region_Ptr_t l1 = n.addRegion("level1", "TestNode", "");
-  Region_Ptr_t l2 = n.addRegion("level2", "TestNode", "");
-  Region_Ptr_t l3 = n.addRegion("level3", "TestNode", "");
+  std::shared_ptr<Region> l1 = n.addRegion("level1", "TestNode", "");
+  std::shared_ptr<Region> l2 = n.addRegion("level2", "TestNode", "");
+  std::shared_ptr<Region> l3 = n.addRegion("level3", "TestNode", "");
   Dimensions d;
   d.push_back(1);
   l1->setDimensions(d);

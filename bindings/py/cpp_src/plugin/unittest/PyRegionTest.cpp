@@ -34,10 +34,8 @@
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Env.hpp>
-#include <nupic/os/OS.hpp> // memory leak detection
 #include <nupic/os/Path.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Exception.hpp>
@@ -75,36 +73,6 @@ using namespace nupic;
 
 bool verbose = false;
 
-struct MemoryMonitor {
-  MemoryMonitor() { OS::getProcessMemoryUsage(initial_vmem, initial_rmem); }
-
-  ~MemoryMonitor() {
-    if (hasMemoryLeaks()) {
-      NTA_DEBUG << "Memory leaks detected. "
-                << "Real Memory: " << diff_rmem
-                << ", Virtual Memory: " << diff_vmem;
-    }
-  }
-
-  void update() {
-    OS::getProcessMemoryUsage(current_vmem, current_rmem);
-    diff_vmem = current_vmem - initial_vmem;
-    diff_rmem = current_rmem - initial_rmem;
-  }
-
-  bool hasMemoryLeaks() {
-    update();
-    return diff_vmem > 0 || diff_rmem > 0;
-  }
-
-  size_t initial_vmem;
-  size_t initial_rmem;
-  size_t current_vmem;
-  size_t current_rmem;
-  size_t diff_rmem;
-  size_t diff_vmem;
-};
-
 void testPynodeInputOutputAccess(Region *level2) {
   std::cerr << "testPynodeInputOutputAccess \n";
 
@@ -113,7 +81,7 @@ void testPynodeInputOutputAccess(Region *level2) {
 
   // getting access via zero-copy
   std::cout << "Getting output for zero-copy access" << std::endl;
-  ArrayRef output = level2->getOutputData("bottomUpOut");
+  const Array& output = level2->getOutputData("bottomUpOut");
   std::cout << "Element count in bottomUpOut is " << output.getCount() << ""
             << std::endl;
   Real64 *data_actual = (Real64 *)output.getBuffer();
@@ -177,7 +145,7 @@ void testPynodeLinking() {
   NTA_CHECK(r2dims[0] == 3) << " actual dims: " << r2dims.toString();
   NTA_CHECK(r2dims[1] == 2) << " actual dims: " << r2dims.toString();
 
-  ArrayRef r1OutputArray = region1->getOutputData("bottomUpOut");
+  const Array& r1OutputArray = region1->getOutputData("bottomUpOut");
 
   region1->compute();
 
@@ -194,7 +162,7 @@ void testPynodeLinking() {
   }
 
   region2->prepareInputs();
-  ArrayRef r2InputArray = region2->getInputData("bottomUpIn");
+  const Array& r2InputArray = region2->getInputData("bottomUpIn");
   std::cout << "Region 2 input after first iteration:" << std::endl;
   Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
   NTA_CHECK(buffer != buffer2);
@@ -409,7 +377,23 @@ void testWriteRead() {
   }
 }
 
-int realmain(bool leakTest) {
+
+TEST(PyRegionTest, testAll) { //TODO former main method, could be splitted into separate tests
+
+  // This isn't running inside one of the SWIG modules, so we need to
+  // initialize the numpy C API.
+  Py_Initialize();
+  NTA_CHECK(Py_IsInitialized());
+  nupic::initializeNumpy();
+
+  // tell Python where to find src/bindings/region/TestNode.py
+  std::string ext = Path::normalize(__FILE__ "/../../../../bindings/py/src");
+  PyRun_SimpleString("import os, sys");
+  PyRun_SimpleString(("print(\"Python test DIR="+ ext + "\")").c_str());
+  PyRun_SimpleString("sys.path.append(\".\")");
+  PyRun_SimpleString(("sys.path.append(\""+ext+"\")").c_str());
+
+
   // verbose == true turns on extra output that is useful for
   // debugging the test (e.g. when the TestNode compute()
   // algorithm changes)
@@ -469,107 +453,9 @@ int realmain(bool leakTest) {
   testRegionDuplicateRegister();
   testCreationParamTypes();
 
-  if (!leakTest) {
-    // testNuPIC1x();
-    // testPynode1xLinking();
-  }
-
   // testUnregisterRegion needs to be the last test run as it will unregister
   // the region 'TestNode'.
   testUnregisterRegion();
 
-  std::cout << "Done -- all tests passed" << std::endl;
-
-  return 0;
-}
-
-TEST(PyRegionTest, testAll) { //TODO former main method, could be splitted into separate tests
-
-  // This isn't running inside one of the SWIG modules, so we need to
-  // initialize the numpy C API.
-  Py_Initialize();
-  NTA_CHECK(Py_IsInitialized());
-  nupic::initializeNumpy();
-
-  // tell Python where to find src/bindings/region/TestNode.py
-  std::string ext = Path::normalize(__FILE__ "/../../../../bindings/py/src");
-  PyRun_SimpleString("import os, sys");
-  PyRun_SimpleString(("print(\"Python test DIR="+ ext + "\")").c_str());
-  PyRun_SimpleString("sys.path.append(\".\")");
-  PyRun_SimpleString(("sys.path.append(\""+ext+"\")").c_str());
-
-
-  /*
-   * Without arguments, this program is a simple end-to-end demo
-   * of NuPIC 2 functionality, used as a developer tool (when
-   * we add a feature, we add it to this program.
-   * With an integer argument N, runs the same test N times
-   * and requires that memory use stay constant -- it can't
-   * grow by even one byte.
-   */
-
-  // Start checking memory usage after this many iterations.
-#if defined(NTA_OS_WINDOWS)
-  // takes longer to settle down on win32
-  size_t memoryLeakStartIter = 6000;
-#else
-  size_t memoryLeakStartIter = 150;
-#endif
-
-  // This determines how frequently we check.
-  size_t memoryLeakDeltaIterCheck = 10;
-
-  size_t minCount = memoryLeakStartIter + 5 * memoryLeakDeltaIterCheck;
-
-  size_t count = 0; //no mem leak detection, set to minCount if needed
-
-  if (count > 1 && count < minCount) {
-    std::cout << "Run count of " << count << " specified\n";
-    std::cout << "When run in leak detection mode, count must be at least "
-              << minCount << "\n";
-    ::exit(1);
-  }
-
-  size_t initial_vmem = 0;
-  size_t initial_rmem = 0;
-  size_t current_vmem = 0;
-  size_t current_rmem = 0;
-    for (size_t i = 0; i < count; i++) {
-      // MemoryMonitor m;
-      NuPIC::init();
-      realmain(count > 1);
-      // testExceptionBug();
-      // testPynode1xLinking();
-      // testNuPIC1x();
-      // testSecondTimeLeak();
-      // testPynodeLinking();
-      // testCppLinking("TestFanIn2","");
-      NuPIC::shutdown();
-      // memory leak detection
-      // we check even prior to the initial tracking iteration, because the act
-      // of checking potentially modifies our memory usage
-      if (i % memoryLeakDeltaIterCheck == 0) {
-        OS::getProcessMemoryUsage(current_rmem, current_vmem);
-        if (i == memoryLeakStartIter) {
-          initial_rmem = current_rmem;
-          initial_vmem = current_vmem;
-        }
-        std::cout << "Memory usage: " << current_vmem << " (virtual) "
-                  << current_rmem << " (real) at iteration " << i << std::endl;
-
-        if (i >= memoryLeakStartIter) {
-          if (current_vmem > initial_vmem || current_rmem > initial_rmem) {
-            std::cout << "Tracked memory usage (iteration "
-                      << memoryLeakStartIter << "): " << initial_vmem
-                      << " (virtual) " << initial_rmem << " (real)"
-                      << std::endl;
-            throw std::runtime_error("Memory leak detected");
-          }
-        }
-      }
-    }
-
-  if (count > 20)
-    std::cout << "Memory leak check passed -- " << count << " iterations" << std::endl;
   std::cout << "--- ALL TESTS PASSED ---" << std::endl;
 }

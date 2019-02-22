@@ -146,6 +146,7 @@ namespace nupic
 			PyBindRegion::createSpec(module_.c_str(), *sp, classname_.c_str());
 		  }
           catch (nupic::Exception & e) {
+		    UNUSED(e);
             delete sp;
             throw;
           }

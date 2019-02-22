@@ -16,10 +16,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Sdr.hpp>
-#include <nupic/ntypes/SdrMetrics.hpp>
+#include <nupic/types/Sdr.hpp>
+#include <nupic/utils/SdrMetrics.hpp>
 /* Many of these tests also test SDR proxies. */
-#include <nupic/ntypes/SdrProxy.hpp>
+#include <nupic/types/SdrProxy.hpp>
 #include <vector>
 #include <random>
 
@@ -539,3 +539,31 @@ TEST(SdrMetrics, TestAllMetrics_Print) {
     }
 }
 
+/**
+ * Test constructor with dimensions instead of SDR,
+ * Test addData() methods.
+ */
+TEST(SdrMetrics, TestAddData) {
+    SDR_Metrics M( {10u, 5u, 2u}, 100u );
+
+    // Check error checking
+    SDR badDims({2u, 5u, 10u});
+    ASSERT_ANY_THROW( M.addData(badDims) );
+    // Check that addData() only works when using the correct initializer.
+    SDR A({100u});
+    SDR_Metrics otherInit(A, 100u);
+    ASSERT_ANY_THROW( otherInit.addData(A) );
+    SDR B(A);
+    ASSERT_ANY_THROW( otherInit.addData(B) );
+
+    // Sanity check that data is used, not discarded.
+    SDR C( M.dimensions );
+    C.randomize( 0.20f );
+    for(auto i = 0u; i < 10u; i++) {
+        C.addNoise( 0.5f );
+        M.addData( C );
+    }
+    ASSERT_NEAR( M.sparsity.mean(), 0.2f, 0.01f );
+    ASSERT_NEAR( M.overlap.mean(),  0.5f, 0.01f );
+    ASSERT_NEAR( M.activationFrequency.mean(), 0.2f, 0.01f );
+}

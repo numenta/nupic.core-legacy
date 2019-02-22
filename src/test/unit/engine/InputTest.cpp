@@ -36,8 +36,8 @@ using namespace nupic;
 
 TEST(InputTest, BasicNetworkConstruction) {
   Network net;
-  Region_Ptr_t r1 = net.addRegion("r1", "TestNode", "");
-  Region_Ptr_t r2 = net.addRegion("r2", "TestNode", "");
+  std::shared_ptr<Region> r1 = net.addRegion("r1", "TestNode", "");
+  std::shared_ptr<Region> r2 = net.addRegion("r2", "TestNode", "");
 
   // Test constructor
   Input x(r1.get(), NTA_BasicType_Int32, true);
@@ -89,8 +89,8 @@ TEST(InputTest, BasicNetworkConstruction) {
 
 TEST(InputTest, SplitterMap) {
   Network net;
-  Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
-  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -119,20 +119,17 @@ TEST(InputTest, SplitterMap) {
   // test prepare
   {
     // set in2 to all zeroes
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    for (UInt i = 0; i < 64; i++)
-      idata[i] = 0;
+    ArrayBase *ai2 = &(in2->getData());
+    ai2->zeroBuffer();
 
     // set out1 to all 10's
-    const ArrayBase *ao1 = &(out1->getData());
-    idata = (Real64 *)(ao1->getBuffer());
-    for (UInt i = 0; i < 64; i++)
-      idata[i] = 10;
+    ArrayBase *ao1 = &(out1->getData());
+    Real64 *ptr = (Real64*)ao1->getBuffer();
+    for (size_t i = 0; i < ao1->getCount(); i++)
+      ptr[i] = 10;
 
     // confirm that in2 is still all zeroes
-    ai2 = &(in2->getData());
-    idata = (Real64 *)(ai2->getBuffer());
+    Real64* idata = (Real64 *)ai2->getBuffer();
     // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);
@@ -183,9 +180,9 @@ TEST(InputTest, SplitterMap) {
 
 TEST(InputTest, LinkTwoRegionsOneInput) {
   Network net;
-  Region_Ptr_t region1 = net.addRegion("region1", "TestNode", "");
-  Region_Ptr_t region2 = net.addRegion("region2", "TestNode", "");
-  Region_Ptr_t region3 = net.addRegion("region3", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region3 = net.addRegion("region3", "TestNode", "");
 
   Dimensions d1;
   d1.push_back(8);
@@ -229,7 +226,8 @@ TEST(InputTest, LinkTwoRegionsOneInput) {
   ASSERT_EQ(15, input[7]);
 
   // test getData()
-  const ArrayBase *pa = &(in3->getData());
+  const Array *pa = &(in3->getData());
+  //std::cerr << *pa << std::endl;
   ASSERT_EQ(128u, pa->getCount());
   Real64 *data = (Real64 *)(pa->getBuffer());
   ASSERT_EQ(1, data[0]);

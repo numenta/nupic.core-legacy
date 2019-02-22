@@ -195,7 +195,7 @@ if(MSVC)
 		NOGDI
 		)
 
-	set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} $<$<CONFIG:Debug>:-DNTA_ASSERTIONS_ON>)
+	set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} $<$<CONFIG:Debug>:NTA_ASSERTIONS_ON>)
 		
 	# common libs
 	# Libraries linked by defaultwith all C++ applications
@@ -277,7 +277,7 @@ else()
 
 	# Hide all symbols in DLLs except the ones with explicit visibility;
         # see https://gcc.gnu.org/wiki/Visibility
-        set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -fvisibility-inlines-hidden -fvisibility=hidden)
+        set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -fvisibility-inlines-hidden )
 
 
 	# LLVM Clang / Gnu GCC

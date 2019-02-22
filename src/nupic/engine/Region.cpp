@@ -33,17 +33,16 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <stdexcept>
 #include <string>
 
-#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
-#include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/NodeSet.hpp>
+#include <nupic/ntypes/Array.hpp>
+#include <nupic/types/BasicType.hpp>
+
 
 namespace nupic {
 
@@ -59,13 +58,16 @@ Region::Region(std::string name, const std::string &nodeType,
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   spec_ = factory.getSpec(nodeType);
 
+  // Dimensions start off as don't care but can be changed by user. dek 02/2019
+  // singleNodeOnly is ignored.
+  //dims_.push_back(1);
 
+  //---original code
   // Dimensions start off as unspecified, but if
   // the RegionImpl only supports a single node, we
   // can immediately set the dimensions.
   if (spec_->singleNodeOnly)
     dims_.push_back(1);
-  // else dims_ = []
 
   impl_.reset(factory.createRegionImpl(nodeType, nodeParams, this));
 }
@@ -88,7 +90,7 @@ void Region::createInputsAndOutputs_() {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
     std::string outputName = p.first;
     const OutputSpec &os = p.second;
-    auto output = new Output(this, os.dataType, os.regionLevel, os.sparse);
+    auto output = new Output(this, os.dataType, os.regionLevel);
     outputs_[outputName] = output;
     // keep track of name in the output also -- see note in Region.hpp
     output->setName(outputName);
@@ -100,7 +102,7 @@ void Region::createInputsAndOutputs_() {
     std::string inputName = p.first;
     const InputSpec &is = p.second;
 
-    auto input = new Input(this, is.dataType, is.regionLevel, is.sparse);
+    auto input = new Input(this, is.dataType, is.regionLevel);
     inputs_[inputName] = input;
     // keep track of name in the input also -- see note in Region.hpp
     input->setName(inputName);
@@ -158,7 +160,7 @@ void Region::initialize() {
 }
 
 
-const Spec_Ptr_t& Region::getSpecFromType(const std::string &nodeType) {
+const std::shared_ptr<Spec>& Region::getSpecFromType(const std::string &nodeType) {
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   return factory.getSpec(nodeType);
 }
@@ -226,7 +228,7 @@ std::string Region::getLinkErrors() const {
 
   std::stringstream ss;
   for (const auto &elem : inputs_) {
-    const std::vector<Link_Ptr_t> &links = elem.second->getLinks();
+    const std::vector<std::shared_ptr<Link>> &links = elem.second->getLinks();
     for (const auto &link : links) {
       if ((link)->getSrcDimensions().isUnspecified() ||
           (link)->getDestDimensions().isUnspecified()) {
@@ -288,7 +290,8 @@ void Region::setDimensions(Dimensions &newDims) {
   if (dims_ == newDims)
     return;
 
-  if (dims_.isUnspecified()) {
+  if (dims_.isUnspecified()) {  
+  //if (!initialized_) {  // make dimensions optional...defaulting to dont care. dek 02/2019
     if (newDims.isDontcare()) {
       NTA_THROW << "Invalid attempt to set region dimensions to dontcare value";
     }
@@ -301,35 +304,14 @@ void Region::setDimensions(Dimensions &newDims) {
     dims_ = newDims;
     dimensionInfo_ = "Specified explicitly in setDimensions()";
   } else {
-    NTA_THROW << "Attempt to set dimensions of region " << getName() << " to "
+    NTA_THROW << "Attempt to set dimensions of region " << getName() << " to " 
               << newDims.toString() << " but region already has dimensions "
               << dims_.toString();
+    //NTA_THROW << "Attempt to set dimensions of region " << getName() << " to "
+    //          << newDims.toString() << " but region already initialized.";
   }
-
-  // can only create the enabled node set after we know the number of dimensions
-  setupEnabledNodeSet();
 }
 
-void Region::setupEnabledNodeSet() {
-  NTA_CHECK(dims_.isValid());
-
-  if (enabledNodes_ != nullptr) {
-    delete enabledNodes_;
-  }
-
-  size_t nnodes = dims_.getCount();
-  enabledNodes_ = new NodeSet(nnodes);
-
-  enabledNodes_->allOn();
-}
-
-const NodeSet &Region::getEnabledNodes() const {
-  if (enabledNodes_ == nullptr) {
-    NTA_THROW << "Attempt to access enabled nodes set before region has been "
-                 "initialized";
-  }
-  return *enabledNodes_;
-}
 
 void Region::setDimensionInfo(const std::string &info) {
   dimensionInfo_ = info;
@@ -355,26 +337,27 @@ std::set<UInt32> &Region::getPhases() { return phases_; }
 
 
 void Region::save(std::ostream &f) const {
-      f << "{\n";
-      f << "name: " << name_ << "\n";
-      f << "nodeType: " << type_ << "\n";
-	  f << "dimensions: [ " << dims_.size() << "\n";
-	  for (Size d : dims_) {
-	  	f << d << " ";
-	  }
-	  f << "]\n";
+  f << "{\n";
+  f << "name: " << name_ << "\n";
+  f << "nodeType: " << type_ << "\n";
+  f << "dimensions: [ " << dims_.size() << "\n";
+  for (UInt32 d : dims_) {
+	  f << d << " ";
+  }
+  f << "]\n";
+  f << "dimensionInfo: " << dimensionInfo_ << "\n";
 
-      f << "phases: [ " << phases_.size() << "\n";
-      for (const auto &phases_phase : phases_) {
-        f << phases_phase << " ";
-      }
-      f << "]\n";
-      f << "RegionImpl:\n";
-      // Now serialize the RegionImpl plugin.
-      BundleIO bundle(&f);
-      impl_->serialize(bundle);
+  f << "phases: [ " << phases_.size() << "\n";
+  for (const auto &phases_phase : phases_) {
+      f << phases_phase << " ";
+  }
+  f << "]\n";
+  f << "RegionImpl:\n";
+  // Now serialize the RegionImpl plugin.
+  BundleIO bundle(&f);
+  impl_->serialize(bundle);
 
-      f << "}\n";
+  f << "}\n";
 }
 
 void Region::load(std::istream &f) {
@@ -382,7 +365,7 @@ void Region::load(std::istream &f) {
   std::string tag;
   Size count;
 
-  // Each region is a map -- extract the 4 values in the map
+  // Each region is a map -- extract the 5 values in the map
   f >> tag;
   NTA_CHECK(tag == "{") << "bad region entry (not a map)";
 
@@ -399,6 +382,7 @@ void Region::load(std::istream &f) {
   f.ignore(1);
   f.getline(bigbuffer, sizeof(bigbuffer));
   type_ = bigbuffer;
+
   // 3. dimensions
   f >> tag;
   NTA_CHECK(tag == "dimensions:");
@@ -407,14 +391,19 @@ void Region::load(std::istream &f) {
   f >> count;
   for (size_t i = 0; i < count; i++)
   {
-  Size val;
-  f >> val;
+    UInt32 val;
+    f >> val;
     dims_.push_back(val);
   }
   f >> tag;
   NTA_CHECK(tag == "]") << "Expecting end of a sequence.";
+  f >> tag;
+  NTA_CHECK(tag == "dimensionInfo:") << "Expecting dimensionInfo";
+  f.ignore(1);
+  f.getline(bigbuffer, sizeof(bigbuffer));
+  dimensionInfo_ = bigbuffer;
 
-  // 3. phases
+  // 4. phases
   f >> tag;
   NTA_CHECK(tag == "phases:");
   f >> tag;
@@ -430,7 +419,7 @@ void Region::load(std::istream &f) {
   f >> tag;
   NTA_CHECK(tag == "]") << "Expected end of sequence of phases.";
 
-  // 4. impl
+  // 5. impl
   f >> tag;
   NTA_CHECK(tag == "RegionImpl:") << "Expected beginning of RegionImpl.";
   f.ignore(1);
@@ -477,8 +466,7 @@ bool Region::operator==(const Region &o) const {
   // Compare Regions's Input
   static auto compareInput = [](decltype(*inputs_.begin()) a, decltype(a) b) {
     if (a.first != b.first ||
-        a.second->isRegionLevel() != b.second->isRegionLevel() ||
-        a.second->isSparse() != b.second->isSparse()) {
+        a.second->isRegionLevel() != b.second->isRegionLevel()) {
       return false;
     }
     auto links1 = a.second->getLinks();
@@ -501,7 +489,6 @@ bool Region::operator==(const Region &o) const {
   static auto compareOutput = [](decltype(*outputs_.begin()) a, decltype(a) b) {
     if (a.first != b.first ||
         a.second->isRegionLevel() != b.second->isRegionLevel() ||
-        a.second->isSparse() != b.second->isSparse() ||
         a.second->getNodeOutputElementCount() !=
             b.second->getNodeOutputElementCount()) {
       return false;
@@ -514,6 +501,146 @@ bool Region::operator==(const Region &o) const {
   }
 
   return true;
+}
+
+
+
+
+
+// Internal methods called by RegionImpl.
+
+Output *Region::getOutput(const std::string &name) const {
+  auto o = outputs_.find(name);
+  if (o == outputs_.end())
+    return nullptr;
+  return o->second;
+}
+
+Input *Region::getInput(const std::string &name) const {
+  auto i = inputs_.find(name);
+  if (i == inputs_.end())
+    return nullptr;
+  return i->second;
+}
+
+// Called by Network during serialization
+const std::map<std::string, Input *> &Region::getInputs() const {
+  return inputs_;
+}
+
+const std::map<std::string, Output *> &Region::getOutputs() const {
+  return outputs_;
+}
+
+
+const Array& Region::getOutputData(const std::string &outputName) const {
+  auto oi = outputs_.find(outputName);
+  if (oi == outputs_.end())
+    NTA_THROW << "getOutputData -- unknown output '" << outputName
+              << "' on region " << getName();
+
+  const Array& data = oi->second->getData();
+  return data;
+}
+
+const Array& Region::getInputData(const std::string &inputName) const {
+  auto ii = inputs_.find(inputName);
+  if (ii == inputs_.end())
+    NTA_THROW << "getInput -- unknown input '" << inputName << "' on region "
+              << getName();
+
+  const Array & data = ii->second->getData();
+  return data;
+}
+
+void Region::prepareInputs() {
+  // Ask each input to prepare itself
+  for (InputMap::const_iterator i = inputs_.begin(); i != inputs_.end(); i++) {
+    i->second->prepare();
+  }
+}
+
+
+// setParameter
+
+void Region::setParameterInt32(const std::string &name, Int32 value) {
+  impl_->setParameterInt32(name, (Int64)-1, value);
+}
+
+void Region::setParameterUInt32(const std::string &name, UInt32 value) {
+  impl_->setParameterUInt32(name, (Int64)-1, value);
+}
+
+void Region::setParameterInt64(const std::string &name, Int64 value) {
+  impl_->setParameterInt64(name, (Int64)-1, value);
+}
+
+void Region::setParameterUInt64(const std::string &name, UInt64 value) {
+  impl_->setParameterUInt64(name, (Int64)-1, value);
+}
+
+void Region::setParameterReal32(const std::string &name, Real32 value) {
+  impl_->setParameterReal32(name, (Int64)-1, value);
+}
+
+void Region::setParameterReal64(const std::string &name, Real64 value) {
+  impl_->setParameterReal64(name, (Int64)-1, value);
+}
+
+void Region::setParameterBool(const std::string &name, bool value) {
+  impl_->setParameterBool(name, (Int64)-1, value);
+}
+
+// getParameter
+
+Int32 Region::getParameterInt32(const std::string &name) const {
+  return impl_->getParameterInt32(name, (Int64)-1);
+}
+
+Int64 Region::getParameterInt64(const std::string &name) const {
+  return impl_->getParameterInt64(name, (Int64)-1);
+}
+
+UInt32 Region::getParameterUInt32(const std::string &name) const {
+  return impl_->getParameterUInt32(name, (Int64)-1);
+}
+
+UInt64 Region::getParameterUInt64(const std::string &name) const {
+  return impl_->getParameterUInt64(name, (Int64)-1);
+}
+
+Real32 Region::getParameterReal32(const std::string &name) const {
+  return impl_->getParameterReal32(name, (Int64)-1);
+}
+
+Real64 Region::getParameterReal64(const std::string &name) const {
+  return impl_->getParameterReal64(name, (Int64)-1);
+}
+
+bool Region::getParameterBool(const std::string &name) const {
+  return impl_->getParameterBool(name, (Int64)-1);
+}
+
+// array parameters
+
+void Region::getParameterArray(const std::string &name, Array &array) const {
+  impl_->getParameterArray(name, (Int64)-1, array);
+}
+
+void Region::setParameterArray(const std::string &name, const Array &array) {
+  impl_->setParameterArray(name, (Int64)-1, array);
+}
+
+void Region::setParameterString(const std::string &name, const std::string &s) {
+  impl_->setParameterString(name, (Int64)-1, s);
+}
+
+std::string Region::getParameterString(const std::string &name) {
+  return impl_->getParameterString(name, (Int64)-1);
+}
+
+bool Region::isParameterShared(const std::string &name) const {
+  return impl_->isParameterShared(name);
 }
 
 } // namespace nupic

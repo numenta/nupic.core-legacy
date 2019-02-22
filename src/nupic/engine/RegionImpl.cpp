@@ -41,9 +41,6 @@ std::string RegionImpl::getType() const { return region_->getType(); }
 
 std::string RegionImpl::getName() const { return region_->getName(); }
 
-const NodeSet &RegionImpl::getEnabledNodes() const {
-  return region_->getEnabledNodes();
-}
 
 /* ------------- Parameter support --------------- */
 // By default, all typed getParameter calls forward to the
