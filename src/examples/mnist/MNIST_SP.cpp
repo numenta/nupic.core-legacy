@@ -60,26 +60,26 @@ class MNIST {
 
 void setup() {
 
-  input.initialize({28, 28, 1});
+  input.initialize({28, 28});
   sp.initialize(
     /* numInputs */                    input.dimensions,
-    /* numColumns */                   {20, 20, 10}
+    /* numColumns */                   {28, 28}
     );
-  sp.setGlobalInhibition(true);
+  sp.setGlobalInhibition(false);
   // mapping to input
-  sp.setPotentialRadius(2); //receptive field (hyper-cube) how each col maps to input
-  sp.setPotentialPct(0.2); //of the recept. field above, how much % of inputs individual col connects to?
-  sp.setStimulusThreshold(10); //FIXME no learning if this > 0
+  sp.setPotentialRadius(1); //receptive field (hyper-cube) how each col maps to input
+  sp.setPotentialPct(0.1); //of the recept. field above, how much % of inputs individual col connects to?
+  sp.setStimulusThreshold(3); //FIXME no learning if this > 0
   sp.setSynPermActiveInc(0.1);
   sp.setSynPermInactiveDec(0.02);
 
   sp.setSpVerbosity(verbosity);
   // on columnar level
-  sp.setLocalAreaDensity(.04); // 2% sparsity
+  sp.setLocalAreaDensity(.05); // 2% sparsity
   sp.setMinPctOverlapDutyCycles(0.4);
   //boost
   sp.setBoostStrength(1.5);
-  sp.setDutyCyclePeriod(1000);
+  sp.setDutyCyclePeriod(100);
 
   sp.setWrapAround(false);
 
