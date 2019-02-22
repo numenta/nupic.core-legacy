@@ -24,7 +24,9 @@ jobs:
             echo 'python version: ' && python --version
             echo 'pip version: ' && python -m pip --version 
             echo 'python version: ' && python --version
-            echo 'cmake version: ' && cmake --version
+      - run:
+          name: Installing cmake 
+          command: brew install cmake || brew install cmake
       - checkout
 
       # Dependencies
