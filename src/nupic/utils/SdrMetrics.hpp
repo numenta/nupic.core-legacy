@@ -124,7 +124,7 @@ public:
         callback( data, 1.0f / std::min( period_, (UInt) ++samples_ ));
     }
 
-    ~SDR_MetricsHelper_() {
+    virtual ~SDR_MetricsHelper_() {
         deconstruct();
     }
 };
