@@ -160,9 +160,6 @@ set(ntypes_files
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
     nupic/ntypes/Dimensions.hpp
-    nupic/ntypes/MemParser.cpp
-    nupic/ntypes/MemParser.hpp
-    nupic/ntypes/MemStream.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
     nupic/ntypes/Value.cpp
