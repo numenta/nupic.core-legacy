@@ -26,14 +26,13 @@
 # NOTE SETTINGS THAT ARE SPECIFIC TO THIS OR THAT MODULE DO NOT BELONG HERE.
 
 # INPUTS:
-#	INTERNAL_CPP_STANDARD  i.e. C++11, C++14, C++17 , defaults to C++11 or C++17
+#	CMAKE_CXX_STANDARD  i.e. (C++) 11, 14, 17; defaults to C++11 or C++17
 #	BITNESS   32,64, defaults to bitness of current machine.
 #	PLATFORM:   defaults to ${CMAKE_SYSTEM_NAME}  
 #	CMAKE_BUILD_TYPE   Debug, Release   defaults to Release
 
 # OUTPUTS:
 #
-#	INTERNAL_CPP_STANDARD  and compiler options are set in flags
 #	PLATFORM:   lowercase
 #	BITNESS: Platform bitness: 32 or 64
 #
@@ -98,16 +97,16 @@ string(TOLOWER ${PLATFORM} PLATFORM)
 # 
 
 set(extra_lib_for_filesystem)   # sometimes -libc++experimental or -lstdc++fs
-set(INTERNAL_CPP_STANDARD "c++11")
+set(CMAKE_CXX_STANDARD 11) # -std=c++11 by default
 set(boost_required ON)
 
 if(NOT FORCE_CPP11)
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9")
-         set(INTERNAL_CPP_STANDARD "c++17")
+         set(CMAKE_CXX_STANDARD 17)
 	 set(boost_required OFF)
     elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
-         set(INTERNAL_CPP_STANDARD "c++17")
+         set(CMAKE_CXX_STANDARD 17)
 	 set(extra_lib_for_filesystem "stdc++fs")
 	 set(boost_required "OFF")
     endif()	 
@@ -115,12 +114,12 @@ if(NOT FORCE_CPP11)
     # does not support C++17 and filesystem (as of XCode 10.1)
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
-         set(INTERNAL_CPP_STANDARD "c++17")
+         set(CMAKE_CXX_STANDARD 17)
 	 set(boost_required OFF)
     endif()
   elseif(MSVC)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.14")
-            set(INTERNAL_CPP_STANDARD "c++17")
+            set(CMAKE_CXX_STANDARD 17)
 	    set(boost_required OFF)
       endif()
   endif()
@@ -132,9 +131,6 @@ else()
   set(NEEDS_BOOST ${FORCE_BOOST})
 endif()
 
-# https://stackoverflow.com/questions/44960715/how-to-enable-stdc17-in-vs2017-with-cmake
-string(SUBSTRING ${INTERNAL_CPP_STANDARD} 3 -1 std_ver)
-set_property(GLOBAL PROPERTY CXX_STANDARD ${std_ver})
 set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
@@ -282,8 +278,6 @@ else()
 	# Hide all symbols in DLLs except the ones with explicit visibility;
         # see https://gcc.gnu.org/wiki/Visibility
         set(cxx_flags_unoptimized ${cxx_flags_unoptimized} -fvisibility-inlines-hidden )
-        set(cxx_flags_unoptimized ${cxx_flags_unoptimized}  -std=c++${std_ver})
-	
 
 
 	# LLVM Clang / Gnu GCC
