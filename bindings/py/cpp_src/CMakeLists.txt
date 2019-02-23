@@ -64,17 +64,8 @@ set(src_py_engine_files
 	
 set(src_py_math_files
     bindings/math/math_module.cpp    
-    bindings/math/py_ArrayAlgo.cpp
-    bindings/math/py_Domain.cpp
-    bindings/math/py_Math.cpp
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
-    bindings/math/py_Set.cpp
-    bindings/math/py_SparseBinaryMatrix.cpp
-    bindings/math/py_SparseMatrix.cpp
-    bindings/math/py_SparseTensor.cpp
-    bindings/math/PyBindSparseTensor.hpp
-    bindings/math/SparseTensorIndex.hpp
     )
     
 set(src_py_test_files

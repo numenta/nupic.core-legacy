@@ -24,6 +24,7 @@
  * Implementation of unit tests for Segment
  */
 
+#include <algorithm> //find
 #include <set>
 #include <vector>
 #include <iostream>
@@ -34,9 +35,6 @@
 #include <nupic/os/Directory.hpp>
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/Segment.hpp>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
-#include <examples/hotgym/HelloSPTP.hpp>
-
 
 using namespace nupic::algorithms::Cells4;
 
@@ -49,8 +47,8 @@ std::vector<UInt> _getOrderedSrcCellIndexesForSrcCells(const Segment &segment,
   const std::set<UInt> srcCellsSet(first, last);
 
   for (UInt i = 0; i < segment.size(); ++i) {
-    UInt srcCellIdx = segment[i].srcCellIdx();
-    if (is_in(srcCellIdx, srcCellsSet)) {
+    const UInt srcCellIdx = segment[i].srcCellIdx();
+    if (std::find(srcCellsSet.cbegin(), srcCellsSet.cend(), srcCellIdx) != srcCellsSet.cend()) { // is in
       result.push_back(srcCellIdx);
     }
   }
@@ -67,8 +65,8 @@ std::vector<UInt> _getOrderedSynapseIndexesForSrcCells(const Segment &segment,
   const std::set<UInt> srcCellsSet(first, last);
 
   for (UInt i = 0; i < segment.size(); ++i) {
-    UInt srcCellIdx = segment[i].srcCellIdx();
-    if (is_in(srcCellIdx, srcCellsSet)) {
+    const UInt srcCellIdx = segment[i].srcCellIdx();
+    if (std::find(srcCellsSet.cbegin(), srcCellsSet.cend(), srcCellIdx) != srcCellsSet.cend()) { // is in
       result.push_back(i);
     }
   }
