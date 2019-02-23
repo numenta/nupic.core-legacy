@@ -76,9 +76,6 @@ set(ntypes_tests
 	   unit/ntypes/MemParserTest.cpp
 	   unit/ntypes/MemStreamTest.cpp
 	   unit/ntypes/ScalarTest.cpp
-	   unit/ntypes/SdrTest.cpp
-	   unit/ntypes/SdrProxyTest.cpp
-	   unit/ntypes/SdrMetricsTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
@@ -90,10 +87,18 @@ set(os_tests
 	   unit/os/TimerTest.cpp
 	   )
 	   
+set(regions_tests
+	   unit/regions/RegionTestUtilities.cpp
+	   unit/regions/RegionTestUtilities.hpp
+	   unit/regions/SPRegionTest.cpp
+	   )
+	   
 set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
 	   unit/types/FractionTest.cpp
+	   unit/types/SdrTest.cpp
+	   unit/types/SdrProxyTest.cpp
 	   )
 	   
 set(utils_tests
@@ -101,6 +106,7 @@ set(utils_tests
 	   unit/utils/MovingAverageTest.cpp
 	   unit/utils/RandomTest.cpp
 	   unit/utils/VectorHelpersTest.cpp
+	   unit/utils/SdrMetricsTest.cpp
 	   unit/utils/WatcherTest.cpp
 	   )
 	   
@@ -113,6 +119,7 @@ source_group("engine" FILES ${engine_tests})
 source_group("math" FILES ${math_tests})
 source_group("ntypes" FILES ${ntypes_tests})
 source_group("os" FILES ${os_tests})
+source_group("regions" FILES ${regions_tests})
 source_group("types" FILES ${types_tests})
 source_group("utils" FILES ${utils_tests})
 source_group("main" FILES unit/UnitTestMain.cpp)
@@ -126,6 +133,7 @@ set(src_executable_gtests
     ${math_tests} 
     ${ntypes_tests} 
     ${os_tests} 
+    ${regions_tests}
     ${types_tests} 
     ${utils_tests} 
 )
@@ -133,6 +141,7 @@ set(src_executable_gtests
 add_executable(${unit_tests_executable} ${src_executable_gtests})
 target_link_libraries(${unit_tests_executable} 
     ${core_library}
+#    ${src_lib_shared}
     ${gtest_LIBRARIES}
     ${COMMON_OS_LIBS}
 )
@@ -143,7 +152,8 @@ target_include_directories(${unit_tests_executable} PRIVATE
 target_compile_definitions(${unit_tests_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_compile_options(${unit_tests_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
 set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
-add_dependencies(${unit_tests_executable} ${core_library})
+add_dependencies(${unit_tests_executable} ${core_library}) 
+#add_dependencies(${unit_tests_executable} ${src_lib_shared})
 
 
 # Create the RUN_TESTS target

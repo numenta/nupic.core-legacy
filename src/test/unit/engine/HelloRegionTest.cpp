@@ -29,7 +29,6 @@
 
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Path.hpp>
 
@@ -93,7 +92,7 @@ TEST(HelloRegionTest, demo) {
   region->compute();  // This should fetch the first row into buffer
 
   // Get output
-  ArrayRef outputArray = region->getOutputData("dataOut");
+  const Array outputArray = region->getOutputData("dataOut");
   EXPECT_TRUE(outputArray.getType() == NTA_BasicType_Real32);
   EXPECT_EQ(outputArray.getCount(), testdata[0].size());
   const Real32 *buffer = (const Real32 *)outputArray.getBuffer();
@@ -114,7 +113,7 @@ TEST(HelloRegionTest, demo) {
   EXPECT_EQ(net, net2) << "Restored network should be the same as original.";
 
   std::shared_ptr<Region> region2 = net2.getRegion("region");
-  ArrayRef outputArray2 = region2->getOutputData("dataOut");
+  const Array outputArray2 = region2->getOutputData("dataOut");
 
   // fetch the data rows for both networks.
   net.run((int)data_rows-1);

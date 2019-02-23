@@ -447,14 +447,12 @@ public:
    * @param inputName
    *        The name of the target input
    *
-   * @returns An @c ArrayRef that references the Input object's buffer.
+   * @returns An @c const Array that references the Input object's buffer.
    *        This buffer is shared with the Input object so when it changes the
-   *        returned ArrayRef's buffer also changes.
+   *        returned Array's buffer also changes.
    *        Note that this is read-only.
-   *
-   *
    */
-  virtual ArrayRef getInputData(const std::string &inputName) const;
+  virtual const Array& getInputData(const std::string &inputName) const;
 
   /**
    * Get the output data.
@@ -463,15 +461,14 @@ public:
    *        The name of the target output
    *
    * @returns
-   *        An @c ArrayRef that references the output data buffer.
+   *        An @c const Array that references the output data buffer.
    *        This buffer is shared with the Output object so when it changes the
-   *        returned ArrayRef's buffer also changes.
+   *        returned Array's buffer also changes.
    *        Note that this is read-only.
    *        To obtain a writeable Array use
-   *			region->getOutput(name)->getData();
-   *
+   *			  region->getOutput(name)->getData();
    */
-  virtual ArrayRef getOutputData(const std::string &outputName) const;
+  virtual const Array& getOutputData(const std::string &outputName) const;
 
 
   /**
@@ -617,7 +614,6 @@ public:
 
   void removeAllIncomingLinks();
 
-  const NodeSet &getEnabledNodes() const;
 
   // TODO: sort our phases api. Users should never call Region::setPhases
   // and it is here for serialization only.
@@ -671,8 +667,6 @@ private:
   // were set.
   std::string dimensionInfo_;
 
-  // private helper methods
-  void setupEnabledNodeSet();
 
   // Profiling related methods and variables.
   bool profilingEnabled_;

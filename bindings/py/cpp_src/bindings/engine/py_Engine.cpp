@@ -38,7 +38,7 @@ PyBind11 bindings for Engine classes
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Timer.hpp>
 
-#include <nupic/ntypes/ArrayRef.hpp>
+#include <nupic/ntypes/Array.hpp>
 
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Network.hpp>
@@ -65,10 +65,10 @@ namespace nupic_ext
 
         // constructors
         py_Dimensions.def(py::init<>())
-            .def(py::init<std::vector<size_t>>())
-            .def(py::init<size_t>())
-            .def(py::init<size_t, size_t>())
-            .def(py::init<size_t, size_t, size_t>());
+            .def(py::init<std::vector<UInt>>())
+            .def(py::init<UInt>())
+            .def(py::init<UInt, UInt>())
+            .def(py::init<UInt, UInt, UInt>());
 
         // members
         py_Dimensions.def("getCount", &Dimensions::getCount)

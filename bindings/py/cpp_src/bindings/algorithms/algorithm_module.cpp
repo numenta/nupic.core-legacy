@@ -33,6 +33,8 @@ namespace py = pybind11;
 
 namespace nupic_ext
 {
+    void init_SDR(py::module&);
+    void init_SDR_Metrics(py::module&);
     void init_algorithms(py::module&);
     void init_Cells4(py::module&);
     void init_HTM(py::module&);
@@ -46,6 +48,8 @@ using namespace nupic_ext;
 PYBIND11_MODULE(algorithms, m) {
     m.doc() = "nupic.core.algorithms plugin"; // optional module docstring
 
+    init_SDR(m);
+    init_SDR_Metrics(m);
     init_algorithms(m);
     init_HTM(m);
     init_Cells4(m);

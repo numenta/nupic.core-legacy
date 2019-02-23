@@ -164,12 +164,8 @@ class NetworkTest(unittest.TestCase):
     # Check for valid links
     network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")
     network.link("from", "to", "UniformLink", "", "Real32", "Real32")
-
-    # Check for invalid links
-    with pytest.raises(RuntimeError):
-      network.link("from", "to", "UniformLink", "", "Real32", "UInt32")
-    with pytest.raises(RuntimeError):
-      network.link("from", "to", "UniformLink", "", "UInt32", "Real32")
+    network.link("from", "to", "UniformLink", "", "Real32", "UInt32")
+    network.link("from", "to", "UniformLink", "", "UInt32", "Real32")
 	
 
   @pytest.mark.skip(reason="parameter types don't match.")

@@ -7,7 +7,7 @@
 
 ## Community NuPIC.cpp (former nupic.core) repository
 
-This fork is a community version of the `nupic.core` C++ repository with Python bindings. 
+This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings. 
 Our aim is to provide an actively developed successor to the nupic.core and nupic repositories by Numenta, 
 which are not actively developed anymore. 
 
@@ -32,8 +32,10 @@ Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)).
 It will eventually contain all algorithms for NuPIC, but is currently in a transition period. 
 
 \*) Nupic API compatability: The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html) 
-with the aim that we don't break .py code written against the numenta's nupic.core extension library if they were to be 
+with the aim that we don't break `.py` code written against the numenta's nupic.core extension library if they were to be 
 ran against this extention library. If you are porting your code to this codebase, please review [API Changelog](API_CHANGELOG.md).
+
+### New Features 
 
 Some of the major differences between this library and Numenta's extension library are the following:
 
@@ -43,10 +45,14 @@ Some of the major differences between this library and Numenta's extension libra
  * Replaced SWIG with PyBind11 for Python interface.
  * Removed CapnProto serialization.  It was prevasive and complicated the code considerably. It was replaced 
  with simple binary streaming serialization in C++ library.
- * Many code optimizations, modernization
+ * Many code optimizations, modernization (Spatial Pooler shares optimized Connections backend with Temporal memory) 
  * Modular structure
  * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
- * Much easier installation.
+ * Much easier installation (reduced dependencies, all are handeled by CMake) 
+ * static and shared lib files for use with C++ applications.
+
+
+## Installation 
 
 ### Prerequisites
 
@@ -59,7 +65,7 @@ Some of the major differences between this library and Numenta's extension libra
 - Python tools: In a command prompt execute the following.
 ```
   cd to-repository-root
-  python -m pip install --user --upgrade pip setuptools setuptools-scm
+  python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
   python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt
 ```
 
@@ -68,21 +74,25 @@ Some of the major differences between this library and Numenta's extension libra
   python --version
 ```
 
-## Building from Source
+### Building from Source
 
 Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
 
-### Simple Build for Python users (any platform)
+#### Simple Build for Python users (any platform)
 
 The easiest way to build from source is as follows. 
 ```
     cd to-repository-root
-    python setup.py install --user --prefix=
+    python setup.py install --user --force
 ```
-Note that `--user --prefix=` options will install the extension libaries in ~/.local
-so that you don't need superuser permissions.
- 
+Note that `--force` option will overwrite any existing files even if they are
+the same version, which is useful when developing the library & bindings.
+
+Note that `--user` option will install the extension libaries in ~/.local so
+that you don't need superuser permissions.
+
 This will build everything including the nupic.cpp static library and Python extension libraries and then install them.
+
 After that completes you are all set to run your .py programs which import the extensions:
  * nupic.bindings.algorithms
  * nupic.bindings.engine_internal
@@ -97,7 +107,7 @@ The installation scripts will automatically download and build the dependancies 
  * numpy
  * pytest
  
-### Simple Build On Linux or OSX for C++ apps
+#### Simple Build On Linux or OSX for C++ apps
  
 After downloading the repository, do the following:
 ```
@@ -107,13 +117,15 @@ After downloading the repository, do the following:
 	cmake ../..
 	make install
 ```	
-This will build the Nupic.core library without the Python interface. You will find the
-library in `build/Release/lib`. The headers will be in `build/Release/include`.
+This will build the Nupic.core library without the Python interface. 
+ * build/Release/lib/libnupic-core.a   static library
+ * build/Release/lib/libnupic-core.so  shared library
+ * The headers will be in `build/Release/include`.
 
 A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.  The -j3 could be used 
-with the `make install` command to use multiple threads.
+with the `make install` command to compile with multiple threads.
 
-### Simple Build On Windows (MS Visual Studio 2017) 
+#### Simple Build On Windows (MS Visual Studio 2017) 
 
 After downloading the repository, do the following:
  * CD to top of repository.
@@ -124,17 +136,17 @@ After downloading the repository, do the following:
  * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
  * If you also want the Python extension library; in a command prompt, cd to root of repository and run `python setup.py install --user --prefix=`.
 
-## Testing
+### Testing
 
-### Unit tests for the library
+#### Unit tests for the library
 
 There are two sets of unit tests.
  * C++ Unit tests -- to run: `cd build/Release/bin; ./unit_tests`
  * Python Unit tests -- to run: `python setup.py test`
  
-## Using graphical interface
+### Using graphical interface
 
-### Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
+#### Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
 
  * Choose the IDE that interest you (remember that IDE choice is limited to your OS).
  * Open CMake executable in the IDE.
@@ -142,7 +154,7 @@ There are two sets of unit tests.
  * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
  
-### For MS Visual Studio 2017 as the IDE
+#### For MS Visual Studio 2017 as the IDE
  * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
  * Double click build/scripts/nupic.cpp.sln -- This starts up Visual Studio
  * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.

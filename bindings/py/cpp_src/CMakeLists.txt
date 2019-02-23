@@ -41,6 +41,8 @@ message(STATUS "Configuring Python interface")
 #
 set(src_py_algorithms_files
     bindings/algorithms/algorithm_module.cpp
+    bindings/algorithms/py_SDR.cpp
+    bindings/algorithms/py_SDR_Metrics.cpp
     bindings/algorithms/py_Algorithms.cpp
     bindings/algorithms/py_Cells4.cpp
     bindings/algorithms/py_HTM.cpp

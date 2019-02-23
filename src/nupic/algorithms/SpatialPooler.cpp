@@ -36,9 +36,8 @@
 
 #define VERSION 2  // version for stream serialization
 
-using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::spatial_pooler;
+using nupic::algorithms::spatial_pooler::SpatialPooler;
 using namespace nupic::math::topology;
 using nupic::utils::VectorHelpers;
 
@@ -252,12 +251,6 @@ void SpatialPooler::setSynPermBelowStimulusInc(Real synPermBelowStimulusInc) {
 }
 
 Real SpatialPooler::getSynPermConnected() const { return synPermConnected_; }
-
-void SpatialPooler::setSynPermConnected(Real synPermConnected) {
-  NTA_CHECK( synPermConnected > connections::minPermanence );
-  NTA_CHECK( synPermConnected <= connections::maxPermanence );
-  synPermConnected_ = synPermConnected;
-}
 
 Real SpatialPooler::getSynPermMax() const { return connections::maxPermanence; }
 

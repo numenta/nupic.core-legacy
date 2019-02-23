@@ -37,5 +37,7 @@ bool raisePerm = true)`  due to SP implementation now using Connections. PR #153
 
 * SpatialPooler now always applies boosting, even when `learn=false`. PR #206
 
+* Removed methods `SpatialPooler::setSynPermConnected` and `TemporalMemory::setConnectedPermanence`. The connected synapse permanence threshold should instead be given to the constructor or the initialize method. PR #221
+
 * When building with MS Visual Studio 2017, it will build bindings only for Python 3.4 and above.  
 (i.e. No Python 2.7 under Windows)

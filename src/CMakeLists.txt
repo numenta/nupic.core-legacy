@@ -25,8 +25,8 @@ project(nupic_core CXX)
 message(STATUS "Configuring nupic_core src")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug
-
-include(src/NupicLibraryUtils) # for MERGE_STATIC_LIBRARIES
+include(src/NupicLibraryUtils) # for combining static libs
+include(src/ExpandStaticLib)   # for creating objects from a static lib
 
 #
 # NuPIC CMake options
@@ -68,7 +68,7 @@ configure_file(
 # libraries in a subsequent step to produce the nupic_core "combined" static
 # library.
 #
-set(src_lib_static_nupiccore_solo nupiccore_solo)
+set(src_objlib LibrarySource)
 
 
 set(algorithm_files
@@ -156,7 +156,6 @@ set(ntypes_files
     nupic/ntypes/Array.hpp
     nupic/ntypes/ArrayBase.cpp
     nupic/ntypes/ArrayBase.hpp
-    nupic/ntypes/ArrayRef.hpp
     nupic/ntypes/BundleIO.hpp
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
@@ -166,9 +165,6 @@ set(ntypes_files
     nupic/ntypes/MemStream.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
-    nupic/ntypes/Sdr.hpp
-    nupic/ntypes/SdrMetrics.hpp
-    nupic/ntypes/SdrProxy.hpp
     nupic/ntypes/Value.cpp
     nupic/ntypes/Value.hpp
 )
@@ -190,10 +186,12 @@ set(os_files
 )
 
 set(regions_files
-    nupic/regions/TestNode.cpp
-    nupic/regions/TestNode.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
+    nupic/regions/SPRegion.cpp
+    nupic/regions/SPRegion.hpp
+    nupic/regions/TestNode.cpp
+    nupic/regions/TestNode.hpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFile.hpp
     nupic/regions/VectorFileEffector.cpp
@@ -211,6 +209,9 @@ set(types_files
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
+    nupic/types/Sdr.hpp
+    nupic/types/Sdr.cpp
+    nupic/types/SdrProxy.hpp
 )
 
 set(utils_files
@@ -228,8 +229,15 @@ set(utils_files
     nupic/utils/StringUtils.cpp
     nupic/utils/StringUtils.hpp
     nupic/utils/VectorHelpers.hpp
+    nupic/utils/SdrMetrics.hpp
     nupic/utils/Watcher.cpp
     nupic/utils/Watcher.hpp
+)
+
+set(examples_files
+    examples/hotgym/Hotgym.cpp
+    examples/hotgym/HelloSPTP.cpp
+    examples/hotgym/HelloSPTP.hpp
 )
 
 #set up file tabs in Visual Studio
@@ -242,10 +250,20 @@ source_group("os" FILES ${os_files})
 source_group("regions" FILES ${regions_files})
 source_group("types" FILES ${types_files})
 source_group("utils" FILES ${utils_files})
+source_group("examples" FILES ${examples_files})
+
 
 #--------------------------------------------------------
-# Lib
-add_library(${src_lib_static_nupiccore_solo} STATIC 
+# Create an OBJECT library (compiles sources only once)
+# from the CMake docs:
+#   An object library compiles source files but does not archive or link their object 
+#   files into a library. Instead other targets created by  add_library() or add_executable() 
+#   may reference the objects using an expression of the form $<TARGET_OBJECTS:objlib> as a 
+#   source, where objlib is the object library name.
+#
+# The price you pay is that the object files must be built as position-independent code.
+#
+add_library(${src_objlib} OBJECT 
     ${algorithm_files} 
     ${encoders_files} 
     ${engine_files} 
@@ -254,36 +272,83 @@ add_library(${src_lib_static_nupiccore_solo} STATIC
     ${os_files} 
     ${regions_files} 
     ${types_files} 
-    ${utils_files} 
+    ${utils_files}
+    ${examples_files} 
 )
-
-
-target_compile_options( ${src_lib_static_nupiccore_solo} PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(${src_lib_static_nupiccore_solo} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-target_include_directories(${src_lib_static_nupiccore_solo} PRIVATE 
+# shared libraries need PIC
+target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
 		${EXTERNAL_INCLUDES}
 		)
 
 if(${NUPIC_IWYU})
-  set_target_properties(${src_lib_static_nupiccore_solo}
+  set_target_properties(${src_objlib}
     PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
+############ Building Static LIB #############################################
+# build static libnupic_core_solo.a without yaml and boost.
+# uses objects compiled for src_objlib
 
-#--------------------------------------------------------
+set(src_lib_static nupic_core_solo)
+add_library(${src_lib_static} STATIC $<TARGET_OBJECTS:${src_objlib}>)
+
 #
-# Create the nupic_core as a "combined" static library by merging nupic_core_solo
+# Create the libnupic_core.a as a "combined" static library by merging nupic_core_static
 # with our external static libraries
+# NOTE: cannot use target_link_libraries( ) with the add_library for STATIC.
+#       so we have to merge them in a different way.
 #
 set(src_combined_nupiccore_source_archives
-    ${src_lib_static_nupiccore_solo}
+    ${src_lib_static}
     ${yaml-cpp_LIBRARIES}
     ${Boost_LIBRARIES}
     )
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
+############ Building Shared LIB #############################################
+# builds libnupic_core.so for Linux,OSx and 
+# NOTE: This does not work for Windows.
+#       If there is community demand for a Windows DLL interface, we can add it later.
+#
+# For Linux, OSx; the .so file will contain all symbols.
+#
+if(MSVC)
+	# NOTE: this disables shared lib for Windows.
+else()
+    # First extract static libraries into an Object Library
+	# Note that these libraries must already exist (from depenancies)
+	set(all_object_locations)
+	set(src_externLibs
+            ${yaml-cpp_LIBRARIES}
+            ${Boost_LIBRARIES}
+            )
+	set(lib_locations_separator "++++")
+    string(REPLACE ";" ${lib_locations_separator}
+           escaped_lib_locations_arg "${src_externLibs}")
 
+	ExpandStaticLib( ${src_lib_shared}
+	    "${escaped_lib_locations_arg}"
+	    "${lib_locations_separator}"
+	    "${CMAKE_CURRENT_BINARY_DIR}"
+	    "${CMAKE_AR}"
+	    )
+	# build shared lib with yaml and boost resolved
+	# uses objects compiled for src_objlib
+	add_library(${src_lib_shared} SHARED 
+		$<TARGET_OBJECTS:${src_objlib}>
+		${all_object_locations})
+	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
+	target_link_libraries(${src_lib_shared}  
+    		${COMMON_OS_LIBS}
+	        )
+endif()
+
+
+
+		
 ############ TEST #############################################
 # Test
 # The tests were placed in a separate file to avoid clutering up this file.
@@ -295,14 +360,26 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
-source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
+source_group("examples" FILES 
+    examples/hotgym/Hotgym.cpp 
+    examples/hotgym/HelloSPTP.hpp
+    )
 
 set(src_executable_hotgym benchmark_hotgym)
-add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
-target_link_libraries(${src_executable_hotgym} 
-		${core_library}
-		${COMMON_OS_LIBS}
+add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp)
+if(MSVC)
+  # for Windows, link with the static library
+  target_link_libraries(${src_executable_hotgym} 
+    ${core_library}
+    ${COMMON_OS_LIBS}
 		)
+else()
+  # for Linux,OSx, link with the shared library
+  target_link_libraries(${src_executable_hotgym} 
+    ${src_lib_shared}
+    ${COMMON_OS_LIBS}
+		)
+endif()
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_executable_hotgym} PRIVATE 
@@ -310,10 +387,10 @@ target_include_directories(${src_executable_hotgym} PRIVATE
 		${EXTERNAL_INCLUDES}
 		)
 add_custom_target(hotgym
-                  COMMAND ${src_executable_hotgym}
-                  DEPENDS ${src_executable_hotgym}
-                  COMMENT "Executing ${src_executable_hotgym}"
-                  VERBATIM)
+          COMMAND ${src_executable_hotgym}
+          DEPENDS ${src_executable_hotgym}
+          COMMENT "Executing ${src_executable_hotgym}"
+          VERBATIM)
 
 
 ############ INSTALL ######################################
@@ -322,9 +399,19 @@ add_custom_target(hotgym
 #
 install(TARGETS
         ${core_library}
+        ${src_executable_hotgym}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
+
+if(MSVC)
+else()	
+  install(TARGETS
+	    ${src_lib_shared}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+endif()
 
 # Version.hpp is also used by the nupic.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
@@ -335,20 +422,11 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 	  FILES_MATCHING PATTERN "nupic/*/*.h*"
 	  PATTERN "nupic/*/*.hpp.in" EXCLUDE)
 
-install(DIRECTORY ${REPOSITORY_DIR}/external/common/include/gtest
-	  MESSAGE_NEVER
-	  DESTINATION include/gtest
-	  FILES_MATCHING PATTERN "*.h*")
 
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 	  MESSAGE_NEVER
 	  DESTINATION include)
 
-install(TARGETS
-        ${src_executable_hotgym}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
 
           
 #

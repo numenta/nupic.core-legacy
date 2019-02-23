@@ -371,6 +371,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   }
 
   // Serialize the current net
+  VERBOSE << "cwd=" << Directory::getCWD() << std::endl;
   net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream");
   {
     // Output values should still be all 100's

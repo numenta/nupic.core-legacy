@@ -35,13 +35,12 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
-#include <nupic/ntypes/Sdr.hpp>
+#include <nupic/types/Sdr.hpp>
 
 namespace nupic {
-
 namespace algorithms {
-
 namespace connections {
+
 typedef UInt32 CellIdx;
 typedef UInt16 SegmentIdx; /** Index of segment in cell. */
 typedef UInt16 SynapseIdx; /** Index of synapse in segment. */
