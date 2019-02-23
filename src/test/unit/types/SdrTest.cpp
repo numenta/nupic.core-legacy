@@ -795,3 +795,20 @@ TEST(SdrTest, TestIntersection) {
     ASSERT_EQ(Z.size, A.size);                            // Access SDR
     ASSERT_EQ(Z.inputs, vector<SDR*>({&A, &B, &C2, &D})); // Access SDR_Intersection
 }
+
+
+TEST(SdrTest, TestConcatenationExampleUsage) {
+}
+
+TEST(SdrTest, TestConcatenation) {
+    SDR A({10000});
+    SDR B({10000});
+    SDR_Concatenation C(A, B);
+    SDR_Concatenation D(A, B, 0u);
+    SDR_Concatenation E({&A, &B});
+    SDR_Concatenation F({&A, &B}, 0u);
+    A.randomize( 0.25f );
+    B.randomize( 0.75f );
+    ASSERT_LT( C.getSparsity(), 0.55f );
+    ASSERT_GT( C.getSparsity(), 0.45f );
+}

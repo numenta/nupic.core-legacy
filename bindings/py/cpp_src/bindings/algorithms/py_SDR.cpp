@@ -359,18 +359,37 @@ Example Usage:
 R"(SDR_Concatenation presents a view onto a group of SDRs, which always shows the
 TODO DOCUMENTATION!
 )");
+        // Duplicate constructors, for postitional & keyword & default arguments
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2) {
+            return new SDR_Concatenation(   {&inp1,     &inp2}, 0u);
+        }));
         py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, UInt axis) {
             return new SDR_Concatenation(   {&inp1,     &inp2},     axis);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3}, 0u);
         }));
         py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, UInt axis) {
             return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3},     axis);
         }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3,     &inp4}, 0u);
+        }));
         py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4, UInt axis) {
             return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3,     &inp4},     axis);
+        }));
+        py_Concatenation.def(py::init([](vector<SDR*> input) {
+            return new SDR_Concatenation(input, 0u);
         }));
         py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
             return new SDR_Concatenation(input, axis);
         }));
+        py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
+            return new SDR_Concatenation(input, axis);
+        }),
+            py::arg("inputs") = vector<SDR*>({}),
+            py::arg("axis") = 0u
+        );
         py_Concatenation.def_property_readonly("inputs",
             [] (const SDR_Concatenation &self)
                 { return self.inputs; },

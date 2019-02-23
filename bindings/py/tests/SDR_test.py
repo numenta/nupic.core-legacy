@@ -436,16 +436,77 @@ class SdrIntersectionTest(unittest.TestCase):
             assert( X.getSparsity() >= (2./3.) * mean_sparsity )
             assert( X.getSparsity() <= (4./3.) * mean_sparsity )
 
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    def testPickle(self):
+        assert(False) # TODO: Unimplemented
+
 
 class SdrConcatenationTest(unittest.TestCase):
     @pytest.mark.skip(reason="TODO UNIMPLEMENTED!")
     def testExampleUsage(self):
-        1/0
-
-    @pytest.mark.skip(reason="TODO UNIMPLEMENTED!")
-    def testConstructor(self):
         assert( issubclass(SDR_Intersection, SDR) )
         1/0
+
+    def testConstructor(self):
+        # Test all of the constructor overloads
+        A = SDR(( 100, 2 ))
+        B = SDR(( 100, 2 ))
+        C = SDR(( 100, 2 ))
+        D = SDR(( 100, 2 ))
+        SDR_Concatenation( A, B )
+        SDR_Concatenation( A, B, 1 )
+        SDR_Concatenation( A, B, C )
+        SDR_Concatenation( A, B, C, 1 )
+        SDR_Concatenation( A, B, C, D )
+        SDR_Concatenation( A, B, C, D, 1 )
+        SDR_Concatenation( [A, B, C, D] )
+        SDR_Concatenation( [A, B, C, D], 1 )
+        SDR_Concatenation( inputs = [A, B, C, D], axis = 1 )
+
+    def testConstructorErrors(self):
+        def _assertAnyException(func):
+            try:
+                func()
+            except RuntimeError:
+                return
+            except TypeError:
+                return
+            else:
+                self.fail()
+
+        A = SDR( 100 )
+        B = SDR(( 100, 2 ))
+        C = SDR([ 3, 3 ])
+        D = SDR([ 3, 4 ])
+        # Test bad argument dimensions
+        _assertAnyException(lambda: SDR_Concatenation(A))      # Not enough inputs!
+        _assertAnyException(lambda: SDR_Concatenation(A, B))
+        _assertAnyException(lambda: SDR_Concatenation(B, C))  # All dims except axis must match!
+        _assertAnyException(lambda: SDR_Concatenation(C, D))  # All dims except axis must match!
+        SDR_Concatenation(C, D, 1) # This should work
+        _assertAnyException(lambda: SDR_Concatenation( inputs = (C, D), axis = 2))  # invalid axis
+        _assertAnyException(lambda: SDR_Concatenation( inputs = (C, D), axis = -1))  # invalid axis
+
+    def testDelete(self):
+        # Make & Delete it a few times to make sure that doesn't crash.
+        A = SDR(100)
+        B = SDR(100)
+        C = SDR(100)
+        X = SDR_Concatenation(A, B, C)
+        SDR_Concatenation(A, B, C)
+        Y = SDR_Concatenation(A, C)
+        SDR_Concatenation(B, C)
+        del B
+        del A
+        del Y
+        del C
+        del X
+
+    def testMirroring(self):
+        A = SDR( 200 )
+        Ax10 = SDR_Concatenation( [A] * 10 )
+        A.randomize( .33 )
+        assert( .30 < Ax10.getSparsity() and Ax10.getSparsity() < .36 )
 
     def testVersusNumpy(self):
         # Each testcase is a pair of lists of SDR dimensions and axis
@@ -465,3 +526,7 @@ class SdrConcatenationTest(unittest.TestCase):
             cat    = SDR_Concatenation( sdrs, axis )
             np_cat = np.concatenate([sdr.dense for sdr in sdrs], axis=axis)
             assert((cat.dense == np_cat).all())
+
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    def testPickle(self):
+        assert(False) # TODO: Unimplemented
