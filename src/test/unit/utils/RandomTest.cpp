@@ -26,7 +26,6 @@
 #include <gtest/gtest.h>
 #include <nupic/utils/Random.hpp>
 
-#include <nupic/ntypes/MemStream.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/utils/LoggingException.hpp>
 #include <nupic/os/Timer.hpp>
@@ -118,18 +117,18 @@ TEST(RandomTest, SerializationDeserialization) {
 
   EXPECT_EQ(r1.getUInt32(), 2276275187u) << "Before serialization must be same";
   // serialize
-  OMemStream ostream;
+  std::stringstream ostream;
   ostream << r1;
 
   // print out serialization for debugging
-  std::string x(ostream.str(), ostream.pcount());
+  std::string x(ostream.str());
 //  NTA_INFO << "random serialize string: '" << x << "'";
   // Serialization should be deterministic and platform independent
   const std::string expectedString = "random-v2 862973 101 endrandom-v2 ";
   EXPECT_EQ(expectedString, x) << "De/serialization";
 
   // deserialize into r2
-  std::string s(ostream.str(), ostream.pcount());
+  std::string s(ostream.str());
   std::stringstream ss(s);
   Random r2;
   ss >> r2;

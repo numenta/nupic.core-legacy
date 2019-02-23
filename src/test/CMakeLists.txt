@@ -73,8 +73,6 @@ set(ntypes_tests
 	   unit/ntypes/ArrayTest.cpp
 	   unit/ntypes/CollectionTest.cpp
 	   unit/ntypes/DimensionsTest.cpp
-	   unit/ntypes/MemParserTest.cpp
-	   unit/ntypes/MemStreamTest.cpp
 	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
