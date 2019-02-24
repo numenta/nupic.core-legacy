@@ -249,8 +249,9 @@ TEST(WatcherTest, FileTest2) {
       }
       VERBOSE << tempString << "\n";
       EXPECT_TRUE(i < expected.size()) << "More entries than expected.";
-      if (i < expected.size())
+      if (i < expected.size()) {
         EXPECT_EQ(expected[i++], tempString);
+      }
     }
     ASSERT_TRUE(i == expected.size()) << "Not all entries found.";
   }

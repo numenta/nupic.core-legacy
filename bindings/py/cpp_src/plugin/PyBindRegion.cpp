@@ -663,7 +663,7 @@ namespace nupic
 										std::string inheritFrom;
                     if (output.contains("inheritFrom"))
 										{
-										  inheritFrom = input["inheritFrom"].cast<std::string>();
+										  inheritFrom = output["inheritFrom"].cast<std::string>();
 										}
 
                     ns.outputs.add(

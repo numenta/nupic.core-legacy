@@ -261,6 +261,7 @@ TEST(CppRegionTest, realmain) {
   const Array& output = level1->getOutputData("bottomUpOut");
   Real64 *data_actual = (Real64 *)output.getBuffer();
   size_t size = output.getCount();
+  ASSERT_TRUE(size > 1u);
   // set the actual output
   data_actual[1] = 54321.0;
 }
