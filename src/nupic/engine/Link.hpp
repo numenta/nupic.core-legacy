@@ -30,7 +30,7 @@
 #include <string>
 #include <deque>
 
-#include <nupic/engine/Input.hpp> // needed for splitter map
+#include <nupic/engine/Input.hpp> 
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/Types.hpp>
@@ -155,24 +155,6 @@ public:
   Link(const std::string &linkType, const std::string &linkParams,
        Output *srcOutput, Input *destInput, size_t propagationDelay = 0);
 
-  /**
-   * Initialization Phase 3: set the Dimensions for the source Output, and
-   * induce the Dimensions for the destination Input .
-   *
-   *
-   * @param dims
-   *         The Dimensions for the source Output
-   */
-  void setSrcDimensions(Dimensions &dims);
-
-  /**
-   * Initialization Phase 3: Set the Dimensions for the destination Input, and
-   * induce the Dimensions for the source Output .
-   *
-   * @param dims
-   *         The Dimensions for the destination Input
-   */
-  void setDestDimensions(Dimensions &dims);
 
   /**
    * Initialization Phase 4: sets the offset in the destination Input .
@@ -193,21 +175,6 @@ public:
    *
    */
 
-  /**
-   * Get the Dimensions for the source Output .
-   *
-   * @returns
-   *         The Dimensions for the source Output
-   */
-  const Dimensions &getSrcDimensions() const;
-
-  /**
-   * Get the Dimensions for the destination Input .
-   *
-   * @returns
-   *         The Dimensions for the destination Input
-   */
-  const Dimensions &getDestDimensions() const;
 
   /**
    * Get the type of the link.
@@ -388,23 +355,6 @@ private:
   std::string linkType_;
   std::string linkParams_;
 
-  // ---
-  // The dimensions of the source Region, as specified by a call to
-  // setSrcDimensions() or induced by a call to setDestDimensions().
-  // ---
-  Dimensions srcDimensions_;
-
-  // ---
-  // The dimensions of the destination Region, as specified by a call to
-  // setDestDimensions() or induced by a call to setSrcDimensions().
-  // ---
-  Dimensions destDimensions_;
-
-  // ---
-  // The amount of elements per Node as specified by a call to
-  // setNodeOutputElementCount()
-  // ---
-  size_t elementCount_;
 
   Output *src_;
   Input *dest_;

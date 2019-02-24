@@ -233,10 +233,17 @@ namespace nupic
   std::istream &operator>>(std::istream &inStream, ArrayBase &a);
 
   // Compare contents of two ArrayBase objects
-  // Note: An Array and an ArrayRef could be the same if type, count, and buffer
-  // contents are the same.
+  // Note: An Array and an ArrayBase are the same if type, count, and buffer
+  // contents are the same.  If this is an SDR, we also compare the dimensions.
   bool operator==(const ArrayBase &lhs,const  ArrayBase &rhs);
   inline bool operator!=(const ArrayBase &lhs, const ArrayBase &rhs) {return !(lhs == rhs);}
+
+  // Compare an Array or ArrayBase against a vector, comparing size and 
+  // binary (zero or non-zero) content.
+  bool operator==(const ArrayBase &lhs, const std::vector<nupic::Byte> &rhs);
+  inline bool operator!=(const ArrayBase &lhs, const std::vector<nupic::Byte> &rhs) {return !(lhs == rhs);}
+  bool operator==(const std::vector<nupic::Byte> &rhs, const ArrayBase &lhs);
+  inline bool operator!=(const std::vector<nupic::Byte> &rhs, const ArrayBase &lhs) {return !(lhs == rhs);}
 
 } // namespace
 

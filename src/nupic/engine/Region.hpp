@@ -37,13 +37,13 @@
 
 // We need the full definitions because these
 // objects are returned by value.
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/types/Serializable.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
-#include <nupic/engine/Input.hpp>
+#include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/os/Timer.hpp>
+#include <nupic/types/Serializable.hpp>
+#include <nupic/types/Types.hpp>
 
 namespace nupic {
 
@@ -59,7 +59,6 @@ class Timer;
 class Network;
 class GenericRegisteredRegionImpl;
 
-
 /**
  * Represents a set of one or more "identical" nodes in a Network.
  *
@@ -71,8 +70,7 @@ class GenericRegisteredRegionImpl;
  * Internally regions are created and owned by Network.
  *
  */
-class Region  : public Serializable
-{
+class Region : public Serializable {
 public:
   /**
    * @name Region information
@@ -92,8 +90,7 @@ public:
    *
    * @returns The region's name
    */
-     std::string getName() const { return name_; }
-
+  std::string getName() const { return name_; }
 
   /**
    * @}
@@ -111,14 +108,14 @@ public:
    *
    * @returns The node type as a string
    */
-    std::string getType() const { return type_; }
+  std::string getType() const { return type_; }
 
   /**
    * Get the spec of the region.
    *
    * @returns The spec that describes this region
    */
-  const std::shared_ptr<Spec>& getSpec() const { return spec_; }
+  const std::shared_ptr<Spec> &getSpec() const { return spec_; }
 
   /**
    * Get the Spec of a region type without an instance.
@@ -128,8 +125,8 @@ public:
    *
    * @returns The Spec that describes this region type
    */
-  static const std::shared_ptr<Spec>& getSpecFromType(const std::string &nodeType);
-
+  static const std::shared_ptr<Spec> &
+  getSpecFromType(const std::string &nodeType);
 
   /**
    * @}
@@ -141,7 +138,7 @@ public:
    */
 
   /**
-   * Get the parameter as an @c Int32 value.
+   * Get the parameter value as a specific type.
    *
    * @param name
    *        The name of the parameter
@@ -149,79 +146,15 @@ public:
    * @returns The value of the parameter
    */
   Int32 getParameterInt32(const std::string &name) const;
-
-  /**
-   * Get the parameter as an @c UInt32 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @returns The value of the parameter
-   */
   UInt32 getParameterUInt32(const std::string &name) const;
-
-  /**
-   * Get the parameter as an @c Int64 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @returns The value of the parameter
-   */
   Int64 getParameterInt64(const std::string &name) const;
-
-  /**
-   * Get the parameter as an @c UInt64 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @returns The value of the parameter
-   */
   UInt64 getParameterUInt64(const std::string &name) const;
-
-  /**
-   * Get the parameter as an @c Real32 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @returns The value of the parameter
-   */
   Real32 getParameterReal32(const std::string &name) const;
-
-  /**
-   * Get the parameter as an @c Real64 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @returns The value of the parameter
-   */
   Real64 getParameterReal64(const std::string &name) const;
-
-  /**
-   * Get the parameter as an @c Handle value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @returns The value of the parameter
-   */
-  Handle getParameterHandle(const std::string &name) const;
-
-  /**
-   * Get a bool parameter.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @returns The value of the parameter
-   */
   bool getParameterBool(const std::string &name) const;
 
   /**
-   * Set the parameter to an Int32 value.
+   * Set the parameter value of a specific type.
    *
    * @param name
    *        The name of the parameter
@@ -230,82 +163,11 @@ public:
    *        The value of the parameter
    */
   void setParameterInt32(const std::string &name, Int32 value);
-
-  /**
-   * Set the parameter to an UInt32 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @param value
-   *        The value of the parameter
-   */
   void setParameterUInt32(const std::string &name, UInt32 value);
-
-  /**
-   * Set the parameter to an Int64 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @param value
-   *        The value of the parameter
-   */
   void setParameterInt64(const std::string &name, Int64 value);
-
-  /**
-   * Set the parameter to an UInt64 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @param value
-   *        The value of the parameter
-   */
   void setParameterUInt64(const std::string &name, UInt64 value);
-
-  /**
-   * Set the parameter to a Real32 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @param value
-   *        The value of the parameter
-   */
   void setParameterReal32(const std::string &name, Real32 value);
-
-  /**
-   * Set the parameter to a Real64 value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @param value
-   *        The value of the parameter
-   */
   void setParameterReal64(const std::string &name, Real64 value);
-
-  /**
-   * Set the parameter to a Handle value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @param value
-   *        The value of the parameter
-   */
-  void setParameterHandle(const std::string &name, Handle value);
-
-  /**
-   * Set the parameter to a bool value.
-   *
-   * @param name
-   *        The name of the parameter
-   *
-   * @param value
-   *        The value of the parameter
-   */
   void setParameterBool(const std::string &name, bool value);
 
   /**
@@ -401,15 +263,10 @@ public:
    *        The name of the parameter
    *
    * @returns
-   *        Whether the parameter is shared
+   *        Whether the parameter exists
    *
-   * @todo figure out what "shared" means here
-   *
-   * @note This method must be overridden by subclasses.
-   *
-   * Throws an exception if it's not overridden
    */
-  bool isParameterShared(const std::string &name) const;
+  bool isParameter(const std::string &name) const;
 
   /**
    * @}
@@ -438,7 +295,7 @@ public:
    *        returned Array's buffer also changes.
    *        Note that this is read-only.
    */
-  virtual const Array& getInputData(const std::string &inputName) const;
+  virtual const Array &getInputData(const std::string &inputName) const;
 
   /**
    * Get the output data.
@@ -454,8 +311,7 @@ public:
    *        To obtain a writeable Array use
    *			  region->getOutput(name)->getData();
    */
-  virtual const Array& getOutputData(const std::string &outputName) const;
-
+  virtual const Array &getOutputData(const std::string &outputName) const;
 
   /**
    * @}
@@ -465,16 +321,6 @@ public:
    * @{
    *
    */
-
-  /**
-   * @todo Region::enable() not implemented, should it be part of API at all?
-   */
-  virtual void enable();
-
-  /**
-   * @todo Region::disable() not implemented, should it be part of API at all?
-   */
-  virtual void disable();
 
   /**
    * Request the underlying region to execute a command.
@@ -544,12 +390,11 @@ public:
    * @}
    */
 
-    // Internal methods.
+  // Internal methods.
 
   // New region from parameter spec
   Region(std::string name, const std::string &type,
          const std::string &nodeParams, Network *network = nullptr);
-
 
   Region(Network *network = nullptr); // An empty region for deserialization.
 
@@ -557,7 +402,7 @@ public:
 
   void initialize();
 
-    bool isInitialized() const { return initialized_; }
+  bool isInitialized() const { return initialized_; }
 
   // Used by RegionImpl to get inputs/outputs
   Output *getOutput(const std::string &name) const;
@@ -572,23 +417,24 @@ public:
 
   // The following methods are called by Network in initialization
 
-  // Returns number of links that could not be fully evaluated
-  size_t evaluateLinks();
-
-  std::string getLinkErrors() const;
-
+  // Configure and initialize links.
+  void evaluateLinks();
   size_t getNodeOutputElementCount(const std::string &name);
+  size_t getNodeInputElementCount(const std::string &name);
+  Dimensions askImplForOutputDimensions(const std::string &name) const;
+  Dimensions askImplForInputDimensions(const std::string &name) const;
+  Dimensions getInputDimensions(std::string name="") const;
+  Dimensions getOutputDimensions(std::string name="") const;
 
-  void initOutputs();
+  /**
+   * Set Global dimensions on a region.
+   * Normally a Region Impl will use this to set the dimensions on the default output.
+   * This cannot be used to override a fixed buffer setting in the Spec.
+   * Args: dim   - The dimensions to set
+   */
+  void setDimensions(Dimensions dim);
+  Dimensions getDimensions() const;
 
-  void initInputs() const;
-
-
-
-  // Internal -- for link debugging
-  void setDimensionInfo(const std::string &info);
-
-  const std::string &getDimensionInfo() const;
 
   bool hasOutgoingLinks() const;
 
@@ -600,24 +446,20 @@ public:
 
   void removeAllIncomingLinks();
 
-
   // TODO: sort our phases api. Users should never call Region::setPhases
   // and it is here for serialization only.
   void setPhases(std::set<UInt32> &phases);
 
   std::set<UInt32> &getPhases();
 
+  // These must be implemented for serialization.
+  void save(std::ostream &stream) const override;
+  void load(std::istream &stream) override;
 
-
-	// These must be implemented for serialization.
-	void save(std::ostream &stream) const override;
-	void load(std::istream &stream) override;
-
-	friend class Network;
+  friend class Network;
 
 private:
-  // verboten
-  Region(Region &);
+  Region(Region &){}  // copy not allowed
 
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
@@ -639,12 +481,11 @@ private:
   std::set<UInt32> phases_;
   bool initialized_;
 
-
   // Region contains a backpointer to network_ only to be able
   // to retrieve the containing network via getNetwork() for inspectors.
   // The implementation should not use network_ in any other methods.
+  // This cannot be a shared_ptr.
   Network *network_;
-
 
   // Profiling related methods and variables.
   bool profilingEnabled_;

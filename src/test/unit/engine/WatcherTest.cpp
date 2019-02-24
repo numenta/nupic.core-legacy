@@ -39,19 +39,20 @@
 
 #include <gtest/gtest.h>
 
+static bool verbose = false;
+#define VERBOSE                                                                \
+  if (verbose)                                                                 \
+  std::cerr << "[          ] "
+
 using namespace nupic;
 
 TEST(WatcherTest, SampleNetwork) {
   // NOTE:  This test generates files for the subsequent two tests.
-  // generate sample network
+  // generate sample network   [level1] -> [level2] -> [level3]
   Network n;
-  n.addRegion("level1", "TestNode", "");
+  n.addRegion("level1", "TestNode", "{dim: [4,2]}");
   n.addRegion("level2", "TestNode", "");
   n.addRegion("level3", "TestNode", "");
-  Dimensions d;
-  d.push_back(8);
-  d.push_back(4);
-  n.getRegions().getByName("level1")->setDimensions(d);
   n.link("level1", "level2");
   n.link("level2", "level3");
   n.initialize();
@@ -158,6 +159,8 @@ TEST(WatcherTest, FileTest1) {
       if (tempString.size() == 0) {
         break;
       }
+      VERBOSE << tempString << "\n";
+
       switch (tempString.at(0)) {
       case '1':
         stream << "1, " << i << ", 33";
@@ -222,7 +225,21 @@ TEST(WatcherTest, FileTest2) {
     getline(inStream2, tempString);
     ASSERT_EQ("Data: watchID, iteration, paramValue", tempString);
 
-    unsigned int i = 1;
+    std::vector<std::string> expected = {
+        "1, 1, 4 1 2 3",        
+        "2, 1, 8 1 2 3 4 5 6 7",
+        "3, 1, 8 2 3 5 6 7",    
+        "4, 1, 4 0 64 128 192",
+        "1, 2, 4 1 2 3",        
+        "2, 2, 8 1 2 3 4 5 6 7",
+        "3, 2, 8 0 2 3 4 5 6 7",
+        "4, 2, 4 0 64 128 192",
+        "1, 3, 4 1 2 3",
+        "2, 3, 8 1 2 3 4 5 6 7",
+        "3, 3, 8 0 2 3 4 5 6 7",
+        "4, 3, 4 0 64 128 192"
+        };
+    unsigned int i = 0;
     while (!inStream2.eof()) {
       std::stringstream stream;
       std::string value;
@@ -230,35 +247,12 @@ TEST(WatcherTest, FileTest2) {
       if (tempString.size() == 0) {
         break;
       }
-      switch (tempString.at(0)) {
-      case '1':
-        stream << "1, " << i << ", 4 1 2 3";
-        break;
-      case '2':
-        stream << "2, " << i << ", 8 1 2 3 4 5 6 7";
-        break;
-      case '3':
-        stream << "3, " << i << ", 64";
-        if (i == 1) {
-          for (unsigned int j = 3; j < 64; j += 2) {
-            stream << " " << j;
-          }
-        } else {
-          stream << " 0";
-          for (unsigned int j = 2; j < 64; j++) {
-            stream << " " << j;
-          }
-        }
-        break;
-      case '4':
-        stream << "4, " << i << ", 4 0 64 128 192";
-        i++;
-        break;
-      }
-
-      value = stream.str();
-      ASSERT_EQ(value, tempString);
+      VERBOSE << tempString << "\n";
+      EXPECT_TRUE(i < expected.size()) << "More entries than expected.";
+      if (i < expected.size())
+        EXPECT_EQ(expected[i++], tempString);
     }
+    ASSERT_TRUE(i == expected.size()) << "Not all entries found.";
   }
   inStream2.close();
 

@@ -67,7 +67,7 @@ public:
                                      Int64 index) override;
 
   virtual size_t
-  getNodeOutputElementCount(const std::string &outputName) override;
+  getNodeOutputElementCount(const std::string &outputName) const override;
 
 private:
   struct {

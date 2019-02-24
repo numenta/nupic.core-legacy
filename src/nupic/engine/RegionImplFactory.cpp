@@ -125,6 +125,13 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
     NTA_THROW << "Unregistered node type '" << nodeType << "'";
   }
 
+  // If the parameter 'dim' was defined, parse that out as a global parameter.
+  if (vm.contains("dim")) {
+    std::shared_ptr<Array> dim = vm.getArray("dim");
+    Dimensions d(dim->asVector<UInt32>());
+    impl->setDimensions(d);
+  }
+
   return impl;
 }
 

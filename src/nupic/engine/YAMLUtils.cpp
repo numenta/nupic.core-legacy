@@ -180,6 +180,16 @@ ValueMap toValueMap(const char *yamlstring,
 
   ValueMap vm;
 
+  // special value that applies to all regions.
+  ParameterSpec dim_spec("Buffer dimensions for region's global dimensions. "
+                    "Syntax: {dim: [2,3]}",  // description
+	                  NTA_BasicType_UInt32,
+							      0,                         // elementCount (an array of unknown size)
+							      "",                        // constraints
+							      "",                        // defaultValue
+							      ParameterSpec::ReadWriteAccess);
+
+
   std::string paddedstring(yamlstring);
   // TODO: strip white space to determine if empty
   bool empty = (paddedstring.size() == 0);
@@ -203,28 +213,34 @@ ValueMap toValueMap(const char *yamlstring,
   // if it is allowed by the nodespec.
   for (auto i = doc.begin(); i != doc.end(); i++)
   {
-    const auto key = i->first.as<std::string>();
-    if (!parameters.contains(key))
-    {
-      std::stringstream ss;
-      for (UInt j = 0; j < parameters.getCount(); j++){
-        ss << "   " << parameters.getByIndex(j).first << "\n";
-      }
+    ParameterSpec ps;
 
-      if (nodeType == std::string("")) {
-        NTA_THROW << "Unknown parameter '" << key << "'\n"
-                  << "Valid parameters are:\n" << ss.str();
-      } else {
-        NTA_CHECK(regionName != std::string(""));
-        NTA_THROW << "Unknown parameter '" << key << "' for region '"
-                  << regionName << "' of type '" << nodeType << "'\n"
-                  << "Valid parameters are:\n"
-                  << ss.str();
+    const auto key = i->first.as<std::string>();
+    if (key == "dim")
+      ps = dim_spec;
+    else {
+      if (!parameters.contains(key))
+      {
+        std::stringstream ss;
+        for (UInt j = 0; j < parameters.getCount(); j++){
+          ss << "   " << parameters.getByIndex(j).first << "\n";
+        }
+
+        if (nodeType == std::string("")) {
+          NTA_THROW << "Unknown parameter '" << key << "'\n"
+                    << "Valid parameters are:\n" << ss.str();
+        } else {
+          NTA_CHECK(regionName != std::string(""));
+          NTA_THROW << "Unknown parameter '" << key << "' for region '"
+                    << regionName << "' of type '" << nodeType << "'\n"
+                    << "Valid parameters are:\n"
+                    << ss.str();
+        }
       }
+      ps = parameters.getByName(key); // makes a copy of ParameterSpec
     }
     if (vm.contains(key))
-      NTA_THROW << "Parameter '" << key << "' specified more than once in YAML document";
-    ParameterSpec ps = parameters.getByName(key); // makes a copy of ParameterSpec
+        NTA_THROW << "Parameter '" << key << "' specified more than once in YAML document";
     try
     {
       if (ps.accessMode == ParameterSpec::ReadOnlyAccess) {

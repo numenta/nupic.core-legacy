@@ -373,7 +373,12 @@ public:
       NTA_ASSERT(value.size() == dimensions.size());
       for(UInt dim = 0; dim < dimensions.size(); dim++) {
         sparse_[dim].clear();
-        sparse_[dim].assign(value[dim].cbegin(), value[dim].cend());
+				sparse_[dim].resize(value[dim].size());
+        for (UInt i = 0; i < value[dim].size(); i++)
+          sparse_[dim][i] = (UInt)value[dim][i];
+        // you will probably want to do this differently...
+        // but I need to explictly cast during the copy.
+        //sparse_[dim].assign(value[dim].cbegin(), value[dim].cend());
       }
       setSparseInplace();
     }

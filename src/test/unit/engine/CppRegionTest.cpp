@@ -50,144 +50,116 @@ namespace testing {
 using namespace nupic;
 using std::exception;
 
-bool verbose = false;
+static bool verbose = true;
+#define VERBOSE if(verbose) std::cerr << "[          ]"
 
-void helperCppInputOutputAccess(Region *level1) {
-  // --- input/output access for level 1 (C++ TestNode) ---
-
-//  SHOULDFAIL(level1->getOutputData("doesnotexist"));
-
-  // getting access via zero-copy
-  std::cout << "Getting output for zero-copy access" << std::endl;
-  const Array& output = level1->getOutputData("bottomUpOut");
-  std::cout << "Element count in bottomUpOut is " << output.getCount() << ""
-            << std::endl;
-  Real64 *data_actual = (Real64 *)output.getBuffer();
-  // set the actual output
-  data_actual[12] = 54321;
-}
 
 
 TEST(CppRegionTest, testCppLinkingFanIn) {
   Network net;
+  Real64 *buffer1;
+  Real64 *buffer2;
+  Real64 *buffer3;
 
-  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "{count: 64}");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "{count: 64}");
+  std::shared_ptr<Region> region3 = net.addRegion("region3", "TestNode", "");
 
-  net.link("region1", "region2", "TestFanIn2", ""); //the only change testCppLinking* is here
+  net.link("region1", "region3"); 
+  net.link("region2", "region3"); 
 
-  if (verbose) std::cout << "Initialize should fail..." << std::endl;
-  EXPECT_THROW(net.initialize(), exception);
-
-  if (verbose) std::cout << "Setting region1 dims" << std::endl;
-  Dimensions r1dims;
-  r1dims.push_back(6);
-  r1dims.push_back(4);
-  region1->setDimensions(r1dims);
-
-  if (verbose) std::cout << "Initialize should now succeed" << std::endl;
   net.initialize();
 
-  const Dimensions &r2dims = region2->getDimensions();
-  EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[0], 3u) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[1], 2u) << " actual dims: " << r2dims.toString();
-
-  EXPECT_THROW(region2->setDimensions(r1dims), exception);
-
   const Array r1OutputArray = region1->getOutputData("bottomUpOut");
+  const Array r2OutputArray = region2->getOutputData("bottomUpOut");
+  Array r3InputArray  = region3->getInputData("bottomUpIn");
 
-  if (verbose) std::cout << "region1 Dims: " << region1->getDimensions() << std::endl;
-  if (verbose) std::cout << "region2 Dims: " << region2->getDimensions() << std::endl;
+  VERBOSE << "region1: " << r1OutputArray << std::endl;
+  VERBOSE << "region2: " << r2OutputArray << std::endl;
+  VERBOSE << "region3: " << r3InputArray << std::endl;
+
+  EXPECT_EQ(r1OutputArray.getCount(), 64);
+  EXPECT_EQ(r2OutputArray.getCount(), 64);
+  EXPECT_EQ(r3InputArray.getCount(), 128);
 
   region1->compute();
-  if (verbose) std::cout << "Checking region1 output after first iteration..." << std::endl;
-  if (verbose) std::cout << r1OutputArray << std::endl;
-  Real64 *buffer = (Real64 *)r1OutputArray.getBuffer();
-  for (size_t i = 0; i < r1OutputArray.getCount(); i++) {
-    if (i % 2 == 0)
-      ASSERT_EQ(buffer[i], 0);
-    else
-      ASSERT_EQ(buffer[i], (i - 1) / 2);
+  region2->compute();
+  VERBOSE << "Checking region1 output after first iteration..." << std::endl;
+  VERBOSE << r1OutputArray << std::endl;
+  buffer1 = (Real64 *)r1OutputArray.getBuffer();
+  ASSERT_EQ(buffer1[0], 0);
+  for (size_t i = 1; i < r1OutputArray.getCount(); i++) {
+    ASSERT_EQ(buffer1[i], (Real64)(i - 1));
   }
 
-  region2->prepareInputs();
-  const Array r2InputArray = region2->getInputData("bottomUpIn");
-  if (verbose) std::cout << "Region 2 input after first iteration:" << std::endl;
-  Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
-  if (verbose) std::cout << r2InputArray << std::endl;
-  EXPECT_TRUE(buffer == buffer2);
-
-  for (size_t i = 0; i < r2InputArray.getCount(); i++) {
-    if (i % 2 == 0)
-      ASSERT_EQ(buffer[i], 0);
-    else
-      ASSERT_EQ(buffer[i], (i - 1) / 2);
+  region3->prepareInputs();
+  VERBOSE << "Region3 input after first iteration:" << std::endl;
+  VERBOSE << r3InputArray << std::endl;
+  ASSERT_EQ(r3InputArray.getCount(), 128);
+  ASSERT_EQ(r3InputArray.getType(), NTA_BasicType_Real64);
+  buffer1 = (Real64 *)r1OutputArray.getBuffer();
+  buffer2 = (Real64 *)r2OutputArray.getBuffer();
+  buffer3 = (Real64 *)r3InputArray.getBuffer();
+  for (size_t i = 0; i < 64; i++) {
+    ASSERT_EQ(buffer3[i], buffer1[i]);
+    ASSERT_EQ(buffer3[i + 64], buffer2[i]);
   }
-
 }
 
 
-TEST(CppRegionTest, testCppLinkingUniformLink) {
+TEST(CppRegionTest, testCppLinkingSDR) {
   Network net;
 
-  std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "ScalarSensor", "{dim: [6,1], n: 6, w: 2}");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,3]}");
 
-  net.link("region1", "region2", "UniformLink", "{mapping: in, rfSize: [2]}"); //the only change testCppLinking* is here
+  net.link("region1", "region2"); 
 
-
-  if (verbose) std::cout << "Initialize should fail..." << std::endl;
-  EXPECT_THROW(net.initialize(), exception);
-
-  if (verbose) std::cout << "Setting region1 dims" << std::endl;
-  Dimensions r1dims;
-  r1dims.push_back(6);
-  r1dims.push_back(4);
-  region1->setDimensions(r1dims);
-
-  if (verbose) std::cout << "Initialize should now succeed" << std::endl;
   net.initialize();
 
-  const Dimensions &r2dims = region2->getDimensions();
-  EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[0], 3u) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[1], 2u) << " actual dims: " << r2dims.toString();
+  region1->setParameterReal64("sensedValue", 0.8);  //Note: default range setting is -1.0 to +1.0
+  const Dimensions r1dims = region1->getOutput("encoded")->getDimensions();
+  EXPECT_EQ(r1dims.size(), 2u) << " actual dims: " << r1dims.toString();
+  EXPECT_EQ(r1dims[0], 6u) << " actual dims: " << r1dims.toString();
+  EXPECT_EQ(r1dims[1], 1u) << " actual dims: " << r1dims.toString();
 
-  EXPECT_THROW(region2->setDimensions(r1dims), exception);
 
-  const Array r1OutputArray = region1->getOutputData("bottomUpOut");
-
-  region1->compute();
-  if (verbose) std::cout << "Checking region1 output after first iteration..." << std::endl;
-  Real64 *buffer = (Real64 *)r1OutputArray.getBuffer();
-  for (size_t i = 0; i < r1OutputArray.getCount(); i++) {
-    if (i % 2 == 0)
-      ASSERT_EQ(buffer[i], 0);
-    else
-      ASSERT_EQ(buffer[i], (i - 1) / 2);
-  }
+  region1->compute(); 
+  VERBOSE << "Checking region1 output after first iteration..." << std::endl;
+  const Array r1OutputArray = region1->getOutputData("encoded");
+  VERBOSE << r1OutputArray << "\n";
+  std::vector<Byte> expected = {0, 0, 0, 0, 1, 1};
+  EXPECT_TRUE(r1OutputArray == expected);
 
   region2->prepareInputs();
-  const Array r2InputArray = region2->getInputData("bottomUpIn");
-  if (verbose) std::cout << "Region 2 input after first iteration:" << std::endl;
-  Real64 *buffer2 = (Real64 *)r2InputArray.getBuffer();
-  // only one link to this input so buffer is passed without copy.
-  EXPECT_TRUE(buffer == buffer2);  //
-  for (size_t i = 0; i < r2InputArray.getCount(); i++) {
-    if (i % 2 == 0)
-      ASSERT_EQ(buffer2[i], 0);
-    else
-      ASSERT_EQ(buffer2[i], (i - 1) / 2);
-  }
+  region2->compute();
 
+  VERBOSE << "Region 2 input after first iteration:" << std::endl;
+  const Array r2InputArray = region2->getInputData("bottomUpIn");
+  VERBOSE << r2InputArray << "\n";
+  EXPECT_EQ(r2InputArray.getType(), NTA_BasicType_SDR);
+  EXPECT_TRUE(r2InputArray == expected);
+
+  VERBOSE << "Region 2 input after first iteration:" << std::endl;
+  const Dimensions r2dims = region2->getOutput("bottomUpOut")->getDimensions();
+  EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[0], 2u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[1], 3u) << " actual dims: " << r2dims.toString();
+  
+  const Array r2OutputArray = region2->getOutputData("bottomUpOut");
+  EXPECT_EQ(r2OutputArray.getType(), NTA_BasicType_SDR);
+  EXPECT_TRUE(r2OutputArray.getSDR()->dimensions == r2dims)
+      << "Expected dimensions on the output to match dimensions on the buffer.";
+  VERBOSE << r2OutputArray << "\n";
+  std::vector<Byte> expected_output = {0, 1, 0, 1, 0, 1};
+  EXPECT_TRUE(r2OutputArray == expected_output);
 
 }
 
 
 
 TEST(CppRegionTest, testYAML) {
-  const char *params = "{int32Param: 1234, real64Param: 23.1}";
+  const char *params = "{count: 42, int32Param: 1234, real64Param: 23.1}";
   //  badparams contains a non-existent parameter
   const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
@@ -196,9 +168,7 @@ TEST(CppRegionTest, testYAML) {
   EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});
-  Dimensions d;
-  d.push_back(1);
-  level1->setDimensions(d);
+
   net.initialize();
 
   // check default values
@@ -209,6 +179,8 @@ TEST(CppRegionTest, testYAML) {
   EXPECT_EQ(i64val,  64) << "i64val = " << i64val;
 
   // check values set in region constructor
+  Int32 count = level1->getParameterInt32("count");
+  EXPECT_EQ(count, 42);
   Int32 ival = level1->getParameterInt32("int32Param");
   EXPECT_EQ(ival, 1234) << "ival = " << ival;
   Real64 rval = level1->getParameterReal64("real64Param");
@@ -216,22 +188,19 @@ TEST(CppRegionTest, testYAML) {
   // TODO: if we get the real64 param with getParameterInt32
   // it works -- should we flag an error?
 
-  if (verbose) std::cout
-      << "Got the correct values for all parameters set at region creation"
-      << std::endl;
+  VERBOSE << "Values are correct for all parameters set at region creation" << std::endl;
 }
 
 
+TEST(CppRegionTest, realmain) {
+  Network n;
 
-void helperRealmain(Network& n) {
-  // verbose == true turns on extra output that is useful for
-  // debugging the test (e.g. when the TestNode compute()
-  // algorithm changes)
+  size_t count1 = n.getRegions().getCount();
+  EXPECT_TRUE(count1 == 0);
+  std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "");
+
 
   size_t count = n.getRegions().getCount();
-  EXPECT_TRUE(count == 0);
-  std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "");
-  count = n.getRegions().getCount();
   EXPECT_TRUE(count == 1);
   std::string region_type = level1->getType();
   EXPECT_STREQ(region_type.c_str(), "TestNode");
@@ -268,52 +237,32 @@ void helperRealmain(Network& n) {
   for (size_t i = 0; i < std::max<size_t>(a.getCount(), 4u); ++i)
     EXPECT_EQ(buff[i], expected1[i]) << "Invalid value for index " << i;
 
+
   // --- test setParameterInt64Array ---
   std::vector<Int64> v(5);
   for (size_t i = 0; i < 5; ++i)
     v[i] = i + 10;
-  Array newa(NTA_BasicType_Int64, &v[0], v.size());
-  level1->setParameterArray("int64ArrayParam", newa);
+  Array b(NTA_BasicType_Int64, &v[0], v.size());
+  level1->setParameterArray("int64ArrayParam", b);
 
   // get the value of intArrayParam after the setParameter call.
 
-  // The array a owns its buffer, so we can call releaseBuffer if we
+  // The array 'b' owns its buffer, so we can call releaseBuffer if we
   // want, but the buffer should be reused if we just pass it again.
-  // a.releaseBuffer();
-  level1->getParameterArray("int64ArrayParam", a);
-  EXPECT_EQ(a.getCount(), 5u) << "set size of TestNode::int64ArrayParam is 5";
-  buff = (Int64 *)a.getBuffer();
-  for (size_t i = 0; i < std::max<size_t>(a.getCount(), 5u); ++i)
+  // b.releaseBuffer();
+  level1->getParameterArray("int64ArrayParam", b);
+  EXPECT_EQ(b.getCount(), 5u) << "set size of TestNode::int64ArrayParam is 5";
+  buff = (Int64 *)b.getBuffer();
+  for (size_t i = 0; i < std::max<size_t>(b.getCount(), 5u); ++i)
     EXPECT_EQ(buff[i], v[i]) << "Invalid value for index " << i;
 
+  n.run(1);
+
+  const Array& output = level1->getOutputData("bottomUpOut");
+  Real64 *data_actual = (Real64 *)output.getBuffer();
+  size_t size = output.getCount();
+  // set the actual output
+  data_actual[1] = 54321;
 }
-
-
-TEST(CppRegionTest, realmain) {
-  Network n;
-  helperRealmain(n);
-
-  // should fail because network has not been initialized
-  EXPECT_THROW(n.run(1), exception);
-  // should fail because network can't be initialized
-  EXPECT_THROW(n.initialize(), exception);
-
-  if (verbose) std::cout << "Setting dimensions of level1..." << std::endl;
-  Dimensions d;
-  d.push_back(4);
-  d.push_back(4);
-  std::shared_ptr<Region> level1 = n.getRegion("level1");
-  level1->setDimensions(d);
-
-  if (verbose) std::cout << "Initializing again..." << std::endl;
-  EXPECT_NO_THROW(n.initialize());
-
-  level1->compute();
-
-  EXPECT_NO_THROW(helperCppInputOutputAccess(level1.get()));
-  EXPECT_THROW(level1->getOutputData("doesnotexist"), exception);
-
-}
-
 
 } //ns

@@ -106,10 +106,10 @@ OutputSpec::OutputSpec(std::string description,
                        NTA_BasicType dataType,
                        size_t count,
                        bool regionLevel,
-                       bool isDefaultOutput
+                       bool isDefaultOutput,
                        std::string inheritFrom)
     : description(std::move(description)), dataType(dataType), count(count),
-      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput) inheritFrom(inheritFrom) {}
+      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput), inheritFrom(inheritFrom) {}
 bool OutputSpec::operator==(const OutputSpec &o) const {
   return regionLevel == o.regionLevel && isDefaultOutput == o.isDefaultOutput &&
          dataType == o.dataType && inheritFrom == o.inheritFrom && count == o.count &&

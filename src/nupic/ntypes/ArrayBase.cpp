@@ -318,8 +318,38 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
     return false;
   if (lhs.getCount() == 0)
     return true;
+  if (lhs.getType() == NTA_BasicType_SDR) {
+    return (*lhs.getSDR() == *rhs.getSDR());
+  }
   return (std::memcmp(lhs.getBuffer(), rhs.getBuffer(),
                       lhs.getCount() * BasicType::getSize(lhs.getType())) == 0);
+}
+// Compare contents of a ArrayBase object and a vector of type Byte.  Actually
+// we are only interested in 0 and non-zero values in this compare.
+static bool binary_compare(const ArrayBase &a_side, const std::vector<nupic::Byte> &v_side) {
+  const char zero[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  if (a_side.getCount() != v_side.size()) return false;
+  size_t ele_size = BasicType::getSize(a_side.getType());
+  const void *ptr = a_side.getBuffer();
+  for (size_t i = 0; i < a_side.getCount(); i++) {
+    bool iszero;
+    switch(ele_size) { 
+    default:
+    case 1: iszero = (((const Byte*)  ptr)[i] == 0); break;
+    case 2: iszero = (((const UInt16*)ptr)[i] == 0); break;
+    case 4: iszero = (((const UInt32*)ptr)[i] == 0); break;
+    case 8: iszero = (((const UInt64*)ptr)[i] == 0); break;
+    }
+    if (v_side[i]!=0 && iszero || v_side[i]==0 && !iszero)
+      return false;
+  }
+  return true;
+}
+bool operator==(const ArrayBase &lhs, const std::vector<nupic::Byte> &rhs) {
+  return binary_compare(lhs, rhs);
+}
+bool operator==(const std::vector<nupic::Byte> &lhs, const ArrayBase &rhs) {
+  return binary_compare(rhs, lhs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

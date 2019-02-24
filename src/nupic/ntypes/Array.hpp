@@ -122,6 +122,7 @@
 // cout << A << std::endl;           -- stream out
 // cin  >> A;                        -- stream in
 // A == B                            -- equals overload
+// A == v                            -- equals a vector
 // A != B                            -- not equals overload
 //
 // SERIALIZATION
@@ -232,7 +233,6 @@ public:
     }
     return a;
   }
-
 
   /**
    * Convert to a vector; copies buffer, With conversion

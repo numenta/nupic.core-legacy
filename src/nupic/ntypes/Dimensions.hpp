@@ -28,7 +28,7 @@
 #ifndef NTA_DIMENSIONS_HPP
 #define NTA_DIMENSIONS_HPP
 
-#include <sstream>
+#include <iostream>
 #include <vector>
 #include <nupic/types/Types.hpp>
 
@@ -91,6 +91,8 @@ public:
 
   /**
    * Create a new Dimensions object from a @c std::vector<UInt>.
+   * The dimension in index 0 is the one that moves fastest while iterating.
+   * in 2D coordinates, x,y; the x is dimension[0], y is dimension[1].
    *
    * @param v
    *        A @c std::vector of @c UInt, the value with the index of @a n
@@ -365,9 +367,8 @@ public:
    *
    */
 
-#ifdef NTA_INTERNAL
-  friend std::ostream &operator<<(std::ostream &f, const Dimensions &);
-#endif
+  friend std::ostream &operator<<(std::ostream &f, const Dimensions &d);
+  friend std::istream &operator>>(std::istream &f, Dimensions &d);
 };
 
 } // namespace nupic

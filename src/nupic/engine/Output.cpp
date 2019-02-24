@@ -25,17 +25,17 @@
  *
  */
 
-#include <cstring>               // memset
-#include <nupic/engine/Link.hpp> // temporary
+#include <nupic/engine/Link.hpp> 
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/types/BasicType.hpp>
 
 namespace nupic {
 
-Output::Output(Region* region, NTA_BasicType type, bool isRegionLevel)
-    : region_(region), isRegionLevel_(isRegionLevel), name_("Unnamed"),
-      nodeOutputElementCount_(0) {
+Output::Output(Region* region, const std::string& outputName, NTA_BasicType type)
+    : region_(region), 
+      name_(outputName) {
   data_ = Array(type);
 }
 
@@ -47,35 +47,52 @@ Output::~Output() noexcept(false) {
   NTA_CHECK(links_.size() == 0) << "Internal error in region deletion, still has links.";
 }
 
+
 // allocate buffer
-// The 'count' argument comes from the impl by calling getNodeOutputElementCount()
-void Output::initialize(size_t count) {
+void Output::initialize() {
   // reinitialization is ok
   // might happen if initial initialization failed with an
   // exception (elsewhere) and was retried.
   if (data_.has_buffer())
     return;
 
-  nodeOutputElementCount_ = count;
-  size_t dataCount;
-  if (isRegionLevel_)
-    dataCount = count;
-  else
-    dataCount = count * region_->getDimensions().getCount();
-  if (dataCount != 0) {
-    if (data_.getType() == NTA_BasicType_SDR && isRegionLevel_) {
-      const Dimensions& dim = region_->getDimensions();
-      if (dim.isDontcare() || dim.isOnes()) 
-        data_.allocateBuffer(dataCount);
-      else
-        data_.allocateBuffer(dim);
+
+  NTA_CHECK(!dim_.isDontcare())
+        << "Output Dimensions cannot be determined for Region "
+        << region_->getName() << "; output " << name_;
+
+  size_t count = dim_.getCount();
+  if (data_.getType() == NTA_BasicType_SDR) {
+      data_.allocateBuffer(dim_);
+  } else {
+    data_.allocateBuffer(count);
+    // Zero the buffer because unitialized outputs can screw up inspectors,
+    // which look at the output before compute(). NPC-60
+    data_.zeroBuffer();
+  }
+}
+
+
+Dimensions Output::determineDimensions() {
+  if (data_.has_buffer())
+    return dim_;
+
+  if (!dim_.isSpecified()) {
+    dim_.clear();
+    // ask the spec how big the buffer is.
+    const std::shared_ptr<Spec>& srcSpec = region_->getSpec();
+    UInt32 count = (UInt32)srcSpec->outputs.getByName(name_).count; 
+    if (count > 0) {
+      dim_.push_back(count);
     } else {
-      data_.allocateBuffer(dataCount);
-      // Zero the buffer because unitialized outputs can screw up inspectors,
-      // which look at the output before compute(). NPC-60
-      data_.zeroBuffer();
+      // ask the region impl what the output dimensions are.
+      dim_ = region_->askImplForOutputDimensions(name_);
+      if (dim_.isUnspecified()) {
+        dim_.push_back(0);  // set Don't care.
+      }
     }
   }
+  return dim_;
 }
 
 void Output::addLink(std::shared_ptr<Link> link) {
@@ -98,9 +115,6 @@ void Output::removeLink(std::shared_ptr<Link> link) {
 }
 
 
-
-bool Output::isRegionLevel() const { return isRegionLevel_; }
-
 Region* Output::getRegion() const { return region_; }
 
 void Output::setName(const std::string &name) { name_ = name; }
@@ -108,7 +122,7 @@ void Output::setName(const std::string &name) { name_ = name; }
 const std::string &Output::getName() const { return name_; }
 
 size_t Output::getNodeOutputElementCount() const {
-  return nodeOutputElementCount_;
+  return dim_.getCount();
 }
 
 bool Output::hasOutgoingLinks() { return (!links_.empty()); }

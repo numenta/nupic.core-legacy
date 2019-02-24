@@ -38,9 +38,9 @@ public:
   InputSpec() {}
   InputSpec(std::string description,
             NTA_BasicType dataType,
-            UInt32 count,
-            bool required,
-            bool regionLevel,
+            UInt32 count = 0,
+            bool required = false,
+            bool regionLevel = false,
             bool isDefaultInput = false);
     bool operator==(const InputSpec &other) const;
     inline bool operator!=(const InputSpec &other) const {
@@ -50,7 +50,7 @@ public:
   NTA_BasicType dataType;    // declare type of input
   UInt32 count;              // width of buffer if fixed. 0 means unknown.
   bool required;             // true if input must be connected.
-  bool regionLevel;          // if true, region impl will determine input buffer size.
+  bool regionLevel;          // not used
   bool isDefaultInput;       // if True, assume this if input name not given.
 };
 
@@ -59,9 +59,9 @@ public:
   OutputSpec() {}
   OutputSpec(std::string description,
              const NTA_BasicType dataType,
-             size_t count,              // set size of buffer, 0 means unknown size.
-             bool regionLevel,
-             bool isDefaultOutput
+             size_t count = 0,              // set size of buffer, 0 means unknown size.
+             bool regionLevel = false,
+             bool isDefaultOutput = false,
              std::string inheritFrom = "");
     bool operator==(const OutputSpec &other) const;
     inline bool operator!=(const OutputSpec &other) const {
@@ -70,11 +70,8 @@ public:
   std::string description;   // description of output
   NTA_BasicType dataType;    // The type of the output buffer.
   size_t count;              // Size, in number of elements. If size is fixed.
-                             // if 0, call getNodeOutputElementCount() to get size.
-  bool regionLevel;          // if true, region impl will determine output dimensions.
-                             // else, dimensions are required but might be inherited.
-
-
+                             // if 0, call askImplForOutputDimensions() to get dimensions.
+  bool regionLevel;          // not used
   bool isDefaultOutput;      // if true, use this output for region if output name not given.
   std::string inheritFrom;   // if not empty, inherit dimensions from input with this name.
 };
@@ -140,19 +137,13 @@ public:
   Collection<CommandSpec> commands;
   Collection<ParameterSpec> parameters;
 
-#ifdef NTA_INTERNAL
 
   Spec();
 
-  // TODO: decide whether/how to wrap these
   std::string getDefaultOutputName() const;
   std::string getDefaultInputName() const;
 
-  // TODO: need Spec validation, to make sure
-  // that default input/output are defined
-  // Currently this is checked in getDefault*, above
 
-#endif // NTA_INTERNAL
 };
 
 } // namespace nupic

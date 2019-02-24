@@ -59,7 +59,8 @@ public:
    * @param isRegionLevel
    *        Whether the input is region level, i.e. TODO
    */
-  Input(Region* region, NTA_BasicType type, bool isRegionLevel);
+  Input(Region* region, const std::string& inputName, 
+        NTA_BasicType type);
 
   /**
    *
@@ -175,37 +176,17 @@ public:
    */
   std::vector<std::shared_ptr<Link>> &getLinks();
 
-  /**
-   *
-   * Tells whether the input is region level.
-   *
-   * @returns
-   *     Whether the input is region level, i.e. TODO
-   */
-  bool isRegionLevel();
 
   /**
    * Called by Region.evaluateLinks() as part
    * of network initialization.
    *
    * 1. Tries to make sure that dimensions at both ends
-   *    of a link are specified by calling setSourceDimensions()
-   *    if possible, and then calling getDestDimensions()
-   * 2. Ensures that region dimensions are consistent with
-   *    either by setting destination region dimensions (this is
-   *    where links "induce" dimensions) or by raising an exception
-   *    if they are inconsistent.
+   *    of a link are specified.
+   * 2. Ensures that region input dimensions are consistent
+   *    either by setting source and destination dimensions 
+   *    or by raising an exception if they are inconsistent.
    *
-   * @returns
-   *         Number of links that could not be fully evaluated, i.e. incomplete
-   */
-  size_t evaluateLinks();
-
-  /**
-   * Initialize the Input .
-   *
-   * After the input has all the information it needs, it is initialized by
-   * this method. Volatile data structures (e.g. the input buffer) are set up。
    */
   void initialize();
 
@@ -217,34 +198,34 @@ public:
    */
   bool isInitialized();
 
+    /**
+   * Get dimensions for this input
+   */
+  Dimensions &getDimensions() { return dim_; }
+
+  /**
+   * Set dimensions for this input
+   */
+  void setDimensions(Dimensions& dim) { dim_ = dim; }
+
+
   /* ------------ Methods normally called by the RegionImpl ------------- */
 
 
   bool hasIncomingLinks() { return !links_.empty(); }
-  bool hasSplitterMap() { return !splitterMap_.empty(); }
 
 
 private:
   // Cannot use the shared_ptr here.
   Region* region_;
 
-  bool isRegionLevel_;
 
   // Use a vector of links because order is important.
   std::vector<std::shared_ptr<Link>> links_;
 
-  // volatile (non-serialized) state
   bool initialized_;
+  Dimensions dim_;
   Array data_;
-
-
-  /*
-   * Cache of information about link offsets so we can
-   * easily copy data from each link.
-   * the first link starts at offset 0
-   * the next link starts at offset 0 + size(link[0])
-   */
-  std::vector<size_t> linkOffsets_;
 
   // Useful for us to know our own name
   std::string name_;

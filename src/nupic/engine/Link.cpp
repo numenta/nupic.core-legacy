@@ -102,53 +102,7 @@ void Link::initialize(size_t destinationOffset, bool is_FanIn) {
       << "Link::initialize() and src_ Output object not set.";
   NTA_CHECK(dest_ != nullptr)
       << "Link::initialize() and dest_ Input object not set.";
-
-  // Confirm that our dimensions are consistent with the
-  // dimensions of the regions we're connecting.
-  const Dimensions &srcD = getSrcDimensions();
-  const Dimensions &destD = getDestDimensions();
-  NTA_CHECK(!srcD.isUnspecified());
-  NTA_CHECK(!destD.isUnspecified());
-
-  Dimensions oneD;
-  oneD.push_back(1);
-
-  if (src_->isRegionLevel()) {
-    Dimensions d;
-    for (size_t i = 0; i < src_->getRegion()->getDimensions().size(); i++) {
-      d.push_back(1);
-    }
-
-    NTA_CHECK(srcD.isDontcare() || srcD == d);
-  } else if (src_->getRegion()->getDimensions() == oneD) {
-    Dimensions d;
-    for (size_t i = 0; i < srcD.size(); i++) {
-      d.push_back(1);
-    }
-    NTA_CHECK(srcD.isDontcare() || srcD == d);
-  } else {
-    NTA_CHECK(srcD.isDontcare() || srcD == src_->getRegion()->getDimensions());
-  }
-
-  if (dest_->isRegionLevel()) {
-    Dimensions d;
-    for (size_t i = 0; i < dest_->getRegion()->getDimensions().size(); i++) {
-      d.push_back(1);
-    }
-
-    NTA_CHECK(destD.isDontcare() || destD.isOnes());
-  } else if (dest_->getRegion()->getDimensions() == oneD) {
-    Dimensions d;
-    for (size_t i = 0; i < destD.size(); i++) {
-      d.push_back(1);
-    }
-    NTA_CHECK(destD.isDontcare() || destD == d);
-  } else {
-    NTA_CHECK(destD.isDontcare() ||
-              destD == dest_->getRegion()->getDimensions());
-  }
-
-
+ 
   destOffset_ = destinationOffset;
   is_FanIn_ = is_FanIn;
 
@@ -172,42 +126,6 @@ void Link::initialize(size_t destinationOffset, bool is_FanIn) {
   initialized_ = true;
 }
 
-void Link::setSrcDimensions(Dimensions &dims) {
-  NTA_CHECK(src_ != nullptr && dest_ != nullptr)
-      << "Link::setSrcDimensions() can only be called on a connected link";
-
-  elementCount_ = src_->getNodeOutputElementCount();
-  if (elementCount_ == 0) {
-    elementCount_ =
-        src_->getRegion()->getNodeOutputElementCount(src_->getName());
-  }
-   srcDimensions_ = dims;
-   if (destDimensions_.isUnspecified())
-     destDimensions_ = dims;
-}
-
-void Link::setDestDimensions(Dimensions &dims) {
-  NTA_CHECK(src_ != nullptr && dest_ != nullptr)
-      << "Link::setDestDimensions() can only be called on a connected link";
-
-  elementCount_ = src_->getNodeOutputElementCount();
-  if (elementCount_ == 0) {
-    elementCount_ =
-        src_->getRegion()->getNodeOutputElementCount(src_->getName());
-  }
-
-  destDimensions_ = dims;
-  if (srcDimensions_.isUnspecified())
-    srcDimensions_ = dims;
-}
-
-const Dimensions &Link::getSrcDimensions() const {
-  return srcDimensions_;
-};
-
-const Dimensions &Link::getDestDimensions() const {
-  return destDimensions_;
-};
 
 // Return constructor params
 const std::string &Link::getLinkType() const { return linkType_; }
@@ -231,17 +149,14 @@ std::string Link::getMoniker() const {
 
 const std::string Link::toString() const {
   std::stringstream ss;
-  ss << "[" << getSrcRegionName() << "." << getSrcOutputName();
+  ss << "{" << getSrcRegionName() << "." << getSrcOutputName();
   if (src_) {
-    ss << " (region dims: " << src_->getRegion()->getDimensions().toString()
-       << ") ";
+    ss <<  src_->getDimensions().toString();
   }
   ss << " to " << getDestRegionName() << "." << getDestInputName();
   if (dest_) {
-    ss << " (region dims: " << dest_->getRegion()->getDimensions().toString()
-       << ") ";
+    ss << dest_->getDimensions().toString();
   }
-  ss << " type: " << linkType_ << "]";
   return ss.str();
 }
 
@@ -279,8 +194,7 @@ void Link::compute() {
 
   // Copy data from source to destination. For delayed links, will copy from
   // head of circular queue; otherwise directly from source.
-  const Array &src = propagationDelay_ ? propagationDelayBuffer_.front() : src_->getData();
-
+  Array &src = propagationDelay_ ? propagationDelayBuffer_.front() : src_->getData();
   Array &dest = dest_->getData();
 
   if (_LINK_DEBUG) {
@@ -294,9 +208,9 @@ void Link::compute() {
         << "Not enough room in buffer to propogate to " << destRegionName_
         << " " << destInputName_ << ". ";
 
-  if (src.getType() == dest.getType() && !is_FanIn_)
+  if (src.getType() == dest.getType() && !is_FanIn_ && propagationDelay_==0) {
     dest = src;   // Performs a shallow copy. Data not copied but passed in shared_ptr.
-  else {
+  } else {
     // we must perform a deep copy with possible type conversion.
     // It is copied into the destination Input
     // buffer at the specified offset so an Input with multiple incoming links
@@ -307,12 +221,12 @@ void Link::compute() {
 
 void Link::shiftBufferedData() {
   if (propagationDelay_) {   // Source buffering is not used in 0-delay links
-    Array *from = &src_->getData();
+    Array& from = src_->getData();
     NTA_CHECK(propagationDelayBuffer_.size() == (propagationDelay_));
 
     // push a copy of the source Output buffer on the back of the queue.
     // This must be a deep copy.
-    Array a = from->copy();
+    Array a = from.copy();
     propagationDelayBuffer_.push_back(a);
 
     // Pop the head of the queue
@@ -420,6 +334,8 @@ void Link::deserialize(std::istream &f) {
   f.getline(bigbuffer, sizeof(bigbuffer));
   destInputName = bigbuffer;
 
+
+
   // 7. propagationDelay (number of cycles to delay propagation)
   f >> tag;
   NTA_CHECK(tag == "propagationDelay:");
@@ -459,8 +375,11 @@ void Link::deserialize(std::istream &f) {
 
 bool Link::operator==(const Link &o) const {
   if (initialized_ != o.initialized_ ||
-      propagationDelay_ != o.propagationDelay_ || linkType_ != o.linkType_ ||
-      linkParams_ != o.linkParams_ || destOffset_ != o.destOffset_ ||
+      propagationDelay_ != o.propagationDelay_ || 
+      linkType_ != o.linkType_ ||
+      linkParams_ != o.linkParams_ || 
+      destOffset_ != o.destOffset_ ||
+      is_FanIn_ != o.is_FanIn_ ||
       srcRegionName_ != o.srcRegionName_ ||
       destRegionName_ != o.destRegionName_ ||
       srcOutputName_ != o.srcOutputName_ ||
@@ -484,6 +403,8 @@ std::ostream &operator<<(std::ostream &f, const Link &link) {
   f << "  <destRegion>" << link.getDestRegionName() << "</destRegion>\n";
   f << "  <srcOutput>" << link.getSrcOutputName() << "</srcOutput>\n";
   f << "  <destInput>" << link.getDestInputName() << "</destInput>\n";
+  f << "  <offset>" << link.destOffset_ << "</offset>\n";
+  f << "  <fanIn>" << link.is_FanIn_ << "</fanIn>\n";
   f << "  <propagationDelay>" << link.getPropagationDelay()
     << "</propagationDelay>\n";
   if (link.getPropagationDelay() > 0) {

@@ -37,6 +37,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <nupic/ntypes/Dimensions.hpp>
 
 namespace nupic {
 
@@ -131,24 +132,31 @@ public:
   virtual std::string executeCommand(const std::vector<std::string> &args,
                                      Int64 index) = 0;
 
-  // Buffer size (in elements) of the given output.
-  // It is the total element count.
-  // This method is called only for outputs whose size is not
-  // specified in the nodespec.  This is used to allocate
-  // output buffers for non-SDR types.
-  // Return 0 for outputs that are not used.
-  virtual size_t getNodeOutputElementCount(const std::string &outputName) = 0;
-
   /* -------- Methods that may be overridden by subclasses -------- */
 
-  // The dimensions for the specified output.  This is called by
+  // Buffer size (in elements) of the given input/output.
+  // It is the total element count.
+  // This method is called only for buffers whose size is not
+  // specified in the nodespec.  This is used to allocate
+  // buffers during initialization.
+  // Return 0 for outputs that are not used or size does not matter.
+  virtual size_t getNodeInputElementCount(const std::string &outputName) const {
+    return 0;
+  }
+  virtual size_t getNodeOutputElementCount(const std::string &outputName) const {
+    return 0;
+  }
+
+
+  // The dimensions for the specified input or output.  This is called by
   // Link when it allocates SDR type buffers during initialization.
   // If this region sets topology (an SP for example) and will be
-  // setting the output dimensions (i.e. from parameters) then
-  // return the dimensions that should be placed in its output Array.
-  // Return an empty Dimension if this region should inhereted output
-  // dimensions from its input.
-  virtual const Dimensions &getDimensions(const std::string &outputName);
+  // setting the dimensions (i.e. from parameters) then
+  // return the dimensions that should be placed in its Array buffer.
+  // Return an don't Dimension if this region should inherit
+  // dimensions from its other end.
+  virtual Dimensions askImplForInputDimensions(const std::string &name) const;
+  virtual Dimensions askImplForOutputDimensions(const std::string &name) const ;
 
 
   /**
@@ -162,24 +170,32 @@ public:
   virtual size_t getParameterArrayCount(const std::string &name, Int64 index);
 
   /**
-   * isParameterShared must be available after construction
-   * Default implementation -- all parameters are shared
-   * Tests whether a parameter is node or region level
+   * Set Global dimensions on a region.
+   * Normally a Region Impl will use this to set the dimensions on the default output.
+   * This cannot be used to override a fixed buffer setting in the Spec.
+   * Args: dim   - The dimensions to set
    */
-  //virtual bool isParameterShared(const std::string &name);
+  virtual void setDimensions(Dimensions dim) { dim_ = dim; }
+  virtual Dimensions getDimensions() const { return dim_; }
 
 protected:
-    // A pointer to the Region object. This is the portion visible
+  // A pointer to the Region object. This is the portion visible
 	// to the applications.  This class and it's subclasses are the
 	// hidden implementations behind the Region class.
 	// Note: this cannot be a shared_ptr. Its pointer is passed via
 	//       the API so it must be a bare pointer so we don't have
 	//       a copy of the shared_ptr held by the Collection in Network.
 	//       This pointer must NOT be deleted.
-    Region* region_;
+  Region* region_;
 
   /* -------- Methods provided by the base class for use by subclasses --------
    */
+
+  // Region level dimensions.  This is set by the parameter "{dim: [2,3]}"
+  // or by region->setDimensions(d);
+  // A region implementation may use this for whatever it wants but it is normally
+  // applied to the default output buffer.
+  Dimensions dim_;
 
   // ---
   /// Callback for subclasses to get an output stream during serialize()
@@ -199,7 +215,8 @@ protected:
   // not found.
   Input *getInput(const std::string &name) const;
   Output *getOutput(const std::string &name) const;
-
+  Dimensions getInputDimensions(const std::string &name="") const;
+  Dimensions getOutputDimensions(const std::string &name="") const;
 
 };
 
