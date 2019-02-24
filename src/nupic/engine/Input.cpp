@@ -302,8 +302,10 @@ void Input::initialize() {
     }
   }
 
-  // If this is the default input, the region dimensions must have
-  // the same number of dimensions. Add 1's as needed to either.
+  // If this is the default input and the region dim is don't care,
+  // then assign this input dimensions to the region dimensions.
+  // The region dimensions must have the same number of dimensions. 
+  // Add 1's as needed to either.
   if (isDefaultInput) {
     d = region_->getDimensions();
     if (d.isSpecified()) {

@@ -91,6 +91,21 @@ Dimensions Output::determineDimensions() {
         dim_.push_back(0);  // set Don't care.
       }
     }
+
+    // If we still have a isDontcare, check if the spec defines 
+    // an input on this region to get the dimensions from. 
+    if (dim_.isDontcare()) {
+      std::string inheritFrom = srcSpec->outputs.getByName(name_).inheritFrom;
+      if (!inheritFrom.empty()) {
+        Input* in = region_->getInput(inheritFrom);
+        if (in) {
+          Dimensions d = in->getDimensions();
+          if (d.isSpecified()) {
+            dim_ = d;
+          }
+        }
+      }
+    }
   }
   return dim_;
 }

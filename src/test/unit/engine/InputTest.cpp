@@ -71,10 +71,9 @@ TEST(InputTest, BasicNetworkConstruction) {
   x.initialize();
   y.initialize();
 
-  // test getData()
+  // test getData() with empty buffer
   const ArrayBase *pa = &(y.getData());
   ASSERT_EQ(0u, pa->getCount());
-  Real64 *buf = (Real64 *)(pa->getBuffer());
 }
 
 
