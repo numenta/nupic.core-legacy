@@ -60,29 +60,25 @@ class MNIST {
 
 void setup() {
 
-  input.initialize({28, 28});
+  input.initialize({28 * 28});
   sp.initialize(
-    /* numInputs */                    input.dimensions,
-    /* numColumns */                   {28, 28}
-    );
-  sp.setGlobalInhibition(false);
-  // mapping to input
-  sp.setPotentialRadius(1); //receptive field (hyper-cube) how each col maps to input
-  sp.setPotentialPct(0.1); //of the recept. field above, how much % of inputs individual col connects to?
-  sp.setStimulusThreshold(3); //FIXME no learning if this > 0
-  sp.setSynPermActiveInc(0.1);
-  sp.setSynPermInactiveDec(0.02);
-
-  sp.setSpVerbosity(verbosity);
-  // on columnar level
-  sp.setLocalAreaDensity(.05); // 2% sparsity
-  sp.setMinPctOverlapDutyCycles(0.4);
-  //boost
-  sp.setBoostStrength(1.5);
-  sp.setDutyCyclePeriod(100);
-
-  sp.setWrapAround(false);
-
+    /* inputDimensions */             input.dimensions,
+    /* columnDimensions */            {20 * 1000},
+    /* potentialRadius */             999999u,
+    /* potentialPct */                0.5f,
+    /* globalInhibition */            true,
+    /* localAreaDensity */            0.015f,
+    /* numActiveColumnsPerInhArea */  -1,
+    /* stimulusThreshold */           14u,
+    /* synPermInactiveDec */          0.01f,
+    /* synPermActiveInc */            0.05f,
+    /* synPermConnected */            0.4f,
+    /* minPctOverlapDutyCycles */     0.001f,
+    /* dutyCyclePeriod */             1402,
+    /* boostStrength */               1.0f,
+    /* seed */                        93u,
+    /* spVerbosity */                 1u,
+    /* wrapAround */                  true);
 
   columns.initialize({sp.getNumColumns()});
 
@@ -102,10 +98,12 @@ void train() {
     cout << "Training for " << (train_dataset_iterations * dataset.training_labels.size())
          << " cycles ..." << endl;
   size_t i = 0;
+
+  SDR_Metrics inputStats(input,    1402);
   SDR_Metrics columnStats(columns, 1402);
 
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
-    NTA_WARN << "epoch " << epoch;
+    NTA_INFO << "epoch " << epoch;
     // Shuffle the training data.
     vector<UInt> index( dataset.training_labels.size() );
     index.assign(dataset.training_labels.cbegin(), dataset.training_labels.cend());
@@ -128,12 +126,12 @@ void train() {
         /* infer */           false,
                               &result);
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
-      if( verbosity && (i % (10*1000) == 0)) cout << endl;
+    }
+    if( verbosity ) cout << endl;
   }
-  if( verbosity ) cout << endl;
   cout << "epoch ended" << endl;
+  cout << inputStats << endl;
   cout << columnStats << endl;
-  }
 }
 
 void test() {
@@ -172,10 +170,11 @@ void test() {
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }
   if( verbosity ) cout << endl;
-  cout << "Score: " << 100.0 * score / n_samples << "% " << endl;
+  cout << "Score: " << 100.0 * score / n_samples << "%% " << endl;
 }
-};
-}
+
+};  // End class MNIST
+}   // End namespace examples
 
 int main(int argc, char **argv) {
   examples::MNIST m;
