@@ -49,8 +49,8 @@ the width of the default output buffer.
 re-arrange bits in the input buffer based on user defined patterns. However, thinking about how this 
 works in biology, the neurons make connections to the synapse of other neurons. There is no order or 
 pattern involved and in fact it needs to be fairly random as to how the neurons connect. It is the 
-job of the Spacial Pooler to simulate that set of random connections. So in effect, any re-mapping 
-of bits by a splitter map prior to being presented to the Spacial Pooler should have no affect on 
+job of the Spatial Pooler to simulate that set of random connections. So in effect, any re-mapping 
+of bits by a splitter map prior to being presented to the Spatial Pooler should have no affect on 
 functionality. This is probably why this feature was not used anyplace except in the unit tests.
 As a side-effect of this change, the LinkType and LinkParam parameters in the Network.Link( ) call 
 are ignored.  PR #271

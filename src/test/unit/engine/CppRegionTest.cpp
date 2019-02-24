@@ -78,9 +78,9 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
   VERBOSE << "region2: " << r2OutputArray << std::endl;
   VERBOSE << "region3: " << r3InputArray << std::endl;
 
-  EXPECT_EQ(r1OutputArray.getCount(), 64);
-  EXPECT_EQ(r2OutputArray.getCount(), 64);
-  EXPECT_EQ(r3InputArray.getCount(), 128);
+  EXPECT_EQ(r1OutputArray.getCount(), 64u);
+  EXPECT_EQ(r2OutputArray.getCount(), 64u);
+  EXPECT_EQ(r3InputArray.getCount(), 128u);
 
   region1->compute();
   region2->compute();
