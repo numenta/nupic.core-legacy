@@ -230,9 +230,9 @@ TEST(ConnectionsPerformanceTest, testTMLarge) {
  */
 TEST(ConnectionsPerformanceTest, testSP) {
   auto tim = runSpatialPoolerTest(
-    /* numInputs */          1024,
+    /* numInputs */          COLS,
     /* inputSparsity */      0.15f,
-    /* numColumns */         1024,
+    /* numColumns */         COLS,
     /* columnSparsity */     0.05f,
     /* label */              "spatial pooler");
 
@@ -247,10 +247,10 @@ TEST(ConnectionsPerformanceTest, testSP) {
  */
 TEST(ConnectionsPerformanceTest, testTP) {
   auto tim = runSpatialPoolerTest(
-    /* numInputs */          4 * 1024,
+    /* numInputs */          2 * COLS,
     /* inputSparsity */      0.02f,
-    /* numColumns */         1024 / 2,
-    /* columnSparsity */     0.05f,
+    /* numColumns */         COLS / 2,
+    /* columnSparsity */     0.1f,
     /* label */              "temporal pooler");
 
 #ifdef NDEBUG

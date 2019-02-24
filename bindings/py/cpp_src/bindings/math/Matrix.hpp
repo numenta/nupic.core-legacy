@@ -77,6 +77,7 @@ namespace nupic_ext {
             {
                 return _matrix.template unchecked<2>()(r,c);
             }
+	   
             else
             {
                 auto p = (char*)_bi.ptr + (_bi.strides[0] * r) + (_bi.strides[1] * c);
