@@ -749,3 +749,75 @@ TEST(SdrTest, TestCallbacks) {
     ASSERT_EQ( count4, 4 );
 }
 
+
+TEST(SdrTest, TestIntersectionExampleUsage) {
+    // Setup 2 SDRs to hold the inputs.
+    SDR A({ 10u });
+    SDR B({ 10u });
+    A.setFlatSparse(SDR_flatSparse_t(      {2, 3, 4, 5}));
+    B.setFlatSparse(SDR_flatSparse_t({0, 1, 2, 3}));
+
+    // Calculate the logical intersection
+    SDR_Intersection X(A, B);
+    ASSERT_EQ(X.getFlatSparse(), SDR_flatSparse_t({2, 3}));
+
+    // Assignments to the input SDRs are propigated to the SDR_Intersection
+    B.zero();
+    ASSERT_EQ(X.getSparsity(), 0.0f);
+}
+
+
+TEST(SdrTest, TestIntersection) {
+    SDR A({1000});
+    SDR B({1000});
+    A.randomize(.5);
+    B.randomize(.5);
+
+    // Test basic functionality
+    SDR_Intersection X(A, B);
+    SDR *Xp = &X;
+    Xp->getDense();
+    ASSERT_GT( Xp->getSparsity(), .25 / 2. );
+    ASSERT_LT( Xp->getSparsity(), .25 * 2. );
+    A.zero();
+    ASSERT_EQ( Xp->getSum(), 0u );
+
+    // Test deleting input SDR before SDR_Intersection
+    SDR *C = new SDR({A.size});
+    SDR *Y = new SDR_Intersection(A, B, *C);
+    delete C;
+    delete Y;
+
+    // Test subclass attribute access
+    SDR C2({A.size});
+    SDR D({A.size});
+    SDR_Intersection Z(A, B, C2, D);
+    ASSERT_EQ(Z.size, A.size);                            // Access SDR
+    ASSERT_EQ(Z.inputs, vector<SDR*>({&A, &B, &C2, &D})); // Access SDR_Intersection
+}
+
+
+TEST(SdrTest, TestConcatenationExampleUsage) {
+    SDR               A({ 100 });
+    SDR               B({ 100 });
+    SDR_Concatenation C( A, B );
+    ASSERT_EQ(C.dimensions, vector<UInt>({ 200 }));
+
+    SDR               D({ 640, 480, 3 });
+    SDR               E({ 640, 480, 7 });
+    SDR_Concatenation F( D, E, 2 );
+    ASSERT_EQ(F.dimensions, vector<UInt>({ 640, 480, 10 }));
+}
+
+TEST(SdrTest, TestConcatenation) {
+    SDR A({10000});
+    SDR B({10000});
+    SDR_Concatenation C(A, B);
+    SDR_Concatenation D(A, B, 0u);
+    SDR_Concatenation E({&A, &B});
+    SDR_Concatenation F({&A, &B}, 0u);
+    A.randomize( 0.25f );
+    B.randomize( 0.75f );
+    ASSERT_LT( C.getSparsity(), 0.55f );
+    ASSERT_GT( C.getSparsity(), 0.45f );
+}
