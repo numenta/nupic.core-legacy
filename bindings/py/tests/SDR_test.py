@@ -442,10 +442,17 @@ class SdrIntersectionTest(unittest.TestCase):
 
 
 class SdrConcatenationTest(unittest.TestCase):
-    @pytest.mark.skip(reason="TODO UNIMPLEMENTED!")
     def testExampleUsage(self):
         assert( issubclass(SDR_Intersection, SDR) )
-        1/0
+        A = SDR( 100 )
+        B = SDR( 100 )
+        C = SDR_Concatenation( A, B )
+        assert(C.dimensions == [200])
+
+        D = SDR(( 640, 480, 3 ))
+        E = SDR(( 640, 480, 7 ))
+        F = SDR_Concatenation( D, E, 2 )
+        assert(F.dimensions == [ 640, 480, 10 ])
 
     def testConstructor(self):
         # Test all of the constructor overloads

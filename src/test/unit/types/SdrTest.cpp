@@ -798,6 +798,15 @@ TEST(SdrTest, TestIntersection) {
 
 
 TEST(SdrTest, TestConcatenationExampleUsage) {
+    SDR               A({ 100 });
+    SDR               B({ 100 });
+    SDR_Concatenation C( A, B );
+    ASSERT_EQ(C.dimensions, vector<UInt>({ 200 }));
+
+    SDR               D({ 640, 480, 3 });
+    SDR               E({ 640, 480, 7 });
+    SDR_Concatenation F( D, E, 2 );
+    ASSERT_EQ(F.dimensions, vector<UInt>({ 640, 480, 10 }));
 }
 
 TEST(SdrTest, TestConcatenation) {

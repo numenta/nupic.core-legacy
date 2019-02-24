@@ -165,7 +165,28 @@ protected:
 
 
 /**
- * TODO DOCUEMNTATION
+ * SDR_Concatenation class
+ *
+ * ### Description
+ * This class presents a view onto a group of SDRs, which always shows the
+ * concatenation of them.  This view is read-only.
+ *
+ * Parameter UInt axis: This can concatenate along any axis, with the
+ *      restriction that the result must be rectangular.  The default axis is 0.
+ *
+ * An SDR_Concatenation is valid for as long as all of its input SDRs are alive.
+ * Using it after any of it's inputs are destroyed is undefined.
+ *
+ * Example Usage:
+ *      SDR               A({ 100 });
+ *      SDR               B({ 100 });
+ *      SDR_Concatenation C( A, B );
+ *      C.dimensions -> { 200 }
+ *
+ *      SDR               D({ 640, 480, 3 });
+ *      SDR               E({ 640, 480, 7 });
+ *      SDR_Concatenation F( D, E, 2 );
+ *      F.dimensions -> { 640, 480, 10 }
  */
 class SDR_Concatenation : public SDR_ReadOnly_
 {
@@ -299,7 +320,7 @@ public:
  * SDR_Intersection class
  *
  * This class presents a view onto a group of SDRs, which always shows the set
- * intersection of the active bits in each input SDR.
+ * intersection of the active bits in each input SDR.  This view is read-only.
  *
  * Example Usage:
  *     // Setup 2 SDRs to hold the inputs.

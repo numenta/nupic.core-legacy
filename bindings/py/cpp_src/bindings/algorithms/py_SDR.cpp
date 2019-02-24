@@ -352,12 +352,29 @@ Example Usage:
         py_Intersect.def_property_readonly("inputs",
             [] (const SDR_Intersection &self)
                 { return self.inputs; },
-            "TODO DOCUMENTATION");
+            "List of input SDRs which feed into this SDR operation.");
 
 
         py::class_<SDR_Concatenation, SDR> py_Concatenation(m, "SDR_Concatenation",
-R"(SDR_Concatenation presents a view onto a group of SDRs, which always shows the
-TODO DOCUMENTATION!
+R"(This class presents a view onto a group of SDRs, which always shows the
+concatenation of them.  This view is read-only.
+
+Argument axis: This can concatenate along any axis, with the restriction that
+    the result must be rectangular.  The default axis is 0.
+
+An SDR_Concatenation is valid for as long as all of its input SDRs are alive.
+Using it after any of it's inputs are destroyed is undefined.
+
+Example Usage:
+    A = SDR( 100 )
+    B = SDR( 100 )
+    C = SDR_Concatenation( A, B )
+    C.dimensions == [200]
+
+    D = SDR(( 640, 480, 3 ))
+    E = SDR(( 640, 480, 7 ))
+    F = SDR_Concatenation( D, E, 2 )
+    F.dimensions == [ 640, 480, 10 ]
 )");
         // Duplicate constructors, for postitional & keyword & default arguments
         py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2) {
@@ -393,10 +410,10 @@ TODO DOCUMENTATION!
         py_Concatenation.def_property_readonly("inputs",
             [] (const SDR_Concatenation &self)
                 { return self.inputs; },
-            "TODO DOCUMENTATION");
+            "List of input SDRs which feed into this SDR operation.");
         py_Concatenation.def_property_readonly("axis",
             [] (const SDR_Concatenation &self)
                 { return self.axis; },
-            "TODO DOCUMENTATION");
+            "Index of dimension of concatenation.");
     }
 }
