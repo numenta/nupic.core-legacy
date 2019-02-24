@@ -173,8 +173,6 @@ TEST(SdrProxyTest, TestSaveLoad) {
     outfile.close();
     ifstream infile( filename );
 
-    SDR_Proxy loadError( zero );
-    ASSERT_ANY_THROW( loadError.load( infile ) );
     SDR zero_2;
     zero_2.load( infile );
     SDR dense_2;
@@ -186,7 +184,7 @@ TEST(SdrProxyTest, TestSaveLoad) {
 
     infile.close();
     int ret = ::remove( filename );
-    ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
+    EXPECT_TRUE(ret == 0) << "Failed to delete " << filename;
 
     // Check that all of the data is OK
     ASSERT_TRUE( zero    == zero_2 );

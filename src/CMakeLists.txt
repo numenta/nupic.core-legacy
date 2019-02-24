@@ -142,16 +142,7 @@ set(engine_files
 )
   
 set(math_files
-    nupic/math/ArrayAlgo.hpp
-    nupic/math/DenseMatrix.hpp
-    nupic/math/Domain.hpp
-    nupic/math/Functions.hpp
-    nupic/math/Index.hpp
     nupic/math/Math.hpp
-    nupic/math/Set.hpp
-    nupic/math/SparseBinaryMatrix.hpp
-    nupic/math/SparseMatrix.hpp
-    nupic/math/SparseTensor.hpp
     nupic/math/StlIo.cpp
     nupic/math/StlIo.hpp
     nupic/math/Topology.cpp
@@ -169,9 +160,6 @@ set(ntypes_files
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
     nupic/ntypes/Dimensions.hpp
-    nupic/ntypes/MemParser.cpp
-    nupic/ntypes/MemParser.hpp
-    nupic/ntypes/MemStream.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
     nupic/ntypes/Value.cpp
@@ -247,6 +235,12 @@ set(utils_files
     nupic/utils/Watcher.hpp
 )
 
+set(examples_files
+    examples/hotgym/Hotgym.cpp
+    examples/hotgym/HelloSPTP.cpp
+    examples/hotgym/HelloSPTP.hpp
+)
+
 #set up file tabs in Visual Studio
 source_group("algorithms" FILES ${algorithm_files})
 source_group("encoders" FILES ${encoders_files})
@@ -257,6 +251,8 @@ source_group("os" FILES ${os_files})
 source_group("regions" FILES ${regions_files})
 source_group("types" FILES ${types_files})
 source_group("utils" FILES ${utils_files})
+source_group("examples" FILES ${examples_files})
+
 
 #--------------------------------------------------------
 # Create an OBJECT library (compiles sources only once)
@@ -277,7 +273,8 @@ add_library(${src_objlib} OBJECT
     ${os_files} 
     ${regions_files} 
     ${types_files} 
-    ${utils_files} 
+    ${utils_files}
+    ${examples_files} 
 )
 # shared libraries need PIC
 target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
@@ -364,22 +361,24 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
-
-source_group("examples" FILES examples/Hotgym.cpp examples/HelloSPTP.cpp)
+source_group("examples" FILES 
+    examples/hotgym/Hotgym.cpp 
+    examples/hotgym/HelloSPTP.hpp
+    )
 
 set(src_executable_hotgym benchmark_hotgym)
-add_executable(${src_executable_hotgym} examples/Hotgym.cpp)
+add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp)
 if(MSVC)
   # for Windows, link with the static library
   target_link_libraries(${src_executable_hotgym} 
-        ${core_library}
-		${COMMON_OS_LIBS}
+    ${core_library}
+    ${COMMON_OS_LIBS}
 		)
 else()
   # for Linux,OSx, link with the shared library
   target_link_libraries(${src_executable_hotgym} 
-        ${src_lib_shared}
-		${COMMON_OS_LIBS}
+    ${src_lib_shared}
+    ${COMMON_OS_LIBS}
 		)
 endif()
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
