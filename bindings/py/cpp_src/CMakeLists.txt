@@ -65,17 +65,8 @@ set(src_py_engine_files
 	
 set(src_py_math_files
     bindings/math/math_module.cpp    
-    bindings/math/py_ArrayAlgo.cpp
-    bindings/math/py_Domain.cpp
-    bindings/math/py_Math.cpp
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
-    bindings/math/py_Set.cpp
-    bindings/math/py_SparseBinaryMatrix.cpp
-    bindings/math/py_SparseMatrix.cpp
-    bindings/math/py_SparseTensor.cpp
-    bindings/math/PyBindSparseTensor.hpp
-    bindings/math/SparseTensorIndex.hpp
     )
     
 set(src_py_test_files
@@ -99,24 +90,12 @@ set(distr ${CMAKE_INSTALL_PREFIX}/distr)
 file(MAKE_DIRECTORY ${distr})
 file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
 
-# set CPP standard. default for PyBind11 is C++14.  If requested standard not available it will fall back to C++11.
-if (MSVC)
-  set(PYBIND11_CPP_STANDARD /std:c++latest) # Enables MSVC C++17
-else()
-  set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
-endif()
-
 
 # determine which version of binding to build
 if ("${BINDING_BUILD}" STREQUAL "Python2")
   set(PYBIND11_PYTHON_VERSION 2.7)
   # else Python3
 endif()
-if (MSVC)
-  set(PYBIND11_CPP_STANDARD -std:${INTERNAL_CPP_STANDARD})
-else(MSVC)
-  set(PYBIND11_CPP_STANDARD -std=${INTERNAL_CPP_STANDARD})
-endif(MSVC)
 add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
 set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
 

@@ -209,21 +209,14 @@ public:
   void releaseSegment(UInt segIdx) {
     NTA_ASSERT(segIdx < _segments.size());
 
-    // TODO: check this
-    if (is_in(segIdx, _freeSegments)) {
-      return;
+    if (std::find(_freeSegments.cbegin(), _freeSegments.cend(), segIdx) != _freeSegments.cend() ) {
+      return;  // segIdx already in freeSeg, no need to contine
     }
-
-    // TODO: check this
-    NTA_ASSERT(not_in(segIdx, _freeSegments));
 
     _segments[segIdx].clear(); // important in case we push_back later
     _freeSegments.push_back(segIdx);
     _segments[segIdx]._totalActivations = 0;
     _segments[segIdx]._positiveActivations = 0;
-
-    NTA_ASSERT(_segments[segIdx].empty());
-    NTA_ASSERT(is_in(segIdx, _freeSegments));
   }
 
   // The comment below is so awesome, I had to leave it in!

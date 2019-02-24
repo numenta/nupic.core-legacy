@@ -2,15 +2,13 @@ version: 2
 jobs:
   build-and-test:
     macos:
-      xcode: '9.0.1'
+      xcode: '10.1.0'
     working_directory: ~/numenta/nupic.core
     parallelism: 1
     environment:
       XCODE_SCHEME: nupic
       XCODE_WORKSPACE: nupic
       ARCHFLAGS: -arch x86_64
-      PYTHONPATH: ~/Library/Python/2.7/lib/python/site-packages
-      PYBIN: ~/Library/Python/2.7/bin
     steps:
       # Machine Setup
       - run:
@@ -23,9 +21,7 @@ jobs:
       - run:
           name: Restoring system python
           command: |
-            brew uninstall python
-            curl https://bootstrap.pypa.io/get-pip.py | python - --user
-            export PATH=$HOME/Library/Python/2.7/bin:$PATH
+            echo 'python version: ' && python --version
             echo 'pip version: ' && python -m pip --version 
             echo 'python version: ' && python --version
       - run:
@@ -80,7 +76,7 @@ jobs:
        
       - run:
            name: Install Python extension
-           command: python setup.py install --user
+           command: python setup.py install --user --prefix=
 
       # Test
       - run:

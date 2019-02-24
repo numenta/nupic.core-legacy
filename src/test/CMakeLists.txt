@@ -67,20 +67,6 @@ set(engine_tests
 	   
 
 set(math_tests
-	   unit/math/DenseTensorUnitTest.cpp
-	   unit/math/DenseTensorUnitTest.hpp
-	   unit/math/DomainUnitTest.cpp
-	   unit/math/DomainUnitTest.hpp
-	   unit/math/IndexUnitTest.cpp
-	   unit/math/IndexUnitTest.hpp
-	   unit/math/MathsTest.cpp
-	   unit/math/MathsTest.hpp
-	   unit/math/SparseBinaryMatrixTest.cpp
-	   unit/math/SparseMatrixTest.cpp
-	   unit/math/SparseMatrixUnitTest.cpp
-	   unit/math/SparseMatrixUnitTest.hpp
-	   unit/math/SparseTensorUnitTest.cpp
-	   unit/math/SparseTensorUnitTest.hpp
 	   unit/math/TopologyTest.cpp
 	   )
 	   
@@ -88,8 +74,6 @@ set(ntypes_tests
 	   unit/ntypes/ArrayTest.cpp
 	   unit/ntypes/CollectionTest.cpp
 	   unit/ntypes/DimensionsTest.cpp
-	   unit/ntypes/MemParserTest.cpp
-	   unit/ntypes/MemStreamTest.cpp
 	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
@@ -100,6 +84,12 @@ set(os_tests
 	   unit/os/OSTest.cpp
 	   unit/os/PathTest.cpp
 	   unit/os/TimerTest.cpp
+	   )
+	   
+set(regions_tests
+	   unit/regions/RegionTestUtilities.cpp
+	   unit/regions/RegionTestUtilities.hpp
+	   unit/regions/SPRegionTest.cpp
 	   )
 	   
 set(types_tests
@@ -128,6 +118,7 @@ source_group("engine" FILES ${engine_tests})
 source_group("math" FILES ${math_tests})
 source_group("ntypes" FILES ${ntypes_tests})
 source_group("os" FILES ${os_tests})
+source_group("regions" FILES ${regions_tests})
 source_group("types" FILES ${types_tests})
 source_group("utils" FILES ${utils_tests})
 source_group("main" FILES unit/UnitTestMain.cpp)
@@ -141,6 +132,7 @@ set(src_executable_gtests
     ${math_tests} 
     ${ntypes_tests} 
     ${os_tests} 
+    ${regions_tests}
     ${types_tests} 
     ${utils_tests} 
 )

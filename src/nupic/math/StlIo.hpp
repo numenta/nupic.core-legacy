@@ -37,8 +37,7 @@
 #include <iostream>
 
 #include <nupic/types/Types.hpp>
-
-#include <nupic/math/ArrayAlgo.hpp>
+#include <nupic/math/Types.hpp> // Buffer
 
 namespace nupic {
 
