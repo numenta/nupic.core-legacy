@@ -95,7 +95,7 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
   region3->prepareInputs();
   VERBOSE << "Region3 input after first iteration:" << std::endl;
   VERBOSE << r3InputArray << std::endl;
-  ASSERT_EQ(r3InputArray.getCount(), 128);
+  ASSERT_EQ(r3InputArray.getCount(), 128u);
   ASSERT_EQ(r3InputArray.getType(), NTA_BasicType_Real64);
   buffer1 = (Real64 *)r1OutputArray.getBuffer();
   buffer2 = (Real64 *)r2OutputArray.getBuffer();
@@ -196,12 +196,12 @@ TEST(CppRegionTest, realmain) {
   Network n;
 
   size_t count1 = n.getRegions().getCount();
-  EXPECT_TRUE(count1 == 0);
+  EXPECT_TRUE(count1 == 0u);
   std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "");
 
 
   size_t count = n.getRegions().getCount();
-  EXPECT_TRUE(count == 1);
+  EXPECT_TRUE(count == 1u);
   std::string region_type = level1->getType();
   EXPECT_STREQ(region_type.c_str(), "TestNode");
   std::string ns = level1->getSpec()->toString();
@@ -262,7 +262,7 @@ TEST(CppRegionTest, realmain) {
   Real64 *data_actual = (Real64 *)output.getBuffer();
   size_t size = output.getCount();
   // set the actual output
-  data_actual[1] = 54321;
+  data_actual[1] = 54321.0;
 }
 
 } //ns

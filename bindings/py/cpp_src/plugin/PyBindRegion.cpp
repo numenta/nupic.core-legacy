@@ -447,7 +447,7 @@ namespace nupic
         return node_.attr("getParameterArrayCount")(*args).cast<size_t>();
     }
 
-    size_t PyBindRegion::getNodeOutputElementCount(const std::string& outputName)
+    size_t PyBindRegion::getNodeOutputElementCount(const std::string& outputName) const
     {
         py::args args = py::make_tuple(outputName);
         return node_.attr("getOutputElementCount")(*args).cast<size_t>();
@@ -580,26 +580,24 @@ namespace nupic
                     NTA_ASSERT(input.contains("count")) << inputMessagePrefix.str() << "count";
                     auto count = input["count"].cast<UInt32>();
 
-                    NTA_ASSERT(input.contains("required"))  << inputMessagePrefix.str() << "required";
-                    auto required = input["required"].cast<bool>();
+										bool required = false;
+                    if (input.contains("required")) 
+										{
+                    	required = input["required"].cast<bool>();
+										}
 
-                    // make regionLevel optional and default to true.
-                    bool regionLevel = true;
+                    // make regionLevel optional and default to false.
+                    bool regionLevel = false;
                     if (input.contains("regionLevel"))
                     {
                         regionLevel = input["regionLevel"].cast<bool>();
                     }
 
-                    NTA_ASSERT(input.contains("isDefaultInput"))
-                        << inputMessagePrefix.str() << "isDefaultInput";
-                    auto isDefaultInput = input["isDefaultInput"].cast<bool>();
-
-                    // make requireSplitterMap optional and default to false.
-                    bool requireSplitterMap = false;
-                    if (input.contains("requireSplitterMap"))
+										bool isDefaultInput = false;
+                    if (input.contains("isDefaultInput"))
                     {
-                        requireSplitterMap = input["requireSplitterMap"].cast<bool>();
-                    }
+                      isDefaultInput = input["isDefaultInput"].cast<bool>();
+										}
 
                     ns.inputs.add(
                         name,
@@ -609,8 +607,7 @@ namespace nupic
                             count,
                             required,
                             regionLevel,
-                            isDefaultInput,
-                            requireSplitterMap )
+                            isDefaultInput )
                     );
                 }
             }
@@ -653,15 +650,21 @@ namespace nupic
                     auto count = output["count"].cast<UInt32>();
 
                     // make regionLevel optional and default to true.
-                    bool regionLevel = true;
+                    bool regionLevel = false;
                     if (output.contains("regionLevel"))
                     {
                         regionLevel = output["regionLevel"].cast<bool>();
                     }
-
-                    NTA_ASSERT(output.contains("isDefaultOutput"))
-                        << outputMessagePrefix.str() << "isDefaultOutput";
-                    bool isDefaultOutput = output["isDefaultOutput"].cast<bool>();
+										bool isDefaultOutput = false;
+										if (output.contains("isDefaultOutput")) 
+										{
+                    	isDefaultOutput = output["isDefaultOutput"].cast<bool>();
+										}
+										std::string inheritFrom;
+                    if (output.contains("inheritFrom"))
+										{
+										  inheritFrom = input["inheritFrom"].cast<std::string>();
+										}
 
                     ns.outputs.add(
                         name,
@@ -670,7 +673,8 @@ namespace nupic
                             dataType,
                             count,
                             regionLevel,
-                            isDefaultOutput)
+                            isDefaultOutput,
+														inheritFrom)
                     );
                 }
             }
