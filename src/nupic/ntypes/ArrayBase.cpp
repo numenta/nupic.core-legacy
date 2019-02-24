@@ -327,7 +327,6 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
 // Compare contents of a ArrayBase object and a vector of type Byte.  Actually
 // we are only interested in 0 and non-zero values in this compare.
 static bool binary_compare(const ArrayBase &a_side, const std::vector<nupic::Byte> &v_side) {
-  const char zero[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   if (a_side.getCount() != v_side.size()) return false;
   size_t ele_size = BasicType::getSize(a_side.getType());
   const void *ptr = a_side.getBuffer();
@@ -340,7 +339,7 @@ static bool binary_compare(const ArrayBase &a_side, const std::vector<nupic::Byt
     case 4: iszero = (((const UInt32*)ptr)[i] == 0); break;
     case 8: iszero = (((const UInt64*)ptr)[i] == 0); break;
     }
-    if (v_side[i]!=0 && iszero || v_side[i]==0 && !iszero)
+    if (((v_side[i]!=0) && iszero) || ((v_side[i]==0) && !iszero))
       return false;
   }
   return true;

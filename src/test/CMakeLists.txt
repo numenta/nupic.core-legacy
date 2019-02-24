@@ -94,7 +94,6 @@ set(regions_tests
 set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
-	   unit/types/FractionTest.cpp
 	   unit/types/SdrTest.cpp
 	   unit/types/SdrProxyTest.cpp
 	   )

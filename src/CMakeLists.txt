@@ -196,8 +196,6 @@ set(types_files
     nupic/types/BasicType.cpp
     nupic/types/BasicType.hpp
     nupic/types/Exception.hpp
-    nupic/types/Fraction.cpp
-    nupic/types/Fraction.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp

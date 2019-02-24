@@ -70,7 +70,7 @@ jobs:
           command: |
             mkdir -p build/scripts
             cd build/scripts
-            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release -DPYTHON2_BUILD=ON
+            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release -DBINDING_BUILD=Python2
             make | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
        
