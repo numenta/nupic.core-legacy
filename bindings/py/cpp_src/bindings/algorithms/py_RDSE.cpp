@@ -20,8 +20,6 @@
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
-// #include <pybind11/numpy.h>
-// #include <pybind11/stl.h>
 
 #include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
 
@@ -34,13 +32,19 @@ namespace nupic_ext
     void init_RDSE(py::module& m)
     {
         py::class_<RDSE> py_RDSE(m, "RDSE");
+
         py_RDSE.def(py::init<UInt, Real, Real, UInt>(),
             py::arg("size"),
             py::arg("sparsity"),
             py::arg("radius"),
             py::arg("seed") = 0u);
+
         py_RDSE.def("encode", &RDSE::encode);
 
-        // TODO encode into SDR
+        py_RDSE.def("encode", [](RDSE &self, Real value) {
+            auto sdr = new SDR({self.size});
+            self.encode(value, *sdr);
+            return sdr;
+        });
     }
 }
