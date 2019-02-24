@@ -75,10 +75,6 @@ public:
     encodeFromSeed_(inputSeedMap.at(value), output);
   }
 
-  const CategoryType decode(const SDR &encoding) {
-    // TODO
-  }
-
 private:
   UInt randomSeed_() {
     UInt seed = 0;

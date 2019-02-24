@@ -20,11 +20,10 @@
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
-#include <pybind11/stl.h>
+// #include <pybind11/numpy.h>
+// #include <pybind11/stl.h>
 
-#include <nupic/encoders/CategoryEncoder.hpp>
-#include <nupic/utils/StringUtils.hpp>  // trim
+#include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
 
 namespace py = pybind11;
 
@@ -32,16 +31,16 @@ using namespace nupic;
 
 namespace nupic_ext
 {
-    void init_CategoryEncoder(py::module& m)
+    void init_RDSE(py::module& m)
     {
-        py::class_<CategoryEncoder<UInt>> py_CategoryEncoder(m, "CategoryEncoder");
-        py_CategoryEncoder.def(py::init<UInt, Real, UInt>(),
+        py::class_<RDSE> py_RDSE(m, "RDSE");
+        py_RDSE.def(py::init<UInt, Real, Real, UInt>(),
             py::arg("size"),
             py::arg("sparsity"),
+            py::arg("radius"),
             py::arg("seed") = 0u);
-        py_CategoryEncoder.def("encode", []
-            (CategoryEncoder<UInt> &enc, UInt value) {
-            });
+        py_RDSE.def("encode", &RDSE::encode);
+
         // TODO encode into SDR
     }
 }

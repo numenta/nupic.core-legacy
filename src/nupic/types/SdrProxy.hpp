@@ -308,8 +308,8 @@ public:
                     dense_data += row;
                 }
             }
-            SDR::setDenseInplace();
             dense_valid_lazy = true;
+            do_callbacks();
         }
         return dense_;
     }
@@ -364,7 +364,6 @@ protected:
         inputs_.clear();
         callback_handles_.clear();
         destroyCallback_handles_.clear();
-        dense_valid_lazy = false;
         // Notify SDR parent class.
         SDR::deconstruct();
     }
@@ -419,8 +418,8 @@ public:
                 for(auto z = 0u; z < data.size(); ++z)
                     dense_[z] = dense_[z] && data[z];
             }
-            SDR::setDenseInplace();
             dense_valid_lazy = true;
+            do_callbacks();
         }
         return dense_;
     }

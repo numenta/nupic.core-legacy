@@ -41,6 +41,7 @@ namespace nupic_ext
     void init_SDR_Classifier(py::module&);
     void init_Spatial_Pooler(py::module&);
     void init_CategoryEncoder(py::module&);
+    void init_RDSE(py::module&);
 
 } // namespace nupic_ext
 
@@ -57,4 +58,5 @@ PYBIND11_MODULE(algorithms, m) {
     init_SDR_Classifier(m);
     init_Spatial_Pooler(m);
     init_CategoryEncoder(m);
+    init_RDSE(m);
 }

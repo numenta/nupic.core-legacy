@@ -49,6 +49,7 @@ set(src_py_algorithms_files
     bindings/algorithms/py_SDRClassifier.cpp
     bindings/algorithms/py_SpatialPooler.cpp
     bindings/algorithms/py_CategoryEncoder.cpp
+    bindings/algorithms/py_RDSE.cpp
 	)
 	
 set(src_py_engine_files
