@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Proxy
+from nupic.bindings.algorithms import SDR, SDR_Proxy, SDR_Intersection, SDR_Concatenation
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -346,6 +346,193 @@ class SdrProxyTest(unittest.TestCase):
         assert( len(C.flatSparse) == A.size )
         assert( len(D.flatSparse) == A.size )
         del B
+
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    def testPickle(self):
+        assert(False) # TODO: Unimplemented
+
+
+class SdrIntersectionTest(unittest.TestCase):
+    def testExampleUsage(self):
+        A = SDR( 10 )
+        B = SDR( 10 )
+        A.flatSparse = [2, 3, 4, 5]
+        B.flatSparse = [0, 1, 2, 3]
+        X = SDR_Intersection(A, B)
+        assert((X.flatSparse == [2, 3]).all())
+        B.zero()
+        assert(X.getSparsity() == 0)
+
+    def testConstructor(self):
+        assert( issubclass(SDR_Intersection, SDR) )
+        # Test 2 Arguments
+        A = SDR( 2000 )
+        B = SDR( A.size )
+        X = SDR_Intersection(A, B)
+        A.randomize( .20 )
+        B.randomize( .20 )
+        assert( X.getSum() > 0 )
+        assert( X.inputs == [A, B] )
+        A.zero()
+        assert( X.getSum() == 0 )
+        del X
+        A.zero()
+        B.zero()
+        del B
+        del A
+        # Test 3 Arguments
+        A = SDR( 2000 )
+        B = SDR( 2000 )
+        C = SDR( 2000 )
+        X = SDR_Intersection(A, B, C)
+        A.randomize( .6 )
+        B.randomize( .6 )
+        C.randomize( .6 )
+        assert( X.inputs == [A, B, C] )
+        assert( X.getSparsity() >  .75 * ( .6 ** 3 ))
+        assert( X.getSparsity() < 1.25 * ( .6 ** 3 ))
+        del B
+        del A
+        del X
+        del C
+        # Test 4 Arguments
+        A = SDR( 2000 ); A.randomize( .9 )
+        B = SDR( 2000 ); B.randomize( .9 )
+        C = SDR( 2000 ); C.randomize( .9 )
+        D = SDR( 2000 ); D.randomize( .9 )
+        X = SDR_Intersection(A, B, C, D)
+        assert( X.inputs == [A, B, C, D] )
+        # Test list constructor
+        X = SDR_Intersection( [A, B, C, D] )
+        assert( X.size       == 2000 )
+        assert( X.dimensions == [2000] )
+        assert( X.getSum()    > 0 )
+        A.zero()
+        assert( X.getSum()   == 0 )
+        assert( X.inputs     == [A, B, C, D] )
+
+    def testSparsity(self):
+        test_cases = [
+            ( 0.5,  0.5 ),
+            ( 0.1,  0.9 ),
+            ( 0.25, 0.3 ),
+            ( 0.5,  0.5,  0.5 ),
+            ( 0.95, 0.95, 0.95 ),
+            ( 0.10, 0.10, 0.60 ),
+            ( 0.0,  1.0,  1.0 ),
+            ( 0.5,  0.5,  0.5, 0.5),
+            ( 0.11, 0.25, 0.33, 0.5, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98),
+        ]
+        seed = 99
+        for sparsities in test_cases:
+            sdrs = []
+            for S in sparsities:
+                inp = SDR( 10000 )
+                inp.randomize( S, seed)
+                seed += 1
+                sdrs.append( inp )
+            X = SDR_Intersection( sdrs )
+            mean_sparsity = np.product( sparsities )
+            assert( X.getSparsity() >= (2./3.) * mean_sparsity )
+            assert( X.getSparsity() <= (4./3.) * mean_sparsity )
+
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    def testPickle(self):
+        assert(False) # TODO: Unimplemented
+
+
+class SdrConcatenationTest(unittest.TestCase):
+    def testExampleUsage(self):
+        assert( issubclass(SDR_Intersection, SDR) )
+        A = SDR( 100 )
+        B = SDR( 100 )
+        C = SDR_Concatenation( A, B )
+        assert(C.dimensions == [200])
+
+        D = SDR(( 640, 480, 3 ))
+        E = SDR(( 640, 480, 7 ))
+        F = SDR_Concatenation( D, E, 2 )
+        assert(F.dimensions == [ 640, 480, 10 ])
+
+    def testConstructor(self):
+        # Test all of the constructor overloads
+        A = SDR(( 100, 2 ))
+        B = SDR(( 100, 2 ))
+        C = SDR(( 100, 2 ))
+        D = SDR(( 100, 2 ))
+        SDR_Concatenation( A, B )
+        SDR_Concatenation( A, B, 1 )
+        SDR_Concatenation( A, B, C )
+        SDR_Concatenation( A, B, C, 1 )
+        SDR_Concatenation( A, B, C, D )
+        SDR_Concatenation( A, B, C, D, 1 )
+        SDR_Concatenation( [A, B, C, D] )
+        SDR_Concatenation( [A, B, C, D], 1 )
+        SDR_Concatenation( inputs = [A, B, C, D], axis = 1 )
+
+    def testConstructorErrors(self):
+        def _assertAnyException(func):
+            try:
+                func()
+            except RuntimeError:
+                return
+            except TypeError:
+                return
+            else:
+                self.fail()
+
+        A = SDR( 100 )
+        B = SDR(( 100, 2 ))
+        C = SDR([ 3, 3 ])
+        D = SDR([ 3, 4 ])
+        # Test bad argument dimensions
+        _assertAnyException(lambda: SDR_Concatenation(A))      # Not enough inputs!
+        _assertAnyException(lambda: SDR_Concatenation(A, B))
+        _assertAnyException(lambda: SDR_Concatenation(B, C))  # All dims except axis must match!
+        _assertAnyException(lambda: SDR_Concatenation(C, D))  # All dims except axis must match!
+        SDR_Concatenation(C, D, 1) # This should work
+        _assertAnyException(lambda: SDR_Concatenation( inputs = (C, D), axis = 2))  # invalid axis
+        _assertAnyException(lambda: SDR_Concatenation( inputs = (C, D), axis = -1))  # invalid axis
+
+    def testDelete(self):
+        # Make & Delete it a few times to make sure that doesn't crash.
+        A = SDR(100)
+        B = SDR(100)
+        C = SDR(100)
+        X = SDR_Concatenation(A, B, C)
+        SDR_Concatenation(A, B, C)
+        Y = SDR_Concatenation(A, C)
+        SDR_Concatenation(B, C)
+        del B
+        del A
+        del Y
+        del C
+        del X
+
+    def testMirroring(self):
+        A = SDR( 200 )
+        Ax10 = SDR_Concatenation( [A] * 10 )
+        A.randomize( .33 )
+        assert( .30 < Ax10.getSparsity() and Ax10.getSparsity() < .36 )
+
+    def testVersusNumpy(self):
+        # Each testcase is a pair of lists of SDR dimensions and axis
+        # dimensions.
+        test_cases = [
+            ([(9, 30, 40),  (2, 30, 40)],          0),
+            ([(2, 30, 40),  (2, 99, 40)],          1),
+            ([(2, 30, 40),  (2, 30, 99)],          2),
+            ([(100,), (10), (30)],                 0),
+            ([(100,2), (10,2), (30,2)],            0),
+            ([(1,77), (1,99), (1,88)],             1),
+            ([(1,77,2), (1,99,2), (1,88,2)],       1),
+        ]
+        for sdr_dims, axis in test_cases:
+            sdrs = [SDR(dims) for dims in sdr_dims]
+            [sdr.randomize(.50) for sdr in sdrs]
+            cat    = SDR_Concatenation( sdrs, axis )
+            np_cat = np.concatenate([sdr.dense for sdr in sdrs], axis=axis)
+            assert((cat.dense == np_cat).all())
 
     @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
     def testPickle(self):

@@ -127,6 +127,7 @@ private:
     vector<UInt> dimensions_;
     UInt         size_;
 
+protected:
     // internal representation in given data format (not all must match at a time),
     // see *_valid below
     mutable SDR_dense_t      dense_;
@@ -141,6 +142,7 @@ private:
     mutable bool flatSparse_valid;
     mutable bool sparse_valid;
 
+private:
     /**
      * These hooks are called every time the SDR's value changes.  These can be
      * NULL pointers!  See methods addCallback & removeCallback for API details.
@@ -160,33 +162,33 @@ protected:
      * not actually change any of the data.  Attempting to get the SDR's value
      * immediately after this operation will raise an exception.
      */
-    virtual void clear();
+    virtual void clear() const;
 
     /**
      * Notify everyone that this SDR's value has officially changed.
      */
-    void do_callbacks();
+    void do_callbacks() const;
 
     /**
      * Update the SDR to reflect the value currently inside of the dense array.
      * Use this method after modifying the dense buffer inplace, in order to
      * propigate any changes to the sparse & flatSparse formats.
      */
-    virtual void setDenseInplace();
+    virtual void setDenseInplace() const;
 
     /**
      * Update the SDR to reflect the value currently inside of the flatSparse
      * vector. Use this method after modifying the flatSparse vector inplace, in
      * order to propigate any changes to the dense & sparse formats.
      */
-    virtual void setFlatSparseInplace();
+    virtual void setFlatSparseInplace() const;
 
     /**
      * Update the SDR to reflect the value currently inside of the sparse
      * vector. Use this method after modifying the sparse vector inplace, in
      * order to propigate any changes to the dense & flatSparse formats.
      */
-    virtual void setSparseInplace();
+    virtual void setSparseInplace() const;
 
     /**
      * Destroy this SDR.  Makes SDR unusable, should error or clearly fail if

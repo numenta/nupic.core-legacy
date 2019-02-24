@@ -28,10 +28,11 @@
 #define NTA_CONNECTIONS_HPP
 
 #include <climits>
+#include <map>
+#include <set>
 #include <utility>
 #include <vector>
 
-#include <nupic/math/Math.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Sdr.hpp>
@@ -49,7 +50,6 @@ typedef Real32 Permanence;
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
 
-static const Permanence EPSILON = 0.00001f;
 
 /**
  * SynapseData class used in Connections.
