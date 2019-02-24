@@ -9,7 +9,6 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/math/Math.hpp> //for macro ASSERT_INPUT_ITERATOR
 
 namespace nupic {
   namespace util {
@@ -32,7 +31,6 @@ class SlidingWindow {
       IteratorT initialData_end, std::string id="SlidingWindow", int debug=0): 
       SlidingWindow(maxCapacity, id, debug) {
       // Assert that It obeys the STL forward iterator concept
-      ASSERT_INPUT_ITERATOR(IteratorT);
       for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
         append(*it);
       }

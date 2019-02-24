@@ -137,16 +137,7 @@ set(engine_files
 )
   
 set(math_files
-    nupic/math/ArrayAlgo.hpp
-    nupic/math/DenseMatrix.hpp
-    nupic/math/Domain.hpp
-    nupic/math/Functions.hpp
-    nupic/math/Index.hpp
     nupic/math/Math.hpp
-    nupic/math/Set.hpp
-    nupic/math/SparseBinaryMatrix.hpp
-    nupic/math/SparseMatrix.hpp
-    nupic/math/SparseTensor.hpp
     nupic/math/StlIo.cpp
     nupic/math/StlIo.hpp
     nupic/math/Topology.cpp
@@ -164,9 +155,6 @@ set(ntypes_files
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.cpp
     nupic/ntypes/Dimensions.hpp
-    nupic/ntypes/MemParser.cpp
-    nupic/ntypes/MemParser.hpp
-    nupic/ntypes/MemStream.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
     nupic/ntypes/Value.cpp
