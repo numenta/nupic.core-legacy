@@ -77,9 +77,10 @@ bool SegmentUpdate::invariants(Cells4 *cells) const {
       ok &= _segIdx < cells->__nSegmentsOnCell(_cellIdx);
 
     if (!_synapses.empty()) {
-      for (UInt i = 0; i != _synapses.size(); ++i)
+      for (UInt i = 0; i != _synapses.size(); ++i) {
         ok &= _synapses[i] < cells->nCells();
-      ok &= is_sorted(_synapses, true, true);
+      }
+      ok &= std::is_sorted(_synapses.cbegin(), _synapses.cend());
     }
   }
 

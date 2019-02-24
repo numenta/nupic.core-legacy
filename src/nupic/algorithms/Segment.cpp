@@ -21,6 +21,7 @@
  */
 
 #include <algorithm> // sort
+#include <cmath> //abs, fabs
 #include <iomanip>
 #include <iostream>
 #include <set>
@@ -29,8 +30,9 @@
 
 #include <assert.h>
 #include <map>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
+#include <nupic/math/Math.hpp> // Epsilon
+
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/Random.hpp>
 
@@ -86,10 +88,10 @@ bool Segment::equals(const Segment &other) const {
   if (_totalActivations != other._totalActivations ||
       _positiveActivations != other._positiveActivations ||
       _lastActiveIteration != other._lastActiveIteration ||
-      !nearlyEqual(_lastPosDutyCycle, other._lastPosDutyCycle) ||
+      std::abs(_lastPosDutyCycle - other._lastPosDutyCycle) > nupic::Epsilon ||
       _lastPosDutyCycleIteration  !=  other._lastPosDutyCycleIteration ||
       _seqSegFlag != other._seqSegFlag ||
-      !nearlyEqual(_frequency, other._frequency) ||
+      std::abs(_frequency - other._frequency) > nupic::Epsilon||
       _nConnected != other._nConnected) {
     return false;
   }
@@ -210,7 +212,7 @@ void Segment::addSynapses(const std::set<UInt> &srcCells, Real initStrength,
       ++_nConnected;
   }
 
-  sort(_synapses, InSynapseOrder());
+  std::sort(_synapses.begin(), _synapses.end(), InSynapseOrder());
   NTA_ASSERT(invariants()); // will catch non-unique synapses
 }
 

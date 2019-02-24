@@ -125,7 +125,7 @@ The product of the dimensions must be greater than zero.)",
 
         py_SDR.def(
             py::init( [](UInt dimensions) {
-                return SDR({ dimensions }); }),
+                return new SDR({ dimensions }); }),
 R"(Create an SDR object.  The initial value is all zeros.
 
 Argument dimensions is a single integer dimension size, defining a 1-dimensional
@@ -316,5 +316,104 @@ given SDR.)",
             py::arg("sdr"), py::arg("dimensions"));
 
         py_Proxy.def( py::init<SDR&>(), py::arg("sdr"));
+
+
+        py::class_<SDR_Intersection, SDR> py_Intersect(m, "SDR_Intersection",
+R"(SDR_Intersection presents a view onto a group of SDRs, which always shows the
+set-intersection of the active bits in each input SDR.
+
+Example Usage:
+    # Setup 2 SDRs to hold the inputs.
+    A = SDR( 10 )
+    B = SDR( 10 )
+    A.flatSparse =       [2, 3, 4, 5]
+    B.flatSparse = [0, 1, 2, 3]
+
+    # Calculate the logical intersection
+    X = SDR_Intersection(A, B)
+    X.flatSparse -> [2, 3]
+
+    # Assignments to the input SDRs are propigated to the SDR_Intersection
+    B.zero()
+    X.getSparsity() -> 0.0
+)");
+        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2) {
+            return new SDR_Intersection({    &inp1,     &inp2});
+        }));
+        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3) {
+            return new SDR_Intersection({   &inp1,     &inp2,     &inp3});
+        }));
+        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
+            return new SDR_Intersection({   &inp1,     &inp2,     &inp3,     &inp4});
+        }));
+        py_Intersect.def( py::init( [] (vector<SDR*> inputs) {
+            return new SDR_Intersection(inputs);
+        }));
+        py_Intersect.def_property_readonly("inputs",
+            [] (const SDR_Intersection &self)
+                { return self.inputs; },
+            "List of input SDRs which feed into this SDR operation.");
+
+
+        py::class_<SDR_Concatenation, SDR> py_Concatenation(m, "SDR_Concatenation",
+R"(This class presents a view onto a group of SDRs, which always shows the
+concatenation of them.  This view is read-only.
+
+Argument axis: This can concatenate along any axis, with the restriction that
+    the result must be rectangular.  The default axis is 0.
+
+An SDR_Concatenation is valid for as long as all of its input SDRs are alive.
+Using it after any of it's inputs are destroyed is undefined.
+
+Example Usage:
+    A = SDR( 100 )
+    B = SDR( 100 )
+    C = SDR_Concatenation( A, B )
+    C.dimensions == [200]
+
+    D = SDR(( 640, 480, 3 ))
+    E = SDR(( 640, 480, 7 ))
+    F = SDR_Concatenation( D, E, 2 )
+    F.dimensions == [ 640, 480, 10 ]
+)");
+        // Duplicate constructors, for postitional & keyword & default arguments
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2) {
+            return new SDR_Concatenation(   {&inp1,     &inp2}, 0u);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, UInt axis) {
+            return new SDR_Concatenation(   {&inp1,     &inp2},     axis);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3}, 0u);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, UInt axis) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3},     axis);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3,     &inp4}, 0u);
+        }));
+        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4, UInt axis) {
+            return new SDR_Concatenation(   {&inp1,     &inp2,     &inp3,     &inp4},     axis);
+        }));
+        py_Concatenation.def(py::init([](vector<SDR*> input) {
+            return new SDR_Concatenation(input, 0u);
+        }));
+        py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
+            return new SDR_Concatenation(input, axis);
+        }));
+        py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
+            return new SDR_Concatenation(input, axis);
+        }),
+            py::arg("inputs") = vector<SDR*>({}),
+            py::arg("axis") = 0u
+        );
+        py_Concatenation.def_property_readonly("inputs",
+            [] (const SDR_Concatenation &self)
+                { return self.inputs; },
+            "List of input SDRs which feed into this SDR operation.");
+        py_Concatenation.def_property_readonly("axis",
+            [] (const SDR_Concatenation &self)
+                { return self.axis; },
+            "Index of dimension of concatenation.");
     }
 }

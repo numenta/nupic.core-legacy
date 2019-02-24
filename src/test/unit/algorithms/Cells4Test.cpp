@@ -24,6 +24,7 @@
  * Implementation of unit tests for Segment
  */
 
+#include <algorithm> //find
 #include <set>
 #include <vector>
 #include <iostream>
@@ -34,7 +35,6 @@
 #include <nupic/os/Directory.hpp>
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/Segment.hpp>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
 
 using namespace nupic::algorithms::Cells4;
 
@@ -47,8 +47,8 @@ std::vector<UInt> _getOrderedSrcCellIndexesForSrcCells(const Segment &segment,
   const std::set<UInt> srcCellsSet(first, last);
 
   for (UInt i = 0; i < segment.size(); ++i) {
-    UInt srcCellIdx = segment[i].srcCellIdx();
-    if (is_in(srcCellIdx, srcCellsSet)) {
+    const UInt srcCellIdx = segment[i].srcCellIdx();
+    if (std::find(srcCellsSet.cbegin(), srcCellsSet.cend(), srcCellIdx) != srcCellsSet.cend()) { // is in
       result.push_back(srcCellIdx);
     }
   }
@@ -65,8 +65,8 @@ std::vector<UInt> _getOrderedSynapseIndexesForSrcCells(const Segment &segment,
   const std::set<UInt> srcCellsSet(first, last);
 
   for (UInt i = 0; i < segment.size(); ++i) {
-    UInt srcCellIdx = segment[i].srcCellIdx();
-    if (is_in(srcCellIdx, srcCellsSet)) {
+    const UInt srcCellIdx = segment[i].srcCellIdx();
+    if (std::find(srcCellsSet.cbegin(), srcCellsSet.cend(), srcCellIdx) != srcCellsSet.cend()) { // is in
       result.push_back(i);
     }
   }
@@ -560,3 +560,14 @@ TEST(Cells4Test, testEqualsOperator) {
     ASSERT_TRUE(cells1 == cells2);
   }
 }
+
+
+//FIXME known to fail, re-enable when fixing the issue https://github.com/htm-community/nupic.cpp/issues/267 
+//TEST(Cells4Test, testPerformanceInputSizeImpact) {
+//  auto bench = examples::BenchmarkHotgym();
+//  bench.run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 10000/*dim input*/);
+//  const auto time10kInput = bench.tTP.getElapsed();
+//  bench.run(2000/*epochs*/, false, true/*SP global*/, true/*TP*/, false, false, 2048, 100000/*dim input*/);
+//  const auto time100kInput = bench.tTP.getElapsed();
+//  ASSERT_LE(time100kInput, time10kInput*1.1) << "Cells4 time must be same for different SP input sizes"; //within 10% tolerance
+//}
