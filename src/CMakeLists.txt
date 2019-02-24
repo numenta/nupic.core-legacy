@@ -199,6 +199,8 @@ set(regions_files
     nupic/regions/BacktrackingTMRegion.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
+    nupic/regions/SPRegion.cpp
+    nupic/regions/SPRegion.hpp
     nupic/regions/TestNode.cpp
     nupic/regions/TestNode.hpp
     nupic/regions/TMRegion.cpp

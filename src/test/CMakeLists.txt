@@ -102,9 +102,13 @@ set(os_tests
 	   )
 	   
 set(regions_tests
-       unit/regions/BacktrackingTMRegionTest.cpp
-       unit/regions/TMRegionTest.cpp
-       )
+	   unit/regions/RegionTestUtilities.cpp
+	   unit/regions/RegionTestUtilities.hpp
+	   unit/regions/SPRegionTest.cpp
+     unit/regions/BacktrackingTMRegionTest.cpp
+     unit/regions/TMRegionTest.cpp
+	   )
+
 	   
 set(types_tests
 	   unit/types/BasicTypeTest.cpp
@@ -132,6 +136,7 @@ source_group("engine" FILES ${engine_tests})
 source_group("math" FILES ${math_tests})
 source_group("ntypes" FILES ${ntypes_tests})
 source_group("os" FILES ${os_tests})
+source_group("regions" FILES ${regions_tests})
 source_group("types" FILES ${types_tests})
 source_group("utils" FILES ${utils_tests})
 source_group("main" FILES unit/UnitTestMain.cpp)
@@ -145,6 +150,7 @@ set(src_executable_gtests
     ${math_tests} 
     ${ntypes_tests} 
     ${os_tests} 
+    ${regions_tests}
     ${types_tests} 
     ${utils_tests} 
 )

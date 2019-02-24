@@ -41,8 +41,10 @@ namespace nupic {
 VectorFileEffector::VectorFileEffector(const ValueMap &params, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {
-  if (params.contains("outputFile"))
-    filename_ = params.getString("outputFile");
+  if (params.contains("outputFile")) {
+    std::string s = params.getString("outputFile");
+    openFile(s);
+  }
   else
     filename_ = "";
 }
@@ -74,7 +76,7 @@ void VectorFileEffector::compute() {
   // Don't write if there is no open file.
   if (outFile_ == nullptr) {
     NTA_WARN
-        << "VectorFileEffector compute() called, but there is no open file";
+        << "VectorFileEffector (Warning) compute() called, but there is no open file";
     return;
   }
 
