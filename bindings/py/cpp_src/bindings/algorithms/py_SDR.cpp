@@ -158,7 +158,7 @@ current value.)");
                 auto capsule = py::capsule(&self, [](void *self) {});
                 vector<UInt> strides( self.dimensions.size(), 0u );
                 auto z = sizeof(Byte);
-                for(size_t i = self.dimensions.size() - 1; i >= 0u; --i) {
+                for(int i = (int)self.dimensions.size() - 1; i >= 0; --i) {
                     strides[i] = (UInt)z;
                     z *= self.dimensions[i];
                 }
