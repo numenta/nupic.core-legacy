@@ -39,3 +39,8 @@ TEST(RDSE, testConstruct) {
   ASSERT_EQ( R.radius,   1.23f );
 }
 
+TEST(RDSE, testErrorChecks) {
+  auto A = RDSE(100u, 0.02f, 20.0f);
+  SDR B({ 444u });
+  ASSERT_ANY_THROW( A.encode(0u, B) );
+}

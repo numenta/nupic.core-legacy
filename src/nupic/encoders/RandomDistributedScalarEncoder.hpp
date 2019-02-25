@@ -90,6 +90,8 @@ public:
       // because it does not record past encodings.  Collisions cause small
       // deviations in the sparsity or semantic similarity, depending on how
       // they're handled.
+      // TODO: Calculate the probability of a hash collision and account for
+      // it in n_active.
       data[bucket] = 1u;
     }
     output.setDense( data );

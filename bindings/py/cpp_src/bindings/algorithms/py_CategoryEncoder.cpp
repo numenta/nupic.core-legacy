@@ -37,10 +37,12 @@ TODO: DOCSTRINGS!
 )");
 
         py_CategoryEncoder.def(py::init<UInt, Real, UInt>(),
+        // TODO DOCSTRINGS FOR INIT
             py::arg("size"),
             py::arg("sparsity"),
             py::arg("seed") = 0u);
 
+        // TODO DOCSTRINGS FOR ENCODE
         py_CategoryEncoder.def("encode", &CategoryEncoder<UInt>::encode);
 
         py_CategoryEncoder.def("encode", []

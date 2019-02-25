@@ -281,6 +281,8 @@ public:
     SDR_dense_t& getDense() const override {
         NTA_ASSERT( dense_valid );
         if( !dense_valid_lazy ) {
+            clear();
+            // Calculate the dense format data.
             // Setup for copying the data as rows & strides.
             const UInt    n_dim = inputs[0]->dimensions.size();
             vector<Byte*> buffers;
@@ -411,6 +413,8 @@ public:
     SDR_dense_t& getDense() const override {
         NTA_ASSERT( dense_valid );
         if( !dense_valid_lazy ) {
+            clear();
+            // Calculate the data.
             const auto &input0 = inputs[0]->getDense();
             dense_.assign( input0.begin(), input0.end() );
             for(auto i = 1u; i < inputs.size(); ++i) {

@@ -32,13 +32,16 @@ namespace nupic_ext
     void init_RDSE(py::module& m)
     {
         py::class_<RDSE> py_RDSE(m, "RDSE");
+        // TODO CLASS DOCSTRING
 
         py_RDSE.def(py::init<UInt, Real, Real, UInt>(),
+        // TODO INIT DOCSTRING
             py::arg("size"),
             py::arg("sparsity"),
             py::arg("radius"),
             py::arg("seed") = 0u);
 
+        // TODO ENCODE DOCSTRING
         py_RDSE.def("encode", &RDSE::encode);
 
         py_RDSE.def("encode", [](RDSE &self, Real value) {
