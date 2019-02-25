@@ -28,6 +28,9 @@
 #include <nupic/algorithms/Cell.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
+#include <nupic/utils/Random.hpp>
+
+#include <deque>
 #include <ostream>
 #include <sstream>
 
@@ -954,14 +957,14 @@ public:
          *                  cell
          *
          */
-        void processSegmentUpdates(Real* input, const CState& predictedState);
+        void processSegmentUpdates(const Real32 input[], const CState& predictedState);
 
         //----------------------------------------------------------------------
         /**
          * Removes any updates that would be applied to the given col,
          * cellIdx, segIdx.
          */
-        void cleanUpdatesList(UInt cellIdx, UInt segIdx);
+        void cleanUpdatesList(const UInt cellIdx, const UInt segIdx);
 
         //----------------------------------------------------------------------
         /**

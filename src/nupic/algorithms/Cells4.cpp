@@ -29,7 +29,6 @@
 #include <nupic/algorithms/Cells4.hpp>
 
 #include <nupic/algorithms/SegmentUpdate.hpp>
-#include <nupic/math/ArrayAlgo.hpp> // is_in
 #include <nupic/math/StlIo.hpp>     // binary_save
 #include <nupic/os/Timer.hpp>
 #include <nupic/utils/Log.hpp>
@@ -235,9 +234,11 @@ void Cells4::addOutSynapses(UInt dstCellIdx, UInt dstSegIdx,
   NTA_ASSERT(dstSegIdx < _cells[dstCellIdx].size());
 
   for (; newSynapse != newSynapsesEnd; ++newSynapse) {
-    UInt srcCellIdx = *newSynapse;
-    OutSynapse newOutSyn(dstCellIdx, dstSegIdx);
-    NTA_ASSERT(not_in(newOutSyn, _outSynapses[srcCellIdx]));
+    const UInt srcCellIdx = *newSynapse;
+    const OutSynapse newOutSyn(dstCellIdx, dstSegIdx);
+    const auto out = _outSynapses[srcCellIdx]; 
+
+    NTA_ASSERT(std::find(out.cbegin(), out.cend(), newOutSyn) == out.cend()); //newOutSyn is not in "out"
     _outSynapses[srcCellIdx].push_back(newOutSyn);
   }
 }
@@ -716,7 +717,6 @@ UInt Cells4::getCellForNewSegment(UInt colIdx) {
   // Remove this segment from cell and remove any pending updates to this
   // segment. Update outSynapses structure.
   std::vector<UInt> synsToRemove;
-  synsToRemove.clear(); // purge residual data
   _cells[candidateCellIdx][candidateSegmentIdx].getSrcCellIndices(synsToRemove);
   eraseOutSynapses(candidateCellIdx, candidateSegmentIdx, synsToRemove);
   cleanUpdatesList(candidateCellIdx, candidateSegmentIdx);
@@ -1421,57 +1421,38 @@ void Cells4::_updateAvgLearnedSeqLength(UInt prevSeqLength) {
 /**
  * Go through the list of accumulated segment updates and process them.
  */
-void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
-  static std::vector<UInt> delUpdates;
-  delUpdates.clear(); // purge residual data
+void Cells4::processSegmentUpdates(const Real32 input[], const CState &predictedState) {
 
-  for (UInt i = 0; i != _segmentUpdates.size(); ++i) {
+  // Decide whether to apply the update now. If update has expired, then
+  // mark this update for deletion
+  const auto rm_expired = [&](const SegmentUpdate& update) {
+    return (_nLrnIterations - update.timeStamp() > _segUpdateValidDuration);
+  };
 
-    const SegmentUpdate &update = _segmentUpdates[i];
-
-    if (_verbosity >= 4) {
-      std::cout << "\n_nLrnIterations: " << _nLrnIterations
-                << " segment update: ";
-      update.print(std::cout, true, _nCellsPerCol);
-      std::cout << std::endl;
-    }
-
-    // Decide whether to apply the update now. If update has expired, then
-    // mark this update for deletion
-    if (_nLrnIterations - update.timeStamp() > _segUpdateValidDuration) {
-      if (_verbosity >= 4)
-        std::cout << "     Expired, deleting now.\n";
-      delUpdates.push_back(i);
-    }
-
-    // Update has not expired
-    else {
-      UInt cellIdx = update.cellIdx();
-      UInt colIdx = (UInt)(cellIdx / _nCellsPerCol);
-
-      // If we received bottom up input, then adapt this segment and schedule
-      // update for removal
+  // If we received bottom up input, then adapt this segment and schedule
+  // update for removal
+  const auto rm_bottomUpInput = [&](const SegmentUpdate& update) {
+      const UInt colIdx = (UInt)(update.cellIdx() / _nCellsPerCol);
       if (input[colIdx] == 1) {
-
-        if (_verbosity >= 4)
-          std::cout << "     Applying update now.\n";
         adaptSegment(update);
-        delUpdates.push_back(i);
-      } else {
-        // We didn't receive bottom up input. If we are not (pooling and still
-        // predicting) then delete this update
-        if (!(_doPooling && predictedState.isSet(cellIdx))) {
-          if (_verbosity >= 4)
-            std::cout << "     Deleting update now.\n";
-          delUpdates.push_back(i);
-        }
-      }
+	return true; //delete
+      } else { return false; }
+  };
 
-    } // unexpired update
+  // We didn't receive bottom up input. If we are not (pooling and still
+  // predicting) then delete this update
+  const auto rm_noInputAndPredicting = [&](const SegmentUpdate& update) {
+    return !(_doPooling && predictedState.isSet(update.cellIdx()));
+  };
 
-  } // Loop over updates
+  /**
+   * the following 3 statements are order dependant, ie you can imagine 
+   * this as: if {st 1} else { if {st 2} else {st 3}}
+   */
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), rm_expired), _segmentUpdates.end());
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), rm_bottomUpInput), _segmentUpdates.end());
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), rm_noInputAndPredicting), _segmentUpdates.end());
 
-  remove_at(delUpdates, _segmentUpdates);
 }
 
 //----------------------------------------------------------------------
@@ -1479,36 +1460,10 @@ void Cells4::processSegmentUpdates(Real *input, const CState &predictedState) {
  * Removes any updates that would be applied to the given col,
  * cellIdx, segIdx.
  */
-void Cells4::cleanUpdatesList(UInt cellIdx, UInt segIdx) {
-  static std::vector<UInt> delUpdates;
-  delUpdates.clear(); // purge residual data
-
-  for (UInt i = 0; i != _segmentUpdates.size(); ++i) {
-
-    // Get the cell and column associated with this update
-    const SegmentUpdate &update = _segmentUpdates[i];
-
-    if (_verbosity >= 4) {
-      std::cout << "\nIn cleanUpdatesList. _nLrnIterations: " << _nLrnIterations
-                << " checking segment: ";
-      update.print(std::cout, true, _nCellsPerCol);
-      std::cout << std::endl;
-    }
-
-    // Decide whether to remove update. Note: we can't remove update from
-    // vector while we are iterating over it.
-    if ((update.cellIdx() == cellIdx) && (segIdx == update.segIdx())) {
-      if (_verbosity >= 4) {
-        std::cout << "    Removing it\n";
-      }
-
-      delUpdates.push_back(i);
-    }
-
-  } // Loop over updates
-
-  // Remove any we found
-  remove_at(delUpdates, _segmentUpdates);
+void Cells4::cleanUpdatesList(const UInt cellIdx, const UInt segIdx) {
+  const auto remove_match = [&cellIdx, &segIdx](const SegmentUpdate& update) {
+	  return ((update.cellIdx() == cellIdx) && (segIdx == update.segIdx())); };
+  _segmentUpdates.erase(remove_if(_segmentUpdates.begin(), _segmentUpdates.end(), remove_match), _segmentUpdates.end());      
 }
 
 //----------------------------------------------------------------------
@@ -1577,7 +1532,8 @@ void Cells4::_generateListsOfSynapsesToAdjustForAdaptSegment(
 
   for (UInt i = 0; i != segment.size(); ++i) {
     const UInt srcCellIdx = segment[i].srcCellIdx();
-    if (not_in(srcCellIdx, synapsesSet)) {
+    const bool not_in = std::find(synapsesSet.cbegin(), synapsesSet.cend(), srcCellIdx) == synapsesSet.cend();
+    if (not_in) {
       inactiveSrcCellIdxs.push_back(srcCellIdx);
       inactiveSynapseIdxs.push_back(i);
     } else {
@@ -2314,7 +2270,7 @@ bool Cells4::invariants(bool verbose) const {
         stringstream buf;
         buf << i << '.' << j << '.' << seg[k].srcCellIdx();
 
-        if (is_in(buf.str(), back_map)) {
+        if (std::find(back_map.cbegin(), back_map.cend(), buf.str()) != back_map.cend() ) { //back_map contains buf
           std::cout << "\nDuplicate incoming synapse: " << std::endl;
           consistent = false;
         }
@@ -2333,7 +2289,7 @@ bool Cells4::invariants(bool verbose) const {
       stringstream buf;
       buf << syn.dstCellIdx() << '.' << syn.dstSegIdx() << '.' << i;
 
-      if (is_in(buf.str(), forward_map)) {
+      if (std::find(forward_map.cbegin(), forward_map.cend(), buf.str()) != forward_map.cend() ) { //contains buf //TODO use set.contains(x) in c++20 
         std::cout << "\nDuplicate outgoing synapse:" << std::endl;
         consistent = false;
       }
