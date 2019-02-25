@@ -232,10 +232,10 @@ set(utils_files
 )
 
 set(examples_files
-    examples/hotgym/Hotgym.cpp
+	#    examples/hotgym/Hotgym.cpp # contains conflicting main()
     examples/hotgym/HelloSPTP.cpp
     examples/hotgym/HelloSPTP.hpp
-    examples/mnist/MNIST_SP.cpp
+    #    examples/mnist/MNIST_SP.cpp
 )
 
 #set up file tabs in Visual Studio
@@ -271,7 +271,7 @@ add_library(${src_objlib} OBJECT
     ${regions_files} 
     ${types_files} 
     ${utils_files}
-    ${examples_files} 
+    ${examples_files}
 )
 # shared libraries need PIC
 target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
@@ -359,7 +359,7 @@ add_subdirectory(test)
 ## Setup benchmark_hotgym
 #
 set(src_executable_hotgym benchmark_hotgym)
-add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp)
+add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp examples/hotgym/HelloSPTP.cpp)
 if(true)
   # for Windows, link with the static library
   target_link_libraries(${src_executable_hotgym} 
@@ -391,7 +391,7 @@ add_custom_target(hotgym
 #
 set(src_executable_mnistsp mnist_sp)
 add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
-target_link_libraries(${src_executable_mnistsp} ${src_exacutable_mnistsp}
+target_link_libraries(${src_executable_mnistsp} 
         ${core_library}
         ${COMMON_OS_LIBS}
 	    )
