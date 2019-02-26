@@ -63,13 +63,13 @@ void setup() {
   input.initialize({28, 28});
   sp.initialize(
     /* inputDimensions */             input.dimensions,
-    /* columnDimensions */            {20, 20}, //mostly affects speed, to some threshold accuracy only marginally
-    /* potentialRadius */             999999u,
+    /* columnDimensions */            {28, 28}, //mostly affects speed, to some threshold accuracy only marginally
+    /* potentialRadius */             5u,
     /* potentialPct */                0.5f,
-    /* globalInhibition */            true,
+    /* globalInhibition */            false,
     /* localAreaDensity */            0.20f,  //% active bits, //quite important variable (speed x accuracy)
     /* numActiveColumnsPerInhArea */  -1,
-    /* stimulusThreshold */           12u,
+    /* stimulusThreshold */           6u,
     /* synPermInactiveDec */          0.005f,
     /* synPermActiveInc */            0.01f,
     /* synPermConnected */            0.4f,
