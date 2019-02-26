@@ -303,7 +303,7 @@ merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives
 #
 # For Linux, OSx; the .so file will contain all symbols.
 #
-if(true)
+if(MSVC)
 	# NOTE: this disables shared lib for Windows.
 else()
     # First extract static libraries into an Object Library
@@ -350,7 +350,7 @@ add_subdirectory(test)
 #
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp examples/hotgym/HelloSPTP.cpp)
-if(true)
+if(MSVC)
   # for Windows, link with the static library
   target_link_libraries(${src_executable_hotgym} 
     ${core_library}
@@ -412,7 +412,7 @@ install(TARGETS
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-if(true)
+if(MSVC)
 else()	
   install(TARGETS
         ${src_lib_shared}
