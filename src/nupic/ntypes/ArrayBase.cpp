@@ -354,7 +354,6 @@ static bool compare_array_0_and_non0s(const ArrayBase &a_side, const std::vector
   return true;
 }
 bool operator==(const ArrayBase &lhs, const std::vector<nupic::Byte> &rhs) {
-  size_t ele_size = BasicType::getSize(lhs.getType());
   return compare_array_0_and_non0s(lhs, rhs);
 }
 bool operator==(const std::vector<nupic::Byte> &lhs, const ArrayBase &rhs) {

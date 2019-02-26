@@ -40,7 +40,7 @@ public:
             NTA_BasicType dataType,
             UInt32 count = 0,
             bool required = false,
-            bool regionLevel = false,
+            bool regionLevel = true,
             bool isDefaultInput = false);
     bool operator==(const InputSpec &other) const;
     inline bool operator!=(const InputSpec &other) const {
@@ -58,7 +58,7 @@ public:
   bool required;             // true if input must be connected.
 	
   bool regionLevel;          // if true, this means this input can propagate its 
-                             // dimensions to the region's dimensions.
+                             // dimensions to/from the region's dimensions.
 	
   bool isDefaultInput;       // if True, assume this if input name not given 
 	                           // in functions involving inputs of a region.
@@ -70,7 +70,7 @@ public:
   OutputSpec(std::string description,
              const NTA_BasicType dataType,
              size_t count = 0,              // set size of buffer, 0 means unknown size.
-             bool regionLevel = false,
+             bool regionLevel = true,
              bool isDefaultOutput = false);
     bool operator==(const OutputSpec &other) const;
     inline bool operator!=(const OutputSpec &other) const {

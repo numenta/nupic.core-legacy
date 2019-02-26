@@ -587,7 +587,7 @@ namespace nupic
 										}
 
                     // make regionLevel optional and default to false.
-                    bool regionLevel = false;
+                    bool regionLevel = true;
                     if (input.contains("regionLevel"))
                     {
                         regionLevel = input["regionLevel"].cast<bool>();
@@ -650,7 +650,7 @@ namespace nupic
                     auto count = output["count"].cast<UInt32>();
 
                     // make regionLevel optional and default to true.
-                    bool regionLevel = false;
+                    bool regionLevel = true;
                     if (output.contains("regionLevel"))
                     {
                         regionLevel = output["regionLevel"].cast<bool>();
@@ -660,11 +660,6 @@ namespace nupic
 										{
                     	isDefaultOutput = output["isDefaultOutput"].cast<bool>();
 										}
-										std::string inheritFrom;
-                    if (output.contains("inheritFrom"))
-										{
-										  inheritFrom = output["inheritFrom"].cast<std::string>();
-										}
 
                     ns.outputs.add(
                         name,
@@ -673,8 +668,7 @@ namespace nupic
                             dataType,
                             count,
                             regionLevel,
-                            isDefaultOutput,
-														inheritFrom)
+                            isDefaultOutput)
                     );
                 }
             }
