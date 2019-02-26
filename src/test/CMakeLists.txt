@@ -107,6 +107,13 @@ set(utils_tests
 	   unit/utils/SdrMetricsTest.cpp
 	   unit/utils/WatcherTest.cpp
 	   )
+
+set(examples_files
+	   # examples/hotgym/Hotgym.cpp # contains conflicting main()
+           ../examples/hotgym/HelloSPTP.cpp
+           ../examples/hotgym/HelloSPTP.hpp
+	   # examples/mnist/MNIST_SP.cpp
+)
 	   
 
 	   
@@ -134,6 +141,7 @@ set(src_executable_gtests
     ${regions_tests}
     ${types_tests} 
     ${utils_tests} 
+    ${examples_files}
 )
 
 add_executable(${unit_tests_executable} ${src_executable_gtests})

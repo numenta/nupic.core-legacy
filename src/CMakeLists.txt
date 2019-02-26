@@ -232,10 +232,10 @@ set(utils_files
 )
 
 set(examples_files
-	#    examples/hotgym/Hotgym.cpp # contains conflicting main()
+    examples/hotgym/Hotgym.cpp # contains conflicting main()
     examples/hotgym/HelloSPTP.cpp
     examples/hotgym/HelloSPTP.hpp
-    #    examples/mnist/MNIST_SP.cpp
+    examples/mnist/MNIST_SP.cpp
 )
 
 #set up file tabs in Visual Studio
@@ -271,7 +271,6 @@ add_library(${src_objlib} OBJECT
     ${regions_files} 
     ${types_files} 
     ${utils_files}
-    ${examples_files}
 )
 # shared libraries need PIC
 target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
