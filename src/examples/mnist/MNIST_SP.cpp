@@ -63,22 +63,22 @@ void setup() {
   input.initialize({28, 28});
   sp.initialize(
     /* inputDimensions */             input.dimensions,
-    /* columnDimensions */            {100, 100},
+    /* columnDimensions */            {20, 20}, //mostly affects speed, to some threshold accuracy only marginally
     /* potentialRadius */             999999u,
     /* potentialPct */                0.5f,
     /* globalInhibition */            true,
-    /* localAreaDensity */            0.015f,
+    /* localAreaDensity */            0.20f,  //% active bits, //quite important variable (speed x accuracy)
     /* numActiveColumnsPerInhArea */  -1,
-    /* stimulusThreshold */           14u,
-    /* synPermInactiveDec */          0.01f,
-    /* synPermActiveInc */            0.05f,
+    /* stimulusThreshold */           12u,
+    /* synPermInactiveDec */          0.005f,
+    /* synPermActiveInc */            0.01f,
     /* synPermConnected */            0.4f,
     /* minPctOverlapDutyCycles */     0.001f,
     /* dutyCyclePeriod */             1402,
-    /* boostStrength */               1.0f,
+    /* boostStrength */               2.5f, //boosting does help
     /* seed */                        93u,
     /* spVerbosity */                 1u,
-    /* wrapAround */                  true);
+    /* wrapAround */                  false); //wrap is false for this problem
 
   columns.initialize({sp.getNumColumns()});
 
