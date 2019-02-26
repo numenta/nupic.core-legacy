@@ -487,7 +487,7 @@ void Connections::raisePermanencesToThreshold(
   // permance by such that it becomes a connected synapse.
   // After that there will be at least N synapses connected.
 
-  NTA_ASSERT(synapses.size() <= segmentThreshold) << "Threshold too large";
+  NTA_ASSERT(synapses.size() >= segmentThreshold) << "Threshold too large " << segmentThreshold << " vs " << synapses.size();
   NTA_ASSERT(segmentThreshold >= 1) << "Threshold must be >= 1, otherwise overflows here";
   const auto minPermSynPtr = synapses.begin() + segmentThreshold - 1;
 
