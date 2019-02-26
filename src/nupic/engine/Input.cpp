@@ -185,7 +185,7 @@ void Input::initialize() {
   bool is_FanIn = links_.size() > 1;
 
   const std::shared_ptr<Spec> &destSpec = region_->getSpec();
-  bool isDefaultInput = destSpec->inputs.getByName(name_).isDefaultInput;
+  bool regionLevel = destSpec->inputs.getByName(name_).regionLevel;
   UInt32 total_width = 0u;
   size_t maxD = 1;
   Dimensions d;
@@ -302,11 +302,11 @@ void Input::initialize() {
     }
   }
 
-  // If this is the default input and the region dim is don't care,
+  // If this is the regionLevel input and the region dim is don't care,
   // then assign this input dimensions to the region dimensions.
   // The region dimensions must have the same number of dimensions. 
   // Add 1's as needed to either.
-  if (isDefaultInput) {
+  if (regionLevel) {
     d = region_->getDimensions();
     if (d.isSpecified()) {
       maxD = d.getDimensionCount();

@@ -47,11 +47,21 @@ public:
     return !operator==(other);
   }
   std::string description;   // description of input
+	
   NTA_BasicType dataType;    // declare type of input
-  UInt32 count;              // width of buffer if fixed. 0 means unknown.
+
+  // width of buffer if fixed. 0 means variable.
+  // If non-zero positive value it means this region was developed
+	// to accept a fixed sized 1D array only.
+  UInt32 count;             
+	
   bool required;             // true if input must be connected.
-  bool regionLevel;          // not used
-  bool isDefaultInput;       // if True, assume this if input name not given.
+	
+  bool regionLevel;          // if true, this means this input can propagate its 
+                             // dimensions to the region's dimensions.
+	
+  bool isDefaultInput;       // if True, assume this if input name not given 
+	                           // in functions involving inputs of a region.
 };
 
 class OutputSpec {
@@ -61,19 +71,25 @@ public:
              const NTA_BasicType dataType,
              size_t count = 0,              // set size of buffer, 0 means unknown size.
              bool regionLevel = false,
-             bool isDefaultOutput = false,
-             std::string inheritFrom = "");
+             bool isDefaultOutput = false);
     bool operator==(const OutputSpec &other) const;
     inline bool operator!=(const OutputSpec &other) const {
     return !operator==(other);
   }
   std::string description;   // description of output
-  NTA_BasicType dataType;    // The type of the output buffer.
-  size_t count;              // Size, in number of elements. If size is fixed.
+	
+	NTA_BasicType dataType;    // The type of the output buffer.
+
+  size_t count;              // Size, in number of elements. If size is fixed.  
+	                           // If non-zero value it means this region 
+														 // was developed to output a fixed sized 1D array only.
                              // if 0, call askImplForOutputDimensions() to get dimensions.
-  bool regionLevel;          // not used
-  bool isDefaultOutput;      // if true, use this output for region if output name not given.
-  std::string inheritFrom;   // if not empty, inherit dimensions from input with this name.
+
+  bool regionLevel;          // If true, this output is can get its dimensions from
+                             // the region dimensions.
+
+  bool isDefaultOutput;      // if true, use this output for region if output name not given
+	                           // in functions involving outputs on a region.
 };
 
 class CommandSpec {
@@ -143,6 +159,13 @@ public:
   std::string getDefaultOutputName() const;
   std::string getDefaultInputName() const;
 
+  // a value that applys to the count field in inputs, outputs, parameters.
+  // It means that the field is an array and its size is not fixed.
+  static const int VARIABLE = 0; 
+
+  // a value that applys to the count field in inputs, outputs, parameters.
+  // It means that the field not an array and has a single scaler value.
+  static const int SCALER = 1; 
 
 };
 

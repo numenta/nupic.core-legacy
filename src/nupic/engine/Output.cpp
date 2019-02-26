@@ -77,10 +77,11 @@ Dimensions Output::determineDimensions() {
   if (data_.has_buffer())
     return dim_;
 
+  const std::shared_ptr<Spec>& srcSpec = region_->getSpec();
+
   if (!dim_.isSpecified()) {
     dim_.clear();
     // ask the spec how big the buffer is.
-    const std::shared_ptr<Spec>& srcSpec = region_->getSpec();
     UInt32 count = (UInt32)srcSpec->outputs.getByName(name_).count; 
     if (count > 0) {
       dim_.push_back(count);
@@ -91,20 +92,17 @@ Dimensions Output::determineDimensions() {
         dim_.push_back(0);  // set Don't care.
       }
     }
-
-    // If we still have a isDontcare, check if the spec defines 
-    // an input on this region to get the dimensions from. 
-    if (dim_.isDontcare()) {
-      std::string inheritFrom = srcSpec->outputs.getByName(name_).inheritFrom;
-      if (!inheritFrom.empty()) {
-        Input* in = region_->getInput(inheritFrom);
-        if (in) {
-          Dimensions d = in->getDimensions();
-          if (d.isSpecified()) {
-            dim_ = d;
-          }
-        }
-      }
+  }
+  // If we still have a isDontcare, check if the spec defines 
+  // regionLevel then get the dimensions from the region dims. 
+  bool regionLevel = srcSpec->outputs.getByName(name_).regionLevel;
+  if (regionLevel) {
+    Dimensions d = region_->getDimensions();
+    if (dim_.isDontcare()&& d.isSpecified()) {
+      dim_ = d;
+    }
+    else if (dim_.isSpecified() && d.isDontcare()) {
+      region_->setDimensions(dim_);
     }
   }
   return dim_;

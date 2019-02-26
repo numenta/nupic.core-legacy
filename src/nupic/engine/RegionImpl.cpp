@@ -202,7 +202,7 @@ Dimensions RegionImpl::askImplForInputDimensions(const std::string &name) const 
               << "' in region of type " << getType();
   }
   UInt32 count = (UInt32)region_->getSpec()->inputs.getByName(name).count;
-  if (count == 0)
+  if (count == Spec::VARIABLE)
     count = (UInt32)getNodeInputElementCount(name);
   Dimensions dim;
   dim.push_back(count);   // if count == 0, it means don't care.
@@ -223,7 +223,7 @@ Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) const
   auto ns = region_->getSpec()->outputs.getByName(name);
 
   UInt32 count = (UInt32)ns.count;
-  if (count == 0) {
+  if (count == Spec::VARIABLE) {
     // This is not a fixed size output.
     // If this is the default output, use the default dimensions.
     if (ns.isDefaultOutput && !dim_.empty()) {
@@ -233,7 +233,7 @@ Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) const
     count = (UInt32)getNodeOutputElementCount(name);
   }
   Dimensions dim;
-  dim.push_back(count);   // if count == 0, it means don't care.
+  dim.push_back(count);   // if count happens to be 0, it means don't care.
   return dim;
 }
 

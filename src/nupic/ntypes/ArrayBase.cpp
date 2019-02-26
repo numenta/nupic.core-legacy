@@ -324,31 +324,41 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
   return (std::memcmp(lhs.getBuffer(), rhs.getBuffer(),
                       lhs.getCount() * BasicType::getSize(lhs.getType())) == 0);
 }
+
+template<typename T>
+bool compare_array_0_and_non0s_helper(T ptr, const Byte *v, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+      if (((v[i]!=0) && (((T)ptr)[i] == 0)) 
+       || ((v[i]==0) && (((T)ptr)[i] != 0)))
+        return false;
+    }
+    return true;
+}
+
 // Compare contents of a ArrayBase object and a vector of type Byte.  Actually
 // we are only interested in 0 and non-zero values in this compare.
-static bool binary_compare(const ArrayBase &a_side, const std::vector<nupic::Byte> &v_side) {
+static bool compare_array_0_and_non0s(const ArrayBase &a_side, const std::vector<nupic::Byte> &v_side) {
+  
   if (a_side.getCount() != v_side.size()) return false;
   size_t ele_size = BasicType::getSize(a_side.getType());
-  const void *ptr = a_side.getBuffer();
-  for (size_t i = 0; i < a_side.getCount(); i++) {
-    bool iszero;
-    switch(ele_size) { 
-    default:
-    case 1: iszero = (((const Byte*)  ptr)[i] == 0); break;
-    case 2: iszero = (((const UInt16*)ptr)[i] == 0); break;
-    case 4: iszero = (((const UInt32*)ptr)[i] == 0); break;
-    case 8: iszero = (((const UInt64*)ptr)[i] == 0); break;
-    }
-    if (((v_side[i]!=0) && iszero) || ((v_side[i]==0) && !iszero))
-      return false;
+  size_t size = a_side.getCount();
+  const void *a_ptr = a_side.getBuffer();
+  const Byte *v_ptr = &v_side[0];
+  switch(ele_size) { 
+  default:
+  case 1: return compare_array_0_and_non0s_helper((const Byte*  )a_ptr, v_ptr, size);
+  case 2: return compare_array_0_and_non0s_helper((const UInt16*)a_ptr, v_ptr, size);
+  case 4: return compare_array_0_and_non0s_helper((const UInt32*)a_ptr, v_ptr, size);
+  case 8: return compare_array_0_and_non0s_helper((const UInt64*)a_ptr, v_ptr, size);
   }
   return true;
 }
 bool operator==(const ArrayBase &lhs, const std::vector<nupic::Byte> &rhs) {
-  return binary_compare(lhs, rhs);
+  size_t ele_size = BasicType::getSize(lhs.getType());
+  return compare_array_0_and_non0s(lhs, rhs);
 }
 bool operator==(const std::vector<nupic::Byte> &lhs, const ArrayBase &rhs) {
-  return binary_compare(rhs, lhs);
+  return compare_array_0_and_non0s(rhs, lhs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

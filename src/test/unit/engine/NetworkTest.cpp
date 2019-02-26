@@ -43,12 +43,10 @@ TEST(NetworkTest, AutoInitialization) {
   // Uninitialize NuPIC since this test checks auto-initialization
   // If shutdown fails, there is probably a problem with another test which
   // is not cleaning up its networks.
-  /**
   if (NuPIC::isInitialized())
     NuPIC::shutdown();
 
   ASSERT_TRUE(!NuPIC::isInitialized());
-  **/
   // creating a network should auto-initialize NuPIC
   {
     Network net;
@@ -62,7 +60,7 @@ TEST(NetworkTest, AutoInitialization) {
     EXPECT_THROW(NuPIC::shutdown(), std::exception);
   }
   // net destructor has been called so we should be able to shut down NuPIC now
- // NuPIC::shutdown();
+  NuPIC::shutdown();
   
 }
 

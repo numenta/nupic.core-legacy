@@ -425,6 +425,8 @@ public:
   Dimensions askImplForInputDimensions(const std::string &name) const;
   Dimensions getInputDimensions(std::string name="") const;
   Dimensions getOutputDimensions(std::string name="") const;
+  void setInputDimensions(std::string name, const Dimensions& dim);
+  void setOutputDimensions(std::string name, const Dimensions& dim);
 
   /**
    * Set Global dimensions on a region.

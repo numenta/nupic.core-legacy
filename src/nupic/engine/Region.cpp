@@ -252,6 +252,25 @@ Dimensions Region::getOutputDimensions(std::string name) const {
   return out->getDimensions();
 }
 
+void Region::setInputDimensions(std::string name, const Dimensions& dim) {
+  if (name.empty()) {
+    name = spec_->getDefaultOutputName();
+  }
+  Input* in = getInput(name);
+  NTA_CHECK(in != nullptr) 
+    << "Unknown input (" << name << ") requested on " << name_;
+  return in->setDimensions(dim);
+}
+void Region::setOutputDimensions(std::string name, const Dimensions& dim) {
+  if (name.empty()) {
+    name = spec_->getDefaultOutputName();
+  }
+  Output* out = getOutput(name);
+  NTA_CHECK(out != nullptr) 
+    << "Unknown output (" << name << ") requested on " << name_;
+  return out->setDimensions(dim);
+}
+
 
 // This is for backward compatability with API
 // Normally Output dimensions are set by setting parameters known to the implementation.

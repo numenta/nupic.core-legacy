@@ -137,24 +137,30 @@ public:
   // Buffer size (in elements) of the given input/output.
   // It is the total element count.
   // This method is called only for buffers whose size is not
-  // specified in the nodespec.  This is used to allocate
-  // buffers during initialization.
+  // specified in the Spec.  This is used to allocate
+  // buffers during initialization.  New implementations should instead 
+  // override askImplForOutputDimensions() or askImplForInputDimensions() 
+  // and return a full dimension.
   // Return 0 for outputs that are not used or size does not matter.
   virtual size_t getNodeInputElementCount(const std::string &outputName) const {
-    return 0;
+    return Dimensions::DONTCARE;
   }
   virtual size_t getNodeOutputElementCount(const std::string &outputName) const {
-    return 0;
+    return Dimensions::DONTCARE;
   }
 
 
   // The dimensions for the specified input or output.  This is called by
-  // Link when it allocates SDR type buffers during initialization.
+  // Link when it allocates buffers during initialization.
   // If this region sets topology (an SP for example) and will be
   // setting the dimensions (i.e. from parameters) then
   // return the dimensions that should be placed in its Array buffer.
-  // Return an don't Dimension if this region should inherit
-  // dimensions from its other end.
+  // Return an isDontCare() Dimension if this region should inherit
+  // dimensions from elsewhere.
+  //
+  // If this is not overridden, the default implementation will call
+  // getNodeOutputElementCount() or getNodeInputElementCount() to obtain 
+  // a 1D dimension for this input/output.
   virtual Dimensions askImplForInputDimensions(const std::string &name) const;
   virtual Dimensions askImplForOutputDimensions(const std::string &name) const ;
 

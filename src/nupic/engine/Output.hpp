@@ -179,7 +179,7 @@ public:
   /**
    * Set dimensions for this output
    */
-  void setDimensions(Dimensions& dim) { dim_ = dim; }
+  void setDimensions(const Dimensions& dim) { dim_ = dim; }
 
 private:
   // Cannot use the shared_ptr here

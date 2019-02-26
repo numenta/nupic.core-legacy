@@ -206,7 +206,7 @@ public:
   /**
    * Set dimensions for this input
    */
-  void setDimensions(Dimensions& dim) { dim_ = dim; }
+  void setDimensions(const Dimensions& dim) { dim_ = dim; }
 
 
   /* ------------ Methods normally called by the RegionImpl ------------- */

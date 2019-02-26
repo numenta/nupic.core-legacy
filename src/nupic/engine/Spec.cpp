@@ -96,6 +96,7 @@ InputSpec::InputSpec(std::string description,
     : description(std::move(description)), dataType(dataType), count(count),
       required(required), regionLevel(regionLevel),
       isDefaultInput(isDefaultInput) {}
+
 bool InputSpec::operator==(const InputSpec &o) const {
   return required == o.required && regionLevel == o.regionLevel &&
          isDefaultInput == o.isDefaultInput &&
@@ -106,13 +107,13 @@ OutputSpec::OutputSpec(std::string description,
                        NTA_BasicType dataType,
                        size_t count,
                        bool regionLevel,
-                       bool isDefaultOutput,
-                       std::string inheritFrom)
+                       bool isDefaultOutput)
     : description(std::move(description)), dataType(dataType), count(count),
-      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput), inheritFrom(inheritFrom) {}
+      regionLevel(regionLevel), isDefaultOutput(isDefaultOutput) {}
+
 bool OutputSpec::operator==(const OutputSpec &o) const {
   return regionLevel == o.regionLevel && isDefaultOutput == o.isDefaultOutput &&
-         dataType == o.dataType && inheritFrom == o.inheritFrom && count == o.count &&
+         dataType == o.dataType && count == o.count &&
          description == o.description;
 }
 

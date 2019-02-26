@@ -347,7 +347,7 @@ Spec *TestNode::createSpec() {
 				           NTA_BasicType_Real64,
                            0,     // count. omit?
                            true,  // required?
-                           false, // isRegionLevel,
+                           true, // isRegionLevel,
                            true   // isDefaultInput
                            ));
 
@@ -356,7 +356,7 @@ Spec *TestNode::createSpec() {
                   OutputSpec("Primary output for the node",
                             NTA_BasicType_Real64,
                             0,     // count is dynamic
-                            false, // isRegionLevel
+                            true, // isRegionLevel
                             true   // isDefaultOutput
                             ));
 

@@ -191,6 +191,10 @@ public:
 
   /**
    * Tells whether the Dimensions object is "unspecified".
+	 * All dimensions start out in this state when allocated.
+	 * It means we have not yet looked to see if it has been
+	 * configured with a dimension value.  
+	 * The dimension value is size(0).
    *
    * @returns
    *     Whether the Dimensions object is "unspecified"
@@ -202,16 +206,25 @@ public:
   /**
    *
    * Tells whether the Dimensions object is "don't care".
+	 * This means that we have confirmed that it was not configured 
+	 * with a dimension but that it can be inherited from someplace 
+	 * else.  For example, if we looked at an input and checked that 
+	 * it was not configured with a dimension we can mark it as isDontCare 
+	 * so that later when we determine the dimension of the connected 
+	 * output we know that it can also assign it to the input.
+   * value is vector of size 1, element 0 is 0.
    *
    * @returns
    *     Whether the Dimensions object is "don't care"
    */
   bool isDontcare() const;
+  static const int DONTCARE = 0;
 
   /**
    * Tells whether the Dimensions object is "specified".
    *
    * A "specified" Dimensions object satisfies all following conditions:
+	 * Basically it means that this is a usable dimension.
    *
    *   * "valid"
    *   * NOT "unspecified"
