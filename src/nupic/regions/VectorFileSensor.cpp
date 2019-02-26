@@ -280,7 +280,7 @@ void VectorFileSensor::seek(int n) {
 }
 
 size_t
-VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) {
+VectorFileSensor::getNodeOutputElementCount(const std::string &outputName) const {
   NTA_CHECK(outputName == "dataOut") << "Invalid output name: " << outputName;
   return activeOutputCount_;
 }

@@ -74,7 +74,7 @@ public:
   std::string executeCommand(const std::vector<std::string> &args,
                              Int64 index) override;
 
-  size_t getNodeOutputElementCount(const std::string &outputName) override;
+  size_t getNodeOutputElementCount(const std::string &outputName) const override;
 
   void initialize() override;
 
@@ -107,7 +107,6 @@ public:
   virtual void setParameterArray(const std::string &name, Int64 index, const Array &array) override;
 
 
-  bool isParameterShared(const std::string &name) override;
 
 private:
   TestNode() = delete;
@@ -133,6 +132,7 @@ private:
 
   // Constructor param specifying per-node output size
   UInt32 outputElementCount_;
+  Dimensions dim_;
 
   // parameter used for computation
   Int64 delta_;
