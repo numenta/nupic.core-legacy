@@ -253,7 +253,7 @@ TEST(ConnectionsPerformanceTest, testTP) {
     /* columnSparsity */     0.1f,
     /* label */              "temporal pooler");
 
-#if defined( NDEBUG) || !defined(NTA_OS_WINDOWS)
+#if defined( NDEBUG) && !defined(NTA_OS_WINDOWS)
   ASSERT_LE(tim, 4.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);
