@@ -24,6 +24,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/utils/Log.hpp>
 #include <utility>
+#include <cctype>
 
 using namespace nupic;
 
@@ -200,4 +201,27 @@ std::ostream &operator<<(std::ostream &f, const Dimensions &d) {
   f << d.toString(/* humanReadable: */ false);
   return f;
 }
+std::istream &operator>>(std::istream &f, Dimensions &d) { 
+  auto skipwhite = [](std::istream &f) {
+    int c;
+    c = f.peek();
+    while (isspace(c)) {
+      f.ignore(1); 
+      c = f.peek();
+    }
+  };
+  d.clear();
+  UInt32 val;
+  skipwhite(f);
+  NTA_CHECK(f.get() == '[') << "deserializing Dimension; expected opening '['";
+  skipwhite(f);
+  while (std::isdigit(f.peek())) {
+    f >> val;
+    d.push_back(val);
+    skipwhite(f);
+  }
+  NTA_CHECK(f.get() == ']') << "deserializing Dimension; expected closing ']'";
+  return f;
+}
+
 } // namespace nupic

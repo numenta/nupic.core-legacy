@@ -34,24 +34,9 @@
 
 using namespace nupic;
 
-#define SHOULDFAIL_WITH_MESSAGE(statement, message)                            \
-  {                                                                            \
-    bool caughtException = false;                                              \
-    try {                                                                      \
-      statement;                                                               \
-    } catch (nupic::LoggingException & e) {                                    \
-      caughtException = true;                                                  \
-      EXPECT_STREQ(message, e.getMessage())                                    \
-          << "statement '" #statement "' should fail with message \""          \
-          << message << "\", but failed with message \"" << e.getMessage()     \
-          << "\"";                                                             \
-    } catch (...) {                                                            \
-      FAIL() << "statement '" #statement                                       \
-                "' did not generate a logging exception";                      \
-    }                                                                          \
-    EXPECT_EQ(true, caughtException)                                           \
-        << "statement '" #statement "' should fail";                           \
-  }
+static bool verbose = false;
+#define VERBOSE if(verbose) std::cerr << "[          ]"
+
 
 TEST(NetworkTest, AutoInitialization) {
 
@@ -62,7 +47,6 @@ TEST(NetworkTest, AutoInitialization) {
     NuPIC::shutdown();
 
   ASSERT_TRUE(!NuPIC::isInitialized());
-
   // creating a network should auto-initialize NuPIC
   {
     Network net;
@@ -77,6 +61,7 @@ TEST(NetworkTest, AutoInitialization) {
   }
   // net destructor has been called so we should be able to shut down NuPIC now
   NuPIC::shutdown();
+  
 }
 
 TEST(NetworkTest, RegionAccess) {
@@ -123,9 +108,6 @@ TEST(NetworkTest, InitializationNoRegions) {
   net.run(1);
 
   std::shared_ptr<Region> l2 = net.addRegion("level2", "TestNode", "");
-  EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
-  EXPECT_THROW(net.run(1), std::exception) << "no dimensions";
-  EXPECT_THROW(net.initialize(), std::exception) << "no dimensions";
   l2->setDimensions(d);
   net.run(1);
 }
@@ -146,14 +128,14 @@ TEST(NetworkTest, Modification) {
   d.push_back(4);
   l1->setDimensions(d);
 
-  net.addRegion("level2", "TestNode", "");
+  std::shared_ptr<Region> l2 = net.addRegion("level2", "TestNode", "{dim: [2,2]}");
 
   // should have been added at phase1
   phases = net.getPhases("level2");
   ASSERT_EQ((UInt32)1, phases.size());
   ASSERT_TRUE(phases.find(1) != phases.end());
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
 
   auto &regions = net.getRegions();
 
@@ -162,7 +144,7 @@ TEST(NetworkTest, Modification) {
   // Should succeed since dimensions are set
   net.initialize();
   net.run(1);
-  std::shared_ptr<Region> l2 = regions.getByName("level2");
+  l2 = regions.getByName("level2");
   Dimensions d2 = l2->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
   ASSERT_EQ((UInt32)2, d2[0]);
@@ -179,18 +161,15 @@ TEST(NetworkTest, Modification) {
   ASSERT_TRUE(links.getCount() == 0) << "Removing the destination region hould have removed the link.";
 
   ASSERT_TRUE(l1 == regions.getByName("level1"));
-  l2 = net.addRegion("level2", "TestNode", "");
+  l2 = net.addRegion("level2", "TestNode", "dim: [2,2]");
 
   // should have been added at phase1
   phases = net.getPhases("level2");
   ASSERT_EQ((UInt32)1, phases.size());
   ASSERT_TRUE(phases.find(1) != phases.end());
 
-  // network requires initialization, but can't be initialized
-  // because level2 is not initialized
-  EXPECT_THROW(net.run(1), std::exception);
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
 
   // network can be initialized now
   net.run(1);
@@ -204,7 +183,7 @@ TEST(NetworkTest, Modification) {
   ASSERT_EQ((UInt32)2, d2[1]);
 
   // add a third region
-  std::shared_ptr<Region> l3 = net.addRegion("level3", "TestNode", "");
+  std::shared_ptr<Region> l3 = net.addRegion("level3", "TestNode", "{dim: [1,1]}");
 
   // should have been added at phase 2
   phases = net.getPhases("level3");
@@ -213,11 +192,7 @@ TEST(NetworkTest, Modification) {
 
   ASSERT_EQ((UInt32)3, regions.getCount());
 
-  // network requires initialization, but can't be initialized
-  // because level3 is not initialized
-  EXPECT_THROW(net.run(1), std::exception);
-
-  net.link("level2", "level3", "TestFanIn2", "");
+  net.link("level2", "level3");
   net.initialize();
   d2 = l3->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
@@ -246,8 +221,8 @@ TEST(NetworkTest, Modification) {
   l1->setDimensions(d);
   net.addRegion("level2", "TestNode", "");
   net.addRegion("level3", "TestNode", "");
-  net.link("level1", "level2", "TestFanIn2", "");
-  net.link("level1", "level3", "TestFanIn2", "");
+  net.link("level1", "level2");
+  net.link("level1", "level3");
   net.initialize();
 
   // build it up one more time and let the destructor take care of it
@@ -258,24 +233,24 @@ TEST(NetworkTest, Modification) {
   l2 = net.addRegion("level2", "TestNode", "");
   l3 = net.addRegion("level3", "TestNode", "");
   // try links in reverse order
-  net.link("level2", "level3", "TestFanIn2", "");
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level2", "level3");
+  net.link("level1", "level2");
   net.initialize();
   d2 = l3->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
-  ASSERT_EQ((UInt32)1, d2[0]);
-  ASSERT_EQ((UInt32)1, d2[1]);
+  ASSERT_EQ((UInt32)4, d2[0]);
+  ASSERT_EQ((UInt32)4, d2[1]);
 
   d2 = l2->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
-  ASSERT_EQ((UInt32)2, d2[0]);
-  ASSERT_EQ((UInt32)2, d2[1]);
+  ASSERT_EQ((UInt32)4, d2[0]);
+  ASSERT_EQ((UInt32)4, d2[1]);
 
   // now let the destructor remove everything
 }
 
 TEST(NetworkTest, Unlinking) {
-  NTA_DEBUG << "Running unlinking tests";
+  VERBOSE << "Running unlinking tests \n";
   Network net;
   net.addRegion("level1", "TestNode", "");
   net.addRegion("level2", "TestNode", "");
@@ -284,7 +259,7 @@ TEST(NetworkTest, Unlinking) {
   d.push_back(2);
   net.getRegions().getByName("level1")->setDimensions(d);
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   ASSERT_TRUE(
       net.getRegion("level2")->getDimensions().isUnspecified());
 
@@ -305,32 +280,31 @@ TEST(NetworkTest, Unlinking) {
   EXPECT_THROW(net.removeLink("level1", "level2"), std::exception);
 
   // remove, specifying output/input names
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn");
   EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn"),
                std::exception);
 
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   net.removeLink("level1", "level2", "bottomUpOut");
   EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut"),
                std::exception);
 
   // add the link back and initialize (inducing dimensions)
-  net.link("level1", "level2", "TestFanIn2", "");
+  net.link("level1", "level2");
   net.initialize();
 
   d = net.getRegion("level2")->getDimensions();
   ASSERT_EQ((UInt32)2, d.size());
-  ASSERT_EQ((UInt32)2, d[0]);
-  ASSERT_EQ((UInt32)1, d[1]);
+  ASSERT_EQ((UInt32)4, d[0]);
+  ASSERT_EQ((UInt32)2, d[1]);
 
   // remove the link. This will fail because we can't
   // remove a link to an initialized region
-  SHOULDFAIL_WITH_MESSAGE(
-      net.removeLink("level1", "level2"),
+  EXPECT_THROW(net.removeLink("level1", "level2"), std::exception) <<
       "Cannot remove link [level1.bottomUpOut (region dims: [4 2])  to "
       "level2.bottomUpIn (region dims: [2 1])  type: TestFanIn2] because "
-      "destination region level2 is initialized. Remove the region first.");
+      "destination region level2 is initialized. Remove the region first.";
 }
 
 typedef std::vector<std::string> callbackData;
@@ -368,7 +342,6 @@ TEST(NetworkTest, Phases) {
   ASSERT_TRUE(phaseSet.size() == 1);
   ASSERT_TRUE(phaseSet.find(1) != phaseSet.end());
 
-  EXPECT_THROW(net.initialize(), std::exception);
 
   Dimensions d;
   d.push_back(2);
@@ -554,7 +527,10 @@ TEST(NetworkTest, testEqualsOperator) {
   auto l1 = n1.addRegion("level1", "TestNode", "");
   ASSERT_TRUE(n1 != n2);
   auto l2 = n2.addRegion("level1", "TestNode", "");
-  ASSERT_TRUE(n1 == n2);
+  ASSERT_TRUE(n1 == n2);   // NOTE: This only checks if the structure is the same
+                           // It does not know anything about internal state
+                           // or data content.
+                           // But maybe this is good enough; I don't know.
 
   l1->setDimensions(d);
   ASSERT_TRUE(n1 != n2);
@@ -566,9 +542,9 @@ TEST(NetworkTest, testEqualsOperator) {
   n2.addRegion("level2", "TestNode", "");
   ASSERT_TRUE(n1 == n2);
 
-  n1.link("level1", "level2", "TestFanIn2", "");
+  n1.link("level1", "level2");
   ASSERT_TRUE(n1 != n2);
-  n2.link("level1", "level2", "TestFanIn2", "");
+  n2.link("level1", "level2");
   ASSERT_TRUE(n1 == n2);
 
   n1.run(1);

@@ -36,56 +36,60 @@ namespace nupic {
 class InputSpec {
 public:
   InputSpec() {}
-  InputSpec(std::string description, 
-            NTA_BasicType dataType, 
-            UInt32 count,
-            bool required, 
-            bool regionLevel,
-            bool isDefaultInput = false,
-            bool requireSplitterMap = true);
-  bool operator==(const InputSpec &other) const;
-  inline bool operator!=(const InputSpec &other) const {
+  InputSpec(std::string description,
+            NTA_BasicType dataType,
+            UInt32 count = 0,
+            bool required = false,
+            bool regionLevel = true,
+            bool isDefaultInput = false);
+    bool operator==(const InputSpec &other) const;
+    inline bool operator!=(const InputSpec &other) const {
     return !operator==(other);
   }
-  std::string description;
-  NTA_BasicType dataType;
-  // TBD: Omit? isn't it always of unknown size?
-  // 1 = scalar; > 1 = array of fixed sized; 0 = array of unknown size
-  UInt32 count;
-  // TBD. Omit? what is "required"? Is it ok to be zero length?
-  bool required;
-  bool regionLevel;
-  bool isDefaultInput;
-  bool requireSplitterMap;
+  std::string description;   // description of input
+	
+  NTA_BasicType dataType;    // declare type of input
+
+  // width of buffer if fixed. 0 means variable.
+  // If non-zero positive value it means this region was developed
+	// to accept a fixed sized 1D array only.
+  UInt32 count;             
+	
+  bool required;             // true if input must be connected.
+	
+  bool regionLevel;          // if true, this means this input can propagate its 
+                             // dimensions to/from the region's dimensions.
+	
+  bool isDefaultInput;       // if True, assume this if input name not given 
+	                           // in functions involving inputs of a region.
 };
 
 class OutputSpec {
 public:
   OutputSpec() {}
-  OutputSpec(std::string description, 
+  OutputSpec(std::string description,
              const NTA_BasicType dataType,
-             size_t count, 
-             bool regionLevel, 
-             bool isDefaultOutput);
-  bool operator==(const OutputSpec &other) const;
-  inline bool operator!=(const OutputSpec &other) const {
+             size_t count = 0,              // set size of buffer, 0 means unknown size.
+             bool regionLevel = true,
+             bool isDefaultOutput = false);
+    bool operator==(const OutputSpec &other) const;
+    inline bool operator!=(const OutputSpec &other) const {
     return !operator==(other);
   }
-  std::string description;
+  std::string description;   // description of output
+	
+	NTA_BasicType dataType;    // The type of the output buffer.
 
-       // The type of the output buffer.
-  NTA_BasicType dataType;
+  size_t count;              // Size, in number of elements. If size is fixed.  
+	                           // If non-zero value it means this region 
+														 // was developed to output a fixed sized 1D array only.
+                             // if 0, call askImplForOutputDimensions() to get dimensions.
 
-       // count: Size, in number of elements. If size is fixed, specify it here.
-       // Value of 0 means it is determined dynamically by logic in link
-  size_t count;
+  bool regionLevel;          // If true, this output is can get its dimensions from
+                             // the region dimensions.
 
-       // regonLevel: if true, region impl will determine output buffer size.
-       // else, dimensions are required but might be inharited. See link logic.
-  bool regionLevel;   
-
-      // Default: if true, use this output for region if output name not given.
-  bool isDefaultOutput;
+  bool isDefaultOutput;      // if true, use this output for region if output name not given
+	                           // in functions involving outputs on a region.
 };
 
 class CommandSpec {
@@ -149,19 +153,20 @@ public:
   Collection<CommandSpec> commands;
   Collection<ParameterSpec> parameters;
 
-#ifdef NTA_INTERNAL
 
   Spec();
 
-  // TODO: decide whether/how to wrap these
   std::string getDefaultOutputName() const;
   std::string getDefaultInputName() const;
 
-  // TODO: need Spec validation, to make sure
-  // that default input/output are defined
-  // Currently this is checked in getDefault*, above
+  // a value that applys to the count field in inputs, outputs, parameters.
+  // It means that the field is an array and its size is not fixed.
+  static const int VARIABLE = 0; 
 
-#endif // NTA_INTERNAL
+  // a value that applys to the count field in inputs, outputs, parameters.
+  // It means that the field not an array and has a single scaler value.
+  static const int SCALER = 1; 
+
 };
 
 } // namespace nupic

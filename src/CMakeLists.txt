@@ -114,9 +114,6 @@ set(engine_files
     nupic/engine/Input.hpp
     nupic/engine/Link.cpp
     nupic/engine/Link.hpp
-    nupic/engine/LinkPolicy.hpp
-    nupic/engine/LinkPolicyFactory.cpp
-    nupic/engine/LinkPolicyFactory.hpp
     nupic/engine/Network.cpp
     nupic/engine/Network.hpp
     nupic/engine/NuPIC.cpp
@@ -133,12 +130,10 @@ set(engine_files
     nupic/engine/RegisteredRegionImplCpp.hpp
     nupic/engine/Spec.cpp
     nupic/engine/Spec.hpp
-    nupic/engine/TestFanIn2LinkPolicy.cpp
-    nupic/engine/TestFanIn2LinkPolicy.hpp
-    nupic/engine/UniformLinkPolicy.cpp
-    nupic/engine/UniformLinkPolicy.hpp
     nupic/engine/YAMLUtils.cpp
     nupic/engine/YAMLUtils.hpp
+    nupic/engine/Watcher.cpp
+    nupic/engine/Watcher.hpp
 )
   
 set(math_files
@@ -205,8 +200,6 @@ set(types_files
     nupic/types/BasicType.cpp
     nupic/types/BasicType.hpp
     nupic/types/Exception.hpp
-    nupic/types/Fraction.cpp
-    nupic/types/Fraction.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
@@ -231,8 +224,6 @@ set(utils_files
     nupic/utils/StringUtils.hpp
     nupic/utils/VectorHelpers.hpp
     nupic/utils/SdrMetrics.hpp
-    nupic/utils/Watcher.cpp
-    nupic/utils/Watcher.hpp
 )
 
 set(examples_files

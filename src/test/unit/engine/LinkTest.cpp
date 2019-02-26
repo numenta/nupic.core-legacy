@@ -44,7 +44,8 @@
 #include <nupic/os/Directory.hpp>
 #include <nupic/utils/Log.hpp>
 
-#define VERBOSE std::cerr << "[          ]"
+static bool verbose = false;
+#define VERBOSE if(verbose) std::cerr << "[          ]"
 
 using namespace nupic;
 
@@ -53,12 +54,12 @@ TEST(LinkTest, Links) {
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TestNode", "");
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
-  Dimensions d1;
-  d1.push_back(8);
-  d1.push_back(4);
+  Dimensions d1 = {8,4};
   region1->setDimensions(d1);
+  Dimensions d2 = {4,2};
+  region2->setDimensions(d2);
 
-  net.link("region1", "region2", "TestFanIn2", "");
+  net.link("region1", "region2");
 
   // test initialize(), which is called by net.initialize()
   // also test evaluateLinks() which is called here
@@ -66,7 +67,7 @@ TEST(LinkTest, Links) {
   net.run(1);
 
   // test that region has correct induced dimensions
-  Dimensions d2 = region2->getDimensions();
+  d2 = region2->getDimensions();
   ASSERT_EQ(2u, d2.size());
   ASSERT_EQ(4u, d2[0]);
   ASSERT_EQ(2u, d2[1]);
@@ -74,7 +75,6 @@ TEST(LinkTest, Links) {
   // test getName() and setName()
   Input *in1 = region1->getInput("bottomUpIn");
   Input *in2 = region2->getInput("bottomUpIn");
-
   EXPECT_STREQ("bottomUpIn", in1->getName().c_str());
   EXPECT_STREQ("bottomUpIn", in2->getName().c_str());
   in1->setName("uselessName");
@@ -97,9 +97,9 @@ TEST(LinkTest, Links) {
 
   // test findLink()
   std::shared_ptr<Link> l1 = in1->findLink("region1", "bottomUpOut");
-  ASSERT_TRUE(l1 == nullptr);
+  ASSERT_TRUE(l1 == nullptr);  // should not find it
   std::shared_ptr<Link> l2 = in2->findLink("region1", "bottomUpOut");
-  ASSERT_TRUE(l2 != nullptr);
+  ASSERT_TRUE(l2 != nullptr);  // should find it.
 
   // test removeLink(), uninitialize()
   // uninitialize() is called internally from removeLink()
@@ -117,6 +117,9 @@ TEST(LinkTest, Links) {
     EXPECT_THROW(in1->removeLink(l1), std::exception);
   }
 }
+
+
+
 TEST(LinkTest, DelayedLink) {
   class MyTestNode : public TestNode {
   public:
@@ -130,9 +133,10 @@ TEST(LinkTest, DelayedLink) {
 
     void compute() override {
       // Replace with no-op to preserve output
+      // This allows us to manually populate the output buffer
+      // in the test script.
     }
   };
-
   RegionImplFactory::registerRegion("MyTestNode",
                     new RegisteredRegionImplCpp<TestNode>("MyTestNode"));
   // second registration with the same name should just replace.
@@ -142,47 +146,45 @@ TEST(LinkTest, DelayedLink) {
   Network net;
   std::shared_ptr<Region> region1 = net.addRegion("region1", "MyTestNode", "");
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
+ 
 
+  // after adding a region with the registered type, unregistering it 
+  // should not cause any problems.
   RegionImplFactory::unregisterRegion("MyTestNode");
 
-  Dimensions d1;
-  d1.push_back(8);
-  d1.push_back(4);
+  Dimensions d1 = {8, 4};
   region1->setDimensions(d1);
+  region2->setDimensions(d1);
 
   // NOTE: initial delayed values are set to all 0's
-  net.link("region1", "region2", "TestFanIn2", "", "", "",
-           2 /*propagationDelay*/);
+  net.link("region1", "region2", "", "", "", "", 2); // with propogation delay
 
   // test initialize(), which is called by net.initialize()
   net.initialize();
 
-  Input *in1 = region1->getInput("bottomUpIn");
-  Input *in2 = region2->getInput("bottomUpIn");
+  Input *in1   = region1->getInput("bottomUpIn");
   Output *out1 = region1->getOutput("bottomUpOut");
+  Input *in2   = region2->getInput("bottomUpIn");
 
   // test isInitialized()
   ASSERT_TRUE(in1->isInitialized());
   ASSERT_TRUE(in2->isInitialized());
 
-  // test evaluateLinks(), in1 already initialized
-  ASSERT_EQ(0u, in1->evaluateLinks());
-  ASSERT_EQ(0u, in2->evaluateLinks());
 
   // set in2 to all 1's, to detect if net.run fails to update the input.
   {
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    for (UInt i = 0; i < 64; i++)
-      idata[i] = 1;
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
+    for (UInt i = 0; i < ai2.getCount(); i++)
+      idata[i] = 1.0;
   }
 
   // set out1 to all 10's
   {
-    const ArrayBase *ao1 = &(out1->getData());
-    Real64 *idata = (Real64 *)(ao1->getBuffer());
-    for (UInt i = 0; i < 64; i++)
-      idata[i] = 10;
+    const Array& ao1 = out1->getData();
+    Real64 *idata = (Real64 *)(ao1.getBuffer());
+    for (UInt i = 0; i < ao1.getCount(); i++)
+      idata[i] = 10.0;
   }
 
   // Check extraction of first delayed value
@@ -191,31 +193,29 @@ TEST(LinkTest, DelayedLink) {
     net.run(1);
 
     // confirm that in2 is all zeroes
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    // only test 4 instead of 64 to cut down on number of tests
-    for (UInt i = 0; i < 4; i++)
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
+    for (UInt i = 0; i < ai2.getCount(); i++)
       ASSERT_EQ(0, idata[i]);
   }
 
   // set out1 to all 100's
   {
-    const ArrayBase *ao1 = &(out1->getData());
-    Real64 *idata = (Real64 *)(ao1->getBuffer());
-    for (UInt i = 0; i < 64; i++)
-      idata[i] = 100;
+    const Array& ao1 = out1->getData();
+    Real64 *idata = (Real64 *)(ao1.getBuffer());
+    for (UInt i = 0; i < ao1.getCount(); i++)
+      idata[i] = 100.0;
   }
 
   // Check extraction of second delayed value
   {
     net.run(1);
 
-    // confirm that in2 is all zeroes
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    // only test 4 instead of 64 to cut down on number of tests
-    for (UInt i = 0; i < 4; i++)
-      ASSERT_EQ(0, idata[i]);
+    // confirm that in2 is all zeroes again.
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
+    for (UInt i = 0; i < ai2.getCount(); i++)
+      ASSERT_EQ(0.0, idata[i]);
   }
 
   // Check extraction of first "generated" value
@@ -223,11 +223,10 @@ TEST(LinkTest, DelayedLink) {
     net.run(1);
 
     // confirm that in2 is now all 10's
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    // only test 4 instead of 64 to cut down on number of tests
-    for (UInt i = 0; i < 4; i++)
-      ASSERT_EQ(10, idata[i]);
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
+    for (UInt i = 0; i < ai2.getCount(); i++)
+      ASSERT_EQ(10.0, idata[i]);
   }
 
   // Check extraction of second "generated" value
@@ -235,14 +234,16 @@ TEST(LinkTest, DelayedLink) {
     net.run(1);
 
     // confirm that in2 is now all 100's
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
     // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++)
-      ASSERT_EQ(100, idata[i]);
+      ASSERT_EQ(100.0, idata[i]);
   }
   RegionImplFactory::unregisterRegion("MyTestNode");
 }
+
+
 
 TEST(LinkTest, DelayedLinkSerialization) {
   // serialization test of delayed link.
@@ -264,20 +265,18 @@ TEST(LinkTest, DelayedLinkSerialization) {
   };
   // Register the plugin
   RegionImplFactory::registerRegion("MyTestNode",
-                                       new RegisteredRegionImplCpp<MyTestNode>());
+                   new RegisteredRegionImplCpp<MyTestNode>());
 
   Network net;
   std::shared_ptr<Region> region1 = net.addRegion("region1", "MyTestNode", "");
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "");
 
-  Dimensions d1;
-  d1.push_back(8);
-  d1.push_back(4);
+  Dimensions d1 = {8,4};
   region1->setDimensions(d1);
 
+  // PropagationDelay of 2.
   // NOTE: initial delayed values are set to all 0's
-  net.link("region1", "region2", "TestFanIn2", "", "", "",
-           2 /*propagationDelay*/);
+  net.link("region1", "region2", "", "", "", "", 2);
 
   net.initialize();
 
@@ -289,24 +288,22 @@ TEST(LinkTest, DelayedLinkSerialization) {
   ASSERT_TRUE(in1->isInitialized());
   ASSERT_TRUE(in2->isInitialized());
 
-  // test evaluateLinks(), in1 already initialized
-  ASSERT_EQ(0u, in1->evaluateLinks());
-  ASSERT_EQ(0u, in2->evaluateLinks());
 
   // set in2 to all 1's, to detect if net.run fails to update the input.
   {
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    ASSERT_EQ(in2->getData().getCount(), 64u);
-    for (UInt i = 0; i < 64; i++)
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
+    ASSERT_EQ(in2->getData().getCount(), 32u);
+    for (UInt i = 0; i < ai2.getCount(); i++)
       idata[i] = 1;
   }
 
   // set out1 to all 10's
   {
-    const ArrayBase *ao1 = &(out1->getData());
-    Real64 *idata = (Real64 *)(ao1->getBuffer());
-    for (UInt i = 0; i < 64; i++)
+    const Array& ao1 = out1->getData();
+    Real64 *idata = (Real64 *)(ao1.getBuffer());
+    ASSERT_EQ(out1->getData().getCount(), 32u);
+    for (UInt i = 0; i < ao1.getCount(); i++)
       idata[i] = 10;
   }
 
@@ -321,7 +318,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
     // In other words, that our hacked up version of TestNode
     // did not output anything that would clobber the output buffer.
     Real64 *idata = (Real64 *)out1->getData().getBuffer();
-    // only test 4 instead of 64 to cut down on number of tests
+    // only test 4 instead of 32 to cut down on number of tests
     for (UInt i = 0; i < 4; i++) {
       ASSERT_EQ(10.0f, idata[i]);
     }
@@ -329,18 +326,18 @@ TEST(LinkTest, DelayedLinkSerialization) {
 
   {
     // confirm that in2 is all zeroes (the buffer at the top of the queue)
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
-    // only test 4 instead of 64 to cut down on number of tests
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
+    // only test 4 instead of 32 to cut down on number of tests
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);
   }
 
   // set out1 to all 100's
   {
-    const ArrayBase *ao1 = &(out1->getData());
-    Real64 *idata = (Real64 *)(ao1->getBuffer());
-    for (UInt i = 0; i < 64; i++)
+    const Array& ao1 = out1->getData();
+    Real64 *idata = (Real64 *)(ao1.getBuffer());
+    for (UInt i = 0; i < ao1.getCount(); i++)
       idata[i] = 100;
   }
 
@@ -352,8 +349,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
     net.run(1);
 
     // confirm that in2 is all zeroes
-    const ArrayBase *ai2 = &(in2->getData());
-    Real64 *idata = (Real64 *)(ai2->getBuffer());
+    const Array& ai2 = in2->getData();
+    Real64 *idata = (Real64 *)(ai2.getBuffer());
     // only test 4 instead of 64 to cut down on number of tests
     for (UInt i = 0; i < 4; i++)
       ASSERT_EQ(0, idata[i]);
@@ -367,7 +364,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // We should have two delayed array values in queue: 10's and 100's
   {
     std::shared_ptr<Link> link = in2->findLink("region1", "bottomUpOut");
-//    VERBOSE << "InputLink: " << *link;
+    VERBOSE << "InputLink: " << *link << "\n";
   }
 
   // Serialize the current net
@@ -405,11 +402,11 @@ TEST(LinkTest, DelayedLinkSerialization) {
   ASSERT_TRUE(n2in1->getData() == in1->getData())   << "Deserialized bottomUpIn region1 input buffer does not match";
   ASSERT_TRUE(n2in2->getData() == in2->getData())   << "Deserialized bottomUpIn region2 does not match";
   ASSERT_TRUE(n2out1->getData() == out1->getData()) << "Deserialized bottomUpOut region1 does not match";
-  ASSERT_EQ(n2in2->getData().getCount(), 64u);
+  ASSERT_EQ(n2in2->getData().getCount(), 32u);
 
   {
 	  std::shared_ptr<Link> link = n2in2->findLink("region1", "bottomUpOut");
-//    VERBOSE << "Input2: " << *link;
+    VERBOSE << "Input2: " << *link << "\n";
   }
 
   {
@@ -438,18 +435,18 @@ TEST(LinkTest, DelayedLinkSerialization) {
   // Check extraction of first "generated" value.
   {
   	std::shared_ptr<Link> link = n2in2->findLink("region1", "bottomUpOut");
-//    VERBOSE << "Input2: " << *link;
+    VERBOSE << "Input2: " << *link << "\n";
 
     net.run(1);
     net2.run(1);
 
 	link = n2in2->findLink("region1", "bottomUpOut");
-//    VERBOSE << "Input2: " << *link;
-    // confirm that n2in2 is now all 10's
-	ASSERT_EQ(n2in2->getData().getCount(), 64u);
+  VERBOSE << "Input2: " << *link << "\n";
+  // confirm that n2in2 is now all 10's
+	ASSERT_EQ(n2in2->getData().getCount(), 32u);
     Real64 *idata = (Real64 *)in2->getData().getBuffer();
     Real64 *n2idata = (Real64 *)n2in2->getData().getBuffer();
-    // only test 4 instead of 64 to cut down on number of tests
+    // only test 4 instead of 32 to cut down on number of tests
     for (UInt i = 0; i < 4; i++) {
       ASSERT_EQ(10, idata[i]);
       ASSERT_EQ(10, n2idata[i]);
@@ -464,7 +461,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
     // confirm that in2 is now all 100's
     Real64 *idata = (Real64 *)in2->getData().getBuffer();
     Real64 *n2idata = (Real64 *)n2in2->getData().getBuffer();
-    // only test 4 instead of 64 to cut down on number of tests
+    // only test 4 instead of 32 to cut down on number of tests
     for (UInt i = 0; i < 4; i++) {
       ASSERT_EQ(100, idata[i]);
       ASSERT_EQ(100, n2idata[i]);
@@ -474,7 +471,7 @@ TEST(LinkTest, DelayedLinkSerialization) {
   RegionImplFactory::unregisterRegion("MyTestNode");
   Directory::removeTree("TestOutputDir");
 }
-
+/////////////////////////////////////////////////
 /**
  * Base class for region implementations in this test module. See also
  * L2TestRegion and L4TestRegion.
@@ -508,7 +505,7 @@ public:
   // For per-region outputs, it is the total element count.
   // This method is called only for outputs whose size is not
   // specified in the nodespec.
-  size_t getNodeOutputElementCount(const std::string &outputName) override {
+  size_t getNodeOutputElementCount(const std::string &outputName) const override {
     if (outputName == "out") {
       return outputElementCount_;
     }
@@ -550,7 +547,7 @@ public:
                                               NTA_BasicType_UInt64,
                                               0,     // count. wildcard
                                               true,  // required?
-                                              false, // isRegionLevel,
+                                              false, // isRegionLevel
                                               false  // isDefaultInput
                                               ));
 
@@ -565,8 +562,7 @@ public:
     /* ----- outputs ------ */
     ns->outputs.add("out", OutputSpec("Primary output for the node",
                                       NTA_BasicType_UInt64,
-                                      3,     // 1st is output; 2nd is the given
-                                             // feedForwardIn; 3rd is lateralIn
+                                      3,     // Output dimension
                                       false, // isRegionLevel
                                       true   // isDefaultOutput
                                       ));
@@ -579,7 +575,7 @@ public:
    * It is always called after the constructor (or load from serialized state)
    */
   void initialize() override {
-    nodeCount_ = getDimensions().getCount();
+    nodeCount_ = getOutputDimensions().getCount();
     out_ = getOutput("out");
     feedForwardIn_ = getInput("feedForwardIn");
     lateralIn_ = getInput("lateralIn");
@@ -587,26 +583,19 @@ public:
 
   // Compute outputs from inputs and internal state
   void compute() override {
-    NTA_DEBUG << "> Computing: " << getName() << " <";
+    VERBOSE << "> Computing: " << getName() << " <\n";
 
     const Array &outputArray = out_->getData();
     NTA_CHECK(outputArray.getCount() == 3);
     NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
     UInt64 *baseOutputBuffer = (UInt64 *)outputArray.getBuffer();
 
-    std::vector<UInt64> ffInput;
-    feedForwardIn_->getInputForNode(0, ffInput);
-    NTA_CHECK(ffInput.size() > 1);
-
-    NTA_DEBUG << getName() << ".compute: ffInput size=" << ffInput.size()
-              << "; inputValue=" << ffInput[0];
-
-    std::vector<UInt64> latInput;
-    lateralIn_->getInputForNode(0, latInput);
-    NTA_CHECK(latInput.size() > 1);
-
-    NTA_DEBUG << getName() << ".compute: latInput size=" << latInput.size()
-              << "; inputValue=" << latInput[0];
+    const Array& ffInputArray = feedForwardIn_->getData();
+    const Array& latInputArray = lateralIn_->getData();
+    NTA_CHECK(ffInputArray.getCount() >= 1);
+    NTA_CHECK(latInputArray.getCount() >= 1);
+    UInt64 *ffInput = (UInt64 *)ffInputArray.getBuffer();
+    UInt64 *latInput = (UInt64 *)latInputArray.getBuffer();
 
     // Only the first element of baseOutputBuffer represents region output. We
     // keep track of inputs to the region using the rest of the baseOutputBuffer
@@ -615,7 +604,7 @@ public:
     baseOutputBuffer[1] = ffInput[0];
     baseOutputBuffer[2] = latInput[0];
 
-    NTA_DEBUG << getName() << ".compute: out=" << baseOutputBuffer[0];
+    VERBOSE << getName() << ".compute: out=" << baseOutputBuffer[0] << "\n";
   }
 
 private:
@@ -654,20 +643,22 @@ public:
     ns->parameters.add(
         "k",
         ParameterSpec("Constant k value for output computation", // description
-                      NTA_BasicType_UInt64,
-                      1,  // elementCount
-                      "", // constraints
-                      "", // defaultValue
-                      ParameterSpec::ReadWriteAccess));
+          NTA_BasicType_UInt64,
+          1,  // elementCount
+          "", // constraints
+          "", // defaultValue
+          ParameterSpec::ReadWriteAccess));
 
     /* ----- inputs ------- */
-    ns->inputs.add("feedbackIn", InputSpec("Feedback input for the node",
-                                           NTA_BasicType_UInt64,
-                                           0,     // count. omit?
-                                           true,  // required?
-                                           false, // isRegionLevel,
-                                           false  // isDefaultInput
-                                           ));
+    ns->inputs.add(
+        "feedbackIn",
+        InputSpec("Feedback input for the node",
+           NTA_BasicType_UInt64,
+           0,     // count. omit?
+           true,  // required?
+           false, // isRegionLevel,
+           false  // isDefaultInput
+           ));
 
     /* ----- outputs ------ */
     ns->outputs.add(
@@ -687,7 +678,7 @@ public:
    * It is always called after the constructor (or load from serialized state)
    */
   void initialize() override {
-    nodeCount_ = getDimensions().getCount();
+    nodeCount_ = getOutputDimensions().getDimensionCount();
     NTA_CHECK(nodeCount_ == 1);
     out_ = getOutput("out");
     feedbackIn_ = getInput("feedbackIn");
@@ -695,27 +686,27 @@ public:
 
   // Compute outputs from inputs and internal state
   void compute() override {
-    NTA_DEBUG << "> Computing: " << getName() << " <";
+    VERBOSE << "> Computing: " << getName() << " <\n";
 
     const Array &outputArray = out_->getData();
     NTA_CHECK(outputArray.getCount() == 2);
     NTA_CHECK(outputArray.getType() == NTA_BasicType_UInt64);
     UInt64 *baseOutputBuffer = (UInt64 *)outputArray.getBuffer();
 
-    std::vector<UInt64> nodeInput;
-    feedbackIn_->getInputForNode(0, nodeInput);
-    NTA_CHECK(nodeInput.size() >= 1);
+    const Array &inputArray = feedbackIn_->getData();
+    UInt64 *inputBuffer = (UInt64*)inputArray.getBuffer();
+    NTA_CHECK(inputArray.getCount() >= 1);
 
-    NTA_DEBUG << getName() << ".compute: fbInput size=" << nodeInput.size()
-              << "; inputValue=" << nodeInput[0];
+    VERBOSE << getName() << ".compute: fbInput size=" << inputArray.getCount()
+            << "; inputValue=" << inputBuffer[0] << "\n";
 
     // Only the first element of baseOutputBuffer represents region output. We
     // keep track of inputs to the region using the rest of the baseOutputBuffer
     // vector. These inputs are used in the tests.
-    baseOutputBuffer[0] = k_ + nodeInput[0];
-    baseOutputBuffer[1] = nodeInput[0];
+    baseOutputBuffer[0] = k_ + inputBuffer[0];
+    baseOutputBuffer[1] = inputBuffer[0];
 
-    NTA_DEBUG << getName() << ".compute: out=" << baseOutputBuffer[0];
+    VERBOSE << getName() << ".compute: out=" << baseOutputBuffer[0] << "\n";
   }
 
 private:
@@ -730,14 +721,75 @@ private:
   Input *feedbackIn_;
   Output *out_;
 };
+////////////////////////////////////////////////////////
 
-/*********** TODO: fix spec
+
+
 TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // This test simulates a network with L2 and L4, structured as follows:
   // o R1/R2 ("L4") are in phase 1; R3/R4 ("L2") are in phase 2;
   // o feed-forward links with delay=0 from R1/R2 to R3/R4, respectively;
   // o lateral links with delay=1 between R3 and R4;
   // o feedback links with delay=1 from R3/R4 to R1/R2, respectively
+  //
+  // Buffer sizes:
+  //   R1.out          L4TestRegion  2   -set by spec for output "out"
+  //   R1.feedbackIn   L4TestRegion  3   -set by size of R3 output "out"
+  //   R2.out          L4TestRegion  2   -set by spec for output "out"
+  //   R2.feedbackIn   L4TestRegion  3   -set by size of R4 output "out"
+  //   R3.out          L2TestRegion  3   -set by spec for output "out"
+  //   R3.LateralIn    L2TestRegion  3   -set by size of R4 output "out"
+  //   R4.out          L2TestRegion  3   -set by spec for output "out"
+  //   R4.LateralIn    L2TestRegion  3   -set by size of R3 output "out"
+  //
+  // Order of data movement:                        values during propogation (in link)
+  //                                        Iteration1         Iteration2         Iteration3
+  // phase1:                               out      in        out       in         out     in
+  //   R1.out -> R3.feedForwardIn         [1,0] -> [1,0]    [2,1]   -> [2,1]    [8,7]  ->[8,7]
+  //   R2.out -> R4.feedForwardIn         [5,0] -> [5,0]    [10,5]  -> [10,5]   [16,11] ->[16,11]
+  // phase2:
+  //   R3.out -> R1.feedbackIn  Delay 1   [1,1,0]  [0,0,0]  [7,2,5]    [1,1,0]  [19,8,11]  [7,2,5]
+  //             delayQue                        ->[1,1,0]           ->[7,2,5]           ->[19,8,11]
+  //   R3.out -> R4.LateralIn   Delay 1   [1,1,0]->[0,0,0]  [7,2,5]  ->[1,1,0]  [19,8,11]->[7,2,5]
+  //             delayQue                        ->[1,1,0]           ->[7,2,5]           ->[19,8,11]
+  //   R4.out -> R2.feedbackIn  Delay 1   [5,5,0]->[0,0,0]  [11,10,1]->[5,5,0]  [23,16,7]->[11,10,1]
+  //             delayQue                        ->[5,5,0]           ->[11,10,1]         ->[23,16,7]
+  //   R4.out -> R3.LateralIn   Delay 1   [5,5,0]->[0,0,0]  [11,10,1]->[5,5,0]  [23,16,7]->[11,10,1]
+  //             delayQue                        ->[5,5,0]           ->[11,10,1]         ->[23,16,7]
+  //
+  //                                                values at execution (in region)
+  //                                        Iteration1         Iteration2         Iteration3
+  // phase1:                               in      out        in       out         in     out
+  //   R1.feedbackIn -> R1.out            [0,0] -> [1,0]    [1,1]   -> [2,1]     [7,2]    ->[8,7]
+  //   R2.feedbackIn -> R2.out            [0,0] -> [5,0]    [5,5]   -> [10,5]    [11,10]  ->[16,11]
+  // phase2:
+  //   R3.feedforwardIn ->                [1,0]             [2,1]                [8,7]
+  //   R3.LateralIn     -> R3.out         [0,0,0]->[1,1,0]  [5,5,0]  ->[7,2,5]   [11,10,1]->[19,8,11]
+  //   R4.feedforwardIn ->                [5,0]             [10,5]               [16,11]
+  //   R4.LateralIn     -> R4.out         [0,0,0]->[5,5,0]  [1,1,0]  ->[11,10,1] [7,2,5]  ->[23,16,7]
+  //
+  //
+  //     .-------------.                                 .--------------.
+  //     |             |                                 |              |
+  //     |     R1      |Out                FeedforwardIn |      R3      |
+  //     |             |-------------------------------->|              | LateralIn
+  //     |             |           D0                    |              |<---.
+  //     |             |                                 |              |    |
+  //     `-------------'                                 `--------------'    |
+  //           ^ FeedbackIn                                 |\ Out           |
+  //           `--------------------------------------------'|               |
+  //                               D1                        | D1            | D1
+  //                                                         V LateralIn     |
+  //     .-------------.                                 .--------------.    |
+  //     |             |                                 |              |    |
+  //     |     R2      |Out                FeedforwardIn |      R4      |    |
+  //     |             |-------------------------------->|              |    |
+  //     |             |           D0                    |              |    |
+  //     |             |                                 |              |    |
+  //     `-------------'                                 `--------------'    |
+  //           ^ FeedbackIn                                 |\ Out           |
+  //           `--------------------------------------------' `--------------'
+  //                               D1
 
   Network net;
 
@@ -753,13 +805,6 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   std::shared_ptr<Region> r4 = net.addRegion("R4", "L2TestRegion", "");
   RegionImplFactory::unregisterRegion("L2TestRegion");
 
-  // NOTE Dimensions must be multiples of 2
-  Dimensions d1;
-  d1.push_back(1);
-  r1->setDimensions(d1);
-  r2->setDimensions(d1);
-  r3->setDimensions(d1);
-  r4->setDimensions(d1);
 
   // Set region phases
 
@@ -778,7 +823,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R1 output
   net.link("R1",            // srcName
            "R3",            // destName
-           "UniformLink",   // linkType
+           "",              // linkType
            "",              // linkParams
            "out",           // srcOutput
            "feedForwardIn", // destInput
@@ -788,7 +833,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R2 output
   net.link("R2",            // srcName
            "R4",            // destName
-           "UniformLink",   // linkType
+           "",              // linkType
            "",              // linkParams
            "out",           // srcOutput
            "feedForwardIn", // destInput
@@ -798,7 +843,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R3 outputs
   net.link("R3",          // srcName
            "R1",          // destName
-           "UniformLink", // linkType
+           "",            // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -807,7 +852,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
 
   net.link("R3",          // srcName
            "R4",          // destName
-           "UniformLink", // linkType
+           "",            // linkType
            "",            // linkParams
            "out",         // srcOutput
            "lateralIn",   // destInput
@@ -817,7 +862,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
   // R4 outputs
   net.link("R4",          // srcName
            "R2",          // destName
-           "UniformLink", // linkType
+           "",            // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -826,7 +871,7 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
 
   net.link("R4",          // srcName
            "R3",          // destName
-           "UniformLink", // linkType
+           "",            // linkType
            "",            // linkParams
            "out",         // srcOutput
            "lateralIn",   // destInput
@@ -933,11 +978,6 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
   std::shared_ptr<Region> r3 = net.addRegion("R3", "L2TestRegion", "");
   RegionImplFactory::unregisterRegion("L2TestRegion");
 
-  // NOTE Dimensions must be multiples of 2
-  Dimensions d1;
-  d1.push_back(1);
-  r1->setDimensions(d1);
-  r3->setDimensions(d1);
 
   // Set region phases
 
@@ -954,7 +994,7 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
   // R1 output
   net.link("R1",            // srcName
            "R3",            // destName
-           "UniformLink",   // linkType
+           "",              // linkType
            "",              // linkParams
            "out",           // srcOutput
            "feedForwardIn", // destInput
@@ -964,7 +1004,7 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
   // R3 outputs
   net.link("R3",          // srcName
            "R1",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -973,7 +1013,7 @@ TEST(LinkTest, L2L4With1ColDelayedLinksAndPhase1OnOffOn) {
 
   net.link("R3",          // srcName
            "R3",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "lateralIn",   // destInput
@@ -1074,10 +1114,6 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
   std::shared_ptr<Region> r1 = net.addRegion("R1", "L4TestRegion", "{\"k\": 1}");
   RegionImplFactory::unregisterRegion("L4TestRegion");
 
-  // NOTE Dimensions must be multiples of 2
-  Dimensions d1;
-  d1.push_back(1);
-  r1->setDimensions(d1);
 
   // Set region phases
 
@@ -1090,7 +1126,7 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
   // R1 output (loopback)
   net.link("R1",          // srcName
            "R1",          // destName
-           "UniformLink", // linkType
+           "",              // linkType
            "",            // linkParams
            "out",         // srcOutput
            "feedbackIn",  // destInput
@@ -1143,4 +1179,3 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
   ASSERT_EQ(2u, r1OutBuf[1]); // feedbackIn from R3; delay=1
   ASSERT_EQ(3u, r1OutBuf[0]); // out (1 + feedbackIn)
 }
-********/

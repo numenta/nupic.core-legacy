@@ -76,7 +76,8 @@ class SPRegion  : public RegionImpl
     // For per-region outputs, it is the total element count.
     // This method is called only for outputs whose size is not
     // specified in the spec.
-    size_t getNodeOutputElementCount(const std::string& outputName) override;
+    size_t getNodeOutputElementCount(const std::string& outputName) const override;
+    Dimensions askImplForOutputDimensions(const std::string &name) const override;
 
 		/* -----------  Optional RegionImpl Interface methods ------- */
     UInt32 getParameterUInt32(const std::string& name, Int64 index) override;
@@ -119,6 +120,7 @@ private:
       bool wrapAround;
       bool learningMode;
     } args_;
+
 
     typedef void (*computeCallbackFunc)(const std::string &);
     computeCallbackFunc computeCallback_;

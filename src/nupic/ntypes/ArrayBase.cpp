@@ -318,8 +318,46 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
     return false;
   if (lhs.getCount() == 0)
     return true;
+  if (lhs.getType() == NTA_BasicType_SDR) {
+    return (*lhs.getSDR() == *rhs.getSDR());
+  }
   return (std::memcmp(lhs.getBuffer(), rhs.getBuffer(),
                       lhs.getCount() * BasicType::getSize(lhs.getType())) == 0);
+}
+
+template<typename T>
+static bool compare_array_0_and_non0s_helper_(T ptr, const Byte *v, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+      if (((v[i]!=0) && (((T)ptr)[i] == 0)) 
+       || ((v[i]==0) && (((T)ptr)[i] != 0)))
+        return false;
+    }
+    return true;
+}
+
+// Compare contents of a ArrayBase object and a vector of type Byte.  Actually
+// we are only interested in 0 and non-zero values in this compare.
+static bool compare_array_0_and_non0s_(const ArrayBase &a_side, const std::vector<nupic::Byte> &v_side) {
+  
+  if (a_side.getCount() != v_side.size()) return false;
+  size_t ele_size = BasicType::getSize(a_side.getType());
+  size_t size = a_side.getCount();
+  const void *a_ptr = a_side.getBuffer();
+  const Byte *v_ptr = &v_side[0];
+  switch(ele_size) { 
+  default:
+  case 1: return compare_array_0_and_non0s_helper_((const Byte*  )a_ptr, v_ptr, size);
+  case 2: return compare_array_0_and_non0s_helper_((const UInt16*)a_ptr, v_ptr, size);
+  case 4: return compare_array_0_and_non0s_helper_((const UInt32*)a_ptr, v_ptr, size);
+  case 8: return compare_array_0_and_non0s_helper_((const UInt64*)a_ptr, v_ptr, size);
+  }
+  return true;
+}
+bool operator==(const ArrayBase &lhs, const std::vector<nupic::Byte> &rhs) {
+  return compare_array_0_and_non0s_(lhs, rhs);
+}
+bool operator==(const std::vector<nupic::Byte> &lhs, const ArrayBase &rhs) {
+  return compare_array_0_and_non0s_(rhs, lhs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -167,11 +167,6 @@ std::string RegionImpl::getParameterString(const std::string &name,
   return "";
 }
 
-// Must be overridden by subclasses
-bool RegionImpl::isParameterShared(const std::string &name) {
-  NTA_THROW << "RegionImpl::isParameterShared was not overridden in node type "
-            << getType();
-}
 
 
 size_t RegionImpl::getParameterArrayCount(const std::string &name,
@@ -195,6 +190,54 @@ size_t RegionImpl::getParameterArrayCount(const std::string &name,
   return count;
 }
 
+Dimensions RegionImpl::askImplForInputDimensions(const std::string &name) const {
+  // Default implementation for Region Impl that did not override this.
+  // This should return the input dimensions for this input, or a Dimension
+  // of size 1, value 0 which means don't care.
+  //
+  // Since the region impl did not override this, we generate the Dimensions
+  // based on the Spec.
+  if (!region_->getSpec()->inputs.contains(name)) {
+    NTA_THROW << "askImplForInputDimensions -- no input named '" << name
+              << "' in region of type " << getType();
+  }
+  UInt32 count = (UInt32)region_->getSpec()->inputs.getByName(name).count;
+  if (count == Spec::VARIABLE)
+    count = (UInt32)getNodeInputElementCount(name);
+  Dimensions dim;
+  dim.push_back(count);   // if count == 0, it means don't care.
+  return dim;
+}
+
+Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) const {
+  // Default implementation for Region Impl that did not override this.
+  // This should return the input dimensions for this input, or a Dimension
+  // of size 1, value 0 which means don't care.
+  //
+  // Since the region impl did not override this, we generate the Dimensions
+  // based on the Spec.
+  if (!region_->getSpec()->outputs.contains(name)) {
+    NTA_THROW << "askImplForOutputDimensions -- no output named '" << name
+              << "' in region of type " << getType();
+  }
+  auto ns = region_->getSpec()->outputs.getByName(name);
+
+  UInt32 count = (UInt32)ns.count;
+  if (count == Spec::VARIABLE) {
+    // This is not a fixed size output.
+    // If this is the default output, use the default dimensions.
+    if (ns.isDefaultOutput && !dim_.empty()) {
+      return dim_;
+    }
+    // ask the impl for a 1D size.
+    count = (UInt32)getNodeOutputElementCount(name);
+  }
+  Dimensions dim;
+  dim.push_back(count);   // if count happens to be 0, it means don't care.
+  return dim;
+}
+
+
 // Provide data access for subclasses
 
 Input *RegionImpl::getInput(const std::string &name) const {
@@ -204,9 +247,12 @@ Input *RegionImpl::getInput(const std::string &name) const {
 Output *RegionImpl::getOutput(const std::string &name) const {
   return region_->getOutput(name);
 }
-
-const Dimensions &RegionImpl::getDimensions() {
-  return region_->getDimensions();
+Dimensions RegionImpl::getInputDimensions(const std::string &name) const {
+  return region_->getInputDimensions(name);
 }
+Dimensions RegionImpl::getOutputDimensions(const std::string &name) const {
+  return region_->getOutputDimensions(name);
+}
+
 
 } // namespace nupic

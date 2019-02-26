@@ -241,7 +241,7 @@ public:
             << "Not enough inputs to SDR_Concatenation, need at least 2 SDRs got " << inputs.size() << ".";
         inputs_.assign( inputs.begin(), inputs.end() );
         axis_ = axis;
-        const UInt n_dim = inputs[0]->dimensions.size();
+        const UInt n_dim = (UInt)inputs[0]->dimensions.size();
         NTA_CHECK( axis_ < n_dim );
         // Determine dimensions & check input dimensions.
         vector<UInt> dims = inputs[0]->dimensions;
@@ -282,7 +282,7 @@ public:
         NTA_ASSERT( dense_valid );
         if( !dense_valid_lazy ) {
             // Setup for copying the data as rows & strides.
-            const UInt    n_dim = inputs[0]->dimensions.size();
+            const UInt    n_dim = (UInt)inputs[0]->dimensions.size();
             vector<Byte*> buffers;
             vector<UInt>  row_lengths;
             for(const auto &sdr : inputs) {
