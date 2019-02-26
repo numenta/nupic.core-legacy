@@ -144,6 +144,9 @@ def compute(self, activeColumns, learn=True):
 ***/
 
   NTA_ASSERT(tm_) << "TM not initialized";
+
+  if (computeCallback_ != nullptr)
+    computeCallback_(getName());
   args_.iter++;
 
   // Handle reset signal
@@ -164,17 +167,18 @@ def compute(self, activeColumns, learn=True):
   );
   args_.sequencePos++;
 
-// TODO: this will not compile until I fix Array
-//  Output *out;
-//  if ((out = getOutput("bottomUpOut"))) {  
-//    out->getData().fromVector(tm_->getPredictiveCells());  // sparse
-//  }
-//  if ((out = getOutput("activeCells"))) {
-//    out->getData().fromVector(tm_->getActiveCells());   // sparse
-//  }
-//  if ((out = getOutput("predictedActiveCells"))) {
-//    out->getData().fromVector(tm_->getWinnerCells());  // sparse
-//  }
+// generate the outputs
+  Output *out;
+  if ((out = getOutput("bottomUpOut"))) {  
+	TODO: needs spare to dence
+    out->getData().fromVector(tm_->getPredictiveCells());  // sparse
+  }
+  if ((out = getOutput("activeCells"))) {
+    out->getData().fromVector(tm_->getActiveCells());   // sparse
+  }
+  if ((out = getOutput("predictedActiveCells"))) {
+    out->getData().fromVector(tm_->getWinnerCells());  // sparse
+  }
 }
 
 std::string TMRegion::executeCommand(const std::vector<std::string> &args,Int64 index) {

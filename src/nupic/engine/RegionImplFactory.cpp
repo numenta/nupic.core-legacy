@@ -41,6 +41,8 @@
 #include <nupic/regions/VectorFileEffector.hpp>
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/regions/SPRegion.hpp>
+#include <nupic/regions/BacktrackingTMRegion.hpp>
+#include <nupic/regions/TMRegion.hpp>
 
 
 #include <nupic/utils/Log.hpp>
