@@ -60,10 +60,10 @@ class MNIST {
 
 void setup() {
 
-  input.initialize({28 * 28});
+  input.initialize({28, 28});
   sp.initialize(
     /* inputDimensions */             input.dimensions,
-    /* columnDimensions */            {20 * 1000},
+    /* columnDimensions */            {100, 100},
     /* potentialRadius */             999999u,
     /* potentialPct */                0.5f,
     /* globalInhibition */            true,
@@ -170,7 +170,7 @@ void test() {
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }
   if( verbosity ) cout << endl;
-  cout << "Score: " << 100.0 * score / n_samples << "%% " << endl;
+  cout << "Score: " << 100.0 * score / n_samples << "% " << endl;
 }
 
 };  // End class MNIST
