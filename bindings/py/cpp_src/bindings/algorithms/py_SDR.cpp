@@ -158,8 +158,8 @@ current value.)");
                 auto capsule = py::capsule(&self, [](void *self) {});
                 vector<UInt> strides( self.dimensions.size(), 0u );
                 auto z = sizeof(Byte);
-                for(int i = self.dimensions.size() - 1; i >= 0; --i) {
-                    strides[i] = z;
+                for(int i = (int)self.dimensions.size() - 1; i >= 0; --i) {
+                    strides[i] = (UInt)z;
                     z *= self.dimensions[i];
                 }
                 return py::array(self.dimensions, strides, self.getDense().data(), capsule);

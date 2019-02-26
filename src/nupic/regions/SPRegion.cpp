@@ -70,6 +70,16 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
   // variables used by this class and not passed on to the SpatialPooler class
   args_.learningMode = (1 == values.getScalarT<UInt32>("learningMode", true));
 
+    // declare dimensions for bottomUpOut
+  // specify dimensions using variable dim; syntax: "{dim: [2,3]}"
+  // Alternatively, a 1D dimension can be setup with "{count: 6}"
+  // Defaults to 1D size 64.
+  if (dim_.empty())
+    dim_ = Dimensions(args_.columnCount);
+  else
+    args_.columnCount = (UInt32)dim_.getCount();
+
+
 }
 
 SPRegion::SPRegion(BundleIO &bundle, Region *region) 
@@ -150,12 +160,20 @@ std::string SPRegion::executeCommand(const std::vector<std::string> &args,Int64 
 // to create the output buffers during Region::initialization(). It calls this
 // only if dimensions were not set on this region.
 // NOTE: Some outputs are optional, return 0 if not used.
-size_t SPRegion::getNodeOutputElementCount(const std::string &outputName) {
+size_t SPRegion::getNodeOutputElementCount(const std::string &outputName) const {
   if (outputName == "bottomUpOut") // This is the only output link we actually use.
   {
       return args_.columnCount; 
   }
   return 0; // an optional output that we don't use.
+}
+// Provide the size of the output dimensions.
+// Output buffer will be created with these dimensions.
+Dimensions SPRegion::askImplForOutputDimensions(const std::string& name) const {
+  if (name == "bottomUpOut") {
+    return dim_;
+  }
+  return RegionImpl::askImplForOutputDimensions(name); // default behavior
 }
 
 
@@ -517,8 +535,7 @@ Spec *SPRegion::createSpec() {
                 0,                    // count.
                 true,                 // required?
                 false,                // isRegionLevel,
-                true,                 // isDefaultInput
-                false                 // requireSplitterMap
+                true                  // isDefaultInput
                 ));
 
 

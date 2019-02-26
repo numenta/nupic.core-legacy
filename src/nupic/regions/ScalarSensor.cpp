@@ -75,21 +75,9 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
 
   void ScalarSensor::compute()
   {
-    Real32* array = (Real32*)encodedOutput_->getData().getBuffer();
-    UInt *uintArray = new UInt[encoder_->getOutputWidth()];
-	try {
-	    const Int32 iBucket = encoder_->encodeIntoArray((Real)params_.sensedValue_, uintArray);
-	    ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
-	    for(UInt i=0; i<encoder_->getOutputWidth(); i++) //FIXME optimize
-	    {
-	      array[i] = (Real32)uintArray[i]; // copy values back to SP's 'array' array
-	    }
-	}
-	catch(Exception& e) {
-    	delete[] uintArray;
-		throw e;
-	}
-    delete[] uintArray;
+    UInt32* array = (UInt32*)encodedOutput_->getData().getBuffer();
+	  const Int32 iBucket = encoder_->encodeIntoArray((Real)params_.sensedValue_, array);
+	  ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
   }
 
 ScalarSensor::~ScalarSensor() { delete encoder_; }
@@ -107,7 +95,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
                                    "-1", // defaultValue
                                    ParameterSpec::ReadWriteAccess));
 
-  ns->parameters.add("n", ParameterSpec("The length of the encoding",
+  ns->parameters.add("n", ParameterSpec("The length of the encoding. Size of buffer",
                                         NTA_BasicType_UInt32,
                                         1,   // elementCount
                                         "",  // constraints
@@ -115,7 +103,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
                                         ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("w",
-                     ParameterSpec("The number of active bits in the encoding",
+                     ParameterSpec("The number of active bits in the encoding. i.e. how sparse",
                                    NTA_BasicType_UInt32,
                                    1,   // elementCount
                                    "",  // constraints
@@ -131,18 +119,18 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
                                    ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("radius", ParameterSpec("The radius for the encoder",
-                                             NTA_BasicType_Real64,
-                                             1,   // elementCount
-                                             "",  // constraints
-                                             "0", // defaultValue
-                                             ParameterSpec::ReadWriteAccess));
+                                  NTA_BasicType_Real64,
+                                  1,   // elementCount
+                                  "",  // constraints
+                                  "0", // defaultValue
+                                  ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("minValue",
                      ParameterSpec("The minimum value for the input",
                                    NTA_BasicType_Real64,
                                    1,    // elementCount
                                    "",   // constraints
-                                   "-1", // defaultValue
+                                   "-1.0", // defaultValue
                                    ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("maxValue",
@@ -150,7 +138,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
                                    NTA_BasicType_Real64,
                                    1,    // elementCount
                                    "",   // constraints
-                                   "-1", // defaultValue
+                                   "+1.0", // defaultValue
                                    ParameterSpec::ReadWriteAccess));
 
   ns->parameters.add("periodic",
@@ -221,7 +209,7 @@ void ScalarSensor::initialize() {
   bucketOutput_ = getOutput("bucket");
 }
 
-size_t ScalarSensor::getNodeOutputElementCount(const std::string &outputName) {
+size_t ScalarSensor::getNodeOutputElementCount(const std::string &outputName) const {
   if (outputName == "encoded") {
     return encoder_->getOutputWidth();
   } else if (outputName == "bucket") {
@@ -271,8 +259,8 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
                                   params_.clipInput);
   }
   initialize();
-  encodedOutput_->initialize(getNodeOutputElementCount("encoded"));
-  bucketOutput_->initialize(getNodeOutputElementCount("bucket"));
+  encodedOutput_->initialize();
+  bucketOutput_->initialize();
   compute();
 }
 

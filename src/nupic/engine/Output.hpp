@@ -47,12 +47,14 @@ public:
    *
    * @param region
    *        The region that the output belongs to.
+   * @param outputName
+   *        The region's output name
    * @param type
-   *        The type of the output, TODO
-   * @param isRegionLevel
-   *        Whether the output is region level, i.e. TODO
+   *        The type of the output
    */
-  Output(Region* region, NTA_BasicType type, bool isRegionLevel);
+  Output(Region* region, 
+         const std::string& outputName, 
+         NTA_BasicType type);
 
   /**
    * Destructor
@@ -82,14 +84,11 @@ public:
   /**
    * Initialize the Output .
    *
-   * @param size
-   *        The count of node output element, i.e. TODO
-   *
    * @note It's safe to reinitialize an initialized Output with the same
    * parameters.
    *
    */
-  void initialize(size_t size);
+  void initialize();
 
   /**
    *
@@ -144,14 +143,6 @@ public:
    */
   NTA_BasicType getDataType() const;
 
-  /**
-   *
-   * Tells whether the output is region level.
-   *
-   * @returns
-   *     Whether the output is region level, i.e. TODO
-   */
-  bool isRegionLevel() const;
 
   /**
    *
@@ -170,17 +161,35 @@ public:
    */
   size_t getNodeOutputElementCount() const;
 
+  /**
+   * Figure out what the dimensions should be for this output buffer.
+   * Call this to find out the configured dimensions. Adjust number
+   * of dimensions by adding 1's as needed.
+   * Then call setDimensions();
+   * Call initialize to actually create the buffers. Once buffers are
+   * created the dimensions cannot be changed.
+   */
+  Dimensions determineDimensions();
+
+  /**
+   * Get dimensions for this output
+   */
+  Dimensions &getDimensions() { return dim_; }
+
+  /**
+   * Set dimensions for this output
+   */
+  void setDimensions(const Dimensions& dim) { dim_ = dim; }
 
 private:
   // Cannot use the shared_ptr here
   Region* region_;
+  Dimensions dim_;
   Array data_;
-  bool isRegionLevel_;
   // order of links never matters, so store as a set
   // this is different from Input, where they do matter
   std::set<std::shared_ptr<Link>> links_;
   std::string name_;
-  size_t nodeOutputElementCount_;
 };
 
 
