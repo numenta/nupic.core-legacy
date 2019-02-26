@@ -326,7 +326,7 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
 }
 
 template<typename T>
-bool compare_array_0_and_non0s_helper(T ptr, const Byte *v, size_t size) {
+static bool compare_array_0_and_non0s_helper_(T ptr, const Byte *v, size_t size) {
     for (size_t i = 0; i < size; i++) {
       if (((v[i]!=0) && (((T)ptr)[i] == 0)) 
        || ((v[i]==0) && (((T)ptr)[i] != 0)))
@@ -337,7 +337,7 @@ bool compare_array_0_and_non0s_helper(T ptr, const Byte *v, size_t size) {
 
 // Compare contents of a ArrayBase object and a vector of type Byte.  Actually
 // we are only interested in 0 and non-zero values in this compare.
-static bool compare_array_0_and_non0s(const ArrayBase &a_side, const std::vector<nupic::Byte> &v_side) {
+static bool compare_array_0_and_non0s_(const ArrayBase &a_side, const std::vector<nupic::Byte> &v_side) {
   
   if (a_side.getCount() != v_side.size()) return false;
   size_t ele_size = BasicType::getSize(a_side.getType());
@@ -346,18 +346,18 @@ static bool compare_array_0_and_non0s(const ArrayBase &a_side, const std::vector
   const Byte *v_ptr = &v_side[0];
   switch(ele_size) { 
   default:
-  case 1: return compare_array_0_and_non0s_helper((const Byte*  )a_ptr, v_ptr, size);
-  case 2: return compare_array_0_and_non0s_helper((const UInt16*)a_ptr, v_ptr, size);
-  case 4: return compare_array_0_and_non0s_helper((const UInt32*)a_ptr, v_ptr, size);
-  case 8: return compare_array_0_and_non0s_helper((const UInt64*)a_ptr, v_ptr, size);
+  case 1: return compare_array_0_and_non0s_helper_((const Byte*  )a_ptr, v_ptr, size);
+  case 2: return compare_array_0_and_non0s_helper_((const UInt16*)a_ptr, v_ptr, size);
+  case 4: return compare_array_0_and_non0s_helper_((const UInt32*)a_ptr, v_ptr, size);
+  case 8: return compare_array_0_and_non0s_helper_((const UInt64*)a_ptr, v_ptr, size);
   }
   return true;
 }
 bool operator==(const ArrayBase &lhs, const std::vector<nupic::Byte> &rhs) {
-  return compare_array_0_and_non0s(lhs, rhs);
+  return compare_array_0_and_non0s_(lhs, rhs);
 }
 bool operator==(const std::vector<nupic::Byte> &lhs, const ArrayBase &rhs) {
-  return compare_array_0_and_non0s(rhs, lhs);
+  return compare_array_0_and_non0s_(rhs, lhs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
