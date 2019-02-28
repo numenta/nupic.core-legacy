@@ -472,6 +472,7 @@ void Connections::raisePermanencesToThreshold(
   if( segmentThreshold == 0 ) //no synapses requested to be connected, done.
     return;
 
+  NTA_ASSERT(segment < segments_.size()) << "Accessing segment out of bounds.";
   auto &segData = segments_[segment];
   if( segData.numConnected >= segmentThreshold ) //the segment already satisfies the requirement, done.
     return;
@@ -496,7 +497,7 @@ void Connections::raisePermanencesToThreshold(
   // permance by such that it becomes a connected synapse.
   // After that there will be at least N synapses connected.
 
-  auto minPermSynPtr = synapses.begin() + threshold - 1;
+  auto minPermSynPtr = synapses.begin() + threshold - 1; //threshold is ensured to be >=1 by condition at very beginning if(thresh == 0)... 
   // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
   // its final sorted position.
   const auto permanencesGreater = [&](const Synapse &A, const Synapse &B)
@@ -515,8 +516,9 @@ void Connections::raisePermanencesToThreshold(
 
 void Connections::bumpSegment(const Segment segment, const Permanence delta) {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
-  for( const auto &syn : synapses )
+  for( const auto &syn : synapses ) {
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
+  }
 }
 
 

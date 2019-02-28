@@ -56,6 +56,7 @@ using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
 using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
+
 // work-load
 Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool useTP, bool useBackTM, bool useTM, const UInt COLS, const UInt DIM_INPUT, const UInt CELLS) {
 #ifndef NDEBUG

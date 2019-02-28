@@ -192,11 +192,11 @@ public:
         likely to oscillate.
 
   @param boostStrength A number greater or equal than 0, used to
-  control boosting strength. No boosting is applied if it is set to 0.
-  The strength of boosting increases as a function of boostStrength.
-  Boosting encourages columns to have similar activeDutyCycles as their
-  neighbors, which will lead to more efficient use of columns. However,
-  too much boosting may also lead to instability of SP outputs.
+        control boosting strength. No boosting is applied if it is set to 0.
+        The strength of boosting increases as a function of boostStrength.
+        Boosting encourages columns to have similar activeDutyCycles as their
+        neighbors, which will lead to more efficient use of columns. However,
+        too much boosting may also lead to instability of SP outputs.
 
 
   @param seed Seed for our random number generator. If seed is < 0
