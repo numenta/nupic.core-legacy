@@ -191,7 +191,7 @@ void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn) {
 
 
 // TESTS
-#ifdef NDEBUG
+#if defined( NDEBUG) && !defined(NTA_OS_WINDOWS)
   const UInt COLS = 2048; //standard num of columns in SP/TM
   const UInt SEQ = 50; //number of sequences ran in tests
   const UInt EPOCHS = 20; //tests run for epochs times
@@ -253,7 +253,7 @@ TEST(ConnectionsPerformanceTest, testTP) {
     /* columnSparsity */     0.1f,
     /* label */              "temporal pooler");
 
-#ifdef NDEBUG
+#if defined( NDEBUG)
   ASSERT_LE(tim, 4.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);

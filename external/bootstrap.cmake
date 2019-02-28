@@ -97,6 +97,7 @@ set(EXTERNAL_INCLUDES
 	${yaml-cpp_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${eigen_INCLUDE_DIRS}
+	${mnist_INCLUDE_DIRS}
 	${REPOSITORY_DIR}/external/common/include
 )
 
