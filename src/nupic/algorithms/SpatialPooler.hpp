@@ -289,8 +289,8 @@ public:
          columns calculated by the 'compute' method after disabling
          any columns that are not learned.
   */
-  void stripUnlearnedColumns(UInt activeArray[]) const;
-  void stripUnlearnedColumns(SDR& active) const;
+  size_t stripUnlearnedColumns(UInt activeArray[]) const;
+  size_t stripUnlearnedColumns(SDR& active) const;
 
   /**
    * Get the version number of this spatial pooler.
