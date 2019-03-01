@@ -148,7 +148,6 @@ void test() {
     // Compute
     input.setDense( image );
     sp.compute(input, false, columns);
-    sp.stripUnlearnedColumns(columns);
     ClassifierResult result;
     clsr.compute(sp.getIterationNum(), columns.getFlatSparse(),
       /* bucketIdxList */   {},

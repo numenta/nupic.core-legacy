@@ -523,34 +523,6 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
   }
 }
 
-// old API version
-size_t SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const {
-  SDR active(columnDimensions_);
-  active.setDense(activeArray);
-  const auto removed = stripUnlearnedColumns(active);
-  std::copy(active.getDense().begin(), active.getDense().end(), activeArray);
-  return removed;
-}
-
-// performs activeColumns AND current-round learned columns: active & activeDutyCyc_
-size_t SpatialPooler::stripUnlearnedColumns(SDR& active) const {
-  auto sparseCols = active.getFlatSparse();
-  vector<UInt> res;
-  res.reserve(sparseCols.size());
-
-  size_t removed = active.size;
-  for (const auto& col: sparseCols) {
-    if (activeDutyCycles_[col] > 0) {
-      res.push_back(col);
-    }
-  }
-  //update original SDR with changed values
-  active.setFlatSparse(res);
-  removed = removed - active.size; //size of active befor/after the pruning
-  if(removed > 0) std::cout << "stripped: " << removed << std::endl;
-  return removed;
-}
-
 
 void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps, //TODO use Eigen sparse vector here
                                    vector<Real> &boosted) const {

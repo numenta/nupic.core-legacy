@@ -56,3 +56,5 @@ As a side-effect of this change, the LinkType and LinkParam parameters in the Ne
 are ignored.  PR #271
 
 * Removed all matrix libraries.  Use the `Connections` class instead.  PR #169
+
+* Removed `void SpatialPooler::stripUnlearnedColumns()` as unused and not useful (did not effectively remove any columns). https://github.com/htm-community/nupic.cpp/pull/286 

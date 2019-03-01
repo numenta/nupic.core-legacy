@@ -184,12 +184,6 @@ namespace nupic_ext
             self.compute(get_it<UInt>(x), learn, get_it<UInt>(y));
         });
 
-        // stripUnlearnedColumns
-        py_SpatialPooler.def("stripUnlearnedColumns", [](SpatialPooler& self, py::array_t<UInt>& x)
-        {
-            self.stripUnlearnedColumns(get_it(x));
-        });
-
         // setBoostFactors
         py_SpatialPooler.def("setBoostFactors", [](SpatialPooler& self, py::array_t<Real>& x)
         {
