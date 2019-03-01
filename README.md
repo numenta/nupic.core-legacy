@@ -14,17 +14,15 @@ which are not actively developed anymore.
 
 ### Our goals
 
-- actively developed C++ core library for HTM/nupic.core (Numenta's repos are in maintanance mode only)
-- clean & lean, fast, modern codebase (dependency removal, c++11/17, modernized code, faster)
+- [Goals for the next release](https://github.com/htm-community/nupic.cpp/blob/master/RELEASE_V1_GOALS.md)
+- Actively developed C++ core library for HTM/nupic.core (Numenta's repos are in maintanance mode only)
+- Clean & lean, fast, modern codebase (dependency removal, c++11/17, modernized code, faster)
+- Stable and well tested code
 - API-compatibility with Numenta's code *)
-- open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful), new features include: 
-  - Anomaly Likelihood
-  - BacktrackingTM
-  - much faster Spatial pooler implementation (runs on Connections)
-- stable and well tested code
-- easier portability to new platforms (due to removal of custom code (ASM,..) and reliance of C++ standardized features) 
-- [modularity](bindings/py/README.md) through bindings to the core library
-  - ie. python bindings in bindings/py 
+- Open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful).
+- Cross Platform Support
+- [Modularity](bindings/py/README.md) through bindings to the core library
+  - Currently only python has bindings, located in `bindings/py`
 
 
 This repository contains the C++ source code for the Numenta Platform for 
@@ -39,9 +37,9 @@ ran against this extention library. If you are porting your code to this codebas
 
 Some of the major differences between this library and Numenta's extension library are the following:
 
- * Support for Python 2.7 and Python 3.x (Only Python 3.x under windows)
+ * Support for Python 3 and Python 2.7 (Only Python 3 under windows)
  * Support for Linux, OSx, and Windows MS Visual Studio 2017
- * Support for C++11, C++17 
+ * Support for C++11 through C++17 
  * Replaced SWIG with PyBind11 for Python interface.
  * Removed CapnProto serialization.  It was prevasive and complicated the code considerably. It was replaced 
  with simple binary streaming serialization in C++ library.
@@ -49,8 +47,12 @@ Some of the major differences between this library and Numenta's extension libra
  * Modular structure
  * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
  * Much easier installation (reduced dependencies, all are handeled by CMake) 
- * static and shared lib files for use with C++ applications.
-
+ * Static and shared lib files for use with C++ applications.
+ * New and Improved Algorithms:
+   - Sparse Distributed Representations
+   - Anomaly Likelihood
+   - Backtracking Temporal Memory
+   - Significantly faster Spatial Pooler and Connections
 
 ## Installation 
 
