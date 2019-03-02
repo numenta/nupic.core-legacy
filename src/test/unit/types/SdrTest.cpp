@@ -695,8 +695,8 @@ TEST(SdrTest, TestCallbacks) {
     UInt handle1 = A.addCallback( call1 );
     UInt handle2 = A.addCallback( call2 );
     UInt handle3 = A.addCallback( call3 );
-    // Test proxies get callbacks
-    SDR_Proxy C(A);
+    // Test reshape proxies get callbacks
+    SDR_Reshape C(A);
     C.addCallback( call4 );
 
     // Remove call 2 and add it back in.

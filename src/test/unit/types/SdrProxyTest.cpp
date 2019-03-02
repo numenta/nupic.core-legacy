@@ -23,38 +23,38 @@
 using namespace std;
 using namespace nupic;
 
-TEST(SdrProxyTest, TestProxyExamples) {
-    SDR       A(    { 4, 4 });
-    SDR_Proxy B( A, { 8, 2 });
+TEST(SdrReshapeTest, TestReshapeExamples) {
+    SDR         A(    { 4, 4 });
+    SDR_Reshape B( A, { 8, 2 });
     A.setCoordinates(SDR_coordinate_t({{1, 1, 2}, {0, 1, 2}}));
     auto coords = B.getCoordinates();
     ASSERT_EQ(coords, SDR_coordinate_t({{2, 2, 5}, {0, 1, 0}}));
 }
 
-TEST(SdrProxyTest, TestProxyConstructor) {
-    SDR         A({ 11 });
-    SDR_Proxy   B( A );
+TEST(SdrReshapeTest, TestReshapeConstructor) {
+    SDR           A({ 11 });
+    SDR_Reshape   B( A );
     ASSERT_EQ( A.dimensions, B.dimensions );
-    SDR_Proxy   C( A, { 11 });
-    SDR         D({ 5, 4, 3, 2, 1 });
-    SDR_Proxy   E( D, {1, 1, 1, 120, 1});
-    SDR_Proxy   F( D, { 20, 6 });
-    SDR_Proxy   X( (SDR&) F );
+    SDR_Reshape   C( A, { 11 });
+    SDR           D({ 5, 4, 3, 2, 1 });
+    SDR_Reshape   E( D, {1, 1, 1, 120, 1});
+    SDR_Reshape   F( D, { 20, 6 });
+    SDR_Reshape   X( (SDR&) F );
 
     // Test that proxies can be safely made and destroyed.
-    SDR_Proxy *G = new SDR_Proxy( A );
-    SDR_Proxy *H = new SDR_Proxy( A );
-    SDR_Proxy *I = new SDR_Proxy( A );
+    SDR_Reshape *G = new SDR_Reshape( A );
+    SDR_Reshape *H = new SDR_Reshape( A );
+    SDR_Reshape *I = new SDR_Reshape( A );
     A.zero();
     H->getDense();
     delete H;
     I->getDense();
     A.zero();
-    SDR_Proxy *J = new SDR_Proxy( A );
+    SDR_Reshape *J = new SDR_Reshape( A );
     J->getDense();
-    SDR_Proxy *K = new SDR_Proxy( A );
+    SDR_Reshape *K = new SDR_Reshape( A );
     delete K;
-    SDR_Proxy *L = new SDR_Proxy( A );
+    SDR_Reshape *L = new SDR_Reshape( A );
     L->getCoordinates();
     delete L;
     delete G;
@@ -64,23 +64,23 @@ TEST(SdrProxyTest, TestProxyConstructor) {
     A.getDense();
 
     // Test invalid dimensions
-    ASSERT_ANY_THROW( new SDR_Proxy( A, {2, 5}) );
-    ASSERT_ANY_THROW( new SDR_Proxy( A, {11, 0}) );
+    ASSERT_ANY_THROW( new SDR_Reshape( A, {2, 5}) );
+    ASSERT_ANY_THROW( new SDR_Reshape( A, {11, 0}) );
 }
 
-TEST(SdrProxyTest, TestProxyDeconstructor) {
+TEST(SdrReshapeTest, TestReshapeDeconstructor) {
     SDR       *A = new SDR({12});
-    SDR_Proxy *B = new SDR_Proxy( *A );
-    SDR_Proxy *C = new SDR_Proxy( *A, {3, 4} );
-    SDR_Proxy *D = new SDR_Proxy( *C, {4, 3} );
-    SDR_Proxy *E = new SDR_Proxy( *C, {2, 6} );
+    SDR_Reshape *B = new SDR_Reshape( *A );
+    SDR_Reshape *C = new SDR_Reshape( *A, {3, 4} );
+    SDR_Reshape *D = new SDR_Reshape( *C, {4, 3} );
+    SDR_Reshape *E = new SDR_Reshape( *C, {2, 6} );
     D->getDense();
     E->getCoordinates();
     // Test subtree deletion
     delete C;
     ASSERT_ANY_THROW( D->getDense() );
     ASSERT_ANY_THROW( E->getCoordinates() );
-    ASSERT_ANY_THROW( new SDR_Proxy( *E ) );
+    ASSERT_ANY_THROW( new SDR_Reshape( *E ) );
     delete D;
     // Test rest of tree is OK.
     B->getSparse();
@@ -95,9 +95,9 @@ TEST(SdrProxyTest, TestProxyDeconstructor) {
     delete E;
 }
 
-TEST(SdrProxyTest, TestProxyThrows) {
+TEST(SdrReshapeTest, TestReshapeThrows) {
     SDR A({10});
-    SDR_Proxy B(A, {2, 5});
+    SDR_Reshape B(A, {2, 5});
     SDR *C = &B;
 
     ASSERT_ANY_THROW( C->setDense( SDR_dense_t( 10, 1 ) ));
@@ -109,9 +109,9 @@ TEST(SdrProxyTest, TestProxyThrows) {
     ASSERT_ANY_THROW( C->addNoise(0.10f) );
 }
 
-TEST(SdrProxyTest, TestProxyGetters) {
+TEST(SdrReshapeTest, TestReshapeGetters) {
     SDR A({ 2, 3 });
-    SDR_Proxy B( A, { 3, 2 });
+    SDR_Reshape B( A, { 3, 2 });
     SDR *C = &B;
     // Test getting dense
     A.setDense( SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
@@ -132,38 +132,38 @@ TEST(SdrProxyTest, TestProxyGetters) {
     // Test getting sparse, when the parent SDR already has sparse computed and
     // the dimensions are the same.
     A.zero();
-    SDR_Proxy D( A );
+    SDR_Reshape D( A );
     SDR *E = &D;
     A.setCoordinates( SDR_coordinate_t({ {0, 1}, {0, 1} }));
     ASSERT_EQ( E->getCoordinates(), SDR_coordinate_t({ {0, 1}, {0, 1} }) );
 }
 
-TEST(SdrProxyTest, TestSaveLoad) {
-    const char *filename = "SdrProxySerialization.tmp";
+TEST(SdrReshapeTest, TestSaveLoad) {
+    const char *filename = "SdrReshapeSerialization.tmp";
     ofstream outfile;
     outfile.open(filename);
 
     // Test zero value
     SDR zero({ 3, 3 });
-    SDR_Proxy z( zero );
+    SDR_Reshape z( zero );
     z.save( outfile );
 
     // Test dense data
     SDR dense({ 3, 3 });
-    SDR_Proxy d( dense );
+    SDR_Reshape d( dense );
     dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
     Serializable &ser = d;
     ser.save( outfile );
 
     // Test flat data
     SDR flat({ 3, 3 });
-    SDR_Proxy f( flat );
+    SDR_Reshape f( flat );
     flat.setSparse(SDR_sparse_t({ 1, 4, 8 }));
     f.save( outfile );
 
     // Test index data
     SDR index({ 3, 3 });
-    SDR_Proxy x( index );
+    SDR_Reshape x( index );
     index.setCoordinates(SDR_coordinate_t({
             { 0, 1, 2 },
             { 1, 1, 2 }}));

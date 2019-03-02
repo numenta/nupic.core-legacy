@@ -55,52 +55,51 @@ private:
 };
 
 /**
- * SDR_Proxy class
+ * SDR_Reshape class
  *
  * ### Description
- * SDR_Proxy presents a view onto an SDR.
- *      + Proxies have the same value as their source SDR, at all times and
- *        automatically.
- *      + SDR_Proxy is a subclass of SDR and be safely typecast to an SDR.
- *      + Proxies can have different dimensions than their source SDR.
- *      + Proxies are read only.
+ * SDR_Reshape presents a view onto an SDR with different dimensions.
+ *      + SDR_Reshape is a subclass of SDR and be safely typecast to an SDR.
+ *      + The resulting SDR has the same value as the source SDR, at all times
+ *        and automatically.
+ *      + The resulting SDR is read only.
  *
- * SDR and SDR_Proxy classes tell each other when they are created and
- * destroyed.  Proxies can be created and destroyed as needed.  Proxies will
- * throw an exception if they are used after their source SDR has been
+ * SDR and SDR_Reshape classes tell each other when they are created and
+ * destroyed.  SDR_Reshape can be created and destroyed as needed.  SDR_Reshape
+ * will throw an exception if it is used after its source SDR has been
  * destroyed.
  *
  * Example Usage:
  *      // Convert SDR dimensions from (4 x 4) to (8 x 2)
- *      SDR       A(    { 4, 4 })
- *      SDR_Proxy B( A, { 8, 2 })
+ *      SDR         A(    { 4, 4 })
+ *      SDR_Reshape B( A, { 8, 2 })
  *      A.setCoordinates( {1, 1, 2}, {0, 1, 2}} )
  *      B.getCoordinates()  ->  {{2, 2, 5}, {0, 1, 0}}
  *
- * SDR_Proxy partially supports the Serializable interface.  SDR_Proxies can be
- * saved but can not be loaded.
+ * SDR_Reshape partially supports the Serializable interface.  SDR_Reshape can
+ * be saved but can not be loaded.
  */
-class SDR_Proxy : public SDR_ReadOnly_
+class SDR_Reshape : public SDR_ReadOnly_
 {
 public:
     /**
-     * Create an SDR_Proxy object.
+     * Reshape an SDR.
      *
      * @param sdr Source SDR to make a view of.
      *
      * @param dimensions A list of dimension sizes, defining the shape of the
-     * SDR.  Optional, if not given then this Proxy will have the same
+     * SDR.  Optional, if not given then this SDR will have the same
      * dimensions as the given SDR.
      */
-    SDR_Proxy(SDR &sdr)
-        : SDR_Proxy(sdr, sdr.dimensions)
+    SDR_Reshape(SDR &sdr)
+        : SDR_Reshape(sdr, sdr.dimensions)
         {}
 
-    SDR_Proxy(SDR &sdr, const vector<UInt> &dimensions)
+    SDR_Reshape(SDR &sdr, const vector<UInt> &dimensions)
         : SDR_ReadOnly_( dimensions ) {
         clear();
         parent = &sdr;
-        NTA_CHECK( size == parent->size ) << "SDR Proxy must have same size as given SDR.";
+        NTA_CHECK( size == parent->size ) << "SDR Reshape must have same size as given SDR.";
         callback_handle = parent->addCallback( [&] () {
             clear();
             do_callbacks();
@@ -110,7 +109,7 @@ public:
         });
     }
 
-    ~SDR_Proxy() override
+    ~SDR_Reshape() override
         { deconstruct(); }
 
     SDR_dense_t& getDense() const override {
