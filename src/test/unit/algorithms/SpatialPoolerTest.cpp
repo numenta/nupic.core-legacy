@@ -1696,59 +1696,6 @@ TEST(SpatialPoolerTest, testinitMapPotential2D) {
   ASSERT_TRUE(check_vector_eq(expectedMask4, mask));
 }
 
-TEST(SpatialPoolerTest, testStripUnlearnedColumns) {
-  SpatialPooler sp;
-  vector<UInt> inputDim{5}, columnDim{3};
-  sp.initialize(inputDim, columnDim);
-
-  // None learned, none active
-  {
-    Real activeDutyCycles[3] = {0, 0, 0};
-    UInt activeArray[3] = {0, 0, 0};
-    UInt expected[3] = {0, 0, 0};
-
-    sp.setActiveDutyCycles(activeDutyCycles);
-    sp.stripUnlearnedColumns(activeArray);
-
-    ASSERT_TRUE(check_vector_eq(activeArray, expected, 3));
-  }
-
-  // None learned, some active
-  {
-    Real activeDutyCycles[3] = {0, 0, 0};
-    UInt activeArray[3] = {1, 0, 1};
-    UInt expected[3] = {0, 0, 0};
-
-    sp.setActiveDutyCycles(activeDutyCycles);
-    sp.stripUnlearnedColumns(activeArray);
-
-    ASSERT_TRUE(check_vector_eq(activeArray, expected, 3));
-  }
-
-  // Some learned, none active
-  {
-    Real activeDutyCycles[3] = {1, 1, 0};
-    UInt activeArray[3] = {0, 0, 0};
-    UInt expected[3] = {0, 0, 0};
-
-    sp.setActiveDutyCycles(activeDutyCycles);
-    sp.stripUnlearnedColumns(activeArray);
-
-    ASSERT_TRUE(check_vector_eq(activeArray, expected, 3));
-  }
-
-  // Some learned, some active
-  {
-    Real activeDutyCycles[3] = {1, 1, 0};
-    UInt activeArray[3] = {1, 0, 1};
-    UInt expected[3] = {1, 0, 0};
-
-    sp.setActiveDutyCycles(activeDutyCycles);
-    sp.stripUnlearnedColumns(activeArray);
-
-    ASSERT_TRUE(check_vector_eq(activeArray, expected, 3));
-  }
-}
 
 TEST(SpatialPoolerTest, getOverlaps) {
   SpatialPooler sp;
