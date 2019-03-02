@@ -331,15 +331,15 @@ class SdrReshapeTest(unittest.TestCase):
 
     def testLostSDR(self):
         # You need to keep a reference to the SDR, since SDR class does not use smart pointers.
-        B = SDR_Reshape(SDR((1000,)))
+        B = SDR_Reshape(SDR((1000,)), [1000])
         with self.assertRaises(RuntimeError):
             B.dense
 
     def testChaining(self):
         A = SDR([10,10])
-        B = SDR_Reshape(A)
-        C = SDR_Reshape(B)
-        D = SDR_Reshape(B)
+        B = SDR_Reshape(A, [100])
+        C = SDR_Reshape(B, [4, 25])
+        D = SDR_Reshape(B, [1, 100])
 
         A.dense.fill( 1 )
         A.dense = A.dense

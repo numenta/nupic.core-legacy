@@ -25,7 +25,7 @@ import numpy as np
 import unittest
 import pytest
 
-from nupic.bindings.algorithms import SDR, SDR_Proxy
+from nupic.bindings.algorithms import SDR
 from nupic.bindings.algorithms import SDR_Sparsity, SDR_ActivationFrequency, SDR_Overlap, SDR_Metrics
 
 class SdrMetricsTest(unittest.TestCase):
