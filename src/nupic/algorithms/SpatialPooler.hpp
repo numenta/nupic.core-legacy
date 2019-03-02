@@ -279,18 +279,6 @@ public:
    */
   virtual void compute(SDR &input, bool learn, SDR &active);
 
-  /**
-   Removes the set of columns who have never been active from the set
-   of active columns selected in the inhibition round. Such columns
-   cannot represent learned pattern and are therefore meaningless if
-   only inference is required.
-
-   @param activeArray  An array of 1's and 0's representing winning
-         columns calculated by the 'compute' method after disabling
-         any columns that are not learned.
-  */
-  void stripUnlearnedColumns(UInt activeArray[]) const;
-  void stripUnlearnedColumns(SDR& active) const;
 
   /**
    * Get the version number of this spatial pooler.
