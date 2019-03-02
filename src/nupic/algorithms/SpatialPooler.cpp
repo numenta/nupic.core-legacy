@@ -504,12 +504,12 @@ void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
 
   boostOverlaps_(overlaps_, boostedOverlaps_);
 
-  auto &activeVector = active.getFlatSparse();
+  auto &activeVector = active.getSparse();
   inhibitColumns_(boostedOverlaps_, activeVector);
   // Notify the active SDR that its internal data vector has changed.  Always
   // call SDR's setter methods even if when modifying the SDR's own data
   // inplace.
-  active.setFlatSparse( activeVector );
+  active.setSparse( activeVector );
 
   if (learn) {
     adaptSynapses_(input, active);
@@ -533,7 +533,7 @@ void SpatialPooler::stripUnlearnedColumns(UInt activeArray[]) const {
 
 // performs activeColumns AND current-round learned columns: active & activeDutyCyc_
 void SpatialPooler::stripUnlearnedColumns(SDR& active) const {
-  auto sparseCols = active.getFlatSparse();
+  auto sparseCols = active.getSparse();
   vector<UInt> res;
   res.reserve(sparseCols.size());
 
@@ -543,7 +543,7 @@ void SpatialPooler::stripUnlearnedColumns(SDR& active) const {
     }
   }
   //update original SDR with changed values
-  active.setFlatSparse(res);
+  active.setSparse(res);
 }
 
 
@@ -697,12 +697,12 @@ void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
   // Turn the overlaps array into an SDR. Convert directly to flat-sparse to
   // avoid copies and  type convertions.
   SDR newOverlap({ numColumns_ });
-  auto &overlapsSparseVec = newOverlap.getFlatSparse();
+  auto &overlapsSparseVec = newOverlap.getSparse();
   for (UInt i = 0; i < numColumns_; i++) {
     if( overlaps[i] != 0 )
       overlapsSparseVec.push_back( i );
   }
-  newOverlap.setFlatSparse( overlapsSparseVec );
+  newOverlap.setSparse( overlapsSparseVec );
 
   const UInt period = std::min(dutyCyclePeriod_, iterationNum_);
 
@@ -760,7 +760,7 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 
 void SpatialPooler::adaptSynapses_(SDR &input,
                                    SDR &active) {
-  for(const auto &column : active.getFlatSparse()) {
+  for(const auto &column : active.getSparse()) {
     connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
     connections_.raisePermanencesToThreshold(
                                 column, synPermConnected_, stimulusThreshold_);
@@ -795,7 +795,7 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
     dutyCycles[i] *= decay;
 
   const Real increment = 1.0f / period;  // All non-zero values are 1.
-  for(const auto &idx : newValues.getFlatSparse())
+  for(const auto &idx : newValues.getSparse())
     dutyCycles[idx] += increment;
 }
 
@@ -863,7 +863,7 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 void SpatialPooler::calculateOverlap_(SDR &input,
                                       vector<UInt> &overlaps) const {
   overlaps.assign( numColumns_, 0 );
-  connections_.computeActivity(overlaps, input.getFlatSparse());
+  connections_.computeActivity(overlaps, input.getSparse());
 }
 
 

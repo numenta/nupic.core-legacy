@@ -44,9 +44,9 @@ private:
 
     void setDenseInplace() const override
         { NTA_THROW << _error_message; }
-    void setFlatSparseInplace() const override
-        { NTA_THROW << _error_message; }
     void setSparseInplace() const override
+        { NTA_THROW << _error_message; }
+    void setCoordinatesInplace() const override
         { NTA_THROW << _error_message; }
     void setSDR( const SparseDistributedRepresentation &value ) override
         { NTA_THROW << _error_message; }
@@ -74,8 +74,8 @@ private:
  *      // Convert SDR dimensions from (4 x 4) to (8 x 2)
  *      SDR       A(    { 4, 4 })
  *      SDR_Proxy B( A, { 8, 2 })
- *      A.setSparse( {1, 1, 2}, {0, 1, 2}} )
- *      auto sparse = B.getSparse()  ->  {{2, 2, 5}, {0, 1, 0}}
+ *      A.setCoordinates( {1, 1, 2}, {0, 1, 2}} )
+ *      B.getCoordinates()  ->  {{2, 2, 5}, {0, 1, 0}}
  *
  * SDR_Proxy partially supports the Serializable interface.  SDR_Proxies can be
  * saved but can not be loaded.
@@ -118,24 +118,24 @@ public:
         return parent->getDense();
     }
 
-    SDR_flatSparse_t& getFlatSparse() const override {
+    SDR_sparse_t& getSparse() const override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        return parent->getFlatSparse();
+        return parent->getSparse();
     }
 
-    SDR_sparse_t& getSparse() const override {
+    SDR_coordinate_t& getCoordinates() const override {
         NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
         if( dimensions.size() == parent->dimensions.size() &&
             equal( dimensions.begin(), dimensions.end(),
                    parent->dimensions.begin() )) {
             // All things equal, prefer reusing the parent's cached value.
-            return parent->getSparse();
+            return parent->getCoordinates();
         }
         else {
-            // Don't override getSparse().  It will call either getDense() or
-            // getFlatSparse() to get its data, and will use this proxies
+            // Don't override getCoordinates().  It will call either getDense() or
+            // getSparse() to get its data, and will use this proxies
             // dimensions.
-            return SDR::getSparse();
+            return SDR::getCoordinates();
         }
     }
 
@@ -326,12 +326,12 @@ public:
  *     // Setup 2 SDRs to hold the inputs.
  *     SDR A({ 10 });
  *     SDR B({ 10 });
- *     A.setFlatSparse(      {2, 3, 4, 5});
- *     B.setFlatSparse({0, 1, 2, 3});
+ *     A.setSparse(      {2, 3, 4, 5});
+ *     B.setSparse({0, 1, 2, 3});
  *
  *     // Calculate the logical intersection
  *     SDR_Intersection X(A, B);
- *     X.getFlatSparse() -> {2, 3}
+ *     X.getSparse() -> {2, 3}
  *
  *     // Assignments to the input SDRs are propigated to the SDR_Intersection
  *     B.zero();
