@@ -57,8 +57,6 @@ public:
 
   // Compute outputs from inputs and internal state
   void compute() override;
-  std::string executeCommand(const std::vector<std::string> &args,
-                             Int64 index) override;
 
   /**
    * Inputs/Outputs are made available in initialize()
@@ -73,7 +71,7 @@ public:
   // For per-region outputs, it is the total element count.
   // This method is called only for outputs whose size is not
   // specified in the spec.
-  size_t getNodeOutputElementCount(const std::string &outputName) override;
+  Dimensions askImplForOutputDimensions(const std::string &name) override;
 
 
 
@@ -91,7 +89,7 @@ public:
   void setParameterString(const std::string &name, Int64 index, const std::string &s) override;
 
 private:
-  vector<UInt> columnDimensions;
+  Dimensions columnDimensions_;
   struct {
     UInt32 numberOfCols;
     UInt32 cellsPerColumn;
@@ -122,9 +120,6 @@ private:
   //std::string cellsSavePath_;
   //std::string logPathOutput_;
 
-
-  vector<UInt> extraActive;
-  vector<UInt> extraWinners;
 
 
   computeCallbackFunc computeCallback_;

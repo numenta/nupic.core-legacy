@@ -42,10 +42,14 @@
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/regions/TMRegion.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/utils/VectorHelpers.hpp>
 
 #define VERSION 1
 
-namespace nupic {
+using namespace nupic;
+using namespace nupic::util;
+using namespace nupic::algorithms::temporal_memory;
+
 TMRegion::TMRegion(const ValueMap &params, Region *region)
     : RegionImpl(region), computeCallback_(nullptr) {
   // Note: the ValueMap gets destroyed on return so we need to get all of the
@@ -53,6 +57,7 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   //       out of the map and set aside so we can pass them to the SpatialPooler
   //       algorithm when we create it during initialization().
   memset((char *)&args_, 0, sizeof(args_));
+  args_.numberOfCols = params.getScalarT<UInt32>("numberOfCols", 0);  // normally not passed in.
   args_.cellsPerColumn = params.getScalarT<UInt32>("cellsPerColumn", 32);
   args_.activationThreshold = params.getScalarT<UInt32>("activationThreshold", 13);
   args_.initialPermanence = params.getScalarT<Real32>("initialPermanence", 0.21f);
@@ -66,7 +71,7 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   args_.maxSegmentsPerCell = params.getScalarT<UInt32>("maxSegmentsPerCell", 255);
   args_.maxSynapsesPerSegment = params.getScalarT<UInt32>("maxSynapsesPerSegment", 255);
   args_.checkInputs = params.getScalarT<bool>("checkInputs", true);
-  args_.extra =  params.getScalarT<UInt32>("extra", 0);
+  args_.extra = 0;  // will be obtained from extra inputs dimensions.
 
   // variables used by this class and not passed on
   args_.learningMode = params.getScalarT<bool>("learningMode", true);
@@ -89,18 +94,50 @@ TMRegion::~TMRegion() {
 void TMRegion::initialize() {
 
   // All input links and buffers should have been initialized during
-  // Network.initialize().
+  // Network.initialize() prior to calling this method.
   //
-  // If there are more than on input link, the input buffer will be the
-  // concatination of all incomming buffers.
-  UInt32 inputWidth = (UInt32)region_->getInputData("bottomUpIn").getCount();
-  if (inputWidth == 0) {
-    NTA_THROW << "TMRegion::initialize - No input was provided.\n";
+  // If there are more than one input link, the input buffer will be the
+  // concatination of all incomming buffers. This width sets the number
+  // columns for the TM.
+  Input* in = region_->getInput("bottomUpIn");
+  if (!in || !in->hasIncomingLinks())
+      NTA_THROW << "TMRegion::initialize - No input was provided.\n";
+  NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
+
+  columnDimensions_ = in->getDimensions();
+  if (args_.numberOfCols == 0)
+    args_.numberOfCols = (UInt32)columnDimensions_.getCount();
+  else
+    NTA_CHECK(args_.numberOfCols == columnDimensions_.getCount())
+    << "The width of the bottomUpIn input buffer (" << columnDimensions_.getCount()
+    << ") does not match the configured value for 'numberOfCols' ("
+    << args_.numberOfCols << ").";
+
+  // Look for extra data
+  // This can come from anywhere and have any size.  The only restriction is
+  // that the buffer width of extraWinners must be the same as buffer width of extraActive.
+  // The extraWinners on bits should be a subset of on bits in extraWinners.
+  args_.extra = 0;
+  in = region_->getInput("extraActive");
+  if (in && in->hasIncomingLinks()) {
+    args_.extra = (UInt32)in->getDimensions().getCount();
+    NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
+
+    in = region_->getInput("extraWinners");
+    NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
+    NTA_CHECK(in 
+           && in->hasIncomingLinks() 
+           && args_.extra == in->getDimensions().getCount()) 
+      << "The input 'extraActive' (width: " << args_.extra 
+      << ") is connected but 'extraWinners' input "
+      << "is not provided OR it has a different buffer size.";
   }
+
+
 
   nupic::algorithms::temporal_memory::TemporalMemory* tm = 
     new nupic::algorithms::temporal_memory::TemporalMemory(
-      columnDimensions, args_.cellsPerColumn, args_.activationThreshold,
+      columnDimensions_, args_.cellsPerColumn, args_.activationThreshold,
       args_.initialPermanence, args_.connectedPermanence, args_.minThreshold,
       args_.maxNewSynapseCount, args_.permanenceIncrement, args_.permanenceDecrement,
       args_.predictedSegmentDecrement, args_.seed, args_.maxSegmentsPerCell,
@@ -111,37 +148,9 @@ void TMRegion::initialize() {
   args_.sequencePos = 0;
   args_.init = true;
 
-  // setup the BottomUpOut output buffer in the TM to point to the one 
-  // in the Output object.  Trying to avoid a copy.
-  // NOTE: the TM must not delete the array. The Output object is owner.
-//  Array &tmOutput = region_->getOutput("bottomUpOut")->getData();
-//  tm_->setOutputBuffer((Real32*)tmOutput.getBuffer());
 }
 
 void TMRegion::compute() {
-  // Note: the Python code has a hook at this point to activate profiling with
-  // hotshot.
-  //       This version does not provide this hook although there are several
-  //       C++ profilers that could be used.
-  //
-  // https://github.com/numenta/nupic/blob/master/src/nupic/algorithms/temporal_memory_shim.py
-/***
-line 89
-def compute(self, activeColumns, learn=True):
-    """
-    Feeds input record through TM, performing inference and learning.
-    Updates member variables with new state.
-    @param activeColumns (set) Indices of active columns in `t`
-    """
-    bottomUpInput = numpy.zeros(self.numberOfCols, dtype=dtype)
-    bottomUpInput[list(activeColumns)] = 1
-    super(TemporalMemoryShim, self).compute(bottomUpInput,
-                                            enableLearn=learn,
-                                            enableInference=True)
-
-    predictedState = self.getPredictedState()
-    self.predictiveCells = set(numpy.flatnonzero(predictedState))
-***/
 
   NTA_ASSERT(tm_) << "TM not initialized";
 
@@ -150,54 +159,100 @@ def compute(self, activeColumns, learn=True):
   args_.iter++;
 
   // Handle reset signal
-  Array &reset = getInput("resetIn")->getData();
-  if (reset.getCount() == 1 && ((Real32 *)(reset.getBuffer()))[0] != 0) {
-    tm_->reset();
-    args_.sequencePos = 0; // Position within the current sequence
+  if (getInput("resetIn")->hasIncomingLinks()) {
+    Array &reset = getInput("resetIn")->getData();
+    NTA_ASSERT(reset.getType() == NTA_BasicType_Real32);
+    if (reset.getCount() == 1 && ((Real32 *)(reset.getBuffer()))[0] != 0) {
+      tm_->reset();
+      args_.sequencePos = 0; // Position within the current sequence
+    }
   }
 
+  // Check the input buffer
+  // The buffer width is the number of columns.
+  Input *in = getInput("bottomUpIn");
+  Array &bottomUpIn = in->getData();
+  NTA_ASSERT(bottomUpIn.getType() == NTA_BasicType_SDR);
+  SDR& activeColumns = *bottomUpIn.getSDR();
 
-  // Perform inference and / or learning
-  Array &bottomUpIn = getInput("bottomUpIn")->getData();  // dense
+  // Check for 'extra' inputs
+  static SDR nullSDR({0});
+  Array &extraActive = getInput("extraActive")->getData();
+  SDR& extraActiveCells = (args_.extra)?(*extraActive.getSDR()):nullSDR;
+
+  Array &extraWinners = getInput("extraWinners")->getData();
+  SDR& extraWinnerCells = (args_.extra)?(*extraWinners.getSDR()):nullSDR;
+
+  NTA_DEBUG << *in << "\n";
 
   // Perform Bottom up compute()
-  tm_->compute(bottomUpIn.getCount(),
-               (UInt *)bottomUpIn.getBuffer(),
-               args_.learningMode
-  );
+  
+  tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
+  tm_->activateDendrites();
+
   args_.sequencePos++;
 
-// generate the outputs
+  // generate the outputs
+  // NOTE: - Output dimensions are set to the region dimensions
+  //         plus an additional dimension for 'cellsPerColumn'.
+  //       - The region dimensions total elements is the 'numberOfCols'.
+  //       - The region dimensions are set by dimensions on incoming "bottomUpIn"
+  //       - The region dimensions can be overridden with configuration of "dim" 
+  //         or explicitly by calling region->setDimensions().
+  //         or explicitly for each output region->setOutputDimensions(output_name).
+  //       - The total number of elements in the outputs must be
+  //         numberOfCols * cellsPerColumn.
+  //
   Output *out;
-  if ((out = getOutput("bottomUpOut"))) {  
-	TODO: needs spare to dence
-    out->getData().fromVector(tm_->getPredictiveCells());  // sparse
+  out = getOutput("bottomUpOut");
+  if (out && out->hasOutgoingLinks()) {  
+    tm_->getPredictiveCells(*out->getData().getSDR());
+    NTA_DEBUG << *out << "\n";
   }
-  if ((out = getOutput("activeCells"))) {
-    out->getData().fromVector(tm_->getActiveCells());   // sparse
+  out = getOutput("activeCells");
+  if (out && out->hasOutgoingLinks()) {  
+    tm_->getActiveCells(*out->getData().getSDR());
+    NTA_DEBUG << *out << "\n";
   }
-  if ((out = getOutput("predictedActiveCells"))) {
-    out->getData().fromVector(tm_->getWinnerCells());  // sparse
+  out = getOutput("predictedActiveCells");
+  if (out && out->hasOutgoingLinks()) {  
+    tm_->getWinnerCells(*out->getData().getSDR());
+    NTA_DEBUG << *out << "\n";
   }
 }
 
-std::string TMRegion::executeCommand(const std::vector<std::string> &args,Int64 index) {
-  // The TM does not execute any Commands.
-  return "";
+// Note: - this is called during Region initialization, after configuration
+//         is set but prior to calling initialize on this class to create the tm. 
+//         The input dimensions should already have been set, normally from 
+//         its connected output. This would set the region dimensions if not overridden.
+//       - This is not called if output dimensions were explicitly set for this output.
+//       - This call determines the dimensions set on the Output buffers.
+Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
+  Dimensions region_dim = getDimensions();
+  if (!region_dim.isSpecified()) {
+    // we don't have region dimensions, so create some if we know numberOfCols.
+    if (args_.numberOfCols == 0) 
+      return Dimensions(Dimensions::DONTCARE);  // No info for its size
+    region_dim.clear();
+    region_dim.push_back(args_.numberOfCols);
+    setDimensions(region_dim);
+  }
+  if (args_.numberOfCols == 0)
+    args_.numberOfCols = (UInt32)region_dim.getCount();
+
+  if (name == "bottomUpOut" || name == "activeCells" || name == "predictedActiveCells") {
+    // It's size is numberOfCols * args_.cellsPerColumn.
+    // So insert a new dimension to what was provided by input.
+    Dimensions dim = region_dim;
+    dim.insert(dim.begin(), args_.cellsPerColumn);
+    return dim;
+  }
+  return RegionImpl::askImplForOutputDimensions(name);
 }
 
-// This is the per-node output size. This determines how big the output
-// buffers should be allocated to during Region::initialization(). NOTE: Some
-// outputs are optional, return 0 if not used.
-size_t TMRegion::getNodeOutputElementCount(const std::string &outputName) {
-  if (outputName == "bottomUpOut")
-    return args_.outputWidth;
-  if (outputName == "activeCells")
-    return args_.outputWidth;
-  if (outputName == "predictedActiveCells")
-    return args_.outputWidth;
-  return 0; 
-}
+
+
+/********************************************************************/
 
 Spec *TMRegion::createSpec() {
   auto ns = new Spec;
@@ -219,11 +274,13 @@ Spec *TMRegion::createSpec() {
       "numberOfCols",
       ParameterSpec("(int) Number of mini-columns in the region. This values "
                     "needs to be the same as the number of columns in the "
-                    "SP, if one is used.",
+                    "input from SP.  Normally this value is derived from "
+                    "the input width but if privided, this parameter must be "
+                    "the same total size as the input.",
                     NTA_BasicType_UInt32,          // type
                     1,                             // elementCount
                     "",                            // constraints
-                    "500",                         // defaultValue
+                    "0",                           // defaultValue
                     ParameterSpec::CreateAccess)); // access
 
   ns->parameters.add(
@@ -324,23 +381,20 @@ Spec *TMRegion::createSpec() {
                   "effect, 'globalDecay' is not applicable and must be set to 0 and "
                   "'maxAge' must be set to 0. When this is used (> 0), "
                   "'maxSynapsesPerSegment' must also be > 0. ",
-                  NTA_BasicType_Int32,              // type
+                  NTA_BasicType_UInt32,             // type
                   1,                                // elementCount
                   "",                               // constraints
-                  "255",                             // defaultValue
-                  ParameterSpec::ReadWriteAccess)); // access
+                  "255",                            // defaultValue
+                  ParameterSpec::ReadOnlyAccess));  // access
 
   ns->parameters.add(
       "maxSynapsesPerSegment", 
       ParameterSpec("(int) The maximum number of synapses allowed in "
-                    "a segment. This is used to turn on 'fixed size CLA' mode. When in "
-                    "effect, 'globalDecay' is not applicable and must be set to 0, and "
-                    "'maxAge' must be set to 0. When this is used (> 0), "
-                    "'maxSegmentsPerCell' must also be > 0.",
-                    NTA_BasicType_Int32,              // type
+                    "a segment. ",
+                    NTA_BasicType_UInt32,             // type
                     1,                                // elementCount
                     "",                               // constraints
-                    "255",                             // defaultValue
+                    "255",                            // defaultValue
                     ParameterSpec::ReadWriteAccess)); // access
 
   ns->parameters.add(
@@ -376,7 +430,7 @@ Spec *TMRegion::createSpec() {
 
   ns->parameters.add(
       "activeOutputCount",
-      ParameterSpec("(int)Number of active elements in bottomUpOut dense output.",
+      ParameterSpec("(int)Number of active elements.",
                     NTA_BasicType_UInt32,            // type
                     1,                               // elementCount
                     "",                              // constraints
@@ -389,13 +443,40 @@ Spec *TMRegion::createSpec() {
       "bottomUpIn",
       InputSpec(
                 "The input signal, conceptually organized as an image pyramid "
-                "data structure, but internally organized as a flattened vector.",
-                NTA_BasicType_Real32, // type
-                0,                    // count.
-                true,                 // required?
-                false,                // isRegionLevel,
-                true,                 // isDefaultInput
-                false                 // requireSplitterMap
+                "data structure, but internally organized as a flattened vector. "
+                "The width should match the output of SP.  Set numberOfCols to "
+                "This value if not configured.  Otherwise the parameter overrides.",
+                NTA_BasicType_SDR,   // type
+                0,                   // count.
+                true,                // required?
+                true,                // isRegionLevel,
+                true                 // isDefaultInput
+                ));
+  ns->inputs.add(
+      "extraActive",
+      InputSpec("External extra active bits from an external source. "
+                "These can come from anywhere and be any size. If provided, "
+                "the 'extra' flag is set to dense buffer size and both "
+                "extraActive and extraWinners must be provided and have the"
+                "same dense buffer size.  Dimensions are set by source.",
+                NTA_BasicType_SDR,   // type
+                0,                   // count.
+                false,               // required?
+                false,               // isRegionLevel,
+                false                // isDefaultInput
+                ));
+  ns->inputs.add(
+      "extraWinners",
+      InputSpec("The winning active bits from an external source. "
+                "These can come from anywhere and be any size. If provided, "
+                "the 'extra' flag is set to dense buffer size and both "
+                "extraActive and extraWinners must be provided and have the"
+                "same dense buffer size.  Dimensions are set by source.",
+               NTA_BasicType_SDR,   // type
+                0,                   // count.
+                false,               // required?
+                false,               // isRegionLevel,
+                false                // isDefaultInput
                 ));
 
   ns->inputs.add(
@@ -404,12 +485,11 @@ Spec *TMRegion::createSpec() {
                 "or not the input vector received in this compute cycle "
                 "represents the first training presentation in new temporal "
                 "sequence.",
-                NTA_BasicType_Real32, // type
+                NTA_BasicType_SDR,    // type
                 1,                    // count.
                 false,                // required?
-                true,                 // isRegionLevel,
-                false,                // isDefaultInput
-                false                 // requireSplitterMap
+                false,                // isRegionLevel,
+                false                 // isDefaultInput
                 ));
 
 
@@ -417,28 +497,31 @@ Spec *TMRegion::createSpec() {
   ns->outputs.add(
       "bottomUpOut",
       OutputSpec("The output signal generated from the bottom-up inputs "
-                 "from lower levels.",
-                 NTA_BasicType_Real32, // type
+                 "from lower levels. The width is 'numberOfCols' "
+                 "* 'cellsPerColumn'.",
+                 NTA_BasicType_SDR,    // type
                  0,                    // count 0 means is dynamic
-                 true,                 // isRegionLevel
+                 false,                // isRegionLevel
                  true                  // isDefaultOutput
                  ));
 
   ns->outputs.add(
-      "activeCells", 
-      OutputSpec("The cells that are active",
-                NTA_BasicType_Real32, // type
-                0,    // count 0 means is dynamic
-                true, // isRegionLevel
-                false // isDefaultOutput
-                ));
+      "activeCells",
+      OutputSpec("The cells that are active from TM computations. "
+                 "The width is 'numberOfCols' * 'cellsPerColumn'.",
+                 NTA_BasicType_SDR,    // type
+                 0,                    // count 0 means is dynamic
+                 false ,               // isRegionLevel
+                 false                 // isDefaultOutput
+                 ));
 
   ns->outputs.add(
       "predictedActiveCells",
-      OutputSpec("The cells that are active and predicted",
-                NTA_BasicType_Real32, // type
+      OutputSpec("The cells that are active and predicted, the winners. "
+                 "The width is 'numberOfCols' * 'cellsPerColumn'.",
+                NTA_BasicType_SDR,    // type
                 0,                    // count 0 means is dynamic
-                true,                 // isRegionLevel
+                false,                // isRegionLevel
                 false                 // isDefaultOutput
                 ));
 
@@ -517,16 +600,6 @@ Int32 TMRegion::getParameterInt32(const std::string &name, Int64 index) {
       return tm_->getActivationThreshold();
     return args_.activationThreshold;
   }
-  if (name == "maxSegmentsPerCell") {
-    if (tm_)
-      return tm_->getMaxSegmentsPerCell();
-    return args_.maxSegmentsPerCell;
-  }
-  if (name == "maxSynapsesPerSegment") {
-    if (tm_)
-      return tm_->getMaxSynapsesPerSegment();
-    return args_.maxSynapsesPerSegment;
-  }
   if (name == "seed") {
     return args_.seed;
   }
@@ -568,8 +641,9 @@ Real32 TMRegion::getParameterReal32(const std::string &name, Int64 index) {
 
 bool TMRegion::getParameterBool(const std::string &name, Int64 index) {
   if (name == "checkInputs") {
-    if (tm_)
+    if (tm_) {
       return tm_->getCheckInputs();
+    }
     return args_.checkInputs;
   }
   if (name == "learningMode")
@@ -586,14 +660,20 @@ std::string TMRegion::getParameterString(const std::string &name, Int64 index) {
 
 void TMRegion::setParameterUInt32(const std::string &name, Int64 index, UInt32 value) {
   if (name == "maxNewSynapseCount") {
-    if (tm_)
+    if (tm_) {
       tm_->setMaxNewSynapseCount(value);
+    }
     args_.maxNewSynapseCount = value;
     return;
   }
+  if (name == "maxSynapsesPerSegment") {
+    args_.maxSynapsesPerSegment = value;
+    return;
+  }
   if (name == "minThreshold") {
-    if (tm_)
+    if (tm_) {
       tm_->setMinThreshold(value);
+    }
     args_.minThreshold = value;
     return;
   }
@@ -603,13 +683,10 @@ void TMRegion::setParameterUInt32(const std::string &name, Int64 index, UInt32 v
 
 void TMRegion::setParameterInt32(const std::string &name, Int64 index, Int32 value) {
   if (name == "activationThreshold") {
-    if (tm_)
+    if (tm_) {
       tm_->setActivationThreshold(value);
+    }
     args_.activationThreshold = value;
-    return;
-  }
-  if (name == "maxSynapsesPerSegment") {
-    args_.maxSynapsesPerSegment = value;
     return;
   }
   RegionImpl::setParameterInt32(name, index, value);
@@ -618,15 +695,26 @@ void TMRegion::setParameterInt32(const std::string &name, Int64 index, Int32 val
 
 void TMRegion::setParameterReal32(const std::string &name, Int64 index, Real32 value) {
   if (name == "initialPermanence") {
-      if (tm_)
+      if (tm_) {
         tm_->setInitialPermanence(value);
+      }
       args_.initialPermanence = value;
       return;
   }
   if (name == "connectedPermanence") {
-      if (tm_)
-        tm_->setConnectedPermanence(value);
       args_.connectedPermanence = value;
+      return;
+  }
+  if (name == "permanenceIncrement") {
+      if (tm_)
+        tm_->setPermanenceIncrement(value);
+      args_.permanenceIncrement = value;
+      return;
+  }
+  if (name == "permanenceDecrement") {
+      if (tm_)
+        tm_->setPermanenceDecrement(value);
+      args_.permanenceDecrement = value;
       return;
   }
   if (name == "predictedSegmentDecrement") {
@@ -682,9 +770,10 @@ void TMRegion::serialize(BundleIO &bundle) {
   f << std::endl;
   //f << cellsSavePath_ << std::endl;
   //f << logPathOutput_ << std::endl;
-  if (tm_)
+  if (tm_) {
     // Note: tm_ saves the output buffers
     tm_->save(f);
+  }
 }
 
 
@@ -720,12 +809,12 @@ void TMRegion::deserialize(BundleIO &bundle) {
   //logPathOutput_ = bigbuffer;
 
   if (args_.init) {
-    nupic::algorithms::temporal_memory::TemporalMemory* tm = new nupic::algorithms::temporal_memory::TemporalMemory();
+    TemporalMemory* tm = new TemporalMemory();
     tm_.reset(tm);
 
     tm_->load(f);
-  } else
+  } else {
     tm_ = nullptr;
+  }
 }
 
-} // namespace nupic

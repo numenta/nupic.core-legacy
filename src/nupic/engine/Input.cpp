@@ -35,7 +35,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/BasicType.hpp>
 
-namespace nupic {
+using namespace nupic;
 
 Input::Input(Region *region, const std::string &inputName,
              NTA_BasicType dataType)
@@ -122,14 +122,13 @@ void Input::prepare() {
   }
 }
 
-Array &Input::getData() {
-  NTA_CHECK(initialized_);
-  return data_;
-}
+Array &Input::getData() { NTA_CHECK(initialized_); return data_; }
+const Array &Input::getData() const { NTA_CHECK(initialized_); return data_; }
 
 NTA_BasicType Input::getDataType() const { return data_.getType(); }
 
 Region *Input::getRegion() { return region_; }
+const Region *Input::getRegion() const { return region_; }
 
 std::vector<std::shared_ptr<Link>> &Input::getLinks() { return links_; }
 
@@ -178,21 +177,19 @@ void Input::initialize() {
   if (initialized_)
     return;
 
-  if (links_.size() == 0) {
-    initialized_ = true;
-    return; // no connections.
-  }
-  bool is_FanIn = links_.size() > 1;
 
   const std::shared_ptr<Spec> &destSpec = region_->getSpec();
   bool regionLevel = destSpec->inputs.getByName(name_).regionLevel;
   UInt32 total_width = 0u;
   size_t maxD = 1;
   Dimensions d;
-  Dimensions inD;
+  Dimensions inD = dim_;
+  bool is_FanIn = links_.size() > 1;
 
   // First determine the original configuration for destination dimensions.
-  // Normally this will be 'don't care'.
+  // Most of the time we get our input dimensions from a connected output
+  // but here we want to see if there was an override.
+  // Normally this will be 'don't care' if there is no override.
   if (!inD.isSpecified()) {
     // ask the spec for destination region.
     UInt32 count = destSpec->inputs.getByName(name_).count;
@@ -207,101 +204,103 @@ void Input::initialize() {
     }
   }
 
-  // Try to determine source dimensions.
-  std::vector<Dimensions> Ds;
-  for (auto link : links_) {
-    Output &out = link->getSrc();
-    // determines source dimensions based on configuration.
-    d = out.determineDimensions();
-    NTA_CHECK(!d.isUnspecified());
-    if (d.isDontcare()) {
-      d = inD; // use destination dimensions for source. rare.
-      out.setDimensions(d);
+  if (links_.size() > 0) {
+    // We have links.
+    // Try to determine source dimensions.
+    std::vector<Dimensions> Ds;
+    for (auto link : links_) {
+      Output &out = link->getSrc();
+      // determines source dimensions based on configuration.
+      d = out.determineDimensions();
+      NTA_CHECK(!d.isUnspecified());
+      if (d.isDontcare()) {
+        d = inD; // use destination dimensions for source. rare.
+        out.setDimensions(d);
+      }
+      NTA_CHECK(d.isSpecified())
+          << "Cannot determine the dimensions for " << out.getRegion()->getName()
+          << "; output " << out.getName();
+
+      out.initialize(); // creates the output buffers.
+
+      // Initialize Link.  'total_width' at this point is the byte offset 
+      // into the input buffer where the output will start writing.
+      link->initialize(total_width, is_FanIn);
+      total_width += (UInt32)d.getCount();
+
+      if (is_FanIn) {
+        // save some info, we will need it later.
+        Ds.push_back(d);
+        size_t n = d.getDimensionCount();
+        while (n > maxD && d[n - 1] == 1)
+          n--; // ignore top level dimensions of 1
+        if (n > maxD)
+          maxD = n;
+      } else {
+        // Not a FanIn.
+        if (inD.isSpecified()) {
+          NTA_CHECK(inD.getCount() == d.getCount())
+              << "Dimensions were specified for input " 
+              << region_->getName() << "." << name_ << " " << inD
+              << " but it is inconsistant with the dimensions of the source " 
+              << out.getRegion()->getName() << "." << out.getName() << " " << d;
+          // else keep the manually configured dimensions.
+        } else {
+          inD = d;  // set the destination dimensions to be same as source.
+        }
+      }
     }
-    NTA_CHECK(d.isSpecified())
-        << "Cannot determine the dimensions for " << out.getRegion()->getName()
-        << "; output " << out.getName();
-
-    out.initialize(); // creates the output buffers.
-
-    // Initialize Link.  'total_width' at this point is the byte offset 
-    // into the input buffer where the output will start writing.
-    link->initialize(total_width, is_FanIn);
-    total_width += (UInt32)d.getCount();
 
     if (is_FanIn) {
-      // save some info, we will need it later.
-      Ds.push_back(d);
-      size_t n = d.getDimensionCount();
-      while (n > maxD && d[n - 1] == 1)
-        n--; // ignore top level dimensions of 1
-      if (n > maxD)
-        maxD = n;
-    } else {
-      // Not a FanIn.
+      // Try to figure out the destination dimensions derived
+      // from the source dimensions. If any source dimension other 
+      // than the top level did not match we will have to flatten 
+      // everything and use 1D.
+      // example:
+      //   sources
+      //       [100, 10]
+      //       [100, 5 ]
+      //       [100]
+      //   Fan in to:
+      //       [100, 16]
+      // We also add up the top level while we are doing it.
+      bool match = true;
+      UInt32 topsum = 0;
+      for (size_t i = 0; match && i < maxD - 1; i++) {
+        topsum = 0;
+        for (size_t j = 0; match && j < Ds.size(); j++) {
+          if ((i + 1) >= Ds[j].size()) {
+            Ds[j].push_back(1);
+          } // fill with 1's if needed
+          if (Ds[0][i] != Ds[j][i])
+            match = false; // This dimension did not match.
+          topsum += Ds[j][i + 1];
+        }
+      }
+      // at this point:
+      //     if match = false, we have to flatten to 1 X total_width.
+      //     if not, topsum is the top dimension for our destination
+      //     maxD-1 is its index. The lower dimensions can be taken from any
+      //     source.
+      d.clear();
+      if (match && topsum > 0) {
+        for (size_t i = 0; i < maxD - 1; i++)
+          d.push_back(Ds[0][i]);
+        d.push_back(topsum);
+      } else {
+        d.push_back(total_width);
+      }
       if (inD.isSpecified()) {
         NTA_CHECK(inD.getCount() == d.getCount())
-            << "Dimensions were specified for input " 
-            << region_->getName() << "." << name_ << " " << inD
-            << " but it is inconsistant with the dimensions of the source " 
-            << out.getRegion()->getName() << "." << out.getName() << " " << d;
-        // else keep the manually configured dimensions.
+            << "Dimensions were specified for " << region_->getName()
+            << "; input " << name_
+            << " but it is inconsistant with the dimensions of the sources.";
+        // keep the manually configured dimensions.
       } else {
-        inD = d;  // set the destination dimensions to be same as source.
+        inD = d;
       }
     }
-  }
-
-  if (is_FanIn) {
-    // Try to figure out the destination dimensions derived
-    // from the source dimensions. If any source dimension other 
-    // than the top level did not match we will have to flatten 
-    // everything and use 1D.
-    // example:
-    //   sources
-    //       [100, 10]
-    //       [100, 5 ]
-    //       [100]
-    //   Fan in to:
-    //       [100, 16]
-    // We also add up the top level while we are doing it.
-    bool match = true;
-    UInt32 topsum = 0;
-    for (size_t i = 0; match && i < maxD - 1; i++) {
-      topsum = 0;
-      for (size_t j = 0; match && j < Ds.size(); j++) {
-        if ((i + 1) >= Ds[j].size()) {
-          Ds[j].push_back(1);
-        } // fill with 1's if needed
-        if (Ds[0][i] != Ds[j][i])
-          match = false; // This dimension did not match.
-        topsum += Ds[j][i + 1];
-      }
-    }
-    // at this point:
-    //     if match = false, we have to flatten to 1 X total_width.
-    //     if not, topsum is the top dimension for our destination
-    //     maxD-1 is its index. The lower dimensions can be taken from any
-    //     source.
-    d.clear();
-    if (match && topsum > 0) {
-      for (size_t i = 0; i < maxD - 1; i++)
-        d.push_back(Ds[0][i]);
-      d.push_back(topsum);
-    } else {
-      d.push_back(total_width);
-    }
-    if (inD.isSpecified()) {
-      NTA_CHECK(inD.getCount() == d.getCount())
-          << "Dimensions were specified for " << region_->getName()
-          << "; input " << name_
-          << " but it is inconsistant with the dimensions of the sources.";
-      // keep the manually configured dimensions.
-    } else {
-      inD = d;
-    }
-  }
-
+  } // end of link iteration.
   // If this is the regionLevel input and the region dim is don't care,
   // then assign this input dimensions to the region dimensions.
   // The region dimensions must have the same number of dimensions. 
@@ -342,10 +341,16 @@ void Input::uninitialize() {
   data_.releaseBuffer();
 }
 
+namespace nupic {
+  std::ostream &operator<<(std::ostream &f, const Input &d) {
+    f << "Input: " << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
+    return f;
+  }
+}
+
 bool Input::isInitialized() { return (initialized_); }
 
 void Input::setName(const std::string &name) { name_ = name; }
 
 const std::string &Input::getName() const { return name_; }
 
-} // namespace nupic

@@ -190,7 +190,7 @@ size_t RegionImpl::getParameterArrayCount(const std::string &name,
   return count;
 }
 
-Dimensions RegionImpl::askImplForInputDimensions(const std::string &name) const {
+Dimensions RegionImpl::askImplForInputDimensions(const std::string &name) {
   // Default implementation for Region Impl that did not override this.
   // This should return the input dimensions for this input, or a Dimension
   // of size 1, value 0 which means don't care.
@@ -209,7 +209,7 @@ Dimensions RegionImpl::askImplForInputDimensions(const std::string &name) const 
   return dim;
 }
 
-Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) const {
+Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) {
   // Default implementation for Region Impl that did not override this.
   // This should return the input dimensions for this input, or a Dimension
   // of size 1, value 0 which means don't care.
@@ -225,8 +225,8 @@ Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) const
   UInt32 count = (UInt32)ns.count;
   if (count == Spec::VARIABLE) {
     // This is not a fixed size output.
-    // If this is the default output, use the default dimensions.
-    if (ns.isDefaultOutput && !dim_.empty()) {
+    // If this is a regionLevel output, use the region dimensions.
+    if (ns.regionLevel && !dim_.empty()) {
       return dim_;
     }
     // ask the impl for a 1D size.
@@ -237,6 +237,11 @@ Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) const
   return dim;
 }
 
+
+std::string RegionImpl::executeCommand(const std::vector<std::string> &args,Int64 index) {
+  // This Region does not execute any Commands.
+  return "";
+}
 
 // Provide data access for subclasses
 

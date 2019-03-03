@@ -32,6 +32,18 @@
 
 namespace nupic {
 
+  /**
+   * The type of log message.
+   */
+  typedef enum  { LogType_debug = 1, LogType_info, LogType_warn, LogType_error } LogType;
+
+  /**
+   * This enum represents the documented logging level of the debug logger.
+   *
+   * Use it like `LDEBUG(nupic::LogLevel_XXX)`.
+   */
+  typedef enum { LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose } LogLevel;
+
 /**
  * @b Description
  * A LogItem represents a single log entry. It contains a stream that
@@ -45,11 +57,12 @@ namespace nupic {
 
 class LogItem {
 public:
-  typedef enum { debug, info, warn, error } LogLevel;
+
+
   /**
    * Record information to be logged
    */
-  LogItem(const char *filename, int line, LogLevel level);
+  LogItem(const char *filename, int line, nupic::LogType type);
 
   /**
    * Destructor performs the logging
@@ -63,15 +76,18 @@ public:
   std::ostringstream &stream();
 
   static void setOutputFile(std::ostream &ostream);
+  static void setLogLevel(LogLevel level);
+  static LogLevel getLogLevel();
 
 protected:
   const char *filename_; // name of file
   int lineno_;           // line number in file
-  LogLevel level_;
+  LogType type_;
   std::ostringstream msg_;
 
 private:
   static std::ostream *ostream_;
+  static nupic::LogLevel log_level_;
 };
 
 } // namespace nupic

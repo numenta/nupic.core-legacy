@@ -29,6 +29,7 @@
 #ifndef NTA_INPUT_HPP
 #define NTA_INPUT_HPP
 
+#include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
 #include <vector>
@@ -152,6 +153,7 @@ public:
    *         A mutable reference to the data of the input as an @c Array
    */
   Array &getData();
+  const Array &getData() const;
 
   /**
    *  Get the data type of the output
@@ -166,6 +168,7 @@ public:
    *         The mutable reference to the Region that the input belongs to
    */
   Region* getRegion();
+  const Region* getRegion() const;
 
   /**
    *
@@ -208,12 +211,15 @@ public:
    */
   void setDimensions(const Dimensions& dim) { dim_ = dim; }
 
-
-  /* ------------ Methods normally called by the RegionImpl ------------- */
-
-
+  /**
+   * true if we have links connected to this input.
+   */
   bool hasIncomingLinks() { return !links_.empty(); }
 
+  /**
+   *  Print raw data...for debugging
+   */
+  friend std::ostream &operator<<(std::ostream &f, const Input &d);
 
 private:
   // Cannot use the shared_ptr here.

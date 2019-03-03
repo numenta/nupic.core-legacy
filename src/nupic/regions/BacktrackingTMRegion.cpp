@@ -43,19 +43,25 @@
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/regions/BacktrackingTMRegion.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/utils/VectorHelpers.hpp>
 
 #define VERSION 1
 
-namespace nupic {
+using namespace nupic;
+using namespace nupic::algorithms::anomaly;
+using namespace nupic::utils;  // for VectorHelpers
+using namespace nupic::algorithms::backtracking_tm;
 
-BacktrackingTMRegion::BacktrackingTMRegion(const ValueMap &params, Region *region)
-    : RegionImpl(region), computeCallback_(nullptr) {
+BacktrackingTMRegion::BacktrackingTMRegion(const ValueMap &params, 
+                                           Region *region)
+    : RegionImpl(region), 
+      computeCallback_(nullptr) {
   // Note: the ValueMap gets destroyed on return so we need to get all of the
   // parameters
   //       out of the map and set aside so we can pass them to the SpatialPooler
   //       algorithm when we create it during initialization().
   memset((char *)&args_, 0, sizeof(args_));
-  args_.numberOfCols = params.getScalarT<UInt32>("numberOfCols", 32);
+  args_.numberOfCols = params.getScalarT<UInt32>("numberOfCols", 0); // normally from input.
   args_.cellsPerColumn = params.getScalarT<UInt32>("cellsPerColumn", 64);
   args_.initialPerm = params.getScalarT<Real32>("initialPerm", 0.11f);
   args_.connectedPerm = params.getScalarT<Real32>("connectedPerm", 0.50f);
@@ -101,7 +107,8 @@ BacktrackingTMRegion::BacktrackingTMRegion(const ValueMap &params, Region *regio
   tm_ = nullptr;
 }
 
-BacktrackingTMRegion::BacktrackingTMRegion(BundleIO &bundle, Region *region) : RegionImpl(region) {
+BacktrackingTMRegion::BacktrackingTMRegion(BundleIO &bundle, Region *region) 
+  : RegionImpl(region) {
   tm_ = nullptr;
   deserialize(bundle);
 }
@@ -117,8 +124,11 @@ void BacktrackingTMRegion::initialize() {
   if (inputWidth == 0) {
     NTA_THROW << "TMRegion::initialize - No input was provided.\n";
   }
-  nupic::algorithms::backtracking_tm::BacktrackingTMCpp* tm(
-     new nupic::algorithms::backtracking_tm::BacktrackingTMCpp(
+  if (args_.numberOfCols == 0) {
+    args_.numberOfCols = inputWidth;
+  }
+  BacktrackingTMCpp* tm(
+     new BacktrackingTMCpp(
       args_.numberOfCols, args_.cellsPerColumn, args_.initialPerm,
       args_.connectedPerm, args_.minThreshold, args_.newSynapseCount,
       args_.permanenceInc, args_.permanenceDec, args_.permanenceMax,
@@ -161,7 +171,7 @@ void BacktrackingTMRegion::compute() {
   }
   if (args_.anomalyMode) {
     Array p(NTA_BasicType_Real32, tm_->topDownCompute(), args_.numberOfCols);
-    prevPredictedColumns_ = p.nonZero().asVector<UInt32>();
+    prevPredictedColumns_ = VectorHelpers::binaryToSparse(p.asVector<Real32>());
   }
 
   // Perform inference and / or learning
@@ -173,7 +183,7 @@ void BacktrackingTMRegion::compute() {
                               args_.learningMode, args_.inferenceMode);
   args_.sequencePos++;
 
-  const Real32 *ptr = (Real32 *)tmOutput.getBuffer();
+  Real32 *ptr = (Real32 *)tmOutput.getBuffer();
   if (args_.orColumnOutputs) {
     // OR'ing together the output cells in each column?
     // This reduces the output buffer size to [columnCount] otherwise
@@ -194,21 +204,21 @@ void BacktrackingTMRegion::compute() {
   if (args_.topDownMode) {
     // Top - down compute
     Real *tdout = tm_->topDownCompute();
-    getOutput("topDownOut")->getData()
-        .copyFrom(NTA_BasicType_Real32, tdout, args_.numberOfCols);
+    getOutput("topDownOut")->getData() = Array(NTA_BasicType_Real32, 
+                                               tdout, 
+                                               args_.numberOfCols);
   }
 
   // Set output for use with anomaly classification region if in anomalyMode
   if (args_.anomalyMode) {
     Byte *lrn = tm_->getLearnActiveStateT();
     Size size = args_.numberOfCols * args_.cellsPerColumn;
-    getOutput("lrnActiveStateT")->getData().copyFrom(NTA_BasicType_Byte, lrn, size);
+    getOutput("lrnActiveStateT")->getData() = Array(NTA_BasicType_Byte, lrn, size);
 
-    std::vector<UInt32> activeColumns = bottomUpIn.nonZero().asVector<UInt32>();
+    auto activeColumns = VectorHelpers::binaryToSparse(bottomUpIn.asVector<Real32>());
     Real32 anomalyScore = algorithms::anomaly::computeRawAnomalyScore(
         activeColumns, prevPredictedColumns_);
-    getOutput("anomalyScore")->getData()
-        .copyFrom(NTA_BasicType_Real32, &anomalyScore, 1);
+    getOutput("anomalyScore")->getData() = Array(NTA_BasicType_Real32, &anomalyScore, 1);
   }
 
   if (args_.computePredictedActiveCellIndices) {
@@ -240,7 +250,7 @@ std::string BacktrackingTMRegion::executeCommand(const std::vector<std::string> 
 // This is the per-node output size. This determines how big the output
 // buffers should be allocated to during Region::initialization(). NOTE: Some
 // outputs are optional, return 0 if not used.
-size_t BacktrackingTMRegion::getNodeOutputElementCount(const std::string &outputName) {
+size_t BacktrackingTMRegion::getNodeOutputElementCount(const std::string &outputName) const {
   if (outputName == "bottomUpOut")
     return args_.outputWidth;
   if (outputName == "topDownOut")
@@ -253,6 +263,38 @@ size_t BacktrackingTMRegion::getNodeOutputElementCount(const std::string &output
     return args_.outputWidth;
   return 0; // an optional output that we don't use.
 }
+// Note: - this is called during Region initialization, after configuration
+//         is set but prior to calling initialize on this class to create the tm. 
+//         The input dimensions should already have been set, normally from 
+//         its connected output. This would set the region dimensions if not overridden.
+//       - This is not called if output dimensions were explicitly set for this output.
+//       - This call determines the dimensions set on the Output buffers.
+Dimensions BacktrackingTMRegion::askImplForOutputDimensions(const std::string &name) {
+  Dimensions region_dim = getDimensions();
+  if (!region_dim.isSpecified()) {
+    // we don't have region dimensions, so create some if we know numberOfCols.
+    if (args_.numberOfCols == 0) 
+      return Dimensions(Dimensions::DONTCARE);  // No info for its size
+    region_dim.clear();
+    region_dim.push_back(args_.numberOfCols);
+    setDimensions(region_dim);
+  }
+  if (args_.numberOfCols == 0)
+    args_.numberOfCols = (UInt32)region_dim.getCount();
+
+
+  if (name == "bottomUpOut" || name == "topDownOut" || name == "lrnActiveStateT"
+   || name == "activeCells" || name == "predictedActiveCells") {
+    // It's size is numberOfCols * args_.cellsPerColumn.
+    // So insert a new dimension to what was provided by input.
+    Dimensions dim = region_dim;
+    dim.insert(dim.begin(), args_.cellsPerColumn);
+    return dim;
+  }
+  return RegionImpl::askImplForOutputDimensions(name);
+}
+
+/********************************************************************/
 
 Spec *BacktrackingTMRegion::createSpec() {
   auto ns = new Spec;
@@ -701,15 +743,14 @@ Spec *BacktrackingTMRegion::createSpec() {
   ns->inputs.add(
       "bottomUpIn",
       InputSpec(
-          "The input signal, conceptually organized as an image pyramid "
-          "data structure, but internally organized as a flattened vector.",
-          NTA_BasicType_Real32, // type
-          0,                    // count.
-          true,                 // required?
-          false,                // isRegionLevel,
-          true,                 // isDefaultInput
-          false                 // requireSplitterMap
-          ));
+                "The input signal, conceptually organized as an image pyramid "
+                "data structure, but internally organized as a flattened vector.",
+                NTA_BasicType_Real32, // type
+                0,                    // count.
+                true,                 // required?
+                true,                 // isRegionLevel,
+                true                  // isDefaultInput
+                ));
 
   ns->inputs.add(
       "resetIn",
@@ -720,19 +761,17 @@ Spec *BacktrackingTMRegion::createSpec() {
                 NTA_BasicType_Real32, // type
                 1,                    // count.
                 false,                // required?
-                true,                 // isRegionLevel,
-                false,                // isDefaultInput
-                false                 // requireSplitterMap
+                false,                // isRegionLevel,
+                false                 // isDefaultInput
                 ));
 
   ns->inputs.add("sequenceIdIn", InputSpec("Sequence ID",
-                                           NTA_BasicType_UInt64, // type
-                                           1,                    // count.
-                                           false,                // required?
-                                           true,  // isRegionLevel,
-                                           false, // isDefaultInput
-                                           false  // requireSplitterMap
-                                           ));
+                NTA_BasicType_UInt64, // type
+                1,                    // count.
+                false,                // required?
+                false,                // isRegionLevel,
+                false                 // isDefaultInput
+                ));
 
   /* ----- outputs ------ */
   ns->outputs.add(
@@ -745,29 +784,33 @@ Spec *BacktrackingTMRegion::createSpec() {
                  true                  // isDefaultOutput
                  ));
 
-  ns->outputs.add("topDownOut",
-                  OutputSpec("The top-down output signal, generated from "
-                             "feedback from upper levels.  ",
-                             NTA_BasicType_Real32, // type
-                             0,                    // count 0 means is dynamic
-                             true,                 // isRegionLevel
-                             false                 // isDefaultOutput
-                             ));
+  ns->outputs.add(
+    "topDownOut",
+     OutputSpec("The top-down output signal, generated from "
+                  "feedback from upper levels.  ",
+                  NTA_BasicType_Real32, // type
+                  0,                    // count 0 means is dynamic
+                  true,                 // isRegionLevel
+                  false                 // isDefaultOutput
+                  ));
 
-  ns->outputs.add("activeCells", OutputSpec("The cells that are active",
-                                            NTA_BasicType_Real32, // type
-                                            0,    // count 0 means is dynamic
-                                            true, // isRegionLevel
-                                            false // isDefaultOutput
-                                            ));
+  ns->outputs.add(
+    "activeCells", 
+    OutputSpec("The cells that are active",
+                  NTA_BasicType_Real32, // type
+                  0,    // count 0 means is dynamic
+                  true, // isRegionLevel
+                  false // isDefaultOutput
+                  ));
 
-  ns->outputs.add("predictedActiveCells",
-                  OutputSpec("The cells that are active and predicted",
-                             NTA_BasicType_Real32, // type
-                             0,                    // count 0 means is dynamic
-                             true,                 // isRegionLevel
-                             false                 // isDefaultOutput
-                             ));
+  ns->outputs.add(
+    "predictedActiveCells",
+    OutputSpec("The cells that are active and predicted",
+                  NTA_BasicType_Real32, // type
+                  0,                    // count 0 means is dynamic
+                  true,                 // isRegionLevel
+                  false                 // isDefaultOutput
+                  ));
 
   ns->outputs.add(
       "anomalyScore",
@@ -1128,8 +1171,6 @@ void BacktrackingTMRegion::serialize(BundleIO &bundle) {
   f << sizeof(args_) << " ";
   f.write((const char*)&args_, sizeof(args_));
   f << std::endl;
-//  f << cellsSavePath_ << std::endl;
-//  f << logPathOutput_ << std::endl;
   if (tm_)
     // Note: tm_ saves the output buffers
     tm_->save(f);
@@ -1141,7 +1182,6 @@ void BacktrackingTMRegion::deserialize(BundleIO &bundle) {
   // There is more than one way to do this. We could serialize to YAML, which
   // would make a readable format, but that is a bit slow so we try to directly
   // stream binary as much as we can.  
-  char bigbuffer[10000];
   UInt version;
   Size len;
   std::string tag;
@@ -1162,10 +1202,6 @@ void BacktrackingTMRegion::deserialize(BundleIO &bundle) {
   f.ignore(1);
   f.read((char *)&args_, len);
   f.ignore(1);
-  //f.getline(bigbuffer, sizeof(bigbuffer));
-  //cellsSavePath_ = bigbuffer;
-  //f.getline(bigbuffer, sizeof(bigbuffer));
-  //logPathOutput_ = bigbuffer;
 
   if (args_.init) {
     nupic::algorithms::backtracking_tm::BacktrackingTMCpp* tm = new nupic::algorithms::backtracking_tm::BacktrackingTMCpp();
@@ -1182,4 +1218,3 @@ void BacktrackingTMRegion::deserialize(BundleIO &bundle) {
     tm_.reset();
 }
 
-} // namespace nupic

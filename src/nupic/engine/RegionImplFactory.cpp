@@ -23,14 +23,12 @@
 #include <stdexcept>
 
 
-#include <nupic/regions/ScalarSensor.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/RegisteredRegionImplCpp.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/regions/TestNode.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -38,6 +36,9 @@
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
 
+// Built-in Region implementations
+#include <nupic/regions/TestNode.hpp>
+#include <nupic/regions/ScalarSensor.hpp>
 #include <nupic/regions/VectorFileEffector.hpp>
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/regions/SPRegion.hpp>

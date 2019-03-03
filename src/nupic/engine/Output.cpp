@@ -28,10 +28,9 @@
 #include <nupic/engine/Link.hpp> 
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/engine/Region.hpp>
 #include <nupic/types/BasicType.hpp>
 
-namespace nupic {
+using namespace nupic;
 
 Output::Output(Region* region, const std::string& outputName, NTA_BasicType type)
     : region_(region), 
@@ -93,6 +92,7 @@ Dimensions Output::determineDimensions() {
       }
     }
   }
+
   // If we still have a isDontcare, check if the spec defines 
   // regionLevel then get the dimensions from the region dims. 
   bool regionLevel = srcSpec->outputs.getByName(name_).regionLevel;
@@ -101,7 +101,7 @@ Dimensions Output::determineDimensions() {
     if (dim_.isDontcare()&& d.isSpecified()) {
       dim_ = d;
     }
-    else if (dim_.isSpecified() && d.isDontcare()) {
+    else if (dim_.isSpecified() && !d.isSpecified()) {
       region_->setDimensions(dim_);
     }
   }
@@ -127,6 +127,12 @@ void Output::removeLink(std::shared_ptr<Link> link) {
   links_.erase(linkIter);
 }
 
+namespace nupic {
+  std::ostream &operator<<(std::ostream &f, const Output &d) {
+    f << "Output:" << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
+    return f;
+  }
+}
 
 Region* Output::getRegion() const { return region_; }
 
@@ -142,4 +148,3 @@ bool Output::hasOutgoingLinks() { return (!links_.empty()); }
 
 NTA_BasicType Output::getDataType() const { return data_.getType(); }
 
-} // namespace nupic

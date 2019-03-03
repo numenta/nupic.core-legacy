@@ -50,18 +50,18 @@
 #include <nupic/engine/NuPIC.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegisteredRegionImpl.hpp>
+#include <nupic/engine/RegisteredRegionImplCpp.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/math/Math.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayRef.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Env.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/regions/TMRegion.hpp>
 #include <nupic/types/Exception.hpp>
+#include <nupic/utils/VectorHelpers.hpp>
 
 #include <cmath>   // fabs/abs
 #include <cstdlib> // exit
@@ -76,16 +76,16 @@
 #include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 
-#define VERBOSE                                                                \
-  if (verbose)                                                                 \
-  std::cerr << "[          ] "
+#define VERBOSE if (verbose) std::cerr << "[          ] "
 static bool verbose = true; // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually
 // verified.
-#define EXPECTED_SPEC_COUNT 38 // The number of parameters expected in the TMRegion Spec
+#define EXPECTED_SPEC_COUNT 16 // The number of parameters expected in the TMRegion Spec
 
 using namespace nupic;
+using namespace nupic::utils;
+
 namespace testing {
 
 // Verify that all parameters are working.
@@ -94,9 +94,13 @@ namespace testing {
 TEST(TMRegionTest, testSpecAndParameters) {
   Network net;
 
+  // Turn on logging.
+  if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Normal);
+
   // create a TM region with default parameters
-  Region_Ptr_t region1 = net.addRegion("region1", "TMRegion", ""); 
-  checkGetSetAgainstSpec(region1, EXPECTED_SPEC_COUNT, verbose);
+  std::set<std::string> excluded;
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TMRegion", ""); 
+  checkGetSetAgainstSpec(region1, EXPECTED_SPEC_COUNT, excluded, verbose);
   checkInputOutputsAgainstSpec(region1, verbose);
 }
 
@@ -106,7 +110,7 @@ TEST(TMRegionTest, checkTMRegionImpl) {
   size_t regionCntBefore = net.getRegions().getCount();
 
   VERBOSE << "Adding a built-in TMRegion region..." << std::endl;
-  Region_Ptr_t region1 = net.addRegion("region1", "TMRegion", "");
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TMRegion", "");
   size_t regionCntAfter = net.getRegions().getCount();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << " Expected number of regions to increase by one.  ";
@@ -136,22 +140,16 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   // since YAML is a superset of JSON, you can use JSON format as well.
   // Here we set a unique value for every parameter we can set (per the spec).
   std::string nodeParams =  
-      "{numberOfCols: 100, cellsPerColumn: 20, initialPerm: 0.12, "
-      "connectedPerm: 0.6, minThreshold: 9, newSynapseCount: 16, "
-      "permanenceInc: 0.2, permanenceDec: 0.2, permanenceMax: 2.0, "
-      "globalDecay: 0.2, activationThreshold: 13, doPooling: true, "
-      "segUpdateValidDuration: 6, burnIn: 1, collectStats: true, "
-      "seed: 66, verbosity: 3, checkSynapseConsistency: true, "
-      "pamLength: 2, maxInfBacktrack: 9, maxLrnBacktrack: 6, "
-      "maxAge: 99999, maxSeqLength: 32, maxSegmentsPerCell: 3, "
-      "maxSynapsesPerSegment: 20, outputType: activeState1CellPerCol, "
-      "learningMode: false, inferenceMode: true, anomalyMode: true, "
-      "topDownMode: true, storeDenseOutput: true, computePredictedActiveCellIndices: true, "
-      "orColumnOutputs: true, cellsSavePath: xxx, logPathOutput: yyy, temporalImp: zzz}";
+      "{numberOfCols: 100, cellsPerColumn: 20, "
+      "activationThreshold: 12, initialPermanence: 0.22, "
+      "connectedPermanence: 0.4, minThreshold: 7, "
+      "maxNewSynapseCount: 21, permanenceIncrement: 0.2, "
+      "permanenceDecrement: 0.2, predictedSegmentDecrement: 0.0004, "
+      "maxSynapsesPerSegment: 254, seed: 43, learningMode: false}";
 
   VERBOSE << "Adding a custom-built TMRegion region..." << std::endl;
-  net.registerCPPRegion("TMRegionCustom", new RegisteredRegionImplCpp<TMRegion>());
-  Region_Ptr_t region2 = net.addRegion("region2", "TMRegionCustom", nodeParams);
+  net.registerRegion("TMRegionCustom", new RegisteredRegionImplCpp<TMRegion>());
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "TMRegionCustom", nodeParams);
   size_t regionCntAfter = net.getRegions().getCount();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << "  Expected number of regions to increase by one.  ";
@@ -162,54 +160,32 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   // Check that all of the node parameters have been correctly parsed and available.
   EXPECT_EQ(region2->getParameterUInt32("numberOfCols"), 100);
   EXPECT_EQ(region2->getParameterUInt32("cellsPerColumn"), 20);
-  EXPECT_TRUE(nearlyEqual<Real32>(region2->getParameterReal32("initialPerm"), 0.12f));
-  EXPECT_TRUE(nearlyEqual<Real32>(region2->getParameterReal32("connectedPerm"), 0.6f)); 
-  EXPECT_EQ(region2->getParameterUInt32("minThreshold"), 9);
-  EXPECT_EQ(region2->getParameterUInt32("newSynapseCount"), 16);
-  EXPECT_TRUE(nearlyEqual<Real32>(region2->getParameterReal32("permanenceInc"), 0.2f)); 
-  EXPECT_TRUE(nearlyEqual<Real32>(region2->getParameterReal32("permanenceDec"), 0.2f)); 
-  EXPECT_TRUE(nearlyEqual<Real32>(region2->getParameterReal32("permanenceMax"), 2.0f));
-  EXPECT_TRUE(nearlyEqual<Real32>(region2->getParameterReal32("globalDecay"), 0.2f));
-  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 13); 
-  EXPECT_EQ(region2->getParameterBool("doPooling"), true);
-  EXPECT_EQ(region2->getParameterUInt32("segUpdateValidDuration"), 6); 
-  EXPECT_EQ(region2->getParameterUInt32("burnIn"), 1); 
-  EXPECT_EQ(region2->getParameterBool("collectStats"), true);
-  EXPECT_EQ(region2->getParameterInt32("seed"), 66); 
-  EXPECT_EQ(region2->getParameterUInt32("verbosity"), 3); 
-  EXPECT_EQ(region2->getParameterBool("checkSynapseConsistency"), true);
-  EXPECT_EQ(region2->getParameterUInt32("pamLength"), 2); 
-  EXPECT_EQ(region2->getParameterUInt32("maxInfBacktrack"), 9); 
-  EXPECT_EQ(region2->getParameterUInt32("maxLrnBacktrack"), 6); 
-  EXPECT_EQ(region2->getParameterUInt32("maxAge"), 99999); 
-  EXPECT_EQ(region2->getParameterUInt32("maxSeqLength"), 32); 
-  EXPECT_EQ(region2->getParameterInt32("maxSegmentsPerCell"), 3);
-  EXPECT_EQ(region2->getParameterInt32("maxSynapsesPerSegment"), 20);
-  EXPECT_STREQ(region2->getParameterString("outputType").c_str(), "activeState1CellPerCol");
+  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 12); 
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("initialPermanence"), 0.22f); 
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("connectedPermanence"), 0.4f); 
+  EXPECT_EQ(region2->getParameterUInt32("minThreshold"), 7);
+  EXPECT_EQ(region2->getParameterUInt32("maxNewSynapseCount"), 21);
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceIncrement"), 0.2f); 
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceDecrement"), 0.2f); 
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("predictedSegmentDecrement"), 0.0004f);
+  EXPECT_EQ(region2->getParameterUInt32("maxSynapsesPerSegment"), 254); 
+  EXPECT_EQ(region2->getParameterInt32("seed"), 43); 
   EXPECT_EQ(region2->getParameterBool("learningMode"), false);
-  EXPECT_EQ(region2->getParameterBool("inferenceMode"), true);
-  EXPECT_EQ(region2->getParameterBool("anomalyMode"), true);
-  EXPECT_EQ(region2->getParameterBool("topDownMode"), true);
-  EXPECT_EQ(region2->getParameterBool("storeDenseOutput"), true);
-  EXPECT_EQ(region2->getParameterBool("computePredictedActiveCellIndices"), true);
-  EXPECT_EQ(region2->getParameterBool("orColumnOutputs"), true);
-  EXPECT_STREQ(region2->getParameterString("cellsSavePath").c_str(), "xxx");
-  EXPECT_STREQ(region2->getParameterString("logPathOutput").c_str(), "yyy");
-  EXPECT_STREQ(region2->getParameterString("temporalImp").c_str(), "zzz");
 
   // compute() should fail because network has not been initialized
   EXPECT_THROW(net.run(1), std::exception);
   EXPECT_THROW(region2->compute(), std::exception);
 
   EXPECT_THROW(net.initialize(), std::exception)
-      << "Exception should say region2 has unspecified dimensions. ";
+      << "Exception should state: region2 has unspecified dimensions. ";
 }
 
 TEST(TMRegionTest, testLinking) {
   // This is a minimal end-to-end test containing an TMRegion region.
   // To make sure we can feed data from some other region to our TMRegion
-  // this test will hook up the VectorFileSensor to our TMRegion and then
-  // connect our TMRegion to a VectorFileEffector to capture the results.
+  // this test will hook up the VectorFileSensor to an SPRegion to our 
+  // TMRegion and then connect our TMRegion to a VectorFileEffector to 
+  // capture the results.
   //
   std::string test_input_file = "TestOutputDir/TMRegionTestInput.csv";
   std::string test_output_file = "TestOutputDir/TMRegionTestOutput.csv";
@@ -225,7 +201,7 @@ TEST(TMRegionTest, testLinking) {
   // Create a csv file to use as input.
   // The SDR data we will feed it will be a matrix with 1's on the diagonal
   // and we will feed it one row at a time, for 10 rows.
-  size_t dataWidth = 10;
+  size_t dataWidth = 20;
   size_t dataRows = 10;
   std::ofstream f(test_input_file.c_str());
   for (size_t i = 0; i < 10; i++) {
@@ -239,23 +215,21 @@ TEST(TMRegionTest, testLinking) {
   }
   f.close();
 
-  VERBOSE << "Setup Network; add 3 regions and 2 links." << std::endl;
+  VERBOSE << "Setup Network; add 4 regions and 3 links." << std::endl;
   Network net;
 
   // Explicit parameters:  (Yaml format...but since YAML is a superset of JSON,
   // you can use JSON format as well)
+  std::string parameters = "{activeOutputCount: " + std::to_string(dataWidth) + "}";
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor",parameters);
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,10]}");
+  std::shared_ptr<Region> region3 = net.addRegion("region3", "TMRegion", "{activationThreshold: 9}");
+  std::shared_ptr<Region> region4 = net.addRegion("region4", "VectorFileEffector",
+                                        "{outputFile: '" + test_output_file + "'}");
 
-  Region_Ptr_t region1 =
-      net.addRegion("region1", "VectorFileSensor",
-                    "{activeOutputCount: " + std::to_string(dataWidth) + "}");
-  Region_Ptr_t region2 =
-      net.addRegion("region2", "TMRegion", "{numberOfCols: 10, }");
-  Region_Ptr_t region3 =
-      net.addRegion("region3", "VectorFileEffector",
-                    "{outputFile: '" + test_output_file + "'}");
-
-  net.link("region1", "region2", "UniformLink", "", "dataOut", "bottomUpIn");
-  net.link("region2", "region3", "UniformLink", "", "bottomUpOut", "dataIn");
+  net.link("region1", "region2", "", "", "dataOut", "bottomUpIn");
+  net.link("region2", "region3", "", "", "bottomUpOut", "bottomUpIn");
+  net.link("region3", "region4", "", "", "bottomUpOut", "dataIn");
 
   VERBOSE << "Load Data." << std::endl;
   region1->executeCommand({"loadFile", test_input_file});
@@ -263,37 +237,62 @@ TEST(TMRegionTest, testLinking) {
   VERBOSE << "Initialize." << std::endl;
   net.initialize();
 
+  VERBOSE << "Dimensions: \n";
+  VERBOSE << " VectorFileSensor  - " << region1->getOutputDimensions("dataOut")    <<"\n";
+  VERBOSE << " SPRegion in       - " << region2->getInputDimensions("bottomUpIn")  <<"\n";
+  VERBOSE << " SPRegion out      - " << region2->getOutputDimensions("bottomUpOut")<<"\n";
+  VERBOSE << " TMRegion in       - " << region3->getInputDimensions("bottomUpIn")  <<"\n";
+  VERBOSE << " TMRegion out      - " << region3->getOutputDimensions("bottomUpOut")<<"\n";
+  VERBOSE << " VectorFileEffector- " << region4->getInputDimensions("dataIn")      <<"\n";
+
   // check actual dimensions
-  ASSERT_EQ(region2->getParameterUInt32("numberOfCols"), 10);
-  ASSERT_EQ(region2->getParameterUInt32("inputWidth"), (UInt32)dataWidth);
+  ASSERT_EQ(region3->getParameterUInt32("numberOfCols"), dataWidth);
+  ASSERT_EQ(region3->getParameterUInt32("inputWidth"), (UInt32)dataWidth);
 
   VERBOSE << "Execute once." << std::endl;
   net.run(1);
 
   VERBOSE << "Checking data after first iteration..." << std::endl;
   VERBOSE << "  VectorFileSensor Output" << std::endl;
-  ArrayRef r1OutputArray = region1->getOutputData("dataOut");
+  Array r1OutputArray = region1->getOutputData("dataOut");
+  VERBOSE << "    " << r1OutputArray << "\n";
   EXPECT_EQ(r1OutputArray.getCount(), dataWidth);
   EXPECT_TRUE(r1OutputArray.getType() == NTA_BasicType_Real32);
-  const Real32 *buffer1 = (const Real32 *)r1OutputArray.getBuffer();
 
-  VERBOSE << "  TMRegion input" << std::endl;
-  ArrayRef r2InputArray = region2->getInputData("bottomUpIn");
-  ASSERT_TRUE(r1OutputArray.getCount() == r2InputArray.getCount())
-      << "Buffer length different. Output from VectorFileSensor is "
-      << r1OutputArray.getCount() << ", input to TPRegion is "
-      << r2InputArray.getCount();
-  EXPECT_TRUE(r2InputArray.getType() == NTA_BasicType_Real32);
-  const Real32 *buffer2 = (const Real32 *)r2InputArray.getBuffer();
-  for (size_t i = 0; i < r2InputArray.getCount(); i++) {
-    // VERBOSE << "  [" << i << "]=    " << buffer2[i] << "" << std::endl;
-    ASSERT_TRUE(buffer2[i] == buffer1[i])
-        << " Buffer content different. Element " << i
-        << " of Output from encoder is " << buffer1[i]
-        << ", input to SPRegion is " << buffer2[i];
-    ASSERT_TRUE(buffer2[i] == 1.0f || buffer2[i] == 0.0f)
-        << " Value[" << i << "] is not a 0 or 1." << std::endl;
-  }
+
+  VERBOSE << "  SPRegion Output " << std::endl;
+  Array r2OutputArray = region2->getOutputData("bottomUpOut");
+  VERBOSE << "    " << r2OutputArray << "\n";
+
+  VERBOSE << "  TMRegion input " 
+          << region3->getInputDimensions("bottomUpIn") << "\n";
+  Array r3InputArray = region3->getInputData("bottomUpIn");
+  ASSERT_TRUE(r2OutputArray.getCount() == r3InputArray.getCount())
+      << "Buffer length different. Output from SP is "
+      << r2OutputArray.getCount() << ", input to TPRegion is "
+      << r3InputArray.getCount();
+  EXPECT_TRUE(r3InputArray.getType() == NTA_BasicType_SDR);
+  VERBOSE << "   " << r3InputArray << "\n";
+  std::vector<Byte> expected3in = VectorHelpers::sparseToBinary<Byte>(
+    { 1, 2, 3, 5, 6, 8, 11, 13, 17, 19 }, (UInt32)r3InputArray.getCount());
+  EXPECT_TRUE(r3InputArray == expected3in);
+
+  VERBOSE << "  TMRegion output " 
+          << region3->getOutputDimensions("bottomUpOut") << "\n";
+  Array r3OutputArray = region3->getOutputData("bottomUpOut");
+  UInt32 numberOfCols = region3->getParameterUInt32("numberOfCols");
+  UInt32 cellsPerColumn = region3->getParameterUInt32("cellsPerColumn");
+  size_t expectedWidth = r2OutputArray.getCount() * cellsPerColumn;
+  ASSERT_TRUE(expectedWidth == r3OutputArray.getCount())
+      << "Buffer length different. Output from SP is "
+      << r2OutputArray.getCount() << ", input to TPRegion is "
+      << r3InputArray.getCount();
+  EXPECT_TRUE(r3OutputArray.getType() == NTA_BasicType_SDR);
+  VERBOSE << "   " << r3OutputArray << "\n";
+  std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>(
+            { }, (UInt32)r3OutputArray.getCount());
+  EXPECT_TRUE(r3OutputArray == expected3out);
+  EXPECT_EQ(r3OutputArray.getSDR()->getFlatSparse().size(), 0);
 
   // execute TMRegion several more times and check that it has output.
   VERBOSE << "Execute 9 times." << std::endl;
@@ -301,32 +300,26 @@ TEST(TMRegionTest, testLinking) {
 
   VERBOSE << "Checking Output Data." << std::endl;
   VERBOSE << "  TMRegion output" << std::endl;
-  UInt32 columnCount = region2->getParameterUInt32("numberOfCols");
-  UInt32 cellsPerColumn = region2->getParameterUInt32("cellsPerColumn");
-  UInt32 nCells = columnCount * cellsPerColumn;
-  ArrayRef r2OutputArray = region2->getOutputData("bottomUpOut");
-  ASSERT_TRUE(r2OutputArray.getCount() == nCells)
+  UInt32 nCells = numberOfCols * cellsPerColumn;
+  r3OutputArray = region3->getOutputData("bottomUpOut");
+  ASSERT_TRUE(r3OutputArray.getCount() == numberOfCols * cellsPerColumn)
       << "Buffer length different. Output from TMRegion is "
-      << r2OutputArray.getCount() << ", should be " << nCells;
-  const Real32 *buffer3 = (const Real32 *)r2OutputArray.getBuffer();
-  for (size_t i = 0; i < r2OutputArray.getCount(); i++) {
-    // VERBOSE << "  [" << i << "]=    " << buffer3[i] << "" << std::endl;
-    ASSERT_TRUE(buffer3[i] == 0.0f || buffer3[i] == 1.0f)
-        << " Element " << i
-        << " of Output from SPRegion is not 0.0 or 1.0; it is " << buffer3[i];
-  }
+      << r3OutputArray.getCount() << ", should be " 
+      << numberOfCols << " * " << cellsPerColumn;
+  VERBOSE << "   " << r3OutputArray << "\n";
+  std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
+            { }, (UInt32)r3OutputArray.getCount());
+  EXPECT_TRUE(r3OutputArray == expected3outa);
 
-  VERBOSE << "  VectorFileEffector input" << std::endl;
-  ArrayRef r3InputArray = region3->getInputData("dataIn");
-  ASSERT_TRUE(r3InputArray.getCount() == nCells);
-  const Real32 *buffer4 = (const Real32 *)r3InputArray.getBuffer();
-  for (size_t i = 0; i < r3InputArray.getCount(); i++) {
-    // VERBOSE << "  [" << i << "]=    " << buffer4[i] << "" << std::endl;
-    ASSERT_TRUE(buffer3[i] == buffer4[i])
-        << " Buffer content different. Element[" << i
-        << "] from SPRegion out is " << buffer3[i]
-        << ", input to VectorFileEffector is " << buffer4[i];
-  }
+
+  VERBOSE << "   Input to VectorFileEffector " 
+          << region4->getInputDimensions("dataIn") << "\n";
+  Array r4InputArray = region4->getInputData("dataIn");
+  EXPECT_TRUE(r4InputArray.getType() == NTA_BasicType_Real32);
+  VERBOSE << "   " << r4InputArray << "\n";
+  std::vector<Byte> expected4in = VectorHelpers::sparseToBinary<Byte>(
+            { }, (UInt32)r4InputArray.getCount());
+  EXPECT_TRUE(r4InputArray == expected4in);
 
   // cleanup
   region3->executeCommand({"closeFile"});
@@ -341,11 +334,11 @@ TEST(TMRegionTest, testSerialization) {
   try {
 
     VERBOSE << "Setup first network and save it" << std::endl;
-    Region_Ptr_t n1region1 = net1->addRegion( "region1", "ScalarSensor", 
-                                             "{n: 100,w: 10,minValue: 0,maxValue: 10}");
+    std::shared_ptr<Region> n1region1 = net1->addRegion( "region1", "ScalarSensor", 
+                                             "{n: 48,w: 10,minValue: 0,maxValue: 10}");
     n1region1->setParameterReal64("sensedValue", 5.0);
 
-    Region_Ptr_t n1region2 =  net1->addRegion("region2", "TMRegion", "{numberOfCols: 48}");
+    std::shared_ptr<Region> n1region2 =  net1->addRegion("region2", "TMRegion", "{numberOfCols: 48}");
 
     net1->link("region1", "region2", "", "", "encoded", "bottomUpIn");
     net1->initialize();
@@ -369,7 +362,7 @@ TEST(TMRegionTest, testSerialization) {
     net2 = new Network();
     net2->loadFromFile("TestOutputDir/tmRegionTest.stream");
 
-    Region_Ptr_t n2region2 = net2->getRegions().getByName("region2");
+    std::shared_ptr<Region> n2region2 = net2->getRegions().getByName("region2");
     ASSERT_TRUE(n2region2->getType() == "TMRegion")
         << " Restored TMRegion region does not have the right type.  Expected "
            "TMRegion, found "
@@ -387,9 +380,8 @@ TEST(TMRegionTest, testSerialization) {
     n2region2->prepareInputs();
     n2region2->compute();
 
-    // Change some parameters and see if they are retained after a restore.
-    n2region2->setParameterBool("collectStats", true);
-    n2region2->setParameterUInt32("pamLength", 3);
+    // Change a parameters and see if it is retained after a restore.
+    n2region2->setParameterReal32("permanenceDecrement", 0.099f);
     n2region2->compute();
 
     parameterMap.clear();
@@ -402,7 +394,7 @@ TEST(TMRegionTest, testSerialization) {
             << std::endl;
     net3 = new Network();
     net3->loadFromFile("TestOutputDir/tmRegionTest.stream");
-    Region_Ptr_t n3region2 = net3->getRegions().getByName("region2");
+    std::shared_ptr<Region> n3region2 = net3->getRegions().getByName("region2");
     EXPECT_TRUE(n3region2->getType() == "TMRegion")
         << "Failure: Restored region does not have the right type. "
            " Expected \"TMRegion\", found \""
@@ -430,77 +422,5 @@ TEST(TMRegionTest, testSerialization) {
   Directory::removeTree("TestOutputDir", true);
 }
 
-TEST(TMRegionTest, checkTMRegionIO) {
-  Network *net1 = new Network();
-  try {
-    Region_Ptr_t n1region1 = net1->addRegion("region1", "TMRegion", 
-      "{numberOfCols: 10, cellsPerColumn: 4, learningMode: true, collectStats: true}");
-    n1region1->getOutput("bottomUpOut")->getData().allocateBuffer(40);
-    n1region1->getOutput("bottomUpOut")->getData().zeroBuffer();
-    n1region1->getOutput("topDownOut")->getData().allocateBuffer(10);
-    n1region1->getOutput("topDownOut")->getData().zeroBuffer();
-    n1region1->getOutput("activeCells")->getData().allocateBuffer(40);
-    n1region1->getOutput("activeCells")->getData().zeroBuffer();
-    n1region1->getOutput("predictedActiveCells")->getData().allocateBuffer(40);
-    n1region1->getOutput("predictedActiveCells")->getData().zeroBuffer();
-    n1region1->getOutput("anomalyScore")->getData().allocateBuffer(1);
-    n1region1->getOutput("anomalyScore")->getData().zeroBuffer();
-    n1region1->getOutput("lrnActiveStateT")->getData().allocateBuffer(40);
-    n1region1->getOutput("lrnActiveStateT")->getData().zeroBuffer();
-
-    // manually allocate the input buffers (normally done by link during init)
-    n1region1->getInput("bottomUpIn")->initialize();
-    n1region1->getInput("bottomUpIn")->getData().allocateBuffer(10);
-    n1region1->getInput("resetIn")->initialize();
-    n1region1->getInput("resetIn")->getData().allocateBuffer(1);
-    n1region1->getInput("sequenceIdIn")->initialize();
-    n1region1->getInput("sequenceIdIn")->getData().allocateBuffer(1);
-
-    // initialize inputs
-    // Note: inputs are not saved in serialization...only outputs
-    //       so serialization of a network with manually initialized buffers
-    //       will not work.
-    Real32 a[10] = {0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
-    Real32 b[10] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
-    ((Real32 *)n1region1->getInput("resetIn")->getData().getBuffer())[0] = 1.0f;
-    ((UInt64 *)n1region1->getInput("sequenceIdIn")->getData().getBuffer())[0] = 1;
-
-    n1region1->initialize();
-    n1region1->compute();
-
-    for (Size i = 0; i < 10; i++) {
-      // change input data and execute
-      memcpy(n1region1->getInput("bottomUpIn")->getData().getBuffer(), a, 10 * sizeof(Real32));
-      n1region1->compute();
-
-      // change input data and execute again.
-      memcpy(n1region1->getInput("bottomUpIn")->getData().getBuffer(), b, 10 * sizeof(Real32));
-      n1region1->compute();
-    }
-
-    // The outputs could vary depending on the algorithm.
-    // The best we can do for this test is to just be sure there is
-    // an output.
-    //cout << "bottomUpOut " << n1region1->getOutput("bottomUpOut")->getData() << std::endl;
-    EXPECT_TRUE(n1region1->getOutput("bottomUpOut")->getData().getCount() > 0);
-    //cout << "topDownOut " << n1region1->getOutput("topDownOut")->getData() << std::endl;
-    EXPECT_TRUE(n1region1->getOutput("topDownOut")->getData().nonZero().getCount() == 0);
-    //cout << "activeCells " << n1region1->getOutput("activeCells")->getData() << std::endl;
-    EXPECT_TRUE(n1region1->getOutput("activeCells")->getData().nonZero().getCount() == 0);
-    //cout << "predictedActiveCells " << n1region1->getOutput("predictedActiveCells")->getData() << std::endl;
-    EXPECT_TRUE(n1region1->getOutput("predictedActiveCells")->getData().nonZero().getCount() == 0);
-    //cout << "anomalyScore " << n1region1->getOutput("anomalyScore")->getData() << std::endl;
-    EXPECT_TRUE(((Real32*)n1region1->getOutput("anomalyScore")->getData().getBuffer())[0] == 0);
-    //cout << "lrnActiveStateT " << n1region1->getOutput("lrnActiveStateT")->getData() << std::endl;
-    EXPECT_TRUE(n1region1->getOutput("lrnActiveStateT")->getData().nonZero().getCount() ==  0);
-  } catch (nupic::Exception &ex) {
-    FAIL() << "Failure: Exception: " << ex.getFilename() << "("
-           << ex.getLineNumber() << ") " << ex.getMessage() << "" << std::endl;
-  } catch (std::exception &e) {
-    FAIL() << "Failure: Exception: " << e.what() << "" << std::endl;
-  }
-
-  delete net1;
-}
 
 } // namespace testing

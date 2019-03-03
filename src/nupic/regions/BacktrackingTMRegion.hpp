@@ -33,17 +33,17 @@
 
 #include <memory>
 #include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/Spec.hpp>
+#include <nupic/ntypes/Value.hpp>
 #include <nupic/algorithms/BacktrackingTMCpp.hpp>
 //----------------------------------------------------------------------
 
 namespace nupic {
 class BacktrackingTMRegion : public RegionImpl {
+public:
   typedef void (*computeCallbackFunc)(const std::string &);
   typedef std::map<std::string, Spec> SpecMap;
 
-public:
-  BacktrackingTMRegion() = delete;
-  BacktrackingTMRegion(const BacktrackingTMRegion &) = delete;
   BacktrackingTMRegion(const ValueMap &params, Region *region);
   BacktrackingTMRegion(BundleIO &bundle, Region *region);
   virtual ~BacktrackingTMRegion() {}
@@ -74,7 +74,8 @@ public:
   // For per-region outputs, it is the total element count.
   // This method is called only for outputs whose size is not
   // specified in the spec.
-  size_t getNodeOutputElementCount(const std::string &outputName) override;
+  size_t getNodeOutputElementCount(const std::string &outputName) const override;
+  Dimensions askImplForOutputDimensions(const std::string &name) override;
 
 
 
@@ -94,8 +95,11 @@ public:
   void setParameterString(const std::string &name, Int64 index,
                           const std::string &s) override;
 
-protected:
+private:
+  //BacktrackingTMRegion() {}
+  //BacktrackingTMRegion(const BacktrackingTMRegion &){}
 
+protected:
   struct {
     UInt32 numberOfCols;
     UInt32 cellsPerColumn;

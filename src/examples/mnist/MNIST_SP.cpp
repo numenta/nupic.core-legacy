@@ -162,7 +162,7 @@ void test() {
       if( iter.first == 0 ) {
           const auto *pdf = iter.second;
           const auto max  = std::max_element(pdf->cbegin(), pdf->cend());
-          const UInt cls  = max - pdf->cbegin();
+          const UInt cls  = (UInt)(max - pdf->cbegin());
           if(cls == label)
             score += 1;
           n_samples += 1;

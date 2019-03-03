@@ -415,7 +415,9 @@ void SpatialPooler::initialize(
   }
   NTA_CHECK(numColumns_ > 0);
   NTA_CHECK(numInputs_ > 0);
-  NTA_CHECK(inputDimensions_.size() == columnDimensions_.size());
+
+  // 1D input produces 1D output; 2D => 2D, etc.
+  NTA_CHECK(inputDimensions_.size() == columnDimensions_.size()); 
 
   NTA_CHECK((numActiveColumnsPerInhArea > 0 && localAreaDensity < 0) ||
             (localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY
