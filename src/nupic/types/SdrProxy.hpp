@@ -78,6 +78,8 @@ private:
  *
  * SDR_Reshape partially supports the Serializable interface.  SDR_Reshape can
  * be saved but can not be loaded.
+ *
+ * Note: SDR_Reshape used to be called SDR_Proxy. See PR #298
  */
 class SDR_Reshape : public SDR_ReadOnly_
 {
