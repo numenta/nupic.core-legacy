@@ -289,32 +289,26 @@ special, it is replaced with the system time.  The default seed is 0.)",
         }));
 
 
-        py::class_<SDR_Proxy, SDR> py_Proxy(m, "SDR_Proxy",
-R"(SDR_Proxy presents a view onto an SDR.
-    * Proxies always have the same value as their source SDR.
-    * Proxies can be used in place of an SDR.
-    * Proxies are read only.
-    * Proxies can have different dimensions than their source SDR.
+        py::class_<SDR_Reshape, SDR> py_Reshape(m, "SDR_Reshape",
+R"(SDR_Reshape presents a view onto an SDR with different dimensions.
+    * The resulting SDR always has the same value as its source SDR.
+    * The resulting SDR is read only.
 
 Example Usage:
     # Convert SDR dimensions from (4 x 4) to (8 x 2)
     A = SDR([ 4, 4 ])
-    B = SDR_Proxy( A, [8, 2])
+    B = SDR_Reshape( A, [8, 2])
     A.coordinates =  ([1, 1, 2], [0, 1, 2])
     B.coordinates -> ([2, 2, 5], [0, 1, 0])
 
-SDR_Proxy supports pickle, however loading a pickled SDR proxy will return an
-SDR, not an SDR_Proxy.)");
+SDR_Reshape supports pickle, however loading a pickled SDR Reshape will return
+an SDR object, not an SDR_Reshape object.)");
 
-        py_Proxy.def( py::init<SDR&, vector<UInt>>(),
-R"(Argument sdr is the data source make a view of.
+        py_Reshape.def( py::init<SDR&, vector<UInt>>(),
+R"(Argument sdr is the data source to reshape.
 
-Argument dimensions A list of dimension sizes, defining the shape of the SDR.
-Optional, if not given then this Proxy will have the same dimensions as the
-given SDR.)",
+Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
             py::arg("sdr"), py::arg("dimensions"));
-
-        py_Proxy.def( py::init<SDR&>(), py::arg("sdr"));
 
 
         py::class_<SDR_Intersection, SDR> py_Intersect(m, "SDR_Intersection",

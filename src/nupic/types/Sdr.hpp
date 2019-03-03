@@ -196,7 +196,7 @@ protected:
      * Destroy this SDR.  Makes SDR unusable, should error or clearly fail if
      * used.  Also sends notification to all watchers via destroyCallbacks.
      * This is a separate method from ~SDR so that SDRs can be destroyed long
-     * before they're deallocated; SDR Proxy does this.
+     * before they're deallocated.
      */
     virtual void deconstruct();
 
