@@ -20,6 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
+#include <algorithm>
 #include <cmath>
 
 #include <nupic/types/ClassifierResult.hpp>
@@ -57,6 +58,19 @@ bool ClassifierResult::operator==(const ClassifierResult &other) const {
     }
   }
   return true;
+}
+
+UInt ClassifierResult::getClass(const UInt stepsAhead) const {
+  NTA_CHECK(stepsAhead < result_.size()) << "ClassifierResult is not for steps " << stepsAhead;
+  for(auto iter : this->result_) {
+    if( iter.first == (Int)stepsAhead ) {  //entry at nth step  (0==current) 
+      const auto *pdf = iter.second; //probability distribution of the classes
+      const auto max  = std::max_element(pdf->cbegin(), pdf->cend());
+      const UInt cls  = max - pdf->cbegin();
+      return cls;
+    }
+  }
+  NTA_THROW << "ClassifierResult did not match"; //should not come here
 }
 
 } // end namespace algorithms

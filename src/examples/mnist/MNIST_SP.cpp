@@ -23,7 +23,6 @@
  * This should score at least 95%.
  */
 
-#include <algorithm>
 #include <cstdint> //uint8_t
 #include <iostream>
 #include <vector>
@@ -156,16 +155,9 @@ void test() {
       /* infer */           true,
                             result);
     // Check results
-    for(auto iter : result) {
-      if( iter.first == 0 ) {
-          const auto *pdf = iter.second;
-          const auto max  = std::max_element(pdf->cbegin(), pdf->cend());
-          const UInt cls  = max - pdf->cbegin();
-          if(cls == label)
-            score += 1;
-          n_samples += 1;
-      }
-    }
+    const auto cls = result.getClass();
+    if(cls == label) score += 1;
+    n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }
   if( verbosity ) cout << endl;

@@ -72,6 +72,12 @@ public:
   virtual T *createVector(Int step, UInt size, Real64 value);
 
   /**
+   * get the most probable class (classification, label) from results.
+   * @param stepsAhead - for nth prediction (0=current)
+   */
+  UInt getClass(const UInt stepsAhead=0u) const;
+
+  /**
    * Checks if the other instance has the exact same values.
    *
    * @param other The other instance to compare to.
