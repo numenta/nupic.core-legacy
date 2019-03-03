@@ -33,15 +33,15 @@
 #include <algorithm> // sort
 
 
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/utils/Log.hpp>
 
-using namespace std;
 
 namespace nupic {
 namespace algorithms {
 namespace sdr_classifier {
+
+using namespace std;
 
 /**
  * get(x,y) accessor interface for Matrix; handles sparse (missing) values

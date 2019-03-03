@@ -33,16 +33,15 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/ClassifierResult.hpp>
+#include <nupic/types/ClassifierResult.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 namespace algorithms {
-
-typedef cla_classifier::ClassifierResult ClassifierResult;
-
 namespace sdr_classifier {
+using namespace std;
+using nupic::types::ClassifierResult;
 
 const UInt sdrClassifierVersion = 2;
 

@@ -30,7 +30,6 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
 
 #include <mnist/mnist_reader.hpp> // MNIST data itself + read methods, namespace mnist::
@@ -42,7 +41,7 @@ using namespace nupic;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::sdr_classifier::SDRClassifier;
-using nupic::algorithms::cla_classifier::ClassifierResult;
+using nupic::types::ClassifierResult;
 
 class MNIST {
 

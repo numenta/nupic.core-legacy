@@ -28,11 +28,11 @@
 
 #include <nupic/types/Types.hpp>
 
-using namespace std;
 
 namespace nupic {
-namespace algorithms {
-namespace cla_classifier {
+namespace types {
+
+using namespace std;
 
 /** CLA classifier result class.
  *
@@ -97,7 +97,6 @@ private:
 
 }; // end class ClassifierResult
 
-} // end namespace cla_classifier
 } // end namespace algorithms
 } // end namespace nupic
 

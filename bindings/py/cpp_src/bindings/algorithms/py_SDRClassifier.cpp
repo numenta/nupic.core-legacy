@@ -33,12 +33,10 @@ PyBind11 bindings for SDRClassifier class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 
 namespace py = pybind11;
 using namespace nupic;
-using namespace nupic::algorithms::cla_classifier;
 using namespace nupic::algorithms::sdr_classifier;
 
 namespace nupic_ext

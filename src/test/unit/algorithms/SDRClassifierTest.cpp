@@ -34,7 +34,6 @@
 
 #include <gtest/gtest.h>
 
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -54,11 +53,12 @@ protected:
 } // namespace algorithms
 } // namespace nupic
 
+namespace testing {
+
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::cla_classifier;
 using namespace nupic::algorithms::sdr_classifier;
-namespace {
+
 TEST_F(SDRClassifierTest, Basic) {
   vector<UInt> steps{1u};
   SDRClassifier c = SDRClassifier(steps, 0.1f, 0.1f, 0u);
