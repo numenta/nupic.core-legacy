@@ -33,6 +33,7 @@ namespace nupic {
 namespace types {
 
 using namespace std;
+using T = vector<Real64>;
 
 /** CLA classifier result class.
  *
@@ -68,7 +69,7 @@ public:
    *
    * @returns The specified vector.
    */
-  virtual vector<Real64> *createVector(Int step, UInt size, Real64 value);
+  virtual T *createVector(Int step, UInt size, Real64 value);
 
   /**
    * Checks if the other instance has the exact same values.
@@ -81,19 +82,19 @@ public:
   /**
    * Iterator method begin.
    */
-  virtual map<Int, vector<Real64> *>::const_iterator begin() {
+  virtual map<Int,  T*>::const_iterator begin() {
     return result_.begin();
   }
 
   /**
    * Iterator method end.
    */
-  virtual map<Int, vector<Real64> *>::const_iterator end() {
+  virtual map<Int, T*>::const_iterator end() {
     return result_.end();
   }
 
 private:
-  map<Int, vector<Real64> *> result_;
+  map<Int, T*> result_; //TODO do not use pointer T*, but T in this class
 
 }; // end class ClassifierResult
 

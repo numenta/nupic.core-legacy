@@ -30,24 +30,23 @@ namespace nupic {
 namespace types {
 
 ClassifierResult::~ClassifierResult() {
-  for (map<Int, vector<Real64> *>::const_iterator it = result_.begin();
+  for (map<Int, T*>::const_iterator it = result_.begin();
        it != result_.end(); ++it) {
     delete it->second;
   }
 }
 
-vector<Real64> *ClassifierResult::createVector(Int step, UInt size,
-                                               Real64 value) {
+T *ClassifierResult::createVector(Int step, UInt size, Real64 value) {
   NTA_CHECK(result_.count(step) == 0) << "The ClassifierResult cannot be reused!";
-  vector<Real64> *v = new vector<Real64>(size, value);
-  result_.insert(pair<Int, vector<Real64> *>(step, v));
+  T *v = new T(size, value);
+  result_.insert(pair<Int, T*>(step, v));
   return v;
 }
 
 bool ClassifierResult::operator==(const ClassifierResult &other) const {
   for (auto it = result_.begin(); it != result_.end(); it++) {
-    auto thisVec = it->second;
-    auto otherVec = other.result_.at(it->first);
+    const auto thisVec = it->second;
+    const auto otherVec = other.result_.at(it->first);
     if (otherVec == nullptr || thisVec->size() != otherVec->size()) {
       return false;
     }
