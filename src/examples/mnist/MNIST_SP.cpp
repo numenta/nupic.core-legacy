@@ -118,7 +118,7 @@ void train() {
       input.setDense( image );
       sp.compute(input, true, columns);
       ClassifierResult result;
-      clsr.compute(sp.getIterationNum(), columns.getFlatSparse(),
+      clsr.compute(sp.getIterationNum(), columns.getSparse(),
         /* bucketIdxList */   {label},
         /* actValueList */    {(Real)label},
         /* category */        true,
@@ -148,9 +148,8 @@ void test() {
     // Compute
     input.setDense( image );
     sp.compute(input, false, columns);
-    sp.stripUnlearnedColumns(columns);
     ClassifierResult result;
-    clsr.compute(sp.getIterationNum(), columns.getFlatSparse(),
+    clsr.compute(sp.getIterationNum(), columns.getSparse(),
       /* bucketIdxList */   {},
       /* actValueList */    {},
       /* category */        true,

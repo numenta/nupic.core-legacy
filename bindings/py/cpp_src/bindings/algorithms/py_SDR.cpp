@@ -45,7 +45,7 @@ state of a group of neurons or their associated processes.
 SDR's have three commonly used data formats which are:
 *   dense
 *   sparse
-*   flatSparse
+*   coordinates
 The SDR class has three magic properties, one for each of these data formats.
 These properties are the primary way of accessing the SDR's data.  When these
 properties are read from, the data is automatically converted to the requested
@@ -61,21 +61,21 @@ Example usage:
     X.dense  = [[0, 1, 0],
                 [0, 1, 0],
                 [0, 0, 1]]
-    X.sparse = [[0, 1, 2], [1, 1, 2]]
-    X.flatSparse = [ 1, 4, 8 ]
+    X.sparse = [ 1, 4, 8 ]
+    X.coordinates = [[0, 1, 2], [1, 1, 2]]
 
     # Access data in any format, SDR will automatically convert data formats,
     # even if it was not the format used by the most recent assignment to the
     # SDR.
-    X.dense      -> [[ 0, 1, 0 ],
-                     [ 0, 1, 0 ],
-                     [ 0, 0, 1 ]]
-    X.sparse     -> [[ 0, 1, 2 ], [1, 1, 2 ]]
-    x.flatSparse -> [ 1, 4, 8 ]
+    X.dense  -> [[ 0, 1, 0 ],
+                 [ 0, 1, 0 ],
+                 [ 0, 0, 1 ]]
+    x.sparse -> [ 1, 4, 8 ]
+    X.coordinates -> [[ 0, 1, 2 ], [1, 1, 2 ]]
 
     # Data format conversions are cached, and when an SDR value changes the
     # cache is cleared.
-    X.flatSparse = [1, 2, 3] # Assign new data to the SDR, clearing the cache.
+    X.sparse = [1, 2, 3] # Assign new data to the SDR, clearing the cache.
     X.dense     # This line will convert formats.
     X.dense     # This line will resuse the result of the previous line
 
@@ -85,12 +85,12 @@ This class will detect that it's being given it's own data and will omit the
 copy operation.
 
 Example Usage of In-Place Assignment:
-    X    = SDR((1000, 1000))
+    X    = SDR((1000, 1000))   # Initial value is all zeros
     data = X.dense
     data[  0,   4] = 1
     data[444, 444] = 1
     X.dense = data
-    X.flatSparse -> [ 4, 444444 ]
+    X.sparse -> [ 4, 444444 ]
 
 Data Validity Warning:  The SDR allocates and frees its data when it is
 constructed and deconstructed, respectively.  If you have a numpy array which
@@ -102,15 +102,14 @@ Examples of Invalid Data Accesses:
     del A
     # The variable "use_after_free" now references data which has been deallocated.
     # Another way this can happen is:
-    use_after_free = SDR( dimensions ).sparse
-    use_after_free = SDR( dimensions ).flatSparse
+    use_after_free = SDR( dimensions ).dense
 
 Data Validity Warning:  After assigning a new value to the SDR, all existing
 numpy arrays of data are invalid.  In order to get the latest copy of the data,
 re-access the data from the SDR.  Examples:
     A = SDR( dimensions )
     out_of_date = A.dense
-    A.flatSparse = []
+    A.sparse = []
     # The variable "out_of_date" is now liable to be overwritten.
     A.dense = out_of_date   # This does not work, since the data is invalid.
 )");
@@ -183,34 +182,34 @@ After modifying this array you MUST assign the array back into the SDR, in order
 to notify the SDR that its dense array has changed and its cached data is out of
 date.  If you did't copy this data, then SDR won't copy either.)");
 
-        py_SDR.def_property("flatSparse",
+        py_SDR.def_property("sparse",
             [](SDR &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
-                return py::array(self.getSum(), self.getFlatSparse().data(), capsule);
+                return py::array(self.getSum(), self.getSparse().data(), capsule);
             },
-            [](SDR &self, SDR_flatSparse_t data) {
+            [](SDR &self, SDR_sparse_t data) {
                 NTA_CHECK( data.size() <= self.size );
-                self.setFlatSparse( data ); },
+                self.setSparse( data ); },
 R"(A numpy array containing the indices of only the true values in the SDR.
 These are indices into the flattened SDR. This format allows for quickly
 accessing all of the true bits in the SDR.)");
 
-        py_SDR.def_property("sparse",
+        py_SDR.def_property("coordinates",
             [](SDR &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
                 auto outer   = py::list();
-                auto sparse  = self.getSparse().data();
-                for(auto dim = 0u; dim < self.dimensions.size(); dim++) {
-                    auto vec = py::array(sparse[dim].size(), sparse[dim].data(), capsule);
+                auto coords  = self.getCoordinates().data();
+                for(auto dim = 0u; dim < self.dimensions.size(); ++dim) {
+                    auto vec = py::array(coords[dim].size(), coords[dim].data(), capsule);
                     outer.append(vec);
                 }
                 return outer;
             },
-            [](SDR &self, SDR_sparse_t data) {
+            [](SDR &self, SDR_coordinate_t data) {
                 NTA_CHECK( data.size() == self.dimensions.size() );
-                self.setSparse( data ); },
-R"(List of numpy arrays, containing the indices of only the true values in the
-SDR.  This is a list of lists: the outter list contains an entry for each
+                self.setCoordinates( data ); },
+R"(List of numpy arrays, containing the coordinates of only the true values in
+the SDR.  This is a list of lists: the outter list contains an entry for each
 dimension in the SDR. The inner lists contain the coordinates of each true bit.
 The inner lists run in parallel. This format is useful because it contains the
 location of each true bit inside of the SDR's dimensional space.)");
@@ -290,32 +289,26 @@ special, it is replaced with the system time.  The default seed is 0.)",
         }));
 
 
-        py::class_<SDR_Proxy, SDR> py_Proxy(m, "SDR_Proxy",
-R"(SDR_Proxy presents a view onto an SDR.
-    * Proxies always have the same value as their source SDR.
-    * Proxies can be used in place of an SDR.
-    * Proxies are read only.
-    * Proxies can have different dimensions than their source SDR.
+        py::class_<SDR_Reshape, SDR> py_Reshape(m, "SDR_Reshape",
+R"(SDR_Reshape presents a view onto an SDR with different dimensions.
+    * The resulting SDR always has the same value as its source SDR.
+    * The resulting SDR is read only.
 
 Example Usage:
     # Convert SDR dimensions from (4 x 4) to (8 x 2)
     A = SDR([ 4, 4 ])
-    B = SDR_Proxy( A, [8, 2])
-    A.sparse =  ([1, 1, 2], [0, 1, 2])
-    B.sparse -> ([2, 2, 5], [0, 1, 0])
+    B = SDR_Reshape( A, [8, 2])
+    A.coordinates =  ([1, 1, 2], [0, 1, 2])
+    B.coordinates -> ([2, 2, 5], [0, 1, 0])
 
-SDR_Proxy supports pickle, however loading a pickled SDR proxy will return an
-SDR, not an SDR_Proxy.)");
+SDR_Reshape supports pickle, however loading a pickled SDR Reshape will return
+an SDR object, not an SDR_Reshape object.)");
 
-        py_Proxy.def( py::init<SDR&, vector<UInt>>(),
-R"(Argument sdr is the data source make a view of.
+        py_Reshape.def( py::init<SDR&, vector<UInt>>(),
+R"(Argument sdr is the data source to reshape.
 
-Argument dimensions A list of dimension sizes, defining the shape of the SDR.
-Optional, if not given then this Proxy will have the same dimensions as the
-given SDR.)",
+Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
             py::arg("sdr"), py::arg("dimensions"));
-
-        py_Proxy.def( py::init<SDR&>(), py::arg("sdr"));
 
 
         py::class_<SDR_Intersection, SDR> py_Intersect(m, "SDR_Intersection",
@@ -326,12 +319,12 @@ Example Usage:
     # Setup 2 SDRs to hold the inputs.
     A = SDR( 10 )
     B = SDR( 10 )
-    A.flatSparse =       [2, 3, 4, 5]
-    B.flatSparse = [0, 1, 2, 3]
+    A.sparse =       [2, 3, 4, 5]
+    B.sparse = [0, 1, 2, 3]
 
     # Calculate the logical intersection
     X = SDR_Intersection(A, B)
-    X.flatSparse -> [2, 3]
+    X.sparse -> [2, 3]
 
     # Assignments to the input SDRs are propigated to the SDR_Intersection
     B.zero()

@@ -123,7 +123,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tSPloc.start();
     fill(outSP.begin(), outSP.end(), 0);
     spLocal.compute(input.data(), true, outSP.data());
-    spLocal.stripUnlearnedColumns(outSP.data());
     tSPloc.stop();
     NTA_CHECK(outSP.size() == COLS);
     }
@@ -132,7 +131,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tSPglob.start();
     fill(outSP.begin(), outSP.end(), 0);
     spGlobal.compute(input.data(), true, outSP.data());
-    spGlobal.stripUnlearnedColumns(outSP.data());
     tSPglob.stop();
     NTA_CHECK(outSP.size() == COLS);
     }
