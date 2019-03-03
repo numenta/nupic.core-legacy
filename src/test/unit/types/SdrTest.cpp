@@ -695,7 +695,7 @@ TEST(SdrTest, TestCallbacks) {
     UInt handle1 = A.addCallback( call1 );
     UInt handle2 = A.addCallback( call2 );
     UInt handle3 = A.addCallback( call3 );
-    // Test reshape proxies get callbacks
+    // Test reshape gets callbacks
     SDR_Reshape C(A);
     C.addCallback( call4 );
 
@@ -745,7 +745,7 @@ TEST(SdrTest, TestCallbacks) {
     SDR B(A);
     ASSERT_ANY_THROW( B.removeCallback( handle1 ) );
     ASSERT_ANY_THROW( B.removeCallback( 0 ) );
-    // Check proxy got all of the callbacks.
+    // Check SDR Reshape got all of the callbacks and passed them along.
     ASSERT_EQ( count4, 4 );
 }
 

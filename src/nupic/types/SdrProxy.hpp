@@ -131,8 +131,8 @@ public:
             return parent->getCoordinates();
         }
         else {
-            // Don't override getCoordinates().  It will call either getDense() or
-            // getSparse() to get its data, and will use this proxies
+            // Don't override getCoordinates().  It will call either getDense()
+            // or getSparse() to get its data, and will use this SDR Reshape's
             // dimensions.
             return SDR::getCoordinates();
         }

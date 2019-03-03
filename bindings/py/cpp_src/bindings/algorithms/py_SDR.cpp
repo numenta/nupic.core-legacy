@@ -301,8 +301,8 @@ Example Usage:
     A.coordinates =  ([1, 1, 2], [0, 1, 2])
     B.coordinates -> ([2, 2, 5], [0, 1, 0])
 
-SDR_Reshape supports pickle, however loading a pickled SDR proxy will return an
-SDR object, not an SDR_Reshape object.)");
+SDR_Reshape supports pickle, however loading a pickled SDR Reshape will return
+an SDR object, not an SDR_Reshape object.)");
 
         py_Reshape.def( py::init<SDR&, vector<UInt>>(),
 R"(Argument sdr is the data source to reshape.

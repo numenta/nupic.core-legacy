@@ -41,7 +41,7 @@ TEST(SdrReshapeTest, TestReshapeConstructor) {
     SDR_Reshape   F( D, { 20, 6 });
     SDR_Reshape   X( (SDR&) F );
 
-    // Test that proxies can be safely made and destroyed.
+    // Test that SDR Reshapes can be safely made and destroyed.
     SDR_Reshape *G = new SDR_Reshape( A );
     SDR_Reshape *H = new SDR_Reshape( A );
     SDR_Reshape *I = new SDR_Reshape( A );
@@ -90,7 +90,7 @@ TEST(SdrReshapeTest, TestReshapeDeconstructor) {
     delete A;
     ASSERT_ANY_THROW( B->getDense() );
     ASSERT_ANY_THROW( E->getCoordinates() );
-    // Cleanup remaining Proxies.
+    // Cleanup remaining Reshapes.
     delete B;
     delete E;
 }
