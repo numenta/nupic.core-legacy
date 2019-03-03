@@ -23,14 +23,12 @@
  * This should score at least 95%.
  */
 
-#include <algorithm>
 #include <cstdint> //uint8_t
 #include <iostream>
 #include <vector>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
 
 #include <mnist/mnist_reader.hpp> // MNIST data itself + read methods, namespace mnist::
@@ -42,7 +40,7 @@ using namespace nupic;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::sdr_classifier::SDRClassifier;
-using nupic::algorithms::cla_classifier::ClassifierResult;
+using nupic::types::ClassifierResult;
 
 class MNIST {
 
@@ -124,7 +122,7 @@ void train() {
         /* category */        true,
         /* learn */           true,
         /* infer */           false,
-                              &result);
+                              result);
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
     }
     if( verbosity ) cout << endl;
@@ -155,18 +153,11 @@ void test() {
       /* category */        true,
       /* learn */           false,
       /* infer */           true,
-                            &result);
+                            result);
     // Check results
-    for(auto iter : result) {
-      if( iter.first == 0 ) {
-          const auto *pdf = iter.second;
-          const auto max  = std::max_element(pdf->cbegin(), pdf->cend());
-          const UInt cls  = max - pdf->cbegin();
-          if(cls == label)
-            score += 1;
-          n_samples += 1;
-      }
-    }
+    const auto cls = result.getClass();
+    if(cls == label) score += 1;
+    n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }
   if( verbosity ) cout << endl;

@@ -20,40 +20,38 @@
  * ---------------------------------------------------------------------
  */
 
+#include <algorithm>
 #include <cmath>
-#include <map>
-#include <vector>
 
-#include <nupic/algorithms/ClassifierResult.hpp>
-#include <nupic/types/Types.hpp>
+#include <nupic/types/ClassifierResult.hpp>
 #include <nupic/utils/Log.hpp>
+
+
+namespace nupic {
+namespace types {
 
 using namespace std;
 
-namespace nupic {
-namespace algorithms {
-namespace cla_classifier {
-
 ClassifierResult::~ClassifierResult() {
-  for (map<Int, vector<Real64> *>::const_iterator it = result_.begin();
+  for (map<Int, PDF*>::const_iterator it = result_.begin();
        it != result_.end(); ++it) {
     delete it->second;
   }
 }
 
-vector<Real64> *ClassifierResult::createVector(Int step, UInt size,
-                                               Real64 value) {
-  NTA_CHECK(result_.count(step) == 0)
-      << "The ClassifierResult cannot be reused!";
-  vector<Real64> *v = new vector<Real64>(size, value);
-  result_.insert(pair<Int, vector<Real64> *>(step, v));
+
+PDF *ClassifierResult::createVector(Int step, UInt size, Real64 value) {
+  NTA_CHECK(result_.count(step) == 0) << "The ClassifierResult cannot be reused!";
+  PDF *v = new PDF(size, value);
+  result_.insert(pair<Int, PDF*>(step, v));
   return v;
 }
 
+
 bool ClassifierResult::operator==(const ClassifierResult &other) const {
   for (auto it = result_.begin(); it != result_.end(); it++) {
-    auto thisVec = it->second;
-    auto otherVec = other.result_.at(it->first);
+    const auto thisVec = it->second;
+    const auto otherVec = other.result_.at(it->first);
     if (otherVec == nullptr || thisVec->size() != otherVec->size()) {
       return false;
     }
@@ -66,6 +64,20 @@ bool ClassifierResult::operator==(const ClassifierResult &other) const {
   return true;
 }
 
-} // end namespace cla_classifier
+
+UInt ClassifierResult::getClass(const UInt stepsAhead) const {
+  NTA_CHECK(stepsAhead < result_.size()) << "ClassifierResult is not for steps " << stepsAhead;
+  for(auto iter : this->result_) {
+    if( iter.first == (Int)stepsAhead ) {  //entry at nth step  (0==current) 
+      const auto *pdf = iter.second; //probability distribution of the classes
+      const auto max  = std::max_element(pdf->cbegin(), pdf->cend());
+      const UInt cls  = max - pdf->cbegin();
+      return cls;
+    }
+  }
+  NTA_THROW << "ClassifierResult did not match"; //should not come here
+}
+
+
 } // end namespace algorithms
 } // end namespace nupic
