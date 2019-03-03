@@ -30,19 +30,23 @@
 namespace nupic {
 namespace types {
 
+using namespace std;
+
 ClassifierResult::~ClassifierResult() {
-  for (map<Int, T*>::const_iterator it = result_.begin();
+  for (map<Int, PDF*>::const_iterator it = result_.begin();
        it != result_.end(); ++it) {
     delete it->second;
   }
 }
 
-T *ClassifierResult::createVector(Int step, UInt size, Real64 value) {
+
+PDF *ClassifierResult::createVector(Int step, UInt size, Real64 value) {
   NTA_CHECK(result_.count(step) == 0) << "The ClassifierResult cannot be reused!";
-  T *v = new T(size, value);
-  result_.insert(pair<Int, T*>(step, v));
+  PDF *v = new PDF(size, value);
+  result_.insert(pair<Int, PDF*>(step, v));
   return v;
 }
+
 
 bool ClassifierResult::operator==(const ClassifierResult &other) const {
   for (auto it = result_.begin(); it != result_.end(); it++) {
@@ -60,6 +64,7 @@ bool ClassifierResult::operator==(const ClassifierResult &other) const {
   return true;
 }
 
+
 UInt ClassifierResult::getClass(const UInt stepsAhead) const {
   NTA_CHECK(stepsAhead < result_.size()) << "ClassifierResult is not for steps " << stepsAhead;
   for(auto iter : this->result_) {
@@ -72,6 +77,7 @@ UInt ClassifierResult::getClass(const UInt stepsAhead) const {
   }
   NTA_THROW << "ClassifierResult did not match"; //should not come here
 }
+
 
 } // end namespace algorithms
 } // end namespace nupic

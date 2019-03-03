@@ -32,8 +32,7 @@
 namespace nupic {
 namespace types {
 
-using namespace std;
-using T = vector<Real64>;
+using PDF = std::vector<Real64>; //PDF..probability density function, distribution of likelihood of values
 
 /** CLA classifier result class.
  *
@@ -43,6 +42,7 @@ using T = vector<Real64>;
  *
  */
 class ClassifierResult {
+
 public:
   /**
    * Constructor.
@@ -69,7 +69,7 @@ public:
    *
    * @returns The specified vector.
    */
-  virtual T *createVector(Int step, UInt size, Real64 value);
+  virtual PDF *createVector(Int step, UInt size, Real64 value);
 
   /**
    * get the most probable class (classification, label) from results.
@@ -88,19 +88,19 @@ public:
   /**
    * Iterator method begin.
    */
-  virtual map<Int,  T*>::const_iterator begin() {
+  virtual std::map<Int,  PDF*>::const_iterator begin() {
     return result_.begin();
   }
 
   /**
    * Iterator method end.
    */
-  virtual map<Int, T*>::const_iterator end() {
+  virtual std::map<Int, PDF*>::const_iterator end() {
     return result_.end();
   }
 
 private:
-  map<Int, T*> result_; //TODO do not use pointer T*, but T in this class
+  std::map<Int, PDF*> result_; //TODO do not use pointer T*, but T in this class
 
 }; // end class ClassifierResult
 

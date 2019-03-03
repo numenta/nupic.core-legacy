@@ -41,7 +41,7 @@ namespace nupic_ext
 namespace py = pybind11;
 using namespace nupic;
 using namespace nupic::algorithms::sdr_classifier;
-using T = std::vector<Real64>;
+using nupic::types::PDF;
 
     void init_SDR_Classifier(py::module& m)
     {
@@ -67,7 +67,7 @@ using T = std::vector<Real64>;
 
             py::dict dict;
 
-            for (map<Int, T*>::const_iterator it = result.begin(); it != result.end(); ++it)
+            for (map<Int, PDF*>::const_iterator it = result.begin(); it != result.end(); ++it)
             {
                 std::string key = "actualValues";
 
