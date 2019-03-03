@@ -123,7 +123,7 @@ void train() {
         /* category */        true,
         /* learn */           true,
         /* infer */           false,
-                              &result);
+                              result);
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
     }
     if( verbosity ) cout << endl;
@@ -154,7 +154,7 @@ void test() {
       /* category */        true,
       /* learn */           false,
       /* infer */           true,
-                            &result);
+                            result);
     // Check results
     for(auto iter : result) {
       if( iter.first == 0 ) {
