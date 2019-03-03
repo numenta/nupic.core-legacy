@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Proxy, SDR_Intersection, SDR_Concatenation
+from nupic.bindings.algorithms import SDR, SDR_Reshape, SDR_Intersection, SDR_Concatenation
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -320,26 +320,26 @@ class SdrTest(unittest.TestCase):
             assert( A == B )
 
 
-class SdrProxyTest(unittest.TestCase):
+class SdrReshapeTest(unittest.TestCase):
     def testExampleUsage(self):
-        assert( issubclass(SDR_Proxy, SDR) )
+        assert( issubclass(SDR_Reshape, SDR) )
         # Convert SDR dimensions from (4 x 4) to (8 x 2)
         A = SDR([ 4, 4 ])
-        B = SDR_Proxy( A, [8, 2])
+        B = SDR_Reshape( A, [8, 2])
         A.coordinates =  ([1, 1, 2], [0, 1, 2])
         assert( (np.array(B.coordinates) == ([2, 2, 5], [0, 1, 0]) ).all() )
 
     def testLostSDR(self):
         # You need to keep a reference to the SDR, since SDR class does not use smart pointers.
-        B = SDR_Proxy(SDR((1000,)))
+        B = SDR_Reshape(SDR((1000,)), [1000])
         with self.assertRaises(RuntimeError):
             B.dense
 
     def testChaining(self):
         A = SDR([10,10])
-        B = SDR_Proxy(A)
-        C = SDR_Proxy(B)
-        D = SDR_Proxy(B)
+        B = SDR_Reshape(A, [100])
+        C = SDR_Reshape(B, [4, 25])
+        D = SDR_Reshape(B, [1, 100])
 
         A.dense.fill( 1 )
         A.dense = A.dense
