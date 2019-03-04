@@ -45,7 +45,8 @@ namespace nupic {
 // IO CONTROL AND MANIPULATORS
 //--------------------------------------------------------------------------------
 
-struct IOControl {
+struct IOControl { //TODO remove other, all of IOControl
+
   int abbr;           // shorten long vectors output
   bool output_n_elts; // output vector size at beginning
 
@@ -88,26 +89,6 @@ inline std::basic_ostream<CharT, Traits> &operator,(
   return out_stream;
 }
 
-template <typename CharT, typename Traits>
-inline std::basic_ostream<CharT, Traits> &
-p_paren(std::basic_ostream<CharT, Traits> &out_stream) {
-  io_control.pair_paren = true;
-  return out_stream;
-}
-
-template <typename CharT, typename Traits>
-inline std::basic_ostream<CharT, Traits> &
-psep_comma(std::basic_ostream<CharT, Traits> &out_stream) {
-  io_control.pair_sep = ",";
-  return out_stream;
-}
-
-template <typename CharT, typename Traits>
-inline std::basic_ostream<CharT, Traits> &
-psep_dot(std::basic_ostream<CharT, Traits> &out_stream) {
-  io_control.pair_sep = ".";
-  return out_stream;
-}
 
 struct abbr {
   int n;
