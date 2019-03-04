@@ -33,16 +33,15 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/ClassifierResult.hpp>
+#include <nupic/types/ClassifierResult.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 namespace algorithms {
-
-typedef cla_classifier::ClassifierResult ClassifierResult;
-
 namespace sdr_classifier {
+using namespace std;
+using nupic::types::ClassifierResult;
 
 const UInt sdrClassifierVersion = 2;
 
@@ -103,7 +102,7 @@ public:
   virtual void compute(UInt recordNum, const vector<UInt> &patternNZ,
                        const vector<UInt> &bucketIdxList,
                        const vector<Real64> &actValueList, bool category,
-                       bool learn, bool infer, ClassifierResult *result);
+                       bool learn, bool infer, ClassifierResult &result);
 
   /**
    * Gets the version number
@@ -148,7 +147,7 @@ public:
 private:
   // Helper function for inference mode
   void infer_(const vector<UInt> &patternNZ, const vector<Real64> &actValue,
-              ClassifierResult *result);
+              ClassifierResult &result);
 
   // Helper function to compute the error signal in learning mode
   vector<Real64> calculateError_(const vector<UInt> &bucketIdxList,

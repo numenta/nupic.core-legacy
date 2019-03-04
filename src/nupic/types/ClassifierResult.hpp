@@ -28,11 +28,11 @@
 
 #include <nupic/types/Types.hpp>
 
-using namespace std;
 
 namespace nupic {
-namespace algorithms {
-namespace cla_classifier {
+namespace types {
+
+using PDF = std::vector<Real64>; //PDF..probability density function, distribution of likelihood of values
 
 /** CLA classifier result class.
  *
@@ -42,6 +42,7 @@ namespace cla_classifier {
  *
  */
 class ClassifierResult {
+
 public:
   /**
    * Constructor.
@@ -68,7 +69,13 @@ public:
    *
    * @returns The specified vector.
    */
-  virtual vector<Real64> *createVector(Int step, UInt size, Real64 value);
+  virtual PDF *createVector(Int step, UInt size, Real64 value);
+
+  /**
+   * get the most probable class (classification, label) from results.
+   * @param stepsAhead - for nth prediction (0=current)
+   */
+  UInt getClass(const UInt stepsAhead=0u) const;
 
   /**
    * Checks if the other instance has the exact same values.
@@ -81,23 +88,22 @@ public:
   /**
    * Iterator method begin.
    */
-  virtual map<Int, vector<Real64> *>::const_iterator begin() {
+  virtual std::map<Int,  PDF*>::const_iterator begin() {
     return result_.begin();
   }
 
   /**
    * Iterator method end.
    */
-  virtual map<Int, vector<Real64> *>::const_iterator end() {
+  virtual std::map<Int, PDF*>::const_iterator end() {
     return result_.end();
   }
 
 private:
-  map<Int, vector<Real64> *> result_;
+  std::map<Int, PDF*> result_; //TODO do not use pointer T*, but T in this class
 
 }; // end class ClassifierResult
 
-} // end namespace cla_classifier
 } // end namespace algorithms
 } // end namespace nupic
 

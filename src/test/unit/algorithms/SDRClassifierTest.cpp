@@ -34,7 +34,6 @@
 
 #include <gtest/gtest.h>
 
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -54,11 +53,12 @@ protected:
 } // namespace algorithms
 } // namespace nupic
 
+namespace testing {
+
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::cla_classifier;
 using namespace nupic::algorithms::sdr_classifier;
-namespace {
+
 TEST_F(SDRClassifierTest, Basic) {
   vector<UInt> steps{1u};
   SDRClassifier c = SDRClassifier(steps, 0.1f, 0.1f, 0u);
@@ -68,14 +68,14 @@ TEST_F(SDRClassifierTest, Basic) {
   vector<UInt> bucketIdxList1{4u};
   vector<Real64> actValueList1{34.7f};
   ClassifierResult result1;
-  c.compute(0u, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
+  c.compute(0u, input1, bucketIdxList1, actValueList1, false, true, true, result1);
 
   // Create a vector of input bit indices
   vector<UInt> input2{1u, 5u, 9u};
   vector<UInt> bucketIdxList2{4u};
   vector<Real64> actValueList2{ 34.7f };
   ClassifierResult result2;
-  c.compute(1u, input2, bucketIdxList2, actValueList2, false, true, true, &result2);
+  c.compute(1u, input2, bucketIdxList2, actValueList2, false, true, true, result2);
 
   {
     bool foundMinus1 = false;
@@ -120,7 +120,7 @@ TEST_F(SDRClassifierTest, SingleValue) {
   ClassifierResult result1;
   for (UInt i = 0u; i < 10u; ++i) {
     ClassifierResult result1;
-    c.compute(i, input1, bucketIdxList, actValueList, false, true, true, &result1);
+    c.compute(i, input1, bucketIdxList, actValueList, false, true, true, result1);
   }
 
   {
@@ -166,23 +166,23 @@ TEST_F(SDRClassifierTest, ComputeComplex) {
 
   ClassifierResult result1;
   c.compute(0, input1, bucketIdxList1, actValueList1, false, true, true,
-            &result1);
+            result1);
 
   ClassifierResult result2;
   c.compute(1, input2, bucketIdxList2, actValueList2, false, true, true,
-            &result2);
+            result2);
 
   ClassifierResult result3;
   c.compute(2, input3, bucketIdxList3, actValueList3, false, true, true,
-            &result3);
+            result3);
 
   ClassifierResult result4;
   c.compute(3, input1, bucketIdxList4, actValueList4, false, true, true,
-            &result4);
+            result4);
 
   ClassifierResult result5;
   c.compute(4, input1, bucketIdxList5, actValueList5, false, true, true,
-            &result5);
+            result5);
 
   {
     bool foundMinus1 = false;
@@ -248,20 +248,20 @@ TEST_F(SDRClassifierTest, MultipleCategory) {
     ClassifierResult result1;
     ClassifierResult result2;
     c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true,
-              true, &result1);
+              true, result1);
     recordNum += 1u;
     c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true,
-              true, &result2);
+              true, result2);
     recordNum += 1u;
   }
 
   ClassifierResult result1;
   ClassifierResult result2;
   c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true,
-            &result1);
+            result1);
   recordNum += 1u;
   c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true,
-            &result2);
+            result2);
   recordNum += 1u;
 
   for (auto it = result1.begin(); it != result1.end(); ++it) {
@@ -293,7 +293,7 @@ TEST_F(SDRClassifierTest, SaveLoad) {
   vector<UInt> bucketIdxList1{4u};
   vector<Real64> actValueList1{34.7f};
   ClassifierResult result;
-  c1.compute(0u, input1, bucketIdxList1, actValueList1, false, true, true, &result);
+  c1.compute(0u, input1, bucketIdxList1, actValueList1, false, true, true, result);
 
   {
     stringstream ss;
@@ -303,8 +303,8 @@ TEST_F(SDRClassifierTest, SaveLoad) {
   ASSERT_EQ(c1, c2);
 
   ClassifierResult result1, result2;
-  c1.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, &result1);
-  c2.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, &result2);
+  c1.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result1);
+  c2.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result2);
 
   ASSERT_EQ(result1, result2);
 }

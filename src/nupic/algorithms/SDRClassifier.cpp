@@ -33,15 +33,15 @@
 #include <algorithm> // sort
 
 
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/utils/Log.hpp>
 
-using namespace std;
 
 namespace nupic {
 namespace algorithms {
 namespace sdr_classifier {
+
+using namespace std;
 
 /**
  * get(x,y) accessor interface for Matrix; handles sparse (missing) values
@@ -99,7 +99,7 @@ SDRClassifier::~SDRClassifier() {}
 void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
                             const vector<UInt> &bucketIdxList,
                             const vector<Real64> &actValueList, bool category,
-                            bool learn, bool infer, ClassifierResult *result) {
+                            bool learn, bool infer, ClassifierResult &result) {
   // ensures that recordNum increases monotonically
   UInt lastRecordNum = -1;
   if (recordNumHistory_.size() > 0) {
@@ -193,12 +193,12 @@ size_t SDRClassifier::persistentSize() const {
 
 void SDRClassifier::infer_(const vector<UInt> &patternNZ,
                            const vector<Real64> &actValue,
-                           ClassifierResult *result) {
+                           ClassifierResult &result) {
   // add the actual values to the return value. For buckets that haven't
   // been seen yet, the actual value doesn't matter since it will have
   // zero likelihood.
   vector<Real64> *actValueVector =
-      result->createVector(-1, (UInt)actualValues_.size(), 0.0);
+      result.createVector(-1, (UInt)actualValues_.size(), 0.0);
   for (UInt i = 0; i < (UInt)actualValues_.size(); ++i) {
     if (actualValuesSet_[i]) {
       (*actValueVector)[i] = actualValues_[i];
@@ -214,7 +214,7 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
   }
 
   for (auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps) {
-    vector<Real64>* likelihoods = result->createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
+    vector<Real64>* likelihoods = result.createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
     for (const auto& bit : patternNZ) {
       const Matrix& w = weightMatrix_.at(*nSteps);
       for(UInt i =0; i< (UInt)likelihoods->size(); i++) {
