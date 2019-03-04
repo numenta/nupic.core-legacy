@@ -193,49 +193,6 @@ general_vector(std::basic_ostream<CharT, Traits> &out_stream) {
 }
 
 //--------------------------------------------------------------------------------
-// SM IO CONTROL
-//--------------------------------------------------------------------------------
-struct sparse_format_class {
-  SPARSE_IO_TYPE format;
-
-  inline sparse_format_class(SPARSE_IO_TYPE f) : format(f) {}
-};
-
-inline sparse_format_class sparse_format(SPARSE_IO_TYPE f) {
-  return sparse_format_class(f);
-}
-
-template <typename CharT, typename Traits>
-inline std::basic_ostream<CharT, Traits> &
-operator<<(std::basic_ostream<CharT, Traits> &out_stream,
-           sparse_format_class s) {
-  io_control.sparse_io = s.format;
-  return out_stream;
-}
-
-template <typename CharT, typename Traits>
-inline std::basic_istream<CharT, Traits> &
-operator>>(std::basic_istream<CharT, Traits> &in_stream,
-           sparse_format_class s) {
-  io_control.sparse_io = s.format;
-  return in_stream;
-}
-
-template <typename CharT, typename Traits>
-inline std::basic_ostream<CharT, Traits> &
-as_dense(std::basic_ostream<CharT, Traits> &out_stream) {
-  io_control.sparse_io = AS_DENSE;
-  return out_stream;
-}
-
-template <typename CharT, typename Traits>
-inline std::basic_ostream<CharT, Traits> &
-as_binary(std::basic_ostream<CharT, Traits> &out_stream) {
-  io_control.sparse_io = BINARY;
-  return out_stream;
-}
-
-//--------------------------------------------------------------------------------
 // CHECKERS
 //--------------------------------------------------------------------------------
 template <typename T1> struct is_positive_checker {
