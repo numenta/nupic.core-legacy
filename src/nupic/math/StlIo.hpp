@@ -193,39 +193,6 @@ general_vector(std::basic_ostream<CharT, Traits> &out_stream) {
 }
 
 //--------------------------------------------------------------------------------
-// CHECKERS
-//--------------------------------------------------------------------------------
-template <typename T1> struct is_positive_checker {
-  T1 &var;
-
-  inline is_positive_checker(T1 &v) : var(v) {}
-
-  template <typename CharT, typename Traits>
-  inline void do_check(std::basic_istream<CharT, Traits> &in_stream) {
-    double value = 0;
-    in_stream >> value;
-    if (value < 0) {
-      std::cout << "Value out of range: " << value
-                << " - Expected positive or zero value" << std::endl;
-      exit(-1);
-    }
-    var = (T1)value;
-  }
-};
-
-template <typename CharT, typename Traits, typename T1>
-inline std::basic_istream<CharT, Traits> &
-operator>>(std::basic_istream<CharT, Traits> &in_stream,
-           is_positive_checker<T1> cp) {
-  cp.do_check(in_stream);
-  return in_stream;
-}
-
-template <typename T1> inline is_positive_checker<T1> assert_positive(T1 &var) {
-  return is_positive_checker<T1>(var);
-}
-
-//--------------------------------------------------------------------------------
 // BINARY PERSISTENCE
 //--------------------------------------------------------------------------------
 template <typename It>
