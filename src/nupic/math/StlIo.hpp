@@ -527,22 +527,6 @@ template <typename T1, typename T2>
   }
 
 
-
-//--------------------------------------------------------------------------------
-// MISCELLANEOUS
-//--------------------------------------------------------------------------------
-template <typename T>
-inline void show_all_differences(const std::vector<T> &x,
-                                 const std::vector<T> &y) {
-  std::vector<size_t> diffs;
-  find_all_differences(x, y, diffs);
-  std::cout << diffs.size() << " differences: " << std::endl;
-  for (size_t i = 0; i != diffs.size(); ++i)
-    std::cout << "(at:" << diffs[i] << " y=" << x[diffs[i]]
-              << ", ans=" << y[diffs[i]] << ")";
-  std::cout << std::endl;
-}
-
 //--------------------------------------------------------------------------------
 } // end namespace nupic
 #endif // NTA_STL_IO_HPP
