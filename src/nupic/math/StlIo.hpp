@@ -37,7 +37,7 @@
 #include <iostream>
 
 #include <nupic/types/Types.hpp>
-#include <nupic/math/Types.hpp> // Buffer
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
@@ -509,27 +509,6 @@ inline std::istream &operator>>(std::istream &in_stream, std::vector<T> &v) {
   return in_stream;
 }
 
-//--------------------------------------------------------------------------------
-/**
- * Doesn't save the size of the buffer itself.
- */
-template <typename T>
-inline std::ostream &operator<<(std::ostream &out_stream, const Buffer<T> &b) {
-  vector_save(b.nnz, out_stream, static_cast<const std::vector<T> &>(b));
-  return out_stream;
-}
-
-//--------------------------------------------------------------------------------
-/**
- * Doesn't set the size of the buffer itself.
- */
-template <typename T>
-inline std::istream &operator>>(std::istream &in_stream, Buffer<T> &b) {
-  in_stream >> b.nnz;
-  NTA_ASSERT(b.nnz <= b.size());
-  vector_load(b.nnz, in_stream, static_cast<std::vector<T> &>(b));
-  return in_stream;
-}
 
 //--------------------------------------------------------------------------------
 // std::set
