@@ -139,7 +139,7 @@ void TemporalMemory::initialize(
   extra_ = extra;
 
   // Initialize member variables
-  connections = Connections(numberOfColumns() * cellsPerColumn_);
+  connections = Connections(numberOfColumns() * cellsPerColumn_, connectedPermanence_);
   seed_((UInt64)(seed < 0 ? rand() : seed));
 
   maxSegmentsPerCell_ = maxSegmentsPerCell;
@@ -526,8 +526,8 @@ void TemporalMemory::activateDendrites(bool learn,
 {
     if( extra_ )
     {
-        NTA_CHECK( extraActive.size  == numberOfCells() );
-        NTA_CHECK( extraWinners.size == numberOfCells() );
+        NTA_CHECK( extraActive.size  == extra_ );
+        NTA_CHECK( extraWinners.size == extra_ );
         activateDendrites( learn, extraActive.getSparse(),
                                   extraWinners.getSparse());
     }

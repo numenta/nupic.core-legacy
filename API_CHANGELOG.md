@@ -58,3 +58,5 @@ are ignored.  PR #271
 * Removed all matrix libraries.  Use the `Connections` class instead.  PR #169
 
 * Removed `void SpatialPooler::stripUnlearnedColumns()` as unused and not useful (did not effectively remove any columns). PR #286 
+
+* Changed SDRClassifier::compute() signature to take parameter `ClassifierResult& result`, instead of a raw pointer. PR #301

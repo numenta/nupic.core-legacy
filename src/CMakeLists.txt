@@ -83,8 +83,6 @@ set(algorithm_files
     nupic/algorithms/Cell.hpp
     nupic/algorithms/Cells4.cpp
     nupic/algorithms/Cells4.hpp
-    nupic/algorithms/ClassifierResult.cpp
-    nupic/algorithms/ClassifierResult.hpp
     nupic/algorithms/Connections.cpp
     nupic/algorithms/Connections.hpp
     nupic/algorithms/InSynapse.cpp
@@ -142,8 +140,6 @@ set(math_files
     nupic/math/StlIo.hpp
     nupic/math/Topology.cpp
     nupic/math/Topology.hpp
-    nupic/math/Types.hpp
-    nupic/math/Utils.hpp
 )
 
 
@@ -199,6 +195,8 @@ set(regions_files
 set(types_files
     nupic/types/BasicType.cpp
     nupic/types/BasicType.hpp
+    nupic/types/ClassifierResult.cpp
+    nupic/types/ClassifierResult.hpp
     nupic/types/Exception.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
