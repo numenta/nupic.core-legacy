@@ -73,7 +73,7 @@
 #include <string>
 #include <vector>
 
-#include "regionTestUtilities.hpp"
+#include "RegionTestUtilities.hpp"
 #include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 
