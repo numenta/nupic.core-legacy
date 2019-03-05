@@ -384,15 +384,21 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "continue with execution." << std::endl;
     // can we continue with execution?  See if we get any exceptions.
     n1region1->setParameterReal64("sensedValue", 0.12);
+    VERBOSE << "continue 1." << std::endl;
     n1region1->prepareInputs();
+    VERBOSE << "continue 2." << std::endl;
     n1region1->compute();
+    VERBOSE << "continue 3." << std::endl;
 
     n2region2->prepareInputs();
+    VERBOSE << "continue 4." << std::endl;
     n2region2->compute();
+    VERBOSE << "continue 5." << std::endl;
 
     // Change a parameters and see if it is retained after a restore.
     n2region2->setParameterReal32("permanenceDecrement", 0.099f);
     n2region2->compute();
+    VERBOSE << "continue 6." << std::endl;
 
     parameterMap.clear();
     EXPECT_TRUE(captureParameters(n2region2, parameterMap))
