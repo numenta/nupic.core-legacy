@@ -138,12 +138,10 @@ private:
   void appendCSVFile(std::istream &inFile, Size expectedElementCount);
 
   /// Read vectors from a binary file.
-  void appendFloat32File(const std::string &filename, Size expectedElements,
-                         bool bigEndian);
+  void appendFloat32File(const std::string &filename, Size expectedElements);
 
   /// Read vectors from a binary IDX file.
-  void appendIDXFile(const std::string &filename, int expectedElements,
-                     bool bigEndian);
+  void appendIDXFile(const std::string &filename, int expectedElements);
   void loadVectors(std::istream &f, size_t nRows, size_t nCols, int format);
 }; // end class VectorFile
 
