@@ -72,12 +72,12 @@
 #include <string>
 #include <vector>
 
-#include "regionTestUtilities.hpp"
+#include "RegionTestUtilities.hpp"
 #include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "
-static bool verbose = false; // turn this on to print extra stuff for debugging the test.
+static bool verbose = true; // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually
 // verified.
@@ -304,13 +304,12 @@ TEST(TMRegionTest, testLinking) {
 
   VERBOSE << "Checking Output Data." << std::endl;
   VERBOSE << "  TMRegion output" << std::endl;
-  UInt32 nCells = numberOfCols * cellsPerColumn;
   r3OutputArray = region3->getOutputData("bottomUpOut");
   ASSERT_TRUE(r3OutputArray.getCount() == numberOfCols * cellsPerColumn)
       << "Buffer length different. Output from TMRegion is "
-      << r3OutputArray.getCount() << ", should be " 
+      << r3OutputArray.getCount() << ", should be (" 
       << numberOfCols << " * " << cellsPerColumn;
-  VERBOSE << "   " << r3OutputArray << "\n";
+  VERBOSE << "   " << r3OutputArray << ")\n";
   std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
             {20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u, 29u, 35u, 36u, 37u, 38u, 
              39u, 45u, 46u, 47u, 48u, 49u, 50u, 51u, 52u, 53u, 54u, 60u, 61u, 62u, 

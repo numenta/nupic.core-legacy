@@ -78,7 +78,7 @@
 #include "gtest/gtest.h"
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "
-static bool verbose = true; // turn this on to print extra stuff for debugging the test.
+static bool verbose = false; // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually
 // verified.
