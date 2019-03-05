@@ -90,6 +90,10 @@ public:
 
 private:
   Dimensions columnDimensions_;
+
+  // Note: to avoid deserialization problems due to differences in 
+  //       how compilers deal with structure padding, do not allow
+  //       any member to span an 64bit (8byte) boundary.
   struct {
     UInt32 numberOfCols;
     UInt32 cellsPerColumn;
@@ -112,14 +116,12 @@ private:
     bool orColumnOutputs;
 
     // some local variables
-    UInt32 outputWidth; // columnCount *cellsPerColumn
     bool init;
-    Size iter;
+    UInt32 padding; // to prevent the next field from spanning 8 byte boundary.
+    UInt32 outputWidth; // columnCount *cellsPerColumn
     UInt32 sequencePos;
+    Size iter;
   } args_;
-
-  //std::string cellsSavePath_;
-  //std::string logPathOutput_;
 
 
 

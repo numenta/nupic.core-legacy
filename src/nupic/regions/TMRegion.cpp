@@ -798,13 +798,13 @@ void TMRegion::serialize(BundleIO &bundle) {
   f << "TMRegion " << version << std::endl;
   f << sizeof(args_) << " ";
   f.write((const char*)&args_, sizeof(args_));
+  f << columnDimensions_ << " ";
   f << std::endl;
-  //f << cellsSavePath_ << std::endl;
-  //f << logPathOutput_ << std::endl;
   if (tm_) {
     // Note: tm_ saves the output buffers
     tm_->save(f);
   }
+  f << "~TMRegion ";
 }
 
 
@@ -827,17 +827,13 @@ void TMRegion::deserialize(BundleIO &bundle) {
   }
   f >> version;
   NTA_CHECK(version >= VERSION) << "TMRegion deserialization, Expecting version 1 or greater.";
-  f.ignore(1);
   f >> len;
   NTA_CHECK(len == sizeof(args_)) << "TMRegion deserialization, saved size of "
                                      "structure args_ is wrong: " << len;
   f.ignore(1);
   f.read((char *)&args_, len);
+  f >> columnDimensions_;
   f.ignore(1);
-  //f.getline(bigbuffer, sizeof(bigbuffer));
-  //cellsSavePath_ = bigbuffer;
-  //f.getline(bigbuffer, sizeof(bigbuffer));
-  //logPathOutput_ = bigbuffer;
 
   if (args_.init) {
     TemporalMemory* tm = new TemporalMemory();
@@ -847,5 +843,8 @@ void TMRegion::deserialize(BundleIO &bundle) {
   } else {
     tm_ = nullptr;
   }
+  f >> tag;
+  NTA_CHECK(tag == "~TMRegion") << "expected end of TMRegion serialization";
+  f.ignore(1);
 }
 

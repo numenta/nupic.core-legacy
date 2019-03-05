@@ -345,11 +345,14 @@ TEST(TMRegionTest, testSerialization) {
     std::shared_ptr<Region> n1region2 =  net1->addRegion("region2", "TMRegion", "{numberOfCols: 48}");
 
     net1->link("region1", "region2", "", "", "encoded", "bottomUpIn");
+    VERBOSE << "Initialize" << std::endl;
     net1->initialize();
 
+    VERBOSE << "compute region1" << std::endl;
     n1region1->prepareInputs();
     n1region1->compute();
 
+    VERBOSE << "compute region2" << std::endl;
     n1region2->prepareInputs();
     n1region2->compute();
 
@@ -359,6 +362,7 @@ TEST(TMRegionTest, testSerialization) {
     EXPECT_TRUE(captureParameters(n1region2, parameterMap))
         << "Capturing parameters before save.";
 
+    VERBOSE << "saveToFile" << std::endl;
     Directory::removeTree("TestOutputDir", true);
     net1->saveToFile("TestOutputDir/tmRegionTest.stream");
 
@@ -366,6 +370,7 @@ TEST(TMRegionTest, testSerialization) {
     net2 = new Network();
     net2->loadFromFile("TestOutputDir/tmRegionTest.stream");
 
+    VERBOSE << "checked restored network" << std::endl;
     std::shared_ptr<Region> n2region2 = net2->getRegions().getByName("region2");
     ASSERT_TRUE(n2region2->getType() == "TMRegion")
         << " Restored TMRegion region does not have the right type.  Expected "
@@ -376,6 +381,7 @@ TEST(TMRegionTest, testSerialization) {
         << "Conflict when comparing TMRegion parameters after restore with "
            "before save.";
 
+    VERBOSE << "continue with execution." << std::endl;
     // can we continue with execution?  See if we get any exceptions.
     n1region1->setParameterReal64("sensedValue", 0.12);
     n1region1->prepareInputs();
@@ -392,10 +398,10 @@ TEST(TMRegionTest, testSerialization) {
     EXPECT_TRUE(captureParameters(n2region2, parameterMap))
         << "Capturing parameters before second save.";
     // serialize using a stream to a single file
+    VERBOSE << "save second network." << std::endl;
     net2->saveToFile("TestOutputDir/tmRegionTest.stream");
 
-    VERBOSE << "Restore into a third network and compare changed parameters."
-            << std::endl;
+    VERBOSE << "Restore into a third network and compare changed parameters." << std::endl;
     net3 = new Network();
     net3->loadFromFile("TestOutputDir/tmRegionTest.stream");
     std::shared_ptr<Region> n3region2 = net3->getRegions().getByName("region2");
@@ -413,6 +419,7 @@ TEST(TMRegionTest, testSerialization) {
     FAIL() << "Failure: Exception: " << e.what() << "" << std::endl;
   }
 
+  VERBOSE << "Cleanup" << std::endl;
   // cleanup
   if (net1 != nullptr) {
     delete net1;
