@@ -140,7 +140,6 @@ set(math_files
     nupic/math/StlIo.hpp
     nupic/math/Topology.cpp
     nupic/math/Topology.hpp
-    nupic/math/Utils.hpp
 )
 
 
