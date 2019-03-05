@@ -218,8 +218,8 @@ void Input::initialize() {
         out.setDimensions(d);
       }
       NTA_CHECK(d.isSpecified())
-          << "Cannot determine the dimensions for " << out.getRegion()->getName()
-          << "; output " << out.getName();
+          << "Cannot determine the dimensions for Output " << out.getRegion()->getName()
+          << "." << out.getName();
 
       out.initialize(); // creates the output buffers.
 
@@ -293,7 +293,7 @@ void Input::initialize() {
       if (inD.isSpecified()) {
         NTA_CHECK(inD.getCount() == d.getCount())
             << "Dimensions were specified for " << region_->getName()
-            << "; input " << name_
+            << "." << name_
             << " but it is inconsistant with the dimensions of the sources.";
         // keep the manually configured dimensions.
       } else {
@@ -301,11 +301,12 @@ void Input::initialize() {
       }
     }
   } // end of link iteration.
+
   // If this is the regionLevel input and the region dim is don't care,
   // then assign this input dimensions to the region dimensions.
   // The region dimensions must have the same number of dimensions. 
   // Add 1's as needed to either.
-  if (regionLevel) {
+  if (regionLevel && inD.isSpecified()) {
     d = region_->getDimensions();
     if (d.isSpecified()) {
       maxD = d.getDimensionCount();
@@ -318,11 +319,18 @@ void Input::initialize() {
     }
     region_->setDimensions(d);
   }
-
+  
+  if (links_.size() > 0) {
+    NTA_CHECK(inD.isSpecified()) << "Input " << region_->getName() << "." << name_
+                      << " has an incoming link but no dimensions are configured.";
+  }
   // Create the Input buffer.
   dim_ = inD;
+
   if (data_.getType() == NTA_BasicType_SDR) {
     data_.allocateBuffer(dim_);
+  } else if (dim_.isDontcare()) {
+    data_.allocateBuffer(0);  // lets hope this is an unused input.
   } else {
     data_.allocateBuffer(dim_.getCount());
     data_.zeroBuffer();

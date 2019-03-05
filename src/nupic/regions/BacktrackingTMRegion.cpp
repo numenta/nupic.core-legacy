@@ -143,11 +143,12 @@ void BacktrackingTMRegion::initialize() {
   args_.sequencePos = 0;
   args_.init = true;
 
-  // setup the BottomUpOut output buffer in the TM to point to the one 
-  // in the Output object.  Trying to avoid a copy.
-  // NOTE: the TM must not delete the array. The Output object is owner.
-  Array &tmOutput = region_->getOutput("bottomUpOut")->getData();
-  tm_->setOutputBuffer((Real32*)tmOutput.getBuffer());
+  //   setup the BottomUpOut output buffer in the TM to point to the one 
+  //   in the Output object.  Trying to avoid a copy.
+  // Array &tmOutput = region_->getOutput("bottomUpOut")->getData();
+  // tm_->setOutputBuffer((Real32*)tmOutput.getBuffer());
+  //    Let's copy the buffer on each compute for now. Buffer size will be
+  //    too small if args_.orColumnOutputs is set.
 }
 
 void BacktrackingTMRegion::compute() {
@@ -188,14 +189,17 @@ void BacktrackingTMRegion::compute() {
     // OR'ing together the output cells in each column?
     // This reduces the output buffer size to [columnCount] otherwise
     // The size is [columnCount X cellsPerColumn].
+    NTA_ASSERT(tmOutput.getCount() == args_.numberOfCols);
     for (size_t i = 0; i < args_.numberOfCols; i++) {
+      Real32 sum = 0.0f;
       for (size_t j = 0; j < args_.cellsPerColumn; j++) {
-        ptr[i] = std::max(output[i], output[(i * args_.cellsPerColumn) + j]);
+        sum += output[(i * args_.cellsPerColumn) + j];
       }
+      ptr[i] = (sum == 0.0f) ? 0.0f : 1.0f;
     }
-    tmOutput.setCount(args_.numberOfCols);
   } else {
-    // copy tm buffer to bottomUpOut buffer.  (and type conversion)
+    // copy tm buffer to bottomUpOut buffer. 
+    NTA_ASSERT(tmOutput.getCount() == args_.numberOfCols * args_.cellsPerColumn);
     for (size_t i = 0; i < args_.numberOfCols * args_.cellsPerColumn; i++) {
       ptr[i] = output[i];
     }
@@ -252,7 +256,7 @@ std::string BacktrackingTMRegion::executeCommand(const std::vector<std::string> 
 // outputs are optional, return 0 if not used.
 size_t BacktrackingTMRegion::getNodeOutputElementCount(const std::string &outputName) const {
   if (outputName == "bottomUpOut")
-    return args_.outputWidth;
+    return (args_.orColumnOutputs)? args_.numberOfCols: args_.outputWidth;
   if (outputName == "topDownOut")
     return args_.numberOfCols;
   if (outputName == "lrnActiveStateT")
@@ -274,16 +278,21 @@ Dimensions BacktrackingTMRegion::askImplForOutputDimensions(const std::string &n
   if (!region_dim.isSpecified()) {
     // we don't have region dimensions, so create some if we know numberOfCols.
     if (args_.numberOfCols == 0) 
-      return Dimensions(Dimensions::DONTCARE);  // No info for its size
+      return Dimensions(Dimensions::DONTCARE);  // No info about its size
     region_dim.clear();
     region_dim.push_back(args_.numberOfCols);
     setDimensions(region_dim);
   }
   if (args_.numberOfCols == 0)
     args_.numberOfCols = (UInt32)region_dim.getCount();
+  else
+    NTA_CHECK(args_.numberOfCols == (UInt32)region_dim.getCount())
+          << "A configured 'numberOfCols' is not consistant with incoming data dimensions.";
 
 
-  if (name == "bottomUpOut" || name == "topDownOut" || name == "lrnActiveStateT"
+  if (name == "bottomUpOut" && args_.orColumnOutputs) {
+    return region_dim;
+  } else if (name == "bottomUpOut"  || name == "topDownOut" || name == "lrnActiveStateT"
    || name == "activeCells" || name == "predictedActiveCells") {
     // It's size is numberOfCols * args_.cellsPerColumn.
     // So insert a new dimension to what was provided by input.
@@ -307,7 +316,6 @@ Spec *BacktrackingTMRegion::createSpec() {
       "the documentation. This implementation does contain several additional "
       "bells and whistles such as a column confidence measure.";
 
-  ns->singleNodeOnly = true; // this means we don't care about dimensions;
 
   /* ---- parameters ------ */
 
@@ -638,24 +646,6 @@ Spec *BacktrackingTMRegion::createSpec() {
           "false",                         // defaultValue
           ParameterSpec::ReadWriteAccess)); // access
 
-  ns->parameters.add(
-      "cellsSavePath",
-      ParameterSpec("(string) Optional path to file in which large temporal "
-                    "memory cells data structure is to be saved.",
-                    NTA_BasicType_Byte, // type
-                    0,                  // elementCount
-                    "",                 // constraints
-                    "",                 // defaultValue
-                    ParameterSpec::ReadWriteAccess)); // access
-
-  ns->parameters.add(
-      "temporalImp",
-      ParameterSpec("(string) Which temporal memory implementation to use. ",
-                    NTA_BasicType_Byte,               // type
-                    0,                                // elementCount
-                    "",                               // constraints
-                    "",                               // defaultValue
-                    ParameterSpec::ReadWriteAccess)); // access
 
   /* The last group is for parameters that aren't specific to spatial pooler
    */
@@ -716,27 +706,6 @@ Spec *BacktrackingTMRegion::createSpec() {
                     "",                              // defaultValue
                     ParameterSpec::ReadOnlyAccess)); // access
 
-  ns->parameters.add(
-      "storeDenseOutput",
-      ParameterSpec(
-          "(bool) Whether to keep the dense column output (needed for "
-          "denseOutput parameter).",
-          NTA_BasicType_Bool,               // type
-          1,                                // elementCount
-          "bool",                           // constraints
-          "false",                          // defaultValue
-          ParameterSpec::ReadWriteAccess)); // access
-
-  ns->parameters.add(
-      "logPathOutput",
-      ParameterSpec("(string) Optional name of output log file. If set, "
-                    "every output vector will be logged to this file "
-                    "as a sparse vector. ",
-                    NTA_BasicType_Byte,               // type
-                    0,                                // elementCount
-                    "",                               // constraints
-                    "",                               // defaultValue
-                    ParameterSpec::ReadWriteAccess)); // access
 
   ///////////// Inputs and Outputs ////////////////
   /* ----- inputs ------- */
@@ -745,7 +714,7 @@ Spec *BacktrackingTMRegion::createSpec() {
       InputSpec(
                 "The input signal, conceptually organized as an image pyramid "
                 "data structure, but internally organized as a flattened vector.",
-                NTA_BasicType_Real32, // type
+                NTA_BasicType_Real32,    // type
                 0,                    // count.
                 true,                 // required?
                 true,                 // isRegionLevel,
@@ -778,7 +747,7 @@ Spec *BacktrackingTMRegion::createSpec() {
       "bottomUpOut",
       OutputSpec("The output signal generated from the bottom-up inputs "
                  "from lower levels.",
-                 NTA_BasicType_Real32, // type
+                 NTA_BasicType_Real32,    // type
                  0,                    // count 0 means is dynamic
                  true,                 // isRegionLevel
                  true                  // isDefaultOutput
@@ -788,7 +757,7 @@ Spec *BacktrackingTMRegion::createSpec() {
     "topDownOut",
      OutputSpec("The top-down output signal, generated from "
                   "feedback from upper levels.  ",
-                  NTA_BasicType_Real32, // type
+                  NTA_BasicType_Real32,    // type
                   0,                    // count 0 means is dynamic
                   true,                 // isRegionLevel
                   false                 // isDefaultOutput
@@ -1208,9 +1177,11 @@ void BacktrackingTMRegion::deserialize(BundleIO &bundle) {
     tm_.reset(tm);
 
     Array &tmOutput = region_->getOutput("bottomUpOut")->getData();
-    if (tmOutput.getCount() == 0)
-      tmOutput.allocateBuffer(getNodeOutputElementCount("bottomUpOut"));
-    tm_->setOutputBuffer((Real32*)tmOutput.getBuffer());
+    if (tmOutput.getCount() == 0) {
+      Dimensions d = askImplForOutputDimensions("bottomUpOut");
+      tmOutput.allocateBuffer(d.getCount());
+    }
+    //tm_->setOutputBuffer((Real32*)tmOutput.getBuffer());
 
     tm_->load(f);
   } else

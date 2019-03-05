@@ -104,11 +104,12 @@ private:
     Int32 seed;
     Int32 maxSegmentsPerCell;
     Int32 maxSynapsesPerSegment;
-    bool checkInputs;
     UInt32 extra;
+    bool checkInputs;
 
     // parameters used by this class and not passed on
     bool learningMode;
+    bool orColumnOutputs;
 
     // some local variables
     UInt32 outputWidth; // columnCount *cellsPerColumn

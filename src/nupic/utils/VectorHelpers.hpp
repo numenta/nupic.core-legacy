@@ -109,6 +109,38 @@ public:
     }
     return activeColumns;
   }
+  /**
+   * A sparse array version of cellsToColumns( ).
+   */
+  static std::vector<UInt> sparse_cellsToColumns(const std::vector<UInt>& cellsSparse, 
+                                                 const UInt cellsPerColumn)
+  {
+    std::vector<UInt> activeColumns;
+
+    // loop over the whole (active) cells array
+    // saving the column indexes.
+    UInt prev = std::numeric_limits<UInt>::max();
+    for(auto cellIdx: cellsSparse) {
+      UInt colIdx = cellIdx / cellsPerColumn;
+      if (colIdx != prev) activeColumns.push_back(colIdx);
+      prev = colIdx;
+    }
+    return activeColumns;
+  }
+
+  /**
+   * Create a Union of two vectors (An OR of the two).
+   * The values are assumed to be sorted, sparse indexes.
+   */
+  static void unionOfVectors(std::vector<UInt>& out, 
+                             const std::vector<UInt>& v1, 
+                             const std::vector<UInt>& v2) {
+    std::vector<UInt>::iterator it;
+    out.resize(v1.size() + v2.size());
+    it = std::set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), out.begin());
+    out.resize(it - out.begin());
+  }
+
 };
 
 } // end namespace utils

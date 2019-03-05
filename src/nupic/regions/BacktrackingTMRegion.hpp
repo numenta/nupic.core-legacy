@@ -144,8 +144,6 @@ protected:
     UInt32 sequencePos;
   } args_;
 
-  //std::string cellsSavePath_;
-  //std::string logPathOutput_;
 
   Byte* prevPredictedState_;
   std::vector<UInt32> prevPredictedColumns_;

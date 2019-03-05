@@ -52,7 +52,7 @@ TestNode::TestNode(const ValueMap &params, Region *region)
 {
   // params for get/setParameter testing
     // Populate the parameters with values.
-  outputElementCount_ = params.getScalarT<UInt32>("count", 2);
+  outputElementCount_ = params.getScalarT<UInt32>("count", 0);
   int32Param_ = params.getScalarT<Int32>("int32Param", 32);
   uint32Param_ = params.getScalarT<UInt32>("uint32Param", 33);
   int64Param_ = params.getScalarT<Int64>("int64Param", 64);
@@ -209,9 +209,9 @@ Spec *TestNode::createSpec() {
 							                   "Buffer size for bottomUpOut Output. "
                                  "Syntax: {count: 64}",  // description
 	                               NTA_BasicType_UInt32,
-							                   1,                         // elementCount (an array of unknown size)
+							                   1,                         // elementCount 
 							                   "",                        // constraints
-							                   "2",                      // defaultValue
+							                   "",                        // defaultValue
 							                   ParameterSpec::ReadWriteAccess));
 
 

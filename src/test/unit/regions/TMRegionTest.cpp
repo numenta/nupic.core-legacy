@@ -77,11 +77,11 @@
 #include "gtest/gtest.h"
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "
-static bool verbose = true; // turn this on to print extra stuff for debugging the test.
+static bool verbose = false; // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually
 // verified.
-#define EXPECTED_SPEC_COUNT 16 // The number of parameters expected in the TMRegion Spec
+#define EXPECTED_SPEC_COUNT 17 // The number of parameters expected in the TMRegion Spec
 
 using namespace nupic;
 using namespace nupic::utils;
@@ -94,8 +94,8 @@ namespace testing {
 TEST(TMRegionTest, testSpecAndParameters) {
   Network net;
 
-  // Turn on logging.
-  if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Normal);
+  // Turn on runtime Debug logging.
+ //if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Normal);
 
   // create a TM region with default parameters
   std::set<std::string> excluded;
@@ -223,7 +223,8 @@ TEST(TMRegionTest, testLinking) {
   std::string parameters = "{activeOutputCount: " + std::to_string(dataWidth) + "}";
   std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor",parameters);
   std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,10]}");
-  std::shared_ptr<Region> region3 = net.addRegion("region3", "TMRegion", "{activationThreshold: 9}");
+  std::shared_ptr<Region> region3 = net.addRegion("region3", "TMRegion", 
+                                        "{activationThreshold: 9, cellsPerColumn: 5}");
   std::shared_ptr<Region> region4 = net.addRegion("region4", "VectorFileEffector",
                                         "{outputFile: '" + test_output_file + "'}");
 
@@ -290,9 +291,12 @@ TEST(TMRegionTest, testLinking) {
   EXPECT_TRUE(r3OutputArray.getType() == NTA_BasicType_SDR);
   VERBOSE << "   " << r3OutputArray << "\n";
   std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>(
-            { }, (UInt32)r3OutputArray.getCount());
+            { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 
+             25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 40, 41, 42, 43, 
+             44, 55, 56, 57, 58, 59, 65, 66, 67, 68, 69, 85, 86, 87, 
+             88, 89, 95, 96, 97, 98, 99 }, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3out);
-  EXPECT_EQ(r3OutputArray.getSDR()->getFlatSparse().size(), 0);
+  EXPECT_EQ(r3OutputArray.getSDR()->getSparse().size(), 50);
 
   // execute TMRegion several more times and check that it has output.
   VERBOSE << "Execute 9 times." << std::endl;
@@ -308,7 +312,10 @@ TEST(TMRegionTest, testLinking) {
       << numberOfCols << " * " << cellsPerColumn;
   VERBOSE << "   " << r3OutputArray << "\n";
   std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
-            { }, (UInt32)r3OutputArray.getCount());
+            {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 35, 36, 37, 38, 
+             39, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 60, 61, 62, 
+             63, 64, 70, 71, 72, 73, 74, 80, 81, 82, 83, 84, 90, 91, 
+             92, 93, 94, 95, 96, 97, 98, 99}, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3outa);
 
 
@@ -317,9 +324,7 @@ TEST(TMRegionTest, testLinking) {
   Array r4InputArray = region4->getInputData("dataIn");
   EXPECT_TRUE(r4InputArray.getType() == NTA_BasicType_Real32);
   VERBOSE << "   " << r4InputArray << "\n";
-  std::vector<Byte> expected4in = VectorHelpers::sparseToBinary<Byte>(
-            { }, (UInt32)r4InputArray.getCount());
-  EXPECT_TRUE(r4InputArray == expected4in);
+  EXPECT_TRUE(r4InputArray == expected3outa);
 
   // cleanup
   region3->executeCommand({"closeFile"});

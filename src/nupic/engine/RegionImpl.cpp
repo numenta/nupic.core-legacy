@@ -225,12 +225,15 @@ Dimensions RegionImpl::askImplForOutputDimensions(const std::string &name) {
   UInt32 count = (UInt32)ns.count;
   if (count == Spec::VARIABLE) {
     // This is not a fixed size output.
-    // If this is a regionLevel output, use the region dimensions.
-    if (ns.regionLevel && !dim_.empty()) {
-      return dim_;
-    }
     // ask the impl for a 1D size.
     count = (UInt32)getNodeOutputElementCount(name);
+
+    // If this is a regionLevel output, use the region dimensions
+    // provided that count is 0 or that count is same element size as regionLevel.
+    if (ns.regionLevel && dim_.isSpecified()) {
+      if (count == 0 || count == dim_.getCount())
+      return dim_;
+    }
   }
   Dimensions dim;
   dim.push_back(count);   // if count happens to be 0, it means don't care.

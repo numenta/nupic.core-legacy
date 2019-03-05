@@ -78,11 +78,11 @@
 #include "gtest/gtest.h"
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "
-static bool verbose = true; // turn this on to print extra stuff for debugging the test.
+static bool verbose = false; // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually
 // verified.
-#define EXPECTED_SPEC_COUNT 38 // The number of parameters expected in the TMRegion Spec
+#define EXPECTED_SPEC_COUNT 34 // The number of parameters expected in the TMRegion Spec
 
 using namespace nupic;
 using namespace nupic::utils;
@@ -94,6 +94,11 @@ namespace testing {
 // creating a region with default constructor. 
 TEST(BacktrackingTMRegionTest, testSpecAndParameters) {
   Network net;
+
+  
+  // Turn on logging.
+//  if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Normal);
+
 
   // create a TM region with default parameters
   std::set<std::string> excluded;
@@ -131,11 +136,13 @@ TEST(BacktrackingTMRegionTest, initialization_with_custom_impl) {
   size_t regionCntBefore = net.getRegions().getCount();
 
   // make sure the custom region registration works for CPP.
-  // We will just use the same TMRegion class but it could be a subclass or some
-  // different custom class. While we are at it, let's make sure we can initialize the
-  // parameters from here too. The parameter names and data types
-  // must match those of the spec. Explicit parameters are Yaml format...but
-  // since YAML is a superset of JSON, you can use JSON format as well.
+  // We will just use the same BacktrackingTMRegion class but it could be 
+  // a subclass or some different custom class. While we are at it, 
+  // let's make sure we can initialize the parameters from here too. 
+  // The parameter names and data types must match those of the spec. 
+  // Explicit parameters are Yaml format...but since YAML is a superset 
+  // of JSON, you can use JSON format as well.
+  //
   // Here we set a unique value for every parameter we can set (per the spec).
   std::string nodeParams =  
       "{numberOfCols: 100, cellsPerColumn: 20, initialPerm: 0.12, "
@@ -148,17 +155,17 @@ TEST(BacktrackingTMRegionTest, initialization_with_custom_impl) {
       "maxAge: 99999, maxSeqLength: 32, maxSegmentsPerCell: 3, "
       "maxSynapsesPerSegment: 20, outputType: activeState1CellPerCol, "
       "learningMode: false, inferenceMode: true, anomalyMode: true, "
-      "topDownMode: true, storeDenseOutput: true, computePredictedActiveCellIndices: true, "
-      "orColumnOutputs: true, cellsSavePath: xxx, logPathOutput: yyy, temporalImp: zzz}";
+      "topDownMode: true, computePredictedActiveCellIndices: true, "
+      "orColumnOutputs: true}";
 
-  VERBOSE << "Adding a custom-built TMRegion region..." << std::endl;
+  VERBOSE << "Adding a custom-built BacktrackingTMRegion region..." << std::endl;
   net.registerRegion("BtTMRegionCustom", new RegisteredRegionImplCpp<BacktrackingTMRegion>());
   std::shared_ptr<Region> region2 = net.addRegion("region2", "BtTMRegionCustom", nodeParams);
   size_t regionCntAfter = net.getRegions().getCount();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << "  Expected number of regions to increase by one.  ";
-  ASSERT_TRUE(region2->getType() == "TMRegionCustom")
-      << " Expected type for region2 to be \"TMRegionCustom\" but type is: "
+  ASSERT_TRUE(region2->getType() == "BtTMRegionCustom")
+      << " Expected type for region2 to be \"BtTMRegionCustom\" but type is: "
       << region2->getType();
 
   // Check that all of the node parameters have been correctly parsed and available.
@@ -192,12 +199,8 @@ TEST(BacktrackingTMRegionTest, initialization_with_custom_impl) {
   EXPECT_EQ(region2->getParameterBool("inferenceMode"), true);
   EXPECT_EQ(region2->getParameterBool("anomalyMode"), true);
   EXPECT_EQ(region2->getParameterBool("topDownMode"), true);
-  EXPECT_EQ(region2->getParameterBool("storeDenseOutput"), true);
   EXPECT_EQ(region2->getParameterBool("computePredictedActiveCellIndices"), true);
   EXPECT_EQ(region2->getParameterBool("orColumnOutputs"), true);
-  EXPECT_STREQ(region2->getParameterString("cellsSavePath").c_str(), "xxx");
-  EXPECT_STREQ(region2->getParameterString("logPathOutput").c_str(), "yyy");
-  EXPECT_STREQ(region2->getParameterString("temporalImp").c_str(), "zzz");
 
   // compute() should fail because network has not been initialized
   EXPECT_THROW(net.run(1), std::exception);
@@ -208,9 +211,9 @@ TEST(BacktrackingTMRegionTest, initialization_with_custom_impl) {
 }
 
 TEST(BacktrackingTMRegionTest, testLinking) {
-  // This is a minimal end-to-end test containing an TMRegion region.
-  // To make sure we can feed data from some other region to our TMRegion
-  // this test will hook up the VectorFileSensor to our TMRegion and then
+  // This is a minimal end-to-end test containing an BacktrackingTMRegion region.
+  // To make sure we can feed data from some other region to our BacktrackingTMRegion
+  // this test will hook up the VectorFileSensor to our BacktrackingTMRegion and then
   // connect our TMRegion to a VectorFileEffector to capture the results.
   //
   std::string test_input_file = "TestOutputDir/TMRegionTestInput.csv";
@@ -248,7 +251,7 @@ TEST(BacktrackingTMRegionTest, testLinking) {
   // you can use JSON format as well)
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor", "{activeOutputCount: " + std::to_string(dataWidth) + "}");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "TMRegion", "{numberOfCols: 10, }");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "BacktrackingTMRegion", "{numberOfCols: 10, }");
   std::shared_ptr<Region> region3 = net.addRegion("region3", "VectorFileEffector","{outputFile: '" + test_output_file + "'}");
 
   net.link("region1", "region2", "UniformLink", "", "dataOut", "bottomUpIn");
@@ -259,6 +262,12 @@ TEST(BacktrackingTMRegionTest, testLinking) {
 
   VERBOSE << "Initialize." << std::endl;
   net.initialize();
+
+    VERBOSE << "Dimensions: \n";
+    VERBOSE << " VectorFileSensor  - " << region1->getOutputDimensions("dataOut")    <<"\n";
+    VERBOSE << " BacktrackingTMRegion in  - " << region2->getInputDimensions("bottomUpIn")  <<"\n";
+    VERBOSE << " BacktrackingTMRegion out - " << region2->getOutputDimensions("bottomUpOut")  <<"\n";
+    VERBOSE << " VectorFileEffector in  - " << region3->getInputDimensions("dataIn")  <<"\n";
 
   // check actual dimensions
   ASSERT_EQ(region2->getParameterUInt32("numberOfCols"), 10);
@@ -272,57 +281,46 @@ TEST(BacktrackingTMRegionTest, testLinking) {
   Array r1OutputArray = region1->getOutputData("dataOut");
   EXPECT_EQ(r1OutputArray.getCount(), dataWidth);
   EXPECT_TRUE(r1OutputArray.getType() == NTA_BasicType_Real32);
-  const Real32 *buffer1 = (const Real32 *)r1OutputArray.getBuffer();
 
-  VERBOSE << "  TMRegion input" << std::endl;
+  VERBOSE << "  BacktrackingTMRegion input" << std::endl;
   Array r2InputArray = region2->getInputData("bottomUpIn");
   ASSERT_TRUE(r1OutputArray.getCount() == r2InputArray.getCount())
       << "Buffer length different. Output from VectorFileSensor is "
-      << r1OutputArray.getCount() << ", input to TPRegion is "
+      << r1OutputArray.getCount() << ", input to BacktrackingTMRegion is "
       << r2InputArray.getCount();
   EXPECT_TRUE(r2InputArray.getType() == NTA_BasicType_Real32);
-  const Real32 *buffer2 = (const Real32 *)r2InputArray.getBuffer();
-  for (size_t i = 0; i < r2InputArray.getCount(); i++) {
-    // VERBOSE << "  [" << i << "]=    " << buffer2[i] << "" << std::endl;
-    ASSERT_TRUE(buffer2[i] == buffer1[i])
-        << " Buffer content different. Element " << i
-        << " of Output from encoder is " << buffer1[i]
-        << ", input to SPRegion is " << buffer2[i];
-    ASSERT_TRUE(buffer2[i] == 1.0f || buffer2[i] == 0.0f)
-        << " Value[" << i << "] is not a 0 or 1." << std::endl;
-  }
+  VERBOSE << "   " << r2InputArray << "\n";
+  Array expected2in = Array(VectorHelpers::sparseToBinary<Real32>(
+    { 0 }, (UInt32)r2InputArray.getCount()));
+  EXPECT_TRUE(r2InputArray == expected2in);
+  EXPECT_TRUE(r2InputArray == r1OutputArray);
 
   // execute TMRegion several more times and check that it has output.
   VERBOSE << "Execute 9 times." << std::endl;
   net.run(9);
 
   VERBOSE << "Checking Output Data." << std::endl;
-  VERBOSE << "  TMRegion output" << std::endl;
+  VERBOSE << "  BacktrackingTMRegion output" << std::endl;
   UInt32 columnCount = region2->getParameterUInt32("numberOfCols");
   UInt32 cellsPerColumn = region2->getParameterUInt32("cellsPerColumn");
   UInt32 nCells = columnCount * cellsPerColumn;
   Array r2OutputArray = region2->getOutputData("bottomUpOut");
-  ASSERT_TRUE(r2OutputArray.getCount() == nCells)
-      << "Buffer length different. Output from TMRegion is "
-      << r2OutputArray.getCount() << ", should be " << nCells;
-  const Real32 *buffer3 = (const Real32 *)r2OutputArray.getBuffer();
-  for (size_t i = 0; i < r2OutputArray.getCount(); i++) {
-    // VERBOSE << "  [" << i << "]=    " << buffer3[i] << "" << std::endl;
-    ASSERT_TRUE(buffer3[i] == 0.0f || buffer3[i] == 1.0f)
-        << " Element " << i
-        << " of Output from SPRegion is not 0.0 or 1.0; it is " << buffer3[i];
-  }
+  VERBOSE << "   " << r2OutputArray << "\n";
+  Array expected2out = Array(VectorHelpers::sparseToBinary<Real32>(
+    {  }, (UInt32)r2OutputArray.getCount()));
+  EXPECT_TRUE(r2OutputArray == expected2out);
 
   VERBOSE << "  VectorFileEffector input" << std::endl;
   Array r3InputArray = region3->getInputData("dataIn");
+  VERBOSE << "   " << r3InputArray << "\n";
   ASSERT_TRUE(r3InputArray.getCount() == nCells);
-  const Real32 *buffer4 = (const Real32 *)r3InputArray.getBuffer();
+  const Real32 *buffer2 = (const Real32 *)r2OutputArray.getBuffer();
+  const Real32 *buffer3 = (const Real32 *)r3InputArray.getBuffer();
   for (size_t i = 0; i < r3InputArray.getCount(); i++) {
-    // VERBOSE << "  [" << i << "]=    " << buffer4[i] << "" << std::endl;
-    ASSERT_TRUE(buffer3[i] == buffer4[i])
+    ASSERT_TRUE(buffer2[i] == buffer3[i])
         << " Buffer content different. Element[" << i
-        << "] from SPRegion out is " << buffer3[i]
-        << ", input to VectorFileEffector is " << buffer4[i];
+        << "] from BacktrackingTMRegion out is " << buffer2[i]
+        << ", input to VectorFileEffector is " << buffer3[i];
   }
 
   // cleanup
@@ -342,10 +340,15 @@ TEST(BacktrackingTMRegionTest, testSerialization) {
                                              "{n: 100,w: 10,minValue: 0,maxValue: 10}");
     n1region1->setParameterReal64("sensedValue", 5.0);
 
-    std::shared_ptr<Region> n1region2 =  net1->addRegion("region2", "TMRegion", "{numberOfCols: 48}");
+    std::shared_ptr<Region> n1region2 =  net1->addRegion("region2", "BacktrackingTMRegion", "{cellsPerColumn: 20}");
 
     net1->link("region1", "region2", "", "", "encoded", "bottomUpIn");
     net1->initialize();
+
+    VERBOSE << "Dimensions: \n";
+    VERBOSE << " ScalarSensor  - " << n1region1->getOutputDimensions("encoded")    <<"\n";
+    VERBOSE << " BacktrackingTMRegion in - " << n1region2->getInputDimensions("bottomUpIn")  <<"\n";
+    VERBOSE << " BacktrackingTMRegion out - " << n1region2->getOutputDimensions("bottomUpOut")  <<"\n";
 
     n1region1->prepareInputs();
     n1region1->compute();
@@ -367,14 +370,14 @@ TEST(BacktrackingTMRegionTest, testSerialization) {
     net2->loadFromFile("TestOutputDir/tmRegionTest.stream");
 
     std::shared_ptr<Region> n2region2 = net2->getRegions().getByName("region2");
-    ASSERT_TRUE(n2region2->getType() == "TMRegion")
-        << " Restored TMRegion region does not have the right type.  Expected "
-           "TMRegion, found "
+    ASSERT_TRUE(n2region2->getType() == "BacktrackingTMRegion")
+        << " Restored BacktrackingTMRegion region does not have the right type.  Expected "
+           "BacktrackingTMRegion, found "
         << n2region2->getType();
 
     EXPECT_TRUE(compareParameters(n2region2, parameterMap))
-        << "Conflict when comparing TMRegion parameters after restore with "
-           "before save.";
+        << "Conflict when comparing BacktrackingTMRegion parameters "
+           "after restore with before save.";
 
     // can we continue with execution?  See if we get any exceptions.
     n1region1->setParameterReal64("sensedValue", 0.12);
@@ -393,14 +396,14 @@ TEST(BacktrackingTMRegionTest, testSerialization) {
     EXPECT_TRUE(captureParameters(n2region2, parameterMap))
         << "Capturing parameters before second save.";
     // serialize using a stream to a single file
-    net2->saveToFile("TestOutputDir/tmRegionTest.stream");
+    net2->saveToFile("TestOutputDir/BttmRegionTest.stream");
 
     VERBOSE << "Restore into a third network and compare changed parameters."
             << std::endl;
     net3 = new Network();
-    net3->loadFromFile("TestOutputDir/tmRegionTest.stream");
+    net3->loadFromFile("TestOutputDir/BttmRegionTest.stream");
     std::shared_ptr<Region> n3region2 = net3->getRegions().getByName("region2");
-    EXPECT_TRUE(n3region2->getType() == "TMRegion")
+    EXPECT_TRUE(n3region2->getType() == "BacktrackingTMRegion")
         << "Failure: Restored region does not have the right type. "
            " Expected \"TMRegion\", found \""
         << n3region2->getType() << "\".";
@@ -430,7 +433,7 @@ TEST(BacktrackingTMRegionTest, testSerialization) {
 TEST(BacktrackingTMRegionTest, checkTMRegionIO) {
   Network *net1 = new Network();
   try {
-    std::shared_ptr<Region> n1region1 = net1->addRegion("region1", "TMRegion", 
+    std::shared_ptr<Region> n1region1 = net1->addRegion("region1", "BacktrackingTMRegion", 
       "{numberOfCols: 10, cellsPerColumn: 4, learningMode: true, collectStats: true}");
     n1region1->getOutput("bottomUpOut")->getData().allocateBuffer(40);
     n1region1->getOutput("bottomUpOut")->getData().zeroBuffer();
@@ -446,12 +449,12 @@ TEST(BacktrackingTMRegionTest, checkTMRegionIO) {
     n1region1->getOutput("lrnActiveStateT")->getData().zeroBuffer();
 
     // manually allocate the input buffers (normally done by link during init)
+    n1region1->getInput("bottomUpIn")->setDimensions({10});
     n1region1->getInput("bottomUpIn")->initialize();
-    n1region1->getInput("bottomUpIn")->getData().allocateBuffer(10);
+    n1region1->getInput("resetIn")->setDimensions({1});
     n1region1->getInput("resetIn")->initialize();
-    n1region1->getInput("resetIn")->getData().allocateBuffer(1);
+    n1region1->getInput("sequenceIdIn")->setDimensions({1});
     n1region1->getInput("sequenceIdIn")->initialize();
-    n1region1->getInput("sequenceIdIn")->getData().allocateBuffer(1);
 
     // initialize inputs
     // Note: inputs are not saved in serialization...only outputs

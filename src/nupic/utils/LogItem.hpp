@@ -78,6 +78,7 @@ public:
   static void setOutputFile(std::ostream &ostream);
   static void setLogLevel(LogLevel level);
   static LogLevel getLogLevel();
+  static bool isDebug() { return (log_level_ > LogLevel_None); }
 
 protected:
   const char *filename_; // name of file

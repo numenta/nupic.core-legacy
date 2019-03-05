@@ -161,14 +161,14 @@ void SPRegion::compute() {
   // prepare the input
   Array &inputBuffer  = getInput("bottomUpIn")->getData();
   Array &outputBuffer = getOutput("bottomUpOut")->getData();
-  NTA_DEBUG  << *getInput("bottomUpIn") << "\n";
+  NTA_DEBUG  << "compute " << *getInput("bottomUpIn") << "\n";
 
 
   // Call SpatialPooler compute
   sp_->compute(*inputBuffer.getSDR(), args_.learningMode, *outputBuffer.getSDR());
 
 
-  NTA_DEBUG << *getOutput("bottomUpOut") << "\n";
+  NTA_DEBUG << "compute " << *getOutput("bottomUpOut") << "\n";
 
 }
 

@@ -48,7 +48,7 @@ Dimensions::Dimensions(UInt x, UInt y, UInt z) {
 
 size_t Dimensions::getCount() const {
   if (isUnspecified() || isDontcare())
-    NTA_THROW << "Attempt to get count from dimensions " << toString();
+    NTA_THROW << "Attempt to get count from unresolved dimension " << toString();
   size_t count = 1;
   for (size_t i = 0; i < size(); i++)
     count *= at(i);
