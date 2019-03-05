@@ -158,17 +158,17 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
       << region2->getType();
 
   // Check that all of the node parameters have been correctly parsed and available.
-  EXPECT_EQ(region2->getParameterUInt32("numberOfCols"), 100);
-  EXPECT_EQ(region2->getParameterUInt32("cellsPerColumn"), 20);
-  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 12); 
+  EXPECT_EQ(region2->getParameterUInt32("numberOfCols"), 100u);
+  EXPECT_EQ(region2->getParameterUInt32("cellsPerColumn"), 20u);
+  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 12u); 
   EXPECT_FLOAT_EQ(region2->getParameterReal32("initialPermanence"), 0.22f); 
   EXPECT_FLOAT_EQ(region2->getParameterReal32("connectedPermanence"), 0.4f); 
-  EXPECT_EQ(region2->getParameterUInt32("minThreshold"), 7);
-  EXPECT_EQ(region2->getParameterUInt32("maxNewSynapseCount"), 21);
+  EXPECT_EQ(region2->getParameterUInt32("minThreshold"), 7u);
+  EXPECT_EQ(region2->getParameterUInt32("maxNewSynapseCount"), 21u);
   EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceIncrement"), 0.2f); 
   EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceDecrement"), 0.2f); 
   EXPECT_FLOAT_EQ(region2->getParameterReal32("predictedSegmentDecrement"), 0.0004f);
-  EXPECT_EQ(region2->getParameterUInt32("maxSynapsesPerSegment"), 254); 
+  EXPECT_EQ(region2->getParameterUInt32("maxSynapsesPerSegment"), 254u); 
   EXPECT_EQ(region2->getParameterInt32("seed"), 43); 
   EXPECT_EQ(region2->getParameterBool("learningMode"), false);
 
@@ -201,11 +201,11 @@ TEST(TMRegionTest, testLinking) {
   // Create a csv file to use as input.
   // The SDR data we will feed it will be a matrix with 1's on the diagonal
   // and we will feed it one row at a time, for 10 rows.
-  size_t dataWidth = 20;
-  size_t dataRows = 10;
+  size_t dataWidth = 20u;
+  size_t dataRows = 10u;
   std::ofstream f(test_input_file.c_str());
-  for (size_t i = 0; i < 10; i++) {
-    for (size_t j = 0; j < dataWidth; j++) {
+  for (size_t i = 0; i < 10u; i++) {
+    for (size_t j = 0u; j < dataWidth; j++) {
       if ((j % dataRows) == i)
         f << "1.0,";
       else
@@ -291,12 +291,12 @@ TEST(TMRegionTest, testLinking) {
   EXPECT_TRUE(r3OutputArray.getType() == NTA_BasicType_SDR);
   VERBOSE << "   " << r3OutputArray << "\n";
   std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>(
-            { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 
-             25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 40, 41, 42, 43, 
-             44, 55, 56, 57, 58, 59, 65, 66, 67, 68, 69, 85, 86, 87, 
-             88, 89, 95, 96, 97, 98, 99 }, (UInt32)r3OutputArray.getCount());
+            { 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u, 
+             25u, 26u, 27u, 28u, 29u, 30u, 31u, 32u, 33u, 34u, 40u, 41u, 42u, 43u, 
+             44u, 55u, 56u, 57u, 58u, 59u, 65u, 66u, 67u, 68u, 69u, 85u, 86u, 87u, 
+             88u, 89u, 95u, 96u, 97u, 98u, 99u }, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3out);
-  EXPECT_EQ(r3OutputArray.getSDR()->getSparse().size(), 50);
+  EXPECT_EQ(r3OutputArray.getSDR()->getSparse().size(), 50u);
 
   // execute TMRegion several more times and check that it has output.
   VERBOSE << "Execute 9 times." << std::endl;
@@ -312,10 +312,10 @@ TEST(TMRegionTest, testLinking) {
       << numberOfCols << " * " << cellsPerColumn;
   VERBOSE << "   " << r3OutputArray << "\n";
   std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
-            {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 35, 36, 37, 38, 
-             39, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 60, 61, 62, 
-             63, 64, 70, 71, 72, 73, 74, 80, 81, 82, 83, 84, 90, 91, 
-             92, 93, 94, 95, 96, 97, 98, 99}, (UInt32)r3OutputArray.getCount());
+            {20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u, 29u, 35u, 36u, 37u, 38u, 
+             39u, 45u, 46u, 47u, 48u, 49u, 50u, 51u, 52u, 53u, 54u, 60u, 61u, 62u, 
+             63u, 64u, 70u, 71u, 72u, 73u, 74u, 80u, 81u, 82u, 83u, 84u, 90u, 91u, 
+             92u, 93u, 94u, 95u, 96u, 97u, 98u, 99u}, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3outa);
 
 

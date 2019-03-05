@@ -78,7 +78,7 @@
 #include "gtest/gtest.h"
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "
-static bool verbose = false; // turn this on to print extra stuff for debugging the test.
+static bool verbose = true; // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually
 // verified.
@@ -169,29 +169,29 @@ TEST(BacktrackingTMRegionTest, initialization_with_custom_impl) {
       << region2->getType();
 
   // Check that all of the node parameters have been correctly parsed and available.
-  EXPECT_EQ(region2->getParameterUInt32("numberOfCols"), 100);
-  EXPECT_EQ(region2->getParameterUInt32("cellsPerColumn"), 20);
+  EXPECT_EQ(region2->getParameterUInt32("numberOfCols"), 100u);
+  EXPECT_EQ(region2->getParameterUInt32("cellsPerColumn"), 20u);
   EXPECT_FLOAT_EQ(region2->getParameterReal32("initialPerm"), 0.12f);
   EXPECT_FLOAT_EQ(region2->getParameterReal32("connectedPerm"), 0.6f); 
-  EXPECT_EQ(region2->getParameterUInt32("minThreshold"), 9);
-  EXPECT_EQ(region2->getParameterUInt32("newSynapseCount"), 16);
+  EXPECT_EQ(region2->getParameterUInt32("minThreshold"), 9u);
+  EXPECT_EQ(region2->getParameterUInt32("newSynapseCount"), 16u);
   EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceInc"), 0.2f); 
   EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceDec"), 0.2f); 
   EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceMax"), 2.0f);
   EXPECT_FLOAT_EQ(region2->getParameterReal32("globalDecay"), 0.2f);
-  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 13); 
+  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 13u); 
   EXPECT_EQ(region2->getParameterBool("doPooling"), true);
-  EXPECT_EQ(region2->getParameterUInt32("segUpdateValidDuration"), 6); 
-  EXPECT_EQ(region2->getParameterUInt32("burnIn"), 1); 
+  EXPECT_EQ(region2->getParameterUInt32("segUpdateValidDuration"), 6u); 
+  EXPECT_EQ(region2->getParameterUInt32("burnIn"), 1u); 
   EXPECT_EQ(region2->getParameterBool("collectStats"), true);
   EXPECT_EQ(region2->getParameterInt32("seed"), 66); 
-  EXPECT_EQ(region2->getParameterUInt32("verbosity"), 3); 
+  EXPECT_EQ(region2->getParameterUInt32("verbosity"), 3u); 
   EXPECT_EQ(region2->getParameterBool("checkSynapseConsistency"), true);
-  EXPECT_EQ(region2->getParameterUInt32("pamLength"), 2); 
-  EXPECT_EQ(region2->getParameterUInt32("maxInfBacktrack"), 9); 
-  EXPECT_EQ(region2->getParameterUInt32("maxLrnBacktrack"), 6); 
-  EXPECT_EQ(region2->getParameterUInt32("maxAge"), 99999); 
-  EXPECT_EQ(region2->getParameterUInt32("maxSeqLength"), 32); 
+  EXPECT_EQ(region2->getParameterUInt32("pamLength"), 2u); 
+  EXPECT_EQ(region2->getParameterUInt32("maxInfBacktrack"), 9u); 
+  EXPECT_EQ(region2->getParameterUInt32("maxLrnBacktrack"), 6u); 
+  EXPECT_EQ(region2->getParameterUInt32("maxAge"), 99999u); 
+  EXPECT_EQ(region2->getParameterUInt32("maxSeqLength"), 32u); 
   EXPECT_EQ(region2->getParameterInt32("maxSegmentsPerCell"), 3);
   EXPECT_EQ(region2->getParameterInt32("maxSynapsesPerSegment"), 20);
   EXPECT_STREQ(region2->getParameterString("outputType").c_str(), "activeState1CellPerCol");
@@ -230,11 +230,11 @@ TEST(BacktrackingTMRegionTest, testLinking) {
   // Create a csv file to use as input.
   // The SDR data we will feed it will be a matrix with 1's on the diagonal
   // and we will feed it one row at a time, for 10 rows.
-  size_t dataWidth = 10;
-  size_t dataRows = 10;
+  size_t dataWidth = 10u;
+  size_t dataRows = 10u;
   std::ofstream f(test_input_file.c_str());
-  for (size_t i = 0; i < 10; i++) {
-    for (size_t j = 0; j < dataWidth; j++) {
+  for (size_t i = 0u; i < 10u; i++) {
+    for (size_t j = 0u; j < dataWidth; j++) {
       if ((j % dataRows) == i)
         f << "1.0,";
       else
@@ -270,7 +270,7 @@ TEST(BacktrackingTMRegionTest, testLinking) {
     VERBOSE << " VectorFileEffector in  - " << region3->getInputDimensions("dataIn")  <<"\n";
 
   // check actual dimensions
-  ASSERT_EQ(region2->getParameterUInt32("numberOfCols"), 10);
+  ASSERT_EQ(region2->getParameterUInt32("numberOfCols"), 10u);
   ASSERT_EQ(region2->getParameterUInt32("inputWidth"), (UInt32)dataWidth);
 
   VERBOSE << "Execute once." << std::endl;
@@ -389,7 +389,7 @@ TEST(BacktrackingTMRegionTest, testSerialization) {
 
     // Change some parameters and see if they are retained after a restore.
     n2region2->setParameterBool("collectStats", true);
-    n2region2->setParameterUInt32("pamLength", 3);
+    n2region2->setParameterUInt32("pamLength", 3u);
     n2region2->compute();
 
     parameterMap.clear();
@@ -435,17 +435,17 @@ TEST(BacktrackingTMRegionTest, checkTMRegionIO) {
   try {
     std::shared_ptr<Region> n1region1 = net1->addRegion("region1", "BacktrackingTMRegion", 
       "{numberOfCols: 10, cellsPerColumn: 4, learningMode: true, collectStats: true}");
-    n1region1->getOutput("bottomUpOut")->getData().allocateBuffer(40);
+    n1region1->getOutput("bottomUpOut")->getData().allocateBuffer(40u);
     n1region1->getOutput("bottomUpOut")->getData().zeroBuffer();
-    n1region1->getOutput("topDownOut")->getData().allocateBuffer(10);
+    n1region1->getOutput("topDownOut")->getData().allocateBuffer(10u);
     n1region1->getOutput("topDownOut")->getData().zeroBuffer();
-    n1region1->getOutput("activeCells")->getData().allocateBuffer(40);
+    n1region1->getOutput("activeCells")->getData().allocateBuffer(40u);
     n1region1->getOutput("activeCells")->getData().zeroBuffer();
-    n1region1->getOutput("predictedActiveCells")->getData().allocateBuffer(40);
+    n1region1->getOutput("predictedActiveCells")->getData().allocateBuffer(40u);
     n1region1->getOutput("predictedActiveCells")->getData().zeroBuffer();
-    n1region1->getOutput("anomalyScore")->getData().allocateBuffer(1);
+    n1region1->getOutput("anomalyScore")->getData().allocateBuffer(1u);
     n1region1->getOutput("anomalyScore")->getData().zeroBuffer();
-    n1region1->getOutput("lrnActiveStateT")->getData().allocateBuffer(40);
+    n1region1->getOutput("lrnActiveStateT")->getData().allocateBuffer(40u);
     n1region1->getOutput("lrnActiveStateT")->getData().zeroBuffer();
 
     // manually allocate the input buffers (normally done by link during init)
