@@ -425,7 +425,8 @@ public:
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    */
-  void adaptSegment(const Segment segment, SDR &inputs,
+  void adaptSegment(const Segment segment, 
+		    const SDR &inputs,
                     const Permanence increment,
                     const Permanence decrement);
 

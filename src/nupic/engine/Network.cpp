@@ -284,22 +284,22 @@ void Network::link(const std::string &srcRegionName,
   std::shared_ptr<Region> destRegion = regions_.getByName(destRegionName);
 
   // Find the inputs/outputs
-  const std::shared_ptr<Spec>& srcSpec = srcRegion->getSpec();
   std::string outputName = srcOutputName;
-  if (outputName == "")
+  if (outputName == "") {
+    const std::shared_ptr<Spec>& srcSpec = srcRegion->getSpec();
     outputName = srcSpec->getDefaultOutputName();
+  }
 
   Output *srcOutput = srcRegion->getOutput(outputName);
   if (srcOutput == nullptr)
     NTA_THROW << "Network::link -- output " << outputName
               << " does not exist on region " << srcRegionName;
 
-  const std::shared_ptr<Spec>& destSpec = destRegion->getSpec();
-  std::string inputName;
-  if (destInputName == "")
+  std::string inputName = destInputName;
+  if (inputName == "") {
+    const std::shared_ptr<Spec>& destSpec = destRegion->getSpec();
     inputName = destSpec->getDefaultInputName();
-  else
-    inputName = destInputName;
+  }
 
   Input *destInput = destRegion->getInput(inputName);
   if (destInput == nullptr) {
@@ -415,85 +415,19 @@ void Network::initialize() {
     return;
 
   /*
-   * 1. Calculate all region dimensions by
-   * iteratively evaluating links to induce
-   * region dimensions.
-   */
-
-  // Iterate until all regions have finished
-  // evaluating their links. If network is
-  // incompletely specified, we'll never finish,
-  // so make sure we make progress each time
-  // through the network.
-
-  size_t nLinksRemainingPrev = std::numeric_limits<size_t>::max();
-  size_t nLinksRemaining = nLinksRemainingPrev - 1;
-
-  while (nLinksRemaining > 0 && nLinksRemainingPrev > nLinksRemaining) {
-    nLinksRemainingPrev = nLinksRemaining;
-    nLinksRemaining = 0;
-
-    for (size_t i = 0; i < regions_.getCount(); i++) {
-      // evaluateLinks returns the number
-      // of links which still need to be
-      // evaluated.
-      std::shared_ptr<Region> r = regions_.getByIndex(i).second;
-      nLinksRemaining += r->evaluateLinks();
-    }
-  }
-
-  if (nLinksRemaining > 0) {
-    // Try to give complete information to the user
-    std::stringstream ss;
-    ss << "Network::initialize() -- unable to evaluate all links\n"
-       << "The following links could not be evaluated:\n";
-    for (size_t i = 0; i < regions_.getCount(); i++) {
-      std::shared_ptr<Region> r = regions_.getByIndex(i).second;
-      std::string errors = r->getLinkErrors();
-      if (errors.size() == 0)
-        continue;
-      ss << errors << "\n";
-    }
-    NTA_THROW << ss.str();
-  }
-
-  // Make sure all regions now have dimensions
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
-    const Dimensions &d = r->getDimensions();
-    if (d.isUnspecified()) {
-      NTA_THROW << "Network::initialize() -- unable to complete initialization "
-                << "because region '" << r->getName() << "' has unspecified "
-                << "dimensions. You must either specify dimensions directly or "
-                << "link to the region in a way that induces dimensions on the "
-                   "region.";
-    }
-    if (!d.isValid()) {
-      NTA_THROW << "Network::initialize() -- invalid dimensions "
-                << d.toString() << " for Region " << r->getName();
-    }
-  }
-
-  /*
-   * 2. initialize outputs:
-   *   - . Delegated to regions
+   * 1. Calculate all Input/Output dimensions by evaluating links.
    */
   for (size_t i = 0; i < regions_.getCount(); i++) {
+    // evaluateLinks returns the number
+    // of links which still need to be
+    // evaluated.
     std::shared_ptr<Region> r = regions_.getByIndex(i).second;
-    r->initOutputs();
+    r->evaluateLinks();
   }
 
-  /*
-   * 3. initialize inputs
-   *    - Delegated to regions
-   */
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
-    r->initInputs();
-  }
 
   /*
-   * 4. initialize region/impl
+   * 2. initialize region/impl
    */
   for (size_t i = 0; i < regions_.getCount(); i++) {
     std::shared_ptr<Region> r = regions_.getByIndex(i).second;
@@ -501,7 +435,7 @@ void Network::initialize() {
   }
 
   /*
-   * 5. Enable all phases in the network
+   * 3. Enable all phases in the network
    */
   resetEnabledPhases_();
 
@@ -753,14 +687,14 @@ void Network::load(std::istream &f) {
     std::shared_ptr<Region>  r = regions_.getByIndex(i).second;
 
     // If a propogation Delay is specified, the Link serialization
-	// saves the current input buffer at the top of the
-	// propogation Delay array because it will be pushed to
-	// the input during prepareInputs();
-	// It then saves all but the back buffer
+	  // saves the current input buffer at the top of the
+	  // propogation Delay array because it will be pushed to
+	  // the input during prepareInputs();
+	  // It then saves all but the back buffer
     // (the most recent) of the Propogation Delay array because
     // that buffer is the same as the most current output.
-	// So after restore we need to call prepareInputs() and
-	// shift the current outputs into the Propogaton Delay array.
+	  // So after restore we need to call prepareInputs() and
+	  // shift the current outputs into the Propogaton Delay array.
     r->prepareInputs();
 
     for (const auto &inputTuple : r->getInputs()) {
@@ -814,7 +748,7 @@ bool Network::operator==(const Network &o) const {
   for (size_t i = 0; i < regions_.getCount(); i++) {
     std::shared_ptr<Region> r1 = regions_.getByIndex(i).second;
     std::shared_ptr<Region> r2 = o.regions_.getByIndex(i).second;
-    if (*r1 != *r2) {
+    if (*(r1.get()) != *(r2.get())) {
       return false;
     }
   }

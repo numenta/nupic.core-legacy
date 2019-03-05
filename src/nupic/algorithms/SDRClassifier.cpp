@@ -30,18 +30,18 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <algorithm> // sort
 
 
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/utils/Log.hpp>
 
-using namespace std;
 
 namespace nupic {
 namespace algorithms {
 namespace sdr_classifier {
+
+using namespace std;
 
 /**
  * get(x,y) accessor interface for Matrix; handles sparse (missing) values
@@ -57,18 +57,25 @@ Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaul
 }
 
 
-SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
-                             Real64 actValueAlpha, UInt verbosity)
-    : steps_(steps), alpha_(alpha), actValueAlpha_(actValueAlpha),
-      maxInputIdx_(0), maxBucketIdx_(0), actualValues_({0.0}),
-      actualValuesSet_({false}), version_(sdrClassifierVersion),
-      verbosity_(verbosity) {
-  sort(steps_.begin(), steps_.end());
-  if (steps_.size() > 0) {
-    maxSteps_ = steps_.at(steps_.size() - 1) + 1;
-  } else {
-    maxSteps_ = 1;
-  }
+void SDRClassifier::initialize(const vector<UInt> &steps, Real64 alpha,
+                             Real64 actValueAlpha, UInt verbosity) {
+   steps_ = steps;
+   alpha_ = alpha; 
+   actValueAlpha_ = actValueAlpha;
+   maxInputIdx_ = 0;
+   maxBucketIdx_ = 0; 
+   actualValues_ = {0.0};
+   actualValuesSet_ = {false}; 
+   version_ = sdrClassifierVersion;
+   verbosity_ = verbosity;
+
+   sort(steps_.begin(), steps_.end());
+   if (steps_.size() > 0) {
+     maxSteps_ = steps_.at(steps_.size() - 1) + 1;
+   } else {
+     maxSteps_ = 1;
+   }
+
 
   // TODO: insert maxBucketIdx / maxInputIdx hint as parameter?
   // There can be great overhead reallocating the array every time a new
@@ -84,12 +91,15 @@ SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha,
   }
 }
 
+SDRClassifier::SDRClassifier(const vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
+                             UInt verbosity) { initialize(steps, alpha, actValueAlpha, verbosity); }
+
 SDRClassifier::~SDRClassifier() {}
 
 void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
                             const vector<UInt> &bucketIdxList,
                             const vector<Real64> &actValueList, bool category,
-                            bool learn, bool infer, ClassifierResult *result) {
+                            bool learn, bool infer, ClassifierResult &result) {
   // ensures that recordNum increases monotonically
   UInt lastRecordNum = -1;
   if (recordNumHistory_.size() > 0) {
@@ -183,12 +193,12 @@ size_t SDRClassifier::persistentSize() const {
 
 void SDRClassifier::infer_(const vector<UInt> &patternNZ,
                            const vector<Real64> &actValue,
-                           ClassifierResult *result) {
+                           ClassifierResult &result) {
   // add the actual values to the return value. For buckets that haven't
   // been seen yet, the actual value doesn't matter since it will have
   // zero likelihood.
   vector<Real64> *actValueVector =
-      result->createVector(-1, (UInt)actualValues_.size(), 0.0);
+      result.createVector(-1, (UInt)actualValues_.size(), 0.0);
   for (UInt i = 0; i < (UInt)actualValues_.size(); ++i) {
     if (actualValuesSet_[i]) {
       (*actValueVector)[i] = actualValues_[i];
@@ -204,7 +214,7 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
   }
 
   for (auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps) {
-    vector<Real64>* likelihoods = result->createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
+    vector<Real64>* likelihoods = result.createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
     for (const auto& bit : patternNZ) {
       const Matrix& w = weightMatrix_.at(*nSteps);
       for(UInt i =0; i< (UInt)likelihoods->size(); i++) {

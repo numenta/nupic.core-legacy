@@ -74,27 +74,27 @@ namespace nupic
 
   class RegisteredRegionImpl {
   public:
-      // 'classname' is name of the RegionImpl subclass that is to be instantiated for this plugin.
-      // 'module' is the name (or path) to the shared library in which 'classname' resides.  Empty if staticly linked.
-      RegisteredRegionImpl(const std::string& classname, const std::string& module=""){
-		classname_ = classname;
-		module_ = module;
-      }
+    // 'classname' is name of the RegionImpl subclass that is to be instantiated for this plugin.
+    // 'module' is the name (or path) to the shared library in which 'classname' resides.  Empty if staticly linked.
+    RegisteredRegionImpl(const std::string& classname, const std::string& module=""){
+		  classname_ = classname;
+		  module_ = module;
+    }
 
-      virtual ~RegisteredRegionImpl() {}
+    virtual ~RegisteredRegionImpl() {}
 
-      virtual RegionImpl* createRegionImpl( ValueMap& params, Region *region) = 0;
+    virtual RegionImpl* createRegionImpl( ValueMap& params, Region *region) = 0;
 
-      virtual RegionImpl* deserializeRegionImpl( BundleIO& params, Region *region) = 0;
+    virtual RegionImpl* deserializeRegionImpl( BundleIO& params, Region *region) = 0;
 
-      virtual Spec* createSpec() = 0;
+    virtual Spec* createSpec() = 0;
 
 	  virtual std::string className() { return classname_; }
 	  virtual std::string moduleName() { return module_; }
 
   protected:
-	std::string classname_;
-	std::string module_;
+	  std::string classname_;
+	  std::string module_;
 
   };
 

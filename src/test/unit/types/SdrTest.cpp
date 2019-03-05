@@ -38,19 +38,19 @@ TEST(SdrTest, TestConstructor) {
     SDR b(b_dims);
     ASSERT_EQ( b.size, 3ul );
     ASSERT_EQ( b.dimensions, b_dims );
-    ASSERT_EQ( b.getSparse().size(), 1ul );
+    ASSERT_EQ( b.getCoordinates().size(), 1ul );
     // zero initialized
     ASSERT_EQ( b.getDense(),     vector<Byte>({0, 0, 0}) );
-    ASSERT_EQ( b.getFlatSparse(), vector<UInt>(0) );
-    ASSERT_EQ( b.getSparse(),     vector<vector<UInt>>({{}}) );
+    ASSERT_EQ( b.getSparse(), vector<UInt>(0) );
+    ASSERT_EQ( b.getCoordinates(),     vector<vector<UInt>>({{}}) );
 
     // Test 3-D
     vector<UInt> c_dims = {11u, 15u, 3u};
     SDR c(c_dims);
     ASSERT_EQ( c.size, 11u * 15u * 3u );
     ASSERT_EQ( c.dimensions, c_dims );
-    ASSERT_EQ( c.getSparse().size(), 3ul );
-    ASSERT_EQ( c.getFlatSparse().size(), 0ul );
+    ASSERT_EQ( c.getCoordinates().size(), 3ul );
+    ASSERT_EQ( c.getSparse().size(), 0ul );
     // Test dimensions are copied not referenced
     c_dims.push_back(7);
     ASSERT_EQ( c.dimensions, vector<UInt>({11u, 15u, 3u}) );
@@ -66,7 +66,7 @@ TEST(SdrTest, TestConstructorCopy) {
     SDR a({5});
     a.setDense( SDR_dense_t({0, 1, 0, 0, 0}));
     SDR b(a);
-    ASSERT_EQ( b.getFlatSparse(),  vector<UInt>({1}) );
+    ASSERT_EQ( b.getSparse(),  vector<UInt>({1}) );
     ASSERT_TRUE(a == b);
 }
 
@@ -75,10 +75,10 @@ TEST(SdrTest, TestZero) {
     a.setDense( vector<Byte>(16, 1) );
     a.zero();
     ASSERT_EQ( vector<Byte>(16, 0), a.getDense() );
-    ASSERT_EQ( a.getFlatSparse().size(),  0ul);
-    ASSERT_EQ( a.getSparse().size(),  2ul);
-    ASSERT_EQ( a.getSparse().at(0).size(),  0ul);
-    ASSERT_EQ( a.getSparse().at(1).size(),  0ul);
+    ASSERT_EQ( a.getSparse().size(),  0ul);
+    ASSERT_EQ( a.getCoordinates().size(),  2ul);
+    ASSERT_EQ( a.getCoordinates().at(0).size(),  0ul);
+    ASSERT_EQ( a.getCoordinates().at(1).size(),  0ul);
 }
 
 TEST(SdrTest, TestSDR_Examples) {
@@ -95,19 +95,19 @@ TEST(SdrTest, TestSDR_Examples) {
                              0, 1, 0,
                              0, 0, 1 }));
     ASSERT_EQ( data, X.getDense() );
-    X.setFlatSparse(SDR_flatSparse_t({ 1, 4, 8 }));
+    X.setSparse(SDR_sparse_t({ 1, 4, 8 }));
     ASSERT_EQ( data, X.getDense() );
-    X.setSparse(SDR_sparse_t({{ 0, 1, 2,}, { 1, 1, 2 }}));
+    X.setCoordinates(SDR_coordinate_t({{ 0, 1, 2,}, { 1, 1, 2 }}));
     ASSERT_EQ( data, X.getDense() );
 
     // Access data in any format, SDR will automatically convert data formats.
     ASSERT_EQ( X.getDense(),      SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }) );
-    ASSERT_EQ( X.getSparse(),     SDR_sparse_t({{ 0, 1, 2 }, {1, 1, 2}}) );
-    ASSERT_EQ( X.getFlatSparse(), SDR_flatSparse_t({ 1, 4, 8 }) );
+    ASSERT_EQ( X.getCoordinates(),     SDR_coordinate_t({{ 0, 1, 2 }, {1, 1, 2}}) );
+    ASSERT_EQ( X.getSparse(), SDR_sparse_t({ 1, 4, 8 }) );
 
     // Data format conversions are cached, and when an SDR value changes the
     // cache is cleared.
-    X.setFlatSparse(SDR_flatSparse_t({}));  // Assign new data to the SDR, clearing the cache.
+    X.setSparse(SDR_sparse_t({}));  // Assign new data to the SDR, clearing the cache.
     X.getDense();        // This line will convert formats.
     X.getDense();        // This line will resuse the result of the previous line
 
@@ -129,7 +129,7 @@ TEST(SdrTest, TestSDR_Examples) {
     dense[2] = true;
     X.setDense( dense );              // Notify the SDR of the changes.
     after = X.getDense().data();
-    ASSERT_EQ( X.getFlatSparse(), SDR_flatSparse_t({ 2 }) );
+    ASSERT_EQ( X.getSparse(), SDR_sparse_t({ 2 }) );
     ASSERT_EQ( before, after );
 }
 
@@ -174,74 +174,28 @@ TEST(SdrTest, TestSetDenseInplace) {
     ASSERT_EQ( a.getDense(), a_data );
 }
 
-TEST(SdrTest, TestSetFlatSparseVec) {
+TEST(SdrTest, TestSetSparseVec) {
     SDR a({11, 10, 4});
-    UInt *before = a.getFlatSparse().data();
+    UInt *before = a.getSparse().data();
     auto vec = vector<UInt>(a.size, 1);
     UInt *data = vec.data();
     for(UInt i = 0; i < a.size; i++)
         vec[i] = i;
-    a.setFlatSparse( vec );
-    UInt *after = a.getFlatSparse().data();
+    a.setSparse( vec );
+    UInt *after = a.getSparse().data();
     ASSERT_NE( before, after );
     ASSERT_EQ( after, data );
 }
 
-TEST(SdrTest, TestSetFlatSparsePtr) {
+TEST(SdrTest, TestSetSparsePtr) {
     SDR a({11, 10, 4});
     auto vec = vector<UInt>(a.size, 1);
     for(UInt i = 0; i < a.size; i++)
         vec[i] = i;
     a.zero();
-    a.setFlatSparse( (UInt*) vec.data(), a.size );
-    ASSERT_EQ( a.getFlatSparse(), vec );
-    ASSERT_NE( a.getFlatSparse().data(), vec.data()); // true copy not a reference
-}
-
-TEST(SdrTest, TestSetFlatSparseInplace) {
-    // Test both mutable & inplace methods at the same time, which is the intended use case.
-    SDR a({10, 10});
-    a.zero();
-    auto& a_data = a.getFlatSparse();
-    ASSERT_EQ( a_data, vector<UInt>(0) );
-    a_data.push_back(0);
-    a.setFlatSparse( a_data );
-    ASSERT_EQ( a.getFlatSparse().data(), a.getFlatSparse().data() );
-    ASSERT_EQ( a.getFlatSparse(),        a.getFlatSparse() );
-    ASSERT_EQ( a.getFlatSparse().data(), a_data.data() );
-    ASSERT_EQ( a.getFlatSparse(),        a_data );
-    ASSERT_EQ( a.getFlatSparse(), vector<UInt>(1) );
-    a_data.clear();
-    a.setFlatSparse( a_data );
-    ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 0) );
-}
-
-TEST(SdrTest, TestSetSparse) {
-    SDR a({4, 1, 3});
-    void *before = a.getSparse().data();
-    auto vec = vector<vector<UInt>>({
-        { 0, 1, 2, 0 },
-        { 0, 0, 0, 0 },
-        { 0, 1, 2, 1 } });
-    void *data = vec.data();
-    a.setSparse( vec );
-    void *after = a.getSparse().data();
-    ASSERT_EQ( after, data );
-    ASSERT_NE( before, after );
-}
-
-TEST(SdrTest, TestSetSparseCopy) {
-    SDR a({ 3, 3 });
-    void *before = a.getSparse().data();
-    auto vec = vector<vector<Real>>({
-        { 0.0f, 1.0f, 2.0f },
-        { 1.0f, 1.0f, 2.0f } });
-    void *data = vec.data();
-    a.setSparse( vec );
-    void *after = a.getSparse().data();
-    ASSERT_EQ( before, after );  // Data copied from vec into sdr's buffer
-    ASSERT_NE( after, data );   // Data copied from vec into sdr's buffer
-    ASSERT_EQ( a.getFlatSparse(), SDR_flatSparse_t({ 1, 4, 8 }));
+    a.setSparse( (UInt*) vec.data(), a.size );
+    ASSERT_EQ( a.getSparse(), vec );
+    ASSERT_NE( a.getSparse().data(), vec.data()); // true copy not a reference
 }
 
 TEST(SdrTest, TestSetSparseInplace) {
@@ -249,6 +203,52 @@ TEST(SdrTest, TestSetSparseInplace) {
     SDR a({10, 10});
     a.zero();
     auto& a_data = a.getSparse();
+    ASSERT_EQ( a_data, vector<UInt>(0) );
+    a_data.push_back(0);
+    a.setSparse( a_data );
+    ASSERT_EQ( a.getSparse().data(), a.getSparse().data() );
+    ASSERT_EQ( a.getSparse(),        a.getSparse() );
+    ASSERT_EQ( a.getSparse().data(), a_data.data() );
+    ASSERT_EQ( a.getSparse(),        a_data );
+    ASSERT_EQ( a.getSparse(), vector<UInt>(1) );
+    a_data.clear();
+    a.setSparse( a_data );
+    ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 0) );
+}
+
+TEST(SdrTest, TestSetCoordinates) {
+    SDR a({4, 1, 3});
+    void *before = a.getCoordinates().data();
+    auto vec = vector<vector<UInt>>({
+        { 0, 1, 2, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 1, 2, 1 } });
+    void *data = vec.data();
+    a.setCoordinates( vec );
+    void *after = a.getCoordinates().data();
+    ASSERT_EQ( after, data );
+    ASSERT_NE( before, after );
+}
+
+TEST(SdrTest, TestSetCoordinatesCopy) {
+    SDR a({ 3, 3 });
+    void *before = a.getCoordinates().data();
+    auto vec = vector<vector<Real>>({
+        { 0.0f, 1.0f, 2.0f },
+        { 1.0f, 1.0f, 2.0f } });
+    void *data = vec.data();
+    a.setCoordinates( vec );
+    void *after = a.getCoordinates().data();
+    ASSERT_EQ( before, after );  // Data copied from vec into sdr's buffer
+    ASSERT_NE( after, data );   // Data copied from vec into sdr's buffer
+    ASSERT_EQ( a.getSparse(), SDR_sparse_t({ 1, 4, 8 }));
+}
+
+TEST(SdrTest, TestSetCoordinatesInplace) {
+    // Test both mutable & inplace methods at the same time, which is the intended use case.
+    SDR a({10, 10});
+    a.zero();
+    auto& a_data = a.getCoordinates();
     ASSERT_EQ( a_data, vector<vector<UInt>>({{}, {}}) );
     a_data[0].push_back(0);
     a_data[1].push_back(0);
@@ -256,17 +256,17 @@ TEST(SdrTest, TestSetSparseInplace) {
     a_data[1].push_back(7);
     a_data[0].push_back(7);
     a_data[1].push_back(1);
-    a.setSparse( a_data );
+    a.setCoordinates( a_data );
     ASSERT_EQ( a.getSum(), 3ul );
     // I think some of these check the same things but thats ok.
-    ASSERT_EQ( (void*) a.getSparse().data(), (void*) a.getSparse().data() );
-    ASSERT_EQ( a.getSparse(), a.getSparse() );
-    ASSERT_EQ( a.getSparse().data(), a_data.data() );
-    ASSERT_EQ( a.getSparse(),        a_data );
-    ASSERT_EQ( a.getFlatSparse(), vector<UInt>({0, 37, 71}) ); // Check data ok
+    ASSERT_EQ( (void*) a.getCoordinates().data(), (void*) a.getCoordinates().data() );
+    ASSERT_EQ( a.getCoordinates(), a.getCoordinates() );
+    ASSERT_EQ( a.getCoordinates().data(), a_data.data() );
+    ASSERT_EQ( a.getCoordinates(),        a_data );
+    ASSERT_EQ( a.getSparse(), vector<UInt>({0, 37, 71}) ); // Check data ok
     a_data[0].clear();
     a_data[1].clear();
-    a.setSparse( a_data );
+    a.setCoordinates( a_data );
     ASSERT_EQ( a.getDense(), vector<Byte>(a.size, 0) );
 }
 
@@ -276,32 +276,32 @@ TEST(SdrTest, TestSetSDR) {
     // Test dense assignment works
     a.setDense(SDR_dense_t({1, 1, 1, 1, 1}));
     b.setSDR(a);
-    ASSERT_EQ( b.getFlatSparse(), vector<UInt>({0, 1, 2, 3, 4}) );
+    ASSERT_EQ( b.getSparse(), vector<UInt>({0, 1, 2, 3, 4}) );
     // Test flat sparse assignment works
-    a.setFlatSparse(SDR_flatSparse_t({0, 1, 2, 3, 4}));
+    a.setSparse(SDR_sparse_t({0, 1, 2, 3, 4}));
     b.setSDR(a);
     ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
     // Test sparse assignment works
-    a.setSparse(SDR_sparse_t({{0, 1, 2, 3, 4}}));
+    a.setCoordinates(SDR_coordinate_t({{0, 1, 2, 3, 4}}));
     b.setSDR(a);
     ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
 }
 
-TEST(SdrTest, TestGetDenseFromFlatSparse) {
+TEST(SdrTest, TestGetDenseFromSparse) {
     // Test zeros
     SDR z({4, 4});
-    z.setFlatSparse(SDR_flatSparse_t({}));
+    z.setSparse(SDR_sparse_t({}));
     ASSERT_EQ( z.getDense(), vector<Byte>(16, 0) );
 
     // Test ones
     SDR nz({4, 4});
-    nz.setFlatSparse(SDR_flatSparse_t(
+    nz.setSparse(SDR_sparse_t(
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}));
     ASSERT_EQ( nz.getDense(), vector<Byte>(16, 1) );
 
     // Test 1-D
     SDR d1({30});
-    d1.setFlatSparse(SDR_flatSparse_t({1, 29, 4, 5, 7}));
+    d1.setSparse(SDR_sparse_t({1, 29, 4, 5, 7}));
     vector<Byte> ans(30, 0);
     ans[1] = 1;
     ans[29] = 1;
@@ -312,7 +312,7 @@ TEST(SdrTest, TestGetDenseFromFlatSparse) {
 
     // Test 3-D
     SDR d3({10, 10, 10});
-    d3.setFlatSparse(SDR_flatSparse_t({0, 5, 50, 55, 500, 550, 555, 999}));
+    d3.setSparse(SDR_sparse_t({0, 5, 50, 55, 500, 550, 555, 999}));
     vector<Byte> ans2(1000, 0);
     ans2[0]   = 1;
     ans2[5]   = 1;
@@ -325,10 +325,10 @@ TEST(SdrTest, TestGetDenseFromFlatSparse) {
     ASSERT_EQ( d3.getDense(), ans2 );
 }
 
-TEST(SdrTest, TestGetDenseFromSparse) {
+TEST(SdrTest, TestGetDenseFromCoordinates) {
     // Test simple 2-D
     SDR a({3, 3});
-    a.setSparse(SDR_sparse_t({{1, 0, 2}, {2, 0, 2}}));
+    a.setCoordinates(SDR_coordinate_t({{1, 0, 2}, {2, 0, 2}}));
     vector<Byte> ans(9, 0);
     ans[0] = 1;
     ans[5] = 1;
@@ -337,29 +337,29 @@ TEST(SdrTest, TestGetDenseFromSparse) {
 
     // Test zeros
     SDR z({99, 1});
-    z.setSparse(SDR_sparse_t({{}, {}}));
+    z.setCoordinates(SDR_coordinate_t({{}, {}}));
     ASSERT_EQ( z.getDense(), vector<Byte>(99, 0) );
 }
 
-TEST(SdrTest, TestGetFlatSparseFromDense) {
+TEST(SdrTest, TestGetSparseFromDense) {
     // Test simple 2-D SDR.
     SDR a({3, 3}); a.zero();
     auto dense = a.getDense();
     dense[5] = 1;
     dense[8] = 1;
     a.setDense(dense);
-    ASSERT_EQ(a.getFlatSparse().at(0), 5ul);
-    ASSERT_EQ(a.getFlatSparse().at(1), 8ul);
+    ASSERT_EQ(a.getSparse().at(0), 5ul);
+    ASSERT_EQ(a.getSparse().at(1), 8ul);
 
     // Test zero'd SDR.
     a.setDense( vector<Byte>(a.size, 0) );
-    ASSERT_EQ( a.getFlatSparse().size(), 0ul );
+    ASSERT_EQ( a.getSparse().size(), 0ul );
 }
 
-TEST(SdrTest, TestGetFlatSparseFromSparse) {
+TEST(SdrTest, TestGetSparseFromCoordinates) {
     // Test simple 2-D SDR.
     SDR a({3, 3}); a.zero();
-    auto& index = a.getSparse();
+    auto& index = a.getCoordinates();
     ASSERT_EQ( index.size(), 2ul );
     ASSERT_EQ( index[0].size(), 0ul );
     ASSERT_EQ( index[1].size(), 0ul );
@@ -372,53 +372,53 @@ TEST(SdrTest, TestGetFlatSparseFromSparse) {
     // Insert flat index 5
     index.at(0).push_back(1);
     index.at(1).push_back(2);
-    a.setSparse( index );
-    ASSERT_EQ(a.getFlatSparse().at(0), 4ul);
-    ASSERT_EQ(a.getFlatSparse().at(1), 8ul);
-    ASSERT_EQ(a.getFlatSparse().at(2), 5ul);
+    a.setCoordinates( index );
+    ASSERT_EQ(a.getSparse().at(0), 4ul);
+    ASSERT_EQ(a.getSparse().at(1), 8ul);
+    ASSERT_EQ(a.getSparse().at(2), 5ul);
 
     // Test zero'd SDR.
-    a.setSparse(SDR_sparse_t( {{}, {}} ));
-    ASSERT_EQ( a.getFlatSparse().size(), 0ul );
+    a.setCoordinates(SDR_coordinate_t( {{}, {}} ));
+    ASSERT_EQ( a.getSparse().size(), 0ul );
 }
 
-TEST(SdrTest, TestGetSparseFromFlat) {
+TEST(SdrTest, TestGetCoordinatesFromSparse) {
     // Test simple 2-D SDR.
     SDR a({3, 3}); a.zero();
-    auto& index = a.getSparse();
+    auto& index = a.getCoordinates();
     ASSERT_EQ( index.size(), 2ul );
     ASSERT_EQ( index[0].size(), 0ul );
     ASSERT_EQ( index[1].size(), 0ul );
-    a.setFlatSparse(SDR_flatSparse_t({ 4, 8, 5 }));
-    ASSERT_EQ( a.getSparse(), vector<vector<UInt>>({
+    a.setSparse(SDR_sparse_t({ 4, 8, 5 }));
+    ASSERT_EQ( a.getCoordinates(), vector<vector<UInt>>({
         { 1, 2, 1 },
         { 1, 2, 2 } }) );
 
     // Test zero'd SDR.
-    a.setFlatSparse(SDR_flatSparse_t( { } ));
-    ASSERT_EQ( a.getSparse(), vector<vector<UInt>>({{}, {}}) );
+    a.setSparse(SDR_sparse_t( { } ));
+    ASSERT_EQ( a.getCoordinates(), vector<vector<UInt>>({{}, {}}) );
 }
 
-TEST(SdrTest, TestGetSparseFromDense) {
+TEST(SdrTest, TestGetCoordinatesFromDense) {
     // Test simple 2-D SDR.
     SDR a({3, 3}); a.zero();
     auto dense = a.getDense();
     dense[5] = 1;
     dense[8] = 1;
     a.setDense(dense);
-    ASSERT_EQ( a.getSparse(), vector<vector<UInt>>({
+    ASSERT_EQ( a.getCoordinates(), vector<vector<UInt>>({
         { 1, 2 },
         { 2, 2 }}) );
 
     // Test zero'd SDR.
     a.setDense( vector<Byte>(a.size, 0) );
-    ASSERT_EQ( a.getSparse()[0].size(), 0ul );
-    ASSERT_EQ( a.getSparse()[1].size(), 0ul );
+    ASSERT_EQ( a.getCoordinates()[0].size(), 0ul );
+    ASSERT_EQ( a.getCoordinates()[1].size(), 0ul );
 }
 
 TEST(SdrTest, TestAt) {
     SDR a({3, 3});
-    a.setFlatSparse(SDR_flatSparse_t( {4, 5, 8} ));
+    a.setSparse(SDR_sparse_t( {4, 5, 8} ));
     ASSERT_TRUE( a.at( {1, 1} ));
     ASSERT_TRUE( a.at( {1, 2} ));
     ASSERT_TRUE( a.at( {2, 2} ));
@@ -523,7 +523,7 @@ TEST(SdrTest, TestRandomize) {
     vector<Real> af( af_test.size, 0 );
     for( UInt i = 0; i < iterations; i++ ) {
         af_test.randomize( sparsity );
-        for( auto idx : af_test.getFlatSparse() )
+        for( auto idx : af_test.getSparse() )
             af[ idx ] += 1;
     }
     for( auto f : af ) {
@@ -593,9 +593,9 @@ TEST(SdrTest, TestEquality) {
     test_cases.push_back( new SDR({ 3, 3 }));
     test_cases.back()->setDense(SDR_dense_t({0, 1, 0, 0, 1, 0, 0, 0, 1}));
     test_cases.push_back( new SDR({ 3, 3 }));
-    test_cases.back()->setFlatSparse(SDR_flatSparse_t({0,}));
+    test_cases.back()->setSparse(SDR_sparse_t({0,}));
     test_cases.push_back( new SDR({ 3, 3 }));
-    test_cases.back()->setFlatSparse(SDR_flatSparse_t({3, 4, 6}));
+    test_cases.back()->setSparse(SDR_sparse_t({3, 4, 6}));
 
     // Check that SDRs equal themselves
     for(UInt x = 0; x < test_cases.size(); x++) {
@@ -633,12 +633,12 @@ TEST(SdrTest, TestSaveLoad) {
 
     // Test flat data
     SDR flat({ 3, 3 });
-    flat.setFlatSparse(SDR_flatSparse_t({ 1, 4, 8 }));
+    flat.setSparse(SDR_sparse_t({ 1, 4, 8 }));
     flat.save( outfile );
 
     // Test index data
     SDR index({ 3, 3 });
-    index.setSparse(SDR_sparse_t({
+    index.setCoordinates(SDR_coordinate_t({
             { 0, 1, 2 },
             { 1, 1, 2 }}));
     index.save( outfile );
@@ -695,8 +695,8 @@ TEST(SdrTest, TestCallbacks) {
     UInt handle1 = A.addCallback( call1 );
     UInt handle2 = A.addCallback( call2 );
     UInt handle3 = A.addCallback( call3 );
-    // Test proxies get callbacks
-    SDR_Proxy C(A);
+    // Test reshape gets callbacks
+    SDR_Reshape C(A);
     C.addCallback( call4 );
 
     // Remove call 2 and add it back in.
@@ -745,7 +745,7 @@ TEST(SdrTest, TestCallbacks) {
     SDR B(A);
     ASSERT_ANY_THROW( B.removeCallback( handle1 ) );
     ASSERT_ANY_THROW( B.removeCallback( 0 ) );
-    // Check proxy got all of the callbacks.
+    // Check SDR Reshape got all of the callbacks and passed them along.
     ASSERT_EQ( count4, 4 );
 }
 
@@ -754,12 +754,12 @@ TEST(SdrTest, TestIntersectionExampleUsage) {
     // Setup 2 SDRs to hold the inputs.
     SDR A({ 10u });
     SDR B({ 10u });
-    A.setFlatSparse(SDR_flatSparse_t(      {2, 3, 4, 5}));
-    B.setFlatSparse(SDR_flatSparse_t({0, 1, 2, 3}));
+    A.setSparse(SDR_sparse_t(      {2, 3, 4, 5}));
+    B.setSparse(SDR_sparse_t({0, 1, 2, 3}));
 
     // Calculate the logical intersection
     SDR_Intersection X(A, B);
-    ASSERT_EQ(X.getFlatSparse(), SDR_flatSparse_t({2, 3}));
+    ASSERT_EQ(X.getSparse(), SDR_sparse_t({2, 3}));
 
     // Assignments to the input SDRs are propigated to the SDR_Intersection
     B.zero();

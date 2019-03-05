@@ -218,7 +218,7 @@ Spec *VectorFileEffector::createSpec() {
 }
 
 size_t
-VectorFileEffector::getNodeOutputElementCount(const std::string &outputName) {
+VectorFileEffector::getNodeOutputElementCount(const std::string &outputName) const {
   NTA_THROW
       << "VectorFileEffector::getNodeOutputElementCount -- unknown output '"
       << outputName << "'";

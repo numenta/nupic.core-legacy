@@ -62,8 +62,8 @@ set(engine_tests
 	   unit/engine/InputTest.cpp
 	   unit/engine/LinkTest.cpp
 	   unit/engine/NetworkTest.cpp
-           unit/engine/UniformLinkPolicyTest.cpp
 	   unit/engine/YAMLUtilsTest.cpp
+	   unit/engine/WatcherTest.cpp
 	   )
 	   
 
@@ -96,7 +96,6 @@ set(regions_tests
 set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
-	   unit/types/FractionTest.cpp
 	   unit/types/SdrTest.cpp
 	   unit/types/SdrProxyTest.cpp
 	   )
@@ -107,8 +106,14 @@ set(utils_tests
 	   unit/utils/RandomTest.cpp
 	   unit/utils/VectorHelpersTest.cpp
 	   unit/utils/SdrMetricsTest.cpp
-	   unit/utils/WatcherTest.cpp
 	   )
+
+set(examples_files
+	   # examples/hotgym/Hotgym.cpp # contains conflicting main()
+           ../examples/hotgym/HelloSPTP.cpp
+           ../examples/hotgym/HelloSPTP.hpp
+	   # examples/mnist/MNIST_SP.cpp
+)
 	   
 
 	   
@@ -136,6 +141,7 @@ set(src_executable_gtests
     ${regions_tests}
     ${types_tests} 
     ${utils_tests} 
+    ${examples_files}
 )
 
 add_executable(${unit_tests_executable} ${src_executable_gtests})

@@ -1548,7 +1548,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
     Random rng( i + 99u );             // Use deterministic seeds for unit tests.
     auto &sdr = pattern[i];
     sdr.randomize( 0.10f, rng );
-    auto &data = sdr.getFlatSparse();
+    auto &data = sdr.getSparse();
     std::sort(data.begin(), data.end());
   }
 
@@ -1584,14 +1584,14 @@ TEST(TemporalMemoryTest, testExtraActive) {
           predictedColumns.erase( predictedColumns.begin() + i-- );
       }
       // Calculate TM output
-      const auto &sparse = x.getFlatSparse();
+      const auto &sparse = x.getSparse();
       tm.compute(sparse.size(), sparse.data(), true);
       extraActive  = tm.getActiveCells();
       extraWinners = tm.getWinnerCells();
 
       // Calculate Anomaly of current input based on prior predictions.
       anom = algorithms::anomaly::computeRawAnomalyScore(
-                                    x.getFlatSparse(), predictedColumns);
+                                    x.getSparse(), predictedColumns);
     }
   }
   ASSERT_LT( anom, 0.05f );
@@ -1601,11 +1601,11 @@ TEST(TemporalMemoryTest, testExtraActive) {
   tm.reset();
   for(auto &x : pattern) {
     // Predict whats going to happen.
-    tm.activateDendrites(true, {}, {});
+    tm.activateDendrites(true, vector<UInt>({}), vector<UInt>({}));
     auto predictedCells = tm.getPredictiveCells();
     ASSERT_TRUE( predictedCells.empty() ); // No predictions, numActive < threshold
     // Calculate TM output
-    const auto &sparse = x.getFlatSparse();
+    const auto &sparse = x.getSparse();
     tm.compute(sparse.size(), sparse.data(), true);
   }
 }

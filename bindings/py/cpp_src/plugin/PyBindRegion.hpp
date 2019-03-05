@@ -76,7 +76,7 @@ namespace nupic
         // RegionImpl
         ////////////////////////////
 
-        size_t getNodeOutputElementCount(const std::string& outputName) override;
+        size_t getNodeOutputElementCount(const std::string& outputName) const override;
 
         void initialize() override;
         void compute() override;

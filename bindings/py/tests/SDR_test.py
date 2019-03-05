@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Proxy, SDR_Intersection, SDR_Concatenation
+from nupic.bindings.algorithms import SDR, SDR_Reshape, SDR_Intersection, SDR_Concatenation
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -38,24 +38,24 @@ class SdrTest(unittest.TestCase):
                    [0, 1, 0],
                    [0, 0, 1]]
         assert( X.dense.tolist() == [[ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ]] )
-        assert( [list(v) for v in X.sparse] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
-        assert( list(X.flatSparse) == [ 1, 4, 8 ] )
-        X.sparse = [[0, 1, 2], [1, 1, 2]]
+        assert( [list(v) for v in X.coordinates] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
+        assert( list(X.sparse) == [ 1, 4, 8 ] )
+        X.coordinates = [[0, 1, 2], [1, 1, 2]]
         assert( X.dense.tolist() == [[ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ]] )
-        assert( [list(v) for v in X.sparse] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
-        assert( list(X.flatSparse) == [ 1, 4, 8 ] )
-        X.flatSparse = [ 1, 4, 8 ]
+        assert( [list(v) for v in X.coordinates] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
+        assert( list(X.sparse) == [ 1, 4, 8 ] )
+        X.sparse = [ 1, 4, 8 ]
 
         # Access data in any format, SDR will automatically convert data formats,
         # even if it was not the format used by the most recent assignment to the
         # SDR.
         assert( X.dense.tolist() == [[ 0, 1, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ]] )
-        assert( [list(v) for v in X.sparse] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
-        assert( list(X.flatSparse) == [ 1, 4, 8 ] )
+        assert( [list(v) for v in X.coordinates] == [[ 0, 1, 2 ], [1, 1, 2 ]] )
+        assert( list(X.sparse) == [ 1, 4, 8 ] )
 
         # Data format conversions are cached, and when an SDR value changes the
         # cache is cleared.
-        X.flatSparse = [1, 2, 3] # Assign new data to the SDR, clearing the cache.
+        X.sparse = [1, 2, 3] # Assign new data to the SDR, clearing the cache.
         X.dense     # This line will convert formats.
         X.dense     # This line will resuse the result of the previous line
 
@@ -64,7 +64,7 @@ class SdrTest(unittest.TestCase):
         data[  0,   4] = 1
         data[444, 444] = 1
         X.dense = data
-        assert(list(X.flatSparse) == [ 4, 444444 ])
+        assert(list(X.sparse) == [ 4, 444444 ])
 
     def testConstructor(self):
         A = SDR((103,))
@@ -87,7 +87,7 @@ class SdrTest(unittest.TestCase):
 
     def testZero(self):
         A = SDR((103,))
-        A.flatSparse = list(range(20))
+        A.sparse = list(range(20))
         A.zero()
         assert( np.sum( A.dense ) == 0 )
 
@@ -102,7 +102,7 @@ class SdrTest(unittest.TestCase):
         assert(A.dense[0] + A.dense[99] == 2)
         # Test modify in-place
         A.dense = A.dense
-        assert(set(A.flatSparse) == set((0, 99)))
+        assert(set(A.sparse) == set((0, 99)))
         # Test dense dimensions
         assert(B.dense.shape == (100, 100, 1))
         # No crash with dimensions
@@ -153,45 +153,45 @@ class SdrTest(unittest.TestCase):
 
         assert( inplace_time < copy_time / 3 )
 
-    def testFlatSparse(self):
+    def testSparse(self):
         A = SDR((103,))
         B = SDR((100, 100, 1))
 
-        A.flatSparse
-        B.flatSparse = [1,2,3,4]
-        assert(all(B.flatSparse == np.array([1,2,3,4])))
+        A.sparse
+        B.sparse = [1,2,3,4]
+        assert(all(B.sparse == np.array([1,2,3,4])))
 
-        B.flatSparse = []
+        B.sparse = []
         assert( not B.dense.any() )
 
         # Test wrong dimensions assigned
         C = SDR( 1000 )
         C.randomize( .98 )
         try:
-            A.flatSparse = C.flatSparse
+            A.sparse = C.sparse
         except RuntimeError:
             pass
         else:
             self.fail()
 
-    def testSparse(self):
+    def testCoordinates(self):
         A = SDR((103,))
         B = SDR((100, 100, 1))
         C = SDR((2, 4, 5, 1,1,1,1, 3))
 
-        A.sparse
-        B.sparse = [[0, 55, 99], [0, 11, 99], [0, 0, 0]]
+        A.coordinates
+        B.coordinates = [[0, 55, 99], [0, 11, 99], [0, 0, 0]]
         assert(B.dense[0, 0, 0]   == 1)
         assert(B.dense[55, 11, 0] == 1)
         assert(B.dense[99, 99, 0] == 1)
         C.randomize( .5 )
-        assert( len(C.sparse) == len(C.dimensions) )
+        assert( len(C.coordinates) == len(C.dimensions) )
 
         # Test wrong dimensions assigned
         C = SDR((2, 4, 5, 1,1,1,1, 3))
         C.randomize( .5 )
         try:
-            A.sparse = C.sparse
+            A.coordinates = C.coordinates
         except RuntimeError:
             pass
         else:
@@ -200,14 +200,14 @@ class SdrTest(unittest.TestCase):
     def testSetSDR(self):
         A = SDR((103,))
         B = SDR((103,))
-        A.flatSparse = [66]
+        A.sparse = [66]
         B.setSDR( A )
         assert( B.dense[66] == 1 )
         assert( B.getSum() == 1 )
         B.dense[77] = 1
         B.dense = B.dense
         A.setSDR( B )
-        assert( set(A.flatSparse) == set((66, 77)) )
+        assert( set(A.sparse) == set((66, 77)) )
 
         # Test wrong dimensions assigned
         C = SDR((2, 4, 5, 1,1,1,1, 3))
@@ -320,31 +320,31 @@ class SdrTest(unittest.TestCase):
             assert( A == B )
 
 
-class SdrProxyTest(unittest.TestCase):
+class SdrReshapeTest(unittest.TestCase):
     def testExampleUsage(self):
-        assert( issubclass(SDR_Proxy, SDR) )
+        assert( issubclass(SDR_Reshape, SDR) )
         # Convert SDR dimensions from (4 x 4) to (8 x 2)
         A = SDR([ 4, 4 ])
-        B = SDR_Proxy( A, [8, 2])
-        A.sparse =  ([1, 1, 2], [0, 1, 2])
-        assert( (np.array(B.sparse) == ([2, 2, 5], [0, 1, 0]) ).all() )
+        B = SDR_Reshape( A, [8, 2])
+        A.coordinates =  ([1, 1, 2], [0, 1, 2])
+        assert( (np.array(B.coordinates) == ([2, 2, 5], [0, 1, 0]) ).all() )
 
     def testLostSDR(self):
         # You need to keep a reference to the SDR, since SDR class does not use smart pointers.
-        B = SDR_Proxy(SDR((1000,)))
+        B = SDR_Reshape(SDR((1000,)), [1000])
         with self.assertRaises(RuntimeError):
             B.dense
 
     def testChaining(self):
         A = SDR([10,10])
-        B = SDR_Proxy(A)
-        C = SDR_Proxy(B)
-        D = SDR_Proxy(B)
+        B = SDR_Reshape(A, [100])
+        C = SDR_Reshape(B, [4, 25])
+        D = SDR_Reshape(B, [1, 100])
 
         A.dense.fill( 1 )
         A.dense = A.dense
-        assert( len(C.flatSparse) == A.size )
-        assert( len(D.flatSparse) == A.size )
+        assert( len(C.sparse) == A.size )
+        assert( len(D.sparse) == A.size )
         del B
 
     @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
@@ -356,10 +356,10 @@ class SdrIntersectionTest(unittest.TestCase):
     def testExampleUsage(self):
         A = SDR( 10 )
         B = SDR( 10 )
-        A.flatSparse = [2, 3, 4, 5]
-        B.flatSparse = [0, 1, 2, 3]
+        A.sparse = [2, 3, 4, 5]
+        B.sparse = [0, 1, 2, 3]
         X = SDR_Intersection(A, B)
-        assert((X.flatSparse == [2, 3]).all())
+        assert((X.sparse == [2, 3]).all())
         B.zero()
         assert(X.getSparsity() == 0)
 

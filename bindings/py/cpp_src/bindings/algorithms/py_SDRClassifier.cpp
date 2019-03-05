@@ -33,16 +33,16 @@ PyBind11 bindings for SDRClassifier class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/algorithms/ClassifierResult.hpp>
 #include <nupic/algorithms/SDRClassifier.hpp>
 
-namespace py = pybind11;
-using namespace nupic;
-using namespace nupic::algorithms::cla_classifier;
-using namespace nupic::algorithms::sdr_classifier;
 
 namespace nupic_ext
 {
+namespace py = pybind11;
+using namespace nupic;
+using namespace nupic::algorithms::sdr_classifier;
+using nupic::types::PDF;
+
     void init_SDR_Classifier(py::module& m)
     {
         typedef std::vector<UInt> steps_t;
@@ -63,12 +63,11 @@ namespace nupic_ext
             ClassifierResult result;
 
             self.compute(recordNum, patternNZ, bucketIdx, actValue,
-                                    category, learn, infer, &result);
+                                    category, learn, infer, result);
 
             py::dict dict;
 
-            for (map<Int, vector<Real64>*>::const_iterator it = result.begin();
-                it != result.end(); ++it)
+            for (map<Int, PDF*>::const_iterator it = result.begin(); it != result.end(); ++it)
             {
                 std::string key = "actualValues";
 
@@ -102,6 +101,7 @@ namespace nupic_ext
             std::istringstream inStream(inString);
             self.load(inStream);
         });
+
 
     }
 } // namespace nupic_ext

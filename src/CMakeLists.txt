@@ -83,8 +83,6 @@ set(algorithm_files
     nupic/algorithms/Cell.hpp
     nupic/algorithms/Cells4.cpp
     nupic/algorithms/Cells4.hpp
-    nupic/algorithms/ClassifierResult.cpp
-    nupic/algorithms/ClassifierResult.hpp
     nupic/algorithms/Connections.cpp
     nupic/algorithms/Connections.hpp
     nupic/algorithms/InSynapse.cpp
@@ -116,9 +114,6 @@ set(engine_files
     nupic/engine/Input.hpp
     nupic/engine/Link.cpp
     nupic/engine/Link.hpp
-    nupic/engine/LinkPolicy.hpp
-    nupic/engine/LinkPolicyFactory.cpp
-    nupic/engine/LinkPolicyFactory.hpp
     nupic/engine/Network.cpp
     nupic/engine/Network.hpp
     nupic/engine/NuPIC.cpp
@@ -135,12 +130,10 @@ set(engine_files
     nupic/engine/RegisteredRegionImplCpp.hpp
     nupic/engine/Spec.cpp
     nupic/engine/Spec.hpp
-    nupic/engine/TestFanIn2LinkPolicy.cpp
-    nupic/engine/TestFanIn2LinkPolicy.hpp
-    nupic/engine/UniformLinkPolicy.cpp
-    nupic/engine/UniformLinkPolicy.hpp
     nupic/engine/YAMLUtils.cpp
     nupic/engine/YAMLUtils.hpp
+    nupic/engine/Watcher.cpp
+    nupic/engine/Watcher.hpp
 )
   
 set(math_files
@@ -202,9 +195,9 @@ set(regions_files
 set(types_files
     nupic/types/BasicType.cpp
     nupic/types/BasicType.hpp
+    nupic/types/ClassifierResult.cpp
+    nupic/types/ClassifierResult.hpp
     nupic/types/Exception.hpp
-    nupic/types/Fraction.cpp
-    nupic/types/Fraction.hpp
     nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
@@ -229,14 +222,13 @@ set(utils_files
     nupic/utils/StringUtils.hpp
     nupic/utils/VectorHelpers.hpp
     nupic/utils/SdrMetrics.hpp
-    nupic/utils/Watcher.cpp
-    nupic/utils/Watcher.hpp
 )
 
 set(examples_files
-    examples/hotgym/Hotgym.cpp
+    examples/hotgym/Hotgym.cpp # contains conflicting main()
     examples/hotgym/HelloSPTP.cpp
     examples/hotgym/HelloSPTP.hpp
+    examples/mnist/MNIST_SP.cpp
 )
 
 #set up file tabs in Visual Studio
@@ -272,7 +264,6 @@ add_library(${src_objlib} OBJECT
     ${regions_files} 
     ${types_files} 
     ${utils_files}
-    ${examples_files} 
 )
 # shared libraries need PIC
 target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
@@ -359,13 +350,8 @@ add_subdirectory(test)
 #
 ## Setup benchmark_hotgym
 #
-source_group("examples" FILES 
-    examples/hotgym/Hotgym.cpp 
-    examples/hotgym/HelloSPTP.hpp
-    )
-
 set(src_executable_hotgym benchmark_hotgym)
-add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp)
+add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp examples/hotgym/HelloSPTP.cpp)
 if(MSVC)
   # for Windows, link with the static library
   target_link_libraries(${src_executable_hotgym} 
@@ -392,6 +378,30 @@ add_custom_target(hotgym
           VERBATIM)
 
 
+#########################################################
+## MNIST Spatial Pooler Example
+#
+set(src_executable_mnistsp mnist_sp)
+add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
+target_link_libraries(${src_executable_mnistsp} 
+        ${core_library}
+        ${COMMON_OS_LIBS}
+	    )
+  target_compile_options(${src_executable_mnistsp} PUBLIC ${INTERNAL_CXX_FLAGS})
+  target_compile_definitions(${src_executable_mnistsp} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+  # Pass MNIST data directory to main.cpp
+  target_compile_definitions(${src_executable_mnistsp} PRIVATE MNIST_DATA_LOCATION=${mnist_SOURCE_DIR})
+  target_include_directories(${src_executable_mnistsp} PRIVATE 
+        ${CORE_LIB_INCLUDES} 
+        ${EXTERNAL_INCLUDES}
+        )
+add_custom_target(mnist
+                  COMMAND ${src_executable_mnistsp}
+                  DEPENDS ${src_executable_mnistsp}
+                  COMMENT "Executing ${src_executable_mnistsp}"
+                  VERBATIM)
+
+
 ############ INSTALL ######################################
 #
 # Install targets into CMAKE_INSTALL_PREFIX
@@ -399,14 +409,15 @@ add_custom_target(hotgym
 install(TARGETS
         ${core_library}
         ${src_executable_hotgym}
-        RUNTIME DESTINATION bin
+        ${src_executable_mnistsp}
+	RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
 if(MSVC)
 else()	
   install(TARGETS
-	    ${src_lib_shared}
+        ${src_lib_shared}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
@@ -425,7 +436,6 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
 	  MESSAGE_NEVER
 	  DESTINATION include)
-
 
           
 #
