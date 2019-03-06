@@ -122,13 +122,6 @@ public:
     pop.resize(nChoices); //keep only first nChoices, drop rest
     return pop;
   }
-  //compatibility method for Py-bindings, //TODO remove with SWIG 
-  template<class T>
-  void sample(const T population[], UInt nPopulation, T choices[], UInt nChoices) {
-    std::vector<T> vPop(population, population + nPopulation); 
-    std::vector<T> vChoices = this->sample<T>(vPop, nChoices);
-    std::copy(vChoices.begin(), vChoices.end(), choices);
-  }
 
   // randomly shuffle the elements
   template <class RandomAccessIterator>
