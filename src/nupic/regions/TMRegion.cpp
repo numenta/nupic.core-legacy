@@ -79,19 +79,56 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
 
   args_.iter = 0;
   args_.sequencePos = 0;
-  args_.outputWidth = (args_.orColumnOutputs)?args_.numberOfCols 
+  args_.outputWidth = (args_.orColumnOutputs)?args_.numberOfCols
                                              : (args_.numberOfCols * args_.cellsPerColumn);
   args_.init = false;
   tm_ = nullptr;
 }
 
-TMRegion::TMRegion(BundleIO &bundle, Region *region) : RegionImpl(region) {
+TMRegion::TMRegion(BundleIO &bundle, Region *region)
+    : RegionImpl(region), computeCallback_(nullptr) {
   tm_ = nullptr;
   deserialize(bundle);
 }
 
 TMRegion::~TMRegion() {
 }
+
+
+
+// Note: - this is called during Region initialization, after configuration
+//         is set but prior to calling initialize on this class to create the tm.
+//         The input dimensions should already have been set, normally from
+//         its connected output. This would set the region dimensions if not overridden.
+//       - This is not called if output dimensions were explicitly set for this output.
+//       - This call determines the dimensions set on the Output buffers.
+Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
+  Dimensions region_dim = getDimensions();
+  if (!region_dim.isSpecified()) {
+    // we don't have region dimensions, so create some if we know numberOfCols.
+    if (args_.numberOfCols == 0)
+      return Dimensions(Dimensions::DONTCARE);  // No info for its size
+    region_dim.clear();
+    region_dim.push_back(args_.numberOfCols);
+    setDimensions(region_dim);
+  }
+  if (args_.numberOfCols == 0)
+    args_.numberOfCols = (UInt32)region_dim.getCount();
+
+  if (name == "bottomUpOut" && args_.orColumnOutputs) {
+    // It's size is numberOfCols.
+    return region_dim;
+  } else if (name == "bottomUpOut" || name == "activeCells" || name == "predictedActiveCells") {
+    // It's size is numberOfCols * args_.cellsPerColumn.
+    // So insert a new dimension to what was provided by input.
+    Dimensions dim = region_dim;
+    dim.insert(dim.begin(), args_.cellsPerColumn);
+    return dim;
+  }
+  return RegionImpl::askImplForOutputDimensions(name);
+}
+
+
 
 void TMRegion::initialize() {
 
@@ -127,17 +164,17 @@ void TMRegion::initialize() {
 
     in = region_->getInput("extraWinners");
     NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
-    NTA_CHECK(in 
-           && in->hasIncomingLinks() 
-           && args_.extra == in->getDimensions().getCount()) 
-      << "The input 'extraActive' (width: " << args_.extra 
+    NTA_CHECK(in
+           && in->hasIncomingLinks()
+           && args_.extra == in->getDimensions().getCount())
+      << "The input 'extraActive' (width: " << args_.extra
       << ") is connected but 'extraWinners' input "
       << "is not provided OR it has a different buffer size.";
   }
 
 
 
-  nupic::algorithms::temporal_memory::TemporalMemory* tm = 
+  nupic::algorithms::temporal_memory::TemporalMemory* tm =
     new nupic::algorithms::temporal_memory::TemporalMemory(
       columnDimensions_, args_.cellsPerColumn, args_.activationThreshold,
       args_.initialPermanence, args_.connectedPermanence, args_.minThreshold,
@@ -154,6 +191,7 @@ void TMRegion::initialize() {
 
 void TMRegion::compute() {
 
+  std::cerr << "compute 0 " << std::endl;
   NTA_ASSERT(tm_) << "TM not initialized";
 
   if (computeCallback_ != nullptr)
@@ -185,10 +223,10 @@ void TMRegion::compute() {
   Array &extraWinners = getInput("extraWinners")->getData();
   SDR& extraWinnerCells = (args_.extra)?(*extraWinners.getSDR()):nullSDR;
 
-  NTA_DEBUG << "compute " << *in << "\n";
+  NTA_DEBUG << "compute " << *in << std::endl;
 
   // Perform Bottom up compute()
-  
+
   tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
   tm_->activateDendrites();
 
@@ -199,7 +237,7 @@ void TMRegion::compute() {
   //         plus an additional dimension for 'cellsPerColumn'.
   //       - The region dimensions total elements is the 'numberOfCols'.
   //       - The region dimensions are set by dimensions on incoming "bottomUpIn"
-  //       - The region dimensions can be overridden with configuration of "dim" 
+  //       - The region dimensions can be overridden with configuration of "dim"
   //         or explicitly by calling region->setDimensions().
   //         or explicitly for each output region->setOutputDimensions(output_name).
   //       - The total number of elements in the outputs must be
@@ -207,64 +245,31 @@ void TMRegion::compute() {
   //
   Output *out;
   out = getOutput("bottomUpOut");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {  
+  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     std::vector<UInt32> active = tm_->getActiveCells();         // sparse
     std::vector<UInt32> predictive = tm_->getPredictiveCells(); // sparse
-    if (args_.orColumnOutputs) { 
+    if (args_.orColumnOutputs) {
       // aggregate to columns
       active = VectorHelpers::sparse_cellsToColumns(active, args_.cellsPerColumn);
       predictive = VectorHelpers::sparse_cellsToColumns(predictive, args_.cellsPerColumn);
-    } 
+    }
     SDR *sdr = out->getData().getSDR();
     VectorHelpers::unionOfVectors(sdr->getSparse(), active, predictive);
     sdr->setSparse(sdr->getSparse()); // to update the cache in SDR.
 
-    NTA_DEBUG << "compute " << *out << "\n";
+    NTA_DEBUG << "compute " << *out << std::endl;
   }
   out = getOutput("activeCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {  
+  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     tm_->getActiveCells(*out->getData().getSDR());
-    NTA_DEBUG << "compute " << *out << "\n";
+    NTA_DEBUG << "compute " << *out << std::endl;
   }
   out = getOutput("predictedActiveCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {  
+  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     tm_->getWinnerCells(*out->getData().getSDR());
-    NTA_DEBUG << "compute " << *out << "\n";
+    NTA_DEBUG << "compute " << *out << std::endl;
   }
 }
-
-// Note: - this is called during Region initialization, after configuration
-//         is set but prior to calling initialize on this class to create the tm. 
-//         The input dimensions should already have been set, normally from 
-//         its connected output. This would set the region dimensions if not overridden.
-//       - This is not called if output dimensions were explicitly set for this output.
-//       - This call determines the dimensions set on the Output buffers.
-Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
-  Dimensions region_dim = getDimensions();
-  if (!region_dim.isSpecified()) {
-    // we don't have region dimensions, so create some if we know numberOfCols.
-    if (args_.numberOfCols == 0) 
-      return Dimensions(Dimensions::DONTCARE);  // No info for its size
-    region_dim.clear();
-    region_dim.push_back(args_.numberOfCols);
-    setDimensions(region_dim);
-  }
-  if (args_.numberOfCols == 0)
-    args_.numberOfCols = (UInt32)region_dim.getCount();
-
-  if (name == "bottomUpOut" && args_.orColumnOutputs) {
-    // It's size is numberOfCols.
-    return region_dim;
-  } else if (name == "bottomUpOut" || name == "activeCells" || name == "predictedActiveCells") {
-    // It's size is numberOfCols * args_.cellsPerColumn.
-    // So insert a new dimension to what was provided by input.
-    Dimensions dim = region_dim;
-    dim.insert(dim.begin(), args_.cellsPerColumn);
-    return dim;
-  }
-  return RegionImpl::askImplForOutputDimensions(name);
-}
-
 
 
 /********************************************************************/
@@ -356,7 +361,7 @@ Spec *TMRegion::createSpec() {
                     ParameterSpec::CreateAccess)); // access
 
   ns->parameters.add(
-      "permanenceIncrement", 
+      "permanenceIncrement",
       ParameterSpec("(float) Active synapses get their permanence counts "
                     "incremented by this value.",
                     NTA_BasicType_Real32,          // type
@@ -366,7 +371,7 @@ Spec *TMRegion::createSpec() {
                     ParameterSpec::CreateAccess)); // access
 
   ns->parameters.add(
-      "permanenceDecrement", 
+      "permanenceDecrement",
       ParameterSpec("(float) All other synapses get their permanence counts "
                     "decremented by this value.",
                     NTA_BasicType_Real32,          // type
@@ -389,7 +394,7 @@ Spec *TMRegion::createSpec() {
                     ParameterSpec::CreateAccess)); // access
 
   ns->parameters.add(
-    "maxSegmentsPerCell", 
+    "maxSegmentsPerCell",
     ParameterSpec("(int) The maximum number of segments allowed on a "
                   "cell. This is used to turn on 'fixed size CLA' mode. When in "
                   "effect, 'globalDecay' is not applicable and must be set to 0 and "
@@ -402,7 +407,7 @@ Spec *TMRegion::createSpec() {
                   ParameterSpec::ReadOnlyAccess));  // access
 
   ns->parameters.add(
-      "maxSynapsesPerSegment", 
+      "maxSynapsesPerSegment",
       ParameterSpec("(int) The maximum number of synapses allowed in "
                     "a segment. ",
                     NTA_BasicType_UInt32,             // type
@@ -754,12 +759,12 @@ void TMRegion::setParameterReal32(const std::string &name, Int64 index, Real32 v
       args_.predictedSegmentDecrement = value;
       return;
   }
-  
+
   RegionImpl::setParameterReal32(name, index, value);
 }
 
 
-void TMRegion::setParameterBool(const std::string &name, Int64 index, bool value) 
+void TMRegion::setParameterBool(const std::string &name, Int64 index, bool value)
 {
 
   if (name == "checkInputs") {
@@ -812,7 +817,7 @@ void TMRegion::deserialize(BundleIO &bundle) {
   std::istream &f = bundle.getInputStream();
   // There is more than one way to do this. We could serialize to YAML, which
   // would make a readable format, but that is a bit slow so we try to directly
-  // stream binary as much as we can.  
+  // stream binary as much as we can.
 //  char bigbuffer[10000];
   UInt version;
   Size len;

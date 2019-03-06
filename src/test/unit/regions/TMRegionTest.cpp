@@ -17,7 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- 
+
 
  * Author: David Keeney, April, 2018
  * ---------------------------------------------------------------------
@@ -90,16 +90,16 @@ namespace testing {
 
 // Verify that all parameters are working.
 // Assumes that the default value in the Spec is the same as the default when
-// creating a region with default constructor. 
+// creating a region with default constructor.
 TEST(TMRegionTest, testSpecAndParameters) {
   Network net;
 
   // Turn on runtime Debug logging.
- //if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Normal);
+ //if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
 
   // create a TM region with default parameters
   std::set<std::string> excluded;
-  std::shared_ptr<Region> region1 = net.addRegion("region1", "TMRegion", ""); 
+  std::shared_ptr<Region> region1 = net.addRegion("region1", "TMRegion", "");
   checkGetSetAgainstSpec(region1, EXPECTED_SPEC_COUNT, excluded, verbose);
   checkInputOutputsAgainstSpec(region1, verbose);
 }
@@ -139,7 +139,7 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   // must match those of the spec. Explicit parameters are Yaml format...but
   // since YAML is a superset of JSON, you can use JSON format as well.
   // Here we set a unique value for every parameter we can set (per the spec).
-  std::string nodeParams =  
+  std::string nodeParams =
       "{numberOfCols: 100, cellsPerColumn: 20, "
       "activationThreshold: 12, initialPermanence: 0.22, "
       "connectedPermanence: 0.4, minThreshold: 7, "
@@ -160,16 +160,16 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   // Check that all of the node parameters have been correctly parsed and available.
   EXPECT_EQ(region2->getParameterUInt32("numberOfCols"), 100u);
   EXPECT_EQ(region2->getParameterUInt32("cellsPerColumn"), 20u);
-  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 12u); 
-  EXPECT_FLOAT_EQ(region2->getParameterReal32("initialPermanence"), 0.22f); 
-  EXPECT_FLOAT_EQ(region2->getParameterReal32("connectedPermanence"), 0.4f); 
+  EXPECT_EQ(region2->getParameterUInt32("activationThreshold"), 12u);
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("initialPermanence"), 0.22f);
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("connectedPermanence"), 0.4f);
   EXPECT_EQ(region2->getParameterUInt32("minThreshold"), 7u);
   EXPECT_EQ(region2->getParameterUInt32("maxNewSynapseCount"), 21u);
-  EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceIncrement"), 0.2f); 
-  EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceDecrement"), 0.2f); 
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceIncrement"), 0.2f);
+  EXPECT_FLOAT_EQ(region2->getParameterReal32("permanenceDecrement"), 0.2f);
   EXPECT_FLOAT_EQ(region2->getParameterReal32("predictedSegmentDecrement"), 0.0004f);
-  EXPECT_EQ(region2->getParameterUInt32("maxSynapsesPerSegment"), 254u); 
-  EXPECT_EQ(region2->getParameterInt32("seed"), 43); 
+  EXPECT_EQ(region2->getParameterUInt32("maxSynapsesPerSegment"), 254u);
+  EXPECT_EQ(region2->getParameterInt32("seed"), 43);
   EXPECT_EQ(region2->getParameterBool("learningMode"), false);
 
   // compute() should fail because network has not been initialized
@@ -183,8 +183,8 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
 TEST(TMRegionTest, testLinking) {
   // This is a minimal end-to-end test containing an TMRegion region.
   // To make sure we can feed data from some other region to our TMRegion
-  // this test will hook up the VectorFileSensor to an SPRegion to our 
-  // TMRegion and then connect our TMRegion to a VectorFileEffector to 
+  // this test will hook up the VectorFileSensor to an SPRegion to our
+  // TMRegion and then connect our TMRegion to a VectorFileEffector to
   // capture the results.
   //
   std::string test_input_file = "TestOutputDir/TMRegionTestInput.csv";
@@ -223,7 +223,7 @@ TEST(TMRegionTest, testLinking) {
   std::string parameters = "{activeOutputCount: " + std::to_string(dataWidth) + "}";
   std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor",parameters);
   std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,10]}");
-  std::shared_ptr<Region> region3 = net.addRegion("region3", "TMRegion", 
+  std::shared_ptr<Region> region3 = net.addRegion("region3", "TMRegion",
                                         "{activationThreshold: 9, cellsPerColumn: 5}");
   std::shared_ptr<Region> region4 = net.addRegion("region4", "VectorFileEffector",
                                         "{outputFile: '" + test_output_file + "'}");
@@ -265,7 +265,7 @@ TEST(TMRegionTest, testLinking) {
   Array r2OutputArray = region2->getOutputData("bottomUpOut");
   VERBOSE << "    " << r2OutputArray << "\n";
 
-  VERBOSE << "  TMRegion input " 
+  VERBOSE << "  TMRegion input "
           << region3->getInputDimensions("bottomUpIn") << "\n";
   Array r3InputArray = region3->getInputData("bottomUpIn");
   ASSERT_TRUE(r2OutputArray.getCount() == r3InputArray.getCount())
@@ -278,7 +278,7 @@ TEST(TMRegionTest, testLinking) {
     { 1, 2, 3, 5, 6, 8, 11, 13, 17, 19 }, (UInt32)r3InputArray.getCount());
   EXPECT_TRUE(r3InputArray == expected3in);
 
-  VERBOSE << "  TMRegion output " 
+  VERBOSE << "  TMRegion output "
           << region3->getOutputDimensions("bottomUpOut") << "\n";
   Array r3OutputArray = region3->getOutputData("bottomUpOut");
   UInt32 numberOfCols = region3->getParameterUInt32("numberOfCols");
@@ -291,9 +291,9 @@ TEST(TMRegionTest, testLinking) {
   EXPECT_TRUE(r3OutputArray.getType() == NTA_BasicType_SDR);
   VERBOSE << "   " << r3OutputArray << "\n";
   std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>(
-            { 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u, 
-             25u, 26u, 27u, 28u, 29u, 30u, 31u, 32u, 33u, 34u, 40u, 41u, 42u, 43u, 
-             44u, 55u, 56u, 57u, 58u, 59u, 65u, 66u, 67u, 68u, 69u, 85u, 86u, 87u, 
+            { 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u,
+             25u, 26u, 27u, 28u, 29u, 30u, 31u, 32u, 33u, 34u, 40u, 41u, 42u, 43u,
+             44u, 55u, 56u, 57u, 58u, 59u, 65u, 66u, 67u, 68u, 69u, 85u, 86u, 87u,
              88u, 89u, 95u, 96u, 97u, 98u, 99u }, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3out);
   EXPECT_EQ(r3OutputArray.getSDR()->getSparse().size(), 50u);
@@ -307,18 +307,18 @@ TEST(TMRegionTest, testLinking) {
   r3OutputArray = region3->getOutputData("bottomUpOut");
   ASSERT_TRUE(r3OutputArray.getCount() == numberOfCols * cellsPerColumn)
       << "Buffer length different. Output from TMRegion is "
-      << r3OutputArray.getCount() << ", should be (" 
+      << r3OutputArray.getCount() << ", should be ("
       << numberOfCols << " * " << cellsPerColumn;
   VERBOSE << "   " << r3OutputArray << ")\n";
   std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
-            {20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u, 29u, 35u, 36u, 37u, 38u, 
-             39u, 45u, 46u, 47u, 48u, 49u, 50u, 51u, 52u, 53u, 54u, 60u, 61u, 62u, 
-             63u, 64u, 70u, 71u, 72u, 73u, 74u, 80u, 81u, 82u, 83u, 84u, 90u, 91u, 
+            {20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u, 29u, 35u, 36u, 37u, 38u,
+             39u, 45u, 46u, 47u, 48u, 49u, 50u, 51u, 52u, 53u, 54u, 60u, 61u, 62u,
+             63u, 64u, 70u, 71u, 72u, 73u, 74u, 80u, 81u, 82u, 83u, 84u, 90u, 91u,
              92u, 93u, 94u, 95u, 96u, 97u, 98u, 99u}, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3outa);
 
 
-  VERBOSE << "   Input to VectorFileEffector " 
+  VERBOSE << "   Input to VectorFileEffector "
           << region4->getInputDimensions("dataIn") << "\n";
   Array r4InputArray = region4->getInputData("dataIn");
   EXPECT_TRUE(r4InputArray.getType() == NTA_BasicType_Real32);
@@ -338,7 +338,7 @@ TEST(TMRegionTest, testSerialization) {
   try {
 
     VERBOSE << "Setup first network and save it" << std::endl;
-    std::shared_ptr<Region> n1region1 = net1->addRegion( "region1", "ScalarSensor", 
+    std::shared_ptr<Region> n1region1 = net1->addRegion( "region1", "ScalarSensor",
                                              "{n: 48,w: 10,minValue: 0,maxValue: 10}");
     n1region1->setParameterReal64("sensedValue", 5.0);
 
@@ -384,11 +384,8 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "continue with execution." << std::endl;
     // can we continue with execution?  See if we get any exceptions.
     n1region1->setParameterReal64("sensedValue", 0.12);
-    VERBOSE << "continue 1." << std::endl;
     n1region1->prepareInputs();
-    VERBOSE << "continue 2." << std::endl;
     n1region1->compute();
-    VERBOSE << "continue 3." << std::endl;
 
     n2region2->prepareInputs();
     VERBOSE << "continue 4." << std::endl;
@@ -398,7 +395,6 @@ TEST(TMRegionTest, testSerialization) {
     // Change a parameters and see if it is retained after a restore.
     n2region2->setParameterReal32("permanenceDecrement", 0.099f);
     n2region2->compute();
-    VERBOSE << "continue 6." << std::endl;
 
     parameterMap.clear();
     EXPECT_TRUE(captureParameters(n2region2, parameterMap))
