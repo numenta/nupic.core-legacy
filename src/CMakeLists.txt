@@ -180,8 +180,6 @@ set(regions_files
     nupic/regions/SPRegion.hpp
     nupic/regions/TestNode.cpp
     nupic/regions/TestNode.hpp
-    nupic/regions/TMRegion.cpp
-    nupic/regions/TMRegion.hpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFile.hpp
     nupic/regions/VectorFileEffector.cpp
