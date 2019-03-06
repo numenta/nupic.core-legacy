@@ -236,7 +236,7 @@ Real *BacktrackingTMCpp::compute(Real *bottomUpInput, bool enableLearn,
     const auto activeColumns = nonzero<Real>(bottomUpInput, (Size)loc_.numberOfCols);
     predictedState = (enableInference) ? cells4_->getInfPredictedStateT1()
                                        : cells4_->getLearnPredictedStateT1();
-    _updateStatsInferEnd(internalStats_, activeColumns, predictedState,
+    _updateStatsInferEnd(internalStats_, activeColumns.data(), predictedState,
                          cells4_->getColConfidenceT1());
   }
 
@@ -364,7 +364,7 @@ std::pair<UInt, UInt> BacktrackingTMCpp::trimSegments(Real minPermanence,
 // from line 945 of backtracking_tm.py
 //
 void BacktrackingTMCpp::_updateStatsInferEnd(
-    std::map<std::string, Real> internalStats, std::vector<UInt32> bottomUpNZ,
+    std::map<std::string, Real> internalStats, const UInt32 *bottomUpNZ,
     const Byte *predictedState, const Real *colConfidence) {
   if (loc_.collectStats) {
     internalStats["nInfersSinceReset"] += 1;
@@ -373,7 +373,7 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
     // time step predicted the current bottom-up input  //line 945 of
     // backtracking_tm.py
     std::vector<std::vector<UInt>> patternNZs;
-    patternNZs.push_back(bottomUpNZ);
+    patternNZs.push_back(std::vector<UInt>(*bottomUpNZ));
     std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> results;
     results = _checkPrediction(patternNZs, predictedState, colConfidence, false);
 

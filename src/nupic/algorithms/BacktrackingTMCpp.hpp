@@ -50,9 +50,8 @@ using nupic::algorithms::Cells4::Segment;
 //  Static function nonzero()
 // returns an array of the indexes of the non-zero elements.
 // TODO replace with library implementation, or move to utils
-template <typename T> static std::vector<UInt> nonzero(const T *dense_buffer, UInt len) {
-  std::vector<UInt> nz;
-  nz.reserve(len);
+template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt len) {
+  vector<UInt> nz;
   for (UInt idx = 0; idx < len; idx++) {
     if (dense_buffer[idx] != (T)0)
       nz.push_back((UInt)idx);
@@ -469,7 +468,7 @@ protected:
   //////// internal functions ///////////
 
   void _updateStatsInferEnd(std::map<std::string, Real> internalStats,
-                            std::vector<UInt32> bottomUpNZ,
+                            const UInt32 *bottomUpNZ,
                             const Byte *predictedState,
                             const Real *colConfidence);
   Real *_computeOutput();
