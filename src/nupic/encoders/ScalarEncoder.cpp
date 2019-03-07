@@ -31,6 +31,11 @@
 
 namespace nupic {
 
+void ScalarEncoderBase::encode(Real input, SDR &output) {
+    NTA_CHECK( output.dimensions == dimensions );
+    output.setDense( encode(input) );
+}
+
 std::vector<UInt> ScalarEncoderBase::encode(Real input) {
     std::vector<UInt> output(getOutputWidth());
     encodeIntoArray(input, output.data());
@@ -65,6 +70,7 @@ ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
     const int neededBuckets = neededBands + 1;
     n_ = neededBuckets + (w - 1);
   }
+  BaseEncoder<Real>::initialize({ (UInt) n_ });
   NTA_CHECK(bucketWidth_ > 0);
   NTA_CHECK(n_ > 0);
   NTA_CHECK(w_ < n_);
@@ -103,6 +109,7 @@ PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
     const int neededBuckets = (int)ceil((maxValue - minValue) / bucketWidth_);
     n_ = (neededBuckets > w_) ? neededBuckets : w_ + 1;
   }
+  BaseEncoder<Real>::initialize({ (UInt) n_ });
 
   NTA_CHECK(bucketWidth_ > 0);
   NTA_CHECK(n_ > 0);

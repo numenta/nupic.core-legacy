@@ -31,13 +31,14 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp> //NTA_CHECK
+#include <nupic/encoders/BaseEncoder.hpp>
 
 namespace nupic {
 /**
  * @b Description
  * Base class for ScalarEncoders
  */
-  class ScalarEncoderBase
+  class ScalarEncoderBase : public BaseEncoder<Real>
   {
   public:
     virtual ~ScalarEncoderBase() {}
@@ -67,9 +68,11 @@ namespace nupic {
      */
     std::vector<UInt> encode(Real input);
 
+    void encode(Real input, SDR &output) override;
+
   protected: 
     ScalarEncoderBase(int w, int n):
-	 w_(w), n_(n) {
+        w_(w), n_(n) {
       NTA_CHECK(w > 0) << "EncoderBase: w must be > 0";
 //      NTA_CHECK(w < n) << "EncoderBase: w must be < n"; //not, because we can init with n=0 and eg resolution
     }

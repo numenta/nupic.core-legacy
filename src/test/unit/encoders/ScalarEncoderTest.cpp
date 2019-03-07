@@ -68,6 +68,19 @@ void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases
             << "ACTUAL:" << std::endl
             << vec2str(actualOutput);
         }
+      // Check SDR overload method.
+      SDR out( e.dimensions );
+      e.encode(c->input, out );
+      actualOutput.assign( out.getDense().begin(), out.getDense().end() );
+      for (UInt i = 0; i < e.getOutputWidth(); i++)
+        {
+          EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
+            << "For input " << c->input << " and index " << i << std::endl
+            << "EXPECTED:" << std::endl
+            << vec2str(c->expectedOutput) << std::endl
+            << "ACTUAL:" << std::endl
+            << vec2str(actualOutput);
+        }
     }
 }
 
