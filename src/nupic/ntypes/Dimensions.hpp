@@ -83,24 +83,24 @@ public:
 
   /**
    * Create a new Dimensions object.
+   * The dimension in index 0 is the one that moves fastest while iterating.
+   * in 2D coordinates, x,y; the x is dimension[0], y is dimension[1].
    *
    * @note Default dimensions are unspecified, see isUnspecified()
+   *       Dimensions of size=1 and value [0] = 0 means "not known yet", see isDontCare()
    *
    */
 Dimensions() {};
 
   /**
    * Create a new Dimensions object from a @c std::vector<UInt>.
-   * The dimension in index 0 is the one that moves fastest while iterating.
-   * in 2D coordinates, x,y; the x is dimension[0], y is dimension[1].
    *
    * @param v
    *        A @c std::vector of @c UInt, the value with the index of @a n
    *        is the size of the @a n th dimension
    *
    */
-  Dimensions(const std::vector<UInt>& v) : std::vector<UInt>(v) {};
-  Dimensions(const Dimensions& d) : std::vector<UInt>(d) {};
+  Dimensions(std::vector<UInt> v);
 
 
   /** Create a new 1-dimension Dimensions object.
@@ -332,17 +332,6 @@ Dimensions() {};
    */
   std::string toString(bool humanReadable = true) const;
 
-  /**
-   * Promote the Dimensions object to a new dimensionality.
-   *
-   * @param newDimensionality
-   *        The new dimensionality to promote to, it can be greater than,
-   *        smaller than or equal to current dimensionality
-   *
-   * @note The sizes of all dimensions must be 1( i.e. isOnes() returns true),
-   * or an exception will be thrown.
-   */
-  void promote(size_t newDimensionality);
 
   /**
    * The equivalence operator.

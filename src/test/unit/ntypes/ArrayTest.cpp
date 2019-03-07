@@ -27,7 +27,7 @@
 #define UNUSED(x) (void)(x)
 
 #include <nupic/utils/Log.hpp>
-
+#include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/Array.hpp>
@@ -562,7 +562,8 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     if (testCase->second.dataType == NTA_BasicType_SDR) {
       // Just to be sure an SDR can play here,
       // Only SDR has dimensions
-      Dimensions dim({10, 10});
+      std::vector<UInt> d({ 10u, 10u });
+      Dimensions dim(d);
       SDR sdr(dim);
       Array s(sdr); // makes a copy of sdr
       Dimensions dim_s(s.getSDR().dimensions);
@@ -580,7 +581,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       EXPECT_EQ(m.getCount(), 100u);
 
       std::vector<Byte> row = a.asVector<Byte>();
-      SDR_sparse_t &v = a.getSDR().getSparse();
+      const SDR_sparse_t& v = a.getSDR().getSparse();
 
       EXPECT_EQ(v.size(), 10u);
 
