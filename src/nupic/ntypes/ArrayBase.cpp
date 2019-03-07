@@ -113,7 +113,7 @@ void ArrayBase::allocateBuffer(size_t count) {
   }
 }
 
-void ArrayBase::allocateBuffer( const std::vector<UInt> dimensions) { // only for SDR
+void ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only for SDR
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Dimensions can only be set on the SDR payload";
   SDR *sdr = new SDR(dimensions);
   std::shared_ptr<char> sp((char *)(sdr));
@@ -190,8 +190,11 @@ const void *ArrayBase::getBuffer() const {
 
 SDR& ArrayBase::getSDR() {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  if (buffer_ == nullptr)
-    allocateBuffer({ 0, });  // Create an empty SDR object.
+  if (buffer_ == nullptr) {
+    std::vector<UInt> zeroDim;
+    zeroDim.push_back(0u);
+    allocateBuffer(zeroDim);  // Create an empty SDR object.
+  }
   SDR& sdr = *((SDR *)buffer_.get());
   sdr.setDense(sdr.getDense()); // cleanup cache
   return sdr;

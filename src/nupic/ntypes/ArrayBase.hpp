@@ -103,7 +103,7 @@ namespace nupic
      * NOTE: for NTA_BasicType_Sparse this sets the size of the dense buffer is describes.
      */
     virtual void allocateBuffer(size_t count);
-    virtual void allocateBuffer(const std::vector<UInt> dimensions);  // only for SDR
+    virtual void allocateBuffer(const std::vector<UInt>& dimensions);  // only for SDR
 
     /**
      * Ask ArrayBase to zero fill its buffer
