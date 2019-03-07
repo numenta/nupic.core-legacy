@@ -28,6 +28,7 @@
 #define NTA_OUTPUT_HPP
 
 #include <nupic/ntypes/Array.hpp>
+#include <nupic/engine/Region.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp> // temporary, while impl is in this file
 #include <set>
@@ -102,7 +103,7 @@ public:
    * @param link
    *        The Link to add
    */
-  void addLink(std::shared_ptr<Link> link);
+  void addLink(const std::shared_ptr<Link> link);
 
   /**
    * Removing an existing link from the output.
@@ -126,17 +127,15 @@ public:
   bool hasOutgoingLinks();
 
   /**
-   *
    * Get the data of the output.
-   *
-   * @returns
-   *         A reference to the data of the output as an @c Array
-   *
-   * @note we should return a const Array ref so caller can't
+   * @returns 
+   *     A reference to the data of the output as an @c Array
+   * @note we should return a const Array so caller can't
    * reallocate the buffer. Howerver, we do need to be able to
    * change the content of the buffer. So it cannot be const.
    */
   Array &getData() { return data_; }
+  const Array &getData() const { return data_;} 
 
   /**
    *  Get the data type of the output
@@ -180,6 +179,11 @@ public:
    * Set dimensions for this output
    */
   void setDimensions(const Dimensions& dim) { dim_ = dim; }
+
+  /**
+   *  Print raw data...for debugging
+   */
+  friend std::ostream &operator<<(std::ostream &f, const Output &d);
 
 private:
   // Cannot use the shared_ptr here

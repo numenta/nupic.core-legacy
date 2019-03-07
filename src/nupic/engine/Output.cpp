@@ -28,10 +28,9 @@
 #include <nupic/engine/Link.hpp> 
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/engine/Region.hpp>
 #include <nupic/types/BasicType.hpp>
 
-namespace nupic {
+using namespace nupic;
 
 Output::Output(Region* region, const std::string& outputName, NTA_BasicType type)
     : region_(region), 
@@ -93,6 +92,7 @@ Dimensions Output::determineDimensions() {
       }
     }
   }
+
   // If we still have a isDontcare, check if the spec defines 
   // regionLevel then get the dimensions from the region dims. 
   bool regionLevel = srcSpec->outputs.getByName(name_).regionLevel;
@@ -101,32 +101,38 @@ Dimensions Output::determineDimensions() {
     if (dim_.isDontcare()&& d.isSpecified()) {
       dim_ = d;
     }
-    else if (dim_.isSpecified() && d.isDontcare()) {
+    else if (dim_.isSpecified() && !d.isSpecified()) {
       region_->setDimensions(dim_);
     }
   }
   return dim_;
 }
 
-void Output::addLink(std::shared_ptr<Link> link) {
+void Output::addLink(const std::shared_ptr<Link> link) {
   // Make sure we don't add the same link twice
   // It is a logic error if we add the same link twice here, since
   // this method should only be called from Input::addLink
-  auto linkIter = links_.find(link);
+  const auto linkIter = links_.find(link);
   NTA_CHECK(linkIter == links_.end());
 
   links_.insert(link);
 }
 
 void Output::removeLink(std::shared_ptr<Link> link) {
-  auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
-  NTA_CHECK(linkIter != links_.end());
+  const auto linkIter = links_.find(link);
+  NTA_CHECK(linkIter != links_.end()) << "Link not found.";
   // Output::removeLink is only called from Input::removeLink so we don't
   // have to worry about removing it on the Input side
   links_.erase(linkIter);
 }
 
+namespace nupic {
+  std::ostream &operator<<(std::ostream &f, const Output &d) {
+    f << "Output:" << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
+    return f;
+  }
+}
 
 Region* Output::getRegion() const { return region_; }
 
@@ -142,4 +148,3 @@ bool Output::hasOutgoingLinks() { return (!links_.empty()); }
 
 NTA_BasicType Output::getDataType() const { return data_.getType(); }
 
-} // namespace nupic

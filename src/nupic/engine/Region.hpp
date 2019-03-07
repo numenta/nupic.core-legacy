@@ -40,6 +40,8 @@
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Output.hpp>
+#include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Serializable.hpp>
@@ -453,6 +455,7 @@ public:
   void setPhases(std::set<UInt32> &phases);
 
   std::set<UInt32> &getPhases();
+
 
   // These must be implemented for serialization.
   void save(std::ostream &stream) const override;

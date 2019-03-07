@@ -201,7 +201,6 @@ void Region::evaluateLinks() {
   }
 }
 
-
 size_t Region::getNodeInputElementCount(const std::string &name) {
   size_t count = impl_->getNodeInputElementCount(name);
   return count;

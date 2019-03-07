@@ -191,16 +191,18 @@ const void *ArrayBase::getBuffer() const {
 SDR *ArrayBase::getSDR() {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
   SDR *sdr = (SDR *)buffer_.get();
+  if (sdr == nullptr)
+    NTA_THROW << "getSDR: SDR pointer is null";
   sdr->setDense(sdr->getDense()); // cleanup cache
   return sdr;
 }
 const SDR *ArrayBase::getSDR() const {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  if (has_buffer()) {
-    const SDR *sdr = (SDR *)buffer_.get();
-    return sdr;
-  }
-  return nullptr;
+  SDR *sdr = (SDR *)buffer_.get();
+  if (sdr == nullptr)
+    NTA_THROW << "getSDR: SDR pointer is null";
+  sdr->setDense(sdr->getDense()); // cleanup cache
+  return sdr;
 }
 
 /**
@@ -429,50 +431,53 @@ std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a) {
   auto const inbuf = a.getBuffer();
   auto const numElements = a.getCount();
   auto const elementType = a.getType();
-
-  outStream << "[ " << BasicType::getName(elementType) << " " << numElements
-            << " ";
-
-  switch (elementType) {
-  case NTA_BasicType_Byte:
-    _templatedStreamBuffer<Byte>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Int16:
-    _templatedStreamBuffer<Int16>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_UInt16:
-    _templatedStreamBuffer<UInt16>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Int32:
-    _templatedStreamBuffer<Int32>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_UInt32:
-    _templatedStreamBuffer<UInt32>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Int64:
-    _templatedStreamBuffer<Int64>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_UInt64:
-    _templatedStreamBuffer<UInt64>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Real32:
-    _templatedStreamBuffer<Real32>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Real64:
-    _templatedStreamBuffer<Real64>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_Bool:
-    _templatedStreamBuffer<bool>(outStream, inbuf, numElements);
-    break;
-  case NTA_BasicType_SDR:
-    _templatedStreamBuffer<Byte>(outStream, inbuf, numElements);
-    break;
-  default:
-    NTA_THROW << "Unexpected Element Type: " << elementType;
-    break;
+  if (elementType == NTA_BasicType_SDR) {
+    if (!a.has_buffer())
+      outStream << "[ SDR(0) nullptr ]";
+    else
+      outStream << "[ " << *a.getSDR() << " ]";
   }
-  outStream << " ] ";
+  else {
+    outStream << "[ " << BasicType::getName(elementType) << " " << numElements
+              << " ";
 
+    switch (elementType) {
+    case NTA_BasicType_Byte:
+      _templatedStreamBuffer<Byte>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_Int16:
+      _templatedStreamBuffer<Int16>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_UInt16:
+      _templatedStreamBuffer<UInt16>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_Int32:
+      _templatedStreamBuffer<Int32>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_UInt32:
+      _templatedStreamBuffer<UInt32>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_Int64:
+      _templatedStreamBuffer<Int64>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_UInt64:
+      _templatedStreamBuffer<UInt64>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_Real32:
+      _templatedStreamBuffer<Real32>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_Real64:
+      _templatedStreamBuffer<Real64>(outStream, inbuf, numElements);
+      break;
+    case NTA_BasicType_Bool:
+      _templatedStreamBuffer<bool>(outStream, inbuf, numElements);
+      break;
+    default:
+      NTA_THROW << "Unexpected Element Type: " << elementType;
+      break;
+    }
+    outStream << " ] ";
+  }
   return outStream;
 }
 

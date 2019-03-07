@@ -586,7 +586,7 @@ namespace nupic
                     	required = input["required"].cast<bool>();
 										}
 
-                    // make regionLevel optional and default to false.
+                    // make regionLevel optional and default to true.
                     bool regionLevel = true;
                     if (input.contains("regionLevel"))
                     {

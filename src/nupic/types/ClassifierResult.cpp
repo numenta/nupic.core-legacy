@@ -71,7 +71,7 @@ UInt ClassifierResult::getClass(const UInt stepsAhead) const {
     if( iter.first == (Int)stepsAhead ) {  //entry at nth step  (0==current) 
       const auto *pdf = iter.second; //probability distribution of the classes
       const auto max  = std::max_element(pdf->cbegin(), pdf->cend());
-      const UInt cls  = max - pdf->cbegin();
+      const UInt cls  = (UInt32)(max - pdf->cbegin());
       return cls;
     }
   }

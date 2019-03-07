@@ -196,10 +196,12 @@ public:
 
   /**
    * Create an ArrayBase with type and data from vector
+   *  -- The templated constructor did not seem to work so
+   *  defining explicitly.
    */
   template <typename T> 
-  Array(const std::vector<T> &vect) {
-    type_ = BasicType::getType<T>();
+  Array(const std::vector<T> &vect) 
+      : ArrayBase(BasicType::getType<T>()) {
     allocateBuffer(vect.size());
     if (has_buffer())
       memcpy(getBuffer(), vect.data(), count_ * BasicType::getSize(type_));
