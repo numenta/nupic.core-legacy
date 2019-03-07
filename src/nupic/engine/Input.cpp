@@ -122,15 +122,6 @@ void Input::prepare() {
   }
 }
 
-Array &Input::getData() { NTA_CHECK(initialized_); return data_; }
-const Array &Input::getData() const { NTA_CHECK(initialized_); return data_; }
-
-NTA_BasicType Input::getDataType() const { return data_.getType(); }
-
-Region *Input::getRegion() { return region_; }
-const Region *Input::getRegion() const { return region_; }
-
-std::vector<std::shared_ptr<Link>> &Input::getLinks() { return links_; }
 
 void Input::initialize() {
   /**

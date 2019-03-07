@@ -152,13 +152,12 @@ public:
    * @returns
    *         A mutable reference to the data of the input as an @c Array
    */
-  Array &getData();
-  const Array &getData() const;
-
+  Array &getData() { NTA_CHECK(initialized_); return data_; }
+  const Array &getData() const { NTA_CHECK(initialized_); return data_; }
   /**
    *  Get the data type of the output
    */
-  NTA_BasicType getDataType() const;
+  NTA_BasicType getDataType() const { return data_.getType(); }
 
   /**
    *
@@ -167,8 +166,7 @@ public:
    * @returns
    *         The mutable reference to the Region that the input belongs to
    */
-  Region* getRegion();
-  const Region* getRegion() const;
+  const Region *getRegion() const { return region_; }
 
   /**
    *
@@ -177,8 +175,7 @@ public:
    * @returns
    *         All the Link objects added to the input
    */
-  std::vector<std::shared_ptr<Link>> &getLinks();
-
+  std::vector<std::shared_ptr<Link>> &getLinks() { return links_; }
 
   /**
    * Called by Region.evaluateLinks() as part
