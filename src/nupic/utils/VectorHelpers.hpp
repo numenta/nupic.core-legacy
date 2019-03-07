@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp> 
 
 
 namespace nupic {

@@ -565,7 +565,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       std::vector<UInt> dim({10, 10});
       SDR sdr(dim);
       Array s(sdr); // makes a copy of sdr
-      EXPECT_TRUE(s.getSDR() != &sdr);
+      EXPECT_TRUE(s.getSDR() != sdr);
       EXPECT_EQ(s.getCount(), 100u);
 
       std::vector<UInt> dim2({10, 20});
@@ -575,11 +575,11 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       // wrapper an existing sdr
       Array m(NTA_BasicType_SDR);
       m.setBuffer(sdr);
-      EXPECT_TRUE(m.getSDR() == &sdr);
+      EXPECT_TRUE(m.getSDR() == sdr);
       EXPECT_EQ(m.getCount(), 100u);
 
       std::vector<Byte> row = a.asVector<Byte>();
-      SDR_sparse_t &v = a.getSDR()->getSparse();
+      SDR_sparse_t &v = a.getSDR().getSparse();
 
       EXPECT_EQ(v.size(), 10u);
 

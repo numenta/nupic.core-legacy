@@ -760,10 +760,10 @@ size_t SPRegion::getParameterArrayCount(const std::string &name, Int64 index) {
   } else if (name == "spatialPoolerOutput") {
     return getOutput("bottomUpOut")->getData().getCount();
   } else if (name == "spInputNonZeros") {
-    const SDR_sparse_t& v = getInput("bottomUpIn")->getData().getSDR()->getSparse();
+    const SDR_sparse_t& v = getInput("bottomUpIn")->getData().getSDR().getSparse();
     return v.size();
   } else if (name == "spOutputNonZeros") {
-    const SDR_sparse_t& v = getInput("bottomUpOut")->getData().getSDR()->getSparse();
+    const SDR_sparse_t& v = getInput("bottomUpOut")->getData().getSDR().getSparse();
     return v.size();
   }
   return 0;
