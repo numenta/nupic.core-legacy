@@ -191,7 +191,7 @@ const void *ArrayBase::getBuffer() const {
 SDR& ArrayBase::getSDR() {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
   if (buffer_ == nullptr)
-    allocateBuffer({ 0 });  // Create an empty SDR object.
+    allocateBuffer({ 0, });  // Create an empty SDR object.
   SDR& sdr = *((SDR *)buffer_.get());
   sdr.setDense(sdr.getDense()); // cleanup cache
   return sdr;
