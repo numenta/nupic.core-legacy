@@ -123,11 +123,11 @@ namespace nupic
     const void* getBuffer() const;
 
     /**
-     * Returns a pointer to the underlining SDR.
+     * Returns a reference to the underlining SDR.
      * If it is not an SDR type, throws exception.
      */
-    SDR* getSDR();
-    const SDR* getSDR() const;
+    SDR& getSDR();
+    const SDR& getSDR() const;
 
     /**
      * number of elements of given type in the buffer
@@ -183,8 +183,8 @@ namespace nupic
      */
     void inline RefreshCache() {
       if (type_ == NTA_BasicType_SDR) {
-        SDR *sdr = getSDR();
-        sdr->setDense(sdr->getDense());
+        SDR& sdr = getSDR();
+        sdr.setDense(sdr.getDense());
       }
     }
     /**

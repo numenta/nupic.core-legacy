@@ -111,19 +111,27 @@ public:
   }
   /**
    * A sparse array version of cellsToColumns( ).
+   * The values are assumed to be sorted, sparse indexes.
    */
   static std::vector<UInt> sparse_cellsToColumns(const std::vector<UInt>& cellsSparse, 
                                                  const UInt cellsPerColumn)
   {
     std::vector<UInt> activeColumns;
+    if (cellsSparse.size() > 0) {
+      NTA_CHECK(cellsPerColumn > 0);
 
-    // loop over the whole (active) cells array
-    // saving the column indexes.
-    UInt prev = std::numeric_limits<UInt>::max();
-    for(auto cellIdx: cellsSparse) {
-      UInt colIdx = cellIdx / cellsPerColumn;
-      if (colIdx != prev) activeColumns.push_back(colIdx);
-      prev = colIdx;
+      // loop over the whole (active) cells array
+      // saving the column indexes.
+      UInt prev = std::numeric_limits<UInt>::max();
+      for(auto cellIdx: cellsSparse) {
+        UInt colIdx = cellIdx / cellsPerColumn;
+        if (colIdx != prev) {
+          activeColumns.push_back(colIdx);
+          NTA_CHECK(prev < colIdx || prev == std::numeric_limits<UInt>::max()) 
+                             << "Cell indexes not sorted";
+          prev = colIdx;
+        }
+      }
     }
     return activeColumns;
   }
