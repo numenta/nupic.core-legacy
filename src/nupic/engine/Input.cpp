@@ -25,7 +25,8 @@
  *
  */
 
-#include <cstring> // memset
+#include <algorithm> //find
+
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Output.hpp>
@@ -51,20 +52,16 @@ Input::~Input() {
   links_.clear();
 }
 
-void Input::addLink(std::shared_ptr<Link> link, Output *srcOutput) {
-  if (initialized_)
-    NTA_THROW << "Attempt to add link to input " << name_ << " on region "
+void Input::addLink(const std::shared_ptr<Link> link, Output *srcOutput) {
+  NTA_CHECK(initialized_ == false) << "Attempt to add link to input " << name_ << " on region "
               << region_->getName() << " when input is already initialized";
 
   // Make sure we don't already have a link to the same output
-  for (std::vector<std::shared_ptr<Link>>::const_iterator link = links_.begin();
-       link != links_.end(); link++) {
-    if (srcOutput == &((*link)->getSrc())) {
-      NTA_THROW << "addLink -- link from region "
+  for (const auto &it : links_) {
+    NTA_CHECK(srcOutput != &(*it).getSrc()) << "addLink -- link from region "
                 << srcOutput->getRegion()->getName() << " output "
                 << srcOutput->getName() << " to region " << region_->getName()
                 << " input " << getName() << " already exists";
-    }
   }
 
   links_.push_back(link);
@@ -74,20 +71,14 @@ void Input::addLink(std::shared_ptr<Link> link, Output *srcOutput) {
   // is calculated at initialization time
 }
 
-void Input::removeLink(std::shared_ptr<Link> &link) {
+void Input::removeLink(const std::shared_ptr<Link> &link) {
   // removeLink should only be called internally -- if it
   // does not exist, it is a logic error
-  auto linkiter = links_.begin();
-  for (; linkiter != links_.end(); linkiter++) {
-    if (*linkiter == link)
-      break;
-  }
-
+  const auto linkiter = find(links_.cbegin(), links_.cend(), link);
   NTA_CHECK(linkiter != links_.end())
       << "Cannot remove link. not found in list of links.";
 
-  if (region_->isInitialized())
-    NTA_THROW << "Cannot remove link " << link->toString()
+  NTA_CHECK(region_->isInitialized() == false) << "Cannot remove link " << link->toString()
               << " because destination region " << region_->getName()
               << " is initialized. Remove the region first.";
 
@@ -102,12 +93,11 @@ void Input::removeLink(std::shared_ptr<Link> &link) {
 std::shared_ptr<Link> Input::findLink(const std::string &srcRegionName,
                                       const std::string &srcOutputName) {
   // Note: cannot use a map here because the link items are ordered.
-  std::vector<std::shared_ptr<Link>>::const_iterator linkiter = links_.begin();
-  for (; linkiter != links_.end(); linkiter++) {
-    Output &output = (*linkiter)->getSrc();
+  for (const auto &it: links_) {
+    const Output &output = it->getSrc();
     if (output.getName() == srcOutputName &&
         output.getRegion()->getName() == srcRegionName) {
-      return *linkiter;
+      return it;
     }
   }
   // Link not found

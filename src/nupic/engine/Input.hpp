@@ -98,7 +98,7 @@ public:
    * @param srcOutput
    *        The output of previous Region, which is also the source of the input
    */
-  void addLink(std::shared_ptr<Link> link, Output *srcOutput);
+  void addLink(const std::shared_ptr<Link> link, Output *srcOutput);
 
   /**
    * Locate an existing Link to the input.
@@ -136,7 +136,7 @@ public:
    *        The Link to remove, possibly retrieved by findLink(), note that
    *        it is a reference to the pointer, not the pointer itself.
    */
-  void removeLink(std::shared_ptr<Link>& link);
+  void removeLink(const std::shared_ptr<Link>& link);
 
   /**
    * Make input data available.

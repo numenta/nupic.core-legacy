@@ -108,20 +108,20 @@ Dimensions Output::determineDimensions() {
   return dim_;
 }
 
-void Output::addLink(std::shared_ptr<Link> link) {
+void Output::addLink(const std::shared_ptr<Link> link) {
   // Make sure we don't add the same link twice
   // It is a logic error if we add the same link twice here, since
   // this method should only be called from Input::addLink
-  auto linkIter = links_.find(link);
+  const auto linkIter = links_.find(link);
   NTA_CHECK(linkIter == links_.end());
 
   links_.insert(link);
 }
 
 void Output::removeLink(std::shared_ptr<Link> link) {
-  auto linkIter = links_.find(link);
   // Should only be called internally. Logic error if link not found
-  NTA_CHECK(linkIter != links_.end());
+  const auto linkIter = links_.find(link);
+  NTA_CHECK(linkIter != links_.end()) << "Link not found.";
   // Output::removeLink is only called from Input::removeLink so we don't
   // have to worry about removing it on the Input side
   links_.erase(linkIter);

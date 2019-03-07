@@ -103,7 +103,7 @@ public:
    * @param link
    *        The Link to add
    */
-  void addLink(std::shared_ptr<Link> link);
+  void addLink(const std::shared_ptr<Link> link);
 
   /**
    * Removing an existing link from the output.
