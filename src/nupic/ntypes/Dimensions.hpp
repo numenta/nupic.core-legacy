@@ -87,7 +87,7 @@ public:
    * @note Default dimensions are unspecified, see isUnspecified()
    *
    */
-  Dimensions();
+Dimensions() {};
 
   /**
    * Create a new Dimensions object from a @c std::vector<UInt>.
@@ -99,7 +99,9 @@ public:
    *        is the size of the @a n th dimension
    *
    */
-  Dimensions(std::vector<UInt> v);
+  Dimensions(const std::vector<UInt>& v) : std::vector<UInt>(v) {};
+  Dimensions(const Dimensions& d) : std::vector<UInt>(d) {};
+
 
   /** Create a new 1-dimension Dimensions object.
 
@@ -107,7 +109,7 @@ public:
    *        The size of the 1st dimension
    *
    */
-  Dimensions(UInt x);
+  Dimensions(UInt x) { push_back(x); }
 
   /**
    * Create a new 2-dimension Dimensions.
@@ -117,7 +119,7 @@ public:
    * @param y
    *        The size of the 2nd dimension
    */
-  Dimensions(UInt x, UInt y);
+  Dimensions(UInt x, UInt y) {  push_back(x); push_back(y); }
 
   /**
    * Create a new 3-dimension Dimensions.
@@ -129,7 +131,8 @@ public:
    * @param z
    *        The size of the 3rd dimension
    */
-  Dimensions(UInt x, UInt y, UInt z);
+  Dimensions(UInt x, UInt y, UInt z) { push_back(x); push_back(y); push_back(z); }
+
 
   /**
    *

@@ -562,10 +562,11 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     if (testCase->second.dataType == NTA_BasicType_SDR) {
       // Just to be sure an SDR can play here,
       // Only SDR has dimensions
-      std::vector<UInt> dim({10, 10});
+      Dimensions dim({10, 10});
       SDR sdr(dim);
       Array s(sdr); // makes a copy of sdr
-      EXPECT_TRUE(s.getSDR() != sdr);
+      Dimensions dim_s(s.getSDR().dimensions);
+      EXPECT_EQ(dim_s, dim);
       EXPECT_EQ(s.getCount(), 100u);
 
       std::vector<UInt> dim2({10, 20});

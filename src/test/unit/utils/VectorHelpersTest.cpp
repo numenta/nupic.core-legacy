@@ -32,7 +32,7 @@ using namespace nupic::utils;
 using namespace nupic;
 using namespace std;
 
-TEST(VectorHelpers, print_vector)
+TEST(VectorHelpersTest, print_vector)
 {
   std::vector<float> v{1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
   VectorHelpers::print_vector<float>(v);
@@ -44,7 +44,7 @@ TEST(VectorHelpers, print_vector)
 };
 
 
-TEST(VectorHelpers, castVectorType)
+TEST(VectorHelpersTest, castVectorType)
 {
   std::vector<float> v{1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
   vector<UInt> expected {1, 0, 1, 2, 0};
@@ -55,7 +55,7 @@ TEST(VectorHelpers, castVectorType)
 };
 
 
-TEST(VectorHelpers, stringToFloatVector)
+TEST(VectorHelpersTest, stringToFloatVector)
 {
   vector<string> s{"1.2", "0.2", "1", "2.2", "0.1"};
   vector<Real32> expected2 {1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
@@ -66,7 +66,7 @@ TEST(VectorHelpers, stringToFloatVector)
 };
 
 
-TEST(VectorHelpers, binaryToSparse)
+TEST(VectorHelpersTest, binaryToSparse)
 {
   vector<Real32> v{0.0f,0.0f,1.0f,1.0f,0.0f};
   vector<UInt> expected {2, 3};
@@ -77,7 +77,7 @@ TEST(VectorHelpers, binaryToSparse)
 };
 
 
-TEST(VectorHelpers, sparseToBinary)
+TEST(VectorHelpersTest, sparseToBinary)
 {
   vector<Real32> expected{0.0f,0.0f,1.0f,1.0f,0.0f};
   vector<UInt> v {2u, 3u};
@@ -99,7 +99,7 @@ TEST(VectorHelpers, cellsToColumns)
 };
 
 
-TEST(VectorHelpers, sparse_cellsToColumns)
+TEST(VectorHelpersTest, sparse_cellsToColumns)
 { 
   
   // using binary vector 3x3 (3 cols with 3 cells per column) as a sparse array
@@ -119,13 +119,13 @@ TEST(VectorHelpers, sparse_cellsToColumns)
   EXPECT_EQ(res.size(), 0u);
 
 
-  vector<UInt> v3{ 4,3,8 };  // not sorted.
+  vector<UInt> v3{ 4,3,28,9,5 };  // not sorted.
   EXPECT_THROW(res = VectorHelpers::sparse_cellsToColumns(v3, 3),
                std::exception);
 
 };
 
-TEST(VectorHelpers, unionOfVectors)
+TEST(VectorHelpersTest, unionOfVectors)
 {
   vector<UInt> v1{ 1,2,3,4, 25 };
   vector<UInt> v2{ 1,4,5,6,7,8 };

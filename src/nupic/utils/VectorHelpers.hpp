@@ -127,9 +127,9 @@ public:
       for(auto cellIdx: cellsSparse) {
         UInt colIdx = cellIdx / cellsPerColumn;
         if (colIdx != prev) {
-          activeColumns.push_back(colIdx);
           NTA_CHECK(prev < colIdx || prev == std::numeric_limits<UInt>::max()) 
                              << "Cell indexes not sorted";
+          activeColumns.push_back(colIdx);
           prev = colIdx;
         }
       }

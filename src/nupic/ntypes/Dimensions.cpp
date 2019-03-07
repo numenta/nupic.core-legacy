@@ -28,23 +28,6 @@
 
 using namespace nupic;
 
-Dimensions::Dimensions(){};
-
-Dimensions::Dimensions(std::vector<UInt> v)
-    : std::vector<UInt>(std::move(v)){};
-
-Dimensions::Dimensions(UInt x) { push_back(x); }
-
-Dimensions::Dimensions(UInt x, UInt y) {
-  push_back(x);
-  push_back(y);
-}
-
-Dimensions::Dimensions(UInt x, UInt y, UInt z) {
-  push_back(x);
-  push_back(y);
-  push_back(z);
-}
 
 size_t Dimensions::getCount() const {
   if (isUnspecified() || isDontcare())
