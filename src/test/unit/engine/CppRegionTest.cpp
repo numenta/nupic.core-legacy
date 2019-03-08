@@ -153,7 +153,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   
   const Array r2OutputArray = region2->getOutputData("bottomUpOut");
   EXPECT_EQ(r2OutputArray.getType(), NTA_BasicType_SDR);
-  EXPECT_TRUE(r2OutputArray.getSDR()->dimensions == r2dims)
+  EXPECT_TRUE(r2OutputArray.getSDR().dimensions == r2dims)
       << "Expected dimensions on the output to match dimensions on the buffer.";
   VERBOSE << r2OutputArray << "\n";
   std::vector<Byte> expected_output = {0, 1, 0, 1, 0, 1};

@@ -119,20 +119,20 @@ void SPRegion::initialize() {
 
 
   // Take the dimensions directly from the SDRs.
-  std::vector<UInt32> inputDimensions = inputBuffer.getSDR()->dimensions;
-  std::vector<UInt32> columnDimensions = outputBuffer.getSDR()->dimensions;
+  std::vector<UInt32> inputDimensions = inputBuffer.getSDR().dimensions;
+  std::vector<UInt32> columnDimensions = outputBuffer.getSDR().dimensions;
 
   // There is a restriction on SP that input and output must have the same 
   // number of dimensions.  So we add [1] dimensions to make them match.
   while(inputDimensions.size() < columnDimensions.size()) {
     inputDimensions.push_back(1);
     in->setDimensions(inputDimensions);
-    inputBuffer.getSDR()->initialize(inputDimensions);
+    inputBuffer.getSDR().initialize(inputDimensions);
   }
   while(inputDimensions.size() > columnDimensions.size()) {
     columnDimensions.push_back(1);
     out->setDimensions(columnDimensions);
-    outputBuffer.getSDR()->initialize(columnDimensions);
+    outputBuffer.getSDR().initialize(columnDimensions);
   }
 
   if (args_.potentialRadius == 0)
@@ -165,7 +165,7 @@ void SPRegion::compute() {
 
 
   // Call SpatialPooler compute
-  sp_->compute(*inputBuffer.getSDR(), args_.learningMode, *outputBuffer.getSDR());
+  sp_->compute(inputBuffer.getSDR(), args_.learningMode, outputBuffer.getSDR());
 
 
   NTA_DEBUG << "compute " << *getOutput("bottomUpOut") << "\n";
@@ -760,10 +760,10 @@ size_t SPRegion::getParameterArrayCount(const std::string &name, Int64 index) {
   } else if (name == "spatialPoolerOutput") {
     return getOutput("bottomUpOut")->getData().getCount();
   } else if (name == "spInputNonZeros") {
-    const SDR_sparse_t& v = getInput("bottomUpIn")->getData().getSDR()->getSparse();
+    const SDR_sparse_t& v = getInput("bottomUpIn")->getData().getSDR().getSparse();
     return v.size();
   } else if (name == "spOutputNonZeros") {
-    const SDR_sparse_t& v = getInput("bottomUpOut")->getData().getSDR()->getSparse();
+    const SDR_sparse_t& v = getInput("bottomUpOut")->getData().getSDR().getSparse();
     return v.size();
   }
   return 0;
