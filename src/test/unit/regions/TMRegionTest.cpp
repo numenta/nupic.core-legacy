@@ -296,7 +296,7 @@ TEST(TMRegionTest, testLinking) {
              44u, 55u, 56u, 57u, 58u, 59u, 65u, 66u, 67u, 68u, 69u, 85u, 86u, 87u,
              88u, 89u, 95u, 96u, 97u, 98u, 99u }, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3out);
-  EXPECT_EQ(r3OutputArray.getSDR()->getSparse().size(), 50u);
+  EXPECT_EQ(r3OutputArray.getSDR().getSparse().size(), 50u);
 
   // execute TMRegion several more times and check that it has output.
   VERBOSE << "Execute 9 times." << std::endl;

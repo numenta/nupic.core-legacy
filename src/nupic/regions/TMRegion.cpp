@@ -213,15 +213,15 @@ void TMRegion::compute() {
   Input *in = getInput("bottomUpIn");
   Array &bottomUpIn = in->getData();
   NTA_ASSERT(bottomUpIn.getType() == NTA_BasicType_SDR);
-  SDR& activeColumns = *bottomUpIn.getSDR();
+  SDR& activeColumns = bottomUpIn.getSDR();
 
   // Check for 'extra' inputs
   static SDR nullSDR({0});
   Array &extraActive = getInput("extraActive")->getData();
-  SDR& extraActiveCells = (args_.extra)?(*extraActive.getSDR()):nullSDR;
+  SDR& extraActiveCells = (args_.extra)?(extraActive.getSDR()):nullSDR;
 
   Array &extraWinners = getInput("extraWinners")->getData();
-  SDR& extraWinnerCells = (args_.extra)?(*extraWinners.getSDR()):nullSDR;
+  SDR& extraWinnerCells = (args_.extra)?(extraWinners.getSDR()):nullSDR;
 
   NTA_DEBUG << "compute " << *in << std::endl;
 
@@ -253,20 +253,20 @@ void TMRegion::compute() {
       active = VectorHelpers::sparse_cellsToColumns(active, args_.cellsPerColumn);
       predictive = VectorHelpers::sparse_cellsToColumns(predictive, args_.cellsPerColumn);
     }
-    SDR *sdr = out->getData().getSDR();
-    VectorHelpers::unionOfVectors(sdr->getSparse(), active, predictive);
-    sdr->setSparse(sdr->getSparse()); // to update the cache in SDR.
+    SDR& sdr = out->getData().getSDR();
+    VectorHelpers::unionOfVectors(sdr.getSparse(), active, predictive);
+    sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
 
     NTA_DEBUG << "compute " << *out << std::endl;
   }
   out = getOutput("activeCells");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    tm_->getActiveCells(*out->getData().getSDR());
+    tm_->getActiveCells(out->getData().getSDR());
     NTA_DEBUG << "compute " << *out << std::endl;
   }
   out = getOutput("predictedActiveCells");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    tm_->getWinnerCells(*out->getData().getSDR());
+    tm_->getWinnerCells(out->getData().getSDR());
     NTA_DEBUG << "compute " << *out << std::endl;
   }
 }
