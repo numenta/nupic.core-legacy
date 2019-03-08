@@ -28,24 +28,9 @@
 
 using namespace nupic;
 
-Dimensions::Dimensions(){};
 
 Dimensions::Dimensions(std::vector<UInt> v)
     : std::vector<UInt>(std::move(v)){};
-
-Dimensions::Dimensions(UInt x) { push_back(x); }
-
-Dimensions::Dimensions(UInt x, UInt y) {
-  push_back(x);
-  push_back(y);
-}
-
-Dimensions::Dimensions(UInt x, UInt y, UInt z) {
-  push_back(x);
-  push_back(y);
-  push_back(z);
-}
-
 size_t Dimensions::getCount() const {
   if (isUnspecified() || isDontcare())
     NTA_THROW << "Attempt to get count from unresolved dimension " << toString();
@@ -168,18 +153,6 @@ Coordinate Dimensions::getCoordinate(const size_t index) const {
   return coordinate;
 }
 
-void Dimensions::promote(size_t newDimensionality) {
-  if (!isOnes()) {
-    NTA_THROW << "Dimensions::promote -- must be all ones for Dimensions "
-              << toString();
-  }
-  if (size() == newDimensionality)
-    return;
-  if (size() > newDimensionality)
-    resize(newDimensionality);
-  for (size_t i = size(); i < newDimensionality; i++)
-    push_back(1);
-}
 
 bool Dimensions::operator==(const Dimensions &dims2) const {
   if ((std::vector<UInt>)(*this) == (std::vector<UInt>)dims2)
