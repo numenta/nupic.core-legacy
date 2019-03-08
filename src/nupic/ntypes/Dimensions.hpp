@@ -83,16 +83,17 @@ public:
 
   /**
    * Create a new Dimensions object.
+   * The dimension in index 0 is the one that moves fastest while iterating.
+   * in 2D coordinates, x,y; the x is dimension[0], y is dimension[1].
    *
    * @note Default dimensions are unspecified, see isUnspecified()
+   *       Dimensions of size=1 and value [0] = 0 means "not known yet", see isDontCare()
    *
    */
-  Dimensions();
+Dimensions() {};
 
   /**
    * Create a new Dimensions object from a @c std::vector<UInt>.
-   * The dimension in index 0 is the one that moves fastest while iterating.
-   * in 2D coordinates, x,y; the x is dimension[0], y is dimension[1].
    *
    * @param v
    *        A @c std::vector of @c UInt, the value with the index of @a n
@@ -101,13 +102,14 @@ public:
    */
   Dimensions(std::vector<UInt> v);
 
+
   /** Create a new 1-dimension Dimensions object.
 
    * @param x
    *        The size of the 1st dimension
    *
    */
-  Dimensions(UInt x);
+  Dimensions(UInt x) { push_back(x); }
 
   /**
    * Create a new 2-dimension Dimensions.
@@ -117,7 +119,7 @@ public:
    * @param y
    *        The size of the 2nd dimension
    */
-  Dimensions(UInt x, UInt y);
+  Dimensions(UInt x, UInt y) {  push_back(x); push_back(y); }
 
   /**
    * Create a new 3-dimension Dimensions.
@@ -129,7 +131,8 @@ public:
    * @param z
    *        The size of the 3rd dimension
    */
-  Dimensions(UInt x, UInt y, UInt z);
+  Dimensions(UInt x, UInt y, UInt z) { push_back(x); push_back(y); push_back(z); }
+
 
   /**
    *
@@ -329,17 +332,6 @@ public:
    */
   std::string toString(bool humanReadable = true) const;
 
-  /**
-   * Promote the Dimensions object to a new dimensionality.
-   *
-   * @param newDimensionality
-   *        The new dimensionality to promote to, it can be greater than,
-   *        smaller than or equal to current dimensionality
-   *
-   * @note The sizes of all dimensions must be 1( i.e. isOnes() returns true),
-   * or an exception will be thrown.
-   */
-  void promote(size_t newDimensionality);
 
   /**
    * The equivalence operator.

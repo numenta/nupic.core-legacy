@@ -206,7 +206,7 @@ public:
   /**
    * Set dimensions for this input
    */
-  void setDimensions(const Dimensions& dim) { dim_ = dim; }
+  void setDimensions(Dimensions dim) { dim_ = std::move(dim); }
 
   /**
    * true if we have links connected to this input.

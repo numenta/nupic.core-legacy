@@ -103,7 +103,7 @@ namespace nupic
      * NOTE: for NTA_BasicType_Sparse this sets the size of the dense buffer is describes.
      */
     virtual void allocateBuffer(size_t count);
-    virtual void allocateBuffer(const std::vector<UInt> dimensions);  // only for SDR
+    virtual void allocateBuffer(const std::vector<UInt>& dimensions);  // only for SDR
 
     /**
      * Ask ArrayBase to zero fill its buffer
@@ -123,11 +123,11 @@ namespace nupic
     const void* getBuffer() const;
 
     /**
-     * Returns a pointer to the underlining SDR.
+     * Returns a reference to the underlining SDR.
      * If it is not an SDR type, throws exception.
      */
-    SDR* getSDR();
-    const SDR* getSDR() const;
+    SDR& getSDR();
+    const SDR& getSDR() const;
 
     /**
      * number of elements of given type in the buffer
@@ -183,8 +183,8 @@ namespace nupic
      */
     void inline RefreshCache() {
       if (type_ == NTA_BasicType_SDR) {
-        SDR *sdr = getSDR();
-        sdr->setDense(sdr->getDense());
+        SDR& sdr = getSDR();
+        sdr.setDense(sdr.getDense());
       }
     }
     /**
