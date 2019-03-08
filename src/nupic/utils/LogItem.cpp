@@ -31,26 +31,34 @@
 
 using namespace nupic;
 
+// Initialize static members
 std::ostream *LogItem::ostream_ = nullptr;
+nupic::LogLevel LogItem::log_level_ = LogLevel::LogLevel_None;
 
+// Static functions
 void LogItem::setOutputFile(std::ostream &ostream) { ostream_ = &ostream; }
+void LogItem::setLogLevel(LogLevel level) { log_level_ = level; }
+LogLevel LogItem::getLogLevel() {return log_level_; }
 
-LogItem::LogItem(const char *filename, int line, LogLevel level)
-    : filename_(filename), lineno_(line), level_(level), msg_("") {}
+
+// Constructor
+// Construct a new instance for each item to be logged.
+LogItem::LogItem(const char *filename, int line, nupic::LogType type)
+    : filename_(filename), lineno_(line), type_(type), msg_("") {}
 
 LogItem::~LogItem() {
   std::string slevel;
-  switch (level_) {
-  case debug:
+  switch (type_) {
+  case LogType_debug:
     slevel = "DEBUG:";
     break;
-  case warn:
+  case LogType_warn:
     slevel = "WARN: ";
     break;
-  case info:
+  case LogType_info:
     slevel = "INFO: ";
     break;
-  case error:
+  case LogType_error:
     slevel = "ERR:";
     break;
   default:
@@ -63,7 +71,7 @@ LogItem::~LogItem() {
 
   (*ostream_) << slevel << "  " << msg_.str();
 
-  if (level_ == error)
+  if (type_ == LogType_error)
     (*ostream_) << " [" << filename_ << " line " << lineno_ << "]";
 
   (*ostream_) << std::endl;

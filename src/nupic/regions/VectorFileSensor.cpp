@@ -47,22 +47,16 @@ namespace nupic {
 VectorFileSensor::VectorFileSensor(const ValueMap &params, Region *region)
     : RegionImpl(region),
 
-      repeatCount_(1), iterations_(0), curVector_(0), activeOutputCount_(0),
-      hasCategoryOut_(false), hasResetOut_(false),
+      iterations_(0), curVector_(0),
       dataOut_(NTA_BasicType_Real32), categoryOut_(NTA_BasicType_Real32),
       resetOut_(NTA_BasicType_Real32), filename_(""), scalingMode_("none"),
       recentFile_("") {
-  activeOutputCount_ =
-      params.getScalar("activeOutputCount")->getValue<UInt32>();
-  if (params.contains("hasCategoryOut"))
-    hasCategoryOut_ =
-        params.getScalar("hasCategoryOut")->getValue<UInt32>() == 1;
-  if (params.contains("hasResetOut"))
-    hasResetOut_ = params.getScalar("hasResetOut")->getValue<UInt32>() == 1;
+  repeatCount_ = params.getScalarT<UInt32>("repeatCount", 1);
+  activeOutputCount_ = params.getScalarT<UInt32>("activeOutputCount", 0);
+  hasCategoryOut_ = params.getScalarT<UInt32>("hasCategoryOut", 0) == 1;
+  hasResetOut_ = params.getScalarT<UInt32>("hasResetOut", 0) == 1;
   if (params.contains("inputFile"))
     filename_ = params.getString("inputFile");
-  if (params.contains("repeatCount"))
-    repeatCount_ = params.getScalar("repeatCount")->getValue<UInt32>();
 }
 
 VectorFileSensor::VectorFileSensor(BundleIO &bundle, Region *region)
@@ -81,9 +75,12 @@ void VectorFileSensor::initialize() {
   categoryOut_ = region_->getOutput("categoryOut")->getData();
   resetOut_ = region_->getOutput("resetOut")->getData();
 
-  if (dataOut_.getCount() != activeOutputCount_) {
+  if (activeOutputCount_ == 0)
+    activeOutputCount_ = (UInt32)dataOut_.getCount();
+  else if (dataOut_.getCount() != activeOutputCount_) {
     NTA_THROW << "VectorFileSensor::init - wrong output size: "
-              << dataOut_.getCount() << " should be: " << activeOutputCount_;
+              << dataOut_.getCount() << " should be: " << activeOutputCount_
+              << ". Are activeOutputCount parameter and dimensions both specified?";
   }
 }
 
@@ -123,15 +120,18 @@ void VectorFileSensor::compute() {
     Real *categoryOut = reinterpret_cast<Real *>(categoryOut_.getBuffer());
     vectorFile_.getRawVector((nupic::UInt)curVector_, categoryOut, offset, 1);
     offset++;
+    NTA_DEBUG << "compute " << *region_->getOutput("categoryOut") << "\n";
   }
 
   if (hasResetOut_) {
     Real *resetOut = reinterpret_cast<Real *>(resetOut_.getBuffer());
     vectorFile_.getRawVector((nupic::UInt)curVector_, resetOut, offset, 1);
     offset++;
+    NTA_DEBUG << "compute " << *region_->getOutput("reset") << "\n";
   }
 
   vectorFile_.getScaledVector((nupic::UInt)curVector_, out, offset, count);
+  NTA_DEBUG << "compute " << *region_->getOutput("dataOut") << "\n";
   iterations_++;
 }
 

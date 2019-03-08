@@ -179,7 +179,8 @@ ValueMap toValueMap(const char *yamlstring,
 
   ValueMap vm;
 
-  // special value that applies to all regions.
+  // special values that applies to all regions.
+  // NOTE: these values are used in RegionImplFactory to set region impl.
   ParameterSpec dim_spec("Buffer dimensions for region's global dimensions. "
                     "Syntax: {dim: [2,3]}",  // description
 	                  NTA_BasicType_UInt32,

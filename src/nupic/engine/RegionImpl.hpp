@@ -128,11 +128,12 @@ public:
   // Compute outputs from inputs and internal state
   virtual void compute() = 0;
 
+  /* -------- Methods that may be overridden by subclasses -------- */
+
   // Execute a command
   virtual std::string executeCommand(const std::vector<std::string> &args,
-                                     Int64 index) = 0;
+                                     Int64 index);
 
-  /* -------- Methods that may be overridden by subclasses -------- */
 
   // Buffer size (in elements) of the given input/output.
   // It is the total element count.
@@ -161,8 +162,8 @@ public:
   // If this is not overridden, the default implementation will call
   // getNodeOutputElementCount() or getNodeInputElementCount() to obtain 
   // a 1D dimension for this input/output.
-  virtual Dimensions askImplForInputDimensions(const std::string &name) const;
-  virtual Dimensions askImplForOutputDimensions(const std::string &name) const ;
+  virtual Dimensions askImplForInputDimensions(const std::string &name);
+  virtual Dimensions askImplForOutputDimensions(const std::string &name);
 
 
   /**
@@ -183,6 +184,7 @@ public:
    */
   virtual void setDimensions(Dimensions dim) { dim_ = dim; }
   virtual Dimensions getDimensions() const { return dim_; }
+
 
 protected:
   // A pointer to the Region object. This is the portion visible

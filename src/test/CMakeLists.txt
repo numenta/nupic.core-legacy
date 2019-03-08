@@ -90,6 +90,7 @@ set(regions_tests
 	   unit/regions/RegionTestUtilities.hpp
 	   unit/regions/SPRegionTest.cpp
 	   )
+
 	   
 set(types_tests
 	   unit/types/BasicTypeTest.cpp

@@ -74,7 +74,7 @@ public:
   std::string executeCommand(const std::vector<std::string> &args,
                              Int64 index) override;
 
-  size_t getNodeOutputElementCount(const std::string &outputName) const override;
+  size_t getNodeOutputElementCount(const std::string &name) const override;
 
   void initialize() override;
 

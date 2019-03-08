@@ -58,7 +58,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
 
   // Make sure the number of parameters matches.
   size_t specCount = ns->parameters.getCount();
-  ASSERT_TRUE(specCount == expectedSpecCount)
+  ASSERT_EQ(specCount, expectedSpecCount)
       << "Unexpected number of parameters. Expected=" << expectedSpecCount
       << ", Actual=" << specCount;
 

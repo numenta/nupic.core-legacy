@@ -194,7 +194,7 @@ void Link::compute() {
 
   // Copy data from source to destination. For delayed links, will copy from
   // head of circular queue; otherwise directly from source.
-  Array &src = propagationDelay_ ? propagationDelayBuffer_.front() : src_->getData();
+  const Array &src = propagationDelay_ ? propagationDelayBuffer_.front() : src_->getData();
   Array &dest = dest_->getData();
 
   if (_LINK_DEBUG) {
