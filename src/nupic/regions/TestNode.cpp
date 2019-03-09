@@ -112,10 +112,7 @@ void TestNode::initialize() {
   bottomUpIn_ = getInput("bottomUpIn");
   Dimensions dim = bottomUpOut_->getDimensions();
   // does not really handle dimensions > 2 right but this will do.
-  nodeCount_ = 1;
-  for (size_t i = 1; i < dim.getDimensionCount(); i++) {
-    nodeCount_ *= dim[i];
-  }
+  nodeCount_ = dim.getCount();
   outputElementCount_ = dim[0];
 
   unclonedParam_.resize(nodeCount_);

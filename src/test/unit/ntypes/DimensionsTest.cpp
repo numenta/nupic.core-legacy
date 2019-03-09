@@ -21,9 +21,10 @@
  */
 
 /** @file
- * Implementation of BasicType test
+ * Implementation of Dimensions test
  */
 
+#include <sstream>
 #include <gtest/gtest.h>
 #include <nupic/ntypes/Dimensions.hpp>
 
@@ -31,147 +32,66 @@ using namespace nupic;
 
 class DimensionsTest : public ::testing::Test {
 public:
-  DimensionsTest() {
-    zero.push_back(0);
 
-    one_two.push_back(1);
-    one_two.push_back(2);
-
-    three_four.push_back(3);
-    three_four.push_back(4);
-  }
-
-  Coordinate zero;       // [0];
-  Coordinate one_two;    // [1,2]
-  Coordinate three_four; // [3,4]
-
-  // internal helper method
-  static std::string vecToString(std::vector<UInt> vec) {
-    std::stringstream ss;
-    ss << "[";
-    for (size_t i = 0; i < vec.size(); i++) {
-      ss << vec[i];
-      if (i != vec.size() - 1)
-        ss << " ";
-    }
-    ss << "]";
-    return ss.str();
-  }
 };
 
 TEST_F(DimensionsTest, EmptyDimensions) {
   // empty dimensions (unspecified)
   Dimensions d;
   ASSERT_TRUE(d.isUnspecified());
-  ASSERT_TRUE(d.isValid());
+  ASSERT_TRUE(d.isInvalid());
   ASSERT_TRUE(!d.isDontcare());
-  ASSERT_ANY_THROW(d.getCount());
-  ASSERT_ANY_THROW(d.getDimension(0));
+  EXPECT_EQ(d.getCount(), 0u);
+  ASSERT_ANY_THROW(UInt x = d[0]);
   EXPECT_STREQ("[unspecified]", d.toString().c_str());
-  ASSERT_ANY_THROW(d.getIndex(one_two));
-  ASSERT_ANY_THROW(d.getCount());
-  ASSERT_ANY_THROW(d.getDimension(0));
-  ASSERT_EQ((unsigned int)0, d.getDimensionCount());
+  ASSERT_EQ(0u, d.size());
 }
 
 TEST_F(DimensionsTest, DontCareDimensions) {
   // dontcare dimensions [0]
   Dimensions d;
-  d.push_back(0);
+  d.push_back(0u);
   ASSERT_TRUE(!d.isUnspecified());
   ASSERT_TRUE(d.isDontcare());
-  ASSERT_TRUE(d.isValid());
+  ASSERT_TRUE(d.isInvalid());
   EXPECT_STREQ("[dontcare]", d.toString().c_str());
-  ASSERT_ANY_THROW(d.getIndex(zero));
-  ASSERT_ANY_THROW(d.getCount());
-  ASSERT_EQ((unsigned int)0, d.getDimension(0));
-  ASSERT_EQ((unsigned int)1, d.getDimensionCount());
+  ASSERT_EQ(d.getCount(), 0u);
+  ASSERT_EQ(1u, d.size());
 }
 
 TEST_F(DimensionsTest, InvalidDimensions) {
   // invalid dimensions
   Dimensions d;
-  d.push_back(1);
-  d.push_back(0);
-  ASSERT_TRUE(!d.isUnspecified());
-  ASSERT_TRUE(!d.isDontcare());
-  ASSERT_TRUE(!d.isValid());
-  EXPECT_STREQ("[1 0] (invalid)", d.toString().c_str());
-  ASSERT_ANY_THROW(d.getIndex(one_two));
-  ASSERT_ANY_THROW(d.getCount());
-  ASSERT_EQ((unsigned int)1, d.getDimension(0));
-  ASSERT_EQ((unsigned int)0, d.getDimension(1));
-  ASSERT_ANY_THROW(d.getDimension(2));
-  ASSERT_EQ((unsigned int)2, d.getDimensionCount());
+  d.push_back(1u);
+  d.push_back(0u);
+  ASSERT_FALSE(d.isUnspecified());
+  ASSERT_FALSE(d.isDontcare());
+  ASSERT_TRUE(d.isInvalid());
+  EXPECT_STREQ("[ 1 0 ] (invalid)", d.toString().c_str());
+  ASSERT_EQ(d.getCount(), 0u);
+  ASSERT_EQ(1u, d[0]);
+  ASSERT_EQ(0u, d[1]);
+  ASSERT_ANY_THROW(d[2] = 2);
+  ASSERT_EQ(2u, d.size());
 }
 
 TEST_F(DimensionsTest, ValidDimensions) {
   // valid dimensions [2,3]
   // two rows, three columns
   Dimensions d;
-  d.push_back(2);
-  d.push_back(3);
-  ASSERT_TRUE(!d.isUnspecified());
-  ASSERT_TRUE(!d.isDontcare());
-  ASSERT_TRUE(d.isValid());
+  d.push_back(2u);
+  d.push_back(3u);
+  ASSERT_FALSE(d.isUnspecified());
+  ASSERT_FALSE(d.isDontcare());
+  ASSERT_FALSE(d.isInvalid());
   EXPECT_STREQ("[2 3]", d.toString().c_str());
-  ASSERT_EQ((unsigned int)2, d.getDimension(0));
-  ASSERT_EQ((unsigned int)3, d.getDimension(1));
-  ASSERT_ANY_THROW(d.getDimension(2));
-  ASSERT_EQ((unsigned int)6, d.getCount());
-  ASSERT_EQ((unsigned int)5, d.getIndex(one_two));
-  ASSERT_EQ((unsigned int)2, d.getDimensionCount());
+  ASSERT_EQ(2u, d[0]);
+  ASSERT_EQ(3u, d[1]);
+  ASSERT_ANY_THROW(UInt x = d[2]);
+  ASSERT_EQ(6u, d.getCount());
+  ASSERT_EQ(2u, d.size());
 }
 
-TEST_F(DimensionsTest, Check2DXMajor) {
-  // check a two dimensional matrix for proper x-major ordering
-  std::vector<UInt> x;
-  x.push_back(4);
-  x.push_back(5);
-  Dimensions d(x);
-  UInt testDim1 = 4;
-  UInt testDim2 = 5;
-  for (UInt i = 0; i < testDim1; i++) {
-    for (UInt j = 0; j < testDim2; j++) {
-      Coordinate testCoordinate;
-      testCoordinate.push_back(i);
-      testCoordinate.push_back(j);
-
-      ASSERT_EQ(i + j * testDim1, d.getIndex(testCoordinate));
-      ASSERT_EQ(vecToString(testCoordinate),
-                vecToString(d.getCoordinate(i + j * testDim1)));
-    }
-  }
-}
-
-TEST_F(DimensionsTest, Check3DXMajor) {
-  // check a three dimensional matrix for proper x-major ordering
-  std::vector<UInt> x;
-  x.push_back(3);
-  x.push_back(4);
-  x.push_back(5);
-  Dimensions d(x);
-  UInt testDim1 = 3;
-  UInt testDim2 = 4;
-  UInt testDim3 = 5;
-  for (UInt i = 0; i < testDim1; i++) {
-    for (UInt j = 0; j < testDim2; j++) {
-      for (UInt k = 0; k < testDim3; k++) {
-        Coordinate testCoordinate;
-        testCoordinate.push_back(i);
-        testCoordinate.push_back(j);
-        testCoordinate.push_back(k);
-
-        ASSERT_EQ(i + j * testDim1 + k * testDim1 * testDim2,
-                  d.getIndex(testCoordinate));
-
-        ASSERT_EQ(vecToString(testCoordinate),
-                  vecToString(d.getCoordinate(i + j * testDim1 +
-                                              k * testDim1 * testDim2)));
-      }
-    }
-  }
-}
 
 TEST_F(DimensionsTest, AlternateConstructor) {
   // alternate constructor
@@ -181,10 +101,28 @@ TEST_F(DimensionsTest, AlternateConstructor) {
   Dimensions d(x);
   ASSERT_TRUE(!d.isUnspecified());
   ASSERT_TRUE(!d.isDontcare());
-  ASSERT_TRUE(d.isValid());
+  ASSERT_TRUE(!d.isInvalid());
+  ASSERT_TRUE(d.isSpecified());
 
-  ASSERT_EQ((unsigned int)2, d.getDimension(0));
-  ASSERT_EQ((unsigned int)5, d.getDimension(1));
-  ASSERT_ANY_THROW(d.getDimension(2));
-  ASSERT_EQ((unsigned int)2, d.getDimensionCount());
+  Dimensions c(2, 5);
+  ASSERT_TRUE(c == d);
+
+  Dimensions e(std::vector<UInt>({ 2,5 }));
+  ASSERT_TRUE(e == d);
+
+  ASSERT_EQ(2u, d[0]);
+  ASSERT_EQ(5u,  d[1]);
+  ASSERT_ANY_THROW(UInt y = d[2]);
+  ASSERT_EQ(2u, d.size());
 }
+
+TEST_F(DimensionsTest, Overloads) {
+  Dimensions d1 = { 1,2,3 };
+  Dimensions d2;
+  std::stringstream ss;
+  ss << d1;
+  ss >> d2;
+  EXPECT_EQ(d1, d2);
+
+}
+

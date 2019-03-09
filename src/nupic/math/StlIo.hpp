@@ -32,6 +32,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <algorithm> // for min
 
 #include <iomanip>
 #include <iostream>
