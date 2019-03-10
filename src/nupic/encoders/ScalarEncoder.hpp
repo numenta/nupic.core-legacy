@@ -115,7 +115,15 @@ namespace nupic {
   public:
     ScalarEncoder() {};
     ScalarEncoder( ScalarEncoderParameters &parameters );
+
+#ifdef __clang__
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
     void initialize( ScalarEncoderParameters &parameters );
+#ifdef __clang__
+  #pragma clang diagnostic pop
+#endif
 
     const ScalarEncoderParameters &parameters = args_;
 
