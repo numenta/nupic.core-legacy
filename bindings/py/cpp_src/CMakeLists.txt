@@ -48,8 +48,13 @@ set(src_py_algorithms_files
     bindings/algorithms/py_HTM.cpp
     bindings/algorithms/py_SDRClassifier.cpp
     bindings/algorithms/py_SpatialPooler.cpp
-	)
-	
+    )
+
+set(src_py_encoders_files
+    bindings/encoders/encoders_module.cpp
+    bindings/encoders/py_ScalarEncoder.cpp
+    )
+
 set(src_py_engine_files
     plugin/PyBindRegion.cpp
     plugin/PyBindRegion.hpp
@@ -75,6 +80,7 @@ set(src_py_test_files
 	
 #set up file tabs in Visual Studio
 source_group("algorithms" FILES ${src_py_algorithms_files})
+source_group("encoders" FILES ${src_py_encoders_files})
 source_group("engine" FILES ${src_py_engine_files})
 source_group("math" FILES ${src_py_math_files})
 source_group("test" FILES ${src_py_test_files})
@@ -106,18 +112,35 @@ set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
 set(algorithms_shared_lib algorithms)
 pybind11_add_module(${algorithms_shared_lib} ${src_py_algorithms_files} )
 target_link_libraries(${algorithms_shared_lib} PRIVATE 
-		${core_library}
-		${COMMON_OS_LIBS}
-		)
+        ${core_library}
+        ${COMMON_OS_LIBS}
+        )
 target_compile_options(${algorithms_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${algorithms_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${algorithms_shared_lib} PRIVATE 
-		${PYTHON_INCLUDE_DIRS}
-		${pybind11_INCLUDE_DIRS}
-		${CORE_LIB_INCLUDES} 
-		${EXTERNAL_INCLUDES}
-		${PROJECT_SOURCE_DIR}
-		)
+        ${PYTHON_INCLUDE_DIRS}
+        ${pybind11_INCLUDE_DIRS}
+        ${CORE_LIB_INCLUDES} 
+        ${EXTERNAL_INCLUDES}
+        ${PROJECT_SOURCE_DIR}
+        )
+
+
+set(encoders_shared_lib encoders)
+pybind11_add_module(${encoders_shared_lib} ${src_py_encoders_files} )
+target_link_libraries(${encoders_shared_lib} PRIVATE 
+        ${core_library}
+        ${COMMON_OS_LIBS}
+        )
+target_compile_options(${encoders_shared_lib} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${encoders_shared_lib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${encoders_shared_lib} PRIVATE 
+        ${PYTHON_INCLUDE_DIRS}
+        ${pybind11_INCLUDE_DIRS}
+        ${CORE_LIB_INCLUDES} 
+        ${EXTERNAL_INCLUDES}
+        ${PROJECT_SOURCE_DIR}
+        )
 
 
 set(engine_shared_lib engine_internal)
@@ -190,6 +213,7 @@ target_include_directories(${math_shared_lib} PRIVATE
 #
 ###################################################################
 install(TARGETS
+        encoders
         algorithms
         engine_internal
         math
