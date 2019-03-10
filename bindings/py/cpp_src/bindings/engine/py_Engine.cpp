@@ -82,7 +82,6 @@ namespace nupic_ext
             .def("getIndex", &Dimensions::getIndex)
             .def("getCoordinate", &Dimensions::getCoordinate)
             .def("toString", &Dimensions::toString, "", py::arg("humanReadable") = true)
-            .def("promote", &Dimensions::promote)
             ;
 
         // operator overloading
