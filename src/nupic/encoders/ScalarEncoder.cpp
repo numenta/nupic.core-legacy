@@ -95,7 +95,12 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
 
     const int neededBands   = (int)ceil(extentWidth / args_.resolution);
     const int neededBuckets = neededBands + 1;
-    args_.size = neededBuckets + (args_.active - 1);
+    if( args_.periodic ) {
+      args_.size = neededBuckets - 1;
+    }
+    else {
+      args_.size = neededBuckets + (args_.active - 1);
+    }
   }
 
   // Determine radius.
