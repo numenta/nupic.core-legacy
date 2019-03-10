@@ -44,8 +44,8 @@ namespace nupic {
      * Members "minimum" and "maximum" define the range of the input signal.
      * These endpoints are inclusive.
      */
-    double  minimum;
-    double  maximum;
+    double  minimum = 0.0f;
+    double  maximum = 0.0f;
 
     /**
      * Member "clipInput" determines whether to allow input values outside the
@@ -53,24 +53,24 @@ namespace nupic {
      * If true, the input will be clipped into the range [minimum, maximum].
      * If false, inputs outside of the range will raise an error.
      */
-    bool clipInput;
+    bool clipInput = false;
 
     /**
-     * TODO
+     * TODO DOCS
      */
-    bool periodic;
+    bool periodic = false;
 
     /**
      * Member "active" is the number of true bits in the encoded output SDR.
      * The output encodings will have a contiguous block of this many 1's.
      */
-    UInt active;
+    UInt active = 0u;
     /**
      * Member "sparsity" is an alternative way to specify the member "active".
      * Sparsity requires that the size to also be specified.
      * Specify only one: active or sparsity.
      */
-    Real sparsity;
+    Real sparsity = 0.0f;
 
     /**
      * These three (3) members define the total number of bits in the output:
@@ -85,7 +85,7 @@ namespace nupic {
     /**
      * Member "size" is the total number of bits in the encoded output SDR.
      */
-    UInt size;
+    UInt size = 0u;
 
     /**
      * Member "radius" Two inputs separated by more than the radius have
@@ -93,13 +93,13 @@ namespace nupic {
      * radius will in general overlap in at least some of their bits. You can
      * think of this as the radius of the input.
      */
-    double  radius;
+    double  radius = 0.0f;
 
     /**
      * Member "resolution" Two inputs separated by greater than, or equal to the
      * resolution are guaranteed to have different representations.
      */
-    double  resolution;
+    double  resolution = 0.0f;
   };
 
   /**
@@ -120,11 +120,10 @@ namespace nupic {
 
     void encode(double input, SDR &output) override;
 
-    ~ScalarEncoder() override {};
+    void save(std::ostream &stream) const override;
+    void load(std::istream &stream) override;
 
-    // TODO: save & load override
-    // TODO: REmember to zero the conflicting stuff out of the parameters so
-    // that it can be laoded via constructor.
+    ~ScalarEncoder() override {};
 
   private:
     ScalarEncoderParameters args_;

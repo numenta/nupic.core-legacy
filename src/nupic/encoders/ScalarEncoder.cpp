@@ -88,6 +88,7 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   }
 
   if( args_.radius == 0.0f ) {
+    // TODO: Should this be the inputExtent instead of the outputExtent???
     args_.radius = args_.size * args_.resolution;
   }
 
@@ -132,6 +133,40 @@ void ScalarEncoder::encode(double input, SDR &output)
   }
 
   output.setDense( dense );
+}
+
+void ScalarEncoder::save(std::ostream &stream) const
+{
+  stream << "ScalarEncoder ";
+  stream << args_.minimum   << " ";
+  stream << args_.maximum   << " ";
+  stream << args_.clipInput << " ";
+  stream << args_.periodic  << " ";
+  stream << args_.active    << " ";
+  stream << args_.size      << " ";
+  stream << "~ScalarEncoder~" << endl;
+}
+
+void ScalarEncoder::load(std::istream &stream)
+{
+  string prelude;
+  stream >> prelude;
+  NTA_CHECK( prelude == "ScalarEncoder" );
+
+  ScalarEncoderParameters p;
+  stream >> p.minimum;
+  stream >> p.maximum;
+  stream >> p.clipInput;
+  stream >> p.periodic;
+  stream >> p.active;
+  stream >> p.size;
+
+  string postlude;
+  stream >> postlude;
+  NTA_CHECK( postlude == "~ScalarEncoder~" );
+  stream.ignore( 1 ); // Eat the trailing newline.
+
+  initialize( p );
 }
 
 } // end namespace nupic
