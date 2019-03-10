@@ -27,8 +27,7 @@
  */
 
 #include <algorithm> //std::fill
-#include <cmath>
-
+#include <math.h>    // isnan
 #include <nupic/encoders/ScalarEncoder.hpp>
 
 namespace nupic {
@@ -58,6 +57,12 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   NTA_CHECK( num_size_args == 1u )
       << "Too many arguments, choose only one of 'size', 'radius', 'resolution'.";
 
+  if( parameters.periodic ) {
+    NTA_CHECK( not parameters.clipInput )
+      << "Will not clip periodic inputs.  Caller must apply modulus.";
+    // TODO: Instead of balking, do the modulus!
+  }
+
   args_ = parameters;
   // Finish filling in all of parameters.
 
@@ -69,13 +74,19 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
     args_.active = (UInt) round( args_.size * args_.sparsity );
   }
 
+  // Determine resolution & size.
   const double extentWidth = args_.maximum - args_.minimum;
   if( args_.size > 0u ) {
     // Distribute the active bits along the domain [minimum, maximum], including
     // the endpoints. The resolution is the width of each band between the
     // points.
-    const int nBuckets = args_.size - (args_.active - 1);
-    args_.resolution = extentWidth / (nBuckets - 1);
+    if( args_.periodic ) {
+      args_.resolution = extentWidth / args_.size;
+    }
+    else {
+      const UInt nBuckets = args_.size - (args_.active - 1);
+      args_.resolution = extentWidth / (nBuckets - 1);
+    }
   }
   else {
     if( args_.radius > 0.0f ) {
@@ -87,14 +98,16 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
     args_.size = neededBuckets + (args_.active - 1);
   }
 
+  // Determine radius.
   if( args_.radius == 0.0f ) {
-    // TODO: Should this be the inputExtent instead of the outputExtent???
-    args_.radius = args_.size * args_.resolution;
+    // args_.radius = extentWidth * args_.resolution;
+    args_.radius = args_.active * args_.resolution;
   }
 
-  // Always calculate the sparsity even if it was given, to correct for rounding error.
+  // Determine sparsity.  Always calculate this even if it was given, to correct for rounding error.
   args_.sparsity = (Real) args_.active / args_.size;
 
+  // Sanity check the parameters.
   NTA_CHECK( args_.size   > 0u );
   NTA_CHECK( args_.active > 0u );
   NTA_CHECK( args_.active < args_.size );
@@ -105,7 +118,13 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
 
 void ScalarEncoder::encode(double input, SDR &output)
 {
-  if( args_.clipInput ) {
+  // Check inputs
+  NTA_CHECK( output.size == size );
+  if( isnan(input) ) {
+    output.zero();
+    return;
+  }
+  else if( args_.clipInput ) {
     input = input < parameters.minimum ? parameters.minimum : input;
     input = input > parameters.maximum ? parameters.maximum : input;
   }
@@ -114,25 +133,19 @@ void ScalarEncoder::encode(double input, SDR &output)
         << "Input must be within range [minimum, maximum]!";
   }
 
-  auto &dense = output.getDense();
-  dense.assign( output.size, 0u );
+  auto &sparse = output.getSparse();
+  sparse.resize( parameters.active );
 
-  const UInt start = (UInt)(input - parameters.minimum) / parameters.resolution;
-  const UInt end   = start + parameters.active;
+  const UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
+  std::iota( sparse.begin(), sparse.end(), start );
+
   if( parameters.periodic ) {
-    if( end >= output.size ) {
-      std::fill(&dense[start], &dense[output.size],       1u);
-      std::fill(&dense[0],     &dense[end - output.size], 1u);
+    for(UInt wrap = output.size - start; wrap < parameters.active; ++wrap) {
+      sparse[wrap] -= output.size;
     }
-    else {
-      std::fill(&dense[start], &dense[end], 1u);
-    }
-  }
-  else {
-    std::fill(&dense[start], &dense[end], 1u);
   }
 
-  output.setDense( dense );
+  output.setSparse( sparse );
 }
 
 void ScalarEncoder::save(std::ostream &stream) const

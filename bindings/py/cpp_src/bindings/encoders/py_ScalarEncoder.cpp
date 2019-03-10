@@ -30,8 +30,25 @@ using namespace nupic;
 
 namespace nupic_ext
 {
-    void init_ScalarEncoder(py::module& m)
-    {
-        py::class_<SDR> py_ScalarEncoder(m, "ScalarEncoder", "TODO DOC");
-    }
+  void init_ScalarEncoder(py::module& m)
+  {
+    py::class_<ScalarEncoderParameters> py_ScalarEncParams(m, "ScalarEncoderParameters",
+        "TODO DOC");
+    py_ScalarEncParams.def_readwrite("minimum", &ScalarEncoderParameters::minimum, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("maximum", &ScalarEncoderParameters::maximum, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("clipInput", &ScalarEncoderParameters::clipInput, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("periodic", &ScalarEncoderParameters::periodic, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("active", &ScalarEncoderParameters::active, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("sparsity", &ScalarEncoderParameters::sparsity, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("size", &ScalarEncoderParameters::size, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("radius", &ScalarEncoderParameters::radius, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("resolution", &ScalarEncoderParameters::resolution, "TODO DOC");
+    py_ScalarEncParams.def(py::init<>(), "TODO DOC");
+
+    py::class_<ScalarEncoder> py_ScalarEnc(m, "ScalarEncoder", "TODO DOC");
+    py_ScalarEnc.def(py::init<ScalarEncoderParameters&>(), "TODO DOC");
+    py_ScalarEnc.def_property_readonly("parameters",
+        [](const ScalarEncoder &self) { return self.parameters; });
+    py_ScalarEnc.def("encode", &ScalarEncoder::encode, "TODO DOC");
+  }
 }
