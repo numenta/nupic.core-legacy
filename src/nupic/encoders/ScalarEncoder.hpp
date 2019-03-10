@@ -1,8 +1,10 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * Copyright (C) 2016, Numenta, Inc.
+ *               2019, David McDougall
+ *
+ * Unless you have an agreement with Numenta, Inc., for a separate license for
+ * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -21,170 +23,111 @@
  */
 
 /** @file
- * Define the ScalarEncoder and PeriodicScalarEncoder
+ * Define the ScalarEncoder
  */
 
 #ifndef NTA_ENCODERS_SCALAR
 #define NTA_ENCODERS_SCALAR
 
-#include <vector>
-
 #include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp> //NTA_CHECK
 #include <nupic/encoders/BaseEncoder.hpp>
 
 namespace nupic {
-/**
- * @b Description
- * Base class for ScalarEncoders
- */
-  class ScalarEncoderBase : public BaseEncoder<Real>
+
+  /**
+   * TODO, description
+   * TODO, example usage
+   */
+  struct ScalarEncoderParameters
   {
-  public:
-    virtual ~ScalarEncoderBase() {}
+    /**
+     * Members "minimum" and "maximum" define the range of the input signal.
+     * These endpoints are inclusive.
+     */
+    double  minimum;
+    double  maximum;
 
     /**
-     * Encodes input, puts the encoded binary value into output, and returns the a
-     * bucket number for the encoding.
+     * Member "clipInput" determines whether to allow input values outside the
+     * range [minimum, maximum].
+     * If true, the input will be clipped into the range [minimum, maximum].
+     * If false, inputs outside of the range will raise an error.
+     */
+    bool clipInput;
+
+    /**
+     * TODO
+     */
+    bool periodic;
+
+    /**
+     * Member "active" is the number of true bits in the encoded output SDR.
+     * The output encodings will have a contiguous block of this many 1's.
+     */
+    UInt active;
+    /**
+     * Member "sparsity" is an alternative way to specify the member "active".
+     * Sparsity requires that the size to also be specified.
+     * Specify only one: active or sparsity.
+     */
+    Real sparsity;
+
+    /**
+     * These three (3) members define the total number of bits in the output:
+     *      size,
+     *      radius,
+     *      resolution.
      *
-     * The bucket number is essentially the input encoded into an integer rather
-     * than an array. A bucket number is easier to "decode" or to use inside a
-     * classifier.
-     *
-     * @param input The value to encode (Real)
-     * @param output Should have length of at least getOutputWidth(), binary output, (UInt[])
-     * @return id of bin where assigned (int)
+     * These are mutually exclusive and only one of them should be non-zero when
+     * constructing the encoder.
      */
-    virtual int encodeIntoArray(Real input, UInt output[]) = 0;
 
     /**
-     * Returns the output width, in bits.
+     * Member "size" is the total number of bits in the encoded output SDR.
      */
-    UInt getOutputWidth() const { return n_; };
+    UInt size;
 
     /**
-     * public wrapper method for the encodeIntoArray()
-     * @return binary representation of the input
+     * Member "radius" Two inputs separated by more than the radius have
+     * non-overlapping representations. Two inputs separated by less than the
+     * radius will in general overlap in at least some of their bits. You can
+     * think of this as the radius of the input.
      */
-    std::vector<UInt> encode(Real input);
+    double  radius;
 
-    void encode(Real input, SDR &output) override;
-
-  protected: 
-    ScalarEncoderBase(int w, int n):
-        w_(w), n_(n) {
-      NTA_CHECK(w > 0) << "EncoderBase: w must be > 0";
-//      NTA_CHECK(w < n) << "EncoderBase: w must be < n"; //not, because we can init with n=0 and eg resolution
-    }
-
-  protected:
-    const int w_;
-    int n_;
+    /**
+     * Member "resolution" Two inputs separated by greater than, or equal to the
+     * resolution are guaranteed to have different representations.
+     */
+    double  resolution;
   };
 
-/** Encodes a floating point number as a contiguous block of 1s.
- *
- * @b Description
- * A ScalarEncoder encodes a numeric (floating point) value into an array
- * of bits. The output is 0's except for a contiguous block of 1's. The
- * location of this contiguous block varies continuously with the input value.
- *
- * Conceptually, the set of possible outputs is a set of "buckets". If there
- * are m buckets, the ScalarEncoder distributes m points along the domain
- * [minValue, maxValue], including the endpoints. To figure out the bucket
- * index of an input, it rounds the input to the nearest of these points.
- *
- * This approach is different from the PeriodicScalarEncoder because two
- * buckets, the first and last, are half as wide as the rest, since fewer
- * numbers in the input domain will round to these endpoints. This behavior
- * makes sense because, for example, with the input space [1, 10] and 10
- * buckets, 1.49 is in the first bucket and 1.51 is in the second.
- */
-class ScalarEncoder : public ScalarEncoderBase {
-public:
   /**
-   * Constructs a ScalarEncoder
+   * Encodes a real number as a contiguous block of 1s.
    *
-   * @param w The number of bits that are set to encode a single value -- the
-   *   "width" of the output signal
-   * @param minValue The minimum value of the input signal, inclusive.
-   * @param maxValue The maximum value of the input signal, inclusive.
-   * @param clipInput Whether to allow input values outside the [minValue,
-   * maxValue] range.  If true, the input will be clipped to minValue or
-   * maxValue.
-   *
-   * There are three mutually exclusive parameters that determine the overall
-   * size of of the output. Only one of these should be nonzero:
-   *
-   * @param n The number of bits in the output. Must be greater than or equal to
-   * w.
-   * @param radius Two inputs separated by more than the radius have
-   *   non-overlapping representations. Two inputs separated by less than the
-   *   radius will in general overlap in at least some of their bits. You can
-   *   think of this as the radius of the input.
-   * @param resolution Two inputs separated by greater than, or equal to the
-   *   resolution are guaranteed to have different representations.
+   * Description:
+   * The ScalarEncoder encodes a numeric (floating point) value into an array
+   * of bits. The output is 0's except for a contiguous block of 1's. The
+   * location of this contiguous block varies continuously with the input value.
    */
-  ScalarEncoder(int w, double minValue, double maxValue, int n, double radius,
-                double resolution, bool clipInput);
+  class ScalarEncoder : public BaseEncoder<double>
+  {
+  public:
+    ScalarEncoder( ScalarEncoderParameters &parameters );
+    void initialize( ScalarEncoderParameters &parameters );
 
-  int encodeIntoArray(Real input, UInt output[]) override;
+    const ScalarEncoderParameters &parameters = args_;
 
-protected:
-  double minValue_;
-  double maxValue_;
-  double bucketWidth_;
-private:
-  bool clipInput_;
-}; // end class ScalarEncoder
+    void encode(double input, SDR &output) override;
 
-/** Encodes a floating point number as a block of 1s that might wrap around.
- *
- * @b Description
- * A PeriodicScalarEncoder encodes a numeric (floating point) value into an
- * array of bits. The output is 0's except for a contiguous block of 1's that
- * may wrap around the edge. The location of this contiguous block varies
- * continuously with the input value.
- *
- * Conceptually, the set of possible outputs is a set of "buckets". If there
- * are m buckets, the PeriodicScalarEncoder plots m equal-width bands along
- * the domain [minValue, maxValue]. The bucket index of an input is simply its
- * band index.
- *
- * Because of the equal-width buckets, the rounding differs from the
- * ScalarEncoder. In cases where the ScalarEncoder would put 1.49 in the first
- * bucket and 1.51 in the second, the PeriodicScalarEncoder will put 1.99 in
- * the first bucket and 2.0 in the second.
- */
-class PeriodicScalarEncoder : public ScalarEncoder {
-public:
-  /**
-   * Constructs a PeriodicScalarEncoder
-   *
-   * @param w The number of bits that are set to encode a single value -- the
-   *   "width" of the output signal
-   * @param minValue The minimum value of the input signal, inclusive.
-   * @param maxValue The maximum value of the input signal, exclusive. All
-   *   inputs will be strictly less than this value.
-   *
-   * There are three mutually exclusive parameters that determine the overall
-   * size of the output. Only one of these should be nonzero:
-   *
-   * @param n The number of bits in the output. Must be greater than or equal
-   *   to w.
-   * @param radius Two inputs separated by more than the radius have
-   *   non-overlapping representations. Two inputs separated by less than the
-   *   radius will in general overlap in at least some of their bits. You can
-   *   think of this as the radius of the input.
-   * @param resolution Two inputs separated by greater than, or equal to the
-   *   resolution are guaranteed to have different representations.
-   */
-  PeriodicScalarEncoder(int w, double minValue, double maxValue, int n,
-                        double radius, double resolution);
+    ~ScalarEncoder() override {};
 
-  int encodeIntoArray(Real input, UInt output[]) override;
+    // TODO: save & load override
+    // TODO: REmember to zero the conflicting stuff out of the parameters so
+    // that it can be laoded via constructor.
 
-}; // end class PeriodicScalarEncoder
-} // end namespace nupic
-
-#endif // NTA_ENCODERS_SCALAR
+  private:
+    ScalarEncoderParameters args_;
+  };   // end class ScalarEncoder
+}      // end namespace nupic
+#endif // end NTA_ENCODERS_SCALAR
