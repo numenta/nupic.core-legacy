@@ -30,13 +30,26 @@ namespace nupic {
 /**
  * Description:
  * Base class for all encoders.
+ *
+ * Subclasses must implement method encode, and Serializable interface.
+ * Subclasses can optionally implement method reset.
  */
 template<typename DataType>
-class BaseEncoder
+class BaseEncoder : public Serializable
 {
-private:
-    vector<UInt> dimensions_;
-    UInt         size_;
+public:
+    /**
+     * Members dimensions & size describe the shape of the encoded output SDR.
+     * This is the total number of bits which the result has.
+     */
+    const vector<UInt> &dimensions = dimensions_;
+    const UInt         &size       = size_;
+
+    virtual void reset() {}
+
+    virtual void encode(DataType input, SDR &output) = 0;
+
+    virtual ~BaseEncoder() {}
 
 protected:
     BaseEncoder() {}
@@ -49,16 +62,9 @@ protected:
         size_       = SDR(dimensions).size;
     }
 
-public:
-    virtual ~BaseEncoder() {}
-
-    const vector<UInt> &dimensions = dimensions_;
-    const UInt         &size       = size_;
-
-    virtual void reset() {}
-
-    virtual void encode(DataType input, SDR &output) = 0;
+private:
+    vector<UInt> dimensions_;
+    UInt         size_;
 };
-
 } // end namespace nupic
 #endif // NTA_ENCODERS_BASE
