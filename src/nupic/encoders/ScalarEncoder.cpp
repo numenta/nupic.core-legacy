@@ -26,7 +26,8 @@
  * Implementation of the ScalarEncoder
  */
 
-#include <algorithm> // std::iota, std::min
+#include <algorithm> // std::min
+#include <numeric>   // std::iota
 #include <math.h>    // isnan
 #include <nupic/encoders/ScalarEncoder.hpp>
 
