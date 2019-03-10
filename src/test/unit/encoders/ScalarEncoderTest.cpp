@@ -117,7 +117,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   p.resolution = 1;
   ScalarEncoder encoder( p );
 
-  ASSERT_EQ(encoder.parameters.size, 13u);
+  ASSERT_EQ(encoder.parameters.size, 12u);
 
   std::vector<ScalarValueCase> cases = {
       {10.00f, {0, 1, 2}},
@@ -130,8 +130,8 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
       {15.49f, {5, 6, 7}},
       {15.50f, {6, 7, 8}},
       {19.49f, {9, 10, 11}},
-      {19.50f, {10, 11, 12}},
-      {20.00f, {10, 11, 12}}};
+      {19.50f, {9, 10, 11}},
+      {20.00f, {9, 10, 11}}};
 
   doScalarValueCases(encoder, cases);
 }
@@ -162,4 +162,53 @@ TEST(ScalarEncoder, PeriodicRoundNearestMultipleOfResolution) {
       {20.00f, {0, 1, 2}}};
 
   doScalarValueCases(encoder, cases);
+}
+
+TEST(ScalarEncoder, Serialization) {
+  vector<ScalarEncoder*> inputs;
+  ScalarEncoderParameters p;
+  p.minimum   = -1.234;
+  p.maximum   = 12.34;
+  p.active    = 34;
+  p.radius    = .1337;
+  inputs.push_back( new ScalarEncoder( p ) );
+  p.clipInput = true;
+  inputs.push_back( new ScalarEncoder( p ) );
+  p.clipInput = false;
+  p.periodic  = true;
+  inputs.push_back( new ScalarEncoder( p ) );
+  p.radius     = 0.0f;
+  p.resolution = .1337;
+  inputs.push_back( new ScalarEncoder( p ) );
+  ScalarEncoderParameters q;
+  q.minimum  = -1.0f;
+  q.maximum  =  1.0003f;
+  q.size     = 100;
+  q.sparsity = 0.15;
+  inputs.push_back( new ScalarEncoder( q ) );
+
+  std::stringstream buf;
+  for( const auto x : inputs ) {
+    x->save( buf );
+  }
+
+  cerr << "buf " << buf.str() << endl;
+
+  for( const auto enc1 : inputs ) {
+    ScalarEncoder enc2;
+    enc2.load( buf );
+
+    const auto &p1 = enc1->parameters;
+    const auto &p2 = enc2.parameters;
+    EXPECT_EQ(p1.size,       p2.size);
+    EXPECT_EQ(p1.active,     p2.active);
+    EXPECT_EQ(p1.periodic,   p2.periodic);
+    EXPECT_EQ(p1.clipInput,  p2.clipInput);
+    EXPECT_NEAR(p1.minimum,     p2.minimum,       1.0f / 10000000 );
+    EXPECT_NEAR(p1.maximum,     p2.maximum,       1.0f / 10000000 );
+    EXPECT_NEAR(p1.radius,      p2.radius,        1.0f / 10000000 );
+    EXPECT_NEAR(p1.resolution,  p2.resolution,    1.0f / 10000000 );
+    EXPECT_NEAR(p1.sparsity,    p2.sparsity,      1.0f / 10000000 );
+    delete enc1;
+  }
 }

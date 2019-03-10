@@ -113,6 +113,7 @@ namespace nupic {
   class ScalarEncoder : public BaseEncoder<double>
   {
   public:
+    ScalarEncoder() {};
     ScalarEncoder( ScalarEncoderParameters &parameters );
     void initialize( ScalarEncoderParameters &parameters );
 

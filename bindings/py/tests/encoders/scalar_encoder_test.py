@@ -42,9 +42,9 @@ class ScalarEncoder_Test(unittest.TestCase):
         enc = ScalarEncoder( p )
         assert( not enc.parameters.clipInput )
         assert( not enc.parameters.periodic )
-        assert( abs(enc.parameters.sparsity   - 20/1000) < .01 )
-        assert( abs(enc.parameters.radius     - 7)       < 1)
-        assert( abs(enc.parameters.resolution - .35)     < .1)
+        assert( abs(enc.parameters.sparsity   - 20./1000) < .01 )
+        assert( abs(enc.parameters.radius     - 7)        < 1 )
+        assert( abs(enc.parameters.resolution - .35)      < .1 )
 
     def testEncode(self):
         p = ScalarEncoderParameters()
@@ -70,6 +70,15 @@ class ScalarEncoder_Test(unittest.TestCase):
 
         # Check a lot of bad parameters
         p.active = 12  # Can not activate more bits than are in the SDR.
+        with self.assertRaises(RuntimeError):
+            ScalarEncoder(p)
+
+        p.active = 0 # not enough active
+        with self.assertRaises(RuntimeError):
+            ScalarEncoder(p)
+
+        p.active = 1
+        p.size = 0 # not enough bits
         with self.assertRaises(RuntimeError):
             ScalarEncoder(p)
         p.active = 2

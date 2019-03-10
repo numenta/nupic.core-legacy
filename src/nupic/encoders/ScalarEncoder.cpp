@@ -26,7 +26,7 @@
  * Implementation of the ScalarEncoder
  */
 
-#include <algorithm> //std::fill
+#include <algorithm> // std::iota, std::min
 #include <math.h>    // isnan
 #include <nupic/encoders/ScalarEncoder.hpp>
 
@@ -93,23 +93,19 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
       args_.resolution = args_.radius / args_.active;
     }
 
-    const int neededBands   = (int)ceil(extentWidth / args_.resolution);
-    const int neededBuckets = neededBands + 1;
+    const int neededBands = (int)ceil(extentWidth / args_.resolution);
     if( args_.periodic ) {
-      args_.size = neededBuckets - 1;
+      args_.size = neededBands;
     }
     else {
-      args_.size = neededBuckets + (args_.active - 1);
+      args_.size = neededBands + (args_.active - 1);
     }
   }
 
-  // Determine radius.
-  if( args_.radius == 0.0f ) {
-    // args_.radius = extentWidth * args_.resolution;
-    args_.radius = args_.active * args_.resolution;
-  }
+  // Determine radius. Always calculate this even if it was given, to correct for rounding error.
+  args_.radius = args_.active * args_.resolution;
 
-  // Determine sparsity.  Always calculate this even if it was given, to correct for rounding error.
+  // Determine sparsity. Always calculate this even if it was given, to correct for rounding error.
   args_.sparsity = (Real) args_.active / args_.size;
 
   // Sanity check the parameters.
@@ -130,8 +126,8 @@ void ScalarEncoder::encode(double input, SDR &output)
     return;
   }
   else if( args_.clipInput ) {
-    input = input < parameters.minimum ? parameters.minimum : input;
-    input = input > parameters.maximum ? parameters.maximum : input;
+    input = std::max(input, parameters.minimum);
+    input = std::min(input, parameters.maximum);
   }
   else {
     NTA_CHECK(input >= parameters.minimum && input <= parameters.maximum)
@@ -141,7 +137,16 @@ void ScalarEncoder::encode(double input, SDR &output)
   auto &sparse = output.getSparse();
   sparse.resize( parameters.active );
 
-  const UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
+  UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
+
+  // The endpoints of the input range are inclusive, which means that the
+  // maximum value may round up to an index which is outside of the SDR. Correct
+  // this by pushing the endpoint (and everything which rounds to it) onto the
+  // last bit in the SDR.
+  if( not parameters.periodic ) {
+    start = std::min(start, output.size - parameters.active);
+  }
+
   std::iota( sparse.begin(), sparse.end(), start );
 
   if( parameters.periodic ) {
@@ -156,12 +161,13 @@ void ScalarEncoder::encode(double input, SDR &output)
 void ScalarEncoder::save(std::ostream &stream) const
 {
   stream << "ScalarEncoder ";
-  stream << args_.minimum   << " ";
-  stream << args_.maximum   << " ";
-  stream << args_.clipInput << " ";
-  stream << args_.periodic  << " ";
-  stream << args_.active    << " ";
-  stream << args_.size      << " ";
+  stream << parameters.minimum    << " ";
+  stream << parameters.maximum    << " ";
+  stream << parameters.clipInput  << " ";
+  stream << parameters.periodic   << " ";
+  stream << parameters.active     << " ";
+  // Save the resolution instead of the size BC it's higher precision.
+  stream << parameters.resolution << " ";
   stream << "~ScalarEncoder~" << endl;
 }
 
@@ -177,7 +183,7 @@ void ScalarEncoder::load(std::istream &stream)
   stream >> p.clipInput;
   stream >> p.periodic;
   stream >> p.active;
-  stream >> p.size;
+  stream >> p.resolution;
 
   string postlude;
   stream >> postlude;
