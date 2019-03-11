@@ -31,7 +31,6 @@
 #include <vector>
 
 #include <nupic/algorithms/Anomaly.hpp>
-#include <nupic/algorithms/BacktrackingTMCpp.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
@@ -127,8 +126,8 @@ void BacktrackingTMRegion::initialize() {
   if (args_.numberOfCols == 0) {
     args_.numberOfCols = inputWidth;
   }
-  BacktrackingTMCpp* tm(
-     new BacktrackingTMCpp(
+  BacktrackingTM* tm(
+     new BacktrackingTM(
       args_.numberOfCols, args_.cellsPerColumn, args_.initialPerm,
       args_.connectedPerm, args_.minThreshold, args_.newSynapseCount,
       args_.permanenceInc, args_.permanenceDec, args_.permanenceMax,
@@ -1127,14 +1126,14 @@ void BacktrackingTMRegion::setParameterString(const std::string &name, Int64 ind
 
 void BacktrackingTMRegion::serialize(BundleIO &bundle) {
   std::ostream &f = bundle.getOutputStream();
-  f.precision(std::numeric_limits<double>::digits10 + 1);
-  f.precision(std::numeric_limits<float>::digits10 + 1);
+  save(f);
+}
 
+void BacktrackingTMRegion::save(std::ostream& f) const {
   // There is more than one way to do this. We could serialize to YAML, which
   // would make a readable format, or we could serialize directly to the
   // stream Choose the easier one.
   UInt version = VERSION;
-  args_.init = ((tm_) ? true : false);
 
   f << "BacktrackingTMRegion " << version << std::endl;
   f << sizeof(args_) << " ";
@@ -1148,9 +1147,10 @@ void BacktrackingTMRegion::serialize(BundleIO &bundle) {
 
 void BacktrackingTMRegion::deserialize(BundleIO &bundle) {
   std::istream &f = bundle.getInputStream();
-  // There is more than one way to do this. We could serialize to YAML, which
-  // would make a readable format, but that is a bit slow so we try to directly
-  // stream binary as much as we can.  
+  load(f);
+}
+
+void BacktrackingTMRegion::load(std::istream &f) {
   UInt version;
   Size len;
   std::string tag;
@@ -1173,7 +1173,7 @@ void BacktrackingTMRegion::deserialize(BundleIO &bundle) {
   f.ignore(1);
 
   if (args_.init) {
-    nupic::algorithms::backtracking_tm::BacktrackingTMCpp* tm = new nupic::algorithms::backtracking_tm::BacktrackingTMCpp();
+    auto tm = new nupic::algorithms::backtracking_tm::BacktrackingTM();
     tm_.reset(tm);
 
     Array &tmOutput = region_->getOutput("bottomUpOut")->getData();

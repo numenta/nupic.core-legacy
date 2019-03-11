@@ -29,7 +29,7 @@
 #include "nupic/algorithms/Anomaly.hpp"
 
 #include "nupic/algorithms/Cells4.hpp"
-#include "nupic/algorithms/BacktrackingTMCpp.hpp"
+#include "nupic/algorithms/BacktrackingTM.hpp"
 #include "nupic/algorithms/TemporalMemory.hpp"
 
 #include "nupic/algorithms/SpatialPooler.hpp"
@@ -50,7 +50,7 @@ using nupic::ScalarEncoder;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 
 using TP =     nupic::algorithms::Cells4::Cells4;
-using BackTM = nupic::algorithms::backtracking_tm::BacktrackingTMCpp;
+using BackTM = nupic::algorithms::backtracking_tm::BacktrackingTM;
 using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
 
 using nupic::algorithms::anomaly::Anomaly;

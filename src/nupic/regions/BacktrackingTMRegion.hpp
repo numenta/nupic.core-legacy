@@ -35,11 +35,12 @@
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
-#include <nupic/algorithms/BacktrackingTMCpp.hpp>
+#include <nupic/types/Serializable.hpp>
+#include <nupic/algorithms/BacktrackingTM.hpp>
 //----------------------------------------------------------------------
 
 namespace nupic {
-class BacktrackingTMRegion : public RegionImpl {
+class BacktrackingTMRegion : public RegionImpl, Serializable {
 public:
   typedef void (*computeCallbackFunc)(const std::string &);
   typedef std::map<std::string, Spec> SpecMap;
@@ -69,6 +70,9 @@ public:
 
   void serialize(BundleIO &bundle) override;
   void deserialize(BundleIO &bundle) override;
+  void save(std::ostream& f) const override;
+  void load(std::istream& f) override;
+
 
   // Per-node size (in elements) of the given output.
   // For per-region outputs, it is the total element count.
@@ -149,7 +153,7 @@ protected:
   std::vector<UInt32> prevPredictedColumns_;
 
   computeCallbackFunc computeCallback_;
-  std::unique_ptr<nupic::algorithms::backtracking_tm::BacktrackingTMCpp> tm_;
+  std::unique_ptr<nupic::algorithms::backtracking_tm::BacktrackingTM> tm_;
 };
 
 } // namespace nupic
