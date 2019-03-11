@@ -20,11 +20,7 @@
  * ---------------------------------------------------------------------
  */
 
-#if defined(NTA_ARCH_64) && defined(NTA_OS_SPARC)
-#include <string>
-#else
-#include <string.h>
-#endif
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <iterator>
