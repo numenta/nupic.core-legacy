@@ -178,7 +178,6 @@ if(MSVC)
 		_MBCS
 		NTA_OS_WINDOWS
 		NTA_COMPILER_MSVC
-		NTA_INTERNAL=1
 		NTA_ARCH_${BITNESS}
 		_CRT_SECURE_NO_WARNINGS
 		_SCL_SECURE_NO_WARNINGS
@@ -218,7 +217,6 @@ else()
 		-DNTA_OS_${platform_uppercase}
 		-DNTA_ARCH_${BITNESS}
 		-DHAVE_CONFIG_H
-		-DNTA_INTERNAL=1
 		-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
 		-DBOOST_NO_WREGEX
 		)
@@ -340,9 +338,8 @@ else()
         # set OPTIMIZATION flags
 	#
 	#TODO: CMake automatically generates optimisation flags. Do we need this? - "I think yes ~breznak"
-        set(optimization_flags_cc ${optimization_flags_cc} -O2)
-        set(optimization_flags_cc -pipe ${optimization_flags_cc}) #TODO use -Ofast instead of -O3
-        set(optimization_flags_lt -O2 ${optimization_flags_lt})
+        set(optimization_flags_cc ${optimization_flags_cc} -pipe -O3)
+        set(optimization_flags_lt ${optimization_flags_lt} -O3)
         if(NOT ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7l")
                 set(optimization_flags_cc ${optimization_flags_cc} -mtune=generic)
         endif()
