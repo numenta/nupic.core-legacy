@@ -32,6 +32,11 @@
 
 using namespace nupic;
 
+TEST(ScalarEncoder, testExampleUsage) {
+  // TODO
+}
+
+
 struct ScalarValueCase
 {
   double input;
@@ -192,7 +197,7 @@ TEST(ScalarEncoder, Serialization) {
     x->save( buf );
   }
 
-  cerr << "buf " << buf.str() << endl;
+  // cerr << "SERIALIZED:" << endl << buf.str() << endl;
 
   for( const auto enc1 : inputs ) {
     ScalarEncoder enc2;
@@ -200,15 +205,15 @@ TEST(ScalarEncoder, Serialization) {
 
     const auto &p1 = enc1->parameters;
     const auto &p2 = enc2.parameters;
-    EXPECT_EQ(p1.size,       p2.size);
-    EXPECT_EQ(p1.active,     p2.active);
-    EXPECT_EQ(p1.periodic,   p2.periodic);
-    EXPECT_EQ(p1.clipInput,  p2.clipInput);
-    EXPECT_NEAR(p1.minimum,     p2.minimum,       1.0f / 10000000 );
-    EXPECT_NEAR(p1.maximum,     p2.maximum,       1.0f / 10000000 );
-    EXPECT_NEAR(p1.radius,      p2.radius,        1.0f / 10000000 );
-    EXPECT_NEAR(p1.resolution,  p2.resolution,    1.0f / 10000000 );
-    EXPECT_NEAR(p1.sparsity,    p2.sparsity,      1.0f / 10000000 );
+    EXPECT_EQ(  p1.size,       p2.size);
+    EXPECT_EQ(  p1.active,     p2.active);
+    EXPECT_EQ(  p1.periodic,   p2.periodic);
+    EXPECT_EQ(  p1.clipInput,  p2.clipInput);
+    EXPECT_NEAR(p1.minimum,    p2.minimum,       1.0f / 100000 );
+    EXPECT_NEAR(p1.maximum,    p2.maximum,       1.0f / 100000 );
+    EXPECT_NEAR(p1.resolution, p2.resolution,    1.0f / 100000 );
+    EXPECT_NEAR(p1.sparsity,   p2.sparsity,      1.0f / 100000 );
+    EXPECT_NEAR(p1.radius,     p2.radius,        1.0f / 100000 );
     delete enc1;
   }
 }
