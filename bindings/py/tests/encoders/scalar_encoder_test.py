@@ -235,7 +235,7 @@ class ScalarEncoder_Test(unittest.TestCase):
         mtr = SDR_Metrics(out, 9999)
 
         for i in range(201 * 10 + 1):
-            x = (i % 201) / 10
+            x = (i % 201) / 10.
             enc.encode( x, out )
             # print( x, out.sparse )
 
