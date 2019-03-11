@@ -499,7 +499,7 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
 }
 
 
-void SpatialPooler::compute(SDR &input, bool learn, SDR &active) {
+void SpatialPooler::compute(const SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);
@@ -737,8 +737,8 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 }
 
 
-void SpatialPooler::adaptSynapses_(SDR &input,
-                                   SDR &active) {
+void SpatialPooler::adaptSynapses_(const SDR &input,
+                                   const SDR &active) {
   for(const auto &column : active.getSparse()) {
     connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
     connections_.raisePermanencesToThreshold(
@@ -839,7 +839,7 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 }
 
 
-void SpatialPooler::calculateOverlap_(SDR &input,
+void SpatialPooler::calculateOverlap_(const SDR &input,
                                       vector<UInt> &overlaps) const {
   overlaps.assign( numColumns_, 0 );
   connections_.computeActivity(overlaps, input.getSparse());
