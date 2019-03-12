@@ -77,8 +77,8 @@ set(algorithm_files
     nupic/algorithms/AnomalyLikelihood.cpp
     nupic/algorithms/AnomalyLikelihood.hpp
     nupic/algorithms/ArrayBuffer.hpp
-    nupic/algorithms/BacktrackingTMCpp.cpp
-    nupic/algorithms/BacktrackingTMCpp.hpp
+    nupic/algorithms/BacktrackingTM.cpp
+    nupic/algorithms/BacktrackingTM.hpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cell.hpp
     nupic/algorithms/Cells4.cpp
@@ -175,6 +175,8 @@ set(os_files
 )
 
 set(regions_files
+    nupic/regions/BacktrackingTMRegion.cpp
+    nupic/regions/BacktrackingTMRegion.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
     nupic/regions/SPRegion.cpp
