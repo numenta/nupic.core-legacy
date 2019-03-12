@@ -58,7 +58,7 @@ protected:
     BaseEncoder(const vector<UInt> dimensions)
         { initialize( dimensions ); }
 
-    virtual void initialize(const vector<UInt> dimensions) {
+    void initialize(const vector<UInt> dimensions) {
         dimensions_ = dimensions;
         size_       = SDR(dimensions).size;
     }
