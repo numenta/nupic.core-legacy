@@ -40,7 +40,7 @@ namespace nupic {
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
     : RegionImpl(region) {
   params_.size = params.getScalarT<UInt32>("n");
-  params_.active = params.getScalarT<UInt32>("w");
+  params_.activeBits = params.getScalarT<UInt32>("w");
   params_.resolution = params.getScalarT<Real64>("resolution");
   params_.radius = params.getScalarT<Real64>("radius");
   params_.minimum = params.getScalarT<Real64>("minValue");

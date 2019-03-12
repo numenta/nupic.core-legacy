@@ -78,7 +78,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   // initialize SP, TP, Anomaly, AnomalyLikelihood
   tInit.start();
   ScalarEncoderParameters encParams;
-  encParams.active = 133;
+  encParams.activeBits = 133;
   encParams.minimum = -100.0;
   encParams.maximum = 100.0;
   encParams.size = DIM_INPUT;

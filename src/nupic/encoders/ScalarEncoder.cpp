@@ -43,12 +43,12 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   NTA_CHECK( parameters.minimum < parameters.maximum );
 
   UInt num_active_args = 0;
-  if( parameters.active     > 0)    { num_active_args++; }
+  if( parameters.activeBits > 0)    { num_active_args++; }
   if( parameters.sparsity   > 0.0f) { num_active_args++; }
   NTA_CHECK( num_active_args != 0u )
-      << "Missing argument, need one of: 'active' or 'sparsity'.";
+      << "Missing argument, need one of: 'activeBits' or 'sparsity'.";
   NTA_CHECK( num_active_args == 1u )
-      << "Too many arguments, choose only one of: 'active' or 'sparsity'.";
+      << "Too many arguments, choose only one of: 'activeBits' or 'sparsity'.";
 
   UInt num_size_args = 0;
   if( parameters.size       > 0u)   { num_size_args++; }
@@ -73,7 +73,7 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
     NTA_CHECK( parameters.sparsity <= 1.0f );
     NTA_CHECK( args_.size > 0u )
         << "'Sparsity' requires that the 'size' also be given.";
-    args_.active = (UInt) round( args_.size * args_.sparsity );
+    args_.activeBits = (UInt) round( args_.size * args_.sparsity );
   }
 
   // Determine resolution & size.
@@ -86,13 +86,13 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
       args_.resolution = extentWidth / args_.size;
     }
     else {
-      const UInt nBuckets = args_.size - (args_.active - 1);
+      const UInt nBuckets = args_.size - (args_.activeBits - 1);
       args_.resolution = extentWidth / (nBuckets - 1);
     }
   }
   else {
     if( args_.radius > 0.0f ) {
-      args_.resolution = args_.radius / args_.active;
+      args_.resolution = args_.radius / args_.activeBits;
     }
 
     const int neededBands = (int)ceil(extentWidth / args_.resolution);
@@ -100,20 +100,20 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
       args_.size = neededBands;
     }
     else {
-      args_.size = neededBands + (args_.active - 1);
+      args_.size = neededBands + (args_.activeBits - 1);
     }
   }
 
   // Determine radius. Always calculate this even if it was given, to correct for rounding error.
-  args_.radius = args_.active * args_.resolution;
+  args_.radius = args_.activeBits * args_.resolution;
 
   // Determine sparsity. Always calculate this even if it was given, to correct for rounding error.
-  args_.sparsity = (Real) args_.active / args_.size;
+  args_.sparsity = (Real) args_.activeBits / args_.size;
 
   // Sanity check the parameters.
-  NTA_CHECK( args_.size   > 0u );
-  NTA_CHECK( args_.active > 0u );
-  NTA_CHECK( args_.active < args_.size );
+  NTA_CHECK( args_.size       > 0u );
+  NTA_CHECK( args_.activeBits > 0u );
+  NTA_CHECK( args_.activeBits < args_.size );
 
   // Initialize parent class.
   BaseEncoder<Real64>::initialize({ args_.size });
@@ -137,7 +137,7 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
   }
 
   auto &sparse = output.getSparse();
-  sparse.resize( parameters.active );
+  sparse.resize( parameters.activeBits );
 
   UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
 
@@ -146,13 +146,13 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
   // this by pushing the endpoint (and everything which rounds to it) onto the
   // last bit in the SDR.
   if( not parameters.periodic ) {
-    start = std::min(start, output.size - parameters.active);
+    start = std::min(start, output.size - parameters.activeBits);
   }
 
   std::iota( sparse.begin(), sparse.end(), start );
 
   if( parameters.periodic ) {
-    for(UInt wrap = output.size - start; wrap < parameters.active; ++wrap) {
+    for(UInt wrap = output.size - start; wrap < parameters.activeBits; ++wrap) {
       sparse[wrap] -= output.size;
     }
   }
@@ -167,7 +167,7 @@ void ScalarEncoder::save(std::ostream &stream) const
   stream << parameters.maximum    << " ";
   stream << parameters.clipInput  << " ";
   stream << parameters.periodic   << " ";
-  stream << parameters.active     << " ";
+  stream << parameters.activeBits << " ";
   // Save the resolution instead of the size BC it's higher precision.
   stream << parameters.resolution << " ";
   stream << "~ScalarEncoder~" << endl;
@@ -184,7 +184,7 @@ void ScalarEncoder::load(std::istream &stream)
   stream >> p.maximum;
   stream >> p.clipInput;
   stream >> p.periodic;
-  stream >> p.active;
+  stream >> p.activeBits;
   stream >> p.resolution;
 
   string postlude;

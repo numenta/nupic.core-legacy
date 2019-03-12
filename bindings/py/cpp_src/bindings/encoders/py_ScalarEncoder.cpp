@@ -38,7 +38,7 @@ namespace nupic_ext
     py_ScalarEncParams.def_readwrite("maximum", &ScalarEncoderParameters::maximum, "TODO DOC");
     py_ScalarEncParams.def_readwrite("clipInput", &ScalarEncoderParameters::clipInput, "TODO DOC");
     py_ScalarEncParams.def_readwrite("periodic", &ScalarEncoderParameters::periodic, "TODO DOC");
-    py_ScalarEncParams.def_readwrite("active", &ScalarEncoderParameters::active, "TODO DOC");
+    py_ScalarEncParams.def_readwrite("activeBits", &ScalarEncoderParameters::activeBits, "TODO DOC");
     py_ScalarEncParams.def_readwrite("sparsity", &ScalarEncoderParameters::sparsity, "TODO DOC");
     py_ScalarEncParams.def_readwrite("size", &ScalarEncoderParameters::size, "TODO DOC");
     py_ScalarEncParams.def_readwrite("radius", &ScalarEncoderParameters::radius, "TODO DOC");

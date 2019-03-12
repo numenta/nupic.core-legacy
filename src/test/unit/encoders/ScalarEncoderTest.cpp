@@ -62,10 +62,10 @@ void doScalarValueCases(ScalarEncoder& e, std::vector<ScalarValueCase> cases)
 
 TEST(ScalarEncoder, testClippingInputs) {
   ScalarEncoderParameters p;
-  p.size    = 10;
-  p.active  = 2;
-  p.minimum = 10;
-  p.maximum = 20;
+  p.size       = 10;
+  p.activeBits = 2;
+  p.minimum    = 10;
+  p.maximum    = 20;
 
   SDR output({ 10 });
   {
@@ -89,10 +89,10 @@ TEST(ScalarEncoder, testClippingInputs) {
 
 TEST(ScalarEncoder, ValidScalarInputs) {
   ScalarEncoderParameters p;
-  p.size    = 10;
-  p.active  = 2;
-  p.minimum = 10;
-  p.maximum = 20;
+  p.size       = 10;
+  p.activeBits = 2;
+  p.minimum    = 10;
+  p.maximum    = 20;
   SDR output({ 10 });
   ScalarEncoder e( p );
 
@@ -104,10 +104,10 @@ TEST(ScalarEncoder, ValidScalarInputs) {
 
 TEST(ScalarEncoder, NonIntegerBucketWidth) {
   ScalarEncoderParameters p;
-  p.size    = 7;
-  p.active  = 3;
-  p.minimum = 10.0;
-  p.maximum = 20.0;
+  p.size       = 7;
+  p.activeBits = 3;
+  p.minimum    = 10.0;
+  p.maximum    = 20.0;
   ScalarEncoder encoder( p );
 
   std::vector<ScalarValueCase> cases = {{10.0, {0, 1, 2}},
@@ -118,7 +118,7 @@ TEST(ScalarEncoder, NonIntegerBucketWidth) {
 
 TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   ScalarEncoderParameters p;
-  p.active     = 3;
+  p.activeBits = 3;
   p.minimum    = 10.0;
   p.maximum    = 20.0;
   p.resolution = 1;
@@ -145,7 +145,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
 
 TEST(ScalarEncoder, PeriodicRoundNearestMultipleOfResolution) {
   ScalarEncoderParameters p;
-  p.active     = 3;
+  p.activeBits = 3;
   p.minimum    = 10.0;
   p.maximum    = 20.0;
   p.resolution = 1;
@@ -174,10 +174,10 @@ TEST(ScalarEncoder, PeriodicRoundNearestMultipleOfResolution) {
 TEST(ScalarEncoder, Serialization) {
   vector<ScalarEncoder*> inputs;
   ScalarEncoderParameters p;
-  p.minimum   = -1.234;
-  p.maximum   = 12.34;
-  p.active    = 34;
-  p.radius    = .1337;
+  p.minimum    = -1.234;
+  p.maximum    = 12.34;
+  p.activeBits = 34;
+  p.radius     = .1337;
   inputs.push_back( new ScalarEncoder( p ) );
   p.clipInput = true;
   inputs.push_back( new ScalarEncoder( p ) );
@@ -208,7 +208,7 @@ TEST(ScalarEncoder, Serialization) {
     const auto &p1 = enc1->parameters;
     const auto &p2 = enc2.parameters;
     EXPECT_EQ(  p1.size,       p2.size);
-    EXPECT_EQ(  p1.active,     p2.active);
+    EXPECT_EQ(  p1.activeBits, p2.activeBits);
     EXPECT_EQ(  p1.periodic,   p2.periodic);
     EXPECT_EQ(  p1.clipInput,  p2.clipInput);
     EXPECT_NEAR(p1.minimum,    p2.minimum,       1.0f / 100000 );

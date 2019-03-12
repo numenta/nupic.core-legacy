@@ -62,10 +62,10 @@ namespace encoders {
     bool periodic = false;
 
     /**
-     * Member "active" is the number of true bits in the encoded output SDR.
+     * Member "activeBits" is the number of true bits in the encoded output SDR.
      * The output encodings will have a contiguous block of this many 1's.
      */
-    UInt active = 0u;
+    UInt activeBits = 0u;
     /**
      * Member "sparsity" is an alternative way to specify the member "active".
      * Sparsity requires that the size to also be specified.
