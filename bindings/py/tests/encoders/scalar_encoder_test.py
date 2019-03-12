@@ -35,10 +35,10 @@ class ScalarEncoder_Test(unittest.TestCase):
 
     def testConstructor(self):
         p = ScalarEncoderParameters()
-        p.size    = 1000
-        p.active  = 20
-        p.minimum = 0
-        p.maximum = 345
+        p.size       = 1000
+        p.activeBits = 20
+        p.minimum    = 0
+        p.maximum    = 345
         enc = ScalarEncoder( p )
         assert( not enc.parameters.clipInput )
         assert( not enc.parameters.periodic )
@@ -48,10 +48,10 @@ class ScalarEncoder_Test(unittest.TestCase):
 
     def testEncode(self):
         p = ScalarEncoderParameters()
-        p.size    = 10
-        p.active  = 3
-        p.minimum = 0
-        p.maximum = 1
+        p.size       = 10
+        p.activeBits = 3
+        p.minimum    = 0
+        p.maximum    = 1
         enc = ScalarEncoder(p)
         sdr = SDR( 10 )
         enc.encode( 0, sdr )
@@ -62,42 +62,42 @@ class ScalarEncoder_Test(unittest.TestCase):
     def testBadParameters(self):
         # Start with sane parameters.
         p = ScalarEncoderParameters()
-        p.size    = 10
-        p.active  = 2
-        p.minimum = 0
-        p.maximum = 1
+        p.size       = 10
+        p.activeBits = 2
+        p.minimum    = 0
+        p.maximum    = 1
         ScalarEncoder(p)
 
         # Check a lot of bad parameters
-        p.active = 12  # Can not activate more bits than are in the SDR.
+        p.activeBits = 12  # Can not activate more bits than are in the SDR.
         with self.assertRaises(RuntimeError):
             ScalarEncoder(p)
 
-        p.active = 0 # not enough active
+        p.activeBits = 0 # not enough active bits
         with self.assertRaises(RuntimeError):
             ScalarEncoder(p)
 
-        p.active = 1
+        p.activeBits = 1
         p.size = 0 # not enough bits
         with self.assertRaises(RuntimeError):
             ScalarEncoder(p)
-        p.active = 2
+        p.activeBits = 2
 
         p.maximum = -1 # Maximum is less than the minimum
         with self.assertRaises(RuntimeError):
             ScalarEncoder(p)
         p.maximum = 1
 
-        p.size     = 0
-        p.active   = 0
-        p.sparsity = .1  # Specify sparsity without output size
+        p.size       = 0
+        p.activeBits = 0
+        p.sparsity   = .1  # Specify sparsity without output size
         with self.assertRaises(RuntimeError):
             ScalarEncoder(p)
-        p.size     = 10
-        p.active   = 2
-        p.sparsity = 0
+        p.size       = 10
+        p.activeBits = 2
+        p.sparsity   = 0
 
-        p.sparsity = .2  # Sparsity & num active specified
+        p.sparsity = .2  # Sparsity & num activeBits specified
         with self.assertRaises(RuntimeError):
             ScalarEncoder(p)
         p.sparsity = 0
@@ -122,10 +122,10 @@ class ScalarEncoder_Test(unittest.TestCase):
     def testBadEncode(self):
         # Test bad SDR
         p = ScalarEncoderParameters()
-        p.size    = 10
-        p.active  = 2
-        p.minimum = 0
-        p.maximum = 1
+        p.size       = 10
+        p.activeBits = 2
+        p.minimum    = 0
+        p.maximum    = 1
         enc  = ScalarEncoder(p)
         good = SDR( 10 )
         bad  = SDR( 5 )
@@ -158,10 +158,10 @@ class ScalarEncoder_Test(unittest.TestCase):
 
     def testRadius(self):
         p = ScalarEncoderParameters()
-        p.active  =  10
-        p.minimum =   0
-        p.maximum = 100
-        p.radius  =  10
+        p.activeBits =  10
+        p.minimum    =   0
+        p.maximum    = 100
+        p.radius     =  10
         enc = ScalarEncoder(p)
         sdr1 = SDR( enc.parameters.size )
         sdr2 = SDR( enc.parameters.size )
@@ -184,7 +184,7 @@ class ScalarEncoder_Test(unittest.TestCase):
 
     def testResolution(self):
         p = ScalarEncoderParameters()
-        p.active     =  10
+        p.activeBits =  10
         p.minimum    =   0
         p.maximum    = 100
         p.resolution =  .5
@@ -214,10 +214,10 @@ class ScalarEncoder_Test(unittest.TestCase):
 
     def testNaNs(self):
         p = ScalarEncoderParameters()
-        p.size    = 100
-        p.active  =  10
-        p.minimum =   0
-        p.maximum = 100
+        p.size       = 100
+        p.activeBits =  10
+        p.minimum    =   0
+        p.maximum    = 100
         enc = ScalarEncoder(p)
         sdr = SDR( 100 )
         enc.encode( float("nan"), sdr )
@@ -225,11 +225,11 @@ class ScalarEncoder_Test(unittest.TestCase):
 
     def testPeriodic(self):
         p = ScalarEncoderParameters()
-        p.size     = 100
-        p.active   = 10
-        p.minimum  = 0
-        p.maximum  = 20
-        p.periodic = True
+        p.size       = 100
+        p.activeBits = 10
+        p.minimum    = 0
+        p.maximum    = 20
+        p.periodic   = True
         enc = ScalarEncoder( p )
         out = SDR( enc.parameters.size )
         mtr = SDR_Metrics(out, 9999)
@@ -248,11 +248,11 @@ class ScalarEncoder_Test(unittest.TestCase):
 
     def testStatistics(self):
         p = ScalarEncoderParameters()
-        p.size      = 100
-        p.active    = 10
-        p.minimum   = 0
-        p.maximum   = 20
-        p.clipInput = True
+        p.size       = 100
+        p.activeBits = 10
+        p.minimum    = 0
+        p.maximum    = 20
+        p.clipInput  = True
         enc = ScalarEncoder( p )
         del p
         out = SDR( enc.parameters.size )
