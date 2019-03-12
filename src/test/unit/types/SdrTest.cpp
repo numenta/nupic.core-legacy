@@ -277,14 +277,19 @@ TEST(SdrTest, TestSetSDR) {
     a.setDense(SDR_dense_t({1, 1, 1, 1, 1}));
     b.setSDR(a);
     ASSERT_EQ( b.getSparse(), vector<UInt>({0, 1, 2, 3, 4}) );
-    // Test flat sparse assignment works
+    // Test sparse assignment works
     a.setSparse(SDR_sparse_t({0, 1, 2, 3, 4}));
     b.setSDR(a);
     ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
-    // Test sparse assignment works
+    // Test coordinate assignment works
     a.setCoordinates(SDR_coordinate_t({{0, 1, 2, 3, 4}}));
     b.setSDR(a);
     ASSERT_EQ( b.getDense(), vector<Byte>({1, 1, 1, 1, 1}) );
+    // Test equals override works
+    a.zero();
+    b = a;
+    a.randomize( 1.0f );
+    ASSERT_EQ( b.getSum(), 0u );
 }
 
 TEST(SdrTest, TestGetDenseFromSparse) {
