@@ -59,12 +59,8 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
 
 void ScalarSensor::compute()
 {
-  UInt32* array = (UInt32*)encodedOutput_->getData().getBuffer();
-  SDR output( encoder_->dimensions );
-  encoder_->encode((Real)sensedValue_, output);
-  for(auto i = 0u; i < encoder_->size; ++i) {
-    array[i] = (UInt) output.getDense()[i];
-  }
+  SDR &output = encodedOutput_->getData().getSDR();
+  encoder_->encode((Real64)sensedValue_, output);
 }
 
 ScalarSensor::~ScalarSensor() { delete encoder_; }
@@ -147,7 +143,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
 
   /* ----- outputs ----- */
 
-  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_UInt32,
+  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_SDR,
                                         0,    // elementCount
                                         true, // isRegionLevel
                                         true  // isDefaultOutput
