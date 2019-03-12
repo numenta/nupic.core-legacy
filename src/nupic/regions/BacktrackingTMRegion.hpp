@@ -23,7 +23,7 @@
  */
 
 /** @file
- * Declarations for TMRegion class
+ * Declarations for BacktrackingTMRegion class
  */
 
 //----------------------------------------------------------------------
