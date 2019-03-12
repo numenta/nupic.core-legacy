@@ -71,9 +71,9 @@ public:
 
 private:
   Real64 sensedValue_;
-  ScalarEncoderParameters params_;
+  encoders::ScalarEncoderParameters params_;
 
-  ScalarEncoder *encoder_;
+  encoders::ScalarEncoder *encoder_;
   Output *encodedOutput_;
 };
 } // namespace nupic

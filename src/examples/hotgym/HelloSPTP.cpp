@@ -47,7 +47,8 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::utils;
 
-using nupic::ScalarEncoder;
+using nupic::encoders::ScalarEncoder;
+using nupic::encoders::ScalarEncoderParameters;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 

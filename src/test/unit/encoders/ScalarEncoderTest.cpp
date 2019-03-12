@@ -31,6 +31,8 @@
 #include <vector>
 
 using namespace nupic;
+using nupic::encoders::ScalarEncoder;
+using nupic::encoders::ScalarEncoderParameters;
 
 TEST(ScalarEncoder, testExampleUsage) {
   // TODO
@@ -39,7 +41,7 @@ TEST(ScalarEncoder, testExampleUsage) {
 
 struct ScalarValueCase
 {
-  double input;
+  Real64 input;
   std::vector<UInt> expectedOutput; // Sparse indices of active bits.
 };
 

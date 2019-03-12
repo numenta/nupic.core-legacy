@@ -47,7 +47,7 @@ ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
   params_.maximum = params.getScalarT<Real64>("maxValue");
   params_.periodic = params.getScalarT<bool>("periodic");
   params_.clipInput = params.getScalarT<bool>("clipInput");
-  encoder_ = new ScalarEncoder( params_ );
+  encoder_ = new encoders::ScalarEncoder( params_ );
 
   sensedValue_ = params.getScalarT<Real64>("sensedValue");
 }
@@ -226,7 +226,7 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
   NTA_CHECK(tag == "~ScalerSensor");
   f.ignore(1);
 
-  encoder_ = new ScalarEncoder( params_ );
+  encoder_ = new encoders::ScalarEncoder( params_ );
 
   initialize();
   encodedOutput_->initialize();

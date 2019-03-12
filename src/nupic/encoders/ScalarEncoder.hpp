@@ -33,6 +33,7 @@
 #include <nupic/encoders/BaseEncoder.hpp>
 
 namespace nupic {
+namespace encoders {
 
   /**
    * TODO, description
@@ -44,8 +45,8 @@ namespace nupic {
      * Members "minimum" and "maximum" define the range of the input signal.
      * These endpoints are inclusive.
      */
-    double  minimum = 0.0f;
-    double  maximum = 0.0f;
+    Real64 minimum = 0.0f;
+    Real64 maximum = 0.0f;
 
     /**
      * Member "clipInput" determines whether to allow input values outside the
@@ -93,13 +94,13 @@ namespace nupic {
      * radius will in general overlap in at least some of their bits. You can
      * think of this as the radius of the input.
      */
-    double  radius = 0.0f;
+    Real64 radius = 0.0f;
 
     /**
      * Member "resolution" Two inputs separated by greater than, or equal to the
      * resolution are guaranteed to have different representations.
      */
-    double  resolution = 0.0f;
+    Real64 resolution = 0.0f;
   };
 
   /**
@@ -110,7 +111,7 @@ namespace nupic {
    * of bits. The output is 0's except for a contiguous block of 1's. The
    * location of this contiguous block varies continuously with the input value.
    */
-  class ScalarEncoder : public BaseEncoder<double>
+  class ScalarEncoder : public BaseEncoder<Real64>
   {
   public:
     ScalarEncoder() {};
@@ -127,7 +128,7 @@ namespace nupic {
 
     const ScalarEncoderParameters &parameters = args_;
 
-    void encode(double input, SDR &output) override;
+    void encode(Real64 input, SDR &output) override;
 
     void save(std::ostream &stream) const override;
     void load(std::istream &stream) override;
@@ -137,5 +138,6 @@ namespace nupic {
   private:
     ScalarEncoderParameters args_;
   };   // end class ScalarEncoder
+}      // end namespace encoders
 }      // end namespace nupic
 #endif // end NTA_ENCODERS_SCALAR

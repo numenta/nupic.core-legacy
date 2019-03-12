@@ -26,6 +26,7 @@
 #include <nupic/types/Sdr.hpp>
 
 namespace nupic {
+namespace encoders {
 
 /**
  * Description:
@@ -66,5 +67,6 @@ private:
     vector<UInt> dimensions_;
     UInt         size_;
 };
+} // end namespace encoders
 } // end namespace nupic
 #endif // NTA_ENCODERS_BASE

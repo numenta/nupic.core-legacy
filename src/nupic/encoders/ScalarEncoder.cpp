@@ -28,10 +28,11 @@
 
 #include <algorithm> // std::min
 #include <numeric>   // std::iota
-#include <math.h>    // isnan
+#include <cmath>     // isnan
 #include <nupic/encoders/ScalarEncoder.hpp>
 
 namespace nupic {
+namespace encoders {
 
 ScalarEncoder::ScalarEncoder(ScalarEncoderParameters &parameters)
   { initialize( parameters ); }
@@ -45,18 +46,18 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   if( parameters.active     > 0)    num_active_args++;
   if( parameters.sparsity   > 0.0f) num_active_args++;
   NTA_CHECK( num_active_args != 0u )
-      << "Missing argument: 'active' or 'sparsity'.";
+      << "Missing argument, need one of: 'active' or 'sparsity'.";
   NTA_CHECK( num_active_args == 1u )
-      << "Too many arguments, choose only one of 'active' or 'sparsity'.";
+      << "Too many arguments, choose only one of: 'active' or 'sparsity'.";
 
   UInt num_size_args = 0;
   if( parameters.size       > 0u)   num_size_args++;
   if( parameters.radius     > 0.0f) num_size_args++;
   if( parameters.resolution > 0.0f) num_size_args++;
   NTA_CHECK( num_size_args != 0u )
-      << "Missing argument, one of: 'size', 'radius', 'resolution'.";
+      << "Missing argument, need one of: 'size', 'radius', 'resolution'.";
   NTA_CHECK( num_size_args == 1u )
-      << "Too many arguments, choose only one of 'size', 'radius', 'resolution'.";
+      << "Too many arguments, choose only one of: 'size', 'radius', 'resolution'.";
 
   if( parameters.periodic ) {
     NTA_CHECK( not parameters.clipInput )
@@ -76,7 +77,7 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   }
 
   // Determine resolution & size.
-  const double extentWidth = args_.maximum - args_.minimum;
+  const Real64 extentWidth = args_.maximum - args_.minimum;
   if( args_.size > 0u ) {
     // Distribute the active bits along the domain [minimum, maximum], including
     // the endpoints. The resolution is the width of each band between the
@@ -115,10 +116,10 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   NTA_CHECK( args_.active < args_.size );
 
   // Initialize parent class.
-  BaseEncoder<double>::initialize({ args_.size });
+  BaseEncoder<Real64>::initialize({ args_.size });
 }
 
-void ScalarEncoder::encode(double input, SDR &output)
+void ScalarEncoder::encode(Real64 input, SDR &output)
 {
   // Check inputs
   NTA_CHECK( output.size == size );
@@ -194,4 +195,5 @@ void ScalarEncoder::load(std::istream &stream)
   initialize( p );
 }
 
+} // end namespace encoders
 } // end namespace nupic
