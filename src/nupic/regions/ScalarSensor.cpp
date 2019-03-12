@@ -210,6 +210,7 @@ void ScalarSensor::serialize(BundleIO &bundle) {
     std::ostream &f = bundle.getOutputStream();
     f << "ScalerSensor ";
     f.write((char*)&params_, sizeof(params_));
+    f << " " << sensedValue_ << " ";
     f << "~ScalerSensor" << std::endl;
 }
 
@@ -220,6 +221,7 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
   NTA_CHECK(tag == "ScalerSensor");
   f.ignore(1);
   f.read((char *)&params_, sizeof(params_));
+  f >> sensedValue_;
   f >> tag;
   NTA_CHECK(tag == "~ScalerSensor");
   f.ignore(1);
@@ -228,7 +230,6 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
 
   initialize();
   encodedOutput_->initialize();
-  compute();
 }
 
 
