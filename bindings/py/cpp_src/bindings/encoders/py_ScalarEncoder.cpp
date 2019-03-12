@@ -26,10 +26,10 @@ namespace py = pybind11;
 
 #include <nupic/encoders/ScalarEncoder.hpp>
 
-using namespace nupic::encoders;
-
 namespace nupic_ext
 {
+  using namespace nupic::encoders;
+
   void init_ScalarEncoder(py::module& m)
   {
     py::class_<ScalarEncoderParameters> py_ScalarEncParams(m, "ScalarEncoderParameters",

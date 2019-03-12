@@ -43,17 +43,17 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   NTA_CHECK( parameters.minimum < parameters.maximum );
 
   UInt num_active_args = 0;
-  if( parameters.active     > 0)    num_active_args++;
-  if( parameters.sparsity   > 0.0f) num_active_args++;
+  if( parameters.active     > 0)    { num_active_args++; }
+  if( parameters.sparsity   > 0.0f) { num_active_args++; }
   NTA_CHECK( num_active_args != 0u )
       << "Missing argument, need one of: 'active' or 'sparsity'.";
   NTA_CHECK( num_active_args == 1u )
       << "Too many arguments, choose only one of: 'active' or 'sparsity'.";
 
   UInt num_size_args = 0;
-  if( parameters.size       > 0u)   num_size_args++;
-  if( parameters.radius     > 0.0f) num_size_args++;
-  if( parameters.resolution > 0.0f) num_size_args++;
+  if( parameters.size       > 0u)   { num_size_args++; }
+  if( parameters.radius     > 0.0f) { num_size_args++; }
+  if( parameters.resolution > 0.0f) { num_size_args++; }
   NTA_CHECK( num_size_args != 0u )
       << "Missing argument, need one of: 'size', 'radius', 'resolution'.";
   NTA_CHECK( num_size_args == 1u )
