@@ -56,8 +56,8 @@ class ScalarEncoder_Test(unittest.TestCase):
         sdr = SDR( 10 )
         enc.encode( 0, sdr )
         assert( list(sdr.sparse) == [0, 1, 2] )
-        enc.encode( 1, sdr )
-        assert( list(sdr.sparse) == [7, 8, 9] )
+        sdr2 = enc.encode( 1 )
+        assert( list(sdr2.sparse) == [7, 8, 9] )
 
     def testBadParameters(self):
         # Start with sane parameters.

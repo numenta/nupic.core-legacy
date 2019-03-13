@@ -35,10 +35,6 @@
 namespace nupic {
 namespace encoders {
 
-  /**
-   * TODO, description
-   * TODO, example usage
-   */
   struct ScalarEncoderParameters
   {
     /**
@@ -57,7 +53,15 @@ namespace encoders {
     bool clipInput = false;
 
     /**
-     * TODO DOCS
+     * Member "periodic" controls what happens near the edges of the input
+     * range.
+     *
+     * If true, then the minimum & maximum input values are adjacent and the
+     * first and last bits of the output SDR are also adjacent.  The contiguous
+     * block of 1's wraps around the end back to the begining.
+     *
+     * If false, then minimum & maximum input values are the endpoints of the
+     * input range, are not adjacent, and activity does not wrap around.
      */
     bool periodic = false;
 
@@ -66,10 +70,11 @@ namespace encoders {
      * The output encodings will have a contiguous block of this many 1's.
      */
     UInt activeBits = 0u;
+
     /**
-     * Member "sparsity" is an alternative way to specify the member "active".
+     * Member "sparsity" is an alternative way to specify the member "activeBits".
      * Sparsity requires that the size to also be specified.
-     * Specify only one: active or sparsity.
+     * Specify only one of: activeBits or sparsity.
      */
     Real sparsity = 0.0f;
 
@@ -104,12 +109,15 @@ namespace encoders {
   };
 
   /**
-   * Encodes a real number as a contiguous block of 1s.
+   * Encodes a real number as a contiguous block of 1's.
    *
    * Description:
    * The ScalarEncoder encodes a numeric (floating point) value into an array
    * of bits. The output is 0's except for a contiguous block of 1's. The
    * location of this contiguous block varies continuously with the input value.
+   *
+   * TODO, Example Usage & unit test for it.
+   *
    */
   class ScalarEncoder : public BaseEncoder<Real64>
   {
