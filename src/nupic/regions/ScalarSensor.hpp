@@ -70,21 +70,11 @@ public:
   getNodeOutputElementCount(const std::string &outputName) const override;
 
 private:
-  struct {
-    Real64 sensedValue_;
-    Real64 resolution;
-    Real64 radius;
-    Real64 minValue;
-    Real64 maxValue;
-    UInt32 n;
-    UInt32 w;
-    bool periodic;
-    bool clipInput;
-  } params_;
+  Real64 sensedValue_;
+  encoders::ScalarEncoderParameters params_;
 
-  ScalarEncoderBase *encoder_;
+  encoders::ScalarEncoder *encoder_;
   Output *encodedOutput_;
-  Output *bucketOutput_;
 };
 } // namespace nupic
 

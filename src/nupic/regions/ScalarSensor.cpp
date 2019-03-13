@@ -39,33 +39,17 @@ namespace nupic {
 
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
     : RegionImpl(region) {
-  params_.n = params.getScalarT<UInt32>("n");
-  params_.w = params.getScalarT<UInt32>("w");
+  params_.size = params.getScalarT<UInt32>("n");
+  params_.activeBits = params.getScalarT<UInt32>("w");
   params_.resolution = params.getScalarT<Real64>("resolution");
   params_.radius = params.getScalarT<Real64>("radius");
-  params_.minValue = params.getScalarT<Real64>("minValue");
-  params_.maxValue = params.getScalarT<Real64>("maxValue");
+  params_.minimum = params.getScalarT<Real64>("minValue");
+  params_.maximum = params.getScalarT<Real64>("maxValue");
   params_.periodic = params.getScalarT<bool>("periodic");
   params_.clipInput = params.getScalarT<bool>("clipInput");
-  if (params_.periodic) {
-    encoder_ =
-        new PeriodicScalarEncoder(params_.w, 
-                                  params_.minValue, 
-                                  params_.maxValue, 
-                                  params_.n, 
-                                  params_.radius, 
-                                  params_.resolution);
-  } else {
-    encoder_ = new ScalarEncoder( params_.w, 
-                                  params_.minValue, 
-                                  params_.maxValue, 
-                                  params_.n, 
-                                  params_.radius, 
-                                  params_.resolution, 
-                                  params_.clipInput);
-  }
+  encoder_ = new encoders::ScalarEncoder( params_ );
 
-  params_.sensedValue_ = params.getScalarT<Real64>("sensedValue");
+  sensedValue_ = params.getScalarT<Real64>("sensedValue");
 }
 
 ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
@@ -73,12 +57,11 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
   deserialize(bundle);
 }
 
-  void ScalarSensor::compute()
-  {
-    UInt32* array = (UInt32*)encodedOutput_->getData().getBuffer();
-	  const Int32 iBucket = encoder_->encodeIntoArray((Real)params_.sensedValue_, array);
-	  ((Int32*)bucketOutput_->getData().getBuffer())[0] = iBucket;
-  }
+void ScalarSensor::compute()
+{
+  SDR &output = encodedOutput_->getData().getSDR();
+  encoder_->encode((Real64)sensedValue_, output);
+}
 
 ScalarSensor::~ScalarSensor() { delete encoder_; }
 
@@ -160,7 +143,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
 
   /* ----- outputs ----- */
 
-  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_UInt32,
+  ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_SDR,
                                         0,    // elementCount
                                         true, // isRegionLevel
                                         true  // isDefaultOutput
@@ -178,7 +161,7 @@ ScalarSensor::~ScalarSensor() { delete encoder_; }
 
 Real64 ScalarSensor::getParameterReal64(const std::string &name, Int64 index) {
   if (name == "sensedValue") {
-    return params_.sensedValue_;
+    return sensedValue_;
   }
   else {
     return RegionImpl::getParameterReal64(name, index);
@@ -187,7 +170,7 @@ Real64 ScalarSensor::getParameterReal64(const std::string &name, Int64 index) {
 
 UInt32 ScalarSensor::getParameterUInt32(const std::string &name, Int64 index) {
   if (name == "n") {
-    return (UInt32)encoder_->getOutputWidth();
+    return (UInt32)encoder_->size;
   }
   else {
     return RegionImpl::getParameterUInt32(name, index);
@@ -196,7 +179,7 @@ UInt32 ScalarSensor::getParameterUInt32(const std::string &name, Int64 index) {
 
 void ScalarSensor::setParameterReal64(const std::string &name, Int64 index, Real64 value) {
   if (name == "sensedValue") {
-    params_.sensedValue_ = value;
+    sensedValue_ = value;
   } else {
 	  RegionImpl::setParameterReal64(name, index, value);
   }
@@ -206,12 +189,11 @@ void ScalarSensor::setParameterReal64(const std::string &name, Int64 index, Real
 
 void ScalarSensor::initialize() {
   encodedOutput_ = getOutput("encoded");
-  bucketOutput_ = getOutput("bucket");
 }
 
 size_t ScalarSensor::getNodeOutputElementCount(const std::string &outputName) const {
   if (outputName == "encoded") {
-    return encoder_->getOutputWidth();
+    return encoder_->size;
   } else if (outputName == "bucket") {
     return 1;
   } else {
@@ -228,6 +210,7 @@ void ScalarSensor::serialize(BundleIO &bundle) {
     std::ostream &f = bundle.getOutputStream();
     f << "ScalerSensor ";
     f.write((char*)&params_, sizeof(params_));
+    f << " " << sensedValue_ << " ";
     f << "~ScalerSensor" << std::endl;
 }
 
@@ -238,30 +221,15 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
   NTA_CHECK(tag == "ScalerSensor");
   f.ignore(1);
   f.read((char *)&params_, sizeof(params_));
+  f >> sensedValue_;
   f >> tag;
   NTA_CHECK(tag == "~ScalerSensor");
   f.ignore(1);
 
-  if (params_.periodic) {
-    encoder_ = new PeriodicScalarEncoder(params_.w, 
-                                  params_.minValue, 
-                                  params_.maxValue, 
-                                  params_.n, 
-                                  params_.radius, 
-                                  params_.resolution);
-  } else {
-    encoder_ = new ScalarEncoder( params_.w, 
-                                  params_.minValue, 
-                                  params_.maxValue, 
-                                  params_.n, 
-                                  params_.radius, 
-                                  params_.resolution, 
-                                  params_.clipInput);
-  }
+  encoder_ = new encoders::ScalarEncoder( params_ );
+
   initialize();
   encodedOutput_->initialize();
-  bucketOutput_->initialize();
-  compute();
 }
 
 

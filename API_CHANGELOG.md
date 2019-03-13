@@ -8,7 +8,7 @@ The API is specified in the [API Docs](http://nupic.docs.numenta.org/prerelease/
 We try to remain compatible where possible, to make it easy for the users and programmers to switch/use 
 our implementation. And for developers to be easily able to navigate within the (known) codebase. 
 Despite of this, sometimes changes need to happen - be it for optimization, removal/replacement of some 
-features or implemenation detail, etc. 
+features or implementation detail, etc.
 
 
 ## API breaking changes in this repo
@@ -60,3 +60,5 @@ are ignored.  PR #271
 * Removed `void SpatialPooler::stripUnlearnedColumns()` as unused and not useful (did not effectively remove any columns). PR #286 
 
 * Changed SDRClassifier::compute() signature to take parameter `ClassifierResult& result`, instead of a raw pointer. PR #301
+
+* Rewrote ScalarEncoder API, all code using it needs to be rewritten. PR #314

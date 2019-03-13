@@ -71,6 +71,7 @@ def import_helper(name):
   return _mod;
   
 algorithms = import_helper('nupic.bindings.algorithms')
+encoders = import_helper('nupic.bindings.encoders')
 engine_internal = import_helper('nupic.bindings.engine_internal')
 math = import_helper('nupic.bindings.math')
 
