@@ -46,8 +46,8 @@ class MNIST {
 
   private:
     SpatialPooler sp;
-    SDR input;
-    SDR columns;
+    sdr::SDR input;
+    sdr::SDR columns;
     SDRClassifier clsr;
     mnist::MNIST_dataset<std::vector, std::vector<uint8_t>, uint8_t> dataset;
 
@@ -97,8 +97,8 @@ void train() {
          << " cycles ..." << endl;
   size_t i = 0;
 
-  SDR_Metrics inputStats(input,    1402);
-  SDR_Metrics columnStats(columns, 1402);
+  sdr::SDR_Metrics inputStats(input,    1402);
+  sdr::SDR_Metrics columnStats(columns, 1402);
 
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
     NTA_INFO << "epoch " << epoch;

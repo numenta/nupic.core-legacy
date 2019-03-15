@@ -22,6 +22,7 @@
 
 using namespace std;
 using namespace nupic;
+using namespace nupic::sdr;
 
 TEST(SdrReshapeTest, TestReshapeExamples) {
     SDR         A(    { 4, 4 });

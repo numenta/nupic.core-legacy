@@ -34,7 +34,7 @@
 using namespace std;
 
 namespace nupic {
-
+namespace sdr {
 
 /**
  * Helper for SDR metrics trackers, including: SDR_Sparsity,
@@ -563,5 +563,6 @@ public:
     }
 };
 
+} // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_METRICS_HPP

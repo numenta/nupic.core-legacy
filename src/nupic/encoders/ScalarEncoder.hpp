@@ -128,7 +128,7 @@ namespace encoders {
 
     const ScalarEncoderParameters &parameters = args_;
 
-    void encode(Real64 input, SDR &output) override;
+    void encode(Real64 input, sdr::SDR &output) override;
 
     void save(std::ostream &stream) const override;
     void load(std::istream &stream) override;

@@ -34,6 +34,7 @@
 using namespace std;
 
 namespace nupic {
+namespace sdr {
 
 typedef vector<Byte>          SDR_dense_t;
 typedef vector<UInt>          SDR_sparse_t;
@@ -553,5 +554,6 @@ public:
 
 typedef SparseDistributedRepresentation SDR;
 
+} // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_HPP

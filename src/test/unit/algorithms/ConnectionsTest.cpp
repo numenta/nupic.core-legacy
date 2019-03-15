@@ -32,6 +32,8 @@
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
+using nupic::sdr::SDR;
+using nupic::sdr::SDR_dense_t;
 
 #define EPSILON 0.0000001
 

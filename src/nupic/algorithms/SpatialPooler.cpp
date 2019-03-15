@@ -39,6 +39,7 @@
 using namespace nupic;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using namespace nupic::math::topology;
+using nupic::sdr::SDR;
 using nupic::utils::VectorHelpers;
 
 // Round f to 5 digits of precision. This is used to set

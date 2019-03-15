@@ -43,6 +43,9 @@ namespace testing {
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
+using nupic::sdr::SDR;
+using nupic::sdr::SDR_dense_t;
+using nupic::sdr::SDR_sparse_t;
 
 UInt countNonzero(const vector<UInt> &vec) {
   UInt count = 0;

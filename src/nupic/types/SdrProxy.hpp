@@ -30,6 +30,7 @@
 using namespace std;
 
 namespace nupic {
+namespace sdr {
 
 class SDR_ReadOnly_ : public SDR
 {
@@ -427,5 +428,6 @@ public:
     }
 };
 
+} // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_PROXY_HPP
