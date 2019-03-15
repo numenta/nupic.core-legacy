@@ -65,7 +65,7 @@ TEST(SdrMetrics, TestSparsityExample) {
  */
 TEST(SdrMetrics, TestSparsityShortTerm) {
     SDR A({1});
-    SDR_Reshape B( A );
+    Reshape B( A );
     Real period = 10u;
     Real alpha  = 1.0f / period;
     Sparsity S( B, (UInt)period );
@@ -136,7 +136,7 @@ TEST(SdrMetrics, TestSparsityLongTerm) {
     auto iterations = 1000u;
 
     SDR A({1000u});
-    SDR_Reshape B( A );
+    Reshape B( A );
     Sparsity S( B, period );
 
     vector<Real> test_means{ 0.01f,  0.05f,  0.20f, 0.50f, 0.50f, 0.75f, 0.99f };
@@ -166,7 +166,7 @@ TEST(SdrMetrics, TestSparsityPrint) {
     // expected.
     cerr << endl << "YOU must manually verify this output!" << endl << endl;
     SDR A({ 2000u });
-    SDR_Reshape B( A );
+    Reshape B( A );
     Sparsity S( B, 10u );
 
     A.randomize( 0.30f );
@@ -186,7 +186,7 @@ TEST(SdrMetrics, TestSparsityPrint) {
 TEST(SdrMetrics, TestAF_Construct) {
     // Test creating it.
     SDR *A = new SDR({ 5 });
-    SDR_Reshape *B = new SDR_Reshape( *A );
+    Reshape *B = new Reshape( *A );
     ActivationFrequency F( *B, 100 );
     ASSERT_ANY_THROW( ActivationFrequency F( *A, 0u ) ); // Period > 0!
     // Test nothing crashes with no data.
@@ -221,7 +221,7 @@ TEST(SdrMetrics, TestAF_Construct) {
  */
 TEST(SdrMetrics, TestAF_Example) {
     SDR A({ 2u });
-    SDR_Reshape B( A );
+    Reshape B( A );
     ActivationFrequency F( B, 10u );
 
     A.setDense(SDR_dense_t{ 0, 0 });
@@ -248,7 +248,7 @@ TEST(SdrMetrics, TestAF_LongTerm) {
     const auto period  =  1000u;
     const auto runtime = 10000u;
     SDR A({ 20u });
-    SDR_Reshape B( A );
+    Reshape B( A );
     ActivationFrequency F( B, period );
 
 
@@ -275,7 +275,7 @@ TEST(SdrMetrics, TestAF_Entropy) {
     // Extact tests:
     // Test all zeros.
     SDR A({ size });
-    SDR_Reshape Px( A );
+    Reshape Px( A );
     ActivationFrequency F( Px, period );
     A.zero();
     EXPECT_FLOAT_EQ( F.entropy(), 0.0f );
@@ -378,7 +378,7 @@ TEST(SdrMetrics, TestOverlap_Construct) {
 
 TEST(SdrMetrics, TestOverlap_Example) {
     SDR A({ 10000u });
-    SDR_Reshape Px( A );
+    Reshape Px( A );
     Overlap B( Px, 1000u );
     A.randomize( 0.05f );
     A.addNoise( 0.95f );         //   5% overlap
@@ -392,8 +392,8 @@ TEST(SdrMetrics, TestOverlap_Example) {
 }
 
 TEST(SdrMetrics, TestOverlap_ShortTerm) {
-    SDR         A({ 1000u });
-    SDR_Reshape   Px( A );
+    SDR     A({ 1000u });
+    Reshape Px( A );
     Overlap V( Px, 10u );
 
     A.randomize( 0.20f ); // Initial value is taken after Overlap is created
@@ -427,7 +427,7 @@ TEST(SdrMetrics, TestOverlap_LongTerm) {
     const auto runtime = 1000u;
     const auto period  =  100u;
     SDR A({ 500u });
-    SDR_Reshape Px( A );
+    Reshape Px( A );
     Overlap V( Px, period );
     A.randomize( 0.45f );
 
@@ -462,7 +462,7 @@ TEST(SdrMetrics, TestOverlap_Print) {
     // expected.
     cerr << endl << "YOU must manually verify this output!" << endl << endl;
     SDR A({ 2000u });
-    SDR_Reshape Px( A );
+    Reshape Px( A );
     Overlap V( Px, 100u );
     A.randomize( 0.02f );
 
@@ -526,7 +526,7 @@ TEST(SdrMetrics, TestAllMetrics_Print) {
     // expected.
     cerr << endl << "YOU must manually verify this output!" << endl << endl;
     SDR A({ 4097u });
-    SDR_Reshape Px( A );
+    Reshape Px( A );
     Metrics M( Px, 100u );
 
     vector<Real> sparsity{ 0.02f, 0.15f, 0.06f, 0.50f, 0.0f };

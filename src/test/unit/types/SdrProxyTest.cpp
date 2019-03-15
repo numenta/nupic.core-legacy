@@ -25,37 +25,37 @@ using namespace nupic;
 using namespace nupic::sdr;
 
 TEST(SdrReshapeTest, TestReshapeExamples) {
-    SDR         A(    { 4, 4 });
-    SDR_Reshape B( A, { 8, 2 });
+    SDR     A(    { 4, 4 });
+    Reshape B( A, { 8, 2 });
     A.setCoordinates(SDR_coordinate_t({{1, 1, 2}, {0, 1, 2}}));
     auto coords = B.getCoordinates();
     ASSERT_EQ(coords, SDR_coordinate_t({{2, 2, 5}, {0, 1, 0}}));
 }
 
 TEST(SdrReshapeTest, TestReshapeConstructor) {
-    SDR           A({ 11 });
-    SDR_Reshape   B( A );
+    SDR       A({ 11 });
+    Reshape   B( A );
     ASSERT_EQ( A.dimensions, B.dimensions );
-    SDR_Reshape   C( A, { 11 });
-    SDR           D({ 5, 4, 3, 2, 1 });
-    SDR_Reshape   E( D, {1, 1, 1, 120, 1});
-    SDR_Reshape   F( D, { 20, 6 });
-    SDR_Reshape   X( (SDR&) F );
+    Reshape   C( A, { 11 });
+    SDR       D({ 5, 4, 3, 2, 1 });
+    Reshape   E( D, {1, 1, 1, 120, 1});
+    Reshape   F( D, { 20, 6 });
+    Reshape   X( (SDR&) F );
 
     // Test that SDR Reshapes can be safely made and destroyed.
-    SDR_Reshape *G = new SDR_Reshape( A );
-    SDR_Reshape *H = new SDR_Reshape( A );
-    SDR_Reshape *I = new SDR_Reshape( A );
+    Reshape *G = new Reshape( A );
+    Reshape *H = new Reshape( A );
+    Reshape *I = new Reshape( A );
     A.zero();
     H->getDense();
     delete H;
     I->getDense();
     A.zero();
-    SDR_Reshape *J = new SDR_Reshape( A );
+    Reshape *J = new Reshape( A );
     J->getDense();
-    SDR_Reshape *K = new SDR_Reshape( A );
+    Reshape *K = new Reshape( A );
     delete K;
-    SDR_Reshape *L = new SDR_Reshape( A );
+    Reshape *L = new Reshape( A );
     L->getCoordinates();
     delete L;
     delete G;
@@ -65,23 +65,23 @@ TEST(SdrReshapeTest, TestReshapeConstructor) {
     A.getDense();
 
     // Test invalid dimensions
-    ASSERT_ANY_THROW( new SDR_Reshape( A, {2, 5}) );
-    ASSERT_ANY_THROW( new SDR_Reshape( A, {11, 0}) );
+    ASSERT_ANY_THROW( new Reshape( A, {2, 5}) );
+    ASSERT_ANY_THROW( new Reshape( A, {11, 0}) );
 }
 
 TEST(SdrReshapeTest, TestReshapeDeconstructor) {
-    SDR       *A = new SDR({12});
-    SDR_Reshape *B = new SDR_Reshape( *A );
-    SDR_Reshape *C = new SDR_Reshape( *A, {3, 4} );
-    SDR_Reshape *D = new SDR_Reshape( *C, {4, 3} );
-    SDR_Reshape *E = new SDR_Reshape( *C, {2, 6} );
+    SDR     *A = new SDR({12});
+    Reshape *B = new Reshape( *A );
+    Reshape *C = new Reshape( *A, {3, 4} );
+    Reshape *D = new Reshape( *C, {4, 3} );
+    Reshape *E = new Reshape( *C, {2, 6} );
     D->getDense();
     E->getCoordinates();
     // Test subtree deletion
     delete C;
     ASSERT_ANY_THROW( D->getDense() );
     ASSERT_ANY_THROW( E->getCoordinates() );
-    ASSERT_ANY_THROW( new SDR_Reshape( *E ) );
+    ASSERT_ANY_THROW( new Reshape( *E ) );
     delete D;
     // Test rest of tree is OK.
     B->getSparse();
@@ -98,7 +98,7 @@ TEST(SdrReshapeTest, TestReshapeDeconstructor) {
 
 TEST(SdrReshapeTest, TestReshapeThrows) {
     SDR A({10});
-    SDR_Reshape B(A, {2, 5});
+    Reshape B(A, {2, 5});
     SDR *C = &B;
 
     ASSERT_ANY_THROW( C->setDense( SDR_dense_t( 10, 1 ) ));
@@ -112,7 +112,7 @@ TEST(SdrReshapeTest, TestReshapeThrows) {
 
 TEST(SdrReshapeTest, TestReshapeGetters) {
     SDR A({ 2, 3 });
-    SDR_Reshape B( A, { 3, 2 });
+    Reshape B( A, { 3, 2 });
     SDR *C = &B;
     // Test getting dense
     A.setDense( SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
@@ -133,7 +133,7 @@ TEST(SdrReshapeTest, TestReshapeGetters) {
     // Test getting sparse, when the parent SDR already has sparse computed and
     // the dimensions are the same.
     A.zero();
-    SDR_Reshape D( A );
+    Reshape D( A );
     SDR *E = &D;
     A.setCoordinates( SDR_coordinate_t({ {0, 1}, {0, 1} }));
     ASSERT_EQ( E->getCoordinates(), SDR_coordinate_t({ {0, 1}, {0, 1} }) );
@@ -146,25 +146,25 @@ TEST(SdrReshapeTest, TestSaveLoad) {
 
     // Test zero value
     SDR zero({ 3, 3 });
-    SDR_Reshape z( zero );
+    Reshape z( zero );
     z.save( outfile );
 
     // Test dense data
     SDR dense({ 3, 3 });
-    SDR_Reshape d( dense );
+    Reshape d( dense );
     dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
     Serializable &ser = d;
     ser.save( outfile );
 
     // Test flat data
     SDR flat({ 3, 3 });
-    SDR_Reshape f( flat );
+    Reshape f( flat );
     flat.setSparse(SDR_sparse_t({ 1, 4, 8 }));
     f.save( outfile );
 
     // Test index data
     SDR index({ 3, 3 });
-    SDR_Reshape x( index );
+    Reshape x( index );
     index.setCoordinates(SDR_coordinate_t({
             { 0, 1, 2 },
             { 1, 1, 2 }}));

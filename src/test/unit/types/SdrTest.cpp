@@ -702,7 +702,7 @@ TEST(SdrTest, TestCallbacks) {
     UInt handle2 = A.addCallback( call2 );
     UInt handle3 = A.addCallback( call3 );
     // Test reshape gets callbacks
-    SDR_Reshape C(A);
+    Reshape C(A);
     C.addCallback( call4 );
 
     // Remove call 2 and add it back in.
@@ -764,10 +764,10 @@ TEST(SdrTest, TestIntersectionExampleUsage) {
     B.setSparse(SDR_sparse_t({0, 1, 2, 3}));
 
     // Calculate the logical intersection
-    SDR_Intersection X(A, B);
+    Intersection X(A, B);
     ASSERT_EQ(X.getSparse(), SDR_sparse_t({2, 3}));
 
-    // Assignments to the input SDRs are propigated to the SDR_Intersection
+    // Assignments to the input SDRs are propigated to the Intersection
     B.zero();
     ASSERT_EQ(X.getSparsity(), 0.0f);
 }
@@ -780,7 +780,7 @@ TEST(SdrTest, TestIntersection) {
     B.randomize(.5);
 
     // Test basic functionality
-    SDR_Intersection X(A, B);
+    Intersection X(A, B);
     SDR *Xp = &X;
     Xp->getDense();
     ASSERT_GT( Xp->getSparsity(), .25 / 2. );
@@ -788,40 +788,40 @@ TEST(SdrTest, TestIntersection) {
     A.zero();
     ASSERT_EQ( Xp->getSum(), 0u );
 
-    // Test deleting input SDR before SDR_Intersection
+    // Test deleting input SDR before Intersection
     SDR *C = new SDR({A.size});
-    SDR *Y = new SDR_Intersection(A, B, *C);
+    SDR *Y = new Intersection(A, B, *C);
     delete C;
     delete Y;
 
     // Test subclass attribute access
     SDR C2({A.size});
     SDR D({A.size});
-    SDR_Intersection Z(A, B, C2, D);
+    Intersection Z(A, B, C2, D);
     ASSERT_EQ(Z.size, A.size);                            // Access SDR
-    ASSERT_EQ(Z.inputs, vector<SDR*>({&A, &B, &C2, &D})); // Access SDR_Intersection
+    ASSERT_EQ(Z.inputs, vector<SDR*>({&A, &B, &C2, &D})); // Access Intersection
 }
 
 
 TEST(SdrTest, TestConcatenationExampleUsage) {
-    SDR               A({ 100 });
-    SDR               B({ 100 });
-    SDR_Concatenation C( A, B );
+    SDR           A({ 100 });
+    SDR           B({ 100 });
+    Concatenation C( A, B );
     ASSERT_EQ(C.dimensions, vector<UInt>({ 200 }));
 
-    SDR               D({ 640, 480, 3 });
-    SDR               E({ 640, 480, 7 });
-    SDR_Concatenation F( D, E, 2 );
+    SDR           D({ 640, 480, 3 });
+    SDR           E({ 640, 480, 7 });
+    Concatenation F( D, E, 2 );
     ASSERT_EQ(F.dimensions, vector<UInt>({ 640, 480, 10 }));
 }
 
 TEST(SdrTest, TestConcatenation) {
     SDR A({10000});
     SDR B({10000});
-    SDR_Concatenation C(A, B);
-    SDR_Concatenation D(A, B, 0u);
-    SDR_Concatenation E({&A, &B});
-    SDR_Concatenation F({&A, &B}, 0u);
+    Concatenation C(A, B);
+    Concatenation D(A, B, 0u);
+    Concatenation E({&A, &B});
+    Concatenation F({&A, &B}, 0u);
     A.randomize( 0.25f );
     B.randomize( 0.75f );
     ASSERT_LT( C.getSparsity(), 0.55f );
