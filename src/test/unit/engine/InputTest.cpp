@@ -32,6 +32,8 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/regions/TestNode.hpp>
 
+namespace testing { 
+    
 static bool verbose = true;
 #define VERBOSE                                                                \
   if (verbose)                                                                 \
@@ -352,4 +354,5 @@ TEST(InputTest, LinkTwoRegionsOneInputFlatten) {
   VERBOSE << "region3 input data: " << *pa << std::endl;
   ASSERT_EQ(expectedData.size(), pa->getCount());
   ASSERT_EQ(expectedData, pa->asVector<Real64>());
+}
 }

@@ -23,6 +23,8 @@
 #include <vector>
 #include <random>
 
+namespace testing { 
+    
 using namespace std;
 using namespace nupic;
 
@@ -566,4 +568,5 @@ TEST(SdrMetrics, TestAddData) {
     ASSERT_NEAR( M.sparsity.mean(), 0.2f, 0.01f );
     ASSERT_NEAR( M.overlap.mean(),  0.5f, 0.01f );
     ASSERT_NEAR( M.activationFrequency.mean(), 0.2f, 0.01f );
+}
 }
