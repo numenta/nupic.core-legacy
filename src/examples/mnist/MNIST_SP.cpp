@@ -97,8 +97,8 @@ void train() {
          << " cycles ..." << endl;
   size_t i = 0;
 
-  sdr::SDR_Metrics inputStats(input,    1402);
-  sdr::SDR_Metrics columnStats(columns, 1402);
+  sdr::Metrics inputStats(input,    1402);
+  sdr::Metrics columnStats(columns, 1402);
 
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
     NTA_INFO << "epoch " << epoch;

@@ -26,12 +26,12 @@ import unittest
 import pytest
 
 from nupic.bindings.algorithms import SDR
-from nupic.bindings.algorithms import SDR_Sparsity, SDR_ActivationFrequency, SDR_Overlap, SDR_Metrics
+from nupic.bindings.algorithms import Sparsity, ActivationFrequency, Overlap, Metrics
 
 class SdrMetricsTest(unittest.TestCase):
     def testSparsityExample(self):
         A = SDR( dimensions = 1000 )
-        B = SDR_Sparsity( A, period = 1000 )
+        B = Sparsity( A, period = 1000 )
         A.randomize( 0.01 )
         A.randomize( 0.15 )
         A.randomize( 0.05 )
@@ -44,7 +44,7 @@ class SdrMetricsTest(unittest.TestCase):
 
     def testSparsityConstructor(self):
         A = SDR(1000)
-        S = SDR_Sparsity(A, 100)
+        S = Sparsity(A, 100)
         A.randomize( .05 )
         A.randomize( .05 )
         A.randomize( .05 )
@@ -54,7 +54,7 @@ class SdrMetricsTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             S.addData( A )
 
-        B = SDR_Sparsity( dimensions = (1000,), period = 100)
+        B = Sparsity( dimensions = (1000,), period = 100)
         A.randomize( 0.10 )
         B.addData(A)
         A.randomize( 0.10 )
@@ -72,7 +72,7 @@ class SdrMetricsTest(unittest.TestCase):
 
     def testAF_Example(self):
         A = SDR( 2 )
-        B = SDR_ActivationFrequency( A, period = 1000 )
+        B = ActivationFrequency( A, period = 1000 )
         A.dense = [0, 0]
         A.dense = [1, 1]
         A.dense = [0, 1]
@@ -89,7 +89,7 @@ Entropy 0.918296""")
 
     def testOverlapExample(self):
         A = SDR( dimensions = 2000 )
-        B = SDR_Overlap( A, period = 1000 )
+        B = Overlap( A, period = 1000 )
         A.randomize( 0.20 )
         A.addNoise( 0.95 )   # ->  5% overlap
         A.addNoise( 0.55 )   # -> 45% overlap
@@ -103,15 +103,15 @@ Entropy 0.918296""")
 
     def testMetricsExample(self):
         A = SDR( dimensions = 2000 )
-        M = SDR_Metrics( A, period = 1000 )
+        M = Metrics( A, period = 1000 )
         seed = 42 # Use hardcoded seed. Seed 0 will seed from system time, not what we want here.
         A.randomize( 0.10, seed )
         for i in range( 20 ):
             A.addNoise( 0.55, seed + i )
 
-        assert( type(M.sparsity)            == SDR_Sparsity)
-        assert( type(M.activationFrequency) == SDR_ActivationFrequency)
-        assert( type(M.overlap)             == SDR_Overlap)
+        assert( type(M.sparsity)            == Sparsity)
+        assert( type(M.activationFrequency) == ActivationFrequency)
+        assert( type(M.overlap)             == Overlap)
         gold = """SDR( 2000 )
     Sparsity Min/Mean/Std/Max 0.1 / 0.0999989 / 5.20038e-06 / 0.1
     Activation Frequency Min/Mean/Std/Max 0 / 0.100001 / 0.0974391 / 0.619048
