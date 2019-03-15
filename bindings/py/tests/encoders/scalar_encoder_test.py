@@ -26,7 +26,7 @@ import pytest
 import time
 
 from nupic.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
-from nupic.bindings.algorithms import SDR, Metrics
+from nupic.bindings.sdr import SDR, Metrics
 
 class ScalarEncoder_Test(unittest.TestCase):
     @pytest.mark.skip("TODO UNIMPLEMENTED!")

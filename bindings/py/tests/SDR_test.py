@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, Reshape, Intersection, Concatenation
+from nupic.bindings.sdr import SDR, Reshape, Intersection, Concatenation
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
