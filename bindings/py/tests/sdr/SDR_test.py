@@ -320,7 +320,7 @@ class SdrTest(unittest.TestCase):
             assert( A == B )
 
 
-class SdrReshapeTest(unittest.TestCase):
+class ReshapeTest(unittest.TestCase):
     def testExampleUsage(self):
         assert( issubclass(Reshape, SDR) )
         # Convert SDR dimensions from (4 x 4) to (8 x 2)
@@ -352,7 +352,7 @@ class SdrReshapeTest(unittest.TestCase):
         assert(False) # TODO: Unimplemented
 
 
-class SdrIntersectionTest(unittest.TestCase):
+class IntersectionTest(unittest.TestCase):
     def testExampleUsage(self):
         A = SDR( 10 )
         B = SDR( 10 )
@@ -441,7 +441,7 @@ class SdrIntersectionTest(unittest.TestCase):
         assert(False) # TODO: Unimplemented
 
 
-class SdrConcatenationTest(unittest.TestCase):
+class ConcatenationTest(unittest.TestCase):
     def testExampleUsage(self):
         assert( issubclass(Intersection, SDR) )
         A = SDR( 100 )

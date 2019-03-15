@@ -18,7 +18,7 @@
 # http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-"""Unit tests for SDR_Metrics python bindings"""
+"""Unit tests for Metrics python bindings"""
 
 import pickle
 import numpy as np
@@ -27,7 +27,7 @@ import pytest
 
 from nupic.bindings import sdr
 
-class SdrMetricsTest(unittest.TestCase):
+class MetricsTest(unittest.TestCase):
     def testSparsityExample(self):
         A = sdr.SDR( dimensions = 1000 )
         B = sdr.Sparsity( A, period = 1000 )
