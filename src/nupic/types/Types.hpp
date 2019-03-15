@@ -248,32 +248,7 @@ typedef enum NTA_BasicType {
 
 } NTA_BasicType;
 
-/**
- * This enum represents the documented logging level of the debug logger.
- *
- * Use it like `LDEBUG(nupic::LogLevel_XXX)`.
- */
-enum LogLevel {
-  /**
-   * Log level: None.
-   */
-  LogLevel_None = 0,
-  /**
-   * Log level: Minimal.
-   */
-  LogLevel_Minimal,
-  /**
-   * Log level: Normal.
-   */
-  LogLevel_Normal,
-  /**
-   * Log level: Verbose.
-   */
-  LogLevel_Verbose,
-};
 
 } // end namespace nupic
-
-#define NTA_INTERNAL 1
 
 #endif // NTA_TYPES_HPP

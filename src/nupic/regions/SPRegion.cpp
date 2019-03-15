@@ -74,7 +74,7 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
   // specify dimensions using variable dim; syntax: "{dim: [2,3]}"
   // Alternatively, a 1D dimension can be setup with "{count: 6}"
   // Defaults to 1D size 64.
-  if (dim_.empty())
+  if (!dim_.isSpecified())
     dim_ = Dimensions(args_.columnCount);
   else
     args_.columnCount = (UInt32)dim_.getCount();
@@ -92,7 +92,8 @@ SPRegion::~SPRegion() {}
 
 void SPRegion::initialize() {
   // Output buffers should already have been created diring initialize or deserialize.
-  Array &outputBuffer = getOutput("bottomUpOut")->getData();
+  Output *out = getOutput("bottomUpOut");
+  Array &outputBuffer = out->getData();
   NTA_CHECK(outputBuffer.getType() == NTA_BasicType_SDR);
   UInt32 columnCount = (UInt32)outputBuffer.getCount();
   if (columnCount == 0 || outputBuffer.getBuffer() == nullptr) {
@@ -116,9 +117,24 @@ void SPRegion::initialize() {
     NTA_THROW << "SPRegion::initialize - No input buffer was allocated for this SP region.\n";
   }
 
+
   // Take the dimensions directly from the SDRs.
-  std::vector<UInt32> inputDimensions = inputBuffer.getSDR()->dimensions;
-  std::vector<UInt32> columnDimensions = outputBuffer.getSDR()->dimensions;
+  std::vector<UInt32> inputDimensions = inputBuffer.getSDR().dimensions;
+  std::vector<UInt32> columnDimensions = outputBuffer.getSDR().dimensions;
+
+  // There is a restriction on SP that input and output must have the same 
+  // number of dimensions.  So we add [1] dimensions to make them match.
+  while(inputDimensions.size() < columnDimensions.size()) {
+    inputDimensions.push_back(1);
+    in->setDimensions(inputDimensions);
+    inputBuffer.getSDR().initialize(inputDimensions);
+  }
+  while(inputDimensions.size() > columnDimensions.size()) {
+    columnDimensions.push_back(1);
+    out->setDimensions(columnDimensions);
+    outputBuffer.getSDR().initialize(columnDimensions);
+  }
+
   if (args_.potentialRadius == 0)
     args_.potentialRadius = args_.inputWidth;
 
@@ -145,9 +161,14 @@ void SPRegion::compute() {
   // prepare the input
   Array &inputBuffer  = getInput("bottomUpIn")->getData();
   Array &outputBuffer = getOutput("bottomUpOut")->getData();
+  NTA_DEBUG  << "compute " << *getInput("bottomUpIn") << "\n";
+
 
   // Call SpatialPooler compute
-  sp_->compute(*inputBuffer.getSDR(), args_.learningMode, *outputBuffer.getSDR());
+  sp_->compute(inputBuffer.getSDR(), args_.learningMode, outputBuffer.getSDR());
+
+
+  NTA_DEBUG << "compute " << *getOutput("bottomUpOut") << "\n";
 
 }
 
@@ -158,7 +179,7 @@ std::string SPRegion::executeCommand(const std::vector<std::string> &args,Int64 
 
 // This is the per-node output size. This is called by Link to determine how big 
 // to create the output buffers during Region::initialization(). It calls this
-// only if dimensions were not set on this region.
+// only if dimensions were not set on this region, normally from a regionLevel input.
 // NOTE: Some outputs are optional, return 0 if not used.
 size_t SPRegion::getNodeOutputElementCount(const std::string &outputName) const {
   if (outputName == "bottomUpOut") // This is the only output link we actually use.
@@ -166,14 +187,6 @@ size_t SPRegion::getNodeOutputElementCount(const std::string &outputName) const 
       return args_.columnCount; 
   }
   return 0; // an optional output that we don't use.
-}
-// Provide the size of the output dimensions.
-// Output buffer will be created with these dimensions.
-Dimensions SPRegion::askImplForOutputDimensions(const std::string& name) const {
-  if (name == "bottomUpOut") {
-    return dim_;
-  }
-  return RegionImpl::askImplForOutputDimensions(name); // default behavior
 }
 
 
@@ -188,7 +201,6 @@ Spec *SPRegion::createSpec() {
       "public interface to this function is the \"compute\" method, which "
       "takes in an input vector and returns a list of activeColumns columns.";
 
-  ns->singleNodeOnly = true; // this means we don't allow dimensions;
 
   /* ---- parameters ------ */
 
@@ -748,10 +760,10 @@ size_t SPRegion::getParameterArrayCount(const std::string &name, Int64 index) {
   } else if (name == "spatialPoolerOutput") {
     return getOutput("bottomUpOut")->getData().getCount();
   } else if (name == "spInputNonZeros") {
-    const SDR_sparse_t& v = getInput("bottomUpIn")->getData().getSDR()->getSparse();
+    const SDR_sparse_t& v = getInput("bottomUpIn")->getData().getSDR().getSparse();
     return v.size();
   } else if (name == "spOutputNonZeros") {
-    const SDR_sparse_t& v = getInput("bottomUpOut")->getData().getSDR()->getSparse();
+    const SDR_sparse_t& v = getInput("bottomUpOut")->getData().getSDR().getSparse();
     return v.size();
   }
   return 0;

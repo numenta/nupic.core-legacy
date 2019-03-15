@@ -26,7 +26,8 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Metrics, RDSE
+from nupic.bindings.algorithms import SDR, SDR_Metrics
+from nupic.bindings.encoders import RDSE
 
 class RDSE_Test(unittest.TestCase):
     @pytest.mark.skip("TODO UNIMPLEMENTED!")
@@ -88,7 +89,7 @@ class RDSE_Test(unittest.TestCase):
     def testDeterminism(self):
         """ Verify that the same seed always gets the same results. """
         GOLD = SDR( 1000 )
-        GOLD.flatSparse = [
+        GOLD.sparse = [
             11, 21, 49, 100, 136, 140, 150, 151, 177, 207, 242, 284, 287, 292,
             295, 323, 341, 377, 455, 475, 501, 520, 547, 560, 574, 595, 681,
             693, 702, 710, 739, 742, 748, 776, 794, 798, 805, 896, 898, 915,

@@ -29,7 +29,6 @@
 #include <cstdio> //fopen
 #include <iostream>
 #include <math.h>
-#include <nupic/math/Utils.hpp> // For isSystemLittleEndian and utils::swapBytesInPlace.
 #include <nupic/os/Path.hpp>
 #include <nupic/regions/VectorFile.hpp>
 #include <nupic/utils/Log.hpp>
@@ -74,16 +73,8 @@ void VectorFile::appendFile(const string &fileName,
                             Size expectedElementCount, UInt32 fileFormat) {
   bool handled = false;
   switch (fileFormat) {
-  case 4: // Little-endian.
-    appendFloat32File(fileName, expectedElementCount, false);
-    handled = true;
-    break;
-  case 5: // Big-endian.
-    appendFloat32File(fileName, expectedElementCount, true);
-    handled = true;
-    break;
-  case 6:
-    appendIDXFile(fileName, int(expectedElementCount), true);
+  case 4: // Little-endian.  //TODO supporting just 1 format, remove this swithch and fileFormat
+    appendFloat32File(fileName, expectedElementCount);
     handled = true;
     break;
   }
@@ -345,11 +336,9 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
     if (end <= begin)
       return;
     const Size rowBytes = nColumns * sizeof(Real32);
-    const bool bigEndian = (fileFormat == 5);
-    const bool needSwap = (nupic::isSystemLittleEndian() == bigEndian);
     const bool needConversion = (sizeof(Real32) == sizeof(Real));
 
-    if (needSwap || needConversion) {
+    if (needConversion) {
       auto buffer = new Real32[nColumns];
       try {
         for (; i != iend; ++i) {
@@ -358,8 +347,6 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
             for (Size j = 0; j < nColumns; ++j)
               buffer[j] = *(p++);
           }
-          if (needSwap)
-            nupic::swapBytesInPlace(buffer, nColumns);
           out.write((char *)buffer, streamsize(rowBytes));
         }
       } catch (...) {
@@ -424,8 +411,7 @@ public:
 };
 
 void VectorFile::appendFloat32File(const string &filename,
-                                   Size expectedElements, bool bigEndian) {
-  const bool needSwap = (nupic::isSystemLittleEndian() == bigEndian);
+                                   Size expectedElements) {
   AutoReleaseFile file(filename);
 
   Size totalBytes = Path::getFileSize(filename);
@@ -445,8 +431,6 @@ void VectorFile::appendFloat32File(const string &filename,
     throw runtime_error(msg.str());
   }
   const bool needConversion = (sizeof(Real32) == sizeof(Real));
-  // if !(needSwap || needConversion), would like to use:
-  //   ::mmap(0, totalBytes, PROT_READ, 0, fileDescriptor, 0);
 
   Size offset = fileVectors_.size();
   if (offset != own_.size()) {
@@ -479,8 +463,6 @@ void VectorFile::appendFloat32File(const string &filename,
 
     file.read(&block, sizeof block[0] ,int(totalBytes));
 
-    if (needSwap)
-      nupic::swapBytesInPlace(block, totalElements);
     if (needConversion) {
       Real32 *pRead = reinterpret_cast<Real32 *>(block) + (totalElements - 1);
       Real *pWrite = block + (totalElements - 1);
@@ -578,9 +560,7 @@ void convert(T2 *pOut, const T1 *pIn, TSize n, TSize fill) {
     ::memset(pOut, 0, fill * sizeof(T2));
 }
 
-void VectorFile::appendIDXFile(const string &filename, int expectedElements,
-                               bool bigEndian) {
-  const bool needSwap = (nupic::isSystemLittleEndian() == bigEndian);
+void VectorFile::appendIDXFile(const string &filename, int expectedElements) {
   AutoReleaseFile file(filename);
 
   char header[4];
@@ -591,8 +571,6 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
     throw runtime_error("Invalid number of dimensions.");
   int dims[256];
   file.read(dims, sizeof dims[0], nDims * sizeof(int));
-  if (needSwap)
-    nupic::swapBytesInPlace(dims, nDims);
 
   int vectorSize = 1;
   for (int i = 1; i < nDims; ++i)
@@ -674,8 +652,6 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
       short *pRead = reinterpret_cast<short *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
         file.read(pRead, sizeof(short), readRow);
-        if (needSwap)
-          nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);
         pBlock += expectedElements;
       }
@@ -686,8 +662,6 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
       int *pRead = reinterpret_cast<int *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
         file.read(pRead, sizeof(int), readRow);
-        if (needSwap)
-          nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);
         pBlock += expectedElements;
       }
@@ -698,8 +672,6 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
       float *pRead = reinterpret_cast<float *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
         file.read(pRead, sizeof(float), readRow);
-        if (needSwap)
-          nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);
         pBlock += expectedElements;
       }
@@ -710,8 +682,6 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements,
       double *pRead = reinterpret_cast<double *>(readBuffer);
       for (int row = 0; row < nRows; ++row) {
         file.read(pRead, sizeof(double), readRow);
-        if (needSwap)
-          nupic::swapBytesInPlace(pRead, copy);
         convert(pBlock, pRead, copy, fill);
         pBlock += expectedElements;
       }

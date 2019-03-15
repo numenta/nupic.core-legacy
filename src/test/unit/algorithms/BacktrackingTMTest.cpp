@@ -29,7 +29,7 @@
 #include <fstream>
 #include <stdlib.h>
 
-#include <nupic/algorithms/BacktrackingTMCpp.hpp>
+#include <nupic/algorithms/BacktrackingTM.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/types/Exception.hpp>
@@ -65,7 +65,7 @@ static Pattern_t generatePattern(Size numCols = 100, Size minOnes = 21,
 
   std::random_device rd;     // only used once to initialise (seed) engine
   std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-  std::uniform_int_distribution<int> getOnes(minOnes,maxOnes); // guaranteed unbiased
+  std::uniform_int_distribution<int> getOnes((int)minOnes,(int)maxOnes); // guaranteed unbiased
 
   const int numOnes = getOnes(rng); //in range
 
@@ -167,7 +167,7 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
   param.verbosity = VERBOSITY;
 
     // Create TM object
-    BacktrackingTMCpp tm1(
+    BacktrackingTM tm1(
         param.numberOfCols, param.cellsPerColumn, param.initialPerm,
         param.connectedPerm, param.minThreshold, param.newSynapseCount,
         param.permanenceInc, param.permanenceDec, param.permanenceMax,
@@ -205,11 +205,11 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
     std::string checkpointPath = "TestOutputDir/tm.save";
     tm1.saveToFile(checkpointPath);
 
-    BacktrackingTMCpp tm2;
+    BacktrackingTM tm2;
     tm2.loadFromFile(checkpointPath);
 
     // Check that the TMs are the same.
-    EXPECT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm2, std::cout, 2));
+    EXPECT_TRUE(BacktrackingTM::tmDiff2(tm1, tm2, std::cout, 2));
 
     // Feed remaining data into the models.
     train.clear();
@@ -244,7 +244,7 @@ TEST(BacktrackingTMTest, testCheckpointLearned) {
 TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 {
     // Create a model and give it some inputs to learn.
-    BacktrackingTMCpp tm1(100, 12);
+    BacktrackingTM tm1(100, 12);
     tm1.setVerbosity((Int32)VERBOSITY);
 
 
@@ -284,7 +284,7 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
     // Note that this resets the random generator to the same
     // point that the first TM used when it processed that second set
     // of patterns.
-    BacktrackingTMCpp tm2;
+    BacktrackingTM tm2;
     tm2.loadFromFile(checkpointPath);
 
     ASSERT_EQ(tm1, tm2) << "Deserialized TM is equal";
@@ -322,7 +322,7 @@ TEST(BacktrackingTMTest, testCheckpointMiddleOfSequence)
 // Run a test of the TM class ported from backtracking_tm_cpp2_test.py
 TEST(BacktrackingTMTest, basicTest) {
     // Create a model and give it some inputs to learn.
-    BacktrackingTMCpp tm1(10, 3, 0.2f, 0.8f, 2, 5, 0.10f, 0.05f, 1.0f, 0.05f, 4,
+    BacktrackingTM tm1(10, 3, 0.2f, 0.8f, 2, 5, 0.10f, 0.05f, 1.0f, 0.05f, 4,
                           false, 5, 2, false, SEED, (Int32)VERBOSITY /* rest are defaults */);
     tm1.setRetrieveLearningStates(true);
     const Size nCols = tm1.getnumCol();
@@ -333,11 +333,11 @@ TEST(BacktrackingTMTest, basicTest) {
     tm1.saveToFile(checkpointPath);
 
     {
-    BacktrackingTMCpp tm2;
+    BacktrackingTM tm2;
     tm2.loadFromFile(checkpointPath);
 
     // Check that the TMs are the same.
-    EXPECT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm2, std::cout, 2));
+    EXPECT_TRUE(BacktrackingTM::tmDiff2(tm1, tm2, std::cout, 2));
     }
 
     // generate some test data and NT patterns from it.
@@ -353,10 +353,10 @@ TEST(BacktrackingTMTest, basicTest) {
     // save and reload again after learning.
     tm1.saveToFile(checkpointPath);
 	{
-    BacktrackingTMCpp tm3;
+    BacktrackingTM tm3;
     tm3.loadFromFile(checkpointPath);
     // Check that the TMs are the same.
-    EXPECT_TRUE(BacktrackingTMCpp::tmDiff2(tm1, tm3, std::cout, 2));
+    EXPECT_TRUE(BacktrackingTM::tmDiff2(tm1, tm3, std::cout, 2));
 	}
 
     // Infer
@@ -364,7 +364,7 @@ TEST(BacktrackingTMTest, basicTest) {
     for (auto p : data) {
       if (p.empty()) continue; // skip reset patterns
       const auto indices =
-                nupic::algorithms::backtracking_tm::nonzero<Real>(p.data(), nCols);
+                nupic::algorithms::backtracking_tm::nonzero<Real>(p.data(), (UInt)nCols);
       nzData.push_back(indices);
     }
     for (Size i = 0; i < 10; i++) {

@@ -70,6 +70,11 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
 
   net.initialize();
 
+  VERBOSE << "Dimensions: \n";
+  VERBOSE << " TestNode out  - " << region1->getOutputDimensions("bottomUpOut")    <<"\n";
+  VERBOSE << " TestNode out  - " << region2->getOutputDimensions("bottomUpOut")<<"\n";
+  VERBOSE << " TestNode in   - " << region3->getInputDimensions("bottomUpIn")  <<"\n";
+
   const Array r1OutputArray = region1->getOutputData("bottomUpOut");
   const Array r2OutputArray = region2->getOutputData("bottomUpOut");
   Array r3InputArray  = region3->getInputData("bottomUpIn");
@@ -148,7 +153,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   
   const Array r2OutputArray = region2->getOutputData("bottomUpOut");
   EXPECT_EQ(r2OutputArray.getType(), NTA_BasicType_SDR);
-  EXPECT_TRUE(r2OutputArray.getSDR()->dimensions == r2dims)
+  EXPECT_TRUE(r2OutputArray.getSDR().dimensions == r2dims)
       << "Expected dimensions on the output to match dimensions on the buffer.";
   VERBOSE << r2OutputArray << "\n";
   std::vector<Byte> expected_output = {0, 1, 0, 1, 0, 1};
@@ -197,7 +202,7 @@ TEST(CppRegionTest, realmain) {
 
   size_t count1 = n.getRegions().getCount();
   EXPECT_TRUE(count1 == 0u);
-  std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "");
+  std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "{count: 2}");
 
 
   size_t count = n.getRegions().getCount();
@@ -261,7 +266,7 @@ TEST(CppRegionTest, realmain) {
   const Array& output = level1->getOutputData("bottomUpOut");
   Real64 *data_actual = (Real64 *)output.getBuffer();
   size_t size = output.getCount();
-  ASSERT_TRUE(size > 1u);
+  ASSERT_EQ(size, 2u);
   // set the actual output
   data_actual[1] = 54321.0;
 }

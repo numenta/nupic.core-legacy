@@ -77,8 +77,8 @@ set(algorithm_files
     nupic/algorithms/AnomalyLikelihood.cpp
     nupic/algorithms/AnomalyLikelihood.hpp
     nupic/algorithms/ArrayBuffer.hpp
-    nupic/algorithms/BacktrackingTMCpp.cpp
-    nupic/algorithms/BacktrackingTMCpp.hpp
+    nupic/algorithms/BacktrackingTM.cpp
+    nupic/algorithms/BacktrackingTM.hpp
     nupic/algorithms/Cell.cpp
     nupic/algorithms/Cell.hpp
     nupic/algorithms/Cells4.cpp
@@ -103,6 +103,7 @@ set(algorithm_files
 
 
 set(encoders_files 
+    nupic/encoders/BaseEncoder.hpp
     nupic/encoders/ScalarEncoder.cpp
     nupic/encoders/ScalarEncoder.hpp
     nupic/encoders/CategoryEncoder.hpp
@@ -142,8 +143,6 @@ set(math_files
     nupic/math/StlIo.hpp
     nupic/math/Topology.cpp
     nupic/math/Topology.hpp
-    nupic/math/Types.hpp
-    nupic/math/Utils.hpp
 )
 
 
@@ -178,12 +177,16 @@ set(os_files
 )
 
 set(regions_files
+    nupic/regions/BacktrackingTMRegion.cpp
+    nupic/regions/BacktrackingTMRegion.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
     nupic/regions/SPRegion.cpp
     nupic/regions/SPRegion.hpp
     nupic/regions/TestNode.cpp
     nupic/regions/TestNode.hpp
+    nupic/regions/TMRegion.cpp
+    nupic/regions/TMRegion.hpp
     nupic/regions/VectorFile.cpp
     nupic/regions/VectorFile.hpp
     nupic/regions/VectorFileEffector.cpp

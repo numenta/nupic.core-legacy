@@ -104,7 +104,9 @@ void train() {
     NTA_INFO << "epoch " << epoch;
     // Shuffle the training data.
     vector<UInt> index( dataset.training_labels.size() );
-    index.assign(dataset.training_labels.cbegin(), dataset.training_labels.cend());
+    for (UInt i=0; i<dataset.training_labels.size(); i++) {
+      index.push_back(i);
+    }
     Random().shuffle( index.begin(), index.end() );
 
     for(const auto idx : index) { // index = order of label (shuffeled)

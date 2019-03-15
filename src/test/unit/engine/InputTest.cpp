@@ -32,7 +32,7 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/regions/TestNode.hpp>
 
-static bool verbose = false;
+static bool verbose = true;
 #define VERBOSE                                                                \
   if (verbose)                                                                 \
   std::cerr << "[          ]"
@@ -45,35 +45,38 @@ TEST(InputTest, BasicNetworkConstruction) {
   std::shared_ptr<Region> r2 = net.addRegion("r2", "TestNode", "");
 
   // Test constructor
-  Input x(r1.get(), "X", NTA_BasicType_Int32);
-  Input y(r2.get(), "Y", NTA_BasicType_Byte);
-  EXPECT_THROW(Input i(r1.get(), "I", (NTA_BasicType)(NTA_BasicType_Last + 1)),
-               std::exception);
+  Input* x = r1->getInput("bottomUpIn");
+  Input* y = r2->getInput("bottomUpIn");
 
   // test getRegion()
-  ASSERT_EQ(r1.get(), x.getRegion());
-  ASSERT_EQ(r2.get(), y.getRegion());
+  ASSERT_EQ(r1.get(), x->getRegion());
+  ASSERT_EQ(r2.get(), y->getRegion());
 
   // test isInitialized()
-  ASSERT_TRUE(!x.isInitialized());
-  ASSERT_TRUE(!y.isInitialized());
+  ASSERT_TRUE(!x->isInitialized());
+  ASSERT_TRUE(!y->isInitialized());
 
   Dimensions d1;
   d1.push_back(8);
   d1.push_back(4);
   r1->setDimensions(d1);
   Dimensions d2;
-  d2.push_back(4);
   d2.push_back(2);
+  d2.push_back(16);
   r2->setDimensions(d2);
   net.link("r1", "r2");
 
-  x.initialize();
-  y.initialize();
+  net.initialize();
+
+  VERBOSE << "Dimensions: \n";
+  VERBOSE << " TestNode in       - " << r1->getInputDimensions("bottomUpIn")  <<"\n";
+  VERBOSE << " TestNode out      - " << r1->getOutputDimensions("bottomUpOut")<<"\n";
+  VERBOSE << " TestNode in       - " << r2->getInputDimensions("bottomUpIn")  <<"\n";
+  VERBOSE << " TestNode out      - " << r2->getOutputDimensions("bottomUpOut")<<"\n";
 
   // test getData() with empty buffer
-  const ArrayBase *pa = &(y.getData());
-  ASSERT_EQ(0u, pa->getCount());
+  const ArrayBase *pa = &(y->getData());
+  ASSERT_EQ(32u, pa->getCount());
 }
 
 

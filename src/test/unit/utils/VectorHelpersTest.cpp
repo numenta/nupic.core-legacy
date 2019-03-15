@@ -32,7 +32,7 @@ using namespace nupic::utils;
 using namespace nupic;
 using namespace std;
 
-TEST(VectorHelpers, print_vector)
+TEST(VectorHelpersTest, print_vector)
 {
   std::vector<float> v{1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
   VectorHelpers::print_vector<float>(v);
@@ -44,7 +44,7 @@ TEST(VectorHelpers, print_vector)
 };
 
 
-TEST(VectorHelpers, castVectorType)
+TEST(VectorHelpersTest, castVectorType)
 {
   std::vector<float> v{1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
   vector<UInt> expected {1, 0, 1, 2, 0};
@@ -55,7 +55,7 @@ TEST(VectorHelpers, castVectorType)
 };
 
 
-TEST(VectorHelpers, stringToFloatVector)
+TEST(VectorHelpersTest, stringToFloatVector)
 {
   vector<string> s{"1.2", "0.2", "1", "2.2", "0.1"};
   vector<Real32> expected2 {1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
@@ -66,7 +66,7 @@ TEST(VectorHelpers, stringToFloatVector)
 };
 
 
-TEST(VectorHelpers, binaryToSparse)
+TEST(VectorHelpersTest, binaryToSparse)
 {
   vector<Real32> v{0.0f,0.0f,1.0f,1.0f,0.0f};
   vector<UInt> expected {2, 3};
@@ -77,7 +77,7 @@ TEST(VectorHelpers, binaryToSparse)
 };
 
 
-TEST(VectorHelpers, sparseToBinary)
+TEST(VectorHelpersTest, sparseToBinary)
 {
   vector<Real32> expected{0.0f,0.0f,1.0f,1.0f,0.0f};
   vector<UInt> v {2u, 3u};
@@ -98,3 +98,48 @@ TEST(VectorHelpers, cellsToColumns)
   }
 };
 
+
+TEST(VectorHelpersTest, sparse_cellsToColumns)
+{ 
+  
+  // using binary vector 3x3 (3 cols with 3 cells per column) as a sparse array
+  vector<UInt> v1{ 4,5,8 };
+  vector<UInt> expected {1u, 2u};
+  vector<UInt> res = VectorHelpers::sparse_cellsToColumns(v1, 3);
+  for(size_t i=0; i< res.size(); i++) {
+    ASSERT_EQ(res[i], expected[i]);
+  }
+
+  // bad cellsPerColumn
+  EXPECT_THROW(res = VectorHelpers::sparse_cellsToColumns(v1, 0),
+               std::exception);
+
+  vector<UInt> v2{}; // empty sparse array
+  res = VectorHelpers::sparse_cellsToColumns(v2, 0);
+  EXPECT_EQ(res.size(), 0u);
+
+
+  vector<UInt> v3{ 4,3,28,9,5 };  // not sorted.
+  EXPECT_THROW(res = VectorHelpers::sparse_cellsToColumns(v3, 3),
+               std::exception);
+
+};
+
+TEST(VectorHelpersTest, unionOfVectors)
+{
+  vector<UInt> v1{ 1,2,3,4, 25 };
+  vector<UInt> v2{ 1,4,5,6,7,8 };
+  vector<UInt> res;
+  vector<UInt> expected{ 1,2,3,4,5,6,7,8,25 };
+  VectorHelpers::unionOfVectors(res, v1, v2);
+  for(size_t i=0; i< res.size(); i++) {
+    ASSERT_EQ(res[i], expected[i]);
+  }
+
+  v1.clear();
+  VectorHelpers::unionOfVectors(res, v1, v2);
+  for(size_t i=0; i< res.size(); i++) {
+    ASSERT_EQ(res[i], v2[i]);
+  }
+
+};

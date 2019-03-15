@@ -26,8 +26,8 @@
  * Definitions for the Temporal Memory in C++
  */
 
-#ifndef NTA_BACKTRACKINGTMCPP_HPP
-#define NTA_BACKTRACKINGTMCPP_HPP
+#ifndef NTA_BACKTRACKINGTM_HPP
+#define NTA_BACKTRACKINGTM_HPP
 
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/types/Types.hpp>
@@ -50,8 +50,9 @@ using nupic::algorithms::Cells4::Segment;
 //  Static function nonzero()
 // returns an array of the indexes of the non-zero elements.
 // TODO replace with library implementation, or move to utils
-template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt len) {
-  vector<UInt> nz;
+template <typename T> static std::vector<UInt> nonzero(const T *dense_buffer, UInt len) {
+  std::vector<UInt> nz;
+  nz.reserve(len);
   for (UInt idx = 0; idx < len; idx++) {
     if (dense_buffer[idx] != (T)0)
       nz.push_back((UInt)idx);
@@ -61,7 +62,7 @@ template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt le
 
 /**
  * Backtracking Temporal Memory implementation in C++.
- * The class:`BacktrackingTMCpp` wraps the C++ algorithms in Cells4.
+ * The class:`BacktrackingTM` wraps the C++ algorithms in Cells4.
  *
  * This is a port from the Python module BacktrackingTMCPP.  It was
  * a subclass of BacktrackingTM. This port combined them into one class.
@@ -69,7 +70,7 @@ template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt le
  * Example usage:
  *
  *     SpatialPooler sp(inputDimensions, columnDimensions, <parameters>);
- *     BacktrackingTMCpp tm(columnDimensions, <parameters>);
+ *     BacktrackingTM tm(columnDimensions, <parameters>);
  *
  *     while (true) {
  *        <get input vector, streaming spatiotemporal information>
@@ -201,11 +202,11 @@ template <typename T> static vector<UInt> nonzero(const T *dense_buffer, UInt le
  *
  *************/
 
-class BacktrackingTMCpp {
+class BacktrackingTM {
 public:
-  BacktrackingTMCpp(); // when restoring from serialization
+  BacktrackingTM(); // when restoring from serialization
 
-  BacktrackingTMCpp(UInt32 numberOfCols,
+  BacktrackingTM(UInt32 numberOfCols,
                     UInt32 cellsPerColumn, // first two fields are required
                     Real32 initialPerm = 0.11f, Real32 connectedPerm = 0.50f,
                     UInt32 minThreshold = 8, UInt32 newSynapseCount = 15,
@@ -221,7 +222,7 @@ public:
                     Int32 maxSynapsesPerSegment = -1,
                     const std::string outputType = "normal");
 
-  virtual ~BacktrackingTMCpp();
+  virtual ~BacktrackingTM();
 
   //----------------------------------------------------------------------
   //  Main functions
@@ -283,7 +284,7 @@ public:
     std::vector<struct score_tuple> conf;
     std::shared_ptr<Real> missing;
   };
-  std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t>
+  std::shared_ptr<struct BacktrackingTM::predictionResults_t>
     _checkPrediction(std::vector<std::vector<UInt>> patternNZs,
                      const Byte *predicted = nullptr,
                      const Real *colConfidence = nullptr,
@@ -426,20 +427,20 @@ public:
  * @checkLearn - if true, will check learn states as well as all the segments
  * @checkStates - If true, will check the various state arrays
  */
-  static bool tmDiff2(const BacktrackingTMCpp &tm1, const BacktrackingTMCpp &tm2,
+  static bool tmDiff2(const BacktrackingTM &tm1, const BacktrackingTM &tm2,
                std::ostream &out = std::cout, Int32 verbosity = 0,
                bool relaxSegmentTests = true, bool checkLearn = true,
                bool checkStates = true);
-  static bool sameTMParams(const BacktrackingTMCpp &tm1, const BacktrackingTMCpp &tm2,
+  static bool sameTMParams(const BacktrackingTM &tm1, const BacktrackingTM &tm2,
                     std::ostream &out = std::cout, Int32 verbosity = 0);
   static bool sameSegment(const struct SegOnCellInfo_t &segVect1, const struct SegOnCellInfo_t &segVect2,
                    std::ostream &out = std::cout, Int32 verbosity = 0);
 
   // an alternative way to compare two tm's -- by comparing the serialized strings.
-  bool diff(const BacktrackingTMCpp& tm1, const BacktrackingTMCpp &tm2) const;
+  bool diff(const BacktrackingTM& tm1, const BacktrackingTM &tm2) const;
 
-  bool operator==(const BacktrackingTMCpp &tm2) const { return BacktrackingTMCpp::tmDiff2(*this, tm2); } //could also use diff()
-  inline bool operator!=(const BacktrackingTMCpp &tm2) const { return !(*this==tm2); }
+  bool operator==(const BacktrackingTM &tm2) const { return BacktrackingTM::tmDiff2(*this, tm2); } //could also use diff()
+  inline bool operator!=(const BacktrackingTM &tm2) const { return !(*this==tm2); }
 
   /////// statistics ////////
   // Note: These are empty if collectSequenceStats is false.
@@ -468,7 +469,7 @@ protected:
   //////// internal functions ///////////
 
   void _updateStatsInferEnd(std::map<std::string, Real> internalStats,
-                            const UInt32 *bottomUpNZ,
+                            std::vector<UInt32> bottomUpNZ,
                             const Byte *predictedState,
                             const Real *colConfidence);
   Real *_computeOutput();
@@ -564,7 +565,7 @@ protected:
 
 
 
-#endif // NTA_BACKTRACKINGTMCPP_HPP
+#endif // NTA_BACKTRACKINGTM_HPP
 
 //################################################################################
 //# The following methods are implemented in the base class backtrackingTM

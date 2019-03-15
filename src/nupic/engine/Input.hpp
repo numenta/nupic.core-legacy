@@ -29,6 +29,7 @@
 #ifndef NTA_INPUT_HPP
 #define NTA_INPUT_HPP
 
+#include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
 #include <vector>
@@ -97,7 +98,7 @@ public:
    * @param srcOutput
    *        The output of previous Region, which is also the source of the input
    */
-  void addLink(std::shared_ptr<Link> link, Output *srcOutput);
+  void addLink(const std::shared_ptr<Link> link, Output *srcOutput);
 
   /**
    * Locate an existing Link to the input.
@@ -135,7 +136,7 @@ public:
    *        The Link to remove, possibly retrieved by findLink(), note that
    *        it is a reference to the pointer, not the pointer itself.
    */
-  void removeLink(std::shared_ptr<Link>& link);
+  void removeLink(const std::shared_ptr<Link>& link);
 
   /**
    * Make input data available.
@@ -151,12 +152,12 @@ public:
    * @returns
    *         A mutable reference to the data of the input as an @c Array
    */
-  Array &getData();
-
+  Array &getData() { NTA_CHECK(initialized_); return data_; }
+  const Array &getData() const { NTA_CHECK(initialized_); return data_; }
   /**
    *  Get the data type of the output
    */
-  NTA_BasicType getDataType() const;
+  NTA_BasicType getDataType() const { return data_.getType(); }
 
   /**
    *
@@ -165,7 +166,7 @@ public:
    * @returns
    *         The mutable reference to the Region that the input belongs to
    */
-  Region* getRegion();
+  const Region *getRegion() const { return region_; }
 
   /**
    *
@@ -174,8 +175,7 @@ public:
    * @returns
    *         All the Link objects added to the input
    */
-  std::vector<std::shared_ptr<Link>> &getLinks();
-
+  std::vector<std::shared_ptr<Link>> &getLinks() { return links_; }
 
   /**
    * Called by Region.evaluateLinks() as part
@@ -206,14 +206,17 @@ public:
   /**
    * Set dimensions for this input
    */
-  void setDimensions(const Dimensions& dim) { dim_ = dim; }
+  void setDimensions(Dimensions dim) { dim_ = std::move(dim); }
 
-
-  /* ------------ Methods normally called by the RegionImpl ------------- */
-
-
+  /**
+   * true if we have links connected to this input.
+   */
   bool hasIncomingLinks() { return !links_.empty(); }
 
+  /**
+   *  Print raw data...for debugging
+   */
+  friend std::ostream &operator<<(std::ostream &f, const Input &d);
 
 private:
   // Cannot use the shared_ptr here.

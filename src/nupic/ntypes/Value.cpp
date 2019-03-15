@@ -197,9 +197,9 @@ T ValueMap::getScalarT(const std::string &key, T defaultValue) const {
 template <typename T> T ValueMap::getScalarT(const std::string &key) const {
   std::shared_ptr<Scalar> s = getScalar(key);
   if (s->getType() != BasicType::getType<T>()) {
-    NTA_THROW << "Invalid attempt to access parameter '" << key << "' of type "
-              << BasicType::getName(s->getType()) << " as a scalar of type "
-              << BasicType::getName<T>();
+    NTA_THROW << "Invalid attempt to access parameter '" << key
+      << "' as type a " << BasicType::getName<T>()
+      << " but the Spec defines it as type " << BasicType::getName(s->getType());
   }
 
   return s->getValue<T>();

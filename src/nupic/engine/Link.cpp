@@ -32,9 +32,8 @@
 #include <nupic/types/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 
-// Set this to true when debugging to enable handy debug-level logging of data
-// moving through the links, including the delayed link transitions.
-#define _LINK_DEBUG false
+// By calling  LogItem::setLogLevel(LogLevel_Verbose)
+// you can enable the NTA_DEBUG macros below.
 
 namespace nupic {
 
@@ -194,15 +193,13 @@ void Link::compute() {
 
   // Copy data from source to destination. For delayed links, will copy from
   // head of circular queue; otherwise directly from source.
-  Array &src = propagationDelay_ ? propagationDelayBuffer_.front() : src_->getData();
+  const Array &src = propagationDelay_ ? propagationDelayBuffer_.front() : src_->getData();
   Array &dest = dest_->getData();
 
-  if (_LINK_DEBUG) {
-    NTA_DEBUG << "Link::compute: " << getMoniker() << "; copying to dest input"
+  NTA_DEBUG << "Link::compute: " << getMoniker() << "; copying to dest input"
               << "; delay=" << propagationDelay_ << "; size=" << src.getCount()
               << " type=" << BasicType::getName(src.getType())
               << " --> " << BasicType::getName(dest.getType()) << std::endl;
-  }
 
 	NTA_CHECK(src.getCount() + destOffset_ <= dest.getMaxElementsCount())
         << "Not enough room in buffer to propogate to " << destRegionName_

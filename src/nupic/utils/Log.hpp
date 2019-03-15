@@ -31,24 +31,31 @@
 #include <nupic/utils/LogItem.hpp>
 #include <nupic/utils/LoggingException.hpp>
 
-#define NTA_DEBUG                                                              \
-  nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::debug).stream()
+#define NTA_DEBUG                                                             \
+  if (nupic::LogItem::getLogLevel() < nupic::LogLevel_Verbose) {                \
+  } else                                                                      \
+    nupic::LogItem(__FILE__, __LINE__, nupic::LogType_debug).stream()
 
-// Can be used in Loggable classes
+// Can be used in Loggable classes   
+//    level is one of (LogLevel_None, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose)
 #define NTA_LDEBUG(level)                                                      \
-  if (logLevel_ < (level)) {                                                   \
+  if (nupic::LogItem::getLogLevel() < (level)) {                             \
   } else                                                                       \
-    nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::debug).stream()
+    nupic::LogItem(__FILE__, __LINE__, nupic::LogType_debug).stream()
 
 // For informational messages that report status but do not indicate that
 // anything is wrong
 #define NTA_INFO                                                               \
-  nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::info).stream()
+  if (nupic::LogItem::getLogLevel() < nupic::LogLevel_Normal) {                \
+  } else                                                                      \
+  nupic::LogItem(__FILE__, __LINE__, nupic::LogType_info).stream()
 
 // For messages that indicate a recoverable error or something else that it may
 // be important for the end user to know about.
 #define NTA_WARN                                                               \
-  nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::warn).stream()
+  if (nupic::LogItem::getLogLevel() < nupic::LogLevel_Normal) {                \
+  } else                                                                      \
+  nupic::LogItem(__FILE__, __LINE__, nupic::LogType_warn).stream()
 
 // To throw an exception and make sure the exception message is logged
 // appropriately
@@ -78,7 +85,7 @@
 #define NTA_ASSERT(condition)                                                  \
   if (1) {                                                                     \
   } else                                                                       \
-    nupic::LogItem(__FILE__, __LINE__, nupic::LogItem::debug).stream()
+    nupic::LogItem(__FILE__, __LINE__, nupic::LogType_debug).stream()
 
 #endif // NTA_ASSERTIONS_ON
 

@@ -51,15 +51,15 @@ using nupic::algorithms::connections::Permanence;
 
         py::class_<HTM_t> py_HTM(m, "TemporalMemory");
 
-        py_HTM.def(py::init<>())
-            .def(py::init<std::vector<UInt>
+        py_HTM.def(py::init<>());
+        py_HTM.def(py::init<std::vector<UInt>
                 , UInt, UInt
                 , Permanence, Permanence
                 , UInt, UInt
                 , Permanence, Permanence, Permanence
                 , Int
                 , UInt, UInt
-                , bool>()
+                , bool, UInt>()
                 , py::arg("columnDimensions")
                 , py::arg("cellsPerColumn") = 32
                 , py::arg("activationThreshold") = 13
@@ -74,6 +74,7 @@ using nupic::algorithms::connections::Permanence;
                 , py::arg("maxSegmentsPerCell") = 255
                 , py::arg("maxSynapsesPerSegment") = 255
                 , py::arg("checkInputs") = true
+                , py::arg("extra") = 0u
             );
 
 
@@ -122,6 +123,10 @@ using nupic::algorithms::connections::Permanence;
             self.compute(activeColumns.size(), get_it(activeColumns), learn);
         }, "Perform one time step of the Temporal Memory algorithm."
             , py::arg("activeColumns"), py::arg("learn") = true);
+
+        py_HTM.def("compute", [](HTM_t& self, const SDR &activeColumns, bool learn,
+                                 const SDR &extraActive, const SDR &extraWinners)
+            { self.compute(activeColumns, learn, extraActive, extraWinners); });
 
         py_HTM.def("getActiveCells", [](const HTM_t& self)
         {

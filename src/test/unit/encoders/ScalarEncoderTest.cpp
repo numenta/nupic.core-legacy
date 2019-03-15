@@ -1,8 +1,10 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * Copyright (C) 2016, Numenta, Inc.
+ *               2019, David McDougall
+ *
+ * Unless you have an agreement with Numenta, Inc., for a separate license for
+ * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -21,185 +23,199 @@
  */
 
 /** @file
- * Unit tests for the ScalarEncoder and PeriodicScalarEncoder
+ * Unit tests for the ScalarEncoder
  */
 
 #include "gtest/gtest.h"
 #include <nupic/encoders/ScalarEncoder.hpp>
-#include <string>
 #include <vector>
 
 using namespace nupic;
+using nupic::encoders::ScalarEncoder;
+using nupic::encoders::ScalarEncoderParameters;
 
-template <typename T> std::string vec2str(std::vector<T> vec) {
-  std::ostringstream oss("");
-  for (size_t i = 0; i < vec.size(); i++) //FIXME VectorHelper would have been used eg. here
-    oss << vec[i];
-  return oss.str();
+TEST(ScalarEncoder, testExampleUsage) {
+  // TODO
 }
+
 
 struct ScalarValueCase
 {
-  Real32 input;
-  std::vector<UInt> expectedOutput;
+  Real64 input;
+  std::vector<UInt> expectedOutput; // Sparse indices of active bits.
 };
 
-std::vector<UInt> patternFromNZ(int n, std::vector<size_t> patternNZ) //TODO use vectorHelpers sparseToDense
+void doScalarValueCases(ScalarEncoder& e, std::vector<ScalarValueCase> cases)
 {
-  auto v = std::vector<UInt>(n, 0);
-  for (auto it = patternNZ.begin(); it != patternNZ.end(); it++)
-    {
-      v[*it] = 1;
-    }
-  return v;
-}
+  for( auto c : cases )
+  {
+    SDR expectedOutput( e.dimensions );
+    expectedOutput.setSparse( c.expectedOutput );
 
-void doScalarValueCases(ScalarEncoderBase& e, std::vector<ScalarValueCase> cases)
-{
-  for (auto c = cases.begin(); c != cases.end(); c++)
-    {
-      auto actualOutput = e.encode(c->input);
-      for (UInt i = 0; i < e.getOutputWidth(); i++)
-        {
-          EXPECT_EQ(c->expectedOutput[i], actualOutput[i])
-            << "For input " << c->input << " and index " << i << std::endl
-            << "EXPECTED:" << std::endl
-            << vec2str(c->expectedOutput) << std::endl
-            << "ACTUAL:" << std::endl
-            << vec2str(actualOutput);
-        }
-    }
+    SDR actualOutput( e.dimensions );
+    e.encode( c.input, actualOutput );
+
+    EXPECT_EQ( actualOutput, expectedOutput );
+  }
 }
 
 
 TEST(ScalarEncoder, testClippingInputs) {
-  const int n = 10;
-  const int w = 2;
-  const double minValue = 10;
-  const double maxValue = 20;
-  const double radius = 0;
-  const double resolution = 0;
+  ScalarEncoderParameters p;
+  p.size       = 10;
+  p.activeBits = 2;
+  p.minimum    = 10;
+  p.maximum    = 20;
 
+  SDR output({ 10 });
   {
-    const bool clipInput = false;
-    ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
+    p.clipInput = false;
+    ScalarEncoder e( p );
 
-    EXPECT_ANY_THROW(e.encode(9.9f));
-    EXPECT_NO_THROW(e.encode(10.0f));
-    EXPECT_NO_THROW(e.encode(20.0f));
-    EXPECT_ANY_THROW(e.encode(20.1f));
+    EXPECT_ANY_THROW(e.encode( 9.9f, output));
+    EXPECT_NO_THROW( e.encode(10.0f, output));
+    EXPECT_NO_THROW( e.encode(20.0f, output));
+    EXPECT_ANY_THROW(e.encode(20.1f, output));
   }
 
   {
-    const bool clipInput = true;
-    ScalarEncoder e(w, minValue, maxValue, n, radius, resolution, clipInput);
+    p.clipInput = true;
+    ScalarEncoder e( p );
 
-    EXPECT_NO_THROW(e.encode(9.9f));
-    EXPECT_NO_THROW(e.encode(20.1f));
+    EXPECT_NO_THROW(e.encode( 9.9f, output));
+    EXPECT_NO_THROW(e.encode(20.1f, output));
   }
 }
 
-TEST(PeriodicScalarEncoder, ValidScalarInputs) {
-  const int n = 10;
-  const int w = 2;
-  const double minValue = 10;
-  const double maxValue = 20;
-  const double radius = 0;
-  const double resolution = 0;
-  PeriodicScalarEncoder e(w, minValue, maxValue, n, radius, resolution);
+TEST(ScalarEncoder, ValidScalarInputs) {
+  ScalarEncoderParameters p;
+  p.size       = 10;
+  p.activeBits = 2;
+  p.minimum    = 10;
+  p.maximum    = 20;
+  SDR output({ 10 });
+  ScalarEncoder e( p );
 
-  EXPECT_ANY_THROW(e.encode(9.9f));
-  EXPECT_NO_THROW(e.encode(10.0f));
-  EXPECT_NO_THROW(e.encode(19.9f));
-  EXPECT_ANY_THROW(e.encode(20.0f));
+  EXPECT_ANY_THROW(e.encode( 9.9f, output));
+  EXPECT_NO_THROW( e.encode(10.0f, output));
+  EXPECT_NO_THROW( e.encode(19.9f, output));
+  EXPECT_ANY_THROW(e.encode(20.0001f, output));
 }
 
 TEST(ScalarEncoder, NonIntegerBucketWidth) {
-  const int n = 7;
-  const int w = 3;
-  const double minValue = 10.0;
-  const double maxValue = 20.0;
-  const double radius = 0;
-  const double resolution = 0;
-  const bool clipInput = false;
-  ScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution,
-                        clipInput);
+  ScalarEncoderParameters p;
+  p.size       = 7;
+  p.activeBits = 3;
+  p.minimum    = 10.0;
+  p.maximum    = 20.0;
+  ScalarEncoder encoder( p );
 
-  std::vector<ScalarValueCase> cases = {{10.0, patternFromNZ(n, {0, 1, 2})},
-                                        {20.0, patternFromNZ(n, {4, 5, 6})}};
-
-  doScalarValueCases(encoder, cases);
-}
-
-TEST(PeriodicScalarEncoder, NonIntegerBucketWidth) {
-  const int n = 7;
-  const int w = 3;
-  const double minValue = 10.0;
-  const double maxValue = 20.0;
-  const double radius = 0;
-  const double resolution = 0;
-  PeriodicScalarEncoder encoder(w, minValue, maxValue, n, radius, resolution);
-
-  std::vector<ScalarValueCase> cases = {{10.0f, patternFromNZ(n, {6, 0, 1})},
-                                        {19.9f, patternFromNZ(n, {5, 6, 0})}};
+  std::vector<ScalarValueCase> cases = {{10.0, {0, 1, 2}},
+                                        {20.0, {4, 5, 6}}};
 
   doScalarValueCases(encoder, cases);
 }
 
 TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
-  const int n_in = 0;
-  const int w = 3;
-  const double minValue = 10.0;
-  const double maxValue = 20.0;
-  const double radius = 0;
-  const double resolution = 1;
-  const bool clipInput = false;
-  ScalarEncoder encoder(w, minValue, maxValue, n_in, radius, resolution, clipInput);
+  ScalarEncoderParameters p;
+  p.activeBits = 3;
+  p.minimum    = 10.0;
+  p.maximum    = 20.0;
+  p.resolution = 1;
+  ScalarEncoder encoder( p );
 
-  const unsigned int n = 13u;
-  ASSERT_EQ(n, encoder.getOutputWidth());
+  ASSERT_EQ(encoder.parameters.size, 12u);
 
   std::vector<ScalarValueCase> cases = {
-      {10.00f, patternFromNZ(n, {0, 1, 2})},
-      {10.49f, patternFromNZ(n, {0, 1, 2})},
-      {10.50f, patternFromNZ(n, {1, 2, 3})},
-      {11.49f, patternFromNZ(n, {1, 2, 3})},
-      {11.50f, patternFromNZ(n, {2, 3, 4})},
-      {14.49f, patternFromNZ(n, {4, 5, 6})},
-      {14.50f, patternFromNZ(n, {5, 6, 7})},
-      {15.49f, patternFromNZ(n, {5, 6, 7})},
-      {15.50f, patternFromNZ(n, {6, 7, 8})},
-      {19.49f, patternFromNZ(n, {9, 10, 11})},
-      {19.50f, patternFromNZ(n, {10, 11, 12})},
-      {20.00f, patternFromNZ(n, {10, 11, 12})}};
+      {10.00f, {0, 1, 2}},
+      {10.49f, {0, 1, 2}},
+      {10.50f, {1, 2, 3}},
+      {11.49f, {1, 2, 3}},
+      {11.50f, {2, 3, 4}},
+      {14.49f, {4, 5, 6}},
+      {14.50f, {5, 6, 7}},
+      {15.49f, {5, 6, 7}},
+      {15.50f, {6, 7, 8}},
+      {19.49f, {9, 10, 11}},
+      {19.50f, {9, 10, 11}},
+      {20.00f, {9, 10, 11}}};
 
   doScalarValueCases(encoder, cases);
 }
 
-TEST(PeriodicScalarEncoder, FloorToNearestMultipleOfResolution) {
-  const int n_in = 0;
-  const int w = 3;
-  const double minValue = 10.0;
-  const double maxValue = 20.0;
-  const double radius = 0;
-  const double resolution = 1;
-  PeriodicScalarEncoder encoder(w, minValue, maxValue, n_in, radius,
-                                resolution);
+TEST(ScalarEncoder, PeriodicRoundNearestMultipleOfResolution) {
+  ScalarEncoderParameters p;
+  p.activeBits = 3;
+  p.minimum    = 10.0;
+  p.maximum    = 20.0;
+  p.resolution = 1;
+  p.periodic   = true;
+  ScalarEncoder encoder( p );
 
-  const unsigned int n = 10u;
-  ASSERT_EQ(n, encoder.getOutputWidth());
+  ASSERT_EQ(encoder.parameters.size, 10u);
 
-  std::vector<ScalarValueCase> cases = {{10.00f, patternFromNZ(n, {9, 0, 1})},
-                                        {10.99f, patternFromNZ(n, {9, 0, 1})},
-                                        {11.00f, patternFromNZ(n, {0, 1, 2})},
-                                        {11.99f, patternFromNZ(n, {0, 1, 2})},
-                                        {12.00f, patternFromNZ(n, {1, 2, 3})},
-                                        {14.00f, patternFromNZ(n, {3, 4, 5})},
-                                        {14.99f, patternFromNZ(n, {3, 4, 5})},
-                                        {15.00f, patternFromNZ(n, {4, 5, 6})},
-                                        {15.99f, patternFromNZ(n, {4, 5, 6})},
-                                        {19.00f, patternFromNZ(n, {8, 9, 0})},
-                                        {19.99f, patternFromNZ(n, {8, 9, 0})}};
+  std::vector<ScalarValueCase> cases = {
+      {10.00f, {0, 1, 2}},
+      {10.49f, {0, 1, 2}},
+      {10.50f, {1, 2, 3}},
+      {11.49f, {1, 2, 3}},
+      {11.50f, {2, 3, 4}},
+      {14.49f, {4, 5, 6}},
+      {14.50f, {5, 6, 7}},
+      {15.49f, {5, 6, 7}},
+      {15.50f, {6, 7, 8}},
+      {19.49f, {9, 0, 1}},
+      {19.50f, {0, 1, 2}},
+      {20.00f, {0, 1, 2}}};
 
   doScalarValueCases(encoder, cases);
+}
+
+TEST(ScalarEncoder, Serialization) {
+  vector<ScalarEncoder*> inputs;
+  ScalarEncoderParameters p;
+  p.minimum    = -1.234;
+  p.maximum    = 12.34;
+  p.activeBits = 34;
+  p.radius     = .1337;
+  inputs.push_back( new ScalarEncoder( p ) );
+  p.clipInput = true;
+  inputs.push_back( new ScalarEncoder( p ) );
+  p.clipInput = false;
+  p.periodic  = true;
+  inputs.push_back( new ScalarEncoder( p ) );
+  p.radius     = 0.0f;
+  p.resolution = .1337;
+  inputs.push_back( new ScalarEncoder( p ) );
+  ScalarEncoderParameters q;
+  q.minimum  = -1.0f;
+  q.maximum  =  1.0003f;
+  q.size     = 100;
+  q.sparsity = 0.15;
+  inputs.push_back( new ScalarEncoder( q ) );
+
+  std::stringstream buf;
+  for( const auto x : inputs ) {
+    x->save( buf );
+  }
+
+  // cerr << "SERIALIZED:" << endl << buf.str() << endl;
+
+  for( const auto enc1 : inputs ) {
+    ScalarEncoder enc2;
+    enc2.load( buf );
+
+    const auto &p1 = enc1->parameters;
+    const auto &p2 = enc2.parameters;
+    EXPECT_EQ(  p1.size,       p2.size);
+    EXPECT_EQ(  p1.activeBits, p2.activeBits);
+    EXPECT_EQ(  p1.periodic,   p2.periodic);
+    EXPECT_EQ(  p1.clipInput,  p2.clipInput);
+    EXPECT_NEAR(p1.minimum,    p2.minimum,       1.0f / 100000 );
+    EXPECT_NEAR(p1.maximum,    p2.maximum,       1.0f / 100000 );
+    EXPECT_NEAR(p1.resolution, p2.resolution,    1.0f / 100000 );
+    EXPECT_NEAR(p1.sparsity,   p2.sparsity,      1.0f / 100000 );
+    EXPECT_NEAR(p1.radius,     p2.radius,        1.0f / 100000 );
+    delete enc1;
+  }
 }
