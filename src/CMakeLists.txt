@@ -108,6 +108,7 @@ set(encoders_files
     nupic/encoders/ScalarEncoder.hpp
     nupic/encoders/CategoryEncoder.hpp
     nupic/encoders/RandomDistributedScalarEncoder.hpp
+    nupic/encoders/RandomDistributedScalarEncoder.cpp
 )
     
 set(engine_files
