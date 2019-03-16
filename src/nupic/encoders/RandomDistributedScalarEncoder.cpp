@@ -20,6 +20,7 @@
  */
 
 #include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
+#include <nupic/utils/MurmurHash3.h>
 
 namespace nupic {
 namespace encoders {
@@ -86,14 +87,17 @@ void RandomDistributedScalarEncoder::encode(Real64 input, SDR &output)
   SDR_dense_t &data = output.getDense();
 
   // Use the given seed to make a better, more randomized seed.
-  // hash<std::string> h; // TODO USE MURMUR3 HASH
+  UInt32 apple_seed;
+  MurmurHash3_x86_32(&args_.seed, sizeof(args_.seed), 0, &apple_seed);
 
-  UInt apple_seed = args_.seed ; // TODO HASH!
+  const UInt index = (UInt) (input / args_.resolution);
+  for(auto offset = 0u; offset < args_.activeBits; ++offset)
+  {
+    UInt hash_buffer = index + offset;
+    UInt32 bucket;
+    MurmurHash3_x86_32(&hash_buffer, sizeof(hash_buffer), apple_seed, &bucket);
+    bucket = bucket % size;
 
-  const UInt index = apple_seed + (UInt) (input / args_.resolution);
-  for(auto offset = 0u; offset < args_.activeBits; ++offset) {
-    UInt bucket = ( index + offset ) % size; // TODO HASH!
-    // UInt bucket = h( index + offset ) % size;
     // Don't worry about hash collisions.  Instead measure the critical
     // properties of the encoder in unit tests and quantify how significant
     // the hash collisions are.  This encoder can not fix the collisions
