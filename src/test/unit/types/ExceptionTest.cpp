@@ -27,6 +27,8 @@
 #include <gtest/gtest.h>
 #include <nupic/types/Exception.hpp>
 
+namespace testing {
+    
 using namespace nupic;
 
 TEST(ExceptionTest, Basic) {
@@ -47,4 +49,5 @@ TEST(ExceptionTest, Basic) {
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
     ASSERT_EQ(std::string(e.getStackTrace()), std::string("TB"));
   }
+}
 }

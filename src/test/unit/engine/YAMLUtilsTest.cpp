@@ -29,6 +29,8 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 
+namespace testing { 
+    
 using namespace nupic;
 
 TEST(YAMLUtilsTest, toValueTestInt) {
@@ -203,4 +205,5 @@ TEST(YAMLUtilsTest, ParameterSpec) {
         << "assertion std::string(e.getMessage()).find(s) == 0 failed at "
         << __FILE__ << ":" << __LINE__;
   }
+}
 }

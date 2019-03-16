@@ -27,6 +27,8 @@
 #include <gtest/gtest.h>
 #include <nupic/os/Env.hpp>
 
+namespace testing { 
+    
 using namespace nupic;
 
 TEST(EnvTest, Basic) {
@@ -75,4 +77,5 @@ TEST(EnvTest, Basic) {
 
   // delete a value that is not set
   Env::unset(name);
+}
 }

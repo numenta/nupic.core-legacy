@@ -37,7 +37,7 @@ bool Random::operator==(const Random &o) const {
 	 gen == o.gen;
 }
 
-bool static_gen_seeded = false;
+bool static_gen_seeded = false;  //TODO avoid the static variables?
 std::mt19937 static_gen;
 
 Random::Random(UInt64 seed) {

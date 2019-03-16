@@ -20,6 +20,8 @@
 #include <nupic/types/Sdr.hpp>
 #include <nupic/types/SdrProxy.hpp>
 
+namespace testing {
+    
 using namespace std;
 using namespace nupic;
 
@@ -192,4 +194,4 @@ TEST(SdrReshapeTest, TestSaveLoad) {
     ASSERT_TRUE( flat    == flat_2 );
     ASSERT_TRUE( index   == index_2 );
 }
-
+}

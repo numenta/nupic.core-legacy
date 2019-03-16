@@ -28,6 +28,8 @@
 #include <nupic/algorithms/Segment.hpp>
 #include <set>
 
+namespace testing {
+    
 using namespace nupic::algorithms::Cells4;
 using namespace std;
 
@@ -157,4 +159,6 @@ TEST(SegmentTest, testEqualsOperator) {
   setUpSegment(segment2, inactiveSegmentIndices, activeSegmentIndices,
                activeSynapseIndices, inactiveSynapseIndices);
   ASSERT_TRUE(segment1 == segment2);
+}
+
 }

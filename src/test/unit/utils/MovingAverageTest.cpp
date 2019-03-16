@@ -26,6 +26,8 @@
 #include "nupic/types/Types.hpp"
 #include "nupic/utils/MovingAverage.hpp"
 
+namespace testing { 
+    
 using nupic::Real32;
 using nupic::util::MovingAverage;
 
@@ -87,4 +89,5 @@ TEST(MovingAverage, EqualsOperator) {
 
   MovingAverage maN{10};
   ASSERT_NE(ma, maN);
+}
 }

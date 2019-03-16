@@ -29,13 +29,14 @@
 #include <iostream>
 #include <nupic/algorithms/Connections.hpp>
 
+namespace testing {
+    
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
 #define EPSILON 0.0000001
 
-namespace {
 
 void setupSampleConnections(Connections &connections) {
   // Cell with 1 segment.

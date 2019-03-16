@@ -28,6 +28,8 @@
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/types/Types.hpp"
 
+namespace testing {
+    
 using namespace nupic::algorithms::anomaly;
 using namespace nupic;
 
@@ -148,4 +150,4 @@ TEST(AnomalyLikelihood, SelectModeLikelihood)
 
 };
 
-
+}

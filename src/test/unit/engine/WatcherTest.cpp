@@ -39,6 +39,8 @@
 
 #include <gtest/gtest.h>
 
+namespace testing {
+    
 static bool verbose = false;
 #define VERBOSE                                                                \
   if (verbose)                                                                 \
@@ -258,4 +260,5 @@ TEST(WatcherTest, FileTest2) {
   inStream2.close();
 
   Path::remove("TestOutputDir/testfile2");
+}
 }
