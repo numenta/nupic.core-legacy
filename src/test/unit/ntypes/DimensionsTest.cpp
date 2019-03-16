@@ -27,6 +27,8 @@
 #include <gtest/gtest.h>
 #include <nupic/ntypes/Dimensions.hpp>
 
+namespace testing {
+    
 using namespace nupic;
 
 class DimensionsTest : public ::testing::Test {
@@ -187,4 +189,6 @@ TEST_F(DimensionsTest, AlternateConstructor) {
   ASSERT_EQ((unsigned int)5, d.getDimension(1));
   ASSERT_ANY_THROW(d.getDimension(2));
   ASSERT_EQ((unsigned int)2, d.getDimensionCount());
+}
+
 }

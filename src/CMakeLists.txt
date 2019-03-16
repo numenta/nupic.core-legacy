@@ -76,7 +76,6 @@ set(algorithm_files
     nupic/algorithms/Anomaly.hpp
     nupic/algorithms/AnomalyLikelihood.cpp
     nupic/algorithms/AnomalyLikelihood.hpp
-    nupic/algorithms/ArrayBuffer.hpp
     nupic/algorithms/BacktrackingTM.cpp
     nupic/algorithms/BacktrackingTM.hpp
     nupic/algorithms/Cell.cpp

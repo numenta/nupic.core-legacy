@@ -27,6 +27,8 @@
 #include <gtest/gtest.h>
 #include <nupic/ntypes/Value.hpp>
 
+namespace testing { 
+    
 using namespace nupic;
 
 TEST(ValueTest, Scalar) {
@@ -127,4 +129,5 @@ TEST(ValueTest, ValueMap) {
   Value v = vm.getValue("array");
   ASSERT_EQ(Value::arrayCategory, v.getCategory());
   ASSERT_TRUE(v.getArray() == a);
+}
 }
