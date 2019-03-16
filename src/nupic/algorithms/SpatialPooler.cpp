@@ -39,14 +39,6 @@ using nupic::algorithms::spatial_pooler::SpatialPooler;
 using namespace nupic::math::topology;
 using nupic::utils::VectorHelpers;
 
-// Round f to 5 digits of precision. This is used to set
-// permanence values and help avoid small amounts of drift between
-// platforms/implementations
-static Real round5_(const Real f)
-{
-  return ((Real) ((Int) (f * 100000.0f))) / 100000.0f;
-}
-
 class CoordinateConverterND {
 
 public:
@@ -575,16 +567,12 @@ vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
 
 
 Real SpatialPooler::initPermConnected_() {
-  Real p =
-      synPermConnected_ + (Real)((connections::maxPermanence - synPermConnected_) * rng_.getReal64());
-
-  return round5_(p);
+  return synPermConnected_ + (Real)((connections::maxPermanence - synPermConnected_) * rng_.getReal64());
 }
 
 
 Real SpatialPooler::initPermNonConnected_() {
-  Real p = (Real)(synPermConnected_ * rng_.getReal64());
-  return round5_(p);
+  return (Real)(synPermConnected_ * rng_.getReal64());
 }
 
 
