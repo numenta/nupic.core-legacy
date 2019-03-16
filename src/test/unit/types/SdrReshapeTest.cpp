@@ -118,7 +118,7 @@ TEST(SdrReshapeTest, TestReshapeGetters) {
     A.setDense( SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
     ASSERT_EQ( C->getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
 
-    // Test getting flat sparse
+    // Test getting coordinates
     A.setCoordinates( SDR_coordinate_t({ {0, 1}, {0, 1} }));
     ASSERT_EQ( C->getCoordinates(), SDR_coordinate_t({ {0, 2}, {0, 0} }) );
 
@@ -126,12 +126,12 @@ TEST(SdrReshapeTest, TestReshapeGetters) {
     A.setSparse( SDR_sparse_t({ 2, 3 }));
     ASSERT_EQ( C->getSparse(), SDR_sparse_t({ 2, 3 }) );
 
-    // Test getting sparse, a second time.
+    // Test getting coordinates, a second time.
     A.setSparse( SDR_sparse_t({ 2, 3 }));
     ASSERT_EQ( C->getCoordinates(), SDR_coordinate_t({ {1, 1}, {0, 1} }) );
 
-    // Test getting sparse, when the parent SDR already has sparse computed and
-    // the dimensions are the same.
+    // Test getting coordinates, when the parent SDR already has coordinates
+    // computed and the dimensions are the same.
     A.zero();
     Reshape D( A );
     SDR *E = &D;
@@ -156,16 +156,16 @@ TEST(SdrReshapeTest, TestSaveLoad) {
     Serializable &ser = d;
     ser.save( outfile );
 
-    // Test flat data
-    SDR flat({ 3, 3 });
-    Reshape f( flat );
-    flat.setSparse(SDR_sparse_t({ 1, 4, 8 }));
+    // Test sparse data
+    SDR sparse({ 3, 3 });
+    Reshape f( sparse );
+    sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
     f.save( outfile );
 
-    // Test index data
-    SDR index({ 3, 3 });
-    Reshape x( index );
-    index.setCoordinates(SDR_coordinate_t({
+    // Test coordinate data
+    SDR coord({ 3, 3 });
+    Reshape x( coord );
+    coord.setCoordinates(SDR_coordinate_t({
             { 0, 1, 2 },
             { 1, 1, 2 }}));
     x.save( outfile );
@@ -178,10 +178,10 @@ TEST(SdrReshapeTest, TestSaveLoad) {
     zero_2.load( infile );
     SDR dense_2;
     dense_2.load( infile );
-    SDR flat_2;
-    flat_2.load( infile );
-    SDR index_2;
-    index_2.load( infile );
+    SDR sparse_2;
+    sparse_2.load( infile );
+    SDR coord_2;
+    coord_2.load( infile );
 
     infile.close();
     int ret = ::remove( filename );
@@ -190,7 +190,7 @@ TEST(SdrReshapeTest, TestSaveLoad) {
     // Check that all of the data is OK
     ASSERT_TRUE( zero    == zero_2 );
     ASSERT_TRUE( dense   == dense_2 );
-    ASSERT_TRUE( flat    == flat_2 );
-    ASSERT_TRUE( index   == index_2 );
+    ASSERT_TRUE( sparse  == sparse_2 );
+    ASSERT_TRUE( coord   == coord_2 );
 }
 

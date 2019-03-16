@@ -161,10 +161,8 @@ TEST(SdrMetrics, TestSparsityLongTerm) {
 }
 
 TEST(SdrMetrics, TestSparsityPrint) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     SDR A({ 2000u });
     Reshape B( A );
     Sparsity S( B, 10u );
@@ -321,12 +319,10 @@ TEST(SdrMetrics, TestAF_Entropy) {
 }
 
 TEST(SdrMetrics, TestAF_Print) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     const auto period  =  100u;
     const auto runtime = 1000u;
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
     SDR A({ 2000u });
     ActivationFrequency F( A, period );
 
@@ -457,10 +453,8 @@ TEST(SdrMetrics, TestOverlap_LongTerm) {
 }
 
 TEST(SdrMetrics, TestOverlap_Print) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     SDR A({ 2000u });
     Reshape Px( A );
     Overlap V( Px, 100u );
@@ -521,10 +515,8 @@ TEST(SdrMetrics, TestAllMetrics_Construct) {
  * Metrics prints OK.
  */
 TEST(SdrMetrics, TestAllMetrics_Print) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     SDR A({ 4097u });
     Reshape Px( A );
     Metrics M( Px, 100u );

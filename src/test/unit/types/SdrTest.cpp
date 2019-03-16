@@ -637,17 +637,17 @@ TEST(SdrTest, TestSaveLoad) {
     dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
     dense.save( outfile );
 
-    // Test flat data
-    SDR flat({ 3, 3 });
-    flat.setSparse(SDR_sparse_t({ 1, 4, 8 }));
-    flat.save( outfile );
+    // Test sparse data
+    SDR sparse({ 3, 3 });
+    sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
+    sparse.save( outfile );
 
-    // Test index data
-    SDR index({ 3, 3 });
-    index.setCoordinates(SDR_coordinate_t({
+    // Test coordinate data
+    SDR coord({ 3, 3 });
+    coord.setCoordinates(SDR_coordinate_t({
             { 0, 1, 2 },
             { 1, 1, 2 }}));
-    index.save( outfile );
+    coord.save( outfile );
 
     // Now load all of the data back into SDRs.
     outfile.close();
@@ -664,10 +664,10 @@ TEST(SdrTest, TestSaveLoad) {
     zero_2.load( infile );
     SDR dense_2;
     dense_2.load( infile );
-    SDR flat_2;
-    flat_2.load( infile );
-    SDR index_2;
-    index_2.load( infile );
+    SDR sparse_2;
+    sparse_2.load( infile );
+    SDR coord_2;
+    coord_2.load( infile );
 
     infile.close();
     int ret = ::remove( filename );
@@ -676,8 +676,8 @@ TEST(SdrTest, TestSaveLoad) {
     // Check that all of the data is OK
     ASSERT_TRUE( zero    == zero_2 );
     ASSERT_TRUE( dense   == dense_2 );
-    ASSERT_TRUE( flat    == flat_2 );
-    ASSERT_TRUE( index   == index_2 );
+    ASSERT_TRUE( sparse  == sparse_2 );
+    ASSERT_TRUE( coord   == coord_2 );
 }
 
 TEST(SdrTest, TestCallbacks) {
