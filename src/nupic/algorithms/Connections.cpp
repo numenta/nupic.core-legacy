@@ -266,14 +266,11 @@ void Connections::updateSynapsePermanence(Synapse synapse,
     NTA_ASSERT(permanence >= minPermanence);
  
   auto &synData = synapses_[synapse];
-  
-  const bool before = synData.permanence >= connectedThreshold_;
-  const bool after  = permanence         >= connectedThreshold_;
+  bool before = synData.permanence >= connectedThreshold_;
+  bool after  = permanence         >= connectedThreshold_;
   synData.permanence = permanence;
 
-  if( before == after ) { //no change
-      return;
-  }
+  if( before != after ) {
     const auto &presyn    = synData.presynapticCell;
     auto &potentialPresyn = potentialSynapsesForPresynapticCell_[presyn];
     auto &potentialPreseg = potentialSegmentsForPresynapticCell_[presyn];
@@ -306,9 +303,10 @@ void Connections::updateSynapsePermanence(Synapse synapse,
       potentialPreseg.push_back( segment );
     }
 
-    for (auto h : eventHandlers_) { //TODO handle callbacks in performance-critical method only in Debug?
+    for (auto h : eventHandlers_) {
       h.second->onUpdateSynapsePermanence(synapse, permanence);
     }
+  }
 }
 
 const vector<Segment> &Connections::segmentsForCell(CellIdx cell) const {
