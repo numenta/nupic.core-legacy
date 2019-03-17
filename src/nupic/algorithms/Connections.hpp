@@ -239,6 +239,8 @@ public:
    *
    * @param synapse    Synapse to update.
    * @param permanence New permanence.
+   * Caller must ensure the `permanence` value is within bounds
+   * [minPermanence, maxPermanence]
    */
   void updateSynapsePermanence(Synapse synapse, Permanence permanence);
 
