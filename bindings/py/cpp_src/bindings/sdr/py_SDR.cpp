@@ -24,7 +24,7 @@
 #include <pybind11/stl.h>
 
 #include <nupic/types/Sdr.hpp>
-#include <nupic/types/SdrProxy.hpp>
+#include <nupic/types/SdrTools.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
 
 namespace py = pybind11;

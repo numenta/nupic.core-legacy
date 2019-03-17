@@ -18,7 +18,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include <nupic/types/Sdr.hpp>
-#include <nupic/types/SdrProxy.hpp>
+#include <nupic/types/SdrTools.hpp>
 
 namespace testing {
     
