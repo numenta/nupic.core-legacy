@@ -25,6 +25,7 @@
 namespace nupic {
 namespace encoders {
 
+
 RandomDistributedScalarEncoder::RandomDistributedScalarEncoder(
                                               const RDSE_Parameters &parameters)
   { initialize( parameters ); }
@@ -87,15 +88,13 @@ void RandomDistributedScalarEncoder::encode(Real64 input, SDR &output)
   SDR_dense_t &data = output.getDense();
 
   // Use the given seed to make a better, more randomized seed.
-  UInt32 apple_seed;
-  MurmurHash3_x86_32(&args_.seed, sizeof(args_.seed), 0, &apple_seed);
+  UInt32 apple_seed = MurmurHash3_x86_32(&args_.seed, sizeof(args_.seed), 0);
 
   const UInt index = (UInt) (input / args_.resolution);
   for(auto offset = 0u; offset < args_.activeBits; ++offset)
   {
     UInt hash_buffer = index + offset;
-    UInt32 bucket;
-    MurmurHash3_x86_32(&hash_buffer, sizeof(hash_buffer), apple_seed, &bucket);
+    UInt32 bucket = MurmurHash3_x86_32(&hash_buffer, sizeof(hash_buffer), apple_seed);
     bucket = bucket % size;
 
     // Don't worry about hash collisions.  Instead measure the critical

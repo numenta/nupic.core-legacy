@@ -5,33 +5,11 @@
 #ifndef _MURMURHASH3_H_
 #define _MURMURHASH3_H_
 
-//-----------------------------------------------------------------------------
-// Platform-specific functions and macros
+#include <nupic/types/Types.hpp>
 
-// Microsoft Visual Studio
+namespace nupic {
 
-#if defined(_MSC_VER) && (_MSC_VER < 1600)
+  UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed );
 
-typedef unsigned char uint8_t;
-typedef unsigned int uint32_t;
-typedef unsigned __int64 uint64_t;
-
-// Other compilers
-
-#else	// defined(_MSC_VER)
-
-#include <stdint.h>
-
-#endif // !defined(_MSC_VER)
-
-//-----------------------------------------------------------------------------
-
-void MurmurHash3_x86_32  ( const void * key, int len, uint32_t seed, void * out );
-
-void MurmurHash3_x86_128 ( const void * key, int len, uint32_t seed, void * out );
-
-void MurmurHash3_x64_128 ( const void * key, int len, uint32_t seed, void * out );
-
-//-----------------------------------------------------------------------------
-
+}      // End namespace nupic
 #endif // _MURMURHASH3_H_
