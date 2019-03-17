@@ -598,7 +598,7 @@ vector<Real> SpatialPooler::initPermanence_(const vector<UInt> &potential, //TOD
 void SpatialPooler::updateInhibitionRadius_() {
   if (globalInhibition_) {
     inhibitionRadius_ =
-        *max_element(columnDimensions_.begin(), columnDimensions_.end());
+        *max_element(columnDimensions_.cbegin(), columnDimensions_.cend());
     return;
   }
 
