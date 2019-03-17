@@ -335,7 +335,7 @@ public:
    *
    * @retval A vector length
    */
-  UInt32 segmentFlatListLength() const;
+  Segment segmentFlatListLength() const;
 
   /**
    * Compare two segments. Returns true if a < b.
@@ -380,13 +380,13 @@ public:
    * Minimum permanence for a synapse to be "connected".
    */
   void
-  computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
-                  std::vector<UInt32> &numActivePotentialSynapsesForSegment,
-                  const std::vector<CellIdx> &activePresynapticCells,
-                  Permanence connectedPermanence) const;
+  computeActivity(std::vector<Segment> &numActiveConnectedSynapsesForSegment,
+                  std::vector<Segment> &numActivePotentialSynapsesForSegment,
+                  const std::vector< CellIdx> &activePresynapticCells,
+                  const Permanence connectedPermanence) const;
 
   void
-  computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
+  computeActivity(std::vector<Segment> &numActiveConnectedSynapsesForSegment,
                   const std::vector<CellIdx> &activePresynapticCells) const;
 
   /**
@@ -409,10 +409,10 @@ public:
    * Minimum permanence for a synapse to be "connected".
    */
   void
-  computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
-                  std::vector<UInt32> &numActivePotentialSynapsesForSegment,
-                  CellIdx activePresynapticCell,
-                  Permanence connectedPermanence) const;
+  computeActivity(std::vector<Segment> &numActiveConnectedSynapsesForSegment,
+                  std::vector<Segment> &numActivePotentialSynapsesForSegment,
+                  const CellIdx activePresynapticCell,
+                  const Permanence connectedPermanence) const;
 
   /**
    * The primary method in charge of learning.   Adapts the permanence values of
@@ -481,28 +481,28 @@ public:
    *
    * @retval Number of segments.
    */
-  UInt numSegments() const;
+  Segment numSegments() const;
 
   /**
    * Gets the number of segments on a cell.
    *
    * @retval Number of segments.
    */
-  UInt numSegments(CellIdx cell) const;
+  SegmentIdx numSegments(CellIdx cell) const;
 
   /**
    * Gets the number of synapses.
    *
    * @retval Number of synapses.
    */
-  UInt numSynapses() const;
+  Synapse numSynapses() const;
 
   /**
    * Gets the number of synapses on a segment.
    *
    * @retval Number of synapses.
    */
-  UInt numSynapses(Segment segment) const;
+  SynapseIdx numSynapses(Segment segment) const;
 
   /**
    * Comparison operator.
@@ -578,7 +578,7 @@ private:
   std::vector<Segment>     destroyedSegments_;
   std::vector<SynapseData> synapses_;
   std::vector<Synapse>     destroyedSynapses_;
-  Permanence               connectedThreshold_;
+  Permanence               connectedThreshold_; //TODO make const
 
   // Extra bookkeeping for faster computing of segment activity.
   std::map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
@@ -586,7 +586,7 @@ private:
   std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
-  std::vector<UInt64> segmentOrdinals_;
+  std::vector<UInt64> segmentOrdinals_; //TODO which typedef should this be, Segment?
   std::vector<UInt64> synapseOrdinals_;
   UInt64 nextSegmentOrdinal_;
   UInt64 nextSynapseOrdinal_;

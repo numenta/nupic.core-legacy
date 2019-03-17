@@ -165,7 +165,7 @@ bool Connections::synapseExists_(Synapse synapse) const {
  * last synapse in the list over this synapse.
  */
 void Connections::removeSynapseFromPresynapticMap_(
-    const UInt index,
+    const Synapse index,
     vector<Synapse> &preSynapses,
     vector<Segment> &preSegments)
 {
@@ -383,10 +383,11 @@ Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
 }
 
 void Connections::computeActivity(
-    vector<UInt32> &numActiveConnectedSynapsesForSegment,
-    vector<UInt32> &numActivePotentialSynapsesForSegment,
-    CellIdx activePresynapticCell, Permanence connectedPermanence) const {
-  std::vector<UInt32> activePresynapticCells({activePresynapticCell});
+    vector<Segment> &numActiveConnectedSynapsesForSegment,
+    vector<Segment> &numActivePotentialSynapsesForSegment,
+    const CellIdx activePresynapticCell, 
+    const Permanence connectedPermanence) const {
+  std::vector<CellIdx> activePresynapticCells({activePresynapticCell});
   computeActivity(
     numActiveConnectedSynapsesForSegment,
     numActivePotentialSynapsesForSegment,
@@ -395,15 +396,15 @@ void Connections::computeActivity(
 
 
 void Connections::computeActivity(
-    vector<UInt32> &numActiveConnectedSynapsesForSegment,
+    vector<Segment> &numActiveConnectedSynapsesForSegment,
     const vector<CellIdx> &activePresynapticCells) const
 {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
 
   // Iterate through all connected synapses.
-  for (CellIdx cell : activePresynapticCells) {
+  for (const CellIdx& cell : activePresynapticCells) {
     if (connectedSegmentsForPresynapticCell_.count(cell)) {
-      for( Segment segment : connectedSegmentsForPresynapticCell_.at(cell)) {
+      for(const Segment& segment : connectedSegmentsForPresynapticCell_.at(cell)) {
         ++numActiveConnectedSynapsesForSegment[segment];
       }
     }
@@ -411,8 +412,8 @@ void Connections::computeActivity(
 }
 
 void Connections::computeActivity(
-    vector<UInt32> &numActiveConnectedSynapsesForSegment,
-    vector<UInt32> &numActivePotentialSynapsesForSegment,
+    vector<Segment> &numActiveConnectedSynapsesForSegment,
+    vector<Segment> &numActivePotentialSynapsesForSegment,
     const vector<CellIdx> &activePresynapticCells,
     Permanence connectedPermanence) const {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
@@ -428,9 +429,9 @@ void Connections::computeActivity(
   std::copy( numActiveConnectedSynapsesForSegment.begin(),
              numActiveConnectedSynapsesForSegment.end(),
              numActivePotentialSynapsesForSegment.begin());
-  for (CellIdx cell : activePresynapticCells) {
+  for (const CellIdx& cell : activePresynapticCells) {
     if (potentialSegmentsForPresynapticCell_.count(cell)) {
-      for( Segment segment : potentialSegmentsForPresynapticCell_.at(cell)) {
+      for(const Segment& segment : potentialSegmentsForPresynapticCell_.at(cell)) {
         ++numActivePotentialSynapsesForSegment[segment];
       }
     }
@@ -600,7 +601,7 @@ void Connections::load(std::istream &inStream) {
         inStream >> destroyedSegment;
       }
 
-      Segment segment = {(UInt32)-1};
+      Segment segment = {std::numeric_limits<Segment>::max()-1};
       if (!destroyedSegment)
         segment = createSegment( cell );
 
@@ -634,20 +635,20 @@ void Connections::load(std::istream &inStream) {
 
 CellIdx Connections::numCells() const { return (CellIdx)cells_.size(); }
 
-UInt Connections::numSegments() const {
-  return (UInt)(segments_.size() - destroyedSegments_.size());
+Segment Connections::numSegments() const {
+  return (Segment)(segments_.size() - destroyedSegments_.size());
 }
 
-UInt Connections::numSegments(CellIdx cell) const {
-  return (UInt)cells_[cell].segments.size();
+SegmentIdx Connections::numSegments(CellIdx cell) const {
+  return (SegmentIdx)cells_[cell].segments.size();
 }
 
-UInt Connections::numSynapses() const {
-  return (UInt)(synapses_.size() - destroyedSynapses_.size());
+Synapse Connections::numSynapses() const {
+  return (Synapse)(synapses_.size() - destroyedSynapses_.size());
 }
 
-UInt Connections::numSynapses(Segment segment) const {
-  return (UInt)segments_[segment].synapses.size();
+SynapseIdx Connections::numSynapses(Segment segment) const {
+  return (SynapseIdx)segments_[segment].synapses.size();
 }
 
 bool Connections::operator==(const Connections &other) const {
