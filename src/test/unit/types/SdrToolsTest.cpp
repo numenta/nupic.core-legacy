@@ -195,4 +195,78 @@ TEST(SdrReshapeTest, TestSaveLoad) {
     ASSERT_TRUE( sparse  == sparse_2 );
     ASSERT_TRUE( coord   == coord_2 );
 }
+
+/******************************************************************************/
+
+TEST(SdrIntersectionTest, TestIntersectionExampleUsage) {
+    // Setup 2 SDRs to hold the inputs.
+    SDR A({ 10u });
+    SDR B({ 10u });
+    A.setSparse(SDR_sparse_t(      {2, 3, 4, 5}));
+    B.setSparse(SDR_sparse_t({0, 1, 2, 3}));
+
+    // Calculate the logical intersection
+    Intersection X(A, B);
+    ASSERT_EQ(X.getSparse(), SDR_sparse_t({2, 3}));
+
+    // Assignments to the input SDRs are propigated to the Intersection
+    B.zero();
+    ASSERT_EQ(X.getSparsity(), 0.0f);
+}
+
+TEST(SdrIntersectionTest, TestIntersection) {
+    SDR A({1000});
+    SDR B({1000});
+    A.randomize(.5);
+    B.randomize(.5);
+
+    // Test basic functionality
+    Intersection X(A, B);
+    SDR *Xp = &X;
+    Xp->getDense();
+    ASSERT_GT( Xp->getSparsity(), .25 / 2. );
+    ASSERT_LT( Xp->getSparsity(), .25 * 2. );
+    A.zero();
+    ASSERT_EQ( Xp->getSum(), 0u );
+
+    // Test deleting input SDR before Intersection
+    SDR *C = new SDR({A.size});
+    SDR *Y = new Intersection(A, B, *C);
+    delete C;
+    delete Y;
+
+    // Test subclass attribute access
+    SDR C2({A.size});
+    SDR D({A.size});
+    Intersection Z(A, B, C2, D);
+    ASSERT_EQ(Z.size, A.size);                            // Access SDR
+    ASSERT_EQ(Z.inputs, vector<SDR*>({&A, &B, &C2, &D})); // Access Intersection
+}
+
+/******************************************************************************/
+
+TEST(SdrConcatTest, TestConcatenationExampleUsage) {
+    SDR           A({ 100 });
+    SDR           B({ 100 });
+    Concatenation C( A, B );
+    ASSERT_EQ(C.dimensions, vector<UInt>({ 200 }));
+
+    SDR           D({ 640, 480, 3 });
+    SDR           E({ 640, 480, 7 });
+    Concatenation F( D, E, 2 );
+    ASSERT_EQ(F.dimensions, vector<UInt>({ 640, 480, 10 }));
+}
+
+TEST(SdrConcatTest, TestConcatenation) {
+    SDR A({10000});
+    SDR B({10000});
+    Concatenation C(A, B);
+    Concatenation D(A, B, 0u);
+    Concatenation E({&A, &B});
+    Concatenation F({&A, &B}, 0u);
+    A.randomize( 0.25f );
+    B.randomize( 0.75f );
+    ASSERT_LT( C.getSparsity(), 0.55f );
+    ASSERT_GT( C.getSparsity(), 0.45f );
+}
 }
