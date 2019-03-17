@@ -47,6 +47,8 @@ using nupic::algorithms::connections::Permanence;
 using nupic::algorithms::connections::Segment;
 using nupic::algorithms::connections::CellIdx;
 using nupic::algorithms::connections::Synapse;
+using nupic::algorithms::connections::SynapseIdx;
+using nupic::algorithms::connections::SegmentIdx;
 
 /**
  * Temporal Memory implementation in C++.
@@ -527,11 +529,11 @@ protected:
   bool segmentsValid_;
   vector<Segment> activeSegments_;
   vector<Segment> matchingSegments_;
-  vector<UInt32> numActiveConnectedSynapsesForSegment_;
-  vector<UInt32> numActivePotentialSynapsesForSegment_;
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  UInt maxSegmentsPerCell_;
-  UInt maxSynapsesPerSegment_;
+  SegmentIdx maxSegmentsPerCell_;
+  SynapseIdx maxSynapsesPerSegment_;
   UInt64 iteration_;
   vector<UInt64> lastUsedIterationForSegment_;
 

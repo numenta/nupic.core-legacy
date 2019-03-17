@@ -41,6 +41,8 @@ namespace algorithms {
 namespace spatial_pooler {
 
 using namespace std;
+using nupic::algorithms::connections::SynapseIdx;
+
 static const int DISABLED = -1; //value denoting a feature is disabled
 
 /**
@@ -753,7 +755,7 @@ public:
   /**
   Returns the overlap score for each column.
    */
-  const vector<UInt> &getOverlaps() const;
+  const std::vector<SynapseIdx> &getOverlaps() const;
 
   /**
   Returns the boosted overlap score for each column.
@@ -766,7 +768,7 @@ public:
   // NOT part of the public API
 
 
-  void boostOverlaps_(const vector<UInt> &overlaps, vector<Real> &boostedOverlaps) const;
+  void boostOverlaps_(const vector<SynapseIdx> &overlaps, vector<Real> &boostedOverlaps) const;
 
   /**
     Maps a column to its respective input index, keeping to the topology of
@@ -888,8 +890,8 @@ public:
      a "connected state" (connected synapses) that are connected to
      input bits which are turned on.
   */
-  void calculateOverlap_(const SDR &input, vector<UInt> &overlap) const;
-  void calculateOverlapPct_(const vector<UInt> &overlaps, vector<Real> &overlapPct) const;
+  void calculateOverlap_(const SDR &input, vector<SynapseIdx> &overlap) const;
+  void calculateOverlapPct_(const vector<SynapseIdx> &overlaps, vector<Real> &overlapPct) const;
 
   /**
       Performs inhibition. This method calculates the necessary values needed to
@@ -1086,7 +1088,7 @@ public:
   @param activeArray  An int array containing the indices of the active columns,
                   the sprase set of columns which survived inhibition
   */
-  void updateDutyCycles_(const vector<UInt> &overlaps, SDR &active);
+  void updateDutyCycles_(const vector<SynapseIdx> &overlaps, SDR &active);
 
   /**
     Update the boost factors for all columns. The boost factors are used to
@@ -1205,7 +1207,7 @@ protected:
    */
   connections::Connections connections_;
 
-  vector<UInt> overlaps_;
+  vector<SynapseIdx> overlaps_;
   vector<Real> overlapsPct_;
   vector<Real> boostedOverlaps_;
   vector<Real> tieBreaker_;

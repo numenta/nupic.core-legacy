@@ -359,9 +359,9 @@ const SynapseData &Connections::dataForSynapse(Synapse synapse) const {
   return synapses_[synapse];
 }
 
-UInt32 Connections::segmentFlatListLength() const { return (UInt32)segments_.size(); }
+Segment Connections::segmentFlatListLength() const { return (Segment)segments_.size(); }
 
-bool Connections::compareSegments(Segment a, Segment b) const {
+bool Connections::compareSegments(const Segment a, const Segment b) const {
   const SegmentData &aData = segments_[a];
   const SegmentData &bData = segments_[b];
   if (aData.cell < bData.cell) {
@@ -385,8 +385,8 @@ Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
 }
 
 void Connections::computeActivity(
-    vector<Segment> &numActiveConnectedSynapsesForSegment,
-    vector<Segment> &numActivePotentialSynapsesForSegment,
+    vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+    vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
     const CellIdx activePresynapticCell, 
     const Permanence connectedPermanence) const {
   std::vector<CellIdx> activePresynapticCells({activePresynapticCell});
@@ -398,15 +398,15 @@ void Connections::computeActivity(
 
 
 void Connections::computeActivity(
-    vector<Segment> &numActiveConnectedSynapsesForSegment,
+    vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
     const vector<CellIdx> &activePresynapticCells) const
 {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
 
   // Iterate through all connected synapses.
-  for (const CellIdx& cell : activePresynapticCells) {
+  for (const auto& cell : activePresynapticCells) {
     if (connectedSegmentsForPresynapticCell_.count(cell)) {
-      for(const Segment& segment : connectedSegmentsForPresynapticCell_.at(cell)) {
+      for(const auto& segment : connectedSegmentsForPresynapticCell_.at(cell)) {
         ++numActiveConnectedSynapsesForSegment[segment];
       }
     }
@@ -414,8 +414,8 @@ void Connections::computeActivity(
 }
 
 void Connections::computeActivity(
-    vector<Segment> &numActiveConnectedSynapsesForSegment,
-    vector<Segment> &numActivePotentialSynapsesForSegment,
+    vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+    vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
     const vector<CellIdx> &activePresynapticCells,
     Permanence connectedPermanence) const {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
@@ -431,9 +431,9 @@ void Connections::computeActivity(
   std::copy( numActiveConnectedSynapsesForSegment.begin(),
              numActiveConnectedSynapsesForSegment.end(),
              numActivePotentialSynapsesForSegment.begin());
-  for (const CellIdx& cell : activePresynapticCells) {
+  for (const auto& cell : activePresynapticCells) {
     if (potentialSegmentsForPresynapticCell_.count(cell)) {
-      for(const Segment& segment : potentialSegmentsForPresynapticCell_.at(cell)) {
+      for(const auto& segment : potentialSegmentsForPresynapticCell_.at(cell)) {
         ++numActivePotentialSynapsesForSegment[segment];
       }
     }

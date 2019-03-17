@@ -77,9 +77,9 @@ void setupSampleConnections(Connections &connections) {
 void computeSampleActivity(Connections &connections) {
   vector<UInt32> input = {50, 52, 53, 80, 81, 82, 150, 151};
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment, input, 0.5f);
@@ -159,13 +159,13 @@ TEST(ConnectionsTest, testDestroySegment) {
   ASSERT_EQ(3ul, connections.numSegments());
   ASSERT_EQ(0ul, connections.numSynapses());
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
-                              {80, 81, 82}, 0.5f);
+                              vector<UInt>{80, 81, 82}, 0.5f);
 
   ASSERT_EQ(0ul, numActiveConnectedSynapsesForSegment[segment2]);
   ASSERT_EQ(0ul, numActivePotentialSynapsesForSegment[segment2]);
@@ -190,13 +190,13 @@ TEST(ConnectionsTest, testDestroySynapse) {
   ASSERT_EQ(2ul, connections.numSynapses());
   ASSERT_EQ(2ul, connections.synapsesForSegment(segment).size());
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
-                              {80, 81, 82}, 0.5f);
+                              vector<UInt>{80, 81, 82}, 0.5f);
 
   ASSERT_EQ(1ul, numActiveConnectedSynapsesForSegment[segment]);
   ASSERT_EQ(2ul, numActivePotentialSynapsesForSegment[segment]);
@@ -348,9 +348,9 @@ TEST(ConnectionsTest, testComputeActivity) {
 
   vector<UInt32> input = {50, 52, 53, 80, 81, 82, 150, 151};
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment, input, 0.5f);

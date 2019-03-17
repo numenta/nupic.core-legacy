@@ -41,7 +41,7 @@ namespace nupic {
 namespace algorithms {
 namespace connections {
 
-typedef UInt32 CellIdx;
+typedef UInt32 CellIdx;  //TODO instead of typedefs, use templates for proper type-checking
 typedef UInt16 SegmentIdx; /** Index of segment in cell. */
 typedef UInt16 SynapseIdx; /** Index of synapse in segment. */
 typedef UInt32 Segment;    /** Index of segment's data. */
@@ -378,13 +378,13 @@ public:
    * Minimum permanence for a synapse to be "connected".
    */
   void
-  computeActivity(std::vector<Segment> &numActiveConnectedSynapsesForSegment,
-                  std::vector<Segment> &numActivePotentialSynapsesForSegment,
+  computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+                  std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
                   const std::vector< CellIdx> &activePresynapticCells,
                   const Permanence connectedPermanence) const;
 
   void
-  computeActivity(std::vector<Segment> &numActiveConnectedSynapsesForSegment,
+  computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
                   const std::vector<CellIdx> &activePresynapticCells) const;
 
   /**
@@ -407,8 +407,8 @@ public:
    * Minimum permanence for a synapse to be "connected".
    */
   void
-  computeActivity(std::vector<Segment> &numActiveConnectedSynapsesForSegment,
-                  std::vector<Segment> &numActivePotentialSynapsesForSegment,
+  computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+                  std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
                   const CellIdx activePresynapticCell,
                   const Permanence connectedPermanence) const;
 
@@ -584,10 +584,10 @@ private:
   std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
-  std::vector<UInt64> segmentOrdinals_; //TODO which typedef should this be, Segment?
-  std::vector<UInt64> synapseOrdinals_;
-  UInt64 nextSegmentOrdinal_;
-  UInt64 nextSynapseOrdinal_;
+  std::vector<Segment> segmentOrdinals_;
+  std::vector<Synapse> synapseOrdinals_;
+  Segment nextSegmentOrdinal_;
+  Synapse nextSynapseOrdinal_;
 
   UInt32 nextEventToken_;
   std::map<UInt32, ConnectionsEventHandler *> eventHandlers_;

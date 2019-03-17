@@ -303,16 +303,21 @@ static void growSynapses(Connections &connections, Random &rng, Segment segment,
 }
 
 static void activatePredictedColumn(
-    vector<CellIdx> &activeCells, vector<CellIdx> &winnerCells,
-    Connections &connections, Random &rng,
+    vector<CellIdx> &activeCells, 
+    vector<CellIdx> &winnerCells,
+    Connections &connections, 
+    Random &rng,
     vector<Segment>::const_iterator columnActiveSegmentsBegin,
     vector<Segment>::const_iterator columnActiveSegmentsEnd,
     const vector<bool> &prevActiveCellsDense,
     const vector<CellIdx> &prevWinnerCells,
-    const vector<UInt32> &numActivePotentialSynapsesForSegment,
-    UInt maxNewSynapseCount, Permanence initialPermanence,
-    Permanence permanenceIncrement, Permanence permanenceDecrement,
-    UInt maxSynapsesPerSegment, bool learn) {
+    const vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
+    const UInt maxNewSynapseCount, 
+    const Permanence initialPermanence,
+    const Permanence permanenceIncrement, 
+    const Permanence permanenceDecrement,
+    const SynapseIdx maxSynapsesPerSegment, 
+    const bool learn) {
   auto activeSegment = columnActiveSegmentsBegin;
   do {
     const CellIdx cell = connections.cellForSegment(*activeSegment);
@@ -365,18 +370,26 @@ static Segment createSegment(Connections &connections,
 }
 
 static void
-burstColumn(vector<CellIdx> &activeCells, vector<CellIdx> &winnerCells,
-            Connections &connections, Random &rng,
-            vector<UInt64> &lastUsedIterationForSegment, UInt column,
+burstColumn(vector<CellIdx> &activeCells, 
+            vector<CellIdx> &winnerCells,
+            Connections &connections, 
+            Random &rng,
+            vector<UInt64> &lastUsedIterationForSegment, 
+            UInt column,
             vector<Segment>::const_iterator columnMatchingSegmentsBegin,
             vector<Segment>::const_iterator columnMatchingSegmentsEnd,
             const vector<bool> &prevActiveCellsDense,
             const vector<CellIdx> &prevWinnerCells,
-            const vector<UInt32> &numActivePotentialSynapsesForSegment,
-            UInt64 iteration, UInt cellsPerColumn, UInt maxNewSynapseCount,
-            Permanence initialPermanence, Permanence permanenceIncrement,
-            Permanence permanenceDecrement, UInt maxSegmentsPerCell,
-            UInt maxSynapsesPerSegment, bool learn) {
+            const vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
+            UInt64 iteration, 
+            CellIdx cellsPerColumn, 
+            UInt maxNewSynapseCount,
+            const Permanence initialPermanence, 
+            const Permanence permanenceIncrement,
+            const Permanence permanenceDecrement, 
+            const SegmentIdx maxSegmentsPerCell,
+            const SynapseIdx maxSynapsesPerSegment, 
+            const bool learn) {
   // Calculate the active cells.
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;

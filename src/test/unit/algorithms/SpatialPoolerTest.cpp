@@ -70,6 +70,13 @@ bool check_vector_eq(UInt arr[], vector<UInt> vec) {  //TODO replace with ArrayB
   return true;
 }
 
+bool check_vector_eq(UInt arr[], vector<SynapseIdx> vec) {
+  for(UInt i = 0; i < vec.size(); i++) {
+    if(arr[i] != (UInt)vec[i]) return false;
+  }
+  return true;
+}
+
 bool check_vector_eq(Real arr[], vector<Real> vec) {
   for (UInt i = 0; i < vec.size(); i++) {
     if (!almost_eq(arr[i], vec[i])) {
@@ -509,7 +516,7 @@ TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   UInt numInputs = 5;
   UInt numColumns = 5;
   setup(sp, numInputs, numColumns);
-  vector<UInt> overlaps;
+  vector<SynapseIdx> overlaps;
   SDR active({numColumns});
 
   Real initOverlapArr1[] = {1, 1, 1, 1, 1};
@@ -1066,7 +1073,7 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
   }
 
   for (UInt i = 0; i < numTrials; i++) {
-    vector<UInt> overlaps;
+    vector<SynapseIdx> overlaps;
     SDR input({numInputs});
     input.setDense(SDR_dense_t(inputs[i], inputs[i] + numInputs));
     sp.calculateOverlap_(input, overlaps);
@@ -1110,7 +1117,7 @@ TEST(SpatialPoolerTest, testCalculateOverlapPct) {
 
   for (UInt i = 0; i < numTrials; i++) {
     vector<Real> overlapsPct;
-    vector<UInt> overlaps;
+    vector<SynapseIdx> overlaps;
     overlaps.assign(&overlapsArr[i][0], &overlapsArr[i][numColumns]);
     sp.calculateOverlapPct_(overlaps, overlapsPct);
     ASSERT_TRUE(check_vector_eq(trueOverlapsPct[i], overlapsPct));
@@ -1722,8 +1729,8 @@ TEST(SpatialPoolerTest, getOverlaps) {
   vector<UInt> activeColumns = {0, 0, 0};
   sp.compute(input.data(), true, activeColumns.data());
 
-  const vector<UInt> &overlaps = sp.getOverlaps();
-  const vector<UInt> expectedOverlaps = {0, 3, 5};
+  const auto &overlaps = sp.getOverlaps();
+  const vector<SynapseIdx> expectedOverlaps = {0, 3, 5};
   EXPECT_EQ(expectedOverlaps, overlaps);
 
   const vector<Real> &boostedOverlaps = sp.getBoostedOverlaps();
@@ -2043,7 +2050,7 @@ TEST(SpatialPoolerTest, ExactOutput) {
     inputs.randomize( 0.15f, rng );
     sp.compute(inputs, true, columns);
   }
-  cerr << "OUTPUT SDR:" << endl; columns.save( cerr ); cerr << endl;
+  NTA_DEBUG << "OUTPUT SDR:" << endl; columns.save( cerr ); cerr << endl;
   ASSERT_TRUE( columns == gold_sdr );
 }
 
