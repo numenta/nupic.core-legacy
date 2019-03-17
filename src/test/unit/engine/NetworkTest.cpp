@@ -32,6 +32,8 @@
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/utils/Log.hpp>
 
+namespace testing {
+    
 using namespace nupic;
 
 static bool verbose = false;
@@ -551,4 +553,6 @@ TEST(NetworkTest, testEqualsOperator) {
   ASSERT_TRUE(n1 != n2);
   n2.run(1);
   ASSERT_TRUE(n1 == n2);
+}
+
 }

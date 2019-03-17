@@ -34,8 +34,6 @@
 #include <nupic/math/Math.hpp> // nupic::Epsilon
 #include <nupic/utils/VectorHelpers.hpp>
 
-#define VERSION 2  // version for stream serialization
-
 using namespace nupic;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using namespace nupic::math::topology;
@@ -99,7 +97,7 @@ SpatialPooler::SpatialPooler(
     : SpatialPooler::SpatialPooler()
 {
   // The current version number for serialzation.
-  version_ = VERSION;
+  version_ = 2;
 
   initialize(inputDimensions,
              columnDimensions,

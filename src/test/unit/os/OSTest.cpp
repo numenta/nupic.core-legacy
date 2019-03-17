@@ -30,6 +30,8 @@
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
 
+namespace testing {
+    
 using namespace nupic;
 
 TEST(OSTest, Basic) {
@@ -102,4 +104,6 @@ TEST(OSTest, Basic) {
 
     ASSERT_TRUE(output == "ABCDefg\n");
   }
+}
+
 }

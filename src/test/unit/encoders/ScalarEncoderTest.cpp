@@ -30,6 +30,8 @@
 #include <nupic/encoders/ScalarEncoder.hpp>
 #include <vector>
 
+namespace testing {
+    
 using namespace nupic;
 using nupic::sdr::SDR;
 using nupic::encoders::ScalarEncoder;
@@ -219,4 +221,6 @@ TEST(ScalarEncoder, Serialization) {
     EXPECT_NEAR(p1.radius,     p2.radius,        1.0f / 100000 );
     delete enc1;
   }
+}
+
 }

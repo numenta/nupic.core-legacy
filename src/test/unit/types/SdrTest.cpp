@@ -21,6 +21,8 @@
 #include <vector>
 #include <random>
 
+namespace testing {
+    
 using namespace std;
 using namespace nupic;
 using namespace nupic::sdr;
@@ -826,4 +828,5 @@ TEST(SdrTest, TestConcatenation) {
     B.randomize( 0.75f );
     ASSERT_LT( C.getSparsity(), 0.55f );
     ASSERT_GT( C.getSparsity(), 0.45f );
+}
 }

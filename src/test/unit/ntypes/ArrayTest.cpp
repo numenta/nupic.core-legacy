@@ -24,8 +24,6 @@
  * Implementation of ArrayBase test
  */
 
-#define UNUSED(x) (void)(x)
-
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
@@ -40,6 +38,9 @@
 
 #include <gtest/gtest.h>
 
+namespace testing {
+    
+#define UNUSED(x) (void)(x)
 using namespace nupic;
 
 // First, some structures to help in testing.
@@ -642,3 +643,5 @@ void ArrayTest::setupArrayTests() {
   testCases_["Non-existent NTA_BasicType"] =
       ArrayTestParameters((NTA_BasicType)-1, 0, 10, "N/A", true);
 }
+
+} //-ns

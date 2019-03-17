@@ -29,7 +29,8 @@
 #include <nupic/ntypes/Collection.hpp>
 #include <sstream>
 
-
+namespace testing { 
+    
 using namespace nupic;
 
 struct CollectionTest : public ::testing::Test {
@@ -46,12 +47,6 @@ struct CollectionTest : public ::testing::Test {
   };
 };
 
-namespace nupic {
-// The Collection class must be explicitly instantiated.
-template class Collection<int>;
-template class Collection<CollectionTest::Item>;
-template class Collection<CollectionTest::Item *>;
-} // namespace nupic
 
 TEST_F(CollectionTest, testEmptyCollection) {
   Collection<int> c;
@@ -204,4 +199,5 @@ TEST_F(CollectionTest, testCollectionIterator) {
 	i++;
   }
   ASSERT_EQ(3, i);
+}
 }
