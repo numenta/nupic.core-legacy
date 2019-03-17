@@ -246,15 +246,15 @@ void TMRegion::compute() {
   Output *out;
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    std::vector<UInt32> active = tm_->getActiveCells();         // sparse
-    std::vector<UInt32> predictive = tm_->getPredictiveCells(); // sparse
+    auto active = tm_->getActiveCells();         // sparse
+    auto predictive = tm_->getPredictiveCells(); // sparse
     if (args_.orColumnOutputs) {
       // aggregate to columns
-      active = VectorHelpers::sparse_cellsToColumns(active, args_.cellsPerColumn);
-      predictive = VectorHelpers::sparse_cellsToColumns(predictive, args_.cellsPerColumn);
+      active = VectorHelpers::sparse_cellsToColumns<UInt>(active, args_.cellsPerColumn);
+      predictive = VectorHelpers::sparse_cellsToColumns<UInt>(predictive, args_.cellsPerColumn);
     }
     SDR& sdr = out->getData().getSDR();
-    VectorHelpers::unionOfVectors(sdr.getSparse(), active, predictive);
+    VectorHelpers::unionOfVectors<UInt>(sdr.getSparse(), active, predictive);
     sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
 
     NTA_DEBUG << "compute " << *out << std::endl;
