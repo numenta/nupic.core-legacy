@@ -36,11 +36,11 @@ class ReadOnly_ : public SDR
 public:
     ReadOnly_() {}
 
-    ReadOnly_( const vector<UInt> dimensions )
+    ReadOnly_( const std::vector<UInt> dimensions )
         : SDR( dimensions ) {}
 
 private:
-    const string _error_message = "This SDR is read only.";
+    const std::string _error_message = "This SDR is read only.";
 
     void setDenseInplace() const override
         { NTA_THROW << _error_message; }
@@ -94,7 +94,7 @@ public:
      * SDR.  Optional, if not given then this SDR will have the same
      * dimensions as the given SDR.
      */
-    Reshape(SDR &sdr, const vector<UInt> &dimensions);
+    Reshape(SDR &sdr, const std::vector<UInt> &dimensions);
 
     Reshape(SDR &sdr)
         : Reshape(sdr, sdr.dimensions) {}
@@ -158,13 +158,13 @@ public:
     Concatenation(SDR &inp1, SDR &inp2, SDR &inp3, SDR &inp4, UInt axis=0u)
         { initialize({&inp1,     &inp2,     &inp3,     &inp4},     axis); }
 
-    Concatenation(vector<SDR*> inputs, UInt axis=0u)
+    Concatenation(std::vector<SDR*> inputs, UInt axis=0u)
         { initialize(inputs, axis); }
 
-    void initialize(const vector<SDR*> inputs, const UInt axis=0u);
+    void initialize(const std::vector<SDR*> inputs, const UInt axis=0u);
 
-    const UInt         &axis   = axis_;
-    const vector<SDR*> &inputs = inputs_;
+    const UInt              &axis   = axis_;
+    const std::vector<SDR*> &inputs = inputs_;
 
     SDR_dense_t& getDense() const override;
 
@@ -172,10 +172,10 @@ public:
         { deconstruct(); }
 
 protected:
-    UInt         axis_;
-    vector<SDR*> inputs_;
-    vector<UInt> callback_handles_;
-    vector<UInt> destroyCallback_handles_;
+    UInt              axis_;
+    std::vector<SDR*> inputs_;
+    std::vector<UInt> callback_handles_;
+    std::vector<UInt> destroyCallback_handles_;
     mutable bool dense_valid_lazy;
 
     void clear() const override;
@@ -208,8 +208,6 @@ protected:
 class Intersection : public ReadOnly_
 {
 public:
-    const vector<SDR*> &inputs = inputs_;
-
     Intersection(SDR &input1, SDR &input2)
         { initialize({   &input1,     &input2}); }
     Intersection(SDR &input1, SDR &input2, SDR &input3)
@@ -217,10 +215,12 @@ public:
     Intersection(SDR &input1, SDR &input2, SDR &input3, SDR &input4)
         { initialize({   &input1,     &input2,     &input3,     &input4}); }
 
-    Intersection(vector<SDR*> inputs)
+    Intersection(std::vector<SDR*> inputs)
         { initialize(inputs); }
 
-    void initialize(const vector<SDR*> inputs);
+    void initialize(const std::vector<SDR*> inputs);
+
+    const std::vector<SDR*> &inputs = inputs_;
 
     SDR_dense_t& getDense() const override;
 
@@ -228,10 +228,10 @@ public:
         { deconstruct(); }
 
 protected:
-    vector<SDR*> inputs_;
-    vector<UInt> callback_handles_;
-    vector<UInt> destroyCallback_handles_;
-    mutable bool dense_valid_lazy;
+    std::vector<SDR*> inputs_;
+    std::vector<UInt> callback_handles_;
+    std::vector<UInt> destroyCallback_handles_;
+    mutable bool      dense_valid_lazy;
 
     void clear() const override;
 

@@ -66,8 +66,8 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
   // get/set/verify each parameter
   bool negativeCheck = true;
   for (size_t i = 0; i < specCount; i++) {
-    std::pair<string, ParameterSpec> p = ns->parameters.getByIndex(i);
-    string name = p.first;
+    std::pair<std::string, ParameterSpec> p = ns->parameters.getByIndex(i);
+    std::string name = p.first;
     if (excluded.find(name) != excluded.end())
       continue;
     try {

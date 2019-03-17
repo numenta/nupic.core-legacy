@@ -43,8 +43,8 @@ public:
      * Members dimensions & size describe the shape of the encoded output SDR.
      * This is the total number of bits which the result has.
      */
-    const vector<UInt> &dimensions = dimensions_;
-    const UInt         &size       = size_;
+    const std::vector<UInt> &dimensions = dimensions_;
+    const UInt              &size       = size_;
 
     virtual void reset() {}
 
@@ -55,17 +55,17 @@ public:
 protected:
     BaseEncoder() {}
 
-    BaseEncoder(const vector<UInt> dimensions)
+    BaseEncoder(const std::vector<UInt> dimensions)
         { initialize( dimensions ); }
 
-    void initialize(const vector<UInt> dimensions) {
+    void initialize(const std::vector<UInt> dimensions) {
         dimensions_ = dimensions;
         size_       = sdr::SDR(dimensions).size;
     }
 
 private:
-    vector<UInt> dimensions_;
-    UInt         size_;
+    std::vector<UInt> dimensions_;
+    UInt              size_;
 };
 } // end namespace encoders
 } // end namespace nupic
