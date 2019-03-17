@@ -38,9 +38,6 @@ using namespace nupic;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using namespace nupic::math::topology;
 using nupic::utils::VectorHelpers;
-using nupic::algorithms::connections::maxPermanence;
-using nupic::algorithms::connections::Permanence;
-using nupic::algorithms::connections::minPermanence;
 
 class CoordinateConverterND {
 
@@ -343,10 +340,7 @@ void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
   for(const auto &syn : synapses) {
     const auto &synData = connections_.dataForSynapse( syn );
     const auto &presyn  = synData.presynapticCell;
-    Permanence newPerm = permanences[presyn];
-    if(newPerm > connections::maxPermanence) newPerm = connections::maxPermanence; 
-    else if(newPerm < connections::minPermanence) newPerm = connections::minPermanence;
-    connections_.updateSynapsePermanence( syn, newPerm );
+    connections_.updateSynapsePermanence( syn, permanences[presyn] );
 
 #ifndef NDEBUG
     check_data[presyn] = connections::minPermanence;

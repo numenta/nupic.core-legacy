@@ -58,8 +58,6 @@ using nupic::algorithms::connections::Connections;
 using nupic::algorithms::connections::Segment;
 using nupic::algorithms::connections::Permanence;
 using nupic::algorithms::connections::Synapse;
-using nupic::algorithms::connections::maxPermanence;
-using nupic::algorithms::connections::minPermanence;
 
 
 static const UInt TM_VERSION = 2;
@@ -197,11 +195,12 @@ static void adaptSegment(Connections &connections, Segment segment,
     Permanence permanence = synapseData.permanence;
     if (prevActiveCellsDense[synapseData.presynapticCell]) {
       permanence += permanenceIncrement;
-      permanence = min(permanence, maxPermanence);
     } else {
       permanence -= permanenceDecrement;
-      permanence = max(permanence, minPermanence);
     }
+
+    permanence = min(permanence, (Permanence)1.0);
+    permanence = max(permanence, (Permanence)0.0);
 
     if (permanence < nupic::Epsilon) {
       connections.destroySynapse(synapses[i]);

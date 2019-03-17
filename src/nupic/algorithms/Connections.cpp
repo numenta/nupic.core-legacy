@@ -106,9 +106,9 @@ Segment Connections::createSegment(CellIdx cell) {
   return segment;
 }
 
-Synapse Connections::createSynapse(const Segment segment,
-                                   const CellIdx presynapticCell,
-                                   const Permanence permanence) {
+Synapse Connections::createSynapse(Segment segment,
+                                   CellIdx presynapticCell,
+                                   Permanence permanence) {
   // Get an index into the synapses_ list, for the new synapse to reside at.
   Synapse synapse;
   if (destroyedSynapses_.size() > 0) {
@@ -261,10 +261,10 @@ void Connections::destroySynapse(Synapse synapse) {
 }
 
 void Connections::updateSynapsePermanence(Synapse synapse,
-                                          const Permanence permanence) {
-    NTA_ASSERT(permanence <= maxPermanence);
-    NTA_ASSERT(permanence >= minPermanence);
- 
+                                          Permanence permanence) {
+  permanence = std::min(permanence, maxPermanence );
+  permanence = std::max(permanence, minPermanence );
+
   auto &synData = synapses_[synapse];
   
   const bool before = synData.permanence >= connectedThreshold_;
@@ -450,19 +450,17 @@ void Connections::adaptSegment(const Segment segment,
 
   const auto &inputArray = inputs.getDense();
 
-  for (const Synapse& syn : synapses) {
-    const SynapseData &synapseData = dataForSynapse(syn);
+  for (SynapseIdx i = 0; i < synapses.size(); i++) {
+    const SynapseData &synapseData = dataForSynapse(synapses[i]);
 
     Permanence permanence = synapseData.permanence;
     if( inputArray[synapseData.presynapticCell] ) {
       permanence += increment;
-      if(permanence > maxPermanence) permanence = maxPermanence;
     } else {
       permanence -= decrement;
-      if (permanence < minPermanence) permanence = minPermanence;
     }
 
-    updateSynapsePermanence(syn, permanence);
+    updateSynapsePermanence(synapses[i], permanence);
   }
 }
 
@@ -516,20 +514,15 @@ void Connections::raisePermanencesToThreshold(
     return;            // Enough synapses are already connected.
 
   // Raise the permance of all synapses in the potential pool uniformly.
-  for( const auto &syn : synapses ) {//TODO vectorize: vector + const to all members
-    Permanence newPerm = synapses_[syn].permanence + increment;
-    if(newPerm > maxPermanence) newPerm = maxPermanence;   
-    updateSynapsePermanence(syn, newPerm);
-  }
+  for( const auto &syn : synapses ) //TODO vectorize: vector + const to all members
+    updateSynapsePermanence(syn, synapses_[syn].permanence + increment);
 }
 
 
 void Connections::bumpSegment(const Segment segment, const Permanence delta) {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
   for( const auto &syn : synapses ) {
-    Permanence newPerm = synapses_[syn].permanence + delta;
-    if(newPerm > maxPermanence) newPerm = maxPermanence;
-    updateSynapsePermanence(syn, newPerm);
+    updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
   }
 }
 
