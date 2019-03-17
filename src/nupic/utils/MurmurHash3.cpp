@@ -31,16 +31,6 @@ namespace nupic {
 #endif // !defined(_MSC_VER)
 
 
-// Microsoft Visual Studio
-#if defined(_MSC_VER) && (_MSC_VER < 1600)
-    typedef unsigned char uint8_t;
-#else
-    // Other compilers
-    #include <stdint.h>
-#endif
-
-
-
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
@@ -71,7 +61,7 @@ inline UInt32 fmix32 ( UInt32 h )
 //-----------------------------------------------------------------------------
 UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
 {
-  const uint8_t * data = (const uint8_t*)key;
+  const unsigned char * data = (const unsigned char *) key;
   const int nblocks = len / 4;
 
   UInt32 h1 = seed;
@@ -100,22 +90,22 @@ UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
   //----------
   // tail
 
-  const uint8_t * tail = (const uint8_t*)(data + nblocks * 4);
+  const unsigned char * tail = (const unsigned char*)(data + nblocks * 4);
 
   UInt32 k1 = 0;
 
   switch(len & 3)
   {
-  case 3: k1 ^= tail[2] << 16;
-    /* fallthrough */
-  case 2: k1 ^= tail[1] << 8;
-    /* fallthrough */
-  case 1: k1 ^= tail[0];
-          k1 *= c1;
-          k1  = ROTL32(k1,15);
-          k1 *= c2;
-          h1 ^= k1;
-    /* fallthrough */
+    case 3: k1 ^= tail[2] << 16;
+      /* fallthrough */
+    case 2: k1 ^= tail[1] << 8;
+      /* fallthrough */
+    case 1: k1 ^= tail[0];
+            k1 *= c1;
+            k1  = ROTL32(k1,15);
+            k1 *= c2;
+            h1 ^= k1;
+      /* fallthrough */
   };
 
   //----------
@@ -126,5 +116,5 @@ UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
   h1 = fmix32(h1);
 
   return h1;
-} 
-}      // End namespace nupic
+}
+} // End namespace nupic
