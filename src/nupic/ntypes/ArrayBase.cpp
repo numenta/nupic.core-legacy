@@ -34,6 +34,8 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
+using nupic::sdr::SDR;
+
 namespace nupic {
 
 /**

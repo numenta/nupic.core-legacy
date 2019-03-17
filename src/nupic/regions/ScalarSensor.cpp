@@ -33,7 +33,7 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
-
+using nupic::sdr::SDR;
 
 namespace nupic {
 

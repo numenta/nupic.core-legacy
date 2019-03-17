@@ -30,6 +30,7 @@ namespace py = pybind11;
 namespace nupic_ext
 {
   using namespace nupic::encoders;
+  using nupic::sdr::SDR;
 
   void init_ScalarEncoder(py::module& m)
   {
@@ -109,7 +110,7 @@ fields are filled in automatically.)");
     py_ScalarEnc.def("encode", &ScalarEncoder::encode, R"()");
 
     py_ScalarEnc.def("encode", [](ScalarEncoder &self, nupic::Real64 value) {
-        auto output = new nupic::SDR( self.dimensions );
+        auto output = new SDR( self.dimensions );
         self.encode( value, *output );
         return output; },
 R"()");

@@ -30,13 +30,14 @@
 using namespace std;
 
 namespace nupic {
+namespace sdr {
 
-class SDR_ReadOnly_ : public SDR
+class ReadOnly_ : public SDR
 {
 public:
-    SDR_ReadOnly_() {}
+    ReadOnly_() {}
 
-    SDR_ReadOnly_( const vector<UInt> dimensions )
+    ReadOnly_( const vector<UInt> dimensions )
         : SDR( dimensions ) {}
 
 private:
@@ -55,33 +56,33 @@ private:
 };
 
 /**
- * SDR_Reshape class
+ * Reshape class
  *
  * ### Description
- * SDR_Reshape presents a view onto an SDR with different dimensions.
- *      + SDR_Reshape is a subclass of SDR and be safely typecast to an SDR.
+ * Reshape presents a view onto an SDR with different dimensions.
+ *      + Reshape is a subclass of SDR and be safely typecast to an SDR.
  *      + The resulting SDR has the same value as the source SDR, at all times
  *        and automatically.
  *      + The resulting SDR is read only.
  *
- * SDR and SDR_Reshape classes tell each other when they are created and
- * destroyed.  SDR_Reshape can be created and destroyed as needed.  SDR_Reshape
+ * SDR and Reshape classes tell each other when they are created and
+ * destroyed.  Reshape can be created and destroyed as needed.  Reshape
  * will throw an exception if it is used after its source SDR has been
  * destroyed.
  *
  * Example Usage:
  *      // Convert SDR dimensions from (4 x 4) to (8 x 2)
- *      SDR         A(    { 4, 4 })
- *      SDR_Reshape B( A, { 8, 2 })
+ *      SDR     A(    { 4, 4 })
+ *      Reshape B( A, { 8, 2 })
  *      A.setCoordinates( {1, 1, 2}, {0, 1, 2}} )
  *      B.getCoordinates()  ->  {{2, 2, 5}, {0, 1, 0}}
  *
- * SDR_Reshape partially supports the Serializable interface.  SDR_Reshape can
+ * Reshape partially supports the Serializable interface.  Reshape can
  * be saved but can not be loaded.
  *
- * Note: SDR_Reshape used to be called SDR_Proxy. See PR #298
+ * Note: Reshape used to be called SDR_Proxy. See PR #298
  */
-class SDR_Reshape : public SDR_ReadOnly_
+class Reshape : public ReadOnly_
 {
 public:
     /**
@@ -93,12 +94,12 @@ public:
      * SDR.  Optional, if not given then this SDR will have the same
      * dimensions as the given SDR.
      */
-    SDR_Reshape(SDR &sdr)
-        : SDR_Reshape(sdr, sdr.dimensions)
+    Reshape(SDR &sdr)
+        : Reshape(sdr, sdr.dimensions)
         {}
 
-    SDR_Reshape(SDR &sdr, const vector<UInt> &dimensions)
-        : SDR_ReadOnly_( dimensions ) {
+    Reshape(SDR &sdr, const vector<UInt> &dimensions)
+        : ReadOnly_( dimensions ) {
         clear();
         parent = &sdr;
         NTA_CHECK( size == parent->size ) << "SDR Reshape must have same size as given SDR.";
@@ -111,7 +112,7 @@ public:
         });
     }
 
-    ~SDR_Reshape() override
+    ~Reshape() override
         { deconstruct(); }
 
     SDR_dense_t& getDense() const override {
@@ -166,7 +167,7 @@ protected:
 
 
 /**
- * SDR_Concatenation class
+ * Concatenation class
  *
  * ### Description
  * This class presents a view onto a group of SDRs, which always shows the
@@ -175,21 +176,21 @@ protected:
  * Parameter UInt axis: This can concatenate along any axis, with the
  *      restriction that the result must be rectangular.  The default axis is 0.
  *
- * An SDR_Concatenation is valid for as long as all of its input SDRs are alive.
+ * An Concatenation is valid for as long as all of its input SDRs are alive.
  * Using it after any of it's inputs are destroyed is undefined.
  *
  * Example Usage:
- *      SDR               A({ 100 });
- *      SDR               B({ 100 });
- *      SDR_Concatenation C( A, B );
+ *      SDR           A({ 100 });
+ *      SDR           B({ 100 });
+ *      Concatenation C( A, B );
  *      C.dimensions -> { 200 }
  *
- *      SDR               D({ 640, 480, 3 });
- *      SDR               E({ 640, 480, 7 });
- *      SDR_Concatenation F( D, E, 2 );
+ *      SDR           D({ 640, 480, 3 });
+ *      SDR           E({ 640, 480, 7 });
+ *      Concatenation F( D, E, 2 );
  *      F.dimensions -> { 640, 480, 10 }
  */
-class SDR_Concatenation : public SDR_ReadOnly_
+class Concatenation : public ReadOnly_
 {
 protected:
     UInt         axis_;
@@ -226,20 +227,20 @@ public:
     const UInt         &axis   = axis_;
     const vector<SDR*> &inputs = inputs_;
 
-    SDR_Concatenation(SDR &inp1, SDR &inp2, UInt axis=0u)
+    Concatenation(SDR &inp1, SDR &inp2, UInt axis=0u)
         { initialize({    &inp1,     &inp2},     axis); }
-    SDR_Concatenation(SDR &inp1, SDR &inp2, SDR &inp3, UInt axis=0u)
+    Concatenation(SDR &inp1, SDR &inp2, SDR &inp3, UInt axis=0u)
         { initialize({    &inp1,     &inp2,     &inp3},     axis); }
-    SDR_Concatenation(SDR &inp1, SDR &inp2, SDR &inp3, SDR &inp4, UInt axis=0u)
+    Concatenation(SDR &inp1, SDR &inp2, SDR &inp3, SDR &inp4, UInt axis=0u)
         { initialize({    &inp1,     &inp2,     &inp3,     &inp4},     axis); }
 
-    SDR_Concatenation(vector<SDR*> inputs, UInt axis=0u)
+    Concatenation(vector<SDR*> inputs, UInt axis=0u)
         { initialize(inputs, axis); }
 
     void initialize(const vector<SDR*> inputs, const UInt axis=0u)
     {
         NTA_CHECK( inputs.size() >= 1u )
-            << "Not enough inputs to SDR_Concatenation, need at least 2 SDRs got " << inputs.size() << ".";
+            << "Not enough inputs to SDR Concatenation, need at least 2 SDRs got " << inputs.size() << ".";
         inputs_.assign( inputs.begin(), inputs.end() );
         axis_ = axis;
         const UInt n_dim = (UInt)inputs[0]->dimensions.size();
@@ -249,7 +250,7 @@ public:
         dims[axis] = 0;
         for(auto i = 0u; i < inputs.size(); ++i) {
             NTA_CHECK( inputs[i]->dimensions.size() == n_dim )
-                << "All inputs to SDR_Concatenation must have the same number of dimensions!";
+                << "All inputs to SDR Concatenation must have the same number of dimensions!";
             for(auto d = 0u; d < n_dim; d++) {
                 if( d == axis )
                     dims[axis] += inputs[i]->dimensions[d];
@@ -276,7 +277,7 @@ public:
         clear();
     }
 
-    ~SDR_Concatenation()
+    ~Concatenation()
         { deconstruct(); }
 
     SDR_dense_t& getDense() const override {
@@ -318,7 +319,7 @@ public:
 
 
 /**
- * SDR_Intersection class
+ * Intersection class
  *
  * This class presents a view onto a group of SDRs, which always shows the set
  * intersection of the active bits in each input SDR.  This view is read-only.
@@ -331,14 +332,14 @@ public:
  *     B.setSparse({0, 1, 2, 3});
  *
  *     // Calculate the logical intersection
- *     SDR_Intersection X(A, B);
+ *     Intersection X(A, B);
  *     X.getSparse() -> {2, 3}
  *
- *     // Assignments to the input SDRs are propigated to the SDR_Intersection
+ *     // Assignments to the input SDRs are propigated to the Intersection
  *     B.zero();
  *     X.getSparsity() -> 0.0
  */
-class SDR_Intersection : public SDR_ReadOnly_
+class Intersection : public ReadOnly_
 {
 protected:
     vector<SDR*> inputs_;
@@ -373,20 +374,20 @@ protected:
 public:
     const vector<SDR*> &inputs = inputs_;
 
-    SDR_Intersection(SDR &input1, SDR &input2)
+    Intersection(SDR &input1, SDR &input2)
         { initialize({   &input1,     &input2}); }
-    SDR_Intersection(SDR &input1, SDR &input2, SDR &input3)
+    Intersection(SDR &input1, SDR &input2, SDR &input3)
         { initialize({   &input1,     &input2,     &input3}); }
-    SDR_Intersection(SDR &input1, SDR &input2, SDR &input3, SDR &input4)
+    Intersection(SDR &input1, SDR &input2, SDR &input3, SDR &input4)
         { initialize({   &input1,     &input2,     &input3,     &input4}); }
 
-    SDR_Intersection(vector<SDR*> inputs)
+    Intersection(vector<SDR*> inputs)
         { initialize(inputs); }
 
     void initialize(const vector<SDR*> inputs)
     {
         NTA_CHECK( inputs.size() >= 1u )
-            << "Not enough inputs to SDR_Intersection, need at least 2 SDRs got " << inputs.size() << ".";
+            << "Not enough inputs to SDR Intersection, need at least 2 SDRs got " << inputs.size() << ".";
         SDR::initialize( inputs[0]->dimensions );
         inputs_.assign( inputs.begin(), inputs.end() );
 
@@ -395,7 +396,7 @@ public:
         for(SDR *inp : inputs_) {
             NTA_CHECK(inp != nullptr);
             NTA_ASSERT(inp->size == size)
-                << "All inputs to SDR_Intersection must have the same size!";
+                << "All inputs to SDR Intersection must have the same size!";
             // When input SDR is assigned to, invalidate this SDR.  This SDR
             // will be recalculated next time it is accessed.
             callback_handles_.push_back( inp->addCallback( [&] ()
@@ -407,7 +408,7 @@ public:
         clear();
     }
 
-    ~SDR_Intersection()
+    ~Intersection()
         { deconstruct(); }
 
     SDR_dense_t& getDense() const override {
@@ -427,5 +428,6 @@ public:
     }
 };
 
+} // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_PROXY_HPP

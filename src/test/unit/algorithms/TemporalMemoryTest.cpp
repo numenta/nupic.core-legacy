@@ -31,6 +31,7 @@
 #include <nupic/types/Sdr.hpp>
 #include <nupic/utils/Log.hpp>
 #include <stdio.h>
+using nupic::sdr::SDR;
 
 #include "gtest/gtest.h"
 #include <nupic/algorithms/TemporalMemory.hpp>

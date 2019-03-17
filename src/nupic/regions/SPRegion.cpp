@@ -39,6 +39,7 @@
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/regions/SPRegion.hpp>
 #include <nupic/utils/Log.hpp>
+using nupic::sdr::SDR_sparse_t;
 
 #define VERSION 1 // version for streaming serialization format
 

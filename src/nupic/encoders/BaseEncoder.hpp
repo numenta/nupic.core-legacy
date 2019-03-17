@@ -48,7 +48,7 @@ public:
 
     virtual void reset() {}
 
-    virtual void encode(DataType input, SDR &output) = 0;
+    virtual void encode(DataType input, sdr::SDR &output) = 0;
 
     virtual ~BaseEncoder() {}
 
@@ -60,7 +60,7 @@ protected:
 
     void initialize(const vector<UInt> dimensions) {
         dimensions_ = dimensions;
-        size_       = SDR(dimensions).size;
+        size_       = sdr::SDR(dimensions).size;
     }
 
 private:

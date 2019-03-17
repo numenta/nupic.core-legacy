@@ -47,6 +47,7 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::utils;
 
+using nupic::sdr::SDR;
 using nupic::encoders::ScalarEncoder;
 using nupic::encoders::ScalarEncoderParameters;
 
