@@ -12,8 +12,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- * ----------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------- */
 
 /** @file
  * Definitions for SDR Metrics classes
@@ -25,8 +24,6 @@
 #include <vector>
 #include <nupic/types/Sdr.hpp>
 #include <nupic/types/Types.hpp>
-
-using namespace std; // TODO Remove this!
 
 namespace nupic {
 namespace sdr {
@@ -40,9 +37,9 @@ namespace sdr {
  */
 class MetricsHelper_ {
 public:
-    const UInt         &period     = period_;
-    const UInt         &samples    = samples_;
-    const vector<UInt> &dimensions = dimensions_;
+    const UInt              &period     = period_;
+    const UInt              &samples    = samples_;
+    const std::vector<UInt> &dimensions = dimensions_;
 
     /**
      * Add an SDR datum to this Metric.  This method can only be called if the
@@ -55,7 +52,7 @@ public:
     virtual ~MetricsHelper_();
 
 private:
-    vector<UInt> dimensions_;
+    std::vector<UInt> dimensions_;
     SDR* dataSource_;
     UInt callback_handle_;
     UInt destroyCallback_handle_;
@@ -70,7 +67,7 @@ protected:
      *
      * @param period Time scale for exponential moving average.
      */
-    MetricsHelper_( const vector<UInt> dimensions, UInt period );
+    MetricsHelper_( const std::vector<UInt> dimensions, UInt period );
 
     /**
      * @param dataSource SDR to track.  Add data to the metric by assigning to
@@ -134,7 +131,7 @@ public:
      *
      * @param period Time scale for exponential moving average.
      */
-    Sparsity( const vector<UInt> dimensions, UInt period );
+    Sparsity( const std::vector<UInt> dimensions, UInt period );
 
     const Real &sparsity = sparsity_;
 
@@ -201,16 +198,16 @@ public:
      *
      * @param period Time scale for exponential moving average.
      */
-    ActivationFrequency( const vector<UInt> dimensions, UInt period );
+    ActivationFrequency( const std::vector<UInt> dimensions, UInt period );
 
-    const vector<Real> &activationFrequency = activationFrequency_;
+    const std::vector<Real> &activationFrequency = activationFrequency_;
 
     Real min() const;
     Real max() const;
     Real mean() const;
     Real std() const;
 
-    static Real binary_entropy_(const vector<Real> &frequencies);
+    static Real binary_entropy_(const std::vector<Real> &frequencies);  // TODO PRIVATE?
 
     /**
      * Binary entropy is a measurement of information.  It measures how well the
@@ -228,7 +225,7 @@ public:
     friend std::ostream& operator<< (std::ostream &, const ActivationFrequency &);
 
 private:
-    vector<Real> activationFrequency_;
+    std::vector<Real> activationFrequency_;
 
     void initialize(UInt size);
 
@@ -277,7 +274,7 @@ public:
      *
      * @param period Time scale for exponential moving average.
      */
-    Overlap( const vector<UInt> dimensions, UInt period );
+    Overlap( const std::vector<UInt> dimensions, UInt period );
 
     void reset();
 
@@ -351,11 +348,11 @@ public:
      *
      * @param period Time scale for exponential moving average.
      */
-    Metrics( const vector<UInt> dimensions, UInt period );
+    Metrics( const std::vector<UInt> dimensions, UInt period );
 
     void reset();
 
-    const vector<UInt>        &dimensions          = dimensions_;
+    const std::vector<UInt>   &dimensions          = dimensions_;
     const Sparsity            &sparsity            = sparsity_;
     const ActivationFrequency &activationFrequency = activationFrequency_;
     const Overlap             &overlap             = overlap_;
@@ -371,7 +368,7 @@ public:
     friend std::ostream& operator<<(std::ostream& stream, const Metrics &M);
 
 private:
-    vector<UInt>        dimensions_;
+    std::vector<UInt>   dimensions_;
     Sparsity            sparsity_;
     ActivationFrequency activationFrequency_;
     Overlap             overlap_;
