@@ -31,7 +31,7 @@
 #include <cmath> // std::log2 isnan
 #include <regex>
 
-using namespace std;
+using namespace std; // TODO Remove this!
 
 namespace nupic {
 namespace sdr {
@@ -119,7 +119,8 @@ public:
      * The given SDR's dimensions must be the same as this Metric's dimensions.
      */
     void addData(SDR &data) {
-        NTA_CHECK( dataSource_ == nullptr );
+        NTA_CHECK( dataSource_ == nullptr )
+            << "Method addData can only be called if this metric was NOT initialize with an SDR!";
         NTA_CHECK( dimensions_ == data.dimensions );
         callback( data, 1.0f / std::min( period_, (UInt) ++samples_ ));
     }
@@ -158,11 +159,11 @@ private:
     Real sparsity_;
 
     void initialize() {
-        sparsity_   =  1234.56789f;
-        min_        =  1234.56789f;
-        max_        = -1234.56789f;
-        mean_       =  1234.56789f;
-        variance_   =  1234.56789f;
+        sparsity_   =  1234.567f;
+        min_        =  1234.567f;
+        max_        = -1234.567f;
+        mean_       =  1234.567f;
+        variance_   =  1234.567f;
     }
 
     void callback(SDR &dataSource, Real alpha) override {
@@ -243,7 +244,7 @@ private:
     vector<Real> activationFrequency_;
 
     void initialize(UInt size) {
-        activationFrequency_.assign( size, 1234.56789f );
+        activationFrequency_.assign( size, 1234.567f );
     }
 
     void callback(SDR &dataSource, Real alpha) override
