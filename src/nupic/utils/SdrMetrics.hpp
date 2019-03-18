@@ -44,8 +44,8 @@ namespace sdr {
  */
 class MetricsHelper_ {
 protected:
-    UInt period_;
-    int  samples_;
+    UInt  period_;
+    UInt  samples_;
     vector<UInt> dimensions_;
     SDR*  dataSource_;
     UInt  callback_handle_;
@@ -62,7 +62,7 @@ protected:
         NTA_CHECK( dimensions.size() > 0 );
         dimensions_ = dimensions,
         period_     = period;
-        samples_    = 0;
+        samples_    = 0u;
         dataSource_ = nullptr;
         callback_handle_        = -1;
         destroyCallback_handle_ = -1;
@@ -108,7 +108,7 @@ protected:
     virtual void callback( SDR &dataSource, Real alpha ) = 0;
 
 public:
-    const int          &samples    = samples_;
+    const UInt         &samples    = samples_;
     const UInt         &period     = period_;
     const vector<UInt> &dimensions = dimensions_;
 
@@ -382,6 +382,7 @@ public:
 class Overlap : public MetricsHelper_ {
 private:
     SDR  previous_;
+    bool previousValid_;
     Real overlap_;
     Real min_;
     Real max_;
@@ -389,35 +390,35 @@ private:
     Real variance_;
 
     void initialize() {
-        // This class needs two samples before its data is valid, instead of one
-        // sample like MetricsHelper_ class  expects, so start the samples
-        // counter one behind.
-        samples_   -=  1;
-        overlap_    =  1234.56789f;
-        min_        =  1234.56789f;
-        max_        = -1234.56789f;
-        mean_       =  1234.56789f;
-        variance_   =  1234.56789f;
-        previous_.getSparse();
+        overlap_    =  1234.567f;
+        min_        =  1234.567f;
+        max_        = -1234.567f;
+        mean_       =  1234.567f;
+        variance_   =  1234.567f;
+        reset();
     }
 
     void callback(SDR &dataSource, Real alpha) override {
+        if( not previousValid_ ) {
+            previous_.setSDR( dataSource );
+            previousValid_ = true;
+            // It takes two data samples to compute overlap so decrement the
+            // samples counter & return & wait for the next sample.
+            samples_ -= 1;
+            return;
+        }
         const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
-        const auto overlap = (nbits == 0u) ? 0.0f
-                               : (Real) previous_.getOverlap( dataSource ) / nbits;
-        previous_.setSDR( dataSource );
-        // Ignore first data point, need two to compute.  Account for the
-        // initial decrement to samples counter.
-        if( samples + 1 < 2 ) return;
-        overlap_ = overlap; // Don't overwrite initial value until have valid data.
-        min_     = std::min( min_, overlap );
-        max_     = std::max( max_, overlap );
+        const auto rawOverlap = previous_.getOverlap( dataSource );
+        overlap_ = (nbits == 0u) ? 1.0f : (Real) rawOverlap / nbits;
+        min_     = std::min( min_, overlap_ );
+        max_     = std::max( max_, overlap_ );
         // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
         // See section 9.
-        const Real diff      = overlap - mean_;
+        const Real diff      = overlap_ - mean_;
         const Real incr      = alpha * diff;
                    mean_    += incr;
                    variance_ = (1.0f - alpha) * (variance_ + diff * incr);
+        previous_.setSDR( dataSource );
     }
 
 public:
@@ -442,6 +443,9 @@ public:
         : MetricsHelper_( dimensions, period ),
           previous_( dimensions )
         { initialize(); }
+
+    void reset()
+        { previousValid_ = false; }
 
     const Real &overlap = overlap_;
     Real min() const { return min_; }
@@ -490,7 +494,7 @@ public:
 // TODO: Add flags to enable/disable which metrics this uses?
 class Metrics {
 private:
-    vector<UInt>            dimensions_;
+    vector<UInt>        dimensions_;
     Sparsity            sparsity_;
     ActivationFrequency activationFrequency_;
     Overlap             overlap_;
@@ -521,6 +525,9 @@ public:
           activationFrequency_( dimensions, period ),
           overlap_(             dimensions, period )
           {};
+
+    void reset()
+        { overlap_.reset(); }
 
     const vector<UInt>        &dimensions          = dimensions_;
     const Sparsity            &sparsity            = sparsity_;
