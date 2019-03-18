@@ -18,8 +18,8 @@
 #include <gtest/gtest.h>
 #include <nupic/types/Sdr.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
-/* Many of these tests also test SDR reshape. */
-#include <nupic/types/SdrProxy.hpp>
+/* Some of these tests also test SDR Reshape. */
+#include <nupic/types/SdrTools.hpp>
 #include <vector>
 #include <random>
 

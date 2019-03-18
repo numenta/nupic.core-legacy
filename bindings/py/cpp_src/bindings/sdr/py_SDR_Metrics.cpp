@@ -21,6 +21,7 @@
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 #include <nupic/utils/SdrMetrics.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
@@ -42,11 +43,16 @@ Metric was constructed with dimensions and NOT an SDR.
 Argument sdr is data source, its dimensions must be the same as this Metric's
 dimensions.)");
         py_Helper.def_property_readonly( "period",
-            [](const MetricsHelper_ &self){ return self.period; });
+            [](const MetricsHelper_ &self){ return self.period; },
+R"(Time scale for the exponential moving average which incorporate data into
+this measurement.  If there are fewer data samples than the period then a regular
+average is used instead of an exponential moving average.)");
         py_Helper.def_property_readonly( "samples",
-            [](const MetricsHelper_ &self){ return self.samples; });
+            [](const MetricsHelper_ &self){ return self.samples; },
+                "Number of data samples received & incorporated into this measurement.");
         py_Helper.def_property_readonly( "dimensions",
-            [](const MetricsHelper_ &self){ return self.dimensions; });
+            [](const MetricsHelper_ &self){ return self.dimensions; },
+                "Shape of the SDR data source.");
 
         // =====================================================================
         // SDR SPARSITY
@@ -79,11 +85,12 @@ sparsity.addData( SDR ) with an SDR which has these dimensions.
 Argument period is time scale for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
         py_Sparsity.def_property_readonly("sparsity",
-            [](const Sparsity &self) { return self.sparsity; });
-        py_Sparsity.def( "min",  &Sparsity::min );
-        py_Sparsity.def( "max",  &Sparsity::max );
-        py_Sparsity.def( "mean", &Sparsity::mean );
-        py_Sparsity.def( "std",  &Sparsity::std );
+            [](const Sparsity &self) { return self.sparsity; },
+                "Current Sparsity, or sparsity of most recently added SDR.");
+        py_Sparsity.def( "min",  &Sparsity::min, "Minimum Sparsity");
+        py_Sparsity.def( "max",  &Sparsity::max, "Maximum Sparsity");
+        py_Sparsity.def( "mean", &Sparsity::mean,"Average of Sparsity");
+        py_Sparsity.def( "std",  &Sparsity::std, "Standard Deviation of Sparsity");
         py_Sparsity.def("__str__", [](Sparsity &self){
             stringstream buf;
             buf << self;
@@ -129,11 +136,14 @@ these dimensions.
 Argument period is Time scale for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
         py_ActivationFrequency.def_property_readonly("activationFrequency",
-            [](const ActivationFrequency &self) { return self.activationFrequency; });
-        py_ActivationFrequency.def( "min",     &ActivationFrequency::min );
-        py_ActivationFrequency.def( "max",     &ActivationFrequency::max );
-        py_ActivationFrequency.def( "mean",    &ActivationFrequency::mean );
-        py_ActivationFrequency.def( "std",     &ActivationFrequency::std );
+            [](const ActivationFrequency &self) {
+                auto capsule = py::capsule(&self, [](void *self) {});
+                return py::array(self.activationFrequency.size(), self.activationFrequency.data(), capsule); },
+                    "Data Buffer of Activation Frequencies");
+        py_ActivationFrequency.def( "min",     &ActivationFrequency::min, "Minimum of Activation Frequencies");
+        py_ActivationFrequency.def( "max",     &ActivationFrequency::max, "Maximum of Activation Frequencies");
+        py_ActivationFrequency.def( "mean",    &ActivationFrequency::mean,"Average of Activation Frequencies" );
+        py_ActivationFrequency.def( "std",     &ActivationFrequency::std, "Standard Deviation of Activation Frequencies");
         py_ActivationFrequency.def( "entropy", &ActivationFrequency::entropy,
 R"(Binary entropy is a measurement of information.  It measures how well the
 SDR utilizes its resources (bits).  A low entropy indicates that many
@@ -187,11 +197,12 @@ Argument period is Time scale for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
         py_Overlap.def("reset", &Overlap::reset );
         py_Overlap.def_property_readonly("overlap",
-            [](const Overlap &self) { return self.overlap; });
-        py_Overlap.def( "min",     &Overlap::min );
-        py_Overlap.def( "max",     &Overlap::max );
-        py_Overlap.def( "mean",    &Overlap::mean );
-        py_Overlap.def( "std",     &Overlap::std );
+            [](const Overlap &self) { return self.overlap; },
+                "Overlap between the two most recently added SDRs.");
+        py_Overlap.def( "min",     &Overlap::min, "Minimum Overlap");
+        py_Overlap.def( "max",     &Overlap::max, "Maximum Overlap");
+        py_Overlap.def( "mean",    &Overlap::mean,"Average Overlap");
+        py_Overlap.def( "std",     &Overlap::std, "Standard Deviation of Overlap");
         py_Overlap.def("__str__", [](Overlap &self){
             stringstream buf;
             buf << self;
@@ -215,9 +226,9 @@ Example Usage:
     for i in range( 20 ):
         A.addNoise( 0.55 )
 
-    M.sparsity            -> Sparsity
-    M.activationFrequency -> ActivationFrequency
-    M.overlap             -> Overlap
+    M.sparsity            -> Sparsity class instance
+    M.activationFrequency -> ActivationFrequency class instance
+    M.overlap             -> Overlap class instance
     str(M) -> SDR( 2000 )
                 Sparsity Min/Mean/Std/Max 0.1 / 0.1 / 0 / 0.1
                 Activation Frequency Min/Mean/Std/Max 0 / 0.1 / 0.100464 / 0.666667

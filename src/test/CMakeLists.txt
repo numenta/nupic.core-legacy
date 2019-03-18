@@ -99,7 +99,7 @@ set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
 	   unit/types/SdrTest.cpp
-	   unit/types/SdrReshapeTest.cpp
+	   unit/types/SdrToolsTest.cpp
 	   )
 	   
 set(utils_tests

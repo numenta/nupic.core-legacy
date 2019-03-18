@@ -175,7 +175,7 @@ TEST(ScalarEncoder, PeriodicRoundNearestMultipleOfResolution) {
 }
 
 TEST(ScalarEncoder, Serialization) {
-  vector<ScalarEncoder*> inputs;
+  std::vector<ScalarEncoder*> inputs;
   ScalarEncoderParameters p;
   p.minimum    = -1.234;
   p.maximum    = 12.34;

@@ -28,7 +28,7 @@
 
 #include <algorithm> // std::min
 #include <numeric>   // std::iota
-#include <cmath>     // isnan
+#include <cmath>     // std::isnan
 #include <nupic/encoders/ScalarEncoder.hpp>
 using nupic::sdr::SDR;
 
@@ -124,7 +124,7 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
 {
   // Check inputs
   NTA_CHECK( output.size == size );
-  if( isnan(input) ) {
+  if( std::isnan(input) ) {
     output.zero();
     return;
   }
@@ -171,12 +171,12 @@ void ScalarEncoder::save(std::ostream &stream) const
   stream << parameters.activeBits << " ";
   // Save the resolution instead of the size BC it's higher precision.
   stream << parameters.resolution << " ";
-  stream << "~ScalarEncoder~" << endl;
+  stream << "~ScalarEncoder~" << std::endl;
 }
 
 void ScalarEncoder::load(std::istream &stream)
 {
-  string prelude;
+  std::string prelude;
   stream >> prelude;
   NTA_CHECK( prelude == "ScalarEncoder" );
 
@@ -188,7 +188,7 @@ void ScalarEncoder::load(std::istream &stream)
   stream >> p.activeBits;
   stream >> p.resolution;
 
-  string postlude;
+  std::string postlude;
   stream >> postlude;
   NTA_CHECK( postlude == "~ScalarEncoder~" );
   stream.ignore( 1 ); // Eat the trailing newline.

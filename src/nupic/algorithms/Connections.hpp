@@ -567,8 +567,8 @@ protected:
    * connected or not.
    */
   void removeSynapseFromPresynapticMap_(const Synapse index,
-                                  vector<Synapse> &synapsesForPresynapticCell,
-                                  vector<Synapse> &segmentsForPresynapticCell);
+                              std::vector<Synapse> &synapsesForPresynapticCell,
+                              std::vector<Synapse> &segmentsForPresynapticCell);
 
 private:
   std::vector<CellData>    cells_;
