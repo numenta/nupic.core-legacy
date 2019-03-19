@@ -19,6 +19,7 @@
  */
 
 #include <cmath> // log2, isnan
+#include <numeric> // accumulate
 #include <regex>
 #include <nupic/utils/SdrMetrics.hpp>
 
