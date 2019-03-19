@@ -44,8 +44,8 @@ namespace connections {
 typedef UInt32 CellIdx;  //TODO instead of typedefs, use templates for proper type-checking
 typedef unsigned char SegmentIdx; /** Index of segment in cell. */
 typedef unsigned char SynapseIdx; /** Index of synapse in segment. */
-typedef UInt16 Segment;    /** Index of segment's data. */
-typedef UInt16 Synapse;    /** Index of synapse's data. */
+typedef unsigned char Segment;    /** Index of segment's data. */ //Segment & SegmentIdx, Synapse & SynapseIdx must be the same range.
+typedef unsigned char Synapse;    /** Index of synapse's data. */
 typedef Real32 Permanence;
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
@@ -90,6 +90,7 @@ struct SegmentData {
 
 /**
  * CellData class used in Connections.
+ * A cell consists of segments and in Connections is indexed by CellIdx.
  *
  * @b Description
  * The CellData contains the underlying data for a Cell.

@@ -87,7 +87,8 @@ Segment Connections::createSegment(CellIdx cell) {
     segment = destroyedSegments_.back();
     destroyedSegments_.pop_back();
   } else {
-    NTA_CHECK(std::numeric_limits<Segment>::max() >= segments_.size()) << "Add segment failed: Range of Segment (data-type) insufficinet size.";
+    NTA_CHECK(std::numeric_limits<Segment>::max() >= segments_.size()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
+	    << std::numeric_limits<Segment>::max() << " >= " << segments_.size();
     segment = (Segment)segments_.size();
     segments_.push_back(SegmentData());
     segmentOrdinals_.push_back(0);
@@ -117,7 +118,8 @@ Synapse Connections::createSynapse(Segment segment,
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
-    NTA_CHECK(std::numeric_limits<Synapse>::max() >= synapses_.size()) << "Add synapse failed: Range of Synapse (data-type) insufficient size.";
+    NTA_CHECK(std::numeric_limits<Synapse>::max() >= synapses_.size()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
+	    << "'" << std::numeric_limits<Synapse>::max() << " >= " << synapses_.size();
     synapse = (Synapse)synapses_.size();
     synapses_.push_back(SynapseData());
     synapseOrdinals_.push_back(0);
@@ -284,7 +286,8 @@ void Connections::updateSynapsePermanence(Synapse synapse,
     auto &connectedPreseg = connectedSegmentsForPresynapticCell_[presyn];
     const auto &segment   = synData.segment;
     auto &segmentData     = segments_[segment];
-    if( after ) {
+    
+    if( after ) { //connect
       segmentData.numConnected++;
 
       // Remove this synapse from presynaptic potential synapses.
@@ -296,7 +299,7 @@ void Connections::updateSynapsePermanence(Synapse synapse,
       connectedPresyn.push_back( synapse );
       connectedPreseg.push_back( segment );
     }
-    else {
+    else { //disconnected
       segmentData.numConnected--;
 
       // Remove this synapse from presynaptic connected synapses.
@@ -467,7 +470,7 @@ void Connections::adaptSegment(const Segment segment,
   }
 }
 
-/** called for under-performing Segments. (can have synapses pruned, etc.)
+/** called for under-performing Segments. (could have had synapses pruned, etc.)
  * After the call, Segment will have at least 
  * segmentThreshold synapses connected (>= permanenceThreshold).
  * So the Segment could likely be active next time.
@@ -518,7 +521,7 @@ void Connections::raisePermanencesToThreshold(
 
   // Raise the permance of all synapses in the potential pool uniformly.
   for( const auto &syn : synapses ) //TODO vectorize: vector + const to all members
-    updateSynapsePermanence(syn, synapses_[syn].permanence + increment);
+    updateSynapsePermanence(syn, synapses_[syn].permanence + increment); //this is performance HOTSPOT
 }
 
 
