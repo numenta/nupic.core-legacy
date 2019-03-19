@@ -30,7 +30,6 @@ namespace py = pybind11;
 namespace nupic_ext
 {
     void init_ScalarEncoder(py::module&);
-    void init_CategoryEncoder(py::module&);
     void init_RDSE(py::module&);
 }
 
@@ -40,6 +39,5 @@ PYBIND11_MODULE(encoders, m) {
     m.doc() = "nupic.bindings.encoders"; // optional module docstring
 
     init_ScalarEncoder(m);
-    init_CategoryEncoder(m);
     init_RDSE(m);
 }

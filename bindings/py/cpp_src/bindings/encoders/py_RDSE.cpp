@@ -45,7 +45,7 @@ namespace nupic_ext
         py_RDSE.def("encode", &RDSE::encode, "TODO DOCS");
 
         py_RDSE.def("encode", [](RDSE &self, Real64 value) {
-            auto sdr = new SDR({self.size});
+            auto sdr = new sdr::SDR({self.size});
             self.encode(value, *sdr);
             return sdr;
         });

@@ -105,7 +105,6 @@ set(encoders_files
     nupic/encoders/BaseEncoder.hpp
     nupic/encoders/ScalarEncoder.cpp
     nupic/encoders/ScalarEncoder.hpp
-    nupic/encoders/CategoryEncoder.hpp
     nupic/encoders/RandomDistributedScalarEncoder.hpp
     nupic/encoders/RandomDistributedScalarEncoder.cpp
 )

@@ -29,6 +29,7 @@
 #include <vector>
 
 using namespace nupic;
+using namespace nupic::sdr;
 using namespace nupic::encoders;
 
 TEST(RDSE, testConstruct) {

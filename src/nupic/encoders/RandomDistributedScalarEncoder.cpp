@@ -22,6 +22,8 @@
 #include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
 #include <nupic/utils/MurmurHash3.h>
 
+using namespace std;
+
 namespace nupic {
 namespace encoders {
 
@@ -76,7 +78,7 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
   BaseEncoder<Real64>::initialize({ args_.size });
 }
 
-void RandomDistributedScalarEncoder::encode(Real64 input, SDR &output)
+void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
 {
   // Check inputs
   NTA_CHECK( output.size == size );
@@ -85,7 +87,7 @@ void RandomDistributedScalarEncoder::encode(Real64 input, SDR &output)
     return;
   }
 
-  SDR_dense_t &data = output.getDense();
+  auto &data = output.getDense();
 
   // Use the given seed to make a better, more randomized seed.
   UInt32 apple_seed = MurmurHash3_x86_32(&args_.seed, sizeof(args_.seed), 0);

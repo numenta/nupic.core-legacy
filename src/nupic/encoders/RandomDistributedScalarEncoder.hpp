@@ -24,8 +24,6 @@
 #ifndef NTA_ENCODERS_RDSE
 #define NTA_ENCODERS_RDSE
 
-#include <nupic/types/Sdr.hpp>
-#include <nupic/types/Types.hpp>
 #include <nupic/encoders/BaseEncoder.hpp>
 
 namespace nupic {
@@ -60,7 +58,7 @@ public:
   /**
    * TODO DOCUMENTATION
    */
-  void encode(Real64 input, SDR &output) override;
+  void encode(Real64 input, sdr::SDR &output) override;
 
   void save(std::ostream &stream) const override;
   void load(std::istream &stream) override;
