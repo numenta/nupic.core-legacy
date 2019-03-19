@@ -596,7 +596,7 @@ void Connections::load(std::istream &inStream) {
         inStream >> destroyedSegment;
       }
 
-      Segment segment = {std::numeric_limits<Segment>::max()-1};
+      Segment segment = {std::numeric_limits<Segment>::max()};
       if (!destroyedSegment)
         segment = createSegment( cell );
 
