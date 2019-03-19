@@ -94,19 +94,23 @@ UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
 
   UInt32 k1 = 0;
 
-  switch(len & 3)
+  const auto tail_switch = len & 3;
+  if( tail_switch == 3 )
   {
-    case 3: k1 ^= tail[2] << 16;
-      /* fallthrough */
-    case 2: k1 ^= tail[1] << 8;
-      /* fallthrough */
-    case 1: k1 ^= tail[0];
-            k1 *= c1;
-            k1  = ROTL32(k1,15);
-            k1 *= c2;
-            h1 ^= k1;
-      /* fallthrough */
-  };
+    k1 ^= tail[2] << 16;
+  }
+  if( tail_switch >= 2 )
+  {
+    k1 ^= tail[1] << 8;
+  }
+  if( tail_switch >= 1 )
+  {
+    k1 ^= tail[0];
+    k1 *= c1;
+    k1  = ROTL32(k1,15);
+    k1 *= c2;
+    h1 ^= k1;
+  }
 
   //----------
   // finalization

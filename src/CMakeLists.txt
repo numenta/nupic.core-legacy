@@ -229,7 +229,6 @@ set(utils_files
     nupic/utils/MurmurHash3.h
     nupic/utils/MurmurHash3.cpp
 )
-set_source_files_properties(nupic/utils/MurmurHash3.cpp PROPERTIES COMPILE_FLAGS -Wno-implicit-fallthrough)
 
 set(examples_files
     examples/hotgym/Hotgym.cpp # contains conflicting main()
