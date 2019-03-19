@@ -6,30 +6,14 @@
 
 namespace nupic {
 
-//-----------------------------------------------------------------------------
-// Platform-specific functions and macros
-
-// Microsoft Visual Studio
-#if defined(_MSC_VER)
-
-  #include <stdlib.h>
-
-  #define ROTL32(x,y)	_rotl(x,y)
-
-#else // Other compilers
-  /*
-   * Don't worry about the technically undefined behavior when r >= 32, since this
-   * is only used with a hardcoded r
-   */
-  inline UInt32 rotl32 ( UInt32 x, int8_t r )
-  {
-    return (x << r) | (x >> (32 - r));
-  }
-
-  #define	ROTL32(x,y)	rotl32(x,y)
-
-#endif // !defined(_MSC_VER)
-
+/*
+ * Don't worry about the technically undefined behavior when r >= 32, since this
+ * is only used with a hardcoded r
+ */
+inline UInt32 rotl32 ( UInt32 x, char r )
+{
+  return (x << r) | (x >> (32 - r));
+}
 
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
@@ -79,11 +63,11 @@ UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
     UInt32 k1 = getblock32(blocks,i);
 
     k1 *= c1;
-    k1 = ROTL32(k1,15);
+    k1 = rotl32(k1,15);
     k1 *= c2;
 
     h1 ^= k1;
-    h1 = ROTL32(h1,13); 
+    h1 = rotl32(h1,13);
     h1 = h1 * 5 + 0xe6546b64;
   }
 
@@ -107,7 +91,7 @@ UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
   {
     k1 ^= tail[0];
     k1 *= c1;
-    k1  = ROTL32(k1,15);
+    k1  = rotl32(k1,15);
     k1 *= c2;
     h1 ^= k1;
   }
