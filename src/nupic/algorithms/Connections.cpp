@@ -82,10 +82,11 @@ void Connections::unsubscribe(UInt32 token) {
 
 Segment Connections::createSegment(CellIdx cell) {
   Segment segment;
-  if (destroyedSegments_.size() > 0) {
+  if (!destroyedSegments_.empty() ) {
     segment = destroyedSegments_.back();
     destroyedSegments_.pop_back();
   } else {
+    NTA_CHECK(std::numeric_limits<Segment>::max() >= segments_.size()) << "Add segment failed: Range of Segment (data-type) insufficinet size.";
     segment = (Segment)segments_.size();
     segments_.push_back(SegmentData());
     segmentOrdinals_.push_back(0);
@@ -111,11 +112,12 @@ Synapse Connections::createSynapse(Segment segment,
                                    Permanence permanence) {
   // Get an index into the synapses_ list, for the new synapse to reside at.
   Synapse synapse;
-  if (destroyedSynapses_.size() > 0) {
+  if (!destroyedSynapses_.empty() ) {
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
-    synapse = (UInt)synapses_.size();
+    NTA_CHECK(std::numeric_limits<Synapse>::max() >= synapses_.size()) << "Add synapse failed: Range of Synapse (data-type) insufficient size.";
+    synapse = (Synapse)synapses_.size();
     synapses_.push_back(SynapseData());
     synapseOrdinals_.push_back(0);
   }
