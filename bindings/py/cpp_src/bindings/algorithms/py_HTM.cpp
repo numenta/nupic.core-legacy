@@ -43,6 +43,7 @@ namespace nupic_ext
 
 namespace py = pybind11;
 using namespace nupic;
+using nupic::sdr::SDR;
 using nupic::algorithms::connections::Permanence; 
 
     void init_HTM(py::module& m)

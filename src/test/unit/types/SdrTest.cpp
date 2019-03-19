@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <nupic/types/Sdr.hpp>
-#include <nupic/types/SdrProxy.hpp>
+#include <nupic/types/SdrTools.hpp>
 #include <vector>
 #include <random>
 
@@ -25,6 +25,7 @@ namespace testing {
     
 using namespace std;
 using namespace nupic;
+using namespace nupic::sdr;
 
 /* This also tests the size and dimensions are correct */
 TEST(SdrTest, TestConstructor) {
@@ -638,17 +639,17 @@ TEST(SdrTest, TestSaveLoad) {
     dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
     dense.save( outfile );
 
-    // Test flat data
-    SDR flat({ 3, 3 });
-    flat.setSparse(SDR_sparse_t({ 1, 4, 8 }));
-    flat.save( outfile );
+    // Test sparse data
+    SDR sparse({ 3, 3 });
+    sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
+    sparse.save( outfile );
 
-    // Test index data
-    SDR index({ 3, 3 });
-    index.setCoordinates(SDR_coordinate_t({
+    // Test coordinate data
+    SDR coord({ 3, 3 });
+    coord.setCoordinates(SDR_coordinate_t({
             { 0, 1, 2 },
             { 1, 1, 2 }}));
-    index.save( outfile );
+    coord.save( outfile );
 
     // Now load all of the data back into SDRs.
     outfile.close();
@@ -665,10 +666,10 @@ TEST(SdrTest, TestSaveLoad) {
     zero_2.load( infile );
     SDR dense_2;
     dense_2.load( infile );
-    SDR flat_2;
-    flat_2.load( infile );
-    SDR index_2;
-    index_2.load( infile );
+    SDR sparse_2;
+    sparse_2.load( infile );
+    SDR coord_2;
+    coord_2.load( infile );
 
     infile.close();
     int ret = ::remove( filename );
@@ -677,8 +678,8 @@ TEST(SdrTest, TestSaveLoad) {
     // Check that all of the data is OK
     ASSERT_TRUE( zero    == zero_2 );
     ASSERT_TRUE( dense   == dense_2 );
-    ASSERT_TRUE( flat    == flat_2 );
-    ASSERT_TRUE( index   == index_2 );
+    ASSERT_TRUE( sparse  == sparse_2 );
+    ASSERT_TRUE( coord   == coord_2 );
 }
 
 TEST(SdrTest, TestCallbacks) {
@@ -703,7 +704,7 @@ TEST(SdrTest, TestCallbacks) {
     UInt handle2 = A.addCallback( call2 );
     UInt handle3 = A.addCallback( call3 );
     // Test reshape gets callbacks
-    SDR_Reshape C(A);
+    Reshape C(A);
     C.addCallback( call4 );
 
     // Remove call 2 and add it back in.
@@ -754,78 +755,5 @@ TEST(SdrTest, TestCallbacks) {
     ASSERT_ANY_THROW( B.removeCallback( 0 ) );
     // Check SDR Reshape got all of the callbacks and passed them along.
     ASSERT_EQ( count4, 4 );
-}
-
-
-TEST(SdrTest, TestIntersectionExampleUsage) {
-    // Setup 2 SDRs to hold the inputs.
-    SDR A({ 10u });
-    SDR B({ 10u });
-    A.setSparse(SDR_sparse_t(      {2, 3, 4, 5}));
-    B.setSparse(SDR_sparse_t({0, 1, 2, 3}));
-
-    // Calculate the logical intersection
-    SDR_Intersection X(A, B);
-    ASSERT_EQ(X.getSparse(), SDR_sparse_t({2, 3}));
-
-    // Assignments to the input SDRs are propigated to the SDR_Intersection
-    B.zero();
-    ASSERT_EQ(X.getSparsity(), 0.0f);
-}
-
-
-TEST(SdrTest, TestIntersection) {
-    SDR A({1000});
-    SDR B({1000});
-    A.randomize(.5);
-    B.randomize(.5);
-
-    // Test basic functionality
-    SDR_Intersection X(A, B);
-    SDR *Xp = &X;
-    Xp->getDense();
-    ASSERT_GT( Xp->getSparsity(), .25 / 2. );
-    ASSERT_LT( Xp->getSparsity(), .25 * 2. );
-    A.zero();
-    ASSERT_EQ( Xp->getSum(), 0u );
-
-    // Test deleting input SDR before SDR_Intersection
-    SDR *C = new SDR({A.size});
-    SDR *Y = new SDR_Intersection(A, B, *C);
-    delete C;
-    delete Y;
-
-    // Test subclass attribute access
-    SDR C2({A.size});
-    SDR D({A.size});
-    SDR_Intersection Z(A, B, C2, D);
-    ASSERT_EQ(Z.size, A.size);                            // Access SDR
-    ASSERT_EQ(Z.inputs, vector<SDR*>({&A, &B, &C2, &D})); // Access SDR_Intersection
-}
-
-
-TEST(SdrTest, TestConcatenationExampleUsage) {
-    SDR               A({ 100 });
-    SDR               B({ 100 });
-    SDR_Concatenation C( A, B );
-    ASSERT_EQ(C.dimensions, vector<UInt>({ 200 }));
-
-    SDR               D({ 640, 480, 3 });
-    SDR               E({ 640, 480, 7 });
-    SDR_Concatenation F( D, E, 2 );
-    ASSERT_EQ(F.dimensions, vector<UInt>({ 640, 480, 10 }));
-}
-
-TEST(SdrTest, TestConcatenation) {
-    SDR A({10000});
-    SDR B({10000});
-    SDR_Concatenation C(A, B);
-    SDR_Concatenation D(A, B, 0u);
-    SDR_Concatenation E({&A, &B});
-    SDR_Concatenation F({&A, &B}, 0u);
-    A.randomize( 0.25f );
-    B.randomize( 0.75f );
-    ASSERT_LT( C.getSparsity(), 0.55f );
-    ASSERT_GT( C.getSparsity(), 0.45f );
 }
 }
