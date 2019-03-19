@@ -49,6 +49,7 @@
 using namespace nupic;
 using namespace nupic::utils;
 using namespace nupic::algorithms::temporal_memory;
+using nupic::sdr::SDR;
 
 TMRegion::TMRegion(const ValueMap &params, Region *region)
     : RegionImpl(region), computeCallback_(nullptr) {

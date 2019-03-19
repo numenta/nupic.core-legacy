@@ -31,14 +31,13 @@
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
 
-using namespace std;
-
 namespace nupic {
+namespace sdr {
 
-typedef vector<Byte>          SDR_dense_t;
-typedef vector<UInt>          SDR_sparse_t;
-typedef vector<vector<UInt>>  SDR_coordinate_t;
-typedef function<void()>      SDR_callback_t;
+typedef std::vector<Byte>               SDR_dense_t;
+typedef std::vector<UInt>               SDR_sparse_t;
+typedef std::vector<std::vector<UInt>>  SDR_coordinate_t;
+typedef std::function<void()>           SDR_callback_t;
 
 /**
  * SparseDistributedRepresentation class
@@ -124,8 +123,8 @@ typedef function<void()>      SDR_callback_t;
 class SparseDistributedRepresentation : public Serializable
 {
 private:
-    vector<UInt> dimensions_;
-    UInt         size_;
+    std::vector<UInt> dimensions_;
+    UInt              size_;
 
 protected:
     /**
@@ -149,14 +148,14 @@ private:
      * These hooks are called every time the SDR's value changes.  These can be
      * NULL pointers!  See methods addCallback & removeCallback for API details.
      */
-    vector<SDR_callback_t> callbacks;
+    std::vector<SDR_callback_t> callbacks;
 
     /**
      * These hooks are called when the SDR is destroyed.  These can be NULL
      * pointers!  See methods addDestroyCallback & removeDestroyCallback for API
      * details.
      */
-    vector<SDR_callback_t> destroyCallbacks;
+    std::vector<SDR_callback_t> destroyCallbacks;
 
 protected:
     /**
@@ -212,9 +211,9 @@ public:
      * @param dimensions A list of dimension sizes, defining the shape of the
      * SDR.  The product of the dimensions must be greater than zero.
      */
-    SparseDistributedRepresentation( const vector<UInt> dimensions );
+    SparseDistributedRepresentation( const std::vector<UInt> dimensions );
 
-    void initialize( const vector<UInt> dimensions );
+    void initialize( const std::vector<UInt> dimensions );
 
     /**
      * Initialize this SDR as a deep copy of the given SDR.  This SDR and the
@@ -230,7 +229,7 @@ public:
     /**
      * @attribute dimensions A list of dimensions of the SDR.
      */
-    const vector<UInt> &dimensions = dimensions_;
+    const std::vector<UInt> &dimensions = dimensions_;
 
     /**
      * @attribute size The total number of boolean values in the SDR.
@@ -258,7 +257,7 @@ public:
      * @param value A dense vector to copy into the SDR.
      */
      template<typename T>
-     void setDense( const vector<T> &value ) {
+     void setDense( const std::vector<T> &value ) {
        NTA_ASSERT(value.size() == size);
        setDense(value.data());
      }
@@ -295,7 +294,7 @@ public:
      *
      * @returns The value of the SDR at the given location.
      */
-    Byte at(const vector<UInt> &coordinates) const;
+    Byte at(const std::vector<UInt> &coordinates) const;
 
     /**
      * Swap a new value into the SDR, replacing the current value.  This
@@ -313,7 +312,7 @@ public:
      * @param value A vector of flat indices to copy into the SDR.
      */
     template<typename T>
-    void setSparse( const vector<T> &value ) {
+    void setSparse( const std::vector<T> &value ) {
       sparse_.assign( value.begin(), value.end() );
       setSparseInplace();
     }
@@ -369,7 +368,7 @@ public:
      * into the sdr.dimensions list.  The inner lists are indexed in parallel.
      */
     template<typename T>
-    void setCoordinates( const vector<vector<T>> &value ) {
+    void setCoordinates( const std::vector<std::vector<T>> &value ) {
       NTA_ASSERT(value.size() == dimensions.size());
       for(UInt dim = 0; dim < dimensions.size(); dim++) {
         coordinates_[dim].clear();
@@ -481,7 +480,7 @@ public:
             if( i + 1 != data.size() )
                 stream << ", ";
         }
-        return stream << endl;
+        return stream << std::endl;
     }
 
     bool operator==(const SparseDistributedRepresentation &sdr) const;
@@ -553,5 +552,6 @@ public:
 
 typedef SparseDistributedRepresentation SDR;
 
+} // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_HPP

@@ -34,9 +34,11 @@
 #include <nupic/math/Math.hpp> // nupic::Epsilon
 #include <nupic/utils/VectorHelpers.hpp>
 
+using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
+using nupic::sdr::SDR;
 using nupic::utils::VectorHelpers;
 
 class CoordinateConverterND {

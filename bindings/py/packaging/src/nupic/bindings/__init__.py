@@ -22,29 +22,29 @@
 """
 ## @file
 """
-import os,sys
 
-def import_helper(name):
-  from os.path import dirname
-  
-      # Fast path: see if the module has already been imported.
+def _import_helper(name):
+  import sys
+  from os.path import dirname, join
+
+  # Fast path: see if the module has already been imported.
   #print("name={}".format(name))
   try:
     return sys.modules[name]
   except KeyError:
     pass
-		
+
   _mod = None
   basename = name[15:]
   if sys.version_info[0]+sys.version_info[1]/10 <= 3.4 :	
-    # for Python 2.7	
+    # For Python 2.7
     import imp
     fp = None
     try:
       fp, pathname, description = imp.find_module(basename, [dirname(__file__)])
     finally:
       if fp is None:
-        print("name={} no import libarary found".format(name))
+        print("name={} no import library found".format(name))
       else:
         try:
           print("name={}, pathname={}".format(name, pathname))
@@ -54,24 +54,24 @@ def import_helper(name):
           if fp:
               fp.close()
   else:
-    # for Python 3.5+
+    # For Python 3.5+
     import importlib.util
     import glob
     spec = None
-    filename = glob.glob(os.path.join(dirname(__file__), basename +"*"))
+    filename = glob.glob(join(dirname(__file__), basename +"*"))
     print("filename={}".format(filename))
     if filename:
       spec = importlib.util.spec_from_file_location(name, filename[0])	
     if spec is None:
-      print("name=nupic.bindings.{} no import libray found".format(name))
+      print("name=nupic.bindings.{} no import library found".format(name))
     else:
       _mod = importlib.util.module_from_spec(spec)
       spec.loader.exec_module(_mod);
       sys.modules[name] = _mod
   return _mod;
-  
-algorithms = import_helper('nupic.bindings.algorithms')
-encoders = import_helper('nupic.bindings.encoders')
-engine_internal = import_helper('nupic.bindings.engine_internal')
-math = import_helper('nupic.bindings.math')
 
+sdr             = _import_helper('nupic.bindings.sdr')
+encoders        = _import_helper('nupic.bindings.encoders')
+algorithms      = _import_helper('nupic.bindings.algorithms')
+engine_internal = _import_helper('nupic.bindings.engine_internal')
+math            = _import_helper('nupic.bindings.math')

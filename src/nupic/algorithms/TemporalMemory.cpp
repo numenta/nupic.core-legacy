@@ -49,6 +49,7 @@
 
 using namespace std;
 using namespace nupic;
+using nupic::sdr::SDR;
 using nupic::algorithms::temporal_memory::TemporalMemory;
 using nupic::algorithms::connections::SynapseIdx;
 using nupic::algorithms::connections::SynapseData;

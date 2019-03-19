@@ -192,7 +192,7 @@ public:
   /**
    * Create an ArrayBase containing a copy of an SDR.
    */
-  Array(const SDR &sdr) : ArrayBase(sdr) {}
+  Array(const sdr::SDR &sdr) : ArrayBase(sdr) {}
 
   /**
    * Create an ArrayBase with type and data from vector
@@ -261,7 +261,7 @@ public:
     * The vector is assumed to contain only dense format data.
     */
   template <typename T> void populate(const std::vector<T> &v) {
-    NTA_CHECK(typeid(T) != typeid(SDR)) << "A vector<SDR> not allowed.";
+    NTA_CHECK(typeid(T) != typeid(sdr::SDR)) << "A vector<SDR> not allowed.";
     NTA_BasicType fromType = BasicType::getType<T>();
     allocateBuffer(v.size());
     if (getCount() > 0) {
