@@ -42,6 +42,9 @@ namespace nupic_ext
         py::class_<RDSE> py_RDSE(m, "RDSE", "TODO DOCS");
         py_RDSE.def(py::init<RDSE_Parameters>());
 
+        py_RDSE.def_property_readonly("parameters",
+            [](RDSE &self) { return self.parameters; });
+
         py_RDSE.def("encode", &RDSE::encode, "TODO DOCS");
 
         py_RDSE.def("encode", [](RDSE &self, Real64 value) {

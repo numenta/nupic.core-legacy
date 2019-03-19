@@ -1,6 +1,7 @@
 # ----------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 # Copyright (C) 2019, David McDougall
+#
 # The following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,8 +15,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """Unit tests for Random Distributed Scalar Encoder."""
@@ -26,8 +25,8 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Metrics
-from nupic.bindings.encoders import RDSE
+from nupic.bindings.sdr import SDR, Metrics
+from nupic.bindings.encoders import RDSE, RDSE_Parameters
 
 class RDSE_Test(unittest.TestCase):
     @pytest.mark.skip("TODO UNIMPLEMENTED!")
@@ -35,70 +34,98 @@ class RDSE_Test(unittest.TestCase):
         1/0
 
     def testConstructor(self):
-        A = SDR( 100 )
-        R = RDSE( A.size, .10, 10 )
-        R.encode( 66, A )
-        B = R.encode( 66 )
+        params1 = RDSE_Parameters()
+        params1.size     = 100
+        params1.sparsity = .10
+        params1.radius   = 10
+        R1 = RDSE( params1 )
+
+        params2 = R1.parameters
+        params2.sparsity = 0 # Remove duplicate arguments
+        params2.radius   = 0 # Remove duplicate arguments
+        R2 = RDSE( params2 )
+
+        A = SDR( R1.parameters.size )
+        R1.encode( 66, A )
+
+        B = R2.encode( 66 )
         assert( A == B )
 
     def testAverageOverlap(self):
         """ Verify that nearby values have the correct amount of semantic
         similarity. Also measure sparsity & activation frequency. """
-        A = SDR( 1000 )
-        M = SDR_Metrics( A, 999999 )
-        R = RDSE( A.size, .10, 12 )
-        for i in range( 10000 ):
+        P = RDSE_Parameters()
+        P.size     = 2000
+        P.sparsity = .08
+        P.radius   = 12
+        P.seed     = 42
+        R = RDSE( P )
+        A = SDR( R.parameters.size )
+        num_samples = 5000
+        M = Metrics( A, num_samples + 1 )
+        for i in range( num_samples ):
             R.encode( i, A )
-        assert(M.sparsity.min()  > .10 - .02 )
-        assert(M.sparsity.max()  < .10 + .02 )
-        assert(M.sparsity.mean() > .10 - .005 )
-        assert(M.sparsity.mean() < .10 + .005 )
-        assert(M.activationFrequency.min()  > .10 - .05 )
-        assert(M.activationFrequency.max()  < .10 + .05 )
-        assert(M.activationFrequency.mean() > .10 - .005 )
-        assert(M.activationFrequency.mean() < .10 + .005 )
-        assert(M.activationFrequency.entropy() > .98 )
-        assert(M.overlap.min()  > (1-1./12) - .25 )
-        assert(M.overlap.max()  < (1-1./12) + .25 )
-        assert(M.overlap.mean() > (1-1./12) - .05 )
-        assert(M.overlap.mean() < (1-1./12) + .05 )
+        print( M )
+        assert(M.overlap.min()  > (1 - 1. / R.parameters.radius) - .02 )
+        assert(M.overlap.max()  < (1 - 1. / R.parameters.radius) + .02 )
+        assert(M.overlap.mean() > (1 - 1. / R.parameters.radius) - .001 )
+        assert(M.overlap.mean() < (1 - 1. / R.parameters.radius) + .001 )
+        assert(M.sparsity.min()  > R.parameters.sparsity - .01 )
+        assert(M.sparsity.max()  < R.parameters.sparsity + .01 )
+        assert(M.sparsity.mean() > R.parameters.sparsity - .005 )
+        assert(M.sparsity.mean() < R.parameters.sparsity + .005 )
+        assert(M.activationFrequency.min()  > R.parameters.sparsity - .05 )
+        assert(M.activationFrequency.max()  < R.parameters.sparsity + .05 )
+        assert(M.activationFrequency.mean() > R.parameters.sparsity - .005 )
+        assert(M.activationFrequency.mean() < R.parameters.sparsity + .005 )
+        assert(M.activationFrequency.entropy() > .99 )
 
     def testRandomOverlap(self):
         """ Verify that distant values have little to no semantic similarity.
         Also measure sparsity & activation frequency. """
-        A = SDR( 1000 )
-        M = SDR_Metrics( A, 999999 )
-        R = RDSE( A.size, .10, 12 )
-        x = 0
-        y = 2 * 12
-        for i in range( 10000 ):
-            R.encode( x, A )
-            x += max( y, i )
-        assert(M.sparsity.min()  > .10 - .02 )
-        assert(M.sparsity.max()  < .10 + .02 )
-        assert(M.sparsity.mean() > .10 - .005 )
-        assert(M.sparsity.mean() < .10 + .005 )
-        assert(M.activationFrequency.min()  > .10 - .05 )
-        assert(M.activationFrequency.max()  < .10 + .05 )
-        assert(M.activationFrequency.mean() > .10 - .005 )
-        assert(M.activationFrequency.mean() < .10 + .005 )
-        assert(M.activationFrequency.entropy() > .98 )
-        assert(M.overlap.max()  < .40 )
-        assert(M.overlap.mean() < .20 )
+        P = RDSE_Parameters()
+        P.size     = 2000
+        P.sparsity = .08
+        P.radius   = 12
+        P.seed     = 42
+        R = RDSE( P )
+        num_samples = 1000
+        A = SDR( R.parameters.size )
+        M = Metrics( A, num_samples + 1 )
+        for i in range( num_samples ):
+            X = i * R.parameters.radius
+            R.encode( X, A )
+        print( M )
+        assert(M.overlap.max()  < .15 )
+        assert(M.overlap.mean() < .10 )
+        assert(M.sparsity.min()  > R.parameters.sparsity - .01 )
+        assert(M.sparsity.max()  < R.parameters.sparsity + .01 )
+        assert(M.sparsity.mean() > R.parameters.sparsity - .005 )
+        assert(M.sparsity.mean() < R.parameters.sparsity + .005 )
+        assert(M.activationFrequency.min()  > R.parameters.sparsity - .05 )
+        assert(M.activationFrequency.max()  < R.parameters.sparsity + .05 )
+        assert(M.activationFrequency.mean() > R.parameters.sparsity - .005 )
+        assert(M.activationFrequency.mean() < R.parameters.sparsity + .005 )
+        assert(M.activationFrequency.entropy() > .99 )
 
     def testDeterminism(self):
         """ Verify that the same seed always gets the same results. """
         GOLD = SDR( 1000 )
         GOLD.sparse = [
-            11, 21, 49, 100, 136, 140, 150, 151, 177, 207, 242, 284, 287, 292,
-            295, 323, 341, 377, 455, 475, 501, 520, 547, 560, 574, 595, 681,
-            693, 702, 710, 739, 742, 748, 776, 794, 798, 805, 896, 898, 915,
-            937, 950, 954, 955, 983, 984, 992]
+            1, 47, 76, 79, 80, 85, 102, 124, 134, 141, 150, 158, 161, 168, 176,
+            202, 227, 236, 240, 246, 263, 273, 295, 319, 352, 367, 377, 380,
+            392, 400, 410, 439, 468, 472, 493, 500, 506, 508, 515, 539, 542,
+            574, 580, 583, 584, 617, 618, 636, 640, 648, 652, 664, 671, 697,
+            708, 727, 734, 736, 744, 760, 773, 774, 777, 780, 785, 795, 796,
+            801, 809, 810, 840, 863, 900, 902, 941, 950, 998]
 
-        A = SDR( 1000 )
-        seed = 93
-        R = RDSE( A.size, .05, 12, seed )
-        R.encode( 987654, A )
+        P = RDSE_Parameters()
+        P.size     = GOLD.size
+        P.sparsity = .08
+        P.radius   = 12
+        P.seed     = 42
+        R = RDSE( P )
+        A = R.encode( 987654 )
         print( A )
         assert( A == GOLD )
 
