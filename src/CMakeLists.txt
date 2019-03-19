@@ -222,6 +222,7 @@ set(utils_files
     nupic/utils/StringUtils.cpp
     nupic/utils/StringUtils.hpp
     nupic/utils/VectorHelpers.hpp
+    nupic/utils/SdrMetrics.cpp
     nupic/utils/SdrMetrics.hpp
 )
 
