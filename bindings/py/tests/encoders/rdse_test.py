@@ -129,6 +129,20 @@ class RDSE_Test(unittest.TestCase):
         print( A )
         assert( A == GOLD )
 
+    def testSeed(self):
+        P = RDSE_Parameters()
+        P.size     = 1000
+        P.sparsity = .08
+        P.radius   = 12
+        P.seed     = 98
+        R = RDSE( P )
+        A = R.encode( 987654 )
+
+        P.seed = 99
+        R = RDSE( P )
+        B = R.encode( 987654 )
+        assert( A != B )
+
     @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
     def testPickle(self):
         assert(False) # TODO: Unimplemented
