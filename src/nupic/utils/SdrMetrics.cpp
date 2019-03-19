@@ -18,21 +18,15 @@
  * Implementation for SDR Metrics classes
  */
 
-#include <vector>
-#include <numeric>
-#include <cmath> // std::log2 isnan
+#include <cmath> // log2, isnan
 #include <regex>
-#include <nupic/types/Sdr.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/types/Serializable.hpp>
-#include <nupic/utils/Random.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
-
 
 using namespace std;
 
 namespace nupic {
 namespace sdr {
+
 
 MetricsHelper_::MetricsHelper_( const vector<UInt> dimensions, UInt period ) {
     NTA_CHECK( period > 0u );

@@ -207,8 +207,6 @@ public:
     Real mean() const;
     Real std() const;
 
-    static Real binary_entropy_(const std::vector<Real> &frequencies);  // TODO PRIVATE?
-
     /**
      * Binary entropy is a measurement of information.  It measures how well the
      * SDR utilizes its resources (bits).  A low entropy indicates that many
@@ -228,6 +226,8 @@ private:
     std::vector<Real> activationFrequency_;
 
     void initialize(UInt size);
+
+    static Real binary_entropy_(const std::vector<Real> &frequencies);
 
     void callback(SDR &dataSource, Real alpha) override;
 };
