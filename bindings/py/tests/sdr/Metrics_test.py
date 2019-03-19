@@ -100,6 +100,21 @@ Entropy 0.918296""")
         self.assertAlmostEqual( B.std()   , 0.16, places = 2)
         assert(str(B) == "Overlap Min/Mean/Std/Max 0.05 / 0.260016 / 0.16389 / 0.45")
 
+    def testReset(self):
+        A = sdr.SDR( dimensions = 2000 )
+        M = sdr.Metrics( A, period = 1000 )
+        A.randomize( .10 )
+        A.addNoise( .10 )
+        # Test Metrics Reset
+        M.reset()
+        A.addNoise( 1 ) # Change every bit!
+        A.addNoise( .10 )
+        # Test Overlap Reset
+        M.overlap.reset()
+        A.addNoise( 1 ) # Change every bit!
+        A.addNoise( .10 )
+        assert(M.overlap.min() >= .89 ) # Allow 1% rounding error.
+
     def testMetricsExample(self):
         A = sdr.SDR( dimensions = 2000 )
         M = sdr.Metrics( A, period = 1000 )
