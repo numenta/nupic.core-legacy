@@ -574,7 +574,7 @@ void Connections::load(std::istream &inStream) {
   // Check the saved version.
   int version;
   inStream >> version;
-  NTA_CHECK(version <= 2);
+  NTA_CHECK(version == 2);
 
   // Retrieve simple variables
   UInt        numCells;
@@ -583,22 +583,13 @@ void Connections::load(std::istream &inStream) {
   inStream >> connectedThreshold;
   initialize(numCells, connectedThreshold);
 
-  // This logic is complicated by the fact that old versions of the Connections
-  // serialized "destroyed" segments and synapses, which we now ignore.
   for (UInt cell = 0; cell < numCells; cell++) {
 
     UInt numSegments;
     inStream >> numSegments;
 
     for (SegmentIdx j = 0; j < numSegments; j++) {
-      bool destroyedSegment = false;
-      if (version < 2) {
-        inStream >> destroyedSegment;
-      }
-
-      Segment segment = {std::numeric_limits<Segment>::max()};
-      if (!destroyedSegment)
-        segment = createSegment( cell );
+      Segment segment = createSegment( cell );
 
       UInt numSynapses;
       inStream >> numSynapses;
@@ -608,15 +599,6 @@ void Connections::load(std::istream &inStream) {
         Permanence  perm;
         inStream >> presyn;
         inStream >> perm;
-
-        if (version < 2) {
-          bool destroyedSynapse = false;
-          inStream >> destroyedSynapse;
-          if( destroyedSynapse )
-            continue;
-        }
-        if( destroyedSegment )
-          continue;
 
         createSynapse( segment, presyn, perm );
       }
