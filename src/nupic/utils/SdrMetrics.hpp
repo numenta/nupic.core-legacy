@@ -276,6 +276,7 @@ public:
      */
     Overlap( const std::vector<UInt> dimensions, UInt period );
 
+    /* For use with time-series data sets. */
     void reset();
 
     const Real &overlap = overlap_;
@@ -350,6 +351,7 @@ public:
      */
     Metrics( const std::vector<UInt> dimensions, UInt period );
 
+    /* For use with time-series data sets. */
     void reset();
 
     const std::vector<UInt>   &dimensions          = dimensions_;

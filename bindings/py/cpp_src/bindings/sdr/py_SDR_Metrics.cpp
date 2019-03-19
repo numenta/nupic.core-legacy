@@ -196,7 +196,7 @@ by calling method overlap.addData( SDR ) with an SDR which has these dimensions.
 
 Argument period is Time scale for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
-        py_Overlap.def("reset", &Overlap::reset );
+        py_Overlap.def("reset", &Overlap::reset, "For use with time-series data sets.");
         py_Overlap.def_property_readonly("overlap",
             [](const Overlap &self) { return self.overlap; },
                 "Overlap between the two most recently added SDRs.");
@@ -247,7 +247,7 @@ by calling method metrics.addData( SDR ) with an SDR which has these dimensions.
 
 Argument period is Time scale for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
-        py_Metrics.def( "reset", &Metrics::reset );
+        py_Metrics.def( "reset", &Metrics::reset, "For use with time-series data sets.");
         py_Metrics.def( "addData", &Metrics::addData,
 R"(Add an SDR datum to these Metrics.  This method can only be called if
 Metrics was constructed with dimensions and NOT an SDR.
