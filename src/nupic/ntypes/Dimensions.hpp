@@ -100,7 +100,7 @@ public:
   bool isSpecified()   const { return(!isInvalid()); }
   static const int DONTCARE = 0;
 
-  std::string toString() const {
+  std::string toString(bool humanReadable = true) const {
     if (isUnspecified()) return "[unspecified]";
     if (isDontcare())    return "[dontcare]";
     std::stringstream ss;
@@ -109,7 +109,8 @@ public:
       if (i)  ss << "," <<at(i);
       else   ss << at(i);
     }
-    ss << "]";
+    ss << "] ";
+		if (humanReadable && isInvalid()) ss << "(Invalid) ";
     return ss.str();
   }
 

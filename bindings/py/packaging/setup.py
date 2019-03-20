@@ -152,6 +152,8 @@ def getExtensionFileNames(platform):
   #     nupic.core.algorithms.so
   #     nupic.core.engine.so
   #     nupic.core.math.so
+  #     nupic.core.encoders.so
+  #     nupic.core.sdr.so
   if platform in WINDOWS_PLATFORMS:
     libExtension = "pyd"
   else:

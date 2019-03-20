@@ -70,8 +70,8 @@ def _import_helper(name):
       sys.modules[name] = _mod
   return _mod;
 
-sdr             = _import_helper('nupic.bindings.sdr')
-encoders        = _import_helper('nupic.bindings.encoders')
 algorithms      = _import_helper('nupic.bindings.algorithms')
 engine_internal = _import_helper('nupic.bindings.engine_internal')
 math            = _import_helper('nupic.bindings.math')
+sdr             = _import_helper('nupic.bindings.sdr')
+encoders        = _import_helper('nupic.bindings.encoders')
