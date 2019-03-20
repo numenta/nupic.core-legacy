@@ -28,6 +28,8 @@
 #include "gtest/gtest.h"
 #include "nupic/types/Types.hpp"
 
+namespace testing { 
+    
 using namespace nupic::utils;
 using namespace nupic;
 using namespace std;
@@ -143,3 +145,4 @@ TEST(VectorHelpersTest, unionOfVectors)
   }
 
 };
+}

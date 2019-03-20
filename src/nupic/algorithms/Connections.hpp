@@ -426,7 +426,7 @@ public:
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    */
   void adaptSegment(const Segment segment, 
-                    const SDR &inputs,
+                    const sdr::SDR &inputs,
                     const Permanence increment,
                     const Permanence decrement);
 
@@ -567,8 +567,8 @@ protected:
    * connected or not.
    */
   void removeSynapseFromPresynapticMap_(const Synapse index,
-                                  vector<Synapse> &synapsesForPresynapticCell,
-                                  vector<Synapse> &segmentsForPresynapticCell);
+                              std::vector<Synapse> &synapsesForPresynapticCell,
+                              std::vector<Synapse> &segmentsForPresynapticCell);
 
 private:
   std::vector<CellData>    cells_;

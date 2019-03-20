@@ -33,6 +33,8 @@
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
 
+namespace testing {
+    
 using namespace std;
 using namespace nupic;
 
@@ -380,3 +382,4 @@ TEST_F(PathTest, getExecutablePath)
 }
 
 **************************************************************/
+}

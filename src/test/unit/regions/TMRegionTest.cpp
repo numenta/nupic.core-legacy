@@ -339,7 +339,7 @@ TEST(TMRegionTest, testSerialization) {
 
     VERBOSE << "Setup first network and save it" << std::endl;
     std::shared_ptr<Region> n1region1 = net1->addRegion( "region1", "ScalarSensor",
-                                             "{n: 48,w: 10,minValue: 0,maxValue: 10}");
+                                             "{n: 48,w: 10,minValue: 0.05,maxValue: 10}");
     n1region1->setParameterReal64("sensedValue", 5.0);
 
     std::shared_ptr<Region> n1region2 =  net1->addRegion("region2", "TMRegion", "{numberOfCols: 48}");

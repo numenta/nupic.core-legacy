@@ -30,6 +30,8 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/types/BasicType.hpp>
 
+namespace testing {
+    
 using namespace nupic;
 
 TEST(BasicTypeTest, isValid)
@@ -584,4 +586,5 @@ TEST(BasicTypeTest, convertArray) {
   BasicType::convertArray(ca.dest, NTA_BasicType_Bool, ca.bufBool,
                           NTA_BasicType_Bool, 8);
   ASSERT_TRUE(ca.checkArrayBool<bool>(ca.dest)) << "bool to bool conversion";
+}
 }

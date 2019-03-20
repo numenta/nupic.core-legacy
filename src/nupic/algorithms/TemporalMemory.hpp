@@ -214,7 +214,7 @@ public:
    */
   void activateCells(const size_t activeColumnsSize, const UInt activeColumns[],
                      bool learn = true);
-  void activateCells(const SDR &activeColumns, bool learn = true);
+  void activateCells(const sdr::SDR &activeColumns, bool learn = true);
 
   /**
    * Calculate dendrite segment activity, using the current active cells.  Call
@@ -241,7 +241,7 @@ public:
                          const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
                          const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
   void activateDendrites(bool learn,
-                         const SDR &extraActive, const SDR &extraWinners);
+                         const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
@@ -273,8 +273,8 @@ public:
                        bool learn = true,
                        const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
                        const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
-  virtual void compute(const SDR &activeColumns, bool learn,
-                       const SDR &extraActive, const SDR &extraWinners);
+  virtual void compute(const sdr::SDR &activeColumns, bool learn,
+                       const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
 
   // ==============================
   //  Helper functions
@@ -316,7 +316,7 @@ public:
    * @returns (std::vector<CellIdx>) Vector of indices of active cells.
    */
   vector<CellIdx> getActiveCells() const;
-  void getActiveCells(SDR &activeCells) const;
+  void getActiveCells(sdr::SDR &activeCells) const;
 
   /**
    * Returns the indices of the predictive cells.
@@ -324,7 +324,7 @@ public:
    * @returns (std::vector<CellIdx>) Vector of indices of predictive cells.
    */
   vector<CellIdx> getPredictiveCells() const;
-  void getPredictiveCells(SDR &predictiveCells) const;
+  void getPredictiveCells(sdr::SDR &predictiveCells) const;
 
   /**
    * Returns the indices of the winner cells.
@@ -332,7 +332,7 @@ public:
    * @returns (std::vector<CellIdx>) Vector of indices of winner cells.
    */
   vector<CellIdx> getWinnerCells() const;
-  void getWinnerCells(SDR &winnerCells) const;
+  void getWinnerCells(sdr::SDR &winnerCells) const;
 
   vector<Segment> getActiveSegments() const;
   vector<Segment> getMatchingSegments() const;

@@ -24,8 +24,6 @@
  * Implementation of ArrayBase test
  */
 
-#define UNUSED(x) (void)(x)
-
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
@@ -40,6 +38,9 @@
 
 #include <gtest/gtest.h>
 
+namespace testing {
+    
+#define UNUSED(x) (void)(x)
 using namespace nupic;
 
 // First, some structures to help in testing.
@@ -564,7 +565,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       // Only SDR has dimensions
       std::vector<UInt> d({ 10u, 10u });
       Dimensions dim(d);
-      SDR sdr(dim);
+      sdr::SDR sdr(dim);
       Array s(sdr); // makes a copy of sdr
       Dimensions dim_s(s.getSDR().dimensions);
       EXPECT_EQ(dim_s, dim);
@@ -581,7 +582,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       EXPECT_EQ(m.getCount(), 100u);
 
       std::vector<Byte> row = a.asVector<Byte>();
-      const SDR_sparse_t& v = a.getSDR().getSparse();
+      const sdr::SDR_sparse_t& v = a.getSDR().getSparse();
 
       EXPECT_EQ(v.size(), 10u);
 
@@ -642,3 +643,5 @@ void ArrayTest::setupArrayTests() {
   testCases_["Non-existent NTA_BasicType"] =
       ArrayTestParameters((NTA_BasicType)-1, 0, 10, "N/A", true);
 }
+
+} //-ns

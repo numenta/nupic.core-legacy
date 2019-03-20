@@ -32,15 +32,16 @@
 #include <sstream>
 #include <cctype>
 #include <vector>
+#include <iterator>   // for stream iterator
 #include <numeric>    // for std::accumulate
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/math/StlIo.hpp>
+#include <nupic/types/Serializable.hpp>
 
 
 namespace nupic {
 
-class Dimensions : public std::vector<UInt> {
+class Dimensions : public ::std::vector<UInt>, Serializable {
 public:
   /**
    * Create a new Dimensions object.
@@ -99,19 +100,77 @@ public:
   bool isSpecified()   const { return(!isInvalid()); }
   static const int DONTCARE = 0;
 
-
-  inline std::ostream &operator<<(std::ostream &f) {
-    f << (std::vector<UInt>&)*this;
-    return f;
+  std::string toString() const {
+    if (isUnspecified()) return "[unspecified]";
+    if (isDontcare())    return "[dontcare]";
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < size(); i++) {
+      if (i)  ss << "," <<at(i);
+      else   ss << at(i);
+    }
+    ss << "]";
+    return ss.str();
   }
-  inline std::istream &operator>>(std::istream &f) { 
-    f >> (std::vector<UInt>&)*this;
-  }
 
-  // TODO: may need operator== and operator!=
+  void save(std::ostream &f) const {
+    size_t n = size();
+    f.write((const char*)&n, sizeof(size_t));
+    if (n > 0)
+      f.write((const char*)&at(0), n * sizeof(at(0)));
+  }
+  void load(std::istream &f) {
+    size_t n;
+    f.read((char*)&n, sizeof(size_t));
+    clear();
+    if (n > 0) {
+      resize(n);
+      f.read((char*)&at(0), n * sizeof(at(0)));
+    }
+  }
 
 };
+  
 
+  inline std::ostream &operator<<(std::ostream &f, const Dimensions& d) {
+    f << d.toString() << " ";
+    return f;
+  }
+  inline std::istream &operator>>(std::istream &f, Dimensions& d) { 
+    // expected format:    [val, val, val]
+    f >> std::ws;  // ignore leading whitespace
+    d.clear();
+    NTA_CHECK(f.get() == '[') << "Expecting beginning of Dimensions.";
+    if (!isdigit(f.peek())) {
+      std::string tag;
+      f >> tag;
+      if (tag == "unspecified]") {
+        // leave d empty.
+      }
+      else if (tag == "dontcare]") {
+        d.push_back(0);
+      }
+    }
+    else {
+      int c;
+      UInt32 i;
+      char buf[50];
+      while(isdigit(f.peek())) {
+        int j = 0;
+        while(isdigit(c = f.get())) {
+          buf[j++] = c;
+        }
+        buf[j] = '\0';
+        i = strtoul(buf, nullptr, 0);
+        d.push_back(i);
+        f >> std::ws;  // ignore whitespace
+        if (c == ']') break;
+        NTA_CHECK(c == ',') << "Invalid format for Dimensions";
+      }
+    }
+    f.ignore(1);
+    return f;
+  }
 
 } // namespace nupic
 

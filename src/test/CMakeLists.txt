@@ -40,6 +40,7 @@ set(unit_tests_executable unit_tests)
 
 set(algorithm_tests
 	   unit/algorithms/AnomalyTest.cpp
+	   unit/algorithms/BacktrackingTMTest.cpp
 	   unit/algorithms/Cells4Test.cpp
 	   unit/algorithms/ConnectionsPerformanceTest.cpp
 	   unit/algorithms/ConnectionsTest.cpp
@@ -89,6 +90,7 @@ set(regions_tests
 	   unit/regions/RegionTestUtilities.cpp
 	   unit/regions/RegionTestUtilities.hpp
 	   unit/regions/SPRegionTest.cpp
+           unit/regions/BacktrackingTMRegionTest.cpp
            unit/regions/TMRegionTest.cpp
 	   )
 
@@ -97,7 +99,7 @@ set(types_tests
 	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
 	   unit/types/SdrTest.cpp
-	   unit/types/SdrProxyTest.cpp
+	   unit/types/SdrToolsTest.cpp
 	   )
 	   
 set(utils_tests

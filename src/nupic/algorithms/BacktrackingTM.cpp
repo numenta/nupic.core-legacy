@@ -48,7 +48,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include <nupic/algorithms/BacktrackingTMCpp.hpp>
+#include <nupic/algorithms/BacktrackingTM.hpp>
 #include <nupic/algorithms/Segment.hpp>
 
 using namespace std;
@@ -57,13 +57,13 @@ using namespace nupic::algorithms::backtracking_tm;
 
 static const UInt TM_VERSION = 3; // - 7/14/2018 keeney
 
-BacktrackingTMCpp::BacktrackingTMCpp()
+BacktrackingTM::BacktrackingTM()
 {
     currentOutput_ = nullptr;
     currentOutputOwn_ = true;
 }
 
-BacktrackingTMCpp::BacktrackingTMCpp(
+BacktrackingTM::BacktrackingTM(
     UInt32 numberOfCols, UInt32 cellsPerColumn, Real32 initialPerm,
     Real32 connectedPerm, UInt32 minThreshold, UInt32 newSynapseCount,
     Real32 permanenceInc, Real32 permanenceDec, Real32 permanenceMax,
@@ -173,7 +173,7 @@ BacktrackingTMCpp::BacktrackingTMCpp(
   memset(confHistogram_.get(), 0, nCells * sizeof(Real));
 }
 
-BacktrackingTMCpp::~BacktrackingTMCpp() {
+BacktrackingTM::~BacktrackingTM() {
   if (cells4_)
     delete cells4_;
   if (currentOutputOwn_)
@@ -183,7 +183,7 @@ BacktrackingTMCpp::~BacktrackingTMCpp() {
 }
 
 
-void BacktrackingTMCpp::setOutputBuffer(Real32 *buf) {
+void BacktrackingTM::setOutputBuffer(Real32 *buf) {
     if (currentOutputOwn_)
       delete[] currentOutput_;
     currentOutput_ = buf;
@@ -191,11 +191,11 @@ void BacktrackingTMCpp::setOutputBuffer(Real32 *buf) {
   };
 
 
-// For backtrackingTMCpp we let Cells4 allocate the buffers.
+// For backtrackingTM we let Cells4 allocate the buffers.
 // However, the language interfaces (Python) might want to take control of the
 // buffers. This method can be called after creating the region to set the
 // buffers.
-void BacktrackingTMCpp::setStatePointers(Byte *infActiveT, Byte *infActiveT1,
+void BacktrackingTM::setStatePointers(Byte *infActiveT, Byte *infActiveT1,
                                          Byte *infPredT, Byte *infPredT1,
                                          Real *colConfidenceT,
                                          Real *colConfidenceT1,
@@ -209,7 +209,7 @@ void BacktrackingTMCpp::setStatePointers(Byte *infActiveT, Byte *infActiveT1,
 
 // Allows an interface to get the pointers to the buffers that
 // are being used by Cells4.
-void BacktrackingTMCpp::getStatePointers(Byte *&activeT, Byte *&activeT1,
+void BacktrackingTM::getStatePointers(Byte *&activeT, Byte *&activeT1,
                                          Byte *&predT, Byte *&predT1,
                                          Real *&colConfidenceT,
                                          Real *&colConfidenceT1,
@@ -219,9 +219,9 @@ void BacktrackingTMCpp::getStatePointers(Byte *&activeT, Byte *&activeT1,
                             colConfidenceT1, confidenceT, confidenceT1);
 }
 
-UInt BacktrackingTMCpp::version() const { return TM_VERSION; }
+UInt BacktrackingTM::version() const { return TM_VERSION; }
 
-Real *BacktrackingTMCpp::compute(Real *bottomUpInput, bool enableLearn,
+Real *BacktrackingTM::compute(Real *bottomUpInput, bool enableLearn,
                                  bool enableInference) {
   // Note: the expected width of bottomUpInput[] is number of columns.
   loc_.iterationIdx++;
@@ -236,7 +236,7 @@ Real *BacktrackingTMCpp::compute(Real *bottomUpInput, bool enableLearn,
     const auto activeColumns = nonzero<Real>(bottomUpInput, (Size)loc_.numberOfCols);
     predictedState = (enableInference) ? cells4_->getInfPredictedStateT1()
                                        : cells4_->getLearnPredictedStateT1();
-    _updateStatsInferEnd(internalStats_, activeColumns.data(), predictedState,
+    _updateStatsInferEnd(internalStats_, activeColumns, predictedState,
                          cells4_->getColConfidenceT1());
   }
 
@@ -270,7 +270,7 @@ Real *BacktrackingTMCpp::compute(Real *bottomUpInput, bool enableLearn,
  *            for each column at a future timestep (t+i+1).
  *
  ********************************/
-std::shared_ptr<Real> BacktrackingTMCpp::predict(Size nSteps) {
+std::shared_ptr<Real> BacktrackingTM::predict(Size nSteps) {
   Size nCells = loc_.numberOfCols * loc_.cellsPerColumn;
   Size nCols = loc_.numberOfCols;
 
@@ -327,21 +327,21 @@ std::shared_ptr<Real> BacktrackingTMCpp::predict(Size nSteps) {
   return multiStepColumnPredictions;
 }
 
-Real *BacktrackingTMCpp::topDownCompute() {
+Real *BacktrackingTM::topDownCompute() {
   // For now,  we will assume there is no one above us and that bottomUpOut
   // is simply the output that corresponds to our currently stored column
   // confidences. Simply return the column confidences
   return cells4_->getColConfidenceT();
 }
 
-void BacktrackingTMCpp::_inferPhase2() {
+void BacktrackingTM::_inferPhase2() {
   // This calls phase 2 of inference (used in multistep prediction).
   //_setStatePointers();
   cells4_->inferPhase2();
   //_copyAllocatedStates();
 }
 
-std::pair<UInt, UInt> BacktrackingTMCpp::trimSegments(Real minPermanence,
+std::pair<UInt, UInt> BacktrackingTM::trimSegments(Real minPermanence,
                                                       UInt32 minNumSyns) {
   // Print all cells if verbosity says to
   if (cells4_->getVerbosity() >= 5) {
@@ -363,8 +363,8 @@ std::pair<UInt, UInt> BacktrackingTMCpp::trimSegments(Real minPermanence,
 //    @colConfidence Column confidences we determined on the last time step.
 // from line 945 of backtracking_tm.py
 //
-void BacktrackingTMCpp::_updateStatsInferEnd(
-    std::map<std::string, Real> internalStats, const UInt32 *bottomUpNZ,
+void BacktrackingTM::_updateStatsInferEnd(
+    std::map<std::string, Real> internalStats, std::vector<UInt32> bottomUpNZ,
     const Byte *predictedState, const Real *colConfidence) {
   if (loc_.collectStats) {
     internalStats["nInfersSinceReset"] += 1;
@@ -373,8 +373,8 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
     // time step predicted the current bottom-up input  //line 945 of
     // backtracking_tm.py
     std::vector<std::vector<UInt>> patternNZs;
-    patternNZs.push_back(std::vector<UInt>(*bottomUpNZ));
-    std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> results;
+    patternNZs.push_back(bottomUpNZ);
+    std::shared_ptr<struct BacktrackingTM::predictionResults_t> results;
     results = _checkPrediction(patternNZs, predictedState, colConfidence, false);
 
     // Store the stats that don't depend on burn-in
@@ -478,7 +478,7 @@ void BacktrackingTMCpp::_updateStatsInferEnd(
  *                     in the output. caller allocates to size of output.
  *                     This list is only returned if details is true.
  **************************************************/
-std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp::_checkPrediction(
+std::shared_ptr<struct BacktrackingTM::predictionResults_t> BacktrackingTM::_checkPrediction(
     std::vector<std::vector<UInt>> patternNZs,
     const Byte *output,
     const Real *colConfidence,
@@ -616,7 +616,7 @@ std::shared_ptr<struct BacktrackingTMCpp::predictionResults_t> BacktrackingTMCpp
 //    Computes output for both learning and inference. In both cases, the
 //    output is the boolean OR of 'activeState' and 'predictedState' at 't'.
 //    Stores 'currentOutput_'.
-Real32 *BacktrackingTMCpp::_computeOutput() {
+Real32 *BacktrackingTM::_computeOutput() {
   if (outputType_ == "activeState1CellPerCol") {
     // Fire only the most confident cell in columns that have 2 or more active
     // cells Don't turn on anything in columns which are not active at all
@@ -659,7 +659,7 @@ Real32 *BacktrackingTMCpp::_computeOutput() {
   return currentOutput_;
 }
 
-void BacktrackingTMCpp::reset() {
+void BacktrackingTM::reset() {
   if (cells4_->getVerbosity() >= 3)
     std::cout << "\n==== TM Reset =====" << std::endl;
   //_setStatePointers()
@@ -690,7 +690,7 @@ void BacktrackingTMCpp::reset() {
   loc_.resetCalled = true;
 }
 
-void BacktrackingTMCpp::resetStats() {
+void BacktrackingTM::resetStats() {
   // Reset the learning and inference stats. This will usually be called by
   // user code at the start of each inference run (for a particular data set).
 
@@ -727,7 +727,7 @@ void BacktrackingTMCpp::resetStats() {
 //   getStats()
 //     Return the current learning and inference stats. This returns a map
 //    containing all the learning and inference stats we have collected since
-//    the last :meth:`resetStats` call. If :class:`BacktrackingTMCpp`
+//    the last :meth:`resetStats` call. If :class:`BacktrackingTM`
 //    ``collectStats`` parameter is False, then an empty map is returned.
 //
 //    @returns: (map) The following keys are returned in the map when
@@ -748,7 +748,7 @@ void BacktrackingTMCpp::resetStats() {
 //          - 'pctMissingAvg': 'pctMissingTotal / nPredictions``
 //      The map is empty if `'collectSequenceStats' is False.
 
-std::map<std::string, Real32> BacktrackingTMCpp::getStats() {
+std::map<std::string, Real32> BacktrackingTM::getStats() {
   std::map<std::string, Real32> stats;
   if (!loc_.collectStats) {
     return stats;
@@ -781,18 +781,18 @@ std::map<std::string, Real32> BacktrackingTMCpp::getStats() {
 // returns the preivous value of confidence Histogram
 // The signature for the sequence immediately  preceding the last reset.
 // This will be empty if collectSequenceStats is False
-std::shared_ptr<Real> BacktrackingTMCpp::getPrevSequenceSignature() {
+std::shared_ptr<Real> BacktrackingTM::getPrevSequenceSignature() {
   return prevSequenceSignature_;
 }
 
 // current value of confidence Histogram
 // This will be empty if collectSequenceStats is False
-std::shared_ptr<Real> BacktrackingTMCpp::getConfHistogram() {
+std::shared_ptr<Real> BacktrackingTM::getConfHistogram() {
   return confHistogram_;
 }
 
 /////////////// saving dynamic state for predict() //////////////
-void BacktrackingTMCpp::_getTPDynamicState(tmSavedState_t &ss) {
+void BacktrackingTM::_getTPDynamicState(tmSavedState_t &ss) {
   deepcopySave_(ss, "infActiveStateT", cells4_->getInfActiveStateT(),
                       nCells);
   deepcopySave_(ss, "infActiveStateT1", cells4_->getInfActiveStateT1(),
@@ -819,7 +819,7 @@ void BacktrackingTMCpp::_getTPDynamicState(tmSavedState_t &ss) {
                       loc_.numberOfCols);
 }
 
-void BacktrackingTMCpp::_setTPDynamicState(tmSavedState_t &ss) {
+void BacktrackingTM::_setTPDynamicState(tmSavedState_t &ss) {
   deepcopyRestore_(ss, "infActiveStateT", cells4_->getInfActiveStateT(),
                          nCells);
   deepcopyRestore_(ss, "infActiveStateT1", cells4_->getInfActiveStateT1(),
@@ -846,7 +846,7 @@ void BacktrackingTMCpp::_setTPDynamicState(tmSavedState_t &ss) {
                          loc_.numberOfCols);
 }
 
-void BacktrackingTMCpp::deepcopySave_(tmSavedState_t &ss, std::string name,
+void BacktrackingTM::deepcopySave_(tmSavedState_t &ss, std::string name,
                                       Byte *buf, Size count) {
   std::shared_ptr<Byte> target(new Byte[count], std::default_delete<Byte[]>());
   fastbuffercopy<Byte>(target.get(), buf, count);
@@ -854,7 +854,7 @@ void BacktrackingTMCpp::deepcopySave_(tmSavedState_t &ss, std::string name,
   val.Byteptr = target;
   ss[name] = val;
 }
-void BacktrackingTMCpp::deepcopySave_(tmSavedState_t &ss, std::string name,
+void BacktrackingTM::deepcopySave_(tmSavedState_t &ss, std::string name,
                                       Real *buf, Size count) {
   std::shared_ptr<Real> target(new Real[count], std::default_delete<Real[]>());
   fastbuffercopy<Real>(target.get(), buf, count);
@@ -863,24 +863,24 @@ void BacktrackingTMCpp::deepcopySave_(tmSavedState_t &ss, std::string name,
   ss[name] = val;
 }
 
-void BacktrackingTMCpp::deepcopyRestore_(tmSavedState_t &ss, std::string name,
+void BacktrackingTM::deepcopyRestore_(tmSavedState_t &ss, std::string name,
                                          Byte *buf, Size count) {
   struct ss_t val = ss[name];
   fastbuffercopy<Byte>(buf, val.Byteptr.get(), count);
 }
-void BacktrackingTMCpp::deepcopyRestore_(tmSavedState_t &ss, std::string name,
+void BacktrackingTM::deepcopyRestore_(tmSavedState_t &ss, std::string name,
                                          Real *buf, Size count) {
   struct ss_t val = ss[name];
   fastbuffercopy<Real>(buf, val.Realptr.get(), count);
 }
 
 template <typename T>
-void BacktrackingTMCpp::fastbuffercopy(T *tobuf, T *frombuf, Size count) {
+void BacktrackingTM::fastbuffercopy(T *tobuf, T *frombuf, Size count) {
   memcpy(tobuf, frombuf, count * sizeof(T));
 }
 
 ///////////////  printing routines for Debug  ///////////////
-void BacktrackingTMCpp::printComputeEnd(Real *output, bool learn,
+void BacktrackingTM::printComputeEnd(Real *output, bool learn,
                                         std::ostream &out) const {
   // Called at the end of inference to print out various diagnostic information
   // based on the current verbosity level
@@ -1004,7 +1004,7 @@ void BacktrackingTMCpp::printComputeEnd(Real *output, bool learn,
 
 // Print the list of '[column, cellIdx]' indices for each of the active cells in
 // state.
-void BacktrackingTMCpp::printActiveIndicesByte(const Byte *state,
+void BacktrackingTM::printActiveIndicesByte(const Byte *state,
                                                bool andValues,
                                                std::ostream &out) const {
   for (Size i = 0; i < loc_.numberOfCols; i++) {
@@ -1026,7 +1026,7 @@ void BacktrackingTMCpp::printActiveIndicesByte(const Byte *state,
 }
 // Print the list of '[column, cellIdx]' indices for each of the active cells in
 // confidence.
-void BacktrackingTMCpp::printActiveIndicesReal(const Real *confidence,
+void BacktrackingTM::printActiveIndicesReal(const Real *confidence,
                                                bool andValues,
                                                std::ostream &out) const {
   for (Size i = 0; i < loc_.numberOfCols; i++) {
@@ -1048,7 +1048,7 @@ void BacktrackingTMCpp::printActiveIndicesReal(const Real *confidence,
 }
 // Print the list of '[column]' indices for each of the active cells in
 // ColConfidence.
-void BacktrackingTMCpp::printColActiveIndices(const Real *colconfidence,
+void BacktrackingTM::printColActiveIndices(const Real *colconfidence,
                                               bool andValues,
                                               std::ostream &out) const {
   out << "[";
@@ -1068,7 +1068,7 @@ void BacktrackingTMCpp::printColActiveIndices(const Real *colconfidence,
 }
 
 // Print an integer array that is the same shape as activeState.
-void BacktrackingTMCpp::printState(const Byte *aState,
+void BacktrackingTM::printState(const Byte *aState,
                                    std::ostream &out) const {
   for (Size i = 0; i < loc_.cellsPerColumn; i++) {
 
@@ -1082,7 +1082,7 @@ void BacktrackingTMCpp::printState(const Byte *aState,
 }
 
 // Print a floating point array that is the same shape as activeState.
-void BacktrackingTMCpp::printConfidence(const Real *aState, Size maxCols,
+void BacktrackingTM::printConfidence(const Real *aState, Size maxCols,
                                         std::ostream &out) const {
   char buf[20];
   for (Size i = 0; i < loc_.cellsPerColumn; i++) {
@@ -1097,7 +1097,7 @@ void BacktrackingTMCpp::printConfidence(const Real *aState, Size maxCols,
 }
 
 // Print up to maxCols number from a flat floating point array.
-void BacktrackingTMCpp::printColConfidence(const Real *aState, Size maxCols,
+void BacktrackingTM::printColConfidence(const Real *aState, Size maxCols,
                                            std::ostream &out) const {
   char buf[20];
   for (Size c = 0; c < std::min(maxCols, (Size)loc_.numberOfCols); c++) {
@@ -1109,7 +1109,7 @@ void BacktrackingTMCpp::printColConfidence(const Real *aState, Size maxCols,
   out << "\n";
 }
 
-void BacktrackingTMCpp::printCells(bool predictedOnly,
+void BacktrackingTM::printCells(bool predictedOnly,
                                    std::ostream &out) const {
   if (predictedOnly)
     out << "--- PREDICTED CELLS ---\n";
@@ -1128,7 +1128,7 @@ void BacktrackingTMCpp::printCells(bool predictedOnly,
   }
 }
 
-void BacktrackingTMCpp::printCell(Size c, Size i, bool onlyActiveSegments,
+void BacktrackingTM::printCell(Size c, Size i, bool onlyActiveSegments,
                                   std::ostream &out) const {
   char buff[1000];
   Size nSegs = (Size)cells4_->nSegmentsOnCell((UInt)c, (UInt)i);
@@ -1159,7 +1159,7 @@ void BacktrackingTMCpp::printCell(Size c, Size i, bool onlyActiveSegments,
   }
 }
 
-void BacktrackingTMCpp::printInput(const Real32 *x, std::ostream &out) const {
+void BacktrackingTM::printInput(const Real32 *x, std::ostream &out) const {
   out << "Input\n";
   for (Size c = 0; c < loc_.numberOfCols; c++) {
     out << (int)x[c] << " ";
@@ -1167,7 +1167,7 @@ void BacktrackingTMCpp::printInput(const Real32 *x, std::ostream &out) const {
   out << std::endl;
 }
 
-void BacktrackingTMCpp::printOutput(const Real32 *y, std::ostream &out) const {
+void BacktrackingTM::printOutput(const Real32 *y, std::ostream &out) const {
   char buff[100];
   out << "Output\n";
   for (Size i = 0; i < loc_.cellsPerColumn; i++) {
@@ -1182,7 +1182,7 @@ void BacktrackingTMCpp::printOutput(const Real32 *y, std::ostream &out) const {
 }
 
 //     Print the parameter settings for the TM.
-void BacktrackingTMCpp::printParameters(std::ostream &out) const {
+void BacktrackingTM::printParameters(std::ostream &out) const {
   out << "numberOfCols=", loc_.numberOfCols;
   out << "cellsPerColumn=", loc_.cellsPerColumn;
   out << "minThreshold=", cells4_->getMinThreshold();
@@ -1201,7 +1201,7 @@ void BacktrackingTMCpp::printParameters(std::ostream &out) const {
   out << "pamLength=", cells4_->getPamLength();
   out << std::endl;
 }
-void BacktrackingTMCpp::printSegment(Segment &s, std::ostream &out) const {
+void BacktrackingTM::printSegment(Segment &s, std::ostream &out) const {
   s.print(out, loc_.cellsPerColumn);
 }
 
@@ -1223,7 +1223,7 @@ static char *formatRow(char *buffer, Size bufsize, const Byte *val, Size i,
   *ptr++ = '\0';
   return buffer;
 }
-void BacktrackingTMCpp::printStates(bool printPrevious, bool printLearnState,
+void BacktrackingTM::printStates(bool printPrevious, bool printLearnState,
                                     std::ostream &out) const {
   char buffer[5000]; // temporary scratch space
 
@@ -1288,9 +1288,9 @@ void BacktrackingTMCpp::printStates(bool printPrevious, bool printLearnState,
     }                                                                          \
   }
 
-bool BacktrackingTMCpp::sameTMParams(const BacktrackingTMCpp &tm1,
-                                     const BacktrackingTMCpp &tm2,
-                                     std::ostream &out, Int32 verbosity) {
+bool BacktrackingTM::sameTMParams(const BacktrackingTM &tm1,
+                                  const BacktrackingTM &tm2,
+                                  std::ostream &out, Int32 verbosity) {
   bool result = true;
   PARAMETER_CHECK("numberOfCols", getnumCol());
   PARAMETER_CHECK("cellsPerColumn", getcellsPerCol());
@@ -1320,9 +1320,9 @@ bool BacktrackingTMCpp::sameTMParams(const BacktrackingTMCpp &tm1,
   return result;
 }
 
-bool BacktrackingTMCpp::sameSegment(
-    const struct BacktrackingTMCpp::SegOnCellInfo_t &seg1,
-    const struct BacktrackingTMCpp::SegOnCellInfo_t &seg2, std::ostream &out,
+bool BacktrackingTM::sameSegment(
+    const struct BacktrackingTM::SegOnCellInfo_t &seg1,
+    const struct BacktrackingTM::SegOnCellInfo_t &seg2, std::ostream &out,
     Int32 verbosity) {
   // Return true if segVect1 and segVect2 are identical, ignoring order of
   // synapses
@@ -1437,10 +1437,10 @@ bool BacktrackingTMCpp::sameSegment(
   return result;
 }
 
-bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
-                                const BacktrackingTMCpp &tm2, std::ostream &out,
-                                Int32 verbosity, bool relaxSegmentTests,
-                                bool checkLearn, bool checkStates) {
+bool BacktrackingTM::tmDiff2(const BacktrackingTM &tm1,
+                             const BacktrackingTM &tm2, std::ostream &out,
+                             Int32 verbosity, bool relaxSegmentTests,
+                             bool checkLearn, bool checkStates) {
   bool result = true;
 
   // First check basic parameters. If we fail here, don't continue
@@ -1538,7 +1538,7 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
           // tm1seg
           bool res = false;
           for (Size tm2segIdx = 0; tm2segIdx < nSegs; tm2segIdx++) {
-            BacktrackingTMCpp::SegOnCellInfo_t tm2seg;
+            BacktrackingTM::SegOnCellInfo_t tm2seg;
             tm2seg = tm2.getSegmentOnCell(c, i, tm2segIdx);
             if (sameSegment(tm1seg, tm2seg) == true) {
               res = true;
@@ -1578,8 +1578,8 @@ bool BacktrackingTMCpp::tmDiff2(const BacktrackingTMCpp &tm1,
 // Now you can use this function to compare the two tm's.
 // The two will be the same.
 
-bool BacktrackingTMCpp::diff(const BacktrackingTMCpp &tm1,
-                             const BacktrackingTMCpp &tm2) const {
+bool BacktrackingTM::diff(const BacktrackingTM &tm1,
+                          const BacktrackingTM &tm2) const {
   std::stringstream ss1;
   std::stringstream ss2;
   ss1.clear();
@@ -1594,7 +1594,7 @@ bool BacktrackingTMCpp::diff(const BacktrackingTMCpp &tm1,
 
 // A segment is active if it has >= activationThreshold connected
 // synapses that are active due to infActiveState. timestep is "t" or "t-1".
-bool BacktrackingTMCpp::_slowIsSegmentActive(Segment &seg, std::string timestep) const {
+bool BacktrackingTM::_slowIsSegmentActive(Segment &seg, std::string timestep) const {
   Size numActiveSyns = 0;
   NTA_ASSERT(timestep == "t" || timestep == "t-1") << "Only t, t-1 timesteps expected!";
   const UInt32 threshold = cells4_->getActivationThreshold();
@@ -1628,15 +1628,15 @@ bool BacktrackingTMCpp::_slowIsSegmentActive(Segment &seg, std::string timestep)
   };
 **/
 
-struct BacktrackingTMCpp::SegOnCellInfo_t
-BacktrackingTMCpp::getSegmentOnCell(Size c, Size i, Size segIdx) const {
+struct BacktrackingTM::SegOnCellInfo_t
+BacktrackingTM::getSegmentOnCell(Size c, Size i, Size segIdx) const {
   std::vector<UInt32> segList = cells4_->getNonEmptySegList((UInt)c, (UInt)i);
   Segment &seg = cells4_->getSegment((UInt)c, (UInt)i, segList[segIdx]);
   Size numSyn = seg.size();
   NTA_ASSERT(numSyn != 0);
 
   // segment info
-  struct BacktrackingTMCpp::SegOnCellInfo_t info;
+  struct BacktrackingTM::SegOnCellInfo_t info;
   info.c = c;
   info.i = i;
   info.segIdx = segIdx;
@@ -1659,13 +1659,13 @@ BacktrackingTMCpp::getSegmentOnCell(Size c, Size i, Size segIdx) const {
   return info;
 }
 
-struct BacktrackingTMCpp::seginfo_t
-BacktrackingTMCpp::getSegmentInfo(bool collectActiveData) const {
+struct BacktrackingTM::seginfo_t
+BacktrackingTM::getSegmentInfo(bool collectActiveData) const {
   NTA_ASSERT(collectActiveData == false) << " Requires appropriate accessors "
                                             "in C++ cells4 (currently "
                                             "unimplemented)";
 
-  struct BacktrackingTMCpp::seginfo_t info;
+  struct BacktrackingTM::seginfo_t info;
   info.nSegments = getNumSegments();
   info.nSynapses = getNumSynapses();
   info.nActiveSegs = 0;
@@ -1734,7 +1734,7 @@ BacktrackingTMCpp::getSegmentInfo(bool collectActiveData) const {
 }
 
 //////////////////  Serialization ///////////////////////
-void BacktrackingTMCpp::saveToFile(std::string filePath) {
+void BacktrackingTM::saveToFile(std::string filePath) {
   std::ofstream out(filePath.c_str(),
                     std::ios_base::out | std::ios_base::binary);
   out.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -1743,7 +1743,7 @@ void BacktrackingTMCpp::saveToFile(std::string filePath) {
   save(out);
   out.close();
 }
-void BacktrackingTMCpp::loadFromFile(std::string filePath) {
+void BacktrackingTM::loadFromFile(std::string filePath) {
   std::ifstream in(filePath.c_str(), std::ios_base::in | std::ios_base::binary);
   load(in);
   in.close();
@@ -1753,9 +1753,9 @@ void BacktrackingTMCpp::loadFromFile(std::string filePath) {
 //       into which this is written must be opened in binary mode.
 //       This also means that it must be restored on a machine
 //       of the same architecture and compiled with the same bitness.
-void BacktrackingTMCpp::save(std::ostream &out) const {
+void BacktrackingTM::save(std::ostream &out) const {
   cells4_->save(out);
-  out << "BacktrackingTMCpp " << TM_VERSION << " ";
+  out << "BacktrackingTM " << TM_VERSION << " ";
 
   out << "loc " << sizeof(loc_) << " ";
   out.write((const char *)&loc_, sizeof(loc_));
@@ -1770,7 +1770,7 @@ void BacktrackingTMCpp::save(std::ostream &out) const {
 // if caller wants to own the buffers, it must
 // set the buffers before loading so they get
 // filled with the restored data.
-void BacktrackingTMCpp::load(std::istream &in) {
+void BacktrackingTM::load(std::istream &in) {
   std::string tag;
   UInt version;
   Size len;
@@ -1783,7 +1783,7 @@ void BacktrackingTMCpp::load(std::istream &in) {
 
   // Fields that this class needed to serialize
   in >> tag;
-  NTA_ASSERT(tag == "BacktrackingTMCpp");
+  NTA_ASSERT(tag == "BacktrackingTM");
   in >> version;
   NTA_ASSERT(version >= 3);
 

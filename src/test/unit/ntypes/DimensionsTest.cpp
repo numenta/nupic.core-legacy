@@ -28,6 +28,8 @@
 #include <gtest/gtest.h>
 #include <nupic/ntypes/Dimensions.hpp>
 
+namespace testing {
+    
 using namespace nupic;
 
 class DimensionsTest : public ::testing::Test {
@@ -42,7 +44,6 @@ TEST_F(DimensionsTest, EmptyDimensions) {
   ASSERT_TRUE(d.isInvalid());
   ASSERT_TRUE(!d.isDontcare());
   EXPECT_EQ(d.getCount(), 0u);
-  ASSERT_ANY_THROW(UInt x = d[0]);
   EXPECT_STREQ("[unspecified]", d.toString().c_str());
   ASSERT_EQ(0u, d.size());
 }
@@ -67,11 +68,10 @@ TEST_F(DimensionsTest, InvalidDimensions) {
   ASSERT_FALSE(d.isUnspecified());
   ASSERT_FALSE(d.isDontcare());
   ASSERT_TRUE(d.isInvalid());
-  EXPECT_STREQ("[ 1 0 ] (invalid)", d.toString().c_str());
+  EXPECT_STREQ("[1,0]", d.toString().c_str());
   ASSERT_EQ(d.getCount(), 0u);
   ASSERT_EQ(1u, d[0]);
   ASSERT_EQ(0u, d[1]);
-  ASSERT_ANY_THROW(d[2] = 2);
   ASSERT_EQ(2u, d.size());
 }
 
@@ -84,10 +84,9 @@ TEST_F(DimensionsTest, ValidDimensions) {
   ASSERT_FALSE(d.isUnspecified());
   ASSERT_FALSE(d.isDontcare());
   ASSERT_FALSE(d.isInvalid());
-  EXPECT_STREQ("[2 3]", d.toString().c_str());
+  EXPECT_STREQ("[2,3]", d.toString().c_str());
   ASSERT_EQ(2u, d[0]);
   ASSERT_EQ(3u, d[1]);
-  ASSERT_ANY_THROW(UInt x = d[2]);
   ASSERT_EQ(6u, d.getCount());
   ASSERT_EQ(2u, d.size());
 }
@@ -107,22 +106,45 @@ TEST_F(DimensionsTest, AlternateConstructor) {
   Dimensions c(2, 5);
   ASSERT_TRUE(c == d);
 
-  Dimensions e(std::vector<UInt>({ 2,5 }));
+  Dimensions e(std::vector<UInt>( {2,5} ));
   ASSERT_TRUE(e == d);
 
   ASSERT_EQ(2u, d[0]);
   ASSERT_EQ(5u,  d[1]);
-  ASSERT_ANY_THROW(UInt y = d[2]);
   ASSERT_EQ(2u, d.size());
 }
 
 TEST_F(DimensionsTest, Overloads) {
   Dimensions d1 = { 1,2,3 };
   Dimensions d2;
-  std::stringstream ss;
-  ss << d1;
-  ss >> d2;
+  std::stringstream ss1;
+  ss1 << d1;
+  ss1.seekg(0);
+  ss1 >> d2;
   EXPECT_EQ(d1, d2);
+  EXPECT_TRUE(d2.isSpecified());
+
+  Dimensions d3 = { 1,0 };
+  std::stringstream ss2;
+  ss2 << d3;
+  ss2.seekg(0);
+  ss2 >> d2;
+  EXPECT_TRUE(d2.isInvalid());
+
+  Dimensions d4 = { 0 };
+  std::stringstream ss3;
+  ss3 << d4;
+  ss3.seekg(0);
+  ss3 >> d2;
+  EXPECT_TRUE(d2.isDontcare());
+
+  d4.clear();
+  std::stringstream ss4;
+  ss4 << d4;
+  ss4.seekg(0);
+  ss4 >> d2;
+  EXPECT_TRUE(d2.isUnspecified());
 
 }
 
+} // namespace testing

@@ -36,6 +36,8 @@
 #include <nupic/algorithms/Cells4.hpp>
 #include <nupic/algorithms/Segment.hpp>
 
+namespace testing {
+    
 using namespace nupic::algorithms::Cells4;
 
 template <class InputIterator>
@@ -571,3 +573,5 @@ TEST(Cells4Test, testEqualsOperator) {
 //  const auto time100kInput = bench.tTP.getElapsed();
 //  ASSERT_LE(time100kInput, time10kInput*1.1) << "Cells4 time must be same for different SP input sizes"; //within 10% tolerance
 //}
+
+}
