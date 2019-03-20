@@ -51,6 +51,126 @@ class RDSE_Test(unittest.TestCase):
         B = R2.encode( 66 )
         assert( A == B )
 
+    def testErrorChecks(self):
+        params1 = RDSE_Parameters()
+        params1.size     = 100
+        params1.sparsity = .10
+        params1.radius   = 10
+        R1 = RDSE( params1 )
+        A = SDR([10, 10])
+        R1.encode( 33, A )
+
+        # Test wrong input dimensions
+        B = SDR( 1 )
+        with self.assertRaises(RuntimeError):
+            R1.encode( 3, B )
+
+        # Test invalid parameters, size == 0
+        params1.size = 0
+        with self.assertRaises(RuntimeError):
+            RDSE( params1 )
+        params1.size = 100
+
+        # Test invalid parameters, activeBits == 0
+        params1.activeBits = 0
+        params1.sparsity = 0.00001 # Rounds to zero!
+        with self.assertRaises(RuntimeError):
+            RDSE( params1 )
+
+        # Test missing activeBits
+        params2 = RDSE_Parameters()
+        params2.size     = 100
+        params2.radius   = 10
+        with self.assertRaises(RuntimeError):
+            RDSE( params2 )
+        # Test missing resolution/radius
+        params3 = RDSE_Parameters()
+        params3.size       = 100
+        params3.activeBits = 10
+        with self.assertRaises(RuntimeError):
+            RDSE( params3 )
+
+        # Test too many parameters: activeBits & sparsity
+        params4 = RDSE_Parameters()
+        params4.size       = 100
+        params4.sparsity   = .6
+        params4.activeBits = 10
+        params4.radius     = 4
+        with self.assertRaises(RuntimeError):
+            RDSE( params4 )
+        # Test too many parameters: resolution & radius
+        params5 = RDSE_Parameters()
+        params5.size       = 100
+        params5.activeBits = 10
+        params5.radius     = 4
+        params5.resolution = 4
+        with self.assertRaises(RuntimeError):
+            RDSE( params5 )
+
+    def testSparsityActiveBits(self):
+        """ Check that these arguments are equivalent. """
+        # Round sparsity up
+        P = RDSE_Parameters()
+        P.size     = 100
+        P.sparsity = .0251
+        P.radius   = 10
+        R = RDSE( P )
+        assert( R.parameters.activeBits == 3 )
+        # Round sparsity down
+        P = RDSE_Parameters()
+        P.size     = 100
+        P.sparsity = .0349
+        P.radius   = 10
+        R = RDSE( P )
+        assert( R.parameters.activeBits == 3 )
+        # Check activeBits
+        P = RDSE_Parameters()
+        P.size       = 100
+        P.activeBits = 50 # No floating point issues here.
+        P.radius     = 10
+        R = RDSE( P )
+        assert( R.parameters.sparsity == .5 )
+
+    def testRadiusResolution(self):
+        """ Check that these arguments are equivalent. """
+        # radius -> resolution
+        P = RDSE_Parameters()
+        P.size       = 2000
+        P.activeBits = 100
+        P.radius     = 12
+        R = RDSE( P )
+        self.assertAlmostEqual( R.parameters.resolution, 12./100, places=5)
+
+        # resolution -> radius
+        P = RDSE_Parameters()
+        P.size       = 2000
+        P.activeBits = 100
+        P.resolution = 12
+        R = RDSE( P )
+        self.assertAlmostEqual( R.parameters.radius, 12*100, places=5)
+
+        # Moving 1 resolution moves 1 bit (usually)
+        P = RDSE_Parameters()
+        P.size       = 2000
+        P.activeBits = 100
+        P.resolution = 3.33
+        P.seed       = 42
+        R = RDSE( P )
+        sdrs = []
+        for i in range(100):
+            X = i * ( R.parameters.resolution )
+            sdrs.append( R.encode( X ) )
+            print("X", X, sdrs[-1])
+        moved_one = 0
+        moved_one_samples = 0
+        for A, B in zip(sdrs, sdrs[1:]):
+            delta = A.getSum() - A.getOverlap( B )
+            if A.getSum() == B.getSum():
+                assert( delta < 2 )
+                moved_one += delta
+                moved_one_samples += 1
+        assert( moved_one >= .9 * moved_one_samples )
+
     def testAverageOverlap(self):
         """ Verify that nearby values have the correct amount of semantic
         similarity. Also measure sparsity & activation frequency. """

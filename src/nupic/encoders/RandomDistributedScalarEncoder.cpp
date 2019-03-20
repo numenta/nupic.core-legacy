@@ -62,6 +62,7 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
     NTA_CHECK( args_.sparsity >= 0.0f );
     NTA_CHECK( args_.sparsity <= 1.0f );
     args_.activeBits = (UInt) round( args_.size * args_.sparsity );
+    NTA_CHECK( args_.activeBits > 0u );
   }
   // Determine sparsity. Always calculate this even if it was given, to correct for rounding error.
   args_.sparsity = (Real) args_.activeBits / args_.size;
