@@ -20,7 +20,7 @@
  */
 
 #include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
-#include <nupic/utils/MurmurHash3.h>
+#include <nupic/utils/MurmurHash3.hpp>
 #include <algorithm> // fill
 
 using namespace std;

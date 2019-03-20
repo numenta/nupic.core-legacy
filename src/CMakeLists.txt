@@ -226,7 +226,7 @@ set(utils_files
     nupic/utils/VectorHelpers.hpp
     nupic/utils/SdrMetrics.cpp
     nupic/utils/SdrMetrics.hpp
-    nupic/utils/MurmurHash3.h
+    nupic/utils/MurmurHash3.hpp
     nupic/utils/MurmurHash3.cpp
 )
 
