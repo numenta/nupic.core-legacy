@@ -33,6 +33,7 @@
  * 4. Model parameters (including "learn")
  */
 
+#include <algorithm> //is_sorted
 #include <climits>
 #include <cstring>
 #include <iomanip>
@@ -62,20 +63,6 @@ using nupic::algorithms::connections::Synapse;
 
 
 static const UInt TM_VERSION = 2;
-
-template <typename Iterator>
-bool isSortedWithoutDuplicates(const Iterator begin, const Iterator end) {
-    NTA_ASSERT(begin <= end) << "provide begin, and end";
-
-    Iterator now = begin;
-    while (now != end) {
-      if (*now >= *(now+1)) {
-        return false;
-      }
-      now++;
-    }
-  return true;
-}
 
 TemporalMemory::TemporalMemory() {}
 
@@ -470,10 +457,8 @@ void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
 void TemporalMemory::activateCells(const size_t activeColumnsSize,
                                    const UInt activeColumns[], bool learn) {
   if (checkInputs_ && activeColumnsSize > 0) {
-    NTA_CHECK(isSortedWithoutDuplicates(activeColumns,
-                                        activeColumns + activeColumnsSize-1))
-        << "The activeColumns must be a sorted list of indices without "
-           "duplicates.";
+    NTA_CHECK(std::is_sorted(activeColumns, activeColumns + activeColumnsSize-1))
+        << "The activeColumns must be a sorted list of indices without duplicates.";
   }
 
   vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
