@@ -44,8 +44,8 @@ namespace connections {
 typedef UInt32 CellIdx;  //TODO instead of typedefs, use templates for proper type-checking
 typedef unsigned char SegmentIdx; /** Index of segment in cell. */
 typedef unsigned char SynapseIdx; /** Index of synapse in segment. */
-typedef UInt16 Segment;    /** Index of segment's data. */
-typedef UInt16 Synapse;    /** Index of synapse's data. */
+typedef UInt32 Segment;    /** Index of segment's data. */
+typedef UInt32 Synapse;    /** Index of synapse's data. */
 typedef Real32 Permanence;
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
@@ -569,7 +569,7 @@ protected:
    */
   void removeSynapseFromPresynapticMap_(const Synapse index,
                               std::vector<Synapse> &synapsesForPresynapticCell,
-                              std::vector<Synapse> &segmentsForPresynapticCell);
+                              std::vector<Segment> &segmentsForPresynapticCell);
 
 private:
   std::vector<CellData>    cells_;
