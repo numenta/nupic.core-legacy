@@ -21,8 +21,8 @@
 
 # Fetch Eigen from GitHub archive
 #
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/eigen-eigen-323c052e1731.tar.bz2)
-    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/eigen-eigen-323c052e1731.tar.bz2)
+if(EXISTS "${REPOSITORY_DIR}/build/ThirdParty/share/eigen.tar.bz2")
+    set(URL "${REPOSITORY_DIR}/build/ThirdParty/share/eigen.tar.bz2")
 else()
     set(URL http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2)
 endif()
