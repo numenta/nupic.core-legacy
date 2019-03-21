@@ -450,7 +450,8 @@ static void punishPredictedColumn(
 
 void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
     NTA_CHECK( activeColumns.dimensions == columnDimensions_ );
-    const auto &sparse = activeColumns.getSparse();
+    auto &sparse = activeColumns.getSparse();
+    std::sort(sparse.begin(), sparse.end()); //TODO this is constly, do we really need to sort?
     activateCells(sparse.size(), sparse.data(), learn);
 }
 
