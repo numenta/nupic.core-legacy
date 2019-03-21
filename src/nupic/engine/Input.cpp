@@ -212,7 +212,7 @@ void Input::initialize() {
       if (is_FanIn) {
         // save some info, we will need it later.
         Ds.push_back(d);
-        size_t n = d.getDimensionCount();
+        size_t n = d.size();
         while (n > maxD && d[n - 1] == 1)
           n--; // ignore top level dimensions of 1
         if (n > maxD)
@@ -290,10 +290,10 @@ void Input::initialize() {
   if (regionLevel && inD.isSpecified()) {
     d = region_->getDimensions();
     if (d.isSpecified()) {
-      maxD = d.getDimensionCount();
-      while (inD.getDimensionCount() < maxD)
+      maxD = d.size();
+      while (inD.size() < maxD)
         inD.push_back(1);
-      while (d.getDimensionCount() < inD.getDimensionCount())
+      while (d.size() < inD.size())
         d.push_back(1);
     } else {
       d = inD;
