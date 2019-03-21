@@ -806,14 +806,6 @@ UInt TemporalMemory::version() const { return TM_VERSION; }
  */
 void TemporalMemory::seed_(UInt64 seed) { rng_ = Random(seed); }
 
-size_t TemporalMemory::persistentSize() const {
-  stringstream s;
-  s.flags(ios::scientific);
-  s.precision(numeric_limits<double>::digits10 + 1);
-  this->save(s);
-  return s.str().size();
-}
-
 template <typename FloatType>
 static void saveFloat_(ostream &outStream, FloatType v) {
   outStream << std::setprecision(std::numeric_limits<FloatType>::max_digits10)

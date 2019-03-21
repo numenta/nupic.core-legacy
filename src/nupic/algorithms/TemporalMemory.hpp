@@ -451,16 +451,6 @@ public:
    */
   virtual void load(istream &inStream) override;
 
-
-  /**
-   * Returns the number of bytes that a save operation would result in.
-   * Note: this method is currently somewhat inefficient as it just does
-   * a full save into an ostream and counts the resulting size.
-   *
-   * @returns Integer number of bytes
-   */
-  virtual size_t persistentSize() const;
-
   bool operator==(const TemporalMemory &other);
   bool operator!=(const TemporalMemory &other);
 
