@@ -42,13 +42,7 @@ namespace temporal_memory {
 
 using namespace std;
 using namespace nupic;
-using nupic::algorithms::connections::Connections;
-using nupic::algorithms::connections::Permanence;
-using nupic::algorithms::connections::Segment;
-using nupic::algorithms::connections::CellIdx;
-using nupic::algorithms::connections::Synapse;
-using nupic::algorithms::connections::SynapseIdx;
-using nupic::algorithms::connections::SegmentIdx;
+using namespace nupic::algorithms::connections;
 
 /**
  * Temporal Memory implementation in C++.
@@ -143,37 +137,37 @@ public:
    * something like 4% * 0.01 = 0.0004).
    */
   TemporalMemory(
-      vector<UInt>    columnDimensions,
-      UInt            cellsPerColumn              = 32,
-      UInt            activationThreshold         = 13,
+      vector<CellIdx> columnDimensions,
+      CellIdx         cellsPerColumn              = 32,
+      SynapseIdx      activationThreshold         = 13,
       Permanence      initialPermanence           = 0.21,
       Permanence      connectedPermanence         = 0.50,
-      UInt            minThreshold                = 10,
-      UInt            maxNewSynapseCount          = 20,
+      SynapseIdx      minThreshold                = 10,
+      SynapseIdx      maxNewSynapseCount          = 20,
       Permanence      permanenceIncrement         = 0.10,
       Permanence      permanenceDecrement         = 0.10,
       Permanence      predictedSegmentDecrement   = 0.0,
       Int             seed                        = 42,
-      UInt            maxSegmentsPerCell          = 255,
-      UInt            maxSynapsesPerSegment       = 255,
+      SegmentIdx      maxSegmentsPerCell          = 255,
+      SynapseIdx      maxSynapsesPerSegment       = 255,
       bool            checkInputs                 = true,
       UInt            extra                       = 0);
 
   virtual void
   initialize(
-    vector<UInt>  columnDimensions            = {2048},
-    UInt          cellsPerColumn              = 32,
-    UInt          activationThreshold         = 13,
+    vector<CellIdx>  columnDimensions            = {2048},
+    CellIdx          cellsPerColumn              = 32,
+    SynapseIdx       activationThreshold         = 13,
     Permanence    initialPermanence           = 0.21,
     Permanence    connectedPermanence         = 0.50,
-    UInt          minThreshold                = 10,
-    UInt          maxNewSynapseCount          = 20,
+    SynapseIdx    minThreshold                = 10,
+    SynapseIdx    maxNewSynapseCount          = 20,
     Permanence    permanenceIncrement         = 0.10,
     Permanence    permanenceDecrement         = 0.10,
     Permanence    predictedSegmentDecrement   = 0.0,
     Int           seed                        = 42,
-    UInt          maxSegmentsPerCell          = 255,
-    UInt          maxSynapsesPerSegment       = 255,
+    SegmentIdx    maxSegmentsPerCell          = 255,
+    SynapseIdx    maxSynapsesPerSegment       = 255,
     bool          checkInputs                 = true,
     UInt          extra                       = 0);
 
@@ -189,11 +183,6 @@ public:
    * @returns Integer version number.
    */
   virtual UInt version() const;
-
-  /**
-   * This *only* updates _rng to a new Random using seed.
-   */
-  void seed_(UInt64 seed);
 
   /**
    * Indicates the start of a new sequence.
@@ -214,7 +203,7 @@ public:
    * @param learn
    * If true, reinforce / punish / grow synapses.
    */
-  void activateCells(const size_t activeColumnsSize, const UInt activeColumns[],
+  void activateCells(const size_t activeColumnsSize, const UInt activeColumns[], //TODO remove old API?
                      bool learn = true);
   void activateCells(const sdr::SDR &activeColumns, bool learn = true);
 
@@ -294,7 +283,7 @@ public:
    * @return Segment
    * The created segment.
    */
-  Segment createSegment(CellIdx cell);
+  Segment createSegment(const CellIdx& cell);
 
   /**
    * Returns the indices of cells that belong to a column.
@@ -303,7 +292,7 @@ public:
    *
    * @return (vector<CellIdx>) Cell indices
    */
-  vector<CellIdx> cellsForColumn(Int column);
+  vector<CellIdx> cellsForColumn(Int column); //TODO remove
 
   /**
    * Returns the number of cells in this layer.
@@ -317,7 +306,7 @@ public:
    *
    * @returns (std::vector<CellIdx>) Vector of indices of active cells.
    */
-  vector<CellIdx> getActiveCells() const;
+  vector<CellIdx> getActiveCells() const; //TODO remove
   void getActiveCells(sdr::SDR &activeCells) const;
 
   /**
@@ -325,7 +314,7 @@ public:
    *
    * @returns (std::vector<CellIdx>) Vector of indices of predictive cells.
    */
-  vector<CellIdx> getPredictiveCells() const;
+  vector<CellIdx> getPredictiveCells() const; //TODO remove?
   void getPredictiveCells(sdr::SDR &predictiveCells) const;
 
   /**
@@ -333,7 +322,7 @@ public:
    *
    * @returns (std::vector<CellIdx>) Vector of indices of winner cells.
    */
-  vector<CellIdx> getWinnerCells() const;
+  vector<CellIdx> getWinnerCells() const; //TODO remove?
   void getWinnerCells(sdr::SDR &winnerCells) const;
 
   vector<Segment> getActiveSegments() const;
@@ -351,7 +340,7 @@ public:
    *
    * @returns Integer number of column numbers
    */
-  UInt numberOfColumns() const;
+  CellIdx numberOfColumns() const;
 
   /**
    * Returns the number of cells per column.
@@ -365,8 +354,8 @@ public:
    *
    * @returns Integer number of the activation threshold
    */
-  UInt getActivationThreshold() const;
-  void setActivationThreshold(UInt);
+  SynapseIdx getActivationThreshold() const;
+  void setActivationThreshold(const SynapseIdx);
 
   /**
    * Returns the initial permanence.
@@ -374,7 +363,7 @@ public:
    * @returns Initial permanence
    */
   Permanence getInitialPermanence() const;
-  void setInitialPermanence(Permanence);
+  void setInitialPermanence(const Permanence);
 
   /**
    * Returns the connected permanance.
@@ -388,8 +377,8 @@ public:
    *
    * @returns Integer number of minimum threshold
    */
-  UInt getMinThreshold() const;
-  void setMinThreshold(UInt);
+  SynapseIdx getMinThreshold() const;
+  void setMinThreshold(const SynapseIdx);
 
   /**
    * Returns the maximum number of synapses that can be added to a segment
@@ -397,8 +386,8 @@ public:
    *
    * @returns Integer number of maximum new synapse count
    */
-  UInt getMaxNewSynapseCount() const;
-  void setMaxNewSynapseCount(UInt);
+  SynapseIdx getMaxNewSynapseCount() const;
+  void setMaxNewSynapseCount(const SynapseIdx);
 
   /**
    * Get and set the checkInputs parameter.
@@ -435,21 +424,21 @@ public:
    *
    * @returns Max segments per cell
    */
-  UInt getMaxSegmentsPerCell() const;
+  SegmentIdx getMaxSegmentsPerCell() const;
 
   /**
    * Returns the maxSynapsesPerSegment.
    *
    * @returns Max synapses per segment
    */
-  UInt getMaxSynapsesPerSegment() const;
+  SynapseIdx getMaxSynapsesPerSegment() const;
 
 	/**
 	 * Raises an error if cell index is invalid.
 	 *
 	 * @param cell Cell index
 	 */
-	bool _validateCell(const CellIdx cell) const;
+	bool _validateCell(const CellIdx cell) const; //TODO rm
 
   /**
    * Save (serialize) the current state of the spatial pooler to the
@@ -476,7 +465,7 @@ public:
    *
    * @returns Integer number of bytes
    */
-  virtual size_t persistentSize() const;
+  virtual size_t persistentSize() const; //TODO rm
 
   bool operator==(const TemporalMemory &other);
   bool operator!=(const TemporalMemory &other);
@@ -497,25 +486,25 @@ public:
    *
    * @return (int) Column index
    */
-  UInt columnForCell(const CellIdx cell) const;
+  UInt columnForCell(const CellIdx cell) const; //TODO rm, incorrect
 
   /**
    * Print the given UInt array in a nice format
    */
-  void printState(vector<UInt> &state);
+  void printState(vector<UInt> &state); //TODO rm
 
   /**
    * Print the given Real array in a nice format
    */
-  void printState(vector<Real> &state);
+  void printState(vector<Real> &state); //TODO rm
 
 protected:
-  UInt numColumns_;
-  vector<UInt> columnDimensions_;
-  UInt cellsPerColumn_;
-  UInt activationThreshold_;
-  UInt minThreshold_;
-  UInt maxNewSynapseCount_;
+  CellIdx numColumns_;
+  vector<CellIdx> columnDimensions_;
+  CellIdx cellsPerColumn_;
+  SynapseIdx activationThreshold_;
+  SynapseIdx minThreshold_;
+  SynapseIdx maxNewSynapseCount_;
   bool checkInputs_;
   Permanence initialPermanence_;
   Permanence connectedPermanence_;
@@ -540,7 +529,7 @@ protected:
   Random rng_;
 
 public:
-  Connections connections;
+  Connections connections; //TODO not public!
 };
 
 } // end namespace temporal_memory

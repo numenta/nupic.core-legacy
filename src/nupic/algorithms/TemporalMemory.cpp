@@ -51,15 +51,7 @@
 using namespace std;
 using namespace nupic;
 using nupic::sdr::SDR;
-using nupic::algorithms::temporal_memory::TemporalMemory;
-using nupic::algorithms::connections::SynapseIdx;
-using nupic::algorithms::connections::SynapseData;
-using nupic::algorithms::connections::SegmentIdx;
-using nupic::algorithms::connections::CellIdx;
-using nupic::algorithms::connections::Connections;
-using nupic::algorithms::connections::Segment;
-using nupic::algorithms::connections::Permanence;
-using nupic::algorithms::connections::Synapse;
+using namespace nupic::algorithms::temporal_memory;
 
 
 static const UInt TM_VERSION = 2;
@@ -67,12 +59,21 @@ static const UInt TM_VERSION = 2;
 TemporalMemory::TemporalMemory() {}
 
 TemporalMemory::TemporalMemory(
-    vector<UInt> columnDimensions, UInt cellsPerColumn,
-    UInt activationThreshold, Permanence initialPermanence,
-    Permanence connectedPermanence, UInt minThreshold, UInt maxNewSynapseCount,
-    Permanence permanenceIncrement, Permanence permanenceDecrement,
-    Permanence predictedSegmentDecrement, Int seed, UInt maxSegmentsPerCell,
-    UInt maxSynapsesPerSegment, bool checkInputs, UInt extra) {
+    vector<CellIdx> columnDimensions, 
+    CellIdx cellsPerColumn,
+    SynapseIdx activationThreshold, 
+    Permanence initialPermanence,
+    Permanence connectedPermanence, 
+    SynapseIdx minThreshold, 
+    SynapseIdx maxNewSynapseCount,
+    Permanence permanenceIncrement, 
+    Permanence permanenceDecrement,
+    Permanence predictedSegmentDecrement, 
+    Int seed, 
+    SegmentIdx maxSegmentsPerCell,
+    SynapseIdx maxSynapsesPerSegment, 
+    bool checkInputs, 
+    UInt extra) {
   initialize(columnDimensions, cellsPerColumn, activationThreshold,
              initialPermanence, connectedPermanence, minThreshold,
              maxNewSynapseCount, permanenceIncrement, permanenceDecrement,
@@ -83,12 +84,21 @@ TemporalMemory::TemporalMemory(
 TemporalMemory::~TemporalMemory() {}
 
 void TemporalMemory::initialize(
-    vector<UInt> columnDimensions, UInt cellsPerColumn,
-    UInt activationThreshold, Permanence initialPermanence,
-    Permanence connectedPermanence, UInt minThreshold, UInt maxNewSynapseCount,
-    Permanence permanenceIncrement, Permanence permanenceDecrement,
-    Permanence predictedSegmentDecrement, Int seed, UInt maxSegmentsPerCell,
-    UInt maxSynapsesPerSegment, bool checkInputs, UInt extra) {
+    vector<CellIdx> columnDimensions, 
+    CellIdx cellsPerColumn,
+    SynapseIdx activationThreshold, 
+    Permanence initialPermanence,
+    Permanence connectedPermanence, 
+    SynapseIdx minThreshold, 
+    SynapseIdx maxNewSynapseCount,
+    Permanence permanenceIncrement, 
+    Permanence permanenceDecrement,
+    Permanence predictedSegmentDecrement, 
+    Int seed, 
+    SegmentIdx maxSegmentsPerCell,
+    SynapseIdx maxSynapsesPerSegment, 
+    bool checkInputs, 
+    UInt extra) {
   // Validate all input parameters
 
   if (columnDimensions.size() <= 0) {
@@ -114,7 +124,8 @@ void TemporalMemory::initialize(
     columnDimensions_.push_back(columnDimension);
   }
 
-  cellsPerColumn_ = cellsPerColumn;
+  
+  cellsPerColumn_ = cellsPerColumn; //TODO add checks
   activationThreshold_ = activationThreshold;
   initialPermanence_ = initialPermanence;
   connectedPermanence_ = connectedPermanence;
@@ -128,7 +139,7 @@ void TemporalMemory::initialize(
 
   // Initialize member variables
   connections = Connections(numberOfColumns() * cellsPerColumn_, connectedPermanence_);
-  seed_((UInt64)(seed < 0 ? rand() : seed));
+  rng_ = Random(seed);
 
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
@@ -137,7 +148,7 @@ void TemporalMemory::initialize(
   reset();
 }
 
-static CellIdx getLeastUsedCell(Random &rng, UInt column,
+static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static methods, use private instead
                                 const Connections &connections,
                                 UInt cellsPerColumn) {
   const CellIdx start = column * cellsPerColumn;
@@ -332,7 +343,7 @@ static void activatePredictedColumn(
   } while (activeSegment != columnActiveSegmentsEnd);
 }
 
-static Segment createSegment(Connections &connections,
+static Segment createSegment(Connections &connections,  //TODO remove, use TM::createSegment
                              vector<UInt64> &lastUsedIterationForSegment,
                              CellIdx cell, UInt64 iteration,
                              UInt maxSegmentsPerCell) {
@@ -645,7 +656,7 @@ void TemporalMemory::reset(void) {
 //  Helper functions
 // ==============================
 
-Segment TemporalMemory::createSegment(CellIdx cell) {
+Segment TemporalMemory::createSegment(const CellIdx& cell) {
   return ::createSegment(connections, lastUsedIterationForSegment_, cell,
                          iteration_, maxSegmentsPerCell_);
 }
@@ -656,7 +667,7 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
   return cell / cellsPerColumn_;
 }
 
-vector<CellIdx> TemporalMemory::cellsForColumn(Int column) {
+vector<CellIdx> TemporalMemory::cellsForColumn(Int column) { //TODO remove, incorrect w/o topology
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
 
@@ -668,7 +679,7 @@ vector<CellIdx> TemporalMemory::cellsForColumn(Int column) {
   return cellsInColumn;
 }
 
-UInt TemporalMemory::numberOfCells(void) const { return connections.numCells(); }
+CellIdx TemporalMemory::numberOfCells(void) const { return connections.numCells(); }
 
 vector<CellIdx> TemporalMemory::getActiveCells() const { return activeCells_; }
 
@@ -726,9 +737,9 @@ vector<Segment> TemporalMemory::getMatchingSegments() const
   return matchingSegments_;
 }
 
-UInt TemporalMemory::numberOfColumns() const { return numColumns_; }
+CellIdx TemporalMemory::numberOfColumns() const { return numColumns_; }
 
-bool TemporalMemory::_validateCell(CellIdx cell) const
+bool TemporalMemory::_validateCell(CellIdx cell) const //TODO remove
 {
   if (cell < numberOfCells())
     return true;
@@ -744,11 +755,11 @@ vector<UInt> TemporalMemory::getColumnDimensions() const
 
 UInt TemporalMemory::getCellsPerColumn() const { return cellsPerColumn_; }
 
-UInt TemporalMemory::getActivationThreshold() const {
+SynapseIdx TemporalMemory::getActivationThreshold() const {
   return activationThreshold_;
 }
 
-void TemporalMemory::setActivationThreshold(UInt activationThreshold) {
+void TemporalMemory::setActivationThreshold(const SynapseIdx activationThreshold) {
   activationThreshold_ = activationThreshold;
 }
 
@@ -756,7 +767,7 @@ Permanence TemporalMemory::getInitialPermanence() const {
   return initialPermanence_;
 }
 
-void TemporalMemory::setInitialPermanence(Permanence initialPermanence) {
+void TemporalMemory::setInitialPermanence(const Permanence initialPermanence) {
   initialPermanence_ = initialPermanence;
 }
 
@@ -764,17 +775,17 @@ Permanence TemporalMemory::getConnectedPermanence() const {
   return connectedPermanence_;
 }
 
-UInt TemporalMemory::getMinThreshold() const { return minThreshold_; }
+SynapseIdx TemporalMemory::getMinThreshold() const { return minThreshold_; }
 
-void TemporalMemory::setMinThreshold(UInt minThreshold) {
+void TemporalMemory::setMinThreshold(const SynapseIdx minThreshold) {
   minThreshold_ = minThreshold;
 }
 
-UInt TemporalMemory::getMaxNewSynapseCount() const {
+SynapseIdx TemporalMemory::getMaxNewSynapseCount() const {
   return maxNewSynapseCount_;
 }
 
-void TemporalMemory::setMaxNewSynapseCount(UInt maxNewSynapseCount) {
+void TemporalMemory::setMaxNewSynapseCount(const SynapseIdx maxNewSynapseCount) {
   maxNewSynapseCount_ = maxNewSynapseCount;
 }
 
@@ -809,20 +820,15 @@ void TemporalMemory::setPredictedSegmentDecrement(
   predictedSegmentDecrement_ = predictedSegmentDecrement;
 }
 
-UInt TemporalMemory::getMaxSegmentsPerCell() const {
+SegmentIdx TemporalMemory::getMaxSegmentsPerCell() const {
   return maxSegmentsPerCell_;
 }
 
-UInt TemporalMemory::getMaxSynapsesPerSegment() const {
+SynapseIdx TemporalMemory::getMaxSynapsesPerSegment() const {
   return maxSynapsesPerSegment_;
 }
 
 UInt TemporalMemory::version() const { return TM_VERSION; }
-
-/**
- * Create a RNG with given seed
- */
-void TemporalMemory::seed_(UInt64 seed) { rng_ = Random(seed); }
 
 size_t TemporalMemory::persistentSize() const {
   stringstream s;
