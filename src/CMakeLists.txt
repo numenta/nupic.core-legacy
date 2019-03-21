@@ -149,7 +149,6 @@ set(ntypes_files
     nupic/ntypes/ArrayBase.hpp
     nupic/ntypes/BundleIO.hpp
     nupic/ntypes/Collection.hpp
-    nupic/ntypes/Dimensions.cpp
     nupic/ntypes/Dimensions.hpp
     nupic/ntypes/Scalar.cpp
     nupic/ntypes/Scalar.hpp
@@ -222,6 +221,7 @@ set(utils_files
     nupic/utils/StringUtils.cpp
     nupic/utils/StringUtils.hpp
     nupic/utils/VectorHelpers.hpp
+    nupic/utils/SdrMetrics.cpp
     nupic/utils/SdrMetrics.hpp
 )
 

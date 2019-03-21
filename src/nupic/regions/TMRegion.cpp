@@ -839,7 +839,7 @@ void TMRegion::deserialize(BundleIO &bundle) {
   f.ignore(1);
   f.read((char *)&args_, len);
   f >> columnDimensions_;
-  f.ignore(1);
+  f >> std::ws;  // ignore whitespace
 
   if (args_.init) {
     TemporalMemory* tm = new TemporalMemory();

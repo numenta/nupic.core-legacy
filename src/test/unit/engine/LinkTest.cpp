@@ -680,7 +680,7 @@ public:
    * It is always called after the constructor (or load from serialized state)
    */
   void initialize() override {
-    nodeCount_ = getOutputDimensions().getDimensionCount();
+    nodeCount_ = getOutputDimensions().size();
     NTA_CHECK(nodeCount_ == 1);
     out_ = getOutput("out");
     feedbackIn_ = getInput("feedbackIn");
