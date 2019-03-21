@@ -164,13 +164,6 @@ using nupic::algorithms::connections::Permanence;
             return py::array_t<nupic::UInt32>(matchingSegments.size(), matchingSegments.data());
         });
 
-        py_HTM.def("cellsForColumn", [](HTM_t& self, UInt columnIdx)
-        {
-            auto cells = self.cellsForColumn(columnIdx);
-
-            return py::array_t<nupic::UInt32>(cells.size(), cells.data());
-        });
-
         py_HTM.def("convertedActivateCells", [](HTM_t& self, py::array_t<nupic::UInt32>& activeColumns, bool learn)
         {
             self.activateCells(activeColumns.size(), get_it(activeColumns), learn);
