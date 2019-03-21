@@ -24,10 +24,7 @@
 #include <algorithm> // fill
 
 using namespace std;
-
-namespace nupic {
-namespace encoders {
-
+using namespace nupic::encoders;
 
 RandomDistributedScalarEncoder::RandomDistributedScalarEncoder(
                                               const RDSE_Parameters &parameters)
@@ -35,9 +32,13 @@ RandomDistributedScalarEncoder::RandomDistributedScalarEncoder(
 
 void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &parameters)
 {
-  // Check parameters
+  // Check size parameter
   NTA_CHECK( parameters.size > 0u );
 
+  // Initialize parent class.
+  BaseEncoder<Real64>::initialize({ parameters.size });
+
+  // Check other parameters
   UInt num_active_args = 0;
   if( parameters.activeBits > 0u)   { num_active_args++; }
   if( parameters.sparsity   > 0.0f) { num_active_args++; }
@@ -75,9 +76,6 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
   else if( args_.resolution > 0.0f ) {
     args_.radius = args_.activeBits * args_.resolution;
   }
-
-  // Initialize parent class.
-  BaseEncoder<Real64>::initialize({ args_.size });
 }
 
 void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
@@ -144,6 +142,3 @@ void RandomDistributedScalarEncoder::load(std::istream &stream)
 
   initialize( p );
 }
-
-} // end namespace encoders
-} // end namespace nupic
