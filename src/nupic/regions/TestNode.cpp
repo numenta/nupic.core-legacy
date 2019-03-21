@@ -107,10 +107,11 @@ void TestNode::initialize() {
   bottomUpOut_ = getOutput("bottomUpOut");
   bottomUpIn_ = getInput("bottomUpIn");
   Dimensions dim = bottomUpOut_->getDimensions();
+	NTA_CHECK(dim.isSpecified());
   // does not really handle dimensions > 2 right but this will do.
-  nodeCount_ = 1;
-  for (size_t i = 1; i < dim.getDimensionCount(); i++) {
-    nodeCount_ *= dim[i];
+	nodeCount_ = 1;
+  if (dim.size() > 1) {
+  	nodeCount_ = dim.getCount()/dim[0];
   }
   outputElementCount_ = dim[0];
 

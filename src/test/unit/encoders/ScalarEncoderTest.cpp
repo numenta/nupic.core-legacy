@@ -193,8 +193,8 @@ TEST(ScalarEncoder, Serialization) {
   ScalarEncoderParameters q;
   q.minimum  = -1.0f;
   q.maximum  =  1.0003f;
-  q.size     = 100;
-  q.sparsity = 0.15;
+  q.size     = 100u;
+  q.sparsity = 0.15f;
   inputs.push_back( new ScalarEncoder( q ) );
 
   std::stringstream buf;

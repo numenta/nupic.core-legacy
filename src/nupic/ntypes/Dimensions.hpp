@@ -29,352 +29,148 @@
 #define NTA_DIMENSIONS_HPP
 
 #include <iostream>
+#include <sstream>
+#include <cctype>
 #include <vector>
+#include <iterator>   // for stream iterator
+#include <numeric>    // for std::accumulate
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
+#include <nupic/types/Serializable.hpp>
+
 
 namespace nupic {
-/**
- * @typedef Coordinate
- *
- * A Coordinate is the location of a single cell in an n-dimensional
- * grid described by a Dimensions object.
- *
- * It's a direct @c typedef, so it has the exactly the same interface as
- * @c std::vector<size_t> . A value with the index of `i` in the vector
- * represents the location of the cell along the `i`th dimension.
- *
- * @note It must have the same number of dimensions as its corresponding
- * Dimensions object.
- *
- * @internal
- *
- * Because a vector of a basic type can be directly wrapped
- * by swig, we do not need a separate class.
- *
- * @endinternal
- */
-typedef std::vector<UInt> Coordinate;
 
-/**
- * Represents the dimensions of a Region.
- *
- * A Dimensions object is an n-dimensional grid, consists of many cells, and
- * each dimension has a size, i.e. how many cells can there be along this
- * dimension.
- *
- * A node within a Region is represented by a cell of a n-dimensional grid,
- * identified by a Coordinate.
- *
- * It's implemented by a @c vector of @c size_t plus a few methods for
- * convenience and for wrapping.
- *
- * @nosubgrouping
- *
- */
-class Dimensions : public std::vector<UInt> {
+class Dimensions : public ::std::vector<UInt>, Serializable {
 public:
-  /**
-   *
-   * @name Constructors
-   *
-   * @{
-   *
-   */
-
   /**
    * Create a new Dimensions object.
    * The dimension in index 0 is the one that moves fastest while iterating.
    * in 2D coordinates, x,y; the x is dimension[0], y is dimension[1].
-   *
    * @note Default dimensions are unspecified, see isUnspecified()
    *       Dimensions of size=1 and value [0] = 0 means "not known yet", see isDontCare()
-   *
    */
-Dimensions() {};
-
-  /**
-   * Create a new Dimensions object from a @c std::vector<UInt>.
-   *
-   * @param v
-   *        A @c std::vector of @c UInt, the value with the index of @a n
-   *        is the size of the @a n th dimension
-   *
-   */
-  Dimensions(std::vector<UInt> v);
-
-
-  /** Create a new 1-dimension Dimensions object.
-
-   * @param x
-   *        The size of the 1st dimension
-   *
-   */
+  Dimensions() {};
   Dimensions(UInt x) { push_back(x); }
-
-  /**
-   * Create a new 2-dimension Dimensions.
-   *
-   * @param x
-   *        The size of the 1st dimension
-   * @param y
-   *        The size of the 2nd dimension
-   */
   Dimensions(UInt x, UInt y) {  push_back(x); push_back(y); }
-
-  /**
-   * Create a new 3-dimension Dimensions.
-   *
-   * @param x
-   *        The size of the 1st dimension
-   * @param y
-   *        The size of the 2nd dimension
-   * @param z
-   *        The size of the 3rd dimension
-   */
   Dimensions(UInt x, UInt y, UInt z) { push_back(x); push_back(y); push_back(z); }
-
-
-  /**
-   *
-   * @}
-   *
-   * @name Properties
-   *
-   * @{
-   *
-   */
+  Dimensions(const std::vector<UInt>& v) : std::vector<UInt>(v){};
+  Dimensions(const Dimensions& d)  : std::vector<UInt>(d){};
 
   /**
-   * Get the count of cells in the grid, which is the product of the sizes of
+   * @returns  The count of cells in the grid which is the product of the sizes of
    * the dimensions.
-   *
-   * @returns
-   *        The count of cells in the grid.
    */
-  size_t getCount() const;
+  size_t getCount() const { return((size() > 0) ? std::accumulate(begin(), end(), 1, std::multiplies<UInt>()) : 0);}
+
 
   /**
-   *
-   * Get the number of dimensions.
-   *
-   * @returns number of dimensions
-   *
-   */
-  size_t getDimensionCount() const;
-
-  /**
-   * Get the size of a dimension.
-   *
-   * @param index
-   *        The index of the dimension
-   *
-   * @returns
-   *        The size of the dimension with the index of @a index
-   *
-   * @note Do not confuse @a index with "linear index" as in getIndex()
-   */
-  size_t getDimension(size_t index) const;
-
-  /**
-   *
-   * @}
-   *
-   * @name Boolean properties
    *
    * There are two "special" values for dimensions:
    *
-   * * Dimensions of `[]` (`dims.size()==0`) means "not yet known" aka
-   * "unspecified", see isUnspecified()
+   * * Dimensions of `[]` (`dims.size()==0`) means "empty dimensions" aka
+   *         "unspecified", see isUnspecified() 
    * * Dimensions of `[0]`  (`dims.size()==1 && dims[0] == 0`) means
-   * "don't care", see isDontcare()
+   *         "in process of being specified but not yet resolved.", see isDontcare()
    *
-   * @{
+   * The states that a Dimensions object can have are:
    *
+   * * Unspecified - empty; Everything starts out as unspecified.
+   *
+   * * Dont Care   - We are in the process of setting all dimensions. 
+   *                 We have checked direct explicit configuration,
+   *                 and trying implied configuration. Not yet resolved.
+   *
+   *                 For example, if we looked at an input and checked that 
+	 *                 it was not configured with a dimension we can mark it
+   *                 as isDontCare so that later when we determine the 
+   *                 dimensions of the connected output we know that it 
+   *                 can also assign it to the input.
+   *
+   * * Specified   - We have a good dimension. We have at least one dimension.
+   *                 It's not the opposite of isUnspecified()!
+   *
+   * * Invalid     - Some dimension is 0 although Dontcare state is valid.
+   *
+   * There is a function to check for each of these states.
    */
-
-  /**
-   * Tells whether the Dimensions object is "unspecified".
-	 * All dimensions start out in this state when allocated.
-	 * It means we have not yet looked to see if it has been
-	 * configured with a dimension value.  
-	 * The dimension value is size(0).
-   *
-   * @returns
-   *     Whether the Dimensions object is "unspecified"
-   *
-   * @see isSpecified()
-   */
-  bool isUnspecified() const;
-
-  /**
-   *
-   * Tells whether the Dimensions object is "don't care".
-	 * This means that we have confirmed that it was not configured 
-	 * with a dimension but that it can be inherited from someplace 
-	 * else.  For example, if we looked at an input and checked that 
-	 * it was not configured with a dimension we can mark it as isDontCare 
-	 * so that later when we determine the dimension of the connected 
-	 * output we know that it can also assign it to the input.
-   * value is vector of size 1, element 0 is 0.
-   *
-   * @returns
-   *     Whether the Dimensions object is "don't care"
-   */
-  bool isDontcare() const;
   static const int DONTCARE = 0;
+  bool isUnspecified() const { return(size() == 0); }
+  bool isDontcare()    const { return(size() == 1 && at(0) == DONTCARE); }
+  bool isInvalid()     const { return(!isDontcare() && getCount() == 0); }
+  bool isSpecified()   const { return(getCount() != 0); }
 
-  /**
-   * Tells whether the Dimensions object is "specified".
-   *
-   * A "specified" Dimensions object satisfies all following conditions:
-	 * Basically it means that this is a usable dimension.
-   *
-   *   * "valid"
-   *   * NOT "unspecified"
-   *   * NOT "don't care"
-   *
-   * @returns
-   *       Whether the Dimensions object is "specified"
-   *
-   * @note It's not the opposite of isUnspecified()!
-   */
-  bool isSpecified() const;
+  std::string toString(bool humanReadable = true) const {
+    if (isUnspecified()) return "[unspecified]";
+    if (isDontcare())    return "[dontcare]";
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < size(); i++) {
+      if (i)  ss << "," <<at(i);
+      else   ss << at(i);
+    }
+    ss << "] ";
+		if (humanReadable && isInvalid()) ss << "(Invalid) ";
+    return ss.str();
+  }
 
-  /**
-   * Tells whether the sizes of all dimensions are 1.
-   *
-   * @returns
-   *       Whether the sizes of all dimensions are 1, e.g. [1], [1 1], [1 1 1],
-   * etc.
-   */
-  bool isOnes() const;
+  void save(std::ostream &f) const {
+    size_t n = size();
+    f.write((const char*)&n, sizeof(size_t));
+    if (n > 0)
+      f.write((const char*)&at(0), n * sizeof(at(0)));
+  }
+  void load(std::istream &f) {
+    size_t n;
+    f.read((char*)&n, sizeof(size_t));
+    clear();
+    if (n > 0) {
+      resize(n);
+      f.read((char*)&at(0), n * sizeof(at(0)));
+    }
+  }
 
-  /**
-   * Tells whether Dimensions is "valid".
-   *
-   * A Dimensions object is valid if it specifies actual dimensions, i.e. all
-   * dimensions have a size greater than 0, or is a special value
-   * ("unspecified"/"don't care").
-   *
-   * A Dimensions object is invalid if any dimensions are 0 (except for "don't
-   * care")
-   *
-   * @returns
-   *       Whether Dimensions is "valid"
-   */
-  bool isValid() const;
-
-  /**
-   *
-   * @}
-   *
-   * @name Coordinate<->index mapping
-   *
-   * Coordinate<->index mapping is in lower-major order, i.e.
-   * for Region with dimensions `[2,3]`:
-   *
-   *     [0,0] -> index 0
-   *     [1,0] -> index 1
-   *     [0,1] -> index 2
-   *     [1,1] -> index 3
-   *     [0,2] -> index 4
-   *     [1,2] -> index 5
-   *
-   * @{
-   *
-   */
-
-  /**
-   * Convert a Coordinate to a linear index (in lower-major order).
-   *
-   * @param coordinate
-   *        The coordinate to be converted
-   *
-   * @returns
-   *        The linear index corresponding to @a coordinate
-   */
-  size_t getIndex(const Coordinate &coordinate) const;
-
-  /**
-   * Convert a linear index (in lower-major order) to a Coordinate.
-   *
-   * @param index
-   *        The linear index to be converted
-   *
-   * @returns
-   *        The Coordinate corresponding to @a index
-   */
-  Coordinate getCoordinate(const size_t index) const;
-
-  /**
-   *
-   * @}
-   *
-   * @name Misc
-   *
-   * @{
-   *
-   */
-
-  /**
-   *
-   * Convert the Dimensions object to string representation.
-   *
-   * In most cases, we want a human-readable string, but for
-   * serialization we want only the actual dimension values
-   *
-   * @param humanReadable
-   *        The default is @c true, make the string human-readable,
-   *        set to @c false for serialization
-   *
-   * @returns
-   *        The string representation of the Dimensions object
-   */
-  std::string toString(bool humanReadable = true) const;
-
-
-  /**
-   * The equivalence operator.
-   *
-   * Two Dimensions objects will be considered equivalent, if any of the
-   * following satisfies:
-   *
-   * * They have the same number of dimensions and the same size for every
-   * dimension.
-   * * Both of them have the size of 1 for everything dimensions, despite of
-   * how many dimensions they have, i.e. isOnes() returns @c true for both
-   * of them. Some linking scenarios require us to treat [1] equivalent to [1 1]
-   * etc.
-   *
-   * @param dims2
-   *        The Dimensions object being compared
-   *
-   * @returns
-   *        Whether this Dimensions object is equivalent to @a dims2.
-   *
-   */
-  bool operator==(const Dimensions &dims2) const;
-
-  /**
-   * The in-equivalence operator, the opposite of operator==().
-   *
-   * @param dims2
-   *        The Dimensions object being compared
-   *
-   * @returns
-   *        Whether this Dimensions object is not equivalent to @a dims2.
-   */
-  bool operator!=(const Dimensions &dims2) const;
-
-  /**
-   *
-   * @}
-   *
-   */
-
-  friend std::ostream &operator<<(std::ostream &f, const Dimensions &d);
-  friend std::istream &operator>>(std::istream &f, Dimensions &d);
 };
+  
+
+  inline std::ostream &operator<<(std::ostream &f, const Dimensions& d) {
+    f << d.toString(false) << " ";
+    return f;
+  }
+  inline std::istream &operator>>(std::istream &f, Dimensions& d) { 
+    // expected format:    [val, val, val]
+    f >> std::ws;  // ignore leading whitespace
+    d.clear();
+    int c = f.get();
+    NTA_CHECK(c == '[') << "Expecting beginning of Dimensions.";
+    if (!isdigit(f.peek())) {
+      std::string tag;
+      f >> tag;
+      if (tag == "unspecified]") {
+        // leave d empty.
+      }
+      else if (tag == "dontcare]") {
+        d.push_back(0);
+      }
+    }
+    else {
+      UInt32 i;
+      char buf[50];
+      while(isdigit(f.peek())) {
+        int j = 0;
+        while(isdigit(c = f.get())) {
+          buf[j++] = c;
+        }
+        buf[j] = '\0';
+        i = strtoul(buf, nullptr, 0);
+        d.push_back(i);
+        if (c == ']') break;
+        f >> std::ws;  // ignore whitespace
+        NTA_CHECK(c == ',') << "Invalid format for Dimensions";
+      }
+    }
+    return f;
+  }
 
 } // namespace nupic
 

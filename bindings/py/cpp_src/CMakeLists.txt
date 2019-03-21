@@ -23,6 +23,8 @@
 #   algorithms.so
 #   engine_internal.so
 #   math.so
+#   encoders.so
+#   sdr.so
 #
 #
 # For PyBind11 info See: https://pybind11.readthedocs.io/en/stable/compiling.html
