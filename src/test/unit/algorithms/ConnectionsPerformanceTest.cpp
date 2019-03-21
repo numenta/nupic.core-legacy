@@ -124,21 +124,10 @@ float runSpatialPoolerTest(
   SpatialPooler sp(
     /* inputDimensions */               { numInputs },
     /* columnDimensions */              { numColumns },
-    /* potentialRadius */               (numInputs + numColumns),
-    /* potentialPct */                  0.5f,
-    /* globalInhibition */              true,
-    /* localAreaDensity */              columnSparsity,
-    /* numActiveColumnsPerInhArea */    -1,
-    /* stimulusThreshold */             6u,
-    /* synPermInactiveDec */            0.01f,
-    /* synPermActiveInc */              0.03f,
-    /* synPermConnected */              0.4f,
-    /* minPctOverlapDutyCycles */       0.001f,
-    /* dutyCyclePeriod */               1000u,
-    /* boostStrength */                 1.0f,
-    /* seed */                          rng(),
-    /* spVerbosity */                   0u,
-    /* wrapAround */                    true);
+    /* potentialRadius */               (numInputs + numColumns)
+    );
+  sp.setLocalAreaDensity(columnSparsity);
+
   SDR input( sp.getInputDimensions() );
   SDR columns( sp.getColumnDimensions() );
   cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
