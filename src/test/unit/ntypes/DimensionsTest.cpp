@@ -41,7 +41,7 @@ TEST_F(DimensionsTest, EmptyDimensions) {
   // empty dimensions (unspecified)
   Dimensions d;
   ASSERT_TRUE(d.isUnspecified());
-  ASSERT_FALSE(d.isInvalid());
+  ASSERT_TRUE(d.isInvalid());
   ASSERT_FALSE(d.isDontcare());
   ASSERT_FALSE(d.isSpecified());
   EXPECT_EQ(d.getCount(), 0u);
