@@ -657,6 +657,17 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
   return cell / cellsPerColumn_;
 }
 
+vector<CellIdx> TemporalMemory::cellsForColumn(Int column) {
+  const CellIdx start = cellsPerColumn_ * column;
+  const CellIdx end = start + cellsPerColumn_;
+
+  vector<CellIdx> cellsInColumn;
+  for (CellIdx i = start; i < end; i++) {
+    cellsInColumn.push_back(i);
+  }
+
+  return cellsInColumn;
+}
 
 UInt TemporalMemory::numberOfCells(void) const { return connections.numCells(); }
 

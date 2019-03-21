@@ -294,6 +294,14 @@ public:
    */
   Segment createSegment(CellIdx cell);
 
+  /**
+   * Returns the indices of cells that belong to a column.
+   *
+   * @param column Column index
+   *
+   * @return (vector<CellIdx>) Cell indices
+   */
+  vector<CellIdx> cellsForColumn(Int column);
 
   /**
    * Returns the number of cells in this layer.
