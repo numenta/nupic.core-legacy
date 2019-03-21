@@ -458,10 +458,6 @@ public:
   // Debugging helpers
   //----------------------------------------------------------------------
 
-  /**
-   * Print the main TM creation parameters
-   */
-  void printParameters();
 
   /**
    * Returns the index of the column that a cell belongs to.
@@ -471,16 +467,6 @@ public:
    * @return (int) Column index
    */
   UInt columnForCell(const CellIdx cell) const;
-
-  /**
-   * Print the given UInt array in a nice format
-   */
-  void printState(vector<UInt> &state);
-
-  /**
-   * Print the given Real array in a nice format
-   */
-  void printState(vector<Real> &state);
 
 protected:
   UInt numColumns_;
