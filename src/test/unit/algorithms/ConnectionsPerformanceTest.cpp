@@ -48,9 +48,6 @@ using ::nupic::algorithms::temporal_memory::TemporalMemory;
 
 Random rng(SEED);
 
-std::vector<UInt32> _randomSDR(UInt n, UInt w);
-void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn = true);
-
 float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
                                                        int numElements,
                                                        string label) {
@@ -59,33 +56,31 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
   // Initialize
 
   TemporalMemory tm;
-  vector<UInt> columnDim;
-  columnDim.push_back(numColumns);
-  tm.initialize(columnDim);
+  tm.initialize( {numColumns} );
 
   cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
 
   // Learn
 
-  vector<vector<vector<CellIdx>>> sequences;
-  vector<vector<CellIdx>> sequence;
-  vector<CellIdx> sdr;
-
+  vector<vector<SDR>> sequences;
   for (int i = 0; i < numSequences; i++) {
+    vector<SDR> sequence;
+    SDR sdr({numColumns});
     for (int j = 0; j < numElements; j++) {
-      sdr = _randomSDR(numColumns, w);
+      const Real sparsity = w / static_cast<Real>(numColumns);
+      sdr.randomize(sparsity, rng);
       sequence.push_back(sdr);
     }
-
     sequences.push_back(sequence);
   }
 
+  const SDR unused_({std::numeric_limits<UInt>::max()}); //dummy SDR, unused here, but needed for API
   for (int i = 0; i < 5; i++) {
     for (auto sequence : sequences) {
       for (auto sdr : sequence) {
-        _feedTM(tm, sdr);
-        tm.reset();
+        tm.compute(sdr, true, unused_, unused_);
       }
+      tm.reset();
     }
   }
 
@@ -95,15 +90,17 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
 
   for (auto sequence : sequences) {
     for (auto sdr : sequence) {
-      _feedTM(tm, sdr, false);
-      tm.reset();
+      tm.compute(sdr, false, unused_, unused_);
     }
+    tm.reset();
   }
 
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
   return (float)timer.getElapsed();
 }
+
+
 
 float runSpatialPoolerTest(
                   UInt   numInputs,
@@ -163,32 +160,6 @@ float runSpatialPoolerTest(
   return (float)timer.getElapsed();
 }
 
-
-vector<CellIdx> _randomSDR(UInt n, UInt w) {
-  set<UInt> sdrSet = set<UInt>();
-  vector<CellIdx> sdr;
-
-  for (UInt i = 0; i < w; i++) {
-    sdrSet.insert(rng.getUInt32(n));
-  }
-
-  for (UInt c : sdrSet) {
-    sdr.push_back(c);
-  }
-
-  return sdr;
-}
-
-
-void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn) {
-  vector<UInt> activeColumns;
-
-  for (auto c : sdr) {
-    activeColumns.push_back(c);
-  }
-
-  tm.compute(activeColumns.size(), activeColumns.data(), learn);
-}
 
 
 // TESTS
