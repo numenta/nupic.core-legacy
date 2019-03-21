@@ -2049,12 +2049,12 @@ TEST(SpatialPoolerTest, ExactOutput) {
                    /*wrapAround*/ true);
 
   for(UInt i = 0; i < 1000; i++) {
+	  cout << "here " << i; 
     Random rng(i + 1); // Random seed 0 is magic, don't use it.
     inputs.randomize( 0.15f, rng );
     sp.compute(inputs, true, columns);
   }
-  NTA_DEBUG << "OUTPUT SDR:" << endl; columns.save( cerr ); cerr << endl;
-  ASSERT_TRUE( columns == gold_sdr );
+  ASSERT_EQ( columns, gold_sdr );
 }
 
 } // end anonymous namespace
