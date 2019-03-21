@@ -87,9 +87,9 @@ Segment Connections::createSegment(CellIdx cell) {
     segment = destroyedSegments_.back();
     destroyedSegments_.pop_back();
   } else {
-    NTA_CHECK(std::numeric_limits<Segment>::max() > segments_.size()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
-	    << std::numeric_limits<Segment>::max() << " > " << segments_.size();
-    segment = (Segment)segments_.size();
+    NTA_CHECK(segments_.size() <= std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
+	    << segments_.size() << " <= " << std::numeric_limits<Segment>::max();
+    segment = static_cast<Segment>(segments_.size());
     segments_.push_back(SegmentData());
     segmentOrdinals_.push_back(0);
   }
@@ -118,9 +118,9 @@ Synapse Connections::createSynapse(Segment segment,
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
-    NTA_CHECK(std::numeric_limits<Synapse>::max()  >= synapses_.size()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
-	    << "'" << std::numeric_limits<Synapse>::max() << " >= " << synapses_.size();
-    synapse = (Synapse)synapses_.size();
+    NTA_CHECK(synapses_.size() <= std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
+	    << synapses_.size() << " <= " << std::numeric_limits<Synapse>::max();
+    synapse = static_cast<Synapse>(synapses_.size());
     synapses_.push_back(SynapseData());
     synapseOrdinals_.push_back(0);
   }
