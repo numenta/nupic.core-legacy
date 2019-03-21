@@ -97,7 +97,7 @@ public:
   static const int DONTCARE = 0;
   bool isUnspecified() const { return(size() == 0); }
   bool isDontcare()    const { return(size() == 1 && at(0) == DONTCARE); }
-  bool isInvalid()     const { return(size() > 1 && getCount() == 0); }
+  bool isInvalid()     const { return(!isDontcare() && getCount() == 0); }
   bool isSpecified()   const { return(getCount() != 0); }
 
   std::string toString(bool humanReadable = true) const {
