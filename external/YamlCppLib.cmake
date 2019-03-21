@@ -20,21 +20,20 @@
 # -----------------------------------------------------------------------------
 # Note: yaml-cpp includes an older version of gtest so 
 #       turn off YAML_CPP_BUILD_TESTS to prevent it from building gtest.
-
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
-    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp-0.6.2.tar.gz)
+message(STATUS "${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.zip")
+if(EXISTS "${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.zip")
+    set(URL "${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.zip")
 else()
     #set(URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz)
-    set(REPO https://github.com/jbeder/yaml-cpp.git)
+    # There seems to be something wrong with the 0.6.2 distribution.  Use the master.
+    set(URL https://github.com/jbeder/yaml-cpp/archive/master.zip)
 endif()
 
-message(STATUS "Obtaining yaml-cpp")
+message(STATUS "Obtaining yaml-cpp from ${URL}" )
 include(DownloadProject/DownloadProject.cmake)
 download_project(PROJ yaml-cpp
 	PREFIX ${EP_BASE}/yaml-cpp
-	#URL ${URL}
-	GIT_REPOSITORY ${REPO}
-	GIT_SHALLOW ON
+	URL ${URL}
 	UPDATE_DISCONNECTED 1
 	QUIET
 	)
