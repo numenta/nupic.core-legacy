@@ -718,14 +718,6 @@ vector<Segment> TemporalMemory::getMatchingSegments() const
 
 UInt TemporalMemory::numberOfColumns() const { return numColumns_; }
 
-bool TemporalMemory::_validateCell(CellIdx cell) const
-{
-  if (cell < numberOfCells())
-    return true;
-
-  NTA_THROW << "Invalid cell " << cell;
-  return false;
-}
 
 vector<UInt> TemporalMemory::getColumnDimensions() const
 {

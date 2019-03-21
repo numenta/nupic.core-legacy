@@ -434,13 +434,6 @@ public:
    */
   UInt getMaxSynapsesPerSegment() const;
 
-	/**
-	 * Raises an error if cell index is invalid.
-	 *
-	 * @param cell Cell index
-	 */
-	bool _validateCell(const CellIdx cell) const;
-
   /**
    * Save (serialize) the current state of the spatial pooler to the
    * specified file.
