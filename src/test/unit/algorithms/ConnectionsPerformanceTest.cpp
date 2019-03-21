@@ -214,21 +214,4 @@ TEST(ConnectionsPerformanceTest, testSP) {
   UNUSED(tim);
 }
 
-/**
- * Tests typical usage of Connections with Temporal Pooler.
- */
-TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = runSpatialPoolerTest(
-    /* numInputs */          2 * COLS,
-    /* inputSparsity */      0.02f,
-    /* numColumns */         COLS / 2,
-    /* columnSparsity */     0.1f,
-    /* label */              "temporal pooler");
-
-#if defined( NDEBUG)
-  ASSERT_LE(tim, 4.0f * Timer::getSpeed());
-#endif
-  UNUSED(tim);
-}
-
 } // end namespace
