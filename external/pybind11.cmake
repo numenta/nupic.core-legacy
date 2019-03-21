@@ -24,7 +24,8 @@
 if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/pybind11-2.2.4.tar.gz)
     set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/pybind11-2.2.4.tar.gz)
 else()
-    set(URL https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz)
+    #set(URL https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz)
+    set(URL https://github.com/pybind/pybind11/archive/master.zip)
 endif()
 
 message(STATUS "obtaining PyBind11")

@@ -41,10 +41,11 @@ TEST_F(DimensionsTest, EmptyDimensions) {
   // empty dimensions (unspecified)
   Dimensions d;
   ASSERT_TRUE(d.isUnspecified());
-  ASSERT_TRUE(d.isInvalid());
-  ASSERT_TRUE(!d.isDontcare());
+  ASSERT_FALSE(d.isInvalid());
+  ASSERT_FALSE(d.isDontcare());
+  ASSERT_FALSE(d.isSpecified());
   EXPECT_EQ(d.getCount(), 0u);
-  EXPECT_STREQ("[unspecified]", d.toString().c_str());
+  EXPECT_STREQ("[unspecified]", d.toString(false).c_str());
   ASSERT_EQ(0u, d.size());
 }
 
@@ -52,10 +53,11 @@ TEST_F(DimensionsTest, DontCareDimensions) {
   // dontcare dimensions [0]
   Dimensions d;
   d.push_back(0u);
-  ASSERT_TRUE(!d.isUnspecified());
+  ASSERT_FALSE(d.isUnspecified());
   ASSERT_TRUE(d.isDontcare());
-  ASSERT_TRUE(d.isInvalid());
-  EXPECT_STREQ("[dontcare]", d.toString().c_str());
+  ASSERT_FALSE(d.isInvalid());
+  ASSERT_FALSE(d.isSpecified());
+  EXPECT_STREQ("[dontcare]", d.toString(false).c_str());
   ASSERT_EQ(d.getCount(), 0u);
   ASSERT_EQ(1u, d.size());
 }
@@ -68,7 +70,8 @@ TEST_F(DimensionsTest, InvalidDimensions) {
   ASSERT_FALSE(d.isUnspecified());
   ASSERT_FALSE(d.isDontcare());
   ASSERT_TRUE(d.isInvalid());
-  EXPECT_STREQ("[1,0]", d.toString().c_str());
+  ASSERT_FALSE(d.isSpecified());
+  EXPECT_STREQ("[1,0] ", d.toString(false).c_str());
   ASSERT_EQ(d.getCount(), 0u);
   ASSERT_EQ(1u, d[0]);
   ASSERT_EQ(0u, d[1]);
@@ -84,7 +87,8 @@ TEST_F(DimensionsTest, ValidDimensions) {
   ASSERT_FALSE(d.isUnspecified());
   ASSERT_FALSE(d.isDontcare());
   ASSERT_FALSE(d.isInvalid());
-  EXPECT_STREQ("[2,3]", d.toString().c_str());
+  ASSERT_TRUE(d.isSpecified());
+  EXPECT_STREQ("[2,3] ", d.toString(false).c_str());
   ASSERT_EQ(2u, d[0]);
   ASSERT_EQ(3u, d[1]);
   ASSERT_EQ(6u, d.getCount());

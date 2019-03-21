@@ -76,7 +76,7 @@ namespace nupic_ext
             .def("isUnspecified", &Dimensions::isUnspecified)
             .def("isDontcare", &Dimensions::isDontcare)
             .def("isSpecified", &Dimensions::isSpecified)
-            .def("isValid", &Dimensions::isInvalid)
+            .def("isInvalid", &Dimensions::isInvalid)
             .def("toString", &Dimensions::toString, "", py::arg("humanReadable") = true)
             ;
 

@@ -90,15 +90,15 @@ public:
    * * Specified   - We have a good dimension. We have at least one dimension.
    *                 It's not the opposite of isUnspecified()!
    *
-   * * Invalid     - Some dimension is 0.
+   * * Invalid     - Some dimension is 0 although Dontcare state is valid.
    *
    * There is a function to check for each of these states.
    */
-  bool isUnspecified() const { return(size() == 0); }
-  bool isDontcare()    const { return(size() == 1 && at(0) == 0); }
-  bool isInvalid()     const { return(getCount() == 0); }
-  bool isSpecified()   const { return(!isInvalid()); }
   static const int DONTCARE = 0;
+  bool isUnspecified() const { return(size() == 0); }
+  bool isDontcare()    const { return(size() == 1 && at(0) == DONTCARE); }
+  bool isInvalid()     const { return(size() > 1 && getCount() == 0); }
+  bool isSpecified()   const { return(getCount() != 0); }
 
   std::string toString(bool humanReadable = true) const {
     if (isUnspecified()) return "[unspecified]";
@@ -134,14 +134,15 @@ public:
   
 
   inline std::ostream &operator<<(std::ostream &f, const Dimensions& d) {
-    f << d.toString() << " ";
+    f << d.toString(false) << " ";
     return f;
   }
   inline std::istream &operator>>(std::istream &f, Dimensions& d) { 
     // expected format:    [val, val, val]
     f >> std::ws;  // ignore leading whitespace
     d.clear();
-    NTA_CHECK(f.get() == '[') << "Expecting beginning of Dimensions.";
+    int c = f.get();
+    NTA_CHECK(c == '[') << "Expecting beginning of Dimensions.";
     if (!isdigit(f.peek())) {
       std::string tag;
       f >> tag;
@@ -153,7 +154,6 @@ public:
       }
     }
     else {
-      int c;
       UInt32 i;
       char buf[50];
       while(isdigit(f.peek())) {
@@ -164,12 +164,11 @@ public:
         buf[j] = '\0';
         i = strtoul(buf, nullptr, 0);
         d.push_back(i);
-        f >> std::ws;  // ignore whitespace
         if (c == ']') break;
+        f >> std::ws;  // ignore whitespace
         NTA_CHECK(c == ',') << "Invalid format for Dimensions";
       }
     }
-    f.ignore(1);
     return f;
   }
 

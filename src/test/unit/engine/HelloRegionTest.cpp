@@ -72,12 +72,6 @@ TEST(HelloRegionTest, demo) {
   std::shared_ptr<Region> region =
       net.addRegion("region", "VectorFileSensor", params);
 
-  // Set region dimensions
- // Dimensions dims;
- // dims.push_back(1);  // 1 means variable size, in this case set by activeOutputCount.
- // if(verbose) std::cout << "Setting region dimensions" << dims.toString() << std::endl;
- // region->setDimensions(dims);
-
 
   // Load data
   // This will read in all data into a vector of vectors.
