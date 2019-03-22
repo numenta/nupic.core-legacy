@@ -40,7 +40,7 @@ using namespace nupic;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::sdr_classifier::SDRClassifier;
-using nupic::types::ClassifierResult;
+using nupic::algorithms::sdr_classifier::ClassifierResult;
 
 class MNIST {
 
@@ -157,7 +157,8 @@ void test() {
       /* infer */           true,
                             result);
     // Check results
-    const auto cls = result.getClass();
+    // const auto cls = result.getClass();
+    UInt cls = -1; // TODO FIXME ADD METHOD getClass BACK TO SDRC!
     if(cls == label) score += 1;
     n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;

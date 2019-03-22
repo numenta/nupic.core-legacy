@@ -1,8 +1,10 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * Copyright (C) 2016, Numenta, Inc.
+ *               2019, David McDougall
+ *
+ * Unless you have an agreement with Numenta, Inc., for a separate license for
+ * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -17,8 +19,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 #include <cmath> //exp
 #include <deque>
@@ -193,35 +194,42 @@ size_t SDRClassifier::persistentSize() const {
 
 void SDRClassifier::infer_(const vector<UInt> &patternNZ,
                            const vector<Real64> &actValue,
-                           ClassifierResult &result) {
-  // add the actual values to the return value. For buckets that haven't
+                           ClassifierResult &result)
+{
+  // Add the actual values to the return value. For buckets that haven't
   // been seen yet, the actual value doesn't matter since it will have
   // zero likelihood.
-  vector<Real64> *actValueVector =
-      result.createVector(-1, (UInt)actualValues_.size(), 0.0);
-  for (UInt i = 0; i < (UInt)actualValues_.size(); ++i) {
+  vector<Real64> &actValueVector = result[-1];
+  actValueVector.reserve( actualValues_.size() );
+
+  for( UInt i = 0; i < (UInt)actualValues_.size(); ++i ) {
     if (actualValuesSet_[i]) {
-      (*actValueVector)[i] = actualValues_[i];
-    } else {
+      actValueVector.push_back( actualValues_[i] );
+    }
+    else {
       // if doing 0-step ahead prediction, we shouldn't use any
       // knowledge of the classification input during inference
-      if (steps_.at(0) == 0) {
-        (*actValueVector)[i] = 0;
-      } else {
-        (*actValueVector)[i] = actValue[0];
+      if( steps_.at(0) == 0 ) {
+        actValueVector.push_back( 0.0f );
+      }
+      else {
+        actValueVector.push_back( actValue[0] );
       }
     }
   }
 
-  for (auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps) {
-    vector<Real64>* likelihoods = result.createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
-    for (const auto& bit : patternNZ) {
+  for( auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps )
+  {
+    vector<Real64> &likelihoods = result[ *nSteps ];
+    likelihoods.assign( maxBucketIdx_ + 1, 0.0f );
+
+    for( const auto& bit : patternNZ ) {
       const Matrix& w = weightMatrix_.at(*nSteps);
-      for(UInt i =0; i< (UInt)likelihoods->size(); i++) {
-        likelihoods->at(i) += get_(w, bit, i);
+      for( UInt i = 0; i < (UInt) likelihoods.size(); i++ ) {
+        likelihoods.at(i) += get_(w, bit, i);
       }
     }
-    softmax_(likelihoods->begin(), likelihoods->end());
+    softmax_( likelihoods.begin(), likelihoods.end() );
   }
 }
 

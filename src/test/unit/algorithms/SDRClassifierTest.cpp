@@ -85,21 +85,21 @@ TEST_F(SDRClassifierTest, Basic) {
         // The -1 key is used for the actual values
         ASSERT_FALSE(foundMinus1) << "Already found key -1 in classifier result";
         foundMinus1 = true;
-        ASSERT_EQ(5ul, it->second->size())
+        ASSERT_EQ(5ul, it->second.size())
             << "Expected five buckets since it has only seen bucket 4 (so it "
             << "Has buckets 0-4).";
-        ASSERT_LT(fabs(it->second->at(4) - 34.7f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(4) - 34.7f), 0.000001f)
                                       << "Incorrect actual value for bucket 4";
       } else if (it->first == 1) {
         // Check the one-step prediction
         ASSERT_FALSE(found1) << "Already found key 1 in classifier result";
         found1 = true;
-        ASSERT_EQ(5ul, it->second->size()) << "Expected five bucket predictions";
-        ASSERT_NEAR(it->second->at(0u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 0";
-        ASSERT_NEAR(it->second->at(1u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 1";
-        ASSERT_NEAR(it->second->at(2u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 2";
-        ASSERT_NEAR(it->second->at(3u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 3";
-        ASSERT_NEAR(it->second->at(4u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 4";
+        ASSERT_EQ(5ul, it->second.size()) << "Expected five bucket predictions";
+        ASSERT_NEAR(it->second.at(0u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 0";
+        ASSERT_NEAR(it->second.at(1u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 1";
+        ASSERT_NEAR(it->second.at(2u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 2";
+        ASSERT_NEAR(it->second.at(3u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 3";
+        ASSERT_NEAR(it->second.at(4u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 4";
       }
     }
     ASSERT_TRUE(foundMinus1) << "Key -1 not found in classifier result";
@@ -117,19 +117,19 @@ TEST_F(SDRClassifierTest, SingleValue) {
   vector<UInt> input1{1u, 5u, 9u};
   vector<UInt> bucketIdxList{4u};
   vector<Real64> actValueList{34.7f};
-  ClassifierResult result1;
+  ClassifierResult result1; // TODO: REVIEW THIS TESTCASE, POTENTIAL SCOPING ISSUES?
   for (UInt i = 0u; i < 10u; ++i) {
-    ClassifierResult result1;
+    ClassifierResult result1; // SHADOWS?
     c.compute(i, input1, bucketIdxList, actValueList, false, true, true, result1);
   }
 
   {
     for (auto it = result1.begin(); it != result1.end(); ++it) {
       if (it->first == -1) {
-        ASSERT_LT(fabs(it->second->at(4u) - 10.0f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(4u) - 10.0f), 0.000001f)
             << "Incorrect actual value for bucket 4";
       } else if (it->first == 1) {
-        ASSERT_GT(it->second->at(4u), 0.9f)
+        ASSERT_GT(it->second.at(4u), 0.9f)
             << "Incorrect prediction for bucket 4";
       }
     }
@@ -195,30 +195,30 @@ TEST_F(SDRClassifierTest, ComputeComplex) {
         ASSERT_FALSE(foundMinus1)
             << "Already found key -1 in classifier result";
         foundMinus1 = true;
-        ASSERT_EQ(6ul, it->second->size())
+        ASSERT_EQ(6ul, it->second.size())
             << "Expected six buckets since it has only seen bucket 4-5 (so it "
             << "has buckets 0-5).";
-        ASSERT_LT(fabs(it->second->at(4u) - 35.520000457763672f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(4u) - 35.520000457763672f), 0.000001f)
             << "Incorrect actual value for bucket 4";
-        ASSERT_LT(fabs(it->second->at(5u) - 42.020000457763672f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(5u) - 42.020000457763672f), 0.000001f)
             << "Incorrect actual value for bucket 5";
       } else if (it->first == 1) {
         // Check the one-step prediction
         ASSERT_FALSE(found1) << "Already found key 1 in classifier result";
         found1 = true;
 
-        ASSERT_EQ(6ul, it->second->size()) << "Expected six bucket predictions";
-        ASSERT_LT(fabs(it->second->at(0u) - 0.034234f), 0.000001f)
+        ASSERT_EQ(6ul, it->second.size()) << "Expected six bucket predictions";
+        ASSERT_LT(fabs(it->second.at(0u) - 0.034234f), 0.000001f)
             << "Incorrect prediction for bucket 0";
-        ASSERT_LT(fabs(it->second->at(1u) - 0.034234f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(1u) - 0.034234f), 0.000001f)
             << "Incorrect prediction for bucket 1";
-        ASSERT_LT(fabs(it->second->at(2u) - 0.034234f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(2u) - 0.034234f), 0.000001f)
             << "Incorrect prediction for bucket 2";
-        ASSERT_LT(fabs(it->second->at(3u) - 0.034234f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(3u) - 0.034234f), 0.000001f)
             << "Incorrect prediction for bucket 3";
-        ASSERT_LT(fabs(it->second->at(4u) - 0.093058f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(4u) - 0.093058f), 0.000001f)
             << "Incorrect prediction for bucket 4";
-        ASSERT_LT(fabs(it->second->at(5u) - 0.770004f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(5u) - 0.770004f), 0.000001f)
             << "Incorrect prediction for bucket 5";
       }
     }
@@ -266,18 +266,18 @@ TEST_F(SDRClassifierTest, MultipleCategory) {
 
   for (auto it = result1.begin(); it != result1.end(); ++it) {
     if (it->first == 0) {
-      ASSERT_LT(fabs(it->second->at(0u) - 0.5f), 0.1f)
+      ASSERT_LT(fabs(it->second.at(0u) - 0.5f), 0.1f)
           << "Incorrect prediction for bucket 0 (expected=0.5)";
-      ASSERT_LT(fabs(it->second->at(1u) - 0.5f), 0.1f)
+      ASSERT_LT(fabs(it->second.at(1u) - 0.5f), 0.1f)
           << "Incorrect prediction for bucket 1 (expected=0.5)";
     }
   }
 
   for (auto it = result2.begin(); it != result2.end(); ++it) {
     if (it->first == 0) {
-      ASSERT_LT(fabs(it->second->at(2u) - 0.5f), 0.1f)
+      ASSERT_LT(fabs(it->second.at(2u) - 0.5f), 0.1f)
           << "Incorrect prediction for bucket 2 (expected=0.5)";
-      ASSERT_LT(fabs(it->second->at(3u) - 0.5f), 0.1f)
+      ASSERT_LT(fabs(it->second.at(3u) - 0.5f), 0.1f)
           << "Incorrect prediction for bucket 3 (expected=0.5)";
     }
   }
@@ -306,7 +306,7 @@ TEST_F(SDRClassifierTest, SaveLoad) {
   c1.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result1);
   c2.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result2);
 
-  ASSERT_EQ(result1, result2);
+  ASSERT_EQ(result1[1u], result2[1]);
 }
 
 
