@@ -181,13 +181,13 @@ class RDSE_Test(unittest.TestCase):
         P.seed     = 42
         R = RDSE( P )
         A = SDR( R.parameters.size )
-        num_samples = 5000
+        num_samples = 10000
         M = Metrics( A, num_samples + 1 )
         for i in range( num_samples ):
             R.encode( i, A )
         print( M )
-        assert(M.overlap.min()  > (1 - 1. / R.parameters.radius) - .02 )
-        assert(M.overlap.max()  < (1 - 1. / R.parameters.radius) + .02 )
+        assert(M.overlap.min()  > (1 - 1. / R.parameters.radius) - .04 )
+        assert(M.overlap.max()  < (1 - 1. / R.parameters.radius) + .04 )
         assert(M.overlap.mean() > (1 - 1. / R.parameters.radius) - .001 )
         assert(M.overlap.mean() < (1 - 1. / R.parameters.radius) + .001 )
         assert(M.sparsity.min()  > R.parameters.sparsity - .01 )
@@ -232,12 +232,12 @@ class RDSE_Test(unittest.TestCase):
         """ Verify that the same seed always gets the same results. """
         GOLD = SDR( 1000 )
         GOLD.sparse = [
-            1, 47, 76, 79, 80, 85, 102, 124, 134, 141, 150, 158, 161, 168, 176,
-            202, 227, 236, 240, 246, 263, 273, 295, 319, 352, 367, 377, 380,
-            392, 400, 410, 439, 468, 472, 493, 500, 506, 508, 515, 539, 542,
-            574, 580, 583, 584, 617, 618, 636, 640, 648, 652, 664, 671, 697,
-            708, 727, 734, 736, 744, 760, 773, 774, 777, 780, 785, 795, 796,
-            801, 809, 810, 840, 863, 900, 902, 941, 950, 998]
+            28, 47, 63, 93, 123, 124, 129, 131, 136, 140, 196, 205, 213, 239,
+            258, 275, 276, 286, 305, 339, 345, 350, 372, 394, 395, 443, 449,
+            462, 468, 471, 484, 514, 525, 557, 565, 570, 576, 585, 600, 609,
+            631, 632, 635, 642, 651, 683, 693, 694, 696, 699, 721, 734, 772,
+            790, 792, 795, 805, 806, 833, 836, 842, 846, 892, 896, 911, 914,
+            927, 936, 947, 953, 955, 962, 965, 989, 990, 996]
 
         P = RDSE_Parameters()
         P.size     = GOLD.size

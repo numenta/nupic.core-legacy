@@ -21,6 +21,7 @@
 
 #include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
 #include <nupic/utils/MurmurHash3.hpp>
+#include <nupic/utils/Random.hpp>
 #include <algorithm> // fill
 
 using namespace std;
@@ -76,6 +77,10 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
   else if( args_.resolution > 0.0f ) {
     args_.radius = args_.activeBits * args_.resolution;
   }
+
+  while( args_.seed == 0u ) {
+    args_.seed = Random().getUInt32();
+  }
 }
 
 void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
@@ -90,14 +95,11 @@ void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
   auto &data = output.getDense();
   fill( data.begin(), data.end(), 0u );
 
-  // Use the given seed to make a better, more randomized seed.
-  UInt32 apple_seed = MurmurHash3_x86_32(&args_.seed, sizeof(args_.seed), 0);
-
   const UInt index = (UInt) (input / args_.resolution);
   for(auto offset = 0u; offset < args_.activeBits; ++offset)
   {
     UInt hash_buffer = index + offset;
-    UInt32 bucket = MurmurHash3_x86_32(&hash_buffer, sizeof(hash_buffer), apple_seed);
+    UInt32 bucket = MurmurHash3_x86_32(&hash_buffer, sizeof(hash_buffer), args_.seed);
     bucket = bucket % size;
 
     // Don't worry about hash collisions.  Instead measure the critical
