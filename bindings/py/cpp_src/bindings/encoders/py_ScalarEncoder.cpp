@@ -107,6 +107,11 @@ TODO, Example Usage & unit test for it.)");
 R"(Contains the parameter structure which this encoder uses internally. All
 fields are filled in automatically.)");
 
+    py_ScalarEnc.def_property_readonly("dimensions",
+        [](const ScalarEncoder &self) { return self.dimensions; });
+    py_ScalarEnc.def_property_readonly("size",
+        [](const ScalarEncoder &self) { return self.size; });
+
     py_ScalarEnc.def("encode", &ScalarEncoder::encode, R"()");
 
     py_ScalarEnc.def("encode", [](ScalarEncoder &self, nupic::Real64 value) {
