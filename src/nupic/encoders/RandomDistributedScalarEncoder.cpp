@@ -109,8 +109,10 @@ void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
     // because it does not record past encodings.  Collisions cause small
     // deviations in the sparsity or semantic similarity, depending on how
     // they're handled.
-    // TODO: Calculate the probability of a hash collision and account for
-    // it in the sparsity.
+
+    // Exercise for the reader: Calculate the probability of a hash collision
+    // and account for it in the sparsity.
+
     data[bucket] = 1u;
   }
   output.setDense( data );
