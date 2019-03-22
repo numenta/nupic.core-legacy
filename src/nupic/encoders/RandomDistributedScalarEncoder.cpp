@@ -25,6 +25,7 @@
 #include <algorithm> // fill
 
 using namespace std;
+using namespace nupic;
 using namespace nupic::encoders;
 
 RandomDistributedScalarEncoder::RandomDistributedScalarEncoder(
