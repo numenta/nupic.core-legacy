@@ -36,7 +36,25 @@ namespace nupic_ext
 using namespace nupic_ext;
 
 PYBIND11_MODULE(encoders, m) {
-    m.doc() = "nupic.bindings.encoders"; // optional module docstring
+    m.doc() =
+R"(nupic.bindings.encoders
+
+An encoder converts a value to a sparse distributed representation.
+
+There are several critical properties which all encoders must have:
+
+    1) Semantic similarity:  Similar inputs should have high overlap.  Overlap
+    decreases smoothly as inputs become less similar.  Dissimilar inputs have
+    very low overlap so that the output representations are not easily confused.
+
+    2) Stability:  The representation for an input does not change during the
+    lifetime of the encoder.
+
+    3) Sparsity: The output SDR should have a similar sparsity for all inputs and
+    have enough active bits to handle noise and subsampling.
+
+Reference: https://arxiv.org/pdf/1602.05925.pdf
+)";
 
     init_ScalarEncoder(m);
     init_RDSE(m);
