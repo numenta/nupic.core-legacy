@@ -38,6 +38,8 @@ def checkImportBindingsExtensions():
   import nupic.bindings.math
   import nupic.bindings.algorithms
   import nupic.bindings.engine_internal
+  import nupic.bindings.encoders
+  import nupic.bindings.sdr
 
 
 

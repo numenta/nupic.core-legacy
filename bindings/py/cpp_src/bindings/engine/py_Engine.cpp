@@ -72,15 +72,11 @@ namespace nupic_ext
 
         // members
         py_Dimensions.def("getCount", &Dimensions::getCount)
-            .def("getDimensionCount", &Dimensions::getDimensionCount)
-            .def("getDimension", &Dimensions::getDimension)
+            .def("size", &Dimensions::size)
             .def("isUnspecified", &Dimensions::isUnspecified)
             .def("isDontcare", &Dimensions::isDontcare)
             .def("isSpecified", &Dimensions::isSpecified)
-            .def("isOnes", &Dimensions::isOnes)
-            .def("isValid", &Dimensions::isValid)
-            .def("getIndex", &Dimensions::getIndex)
-            .def("getCoordinate", &Dimensions::getCoordinate)
+            .def("isInvalid", &Dimensions::isInvalid)
             .def("toString", &Dimensions::toString, "", py::arg("humanReadable") = true)
             ;
 

@@ -29,14 +29,14 @@
 # Summary of tuple support for Microsoft Visual Studio:
 # Compiler    version(MS)  version(cmake)  Support
 # ----------  -----------  --------------  -----------------------------
-# <= VS 2010  <= 10        <= 1600         Use Google Tests's own tuple.
-# VS 2012     11           1700            std::tr1::tuple + _VARIADIC_MAX=10
-# VS 2013     12           1800            std::tr1::tuple
-# VS 2015     14           1900            std::tuple
-# VS 2017     15           >= 1910         std::tuple
+# <= VS 2010  <= 10        <= 1.6.0.0         Use Google Tests's own tuple.
+# VS 2012     11           1.7.0.0            std::tr1::tuple + _VARIADIC_MAX=10
+# VS 2013     12           1.8.0.0            std::tr1::tuple
+# VS 2015     14           1.9.0.0            std::tuple
+# VS 2017     15           >= 1.9.1.0         std::tuple
 
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/googletest-release-1.8.1.tar.gz)
-    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/googletest-release-1.8.1.tar.gz)
+if(EXISTS "${REPOSITORY_DIR}/build/ThirdParty/share/googletest.tar.gz")
+    set(URL "${REPOSITORY_DIR}/build/ThirdParty/share/googletest.tar.gz")
 else()
     set(URL https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz)
 endif()
@@ -48,7 +48,7 @@ message(STATUS "Obtaining gtest")
 include(DownloadProject/DownloadProject.cmake)
 download_project(PROJ googletest
 	PREFIX ${EP_BASE}/gtest
-	URL https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz
+	URL ${URL}
 	UPDATE_DISCONNECTED 1
 	QUIET
 	)

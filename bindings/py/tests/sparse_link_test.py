@@ -58,7 +58,6 @@ class SparseRegion(PyRegion):
                 "dataType": "UInt32",
                 "isDefaultInput": True,
                 "required": False,
-                "sparse": True,
                 "count": 0
             },
         },
@@ -67,7 +66,6 @@ class SparseRegion(PyRegion):
                 "description": "Sparse Data Out",
                 "dataType": "UInt32",
                 "isDefaultOutput": True,
-                "sparse": True,
                 "count": 0
             },
         },

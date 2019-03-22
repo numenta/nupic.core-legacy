@@ -23,6 +23,8 @@
 #   algorithms.so
 #   engine_internal.so
 #   math.so
+#   encoders.so
+#   sdr.so
 #
 #
 # For PyBind11 info See: https://pybind11.readthedocs.io/en/stable/compiling.html
@@ -41,7 +43,6 @@ message(STATUS "Configuring Python interface")
 #
 set(src_py_algorithms_files
     bindings/algorithms/algorithm_module.cpp
-    bindings/algorithms/py_Algorithms.cpp
     bindings/algorithms/py_Cells4.cpp
     bindings/algorithms/py_HTM.cpp
     bindings/algorithms/py_SDRClassifier.cpp
