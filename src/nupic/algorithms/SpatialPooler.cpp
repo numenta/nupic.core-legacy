@@ -982,16 +982,6 @@ bool SpatialPooler::isUpdateRound_() const {
 }
 
 
-UInt SpatialPooler::persistentSize() const {
-  // TODO: this won't scale!
-  stringstream s;
-  s.flags(ios::scientific);
-  s.precision(numeric_limits<double>::digits10 + 1);
-  this->save(s);
-  return (UInt)s.str().size();
-}
-
-
 void SpatialPooler::save(ostream &outStream) const {
   // Write a starting marker and version.
   outStream << std::setprecision(std::numeric_limits<Real>::max_digits10);

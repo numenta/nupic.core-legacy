@@ -86,7 +86,6 @@ using nupic::algorithms::connections::Permanence;
         {
             // __getstate__
             std::ostringstream os;
-            //s << self.persistentSize();
 
             os.flags(std::ios::scientific);
             os.precision(std::numeric_limits<double>::digits10 + 1);
