@@ -466,6 +466,10 @@ public:
   // Debugging helpers
   //----------------------------------------------------------------------
 
+  /**
+   * Print the main TM creation parameters
+   */
+  void printParameters();
 
   /**
    * Returns the index of the column that a cell belongs to.

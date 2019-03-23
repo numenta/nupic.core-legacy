@@ -1068,3 +1068,28 @@ bool TemporalMemory::operator==(const TemporalMemory &other) {
 bool TemporalMemory::operator!=(const TemporalMemory &other) {
   return !(*this == other);
 }
+
+//----------------------------------------------------------------------
+// Debugging helpers
+//----------------------------------------------------------------------
+
+// Print the main TM creation parameters
+void TemporalMemory::printParameters() {
+  std::cout << "------------CPP TemporalMemory Parameters ------------------\n";
+  std::cout
+      << "version                   = " << TM_VERSION << std::endl
+      << "numColumns                = " << numberOfColumns() << std::endl
+      << "cellsPerColumn            = " << getCellsPerColumn() << std::endl
+      << "activationThreshold       = " << getActivationThreshold() << std::endl
+      << "initialPermanence         = " << getInitialPermanence() << std::endl
+      << "connectedPermanence       = " << getConnectedPermanence() << std::endl
+      << "minThreshold              = " << getMinThreshold() << std::endl
+      << "maxNewSynapseCount        = " << getMaxNewSynapseCount() << std::endl
+      << "permanenceIncrement       = " << getPermanenceIncrement() << std::endl
+      << "permanenceDecrement       = " << getPermanenceDecrement() << std::endl
+      << "predictedSegmentDecrement = " << getPredictedSegmentDecrement()
+      << std::endl
+      << "maxSegmentsPerCell        = " << getMaxSegmentsPerCell() << std::endl
+      << "maxSynapsesPerSegment     = " << getMaxSynapsesPerSegment()
+      << std::endl;
+}
