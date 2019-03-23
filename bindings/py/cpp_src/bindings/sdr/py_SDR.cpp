@@ -27,6 +27,8 @@
 #include <nupic/types/SdrTools.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
 
+#include <memory> // shared_ptr
+
 namespace py = pybind11;
 
 using namespace std;
@@ -37,7 +39,7 @@ namespace nupic_ext
 {
     void init_SDR(py::module& m)
     {
-        py::class_<SDR> py_SDR(m, "SDR",
+        py::class_<SDR, shared_ptr<SDR>> py_SDR(m, "SDR",
 R"(Sparse Distributed Representation
 
 This class manages the specification and momentary value of a Sparse Distributed
@@ -94,18 +96,6 @@ Example Usage of In-Place Assignment:
     X.dense = data
     X.sparse -> [ 4, 444444 ]
 
-Data Validity Warning:  The SDR allocates and frees its data when it is
-constructed and deconstructed, respectively.  If you have a numpy array which
-came from an SDR, then you either need to copy the data or ensure that the SDR
-remains in scope by holding a reference to it.
-Examples of Invalid Data Accesses:
-    A = SDR( dimensions )
-    use_after_free = A.dense
-    del A
-    # The variable "use_after_free" now references data which has been deallocated.
-    # Another way this can happen is:
-    use_after_free = SDR( dimensions ).dense
-
 Data Validity Warning:  After assigning a new value to the SDR, all existing
 numpy arrays of data are invalid.  In order to get the latest copy of the data,
 re-access the data from the SDR.  Examples:
@@ -155,15 +145,17 @@ R"(Set all of the values in the SDR to false.  This method overwrites the SDRs
 current value.)");
 
         py_SDR.def_property("dense",
-            [](SDR &self) {
-                auto capsule = py::capsule(&self, [](void *self) {});
-                vector<UInt> strides( self.dimensions.size(), 0u );
+            [](shared_ptr<SDR> self) {
+                auto destructor = py::capsule( new shared_ptr<SDR>( self ),
+                    [](void *keepAlive) {
+                        delete reinterpret_cast<shared_ptr<SDR>*>(keepAlive); });
+                vector<UInt> strides( self->dimensions.size(), 0u );
                 auto z = sizeof(Byte);
-                for(int i = (int)self.dimensions.size() - 1; i >= 0; --i) {
+                for(int i = (int)self->dimensions.size() - 1; i >= 0; --i) {
                     strides[i] = (UInt)z;
-                    z *= self.dimensions[i];
+                    z *= self->dimensions[i];
                 }
-                return py::array(self.dimensions, strides, self.getDense().data(), capsule);
+                return py::array(self->dimensions, strides, self->getDense().data(), destructor);
             },
             [](SDR &self, py::array_t<Byte> dense) {
                 py::buffer_info buf = dense.request();
@@ -185,9 +177,11 @@ to notify the SDR that its dense array has changed and its cached data is out of
 date.  If you did't copy this data, then SDR won't copy either.)");
 
         py_SDR.def_property("sparse",
-            [](SDR &self) {
-                auto capsule = py::capsule(&self, [](void *self) {});
-                return py::array(self.getSum(), self.getSparse().data(), capsule);
+            [](shared_ptr<SDR> self) {
+                auto destructor = py::capsule( new shared_ptr<SDR>( self ),
+                    [](void *keepAlive) {
+                        delete reinterpret_cast<shared_ptr<SDR>*>(keepAlive); });
+                return py::array(self->getSum(), self->getSparse().data(), destructor);
             },
             [](SDR &self, SDR_sparse_t data) {
                 NTA_CHECK( data.size() <= self.size );
@@ -197,12 +191,14 @@ These are indices into the flattened SDR. This format allows for quickly
 accessing all of the true bits in the SDR.)");
 
         py_SDR.def_property("coordinates",
-            [](SDR &self) {
-                auto capsule = py::capsule(&self, [](void *self) {});
+            [](shared_ptr<SDR> self) {
+                auto destructor = py::capsule( new shared_ptr<SDR>( self ),
+                    [](void *keepAlive) {
+                        delete reinterpret_cast<shared_ptr<SDR>*>(keepAlive); });
                 auto outer   = py::list();
-                auto coords  = self.getCoordinates().data();
-                for(auto dim = 0u; dim < self.dimensions.size(); ++dim) {
-                    auto vec = py::array(coords[dim].size(), coords[dim].data(), capsule);
+                auto coords  = self->getCoordinates().data();
+                for(auto dim = 0u; dim < self->dimensions.size(); ++dim) {
+                    auto vec = py::array(coords[dim].size(), coords[dim].data(), destructor);
                     outer.append(vec);
                 }
                 return outer;
@@ -291,7 +287,7 @@ special, it is replaced with the system time.  The default seed is 0.)",
         }));
 
 
-        py::class_<Reshape, SDR> py_Reshape(m, "Reshape",
+        py::class_<Reshape, shared_ptr<Reshape>, SDR> py_Reshape(m, "Reshape",
 R"(Reshape presents a view onto an SDR with different dimensions.
     * The resulting SDR always has the same value as its source SDR.
     * The resulting SDR is read only.
@@ -313,7 +309,7 @@ Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
             py::arg("sdr"), py::arg("dimensions"));
 
 
-        py::class_<Intersection, SDR> py_Intersect(m, "Intersection",
+        py::class_<Intersection, shared_ptr<Intersection>, SDR> py_Intersect(m, "Intersection",
 R"(Intersection presents a view onto a group of SDRs, which always shows the
 set-intersection of the active bits in each input SDR.
 
@@ -350,7 +346,7 @@ Example Usage:
             "List of input SDRs which feed into this SDR operation.");
 
 
-        py::class_<Concatenation, SDR> py_Concatenation(m, "Concatenation",
+        py::class_<Concatenation, shared_ptr<Concatenation>, SDR> py_Concatenation(m, "Concatenation",
 R"(This class presents a view onto a group of SDRs, which always shows the
 concatenation of them.  This view is read-only.
 
