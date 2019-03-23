@@ -24,12 +24,8 @@
 #  - Isolated so does not require being downloaded more than once.
 #
 #  - It is possible to manually preload the distribution packages (for air gap computers)
-#     1) On some other machine, download the following:
-#        https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
-#        https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz
-#        https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz
-#        https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz
-#        http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
+#     1) On some other machine, download the distribution packages.
+#        See README.md for list of packages.
 #     2) copy these to <repository>/build/ThirdParty/share/
 #
 #  NOTE:  This is executed by the top level CMakeLists.txt via the bootstrap.cmake
@@ -62,6 +58,7 @@ endif()
 add_compile_options(${EXTERNAL_CXX_FLAGS})
 
 message(STATUS "external import")
+message(STATUS "   REPOSITORY_DIR        = ${REPOSITORY_DIR}")
 message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "   CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
