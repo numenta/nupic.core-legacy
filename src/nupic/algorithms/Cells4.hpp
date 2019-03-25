@@ -1074,19 +1074,6 @@ public:
         //----------------------------------------------------------------------
         //----------------------------------------------------------------------
 
-        /**
-         * TODO: compute, rather than writing to a buffer.
-         * TODO: move persistence to binary, faster and easier to compute expecte size.
-         */
-        UInt persistentSize() const
-        {
-          // TODO: this won't scale!
-          std::stringstream tmp;
-          this->save(tmp);
-          return static_cast<UInt>(tmp.str().size());
-        }
-
-        //----------------------------------------------------------------------
   	/**
    	 * Save and load the state to/from the stream
          * Need to load and re-propagate activities so that we can really persist
