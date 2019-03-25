@@ -739,14 +739,6 @@ vector<Segment> TemporalMemory::getMatchingSegments() const
 
 CellIdx TemporalMemory::numberOfColumns() const { return numColumns_; }
 
-bool TemporalMemory::_validateCell(CellIdx cell) const //TODO remove
-{
-  if (cell < numberOfCells())
-    return true;
-
-  NTA_THROW << "Invalid cell " << cell;
-  return false;
-}
 
 vector<UInt> TemporalMemory::getColumnDimensions() const
 {
@@ -830,13 +822,6 @@ SynapseIdx TemporalMemory::getMaxSynapsesPerSegment() const {
 
 UInt TemporalMemory::version() const { return TM_VERSION; }
 
-size_t TemporalMemory::persistentSize() const {
-  stringstream s;
-  s.flags(ios::scientific);
-  s.precision(numeric_limits<double>::digits10 + 1);
-  this->save(s);
-  return s.str().size();
-}
 
 template <typename FloatType>
 static void saveFloat_(ostream &outStream, FloatType v) {
@@ -1113,26 +1098,4 @@ void TemporalMemory::printParameters() {
       << "maxSegmentsPerCell        = " << getMaxSegmentsPerCell() << std::endl
       << "maxSynapsesPerSegment     = " << getMaxSynapsesPerSegment()
       << std::endl;
-}
-
-void TemporalMemory::printState(vector<UInt> &state) {
-  std::cout << "[  ";
-  for (UInt i = 0; i != state.size(); ++i) {
-    if (i > 0 && i % 10 == 0) {
-      std::cout << "\n   ";
-    }
-    std::cout << state[i] << " ";
-  }
-  std::cout << "]\n";
-}
-
-void TemporalMemory::printState(vector<Real> &state) {
-  std::cout << "[  ";
-  for (UInt i = 0; i != state.size(); ++i) {
-    if (i > 0 && i % 10 == 0) {
-      std::cout << "\n   ";
-    }
-    std::printf("%6.3f ", state[i]);
-  }
-  std::cout << "]\n";
 }

@@ -433,13 +433,6 @@ public:
    */
   SynapseIdx getMaxSynapsesPerSegment() const;
 
-	/**
-	 * Raises an error if cell index is invalid.
-	 *
-	 * @param cell Cell index
-	 */
-	bool _validateCell(const CellIdx cell) const; //TODO rm
-
   /**
    * Save (serialize) the current state of the spatial pooler to the
    * specified file.
@@ -456,16 +449,6 @@ public:
    * @param inStream A valid istream.
    */
   virtual void load(istream &inStream) override;
-
-
-  /**
-   * Returns the number of bytes that a save operation would result in.
-   * Note: this method is currently somewhat inefficient as it just does
-   * a full save into an ostream and counts the resulting size.
-   *
-   * @returns Integer number of bytes
-   */
-  virtual size_t persistentSize() const; //TODO rm
 
   bool operator==(const TemporalMemory &other);
   bool operator!=(const TemporalMemory &other);
@@ -487,16 +470,6 @@ public:
    * @return (int) Column index
    */
   UInt columnForCell(const CellIdx cell) const; //TODO rm, incorrect
-
-  /**
-   * Print the given UInt array in a nice format
-   */
-  void printState(vector<UInt> &state); //TODO rm
-
-  /**
-   * Print the given Real array in a nice format
-   */
-  void printState(vector<Real> &state); //TODO rm
 
 protected:
   CellIdx numColumns_;

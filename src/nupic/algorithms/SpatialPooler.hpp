@@ -308,15 +308,6 @@ public:
 
 
   /**
-  Returns the number of bytes that a save operation would result in.
-  Note: this method is currently somewhat inefficient as it just does
-  a full save into an ostream and counts the resulting size.
-
-  @returns Integer number of bytes
-   */
-  virtual UInt persistentSize() const;
-
-  /**
   Returns the dimensions of the columns in the region.
 
   @returns Integer number of column dimension.

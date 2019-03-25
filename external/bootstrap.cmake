@@ -39,6 +39,7 @@ execute_process(COMMAND ${CMAKE_COMMAND}
                         -D NEEDS_BOOST:BOOL=${NEEDS_BOOST}
                         -D BINDING_BUILD:STRING=${BINDING_BUILD}
 			-D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+			-D REPOSITORY_DIR=${REPOSITORY_DIR}
 			 ../../external
                 WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
                 RESULT_VARIABLE result

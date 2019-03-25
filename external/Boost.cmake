@@ -35,12 +35,10 @@
 #
 #######################################
 
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/boost_1_69_0.tar.gz)
-    set(BOOST_URL ${REPOSITORY_DIR}/build/ThirdParty/share/boost_1_69_0.tar.gz)
-    set(BOOST_HASH "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb")
+if(EXISTS "${REPOSITORY_DIR}/build/ThirdParty/share/boost.tar.gz")
+    set(BOOST_URL "${REPOSITORY_DIR}/build/ThirdParty/share/boost.tar.gz")
 else()
     set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz")
-    set(BOOST_HASH "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb")
 endif()
 
 # Download the boost distribution (at configure time).
@@ -54,7 +52,6 @@ include(DownloadProject/DownloadProject.cmake)
 download_project(PROJ Boost_download
 	PREFIX ${EP_BASE}/boost
 	URL ${BOOST_URL}
-	URL_HASH SHA256=${BOOST_HASH}
 	UPDATE_DISCONNECTED 1
 	QUIET
 	)
