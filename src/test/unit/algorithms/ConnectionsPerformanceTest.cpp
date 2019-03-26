@@ -31,6 +31,7 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/algorithms/Anomaly.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp> // macro "UNUSED"
@@ -43,6 +44,7 @@ using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections;
 using ::nupic::algorithms::spatial_pooler::SpatialPooler;
 using ::nupic::algorithms::temporal_memory::TemporalMemory;
+using namespace nupic::algorithms::anomaly;
 
 #define SEED 42
 
@@ -60,8 +62,7 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
 
   cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
 
-  // Learn
-
+  // generate data
   vector<vector<SDR>> sequences;
   for (int i = 0; i < numSequences; i++) {
     vector<SDR> sequence;
@@ -74,6 +75,7 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
     sequences.push_back(sequence);
   }
 
+  // learn
   for (int i = 0; i < 5; i++) {
     for (auto sequence : sequences) {
       for (auto sdr : sequence) {
@@ -82,11 +84,9 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
       tm.reset();
     }
   }
-
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
 
-  // Test
-
+  // test
   for (auto sequence : sequences) {
     for (auto sdr : sequence) {
       tm.compute(sdr, false);

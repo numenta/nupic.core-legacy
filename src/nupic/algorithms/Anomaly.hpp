@@ -27,6 +27,7 @@
 #include <nupic/algorithms/AnomalyLikelihood.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/MovingAverage.hpp> // Needed for for smart pointer templates
+#include <nupic/types/Sdr.hpp> //sdr::SDR
 #include <vector>
 
 namespace nupic {
@@ -44,8 +45,11 @@ namespace anomaly {
  *     prev step
  * @return anomaly score 0..1 (Real32)
  */
-Real32 computeRawAnomalyScore(const std::vector<UInt> &active,
+Real32 computeRawAnomalyScore(const std::vector<UInt> &active, 
                               const std::vector<UInt> &predicted);
+
+Real32 computeRawAnomalyScore(sdr::SDR& active, 
+		              sdr::SDR& predicted);
 
 enum class AnomalyMode { PURE, LIKELIHOOD, WEIGHTED };
 
@@ -87,16 +91,14 @@ public:
    * predicted.
    *
    * @param active: array of active column indices
-   * @param predicted: array of columns indices predicted in this step
-   *        (used for anomaly in step T+1)
+   * @param predicted: array of columns indices predicted in prev step (T-1)
    * @param timestamp: (optional) date timestamp when the sample occured
    *                   (used in anomaly-likelihood), -1 defaults to using iteration step
    * @return the computed anomaly score; Real32 0..1
    */
-  Real compute(const std::vector<UInt> &active,
+  Real compute(const std::vector<UInt> &active, //TODO remove this version, keep SDR
                  const std::vector<UInt> &predicted, 
                  int timestamp = -1);
-
 private:
   AnomalyMode mode_;
   Real32 binaryThreshold_;

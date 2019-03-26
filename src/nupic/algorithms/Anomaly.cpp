@@ -29,32 +29,48 @@
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
 #include "nupic/utils/MovingAverage.hpp"
+#include "nupic/types/SdrTools.hpp" // sdr::Intersection
 
 using namespace std;
+using namespace nupic;
+using namespace nupic::algorithms::anomaly;
+using namespace nupic::sdr;
 
 namespace nupic {
 namespace algorithms {
 namespace anomaly {
+Real32 computeRawAnomalyScore(SDR& active,
+                              SDR& predicted) {
 
-
-Real computeRawAnomalyScore(const vector<UInt>& active,
-                              const vector<UInt>& predicted)
-{
   // Return 0 if no active columns are present
-  if (active.size() == 0) {
+  if (active.getSum() == 0) {
     return 0.0f;
   }
 
-  set<UInt> active_{active.begin(), active.end()};
-  set<UInt> predicted_{predicted.begin(), predicted.end()};
-  vector<UInt> predictedActiveCols;
+  NTA_CHECK(active.dimensions == predicted.dimensions);
 
   // Calculate and return percent of active columns that were not predicted.
-  set_intersection(active_.begin(), active_.end(), predicted_.begin(),
-                   predicted_.end(), back_inserter(predictedActiveCols));
+  Intersection both(active, predicted); //TODO allow Intersection to act on const SDR, so active,pred can be const
 
-  return (active.size() - predictedActiveCols.size()) / Real(active.size());
+  cout << "act " << active << endl;
+  cout << "pred " << predicted << endl;
+  cout << "x " << both;
+
+  return (active.getSum() - both.getSum()) / Real(active.getSum());
 }
+
+Real32 computeRawAnomalyScore(const vector<UInt>& active,
+                              const vector<UInt>& pred) {
+  SDR a({static_cast<UInt>(active.size())});
+  a.setSparse(active);
+
+  SDR p({static_cast<UInt>(pred.size())});
+  p.setSparse(pred);
+
+  return computeRawAnomalyScore(a, p);
+}
+
+}}} //end ns
 
 Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real binaryAnomalyThreshold)
     : binaryThreshold_(binaryAnomalyThreshold)
@@ -98,6 +114,3 @@ Real Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
   return score;
 }
 
-} // namespace anomaly
-} // namespace algorithms
-} // namespace nupic
