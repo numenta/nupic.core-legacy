@@ -80,6 +80,7 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
     for (auto sequence : sequences) {
       for (auto sdr : sequence) {
         tm.compute(sdr, true);
+	//TODO get untrained anomaly score here
       }
       tm.reset();
     }
@@ -90,10 +91,11 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
   for (auto sequence : sequences) {
     for (auto sdr : sequence) {
       tm.compute(sdr, false);
+      //TODO get trained (lower) anomaly
     }
     tm.reset();
   }
-
+  //TODO check anomaly trained < anomaly untrained
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
   return (float)timer.getElapsed();
