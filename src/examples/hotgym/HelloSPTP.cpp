@@ -100,15 +100,13 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   tInit.stop();
 
   // data for processing input
-  vector<UInt> input(DIM_INPUT);
-  SDR inputSDR({DIM_INPUT});
-  vector<UInt> outSP(COLS); // active array, output of SP/TP
-  vector<UInt> outSPsparse;
+  SDR input({DIM_INPUT});
+  SDR outSP({COLS}); // active array, output of SP/TM
   vector<UInt> outTP(tp.nCells());
   vector<Real> rIn(COLS); // input for TP (must be Reals)
   vector<Real> rOut(tp.nCells());
   Real res = 0.0; //for anomaly:
-  vector<UInt> prevPred_(outSP.size());
+  vector<UInt> prevPred_(outSP.size);
   Random rnd;
 
   // Start a stopwatch timer
@@ -125,36 +123,27 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     //Encode
     tEnc.start();
-    enc.encode(r, inputSDR);
+    enc.encode(r, input);
     tEnc.stop();
-    for(auto i = 0u; i < inputSDR.size; ++i) {
-      input[i] = (UInt) inputSDR.getDense()[i];
-    }
 
     //SP (global x local) 
     if(useSPlocal) {
     tSPloc.start();
-    fill(outSP.begin(), outSP.end(), 0);
-    spLocal.compute(input.data(), true, outSP.data());
+    spLocal.compute(input, true, outSP);
     tSPloc.stop();
-    NTA_CHECK(outSP.size() == COLS);
     }
 
     if(useSPglobal) {
     tSPglob.start();
-    fill(outSP.begin(), outSP.end(), 0);
-    spGlobal.compute(input.data(), true, outSP.data());
+    spGlobal.compute(input, true, outSP);
     tSPglob.stop();
-    NTA_CHECK(outSP.size() == COLS);
     }
-    outSPsparse = VectorHelpers::binaryToSparse(outSP);
-    NTA_CHECK(outSPsparse.size() < COLS);
 
 
     //TP (TP x BackTM x TM)
     if(useTP) {
     tTP.start();
-    rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
+    rIn = VectorHelpers::castVectorType<char, Real>(outSP.getDense());
     tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
     tTP.stop();
@@ -172,7 +161,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     if(useTM) {
     tTM.start();
-    tm.compute(outSPsparse.size(), outSPsparse.data(), true /*learn*/);
+    tm.compute(outSP.getSum(), outSP.getSparse().data(), true /*learn*/);
     const auto tmAct = tm.getActiveCells();
     tm.activateDendrites(); //must be called before getPredictiveCells 
     const auto tmPred = tm.getPredictiveCells();
@@ -184,11 +173,12 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     //Anomaly (pure x likelihood)
     tAn.start();
-    res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
+    const auto vec = VectorHelpers::castVectorType<char, UInt>(outSP.getDense());
+    res = an.compute(vec /*active*/, prevPred_ /*prev predicted*/);
     tAn.stop();
 
     tAnLikelihood.start();
-    anLikelihood.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
+    anLikelihood.compute(vec /*active*/, prevPred_ /*prev predicted*/);
     tAnLikelihood.stop();
 
     prevPred_ = outTP; //to be used as predicted T-1
@@ -199,9 +189,9 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       cout << "Epoch = " << e << endl;
       cout << "Anomaly = " << res << endl;
-      VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(outSP), ",", "SP= ");
+      cout << "SP: " << outSP << endl;
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(VectorHelpers::cellsToColumns(outTP, CELLS)), ",", "TP= ");
-      NTA_CHECK(outSP[69] == 0) << "A value in SP computed incorrectly";
+      NTA_CHECK(outSP.getDense()[69] == 0) << "A value in SP computed incorrectly";
       NTA_CHECK(outTP[42] == 0) << "Incorrect value in TP";
       cout << "==============TIMERS============" << endl;
       cout << "Init:\t" << tInit.getElapsed() << endl;

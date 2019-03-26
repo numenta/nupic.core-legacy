@@ -486,19 +486,6 @@ void SpatialPooler::initialize(
 }
 
 
-void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArray[]) {
-  SDR input( inputDimensions_ );
-  input.setDense( inputArray );
-
-  SDR active( columnDimensions_ );
-  compute( input, learn, active );
-  copy(
-      active.getDense().begin(),
-      active.getDense().end(),
-      activeArray);
-}
-
-
 void SpatialPooler::compute(const SDR &input, bool learn, SDR &active) {
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);

@@ -34,15 +34,19 @@ PyBind11 bindings for SpatialPooler class
 #include <pybind11/stl.h>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/types/Sdr.hpp>
 
 #include "bindings/engine/py_utils.hpp"
 
-namespace py = pybind11;
-using namespace nupic;
-using namespace nupic::algorithms::spatial_pooler;
 
 namespace nupic_ext
 {
+namespace py = pybind11;
+using namespace nupic;
+using namespace nupic::algorithms::spatial_pooler;
+using namespace sdr;
+
+
     void init_Spatial_Pooler(py::module& m)
     {
         py::class_<SpatialPooler> py_SpatialPooler(m, "SpatialPooler");
@@ -169,6 +173,8 @@ namespace nupic_ext
         });
 
         // compute
+	// @param x input as dense array
+	// @param y output active cols as sparse array
         py_SpatialPooler.def("compute", [](SpatialPooler& self, py::array& x, bool learn, py::array& y)
         {
             if (py::isinstance<py::array_t<std::uint32_t>>(x) == false)
@@ -180,8 +186,11 @@ namespace nupic_ext
             {
                 throw runtime_error("Incompatible format. Expect uint32");
             }
-
-            self.compute(get_it<UInt>(x), learn, get_it<UInt>(y));
+            SDR in( self.getInputDimensions() );
+	    SDR out(self.getColumnDimensions() );
+	    in.setDense(get_it<UInt>(x));
+            self.compute(in, learn, out);
+	    y = out.getSparse(); //FIXME how pass SDR to array? 
         });
 
         // setBoostFactors
