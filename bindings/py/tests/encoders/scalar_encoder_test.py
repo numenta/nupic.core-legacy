@@ -40,6 +40,8 @@ class ScalarEncoder_Test(unittest.TestCase):
         p.minimum    = 0
         p.maximum    = 345
         enc = ScalarEncoder( p )
+        assert( enc.dimensions == [1000] )
+        assert( enc.size == 1000 )
         assert( not enc.parameters.clipInput )
         assert( not enc.parameters.periodic )
         assert( abs(enc.parameters.sparsity   - 20./1000) < .01 )
