@@ -74,11 +74,10 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
     sequences.push_back(sequence);
   }
 
-  const SDR unused_({std::numeric_limits<UInt>::max()}); //dummy SDR, unused here, but needed for API
   for (int i = 0; i < 5; i++) {
     for (auto sequence : sequences) {
       for (auto sdr : sequence) {
-        tm.compute(sdr, true, unused_, unused_);
+        tm.compute(sdr, true);
       }
       tm.reset();
     }
@@ -90,7 +89,7 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
 
   for (auto sequence : sequences) {
     for (auto sdr : sequence) {
-      tm.compute(sdr, false, unused_, unused_);
+      tm.compute(sdr, false);
     }
     tm.reset();
   }
