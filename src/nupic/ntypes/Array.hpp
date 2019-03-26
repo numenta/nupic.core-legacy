@@ -169,6 +169,7 @@
 #include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 class Array : public ArrayBase {
@@ -316,7 +317,11 @@ public:
             count * BasicType::getSize(type_));
     return a;
   }
+
 };
 } // namespace nupic
+
+CEREAL_REGISTER_TYPE(nupic::Array)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(nupic::ArrayBase, nupic::Array)
 
 #endif

@@ -42,9 +42,11 @@
 #include <string>
 #include <memory>	// for shared_ptr
 
+#include <nupic/types/Serializable.hpp>
+#include <nupic/types/c_array.hpp>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Sdr.hpp>
-#include <nupic/types/Serializable.hpp>
 
 
 
@@ -102,8 +104,8 @@ namespace nupic
      * Ask ArrayBase to allocate its buffer
      * NOTE: for NTA_BasicType_Sparse this sets the size of the dense buffer is describes.
      */
-    virtual void allocateBuffer(size_t count);
-    virtual void allocateBuffer(const std::vector<UInt>& dimensions);  // only for SDR
+    virtual char* allocateBuffer(size_t count);
+    virtual char* allocateBuffer(const std::vector<UInt>& dimensions);  // only for SDR
 
     /**
      * Ask ArrayBase to zero fill its buffer
@@ -193,6 +195,40 @@ namespace nupic
     // binary representation
     void save(std::ostream &outStream) const override;
     void load(std::istream &inStream) override;
+
+    // FOR Serialization
+    template<class Archive>
+    void save_ar(Archive& ar) const {
+      if (type_ == NTA_BasicType_SDR) {
+      //  ar(cereal::make_nvp("type", std::string(BasicType::getName(getType()))), 
+      //     cereal::make_nvp("SDR", getSDR()));
+      }
+      else {
+        ar(cereal::make_nvp("type", std::string(BasicType::getName(type_))),
+           cereal::make_nvp("data", cereal::make_size_tag(count_)));
+        save_c_array(ar, type_, buffer_.get(), count_); 
+      }
+    }
+
+    // FOR Deserialization
+    template<class Archive>
+    void load_ar(Archive& ar) {
+      size_t count;
+      std::string name;
+      ar(cereal::make_nvp("type", name));
+      type_ = BasicType::parse(name);
+      if (type_ == NTA_BasicType_SDR){
+      //  sdr::SDR sdr;
+      //  cereal::make_nvp("SDR", sdr);
+      //  sdr::SDR *sdr2 = new sdr::SDR(sdr);
+      //  buffer_.reset(sdr2);
+      //  count_ = sdr2->size;
+      //  capacity_ = count_;
+      } else {
+        ar(cereal::make_nvp("data", cereal::make_size_tag(count)));
+        load_c_array(ar, type_, allocateBuffer(count), count);
+      }
+    } 
 
     // ascii text representation
     //    [ type count ( item item item ...) ... ]

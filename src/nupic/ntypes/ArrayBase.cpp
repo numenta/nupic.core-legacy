@@ -95,7 +95,7 @@ ArrayBase::~ArrayBase() {}
  * If there was already a buffer allocated, it will be released.
  * The buffer will be deleted when the last copy of this class has been deleted.
  */
-void ArrayBase::allocateBuffer(size_t count) {
+char *ArrayBase::allocateBuffer(size_t count) {
   // Note that you can allocate a buffer of size zero.
   // The C++ spec (5.3.4/7) requires such a new request to return
   // a non-NULL value which is safe to delete.  This allows us to
@@ -113,9 +113,10 @@ void ArrayBase::allocateBuffer(size_t count) {
     buffer_ = sp;
     own_ = true;
   }
+  return buffer_.get();
 }
 
-void ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only for SDR
+char *ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only for SDR
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Dimensions can only be set on the SDR payload";
   SDR *sdr = new SDR(dimensions);
   std::shared_ptr<char> sp((char *)(sdr));
@@ -123,6 +124,7 @@ void ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only f
   own_ = true;
   count_ = sdr->size;
   capacity_ = count_ * sizeof(Byte);
+  return buffer_.get();
 }
 
 /**
@@ -410,6 +412,7 @@ void ArrayBase::load(std::istream &inStream) {
       << "Binary load of Array, expected ending ']'.";
   inStream.ignore(1); // skip over the endl
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //         Stream Serialization  (as Ascii text character strings)
