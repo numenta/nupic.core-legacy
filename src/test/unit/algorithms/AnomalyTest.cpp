@@ -63,6 +63,12 @@ TEST(ComputeRawAnomalyScore, PartialMatch) {
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
 };
 
+TEST(ComputeRawAnomalyScore, PartialMatchSDR) {
+  sdr::SDR active({20});       active.setSparse(std::vector<UInt>{2, 3, 6});
+  sdr::SDR predicted({20}); predicted.setSparse(std::vector<UInt>{3, 5, 7});
+  ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
+};
+
 TEST(Anomaly, ComputeScoreNoActiveOrPredicted) {
   std::vector<UInt> active;
   std::vector<UInt> predicted;
