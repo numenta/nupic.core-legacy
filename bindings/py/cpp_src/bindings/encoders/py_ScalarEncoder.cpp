@@ -99,7 +99,8 @@ The ScalarEncoder encodes a numeric (floating point) value into an array of
 bits. The output is 0's except for a contiguous block of 1's. The location of
 this contiguous block varies continuously with the input value.
 
-TODO, Example Usage & unit test for it.)");
+For help or to examine this run:
+$ python -m nupic.examples.rf_view_ScalarEncoder --help.)");
 
     py_ScalarEnc.def(py::init<ScalarEncoderParameters&>(), R"()");
     py_ScalarEnc.def_property_readonly("parameters",
