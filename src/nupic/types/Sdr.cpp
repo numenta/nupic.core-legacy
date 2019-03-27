@@ -282,15 +282,14 @@ namespace sdr {
     }
 
     void SparseDistributedRepresentation::randomize(Real sparsity, Random &rng) {
-        NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
+        NTA_ASSERT( sparsity > 0.0f and sparsity < 1.0f );
         UInt nbits = (UInt) std::round( size * sparsity );
+	NTA_ASSERT(nbits > 0);
 
         SDR_sparse_t range( size );
         iota( range.begin(), range.end(), 0u );
-        sparse_.resize( nbits );
-        rng.sample( range.data(),      size,
-                    sparse_.data(), nbits);
-        setSparseInplace();
+        const auto samp = rng.sample( range, nbits);
+        setSparse(samp);
     }
 
 
