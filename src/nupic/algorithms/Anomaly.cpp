@@ -39,8 +39,9 @@ using namespace nupic::sdr;
 namespace nupic {
 namespace algorithms {
 namespace anomaly {
-Real32 computeRawAnomalyScore(SDR& active,
-                              SDR& predicted) {
+
+Real computeRawAnomalyScore(SDR& active,
+                            SDR& predicted) {
 
   // Return 0 if no active columns are present
   if (active.getSum() == 0) {
@@ -50,27 +51,31 @@ Real32 computeRawAnomalyScore(SDR& active,
   NTA_CHECK(active.dimensions == predicted.dimensions);
 
   // Calculate and return percent of active columns that were not predicted.
-  Intersection both(active, predicted); //TODO allow Intersection to act on const SDR, so active,pred can be const
-
-  cout << "act " << active << endl;
-  cout << "pred " << predicted << endl;
-  cout << "x " << both;
+  // TODO: Allow Intersection to act on const SDR, so active,pred can be const
+  Intersection both(active, predicted);
 
   return (active.getSum() - both.getSum()) / Real(active.getSum());
 }
 
-Real32 computeRawAnomalyScore(const vector<UInt>& active,
-                              const vector<UInt>& pred) {
-  SDR a({static_cast<UInt>(active.size())});
-  a.setSparse(active);
+Real computeRawAnomalyScore(vector<UInt>& active,
+                            vector<UInt>& predicted)
+{
+  // Don't divide by zero.  Return 0 if no active columns are present.
+  if (active.size() == 0) {
+    return 0.0f;
+  }
 
-  SDR p({static_cast<UInt>(pred.size())});
-  p.setSparse(pred);
+  vector<UInt> correctPredictions;
+  sort( active.begin(),    active.end());
+  sort( predicted.begin(), predicted.end());
+  set_intersection(active.begin(), active.end(),
+                   predicted.begin(), predicted.end(),
+                   back_inserter( correctPredictions ));
 
-  return computeRawAnomalyScore(a, p);
+  return (Real) (active.size() - correctPredictions.size()) / active.size();
 }
 
-}}} //end ns
+}}} // End namespace
 
 Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real binaryAnomalyThreshold)
     : binaryThreshold_(binaryAnomalyThreshold)
@@ -83,7 +88,10 @@ Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real binaryAnomalyThr
 }
 
 
-Real Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted, int timestamp)
+Real Anomaly::compute(const SDR& active, const SDR& predicted, int timestamp)
+  { return compute(active.getSparse(), predicted.getSparse(), timestamp); }
+
+Real Anomaly::compute(vector<UInt>& active, vector<UInt>& predicted, int timestamp)
 {
   Real anomalyScore = computeRawAnomalyScore(active, predicted);
   Real likelihood = 0.5;
@@ -113,4 +121,3 @@ Real Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
 
   return score;
 }
-
