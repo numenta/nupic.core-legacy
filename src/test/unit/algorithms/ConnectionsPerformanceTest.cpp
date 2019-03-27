@@ -154,13 +154,15 @@ float runSpatialPoolerTest(
 
 // TESTS
 #if defined( NDEBUG) && !defined(NTA_OS_WINDOWS)
-  const UInt COLS = 2048; //standard num of columns in SP/TM
-  const UInt SEQ = 50; //number of sequences ran in tests
-  const UInt EPOCHS = 20; //tests run for epochs times
+  const UInt COLS 	= 2048; //standard num of columns in SP/TM
+  const UInt W 		= 50;
+  const UInt SEQ 	= 50; //number of sequences ran in tests
+  const UInt EPOCHS 	= 20; //tests run for epochs times
 #else
-  const UInt COLS = 20; //standard num of columns in SP/TM
-  const UInt SEQ = 25; //number of sequences ran in tests
-  const UInt EPOCHS = 4; //only short in debug; is epochs/2 in some tests, that's why 4
+  const UInt COLS 	= 20; //standard num of columns in SP/TM
+  const UInt W 		= 3;
+  const UInt SEQ 	= 25; //number of sequences ran in tests
+  const UInt EPOCHS 	= 4; //only short in debug; is epochs/2 in some tests, that's why 4
 #endif
 
 
@@ -169,9 +171,9 @@ float runSpatialPoolerTest(
  * format is: COLS, W(bits), EPOCHS, SEQUENCES
  */
 TEST(ConnectionsPerformanceTest, testTM) {
-	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
+	auto tim = runTemporalMemoryTest(COLS, W, EPOCHS, SEQ, "temporal memory");
 #ifdef NDEBUG
-	ASSERT_LE(tim, 2.0*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 2.5*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 #endif
   UNUSED(tim);
 }
@@ -180,9 +182,9 @@ TEST(ConnectionsPerformanceTest, testTM) {
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
+  auto tim = runTemporalMemoryTest(2*COLS, 6*W, EPOCHS/2, SEQ, "temporal memory (large)");
 #ifdef NDEBUG
-  ASSERT_LE(tim, 12*Timer::getSpeed());
+  ASSERT_LE(tim, 13*Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
