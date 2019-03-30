@@ -27,14 +27,14 @@
 #include "gtest/gtest.h"
 #include <nupic/utils/GroupBy.hpp>
 
+namespace testing {
+
 using std::tie;
 using std::tuple;
 using std::vector;
 
 using nupic::groupBy;
 using nupic::iterGroupBy;
-
-namespace {
 
 struct ReturnValue1 {
   int key;

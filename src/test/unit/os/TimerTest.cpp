@@ -23,7 +23,12 @@
 /**
  * @file
  */
+#include <nupic/utils/Log.hpp>
+#include <nupic/os/Timer.hpp>
+#include <gtest/gtest.h>
 
+namespace testing { 
+    
 #define SLEEP_MICROSECONDS (100 * 1000)
 #define SLEEP_MILLISECONDS (100)
 
@@ -33,12 +38,6 @@
 #include <unistd.h>
 #else
 #endif
-
-
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/Timer.hpp>
-#include <math.h> // fabs
-#include <gtest/gtest.h>
 
 #if defined(WIN32)
 #define nap()   Sleep(SLEEP_MILLISECONDS);
@@ -93,4 +92,6 @@ TEST(TimerTest, Drift) {
     t.stop(); //immediately
   }
   ASSERT_LT(t.getElapsed(), EPSILON);
+}
+
 }

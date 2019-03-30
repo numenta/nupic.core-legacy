@@ -42,6 +42,8 @@
 #include <nupic/regions/VectorFileEffector.hpp>
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/regions/SPRegion.hpp>
+#include <nupic/regions/BacktrackingTMRegion.hpp>
+#include <nupic/regions/TMRegion.hpp>
 
 
 #include <nupic/utils/Log.hpp>
@@ -97,6 +99,8 @@ RegionImplFactory &RegionImplFactory::getInstance() {
     instance.addRegionType("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
     instance.addRegionType("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
     instance.addRegionType("SPRegion",           new RegisteredRegionImplCpp<SPRegion>());
+    instance.addRegionType("BacktrackingTMRegion",new RegisteredRegionImplCpp<BacktrackingTMRegion>());
+    instance.addRegionType("TMRegion",            new RegisteredRegionImplCpp<TMRegion>());
   }
 
   return instance;

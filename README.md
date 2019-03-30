@@ -63,7 +63,10 @@ Some of the major differences between this library and Numenta's extension libra
     - Version 2.7  We recommend you use the latest 2.7 version where possible. But the system version should be fine. (The extension library for Python 2.7 not supported on Windows.)
     - Version 3.4+  The Nupic Python repository will need to be upgraded as well before this will be useful.
   Be sure that your Python executable is in the Path environment variable. The Python that is in your default path is the one
-  that will determine which version of Python the extension library will be built for.
+  that will determine which version of Python the extension library will be built for.  
+  NOTE: Anaconda Python not supported. 
+  Other implementations of Python may not work. 
+  Only the standard python from python.org have been tested.
 - Python tools: In a command prompt execute the following.
 ```
   cd to-repository-root
@@ -99,6 +102,8 @@ After that completes you are all set to run your .py programs which import the e
  * nupic.bindings.algorithms
  * nupic.bindings.engine_internal
  * nupic.bindings.math
+ * nupic.bindings.encoders
+ * nupic.bindings.sdr
  
 The installation scripts will automatically download and build the dependancies it needs.
  * Boost   (Not needed by C++17 compilers that support the filesystem module)
@@ -106,8 +111,27 @@ The installation scripts will automatically download and build the dependancies 
  * Eigen
  * PyBind11
  * gtest
+ * mnist test data 
  * numpy
  * pytest
+ 
+ If you are installing on an air-gap computer (one without internet) then you can 
+ manually download the dependancies.  On another computer, download the distribution
+ packages as listed and rename them as indicated. Copy these to
+  `${REPOSITORY_DIR}/build/ThirdParty/share` on the target machine.
+  
+ | Name to give it | Where to obtain it |
+ | :-------------- | :----------------- |
+ | yaml-cpp.zip  *note1 | https://github.com/jbeder/yaml-cpp/archive/master.zip |
+ | boost.tar.gz  *note2 | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz |
+ | eigen.tar.bz2        | http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 |
+ | googletest.tar.gz    | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
+ | mnist.zip     *note3 | https://github.com/wichtounet/mnist/archive/master.zip |
+ | pybind11.tar.gz      | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
+ 
+ *note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
+ *note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.
+ *note3: Data used for demo. Not required.
  
 #### Simple Build On Linux or OSX for C++ apps
  

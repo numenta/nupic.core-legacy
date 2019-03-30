@@ -32,7 +32,7 @@
 #include <nupic/utils/LoggingException.hpp>
 
 #define NTA_DEBUG                                                             \
-  if (nupic::LogItem::getLogLevel() == nupic::LogLevel_None) {                \
+  if (nupic::LogItem::getLogLevel() < nupic::LogLevel_Verbose) {                \
   } else                                                                      \
     nupic::LogItem(__FILE__, __LINE__, nupic::LogType_debug).stream()
 
@@ -46,11 +46,15 @@
 // For informational messages that report status but do not indicate that
 // anything is wrong
 #define NTA_INFO                                                               \
+  if (nupic::LogItem::getLogLevel() < nupic::LogLevel_Normal) {                \
+  } else                                                                      \
   nupic::LogItem(__FILE__, __LINE__, nupic::LogType_info).stream()
 
 // For messages that indicate a recoverable error or something else that it may
 // be important for the end user to know about.
 #define NTA_WARN                                                               \
+  if (nupic::LogItem::getLogLevel() < nupic::LogLevel_Normal) {                \
+  } else                                                                      \
   nupic::LogItem(__FILE__, __LINE__, nupic::LogType_warn).stream()
 
 // To throw an exception and make sure the exception message is logged

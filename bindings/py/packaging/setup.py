@@ -152,11 +152,13 @@ def getExtensionFileNames(platform):
   #     nupic.core.algorithms.so
   #     nupic.core.engine.so
   #     nupic.core.math.so
+  #     nupic.core.encoders.so
+  #     nupic.core.sdr.so
   if platform in WINDOWS_PLATFORMS:
     libExtension = "pyd"
   else:
     libExtension = "so"
-  libNames = ("algorithms", "engine_internal", "math")
+  libNames = ("sdr", "encoders", "algorithms", "engine_internal", "math")
   libFiles = ["nupic.bindings.{}.{}".format(name, libExtension) for name in libNames]
   files = [os.path.join(DISTR_DIR, "src", "nupic", "bindings", name)
            for name in list(libFiles)]
@@ -248,7 +250,7 @@ if __name__ == "__main__":
     author="Numenta",
     author_email="help@numenta.org",
     url="https://github.com/htm-community/nupic.cpp",
-    long_description = "Numenta Platform for Intelligent Computing HTM-Community nupic core: nupic.bindings.[algorithms,engine_internal,math]",
+    long_description = "Numenta Platform for Intelligent Computing HTM-Community nupic core: nupic.bindings.[sdr,encoders,algorithms,engine_internal,math]",
     license = "GNU Affero General Public License v3 or later (AGPLv3+)",
     classifiers=[
       "Programming Language :: Python",
@@ -272,4 +274,3 @@ if __name__ == "__main__":
   )
   print("\nbindings/py/setup.py: Setup complete.\n")
 
-  

@@ -18,22 +18,25 @@
 #include <gtest/gtest.h>
 #include <nupic/types/Sdr.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
-/* Many of these tests also test SDR reshape. */
-#include <nupic/types/SdrProxy.hpp>
+/* Some of these tests also test SDR Reshape. */
+#include <nupic/types/SdrTools.hpp>
 #include <vector>
 #include <random>
 
+namespace testing { 
+    
 using namespace std;
 using namespace nupic;
+using namespace nupic::sdr;
 
 /**
- * SDR_Sparsity
+ * Sparsity
  * Test that it creates & destroys, and that nothing crashes.
  */
 TEST(SdrMetrics, TestSparsityConstruct) {
     SDR *A = new SDR({1});
-    SDR_Sparsity S( *A, 1000u );
-    ASSERT_ANY_THROW( SDR_Sparsity S( *A, 0u ) ); // Period > 0!
+    Sparsity S( *A, 1000u );
+    ASSERT_ANY_THROW( Sparsity S( *A, 0u ) ); // Period > 0!
     A->zero();
     A->zero();
     A->zero();
@@ -47,7 +50,7 @@ TEST(SdrMetrics, TestSparsityConstruct) {
 
 TEST(SdrMetrics, TestSparsityExample) {
     SDR A( { 1000u } );
-    SDR_Sparsity B( A, 1000u );
+    Sparsity B( A, 1000u );
     A.randomize( 0.01f );
     A.randomize( 0.15f );
     A.randomize( 0.05f );
@@ -59,15 +62,15 @@ TEST(SdrMetrics, TestSparsityExample) {
 }
 
 /*
- * SDR_Sparsity
+ * Sparsity
  * Verify that the initial 10 values of metric are OK.
  */
 TEST(SdrMetrics, TestSparsityShortTerm) {
     SDR A({1});
-    SDR_Reshape B( A );
+    Reshape B( A );
     Real period = 10u;
     Real alpha  = 1.0f / period;
-    SDR_Sparsity S( B, (UInt)period );
+    Sparsity S( B, (UInt)period );
 
     A.setDense(SDR_dense_t{ 1 });
     ASSERT_FLOAT_EQ( S.sparsity, 1.0f );
@@ -121,8 +124,8 @@ TEST(SdrMetrics, TestSparsityShortTerm) {
 }
 
 /*
- * SDR_Sparsity
- * Verify that the longer run values of the SDR_Sparsity metric are OK.
+ * Sparsity
+ * Verify that the longer run values of the Sparsity metric are OK.
  * Test Protocol:
  *      instantaneous-sparsity = Sample random distribution
  *      for iteration in range( 1,000 ):
@@ -135,8 +138,8 @@ TEST(SdrMetrics, TestSparsityLongTerm) {
     auto iterations = 1000u;
 
     SDR A({1000u});
-    SDR_Reshape B( A );
-    SDR_Sparsity S( B, period );
+    Reshape B( A );
+    Sparsity S( B, period );
 
     vector<Real> test_means{ 0.01f,  0.05f,  0.20f, 0.50f, 0.50f, 0.75f, 0.99f };
     vector<Real> test_stdev{ 0.001f, 0.025f, 0.10f, 0.33f, 0.01f, 0.15f, 0.01f };
@@ -160,13 +163,11 @@ TEST(SdrMetrics, TestSparsityLongTerm) {
 }
 
 TEST(SdrMetrics, TestSparsityPrint) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     SDR A({ 2000u });
-    SDR_Reshape B( A );
-    SDR_Sparsity S( B, 10u );
+    Reshape B( A );
+    Sparsity S( B, 10u );
 
     A.randomize( 0.30f );
     A.randomize( 0.70f );
@@ -179,15 +180,15 @@ TEST(SdrMetrics, TestSparsityPrint) {
 }
 
 /**
- * SDR_ActivationFrequency
+ * ActivationFrequency
  * Test that it creates & destroys, and that no methods crash.
  */
 TEST(SdrMetrics, TestAF_Construct) {
     // Test creating it.
     SDR *A = new SDR({ 5 });
-    SDR_Reshape *B = new SDR_Reshape( *A );
-    SDR_ActivationFrequency F( *B, 100 );
-    ASSERT_ANY_THROW( SDR_ActivationFrequency F( *A, 0u ) ); // Period > 0!
+    Reshape *B = new Reshape( *A );
+    ActivationFrequency F( *B, 100 );
+    ASSERT_ANY_THROW( ActivationFrequency F( *A, 0u ) ); // Period > 0!
     // Test nothing crashes with no data.
     F.min();
     F.mean();
@@ -215,13 +216,13 @@ TEST(SdrMetrics, TestAF_Construct) {
 }
 
 /**
- * SDR_ActivationFrequency
+ * ActivationFrequency
  * Verify that the first few data points are ok.
  */
 TEST(SdrMetrics, TestAF_Example) {
     SDR A({ 2u });
-    SDR_Reshape B( A );
-    SDR_ActivationFrequency F( B, 10u );
+    Reshape B( A );
+    ActivationFrequency F( B, 10u );
 
     A.setDense(SDR_dense_t{ 0, 0 });
     ASSERT_EQ( F.activationFrequency, vector<Real>({ 0.0f, 0.0f }));
@@ -240,15 +241,15 @@ TEST(SdrMetrics, TestAF_Example) {
 }
 
 /*
- * SDR_ActivationFrequency
+ * ActivationFrequency
  * Verify that the longer run values of this metric are OK.
  */
 TEST(SdrMetrics, TestAF_LongTerm) {
     const auto period  =  1000u;
     const auto runtime = 10000u;
     SDR A({ 20u });
-    SDR_Reshape B( A );
-    SDR_ActivationFrequency F( B, period );
+    Reshape B( A );
+    ActivationFrequency F( B, period );
 
 
     vector<Real> test_sparsity{ 0.0f, 0.05f, 1.0f, 0.25f, 0.5f };
@@ -274,14 +275,14 @@ TEST(SdrMetrics, TestAF_Entropy) {
     // Extact tests:
     // Test all zeros.
     SDR A({ size });
-    SDR_Reshape Px( A );
-    SDR_ActivationFrequency F( Px, period );
+    Reshape Px( A );
+    ActivationFrequency F( Px, period );
     A.zero();
     EXPECT_FLOAT_EQ( F.entropy(), 0.0f );
 
     // Test all ones.
     SDR B({ size });
-    SDR_ActivationFrequency G( B, period );
+    ActivationFrequency G( B, period );
     B.randomize( 1.0f );
     EXPECT_FLOAT_EQ( G.entropy(), 0.0f );
 
@@ -292,7 +293,7 @@ TEST(SdrMetrics, TestAF_Entropy) {
     // more cells and verify that the entropy monotonically decreases.  Finally
     // verify 0% entropy when all cells are disabled.
     SDR C({ size });
-    SDR_ActivationFrequency H( C, period );
+    ActivationFrequency H( C, period );
     auto last_entropy = -1.0f;
     const UInt incr = size / 10u; // NOTE: This MUST divide perfectly, with no remainder!
     for(auto nbits_disabled = 0u; nbits_disabled <= size; nbits_disabled += incr) {
@@ -320,14 +321,12 @@ TEST(SdrMetrics, TestAF_Entropy) {
 }
 
 TEST(SdrMetrics, TestAF_Print) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     const auto period  =  100u;
     const auto runtime = 1000u;
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
     SDR A({ 2000u });
-    SDR_ActivationFrequency F( A, period );
+    ActivationFrequency F( A, period );
 
     vector<Real> sparsity{ 0.0f, 0.02f, 0.05f, 0.50f, 0.0f };
     for(const auto sp : sparsity) {
@@ -340,8 +339,8 @@ TEST(SdrMetrics, TestAF_Print) {
 
 TEST(SdrMetrics, TestOverlap_Construct) {
     SDR *A = new SDR({ 1000u });
-    SDR_Overlap V( *A, 100u );
-    ASSERT_ANY_THROW( new SDR_Overlap( *A, 0 ) ); // Period > 0!
+    Overlap V( *A, 100u );
+    ASSERT_ANY_THROW( new Overlap( *A, 0 ) ); // Period > 0!
     // Check that it doesn't crash, when uninitialized.
     V.min();
     V.mean();
@@ -377,8 +376,8 @@ TEST(SdrMetrics, TestOverlap_Construct) {
 
 TEST(SdrMetrics, TestOverlap_Example) {
     SDR A({ 10000u });
-    SDR_Reshape Px( A );
-    SDR_Overlap B( Px, 1000u );
+    Reshape Px( A );
+    Overlap B( Px, 1000u );
     A.randomize( 0.05f );
     A.addNoise( 0.95f );         //   5% overlap
     A.addNoise( 0.55f );         //  45% overlap
@@ -391,11 +390,11 @@ TEST(SdrMetrics, TestOverlap_Example) {
 }
 
 TEST(SdrMetrics, TestOverlap_ShortTerm) {
-    SDR         A({ 1000u });
-    SDR_Reshape   Px( A );
-    SDR_Overlap V( Px, 10u );
+    SDR     A({ 1000u });
+    Reshape Px( A );
+    Overlap V( Px, 10u );
 
-    A.randomize( 0.20f ); // Initial value is taken after SDR_Overlap is created
+    A.randomize( 0.20f ); // Initial value is taken after Overlap is created
 
     // Add overlap 50% to metric tracker.
     A.addNoise(  0.50f );
@@ -426,8 +425,8 @@ TEST(SdrMetrics, TestOverlap_LongTerm) {
     const auto runtime = 1000u;
     const auto period  =  100u;
     SDR A({ 500u });
-    SDR_Reshape Px( A );
-    SDR_Overlap V( Px, period );
+    Reshape Px( A );
+    Overlap V( Px, period );
     A.randomize( 0.45f );
 
     vector<Real> mean_ovlp{ 0.0f, 1.0f,
@@ -456,13 +455,11 @@ TEST(SdrMetrics, TestOverlap_LongTerm) {
 }
 
 TEST(SdrMetrics, TestOverlap_Print) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     SDR A({ 2000u });
-    SDR_Reshape Px( A );
-    SDR_Overlap V( Px, 100u );
+    Reshape Px( A );
+    Overlap V( Px, 100u );
     A.randomize( 0.02f );
 
     vector<Real> overlaps{ 0.02f, 0.05f, 0.0f, 0.50f, 0.0f };
@@ -478,13 +475,13 @@ TEST(SdrMetrics, TestOverlap_Print) {
 }
 
 /**
- * SDR_Metrics
+ * Metrics
  *
  */
 TEST(SdrMetrics, TestAllMetrics_Construct) {
     // Test that it constructs.
     SDR *A = new SDR({ 100u });
-    SDR_Metrics M( *A, 10u );
+    Metrics M( *A, 10u );
 
     A->randomize( 0.05f );
     A->randomize( 0.05f );
@@ -497,15 +494,15 @@ TEST(SdrMetrics, TestAllMetrics_Construct) {
 
     // Test delete Metric and keep using SDR.
     A = new SDR({ 100u });
-    SDR_Metrics *B = new SDR_Metrics( *A, 99u );
-    SDR_Metrics *C = new SDR_Metrics( *A, 98u );
+    Metrics *B = new Metrics( *A, 99u );
+    Metrics *C = new Metrics( *A, 98u );
     A->randomize( 0.20f );
     A->randomize( 0.20f );
     devnull << *B;
     delete B;                   // First deletion
     A->randomize( 0.20f );
     A->addNoise( 0.20f );
-    B = new SDR_Metrics( *A, 99u );    // Remove & Recreate
+    B = new Metrics( *A, 99u );    // Remove & Recreate
     A->randomize( 0.20f );
     A->randomize( 0.20f );
     devnull << *A;
@@ -517,16 +514,14 @@ TEST(SdrMetrics, TestAllMetrics_Construct) {
 }
 
 /**
- * SDR_Metrics prints OK.
+ * Metrics prints OK.
  */
 TEST(SdrMetrics, TestAllMetrics_Print) {
-    // TODO: Automatically test.  Use regex or other parsing utility.  Extract
-    // the data into real numbers and check that its acceptably near to the
-    // expected.
-    cerr << endl << "YOU must manually verify this output!" << endl << endl;
+    // Test passes if it does not crash.  The exact strings are checked by
+    // python unit tests.
     SDR A({ 4097u });
-    SDR_Reshape Px( A );
-    SDR_Metrics M( Px, 100u );
+    Reshape Px( A );
+    Metrics M( Px, 100u );
 
     vector<Real> sparsity{ 0.02f, 0.15f, 0.06f, 0.50f, 0.0f };
     vector<Real> overlaps{ 0.02f, 0.05f, 0.10f, 0.50f, 0.0f };
@@ -544,14 +539,14 @@ TEST(SdrMetrics, TestAllMetrics_Print) {
  * Test addData() methods.
  */
 TEST(SdrMetrics, TestAddData) {
-    SDR_Metrics M( {10u, 5u, 2u}, 100u );
+    Metrics M( {10u, 5u, 2u}, 100u );
 
     // Check error checking
     SDR badDims({2u, 5u, 10u});
     ASSERT_ANY_THROW( M.addData(badDims) );
     // Check that addData() only works when using the correct initializer.
     SDR A({100u});
-    SDR_Metrics otherInit(A, 100u);
+    Metrics otherInit(A, 100u);
     ASSERT_ANY_THROW( otherInit.addData(A) );
     SDR B(A);
     ASSERT_ANY_THROW( otherInit.addData(B) );
@@ -566,4 +561,5 @@ TEST(SdrMetrics, TestAddData) {
     ASSERT_NEAR( M.sparsity.mean(), 0.2f, 0.01f );
     ASSERT_NEAR( M.overlap.mean(),  0.5f, 0.01f );
     ASSERT_NEAR( M.activationFrequency.mean(), 0.2f, 0.01f );
+}
 }

@@ -27,11 +27,12 @@
 #include "gtest/gtest.h"
 #include <nupic/math/Topology.hpp>
 
+namespace testing {
+
 using std::vector;
 using namespace nupic;
 using namespace nupic::math::topology;
 
-namespace {
 TEST(TopologyTest, IndexFromCoordinates) {
   EXPECT_EQ(0u, indexFromCoordinates({0}, {100}));
   EXPECT_EQ(50u, indexFromCoordinates({50}, {100}));

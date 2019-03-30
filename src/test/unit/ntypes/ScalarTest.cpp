@@ -27,6 +27,8 @@
 #include <gtest/gtest.h>
 #include <nupic/ntypes/Scalar.hpp>
 
+namespace testing {
+    
 using namespace nupic;
 
 TEST(ScalarTest, All) {
@@ -128,4 +130,6 @@ TEST(ScalarTest, All) {
   ASSERT_TRUE(a.getValue<bool>());
   a.value.boolean = false;
   ASSERT_FALSE(a.getValue<bool>());
+}
+
 }

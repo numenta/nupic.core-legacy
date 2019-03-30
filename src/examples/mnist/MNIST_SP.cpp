@@ -46,8 +46,8 @@ class MNIST {
 
   private:
     SpatialPooler sp;
-    SDR input;
-    SDR columns;
+    sdr::SDR input;
+    sdr::SDR columns;
     SDRClassifier clsr;
     mnist::MNIST_dataset<std::vector, std::vector<uint8_t>, uint8_t> dataset;
 
@@ -97,14 +97,16 @@ void train() {
          << " cycles ..." << endl;
   size_t i = 0;
 
-  SDR_Metrics inputStats(input,    1402);
-  SDR_Metrics columnStats(columns, 1402);
+  sdr::Metrics inputStats(input,    1402);
+  sdr::Metrics columnStats(columns, 1402);
 
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
     NTA_INFO << "epoch " << epoch;
     // Shuffle the training data.
     vector<UInt> index( dataset.training_labels.size() );
-    index.assign(dataset.training_labels.cbegin(), dataset.training_labels.cend());
+    for (UInt i=0; i<dataset.training_labels.size(); i++) {
+      index.push_back(i);
+    }
     Random().shuffle( index.begin(), index.end() );
 
     for(const auto idx : index) { // index = order of label (shuffeled)

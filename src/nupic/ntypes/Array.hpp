@@ -109,7 +109,7 @@
 // A.setBuffer(sdr)                  -- set un-owned SDR
 // A.zeroBuffer()                    -- fills A with 0's, A retains type and size.
 // A.releaseBuffer()                 -- free everything (if owned)
-// A.getSDR()                        -- get pointer to enclosed SDR
+// A.getSDR()                        -- get reference to enclosed SDR
 // A.getBufferSize( )                -- size of buffer in bytes
 // A.getMaxElementsCount()           -- capacity in number of elements 
 // A.setCount(count)                 -- truncate buffer size to this length, keeping capacity.   (not SDR)
@@ -192,7 +192,7 @@ public:
   /**
    * Create an ArrayBase containing a copy of an SDR.
    */
-  Array(const SDR &sdr) : ArrayBase(sdr) {}
+  Array(const sdr::SDR &sdr) : ArrayBase(sdr) {}
 
   /**
    * Create an ArrayBase with type and data from vector
@@ -227,7 +227,7 @@ public:
     Array a(type_);
     if (getCount() > 0) {
       if (type_ == NTA_BasicType_SDR)
-        a.allocateBuffer(getSDR()->dimensions);
+        a.allocateBuffer(getSDR().dimensions);
       else
         a.allocateBuffer(getCount());
       memcpy((char *)a.getBuffer(), (char *)getBuffer(),
@@ -261,12 +261,12 @@ public:
     * The vector is assumed to contain only dense format data.
     */
   template <typename T> void populate(const std::vector<T> &v) {
-    NTA_CHECK(typeid(T) != typeid(SDR)) << "A vector<SDR> not allowed.";
+    NTA_CHECK(typeid(T) != typeid(sdr::SDR)) << "A vector<SDR> not allowed.";
     NTA_BasicType fromType = BasicType::getType<T>();
     allocateBuffer(v.size());
     if (getCount() > 0) {
       if (getType() == NTA_BasicType_SDR) {
-        getSDR()->setDense(v);
+        getSDR().setDense(v);
         RefreshCache(); 
       } else {
         BasicType::convertArray(getBuffer(), getType(), v.data(), fromType,v.size());

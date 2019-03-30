@@ -24,10 +24,8 @@
  * Implementation of ArrayBase test
  */
 
-#define UNUSED(x) (void)(x)
-
 #include <nupic/utils/Log.hpp>
-
+#include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
 #include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/Array.hpp>
@@ -40,6 +38,9 @@
 
 #include <gtest/gtest.h>
 
+namespace testing {
+    
+#define UNUSED(x) (void)(x)
 using namespace nupic;
 
 // First, some structures to help in testing.
@@ -562,10 +563,12 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     if (testCase->second.dataType == NTA_BasicType_SDR) {
       // Just to be sure an SDR can play here,
       // Only SDR has dimensions
-      std::vector<UInt> dim({10, 10});
-      SDR sdr(dim);
+      std::vector<UInt> d({ 10u, 10u });
+      Dimensions dim(d);
+      sdr::SDR sdr(dim);
       Array s(sdr); // makes a copy of sdr
-      EXPECT_TRUE(s.getSDR() != &sdr);
+      Dimensions dim_s(s.getSDR().dimensions);
+      EXPECT_EQ(dim_s, dim);
       EXPECT_EQ(s.getCount(), 100u);
 
       std::vector<UInt> dim2({10, 20});
@@ -575,11 +578,11 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       // wrapper an existing sdr
       Array m(NTA_BasicType_SDR);
       m.setBuffer(sdr);
-      EXPECT_TRUE(m.getSDR() == &sdr);
+      EXPECT_TRUE(m.getSDR() == sdr);
       EXPECT_EQ(m.getCount(), 100u);
 
       std::vector<Byte> row = a.asVector<Byte>();
-      SDR_sparse_t &v = a.getSDR()->getSparse();
+      const sdr::SDR_sparse_t& v = a.getSDR().getSparse();
 
       EXPECT_EQ(v.size(), 10u);
 
@@ -640,3 +643,5 @@ void ArrayTest::setupArrayTests() {
   testCases_["Non-existent NTA_BasicType"] =
       ArrayTestParameters((NTA_BasicType)-1, 0, 10, "N/A", true);
 }
+
+} //-ns

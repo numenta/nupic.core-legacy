@@ -809,14 +809,6 @@ public:
   //----------------------------------------------------------------------
   // PERSISTENCE
   //----------------------------------------------------------------------
-  //   -- do we really need to know the size?
-  inline UInt persistentSize() const {
-    std::stringstream buff;
-    this->save(buff);
-    return (UInt)buff.str().size();
-  }
-
-  //----------------------------------------------------------------------
   inline void save(std::ostream &outStream) const {
     NTA_ASSERT(invariants());
     outStream << size() << ' ' << _seqSegFlag << ' ' << _frequency << ' '

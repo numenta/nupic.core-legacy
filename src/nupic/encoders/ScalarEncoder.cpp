@@ -1,8 +1,10 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * Copyright (C) 2016, Numenta, Inc.
+ *               2019, David McDougall
+ *
+ * Unless you have an agreement with Numenta, Inc., for a separate license for
+ * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -21,115 +23,178 @@
  */
 
 /** @file
- * Implementations of the ScalarEncoder and PeriodicScalarEncoder
+ * Implementation of the ScalarEncoder
  */
 
-#include <algorithm> //std::fill
-#include <cmath>
-
+#include <algorithm> // std::min
+#include <numeric>   // std::iota
+#include <cmath>     // std::isnan
 #include <nupic/encoders/ScalarEncoder.hpp>
+using nupic::sdr::SDR;
 
 namespace nupic {
+namespace encoders {
 
-std::vector<UInt> ScalarEncoderBase::encode(Real input) {
-    std::vector<UInt> output(getOutputWidth());
-    encodeIntoArray(input, output.data());
-    return output;
-}
+ScalarEncoder::ScalarEncoder(ScalarEncoderParameters &parameters)
+  { initialize( parameters ); }
 
+void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
+{
+  // Check parameters
+  NTA_CHECK( parameters.minimum < parameters.maximum );
 
-ScalarEncoder::ScalarEncoder(int w, double minValue, double maxValue, int n,
-                             double radius, double resolution, bool clipInput)
-    : ScalarEncoderBase(w,n), minValue_(minValue), maxValue_(maxValue), clipInput_(clipInput) {
-  NTA_CHECK(!( (n && radius) || (n && resolution) || (resolution && radius) ))
-	  << "Only one of n/radius/resolution can be specified for a "
-                 "ScalarEncoder.";
+  UInt num_active_args = 0;
+  if( parameters.activeBits > 0)    { num_active_args++; }
+  if( parameters.sparsity   > 0.0f) { num_active_args++; }
+  NTA_CHECK( num_active_args != 0u )
+      << "Missing argument, need one of: 'activeBits' or 'sparsity'.";
+  NTA_CHECK( num_active_args == 1u )
+      << "Too many arguments, choose only one of: 'activeBits' or 'sparsity'.";
 
-  const double extentWidth = maxValue - minValue;
-  NTA_CHECK(extentWidth > 0) 
-     << "minValue must be < maxValue. minValue=" << minValue
-     << " maxValue=" << maxValue;
+  UInt num_size_args = 0;
+  if( parameters.size       > 0u)   { num_size_args++; }
+  if( parameters.radius     > 0.0f) { num_size_args++; }
+  if( parameters.resolution > 0.0f) { num_size_args++; }
+  NTA_CHECK( num_size_args != 0u )
+      << "Missing argument, need one of: 'size', 'radius', 'resolution'.";
+  NTA_CHECK( num_size_args == 1u )
+      << "Too many arguments, choose only one of: 'size', 'radius', 'resolution'.";
 
-  if (n != 0) {
-    n_ = n;
-    // Distribute nBuckets points along the domain [minValue, maxValue],
-    // including the endpoints. The resolution is the width of each band
-    // between the points.
-    const int nBuckets = n - (w - 1);
-    const int nBands = nBuckets - 1;
-    bucketWidth_ = extentWidth / nBands;
-  } else {
-    bucketWidth_ = resolution || radius / w;
-    NTA_CHECK(bucketWidth_ > 0) << "One of n/radius/resolution must be nonzero.";
-    const int neededBands = (int)ceil(extentWidth / bucketWidth_);
-    const int neededBuckets = neededBands + 1;
-    n_ = neededBuckets + (w - 1);
-  }
-  NTA_CHECK(bucketWidth_ > 0);
-  NTA_CHECK(n_ > 0);
-  NTA_CHECK(w_ < n_);
-}
-
-
-int ScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
-  if(clipInput_) {
-    input = input < minValue_ ? (Real)minValue_ : input;
-    input = input > maxValue_ ? (Real)maxValue_ : input;
+  if( parameters.periodic ) {
+    NTA_CHECK( not parameters.clipInput )
+      << "Will not clip periodic inputs.  Caller must apply modulus.";
+    // TODO: Instead of balking, do the modulus!
   }
 
-  NTA_CHECK(input >= minValue_ && input <= maxValue_) << "Input must be within [minValue, maxValue]";
+  args_ = parameters;
+  // Finish filling in all of parameters.
 
-  const int iBucket = (int)round((input - minValue_) / bucketWidth_);
-  const int firstBit = iBucket;
-
-  std::fill(&output[0], &output[n_ -1], 0);
-  std::fill_n(&output[firstBit], w_, 1);
-  return iBucket;
-}
-
-
-PeriodicScalarEncoder::PeriodicScalarEncoder(int w, double minValue,
-                                             double maxValue, int n,
-                                             double radius, double resolution)
-    : ScalarEncoder(w, minValue, maxValue, n, radius, resolution, false) {
-
-  if (n != 0) {
-    // Distribute nBuckets equal-width bands within the domain [minValue,
-    // maxValue]. The resolution is the width of each band.
-    const int nBuckets = n;
-    const double extentWidth = maxValue - minValue;
-    bucketWidth_ = extentWidth / nBuckets;
-  } else {
-    const int neededBuckets = (int)ceil((maxValue - minValue) / bucketWidth_);
-    n_ = (neededBuckets > w_) ? neededBuckets : w_ + 1;
+  if( args_.sparsity > 0.0f ) {
+    NTA_CHECK( parameters.sparsity >= 0.0f );
+    NTA_CHECK( parameters.sparsity <= 1.0f );
+    NTA_CHECK( args_.size > 0u )
+        << "'Sparsity' requires that the 'size' also be given.";
+    args_.activeBits = (UInt) round( args_.size * args_.sparsity );
   }
 
-  NTA_CHECK(bucketWidth_ > 0);
-  NTA_CHECK(n_ > 0);
-  NTA_CHECK(w_ < n_);
+  // Determine resolution & size.
+  const Real64 extentWidth = args_.maximum - args_.minimum;
+  if( args_.size > 0u ) {
+    // Distribute the active bits along the domain [minimum, maximum], including
+    // the endpoints. The resolution is the width of each band between the
+    // points.
+    if( args_.periodic ) {
+      args_.resolution = extentWidth / args_.size;
+    }
+    else {
+      const UInt nBuckets = args_.size - (args_.activeBits - 1);
+      args_.resolution = extentWidth / (nBuckets - 1);
+    }
+  }
+  else {
+    if( args_.radius > 0.0f ) {
+      args_.resolution = args_.radius / args_.activeBits;
+    }
+
+    const int neededBands = (int)ceil(extentWidth / args_.resolution);
+    if( args_.periodic ) {
+      args_.size = neededBands;
+    }
+    else {
+      args_.size = neededBands + (args_.activeBits - 1);
+    }
+  }
+
+  // Determine radius. Always calculate this even if it was given, to correct for rounding error.
+  args_.radius = args_.activeBits * args_.resolution;
+
+  // Determine sparsity. Always calculate this even if it was given, to correct for rounding error.
+  args_.sparsity = (Real) args_.activeBits / args_.size;
+
+  // Sanity check the parameters.
+  NTA_CHECK( args_.size       > 0u );
+  NTA_CHECK( args_.activeBits > 0u );
+  NTA_CHECK( args_.activeBits < args_.size );
+
+  // Initialize parent class.
+  BaseEncoder<Real64>::initialize({ args_.size });
 }
 
-
-int PeriodicScalarEncoder::encodeIntoArray(Real input, UInt output[]) {
-  NTA_CHECK(input >= minValue_ && input < maxValue_) 
-    << "input " << input << " not within range [" << minValue_ << ", " << maxValue_ << ")";
-
-  const int iBucket = (int)((input - minValue_) / bucketWidth_);
-  const int middleBit = iBucket;
-  const double reach = (w_ - 1) / 2.0;
-  const int left = (int)floor(reach);
-  const int right = (int)ceil(reach);
-
-  std::fill(&output[0], &output[n_ -1], 0);
-  output[middleBit] = 1;
-  for (int i = 1; i <= left; i++) {
-    const int index = middleBit - i;
-    output[(index < 0) ? index + n_ : index] = 1;
+void ScalarEncoder::encode(Real64 input, SDR &output)
+{
+  // Check inputs
+  NTA_CHECK( output.size == size );
+  if( std::isnan(input) ) {
+    output.zero();
+    return;
   }
-  for (int i = 1; i <= right; i++) {
-    output[(middleBit + i) % n_] = 1;
+  else if( args_.clipInput ) {
+    input = std::max(input, parameters.minimum);
+    input = std::min(input, parameters.maximum);
+  }
+  else {
+    NTA_CHECK(input >= parameters.minimum && input <= parameters.maximum)
+        << "Input must be within range [minimum, maximum]!";
   }
 
-  return iBucket;
+  auto &sparse = output.getSparse();
+  sparse.resize( parameters.activeBits );
+
+  UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
+
+  // The endpoints of the input range are inclusive, which means that the
+  // maximum value may round up to an index which is outside of the SDR. Correct
+  // this by pushing the endpoint (and everything which rounds to it) onto the
+  // last bit in the SDR.
+  if( not parameters.periodic ) {
+    start = std::min(start, output.size - parameters.activeBits);
+  }
+
+  std::iota( sparse.begin(), sparse.end(), start );
+
+  if( parameters.periodic ) {
+    for(UInt wrap = output.size - start; wrap < parameters.activeBits; ++wrap) {
+      sparse[wrap] -= output.size;
+    }
+  }
+
+  output.setSparse( sparse );
 }
+
+void ScalarEncoder::save(std::ostream &stream) const
+{
+  stream << "ScalarEncoder ";
+  stream << parameters.minimum    << " ";
+  stream << parameters.maximum    << " ";
+  stream << parameters.clipInput  << " ";
+  stream << parameters.periodic   << " ";
+  stream << parameters.activeBits << " ";
+  // Save the resolution instead of the size BC it's higher precision.
+  stream << parameters.resolution << " ";
+  stream << "~ScalarEncoder~" << std::endl;
+}
+
+void ScalarEncoder::load(std::istream &stream)
+{
+  std::string prelude;
+  stream >> prelude;
+  NTA_CHECK( prelude == "ScalarEncoder" );
+
+  ScalarEncoderParameters p;
+  stream >> p.minimum;
+  stream >> p.maximum;
+  stream >> p.clipInput;
+  stream >> p.periodic;
+  stream >> p.activeBits;
+  stream >> p.resolution;
+
+  std::string postlude;
+  stream >> postlude;
+  NTA_CHECK( postlude == "~ScalarEncoder~" );
+  stream.ignore( 1 ); // Eat the trailing newline.
+
+  initialize( p );
+}
+
+} // end namespace encoders
 } // end namespace nupic

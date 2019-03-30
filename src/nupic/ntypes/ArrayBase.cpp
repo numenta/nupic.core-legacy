@@ -34,6 +34,8 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
+using nupic::sdr::SDR;
+
 namespace nupic {
 
 /**
@@ -113,7 +115,7 @@ void ArrayBase::allocateBuffer(size_t count) {
   }
 }
 
-void ArrayBase::allocateBuffer( const std::vector<UInt> dimensions) { // only for SDR
+void ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only for SDR
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Dimensions can only be set on the SDR payload";
   SDR *sdr = new SDR(dimensions);
   std::shared_ptr<char> sp((char *)(sdr));
@@ -129,7 +131,7 @@ void ArrayBase::allocateBuffer( const std::vector<UInt> dimensions) { // only fo
 void ArrayBase::zeroBuffer() {
   if (has_buffer()) {
     if (type_ == NTA_BasicType_SDR) {
-        getSDR()->zero();
+        getSDR().zero();
     } else
       std::memset(buffer_.get(), 0, capacity_);
   }
@@ -171,7 +173,7 @@ void ArrayBase::releaseBuffer() {
 void *ArrayBase::getBuffer() {
   if (has_buffer()) {
     if (type_ == NTA_BasicType_SDR) {
-      return getSDR()->getDense().data();
+      return getSDR().getDense().data();
     }
     return buffer_.get();
   }
@@ -181,27 +183,31 @@ void *ArrayBase::getBuffer() {
 const void *ArrayBase::getBuffer() const {
   if (has_buffer()) {
     if (buffer_ != nullptr && type_ == NTA_BasicType_SDR) {
-      return getSDR()->getDense().data();
+      return getSDR().getDense().data();
     }
     return buffer_.get();
   }
   return nullptr;
 }
 
-SDR *ArrayBase::getSDR() {
+SDR& ArrayBase::getSDR() {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  SDR *sdr = (SDR *)buffer_.get();
-  if (sdr == nullptr)
-    NTA_THROW << "getSDR: SDR pointer is null";
-  sdr->setDense(sdr->getDense()); // cleanup cache
+  if (buffer_ == nullptr) {
+    std::vector<UInt> zeroDim;
+    zeroDim.push_back(0u);
+    allocateBuffer(zeroDim);  // Create an empty SDR object.
+  }
+  SDR& sdr = *((SDR *)buffer_.get());
+  sdr.setDense(sdr.getDense()); // cleanup cache
   return sdr;
 }
-const SDR *ArrayBase::getSDR() const {
+const SDR& ArrayBase::getSDR() const {
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Does not contain an SDR object";
-  SDR *sdr = (SDR *)buffer_.get();
-  if (sdr == nullptr)
-    NTA_THROW << "getSDR: SDR pointer is null";
-  sdr->setDense(sdr->getDense()); // cleanup cache
+  if (buffer_ == nullptr)
+    // this is const, cannot create an empty SDR.
+    NTA_THROW << "getSDR: SDR pointer is null";  
+  SDR& sdr = *((SDR *)buffer_.get());
+  sdr.setDense(sdr.getDense()); // cleanup cache
   return sdr;
 }
 
@@ -210,7 +216,7 @@ const SDR *ArrayBase::getSDR() const {
  */
 size_t ArrayBase::getBufferSize() const {
   if (has_buffer() && type_ == NTA_BasicType_SDR) {
-    return getSDR()->size;
+    return getSDR().size;
   }
   return capacity_;
 }
@@ -321,7 +327,7 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
   if (lhs.getCount() == 0)
     return true;
   if (lhs.getType() == NTA_BasicType_SDR) {
-    return (*lhs.getSDR() == *rhs.getSDR());
+    return (lhs.getSDR() == rhs.getSDR());
   }
   return (std::memcmp(lhs.getBuffer(), rhs.getBuffer(),
                       lhs.getCount() * BasicType::getSize(lhs.getType())) == 0);
@@ -368,8 +374,8 @@ bool operator==(const std::vector<nupic::Byte> &lhs, const ArrayBase &rhs) {
 void ArrayBase::save(std::ostream &outStream) const {
   outStream << "[ " << count_ << " " << BasicType::getName(type_) << " ";
   if (has_buffer() && type_ == NTA_BasicType_SDR) {
-    const SDR *sdr = getSDR();
-    sdr->save(outStream);
+    const SDR& sdr = getSDR();
+    sdr.save(outStream);
   } else {
 
     if (count_ > 0) {
@@ -435,7 +441,7 @@ std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a) {
     if (!a.has_buffer())
       outStream << "[ SDR(0) nullptr ]";
     else
-      outStream << "[ " << *a.getSDR() << " ]";
+      outStream << "[ " << a.getSDR() << " ]";
   }
   else {
     outStream << "[ " << BasicType::getName(elementType) << " " << numElements

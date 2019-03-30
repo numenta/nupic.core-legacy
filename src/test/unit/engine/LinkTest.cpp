@@ -44,6 +44,8 @@
 #include <nupic/os/Directory.hpp>
 #include <nupic/utils/Log.hpp>
 
+namespace testing { 
+    
 static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
@@ -678,7 +680,7 @@ public:
    * It is always called after the constructor (or load from serialized state)
    */
   void initialize() override {
-    nodeCount_ = getOutputDimensions().getDimensionCount();
+    nodeCount_ = getOutputDimensions().size();
     NTA_CHECK(nodeCount_ == 1);
     out_ = getOutput("out");
     feedbackIn_ = getInput("feedbackIn");
@@ -1178,4 +1180,5 @@ TEST(LinkTest, SingleL4RegionWithDelayedLoopbackInAndPhaseOnOffOn) {
   // Validate R1
   ASSERT_EQ(2u, r1OutBuf[1]); // feedbackIn from R3; delay=1
   ASSERT_EQ(3u, r1OutBuf[0]); // out (1 + feedbackIn)
+}
 }

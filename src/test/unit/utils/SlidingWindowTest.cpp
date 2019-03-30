@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "nupic/utils/SlidingWindow.hpp"
 
+namespace testing { 
+    
 using nupic::util::SlidingWindow;
 
 
@@ -28,4 +30,5 @@ TEST(SlidingWindow, Instance)
     ASSERT_EQ(w.getLinearizedData(), w2.getLinearizedData());
     ASSERT_EQ(w, w2);
     ASSERT_NE(w.getData(), w2.getData()); // linearized data are same, but internal buffer representations are not
+}
 }

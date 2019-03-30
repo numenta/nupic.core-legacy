@@ -49,6 +49,15 @@ set BUILDDIR=build\scripts
 if not exist "%BUILDDIR%" (
   mkdir "%BUILDDIR%"
 )
+cd "%BUILDDIR%"
+
+rem // If nupic_core.sln already exists, just startup Visual Studio
+if exist "nupic_core.sln" (
+  nupic_core.sln
+  popd
+  exit /B 0
+)
+
 rem // Run CMake using the Visual Studio generator for VS 2017
 rem //   -G "Visual Studio 15 2017 Win64"   set the generator toolset to use. Could also set ARM rather than Win64.
 rem //   -Thost=x64                  Tell CMake to tell VS to use 64bit tools for compiler and linker
@@ -56,18 +65,17 @@ rem //   --config "Release"          Start out in Release mode
 rem //   -DCMAKE_CONFIGURATION_TYPES="Debug;Release"   Specify the build types allowed.
 rem //   ../..                       set the source directory (top of repository)
 
-cd "%BUILDDIR%"
 rem // cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release" -DBINDING_BUILD=Python3 ../..
 cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release"  ../..
   
 if exist "nupic_core.sln" (
-    cmake --build . --target install --config "Release"
+    rem //cmake --build . --target install --config "Release"
     @echo " "
     @echo You can now start Visual Studio using solution file %NUPIC_BASE%\build\scripts\nupic_core.sln
     @echo Press any key to start Visual Studio 
     pause >nul
 
-    rem // %NUPIC_BASE%\build\scripts\nupic_core.sln
+    rem // Location is %NUPIC_BASE%\build\scripts\nupic_core.sln
     nupic_core.sln
 
     popd

@@ -38,6 +38,7 @@ using std::string;
 using std::vector;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
+using nupic::sdr::SDR;
 
 Connections::Connections(CellIdx numCells, Permanence connectedThreshold) {
   initialize(numCells, connectedThreshold);
@@ -439,7 +440,7 @@ void Connections::computeActivity(
 
 
 void Connections::adaptSegment(const Segment segment, 
-		               const SDR &inputs,
+                               const SDR &inputs,
                                const Permanence increment,
                                const Permanence decrement)
 {

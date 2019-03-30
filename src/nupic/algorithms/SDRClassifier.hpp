@@ -121,11 +121,6 @@ public:
   Real64 getAlpha() const;
 
   /**
-   * Get the size of the string needed for the serialized state.
-   */
-  size_t persistentSize() const;
-
-  /**
    * Save the state to the ostream.
    */
   void save(std::ostream &outStream) const override;

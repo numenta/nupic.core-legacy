@@ -392,7 +392,7 @@ void VectorFile::load(std::istream &f) {
 }
 
 
-class AutoReleaseFile {
+class AutoReleaseFile {  //TODO rm this class
 public:
   FILE *file_;
   AutoReleaseFile(const string &filename) : file_(fopen(filename.c_str(), "rb")) {

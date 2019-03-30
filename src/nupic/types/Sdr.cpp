@@ -30,6 +30,7 @@
 using namespace std;
 
 namespace nupic {
+namespace sdr {
 
     void SparseDistributedRepresentation::clear() const {
         dense_valid       = false;
@@ -443,4 +444,5 @@ namespace nupic {
         destroyCallbacks[index] = nullptr;
     }
 
+} // end namespace sdr
 } // end namespace nupic

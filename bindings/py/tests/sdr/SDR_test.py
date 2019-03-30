@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.algorithms import SDR, SDR_Reshape, SDR_Intersection, SDR_Concatenation
+from nupic.bindings.sdr import SDR, Reshape, Intersection, Concatenation
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -197,6 +197,27 @@ class SdrTest(unittest.TestCase):
         else:
             self.fail()
 
+    def testKeepAlive(self):
+        """ If there is a reference to an SDR's data then the SDR must be alive """
+        # Test Dense
+        A = SDR( 20 ).dense
+        assert(( A == [0]*20 ).all())
+        # Test Sparse
+        B = SDR( 100 )
+        B.randomize( .5 )
+        B_sparse = B.sparse
+        B_copy   = SDR( B )
+        del B
+        assert(( B_sparse == B_copy.sparse ).all())
+        # Test Coordinates
+        C = SDR([ 100, 100 ])
+        C.randomize( .5 )
+        C_data = C.coordinates
+        C_copy = SDR( C )
+        del C
+        assert(( C_data[0] == C_copy.coordinates[0] ).all())
+        assert(( C_data[1] == C_copy.coordinates[1] ).all())
+
     def testSetSDR(self):
         A = SDR((103,))
         B = SDR((103,))
@@ -320,26 +341,26 @@ class SdrTest(unittest.TestCase):
             assert( A == B )
 
 
-class SdrReshapeTest(unittest.TestCase):
+class ReshapeTest(unittest.TestCase):
     def testExampleUsage(self):
-        assert( issubclass(SDR_Reshape, SDR) )
+        assert( issubclass(Reshape, SDR) )
         # Convert SDR dimensions from (4 x 4) to (8 x 2)
         A = SDR([ 4, 4 ])
-        B = SDR_Reshape( A, [8, 2])
+        B = Reshape( A, [8, 2])
         A.coordinates =  ([1, 1, 2], [0, 1, 2])
         assert( (np.array(B.coordinates) == ([2, 2, 5], [0, 1, 0]) ).all() )
 
     def testLostSDR(self):
         # You need to keep a reference to the SDR, since SDR class does not use smart pointers.
-        B = SDR_Reshape(SDR((1000,)), [1000])
+        B = Reshape(SDR((1000,)), [1000])
         with self.assertRaises(RuntimeError):
             B.dense
 
     def testChaining(self):
         A = SDR([10,10])
-        B = SDR_Reshape(A, [100])
-        C = SDR_Reshape(B, [4, 25])
-        D = SDR_Reshape(B, [1, 100])
+        B = Reshape(A, [100])
+        C = Reshape(B, [4, 25])
+        D = Reshape(B, [1, 100])
 
         A.dense.fill( 1 )
         A.dense = A.dense
@@ -352,23 +373,23 @@ class SdrReshapeTest(unittest.TestCase):
         assert(False) # TODO: Unimplemented
 
 
-class SdrIntersectionTest(unittest.TestCase):
+class IntersectionTest(unittest.TestCase):
     def testExampleUsage(self):
         A = SDR( 10 )
         B = SDR( 10 )
         A.sparse = [2, 3, 4, 5]
         B.sparse = [0, 1, 2, 3]
-        X = SDR_Intersection(A, B)
+        X = Intersection(A, B)
         assert((X.sparse == [2, 3]).all())
         B.zero()
         assert(X.getSparsity() == 0)
 
     def testConstructor(self):
-        assert( issubclass(SDR_Intersection, SDR) )
+        assert( issubclass(Intersection, SDR) )
         # Test 2 Arguments
         A = SDR( 2000 )
         B = SDR( A.size )
-        X = SDR_Intersection(A, B)
+        X = Intersection(A, B)
         A.randomize( .20 )
         B.randomize( .20 )
         assert( X.getSum() > 0 )
@@ -384,7 +405,7 @@ class SdrIntersectionTest(unittest.TestCase):
         A = SDR( 2000 )
         B = SDR( 2000 )
         C = SDR( 2000 )
-        X = SDR_Intersection(A, B, C)
+        X = Intersection(A, B, C)
         A.randomize( .6 )
         B.randomize( .6 )
         C.randomize( .6 )
@@ -400,10 +421,10 @@ class SdrIntersectionTest(unittest.TestCase):
         B = SDR( 2000 ); B.randomize( .9 )
         C = SDR( 2000 ); C.randomize( .9 )
         D = SDR( 2000 ); D.randomize( .9 )
-        X = SDR_Intersection(A, B, C, D)
+        X = Intersection(A, B, C, D)
         assert( X.inputs == [A, B, C, D] )
         # Test list constructor
-        X = SDR_Intersection( [A, B, C, D] )
+        X = Intersection( [A, B, C, D] )
         assert( X.size       == 2000 )
         assert( X.dimensions == [2000] )
         assert( X.getSum()    > 0 )
@@ -431,7 +452,7 @@ class SdrIntersectionTest(unittest.TestCase):
                 inp.randomize( S, seed)
                 seed += 1
                 sdrs.append( inp )
-            X = SDR_Intersection( sdrs )
+            X = Intersection( sdrs )
             mean_sparsity = np.product( sparsities )
             assert( X.getSparsity() >= (2./3.) * mean_sparsity )
             assert( X.getSparsity() <= (4./3.) * mean_sparsity )
@@ -441,17 +462,17 @@ class SdrIntersectionTest(unittest.TestCase):
         assert(False) # TODO: Unimplemented
 
 
-class SdrConcatenationTest(unittest.TestCase):
+class ConcatenationTest(unittest.TestCase):
     def testExampleUsage(self):
-        assert( issubclass(SDR_Intersection, SDR) )
+        assert( issubclass(Intersection, SDR) )
         A = SDR( 100 )
         B = SDR( 100 )
-        C = SDR_Concatenation( A, B )
+        C = Concatenation( A, B )
         assert(C.dimensions == [200])
 
         D = SDR(( 640, 480, 3 ))
         E = SDR(( 640, 480, 7 ))
-        F = SDR_Concatenation( D, E, 2 )
+        F = Concatenation( D, E, 2 )
         assert(F.dimensions == [ 640, 480, 10 ])
 
     def testConstructor(self):
@@ -460,15 +481,15 @@ class SdrConcatenationTest(unittest.TestCase):
         B = SDR(( 100, 2 ))
         C = SDR(( 100, 2 ))
         D = SDR(( 100, 2 ))
-        SDR_Concatenation( A, B )
-        SDR_Concatenation( A, B, 1 )
-        SDR_Concatenation( A, B, C )
-        SDR_Concatenation( A, B, C, 1 )
-        SDR_Concatenation( A, B, C, D )
-        SDR_Concatenation( A, B, C, D, 1 )
-        SDR_Concatenation( [A, B, C, D] )
-        SDR_Concatenation( [A, B, C, D], 1 )
-        SDR_Concatenation( inputs = [A, B, C, D], axis = 1 )
+        Concatenation( A, B )
+        Concatenation( A, B, 1 )
+        Concatenation( A, B, C )
+        Concatenation( A, B, C, 1 )
+        Concatenation( A, B, C, D )
+        Concatenation( A, B, C, D, 1 )
+        Concatenation( [A, B, C, D] )
+        Concatenation( [A, B, C, D], 1 )
+        Concatenation( inputs = [A, B, C, D], axis = 1 )
 
     def testConstructorErrors(self):
         def _assertAnyException(func):
@@ -486,23 +507,23 @@ class SdrConcatenationTest(unittest.TestCase):
         C = SDR([ 3, 3 ])
         D = SDR([ 3, 4 ])
         # Test bad argument dimensions
-        _assertAnyException(lambda: SDR_Concatenation(A))      # Not enough inputs!
-        _assertAnyException(lambda: SDR_Concatenation(A, B))
-        _assertAnyException(lambda: SDR_Concatenation(B, C))  # All dims except axis must match!
-        _assertAnyException(lambda: SDR_Concatenation(C, D))  # All dims except axis must match!
-        SDR_Concatenation(C, D, 1) # This should work
-        _assertAnyException(lambda: SDR_Concatenation( inputs = (C, D), axis = 2))  # invalid axis
-        _assertAnyException(lambda: SDR_Concatenation( inputs = (C, D), axis = -1))  # invalid axis
+        _assertAnyException(lambda: Concatenation(A))      # Not enough inputs!
+        _assertAnyException(lambda: Concatenation(A, B))
+        _assertAnyException(lambda: Concatenation(B, C))  # All dims except axis must match!
+        _assertAnyException(lambda: Concatenation(C, D))  # All dims except axis must match!
+        Concatenation(C, D, 1) # This should work
+        _assertAnyException(lambda: Concatenation( inputs = (C, D), axis = 2))  # invalid axis
+        _assertAnyException(lambda: Concatenation( inputs = (C, D), axis = -1))  # invalid axis
 
     def testDelete(self):
         # Make & Delete it a few times to make sure that doesn't crash.
         A = SDR(100)
         B = SDR(100)
         C = SDR(100)
-        X = SDR_Concatenation(A, B, C)
-        SDR_Concatenation(A, B, C)
-        Y = SDR_Concatenation(A, C)
-        SDR_Concatenation(B, C)
+        X = Concatenation(A, B, C)
+        Concatenation(A, B, C)
+        Y = Concatenation(A, C)
+        Concatenation(B, C)
         del B
         del A
         del Y
@@ -511,7 +532,7 @@ class SdrConcatenationTest(unittest.TestCase):
 
     def testMirroring(self):
         A = SDR( 200 )
-        Ax10 = SDR_Concatenation( [A] * 10 )
+        Ax10 = Concatenation( [A] * 10 )
         A.randomize( .33 )
         assert( .30 < Ax10.getSparsity() and Ax10.getSparsity() < .36 )
 
@@ -530,7 +551,7 @@ class SdrConcatenationTest(unittest.TestCase):
         for sdr_dims, axis in test_cases:
             sdrs = [SDR(dims) for dims in sdr_dims]
             [sdr.randomize(.50) for sdr in sdrs]
-            cat    = SDR_Concatenation( sdrs, axis )
+            cat    = Concatenation( sdrs, axis )
             np_cat = np.concatenate([sdr.dense for sdr in sdrs], axis=axis)
             assert((cat.dense == np_cat).all())
 

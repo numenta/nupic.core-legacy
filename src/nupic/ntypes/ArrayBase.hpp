@@ -71,7 +71,7 @@ namespace nupic
     /**
      * Create an ArrayBase containing a copy of an SDR.
      */
-    ArrayBase(const SDR &sdr);
+    ArrayBase(const sdr::SDR &sdr);
 
     /**
      * Caller does not provide a buffer --
@@ -103,7 +103,7 @@ namespace nupic
      * NOTE: for NTA_BasicType_Sparse this sets the size of the dense buffer is describes.
      */
     virtual void allocateBuffer(size_t count);
-    virtual void allocateBuffer(const std::vector<UInt> dimensions);  // only for SDR
+    virtual void allocateBuffer(const std::vector<UInt>& dimensions);  // only for SDR
 
     /**
      * Ask ArrayBase to zero fill its buffer
@@ -123,11 +123,11 @@ namespace nupic
     const void* getBuffer() const;
 
     /**
-     * Returns a pointer to the underlining SDR.
+     * Returns a reference to the underlining SDR.
      * If it is not an SDR type, throws exception.
      */
-    SDR* getSDR();
-    const SDR* getSDR() const;
+    sdr::SDR& getSDR();
+    const sdr::SDR& getSDR() const;
 
     /**
      * number of elements of given type in the buffer
@@ -159,7 +159,7 @@ namespace nupic
      * ArrayBase will NOT free the pointer when this instance goes out of scope.
      */
     virtual void setBuffer(void *buffer, size_t count);
-    virtual void setBuffer(SDR &sdr);
+    virtual void setBuffer(sdr::SDR &sdr);
 
     /**
      * Set the number of elements.  This is used to truncate the array.
@@ -183,8 +183,8 @@ namespace nupic
      */
     void inline RefreshCache() {
       if (type_ == NTA_BasicType_SDR) {
-        SDR *sdr = getSDR();
-        sdr->setDense(sdr->getDense());
+        sdr::SDR& sdr = getSDR();
+        sdr.setDense(sdr.getDense());
       }
     }
     /**
