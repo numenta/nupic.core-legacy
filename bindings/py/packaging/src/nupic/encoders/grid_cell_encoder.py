@@ -1,40 +1,44 @@
 # Written by David McDougall, 2018
+# TODO: LICENSE
 
 import numpy as np
 import math
-import random
+import random # TODO: Use nupic's random
 from nupic.encoders import hexy
 from nupic.bindings.sdr import SDR
 
 class GridCellEncoder:
     """ TODO: DOCUMENTATION """
     def __init__(self,
-            size           = 100,
-            sparsity       = .25,
-            module_periods = [6 * (2**.5)**i for i in range(5)], ):
+            size     = 100,
+            sparsity = .25,
+            periods  = [6 * (2**.5)**i for i in range(5)], ):
         """ TODO: DOCUMENTATION """
-        assert(min(module_periods) >= 4)
-        self.size           = size
-        self.sparsity       = sparsity
-        self.module_periods = sorted(module_periods)
-        self.offsets = np.random.uniform(0, max(self.module_periods)*9, size=(self.size, 2))
-        module_partitions      = np.linspace(0, self.size, num=len(self.module_periods) + 1)
-        module_partitions      = list(zip(module_partitions, module_partitions[1:]))
-        self.module_partitions = [(int(round(start)), int(round(stop)))
-                                        for start, stop in module_partitions]
-        self.scales   = []
-        self.angles   = []
-        self.rot_mats = []
-        for period in self.module_periods:
-            self.scales.append(period)
+        self.size       = size
+        self.dimensions = (size,)
+        self.sparsity   = sparsity
+        self.periods    = tuple(sorted(periods))
+        assert(min(self.periods) >= 4)
+
+        # Assign each module a range of cells in the output SDR.
+        partitions       = np.linspace(0, self.size, num=len(self.periods) + 1)
+        partitions       = list(zip(partitions, partitions[1:]))
+        self.partitions_ = [(int(round(start)), int(round(stop)))
+                                        for start, stop in partitions]
+
+        # Assign each module a random offset and orientation.
+        self.offsets_  = np.random.uniform(0, max(self.periods)*9, size=(self.size, 2))
+        self.angles_   = []
+        self.rot_mats_ = []
+        for period in self.periods:
             angle = random.random() * 2 * math.pi
-            self.angles.append(angle)
+            self.angles_.append(angle)
             c, s = math.cos(angle), math.sin(angle)
             R    = np.array(((c,-s), (s, c)))
-            self.rot_mats.append(R)
-        self.reset()
+            self.rot_mats_.append(R)
 
     def reset(self):
+        """ Does nothing, GridCellEncoder holds no state. """
         pass
 
     def encode(self, location):
@@ -42,13 +46,13 @@ class GridCellEncoder:
         # receptive field center.
         # Convert the units of location to hex grid with angle 0, scale 1, offset 0.
         assert(len(location) == 2)
-        displacement = list(location) - self.offsets
+        displacement = list(location) - self.offsets_
         radius       = np.empty(self.size)
-        for mod_idx in range(len(self.module_partitions)):
-            start, stop = self.module_partitions[mod_idx]
-            R           = self.rot_mats[mod_idx]
+        for mod_idx in range(len(self.partitions_)):
+            start, stop = self.partitions_[mod_idx]
+            R           = self.rot_mats_[mod_idx]
             displacement[start:stop] = R.dot(displacement[start:stop].T).T
-            radius[start:stop] = self.scales[mod_idx] / 2
+            radius[start:stop] = self.periods[mod_idx] / 2
         # Convert into and out of hexagonal coordinates, which rounds to the
         # nearest hexagons center.
         nearest = hexy.cube_to_pixel(hexy.pixel_to_cube(displacement, radius), radius)
@@ -56,7 +60,7 @@ class GridCellEncoder:
         distances = np.hypot(*(nearest - displacement).T)
         # Activate the closest grid cells in each module.
         index = []
-        for start, stop in self.module_partitions:
+        for start, stop in self.partitions_:
             z = int(round(self.sparsity * (stop - start)))
             index.extend( np.argpartition(distances[start : stop], z)[:z] + start )
         grid_cells = SDR((self.size,))
@@ -64,9 +68,11 @@ class GridCellEncoder:
         return grid_cells
 
 if __name__ == '__main__':
-    # TODO: Arguments for module_periods, sparsity, arena_size
+    """ TODO: DOCUMENTATION """
+    # TODO: Move this to a new file in examples, for better visiblility!
+    # TODO: Arguments for periods, sparsity, arena_size
     gc = GridCellEncoder()
-    print('Module Periods', gc.module_periods)
+    print('Module Periods', gc.periods)
 
     sz = 100
     rf = np.empty((gc.size, sz, sz))
