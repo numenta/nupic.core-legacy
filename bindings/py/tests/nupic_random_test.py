@@ -127,7 +127,7 @@ class TestNupicRandom(unittest.TestCase):
     # Just make sure there is no exception thrown.
     choices = r.sample(population, 0)
 
-    self.assertEqual(choices.size, 0)
+    self.assertEqual(len(choices), 0)
 
 
   def testSampleAll(self):

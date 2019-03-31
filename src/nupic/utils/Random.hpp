@@ -128,7 +128,7 @@ public:
    * return random from range [from, to)
    */
   Real realRange(Real from, Real to) {
-    NTA_ASSERT(from < to);
+    NTA_ASSERT(from <= to);
     const Real split = to - from;
     return (Real) from + split * getReal64();
   }
