@@ -102,7 +102,7 @@ public:
   /** return a double uniformly distributed on [0,1.0)
    * May not be cross-platform (but currently is to our experience)
    */
-  inline double getReal64() {
+  inline Real64 getReal64() {
     steps_++;
     return gen() / (Real64) max();
   }
@@ -122,13 +122,17 @@ public:
     pop.resize(nChoices); //keep only first nChoices, drop rest
     return pop;
   }
-  //compatibility method for Py-bindings, //TODO remove with SWIG 
-  template<class T>
-  void sample(const T population[], UInt nPopulation, T choices[], UInt nChoices) {
-    std::vector<T> vPop(population, population + nPopulation); 
-    std::vector<T> vChoices = this->sample<T>(vPop, nChoices);
-    std::copy(vChoices.begin(), vChoices.end(), choices);
+
+
+  /**
+   * return random from range [from, to)
+   */
+  Real realRange(Real from, Real to) {
+    NTA_ASSERT(from <= to);
+    const Real split = to - from;
+    return (Real) from + split * getReal64();
   }
+
 
   // randomly shuffle the elements
   template <class RandomAccessIterator>
