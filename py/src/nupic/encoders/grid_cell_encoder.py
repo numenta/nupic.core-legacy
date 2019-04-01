@@ -20,16 +20,17 @@
 
 import numpy as np
 import math
-import random # TODO: Use nupic's random
 from nupic.encoders import hexy
 from nupic.bindings.sdr import SDR
+from nupic.bindings.math import Random
 
 class GridCellEncoder:
     """ TODO: DOCUMENTATION """
     def __init__(self,
-            size     = 100,
-            sparsity = .25,
-            periods  = [6 * (2**.5)**i for i in range(5)], ):
+            size,
+            sparsity,
+            periods,
+            seed = 0,):
         """ TODO: DOCUMENTATION """
         self.size       = size
         self.dimensions = (size,)
@@ -44,11 +45,12 @@ class GridCellEncoder:
                                         for start, stop in partitions]
 
         # Assign each module a random offset and orientation.
-        self.offsets_  = np.random.uniform(0, max(self.periods)*9, size=(self.size, 2))
+        rng            = np.random.RandomState(seed = Random(seed).getUInt32())
+        self.offsets_  = rng.uniform(0, max(self.periods)*9, size=(self.size, 2))
         self.angles_   = []
         self.rot_mats_ = []
         for period in self.periods:
-            angle = random.random() * 2 * math.pi
+            angle = rng.uniform() * 2 * math.pi
             self.angles_.append(angle)
             c, s = math.cos(angle), math.sin(angle)
             R    = np.array(((c,-s), (s, c)))
@@ -58,7 +60,7 @@ class GridCellEncoder:
         """ Does nothing, GridCellEncoder holds no state. """
         pass
 
-    def encode(self, location):
+    def encode(self, location, grid_cells=None):
         # Find the distance from the location to each grid cells nearest
         # receptive field center.
         # Convert the units of location to hex grid with angle 0, scale 1, offset 0.
@@ -80,27 +82,49 @@ class GridCellEncoder:
         for start, stop in self.partitions_:
             z = int(round(self.sparsity * (stop - start)))
             index.extend( np.argpartition(distances[start : stop], z)[:z] + start )
-        grid_cells = SDR((self.size,))
+        if grid_cells is None:
+            grid_cells = SDR((self.size,))
         grid_cells.sparse = index
         return grid_cells
 
-if __name__ == '__main__':
-    """ TODO: DOCUMENTATION """
-    # TODO: Move this to a new file in examples, for better visiblility!
-    # TODO: Arguments for periods, sparsity, arena_size
-    gc = GridCellEncoder()
-    print('Module Periods', gc.periods)
 
-    sz = 100
-    rf = np.empty((gc.size, sz, sz))
-    for x in range(sz):
-        for y in range(sz):
-            r = gc.encode([x, y])
-            rf[:, x, y] = r.dense.ravel()
+if __name__ == '__main__':
+    import argparse
+    from nupic.bindings.sdr import Metrics
+
+    parser = argparse.ArgumentParser(description=GridCellEncoder.__doc__)
+    parser.add_argument('--arena_size', type=int, default=100,
+                        help='')
+    parser.add_argument('--sparsity', type=float, default=.25,
+                        help='')
+    parser.add_argument('--periods', type=list,
+                        default = [6 * (2**.5)**i for i in range(5)],
+                        help='')
+
+    args = parser.parse_args()
+    print('Module Periods', args.periods)
+
+    gc = GridCellEncoder(
+        size     = 100,
+        sparsity = args.sparsity,
+        periods  = args.periods,)
+
+    gc_sdr = SDR( gc.dimensions )
+
+    gc_statistics = Metrics(gc_sdr, args.arena_size ** 2)
+
+    rf = np.empty((gc.size, args.arena_size, args.arena_size))
+    for x in range(args.arena_size):
+        for y in range(args.arena_size):
+            gc.encode([x, y], gc_sdr)
+            rf[:, x, y] = gc_sdr.dense.ravel()
+
+    print(gc_statistics)
 
     rows       = 5
     cols       = 6
     n_subplots = rows * cols
+    assert(gc.size > n_subplots)
     samples    = np.arange( 0, gc.size, int(gc.size / n_subplots))
     import matplotlib.pyplot as plt
     plt.figure('Grid Cell Receptive Fields')
