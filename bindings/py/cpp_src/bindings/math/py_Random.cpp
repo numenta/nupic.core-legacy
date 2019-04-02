@@ -63,16 +63,15 @@ namespace nupic_ext {
 
 
         Random.def("sample",
-            [](Random_t& r, py::array_t<nupic::UInt32>& population, py::array_t<nupic::UInt32>& choices)
+            [](Random_t& r, py::array_t<nupic::UInt32>& population, nupic::UInt32 nSelect)
         {
-            if (population.ndim() != 1 || choices.ndim() != 1)
+            if (population.ndim() != 1 )
             {
                 throw std::runtime_error("Number of dimensions must be one.");
             }
 
-            r.sample(get_it(population), (nupic::UInt)population.size(), get_it(choices), (nupic::UInt)choices.size());
-
-            return choices;
+	    std::vector<nupic::UInt32> tmp_pop(get_it(population), get_it(population) + population.size()); //vector from numpy.array
+            return r.sample(tmp_pop, nSelect);
         });
 
         //////////////////

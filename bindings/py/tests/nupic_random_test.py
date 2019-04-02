@@ -113,9 +113,8 @@ class TestNupicRandom(unittest.TestCase):
   def testSample(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="uint32")
-    choices = numpy.zeros([2], dtype="uint32")
 
-    r.sample(population, choices)
+    choices = r.sample(population, 2)
 
     self.assertEqual(choices[0], 2)
     self.assertEqual(choices[1], 1)
@@ -124,20 +123,18 @@ class TestNupicRandom(unittest.TestCase):
   def testSampleNone(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="uint32")
-    choices = numpy.zeros([0], dtype="uint32")
 
     # Just make sure there is no exception thrown.
-    r.sample(population, choices)
+    choices = r.sample(population, 0)
 
-    self.assertEqual(choices.size, 0)
+    self.assertEqual(len(choices), 0)
 
 
   def testSampleAll(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="uint32")
-    choices = numpy.zeros([4], dtype="uint32")
 
-    r.sample(population, choices)
+    choices = r.sample(population, 4)
 
     self.assertEqual(choices[0], 2)
     self.assertEqual(choices[1], 1)
@@ -150,19 +147,8 @@ class TestNupicRandom(unittest.TestCase):
     """Check that passing a multi-dimensional array throws a ValueError."""
     r = Random(42)
     population = numpy.array([[1, 2], [3, 4]], dtype="uint32")
-    choices = numpy.zeros([2], dtype="uint32")
 
-    self.assertRaises(ValueError, r.sample, population, choices)
-
-
-  @pytest.mark.skip(reason="Does not throw...another PR")
-  def testSampleWrongDimensionsChoices(self):
-    """Check that passing a multi-dimensional array throws a ValueError."""
-    r = Random(42)
-    population = numpy.array([1, 2, 3, 4], dtype="uint32")
-    choices = numpy.zeros([2, 2], dtype="uint32")
-
-    self.assertRaises(ValueError, r.sample, population, choices)
+    self.assertRaises(ValueError, r.sample, population, 2)
 
 
   @pytest.mark.skip(reason="Does not throw...another PR")
@@ -173,37 +159,25 @@ class TestNupicRandom(unittest.TestCase):
     """
     r = Random(42)
     population = [1, 2, 3, 4]
-    choices = [0, 0]
 
-    self.assertRaises(TypeError, r.sample, population, choices)
+    self.assertRaises(TypeError, r.sample, population, 2)
 
 
   @pytest.mark.skip(reason="Does not throw...another PR")
   def testSampleBadDtype(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="int64")
-    choices = numpy.zeros([2], dtype="int64")
 
-    self.assertRaises(TypeError, r.sample, population, choices)
-
-
-  @pytest.mark.skip(reason="Does not throw...another PR")
-  def testSampleDifferentDtypes(self):
-    r = Random(42)
-    population = numpy.array([1, 2, 3, 4], dtype="uint32")
-    choices = numpy.zeros([2], dtype="uint64")
-
-    self.assertRaises(ValueError, r.sample, population, choices)
+    self.assertRaises(TypeError, r.sample, population, 2)
 
 
   @pytest.mark.skip(reason="Does not throw...another PR")
   def testSamplePopulationTooSmall(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="uint32")
-    choices = numpy.zeros([5], dtype="uint32")
 
     self.assertRaises(
-        ValueError, r.sample, population, choices)
+        ValueError, r.sample, population, 999)
 
 
   def testShuffle(self):

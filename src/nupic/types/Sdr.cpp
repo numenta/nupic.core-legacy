@@ -288,8 +288,8 @@ namespace sdr {
 
         SDR_sparse_t range( size );
         iota( range.begin(), range.end(), 0u );
-        const auto samp = rng.sample( range, nbits);
-        setSparse(samp);
+        sparse_ = rng.sample( range, nbits);
+        setSparseInplace();
     }
 
 
@@ -302,11 +302,8 @@ namespace sdr {
         NTA_ASSERT( fractionNoise >= 0. and fractionNoise <= 1. );
         NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
 
-        UInt num_move_bits = (UInt) std::round( fractionNoise * getSum() );
-        vector<UInt> turn_off( num_move_bits , 0 );
-        rng.sample(
-            (UInt*) getSparse().data(), getSum(),
-            (UInt*) turn_off.data(),        num_move_bits);
+        const UInt num_move_bits = (UInt) std::round( fractionNoise * getSum() );
+        const vector<UInt> turn_off = rng.sample(getSparse(), num_move_bits);
 
         auto& dns = getDense();
 
@@ -315,10 +312,7 @@ namespace sdr {
             if( dns[idx] == 0 )
                 off_pop.push_back( idx );
         }
-        vector<UInt> turn_on( num_move_bits, 0 );
-        rng.sample(
-            off_pop.data(), (UInt)off_pop.size(),
-            turn_on.data(), num_move_bits);
+        const vector<UInt> turn_on = rng.sample(off_pop, num_move_bits);
 
         for( auto idx : turn_on )
             dns[ idx ] = 1;
