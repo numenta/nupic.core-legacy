@@ -275,6 +275,7 @@ public:
                        const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
   virtual void compute(const sdr::SDR &activeColumns, bool learn,
                        const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
+  virtual void compute(const sdr::SDR &activeColumns, bool learn); 
 
   // ==============================
   //  Helper functions

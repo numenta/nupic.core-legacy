@@ -63,7 +63,10 @@ Some of the major differences between this library and Numenta's extension libra
     - Version 2.7  We recommend you use the latest 2.7 version where possible. But the system version should be fine. (The extension library for Python 2.7 not supported on Windows.)
     - Version 3.4+  The Nupic Python repository will need to be upgraded as well before this will be useful.
   Be sure that your Python executable is in the Path environment variable. The Python that is in your default path is the one
-  that will determine which version of Python the extension library will be built for.
+  that will determine which version of Python the extension library will be built for.  
+  NOTE: Anaconda Python not supported. 
+  Other implementations of Python may not work. 
+  Only the standard python from python.org have been tested.
 - Python tools: In a command prompt execute the following.
 ```
   cd to-repository-root
@@ -108,7 +111,7 @@ The installation scripts will automatically download and build the dependancies 
  * Eigen
  * PyBind11
  * gtest
- * mnist data (optional)
+ * mnist test data 
  * numpy
  * pytest
  
