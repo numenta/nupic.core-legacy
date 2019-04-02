@@ -41,12 +41,12 @@ namespace nupic {
 namespace algorithms {
 namespace connections {
 
-typedef UInt32 CellIdx;  //TODO instead of typedefs, use templates for proper type-checking
-typedef UInt16 SegmentIdx; /** Index of segment in cell. */
-typedef UInt16 SynapseIdx; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
-typedef UInt32 Segment;    /** Index of segment's data. */
-typedef UInt32 Synapse;    /** Index of synapse's data. */
-typedef Real32 Permanence;
+using CellIdx   = UInt32;  //TODO instead of typedefs, use templates for proper type-checking
+using SegmentIdx= UInt16; /** Index of segment in cell. */
+using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
+using Segment   = UInt32;    /** Index of segment's data. */
+using Synapse   = UInt32;    /** Index of synapse's data. */
+using Permanence= Real32;
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
 
