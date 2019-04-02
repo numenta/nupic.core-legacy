@@ -125,7 +125,7 @@ if __name__ == '__main__':
     cols       = 6
     n_subplots = rows * cols
     assert(gc.size > n_subplots)
-    samples    = np.arange( 0, gc.size, int(gc.size / n_subplots))
+    samples    = np.linspace( 0, gc.size-1, n_subplots, dtype=np.int )
     import matplotlib.pyplot as plt
     plt.figure('Grid Cell Receptive Fields')
     for row in range(rows):
