@@ -173,7 +173,7 @@ float runSpatialPoolerTest(
 TEST(ConnectionsPerformanceTest, testTM) {
 	auto tim = runTemporalMemoryTest(COLS, W, EPOCHS, SEQ, "temporal memory");
 #ifdef NDEBUG
-	ASSERT_LE(tim, 2.5*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 2.6*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 #endif
   UNUSED(tim);
 }
