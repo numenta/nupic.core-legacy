@@ -63,6 +63,12 @@ TEST(ComputeRawAnomalyScore, PartialMatch) {
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
 };
 
+TEST(ComputeRawAnomalyScore, PartialMatchSDR) {
+  sdr::SDR active({20});       active.setSparse(std::vector<UInt>{2, 3, 6});
+  sdr::SDR predicted({20}); predicted.setSparse(std::vector<UInt>{3, 5, 7});
+  ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
+};
+
 TEST(Anomaly, ComputeScoreNoActiveOrPredicted) {
   std::vector<UInt> active;
   std::vector<UInt> predicted;
@@ -102,11 +108,8 @@ TEST(Anomaly, Cumulative) {
   const UInt TEST_COUNT = 9;
   Anomaly a{3};
 
-  // TODO: Do not understand this statement.
-  // It appears it is initializing a vector containing vectors of type UInt.
-  // But TEST_COUNT is not a vector.
-  // Seems to work in ubuntu but rejected by MSVC
-  std::vector<std::vector<UInt> > preds{TEST_COUNT, {1, 2, 6}};
+  // The predictions are the same for all TEST_COUNT iterations.
+  std::vector<std::vector<UInt> > preds(TEST_COUNT, std::vector<UInt>({1, 2, 6}));
 
   std::vector<std::vector<UInt>> acts = {
       {1, 2, 6},    {1, 2, 6},    {1, 4, 6}, {10, 11, 6}, {10, 11, 12},

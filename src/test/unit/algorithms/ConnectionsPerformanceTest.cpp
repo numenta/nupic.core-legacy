@@ -31,6 +31,7 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/algorithms/Anomaly.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp> // macro "UNUSED"
@@ -43,6 +44,7 @@ using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections;
 using ::nupic::algorithms::spatial_pooler::SpatialPooler;
 using ::nupic::algorithms::temporal_memory::TemporalMemory;
+using namespace nupic::algorithms::anomaly;
 
 #define SEED 42
 
@@ -60,8 +62,7 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
 
   cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
 
-  // Learn
-
+  // generate data
   vector<vector<SDR>> sequences;
   for (int i = 0; i < numSequences; i++) {
     vector<SDR> sequence;
@@ -74,27 +75,27 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
     sequences.push_back(sequence);
   }
 
-  const SDR unused_({std::numeric_limits<UInt>::max()}); //dummy SDR, unused here, but needed for API
+  // learn
   for (int i = 0; i < 5; i++) {
     for (auto sequence : sequences) {
       for (auto sdr : sequence) {
-        tm.compute(sdr, true, unused_, unused_);
+        tm.compute(sdr, true);
+	//TODO get untrained anomaly score here
       }
       tm.reset();
     }
   }
-
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
 
-  // Test
-
+  // test
   for (auto sequence : sequences) {
     for (auto sdr : sequence) {
-      tm.compute(sdr, false, unused_, unused_);
+      tm.compute(sdr, false);
+      //TODO get trained (lower) anomaly
     }
     tm.reset();
   }
-
+  //TODO check anomaly trained < anomaly untrained
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
   return (float)timer.getElapsed();
@@ -153,13 +154,15 @@ float runSpatialPoolerTest(
 
 // TESTS
 #if defined( NDEBUG) && !defined(NTA_OS_WINDOWS)
-  const UInt COLS = 2048; //standard num of columns in SP/TM
-  const UInt SEQ = 50; //number of sequences ran in tests
-  const UInt EPOCHS = 20; //tests run for epochs times
+  const UInt COLS 	= 2048; //standard num of columns in SP/TM
+  const UInt W 		= 50;
+  const UInt SEQ 	= 50; //number of sequences ran in tests
+  const UInt EPOCHS 	= 20; //tests run for epochs times
 #else
-  const UInt COLS = 20; //standard num of columns in SP/TM
-  const UInt SEQ = 25; //number of sequences ran in tests
-  const UInt EPOCHS = 4; //only short in debug; is epochs/2 in some tests, that's why 4
+  const UInt COLS 	= 20; //standard num of columns in SP/TM
+  const UInt W 		= 3;
+  const UInt SEQ 	= 25; //number of sequences ran in tests
+  const UInt EPOCHS 	= 4; //only short in debug; is epochs/2 in some tests, that's why 4
 #endif
 
 
@@ -168,9 +171,9 @@ float runSpatialPoolerTest(
  * format is: COLS, W(bits), EPOCHS, SEQUENCES
  */
 TEST(ConnectionsPerformanceTest, testTM) {
-	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
+	auto tim = runTemporalMemoryTest(COLS, W, EPOCHS, SEQ, "temporal memory");
 #ifdef NDEBUG
-	ASSERT_LE(tim, 1.0*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 3.0*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 #endif
   UNUSED(tim);
 }
@@ -179,9 +182,9 @@ TEST(ConnectionsPerformanceTest, testTM) {
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
+  auto tim = runTemporalMemoryTest(2*COLS, 6*W, EPOCHS/2, SEQ, "temporal memory (large)");
 #ifdef NDEBUG
-  ASSERT_LE(tim, 1.9*Timer::getSpeed());
+  ASSERT_LE(tim, 13*Timer::getSpeed());
 #endif
   UNUSED(tim);
 }

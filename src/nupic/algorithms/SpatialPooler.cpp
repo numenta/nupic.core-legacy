@@ -569,12 +569,12 @@ vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
 
 
 Real SpatialPooler::initPermConnected_() {
-  return synPermConnected_ + (Real)((connections::maxPermanence - synPermConnected_) * rng_.getReal64());
+  return rng_.realRange(synPermConnected_, connections::maxPermanence);
 }
 
 
 Real SpatialPooler::initPermNonConnected_() {
-  return (Real)(synPermConnected_ * rng_.getReal64());
+  return rng_.realRange(connections::minPermanence, synPermConnected_);
 }
 
 

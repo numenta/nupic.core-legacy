@@ -29,32 +29,53 @@
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
 #include "nupic/utils/MovingAverage.hpp"
+#include "nupic/types/SdrTools.hpp" // sdr::Intersection
 
 using namespace std;
+using namespace nupic;
+using namespace nupic::algorithms::anomaly;
+using namespace nupic::sdr;
 
 namespace nupic {
 namespace algorithms {
 namespace anomaly {
 
+Real computeRawAnomalyScore(SDR& active,
+                            SDR& predicted) {
 
-Real computeRawAnomalyScore(const vector<UInt>& active,
-                              const vector<UInt>& predicted)
-{
   // Return 0 if no active columns are present
+  if (active.getSum() == 0) {
+    return 0.0f;
+  }
+
+  NTA_CHECK(active.dimensions == predicted.dimensions);
+
+  // Calculate and return percent of active columns that were not predicted.
+  // TODO: Allow Intersection to act on const SDR, so active,pred can be const
+  Intersection both(active, predicted);
+
+  return (active.getSum() - both.getSum()) / Real(active.getSum());
+}
+
+Real computeRawAnomalyScore(vector<UInt>& active,
+                            vector<UInt>& predicted)
+{
+  // Don't divide by zero.  Return 0 if no active columns are present.
   if (active.size() == 0) {
     return 0.0f;
   }
 
-  set<UInt> active_{active.begin(), active.end()};
-  set<UInt> predicted_{predicted.begin(), predicted.end()};
-  vector<UInt> predictedActiveCols;
+  vector<UInt> correctPredictions;
+  sort( active.begin(),    active.end());
+  sort( predicted.begin(), predicted.end());
+  set_intersection(active.begin(), active.end(),
+                   predicted.begin(), predicted.end(),
+                   back_inserter( correctPredictions ));
 
-  // Calculate and return percent of active columns that were not predicted.
-  set_intersection(active_.begin(), active_.end(), predicted_.begin(),
-                   predicted_.end(), back_inserter(predictedActiveCols));
-
-  return (active.size() - predictedActiveCols.size()) / Real(active.size());
+  return (Real) (active.size() - correctPredictions.size()) / active.size();
 }
+
+}}} // End namespace
 
 Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real binaryAnomalyThreshold)
     : binaryThreshold_(binaryAnomalyThreshold)
@@ -67,7 +88,10 @@ Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real binaryAnomalyThr
 }
 
 
-Real Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted, int timestamp)
+Real Anomaly::compute(const SDR& active, const SDR& predicted, int timestamp)
+  { return compute(active.getSparse(), predicted.getSparse(), timestamp); }
+
+Real Anomaly::compute(vector<UInt>& active, vector<UInt>& predicted, int timestamp)
 {
   Real anomalyScore = computeRawAnomalyScore(active, predicted);
   Real likelihood = 0.5;
@@ -97,7 +121,3 @@ Real Anomaly::compute(const vector<UInt>& active, const vector<UInt>& predicted,
 
   return score;
 }
-
-} // namespace anomaly
-} // namespace algorithms
-} // namespace nupic
