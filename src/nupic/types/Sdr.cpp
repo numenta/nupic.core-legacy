@@ -282,7 +282,7 @@ namespace sdr {
     }
 
     void SparseDistributedRepresentation::randomize(Real sparsity, Random &rng) {
-        NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f ); //TODO make this only >0 , <1 as the extremes don't make sense
+        NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
         UInt nbits = (UInt) std::round( size * sparsity );
         //FIXME NTA_ASSERT(nbits > 0); //enable this check
 
