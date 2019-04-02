@@ -632,10 +632,11 @@ void TemporalMemory::compute(const SDR &activeColumns, bool learn,
                              const SDR &extraWinners)
 {
   activateDendrites(learn, extraActive, extraWinners);
-  compute(activeColumns, learn);
+  activateCells(activeColumns, learn);
 }
 
 void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
+  activateDendrites(learn);
   activateCells(activeColumns, learn);
 }
 
