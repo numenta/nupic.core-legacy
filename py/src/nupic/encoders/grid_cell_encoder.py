@@ -64,6 +64,7 @@ class GridCellEncoder:
         # receptive field center.
         # Convert the units of location to hex grid with angle 0, scale 1, offset 0.
         assert(len(location) == 2)
+        # TODO: NAN?
         displacement = list(location) - self.offsets_
         radius       = np.empty(self.size)
         for mod_idx in range(len(self.partitions_)):
