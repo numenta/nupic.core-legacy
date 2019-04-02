@@ -17,10 +17,9 @@
 # http://numenta.org/licenses/
 # ------------------------------------------------------------------------------
 
-
 import numpy as np
 import math
-from nupic.encoders import hexy
+from nupic.external import hexy
 from nupic.bindings.sdr import SDR
 from nupic.bindings.math import Random
 
