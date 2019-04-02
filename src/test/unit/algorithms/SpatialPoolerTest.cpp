@@ -2018,7 +2018,7 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   EXPECT_TRUE(sp1 == sp2) << "Spatial Poolers not equal";
 }
 
-TEST(SpatialPoolerTest, DISABLED_ExactOutput) { //FIXME 
+TEST(SpatialPoolerTest, ExactOutput) { 
   string gold =
     "SDR 1 "
     "1 200 "
@@ -2049,7 +2049,6 @@ TEST(SpatialPoolerTest, DISABLED_ExactOutput) { //FIXME
                    /*wrapAround*/ true);
 
   for(UInt i = 0; i < 1000; i++) {
-	  cout << "here " << i; 
     Random rng(i + 1); // Random seed 0 is magic, don't use it.
     inputs.randomize( 0.15f, rng );
     sp.compute(inputs, true, columns);
