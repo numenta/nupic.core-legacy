@@ -29,17 +29,53 @@ from nupic.bindings.sdr import SDR, Metrics
 class GridCellEncoder_Test(unittest.TestCase):
 
     def testSanity(self):
-        1/0
+        gc1 = GridCellEncoder(
+            size     = 1234,
+            sparsity = .25,
+            periods  = [12],
+            seed     = 42)
+        gc2 = GridCellEncoder(
+            size     = 1234,
+            sparsity = .25,
+            periods  = [6, 8.5, 12, 17, 24],
+            seed     = 43)
+
+        coordinates = [2, 4. / 3]
+        sdr1 = SDR( gc1.dimensions )
+        gc1.encode( coordinates, sdr1)
+        sdr2 = gc2.encode( coordinates )
+        assert( sdr1 != sdr2 )
+        sdr3 = gc2.encode( coordinates )
+        assert( sdr2 == sdr3 )
 
     def testStatistics(self):
-        1/0
+        gc = GridCellEncoder(
+            size     = 200,
+            sparsity = .25,
+            periods  = [6, 8.5, 12, 17, 24],
+            seed     = 42)
+        sdr = SDR( gc.dimensions )
+        M = Metrics( sdr, 999999 )
+        for x in range( 1000 ):
+            gc.encode( [x, 0], sdr )
+        print( M )
+        assert( M.sparsity.min() > .25 - .02 )
+        assert( M.sparsity.max() < .25 + .02 )
+        assert( M.activationFrequency.min() > .25 - .05 )
+        assert( M.activationFrequency.max() < .25 + .05 )
+
+        # These are approximate...
+        assert( M.overlap.min() > .5 )
+        assert( M.overlap.max() < .9 )
+        assert( M.overlap.mean() > .7 )
+        assert( M.overlap.mean() < .8 )
 
     def testNan(self):
         gc = GridCellEncoder(
-            size = 200,
+            size     = 200,
             sparsity = .25,
-            periods = [6, 8.5, 12, 17, 24],
-            seed = 42)
+            periods  = [6, 8.5, 12, 17, 24],
+            seed     = 42)
         zero = SDR(gc.dimensions)
         zero.randomize( .25 )
         gc.encode([3, float('nan')], zero)
@@ -54,10 +90,10 @@ class GridCellEncoder_Test(unittest.TestCase):
             184, 188, 194, 197, 198]
 
         gc = GridCellEncoder(
-            size = GOLD.size,
+            size     = GOLD.size,
             sparsity = .25,
-            periods = [6, 8.5, 12, 17, 24],
-            seed = 42)
+            periods  = [6, 8.5, 12, 17, 24],
+            seed     = 42)
 
         actual = gc.encode([77, 88])
         print( actual )
