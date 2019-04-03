@@ -405,8 +405,9 @@ TEST(ConnectionsTest, testAdaptSynapses) {
   input.setDense(SDR_dense_t({ 1, 0, 0, 1, 1, 0, 1, 0 }));
   activeSegments.assign({0, 1, 2});
 
+  vector<Permanence> updates( con.synapseFlatListLength(), 0.0f );
   for(UInt seg : activeSegments)
-    con.adaptSegment(seg, input, 0.1f, 0.01f);
+    con.adaptSegment(seg, input, 0.1f, 0.01f, updates, updates);
 
   for (UInt cell = 0; cell < numCells; cell++) {
     vector<Real> perms( numInputs, 0.0f );

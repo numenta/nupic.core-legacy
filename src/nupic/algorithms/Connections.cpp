@@ -360,6 +360,8 @@ const SynapseData &Connections::dataForSynapse(Synapse synapse) const {
 
 UInt32 Connections::segmentFlatListLength() const { return (UInt32)segments_.size(); }
 
+UInt32 Connections::synapseFlatListLength() const { return (UInt32)synapses_.size(); }
+
 bool Connections::compareSegments(Segment a, Segment b) const {
   const SegmentData &aData = segments_[a];
   const SegmentData &bData = segments_[b];
@@ -442,23 +444,26 @@ void Connections::computeActivity(
 void Connections::adaptSegment(const Segment segment, 
                                const SDR &inputs,
                                const Permanence increment,
-                               const Permanence decrement)
+                               const Permanence decrement,
+                               const vector<Permanence> &previousUpdates,
+                                     vector<Permanence> &currentUpdates)
 {
-  const vector<Synapse> &synapses = synapsesForSegment(segment);
-
   const auto &inputArray = inputs.getDense();
 
-  for (SynapseIdx i = 0; i < synapses.size(); i++) {
-    const SynapseData &synapseData = dataForSynapse(synapses[i]);
+  for( const auto &synapse : synapsesForSegment(segment) ) {
+    const SynapseData &synapseData = dataForSynapse(synapse);
 
-    Permanence permanence = synapseData.permanence;
+    Permanence update;
     if( inputArray[synapseData.presynapticCell] ) {
-      permanence += increment;
+      update = increment;
     } else {
-      permanence -= decrement;
+      update = -decrement;
     }
 
-    updateSynapsePermanence(synapses[i], permanence);
+    if( update != previousUpdates[synapse] ) {
+      updateSynapsePermanence(synapse, synapseData.permanence + update);
+    }
+    currentUpdates[ synapse ] = update;
   }
 }
 

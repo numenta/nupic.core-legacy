@@ -40,6 +40,7 @@ using nupic::algorithms::spatial_pooler::SpatialPooler;
 using namespace nupic::math::topology;
 using nupic::sdr::SDR;
 using nupic::utils::VectorHelpers;
+using nupic::algorithms::connections::Permanence;
 
 // Round f to 5 digits of precision. This is used to set
 // permanence values and help avoid small amounts of drift between
@@ -737,8 +738,10 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 
 void SpatialPooler::adaptSynapses_(const SDR &input,
                                    const SDR &active) {
+  vector<Permanence> updates( connections_.synapseFlatListLength() , 0.0f );
   for(const auto &column : active.getSparse()) {
-    connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
+    connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_,
+                              updates, updates);
     connections_.raisePermanencesToThreshold(
                                 column, synPermConnected_, stimulusThreshold_);
   }

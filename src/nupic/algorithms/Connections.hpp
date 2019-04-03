@@ -336,6 +336,13 @@ public:
   UInt32 segmentFlatListLength() const;
 
   /**
+   * Get the vector length needed to use synpase indices.
+   *
+   * @retval A vector length
+   */
+  UInt32 synapseFlatListLength() const;
+
+  /**
    * Compare two segments. Returns true if a < b.
    *
    * Segments are ordered first by cell, then by their order on the cell.
@@ -425,10 +432,12 @@ public:
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    */
-  void adaptSegment(const Segment segment, 
+  void adaptSegment(const Segment segment,
                     const sdr::SDR &inputs,
                     const Permanence increment,
-                    const Permanence decrement);
+                    const Permanence decrement,
+                    const std::vector<Permanence> &previousUpdates,
+                          std::vector<Permanence> &currentUpdates);
 
   /**
    * Ensures a minimum number of connected synapses.  This raises permance
