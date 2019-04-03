@@ -175,8 +175,6 @@ set(os_files
 )
 
 set(regions_files
-    nupic/regions/BacktrackingTMRegion.cpp
-    nupic/regions/BacktrackingTMRegion.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
     nupic/regions/SPRegion.cpp

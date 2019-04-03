@@ -91,7 +91,6 @@ set(regions_tests
 	   unit/regions/RegionTestUtilities.cpp
 	   unit/regions/RegionTestUtilities.hpp
 	   unit/regions/SPRegionTest.cpp
-           unit/regions/BacktrackingTMRegionTest.cpp
            unit/regions/TMRegionTest.cpp
 	   )
 
