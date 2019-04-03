@@ -101,7 +101,7 @@ public:
   bool isInvalid()     const { return(!isDontcare() && getCount() == 0); }
   bool isSpecified()   const { return(getCount() != 0); }
 
-  std::string toString() const {
+  std::string toString(bool humanReadable = true) const {
     if (isUnspecified()) return "[unspecified]";
     if (isDontcare())    return "[dontcare]";
     std::stringstream ss;
@@ -111,7 +111,7 @@ public:
       else   ss << at(i);
     }
     ss << "] ";
-//		if (isInvalid()) ss << "(Invalid) ";
+		if (humanReadable && isInvalid()) ss << "(Invalid) ";
     return ss.str();
   }
 
@@ -125,13 +125,13 @@ public:
     ar((std::vector<UInt>&) *this);
   }
 
-  void save(std::ostream &f) const {
+  void save(std::ostream &f) const override {
     size_t n = size();
     f.write((const char*)&n, sizeof(size_t));
     if (n > 0)
       f.write((const char*)&at(0), n * sizeof(at(0)));
   }
-  void load(std::istream &f) {
+  void load(std::istream &f) override {
     size_t n;
     f.read((char*)&n, sizeof(size_t));
     clear();
@@ -145,7 +145,7 @@ public:
   
 
   inline std::ostream &operator<<(std::ostream &f, const Dimensions& d) {
-    f << d.toString() << " ";
+    f << d.toString(false) << " ";
     return f;
   }
   inline std::istream &operator>>(std::istream &f, Dimensions& d) { 
