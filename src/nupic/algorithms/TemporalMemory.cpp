@@ -450,7 +450,8 @@ static void punishPredictedColumn(
 
 void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
     NTA_CHECK( activeColumns.dimensions == columnDimensions_ );
-    const auto &sparse = activeColumns.getSparse();
+    auto &sparse = activeColumns.getSparse();
+    std::sort(sparse.begin(), sparse.end()); //TODO remove sorted requirement? iterGroupBy depends on it
     activateCells(sparse.size(), sparse.data(), learn);
 }
 
@@ -631,6 +632,11 @@ void TemporalMemory::compute(const SDR &activeColumns, bool learn,
                              const SDR &extraWinners)
 {
   activateDendrites(learn, extraActive, extraWinners);
+  activateCells(activeColumns, learn);
+}
+
+void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
+  activateDendrites(learn);
   activateCells(activeColumns, learn);
 }
 
