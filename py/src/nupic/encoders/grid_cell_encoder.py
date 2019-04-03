@@ -24,18 +24,42 @@ from nupic.bindings.sdr import SDR
 from nupic.bindings.math import Random
 
 class GridCellEncoder:
-    """ TODO: DOCUMENTATION """
+    """
+    This Encoder converts a 2-D coordinate into plausible grid cell activity.
+    The output SDR is divided into modules.  Each module is a distinct groups of
+    cells with a common grid spacing and orientation.  Different modules have
+    different spacings & orientations.
+
+    For example usage and to inspect the output of this encoder run:
+    $ python3 -m nupic.encoders.grid_cell_encoder
+    """
     def __init__(self,
             size,
             sparsity,
             periods,
             seed = 0,):
-        """ TODO: DOCUMENTATION """
+        """
+        Argument size is the total number of bits in the encoded output SDR.
+
+        Argument sparsity is fraction of bits which this encoder activates in
+        the output SDR.
+
+        Argument periods is a list of distances.  The period of a module is the
+        distance between the centers of a grid cells receptive fields.  The
+        length of this list defines the number of distinct modules.
+
+        Argument seed controls the pseudo-random-number-generator which this
+        encoder uses.  This encoder produces deterministic output.  The seed
+        zero is special, seed zero is replaced with a truly random seed.
+        """
         self.size       = size
         self.dimensions = (size,)
         self.sparsity   = sparsity
         self.periods    = tuple(sorted(periods))
+        assert(len(self.periods) > 0)
         assert(min(self.periods) >= 4)
+        assert(self.sparsity >= 0)
+        assert(self.sparsity <= 1)
 
         # Assign each module a range of cells in the output SDR.
         partitions       = np.linspace(0, self.size, num=len(self.periods) + 1)
@@ -60,12 +84,18 @@ class GridCellEncoder:
         pass
 
     def encode(self, location, grid_cells=None):
+        location = list(location)
+        assert(len(location) == 2)
+        if grid_cells is None:
+            grid_cells = SDR((self.size,))
+        if any(math.isnan(x) for x in location):
+            grid_cells.zero()
+            return grid_cells
+
         # Find the distance from the location to each grid cells nearest
         # receptive field center.
         # Convert the units of location to hex grid with angle 0, scale 1, offset 0.
-        assert(len(location) == 2)
-        # TODO: NAN?
-        displacement = list(location) - self.offsets_
+        displacement = location - self.offsets_
         radius       = np.empty(self.size)
         for mod_idx in range(len(self.partitions_)):
             start, stop = self.partitions_[mod_idx]
@@ -82,8 +112,6 @@ class GridCellEncoder:
         for start, stop in self.partitions_:
             z = int(round(self.sparsity * (stop - start)))
             index.extend( np.argpartition(distances[start : stop], z)[:z] + start )
-        if grid_cells is None:
-            grid_cells = SDR((self.size,))
         grid_cells.sparse = index
         return grid_cells
 
@@ -91,13 +119,17 @@ class GridCellEncoder:
 if __name__ == '__main__':
     import argparse
     from nupic.bindings.sdr import Metrics
+    import textwrap
 
-    parser = argparse.ArgumentParser(description=GridCellEncoder.__doc__)
+    parser = argparse.ArgumentParser(
+        formatter_class = argparse.RawDescriptionHelpFormatter,
+        description = textwrap.dedent(GridCellEncoder.__doc__ + "\n\n" +
+                                      GridCellEncoder.__init__.__doc__))
     parser.add_argument('--arena_size', type=int, default=100,
                         help='')
     parser.add_argument('--sparsity', type=float, default=.25,
                         help='')
-    parser.add_argument('--periods', type=list,
+    parser.add_argument('--periods', type=float, nargs='+',
                         default = [6 * (2**.5)**i for i in range(5)],
                         help='')
 
@@ -113,6 +145,7 @@ if __name__ == '__main__':
 
     gc_statistics = Metrics(gc_sdr, args.arena_size ** 2)
 
+    assert( args.arena_size >= 10 )
     rf = np.empty((gc.size, args.arena_size, args.arena_size))
     for x in range(args.arena_size):
         for y in range(args.arena_size):

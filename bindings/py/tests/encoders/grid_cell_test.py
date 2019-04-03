@@ -34,6 +34,17 @@ class GridCellEncoder_Test(unittest.TestCase):
     def testStatistics(self):
         1/0
 
+    def testNan(self):
+        gc = GridCellEncoder(
+            size = 200,
+            sparsity = .25,
+            periods = [6, 8.5, 12, 17, 24],
+            seed = 42)
+        zero = SDR(gc.dimensions)
+        zero.randomize( .25 )
+        gc.encode([3, float('nan')], zero)
+        assert( zero.getSum() == 0 )
+
     def testDeterminism(self):
         GOLD = SDR(200)
         GOLD.sparse = [
