@@ -28,11 +28,12 @@ from nupic.bindings.sdr import SDR, Metrics
 
 class GridCellEncoder_Test(unittest.TestCase):
 
-    def testSanity(self):
+    def testSeed(self):
+        coordinates = [2, 4. / 3]
         gc1 = GridCellEncoder(
             size     = 1234,
             sparsity = .25,
-            periods  = [12],
+            periods  = [6, 8.5, 12, 17, 24],
             seed     = 42)
         gc2 = GridCellEncoder(
             size     = 1234,
@@ -40,13 +41,19 @@ class GridCellEncoder_Test(unittest.TestCase):
             periods  = [6, 8.5, 12, 17, 24],
             seed     = 43)
 
-        coordinates = [2, 4. / 3]
         sdr1 = SDR( gc1.dimensions )
         gc1.encode( coordinates, sdr1)
         sdr2 = gc2.encode( coordinates )
-        assert( sdr1 != sdr2 )
+        assert( sdr1 != sdr2 ) # Made from different seeds.
         sdr3 = gc2.encode( coordinates )
-        assert( sdr2 == sdr3 )
+        assert( sdr2 == sdr3 ) # Made from same encoder & coordinates.
+        gc3 = GridCellEncoder(
+            size     = 1234,
+            sparsity = .25,
+            periods  = [6, 8.5, 12, 17, 24],
+            seed     = 43)
+        sdr3 = gc3.encode( coordinates )
+        assert( sdr2 == sdr3 ) # Made from different encoders with same seed.
 
     def testStatistics(self):
         gc = GridCellEncoder(
@@ -57,7 +64,7 @@ class GridCellEncoder_Test(unittest.TestCase):
         sdr = SDR( gc.dimensions )
         M = Metrics( sdr, 999999 )
         for x in range( 1000 ):
-            gc.encode( [x, 0], sdr )
+            gc.encode( [-x, 0], sdr )
         print( M )
         assert( M.sparsity.min() > .25 - .02 )
         assert( M.sparsity.max() < .25 + .02 )
