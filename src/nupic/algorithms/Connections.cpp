@@ -83,12 +83,12 @@ void Connections::unsubscribe(UInt32 token) {
 
 Segment Connections::createSegment(CellIdx cell) {
   Segment segment;
-  if (!destroyedSegments_.empty() ) {
+  if (!destroyedSegments_.empty() ) { //reuse old, destroyed segs
     segment = destroyedSegments_.back();
     destroyedSegments_.pop_back();
-  } else {
-    NTA_CHECK(segments_.size() <= std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
-	    << segments_.size() << " <= " << std::numeric_limits<Segment>::max();
+  } else { //create a new segment
+    NTA_CHECK(segments_.size() < std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
+	    << segments_.size() << " < " << std::numeric_limits<Segment>::max();
     segment = static_cast<Segment>(segments_.size());
     segments_.push_back(SegmentData());
     segmentOrdinals_.push_back(0);
@@ -118,8 +118,8 @@ Synapse Connections::createSynapse(Segment segment,
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
-    NTA_CHECK(synapses_.size() <= std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
-	    << synapses_.size() << " <= " << std::numeric_limits<Synapse>::max();
+    NTA_CHECK(synapses_.size() < std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
+	    << synapses_.size() << " < " << std::numeric_limits<Synapse>::max();
     synapse = static_cast<Synapse>(synapses_.size());
     synapses_.push_back(SynapseData());
     synapseOrdinals_.push_back(0);
@@ -616,22 +616,22 @@ void Connections::load(std::istream &inStream) {
 }
 
 
-CellIdx Connections::numCells() const { return (CellIdx)cells_.size(); }
+CellIdx Connections::numCells() const { return static_cast<CellIdx>(cells_.size()); }
 
 Segment Connections::numSegments() const {
-  return (Segment)(segments_.size() - destroyedSegments_.size());
+  return static_cast<Segment>(segments_.size() - destroyedSegments_.size());
 }
 
 SegmentIdx Connections::numSegments(CellIdx cell) const {
-  return (SegmentIdx)cells_[cell].segments.size();
+  return static_cast<SegmentIdx>(cells_[cell].segments.size());
 }
 
 Synapse Connections::numSynapses() const {
-  return (Synapse)(synapses_.size() - destroyedSynapses_.size());
+  return static_cast<Synapse>(synapses_.size() - destroyedSynapses_.size());
 }
 
 SynapseIdx Connections::numSynapses(Segment segment) const {
-  return (SynapseIdx)segments_[segment].synapses.size();
+  return static_cast<SynapseIdx>(segments_[segment].synapses.size());
 }
 
 bool Connections::operator==(const Connections &other) const {
