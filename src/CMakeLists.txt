@@ -76,22 +76,10 @@ set(algorithm_files
     nupic/algorithms/Anomaly.hpp
     nupic/algorithms/AnomalyLikelihood.cpp
     nupic/algorithms/AnomalyLikelihood.hpp
-    nupic/algorithms/Cell.cpp
-    nupic/algorithms/Cell.hpp
-    nupic/algorithms/Cells4.cpp
-    nupic/algorithms/Cells4.hpp
     nupic/algorithms/Connections.cpp
     nupic/algorithms/Connections.hpp
-    nupic/algorithms/InSynapse.cpp
-    nupic/algorithms/InSynapse.hpp
-    nupic/algorithms/OutSynapse.cpp
-    nupic/algorithms/OutSynapse.hpp
     nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SDRClassifier.hpp
-    nupic/algorithms/Segment.cpp
-    nupic/algorithms/Segment.hpp
-    nupic/algorithms/SegmentUpdate.cpp
-    nupic/algorithms/SegmentUpdate.hpp
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/SpatialPooler.hpp
     nupic/algorithms/TemporalMemory.cpp
