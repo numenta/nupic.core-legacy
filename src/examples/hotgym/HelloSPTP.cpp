@@ -31,7 +31,6 @@
 #include "nupic/algorithms/Anomaly.hpp"
 
 #include "nupic/algorithms/Cells4.hpp"
-#include "nupic/algorithms/BacktrackingTM.hpp"
 #include "nupic/algorithms/TemporalMemory.hpp"
 
 #include "nupic/algorithms/SpatialPooler.hpp"
@@ -54,7 +53,6 @@ using nupic::encoders::ScalarEncoderParameters;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 
 using TP =     nupic::algorithms::Cells4::Cells4;
-using BackTM = nupic::algorithms::backtracking_tm::BacktrackingTM;
 using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
 
 using nupic::algorithms::anomaly::Anomaly;
@@ -62,12 +60,12 @@ using nupic::algorithms::anomaly::AnomalyMode;
 
 
 // work-load
-Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool useTP, bool useBackTM, bool useTM, const UInt COLS, const UInt DIM_INPUT, const UInt CELLS) {
+Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool useTP, bool useTM, const UInt COLS, const UInt DIM_INPUT, const UInt CELLS) {
 #ifndef NDEBUG
   EPOCHS = 2; // make test faster in Debug
 #endif
 
-  if(useTP or useTM or useBackTM) {
+  if(useTP or useTM ) {
 	  NTA_CHECK(useSPlocal or useSPglobal) << "using TM requires a SP too";
   }
 
@@ -92,7 +90,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   TP tp(COLS, CELLS, 12, 8, 15, 5, .5f, .8f, 1.0f, .1f, .1f, 0.0f,
             false, 42, true, false);
-  BackTM backTM(COLS, CELLS); //TODO get all, described parameters
   TM tm(vector<UInt>{COLS}, CELLS);
 
   Anomaly an(5, AnomalyMode::PURE);
@@ -151,23 +148,13 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     NTA_CHECK(outSPsparse.size() < COLS);
 
 
-    //TP (TP x BackTM x TM)
+    //TP (TP x TM)
     if(useTP) {
     tTP.start();
     rIn = VectorHelpers::castVectorType<UInt, Real>(outSP);
     tp.compute(rIn.data(), rOut.data(), true, true);
     outTP = VectorHelpers::castVectorType<Real, UInt>(rOut);
     tTP.stop();
-    }
-
-    if(useBackTM) {
-    tBackTM.start();
-    backTM.compute(rIn.data(), true /*learn*/, true /*infer*/);
-    const auto backAct = backTM.getActiveState();
-    const auto backPred = backTM.getPredictedState();
-    const vector<char> vAct(backAct, backAct + backTM.getNumCells());
-    const vector<char> vPred(backPred, backPred + backTM.getNumCells());
-    tBackTM.stop();
     }
 
     if(useTM) {
@@ -211,7 +198,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       if(useSPglobal) cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
       if(useTP) cout << "TP:\t" << tTP.getElapsed() << endl;
       if(useTM) cout << "TM:\t" << tTM.getElapsed() << endl;
-      if(useBackTM) cout << "BackTM:\t" << tBackTM.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
 

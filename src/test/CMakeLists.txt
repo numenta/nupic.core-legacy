@@ -40,7 +40,6 @@ set(unit_tests_executable unit_tests)
 
 set(algorithm_tests
 	   unit/algorithms/AnomalyTest.cpp
-	   unit/algorithms/BacktrackingTMTest.cpp
 	   unit/algorithms/Cells4Test.cpp
 	   unit/algorithms/ConnectionsPerformanceTest.cpp
 	   unit/algorithms/ConnectionsTest.cpp

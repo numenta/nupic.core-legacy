@@ -19,7 +19,6 @@ public:
     bool useSPlocal=true, //can toggle which (long running) components are tested, default all
     bool useSPglobal=true,
     bool useTP=true,
-    bool useBackTM=true,
     bool useTM=true,
     const UInt COLS = 2048, // number of columns in SP, TP
     const UInt DIM_INPUT = 10000,
@@ -27,7 +26,7 @@ public:
   );
 
   //timers
-  Timer tInit, tAll, tRng, tEnc, tSPloc, tSPglob, tTP, tBackTM, tTM,
+  Timer tInit, tAll, tRng, tEnc, tSPloc, tSPglob, tTP, tTM,
         tAn, tAnLikelihood;
 
 };
