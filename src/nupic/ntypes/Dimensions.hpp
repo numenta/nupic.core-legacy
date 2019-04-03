@@ -37,11 +37,12 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/types/Serializable.hpp>
+#include <cereal/types/vector.hpp>
 
 
 namespace nupic {
 
-class Dimensions : public ::std::vector<UInt>, Serializable {
+class Dimensions : public std::vector<UInt>, public Serializable {
 public:
   /**
    * Create a new Dimensions object.
@@ -100,7 +101,7 @@ public:
   bool isInvalid()     const { return(!isDontcare() && getCount() == 0); }
   bool isSpecified()   const { return(getCount() != 0); }
 
-  std::string toString(bool humanReadable = true) const {
+  std::string toString() const {
     if (isUnspecified()) return "[unspecified]";
     if (isDontcare())    return "[dontcare]";
     std::stringstream ss;
@@ -110,8 +111,18 @@ public:
       else   ss << at(i);
     }
     ss << "] ";
-		if (humanReadable && isInvalid()) ss << "(Invalid) ";
+//		if (isInvalid()) ss << "(Invalid) ";
     return ss.str();
+  }
+
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    ar((std::vector<UInt>&) *this);
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    ar((std::vector<UInt>&) *this);
   }
 
   void save(std::ostream &f) const {
@@ -134,7 +145,7 @@ public:
   
 
   inline std::ostream &operator<<(std::ostream &f, const Dimensions& d) {
-    f << d.toString(false) << " ";
+    f << d.toString() << " ";
     return f;
   }
   inline std::istream &operator>>(std::istream &f, Dimensions& d) { 
@@ -171,6 +182,7 @@ public:
     }
     return f;
   }
+  
 
 } // namespace nupic
 
