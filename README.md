@@ -111,6 +111,7 @@ The installation scripts will automatically download and build the dependancies 
  * Eigen
  * PyBind11
  * gtest
+ * cereal
  * mnist test data 
  * numpy
  * pytest
@@ -128,6 +129,7 @@ The installation scripts will automatically download and build the dependancies 
  | googletest.tar.gz    | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
  | mnist.zip     *note3 | https://github.com/wichtounet/mnist/archive/master.zip |
  | pybind11.tar.gz      | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
+ | cereal.tar.gz        | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
  
  *note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
  *note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.

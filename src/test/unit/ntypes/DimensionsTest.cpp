@@ -71,6 +71,9 @@ TEST_F(DimensionsTest, InvalidDimensions) {
   ASSERT_FALSE(d.isDontcare());
   ASSERT_TRUE(d.isInvalid());
   ASSERT_FALSE(d.isSpecified());
+  // TODO:Cereal- after Cereal complete, allow humanreadable as default in toString().
+  //              It is currently being used for reversable serialization.
+  //EXPECT_STREQ("[1,0] (Invalid) ", d.toString().c_str());
   EXPECT_STREQ("[1,0] ", d.toString(false).c_str());
   ASSERT_EQ(d.getCount(), 0u);
   ASSERT_EQ(1u, d[0]);
@@ -149,6 +152,76 @@ TEST_F(DimensionsTest, Overloads) {
   ss4 >> d2;
   EXPECT_TRUE(d2.isUnspecified());
 
+}
+
+TEST_F(DimensionsTest, CerealSerialization) {
+  Dimensions d1 = { 1,2,3 };
+  Dimensions d2;
+  std::stringstream ss1;
+  {
+	  d1.saveToStream_ar(ss1, SerializableFormat::BINARY);
+  } 
+  ss1.seekg(0);
+  {
+    d2.loadFromStream_ar(ss1);
+  }
+  EXPECT_EQ(d1, d2);
+  EXPECT_TRUE(d2.isSpecified());
+
+  ss1.seekp(0);
+  {
+    cereal::JSONOutputArchive ar(ss1); // Create a text output archive
+    d1.save_ar(ar);
+  } // ar going out of scope causes it to flush
+  ss1.seekg(0);
+  {
+    cereal::JSONInputArchive ar(ss1); // Create a text input archive
+    d2.load_ar(ar);
+  }
+  EXPECT_EQ(d1, d2);
+  EXPECT_TRUE(d2.isSpecified());
+
+  Dimensions d3 = { 1,0 };
+  std::stringstream ss2;
+  {
+    cereal::BinaryOutputArchive ar(ss2); // Create a binary output archive
+    d3.save_ar(ar);
+  } // ar going out of scope causes it to flush
+  ss1.seekg(0);
+  {
+    cereal::BinaryInputArchive ar(ss2); // Create a binary input archive
+    d2.load_ar(ar);
+  }
+  EXPECT_EQ(d3, d2);
+  EXPECT_TRUE(d2.isInvalid());
+
+  Dimensions d4 = { 0 };
+  std::stringstream ss3;
+  {
+    cereal::BinaryOutputArchive ar(ss3); // Create a binary output archive
+    d4.save_ar(ar);
+  } // ar going out of scope causes it to flush
+  ss1.seekg(0);
+  {
+    cereal::BinaryInputArchive ar(ss3); // Create a binary input archive
+    d2.load_ar(ar);
+  }
+  EXPECT_EQ(d4, d2);
+  EXPECT_TRUE(d2.isDontcare());
+
+  d4.clear();
+  std::stringstream ss4;
+  {
+    cereal::BinaryOutputArchive ar(ss4); // Create a binary output archive
+    d4.save_ar(ar);
+  } // ar going out of scope causes it to flush
+  ss1.seekg(0);
+  {
+    cereal::BinaryInputArchive ar(ss4); // Create a binary input archive
+    d2.load_ar(ar);
+  }
+  EXPECT_EQ(d4, d2);
+  EXPECT_TRUE(d2.isUnspecified());
 }
 
 } // namespace testing
