@@ -678,13 +678,12 @@ TEST(ConnectionsTest, testSaveLoad) {
 }
 
 TEST(ConnectionsTest, testCreateSegmentOverflow) {
-  { //anonymous namespace
     const size_t LIMIT = std::numeric_limits<Segment>::max();
-    if(LIMIT > 256) { //connections::Segment is too large (likely uint32), so this test would run, but memory 
+    if(LIMIT <= 256) { //connections::Segment is too large (likely uint32), so this test would run, but memory 
       // would kill the machine! 
       // to test this test and the code works OK, change connections::Segment to unsigned char
-      GTEST_SKIP();
-    }
+      //TODO use GTEST_SKIP() when we can have gtest > 1.8.1 to skip at runtime
+
     Connections c(1024);
     size_t i = 0;
     for(i=0; i < LIMIT; i++) {
@@ -692,6 +691,24 @@ TEST(ConnectionsTest, testCreateSegmentOverflow) {
     }
     EXPECT_ANY_THROW(c.createSegment(0)) << "num segments on cell c0 " << (size_t)c.numSegments(0) 
 	    << " total num segs: " << (size_t)c.numSegments() << "data-type limit " << LIMIT;
+  }
+}
+
+TEST(ConnectionsTest, testCreateSynapseOverflow) {
+  const size_t LIMIT = std::numeric_limits<Synapse>::max();
+  if(LIMIT <= 256) { //connections::Synapse is too large (likely uint32), so this test would run, but memory
+    // would kill the machine!
+    // to test this test and the code works OK, change connections::Synapse to unsigned char
+    //TODO use GTEST_SKIP() when we can have gtest > 1.8.1 to skip at runtime
+    Connections c(1024);
+    const Segment seg = c.createSegment(0);
+
+    size_t i = 0;
+    for(i=0; i < LIMIT; i++) {
+      EXPECT_NO_THROW(c.createSynapse(seg, (CellIdx)99, (Permanence)0.1337));
+    }
+    EXPECT_ANY_THROW(c.createSynapse(seg, (CellIdx)99, (Permanence)0.1337)) << "num synapses on segment s0 " << (size_t)c.numSynapses(seg)
+      << " total num syns: " << (size_t)c.numSynapses() << "data-type limit " << LIMIT;
   }
 }
 
