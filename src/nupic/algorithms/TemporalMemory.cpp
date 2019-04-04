@@ -254,11 +254,13 @@ static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
   }
 }
 
-static void growSynapses(Connections &connections, Random &rng, Segment segment,
-                         UInt32 nDesiredNewSynapses,
+static void growSynapses(Connections &connections, 
+		         Random &rng, 
+			 const Segment& segment,
+                         const SynapseIdx nDesiredNewSynapses,
                          const vector<CellIdx> &prevWinnerCells,
-                         Permanence initialPermanence,
-                         UInt maxSynapsesPerSegment) {
+                         const Permanence initialPermanence,
+                         const SynapseIdx maxSynapsesPerSegment) {
   // It's possible to optimize this, swapping candidates to the end as
   // they're used. But this is awkward to mimic in other
   // implementations, especially because it requires iterating over
@@ -268,35 +270,29 @@ static void growSynapses(Connections &connections, Random &rng, Segment segment,
   NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
 
   // Remove cells that are already synapsed on by this segment
-  for (Synapse synapse : connections.synapsesForSegment(segment)) {
-    CellIdx presynapticCell =
-        connections.dataForSynapse(synapse).presynapticCell;
-    auto ineligible =
-        std::lower_bound(candidates.begin(), candidates.end(), presynapticCell);
-    if (ineligible != candidates.end() && *ineligible == presynapticCell) {
-      candidates.erase(ineligible);
+  for (const Synapse& synapse : connections.synapsesForSegment(segment)) {
+    const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
+    const auto already = std::lower_bound(candidates.cbegin(), candidates.cend(), presynapticCell);
+    if (already != candidates.cend() && *already == presynapticCell) {
+      candidates.erase(already);
     }
   }
 
-  const UInt32 nActual =
-      std::min(nDesiredNewSynapses, (UInt32)candidates.size());
+  const size_t nActual = std::min(static_cast<size_t>(nDesiredNewSynapses), candidates.size());
 
-  // Check if we're going to surpass the maximum number of synapses.
-  const Int32 overrun =
-      (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
+  // Check if we're going to surpass the maximum number of synapses. //TODO delegate this to createSynapse(segment)
+  const size_t overrun = (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
   if (overrun > 0) {
-    destroyMinPermanenceSynapses(connections, rng, segment, overrun,
-                                 prevWinnerCells);
+    destroyMinPermanenceSynapses(connections, rng, segment, overrun, prevWinnerCells);
   }
 
   // Recalculate in case we weren't able to destroy as many synapses as needed.
-  const UInt32 nActualWithMax = std::min(
-      nActual, maxSynapsesPerSegment - connections.numSynapses(segment));
+  const size_t nActualWithMax = std::min(nActual, maxSynapsesPerSegment - connections.numSynapses(segment));
 
   // Pick nActual cells randomly.
-  for (UInt32 c = 0; c < nActualWithMax; c++) {
-    UInt32 i = rng.getUInt32((UInt32)candidates.size());
-    connections.createSynapse(segment, candidates[i], initialPermanence);
+  for (size_t c = 0; c < nActualWithMax; c++) {
+    const auto i = rng.getUInt32(static_cast<UInt32>(candidates.size()));
+    connections.createSynapse(segment, candidates[i], initialPermanence); //TODO createSynapse create a vector of new synapses at once
     candidates.erase(candidates.begin() + i);
   }
 }
