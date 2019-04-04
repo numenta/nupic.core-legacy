@@ -23,10 +23,10 @@
  
 import glob
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
+import distutils.dir_util
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
@@ -215,6 +215,9 @@ if __name__ == "__main__":
   # Run CMake if extension files are missing.
   getExtensionFiles(platform)
 
+  # Copy the python code into place.
+  distutils.dir_util.copy_tree(
+            os.path.join(REPO_DIR, "py", "src"), os.path.join(DISTR_DIR, "src"))
   """
   set the default directory to the distr, and package it.
   """
