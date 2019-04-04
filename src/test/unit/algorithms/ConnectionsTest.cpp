@@ -677,4 +677,16 @@ TEST(ConnectionsTest, testSaveLoad) {
   ASSERT_EQ(c1, c2);
 }
 
+TEST(ConnectionsTest, testCreateSegmentOverflow) {
+  { //anonymous namespace
+    Connections c(1024);
+    size_t i = 0;
+    for(i=0; i < std::numeric_limits<Segment>::max(); i++) {
+      EXPECT_NO_THROW(c.createSegment(0));
+    }
+    EXPECT_ANY_THROW(c.createSegment(0)) << "num segments on cell c0 " << (size_t)c.numSegments(0) 
+	    << " total num segs: " << (size_t)c.numSegments() << "data-type limit " << (size_t)std::numeric_limits<Segment>::max();
+  }
+}
+
 } // namespace
