@@ -287,7 +287,7 @@ static void growSynapses(Connections &connections,
   }
 
   // Recalculate in case we weren't able to destroy as many synapses as needed.
-  const size_t nActualWithMax = std::min(nActual, maxSynapsesPerSegment - connections.numSynapses(segment));
+  const size_t nActualWithMax = std::min(nActual, static_cast<size_t>(maxSynapsesPerSegment) - connections.numSynapses(segment));
 
   // Pick nActual cells randomly.
   for (size_t c = 0; c < nActualWithMax; c++) {

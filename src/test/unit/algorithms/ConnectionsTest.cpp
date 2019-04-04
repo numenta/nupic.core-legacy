@@ -678,7 +678,7 @@ TEST(ConnectionsTest, testSaveLoad) {
 }
 
 TEST(ConnectionsTest, testCreateSegmentOverflow) {
-    const size_t LIMIT = std::numeric_limits<Segment>::max();
+    const auto LIMIT = std::numeric_limits<Segment>::max();
     if(LIMIT <= 256) { //connections::Segment is too large (likely uint32), so this test would run, but memory 
       // would kill the machine! 
       // to test this test and the code works OK, change connections::Segment to unsigned char
@@ -695,7 +695,7 @@ TEST(ConnectionsTest, testCreateSegmentOverflow) {
 }
 
 TEST(ConnectionsTest, testCreateSynapseOverflow) {
-  const size_t LIMIT = std::numeric_limits<Synapse>::max();
+  const auto LIMIT = std::numeric_limits<Synapse>::max();
   if(LIMIT <= 256) { //connections::Synapse is too large (likely uint32), so this test would run, but memory
     // would kill the machine!
     // to test this test and the code works OK, change connections::Synapse to unsigned char
