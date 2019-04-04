@@ -449,7 +449,7 @@ public:
    * @retval Number of segments.
    */
   size_t numSegments() const { 
-	  NTA_ASSERT(segment_.size() >= destroyedSegments_.size()); //TODO remove destroyedSegments_? 
+	  NTA_ASSERT(segments_.size() >= destroyedSegments_.size()); //TODO remove destroyedSegments_? 
 	  return segments_.size() - destroyedSegments_.size(); }
 
   /**
