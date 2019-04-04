@@ -388,18 +388,6 @@ Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
   return all;
 }
 
-void Connections::computeActivity(
-    vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
-    vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-    const CellIdx activePresynapticCell, 
-    const Permanence connectedPermanence) const {
-  std::vector<CellIdx> activePresynapticCells({activePresynapticCell});
-  computeActivity(
-    numActiveConnectedSynapsesForSegment,
-    numActivePotentialSynapsesForSegment,
-    activePresynapticCells, connectedPermanence);
-}
-
 
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
@@ -420,11 +408,9 @@ void Connections::computeActivity(
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
     vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-    const vector<CellIdx> &activePresynapticCells,
-    Permanence connectedPermanence) const {
+    const vector<CellIdx> &activePresynapticCells) const {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
   NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
-  NTA_CHECK( abs(connectedPermanence - nupic::Epsilon - connectedThreshold_) <= nupic::Epsilon );
 
   // Iterate through all connected synapses.
   computeActivity(
@@ -468,53 +454,55 @@ void Connections::adaptSegment(const Segment segment,
   }
 }
 
-/** called for under-performing Segments. (could have had synapses pruned, etc.)
- * After the call, Segment will have at least 
- * segmentThreshold synapses connected (>= permanenceThreshold).
- * So the Segment could likely be active next time.
+/**
+ * Called for under-performing Segments (can have synapses pruned, etc.). After
+ * the call, Segment will have at least segmentThreshold synapses connected, so
+ * the Segment could be active next time.
  */
 void Connections::raisePermanencesToThreshold(
                   const Segment    segment,
-                  const Permanence permanenceThreshold,
                   const UInt       segmentThreshold)
 {
-  if( segmentThreshold == 0 ) //no synapses requested to be connected, done.
+  if( segmentThreshold == 0 ) // No synapses requested to be connected, done.
     return;
 
   NTA_ASSERT(segment < segments_.size()) << "Accessing segment out of bounds.";
   auto &segData = segments_[segment];
-  if( segData.numConnected >= segmentThreshold ) //the segment already satisfies the requirement, done.
-    return;
+  if( segData.numConnected >= segmentThreshold )
+    return;   // The segment already satisfies the requirement, done.
 
   vector<Synapse> &synapses = segData.synapses;
-  if( synapses.empty()) return; //no synapses to raise permanences to, no work
+  if( synapses.empty())
+    return;   // No synapses to raise permanences to, no work to do.
+
   // Prune empty segment? No. 
   // The SP calls this method, but the SP does not do any pruning. 
   // The TM already has code to do pruning, but it doesn't ever call this method.
 
-  // There can be situation when synapses are pruned so the segment has too few synapses to ever activate. 
-  // (so we cannot satisfy the >= segmentThreshold connected). 
-  // In this case the method should do the next best thing and connect as many synapses as it can.
-  //
-  //keep segmentThreshold within synapses range
-  const auto threshold = std::min((size_t)segmentThreshold, synapses.size());
+  // There can be situations when synapses are pruned so the segment has too few
+  // synapses to ever activate, so we cannot satisfy the >= segmentThreshold
+  // connected.  In this case the method should do the next best thing and
+  // connect as many synapses as it can.
 
+  // Keep segmentThreshold within synapses range.
+  const auto threshold = std::min((size_t)segmentThreshold, synapses.size());
 
   // Sort the potential pool by permanence values, and look for the synapse with
   // the N'th greatest permanence, where N is the desired minimum number of
   // connected synapses.  Then calculate how much to increase the N'th synapses
-  // permance by such that it becomes a connected synapse.
-  // After that there will be at least N synapses connected.
+  // permance by such that it becomes a connected synapse.  After that there
+  // will be at least N synapses connected.
 
-  auto minPermSynPtr = synapses.begin() + threshold - 1; //threshold is ensured to be >=1 by condition at very beginning if(thresh == 0)... 
-  // Do a partial sort, it's faster than a full sort. Only minPermSynPtr is in
-  // its final sorted position.
+  // Threshold is ensured to be >=1 by condition at very beginning if(thresh == 0)... 
+  auto minPermSynPtr = synapses.begin() + threshold - 1;
+
   const auto permanencesGreater = [&](const Synapse &A, const Synapse &B)
     { return synapses_[A].permanence > synapses_[B].permanence; };
+  // Do a partial sort, it's faster than a full sort.
   std::nth_element(synapses.begin(), minPermSynPtr, synapses.end(), permanencesGreater);
 
-  const Real increment = permanenceThreshold - synapses_[ *minPermSynPtr ].permanence;
-  if( increment <= 0 ) // if( minPermSynPtr is already connected ) then ...
+  const Real increment = connectedThreshold_ - synapses_[ *minPermSynPtr ].permanence;
+  if( increment <= 0 ) // If minPermSynPtr is already connected then ...
     return;            // Enough synapses are already connected.
 
   // Raise the permance of all synapses in the potential pool uniformly.

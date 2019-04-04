@@ -588,7 +588,7 @@ void TemporalMemory::activateDendrites(bool learn,
   numActivePotentialSynapsesForSegment_.assign(length, 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment_,
                               numActivePotentialSynapsesForSegment_,
-                              activeCells_, connectedPermanence_);
+                              activeCells_);
 
   // Active segments, connected synapses.
   activeSegments_.clear();
