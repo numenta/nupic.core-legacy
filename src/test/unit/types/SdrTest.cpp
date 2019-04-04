@@ -630,26 +630,30 @@ TEST(SdrTest, TestSaveLoad) {
     ofstream outfile;
     outfile.open(filename);
 
-    // Test zero value
     SDR zero({ 3, 3 });
-    zero.save( outfile );
-
-    // Test dense data
     SDR dense({ 3, 3 });
-    dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
-    dense.save( outfile );
-
-    // Test sparse data
     SDR sparse({ 3, 3 });
-    sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
-    sparse.save( outfile );
-
-    // Test coordinate data
     SDR coord({ 3, 3 });
-    coord.setCoordinates(SDR_coordinate_t({
-            { 0, 1, 2 },
-            { 1, 1, 2 }}));
-    coord.save( outfile );
+    {
+      cereal::JSONOutputArchive json_out(outfile);
+
+      // Test zero value
+      zero.save_ar( json_out );
+
+      // Test dense data
+      dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
+      dense.save_ar( json_out );
+
+      // Test sparse data
+      sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
+      sparse.save_ar( json_out );
+
+      // Test coordinate data
+      coord.setCoordinates(SDR_coordinate_t({
+              { 0, 1, 2 },
+              { 1, 1, 2 }}));
+      coord.save_ar( json_out );
+    } // forces Cereal to flush to stream.
 
     // Now load all of the data back into SDRs.
     outfile.close();
@@ -662,15 +666,17 @@ TEST(SdrTest, TestSaveLoad) {
         infile.seekg( 0 ); // rewind to start of file.
     }
 
-    SDR zero_2;
-    zero_2.load( infile );
-    SDR dense_2;
-    dense_2.load( infile );
-    SDR sparse_2;
-    sparse_2.load( infile );
-    SDR coord_2;
-    coord_2.load( infile );
+    cereal::JSONInputArchive json_in(infile);
 
+    SDR zero_2;
+    zero_2.load_ar( json_in );
+    SDR dense_2;
+    dense_2.load_ar( json_in );
+    SDR sparse_2;
+    sparse_2.load_ar( json_in );
+    SDR coord_2;
+    coord_2.load_ar( json_in );
+    
     infile.close();
     int ret = ::remove( filename );
     ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;

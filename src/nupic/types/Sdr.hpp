@@ -488,6 +488,8 @@ public:
     inline bool operator!=(const SparseDistributedRepresentation &sdr) const
         { return not ((*this) == sdr); }
 
+
+// TODO:Cereal- Remove these when Cereal is complete
     /**
      * Save (serialize) the current state of the SDR to the specified file.
      * This method can NOT save callbacks!  Only the dimensions and current data
@@ -505,6 +507,23 @@ public:
      * @param stream A input valid istream, such as an open file.
      */
     void load(std::istream &inStream) override;
+
+		CerealAdapter;
+    template<class Archive>
+    void save_ar(Archive & ar) const
+    {
+        getSparse(); // to make sure sparse is valid.
+        ar(cereal::make_nvp("SDR", dimensions_), cereal::make_nvp("sparse", sparse_) );
+    }
+
+    template<class Archive>
+    void load_ar(Archive & ar)
+    {
+        setSparseInplace(); // to make sure sparse is valid.
+        ar( dimensions_, sparse_ );
+        initialize( dimensions_ );
+        setSparseInplace();
+    }
 
     /**
      * Callbacks notify you when this SDR's value changes.
