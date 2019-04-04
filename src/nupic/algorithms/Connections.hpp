@@ -41,12 +41,13 @@ namespace nupic {
 namespace algorithms {
 namespace connections {
 
-using CellIdx   = UInt32;  //TODO instead of typedefs, use templates for proper type-checking
+//TODO instead of typedefs, use templates for proper type-checking?
+using CellIdx   = nupic::sdr::ElemSparse; // CellIdx must match with sdr::ElemSparse, to change, change it there
 using SegmentIdx= UInt16; /** Index of segment in cell. */
 using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
-using Permanence= Real32;
+using Permanence= Real32; //TODO experiment with half aka float16
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
 
