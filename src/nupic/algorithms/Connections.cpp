@@ -618,7 +618,7 @@ bool Connections::operator==(const Connections &other) const {
   if (cells_.size() != other.cells_.size())
     return false;
 
-  for (CellIdx i = 0; i < cells_.size(); ++i) {
+  for (CellIdx i = 0; i < static_cast<CellIdx>(cells_.size()); i++) {
     const CellData &cellData = cells_[i];
     const CellData &otherCellData = other.cells_[i];
 
@@ -626,10 +626,10 @@ bool Connections::operator==(const Connections &other) const {
       return false;
     }
 
-    for (SegmentIdx j = 0; j < (SegmentIdx)cellData.segments.size(); ++j) {
-      Segment segment = cellData.segments[j];
+    for (SegmentIdx j = 0; j < static_cast<SegmentIdx>(cellData.segments.size()); j++) {
+      const Segment segment = cellData.segments[j];
       const SegmentData &segmentData = segments_[segment];
-      Segment otherSegment = otherCellData.segments[j];
+      const Segment otherSegment = otherCellData.segments[j];
       const SegmentData &otherSegmentData = other.segments_[otherSegment];
 
       if (segmentData.synapses.size() != otherSegmentData.synapses.size() ||
@@ -637,10 +637,10 @@ bool Connections::operator==(const Connections &other) const {
         return false;
       }
 
-      for (SynapseIdx k = 0; k < (SynapseIdx)segmentData.synapses.size(); ++k) {
-        Synapse synapse = segmentData.synapses[k];
+      for (SynapseIdx k = 0; k < static_cast<SynapseIdx>(segmentData.synapses.size()); k++) {
+        const Synapse synapse = segmentData.synapses[k];
         const SynapseData &synapseData = synapses_[synapse];
-        Synapse otherSynapse = otherSegmentData.synapses[k];
+        const Synapse otherSynapse = otherSegmentData.synapses[k];
         const SynapseData &otherSynapseData = other.synapses_[otherSynapse];
 
         if (synapseData.presynapticCell != otherSynapseData.presynapticCell ||
