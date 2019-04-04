@@ -27,6 +27,7 @@
 #include <algorithm> //sort
 #include <functional>
 #include <vector>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
@@ -34,8 +35,11 @@
 namespace nupic {
 namespace sdr {
 
-using SDR_dense_t      = std::vector<Byte>;
-using SDR_sparse_t     = std::vector<UInt>;
+using ElemDense        = Byte; //TODO allow changing this
+using ElemSparse       = UInt32; //must match with connections::CellIdx 
+
+using SDR_dense_t      = std::vector<ElemDense>;
+using SDR_sparse_t     = std::vector<ElemSparse>;
 using SDR_coordinate_t = std::vector<std::vector<UInt>>;
 using SDR_callback_t   = std::function<void()>;
 
