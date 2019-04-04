@@ -679,13 +679,19 @@ TEST(ConnectionsTest, testSaveLoad) {
 
 TEST(ConnectionsTest, testCreateSegmentOverflow) {
   { //anonymous namespace
+    const size_t LIMIT = std::numeric_limits<Segment>::max();
+    if(LIMIT > 256) { //connections::Segment is too large (likely uint32), so this test would run, but memory 
+      // would kill the machine! 
+      // to test this test and the code works OK, change connections::Segment to unsigned char
+      GTEST_SKIP();
+    }
     Connections c(1024);
     size_t i = 0;
-    for(i=0; i < std::numeric_limits<Segment>::max(); i++) {
+    for(i=0; i < LIMIT; i++) {
       EXPECT_NO_THROW(c.createSegment(0));
     }
     EXPECT_ANY_THROW(c.createSegment(0)) << "num segments on cell c0 " << (size_t)c.numSegments(0) 
-	    << " total num segs: " << (size_t)c.numSegments() << "data-type limit " << (size_t)std::numeric_limits<Segment>::max();
+	    << " total num segs: " << (size_t)c.numSegments() << "data-type limit " << LIMIT;
   }
 }
 
