@@ -41,7 +41,7 @@
 
 namespace nupic {
 
-class Dimensions : public ::std::vector<UInt>, Serializable {
+class Dimensions : public std::vector<UInt>, public Serializable {
 public:
   /**
    * Create a new Dimensions object.
@@ -100,6 +100,7 @@ public:
   bool isInvalid()     const { return(!isDontcare() && getCount() == 0); }
   bool isSpecified()   const { return(getCount() != 0); }
 
+  // TODO:Cereal- when Cereal is fully implmented humanReadable arg can be removed here and in DimensionsTest.
   std::string toString(bool humanReadable = true) const {
     if (isUnspecified()) return "[unspecified]";
     if (isDontcare())    return "[dontcare]";
@@ -114,13 +115,24 @@ public:
     return ss.str();
   }
 
-  void save(std::ostream &f) const {
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    ar((std::vector<UInt>&) *this);
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    ar((std::vector<UInt>&) *this);
+  }
+
+  // TODO:Cereal- remove these two methods when Cereal is fully implmented.
+  void save(std::ostream &f) const override {
     size_t n = size();
     f.write((const char*)&n, sizeof(size_t));
     if (n > 0)
       f.write((const char*)&at(0), n * sizeof(at(0)));
   }
-  void load(std::istream &f) {
+  void load(std::istream &f) override {
     size_t n;
     f.read((char*)&n, sizeof(size_t));
     clear();
@@ -171,6 +183,7 @@ public:
     }
     return f;
   }
+  
 
 } // namespace nupic
 

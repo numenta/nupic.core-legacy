@@ -102,3 +102,8 @@ endif()
 #################
 # mnist data
 include(mnist_data.cmake)
+
+#################
+# Cereal serialization package
+include(cereal.cmake)
+
