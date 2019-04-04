@@ -334,7 +334,7 @@ public:
    *
    * @retval A vector length
    */
-  Segment segmentFlatListLength() const;
+  size_t segmentFlatListLength() const { return segments_.size(); };
 
   /**
    * Compare two segments. Returns true if a < b.
@@ -473,41 +473,46 @@ public:
    *
    * @retval Number of cells.
    */
-  CellIdx numCells() const;
+  size_t numCells() const { return cells_.size(); }
 
   /**
    * Gets the number of segments.
    *
    * @retval Number of segments.
    */
-  Segment numSegments() const;
+  size_t numSegments() const { 
+	  NTA_ASSERT(segment_.size() >= destroyedSegments_.size()); //TODO remove destroyedSegments_? 
+	  return segments_.size() - destroyedSegments_.size(); }
 
   /**
    * Gets the number of segments on a cell.
    *
    * @retval Number of segments.
    */
-  SegmentIdx numSegments(CellIdx cell) const;
+  size_t numSegments(CellIdx cell) const { return cells_[cell].segments.size(); }
 
   /**
    * Gets the number of synapses.
    *
    * @retval Number of synapses.
    */
-  Synapse numSynapses() const;
+  size_t numSynapses() const {
+    NTA_ASSERT(synapses_.size() >= destroyedSynapses_.size());
+    return synapses_.size() - destroyedSynapses_.size();
+  }
 
   /**
    * Gets the number of synapses on a segment.
    *
    * @retval Number of synapses.
    */
-  SynapseIdx numSynapses(Segment segment) const;
+  size_t numSynapses(Segment segment) const { return segments_[segment].synapses.size(); }
 
   /**
    * Comparison operator.
    */
-  bool operator==(const Connections &other) const;
-  bool operator!=(const Connections &other) const;
+  virtual bool operator==(const Connections &other) const;
+  inline bool operator!=(const Connections &other) const { return !operator==(other); }
 
   /**
    * Add a connections events handler.
@@ -595,9 +600,7 @@ private:
 }; // end class Connections
 
 } // end namespace connections
-
 } // end namespace algorithms
-
 } // end namespace nupic
 
 #endif // NTA_CONNECTIONS_HPP

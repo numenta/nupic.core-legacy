@@ -365,8 +365,6 @@ const SynapseData &Connections::dataForSynapse(Synapse synapse) const {
   return synapses_[synapse];
 }
 
-Segment Connections::segmentFlatListLength() const { return (Segment)segments_.size(); }
-
 bool Connections::compareSegments(const Segment a, const Segment b) const {
   const SegmentData &aData = segments_[a];
   const SegmentData &bData = segments_[b];
@@ -616,24 +614,6 @@ void Connections::load(std::istream &inStream) {
 }
 
 
-CellIdx Connections::numCells() const { return static_cast<CellIdx>(cells_.size()); }
-
-Segment Connections::numSegments() const {
-  return static_cast<Segment>(segments_.size() - destroyedSegments_.size());
-}
-
-SegmentIdx Connections::numSegments(CellIdx cell) const {
-  return static_cast<SegmentIdx>(cells_[cell].segments.size());
-}
-
-Synapse Connections::numSynapses() const {
-  return static_cast<Synapse>(synapses_.size() - destroyedSynapses_.size());
-}
-
-SynapseIdx Connections::numSynapses(Segment segment) const {
-  return static_cast<SynapseIdx>(segments_[segment].synapses.size());
-}
-
 bool Connections::operator==(const Connections &other) const {
   if (cells_.size() != other.cells_.size())
     return false;
@@ -678,6 +658,3 @@ bool Connections::operator==(const Connections &other) const {
   return true;
 }
 
-bool Connections::operator!=(const Connections &other) const {
-  return !(*this == other);
-}
