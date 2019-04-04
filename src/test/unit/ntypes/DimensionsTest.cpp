@@ -71,6 +71,8 @@ TEST_F(DimensionsTest, InvalidDimensions) {
   ASSERT_FALSE(d.isDontcare());
   ASSERT_TRUE(d.isInvalid());
   ASSERT_FALSE(d.isSpecified());
+  // TODO:Cereal- after Cereal complete, allow humanreadable as default in toString().
+  //              It is currently being used for reversable serialization.
   //EXPECT_STREQ("[1,0] (Invalid) ", d.toString().c_str());
   EXPECT_STREQ("[1,0] ", d.toString(false).c_str());
   ASSERT_EQ(d.getCount(), 0u);

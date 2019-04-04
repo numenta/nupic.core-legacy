@@ -37,7 +37,6 @@
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/types/Serializable.hpp>
-#include <cereal/types/vector.hpp>
 
 
 namespace nupic {
@@ -101,6 +100,7 @@ public:
   bool isInvalid()     const { return(!isDontcare() && getCount() == 0); }
   bool isSpecified()   const { return(getCount() != 0); }
 
+  // TODO:Cereal- when Cereal is fully implmented humanReadable arg can be removed here and in DimensionsTest.
   std::string toString(bool humanReadable = true) const {
     if (isUnspecified()) return "[unspecified]";
     if (isDontcare())    return "[dontcare]";
@@ -125,6 +125,7 @@ public:
     ar((std::vector<UInt>&) *this);
   }
 
+  // TODO:Cereal- remove these two methods when Cereal is fully implmented.
   void save(std::ostream &f) const override {
     size_t n = size();
     f.write((const char*)&n, sizeof(size_t));
