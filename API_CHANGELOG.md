@@ -62,3 +62,7 @@ are ignored.  PR #271
 * Changed SDRClassifier::compute() signature to take parameter `ClassifierResult& result`, instead of a raw pointer. PR #301
 
 * Rewrote ScalarEncoder API, all code using it needs to be rewritten. PR #314
+
+* Connections class must be initialized with a connectedPermanence.  Methods
+`Connections::computeActivity` and `Connections::raisePermanencesToThreshold` no
+longer accept a synapse permanence threshold argument.
