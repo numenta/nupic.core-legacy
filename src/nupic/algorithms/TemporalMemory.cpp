@@ -671,7 +671,7 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
   return cell / cellsPerColumn_;
 }
 
-vector<CellIdx> TemporalMemory::cellsForColumn(Int column) { //TODO remove, incorrect w/o topology
+vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) { 
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
 
