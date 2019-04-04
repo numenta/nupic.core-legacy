@@ -49,6 +49,7 @@
 using namespace nupic;
 using namespace nupic::utils;
 using namespace nupic::algorithms::temporal_memory;
+using nupic::algorithms::connections::CellIdx;
 using nupic::sdr::SDR;
 
 TMRegion::TMRegion(const ValueMap &params, Region *region)
@@ -251,12 +252,13 @@ void TMRegion::compute() {
     auto predictive = tm_->getPredictiveCells(); // sparse
     if (args_.orColumnOutputs) {
       // aggregate to columns
-      active = VectorHelpers::sparse_cellsToColumns<UInt>(active, args_.cellsPerColumn);
-      predictive = VectorHelpers::sparse_cellsToColumns<UInt>(predictive, args_.cellsPerColumn);
+      active = VectorHelpers::sparse_cellsToColumns<CellIdx>(active, args_.cellsPerColumn);
+      predictive = VectorHelpers::sparse_cellsToColumns<CellIdx>(predictive, args_.cellsPerColumn);
     }
     SDR& sdr = out->getData().getSDR();
-    VectorHelpers::unionOfVectors<UInt>(sdr.getSparse(), active, predictive);
-    sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
+    vector<CellIdx> uni;
+    VectorHelpers::unionOfVectors<CellIdx>(uni, active, predictive);
+    sdr.setSparse(uni); // to update the cache in SDR.
 
     NTA_DEBUG << "compute " << *out << std::endl;
   }
