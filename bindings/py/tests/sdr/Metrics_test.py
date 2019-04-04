@@ -86,6 +86,16 @@ class MetricsTest(unittest.TestCase):
 """Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
 Entropy 0.918296""")
 
+    def testAF_initializeToValue(self):
+        X  = sdr.SDR( 10 )
+        AF = sdr.ActivationFrequency( X, period = 100)
+        AF.initializeToValue( .02 )
+        assert( np.all( AF.activationFrequency == .02 ))
+        X.randomize( 1 )
+        assert( np.all( AF.activationFrequency > .025 ))
+        assert( np.all( AF.activationFrequency < .035 ))
+
+
     def testOverlapExample(self):
         A = sdr.SDR( dimensions = 2000 )
         B = sdr.Overlap( A, period = 1000 )

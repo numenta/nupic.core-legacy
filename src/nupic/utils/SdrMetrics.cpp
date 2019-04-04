@@ -132,10 +132,25 @@ ActivationFrequency::ActivationFrequency( SDR &dataSource, UInt period )
 
 void ActivationFrequency::initialize(UInt size) {
     activationFrequency_.assign( size, 1234.567f );
+    alwaysExponential_ = false;
+}
+
+void ActivationFrequency::initializeToValue( Real initialValue )
+{
+    NTA_ASSERT( samples_ < 1 ) << "ActivationFrequency already in use.";
+    NTA_CHECK( not alwaysExponential_ ) << "ActivationFrequency already initialize to a value.";
+    NTA_CHECK( initialValue >= 0.0f );
+    NTA_CHECK( initialValue <= 1.0f );
+    activationFrequency_.assign( activationFrequency_.size(), initialValue );
+    alwaysExponential_ = true;
 }
 
 void ActivationFrequency::callback(SDR &dataSource, Real alpha)
 {
+    if( alwaysExponential_ ) {
+        alpha = 1.0f / period;
+    }
+
     const auto decay = 1.0f - alpha;
     for(auto &value : activationFrequency_)
         value *= decay;

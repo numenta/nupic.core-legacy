@@ -122,20 +122,25 @@ Example Usage:
     B.entropy() -> ~0.92
     str(B)      -> Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
                    Entropy 0.918296)");
+
         py_ActivationFrequency.def( py::init<SDR&, UInt>(),
 R"(Argument sdr is data source to track.  Add data to this ActivationFrequency
 instance by assigning to this SDR.
 
 Argument period is Time scale for exponential moving average.)",
             py::arg("sdr"), py::arg("period"));
-        py_ActivationFrequency.def( py::init<vector<UInt>, UInt>(),
 
+        py_ActivationFrequency.def( py::init<vector<UInt>, UInt>(),
 R"(Argument dimensions of SDR.  Add data to this ActivationFrequency
 instance by calling method af.addData( SDR ) with an SDR which has
 these dimensions.
 
 Argument period is Time scale for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
+
+        py_ActivationFrequency.def("initializeToValue", &ActivationFrequency::initializeToValue,
+R"(TODO: DOCS)");
+
         py_ActivationFrequency.def_property_readonly("activationFrequency",
             [](const ActivationFrequency &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});

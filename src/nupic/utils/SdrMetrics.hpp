@@ -200,6 +200,19 @@ public:
      */
     ActivationFrequency( const std::vector<UInt> dimensions, UInt period );
 
+    /**
+     * Assign an initial activation frequency to all bits in the SDR.  If this
+     * method is used then this metric will always use the exponential moving
+     * average, and skip over the regular average which is usually applied to
+     * the first "period" many samples.
+     *
+     * This method is useful for using this metric as part of boosting
+     * algorithms which seek to push the activation frequencies to a target
+     * value. These algorithms will overreact to the default early behavior of
+     * this class during the first "period" many samples.
+     */
+    void initializeToValue( Real initialValue );
+
     const std::vector<Real> &activationFrequency = activationFrequency_;
 
     Real min() const;
@@ -224,6 +237,7 @@ public:
 
 private:
     std::vector<Real> activationFrequency_;
+    bool alwaysExponential_;
 
     void initialize(UInt size);
 
