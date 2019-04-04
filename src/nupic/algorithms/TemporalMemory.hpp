@@ -287,20 +287,20 @@ public:
   Segment createSegment(const CellIdx& cell);
 
   /**
-   * Returns the indices of cells that belong to a column.
+   * Returns the indices of cells that belong to a mini-column.
    *
    * @param column Column index
    *
    * @return (vector<CellIdx>) Cell indices
    */
-  vector<CellIdx> cellsForColumn(Int column); //TODO remove
+  vector<CellIdx> cellsForColumn(CellIdx column);
 
   /**
    * Returns the number of cells in this layer.
    *
    * @return (int) Number of cells
    */
-  UInt numberOfCells(void) const;
+  size_t numberOfCells(void) const { return connections.numCells(); }
 
   /**
    * Returns the indices of the active cells.
@@ -334,21 +334,21 @@ public:
    *
    * @returns Integer number of column dimension
    */
-  vector<UInt> getColumnDimensions() const;
+  vector<CellIdx> getColumnDimensions() const { return columnDimensions_; }
 
   /**
    * Returns the total number of columns.
    *
    * @returns Integer number of column numbers
    */
-  CellIdx numberOfColumns() const;
+  size_t numberOfColumns() const { return numColumns_; }
 
   /**
    * Returns the number of cells per column.
    *
    * @returns Integer number of cells per column
    */
-  UInt getCellsPerColumn() const;
+  size_t getCellsPerColumn() const { return cellsPerColumn_; }
 
   /**
    * Returns the activation threshold.
@@ -451,8 +451,8 @@ public:
    */
   virtual void load(istream &inStream) override;
 
-  bool operator==(const TemporalMemory &other);
-  bool operator!=(const TemporalMemory &other);
+  virtual bool operator==(const TemporalMemory &other);
+  inline bool operator!=(const TemporalMemory &other) { return !operator==(other); }
 
   //----------------------------------------------------------------------
   // Debugging helpers

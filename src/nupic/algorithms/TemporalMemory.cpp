@@ -456,7 +456,10 @@ static void punishPredictedColumn(
 }
 
 void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
-    NTA_CHECK( activeColumns.dimensions == columnDimensions_ );
+    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() );
+    for(size_t i=0; i< columnDimensions_.size(); i++) {
+      NTA_CHECK(static_cast<size_t>(activeColumns.dimensions[i]) == static_cast<size_t>(columnDimensions_[i])) << "Dimensions must be the same.";
+    }
     auto &sparse = activeColumns.getSparse();
     std::sort(sparse.begin(), sparse.end()); //TODO remove sorted requirement? iterGroupBy depends on it
     activateCells(sparse.size(), sparse.data(), learn);
@@ -680,8 +683,6 @@ vector<CellIdx> TemporalMemory::cellsForColumn(Int column) { //TODO remove, inco
   return cellsInColumn;
 }
 
-CellIdx TemporalMemory::numberOfCells(void) const { return connections.numCells(); }
-
 vector<CellIdx> TemporalMemory::getActiveCells() const { return activeCells_; }
 
 void TemporalMemory::getActiveCells(SDR &activeCells) const
@@ -738,15 +739,6 @@ vector<Segment> TemporalMemory::getMatchingSegments() const
   return matchingSegments_;
 }
 
-CellIdx TemporalMemory::numberOfColumns() const { return numColumns_; }
-
-
-vector<UInt> TemporalMemory::getColumnDimensions() const
-{
-  return columnDimensions_;
-}
-
-UInt TemporalMemory::getCellsPerColumn() const { return cellsPerColumn_; }
 
 SynapseIdx TemporalMemory::getActivationThreshold() const {
   return activationThreshold_;
@@ -1070,10 +1062,6 @@ bool TemporalMemory::operator==(const TemporalMemory &other) {
   }
 
   return true;
-}
-
-bool TemporalMemory::operator!=(const TemporalMemory &other) {
-  return !(*this == other);
 }
 
 //----------------------------------------------------------------------
