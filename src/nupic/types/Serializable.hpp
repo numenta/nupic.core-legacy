@@ -55,15 +55,17 @@
 #pragma clang diagnostic ignored "-Wunused-private-field"
 #endif
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && (((__GNUC__ * 100) + __GNUC_MINOR__) >= 800)
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
+  #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 800    // gcc 8
+    #pragma GCC diagnostic ignored "-Wclass-memaccess"
+  #endif
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #endif
 
 #include <cereal/archives/json.hpp>
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && (((__GNUC__ * 100) + __GNUC_MINOR__) >= 800)
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic pop
 #endif
 
