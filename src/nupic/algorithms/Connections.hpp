@@ -449,7 +449,7 @@ public:
    * @retval Number of segments.
    */
   size_t numSegments() const { 
-	  NTA_ASSERT(segments_.size() >= destroyedSegments_.size()); //TODO remove destroyedSegments_? 
+	  NTA_ASSERT(segments_.size() >= destroyedSegments_.size());
 	  return segments_.size() - destroyedSegments_.size(); }
 
   /**
@@ -479,7 +479,7 @@ public:
   /**
    * Comparison operator.
    */
-  virtual bool operator==(const Connections &other) const;
+  bool operator==(const Connections &other) const;
   inline bool operator!=(const Connections &other) const { return !operator==(other); }
 
   /**

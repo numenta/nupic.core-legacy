@@ -256,9 +256,8 @@ void TMRegion::compute() {
       predictive = VectorHelpers::sparse_cellsToColumns<CellIdx>(predictive, args_.cellsPerColumn);
     }
     SDR& sdr = out->getData().getSDR();
-    vector<CellIdx> uni;
-    VectorHelpers::unionOfVectors<CellIdx>(uni, active, predictive);
-    sdr.setSparse(uni); // to update the cache in SDR.
+    VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), active, predictive);
+    sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
 
     NTA_DEBUG << "compute " << *out << std::endl;
   }
