@@ -184,7 +184,7 @@ TEST(ConnectionsPerformanceTest, testTM) {
 TEST(ConnectionsPerformanceTest, testTMLarge) {
   auto tim = runTemporalMemoryTest(2*COLS, 6*W, EPOCHS/2, SEQ, "temporal memory (large)");
 #ifdef NDEBUG
-  ASSERT_LE(tim, 13*Timer::getSpeed());
+  ASSERT_LE(tim, 15*Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
