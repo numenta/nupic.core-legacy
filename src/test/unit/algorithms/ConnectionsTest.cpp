@@ -84,7 +84,7 @@ void computeSampleActivity(Connections &connections) {
   vector<UInt32> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
-                              numActivePotentialSynapsesForSegment, input, 0.5f);
+                              numActivePotentialSynapsesForSegment, input);
 }
 
 /**
@@ -167,7 +167,7 @@ TEST(ConnectionsTest, testDestroySegment) {
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
-                              {80, 81, 82}, 0.5f);
+                              {80, 81, 82});
 
   ASSERT_EQ(0ul, numActiveConnectedSynapsesForSegment[segment2]);
   ASSERT_EQ(0ul, numActivePotentialSynapsesForSegment[segment2]);
@@ -198,7 +198,7 @@ TEST(ConnectionsTest, testDestroySynapse) {
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
-                              {80, 81, 82}, 0.5f);
+                              {80, 81, 82});
 
   ASSERT_EQ(1ul, numActiveConnectedSynapsesForSegment[segment]);
   ASSERT_EQ(2ul, numActivePotentialSynapsesForSegment[segment]);
@@ -355,7 +355,7 @@ TEST(ConnectionsTest, testComputeActivity) {
   vector<UInt32> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
-                              numActivePotentialSynapsesForSegment, input, 0.5f);
+                              numActivePotentialSynapsesForSegment, input);
 
   ASSERT_EQ(1ul, numActiveConnectedSynapsesForSegment[segment1_1]);
   ASSERT_EQ(2ul, numActivePotentialSynapsesForSegment[segment1_1]);
@@ -422,7 +422,6 @@ TEST(ConnectionsTest, testAdaptSynapses) {
 TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
   UInt stimulusThreshold = 3;
   Real synPermConnected = 0.1f;
-  Real synPermBelowStimulusInc = 0.01f;
   UInt numInputs = 5;
   UInt numCells = 7;
   Connections con(numCells, synPermConnected);
@@ -457,26 +456,26 @@ TEST(ConnectionsTest, testRaisePermanencesToThreshold) {
       }
     }
     // Run method under test.
-    con.raisePermanencesToThreshold(i, synPermConnected, stimulusThreshold);
+    con.raisePermanencesToThreshold(i, stimulusThreshold);
     // Check results.
     for(auto syn : con.synapsesForSegment(i)) {
       auto synData = con.dataForSynapse( syn );
       UInt presyn  = synData.presynapticCell;
-      ASSERT_NEAR(truePerm[i][presyn], synData.permanence,
-                                                      synPermBelowStimulusInc);
+      ASSERT_NEAR(truePerm[i][presyn], synData.permanence, 0.01f);
     }
   }
  }
 
 
 TEST(ConnectionsTest, testRaisePermanencesToThresholdOutOfBounds) {
-  Connections con(1001, 0.21f);
+  Connections con(1001, 0.666f);
  	
   // check empty segment (with no synapse data) 
   auto emptySegment = con.createSegment(0);
   auto synapses = con.synapsesForSegment(emptySegment);
-  NTA_CHECK(synapses.empty()) << "We want to create a Segment with none synapses";
-  EXPECT_NO_THROW( con.raisePermanencesToThreshold(emptySegment, (Permanence)0.1337, 3u) ) << "raisePermanence fails when empty Segment encountered";
+  NTA_CHECK(synapses.empty()) << "We want to create a Segment with no synapses";
+  EXPECT_NO_THROW( con.raisePermanencesToThreshold(emptySegment, 3u) )
+    << "raisePermanence fails when empty Segment encountered";
 
   // check segment with 3 synapses, but wanted to raise 5
   auto segWith3Syn = con.createSegment(0);
@@ -485,8 +484,8 @@ TEST(ConnectionsTest, testRaisePermanencesToThresholdOutOfBounds) {
   con.createSynapse( segWith3Syn, 18, 0.25f);
   con.createSynapse( segWith3Syn, 121, 0.00001f);
   NTA_CHECK(con.synapsesForSegment(segWith3Syn).size() == 3) << "We failed to create 3 synapses on a segment";
-  EXPECT_NO_THROW( con.raisePermanencesToThreshold(segWith3Syn, (Permanence)0.666, 5u) ) << "raisePermanence fails when lower number of available synapses than requested by threshold";
-
+  EXPECT_NO_THROW( con.raisePermanencesToThreshold(segWith3Syn, 5u) )
+    << "raisePermanence fails when lower number of available synapses than requested by threshold";
 }
 
 TEST(ConnectionsTest, testBumpSegment) {
