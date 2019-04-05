@@ -513,13 +513,12 @@ public:
     void save_ar(Archive & ar) const
     {
         getSparse(); // to make sure sparse is valid.
-        ar(cereal::make_nvp("SDR", dimensions_), cereal::make_nvp("sparse", sparse_) );
+        ar(cereal::make_nvp("dimensions", dimensions_), cereal::make_nvp("sparse", sparse_) );
     }
 
     template<class Archive>
     void load_ar(Archive & ar)
     {
-        setSparseInplace(); // to make sure sparse is valid.
         ar( dimensions_, sparse_ );
         initialize( dimensions_ );
         setSparseInplace();

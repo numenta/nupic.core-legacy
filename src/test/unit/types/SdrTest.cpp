@@ -21,6 +21,9 @@
 #include <vector>
 #include <random>
 
+static bool verbose = true;
+#define VERBOSE if(verbose) std::cerr << "[          ]"
+
 namespace testing {
     
 using namespace std;
@@ -659,10 +662,10 @@ TEST(SdrTest, TestSaveLoad) {
     outfile.close();
     ifstream infile( filename );
 
-    if( false ) {
+    if( verbose ) {
         // Print the file's contents
         std::stringstream buffer; buffer << infile.rdbuf();
-        cout << buffer.str() << "EOF" << endl;
+        VERBOSE << buffer.str() << "EOF" << endl;
         infile.seekg( 0 ); // rewind to start of file.
     }
 
@@ -686,6 +689,13 @@ TEST(SdrTest, TestSaveLoad) {
     ASSERT_TRUE( dense   == dense_2 );
     ASSERT_TRUE( sparse  == sparse_2 );
     ASSERT_TRUE( coord   == coord_2 );
+
+    dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
+    stringstream ss;
+    dense.saveToStream_ar(ss, SerializableFormat::BINARY);
+    dense_2.loadFromStream_ar(ss, SerializableFormat::BINARY);
+    ASSERT_TRUE( dense   == dense_2 );
+
 }
 
 TEST(SdrTest, TestCallbacks) {
