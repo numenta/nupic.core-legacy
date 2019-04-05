@@ -380,44 +380,15 @@ public:
    *
    * @param activePresynapticCells
    * Active cells in the input.
-   *
-   * @param connectedPermanence
-   * Minimum permanence for a synapse to be "connected".
    */
   void
   computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
                   std::vector<UInt32> &numActivePotentialSynapsesForSegment,
-                  const std::vector<CellIdx> &activePresynapticCells,
-                  Permanence connectedPermanence) const;
+                  const std::vector<CellIdx> &activePresynapticCells) const;
 
   void
   computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
                   const std::vector<CellIdx> &activePresynapticCells) const;
-
-  /**
-   * Compute the segment excitations for a single active presynaptic cell.
-   *
-   * The output vectors aren't grown or cleared. They must be
-   * preinitialized with the length returned by
-   * getSegmentFlatVectorLength().
-   *
-   * @param numActiveConnectedSynapsesForSegment
-   * An output vector for active connected synapse counts per segment.
-   *
-   * @param numActivePotentialSynapsesForSegment
-   * An output vector for active potential synapse counts per segment.
-   *
-   * @param activePresynapticCells
-   * Active cells in the input.
-   *
-   * @param connectedPermanence
-   * Minimum permanence for a synapse to be "connected".
-   */
-  void
-  computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
-                  std::vector<UInt32> &numActivePotentialSynapsesForSegment,
-                  CellIdx activePresynapticCell,
-                  Permanence connectedPermanence) const;
 
   /**
    * The primary method in charge of learning.   Adapts the permanence values of
@@ -461,14 +432,12 @@ public:
   /**
    * Ensures a minimum number of connected synapses.  This raises permance
    * values until the desired number of synapses have permanences above the
-   * permanenceThreshold.  This is applied to a single segment.
+   * connectedThreshold.  This is applied to a single segment.
    *
    * @param segment  Index of segment on cell.   Is returned by method getSegment.
-   * @param permanenceThreshold  Connected threshold of synapses
-   * @param segmentThreshold  Desired number of connected synapses
+   * @param segmentThreshold  Desired number of connected synapses.
    */
   void raisePermanencesToThreshold(const Segment    segment,
-                                   const Permanence permanenceThreshold,
                                    const UInt       segmentThreshold);
 
   /**

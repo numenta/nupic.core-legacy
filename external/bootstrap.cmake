@@ -57,7 +57,7 @@ if(MSVC)
 #                    OUTPUT_QUIET      ### Disable this to debug external buiilds
         )
   if(result)
-    message(FATAL_ERROR "build step for MSVC Relase Third Party builds failed: ${result}")
+    message(FATAL_ERROR "build step for MSVC Release Third Party builds failed: ${result}")
   endif()
   execute_process(COMMAND ${CMAKE_COMMAND} --build . --config Debug 
                     WORKING_DIRECTORY ${REPOSITORY_DIR}/build/ThirdParty
@@ -99,6 +99,7 @@ set(EXTERNAL_INCLUDES
 	${Boost_INCLUDE_DIRS}
 	${eigen_INCLUDE_DIRS}
 	${mnist_INCLUDE_DIRS}
+	${cereal_INCLUDE_DIRS}
 	${REPOSITORY_DIR}/external/common/include
 )
 
