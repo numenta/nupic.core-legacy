@@ -52,7 +52,6 @@ virtualenv:
 # Successful builds are archived and uploaded to S3 for bamboo releases.
 before_deploy:
   - cd $TRAVIS_BUILD_DIR
-  - ./ci/travis/before_deploy.sh
   - tar -zcvf $TRAVIS_BUILD_DIR/build/Release/${BUNDLE_NAME}.tar.gz $TRAVIS_BUILD_DIR/build/Release/
 
 deploy:
