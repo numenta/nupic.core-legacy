@@ -44,6 +44,7 @@ env:
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
+    - BUNDLE_NAME="nupic_cpp-${TRAVIS_COMMIT}-${PLATFORM}64"
 #    # AWS keys are for manual uploads of wheel to S3.
 #    - AWS_ACCESS_KEY_ID=AKIAIGHYSEHV3WFKOWNQ
 #    # AWS_SECRET_ACCESS_KEY encrypted below
@@ -56,7 +57,7 @@ virtualenv:
 before_deploy:
   - cd $TRAVIS_BUILD_DIR
   - ./ci/travis/before_deploy.sh
-  - tar -zcvf $TRAVIS_BUILD_DIR/build/Release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz $BINARY_DIR/dist
+  - tar -zcvf $TRAVIS_BUILD_DIR/build/Release/${BUNDLE_NAME}.tar.gz $BINARY_DIR/dist
 
 deploy:
 ## AWS S3 
@@ -78,7 +79,7 @@ deploy:
   provider: releases
   api_key:
       secure: "HyRy03LIiUriPFW3HPmO+rRqmL1uxfsPLj6fqMykMq/Kmy478ROW/uOdNj42OEhsb6GwLngdjcHJtEzMGevnlNbWLLbTCuT2ykebysSt/oIKb/zAc/jYUI3OKuVWVEYFHlZa6fvkWZHKtWCcwa/jeF6bJFuPKkc3c3842aaW1SdEJG6osLGhJM+JtO1zD8+Z6RwL6T1Xbj+RYP/L28mejbphKxYL34bfLYse1lQ6/cFHzw8SdbvkDxWW+MRFHw8Ta8QiiV/7E83Z6N0+IRNi0s//3Affmkcs25modB4Auy8nrkUI4LQQr0NcUQZdo1RrylX9MH1B5KHs1hyNJvhRFiQlSBvXv0ezq6F5N8wamnBX12/2FDFI1nWl05hofQ7X07aWyQLu5v7Q34xX/pW5lca1G3H14auye8gSzC80692fOyId1F4QwcDIkeWiQwAMgE1qSifgTD3dEGJeDbAOPLd7I/fskxUjIvpEWR6dM3IKzMzr1dFilImhdvVsEEeROldpE0JleZFrv39NyMWTx6sGo9MLrtep+5/iRz1T0zKLfQjwUnAm/LW66g9vQ+lnhL9ktElnitnvaj1x5auAIsPNVdfagdwvGdeuZ65uJGtgEVAjOjspCDeYu9ztqPSZ3Hj3SAyELJkuu/RFScLOQayazg03O+zsvhDTtw8xfdo="
-  file: "$TRAVIS_BUILD_DIR/release/nupic_core-${TRAVIS_COMMIT}-${PLATFORM}64.tar.gz"
+  file: "$TRAVIS_BUILD_DIR/release/${BUNDLE_NAME}.tar.gz"
   skip_cleanup: true
   on:
     tags: true
