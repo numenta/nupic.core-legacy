@@ -380,7 +380,7 @@ public:
                        std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
                        const std::vector<CellIdx> &activePresynapticCells) const;
 
-  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,  //TODO remove the 2 arg version, use only the 3 arg (with 1 being optional)
+  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
                        const std::vector<CellIdx> &activePresynapticCells) const;
 
   /**

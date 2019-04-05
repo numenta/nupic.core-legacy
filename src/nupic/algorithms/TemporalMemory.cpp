@@ -292,8 +292,8 @@ static void growSynapses(Connections &connections,
   // Pick nActual cells randomly.
   for (size_t c = 0; c < nActualWithMax; c++) {
     const auto i = rng.getUInt32(static_cast<UInt32>(candidates.size()));
-    connections.createSynapse(segment, candidates[i], initialPermanence); //TODO createSynapse create a vector of new synapses at once
-    candidates.erase(candidates.begin() + i);
+    connections.createSynapse(segment, candidates[i], initialPermanence); //TODO createSynapse consider creating a vector of new synapses at once?
+    candidates.erase(candidates.begin() + i); //TODO this is costly, optimize it (out)
   }
 }
 
