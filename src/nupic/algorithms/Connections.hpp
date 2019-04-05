@@ -431,6 +431,15 @@ public:
    * @param inputVector  An SDR
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
+   *
+   * @params previousUpdates & currentUpdates contain the permanence changes done
+   * by this method.  AdaptSegment will not  apply the same learning update to a
+   * synapse on consequetive cycles, because then staring at the same object for
+   * too long will mess up the synapses. This change allows it to work with
+   * timeseries data which moves very slowly, instead of the usual HTM inputs
+   * which reliably change every cycle. See also (Kropff & Treves, 2008).
+   *    - These vectors will be resized to "con.synapseFlatListLength()".
+   *    - To reset between time-series sequences: zero or clear the vector.
    */
   void adaptSegment(const Segment segment,
                     const sdr::SDR &inputs,
@@ -438,6 +447,16 @@ public:
                     const Permanence decrement,
                     const std::vector<Permanence> &previousUpdates,
                           std::vector<Permanence> &currentUpdates);
+
+  void adaptSegment(const Segment segment,
+                    const sdr::SDR &inputs,
+                    const Permanence increment,
+                    const Permanence decrement)
+  {
+    std::vector<Permanence> previousUpdates, currentUpdates;
+    adaptSegment( segment, inputs, increment, decrement,
+                  previousUpdates, currentUpdates );
+  }
 
   /**
    * Ensures a minimum number of connected synapses.  This raises permance

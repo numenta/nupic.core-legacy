@@ -449,6 +449,8 @@ void Connections::adaptSegment(const Segment segment,
                                      vector<Permanence> &currentUpdates)
 {
   const auto &inputArray = inputs.getDense();
+  previousUpdates.resize( synapseFlatListLength(), 0.0f );
+  currentUpdates.resize(  synapseFlatListLength(), 0.0f );
 
   for( const auto &synapse : synapsesForSegment(segment) ) {
     const SynapseData &synapseData = dataForSynapse(synapse);
