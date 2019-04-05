@@ -31,7 +31,6 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/os/OS.hpp>
 
-
 #include <map>
 #include <memory>
 #include <limits.h>
@@ -39,8 +38,11 @@
 #include <gtest/gtest.h>
 
 namespace testing {
-    
+
+static bool verbose = false;
+#define VERBOSE if(verbose) std::cerr << "[          ]"
 #define UNUSED(x) (void)(x)
+
 using namespace nupic;
 
 // First, some structures to help in testing.
@@ -67,6 +69,57 @@ struct ArrayTestParameters {
         dataTypeText(std::move(dataTypeTextParam)),
         testUsesInvalidParameters(testUsesInvalidParametersParam) {}
 };
+
+// given a sparse array, populate a dense array of specified type.
+static void populateArray(const std::vector<UInt32>& sparse, size_t cols, Array& a) {
+  a.allocateBuffer(cols);
+  a.zeroBuffer();
+  void *buf = a.getBuffer();
+  for(auto idx: sparse) {
+    	switch (a.getType()) {
+	    case NTA_BasicType_Byte:   ((Byte*)buf)[idx]   = 1;    break;
+	    case NTA_BasicType_Int16:  ((Int16*)buf)[idx]  = 1;    break;
+	    case NTA_BasicType_UInt16: ((UInt16*)buf)[idx] = 1u;   break;
+	    case NTA_BasicType_Int32:  ((Int32*)buf)[idx]  = 1;    break;
+	    case NTA_BasicType_UInt32: ((UInt32*)buf)[idx] = 1u;   break;
+	    case NTA_BasicType_Int64:  ((Int64*)buf)[idx]  = 1;    break;
+	    case NTA_BasicType_UInt64: ((UInt64*)buf)[idx] = 1u;   break;
+	    case NTA_BasicType_Real32: ((Real32*)buf)[idx] = 1.0f; break;
+	    case NTA_BasicType_Real64: ((Real64*)buf)[idx] = 1.0;  break;
+	    case NTA_BasicType_Bool:   ((bool*)buf)[idx]   = true; break;
+      case NTA_BasicType_SDR:    ((Byte*)buf)[idx]   = 1;    break;
+	    default:
+	      NTA_THROW << "Unexpected Element Type: " << a.getType();
+	      break;
+	    }
+  }
+}
+static void toSparse(const Array&a, std::vector<UInt32>&sparse) {
+  sparse.clear();
+  if (a.getType() == NTA_BasicType_SDR) {
+        sparse = a.getSDR().getSparse();
+        return;
+  }
+
+  char *buf = (char*)a.getBuffer();
+  for (UInt32 idx = 0; idx < a.getCount(); idx++) {
+    	switch (a.getType()) {
+	    case NTA_BasicType_Byte:   if(((Byte*)buf)[idx])   sparse.push_back(idx); break;
+	    case NTA_BasicType_Int16:  if(((Int16*)buf)[idx])  sparse.push_back(idx); break;
+	    case NTA_BasicType_UInt16: if(((UInt16*)buf)[idx]) sparse.push_back(idx); break;
+	    case NTA_BasicType_Int32:  if(((Int32*)buf)[idx])  sparse.push_back(idx); break;
+	    case NTA_BasicType_UInt32: if(((UInt32*)buf)[idx]) sparse.push_back(idx); break;
+	    case NTA_BasicType_Int64:  if(((Int64*)buf)[idx])  sparse.push_back(idx); break;
+	    case NTA_BasicType_UInt64: if(((UInt64*)buf)[idx]) sparse.push_back(idx); break;
+	    case NTA_BasicType_Real32: if(((Real32*)buf)[idx]) sparse.push_back(idx); break;
+	    case NTA_BasicType_Real64: if(((Real64*)buf)[idx]) sparse.push_back(idx); break;
+	    case NTA_BasicType_Bool:   if(((bool*)buf)[idx])   sparse.push_back(idx); break;
+	    default:
+	      NTA_THROW << "Unexpected Element Type: " << a.getType();
+	      break;
+	    }
+  }
+}
 
 struct ArrayTest : public ::testing::Test {
   std::map<std::string, ArrayTestParameters> testCases_;
@@ -507,7 +560,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     if (testCase->second.testUsesInvalidParameters) {
       continue;
     }
-    std::cerr << "  Iteration " << testCase->first << std::endl;
+    VERBOSE << "  Iteration " << testCase->first << std::endl;
 
     size_t nCols = testCase->second.allocationSize;
     size_t bufsize = testCase->second.dataTypeSize * testCase->second.allocationSize;
@@ -541,23 +594,11 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     //std::cerr << "ArrayTest:testArrayBasefunctions a=" << a << std::endl;
     nCols = testdata.size();
 
-    // getMaxElementsCount, getCount, setCount, copy
-    if (testCase->second.dataType != NTA_BasicType_SDR) {
-      // SDR cannot do a truncate of data keeping capacity fixed.
-      // For everyone else, remove the last element.
-      size_t buffer_cnt = a.getCount();
-      c = a.copy();
-      c.setCount(buffer_cnt - 1);
-      EXPECT_EQ(c.getMaxElementsCount(), buffer_cnt);
-      EXPECT_EQ(c.getCount(), buffer_cnt - 1);
-    }
-    
+
     c = a; // shallow copy
     EXPECT_EQ(c.getCount(), a.getCount());
     EXPECT_TRUE(c.getBuffer() == a.getBuffer());
     EXPECT_EQ(a.getCount(), nCols);
-    EXPECT_EQ(a.getMaxElementsCount(), nCols);
-    EXPECT_EQ(a.getBufferSize(), nCols * testCase->second.dataTypeSize );
 
 
     if (testCase->second.dataType == NTA_BasicType_SDR) {
@@ -599,6 +640,62 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       }
     }
 
+  }
+}
+
+TEST_F(ArrayTest, testArrayBaseSerialization) {
+  setupArrayTests();
+
+  std::vector<UInt32> testdata = {1, 4, 5, 8, 9}; // sparse
+  TestCaseIterator testCase;
+
+  for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
+    // testArrayCreation() already validates that Array objects can't be
+    // created using invalid NTA_BasicType parameters, so we skip those
+    // negetive test cases here
+    if (testCase->second.testUsesInvalidParameters) {
+      continue;
+    }
+
+    VERBOSE << "  Iteration " << testCase->first << " element size: " << testCase->second.dataTypeSize << std::endl;
+
+    // constructors;  Allocate and populate an array using the test data.
+    Array a(testCase->second.dataType);
+    populateArray(testdata, testCase->second.allocationSize, a);
+
+    VERBOSE << "starting with a = " << a << std::endl;
+
+    // binary serialization
+    std::stringstream ss;
+    {
+      cereal::BinaryOutputArchive binaryOut_ar(ss); // Create an output archive
+      a.save_ar(binaryOut_ar);
+    } //flush when archive goes out of scope
+    VERBOSE << "  binary size: " << ss.str().length() << std::endl;
+    ss.seekg(0);  // rewind
+    Array b;
+    {
+      cereal::BinaryInputArchive binaryIn_ar(ss);  // Create an input archive
+      b.load_ar(binaryIn_ar);
+    } // flush
+    std::vector<UInt32> results;
+    toSparse(b, results);
+    EXPECT_EQ(testdata, results);
+
+    // JSON serialization
+    ss.seekp(0);  // rewind
+    {
+      cereal::JSONOutputArchive jsonOut_ar(ss); // Create an output archive
+      a.save_ar(jsonOut_ar);
+    } // flush
+    VERBOSE << ss.str() << std::endl;
+    ss.seekg(0);  // rewind
+    {
+      cereal::JSONInputArchive jsonIn_ar(ss);  // Create an input archive
+      b.load_ar(jsonIn_ar);
+    } // flush
+    toSparse(b, results);
+    EXPECT_EQ(testdata, results);
   }
 }
 

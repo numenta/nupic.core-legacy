@@ -169,6 +169,7 @@
 #include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 class Array : public ArrayBase {
@@ -281,7 +282,7 @@ public:
     */
   Array get_as(NTA_BasicType type) const {
     Array a(type);
-    a.allocateBuffer(getMaxElementsCount());
+    a.allocateBuffer(getCount());
     a.zeroBuffer();
     convertInto(a);
     return a;
@@ -318,5 +319,10 @@ public:
   }
 };
 } // namespace nupic
+
+CEREAL_REGISTER_TYPE(nupic::Array)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(nupic::ArrayBase, nupic::Array)
+
+
 
 #endif
