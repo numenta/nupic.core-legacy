@@ -19,7 +19,8 @@
 
 import numpy as np
 import math
-from nupic.external import hexy
+import hexy
+
 from nupic.bindings.sdr import SDR
 from nupic.bindings.math import Random
 
