@@ -130,10 +130,12 @@ script:
   # unit tests
   - "cd $TRAVIS_BUILD_DIR/build/Release/bin"
   - "${TRAVIS_BUILD_DIR}/build/Release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
-  # run python tests
+  # run python bindings tests
+  - echo "Python bindings tests"
   - cd ${TRAVIS_BUILD_DIR}
   - "python setup.py test"
   # run memory leak tests with valgrind
+  - echo "Memory leak detection with valgrind"
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${TRAVIS_BUILD_DIR}/build/Release/lib
   - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=3 ${TRAVIS_BUILD_DIR}/build/Release/bin/benchmark_hotgym 5 || exit 1 
   # output unit tests report
