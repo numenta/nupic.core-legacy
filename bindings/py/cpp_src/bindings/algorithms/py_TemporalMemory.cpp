@@ -46,7 +46,7 @@ using namespace nupic;
 using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections; 
 
-    void init_HTM(py::module& m)
+    void init_TemporalMemory(py::module& m)
     {
         typedef nupic::algorithms::temporal_memory::TemporalMemory HTM_t;
 
