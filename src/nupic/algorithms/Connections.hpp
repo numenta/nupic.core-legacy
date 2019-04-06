@@ -41,12 +41,13 @@ namespace nupic {
 namespace algorithms {
 namespace connections {
 
-typedef UInt32 CellIdx;
-typedef UInt16 SegmentIdx; /** Index of segment in cell. */
-typedef UInt16 SynapseIdx; /** Index of synapse in segment. */
-typedef UInt32 Segment;    /** Index of segment's data. */
-typedef UInt32 Synapse;    /** Index of synapse's data. */
-typedef Real32 Permanence;
+//TODO instead of typedefs, use templates for proper type-checking?
+using CellIdx   = nupic::sdr::ElemSparse; // CellIdx must match with sdr::ElemSparse, to change, change it there
+using SegmentIdx= UInt16; /** Index of segment in cell. */
+using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
+using Segment   = UInt32;    /** Index of segment's data. */
+using Synapse   = UInt32;    /** Index of synapse's data. */
+using Permanence= Real32; //TODO experiment with half aka float16
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
 
@@ -90,6 +91,7 @@ struct SegmentData {
 
 /**
  * CellData class used in Connections.
+ * A cell consists of segments and in Connections is indexed by CellIdx.
  *
  * @b Description
  * The CellData contains the underlying data for a Cell.
@@ -333,7 +335,7 @@ public:
    *
    * @retval A vector length
    */
-  UInt32 segmentFlatListLength() const;
+  size_t segmentFlatListLength() const { return segments_.size(); };
 
   /**
    * Compare two segments. Returns true if a < b.
@@ -374,14 +376,12 @@ public:
    * @param activePresynapticCells
    * Active cells in the input.
    */
-  void
-  computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
-                  std::vector<UInt32> &numActivePotentialSynapsesForSegment,
-                  const std::vector<CellIdx> &activePresynapticCells) const;
+  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+                       std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
+                       const std::vector<CellIdx> &activePresynapticCells) const;
 
-  void
-  computeActivity(std::vector<UInt32> &numActiveConnectedSynapsesForSegment,
-                  const std::vector<CellIdx> &activePresynapticCells) const;
+  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+                       const std::vector<CellIdx> &activePresynapticCells) const;
 
   /**
    * The primary method in charge of learning.   Adapts the permanence values of
@@ -441,41 +441,46 @@ public:
    *
    * @retval Number of cells.
    */
-  CellIdx numCells() const;
+  size_t numCells() const { return cells_.size(); }
 
   /**
    * Gets the number of segments.
    *
    * @retval Number of segments.
    */
-  UInt numSegments() const;
+  size_t numSegments() const { 
+	  NTA_ASSERT(segments_.size() >= destroyedSegments_.size());
+	  return segments_.size() - destroyedSegments_.size(); }
 
   /**
    * Gets the number of segments on a cell.
    *
    * @retval Number of segments.
    */
-  UInt numSegments(CellIdx cell) const;
+  size_t numSegments(CellIdx cell) const { return cells_[cell].segments.size(); }
 
   /**
    * Gets the number of synapses.
    *
    * @retval Number of synapses.
    */
-  UInt numSynapses() const;
+  size_t numSynapses() const {
+    NTA_ASSERT(synapses_.size() >= destroyedSynapses_.size());
+    return synapses_.size() - destroyedSynapses_.size();
+  }
 
   /**
    * Gets the number of synapses on a segment.
    *
    * @retval Number of synapses.
    */
-  UInt numSynapses(Segment segment) const;
+  size_t numSynapses(Segment segment) const { return segments_[segment].synapses.size(); }
 
   /**
    * Comparison operator.
    */
   bool operator==(const Connections &other) const;
-  bool operator!=(const Connections &other) const;
+  inline bool operator!=(const Connections &other) const { return !operator==(other); }
 
   /**
    * Add a connections events handler.
@@ -537,7 +542,7 @@ protected:
    */
   void removeSynapseFromPresynapticMap_(const Synapse index,
                               std::vector<Synapse> &synapsesForPresynapticCell,
-                              std::vector<Synapse> &segmentsForPresynapticCell);
+                              std::vector<Segment> &segmentsForPresynapticCell);
 
 private:
   std::vector<CellData>    cells_;
@@ -545,7 +550,7 @@ private:
   std::vector<Segment>     destroyedSegments_;
   std::vector<SynapseData> synapses_;
   std::vector<Synapse>     destroyedSynapses_;
-  Permanence               connectedThreshold_;
+  Permanence               connectedThreshold_; //TODO make const
 
   // Extra bookkeeping for faster computing of segment activity.
   std::map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
@@ -553,19 +558,17 @@ private:
   std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
-  std::vector<UInt64> segmentOrdinals_;
-  std::vector<UInt64> synapseOrdinals_;
-  UInt64 nextSegmentOrdinal_;
-  UInt64 nextSynapseOrdinal_;
+  std::vector<Segment> segmentOrdinals_;
+  std::vector<Synapse> synapseOrdinals_;
+  Segment nextSegmentOrdinal_;
+  Synapse nextSynapseOrdinal_;
 
   UInt32 nextEventToken_;
   std::map<UInt32, ConnectionsEventHandler *> eventHandlers_;
 }; // end class Connections
 
 } // end namespace connections
-
 } // end namespace algorithms
-
 } // end namespace nupic
 
 #endif // NTA_CONNECTIONS_HPP

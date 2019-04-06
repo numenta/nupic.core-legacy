@@ -27,6 +27,7 @@
 #include <algorithm> //sort
 #include <functional>
 #include <vector>
+
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/utils/Random.hpp>
@@ -34,10 +35,13 @@
 namespace nupic {
 namespace sdr {
 
-typedef std::vector<Byte>               SDR_dense_t;
-typedef std::vector<UInt>               SDR_sparse_t;
-typedef std::vector<std::vector<UInt>>  SDR_coordinate_t;
-typedef std::function<void()>           SDR_callback_t;
+using ElemDense        = Byte; //TODO allow changing this
+using ElemSparse       = UInt32; //must match with connections::CellIdx 
+
+using SDR_dense_t      = std::vector<ElemDense>;
+using SDR_sparse_t     = std::vector<ElemSparse>;
+using SDR_coordinate_t = std::vector<std::vector<UInt>>;
+using SDR_callback_t   = std::function<void()>;
 
 /**
  * SparseDistributedRepresentation class
@@ -488,6 +492,8 @@ public:
     inline bool operator!=(const SparseDistributedRepresentation &sdr) const
         { return not ((*this) == sdr); }
 
+
+// TODO:Cereal- Remove these when Cereal is complete
     /**
      * Save (serialize) the current state of the SDR to the specified file.
      * This method can NOT save callbacks!  Only the dimensions and current data
@@ -505,6 +511,22 @@ public:
      * @param stream A input valid istream, such as an open file.
      */
     void load(std::istream &inStream) override;
+
+		CerealAdapter;
+    template<class Archive>
+    void save_ar(Archive & ar) const
+    {
+        getSparse(); // to make sure sparse is valid.
+        ar(cereal::make_nvp("dimensions", dimensions_), cereal::make_nvp("sparse", sparse_) );
+    }
+
+    template<class Archive>
+    void load_ar(Archive & ar)
+    {
+        ar( dimensions_, sparse_ );
+        initialize( dimensions_ );
+        setSparseInplace();
+    }
 
     /**
      * Callbacks notify you when this SDR's value changes.
