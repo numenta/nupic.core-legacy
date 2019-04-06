@@ -18,7 +18,7 @@
  * Implementation for SDR Metrics classes
  */
 
-#include <cmath> // log2, isnan
+#include <cmath> // log2, isnan, NAN, INFINITY
 #include <numeric> // accumulate
 #include <regex>
 #include <nupic/utils/SdrMetrics.hpp>
@@ -83,9 +83,9 @@ Sparsity::Sparsity( SDR &dataSource, UInt period )
     { initialize(); }
 
 void Sparsity::initialize() {
-    sparsity_   =  1234.567f;
-    min_        =  1234.567f;
-    max_        = -1234.567f;
+    sparsity_   =  NAN;
+    min_        =  INFINITY;
+    max_        = -INFINITY;
     mean_       =  1234.567f;
     variance_   =  1234.567f;
 }
@@ -229,9 +229,9 @@ Overlap::Overlap( SDR &dataSource, UInt period )
     { initialize(); }
 
 void Overlap::initialize() {
-    overlap_    =  1234.567f;
-    min_        =  1234.567f;
-    max_        = -1234.567f;
+    overlap_    =  NAN;
+    min_        =  INFINITY;
+    max_        = -INFINITY;
     mean_       =  1234.567f;
     variance_   =  1234.567f;
     reset();
@@ -247,6 +247,7 @@ void Overlap::callback(SDR &dataSource, Real alpha) {
         // It takes two data samples to compute overlap so decrement the
         // samples counter & return & wait for the next sample.
         samples_ -= 1;
+        overlap_ = NAN;
         return;
     }
     const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
