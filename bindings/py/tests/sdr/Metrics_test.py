@@ -92,8 +92,8 @@ Entropy 0.918296""")
         assert( np.all( AF.activationFrequency == .02 ))
         X.sparse = [0]
         assert( AF.samples == 1 )
-        alpha = 1 / AF.period
-        decay = 1 - alpha
+        alpha = 1. / AF.period
+        decay = 1. - alpha
         assert( np.all( AF.activationFrequency == .02 * decay + alpha ))
 
     def testOverlapExample(self):
