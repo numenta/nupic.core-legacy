@@ -63,7 +63,10 @@ Some of the major differences between this library and Numenta's extension libra
     - Version 2.7  We recommend you use the latest 2.7 version where possible. But the system version should be fine. (The extension library for Python 2.7 not supported on Windows.)
     - Version 3.4+  The Nupic Python repository will need to be upgraded as well before this will be useful.
   Be sure that your Python executable is in the Path environment variable. The Python that is in your default path is the one
-  that will determine which version of Python the extension library will be built for.
+  that will determine which version of Python the extension library will be built for.  
+  NOTE: Anaconda Python not supported. 
+  Other implementations of Python may not work. 
+  Only the standard python from python.org have been tested.
 - Python tools: In a command prompt execute the following.
 ```
   cd to-repository-root
@@ -108,7 +111,8 @@ The installation scripts will automatically download and build the dependancies 
  * Eigen
  * PyBind11
  * gtest
- * mnist data (optional)
+ * cereal
+ * mnist test data 
  * numpy
  * pytest
  
@@ -125,6 +129,7 @@ The installation scripts will automatically download and build the dependancies 
  | googletest.tar.gz    | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
  | mnist.zip     *note3 | https://github.com/wichtounet/mnist/archive/master.zip |
  | pybind11.tar.gz      | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
+ | cereal.tar.gz        | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
  
  *note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
  *note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.

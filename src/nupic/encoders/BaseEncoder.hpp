@@ -13,8 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Defines the base class for all encoders.
@@ -29,11 +28,25 @@ namespace nupic {
 namespace encoders {
 
 /**
- * Description:
  * Base class for all encoders.
+ * An encoder converts a value to a sparse distributed representation.
  *
- * Subclasses must implement method encode, and Serializable interface.
+ * Subclasses must implement method encode and Serializable interface.
  * Subclasses can optionally implement method reset.
+ *
+ * There are several critical properties which all encoders must have:
+ *
+ * 1) Semantic similarity:  Similar inputs should have high overlap.  Overlap
+ * decreases smoothly as inputs become less similar.  Dissimilar inputs have
+ * very low overlap so that the output representations are not easily confused.
+ *
+ * 2) Stability:  The representation for an input does not change during the
+ * lifetime of the encoder.
+ *
+ * 3) Sparsity: The output SDR should have a similar sparsity for all inputs and
+ * have enough active bits to handle noise and subsampling.
+ *
+ * Reference: https://arxiv.org/pdf/1602.05925.pdf
  */
 template<typename DataType>
 class BaseEncoder : public Serializable
@@ -41,7 +54,7 @@ class BaseEncoder : public Serializable
 public:
     /**
      * Members dimensions & size describe the shape of the encoded output SDR.
-     * This is the total number of bits which the result has.
+     * This is the total number of bits in the result.
      */
     const std::vector<UInt> &dimensions = dimensions_;
     const UInt              &size       = size_;

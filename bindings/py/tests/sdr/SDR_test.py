@@ -197,6 +197,27 @@ class SdrTest(unittest.TestCase):
         else:
             self.fail()
 
+    def testKeepAlive(self):
+        """ If there is a reference to an SDR's data then the SDR must be alive """
+        # Test Dense
+        A = SDR( 20 ).dense
+        assert(( A == [0]*20 ).all())
+        # Test Sparse
+        B = SDR( 100 )
+        B.randomize( .5 )
+        B_sparse = B.sparse
+        B_copy   = SDR( B )
+        del B
+        assert(( B_sparse == B_copy.sparse ).all())
+        # Test Coordinates
+        C = SDR([ 100, 100 ])
+        C.randomize( .5 )
+        C_data = C.coordinates
+        C_copy = SDR( C )
+        del C
+        assert(( C_data[0] == C_copy.coordinates[0] ).all())
+        assert(( C_data[1] == C_copy.coordinates[1] ).all())
+
     def testSetSDR(self):
         A = SDR((103,))
         B = SDR((103,))

@@ -140,7 +140,7 @@ SDR_dense_t& Concatenation::getDense() const {
     if( !dense_valid_lazy ) {
         // Setup for copying the data as rows & strides.
         const UInt    n_dim = (UInt)inputs[0]->dimensions.size();
-        vector<Byte*> buffers;
+        vector<ElemDense*> buffers;
         vector<UInt>  row_lengths;
         for(const auto &sdr : inputs) {
             buffers.push_back( sdr->getDense().data() );
@@ -151,8 +151,8 @@ SDR_dense_t& Concatenation::getDense() const {
         }
         // Get the output buffer.
         dense_.resize( size );
-              Byte *dense_data = dense_.data();
-        const Byte *data_end   = dense_data + size;
+        auto  dense_data = dense_.data();
+        const auto data_end    = dense_data + size;
         const auto n_inputs    = inputs.size();
         while( dense_data < data_end ) {
             // Copy one row from each input SDR.

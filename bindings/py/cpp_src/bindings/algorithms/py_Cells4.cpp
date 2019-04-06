@@ -137,7 +137,6 @@ namespace nupic_ext
         py_segment.def_static("atDutyCycleTier", &Segment_t::atDutyCycleTier);
 
         //
-        // def persistentSize(self):
         // def write(self, *args):
         //     write(self, proto)
         //
@@ -356,9 +355,6 @@ namespace nupic_ext
 
         // def trimSegments(self, minPermanence, minNumSyns):
         py_cells4.def("trimSegments", &Cells4_t::trimSegments);
-
-        // def persistentSize(self):
-        py_cells4.def("persistentSize", &Cells4_t::persistentSize);
 
         // def write(self, *args):
         py_cells4.def("write", [](Cells4_t& self, py::args args) { throw std::runtime_error("Not implemented."); });

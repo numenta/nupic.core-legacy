@@ -31,6 +31,7 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+#include <nupic/algorithms/Anomaly.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp> // macro "UNUSED"
@@ -43,13 +44,11 @@ using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections;
 using ::nupic::algorithms::spatial_pooler::SpatialPooler;
 using ::nupic::algorithms::temporal_memory::TemporalMemory;
+using namespace nupic::algorithms::anomaly;
 
 #define SEED 42
 
 Random rng(SEED);
-
-std::vector<UInt32> _randomSDR(UInt n, UInt w);
-void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn = true);
 
 float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
                                                        int numElements,
@@ -59,51 +58,50 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
   // Initialize
 
   TemporalMemory tm;
-  vector<UInt> columnDim;
-  columnDim.push_back(numColumns);
-  tm.initialize(columnDim);
+  tm.initialize( {numColumns} );
 
   cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
 
-  // Learn
-
-  vector<vector<vector<CellIdx>>> sequences;
-  vector<vector<CellIdx>> sequence;
-  vector<CellIdx> sdr;
-
+  // generate data
+  vector<vector<SDR>> sequences;
   for (int i = 0; i < numSequences; i++) {
+    vector<SDR> sequence;
+    SDR sdr({numColumns});
     for (int j = 0; j < numElements; j++) {
-      sdr = _randomSDR(numColumns, w);
+      const Real sparsity = w / static_cast<Real>(numColumns);
+      sdr.randomize(sparsity, rng);
       sequence.push_back(sdr);
     }
-
     sequences.push_back(sequence);
   }
 
+  // learn
   for (int i = 0; i < 5; i++) {
     for (auto sequence : sequences) {
       for (auto sdr : sequence) {
-        _feedTM(tm, sdr);
-        tm.reset();
+        tm.compute(sdr, true);
+	//TODO get untrained anomaly score here
       }
-    }
-  }
-
-  cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
-
-  // Test
-
-  for (auto sequence : sequences) {
-    for (auto sdr : sequence) {
-      _feedTM(tm, sdr, false);
       tm.reset();
     }
   }
+  cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
 
+  // test
+  for (auto sequence : sequences) {
+    for (auto sdr : sequence) {
+      tm.compute(sdr, false);
+      //TODO get trained (lower) anomaly
+    }
+    tm.reset();
+  }
+  //TODO check anomaly trained < anomaly untrained
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
   return (float)timer.getElapsed();
 }
+
+
 
 float runSpatialPoolerTest(
                   UInt   numInputs,
@@ -127,21 +125,10 @@ float runSpatialPoolerTest(
   SpatialPooler sp(
     /* inputDimensions */               { numInputs },
     /* columnDimensions */              { numColumns },
-    /* potentialRadius */               (numInputs + numColumns),
-    /* potentialPct */                  0.5f,
-    /* globalInhibition */              true,
-    /* localAreaDensity */              columnSparsity,
-    /* numActiveColumnsPerInhArea */    -1,
-    /* stimulusThreshold */             6u,
-    /* synPermInactiveDec */            0.01f,
-    /* synPermActiveInc */              0.03f,
-    /* synPermConnected */              0.4f,
-    /* minPctOverlapDutyCycles */       0.001f,
-    /* dutyCyclePeriod */               1000u,
-    /* boostStrength */                 1.0f,
-    /* seed */                          rng(),
-    /* spVerbosity */                   0u,
-    /* wrapAround */                    true);
+    /* potentialRadius */               (numInputs + numColumns)
+    );
+  sp.setLocalAreaDensity(columnSparsity);
+
   SDR input( sp.getInputDimensions() );
   SDR columns( sp.getColumnDimensions() );
   cout << (float)timer.getElapsed() << " in " << label << ": initialize"  << endl;
@@ -164,42 +151,18 @@ float runSpatialPoolerTest(
 }
 
 
-vector<CellIdx> _randomSDR(UInt n, UInt w) {
-  set<UInt> sdrSet = set<UInt>();
-  vector<CellIdx> sdr;
-
-  for (UInt i = 0; i < w; i++) {
-    sdrSet.insert(rng.getUInt32(n));
-  }
-
-  for (UInt c : sdrSet) {
-    sdr.push_back(c);
-  }
-
-  return sdr;
-}
-
-
-void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn) {
-  vector<UInt> activeColumns;
-
-  for (auto c : sdr) {
-    activeColumns.push_back(c);
-  }
-
-  tm.compute(activeColumns.size(), activeColumns.data(), learn);
-}
-
 
 // TESTS
 #if defined( NDEBUG) && !defined(NTA_OS_WINDOWS)
-  const UInt COLS = 2048; //standard num of columns in SP/TM
-  const UInt SEQ = 50; //number of sequences ran in tests
-  const UInt EPOCHS = 20; //tests run for epochs times
+  const UInt COLS 	= 2048; //standard num of columns in SP/TM
+  const UInt W 		= 50;
+  const UInt SEQ 	= 50; //number of sequences ran in tests
+  const UInt EPOCHS 	= 20; //tests run for epochs times
 #else
-  const UInt COLS = 20; //standard num of columns in SP/TM
-  const UInt SEQ = 25; //number of sequences ran in tests
-  const UInt EPOCHS = 4; //only short in debug; is epochs/2 in some tests, that's why 4
+  const UInt COLS 	= 20; //standard num of columns in SP/TM
+  const UInt W 		= 3;
+  const UInt SEQ 	= 25; //number of sequences ran in tests
+  const UInt EPOCHS 	= 4; //only short in debug; is epochs/2 in some tests, that's why 4
 #endif
 
 
@@ -208,9 +171,9 @@ void _feedTM(TemporalMemory &tm, vector<CellIdx> sdr, bool learn) {
  * format is: COLS, W(bits), EPOCHS, SEQUENCES
  */
 TEST(ConnectionsPerformanceTest, testTM) {
-	auto tim = runTemporalMemoryTest(COLS, 40, EPOCHS, SEQ, "temporal memory");
+	auto tim = runTemporalMemoryTest(COLS, W, EPOCHS, SEQ, "temporal memory");
 #ifdef NDEBUG
-	ASSERT_LE(tim, 1.0*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
+	ASSERT_LE(tim, 3.3f*Timer::getSpeed()); //there are times, we must be better. Bit underestimated for slow CI
 #endif
   UNUSED(tim);
 }
@@ -219,9 +182,9 @@ TEST(ConnectionsPerformanceTest, testTM) {
  * Tests typical usage of Connections with a large Temporal Memory.
  */
 TEST(ConnectionsPerformanceTest, testTMLarge) {
-  auto tim = runTemporalMemoryTest(2*COLS, 328, EPOCHS/2, SEQ, "temporal memory (large)");
+  auto tim = runTemporalMemoryTest(2*COLS, 6*W, EPOCHS/2, SEQ, "temporal memory (large)");
 #ifdef NDEBUG
-  ASSERT_LE(tim, 1.9*Timer::getSpeed());
+  ASSERT_LE(tim, 15*Timer::getSpeed());
 #endif
   UNUSED(tim);
 }
@@ -238,23 +201,6 @@ TEST(ConnectionsPerformanceTest, testSP) {
     /* label */              "spatial pooler");
 
 #ifdef NDEBUG
-  ASSERT_LE(tim, 4.0f * Timer::getSpeed());
-#endif
-  UNUSED(tim);
-}
-
-/**
- * Tests typical usage of Connections with Temporal Pooler.
- */
-TEST(ConnectionsPerformanceTest, testTP) {
-  auto tim = runSpatialPoolerTest(
-    /* numInputs */          2 * COLS,
-    /* inputSparsity */      0.02f,
-    /* numColumns */         COLS / 2,
-    /* columnSparsity */     0.1f,
-    /* label */              "temporal pooler");
-
-#if defined( NDEBUG)
   ASSERT_LE(tim, 4.0f * Timer::getSpeed());
 #endif
   UNUSED(tim);

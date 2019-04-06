@@ -58,6 +58,7 @@ set(src_py_sdr_files
 set(src_py_encoders_files
     bindings/encoders/encoders_module.cpp
     bindings/encoders/py_ScalarEncoder.cpp
+    bindings/encoders/py_RDSE.cpp
     )
 
 set(src_py_engine_files
@@ -99,8 +100,8 @@ source_group("test"       FILES ${src_py_test_files})
 # setup the distr directory
 set(distr ${CMAKE_INSTALL_PREFIX}/distr)
 file(MAKE_DIRECTORY ${distr})
+file(COPY ${REPOSITORY_DIR}/py/. DESTINATION ${distr} PATTERN *)
 file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
-
 
 # determine which version of binding to build
 if ("${BINDING_BUILD}" STREQUAL "Python2")

@@ -184,14 +184,6 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
   }
 }
 
-size_t SDRClassifier::persistentSize() const {
-  stringstream s;
-  s.flags(ios::scientific);
-  s.precision(numeric_limits<double>::digits10 + 1);
-  save(s);
-  return s.str().size();
-}
-
 void SDRClassifier::infer_(const vector<UInt> &patternNZ,
                            const vector<Real64> &actValue,
                            ClassifierResult &result)
