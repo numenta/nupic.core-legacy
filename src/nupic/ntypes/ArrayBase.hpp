@@ -198,16 +198,16 @@ namespace nupic
         const void* ptr = getBuffer();
         size_t count = getCount();
         switch (type_) {
-        case NTA_BasicType_Byte:  save_array(ar, (Byte*)ptr,   count); break;
-	      case NTA_BasicType_Int16: save_array(ar, (Int16*)ptr,  count); break;
-	      case NTA_BasicType_UInt16:save_array(ar, (UInt16*)ptr, count); break;
-	      case NTA_BasicType_Int32: save_array(ar, (Int32*)ptr,  count); break;
-	      case NTA_BasicType_UInt32:save_array(ar, (UInt32*)ptr, count); break;
-	      case NTA_BasicType_Int64: save_array(ar, (Int64*)ptr,  count); break;
-	      case NTA_BasicType_UInt64:save_array(ar, (UInt64*)ptr, count); break;
-	      case NTA_BasicType_Real32:save_array(ar, (Real32*)ptr, count); break;
-	      case NTA_BasicType_Real64:save_array(ar, (Real64*)ptr, count); break;
-	      case NTA_BasicType_Bool:  save_array(ar, (bool*)ptr,   count); break;
+        case NTA_BasicType_Byte:  save_array(ar, reinterpret_cast<const Byte*>(ptr),   count); break;
+	      case NTA_BasicType_Int16: save_array(ar, reinterpret_cast<const Int16*>(ptr),  count); break;
+	      case NTA_BasicType_UInt16:save_array(ar, reinterpret_cast<const UInt16*>(ptr), count); break;
+	      case NTA_BasicType_Int32: save_array(ar, reinterpret_cast<const Int32*>(ptr),  count); break;
+	      case NTA_BasicType_UInt32:save_array(ar, reinterpret_cast<const UInt32*>(ptr), count); break;
+	      case NTA_BasicType_Int64: save_array(ar, reinterpret_cast<const Int64*>(ptr),  count); break;
+	      case NTA_BasicType_UInt64:save_array(ar, reinterpret_cast<const UInt64*>(ptr), count); break;
+	      case NTA_BasicType_Real32:save_array(ar, reinterpret_cast<const Real32*>(ptr), count); break;
+	      case NTA_BasicType_Real64:save_array(ar, reinterpret_cast<const Real64*>(ptr), count); break;
+	      case NTA_BasicType_Bool:  save_array(ar, reinterpret_cast<const bool*>(ptr),   count); break;
 	      default:
 	        NTA_THROW << "Unexpected Element Type: " << type_;
 	        break;
@@ -224,22 +224,22 @@ namespace nupic
       if (type_ == NTA_BasicType_SDR){
         sdr::SDR *sdr = new sdr::SDR();
         ar(cereal::make_nvp("SDR", *sdr));
-        buffer_.reset((char*)sdr);
+        buffer_.reset(reinterpret_cast<char*>(sdr));
         count_ = sdr->size;
       } else {
         void* ptr = getBuffer();
         size_t count = getCount();
 	      switch (type_) {
-        case NTA_BasicType_Byte:  load_array(ar, (Byte*)ptr,   count); break;
-	      case NTA_BasicType_Int16: load_array(ar, (Int16*)ptr,  count); break;
-	      case NTA_BasicType_UInt16:load_array(ar, (UInt16*)ptr, count); break;
-	      case NTA_BasicType_Int32: load_array(ar, (Int32*)ptr,  count); break;
-	      case NTA_BasicType_UInt32:load_array(ar, (UInt32*)ptr, count); break;
-	      case NTA_BasicType_Int64: load_array(ar, (Int64*)ptr,  count); break;
-	      case NTA_BasicType_UInt64:load_array(ar, (UInt64*)ptr, count); break;
-	      case NTA_BasicType_Real32:load_array(ar, (Real32*)ptr, count); break;
-	      case NTA_BasicType_Real64:load_array(ar, (Real64*)ptr, count); break;
-	      case NTA_BasicType_Bool:  load_array(ar, (bool*)ptr,   count); break;
+        case NTA_BasicType_Byte:  load_array(ar, reinterpret_cast<Byte*>(ptr),   count); break;
+	      case NTA_BasicType_Int16: load_array(ar, reinterpret_cast<Int16*>(ptr),  count); break;
+	      case NTA_BasicType_UInt16:load_array(ar, reinterpret_cast<UInt16*>(ptr), count); break;
+	      case NTA_BasicType_Int32: load_array(ar, reinterpret_cast<Int32*>(ptr),  count); break;
+	      case NTA_BasicType_UInt32:load_array(ar, reinterpret_cast<UInt32*>(ptr), count); break;
+	      case NTA_BasicType_Int64: load_array(ar, reinterpret_cast<Int64*>(ptr),  count); break;
+	      case NTA_BasicType_UInt64:load_array(ar, reinterpret_cast<UInt64*>(ptr), count); break;
+	      case NTA_BasicType_Real32:load_array(ar, reinterpret_cast<Real32*>(ptr), count); break;
+	      case NTA_BasicType_Real64:load_array(ar, reinterpret_cast<Real64*>(ptr), count); break;
+	      case NTA_BasicType_Bool:  load_array(ar, reinterpret_cast<bool*>(ptr),   count); break;
 	      default:
 	        NTA_THROW << "Unexpected Element Type: " << type_;
 	        break;
@@ -268,7 +268,7 @@ namespace nupic
     // helpers for Cereal Serialization of raw pointers to arrays
 		// copy the array to a vector and let Cereal handle it.
     template<class Archive, class T>
-    void save_array(Archive& ar, T* ptr, size_t count) const {
+    void save_array(Archive& ar, const T* ptr, size_t count) const {
       std::vector<T> a(ptr, ptr+count);
       ar(cereal::make_nvp("data", a));
     }
@@ -278,7 +278,9 @@ namespace nupic
       std::vector<T> a;
       ar(a);
       allocateBuffer(a.size());
-      std::copy(a.begin(), a.end(), (T*)getBuffer());
+      // Note that the ptr argument provides type but its value is changed by
+      // allocateBuffer() so we have to get it again.
+      std::copy(a.begin(), a.end(), reinterpret_cast<T*>(getBuffer()));
     }
 
   };

@@ -231,7 +231,7 @@ public:
         a.allocateBuffer(getSDR().dimensions);
       else
         a.allocateBuffer(getCount());
-      memcpy((char *)a.getBuffer(), (char *)getBuffer(),
+      std::memcpy(static_cast<char *>(a.getBuffer()), static_cast<const char *>(getBuffer()),
              getCount() * BasicType::getSize(type_));
     }
     return a;
@@ -312,8 +312,8 @@ public:
     NTA_CHECK(type_ != NTA_BasicType_SDR) << "subset() not valid for SDR";
     Array a(type_);
     a.allocateBuffer(count);
-    memcpy(a.getBuffer(),
-            (char *)getBuffer() + offset * BasicType::getSize(type_),
+    std::memcpy(a.getBuffer(),
+            static_cast<const char *>(getBuffer()) + offset * BasicType::getSize(type_),
             count * BasicType::getSize(type_));
     return a;
   }

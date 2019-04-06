@@ -50,7 +50,7 @@ ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count) {
   type_ = type;
   allocateBuffer(count);
   if (has_buffer()) {
-    std::memcpy((char *)getBuffer(), (char *)buffer,
+    std::memcpy(reinterpret_cast<char *>(getBuffer()), reinterpret_cast<char *>(buffer),
                 count * BasicType::getSize(type));
   }
 }
@@ -64,7 +64,7 @@ ArrayBase::ArrayBase(const sdr::SDR &sdr) {
   auto dim = sdr.dimensions;
   allocateBuffer(dim);
   if (has_buffer()) {
-    std::memcpy((char *)getBuffer(), (char *)sdr.getDense().data(), count_);
+    std::memcpy(reinterpret_cast<char *>(getBuffer()), reinterpret_cast<char *>(sdr.getDense().data()), count_);
   }
   // sdr.setDenseInplace();
 }
@@ -117,7 +117,7 @@ char *ArrayBase::allocateBuffer(size_t count) {
 char *ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only for SDR
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Dimensions can only be set on the SDR payload";
   sdr::SDR *sdr = new sdr::SDR(dimensions);
-  std::shared_ptr<char> sp((char *)(sdr));
+  std::shared_ptr<char> sp(reinterpret_cast<char *>(sdr));
   buffer_ = sp;
   count_ = sdr->size;
   return buffer_.get();
@@ -148,11 +148,11 @@ void ArrayBase::zeroBuffer() {
 void ArrayBase::setBuffer(void *buffer, size_t count) {
   NTA_CHECK(type_ != NTA_BasicType_SDR);
   count_ = count;
-  buffer_ = std::shared_ptr<char>((char *)buffer, nonDeleter());
+  buffer_ = std::shared_ptr<char>(reinterpret_cast<char *>(buffer), nonDeleter());
 }
 void ArrayBase::setBuffer(sdr::SDR &sdr) {
   type_ = NTA_BasicType_SDR;
-  buffer_ = std::shared_ptr<char>((char *)&sdr, nonDeleter());
+  buffer_ = std::shared_ptr<char>(reinterpret_cast<char *>(&sdr), nonDeleter());
   count_ = sdr.size;
 }
 
@@ -190,7 +190,7 @@ sdr::SDR& ArrayBase::getSDR() {
     zeroDim.push_back(0u);
     allocateBuffer(zeroDim);  // Create an empty SDR object.
   }
-  sdr::SDR& sdr = *((sdr::SDR *)buffer_.get());
+  sdr::SDR& sdr = *(reinterpret_cast<sdr::SDR *>(buffer_.get()));
   sdr.setDense(sdr.getDense()); // cleanup cache
   return sdr;
 }
@@ -199,7 +199,7 @@ const sdr::SDR& ArrayBase::getSDR() const {
   if (buffer_ == nullptr)
     // this is const, cannot create an empty SDR.
     NTA_THROW << "getSDR: SDR pointer is null";
-  sdr::SDR& sdr = *((sdr::SDR *)buffer_.get());
+  sdr::SDR& sdr = *(reinterpret_cast<sdr::SDR *>(buffer_.get()));
   sdr.setDense(sdr.getDense()); // cleanup cache
   return sdr;
 }
@@ -210,7 +210,7 @@ const sdr::SDR& ArrayBase::getSDR() const {
  */
 size_t ArrayBase::getCount() const {
   if (has_buffer() && type_ == NTA_BasicType_SDR) {
-    return ((sdr::SDR *)(buffer_.get()))->size;
+    return (reinterpret_cast<sdr::SDR *>(buffer_.get()))->size;
   }
   return count_;
 };
@@ -263,7 +263,7 @@ void ArrayBase::convertInto(ArrayBase &a, size_t offset, size_t maxsize) const {
   //    a.setCount(maxsize);
   //}
   NTA_CHECK(getCount() + offset <= maxsize);
-  char *toPtr =  (char *)a.getBuffer(); // char* so it has size
+  char *toPtr =  reinterpret_cast<char *>(a.getBuffer()); // char* so it has size
   if (offset)
     toPtr += (offset * BasicType::getSize(a.getType()));
   const void *fromPtr = getBuffer();
@@ -316,10 +316,10 @@ static bool compare_array_0_and_non0s_(const ArrayBase &a_side, const std::vecto
   const Byte *v_ptr = &v_side[0];
   switch(ele_size) { 
   default:
-  case 1: return compare_array_0_and_non0s_helper_((const Byte*  )a_ptr, v_ptr, size);
-  case 2: return compare_array_0_and_non0s_helper_((const UInt16*)a_ptr, v_ptr, size);
-  case 4: return compare_array_0_and_non0s_helper_((const UInt32*)a_ptr, v_ptr, size);
-  case 8: return compare_array_0_and_non0s_helper_((const UInt64*)a_ptr, v_ptr, size);
+  case 1: return compare_array_0_and_non0s_helper_(reinterpret_cast<const Byte*  >(a_ptr), v_ptr, size);
+  case 2: return compare_array_0_and_non0s_helper_(reinterpret_cast<const UInt16*>(a_ptr), v_ptr, size);
+  case 4: return compare_array_0_and_non0s_helper_(reinterpret_cast<const UInt32*>(a_ptr), v_ptr, size);
+  case 8: return compare_array_0_and_non0s_helper_(reinterpret_cast<const UInt64*>(a_ptr), v_ptr, size);
   }
   return true;
 }
@@ -342,7 +342,7 @@ void ArrayBase::save(std::ostream &outStream) const {
 
     if (count_ > 0) {
       Size size = count_ * BasicType::getSize(type_);
-      outStream.write((const char *)buffer_.get(), size);
+      outStream.write(reinterpret_cast<const char *>(buffer_.get()), size);
     }
   }
   outStream << "]" << std::endl;
@@ -359,7 +359,7 @@ void ArrayBase::load(std::istream &inStream) {
   if (count > 0 && type_ == NTA_BasicType_SDR) {
     sdr::SDR *sdr = new sdr::SDR();
     sdr->load(inStream);
-    std::shared_ptr<char> sp((char *)(sdr));
+    std::shared_ptr<char> sp(reinterpret_cast<char *>(sdr));
     buffer_ = sp;
     count_ = sdr->size;
   } else {
@@ -383,7 +383,7 @@ static void _templatedStreamBuffer(std::ostream &outStream, const void *inbuf,
   outStream << "( ";
 
   // Stream the elements
-  auto it = (const T *)inbuf;
+  auto it = reinterpret_cast<const T *>(inbuf);
   auto const end = it + numElements;
   if (it < end) {
     for (; it < end; ++it) {
@@ -465,7 +465,7 @@ static void _templatedStreamBuffer(std::istream &inStream, void *buf,
       << "deserialize Array buffer...expected an opening '(' but not found.";
 
   // Stream the elements
-  auto it = (T *)buf;
+  auto it = reinterpret_cast<T *>(buf);
   auto const end = it + numElements;
   if (it < end) {
     for (; it < end; ++it) {
@@ -491,7 +491,7 @@ std::istream &operator>>(std::istream &inStream, ArrayBase &a) {
   if (numElements > 0 && a.type_ == NTA_BasicType_SDR) {
     sdr::SDR *sdr = new sdr::SDR();
     sdr->load(inStream);
-    std::shared_ptr<char> sp((char *)(sdr));
+    std::shared_ptr<char> sp(reinterpret_cast<char *>(sdr));
     a.buffer_ = sp;
   } else {
     a.allocateBuffer(numElements);
