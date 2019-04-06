@@ -157,8 +157,7 @@ void test() {
       /* infer */           true,
                             result);
     // Check results
-    // const auto cls = result.getClass();
-    UInt cls = -1; // TODO FIXME ADD METHOD getClass BACK TO SDRC!
+    UInt cls = max_element(result[0].begin(), result[0].end()) - result[0].begin();
     if(cls == label) score += 1;
     n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;

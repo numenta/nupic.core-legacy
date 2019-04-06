@@ -40,7 +40,6 @@
 namespace nupic {
 namespace algorithms {
 namespace sdr_classifier {
-using namespace std; // TODO: REMOVE THIS!
 
 
 const UInt sdrClassifierVersion = 2;
@@ -51,7 +50,9 @@ const UInt sdrClassifierVersion = 2;
 using PDF = std::vector<Real64>;
 
 /**
- *
+ * The key is the step, for predicting multiple time steps into the future.
+ * The key -1 contains the estimate of the actual values.
+ * The value is a PDF of the result being in each bucket.
  */
 using ClassifierResult = std::map<Int, PDF>;
 
@@ -72,7 +73,7 @@ public:
    * Constructor for use when deserializing.
    */
   SDRClassifier() {}
-  void initialize(const vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
+  void initialize(const std::vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
                   UInt verbosity);
 
   /**
@@ -84,7 +85,7 @@ public:
    *                      values for each bucket.
    * @param verbosity The logging verbosity.
    */
-  SDRClassifier(const vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
+  SDRClassifier(const std::vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
                 UInt verbosity);
 
   /**
@@ -109,9 +110,9 @@ public:
    *               values for key 0 correspond to the actual values to
    *               used when predicting each bucket.
    */
-  virtual void compute(UInt recordNum, const vector<UInt> &patternNZ,
-                       const vector<UInt> &bucketIdxList,
-                       const vector<Real64> &actValueList, bool category,
+  virtual void compute(UInt recordNum, const std::vector<UInt> &patternNZ,
+                       const std::vector<UInt> &bucketIdxList,
+                       const std::vector<Real64> &actValueList, bool category,
                        bool learn, bool infer, ClassifierResult &result);
 
   /**
@@ -151,18 +152,18 @@ public:
 
 private:
   // Helper function for inference mode
-  void infer_(const vector<UInt> &patternNZ, const vector<Real64> &actValue,
+  void infer_(const std::vector<UInt> &patternNZ, const std::vector<Real64> &actValue,
               ClassifierResult &result);
 
   // Helper function to compute the error signal in learning mode
-  vector<Real64> calculateError_(const vector<UInt> &bucketIdxList,
-                                 const vector<UInt> patternNZ, UInt step);
+  std::vector<Real64> calculateError_(const std::vector<UInt> &bucketIdxList,
+                                      const std::vector<UInt> patternNZ, UInt step);
 
   // softmax function
-  void softmax_(vector<Real64>::iterator begin, vector<Real64>::iterator end);
+  void softmax_(std::vector<Real64>::iterator begin, std::vector<Real64>::iterator end);
 
   // The list of prediction steps to learn and infer.
-  vector<UInt> steps_;
+  std::vector<UInt> steps_;
 
   // The alpha used to decay the duty cycles in the BitHistorys.
   Real64 alpha_;
@@ -175,11 +176,11 @@ private:
 
   // Stores the input pattern history, starting with the previous input
   // and containing _maxSteps total input patterns.
-  deque<vector<UInt>> patternNZHistory_;
-  deque<UInt> recordNumHistory_;
+  std::deque<std::vector<UInt>> patternNZHistory_;
+  std::deque<UInt> recordNumHistory_;
 
   // Weight matrices for the classifier (one per prediction step)
-  map<UInt, Matrix> weightMatrix_;
+  std::map<UInt, Matrix> weightMatrix_;
 
   // The highest input bit that the classifier has seen so far.
   UInt maxInputIdx_;
@@ -189,11 +190,11 @@ private:
 
   // The current actual values used for each bucket index. The index of
   // the actual value matches the index of the bucket.
-  vector<Real64> actualValues_;
+  std::vector<Real64> actualValues_;
 
   // A boolean that distinguishes between actual values that have been
   // seen and those that have not.
-  vector<bool> actualValuesSet_;
+  std::vector<bool> actualValuesSet_;
 
   // Version and verbosity.
   UInt version_;
