@@ -118,27 +118,27 @@ public:
   CerealAdapter;
   template<class Archive>
   void save_ar(Archive & ar) const {
-    ar((std::vector<UInt>&) *this);
+    ar(reinterpret_cast<const std::vector<UInt>&>(*this));
   }
   template<class Archive>
   void load_ar(Archive & ar) {
-    ar((std::vector<UInt>&) *this);
+    ar(reinterpret_cast<std::vector<UInt>&>(*this));
   }
 
   // TODO:Cereal- remove these two methods when Cereal is fully implmented.
   void save(std::ostream &f) const override {
     size_t n = size();
-    f.write((const char*)&n, sizeof(size_t));
+    f.write(reinterpret_cast<const char*>(&n), sizeof(size_t));
     if (n > 0)
-      f.write((const char*)&at(0), n * sizeof(at(0)));
+      f.write(reinterpret_cast<const char*>(&at(0)), n * sizeof(at(0)));
   }
   void load(std::istream &f) override {
     size_t n;
-    f.read((char*)&n, sizeof(size_t));
+    f.read(reinterpret_cast<char*>(&n), sizeof(size_t));
     clear();
     if (n > 0) {
       resize(n);
-      f.read((char*)&at(0), n * sizeof(at(0)));
+      f.read(reinterpret_cast<char*>(&at(0)), n * sizeof(at(0)));
     }
   }
 

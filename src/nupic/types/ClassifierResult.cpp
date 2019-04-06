@@ -68,10 +68,10 @@ bool ClassifierResult::operator==(const ClassifierResult &other) const {
 UInt ClassifierResult::getClass(const UInt stepsAhead) const {
   NTA_CHECK(stepsAhead < result_.size()) << "ClassifierResult is not for steps " << stepsAhead;
   for(auto iter : this->result_) {
-    if( iter.first == (Int)stepsAhead ) {  //entry at nth step  (0==current) 
+    if( iter.first == static_cast<Int>(stepsAhead) ) {  //entry at nth step  (0==current) 
       const auto *pdf = iter.second; //probability distribution of the classes
       const auto max  = std::max_element(pdf->cbegin(), pdf->cend());
-      const UInt cls  = (UInt32)(max - pdf->cbegin());
+      const UInt cls  = static_cast<UInt32>(max - pdf->cbegin());
       return cls;
     }
   }
