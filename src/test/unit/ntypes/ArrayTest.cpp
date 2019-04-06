@@ -102,7 +102,7 @@ static void toSparse(const Array&a, std::vector<UInt32>&sparse) {
   }
 
   char *buf = (char*)a.getBuffer();
-  for (UInt32 idx = 0; idx < a.getCount(); idx++) {
+  for (size_t idx = 0; idx < a.getCount(); idx++) {
     	switch (a.getType()) {
 	    case NTA_BasicType_Byte:   if((reinterpret_cast<Byte*>(buf))[idx])   sparse.push_back(idx); break;
 	    case NTA_BasicType_Int16:  if((reinterpret_cast<Int16*>(buf))[idx])  sparse.push_back(idx); break;
@@ -241,7 +241,7 @@ TEST_F(ArrayTest, testMemory) {
 
     a.allocateBuffer(100000);
     ownedBufferLocation = reinterpret_cast<char *>(a.getBuffer());
-    EXPECT_TRUE(a.getCount() == 100000);
+    EXPECT_TRUE(a.getCount() == 100000u);
 
     // Verify that we can write into the buffer
     bool wasAbleToWriteToBuffer = true;
@@ -320,7 +320,7 @@ TEST_F(ArrayTest, testMemory) {
   b.releaseBuffer();
   // The b buffer is no longer valid but c still has a reference to it.
   EXPECT_TRUE(b.getBuffer() == nullptr)  << "expected a null pointer because the buffer was released.";
-  EXPECT_TRUE(b.getCount() == 0)  << "expected a 0 length because the buffer was released.";
+  EXPECT_TRUE(b.getCount() == 0u)  << "expected a 0 length because the buffer was released.";
   EXPECT_TRUE(reinterpret_cast<char *>(ownedBufferLocation)[4] == 'Z') << "The pointer should still see the e buffer.";
 
   // c->releaseBuffer();   //non-const functions on c should give compile errors.
@@ -359,7 +359,7 @@ TEST_F(ArrayTest, testArrayCreation) {
           << "Test case: " + testCase->first +
                  " - When not passed a size, a newly created Array should "
                  "have a NULL buffer";
-      ASSERT_EQ(0, arrayP->getCount())
+      ASSERT_EQ(0u, arrayP->getCount())
           << "Test case: " + testCase->first +
                  " - When not passed a size, a newly created Array should "
                  "have a count equal to zero";
@@ -441,7 +441,7 @@ TEST_F(ArrayTest, testBufferAllocation) {
             " - allocating a buffer when one is already allocated should "
             "not raise an exception. The allocation will release the previous buffer.";
 
-      ASSERT_EQ((size_t)10, a.getCount())
+      ASSERT_EQ(10u, a.getCount())
           << "Test case: " + testCase->first +
                  " - Size of allocated ArrayBase should match requested size";
     }

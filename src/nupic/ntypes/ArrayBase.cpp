@@ -286,7 +286,7 @@ bool ArrayBase::isInstance(const ArrayBase &a) const {
 bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
   if (lhs.getType() != rhs.getType() || lhs.getCount() != rhs.getCount())
     return false;
-  if (lhs.getCount() == 0)
+  if (lhs.getCount() == 0u)
     return true;
   if (lhs.getType() == NTA_BasicType_SDR) {
     return (lhs.getSDR() == rhs.getSDR());
