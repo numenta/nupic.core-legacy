@@ -273,7 +273,7 @@ namespace nupic_ext
         {
             auto overlaps = self.getOverlaps();
 
-            return py::array_t<UInt>( overlaps.size(), overlaps.data());
+            return py::array_t<SynapseIdx>( overlaps.size(), overlaps.data());
         });
 
         // getBoostedOverlaps
