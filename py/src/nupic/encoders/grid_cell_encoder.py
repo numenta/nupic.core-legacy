@@ -56,7 +56,7 @@ class GridCellEncoder:
         self.size       = size
         self.dimensions = (size,)
         self.sparsity   = sparsity
-        self.periods    = tuple(sorted(periods))
+        self.periods    = tuple(sorted(float(p) for p in periods))
         assert(len(self.periods) > 0)
         assert(min(self.periods) >= 4)
         assert(self.sparsity >= 0)
