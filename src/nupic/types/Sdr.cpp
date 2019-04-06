@@ -323,6 +323,18 @@ namespace sdr {
     }
 
 
+    void SparseDistributedRepresentation::intersection(std::vector<const SDR*> inputs) {
+        const auto &input0 = inputs[0]->getDense();
+        dense_.assign( input0.begin(), input0.end() );
+        for(auto i = 1u; i < inputs.size(); ++i) {
+            const auto &data = inputs[i]->getDense();
+            for(auto z = 0u; z < data.size(); ++z)
+                dense_[z] = dense_[z] && data[z];
+        }
+        SDR::setDenseInplace();
+    }
+
+
     bool SparseDistributedRepresentation::operator==(const SparseDistributedRepresentation &sdr) const {
         // Check attributes
         if( sdr.size != size or dimensions.size() != sdr.dimensions.size() )
