@@ -4,4 +4,4 @@ numpy>=1.12.1
 pytest>=3.0.7
 pytest-cov>=2.5.0
 ## for python code (in /py/)
-hexy>=1.4 # for grid cell encoder
+hexy>=1.41 # for grid cell encoder
