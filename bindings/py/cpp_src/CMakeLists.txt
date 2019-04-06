@@ -100,8 +100,8 @@ source_group("test"       FILES ${src_py_test_files})
 # setup the distr directory
 set(distr ${CMAKE_INSTALL_PREFIX}/distr)
 file(MAKE_DIRECTORY ${distr})
+file(COPY ${REPOSITORY_DIR}/py/. DESTINATION ${distr} PATTERN *)
 file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
-
 
 # determine which version of binding to build
 if ("${BINDING_BUILD}" STREQUAL "Python2")
