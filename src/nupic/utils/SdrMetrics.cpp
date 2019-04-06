@@ -117,32 +117,32 @@ std::ostream& operator<<(std::ostream& stream, const Sparsity &S)
 
 /******************************************************************************/
 
-ActivationFrequency::ActivationFrequency( const vector<UInt> dimensions, UInt period )
+ActivationFrequency::ActivationFrequency( const vector<UInt> &dimensions,
+                                          UInt                period,
+                                          Real                initialValue )
     : MetricsHelper_( dimensions, period )
 {
     UInt size = 1;
     for(const auto &dim : dimensions)
         size *= dim;
-    initialize( size );
+    initialize( size, initialValue );
 }
 
-ActivationFrequency::ActivationFrequency( SDR &dataSource, UInt period )
+ActivationFrequency::ActivationFrequency( SDR &dataSource, UInt period, Real initialValue )
     : MetricsHelper_( dataSource, period )
-    { initialize( dataSource.size ); }
+    { initialize( dataSource.size, initialValue ); }
 
-void ActivationFrequency::initialize(UInt size) {
-    activationFrequency_.assign( size, 1234.567f );
-    alwaysExponential_ = false;
-}
-
-void ActivationFrequency::initializeToValue( Real initialValue )
-{
-    NTA_ASSERT( samples_ < 1 ) << "ActivationFrequency already in use.";
-    NTA_CHECK( not alwaysExponential_ ) << "ActivationFrequency already initialize to a value.";
-    NTA_CHECK( initialValue >= 0.0f );
-    NTA_CHECK( initialValue <= 1.0f );
-    activationFrequency_.assign( activationFrequency_.size(), initialValue );
-    alwaysExponential_ = true;
+void ActivationFrequency::initialize( UInt size, Real initialValue ) {
+    if( initialValue == -1 ) {
+        activationFrequency_.assign( size, 1234.567f );
+        alwaysExponential_ = false;
+    }
+    else {
+        NTA_CHECK( initialValue >= 0.0f );
+        NTA_CHECK( initialValue <= 1.0f );
+        activationFrequency_.assign( size, initialValue );
+        alwaysExponential_ = true;
+    }
 }
 
 void ActivationFrequency::callback(SDR &dataSource, Real alpha)

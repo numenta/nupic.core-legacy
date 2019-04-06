@@ -188,30 +188,30 @@ public:
      * instance by assigning to this SDR.
      *
      * @param period Time scale for exponential moving average.
+     *
+     * @param initialValue - Optional, Makes this ActivationFrequency instance
+     * think that it is the result of a long running process (even though it was
+     * just created).  This assigns an initial activation frequency to all bits
+     * in the SDR, and causes it to always use the exponential moving average
+     * instead of the regular average which is usually applied to the first
+     * "period" many samples.
+     * Note: This argument is useful for using this metric as part of boosting
+     *       algorithms which seek to push the activation frequencies to a
+     *       target value. These algorithms will overreact to the default early
+     *       behavior of this class during the first "period" many samples.
      */
-    ActivationFrequency( SDR &dataSource, UInt period );
+    ActivationFrequency( SDR &dataSource, UInt period, Real initialValue = -1 );
 
     /**
      * @param dimensions of SDR.  Add data to this ActivationFrequency
      * instance by calling method addData(SDR&) with an SDR which has
      * these dimensions.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period       - Same as other constructor overload.
+     * @param initialValue - Same as other constructor overload.
      */
-    ActivationFrequency( const std::vector<UInt> dimensions, UInt period );
-
-    /**
-     * Assign an initial activation frequency to all bits in the SDR.  If this
-     * method is used then this metric will always use the exponential moving
-     * average, and skip over the regular average which is usually applied to
-     * the first "period" many samples.
-     *
-     * This method is useful for using this metric as part of boosting
-     * algorithms which seek to push the activation frequencies to a target
-     * value. These algorithms will overreact to the default early behavior of
-     * this class during the first "period" many samples.
-     */
-    void initializeToValue( Real initialValue );
+    ActivationFrequency( const std::vector<UInt> &dimensions, UInt period,
+                         Real initialValue = -1 );
 
     const std::vector<Real> &activationFrequency = activationFrequency_;
 
@@ -239,7 +239,7 @@ private:
     std::vector<Real> activationFrequency_;
     bool alwaysExponential_;
 
-    void initialize(UInt size);
+    void initialize(UInt size, Real initialValue);
 
     static Real binary_entropy_(const std::vector<Real> &frequencies);
 

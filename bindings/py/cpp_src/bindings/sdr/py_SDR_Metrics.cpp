@@ -123,23 +123,32 @@ Example Usage:
     str(B)      -> Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
                    Entropy 0.918296)");
 
-        py_ActivationFrequency.def( py::init<SDR&, UInt>(),
+        py_ActivationFrequency.def( py::init<SDR&, UInt, Real>(),
 R"(Argument sdr is data source to track.  Add data to this ActivationFrequency
 instance by assigning to this SDR.
 
-Argument period is Time scale for exponential moving average.)",
-            py::arg("sdr"), py::arg("period"));
+Argument period is Time scale for exponential moving average.
 
-        py_ActivationFrequency.def( py::init<vector<UInt>, UInt>(),
+Argument initialValue is Optional.  Makes this ActivationFrequency instance
+think that it is the result of a long running process (even though it was just
+created).  This assigns an initial activation frequency to all bits in the SDR,
+and causes it to always use the exponential moving average instead of the
+regular average which is usually applied to the first "period" many samples.
+
+Note: This argument is useful for using this metric as part of boosting
+      algorithms which seek to push the activation frequencies to a target
+      value. These algorithms will overreact to the default early behavior of
+      this class during the first "period" many samples.
+)",
+            py::arg("sdr"), py::arg("period"), py::arg("initialValue")=-1);
+
+        py_ActivationFrequency.def( py::init<vector<UInt>, UInt, Real>(),
 R"(Argument dimensions of SDR.  Add data to this ActivationFrequency
 instance by calling method af.addData( SDR ) with an SDR which has
 these dimensions.
 
 Argument period is Time scale for exponential moving average.)",
-            py::arg("dimensions"), py::arg("period"));
-
-        py_ActivationFrequency.def("initializeToValue", &ActivationFrequency::initializeToValue,
-R"(TODO: DOCS)");
+            py::arg("dimensions"), py::arg("period"), py::arg("initialValue")=-1);
 
         py_ActivationFrequency.def_property_readonly("activationFrequency",
             [](const ActivationFrequency &self) {

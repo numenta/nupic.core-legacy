@@ -87,14 +87,14 @@ class MetricsTest(unittest.TestCase):
 Entropy 0.918296""")
 
     def testAF_initializeToValue(self):
-        X  = sdr.SDR( 10 )
-        AF = sdr.ActivationFrequency( X, period = 100)
-        AF.initializeToValue( .02 )
+        X  = sdr.SDR( 1 )
+        AF = sdr.ActivationFrequency( X, period = 100, initialValue = .02 )
         assert( np.all( AF.activationFrequency == .02 ))
-        X.randomize( 1 )
-        assert( np.all( AF.activationFrequency > .025 ))
-        assert( np.all( AF.activationFrequency < .035 ))
-
+        X.sparse = [0]
+        assert( AF.samples == 1 )
+        alpha = 1 / AF.period
+        decay = 1 - alpha
+        assert( np.all( AF.activationFrequency == .02 * decay + alpha ))
 
     def testOverlapExample(self):
         A = sdr.SDR( dimensions = 2000 )
