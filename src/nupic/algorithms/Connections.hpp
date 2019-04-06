@@ -408,7 +408,8 @@ public:
    * synapse on consequetive cycles, because then staring at the same object for
    * too long will mess up the synapses. This change allows it to work with
    * timeseries data which moves very slowly, instead of the usual HTM inputs
-   * which reliably change every cycle. See also (Kropff & Treves, 2008).
+   * which reliably change every cycle.  See also (Kropff & Treves, 2007.
+   * http://dx.doi.org/10.2976/1.2793335).
    *    - These vectors will be resized to "con.synapseFlatListLength()".
    *    - To reset between time-series sequences: zero or clear the vector.
    */
@@ -416,7 +417,7 @@ public:
                     const sdr::SDR &inputs,
                     const Permanence increment,
                     const Permanence decrement,
-                    const std::vector<Permanence> &previousUpdates,
+                          std::vector<Permanence> &previousUpdates,
                           std::vector<Permanence> &currentUpdates);
 
   void adaptSegment(const Segment segment,

@@ -432,7 +432,7 @@ void Connections::adaptSegment(const Segment segment,
                                const SDR &inputs,
                                const Permanence increment,
                                const Permanence decrement,
-                               const vector<Permanence> &previousUpdates,
+                                     vector<Permanence> &previousUpdates,
                                      vector<Permanence> &currentUpdates)
 {
   const auto &inputArray = inputs.getDense();
