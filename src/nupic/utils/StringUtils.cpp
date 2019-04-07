@@ -81,6 +81,24 @@ Real32 StringUtils::toReal32(const std::string& s, bool throwOnError, bool * fai
   return r;
 }
 
+Real64 StringUtils::toReal64(const std::string& s, bool throwOnError, bool * fail) {
+  if (fail)
+    *fail = false;
+  Real64 r;
+  std::istringstream ss(s);
+  ss >> r;
+  if (ss.fail() || !ss.eof()) {
+    if (throwOnError) {
+      NTA_THROW << "StringUtils::toReal64 -- invalid string \"" << s << "\"";
+    } else {
+      if (fail)
+        *fail = true;
+    }
+  }
+
+  return r;
+}
+
 UInt32 StringUtils::toUInt32(const std::string& s, bool throwOnError, bool * fail)
 {
   if (fail)
