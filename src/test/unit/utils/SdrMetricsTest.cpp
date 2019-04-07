@@ -24,7 +24,10 @@
 #include <random>
 
 namespace testing { 
-    
+
+static bool verbose = false;
+#define VERBOSE if(verbose) std::cerr << "[          ]"
+
 using namespace std;
 using namespace nupic;
 using namespace nupic::sdr;
@@ -33,7 +36,7 @@ using namespace nupic::sdr;
  * Sparsity
  * Test that it creates & destroys, and that nothing crashes.
  */
-TEST(SdrMetrics, TestSparsityConstruct) {
+TEST(SdrMetricsTest, TestSparsityConstruct) {
     SDR *A = new SDR({1});
     Sparsity S( *A, 1000u );
     ASSERT_ANY_THROW( Sparsity S( *A, 0u ) ); // Period > 0!
@@ -48,7 +51,7 @@ TEST(SdrMetrics, TestSparsityConstruct) {
     ASSERT_EQ( S.sparsity, 0.0f );
 }
 
-TEST(SdrMetrics, TestSparsityExample) {
+TEST(SdrMetricsTest, TestSparsityExample) {
     SDR A( { 1000u } );
     Sparsity B( A, 1000u );
     A.randomize( 0.01f );
@@ -65,7 +68,7 @@ TEST(SdrMetrics, TestSparsityExample) {
  * Sparsity
  * Verify that the initial 10 values of metric are OK.
  */
-TEST(SdrMetrics, TestSparsityShortTerm) {
+TEST(SdrMetricsTest, TestSparsityShortTerm) {
     SDR A({1});
     Reshape B( A );
     Real period = 10u;
@@ -133,7 +136,7 @@ TEST(SdrMetrics, TestSparsityShortTerm) {
  *      ASSERT_NEAR( SparsityMetric.mean(), true_mean )
  *      ASSERT_NEAR( SparsityMetric.std(),  true_std )
  */
-TEST(SdrMetrics, TestSparsityLongTerm) {
+TEST(SdrMetricsTest, TestSparsityLongTerm) {
     auto period     = 100u;
     auto iterations = 1000u;
 
@@ -162,28 +165,30 @@ TEST(SdrMetrics, TestSparsityLongTerm) {
     }
 }
 
-TEST(SdrMetrics, TestSparsityPrint) {
+TEST(SdrMetricsTest, TestSparsityPrint) {
     // Test passes if it does not crash.  The exact strings are checked by
     // python unit tests.
+    std::stringstream ss;
     SDR A({ 2000u });
     Reshape B( A );
     Sparsity S( B, 10u );
 
     A.randomize( 0.30f );
     A.randomize( 0.70f );
-    cerr << S;
+    ss << S;
 
     A.randomize( 0.123456789f );
     A.randomize( 1.0f - 0.123456789f );
-    cerr << S;
-    cerr << endl;
+    ss << S;
+    ss << endl;
+    VERBOSE << ss.str() << std::endl;
 }
 
 /**
  * ActivationFrequency
  * Test that it creates & destroys, and that no methods crash.
  */
-TEST(SdrMetrics, TestAF_Construct) {
+TEST(SdrMetricsTest, TestAF_Construct) {
     // Test creating it.
     SDR *A = new SDR({ 5 });
     Reshape *B = new Reshape( *A );
@@ -219,7 +224,7 @@ TEST(SdrMetrics, TestAF_Construct) {
  * ActivationFrequency
  * Verify that the first few data points are ok.
  */
-TEST(SdrMetrics, TestAF_Example) {
+TEST(SdrMetricsTest, TestAF_Example) {
     SDR A({ 2u });
     Reshape B( A );
     ActivationFrequency F( B, 10u );
@@ -244,7 +249,7 @@ TEST(SdrMetrics, TestAF_Example) {
  * ActivationFrequency
  * Verify that the longer run values of this metric are OK.
  */
-TEST(SdrMetrics, TestAF_LongTerm) {
+TEST(SdrMetricsTest, TestAF_LongTerm) {
     const auto period  =  1000u;
     const auto runtime = 10000u;
     SDR A({ 20u });
@@ -266,7 +271,7 @@ TEST(SdrMetrics, TestAF_LongTerm) {
     }
 }
 
-TEST(SdrMetrics, TestAF_Entropy) {
+TEST(SdrMetricsTest, TestAF_Entropy) {
     const auto size    = 1000u; // Num bits in SDR.
     const auto period  =  100u; // For activation frequency exp-rolling-avg
     const auto runtime = 1000u; // Train time for each scenario
@@ -320,9 +325,10 @@ TEST(SdrMetrics, TestAF_Entropy) {
     EXPECT_LT( last_entropy, tolerance );
 }
 
-TEST(SdrMetrics, TestAF_Print) {
+TEST(SdrMetricsTest, TestAF_Print) {
     // Test passes if it does not crash.  The exact strings are checked by
     // python unit tests.
+    std::stringstream ss;
     const auto period  =  100u;
     const auto runtime = 1000u;
     SDR A({ 2000u });
@@ -332,12 +338,13 @@ TEST(SdrMetrics, TestAF_Print) {
     for(const auto sp : sparsity) {
         for(auto i = 0u; i < runtime; i++)
             A.randomize( sp );
-        cerr << F;
-        cerr << endl;
+        ss << F;
+        ss << endl;
     }
+    VERBOSE << ss.str() << std::endl;
 }
 
-TEST(SdrMetrics, TestOverlap_Construct) {
+TEST(SdrMetricsTest, TestOverlap_Construct) {
     SDR *A = new SDR({ 1000u });
     Overlap V( *A, 100u );
     ASSERT_ANY_THROW( new Overlap( *A, 0 ) ); // Period > 0!
@@ -374,7 +381,7 @@ TEST(SdrMetrics, TestOverlap_Construct) {
     ASSERT_EQ( V.overlap, 0.50f );
 }
 
-TEST(SdrMetrics, TestOverlap_Example) {
+TEST(SdrMetricsTest, TestOverlap_Example) {
     SDR A({ 10000u });
     Reshape Px( A );
     Overlap B( Px, 1000u );
@@ -389,7 +396,7 @@ TEST(SdrMetrics, TestOverlap_Example) {
     ASSERT_NEAR( B.std(),  0.16f, 0.005f );
 }
 
-TEST(SdrMetrics, TestOverlap_ShortTerm) {
+TEST(SdrMetricsTest, TestOverlap_ShortTerm) {
     SDR     A({ 1000u });
     Reshape Px( A );
     Overlap V( Px, 10u );
@@ -421,7 +428,7 @@ TEST(SdrMetrics, TestOverlap_ShortTerm) {
     ASSERT_FLOAT_EQ( V.std(),   0.22484562605386735f ); // Source: python numpy.std
 }
 
-TEST(SdrMetrics, TestOverlap_LongTerm) {
+TEST(SdrMetricsTest, TestOverlap_LongTerm) {
     const auto runtime = 1000u;
     const auto period  =  100u;
     SDR A({ 500u });
@@ -454,9 +461,10 @@ TEST(SdrMetrics, TestOverlap_LongTerm) {
     }
 }
 
-TEST(SdrMetrics, TestOverlap_Print) {
+TEST(SdrMetricsTest, TestOverlap_Print) {
     // Test passes if it does not crash.  The exact strings are checked by
     // python unit tests.
+    stringstream ss;
     SDR A({ 2000u });
     Reshape Px( A );
     Overlap V( Px, 100u );
@@ -466,19 +474,20 @@ TEST(SdrMetrics, TestOverlap_Print) {
     for(const auto ovlp : overlaps) {
         for(auto i = 0u; i < 1000u; i++)
             A.addNoise( 1.0f - ovlp );
-        cerr << V;
+        ss << V;
     }
     for(auto i = 0u; i < 1000u; i++)
         A.randomize( 0.02f );
-    cerr << V;
-    cerr << endl;
+    ss << V;
+    ss << endl;
+    VERBOSE << ss.str() << std::endl;
 }
 
 /**
  * Metrics
  *
  */
-TEST(SdrMetrics, TestAllMetrics_Construct) {
+TEST(SdrMetricsTest, TestAllMetrics_Construct) {
     // Test that it constructs.
     SDR *A = new SDR({ 100u });
     Metrics M( *A, 10u );
@@ -516,9 +525,10 @@ TEST(SdrMetrics, TestAllMetrics_Construct) {
 /**
  * Metrics prints OK.
  */
-TEST(SdrMetrics, TestAllMetrics_Print) {
+TEST(SdrMetricsTest, TestAllMetrics_Print) {
     // Test passes if it does not crash.  The exact strings are checked by
     // python unit tests.
+  stringstream ss;
     SDR A({ 4097u });
     Reshape Px( A );
     Metrics M( Px, 100u );
@@ -529,16 +539,17 @@ TEST(SdrMetrics, TestAllMetrics_Print) {
         A.randomize( sparsity[test] );
         for(auto i = 0u; i < 1000u; i++)
             A.addNoise( 1.0f - overlaps[test] );
-        cerr << M;
-        cerr << endl;
+        ss << M;
+        ss << endl;
     }
+    VERBOSE << ss.str() << std::endl;
 }
 
 /**
  * Test constructor with dimensions instead of SDR,
  * Test addData() methods.
  */
-TEST(SdrMetrics, TestAddData) {
+TEST(SdrMetricsTest, TestAddData) {
     Metrics M( {10u, 5u, 2u}, 100u );
 
     // Check error checking

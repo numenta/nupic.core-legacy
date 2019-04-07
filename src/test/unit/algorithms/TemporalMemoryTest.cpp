@@ -1357,7 +1357,7 @@ TEST(TemporalMemoryTest, testNumberOfColumns) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{64, 64}, 32);
 
-  int numOfColumns = tm.numberOfColumns();
+  size_t numOfColumns = tm.numberOfColumns();
   ASSERT_EQ(numOfColumns, 64 * 64);
 }
 
@@ -1365,7 +1365,7 @@ TEST(TemporalMemoryTest, testNumberOfCells) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{64, 64}, 32);
 
-  Int numberOfCells = tm.numberOfCells();
+  size_t numberOfCells = tm.numberOfCells();
   ASSERT_EQ(numberOfCells, 64 * 64 * 32);
 }
 
@@ -1556,8 +1556,8 @@ TEST(TemporalMemoryTest, testExtraActive) {
       // Predict whats going to happen.
       tm.activateDendrites(true, extraActive, extraWinners);
       auto predictedColumns = tm.getPredictiveCells();
-      for(UInt i = 0; i < predictedColumns.size(); i++) {
-        predictedColumns[i] /= tm.getCellsPerColumn();
+      for(size_t i = 0; i < predictedColumns.size(); i++) {
+        predictedColumns[i] /= static_cast<UInt32>(tm.getCellsPerColumn());
         if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
           predictedColumns.erase( predictedColumns.begin() + i-- );
       }
