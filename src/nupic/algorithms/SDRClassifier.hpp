@@ -58,18 +58,19 @@ using PDF = std::vector<Real64>;
 const Int ACTUAL_VALUES = -1;
 using ClassifierResult = std::map<Int, PDF>;
 
-/**
- * 2d map used to store the data.
- * write with Matrix m; m[i][j] = 1.0; //map will always allocate for new i,j index
- * access/read with get_(&m, i, j): as it handles missing values i,j and returns 0.0 for them
- */
-using Matrix = std::map<UInt, std::map<UInt, Real64>>; //Matrix[r][c] = 0.0d
-
 
 class SDRClassifier : public Serializable
 {
   // Make test class friend so it can unit test private members directly
   friend class SDRClassifierTest;
+
+  /**
+   * 2d map used to store the data.
+   * write with Matrix m; m[i][j] = 1.0; //map will always allocate for new i,j index
+   * access/read with get_(&m, i, j): as it handles missing values i,j and returns 0.0 for them
+   */
+  using Matrix = std::map<UInt, std::map<UInt, Real64>>; //Matrix[r][c] = 0.0d
+
 
 public:
   /**
@@ -169,6 +170,12 @@ private:
 
   // softmax function
   void softmax_(std::vector<Real64>::iterator begin, std::vector<Real64>::iterator end);
+
+  /**
+   * get(x,y) accessor interface for Matrix; handles sparse (missing) values
+   * @return return value stored at map[row][col], or defaultVal if such field does not exist
+   **/
+  Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal=0.0) const;
 
   // The list of prediction steps to learn and infer.
   std::vector<UInt> steps_;

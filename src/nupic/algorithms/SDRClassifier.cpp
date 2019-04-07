@@ -38,10 +38,8 @@
 #include <nupic/utils/Log.hpp>
 
 
-namespace nupic {
-namespace algorithms {
-namespace sdr_classifier {
-
+using namespace nupic;
+using namespace nupic::algorithms::sdr_classifier;
 using namespace std;
 
 
@@ -49,11 +47,7 @@ UInt SDRClassifier::getClassification( const PDF & data ) const
   { return max_element( data.begin(), data.end() ) - data.begin(); }
 
 
-/**
- * get(x,y) accessor interface for Matrix; handles sparse (missing) values
- * @return return value stored at map[row][col], or defaultVal if such field does not exist
- **/
-Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal=0.0) {
+Real64 SDRClassifier::get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal) const {
   try {
     return m.at(row).at(col);
   } catch(std::exception& ex ) {
@@ -513,7 +507,3 @@ bool SDRClassifier::operator==(const SDRClassifier &other) const {
   return true;
 }
 
-
-} // namespace sdr_classifier
-} // namespace algorithms
-} // namespace nupic
