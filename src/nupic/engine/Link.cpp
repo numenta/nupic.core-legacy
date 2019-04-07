@@ -201,7 +201,7 @@ void Link::compute() {
               << " type=" << BasicType::getName(src.getType())
               << " --> " << BasicType::getName(dest.getType()) << std::endl;
 
-	NTA_CHECK(src.getCount() + destOffset_ <= dest.getMaxElementsCount())
+	NTA_CHECK(src.getCount() + destOffset_ <= dest.getCount())
         << "Not enough room in buffer to propogate to " << destRegionName_
         << " " << destInputName_ << ". ";
 
@@ -212,7 +212,7 @@ void Link::compute() {
     // It is copied into the destination Input
     // buffer at the specified offset so an Input with multiple incoming links
     // has the Output buffers appended into a single large Input buffer.
-    src.convertInto(dest, destOffset_, dest.getMaxElementsCount());
+    src.convertInto(dest, destOffset_, dest.getCount());
   }
 }
 

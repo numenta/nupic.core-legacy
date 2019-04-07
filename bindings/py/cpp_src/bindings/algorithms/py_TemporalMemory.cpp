@@ -46,7 +46,7 @@ using namespace nupic;
 using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections; 
 
-    void init_HTM(py::module& m)
+    void init_TemporalMemory(py::module& m)
     {
         typedef nupic::algorithms::temporal_memory::TemporalMemory HTM_t;
 
@@ -54,20 +54,20 @@ using namespace nupic::algorithms::connections;
 
         py_HTM.def(py::init<>());
         py_HTM.def(py::init<std::vector<CellIdx>
-	        , CellIdx
-		, SynapseIdx
-                , Permanence
-		, Permanence
+                , CellIdx
                 , SynapseIdx
-		, SynapseIdx
                 , Permanence
-		, Permanence
-		, Permanence
+                , Permanence
+                , SynapseIdx
+                , SynapseIdx
+                , Permanence
+                , Permanence
+                , Permanence
                 , Int
                 , SegmentIdx
-		, SynapseIdx
+                , SynapseIdx
                 , bool
-		, UInt>()
+                , UInt>()
                 , py::arg("columnDimensions")
                 , py::arg("cellsPerColumn") = 32
                 , py::arg("activationThreshold") = 13
