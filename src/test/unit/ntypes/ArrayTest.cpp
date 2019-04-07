@@ -102,7 +102,7 @@ static void toSparse(const Array&a, std::vector<UInt32>&sparse) {
   }
 
   char *buf = (char*)a.getBuffer();
-  for (UInt idx = 0; idx < static_cast<UInt>(a.getCount()); idx++) {
+  for (size_t idx = 0; idx < a.getCount(); idx++) {
     	switch (a.getType()) {
 	    case NTA_BasicType_Byte:   if((reinterpret_cast<Byte*>(buf))[idx])   sparse.push_back(idx); break;
 	    case NTA_BasicType_Int16:  if((reinterpret_cast<Int16*>(buf))[idx])  sparse.push_back(idx); break;

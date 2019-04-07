@@ -118,13 +118,11 @@ public:
   CerealAdapter;
   template<class Archive>
   void save_ar(Archive & ar) const {
-    const std::vector<UInt>& v = *(reinterpret_cast<const std::vector<UInt>*>(this));
-    ar(v);
+    ar(reinterpret_cast<const std::vector<UInt>&>(*this));
   }
   template<class Archive>
   void load_ar(Archive & ar) {
-    std::vector<UInt>& v = *(reinterpret_cast<std::vector<UInt>*>(this));
-    ar(v);
+    ar(reinterpret_cast<std::vector<UInt>&>(*this));
   }
 
   // TODO:Cereal- remove these two methods when Cereal is fully implmented.
