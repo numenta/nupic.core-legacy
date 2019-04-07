@@ -57,7 +57,8 @@ UInt getClassification( const PDF & );
 /**
  * The key is the step, for predicting multiple time steps into the future.
  * The key ACTUAL_VALUES contains an estimate of the actual values.
- * The value is a PDF of the result being in each bucket.
+ * The value is a PDF(probability density function, list of probabilities of outcomes) 
+ * of the result being in each bucket.
  */
 const Int ACTUAL_VALUES = -1;
 using ClassifierResult = std::map<Int, PDF>;
@@ -67,7 +68,8 @@ using ClassifierResult = std::map<Int, PDF>;
  * write with Matrix m; m[i][j] = 1.0; //map will always allocate for new i,j index
  * access/read with get_(&m, i, j): as it handles missing values i,j and returns 0.0 for them
  */
-typedef std::map<UInt, std::map<UInt, Real64>> Matrix; //Matrix[r][c] = 0.0d
+using Matrix = std::map<UInt, std::map<UInt, Real64>>; //Matrix[r][c] = 0.0d
+
 
 class SDRClassifier : public Serializable
 {
