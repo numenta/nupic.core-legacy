@@ -314,6 +314,8 @@ Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
 R"(This method calculates the set intersection of the active bits in each input
 SDR.
 
+TODO: OUT OF DATE! UPDATE FROM C++ DOCS
+
 Example Usage:
     A = SDR( 10 )
     B = SDR( 10 )
@@ -323,11 +325,7 @@ Example Usage:
     X.intersection( A, B )
     X.sparse -> [2, 3]
 )");
-        py_SDR.def("intersection", [](SDR &self, SDR& inp1, SDR& inp2, SDR& inp3)
-            { self.intersection({ &inp1, &inp2, &inp3}); });
-        py_SDR.def("intersection", [](SDR &self, SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4)
-            { self.intersection({ &inp1, &inp2, &inp3, &inp4}); });
-        py_SDR.def("intersection", [](SDR &self, vector<const SDR*> inputs)
+        py_SDR.def("intersection", [](SDR &self, vector<SDR*> inputs)
             { self.intersection(inputs); });
 
 

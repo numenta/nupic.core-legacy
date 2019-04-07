@@ -467,7 +467,10 @@ public:
 
     /**
      * This method calculates the set intersection of the active bits in each
-     * input SDR.
+     * input SDR with the current SDR.  This method modifies this SDR and
+     * discards its current value!
+     *
+     * TODO: Document exact data movement & parameters, for both overloads
      *
      * Example Usage:
      *     SDR A({ 10 });
@@ -479,21 +482,9 @@ public:
      *     C.getSparse() -> {2, 3}
      */
     void intersection(const SparseDistributedRepresentation &input1,
-                      const SparseDistributedRepresentation &input2)
-        { intersection({&input1,     &input2}); }
+                      const SparseDistributedRepresentation &input2);
 
-    void intersection(const SparseDistributedRepresentation &input1,
-                      const SparseDistributedRepresentation &input2,
-                      const SparseDistributedRepresentation &input3)
-        { intersection({&input1, &input2, &input3}); }
-
-    void intersection(const SparseDistributedRepresentation &input1,
-                      const SparseDistributedRepresentation &input2,
-                      const SparseDistributedRepresentation &input3,
-                      const SparseDistributedRepresentation &input4)
-        { intersection({&input1, &input2, &input3, &input4}); }
-
-    void intersection(std::vector<const SparseDistributedRepresentation*> inputs);
+    void intersection(const std::vector<SparseDistributedRepresentation*> &inputs);
 
     /**
      * Print a human readable version of the SDR.

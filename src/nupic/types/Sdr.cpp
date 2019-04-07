@@ -323,7 +323,18 @@ namespace sdr {
     }
 
 
-    void SparseDistributedRepresentation::intersection(std::vector<const SDR*> inputs) {
+    void SparseDistributedRepresentation::intersection(
+            const SDR &input1,
+            const SDR &input2) {
+        std::vector<SDR*> inputs{ (SDR*)&input1, (SDR*)&input2 };
+        intersection( inputs );
+    }
+
+    void SparseDistributedRepresentation::intersection(const vector<SDR*> &inputs) {
+        for( const auto &inp_sdr : inputs) {
+            NTA_CHECK( inp_sdr != nullptr );
+            NTA_CHECK( inp_sdr->dimensions == dimensions );
+        }
         const auto &input0 = inputs[0]->getDense();
         dense_.assign( input0.begin(), input0.end() );
         for(auto i = 1u; i < inputs.size(); ++i) {

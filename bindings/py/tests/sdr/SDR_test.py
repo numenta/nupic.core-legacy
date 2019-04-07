@@ -383,34 +383,13 @@ class SDR_IntersectionTest(unittest.TestCase):
         X.intersection( A, B )
         assert(set(X.sparse) == set([2, 3]))
 
-    def testCalling(self):
-        # Test 2 Arguments
-        A = SDR( 2000 )
-        B = SDR( A.size )
-        X = SDR( A.size )
-        A.randomize( .20 )
-        B.randomize( .20 )
-        X.intersection( A, B )
-        assert( X.getSum() > 0 )
-        # Test 3 Arguments
-        C = SDR( A.size )
-        A.randomize( .6 )
-        B.randomize( .6 )
-        C.randomize( .6 )
-        X.intersection( A, B, C )
-        assert( X.getSparsity() >  .75 * ( .6 ** 3 ))
-        assert( X.getSparsity() < 1.25 * ( .6 ** 3 ))
-        # Test 4 Arguments
-        D = SDR( 2000 );
-        A.randomize( .9 )
-        B.randomize( .9 )
-        C.randomize( .9 )
-        D.randomize( .9 )
-        X.intersection( A, B, C, D )
-        assert( X.getSum() > 0 )
-        # Test list constructor
-        X.intersection( [A, B, C, D] )
-        assert( X.getSum()    > 0 )
+    def testInPlace(self):
+        A = SDR( 1000 )
+        B = SDR( 1000 )
+        A.randomize( 1.00 )
+        B.randomize(  .50 )
+        A.intersection( A, B )
+        assert( A.getSparsity() == .5 )
 
     def testSparsity(self):
         test_cases = [
