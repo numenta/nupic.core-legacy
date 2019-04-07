@@ -284,7 +284,6 @@ namespace sdr {
     void SparseDistributedRepresentation::randomize(Real sparsity, Random &rng) {
         NTA_ASSERT( sparsity >= 0.0f and sparsity <= 1.0f );
         UInt nbits = (UInt) std::round( size * sparsity );
-        //FIXME NTA_ASSERT(nbits > 0); //enable this check
 
         SDR_sparse_t range( size );
         iota( range.begin(), range.end(), 0u );
@@ -320,6 +319,45 @@ namespace sdr {
             dns[ idx ] = 0;
 
         setDenseInplace();
+    }
+
+
+    void SparseDistributedRepresentation::intersection(
+            const SDR &input1,
+            const SDR &input2) {
+        intersection( { &input1, &input2 } );
+    }
+
+    void SparseDistributedRepresentation::intersection(vector<const SDR*> inputs) {
+        NTA_CHECK( inputs.size() >= 2u );
+        bool inplace = false;
+        for( size_t i = 0; i < inputs.size(); i++ ) {
+            NTA_CHECK( inputs[i] != nullptr );
+            NTA_CHECK( inputs[i]->dimensions == dimensions );
+            // Check for modifying this SDR inplace.
+            if( inputs[i] == this ) {
+                inplace = true;
+                inputs[i--] = inputs.back();
+                inputs.pop_back();
+            }
+        }
+        if( inplace ) {
+            getDense(); // Make sure that the dense data is valid.
+        }
+        if( not inplace ) {
+            // Copy one of the SDRs over to the output SDR.
+            const auto &denseIn = inputs.back()->getDense();
+            dense_.assign( denseIn.begin(), denseIn.end() );
+            inputs.pop_back();
+            // inplace = true; // Now it's an inplace operation.
+        }
+        for(const auto &sdr_ptr : inputs) {
+            const auto &data = sdr_ptr->getDense();
+            for(auto z = 0u; z < data.size(); ++z) {
+                dense_[z] = dense_[z] && data[z];
+            }
+        }
+        SDR::setDenseInplace();
     }
 
 

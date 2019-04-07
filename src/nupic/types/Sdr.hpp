@@ -466,6 +466,32 @@ public:
     void addNoise(Real fractionNoise, Random &rng);
 
     /**
+     * This method calculates the set intersection of the active bits in each
+     * input SDR.
+     *
+     * @params This method has two overloads:
+     *          1) Accepts two SDRs, for convenience.
+     *          2) Accepts a list of SDRs, must contain at least two SDRs, can
+     *             contain as many SDRs as needed.
+     *
+     * @returns In both cases the output is stored in this SDR.  This method
+     * modifies this SDR and discards its current value!
+     *
+     * Example Usage:
+     *     SDR A({ 10 });
+     *     SDR B({ 10 });
+     *     SDR C({ 10 });
+     *     A.setSparse({0, 1, 2, 3});
+     *     B.setSparse(      {2, 3, 4, 5});
+     *     C.intersection(A, B);
+     *     C.getSparse() -> {2, 3}
+     */
+    void intersection(const SparseDistributedRepresentation &input1,
+                      const SparseDistributedRepresentation &input2);
+
+    void intersection(std::vector<const SparseDistributedRepresentation*> inputs);
+
+    /**
      * Print a human readable version of the SDR.
      */
     friend std::ostream& operator<< (std::ostream& stream, const SparseDistributedRepresentation &sdr)
