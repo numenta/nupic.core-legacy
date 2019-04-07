@@ -173,7 +173,7 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
         Matrix& w = weightMatrix_.at(nSteps);
 	NTA_ASSERT(alpha_ > 0.0);
         for (const auto& bit : learnPatternNZ) {
-          for(UInt i = 0; i < error.size(); i++) {
+          for(size_t i = 0; i < error.size(); i++) {
             const auto val = get_(w, bit, i) + alpha_ * error[i];
 	    if(val == 0) continue;
 	    w[bit][i] = val;
@@ -191,10 +191,10 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
   // Add the actual values to the return value. For buckets that haven't
   // been seen yet, the actual value doesn't matter since it will have
   // zero likelihood.
-  vector<Real64> &actValueVector = result[-1];
+  vector<Real64> &actValueVector = result[ACTUAL_VALUES];
   actValueVector.reserve( actualValues_.size() );
 
-  for( UInt i = 0; i < (UInt)actualValues_.size(); ++i ) {
+  for( size_t i = 0; i < actualValues_.size(); ++i ) {
     if (actualValuesSet_[i]) {
       actValueVector.push_back( actualValues_[i] );
     }
@@ -217,7 +217,7 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
 
     for( const auto& bit : patternNZ ) {
       const Matrix& w = weightMatrix_.at(*nSteps);
-      for( UInt i = 0; i < (UInt) likelihoods.size(); i++ ) {
+      for( size_t i = 0; i < likelihoods.size(); i++ ) {
         likelihoods.at(i) += get_(w, bit, i);
       }
     }
@@ -246,7 +246,7 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
     targetDistribution[bucketIdxList[i]] = 1.0 / numCategories;
 
   NTA_ASSERT(likelihoods.size() == targetDistribution.size());
-  for(UInt i = 0; i < likelihoods.size(); i++) {
+  for(size_t i = 0; i < likelihoods.size(); i++) {
     likelihoods[i] = targetDistribution[i] - likelihoods[i];
   }
   return likelihoods;

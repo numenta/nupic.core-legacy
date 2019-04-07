@@ -124,7 +124,7 @@ TEST_F(SDRClassifierTest, SingleValue) {
 
   {
     for (auto it = result1.begin(); it != result1.end(); ++it) {
-      if (it->first == -1) {
+      if (it->first == ACTUAL_VALUES) {
         ASSERT_LT(fabs(it->second.at(4u) - 34.7f), 0.000001f)
             << "Incorrect actual value for bucket 4";
       } else if (it->first == 1) {

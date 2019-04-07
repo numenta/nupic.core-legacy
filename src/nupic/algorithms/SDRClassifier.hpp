@@ -51,9 +51,10 @@ using PDF = std::vector<Real64>;
 
 /**
  * The key is the step, for predicting multiple time steps into the future.
- * The key -1 contains the estimate of the actual values.
+ * The key ACTUAL_VALUES contains an estimate of the actual values.
  * The value is a PDF of the result being in each bucket.
  */
+const Int ACTUAL_VALUES = -1;
 using ClassifierResult = std::map<Int, PDF>;
 
 /**
