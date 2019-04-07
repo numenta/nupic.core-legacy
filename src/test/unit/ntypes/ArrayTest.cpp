@@ -77,17 +77,17 @@ static void populateArray(const std::vector<UInt32>& sparse, size_t cols, Array&
   void *buf = a.getBuffer();
   for(auto idx: sparse) {
     	switch (a.getType()) {
-	    case NTA_BasicType_Byte:   (reinterpret_cast<Byte*>(buf))[idx]   = 1;    break;
-	    case NTA_BasicType_Int16:  (reinterpret_cast<Int16*>(buf))[idx]  = 1;    break;
-	    case NTA_BasicType_UInt16: (reinterpret_cast<UInt16*>(buf))[idx] = 1u;   break;
-	    case NTA_BasicType_Int32:  (reinterpret_cast<Int32*>(buf))[idx]  = 1;    break;
-	    case NTA_BasicType_UInt32: (reinterpret_cast<UInt32*>(buf))[idx] = 1u;   break;
-	    case NTA_BasicType_Int64:  (reinterpret_cast<Int64*>(buf))[idx]  = 1;    break;
-	    case NTA_BasicType_UInt64: (reinterpret_cast<UInt64*>(buf))[idx] = 1u;   break;
-	    case NTA_BasicType_Real32: (reinterpret_cast<Real32*>(buf))[idx] = 1.0f; break;
-	    case NTA_BasicType_Real64: (reinterpret_cast<Real64*>(buf))[idx] = 1.0;  break;
-	    case NTA_BasicType_Bool:   (reinterpret_cast<bool*>(buf))[idx]   = true; break;
-      case NTA_BasicType_SDR:    (reinterpret_cast<Byte*>(buf))[idx]   = 1;    break;
+	    case NTA_BasicType_Byte:   (static_cast<Byte*>(buf))[idx]   = 1;    break;
+	    case NTA_BasicType_Int16:  (static_cast<Int16*>(buf))[idx]  = 1;    break;
+	    case NTA_BasicType_UInt16: (static_cast<UInt16*>(buf))[idx] = 1u;   break;
+	    case NTA_BasicType_Int32:  (static_cast<Int32*>(buf))[idx]  = 1;    break;
+	    case NTA_BasicType_UInt32: (static_cast<UInt32*>(buf))[idx] = 1u;   break;
+	    case NTA_BasicType_Int64:  (static_cast<Int64*>(buf))[idx]  = 1;    break;
+	    case NTA_BasicType_UInt64: (static_cast<UInt64*>(buf))[idx] = 1u;   break;
+	    case NTA_BasicType_Real32: (static_cast<Real32*>(buf))[idx] = 1.0f; break;
+	    case NTA_BasicType_Real64: (static_cast<Real64*>(buf))[idx] = 1.0;  break;
+	    case NTA_BasicType_Bool:   (static_cast<bool*>(buf))[idx]   = true; break;
+      case NTA_BasicType_SDR:    (static_cast<Byte*>(buf))[idx]   = 1;    break;
 	    default:
 	      NTA_THROW << "Unexpected Element Type: " << a.getType();
 	      break;
@@ -737,7 +737,7 @@ void ArrayTest::setupArrayTests() {
       ArrayTestParameters(NTA_BasicType_Real, 4, 10, "Real32", false);
 #endif
   testCases_["Non-existent NTA_BasicType"] =
-      ArrayTestParameters(NTA_BasicType_Last, 0, 10, "N/A", true);
+      ArrayTestParameters((NTA_BasicType)-1, 0, 10, "N/A", true);
 }
 
 } //-ns
