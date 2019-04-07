@@ -152,14 +152,14 @@ private:
      * These hooks are called every time the SDR's value changes.  These can be
      * NULL pointers!  See methods addCallback & removeCallback for API details.
      */
-    std::vector<SDR_callback_t> callbacks;
+    mutable std::vector<SDR_callback_t> callbacks;
 
     /**
      * These hooks are called when the SDR is destroyed.  These can be NULL
      * pointers!  See methods addDestroyCallback & removeDestroyCallback for API
      * details.
      */
-    std::vector<SDR_callback_t> destroyCallbacks;
+    mutable std::vector<SDR_callback_t> destroyCallbacks;
 
 protected:
     /**
@@ -512,7 +512,8 @@ public:
      */
     void load(std::istream &inStream) override;
 
-		CerealAdapter;
+    CerealAdapter;
+
     template<class Archive>
     void save_ar(Archive & ar) const
     {
@@ -539,7 +540,7 @@ public:
      *
      * @returns UInt Handle for the given callback, needed to remove callback.
      */
-    UInt addCallback(SDR_callback_t callback);
+    UInt addCallback(SDR_callback_t callback) const;
 
     /**
      * Remove a previously registered callback.
@@ -547,7 +548,7 @@ public:
      * @param UInt Handle which was returned by addCallback when you registered
      * your callback.
      */
-    void removeCallback(UInt index);
+    void removeCallback(UInt index) const;
 
     /**
      * This callback notifies you when this SDR is deconstructed and freed from
@@ -561,7 +562,7 @@ public:
      *
      * @returns UInt Handle for the given callback, needed to remove callback.
      */
-    UInt addDestroyCallback(SDR_callback_t callback);
+    UInt addDestroyCallback(SDR_callback_t callback) const;
 
     /**
      * Remove a previously registered destroy callback.
@@ -569,7 +570,7 @@ public:
      * @param UInt Handle which was returned by addDestroyCallback when you
      * registered your callback.
      */
-    void removeDestroyCallback(UInt index);
+    void removeDestroyCallback(UInt index) const;
 };
 
 typedef SparseDistributedRepresentation SDR;
