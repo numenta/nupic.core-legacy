@@ -50,11 +50,6 @@ const UInt sdrClassifierVersion = 2;
 using PDF = std::vector<Real64>;
 
 /**
- * Returns the class with the greatest probablility.
- */
-UInt getClassification( const PDF & );
-
-/**
  * The key is the step, for predicting multiple time steps into the future.
  * The key ACTUAL_VALUES contains an estimate of the actual values.
  * The value is a PDF(probability density function, list of probabilities of outcomes) 
@@ -122,6 +117,11 @@ public:
                        const std::vector<UInt> &bucketIdxList,
                        const std::vector<Real64> &actValueList, bool category,
                        bool learn, bool infer, ClassifierResult &result);
+
+  /**
+   * Returns the class with the greatest probablility.
+   */
+  UInt getClassification( const PDF & ) const;
 
   /**
    * Gets the version number

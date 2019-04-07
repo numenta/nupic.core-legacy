@@ -45,7 +45,7 @@ namespace sdr_classifier {
 using namespace std;
 
 
-UInt getClassification( const PDF & data )
+UInt SDRClassifier::getClassification( const PDF & data ) const
   { return max_element( data.begin(), data.end() ) - data.begin(); }
 
 
