@@ -47,13 +47,13 @@ public:
      *
      * The given SDR's dimensions must be the same as this Metric's dimensions.
      */
-    void addData(SDR &data);
+    void addData(const SDR &data);
 
     virtual ~MetricsHelper_();
 
 private:
     std::vector<UInt> dimensions_;
-    SDR* dataSource_;
+    const SDR* dataSource_;
     UInt callback_handle_;
     UInt destroyCallback_handle_;
 
@@ -67,7 +67,7 @@ protected:
      *
      * @param period Time constant for exponential moving average.
      */
-    MetricsHelper_( const std::vector<UInt> dimensions, UInt period );
+    MetricsHelper_( const std::vector<UInt> &dimensions, UInt period );
 
     /**
      * @param dataSource SDR to track.  Add data to the metric by assigning to
@@ -76,7 +76,7 @@ protected:
      *
      * @param period Time constant for exponential moving average.
      */
-    MetricsHelper_( SDR &dataSource, UInt period );
+    MetricsHelper_( const SDR &dataSource, UInt period );
 
     void deconstruct();
 
@@ -91,7 +91,7 @@ protected:
      * streaming data.  This class deals with finding a suitable weight for each
      * sample.
      */
-    virtual void callback( SDR &dataSource, Real alpha ) = 0;
+    virtual void callback( const SDR &dataSource, Real alpha ) = 0;
 };
 
 
@@ -123,7 +123,7 @@ public:
      *
      * @param period Time constant for exponential moving average.
      */
-    Sparsity( SDR &dataSource, UInt period );
+    Sparsity( const SDR &dataSource, UInt period );
 
     /**
      * @param dimensions of SDR.  Add data to this sparsity metric by calling
@@ -131,7 +131,7 @@ public:
      *
      * @param period Time constant for exponential moving average.
      */
-    Sparsity( const std::vector<UInt> dimensions, UInt period );
+    Sparsity( const std::vector<UInt> &dimensions, UInt period );
 
     const Real &sparsity = sparsity_;
 
@@ -151,7 +151,7 @@ private:
 
     void initialize();
 
-    void callback(SDR &dataSource, Real alpha) override;
+    void callback(const SDR &dataSource, Real alpha) override;
 };
 
 
@@ -200,7 +200,7 @@ public:
      *       target value. These algorithms will overreact to the default early
      *       behavior of this class during the first "period" many samples.
      */
-    ActivationFrequency( SDR &dataSource, UInt period, Real initialValue = -1 );
+    ActivationFrequency( const SDR &dataSource, UInt period, Real initialValue = -1 );
 
     /**
      * @param dimensions of SDR.  Add data to this ActivationFrequency
@@ -243,7 +243,7 @@ private:
 
     static Real binary_entropy_(const std::vector<Real> &frequencies);
 
-    void callback(SDR &dataSource, Real alpha) override;
+    void callback(const SDR &dataSource, Real alpha) override;
 };
 
 
@@ -280,7 +280,7 @@ public:
      *
      * @param period Time constant for exponential moving average.
      */
-    Overlap( SDR &dataSource, UInt period );
+    Overlap( const SDR &dataSource, UInt period );
 
     /**
      * @param dimensions of SDR.  Add data to this Overlap instance
@@ -288,7 +288,7 @@ public:
      *
      * @param period Time constant for exponential moving average.
      */
-    Overlap( const std::vector<UInt> dimensions, UInt period );
+    Overlap( const std::vector<UInt> &dimensions, UInt period );
 
     /* For use with time-series data sets. */
     void reset();
@@ -313,7 +313,7 @@ private:
 
     void initialize();
 
-    void callback(SDR &dataSource, Real alpha) override;
+    void callback(const SDR &dataSource, Real alpha) override;
 };
 
 /**
@@ -355,7 +355,7 @@ public:
      *
      * @param period Time constant for exponential moving average.
      */
-    Metrics( SDR &dataSource, UInt period );
+    Metrics( const SDR &dataSource, UInt period );
 
     /**
      * @param dimensions of SDR.  Add data to this Metrics instance
@@ -363,7 +363,7 @@ public:
      *
      * @param period Time constant for exponential moving average.
      */
-    Metrics( const std::vector<UInt> dimensions, UInt period );
+    Metrics( const std::vector<UInt> &dimensions, UInt period );
 
     /* For use with time-series data sets. */
     void reset();
@@ -379,7 +379,7 @@ public:
      *
      * The given SDR's dimensions must be the same as this Metric's dimensions.
      */
-    void addData(SDR &data);
+    void addData(const SDR &data);
 
     friend std::ostream& operator<<(std::ostream& stream, const Metrics &M);
 
