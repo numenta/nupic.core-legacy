@@ -130,7 +130,7 @@ public:
   Real realRange(Real from, Real to) {
     NTA_ASSERT(from <= to);
     const Real split = to - from;
-    return from + (Real)(split * getReal64());
+    return from + (Real) (split * getReal64());
   }
 
 
