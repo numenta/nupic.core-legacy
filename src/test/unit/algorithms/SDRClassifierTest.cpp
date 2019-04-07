@@ -117,20 +117,23 @@ TEST_F(SDRClassifierTest, SingleValue) {
   vector<UInt> input1{1u, 5u, 9u};
   vector<UInt> bucketIdxList{4u};
   vector<Real64> actValueList{34.7f};
-  ClassifierResult result1; // TODO: REVIEW THIS TESTCASE, POTENTIAL SCOPING ISSUES?
+  ClassifierResult result1;
   for (UInt i = 0u; i < 10u; ++i) {
-    ClassifierResult result1; // SHADOWS?
     c.compute(i, input1, bucketIdxList, actValueList, false, true, true, result1);
   }
 
   {
     for (auto it = result1.begin(); it != result1.end(); ++it) {
       if (it->first == -1) {
-        ASSERT_LT(fabs(it->second.at(4u) - 10.0f), 0.000001f)
+        ASSERT_LT(fabs(it->second.at(4u) - 34.7f), 0.000001f)
             << "Incorrect actual value for bucket 4";
       } else if (it->first == 1) {
-        ASSERT_GT(it->second.at(4u), 0.9f)
+        auto pdf = it->second;
+        auto argmax = max_element(pdf.begin(), pdf.end()) - pdf.begin();
+        ASSERT_EQ( argmax, 4u )
             << "Incorrect prediction for bucket 4";
+      } else {
+        FAIL();
       }
     }
   }
