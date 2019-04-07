@@ -314,18 +314,24 @@ Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
 R"(This method calculates the set intersection of the active bits in each input
 SDR.
 
-TODO: OUT OF DATE! UPDATE FROM C++ DOCS
+This method has two overloads:
+    1) Accepts two SDRs, for convenience.
+    2) Accepts a list of SDRs, must contain at least two SDRs, can contain as
+       many SDRs as needed.
+
+In both cases the output is stored in this SDR.  This method modifies this SDR
+and discards its current value!
 
 Example Usage:
     A = SDR( 10 )
     B = SDR( 10 )
-    X = SDR( A.dimensions )
+    X = SDR( 10 )
     A.sparse = [0, 1, 2, 3]
     B.sparse =       [2, 3, 4, 5]
     X.intersection( A, B )
     X.sparse -> [2, 3]
 )");
-        py_SDR.def("intersection", [](SDR &self, vector<SDR*> inputs)
+        py_SDR.def("intersection", [](SDR &self, vector<const SDR*> inputs)
             { self.intersection(inputs); });
 
 

@@ -390,6 +390,10 @@ class SDR_IntersectionTest(unittest.TestCase):
         B.randomize(  .50 )
         A.intersection( A, B )
         assert( A.getSparsity() == .5 )
+        A.randomize( 1.00 )
+        B.randomize(  .50 )
+        A.intersection( B, A )
+        assert( A.getSparsity() == .5 )
 
     def testSparsity(self):
         test_cases = [
