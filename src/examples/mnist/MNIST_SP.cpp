@@ -41,6 +41,7 @@ using namespace nupic;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::sdr_classifier::SDRClassifier;
 using nupic::algorithms::sdr_classifier::ClassifierResult;
+using nupic::algorithms::sdr_classifier::getClassification;
 
 class MNIST {
 
@@ -157,8 +158,8 @@ void test() {
       /* infer */           true,
                             result);
     // Check results
-    UInt cls = max_element(result[0].begin(), result[0].end()) - result[0].begin();
-    if(cls == label) score += 1;
+    if(getClassification( result[0] ) == label)
+        score += 1;
     n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }

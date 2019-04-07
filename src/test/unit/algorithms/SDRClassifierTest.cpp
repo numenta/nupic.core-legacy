@@ -128,9 +128,7 @@ TEST_F(SDRClassifierTest, SingleValue) {
         ASSERT_LT(fabs(it->second.at(4u) - 34.7f), 0.000001f)
             << "Incorrect actual value for bucket 4";
       } else if (it->first == 1) {
-        auto pdf = it->second;
-        auto argmax = max_element(pdf.begin(), pdf.end()) - pdf.begin();
-        ASSERT_EQ( argmax, 4u )
+        ASSERT_EQ( getClassification( it->second ), 4u )
             << "Incorrect prediction for bucket 4";
       } else {
         FAIL();

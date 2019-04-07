@@ -44,6 +44,11 @@ namespace sdr_classifier {
 
 using namespace std;
 
+
+UInt getClassification( const PDF & data )
+  { return max_element( data.begin(), data.end() ) - data.begin(); }
+
+
 /**
  * get(x,y) accessor interface for Matrix; handles sparse (missing) values
  * @return return value stored at map[row][col], or defaultVal if such field does not exist
