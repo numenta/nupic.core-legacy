@@ -184,10 +184,10 @@ Spec *VectorFileEffector::createSpec() {
 
   auto ns = new Spec;
   ns->description =
-      "VectorFileEffector is a node that simply writes its\n"
-      "input vectors to a text file. The target filename is specified\n"
-      "using the 'outputFile' parameter at run time. On each\n"
-      "compute, the current input vector is written (but not flushed)\n"
+      "VectorFileEffector is a node that simply writes its "
+      "input vectors to a text file. The target filename is specified "
+      "using the 'outputFile' parameter at run time. On each "
+      "compute, the current input vector is written (but not flushed) "
       "to the file.\n";
 
   ns->inputs.add("dataIn",
@@ -201,11 +201,11 @@ Spec *VectorFileEffector::createSpec() {
 
   ns->parameters.add("outputFile",
               ParameterSpec("Writes output vectors to this file on each "
-                            "compute. Will append to any\n"
+                            "compute. Will append to any "
                             "existing data in the file. This parameter "
-                            "must be set at runtime before\n"
+                            "must be set at runtime before "
                             "the first compute is called. Throws an "
-                            "exception if it is not set or\n"
+                            "exception if it is not set or "
                             "the file cannot be written to.\n",
                             NTA_BasicType_Byte,
                             0,  // elementCount
