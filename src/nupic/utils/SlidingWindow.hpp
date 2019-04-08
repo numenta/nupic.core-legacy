@@ -7,6 +7,7 @@
 #include <cmath>
 #include <string>
 
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -14,16 +15,16 @@ namespace nupic {
   namespace util {
 
 template<class T> 
-class SlidingWindow {
+class SlidingWindow : public Serializable {
   public:
     SlidingWindow(UInt maxCapacity, std::string id="SlidingWindow", int debug=0) : 
       maxCapacity(maxCapacity),
       ID(id),
       DEBUG(debug)
-{
+    {
       buffer_.reserve(maxCapacity);
       idxNext_ = 0;
-} 
+    } 
 
 
     template<class IteratorT> 
@@ -138,13 +139,27 @@ class SlidingWindow {
       }
 
 
-      public: 
-        const UInt maxCapacity;
-        const std::string ID; //name of this object
-        const int DEBUG;
-      private:
-        std::vector<T> buffer_;
-        UInt idxNext_;
+      CerealAdapter;
+      template<class Archive>
+      void save_ar(Archive & ar) const {
+        ar(CEREAL_NVP(ID), 
+           CEREAL_NVP(buffer_), 
+           CEREAL_NVP(idxNext_));
+      }
+      template<class Archive>
+      void load_ar(Archive & ar) {
+        std::string name; // for debugging. ID should be already set from constructor.
+        ar( name, buffer_, idxNext_);
+        // Note: ID, maxCapacity, DEBUG are already set from constructor.
+      }
+
+  public: 
+    const std::string ID; //name of this object
+    const UInt maxCapacity;
+    const int DEBUG;
+  private:
+    std::vector<T> buffer_;
+    UInt idxNext_;
 }; 
 }} //end ns
 #endif //header

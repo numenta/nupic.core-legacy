@@ -1,6 +1,7 @@
 #ifndef NUPIC_ALGORITHMS_ANOMALY_LIKELIHOOD_HPP_
 #define NUPIC_ALGORITHMS_ANOMALY_LIKELIHOOD_HPP_
 
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/MovingAverage.hpp>
 #include <nupic/utils/SlidingWindow.hpp>
@@ -47,7 +48,7 @@ struct DistributionParams {
   Real stdev;
 };
 
-class AnomalyLikelihood {
+class AnomalyLikelihood : public Serializable {
 
   public:
 
@@ -112,6 +113,44 @@ class AnomalyLikelihood {
     //     Math.log(1.0000000001 - likelihood) / Math.log(1.0 - 0.9999999999)
     return log(1.0000000001f - likelihood) / -23.02585084720009f;
   }
+
+  
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    std::string name("AnomalyLikelhood");
+    ar(CEREAL_NVP(name),
+       CEREAL_NVP(distribution_.name),
+       CEREAL_NVP(distribution_.mean),
+       CEREAL_NVP(distribution_.variance),
+       CEREAL_NVP(distribution_.stdev),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(lastTimestamp_),
+       CEREAL_NVP(initialTimestamp_),
+       CEREAL_NVP(averagedAnomaly_),
+       CEREAL_NVP(runningLikelihoods_),
+       CEREAL_NVP(runningRawAnomalyScores_),
+       CEREAL_NVP(runningAverageAnomalies_) );
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    std::string name; // for debugging
+    ar(CEREAL_NVP(name),
+       CEREAL_NVP(distribution_.name),
+       CEREAL_NVP(distribution_.mean),
+       CEREAL_NVP(distribution_.variance),
+       CEREAL_NVP(distribution_.stdev),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(lastTimestamp_),
+       CEREAL_NVP(initialTimestamp_),
+       CEREAL_NVP(averagedAnomaly_),
+       CEREAL_NVP(runningLikelihoods_),
+       CEREAL_NVP(runningRawAnomalyScores_),
+       CEREAL_NVP(runningAverageAnomalies_) );
+    // Note: learningPeriod, reestimationPeriod, probationaryPeriod already set by constructor.
+
+  }
+
 
 
   //public constants:
