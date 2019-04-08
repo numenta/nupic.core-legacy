@@ -41,7 +41,7 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 
 
 namespace nupic {

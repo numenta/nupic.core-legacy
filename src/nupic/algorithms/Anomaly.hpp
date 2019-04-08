@@ -49,7 +49,7 @@ namespace anomaly {
 Real32 computeRawAnomalyScore(std::vector<UInt> &active,
                               std::vector<UInt> &predicted);
 
-Real32 computeRawAnomalyScore(sdr::SDR& active, sdr::SDR& predicted);
+Real32 computeRawAnomalyScore(const sdr::SDR& active, const sdr::SDR& predicted);
 
 enum class AnomalyMode { PURE, LIKELIHOOD, WEIGHTED };
 

@@ -45,12 +45,8 @@
 
 #include <nupic/types/Serializable.hpp>
 
-#include <nupic/types/Types.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 #include <nupic/types/Sdr.hpp>
-
-
-
 
 namespace nupic
 {

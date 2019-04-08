@@ -183,62 +183,6 @@ protected:
     void deconstruct() override;
 };
 
-
-/**
- * Intersection class
- *
- * This class presents a view onto a group of SDRs, which always shows the set
- * intersection of the active bits in each input SDR.  This view is read-only.
- *
- * Example Usage:
- *     // Setup 2 SDRs to hold the inputs.
- *     SDR A({ 10 });
- *     SDR B({ 10 });
- *     A.setSparse(      {2, 3, 4, 5});
- *     B.setSparse({0, 1, 2, 3});
- *
- *     // Calculate the logical intersection
- *     Intersection X(A, B);
- *     X.getSparse() -> {2, 3}
- *
- *     // Assignments to the input SDRs are propigated to the Intersection
- *     B.zero();
- *     X.getSparsity() -> 0.0
- */
-class Intersection : public ReadOnly_
-{
-public:
-    Intersection(SDR &input1, SDR &input2)
-        { initialize({   &input1,     &input2}); }
-    Intersection(SDR &input1, SDR &input2, SDR &input3)
-        { initialize({   &input1,     &input2,     &input3}); }
-    Intersection(SDR &input1, SDR &input2, SDR &input3, SDR &input4)
-        { initialize({   &input1,     &input2,     &input3,     &input4}); }
-
-    Intersection(std::vector<SDR*> inputs)
-        { initialize(inputs); }
-
-    void initialize(const std::vector<SDR*> inputs);
-
-    const std::vector<SDR*> &inputs = inputs_;
-
-    SDR_dense_t& getDense() const override;
-
-    ~Intersection()
-        { deconstruct(); }
-
-protected:
-    std::vector<SDR*> inputs_;
-    std::vector<UInt> callback_handles_;
-    std::vector<UInt> destroyCallback_handles_;
-    mutable bool      dense_valid_lazy;
-
-    void clear() const override;
-
-    void deconstruct() override;
-};
-
-
 } // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_TOOLS_HPP
