@@ -18,7 +18,7 @@
  * Implementation for SDR Metrics classes
  */
 
-#include <cmath> // log2, isnan
+#include <cmath> // log2, isnan, NAN, INFINITY
 #include <numeric> // accumulate
 #include <regex>
 #include <nupic/utils/SdrMetrics.hpp>
@@ -29,7 +29,7 @@ namespace nupic {
 namespace sdr {
 
 
-MetricsHelper_::MetricsHelper_( const vector<UInt> dimensions, UInt period ) {
+MetricsHelper_::MetricsHelper_( const vector<UInt> &dimensions, UInt period ) {
     NTA_CHECK( period > 0u );
     NTA_CHECK( dimensions.size() > 0 );
     dimensions_ = dimensions,
@@ -40,7 +40,7 @@ MetricsHelper_::MetricsHelper_( const vector<UInt> dimensions, UInt period ) {
     destroyCallback_handle_ = -1;
 }
 
-MetricsHelper_::MetricsHelper_( SDR &dataSource, UInt period )
+MetricsHelper_::MetricsHelper_( const SDR &dataSource, UInt period )
     : MetricsHelper_(dataSource.dimensions, period)
 {
     dataSource_ = &dataSource;
@@ -64,7 +64,7 @@ MetricsHelper_::~MetricsHelper_() {
     deconstruct();
 }
 
-void MetricsHelper_::addData(SDR &data) {
+void MetricsHelper_::addData(const SDR &data) {
     NTA_CHECK( dataSource_ == nullptr )
         << "Method addData can only be called if this metric was NOT initialize with an SDR!";
     NTA_CHECK( dimensions_ == data.dimensions );
@@ -74,23 +74,23 @@ void MetricsHelper_::addData(SDR &data) {
 
 /******************************************************************************/
 
-Sparsity::Sparsity( const vector<UInt> dimensions, UInt period )
+Sparsity::Sparsity( const vector<UInt> &dimensions, UInt period )
     : MetricsHelper_( dimensions, period )
         { initialize(); }
 
-Sparsity::Sparsity( SDR &dataSource, UInt period )
+Sparsity::Sparsity( const SDR &dataSource, UInt period )
     : MetricsHelper_( dataSource, period )
     { initialize(); }
 
 void Sparsity::initialize() {
-    sparsity_   =  1234.567f;
-    min_        =  1234.567f;
-    max_        = -1234.567f;
+    sparsity_   =  NAN;
+    min_        =  INFINITY;
+    max_        = -INFINITY;
     mean_       =  1234.567f;
     variance_   =  1234.567f;
 }
 
-void Sparsity::callback(SDR &dataSource, Real alpha) {
+void Sparsity::callback(const SDR &dataSource, Real alpha) {
     sparsity_ = dataSource.getSparsity();
     min_ = std::min( min_, sparsity_ );
     max_ = std::max( max_, sparsity_ );
@@ -117,25 +117,42 @@ std::ostream& operator<<(std::ostream& stream, const Sparsity &S)
 
 /******************************************************************************/
 
-ActivationFrequency::ActivationFrequency( const vector<UInt> dimensions, UInt period )
+ActivationFrequency::ActivationFrequency( const vector<UInt> &dimensions,
+                                          const UInt          period,
+                                          const Real          initialValue )
     : MetricsHelper_( dimensions, period )
 {
     UInt size = 1;
     for(const auto &dim : dimensions)
         size *= dim;
-    initialize( size );
+    initialize( size, initialValue );
 }
 
-ActivationFrequency::ActivationFrequency( SDR &dataSource, UInt period )
+ActivationFrequency::ActivationFrequency( const SDR &dataSource,
+                                          const UInt period,
+                                          const Real initialValue )
     : MetricsHelper_( dataSource, period )
-    { initialize( dataSource.size ); }
+    { initialize( dataSource.size, initialValue ); }
 
-void ActivationFrequency::initialize(UInt size) {
-    activationFrequency_.assign( size, 1234.567f );
+void ActivationFrequency::initialize( UInt size, Real initialValue ) {
+    if( initialValue == -1 ) {
+        activationFrequency_.assign( size, 1234.567f );
+        alwaysExponential_ = false;
+    }
+    else {
+        NTA_CHECK( initialValue >= 0.0f );
+        NTA_CHECK( initialValue <= 1.0f );
+        activationFrequency_.assign( size, initialValue );
+        alwaysExponential_ = true;
+    }
 }
 
-void ActivationFrequency::callback(SDR &dataSource, Real alpha)
+void ActivationFrequency::callback(const SDR &dataSource, Real alpha)
 {
+    if( alwaysExponential_ ) {
+        alpha = 1.0f / period;
+    }
+
     const auto decay = 1.0f - alpha;
     for(auto &value : activationFrequency_)
         value *= decay;
@@ -203,20 +220,20 @@ std::ostream& operator<< (std::ostream& stream,
 
 /******************************************************************************/
 
-Overlap::Overlap( const vector<UInt> dimensions, UInt period )
+Overlap::Overlap( const vector<UInt> &dimensions, UInt period )
     : MetricsHelper_( dimensions, period ),
       previous_( dimensions )
     { initialize(); }
 
-Overlap::Overlap( SDR &dataSource, UInt period )
+Overlap::Overlap( const SDR &dataSource, UInt period )
     : MetricsHelper_( dataSource, period ),
       previous_( dataSource.dimensions )
     { initialize(); }
 
 void Overlap::initialize() {
-    overlap_    =  1234.567f;
-    min_        =  1234.567f;
-    max_        = -1234.567f;
+    overlap_    =  NAN;
+    min_        =  INFINITY;
+    max_        = -INFINITY;
     mean_       =  1234.567f;
     variance_   =  1234.567f;
     reset();
@@ -225,13 +242,14 @@ void Overlap::initialize() {
 void Overlap::reset()
     { previousValid_ = false; }
 
-void Overlap::callback(SDR &dataSource, Real alpha) {
+void Overlap::callback(const SDR &dataSource, Real alpha) {
     if( not previousValid_ ) {
         previous_.setSDR( dataSource );
         previousValid_ = true;
         // It takes two data samples to compute overlap so decrement the
         // samples counter & return & wait for the next sample.
         samples_ -= 1;
+        overlap_ = NAN;
         return;
     }
     const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
@@ -263,14 +281,14 @@ std::ostream& operator<<(std::ostream& stream, const Overlap &V)
 
 /******************************************************************************/
 
-Metrics::Metrics( const vector<UInt> dimensions, UInt period )
+Metrics::Metrics( const vector<UInt> &dimensions, UInt period )
     : dimensions_( dimensions ),
       sparsity_(            dimensions, period ),
       activationFrequency_( dimensions, period ),
       overlap_(             dimensions, period )
       {};
 
-Metrics::Metrics( SDR &dataSource, UInt period )
+Metrics::Metrics( const SDR &dataSource, UInt period )
     : dimensions_( dataSource.dimensions ),
       sparsity_(            dataSource, period ),
       activationFrequency_( dataSource, period ),
@@ -280,7 +298,7 @@ Metrics::Metrics( SDR &dataSource, UInt period )
 void Metrics::reset()
     { overlap_.reset(); }
 
-void Metrics::addData(SDR &data) {
+void Metrics::addData(const SDR &data) {
     sparsity_.addData( data );
     activationFrequency_.addData( data );
     overlap_.addData( data );

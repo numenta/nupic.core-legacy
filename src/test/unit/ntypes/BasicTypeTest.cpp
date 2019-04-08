@@ -27,8 +27,7 @@
 #include <limits>
 
 #include <gtest/gtest.h>
-#include <nupic/types/Types.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 
 namespace testing {
     

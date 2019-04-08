@@ -27,7 +27,6 @@
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/types/BasicType.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/os/OS.hpp>
 

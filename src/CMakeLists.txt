@@ -149,6 +149,8 @@ set(ntypes_files
     nupic/ntypes/Array.hpp
     nupic/ntypes/ArrayBase.cpp
     nupic/ntypes/ArrayBase.hpp
+    nupic/ntypes/BasicType.cpp
+    nupic/ntypes/BasicType.hpp
     nupic/ntypes/BundleIO.hpp
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.hpp
@@ -194,12 +196,9 @@ set(regions_files
 )
 
 set(types_files
-    nupic/types/BasicType.cpp
-    nupic/types/BasicType.hpp
     nupic/types/ClassifierResult.cpp
     nupic/types/ClassifierResult.hpp
     nupic/types/Exception.hpp
-    nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
     nupic/types/Sdr.hpp

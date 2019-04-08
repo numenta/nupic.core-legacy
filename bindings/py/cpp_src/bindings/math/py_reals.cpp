@@ -32,12 +32,13 @@ PyBind11 bindings for the Real data type.
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 
-namespace py = pybind11;
 
 namespace nupic_ext
 {
+namespace py = pybind11;
+
     std::string GetNTARealType() { return "NTA_Real"; }
 
     std::string GetNumpyDataType(const std::string& type)
