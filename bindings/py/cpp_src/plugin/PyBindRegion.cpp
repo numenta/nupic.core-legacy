@@ -37,18 +37,17 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/types/BasicType.hpp>
-#include <nupic/types/Types.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
 
-using namespace nupic;
-namespace py = pybind11;
-
 
 namespace nupic
 {
+using namespace nupic;
+namespace py = pybind11;
+
     py::array create_numpy_view(const ArrayBase& a)
     {
         switch (a.getType())
