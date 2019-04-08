@@ -1366,7 +1366,7 @@ TEST(TemporalMemoryTest, testNumberOfCells) {
   tm.initialize(vector<UInt>{64, 64}, 32);
 
   size_t numberOfCells = tm.numberOfCells();
-  ASSERT_EQ(numberOfCells, 64 * 64 * 32);
+  ASSERT_EQ(numberOfCells, 64lu * 64lu * 32lu);
 }
 
 void serializationTestPrepare(TemporalMemory &tm) {
