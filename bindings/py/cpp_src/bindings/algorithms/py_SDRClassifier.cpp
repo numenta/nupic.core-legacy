@@ -39,9 +39,9 @@ PyBind11 bindings for SDRClassifier class
 namespace nupic_ext
 {
 namespace py = pybind11;
+using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::sdr_classifier;
-using nupic::types::PDF;
 
     void init_SDR_Classifier(py::module& m)
     {
@@ -67,7 +67,7 @@ using nupic::types::PDF;
 
             py::dict dict;
 
-            for (map<Int, PDF*>::const_iterator it = result.begin(); it != result.end(); ++it)
+            for (map<Int, PDF>::const_iterator it = result.begin(); it != result.end(); ++it)
             {
                 std::string key = "actualValues";
 
@@ -77,9 +77,9 @@ using nupic::types::PDF;
                 }
 
                 py::list value;
-                for (UInt i = 0; i < it->second->size(); ++i)
+                for (UInt i = 0; i < it->second.size(); ++i)
                 {
-                    value.append(it->second->at(i));
+                    value.append(it->second.at(i));
                 }
 
                 dict[key.c_str()] = value;

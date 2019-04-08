@@ -154,7 +154,7 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
 
-  CellIdx minNumSegments = UINT_MAX;
+  CellIdx minNumSegments = std::numeric_limits<CellIdx>::max();
   CellIdx numTiedCells = 0;
   for (CellIdx cell = start; cell < end; cell++) {
     const CellIdx numSegments = static_cast<CellIdx>(connections.numSegments(static_cast<CellIdx>(cell)));
