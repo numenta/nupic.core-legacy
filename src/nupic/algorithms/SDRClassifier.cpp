@@ -1,8 +1,10 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * Copyright (C) 2016, Numenta, Inc.
+ *               2019, David McDougall
+ *
+ * Unless you have an agreement with Numenta, Inc., for a separate license for
+ * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -17,8 +19,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 #include <cmath> //exp
 #include <deque>
@@ -37,17 +38,16 @@
 #include <nupic/utils/Log.hpp>
 
 
-namespace nupic {
-namespace algorithms {
-namespace sdr_classifier {
-
+using namespace nupic;
+using namespace nupic::algorithms::sdr_classifier;
 using namespace std;
 
-/**
- * get(x,y) accessor interface for Matrix; handles sparse (missing) values
- * @return return value stored at map[row][col], or defaultVal if such field does not exist
- **/
-Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal=0.0) {
+
+UInt SDRClassifier::getClassification( const PDF & data ) const
+  { return max_element( data.begin(), data.end() ) - data.begin(); }
+
+
+Real64 SDRClassifier::get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal) const {
   try {
     return m.at(row).at(col);
   } catch(std::exception& ex ) {
@@ -172,7 +172,7 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
         Matrix& w = weightMatrix_.at(nSteps);
 	NTA_ASSERT(alpha_ > 0.0);
         for (const auto& bit : learnPatternNZ) {
-          for(UInt i = 0; i < error.size(); i++) {
+          for(size_t i = 0; i < error.size(); i++) {
             const auto val = get_(w, bit, i) + alpha_ * error[i];
 	    if(val == 0) continue;
 	    w[bit][i] = val;
@@ -185,35 +185,42 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
 
 void SDRClassifier::infer_(const vector<UInt> &patternNZ,
                            const vector<Real64> &actValue,
-                           ClassifierResult &result) {
-  // add the actual values to the return value. For buckets that haven't
+                           ClassifierResult &result)
+{
+  // Add the actual values to the return value. For buckets that haven't
   // been seen yet, the actual value doesn't matter since it will have
   // zero likelihood.
-  vector<Real64> *actValueVector =
-      result.createVector(-1, (UInt)actualValues_.size(), 0.0);
-  for (UInt i = 0; i < (UInt)actualValues_.size(); ++i) {
+  vector<Real64> &actValueVector = result[ACTUAL_VALUES];
+  actValueVector.reserve( actualValues_.size() );
+
+  for( size_t i = 0; i < actualValues_.size(); ++i ) {
     if (actualValuesSet_[i]) {
-      (*actValueVector)[i] = actualValues_[i];
-    } else {
+      actValueVector.push_back( actualValues_[i] );
+    }
+    else {
       // if doing 0-step ahead prediction, we shouldn't use any
       // knowledge of the classification input during inference
-      if (steps_.at(0) == 0) {
-        (*actValueVector)[i] = 0;
-      } else {
-        (*actValueVector)[i] = actValue[0];
+      if( steps_.at(0) == 0 ) {
+        actValueVector.push_back( 0.0f );
+      }
+      else {
+        actValueVector.push_back( actValue[0] );
       }
     }
   }
 
-  for (auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps) {
-    vector<Real64>* likelihoods = result.createVector(*nSteps, maxBucketIdx_ + 1, 0.0);
-    for (const auto& bit : patternNZ) {
+  for( auto nSteps = steps_.begin(); nSteps != steps_.end(); ++nSteps )
+  {
+    vector<Real64> &likelihoods = result[ *nSteps ];
+    likelihoods.assign( maxBucketIdx_ + 1, 0.0f );
+
+    for( const auto& bit : patternNZ ) {
       const Matrix& w = weightMatrix_.at(*nSteps);
-      for(UInt i =0; i< (UInt)likelihoods->size(); i++) {
-        likelihoods->at(i) += get_(w, bit, i);
+      for( size_t i = 0; i < likelihoods.size(); i++ ) {
+        likelihoods.at(i) += get_(w, bit, i);
       }
     }
-    softmax_(likelihoods->begin(), likelihoods->end());
+    softmax_( likelihoods.begin(), likelihoods.end() );
   }
 }
 
@@ -238,7 +245,7 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
     targetDistribution[bucketIdxList[i]] = 1.0 / numCategories;
 
   NTA_ASSERT(likelihoods.size() == targetDistribution.size());
-  for(UInt i = 0; i < likelihoods.size(); i++) {
+  for(size_t i = 0; i < likelihoods.size(); i++) {
     likelihoods[i] = targetDistribution[i] - likelihoods[i];
   }
   return likelihoods;
@@ -500,7 +507,3 @@ bool SDRClassifier::operator==(const SDRClassifier &other) const {
   return true;
 }
 
-
-} // namespace sdr_classifier
-} // namespace algorithms
-} // namespace nupic
