@@ -44,23 +44,30 @@ namespace nupic_ext
 namespace py = pybind11;
 using namespace nupic;
 using nupic::sdr::SDR;
-using nupic::algorithms::connections::Permanence; 
+using namespace nupic::algorithms::connections; 
 
-    void init_HTM(py::module& m)
+    void init_TemporalMemory(py::module& m)
     {
         typedef nupic::algorithms::temporal_memory::TemporalMemory HTM_t;
 
         py::class_<HTM_t> py_HTM(m, "TemporalMemory");
 
         py_HTM.def(py::init<>());
-        py_HTM.def(py::init<std::vector<UInt>
-                , UInt, UInt
-                , Permanence, Permanence
-                , UInt, UInt
-                , Permanence, Permanence, Permanence
+        py_HTM.def(py::init<std::vector<CellIdx>
+                , CellIdx
+                , SynapseIdx
+                , Permanence
+                , Permanence
+                , SynapseIdx
+                , SynapseIdx
+                , Permanence
+                , Permanence
+                , Permanence
                 , Int
-                , UInt, UInt
-                , bool, UInt>()
+                , SegmentIdx
+                , SynapseIdx
+                , bool
+                , UInt>()
                 , py::arg("columnDimensions")
                 , py::arg("cellsPerColumn") = 32
                 , py::arg("activationThreshold") = 13
@@ -151,16 +158,12 @@ using nupic::algorithms::connections::Permanence;
 
         py_HTM.def("getActiveSegments", [](const HTM_t& self)
         {
-            auto activeSegments = self.getActiveSegments();
-
-            return py::array_t<nupic::UInt32>(activeSegments.size(), activeSegments.data());
+            return self.getActiveSegments();
         });
 
         py_HTM.def("getMatchingSegments", [](const HTM_t& self)
         {
-            auto matchingSegments = self.getMatchingSegments();
-
-            return py::array_t<nupic::UInt32>(matchingSegments.size(), matchingSegments.data());
+            return self.getMatchingSegments();
         });
 
         py_HTM.def("cellsForColumn", [](HTM_t& self, UInt columnIdx)
