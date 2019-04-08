@@ -138,7 +138,7 @@ void TemporalMemory::initialize(
   extra_ = extra;
 
   // Initialize member variables
-  connections = Connections(numberOfColumns() * cellsPerColumn_, connectedPermanence_);
+  connections = Connections(static_cast<CellIdx>(numberOfColumns() * cellsPerColumn_), connectedPermanence_);
   rng_ = Random(seed);
 
   maxSegmentsPerCell_ = maxSegmentsPerCell;
@@ -157,7 +157,7 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   UInt32 minNumSegments = UINT_MAX;
   UInt32 numTiedCells = 0;
   for (CellIdx cell = start; cell < end; cell++) {
-    const UInt32 numSegments = connections.numSegments(cell);
+    const UInt32 numSegments = static_cast<UInt32>(connections.numSegments(static_cast<CellIdx>(cell)));
     if (numSegments < minNumSegments) {
       minNumSegments = numSegments;
       numTiedCells = 1;
@@ -216,7 +216,7 @@ static void adaptSegment(Connections &connections, Segment segment,
 }
 
 static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
-                                         Segment segment, Int nDestroy,
+                                         Segment segment, Int32 nDestroy,
                                          const vector<CellIdx> &excludeCells) {
   // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
@@ -283,7 +283,7 @@ static void growSynapses(Connections &connections,
   // Check if we're going to surpass the maximum number of synapses. //TODO delegate this to createSynapse(segment)
   const size_t overrun = (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
   if (overrun > 0) {
-    destroyMinPermanenceSynapses(connections, rng, segment, overrun, prevWinnerCells);
+    destroyMinPermanenceSynapses(connections, rng, segment, static_cast<Int32>(overrun), prevWinnerCells);
   }
 
   // Recalculate in case we weren't able to destroy as many synapses as needed.
@@ -568,11 +568,11 @@ void TemporalMemory::activateDendrites(bool learn,
 
     for(const auto &active : extraActive) {
       NTA_ASSERT( active < extra_ );
-      activeCells_.push_back( active + numberOfCells() );
+      activeCells_.push_back( static_cast<UInt32>(active + numberOfCells()) );
     }
     for(const auto &winner : extraWinners) {
       NTA_ASSERT( winner < extra_ );
-      winnerCells_.push_back( winner + numberOfCells() );
+      winnerCells_.push_back( static_cast<UInt32>(winner + numberOfCells()) );
     }
   }
   else {
@@ -582,7 +582,7 @@ void TemporalMemory::activateDendrites(bool learn,
         << "External predictive inputs must be declared to TM constructor!";
   }
 
-  const UInt32 length = connections.segmentFlatListLength();
+  const UInt32 length = static_cast<UInt32>(connections.segmentFlatListLength());
 
   numActiveConnectedSynapsesForSegment_.assign(length, 0);
   numActivePotentialSynapsesForSegment_.assign(length, 0);

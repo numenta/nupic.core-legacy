@@ -45,7 +45,7 @@ MetricsHelper_::MetricsHelper_( const SDR &dataSource, UInt period )
 {
     dataSource_ = &dataSource;
     callback_handle_ = dataSource_->addCallback( [&](){
-        callback( *dataSource_, 1.0f / std::min( period_, static_cast<UInt>( ++samples_ )));
+        callback( *dataSource_, 1.0f / std::min( period_, (UInt) ++samples_ ));
     });
     destroyCallback_handle_ = dataSource_->addDestroyCallback( [&](){
         deconstruct();
@@ -68,7 +68,7 @@ void MetricsHelper_::addData(const SDR &data) {
     NTA_CHECK( dataSource_ == nullptr )
         << "Method addData can only be called if this metric was NOT initialize with an SDR!";
     NTA_CHECK( dimensions_ == data.dimensions );
-    callback( data, 1.0f / std::min( period_, static_cast<UInt>( ++samples_ )));
+    callback( data, 1.0f / std::min( period_, (UInt) ++samples_ ));
 }
 
 
@@ -176,7 +176,7 @@ Real ActivationFrequency::mean() const  {
     const auto sum = std::accumulate( activationFrequency_.begin(),
                                       activationFrequency_.end(),
                                       0.0f);
-    return sum / activationFrequency_.size();
+    return (Real) sum / activationFrequency_.size();
 }
 
 Real ActivationFrequency::std() const {
@@ -254,7 +254,7 @@ void Overlap::callback(const SDR &dataSource, Real alpha) {
     }
     const auto nbits = std::max( previous_.getSum(), dataSource.getSum() );
     const auto rawOverlap = previous_.getOverlap( dataSource );
-    overlap_ = (nbits == 0u) ? 1.0f : static_cast<Real>(rawOverlap / nbits);
+    overlap_ = (nbits == 0u) ? 1.0f : (Real) rawOverlap / nbits;
     min_     = std::min( min_, overlap_ );
     max_     = std::max( max_, overlap_ );
     // http://people.ds.cam.ac.uk/fanf2/hermes/doc/antiforgery/stats.pdf
