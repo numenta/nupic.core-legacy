@@ -442,7 +442,7 @@ namespace sdr {
     }
 
 
-    UInt SparseDistributedRepresentation::addCallback(SDR_callback_t callback) {
+    UInt SparseDistributedRepresentation::addCallback(SDR_callback_t callback) const {
         UInt index = 0;
         for( ; index < callbacks.size(); index++ ) {
             if( callbacks[index] == nullptr ) {
@@ -454,7 +454,7 @@ namespace sdr {
         return index;
     }
 
-    void SparseDistributedRepresentation::removeCallback(UInt index) {
+    void SparseDistributedRepresentation::removeCallback(UInt index) const {
         NTA_CHECK( index < callbacks.size() )
             << "SparseDistributedRepresentation::removeCallback, Invalid Handle!";
         NTA_CHECK( callbacks[index] != nullptr )
@@ -463,7 +463,7 @@ namespace sdr {
     }
 
 
-    UInt SparseDistributedRepresentation::addDestroyCallback(SDR_callback_t callback) {
+    UInt SparseDistributedRepresentation::addDestroyCallback(SDR_callback_t callback) const {
         UInt index = 0;
         for( ; index < destroyCallbacks.size(); index++ ) {
             if( destroyCallbacks[index] == nullptr ) {
@@ -475,7 +475,7 @@ namespace sdr {
         return index;
     }
 
-    void SparseDistributedRepresentation::removeDestroyCallback(UInt index) {
+    void SparseDistributedRepresentation::removeDestroyCallback(UInt index) const {
         NTA_CHECK( index < destroyCallbacks.size() )
             << "SparseDistributedRepresentation::removeDestroyCallback, Invalid Handle!";
         NTA_CHECK( destroyCallbacks[index] != nullptr )

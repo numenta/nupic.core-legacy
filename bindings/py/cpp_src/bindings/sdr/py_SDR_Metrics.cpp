@@ -45,7 +45,7 @@ Argument sdr is data source, its dimensions must be the same as this Metric's
 dimensions.)");
         py_Helper.def_property_readonly( "period",
             [](const MetricsHelper_ &self){ return self.period; },
-R"(Time scale for the exponential moving average which incorporate data into
+R"(Time constant for the exponential moving average which incorporate data into
 this measurement.  If there are fewer data samples than the period then a regular
 average is used instead of an exponential moving average.)");
         py_Helper.def_property_readonly( "samples",
@@ -77,13 +77,13 @@ Example Usage:
 R"(Argument sdr is data source is to track.  Add data to this sparsity metric by
 assigning to this SDR.
 
-Argument period is Time scale for exponential moving average.)",
+Argument period is time constant for exponential moving average.)",
             py::arg("sdr"), py::arg("period"));
         py_Sparsity.def( py::init<vector<UInt>, UInt>(),
 R"(Argument dimensions of SDR.  Add data to this sparsity metric by calling method
 sparsity.addData( SDR ) with an SDR which has these dimensions.
 
-Argument period is time scale for exponential moving average.)",
+Argument period is time constant for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
         py_Sparsity.def_property_readonly("sparsity",
             [](const Sparsity &self) { return self.sparsity; },
@@ -122,20 +122,34 @@ Example Usage:
     B.entropy() -> ~0.92
     str(B)      -> Activation Frequency Min/Mean/Std/Max 0.333333 / 0.5 / 0.166667 / 0.666667
                    Entropy 0.918296)");
-        py_ActivationFrequency.def( py::init<SDR&, UInt>(),
+
+        py_ActivationFrequency.def( py::init<SDR&, UInt, Real>(),
 R"(Argument sdr is data source to track.  Add data to this ActivationFrequency
 instance by assigning to this SDR.
 
-Argument period is Time scale for exponential moving average.)",
-            py::arg("sdr"), py::arg("period"));
-        py_ActivationFrequency.def( py::init<vector<UInt>, UInt>(),
+Argument period is time constant for exponential moving average.
 
+Argument initialValue is Optional.  Makes this ActivationFrequency instance
+think that it is the result of a long running process (even though it was just
+created).  This assigns an initial activation frequency to all bits in the SDR,
+and causes it to always use the exponential moving average instead of the
+regular average which is usually applied to the first "period" many samples.
+
+Note: This argument is useful for using this metric as part of boosting
+      algorithms which seek to push the activation frequencies to a target
+      value. These algorithms will overreact to the default early behavior of
+      this class during the first "period" many samples.
+)",
+            py::arg("sdr"), py::arg("period"), py::arg("initialValue")=-1);
+
+        py_ActivationFrequency.def( py::init<vector<UInt>, UInt, Real>(),
 R"(Argument dimensions of SDR.  Add data to this ActivationFrequency
 instance by calling method af.addData( SDR ) with an SDR which has
 these dimensions.
 
-Argument period is Time scale for exponential moving average.)",
-            py::arg("dimensions"), py::arg("period"));
+Argument period is time constant for exponential moving average.)",
+            py::arg("dimensions"), py::arg("period"), py::arg("initialValue")=-1);
+
         py_ActivationFrequency.def_property_readonly("activationFrequency",
             [](const ActivationFrequency &self) {
                 auto capsule = py::capsule(&self, [](void *self) {});
@@ -188,13 +202,13 @@ Example Usage:
 R"(Argument sdr is data source to track.  Add data to this Overlap instance
 by assigning to this SDR.
 
-Argument period is Time scale for exponential moving average.)",
+Argument period is time constant for exponential moving average.)",
             py::arg("sdr"), py::arg("period"));
         py_Overlap.def( py::init<vector<UInt>, UInt>(),
 R"(Argument dimensions of SDR.  Add data to this Overlap instance
 by calling method overlap.addData( SDR ) with an SDR which has these dimensions.
 
-Argument period is Time scale for exponential moving average.)",
+Argument period is time constant for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
         py_Overlap.def("reset", &Overlap::reset, "For use with time-series data sets.");
         py_Overlap.def_property_readonly("overlap",
@@ -239,13 +253,13 @@ Example Usage:
 R"(Argument sdr is data source to track.  Add data to this Metrics instance
 by assigning to this SDR.
 
-Argument period is Time scale for exponential moving average.)",
+Argument period is time constant for exponential moving average.)",
             py::arg("sdr"), py::arg("period"));
         py_Metrics.def( py::init<vector<UInt>, UInt>(),
 R"(Argument dimensions of SDR.  Add data to this Metrics instance
 by calling method metrics.addData( SDR ) with an SDR which has these dimensions.
 
-Argument period is Time scale for exponential moving average.)",
+Argument period is time constant for exponential moving average.)",
             py::arg("dimensions"), py::arg("period"));
         py_Metrics.def( "reset", &Metrics::reset, "For use with time-series data sets.");
         py_Metrics.def( "addData", &Metrics::addData,
