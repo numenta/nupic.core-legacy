@@ -309,41 +309,30 @@ Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
             py::arg("sdr"), py::arg("dimensions"));
 
 
-        py::class_<Intersection, shared_ptr<Intersection>, SDR> py_Intersect(m, "Intersection",
-R"(Intersection presents a view onto a group of SDRs, which always shows the
-set-intersection of the active bits in each input SDR.
+        py_SDR.def("intersection", [](SDR &self, SDR& inp1, SDR& inp2)
+            { self.intersection({ &inp1, &inp2}); },
+R"(This method calculates the set intersection of the active bits in each input
+SDR.
+
+This method has two overloads:
+    1) Accepts two SDRs, for convenience.
+    2) Accepts a list of SDRs, must contain at least two SDRs, can contain as
+       many SDRs as needed.
+
+In both cases the output is stored in this SDR.  This method modifies this SDR
+and discards its current value!
 
 Example Usage:
-    # Setup 2 SDRs to hold the inputs.
     A = SDR( 10 )
     B = SDR( 10 )
-    A.sparse =       [2, 3, 4, 5]
-    B.sparse = [0, 1, 2, 3]
-
-    # Calculate the logical intersection
-    X = Intersection(A, B)
+    X = SDR( 10 )
+    A.sparse = [0, 1, 2, 3]
+    B.sparse =       [2, 3, 4, 5]
+    X.intersection( A, B )
     X.sparse -> [2, 3]
-
-    # Assignments to the input SDRs are propigated to the Intersection
-    B.zero()
-    X.getSparsity() -> 0.0
 )");
-        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2) {
-            return new Intersection({       &inp1,     &inp2});
-        }));
-        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3) {
-            return new Intersection({       &inp1,     &inp2,     &inp3});
-        }));
-        py_Intersect.def( py::init( [] (SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
-            return new Intersection({       &inp1,     &inp2,     &inp3,     &inp4});
-        }));
-        py_Intersect.def( py::init( [] (vector<SDR*> inputs) {
-            return new Intersection(inputs);
-        }));
-        py_Intersect.def_property_readonly("inputs",
-            [] (const Intersection &self)
-                { return self.inputs; },
-            "List of input SDRs which feed into this SDR operation.");
+        py_SDR.def("intersection", [](SDR &self, vector<const SDR*> inputs)
+            { self.intersection(inputs); });
 
 
         py::class_<Concatenation, shared_ptr<Concatenation>, SDR> py_Concatenation(m, "Concatenation",
