@@ -138,7 +138,7 @@ void TemporalMemory::initialize(
   extra_ = extra;
 
   // Initialize member variables
-  connections = Connections(static_cast<CellIdx>(numberOfColumns() * cellsPerColumn_), connectedPermanence_);
+  connections = Connections(numberOfColumns() * cellsPerColumn_, connectedPermanence_);
   rng_ = Random(seed);
 
   maxSegmentsPerCell_ = maxSegmentsPerCell;
@@ -154,10 +154,10 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
 
-  CellIdx minNumSegments = std::numeric_limits<CellIdx>::max();
-  CellIdx numTiedCells = 0;
+  UInt32 minNumSegments = UINT_MAX;
+  UInt32 numTiedCells = 0;
   for (CellIdx cell = start; cell < end; cell++) {
-    const CellIdx numSegments = static_cast<CellIdx>(connections.numSegments(static_cast<CellIdx>(cell)));
+    const UInt32 numSegments = connections.numSegments(cell);
     if (numSegments < minNumSegments) {
       minNumSegments = numSegments;
       numTiedCells = 1;
@@ -216,7 +216,7 @@ static void adaptSegment(Connections &connections, Segment segment,
 }
 
 static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
-                                         Segment segment, size_t nDestroy,
+                                         Segment segment, Int nDestroy,
                                          const vector<CellIdx> &excludeCells) {
   // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
@@ -232,7 +232,7 @@ static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
 
   // Find cells one at a time. This is slow, but this code rarely runs, and it
   // needs to work around floating point differences between environments.
-  for (size_t i = 0; i < nDestroy && !destroyCandidates.empty(); i++) {
+  for (Int32 i = 0; i < nDestroy && !destroyCandidates.empty(); i++) {
     Permanence minPermanence = std::numeric_limits<Permanence>::max();
     vector<Synapse>::iterator minSynapse = destroyCandidates.end();
 
@@ -568,11 +568,11 @@ void TemporalMemory::activateDendrites(bool learn,
 
     for(const auto &active : extraActive) {
       NTA_ASSERT( active < extra_ );
-      activeCells_.push_back( static_cast<UInt32>(active + numberOfCells()) );
+      activeCells_.push_back( active + numberOfCells() );
     }
     for(const auto &winner : extraWinners) {
       NTA_ASSERT( winner < extra_ );
-      winnerCells_.push_back( static_cast<UInt32>(winner + numberOfCells()) );
+      winnerCells_.push_back( winner + numberOfCells() );
     }
   }
   else {
@@ -582,7 +582,7 @@ void TemporalMemory::activateDendrites(bool learn,
         << "External predictive inputs must be declared to TM constructor!";
   }
 
-  const UInt32 length = static_cast<UInt32>(connections.segmentFlatListLength());
+  const UInt32 length = connections.segmentFlatListLength();
 
   numActiveConnectedSynapsesForSegment_.assign(length, 0);
   numActivePotentialSynapsesForSegment_.assign(length, 0);
