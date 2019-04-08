@@ -73,6 +73,7 @@ set(math_tests
 	   
 set(ntypes_tests
 	   unit/ntypes/ArrayTest.cpp
+	   unit/ntypes/BasicTypeTest.cpp
 	   unit/ntypes/CollectionTest.cpp
 	   unit/ntypes/DimensionsTest.cpp
 	   unit/ntypes/ScalarTest.cpp
@@ -97,7 +98,6 @@ set(regions_tests
 
 	   
 set(types_tests
-	   unit/types/BasicTypeTest.cpp
 	   unit/types/ExceptionTest.cpp
 	   unit/types/SdrTest.cpp
 	   unit/types/SdrToolsTest.cpp

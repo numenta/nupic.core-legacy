@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.sdr import SDR, Reshape, Intersection, Concatenation
+from nupic.bindings.sdr import SDR, Reshape, Concatenation
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -373,64 +373,27 @@ class ReshapeTest(unittest.TestCase):
         assert(False) # TODO: Unimplemented
 
 
-class IntersectionTest(unittest.TestCase):
+class SDR_IntersectionTest(unittest.TestCase):
     def testExampleUsage(self):
         A = SDR( 10 )
         B = SDR( 10 )
-        A.sparse = [2, 3, 4, 5]
-        B.sparse = [0, 1, 2, 3]
-        X = Intersection(A, B)
-        assert((X.sparse == [2, 3]).all())
-        B.zero()
-        assert(X.getSparsity() == 0)
+        X = SDR( A.dimensions )
+        A.sparse = [0, 1, 2, 3]
+        B.sparse =       [2, 3, 4, 5]
+        X.intersection( A, B )
+        assert(set(X.sparse) == set([2, 3]))
 
-    def testConstructor(self):
-        assert( issubclass(Intersection, SDR) )
-        # Test 2 Arguments
-        A = SDR( 2000 )
-        B = SDR( A.size )
-        X = Intersection(A, B)
-        A.randomize( .20 )
-        B.randomize( .20 )
-        assert( X.getSum() > 0 )
-        assert( X.inputs == [A, B] )
-        A.zero()
-        assert( X.getSum() == 0 )
-        del X
-        A.zero()
-        B.zero()
-        del B
-        del A
-        # Test 3 Arguments
-        A = SDR( 2000 )
-        B = SDR( 2000 )
-        C = SDR( 2000 )
-        X = Intersection(A, B, C)
-        A.randomize( .6 )
-        B.randomize( .6 )
-        C.randomize( .6 )
-        assert( X.inputs == [A, B, C] )
-        assert( X.getSparsity() >  .75 * ( .6 ** 3 ))
-        assert( X.getSparsity() < 1.25 * ( .6 ** 3 ))
-        del B
-        del A
-        del X
-        del C
-        # Test 4 Arguments
-        A = SDR( 2000 ); A.randomize( .9 )
-        B = SDR( 2000 ); B.randomize( .9 )
-        C = SDR( 2000 ); C.randomize( .9 )
-        D = SDR( 2000 ); D.randomize( .9 )
-        X = Intersection(A, B, C, D)
-        assert( X.inputs == [A, B, C, D] )
-        # Test list constructor
-        X = Intersection( [A, B, C, D] )
-        assert( X.size       == 2000 )
-        assert( X.dimensions == [2000] )
-        assert( X.getSum()    > 0 )
-        A.zero()
-        assert( X.getSum()   == 0 )
-        assert( X.inputs     == [A, B, C, D] )
+    def testInPlace(self):
+        A = SDR( 1000 )
+        B = SDR( 1000 )
+        A.randomize( 1.00 )
+        B.randomize(  .50 )
+        A.intersection( A, B )
+        assert( A.getSparsity() == .5 )
+        A.randomize( 1.00 )
+        B.randomize(  .50 )
+        A.intersection( B, A )
+        assert( A.getSparsity() == .5 )
 
     def testSparsity(self):
         test_cases = [
@@ -444,27 +407,25 @@ class IntersectionTest(unittest.TestCase):
             ( 0.5,  0.5,  0.5, 0.5),
             ( 0.11, 0.25, 0.33, 0.5, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98),
         ]
+        size = 10000
         seed = 99
+        X    = SDR( size )
         for sparsities in test_cases:
             sdrs = []
             for S in sparsities:
-                inp = SDR( 10000 )
+                inp = SDR( size )
                 inp.randomize( S, seed)
                 seed += 1
                 sdrs.append( inp )
-            X = Intersection( sdrs )
+            X.intersection( sdrs )
             mean_sparsity = np.product( sparsities )
             assert( X.getSparsity() >= (2./3.) * mean_sparsity )
             assert( X.getSparsity() <= (4./3.) * mean_sparsity )
 
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
-    def testPickle(self):
-        assert(False) # TODO: Unimplemented
-
 
 class ConcatenationTest(unittest.TestCase):
     def testExampleUsage(self):
-        assert( issubclass(Intersection, SDR) )
+        assert( issubclass(Concatenation, SDR) )
         A = SDR( 100 )
         B = SDR( 100 )
         C = Concatenation( A, B )
