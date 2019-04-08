@@ -165,8 +165,10 @@
 #define NTA_ARRAY_HPP
 
 #include <cstring>
+
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/types/BasicType.hpp>
+
+#include <nupic/ntypes/BasicType.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/types/Serializable.hpp>

@@ -26,16 +26,13 @@
 
 #include <iostream> // for ostream
 #include <sstream>  // for stringstream
-//#include <iomanip>  // for std::setprecision
 #include <cstring>  // for memcpy, memcmp
-#include <stdlib.h> // for size_t
+#include <cstdlib> // for size_t
 #include <vector>
 
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/types/BasicType.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp>
 
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
