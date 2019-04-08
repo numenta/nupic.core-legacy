@@ -155,7 +155,7 @@ public:
   typedef unsigned long result_type;
   result_type max() const { return gen.max(); }
   result_type min() const { return gen.min(); }
-  static const UInt32 MAX32 = static_cast<UInt32>(-1);
+  static const UInt32 MAX32 = std::numeric_limits<UInt32>::max();
 
 protected:
   friend class RandomTest;

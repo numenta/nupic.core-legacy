@@ -154,10 +154,10 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
 
-  UInt32 minNumSegments = UINT_MAX;
-  UInt32 numTiedCells = 0;
+  CellIdx minNumSegments = UINT_MAX;
+  CellIdx numTiedCells = 0;
   for (CellIdx cell = start; cell < end; cell++) {
-    const UInt32 numSegments = static_cast<UInt32>(connections.numSegments(static_cast<CellIdx>(cell)));
+    const CellIdx numSegments = static_cast<CellIdx>(connections.numSegments(static_cast<CellIdx>(cell)));
     if (numSegments < minNumSegments) {
       minNumSegments = numSegments;
       numTiedCells = 1;
@@ -216,7 +216,7 @@ static void adaptSegment(Connections &connections, Segment segment,
 }
 
 static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
-                                         Segment segment, Int32 nDestroy,
+                                         Segment segment, size_t nDestroy,
                                          const vector<CellIdx> &excludeCells) {
   // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
@@ -232,7 +232,7 @@ static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
 
   // Find cells one at a time. This is slow, but this code rarely runs, and it
   // needs to work around floating point differences between environments.
-  for (Int32 i = 0; i < nDestroy && !destroyCandidates.empty(); i++) {
+  for (size_t i = 0; i < nDestroy && !destroyCandidates.empty(); i++) {
     Permanence minPermanence = std::numeric_limits<Permanence>::max();
     vector<Synapse>::iterator minSynapse = destroyCandidates.end();
 
@@ -283,7 +283,7 @@ static void growSynapses(Connections &connections,
   // Check if we're going to surpass the maximum number of synapses. //TODO delegate this to createSynapse(segment)
   const size_t overrun = (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
   if (overrun > 0) {
-    destroyMinPermanenceSynapses(connections, rng, segment, static_cast<Int32>(overrun), prevWinnerCells);
+    destroyMinPermanenceSynapses(connections, rng, segment, overrun, prevWinnerCells);
   }
 
   // Recalculate in case we weren't able to destroy as many synapses as needed.

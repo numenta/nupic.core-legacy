@@ -300,7 +300,7 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
         cpyarray<Int64, Int16>(ptr1, ptr2, count);
         break;
       case NTA_BasicType_UInt64:
-        cpyarray<UInt64, Int16>(ptr1, ptr2, count, 0, static_cast<UInt16>(std::numeric_limits<Int16>::max()));
+        cpyarray<UInt64, Int16>(ptr1, ptr2, count, 0, static_cast<Int16>(std::numeric_limits<Int16>::max()));
         break;
       case NTA_BasicType_Real32:
         cpyarray<Real32, Int16>(ptr1, ptr2, count);
