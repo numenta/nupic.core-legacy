@@ -58,28 +58,28 @@ public:
     return !operator==(r2);
   }
 
-  CerealAdapter;
+  friend class cereal::access;
   template<class Archive>
-  void save_ar(Archive & ar) const {
+  void serialize(Archive & ar) const {
     size_t wSize = slidingWindow_.size();
-    ar(CEREAL_NVP(wSize));
-    ar(CEREAL_NVP(slidingWindow_));
+    ar(CEREAL_NVP(wSize));          // save size of sliding window to stream
+    ar(CEREAL_NVP(slidingWindow_)); // save data in sliding window to stream
   }
-  template<class Archive>
-  void load_ar(Archive & ar) {
-    ar(CEREAL_NVP(slidingWindow_));
-    const std::vector<Real>&  window = slidingWindow_.getData();
-    total_ = Real(std::accumulate(begin(window), end(window), 0.0f));
-  }
+
   // The Class does not have a default constructor so we have to
   // tell Cereal to construct it with an argument if it is used
-  // in a smart pointer.
+  // in a smart pointer.  Called by Cereal.
   template <class Archive>
   static void load_and_construct( Archive & ar, cereal::construct<MovingAverage> & construct )
   {
     UInt wSize;
-    ar( wSize );  // reads it from the stream
-    construct( wSize );
+    ar( wSize );                    // reads size of slidingWindow from the stream
+    construct(wSize);               // allocates slidingWindow
+    ar(construct->slidingWindow_);  // populates sliding window
+
+    // calculates total_
+    const std::vector<Real>&  window = construct->slidingWindow_.getData();
+    construct->total_ = Real(std::accumulate(begin(window), end(window), 0.0f));
   }
 
 

@@ -130,7 +130,8 @@ class AnomalyLikelihood : public Serializable {
        CEREAL_NVP(averagedAnomaly_),
        CEREAL_NVP(runningLikelihoods_),
        CEREAL_NVP(runningRawAnomalyScores_),
-       CEREAL_NVP(runningAverageAnomalies_) );
+       CEREAL_NVP(runningAverageAnomalies_) 
+    );
   }
   template<class Archive>
   void load_ar(Archive & ar) {
@@ -142,11 +143,11 @@ class AnomalyLikelihood : public Serializable {
        CEREAL_NVP(distribution_.stdev),
        CEREAL_NVP(iteration_),
        CEREAL_NVP(lastTimestamp_),
-       CEREAL_NVP(initialTimestamp_),
-       CEREAL_NVP(averagedAnomaly_),
-       CEREAL_NVP(runningLikelihoods_),
-       CEREAL_NVP(runningRawAnomalyScores_),
-       CEREAL_NVP(runningAverageAnomalies_) );
+       CEREAL_NVP(initialTimestamp_));
+    ar(CEREAL_NVP(averagedAnomaly_));
+    ar(CEREAL_NVP(runningLikelihoods_));
+    ar(CEREAL_NVP(runningRawAnomalyScores_));
+    ar(CEREAL_NVP(runningAverageAnomalies_));
     // Note: learningPeriod, reestimationPeriod, probationaryPeriod already set by constructor.
 
   }

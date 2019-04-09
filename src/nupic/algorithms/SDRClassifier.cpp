@@ -44,7 +44,7 @@ using namespace std;
 
 
 UInt SDRClassifier::getClassification( const PDF & data ) const
-  { return max_element( data.begin(), data.end() ) - data.begin(); }
+  { return static_cast<UInt>(max_element( data.begin(), data.end() ) - data.begin()); }
 
 
 Real64 SDRClassifier::get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal) const {
@@ -170,12 +170,12 @@ void SDRClassifier::compute(UInt recordNum, const vector<UInt> &patternNZ,
       if (binary_search(steps_.begin(), steps_.end(), nSteps)) {
         const vector<Real64> error = calculateError_(bucketIdxList, learnPatternNZ, nSteps);
         Matrix& w = weightMatrix_.at(nSteps);
-	NTA_ASSERT(alpha_ > 0.0);
+	      NTA_ASSERT(alpha_ > 0.0);
         for (const auto& bit : learnPatternNZ) {
-          for(size_t i = 0; i < error.size(); i++) {
+          for(UInt i = 0; i < error.size(); i++) {
             const auto val = get_(w, bit, i) + alpha_ * error[i];
-	    if(val == 0) continue;
-	    w[bit][i] = val;
+	          if(val == 0) continue;
+	            w[bit][i] = val;
           }
         }
       }
@@ -216,7 +216,7 @@ void SDRClassifier::infer_(const vector<UInt> &patternNZ,
 
     for( const auto& bit : patternNZ ) {
       const Matrix& w = weightMatrix_.at(*nSteps);
-      for( size_t i = 0; i < likelihoods.size(); i++ ) {
+      for( UInt i = 0; i < static_cast<UInt>(likelihoods.size()); i++ ) {
         likelihoods.at(i) += get_(w, bit, i);
       }
     }

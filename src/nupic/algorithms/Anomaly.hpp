@@ -112,21 +112,17 @@ public:
     ar(CEREAL_NVP(name), 
        CEREAL_NVP(mode_), 
        CEREAL_NVP(binaryThreshold_), 
-       CEREAL_NVP(movingAverage_), 
-       CEREAL_NVP(likelihood_) );
+       CEREAL_NVP(likelihood_),
+       CEREAL_NVP(movingAverage_));
   }
   template<class Archive>
   void load_ar(Archive & ar) {
     std::string name;
-    UInt slidingWindowSize;
+    UInt slidingWindowSize = 0;
     ar(CEREAL_NVP(name),
        CEREAL_NVP(mode_),
-       CEREAL_NVP(binaryThreshold_),
-       CEREAL_NVP(likelihood_),
-       CEREAL_NVP(slidingWindowSize));
-    if (slidingWindowSize > 0u) {
-      movingAverage_.reset(new nupic::util::MovingAverage(slidingWindowSize));
-    }
+       CEREAL_NVP(binaryThreshold_));
+    ar(CEREAL_NVP(likelihood_));
     ar(CEREAL_NVP(movingAverage_));
   }
 
