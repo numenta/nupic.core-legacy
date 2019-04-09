@@ -25,7 +25,7 @@ Implementation of Spec API
 */
 
 #include <nupic/engine/Spec.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {

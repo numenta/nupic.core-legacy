@@ -36,18 +36,10 @@
 
 using namespace std;
 using namespace nupic;
-using nupic::algorithms::spatial_pooler::SpatialPooler;
+using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
 using nupic::sdr::SDR;
 using nupic::utils::VectorHelpers;
-
-// Round f to 5 digits of precision. This is used to set
-// permanence values and help avoid small amounts of drift between
-// platforms/implementations
-static Real round5_(const Real f)
-{
-  return ((Real) ((Int) (f * 100000.0f))) / 100000.0f;
-}
 
 class CoordinateConverterND {
 
@@ -385,7 +377,7 @@ void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
   }
 }
 
-const vector<UInt> &SpatialPooler::getOverlaps() const { return overlaps_; }
+const vector<SynapseIdx> &SpatialPooler::getOverlaps() const { return overlaps_; }
 
 const vector<Real> &SpatialPooler::getBoostedOverlaps() const {
   return boostedOverlaps_;
@@ -474,7 +466,7 @@ void SpatialPooler::initialize(
         connections_.createSynapse( (connections::Segment)i, presyn, perm[presyn] );
     }
 
-    connections_.raisePermanencesToThreshold( (connections::Segment)i, synPermConnected_, stimulusThreshold_ );
+    connections_.raisePermanencesToThreshold( (connections::Segment)i, stimulusThreshold_ );
   }
 
   updateInhibitionRadius_();
@@ -526,7 +518,7 @@ void SpatialPooler::compute(const SDR &input, bool learn, SDR &active) {
 }
 
 
-void SpatialPooler::boostOverlaps_(const vector<UInt> &overlaps, //TODO use Eigen sparse vector here
+void SpatialPooler::boostOverlaps_(const vector<SynapseIdx> &overlaps, //TODO use Eigen sparse vector here
                                    vector<Real> &boosted) const {
   for (UInt i = 0; i < numColumns_; i++) {
     boosted[i] = overlaps[i] * boostFactors_[i];
@@ -577,14 +569,12 @@ vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
 
 
 Real SpatialPooler::initPermConnected_() {
-  Real p =  rng_.realRange(synPermConnected_, connections::maxPermanence);
-  return round5_(p);
+  return rng_.realRange(synPermConnected_, connections::maxPermanence);
 }
 
 
 Real SpatialPooler::initPermNonConnected_() {
-  Real p = rng_.realRange(connections::minPermanence, synPermConnected_);
-  return round5_(p);
+  return rng_.realRange(connections::minPermanence, synPermConnected_);
 }
 
 
@@ -610,7 +600,7 @@ vector<Real> SpatialPooler::initPermanence_(const vector<UInt> &potential, //TOD
 void SpatialPooler::updateInhibitionRadius_() {
   if (globalInhibition_) {
     inhibitionRadius_ =
-        *max_element(columnDimensions_.begin(), columnDimensions_.end());
+        *max_element(columnDimensions_.cbegin(), columnDimensions_.cend());
     return;
   }
 
@@ -668,7 +658,7 @@ void SpatialPooler::updateMinDutyCyclesLocal_() {
 }
 
 
-void SpatialPooler::updateDutyCycles_(const vector<UInt> &overlaps,
+void SpatialPooler::updateDutyCycles_(const vector<SynapseIdx> &overlaps,
                                       SDR &active) {
 
   // Turn the overlaps array into an SDR. Convert directly to flat-sparse to
@@ -739,8 +729,7 @@ void SpatialPooler::adaptSynapses_(const SDR &input,
                                    const SDR &active) {
   for(const auto &column : active.getSparse()) {
     connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
-    connections_.raisePermanencesToThreshold(
-                                column, synPermConnected_, stimulusThreshold_);
+    connections_.raisePermanencesToThreshold( column, stimulusThreshold_ );
   }
 }
 
@@ -838,13 +827,13 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 
 
 void SpatialPooler::calculateOverlap_(const SDR &input,
-                                      vector<UInt> &overlaps) const {
+                                      vector<SynapseIdx> &overlaps) const {
   overlaps.assign( numColumns_, 0 );
   connections_.computeActivity(overlaps, input.getSparse());
 }
 
 
-void SpatialPooler::calculateOverlapPct_(const vector<UInt> &overlaps,
+void SpatialPooler::calculateOverlapPct_(const vector<SynapseIdx> &overlaps,
                                          vector<Real> &overlapPct) const {
   overlapPct.assign(numColumns_, 0);
   vector<UInt> connectedCounts( numColumns_ );

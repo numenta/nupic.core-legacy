@@ -70,3 +70,6 @@ are ignored.  PR #271
   With this we are also removing `BacktrackingTM` (and its NetworkAPI Region), which was based on TP. BackTM had slightly better
   anomaly scores results (+5% compared to TM), but did not have complete tests and verified (peer-reviewed) functionality. PR #356
 
+* Connections class must be initialized with a connectedPermanence.  Methods
+`Connections::computeActivity` and `Connections::raisePermanencesToThreshold` no
+longer accept a synapse permanence threshold argument. PR #305

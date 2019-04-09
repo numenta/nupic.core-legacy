@@ -165,10 +165,13 @@
 #define NTA_ARRAY_HPP
 
 #include <cstring>
+
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/types/BasicType.hpp>
+
+#include <nupic/ntypes/BasicType.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/utils/Log.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 class Array : public ArrayBase {
@@ -230,7 +233,7 @@ public:
         a.allocateBuffer(getSDR().dimensions);
       else
         a.allocateBuffer(getCount());
-      memcpy((char *)a.getBuffer(), (char *)getBuffer(),
+      std::memcpy(static_cast<char *>(a.getBuffer()), static_cast<const char *>(getBuffer()),
              getCount() * BasicType::getSize(type_));
     }
     return a;
@@ -281,7 +284,7 @@ public:
     */
   Array get_as(NTA_BasicType type) const {
     Array a(type);
-    a.allocateBuffer(getMaxElementsCount());
+    a.allocateBuffer(getCount());
     a.zeroBuffer();
     convertInto(a);
     return a;
@@ -311,12 +314,17 @@ public:
     NTA_CHECK(type_ != NTA_BasicType_SDR) << "subset() not valid for SDR";
     Array a(type_);
     a.allocateBuffer(count);
-    memcpy(a.getBuffer(),
-            (char *)getBuffer() + offset * BasicType::getSize(type_),
+    std::memcpy(a.getBuffer(),
+            static_cast<const char *>(getBuffer()) + offset * BasicType::getSize(type_),
             count * BasicType::getSize(type_));
     return a;
   }
 };
 } // namespace nupic
+
+CEREAL_REGISTER_TYPE(nupic::Array)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(nupic::ArrayBase, nupic::Array)
+
+
 
 #endif

@@ -21,6 +21,9 @@
 #include <vector>
 #include <random>
 
+static bool verbose = true;
+#define VERBOSE if(verbose) std::cerr << "[          ]"
+
 namespace testing {
     
 using namespace std;
@@ -587,6 +590,35 @@ TEST(SdrTest, TestAddNoise) {
     }
 }
 
+TEST(SdrTest, TestIntersectionExampleUsage) {
+    // Setup 2 SDRs to hold the inputs.
+    SDR A({ 10 });
+    SDR B({ 10 });
+    SDR C({ 10 });
+    A.setSparse(SDR_sparse_t{0, 1, 2, 3});
+    B.setSparse(SDR_sparse_t      {2, 3, 4, 5});
+    // Calculate the logical intersection
+    C.intersection(A, B);
+    ASSERT_EQ(C.getSparse(), SDR_sparse_t({2, 3}));
+}
+
+TEST(SdrTest, TestIntersection) {
+    SDR A({1000});
+    SDR B(A.dimensions);
+    SDR X(A.dimensions);
+    A.randomize(.5);
+    B.randomize(.5);
+
+    // Test basic functionality
+    X.intersection(A, B);
+    X.getDense();
+    ASSERT_GT( X.getSparsity(), .25 / 2. );
+    ASSERT_LT( X.getSparsity(), .25 * 2. );
+    A.zero();
+    X.intersection(A, B);
+    ASSERT_EQ( X.getSum(), 0u );
+}
+
 TEST(SdrTest, TestEquality) {
     vector<SDR*> test_cases;
     // Test different dimensions
@@ -630,47 +662,53 @@ TEST(SdrTest, TestSaveLoad) {
     ofstream outfile;
     outfile.open(filename);
 
-    // Test zero value
     SDR zero({ 3, 3 });
-    zero.save( outfile );
-
-    // Test dense data
     SDR dense({ 3, 3 });
-    dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
-    dense.save( outfile );
-
-    // Test sparse data
     SDR sparse({ 3, 3 });
-    sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
-    sparse.save( outfile );
-
-    // Test coordinate data
     SDR coord({ 3, 3 });
-    coord.setCoordinates(SDR_coordinate_t({
-            { 0, 1, 2 },
-            { 1, 1, 2 }}));
-    coord.save( outfile );
+    {
+      cereal::JSONOutputArchive json_out(outfile);
+
+      // Test zero value
+      zero.save_ar( json_out );
+
+      // Test dense data
+      dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
+      dense.save_ar( json_out );
+
+      // Test sparse data
+      sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
+      sparse.save_ar( json_out );
+
+      // Test coordinate data
+      coord.setCoordinates(SDR_coordinate_t({
+              { 0, 1, 2 },
+              { 1, 1, 2 }}));
+      coord.save_ar( json_out );
+    } // forces Cereal to flush to stream.
 
     // Now load all of the data back into SDRs.
     outfile.close();
     ifstream infile( filename );
 
-    if( false ) {
+    if( verbose ) {
         // Print the file's contents
         std::stringstream buffer; buffer << infile.rdbuf();
-        cout << buffer.str() << "EOF" << endl;
+        VERBOSE << buffer.str() << "EOF" << endl;
         infile.seekg( 0 ); // rewind to start of file.
     }
 
-    SDR zero_2;
-    zero_2.load( infile );
-    SDR dense_2;
-    dense_2.load( infile );
-    SDR sparse_2;
-    sparse_2.load( infile );
-    SDR coord_2;
-    coord_2.load( infile );
+    cereal::JSONInputArchive json_in(infile);
 
+    SDR zero_2;
+    zero_2.load_ar( json_in );
+    SDR dense_2;
+    dense_2.load_ar( json_in );
+    SDR sparse_2;
+    sparse_2.load_ar( json_in );
+    SDR coord_2;
+    coord_2.load_ar( json_in );
+    
     infile.close();
     int ret = ::remove( filename );
     ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
@@ -680,6 +718,13 @@ TEST(SdrTest, TestSaveLoad) {
     ASSERT_TRUE( dense   == dense_2 );
     ASSERT_TRUE( sparse  == sparse_2 );
     ASSERT_TRUE( coord   == coord_2 );
+
+    dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
+    stringstream ss;
+    dense.saveToStream_ar(ss, SerializableFormat::BINARY);
+    dense_2.loadFromStream_ar(ss, SerializableFormat::BINARY);
+    ASSERT_TRUE( dense   == dense_2 );
+
 }
 
 TEST(SdrTest, TestCallbacks) {

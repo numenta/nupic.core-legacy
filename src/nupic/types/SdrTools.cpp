@@ -140,7 +140,7 @@ SDR_dense_t& Concatenation::getDense() const {
     if( !dense_valid_lazy ) {
         // Setup for copying the data as rows & strides.
         const UInt    n_dim = (UInt)inputs[0]->dimensions.size();
-        vector<Byte*> buffers;
+        vector<ElemDense*> buffers;
         vector<UInt>  row_lengths;
         for(const auto &sdr : inputs) {
             buffers.push_back( sdr->getDense().data() );
@@ -151,8 +151,8 @@ SDR_dense_t& Concatenation::getDense() const {
         }
         // Get the output buffer.
         dense_.resize( size );
-              Byte *dense_data = dense_.data();
-        const Byte *data_end   = dense_data + size;
+        auto  dense_data = dense_.data();
+        const auto data_end    = dense_data + size;
         const auto n_inputs    = inputs.size();
         while( dense_data < data_end ) {
             // Copy one row from each input SDR.
@@ -185,74 +185,6 @@ void Concatenation::deconstruct() {
     // Notify SDR parent class.
     SDR::deconstruct();
 }
-
-
-/******************************************************************************/
-
-void Intersection::initialize(const vector<SDR*> inputs)
-{
-    NTA_CHECK( inputs.size() >= 1u )
-        << "Not enough inputs to SDR Intersection, need at least 2 SDRs got " << inputs.size() << ".";
-    SDR::initialize( inputs[0]->dimensions );
-    inputs_.assign( inputs.begin(), inputs.end() );
-
-    callback_handles_.clear();
-    destroyCallback_handles_.clear();
-    for(SDR *inp : inputs_) {
-        NTA_CHECK(inp != nullptr);
-        NTA_ASSERT(inp->size == size)
-            << "All inputs to SDR Intersection must have the same size!";
-        // When input SDR is assigned to, invalidate this SDR.  This SDR
-        // will be recalculated next time it is accessed.
-        callback_handles_.push_back( inp->addCallback( [&] ()
-            { clear(); }));
-        // This SDR can't survive without all of its input SDRs.
-        destroyCallback_handles_.push_back( inp->addDestroyCallback( [&] ()
-            { deconstruct(); }));
-    }
-    clear();
-}
-
-void Intersection::clear() const {
-    SDR::clear();
-    // Always advertise that this SDR has dense data.
-    dense_valid = true;
-    // But make note that this SDR does not actually have dense data, it
-    // will be computed it when it's requested.
-    dense_valid_lazy = false;
-}
-
-SDR_dense_t& Intersection::getDense() const {
-    NTA_ASSERT( dense_valid );
-    if( !dense_valid_lazy ) {
-        const auto &input0 = inputs[0]->getDense();
-        dense_.assign( input0.begin(), input0.end() );
-        for(auto i = 1u; i < inputs.size(); ++i) {
-            const auto &data = inputs[i]->getDense();
-            for(auto z = 0u; z < data.size(); ++z)
-                dense_[z] = dense_[z] && data[z];
-        }
-        SDR::setDenseInplace();
-        dense_valid_lazy = true;
-    }
-    return dense_;
-}
-
-void Intersection::deconstruct() {
-    // Unlink everything at death.
-    for(auto i = 0u; i < inputs_.size(); i++) {
-        inputs_[i]->removeCallback( callback_handles_[i] );
-        inputs_[i]->removeDestroyCallback( destroyCallback_handles_[i] );
-    }
-    // Clear internal data.
-    inputs_.clear();
-    callback_handles_.clear();
-    destroyCallback_handles_.clear();
-    dense_valid_lazy = false;
-    // Notify SDR parent class.
-    SDR::deconstruct();
-}
-
 
 } // end namespace sdr
 } // end namespace nupic

@@ -47,13 +47,13 @@ public:
      *
      * The given SDR's dimensions must be the same as this Metric's dimensions.
      */
-    void addData(SDR &data);
+    void addData(const SDR &data);
 
     virtual ~MetricsHelper_();
 
 private:
     std::vector<UInt> dimensions_;
-    SDR* dataSource_;
+    const SDR* dataSource_;
     UInt callback_handle_;
     UInt destroyCallback_handle_;
 
@@ -65,18 +65,18 @@ protected:
      * @param dimensions of SDR.  Add data to this metric by calling method
      * addData(SDR&) with an SDR which has these dimensions.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    MetricsHelper_( const std::vector<UInt> dimensions, UInt period );
+    MetricsHelper_( const std::vector<UInt> &dimensions, UInt period );
 
     /**
      * @param dataSource SDR to track.  Add data to the metric by assigning to
      * this SDR.  This class deals with adding a callback to this SDR so that
      * your SDR-MetricsTracker is notified after every update to the SDR.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    MetricsHelper_( SDR &dataSource, UInt period );
+    MetricsHelper_( const SDR &dataSource, UInt period );
 
     void deconstruct();
 
@@ -91,7 +91,7 @@ protected:
      * streaming data.  This class deals with finding a suitable weight for each
      * sample.
      */
-    virtual void callback( SDR &dataSource, Real alpha ) = 0;
+    virtual void callback( const SDR &dataSource, Real alpha ) = 0;
 };
 
 
@@ -121,17 +121,17 @@ public:
      * @param dataSource SDR to track.  Add data to this sparsity metric by
      * assigning to this SDR.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    Sparsity( SDR &dataSource, UInt period );
+    Sparsity( const SDR &dataSource, UInt period );
 
     /**
      * @param dimensions of SDR.  Add data to this sparsity metric by calling
      * method addData(SDR&) with an SDR which has these dimensions.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    Sparsity( const std::vector<UInt> dimensions, UInt period );
+    Sparsity( const std::vector<UInt> &dimensions, UInt period );
 
     const Real &sparsity = sparsity_;
 
@@ -151,7 +151,7 @@ private:
 
     void initialize();
 
-    void callback(SDR &dataSource, Real alpha) override;
+    void callback(const SDR &dataSource, Real alpha) override;
 };
 
 
@@ -187,18 +187,31 @@ public:
      * @param dataSource SDR to track.  Add data to this ActivationFrequency
      * instance by assigning to this SDR.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
+     *
+     * @param initialValue - Optional, Makes this ActivationFrequency instance
+     * think that it is the result of a long running process (even though it was
+     * just created).  This assigns an initial activation frequency to all bits
+     * in the SDR, and causes it to always use the exponential moving average
+     * instead of the regular average which is usually applied to the first
+     * "period" many samples.
+     * Note: This argument is useful for using this metric as part of boosting
+     *       algorithms which seek to push the activation frequencies to a
+     *       target value. These algorithms will overreact to the default early
+     *       behavior of this class during the first "period" many samples.
      */
-    ActivationFrequency( SDR &dataSource, UInt period );
+    ActivationFrequency( const SDR &dataSource, UInt period, Real initialValue = -1 );
 
     /**
      * @param dimensions of SDR.  Add data to this ActivationFrequency
      * instance by calling method addData(SDR&) with an SDR which has
      * these dimensions.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period       - Same as other constructor overload.
+     * @param initialValue - Same as other constructor overload.
      */
-    ActivationFrequency( const std::vector<UInt> dimensions, UInt period );
+    ActivationFrequency( const std::vector<UInt> &dimensions, UInt period,
+                         Real initialValue = -1 );
 
     const std::vector<Real> &activationFrequency = activationFrequency_;
 
@@ -224,12 +237,13 @@ public:
 
 private:
     std::vector<Real> activationFrequency_;
+    bool alwaysExponential_;
 
-    void initialize(UInt size);
+    void initialize(UInt size, Real initialValue);
 
     static Real binary_entropy_(const std::vector<Real> &frequencies);
 
-    void callback(SDR &dataSource, Real alpha) override;
+    void callback(const SDR &dataSource, Real alpha) override;
 };
 
 
@@ -264,17 +278,17 @@ public:
      * @param dataSource SDR to track.  Add data to this Overlap instance
      * by assigning to this SDR.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    Overlap( SDR &dataSource, UInt period );
+    Overlap( const SDR &dataSource, UInt period );
 
     /**
      * @param dimensions of SDR.  Add data to this Overlap instance
      * by calling method addData(SDR&) with an SDR which has these dimensions.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    Overlap( const std::vector<UInt> dimensions, UInt period );
+    Overlap( const std::vector<UInt> &dimensions, UInt period );
 
     /* For use with time-series data sets. */
     void reset();
@@ -299,7 +313,7 @@ private:
 
     void initialize();
 
-    void callback(SDR &dataSource, Real alpha) override;
+    void callback(const SDR &dataSource, Real alpha) override;
 };
 
 /**
@@ -339,17 +353,17 @@ public:
      * @param dataSource SDR to track.  Add data to this Metrics instance
      * by assigning to this SDR.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    Metrics( SDR &dataSource, UInt period );
+    Metrics( const SDR &dataSource, UInt period );
 
     /**
      * @param dimensions of SDR.  Add data to this Metrics instance
      * by calling method addData(SDR&) with an SDR which has these dimensions.
      *
-     * @param period Time scale for exponential moving average.
+     * @param period Time constant for exponential moving average.
      */
-    Metrics( const std::vector<UInt> dimensions, UInt period );
+    Metrics( const std::vector<UInt> &dimensions, UInt period );
 
     /* For use with time-series data sets. */
     void reset();
@@ -365,7 +379,7 @@ public:
      *
      * The given SDR's dimensions must be the same as this Metric's dimensions.
      */
-    void addData(SDR &data);
+    void addData(const SDR &data);
 
     friend std::ostream& operator<<(std::ostream& stream, const Metrics &M);
 

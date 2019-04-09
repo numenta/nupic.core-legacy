@@ -81,6 +81,24 @@ Real32 StringUtils::toReal32(const std::string& s, bool throwOnError, bool * fai
   return r;
 }
 
+Real64 StringUtils::toReal64(const std::string& s, bool throwOnError, bool * fail) {
+  if (fail)
+    *fail = false;
+  Real64 r;
+  std::istringstream ss(s);
+  ss >> r;
+  if (ss.fail() || !ss.eof()) {
+    if (throwOnError) {
+      NTA_THROW << "StringUtils::toReal64 -- invalid string \"" << s << "\"";
+    } else {
+      if (fail)
+        *fail = true;
+    }
+  }
+
+  return r;
+}
+
 UInt32 StringUtils::toUInt32(const std::string& s, bool throwOnError, bool * fail)
 {
   if (fail)
@@ -281,7 +299,7 @@ std::string StringUtils::base64Decode(const std::string& encoded_string) {
 
 std::string StringUtils::hexEncode(const void *buf, Size inLen) {
   std::string s(inLen * 2, '\0');
-  const unsigned char *charbuf = (const unsigned char *)buf;
+  const unsigned char *charbuf = static_cast<const unsigned char *>(buf);
   for (Size i = 0; i < inLen; i++) {
     unsigned char x = charbuf[i];
     // high order bits
@@ -355,20 +373,20 @@ bool StringUtils::toIntListNoThrow(const std::string &s, std::vector<Int> &list,
       if (endNum < startNum)
         return false;
       if (asRanges) {
-        list.push_back((Int)startNum);
-        list.push_back((Int)(endNum - startNum + 1));
+        list.push_back(static_cast<Int>(startNum));
+        list.push_back(static_cast<Int>(endNum - startNum + 1));
       } else {
         for (UInt i = startNum; i <= endNum; i++)
-          list.push_back((Int)i);
+          list.push_back(static_cast<Int>(i));
       }
 
       // Skip white space
       while (*startP && isspace(*startP))
         startP++;
     } else {
-      list.push_back((Int)startNum);
+      list.push_back(static_cast<Int>(startNum));
       if (asRanges)
-        list.push_back((Int)1);
+        list.push_back(1);
     }
 
     // Done if end of string

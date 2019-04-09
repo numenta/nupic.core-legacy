@@ -28,7 +28,7 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 
 namespace nupic {
 
