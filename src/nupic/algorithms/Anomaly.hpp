@@ -130,6 +130,11 @@ public:
     ar(CEREAL_NVP(movingAverage_));
   }
 
+
+  bool operator==(const Anomaly &a) const;
+  inline bool operator!=(const Anomaly &a) const
+      { return not ((*this) == a); }
+
 private:
   AnomalyMode mode_;
   Real32 binaryThreshold_;

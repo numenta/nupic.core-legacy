@@ -151,6 +151,10 @@ class AnomalyLikelihood : public Serializable {
 
   }
 
+  
+  bool operator==(const AnomalyLikelihood &a) const;
+  inline bool operator!=(const AnomalyLikelihood &a) const
+      { return not ((*this) == a); }
 
 
   //public constants:

@@ -278,14 +278,14 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(const vector<Real>& 
 
 
 /// HELPER methods (only used internaly in this cpp file)
-Real compute_mean(const vector<Real>& v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
+static Real compute_mean(const vector<Real>& v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
   NTA_ASSERT(v.size() > 0); //avoid division by zero! 
     Real sum = (Real)(std::accumulate(v.begin(), v.end(), 0.0));
     return sum / v.size();
 }
 
 
-Real compute_var(const vector<Real>& v, Real mean)  {
+static Real compute_var(const vector<Real>& v, Real mean)  {
   NTA_ASSERT(v.size() > 0); //avoid division by zero!
     Real sq_sum = (Real)(std::inner_product(v.begin(), v.end(), v.begin(), 0.0));
     return (sq_sum / v.size()) - (mean * mean);
@@ -312,5 +312,23 @@ static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPer
     UInt numShiftedOut = max(0, diff);
     return min(numIngested, max((UInt)0, learningPeriod - numShiftedOut));
 }
+
+bool AnomalyLikelihood::operator==(const AnomalyLikelihood &a) const {
+  if (learningPeriod != a.learningPeriod) return false;
+  if (reestimationPeriod != a.reestimationPeriod) return false;
+  if (probationaryPeriod != a.probationaryPeriod) return false;
+  if (distribution_.name != a.distribution_.name) return false;
+  if (distribution_.mean != a.distribution_.mean) return false;
+  if (distribution_.variance != a.distribution_.variance) return false;
+  if (distribution_.stdev != a.distribution_.stdev) return false;
+  if (iteration_ != a.iteration_) return false;
+  if (lastTimestamp_ != a.lastTimestamp_) return false;
+  if (initialTimestamp_ != a.initialTimestamp_) return false;
+  if (averagedAnomaly_ != a.averagedAnomaly_) return false;
+  if (runningLikelihoods_ != a.runningLikelihoods_) return false;
+  if (runningRawAnomalyScores_ != a.runningRawAnomalyScores_) return false;
+  return true;
+}
+
 
 }}} //ns

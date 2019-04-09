@@ -1557,7 +1557,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
       tm.activateDendrites(true, extraActive, extraWinners);
       auto predictedColumns = tm.getPredictiveCells();
       for(UInt i = 0; i < predictedColumns.size(); i++) {
-        predictedColumns[i] /= static_cast<UInt32>(tm.getCellsPerColumn());
+        predictedColumns[i] = static_cast<CellIdx>(predictedColumns[i]/tm.getCellsPerColumn());
         if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
           predictedColumns.erase( predictedColumns.begin() + i-- );
       }
