@@ -70,7 +70,7 @@ struct ArrayTestParameters {
 };
 
 // given a sparse array, populate a dense array of specified type.
-static void populateArray(const std::vector<UInt32>& sparse, size_t cols, Array& a) {
+static void populateArray(const sdr::SDR_sparse_t& sparse, size_t cols, Array& a) {
   a.allocateBuffer(cols);
   a.zeroBuffer();
   void *buf = a.getBuffer();
@@ -93,7 +93,7 @@ static void populateArray(const std::vector<UInt32>& sparse, size_t cols, Array&
 	    }
   }
 }
-static void toSparse(const Array&a, std::vector<UInt32>&sparse) {
+static void toSparse(const Array&a, sdr::SDR_sparse_t&sparse) {
   sparse.clear();
   if (a.getType() == NTA_BasicType_SDR) {
         sparse = a.getSDR().getSparse();
@@ -101,7 +101,7 @@ static void toSparse(const Array&a, std::vector<UInt32>&sparse) {
   }
 
   char *buf = (char*)a.getBuffer();
-  for (UInt idx = 0; idx < static_cast<UInt>(a.getCount()); idx++) {
+  for (sdr::ElemSparse idx = 0; idx < static_cast<sdr::ElemSparse>(a.getCount()); idx++) {
     	switch (a.getType()) {
 	    case NTA_BasicType_Byte:   if((reinterpret_cast<Byte*>(buf))[idx])   sparse.push_back(idx); break;
 	    case NTA_BasicType_Int16:  if((reinterpret_cast<Int16*>(buf))[idx])  sparse.push_back(idx); break;
@@ -548,7 +548,7 @@ TEST_F(ArrayTest, testArrayTyping) {
 TEST_F(ArrayTest, testArrayBasefunctions) {
   setupArrayTests();
 
-  std::vector<Int32> testdata = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0};
+  sdr::SDR_sparse_t testdata = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0};
   TestCaseIterator testCase;
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
@@ -644,7 +644,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
 TEST_F(ArrayTest, testArrayBaseSerialization) {
   setupArrayTests();
 
-  std::vector<UInt32> testdata = {1, 4, 5, 8, 9}; // sparse
+  sdr::SDR_sparse_t testdata = {1, 4, 5, 8, 9}; // sparse
   TestCaseIterator testCase;
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
@@ -676,7 +676,7 @@ TEST_F(ArrayTest, testArrayBaseSerialization) {
       cereal::BinaryInputArchive binaryIn_ar(ss);  // Create an input archive
       b.load_ar(binaryIn_ar);
     } // flush
-    std::vector<UInt32> results;
+    sdr::SDR_sparse_t results;
     toSparse(b, results);
     EXPECT_EQ(testdata, results);
 
