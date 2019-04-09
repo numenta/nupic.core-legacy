@@ -70,30 +70,30 @@ struct ArrayTestParameters {
 };
 
 // given a sparse array, populate a dense array of specified type.
-static void populateArray(const std::vector<UInt32>& sparse, size_t cols, Array& a) {
+static void populateArray(const sdr::SDR_sparse_t& sparse, size_t cols, Array& a) {
   a.allocateBuffer(cols);
   a.zeroBuffer();
   void *buf = a.getBuffer();
   for(auto idx: sparse) {
     	switch (a.getType()) {
-	    case NTA_BasicType_Byte:   (static_cast<Byte*>(buf))[idx]   = 1;    break;
-	    case NTA_BasicType_Int16:  (static_cast<Int16*>(buf))[idx]  = 1;    break;
-	    case NTA_BasicType_UInt16: (static_cast<UInt16*>(buf))[idx] = 1u;   break;
-	    case NTA_BasicType_Int32:  (static_cast<Int32*>(buf))[idx]  = 1;    break;
-	    case NTA_BasicType_UInt32: (static_cast<UInt32*>(buf))[idx] = 1u;   break;
-	    case NTA_BasicType_Int64:  (static_cast<Int64*>(buf))[idx]  = 1;    break;
-	    case NTA_BasicType_UInt64: (static_cast<UInt64*>(buf))[idx] = 1u;   break;
-	    case NTA_BasicType_Real32: (static_cast<Real32*>(buf))[idx] = 1.0f; break;
-	    case NTA_BasicType_Real64: (static_cast<Real64*>(buf))[idx] = 1.0;  break;
-	    case NTA_BasicType_Bool:   (static_cast<bool*>(buf))[idx]   = true; break;
-      case NTA_BasicType_SDR:    (static_cast<Byte*>(buf))[idx]   = 1;    break;
+	    case NTA_BasicType_Byte:   (reinterpret_cast<Byte*>(buf))[idx]   = 1;    break;
+	    case NTA_BasicType_Int16:  (reinterpret_cast<Int16*>(buf))[idx]  = 1;    break;
+	    case NTA_BasicType_UInt16: (reinterpret_cast<UInt16*>(buf))[idx] = 1u;   break;
+	    case NTA_BasicType_Int32:  (reinterpret_cast<Int32*>(buf))[idx]  = 1;    break;
+	    case NTA_BasicType_UInt32: (reinterpret_cast<UInt32*>(buf))[idx] = 1u;   break;
+	    case NTA_BasicType_Int64:  (reinterpret_cast<Int64*>(buf))[idx]  = 1ll;    break;
+	    case NTA_BasicType_UInt64: (reinterpret_cast<UInt64*>(buf))[idx] = 1ull;   break;
+	    case NTA_BasicType_Real32: (reinterpret_cast<Real32*>(buf))[idx] = 1.0f; break;
+	    case NTA_BasicType_Real64: (reinterpret_cast<Real64*>(buf))[idx] = 1.0;  break;
+	    case NTA_BasicType_Bool:   (reinterpret_cast<bool*>(buf))[idx]   = true; break;
+      case NTA_BasicType_SDR:    (reinterpret_cast<Byte*>(buf))[idx]   = 1;    break;
 	    default:
 	      NTA_THROW << "Unexpected Element Type: " << a.getType();
 	      break;
 	    }
   }
 }
-static void toSparse(const Array&a, std::vector<UInt32>&sparse) {
+static void toSparse(const Array&a, sdr::SDR_sparse_t&sparse) {
   sparse.clear();
   if (a.getType() == NTA_BasicType_SDR) {
         sparse = a.getSDR().getSparse();
@@ -101,7 +101,7 @@ static void toSparse(const Array&a, std::vector<UInt32>&sparse) {
   }
 
   char *buf = (char*)a.getBuffer();
-  for (size_t idx = 0; idx < a.getCount(); idx++) {
+  for (sdr::ElemSparse idx = 0; idx < static_cast<sdr::ElemSparse>(a.getCount()); idx++) {
     	switch (a.getType()) {
 	    case NTA_BasicType_Byte:   if((reinterpret_cast<Byte*>(buf))[idx])   sparse.push_back(idx); break;
 	    case NTA_BasicType_Int16:  if((reinterpret_cast<Int16*>(buf))[idx])  sparse.push_back(idx); break;
@@ -548,7 +548,7 @@ TEST_F(ArrayTest, testArrayTyping) {
 TEST_F(ArrayTest, testArrayBasefunctions) {
   setupArrayTests();
 
-  std::vector<Int32> testdata = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0};
+  sdr::SDR_sparse_t testdata = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0};
   TestCaseIterator testCase;
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
@@ -644,7 +644,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
 TEST_F(ArrayTest, testArrayBaseSerialization) {
   setupArrayTests();
 
-  std::vector<UInt32> testdata = {1, 4, 5, 8, 9}; // sparse
+  sdr::SDR_sparse_t testdata = {1, 4, 5, 8, 9}; // sparse
   TestCaseIterator testCase;
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
@@ -676,7 +676,7 @@ TEST_F(ArrayTest, testArrayBaseSerialization) {
       cereal::BinaryInputArchive binaryIn_ar(ss);  // Create an input archive
       b.load_ar(binaryIn_ar);
     } // flush
-    std::vector<UInt32> results;
+    sdr::SDR_sparse_t results;
     toSparse(b, results);
     EXPECT_EQ(testdata, results);
 
@@ -736,7 +736,7 @@ void ArrayTest::setupArrayTests() {
       ArrayTestParameters(NTA_BasicType_Real, 4, 10, "Real32", false);
 #endif
   testCases_["Non-existent NTA_BasicType"] =
-      ArrayTestParameters((NTA_BasicType)-1, 0, 10, "N/A", true);
+      ArrayTestParameters(NTA_BasicType_Last, 0, 10, "N/A", true);
 }
 
 } //-ns
