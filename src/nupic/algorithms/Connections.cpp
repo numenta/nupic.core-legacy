@@ -434,6 +434,27 @@ void Connections::computeActivity(
 void Connections::adaptSegment(const Segment segment, 
                                const SDR &inputs,
                                const Permanence increment,
+                               const Permanence decrement)
+{
+  const auto &inputArray = inputs.getDense();
+
+  for( const auto &synapse : synapsesForSegment(segment) ) {
+    const SynapseData &synapseData = dataForSynapse(synapse);
+
+    Permanence permanence = synapseData.permanence;
+    if( inputArray[synapseData.presynapticCell] ) {
+      permanence += increment;
+    } else {
+      permanence -= decrement;
+    }
+
+    updateSynapsePermanence(synapse, permanence);
+  }
+}
+
+void Connections::adaptSegment(const Segment segment,
+                               const SDR &inputs,
+                               const Permanence increment,
                                const Permanence decrement,
                                      vector<Permanence> &previousUpdates,
                                      vector<Permanence> &currentUpdates)

@@ -423,12 +423,7 @@ public:
   void adaptSegment(const Segment segment,
                     const sdr::SDR &inputs,
                     const Permanence increment,
-                    const Permanence decrement)
-  {
-    std::vector<Permanence> previousUpdates, currentUpdates;
-    adaptSegment( segment, inputs, increment, decrement,
-                  previousUpdates, currentUpdates );
-  }
+                    const Permanence decrement);
 
   /**
    * Ensures a minimum number of connected synapses.  This raises permance

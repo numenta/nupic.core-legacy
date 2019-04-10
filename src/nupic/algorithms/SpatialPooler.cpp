@@ -40,7 +40,6 @@ using namespace nupic::algorithms::spatial_pooler;
 using namespace nupic::math::topology;
 using nupic::sdr::SDR;
 using nupic::utils::VectorHelpers;
-using nupic::algorithms::connections::Permanence;
 
 class CoordinateConverterND {
 
@@ -728,7 +727,6 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 
 void SpatialPooler::adaptSynapses_(const SDR &input,
                                    const SDR &active) {
-  vector<Permanence> updates( connections_.synapseFlatListLength() , 0.0f );
   for(const auto &column : active.getSparse()) {
     connections_.adaptSegment(column, input, synPermActiveInc_, synPermInactiveDec_);
     connections_.raisePermanencesToThreshold( column, stimulusThreshold_ );
