@@ -10,3 +10,4 @@
     - Create a Github release
     - Tag the repo commit with the version
     - Bump the VERSION file to the next bugfix release number
+:-) 
