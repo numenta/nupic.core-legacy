@@ -51,15 +51,17 @@ virtualenv:
 
 # Successful builds are archived and uploaded to S3 for bamboo releases.
 before_deploy:
-  - cd $TRAVIS_BUILD_DIR
-  - tar -zcvf $TRAVIS_BUILD_DIR/build/Release/${BUNDLE_NAME}.tar.gz $TRAVIS_BUILD_DIR/build/Release/
+  - cd $TRAVIS_BUILD_DIR/build/scripts
+  - echo "Generating binary release:"
+  - make package
+  - echo "Release: ${BUNDLE_NAME}"
 
 deploy:
 ## Github releases
   provider: releases
   api_key:
     secure: "$GH_RELEASE_AUTH"
-  file: "$TRAVIS_BUILD_DIR/build/Release/${BUNDLE_NAME}.tar.gz"
+  file: "$TRAVIS_BUILD_DIR/build/scripts/${BUNDLE_NAME}.tar.gz"
   skip_cleanup: true
   on:
     tags: true
