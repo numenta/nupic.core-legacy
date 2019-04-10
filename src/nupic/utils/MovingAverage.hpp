@@ -58,19 +58,25 @@ public:
     return !operator==(r2);
   }
 
-  friend class cereal::access;
   template<class Archive>
-  void serialize(Archive & ar) const {
+  void save_ar(Archive & ar) const {
     size_t wSize = slidingWindow_.size();
     ar(CEREAL_NVP(wSize));          // save size of sliding window to stream
     ar(CEREAL_NVP(slidingWindow_)); // save data in sliding window to stream
   }
+  template<class Archive>
+  void load_ar(Archive & ar) const {
+    size_t wSize;  
+    ar(CEREAL_NVP(wSize));          // load size of sliding window to stream, not used
+    ar(CEREAL_NVP(slidingWindow_)); // load data in sliding window to stream
+  }
+  friend class cereal::access;
 
   // The Class does not have a default constructor so we have to
   // tell Cereal to construct it with an argument if it is used
-  // in a smart pointer.  Called by Cereal.
+  // in a smart pointer.  Called by Cereal when loading unique_ptr<MovingAverage>.
   template <class Archive>
-  static void load_and_construct( Archive & ar, cereal::construct<MovingAverage> & construct )
+  static void load_and_construct( Archive & ar, cereal::construct<MovingAverage>& construct )
   {
     UInt wSize;
     ar( wSize );                    // reads size of slidingWindow from the stream
@@ -81,7 +87,6 @@ public:
     const std::vector<Real>&  window = construct->slidingWindow_.getData();
     construct->total_ = Real(std::accumulate(begin(window), end(window), 0.0f));
   }
-
 
 private:
   SlidingWindow<Real> slidingWindow_;
