@@ -590,6 +590,35 @@ TEST(SdrTest, TestAddNoise) {
     }
 }
 
+TEST(SdrTest, TestIntersectionExampleUsage) {
+    // Setup 2 SDRs to hold the inputs.
+    SDR A({ 10 });
+    SDR B({ 10 });
+    SDR C({ 10 });
+    A.setSparse(SDR_sparse_t{0, 1, 2, 3});
+    B.setSparse(SDR_sparse_t      {2, 3, 4, 5});
+    // Calculate the logical intersection
+    C.intersection(A, B);
+    ASSERT_EQ(C.getSparse(), SDR_sparse_t({2, 3}));
+}
+
+TEST(SdrTest, TestIntersection) {
+    SDR A({1000});
+    SDR B(A.dimensions);
+    SDR X(A.dimensions);
+    A.randomize(.5);
+    B.randomize(.5);
+
+    // Test basic functionality
+    X.intersection(A, B);
+    X.getDense();
+    ASSERT_GT( X.getSparsity(), .25 / 2. );
+    ASSERT_LT( X.getSparsity(), .25 * 2. );
+    A.zero();
+    X.intersection(A, B);
+    ASSERT_EQ( X.getSum(), 0u );
+}
+
 TEST(SdrTest, TestEquality) {
     vector<SDR*> test_cases;
     // Test different dimensions

@@ -23,10 +23,10 @@
  
 import glob
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
+import distutils.dir_util
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
@@ -122,8 +122,18 @@ class TestCommand(BaseTestCommand):
   def run_tests(self):
     import pytest
     cwd = os.getcwd()
+    # run python bindings tests (in /bindings/py/tests/)
     try:
       os.chdir(os.path.join(REPO_DIR, "bindings", "py", "tests"))
+      errno = pytest.main(self.pytest_args)
+    finally:
+      os.chdir(cwd)
+    if errno != 0:
+      sys.exit(errno)
+    
+    # python tests (in /py/src/nupic/tests/)
+    try:
+      os.chdir(os.path.join(REPO_DIR, "py", "src", "nupic", "tests"))
       errno = pytest.main(self.pytest_args)
     finally:
       os.chdir(cwd)
@@ -215,6 +225,9 @@ if __name__ == "__main__":
   # Run CMake if extension files are missing.
   getExtensionFiles(platform)
 
+  # Copy the python code into place. (from /py/src/)
+  distutils.dir_util.copy_tree(
+            os.path.join(REPO_DIR, "py", "src"), os.path.join(DISTR_DIR, "src"))
   """
   set the default directory to the distr, and package it.
   """

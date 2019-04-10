@@ -76,24 +76,10 @@ set(algorithm_files
     nupic/algorithms/Anomaly.hpp
     nupic/algorithms/AnomalyLikelihood.cpp
     nupic/algorithms/AnomalyLikelihood.hpp
-    nupic/algorithms/BacktrackingTM.cpp
-    nupic/algorithms/BacktrackingTM.hpp
-    nupic/algorithms/Cell.cpp
-    nupic/algorithms/Cell.hpp
-    nupic/algorithms/Cells4.cpp
-    nupic/algorithms/Cells4.hpp
     nupic/algorithms/Connections.cpp
     nupic/algorithms/Connections.hpp
-    nupic/algorithms/InSynapse.cpp
-    nupic/algorithms/InSynapse.hpp
-    nupic/algorithms/OutSynapse.cpp
-    nupic/algorithms/OutSynapse.hpp
     nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SDRClassifier.hpp
-    nupic/algorithms/Segment.cpp
-    nupic/algorithms/Segment.hpp
-    nupic/algorithms/SegmentUpdate.cpp
-    nupic/algorithms/SegmentUpdate.hpp
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/SpatialPooler.hpp
     nupic/algorithms/TemporalMemory.cpp
@@ -149,6 +135,8 @@ set(ntypes_files
     nupic/ntypes/Array.hpp
     nupic/ntypes/ArrayBase.cpp
     nupic/ntypes/ArrayBase.hpp
+    nupic/ntypes/BasicType.cpp
+    nupic/ntypes/BasicType.hpp
     nupic/ntypes/BundleIO.hpp
     nupic/ntypes/Collection.hpp
     nupic/ntypes/Dimensions.hpp
@@ -175,8 +163,6 @@ set(os_files
 )
 
 set(regions_files
-    nupic/regions/BacktrackingTMRegion.cpp
-    nupic/regions/BacktrackingTMRegion.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
     nupic/regions/SPRegion.cpp
@@ -194,12 +180,7 @@ set(regions_files
 )
 
 set(types_files
-    nupic/types/BasicType.cpp
-    nupic/types/BasicType.hpp
-    nupic/types/ClassifierResult.cpp
-    nupic/types/ClassifierResult.hpp
     nupic/types/Exception.hpp
-    nupic/types/Serializable.hpp
     nupic/types/Types.hpp
     nupic/types/Serializable.hpp
     nupic/types/Sdr.hpp

@@ -79,9 +79,9 @@ void setupSampleConnections(Connections &connections) {
 void computeSampleActivity(Connections &connections) {
   vector<UInt32> input = {50, 52, 53, 80, 81, 82, 150, 151};
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment, input);
@@ -161,9 +161,9 @@ TEST(ConnectionsTest, testDestroySegment) {
   ASSERT_EQ(3ul, connections.numSegments());
   ASSERT_EQ(0ul, connections.numSynapses());
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
@@ -192,9 +192,9 @@ TEST(ConnectionsTest, testDestroySynapse) {
   ASSERT_EQ(2ul, connections.numSynapses());
   ASSERT_EQ(2ul, connections.synapsesForSegment(segment).size());
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment,
@@ -350,9 +350,9 @@ TEST(ConnectionsTest, testComputeActivity) {
 
   vector<UInt32> input = {50, 52, 53, 80, 81, 82, 150, 151};
 
-  vector<UInt32> numActiveConnectedSynapsesForSegment(
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  vector<UInt32> numActivePotentialSynapsesForSegment(
+  vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment,
                               numActivePotentialSynapsesForSegment, input);
@@ -675,6 +675,41 @@ TEST(ConnectionsTest, testSaveLoad) {
   }
 
   ASSERT_EQ(c1, c2);
+}
+
+TEST(ConnectionsTest, testCreateSegmentOverflow) {
+    const auto LIMIT = std::numeric_limits<Segment>::max();
+    if(LIMIT <= 256) { //connections::Segment is too large (likely uint32), so this test would run, but memory 
+      // would kill the machine! 
+      // to test this test and the code works OK, change connections::Segment to unsigned char
+      //TODO use GTEST_SKIP() when we can have gtest > 1.8.1 to skip at runtime
+
+    Connections c(1024);
+    size_t i = 0;
+    for(i=0; i < LIMIT; i++) {
+      EXPECT_NO_THROW(c.createSegment(0));
+    }
+    EXPECT_ANY_THROW(c.createSegment(0)) << "num segments on cell c0 " << (size_t)c.numSegments(0) 
+	    << " total num segs: " << (size_t)c.numSegments() << "data-type limit " << LIMIT;
+  }
+}
+
+TEST(ConnectionsTest, testCreateSynapseOverflow) {
+  const auto LIMIT = std::numeric_limits<Synapse>::max();
+  if(LIMIT <= 256) { //connections::Synapse is too large (likely uint32), so this test would run, but memory
+    // would kill the machine!
+    // to test this test and the code works OK, change connections::Synapse to unsigned char
+    //TODO use GTEST_SKIP() when we can have gtest > 1.8.1 to skip at runtime
+    Connections c(1024);
+    const Segment seg = c.createSegment(0);
+
+    size_t i = 0;
+    for(i=0; i < LIMIT; i++) {
+      EXPECT_NO_THROW(c.createSynapse(seg, (CellIdx)99, (Permanence)0.1337));
+    }
+    EXPECT_ANY_THROW(c.createSynapse(seg, (CellIdx)99, (Permanence)0.1337)) << "num synapses on segment s0 " << (size_t)c.numSynapses(seg)
+      << " total num syns: " << (size_t)c.numSynapses() << "data-type limit " << LIMIT;
+  }
 }
 
 } // namespace

@@ -104,7 +104,7 @@ public:
    */
   inline Real64 getReal64() {
     steps_++;
-    return gen() / (Real64) max();
+    return gen() / static_cast<Real64>(max());
   }
 
   // populate choices with a random selection of nChoices elements from
@@ -116,7 +116,7 @@ public:
     if (nChoices == 0) {
       return std::vector<T>{};
     }
-    NTA_CHECK(nChoices <= (UInt)population.size()) << "population size must be greater than number of choices";
+    NTA_CHECK(nChoices <= static_cast<UInt>(population.size())) << "population size must be greater than number of choices";
     std::vector<T> pop(population); //deep copy
     this->shuffle(std::begin(pop), std::end(pop));
     pop.resize(nChoices); //keep only first nChoices, drop rest
@@ -130,7 +130,7 @@ public:
   Real realRange(Real from, Real to) {
     NTA_ASSERT(from <= to);
     const Real split = to - from;
-    return from + (Real)(split * getReal64());
+    return from + static_cast<Real>(split * getReal64());
   }
 
 
@@ -155,7 +155,7 @@ public:
   typedef unsigned long result_type;
   result_type max() const { return gen.max(); }
   result_type min() const { return gen.min(); }
-  static const UInt32 MAX32 = (UInt32)((Int32)(-1));
+  static const UInt32 MAX32 = std::numeric_limits<UInt32>::max();
 
 protected:
   friend class RandomTest;
@@ -180,7 +180,7 @@ private:
     n = last - first;
     for (i = n-1; i > 0; --i) {
         using std::swap;
-        swap(first[i], first[this->getUInt32((UInt32)(i+1))]);
+        swap(first[i], first[this->getUInt32(static_cast<UInt32>(i+1))]);
     }
   }
 };

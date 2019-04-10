@@ -36,7 +36,7 @@
 #include <nupic/os/Directory.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/engine/Watcher.hpp>
 

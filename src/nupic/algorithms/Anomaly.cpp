@@ -40,8 +40,8 @@ namespace nupic {
 namespace algorithms {
 namespace anomaly {
 
-Real computeRawAnomalyScore(SDR& active,
-                            SDR& predicted) {
+Real computeRawAnomalyScore(const SDR& active,
+                            const SDR& predicted) {
 
   // Return 0 if no active columns are present
   if (active.getSum() == 0) {
@@ -51,8 +51,8 @@ Real computeRawAnomalyScore(SDR& active,
   NTA_CHECK(active.dimensions == predicted.dimensions);
 
   // Calculate and return percent of active columns that were not predicted.
-  // TODO: Allow Intersection to act on const SDR, so active,pred can be const
-  Intersection both(active, predicted);
+  SDR both(active.dimensions);
+  both.intersection(active, predicted);
 
   return (active.getSum() - both.getSum()) / Real(active.getSum());
 }

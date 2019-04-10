@@ -79,29 +79,6 @@ TEST(TemporalMemoryTest, testCheckInputs_UnsortedColumns) {
   EXPECT_THROW(tm.compute(4, activeColumns), exception);
 }
 
-/**
- * If you call compute with a binary vector rather than a list of indices, it
- * should throw an exception.
- */
-TEST(TemporalMemoryTest, testCheckInputs_BinaryArray) {
-  TemporalMemory tm(
-      /*columnDimensions*/ {32},
-      /*cellsPerColumn*/ 4,
-      /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.21f,
-      /*connectedPermanence*/ 0.50f,
-      /*minThreshold*/ 2,
-      /*maxNewSynapseCount*/ 3,
-      /*permanenceIncrement*/ 0.10f,
-      /*permanenceDecrement*/ 0.10f,
-      /*predictedSegmentDecrement*/ 0.0f,
-      /*seed*/ 42);
-
-  // Use an input that will pass an `is_sorted` check.
-  const UInt activeColumns[5] = {0, 0, 0, 1, 1};
-
-  EXPECT_THROW(tm.compute(5, activeColumns), exception);
-}
 
 /**
  * When a predicted column is activated, only the predicted cells in the

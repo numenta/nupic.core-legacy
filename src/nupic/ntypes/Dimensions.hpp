@@ -128,17 +128,17 @@ public:
   // TODO:Cereal- remove these two methods when Cereal is fully implmented.
   void save(std::ostream &f) const override {
     size_t n = size();
-    f.write((const char*)&n, sizeof(size_t));
+    f.write(reinterpret_cast<const char*>(&n), sizeof(size_t));
     if (n > 0)
-      f.write((const char*)&at(0), n * sizeof(at(0)));
+      f.write(reinterpret_cast<const char*>(&at(0)), n * sizeof(at(0)));
   }
   void load(std::istream &f) override {
     size_t n;
-    f.read((char*)&n, sizeof(size_t));
+    f.read(reinterpret_cast<char*>(&n), sizeof(size_t));
     clear();
     if (n > 0) {
       resize(n);
-      f.read((char*)&at(0), n * sizeof(at(0)));
+      f.read(reinterpret_cast<char*>(&at(0)), n * sizeof(at(0)));
     }
   }
 
