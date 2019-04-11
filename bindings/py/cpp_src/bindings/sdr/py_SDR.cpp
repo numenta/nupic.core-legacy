@@ -334,66 +334,37 @@ Example Usage:
         py_SDR.def("intersection", [](SDR &self, vector<const SDR*> inputs)
             { self.intersection(inputs); });
 
+        py_SDR.def("concatenate", [](SDR &self, const SDR& inp1, const SDR& inp2, UInt axis)
+            { self.concatenate(inp1, inp2, axis); },
+R"(Concatenates SDRs and stores the result in this SDR.
 
-        py::class_<Concatenation, shared_ptr<Concatenation>, SDR> py_Concatenation(m, "Concatenation",
-R"(This class presents a view onto a group of SDRs, which always shows the
-concatenation of them.  This view is read-only.
+This method has two overloads:
+    1) Accepts two SDRs, for convenience.
+    2) Accepts a list of SDRs, must contain at least two SDRs, can
+       contain as many SDRs as needed.
 
-Argument axis: This can concatenate along any axis, with the restriction that
-    the result must be rectangular.  The default axis is 0.
+Argument axis: This can concatenate along any axis, as long as the
+result has the same dimensions as this SDR.  The default axis is 0.
 
-A Concatenation is valid for as long as all of its input SDRs are alive.
-Using it after any of it's inputs are destroyed is undefined.
+The output is stored in this SDR.  This method modifies this SDR
+and discards its current value!
 
 Example Usage:
-    A = SDR( 100 )
-    B = SDR( 100 )
-    C = Concatenation( A, B )
-    C.dimensions == [200]
+    A = SDR( 10 )
+    B = SDR( 10 )
+    C = SDR( 20 )
+    A.sparse = [0, 1, 2]
+    B.sparse = [0, 1, 2]
+    C.concatenate( A, B )
+    C.sparse == [0, 1, 2, 10, 11, 12]
+)",
+                py::arg("input1"),
+                py::arg("input2"),
+                py::arg("axis") = 0u );
 
-    D = SDR(( 640, 480, 3 ))
-    E = SDR(( 640, 480, 7 ))
-    F = Concatenation( D, E, 2 )
-    F.dimensions == [ 640, 480, 10 ]
-)");
-        // Duplicate constructors, for postitional & keyword & default arguments
-        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2) {
-            return new Concatenation(       {&inp1,     &inp2}, 0u);
-        }));
-        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, UInt axis) {
-            return new Concatenation(       {&inp1,     &inp2},     axis);
-        }));
-        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3) {
-            return new Concatenation(       {&inp1,     &inp2,     &inp3}, 0u);
-        }));
-        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, UInt axis) {
-            return new Concatenation(       {&inp1,     &inp2,     &inp3},     axis);
-        }));
-        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4) {
-            return new Concatenation(       {&inp1,     &inp2,     &inp3,     &inp4}, 0u);
-        }));
-        py_Concatenation.def(py::init([](SDR& inp1, SDR& inp2, SDR& inp3, SDR& inp4, UInt axis) {
-            return new Concatenation(       {&inp1,     &inp2,     &inp3,     &inp4},     axis);
-        }));
-        py_Concatenation.def(py::init([](vector<SDR*> input) {
-            return new Concatenation(input, 0u);
-        }));
-        py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
-            return new Concatenation(input, axis);
-        }));
-        py_Concatenation.def(py::init([](vector<SDR*> input, UInt axis) {
-            return new Concatenation(input, axis);
-        }),
-            py::arg("inputs") = vector<SDR*>({}),
-            py::arg("axis") = 0u
-        );
-        py_Concatenation.def_property_readonly("inputs",
-            [] (const Concatenation &self)
-                { return self.inputs; },
-            "List of input SDRs which feed into this SDR operation.");
-        py_Concatenation.def_property_readonly("axis",
-            [] (const Concatenation &self)
-                { return self.axis; },
-            "Index of dimension of concatenation.");
+        py_SDR.def("concatenate", [](SDR &self, vector<const SDR*> inputs, UInt axis)
+            { self.concatenate(inputs, axis); },
+                py::arg("inputs"),
+                py::arg("axis") = 0u );
     }
 }

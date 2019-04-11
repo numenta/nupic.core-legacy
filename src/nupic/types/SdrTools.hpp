@@ -121,68 +121,6 @@ protected:
     void deconstruct() override;
 };
 
-
-/**
- * Concatenation class
- *
- * ### Description
- * This class presents a view onto a group of SDRs, which always shows the
- * concatenation of them.  This view is read-only.
- *
- * Parameter UInt axis: This can concatenate along any axis, with the
- *      restriction that the result must be rectangular.  The default axis is 0.
- *
- * An Concatenation is valid for as long as all of its input SDRs are alive.
- * Using it after any of it's inputs are destroyed is undefined.
- *
- * Example Usage:
- *      SDR           A({ 100 });
- *      SDR           B({ 100 });
- *      Concatenation C( A, B );
- *      C.dimensions -> { 200 }
- *
- *      SDR           D({ 640, 480, 3 });
- *      SDR           E({ 640, 480, 7 });
- *      Concatenation F( D, E, 2 );
- *      F.dimensions -> { 640, 480, 10 }
- */
-class Concatenation : public ReadOnly_
-{
-public:
-    Concatenation(SDR &inp1, SDR &inp2, UInt axis=0u)
-        { initialize({&inp1,     &inp2},     axis); }
-
-    Concatenation(SDR &inp1, SDR &inp2, SDR &inp3, UInt axis=0u)
-        { initialize({&inp1,     &inp2,     &inp3},     axis); }
-
-    Concatenation(SDR &inp1, SDR &inp2, SDR &inp3, SDR &inp4, UInt axis=0u)
-        { initialize({&inp1,     &inp2,     &inp3,     &inp4},     axis); }
-
-    Concatenation(std::vector<SDR*> inputs, UInt axis=0u)
-        { initialize(inputs, axis); }
-
-    void initialize(const std::vector<SDR*> inputs, const UInt axis=0u);
-
-    const UInt              &axis   = axis_;
-    const std::vector<SDR*> &inputs = inputs_;
-
-    SDR_dense_t& getDense() const override;
-
-    ~Concatenation()
-        { deconstruct(); }
-
-protected:
-    UInt              axis_;
-    std::vector<SDR*> inputs_;
-    std::vector<UInt> callback_handles_;
-    std::vector<UInt> destroyCallback_handles_;
-    mutable bool dense_valid_lazy;
-
-    void clear() const override;
-
-    void deconstruct() override;
-};
-
 } // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_TOOLS_HPP

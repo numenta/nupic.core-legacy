@@ -12,8 +12,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- * ----------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------- */
 
 /** @file
  * Definitions for SparseDistributedRepresentation class
@@ -490,6 +489,36 @@ public:
                       const SparseDistributedRepresentation &input2);
 
     void intersection(std::vector<const SparseDistributedRepresentation*> inputs);
+
+    /**
+     * Concatenates SDRs and stores the result in this SDR.
+     *
+     * @params This method has two overloads:
+     *          1) Accepts two SDRs, for convenience.
+     *          2) Accepts a list of SDR*, must contain at least two SDRs, can
+     *             contain as many SDRs as needed.
+     *
+     * @param UInt axis: This can concatenate along any axis, as long as the
+     * result has the same dimensions as this SDR.  The default axis is 0.
+     *
+     * @returns In both overloads the output is stored in this SDR.  This method
+     * modifies this SDR and discards its current value!
+     *
+     * Example Usage:
+     *      SDR A({ 10 });
+     *      SDR B({ 10 });
+     *      SDR C({ 20 });
+     *      A.setSparse({ 0, 1, 2 });
+     *      B.setSparse({ 0, 1, 2 });
+     *      C.concatenate( A, B );
+     *      C.getSparse() -> {0, 1, 2, 10, 11, 12}
+     */
+    void concatenate(const SparseDistributedRepresentation &inp1,
+                     const SparseDistributedRepresentation &inp2,
+                     UInt  axis = 0u);
+
+    void concatenate(std::vector<const SparseDistributedRepresentation*> inputs,
+                     UInt axis = 0u);
 
     /**
      * Print a human readable version of the SDR.
