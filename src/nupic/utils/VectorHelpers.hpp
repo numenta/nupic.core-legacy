@@ -91,52 +91,6 @@ public:
     return binary;
   }
 
-  /**
-   * convert representation of active cells(binary vector) to active
-   * columns(binary vector).  If any cell of a column is active (1), the column
-   * is considered active. See TP for details.
-   */
-  static std::vector<UInt> cellsToColumns(const std::vector<UInt>& cellsBinary, const UInt cellsPerColumn)
-  {
-    std::vector<UInt> activeColumns;
-    // loop over the whole (active) cells array
-    for (UInt i = 0; i < cellsBinary.size(); i+= cellsPerColumn) {
-      UInt active = 0;
-      // loop over cells in 1 column
-      for (UInt inColumn = 0; inColumn < cellsPerColumn; inColumn++) {
-        active |= cellsBinary[i + inColumn];
-      }
-      activeColumns.push_back(active);
-    }
-    return activeColumns;
-  }
-  /**
-   * A sparse array version of cellsToColumns( ).
-   * The values are assumed to be sorted, sparse indexes.
-   */
-  template<typename T>
-  static std::vector<T> sparse_cellsToColumns(const std::vector<T>& cellsSparse, 
-                                              const T cellsPerColumn)
-  {
-    std::vector<T> activeColumns;
-    if (cellsSparse.empty()) return activeColumns;
-    
-      NTA_CHECK(cellsPerColumn > 0);
-
-      // loop over the whole (active) cells array
-      // saving the column indexes.
-      T prev = std::numeric_limits<T>::max();
-      for(auto cellIdx: cellsSparse) {
-        T colIdx = cellIdx / cellsPerColumn;
-        if (colIdx != prev) {
-          NTA_CHECK(prev < colIdx || prev == std::numeric_limits<T>::max()) 
-                             << "Cell indexes not sorted";
-          activeColumns.push_back(colIdx);
-          prev = colIdx;
-        }
-      }
-    return activeColumns;
-  }
 
   /**
    * Create a Union of two vectors (An OR of the two).

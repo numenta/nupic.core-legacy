@@ -90,17 +90,6 @@ TEST(VectorHelpersTest, sparseToBinary)
 };
 
 
-TEST(VectorHelpers, cellsToColumns)
-{ // using binary vector 3x3 (3 cols with 3 cells per column)
-  vector<UInt> v{0,0,0, 0,1u,1u, 0,0,1u};
-  vector<UInt> expected {0, 1u, 1u};
-  vector<UInt> res = VectorHelpers::cellsToColumns(v, 3);
-  for(size_t i=0; i< res.size(); i++) {
-    ASSERT_EQ(res[i], expected[i]);
-  }
-};
-
-
 TEST(VectorHelpersTest, unionOfVectors)
 {
   vector<UInt> v1{ 1,2,3,4, 25 };
