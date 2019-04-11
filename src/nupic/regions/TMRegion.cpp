@@ -193,7 +193,6 @@ void TMRegion::initialize() {
 
 void TMRegion::compute() {
 
-  std::cerr << "compute 0 " << std::endl;
   NTA_ASSERT(tm_) << "TM not initialized";
 
   if (computeCallback_ != nullptr)
@@ -220,10 +219,10 @@ void TMRegion::compute() {
   // Check for 'extra' inputs
   static SDR nullSDR({0});
   Array &extraActive = getInput("extraActive")->getData();
-  SDR& extraActiveCells = (args_.extra)?(extraActive.getSDR()):nullSDR;
+  SDR& extraActiveCells = (args_.extra) ? (extraActive.getSDR()) : nullSDR;
 
   Array &extraWinners = getInput("extraWinners")->getData();
-  SDR& extraWinnerCells = (args_.extra)?(extraWinners.getSDR()):nullSDR;
+  SDR& extraWinnerCells = (args_.extra) ? (extraWinners.getSDR()) : nullSDR;
 
   NTA_DEBUG << "compute " << *in << std::endl;
 
@@ -250,12 +249,15 @@ void TMRegion::compute() {
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     auto active = tm_->getActiveCells();         // sparse
     auto predictive = tm_->getPredictiveCells(); // sparse
+    SDR& sdr = out->getData().getSDR();
     if (args_.orColumnOutputs) {
       // aggregate to columns
       active = VectorHelpers::sparse_cellsToColumns<CellIdx>(active, args_.cellsPerColumn);
       predictive = VectorHelpers::sparse_cellsToColumns<CellIdx>(predictive, args_.cellsPerColumn);
+      NTA_ASSERT(sdr.size == tm_->numberOfColumns()) 
+	      << "SDR dims " << sdr.dimensions << " must match TM num columns " << tm_->numberOfColumns()
+	      << "as orColumnOutputs converts to columnar representation (from cells).";
     }
-    SDR& sdr = out->getData().getSDR();
     VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), active, predictive);
     sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
 
