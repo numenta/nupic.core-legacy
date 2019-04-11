@@ -28,7 +28,7 @@
 #include <nupic/engine/Link.hpp> 
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 
 using namespace nupic;
 

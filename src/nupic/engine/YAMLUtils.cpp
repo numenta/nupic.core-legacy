@@ -24,7 +24,7 @@
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/ntypes/Collection.hpp>
 #include <nupic/ntypes/Value.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 #include <string.h> // strlen
 #include <yaml-cpp/yaml.h>
 

@@ -29,7 +29,7 @@
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/types/BasicType.hpp>
+#include <nupic/ntypes/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
 
 // By calling  LogItem::setLogLevel(LogLevel_Verbose)
