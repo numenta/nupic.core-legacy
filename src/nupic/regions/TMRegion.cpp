@@ -249,9 +249,6 @@ void TMRegion::compute() {
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();
     if (args_.orColumnOutputs) { //aggregate to columns
-      NTA_ASSERT(sdr.size == tm_->numberOfColumns()) 
-	      << "SDR dims " << sdr.dimensions << " must match TM num columns " << tm_->numberOfColumns()
-	      << "as orColumnOutputs converts to columnar representation (from cells).";
       sdr.setSparse(tm_->getOutputColumns().getSparse());
     } else { //output as cells
       const auto& act = tm_->getActiveCells();
