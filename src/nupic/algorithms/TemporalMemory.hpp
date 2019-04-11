@@ -477,7 +477,19 @@ public:
    *
    * @return (int) Column index
    */
-  UInt columnForCell(const CellIdx cell) const;
+  UInt columnForCell(const CellIdx cell) const;  //TODO rm as obsoleted by cellsToColumns?
+  /**
+   *  cellsToColumns
+   *  converts active cells to columnar representation, 
+   *  see columnForCell() for details.
+   *
+   *  @param const SDR& cells - input cells, size must be a multiple of cellsPerColumn; ie. 
+   *    all SDRs obtained from TM's get*Cells(SDR) are valid. 
+   *
+   *  @return SDR cols - which is size of numCells/cellsPerColumn
+   *
+   */
+  sdr::SDR cellsToColumns(const sdr::SDR& cells) const;
 
 protected:
   CellIdx numColumns_;

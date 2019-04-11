@@ -671,6 +671,25 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
   return cell / cellsPerColumn_;
 }
 
+
+SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
+  NTA_CHECK(cells.size == numberOfCells()) 
+	  << "cells.size " << cells.size << " must match TM::numberOfCells() " << numberOfCells();
+  NTA_ASSERT(cells.dimensions.size() == 1 && cells.dimensions[0] > 0) << "only 1D SDRs supported.";
+
+  SDR cols({numColumns_});
+  auto& dense = cols.getDense();
+  for(const auto cell : cells.getSparse()) {
+    const auto col = columnForCell(cell);
+    dense[col] = 1;
+  }
+  cols.setDense(dense);
+
+  NTA_ASSERT(cols.size == numColumns_); 
+  return cols.getSparse();
+}
+
+
 vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) { 
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
