@@ -31,7 +31,6 @@
 #include <nupic/types/Sdr.hpp>
 #include <nupic/utils/Log.hpp>
 #include <stdio.h>
-using nupic::sdr::SDR;
 
 #include "gtest/gtest.h"
 #include <nupic/algorithms/TemporalMemory.hpp>
@@ -42,6 +41,7 @@ namespace testing {
 
 using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::connections;
+using namespace nupic::sdr;
 using namespace std;
 #define EPSILON 0.0000001
 
@@ -1352,6 +1352,27 @@ TEST(TemporalMemoryTest, testColumnForCellInvalidCell) {
   EXPECT_THROW(tm.columnForCell(-1), std::exception);
 #endif
 }
+
+TEST(TemporalMemoryTest, testCellsToColumns)
+{
+  TemporalMemory tm;
+  tm.initialize(vector<UInt>{3}, 3); // TM 3 cols x 3 cells per col
+
+  SDR v1({3*3});
+  v1.setSparse(SDR_sparse_t{4,5,8});
+  const SDR_sparse_t expected {1u, 2u};
+
+  auto res = tm.cellsToColumns(v1);
+  ASSERT_EQ(res.getSparse(), expected);
+
+  v1.setSparse(SDR_sparse_t{}); // empty sparse array
+  res = tm.cellsToColumns(v1);
+  EXPECT_TRUE(res.getSparse().empty());
+
+  SDR larger({10,10});
+  EXPECT_ANY_THROW(tm.cellsToColumns(larger));
+};
+
 
 TEST(TemporalMemoryTest, testNumberOfColumns) {
   TemporalMemory tm;
