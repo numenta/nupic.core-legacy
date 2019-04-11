@@ -464,13 +464,20 @@ public:
   void printParameters();
 
   /**
-   * Returns the index of the column that a cell belongs to.
+   * Returns the index of the (mini-)column that a cell belongs to.
+   * 
+   * Mini columns are an organizational unit in TM, 
+   * each mini column consists for cellsPerColumns cells. 
+   * There's no topology between cells within a mini-column, cells
+   * are organized as a flat array 
+   * `col{i} = [cell{i*CPS}, cell{i*CPS +1}, ..., cell{i*CPS + CPS-1}], 
+   * where CPS stands for cellsPerColumn`
    *
    * @param cell Cell index
    *
    * @return (int) Column index
    */
-  UInt columnForCell(const CellIdx cell) const; //TODO rm, incorrect
+  UInt columnForCell(const CellIdx cell) const;
 
 protected:
   CellIdx numColumns_;
