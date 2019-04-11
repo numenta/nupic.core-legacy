@@ -47,11 +47,13 @@
 
 #include <nupic/utils/GroupBy.hpp>
 #include <nupic/math/Math.hpp> // nupic::Epsilon
+#include <nupic/utils/VectorHelpers.hpp>
 
 using namespace std;
 using namespace nupic;
 using nupic::sdr::SDR;
 using namespace nupic::algorithms::temporal_memory;
+using nupic::utils::VectorHelpers;
 
 
 static const UInt TM_VERSION = 2;
@@ -688,6 +690,15 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   return cols;
 }
 
+SDR TemporalMemory::getOutputColumns() const {
+  const vector<CellIdx>& act  = getActiveCells();
+  const vector<CellIdx>& pred = getPredictiveCells();
+  vector<CellIdx> both;
+  VectorHelpers::unionOfVectors(both, act, pred);
+  SDR cells({ static_cast<UInt>(numberOfCells()) });
+  cells.setSparse(both);
+  return cellsToColumns(cells);
+}
 
 vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) { 
   const CellIdx start = cellsPerColumn_ * column;

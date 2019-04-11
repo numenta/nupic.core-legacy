@@ -147,21 +147,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     if(useTM) {
     tTM.start();
     tm.compute(outSPsparse.size(), outSPsparse.data(), true /*learn*/);
-    SDR tmAct({COLS*CELLS});
-    tm.getActiveCells(tmAct);
-
-    tm.activateDendrites(); //must be called before getPredictiveCells 
-    SDR tmPred({COLS*CELLS});
-    tm.getPredictiveCells(tmPred);
-
-    // check that TM.getActiveCells == SP output
-    NTA_CHECK(outSPsparse == tm.cellsToColumns(tmAct).getSparse()) << "TM's activations and SP's output are different!";
-    // merge Act + Pred and use for anomaly from TM
-    VectorHelpers::unionOfVectors<ElemSparse>(outTM.getSparse(),
-		    tm.cellsToColumns(tmAct).getSparse(),
-		    tm.cellsToColumns(tmPred).getSparse());
-    outTM.setSparse(outTM.getSparse()); //update
-
+    tm.activateDendrites(); //must be called before getPredictiveCells
+    outTM = tm.getOutputColumns(); // act + pred merged & as columns
     //TODO for anomaly: figure 1) use cols x cells? 2) use pred x { pred union active} ?
     tTM.stop();
     }

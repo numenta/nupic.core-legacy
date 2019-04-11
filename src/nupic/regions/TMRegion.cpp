@@ -229,7 +229,7 @@ void TMRegion::compute() {
   // Perform Bottom up compute()
 
   tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
-  tm_->activateDendrites();
+  tm_->activateDendrites(); //allow calls to tm.getPredictiveCells
 
   args_.sequencePos++;
 
@@ -247,24 +247,19 @@ void TMRegion::compute() {
   Output *out;
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    SDR active({ static_cast<UInt>(tm_->numberOfCells()) });
-    SDR predictive({ static_cast<UInt>(tm_->numberOfCells()) });
-
-    tm_->getActiveCells(active);
-    tm_->getPredictiveCells(predictive);
-
     SDR& sdr = out->getData().getSDR();
-    if (args_.orColumnOutputs) {
-      // aggregate to columns
-      active = tm_->cellsToColumns(active);
-      predictive = tm_->cellsToColumns(predictive);
+    if (args_.orColumnOutputs) { //aggregate to columns
       NTA_ASSERT(sdr.size == tm_->numberOfColumns()) 
 	      << "SDR dims " << sdr.dimensions << " must match TM num columns " << tm_->numberOfColumns()
 	      << "as orColumnOutputs converts to columnar representation (from cells).";
-    }
-    VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), active.getSparse(), predictive.getSparse());
-    sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
+      sdr.setSparse(tm_->getOutputColumns().getSparse());
+    } else { //output as cells
+      const auto& act = tm_->getActiveCells();
+      const auto& pred= tm_->getPredictiveCells();
 
+      VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), act, pred);
+      sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
+    }
     NTA_DEBUG << "compute " << *out << std::endl;
   }
   out = getOutput("activeCells");
