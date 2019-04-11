@@ -97,7 +97,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR inputSDR({DIM_INPUT});
   vector<UInt> outSP(COLS); // active array, output of SP/TM
   vector<UInt> outSPsparse;
-  vector<UInt> outTM(COLS); 
+  SDR outTM({COLS}); 
   Real res = 0.0; //for anomaly:
   vector<UInt> prevPred_(COLS);
   Random rnd;
@@ -146,10 +146,15 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     if(useTM) {
     tTM.start();
     tm.compute(outSPsparse.size(), outSPsparse.data(), true /*learn*/);
-    const auto tmAct = tm.getActiveCells();
+    SDR tmAct({COLS*CELLS});
+    tm.getActiveCells(tmAct);
+
     tm.activateDendrites(); //must be called before getPredictiveCells 
-    const auto tmPred = tm.getPredictiveCells();
-    //TODO assert tmAct == spOut
+    SDR tmPred({COLS*CELLS});
+    tm.getPredictiveCells(tmPred);
+
+    // check that TM.getActiveCells == SP output
+    NTA_CHECK(outSPsparse == tm.cellsToColumns(tmAct).getSparse()) << "TM's activations and SP's output are different!";
     //TODO merge Act + Pred and use for anomaly from TM
     //TODO for anomaly: figure 1) use cols x cells? 2) use pred x { pred union active} ?
     //outTM = ...
@@ -166,7 +171,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     anLikelihood.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
     tAnLikelihood.stop();
 
-    prevPred_ = outTM; //to be used as predicted T-1 //FIXME tmPred, or tmPred+Act?, also, cells->cols
+    prevPred_ = outTM.getSparse(); //to be used as predicted T-1 //FIXME tmPred, or tmPred+Act?, also, cells->cols
 
     // print
     if (e == EPOCHS - 1) {
