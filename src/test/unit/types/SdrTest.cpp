@@ -619,6 +619,29 @@ TEST(SdrTest, TestIntersection) {
     ASSERT_EQ( X.getSum(), 0u );
 }
 
+TEST(SdrTest, TestConcatenationExampleUsage) {
+    SDR A({ 10 });
+    SDR B({ 10 });
+    SDR C({ 20 });
+    A.setSparse(SDR_sparse_t{ 0, 1, 2 });
+    B.setSparse(SDR_sparse_t{ 0, 1, 2 });
+    C.concatenate( A, B );
+    ASSERT_EQ(C.getSparse(), SDR_sparse_t({0, 1, 2, 10, 11, 12}));
+}
+
+TEST(SdrTest, TestConcatenation) {
+    SDR A({10});
+    SDR B({10});
+    SDR C({20});
+    SDR D({20});
+    A.randomize( 0.30f );
+    B.randomize( 0.70f );
+    C.concatenate( A, B );
+    ASSERT_EQ( C.getSum(), 10u );
+    D.concatenate({&A, &B});
+    ASSERT_EQ( D.getSum(), 10u );
+}
+
 TEST(SdrTest, TestEquality) {
     vector<SDR*> test_cases;
     // Test different dimensions

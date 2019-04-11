@@ -360,6 +360,62 @@ namespace sdr {
         SDR::setDenseInplace();
     }
 
+    void SparseDistributedRepresentation::concatenate(const SDR &inp1, const SDR &inp2, UInt axis)
+        { concatenate({&inp1, &inp2}, axis); }
+
+    void SparseDistributedRepresentation::concatenate(vector<const SDR*> inputs, UInt axis)
+    {
+        // Check inputs.
+        NTA_CHECK( inputs.size() >= 2u )
+            << "Not enough inputs to SDR::concatenate, need at least 2 SDRs got " << inputs.size() << "!";
+        UInt axis_dim_sum = 0u;
+        for( const auto &sdr : inputs ) {
+            NTA_CHECK( sdr != nullptr );
+            NTA_CHECK( sdr->dimensions.size() == dimensions.size() )
+                << "All inputs to SDR::concatenate must have the same number of dimensions as the output SDR!";
+            for( auto dim = 0u; dim < dimensions.size(); dim++ ) {
+                if( dim == axis ) {
+                    axis_dim_sum += sdr->dimensions[dim];
+                }
+                else {
+                    NTA_CHECK( sdr->dimensions[dim] == dimensions[dim] )
+                        << "All dimensions except the axis must be the same!";
+                }
+            }
+        }
+        NTA_CHECK( axis < dimensions.size() );
+        NTA_CHECK( axis_dim_sum == dimensions[axis] )
+            << "TODO: This one needs an explanation!";
+
+        // Setup for copying the data as rows & strides.
+        vector<ElemDense*> buffers;
+        vector<UInt>       row_lengths;
+        for( const auto &sdr : inputs ) {
+            buffers.push_back( sdr->getDense().data() );
+            UInt row = 1u;
+            for(UInt d = axis; d < dimensions.size(); ++d)
+                row *= sdr->dimensions[d];
+            row_lengths.push_back( row );
+        }
+
+        // Get the output buffer.
+        dense_.resize( size );
+              auto dense_data  = dense_.data();
+        const auto data_end    = dense_data + size;
+        const auto n_inputs    = inputs.size();
+        while( dense_data < data_end ) {
+            // Copy one row from each input SDR.
+            for( UInt i = 0u; i < n_inputs; ++i ) {
+                const auto &buf = buffers[i];
+                const auto &row = row_lengths[i];
+                std::copy( buf, buf + row, dense_data );
+                // Increment the pointers.
+                buffers[i] += row;
+                dense_data += row;
+            }
+        }
+        SDR::setDenseInplace();
+    }
 
     bool SparseDistributedRepresentation::operator==(const SparseDistributedRepresentation &sdr) const {
         // Check attributes
