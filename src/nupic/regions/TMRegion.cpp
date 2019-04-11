@@ -247,18 +247,22 @@ void TMRegion::compute() {
   Output *out;
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    auto active = tm_->getActiveCells();         // sparse
-    auto predictive = tm_->getPredictiveCells(); // sparse
+    SDR active({ static_cast<UInt>(tm_->numberOfCells()) });
+    SDR predictive({ static_cast<UInt>(tm_->numberOfCells()) });
+
+    tm_->getActiveCells(active);
+    tm_->getPredictiveCells(predictive);
+
     SDR& sdr = out->getData().getSDR();
     if (args_.orColumnOutputs) {
       // aggregate to columns
-      active = VectorHelpers::sparse_cellsToColumns<CellIdx>(active, args_.cellsPerColumn);
-      predictive = VectorHelpers::sparse_cellsToColumns<CellIdx>(predictive, args_.cellsPerColumn);
+      active = tm_->cellsToColumns(active);
+      predictive = tm_->cellsToColumns(predictive);
       NTA_ASSERT(sdr.size == tm_->numberOfColumns()) 
 	      << "SDR dims " << sdr.dimensions << " must match TM num columns " << tm_->numberOfColumns()
 	      << "as orColumnOutputs converts to columnar representation (from cells).";
     }
-    VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), active, predictive);
+    VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), active.getSparse(), predictive.getSparse());
     sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
 
     NTA_DEBUG << "compute " << *out << std::endl;
