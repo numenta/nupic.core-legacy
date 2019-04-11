@@ -46,6 +46,7 @@ using namespace nupic;
 using namespace nupic::utils;
 
 using nupic::sdr::SDR;
+using nupic::sdr::ElemSparse;
 using nupic::encoders::ScalarEncoder;
 using nupic::encoders::ScalarEncoderParameters;
 
@@ -155,9 +156,13 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     // check that TM.getActiveCells == SP output
     NTA_CHECK(outSPsparse == tm.cellsToColumns(tmAct).getSparse()) << "TM's activations and SP's output are different!";
-    //TODO merge Act + Pred and use for anomaly from TM
+    // merge Act + Pred and use for anomaly from TM
+    VectorHelpers::unionOfVectors<ElemSparse>(outTM.getSparse(),
+		    tm.cellsToColumns(tmAct).getSparse(),
+		    tm.cellsToColumns(tmPred).getSparse());
+    outTM.setSparse(outTM.getSparse()); //update
+
     //TODO for anomaly: figure 1) use cols x cells? 2) use pred x { pred union active} ?
-    //outTM = ...
     tTM.stop();
     }
  
@@ -180,7 +185,9 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       cout << "Epoch = " << e << endl;
       cout << "Anomaly = " << res << endl;
       VectorHelpers::print_vector(VectorHelpers::binaryToSparse<UInt>(outSP), ",", "SP= ");
+      cout << "TM= " << outTM << endl;
       NTA_CHECK(outSP[69] == 0) << "A value in SP computed incorrectly";
+      NTA_CHECK(outTM.getDense()[42] == 0) << "A value in TM computed incorrectly";
       cout << "==============TIMERS============" << endl;
       cout << "Init:\t" << tInit.getElapsed() << endl;
       cout << "Random:\t" << tRng.getElapsed() << endl;
