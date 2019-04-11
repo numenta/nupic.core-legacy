@@ -368,14 +368,15 @@ namespace sdr {
         // Check inputs.
         NTA_CHECK( inputs.size() >= 2u )
             << "Not enough inputs to SDR::concatenate, need at least 2 SDRs got " << inputs.size() << "!";
-        UInt axis_dim_sum = 0u;
+        NTA_CHECK( axis < dimensions.size() );
+        UInt concat_axis_size = 0u;
         for( const auto &sdr : inputs ) {
             NTA_CHECK( sdr != nullptr );
             NTA_CHECK( sdr->dimensions.size() == dimensions.size() )
                 << "All inputs to SDR::concatenate must have the same number of dimensions as the output SDR!";
             for( auto dim = 0u; dim < dimensions.size(); dim++ ) {
                 if( dim == axis ) {
-                    axis_dim_sum += sdr->dimensions[dim];
+                    concat_axis_size += sdr->dimensions[axis];
                 }
                 else {
                     NTA_CHECK( sdr->dimensions[dim] == dimensions[dim] )
@@ -383,9 +384,9 @@ namespace sdr {
                 }
             }
         }
-        NTA_CHECK( axis < dimensions.size() );
-        NTA_CHECK( axis_dim_sum == dimensions[axis] )
-            << "TODO: This one needs an explanation!";
+        NTA_CHECK( concat_axis_size == dimensions[axis] )
+            << "Axis of concatenation dimensions do not match, inputs sum to "
+            << concat_axis_size << ", output expects " << dimensions[axis] << "!";
 
         // Setup for copying the data as rows & strides.
         vector<ElemDense*> buffers;
