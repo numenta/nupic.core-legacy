@@ -24,7 +24,6 @@
 #include <pybind11/stl.h>
 
 #include <nupic/types/Sdr.hpp>
-#include <nupic/types/SdrTools.hpp>
 #include <nupic/utils/StringUtils.hpp>  // trim
 
 #include <memory> // shared_ptr

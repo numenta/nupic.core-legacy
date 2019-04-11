@@ -185,8 +185,6 @@ set(types_files
     nupic/types/Serializable.hpp
     nupic/types/Sdr.hpp
     nupic/types/Sdr.cpp
-    nupic/types/SdrTools.hpp
-    nupic/types/SdrTools.cpp
 )
 
 set(utils_files
