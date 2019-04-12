@@ -195,31 +195,4 @@ TEST(SdrReshapeTest, TestSaveLoad) {
     ASSERT_TRUE( sparse  == sparse_2 );
     ASSERT_TRUE( coord   == coord_2 );
 }
-
-/******************************************************************************/
-
-TEST(SdrConcatTest, TestConcatenationExampleUsage) {
-    SDR           A({ 100 });
-    SDR           B({ 100 });
-    Concatenation C( A, B );
-    ASSERT_EQ(C.dimensions, vector<UInt>({ 200 }));
-
-    SDR           D({ 640, 480, 3 });
-    SDR           E({ 640, 480, 7 });
-    Concatenation F( D, E, 2 );
-    ASSERT_EQ(F.dimensions, vector<UInt>({ 640, 480, 10 }));
-}
-
-TEST(SdrConcatTest, TestConcatenation) {
-    SDR A({10000});
-    SDR B({10000});
-    Concatenation C(A, B);
-    Concatenation D(A, B, 0u);
-    Concatenation E({&A, &B});
-    Concatenation F({&A, &B}, 0u);
-    A.randomize( 0.25f );
-    B.randomize( 0.75f );
-    ASSERT_LT( C.getSparsity(), 0.55f );
-    ASSERT_GT( C.getSparsity(), 0.45f );
-}
 }

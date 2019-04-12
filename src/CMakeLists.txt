@@ -426,9 +426,9 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
           
 #
 # `make package` results in
-# nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
+# nupic_cpp-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
 #
 
 set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
+set(CPACK_PACKAGE_FILE_NAME "nupic_cpp-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
 include(CPack)
