@@ -29,7 +29,7 @@
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
 #include "nupic/utils/MovingAverage.hpp"
-#include "nupic/types/SdrTools.hpp" // sdr::Intersection
+#include "nupic/types/Sdr.hpp"
 
 using namespace std;
 using namespace nupic;
