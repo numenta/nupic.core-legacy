@@ -711,4 +711,39 @@ TEST(ConnectionsTest, testCreateSynapseOverflow) {
   }
 }
 
+TEST(ConnectionsTest, testTimeseries) {
+  Connections C( 1, .5, true );
+  auto seg = C.createSegment(0);
+  SDR presyn({ 10u });
+  for( UInt cell = 0; cell < presyn.size; cell++ ) {
+    C.createSynapse(seg, cell, 0.5f );
+  }
+  // Use the same SDR many times.  Hold the segment active & learning.
+  presyn.randomize( 0.5f );
+  vector<SynapseIdx> output( 1u );
+  for( int i = 0; i < 10; i++ ) {
+    C.computeActivity( output, presyn.getSparse() );
+    C.adaptSegment( seg, presyn, 0.1f, 0.1f );
+  }
+  // Check that the synapse permanences did not saturate.
+  for( const auto syn : C.synapsesForSegment( seg ) ) {
+    const auto &synData = C.dataForSynapse( syn );
+    ASSERT_GT( synData.permanence, 0.01f );
+    ASSERT_LT( synData.permanence, 0.99f );
+  }
+  // Retry this test except call Connections::reset() before every cycle, which
+  // effectively turns off the timeseries parameter.
+  for( int i = 0; i < 10; i++ ) {
+    C.reset();
+    C.computeActivity( output, presyn.getSparse() );
+    C.adaptSegment( seg, presyn, 0.1f, 0.1f );
+  }
+  // Check that the synapse permanences staturated.  This is the failure
+  // condition which the timeseries modifications prevent.
+  for( const auto syn : C.synapsesForSegment( seg ) ) {
+    const auto &synData = C.dataForSynapse( syn );
+    ASSERT_TRUE( (synData.permanence == 0.0f) or (synData.permanence == 1.0f) );
+  }
+}
+
 } // namespace
