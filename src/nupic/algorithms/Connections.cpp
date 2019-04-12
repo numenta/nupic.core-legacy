@@ -40,11 +40,11 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using nupic::sdr::SDR;
 
-Connections::Connections(CellIdx numCells, Permanence connectedThreshold) {
-  initialize(numCells, connectedThreshold);
+Connections::Connections(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
+  initialize(numCells, connectedThreshold, timeseries);
 }
 
-void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
+void Connections::initialize(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
   cells_ = vector<CellData>(numCells);
   segments_.clear();
   destroyedSegments_.clear();
@@ -68,6 +68,9 @@ void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
   nextSynapseOrdinal_ = 0;
 
   nextEventToken_ = 0;
+
+  timeseries_ = timeseries;
+  reset();
 }
 
 UInt32 Connections::subscribe(ConnectionsEventHandler *handler) {
@@ -388,12 +391,24 @@ Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
   return all;
 }
 
+void Connections::reset() {
+
+  previousUpdates_.clear();
+  currentUpdates_.clear();
+}
 
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
-    const vector<CellIdx> &activePresynapticCells) const
+    const vector<CellIdx> &activePresynapticCells)
 {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
+
+  if( timeseries_ ) {
+    // Before each cycle of computation move the currentUpdates to the previous
+    // updates, and zero the currentUpdates in preparation for learning.
+    previousUpdates_.swap( currentUpdates_ );
+    currentUpdates_.clear();
+  }
 
   // Iterate through all connected synapses.
   for (const auto& cell : activePresynapticCells) {
@@ -408,7 +423,7 @@ void Connections::computeActivity(
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
     vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-    const vector<CellIdx> &activePresynapticCells) const {
+    const vector<CellIdx> &activePresynapticCells) {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
   NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
 
@@ -438,45 +453,39 @@ void Connections::adaptSegment(const Segment segment,
 {
   const auto &inputArray = inputs.getDense();
 
-  for( const auto &synapse : synapsesForSegment(segment) ) {
-    const SynapseData &synapseData = dataForSynapse(synapse);
+  if( timeseries_ ) {
+    previousUpdates_.resize( synapseFlatListLength(), 0.0f );
+    currentUpdates_.resize(  synapseFlatListLength(), 0.0f );
 
-    Permanence permanence = synapseData.permanence;
-    if( inputArray[synapseData.presynapticCell] ) {
-      permanence += increment;
-    } else {
-      permanence -= decrement;
+    for( const auto synapse : synapsesForSegment(segment) ) {
+      const SynapseData &synapseData = dataForSynapse(synapse);
+
+      Permanence update;
+      if( inputArray[synapseData.presynapticCell] ) {
+        update = increment;
+      } else {
+        update = -decrement;
+      }
+
+      if( update != previousUpdates_[synapse] ) {
+        updateSynapsePermanence(synapse, synapseData.permanence + update);
+      }
+      currentUpdates_[ synapse ] = update;
     }
-
-    updateSynapsePermanence(synapse, permanence);
   }
-}
+  else {
+    for( const auto synapse : synapsesForSegment(segment) ) {
+      const SynapseData &synapseData = dataForSynapse(synapse);
 
-void Connections::adaptSegment(const Segment segment,
-                               const SDR &inputs,
-                               const Permanence increment,
-                               const Permanence decrement,
-                                     vector<Permanence> &previousUpdates,
-                                     vector<Permanence> &currentUpdates)
-{
-  const auto &inputArray = inputs.getDense();
-  previousUpdates.resize( synapseFlatListLength(), 0.0f );
-  currentUpdates.resize(  synapseFlatListLength(), 0.0f );
+      Permanence permanence = synapseData.permanence;
+      if( inputArray[synapseData.presynapticCell] ) {
+        permanence += increment;
+      } else {
+        permanence -= decrement;
+      }
 
-  for( const auto &synapse : synapsesForSegment(segment) ) {
-    const SynapseData &synapseData = dataForSynapse(synapse);
-
-    Permanence update;
-    if( inputArray[synapseData.presynapticCell] ) {
-      update = increment;
-    } else {
-      update = -decrement;
+      updateSynapsePermanence(synapse, permanence);
     }
-
-    if( update != previousUpdates[synapse] ) {
-      updateSynapsePermanence(synapse, synapseData.permanence + update);
-    }
-    currentUpdates[ synapse ] = update;
   }
 }
 
