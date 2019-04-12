@@ -579,6 +579,8 @@ private:
   Segment nextSegmentOrdinal_;
   Synapse nextSynapseOrdinal_;
 
+  // These three members should be used when working with highly correlated
+  // data. The vectors store the permanence changes made by adaptSegment.
   bool timeseries_;
   std::vector<Permanence> previousUpdates_;
   std::vector<Permanence> currentUpdates_;
