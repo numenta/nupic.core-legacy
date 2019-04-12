@@ -190,6 +190,7 @@ public:
    * @params timeseries - Optional, default false.  If true AdaptSegment will not
    * apply the same learning update to a synapse on consequetive cycles, because
    * then staring at the same object for too long will mess up the synapses.
+   * IE Highly correlated inputs will cause the synapse permanences to saturate.
    * This change allows it to work with timeseries data which moves very slowly,
    * instead of the usual HTM inputs which reliably change every cycle.  See
    * also (Kropff & Treves, 2007. http://dx.doi.org/10.2976/1.2793335).
@@ -346,13 +347,6 @@ public:
    * @retval A vector length
    */
   size_t segmentFlatListLength() const { return segments_.size(); };
-
-  /**
-   * Get the vector length needed to use synpase indices.
-   *
-   * @retval A vector length
-   */
-  size_t synapseFlatListLength() const { return synapses_.size(); };
 
   /**
    * Compare two segments. Returns true if a < b.

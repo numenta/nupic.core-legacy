@@ -391,8 +391,11 @@ Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
   return all;
 }
 
-void Connections::reset() {
-
+void Connections::reset()
+{
+  if( not timeseries_ ) {
+    NTA_WARN << "Connections::reset() called with timeseries=false.";
+  }
   previousUpdates_.clear();
   currentUpdates_.clear();
 }
@@ -454,8 +457,8 @@ void Connections::adaptSegment(const Segment segment,
   const auto &inputArray = inputs.getDense();
 
   if( timeseries_ ) {
-    previousUpdates_.resize( synapseFlatListLength(), 0.0f );
-    currentUpdates_.resize(  synapseFlatListLength(), 0.0f );
+    previousUpdates_.resize( synapses_.size(), 0.0f );
+    currentUpdates_.resize(  synapses_.size(), 0.0f );
 
     for( const auto synapse : synapsesForSegment(segment) ) {
       const SynapseData &synapseData = dataForSynapse(synapse);
