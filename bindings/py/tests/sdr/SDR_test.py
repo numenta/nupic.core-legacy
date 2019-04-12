@@ -360,7 +360,7 @@ class ReshapeTest(unittest.TestCase):
         A = SDR([10,10])
         B = Reshape(A, [100])
         C = Reshape(B, [4, 25])
-        D = Reshape(B, [1, 100])
+        D = B.reshape([1, 100]) # Test convenience method.
 
         A.dense.fill( 1 )
         A.dense = A.dense
@@ -373,7 +373,7 @@ class ReshapeTest(unittest.TestCase):
         assert(False) # TODO: Unimplemented
 
 
-class SDR_IntersectionTest(unittest.TestCase):
+class IntersectionTest(unittest.TestCase):
     def testExampleUsage(self):
         A = SDR( 10 )
         B = SDR( 10 )
@@ -423,7 +423,7 @@ class SDR_IntersectionTest(unittest.TestCase):
             assert( X.getSparsity() <= (4./3.) * mean_sparsity )
 
 
-class SDR_ConcatenationTest(unittest.TestCase):
+class ConcatenationTest(unittest.TestCase):
     def testExampleUsage(self):
         A = SDR( 10 )
         B = SDR( 10 )

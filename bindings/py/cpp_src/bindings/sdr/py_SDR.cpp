@@ -307,6 +307,10 @@ R"(Argument sdr is the data source to reshape.
 Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
             py::arg("sdr"), py::arg("dimensions"));
 
+        py_SDR.def("reshape", [](SDR &self, vector<UInt> dimensions)
+            { return new Reshape(self, dimensions); },
+R"(See class nupic.bindings.sdr.Reshape)");
+
 
         py_SDR.def("intersection", [](SDR &self, SDR& inp1, SDR& inp2)
             { self.intersection({ &inp1, &inp2}); },

@@ -12,8 +12,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- * ----------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------- */
 
 #include <gtest/gtest.h>
 #include <nupic/types/Sdr.hpp>

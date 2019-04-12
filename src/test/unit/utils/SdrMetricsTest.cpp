@@ -19,7 +19,6 @@
 #include <nupic/types/Sdr.hpp>
 #include <nupic/utils/SdrMetrics.hpp>
 /* Some of these tests also test SDR Reshape. */
-#include <nupic/types/SdrTools.hpp>
 #include <vector>
 #include <random>
 
