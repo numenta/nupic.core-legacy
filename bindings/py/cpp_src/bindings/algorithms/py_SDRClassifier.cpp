@@ -1,6 +1,7 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2018, Numenta, Inc.
+ *               2018, chhenning
  *               2019, David McDougall
  *
  * Unless you have an agreement with Numenta, Inc., for a separate license for
@@ -19,8 +20,6 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- *
- * Author: @chhenning, 2018
  * --------------------------------------------------------------------- */
 
 /** @file
@@ -42,6 +41,7 @@ namespace nupic_ext
 namespace py = pybind11;
 using namespace std;
 using namespace nupic;
+using nupic::sdr::SDR;
 using namespace nupic::algorithms::sdr_classifier;
 
     void init_SDR_Classifier(py::module& m)
@@ -49,68 +49,42 @@ using namespace nupic::algorithms::sdr_classifier;
         py::class_<Classifier> py_Classifier(m, "Classifier",
 R"(TODO: DOCS)");
 
-        py_Classifier.def(py::init<Real64>(),
+        py_Classifier.def(py::init<Real>(),
 R"(TODO: DOCS)",
             py::arg("alpha") = 0.001);
 
-        // TODO: Read only attribute "alpha"
-
         py_Classifier.def("infer", &Classifier::infer,
-R"(TODO: DOCS)");
-
-        py_Classifier.def("inferCategory", &Classifier::inferCategory,
 R"(TODO: DOCS)");
 
         py_Classifier.def("learn", &Classifier::learn,
 R"(TODO: DOCS)");
 
+        py_Classifier.def("learn", [](Classifier &self, const SDR &pattern, UInt categoryIdx)
+            { self.learn( pattern, {categoryIdx} ); });
+
         // TODO: Pickle support
 
 
+        py::class_<Predictor> py_Predictor(m, "Predictor",
+R"(TODO: DOCS)");
 
+        py_Predictor.def(py::init<const std::vector<UInt> &, Real>(),
+R"(TODO: DOCS)",
+            py::arg("steps"),
+            py::arg("alpha") = 0.001);
 
-        // TODO: Predictor
+        py_Predictor.def("reset", &Predictor::reset,
+R"(TODO: DOCS)");
 
+        py_Predictor.def("infer", &Predictor::infer,
+R"(TODO: DOCS)");
 
+        py_Predictor.def("learn", &Predictor::learn,
+R"(TODO: DOCS)");
 
-        // py_Classifier.def("compute", [](
-        //     Classifier& self,
-        //     UInt recordNum,
-        //     const std::vector<UInt>& patternNZ,
-        //     const std::vector<UInt>& bucketIdx,
-        //     const std::vector<Real64>& actValue)
-        // {
-        //     ClassifierResult result;
+        py_Predictor.def("learn", [](Predictor &self, UInt recordNum, const SDR &pattern, UInt categoryIdx)
+            { self.learn( recordNum, pattern, {categoryIdx} ); });
 
-        //     self.compute(recordNum, patternNZ, bucketIdx, actValue,
-        //                             category, learn, infer, result);
-
-        //     py::dict dict;
-
-        //     for (map<Int, PDF>::const_iterator it = result.begin(); it != result.end(); ++it)
-        //     {
-        //         std::string key = "actualValues";
-
-        //         if (it->first != -1)
-        //         {
-        //             key = it->first;
-        //         }
-
-        //         py::list value;
-        //         for (UInt i = 0; i < it->second.size(); ++i)
-        //         {
-        //             value.append(it->second.at(i));
-        //         }
-
-        //         dict[key.c_str()] = value;
-        //     }
-
-        //     return dict;
-        // },
-        // py::arg("recordNum") = 0u,
-        // py::arg("patternNZ") = std::vector<UInt>({}),
-        // py::arg("bucketIdx") = std::vector<UInt>({}),
-        // py::arg("actValue") = std::vector<Real64>({}),
-        // );
+        // TODO: Pickle support
     }
 } // namespace nupic_ext
