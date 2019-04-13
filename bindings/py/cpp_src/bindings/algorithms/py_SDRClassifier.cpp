@@ -1,8 +1,10 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * Copyright (C) 2018, Numenta, Inc.
+ *               2019, David McDougall
+ *
+ * Unless you have an agreement with Numenta, Inc., for a separate license for
+ * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -19,12 +21,11 @@
  * http://numenta.org/licenses/
  *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
-PyBind11 bindings for SDRClassifier class
-*/
+ * PyBind11 bindings for SDRClassifier class
+ */
 
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
@@ -45,63 +46,71 @@ using namespace nupic::algorithms::sdr_classifier;
 
     void init_SDR_Classifier(py::module& m)
     {
-        typedef std::vector<UInt> steps_t;
+        py::class_<Classifier> py_Classifier(m, "Classifier",
+R"(TODO: DOCS)");
 
-        py::class_<SDRClassifier> py_SDR_Classifier(m, "SDRClassifier");
+        py_Classifier.def(py::init<Real64>(),
+R"(TODO: DOCS)",
+            py::arg("alpha") = 0.001);
 
-        py_SDR_Classifier.def(py::init<>())
-            .def(py::init<steps_t, Real64, Real64, UInt>(), py::arg("steps"), py::arg("alpha") = 0.001, py::arg("actValueAlpha") = 0.3, py::arg("verbosity") = 0);
+        // TODO: Read only attribute "alpha"
 
-        py_SDR_Classifier.def("compute", [](
-            SDRClassifier& self,
-            UInt recordNum,
-            const std::vector<UInt>& patternNZ,
-            const std::vector<UInt>& bucketIdx,
-            const std::vector<Real64>& actValue,
-            bool category, bool learn, bool infer)
-        {
-            ClassifierResult result;
+        py_Classifier.def("infer", &Classifier::infer,
+R"(TODO: DOCS)");
 
-            self.compute(recordNum, patternNZ, bucketIdx, actValue,
-                                    category, learn, infer, result);
+        py_Classifier.def("inferCategory", &Classifier::inferCategory,
+R"(TODO: DOCS)");
 
-            py::dict dict;
+        py_Classifier.def("learn", &Classifier::learn,
+R"(TODO: DOCS)");
 
-            for (map<Int, PDF>::const_iterator it = result.begin(); it != result.end(); ++it)
-            {
-                std::string key = "actualValues";
-
-                if (it->first != -1)
-                {
-                    key = it->first;
-                }
-
-                py::list value;
-                for (UInt i = 0; i < it->second.size(); ++i)
-                {
-                    value.append(it->second.at(i));
-                }
-
-                dict[key.c_str()] = value;
-            }
-
-            return dict;
-        },
-        py::arg("recordNum") = 0u,
-        py::arg("patternNZ") = std::vector<UInt>({}),
-        py::arg("bucketIdx") = std::vector<UInt>({}),
-        py::arg("actValue") = std::vector<Real64>({}),
-        py::arg("category") = false,
-        py::arg("learn") = true,
-        py::arg("infer") = true
-        );
-
-        py_SDR_Classifier.def("loadFromString", [](SDRClassifier& self, const std::string& inString)
-        {
-            std::istringstream inStream(inString);
-            self.load(inStream);
-        });
+        // TODO: Pickle support
 
 
+
+
+        // TODO: Predictor
+
+
+
+        // py_Classifier.def("compute", [](
+        //     Classifier& self,
+        //     UInt recordNum,
+        //     const std::vector<UInt>& patternNZ,
+        //     const std::vector<UInt>& bucketIdx,
+        //     const std::vector<Real64>& actValue)
+        // {
+        //     ClassifierResult result;
+
+        //     self.compute(recordNum, patternNZ, bucketIdx, actValue,
+        //                             category, learn, infer, result);
+
+        //     py::dict dict;
+
+        //     for (map<Int, PDF>::const_iterator it = result.begin(); it != result.end(); ++it)
+        //     {
+        //         std::string key = "actualValues";
+
+        //         if (it->first != -1)
+        //         {
+        //             key = it->first;
+        //         }
+
+        //         py::list value;
+        //         for (UInt i = 0; i < it->second.size(); ++i)
+        //         {
+        //             value.append(it->second.at(i));
+        //         }
+
+        //         dict[key.c_str()] = value;
+        //     }
+
+        //     return dict;
+        // },
+        // py::arg("recordNum") = 0u,
+        // py::arg("patternNZ") = std::vector<UInt>({}),
+        // py::arg("bucketIdx") = std::vector<UInt>({}),
+        // py::arg("actValue") = std::vector<Real64>({}),
+        // );
     }
 } // namespace nupic_ext

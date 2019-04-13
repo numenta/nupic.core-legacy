@@ -39,8 +39,7 @@ using namespace std;
 using namespace nupic;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
-using nupic::algorithms::sdr_classifier::SDRClassifier;
-using nupic::algorithms::sdr_classifier::ClassifierResult;
+using nupic::algorithms::sdr_classifier::Classifier;
 
 class MNIST {
 
@@ -48,7 +47,7 @@ class MNIST {
     SpatialPooler sp;
     sdr::SDR input;
     sdr::SDR columns;
-    SDRClassifier clsr;
+    Classifier clsr;
     mnist::MNIST_dataset<std::vector, std::vector<uint8_t>, uint8_t> dataset;
 
   public:
@@ -64,7 +63,7 @@ void setup() {
     /* columnDimensions */            {28, 28}, //mostly affects speed, to some threshold accuracy only marginally
     /* potentialRadius */             5u,
     /* potentialPct */                0.5f,
-    /* globalInhibition */            false,
+    /* globalInhibition */            true,
     /* localAreaDensity */            0.20f,  //% active bits, //quite important variable (speed x accuracy)
     /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
@@ -80,11 +79,7 @@ void setup() {
 
   columns.initialize({sp.getNumColumns()});
 
-  clsr.initialize(
-    /* steps */         {0},
-    /* alpha */         .001,
-    /* actValueAlpha */ .3,
-                        verbosity);
+  clsr.initialize( /* alpha */ .001);
 
   dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(string("../ThirdParty/mnist_data/mnist-src/")); //from CMake
 }
@@ -117,14 +112,7 @@ void train() {
       // Compute & Train
       input.setDense( image );
       sp.compute(input, true, columns);
-      ClassifierResult result;
-      clsr.compute(sp.getIterationNum(), columns.getSparse(),
-        /* bucketIdxList */   {label},
-        /* actValueList */    {(Real)label},
-        /* category */        true,
-        /* learn */           true,
-        /* infer */           false,
-                              result);
+      clsr.learn( columns, {label} );
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
     }
     if( verbosity ) cout << endl;
@@ -148,16 +136,8 @@ void test() {
     // Compute
     input.setDense( image );
     sp.compute(input, false, columns);
-    ClassifierResult result;
-    clsr.compute(sp.getIterationNum(), columns.getSparse(),
-      /* bucketIdxList */   {},
-      /* actValueList */    {},
-      /* category */        true,
-      /* learn */           false,
-      /* infer */           true,
-                            result);
     // Check results
-    if(clsr.getClassification( result[0] ) == label)
+    if( clsr.inferCategory( columns ) == label)
         score += 1;
     n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
