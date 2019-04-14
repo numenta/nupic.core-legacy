@@ -122,10 +122,33 @@ Real Anomaly::compute(vector<UInt>& active, vector<UInt>& predicted, int timesta
   return score;
 }
 
+template<class Archive>
+void Anomaly::save_ar(Archive & ar) const {
+  std::string name("Anomaly");
+  ar(CEREAL_NVP(name), 
+      CEREAL_NVP(mode_), 
+      CEREAL_NVP(binaryThreshold_), 
+      CEREAL_NVP(likelihood_),
+      CEREAL_NVP(movingAverage_));
+}
+template<class Archive>
+void Anomaly::load_ar(Archive & ar) {
+  std::string name;
+  UInt slidingWindowSize = 0;
+  ar(CEREAL_NVP(name),
+      CEREAL_NVP(mode_),
+      CEREAL_NVP(binaryThreshold_));
+  ar(CEREAL_NVP(likelihood_));
+  ar(CEREAL_NVP(movingAverage_));
+}
+
+
 bool Anomaly::operator==(const Anomaly &a) const {
   if (mode_ != a.mode_) return false;
   if (binaryThreshold_ != a.binaryThreshold_) return false;
-  if (*(movingAverage_.get()) != *(a.movingAverage_.get())) return false;
+  if (movingAverage_ != nullptr && a.movingAverage_ == nullptr) return false;
+  if (movingAverage_ == nullptr && a.movingAverage_ != nullptr) return false;
+  if (movingAverage_ != nullptr && *(movingAverage_.get()) != *(a.movingAverage_.get())) return false;
   if (likelihood_ != a.likelihood_) return false;
   return true;
 }

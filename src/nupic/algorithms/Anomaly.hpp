@@ -107,24 +107,9 @@ public:
   
   CerealAdapter;
   template<class Archive>
-  void save_ar(Archive & ar) const {
-    std::string name("Anomaly");
-    ar(CEREAL_NVP(name), 
-       CEREAL_NVP(mode_), 
-       CEREAL_NVP(binaryThreshold_), 
-       CEREAL_NVP(likelihood_),
-       CEREAL_NVP(movingAverage_));
-  }
+  void save_ar(Archive & ar) const;
   template<class Archive>
-  void load_ar(Archive & ar) {
-    std::string name;
-    UInt slidingWindowSize = 0;
-    ar(CEREAL_NVP(name),
-       CEREAL_NVP(mode_),
-       CEREAL_NVP(binaryThreshold_));
-    ar(CEREAL_NVP(likelihood_));
-    ar(CEREAL_NVP(movingAverage_));
-  }
+  void load_ar(Archive & ar);
 
 
   bool operator==(const Anomaly &a) const;

@@ -117,40 +117,9 @@ class AnomalyLikelihood : public Serializable {
   
   CerealAdapter;
   template<class Archive>
-  void save_ar(Archive & ar) const {
-    std::string name("AnomalyLikelhood");
-    ar(CEREAL_NVP(name),
-       CEREAL_NVP(distribution_.name),
-       CEREAL_NVP(distribution_.mean),
-       CEREAL_NVP(distribution_.variance),
-       CEREAL_NVP(distribution_.stdev),
-       CEREAL_NVP(iteration_),
-       CEREAL_NVP(lastTimestamp_),
-       CEREAL_NVP(initialTimestamp_),
-       CEREAL_NVP(averagedAnomaly_),
-       CEREAL_NVP(runningLikelihoods_),
-       CEREAL_NVP(runningRawAnomalyScores_),
-       CEREAL_NVP(runningAverageAnomalies_) 
-    );
-  }
+  void save_ar(Archive & ar) const;
   template<class Archive>
-  void load_ar(Archive & ar) {
-    std::string name; // for debugging
-    ar(CEREAL_NVP(name),
-       CEREAL_NVP(distribution_.name),
-       CEREAL_NVP(distribution_.mean),
-       CEREAL_NVP(distribution_.variance),
-       CEREAL_NVP(distribution_.stdev),
-       CEREAL_NVP(iteration_),
-       CEREAL_NVP(lastTimestamp_),
-       CEREAL_NVP(initialTimestamp_));
-    ar(CEREAL_NVP(averagedAnomaly_));
-    ar(CEREAL_NVP(runningLikelihoods_));
-    ar(CEREAL_NVP(runningRawAnomalyScores_));
-    ar(CEREAL_NVP(runningAverageAnomalies_));
-    // Note: learningPeriod, reestimationPeriod, probationaryPeriod already set by constructor.
-
-  }
+  void load_ar(Archive & ar);
 
   
   bool operator==(const AnomalyLikelihood &a) const;

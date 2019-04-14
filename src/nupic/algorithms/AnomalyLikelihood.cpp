@@ -313,6 +313,44 @@ static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPer
     return min(numIngested, max((UInt)0, learningPeriod - numShiftedOut));
 }
 
+
+  template<class Archive>
+  void AnomalyLikelihood::save_ar(Archive & ar) const {
+    std::string name("AnomalyLikelhood");
+    ar(CEREAL_NVP(name),
+       CEREAL_NVP(distribution_.name),
+       CEREAL_NVP(distribution_.mean),
+       CEREAL_NVP(distribution_.variance),
+       CEREAL_NVP(distribution_.stdev),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(lastTimestamp_),
+       CEREAL_NVP(initialTimestamp_),
+       CEREAL_NVP(averagedAnomaly_),
+       CEREAL_NVP(runningLikelihoods_),
+       CEREAL_NVP(runningRawAnomalyScores_),
+       CEREAL_NVP(runningAverageAnomalies_) 
+    );
+  }
+  template<class Archive>
+  void AnomalyLikelihood::load_ar(Archive & ar) {
+    std::string name; // for debugging
+    ar(CEREAL_NVP(name),
+       CEREAL_NVP(distribution_.name),
+       CEREAL_NVP(distribution_.mean),
+       CEREAL_NVP(distribution_.variance),
+       CEREAL_NVP(distribution_.stdev),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(lastTimestamp_),
+       CEREAL_NVP(initialTimestamp_));
+    ar(CEREAL_NVP(averagedAnomaly_));
+    ar(CEREAL_NVP(runningLikelihoods_));
+    ar(CEREAL_NVP(runningRawAnomalyScores_));
+    ar(CEREAL_NVP(runningAverageAnomalies_));
+    // Note: learningPeriod, reestimationPeriod, probationaryPeriod already set by constructor.
+
+  }
+
+
 bool AnomalyLikelihood::operator==(const AnomalyLikelihood &a) const {
   if (learningPeriod != a.learningPeriod) return false;
   if (reestimationPeriod != a.reestimationPeriod) return false;

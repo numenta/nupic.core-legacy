@@ -58,21 +58,14 @@ public:
     return !operator==(r2);
   }
 
+  CerealAdapter;  // see Serializable.hpp
   template<class Archive>
-  void save_ar(Archive & ar) const {
-    size_t wSize = slidingWindow_.size();
-    ar(CEREAL_NVP(wSize));          // save size of sliding window to stream
-    ar(CEREAL_NVP(slidingWindow_)); // save data in sliding window to stream
-  }
+  void save_ar(Archive & ar) const;
   template<class Archive>
-  void load_ar(Archive & ar) const {
-    size_t wSize;  
-    ar(CEREAL_NVP(wSize));          // load size of sliding window to stream, not used
-    ar(CEREAL_NVP(slidingWindow_)); // load data in sliding window to stream
-  }
+  void load_ar(Archive & ar);
   friend class cereal::access;
 
-  // The Class does not have a default constructor so we have to
+  // The MovingAverage class does not have a default constructor so we have to
   // tell Cereal to construct it with an argument if it is used
   // in a smart pointer.  Called by Cereal when loading unique_ptr<MovingAverage>.
   template <class Archive>

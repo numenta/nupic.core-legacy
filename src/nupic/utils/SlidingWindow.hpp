@@ -138,7 +138,6 @@ class SlidingWindow : public Serializable {
         }
       }
 
-
       CerealAdapter;
       template<class Archive>
       void save_ar(Archive & ar) const {
