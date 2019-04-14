@@ -153,6 +153,15 @@ void softmax(PDF::iterator begin, PDF::iterator end);
 using Predictions = std::map<Int, PDF>;
 
 
+/**
+ * The Predictor class does N-Step ahead predictions.
+ *
+ * Internally, this class uses Classifiers to associate SDRs with future values.
+ * This class handles missing datapoints.
+ *
+ * Compatibility Note:  This class is the replacement for the old SDRClassifier.
+ * It no longer provides estimates of the actual value.
+ */
 class Predictor : public Serializable
 {
 public:
