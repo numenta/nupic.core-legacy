@@ -76,24 +76,10 @@ set(algorithm_files
     nupic/algorithms/Anomaly.hpp
     nupic/algorithms/AnomalyLikelihood.cpp
     nupic/algorithms/AnomalyLikelihood.hpp
-    nupic/algorithms/BacktrackingTM.cpp
-    nupic/algorithms/BacktrackingTM.hpp
-    nupic/algorithms/Cell.cpp
-    nupic/algorithms/Cell.hpp
-    nupic/algorithms/Cells4.cpp
-    nupic/algorithms/Cells4.hpp
     nupic/algorithms/Connections.cpp
     nupic/algorithms/Connections.hpp
-    nupic/algorithms/InSynapse.cpp
-    nupic/algorithms/InSynapse.hpp
-    nupic/algorithms/OutSynapse.cpp
-    nupic/algorithms/OutSynapse.hpp
     nupic/algorithms/SDRClassifier.cpp
     nupic/algorithms/SDRClassifier.hpp
-    nupic/algorithms/Segment.cpp
-    nupic/algorithms/Segment.hpp
-    nupic/algorithms/SegmentUpdate.cpp
-    nupic/algorithms/SegmentUpdate.hpp
     nupic/algorithms/SpatialPooler.cpp
     nupic/algorithms/SpatialPooler.hpp
     nupic/algorithms/TemporalMemory.cpp
@@ -177,8 +163,6 @@ set(os_files
 )
 
 set(regions_files
-    nupic/regions/BacktrackingTMRegion.cpp
-    nupic/regions/BacktrackingTMRegion.hpp
     nupic/regions/ScalarSensor.cpp
     nupic/regions/ScalarSensor.hpp
     nupic/regions/SPRegion.cpp
@@ -201,8 +185,6 @@ set(types_files
     nupic/types/Serializable.hpp
     nupic/types/Sdr.hpp
     nupic/types/Sdr.cpp
-    nupic/types/SdrTools.hpp
-    nupic/types/SdrTools.cpp
 )
 
 set(utils_files
@@ -442,9 +424,9 @@ install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
           
 #
 # `make package` results in
-# nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
+# nupic_cpp-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
 #
 
 set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_FILE_NAME "nupic_core-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
+set(CPACK_PACKAGE_FILE_NAME "nupic_cpp-${NUPIC_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
 include(CPack)
