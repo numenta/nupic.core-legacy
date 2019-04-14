@@ -122,6 +122,9 @@ std::vector<Real> Classifier::calculateError_(
 
 
 void nupic::algorithms::sdr_classifier::softmax(PDF::iterator begin, PDF::iterator end) {
+  if( begin == end ) {
+    return;
+  }
   const auto maxVal = *max_element(begin, end);
   for (auto itr = begin; itr != end; ++itr) {
     *itr = std::exp(*itr - maxVal); // x[i] = e ^ (x[i] - maxVal)
@@ -144,7 +147,8 @@ void Predictor::initialize(const vector<UInt> &steps, Real alpha)
 {
   steps_ = steps;
   if( steps_.empty() ) {
-    steps_.push_back( 0u );
+    // steps_.push_back( 0u );
+    NTA_THROW << "Required argument steps is empty!";
   }
   else {
     sort(steps_.begin(), steps_.end());
@@ -159,12 +163,12 @@ void Predictor::initialize(const vector<UInt> &steps, Real alpha)
 
 
 void Predictor::reset() {
-  patternNZHistory_.clear();
+  patternHistory_.clear();
   recordNumHistory_.clear();
 }
 
 
-Predictions Predictor::infer(UInt recordNum, const sdr::SDR &pattern)
+Predictions Predictor::infer(UInt recordNum, const SDR &pattern)
 {
   updateHistory_( recordNum, pattern );
 
@@ -176,12 +180,13 @@ Predictions Predictor::infer(UInt recordNum, const sdr::SDR &pattern)
 }
 
 
-void Predictor::learn(UInt recordNum, const sdr::SDR &pattern,
+void Predictor::learn(UInt recordNum, const SDR &pattern,
                       const std::vector<UInt> &bucketIdxList)
 {
   updateHistory_( recordNum, pattern );
 
-  auto pastPattern   = patternNZHistory_.begin();
+  // Iterate through all recently given inputs, starting from the furthest in the past.
+  auto pastPattern   = patternHistory_.begin();
   auto pastRecordNum = recordNumHistory_.begin();
   for( ; pastRecordNum != recordNumHistory_.end(); pastPattern++, pastRecordNum++ )
   {
@@ -208,11 +213,10 @@ void Predictor::updateHistory_(UInt recordNum, const SDR & pattern)
 
   // Update pattern history if this is a new record.
   if (recordNumHistory_.size() == 0 || recordNum > lastRecordNum) {
-    const auto &patternNZ = pattern.getSparse();
-    patternNZHistory_.emplace_back(patternNZ.begin(), patternNZ.end());
+    patternHistory_.emplace_back( pattern );
     recordNumHistory_.push_back(recordNum);
-    if (patternNZHistory_.size() > steps_.back() + 1) {
-      patternNZHistory_.pop_front();
+    if (patternHistory_.size() > steps_.back() + 1) {
+      patternHistory_.pop_front();
       recordNumHistory_.pop_front();
     }
   } 

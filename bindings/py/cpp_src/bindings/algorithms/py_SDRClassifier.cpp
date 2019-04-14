@@ -54,13 +54,18 @@ R"(TODO: DOCS)",
             py::arg("alpha") = 0.001);
 
         py_Classifier.def("infer", &Classifier::infer,
-R"(TODO: DOCS)");
+R"(TODO: DOCS)",
+            py::arg("pattern"));
 
         py_Classifier.def("learn", &Classifier::learn,
-R"(TODO: DOCS)");
+R"(TODO: DOCS)",
+                py::arg("pattern"),
+                py::arg("classification"));
 
         py_Classifier.def("learn", [](Classifier &self, const SDR &pattern, UInt categoryIdx)
-            { self.learn( pattern, {categoryIdx} ); });
+            { self.learn( pattern, {categoryIdx} ); },
+                py::arg("pattern"),
+                py::arg("classification"));
 
         // TODO: Pickle support
 
@@ -77,13 +82,21 @@ R"(TODO: DOCS)",
 R"(TODO: DOCS)");
 
         py_Predictor.def("infer", &Predictor::infer,
-R"(TODO: DOCS)");
+R"(TODO: DOCS)",
+            py::arg("recordNum"),
+            py::arg("pattern"));
 
         py_Predictor.def("learn", &Predictor::learn,
-R"(TODO: DOCS)");
+R"(TODO: DOCS)",
+            py::arg("recordNum"),
+            py::arg("pattern"),
+            py::arg("classification"));
 
         py_Predictor.def("learn", [](Predictor &self, UInt recordNum, const SDR &pattern, UInt categoryIdx)
-            { self.learn( recordNum, pattern, {categoryIdx} ); });
+            { self.learn( recordNum, pattern, {categoryIdx} ); },
+                py::arg("recordNum"),
+                py::arg("pattern"),
+                py::arg("classification"));
 
         // TODO: Pickle support
     }

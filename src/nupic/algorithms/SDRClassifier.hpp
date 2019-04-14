@@ -210,8 +210,8 @@ private:
 
   // Stores the input pattern history, starting with the previous input
   // and containing _maxSteps total input patterns.
-  std::deque<std::vector<UInt>> patternNZHistory_;
-  std::deque<UInt> recordNumHistory_;
+  std::deque<sdr::SDR> patternHistory_;
+  std::deque<UInt>     recordNumHistory_;
   void updateHistory_(UInt recordNum, const sdr::SDR & pattern);
 
   // One per prediction step
