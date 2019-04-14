@@ -60,8 +60,16 @@ PDF Classifier::infer(const SDR & pattern)
     while( weights_.size() < pattern.size ) {
       weights_.push_back( vector<Real>( numCategories_, 0.0f ));
     }
-  } else {
-    NTA_CHECK( pattern.dimensions == dimensions_ );
+  } else if( pattern.dimensions != dimensions_ ) {
+      stringstream err_msg;
+      err_msg << "Classifier input SDR.dimensions mismatch: previously given SDR with dimensions ( ";
+      for( auto dim : dimensions_ )
+        { err_msg << dim << " "; }
+      err_msg << "), now given SDR with dimensions ( ";
+      for( auto dim : pattern.dimensions )
+        { err_msg << dim << " "; }
+      err_msg << ").";
+      NTA_THROW << err_msg.str();
   }
 
   // Accumulate feed forward input.

@@ -388,7 +388,6 @@ class ClassifierTest(unittest.TestCase):
     The classifier should get the distribution almost right given enough
     repetitions and a small learning rate
     """
-
     c = Classifier( 0.001 )
 
     SDR1 = SDR(10);  SDR1.sparse = [1, 3, 5]
