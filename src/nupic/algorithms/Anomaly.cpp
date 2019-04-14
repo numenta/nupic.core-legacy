@@ -134,7 +134,6 @@ void Anomaly::save_ar(Archive & ar) const {
 template<class Archive>
 void Anomaly::load_ar(Archive & ar) {
   std::string name;
-  UInt slidingWindowSize = 0;
   ar(CEREAL_NVP(name),
       CEREAL_NVP(mode_),
       CEREAL_NVP(binaryThreshold_));

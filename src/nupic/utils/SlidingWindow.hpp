@@ -30,7 +30,12 @@ class SlidingWindow : public Serializable {
     template<class IteratorT> 
     SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, 
       IteratorT initialData_end, std::string id="SlidingWindow", int debug=0): 
-      SlidingWindow(maxCapacity, id, debug) {
+      maxCapacity(maxCapacity),
+      ID(id),
+      DEBUG(debug)
+    {
+      buffer_.reserve(maxCapacity);
+      idxNext_ = 0;
       // Assert that It obeys the STL forward iterator concept
       for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
         append(*it);

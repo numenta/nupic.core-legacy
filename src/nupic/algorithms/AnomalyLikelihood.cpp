@@ -14,9 +14,9 @@ namespace nupic {
 namespace algorithms {
 namespace anomaly {
 
-   Real compute_mean(const vector<Real>& v); //forward declaration
-   Real compute_var(const vector<Real>& v, Real mean); 
-   static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPeriod);
+static Real compute_mean(const vector<Real>& v); //forward declaration
+static Real compute_var(const vector<Real>& v, Real mean); 
+static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPeriod);
 
 
 AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples, UInt historicWindowSize, UInt reestimationPeriod, UInt aggregationWindow) :
