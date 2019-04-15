@@ -84,6 +84,17 @@ public:
   void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
   void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    ar( cereal::make_nvp("seed", seed_), cereal::make_nvp("steps", steps_));  
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    ar( seed_, steps_);  
+    gen.seed(static_cast<unsigned int>(seed_)); //reseed
+    gen.discard(steps_); //advance n steps
+  }
 
   bool operator==(const Random &other) const;
   inline bool operator!=(const Random &other) const {
