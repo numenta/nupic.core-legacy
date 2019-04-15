@@ -47,6 +47,7 @@
 
 #include <nupic/utils/GroupBy.hpp>
 #include <nupic/math/Math.hpp> // nupic::Epsilon
+#include <nupic/algorithms/Anomaly.hpp> 
 
 using namespace std;
 using namespace nupic;
@@ -646,6 +647,12 @@ void TemporalMemory::compute(const SDR &activeColumns, bool learn,
 void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
   activateDendrites(learn);
   activateCells(activeColumns, learn);
+  //anomaly computation
+  anomaly_.currentActiveColumns = this->cellsToColumns(activeCells_); //FIXME cellsToColumns from PR#397 
+  anomaly_.previouslyPredictedColumns = this->cellsToColumns(getPredictiveCells()); //TODO move to T-1
+  anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(
+		  anomaly_.currentActiveColumns, 
+		  anomaly_.previouslyPredictedColumns);
 }
 
 void TemporalMemory::reset(void) {

@@ -502,8 +502,24 @@ protected:
 
   Random rng_;
 
+private:
+  /**
+   * this struct is used for anomaly computation
+   */
+  struct anomaly_t {
+    float score = 0.0f;
+    sdr::SDR previouslyPredictedColumns;
+    sdr::SDR currentActiveColumns; 
+  } anomaly_;
+
 public:
   Connections connections; //TODO not public!
+  /**
+   *  anomaly score computed for the current (updates after call to TM::compute())
+   *  inputs. Returns a float value within range [0.0..1.0], where 
+   *  1 is the maximum anomaly. 
+   */ 
+  const float anomalyScore = anomaly_.score; 
 };
 
 } // end namespace temporal_memory
