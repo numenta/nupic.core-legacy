@@ -30,7 +30,8 @@
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
 
-#define VERBOSE std::cerr << "[          ] "
+static bool verbose = false;
+#define VERBOSE if (verbose) std::cerr << "[          ] "
 
 
 #if defined(NTA_OS_WINDOWS)
@@ -152,7 +153,7 @@ TEST(DirectoryTest, CopyTree) {
   Directory::copyTree(b, a);
 
   std::string ls = Directory::list("TestOutputDir");
-  std::cerr << "directory tree \n" << ls << "\n";
+  VERBOSE << "directory tree \n" << ls << "\n";
   // the file should exist in both directories
   //   TestOutputDir
   //       A

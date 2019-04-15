@@ -50,7 +50,7 @@ namespace testing {
 using namespace nupic;
 using std::exception;
 
-static bool verbose = true;
+static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
 

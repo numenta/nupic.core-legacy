@@ -47,14 +47,13 @@ struct RDSE_Parameters
 
   /**
    * Member "activeBits" is the number of true bits in the encoded output SDR.
-   * The output encodings will have a contiguous block of this many 1's.
    */
   UInt activeBits = 0u;
 
   /**
    * Member "sparsity" is the fraction of bits in the encoded output which this
    * encoder will activate. This is an alternative way to specify the member
-   * "activeBits".  Sparsity requires that the size to also be specified.
+   * "activeBits".
    */
   Real sparsity = 0.0f;
 
@@ -102,7 +101,8 @@ struct RDSE_Parameters
  * of SDRs to prevent conflicts between different encodings.  This method does
  * not allow for decoding SDRs into the inputs which likely created it.
  *
- * TODO, Example Usage & unit test for it.
+ * To inspect this run:
+ * $ python -m nupic.encoders.rdse --help
  */
 class RandomDistributedScalarEncoder : public BaseEncoder<Real64>
 {

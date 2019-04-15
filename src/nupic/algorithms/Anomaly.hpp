@@ -24,11 +24,12 @@
 #define NUPIC_ALGORITHMS_ANOMALY_HPP
 
 #include <memory> // Needed for smart pointer templates
+#include <vector>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/algorithms/AnomalyLikelihood.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/MovingAverage.hpp> // Needed for for smart pointer templates
 #include <nupic/types/Sdr.hpp> // sdr::SDR
-#include <vector>
 
 namespace nupic {
 namespace algorithms {
@@ -52,7 +53,7 @@ Real32 computeRawAnomalyScore(const sdr::SDR& active, const sdr::SDR& predicted)
 
 enum class AnomalyMode { PURE, LIKELIHOOD, WEIGHTED };
 
-class Anomaly {
+class Anomaly : public Serializable {
 public:
   /**
    * Utility class for generating anomaly scores in different ways.
@@ -102,6 +103,34 @@ public:
   Real compute(const sdr::SDR &active,
                const sdr::SDR &predicted,
                int timestamp = -1);
+
+
+  CerealAdapter;
+
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    std::string name("Anomaly");
+    ar(CEREAL_NVP(name),
+        CEREAL_NVP(mode_),
+        CEREAL_NVP(binaryThreshold_),
+        CEREAL_NVP(likelihood_),
+        CEREAL_NVP(movingAverage_));
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    std::string name;
+    ar(CEREAL_NVP(name),
+        CEREAL_NVP(mode_),
+        CEREAL_NVP(binaryThreshold_));
+    ar(CEREAL_NVP(likelihood_));
+    ar(CEREAL_NVP(movingAverage_));
+  }
+
+
+
+  bool operator==(const Anomaly &a) const;
+  inline bool operator!=(const Anomaly &a) const
+      { return not ((*this) == a); }
 
 private:
   AnomalyMode mode_;

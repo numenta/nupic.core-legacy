@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <sstream>
 
 #include "gtest/gtest.h"
 
@@ -29,7 +30,7 @@
 #include "nupic/types/Types.hpp"
 
 namespace testing {
-    
+
 using namespace nupic::algorithms::anomaly;
 using namespace nupic;
 
@@ -131,7 +132,25 @@ TEST(Anomaly, SelectModePure) {
   ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0f / 3.0f);
 };
 
+TEST(Anomaly, SerializationPure)
+{
+  Anomaly a{0, AnomalyMode::PURE, 0};
+  Anomaly b;
+
+ std::vector<UInt> active = {2, 3, 6};
+  std::vector<UInt> predicted = {3, 5, 7};
+  a.compute(active, predicted);
+
+
+  std::stringstream ss;
+  a.saveToStream_ar(ss);
+  b.loadFromStream_ar(ss);
+  //EXPECT_EQ(a, b);
+}
+
+/////////////////////////////////////////////////////
 // Anomaly Likelihood tests
+
 TEST(AnomalyLikelihood, SelectModeLikelihood)
 {
   Anomaly a{0, AnomalyMode::LIKELIHOOD, 0};
@@ -152,5 +171,27 @@ TEST(AnomalyLikelihood, SelectModeLikelihood)
   }
 
 };
+
+TEST(AnomalyLikelihood, SerializationLikelihood)
+{
+  Anomaly a{0, AnomalyMode::LIKELIHOOD, 0};
+  std::vector<UInt> active = {2, 3, 6};
+  std::vector<UInt> predicted = {3, 5, 7};
+  a.compute(active, predicted);
+  int ts = 0; //timestamp
+  Real likelihood = 0;
+
+  for(int i=0; i< 400; i++) {
+     likelihood = a.compute(active, predicted,  ++ts);
+  }
+  EXPECT_TRUE(likelihood > 0.0f);
+
+  Anomaly b;
+
+  std::stringstream ss;
+  a.saveToStream_ar(ss);
+  b.loadFromStream_ar(ss);
+  EXPECT_EQ(a, b);
+}
 
 }
