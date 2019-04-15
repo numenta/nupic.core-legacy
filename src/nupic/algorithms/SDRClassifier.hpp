@@ -97,7 +97,7 @@ public:
    * @param alpha - The alpha used to adapt the weight matrix during learning. A
    *                larger alpha results in faster adaptation to the data.
    */
-  Classifier(Real alpha);
+  Classifier(Real alpha = 0.001f );
 
   /**
    * Constructor for use when deserializing.
