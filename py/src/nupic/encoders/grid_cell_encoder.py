@@ -85,10 +85,23 @@ class GridCellEncoder:
         pass
 
     def encode(self, location, grid_cells=None):
+        """
+        Transform a 2-D coordinate into an SDR.
+
+        Argument location: pair of coordinates, such as "[X, Y]"
+
+        Argument grid_cells: Optional, the SDR object to store the results in.
+                             Its dimensions must be "[GridCellEncoder.size]"
+
+        Returns grid_cells, an SDR object.  This will be created if not given.
+        """
         location = list(location)
         assert(len(location) == 2)
         if grid_cells is None:
             grid_cells = SDR((self.size,))
+        else:
+            assert(isinstance(grid_cells, SDR))
+            assert(grid_cells.dimensions == [self.size])
         if any(math.isnan(x) for x in location):
             grid_cells.zero()
             return grid_cells

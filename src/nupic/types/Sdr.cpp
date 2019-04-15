@@ -12,8 +12,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- * ----------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------- */
 
 /** @file
  * Implementation of the SparseDistributedRepresentation class
@@ -360,6 +359,63 @@ namespace sdr {
         SDR::setDenseInplace();
     }
 
+    void SparseDistributedRepresentation::concatenate(const SDR &inp1, const SDR &inp2, UInt axis)
+        { concatenate({&inp1, &inp2}, axis); }
+
+    void SparseDistributedRepresentation::concatenate(vector<const SDR*> inputs, UInt axis)
+    {
+        // Check inputs.
+        NTA_CHECK( inputs.size() >= 2u )
+            << "Not enough inputs to SDR::concatenate, need at least 2 SDRs got " << inputs.size() << "!";
+        NTA_CHECK( axis < dimensions.size() );
+        UInt concat_axis_size = 0u;
+        for( const auto &sdr : inputs ) {
+            NTA_CHECK( sdr != nullptr );
+            NTA_CHECK( sdr->dimensions.size() == dimensions.size() )
+                << "All inputs to SDR::concatenate must have the same number of dimensions as the output SDR!";
+            for( auto dim = 0u; dim < dimensions.size(); dim++ ) {
+                if( dim == axis ) {
+                    concat_axis_size += sdr->dimensions[axis];
+                }
+                else {
+                    NTA_CHECK( sdr->dimensions[dim] == dimensions[dim] )
+                        << "All dimensions except the axis must be the same!";
+                }
+            }
+        }
+        NTA_CHECK( concat_axis_size == dimensions[axis] )
+            << "Axis of concatenation dimensions do not match, inputs sum to "
+            << concat_axis_size << ", output expects " << dimensions[axis] << "!";
+
+        // Setup for copying the data as rows & strides.
+        vector<ElemDense*> buffers;
+        vector<UInt>       row_lengths;
+        for( const auto &sdr : inputs ) {
+            buffers.push_back( sdr->getDense().data() );
+            UInt row = 1u;
+            for(UInt d = axis; d < dimensions.size(); ++d)
+                row *= sdr->dimensions[d];
+            row_lengths.push_back( row );
+        }
+
+        // Get the output buffer.
+        dense_.resize( size );
+              auto dense_data  = dense_.data();
+        const auto data_end    = dense_data + size;
+        const auto n_inputs    = inputs.size();
+        while( dense_data < data_end ) {
+            // Copy one row from each input SDR.
+            for( UInt i = 0u; i < n_inputs; ++i ) {
+                const auto &buf = buffers[i];
+                const auto &row = row_lengths[i];
+                std::copy( buf, buf + row, dense_data );
+                // Increment the pointers.
+                buffers[i] += row;
+                dense_data += row;
+            }
+        }
+        SDR::setDenseInplace();
+    }
 
     bool SparseDistributedRepresentation::operator==(const SparseDistributedRepresentation &sdr) const {
         // Check attributes
@@ -481,6 +537,65 @@ namespace sdr {
         NTA_CHECK( destroyCallbacks[index] != nullptr )
             << "SparseDistributedRepresentation::removeDestroyCallback, Callback already removed!";
         destroyCallbacks[index] = nullptr;
+    }
+
+
+    /**************************************************************************/
+
+    Reshape::Reshape(const SDR &sdr, const vector<UInt> &dimensions)
+        : SDR( dimensions )
+    {
+        clear();
+        parent = &sdr;
+        NTA_CHECK( size == parent->size ) << "SDR Reshape must have same size as given SDR.";
+        callback_handle = parent->addCallback( [&] () {
+            clear();
+            do_callbacks();
+        });
+        destroyCallback_handle = parent->addDestroyCallback( [&] () {
+            deconstruct();
+        });
+    }
+
+    SDR_dense_t& Reshape::getDense() const {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        return parent->getDense();
+    }
+
+    SDR_sparse_t& Reshape::getSparse() const {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        return parent->getSparse();
+    }
+
+    SDR_coordinate_t& Reshape::getCoordinates() const {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        if( dimensions.size() == parent->dimensions.size() &&
+            equal( dimensions.begin(), dimensions.end(),
+                   parent->dimensions.begin() )) {
+            // All things equal, prefer reusing the parent's cached value.
+            return parent->getCoordinates();
+        }
+        else {
+            // Don't override getCoordinates().  It will call either getDense()
+            // or getSparse() to get its data, and will use this SDR Reshape's
+            // dimensions.
+            return SDR::getCoordinates();
+        }
+    }
+
+    void Reshape::save(std::ostream &outStream) const {
+        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
+        parent->save( outStream );
+    }
+
+    void Reshape::deconstruct() {
+        // Unlink this SDR from the parent SDR.
+        if( parent != nullptr ) {
+            parent->removeCallback( callback_handle );
+            parent->removeDestroyCallback( destroyCallback_handle );
+            parent = nullptr;
+            SDR::deconstruct();
+        }
     }
 
 } // end namespace sdr

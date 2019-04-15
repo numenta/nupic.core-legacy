@@ -22,17 +22,11 @@
 import pickle
 import numpy as np
 import unittest
-import pytest
-import time
 
 from nupic.bindings.sdr import SDR, Metrics
 from nupic.bindings.encoders import RDSE, RDSE_Parameters
 
 class RDSE_Test(unittest.TestCase):
-    @pytest.mark.skip("TODO UNIMPLEMENTED!")
-    def testExampleUsage(self):
-        1/0
-
     def testConstructor(self):
         params1 = RDSE_Parameters()
         params1.size     = 100
@@ -263,6 +257,6 @@ class RDSE_Test(unittest.TestCase):
         B = R.encode( 987654 )
         assert( A != B )
 
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    @unittest.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
     def testPickle(self):
         assert(False) # TODO: Unimplemented
