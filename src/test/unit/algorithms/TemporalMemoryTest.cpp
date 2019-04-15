@@ -1357,16 +1357,16 @@ TEST(TemporalMemoryTest, testNumberOfColumns) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{64, 64}, 32);
 
-  int numOfColumns = tm.numberOfColumns();
-  ASSERT_EQ(numOfColumns, 64 * 64);
+  size_t numOfColumns = tm.numberOfColumns();
+  ASSERT_EQ(numOfColumns, 64ull * 64ull);
 }
 
 TEST(TemporalMemoryTest, testNumberOfCells) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{64, 64}, 32);
 
-  Int numberOfCells = tm.numberOfCells();
-  ASSERT_EQ(numberOfCells, 64 * 64 * 32);
+  size_t numberOfCells = tm.numberOfCells();
+  ASSERT_EQ(numberOfCells, 64ull * 64ull * 32ull);
 }
 
 void serializationTestPrepare(TemporalMemory &tm) {
@@ -1557,7 +1557,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
       tm.activateDendrites(true, extraActive, extraWinners);
       auto predictedColumns = tm.getPredictiveCells();
       for(UInt i = 0; i < predictedColumns.size(); i++) {
-        predictedColumns[i] /= tm.getCellsPerColumn();
+        predictedColumns[i] = static_cast<CellIdx>(predictedColumns[i]/tm.getCellsPerColumn());
         if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
           predictedColumns.erase( predictedColumns.begin() + i-- );
       }
