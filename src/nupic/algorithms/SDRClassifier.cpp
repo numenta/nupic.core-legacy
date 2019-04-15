@@ -43,7 +43,7 @@ Classifier::Classifier(Real alpha)
 
 void Classifier::initialize(Real alpha)
 {
-  NTA_ASSERT(alpha > 0.0f);
+  NTA_CHECK(alpha > 0.0f);
   alpha_ = alpha;
   dimensions_.clear();
   numCategories_ = 0u;
@@ -74,7 +74,7 @@ PDF Classifier::infer(const SDR & pattern)
 
   // Accumulate feed forward input.
   PDF probabilities( numCategories_, 0.0f );
-  for( const auto& bit : pattern.getSparse() ) {
+  for( const auto bit : pattern.getSparse() ) {
     for( size_t i = 0; i < numCategories_; i++ ) {
       probabilities[i] += weights_[bit][i];
     }
@@ -153,14 +153,9 @@ Predictor::Predictor(const vector<UInt> &steps, Real alpha)
 
 void Predictor::initialize(const vector<UInt> &steps, Real alpha)
 {
+  NTA_CHECK( not steps.empty() ) << "Required argument steps is empty!";
   steps_ = steps;
-  if( steps_.empty() ) {
-    // steps_.push_back( 0u );
-    NTA_THROW << "Required argument steps is empty!";
-  }
-  else {
-    sort(steps_.begin(), steps_.end());
-  }
+  sort(steps_.begin(), steps_.end());
 
   for( const auto step : steps_ ) {
     classifiers_.emplace( step, alpha );

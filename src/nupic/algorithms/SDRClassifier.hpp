@@ -117,8 +117,19 @@ public:
    */
   void learn(const sdr::SDR & pattern, const std::vector<UInt> & categoryIdxList);
 
-  void save(std::ostream &outStream) const override {} // TODO: Serialization
-  void load(std::istream &inStream) override {} // TODO: Serialization
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const
+  {
+    ar(cereal::make_nvp("alpha",         alpha_),
+       cereal::make_nvp("dimensions",    dimensions_),
+       cereal::make_nvp("numCategories", numCategories_),
+       cereal::make_nvp("weights",       weights_));
+  }
+
+  template<class Archive>
+  void load_ar(Archive & ar)
+    { ar( alpha_, dimensions_, numCategories_, weights_ ); }
 
 private:
   Real alpha_;
