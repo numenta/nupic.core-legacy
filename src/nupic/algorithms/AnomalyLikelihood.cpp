@@ -15,7 +15,7 @@ namespace algorithms {
 namespace anomaly {
 
 static Real compute_mean(const vector<Real>& v); //forward declaration
-static Real compute_var(const vector<Real>& v, Real mean); 
+static Real compute_var(const vector<Real>& v, Real mean);
 static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPeriod);
 
 
@@ -41,7 +41,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     if (timestamp <0) { //use iterations
       timestamp = this->iteration_;
     } else { //use time
-      NTA_ASSERT(timestamp > lastTimestamp_); //monotonic time! 
+      NTA_ASSERT(timestamp > lastTimestamp_); //monotonic time!
       lastTimestamp_ = timestamp;//lastTimestamp_ is used just for this check
     }
     if(initialTimestamp_ == -1) { // (re)set first,initial timestamp
@@ -55,26 +55,26 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
     auto newAvg = this->averagedAnomaly_.compute(anomalyScore);
     this->runningAverageAnomalies_.append(newAvg);
     this->iteration_++;
- 
+
     // We ignore the first probationaryPeriod data points - as we cannot reliably compute distribution statistics for estimating likelihood
     if (timeElapsed < this->probationaryPeriod) {
       this->runningLikelihoods_.append(likelihood); //after that, pushed below with real likelihood; here just 0.5
       return DEFAULT_ANOMALY;
     } //else {
 
-    const auto anomalies = this->runningAverageAnomalies_.getData(); 
-    
+    const auto anomalies = this->runningAverageAnomalies_.getData();
+
       // On a rolling basis we re-estimate the distribution
       if ((timeElapsed >= initialTimestamp_ + reestimationPeriod)   || distribution_.name == "unknown" ) {
         auto numSkipRecords = calcSkipRecords_(this->iteration_, (UInt)this->runningAverageAnomalies_.size(), this->learningPeriod); //FIXME this erase (numSkipRecords) is a problem when we use sliding window (as opposed to vector)! - should we skip only once on beginning, or on each call of this fn?
-        estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_; 
+        estimateAnomalyLikelihoods_(anomalies, numSkipRecords);  // called to update this->distribution_;
         if  (timeElapsed >= initialTimestamp_ + reestimationPeriod)  { initialTimestamp_ = -1; } //reset init T
       }
-    
+
     const auto likelihoods = updateAnomalyLikelihoods_(anomalies);
 
-      NTA_ASSERT(likelihoods.size() > 0); 
-      likelihood = 1.0f - likelihoods[0]; 
+      NTA_ASSERT(likelihoods.size() > 0);
+      likelihood = 1.0f - likelihoods[0];
       NTA_ASSERT(likelihood >= 0.0 && likelihood <= 1.0);
 
     this->runningLikelihoods_.append(likelihood);
@@ -83,7 +83,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
 
     return likelihood;
     }
-    
+
 
 /**
 #
@@ -121,7 +121,7 @@ Real AnomalyLikelihood::anomalyProbability(Real anomalyScore, int timestamp) {
 
 Real AnomalyLikelihood::tailProbability_(Real x) const {
      NTA_CHECK(distribution_.name != "unknown" && distribution_.stdev > 0);
-     
+
   if (x < distribution_.mean) {
     // Gaussian is symmetrical around mean, so flip to get the tail probability
     Real xp = 2 * distribution_.mean - x;
@@ -139,7 +139,7 @@ Real AnomalyLikelihood::tailProbability_(Real x) const {
 DistributionParams AnomalyLikelihood::estimateNormal_(const vector<Real>& anomalyScores, bool performLowerBoundCheck) {
     auto mean = compute_mean(anomalyScores);
     auto var = compute_var(anomalyScores, mean);
-  DistributionParams params = DistributionParams("normal", mean, var, 0.0); 
+  DistributionParams params = DistributionParams("normal", mean, var, 0.0);
 
   if (performLowerBoundCheck) {
     /* Handle edge case of almost no deviations and super low anomaly scores. We
@@ -173,20 +173,20 @@ DistributionParams AnomalyLikelihood::estimateNormal_(const vector<Real>& anomal
 
   :returns: A new list of floats likelihoods containing the filtered values.
   **/
-static vector<Real> filterLikelihoods_(const vector<Real>& likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor() 
+static vector<Real> filterLikelihoods_(const vector<Real>& likelihoods, Real redThreshold=0.99999, Real yellowThreshold=0.999){ //TODO make the redThreshold params of AnomalyLikelihood constructor()
   redThreshold    = 1.0f - redThreshold;  //TODO maybe we could use the true meaning already in the parameters
   yellowThreshold = 1.0f - yellowThreshold;
 
   NTA_CHECK(redThreshold > 0.0 && redThreshold < 1.0);
   NTA_CHECK(yellowThreshold > 0.0 && yellowThreshold < 1.0);
-  NTA_CHECK(yellowThreshold >= redThreshold); 
+  NTA_CHECK(yellowThreshold >= redThreshold);
 
   NTA_ASSERT(likelihoods.size() >= 1);
   // The first value is untouched
-  vector<Real> filteredLikelihoods(likelihoods); 
+  vector<Real> filteredLikelihoods(likelihoods);
 
-  for (size_t i=1; i< likelihoods.size(); i++) { 
-    // value is in the redzone & so was previous 
+  for (size_t i=1; i< likelihoods.size(); i++) {
+    // value is in the redzone & so was previous
     if (likelihoods[i] <= redThreshold && filteredLikelihoods[i-1] <= redThreshold) { //TODO review the (original) IFs
       filteredLikelihoods[i] = yellowThreshold;
     }
@@ -197,7 +197,7 @@ static vector<Real> filterLikelihoods_(const vector<Real>& likelihoods, Real red
 }
 
 
-vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& anomalyScores, UInt verbosity) { 
+vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& anomalyScores, UInt verbosity) {
   if (verbosity > 3) {
     cout << "In updateAnomalyLikelihoods."<< endl;
     cout << "Number of anomaly scores: "<<  anomalyScores.size() << endl;
@@ -208,12 +208,12 @@ vector<Real>  AnomalyLikelihood::updateAnomalyLikelihoods_(const vector<Real>& a
  NTA_CHECK(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
 
   // Compute moving averages of these new scores using the previous values
-  // as well as likelihood for these scores using the old estimator 
+  // as well as likelihood for these scores using the old estimator
   vector<Real> likelihoods;
-  likelihoods.reserve(runningAverageAnomalies_.size()); 
-  for (size_t i = 0; i < runningAverageAnomalies_.size(); i++) { //TODO we could use transform() here (? or would it be less clear?) 
+  likelihoods.reserve(runningAverageAnomalies_.size());
+  for (size_t i = 0; i < runningAverageAnomalies_.size(); i++) { //TODO we could use transform() here (? or would it be less clear?)
     auto newAverage = runningAverageAnomalies_[(UInt)i];
-    likelihoods.push_back(tailProbability_(newAverage)); 
+    likelihoods.push_back(tailProbability_(newAverage));
   }
 
 /*
@@ -244,7 +244,7 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(const vector<Real>& 
   }
 
   NTA_CHECK(anomalyScores.size() > 0); // "Must have at least one anomalyScore"
-  auto dataValues = anomalyScores; //FIXME the "data" should be anomaly scores, or raw values? 
+  auto dataValues = anomalyScores; //FIXME the "data" should be anomaly scores, or raw values?
 
   // Estimate the distribution of anomaly scores based on aggregated records
   if (dataValues.size()  <= skipRecords) {
@@ -279,7 +279,7 @@ vector<Real> AnomalyLikelihood::estimateAnomalyLikelihoods_(const vector<Real>& 
 
 /// HELPER methods (only used internaly in this cpp file)
 static Real compute_mean(const vector<Real>& v)  { //TODO do we have a (more comp. stable) implementation of mean/variance?
-  NTA_ASSERT(v.size() > 0); //avoid division by zero! 
+  NTA_ASSERT(v.size() > 0); //avoid division by zero!
     Real sum = (Real)(std::accumulate(v.begin(), v.end(), 0.0));
     return sum / v.size();
 }
@@ -314,41 +314,6 @@ static UInt calcSkipRecords_(UInt numIngested, UInt windowSize, UInt learningPer
 }
 
 
-  template<class Archive>
-  void AnomalyLikelihood::save_ar(Archive & ar) const {
-    std::string name("AnomalyLikelhood");
-    ar(CEREAL_NVP(name),
-       CEREAL_NVP(distribution_.name),
-       CEREAL_NVP(distribution_.mean),
-       CEREAL_NVP(distribution_.variance),
-       CEREAL_NVP(distribution_.stdev),
-       CEREAL_NVP(iteration_),
-       CEREAL_NVP(lastTimestamp_),
-       CEREAL_NVP(initialTimestamp_),
-       CEREAL_NVP(averagedAnomaly_),
-       CEREAL_NVP(runningLikelihoods_),
-       CEREAL_NVP(runningRawAnomalyScores_),
-       CEREAL_NVP(runningAverageAnomalies_) 
-    );
-  }
-  template<class Archive>
-  void AnomalyLikelihood::load_ar(Archive & ar) {
-    std::string name; // for debugging
-    ar(CEREAL_NVP(name),
-       CEREAL_NVP(distribution_.name),
-       CEREAL_NVP(distribution_.mean),
-       CEREAL_NVP(distribution_.variance),
-       CEREAL_NVP(distribution_.stdev),
-       CEREAL_NVP(iteration_),
-       CEREAL_NVP(lastTimestamp_),
-       CEREAL_NVP(initialTimestamp_));
-    ar(CEREAL_NVP(averagedAnomaly_));
-    ar(CEREAL_NVP(runningLikelihoods_));
-    ar(CEREAL_NVP(runningRawAnomalyScores_));
-    ar(CEREAL_NVP(runningAverageAnomalies_));
-    // Note: learningPeriod, reestimationPeriod, probationaryPeriod already set by constructor.
-
-  }
 
 
 bool AnomalyLikelihood::operator==(const AnomalyLikelihood &a) const {

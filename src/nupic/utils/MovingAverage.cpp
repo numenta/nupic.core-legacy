@@ -49,22 +49,3 @@ Real MovingAverage::compute(Real newVal) {
   total_ += newVal;
   return getCurrentAvg();
 }
-
-template<class Archive>
-void MovingAverage::save_ar(Archive & ar) const {
-  size_t wSize = slidingWindow_.size();
-  ar(CEREAL_NVP(wSize));          // save size of sliding window to stream
-  ar(CEREAL_NVP(slidingWindow_)); // save data in sliding window to stream
-}
-template<class Archive>
-void MovingAverage::load_ar(Archive & ar) {
-  size_t wSize;  
-  ar(CEREAL_NVP(wSize));          // load size of sliding window to stream, not used
-  ar(CEREAL_NVP(slidingWindow_)); // load data in sliding window to stream
-
-  // calculates total_
-  const std::vector<Real>&  window = slidingWindow_.getData();
-  total_ = Real(std::accumulate(begin(window), end(window), 0.0f));
-}
-
-

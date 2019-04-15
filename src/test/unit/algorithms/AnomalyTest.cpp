@@ -30,7 +30,7 @@
 #include "nupic/types/Types.hpp"
 
 namespace testing {
-    
+
 using namespace nupic::algorithms::anomaly;
 using namespace nupic;
 
@@ -179,11 +179,12 @@ TEST(AnomalyLikelihood, SerializationLikelihood)
   std::vector<UInt> predicted = {3, 5, 7};
   a.compute(active, predicted);
   int ts = 0; //timestamp
-  Real likelihood;
+  Real likelihood = 0;
 
   for(int i=0; i< 400; i++) {
      likelihood = a.compute(active, predicted,  ++ts);
   }
+  EXPECT_TRUE(likelihood > 0.0f);
 
   Anomaly b;
 

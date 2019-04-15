@@ -60,9 +60,22 @@ public:
 
   CerealAdapter;  // see Serializable.hpp
   template<class Archive>
-  void save_ar(Archive & ar) const;
+  void save_ar(Archive & ar) const {
+    size_t wSize = slidingWindow_.size();
+    ar(CEREAL_NVP(wSize));          // save size of sliding window to stream
+    ar(CEREAL_NVP(slidingWindow_)); // save data in sliding window to stream
+  }
   template<class Archive>
-  void load_ar(Archive & ar);
+  void load_ar(Archive & ar) {
+    size_t wSize;
+    ar(CEREAL_NVP(wSize));          // load size of sliding window to stream, not used
+    ar(CEREAL_NVP(slidingWindow_)); // load data in sliding window to stream
+
+    // calculates total_
+    const std::vector<Real>&  window = slidingWindow_.getData();
+    total_ = Real(std::accumulate(begin(window), end(window), 0.0f));
+  }
+
   friend class cereal::access;
 
   // The MovingAverage class does not have a default constructor so we have to

@@ -104,12 +104,28 @@ public:
                const sdr::SDR &predicted,
                int timestamp = -1);
 
-  
+
   CerealAdapter;
+
   template<class Archive>
-  void save_ar(Archive & ar) const;
+  void save_ar(Archive & ar) const {
+    std::string name("Anomaly");
+    ar(CEREAL_NVP(name),
+        CEREAL_NVP(mode_),
+        CEREAL_NVP(binaryThreshold_),
+        CEREAL_NVP(likelihood_),
+        CEREAL_NVP(movingAverage_));
+  }
   template<class Archive>
-  void load_ar(Archive & ar);
+  void load_ar(Archive & ar) {
+    std::string name;
+    ar(CEREAL_NVP(name),
+        CEREAL_NVP(mode_),
+        CEREAL_NVP(binaryThreshold_));
+    ar(CEREAL_NVP(likelihood_));
+    ar(CEREAL_NVP(movingAverage_));
+  }
+
 
 
   bool operator==(const Anomaly &a) const;
