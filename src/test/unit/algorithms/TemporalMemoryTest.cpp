@@ -1498,6 +1498,7 @@ TEST(TemporalMemoryTest, testSaveLoad) {
 
   serializationTestPrepare(tm1);
 
+  // Using binary streaming
   stringstream ss;
   tm1.save(ss);
 
@@ -1508,6 +1509,36 @@ TEST(TemporalMemoryTest, testSaveLoad) {
 
   serializationTestVerify(tm2);
 }
+
+TEST(TemporalMemoryTest, testSaveArLoadAr) {
+  TemporalMemory tm1(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 3,
+      /*initialPermanence*/ 0.21f,
+      /*connectedPermanence*/ 0.50f,
+      /*minThreshold*/ 2,
+      /*maxNewSynapseCount*/ 3,
+      /*permanenceIncrement*/ 0.10f,
+      /*permanenceDecrement*/ 0.10f,
+      /*predictedSegmentDecrement*/ 0.0f,
+      /*seed*/ 42);
+
+  serializationTestPrepare(tm1);
+
+  // Using Cereal Serialization
+  stringstream ss1;
+  tm1.saveToStream_ar(ss1);
+
+  TemporalMemory tm2;
+  tm2.loadFromStream_ar(ss1);
+
+  ASSERT_TRUE(tm1 == tm2);
+
+  serializationTestVerify(tm2);
+
+}
+
 
 /*
  * Test compute( extraActive, extraWinners )
