@@ -16,26 +16,31 @@ namespace nupic {
 
 template<class T> 
 class SlidingWindow : public Serializable {
+  // Note: member veriables need to be declared before constructor.
+  //       Otherwise we get "will be initialized after [-Werror=reorder]"
+  public: 
+    const UInt maxCapacity;
+    const std::string ID; //name of this object
+    const int DEBUG;
+  private:
+    std::vector<T> buffer_;
+    UInt idxNext_;
+				
   public:
-    SlidingWindow(UInt maxCapacity, std::string id="SlidingWindow", int debug=0) : 
-      maxCapacity(maxCapacity),
+    SlidingWindow(UInt max_capacity, std::string id="SlidingWindow", int debug=0) : 
+      maxCapacity(max_capacity),
       ID(id),
       DEBUG(debug)
     {
-      buffer_.reserve(maxCapacity);
+      buffer_.reserve(max_capacity);
       idxNext_ = 0;
     } 
 
 
     template<class IteratorT> 
-    SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, 
+    SlidingWindow(UInt max_capacity, IteratorT initialData_begin, 
       IteratorT initialData_end, std::string id="SlidingWindow", int debug=0): 
-      maxCapacity(maxCapacity),
-      ID(id),
-      DEBUG(debug)
-    {
-      buffer_.reserve(maxCapacity);
-      idxNext_ = 0;
+      SlidingWindow(max_capacity, id, debug) {
       // Assert that It obeys the STL forward iterator concept
       for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
         append(*it);
@@ -156,14 +161,6 @@ class SlidingWindow : public Serializable {
         ar( name, buffer_, idxNext_);
         // Note: ID, maxCapacity, DEBUG are already set from constructor.
       }
-
-  public: 
-    const std::string ID; //name of this object
-    const UInt maxCapacity;
-    const int DEBUG;
-  private:
-    std::vector<T> buffer_;
-    UInt idxNext_;
 }; 
 }} //end ns
 #endif //header
