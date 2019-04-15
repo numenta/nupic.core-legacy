@@ -40,7 +40,7 @@ using namespace nupic;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using nupic::algorithms::sdr_classifier::Classifier;
-using nupic::algorithms::sdr_classifier::getClassification;
+using nupic::algorithms::sdr_classifier::argmax;
 
 class MNIST {
 
@@ -138,7 +138,7 @@ void test() {
     input.setDense( image );
     sp.compute(input, false, columns);
     // Check results
-    if( getClassification( clsr.infer( columns ) ) == label)
+    if( argmax( clsr.infer( columns ) ) == label)
         score += 1;
     n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;

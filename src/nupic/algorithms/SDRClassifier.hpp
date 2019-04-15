@@ -56,7 +56,7 @@ using PDF = std::vector<Real>;
 /**
  * Returns the class with the single greatest probablility.
  */
-UInt getClassification( const PDF & data );
+UInt argmax( const PDF & data );
 
 
 /**

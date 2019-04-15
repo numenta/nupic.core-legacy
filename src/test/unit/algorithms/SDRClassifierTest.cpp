@@ -58,7 +58,7 @@ TEST(SDRClassifierTest, SingleValue) {
   }
   Predictions result1 = c.infer( 10u, input1 );
 
-  ASSERT_EQ( getClassification( result1[1u] ), 4u )
+  ASSERT_EQ( argmax( result1[1u] ), 4u )
       << "Incorrect prediction for bucket 4";
 
   ASSERT_EQ( result1.size(), 1u );

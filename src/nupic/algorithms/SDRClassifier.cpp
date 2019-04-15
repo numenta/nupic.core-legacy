@@ -32,7 +32,7 @@ using nupic::sdr::SDR;
 using namespace nupic::algorithms::sdr_classifier;
 using namespace std;
 
-UInt nupic::algorithms::sdr_classifier::getClassification( const PDF & data )
+UInt nupic::algorithms::sdr_classifier::argmax( const PDF & data )
   { return max_element( data.begin(), data.end() ) - data.begin(); }
 
 
