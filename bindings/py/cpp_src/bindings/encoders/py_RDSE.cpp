@@ -47,21 +47,20 @@ R"(Member "size" is the total number of bits in the encoded output SDR.)");
         py_RDSE_args.def_readwrite("sparsity", &RDSE_Parameters::sparsity,
 R"(Member "sparsity" is the fraction of bits in the encoded output which this
 encoder will activate. This is an alternative way to specify the member
-"activeBits".  Sparsity requires that the size to also be specified.)");
+"activeBits".)");
 
         py_RDSE_args.def_readwrite("activeBits", &RDSE_Parameters::activeBits,
-R"(Member "activeBits" is the number of true bits in the encoded output SDR. The
-output encodings will have a contiguous block of this many 1's.)");
+R"(Member "activeBits" is the number of true bits in the encoded output SDR.)");
 
         py_RDSE_args.def_readwrite("radius", &RDSE_Parameters::radius,
-R"(Member "radius" Two inputs separated by more than the radius have non-
-overlapping representations. Two inputs separated by less than the radius will
-in general overlap in at least some of their bits. You can think of this as the
-radius of the input.)");
+R"(Two inputs separated by more than the radius will have non-overlapping
+representations. Two inputs separated by less than the radius will in general
+overlap in at least some of their bits. You can think of this as the radius of
+the input.)");
 
         py_RDSE_args.def_readwrite("resolution", &RDSE_Parameters::resolution,
-R"(Member "resolution" Two inputs separated by greater than, or equal to the
-resolution are guaranteed to have different representations.)");
+R"(Two inputs separated by greater than, or equal to the resolution are
+guaranteed to have different representations.)");
 
         py_RDSE_args.def_readwrite("seed", &RDSE_Parameters::seed,
 R"(Member "seed" forces different encoders to produce different outputs, even if
@@ -74,7 +73,7 @@ The seed 0 is special.  Seed 0 is replaced with a random number.)");
         py::class_<RDSE> py_RDSE(m, "RDSE",
 R"(Encodes a real number as a set of randomly generated activations.
 
-The RandomDistributedScalarEncoder (RDSE) encodes a numeric scalar (floating
+The Random Distributed Scalar Encoder (RDSE) encodes a numeric scalar (floating
 point) value into an SDR.  The RDSE is more flexible than the ScalarEncoder.
 This encoder does not need to know the minimum and maximum of the input
 range.  It does not assign an input->output mapping at construction.  Instead
@@ -90,7 +89,8 @@ is faster and uses less memory.  It relies on the random & distributed nature
 of SDRs to prevent conflicts between different encodings.  This method does
 not allow for decoding SDRs into the inputs which likely created it.
 
-TODO, Example Usage & unit test for it.)");
+To inspect this run:
+$ python -m nupic.encoders.rdse --help)");
         py_RDSE.def(py::init<RDSE_Parameters>());
 
         py_RDSE.def_property_readonly("parameters",
