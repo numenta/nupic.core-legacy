@@ -150,30 +150,31 @@ TEST(ClassifierTest, MultipleCategories) {
 
 
 TEST(SDRClassifierTest, SaveLoad) {
-  ASSERT_EQ(1, 2); // TODO!
-  // vector<UInt> steps{ 1u };
-  // Predictor c1(steps, 0.1f, 0.1f);
-  // Predictor c2(steps, 0.1f, 0.1f);
+  vector<UInt> steps{ 1u };
+  Predictor c1(steps, 0.1f);
 
-  // // Create a vector of input bit indices
-  // vector<UInt> input1{ 1u, 5u, 9u };
-  // vector<UInt> bucketIdxList1{4u};
-  // vector<Real64> actValueList1{34.7f};
-  // ClassifierResult result;
-  // c1.compute(0u, input1, bucketIdxList1, actValueList1, false, true, true, result);
+  // Train a Predictor with a few different things.
+  SDR A({ 100u }); A.randomize( 0.10f );
+  for(UInt i = 0; i < 10u; i++)
+    { c1.learn(i, A, {4u}); }
+  c1.reset();
+  A.addNoise( 1.0f ); // Change every bit.
+  for(UInt i = 0; i < 10u; i++)
+    { c1.learn(i, A, {3u, 5u}); }
+  // Measure and save some output.
+  A.addNoise( 0.20f ); // Change two bits.
+  c1.reset();
+  const auto c1_out = c1.infer( 0u, A );
 
-  // {
-  //   stringstream ss;
-  //   EXPECT_NO_THROW(c1.save(ss));
-  //   EXPECT_NO_THROW(c2.load(ss));
-  // }
-  // ASSERT_EQ(c1, c2);
+  // Save and load.
+  stringstream ss;
+  EXPECT_NO_THROW(c1.save(ss));
+  Predictor c2;
+  EXPECT_NO_THROW(c2.load(ss));
 
-  // ClassifierResult result1, result2;
-  // c1.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result1);
-  // c2.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result2);
-
-  // ASSERT_EQ(result1[1u], result2[1]);
+  // Expect identical results.
+  const auto c2_out = c2.infer( 0u, A );
+  ASSERT_EQ(c1_out, c2_out);
 }
 
 

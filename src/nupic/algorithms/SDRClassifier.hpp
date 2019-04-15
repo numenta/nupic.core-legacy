@@ -34,7 +34,11 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Sdr.hpp>
+
 #include <nupic/types/Serializable.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/deque.hpp>
+#include <cereal/types/map.hpp>
 
 namespace nupic {
 namespace algorithms {
@@ -221,8 +225,19 @@ public:
   void learn(UInt recordNum, const sdr::SDR &pattern,
              const std::vector<UInt> &bucketIdxList);
 
-  void save(std::ostream &outStream) const override {} // TODO: Serialization
-  void load(std::istream &inStream) override {} // TODO: Serialization
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const
+  {
+    ar(cereal::make_nvp("steps",            steps_),
+       cereal::make_nvp("patternHistory",   patternHistory_),
+       cereal::make_nvp("recordNumHistory", recordNumHistory_),
+       cereal::make_nvp("classifiers",      classifiers_));
+  }
+
+  template<class Archive>
+  void load_ar(Archive & ar)
+    { ar( steps_, patternHistory_, recordNumHistory_, classifiers_ ); }
 
 private:
   // The list of prediction steps to learn and infer.

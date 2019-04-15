@@ -217,8 +217,8 @@ public:
 	//       Remove the following two lines.
 
   // These must be implemented by the subclass.
-  virtual void save(std::ostream &stream) const {};
-  virtual void load(std::istream &stream) {};
+  virtual void save(std::ostream &stream) const { saveToStream_ar(stream); };
+  virtual void load(std::istream &stream) { loadFromStream_ar(stream); };
 
 
   virtual inline void saveToFile_ar(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) const {
