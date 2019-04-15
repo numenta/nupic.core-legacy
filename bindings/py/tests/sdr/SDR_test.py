@@ -27,6 +27,7 @@ import pytest
 import time
 
 from nupic.bindings.sdr import SDR, Reshape
+from nupic.bindings.math import Random
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -295,6 +296,13 @@ class SdrTest(unittest.TestCase):
         A.randomize( .1, 42 )
         B.randomize( .1, 42 )
         assert( A == B )
+
+    def testRandomRNG(self):
+        x = SDR(1000).randomize(.5, Random(77))
+        y = SDR(1000).randomize(.5, Random(99))
+        assert( x != y )
+        z = SDR(1000).randomize(.5, Random(77))
+        assert( x == z )
 
     def testAddNoise(self):
         A = SDR((103,))
