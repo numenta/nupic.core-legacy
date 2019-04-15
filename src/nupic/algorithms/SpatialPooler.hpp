@@ -306,6 +306,77 @@ public:
    */
   virtual void load(istream &inStream) override;
 
+  CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(CEREAL_NVP(numInputs_),
+       CEREAL_NVP(numColumns_),
+       CEREAL_NVP(potentialRadius_),
+       CEREAL_NVP(potentialPct_),
+       CEREAL_NVP(initConnectedPct_),
+       CEREAL_NVP(globalInhibition_),
+       CEREAL_NVP(numActiveColumnsPerInhArea_),
+       CEREAL_NVP(localAreaDensity_),
+       CEREAL_NVP(stimulusThreshold_),
+       CEREAL_NVP(inhibitionRadius_),
+       CEREAL_NVP(dutyCyclePeriod_),
+       CEREAL_NVP(boostStrength_),
+       CEREAL_NVP(iterationNum_),
+       CEREAL_NVP(iterationLearnNum_),
+       CEREAL_NVP(spVerbosity_),
+       CEREAL_NVP(updatePeriod_),
+       CEREAL_NVP(synPermInactiveDec_),
+       CEREAL_NVP(synPermActiveInc_),
+       CEREAL_NVP(synPermBelowStimulusInc_),
+       CEREAL_NVP(synPermConnected_),
+       CEREAL_NVP(minPctOverlapDutyCycles_),
+       CEREAL_NVP(wrapAround_),
+       CEREAL_NVP(inputDimensions_),
+       CEREAL_NVP(columnDimensions_),
+       CEREAL_NVP(boostFactors_),
+       CEREAL_NVP(overlapDutyCycles_),
+       CEREAL_NVP(activeDutyCycles_),
+       CEREAL_NVP(minOverlapDutyCycles_),
+       CEREAL_NVP(tieBreaker_),
+       CEREAL_NVP(connections_),
+       CEREAL_NVP(rng_));
+  }
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(CEREAL_NVP(numInputs_),
+       CEREAL_NVP(numColumns_),
+       CEREAL_NVP(potentialRadius_),
+       CEREAL_NVP(potentialPct_),
+       CEREAL_NVP(initConnectedPct_),
+       CEREAL_NVP(globalInhibition_),
+       CEREAL_NVP(numActiveColumnsPerInhArea_),
+       CEREAL_NVP(localAreaDensity_),
+       CEREAL_NVP(stimulusThreshold_),
+       CEREAL_NVP(inhibitionRadius_),
+       CEREAL_NVP(dutyCyclePeriod_),
+       CEREAL_NVP(boostStrength_),
+       CEREAL_NVP(iterationNum_),
+       CEREAL_NVP(iterationLearnNum_),
+       CEREAL_NVP(spVerbosity_),
+       CEREAL_NVP(updatePeriod_),
+       CEREAL_NVP(synPermInactiveDec_),
+       CEREAL_NVP(synPermActiveInc_),
+       CEREAL_NVP(synPermBelowStimulusInc_),
+       CEREAL_NVP(synPermConnected_),
+       CEREAL_NVP(minPctOverlapDutyCycles_),
+       CEREAL_NVP(wrapAround_),
+       CEREAL_NVP(inputDimensions_),
+       CEREAL_NVP(columnDimensions_),
+       CEREAL_NVP(boostFactors_),
+       CEREAL_NVP(overlapDutyCycles_),
+       CEREAL_NVP(activeDutyCycles_),
+       CEREAL_NVP(minOverlapDutyCycles_),
+       CEREAL_NVP(tieBreaker_),
+       CEREAL_NVP(connections_),
+       CEREAL_NVP(rng_));
+  }
 
   /**
   Returns the dimensions of the columns in the region.
