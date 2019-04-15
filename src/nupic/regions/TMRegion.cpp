@@ -249,7 +249,7 @@ void TMRegion::compute() {
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();
     if (args_.orColumnOutputs) { //aggregate to columns
-      sdr.setSparse(tm_->getOutputColumns().getSparse());
+	    NTA_THROW << "not implemented"; //FIXME the whole active+pred cols/cells should be removed
     } else { //output as cells
       const auto& act = tm_->getActiveCells();
       const auto& pred= tm_->getPredictiveCells();

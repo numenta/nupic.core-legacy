@@ -326,15 +326,6 @@ public:
   vector<CellIdx> getWinnerCells() const; //TODO remove?
   void getWinnerCells(sdr::SDR &winnerCells) const;
 
-  /**
-   *  Return TM's output transformed from cells back to columns.
-   *  As a union (logical OR) of active & predicted cells at the
-   *  current time T. 
-   *
-   *  @return SDR size(COLS) 
-   */
-  sdr::SDR getOutputColumns() const;
-
   vector<Segment> getActiveSegments() const;
   vector<Segment> getMatchingSegments() const;
 

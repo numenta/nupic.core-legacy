@@ -690,15 +690,6 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   return cols;
 }
 
-SDR TemporalMemory::getOutputColumns() const {
-  const vector<CellIdx>& act  = getActiveCells();
-  const vector<CellIdx>& pred = getPredictiveCells();
-  vector<CellIdx> both;
-  VectorHelpers::unionOfVectors(both, act, pred);
-  SDR cells({ static_cast<UInt>(numberOfCells()) });
-  cells.setSparse(both);
-  return cellsToColumns(cells);
-}
 
 vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) { 
   const CellIdx start = cellsPerColumn_ * column;
