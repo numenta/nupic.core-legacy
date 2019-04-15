@@ -116,8 +116,8 @@ namespace encoders {
    * of bits. The output is 0's except for a contiguous block of 1's. The
    * location of this contiguous block varies continuously with the input value.
    *
-   * For help or to examine this run:
-   * $ python -m nupic.examples.rf_view_ScalarEncoder --help.
+   * To inspect this run:
+   * $ python -m nupic.encoders.scalar_encoder --help
    */
   class ScalarEncoder : public BaseEncoder<Real64>
   {
