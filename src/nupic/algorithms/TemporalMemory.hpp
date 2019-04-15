@@ -441,7 +441,7 @@ public:
    * @param fd A valid file descriptor.
    */
   virtual void save(ostream &outStream) const override;
-
+  
 
   /**
    * Load (deserialize) and initialize the spatial pooler from the
@@ -450,6 +450,113 @@ public:
    * @param inStream A valid istream.
    */
   virtual void load(istream &inStream) override;
+
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    ar(CEREAL_NVP(numColumns_),
+       CEREAL_NVP(cellsPerColumn_),
+       CEREAL_NVP(activationThreshold_),
+       CEREAL_NVP(initialPermanence_),
+       CEREAL_NVP(connectedPermanence_),
+       CEREAL_NVP(minThreshold_),
+       CEREAL_NVP(maxNewSynapseCount_),
+       CEREAL_NVP(checkInputs_),
+       CEREAL_NVP(permanenceIncrement_),
+       CEREAL_NVP(permanenceDecrement_),
+       CEREAL_NVP(predictedSegmentDecrement_),
+       CEREAL_NVP(extra_),
+       CEREAL_NVP(maxSegmentsPerCell_),
+       CEREAL_NVP(maxSynapsesPerSegment_),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(rng_),
+       CEREAL_NVP(columnDimensions_),
+       CEREAL_NVP(activeCells_),
+       CEREAL_NVP(winnerCells_),
+       CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(connections));
+
+    ar( cereal::make_size_tag(activeSegments_.size()));
+    for (Segment segment : activeSegments_) {
+      const CellIdx cell = connections.cellForSegment(segment);
+      const vector<Segment> &segments = connections.segmentsForCell(cell);
+
+      SegmentIdx idx = (SegmentIdx)std::distance(
+                          segments.begin(), 
+                          std::find(segments.begin(), 
+                          segments.end(), segment));
+      ar(idx, cell, numActiveConnectedSynapsesForSegment_[segment]);
+    }
+
+    ar(cereal::make_size_tag(matchingSegments_.size()));
+    for (Segment segment : matchingSegments_) {
+      const CellIdx cell = connections.cellForSegment(segment);
+      const vector<Segment> &segments = connections.segmentsForCell(cell);
+
+      SegmentIdx idx = (SegmentIdx)std::distance(
+                          segments.begin(), 
+                          std::find(segments.begin(), 
+                          segments.end(), segment));
+      ar(idx, cell, numActivePotentialSynapsesForSegment_[segment]);
+    }
+
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    ar(CEREAL_NVP(numColumns_),
+       CEREAL_NVP(cellsPerColumn_),
+       CEREAL_NVP(activationThreshold_),
+       CEREAL_NVP(initialPermanence_),
+       CEREAL_NVP(connectedPermanence_),
+       CEREAL_NVP(minThreshold_),
+       CEREAL_NVP(maxNewSynapseCount_),
+       CEREAL_NVP(checkInputs_),
+       CEREAL_NVP(permanenceIncrement_),
+       CEREAL_NVP(permanenceDecrement_),
+       CEREAL_NVP(predictedSegmentDecrement_),
+       CEREAL_NVP(extra_),
+       CEREAL_NVP(maxSegmentsPerCell_),
+       CEREAL_NVP(maxSynapsesPerSegment_),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(rng_),
+       CEREAL_NVP(columnDimensions_),
+       CEREAL_NVP(activeCells_),
+       CEREAL_NVP(winnerCells_),
+       CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(connections));
+
+    numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
+    cereal::size_type numActiveSegments;
+    ar(cereal::make_size_tag(numActiveSegments));
+    activeSegments_.resize(numActiveSegments);
+    for (cereal::size_type i = 0; i < numActiveSegments; i++) {
+      SegmentIdx idx;
+      CellIdx cellIdx;
+      SynapseIdx syn;
+      ar(idx, cellIdx, syn);
+      Segment segment = connections.getSegment(cellIdx, idx);
+      activeSegments_[i] = segment;
+      numActiveConnectedSynapsesForSegment_[segment] = syn;
+    }
+
+    numActivePotentialSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
+    cereal::size_type numMatchingSegments;
+    ar(cereal::make_size_tag(numMatchingSegments));
+    matchingSegments_.resize(numMatchingSegments);
+    for (size_t i = 0; i < numMatchingSegments; i++) {
+      SegmentIdx idx;
+      CellIdx cellIdx;
+      SynapseIdx syn;
+      ar(idx, cellIdx, syn);
+      Segment segment = connections.getSegment(cellIdx, idx);
+      matchingSegments_[i] = segment;
+      numActivePotentialSynapsesForSegment_[segment] = syn;
+    }
+
+    lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
+
+  }
+
 
   virtual bool operator==(const TemporalMemory &other);
   inline bool operator!=(const TemporalMemory &other) { return !operator==(other); }
