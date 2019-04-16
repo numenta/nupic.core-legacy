@@ -669,8 +669,8 @@ TEST(ConnectionsTest, testSaveLoad) {
 
   {
     stringstream ss;
-    c1.save(ss);
-    c2.load(ss);
+    c1.saveToStream_ar(ss);
+    c2.loadFromStream_ar(ss);
   }
 
   ASSERT_EQ(c1, c2);

@@ -449,6 +449,56 @@ public:
    */
   virtual void load(std::istream &inStream) override;
 
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    ar( CEREAL_NVP(connectedThreshold_), cereal::make_size_tag(cells_.size()));
+    for (CellData cellData : cells_) {
+      const std::vector<Segment> &segments = cellData.segments;
+      ar(cereal::make_size_tag(segments.size()));
+
+      for (Segment segment : segments) {
+        const SegmentData &segmentData = segments_[segment];
+
+        const std::vector<Synapse> &synapses = segmentData.synapses;
+        ar(cereal::make_size_tag(synapses.size()));
+
+        for (Synapse synapse : synapses) {
+          const SynapseData &synapseData = synapses_[synapse];
+          ar(CEREAL_NVP(synapseData.presynapticCell), 
+             CEREAL_NVP(synapseData.permanence));
+        }
+      }
+    }
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    Permanence  connectedThreshold;
+    cereal::size_type numCells;
+    ar(connectedThreshold, cereal::make_size_tag(numCells));
+    initialize(static_cast<CellIdx>(numCells), connectedThreshold);
+
+    for (UInt cell = 0; cell < numCells; cell++) {
+
+      cereal::size_type numSegments;
+      ar(cereal::make_size_tag(numSegments));
+
+      for (SegmentIdx j = 0; j < static_cast<SegmentIdx>(numSegments); j++) {
+        Segment segment = createSegment( cell );
+
+        cereal::size_type numSynapses;
+        ar(cereal::make_size_tag(numSynapses));
+
+        for (SynapseIdx k = 0; k < static_cast<SynapseIdx>(numSynapses); k++) {
+          CellIdx     presyn;
+          Permanence  perm;
+          ar(presyn, perm);
+          createSynapse( segment, presyn, perm );
+        }
+      }
+    }
+  }
+
 
   // Debugging
 
