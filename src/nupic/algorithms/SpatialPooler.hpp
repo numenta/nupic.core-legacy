@@ -366,16 +366,21 @@ public:
        CEREAL_NVP(synPermBelowStimulusInc_),
        CEREAL_NVP(synPermConnected_),
        CEREAL_NVP(minPctOverlapDutyCycles_),
-       CEREAL_NVP(wrapAround_),
-       CEREAL_NVP(inputDimensions_),
-       CEREAL_NVP(columnDimensions_),
-       CEREAL_NVP(boostFactors_),
+       CEREAL_NVP(wrapAround_));
+    ar(CEREAL_NVP(inputDimensions_),
+       CEREAL_NVP(columnDimensions_));
+    ar(CEREAL_NVP(boostFactors_),
        CEREAL_NVP(overlapDutyCycles_),
        CEREAL_NVP(activeDutyCycles_),
        CEREAL_NVP(minOverlapDutyCycles_),
-       CEREAL_NVP(tieBreaker_),
-       CEREAL_NVP(connections_),
-       CEREAL_NVP(rng_));
+       CEREAL_NVP(tieBreaker_));
+    ar(CEREAL_NVP(connections_));
+    ar(CEREAL_NVP(rng_));
+
+    // initialize ephemeral members
+    overlaps_.resize(numColumns_);
+    overlapsPct_.resize(numColumns_);
+    boostedOverlaps_.resize(numColumns_);
   }
 
   /**
