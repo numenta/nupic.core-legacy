@@ -186,8 +186,17 @@ public:
    * @param numCells           Number of cells.
    * @param connectedThreshold Permanence threshold for synapses connecting or
    *                           disconnecting.
+   *
+   * @params timeseries - Optional, default false.  If true AdaptSegment will not
+   * apply the same learning update to a synapse on consequetive cycles, because
+   * then staring at the same object for too long will mess up the synapses.
+   * IE Highly correlated inputs will cause the synapse permanences to saturate.
+   * This change allows it to work with timeseries data which moves very slowly,
+   * instead of the usual HTM inputs which reliably change every cycle.  See
+   * also (Kropff & Treves, 2007. http://dx.doi.org/10.2976/1.2793335).
    */
-  Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f);
+  Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f,
+              bool timeseries = false);
 
   virtual ~Connections() {}
 
@@ -197,8 +206,10 @@ public:
    * @param numCells           Number of cells.
    * @param connectedThreshold Permanence threshold for synapses connecting or
    *                           disconnecting.
+   * @param timeseries         See constructor.
    */
-  void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f);
+  void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f,
+                  bool timeseries = false);
 
   /**
    * Creates a segment on the specified cell.
@@ -360,6 +371,11 @@ public:
   synapsesForPresynapticCell(CellIdx presynapticCell) const;
 
   /**
+   * For use with time-series datasets.
+   */
+  void reset();
+
+  /**
    * Compute the segment excitations for a vector of active presynaptic
    * cells.
    *
@@ -378,10 +394,10 @@ public:
    */
   void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
                        std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-                       const std::vector<CellIdx> &activePresynapticCells) const;
+                       const std::vector<CellIdx> &activePresynapticCells);
 
   void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
-                       const std::vector<CellIdx> &activePresynapticCells) const;
+                       const std::vector<CellIdx> &activePresynapticCells);
 
   /**
    * The primary method in charge of learning.   Adapts the permanence values of
@@ -396,7 +412,7 @@ public:
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    */
-  void adaptSegment(const Segment segment, 
+  void adaptSegment(const Segment segment,
                     const sdr::SDR &inputs,
                     const Permanence increment,
                     const Permanence decrement);
@@ -612,6 +628,12 @@ private:
   std::vector<Synapse> synapseOrdinals_;
   Segment nextSegmentOrdinal_;
   Synapse nextSynapseOrdinal_;
+
+  // These three members should be used when working with highly correlated
+  // data. The vectors store the permanence changes made by adaptSegment.
+  bool timeseries_;
+  std::vector<Permanence> previousUpdates_;
+  std::vector<Permanence> currentUpdates_;
 
   UInt32 nextEventToken_;
   std::map<UInt32, ConnectionsEventHandler *> eventHandlers_;
