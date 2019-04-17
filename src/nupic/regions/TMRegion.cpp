@@ -249,11 +249,11 @@ void TMRegion::compute() {
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();
     if (args_.orColumnOutputs) { //aggregate to columns
-      tm_->getPredictiveCells(sdr);
+      tm_->getActiveCells(sdr);
       SDR cols = tm_->cellsToColumns(sdr);
       sdr.setSparse(cols.getSparse());
     } else { //output as cells
-      tm_->getPredictiveCells(sdr);
+      tm_->getActiveCells(sdr);
     }
     NTA_DEBUG << "compute " << *out << std::endl;
   }
