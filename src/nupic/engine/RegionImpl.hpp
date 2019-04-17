@@ -37,6 +37,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/types/Serializable.hpp>
@@ -50,7 +51,6 @@ class Input;
 class Output;
 class Array;
 class NodeSet;
-class BundleIO;
 
 class RegionImpl
 {

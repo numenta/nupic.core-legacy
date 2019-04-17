@@ -40,7 +40,6 @@
 #include <nupic/engine/Network.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/RegionImpl.hpp>
@@ -474,11 +473,13 @@ public:
 
     ar(cereal::make_nvp("outputs", cereal::make_size_tag(outputs_.size())));
     for(auto out: outputs_) {
-      ar(cereal::make_map_item(out.first, out.second->getDimensions()));
+      Dimensions& dim = out.second->getDimensions();
+      ar(cereal::make_map_item(out.first, dim));
     }
     ar(cereal::make_nvp("inputs", cereal::make_size_tag(outputs_.size())));
     for(auto in: inputs_) {
-        ar(cereal::make_map_item(in.first, in.second->getDimensions()));
+      Dimensions& dim = in.second->getDimensions();
+      ar(cereal::make_map_item(in.first, dim));
     }
     // Now serialize the RegionImpl plugin.
     ArWrapper arw(&ar);
@@ -522,7 +523,7 @@ public:
       if (itr != inputs_.end())
         itr->second->setDimensions(dim);
     }
-    // deserialize the Region and its algorithm
+    // deserialize the RegionImpl plugin and its algorithm
     ArWrapper arw(&ar);
     impl_.reset(factory.deserializeRegionImpl(type_, arw, this));
   }
