@@ -1884,9 +1884,9 @@ TEST(SpatialPoolerTest, testSaveLoad) {
 TEST(SpatialPoolerTest, testSerialization2) {
   Random random(10);
 
-  const UInt inputSize = 500;
-  const UInt numColumns = 500;
-  const UInt w = 50;
+  const UInt inputSize = 200;
+  const UInt numColumns = 200;
+  const UInt w = 10;
 
   vector<UInt> inputDims{inputSize};
   vector<UInt> colDims{numColumns};
@@ -1904,7 +1904,7 @@ TEST(SpatialPoolerTest, testSerialization2) {
   }
   UInt output[numColumns];
 
-  for (UInt i = 0; i < 10000; ++i) {
+  for (UInt i = 0; i < 100; ++i) {
     random.shuffle(input, input + inputSize);
     sp1.compute(input, true, output);
   }
@@ -1957,18 +1957,118 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
       testTimer.stop();
 
-      for (UInt i = 0; i < numColumns; ++i) {
-        EXPECT_EQ(outputBaseline[i], outputC[i]);
+      for (UInt j = 0; j < numColumns; ++j) {
+        EXPECT_EQ(outputBaseline[j], outputC[j]) << "Iteration " << i << ", Col=" << j << std::endl;
       }
     }
   }
 
-  cout << "Timing for SpatialPooler serialization (smaller is better):" << endl;
-  cout << "Stream: " << testTimer.getElapsed() << endl;
+  cout << "[          ] Timing for SP serialization: " << testTimer.getElapsed() << "sec" << endl;
 
   remove("outC.stream");
 }
 
+
+TEST(SpatialPoolerTest, testSaveLoad_ar) {
+  const char *filename = "SpatialPoolerSerializationAR.tmp";
+  SpatialPooler sp1, sp2;
+  UInt numInputs = 6;
+  UInt numColumns = 12;
+  setup(sp1, numInputs, numColumns);
+
+  sp1.saveToFile(filename);
+  sp2.loadFromFile(filename);
+
+  int ret = ::remove(filename);
+  ASSERT_TRUE(ret == 0) << "Failed to delete " << filename;
+
+  check_spatial_eq(sp1, sp2);
+}
+
+
+
+TEST(SpatialPoolerTest, testSerialization_ar) {
+  Random random(10);
+
+  const UInt inputSize = 200;
+  const UInt numColumns = 200;
+  const UInt w = 5;
+
+  vector<UInt> inputDims{inputSize};
+  vector<UInt> colDims{numColumns};
+
+  SpatialPooler sp1;
+  sp1.initialize(inputDims, colDims);
+
+  UInt input[inputSize];
+  for (UInt i = 0; i < inputSize; ++i) {
+    if (i < w) {
+      input[i] = 1;
+    } else {
+      input[i] = 0;
+    }
+  }
+  UInt output[numColumns];
+
+  for (UInt i = 0; i < 100; ++i) {
+    random.shuffle(input, input + inputSize);
+    sp1.compute(input, true, output);
+  }
+
+  // Now we reuse the last input to test after serialization
+
+  vector<UInt> activeColumnsBefore;
+  for (UInt i = 0; i < numColumns; ++i) {
+    if (output[i] == 1) {
+      activeColumnsBefore.push_back(i);
+    }
+  }
+
+  // Save initial trained model
+  stringstream ss;
+  sp1.saveToStream_ar(ss);
+
+  SpatialPooler sp2;
+
+  nupic::Timer testTimer;
+
+  for (UInt i = 0; i < 6; ++i) {
+    // Create new input
+    random.shuffle(input, input + inputSize);
+
+    // Get expected output
+    UInt outputBaseline[numColumns];
+    sp1.compute(input, true, outputBaseline);
+
+    // C - Next do old version
+    {
+      SpatialPooler spTemp;
+      testTimer.start();
+
+      // Deserialize
+      ss.seekg(0);
+      spTemp.loadFromStream_ar(ss);
+
+      // Feed new record through
+      UInt outputC[numColumns];
+      spTemp.compute(input, true, outputC);
+
+      // Serialize
+      ss.clear();
+      spTemp.saveToStream_ar(ss);
+
+      testTimer.stop();
+
+      for (UInt j = 0; j < numColumns; ++j) {
+        EXPECT_EQ(outputBaseline[j], outputC[j]) << "Iteration " << i << ", Col=" << j << std::endl;
+
+      }
+    }
+  }
+  ss.clear();
+
+  cout << "[          ] Timing for SP serialization: " << testTimer.getElapsed() << "sec" << endl;
+}
 
 TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   // Initialize SP using the constructor

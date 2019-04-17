@@ -1,6 +1,7 @@
 #ifndef NUPIC_ALGORITHMS_ANOMALY_LIKELIHOOD_HPP_
 #define NUPIC_ALGORITHMS_ANOMALY_LIKELIHOOD_HPP_
 
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/MovingAverage.hpp>
 #include <nupic/utils/SlidingWindow.hpp>
@@ -26,7 +27,7 @@ and 40 minutes. A likelihood of 0.0001 or 0.01% means we see it once out of
 USAGE
 -----
 
-There are 3 ways to use the code: 
+There are 3 ways to use the code:
 - using the convenience Anomaly class with `mode=LIKELIHOOD` (method `compute()`),
 - using the AnomalyLikelihood helper class (method `anomalyProbability()`), or
 - using the raw individual functions.
@@ -47,7 +48,7 @@ struct DistributionParams {
   Real stdev;
 };
 
-class AnomalyLikelihood {
+class AnomalyLikelihood : public Serializable {
 
   public:
 
@@ -87,7 +88,7 @@ class AnomalyLikelihood {
 
 
     /**
-    This is the main "compute" method. 
+    This is the main "compute" method.
 
     Compute the probability that the current anomaly score represents
     an anomaly given the historical distribution of anomaly scores. The closer
@@ -114,19 +115,61 @@ class AnomalyLikelihood {
   }
 
 
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    std::string name("AnomalyLikelhood");
+    ar(CEREAL_NVP(name),
+       CEREAL_NVP(distribution_.name),
+       CEREAL_NVP(distribution_.mean),
+       CEREAL_NVP(distribution_.variance),
+       CEREAL_NVP(distribution_.stdev),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(lastTimestamp_),
+       CEREAL_NVP(initialTimestamp_),
+       CEREAL_NVP(averagedAnomaly_),
+       CEREAL_NVP(runningLikelihoods_),
+       CEREAL_NVP(runningRawAnomalyScores_),
+       CEREAL_NVP(runningAverageAnomalies_)
+    );
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    std::string name; // for debugging
+    ar(CEREAL_NVP(name),
+       CEREAL_NVP(distribution_.name),
+       CEREAL_NVP(distribution_.mean),
+       CEREAL_NVP(distribution_.variance),
+       CEREAL_NVP(distribution_.stdev),
+       CEREAL_NVP(iteration_),
+       CEREAL_NVP(lastTimestamp_),
+       CEREAL_NVP(initialTimestamp_));
+    ar(CEREAL_NVP(averagedAnomaly_));
+    ar(CEREAL_NVP(runningLikelihoods_));
+    ar(CEREAL_NVP(runningRawAnomalyScores_));
+    ar(CEREAL_NVP(runningAverageAnomalies_));
+    // Note: learningPeriod, reestimationPeriod, probationaryPeriod already set by constructor.
+  }
+
+
+  bool operator==(const AnomalyLikelihood &a) const;
+  inline bool operator!=(const AnomalyLikelihood &a) const
+      { return not ((*this) == a); }
+
+
   //public constants:
-  /** "neutral" anomalous value; 
-    * returned at the beginning until the system is burned-in; 
+  /** "neutral" anomalous value;
+    * returned at the beginning until the system is burned-in;
     * 0.5 (from <0..1>) means "neither anomalous, neither expected"
     */
-    const Real DEFAULT_ANOMALY = 0.5f; 
+    const Real DEFAULT_ANOMALY = 0.5f;
 
     /**
      * minimal thresholds of standard distribution, if values get lower (rounding err, constant values)
      * we round to these minimal defaults
      */
     const Real THRESHOLD_MEAN = 0.03f;
-    const Real THRESHOLD_VARIANCE = 0.0003f; 
+    const Real THRESHOLD_VARIANCE = 0.0003f;
 
     const UInt learningPeriod; //these 3 are from constructor
     const UInt reestimationPeriod;
@@ -173,8 +216,8 @@ class AnomalyLikelihood {
 
  /**
   Given the normal distribution specified by the mean and standard deviation
-  in distributionParams (the distribution is an instance member of the class), 
-  return the probability of getting samples further from the mean. 
+  in distributionParams (the distribution is an instance member of the class),
+  return the probability of getting samples further from the mean.
   For values above the mean, this is the probability of getting
   samples > x and for values below the mean, the probability of getting
   samples < x. This is the Q-function: the tail probability of the normal distribution.
@@ -194,7 +237,7 @@ class AnomalyLikelihood {
     //private variables
     DistributionParams distribution_ ={ "unknown", 0.0, 0.0, 0.0}; //distribution passed around the class
 
-    UInt iteration_; 
+    UInt iteration_;
     int lastTimestamp_ = -1;  //helper for time measurements
     int initialTimestamp_ = -1;
 

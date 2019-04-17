@@ -97,7 +97,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR inputSDR({DIM_INPUT});
   vector<UInt> outSP(COLS); // active array, output of SP/TM
   vector<UInt> outSPsparse;
-  vector<UInt> outTM(COLS); 
+  vector<UInt> outTM(COLS);
   Real res = 0.0; //for anomaly:
   vector<UInt> prevPred_(COLS);
   Random rnd;
@@ -122,7 +122,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       input[i] = (UInt) inputSDR.getDense()[i];
     }
 
-    //SP (global x local) 
+    //SP (global x local)
     if(useSPlocal) {
     tSPloc.start();
     fill(outSP.begin(), outSP.end(), 0);
@@ -147,7 +147,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tTM.start();
     tm.compute(outSPsparse.size(), outSPsparse.data(), true /*learn*/);
     const auto tmAct = tm.getActiveCells();
-    tm.activateDendrites(); //must be called before getPredictiveCells 
+    tm.activateDendrites(); //must be called before getPredictiveCells
     const auto tmPred = tm.getPredictiveCells();
     //TODO assert tmAct == spOut
     //TODO merge Act + Pred and use for anomaly from TM
@@ -155,7 +155,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     //outTM = ...
     tTM.stop();
     }
- 
+
 
     //Anomaly (pure x likelihood)
     tAn.start();
@@ -199,6 +199,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       }
     }
   } //end for
-  return tAll.getElapsed(); 
+  return tAll.getElapsed();
 } //end run()
 } //-ns
