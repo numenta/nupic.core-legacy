@@ -73,6 +73,7 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   args_.maxSegmentsPerCell = params.getScalarT<UInt32>("maxSegmentsPerCell", 255);
   args_.maxSynapsesPerSegment = params.getScalarT<UInt32>("maxSynapsesPerSegment", 255);
   args_.checkInputs = params.getScalarT<bool>("checkInputs", true);
+  args_.orColumnOutputs = params.getScalarT<bool>("orColumnOutputs", false);
   args_.extra = 0;  // will be obtained from extra inputs dimensions.
 
   // variables used by this class and not passed on
@@ -80,7 +81,8 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
 
   args_.iter = 0;
   args_.sequencePos = 0;
-  args_.outputWidth = args_.numberOfCols * args_.cellsPerColumn;
+  args_.outputWidth = (args_.orColumnOutputs)?args_.numberOfCols
+                                             : (args_.numberOfCols * args_.cellsPerColumn);
   args_.init = false;
   tm_ = nullptr;
 }
@@ -115,7 +117,10 @@ Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
   if (args_.numberOfCols == 0)
     args_.numberOfCols = (UInt32)region_dim.getCount();
 
-  if (name == "bottomUpOut" || name == "activeCells" || name == "predictedActiveCells") {
+  if (name == "bottomUpOut" && args_.orColumnOutputs) {
+    // It's size is numberOfCols.
+    return region_dim;
+  } else if (name == "bottomUpOut" || name == "activeCells" || name == "predictedActiveCells") {
     // It's size is numberOfCols * args_.cellsPerColumn.
     // So insert a new dimension to what was provided by input.
     Dimensions dim = region_dim;
@@ -243,11 +248,15 @@ void TMRegion::compute() {
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();
-    const auto& act = tm_->getActiveCells();
-    const auto& pred= tm_->getPredictiveCells();
+    if (args_.orColumnOutputs) { //aggregate to columns
+	    NTA_THROW << "not implemented"; //FIXME the whole active+pred cols/cells should be removed
+    } else { //output as cells
+      const auto& act = tm_->getActiveCells();
+      const auto& pred= tm_->getPredictiveCells();
 
-    VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), act, pred);
-    sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
+      VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), act, pred);
+      sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
+    }
     NTA_DEBUG << "compute " << *out << std::endl;
   }
   out = getOutput("activeCells");
@@ -446,6 +455,19 @@ Spec *TMRegion::createSpec() {
                     "",                              // constraints
                     "",                              // defaultValue
                     ParameterSpec::ReadOnlyAccess)); // access
+
+  ns->parameters.add(
+      "orColumnOutputs",
+      ParameterSpec("1 if the bottomUpOut is to be aggregated by column "
+                    "by ORing all cells in a column.  Note that if this "
+                    "is on, the buffer width is numberOfCols rather than "
+                    "numberOfCols * cellsPerColumn so must be set prior "
+                    "to initialization.  Default is false.",
+                    NTA_BasicType_Bool, // type
+                    1,                  // elementCount
+                    "bool",             // constraints
+                    "false",             // defaultValue
+                    ParameterSpec::CreateAccess)); // access
 
 
   ///////////// Inputs and Outputs ////////////////
@@ -657,6 +679,9 @@ bool TMRegion::getParameterBool(const std::string &name, Int64 index) {
     }
     return args_.checkInputs;
   }
+  if (name == "orColumnOutputs")
+    return args_.orColumnOutputs;
+
   if (name == "learningMode")
     return args_.learningMode;
 
