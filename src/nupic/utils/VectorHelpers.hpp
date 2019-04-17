@@ -42,15 +42,6 @@ public:
     os << std::endl;
   }
 
-  static std::vector<Real> stringToFloatVector(const std::vector<std::string>& orig)
-  {
-    std::vector<Real> dest;
-    for(auto it=orig.cbegin(); it != orig.cend(); ++it) {
-      dest.push_back(std::stof(*it));
-    }
-    return dest;
-  }
-
   /**
    * Convert binary to sparse representation.
    */

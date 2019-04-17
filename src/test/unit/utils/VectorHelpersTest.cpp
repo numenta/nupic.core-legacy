@@ -46,17 +46,6 @@ TEST(VectorHelpersTest, print_vector)
 };
 
 
-TEST(VectorHelpersTest, stringToFloatVector)
-{
-  vector<string> s{"1.2", "0.2", "1", "2.2", "0.1"};
-  vector<Real32> expected2 {1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
-  vector<Real> res2 = VectorHelpers::stringToFloatVector(s);
-  for(UInt i=0; i< res2.size(); i++) { //FIXME how compare vectors?
-    ASSERT_EQ(res2[i], expected2[i]);
-  }
-};
-
-
 TEST(VectorHelpersTest, binaryToSparse)
 {
   vector<Real32> v{0.0f,0.0f,1.0f,1.0f,0.0f};
@@ -77,6 +66,5 @@ TEST(VectorHelpersTest, sparseToBinary)
     ASSERT_EQ(res[i], expected[i]);
   }
 };
-
 
 }
