@@ -37,12 +37,15 @@
 
 // We need the full definitions because these
 // objects are returned by value.
-#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Network.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
@@ -460,6 +463,69 @@ public:
   // These must be implemented for serialization.
   void save(std::ostream &stream) const override;
   void load(std::istream &stream) override;
+
+    CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(cereal::make_nvp("name", name_),
+       cereal::make_nvp("nodeType", type_),
+       cereal::make_nvp("phases", phases_));
+
+    ar(cereal::make_nvp("outputs", cereal::make_size_tag(outputs_.size())));
+    for(auto out: outputs_) {
+      ar(cereal::make_map_item(out.first, out.second->getDimensions()));
+    }
+    ar(cereal::make_nvp("inputs", cereal::make_size_tag(outputs_.size())));
+    for(auto in: inputs_) {
+        ar(cereal::make_map_item(in.first, in.second->getDimensions()));
+    }
+    // Now serialize the RegionImpl plugin.
+    ArWrapper arw(&ar);
+    impl_->cereal_adapter_save(arw); 
+  }
+
+
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    initialized_ = false;
+    ar(cereal::make_nvp("name", name_),
+       cereal::make_nvp("nodeType", type_),
+       cereal::make_nvp("phases", phases_));
+
+    RegionImplFactory &factory = RegionImplFactory::getInstance();
+    spec_ = factory.getSpec(type_);
+    createInputsAndOutputs_();
+
+    // The Output objects will have been created from spec.
+    // All we need here are the dimensions.
+    cereal::size_type numOutputs;
+    ar(cereal::make_nvp("outputs", cereal::make_size_tag(numOutputs)));
+    for (size_t i = 0; i < numOutputs; i++) {
+      std::string output_name;
+      Dimensions dim;
+      ar(cereal::make_map_item(output_name, dim));
+      auto itr = outputs_.find(output_name);
+      if (itr != outputs_.end())
+        itr->second->setDimensions(dim);
+    }
+    // The Input objects will have been created from spec.
+    // All we need here are the dimensions on the Input.
+    cereal::size_type numInputs;
+    ar(cereal::make_nvp("inputs", cereal::make_size_tag(numInputs)));
+    for (size_t i = 0; i < numInputs; i++) {
+      std::string input_name;
+      Dimensions dim;
+      ar(cereal::make_map_item(input_name, dim));
+      auto itr = inputs_.find(input_name);
+      if (itr != inputs_.end())
+        itr->second->setDimensions(dim);
+    }
+    // deserialize the Region and its algorithm
+    ArWrapper arw(&ar);
+    impl_.reset(factory.deserializeRegionImpl(type_, arw, this));
+  }
 
   friend class Network;
 

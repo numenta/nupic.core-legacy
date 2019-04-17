@@ -38,6 +38,8 @@
 #include <string>
 #include <vector>
 #include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -113,17 +115,18 @@ public:
    */
   // static Spec* createSpec();
 
-  // Serialize state.
+  // Serialize/Deserialize state.
   virtual void serialize(BundleIO &bundle) = 0;
-
-  // De-serialize state. Must be called from deserializing constructor
   virtual void deserialize(BundleIO &bundle) = 0;
 
-    /**
-     * Inputs/Outputs are made available in initialize()
-     * It is always called after the constructor (or load from serialized state)
-     */
-    virtual void initialize() = 0;
+  virtual void cereal_adapter_save(ArWrapper& a) const {};
+  virtual void cereal_adapter_load(ArWrapper& a) {};
+
+  /**
+    * Inputs/Outputs are made available in initialize()
+    * It is always called after the constructor (or load from serialized state)
+    */
+  virtual void initialize() = 0;
 
   // Compute outputs from inputs and internal state
   virtual void compute() = 0;

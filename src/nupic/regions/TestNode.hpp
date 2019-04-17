@@ -56,11 +56,12 @@ namespace nupic {
 
 class BundleIO;
 
-class TestNode : public RegionImpl {
+class TestNode : public RegionImpl, Serializable {
 public:
   typedef void (*computeCallbackFunc)(const std::string &);
   TestNode(const ValueMap &params, Region *region);
-  TestNode(BundleIO &bundle, Region *region);
+  TestNode(BundleIO &bundle, Region *region);  // TODO:cereal Remove
+  TestNode(ArWrapper& wrapper, Region *region);
   virtual ~TestNode();
 
   /* -----------  Required RegionImpl Interface methods ------- */
@@ -80,6 +81,82 @@ public:
 
   void serialize(BundleIO &bundle) override;
   void deserialize(BundleIO &bundle) override;
+
+  CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(CEREAL_NVP(nodeCount_),
+       CEREAL_NVP(int32Param_),
+       CEREAL_NVP(uint32Param_),
+       CEREAL_NVP(int64Param_),
+       CEREAL_NVP(uint64Param_),
+       CEREAL_NVP(real32Param_),
+       CEREAL_NVP(real64Param_),
+       CEREAL_NVP(boolParam_),
+       CEREAL_NVP(outputElementCount_),
+       CEREAL_NVP(delta_),
+       CEREAL_NVP(iter_));
+    ar(CEREAL_NVP(dim_));
+
+    ar(CEREAL_NVP(real32ArrayParam_),
+       CEREAL_NVP(int64ArrayParam_),
+       CEREAL_NVP(boolArrayParam_),
+       CEREAL_NVP(unclonedParam_),
+       CEREAL_NVP(shouldCloneParam_),
+       CEREAL_NVP(unclonedInt64ArrayParam_));
+
+    // save the output buffers
+    // The output buffers are saved as part of the Region Implementation.
+    cereal::size_type numBuffers = 0;
+    std::map<std::string, Output *> outputs = region_->getOutputs();
+    ar(cereal::make_nvp("outputs", cereal::make_size_tag(outputs.size())));
+    for (auto iter : outputs) {
+      const Array &outputBuffer = iter.second->getData();
+      ar(cereal::make_map_item(iter.first, outputBuffer));
+    }
+  }
+  // FOR Cereal Deserialization
+  // NOTE: the Region Implementation must have been allocated
+  //       using the RegionImplFactory so that it is connected
+  //       to the Network and Region objects. This will populate
+  //       the region_ field in the Base class.
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(CEREAL_NVP(nodeCount_),
+       CEREAL_NVP(int32Param_),
+       CEREAL_NVP(uint32Param_),
+       CEREAL_NVP(int64Param_),
+       CEREAL_NVP(uint64Param_),
+       CEREAL_NVP(real32Param_),
+       CEREAL_NVP(real64Param_),
+       CEREAL_NVP(boolParam_),
+       CEREAL_NVP(outputElementCount_),
+       CEREAL_NVP(delta_),
+       CEREAL_NVP(iter_));
+    ar(CEREAL_NVP(dim_));  // in base class
+
+    ar(CEREAL_NVP(real32ArrayParam_),
+       CEREAL_NVP(int64ArrayParam_),
+       CEREAL_NVP(boolArrayParam_),
+       CEREAL_NVP(unclonedParam_),
+       CEREAL_NVP(shouldCloneParam_),
+       CEREAL_NVP(unclonedInt64ArrayParam_));
+
+    // restore the output buffers
+    // The output buffers are saved as part of the Region Implementation.
+    cereal::size_type numBuffers;
+    ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
+    for (int i = 0; i < numBuffers; i++) {
+      std::string name;
+      Array output;
+      ar(cereal::make_map_item(name, output));
+      Array& outputBuffer = getOutput(name)->getData();
+      outputBuffer = output;
+    }
+    // Note: the input buffers will be populated from a
+    //       the output buffers via its connected link.
+  }
 
 
   /* -----------  Optional RegionImpl Interface methods ------- */

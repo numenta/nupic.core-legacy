@@ -58,6 +58,9 @@ namespace nupic
         PyBindRegion() = delete;
         PyBindRegion(const char* module, const ValueMap& nodeParams, Region *region, const char* className);
         PyBindRegion(const char* module, BundleIO& bundle, Region* region, const char* className);
+        PyBindRegion(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
+          // TODO:cereal  complete.
+        }
 
         // no copy constructor
         PyBindRegion(const Region &) = delete;

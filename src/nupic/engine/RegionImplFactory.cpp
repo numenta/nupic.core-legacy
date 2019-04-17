@@ -141,11 +141,22 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
 RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
                                                      BundleIO &bundle,
                                                      Region *region) {
-
+  //  TODO:cereal Remove when Cereal is complete.
   RegionImpl *impl = nullptr;
 
   if (regionTypeMap.find(nodeType) != regionTypeMap.end()) {
     impl = regionTypeMap[nodeType]->deserializeRegionImpl(bundle, region);
+  } else {
+    NTA_THROW << "Unsupported node type '" << nodeType << "'";
+  }
+  return impl;
+}
+RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
+                                                     ArWrapper &wrapper,
+                                                     Region *region) {
+  RegionImpl *impl = nullptr;
+  if (regionTypeMap.find(nodeType) != regionTypeMap.end()) {
+    impl = regionTypeMap[nodeType]->deserializeRegionImpl(wrapper, region);
   } else {
     NTA_THROW << "Unsupported node type '" << nodeType << "'";
   }
