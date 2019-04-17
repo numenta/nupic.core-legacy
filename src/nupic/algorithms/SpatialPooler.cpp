@@ -748,7 +748,7 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
                                             const SDR &newValues,
                                             const UInt period) {
   NTA_ASSERT(period > 0);
-  NTA_ASSERT(dutyCycles.size() == newValues.getSparse().size()) << "duty dims: " << dutyCycles.size() << " SDR dims: " << newValues.size;
+  NTA_ASSERT(dutyCycles.size() == newValues.size) << "duty dims: " << dutyCycles.size() << " SDR dims: " << newValues.size;
 
   // Duty cycles are exponential moving averages, typically written like:
   //   alpha = 1 / period
