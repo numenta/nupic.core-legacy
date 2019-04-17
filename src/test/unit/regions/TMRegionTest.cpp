@@ -81,7 +81,7 @@ static bool verbose = false; // turn this on to print extra stuff for debugging 
 
 // The following string should contain a valid expected Spec - manually
 // verified.
-#define EXPECTED_SPEC_COUNT 17 // The number of parameters expected in the TMRegion Spec
+const int EXPECTED_SPEC_COUNT = 16; // The number of parameters expected in the TMRegion Spec
 
 using namespace nupic;
 using namespace nupic::utils;

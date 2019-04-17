@@ -113,7 +113,6 @@ private:
 
     // parameters used by this class and not passed on
     bool learningMode;
-    bool orColumnOutputs;
 
     // some local variables
     bool init;
