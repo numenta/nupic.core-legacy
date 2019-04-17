@@ -46,17 +46,6 @@ TEST(VectorHelpersTest, print_vector)
 };
 
 
-TEST(VectorHelpersTest, castVectorType)
-{
-  std::vector<float> v{1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
-  vector<UInt> expected {1, 0, 1, 2, 0};
-  vector<UInt> res = VectorHelpers::castVectorType<float, UInt>(v);
-  for(UInt i=0; i< res.size(); i++) { //FIXME how compare vectors?
-    ASSERT_EQ(res[i], expected[i]);
-  }
-};
-
-
 TEST(VectorHelpersTest, stringToFloatVector)
 {
   vector<string> s{"1.2", "0.2", "1", "2.2", "0.1"};

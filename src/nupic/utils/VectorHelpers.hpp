@@ -42,18 +42,6 @@ public:
     os << std::endl;
   }
 
-  /**
-   * Cast a vector to a different (compatible) type.
-   */
-  template<typename T1, typename T2>
-  static std::vector<T2> castVectorType(const std::vector<T1>& orig)
-  {
-    std::vector<T2> dest;
-    std::transform(orig.cbegin(), orig.cend(), std::back_inserter(dest),
-                   [](const T1& elem) { return static_cast<T2>(elem); });
-    return dest;
-  }
-
   static std::vector<Real> stringToFloatVector(const std::vector<std::string>& orig)
   {
     std::vector<Real> dest;
