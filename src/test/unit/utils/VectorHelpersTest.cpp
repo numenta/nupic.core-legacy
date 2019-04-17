@@ -90,22 +90,4 @@ TEST(VectorHelpersTest, sparseToBinary)
 };
 
 
-TEST(VectorHelpersTest, unionOfVectors)
-{
-  vector<UInt> v1{ 1,2,3,4, 25 };
-  vector<UInt> v2{ 1,4,5,6,7,8 };
-  vector<UInt> res;
-  vector<UInt> expected{ 1,2,3,4,5,6,7,8,25 };
-  VectorHelpers::unionOfVectors<UInt>(res, v1, v2);
-  for(size_t i=0; i< res.size(); i++) {
-    ASSERT_EQ(res[i], expected[i]);
-  }
-
-  v1.clear();
-  VectorHelpers::unionOfVectors<UInt>(res, v1, v2);
-  for(size_t i=0; i< res.size(); i++) {
-    ASSERT_EQ(res[i], v2[i]);
-  }
-
-};
 }

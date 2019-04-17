@@ -90,21 +90,6 @@ public:
     }
     return binary;
   }
-
-
-  /**
-   * Create a Union of two vectors (An OR of the two).
-   * The values are assumed to be sorted, sparse indexes.
-   */
-  template<typename T>
-  static void unionOfVectors(std::vector<T>& out, 
-                             const std::vector<T>& v1, 
-                             const std::vector<T>& v2) {
-    out.resize(v1.size() + v2.size());
-    const auto it = std::set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), out.begin());
-    out.resize(it - out.begin());
-  }
-
 };
 
 } // end namespace utils
