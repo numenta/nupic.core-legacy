@@ -76,7 +76,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   Random rnd(1); //FIXME fix bug in Random, where static_gen must not be used! change this '1' and all breaks
   NTA_INFO << "SP (l) local inhibition is slow, so we reduce its data 10x smaller"; //to make it reasonably fast for test, for comparison x10
   SpatialPooler spGlobal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with globalInh
-  SpatialPooler spLocal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS/10u}); // Spatial pooler with local inh
+  SpatialPooler spLocal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with local inh
   spGlobal.setGlobalInhibition(true);
   spLocal.setGlobalInhibition(false);
 
@@ -156,7 +156,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       cout << "Init:\t" << tInit.getElapsed() << endl;
       cout << "Random:\t" << tRng.getElapsed() << endl;
       cout << "Encode:\t" << tEnc.getElapsed() << endl;
-      if(useSPlocal)  cout << "SP (l):\t" << tSPloc.getElapsed()*10.0f  << endl;
+      if(useSPlocal)  cout << "SP (l):\t" << tSPloc.getElapsed()*1.0f  << endl;
       if(useSPglobal) cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
       if(useTM) cout << "TM:\t" << tTM.getElapsed() << endl;
       cout << "AN:\t" << tAn.getElapsed() << endl;
