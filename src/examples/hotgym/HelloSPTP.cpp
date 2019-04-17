@@ -89,6 +89,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   // data for processing input
   SDR input({DIM_INPUT});
   SDR outSP({COLS}); // active array, output of SP/TM
+  SDR outSPlocal({COLS}); //for SPlocal
   SDR outTM({COLS}); 
   Real res = 0.0; //for anomaly:
   SDR prevPred_({COLS}); //holds T-1 TM.predictive cells
@@ -111,7 +112,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     //SP (global x local)
     if(useSPlocal) {
     tSPloc.start();
-    spLocal.compute(input, true, outSP);
+    spLocal.compute(input, true, outSPlocal);
     tSPloc.stop();
     }
 
@@ -124,7 +125,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     // TM
     if(useTM) {
     tTM.start();
-    tm.compute(outSP, true /*learn*/);
+    tm.compute(outSP, true /*learn*/); //to uses output of SPglobal
     tm.activateDendrites(); //must be called before getPredictiveCells
     SDR cells({CELLS*COLS});
     cells.setSparse(tm.getPredictiveCells());
@@ -150,7 +151,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       cout << "Epoch = " << e << endl;
       cout << "Anomaly = " << res << endl;
-      cout << "SP= " << outSP << endl;
+      cout << "SP (g)= " << outSP << endl;
+      cout << "SP (l)= " << outSPlocal <<endl;
       cout << "TM= " << outTM << endl;
       cout << "==============TIMERS============" << endl;
       cout << "Init:\t" << tInit.getElapsed() << endl;
@@ -171,6 +173,10 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       const SDR_sparse_t deterministicSP{1110, 1115, 1116, 1119, 1121, 1122, 1123, 1124, 1125, 1128};
       goldSP.setSparse(deterministicSP);
 
+      SDR goldSPlocal({COLS});
+      const SDR_sparse_t deterministicSPlocal{};
+      goldSPlocal.setSparse(deterministicSPlocal);
+
       SDR goldTM({COLS});
       const SDR_sparse_t deterministicTM{}; //TODO use hotgym CSV data, not random. Otherwise TM does not learn, and this field is empty
       goldTM.setSparse(deterministicTM);
@@ -179,7 +185,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       if(EPOCHS == 5000) { //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs. 
         NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
-        NTA_CHECK(outSP == goldSP) << "Deterministic output of SP failed!\n" << outSP << "should be:\n" << goldSP;
+        NTA_CHECK(outSP == goldSP) << "Deterministic output of SP (g) failed!\n" << outSP << "should be:\n" << goldSP;
+	//TODO enable the check: NTA_CHECK(outSPlocal == goldSPlocal) << "Deterministic output of SP (l) failed!\n" << outSPlocal << "should be:\n" << goldSPlocal;
         NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
         NTA_CHECK(res == goldAn) << "Deterministic output of Anomaly failed! " << res << "should be: " << goldAn;
       }
