@@ -19,7 +19,7 @@
 #include <vector>
 #include <random>
 
-static bool verbose = true;
+static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
 namespace testing {

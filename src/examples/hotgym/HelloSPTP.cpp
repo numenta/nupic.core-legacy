@@ -123,7 +123,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       input[i] = (UInt) inputSDR.getDense()[i];
     }
 
-    //SP (global x local) 
+    //SP (global x local)
     if(useSPlocal) {
     tSPloc.start();
     fill(outSP.begin(), outSP.end(), 0);
@@ -152,7 +152,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     //TODO for anomaly: 1) use cols 2) use pred
     tTM.stop();
     }
- 
+
 
     //Anomaly (pure x likelihood)
     tAn.start();
@@ -163,7 +163,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     anLikelihood.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
     tAnLikelihood.stop();
 
-    prevPred_ = outTM.getSparse(); //to be used as predicted T-1 //FIXME tmPred, or tmPred+Act?, also, cells->cols
+    prevPred_ = outTM.getSparse(); //to be used as predicted T-1 //FIXME tmPred, also, cells->cols
 
     // print
     if (e == EPOCHS - 1) {
@@ -198,6 +198,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       }
     }
   } //end for
-  return tAll.getElapsed(); 
+  return tAll.getElapsed();
 } //end run()
 } //-ns

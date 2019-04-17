@@ -827,7 +827,7 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 
 
 void SpatialPooler::calculateOverlap_(const SDR &input,
-                                      vector<SynapseIdx> &overlaps) const {
+                                      vector<SynapseIdx> &overlaps) {
   overlaps.assign( numColumns_, 0 );
   connections_.computeActivity(overlaps, input.getSparse());
 }

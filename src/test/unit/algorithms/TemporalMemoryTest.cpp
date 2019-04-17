@@ -1378,16 +1378,16 @@ TEST(TemporalMemoryTest, testNumberOfColumns) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{64, 64}, 32);
 
-  int numOfColumns = tm.numberOfColumns();
-  ASSERT_EQ(numOfColumns, 64 * 64);
+  size_t numOfColumns = tm.numberOfColumns();
+  ASSERT_EQ(numOfColumns, 64ull * 64ull);
 }
 
 TEST(TemporalMemoryTest, testNumberOfCells) {
   TemporalMemory tm;
   tm.initialize(vector<UInt>{64, 64}, 32);
 
-  Int numberOfCells = tm.numberOfCells();
-  ASSERT_EQ(numberOfCells, 64 * 64 * 32);
+  size_t numberOfCells = tm.numberOfCells();
+  ASSERT_EQ(numberOfCells, 64ull * 64ull * 32ull);
 }
 
 void serializationTestPrepare(TemporalMemory &tm) {
@@ -1519,6 +1519,7 @@ TEST(TemporalMemoryTest, testSaveLoad) {
 
   serializationTestPrepare(tm1);
 
+  // Using binary streaming
   stringstream ss;
   tm1.save(ss);
 
@@ -1529,6 +1530,36 @@ TEST(TemporalMemoryTest, testSaveLoad) {
 
   serializationTestVerify(tm2);
 }
+
+TEST(TemporalMemoryTest, testSaveArLoadAr) {
+  TemporalMemory tm1(
+      /*columnDimensions*/ {32},
+      /*cellsPerColumn*/ 4,
+      /*activationThreshold*/ 3,
+      /*initialPermanence*/ 0.21f,
+      /*connectedPermanence*/ 0.50f,
+      /*minThreshold*/ 2,
+      /*maxNewSynapseCount*/ 3,
+      /*permanenceIncrement*/ 0.10f,
+      /*permanenceDecrement*/ 0.10f,
+      /*predictedSegmentDecrement*/ 0.0f,
+      /*seed*/ 42);
+
+  serializationTestPrepare(tm1);
+
+  // Using Cereal Serialization
+  stringstream ss1;
+  tm1.saveToStream_ar(ss1);
+
+  TemporalMemory tm2;
+  tm2.loadFromStream_ar(ss1);
+
+  ASSERT_TRUE(tm1 == tm2);
+
+  serializationTestVerify(tm2);
+
+}
+
 
 /*
  * Test compute( extraActive, extraWinners )
@@ -1578,7 +1609,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
       tm.activateDendrites(true, extraActive, extraWinners);
       auto predictedColumns = tm.getPredictiveCells();
       for(UInt i = 0; i < predictedColumns.size(); i++) {
-        predictedColumns[i] /= tm.getCellsPerColumn();
+        predictedColumns[i] = static_cast<CellIdx>(predictedColumns[i]/tm.getCellsPerColumn());
         if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
           predictedColumns.erase( predictedColumns.begin() + i-- );
       }
