@@ -26,16 +26,12 @@
 
 #include "HelloSPTP.hpp"
 
-#include "nupic/types/Sdr.hpp"
-
 #include "nupic/algorithms/Anomaly.hpp"
-
 #include "nupic/algorithms/TemporalMemory.hpp"
-
 #include "nupic/algorithms/SpatialPooler.hpp"
-
 #include "nupic/encoders/ScalarEncoder.hpp"
 
+#include "nupic/types/Sdr.hpp"
 #include "nupic/utils/VectorHelpers.hpp"
 #include "nupic/utils/Random.hpp"
 
@@ -44,16 +40,12 @@ namespace examples {
 using namespace std;
 using namespace nupic;
 using namespace nupic::utils;
+using namespace nupic::sdr;
 
-using nupic::sdr::SDR;
-using nupic::sdr::ElemSparse;
 using nupic::encoders::ScalarEncoder;
 using nupic::encoders::ScalarEncoderParameters;
-
 using nupic::algorithms::spatial_pooler::SpatialPooler;
-
 using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
-
 using nupic::algorithms::anomaly::Anomaly;
 using nupic::algorithms::anomaly::AnomalyMode;
 
@@ -81,6 +73,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   encParams.maximum = 100.0;
   encParams.size = DIM_INPUT;
   ScalarEncoder enc( encParams );
+  Random rnd(1); //FIXME fix bug in Random, where static_gen must not be used! change this '1' and all breaks
   NTA_INFO << "SP (l) local inhibition is slow, so we reduce its data 10x smaller"; //to make it reasonably fast for test, for comparison x10
   SpatialPooler spGlobal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with globalInh
   SpatialPooler spLocal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS/10u}); // Spatial pooler with local inh
@@ -99,7 +92,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR outTM({COLS}); 
   Real res = 0.0; //for anomaly:
   SDR prevPred_({COLS}); //holds T-1 TM.predictive cells
-  Random rnd;
 
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
@@ -107,10 +99,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   //run
   for (UInt e = 0; e < EPOCHS; e++) {
-    //Input
-//    generate(input.begin(), input.end(), [&] () { return rnd.getUInt32(2); });
     tRng.start();
-    const Real r = (Real)(rnd.getUInt32(100) - rnd.getUInt32(100)*rnd.getReal64()); //rnd from range -100..100
+    const Real r = rnd.realRange(-100.0f, 100.0f);
     tRng.stop();
 
     //Encode
@@ -162,8 +152,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       cout << "Anomaly = " << res << endl;
       cout << "SP= " << outSP << endl;
       cout << "TM= " << outTM << endl;
-      NTA_CHECK(outSP.getDense()[69] == 0) << "A value in SP computed incorrectly"; //TODO check agains full gold output
-      NTA_CHECK(outTM.getDense()[42] == 0) << "A value in TM computed incorrectly";
       cout << "==============TIMERS============" << endl;
       cout << "Init:\t" << tInit.getElapsed() << endl;
       cout << "Random:\t" << tRng.getElapsed() << endl;
@@ -174,6 +162,27 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
 
+      // check deterministic SP, TM output 
+      SDR goldEnc({DIM_INPUT});
+      const SDR_sparse_t deterministicEnc{5393, 5394, 5395, 5396, 5397, 5398, 5399, 5400, 5401, 5402, 5403, 5404, 5405, 5406, 5407, 5408, 5409, 5410, 5411, 5412, 5413, 5414, 5415, 5416, 5417, 5418, 5419, 5420, 5421, 5422, 5423, 5424, 5425, 5426, 5427, 5428, 5429, 5430, 5431, 5432, 5433, 5434, 5435, 5436, 5437, 5438, 5439, 5440, 5441, 5442, 5443, 5444, 5445, 5446, 5447, 5448, 5449, 5450, 5451, 5452, 5453,5454, 5455, 5456, 5457, 5458, 5459, 5460, 5461, 5462, 5463, 5464, 5465, 5466, 5467, 5468, 5469, 5470, 5471, 5472, 5473, 5474, 5475, 5476, 5477, 5478, 5479, 5480, 5481, 5482, 5483, 5484, 5485, 5486, 5487, 5488, 5489, 5490, 5491, 5492, 5493, 5494, 5495, 5496, 5497, 5498, 5499, 5500, 5501, 5502, 5503, 5504, 5505, 5506, 5507, 5508, 5509, 5510, 5511, 5512, 5513, 5514, 5515, 5516,5517, 5518, 5519, 5520, 5521, 5522, 5523, 5524, 5525};
+      goldEnc.setSparse(deterministicEnc);
+
+      SDR goldSP({COLS});
+      const SDR_sparse_t deterministicSP{1110, 1115, 1116, 1119, 1121, 1122, 1123, 1124, 1125, 1128};
+      goldSP.setSparse(deterministicSP);
+
+      SDR goldTM({COLS});
+      const SDR_sparse_t deterministicTM{}; //TODO use hotgym CSV data, not random. Otherwise TM does not learn, and this field is empty
+      goldTM.setSparse(deterministicTM);
+
+      const float goldAn = 1.0f;
+
+      NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
+      NTA_CHECK(outSP == goldSP) << "Deterministic output of SP failed!\n" << outSP << "should be:\n" << goldSP;
+      NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
+      NTA_CHECK(res == goldAn) << "Deterministic output of Anomaly failed! " << res << "should be: " << goldAn;
+
+      // check runtime speed
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       if(EPOCHS >= 100) { //show only relevant values, ie don't run in valgrind (ndebug, epochs=5) run
