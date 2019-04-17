@@ -529,7 +529,9 @@ Spec *TMRegion::createSpec() {
       "bottomUpOut",
       OutputSpec("The output signal generated from the bottom-up inputs "
                  "from lower levels. The width is 'numberOfCols' "
-                 "* 'cellsPerColumn'.",
+                 "* 'cellsPerColumn' by default; if orColumnOutputs is "
+		 "set, then this returns only numberOfCols. "
+		 "The activations come from TM::getActiveCells(). ",
                  NTA_BasicType_SDR,    // type
                  0,                    // count 0 means is dynamic
                  false,                // isRegionLevel
