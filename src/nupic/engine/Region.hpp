@@ -473,12 +473,14 @@ public:
 
     ar(cereal::make_nvp("outputs", cereal::make_size_tag(outputs_.size())));
     for(auto out: outputs_) {
-      Dimensions& dim = out.second->getDimensions();
+      Output *output = out.second;
+      Dimensions& dim = output->getDimensions();
       ar(cereal::make_map_item(out.first, dim));
     }
     ar(cereal::make_nvp("inputs", cereal::make_size_tag(outputs_.size())));
     for(auto in: inputs_) {
-      Dimensions& dim = in.second->getDimensions();
+      Input *input = in.second;
+      Dimensions& dim = input->getDimensions();
       ar(cereal::make_map_item(in.first, dim));
     }
     // Now serialize the RegionImpl plugin.
@@ -508,8 +510,10 @@ public:
       Dimensions dim;
       ar(cereal::make_map_item(output_name, dim));
       auto itr = outputs_.find(output_name);
-      if (itr != outputs_.end())
-        itr->second->setDimensions(dim);
+      if (itr != outputs_.end()) {
+        Output *output = itr->second;
+        output->setDimensions(dim);
+      }
     }
     // The Input objects will have been created from spec.
     // All we need here are the dimensions on the Input.
@@ -520,8 +524,10 @@ public:
       Dimensions dim;
       ar(cereal::make_map_item(input_name, dim));
       auto itr = inputs_.find(input_name);
-      if (itr != inputs_.end())
-        itr->second->setDimensions(dim);
+      if (itr != inputs_.end()) {
+        Input *input = itr->second;
+        input->setDimensions(dim);
+      }
     }
     // deserialize the RegionImpl plugin and its algorithm
     ArWrapper arw(&ar);
