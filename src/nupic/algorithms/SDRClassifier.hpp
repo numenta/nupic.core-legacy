@@ -36,9 +36,7 @@
 #include <nupic/types/Sdr.hpp>
 
 #include <nupic/types/Serializable.hpp>
-#include <cereal/types/vector.hpp>
 #include <cereal/types/deque.hpp>
-#include <cereal/types/map.hpp>
 
 namespace nupic {
 namespace algorithms {
@@ -46,39 +44,51 @@ namespace sdr_classifier {
 
 
 /**
- * PDF - Probability Distribution Function, distribution of likelihood of values
- *       for each category.
+ * PDF: Probability Distribution Function.  Each index in this vector is a
+ *      category label, and each value is the likelihood of the that category.
  *
  * See also:  https://en.wikipedia.org/wiki/Probability_distribution
  */
 using PDF = std::vector<Real>;
 
 /**
- * Returns the class with the single greatest probablility.
+ * Returns the category with the greatest probablility.
  */
 UInt argmax( const PDF & data );
 
-
 /**
- * The SDR Classifier takes the form of a single layer classification network
- * that takes SDRs as input and outputs a predicted distribution of classes.
+ * The SDR Classifier takes the form of a single layer classification network.
+ * It accepts SDRs as input and outputs a predicted distribution of categories.
  *
- * The SDR Classifier accepts an SDR input pattern from the level below (the
- * “pattern”) and information from the sensor and encoders (the
- * “classification”) describing the true (target) input.
- *
- * The SDR classifier maps input patterns to class labels. There are as many
- * output units as the maximum class label or bucket (in the case of scalar
- * encoders). The output is a probabilistic distribution over all class labels.
+ * Categories are labeled using unsigned integers.  Other data types must be
+ * enumerated or transformed into postitive integers.  There are as many output
+ * units as the maximum category label.
  *
  * During inference, the output is calculated by first doing a weighted
  * summation of all the inputs, and then perform a softmax nonlinear function to
- * get the predicted distribution of class labels
+ * get the predicted distribution of category labels.
  *
  * During learning, the connection weights between input units and output units
- * are adjusted to maximize the likelihood of the model
+ * are adjusted to maximize the likelihood of the model.
  *
- * Example Usage: TODO
+ * Example Usage:
+ *
+ *    // Make a random SDR and associate it with the category B.
+ *    SDR inputData({ 1000 });
+ *        inputData.randomize( 0.02 );
+ *    enum Category { A, B, C, D };
+ *    Classifier clsr;
+ *    clsr.learn( inputData, { Category::B } );
+ *    argmax( clsr.infer( inputData ) )  ->  Category::B
+ *
+ *    // Estimate a scalar value.  The Classifier only accepts categories, so
+ *    // put real valued inputs into bins (AKA buckets) by subtracting the
+ *    // minimum value and dividing by a resolution.
+ *    double scalar = 567.8;
+ *    double minimum = 500;
+ *    double resolution = 10;
+ *    clsr.learn( inputData, { (scalar - minimum) / resolution } );
+ *    argmax( clsr.infer( inputData ) ) * resolution + minimum  ->  560
  *
  * References:
  *  - Alex Graves. Supervised Sequence Labeling with Recurrent Neural Networks,
@@ -100,16 +110,16 @@ public:
   Classifier(Real alpha = 0.001f );
 
   /**
-   * Constructor for use when deserializing.
+   * For use when deserializing.
    */
-  Classifier() {}
   void initialize(Real alpha);
 
   /**
    * Compute the likelihoods for each category / bucket.
    *
-   * @param pattern: The active input bit SDR.
-   * @returns: The Probablility Density Function (PDF) of the categories.
+   * @param pattern: The SDR containing the active input bits.
+   * @returns: The Probablility Distribution Function (PDF) of the categories.
+   *           This is indexed by the category label.
    */
   PDF infer(const sdr::SDR & pattern);
 
@@ -160,13 +170,13 @@ void softmax(PDF::iterator begin, PDF::iterator end);
 
 /******************************************************************************/
 
+
 /**
  * The key is the step, for predicting multiple time steps into the future.
- * The value is a PDF (probability distribution function, list of probabilities
- * of outcomes) of the result being in each bucket.
+ * The value is a PDF (probability distribution function, of the result being in
+ * each bucket or category).
  */
-using Predictions = std::map<Int, PDF>;
-
+using Predictions = std::map<UInt, PDF>;
 
 /**
  * The Predictor class does N-Step ahead predictions.
@@ -176,6 +186,37 @@ using Predictions = std::map<Int, PDF>;
  *
  * Compatibility Note:  This class is the replacement for the old SDRClassifier.
  * It no longer provides estimates of the actual value.
+ *
+ * Example Usage:
+ *
+ *    // Predict 1 and 2 time steps into the future.
+ *
+ *    // First, make a sequence of 4 random SDRs.
+ *    // Each SDR has 1000 bits and 2% sparsity.
+ *    vector<SDR> sequence( 4, { 1000 } );
+ *    for( SDR & inputData : sequence )
+ *        inputData.randomize( 0.02 );
+ *
+ *    // Second, make category labels for the sequence.
+ *    vector<UInt> labels = { 4, 5, 6, 7 };
+ *
+ *    // Third, make a Predictor and train it.
+ *    Predictor pred( vector<UInt>{ 1, 2 } );
+ *    pred.learn( 0, sequence[0], { labels[0] } );
+ *    pred.learn( 1, sequence[1], { labels[1] } );
+ *    pred.learn( 2, sequence[2], { labels[2] } );
+ *    pred.learn( 3, sequence[3], { labels[3] } );
+ *
+ *    // Fourth, give the predictor partial information, and make predictions
+ *    // about the future.
+ *    pred.reset();
+ *    Predictions A = pred.infer( 0, sequence[0] );
+ *    argmax( A[1] )  ->  labels[1]
+ *    argmax( A[2] )  ->  labels[2]
+ *
+ *    Predictions B = pred.infer( 1, sequence[1] );
+ *    argmax( B[1] )  ->  labels[2]
+ *    argmax( B[2] )  ->  labels[3]
  */
 class Predictor : public Serializable
 {
@@ -183,17 +224,17 @@ public:
   /**
    * Constructor.
    *
-   * @param steps - The different number of steps to learn and predict.
+   * @param steps - The number of steps into the future to learn and predict.
    * @param alpha - The alpha used to adapt the weight matrix during learning. A
    *                larger alpha results in faster adaptation to the data.
    */
-  Predictor(const std::vector<UInt> &steps, Real alpha);
+  Predictor(const std::vector<UInt> &steps, Real alpha = 0.001f );
 
   /**
    * Constructor for use when deserializing.
    */
   Predictor() {}
-  void initialize(const std::vector<UInt> &steps, Real alpha);
+  void initialize(const std::vector<UInt> &steps, Real alpha = 0.001f );
 
   /**
    * For use with time series datasets.
@@ -201,16 +242,14 @@ public:
   void reset();
 
   /**
-   * Compute the likelihoods for each bucket.
+   * Compute the likelihoods.
    *
    * @param recordNum: An incrementing integer for each record. Gaps in
    *                   numbers correspond to missing records.
    *
    * @param pattern: The active input SDR.
    *
-   * @returns: A mapping from prediction step to a vector of likelihoods where
-   *           the value at an index corresponds to the bucket with the same
-   *           index.
+   * @returns: A mapping from prediction step to PDF.
    */
   Predictions infer(UInt recordNum, const sdr::SDR &pattern);
 
@@ -243,8 +282,7 @@ private:
   // The list of prediction steps to learn and infer.
   std::vector<UInt> steps_;
 
-  // Stores the input pattern history, starting with the previous input
-  // and containing _maxSteps total input patterns.
+  // Stores the input pattern history, starting with the previous input.
   std::deque<sdr::SDR> patternHistory_;
   std::deque<UInt>     recordNumHistory_;
   void updateHistory_(UInt recordNum, const sdr::SDR & pattern);

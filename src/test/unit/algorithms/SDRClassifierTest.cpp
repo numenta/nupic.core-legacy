@@ -44,6 +44,60 @@ using namespace nupic::algorithms::sdr_classifier;
 namespace testing {
 
 
+TEST(SDRClassifierTest, ExampleUsageClassifier)
+{
+  // Make a random SDR and associate it with the category B.
+  SDR inputData({ 1000u });
+      inputData.randomize( 0.02f );
+  enum Category { A, B, C, D };
+  Classifier clsr;
+  clsr.learn( inputData, { Category::B } );
+  ASSERT_EQ( argmax( clsr.infer( inputData ) ),  Category::B );
+
+  // Estimate a scalar value.  The Classifier only accepts categories, so
+  // put real valued inputs into bins (AKA buckets) by subtracting the
+  // minimum value and dividing by a resolution.
+  double scalar = 567.8f;
+  double minimum = 500.0f;
+  double resolution = 10.0f;
+  clsr.learn( inputData, { (UInt)((scalar - minimum) / resolution) } );
+  ASSERT_EQ( argmax( clsr.infer( inputData ) ) * resolution + minimum,  560.0f );
+}
+
+
+TEST(SDRClassifierTest, ExampleUsagePredictor)
+{
+  // Predict 1 and 2 time steps into the future.
+
+  // First, make a sequence of 4 random SDRs.
+  // Each SDR has 1000 bits and 2% sparsity.
+  vector<SDR> sequence( 4u, vector<UInt>{ 1000u } );
+  for( SDR & inputData : sequence ) {
+      inputData.randomize( 0.02f );
+  }
+  // Second, make category labels for the sequence.
+  vector<UInt> labels = { 4, 5, 6, 7 };
+
+  // Third, make a Predictor and train it.
+  Predictor pred( vector<UInt>{ 1, 2 } );
+  pred.learn( 0, sequence[0], { labels[0] } );
+  pred.learn( 1, sequence[1], { labels[1] } );
+  pred.learn( 2, sequence[2], { labels[2] } );
+  pred.learn( 3, sequence[3], { labels[3] } );
+
+  // Fourth, give the predictor partial information, and make predictions
+  // about the future.
+  pred.reset();
+  Predictions A = pred.infer( 0, sequence[0] );
+  ASSERT_EQ( argmax( A[1] ),  labels[1] );
+  ASSERT_EQ( argmax( A[2] ),  labels[2] );
+
+  Predictions B = pred.infer( 1, sequence[1] );
+  ASSERT_EQ( argmax( B[1] ),  labels[2] );
+  ASSERT_EQ( argmax( B[2] ),  labels[3] );
+}
+
+
 TEST(SDRClassifierTest, SingleValue) {
   // Feed the same input 10 times, the corresponding probability should be
   // very high
@@ -112,7 +166,7 @@ TEST(SDRClassifierTest, ComputeComplex) {
 }
 
 
-TEST(ClassifierTest, MultipleCategories) {
+TEST(SDRClassifierTest, MultipleCategories) {
   // Test multiple category classification with single compute calls
   // This test is ported from the Python unit test
   Classifier c(1.0f);
@@ -168,9 +222,9 @@ TEST(SDRClassifierTest, SaveLoad) {
 
   // Save and load.
   stringstream ss;
-  EXPECT_NO_THROW(c1.save(ss));
+  EXPECT_NO_THROW(c1.saveToStream_ar(ss));
   Predictor c2;
-  EXPECT_NO_THROW(c2.load(ss));
+  EXPECT_NO_THROW(c2.loadFromStream_ar(ss));
 
   // Expect identical results.
   const auto c2_out = c2.infer( 0u, A );
@@ -178,7 +232,7 @@ TEST(SDRClassifierTest, SaveLoad) {
 }
 
 
-TEST(ClassifierTest, testSoftmaxOverflow) {
+TEST(SDRClassifierTest, testSoftmaxOverflow) {
   PDF values({ numeric_limits<Real>::max() });
   softmax(values.begin(), values.end());
   auto result = values[0u];
@@ -186,7 +240,7 @@ TEST(ClassifierTest, testSoftmaxOverflow) {
 }
 
 
-TEST(ClassifierTest, testSoftmax) {
+TEST(SDRClassifierTest, testSoftmax) {
   PDF values {0.0f, 1.0f, 1.337f, 2.018f, 1.1f, 0.5f, 0.9f};
   const PDF exp {
     0.045123016137150938f,

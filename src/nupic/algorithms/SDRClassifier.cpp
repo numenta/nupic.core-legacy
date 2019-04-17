@@ -117,7 +117,7 @@ std::vector<Real> Classifier::calculateError_(
   auto likelihoods = infer(pattern);
 
   // Compute target likelihoods
-  vector<Real> targetDistribution(numCategories_ + 1, 0.0);
+  PDF targetDistribution(numCategories_ + 1, 0.0);
   for( size_t i = 0; i < categoryIdxList.size(); i++ ) {
     targetDistribution[categoryIdxList[i]] = 1.0 / categoryIdxList.size();
   }
@@ -147,6 +147,7 @@ void nupic::algorithms::sdr_classifier::softmax(PDF::iterator begin, PDF::iterat
 
 
 /******************************************************************************/
+
 
 Predictor::Predictor(const vector<UInt> &steps, Real alpha)
   { initialize(steps, alpha); }
