@@ -177,10 +177,12 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       const float goldAn = 1.0f;
 
-      NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
-      NTA_CHECK(outSP == goldSP) << "Deterministic output of SP failed!\n" << outSP << "should be:\n" << goldSP;
-      NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
-      NTA_CHECK(res == goldAn) << "Deterministic output of Anomaly failed! " << res << "should be: " << goldAn;
+      if(EPOCHS == 5000) { //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs. 
+        NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
+        NTA_CHECK(outSP == goldSP) << "Deterministic output of SP failed!\n" << outSP << "should be:\n" << goldSP;
+        NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
+        NTA_CHECK(res == goldAn) << "Deterministic output of Anomaly failed! " << res << "should be: " << goldAn;
+      }
 
       // check runtime speed
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
