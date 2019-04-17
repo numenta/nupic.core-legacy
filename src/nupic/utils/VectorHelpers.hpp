@@ -18,29 +18,6 @@ namespace utils {
 class VectorHelpers
 {
 public:
-  /**
-   * Pretty print a vector, with separator string, to output stream.
-   *
-   * @param v      Vector to print.
-   * @param sep    String to separate each element of vector.
-   * @param prefix String to print before vector data.
-   * @param os     std::ostream to write vector to, default: cout.
-   */
-  template<typename T>
-  static void print_vector( const std::vector<T>& v,
-                            std::string sep="",
-                            std::string prefix="",
-                            std::ostream& os=std::cout)
-  {
-    os << prefix;
-    for (auto it=v.cbegin(); it != v.cend(); ++it) {
-      os << *it;
-      if ( ((it + 1) != v.cend()) &&  (sep != "") ) {
-        os << sep;
-      }
-    }
-    os << std::endl;
-  }
 
   /**
    * Convert binary to sparse representation.

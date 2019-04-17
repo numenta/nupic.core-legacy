@@ -34,18 +34,6 @@ using namespace nupic::utils;
 using namespace nupic;
 using namespace std;
 
-TEST(VectorHelpersTest, print_vector)
-{
-  std::vector<float> v{1.2f, 0.2f, 1.0f, 2.2f, 0.1f};
-  VectorHelpers::print_vector<float>(v);
-  VectorHelpers::print_vector<float>(v," , ", "Hi there:\n");
-  ASSERT_FLOAT_EQ(0.0f, 0.0f);
-  vector<string> str = {"a", "b", "c"};
-  VectorHelpers::print_vector<string>(str);
-  ASSERT_FLOAT_EQ(0.0f, 0.0f);
-};
-
-
 TEST(VectorHelpersTest, binaryToSparse)
 {
   vector<Real32> v{0.0f,0.0f,1.0f,1.0f,0.0f};
