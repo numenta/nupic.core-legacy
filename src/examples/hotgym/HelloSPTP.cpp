@@ -136,8 +136,9 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tTM.start();
     tm.compute(outSP, true /*learn*/);
     tm.activateDendrites(); //must be called before getPredictiveCells
-    outTM = SDR({COLS}); //FIXME when PR merged: tm.cellsToColumns(tm.getPredictiveCells());
-    //TODO for anomaly: 1) use cols 2) use pred
+    SDR cells({CELLS*COLS});
+    cells.setSparse(tm.getPredictiveCells());
+    outTM = tm.cellsToColumns(cells);
     tTM.stop();
     }
 
@@ -151,7 +152,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     anLikelihood.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
     tAnLikelihood.stop();
 
-    prevPred_ = outTM; //to be used as predicted T-1 //FIXME tmPred, also, cells->cols
+    prevPred_ = outTM; //to be used as predicted T-1
 
     // print
     if (e == EPOCHS - 1) {

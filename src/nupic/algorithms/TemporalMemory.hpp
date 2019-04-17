@@ -584,7 +584,8 @@ public:
    *
    * @return (int) Column index
    */
-  UInt columnForCell(const CellIdx cell) const;  //TODO rm as obsoleted by cellsToColumns?
+  UInt columnForCell(const CellIdx cell) const;
+
   /**
    *  cellsToColumns
    *  converts active cells to columnar representation, 
