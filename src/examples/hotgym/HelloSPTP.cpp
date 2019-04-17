@@ -73,12 +73,12 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   encParams.maximum = 100.0;
   encParams.size = DIM_INPUT;
   ScalarEncoder enc( encParams );
-  Random rnd(1); //FIXME fix bug in Random, where static_gen must not be used! change this '1' and all breaks
   NTA_INFO << "SP (l) local inhibition is slow, so we reduce its data 10x smaller"; //to make it reasonably fast for test, for comparison x10
   SpatialPooler spGlobal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with globalInh
   SpatialPooler spLocal(vector<UInt>{DIM_INPUT}, vector<UInt>{COLS}); // Spatial pooler with local inh
   spGlobal.setGlobalInhibition(true);
   spLocal.setGlobalInhibition(false);
+  Random rnd(1);
 
   TM tm(vector<UInt>{COLS}, CELLS);
 
