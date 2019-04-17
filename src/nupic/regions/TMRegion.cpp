@@ -249,13 +249,11 @@ void TMRegion::compute() {
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();
     if (args_.orColumnOutputs) { //aggregate to columns
-	    NTA_THROW << "not implemented"; //FIXME the whole active+pred cols/cells should be removed
+      tm_->getPredictiveCells(sdr);
+      SDR cols = tm_->cellsToColumns(sdr);
+      sdr.setSparse(cols.getSparse());
     } else { //output as cells
-      const auto& act = tm_->getActiveCells();
-      const auto& pred= tm_->getPredictiveCells();
-
-      VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), act, pred);
-      sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
+      tm_->getPredictiveCells(sdr);
     }
     NTA_DEBUG << "compute " << *out << std::endl;
   }
