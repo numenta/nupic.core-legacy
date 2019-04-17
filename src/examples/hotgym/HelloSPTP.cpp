@@ -148,8 +148,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tTM.start();
     tm.compute(outSPsparse.size(), outSPsparse.data(), true /*learn*/);
     tm.activateDendrites(); //must be called before getPredictiveCells
-    outTM = tm.getOutputColumns(); // act + pred merged & as columns
-    //TODO for anomaly: figure 1) use cols x cells? 2) use pred x { pred union active} ?
+    outTM = tm.cellsToColumns(tm.getActiveCells());
+    //TODO for anomaly: 1) use cols 2) use pred
     tTM.stop();
     }
  
