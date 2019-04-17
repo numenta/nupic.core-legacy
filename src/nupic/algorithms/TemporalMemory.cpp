@@ -47,13 +47,11 @@
 
 #include <nupic/utils/GroupBy.hpp>
 #include <nupic/math/Math.hpp> // nupic::Epsilon
-#include <nupic/utils/VectorHelpers.hpp>
 
 using namespace std;
 using namespace nupic;
 using nupic::sdr::SDR;
 using namespace nupic::algorithms::temporal_memory;
-using nupic::utils::VectorHelpers;
 
 
 static const UInt TM_VERSION = 2;
