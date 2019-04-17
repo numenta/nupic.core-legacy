@@ -34,17 +34,6 @@ using namespace nupic::utils;
 using namespace nupic;
 using namespace std;
 
-TEST(VectorHelpersTest, binaryToSparse)
-{
-  vector<Real32> v{0.0f,0.0f,1.0f,1.0f,0.0f};
-  vector<UInt> expected {2, 3};
-  vector<UInt> res = VectorHelpers::binaryToSparse<Real>(v);
-  for(UInt i=0; i< res.size(); i++) {
-    ASSERT_EQ(res[i], expected[i]);
-  }
-};
-
-
 TEST(VectorHelpersTest, sparseToBinary)
 {
   vector<Real32> expected{0.0f,0.0f,1.0f,1.0f,0.0f};

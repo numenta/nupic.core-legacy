@@ -20,21 +20,6 @@ class VectorHelpers
 public:
 
   /**
-   * Convert binary to sparse representation.
-   */
-  template<typename T>
-  static std::vector<UInt> binaryToSparse(const std::vector<T>& binaryVector)
-  {
-    std::vector<UInt> sparse;
-    for (UInt index = 0; index < binaryVector.size(); index++) {
-      if (binaryVector[index] == (T)1) {
-        sparse.push_back(index);
-      }
-    }
-    return sparse;
-  }
-
-  /**
    * Convert sparse to binary representation.
    */
   template<typename T>
