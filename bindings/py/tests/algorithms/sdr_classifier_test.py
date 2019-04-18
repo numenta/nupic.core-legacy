@@ -38,6 +38,51 @@ class ClassifierTest(unittest.TestCase):
   """ Unit tests for Classifier & Predictor classes. """
 
 
+  def testExampleUsage(self):
+    # Make a random SDR and associate it with a category.
+    inputData  = SDR( 1000 ).randomize( 0.02 )
+    categories = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 }
+    clsr = Classifier()
+    clsr.learn( inputData, categories['B'] )
+    assert( numpy.argmax( clsr.infer( inputData ) )  ==  categories['B'] )
+
+    # Estimate a scalar value.  The Classifier only accepts categories, so
+    # put real valued inputs into bins (AKA buckets) by subtracting the
+    # minimum value and dividing by a resolution.
+    scalar     = 567.8
+    minimum    = 500
+    resolution = 10
+    clsr.learn( inputData, int((scalar - minimum) / resolution) )
+    assert( numpy.argmax( clsr.infer( inputData ) ) * resolution + minimum  ==  560 )
+
+
+    # Predict 1 and 2 time steps into the future.
+
+    # Make a sequence of 4 random SDRs, each SDR has 1000 bits and 2% sparsity.
+    sequence = [ SDR( 1000 ).randomize( 0.02 ) for i in range(4) ]
+
+    # Make category labels for the sequence.
+    labels = [ 4, 5, 6, 7 ]
+
+    # Make a Predictor and train it.
+    pred = Predictor([ 1, 2 ])
+    pred.learn( 0, sequence[0], labels[0] )
+    pred.learn( 1, sequence[1], labels[1] )
+    pred.learn( 2, sequence[2], labels[2] )
+    pred.learn( 3, sequence[3], labels[3] )
+
+    # Give the predictor partial information, and make predictions
+    # about the future.
+    pred.reset()
+    A = pred.infer( 0, sequence[0] )
+    assert( numpy.argmax( A[1] )  ==  labels[1] )
+    assert( numpy.argmax( A[2] )  ==  labels[2] )
+
+    B = pred.infer( 1, sequence[1] )
+    assert( numpy.argmax( B[1] )  ==  labels[2] )
+    assert( numpy.argmax( B[2] )  ==  labels[3] )
+
+
   def testInitialization(self):
     Classifier( .1 )
     Predictor( [2,3,4], .1 )

@@ -186,26 +186,23 @@ using Predictions = std::map<UInt, PDF>;
  * It no longer provides estimates of the actual value.
  *
  * Example Usage:
- *
  *    // Predict 1 and 2 time steps into the future.
- *
- *    // First, make a sequence of 4 random SDRs.
- *    // Each SDR has 1000 bits and 2% sparsity.
+ *    // Make a sequence of 4 random SDRs. Each SDR has 1000 bits and 2% sparsity.
  *    vector<SDR> sequence( 4, { 1000 } );
  *    for( SDR & inputData : sequence )
  *        inputData.randomize( 0.02 );
  *
- *    // Second, make category labels for the sequence.
+ *    // Make category labels for the sequence.
  *    vector<UInt> labels = { 4, 5, 6, 7 };
  *
- *    // Third, make a Predictor and train it.
+ *    // Make a Predictor and train it.
  *    Predictor pred( vector<UInt>{ 1, 2 } );
  *    pred.learn( 0, sequence[0], { labels[0] } );
  *    pred.learn( 1, sequence[1], { labels[1] } );
  *    pred.learn( 2, sequence[2], { labels[2] } );
  *    pred.learn( 3, sequence[3], { labels[3] } );
  *
- *    // Fourth, give the predictor partial information, and make predictions
+ *    // Give the predictor partial information, and make predictions
  *    // about the future.
  *    pred.reset();
  *    Predictions A = pred.infer( 0, sequence[0] );
