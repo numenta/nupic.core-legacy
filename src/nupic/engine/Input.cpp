@@ -27,11 +27,6 @@
 
 #include <algorithm> //find
 
-//#include <nupic/engine/Network.hpp>
-//#include <nupic/engine/Input.hpp>
-//#include <nupic/engine/Output.hpp>
-//#include <nupic/engine/RegionImplFactory.hpp>
-
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Output.hpp>
