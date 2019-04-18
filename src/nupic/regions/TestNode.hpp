@@ -147,7 +147,7 @@ public:
     // The output buffers are saved as part of the Region Implementation.
     cereal::size_type numBuffers;
     ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
-    for (int i = 0; i < numBuffers; i++) {
+    for (cereal::size_type i = 0; i < numBuffers; i++) {
       std::string name;
       Array output;
       ar(cereal::make_map_item(name, output));

@@ -33,9 +33,13 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <stdexcept>
 #include <string>
 
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Output.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/RegionImplFactory.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Array.hpp>
@@ -69,7 +73,7 @@ Network *Region::getNetwork() { return network_; }
 
 void Region::createInputsAndOutputs_() {
   // This is called when a Region is added.
-  // Create all the outputs for this region from the Spec. 
+  // Create all the outputs for this region from the Spec.
   // By default outputs are zero size, no dimensions.
   for (size_t i = 0; i < spec_->outputs.getCount(); ++i) {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
@@ -195,7 +199,7 @@ void Region::compute() {
 
 void Region::evaluateLinks() {
   for (auto &elem : inputs_) {
-    (elem.second)->initialize(); 
+    (elem.second)->initialize();
   }
 }
 
@@ -235,7 +239,7 @@ Dimensions Region::getInputDimensions(std::string name) const {
     name = spec_->getDefaultOutputName();
   }
   Input* in = getInput(name);
-  NTA_CHECK(in != nullptr) 
+  NTA_CHECK(in != nullptr)
     << "Unknown input (" << name << ") requested on " << name_;
   return in->getDimensions();
 }
@@ -244,7 +248,7 @@ Dimensions Region::getOutputDimensions(std::string name) const {
     name = spec_->getDefaultOutputName();
   }
   Output* out = getOutput(name);
-  NTA_CHECK(out != nullptr) 
+  NTA_CHECK(out != nullptr)
     << "Unknown output (" << name << ") requested on " << name_;
   return out->getDimensions();
 }
@@ -254,7 +258,7 @@ void Region::setInputDimensions(std::string name, const Dimensions& dim) {
     name = spec_->getDefaultOutputName();
   }
   Input* in = getInput(name);
-  NTA_CHECK(in != nullptr) 
+  NTA_CHECK(in != nullptr)
     << "Unknown input (" << name << ") requested on " << name_;
   return in->setDimensions(dim);
 }
@@ -263,7 +267,7 @@ void Region::setOutputDimensions(std::string name, const Dimensions& dim) {
     name = spec_->getDefaultOutputName();
   }
   Output* out = getOutput(name);
-  NTA_CHECK(out != nullptr) 
+  NTA_CHECK(out != nullptr)
     << "Unknown output (" << name << ") requested on " << name_;
   return out->setDimensions(dim);
 }
@@ -439,7 +443,7 @@ bool Region::operator==(const Region &o) const {
     return false;
   }
 
-  if (name_ != o.name_ || type_ != o.type_ || 
+  if (name_ != o.name_ || type_ != o.type_ ||
       spec_ != o.spec_ || phases_ != o.phases_ ) {
     return false;
   }
@@ -637,6 +641,46 @@ std::string Region::getParameterString(const std::string &name) {
 bool Region::isParameter(const std::string &name) const {
   return (spec_->parameters.contains(name));
 }
+
+// Some functions used to prevent symbles from being in Region.hpp
+void Region::saveDims(std::map<std::string,Dimensions>& outDims,
+                      std::map<std::string,Dimensions>& inDims) const {
+  for(auto out: outputs_) {
+    Dimensions& dim = out.second->getDimensions();
+    outDims[out.first] = dim;
+  }
+  for(auto in: inputs_) {
+    Dimensions& dim = in.second->getDimensions();
+    inDims[in.first] = dim;
+  }
+}
+void Region::loadDims(std::map<std::string,Dimensions>& outDims,
+                     std::map<std::string,Dimensions>& inDims) const {
+  for(auto out: outDims) {
+      auto itr = outputs_.find(out.first);
+      if (itr != outputs_.end()) {
+        itr->second->setDimensions(out.second);
+      }
+  }
+  for(auto in: inDims) {
+      auto itr = inputs_.find(in.first);
+      if (itr != inputs_.end()) {
+        itr->second->setDimensions(in.second);
+      }
+  }
+}
+
+void Region::serializeImpl(ArWrapper& arw) const{
+    impl_->cereal_adapter_save(arw);
+}
+void Region::deserializeImpl(ArWrapper& arw) {
+    RegionImplFactory &factory = RegionImplFactory::getInstance();
+    spec_ = factory.getSpec(type_);
+    createInputsAndOutputs_();
+
+    impl_.reset(factory.deserializeRegionImpl(type_, arw, this));
+}
+
 
 
 } // namespace nupic

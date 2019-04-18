@@ -28,6 +28,8 @@
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/RegisteredRegionImplCpp.hpp>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
