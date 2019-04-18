@@ -32,12 +32,6 @@
 
 #include <nupic/algorithms/SDRClassifier.hpp>
 
-
-// TODO
-//      DOCS FOR:  PDF & Argmax!
-//      PROOF READ PY DOCS
-
-
 namespace nupic_ext
 {
     namespace py = pybind11;
@@ -56,15 +50,7 @@ Categories are labeled using unsigned integers.  Other data types must be
 enumerated or transformed into postitive integers.  There are as many output
 units as the maximum category label.
 
-During inference, the output is calculated by first doing a weighted
-summation of all the inputs, and then perform a softmax nonlinear function to
-get the predicted distribution of category labels.
-
-During learning, the connection weights between input units and output units
-are adjusted to maximize the likelihood of the model.
-
 Example Usage:
-
     # Make a random SDR and associate it with a category.
     inputData  = SDR( 1000 ).randomize( 0.02 )
     categories = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 }
@@ -80,6 +66,13 @@ Example Usage:
     resolution = 10
     clsr.learn( inputData, int((scalar - minimum) / resolution) )
     numpy.argmax( clsr.infer( inputData ) ) * resolution + minimum  ->  560
+
+During inference, the output is calculated by first doing a weighted
+summation of all the inputs, and then perform a softmax nonlinear function to
+get the predicted distribution of category labels.
+
+During learning, the connection weights between input units and output units
+are adjusted to maximize the likelihood of the model.
 
 References:
     - Alex Graves. Supervised Sequence Labeling with Recurrent Neural Networks,
@@ -100,7 +93,10 @@ R"(Compute the likelihoods for each category / bucket.
 Argument pattern is the SDR containing the active input bits.
 
 Returns the Probablility Distribution Function (PDF) of the categories.
-This is indexed by the category label.)",
+The PDF is a list of probablilities which sums to 1.  Each index in this list is
+a category label, and each value is the likelihood of the that category.
+Use "numpy.argmax" to find the category with the greatest probablility.)",
+
             py::arg("pattern"));
 
         py_Classifier.def("learn", &Classifier::learn,
@@ -178,7 +174,8 @@ Gaps in numbers correspond to missing records.
 
 Argument pattern is the SDR containing the active input bits.
 
-Returns a dictionary whos keys are prediction steps, and values are PDF's.)",
+Returns a dictionary whos keys are prediction steps, and values are PDFs.
+See help(Classifier.infer) for details about PDFs.)",
             py::arg("recordNum"),
             py::arg("pattern"));
 

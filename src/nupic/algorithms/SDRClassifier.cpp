@@ -38,10 +38,10 @@ UInt nupic::algorithms::sdr_classifier::argmax( const PDF & data )
 
 /******************************************************************************/
 
-Classifier::Classifier(Real alpha)
+Classifier::Classifier(const Real alpha)
   { initialize( alpha ); }
 
-void Classifier::initialize(Real alpha)
+void Classifier::initialize(const Real alpha)
 {
   NTA_CHECK(alpha > 0.0f);
   alpha_ = alpha;
@@ -149,10 +149,10 @@ void nupic::algorithms::sdr_classifier::softmax(PDF::iterator begin, PDF::iterat
 /******************************************************************************/
 
 
-Predictor::Predictor(const vector<UInt> &steps, Real alpha)
+Predictor::Predictor(const vector<UInt> &steps, const Real alpha)
   { initialize(steps, alpha); }
 
-void Predictor::initialize(const vector<UInt> &steps, Real alpha)
+void Predictor::initialize(const vector<UInt> &steps, const Real alpha)
 {
   NTA_CHECK( not steps.empty() ) << "Required argument steps is empty!";
   steps_ = steps;
@@ -172,7 +172,7 @@ void Predictor::reset() {
 }
 
 
-Predictions Predictor::infer(UInt recordNum, const SDR &pattern)
+Predictions Predictor::infer(const UInt recordNum, const SDR &pattern)
 {
   updateHistory_( recordNum, pattern );
 
@@ -184,7 +184,7 @@ Predictions Predictor::infer(UInt recordNum, const SDR &pattern)
 }
 
 
-void Predictor::learn(UInt recordNum, const SDR &pattern,
+void Predictor::learn(const UInt recordNum, const SDR &pattern,
                       const std::vector<UInt> &bucketIdxList)
 {
   updateHistory_( recordNum, pattern );
@@ -204,7 +204,7 @@ void Predictor::learn(UInt recordNum, const SDR &pattern,
 }
 
 
-void Predictor::updateHistory_(UInt recordNum, const SDR & pattern)
+void Predictor::updateHistory_(const UInt recordNum, const SDR & pattern)
 {
   // Ensure that recordNum increases monotonically.
   UInt lastRecordNum = -1;

@@ -62,13 +62,6 @@ UInt argmax( const PDF & data );
  * enumerated or transformed into postitive integers.  There are as many output
  * units as the maximum category label.
  *
- * During inference, the output is calculated by first doing a weighted
- * summation of all the inputs, and then perform a softmax nonlinear function to
- * get the predicted distribution of category labels.
- *
- * During learning, the connection weights between input units and output units
- * are adjusted to maximize the likelihood of the model.
- *
  * Example Usage:
  *
  *    // Make a random SDR and associate it with the category B.
@@ -87,6 +80,13 @@ UInt argmax( const PDF & data );
  *    double resolution = 10;
  *    clsr.learn( inputData, { (scalar - minimum) / resolution } );
  *    argmax( clsr.infer( inputData ) ) * resolution + minimum  ->  560
+ *
+ * During inference, the output is calculated by first doing a weighted
+ * summation of all the inputs, and then perform a softmax nonlinear function to
+ * get the predicted distribution of category labels.
+ *
+ * During learning, the connection weights between input units and output units
+ * are adjusted to maximize the likelihood of the model.
  *
  * References:
  *  - Alex Graves. Supervised Sequence Labeling with Recurrent Neural Networks,

@@ -564,38 +564,25 @@ class ClassifierTest(unittest.TestCase):
 
   @unittest.skip("TODO: Pickle unimpemented!")
   def testSerialization(self):
-    c = self._classifier([1], 1.0, 0.1, 0)
+    c = Predictor([1], 1.0)
     c.compute(recordNum=0,
               patternNZ=[1, 5, 9],
-              classification={"bucketIdx": 4, "actValue": 34.7},
-              learn=True, infer=True)
+              classification=4)
     c.compute(recordNum=1,
               patternNZ=[0, 6, 9, 11],
-              classification={"bucketIdx": 5, "actValue": 41.7},
-              learn=True, infer=True)
+              classification=5)
     c.compute(recordNum=2,
               patternNZ=[6, 9],
-              classification={"bucketIdx": 5, "actValue": 44.9},
-              learn=True, infer=True)
+              classification=5)
     c.compute(recordNum=3,
               patternNZ=[1, 5, 9],
-              classification={"bucketIdx": 4, "actValue": 42.9},
-              learn=True, infer=True)
+              classification=4)
     serialized = pickle.dumps(c)
     c = pickle.loads(serialized)
-    self.assertEqual(c.steps, [1])
-    self.assertEqual(c.alpha, 1.0)
-    self.assertEqual(c.actValueAlpha, 0.1)
 
     result = c.compute(recordNum=4,
               patternNZ=[1, 5, 9],
-              classification={"bucketIdx": 4, "actValue": 34.7},
-              learn=True, infer=True)
-    self.assertSetEqual(set(result.keys()), set(("actualValues", 1)))
-    self.assertAlmostEqual(result["actualValues"][4], 35.520000457763672,
-                           places=5)
-    self.assertAlmostEqual(result["actualValues"][5], 42.020000457763672,
-                           places=5)
+              classification=4)
     self.assertEqual(len(result[1]), 6)
     self.assertAlmostEqual(result[1][0], 0.034234, places=5)
     self.assertAlmostEqual(result[1][1], 0.034234, places=5)
