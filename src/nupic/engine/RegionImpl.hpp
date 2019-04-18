@@ -37,6 +37,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
@@ -142,8 +144,8 @@ public:
   // It is the total element count.
   // This method is called only for buffers whose size is not
   // specified in the Spec.  This is used to allocate
-  // buffers during initialization.  New implementations should instead 
-  // override askImplForOutputDimensions() or askImplForInputDimensions() 
+  // buffers during initialization.  New implementations should instead
+  // override askImplForOutputDimensions() or askImplForInputDimensions()
   // and return a full dimension.
   // Return 0 for outputs that are not used or size does not matter.
   virtual size_t getNodeInputElementCount(const std::string &outputName) const {
@@ -163,7 +165,7 @@ public:
   // dimensions from elsewhere.
   //
   // If this is not overridden, the default implementation will call
-  // getNodeOutputElementCount() or getNodeInputElementCount() to obtain 
+  // getNodeOutputElementCount() or getNodeInputElementCount() to obtain
   // a 1D dimension for this input/output.
   virtual Dimensions askImplForInputDimensions(const std::string &name);
   virtual Dimensions askImplForOutputDimensions(const std::string &name);
