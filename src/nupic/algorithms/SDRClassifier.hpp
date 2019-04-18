@@ -34,9 +34,7 @@
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Sdr.hpp>
-
 #include <nupic/types/Serializable.hpp>
-#include <cereal/types/deque.hpp>
 
 namespace nupic {
 namespace algorithms {

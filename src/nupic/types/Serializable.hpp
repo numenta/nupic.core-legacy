@@ -77,6 +77,7 @@
 #include <cereal/types/vector.hpp>  // for serializing std::vector
 #include <cereal/types/string.hpp>  // for serializing std::string
 #include <cereal/types/map.hpp>     // for serializing std::map
+#include <cereal/types/deque.hpp>   // for serializing std::deque
 
 #define SERIALIZABLE_VERSION 3
 
