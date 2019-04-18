@@ -110,7 +110,8 @@ public:
     // The output buffers are saved as part of the Region Implementation.
     cereal::size_type numBuffers = 0;
     std::map<std::string, Output *> outputs = region_->getOutputs();
-    ar(cereal::make_nvp("outputs", cereal::make_size_tag(outputs.size())));
+    numBuffers = outputs.size();
+    ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
     for (auto iter : outputs) {
       const Array &outputBuffer = iter.second->getData();
       ar(cereal::make_map_item(iter.first, outputBuffer));
