@@ -33,7 +33,7 @@ using namespace nupic::algorithms::sdr_classifier;
 using namespace std;
 
 UInt nupic::algorithms::sdr_classifier::argmax( const PDF & data )
-  { return max_element( data.begin(), data.end() ) - data.begin(); }
+  { return UInt( max_element( data.begin(), data.end() ) - data.begin() ); }
 
 
 /******************************************************************************/
@@ -102,7 +102,7 @@ void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
   // Compute errors and update weights.
   const vector<Real> error = calculateError_(categoryIdxList, pattern);
   for( const auto& bit : pattern.getSparse() ) {
-    for(size_t i = 0; i < numCategories_; i++) {
+    for(size_t i = 0u; i < numCategories_; i++) {
       weights_[bit][i] += alpha_ * error[i];
     }
   }
@@ -117,12 +117,12 @@ std::vector<Real> Classifier::calculateError_(
   auto likelihoods = infer(pattern);
 
   // Compute target likelihoods
-  PDF targetDistribution(numCategories_ + 1, 0.0);
-  for( size_t i = 0; i < categoryIdxList.size(); i++ ) {
-    targetDistribution[categoryIdxList[i]] = 1.0 / categoryIdxList.size();
+  PDF targetDistribution(numCategories_ + 1u, 0.0f);
+  for( size_t i = 0u; i < categoryIdxList.size(); i++ ) {
+    targetDistribution[categoryIdxList[i]] = 1.0f / categoryIdxList.size();
   }
 
-  for( size_t i = 0; i < likelihoods.size(); i++ ) {
+  for( size_t i = 0u; i < likelihoods.size(); i++ ) {
     likelihoods[i] = targetDistribution[i] - likelihoods[i];
   }
   return likelihoods;
@@ -138,8 +138,8 @@ void nupic::algorithms::sdr_classifier::softmax(PDF::iterator begin, PDF::iterat
     *itr = std::exp(*itr - maxVal); // x[i] = e ^ (x[i] - maxVal)
   }
   // Sum of all elements raised to exp(elem) each.
-  const Real sum = std::accumulate(begin, end, 0.0);
-  NTA_ASSERT(sum > 0.0);
+  const Real sum = (Real) std::accumulate(begin, end, 0.0f);
+  NTA_ASSERT(sum > 0.0f);
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;
   }
@@ -216,10 +216,10 @@ void Predictor::updateHistory_(const UInt recordNum, const SDR & pattern)
   }
 
   // Update pattern history if this is a new record.
-  if (recordNumHistory_.size() == 0 || recordNum > lastRecordNum) {
+  if (recordNumHistory_.size() == 0u || recordNum > lastRecordNum) {
     patternHistory_.emplace_back( pattern );
     recordNumHistory_.push_back(recordNum);
-    if (patternHistory_.size() > steps_.back() + 1) {
+    if (patternHistory_.size() > steps_.back() + 1u) {
       patternHistory_.pop_front();
       recordNumHistory_.pop_front();
     }
