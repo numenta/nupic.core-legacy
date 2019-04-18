@@ -492,6 +492,8 @@ void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArra
 
 
 void SpatialPooler::compute(const SDR &input, bool learn, SDR &active) {
+  NTA_CHECK( input.dimensions  == inputDimensions_ );
+  NTA_CHECK( active.dimensions == columnDimensions_ );
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);
@@ -827,7 +829,7 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 
 
 void SpatialPooler::calculateOverlap_(const SDR &input,
-                                      vector<SynapseIdx> &overlaps) const {
+                                      vector<SynapseIdx> &overlaps) {
   overlaps.assign( numColumns_, 0 );
   connections_.computeActivity(overlaps, input.getSparse());
 }
