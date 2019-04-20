@@ -96,7 +96,7 @@ public:
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
-    ar(cereal::make_nvp("outputFile", filename_);
+    ar(cereal::make_nvp("outputFile", filename_));
 		if (filename_ != "")
 		      openFile(filename_);
   }	
