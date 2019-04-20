@@ -122,10 +122,48 @@ public:
    *
 	 * See Serializable base class for definitions.
 	 */
-  virtual void save(std::ostream &f) const override;
+  virtual void save(std::ostream &f) const override;  // TODO:cereal Remove
   virtual void load(std::istream &stream)  override;
-  virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
-  virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
+
+  CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    std::vector<std::shared_ptr<Link>> links;
+    std::string name = "Network";
+    ar(cereal::make_nvp("name", name),
+       cereal::make_nvp("iteration", iteration_));
+    ar(cereal::make_nvp("regions", regions_));
+    ar(cereal::make_nvp("links", links));
+
+  }
+  
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    std::vector<std::shared_ptr<Link>> links;
+    std::string name;
+    ar(cereal::make_nvp("name", name),
+       cereal::make_nvp("iteration", iteration_));
+    ar(cereal::make_nvp("regions", regions_));
+    ar(cereal::make_nvp("links", links));
+    for (auto p : regions_) {
+      Region* r = p.second.get();
+      r->network_ = this;
+      std::set<UInt32> phases = r->getPhases();
+      setPhases_(r, phases);
+    }
+    for(auto alink: links) {
+      auto l = link( alink->getSrcRegionName(),
+                     alink->getDestRegionName(),
+                     "", "",
+                     alink->getSrcOutputName(),
+                     alink->getDestInputName(),
+                     alink->getPropagationDelay());
+      l->propagationDelayBuffer_ = alink->propagationDelayBuffer_;
+    }
+    post_load();
+  }
 
   /**
    * @}
@@ -207,7 +245,7 @@ public:
    *            iterations involving the link as input; the delay vectors, if
    *            any, are initially populated with 0's. Defaults to 0=no delay
    */
-  void link(const std::string &srcName, const std::string &destName,
+  std::shared_ptr<Link> link(const std::string &srcName, const std::string &destName,
             const std::string &linkType="", const std::string &linkParams="",
             const std::string &srcOutput = "",
             const std::string &destInput = "",
@@ -242,7 +280,7 @@ public:
    *
    * @returns A Collection of Region objects in the network
    */
-  const Collection<std::shared_ptr<Region> > &getRegions() const;
+  const std::map<std::string, std::shared_ptr<Region>> &getRegions() const;
   std::shared_ptr<Region> getRegion(const std::string& name) const;
 
   /**
@@ -250,7 +288,7 @@ public:
    *
    * @returns A Collection of Link objects in the network
    */
-  Collection<std::shared_ptr<Link>> getLinks();
+  std::vector<std::shared_ptr<Link>> getLinks();
 
   /**
    * Set phases for a region.
@@ -409,7 +447,8 @@ private:
   void commonInit();
 
 
-
+  // perform actions after serialization load
+  void post_load();
 
   // internal method using region pointer instead of name
   void setPhases_(Region *r, std::set<UInt32> &phases);
@@ -423,7 +462,7 @@ private:
   void resetEnabledPhases_();
 
   bool initialized_;
-  Collection<std::shared_ptr<Region>> regions_;
+  std::map<std::string, std::shared_ptr<Region>> regions_;
 
   UInt32 minEnabledPhase_;
   UInt32 maxEnabledPhase_;

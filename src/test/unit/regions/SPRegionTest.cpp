@@ -109,11 +109,11 @@ namespace testing
 	  VERBOSE << "Creating network..." << std::endl;
 	  Network net;
 
-	  size_t regionCntBefore = net.getRegions().getCount();
+	  size_t regionCntBefore = net.getRegions().size();
 
 	  VERBOSE << "Adding a built-in SPRegion region..." << std::endl;
 	  std::shared_ptr<Region> region1 = net.addRegion("region1", "SPRegion", "");
-	  size_t regionCntAfter = net.getRegions().getCount();
+	  size_t regionCntAfter = net.getRegions().size();
 	  ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter) << " Expected number of regions to increase by one.  ";
 	  ASSERT_TRUE(region1->getType() == "SPRegion") << " Expected type for region1 to be \"SPRegion\" but type is: " << region1->getType();
 
@@ -135,7 +135,7 @@ namespace testing
     VERBOSE << "Creating network..." << std::endl;
     Network net;
 
-    size_t regionCntBefore = net.getRegions().getCount();
+    size_t regionCntBefore = net.getRegions().size();
 
     // make sure the custom region registration works for CPP.
     // We will just use the same SPRegion class but it could be a subclass or some different custom class.
@@ -147,7 +147,7 @@ namespace testing
     VERBOSE << "Adding a custom-built SPRegion region..." << std::endl;
     net.registerRegion("SPRegionCustom", new RegisteredRegionImplCpp<SPRegion>());
     std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegionCustom", nodeParams);
-    size_t regionCntAfter = net.getRegions().getCount();
+    size_t regionCntAfter = net.getRegions().size();
     ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter) 
       << "  Expected number of regions to increase by one.  ";
     ASSERT_TRUE(region2->getType() == "SPRegionCustom") 
@@ -315,7 +315,7 @@ TEST(SPRegionTest, testSerialization)
     net1.initialize();
 
     n1region1->setParameterReal64("sensedValue", 5.5);
-		net1->run(1);
+		net1.run(1);
 
     // take a snapshot of everything in SPRegion at this point
     std::map<std::string, std::string> parameterMap;
@@ -328,7 +328,7 @@ TEST(SPRegionTest, testSerialization)
     net2.loadFromFile_ar("TestOutputDir/spRegionTest.stream");
 
 
-	  std::shared_ptr<Region> n2region2 = net2.getRegions().getByName("region2");
+	  std::shared_ptr<Region> n2region2 = net2.getRegion("region2");
 
 	  ASSERT_TRUE (n2region2->getType() == "SPRegion") 
 	    << " Restored SPRegion region does not have the right type.  Expected SPRegion, found " << n2region2->getType();
@@ -366,7 +366,7 @@ TEST(SPRegionTest, testSerialization)
 
 	  VERBOSE << "Restore into a third network and compare changed parameters.\n";
     net3.loadFromFile_ar("TestOutputDir/spRegionTest.stream");
-	  std::shared_ptr<Region> n3region2 = net3.getRegions().getByName("region2");
+	  std::shared_ptr<Region> n3region2 = net3.getRegion("region2");
     EXPECT_TRUE(n3region2->getType() == "SPRegion")
         << "Failure: Restored region does not have the right type. "
             " Expected \"SPRegion\", found \""
