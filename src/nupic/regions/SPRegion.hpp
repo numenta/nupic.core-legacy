@@ -70,6 +70,91 @@ class SPRegion  : public RegionImpl
 
     void serialize(BundleIO& bundle) override;
     void deserialize(BundleIO& bundle) override;
+		
+
+		CerealAdapter;  // see Serializable.hpp
+	  // FOR Cereal Serialization
+	  template<class Archive>
+	  void save_ar(Archive& ar) const {
+	    bool init = ((sp_) ? true : false);
+	    ar(cereal::make_nvp("inputWidth", args_.inputWidth));
+	    ar(cereal::make_nvp("columnCount", args_.columnCount));
+	    ar(cereal::make_nvp("potentialRadius", args_.potentialRadius));
+	    ar(cereal::make_nvp("potentialPct", args_.potentialPct));
+	    ar(cereal::make_nvp("globalInhibition", args_.globalInhibition));
+	    ar(cereal::make_nvp("localAreaDensity", args_.localAreaDensity));
+	    ar(cereal::make_nvp("numActiveColumnsPerInhArea", args_.numActiveColumnsPerInhArea));
+	    ar(cereal::make_nvp("stimulusThreshold", args_.stimulusThreshold));
+	    ar(cereal::make_nvp("synPermInactiveDec", args_.synPermInactiveDec));
+	    ar(cereal::make_nvp("synPermActiveInc", args_.synPermActiveInc));
+	    ar(cereal::make_nvp("synPermConnected", args_.synPermConnected));
+	    ar(cereal::make_nvp("minPctOverlapDutyCycles", args_.minPctOverlapDutyCycles));
+	    ar(cereal::make_nvp("dutyCyclePeriod", args_.dutyCyclePeriod));
+	    ar(cereal::make_nvp("boostStrength", args_.boostStrength));
+	    ar(cereal::make_nvp("seed", args_.seed));
+	    ar(cereal::make_nvp("spVerbosity", args_.spVerbosity));
+	    ar(cereal::make_nvp("wrapAround", args_.wrapAround));
+	    ar(cereal::make_nvp("learningMode", args_.learningMode));
+	    ar(cereal::make_nvp("init", init));
+	    if (init) {
+	      // save the output buffers
+	      // The output buffers are saved as part of the Region Implementation.
+	      cereal::size_type numBuffers = 0;
+	      std::map<std::string, Output *> outputs = region_->getOutputs();
+	      numBuffers = outputs.size();
+	      ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
+	      for (auto iter : outputs) {
+	        const Array &outputBuffer = iter.second->getData();
+	        ar(cereal::make_map_item(iter.first, outputBuffer));
+	      }
+	      // Save the algorithm state
+	      ar(cereal::make_nvp("SP", sp_));
+	    }
+		}
+
+	  // FOR Cereal Deserialization
+	  template<class Archive>
+	  void load_ar(Archive& ar) {
+	    bool init;
+	    ar(cereal::make_nvp("inputWidth", args_.inputWidth));
+	    ar(cereal::make_nvp("columnCount", args_.columnCount));
+	    ar(cereal::make_nvp("potentialRadius", args_.potentialRadius));
+	    ar(cereal::make_nvp("potentialPct", args_.potentialPct));
+	    ar(cereal::make_nvp("globalInhibition", args_.globalInhibition));
+	    ar(cereal::make_nvp("localAreaDensity", args_.localAreaDensity));
+	    ar(cereal::make_nvp("numActiveColumnsPerInhArea", args_.numActiveColumnsPerInhArea));
+	    ar(cereal::make_nvp("stimulusThreshold", args_.stimulusThreshold));
+	    ar(cereal::make_nvp("synPermInactiveDec", args_.synPermInactiveDec));
+	    ar(cereal::make_nvp("synPermActiveInc", args_.synPermActiveInc));
+	    ar(cereal::make_nvp("synPermConnected", args_.synPermConnected));
+	    ar(cereal::make_nvp("minPctOverlapDutyCycles", args_.minPctOverlapDutyCycles));
+	    ar(cereal::make_nvp("dutyCyclePeriod", args_.dutyCyclePeriod));
+	    ar(cereal::make_nvp("boostStrength", args_.boostStrength));
+	    ar(cereal::make_nvp("seed", args_.seed));
+	    ar(cereal::make_nvp("spVerbosity", args_.spVerbosity));
+	    ar(cereal::make_nvp("wrapAround", args_.wrapAround));
+	    ar(cereal::make_nvp("learningMode", args_.learningMode));
+			ar(cereal::make_nvp("dim", dim_);  // from RegionImpl
+	    ar(cereal::make_nvp("init", init));
+	    if (init) {
+	      // restore the output buffers
+	      // The output buffers are saved as part of the Region Implementation.
+	      cereal::size_type numBuffers;
+	      ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
+	      for (cereal::size_type i = 0; i < numBuffers; i++) {
+	        std::string name;
+	        Array output;
+	        ar(cereal::make_map_item(name, output));
+	        Array& outputBuffer = getOutput(name)->getData();
+	        outputBuffer = output;
+	      }
+	      // Restore algorithm state
+	      algorithms::spatial_pooler::SpatialPooler* sp = new algorithms::spatial_pooler::SpatialPooler();
+	      sp_.reset(sp);
+	      ar(cereal::make_nvp("SP", sp_));
+	    }
+	  }
+
 
 
     // Per-node size (in elements) of the given output.
