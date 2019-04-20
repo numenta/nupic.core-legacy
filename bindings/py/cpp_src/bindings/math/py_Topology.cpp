@@ -1,6 +1,7 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2019, David McDougall
+ * Copyright (C) 2013, Numenta, Inc.
+ *               2019, David McDougall
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
