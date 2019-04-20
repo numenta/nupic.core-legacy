@@ -23,12 +23,46 @@
 
 import unittest
 
-from nupic.bindings.math import (coordinatesFromIndex,
+from nupic.bindings.math import (DefaultTopology,
+                                 NoTopology,
+                                 coordinatesFromIndex,
                                  indexFromCoordinates,
                                  neighborhood,
                                  wrappingNeighborhood)
 
+from nupic.bindings.math import Random
+from nupic.bindings.sdr import SDR
+
 class TestTopology(unittest.TestCase):
+
+  def testDefaultTopology(self):
+    rng     = Random( 42 )
+    presyn  = SDR([10,10])
+    postsyn = SDR([10,10])
+    postsyn.dense[0,4] = 1
+    postsyn.dense = postsyn.dense
+    noWrap = DefaultTopology( 1.0, 1.1, False )
+    noWrapPP = noWrap( postsyn, presyn.dimensions, rng )
+    assert( noWrapPP.dimensions == presyn.dimensions )
+    assert( set(noWrapPP.sparse) == set([ 3, 4, 5, 13, 14, 15 ]))
+
+    wrap   = DefaultTopology( 1.0, 1.1, True )
+    wrapPP = wrap( postsyn, presyn.dimensions, rng )
+    assert( set(wrapPP.sparse) == set([ 3, 4, 5, 13, 14, 15, 93, 94, 95 ]))
+
+    potentialPct = DefaultTopology( 0.5, 1.1, False )
+    assert( potentialPct( postsyn, presyn.dimensions, rng ).getSum() == 3 )
+
+  def testNoTopology(self):
+    rng = Random( 42 )
+    presyn  = SDR([5,6,7,8])
+    postsyn = SDR([6,5,4,3,2,1])
+    postsyn.randomize( 1. / postsyn.size )
+    for sparsity in (0., 1., 1. / presyn.size ):
+      function = NoTopology( sparsity )
+      pp = function( postsyn, presyn.dimensions, rng )
+      assert( pp.dimensions == presyn.dimensions )
+      assert( abs(pp.getSparsity() - sparsity) < (.25 / presyn.size))
 
   def testIndexFromCoordinates(self):
     self.assertEqual(0, indexFromCoordinates((0,), (100,)))

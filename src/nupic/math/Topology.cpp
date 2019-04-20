@@ -42,6 +42,9 @@ Topology_t  DefaultTopology(
     Real potentialRadius,
     bool wrapAround)
 {
+  NTA_CHECK( potentialPct >= 0.0f );
+  NTA_CHECK( potentialPct <= 1.0f );
+  NTA_CHECK( potentialRadius >= 0.0f );
   return [=] (const SDR& cell, const vector<UInt>& potentialPoolDimensions, Random &rng) -> SDR {
     // Uniform topology over trailing input dimensions.
     auto inputTopology = potentialPoolDimensions;
@@ -94,6 +97,8 @@ Topology_t  DefaultTopology(
 
 Topology_t NoTopology(Real potentialPct)
 {
+  NTA_CHECK( potentialPct >= 0.0f );
+  NTA_CHECK( potentialPct <= 1.0f );
   return [=](const SDR& cell, const vector<UInt>& potentialPoolDimensions, Random &rng) -> SDR {
     SDR potentialPool( potentialPoolDimensions );
     potentialPool.randomize( potentialPct, rng );

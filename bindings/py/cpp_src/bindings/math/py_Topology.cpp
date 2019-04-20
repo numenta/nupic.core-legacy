@@ -22,6 +22,7 @@
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
 namespace py = pybind11;
 
 #include <vector>
@@ -38,10 +39,14 @@ namespace nupic_ext {
         m.doc() = "";
 
         m.def("DefaultTopology", &DefaultTopology,
-R"( TODO Docs & args )");
+R"( TODO Docs )",
+            py::arg("potentialPct"),
+            py::arg("potentialRadius"),
+            py::arg("wrapAround"));
 
         m.def("NoTopology", &NoTopology,
-R"( TODO Docs & args )");
+R"( TODO Docs )",
+            py::arg("potentialPct"));
 
 
         m.def("coordinatesFromIndex", &coordinatesFromIndex,
