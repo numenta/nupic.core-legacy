@@ -134,7 +134,7 @@ class SPRegion  : public RegionImpl
 	    ar(cereal::make_nvp("spVerbosity", args_.spVerbosity));
 	    ar(cereal::make_nvp("wrapAround", args_.wrapAround));
 	    ar(cereal::make_nvp("learningMode", args_.learningMode));
-			ar(cereal::make_nvp("dim", dim_);  // from RegionImpl
+			ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
 	      // restore the output buffers
