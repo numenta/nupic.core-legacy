@@ -17,8 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ----------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------- */
 
 /** @file
  * Topology helpers
@@ -28,12 +27,26 @@
 #define NTA_TOPOLOGY_HPP
 
 #include <vector>
+#include <functional>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Sdr.hpp>
+#include <nupic/utils/Random.hpp>
 
 namespace nupic {
 namespace math {
 namespace topology {
+
+// TODO: Docs
+typedef std::function<sdr::SDR (const sdr::SDR&, const std::vector<UInt>&, Random&)> Topology_t;
+
+// TODO: Docs
+Topology_t  DefaultTopology(Real potentialPct,
+                            Real potentialRadius,
+                            bool wrapAround);
+
+// TODO: Docs
+Topology_t NoTopology(Real potentialPct);
 
 /**
  * Translate an index into coordinates, using the given coordinate system.
