@@ -54,7 +54,7 @@ R"(Translate an index into coordinates, using the given coordinate system.
 
 Argument index of the point. The coordinates are expressed as a
 single index by using the dimensions as a mixed radix definition. For example,
-in dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.
+in dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
 
 Argument dimensions is the coordinate system.
 
@@ -71,7 +71,7 @@ Argument dimensions is the coordinate system.
 
 Returns the index of the point. The coordinates are expressed as a single index
 by using the dimensions as a mixed radix definition. For example, in
-dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.)",
+dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.)",
             py::arg("index"),
             py::arg("dimensions"));
 
@@ -93,7 +93,7 @@ if there are two dimensions and the radius is 3, the neighborhood is
 
 Argument centerIndex is the center of this neighborhood. The coordinates are
 expressed as a single index by using the dimensions as a mixed radix definition.
-For example, in dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.
+For example, in dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
 
 Argument radius is of this neighborhood about the centerIndex.
 
@@ -116,7 +116,7 @@ truncated when it's near an edge. It wraps around to the other side.
 
 Argument centerIndex is the center of this neighborhood. The coordinates are
 expressed as a single index by using the dimensions as a mixed radix definition.
-For example, in dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.
+For example, in dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
 
 Argument radius is of this neighborhood about the centerIndex.
 

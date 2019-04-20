@@ -114,7 +114,7 @@ Topology_t NoTopology(Real potentialPct);
  * @param index
  * The index of the point. The coordinates are expressed as a single index
  * by using the dimensions as a mixed radix definition. For example, in
- * dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.
+ * dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  *
  * @param dimensions
  * The coordinate system.
@@ -137,7 +137,7 @@ std::vector<UInt> coordinatesFromIndex(UInt index,
  * @returns
  * The index of the point. The coordinates are expressed as a single index
  * by using the dimensions as a mixed radix definition. For example, in
- * dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.
+ * dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  */
 UInt indexFromCoordinates(const std::vector<UInt> &coordinates,
                           const std::vector<UInt> &dimensions);
@@ -183,8 +183,7 @@ UInt indexFromCoordinates(const std::vector<UInt> &coordinates,
  * @param centerIndex
  * The center of this neighborhood. The coordinates are expressed as a
  * single index by using the dimensions as a mixed radix definition. For
- * example, in dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 =
- * 460.
+ * example, in dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  *
  * @param radius
  * The radius of this neighborhood about the centerIndex.
@@ -233,8 +232,7 @@ private:
  * @param centerIndex
  * The center of this neighborhood. The coordinates are expressed as a
  * single index by using the dimensions as a mixed radix definition. For
- * example, in dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 =
- * 460.
+ * example, in dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  *
  * @param radius
  * The radius of this neighborhood about the centerIndex.
