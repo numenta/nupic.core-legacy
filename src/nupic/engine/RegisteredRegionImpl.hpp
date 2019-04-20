@@ -67,7 +67,8 @@
 namespace nupic
 {
   class Spec;
-  class BundleIO;
+  class BundleIO;  // TODO:cereal Remove
+  class ArWrapper;
   class RegionImpl;
   class Region;
   class ValueMap;
@@ -85,7 +86,8 @@ namespace nupic
 
     virtual RegionImpl* createRegionImpl( ValueMap& params, Region *region) = 0;
 
-    virtual RegionImpl* deserializeRegionImpl( BundleIO& params, Region *region) = 0;
+    virtual RegionImpl* deserializeRegionImpl( BundleIO& params, Region *region) = 0; // TODO:cereal Remove
+    virtual RegionImpl* deserializeRegionImpl( ArWrapper& wrapper, Region *region) = 0;
 
     virtual Spec* createSpec() = 0;
 

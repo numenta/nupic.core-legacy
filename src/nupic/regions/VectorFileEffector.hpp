@@ -72,6 +72,9 @@ public:
   VectorFileEffector(const ValueMap &params, Region *region);
 
   VectorFileEffector(BundleIO &bundle, Region *region);
+  VectorFileEffector(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
+    // TODO:cereal  complete.
+  }
 
   virtual ~VectorFileEffector();
 

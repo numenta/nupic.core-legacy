@@ -28,7 +28,6 @@
 #define NTA_OUTPUT_HPP
 
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/engine/Region.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp> // temporary, while impl is in this file
 #include <set>
@@ -53,8 +52,8 @@ public:
    * @param type
    *        The type of the output
    */
-  Output(Region* region, 
-         const std::string& outputName, 
+  Output(Region* region,
+         const std::string& outputName,
          NTA_BasicType type);
 
   /**
@@ -128,14 +127,14 @@ public:
 
   /**
    * Get the data of the output.
-   * @returns 
+   * @returns
    *     A reference to the data of the output as an @c Array
    * @note we should return a const Array so caller can't
    * reallocate the buffer. Howerver, we do need to be able to
    * change the content of the buffer. So it cannot be const.
    */
   Array &getData() { return data_; }
-  const Array &getData() const { return data_;} 
+  const Array &getData() const { return data_;}
 
   /**
    *  Get the data type of the output

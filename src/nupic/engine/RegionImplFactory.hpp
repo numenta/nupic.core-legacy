@@ -36,6 +36,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <nupic/types/Serializable.hpp>
 
 
 
@@ -60,9 +61,12 @@ public:
   RegionImpl *createRegionImpl(const std::string nodeType,
                                const std::string nodeParams, Region *region);
 
-  // Create a RegionImpl from serialized state; caller gets ownership.
+  // Create a RegionImpl from serialized state; caller gets ownership. TODO:cereal Remove
   RegionImpl *deserializeRegionImpl(const std::string nodeType,
                                     BundleIO &bundle, Region *region);
+  // Create a RegionImpl from serialized state; caller gets ownership.
+  RegionImpl *deserializeRegionImpl(const std::string nodeType,
+                                    ArWrapper &wrapper, Region *region);
 
 
   // Returns node spec for a specific node type as a shared pointer.

@@ -286,6 +286,9 @@ public:
   VectorFileSensor(const ValueMap &params, Region *region);
 
   VectorFileSensor(BundleIO &bundle, Region *region);
+  VectorFileSensor(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
+    // TODO:cereal  complete.
+  }
 
   virtual ~VectorFileSensor();
 
