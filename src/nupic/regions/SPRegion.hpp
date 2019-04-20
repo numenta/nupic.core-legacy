@@ -42,11 +42,14 @@ namespace nupic
 {
 
 
-class SPRegion  : public RegionImpl
+class SPRegion  : public RegionImpl, Serializable
 {		
   public:
     SPRegion(const ValueMap& params, Region *region);
     SPRegion(BundleIO& bundle, Region* region);
+    SPRegion(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
+      // TODO:cereal  complete.
+    }
     virtual ~SPRegion();
 
 

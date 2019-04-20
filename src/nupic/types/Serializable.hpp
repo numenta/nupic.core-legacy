@@ -41,6 +41,7 @@
 
 #define CEREAL_SAVE_FUNCTION_NAME save_ar
 #define CEREAL_LOAD_FUNCTION_NAME load_ar
+#define CEREAL_SERIALIZE_FUNCTION_NAME serialize_ar
 #include <cereal/cereal.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/portable_binary.hpp>
@@ -77,6 +78,8 @@
 #include <cereal/types/vector.hpp>  // for serializing std::vector
 #include <cereal/types/string.hpp>  // for serializing std::string
 #include <cereal/types/map.hpp>     // for serializing std::map
+#include <cereal/types/set.hpp>     // for serializing std::set
+#include <cereal/types/deque.hpp>   // for serializing std::deque
 
 #define SERIALIZABLE_VERSION 3
 
@@ -171,6 +174,15 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 class ArWrapper {
 public:
   ArWrapper() { }
+  ArWrapper(cereal::BinaryOutputArchive* ar)         { fmt = SerializableFormat::BINARY; binary_out = ar; }
+  ArWrapper(cereal::PortableBinaryOutputArchive* ar) { fmt = SerializableFormat::PORTABLE; portable_out = ar; }
+  ArWrapper(cereal::JSONOutputArchive* ar)           { fmt = SerializableFormat::JSON; json_out = ar; }
+  ArWrapper(cereal::XMLOutputArchive* ar)            { fmt = SerializableFormat::XML; xml_out = ar; }
+  ArWrapper(cereal::BinaryInputArchive* ar)          { fmt = SerializableFormat::BINARY; binary_in = ar; }
+  ArWrapper(cereal::PortableBinaryInputArchive* ar)  { fmt = SerializableFormat::PORTABLE; portable_in = ar; }
+  ArWrapper(cereal::JSONInputArchive* ar)            { fmt = SerializableFormat::JSON; json_in = ar; }
+  ArWrapper(cereal::XMLInputArchive* ar)             { fmt = SerializableFormat::XML; xml_in = ar; }
+
   SerializableFormat fmt;
   cereal::BinaryOutputArchive* binary_out;
   cereal::PortableBinaryOutputArchive* portable_out;
@@ -180,6 +192,7 @@ public:
   cereal::PortableBinaryInputArchive* portable_in;
   cereal::JSONInputArchive* json_in;
   cereal::XMLInputArchive* xml_in;
+
 };
 
 
@@ -293,12 +306,17 @@ public:
 		}
   }
 
+    
+
+
   // Note: if you get a compile error saying this is not defined,
   //       or that "cannot instantiate abstract class"
   //       add the macro 'CerealAdapter' in the derived class.
   // TODO:Cereal- make these pure virtual when Cereal is included everywhere.
   virtual void cereal_adapter_save(ArWrapper& a) const {};
   virtual void cereal_adapter_load(ArWrapper& a) {};
+
+
 	
 
   virtual ~Serializable() {}
