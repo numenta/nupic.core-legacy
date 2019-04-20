@@ -38,7 +38,7 @@ namespace math {
 namespace topology {
 
 /**
- * Topology is a function which returns the pool of potential synapses for a
+ * Topology_t is a function which returns the pool of potential synapses for a
  * given cell.
  *
  * Argument 1: is an SDR representing the postsynaptic cell.  Topology functions
@@ -71,7 +71,7 @@ namespace topology {
 typedef std::function<sdr::SDR (const sdr::SDR&, const std::vector<UInt>&, Random&)> Topology_t;
 
 /**
- * @param potentialRadius This parameter determines the extent of the
+ * @param potentialRadius: This parameter determines the extent of the
  *       input that each output can potentially be connected to. This
  *       can be thought of as the input bits that are visible to each
  *       output, or a 'receptive field' of the field of vision. A large
@@ -81,7 +81,7 @@ typedef std::function<sdr::SDR (const sdr::SDR&, const std::vector<UInt>&, Rando
  *       output will have a max square potential pool with sides of
  *       length (2 * potentialRadius + 1).
  *
- * @param potentialPct The percent of the inputs, within a output's
+ * @param potentialPct: The percent of the inputs, within a output's
  *       potential radius, that an output can be connected to. If set to
  *       1, the output will be connected to every input within its
  *       potential radius. This parameter is used to give each output a
@@ -90,7 +90,7 @@ typedef std::function<sdr::SDR (const sdr::SDR&, const std::vector<UInt>&, Rando
  *       ((2*potentialRadius + 1)^(# inputDimensions) * potentialPct)
  *       input bits to comprise the output's potential pool.
  *
- * @param wrapAround boolean value that determines whether or not inputs
+ * @param wrapAround: boolean value that determines whether or not inputs
  *       at the beginning and end of an input dimension are considered
  *       neighbors for the purpose of mapping inputs to outputs.
  */

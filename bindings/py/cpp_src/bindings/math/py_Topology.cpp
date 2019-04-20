@@ -36,16 +36,40 @@ namespace nupic_ext {
 
     void init_Topology(py::module& m)
     {
-        m.doc() = "";
-
         m.def("DefaultTopology", &DefaultTopology,
-R"( TODO Docs )",
+R"(Argument potentialRadius: This parameter determines the extent of the
+    input that each output can potentially be connected to. This
+    can be thought of as the input bits that are visible to each
+    output, or a 'receptive field' of the field of vision. A large
+    enough value will result in global coverage, meaning
+    that each output can potentially be connected to every input
+    bit. This parameter defines a square (or hyper square) area: an
+    output will have a max square potential pool with sides of
+    length (2 * potentialRadius + 1).
+
+Argument potentialPct: The percent of the inputs, within a output's
+    potential radius, that an output can be connected to. If set to
+    1, the output will be connected to every input within its
+    potential radius. This parameter is used to give each output a
+    unique potential pool when a large potentialRadius causes
+    overlap between the outputs. At initialization time we choose
+    ((2*potentialRadius + 1)^(# inputDimensions) * potentialPct)
+    input bits to comprise the output's potential pool.
+
+Argument wrapAround: boolean value that determines whether or not inputs
+    at the beginning and end of an input dimension are considered
+    neighbors for the purpose of mapping inputs to outputs.)",
             py::arg("potentialPct"),
             py::arg("potentialRadius"),
             py::arg("wrapAround"));
 
         m.def("NoTopology", &NoTopology,
-R"( TODO Docs )",
+R"(All inputs have a uniformly equal probability of being sampled into an
+outputs potential pool.  This does not depend on the relative locations of
+the input and output.
+
+Argument potentialPct: The percent of inputs which each output is potentially
+     connected to.)",
             py::arg("potentialPct"));
 
 
