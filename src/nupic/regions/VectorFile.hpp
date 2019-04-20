@@ -33,6 +33,7 @@
 
 #include <fstream>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <vector>
 
 namespace nupic {
@@ -42,7 +43,7 @@ namespace nupic {
  *  interest are its ability to read in different text file formats and its
  *  ability to dynamically scale its outputs.
  */
-class VectorFile {
+class VectorFile : public Serializable {
 public:
   VectorFile();
   virtual ~VectorFile();
@@ -124,6 +125,32 @@ public:
 
   void save(std::ostream &f);
   void load(std::istream &f);
+	
+	CerealAdapter;  // See Serializable.hpp
+	void save_ar(Archive& ar) { 
+	  UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
+		size_t nRows = fileVectors_.size();
+		size_t nCols = scaleVector_.size();
+		std::stringsteam ss;
+	  saveVectors(ss, nCols, format);
+		std::string data = ss.str();
+    ar(cereal::make_nvp("format", format),
+		   cereal::make_nvp("nRows", nRows),
+			 cereal::make_nvp("nCols", nCols),
+		   cereal::make_nvp("scaleVector", scaleVector_),
+		   cereal::make_nvp("offsetVector", offsetVector_),
+			 cereal::make_nvp("data", data));
+	}
+	void load(Archive& ar) { 
+	  UInt32 format;     // format (1 if labled, 2 if not)
+		size_t nRows;
+		size_t nCols;
+		std::string data;
+    ar( format, nRows,  nCols, scaleVector_, offsetVector_, data);
+		std::stringstream ss(data);
+	  loadVectors(ss, nRows, nCols, format);
+	}
+	
 
 private:
   std::vector<Real *> fileVectors_; // list of vectors

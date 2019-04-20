@@ -37,6 +37,7 @@
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/regions/VectorFile.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 class ValueMap;
@@ -94,7 +95,7 @@ class ValueMap;
  *
  */
 
-class VectorFileSensor : public RegionImpl {
+class VectorFileSensor : public RegionImpl, Serializable {
 public:
   //------ Static methods for plug-in API ------------------------------------
 
@@ -297,6 +298,58 @@ public:
   /// De-serialize state from bundle
   // ---
   virtual void deserialize(BundleIO &bundle) override;
+	
+
+	CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(cereal::make_nvp("repeatCount_", repeatCount_));
+    ar(cereal::make_nvp("activeOutputCount_", activeOutputCount_));
+    ar(cereal::make_nvp("curVector_", curVector_));
+    ar(cereal::make_nvp("hasCategoryOut_", hasCategoryOut_));
+    ar(cereal::make_nvp("hasResetOut_", hasResetOut_));
+    ar(cereal::make_nvp("filename_", filename_));
+    ar(cereal::make_nvp("scalingMode_", scalingMode_));
+    ar(cereal::make_nvp("recentFile_", recentFile_));
+    ar(cereal::make_nvp("vectorFile", vectorFile_));
+    // save the output buffers
+    // The output buffers are saved as part of the Region Implementation.
+    cereal::size_type numBuffers = 0;
+    std::map<std::string, Output *> outputs = region_->getOutputs();
+    numBuffers = outputs.size();
+    ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
+    for (auto iter : outputs) {
+      const Array &outputBuffer = iter.second->getData();
+      ar(cereal::make_map_item(iter.first, outputBuffer));
+    }
+  }
+
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(cereal::make_nvp("repeatCount_", repeatCount_));
+    ar(cereal::make_nvp("activeOutputCount_", activeOutputCount_));
+    ar(cereal::make_nvp("curVector_", curVector_));
+    ar(cereal::make_nvp("hasCategoryOut_", hasCategoryOut_));
+    ar(cereal::make_nvp("hasResetOut_", hasResetOut_));
+    ar(cereal::make_nvp("filename_", filename_));
+    ar(cereal::make_nvp("scalingMode_", scalingMode_));
+    ar(cereal::make_nvp("recentFile_", recentFile_));
+    ar(cereal::make_nvp("vectorFile", vectorFile_));
+    // restore the output buffers
+    // The output buffers are saved as part of the Region Implementation.
+    cereal::size_type numBuffers;
+    ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
+    for (cereal::size_type i = 0; i < numBuffers; i++) {
+      std::string name;
+      Array output;
+      ar(cereal::make_map_item(name, output));
+      Array& outputBuffer = getOutput(name)->getData();
+      outputBuffer = output;
+    }
+  }	
+
 
   void compute() override;
   virtual std::string executeCommand(const std::vector<std::string> &args,

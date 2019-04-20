@@ -34,6 +34,7 @@
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -58,7 +59,7 @@ class ValueMap;
  *  nodeSpec.
  *
  */
-class VectorFileEffector : public RegionImpl {
+class VectorFileEffector : public RegionImpl, Serializable {
 public:
   static Spec *createSpec();
   size_t getNodeOutputElementCount(const std::string &outputName) const override;
@@ -83,6 +84,22 @@ public:
   /// De-serialize state from bundle
   // ---
   virtual void deserialize(BundleIO &bundle) override;
+	
+
+	CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(cereal::make_nvp("outputFile", filename_));
+  }
+
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(cereal::make_nvp("outputFile", filename_);
+		if (filename_ != "")
+		      openFile(filename_);
+  }	
 
 
   void compute() override;
