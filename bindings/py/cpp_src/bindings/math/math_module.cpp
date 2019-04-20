@@ -35,6 +35,7 @@ namespace nupic_ext
 {
     void init_Random(py::module&);
     void init_reals(py::module&);
+    void init_Topology(py::module&);
 } // namespace nupic_ext
 
 using namespace nupic_ext;
@@ -44,4 +45,5 @@ PYBIND11_MODULE(math, m) {
 
     init_Random(m);
     init_reals(m);
+    init_Topology(m);
 }
