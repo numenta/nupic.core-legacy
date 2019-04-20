@@ -31,6 +31,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/regions/VectorFileSensor.hpp>

@@ -53,9 +53,13 @@ ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
 }
 
 ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
-    : RegionImpl(region) {
+    : RegionImpl(region) {  // TODO:cereal Remove
   deserialize(bundle);
 }
+ScalarSensor::ScalarSensor(ArWrapper &wrapper, Region *region):RegionImpl(region) {
+  // TODO:cereal Finish      cereal_adapter_load(wrapper);
+}
+
 
 void ScalarSensor::compute()
 {

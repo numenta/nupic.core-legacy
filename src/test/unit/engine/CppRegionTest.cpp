@@ -43,6 +43,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>  // for max()
+#include <sstream>
 
 
 namespace testing {
@@ -270,5 +271,21 @@ TEST(CppRegionTest, realmain) {
   // set the actual output
   data_actual[1] = 54321.0;
 }
+
+
+TEST(CppRegionTest, RegionSerialization) {
+	Network n;
+	
+	std::shared_ptr<Region> r1 = n.addRegion("testnode", "TestNode", "{count: 2}");
+	
+	std::stringstream ss;
+	r1->saveToStream_ar(ss);
+	
+	Region r2(&n);
+	r2.loadFromStream_ar(ss);
+	EXPECT_EQ(*r1.get(), r2);
+
+}
+
 
 } //ns
