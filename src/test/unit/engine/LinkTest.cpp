@@ -39,6 +39,7 @@
 #include <nupic/engine/RegisteredRegionImplCpp.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/regions/TestNode.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Directory.hpp>
@@ -128,7 +129,8 @@ TEST(LinkTest, DelayedLink) {
     MyTestNode(const ValueMap &params, Region *region)
         : TestNode(params, region) {}
 
-    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}
+    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}  // TODO:cereal Remove
+    MyTestNode(ArWrapper &wrapper, Region *region) : TestNode(wrapper, region) {}
 
 
     std::string getNodeType() { return "MyTestNode"; }
@@ -256,7 +258,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
     MyTestNode(const ValueMap &params, Region *region)
         : TestNode(params, region) {}
 
-    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}
+    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}  // TODO:cereal Remove
+    MyTestNode(ArWrapper &wrapper, Region *region) : TestNode(wrapper, region) {}
 
 
     std::string getNodeType() { return "MyTestNode"; };
@@ -478,14 +481,15 @@ TEST(LinkTest, DelayedLinkSerialization) {
  * Base class for region implementations in this test module. See also
  * L2TestRegion and L4TestRegion.
  */
-class TestRegionBase : public RegionImpl {
+class TestRegionBase : public RegionImpl, Serializable {
 public:
   TestRegionBase(const ValueMap &params, Region *region) : RegionImpl(region) {
 
     outputElementCount_ = 1;
   }
 
-  TestRegionBase(BundleIO &bundle, Region *region) : RegionImpl(region) {}
+  TestRegionBase(BundleIO &bundle, Region *region) : RegionImpl(region) {}  // TODO:cereal Remove
+  TestRegionBase(ArWrapper &wrapper, Region *region) : RegionImpl(region) {}
 
 
   virtual ~TestRegionBase() {}
@@ -533,6 +537,8 @@ public:
 
   L2TestRegion(BundleIO &bundle, Region *region)
       : TestRegionBase(bundle, region) {}
+  L2TestRegion(ArWrapper &wrapper, Region *region)
+      : TestRegionBase(wrapper, region) {}
 
 
   virtual ~L2TestRegion() {}
@@ -629,8 +635,10 @@ public:
   L4TestRegion(const ValueMap &params, Region *region)
       : TestRegionBase(params, region), k_(params.getScalarT<UInt64>("k")) {}
 
-  L4TestRegion(BundleIO &bundle, Region *region)
+  L4TestRegion(BundleIO &bundle, Region *region)  // TODO:cereal Remove
       : TestRegionBase(bundle, region), k_(0) {}
+  L4TestRegion(ArWrapper &wrapper, Region *region)
+      : TestRegionBase(wrapper, region), k_(0) {}
 
 
   virtual ~L4TestRegion() {}
