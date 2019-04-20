@@ -37,15 +37,75 @@ namespace nupic {
 namespace math {
 namespace topology {
 
-// TODO: Docs
+/**
+ * Topology is a function which returns the pool of potential synapses for a
+ * given cell.
+ *
+ * Argument 1: is an SDR representing the postsynaptic cell.  Topology functions
+ * return the inputs which may connect to this cell.  This SDR contains a single
+ * true bit.
+ *
+ * Argument 2: is the dimensions of the presynaptic cells.
+ *
+ * Argument 3: is a random number generator to use for reproducible results.
+ *
+ * Returns: an SDR containing all presynaptic cells which are allowed to connect
+ * to the postsynaptic cell.  The dimensions of this SDR must equal argument 2.
+ *
+ * Example Usage:
+ *    // Here is the implementation of the NoTopology function.
+ *
+ *    Topology_t NoTopology( Real potentialPct )
+ *    {
+ *      // Define the topology as a lambda function.
+ *      return [=]( const SDR          &cell,
+ *                  const vector<UInt> &potentialPoolDimensions,
+ *                  Random             &rng) -> SDR
+ *      {
+ *        SDR potentialPool( potentialPoolDimensions );
+ *        potentialPool.randomize( potentialPct, rng );
+ *        return potentialPool;
+ *      };
+ *    }
+ */
 typedef std::function<sdr::SDR (const sdr::SDR&, const std::vector<UInt>&, Random&)> Topology_t;
 
-// TODO: Docs
+/**
+ * @param potentialRadius This parameter determines the extent of the
+ *       input that each output can potentially be connected to. This
+ *       can be thought of as the input bits that are visible to each
+ *       output, or a 'receptive field' of the field of vision. A large
+ *       enough value will result in global coverage, meaning
+ *       that each output can potentially be connected to every input
+ *       bit. This parameter defines a square (or hyper square) area: an
+ *       output will have a max square potential pool with sides of
+ *       length (2 * potentialRadius + 1).
+ *
+ * @param potentialPct The percent of the inputs, within a output's
+ *       potential radius, that an output can be connected to. If set to
+ *       1, the output will be connected to every input within its
+ *       potential radius. This parameter is used to give each output a
+ *       unique potential pool when a large potentialRadius causes
+ *       overlap between the outputs. At initialization time we choose
+ *       ((2*potentialRadius + 1)^(# inputDimensions) * potentialPct)
+ *       input bits to comprise the output's potential pool.
+ *
+ * @param wrapAround boolean value that determines whether or not inputs
+ *       at the beginning and end of an input dimension are considered
+ *       neighbors for the purpose of mapping inputs to outputs.
+ */
 Topology_t  DefaultTopology(Real potentialPct,
                             Real potentialRadius,
                             bool wrapAround);
 
-// TODO: Docs
+/**
+ * All inputs have a uniformly equal probability of being sampled into an
+ * outputs potential pool.  This does not depend on the relative locations of
+ * the input and output.
+ *
+ * @param potentialPct: The percent of inputs which each output is potentially
+ *        connected to.
+ */
 Topology_t NoTopology(Real potentialPct);
 
 /**
