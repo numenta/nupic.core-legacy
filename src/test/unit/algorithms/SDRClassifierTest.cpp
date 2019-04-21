@@ -17,11 +17,10 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
- * Implementation of unit tests for SDRClassifier
+ * Implementation of unit tests for Classifier & Predictor
  */
 
 #include <cmath> // isnan
@@ -37,302 +36,221 @@
 #include <nupic/algorithms/SDRClassifier.hpp>
 #include <nupic/utils/Log.hpp>
 
-namespace nupic {
-namespace algorithms {
-namespace sdr_classifier {
-
-// SDRClassifier friend class used to access private members
-class SDRClassifierTest : public ::testing::Test {
-protected:
-  typedef std::vector<double>::iterator Iterator;
-  void softmax_(SDRClassifier *self, Iterator begin, Iterator end) {
-    self->softmax_(begin, end);
-  };
-};
-} // namespace sdr_classifier
-} // namespace algorithms
-} // namespace nupic
+using namespace std;
+using namespace nupic;
+using namespace nupic::sdr;
+using namespace nupic::algorithms::sdr_classifier;
 
 namespace testing {
 
-using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::sdr_classifier;
 
-TEST_F(SDRClassifierTest, Basic) {
-  vector<UInt> steps{1u};
-  SDRClassifier c = SDRClassifier(steps, 0.1f, 0.1f, 0u);
+TEST(SDRClassifierTest, ExampleUsageClassifier)
+{
+  // Make a random SDR and associate it with the category B.
+  SDR inputData({ 1000u });
+      inputData.randomize( 0.02f );
+  enum Category { A, B, C, D };
+  Classifier clsr;
+  clsr.learn( inputData, { Category::B } );
+  ASSERT_EQ( argmax( clsr.infer( inputData ) ),  Category::B );
 
-  // Create a vector of input bit indices
-  vector<UInt> input1{1u, 5u, 9u};
-  vector<UInt> bucketIdxList1{4u};
-  vector<Real64> actValueList1{34.7f};
-  ClassifierResult result1;
-  c.compute(0u, input1, bucketIdxList1, actValueList1, false, true, true, result1);
-
-  // Create a vector of input bit indices
-  vector<UInt> input2{1u, 5u, 9u};
-  vector<UInt> bucketIdxList2{4u};
-  vector<Real64> actValueList2{ 34.7f };
-  ClassifierResult result2;
-  c.compute(1u, input2, bucketIdxList2, actValueList2, false, true, true, result2);
-
-  {
-    bool foundMinus1 = false;
-    bool found1 = false;
-    for (auto it = result2.begin(); it != result2.end(); ++it) {
-      if (it->first == -1) {
-        // The -1 key is used for the actual values
-        ASSERT_FALSE(foundMinus1) << "Already found key -1 in classifier result";
-        foundMinus1 = true;
-        ASSERT_EQ(5ul, it->second.size())
-            << "Expected five buckets since it has only seen bucket 4 (so it "
-            << "Has buckets 0-4).";
-        ASSERT_LT(fabs(it->second.at(4) - 34.7f), 0.000001f)
-                                      << "Incorrect actual value for bucket 4";
-      } else if (it->first == 1) {
-        // Check the one-step prediction
-        ASSERT_FALSE(found1) << "Already found key 1 in classifier result";
-        found1 = true;
-        ASSERT_EQ(5ul, it->second.size()) << "Expected five bucket predictions";
-        ASSERT_NEAR(it->second.at(0u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 0";
-        ASSERT_NEAR(it->second.at(1u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 1";
-        ASSERT_NEAR(it->second.at(2u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 2";
-        ASSERT_NEAR(it->second.at(3u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 3";
-        ASSERT_NEAR(it->second.at(4u), 0.2f, 0.000001f) << "Incorrect prediction for bucket 4";
-      }
-    }
-    ASSERT_TRUE(foundMinus1) << "Key -1 not found in classifier result";
-    ASSERT_TRUE(found1) << "key 1 not found in classifier result";
-  }
+  // Estimate a scalar value.  The Classifier only accepts categories, so
+  // put real valued inputs into bins (AKA buckets) by subtracting the
+  // minimum value and dividing by a resolution.
+  double scalar = 567.8f;
+  double minimum = 500.0f;
+  double resolution = 10.0f;
+  clsr.learn( inputData, { (UInt)((scalar - minimum) / resolution) } );
+  ASSERT_EQ( argmax( clsr.infer( inputData ) ) * resolution + minimum,  560.0f );
 }
 
-TEST_F(SDRClassifierTest, SingleValue) {
+
+TEST(SDRClassifierTest, ExampleUsagePredictor)
+{
+  // Predict 1 and 2 time steps into the future.
+
+  // Make a sequence of 4 random SDRs. Each SDR has 1000 bits and 2% sparsity.
+  vector<SDR> sequence( 4u, vector<UInt>{ 1000u } );
+  for( SDR & inputData : sequence ) {
+      inputData.randomize( 0.02f );
+  }
+  // Make category labels for the sequence.
+  vector<UInt> labels = { 4, 5, 6, 7 };
+
+  // Make a Predictor and train it.
+  Predictor pred( vector<UInt>{ 1, 2 } );
+  pred.learn( 0, sequence[0], { labels[0] } );
+  pred.learn( 1, sequence[1], { labels[1] } );
+  pred.learn( 2, sequence[2], { labels[2] } );
+  pred.learn( 3, sequence[3], { labels[3] } );
+
+  // Give the predictor partial information, and make predictions
+  // about the future.
+  pred.reset();
+  Predictions A = pred.infer( 0, sequence[0] );
+  ASSERT_EQ( argmax( A[1] ),  labels[1] );
+  ASSERT_EQ( argmax( A[2] ),  labels[2] );
+
+  Predictions B = pred.infer( 1, sequence[1] );
+  ASSERT_EQ( argmax( B[1] ),  labels[2] );
+  ASSERT_EQ( argmax( B[2] ),  labels[3] );
+}
+
+
+TEST(SDRClassifierTest, SingleValue) {
   // Feed the same input 10 times, the corresponding probability should be
   // very high
   vector<UInt> steps{1u};
-  SDRClassifier c = SDRClassifier(steps, 0.1f, 0.1f, 0u);
+  Predictor c(steps, 0.1f);
 
   // Create a vector of input bit indices
-  vector<UInt> input1{1u, 5u, 9u};
+  SDR input1({10u}); input1.setSparse(SDR_sparse_t({ 1u, 5u, 9u }));
   vector<UInt> bucketIdxList{4u};
-  vector<Real64> actValueList{34.7f};
-  ClassifierResult result1;
   for (UInt i = 0u; i < 10u; ++i) {
-    c.compute(i, input1, bucketIdxList, actValueList, false, true, true, result1);
+    c.learn( i, input1, bucketIdxList );
   }
+  Predictions result1 = c.infer( 10u, input1 );
 
-  {
-    for (auto it = result1.begin(); it != result1.end(); ++it) {
-      if (it->first == ACTUAL_VALUES) {
-        ASSERT_LT(fabs(it->second.at(4u) - 34.7f), 0.000001f)
-            << "Incorrect actual value for bucket 4";
-      } else if (it->first == 1) {
-        ASSERT_EQ( c.getClassification( it->second ), 4u )
-            << "Incorrect prediction for bucket 4";
-      } else {
-        FAIL();
-      }
-    }
-  }
+  ASSERT_EQ( argmax( result1[1u] ), 4u )
+      << "Incorrect prediction for bucket 4";
+
+  ASSERT_EQ( result1.size(), 1u );
 }
 
 
-TEST_F(SDRClassifierTest, ComputeComplex) {
+TEST(SDRClassifierTest, ComputeComplex) {
   // More complex classification
   // This test is ported from the Python unit test
-  vector<UInt> steps{1u};
-  SDRClassifier c = SDRClassifier(steps, 1.0f, 0.1f, 0u);
+  Predictor c({1u}, 1.0f);
 
   // Create a input vector
-  vector<UInt> input1{ 1u, 5u, 9u };
+  SDR input1({ 20u });
+  input1.setSparse(SDR_sparse_t({ 1u, 5u, 9u }));
   vector<UInt> bucketIdxList1{ 4u };
-  vector<Real64> actValueList1{ 34.7f };
 
   // Create a input vector
-  vector<UInt> input2{ 0u, 6u, 9u, 11u };
+  SDR input2({ 20u });
+  input2.setSparse(SDR_sparse_t({ 0u, 6u, 9u, 11u }));
   vector<UInt> bucketIdxList2{ 5u };
-  vector<Real64> actValueList2{ 41.7f };
 
   // Create input vectors
-  vector<UInt> input3{ 6u, 9u };
+  SDR input3({ 20u });
+  input3.setSparse(SDR_sparse_t({ 6u, 9u }));
   vector<UInt> bucketIdxList3{ 5u };
-  vector<Real64> actValueList3{ 44.9f };
-
   vector<UInt> bucketIdxList4{ 4u };
-  vector<Real64> actValueList4{ 42.9f };
-
   vector<UInt> bucketIdxList5{ 4u };
-  vector<Real64> actValueList5{ 34.7f };
 
-  ClassifierResult result1;
-  c.compute(0, input1, bucketIdxList1, actValueList1, false, true, true,
-            result1);
+  c.learn(0, input1, bucketIdxList1);
+  c.learn(1, input2, bucketIdxList2);
+  c.learn(2, input3, bucketIdxList3);
+  c.learn(3, input1, bucketIdxList4);
+  auto result = c.infer(4, input1);
 
-  ClassifierResult result2;
-  c.compute(1, input2, bucketIdxList2, actValueList2, false, true, true,
-            result2);
-
-  ClassifierResult result3;
-  c.compute(2, input3, bucketIdxList3, actValueList3, false, true, true,
-            result3);
-
-  ClassifierResult result4;
-  c.compute(3, input1, bucketIdxList4, actValueList4, false, true, true,
-            result4);
-
-  ClassifierResult result5;
-  c.compute(4, input1, bucketIdxList5, actValueList5, false, true, true,
-            result5);
-
-  {
-    bool foundMinus1 = false;
-    bool found1 = false;
-    for (auto it = result5.begin(); it != result5.end(); ++it) {
-      ASSERT_TRUE(it->first == -1 || it->first == 1)
-          << "Result vector should only have -1 or 1 as key";
-      if (it->first == -1) {
-        // The -1 key is used for the actual values
-        ASSERT_FALSE(foundMinus1)
-            << "Already found key -1 in classifier result";
-        foundMinus1 = true;
-        ASSERT_EQ(6ul, it->second.size())
-            << "Expected six buckets since it has only seen bucket 4-5 (so it "
-            << "has buckets 0-5).";
-        ASSERT_LT(fabs(it->second.at(4u) - 35.520000457763672f), 0.000001f)
-            << "Incorrect actual value for bucket 4";
-        ASSERT_LT(fabs(it->second.at(5u) - 42.020000457763672f), 0.000001f)
-            << "Incorrect actual value for bucket 5";
-      } else if (it->first == 1) {
-        // Check the one-step prediction
-        ASSERT_FALSE(found1) << "Already found key 1 in classifier result";
-        found1 = true;
-
-        ASSERT_EQ(6ul, it->second.size()) << "Expected six bucket predictions";
-        ASSERT_LT(fabs(it->second.at(0u) - 0.034234f), 0.000001f)
-            << "Incorrect prediction for bucket 0";
-        ASSERT_LT(fabs(it->second.at(1u) - 0.034234f), 0.000001f)
-            << "Incorrect prediction for bucket 1";
-        ASSERT_LT(fabs(it->second.at(2u) - 0.034234f), 0.000001f)
-            << "Incorrect prediction for bucket 2";
-        ASSERT_LT(fabs(it->second.at(3u) - 0.034234f), 0.000001f)
-            << "Incorrect prediction for bucket 3";
-        ASSERT_LT(fabs(it->second.at(4u) - 0.093058f), 0.000001f)
-            << "Incorrect prediction for bucket 4";
-        ASSERT_LT(fabs(it->second.at(5u) - 0.770004f), 0.000001f)
-            << "Incorrect prediction for bucket 5";
-      }
-    }
-    ASSERT_TRUE(foundMinus1) << "Key -1 not found in classifier result";
-    ASSERT_TRUE(found1) << "Key 1 not found in classifier result";
-  }
+  // Check the one-step prediction
+  ASSERT_EQ(result.size(), 1u)
+    << "Result should only have 1 key.";
+  ASSERT_EQ(6ul, result[1u].size()) << "Expected six bucket predictions";
+  ASSERT_LT(fabs(result[1u].at(0u) - 0.034234f), 0.000001f)
+      << "Incorrect prediction for bucket 0";
+  ASSERT_LT(fabs(result[1u].at(1u) - 0.034234f), 0.000001f)
+      << "Incorrect prediction for bucket 1";
+  ASSERT_LT(fabs(result[1u].at(2u) - 0.034234f), 0.000001f)
+      << "Incorrect prediction for bucket 2";
+  ASSERT_LT(fabs(result[1u].at(3u) - 0.034234f), 0.000001f)
+      << "Incorrect prediction for bucket 3";
+  ASSERT_LT(fabs(result[1u].at(4u) - 0.093058f), 0.000001f)
+      << "Incorrect prediction for bucket 4";
+  ASSERT_LT(fabs(result[1u].at(5u) - 0.770004f), 0.000001f)
+      << "Incorrect prediction for bucket 5";
 }
 
-TEST_F(SDRClassifierTest, MultipleCategory) {
+
+TEST(SDRClassifierTest, MultipleCategories) {
   // Test multiple category classification with single compute calls
   // This test is ported from the Python unit test
-  vector<UInt> steps{ 0u };
-  SDRClassifier c = SDRClassifier(steps, 1.0f, 0.1f, 0u);
+  Classifier c(1.0f);
 
   // Create a input vectors
-  vector<UInt> input1{ 1u, 3u, 5u };
+  SDR input1({ 10 });
+  input1.setSparse(SDR_sparse_t({ 1u, 3u, 5u }));
   vector<UInt> bucketIdxList1{ 0u, 1u };
-  vector<Real64> actValueList1{ 0u, 1u };
 
   // Create a input vectors
-  vector<UInt> input2{ 2u, 4u, 6u };
+  SDR input2({ 10 });
+  input2.setSparse(SDR_sparse_t({ 2u, 4u, 6u }));
   vector<UInt> bucketIdxList2{ 2u, 3u };
-  vector<Real64> actValueList2{ 2.0f, 3.0f };
 
-  auto recordNum = 0u;
+  // Train
   for (auto i = 0u; i < 1000u; i++) {
-    ClassifierResult result1;
-    ClassifierResult result2;
-    c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true,
-              true, result1);
-    recordNum += 1u;
-    c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true,
-              true, result2);
-    recordNum += 1u;
+    c.learn( input1, bucketIdxList1 );
+    c.learn( input2, bucketIdxList2 );
   }
 
-  ClassifierResult result1;
-  ClassifierResult result2;
-  c.compute(recordNum, input1, bucketIdxList1, actValueList1, false, true, true,
-            result1);
-  recordNum += 1u;
-  c.compute(recordNum, input2, bucketIdxList2, actValueList2, false, true, true,
-            result2);
-  recordNum += 1u;
+  // Test
+  PDF result1 = c.infer( input1 );
+  PDF result2 = c.infer( input2 );
 
-  for (auto it = result1.begin(); it != result1.end(); ++it) {
-    if (it->first == 0) {
-      ASSERT_LT(fabs(it->second.at(0u) - 0.5f), 0.1f)
-          << "Incorrect prediction for bucket 0 (expected=0.5)";
-      ASSERT_LT(fabs(it->second.at(1u) - 0.5f), 0.1f)
-          << "Incorrect prediction for bucket 1 (expected=0.5)";
-    }
-  }
+  ASSERT_LT(fabs(result1.at(0u) - 0.5f), 0.1f)
+      << "Incorrect prediction for bucket 0 (expected=0.5)";
+  ASSERT_LT(fabs(result1.at(1u) - 0.5f), 0.1f)
+      << "Incorrect prediction for bucket 1 (expected=0.5)";
 
-  for (auto it = result2.begin(); it != result2.end(); ++it) {
-    if (it->first == 0) {
-      ASSERT_LT(fabs(it->second.at(2u) - 0.5f), 0.1f)
-          << "Incorrect prediction for bucket 2 (expected=0.5)";
-      ASSERT_LT(fabs(it->second.at(3u) - 0.5f), 0.1f)
-          << "Incorrect prediction for bucket 3 (expected=0.5)";
-    }
-  }
+  ASSERT_LT(fabs(result2.at(2u) - 0.5f), 0.1f)
+      << "Incorrect prediction for bucket 2 (expected=0.5)";
+  ASSERT_LT(fabs(result2.at(3u) - 0.5f), 0.1f)
+      << "Incorrect prediction for bucket 3 (expected=0.5)";
 }
 
-TEST_F(SDRClassifierTest, SaveLoad) {
+
+TEST(SDRClassifierTest, SaveLoad) {
   vector<UInt> steps{ 1u };
-  SDRClassifier c1 = SDRClassifier(steps, 0.1f, 0.1f, 0u);
-  SDRClassifier c2 = SDRClassifier(steps, 0.1f, 0.1f, 0u);
+  Predictor c1(steps, 0.1f);
 
-  // Create a vector of input bit indices
-  vector<UInt> input1{ 1u, 5u, 9u };
-  vector<UInt> bucketIdxList1{4u};
-  vector<Real64> actValueList1{34.7f};
-  ClassifierResult result;
-  c1.compute(0u, input1, bucketIdxList1, actValueList1, false, true, true, result);
+  // Train a Predictor with a few different things.
+  SDR A({ 100u }); A.randomize( 0.10f );
+  for(UInt i = 0; i < 10u; i++)
+    { c1.learn(i, A, {4u}); }
+  c1.reset();
+  A.addNoise( 1.0f ); // Change every bit.
+  for(UInt i = 0; i < 10u; i++)
+    { c1.learn(i, A, {3u, 5u}); }
+  // Measure and save some output.
+  A.addNoise( 0.20f ); // Change two bits.
+  c1.reset();
+  const auto c1_out = c1.infer( 0u, A );
 
-  {
-    stringstream ss;
-    EXPECT_NO_THROW(c1.save(ss));
-    EXPECT_NO_THROW(c2.load(ss));
-  }
-  ASSERT_EQ(c1, c2);
+  // Save and load.
+  stringstream ss;
+  EXPECT_NO_THROW(c1.saveToStream_ar(ss));
+  Predictor c2;
+  EXPECT_NO_THROW(c2.loadFromStream_ar(ss));
 
-  ClassifierResult result1, result2;
-  c1.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result1);
-  c2.compute(1u, input1, bucketIdxList1, actValueList1, false, true, true, result2);
-
-  ASSERT_EQ(result1[1u], result2[1]);
+  // Expect identical results.
+  const auto c2_out = c2.infer( 0u, A );
+  ASSERT_EQ(c1_out, c2_out);
 }
 
 
-TEST_F(SDRClassifierTest, testSoftmaxOverflow) {
-  SDRClassifier c = SDRClassifier({1u}, 0.5f, 0.5f, 0u);
-  std::vector<Real64> values = {numeric_limits<Real64>::max()};
-  softmax_(&c, values.begin(), values.end());
-  Real64 result = values[0u];
+TEST(SDRClassifierTest, testSoftmaxOverflow) {
+  PDF values({ numeric_limits<Real>::max() });
+  softmax(values.begin(), values.end());
+  auto result = values[0u];
   ASSERT_FALSE(std::isnan(result));
 }
 
 
-TEST_F(SDRClassifierTest, testSoftmax) {
-  SDRClassifier c = SDRClassifier({1u}, 0.1f, 0.3f, 0u);
-  std::vector<Real64> values {0.0f, 1.0f, 1.337f, 2.018f, 1.1f, 0.5f, 0.9f};
-  const std::vector<Real64> exp {
-	  0.045123016137150938f,
-	  0.12265707481088166f,
-	  0.17181055613150184f,
-	  0.3394723335640627f,
-	  0.13555703197721547f,
-	  0.074395276503465876f,
-	  0.11098471087572169f};
+TEST(SDRClassifierTest, testSoftmax) {
+  PDF values {0.0f, 1.0f, 1.337f, 2.018f, 1.1f, 0.5f, 0.9f};
+  const PDF exp {
+    0.045123016137150938f,
+    0.12265707481088166f,
+    0.17181055613150184f,
+    0.3394723335640627f,
+    0.13555703197721547f,
+    0.074395276503465876f,
+    0.11098471087572169f};
 
-  softmax_(&c, values.begin(), values.end());
+  softmax(values.begin(), values.end());
 
   for(auto i = 0u; i < exp.size(); i++) {
     EXPECT_NEAR(values[i], exp[i], 0.000001f) << "softmax ["<< i <<"]";
