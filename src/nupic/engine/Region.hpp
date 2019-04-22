@@ -463,9 +463,9 @@ public:
        cereal::make_nvp("nodeType", type_),
        cereal::make_nvp("phases", phases_));
 
-    std::map<std::string, Dimensions> outDims;
-    std::map<std::string, Dimensions> inDims;
-    saveDims(outDims, inDims);
+    std::map<std::string, std::vector<UInt>> outDims;
+    std::map<std::string, std::vector<UInt>> inDims;
+    getDims(outDims, inDims);
     ar(cereal::make_nvp("outputs", outDims));
     ar(cereal::make_nvp("inputs",  inDims));
     // Now serialize the RegionImpl plugin.
@@ -482,8 +482,8 @@ public:
        cereal::make_nvp("nodeType", type_),
        cereal::make_nvp("phases", phases_));
 
-    std::map<std::string, Dimensions> outDims;
-    std::map<std::string, Dimensions> inDims;
+    std::map<std::string, std::vector<UInt>> outDims;
+    std::map<std::string, std::vector<UInt>> inDims;
     ar(cereal::make_nvp("outputs", outDims));
     ar(cereal::make_nvp("inputs",  inDims));
 
@@ -495,6 +495,8 @@ public:
   }
 
   friend class Network;
+  friend std::ostream &operator<<(std::ostream &f, const Region &r);
+
 
 private:
   Region(Region &){}  // copy not allowed
@@ -502,10 +504,10 @@ private:
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
   void createInputsAndOutputs_();
-  void saveDims(std::map<std::string,Dimensions>& outDims,
-               std::map<std::string,Dimensions>& inDims) const;
-  void loadDims(std::map<std::string,Dimensions>& outDims,
-               std::map<std::string,Dimensions>& inDims) const;
+  void getDims(std::map<std::string,std::vector<UInt>>& outDims,
+               std::map<std::string,std::vector<UInt>>& inDims) const;
+  void loadDims(std::map<std::string,std::vector<UInt>>& outDims,
+               std::map<std::string,std::vector<UInt>>& inDims) const;
   void serializeImpl(ArWrapper& ar) const;
   void deserializeImpl(ArWrapper& ar);
 

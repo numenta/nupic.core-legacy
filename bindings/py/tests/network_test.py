@@ -128,7 +128,7 @@ class NetworkTest(unittest.TestCase):
     network.addRegion("region2", "TestNode", "")
 
     # Set dimensions on first region
-    region1 = network.getRegions().getByName("region1")
+    region1 = network.getRegion("region1")
     region1.setDimensions(engine.Dimensions([1, 1]))
 
     # Link region1 and region2
@@ -162,10 +162,10 @@ class NetworkTest(unittest.TestCase):
 
 
     # Check for valid links
-    network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")
-    network.link("from", "to", "UniformLink", "", "Real32", "Real32")
-    network.link("from", "to", "UniformLink", "", "Real32", "UInt32")
-    network.link("from", "to", "UniformLink", "", "UInt32", "Real32")
+    network.link("from", "to", "", "", "UInt32", "UInt32")
+    network.link("from", "to", "", "", "Real32", "Real32")
+    network.link("from", "to", "", "", "Real32", "UInt32")
+    network.link("from", "to", "", "", "UInt32", "Real32")
 	
 
   @pytest.mark.skip(reason="parameter types don't match.")

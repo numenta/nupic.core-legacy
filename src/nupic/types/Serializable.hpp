@@ -259,12 +259,12 @@ public:
       cereal_adapter_save(arw); 
     } break;
 		case SerializableFormat::JSON: {
-      cereal::JSONOutputArchive ar(out);
+      cereal::JSONOutputArchive ar(out, cereal::JSONOutputArchive::Options::Default());
       arw.json_out = &ar;
       cereal_adapter_save(arw);
     } break;
 		case SerializableFormat::XML: {
-      cereal::XMLOutputArchive ar(out);
+      cereal::XMLOutputArchive ar(out, cereal::XMLOutputArchive::Options::Default());
       arw.xml_out = &ar;
       cereal_adapter_save(arw);
     } break;

@@ -463,7 +463,7 @@ std::shared_ptr<Region> Network::getRegion(const std::string& name) const {
 }
 
 
-std::vector<std::shared_ptr<Link>> Network::getLinks() {
+std::vector<std::shared_ptr<Link>> Network::getLinks() const {
   std::vector<std::shared_ptr<Link>> links;
 
   for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++) {
@@ -530,8 +530,7 @@ UInt32 Network::getMaxEnabledPhase() const { return maxEnabledPhase_; }
 void Network::save(std::ostream &f) const {
   // save Network, Region, Links
 
-  f << "Network " << getSerializableVersion() << std::endl;
-  f << "{\n";
+  f << "Network: {\n";
   f << "iteration: " << iteration_ << "\n";
   f << "Regions: " << "[ " << regions_.size() << "\n";
 
@@ -583,8 +582,6 @@ void Network::save(std::ostream &f) const {
 void Network::load(std::istream &f) {
 
   std::string tag;
-  int version;
-  int minimum_version = 1; // the lowest acceptable version
   Size count;
 
   // Remove all existing regions and links
@@ -596,10 +593,7 @@ void Network::load(std::istream &f) {
 
 
   f >> tag;
-  NTA_CHECK(tag == "Network")  << "Invalid network structure file -- does not contain 'Network' as starting tag.";
-  f >> version;
-  NTA_CHECK(version >= minimum_version) << "Expecting at least version "
-          << minimum_version << " for Network stream.";
+  NTA_CHECK(tag == "Network:")  << "Invalid network structure file -- does not contain 'Network' as starting tag.";
   f >> tag;
   NTA_CHECK(tag == "{") << "Expected beginning of a map.";
   f >> tag;
@@ -774,5 +768,43 @@ bool Network::operator==(const Network &o) const {
   }
   return true;
 }
+
+std::ostream &operator<<(std::ostream &f, const Network &n) {
+  // Display Network, Region, Links
+
+  f << "Network: {\n";
+  f << "iteration: " << n.iteration_ << "\n";
+  f << "Regions: " << "[\n";
+
+  for (auto p: n.regions_) {
+      std::shared_ptr<Region>  r = p.second;
+      f << (*r.get());
+  }
+  f << "]\n"; // end of regions
+
+  // Display the Links
+  f << "Links: [\n";
+  for (auto p: n.regions_) {
+    std::shared_ptr<Region> r = p.second;
+    const std::map<std::string, Input*> inputs = r->getInputs();
+    for (const auto & inputs_input : inputs)
+    {
+      const std::vector<std::shared_ptr<Link>>& links = inputs_input.second->getLinks();
+      for (const auto & links_link : links)
+      {
+        auto l = links_link;
+        f << (*l.get());
+      }
+
+    }
+  }
+  f << "]\n"; // end of links
+
+  f << "}\n"; // end of network
+  f << std::endl;
+  return f;
+}
+
+
 
 } // namespace nupic

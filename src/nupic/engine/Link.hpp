@@ -455,7 +455,7 @@ public:
   const std::string toString() const;
 
   /**
-   * Serialize the link.
+   * Display and compare the link.
    *
    * @param f
    *            The output stream being serialized to
@@ -463,7 +463,6 @@ public:
    *            The Link being serialized
    */
   friend std::ostream &operator<<(std::ostream &f, const Link &link);
-
   bool operator==(const Link &o) const;
   bool operator!=(const Link &o) const { return !operator==(o); }
 

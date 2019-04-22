@@ -643,8 +643,8 @@ bool Region::isParameter(const std::string &name) const {
 }
 
 // Some functions used to prevent symbles from being in Region.hpp
-void Region::saveDims(std::map<std::string,Dimensions>& outDims,
-                      std::map<std::string,Dimensions>& inDims) const {
+void Region::getDims(std::map<std::string,std::vector<UInt>>& outDims,
+                      std::map<std::string,std::vector<UInt>>& inDims) const {
   for(auto out: outputs_) {
     Dimensions& dim = out.second->getDimensions();
     outDims[out.first] = dim;
@@ -654,8 +654,8 @@ void Region::saveDims(std::map<std::string,Dimensions>& outDims,
     inDims[in.first] = dim;
   }
 }
-void Region::loadDims(std::map<std::string,Dimensions>& outDims,
-                     std::map<std::string,Dimensions>& inDims) const {
+void Region::loadDims(std::map<std::string,std::vector<UInt>>& outDims,
+                     std::map<std::string,std::vector<UInt>>& inDims) const {
   for(auto out: outDims) {
       auto itr = outputs_.find(out.first);
       if (itr != outputs_.end()) {
@@ -681,6 +681,32 @@ void Region::deserializeImpl(ArWrapper& arw) {
     impl_.reset(factory.deserializeRegionImpl(type_, arw, this));
 }
 
+std::ostream &operator<<(std::ostream &f, const Region &r) {
+  f << "Region: {\n";
+  f << "name: " << r.name_ << "\n";
+  f << "nodeType: " << r.type_ << "\n";
+  f << "phases: [ ";
+  for (const auto &phases_phase : r.phases_) {
+      f << phases_phase << " ";
+  }
+  f << "]\n";
+  f << "outputs: [\n";
+  for(auto out: r.outputs_) {
+    f << out.first << " " << out.second->getDimensions() << "\n";
+  }
+  f << "]\n";
+  f << "inputs: [\n";
+  for(auto in: r.inputs_) {
+    f << in.first << " " << in.second->getDimensions() << "\n";
+  }
+  f << "]\n";
+  //f << "RegionImpl:\n";
+  // Now serialize the RegionImpl plugin.
+  //BundleIO bundle(&f);
+  //impl_->serialize(bundle);
 
+  f << "}\n";
+  return f;
+}
 
 } // namespace nupic

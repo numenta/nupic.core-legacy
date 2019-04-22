@@ -129,7 +129,7 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
-    std::vector<std::shared_ptr<Link>> links;
+    const std::vector<std::shared_ptr<Link>> links = getLinks();
     std::string name = "Network";
     ar(cereal::make_nvp("name", name),
        cereal::make_nvp("iteration", iteration_));
@@ -146,13 +146,13 @@ public:
     ar(cereal::make_nvp("name", name),
        cereal::make_nvp("iteration", iteration_));
     ar(cereal::make_nvp("regions", regions_));
-    ar(cereal::make_nvp("links", links));
     for (auto p : regions_) {
       Region* r = p.second.get();
       r->network_ = this;
       std::set<UInt32> phases = r->getPhases();
       setPhases_(r, phases);
     }
+    ar(cereal::make_nvp("links", links));
     for(auto alink: links) {
       auto l = link( alink->getSrcRegionName(),
                      alink->getDestRegionName(),
@@ -288,7 +288,7 @@ public:
    *
    * @returns A Collection of Link objects in the network
    */
-  std::vector<std::shared_ptr<Link>> getLinks();
+  std::vector<std::shared_ptr<Link>> getLinks() const;
 
   /**
    * Set phases for a region.
@@ -441,6 +441,8 @@ public:
   inline bool operator!=(const Network &other) const {
     return !operator==(other);
   }
+
+  friend std::ostream &operator<<(std::ostream &, const Network &);
 
 private:
   // Both constructors use this common initialization method
