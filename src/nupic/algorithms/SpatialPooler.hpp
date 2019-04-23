@@ -819,6 +819,11 @@ public:
    */
   void printParameters() const;
 
+  friend std::ostream& operator<< (std::ostream& stream, const SpatialPooler& self) {
+    stream << "SpatialPooler " << self.connections_;
+    return stream;
+  }
+
   /**
   Returns the overlap score for each column.
    */
