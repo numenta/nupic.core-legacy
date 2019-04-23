@@ -457,7 +457,7 @@ static void punishPredictedColumn(
 
 void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
     NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() ) 
-	    << "TM invalid input dimensions: " << activeColumns.dimensions << " vs. " << columnDimensions_;
+	    << "TM invalid input dimensions: " << activeColumns.dimensions.size() << " vs. " << columnDimensions_.size();
     for(size_t i=0; i< columnDimensions_.size(); i++) {
       NTA_CHECK(static_cast<size_t>(activeColumns.dimensions[i]) == static_cast<size_t>(columnDimensions_[i])) << "Dimensions must be the same.";
     }

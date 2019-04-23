@@ -78,7 +78,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   spLocal.setGlobalInhibition(false);
   Random rnd(1); //uses fixed seed for deterministic output checks
 
-  TM tm(spGlobal.getColumnDimensions(), CELLS);
+  TM tm(vector<UInt>{COLS}, CELLS);
 
   Anomaly an(5, AnomalyMode::PURE);
   Anomaly anLikelihood(5, AnomalyMode::LIKELIHOOD);
