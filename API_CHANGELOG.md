@@ -73,3 +73,5 @@ are ignored.  PR #271
 * Connections class must be initialized with a connectedPermanence.  Methods
 `Connections::computeActivity` and `Connections::raisePermanencesToThreshold` no
 longer accept a synapse permanence threshold argument. PR #305
+
+* SDRClassifier class is replaced by `Classifier` and `Predictor` classes.

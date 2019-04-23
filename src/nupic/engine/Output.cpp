@@ -25,15 +25,16 @@
  *
  */
 
-#include <nupic/engine/Link.hpp> 
+#include <nupic/engine/Link.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/BasicType.hpp>
+#include <nupic/engine/Region.hpp>
 
 using namespace nupic;
 
 Output::Output(Region* region, const std::string& outputName, NTA_BasicType type)
-    : region_(region), 
+    : region_(region),
       name_(outputName) {
   data_ = Array(type);
 }
@@ -81,7 +82,7 @@ Dimensions Output::determineDimensions() {
   if (!dim_.isSpecified()) {
     dim_.clear();
     // ask the spec how big the buffer is.
-    UInt32 count = (UInt32)srcSpec->outputs.getByName(name_).count; 
+    UInt32 count = (UInt32)srcSpec->outputs.getByName(name_).count;
     if (count > 0) {
       dim_.push_back(count);
     } else {
@@ -93,8 +94,8 @@ Dimensions Output::determineDimensions() {
     }
   }
 
-  // If we still have a isDontcare, check if the spec defines 
-  // regionLevel then get the dimensions from the region dims. 
+  // If we still have a isDontcare, check if the spec defines
+  // regionLevel then get the dimensions from the region dims.
   bool regionLevel = srcSpec->outputs.getByName(name_).regionLevel;
   if (regionLevel) {
     Dimensions d = region_->getDimensions();

@@ -22,19 +22,18 @@
  * --------------------------------------------------------------------- */
 
 /** @file
- * Definitions for the SDRClassifier.
+ * Definitions for the SDR Classifier & Predictor.
  */
 
 #ifndef NTA_SDR_CLASSIFIER_HPP
 #define NTA_SDR_CLASSIFIER_HPP
 
 #include <deque>
-#include <iostream>
 #include <map>
-#include <string>
 #include <vector>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Sdr.hpp>
 #include <nupic/types/Serializable.hpp>
 
 namespace nupic {
@@ -42,183 +41,253 @@ namespace algorithms {
 namespace sdr_classifier {
 
 
-const UInt sdrClassifierVersion = 2;
+/**
+ * PDF: Probability Distribution Function.  Each index in this vector is a
+ *      category label, and each value is the likelihood of the that category.
+ *
+ * See also:  https://en.wikipedia.org/wiki/Probability_distribution
+ */
+using PDF = std::vector<Real>;
 
 /**
- * PDF - Probability Density Function, distribution of likelihood of values
+ * Returns the category with the greatest probablility.
  */
-using PDF = std::vector<Real64>;
+UInt argmax( const PDF & data );
 
 /**
- * The key is the step, for predicting multiple time steps into the future.
- * The key ACTUAL_VALUES contains an estimate of the actual values.
- * The value is a PDF(probability density function, list of probabilities of outcomes) 
- * of the result being in each bucket.
+ * The SDR Classifier takes the form of a single layer classification network.
+ * It accepts SDRs as input and outputs a predicted distribution of categories.
+ *
+ * Categories are labeled using unsigned integers.  Other data types must be
+ * enumerated or transformed into postitive integers.  There are as many output
+ * units as the maximum category label.
+ *
+ * Example Usage:
+ *
+ *    // Make a random SDR and associate it with the category B.
+ *    SDR inputData({ 1000 });
+ *        inputData.randomize( 0.02 );
+ *    enum Category { A, B, C, D };
+ *    Classifier clsr;
+ *    clsr.learn( inputData, { Category::B } );
+ *    argmax( clsr.infer( inputData ) )  ->  Category::B
+ *
+ *    // Estimate a scalar value.  The Classifier only accepts categories, so
+ *    // put real valued inputs into bins (AKA buckets) by subtracting the
+ *    // minimum value and dividing by a resolution.
+ *    double scalar = 567.8;
+ *    double minimum = 500;
+ *    double resolution = 10;
+ *    clsr.learn( inputData, { (scalar - minimum) / resolution } );
+ *    argmax( clsr.infer( inputData ) ) * resolution + minimum  ->  560
+ *
+ * During inference, the output is calculated by first doing a weighted
+ * summation of all the inputs, and then perform a softmax nonlinear function to
+ * get the predicted distribution of category labels.
+ *
+ * During learning, the connection weights between input units and output units
+ * are adjusted to maximize the likelihood of the model.
+ *
+ * References:
+ *  - Alex Graves. Supervised Sequence Labeling with Recurrent Neural Networks,
+ *    PhD Thesis, 2008
+ *  - J. S. Bridle. Probabilistic interpretation of feedforward classification
+ *    network outputs, with relationships to statistical pattern recognition
+ *  - In F. Fogleman-Soulie and J.Herault, editors, Neurocomputing: Algorithms,
+ *    Architectures and Applications, pp 227-236, Springer-Verlag, 1990
  */
-const Int ACTUAL_VALUES = -1;
-using ClassifierResult = std::map<Int, PDF>;
-
-
-class SDRClassifier : public Serializable
+class Classifier : public Serializable
 {
-  // Make test class friend so it can unit test private members directly
-  friend class SDRClassifierTest;
-
-  /**
-   * 2d map used to store the data.
-   * write with Matrix m; m[i][j] = 1.0; //map will always allocate for new i,j index
-   * access/read with get_(&m, i, j): as it handles missing values i,j and returns 0.0 for them
-   */
-  using Matrix = std::map<UInt, std::map<UInt, Real64>>; //Matrix[r][c] = 0.0d
-
-
 public:
-  /**
-   * Constructor for use when deserializing.
-   */
-  SDRClassifier() {}
-  void initialize(const std::vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
-                  UInt verbosity);
-
   /**
    * Constructor.
    *
-   * @param steps The different number of steps to learn and predict.
-   * @param alpha The alpha to use when decaying the duty cycles.
-   * @param actValueAlpha The alpha to use when decaying the actual
-   *                      values for each bucket.
-   * @param verbosity The logging verbosity.
+   * @param alpha - The alpha used to adapt the weight matrix during learning. A
+   *                larger alpha results in faster adaptation to the data.
    */
-  SDRClassifier(const std::vector<UInt> &steps, Real64 alpha, Real64 actValueAlpha,
-                UInt verbosity);
+  Classifier(Real alpha = 0.001f );
 
   /**
-   * Destructor.
+   * For use when deserializing.
    */
-  virtual ~SDRClassifier();
+  void initialize(Real alpha);
 
   /**
-   * Compute the likelihoods for each bucket.
+   * Compute the likelihoods for each category / bucket.
    *
-   * @param recordNum An incrementing integer for each record. Gaps in
-   *                  numbers correspond to missing records.
-   * @param patternNZ The active input bit indices.
-   * @param bucketIdx The current value bucket index.
-   * @param actValue The current scalar value.
-   * @param category Whether the actual values represent categories.
-   * @param learn Whether or not to perform learning.
-   * @param infer Whether or not to perform inference.
-   * @param result A mapping from prediction step to a vector of
-   *               likelihoods where the value at an index corresponds
-   *               to the bucket with the same index. In addition, the
-   *               values for key 0 correspond to the actual values to
-   *               used when predicting each bucket.
+   * @param pattern: The SDR containing the active input bits.
+   * @returns: The Probablility Distribution Function (PDF) of the categories.
+   *           This is indexed by the category label.
    */
-  virtual void compute(UInt recordNum, const std::vector<UInt> &patternNZ,
-                       const std::vector<UInt> &bucketIdxList,
-                       const std::vector<Real64> &actValueList, bool category,
-                       bool learn, bool infer, ClassifierResult &result);
+  PDF infer(const sdr::SDR & pattern);
 
   /**
-   * Returns the class with the greatest probablility.
-   */
-  UInt getClassification( const PDF & ) const;
-
-  /**
-   * Gets the version number
-   */
-  UInt version() const;
-
-  /**
-   * Getter and setter for verbosity level.
-   */
-  UInt getVerbosity() const;
-  void setVerbosity(UInt verbosity);
-
-  /**
-   * Gets the learning rate
-   */
-  Real64 getAlpha() const;
-
-  /**
-   * Save the state to the ostream.
-   */
-  void save(std::ostream &outStream) const override;
-
-  /**
-   * Load state from istream.
-   */
-  void load(std::istream &inStream) override;
-
-
-  /**
-   * Compare the other instance to this one.
+   * Learn from example data.
    *
-   * @param other Another instance of SDRClassifier to compare to.
-   * @returns true iff other is identical to this instance.
+   * @param pattern:  The active input bit SDR.
+   * @param categoryIdxList:  The current categories or bucket indices.
    */
-  virtual bool operator==(const SDRClassifier &other) const;
+  void learn(const sdr::SDR & pattern, const std::vector<UInt> & categoryIdxList);
+
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const
+  {
+    ar(cereal::make_nvp("alpha",         alpha_),
+       cereal::make_nvp("dimensions",    dimensions_),
+       cereal::make_nvp("numCategories", numCategories_),
+       cereal::make_nvp("weights",       weights_));
+  }
+
+  template<class Archive>
+  void load_ar(Archive & ar)
+    { ar( alpha_, dimensions_, numCategories_, weights_ ); }
 
 private:
-  // Helper function for inference mode
-  void infer_(const std::vector<UInt> &patternNZ, const std::vector<Real64> &actValue,
-              ClassifierResult &result);
-
-  // Helper function to compute the error signal in learning mode
-  std::vector<Real64> calculateError_(const std::vector<UInt> &bucketIdxList,
-                                      const std::vector<UInt> patternNZ, UInt step);
-
-  // softmax function
-  void softmax_(std::vector<Real64>::iterator begin, std::vector<Real64>::iterator end);
+  Real alpha_;
+  std::vector<UInt> dimensions_;
+  UInt numCategories_;
 
   /**
-   * get(x,y) accessor interface for Matrix; handles sparse (missing) values
-   * @return return value stored at map[row][col], or defaultVal if such field does not exist
-   **/
-  Real64 get_(const Matrix& m, const UInt row, const UInt col, const Real64 defaultVal=0.0) const;
+   * 2D map used to store the data.
+   * Use as: weights_[ input-bit ][ category-index ]
+   */
+  std::vector<std::vector<Real>> weights_;
 
+  // Helper function to compute the error signal for learning.
+  std::vector<Real> calculateError_(const std::vector<UInt> &bucketIdxList,
+                                    const sdr::SDR &pattern);
+};
+
+/**
+ * Helper function for Classifier::infer.  Converts the raw data accumulators
+ * into a PDF.
+ */
+void softmax(PDF::iterator begin, PDF::iterator end);
+
+
+/******************************************************************************/
+
+
+/**
+ * The key is the step, for predicting multiple time steps into the future.
+ * The value is a PDF (probability distribution function, of the result being in
+ * each bucket or category).
+ */
+using Predictions = std::map<UInt, PDF>;
+
+/**
+ * The Predictor class does N-Step ahead predictions.
+ *
+ * Internally, this class uses Classifiers to associate SDRs with future values.
+ * This class handles missing datapoints.
+ *
+ * Compatibility Note:  This class is the replacement for the old SDRClassifier.
+ * It no longer provides estimates of the actual value.
+ *
+ * Example Usage:
+ *    // Predict 1 and 2 time steps into the future.
+ *    // Make a sequence of 4 random SDRs. Each SDR has 1000 bits and 2% sparsity.
+ *    vector<SDR> sequence( 4, { 1000 } );
+ *    for( SDR & inputData : sequence )
+ *        inputData.randomize( 0.02 );
+ *
+ *    // Make category labels for the sequence.
+ *    vector<UInt> labels = { 4, 5, 6, 7 };
+ *
+ *    // Make a Predictor and train it.
+ *    Predictor pred( vector<UInt>{ 1, 2 } );
+ *    pred.learn( 0, sequence[0], { labels[0] } );
+ *    pred.learn( 1, sequence[1], { labels[1] } );
+ *    pred.learn( 2, sequence[2], { labels[2] } );
+ *    pred.learn( 3, sequence[3], { labels[3] } );
+ *
+ *    // Give the predictor partial information, and make predictions
+ *    // about the future.
+ *    pred.reset();
+ *    Predictions A = pred.infer( 0, sequence[0] );
+ *    argmax( A[1] )  ->  labels[1]
+ *    argmax( A[2] )  ->  labels[2]
+ *
+ *    Predictions B = pred.infer( 1, sequence[1] );
+ *    argmax( B[1] )  ->  labels[2]
+ *    argmax( B[2] )  ->  labels[3]
+ */
+class Predictor : public Serializable
+{
+public:
+  /**
+   * Constructor.
+   *
+   * @param steps - The number of steps into the future to learn and predict.
+   * @param alpha - The alpha used to adapt the weight matrix during learning. A
+   *                larger alpha results in faster adaptation to the data.
+   */
+  Predictor(const std::vector<UInt> &steps, Real alpha = 0.001f );
+
+  /**
+   * Constructor for use when deserializing.
+   */
+  Predictor() {}
+  void initialize(const std::vector<UInt> &steps, Real alpha = 0.001f );
+
+  /**
+   * For use with time series datasets.
+   */
+  void reset();
+
+  /**
+   * Compute the likelihoods.
+   *
+   * @param recordNum: An incrementing integer for each record. Gaps in
+   *                   numbers correspond to missing records.
+   *
+   * @param pattern: The active input SDR.
+   *
+   * @returns: A mapping from prediction step to PDF.
+   */
+  Predictions infer(UInt recordNum, const sdr::SDR &pattern);
+
+  /**
+   * Learn from example data.
+   *
+   * @param recordNum: An incrementing integer for each record. Gaps in
+   *                   numbers correspond to missing records.
+   * @param pattern: The active input SDR.
+   * @param bucketIdxList: Vector of the current value bucket indices or categories.
+   */
+  void learn(UInt recordNum, const sdr::SDR &pattern,
+             const std::vector<UInt> &bucketIdxList);
+
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const
+  {
+    ar(cereal::make_nvp("steps",            steps_),
+       cereal::make_nvp("patternHistory",   patternHistory_),
+       cereal::make_nvp("recordNumHistory", recordNumHistory_),
+       cereal::make_nvp("classifiers",      classifiers_));
+  }
+
+  template<class Archive>
+  void load_ar(Archive & ar)
+    { ar( steps_, patternHistory_, recordNumHistory_, classifiers_ ); }
+
+private:
   // The list of prediction steps to learn and infer.
   std::vector<UInt> steps_;
 
-  // The alpha used to decay the duty cycles in the BitHistorys.
-  Real64 alpha_;
+  // Stores the input pattern history, starting with the previous input.
+  std::deque<sdr::SDR> patternHistory_;
+  std::deque<UInt>     recordNumHistory_;
+  void updateHistory_(UInt recordNum, const sdr::SDR & pattern);
 
-  // The alpha used to decay the actual values used for each bucket.
-  Real64 actValueAlpha_;
+  // One per prediction step
+  std::map<UInt, Classifier> classifiers_;
 
-  // The maximum number of the prediction steps.
-  UInt maxSteps_;
+};      // End of Predictor class
 
-  // Stores the input pattern history, starting with the previous input
-  // and containing _maxSteps total input patterns.
-  std::deque<std::vector<UInt>> patternNZHistory_;
-  std::deque<UInt> recordNumHistory_;
-
-  // Weight matrices for the classifier (one per prediction step)
-  std::map<UInt, Matrix> weightMatrix_;
-
-  // The highest input bit that the classifier has seen so far.
-  UInt maxInputIdx_;
-
-  // The highest bucket index that the classifier has been seen so far.
-  UInt maxBucketIdx_;
-
-  // The current actual values used for each bucket index. The index of
-  // the actual value matches the index of the bucket.
-  std::vector<Real64> actualValues_;
-
-  // A boolean that distinguishes between actual values that have been
-  // seen and those that have not.
-  std::vector<bool> actualValuesSet_;
-
-  // Version and verbosity.
-  UInt version_;
-  UInt verbosity_;
-
-}; // end of SDRClassifier class
-
-} // end of namespace sdr_classifier
-} // end of namespace algorithms
-} // namespace nupic
-
-#endif
+}       // End of namespace sdr_classifier
+}       // End of namespace algorithms
+}       // End of namespace nupic
+#endif  // End of ifdef NTA_SDR_CLASSIFIER_HPP

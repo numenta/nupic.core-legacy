@@ -169,6 +169,9 @@ namespace nupic_ext
         });
 
         // compute
+        py_SpatialPooler.def("compute", [](SpatialPooler& self, sdr::SDR& x, bool learn, sdr::SDR& y)
+            { self.compute( x, learn, y ); });
+
         py_SpatialPooler.def("compute", [](SpatialPooler& self, py::array& x, bool learn, py::array& y)
         {
             if (py::isinstance<py::array_t<std::uint32_t>>(x) == false)

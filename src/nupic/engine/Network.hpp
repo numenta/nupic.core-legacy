@@ -33,8 +33,8 @@
 #include <string>
 #include <vector>
 
-#include <nupic/engine/RegisteredRegionImpl.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/Link.hpp>
 #include <nupic/ntypes/Collection.hpp>
 
 #include <nupic/types/Serializable.hpp>
