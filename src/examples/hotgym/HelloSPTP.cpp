@@ -209,13 +209,11 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       if(EPOCHS >= 100) { //show only relevant values, ie don't run in valgrind (ndebug, epochs=5) run
-#ifdef _MSC_VER
+#ifndef _MSC_VER
           const size_t CI_avg_time = (size_t)floor(30*Timer::getSpeed()); //sec
-#else
-          const size_t CI_avg_time = (size_t)floor(7*Timer::getSpeed()); //sec
 #endif
         NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
-          "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time;
+          "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time << "), speed coef.= " << Timer::getSpeed();
       }
     }
   } //end for
