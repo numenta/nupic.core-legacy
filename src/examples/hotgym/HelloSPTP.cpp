@@ -86,8 +86,9 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   // data for processing input
   SDR input(enc.dimensions);
-  SDR outSP(spGlobal.getColumnDimensions()); // active array, output of SP/TM
+  SDR outSPglobal(spGlobal.getColumnDimensions()); // active array, output of SP/TM
   SDR outSPlocal(spLocal.getColumnDimensions()); //for SPlocal
+  SDR outSP;
   SDR outTM(spGlobal.getColumnDimensions()); 
   Real res = 0.0; //for anomaly:
   SDR prevPred_(outTM.dimensions); //holds T-1 TM.predictive cells
@@ -120,9 +121,11 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     if(useSPglobal) {
     tSPglob.start();
-    spGlobal.compute(input, true, outSP);
+    spGlobal.compute(input, true, outSPglobal);
     tSPglob.stop();
     }
+    outSP = outSPglobal; //toggle if local/global SP is used further down the chain (TM, Anomaly)
+    NTA_CHECK(outSP.getSparse().size() == outSPglobal.getSparse().size());
 
     // TM
     if(useTM) {
@@ -195,7 +198,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       if(EPOCHS == 5000) { //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs. 
         NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
-        NTA_CHECK(outSP == goldSP) << "Deterministic output of SP (g) failed!\n" << outSP << "should be:\n" << goldSP;
+        NTA_CHECK(outSPglobal == goldSP) << "Deterministic output of SP (g) failed!\n" << outSP << "should be:\n" << goldSP;
 	NTA_CHECK(outSPlocal == goldSPlocal) << "Deterministic output of SP (l) failed!\n" << outSPlocal << "should be:\n" << goldSPlocal;
         NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
         NTA_CHECK(static_cast<UInt>(res *10000) == static_cast<UInt>(goldAn *10000)) //compare to 4 decimal places
