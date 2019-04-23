@@ -88,7 +88,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR input(enc.dimensions);
   SDR outSPglobal(spGlobal.getColumnDimensions()); // active array, output of SP/TM
   SDR outSPlocal(spLocal.getColumnDimensions()); //for SPlocal
-  SDR outSP;
+  SDR outSP(vector<UInt>{COLS});
   SDR outTM(spGlobal.getColumnDimensions()); 
   Real res = 0.0; //for anomaly:
   SDR prevPred_(outTM.dimensions); //holds T-1 TM.predictive cells
@@ -125,7 +125,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tSPglob.stop();
     }
     outSP = outSPglobal; //toggle if local/global SP is used further down the chain (TM, Anomaly)
-    NTA_CHECK(outSP.getSparse().size() == outSPglobal.getSparse().size());
+    NTA_CHECK(outSP == outSPglobal);
 
     // TM
     if(useTM) {
