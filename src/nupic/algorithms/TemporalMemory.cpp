@@ -694,7 +694,8 @@ vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) {
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
 
-  vector<CellIdx> cellsInColumn(cellsPerColumn_);
+  vector<CellIdx> cellsInColumn;
+  cellsInColumn.reserve(cellsPerColumn_);
   for (CellIdx i = start; i < end; i++) {
     cellsInColumn.push_back(i);
   }

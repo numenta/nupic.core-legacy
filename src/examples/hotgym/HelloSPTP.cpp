@@ -76,7 +76,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SpatialPooler  spLocal(enc.dimensions, vector<UInt>{COLS}); // Spatial pooler with local inh
   spGlobal.setGlobalInhibition(true);
   spLocal.setGlobalInhibition(false);
-  Random rnd(1);
+  Random rnd(1); //uses fixed seed for deterministic output checks
 
   TM tm(spGlobal.getColumnDimensions(), CELLS);
 
