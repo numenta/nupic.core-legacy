@@ -58,14 +58,15 @@ class MNIST {
 
 void setup() {
 
-  input.initialize({28, 28});
+  input.initialize({28 * 28});
+  columns.initialize({10 * 1000});
   sp.initialize(
     /* inputDimensions */             input.dimensions,
-    /* columnDimensions */            {28, 28}, //mostly affects speed, to some threshold accuracy only marginally
-    /* potentialRadius */             5u,
+    /* columnDimensions */            columns.dimensions,
+    /* potentialRadius */             999999u,
     /* potentialPct */                0.5f,
     /* globalInhibition */            true,
-    /* localAreaDensity */            0.20f,  //% active bits, //quite important variable (speed x accuracy)
+    /* localAreaDensity */            0.015f,  //% active bits, //quite important variable (speed x accuracy)
     /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
     /* synPermInactiveDec */          0.005f,
@@ -77,8 +78,6 @@ void setup() {
     /* seed */                        93u,
     /* spVerbosity */                 1u,
     /* wrapAround */                  false); //wrap is false for this problem
-
-  columns.initialize({sp.getNumColumns()});
 
   clsr.initialize( /* alpha */ .001);
 
@@ -119,8 +118,9 @@ void train() {
     if( verbosity ) cout << endl;
   }
   cout << "epoch ended" << endl;
-  cout << inputStats << endl;
-  cout << columnStats << endl;
+  cout << "inputStats "  << inputStats << endl;
+  cout << "columnStats " << columnStats << endl;
+  cout << sp << endl;
 }
 
 void test() {

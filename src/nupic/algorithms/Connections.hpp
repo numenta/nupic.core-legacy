@@ -436,6 +436,13 @@ public:
    */
   void bumpSegment(const Segment segment, const Permanence delta);
 
+
+  /**
+   * Print diagnostic info
+   */
+  friend std::ostream& operator<< (std::ostream& stream, const Connections& self);
+
+
   // Serialization
 
   /**
