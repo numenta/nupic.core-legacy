@@ -133,7 +133,14 @@ public:
     std::string name = "Network";
     ar(cereal::make_nvp("name", name),
        cereal::make_nvp("iteration", iteration_));
-    ar(cereal::make_nvp("regions", regions_));
+    //ar(cereal::make_nvp("Regions", regions_));
+    cereal::size_type count = regions_.size();
+    ar(cereal::make_size_tag(count));
+    for(auto p: regions_) {
+      std::shared_ptr<Region> r = p.second;
+      ar( r);
+    }
+      
     ar(cereal::make_nvp("links", links));
 
   }
@@ -143,15 +150,17 @@ public:
   void load_ar(Archive& ar) {
     std::vector<std::shared_ptr<Link>> links;
     std::string name;
-    ar(cereal::make_nvp("name", name),
+    ar(cereal::make_nvp("name", name),  // ignore value
        cereal::make_nvp("iteration", iteration_));
-    ar(cereal::make_nvp("regions", regions_));
-    for (auto p : regions_) {
-      Region* r = p.second.get();
-      r->network_ = this;
-      std::set<UInt32> phases = r->getPhases();
-      setPhases_(r, phases);
+    //ar(cereal::make_nvp("Regions", regions_));
+    cereal::size_type count;
+    ar(cereal::make_size_tag(count));
+    for (cereal::size_type i = 0; i < count; i++) {
+      std::shared_ptr<Region> r = std::make_shared<Region>(this);
+      ar(r);               // Note: calls load_and_construct( ) on Region.
+      addRegion(r);
     }
+    
     ar(cereal::make_nvp("links", links));
     for(auto alink: links) {
       auto l = link( alink->getSrcRegionName(),
@@ -190,18 +199,13 @@ public:
                     const std::string &nodeParams);
 
     /**
-     * Create a new region in a network from serialized region
+     * Add a region in a network from deserialized region
      *
-     * @param stream
-     *        opened stream
-     * @param name
-     *        Name of the region, Must be unique in the network.
-     *        If not given, it uses the name it was serialized with.
+     * @param Region shared_ptr
      *
      * @returns A pointer to the newly created Region
      */
-    std::shared_ptr<Region> addRegion( std::istream &stream,
-                       std::string name = "");
+    std::shared_ptr<Region> addRegion(std::shared_ptr<Region> region);
 
 
     /**

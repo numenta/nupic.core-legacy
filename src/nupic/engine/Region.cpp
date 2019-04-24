@@ -66,7 +66,12 @@ Region::Region(Network *net) {
       network_ = net;
       initialized_ = false;
       profilingEnabled_ = false;
-    } // for deserialization of region.
+} // for deserialization of region.
+Region::Region() {
+      network_ = nullptr;
+      initialized_ = false;
+      profilingEnabled_ = false;
+} // for deserialization of region.
 
 
 Network *Region::getNetwork() { return network_; }
@@ -643,8 +648,8 @@ bool Region::isParameter(const std::string &name) const {
 }
 
 // Some functions used to prevent symbles from being in Region.hpp
-void Region::getDims(std::map<std::string,std::vector<UInt>>& outDims,
-                      std::map<std::string,std::vector<UInt>>& inDims) const {
+void Region::getDims_(std::map<std::string,Dimensions>& outDims,
+                      std::map<std::string,Dimensions>& inDims) const {
   for(auto out: outputs_) {
     Dimensions& dim = out.second->getDimensions();
     outDims[out.first] = dim;
@@ -654,8 +659,8 @@ void Region::getDims(std::map<std::string,std::vector<UInt>>& outDims,
     inDims[in.first] = dim;
   }
 }
-void Region::loadDims(std::map<std::string,std::vector<UInt>>& outDims,
-                     std::map<std::string,std::vector<UInt>>& inDims) const {
+void Region::loadDims_(std::map<std::string,Dimensions>& outDims,
+                     std::map<std::string,Dimensions>& inDims) const {
   for(auto out: outDims) {
       auto itr = outputs_.find(out.first);
       if (itr != outputs_.end()) {
@@ -700,6 +705,7 @@ std::ostream &operator<<(std::ostream &f, const Region &r) {
     f << in.first << " " << in.second->getDimensions() << "\n";
   }
   f << "]\n";
+	// TODO: add region impl...maybe
   //f << "RegionImpl:\n";
   // Now serialize the RegionImpl plugin.
   //BundleIO bundle(&f);

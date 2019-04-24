@@ -156,7 +156,7 @@ TEST_F(DimensionsTest, Overloads) {
 
 // Dimensions object is treated as a vector<UInt32> by Cereal
 // so it is serializable without the save/load functions.
-/**
+
 TEST_F(DimensionsTest, CerealSerialization) {
   Dimensions d1 = { 1,2,3 };
   Dimensions d2;
@@ -177,44 +177,14 @@ TEST_F(DimensionsTest, CerealSerialization) {
   std::stringstream ss2;
   {
     cereal::BinaryOutputArchive ar(ss2); // Create a binary output archive
-    d3.save_ar(ar);
+    ar(d3);
   } // ar going out of scope causes it to flush
   ss1.seekg(0);
   {
     cereal::BinaryInputArchive ar(ss2); // Create a binary input archive
-    d2.load_ar(ar);
+    ar(d2);
   }
   EXPECT_EQ(d3, d2);
   EXPECT_TRUE(d2.isInvalid());
-
-  Dimensions d4 = { 0 };
-  std::stringstream ss3;
-  {
-    cereal::BinaryOutputArchive ar(ss3); // Create a binary output archive
-    d4.save_ar(ar);
-  } // ar going out of scope causes it to flush
-  ss1.seekg(0);
-  {
-    cereal::BinaryInputArchive ar(ss3); // Create a binary input archive
-    d2.load_ar(ar);
-  }
-  EXPECT_EQ(d4, d2);
-  EXPECT_TRUE(d2.isDontcare());
-
-  d4.clear();
-  std::stringstream ss4;
-  {
-    cereal::BinaryOutputArchive ar(ss4); // Create a binary output archive
-    d4.save_ar(ar);
-  } // ar going out of scope causes it to flush
-  ss1.seekg(0);
-  {
-    cereal::BinaryInputArchive ar(ss4); // Create a binary input archive
-    d2.load_ar(ar);
-  }
-  EXPECT_EQ(d4, d2);
-  EXPECT_TRUE(d2.isUnspecified());
 }
-***/
-
 } // namespace testing

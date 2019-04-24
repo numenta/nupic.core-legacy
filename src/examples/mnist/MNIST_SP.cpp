@@ -79,7 +79,7 @@ void setup() {
     /* spVerbosity */                 1u,
     /* wrapAround */                  false); //wrap is false for this problem
 
-  clsr.initialize( /* alpha */ .001);
+  clsr.initialize( /* alpha */ .001f);
 
   dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(string("../ThirdParty/mnist_data/mnist-src/")); //from CMake
 }

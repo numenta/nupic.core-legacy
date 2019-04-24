@@ -110,19 +110,17 @@ std::shared_ptr<Region> Network::addRegion(const std::string &name, const std::s
   return r;
 }
 
-std::shared_ptr<Region> Network::addRegion( std::istream &stream, std::string name) {
-    std::shared_ptr<Region> r = std::make_shared<Region>(this);
-    r->load(stream);
-    if (!name.empty())
-      r->name_ = name;
-    regions_[r->getName()] = r;
+std::shared_ptr<Region> Network::addRegion(std::shared_ptr<Region> r) {
+  NTA_CHECK(r != nullptr);
+  r->network_ = this;
+  regions_[r->getName()] = r;
 
-    // We must make a copy of the phases set here because
-    // setPhases_ will be passing this back down into
-    // the region.
-    std::set<UInt32> phases = r->getPhases();
-    setPhases_(r.get(), phases);
-    return r;
+  // We must make a copy of the phases set here because
+  // setPhases_ will be passing this back down into
+  // the region.
+  std::set<UInt32> phases = r->getPhases();
+  setPhases_(r.get(), phases);
+  return r;
 }
 
 // TODO:cereal Remove

@@ -392,7 +392,8 @@ public:
   Region(std::string name, const std::string &type,
          const std::string &nodeParams, Network *network = nullptr);
 
-  Region(Network *network = nullptr); // An empty region for deserialization.
+  Region(Network *network); // An empty region for deserialization.
+  Region(); // A default constructor for region for deserialization.
 
   virtual ~Region();
 
@@ -463,9 +464,9 @@ public:
        cereal::make_nvp("nodeType", type_),
        cereal::make_nvp("phases", phases_));
 
-    std::map<std::string, std::vector<UInt>> outDims;
-    std::map<std::string, std::vector<UInt>> inDims;
-    getDims(outDims, inDims);
+    std::map<std::string, Dimensions> outDims;
+    std::map<std::string, Dimensions> inDims;
+    getDims_(outDims, inDims);
     ar(cereal::make_nvp("outputs", outDims));
     ar(cereal::make_nvp("inputs",  inDims));
     // Now serialize the RegionImpl plugin.
@@ -482,8 +483,8 @@ public:
        cereal::make_nvp("nodeType", type_),
        cereal::make_nvp("phases", phases_));
 
-    std::map<std::string, std::vector<UInt>> outDims;
-    std::map<std::string, std::vector<UInt>> inDims;
+    std::map<std::string, Dimensions> outDims;
+    std::map<std::string, Dimensions> inDims;
     ar(cereal::make_nvp("outputs", outDims));
     ar(cereal::make_nvp("inputs",  inDims));
 
@@ -491,23 +492,33 @@ public:
     ArWrapper arw(&ar);
     deserializeImpl(arw);
 
-    loadDims(outDims, inDims);
+    loadDims_(outDims, inDims);
   }
+
+  // Tell Cereal to construct it with an argument if it is used
+  // in a smart pointer.  Called by Cereal when loading shared_ptr<Region>.
+  template <class Archive>
+  static void load_and_construct( Archive & ar, cereal::construct<Region>& construct )
+  {
+    construct(nullptr);      // allocates Region without link to Network.
+    construct->load_ar(ar);  // populates Region
+  }
+
 
   friend class Network;
   friend std::ostream &operator<<(std::ostream &f, const Region &r);
 
 
 private:
-  Region(Region &){}  // copy not allowed
+  //Region(Region &){}  // copy not allowed
 
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
   void createInputsAndOutputs_();
-  void getDims(std::map<std::string,std::vector<UInt>>& outDims,
-               std::map<std::string,std::vector<UInt>>& inDims) const;
-  void loadDims(std::map<std::string,std::vector<UInt>>& outDims,
-               std::map<std::string,std::vector<UInt>>& inDims) const;
+  void getDims_(std::map<std::string,Dimensions>& outDims,
+               std::map<std::string,Dimensions>& inDims) const;
+  void loadDims_(std::map<std::string,Dimensions>& outDims,
+               std::map<std::string,Dimensions>& inDims) const;
   void serializeImpl(ArWrapper& ar) const;
   void deserializeImpl(ArWrapper& ar);
 
