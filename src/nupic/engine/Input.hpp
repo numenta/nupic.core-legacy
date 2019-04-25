@@ -29,7 +29,6 @@
 #ifndef NTA_INPUT_HPP
 #define NTA_INPUT_HPP
 
-#include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/types/Types.hpp>
 #include <vector>

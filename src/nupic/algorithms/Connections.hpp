@@ -436,6 +436,13 @@ public:
    */
   void bumpSegment(const Segment segment, const Permanence delta);
 
+
+  /**
+   * Print diagnostic info
+   */
+  friend std::ostream& operator<< (std::ostream& stream, const Connections& self);
+
+
   // Serialization
 
   /**
@@ -476,7 +483,8 @@ public:
     Permanence  connectedThreshold;
     cereal::size_type numCells;
     ar(connectedThreshold, cereal::make_size_tag(numCells));
-    initialize(static_cast<CellIdx>(numCells), connectedThreshold);
+    CellIdx idx = static_cast<CellIdx>(numCells);
+    initialize(idx, connectedThreshold);
 
     for (UInt cell = 0; cell < numCells; cell++) {
 

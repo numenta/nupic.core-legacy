@@ -30,9 +30,10 @@
 #include <string>
 #include <vector>
 
-#include <nupic/encoders/ScalarEncoder.hpp>
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/ntypes/Value.hpp>
+#include <nupic/types/Serializable.hpp>
+#include <nupic/encoders/ScalarEncoder.hpp>
 
 namespace nupic {
 /**
@@ -44,10 +45,11 @@ namespace nupic {
  * setting the "sensedValue" parameter. On each compute, the ScalarSensor will
  * encode its "sensedValue" to output.
  */
-class ScalarSensor : public RegionImpl {
+class ScalarSensor : public RegionImpl, Serializable {
 public:
   ScalarSensor(const ValueMap &params, Region *region);
-  ScalarSensor(BundleIO &bundle, Region *region);
+  ScalarSensor(BundleIO &bundle, Region *region);  // TODO:cereal Remove
+  ScalarSensor(ArWrapper& wrapper, Region *region);
 
   virtual ~ScalarSensor() override;
 
@@ -61,13 +63,49 @@ public:
   virtual void serialize(BundleIO &bundle) override;
   virtual void deserialize(BundleIO &bundle) override;
 
-
   void compute() override;
   virtual std::string executeCommand(const std::vector<std::string> &args,
                                      Int64 index) override;
 
   virtual size_t
   getNodeOutputElementCount(const std::string &outputName) const override;
+
+  CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(CEREAL_NVP(sensedValue_));
+    ar(cereal::make_nvp("minimum", params_.minimum),
+       cereal::make_nvp("maximum", params_.maximum),
+       cereal::make_nvp("clipInput", params_.clipInput),
+       cereal::make_nvp("periodic", params_.periodic),
+       cereal::make_nvp("activeBits", params_.activeBits),
+       cereal::make_nvp("sparsity", params_.sparsity),
+       cereal::make_nvp("size", params_.size),
+       cereal::make_nvp("radius", params_.radius),
+       cereal::make_nvp("resolution", params_.resolution));
+    // TODO:cereal   Also serialize the outputs
+  }
+  // FOR Cereal Deserialization
+  // NOTE: the Region Implementation must have been allocated
+  //       using the RegionImplFactory so that it is connected
+  //       to the Network and Region objects. This will populate
+  //       the region_ field in the Base class.
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(CEREAL_NVP(sensedValue_));
+    ar(cereal::make_nvp("minimum", params_.minimum),
+       cereal::make_nvp("maximum", params_.maximum),
+       cereal::make_nvp("clipInput", params_.clipInput),
+       cereal::make_nvp("periodic", params_.periodic),
+       cereal::make_nvp("activeBits", params_.activeBits),
+       cereal::make_nvp("sparsity", params_.sparsity),
+       cereal::make_nvp("size", params_.size),
+       cereal::make_nvp("radius", params_.radius),
+       cereal::make_nvp("resolution", params_.resolution));
+    // TODO:cereal   Also serialize the outputs
+  }
+
 
 private:
   Real64 sensedValue_;

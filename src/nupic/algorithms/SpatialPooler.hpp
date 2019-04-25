@@ -819,6 +819,11 @@ public:
    */
   void printParameters() const;
 
+  friend std::ostream& operator<< (std::ostream& stream, const SpatialPooler& self) {
+    stream << "SpatialPooler " << self.connections_;
+    return stream;
+  }
+
   /**
   Returns the overlap score for each column.
    */
@@ -1137,9 +1142,12 @@ public:
       @param newValues      A int vector used to update the duty cycle.
 
       @param period         A int number indicating the period of the duty cycle
+
+      @return type void, the argument dutyCycles is updated with new values.
   */
   static void updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                      sdr::SDR &newValues, UInt period);
+                                      const sdr::SDR &newValues, 
+				      const UInt period);
 
   /**
   Updates the duty cycles for each column. The OVERLAP duty cycle is a moving

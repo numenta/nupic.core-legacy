@@ -61,7 +61,8 @@
 namespace nupic
 {
   class Spec;
-  class BundleIO;
+  class BundleIO;  // TODO:cereal  Remove
+  class ArWrapper;
   class RegionImpl;
   class Region;
   class ValueMap;
@@ -81,8 +82,11 @@ namespace nupic
         return new T(params, region);
       }
 
-      RegionImpl* deserializeRegionImpl( BundleIO& bundle, Region *region) override {
+      RegionImpl* deserializeRegionImpl( BundleIO& bundle, Region *region) override {  // TODO:cereal Remove
         return new T(bundle, region);
+      }
+      RegionImpl* deserializeRegionImpl( ArWrapper& wrapper, Region *region) override {
+        return new T(wrapper, region);
       }
 
       Spec* createSpec() override

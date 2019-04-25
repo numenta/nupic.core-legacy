@@ -40,7 +40,7 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 
 namespace nupic
 {
-    class PyBindRegion : public RegionImpl
+    class PyBindRegion : public RegionImpl, Serializable
     {
         typedef std::map<std::string, Spec> SpecMap;
 
@@ -58,6 +58,9 @@ namespace nupic
         PyBindRegion() = delete;
         PyBindRegion(const char* module, const ValueMap& nodeParams, Region *region, const char* className);
         PyBindRegion(const char* module, BundleIO& bundle, Region* region, const char* className);
+        PyBindRegion(const char* module, ArWrapper& wrapper, Region *region, const char* className) : RegionImpl(region) {
+          // TODO:cereal  complete.
+        }
 
         // no copy constructor
         PyBindRegion(const Region &) = delete;

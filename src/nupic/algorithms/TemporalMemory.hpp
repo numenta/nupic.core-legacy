@@ -571,13 +571,33 @@ public:
   void printParameters();
 
   /**
-   * Returns the index of the column that a cell belongs to.
+   * Returns the index of the (mini-)column that a cell belongs to.
+   * 
+   * Mini columns are an organizational unit in TM, 
+   * each mini column consists for cellsPerColumns cells. 
+   * There's no topology between cells within a mini-column, cells
+   * are organized as a flat array 
+   * `col{i} = [cell{i*CPS}, cell{i*CPS +1}, ..., cell{i*CPS + CPS-1}], 
+   * where CPS stands for cellsPerColumn`
    *
    * @param cell Cell index
    *
    * @return (int) Column index
    */
-  UInt columnForCell(const CellIdx cell) const; //TODO rm, incorrect
+  UInt columnForCell(const CellIdx cell) const;
+
+  /**
+   *  cellsToColumns
+   *  converts active cells to columnar representation, 
+   *  see columnForCell() for details.
+   *
+   *  @param const SDR& cells - input cells, size must be a multiple of cellsPerColumn; ie. 
+   *    all SDRs obtained from TM's get*Cells(SDR) are valid. 
+   *
+   *  @return SDR cols - which is size of numCells/cellsPerColumn
+   *
+   */
+  sdr::SDR cellsToColumns(const sdr::SDR& cells) const;
 
 protected:
   CellIdx numColumns_;

@@ -37,12 +37,9 @@
 
 // We need the full definitions because these
 // objects are returned by value.
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
@@ -52,14 +49,11 @@ namespace nupic {
 class RegionImpl;
 class Output;
 class Input;
-class ArrayRef;
 class Array;
 class Spec;
-class NodeSet;
 class BundleIO;
 class Timer;
 class Network;
-class GenericRegisteredRegionImpl;
 
 /**
  * Represents a set of one or more "identical" nodes in a Network.
@@ -461,6 +455,45 @@ public:
   void save(std::ostream &stream) const override;
   void load(std::istream &stream) override;
 
+    CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(cereal::make_nvp("name", name_),
+       cereal::make_nvp("nodeType", type_),
+       cereal::make_nvp("phases", phases_));
+
+    std::map<std::string, Dimensions> outDims;
+    std::map<std::string, Dimensions> inDims;
+    saveDims(outDims, inDims);
+    ar(cereal::make_nvp("outputs", outDims));
+    ar(cereal::make_nvp("inputs",  inDims));
+    // Now serialize the RegionImpl plugin.
+    ArWrapper arw(&ar);
+    serializeImpl(arw);
+  }
+
+
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    initialized_ = false;
+    ar(cereal::make_nvp("name", name_),
+       cereal::make_nvp("nodeType", type_),
+       cereal::make_nvp("phases", phases_));
+
+    std::map<std::string, Dimensions> outDims;
+    std::map<std::string, Dimensions> inDims;
+    ar(cereal::make_nvp("outputs", outDims));
+    ar(cereal::make_nvp("inputs",  inDims));
+
+    // deserialize the RegionImpl plugin and its algorithm
+    ArWrapper arw(&ar);
+    deserializeImpl(arw);
+
+    loadDims(outDims, inDims);
+  }
+
   friend class Network;
 
 private:
@@ -469,6 +502,12 @@ private:
   // common method used by both constructors
   // Can be called after nodespec_ has been set.
   void createInputsAndOutputs_();
+  void saveDims(std::map<std::string,Dimensions>& outDims,
+               std::map<std::string,Dimensions>& inDims) const;
+  void loadDims(std::map<std::string,Dimensions>& outDims,
+               std::map<std::string,Dimensions>& inDims) const;
+  void serializeImpl(ArWrapper& ar) const;
+  void deserializeImpl(ArWrapper& ar);
 
   std::string name_;
 

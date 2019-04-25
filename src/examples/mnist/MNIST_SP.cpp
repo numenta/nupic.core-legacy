@@ -39,8 +39,8 @@ using namespace std;
 using namespace nupic;
 
 using nupic::algorithms::spatial_pooler::SpatialPooler;
-using nupic::algorithms::sdr_classifier::SDRClassifier;
-using nupic::algorithms::sdr_classifier::ClassifierResult;
+using nupic::algorithms::sdr_classifier::Classifier;
+using nupic::algorithms::sdr_classifier::argmax;
 
 class MNIST {
 
@@ -48,7 +48,7 @@ class MNIST {
     SpatialPooler sp;
     sdr::SDR input;
     sdr::SDR columns;
-    SDRClassifier clsr;
+    Classifier clsr;
     mnist::MNIST_dataset<std::vector, std::vector<uint8_t>, uint8_t> dataset;
 
   public:
@@ -58,14 +58,15 @@ class MNIST {
 
 void setup() {
 
-  input.initialize({28, 28});
+  input.initialize({28 * 28});
+  columns.initialize({10 * 1000});
   sp.initialize(
     /* inputDimensions */             input.dimensions,
-    /* columnDimensions */            {28, 28}, //mostly affects speed, to some threshold accuracy only marginally
-    /* potentialRadius */             5u,
+    /* columnDimensions */            columns.dimensions,
+    /* potentialRadius */             999999u,
     /* potentialPct */                0.5f,
-    /* globalInhibition */            false,
-    /* localAreaDensity */            0.20f,  //% active bits, //quite important variable (speed x accuracy)
+    /* globalInhibition */            true,
+    /* localAreaDensity */            0.015f,  //% active bits, //quite important variable (speed x accuracy)
     /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
     /* synPermInactiveDec */          0.005f,
@@ -78,13 +79,7 @@ void setup() {
     /* spVerbosity */                 1u,
     /* wrapAround */                  false); //wrap is false for this problem
 
-  columns.initialize({sp.getNumColumns()});
-
-  clsr.initialize(
-    /* steps */         {0},
-    /* alpha */         .001,
-    /* actValueAlpha */ .3,
-                        verbosity);
+  clsr.initialize( /* alpha */ .001);
 
   dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(string("../ThirdParty/mnist_data/mnist-src/")); //from CMake
 }
@@ -117,21 +112,15 @@ void train() {
       // Compute & Train
       input.setDense( image );
       sp.compute(input, true, columns);
-      ClassifierResult result;
-      clsr.compute(sp.getIterationNum(), columns.getSparse(),
-        /* bucketIdxList */   {label},
-        /* actValueList */    {(Real)label},
-        /* category */        true,
-        /* learn */           true,
-        /* infer */           false,
-                              result);
+      clsr.learn( columns, {label} );
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
     }
     if( verbosity ) cout << endl;
   }
   cout << "epoch ended" << endl;
-  cout << inputStats << endl;
-  cout << columnStats << endl;
+  cout << "inputStats "  << inputStats << endl;
+  cout << "columnStats " << columnStats << endl;
+  cout << sp << endl;
 }
 
 void test() {
@@ -148,16 +137,8 @@ void test() {
     // Compute
     input.setDense( image );
     sp.compute(input, false, columns);
-    ClassifierResult result;
-    clsr.compute(sp.getIterationNum(), columns.getSparse(),
-      /* bucketIdxList */   {},
-      /* actValueList */    {},
-      /* category */        true,
-      /* learn */           false,
-      /* infer */           true,
-                            result);
     // Check results
-    if(clsr.getClassification( result[0] ) == label)
+    if( argmax( clsr.infer( columns ) ) == label)
         score += 1;
     n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;

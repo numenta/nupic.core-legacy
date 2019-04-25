@@ -457,7 +457,8 @@ static void punishPredictedColumn(
 }
 
 void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
-    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() );
+    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() ) 
+	    << "TM invalid input dimensions: " << activeColumns.dimensions.size() << " vs. " << columnDimensions_.size();
     for(size_t i=0; i< columnDimensions_.size(); i++) {
       NTA_CHECK(static_cast<size_t>(activeColumns.dimensions[i]) == static_cast<size_t>(columnDimensions_[i])) << "Dimensions must be the same.";
     }
@@ -678,11 +679,30 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
   return cell / cellsPerColumn_;
 }
 
+
+SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
+  NTA_CHECK(cells.size == numberOfCells()) 
+	  << "cells.size " << cells.size << " must match TM::numberOfCells() " << numberOfCells();
+
+  SDR cols({numColumns_});
+  auto& dense = cols.getDense();
+  for(const auto cell : cells.getSparse()) {
+    const auto col = columnForCell(cell);
+    dense[col] = 1;
+  }
+  cols.setDense(dense);
+
+  NTA_ASSERT(cols.size == numColumns_); 
+  return cols;
+}
+
+
 vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) { 
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
 
   vector<CellIdx> cellsInColumn;
+  cellsInColumn.reserve(cellsPerColumn_);
   for (CellIdx i = start; i < end; i++) {
     cellsInColumn.push_back(i);
   }
