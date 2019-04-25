@@ -497,12 +497,12 @@ public:
 
   // Tell Cereal to construct it with an argument if it is used
   // in a smart pointer.  Called by Cereal when loading shared_ptr<Region>.
-  template <class Archive>
-  static void load_and_construct( Archive & ar, cereal::construct<Region>& construct )
-  {
-    construct(nullptr);      // allocates Region without link to Network.
-    construct->load_ar(ar);  // populates Region
-  }
+ // template <class Archive>
+ // static void load_and_construct( Archive & ar, cereal::construct<Region>& construct )
+ // {
+ //   construct();      // allocates Region without link to Network.
+ //   construct->load_ar(ar);  // populates Region
+ // }
 
 
   friend class Network;

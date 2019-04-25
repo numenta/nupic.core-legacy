@@ -338,9 +338,9 @@ public:
        CEREAL_NVP(overlapDutyCycles_),
        CEREAL_NVP(activeDutyCycles_),
        CEREAL_NVP(minOverlapDutyCycles_),
-       CEREAL_NVP(tieBreaker_),
-       CEREAL_NVP(connections_),
-       CEREAL_NVP(rng_));
+       CEREAL_NVP(tieBreaker_));
+    ar(CEREAL_NVP(connections_));
+    ar(CEREAL_NVP(rng_));
   }
   // FOR Cereal Deserialization
   template<class Archive>

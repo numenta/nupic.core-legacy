@@ -47,9 +47,7 @@ class SPRegion  : public RegionImpl, Serializable
   public:
     SPRegion(const ValueMap& params, Region *region);
     SPRegion(BundleIO& bundle, Region* region);
-    SPRegion(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
-      // TODO:cereal  complete.
-    }
+    SPRegion(ArWrapper& wrapper, Region *region);
     virtual ~SPRegion();
 
 
@@ -102,16 +100,15 @@ class SPRegion  : public RegionImpl, Serializable
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
 	      // save the output buffers
+        std::map<std::string, Array> buffers;
 	      // The output buffers are saved as part of the Region Implementation.
-	      cereal::size_type numBuffers = 0;
 	      std::map<std::string, Output *> outputs = region_->getOutputs();
-	      numBuffers = outputs.size();
-	      ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
 	      for (auto iter : outputs) {
-	        const Array &outputBuffer = iter.second->getData();
-	        ar(cereal::make_map_item(iter.first, outputBuffer));
+          buffers[iter.first] = iter.second->getData();
 	      }
-	      // Save the algorithm state
+	      ar(cereal::make_nvp("outputs", buffers));
+
+        // Save the algorithm state
 	      ar(cereal::make_nvp("SP", sp_));
 	    }
 		}
@@ -142,15 +139,11 @@ class SPRegion  : public RegionImpl, Serializable
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
 	      // restore the output buffers
-	      // The output buffers are saved as part of the Region Implementation.
-	      cereal::size_type numBuffers;
-	      ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
-	      for (cereal::size_type i = 0; i < numBuffers; i++) {
-	        std::string name;
-	        Array output;
-	        ar(cereal::make_map_item(name, output));
-	        Array& outputBuffer = getOutput(name)->getData();
-	        outputBuffer = output;
+        std::map<std::string, Array> buffers;
+	      ar(cereal::make_nvp("outputs", buffers));
+	      for (auto output: buffers) {
+	        Array& outputBuffer = getOutput(output.first)->getData();
+	        outputBuffer = output.second;
 	      }
 	      // Restore algorithm state
 	      algorithms::spatial_pooler::SpatialPooler* sp = new algorithms::spatial_pooler::SpatialPooler();

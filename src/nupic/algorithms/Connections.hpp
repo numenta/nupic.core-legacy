@@ -459,27 +459,38 @@ public:
   CerealAdapter;
   template<class Archive>
   void save_ar(Archive & ar) const {
-    ar( CEREAL_NVP(connectedThreshold_), cereal::make_size_tag(cells_.size()));
+    // make this look like a set of nested vectors with a 
+    // single numeric value in innermost vector. Cannot mix objects and sequences.
+    cereal::size_type count0 = 2;
+    ar(cereal::make_size_tag(count0));
+    ar( CEREAL_NVP(connectedThreshold_));
+    cereal::size_type count1 = cells_.size();
+    ar( cereal::make_size_tag(count1));
     for (CellData cellData : cells_) {
       const std::vector<Segment> &segments = cellData.segments;
-      ar(cereal::make_size_tag(segments.size()));
+      cereal::size_type count2 = segments.size();
+      ar(cereal::make_size_tag(count2));
 
       for (Segment segment : segments) {
         const SegmentData &segmentData = segments_[segment];
 
         const std::vector<Synapse> &synapses = segmentData.synapses;
-        ar(cereal::make_size_tag(synapses.size()));
-
+        cereal::size_type count3 = synapses.size();
+        ar(cereal::make_size_tag(count3));
         for (Synapse synapse : synapses) {
           const SynapseData &synapseData = synapses_[synapse];
-          ar(CEREAL_NVP(synapseData.presynapticCell), 
-             CEREAL_NVP(synapseData.permanence));
+          cereal::size_type count4 = 2;
+          ar(cereal::make_size_tag(count4));
+          ar(cereal::make_nvp("presyn", synapseData.presynapticCell));
+          ar(cereal::make_nvp("perm", synapseData.permanence));
         }
       }
     }
   }
   template<class Archive>
   void load_ar(Archive & ar) {
+    cereal::size_type count;
+    ar(cereal::make_size_tag(count)); // ignore this count of 2
     Permanence  connectedThreshold;
     cereal::size_type numCells;
     ar(connectedThreshold, cereal::make_size_tag(numCells));
@@ -500,6 +511,7 @@ public:
         for (SynapseIdx k = 0; k < static_cast<SynapseIdx>(numSynapses); k++) {
           CellIdx     presyn;
           Permanence  perm;
+          ar(cereal::make_size_tag(count)); // ignore this count of 2
           ar(presyn, perm);
           createSynapse( segment, presyn, perm );
         }

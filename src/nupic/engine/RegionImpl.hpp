@@ -121,6 +121,7 @@ public:
   virtual void serialize(BundleIO &bundle) = 0;
   virtual void deserialize(BundleIO &bundle) = 0;
 
+  // overridden by including the macro CerealAdapter in subclass.
   virtual void cereal_adapter_save(ArWrapper& a) const {};
   virtual void cereal_adapter_load(ArWrapper& a) {};
 

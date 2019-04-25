@@ -57,7 +57,7 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
   deserialize(bundle);
 }
 ScalarSensor::ScalarSensor(ArWrapper &wrapper, Region *region):RegionImpl(region) {
-  // TODO:cereal Finish      cereal_adapter_load(wrapper);
+  cereal_adapter_load(wrapper);
 }
 
 

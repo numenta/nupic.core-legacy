@@ -39,6 +39,7 @@
 
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
@@ -133,14 +134,7 @@ public:
     std::string name = "Network";
     ar(cereal::make_nvp("name", name),
        cereal::make_nvp("iteration", iteration_));
-    //ar(cereal::make_nvp("Regions", regions_));
-    cereal::size_type count = regions_.size();
-    ar(cereal::make_size_tag(count));
-    for(auto p: regions_) {
-      std::shared_ptr<Region> r = p.second;
-      ar( r);
-    }
-      
+    ar(cereal::make_nvp("Regions", regions_));
     ar(cereal::make_nvp("links", links));
 
   }
@@ -152,13 +146,16 @@ public:
     std::string name;
     ar(cereal::make_nvp("name", name),  // ignore value
        cereal::make_nvp("iteration", iteration_));
-    //ar(cereal::make_nvp("Regions", regions_));
-    cereal::size_type count;
-    ar(cereal::make_size_tag(count));
-    for (cereal::size_type i = 0; i < count; i++) {
-      std::shared_ptr<Region> r = std::make_shared<Region>(this);
-      ar(r);               // Note: calls load_and_construct( ) on Region.
-      addRegion(r);
+    ar(cereal::make_nvp("Regions", regions_));
+    for(auto p: regions_) {
+      std::shared_ptr<Region> r = p.second;
+      r->network_ = this;  // back link to network
+
+      // We must make a copy of the phases set here because
+      // setPhases_ will be passing this back down into
+      // the region.
+      std::set<UInt32> phases = r->getPhases();
+      setPhases_(r.get(), phases);
     }
     
     ar(cereal::make_nvp("links", links));
