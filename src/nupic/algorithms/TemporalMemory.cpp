@@ -530,6 +530,12 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
     }
   }
   segmentsValid_ = false;
+
+  //anomaly computation
+  anomaly_.currentActiveColumns = this->cellsToColumns(activeCells_);
+  anomaly_.previouslyPredictedColumns = this->cellsToColumns(getPredictiveCells()); //TODO move to T-1
+  anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(anomaly_.currentActiveColumns,
+                                                                      anomaly_.previouslyPredictedColumns);
 }
 
 void TemporalMemory::activateDendrites(bool learn,
@@ -648,12 +654,6 @@ void TemporalMemory::compute(const SDR &activeColumns, bool learn,
 void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
   activateDendrites(learn);
   activateCells(activeColumns, learn);
-  //anomaly computation
-  anomaly_.currentActiveColumns = this->cellsToColumns(activeCells_); //FIXME cellsToColumns from PR#397 
-  anomaly_.previouslyPredictedColumns = this->cellsToColumns(getPredictiveCells()); //TODO move to T-1
-  anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(
-		  anomaly_.currentActiveColumns, 
-		  anomaly_.previouslyPredictedColumns);
 }
 
 void TemporalMemory::reset(void) {
