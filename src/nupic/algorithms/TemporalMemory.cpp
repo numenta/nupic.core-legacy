@@ -146,6 +146,8 @@ void TemporalMemory::initialize(
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
 
+  anomaly_.initialize(columnDimensions);
+
   reset();
 }
 
@@ -533,9 +535,9 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
 
   //anomaly computation
   anomaly_.currentActiveColumns = this->cellsToColumns(activeCells_);
-  anomaly_.previouslyPredictedColumns = this->cellsToColumns(getPredictiveCells()); //TODO move to T-1
   anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(anomaly_.currentActiveColumns,
                                                                       anomaly_.previouslyPredictedColumns);
+  anomaly_.previouslyPredictedColumns = this->cellsToColumns(getPredictiveCells());
 }
 
 void TemporalMemory::activateDendrites(bool learn,
@@ -662,6 +664,8 @@ void TemporalMemory::reset(void) {
   activeSegments_.clear();
   matchingSegments_.clear();
   segmentsValid_ = false;
+
+  anomaly_.reset();
 }
 
 // ==============================

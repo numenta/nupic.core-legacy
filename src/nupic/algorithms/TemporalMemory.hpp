@@ -633,10 +633,20 @@ private:
   /**
    * this struct is used for anomaly computation
    */
-  struct anomaly_t {
-    float score = 0.0f;
+  struct Anomaly {
+    float score = 0.5f;
     sdr::SDR previouslyPredictedColumns;
-    sdr::SDR currentActiveColumns; 
+    sdr::SDR currentActiveColumns;
+   void reset() {
+     score = 0.5f;
+     previouslyPredictedColumns.zero();
+     currentActiveColumns.zero();
+   }
+
+   void initialize(std::vector<UInt> dimensions) {
+     previouslyPredictedColumns.initialize(dimensions);
+     currentActiveColumns.initialize(dimensions);
+   }
   } anomaly_;
 
 public:
