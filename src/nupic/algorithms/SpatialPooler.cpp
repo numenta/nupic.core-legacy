@@ -747,10 +747,10 @@ void SpatialPooler::bumpUpWeakColumns_() {
 
 
 void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                            SDR &newValues,
-                                            UInt period) {
+                                            const SDR &newValues,
+                                            const UInt period) {
   NTA_ASSERT(period > 0);
-  NTA_ASSERT(dutyCycles.size() == newValues.size);
+  NTA_ASSERT(dutyCycles.size() == newValues.size) << "duty dims: " << dutyCycles.size() << " SDR dims: " << newValues.size;
 
   // Duty cycles are exponential moving averages, typically written like:
   //   alpha = 1 / period
@@ -758,12 +758,12 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
   // However since the values are sparse this equation is split into two loops,
   // and the second loop iterates over only the non-zero values.
 
-  const Real decay = (Real) (period - 1) / period;
+  const Real decay = (period - 1) / static_cast<Real>(period);
   for (Size i = 0; i < dutyCycles.size(); i++)
     dutyCycles[i] *= decay;
 
   const Real increment = 1.0f / period;  // All non-zero values are 1.
-  for(const auto &idx : newValues.getSparse())
+  for(const auto idx : newValues.getSparse())
     dutyCycles[idx] += increment;
 }
 
