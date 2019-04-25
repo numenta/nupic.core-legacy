@@ -33,11 +33,12 @@ There are 3 ways to use the code:
 - using the raw individual functions.
 **/
 
-using namespace std;
 
 namespace nupic {
   namespace algorithms {
     namespace anomaly {
+
+using namespace std;
 
 struct DistributionParams {
   DistributionParams(std::string name, Real mean, Real variance, Real stdev) :
