@@ -1,5 +1,12 @@
-#FROM ubuntu:18.04
-FROM multiarch/ubuntu-core:arm64-bionic
+# Default arch. Pass in with "--build-arg arch=arm64", etc.
+#   Our circleci arm64 build uses this specifically.
+#   https://docs.docker.com/engine/reference/commandline/build/
+ARG arch=x86_64
+
+# Multiarch Ubuntu Bionic 18.04. arches: x86_64, arm64, etc.
+#   https://hub.docker.com/r/multiarch/ubuntu-core/tags/
+FROM multiarch/ubuntu-core:$arch-bionic
+
 RUN apt-get update && \
     apt-get install -y \
     curl \
@@ -23,17 +30,14 @@ ENV CC gcc
 ENV CXX g++
 
 ADD . /usr/local/src/nupic.cpp
-
 WORKDIR /usr/local/src/nupic.cpp
 
 # Explicitly specify --cache-dir, --build, and --no-clean so that build
 # artifacts may be extracted from the container later.  Final built python
 # packages can be found in /usr/local/src/nupic.cpp/bindings/py/dist
-
 RUN pip install \
         --cache-dir /usr/local/src/nupic.cpp/pip-cache \
         --build /usr/local/src/nupic.cpp/pip-build \
         --no-clean \
         -r bindings/py/packaging/requirements.txt && \
     python setup.py bdist bdist_dumb bdist_wheel sdist
-

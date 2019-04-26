@@ -1,7 +1,14 @@
+# CircleCI Build Config
+#   https://circleci.com/docs/2.0/configuration-reference/#section=configuration
+#
+# Targets: 
+#   - Max OS/X
+#   - ARM64
+
 version: 2
 jobs:
 
-  # job: Darwin (build-and-test)
+  # job: Mac OS/X raw ("build-and-test")
   build-and-test:
     macos:
       xcode: '10.1.0'
@@ -106,28 +113,31 @@ jobs:
             #tar -zcv -f nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
             #aws s3 cp nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
 
-  # job: ARM64 (arm64)
-  arm64:
+  # job: ARM64 via Docker + QEMU ("arm64-build-test")
+  arm64-build-test:
     docker:
+      # CircleCI base Ubuntu 18.10 Cosmic with remote Docker access, etc.
+      #   https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
       - image: circleci/buildpack-deps:18.10
     steps:
       - run:
           command: |
             if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
               echo "This is a local build. Enabling sudo for docker"
-              echo sudo > ~/sudo
+              CISUDO=sudo
             else
-              echo "This is not a local build. Disabling sudo for docker"
-              touch ~/sudo
+              CISUDO=
             fi
       - run: sudo apt-get -y install qemu-system
       - checkout
-      - setup_remote_docker
-      - run: eval `cat ~/sudo` docker run --rm --privileged multiarch/qemu-user-static:register --reset
-      - run: eval `cat ~/sudo` docker build .
+      - setup_remote_docker  # access circleci's custom docker service
+      # here we make circleci x86 hardware think it's arm64 via docker+qemu
+      - run: $CISUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - run: $CISUDO docker build --build-arg arch=arm64 .
 
 workflows:
   version: 2
+  # Mac OS/X raw ("build-and-test")
   build-test-deploy:
     jobs:
       - build-and-test
