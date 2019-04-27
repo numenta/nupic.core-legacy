@@ -1,7 +1,7 @@
 # CircleCI Build Config
 #   https://circleci.com/docs/2.0/configuration-reference/#section=configuration
 #
-# Targets: 
+# Targets:
 #   - Max OS/X
 #   - ARM64
 
@@ -121,19 +121,23 @@ jobs:
       - image: circleci/buildpack-deps:18.10
     steps:
       - run:
+          # This is for local test builds using the CircleCI terminal app.
+          #   Local Docker seems to use sudo, CircleCI Docker does not.
           command: |
             if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
               echo "This is a local build. Enabling sudo for docker"
-              CISUDO=sudo
+              echo 'export CI_SUDO="sudo"' >> $BASH_ENV
             else
-              CISUDO=
+              echo 'export CI_SUDO=' >> $BASH_ENV
             fi
+            source $BASH_ENV
       - run: sudo apt-get -y install qemu-system
       - checkout
       - setup_remote_docker  # access circleci's custom docker service
       # here we make circleci x86 hardware think it's arm64 via docker+qemu
-      - run: $CISUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
-      - run: $CISUDO docker build --build-arg arch=arm64 .
+      - run: env
+      - run: $CI_SUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - run: $CI_SUDO docker build --build-arg arch=arm64 .
 
 workflows:
   version: 2
@@ -141,4 +145,3 @@ workflows:
   build-test-deploy:
     jobs:
       - build-and-test
-
