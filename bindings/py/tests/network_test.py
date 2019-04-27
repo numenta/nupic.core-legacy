@@ -109,8 +109,7 @@ class NetworkTest(unittest.TestCase):
       destNet = engine.Network()
       destNet.loadFromFile("SerializationTest.stream")
 
-      destRegion = destNet.getRegions().getByName(
-        SerializationTestPyRegion.__name__)
+      destRegion = destNet.getRegion(SerializationTestPyRegion.__name__)
 
       self.assertEqual(destRegion.getParameterUInt32("dataWidth"), 128)
       self.assertEqual(destRegion.getParameterUInt32("randomSeed"), 99)
@@ -132,17 +131,15 @@ class NetworkTest(unittest.TestCase):
     region1.setDimensions(engine.Dimensions([1, 1]))
 
     # Link region1 and region2
-    network.link("region1", "region2", "UniformLink", "")
+    network.link("region1", "region2")
 
     # Initialize network
     network.initialize()
 
-    for linkName, link in network.getLinks():
+    for link in network.getLinks():
       # Compare Link API to what we know about the network
-      self.assertEqual(link.toString(), linkName)
       self.assertEqual(link.getDestRegionName(), "region2")
       self.assertEqual(link.getSrcRegionName(), "region1")
-      self.assertEqual(link.getLinkType(), "UniformLink")
       self.assertEqual(link.getDestInputName(), "bottomUpIn")
       self.assertEqual(link.getSrcOutputName(), "bottomUpOut")
       break

@@ -320,26 +320,24 @@ namespace nupic_ext
         });
 
         // Links
-        typedef Collection<std::shared_ptr<Link>> Link_Collection_t;
-        py::class_<Link_Collection_t> py_LinkCollection(m, "Link_Collection_t");
-        py_LinkCollection.def("getByName", &Link_Collection_t::getByName);
-        py_LinkCollection.def("contains", &Link_Collection_t::contains);
-        py_LinkCollection.def("getCount", &Link_Collection_t::getCount);
+        typedef std::vector<std::shared_ptr<Link>> Links_t;
+        py::class_<Links_t> py_LinkCollection(m, "Links_t");
+        py_LinkCollection.def("getCount", &Links_t::size);
 
         // bare bone sequence protocol
-        py_LinkCollection.def("__len__", &Link_Collection_t::getCount);
-        py_LinkCollection.def("__getitem__", [](Link_Collection_t& coll, size_t i)
+        py_LinkCollection.def("__len__", &Links_t::size);
+        py_LinkCollection.def("__getitem__", [](Links_t& coll, size_t i)
         {
-            if (i >= coll.getCount())
+            if (i >= coll.size())
             {
                 throw py::index_error();
             }
 
-            return coll.getByIndex(i);
+            return coll[i];
         });
 
         // not sure we need __iter__
-        //py_LinkCollection.def("__iter__", [](Link_Collection_t& coll) { return py::make_iterator(coll.begin(), coll.end()); }, py::keep_alive<0, 1>());
+        py_LinkCollection.def("__iter__", [](Links_t& coll) { return py::make_iterator(coll.begin(), coll.end()); }, py::keep_alive<0, 1>());
     }
 
 } // namespace nupic_ext
