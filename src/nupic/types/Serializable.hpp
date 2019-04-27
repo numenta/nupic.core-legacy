@@ -248,7 +248,9 @@ public:
   virtual inline void saveToFile_ar(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) const {
     std::string dirPath = Path::getParent(filePath);
 	  Directory::create(dirPath, true, true);
-	  std::ofstream out(filePath, std::ios_base::out | ((fmt <= SerializableFormat::PORTABLE)?std::ios_base::binary : 0));
+		std::ios_base::openmode mode = std::ios_base::out;
+		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
+	  std::ofstream out(filePath, mode);
 	  out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 	  out.precision(std::numeric_limits<double>::digits10 + 1);
 	  out.precision(std::numeric_limits<float>::digits10 + 1);
@@ -286,12 +288,14 @@ public:
   }
   
   virtual inline void loadFromFile_ar(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) {
-	  std::ifstream in(filePath, std::ios_base::in | ((fmt <= SerializableFormat::PORTABLE)?std::ios_base::binary : 0));
+		std::ios_base::openmode mode = std::ios_base::in;
+		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
+	  std::ifstream in(filePath, mode);
     in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		loadFromStream_ar(in, fmt);
 		in.close();
 	}
-  // NOTE: for BINARY and PORTABLE the stream must be ios_base::binary or it will crash on Windows.
+  // NOTE: for BINARY and PORTABLE the stream must opened with ios_base::binary or it will crash on Windows.
 	virtual inline void loadFromStream_ar(std::istream &in,  SerializableFormat fmt=SerializableFormat::BINARY) {
     ArWrapper arw;
     arw.fmt = fmt;
