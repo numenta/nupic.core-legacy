@@ -1,4 +1,4 @@
-# Default arch. Pass in with "--build-arg arch=arm64", etc.
+# Default arch. Pass in like "--build-arg arch=arm64".
 #   Our circleci arm64 build uses this specifically.
 #   https://docs.docker.com/engine/reference/commandline/build/
 ARG arch=x86_64
