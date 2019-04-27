@@ -197,29 +197,20 @@ docker build --build-arg arch=arm64 .
 
  * [Build](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
  * [Config](./.circleci/config.yml)
-
-**Local Test Build:**
-```sh
-# brew install circleci
-circleci local execute --job build-and-test
-```
+ * Local Test Build: `circleci local execute --job build-and-test`
 
 #### Windows auto build @ AppVeyor
+
  * [Build](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
  * [Config](./appveyor.yml)
 
 #### ARM64 auto build @ CircleCI
 
- * **TODO!** [Build]()
- * [Config](./.circleci/config.yml)
-
 This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
 
-**Local Test Build:**
-```sh
-# brew install circleci
-circleci local execute --job arm64-build-test
-```
+ * **TODO!** [Build]()
+ * [Config](./.circleci/config.yml)
+ * Local Test Build: `circleci local execute --job arm64-build-test`
 
 
 ### Testing
