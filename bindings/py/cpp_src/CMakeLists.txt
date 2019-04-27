@@ -76,6 +76,7 @@ set(src_py_math_files
     bindings/math/math_module.cpp    
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
+    bindings/math/py_Topology.cpp
     )
     
 set(src_py_test_files
