@@ -140,7 +140,8 @@ jobs:
 
 workflows:
   version: 2
-  # Mac OS/X raw ("build-and-test")
   build-test-deploy:
     jobs:
-      - build-and-test
+      - build-and-test    # Mac OS/X raw ("build-and-test")
+      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")
+
