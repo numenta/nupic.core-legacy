@@ -136,7 +136,9 @@ jobs:
       - setup_remote_docker  # access circleci's custom docker service
       # here we make circleci x86 hardware think it's arm64 via docker+qemu
       - run: $CI_SUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
-      - run: $CI_SUDO docker build --build-arg arch=arm64 .
+      - run:
+          command: $CI_SUDO docker build --build-arg arch=arm64 .
+          no_output_timeout: 2h
 
 workflows:
   version: 2
