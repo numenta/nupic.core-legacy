@@ -1290,6 +1290,9 @@ protected:
 
   UInt version_;
   Random rng_;
+
+public:
+  const connections::Connections &connections = connections_;
 };
 
 } // end namespace spatial_pooler

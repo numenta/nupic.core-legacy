@@ -45,6 +45,9 @@ namespace nupic_ext
         py::arg("connectedThreshold"),
         py::arg("timeseries") = false);
 
+    py_Connections.def_property_readonly("connectedThreshold",
+        [](const Connections &self) { return self.getConnectedThreshold(); });
+
     py_Connections.def("createSegment", &Connections::createSegment,
         py::arg("cell"));
 
@@ -133,6 +136,19 @@ namespace nupic_ext
             C->load( buf );
             return C;
         } ));
+
+    py_Connections.def("save",
+        [](const Connections &self) {
+            std::stringstream buf;
+            self.save( buf );
+            return py::bytes( buf.str() ); });
+
+    py_Connections.def("load",
+        [](const py::bytes &data) {
+            std::stringstream buf( data.cast<std::string>() );
+            auto C = new Connections();
+            C->load( buf );
+            return C; } );
 
   } // End function init_Connections
 }   // End namespace nupic_ext
