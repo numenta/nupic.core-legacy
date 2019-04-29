@@ -403,8 +403,7 @@ public:
      */
     virtual void setSDR( const SparseDistributedRepresentation &value );
 
-    SparseDistributedRepresentation& operator=(const SparseDistributedRepresentation& value)
-        { setSDR(value); return *this; }
+    SparseDistributedRepresentation& operator=(const SparseDistributedRepresentation& value);
 
     /**
      * Calculates the number of true / non-zero values in the SDR.

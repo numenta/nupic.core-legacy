@@ -237,7 +237,7 @@ namespace sdr {
 
 
     void SparseDistributedRepresentation::setSDR( const SparseDistributedRepresentation &value ) {
-        NTA_ASSERT( value.dimensions == dimensions );
+        NTA_CHECK( value.dimensions == dimensions );
         clear();
 
         dense_valid = value.dense_valid;
@@ -260,6 +260,15 @@ namespace sdr {
             sparse_valid = true;
         }
         do_callbacks();
+    }
+
+
+    SparseDistributedRepresentation& SparseDistributedRepresentation::operator=(const SparseDistributedRepresentation& value) {
+        if( dimensions.empty() ) {
+            initialize( value.dimensions );
+        }
+        setSDR( value );
+        return *this;
     }
 
 
