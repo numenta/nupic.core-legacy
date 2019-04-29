@@ -631,6 +631,7 @@ protected:
 
 public:
   Connections connections; //TODO not public!
+  const UInt &extra = extra_;
 };
 
 } // end namespace temporal_memory
