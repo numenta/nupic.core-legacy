@@ -39,7 +39,9 @@ namespace nupic_ext
 {
   void init_Connections(py::module& m)
   {
-    py::class_<Connections> py_Connections(m, "Connections");
+    py::class_<Connections> py_Connections(m, "Connections",
+R"(Compatibility Warning: This classes API is unstable and may change without warning.)");
+
     py_Connections.def(py::init<UInt, Permanence, bool>(),
         py::arg("numCells"),
         py::arg("connectedThreshold"),
