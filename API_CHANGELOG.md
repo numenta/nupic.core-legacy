@@ -77,5 +77,4 @@ longer accept a synapse permanence threshold argument. PR #305
 * SDRClassifier class is replaced by `Classifier` and `Predictor` classes.
 
 * In NetworkAPI, access to a Region object was accessed using `net.getRegions()->getByName('name');`. 
-Use getRegion('name') instead.  `net.getRegions()` now returns a map of Region shared_ptr objects so 
-the getByName( ) and getByIndex( ) functions are no longer available.
+This is obsolete. Use getRegion('name') instead. 

@@ -306,6 +306,7 @@ namespace nupic_ext
         py_RegionCollection.def("getByName", &Region_Collection_t::getByName);
         py_RegionCollection.def("contains", &Region_Collection_t::contains);
         py_RegionCollection.def("getCount", &Region_Collection_t::getCount);
+        py_RegionCollection.def("size", &Region_Collection_t::size);
 
         // bare bone sequence protocol
         py_RegionCollection.def("__len__", &Region_Collection_t::getCount);

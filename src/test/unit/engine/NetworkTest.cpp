@@ -315,9 +315,9 @@ callbackData mydata;
 void testCallback(Network *net, UInt64 iteration, void *data) {
   callbackData &thedata = *(static_cast<callbackData *>(data));
   // push region names onto callback data
-  const std::map<std::string, std::shared_ptr<Region>> &regions = net->getRegions();
-  for (auto p :regions) {
-    thedata.push_back(p.first);
+  const Collection<std::shared_ptr<Region>> &regions = net->getRegions();
+  for(auto iter = regions.cbegin(); iter != regions.cend(); ++iter) {
+    thedata.push_back(iter->first);
   }
 }
 

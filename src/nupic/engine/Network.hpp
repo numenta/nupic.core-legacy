@@ -130,11 +130,15 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
+	  std::map<std::string, std::shared_ptr<Region>> regions;
+    for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter) {
+			regions[iter->first] = iter->second;
+		}
     const std::vector<std::shared_ptr<Link>> links = getLinks();
     std::string name = "Network";
     ar(cereal::make_nvp("name", name),
        cereal::make_nvp("iteration", iteration_));
-    ar(cereal::make_nvp("Regions", regions_));
+    ar(cereal::make_nvp("Regions", regions));
     ar(cereal::make_nvp("links", links));
 
   }
@@ -142,20 +146,14 @@ public:
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
+	  std::map<std::string, std::shared_ptr<Region>> regions;
     std::vector<std::shared_ptr<Link>> links;
     std::string name;
     ar(cereal::make_nvp("name", name),  // ignore value
        cereal::make_nvp("iteration", iteration_));
-    ar(cereal::make_nvp("Regions", regions_));
-    for(auto p: regions_) {
-      std::shared_ptr<Region> r = p.second;
-      r->network_ = this;  // back link to network
-
-      // We must make a copy of the phases set here because
-      // setPhases_ will be passing this back down into
-      // the region.
-      std::set<UInt32> phases = r->getPhases();
-      setPhases_(r.get(), phases);
+    ar(cereal::make_nvp("Regions", regions));
+    for(auto p: regions) {
+			addRegion(p.second);
     }
     
     ar(cereal::make_nvp("links", links));
@@ -281,7 +279,7 @@ public:
    *
    * @returns A Collection of Region objects in the network
    */
-  const std::map<std::string, std::shared_ptr<Region>> &getRegions() const;
+  const Collection<std::shared_ptr<Region> > &getRegions() const;
   std::shared_ptr<Region> getRegion(const std::string& name) const;
 
   /**
@@ -465,7 +463,7 @@ private:
   void resetEnabledPhases_();
 
   bool initialized_;
-  std::map<std::string, std::shared_ptr<Region>> regions_;
+  Collection<std::shared_ptr<Region>> regions_;
 
   UInt32 minEnabledPhase_;
   UInt32 maxEnabledPhase_;
