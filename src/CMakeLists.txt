@@ -336,19 +336,14 @@ add_subdirectory(test)
 #
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp examples/hotgym/HelloSPTP.cpp)
-if(MSVC)
-  # for Windows, link with the static library
-  target_link_libraries(${src_executable_hotgym} 
+# link with the static library
+target_link_libraries(${src_executable_hotgym} 
     ${core_library}
-    ${COMMON_OS_LIBS}
-		)
-else()
-  # for Linux,OSx, link with the shared library
-  target_link_libraries(${src_executable_hotgym} 
-    ${src_lib_shared}
-    ${COMMON_OS_LIBS}
-		)
-endif()
+    ${COMMON_OS_LIBS})
+    
+# for future reference; to link to shared library, (Not on MSVC)
+#          link with ${src_lib_shared} rather than ${core_library}
+                  
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_executable_hotgym} PRIVATE 
@@ -361,7 +356,24 @@ add_custom_target(hotgym
           COMMENT "Executing ${src_executable_hotgym}"
           VERBATIM)
 
-
+#########################################################
+## Dynamicly linked version of hotgym
+if(MSVC)
+else()
+  set(src_dyn_executable_hotgym dynamic_hotgym)
+  add_executable(${src_dyn_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp examples/hotgym/HelloSPTP.cpp)
+  # for Linux,OSx, link with the shared library
+  target_link_libraries(${src_dyn_executable_hotgym} 
+    ${src_lib_shared}
+    ${COMMON_OS_LIBS}
+		)
+  target_compile_options( ${src_dyn_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
+  target_compile_definitions(${src_dyn_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+  target_include_directories(${src_dyn_executable_hotgym} PRIVATE 
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		)
+endif()
 #########################################################
 ## MNIST Spatial Pooler Example
 #
@@ -401,6 +413,7 @@ install(TARGETS
 if(MSVC)
 else()	
   install(TARGETS
+        ${src_dyn_executable_hotgym}
         ${src_lib_shared}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
