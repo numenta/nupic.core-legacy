@@ -141,7 +141,7 @@ void TemporalMemory::initialize(
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
 
-  anomaly_.initialize(columnDimensions_);
+  anomaly.initialize(columnDimensions_);
 
   reset();
 }
@@ -529,21 +529,28 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
   segmentsValid_ = false;
 
   //anomaly computation
-  {
+  anomaly.update(*this);
+}
+
+
+void TMAnomaly::update(TemporalMemory& tm) {
   //active cells
-  SDR cells({static_cast<UInt>(numberOfCells()) });
-  getActiveCells(cells);
-  const SDR currentActiveColumns = this->cellsToColumns(cells);
+  sdr::SDR cells({static_cast<UInt>(tm.numberOfCells()) });
+  tm.getActiveCells(cells);
+  const SDR currentActiveColumns = tm.cellsToColumns(cells);
+
   //anomaly computation
-  anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(currentActiveColumns,
-                                                                      anomaly_.previouslyPredictedColumns);
+  score_ = nupic::algorithms::anomaly::computeRawAnomalyScore(
+             currentActiveColumns,
+             previouslyPredictedColumns_);
+
   //predictive cells for T+1
   cells.zero();
-  activateDendrites();
-  getPredictiveCells(cells);
-  anomaly_.previouslyPredictedColumns = this->cellsToColumns(cells);
-  }
+  tm.activateDendrites();
+  tm.getPredictiveCells(cells);
+  previouslyPredictedColumns_ = tm.cellsToColumns(cells);
 }
+
 
 void TemporalMemory::activateDendrites(bool learn,
                                        const SDR &extraActive,
@@ -670,7 +677,7 @@ void TemporalMemory::reset(void) {
   matchingSegments_.clear();
   segmentsValid_ = false;
 
-  anomaly_.reset();
+  anomaly.reset();
 }
 
 // ==============================

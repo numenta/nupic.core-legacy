@@ -44,6 +44,47 @@ using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
 
+class TemporalMemory; //forward declaration
+
+/**
+* this struct is used for anomaly computation
+*
+* public facing API is const float& TM.anomaly.score
+*/
+struct TMAnomaly {
+  private:
+    friend class TemporalMemory;
+    float score_ = 0.5f;
+    sdr::SDR previouslyPredictedColumns_;
+
+    void initialize(std::vector<UInt> dimensions) { 
+      previouslyPredictedColumns_.initialize(dimensions);
+    }
+
+    void reset() {
+      score_ = 0.5f;
+      previouslyPredictedColumns_.zero();
+    }
+
+    /**
+     * update TM & Anomaly each computation cycle
+     * This method is tightly coupled with TM
+     * and only works if called from TM::activateCells()
+     */
+    void update(TemporalMemory& tm);
+
+  public:
+    /**
+    *  anomaly score computed for the current inputs
+    *  (auto-updates after each call to TM::compute())
+    *
+    *  @return a float value from computeRawAnomalyScore()
+    *  from Anomaly.hpp
+    */
+    const float& score = score_;
+};
+
+
 /**
  * Temporal Memory implementation in C++.
  *
@@ -629,33 +670,9 @@ protected:
 
   Random rng_;
 
-private:
-  /**
-   * this struct is used for anomaly computation
-   */
-  struct Anomaly {
-    float score = 0.5f;
-    sdr::SDR previouslyPredictedColumns;
-   void reset() {
-     score = 0.5f;
-     previouslyPredictedColumns.zero();
-   }
-
-   void initialize(std::vector<UInt> dimensions) {
-     previouslyPredictedColumns.initialize(dimensions);
-   }
-  } anomaly_;
-
 public:
   Connections connections; //TODO not public!
-  /**
-   *  anomaly score computed for the current inputs 
-   *  (auto-updates after each call to TM::compute())
-   *  
-   *  @return a float value from computeRawAnomalyScore() 
-   *  from Anomaly.hpp
-   */ 
-  const float& anomalyScore = anomaly_.score; 
+  TMAnomaly anomaly; //use anomaly.score to obtain current anomaly score
   const UInt &extra = extra_;
 };
 
