@@ -298,7 +298,7 @@ public:
   /**
    * Returns the number of cells in this layer.
    *
-   * @return (int) Number of cells
+   * @return (size_t) Number of cells
    */
   size_t numberOfCells(void) const { return connections.numCells(); }
 

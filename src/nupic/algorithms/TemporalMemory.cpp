@@ -530,11 +530,18 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
 
   //anomaly computation
   {
-  const SDR currentActiveColumns = this->cellsToColumns(activeCells_);
+  //active cells
+  SDR cells({static_cast<UInt>(numberOfCells()) });
+  getActiveCells(cells);
+  const SDR currentActiveColumns = this->cellsToColumns(cells);
+  //anomaly computation
   anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(currentActiveColumns,
                                                                       anomaly_.previouslyPredictedColumns);
+  //predictive cells for T+1
+  cells.zero();
   activateDendrites();
-  anomaly_.previouslyPredictedColumns = this->cellsToColumns(getPredictiveCells());
+  getPredictiveCells(cells);
+  anomaly_.previouslyPredictedColumns = this->cellsToColumns(cells);
   }
 }
 
