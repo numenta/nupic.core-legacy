@@ -641,6 +641,7 @@ public:
   sdr::SDR cellsToColumns(const sdr::SDR& cells) const;
 
 protected:
+  //all these could be const
   CellIdx numColumns_;
   vector<CellIdx> columnDimensions_;
   CellIdx cellsPerColumn_;
@@ -654,7 +655,10 @@ protected:
   Permanence permanenceDecrement_;
   Permanence predictedSegmentDecrement_;
   UInt extra_;
+  SegmentIdx maxSegmentsPerCell_;
+  SynapseIdx maxSynapsesPerSegment_;
 
+private:
   vector<CellIdx> activeCells_;
   vector<CellIdx> winnerCells_;
   bool segmentsValid_;
@@ -663,8 +667,6 @@ protected:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  SegmentIdx maxSegmentsPerCell_;
-  SynapseIdx maxSynapsesPerSegment_;
   UInt64 iteration_;
   vector<UInt64> lastUsedIterationForSegment_;
 
