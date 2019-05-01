@@ -88,7 +88,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR outSPlocal(spLocal.getColumnDimensions()); //for SPlocal
   SDR outSP(vector<UInt>{COLS});
   SDR outTM(spGlobal.getColumnDimensions()); 
-  Real anLikely = 0.0f; //for anomaly:
+  Real an = 0.0f, anLikely = 0.0f; //for anomaly:
 
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
@@ -136,8 +136,12 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
 
     //Anomaly (pure x likelihood)
+    tAn.start();
+    an = tm.anomaly.getScore();
+    tAn.stop();
+
     tAnLikelihood.start();
-    anLikelihood.anomalyProbability(tm.anomaly.score); //FIXME AnLikelihood is 0.0, probably not working correctly
+    anLikelihood.anomalyProbability(an); //FIXME AnLikelihood is 0.0, probably not working correctly
     tAnLikelihood.stop();
 
 
@@ -146,7 +150,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       tAll.stop();
 
       cout << "Epoch = " << e << endl;
-      cout << "Anomaly = " << tm.anomaly.score << endl;
+      cout << "Anomaly = " << an << endl;
       cout << "Anomaly (Likelihood) = " << anLikely << endl;
       cout << "SP (g)= " << outSP << endl;
       cout << "SP (l)= " << outSPlocal <<endl;
@@ -194,8 +198,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 	NTA_CHECK(outSPlocal == goldSPlocal) << "Deterministic output of SP (l) failed!\n" << outSPlocal << "should be:\n" << goldSPlocal;
 #ifndef _MSC_VER //FIXME deterministic checks fail on Windows
         NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
-        NTA_CHECK(static_cast<UInt>(tm.anomaly.score *10000) == static_cast<UInt>(goldAn *10000)) //compare to 4 decimal places
-		<< "Deterministic output of Anomaly failed! " << tm.anomaly.score << "should be: " << goldAn;
+        NTA_CHECK(static_cast<UInt>(an *10000) == static_cast<UInt>(goldAn *10000)) //compare to 4 decimal places
+		<< "Deterministic output of Anomaly failed! " << an << "should be: " << goldAn;
 #endif
       }
 

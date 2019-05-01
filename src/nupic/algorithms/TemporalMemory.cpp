@@ -527,28 +527,28 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
     }
   }
   segmentsValid_ = false;
-
-  //anomaly computation
-  anomaly.update(*this);
 }
 
 
 void TMAnomaly::update(TemporalMemory& tm) {
-  //active cells
   sdr::SDR cells({static_cast<UInt>(tm.numberOfCells()) });
-  tm.getActiveCells(cells);
-  const SDR currentActiveColumns = tm.cellsToColumns(cells);
-
-  //anomaly computation
-  score_ = nupic::algorithms::anomaly::computeRawAnomalyScore(
-             currentActiveColumns,
-             previouslyPredictedColumns_);
-
   //predictive cells for T+1
-  cells.zero();
-  tm.activateDendrites();
   tm.getPredictiveCells(cells);
   previouslyPredictedColumns_ = tm.cellsToColumns(cells);
+}
+
+float TMAnomaly::getScore() const {
+/*
+//active cells
+sdr::SDR cells({static_cast<UInt>(tm.numberOfCells()) });
+tm.getActiveCells(cells);
+const SDR currentActiveColumns = tm.cellsToColumns(cells);
+//anomaly computation
+score_ = nupic::algorithms::anomaly::computeRawAnomalyScore(
+currentActiveColumns,
+previouslyPredictedColumns_);
+*/
+  return 0.51f;
 }
 
 
@@ -645,7 +645,11 @@ void TemporalMemory::activateDendrites(bool learn,
       [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
 
   segmentsValid_ = true;
+
+  //anomaly computation
+  anomaly.update(*this);
 }
+
 
 void TemporalMemory::compute(const size_t        activeColumnsSize,
                              const UInt          activeColumns[], 
@@ -942,7 +946,6 @@ void TemporalMemory::save(ostream &outStream) const {
   outStream << endl;
 
   //TMAnomaly
-  saveFloat_(outStream, anomaly.score_);
   anomaly.previouslyPredictedColumns_.save(outStream);
   outStream << endl;
 
@@ -1063,7 +1066,6 @@ void TemporalMemory::load(istream &inStream) {
 
   lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
   
-  inStream >> anomaly.score_;
   anomaly.previouslyPredictedColumns_.load(inStream);
 
   inStream >> marker;

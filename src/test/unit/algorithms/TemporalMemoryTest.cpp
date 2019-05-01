@@ -1611,7 +1611,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
       extraWinners = tm.getWinnerCells();
 
       // Calculate Anomaly of current input based on prior predictions.
-      anom = tm.anomaly.score;
+      anom = tm.anomaly.getScore();
     }
   }
   ASSERT_LT( anom, 0.05f );

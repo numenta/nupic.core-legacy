@@ -54,7 +54,6 @@ class TemporalMemory; //forward declaration
 struct TMAnomaly {
   private:
     friend class TemporalMemory;
-    float score_ = 0.5f;
     sdr::SDR previouslyPredictedColumns_;
 
     void initialize(std::vector<UInt> dimensions) { 
@@ -62,7 +61,6 @@ struct TMAnomaly {
     }
 
     void reset() {
-      score_ = 0.5f;
       previouslyPredictedColumns_.zero();
     }
 
@@ -81,7 +79,7 @@ struct TMAnomaly {
     *  @return a float value from computeRawAnomalyScore()
     *  from Anomaly.hpp
     */
-    const float& score = score_;
+    float getScore() const;
 };
 
 
