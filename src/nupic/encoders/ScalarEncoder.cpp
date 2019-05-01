@@ -78,7 +78,10 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   }
 
   // Determine resolution & size.
-  const Real64 extentWidth = args_.maximum - args_.minimum;
+  Real64  maxInclusive     = args_.maximum;
+  UInt64* maxInclusiveData = (UInt64*)&maxInclusive;
+  (*maxInclusiveData)++; // Increase maxInclusive by the smallest possible amount.
+  const Real64 extentWidth = maxInclusive - args_.minimum;
   if( args_.size > 0u ) {
     // Distribute the active bits along the domain [minimum, maximum], including
     // the endpoints. The resolution is the width of each band between the
