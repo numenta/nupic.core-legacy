@@ -37,10 +37,6 @@ using nupic::sdr::SDR;
 using nupic::encoders::ScalarEncoder;
 using nupic::encoders::ScalarEncoderParameters;
 
-TEST(ScalarEncoder, testExampleUsage) {
-  // TODO
-}
-
 
 struct ScalarValueCase
 {
