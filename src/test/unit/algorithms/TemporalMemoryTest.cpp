@@ -1601,18 +1601,12 @@ TEST(TemporalMemoryTest, testExtraActive) {
     tm.reset();
     vector<UInt> extraActive;
     vector<UInt> extraWinners;
-    for(auto &x : pattern) {
+    for(const auto &x : pattern) {
       // Predict whats going to happen.
       tm.activateDendrites(true, extraActive, extraWinners);
-      auto predictedColumns = tm.getPredictiveCells();
-      for(UInt i = 0; i < predictedColumns.size(); i++) {
-        predictedColumns[i] = static_cast<CellIdx>(predictedColumns[i]/tm.getCellsPerColumn());
-        if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
-          predictedColumns.erase( predictedColumns.begin() + i-- );
-      }
       // Calculate TM output
-      const auto &sparse = x.getSparse();
-      tm.compute(sparse.size(), sparse.data(), true);
+      tm.compute(x, true);
+      //update the 'hints' for next round
       extraActive  = tm.getActiveCells();
       extraWinners = tm.getWinnerCells();
 
@@ -1625,14 +1619,13 @@ TEST(TemporalMemoryTest, testExtraActive) {
   // Test the test:  Verify that when the external inputs are missing this test
   // fails.
   tm.reset();
-  for(auto &x : pattern) {
+  for(const auto &x : pattern) {
     // Predict whats going to happen.
     tm.activateDendrites(true, vector<UInt>({}), vector<UInt>({}));
     auto predictedCells = tm.getPredictiveCells();
     ASSERT_TRUE( predictedCells.empty() ); // No predictions, numActive < threshold
     // Calculate TM output
-    const auto &sparse = x.getSparse();
-    tm.compute(sparse.size(), sparse.data(), true);
+    tm.compute(x, true);
   }
 }
 
