@@ -34,7 +34,6 @@
 
 #include "gtest/gtest.h"
 #include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/algorithms/Anomaly.hpp>
 
 
 namespace testing {
@@ -1618,8 +1617,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
       extraWinners = tm.getWinnerCells();
 
       // Calculate Anomaly of current input based on prior predictions.
-      anom = algorithms::anomaly::computeRawAnomalyScore(
-                                    x.getSparse(), predictedColumns);
+      anom = tm.anomaly.score;
     }
   }
   ASSERT_LT( anom, 0.05f );

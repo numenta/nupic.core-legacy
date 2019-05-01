@@ -31,7 +31,6 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/algorithms/Anomaly.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp> // macro "UNUSED"
@@ -44,7 +43,6 @@ using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections;
 using ::nupic::algorithms::spatial_pooler::SpatialPooler;
 using ::nupic::algorithms::temporal_memory::TemporalMemory;
-using namespace nupic::algorithms::anomaly;
 
 #define SEED 42
 

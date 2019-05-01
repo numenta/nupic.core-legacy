@@ -24,11 +24,9 @@
 #include <iterator>
 #include <numeric>
 #include <set>
-#include <vector>
 
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
-#include "nupic/types/Sdr.hpp"
 
 using namespace std;
 using namespace nupic;
@@ -75,59 +73,3 @@ Real computeRawAnomalyScore(vector<UInt>& active,
 }
 
 }}} // End namespace
-
-Anomaly::Anomaly(UInt slidingWindowSize, AnomalyMode mode, Real binaryAnomalyThreshold)
-    : binaryThreshold_(binaryAnomalyThreshold)
-{
-  NTA_CHECK(binaryAnomalyThreshold >= 0 && binaryAnomalyThreshold <= 1) << "binaryAnomalyThreshold must be within [0.0,1.0]";
-  mode_ = mode;
-  if (slidingWindowSize > 0) {
-    movingAverage_.reset(new nupic::util::MovingAverage(slidingWindowSize));
-  }
-}
-
-
-Real Anomaly::compute(const SDR& active, const SDR& predicted, int timestamp)
-  { return compute(active.getSparse(), predicted.getSparse(), timestamp); }
-
-Real Anomaly::compute(vector<UInt>& active, vector<UInt>& predicted, int timestamp)
-{
-  Real anomalyScore = computeRawAnomalyScore(active, predicted);
-  Real likelihood = 0.5;
-  Real score = anomalyScore;
-  switch(mode_)
-  {
-    case AnomalyMode::PURE:
-      score = anomalyScore;
-      break;
-    case AnomalyMode::LIKELIHOOD:
-      likelihood = likelihood_.anomalyProbability(anomalyScore, timestamp);
-      score = 1 - likelihood;
-      break;
-    case AnomalyMode::WEIGHTED:
-      likelihood = likelihood_.anomalyProbability(anomalyScore, timestamp);
-      score = anomalyScore * (1 - likelihood);
-      break;
-  }
-
-  if (movingAverage_) {
-    score = movingAverage_->compute(score);
-  }
-
-  if (binaryThreshold_) {
-    score = (score >= binaryThreshold_) ? 1.0f : 0.0f;
-  }
-
-  return score;
-}
-
-bool Anomaly::operator==(const Anomaly &a) const {
-  if (mode_ != a.mode_) return false;
-  if (binaryThreshold_ != a.binaryThreshold_) return false;
-  if (movingAverage_ != nullptr && a.movingAverage_ == nullptr) return false;
-  if (movingAverage_ == nullptr && a.movingAverage_ != nullptr) return false;
-  if (movingAverage_ != nullptr && *(movingAverage_.get()) != *(a.movingAverage_.get())) return false;
-  if (likelihood_ != a.likelihood_) return false;
-  return true;
-}
-

@@ -29,7 +29,6 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/Anomaly.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Output.hpp>
