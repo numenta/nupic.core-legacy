@@ -941,6 +941,11 @@ void TemporalMemory::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  //TMAnomaly
+  saveFloat_(outStream, anomaly.score_);
+  anomaly.previouslyPredictedColumns_.save(outStream);
+  outStream << endl;
+
   outStream << "~TemporalMemory" << endl;
 }
 
@@ -1057,6 +1062,9 @@ void TemporalMemory::load(istream &inStream) {
   }
 
   lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
+  
+  inStream >> anomaly.score_;
+  anomaly.previouslyPredictedColumns_.load(inStream);
 
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");
