@@ -47,14 +47,12 @@ using namespace std;
 
 
 TEST(TemporalMemoryTest, testInitInvalidParams) {
-  // Invalid columnDimensions
-  vector<UInt> columnDim = {};
   TemporalMemory tm1;
-  EXPECT_THROW(tm1.initialize(columnDim, 32), exception);
-
+  // Invalid columnDimensions
+  EXPECT_ANY_THROW(tm1.initialize({}, 32));
   // Invalid cellsPerColumn
-  columnDim.push_back(2048);
-  EXPECT_THROW(tm1.initialize(columnDim, 0), exception);
+  EXPECT_ANY_THROW(tm1.initialize({2048}, 0));
+  EXPECT_NO_THROW(tm1.initialize({2048}, 32));
 }
 
 /**
