@@ -137,7 +137,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     //Anomaly (pure x likelihood)
     tAnLikelihood.start();
-    anLikelihood.anomalyProbability(tm.anomaly.score);
+    anLikelihood.anomalyProbability(tm.anomaly.score); //FIXME AnLikelihood is 0.0, probably not working correctly
     tAnLikelihood.stop();
 
 
@@ -186,7 +186,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       };
       goldTM.setSparse(deterministicTM);
 
-      const float goldAn = 0.920001f;
+      const float goldAn = 0.8f;
 
       if(EPOCHS == 5000) { //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs. 
         NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
