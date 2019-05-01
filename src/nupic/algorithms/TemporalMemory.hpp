@@ -636,27 +636,26 @@ private:
   struct Anomaly {
     float score = 0.5f;
     sdr::SDR previouslyPredictedColumns;
-    sdr::SDR currentActiveColumns;
    void reset() {
      score = 0.5f;
      previouslyPredictedColumns.zero();
-     currentActiveColumns.zero();
    }
 
    void initialize(std::vector<UInt> dimensions) {
      previouslyPredictedColumns.initialize(dimensions);
-     currentActiveColumns.initialize(dimensions);
    }
   } anomaly_;
 
 public:
   Connections connections; //TODO not public!
   /**
-   *  anomaly score computed for the current (updates after call to TM::compute())
-   *  inputs. Returns a float value within range [0.0..1.0], where 
-   *  1 is the maximum anomaly. 
+   *  anomaly score computed for the current inputs 
+   *  (auto-updates after each call to TM::compute())
+   *  
+   *  @return a float value from computeRawAnomalyScore() 
+   *  from Anomaly.hpp
    */ 
-  const float anomalyScore = anomaly_.score; 
+  const float& anomalyScore = anomaly_.score; 
   const UInt &extra = extra_;
 };
 

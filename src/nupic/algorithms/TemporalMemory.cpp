@@ -100,15 +100,10 @@ void TemporalMemory::initialize(
     SynapseIdx maxSynapsesPerSegment, 
     bool checkInputs, 
     UInt extra) {
+
   // Validate all input parameters
-
-  if (columnDimensions.size() <= 0) {
-    NTA_THROW << "Number of column dimensions must be greater than 0";
-  }
-
-  if (cellsPerColumn <= 0) {
-    NTA_THROW << "Number of cells per column must be greater than 0";
-  }
+  NTA_CHECK(columnDimensions.size() > 0) << "Number of column dimensions must be greater than 0";
+  NTA_CHECK(cellsPerColumn > 0) << "Number of cells per column must be greater than 0";
 
   NTA_CHECK(initialPermanence >= 0.0 && initialPermanence <= 1.0);
   NTA_CHECK(connectedPermanence >= 0.0 && connectedPermanence <= 1.0);
@@ -146,7 +141,7 @@ void TemporalMemory::initialize(
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
 
-  anomaly_.initialize(columnDimensions);
+  anomaly_.initialize(columnDimensions_);
 
   reset();
 }
@@ -534,10 +529,13 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
   segmentsValid_ = false;
 
   //anomaly computation
-  anomaly_.currentActiveColumns = this->cellsToColumns(activeCells_);
-  anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(anomaly_.currentActiveColumns,
+  {
+  const SDR currentActiveColumns = this->cellsToColumns(activeCells_);
+  anomaly_.score = nupic::algorithms::anomaly::computeRawAnomalyScore(currentActiveColumns,
                                                                       anomaly_.previouslyPredictedColumns);
+  activateDendrites();
   anomaly_.previouslyPredictedColumns = this->cellsToColumns(getPredictiveCells());
+  }
 }
 
 void TemporalMemory::activateDendrites(bool learn,
