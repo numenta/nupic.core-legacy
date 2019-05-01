@@ -190,3 +190,36 @@ There are two sets of unit tests.
 
 For all new work, tab settings are at 2 characters.
 The clang-format is LLVM style.
+
+### Examples
+
+#### Hot Gym
+A simple example of an app that calls SP and TM algorithms directly is 
+the hot gym app.  This tries to predict the power consuption for a gym
+which has fluctuations in temporature.  This is often used as a benchmark.
+
+To run:  (assuming current directory is top of repository)
+```
+  ./build/Release/bin/benchmark_hotgym
+```
+
+There is also a dynamically linked version of Hot Gym (not available on MSVC). 
+You will need specify the location
+of the shared library with LD_LIBRARY_PATH.
+
+To run: (assuming current directory is top of repository)
+```
+LD_LIBRARY_PATH=build/Release/lib ./build/Release/bin/dynamic_hotgym
+```
+
+#### NMIST benchmark
+
+The task is to recognise images of hand written numbers 0-9.
+This should score at least 95%.
+This is often used as a benchmark.  Adjust the number of iterations in 
+MNST_SP.cpp line 56 before compiling.
+
+to run: (assuming current directory is top of repository)
+```
+  ./build/Release/bin/mnist_sp
+```

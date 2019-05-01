@@ -592,7 +592,7 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
         const auto &synData = self.dataForSynapse( syn );
         if( synData.permanence == minPermanence )
           { synapsesDead++; }
-        else if( synData.permanence == minPermanence )
+        else if( synData.permanence == maxPermanence )
           { synapsesSaturated++; }
       }
     }

@@ -657,6 +657,7 @@ public:
    *  1 is the maximum anomaly. 
    */ 
   const float anomalyScore = anomaly_.score; 
+  const UInt &extra = extra_;
 };
 
 } // end namespace temporal_memory
