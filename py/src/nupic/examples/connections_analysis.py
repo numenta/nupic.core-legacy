@@ -21,6 +21,17 @@ import matplotlib.pyplot as plt
 from nupic.bindings.algorithms import Connections
 
 
+def main(connections, show=True):
+    print("")
+    print( connections )
+    segmentsPerCell( connections, show=False)
+    potentialSynapsesPerSegment( connections, show=False)
+    connectedSynapsesPerSegment( connections, show=False)
+    permanences( connections, show=False)
+    if show:
+        plt.show()
+
+
 def segmentsPerCell(connections, show=True):
     # Histogram of segments per cell
     data = []
@@ -100,10 +111,4 @@ if __name__ == '__main__':
 
     # TODO: Try both pickle and load, use whichever works.
     C = Connections.load( data )
-    print("")
-    print( C )
-    segmentsPerCell( C, show=False)
-    potentialSynapsesPerSegment( C, show=False)
-    connectedSynapsesPerSegment( C, show=False)
-    permanences( C, show=False)
-    plt.show()
+    main(C)
