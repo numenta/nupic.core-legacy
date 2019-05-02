@@ -311,12 +311,10 @@ public:
   void getActiveCells(sdr::SDR &activeCells) const;
 
   /**
-   * Returns the indices of the predictive cells.
-   *
-   * @returns (std::vector<CellIdx>) Vector of indices of predictive cells.
+   * @return SDR with indices of the predictive cells.
+   * SDR dimensions are {TM column dims x TM cells per column}
    */
-  vector<CellIdx> getPredictiveCells() const; //TODO remove?
-  void getPredictiveCells(sdr::SDR &predictiveCells) const;
+  sdr::SDR getPredictiveCells() const;
 
   /**
    * Returns the indices of the winner cells.

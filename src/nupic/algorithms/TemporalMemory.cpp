@@ -714,29 +714,30 @@ void TemporalMemory::getActiveCells(SDR &activeCells) const
   activeCells.setSparse( getActiveCells() );
 }
 
-vector<CellIdx> TemporalMemory::getPredictiveCells() const {
+
+SDR TemporalMemory::getPredictiveCells() const {
 
   NTA_CHECK( segmentsValid_ )
     << "Call TM.activateDendrites() before TM.getPredictiveCells()!";
 
-  vector<CellIdx> predictiveCells;
+  auto correctDims = getColumnDimensions();
+  correctDims.push_back(getCellsPerColumn());
+  SDR predictive(correctDims);
+
+  auto& predictiveCells = predictive.getSparse();
 
   for (auto segment = activeSegments_.cbegin(); segment != activeSegments_.cend();
        segment++) {
-    CellIdx cell = connections.cellForSegment(*segment);
+    const CellIdx cell = connections.cellForSegment(*segment);
     if (segment == activeSegments_.begin() || cell != predictiveCells.back()) {
       predictiveCells.push_back(cell);
     }
   }
 
-  return predictiveCells;
+  predictive.setSparse(predictiveCells);
+  return predictive;
 }
 
-void TemporalMemory::getPredictiveCells(SDR &predictiveCells) const
-{
-  NTA_CHECK( predictiveCells.size == numberOfCells() );
-  predictiveCells.setSparse( getPredictiveCells() );
-}
 
 vector<CellIdx> TemporalMemory::getWinnerCells() const { return winnerCells_; }
 

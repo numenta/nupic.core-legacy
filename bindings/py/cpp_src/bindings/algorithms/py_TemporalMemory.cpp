@@ -151,7 +151,7 @@ using namespace nupic::algorithms::connections;
 
         py_HTM.def("getPredictiveCells", [](const HTM_t& self)
         {
-            auto predictiveCells = self.getPredictiveCells();
+            auto predictiveCells = self.getPredictiveCells().getSparse();
 
             return py::array_t<nupic::UInt32>(predictiveCells.size(), predictiveCells.data());
         });
