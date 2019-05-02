@@ -29,17 +29,10 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/regions/TMRegion.hpp>
+
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/Value.hpp>
-#include <nupic/regions/TMRegion.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/VectorHelpers.hpp>
 
