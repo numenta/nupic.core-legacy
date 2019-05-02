@@ -221,7 +221,6 @@ void TMRegion::compute() {
   // Perform Bottom up compute()
 
   tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
-  tm_->activateDendrites(); //allow calls to tm.getPredictiveCells
 
   args_.sequencePos++;
 
@@ -240,12 +239,9 @@ void TMRegion::compute() {
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();
-    if (args_.orColumnOutputs) { //aggregate to columns
-      tm_->getActiveCells(sdr);
-      SDR cols = tm_->cellsToColumns(sdr);
-      sdr.setSparse(cols.getSparse());
-    } else { //output as cells
-      tm_->getActiveCells(sdr);
+    tm_->getActiveCells(sdr); //active cells
+    if (args_.orColumnOutputs) { //output as columns
+      sdr = tm_->cellsToColumns(sdr);
     }
     NTA_DEBUG << "compute " << *out << std::endl;
   }
