@@ -13,7 +13,7 @@ jobs:
     macos:
       xcode: '10.1.0'
     working_directory: ~/numenta/nupic.core
-    parallelism: 2
+    parallelism: 1
     environment:
       XCODE_SCHEME: nupic
       XCODE_WORKSPACE: nupic
@@ -115,7 +115,7 @@ jobs:
 
   # job: ARM64 via Docker + QEMU ("arm64-build-test")
   arm64-build-test:
-    parallelism: 2
+    parallelism: 1
     docker:
       # CircleCI base Ubuntu 18.04 LTS Bionic with remote Docker access, etc.
       #   https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
