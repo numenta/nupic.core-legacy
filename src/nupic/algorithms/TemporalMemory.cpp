@@ -531,7 +531,7 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
 
 
 void TMAnomaly::update(TemporalMemory& tm) {
-  sdr::SDR cells({static_cast<UInt>(tm.numberOfCells()) });
+  sdr::SDR cells(tm.getColumnDimensions());
   //predictive cells for T+1
   tm.getPredictiveCells(cells);
   previouslyPredictedColumns_ = tm.cellsToColumns(cells);
@@ -539,7 +539,7 @@ void TMAnomaly::update(TemporalMemory& tm) {
 
 float TemporalMemory::getAnomalyScore() const {
   //active cells
-  sdr::SDR cells({static_cast<UInt>(numberOfCells()) });
+  sdr::SDR cells(getColumnDimensions());
   getActiveCells(cells);
   const SDR currentActiveColumns = cellsToColumns(cells);
 
