@@ -28,7 +28,7 @@
 
 #include <algorithm> // std::min
 #include <numeric>   // std::iota
-#include <cmath>     // std::isnan
+#include <cmath>     // std::isnan std::nextafter
 #include <nupic/encoders/ScalarEncoder.hpp>
 using nupic::sdr::SDR;
 
@@ -83,9 +83,8 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
     extentWidth = args_.maximum - args_.minimum;
   }
   else {
-    Real64  maxInclusive     = args_.maximum;
-    UInt64* maxInclusiveData = reinterpret_cast<UInt64*>( &maxInclusive );
-    (*maxInclusiveData)++; // Increase maxInclusive by the smallest possible amount.
+    // Increase the max by the smallest possible amount.
+    Real64  maxInclusive = std::nextafter( args_.maximum, HUGE_VAL );
     extentWidth = maxInclusive - args_.minimum;
   }
   if( args_.size > 0u ) {
