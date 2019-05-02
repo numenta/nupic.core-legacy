@@ -118,7 +118,7 @@ jobs:
     docker:
       # CircleCI base Ubuntu 18.04 LTS Bionic with remote Docker access, etc.
       #   https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
-      - image: circleci/buildpack-deps:bionic
+      - image: circleci/buildpack-deps:bionic-ram
     steps:
       - run:
           # This is for local test builds using the CircleCI terminal app.
