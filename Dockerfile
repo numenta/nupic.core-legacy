@@ -9,11 +9,12 @@ FROM multiarch/ubuntu-core:$arch-bionic
 
 RUN apt-get update && \
     apt-get install -y \
+    build-essential \
     curl \
     wget \
     git-core \
-    gcc \
-    g++ \
+    gcc-8 \
+    g++-8 \
     cmake \
     python \
     python2.7 \
