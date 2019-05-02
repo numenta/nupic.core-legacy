@@ -27,8 +27,8 @@ RUN wget http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pi
 RUN pip install --upgrade setuptools
 RUN pip install wheel
 
-ENV CC gcc
-ENV CXX g++
+ENV CC gcc-8
+ENV CXX g++-8
 
 ADD . /usr/local/src/nupic.cpp
 WORKDIR /usr/local/src/nupic.cpp
