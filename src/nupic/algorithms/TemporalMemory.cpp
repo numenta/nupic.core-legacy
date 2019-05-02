@@ -531,7 +531,9 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
 
 
 void TMAnomaly::update(TemporalMemory& tm) {
-  sdr::SDR cells(tm.getColumnDimensions());
+  auto dims = tm.getColumnDimensions();
+  dims.push_back(tm.getCellsPerColumn()); 
+  sdr::SDR cells(dims);
   //predictive cells for T+1
   tm.getPredictiveCells(cells);
   previouslyPredictedColumns_ = tm.cellsToColumns(cells);
@@ -756,7 +758,7 @@ vector<CellIdx> TemporalMemory::getPredictiveCells() const {
 
 void TemporalMemory::getPredictiveCells(SDR &predictiveCells) const
 {
-  NTA_CHECK( predictiveCells.size == numberOfCells() );
+  NTA_CHECK( predictiveCells.size == numberOfCells() ) << "Expected: " << numberOfCells() << " given: " << predictiveCells.size;
   predictiveCells.setSparse( getPredictiveCells() );
 }
 
