@@ -12,8 +12,10 @@ RUN apt-get update && \
     curl \
     wget \
     git-core \
+    gcc \
     g++ \
     cmake \
+    python \
     python2.7 \
     python2.7-dev \
     zlib1g-dev \
@@ -24,6 +26,7 @@ RUN wget http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pi
 RUN pip install --upgrade setuptools
 RUN pip install wheel
 
+ENV CC gcc
 ENV CXX g++
 
 ADD . /usr/local/src/nupic.cpp
