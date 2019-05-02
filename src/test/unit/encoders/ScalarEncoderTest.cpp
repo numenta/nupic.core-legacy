@@ -152,7 +152,7 @@ TEST(ScalarEncoder, PeriodicRoundNearestMultipleOfResolution) {
   p.periodic   = true;
   ScalarEncoder encoder( p );
 
-  ASSERT_EQ(encoder.parameters.size, 11u);
+  ASSERT_EQ(encoder.parameters.size, 10u);
 
   std::vector<ScalarValueCase> cases = {
       {10.00f, {0, 1, 2}},
@@ -164,9 +164,9 @@ TEST(ScalarEncoder, PeriodicRoundNearestMultipleOfResolution) {
       {14.50f, {5, 6, 7}},
       {15.49f, {5, 6, 7}},
       {15.50f, {6, 7, 8}},
-      {19.49f, {9, 10, 0}},
-      {19.50f, {10, 0, 1}},
-      {20.00f, {10, 0, 1}}};
+      {19.49f, {9, 0, 1}},
+      {19.50f, {0, 1, 2}},
+      {20.00f, {0, 1, 2}}};
 
   doScalarValueCases(encoder, cases);
 }

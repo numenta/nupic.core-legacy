@@ -56,8 +56,8 @@ namespace encoders {
      * Member "periodic" controls what happens near the edges of the input
      * range.
      *
-     * If true, then the minimum & maximum input values are adjacent and the
-     * first and last bits of the output SDR are also adjacent.  The contiguous
+     * If true, then the minimum & maximum input values are the same and the
+     * first and last bits of the output SDR are adjacent.  The contiguous
      * block of 1's wraps around the end back to the begining.
      *
      * If false, then minimum & maximum input values are the endpoints of the
