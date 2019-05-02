@@ -13,7 +13,7 @@ jobs:
     macos:
       xcode: '10.1.0'
     working_directory: ~/numenta/nupic.core
-    parallelism: 1
+    parallelism: 2
     environment:
       XCODE_SCHEME: nupic
       XCODE_WORKSPACE: nupic
@@ -76,18 +76,18 @@ jobs:
             mkdir -p build/scripts
             cd build/scripts
             cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release
-            make | grep -v -F '\\-\\- Installing:'
+            make -j2 | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
-      - run:
-           name: Install Python extension
-           command: python setup.py install --user --prefix=
       # Test
       - run:
           name: Running C++ Tests
           command: |
-              mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
-              cd ./build/Release/bin
-              ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
+            cd ./build/Release/bin
+            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+      - run:
+           name: Install Python extension
+           command: python setup.py install --user --prefix=
       - run:
           name: Running python tests
           command: python setup.py test
@@ -115,6 +115,7 @@ jobs:
 
   # job: ARM64 via Docker + QEMU ("arm64-build-test")
   arm64-build-test:
+    parallelism: 2
     docker:
       # CircleCI base Ubuntu 18.04 LTS Bionic with remote Docker access, etc.
       #   https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
@@ -137,8 +138,10 @@ jobs:
       # here we make circleci x86 hardware think it's arm64 via docker+qemu
       - run: $CI_SUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - run:
-          command: $CI_SUDO docker build --build-arg arch=arm64 .
+          name: Running docker build on ARM64
+          command: $CI_SUDO docker build -t nupic-arm64-docker --build-arg arch=arm64 .
           no_output_timeout: 2h
+      - run: $CI_SUDO docker run -it nupic-arm64-docker 
 
 workflows:
   version: 2
