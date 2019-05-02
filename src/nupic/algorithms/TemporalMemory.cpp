@@ -674,8 +674,11 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
 
 
 SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
-  NTA_CHECK(cells.size == numberOfCells()) 
-	  << "cells.size " << cells.size << " must match TM::numberOfCells() " << numberOfCells();
+  auto correctDims = getColumnDimensions(); //nD column dimensions (eg 10x100)
+  correctDims.push_back(getCellsPerColumn()); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
+
+  NTA_CHECK(cells.dimensions == correctDims) 
+	  << "cells.dimensions must match TM's (column dims x cellsPerColumn) ";
 
   SDR cols(getColumnDimensions());
   auto& dense = cols.getDense();

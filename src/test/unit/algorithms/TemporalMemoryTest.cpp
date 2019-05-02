@@ -1358,7 +1358,9 @@ TEST(TemporalMemoryTest, testCellsToColumns)
   TemporalMemory tm;
   tm.initialize(vector<UInt>{3}, 3); // TM 3 cols x 3 cells per col
 
-  SDR v1({3*3});
+  auto correctDims = tm.getColumnDimensions();
+  correctDims.push_back(tm.getCellsPerColumn());
+  SDR v1(correctDims);
   v1.setSparse(SDR_sparse_t{4,5,8});
   const SDR_sparse_t expected {1u, 2u};
 
@@ -1369,8 +1371,11 @@ TEST(TemporalMemoryTest, testCellsToColumns)
   res = tm.cellsToColumns(v1);
   EXPECT_TRUE(res.getSparse().empty());
 
-  SDR larger({10,10});
+  SDR larger({10,10, 3});
   EXPECT_ANY_THROW(tm.cellsToColumns(larger));
+
+  SDR wrongDims({3*3}); //matches numberOfCells, but dimensions are incorrect
+  EXPECT_ANY_THROW(tm.cellsToColumns(wrongDims));
 };
 
 

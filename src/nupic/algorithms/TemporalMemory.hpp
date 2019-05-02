@@ -593,8 +593,9 @@ public:
    *
    *  @param const SDR& cells - input cells, size must be a multiple of cellsPerColumn; ie. 
    *    all SDRs obtained from TM's get*Cells(SDR) are valid. 
+   *    The SDR cells dimensions must be: {TM.getColumnDimensions, TM.getCellsPerColumn()}
    *
-   *  @return SDR cols - which is size of numCells/cellsPerColumn
+   *  @return SDR cols - which is size of TM's getColumnDimensions()
    *
    */
   sdr::SDR cellsToColumns(const sdr::SDR& cells) const;
