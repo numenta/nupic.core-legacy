@@ -677,7 +677,7 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   NTA_CHECK(cells.size == numberOfCells()) 
 	  << "cells.size " << cells.size << " must match TM::numberOfCells() " << numberOfCells();
 
-  SDR cols({numColumns_});
+  SDR cols(getColumnDimensions());
   auto& dense = cols.getDense();
   for(const auto cell : cells.getSparse()) {
     const auto col = columnForCell(cell);
