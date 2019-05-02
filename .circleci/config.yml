@@ -116,9 +116,9 @@ jobs:
   # job: ARM64 via Docker + QEMU ("arm64-build-test")
   arm64-build-test:
     docker:
-      # CircleCI base Ubuntu 18.10 Cosmic with remote Docker access, etc.
+      # CircleCI base Ubuntu 18.04 LTS Bionic with remote Docker access, etc.
       #   https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
-      - image: circleci/buildpack-deps:18.10
+      - image: circleci/buildpack-deps:bionic
     steps:
       - run:
           # This is for local test builds using the CircleCI terminal app.
