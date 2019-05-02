@@ -7,7 +7,8 @@ ARG arch=x86_64
 #   https://hub.docker.com/r/multiarch/ubuntu-core/tags/
 FROM multiarch/ubuntu-core:$arch-bionic
 
-RUN apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y \
     curl \
     wget \
     git-core \
