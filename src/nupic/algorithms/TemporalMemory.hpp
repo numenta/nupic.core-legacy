@@ -70,16 +70,6 @@ struct TMAnomaly {
      * and only works if called from TM::activateCells()
      */
     void update(TemporalMemory& tm);
-
-  public:
-    /**
-    *  anomaly score computed for the current inputs
-    *  (auto-updates after each call to TM::compute())
-    *
-    *  @return a float value from computeRawAnomalyScore()
-    *  from Anomaly.hpp
-    */
-    float getScore() const;
 };
 
 
@@ -669,11 +659,21 @@ private:
   vector<UInt64> lastUsedIterationForSegment_;
 
   Random rng_;
+  TMAnomaly anomaly;
 
 public:
   Connections connections; //TODO not public!
-  TMAnomaly anomaly; //use anomaly.score to obtain current anomaly score
   const UInt &extra = extra_;
+
+  /**
+   *  anomaly score computed for the current inputs
+   *  (auto-updates after each call to TM::compute())
+   *
+   *  @return a float value from computeRawAnomalyScore()
+   *  from Anomaly.hpp
+   */
+  float getAnomalyScore() const;
+
 };
 
 } // end namespace temporal_memory

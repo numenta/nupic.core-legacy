@@ -537,18 +537,16 @@ void TMAnomaly::update(TemporalMemory& tm) {
   previouslyPredictedColumns_ = tm.cellsToColumns(cells);
 }
 
-float TMAnomaly::getScore() const {
-/*
-//active cells
-sdr::SDR cells({static_cast<UInt>(tm.numberOfCells()) });
-tm.getActiveCells(cells);
-const SDR currentActiveColumns = tm.cellsToColumns(cells);
-//anomaly computation
-score_ = nupic::algorithms::anomaly::computeRawAnomalyScore(
-currentActiveColumns,
-previouslyPredictedColumns_);
-*/
-  return 0.51f;
+float TemporalMemory::getAnomalyScore() const {
+  //active cells
+  sdr::SDR cells({static_cast<UInt>(numberOfCells()) });
+  getActiveCells(cells);
+  const SDR currentActiveColumns = cellsToColumns(cells);
+
+  //anomaly computation
+  return nupic::algorithms::anomaly::computeRawAnomalyScore(
+    currentActiveColumns,
+    anomaly.previouslyPredictedColumns_);
 }
 
 
