@@ -115,7 +115,7 @@ TEST(TemporalMemoryTest, ActivateCorrectlyPredictiveCells) {
   ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells().getSparse());
   tm.compute(numActiveColumns, activeColumns, true);
 
-  EXPECT_EQ(expectedActiveCells, tm.getActiveCells());
+  EXPECT_EQ(expectedActiveCells, tm.getActiveCells().getSparse());
 }
 
 /**
@@ -141,7 +141,7 @@ TEST(TemporalMemoryTest, BurstUnpredictedColumns) {
 
   tm.compute(1, activeColumns, true);
 
-  EXPECT_EQ(burstingCells, tm.getActiveCells());
+  EXPECT_EQ(burstingCells, tm.getActiveCells().getSparse());
 }
 
 /**
@@ -175,13 +175,13 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
   tm.connections.createSynapse(segment, previousActiveCells[2], 0.5f);
   tm.connections.createSynapse(segment, previousActiveCells[3], 0.5f);
   tm.compute(1, previousActiveColumns, true);
-  ASSERT_FALSE(tm.getActiveCells().empty());
+  ASSERT_FALSE(tm.getActiveCells().getSum() == 0);
   ASSERT_FALSE(tm.getWinnerCells().empty());
   tm.activateDendrites();
   ASSERT_FALSE(tm.getPredictiveCells().getSum() == 0);
 
   EXPECT_NO_THROW(tm.compute(0, nullptr, true)) << "failed with empty compute";
-  EXPECT_TRUE(tm.getActiveCells().empty());
+  EXPECT_TRUE(tm.getActiveCells().getSum() == 0);
   EXPECT_TRUE(tm.getWinnerCells().empty());
   tm.activateDendrites();
   EXPECT_TRUE(tm.getPredictiveCells().getSum() == 0);
@@ -1053,7 +1053,7 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
     tm.compute(4, previousActiveColumns, true);
     tm.compute(1, activeColumns, true);
 
-    ASSERT_EQ(activeCells, tm.getActiveCells());
+    ASSERT_EQ(activeCells, tm.getActiveCells().getSparse());
 
     EXPECT_EQ(3ul, tm.connections.numSegments());
     EXPECT_EQ(1ul, tm.connections.segmentsForCell(0).size());
@@ -1443,7 +1443,7 @@ void serializationTestVerify(TemporalMemory &tm) {
 
   // Verify the correct cells were activated.
   EXPECT_EQ((vector<UInt>{4, 8, 9, 10, 11, 12, 13, 14, 15}),
-            tm.getActiveCells());
+            tm.getActiveCells().getSparse());
   const vector<UInt> winnerCells = tm.getWinnerCells();
   ASSERT_EQ(3ul, winnerCells.size());
   EXPECT_EQ(4ul, winnerCells[0]);
@@ -1615,7 +1615,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
       SDR predictedColumns = tm.cellsToColumns(tm.getPredictiveCells());
       // Calculate TM output
       tm.compute(x, true);
-      extraActive  = tm.getActiveCells();
+      extraActive  = tm.getActiveCells().getSparse();
       extraWinners = tm.getWinnerCells();
 
       // Calculate Anomaly of current input based on prior predictions.

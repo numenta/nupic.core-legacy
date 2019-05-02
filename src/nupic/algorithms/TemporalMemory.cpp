@@ -141,6 +141,10 @@ void TemporalMemory::initialize(
   connections = Connections(static_cast<CellIdx>(numberOfColumns() * cellsPerColumn_), connectedPermanence_);
   rng_ = Random(seed);
 
+  auto cellsDims = getColumnDimensions(); //nD column dimensions (eg 10x100)
+  cellsDims.push_back(getCellsPerColumn()); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
+  activeCells_.initialize(cellsDims);
+
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
@@ -298,7 +302,7 @@ static void growSynapses(Connections &connections,
 }
 
 static void activatePredictedColumn(
-    vector<CellIdx> &activeCells, 
+    SDR &activeCellsSDR, 
     vector<CellIdx> &winnerCells,
     Connections &connections, 
     Random &rng,
@@ -314,6 +318,7 @@ static void activatePredictedColumn(
     const SynapseIdx maxSynapsesPerSegment, 
     const bool learn) {
   auto activeSegment = columnActiveSegmentsBegin;
+  auto& activeCells = activeCellsSDR.getSparse();
   do {
     const CellIdx cell = connections.cellForSegment(*activeSegment);
     activeCells.push_back(cell);
@@ -337,6 +342,8 @@ static void activatePredictedColumn(
     } while (++activeSegment != columnActiveSegmentsEnd &&
              connections.cellForSegment(*activeSegment) == cell);
   } while (activeSegment != columnActiveSegmentsEnd);
+
+  activeCellsSDR.setSparse(activeCells); //update SDR
 }
 
 static Segment createSegment(Connections &connections,  //TODO remove, use TM::createSegment
@@ -365,7 +372,7 @@ static Segment createSegment(Connections &connections,  //TODO remove, use TM::c
 }
 
 static void
-burstColumn(vector<CellIdx> &activeCells, 
+burstColumn(SDR &activeCellsSDR, 
             vector<CellIdx> &winnerCells,
             Connections &connections, 
             Random &rng,
@@ -385,11 +392,16 @@ burstColumn(vector<CellIdx> &activeCells,
             const SegmentIdx maxSegmentsPerCell,
             const SynapseIdx maxSynapsesPerSegment, 
             const bool learn) {
+
+  {
+  auto& activeCells = activeCellsSDR.getSparse();
   // Calculate the active cells.
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
   for (CellIdx cell = start; cell < end; cell++) {
     activeCells.push_back(cell);
+  }
+  activeCellsSDR.setSparse(activeCells);
   }
 
   const auto bestMatchingSegment =
@@ -474,10 +486,10 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
   }
 
   vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
-  for (CellIdx cell : activeCells_) {
+  for (CellIdx cell : activeCells_.getSparse()) {
     prevActiveCellsDense[cell] = true;
   }
-  activeCells_.clear();
+  activeCells_.zero();
 
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
 
@@ -567,10 +579,15 @@ void TemporalMemory::activateDendrites(bool learn,
     NTA_CHECK( extraWinners.size() != 1 || extraWinners[0] != SENTINEL )
         << "TM.ActivateDendrites() missing argument extraWinners!";
 
+    //add extra active
+    auto& activeVec = activeCells_.getSparse();
     for(const auto &active : extraActive) {
       NTA_ASSERT( active < extra_ );
-      activeCells_.push_back( static_cast<CellIdx>(active + numberOfCells()) );
+      activeVec.push_back( static_cast<CellIdx>(active + numberOfCells()) );
     }
+    activeCells_.setSparse(activeVec);
+
+    //add extra winners
     for(const auto &winner : extraWinners) {
       NTA_ASSERT( winner < extra_ );
       winnerCells_.push_back( static_cast<CellIdx>(winner + numberOfCells()) );
@@ -589,7 +606,7 @@ void TemporalMemory::activateDendrites(bool learn,
   numActivePotentialSynapsesForSegment_.assign(length, 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment_,
                               numActivePotentialSynapsesForSegment_,
-                              activeCells_);
+                              activeCells_.getSparse());
 
   // Active segments, connected synapses.
   activeSegments_.clear();
@@ -650,7 +667,7 @@ void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
 }
 
 void TemporalMemory::reset(void) {
-  activeCells_.clear();
+  activeCells_.zero();
   winnerCells_.clear();
   activeSegments_.clear();
   matchingSegments_.clear();
@@ -674,10 +691,7 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
 
 
 SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
-  auto correctDims = getColumnDimensions(); //nD column dimensions (eg 10x100)
-  correctDims.push_back(getCellsPerColumn()); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
-
-  NTA_CHECK(cells.dimensions == correctDims) 
+  NTA_CHECK(cells.dimensions == activeCells_.dimensions) 
 	  << "cells.dimensions must match TM's (column dims x cellsPerColumn) ";
 
   SDR cols(getColumnDimensions());
@@ -706,13 +720,8 @@ vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) {
   return cellsInColumn;
 }
 
-vector<CellIdx> TemporalMemory::getActiveCells() const { return activeCells_; }
 
-void TemporalMemory::getActiveCells(SDR &activeCells) const
-{
-  NTA_CHECK( activeCells.size == numberOfCells() );
-  activeCells.setSparse( getActiveCells() );
-}
+SDR TemporalMemory::getActiveCells() const { return activeCells_; }
 
 
 SDR TemporalMemory::getPredictiveCells() const {
@@ -720,10 +729,7 @@ SDR TemporalMemory::getPredictiveCells() const {
   NTA_CHECK( segmentsValid_ )
     << "Call TM.activateDendrites() before TM.getPredictiveCells()!";
 
-  auto correctDims = getColumnDimensions();
-  correctDims.push_back(getCellsPerColumn());
-  SDR predictive(correctDims);
-
+  SDR predictive(activeCells_.dimensions); //match TM's dimensions, same as active cells
   auto& predictiveCells = predictive.getSparse();
 
   for (auto segment = activeSegments_.cbegin(); segment != activeSegments_.cend();
@@ -881,10 +887,7 @@ void TemporalMemory::save(ostream &outStream) const {
   }
   outStream << endl;
 
-  outStream << activeCells_.size() << " ";
-  for (CellIdx cell : activeCells_) {
-    outStream << cell << " ";
-  }
+  activeCells_.save(outStream);
   outStream << endl;
 
   outStream << winnerCells_.size() << " ";
@@ -962,13 +965,7 @@ void TemporalMemory::load(istream &inStream) {
     inStream >> columnDimensions_[i];
   }
 
-  UInt numActiveCells;
-  inStream >> numActiveCells;
-  for (UInt i = 0; i < numActiveCells; i++) {
-    CellIdx cell;
-    inStream >> cell;
-    activeCells_.push_back(cell);
-  }
+  activeCells_.load(inStream);
 
   if (version < 2) {
     UInt numPredictiveCells;
