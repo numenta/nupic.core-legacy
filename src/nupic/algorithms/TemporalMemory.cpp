@@ -583,7 +583,7 @@ void TemporalMemory::activateDendrites(bool learn,
     auto& activeVec = activeCells_.getSparse();
     for(const auto &active : extraActive) {
       NTA_ASSERT( active < extra_ );
-      activeVec.push_back( static_cast<CellIdx>(active + numberOfCells()) );
+      activeVec.push_back( static_cast<CellIdx>(active + numberOfCells()) ); 
     }
     activeCells_.setSparse(activeVec);
 
