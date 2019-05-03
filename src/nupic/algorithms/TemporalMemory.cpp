@@ -542,7 +542,9 @@ float TemporalMemory::getAnomalyScore() const {
     NTA_THROW << "TM anomaly computation not supported when using TM with external extraActive inputs!";
   }
   //active cells
-  sdr::SDR cells(getColumnDimensions());
+  auto correctDims = getColumnDimensions(); //cells dimensions are TM's column dims
+  correctDims.push_back(cellsPerColumn_); //extended by cells per column to (n+1)D
+  sdr::SDR cells(correctDims);
   getActiveCells(cells);
   const SDR currentActiveColumns = cellsToColumns(cells);
 
