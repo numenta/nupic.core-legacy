@@ -532,10 +532,15 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
 
 void TMAnomaly::update(TemporalMemory& tm) {
   //predictive cells for T+1
+  if(tm.extra > 0) return; //TODO unsupported
+
   previouslyPredictedColumns_ = tm.cellsToColumns(tm.getPredictiveCells());
 }
 
 float TemporalMemory::getAnomalyScore() const {
+  if(extra_ > 0) { //TODO correctly handle extraActive, extraWinners and allow anomaly computation
+    NTA_THROW << "TM anomaly computation not supported when using TM with external extraActive inputs!";
+  }
   //active cells
   sdr::SDR cells(getColumnDimensions());
   getActiveCells(cells);
