@@ -29,6 +29,10 @@
 #include <iostream>
 using namespace nupic;
 
+bool mark = false;
+
+
+
 LoggingException::~LoggingException() throw() {
   if (!alreadyLogged_) {
     // Let LogItem do the work for us. This code is a bit complex

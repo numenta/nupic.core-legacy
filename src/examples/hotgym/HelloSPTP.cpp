@@ -109,7 +109,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tEnc.stop();
 
     tRng.start();
-    input.addNoise(0.01, rnd); //change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
+    input.addNoise(0.01f, rnd); //change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
     tRng.stop();
 
     //SP (global x local)
@@ -130,14 +130,20 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     // TM
     if(useTM) {
     tTM.start();
-    tm.compute(outSP, true /*learn*/); //to uses output of SPglobal
+//if (e == 2424) mark = true;
+if (e == 2423) mark = true;
+    tm.compute(outSP, true /*learn*/); //to use output of SPglobal
     tm.activateDendrites(); //required to enable tm.getPredictiveCells()
     SDR cells({CELLS*COLS});
     tm.getPredictiveCells(cells);
+if (mark) std::cout << "e=" << e << " cells: " << cells;
     outTM = tm.cellsToColumns(cells);
     tTM.stop();
     }
-
+    if (mark) {
+     std::cout << "e=" << e << " TM out: " << outTM;
+     exit(0); 
+    }
 
     //Anomaly (pure x likelihood)
     tAn.start();
@@ -199,12 +205,13 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       if(EPOCHS == 5000) { //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs. 
         NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
         NTA_CHECK(outSPglobal == goldSP) << "Deterministic output of SP (g) failed!\n" << outSP << "should be:\n" << goldSP;
-	NTA_CHECK(outSPlocal == goldSPlocal) << "Deterministic output of SP (l) failed!\n" << outSPlocal << "should be:\n" << goldSPlocal;
-#ifndef _MSC_VER //FIXME deterministic checks fail on Windows
+	      NTA_CHECK(outSPlocal == goldSPlocal) << "Deterministic output of SP (l) failed!\n" << outSPlocal << "should be:\n" << goldSPlocal;
+//#ifndef _MSC_VER //FIXME deterministic checks fail on Windows
         NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
+
         NTA_CHECK(static_cast<UInt>(res *10000) == static_cast<UInt>(goldAn *10000)) //compare to 4 decimal places
 		<< "Deterministic output of Anomaly failed! " << res << "should be: " << goldAn;
-#endif
+//#endif
       }
 
       // check runtime speed

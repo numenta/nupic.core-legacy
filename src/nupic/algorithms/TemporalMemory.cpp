@@ -167,11 +167,12 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   }
 
   const UInt32 tieWinnerIndex = rng.getUInt32(numTiedCells);
-
+if (mark) std::cout << "TemporalMemory_170 tieWinnerIndex: " << tieWinnerIndex << "\n";
   UInt32 tieIndex = 0;
   for (CellIdx cell = start; cell < end; cell++) {
     if (connections.numSegments(cell) == minNumSegments) {
       if (tieIndex == tieWinnerIndex) {
+if (mark) std::cout << "TemporalMemory_175 tie Winner: " << cell << "\n";
         return cell;
       } else {
         tieIndex++;
@@ -218,7 +219,8 @@ static void adaptSegment(Connections &connections, Segment segment,
 static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
                                          Segment segment, Int nDestroy,
                                          const vector<CellIdx> &excludeCells) {
-  // Don't destroy any cells that are in excludeCells.
+if (mark) std::cout << "destroyMinPermanenceSynapses() nDestroy=" << nDestroy << "\n";
+ // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
   for (Synapse synapse : connections.synapsesForSegment(segment)) {
     const CellIdx presynapticCell =
@@ -236,8 +238,11 @@ static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
     Permanence minPermanence = std::numeric_limits<Permanence>::max();
     vector<Synapse>::iterator minSynapse = destroyCandidates.end();
 
+    int j = -1;
+    int minj = j;
     for (auto synapse = destroyCandidates.begin();
          synapse != destroyCandidates.end(); synapse++) {
+      j++;
       const Permanence permanence =
           connections.dataForSynapse(*synapse).permanence;
 
@@ -246,8 +251,10 @@ static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
       if (permanence < minPermanence - nupic::Epsilon) {
         minSynapse = synapse;
         minPermanence = permanence;
+        minj = j;
       }
     }
+if (mark) std::cout << "TemporalMemory_252 synapse to distroy [" << minj << "]: " << " minPermanence:" << minPermanence << "\n";
 
     connections.destroySynapse(*minSynapse);
     destroyCandidates.erase(minSynapse);
@@ -265,7 +272,7 @@ static void growSynapses(Connections &connections,
   // they're used. But this is awkward to mimic in other
   // implementations, especially because it requires iterating over
   // the existing synapses in a particular order.
-
+  if (mark) std::cout << "growSynapses segment=" << segment << "\n";
   vector<CellIdx> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
   NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
 
@@ -274,6 +281,7 @@ static void growSynapses(Connections &connections,
     const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
     const auto already = std::lower_bound(candidates.cbegin(), candidates.cend(), presynapticCell);
     if (already != candidates.cend() && *already == presynapticCell) {
+  if (mark) std::cout << "remove already=" << *already << "\n";
       candidates.erase(already);
     }
   }
@@ -281,17 +289,20 @@ static void growSynapses(Connections &connections,
   const size_t nActual = std::min(static_cast<size_t>(nDesiredNewSynapses), candidates.size());
 
   // Check if we're going to surpass the maximum number of synapses. //TODO delegate this to createSynapse(segment)
-  const size_t overrun = (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
+  Int overrun = (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
   if (overrun > 0) {
-    destroyMinPermanenceSynapses(connections, rng, segment, static_cast<Int>(overrun), prevWinnerCells);
+  if (mark) std::cout << "overrun:" << overrun << "\n";
+    destroyMinPermanenceSynapses(connections, rng, segment, overrun, prevWinnerCells);
   }
 
   // Recalculate in case we weren't able to destroy as many synapses as needed.
   const size_t nActualWithMax = std::min(nActual, static_cast<size_t>(maxSynapsesPerSegment) - connections.numSynapses(segment));
+if (mark) std::cout << "nActualWidthMax=" << nActualWithMax << "\n";
 
   // Pick nActual cells randomly.
   for (size_t c = 0; c < nActualWithMax; c++) {
     const auto i = rng.getUInt32(static_cast<UInt32>(candidates.size()));
+if (mark) std::cout << "TemporalMemory_301 size=" << candidates.size() << " chosen candidates[" << i << "]: " << candidates[i] << "\n";
     connections.createSynapse(segment, candidates[i], initialPermanence); //TODO createSynapse consider creating a vector of new synapses at once?
     candidates.erase(candidates.begin() + i); //TODO this is costly, optimize it (out)
   }

@@ -30,6 +30,7 @@
 #include <nupic/types/Exception.hpp>
 #include <sstream>
 #include <vector>
+extern bool mark;
 
 namespace nupic {
 class LoggingException : public Exception {
