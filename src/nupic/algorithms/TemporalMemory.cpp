@@ -563,8 +563,9 @@ void TemporalMemory::activateDendrites(bool learn,
     {
         NTA_CHECK( extraActive.size  == extra_ );
         NTA_CHECK( extraWinners.size == extra_ );
+	NTA_CHECK( extraActive.dimensions == extraWinners.dimensions);
 #ifdef NTA_ASSERTIONS_ON
-  SDR both(actraActive.dimensions);
+  SDR both(extraActive.dimensions);
   both.intersection(extraActive, extraWinners);
   NTA_ASSERT(both == extraWinners) << "ExtraWinners must be a subsection of Active";
 #endif
