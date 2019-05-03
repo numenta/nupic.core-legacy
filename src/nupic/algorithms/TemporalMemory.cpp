@@ -484,7 +484,7 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
   const auto columnForSegment = [&](Segment segment) {
     return connections.cellForSegment(segment) / cellsPerColumn_;
   };
-  const auto identity = [](const auto a) {return a;}; //TODO use std::identity when c++20
+  const auto identity = [](const UInt a) {return a;}; //TODO use std::identity when c++20
 
   for (auto &columnData : iterGroupBy( //TODO explain this
            activeColumns, activeColumns + activeColumnsSize, identity,
