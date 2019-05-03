@@ -51,7 +51,7 @@
 
 using namespace std;
 using namespace nupic;
-using nupic::sdr::SDR;
+using namespace nupic::sdr;
 using namespace nupic::algorithms::temporal_memory;
 
 
@@ -712,7 +712,7 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   auto& dense = cols.getDense();
   for(const auto cell : cells.getSparse()) {
     const auto col = columnForCell(cell);
-    dense[col] = static_cast<DenseT>(1);
+    dense[col] = static_cast<ElemDense>(1);
   }
   cols.setDense(dense);
 
