@@ -20,11 +20,6 @@
  * ---------------------------------------------------------------------
  */
 
-#include <algorithm>
-#include <iterator>
-#include <numeric>
-#include <set>
-
 #include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/utils/Log.hpp"
 
@@ -40,36 +35,18 @@ namespace anomaly {
 Real computeRawAnomalyScore(const SDR& active,
                             const SDR& predicted) {
 
+  NTA_ASSERT(active.dimensions == predicted.dimensions); 
+
   // Return 0 if no active columns are present
   if (active.getSum() == 0) {
     return 0.0f;
   }
-
-  NTA_CHECK(active.dimensions == predicted.dimensions);
 
   // Calculate and return percent of active columns that were not predicted.
   SDR both(active.dimensions);
   both.intersection(active, predicted);
 
   return (active.getSum() - both.getSum()) / Real(active.getSum());
-}
-
-Real computeRawAnomalyScore(vector<UInt>& active,
-                            vector<UInt>& predicted)
-{
-  // Don't divide by zero.  Return 0 if no active columns are present.
-  if (active.size() == 0) {
-    return 0.0f;
-  }
-
-  vector<UInt> correctPredictions;
-  sort( active.begin(),    active.end());
-  sort( predicted.begin(), predicted.end());
-  set_intersection(active.begin(), active.end(),
-                   predicted.begin(), predicted.end(),
-                   back_inserter( correctPredictions ));
-
-  return (Real) (active.size() - correctPredictions.size()) / active.size();
 }
 
 }}} // End namespace

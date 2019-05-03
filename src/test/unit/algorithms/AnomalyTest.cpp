@@ -33,40 +33,46 @@ namespace testing {
 
 using namespace nupic::algorithms::anomaly;
 using namespace nupic;
+using namespace nupic::sdr;
 
 TEST(ComputeRawAnomalyScore, NoActiveOrPredicted) {
-  std::vector<UInt> active;
-  std::vector<UInt> predicted;
+  SDR active({10});
+  SDR predicted({10});
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 0.0);
 };
 
 TEST(ComputeRawAnomalyScore, NoActive) {
-  std::vector<UInt> active;
-  std::vector<UInt> predicted = {3, 5};
+  SDR active({10});
+  SDR predicted({10});
+  predicted.setSparse(SDR_sparse_t{3,5});
+
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 0.0f);
 };
 
 TEST(ComputeRawAnomalyScore, PerfectMatch) {
-  std::vector<UInt> active = {3, 5, 7};
-  std::vector<UInt> predicted = {3, 5, 7};
+  SDR active({10});
+  SDR predicted({10});
+  active.setSparse(SDR_sparse_t{3,5,7});
+  predicted.setSparse(SDR_sparse_t{3,5,7});
+
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 0.0f);
 };
 
 TEST(ComputeRawAnomalyScore, NoMatch) {
-  std::vector<UInt> active = {2, 4, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
+  SDR active({10});
+  SDR predicted({10});
+  active.setSparse(SDR_sparse_t{2,4,6});
+  predicted.setSparse(SDR_sparse_t{3,5,7});
+
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 1.0f);
 };
 
 TEST(ComputeRawAnomalyScore, PartialMatch) {
-  std::vector<UInt> active = {2, 3, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
-  ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
-};
+  SDR active({10});
+  SDR predicted({10});
+  active.setSparse(SDR_sparse_t{2,3,6});
+  predicted.setSparse(SDR_sparse_t{3,5,7}); // 1 out of 3 matches -> 66.6% anomaly = 2/3
 
-TEST(ComputeRawAnomalyScore, PartialMatchSDR) {
-  sdr::SDR active({20});       active.setSparse(std::vector<UInt>{2, 3, 6});
-  sdr::SDR predicted({20}); predicted.setSparse(std::vector<UInt>{3, 5, 7});
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
 };
 

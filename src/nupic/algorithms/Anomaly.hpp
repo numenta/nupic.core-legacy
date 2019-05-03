@@ -23,7 +23,6 @@
 #ifndef NUPIC_ALGORITHMS_ANOMALY_HPP
 #define NUPIC_ALGORITHMS_ANOMALY_HPP
 
-#include <vector>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Sdr.hpp> // sdr::SDR
 
@@ -37,16 +36,12 @@ namespace anomaly {
  *
  * The raw anomaly score is the fraction of active columns not predicted.
  * Do not use these methods directly, these are for testing and internal implementation. 
- * Use TM.anomaly.score or AnomalyLikelihood. 
+ * Use TM.getAnomalyScore() (+AnomalyLikelihood, MovingAverage for more specific needs). 
  *
- * @param activeColumns: array of active column indices
- * @param prevPredictedColumns: array of columns indices predicted in
- *     prev step
+ * @param activeColumns: SDR with active columns (not cells) from current step (T)
+ * @param prevPredictedColumns: SDR of predictive columns indices from prev step (T-1)
  * @return anomaly score 0..1 (Real32)
  */
-Real32 computeRawAnomalyScore(std::vector<UInt> &active,
-                              std::vector<UInt> &predicted);
-
 Real32 computeRawAnomalyScore(const sdr::SDR& active, 
 		              const sdr::SDR& predicted);
 
