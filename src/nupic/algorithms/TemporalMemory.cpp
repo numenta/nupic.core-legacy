@@ -569,7 +569,7 @@ void TemporalMemory::activateDendrites(bool learn,
 
     for(const auto &active : extraActive) {
       NTA_ASSERT( active < extra_ );
-      activeCells_.push_back( static_cast<CellIdx>(active + numberOfCells()) );
+      activeCells_.push_back( static_cast<CellIdx>(active + numberOfCells()) ); 
     }
     for(const auto &winner : extraWinners) {
       NTA_ASSERT( winner < extra_ );
@@ -674,10 +674,13 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
 
 
 SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
-  NTA_CHECK(cells.size == numberOfCells()) 
-	  << "cells.size " << cells.size << " must match TM::numberOfCells() " << numberOfCells();
+  auto correctDims = getColumnDimensions(); //nD column dimensions (eg 10x100)
+  correctDims.push_back(getCellsPerColumn()); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
 
-  SDR cols({numColumns_});
+  NTA_CHECK(cells.dimensions == correctDims) 
+	  << "cells.dimensions must match TM's (column dims x cellsPerColumn) ";
+
+  SDR cols(getColumnDimensions());
   auto& dense = cols.getDense();
   for(const auto cell : cells.getSparse()) {
     const auto col = columnForCell(cell);
@@ -711,29 +714,30 @@ void TemporalMemory::getActiveCells(SDR &activeCells) const
   activeCells.setSparse( getActiveCells() );
 }
 
-vector<CellIdx> TemporalMemory::getPredictiveCells() const {
+
+SDR TemporalMemory::getPredictiveCells() const {
 
   NTA_CHECK( segmentsValid_ )
     << "Call TM.activateDendrites() before TM.getPredictiveCells()!";
 
-  vector<CellIdx> predictiveCells;
+  auto correctDims = getColumnDimensions();
+  correctDims.push_back(getCellsPerColumn());
+  SDR predictive(correctDims);
+
+  auto& predictiveCells = predictive.getSparse();
 
   for (auto segment = activeSegments_.cbegin(); segment != activeSegments_.cend();
        segment++) {
-    CellIdx cell = connections.cellForSegment(*segment);
+    const CellIdx cell = connections.cellForSegment(*segment);
     if (segment == activeSegments_.begin() || cell != predictiveCells.back()) {
       predictiveCells.push_back(cell);
     }
   }
 
-  return predictiveCells;
+  predictive.setSparse(predictiveCells);
+  return predictive;
 }
 
-void TemporalMemory::getPredictiveCells(SDR &predictiveCells) const
-{
-  NTA_CHECK( predictiveCells.size == numberOfCells() );
-  predictiveCells.setSparse( getPredictiveCells() );
-}
 
 vector<CellIdx> TemporalMemory::getWinnerCells() const { return winnerCells_; }
 

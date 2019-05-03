@@ -112,7 +112,7 @@ TEST(TemporalMemoryTest, ActivateCorrectlyPredictiveCells) {
 
   tm.compute(numActiveColumns, previousActiveColumns, true);
   tm.activateDendrites();
-  ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
+  ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells().getSparse());
   tm.compute(numActiveColumns, activeColumns, true);
 
   EXPECT_EQ(expectedActiveCells, tm.getActiveCells());
@@ -178,13 +178,13 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
   ASSERT_FALSE(tm.getActiveCells().empty());
   ASSERT_FALSE(tm.getWinnerCells().empty());
   tm.activateDendrites();
-  ASSERT_FALSE(tm.getPredictiveCells().empty());
+  ASSERT_FALSE(tm.getPredictiveCells().getSum() == 0);
 
   EXPECT_NO_THROW(tm.compute(0, nullptr, true)) << "failed with empty compute";
   EXPECT_TRUE(tm.getActiveCells().empty());
   EXPECT_TRUE(tm.getWinnerCells().empty());
   tm.activateDendrites();
-  EXPECT_TRUE(tm.getPredictiveCells().empty());
+  EXPECT_TRUE(tm.getPredictiveCells().getSum() == 0);
 }
 
 /**
@@ -454,7 +454,7 @@ TEST(TemporalMemoryTest, NoChangeToMatchingSegmentsInPredictedActiveColumn) {
 
   tm.compute(1, previousActiveColumns, true);
   tm.activateDendrites();
-  ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells());
+  ASSERT_EQ(expectedActiveCells, tm.getPredictiveCells().getSparse());
   tm.compute(1, activeColumns, true);
 
   EXPECT_NEAR(0.3f, tm.connections.dataForSynapse(synapse1).permanence, EPSILON);
@@ -1358,7 +1358,9 @@ TEST(TemporalMemoryTest, testCellsToColumns)
   TemporalMemory tm;
   tm.initialize(vector<UInt>{3}, 3); // TM 3 cols x 3 cells per col
 
-  SDR v1({3*3});
+  auto correctDims = tm.getColumnDimensions();
+  correctDims.push_back(tm.getCellsPerColumn());
+  SDR v1(correctDims);
   v1.setSparse(SDR_sparse_t{4,5,8});
   const SDR_sparse_t expected {1u, 2u};
 
@@ -1369,8 +1371,11 @@ TEST(TemporalMemoryTest, testCellsToColumns)
   res = tm.cellsToColumns(v1);
   EXPECT_TRUE(res.getSparse().empty());
 
-  SDR larger({10,10});
+  SDR larger({10,10, 3});
   EXPECT_ANY_THROW(tm.cellsToColumns(larger));
+
+  SDR wrongDims({3*3}); //matches numberOfCells, but dimensions are incorrect
+  EXPECT_ANY_THROW(tm.cellsToColumns(wrongDims));
 };
 
 
@@ -1607,21 +1612,14 @@ TEST(TemporalMemoryTest, testExtraActive) {
     for(auto &x : pattern) {
       // Predict whats going to happen.
       tm.activateDendrites(true, extraActive, extraWinners);
-      auto predictedColumns = tm.getPredictiveCells();
-      for(UInt i = 0; i < predictedColumns.size(); i++) {
-        predictedColumns[i] = static_cast<CellIdx>(predictedColumns[i]/tm.getCellsPerColumn());
-        if(i > 0 && predictedColumns[i] == predictedColumns[i-1])
-          predictedColumns.erase( predictedColumns.begin() + i-- );
-      }
+      SDR predictedColumns = tm.cellsToColumns(tm.getPredictiveCells());
       // Calculate TM output
-      const auto &sparse = x.getSparse();
-      tm.compute(sparse.size(), sparse.data(), true);
+      tm.compute(x, true);
       extraActive  = tm.getActiveCells();
       extraWinners = tm.getWinnerCells();
 
       // Calculate Anomaly of current input based on prior predictions.
-      anom = algorithms::anomaly::computeRawAnomalyScore(
-                                    x.getSparse(), predictedColumns);
+      anom = algorithms::anomaly::computeRawAnomalyScore(x, predictedColumns);
     }
   }
   ASSERT_LT( anom, 0.05f );
@@ -1633,10 +1631,9 @@ TEST(TemporalMemoryTest, testExtraActive) {
     // Predict whats going to happen.
     tm.activateDendrites(true, vector<UInt>({}), vector<UInt>({}));
     auto predictedCells = tm.getPredictiveCells();
-    ASSERT_TRUE( predictedCells.empty() ); // No predictions, numActive < threshold
+    ASSERT_TRUE( predictedCells.getSum() == 0 ); // No predictions, numActive < threshold
     // Calculate TM output
-    const auto &sparse = x.getSparse();
-    tm.compute(sparse.size(), sparse.data(), true);
+    tm.compute(x, true);
   }
 }
 
