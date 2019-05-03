@@ -37,10 +37,6 @@ using nupic::sdr::SDR;
 using nupic::encoders::ScalarEncoder;
 using nupic::encoders::ScalarEncoderParameters;
 
-TEST(ScalarEncoder, testExampleUsage) {
-  // TODO
-}
-
 
 struct ScalarValueCase
 {
@@ -127,7 +123,7 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
   p.resolution = 1;
   ScalarEncoder encoder( p );
 
-  ASSERT_EQ(encoder.parameters.size, 12u);
+  ASSERT_EQ(encoder.parameters.size, 13u);
 
   std::vector<ScalarValueCase> cases = {
       {10.00f, {0, 1, 2}},
@@ -139,9 +135,10 @@ TEST(ScalarEncoder, RoundToNearestMultipleOfResolution) {
       {14.50f, {5, 6, 7}},
       {15.49f, {5, 6, 7}},
       {15.50f, {6, 7, 8}},
+      {19.00f, {9, 10, 11}},
       {19.49f, {9, 10, 11}},
-      {19.50f, {9, 10, 11}},
-      {20.00f, {9, 10, 11}}};
+      {19.50f, {10, 11, 12}},
+      {20.00f, {10, 11, 12}}};
 
   doScalarValueCases(encoder, cases);
 }
