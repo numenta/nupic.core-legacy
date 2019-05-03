@@ -28,7 +28,7 @@
 
 #include <algorithm> // std::min
 #include <numeric>   // std::iota
-#include <cmath>     // std::isnan
+#include <cmath>     // std::isnan std::nextafter
 #include <nupic/encoders/ScalarEncoder.hpp>
 using nupic::sdr::SDR;
 
@@ -78,7 +78,15 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   }
 
   // Determine resolution & size.
-  const Real64 extentWidth = args_.maximum - args_.minimum;
+  Real64 extentWidth;
+  if( args_.periodic ) {
+    extentWidth = args_.maximum - args_.minimum;
+  }
+  else {
+    // Increase the max by the smallest possible amount.
+    Real64  maxInclusive = std::nextafter( args_.maximum, HUGE_VAL );
+    extentWidth = maxInclusive - args_.minimum;
+  }
   if( args_.size > 0u ) {
     // Distribute the active bits along the domain [minimum, maximum], including
     // the endpoints. The resolution is the width of each band between the
@@ -129,16 +137,19 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
     return;
   }
   else if( args_.clipInput ) {
-    input = std::max(input, parameters.minimum);
-    input = std::min(input, parameters.maximum);
+    if( args_.periodic ) {
+      // TODO: Apply modulus to inputs here!
+      NTA_THROW << "Unimplemented";
+    }
+    else {
+      input = std::max(input, parameters.minimum);
+      input = std::min(input, parameters.maximum);
+    }
   }
   else {
     NTA_CHECK(input >= parameters.minimum && input <= parameters.maximum)
         << "Input must be within range [minimum, maximum]!";
   }
-
-  auto &sparse = output.getSparse();
-  sparse.resize( parameters.activeBits );
 
   UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
 
@@ -150,11 +161,15 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
     start = std::min(start, output.size - parameters.activeBits);
   }
 
+  auto &sparse = output.getSparse();
+  sparse.resize( parameters.activeBits );
   std::iota( sparse.begin(), sparse.end(), start );
 
   if( parameters.periodic ) {
-    for(UInt wrap = output.size - start; wrap < parameters.activeBits; ++wrap) {
-      sparse[wrap] -= output.size;
+    for( auto & bit : sparse ) {
+      if( bit >= output.size ) {
+        bit -= output.size;
+      }
     }
   }
 
