@@ -531,12 +531,8 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
 
 
 void TMAnomaly::update(TemporalMemory& tm) {
-  auto dims = tm.getColumnDimensions();
-  dims.push_back(tm.getCellsPerColumn()); 
-  sdr::SDR cells(dims);
   //predictive cells for T+1
-  tm.getPredictiveCells(cells);
-  previouslyPredictedColumns_ = tm.cellsToColumns(cells);
+  previouslyPredictedColumns_ = tm.cellsToColumns(tm.getPredictiveCells());
 }
 
 float TemporalMemory::getAnomalyScore() const {
