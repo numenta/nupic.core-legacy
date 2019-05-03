@@ -496,7 +496,7 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
     vector<Segment>::const_iterator columnActiveSegmentsBegin,
         columnActiveSegmentsEnd, columnMatchingSegmentsBegin,
         columnMatchingSegmentsEnd;
-    tie(column, activeColumnsBegin, activeColumnsEnd, columnActiveSegmentsBegin,
+    std::tie(column, activeColumnsBegin, activeColumnsEnd, columnActiveSegmentsBegin,
         columnActiveSegmentsEnd, columnMatchingSegmentsBegin,
         columnMatchingSegmentsEnd) = columnData;
 
