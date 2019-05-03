@@ -253,9 +253,10 @@ public:
    *
    * @param extraWinners
    * Vector of winning external predictive inputs.  When learning, only these
-   * inputs are considered active.  ExtraWinners should be a subset of
-   * extraActive.  External inputs must be cell indexes in the range [0,
-   * extra).
+   * inputs are considered active.  
+   * ExtraWinners must be a subset of extraActive.  
+   * External inputs must be cell indexes in the range [0, extra).
+   *
    */
   void activateDendrites(bool learn = true,
                          const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},

@@ -552,10 +552,15 @@ void TemporalMemory::activateDendrites(bool learn,
                                        const SDR &extraActive,
                                        const SDR &extraWinners)
 {
-    if( extra_ )
+    if( extra_ > 0 )
     {
         NTA_CHECK( extraActive.size  == extra_ );
         NTA_CHECK( extraWinners.size == extra_ );
+#ifdef NTA_ASSERTIONS_ON
+  SDR both(actraActive.dimensions);
+  both.intersection(extraActive, extraWinners);
+  NTA_ASSERT(both == extraWinners) << "ExtraWinners must be a subsection of Active";
+#endif
         activateDendrites( learn, extraActive.getSparse(),
                                   extraWinners.getSparse());
     }
@@ -707,7 +712,7 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   auto& dense = cols.getDense();
   for(const auto cell : cells.getSparse()) {
     const auto col = columnForCell(cell);
-    dense[col] = 1;
+    dense[col] = static_cast<DenseT>(1);
   }
   cols.setDense(dense);
 
