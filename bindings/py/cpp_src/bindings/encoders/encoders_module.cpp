@@ -37,9 +37,7 @@ using namespace nupic_ext;
 
 PYBIND11_MODULE(encoders, m) {
     m.doc() =
-R"(nupic.bindings.encoders
-
-An encoder converts a value to a sparse distributed representation.
+R"(Encoders convert values into sparse distributed representation.
 
 There are several critical properties which all encoders must have:
 
@@ -54,6 +52,12 @@ There are several critical properties which all encoders must have:
     have enough active bits to handle noise and subsampling.
 
 Reference: https://arxiv.org/pdf/1602.05925.pdf
+
+
+CategoryEncoders:
+    To make encode categories of input, make either a ScalarEncoder or a
+RandomDistributedScalarEncoder, and set the "radius" parameter to 1.  Then
+enumerate your categories into integers before encoding them.
 )";
 
     init_ScalarEncoder(m);
