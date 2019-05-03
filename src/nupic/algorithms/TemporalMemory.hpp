@@ -303,9 +303,12 @@ public:
   size_t numberOfCells(void) const { return connections.numCells(); }
 
   /**
-   * @return SDR with indices of active cells.
+   * Returns the indices of the active cells.
+   *
+   * @returns (std::vector<CellIdx>) Vector of indices of active cells.
    */
-  sdr::SDR getActiveCells() const;
+  vector<CellIdx> getActiveCells() const; //TODO remove
+  void getActiveCells(sdr::SDR &activeCells) const;
 
   /**
    * @return SDR with indices of the predictive cells.
@@ -610,7 +613,7 @@ protected:
   Permanence predictedSegmentDecrement_;
   UInt extra_;
 
-  sdr::SDR activeCells_;
+  vector<CellIdx> activeCells_;
   vector<CellIdx> winnerCells_;
   bool segmentsValid_;
   vector<Segment> activeSegments_;
