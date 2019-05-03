@@ -1,4 +1,11 @@
-FROM ubuntu:14.04
+# Default arch. Pass in like "--build-arg arch=arm64".
+#   Our circleci arm64 build uses this specifically.
+#   https://docs.docker.com/engine/reference/commandline/build/
+ARG arch=x86_64
+
+# Multiarch Ubuntu Bionic 18.04. arches: x86_64, arm64, etc.
+#   https://hub.docker.com/r/multiarch/ubuntu-core/tags/
+FROM multiarch/ubuntu-core:$arch-bionic
 
 RUN apt-get update && \
     apt-get install -y \
@@ -22,17 +29,15 @@ RUN pip install wheel
 ENV CC gcc
 ENV CXX g++
 
-ADD . /usr/local/src/nupic.core
-
-WORKDIR /usr/local/src/nupic.core
+ADD . /usr/local/src/nupic.cpp
+WORKDIR /usr/local/src/nupic.cpp
 
 # Explicitly specify --cache-dir, --build, and --no-clean so that build
 # artifacts may be extracted from the container later.  Final built python
-# packages can be found in /usr/local/src/nupic.core/bindings/py/dist
-
+# packages can be found in /usr/local/src/nupic.cpp/bindings/py/dist
 RUN pip install \
-        --cache-dir /usr/local/src/nupic.core/pip-cache \
-        --build /usr/local/src/nupic.core/pip-build \
+        --cache-dir /usr/local/src/nupic.cpp/pip-cache \
+        --build /usr/local/src/nupic.cpp/pip-build \
         --no-clean \
-        -r bindings/py/requirements.txt && \
+        -r bindings/py/packaging/requirements.txt && \
     python setup.py bdist bdist_dumb bdist_wheel sdist
