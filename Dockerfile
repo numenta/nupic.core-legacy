@@ -7,23 +7,18 @@ ARG arch=x86_64
 #   https://hub.docker.com/r/multiarch/ubuntu-core/tags/
 FROM multiarch/ubuntu-core:$arch-bionic
 
-RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    curl \
-    wget \
+RUN apt-get update
+RUN apt-get install -y \
     git-core \
-    gcc-8 \
     g++-8 \
     cmake \
     python \
     python2.7 \
     python2.7-dev \
-    zlib1g-dev \
-    bzip2 \
+    python-numpy \
     libyaml-dev \
-    libyaml-0-2
-RUN wget http://releases.numenta.org/pip/1ebd3cb7a5a3073058d0c9552ab074bd/get-pip.py -O - | python
+    python-pip
+
 RUN pip install --upgrade setuptools
 RUN pip install wheel
 
@@ -37,8 +32,9 @@ WORKDIR /usr/local/src/nupic.cpp
 # artifacts may be extracted from the container later.  Final built python
 # packages can be found in /usr/local/src/nupic.cpp/bindings/py/dist
 RUN pip install \
-        --cache-dir /usr/local/src/nupic.cpp/pip-cache \
-        --build /usr/local/src/nupic.cpp/pip-build \
-        --no-clean \
-        -r bindings/py/packaging/requirements.txt && \
-    python setup.py bdist bdist_dumb bdist_wheel sdist
+#        --cache-dir /usr/local/src/nupic.cpp/pip-cache \
+#        --build /usr/local/src/nupic.cpp/pip-build \
+#        --no-clean \
+        -r bindings/py/packaging/requirements.txt
+RUN python setup.py install
+
