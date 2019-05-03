@@ -29,10 +29,6 @@ from nupic.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
 from nupic.bindings.sdr import SDR, Metrics
 
 class ScalarEncoder_Test(unittest.TestCase):
-    @pytest.mark.skip("TODO UNIMPLEMENTED!")
-    def testExampleUsage(self):
-        1/0
-
     def testConstructor(self):
         p = ScalarEncoderParameters()
         p.size       = 1000
@@ -60,6 +56,33 @@ class ScalarEncoder_Test(unittest.TestCase):
         assert( list(sdr.sparse) == [0, 1, 2] )
         sdr2 = enc.encode( 1 )
         assert( list(sdr2.sparse) == [7, 8, 9] )
+
+    def testCategories(self):
+        # Test two categories.
+        p = ScalarEncoderParameters()
+        p.minimum    = 0
+        p.maximum    = 1
+        p.activeBits = 3
+        p.radius     = 1
+        enc = ScalarEncoder(p)
+        sdr = SDR( enc.dimensions )
+        zero = enc.encode( 0 )
+        one  = enc.encode( 1 )
+        assert( zero.getOverlap( one ) == 0 )
+        # Test three categories.
+        p = ScalarEncoderParameters()
+        p.minimum    = 0
+        p.maximum    = 2
+        p.activeBits = 3
+        p.radius     = 1
+        enc = ScalarEncoder(p)
+        sdr = SDR( enc.dimensions )
+        zero = enc.encode( 0 )
+        one  = enc.encode( 1 )
+        two  = enc.encode( 2 )
+        assert( zero.getOverlap( one ) == 0 )
+        assert( one.getOverlap( two ) == 0 )
+        assert( two.getSum() == 3 )
 
     def testBadParameters(self):
         # Start with sane parameters.

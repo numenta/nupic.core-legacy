@@ -79,3 +79,7 @@ longer accept a synapse permanence threshold argument. PR #305
 * Anomaly class removed as obsolete, use `TM.getAnomalyScore()` which is simpler to use, and `MovingAverage` when you need to emulate 
   running averages. Internaly the code still uses `computeRawAnomalyScore()` but there's no need to call it directly. `AnomalyLikelihood` 
   is still available and can be used in addition to TM.getAnomalyScore(). PR #406 
+
+* TemporalMemory::getPredictiveCells() now returns a SDR. This ensures more convenient API and that the SDR object has correct
+  dimensions matching TM. use TM.getPredictiveCells().getSparse() to obtain the sparse vector as before. PR #437, #442 
+

@@ -128,9 +128,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tTM.start();
     tm.compute(outSP, true /*learn*/); //to uses output of SPglobal
     tm.activateDendrites(); //required to enable tm.getPredictiveCells()
-    SDR cells({CELLS*COLS});
-    tm.getPredictiveCells(cells);
-    outTM = tm.cellsToColumns(cells);
+    outTM = tm.cellsToColumns( tm.getPredictiveCells() );
     tTM.stop();
     }
 
