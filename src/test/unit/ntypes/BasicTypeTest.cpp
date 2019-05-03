@@ -112,7 +112,7 @@ TEST(BasicTypeTest, parse)
 
 class convertArrayTester {
 public:
-  Byte bufByte[8] = {0, 1, 2, 3, 4, 5, -128, 127};
+  Byte bufByte[8] = {0, 1, 2, 3, 4, 5, static_cast<Byte>(-128), 127}; //Byte is unsigned on ARM, signed on x86, therefore the cast is needed for ARM
   Int16 bufInt16[8] = {0, 1, 2, 3, 4, 5, -32768, 32767};
   UInt16 bufUInt16[8] = {0, 1, 2, 3, 4, 5, 0, 0xffff};
   Int32 bufInt32[8] = {0, 1, 2, 3, 4, 5, -2147483647L, 2147483647L};
@@ -132,17 +132,17 @@ public:
 
   template <typename T> 
   bool checkArray(char *buf) {
-    T *a = (T *)buf;
+    T *a = static_cast<T *>(buf);
     for (size_t i = 0; i < 6; i++) {
-      if (a[i] != (T)bufByte[i]) return false;
+      if (a[i] != static_cast<T>(bufByte[i])) return false;
     }
     return true;
   }
   template <typename T>
   bool checkArrayBool(char *buf) { 
-    T *a = (T*)buf;
+    T *a = static_cast<T*>(buf);
     for (size_t i = 0; i < 6; i++) {
-      if (a[i] != (T)bufBool[i])
+      if (a[i] != static_cast<T>(bufBool[i]))
         return false;
     }
     return true;
@@ -157,7 +157,7 @@ TEST(BasicTypeTest, convertArray) {
   BasicType::convertArray(ca.dest, NTA_BasicType_Byte, 
                           ca.bufByte, NTA_BasicType_Byte, 8);
   EXPECT_TRUE(ca.checkArray<Byte>(ca.dest)) << "Byte to Byte conversion";
-  // Note: Bytes are char, not unsigned char.
+  // Note: Bytes are char, not unsigned char - on x86, on ARM Byte is unsigned char. 
 
   // negative test
   EXPECT_THROW(BasicType::convertArray(ca.dest, NTA_BasicType_Byte, ca.bufInt16,
