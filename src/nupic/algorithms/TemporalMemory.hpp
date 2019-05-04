@@ -200,7 +200,8 @@ public:
    * @param learn
    * If true, reinforce / punish / grow synapses.
    */
-  void activateCells(const sdr::SDR &activeColumns, bool learn = true);
+  void activateCells(const sdr::SDR &activeColumns, 
+		     const bool learn = true);
 
   /**
    * Calculate dendrite segment activity, using the current active cells.  Call
@@ -214,20 +215,25 @@ public:
    * used during segment cleanup.
    *
    * @param extraActive
-   * Vector of active external predictive inputs.  External inputs must be cell
+   * (optional) Vector of active external predictive inputs.  External inputs must be cell
    * indexes in the range [0, extra).
    *
    * @param extraWinners
-   * Vector of winning external predictive inputs.  When learning, only these
+   * (optional) Vector of winning external predictive inputs.  When learning, only these
    * inputs are considered active.  ExtraWinners should be a subset of
    * extraActive.  External inputs must be cell indexes in the range [0,
    * extra).
+   *
+   * See TM::compute() for details of the parameters. 
+   *
    */
-  void activateDendrites(bool learn = true,
+  void activateDendrites(const bool learn = true,
                          const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
                          const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
-  void activateDendrites(bool learn,
-                         const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
+
+  void activateDendrites(const bool learn,
+                         const sdr::SDR &extraActive, 
+			 const sdr::SDR &extraWinners);
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
@@ -236,28 +242,31 @@ public:
    * the TemporalMemory via its compute method ensures that you'll always
    * be able to call getActiveCells at the end of the time step.
    *
-   * @param activeColumnsSize
-   * Number of active columns.
-   *
    * @param activeColumns
-   * Sorted list of indices of active columns.
+   * Sorted SDR of active columns.
    *
    * @param learn
    * Whether or not learning is enabled.
    *
    * @param extraActive
-   * Vector of active external predictive inputs.  External inputs must be cell
-   * indexes in the range [0, extra).
+   * (optional) Vector of active external predictive inputs.  
+   * External inputs must be cell indexes in the range [0, extra). 
+   * TM must be set up with the 'extra' constructor parameter for this use.
    *
    * @param extraWinners
-   * Vector of winning external predictive inputs.  When learning, only these
-   * inputs are considered active.  ExtraWinners should be a subset of
-   * extraActive.  External inputs must be cell indexes in the range [0,
-   * extra).
+   * (optional) Vector of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  
+   * ExtraWinners must be a subset of extraActive.  
+   * External inputs must be cell indexes in the range [0, extra).
+   *
    */
-  virtual void compute(const sdr::SDR &activeColumns, bool learn,
-                       const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
-  virtual void compute(const sdr::SDR &activeColumns, bool learn = true); 
+  virtual void compute(const sdr::SDR &activeColumns, 
+		       const bool learn,
+                       const sdr::SDR &extraActive, 
+		       const sdr::SDR &extraWinners);
+
+  virtual void compute(const sdr::SDR &activeColumns, 
+		       const bool learn = true); 
 
   // ==============================
   //  Helper functions

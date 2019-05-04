@@ -455,8 +455,9 @@ static void punishPredictedColumn(
   }
 }
 
-void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) { //TODO const bool
-    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() )  //TODO check dims directly
+void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
+    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() )  //this "hack" because columnDimensions_, and SDR.dimensions are vectors
+	    //of different type, so we cannot directly compare
 	    << "TM invalid input dimensions: " << activeColumns.dimensions.size() << " vs. " << columnDimensions_.size();
     for(size_t i=0; i< columnDimensions_.size(); i++) {
       NTA_CHECK(static_cast<size_t>(activeColumns.dimensions[i]) == static_cast<size_t>(columnDimensions_[i])) << "Dimensions must be the same.";
@@ -478,7 +479,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) { //TOD
   };
   const auto identity = [](const UInt a) {return a;}; //TODO use std::identity when c++20
 
-  for (auto &&columnData : groupBy(
+  for (auto &&columnData : groupBy( //group by columns, and convert activeSegments & matchingSegments to cols. 
            sparse, identity,
            activeSegments_, columnForSegment,
            matchingSegments_, columnForSegment)) {
@@ -522,7 +523,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) { //TOD
   segmentsValid_ = false;
 }
 
-void TemporalMemory::activateDendrites(bool learn,
+void TemporalMemory::activateDendrites(const bool learn,
                                        const SDR &extraActive,
                                        const SDR &extraWinners)
 {
@@ -541,7 +542,7 @@ void TemporalMemory::activateDendrites(bool learn,
     }
 }
 
-void TemporalMemory::activateDendrites(bool learn,
+void TemporalMemory::activateDendrites(const bool learn,
                                        const vector<UInt> &extraActive,
                                        const vector<UInt> &extraWinners)
 {
@@ -617,7 +618,8 @@ void TemporalMemory::activateDendrites(bool learn,
   segmentsValid_ = true;
 }
 
-void TemporalMemory::compute(const SDR &activeColumns, bool learn,
+void TemporalMemory::compute(const SDR &activeColumns, 
+		             const bool learn,
                              const SDR &extraActive,
                              const SDR &extraWinners)
 {
@@ -625,7 +627,7 @@ void TemporalMemory::compute(const SDR &activeColumns, bool learn,
   activateCells(activeColumns, learn);
 }
 
-void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
+void TemporalMemory::compute(const SDR &activeColumns, const bool learn) {
   activateDendrites(learn);
   activateCells(activeColumns, learn);
 }
