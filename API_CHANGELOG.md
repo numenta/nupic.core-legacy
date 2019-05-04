@@ -79,3 +79,5 @@ longer accept a synapse permanence threshold argument. PR #305
 * TemporalMemory::getPredictiveCells() now returns a SDR. This ensures more convenient API and that the SDR object has correct
   dimensions matching TM. use TM.getPredictiveCells().getSparse() to obtain the sparse vector as before. 
 
+* TemporalMemory `compute()` and `activateCells()` now use only SDR variants, old overloads with C-style arrays removed. Bindings and 
+  tests also updated. 

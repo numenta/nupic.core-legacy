@@ -455,23 +455,15 @@ static void punishPredictedColumn(
   }
 }
 
-void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
-    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() ) 
+void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) { //TODO const bool
+    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() )  //TODO check dims directly
 	    << "TM invalid input dimensions: " << activeColumns.dimensions.size() << " vs. " << columnDimensions_.size();
     for(size_t i=0; i< columnDimensions_.size(); i++) {
       NTA_CHECK(static_cast<size_t>(activeColumns.dimensions[i]) == static_cast<size_t>(columnDimensions_[i])) << "Dimensions must be the same.";
     }
     auto &sparse = activeColumns.getSparse();
     std::sort(sparse.begin(), sparse.end()); //TODO remove sorted requirement? iterGroupBy depends on it
-    activateCells(sparse.size(), sparse.data(), learn);
-}
 
-void TemporalMemory::activateCells(const size_t activeColumnsSize,
-                                   const UInt activeColumns[], bool learn) {
-  if (checkInputs_ && activeColumnsSize > 0) {
-    NTA_CHECK(std::is_sorted(activeColumns, activeColumns + activeColumnsSize-1))
-        << "The activeColumns must be a sorted list of indices without duplicates.";
-  }
 
   vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
   for (CellIdx cell : activeCells_) {
@@ -486,19 +478,18 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
   };
   const auto identity = [](const UInt a) {return a;}; //TODO use std::identity when c++20
 
-  for (auto &columnData : iterGroupBy( //TODO explain this
-           activeColumns, activeColumns + activeColumnsSize, identity,
-           activeSegments_.begin(), activeSegments_.end(), columnForSegment,
-           matchingSegments_.begin(), matchingSegments_.end(), columnForSegment)) {
+  for (auto &&columnData : groupBy(
+           sparse, identity,
+           activeSegments_, columnForSegment,
+           matchingSegments_, columnForSegment)) {
     UInt column;
-    const UInt *activeColumnsBegin;
-    const UInt *activeColumnsEnd;
-    vector<Segment>::const_iterator columnActiveSegmentsBegin,
-        columnActiveSegmentsEnd, columnMatchingSegmentsBegin,
-        columnMatchingSegmentsEnd;
+    vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
+	columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
+	columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
+
     std::tie(column, activeColumnsBegin, activeColumnsEnd, columnActiveSegmentsBegin,
-        columnActiveSegmentsEnd, columnMatchingSegmentsBegin,
-        columnMatchingSegmentsEnd) = columnData;
+             columnActiveSegmentsEnd, columnMatchingSegmentsBegin, columnMatchingSegmentsEnd
+	) = columnData;
 
     const bool isActiveColumn = activeColumnsBegin != activeColumnsEnd;
     if (isActiveColumn) {
@@ -624,16 +615,6 @@ void TemporalMemory::activateDendrites(bool learn,
       [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
 
   segmentsValid_ = true;
-}
-
-void TemporalMemory::compute(const size_t        activeColumnsSize,
-                             const UInt          activeColumns[], 
-                             bool                learn,
-                             const vector<UInt> &extraActive,
-                             const vector<UInt> &extraWinners)
-{
-  activateDendrites(learn, extraActive, extraWinners);
-  activateCells(activeColumnsSize, activeColumns, learn);
 }
 
 void TemporalMemory::compute(const SDR &activeColumns, bool learn,

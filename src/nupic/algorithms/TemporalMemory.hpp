@@ -194,17 +194,12 @@ public:
    * Calculate the active cells, using the current active columns and
    * dendrite segments. Grow and reinforce synapses.
    *
-   * @param activeColumnsSize
-   * Size of activeColumns array (the 2nd param)
-   *
    * @param activeColumns
    * A sorted list of active column indices.
    *
    * @param learn
    * If true, reinforce / punish / grow synapses.
    */
-  void activateCells(const size_t activeColumnsSize, const UInt activeColumns[], //TODO remove old API?
-                     bool learn = true);
   void activateCells(const sdr::SDR &activeColumns, bool learn = true);
 
   /**
@@ -260,13 +255,9 @@ public:
    * extraActive.  External inputs must be cell indexes in the range [0,
    * extra).
    */
-  virtual void compute(size_t activeColumnsSize, const UInt activeColumns[],
-                       bool learn = true,
-                       const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
-                       const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
   virtual void compute(const sdr::SDR &activeColumns, bool learn,
                        const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
-  virtual void compute(const sdr::SDR &activeColumns, bool learn); 
+  virtual void compute(const sdr::SDR &activeColumns, bool learn = true); 
 
   // ==============================
   //  Helper functions
