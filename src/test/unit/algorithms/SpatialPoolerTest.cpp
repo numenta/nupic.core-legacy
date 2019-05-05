@@ -1897,7 +1897,9 @@ TEST(SpatialPoolerTest, testSerialization2) {
   SDR output({numColumns});
 
   for (UInt i = 0; i < 100; ++i) {
-    random.shuffle(input, input + inputSize);
+    auto& d = input.getSparse();
+    random.shuffle(d.begin(), d.end());
+    input.setSparse(d);
     sp1.compute(input, true, output);
   }
 
@@ -1971,7 +1973,6 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
   const UInt inputSize = 200;
   const UInt numColumns = 200;
-  const UInt w = 5;
 
   vector<UInt> inputDims{inputSize};
   vector<UInt> colDims{numColumns};
@@ -1979,29 +1980,17 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
   SpatialPooler sp1;
   sp1.initialize(inputDims, colDims);
 
-  UInt input[inputSize];
-  for (UInt i = 0; i < inputSize; ++i) {
-    if (i < w) {
-      input[i] = 1;
-    } else {
-      input[i] = 0;
-    }
-  }
-  UInt output[numColumns];
+  SDR input(inputDims);
+  SDR output(colDims);
 
   for (UInt i = 0; i < 100; ++i) {
-    random.shuffle(input, input + inputSize);
+    input.randomize(0.05, random); //5% random ON
     sp1.compute(input, true, output);
   }
 
   // Now we reuse the last input to test after serialization
 
-  vector<UInt> activeColumnsBefore;
-  for (UInt i = 0; i < numColumns; ++i) {
-    if (output[i] == 1) {
-      activeColumnsBefore.push_back(i);
-    }
-  }
+  auto activeColumnsBefore = output.getSparse();
 
   // Save initial trained model
   stringstream ss;
@@ -2013,10 +2002,10 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
   for (UInt i = 0; i < 6; ++i) {
     // Create new input
-    random.shuffle(input, input + inputSize);
+    input.randomize(0.05, random);
 
     // Get expected output
-    UInt outputBaseline[numColumns];
+    SDR outputBaseline(output);
     sp1.compute(input, true, outputBaseline);
 
     // C - Next do old version
@@ -2029,7 +2018,7 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
       spTemp.loadFromStream_ar(ss);
 
       // Feed new record through
-      UInt outputC[numColumns];
+      SDR outputC({numColumns});
       spTemp.compute(input, true, outputC);
 
       // Serialize
@@ -2038,16 +2027,14 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
       testTimer.stop();
 
-      for (UInt j = 0; j < numColumns; ++j) {
-        EXPECT_EQ(outputBaseline[j], outputC[j]) << "Iteration " << i << ", Col=" << j << std::endl;
-
-      }
+      EXPECT_EQ(outputBaseline, outputC);
     }
   }
   ss.clear();
 
   cout << "[          ] Timing for SP serialization: " << testTimer.getElapsed() << "sec" << endl;
 }
+
 
 TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   // Initialize SP using the constructor
