@@ -132,6 +132,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tTM.start();
 //if (e == 2424) mark = true;
 if (e == 2423) mark = true;
+if (mark) std::cout << "\nMark at iteration: e=" << e << "\n";
+if (mark) exit(0);
     tm.compute(outSP, true /*learn*/); //to use output of SPglobal
     tm.activateDendrites(); //required to enable tm.getPredictiveCells()
     SDR cells({CELLS*COLS});

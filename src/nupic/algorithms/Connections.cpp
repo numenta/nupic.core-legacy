@@ -85,6 +85,7 @@ void Connections::unsubscribe(UInt32 token) {
 }
 
 Segment Connections::createSegment(CellIdx cell) {
+if (cell == 7269) std::cout << "Connections::createSegment( cell=" << cell << ")\n";
   Segment segment;
   if (!destroyedSegments_.empty() ) { //reuse old, destroyed segs
     segment = destroyedSegments_.back();

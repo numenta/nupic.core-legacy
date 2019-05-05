@@ -158,16 +158,20 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   UInt32 numTiedCells = 0u;
   for (CellIdx cell = start; cell < end; cell++) {
     const size_t numSegments = connections.numSegments(cell);
+if (cell == 7269) std::cout << "getLeastUsedCell(cell 7269) numSegments:" << numSegments << " column=" << column << "\n";
     if (numSegments < minNumSegments) {
       minNumSegments = numSegments;
       numTiedCells = 1u;
+if (mark) std::cout << "First Cell: " << cell << " numSegments=" << numSegments << "\n";
     } else if (numSegments == minNumSegments) {
+if (mark) std::cout << "Found Tied Cell: " << cell << " numSegments=" << numSegments << "\n";
       numTiedCells++;
     }
   }
 
   const UInt32 tieWinnerIndex = rng.getUInt32(numTiedCells);
-if (mark) std::cout << "TemporalMemory_170 tieWinnerIndex: " << tieWinnerIndex << "\n";
+if (mark) std::cout << "TemporalMemory_170 numTiedCells: " << numTiedCells << "\n";
+if (mark) std::cout << "TemporalMemory_171 tieWinnerIndex: " << tieWinnerIndex << "\n";
   UInt32 tieIndex = 0;
   for (CellIdx cell = start; cell < end; cell++) {
     if (connections.numSegments(cell) == minNumSegments) {
@@ -219,6 +223,7 @@ static void adaptSegment(Connections &connections, Segment segment,
 static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
                                          Segment segment, Int nDestroy,
                                          const vector<CellIdx> &excludeCells) {
+  if (nDestroy <= 0) return;
 if (mark) std::cout << "destroyMinPermanenceSynapses() nDestroy=" << nDestroy << "\n";
  // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
@@ -275,7 +280,11 @@ static void growSynapses(Connections &connections,
   if (mark) std::cout << "growSynapses segment=" << segment << "\n";
   vector<CellIdx> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
   NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
-
+  if (mark) {
+    for(auto canidate: candidates) {
+      std::cout << "TemporalMemory_281 candidate=" << canidate << "\n";
+    }
+  }
   // Remove cells that are already synapsed on by this segment
   for (const Synapse& synapse : connections.synapsesForSegment(segment)) {
     const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
@@ -289,12 +298,11 @@ static void growSynapses(Connections &connections,
   const size_t nActual = std::min(static_cast<size_t>(nDesiredNewSynapses), candidates.size());
 
   // Check if we're going to surpass the maximum number of synapses. //TODO delegate this to createSynapse(segment)
-  Int overrun = (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
+  Int overrun = static_cast<Int>(connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
   if (overrun > 0) {
-  if (mark) std::cout << "overrun:" << overrun << "\n";
+    if (mark) std::cout << "overrun:" << overrun << "\n";
     destroyMinPermanenceSynapses(connections, rng, segment, overrun, prevWinnerCells);
   }
-
   // Recalculate in case we weren't able to destroy as many synapses as needed.
   const size_t nActualWithMax = std::min(nActual, static_cast<size_t>(maxSynapsesPerSegment) - connections.numSynapses(segment));
 if (mark) std::cout << "nActualWidthMax=" << nActualWithMax << "\n";
@@ -302,7 +310,7 @@ if (mark) std::cout << "nActualWidthMax=" << nActualWithMax << "\n";
   // Pick nActual cells randomly.
   for (size_t c = 0; c < nActualWithMax; c++) {
     const auto i = rng.getUInt32(static_cast<UInt32>(candidates.size()));
-if (mark) std::cout << "TemporalMemory_301 size=" << candidates.size() << " chosen candidates[" << i << "]: " << candidates[i] << "\n";
+if (mark) std::cout << "TemporalMemory_310 c=" << c << " size=" << candidates.size() << " chosen candidates[" << i << "]: " << candidates[i] << "\n";
     connections.createSynapse(segment, candidates[i], initialPermanence); //TODO createSynapse consider creating a vector of new synapses at once?
     candidates.erase(candidates.begin() + i); //TODO this is costly, optimize it (out)
   }
@@ -354,7 +362,8 @@ static Segment createSegment(Connections &connections,  //TODO remove, use TM::c
                              vector<UInt64> &lastUsedIterationForSegment,
                              CellIdx cell, UInt64 iteration,
                              UInt maxSegmentsPerCell) {
-  while (connections.numSegments(cell) >= maxSegmentsPerCell) {
+if (cell == 7269) std::cout << "static createSegment( cell=" << cell << ")  maxSegmentsPerCell=" << maxSegmentsPerCell << "\n";
+ while (connections.numSegments(cell) >= maxSegmentsPerCell) {
     const vector<Segment> &destroyCandidates =
         connections.segmentsForCell(cell);
 
@@ -397,10 +406,12 @@ burstColumn(vector<CellIdx> &activeCells,
             const SynapseIdx maxSynapsesPerSegment, 
             const bool learn) {
   // Calculate the active cells.
+if (column == 908) std::cout << "burstColumn entry for column 908\n";
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
   for (CellIdx cell = start; cell < end; cell++) {
     activeCells.push_back(cell);
+if (cell == 7296){ std::cout << "TM 416 burstColumn, contains Cell=7296\n";}
   }
 
   const auto bestMatchingSegment =
@@ -409,18 +420,22 @@ burstColumn(vector<CellIdx> &activeCells,
                          return (numActivePotentialSynapsesForSegment[a] <
                                  numActivePotentialSynapsesForSegment[b]);
                        });
+if (column == 908) std::cout << "after bestMatchingSegment\n";
 
   const CellIdx winnerCell =
       (bestMatchingSegment != columnMatchingSegmentsEnd)
           ? connections.cellForSegment(*bestMatchingSegment)
           : getLeastUsedCell(rng, column, connections, cellsPerColumn);
-
+if (winnerCell == 7296) std::cout << "TM 429 burst, winnerCell=7296\n";
+if (column == 908) std::cout << "winner=" << winnerCell << "\n";
   winnerCells.push_back(winnerCell);
 
   // Learn.
   if (learn) {
+if (column == 908) std::cout << "learn\n";
     if (bestMatchingSegment != columnMatchingSegmentsEnd) {
       // Learn on the best matching segment.
+if (column == 908) std::cout << "adaptSegment\n";
       adaptSegment(connections, *bestMatchingSegment, prevActiveCellsDense,
                    permanenceIncrement, permanenceDecrement);
 
@@ -428,27 +443,32 @@ burstColumn(vector<CellIdx> &activeCells,
           maxNewSynapseCount -
           numActivePotentialSynapsesForSegment[*bestMatchingSegment];
       if (nGrowDesired > 0) {
+if (column == 908) std::cout << "growDesired\n";
         growSynapses(connections, rng, *bestMatchingSegment, nGrowDesired,
                      prevWinnerCells, initialPermanence, maxSynapsesPerSegment);
       }
     } else {
       // No matching segments.
       // Grow a new segment and learn on it.
+if (column == 908) std::cout << "no matching segments\n";
 
       // Don't grow a segment that will never match.
       const UInt32 nGrowExact =
           std::min(maxNewSynapseCount, (UInt32)prevWinnerCells.size());
       if (nGrowExact > 0) {
+if (column == 908) std::cout << "growExact\n";
+if (winnerCell == 7296) std::cout << "TM 451 nGrowExact and 7296 is winner\n";
         const Segment segment =
             createSegment(connections, lastUsedIterationForSegment, winnerCell,
                           iteration, maxSegmentsPerCell);
 
-        growSynapses(connections, rng, segment, nGrowExact, prevWinnerCells,
+if (column == 908) std::cout << "growSynapses\n";        growSynapses(connections, rng, segment, nGrowExact, prevWinnerCells,
                      initialPermanence, maxSynapsesPerSegment);
         NTA_ASSERT(connections.numSynapses(segment) == nGrowExact);
       }
     }
   }
+if (column == 908) std::cout << "exit burst\n";
 }
 
 static void punishPredictedColumn(
@@ -511,9 +531,13 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
         columnActiveSegmentsEnd, columnMatchingSegmentsBegin,
         columnMatchingSegmentsEnd) = columnData;
 
+if (column == 908) std::cout << "in activateCells() for column 908.\n";
+
     const bool isActiveColumn = activeColumnsBegin != activeColumnsEnd;
     if (isActiveColumn) {
+if (column == 908) std::cout << "isActiveColumn.\n";
       if (columnActiveSegmentsBegin != columnActiveSegmentsEnd) {
+if (column == 908) std::cout << "calling activatePredictedColumn().\n";
         activatePredictedColumn(
             activeCells_, winnerCells_, connections, rng_,
             columnActiveSegmentsBegin, columnActiveSegmentsEnd,
@@ -533,6 +557,7 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
       }
     } else {
       if (learn) {
+if (column == 908) std::cout << "not active, learn.\n";
         punishPredictedColumn(connections, columnMatchingSegmentsBegin,
                               columnMatchingSegmentsEnd, prevActiveCellsDense,
                               predictedSegmentDecrement_);
@@ -673,6 +698,7 @@ void TemporalMemory::reset(void) {
 // ==============================
 
 Segment TemporalMemory::createSegment(const CellIdx& cell) {
+if (cell == 7296) std::cout << "TM 686 TM::createSegment(" << cell << ")\n";
   return ::createSegment(connections, lastUsedIterationForSegment_, cell,
                          iteration_, maxSegmentsPerCell_);
 }
