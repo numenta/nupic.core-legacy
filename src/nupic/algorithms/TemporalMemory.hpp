@@ -626,11 +626,18 @@ protected:
   UInt64 iteration_;
   vector<UInt64> lastUsedIterationForSegment_;
 
+  Real anomaly_;
+
   Random rng_;
 
 public:
   Connections connections; //TODO not public!
   const UInt &extra = extra_;
+  /*
+   *  anomaly score computed for the current inputs
+   *  (auto-updates after each call to TM::compute())
+   */
+  const Real &anomaly = anomaly_;
 };
 
 } // end namespace temporal_memory

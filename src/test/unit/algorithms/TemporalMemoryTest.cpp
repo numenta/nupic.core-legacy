@@ -1602,27 +1602,24 @@ TEST(TemporalMemoryTest, testExtraActive) {
     /* maxSynapsesPerSegment */        255,
     /* checkInputs */                  true,
     /* extra */                        (UInt)(columns.size * 12u));
-  Real anom = 1.0f;
+  auto tm_dimensions = tm.getColumnDimensions();
+  tm_dimensions.push_back( tm.getCellsPerColumn() );
+  SDR extraActive( tm_dimensions );
+  SDR extraWinners( tm_dimensions );
 
   // Look at the pattern.
   for(UInt trial = 0; trial < 20; trial++) {
     tm.reset();
-    vector<UInt> extraActive;
-    vector<UInt> extraWinners;
     for(auto &x : pattern) {
-      // Predict whats going to happen.
-      tm.activateDendrites(true, extraActive, extraWinners);
-      SDR predictedColumns = tm.cellsToColumns(tm.getPredictiveCells());
       // Calculate TM output
-      tm.compute(x, true);
-      extraActive  = tm.getActiveCells();
-      extraWinners = tm.getWinnerCells();
-
-      // Calculate Anomaly of current input based on prior predictions.
-      anom = algorithms::anomaly::computeRawAnomalyScore(x, predictedColumns);
+      tm.compute(x, true, extraActive, extraWinners);
+      tm.getActiveCells( extraActive );
+      tm.getWinnerCells( extraWinners );
+    }
+    if( trial >= 19 ) {
+      ASSERT_LT( tm.anomaly, 0.05f );
     }
   }
-  ASSERT_LT( anom, 0.05f );
 
   // Test the test:  Verify that when the external inputs are missing this test
   // fails.
@@ -1634,6 +1631,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
     ASSERT_TRUE( predictedCells.getSum() == 0 ); // No predictions, numActive < threshold
     // Calculate TM output
     tm.compute(x, true);
+    ASSERT_GT( tm.anomaly, 0.95f );
   }
 }
 

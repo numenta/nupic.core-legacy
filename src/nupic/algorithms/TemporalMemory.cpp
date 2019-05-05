@@ -47,6 +47,7 @@
 
 #include <nupic/utils/GroupBy.hpp>
 #include <nupic/math/Math.hpp> // nupic::Epsilon
+#include <nupic/algorithms/Anomaly.hpp>
 
 using namespace std;
 using namespace nupic;
@@ -633,6 +634,7 @@ void TemporalMemory::compute(const size_t        activeColumnsSize,
                              const vector<UInt> &extraWinners)
 {
   activateDendrites(learn, extraActive, extraWinners);
+  // TODO: Implement the anomaly metric here.
   activateCells(activeColumnsSize, activeColumns, learn);
 }
 
@@ -641,12 +643,21 @@ void TemporalMemory::compute(const SDR &activeColumns, bool learn,
                              const SDR &extraWinners)
 {
   activateDendrites(learn, extraActive, extraWinners);
+
+  // Update Anomaly Metric.  The anomaly is the percent of active columns that
+  // were not predicted.
+  anomaly_ = nupic::algorithms::anomaly::computeRawAnomalyScore(
+                activeColumns,
+                cellsToColumns( getPredictiveCells() ));
+  // TODO: Update mean & standard deviation of anomaly here.
+
   activateCells(activeColumns, learn);
 }
 
 void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
-  activateDendrites(learn);
-  activateCells(activeColumns, learn);
+  SDR extraActive({ extra });
+  SDR extraWinners({ extra });
+  compute( activeColumns, learn, extraActive, extraWinners );
 }
 
 void TemporalMemory::reset(void) {
@@ -655,6 +666,7 @@ void TemporalMemory::reset(void) {
   activeSegments_.clear();
   matchingSegments_.clear();
   segmentsValid_ = false;
+  anomaly_ = -1;
 }
 
 // ==============================
