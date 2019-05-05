@@ -1665,9 +1665,11 @@ TEST(TemporalMemoryTest, testExtraActive) {
   // Test the test:  Verify that when the external inputs are missing this test
   // fails.
   tm.reset();
+  extraActive.zero(); //zero out the external inputs
+  extraWinners.zero();
   for(const auto &x : pattern) {
     // Predict whats going to happen.
-    tm.activateDendrites(true, vector<UInt>({}), vector<UInt>({}));
+    tm.activateDendrites(true, extraActive, extraWinners);
     auto predictedCells = tm.getPredictiveCells();
     ASSERT_TRUE( predictedCells.getSum() == 0 ); // No predictions, numActive < threshold
     // Calculate TM output
@@ -1692,7 +1694,7 @@ TEST(TemporalMemoryTest, testEquals) {
 
 TEST(TemporalMemoryTest, testIncorrectDefaultConstructor) {
   TemporalMemory tmFail; //default empty constructor is only used for deserialization
-  SDR data1({tmFail.getColumnDimensions()});
+  SDR data1({0});
   EXPECT_ANY_THROW(tmFail.compute(data1, true));
   
   TemporalMemory tmOk({32} /*column dims must always be specified*/);

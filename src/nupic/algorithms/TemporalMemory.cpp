@@ -522,6 +522,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
   segmentsValid_ = false;
 }
 
+
 void TemporalMemory::activateDendrites(const bool learn,
                                        const SDR &extraActive,
                                        const SDR &extraWinners)
@@ -536,48 +537,24 @@ void TemporalMemory::activateDendrites(const bool learn,
   both.intersection(extraActive, extraWinners);
   NTA_ASSERT(both == extraWinners) << "ExtraWinners must be a subset of ExtraActive";
 #endif
-        activateDendrites( learn, extraActive.getSparse(),
-                                  extraWinners.getSparse());
     }
     else
     {
         NTA_CHECK( extraActive.getSum() == 0u && extraWinners.getSum() == 0u )
             << "External predictive inputs must be declared to TM constructor!";
-        activateDendrites(learn);
     }
-}
 
-void TemporalMemory::activateDendrites(const bool learn,
-                                       const vector<UInt> &extraActive,
-                                       const vector<UInt> &extraWinners)
-{
+
   if( segmentsValid_ )
     return;
 
-  // Handle external predictive inputs.  extraActive & extraWinners default
-  // values are `vector({ SENTINEL })`
-  const auto SENTINEL = std::numeric_limits<UInt>::max();
-  if( extra_ )
-  {
-    NTA_CHECK( extraActive.size()  != 1 || extraActive[0]  != SENTINEL )
-        << "TM.ActivateDendrites() missing argument extraActive!";
-    NTA_CHECK( extraWinners.size() != 1 || extraWinners[0] != SENTINEL )
-        << "TM.ActivateDendrites() missing argument extraWinners!";
-
-    for(const auto &active : extraActive) {
+  for(const auto &active : extraActive.getSparse()) {
       NTA_ASSERT( active < extra_ );
       activeCells_.push_back( static_cast<CellIdx>(active + numberOfCells()) ); 
-    }
-    for(const auto &winner : extraWinners) {
+  }
+  for(const auto &winner : extraWinners.getSparse()) {
       NTA_ASSERT( winner < extra_ );
       winnerCells_.push_back( static_cast<CellIdx>(winner + numberOfCells()) );
-    }
-  }
-  else {
-    NTA_CHECK( extraActive.size()  == 1 && extraActive[0]  == SENTINEL )
-        << "External predictive inputs must be declared to TM constructor!";
-    NTA_CHECK( extraWinners.size() == 1 && extraWinners[0] == SENTINEL )
-        << "External predictive inputs must be declared to TM constructor!";
   }
 
   const size_t length = connections.segmentFlatListLength();
@@ -590,16 +567,13 @@ void TemporalMemory::activateDendrites(const bool learn,
 
   // Active segments, connected synapses.
   activeSegments_.clear();
-  for (Segment segment = 0;
-       segment < numActiveConnectedSynapsesForSegment_.size(); segment++) {
-    if (numActiveConnectedSynapsesForSegment_[segment] >=
-        activationThreshold_) {
+  for (Segment segment = 0; segment < numActiveConnectedSynapsesForSegment_.size(); segment++) {
+    if (numActiveConnectedSynapsesForSegment_[segment] >= activationThreshold_) {
       activeSegments_.push_back(segment);
     }
   }
-  std::sort(
-      activeSegments_.begin(), activeSegments_.end(),
-      [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
+  const auto compareSegments = [&](const Segment a, const Segment b) { return connections.compareSegments(a, b); };
+  std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments);
   // Update segment bookkeeping.
   if (learn) {
     for (const auto &segment : activeSegments_) {
@@ -610,18 +584,16 @@ void TemporalMemory::activateDendrites(const bool learn,
 
   // Matching segments, potential synapses.
   matchingSegments_.clear();
-  for (Segment segment = 0;
-       segment < numActivePotentialSynapsesForSegment_.size(); segment++) {
+  for (Segment segment = 0; segment < numActivePotentialSynapsesForSegment_.size(); segment++) {
     if (numActivePotentialSynapsesForSegment_[segment] >= minThreshold_) {
       matchingSegments_.push_back(segment);
     }
   }
-  std::sort(
-      matchingSegments_.begin(), matchingSegments_.end(),
-      [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
+  std::sort( matchingSegments_.begin(), matchingSegments_.end(), compareSegments);
 
   segmentsValid_ = true;
 }
+
 
 void TemporalMemory::compute(const SDR &activeColumns, 
                              const bool learn,

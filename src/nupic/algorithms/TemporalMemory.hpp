@@ -215,11 +215,11 @@ public:
    * used during segment cleanup.
    *
    * @param extraActive
-   * (optional) Vector of active external predictive inputs.  External inputs must be cell
+   * (optional) SDR of active external predictive inputs.  External inputs must be cell
    * indexes in the range [0, extra).
    *
    * @param extraWinners
-   * (optional) Vector of winning external predictive inputs.  When learning, only these
+   * (optional) SDR of winning external predictive inputs.  When learning, only these
    * inputs are considered active.  
    * ExtraWinners must be a subset of extraActive.  
    * External inputs must be cell indices in the range [0, extra).
@@ -227,13 +227,15 @@ public:
    * See TM::compute() for details of the parameters. 
    *
    */
-  void activateDendrites(const bool learn = true,
-                         const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
-                         const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
-
-  void activateDendrites(const bool learn, //TODO provide convenience overload activateDendrites(bool), and remove the vector version
+  void activateDendrites(const bool learn,
                          const sdr::SDR &extraActive, 
 			 const sdr::SDR &extraWinners);
+
+  inline void activateDendrites(const bool learn = true) {
+    const sdr::SDR extraActive(std::vector<UInt>{ extra });
+    const sdr::SDR extraWinners(std::vector<UInt>{extra });
+    activateDendrites(learn, extraActive, extraWinners);
+  }
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
