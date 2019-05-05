@@ -452,6 +452,9 @@ static void punishPredictedColumn(
 }
 
 void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
+    NTA_CHECK(columnDimensions_.size() > 0) << "TM constructed using the default TM() constructor, which may only be used for serialization. "
+	    << "Use TM constructor where you provide at least column dimensions, eg: TM tm({32});";
+
     NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() )  //this "hack" because columnDimensions_, and SDR.dimensions are vectors
 	    //of different type, so we cannot directly compare
 	    << "TM invalid input dimensions: " << activeColumns.dimensions.size() << " vs. " << columnDimensions_.size();

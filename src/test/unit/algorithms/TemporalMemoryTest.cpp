@@ -1690,6 +1690,16 @@ TEST(TemporalMemoryTest, testEquals) {
   ASSERT_EQ(tm, tmCopy);
 }
 
+TEST(TemporalMemoryTest, testIncorrectDefaultConstructor) {
+  TemporalMemory tmFail; //default empty constructor is only used for deserialization
+  SDR data1({tmFail.getColumnDimensions()});
+  EXPECT_ANY_THROW(tmFail.compute(data1, true));
+  
+  TemporalMemory tmOk({32} /*column dims must always be specified*/);
+  SDR data2({tmOk.getColumnDimensions()});
+  EXPECT_NO_THROW(tmOk.compute(data2, true));
+}
+
 // Uncomment these tests individually to save/load from a file.
 // This is useful for ad-hoc testing of backwards-compatibility.
 
