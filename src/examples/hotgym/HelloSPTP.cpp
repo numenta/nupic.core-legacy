@@ -134,10 +134,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
 
     //Anomaly (pure x likelihood)
-    tAn.start();
     an = tm.anomaly;
-    tAn.stop();
-
     tAnLikelihood.start();
     anLikelihood.anomalyProbability(an); //FIXME AnLikelihood is 0.0, probably not working correctly
     tAnLikelihood.stop();
@@ -160,7 +157,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       if(useSPlocal)  cout << "SP (l):\t" << tSPloc.getElapsed()*1.0f  << endl;
       if(useSPglobal) cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
       if(useTM) cout << "TM:\t" << tTM.getElapsed() << endl;
-      cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
 
       // check deterministic SP, TM output 
@@ -188,7 +184,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       };
       goldTM.setSparse(deterministicTM);
 
-      const float goldAn = 0.9f;
+      const float goldAn = 0.8f;
 
       if(EPOCHS == 5000) { //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs. 
         NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
