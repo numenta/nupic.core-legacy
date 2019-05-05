@@ -47,7 +47,7 @@
 
 #include <nupic/utils/GroupBy.hpp>
 #include <nupic/math/Math.hpp> // nupic::Epsilon
-#include <nupic/algorithms/Anomaly.hpp> 
+#include <nupic/algorithms/Anomaly.hpp>
 
 using namespace std;
 using namespace nupic;
@@ -140,8 +140,6 @@ void TemporalMemory::initialize(
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
   iteration_ = 0;
-
-  anomaly.initialize(columnDimensions_);
 
   reset();
 }
@@ -453,23 +451,16 @@ static void punishPredictedColumn(
   }
 }
 
-void TemporalMemory::activateCells(const SDR &activeColumns, bool learn) {
-    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() ) 
+void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
+    NTA_CHECK( activeColumns.dimensions.size() == columnDimensions_.size() )  //this "hack" because columnDimensions_, and SDR.dimensions are vectors
+	    //of different type, so we cannot directly compare
 	    << "TM invalid input dimensions: " << activeColumns.dimensions.size() << " vs. " << columnDimensions_.size();
     for(size_t i=0; i< columnDimensions_.size(); i++) {
       NTA_CHECK(static_cast<size_t>(activeColumns.dimensions[i]) == static_cast<size_t>(columnDimensions_[i])) << "Dimensions must be the same.";
     }
     auto &sparse = activeColumns.getSparse();
     std::sort(sparse.begin(), sparse.end()); //TODO remove sorted requirement? iterGroupBy depends on it
-    activateCells(sparse.size(), sparse.data(), learn);
-}
 
-void TemporalMemory::activateCells(const size_t activeColumnsSize,
-                                   const UInt activeColumns[], bool learn) {
-  if (checkInputs_ && activeColumnsSize > 0) {
-    NTA_CHECK(std::is_sorted(activeColumns, activeColumns + activeColumnsSize-1))
-        << "The activeColumns must be a sorted list of indices without duplicates.";
-  }
 
   vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
   for (CellIdx cell : activeCells_) {
@@ -482,21 +473,20 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
   const auto columnForSegment = [&](Segment segment) {
     return connections.cellForSegment(segment) / cellsPerColumn_;
   };
+  const auto identity = [](const UInt a) {return a;}; //TODO use std::identity when c++20
 
-  for (auto &columnData : iterGroupBy( //TODO explain this
-           activeColumns, activeColumns + activeColumnsSize, identity<UInt>,
-           activeSegments_.begin(), activeSegments_.end(), columnForSegment,
-           matchingSegments_.begin(), matchingSegments_.end(),
-           columnForSegment)) {
+  for (auto &&columnData : groupBy( //group by columns, and convert activeSegments & matchingSegments to cols. 
+           sparse, identity,
+           activeSegments_, columnForSegment,
+           matchingSegments_, columnForSegment)) {
     UInt column;
-    const UInt *activeColumnsBegin;
-    const UInt *activeColumnsEnd;
-    vector<Segment>::const_iterator columnActiveSegmentsBegin,
-        columnActiveSegmentsEnd, columnMatchingSegmentsBegin,
-        columnMatchingSegmentsEnd;
+    vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
+	columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
+	columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
+
     std::tie(column, activeColumnsBegin, activeColumnsEnd, columnActiveSegmentsBegin,
-        columnActiveSegmentsEnd, columnMatchingSegmentsBegin,
-        columnMatchingSegmentsEnd) = columnData;
+             columnActiveSegmentsEnd, columnMatchingSegmentsBegin, columnMatchingSegmentsEnd
+	) = columnData;
 
     const bool isActiveColumn = activeColumnsBegin != activeColumnsEnd;
     if (isActiveColumn) {
@@ -529,33 +519,7 @@ void TemporalMemory::activateCells(const size_t activeColumnsSize,
   segmentsValid_ = false;
 }
 
-
-void TMAnomaly::update(TemporalMemory& tm) {
-  //predictive cells for T+1
-  if(tm.extra > 0) return; //TODO unsupported
-
-  previouslyPredictedColumns_ = tm.cellsToColumns(tm.getPredictiveCells());
-}
-
-float TemporalMemory::getAnomalyScore() const {
-  if(extra_ > 0) { //TODO correctly handle extraActive, extraWinners and allow anomaly computation
-    NTA_THROW << "TM anomaly computation not supported when using TM with external extraActive inputs!";
-  }
-  //active cells
-  auto correctDims = getColumnDimensions(); //cells dimensions are TM's column dims
-  correctDims.push_back(cellsPerColumn_); //extended by cells per column to (n+1)D
-  sdr::SDR cells(correctDims);
-  getActiveCells(cells);
-  const SDR currentActiveColumns = cellsToColumns(cells);
-
-  //anomaly computation
-  return nupic::algorithms::anomaly::computeRawAnomalyScore(
-    currentActiveColumns,
-    anomaly.previouslyPredictedColumns_);
-}
-
-
-void TemporalMemory::activateDendrites(bool learn,
+void TemporalMemory::activateDendrites(const bool learn,
                                        const SDR &extraActive,
                                        const SDR &extraWinners)
 {
@@ -567,7 +531,7 @@ void TemporalMemory::activateDendrites(bool learn,
 #ifdef NTA_ASSERTIONS_ON
   SDR both(extraActive.dimensions);
   both.intersection(extraActive, extraWinners);
-  NTA_ASSERT(both == extraWinners) << "ExtraWinners must be a subsection of Active";
+  NTA_ASSERT(both == extraWinners) << "ExtraWinners must be a subset of ExtraActive";
 #endif
         activateDendrites( learn, extraActive.getSparse(),
                                   extraWinners.getSparse());
@@ -580,7 +544,7 @@ void TemporalMemory::activateDendrites(bool learn,
     }
 }
 
-void TemporalMemory::activateDendrites(bool learn,
+void TemporalMemory::activateDendrites(const bool learn,
                                        const vector<UInt> &extraActive,
                                        const vector<UInt> &extraWinners)
 {
@@ -654,33 +618,29 @@ void TemporalMemory::activateDendrites(bool learn,
       [&](Segment a, Segment b) { return connections.compareSegments(a, b); });
 
   segmentsValid_ = true;
-
-  //anomaly computation
-  anomaly.update(*this);
 }
 
-
-void TemporalMemory::compute(const size_t        activeColumnsSize,
-                             const UInt          activeColumns[], 
-                             bool                learn,
-                             const vector<UInt> &extraActive,
-                             const vector<UInt> &extraWinners)
-{
-  activateDendrites(learn, extraActive, extraWinners);
-  activateCells(activeColumnsSize, activeColumns, learn);
-}
-
-void TemporalMemory::compute(const SDR &activeColumns, bool learn,
+void TemporalMemory::compute(const SDR &activeColumns, 
+                             const bool learn,
                              const SDR &extraActive,
                              const SDR &extraWinners)
 {
   activateDendrites(learn, extraActive, extraWinners);
+
+  // Update Anomaly Metric.  The anomaly is the percent of active columns that
+  // were not predicted.
+  anomaly_ = nupic::algorithms::anomaly::computeRawAnomalyScore(
+                activeColumns,
+                cellsToColumns( getPredictiveCells() ));
+  // TODO: Update mean & standard deviation of anomaly here.
+
   activateCells(activeColumns, learn);
 }
 
-void TemporalMemory::compute(const SDR &activeColumns, bool learn) {
-  activateDendrites(learn);
-  activateCells(activeColumns, learn);
+void TemporalMemory::compute(const SDR &activeColumns, const bool learn) {
+  SDR extraActive({ extra });
+  SDR extraWinners({ extra });
+  compute( activeColumns, learn, extraActive, extraWinners );
 }
 
 void TemporalMemory::reset(void) {
@@ -689,8 +649,7 @@ void TemporalMemory::reset(void) {
   activeSegments_.clear();
   matchingSegments_.clear();
   segmentsValid_ = false;
-
-  anomaly.reset();
+  anomaly_ = -1;
 }
 
 // ==============================
@@ -958,10 +917,6 @@ void TemporalMemory::save(ostream &outStream) const {
   }
   outStream << endl;
 
-  //TMAnomaly
-  anomaly.previouslyPredictedColumns_.save(outStream);
-  outStream << endl;
-
   outStream << "~TemporalMemory" << endl;
 }
 
@@ -1078,8 +1033,6 @@ void TemporalMemory::load(istream &inStream) {
   }
 
   lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
-  
-  anomaly.previouslyPredictedColumns_.load(inStream);
 
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");

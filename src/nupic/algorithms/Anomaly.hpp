@@ -36,7 +36,7 @@ namespace anomaly {
  *
  * The raw anomaly score is the fraction of active columns not predicted.
  * Do not use these methods directly, these are for testing and internal implementation. 
- * Use TM.getAnomalyScore() (+AnomalyLikelihood, MovingAverage for more specific needs). 
+ * Use `TM.anomaly` (+AnomalyLikelihood, MovingAverage for more specific needs). 
  *
  * @param activeColumns: SDR with active columns (not cells) from current step (T)
  * @param prevPredictedColumns: SDR of predictive columns indices from prev step (T-1)

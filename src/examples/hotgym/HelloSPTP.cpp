@@ -135,7 +135,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     //Anomaly (pure x likelihood)
     tAn.start();
-    an = tm.getAnomalyScore();
+    an = tm.anomaly;
     tAn.stop();
 
     tAnLikelihood.start();
