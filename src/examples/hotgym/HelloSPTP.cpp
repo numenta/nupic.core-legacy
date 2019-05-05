@@ -26,10 +26,10 @@
 
 #include "HelloSPTP.hpp"
 
-#include "nupic/algorithms/Anomaly.hpp"
 #include "nupic/algorithms/TemporalMemory.hpp"
 #include "nupic/algorithms/SpatialPooler.hpp"
 #include "nupic/encoders/RandomDistributedScalarEncoder.hpp"
+#include "nupic/algorithms/AnomalyLikelihood.hpp"
 
 #include "nupic/types/Sdr.hpp"
 #include "nupic/utils/Random.hpp"
@@ -44,8 +44,7 @@ using Encoder = nupic::encoders::RandomDistributedScalarEncoder;
 using EncoderParameters = nupic::encoders::RDSE_Parameters;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
-using nupic::algorithms::anomaly::Anomaly;
-using nupic::algorithms::anomaly::AnomalyMode;
+using nupic::algorithms::anomaly::AnomalyLikelihood;
 
 
 // work-load
@@ -63,7 +62,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   std::cout << "EPOCHS = " << EPOCHS << std::endl;
 
 
-  // initialize SP, TM, Anomaly, AnomalyLikelihood
+  // initialize SP, TM, AnomalyLikelihood
   tInit.start();
   EncoderParameters encParams;
   encParams.sparsity = 0.2f; //20% of the encoding are active bits (1's)
@@ -80,8 +79,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   TM tm(vector<UInt>{COLS}, CELLS);
 
-  Anomaly an(5, AnomalyMode::PURE);
-  Anomaly anLikelihood(5, AnomalyMode::LIKELIHOOD);
+  AnomalyLikelihood anLikelihood;
   tInit.stop();
 
   // data for processing input
@@ -90,8 +88,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR outSPlocal(spLocal.getColumnDimensions()); //for SPlocal
   SDR outSP(vector<UInt>{COLS});
   SDR outTM(spGlobal.getColumnDimensions()); 
-  Real res = 0.0; //for anomaly:
-  SDR prevPred_(outTM.dimensions); //holds T-1 TM.predictive cells
+  Real an = 0.0f, anLikely = 0.0f; //for anomaly:
 
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
@@ -125,7 +122,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tSPglob.stop();
     }
     outSP = outSPglobal; //toggle if local/global SP is used further down the chain (TM, Anomaly)
-    NTA_CHECK(outSP == outSPglobal);
 
     // TM
     if(useTM) {
@@ -138,22 +134,19 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
 
     //Anomaly (pure x likelihood)
-    tAn.start();
-    res = an.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
-    tAn.stop();
-
+    an = tm.anomaly;
     tAnLikelihood.start();
-    anLikelihood.compute(outSP /*active*/, prevPred_ /*prev predicted*/);
+    anLikelihood.anomalyProbability(an); //FIXME AnLikelihood is 0.0, probably not working correctly
     tAnLikelihood.stop();
 
-    prevPred_ = outTM; //to be used as predicted T-1
 
     // print
     if (e == EPOCHS - 1) {
       tAll.stop();
 
       cout << "Epoch = " << e << endl;
-      cout << "Anomaly = " << res << endl;
+      cout << "Anomaly = " << an << endl;
+      cout << "Anomaly (Likelihood) = " << anLikely << endl;
       cout << "SP (g)= " << outSP << endl;
       cout << "SP (l)= " << outSPlocal <<endl;
       cout << "TM= " << outTM << endl;
@@ -164,7 +157,6 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       if(useSPlocal)  cout << "SP (l):\t" << tSPloc.getElapsed()*1.0f  << endl;
       if(useSPglobal) cout << "SP (g):\t" << tSPglob.getElapsed() << endl;
       if(useTM) cout << "TM:\t" << tTM.getElapsed() << endl;
-      cout << "AN:\t" << tAn.getElapsed() << endl;
       cout << "AN:\t" << tAnLikelihood.getElapsed() << endl;
 
       // check deterministic SP, TM output 
@@ -192,7 +184,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       };
       goldTM.setSparse(deterministicTM);
 
-      const float goldAn = 0.920001f;
+      const float goldAn = 0.8f;
 
       if(EPOCHS == 5000) { //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs. 
         NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
@@ -200,8 +192,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 	NTA_CHECK(outSPlocal == goldSPlocal) << "Deterministic output of SP (l) failed!\n" << outSPlocal << "should be:\n" << goldSPlocal;
 #ifndef _MSC_VER //FIXME deterministic checks fail on Windows
         NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
-        NTA_CHECK(static_cast<UInt>(res *10000) == static_cast<UInt>(goldAn *10000)) //compare to 4 decimal places
-		<< "Deterministic output of Anomaly failed! " << res << "should be: " << goldAn;
+        NTA_CHECK(static_cast<UInt>(an *10000.0f) == static_cast<UInt>(goldAn *10000.0f)) //compare to 4 decimal places
+		<< "Deterministic output of Anomaly failed! " << an << "should be: " << goldAn;
 #endif
       }
 

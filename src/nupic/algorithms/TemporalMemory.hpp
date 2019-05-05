@@ -215,25 +215,27 @@ public:
    * used during segment cleanup.
    *
    * @param extraActive
-   * (optional) Vector of active external predictive inputs.  External inputs must be cell
+   * (optional) SDR of active external predictive inputs.  External inputs must be cell
    * indexes in the range [0, extra).
    *
    * @param extraWinners
-   * (optional) Vector of winning external predictive inputs.  When learning, only these
-   * inputs are considered active.  ExtraWinners should be a subset of
-   * extraActive.  External inputs must be cell indexes in the range [0,
-   * extra).
+   * (optional) SDR of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  
+   * ExtraWinners must be a subset of extraActive.  
+   * External inputs must be cell indices in the range [0, extra).
    *
    * See TM::compute() for details of the parameters. 
    *
    */
-  void activateDendrites(const bool learn = true,
-                         const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
-                         const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
-
   void activateDendrites(const bool learn,
                          const sdr::SDR &extraActive, 
 			 const sdr::SDR &extraWinners);
+
+  inline void activateDendrites(const bool learn = true) {
+    const sdr::SDR extraActive(std::vector<UInt>{ extra });
+    const sdr::SDR extraWinners(std::vector<UInt>{extra });
+    activateDendrites(learn, extraActive, extraWinners);
+  }
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
@@ -298,7 +300,7 @@ public:
   /**
    * Returns the number of cells in this layer.
    *
-   * @return (int) Number of cells
+   * @return (size_t) Number of cells
    */
   size_t numberOfCells(void) const { return connections.numCells(); }
 
@@ -472,6 +474,7 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(anomaly_),
        CEREAL_NVP(connections));
 
     ar( cereal::make_size_tag(activeSegments_.size()));
@@ -521,6 +524,7 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(anomaly_),
        CEREAL_NVP(connections));
 
     numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
@@ -556,8 +560,8 @@ public:
   }
 
 
-  virtual bool operator==(const TemporalMemory &other);
-  inline bool operator!=(const TemporalMemory &other) { return !operator==(other); }
+  virtual bool operator==(const TemporalMemory &other) const;
+  inline bool operator!=(const TemporalMemory &other) const { return not this->operator==(other); }
 
   //----------------------------------------------------------------------
   // Debugging helpers
@@ -599,6 +603,7 @@ public:
   sdr::SDR cellsToColumns(const sdr::SDR& cells) const;
 
 protected:
+  //all these could be const
   CellIdx numColumns_;
   vector<CellIdx> columnDimensions_;
   CellIdx cellsPerColumn_;
@@ -612,7 +617,10 @@ protected:
   Permanence permanenceDecrement_;
   Permanence predictedSegmentDecrement_;
   UInt extra_;
+  SegmentIdx maxSegmentsPerCell_;
+  SynapseIdx maxSynapsesPerSegment_;
 
+private:
   vector<CellIdx> activeCells_;
   vector<CellIdx> winnerCells_;
   bool segmentsValid_;
@@ -621,8 +629,6 @@ protected:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  SegmentIdx maxSegmentsPerCell_;
-  SynapseIdx maxSynapsesPerSegment_;
   UInt64 iteration_;
   vector<UInt64> lastUsedIterationForSegment_;
 
@@ -636,6 +642,9 @@ public:
   /*
    *  anomaly score computed for the current inputs
    *  (auto-updates after each call to TM::compute())
+   *
+   *  @return a float value from computeRawAnomalyScore()
+   *  from Anomaly.hpp
    */
   const Real &anomaly = anomaly_;
 };

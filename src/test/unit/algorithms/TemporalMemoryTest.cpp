@@ -1650,9 +1650,10 @@ TEST(TemporalMemoryTest, testExtraActive) {
   // Look at the pattern.
   for(UInt trial = 0; trial < 20; trial++) {
     tm.reset();
-    for(auto &x : pattern) {
+    for(const auto &x : pattern) {
       // Calculate TM output
       tm.compute(x, true, extraActive, extraWinners);
+      // update the external 'hints' for the next iteration
       tm.getActiveCells( extraActive );
       tm.getWinnerCells( extraWinners );
     }
@@ -1664,15 +1665,41 @@ TEST(TemporalMemoryTest, testExtraActive) {
   // Test the test:  Verify that when the external inputs are missing this test
   // fails.
   tm.reset();
+  extraActive.zero(); //zero out the external inputs
+  extraWinners.zero();
   for(const auto &x : pattern) {
     // Predict whats going to happen.
-    tm.activateDendrites(true, vector<UInt>({}), vector<UInt>({}));
+    tm.activateDendrites(true, extraActive, extraWinners);
     auto predictedCells = tm.getPredictiveCells();
     ASSERT_TRUE( predictedCells.getSum() == 0 ); // No predictions, numActive < threshold
     // Calculate TM output
     tm.compute(x, true);
     ASSERT_GT( tm.anomaly, 0.95f );
   }
+}
+
+TEST(TemporalMemoryTest, testEquals) {
+  TemporalMemory tm({10,10});
+  auto tmCopy = tm;
+  ASSERT_EQ(tm, tmCopy);
+
+  SDR data({tm.getColumnDimensions()});
+  data.setSparse(SDR_sparse_t{1,2,3,4,5,13,21,22,23,25,28,49,51,53,55,69});
+  tm.compute(data, true);
+
+  ASSERT_NE(tm, tmCopy);
+  tmCopy.compute(data, true);
+  ASSERT_EQ(tm, tmCopy);
+}
+
+TEST(TemporalMemoryTest, testIncorrectDefaultConstructor) {
+  TemporalMemory tmFail; //default empty constructor is only used for deserialization
+  SDR data1({0});
+  EXPECT_ANY_THROW(tmFail.compute(data1, true));
+  
+  TemporalMemory tmOk({32} /*column dims must always be specified*/);
+  SDR data2({tmOk.getColumnDimensions()});
+  EXPECT_NO_THROW(tmOk.compute(data2, true));
 }
 
 // Uncomment these tests individually to save/load from a file.

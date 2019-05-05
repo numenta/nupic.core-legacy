@@ -180,6 +180,9 @@ using namespace nupic::algorithms::connections;
 
         py_HTM.def_property_readonly("extra", [](const HTM_t &self) { return self.extra; } );
 
+	py_HTM.def_property_readonly("anomaly", [](const HTM_t &self) { return self.anomaly; }, 
+	  "Anomaly score updated with each TM::compute() call. "	
+	);
     }
 
 } // namespace nupic_ext

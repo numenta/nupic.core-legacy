@@ -29,18 +29,10 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/Anomaly.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/regions/TMRegion.hpp>
+
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/Value.hpp>
-#include <nupic/regions/TMRegion.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/VectorHelpers.hpp>
 
@@ -229,7 +221,6 @@ void TMRegion::compute() {
   // Perform Bottom up compute()
 
   tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
-  tm_->activateDendrites(); //allow calls to tm.getPredictiveCells
 
   args_.sequencePos++;
 
@@ -248,12 +239,9 @@ void TMRegion::compute() {
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();
-    if (args_.orColumnOutputs) { //aggregate to columns
-      tm_->getActiveCells(sdr);
-      SDR cols = tm_->cellsToColumns(sdr);
-      sdr.setSparse(cols.getSparse());
-    } else { //output as cells
-      tm_->getActiveCells(sdr);
+    tm_->getActiveCells(sdr); //active cells
+    if (args_.orColumnOutputs) { //output as columns
+      sdr = tm_->cellsToColumns(sdr);
     }
     NTA_DEBUG << "compute " << *out << std::endl;
   }
