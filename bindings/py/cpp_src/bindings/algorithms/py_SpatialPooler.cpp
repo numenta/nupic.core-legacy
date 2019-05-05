@@ -181,24 +181,6 @@ using namespace sdr;
 	    py::arg("output")
 	    ); 
 
-        py_SpatialPooler.def("compute", [](SpatialPooler& self, py::array& x, bool learn, py::array& y) //TODO remove
-        {
-            if (py::isinstance<py::array_t<std::uint32_t>>(x) == false)
-            {
-                throw runtime_error("Incompatible format. Expect uint32");
-            }
-
-            if (py::isinstance<py::array_t<std::uint32_t>>(y) == false)
-            {
-                throw runtime_error("Incompatible format. Expect uint32");
-            }
-            SDR in( self.getInputDimensions() );
-	    SDR out(self.getColumnDimensions() );
-	    in.setDense(get_it<UInt>(x));
-            self.compute(in, learn, out);
-	    y = out.getSparse(); //FIXME how pass SDR to array? 
-        });
-
         // setBoostFactors
         py_SpatialPooler.def("setBoostFactors", [](SpatialPooler& self, py::array_t<Real>& x)
         {
