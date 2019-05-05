@@ -57,9 +57,8 @@ namespace nupic {
 // ==========================================================================
 // 3 SEQUENCES
 // ==========================================================================
-//TODO replace with cppitertools::groupBy
-// iterGroupBy used only in TM.cpp
-//
+// groupBy used only in TM.cpp
+//  //TODO see if could be simplified and moved to TM as a private method groupBy_ 
 
 template <typename Iterator0, typename KeyFn0,
           typename KeyType = typename std::remove_const<typename std::result_of<
@@ -190,9 +189,7 @@ public:
       }
     }
 
-    std::tuple<KeyType, Iterator0, Iterator0, Iterator1, Iterator1, Iterator2,
-               Iterator2>
-        v_;
+    std::tuple<KeyType, Iterator0, Iterator0, Iterator1, Iterator1, Iterator2, Iterator2> v_;
 
     Iterator0 current0_;
     Iterator0 end0_;
@@ -243,15 +240,6 @@ groupBy(const Sequence0 &sequence0, KeyFn0 keyFn0, const Sequence1 &sequence1,
   return {sequence0.begin(), sequence0.end(), keyFn0,
           sequence1.begin(), sequence1.end(), keyFn1,
           sequence2.begin(), sequence2.end(), keyFn2};
-}
-
-template <typename Iterator0, typename KeyFn0, typename Iterator1,
-          typename KeyFn1, typename Iterator2, typename KeyFn2>
-GroupBy3<Iterator0, KeyFn0, Iterator1, KeyFn1, Iterator2, KeyFn2>
-iterGroupBy(Iterator0 begin0, Iterator0 end0, KeyFn0 keyFn0, Iterator1 begin1,
-            Iterator1 end1, KeyFn1 keyFn1, Iterator2 begin2, Iterator2 end2,
-            KeyFn2 keyFn2) {
-  return {begin0, end0, keyFn0, begin1, end1, keyFn1, begin2, end2, keyFn2};
 }
 
 
