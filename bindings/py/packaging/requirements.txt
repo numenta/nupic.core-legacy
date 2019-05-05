@@ -1,6 +1,6 @@
 #See http://www.pip-installer.org/en/latest/requirements.html for details
 ## for python bindings (in /bindings/py/)
-numpy>=1.12.1
+numpy>=1.15
 pytest>=3.0.7
 pytest-cov>=2.5.0
 ## for python code (in /py/)
