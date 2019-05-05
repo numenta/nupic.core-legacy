@@ -436,6 +436,14 @@ public:
    */
   void bumpSegment(const Segment segment, const Permanence delta);
 
+  /**
+   * This method is useful for making room for more synapses on a segment which
+   * is already full.
+   *
+   * TODO: Documentation!
+   */
+  void destroyMinPermanenceSynapses(Segment segment, Int nDestroy,
+                                    const sdr::SDR_sparse_t &excludeCells = {});
 
   /**
    * Print diagnostic info

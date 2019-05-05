@@ -557,6 +557,44 @@ void Connections::bumpSegment(const Segment segment, const Permanence delta) {
 }
 
 
+void Connections::destroyMinPermanenceSynapses(Segment segment, Int nDestroy,
+                                         const vector<CellIdx> &excludeCells) {
+  // Don't destroy any cells that are in excludeCells.
+  vector<Synapse> destroyCandidates;
+  for (Synapse synapse : synapsesForSegment(segment)) {
+    const CellIdx presynapticCell = dataForSynapse(synapse).presynapticCell;
+
+    if (!std::binary_search(excludeCells.begin(), excludeCells.end(),
+                            presynapticCell)) {
+      destroyCandidates.push_back(synapse);
+    }
+  }
+
+  // Find cells one at a time. This is slow, but this code rarely runs, and it
+  // needs to work around floating point differences between environments.
+  for (Int32 i = 0; i < nDestroy && !destroyCandidates.empty(); i++) {
+    Permanence minPermanence = std::numeric_limits<Permanence>::max();
+    vector<Synapse>::iterator minSynapse = destroyCandidates.end();
+
+    for (auto synapse = destroyCandidates.begin();
+         synapse != destroyCandidates.end(); synapse++) {
+      const Permanence permanence =
+          dataForSynapse(*synapse).permanence;
+
+      // Use special Epsilon logic to compensate for floating point
+      // differences between C++ and other environments.
+      if (permanence < minPermanence - nupic::Epsilon) {
+        minSynapse = synapse;
+        minPermanence = permanence;
+      }
+    }
+
+    destroySynapse(*minSynapse);
+    destroyCandidates.erase(minSynapse);
+  }
+}
+
+
 namespace nupic {
   namespace algorithms {
     namespace connections {
