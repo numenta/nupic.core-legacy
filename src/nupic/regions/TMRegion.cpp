@@ -29,18 +29,10 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/Anomaly.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/regions/TMRegion.hpp>
+
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/Value.hpp>
-#include <nupic/regions/TMRegion.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/VectorHelpers.hpp>
 
@@ -193,7 +185,6 @@ void TMRegion::initialize() {
 
 void TMRegion::compute() {
 
-  std::cerr << "compute 0 " << std::endl;
   NTA_ASSERT(tm_) << "TM not initialized";
 
   if (computeCallback_ != nullptr)
@@ -220,17 +211,16 @@ void TMRegion::compute() {
   // Check for 'extra' inputs
   static SDR nullSDR({0});
   Array &extraActive = getInput("extraActive")->getData();
-  SDR& extraActiveCells = (args_.extra)?(extraActive.getSDR()):nullSDR;
+  SDR& extraActiveCells = (args_.extra) ? (extraActive.getSDR()) : nullSDR;
 
   Array &extraWinners = getInput("extraWinners")->getData();
-  SDR& extraWinnerCells = (args_.extra)?(extraWinners.getSDR()):nullSDR;
+  SDR& extraWinnerCells = (args_.extra) ? (extraWinners.getSDR()) : nullSDR;
 
   NTA_DEBUG << "compute " << *in << std::endl;
 
   // Perform Bottom up compute()
 
   tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
-  tm_->activateDendrites();
 
   args_.sequencePos++;
 
@@ -248,17 +238,11 @@ void TMRegion::compute() {
   Output *out;
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    auto active = tm_->getActiveCells();         // sparse
-    auto predictive = tm_->getPredictiveCells(); // sparse
-    if (args_.orColumnOutputs) {
-      // aggregate to columns
-      active = VectorHelpers::sparse_cellsToColumns<CellIdx>(active, args_.cellsPerColumn);
-      predictive = VectorHelpers::sparse_cellsToColumns<CellIdx>(predictive, args_.cellsPerColumn);
-    }
     SDR& sdr = out->getData().getSDR();
-    VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), active, predictive);
-    sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
-
+    tm_->getActiveCells(sdr); //active cells
+    if (args_.orColumnOutputs) { //output as columns
+      sdr = tm_->cellsToColumns(sdr);
+    }
     NTA_DEBUG << "compute " << *out << std::endl;
   }
   out = getOutput("activeCells");
@@ -533,7 +517,9 @@ Spec *TMRegion::createSpec() {
       "bottomUpOut",
       OutputSpec("The output signal generated from the bottom-up inputs "
                  "from lower levels. The width is 'numberOfCols' "
-                 "* 'cellsPerColumn'.",
+                 "* 'cellsPerColumn' by default; if orColumnOutputs is "
+		 "set, then this returns only numberOfCols. "
+		 "The activations come from TM::getActiveCells(). ",
                  NTA_BasicType_SDR,    // type
                  0,                    // count 0 means is dynamic
                  false,                // isRegionLevel

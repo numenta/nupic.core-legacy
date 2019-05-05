@@ -43,6 +43,7 @@ message(STATUS "Configuring Python interface")
 #
 set(src_py_algorithms_files
     bindings/algorithms/algorithm_module.cpp
+    bindings/algorithms/py_Connections.cpp
     bindings/algorithms/py_TemporalMemory.cpp
     bindings/algorithms/py_SDRClassifier.cpp
     bindings/algorithms/py_SpatialPooler.cpp
@@ -76,6 +77,7 @@ set(src_py_math_files
     bindings/math/math_module.cpp    
     bindings/math/py_Random.cpp
     bindings/math/py_reals.cpp
+    bindings/math/py_Topology.cpp
     )
     
 set(src_py_test_files

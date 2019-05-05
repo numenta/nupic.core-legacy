@@ -7,6 +7,7 @@
 #include <cmath>
 #include <string>
 
+#include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 
@@ -14,22 +15,32 @@ namespace nupic {
   namespace util {
 
 template<class T> 
-class SlidingWindow {
+class SlidingWindow : public Serializable {
+  // Note: member veriables need to be declared before constructor.
+  //       Otherwise we get "will be initialized after [-Werror=reorder]"
+  public: 
+    const UInt maxCapacity;
+    const std::string ID; //name of this object
+    const int DEBUG;
+  private:
+    std::vector<T> buffer_;
+    UInt idxNext_;
+				
   public:
-    SlidingWindow(UInt maxCapacity, std::string id="SlidingWindow", int debug=0) : 
-      maxCapacity(maxCapacity),
+    SlidingWindow(UInt max_capacity, std::string id="SlidingWindow", int debug=0) : 
+      maxCapacity(max_capacity),
       ID(id),
       DEBUG(debug)
-{
-      buffer_.reserve(maxCapacity);
+    {
+      buffer_.reserve(max_capacity);
       idxNext_ = 0;
-} 
+    } 
 
 
     template<class IteratorT> 
-    SlidingWindow(UInt maxCapacity, IteratorT initialData_begin, 
+    SlidingWindow(UInt max_capacity, IteratorT initialData_begin, 
       IteratorT initialData_end, std::string id="SlidingWindow", int debug=0): 
-      SlidingWindow(maxCapacity, id, debug) {
+      SlidingWindow(max_capacity, id, debug) {
       // Assert that It obeys the STL forward iterator concept
       for(IteratorT it = initialData_begin; it != initialData_end; ++it) {
         append(*it);
@@ -137,14 +148,19 @@ class SlidingWindow {
         }
       }
 
-
-      public: 
-        const UInt maxCapacity;
-        const std::string ID; //name of this object
-        const int DEBUG;
-      private:
-        std::vector<T> buffer_;
-        UInt idxNext_;
+      CerealAdapter;
+      template<class Archive>
+      void save_ar(Archive & ar) const {
+        ar(CEREAL_NVP(ID), 
+           CEREAL_NVP(buffer_), 
+           CEREAL_NVP(idxNext_));
+      }
+      template<class Archive>
+      void load_ar(Archive & ar) {
+        std::string name; // for debugging. ID should be already set from constructor.
+        ar( name, buffer_, idxNext_);
+        // Note: ID, maxCapacity, DEBUG are already set from constructor.
+      }
 }; 
 }} //end ns
 #endif //header

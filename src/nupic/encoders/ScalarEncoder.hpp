@@ -56,8 +56,8 @@ namespace encoders {
      * Member "periodic" controls what happens near the edges of the input
      * range.
      *
-     * If true, then the minimum & maximum input values are adjacent and the
-     * first and last bits of the output SDR are also adjacent.  The contiguous
+     * If true, then the minimum & maximum input values are the same and the
+     * first and last bits of the output SDR are adjacent.  The contiguous
      * block of 1's wraps around the end back to the begining.
      *
      * If false, then minimum & maximum input values are the endpoints of the
@@ -116,8 +116,8 @@ namespace encoders {
    * of bits. The output is 0's except for a contiguous block of 1's. The
    * location of this contiguous block varies continuously with the input value.
    *
-   * For help or to examine this run:
-   * $ python -m nupic.examples.rf_view_ScalarEncoder --help.
+   * To inspect this run:
+   * $ python -m nupic.encoders.scalar_encoder --help
    */
   class ScalarEncoder : public BaseEncoder<Real64>
   {

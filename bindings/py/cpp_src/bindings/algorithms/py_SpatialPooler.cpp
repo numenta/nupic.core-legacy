@@ -173,9 +173,15 @@ using namespace sdr;
         });
 
         // compute
-	// @param x input as dense array
-	// @param y output active cols as sparse array
-        py_SpatialPooler.def("compute", [](SpatialPooler& self, py::array& x, bool learn, py::array& y)
+        py_SpatialPooler.def("compute", [](SpatialPooler& self, sdr::SDR& input, bool learn, sdr::SDR& output)
+            { self.compute( input, learn, output ); },
+	    "SpatialPooler compute method",
+	    py::arg("input"),
+	    py::arg("learn") = true,
+	    py::arg("output")
+	    ); 
+
+        py_SpatialPooler.def("compute", [](SpatialPooler& self, py::array& x, bool learn, py::array& y) //TODO remove
         {
             if (py::isinstance<py::array_t<std::uint32_t>>(x) == false)
             {

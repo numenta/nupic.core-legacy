@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <sstream>
 
 #include "gtest/gtest.h"
 
@@ -29,128 +30,50 @@
 #include "nupic/types/Types.hpp"
 
 namespace testing {
-    
+
 using namespace nupic::algorithms::anomaly;
 using namespace nupic;
+using namespace nupic::sdr;
 
 TEST(ComputeRawAnomalyScore, NoActiveOrPredicted) {
-  std::vector<UInt> active;
-  std::vector<UInt> predicted;
+  SDR active({10});
+  SDR predicted({10});
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 0.0);
 };
 
 TEST(ComputeRawAnomalyScore, NoActive) {
-  std::vector<UInt> active;
-  std::vector<UInt> predicted = {3, 5};
+  SDR active({10});
+  SDR predicted({10});
+  predicted.setSparse(SDR_sparse_t{3,5});
+
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 0.0f);
 };
 
 TEST(ComputeRawAnomalyScore, PerfectMatch) {
-  std::vector<UInt> active = {3, 5, 7};
-  std::vector<UInt> predicted = {3, 5, 7};
+  SDR active({10});
+  SDR predicted({10});
+  active.setSparse(SDR_sparse_t{3,5,7});
+  predicted.setSparse(SDR_sparse_t{3,5,7});
+
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 0.0f);
 };
 
 TEST(ComputeRawAnomalyScore, NoMatch) {
-  std::vector<UInt> active = {2, 4, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
+  SDR active({10});
+  SDR predicted({10});
+  active.setSparse(SDR_sparse_t{2,4,6});
+  predicted.setSparse(SDR_sparse_t{3,5,7});
+
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 1.0f);
 };
 
 TEST(ComputeRawAnomalyScore, PartialMatch) {
-  std::vector<UInt> active = {2, 3, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
+  SDR active({10});
+  SDR predicted({10});
+  active.setSparse(SDR_sparse_t{2,3,6});
+  predicted.setSparse(SDR_sparse_t{3,5,7}); // 1 out of 3 matches -> 66.6% anomaly = 2/3
+
   ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
-};
-
-TEST(ComputeRawAnomalyScore, PartialMatchSDR) {
-  sdr::SDR active({20});       active.setSparse(std::vector<UInt>{2, 3, 6});
-  sdr::SDR predicted({20}); predicted.setSparse(std::vector<UInt>{3, 5, 7});
-  ASSERT_FLOAT_EQ(computeRawAnomalyScore(active, predicted), 2.0f / 3.0f);
-};
-
-TEST(Anomaly, ComputeScoreNoActiveOrPredicted) {
-  std::vector<UInt> active;
-  std::vector<UInt> predicted;
-  Anomaly a;
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 0.0f);
-}
-
-TEST(Anomaly, ComputeScoreNoActive) {
-  std::vector<UInt> active;
-  std::vector<UInt> predicted = {3, 5};
-  Anomaly a;
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 0.0f);
-}
-
-TEST(Anomaly, ComputeScorePerfectMatch) {
-  std::vector<UInt> active = {3, 5, 7};
-  std::vector<UInt> predicted = {3, 5, 7};
-  Anomaly a;
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 0.0f);
-}
-
-TEST(Anomaly, ComputeScoreNoMatch) {
-  std::vector<UInt> active = {2, 4, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
-  Anomaly a;
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 1.0);
-}
-
-TEST(Anomaly, ComputeScorePartialMatch) {
-  std::vector<UInt> active = {2, 3, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
-  Anomaly a;
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0f / 3.0f);
-}
-
-TEST(Anomaly, Cumulative) {
-  const UInt TEST_COUNT = 9;
-  Anomaly a{3};
-
-  // The predictions are the same for all TEST_COUNT iterations.
-  std::vector<std::vector<UInt> > preds(TEST_COUNT, std::vector<UInt>({1, 2, 6}));
-
-  std::vector<std::vector<UInt>> acts = {
-      {1, 2, 6},    {1, 2, 6},    {1, 4, 6}, {10, 11, 6}, {10, 11, 12},
-      {10, 11, 12}, {10, 11, 12}, {1, 2, 6}, {1, 2, 6}};
-
-  std::vector<float> expected = {0.0f,        0.0f,        1.0f / 9.0f,
-                                 3.0f / 9.0f, 2.0f / 3.0f, 8.0f / 9.0f,
-                                 1.0f,        2.0f / 3.0f, 1.0f / 3.0f};
-
-  for (UInt index = 0; index < TEST_COUNT; index++) {
-    ASSERT_FLOAT_EQ(a.compute(acts[index], preds[index]), expected[index]);
-  }
-}
-
-TEST(Anomaly, SelectModePure) {
-  Anomaly a{0, AnomalyMode::PURE, 0};
-  std::vector<UInt> active = {2, 3, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
-  ASSERT_FLOAT_EQ(a.compute(active, predicted), 2.0f / 3.0f);
-};
-
-// Anomaly Likelihood tests
-TEST(AnomalyLikelihood, SelectModeLikelihood)
-{
-  Anomaly a{0, AnomalyMode::LIKELIHOOD, 0};
-  std::vector<UInt> active = {2, 3, 6};
-  std::vector<UInt> predicted = {3, 5, 7};
-  int ts = 0; //timestamp
-  Real likelihood;
-
-  for(int i=0; i< 388; i++) {
-     likelihood = a.compute(active, predicted,  ++ts);
-     ASSERT_FLOAT_EQ(likelihood, 0.5f); //first (<=388) probationaryPeriod rounds likelihood=0.5
-  }
-
-  //real likelihood returned here
-  for(int i=0; i< 10; i++) {
-     likelihood = a.compute(active, predicted,  ++ts);
-  ASSERT_TRUE(abs(likelihood - 0.5)<0.001); //TODO port likelihood tests here
-  }
-
 };
 
 }

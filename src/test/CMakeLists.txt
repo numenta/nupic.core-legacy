@@ -40,6 +40,7 @@ set(unit_tests_executable unit_tests)
 
 set(algorithm_tests
 	   unit/algorithms/AnomalyTest.cpp
+	   unit/algorithms/AnomalyLikelihoodTest.cpp
 	   unit/algorithms/ConnectionsPerformanceTest.cpp
 	   unit/algorithms/ConnectionsTest.cpp
 	   unit/algorithms/HelloSPTPTest.cpp
@@ -96,7 +97,6 @@ set(regions_tests
 set(types_tests
 	   unit/types/ExceptionTest.cpp
 	   unit/types/SdrTest.cpp
-	   unit/types/SdrToolsTest.cpp
 	   )
 	   
 set(utils_tests

@@ -40,11 +40,11 @@ using namespace nupic;
 using namespace nupic::algorithms::connections;
 using nupic::sdr::SDR;
 
-Connections::Connections(CellIdx numCells, Permanence connectedThreshold) {
-  initialize(numCells, connectedThreshold);
+Connections::Connections(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
+  initialize(numCells, connectedThreshold, timeseries);
 }
 
-void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
+void Connections::initialize(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
   cells_ = vector<CellData>(numCells);
   segments_.clear();
   destroyedSegments_.clear();
@@ -68,6 +68,9 @@ void Connections::initialize(CellIdx numCells, Permanence connectedThreshold) {
   nextSynapseOrdinal_ = 0;
 
   nextEventToken_ = 0;
+
+  timeseries_ = timeseries;
+  reset();
 }
 
 UInt32 Connections::subscribe(ConnectionsEventHandler *handler) {
@@ -388,12 +391,27 @@ Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
   return all;
 }
 
+void Connections::reset()
+{
+  if( not timeseries_ ) {
+    NTA_WARN << "Connections::reset() called with timeseries=false.";
+  }
+  previousUpdates_.clear();
+  currentUpdates_.clear();
+}
 
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
-    const vector<CellIdx> &activePresynapticCells) const
+    const vector<CellIdx> &activePresynapticCells)
 {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
+
+  if( timeseries_ ) {
+    // Before each cycle of computation move the currentUpdates to the previous
+    // updates, and zero the currentUpdates in preparation for learning.
+    previousUpdates_.swap( currentUpdates_ );
+    currentUpdates_.clear();
+  }
 
   // Iterate through all connected synapses.
   for (const auto& cell : activePresynapticCells) {
@@ -408,7 +426,7 @@ void Connections::computeActivity(
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
     vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-    const vector<CellIdx> &activePresynapticCells) const {
+    const vector<CellIdx> &activePresynapticCells) {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
   NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
 
@@ -436,21 +454,41 @@ void Connections::adaptSegment(const Segment segment,
                                const Permanence increment,
                                const Permanence decrement)
 {
-  const vector<Synapse> &synapses = synapsesForSegment(segment);
-
   const auto &inputArray = inputs.getDense();
 
-  for (SynapseIdx i = 0; i < synapses.size(); i++) {
-    const SynapseData &synapseData = dataForSynapse(synapses[i]);
+  if( timeseries_ ) {
+    previousUpdates_.resize( synapses_.size(), 0.0f );
+    currentUpdates_.resize(  synapses_.size(), 0.0f );
 
-    Permanence permanence = synapseData.permanence;
-    if( inputArray[synapseData.presynapticCell] ) {
-      permanence += increment;
-    } else {
-      permanence -= decrement;
+    for( const auto synapse : synapsesForSegment(segment) ) {
+      const SynapseData &synapseData = dataForSynapse(synapse);
+
+      Permanence update;
+      if( inputArray[synapseData.presynapticCell] ) {
+        update = increment;
+      } else {
+        update = -decrement;
+      }
+
+      if( update != previousUpdates_[synapse] ) {
+        updateSynapsePermanence(synapse, synapseData.permanence + update);
+      }
+      currentUpdates_[ synapse ] = update;
     }
+  }
+  else {
+    for( const auto synapse : synapsesForSegment(segment) ) {
+      const SynapseData &synapseData = dataForSynapse(synapse);
 
-    updateSynapsePermanence(synapses[i], permanence);
+      Permanence permanence = synapseData.permanence;
+      if( inputArray[synapseData.presynapticCell] ) {
+        permanence += increment;
+      } else {
+        permanence -= decrement;
+      }
+
+      updateSynapsePermanence(synapse, permanence);
+    }
   }
 }
 
@@ -515,6 +553,64 @@ void Connections::bumpSegment(const Segment segment, const Permanence delta) {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
   for( const auto &syn : synapses ) {
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
+  }
+}
+
+
+namespace nupic {
+  namespace algorithms {
+    namespace connections {
+std::ostream& operator<< (std::ostream& stream, const Connections& self)
+{
+  stream << "Connections:" << std::endl;
+  const auto numPresyns = self.potentialSynapsesForPresynapticCell_.size();
+  stream << "    Inputs (" << numPresyns
+         << ") ~> Outputs (" << self.cells_.size()
+         << ") via Segments (" << self.numSegments() << ")" << std::endl;
+
+  UInt        potentialMin  = -1;
+  Real        potentialMean = 0.0f;
+  UInt        potentialMax  = 0;
+  SynapseIdx  connectedMin  = -1;
+  Real        connectedMean = 0.0f;
+  SynapseIdx  connectedMax  = 0;
+  UInt        synapsesDead      = 0;
+  UInt        synapsesSaturated = 0;
+  for( const auto cellData : self.cells_ ) {
+    for( const auto seg : cellData.segments ) {
+      const auto &segData = self.dataForSegment( seg );
+      const UInt numPotential = (UInt) segData.synapses.size();
+      potentialMin   = std::min( potentialMin, numPotential );
+      potentialMax   = std::max( potentialMax, numPotential );
+      potentialMean += numPotential;
+
+      connectedMin   = std::min( connectedMin, segData.numConnected );
+      connectedMax   = std::max( connectedMax, segData.numConnected );
+      connectedMean += segData.numConnected;
+
+      for( const auto syn : segData.synapses ) {
+        const auto &synData = self.dataForSynapse( syn );
+        if( synData.permanence == minPermanence )
+          { synapsesDead++; }
+        else if( synData.permanence == maxPermanence )
+          { synapsesSaturated++; }
+      }
+    }
+  }
+  potentialMean = potentialMean / self.numSegments();
+  connectedMean = connectedMean / self.numSegments();
+
+  stream << "    Potential Synapses on Segment Min/Mean/Max "
+         << potentialMin << " / " << potentialMean << " / " << potentialMax << std::endl;
+  stream << "    Connected Synapses on Segment Min/Mean/Max "
+         << connectedMin << " / " << connectedMean << " / " << connectedMax << std::endl;
+
+  stream << "    Synapses Dead (" << (Real) synapsesDead / self.numSynapses()
+         << "%) Saturated (" <<   (Real) synapsesSaturated / self.numSynapses() << "%)" << std::endl;
+
+  return stream;
+      }
+    }
   }
 }
 

@@ -20,14 +20,12 @@ public:
     bool useSPglobal=true,
     bool useTM=true,
     const UInt COLS = 2048, // number of columns in SP, TP
-    const UInt DIM_INPUT = 10000,
-    const UInt CELLS = 10 // cells per column in TP
+    const UInt DIM_INPUT = 1000,
+    const UInt CELLS = 8 // cells per column in TP
   );
 
   //timers
-  Timer tInit, tAll, tRng, tEnc, tSPloc, tSPglob, tTM,
-        tAn, tAnLikelihood;
-
+  Timer tInit, tAll, tRng, tEnc, tSPloc, tSPglob, tTM, tAnLikelihood;
 };
 
 } //-ns

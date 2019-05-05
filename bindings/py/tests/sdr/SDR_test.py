@@ -26,7 +26,8 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.sdr import SDR, Reshape, Concatenation
+from nupic.bindings.sdr import SDR, Reshape
+from nupic.bindings.math import Random
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -296,6 +297,13 @@ class SdrTest(unittest.TestCase):
         B.randomize( .1, 42 )
         assert( A == B )
 
+    def testRandomRNG(self):
+        x = SDR(1000).randomize(.5, Random(77))
+        y = SDR(1000).randomize(.5, Random(99))
+        assert( x != y )
+        z = SDR(1000).randomize(.5, Random(77))
+        assert( x == z )
+
     def testAddNoise(self):
         A = SDR((103,))
         B = SDR((103,))
@@ -360,7 +368,7 @@ class ReshapeTest(unittest.TestCase):
         A = SDR([10,10])
         B = Reshape(A, [100])
         C = Reshape(B, [4, 25])
-        D = Reshape(B, [1, 100])
+        D = B.reshape([1, 100]) # Test convenience method.
 
         A.dense.fill( 1 )
         A.dense = A.dense
@@ -373,7 +381,7 @@ class ReshapeTest(unittest.TestCase):
         assert(False) # TODO: Unimplemented
 
 
-class SDR_IntersectionTest(unittest.TestCase):
+class IntersectionTest(unittest.TestCase):
     def testExampleUsage(self):
         A = SDR( 10 )
         B = SDR( 10 )
@@ -425,77 +433,47 @@ class SDR_IntersectionTest(unittest.TestCase):
 
 class ConcatenationTest(unittest.TestCase):
     def testExampleUsage(self):
-        assert( issubclass(Concatenation, SDR) )
-        A = SDR( 100 )
-        B = SDR( 100 )
-        C = Concatenation( A, B )
-        assert(C.dimensions == [200])
-
-        D = SDR(( 640, 480, 3 ))
-        E = SDR(( 640, 480, 7 ))
-        F = Concatenation( D, E, 2 )
-        assert(F.dimensions == [ 640, 480, 10 ])
-
-    def testConstructor(self):
-        # Test all of the constructor overloads
-        A = SDR(( 100, 2 ))
-        B = SDR(( 100, 2 ))
-        C = SDR(( 100, 2 ))
-        D = SDR(( 100, 2 ))
-        Concatenation( A, B )
-        Concatenation( A, B, 1 )
-        Concatenation( A, B, C )
-        Concatenation( A, B, C, 1 )
-        Concatenation( A, B, C, D )
-        Concatenation( A, B, C, D, 1 )
-        Concatenation( [A, B, C, D] )
-        Concatenation( [A, B, C, D], 1 )
-        Concatenation( inputs = [A, B, C, D], axis = 1 )
+        A = SDR( 10 )
+        B = SDR( 10 )
+        C = SDR( 20 )
+        A.sparse = [0, 1, 2]
+        B.sparse = [0, 1, 2]
+        C.concatenate( A, B )
+        assert( set(C.sparse) == set([0, 1, 2, 10, 11, 12]) )
 
     def testConstructorErrors(self):
-        def _assertAnyException(func):
-            try:
-                func()
-            except RuntimeError:
-                return
-            except TypeError:
-                return
-            else:
-                self.fail()
-
-        A = SDR( 100 )
-        B = SDR(( 100, 2 ))
-        C = SDR([ 3, 3 ])
-        D = SDR([ 3, 4 ])
+        A  = SDR( 100 )
+        B  = SDR(( 100, 2 ))
+        AB = SDR( 300 )
+        C  = SDR([ 3, 3 ])
+        D  = SDR([ 3, 4 ])
+        CD = SDR([ 3, 7 ])
         # Test bad argument dimensions
-        _assertAnyException(lambda: Concatenation(A))      # Not enough inputs!
-        _assertAnyException(lambda: Concatenation(A, B))
-        _assertAnyException(lambda: Concatenation(B, C))  # All dims except axis must match!
-        _assertAnyException(lambda: Concatenation(C, D))  # All dims except axis must match!
-        Concatenation(C, D, 1) # This should work
-        _assertAnyException(lambda: Concatenation( inputs = (C, D), axis = 2))  # invalid axis
-        _assertAnyException(lambda: Concatenation( inputs = (C, D), axis = -1))  # invalid axis
+        with pytest.raises(TypeError):
+            AB.concatenate( A )             # Not enough inputs!
+        with pytest.raises(RuntimeError):
+            AB.concatenate( A, B )          # Different numbers of dimensions!
+        with pytest.raises(RuntimeError):
+            AB.concatenate( B, C )          # All dims except axis must match!
+        with pytest.raises(RuntimeError):
+            CD.concatenate( C, D )          # All dims except axis must match!
+        with pytest.raises(RuntimeError):
+            CD.concatenate(C, D, axis = 2)  # Invalid axis!
+        with pytest.raises(TypeError):
+            CD.concatenate(C, D, axis = -1) # Invalid axis!
 
-    def testDelete(self):
-        # Make & Delete it a few times to make sure that doesn't crash.
-        A = SDR(100)
-        B = SDR(100)
-        C = SDR(100)
-        X = Concatenation(A, B, C)
-        Concatenation(A, B, C)
-        Y = Concatenation(A, C)
-        Concatenation(B, C)
-        del B
-        del A
-        del Y
-        del C
-        del X
+        # Test KeyWord Arguments.  These should all work.
+        CD.concatenate(C, D, 1)
+        CD.concatenate(C, D, axis=1)
+        CD.concatenate([C, D], axis=1)
+        CD.concatenate(inputs=[C, D], axis=1)
 
     def testMirroring(self):
-        A = SDR( 200 )
-        Ax10 = Concatenation( [A] * 10 )
-        A.randomize( .33 )
-        assert( .30 < Ax10.getSparsity() and Ax10.getSparsity() < .36 )
+        A = SDR( 100 )
+        A.randomize( .05 )
+        Ax10 = SDR( 100 * 10 )
+        Ax10.concatenate( [A] * 10 )
+        assert( Ax10.getSum() == 100 * 10 * .05 )
 
     def testVersusNumpy(self):
         # Each testcase is a pair of lists of SDR dimensions and axis
@@ -512,10 +490,9 @@ class ConcatenationTest(unittest.TestCase):
         for sdr_dims, axis in test_cases:
             sdrs = [SDR(dims) for dims in sdr_dims]
             [sdr.randomize(.50) for sdr in sdrs]
-            cat    = Concatenation( sdrs, axis )
+            cat_dims       = sdrs[0].dimensions
+            cat_dims[axis] = sum(sdr.dimensions[axis] for sdr in sdrs)
+            cat            = SDR( cat_dims )
+            cat.concatenate( sdrs, axis )
             np_cat = np.concatenate([sdr.dense for sdr in sdrs], axis=axis)
             assert((cat.dense == np_cat).all())
-
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
-    def testPickle(self):
-        assert(False) # TODO: Unimplemented

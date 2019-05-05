@@ -17,8 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ----------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------- */
 
 /** @file
  * Topology helpers
@@ -28,12 +27,86 @@
 #define NTA_TOPOLOGY_HPP
 
 #include <vector>
+#include <functional>
 
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Sdr.hpp>
+#include <nupic/utils/Random.hpp>
 
 namespace nupic {
 namespace math {
 namespace topology {
+
+/**
+ * Topology_t is a function which returns the pool of potential synapses for a
+ * given cell.
+ *
+ * Argument 1: is an SDR representing the postsynaptic cell.  Topology functions
+ * return the inputs which may connect to this cell.  This SDR contains a single
+ * true bit.
+ *
+ * Argument 2: is the dimensions of the presynaptic cells.
+ *
+ * Argument 3: is a random number generator to use for reproducible results.
+ *
+ * Returns: an SDR containing all presynaptic cells which are allowed to connect
+ * to the postsynaptic cell.  The dimensions of this SDR must equal argument 2.
+ *
+ * Example Usage:
+ *    // Here is the implementation of the NoTopology function.
+ *
+ *    Topology_t NoTopology( Real potentialPct )
+ *    {
+ *      // Define the topology as a lambda function.
+ *      return [=]( const SDR          &cell,
+ *                  const vector<UInt> &potentialPoolDimensions,
+ *                  Random             &rng) -> SDR
+ *      {
+ *        SDR potentialPool( potentialPoolDimensions );
+ *        potentialPool.randomize( potentialPct, rng );
+ *        return potentialPool;
+ *      };
+ *    }
+ */
+typedef std::function<sdr::SDR (const sdr::SDR&, const std::vector<UInt>&, Random&)> Topology_t;
+
+/**
+ * @param potentialRadius: This parameter determines the extent of the
+ *       input that each output can potentially be connected to. This
+ *       can be thought of as the input bits that are visible to each
+ *       output, or a 'receptive field' of the field of vision. A large
+ *       enough value will result in global coverage, meaning
+ *       that each output can potentially be connected to every input
+ *       bit. This parameter defines a square (or hyper square) area: an
+ *       output will have a max square potential pool with sides of
+ *       length (2 * potentialRadius + 1).
+ *
+ * @param potentialPct: The percent of the inputs, within a output's
+ *       potential radius, that an output can be connected to. If set to
+ *       1, the output will be connected to every input within its
+ *       potential radius. This parameter is used to give each output a
+ *       unique potential pool when a large potentialRadius causes
+ *       overlap between the outputs. At initialization time we choose
+ *       ((2*potentialRadius + 1)^(# inputDimensions) * potentialPct)
+ *       input bits to comprise the output's potential pool.
+ *
+ * @param wrapAround: boolean value that determines whether or not inputs
+ *       at the beginning and end of an input dimension are considered
+ *       neighbors for the purpose of mapping inputs to outputs.
+ */
+Topology_t  DefaultTopology(Real potentialPct,
+                            Real potentialRadius,
+                            bool wrapAround);
+
+/**
+ * All inputs have a uniformly equal probability of being sampled into an
+ * outputs potential pool.  This does not depend on the relative locations of
+ * the input and output.
+ *
+ * @param potentialPct: The percent of inputs which each output is potentially
+ *        connected to.
+ */
+Topology_t NoTopology(Real potentialPct);
 
 /**
  * Translate an index into coordinates, using the given coordinate system.
@@ -41,7 +114,7 @@ namespace topology {
  * @param index
  * The index of the point. The coordinates are expressed as a single index
  * by using the dimensions as a mixed radix definition. For example, in
- * dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.
+ * dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  *
  * @param dimensions
  * The coordinate system.
@@ -64,7 +137,7 @@ std::vector<UInt> coordinatesFromIndex(UInt index,
  * @returns
  * The index of the point. The coordinates are expressed as a single index
  * by using the dimensions as a mixed radix definition. For example, in
- * dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 = 460.
+ * dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  */
 UInt indexFromCoordinates(const std::vector<UInt> &coordinates,
                           const std::vector<UInt> &dimensions);
@@ -110,8 +183,7 @@ UInt indexFromCoordinates(const std::vector<UInt> &coordinates,
  * @param centerIndex
  * The center of this neighborhood. The coordinates are expressed as a
  * single index by using the dimensions as a mixed radix definition. For
- * example, in dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 =
- * 460.
+ * example, in dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  *
  * @param radius
  * The radius of this neighborhood about the centerIndex.
@@ -160,8 +232,7 @@ private:
  * @param centerIndex
  * The center of this neighborhood. The coordinates are expressed as a
  * single index by using the dimensions as a mixed radix definition. For
- * example, in dimensions 42x10, the point [1, 4] is index 1*420 + 4*10 =
- * 460.
+ * example, in dimensions 42x10, the point [1, 4] is index 1*10 + 4 = 14.
  *
  * @param radius
  * The radius of this neighborhood about the centerIndex.

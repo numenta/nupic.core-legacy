@@ -30,6 +30,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Value.hpp>
@@ -191,7 +193,7 @@ Spec *VectorFileEffector::createSpec() {
       "to the file.\n";
 
   ns->inputs.add("dataIn",
-              InputSpec("Data to be written to file", 
+              InputSpec("Data to be written to file",
                         NTA_BasicType_Real32,
                         0,     // count
                         false, // required?

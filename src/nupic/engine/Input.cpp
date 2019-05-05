@@ -31,6 +31,7 @@
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Region.hpp>
+#include <nupic/engine/RegionImpl.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
@@ -140,9 +141,9 @@ void Input::initialize() {
    *    declare "undefined" error. If D's on both ends of the link are not equal,
    *    declare "conflict" error.
    * 6. If Fan-IN,
-   *  a. consider the number of dimensions. If this is a default 
-   *     input on the destination region, make the source 
-   *     dimensions compatable with the destination region's 
+   *  a. consider the number of dimensions. If this is a default
+   *     input on the destination region, make the source
+   *     dimensions compatable with the destination region's
    *     dimensions by appending top level dimensions of 1s.
    *  b. If the contributing source dimensions have all but
    *     top dimension the same, make the destination's input
@@ -204,7 +205,7 @@ void Input::initialize() {
 
       out.initialize(); // creates the output buffers.
 
-      // Initialize Link.  'total_width' at this point is the byte offset 
+      // Initialize Link.  'total_width' at this point is the byte offset
       // into the input buffer where the output will start writing.
       link->initialize(total_width, is_FanIn);
       total_width += (UInt32)d.getCount();
@@ -221,9 +222,9 @@ void Input::initialize() {
         // Not a FanIn.
         if (inD.isSpecified()) {
           NTA_CHECK(inD.getCount() == d.getCount())
-              << "Dimensions were specified for input " 
+              << "Dimensions were specified for input "
               << region_->getName() << "." << name_ << " " << inD
-              << " but it is inconsistant with the dimensions of the source " 
+              << " but it is inconsistant with the dimensions of the source "
               << out.getRegion()->getName() << "." << out.getName() << " " << d;
           // else keep the manually configured dimensions.
         } else {
@@ -234,8 +235,8 @@ void Input::initialize() {
 
     if (is_FanIn) {
       // Try to figure out the destination dimensions derived
-      // from the source dimensions. If any source dimension other 
-      // than the top level did not match we will have to flatten 
+      // from the source dimensions. If any source dimension other
+      // than the top level did not match we will have to flatten
       // everything and use 1D.
       // example:
       //   sources
@@ -285,7 +286,7 @@ void Input::initialize() {
 
   // If this is the regionLevel input and the region dim is don't care,
   // then assign this input dimensions to the region dimensions.
-  // The region dimensions must have the same number of dimensions. 
+  // The region dimensions must have the same number of dimensions.
   // Add 1's as needed to either.
   if (regionLevel && inD.isSpecified()) {
     d = region_->getDimensions();
@@ -300,7 +301,7 @@ void Input::initialize() {
     }
     region_->setDimensions(d);
   }
-  
+
   if (links_.size() > 0) {
     NTA_CHECK(inD.isSpecified()) << "Input " << region_->getName() << "." << name_
                       << " has an incoming link but no dimensions are configured.";
