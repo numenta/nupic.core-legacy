@@ -247,7 +247,7 @@ public:
         inhibition. The size of the SDR is equal to the number of
         columns (also returned by the method getNumColumns).
    */
-  virtual void compute(const sdr::SDR &input, bool learn, sdr::SDR &active);
+  virtual void compute(const sdr::SDR &input, const bool learn, sdr::SDR &active);
 
 
   /**
