@@ -59,6 +59,9 @@ if __name__ == '__main__':
                         help=ScalarEncoderParameters.size.__doc__)
     parser.add_argument('--sparsity', type=float, default=0,
                         help=ScalarEncoderParameters.sparsity.__doc__)
+    parser.add_argument('--category', action='store_true',
+                        help="Assume the inputs are enumerated categories.\n" +
+                             "Only encodes integers, forces radius=1.")
     args = parser.parse_args()
 
     #
@@ -75,6 +78,14 @@ if __name__ == '__main__':
     parameters.size       = args.size
     parameters.sparsity   = args.sparsity
 
+    if args.category:
+        if parameters.radius == 0:
+            parameters.radius = 1
+            print("Category encoder requested, setting radius to 1.")
+        elif parameters.radius != 1:
+            print("Category encoder requested, but radius is not equal to 1!")
+            exit()
+
     # Try initializing the encoder.
     try:
         enc = ScalarEncoder( parameters )
@@ -88,9 +99,12 @@ if __name__ == '__main__':
     #
     # Run the encoder and measure some statistics about its output.
     #
+    if args.category:
+        n_samples = int(enc.parameters.maximum - enc.parameters.minimum + 1)
+    else:
+        n_samples = (enc.parameters.maximum - enc.parameters.minimum) / enc.parameters.resolution
+        n_samples = int(round( 5 * n_samples ))
     sdrs = []
-    n_samples = (enc.parameters.maximum - enc.parameters.minimum) / enc.parameters.resolution
-    n_samples = int(round( 5 * n_samples ))
     for i in np.linspace(enc.parameters.minimum, enc.parameters.maximum, n_samples):
       sdrs.append( enc.encode( i ) )
 
