@@ -34,8 +34,6 @@ using std::tuple;
 using std::vector;
 
 using nupic::groupBy;
-using nupic::iterGroupBy;
-
 
 struct ReturnValue3 {
   int key;
@@ -77,37 +75,13 @@ TEST(GroupByTest, ThreeSequences) {
     const ReturnValue3 actualValue = {
         key, {begin0, end0}, {begin1, end1}, {begin2, end2}};
 
-    EXPECT_EQ(expectedValues[i].key, actualValue.key);
+    EXPECT_EQ(expectedValues[i].key,      actualValue.key);
     EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
     EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
     EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
 
     i++;
   }
-
-  //
-  // iterGroupBy
-  //
-  i = 0;
-  for (auto data : iterGroupBy(sequence0.begin(), sequence0.end(), identity,
-                               sequence1.begin(), sequence1.end(), times3,
-                               sequence2.begin(), sequence2.end(), times4)) {
-    int key;
-    vector<int>::const_iterator begin0, end0, begin1, end1, begin2, end2;
-
-    tie(key, begin0, end0, begin1, end1, begin2, end2) = data;
-
-    const ReturnValue3 actualValue = {
-        key, {begin0, end0}, {begin1, end1}, {begin2, end2}};
-
-    EXPECT_EQ(expectedValues[i].key, actualValue.key);
-    EXPECT_EQ(expectedValues[i].results0, actualValue.results0);
-    EXPECT_EQ(expectedValues[i].results1, actualValue.results1);
-    EXPECT_EQ(expectedValues[i].results2, actualValue.results2);
-
-    i++;
-  }
-
   EXPECT_EQ(expectedValues.size(), i);
 }
 
