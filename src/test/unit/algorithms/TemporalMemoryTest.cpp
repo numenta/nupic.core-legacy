@@ -1676,6 +1676,20 @@ TEST(TemporalMemoryTest, testExtraActive) {
   }
 }
 
+TEST(TemporalMemoryTest, testEquals) {
+  TemporalMemory tm({10,10});
+  auto tmCopy = tm;
+  ASSERT_EQ(tm, tmCopy);
+
+  SDR data({tm.getColumnDimensions()});
+  data.setSparse(SDR_sparse_t{1,2,3,4,5,13,21,22,23,25,28,49,51,53,55,69});
+  tm.compute(data, true);
+
+  ASSERT_NE(tm, tmCopy);
+  tmCopy.compute(data, true);
+  ASSERT_EQ(tm, tmCopy);
+}
+
 // Uncomment these tests individually to save/load from a file.
 // This is useful for ad-hoc testing of backwards-compatibility.
 

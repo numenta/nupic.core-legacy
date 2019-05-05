@@ -1049,7 +1049,7 @@ getComparableSegmentSet(const Connections &connections,
   return segmentSet;
 }
 
-bool TemporalMemory::operator==(const TemporalMemory &other) {
+bool TemporalMemory::operator==(const TemporalMemory &other) const {
   if (numColumns_ != other.numColumns_ ||
       columnDimensions_ != other.columnDimensions_ ||
       cellsPerColumn_ != other.cellsPerColumn_ ||
@@ -1065,7 +1065,8 @@ bool TemporalMemory::operator==(const TemporalMemory &other) {
       winnerCells_ != other.winnerCells_ ||
       maxSegmentsPerCell_ != other.maxSegmentsPerCell_ ||
       maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_ ||
-      iteration_ != other.iteration_) {
+      iteration_ != other.iteration_ ||
+      anomaly_ != other.anomaly_ ) {
     return false;
   }
 

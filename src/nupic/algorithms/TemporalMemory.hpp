@@ -556,8 +556,8 @@ public:
   }
 
 
-  virtual bool operator==(const TemporalMemory &other);
-  inline bool operator!=(const TemporalMemory &other) { return !operator==(other); }
+  virtual bool operator==(const TemporalMemory &other) const;
+  inline bool operator!=(const TemporalMemory &other) const { return not this->operator==(other); }
 
   //----------------------------------------------------------------------
   // Debugging helpers
