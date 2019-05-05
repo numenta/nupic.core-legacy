@@ -917,6 +917,8 @@ void TemporalMemory::save(ostream &outStream) const {
   }
   outStream << endl;
 
+  outStream << anomaly_ << endl;
+
   outStream << "~TemporalMemory" << endl;
 }
 
@@ -1033,6 +1035,8 @@ void TemporalMemory::load(istream &inStream) {
   }
 
   lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
+
+  inStream >> anomaly_;
 
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");

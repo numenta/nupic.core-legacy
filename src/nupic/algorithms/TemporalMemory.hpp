@@ -472,6 +472,7 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(anomaly_),
        CEREAL_NVP(connections));
 
     ar( cereal::make_size_tag(activeSegments_.size()));
@@ -521,6 +522,7 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(anomaly_),
        CEREAL_NVP(connections));
 
     numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
