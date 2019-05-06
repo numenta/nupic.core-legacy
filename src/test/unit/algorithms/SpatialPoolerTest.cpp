@@ -1885,7 +1885,6 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
   const UInt inputSize = 200;
   const UInt numColumns = 200;
-  const UInt w = 10;
 
   vector<UInt> inputDims{inputSize};
   vector<UInt> colDims{numColumns};
