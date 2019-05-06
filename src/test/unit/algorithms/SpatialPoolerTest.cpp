@@ -1239,14 +1239,14 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SpatialPooler sp;
   setup(sp, 10, 10);
   sp.setGlobalInhibition(true);
-  const vector<UInt> input(sp.getNumInputs(), 1);
-  vector<UInt> out1(sp.getNumColumns(), 0);
+  SDR input( {sp.getNumInputs()} );
+  SDR out1( {sp.getNumColumns()} );
   //throws
   sp.setLocalAreaDensity(0.02f);
-  EXPECT_THROW(sp.compute(input.data(), false, out1.data()), nupic::LoggingException);
+  EXPECT_THROW(sp.compute(input, false, out1), nupic::LoggingException);
   //good parameter
   sp.setLocalAreaDensity(0.1f);
-  EXPECT_NO_THROW(sp.compute(input.data(), false, out1.data()));
+  EXPECT_NO_THROW(sp.compute(input, false, out1));
 }
 
 
@@ -1259,10 +1259,10 @@ TEST(SpatialPoolerTest, testFewColumnsGlobalInhibitionCrash) {
   sp.setGlobalInhibition(true);
   sp.setLocalAreaDensity(0.02f);
 
-  vector<UInt> input(sp.getNumInputs(), 1);
-  vector<UInt> out1(sp.getNumColumns(), 0);
+  SDR input( {sp.getNumInputs()} );
+  SDR out1(  {sp.getNumColumns()} );
 
-  EXPECT_NO_THROW(sp.compute(input.data(), false, out1.data()));
+  EXPECT_NO_THROW(sp.compute(input, false, out1));
 }
 
 
@@ -1728,9 +1728,11 @@ TEST(SpatialPoolerTest, getOverlaps) {
   vector<Real> boostFactors = {1.0f, 2.0f, 3.0f};
   sp.setBoostFactors(boostFactors.data());
 
-  vector<UInt> input = {1, 1, 1, 1, 1};
-  vector<UInt> activeColumns = {0, 0, 0};
-  sp.compute(input.data(), true, activeColumns.data());
+  SDR input( {5}); 
+  input.setDense(vector<UInt>{1, 1, 1, 1, 1});
+  SDR activeColumns( {3} );
+  activeColumns.setDense(vector<UInt>{0, 0, 0});
+  sp.compute(input, true, activeColumns);
 
   const auto &overlaps = sp.getOverlaps();
   const vector<SynapseIdx> expectedOverlaps = {0, 3, 5};
@@ -1762,11 +1764,11 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
                    /*spVerbosity*/ 0,
                    /*wrapAround*/ true);
 
-  vector<UInt> input(inputSize, 0);
-  vector<UInt> activeColumns(nColumns, 0);
-  sp.compute(input.data(), true, activeColumns.data());
+  SDR input( {inputSize} );
+  SDR activeColumns( {nColumns} );
+  sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(3ul, countNonzero(activeColumns));
+  EXPECT_EQ(3ul, activeColumns.getSum());
 }
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
@@ -1790,11 +1792,11 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
                    /*spVerbosity*/ 0,
                    /*wrapAround*/ true);
 
-  vector<UInt> input(inputSize, 0);
-  vector<UInt> activeColumns(nColumns, 0);
-  sp.compute(input.data(), true, activeColumns.data());
+  SDR input( {inputSize} );
+  SDR activeColumns( {nColumns} );
+  sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(0ul, countNonzero(activeColumns));
+  EXPECT_EQ(0ul, activeColumns.getSum());
 }
 
 
@@ -1819,14 +1821,11 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
                    /*spVerbosity*/ 0,
                    /*wrapAround*/ true);
 
-  vector<UInt> input(inputSize, 0);
-  vector<UInt> activeColumns(nColumns, 0);
-  sp.compute(input.data(), true, activeColumns.data());
+  SDR input( {inputSize} );
+  SDR activeColumns( {nColumns} );
+  sp.compute(input, true, activeColumns);
 
-  // This exact number of active columns is determined by the inhibition
-  // radius, which changes based on the random synapses (i.e. weird math).
-  EXPECT_GT(countNonzero(activeColumns), 2u);
-  EXPECT_LT(countNonzero(activeColumns), 10u);
+  EXPECT_EQ(activeColumns.getSum(), 4u);
 }
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
@@ -1850,11 +1849,11 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
                    /*spVerbosity*/ 0,
                    /*wrapAround*/ true);
 
-  vector<UInt> input(inputSize, 0);
-  vector<UInt> activeColumns(nColumns, 0);
-  sp.compute(input.data(), true, activeColumns.data());
+  SDR input({inputSize});
+  SDR activeColumns({nColumns});
+  sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(0ul, countNonzero(activeColumns));
+  EXPECT_EQ(0ul, activeColumns.getSum());
 }
 
 
@@ -1886,56 +1885,35 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
   const UInt inputSize = 200;
   const UInt numColumns = 200;
-  const UInt w = 10;
-
-  vector<UInt> inputDims{inputSize};
-  vector<UInt> colDims{numColumns};
 
   SpatialPooler sp1;
-  sp1.initialize(inputDims, colDims);
+  sp1.initialize({inputSize}, {numColumns});
 
-  UInt input[inputSize];
-  for (UInt i = 0; i < inputSize; ++i) {
-    if (i < w) {
-      input[i] = 1;
-    } else {
-      input[i] = 0;
-    }
-  }
-  UInt output[numColumns];
+  SDR input({inputSize});
+  SDR output({numColumns});
 
   for (UInt i = 0; i < 100; ++i) {
-    random.shuffle(input, input + inputSize);
+    input.randomize(0.15f, random); //15% bits change
+    EXPECT_GT(input.getSum(), (size_t)0) << "No input!";
     sp1.compute(input, true, output);
   }
 
-  // Now we reuse the last input to test after serialization
-
-  vector<UInt> activeColumnsBefore;
-  for (UInt i = 0; i < numColumns; ++i) {
-    if (output[i] == 1) {
-      activeColumnsBefore.push_back(i);
-    }
-  }
 
   // Save initial trained model
   ofstream osC("outC.stream", ofstream::binary);
   sp1.save(osC);
   osC.close();
 
-  SpatialPooler sp2;
-
   nupic::Timer testTimer;
 
   for (UInt i = 0; i < 10; ++i) {
     // Create new input
-    random.shuffle(input, input + inputSize);
+    input.randomize(0.24, random);
 
     // Get expected output
-    UInt outputBaseline[numColumns];
+    SDR  outputBaseline({numColumns});
     sp1.compute(input, true, outputBaseline);
 
-    // C - Next do old version
     {
       SpatialPooler spTemp;
 
@@ -1947,7 +1925,7 @@ TEST(SpatialPoolerTest, testSerialization2) {
       is.close();
 
       // Feed new record through
-      UInt outputC[numColumns];
+      SDR outputC({numColumns});
       spTemp.compute(input, true, outputC);
 
       // Serialize
@@ -1957,13 +1935,11 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
       testTimer.stop();
 
-      for (UInt j = 0; j < numColumns; ++j) {
-        EXPECT_EQ(outputBaseline[j], outputC[j]) << "Iteration " << i << ", Col=" << j << std::endl;
-      }
+      EXPECT_EQ(outputBaseline, outputC);
     }
   }
 
-  cout << "[          ] Timing for SP serialization: " << testTimer.getElapsed() << "sec" << endl;
+//  cout << "[          ] Timing for SP serialization: " << testTimer.getElapsed() << "sec" << endl;
 
   remove("outC.stream");
 }
@@ -1992,7 +1968,6 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
   const UInt inputSize = 200;
   const UInt numColumns = 200;
-  const UInt w = 5;
 
   vector<UInt> inputDims{inputSize};
   vector<UInt> colDims{numColumns};
@@ -2000,29 +1975,17 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
   SpatialPooler sp1;
   sp1.initialize(inputDims, colDims);
 
-  UInt input[inputSize];
-  for (UInt i = 0; i < inputSize; ++i) {
-    if (i < w) {
-      input[i] = 1;
-    } else {
-      input[i] = 0;
-    }
-  }
-  UInt output[numColumns];
+  SDR input(inputDims);
+  SDR output(colDims);
 
   for (UInt i = 0; i < 100; ++i) {
-    random.shuffle(input, input + inputSize);
+    input.randomize(0.05, random); //5% random ON
     sp1.compute(input, true, output);
   }
 
   // Now we reuse the last input to test after serialization
 
-  vector<UInt> activeColumnsBefore;
-  for (UInt i = 0; i < numColumns; ++i) {
-    if (output[i] == 1) {
-      activeColumnsBefore.push_back(i);
-    }
-  }
+  auto activeColumnsBefore = output.getSparse();
 
   // Save initial trained model
   stringstream ss;
@@ -2034,10 +1997,10 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
   for (UInt i = 0; i < 6; ++i) {
     // Create new input
-    random.shuffle(input, input + inputSize);
+    input.randomize(0.05, random);
 
     // Get expected output
-    UInt outputBaseline[numColumns];
+    SDR outputBaseline(output);
     sp1.compute(input, true, outputBaseline);
 
     // C - Next do old version
@@ -2050,7 +2013,7 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
       spTemp.loadFromStream_ar(ss);
 
       // Feed new record through
-      UInt outputC[numColumns];
+      SDR outputC({numColumns});
       spTemp.compute(input, true, outputC);
 
       // Serialize
@@ -2059,16 +2022,14 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
       testTimer.stop();
 
-      for (UInt j = 0; j < numColumns; ++j) {
-        EXPECT_EQ(outputBaseline[j], outputC[j]) << "Iteration " << i << ", Col=" << j << std::endl;
-
-      }
+      EXPECT_EQ(outputBaseline, outputC);
     }
   }
   ss.clear();
 
   cout << "[          ] Timing for SP serialization: " << testTimer.getElapsed() << "sec" << endl;
 }
+
 
 TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   // Initialize SP using the constructor
