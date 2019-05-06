@@ -112,11 +112,15 @@ Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
   if (name == "bottomUpOut" && args_.orColumnOutputs) {
     // It's size is numberOfCols.
     return region_dim;
-  } else if (name == "bottomUpOut" || name == "activeCells" || name == "predictedActiveCells") {
+  } else if (name == "bottomUpOut" || name == "activeCells" 
+          || name == "predictedActiveCells" || name == "predictiveCells") {
     // It's size is numberOfCols * args_.cellsPerColumn.
     // So insert a new dimension to what was provided by input.
     Dimensions dim = region_dim;
     dim.insert(dim.begin(), args_.cellsPerColumn);
+    return dim;
+  } else if (name == "anomaly") {
+    Dimensions dim{1};
     return dim;
   }
   return RegionImpl::askImplForOutputDimensions(name);
@@ -243,17 +247,28 @@ void TMRegion::compute() {
     if (args_.orColumnOutputs) { //output as columns
       sdr = tm_->cellsToColumns(sdr);
     }
-    NTA_DEBUG << "compute " << *out << std::endl;
+    NTA_DEBUG << "bottomUpOut " << *out << std::endl;
   }
   out = getOutput("activeCells");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     tm_->getActiveCells(out->getData().getSDR());
-    NTA_DEBUG << "compute " << *out << std::endl;
+    NTA_DEBUG << "active " << *out << std::endl;
   }
   out = getOutput("predictedActiveCells");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     tm_->getWinnerCells(out->getData().getSDR());
-    NTA_DEBUG << "compute " << *out << std::endl;
+    NTA_DEBUG << "winners " << *out << std::endl;
+  }
+  out = getOutput("anomaly");
+  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+    Real32* buffer = reinterpret_cast<Real32*>(out->getData().getBuffer());
+    buffer[0] = tm_->anomaly;
+    NTA_DEBUG << "anomaly " << *out << std::endl;
+  }
+  out = getOutput("predictiveCells");
+  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+    out->getData().getSDR() = tm_->getPredictiveCells();
+    NTA_DEBUG << "predictive " << *out << std::endl;
   }
 }
 
@@ -443,6 +458,16 @@ Spec *TMRegion::createSpec() {
                     ParameterSpec::ReadOnlyAccess)); // access
 
   ns->parameters.add(
+      "anomaly",
+      ParameterSpec("(Real) The anomaly Score computed for the current iteration. "
+                   "This is the same as the output anomaly.",
+                    NTA_BasicType_Real32,            // type
+                    1,                               // elementCount
+                    "",                              // constraints
+                    "",                              // defaultValue
+                    ParameterSpec::ReadOnlyAccess)); // access
+
+  ns->parameters.add(
       "orColumnOutputs",
       ParameterSpec("1 if the bottomUpOut is to be aggregated by column "
                     "by ORing all cells in a column.  Note that if this "
@@ -546,6 +571,25 @@ Spec *TMRegion::createSpec() {
                 false                 // isDefaultOutput
                 ));
 
+  ns->outputs.add(
+      "anomaly",
+      OutputSpec("The anomaly score for current iteration",
+                NTA_BasicType_Real32,    // type
+                1,                    // count 1 means a single value
+                false,                // isRegionLevel
+                false                 // isDefaultOutput
+                ));
+
+  ns->outputs.add(
+      "predictiveCells",
+      OutputSpec("The cells that are predicted. "
+                 "The width is 'numberOfCols' * 'cellsPerColumn'.",
+                NTA_BasicType_SDR,    // type
+                0,                    // count 0 means is dynamic
+                false,                // isRegionLevel
+                false                 // isDefaultOutput
+                ));
+
 
   /* ----- commands ------ */
   // commands TBD
@@ -630,6 +674,11 @@ Int32 TMRegion::getParameterInt32(const std::string &name, Int64 index) {
 
 Real32 TMRegion::getParameterReal32(const std::string &name, Int64 index) {
 
+    if (name == "anomaly") {
+      if (tm_)
+        return tm_->anomaly;
+      return -1.0f;
+    }
     if (name == "connectedPermanence") {
       if (tm_)
         return tm_->getConnectedPermanence();
@@ -793,8 +842,18 @@ void TMRegion::serialize(BundleIO &bundle) {
   f.write((const char*)&args_, sizeof(args_));
   f << columnDimensions_ << " ";
   f << std::endl;
+	// Need to save the output buffers
+  f << "outputs [";
+  std::map<std::string, Output *> outputs = region_->getOutputs();
+  for (auto iter : outputs) {
+    const Array &outputBuffer = iter.second->getData();
+    if (outputBuffer.getCount() != 0) {
+      f << iter.first << " ";
+      outputBuffer.save(f);
+    }
+  }
+  f << "] "; // end of all output buffers
   if (tm_) {
-    // Note: tm_ saves the output buffers
     tm_->save(f);
   }
   f << "~TMRegion ";
@@ -826,6 +885,21 @@ void TMRegion::deserialize(BundleIO &bundle) {
   f.ignore(1);
   f.read((char *)&args_, len);
   f >> columnDimensions_;
+	
+	// restore output buffers
+	f >> tag;
+  NTA_CHECK(tag == "outputs");
+  f.ignore(1);
+  NTA_CHECK(f.get() == '['); // start of outputs
+  while (true) {
+    f >> tag;
+    f.ignore(1);
+    if (tag == "]")
+      break;
+    Array& a = getOutput(tag)->getData();
+    a.load(f);
+  }
+
   f >> std::ws;  // ignore whitespace
 
   if (args_.init) {

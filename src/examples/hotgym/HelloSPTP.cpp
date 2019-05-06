@@ -106,7 +106,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     tEnc.stop();
 
     tRng.start();
-    input.addNoise(0.01, rnd); //change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
+    input.addNoise(0.01f, rnd); //change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
     tRng.stop();
 
     //SP (global x local)
