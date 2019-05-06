@@ -1886,19 +1886,15 @@ TEST(SpatialPoolerTest, testSerialization2) {
   const UInt inputSize = 200;
   const UInt numColumns = 200;
 
-  vector<UInt> inputDims{inputSize};
-  vector<UInt> colDims{numColumns};
-
   SpatialPooler sp1;
-  sp1.initialize(inputDims, colDims);
+  sp1.initialize({inputSize}, {numColumns});
 
   SDR input({inputSize});
   SDR output({numColumns});
 
   for (UInt i = 0; i < 100; ++i) {
-    auto& d = input.getSparse();
-    random.shuffle(d.begin(), d.end());
-    input.setSparse(d);
+    input.randomize(0.15f, random); //15% bits change
+    EXPECT_GT(input.getSum(), (size_t)0) << "No input!";
     sp1.compute(input, true, output);
   }
 
