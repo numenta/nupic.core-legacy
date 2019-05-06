@@ -86,8 +86,11 @@ using namespace nupic;
 namespace testing 
 {
 
-  static bool compareFiles(const std::string& p1, const std::string& p2);  // forward declaration, find body below
-	static void createTestData();                                            // forward declaration, find body below
+  //  forward declarations;  Find function body below.
+  static bool compareFiles(const std::string& p1, const std::string& p2); 
+	static void createTestData(size_t dataWidth,
+                             const std::string& test_input_file,
+                             const std::string& test_output_file);
 
 
   // Verify that all parameters are working.
@@ -126,7 +129,8 @@ namespace testing
     //
     std::string test_input_file = "TestOutputDir/TestInput.csv";
     std::string test_output_file = "TestOutputDir/TestOutput.csv";
-		createTestData(test_input_file);
+    size_t dataWidth = 10;
+		createTestData(dataWidth, test_input_file, test_output_file);
 
 
     VERBOSE << "Setup Network; add 2 regions and 1 link." << std::endl;
@@ -135,7 +139,7 @@ namespace testing
     // Explicit parameters:  (Yaml format...but since YAML is a superset of JSON, 
     // you can use JSON format as well)
 
-    std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor", "{activeOutputCount: "+std::to_string(dataWidth) +"}");
+    std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor", "{activeOutputCount: 10}");
     std::shared_ptr<Region> region3 = net.addRegion("region3", "VectorFileEffector", "{outputFile: '"+ test_output_file + "'}");
 
 
@@ -171,7 +175,7 @@ namespace testing
     Array r3InputArray = region3->getInputData("dataIn");
     ASSERT_TRUE(r3InputArray.getType() == NTA_BasicType_Real32)
       << "actual type is " << BasicType::getName(r3InputArray.getType());
-    ASSERT_TRUE(r3InputArray.getCount() == columnCount);
+    ASSERT_TRUE(r3InputArray.getCount() == dataWidth);
     const Real32 *buffer4 = (const Real32*)r3InputArray.getBuffer();
     for (size_t i = 0; i < r3InputArray.getCount(); i++)
     {
@@ -192,16 +196,17 @@ TEST(SPRegionTest, testSerialization)
 {
     std::string test_input_file = "TestOutputDir/TestInput.csv";
     std::string test_output_file = "TestOutputDir/TestOutput.csv";
-		createTestData(test_input_file);
+    size_t dataWidth = 10;
+		createTestData(dataWidth, test_input_file, test_output_file);
 		
 	  // use default parameters the first time
 	  Network net1;
 	  Network net3;
 
 	  VERBOSE << "Setup first network and save it" << std::endl;
-    std::shared_ptr<Region> n1region1 = net.addRegion("region1", "VectorFileSensor", "{activeOutputCount: "+std::to_string(dataWidth) +"}");
-    std::shared_ptr<Region> n1region3 = net.addRegion("region3", "VectorFileEffector", "{outputFile: '"+ test_output_file + "'}");
-    net.link("region1", "region3", "", "", "dataOut", "dataIn");
+    std::shared_ptr<Region> n1region1 = net1.addRegion("region1", "VectorFileSensor", "{activeOutputCount: "+std::to_string(dataWidth) +"}");
+    std::shared_ptr<Region> n1region3 = net1.addRegion("region3", "VectorFileEffector", "{outputFile: '"+ test_output_file + "'}");
+    net1.link("region1", "region3", "", "", "dataOut", "dataIn");
 
     VERBOSE << "Load Data." << std::endl;
     n1region1->executeCommand({ "loadFile", test_input_file });
@@ -213,7 +218,7 @@ TEST(SPRegionTest, testSerialization)
 	  net1.saveToFile_ar("TestOutputDir/VectorFileTest.stream");
 
 	  VERBOSE << "Restore into a second network and compare." << std::endl;
-    net2.loadFromFile("TestOutputDir/VectorFileTest.stream");
+    net3.loadFromFile("TestOutputDir/VectorFileTest.stream");
 	  std::shared_ptr<Region> n3region1 = net3.getRegion("region1");
 	  std::shared_ptr<Region> n3region3 = net3.getRegion("region3");
 
@@ -247,7 +252,9 @@ TEST(SPRegionTest, testSerialization)
 	                    std::istreambuf_iterator<char>(f2.rdbuf()));
 	}
 	
-	static void createTestData(const std::string& test_input_file) {
+	static void createTestData(size_t dataWidth,
+                             const std::string& test_input_file,
+                             const std::string& test_output_file) {
 	    // make a place to put test data.
     if (!Directory::exists("TestOutputDir")) Directory::create("TestOutputDir", false, true); 
     if (Path::exists(test_input_file)) Path::remove(test_input_file);
@@ -256,7 +263,6 @@ TEST(SPRegionTest, testSerialization)
     // Create a csv file to use as input.
     // The SDR data we will feed it will be a matrix with 1's on the diagonal
     // and we will feed it one row at a time, for 10 rows.
-    size_t dataWidth = 10;
     size_t dataRows = 10;
     std::ofstream  f(test_input_file.c_str());
     for (size_t i = 0; i < 10; i++) {

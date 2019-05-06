@@ -32,6 +32,7 @@
 //----------------------------------------------------------------------
 
 #include <fstream>
+#include <sstream>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <vector>
@@ -127,11 +128,12 @@ public:
   void load(std::istream &f);
 	
 	CerealAdapter;  // See Serializable.hpp
-	void save_ar(Archive& ar) { 
+  template<class Archive>
+	void save_ar(Archive& ar) const { 
 	  UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
 		size_t nRows = fileVectors_.size();
 		size_t nCols = scaleVector_.size();
-		std::stringsteam ss;
+		std::stringstream ss;
 	  saveVectors(ss, nCols, format);
 		std::string data = ss.str();
     ar(cereal::make_nvp("format", format),
@@ -141,6 +143,7 @@ public:
 		   cereal::make_nvp("offsetVector", offsetVector_),
 			 cereal::make_nvp("data", data));
 	}
+  template<class Archive>
 	void load(Archive& ar) { 
 	  UInt32 format;     // format (1 if labled, 2 if not)
 		size_t nRows;
