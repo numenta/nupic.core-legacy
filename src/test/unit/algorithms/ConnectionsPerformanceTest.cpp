@@ -102,7 +102,9 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
     tm.reset();
   }
 
+#ifdef NDEBUG
   NTA_CHECK(avgAnomAfter <= 0.021f) << "Anomaly scores diverged: "<< avgAnomAfter;
+#endif
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
   return (float)timer.getElapsed();
