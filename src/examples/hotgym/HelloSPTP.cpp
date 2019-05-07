@@ -33,6 +33,7 @@
 
 #include "nupic/types/Sdr.hpp"
 #include "nupic/utils/Random.hpp"
+#include "nupic/utils/MovingAverage.hpp"
 
 namespace examples {
 
@@ -45,6 +46,7 @@ using EncoderParameters = nupic::encoders::RDSE_Parameters;
 using nupic::algorithms::spatial_pooler::SpatialPooler;
 using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
 using nupic::algorithms::anomaly::AnomalyLikelihood;
+using nupic::util::MovingAverage;
 
 
 // work-load
@@ -89,6 +91,14 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR outSP(vector<UInt>{COLS});
   SDR outTM(spGlobal.getColumnDimensions()); 
   Real an = 0.0f, anLikely = 0.0f; //for anomaly:
+  MovingAverage avgAnom10(1000); //chose the window large enough so there's (some) periodicity in the patter, so TM can learn something
+  /*
+   * For example: fn = sin(x) -> periodic >= 2Pi ~ 6.3 && x+=0.01 -> 630 steps to 1st period -> window >= 630
+   */
+  Real avgAnomOld_ = 1.0;
+  NTA_CHECK(avgAnomOld_ >= avgAnom10.getCurrentAvg()) << "TM should learn and avg anomalies improve, but we got: "
+    << avgAnomOld_ << " and now: " << avgAnom10.getCurrentAvg(); //invariant
+
 
   // Start a stopwatch timer
   printf("starting:  %d iterations.", EPOCHS);
@@ -96,7 +106,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   //run
   float x=0.0f;
-  for (UInt e = 0; e < EPOCHS; e++) {
+  for (UInt e = 0; e < EPOCHS; e++) { //FIXME EPOCHS is actually steps, there's just 1 pass through data/epoch.
 
     //Encode
     tEnc.start();
@@ -135,6 +145,12 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
     //Anomaly (pure x likelihood)
     an = tm.anomaly;
+    avgAnom10.compute(an); //moving average
+    if(e % 1000 == 0) {
+      NTA_CHECK(avgAnomOld_ >= avgAnom10.getCurrentAvg()) << "TM should learn and avg anomalies improve, but we got: "
+        << avgAnomOld_ << " and now: " << avgAnom10.getCurrentAvg(); //invariant
+      avgAnomOld_ = avgAnom10.getCurrentAvg(); //update
+    }
     tAnLikelihood.start();
     anLikelihood.anomalyProbability(an); //FIXME AnLikelihood is 0.0, probably not working correctly
     tAnLikelihood.stop();
@@ -146,6 +162,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       cout << "Epoch = " << e << endl;
       cout << "Anomaly = " << an << endl;
+      cout << "Anomaly (avg) = " << avgAnom10.getCurrentAvg() << endl;
       cout << "Anomaly (Likelihood) = " << anLikely << endl;
       cout << "SP (g)= " << outSP << endl;
       cout << "SP (l)= " << outSPlocal <<endl;
@@ -180,7 +197,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       SDR goldTM({COLS});
       const SDR_sparse_t deterministicTM{
-        26, 75 
+        26, 75 //FIXME this is a really bad representation -> improve the params
       };
       goldTM.setSparse(deterministicTM);
 
@@ -194,6 +211,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
         NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; 
         NTA_CHECK(static_cast<UInt>(an *10000.0f) == static_cast<UInt>(goldAn *10000.0f)) //compare to 4 decimal places
 		<< "Deterministic output of Anomaly failed! " << an << "should be: " << goldAn;
+	NTA_CHECK(avgAnom10.getCurrentAvg() <= 0.82f) << "Deterministic average anom score failed:" << avgAnom10.getCurrentAvg();
 #endif
       }
 
