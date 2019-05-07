@@ -45,9 +45,9 @@ if __name__ == '__main__':
                                         ScalarEncoderParameters.__doc__))
     parser.add_argument('--activeBits', type=int, default=0,
                         help=ScalarEncoderParameters.activeBits.__doc__)
-    parser.add_argument('--minimum', type=float, required=True,
+    parser.add_argument('--minimum', type=float, default=0,
                         help=ScalarEncoderParameters.minimum.__doc__)
-    parser.add_argument('--maximum', type=float, required=True,
+    parser.add_argument('--maximum', type=float, default=0,
                         help=ScalarEncoderParameters.maximum.__doc__)
     parser.add_argument('--periodic', action='store_true', default=False,
                         help=ScalarEncoderParameters.periodic.__doc__)
@@ -60,8 +60,7 @@ if __name__ == '__main__':
     parser.add_argument('--sparsity', type=float, default=0,
                         help=ScalarEncoderParameters.sparsity.__doc__)
     parser.add_argument('--category', action='store_true',
-                        help="Assume the inputs are enumerated categories.\n" +
-                             "Only encodes integers, forces radius=1.")
+                        help=ScalarEncoderParameters.category.__doc__)
     args = parser.parse_args()
 
     #
@@ -77,14 +76,7 @@ if __name__ == '__main__':
     parameters.resolution = args.resolution
     parameters.size       = args.size
     parameters.sparsity   = args.sparsity
-
-    if args.category:
-        if parameters.radius == 0:
-            parameters.radius = 1
-            print("Category encoder requested, setting radius to 1.")
-        elif parameters.radius != 1:
-            print("Category encoder requested, but radius is not equal to 1!")
-            exit()
+    parameters.category   = args.category
 
     # Try initializing the encoder.
     try:
