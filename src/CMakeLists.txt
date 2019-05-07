@@ -251,6 +251,9 @@ add_library(${src_objlib} OBJECT
 )
 # shared libraries need PIC
 target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
+if(MSVC)
+  set_property(TARGET ${src_objlib} PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
+endif()
 target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
@@ -268,7 +271,9 @@ endif()
 
 set(src_lib_static nupic_core_solo)
 add_library(${src_lib_static} STATIC $<TARGET_OBJECTS:${src_objlib}>)
-
+if(MSVC)
+  set_property(TARGET ${src_lib_static} PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
+endif()
 #
 # Create the libnupic_core.a as a "combined" static library by merging nupic_core_static
 # with our external static libraries
