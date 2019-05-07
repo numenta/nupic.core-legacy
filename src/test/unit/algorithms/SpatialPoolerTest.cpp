@@ -1908,7 +1908,7 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
   for (UInt i = 0; i < 10; ++i) {
     // Create new input
-    input.randomize(0.24, random);
+    input.randomize(0.24f, random);
 
     // Get expected output
     SDR  outputBaseline({numColumns});
@@ -1979,7 +1979,7 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
   SDR output(colDims);
 
   for (UInt i = 0; i < 100; ++i) {
-    input.randomize(0.05, random); //5% random ON
+    input.randomize(0.05f, random); //5% random ON
     sp1.compute(input, true, output);
   }
 
@@ -1997,7 +1997,7 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
   for (UInt i = 0; i < 6; ++i) {
     // Create new input
-    input.randomize(0.05, random);
+    input.randomize(0.05f, random);
 
     // Get expected output
     SDR outputBaseline(output);
