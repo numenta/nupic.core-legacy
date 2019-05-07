@@ -42,8 +42,7 @@ public:
   inline std::vector<Real> getData() const {
     return slidingWindow_.getData(); }
 
-  inline Real getCurrentAvg() const {
-    return Real(total_) / Real(slidingWindow_.size()); }
+  Real getCurrentAvg() const; 
 
   Real compute(Real newValue);
 
@@ -96,7 +95,7 @@ public:
 
 private:
   SlidingWindow<Real> slidingWindow_;
-  Real total_;
+  Real total_ = 0.0f;
 };
 } // namespace util
 } // namespace nupic

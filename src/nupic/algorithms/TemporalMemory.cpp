@@ -624,7 +624,7 @@ void TemporalMemory::reset(void) {
   activeSegments_.clear();
   matchingSegments_.clear();
   segmentsValid_ = false;
-  anomaly_ = -1;
+  anomaly_ = -1.0f;
 }
 
 // ==============================
@@ -645,7 +645,7 @@ UInt TemporalMemory::columnForCell(const CellIdx cell) const {
 
 SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   auto correctDims = getColumnDimensions(); //nD column dimensions (eg 10x100)
-  correctDims.push_back(getCellsPerColumn()); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
+  correctDims.push_back(static_cast<CellIdx>(getCellsPerColumn())); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
 
   NTA_CHECK(cells.dimensions == correctDims) 
 	  << "cells.dimensions must match TM's (column dims x cellsPerColumn) ";
@@ -691,7 +691,7 @@ SDR TemporalMemory::getPredictiveCells() const {
     << "Call TM.activateDendrites() before TM.getPredictiveCells()!";
 
   auto correctDims = getColumnDimensions();
-  correctDims.push_back(getCellsPerColumn());
+  correctDims.push_back(static_cast<CellIdx>(getCellsPerColumn()));
   SDR predictive(correctDims);
 
   auto& predictiveCells = predictive.getSparse();
@@ -833,6 +833,7 @@ void TemporalMemory::save(ostream &outStream) const {
   saveFloat_(outStream, permanenceIncrement_);
   saveFloat_(outStream, permanenceDecrement_);
   saveFloat_(outStream, predictedSegmentDecrement_);
+  saveFloat_(outStream, anomaly_);
 
   outStream << extra_ << " ";
   outStream << maxSegmentsPerCell_ << " " << maxSynapsesPerSegment_ << " "
@@ -892,8 +893,6 @@ void TemporalMemory::save(ostream &outStream) const {
   }
   outStream << endl;
 
-  outStream << anomaly_ << endl;
-
   outStream << "~TemporalMemory" << endl;
 }
 
@@ -914,7 +913,7 @@ void TemporalMemory::load(istream &inStream) {
   inStream >> numColumns_ >> cellsPerColumn_ >> activationThreshold_ >>
       initialPermanence_ >> connectedPermanence_ >> minThreshold_ >>
       maxNewSynapseCount_ >> checkInputs_ >> permanenceIncrement_ >>
-      permanenceDecrement_ >> predictedSegmentDecrement_ >> extra_ >>
+      permanenceDecrement_ >> predictedSegmentDecrement_ >> anomaly_ >> extra_ >>
       maxSegmentsPerCell_ >> maxSynapsesPerSegment_ >> iteration_;
 
   connections.load(inStream);
@@ -1010,8 +1009,6 @@ void TemporalMemory::load(istream &inStream) {
   }
 
   lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
-
-  inStream >> anomaly_;
 
   inStream >> marker;
   NTA_CHECK(marker == "~TemporalMemory");

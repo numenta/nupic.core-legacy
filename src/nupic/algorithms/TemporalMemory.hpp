@@ -229,7 +229,7 @@ public:
    */
   void activateDendrites(const bool learn,
                          const sdr::SDR &extraActive, 
-			 const sdr::SDR &extraWinners);
+			                   const sdr::SDR &extraWinners);
 
   inline void activateDendrites(const bool learn = true) {
     const sdr::SDR extraActive(std::vector<UInt>{ extra });

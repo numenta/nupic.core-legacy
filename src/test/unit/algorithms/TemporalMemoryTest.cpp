@@ -1397,7 +1397,7 @@ TEST(TemporalMemoryTest, testCellsToColumns)
   tm.initialize(vector<UInt>{3}, 3); // TM 3 cols x 3 cells per col
 
   auto correctDims = tm.getColumnDimensions();
-  correctDims.push_back(tm.getCellsPerColumn());
+  correctDims.push_back(static_cast<UInt>(tm.getCellsPerColumn()));
   SDR v1(correctDims);
   v1.setSparse(SDR_sparse_t{4,5,8});
   const SDR_sparse_t expected {1u, 2u};
@@ -1643,7 +1643,7 @@ TEST(TemporalMemoryTest, testExtraActive) {
     /* checkInputs */                  true,
     /* extra */                        (UInt)(columns.size * 12u));
   auto tm_dimensions = tm.getColumnDimensions();
-  tm_dimensions.push_back( tm.getCellsPerColumn() );
+  tm_dimensions.push_back( static_cast<UInt>(tm.getCellsPerColumn()) );
   SDR extraActive( tm_dimensions );
   SDR extraWinners( tm_dimensions );
 

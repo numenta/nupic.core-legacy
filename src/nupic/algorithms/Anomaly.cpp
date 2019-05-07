@@ -39,14 +39,16 @@ Real computeRawAnomalyScore(const SDR& active,
 
   // Return 0 if no active columns are present
   if (active.getSum() == 0) {
-    return 0.0f;
+    return static_cast<Real>(0);
   }
 
   // Calculate and return percent of active columns that were not predicted.
   SDR both(active.dimensions);
   both.intersection(active, predicted);
 
-  return (active.getSum() - both.getSum()) / Real(active.getSum());
+  const Real score = (active.getSum() - both.getSum()) / static_cast<Real>(active.getSum());
+  NTA_ASSERT(score >= 0.0f and score <= 1.0f) << "Anomaly score out of bounds!";
+  return score;
 }
 
 }}} // End namespace
