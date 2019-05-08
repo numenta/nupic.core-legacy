@@ -27,14 +27,6 @@ import unittest
 
 from nupic.utils import MovingAverage
 
-try:
-  import capnp
-except ImportError:
-  capnp = None
-if capnp:
-  from nupic.movingaverage_capnp import MovingAverageProto
-
-
 
 class UtilsTest(unittest.TestCase):
   """testing common.utils"""
@@ -125,8 +117,7 @@ class UtilsTest(unittest.TestCase):
     self.assertListEqual(ma.getSlidingWindow(), [])
 
 
-  @unittest.skipUnless(
-      capnp, "pycapnp is not installed, skipping serialization test.")
+  @unittest.skip("pycapnp is not installed, skipping serialization test.")
   def testMovingAverageReadWrite(self):
     ma = MovingAverage(windowSize=3)
 

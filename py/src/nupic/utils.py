@@ -26,16 +26,8 @@ in our codebase.
 
 import numbers
 
-from nupic.serializable import Serializable
-try:
-  import capnp
-except ImportError:
-  capnp = None
-if capnp:
-  from nupic.movingaverage_capnp import MovingAverageProto
 
-
-class MovingAverage(Serializable):
+class MovingAverage:
   """Helper class for computing moving average and sliding window"""
 
 
@@ -119,24 +111,4 @@ class MovingAverage(Serializable):
 
   def __call__(self, value):
     return self.next(value)
-
-
-  @classmethod
-  def read(cls, proto):
-    movingAverage = object.__new__(cls)
-    movingAverage.windowSize = proto.windowSize
-    movingAverage.slidingWindow = list(proto.slidingWindow)
-    movingAverage.total = proto.total
-    return movingAverage
-
-
-  def write(self, proto):
-    proto.windowSize = self.windowSize
-    proto.slidingWindow = self.slidingWindow
-    proto.total = self.total
-
-
-  @classmethod
-  def getSchema(cls):
-    return MovingAverageProto
 
