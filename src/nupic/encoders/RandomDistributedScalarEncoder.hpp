@@ -35,8 +35,8 @@ namespace encoders {
  * Members "activeBits" & "sparsity" are mutually exclusive, specify exactly one
  * of them.
  *
- * Members "radius" & "resolution" are mutually exclusive, specify exactly one of
- * them.
+ * Members "radius", "resolution", & "category" are mutually exclusive, specify
+ * exactly one of them.
  */
 struct RDSE_Parameters
 {
@@ -70,6 +70,13 @@ struct RDSE_Parameters
    * resolution are guaranteed to have different representations.
    */
   Real resolution = 0.0f;
+
+  /**
+   * Member "category" means that the inputs are enumerated categories.
+   * If true then this encoder will only encode unsigned integers, and all
+   * inputs will have unique / non-overlapping representations.
+   */
+  bool category = false;
 
   /**
    * Member "seed" forces different encoders to produce different outputs, even

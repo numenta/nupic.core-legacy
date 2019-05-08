@@ -72,7 +72,6 @@ range, are not adjacent, and activity does not wrap around.)");
 
     py_ScalarEncParams.def_readwrite("category", &ScalarEncoderParameters::category,
 R"(This means that the inputs are enumerated categories.
-
 If true then this encoder will only encode unsigned integers, and all inputs
 will have unique / non-overlapping representations.)");
 
