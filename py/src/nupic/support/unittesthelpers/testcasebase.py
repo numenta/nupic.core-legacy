@@ -21,6 +21,8 @@
 
 # This script implements an extension of the unittest2.TestCase class to be
 # used as a base class unit tests
+# python 2to3 compatibility fix
+from __future__ import print_function #fixes "print('', file=xxx)" invalid syntax error in py2
 
 import copy
 import optparse

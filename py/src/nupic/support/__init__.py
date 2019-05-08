@@ -25,7 +25,8 @@ tools and plugins to extend standard library functionality.
 These modules should NOT be used by client applications.
 """
 
-
+# python 2to3 compatibility fix
+from __future__ import print_function #fixes "print('', file=xxx)" invalid syntax error in py2
 
 # Standard imports
 import os

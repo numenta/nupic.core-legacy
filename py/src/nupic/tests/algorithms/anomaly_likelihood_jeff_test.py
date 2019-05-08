@@ -27,6 +27,8 @@ on the board.
 Some of the tests currently don't pass and are marked as such. We understand why
 but fixing them needs a deeper algoerithm discussion.
 """
+# python 2to3 compatibility fix
+from __future__ import print_function #fixes "print('', file=xxx)" invalid syntax error in py2
 
 import copy
 import datetime
