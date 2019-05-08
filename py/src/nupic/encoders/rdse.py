@@ -93,7 +93,8 @@ if __name__ == '__main__':
         n_samples = int(args.maximum - args.minimum + 1)
     else:
         n_samples = (args.maximum - args.minimum) / enc.parameters.resolution
-        n_samples = int(round( 5 * n_samples ))
+        oversample = 2 # Use more samples than needed to avoid aliasing & artifacts.
+        n_samples  = int(round( oversample * n_samples ))
     sdrs = []
     for i in np.linspace(args.minimum, args.maximum, n_samples):
       sdrs.append( enc.encode( i ) )
