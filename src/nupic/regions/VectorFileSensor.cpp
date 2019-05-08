@@ -72,10 +72,9 @@ VectorFileSensor::VectorFileSensor(BundleIO &bundle, Region *region)
 
 
 void VectorFileSensor::initialize() {
+  // NOTE: this is not called after deserialize.
   NTA_CHECK(region_ != nullptr);
   dataOut_ = region_->getOutput("dataOut")->getData();
-  categoryOut_ = region_->getOutput("categoryOut")->getData();
-  resetOut_ = region_->getOutput("resetOut")->getData();
 
   if (activeOutputCount_ == 0)
     activeOutputCount_ = (UInt32)dataOut_.getCount();
@@ -93,6 +92,7 @@ VectorFileSensor::~VectorFileSensor() {}
 void VectorFileSensor::compute() {
   // It's not necessarily an error to have no outputs. In this case we just
   // return
+  dataOut_ = region_->getOutput("dataOut")->getData();
   if (dataOut_.getCount() == 0)
     return;
 
@@ -119,6 +119,7 @@ void VectorFileSensor::compute() {
   UInt offset = 0;
 
   if (hasCategoryOut_) {
+    categoryOut_ = region_->getOutput("categoryOut")->getData();
     Real *categoryOut = reinterpret_cast<Real *>(categoryOut_.getBuffer());
     vectorFile_.getRawVector((nupic::UInt)curVector_, categoryOut, offset, 1);
     offset++;
@@ -126,6 +127,7 @@ void VectorFileSensor::compute() {
   }
 
   if (hasResetOut_) {
+    resetOut_ = region_->getOutput("resetOut")->getData();
     Real *resetOut = reinterpret_cast<Real *>(resetOut_.getBuffer());
     vectorFile_.getRawVector((nupic::UInt)curVector_, resetOut, offset, 1);
     offset++;
@@ -294,6 +296,17 @@ void VectorFileSensor::serialize(BundleIO &bundle) {
     << ((filename_ == "")?std::string("empty"):filename_) << " "
     << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " "
     << ((recentFile_ == "")?std::string("empty"):recentFile_) << std::endl;
+  f << "outputs [";
+  std::map<std::string, Output *> outputs = region_->getOutputs();
+  for (auto iter : outputs) {
+    const Array &outputBuffer = iter.second->getData();
+    if (outputBuffer.getCount() != 0) {
+      f << iter.first << " ";
+      outputBuffer.save(f);
+    }
+  }
+  f << "] "; // end of all output buffers
+  
   f << "[" << std::endl;
   vectorFile_.save(f);
   f << "]" << std::endl;
@@ -309,6 +322,18 @@ void VectorFileSensor::deserialize(BundleIO &bundle) {
   if (filename_ == "empty") filename_ = "";
   if (scalingMode_ == "empty") scalingMode_ = "";
   if (recentFile_ == "empty") recentFile_ = "";
+  f >> tag;
+  NTA_CHECK(tag == "outputs");
+  f.ignore(1);
+  NTA_CHECK(f.get() == '['); // start of outputs
+  while (true) {
+    f >> tag;
+    f.ignore(1);
+    if (tag == "]")
+      break;
+    Array& a = getOutput(tag)->getData();
+    a.load(f);
+  }
   f >> tag;
   NTA_CHECK(tag == "[");
   f.ignore(1);

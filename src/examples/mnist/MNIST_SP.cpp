@@ -85,7 +85,7 @@ void setup() {
   sp.connections.save( dump );
   dump.close();
 
-  clsr.initialize( /* alpha */ .001);
+  clsr.initialize( /* alpha */ 0.001f);
 
   dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(string("../ThirdParty/mnist_data/mnist-src/")); //from CMake
 }

@@ -21,7 +21,7 @@ TEST(DISABLED_AnomalyLikelihood, SelectModeLikelihood)
 
   //real likelihood returned here
   for(int i=0; i< 10; i++) {
-    likelihood = a.anomalyProbability(0.33,  ++ts);
+    likelihood = a.anomalyProbability(0.33f,  ++ts);
   }
   ASSERT_FLOAT_EQ(likelihood, 0.1f); //TODO port likelihood tests here
 };
