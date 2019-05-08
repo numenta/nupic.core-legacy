@@ -125,6 +125,11 @@ using namespace nupic::algorithms::connections;
         }, "Calculate the active cells, using the current active columns and dendrite segments.Grow and reinforce synapses."
             , py::arg("activeColumns"), py::arg("learn") = true);
 
+        py_HTM.def("compute", [](HTM_t& self, const SDR &activeColumns, bool learn)
+            { self.compute(activeColumns, learn); },
+                py::arg("activeColumns"),
+                py::arg("learn") = true);
+
         py_HTM.def("compute", [](HTM_t& self, const SDR &activeColumns, bool learn,
                                  const SDR &extraActive, const SDR &extraWinners)
             { self.compute(activeColumns, learn, extraActive, extraWinners); });
@@ -144,9 +149,7 @@ using namespace nupic::algorithms::connections;
         });
 
         py_HTM.def("getPredictiveCells", [](const HTM_t& self)
-        {
-            return self.getPredictiveCells();
-        });
+            { return self.getPredictiveCells();});
 
         py_HTM.def("getWinnerCells", [](const HTM_t& self)
         {
@@ -156,14 +159,10 @@ using namespace nupic::algorithms::connections;
         });
 
         py_HTM.def("getActiveSegments", [](const HTM_t& self)
-        {
-            return self.getActiveSegments();
-        });
+            { return self.getActiveSegments(); });
 
         py_HTM.def("getMatchingSegments", [](const HTM_t& self)
-        {
-            return self.getMatchingSegments();
-        });
+            { return self.getMatchingSegments(); });
 
         py_HTM.def("cellsForColumn", [](HTM_t& self, UInt columnIdx)
         {
@@ -180,9 +179,9 @@ using namespace nupic::algorithms::connections;
 
         py_HTM.def_property_readonly("extra", [](const HTM_t &self) { return self.extra; } );
 
-	py_HTM.def_property_readonly("anomaly", [](const HTM_t &self) { return self.anomaly; }, 
-	  "Anomaly score updated with each TM::compute() call. "	
-	);
+        py_HTM.def_property_readonly("anomaly", [](const HTM_t &self) { return self.anomaly; },
+          "Anomaly score updated with each TM::compute() call. "
+        );
     }
 
 } // namespace nupic_ext
