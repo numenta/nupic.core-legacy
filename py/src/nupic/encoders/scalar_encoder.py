@@ -45,9 +45,9 @@ if __name__ == '__main__':
                                         ScalarEncoderParameters.__doc__))
     parser.add_argument('--activeBits', type=int, default=0,
                         help=ScalarEncoderParameters.activeBits.__doc__)
-    parser.add_argument('--minimum', type=float, required=True,
+    parser.add_argument('--minimum', type=float, default=0,
                         help=ScalarEncoderParameters.minimum.__doc__)
-    parser.add_argument('--maximum', type=float, required=True,
+    parser.add_argument('--maximum', type=float, default=0,
                         help=ScalarEncoderParameters.maximum.__doc__)
     parser.add_argument('--periodic', action='store_true', default=False,
                         help=ScalarEncoderParameters.periodic.__doc__)
@@ -59,6 +59,8 @@ if __name__ == '__main__':
                         help=ScalarEncoderParameters.size.__doc__)
     parser.add_argument('--sparsity', type=float, default=0,
                         help=ScalarEncoderParameters.sparsity.__doc__)
+    parser.add_argument('--category', action='store_true',
+                        help=ScalarEncoderParameters.category.__doc__)
     args = parser.parse_args()
 
     #
@@ -74,6 +76,7 @@ if __name__ == '__main__':
     parameters.resolution = args.resolution
     parameters.size       = args.size
     parameters.sparsity   = args.sparsity
+    parameters.category   = args.category
 
     # Try initializing the encoder.
     try:
@@ -88,9 +91,12 @@ if __name__ == '__main__':
     #
     # Run the encoder and measure some statistics about its output.
     #
+    if args.category:
+        n_samples = int(enc.parameters.maximum - enc.parameters.minimum + 1)
+    else:
+        n_samples = (enc.parameters.maximum - enc.parameters.minimum) / enc.parameters.resolution
+        n_samples = int(round( 5 * n_samples ))
     sdrs = []
-    n_samples = (enc.parameters.maximum - enc.parameters.minimum) / enc.parameters.resolution
-    n_samples = int(round( 5 * n_samples ))
     for i in np.linspace(enc.parameters.minimum, enc.parameters.maximum, n_samples):
       sdrs.append( enc.encode( i ) )
 
