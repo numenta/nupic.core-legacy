@@ -123,9 +123,10 @@ class DateEncoderTest(unittest.TestCase):
   def testWeekend(self):
     """ Test weekend encoder. """
     e  = DateEncoder(customDays=(21, ["sat", "sun", "fri"]))
-    e2 = DateEncoder(weekend=(21, 1))
+    e2 = DateEncoder(weekend=21)
 
     d = datetime.datetime(1988, 5, 29, 20, 00)
+    print(d)
     self.assertEqual( e.encode(d), e2.encode(d) )
 
     for _ in range(300):
