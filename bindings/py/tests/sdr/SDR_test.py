@@ -304,6 +304,11 @@ class SdrTest(unittest.TestCase):
         z = SDR(1000).randomize(.5, Random(77))
         assert( x == z )
 
+    def testRandomizeReturn(self):
+        X = SDR( 100 )
+        Y = X.randomize( .2 )
+        assert( X is Y )
+
     def testAddNoise(self):
         A = SDR((103,))
         B = SDR((103,))
@@ -402,6 +407,13 @@ class IntersectionTest(unittest.TestCase):
         B.randomize(  .50 )
         A.intersection( B, A )
         assert( A.getSparsity() == .5 )
+
+    def testReturn(self):
+        A = SDR( 10 ).randomize( .5 )
+        B = SDR( 10 ).randomize( .5 )
+        X = SDR( A.dimensions )
+        Y = X.intersection( A, B )
+        assert( X is Y )
 
     def testSparsity(self):
         test_cases = [

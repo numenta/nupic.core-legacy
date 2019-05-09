@@ -232,9 +232,9 @@ I.E.  sparsity = sdr.getSum() / sdr.size)");
 "Calculates the number of true bits which both SDRs have in common.");
 
         py_SDR.def("randomize",
-            [](SDR &self, Real sparsity, UInt seed) {
+            [](SDR *self, Real sparsity, UInt seed) {
             Random rng( seed );
-            self.randomize( sparsity, rng );
+            self->randomize( sparsity, rng );
             return self; },
 R"(Make a random SDR, overwriting the current value of the SDR.  The result has
 uniformly random activations.
@@ -250,8 +250,8 @@ special, it is replaced with the system time  The default seed is 0.)",
 
         py::module::import("nupic.bindings.math");
         py_SDR.def("randomize",
-            [](SDR &self, Real sparsity, Random rng) {
-            self.randomize( sparsity, rng );
+            [](SDR *self, Real sparsity, Random rng) {
+            self->randomize( sparsity, rng );
             return self; },
 R"(This overload accepts Random Number Generators (RNG) intead of a random seed.
 RNGs must be instances of "nupic.bindings.math.Random".)",
@@ -323,8 +323,8 @@ Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
 R"(See class nupic.bindings.sdr.Reshape)");
 
 
-        py_SDR.def("intersection", [](SDR &self, SDR& inp1, SDR& inp2)
-            { self.intersection({ &inp1, &inp2}); },
+        py_SDR.def("intersection", [](SDR *self, SDR& inp1, SDR& inp2)
+            { self->intersection({ &inp1, &inp2}); return self; },
 R"(This method calculates the set intersection of the active bits in each input
 SDR.
 
@@ -345,8 +345,8 @@ Example Usage:
     X.intersection( A, B )
     X.sparse -> [2, 3]
 )");
-        py_SDR.def("intersection", [](SDR &self, vector<const SDR*> inputs)
-            { self.intersection(inputs); });
+        py_SDR.def("intersection", [](SDR *self, vector<const SDR*> inputs)
+            { self->intersection(inputs); return self; });
 
         py_SDR.def("concatenate", [](SDR &self, const SDR& inp1, const SDR& inp2, UInt axis)
             { self.concatenate(inp1, inp2, axis); },
