@@ -240,6 +240,9 @@ class SdrTest(unittest.TestCase):
             pass
         else:
             self.fail()
+        # Check return value.
+        D = A.setSDR( B )
+        assert( D is A )
 
     def testGetSum(self):
         A = SDR((103,))
@@ -316,18 +319,21 @@ class SdrTest(unittest.TestCase):
         B.setSDR( A )
         A.addNoise( .5 )
         assert( A.getOverlap(B) == 5 )
-
+        # Check different seed makes different results.
         A.randomize( .3, 42 )
         B.randomize( .3, 42 )
         A.addNoise( .5 )
         B.addNoise( .5 )
         assert( A != B )
-
+        # Check same seed makes same results.
         A.randomize( .3, 42 )
         B.randomize( .3, 42 )
         A.addNoise( .5, 42 )
         B.addNoise( .5, 42 )
         assert( A == B )
+        # Check that it returns itself.
+        C = A.addNoise( .5 )
+        assert( C is A )
 
     def testStr(self):
         A = SDR((103,))

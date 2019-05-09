@@ -211,9 +211,10 @@ dimension in the SDR. The inner lists contain the coordinates of each true bit.
 The inner lists run in parallel. This format is useful because it contains the
 location of each true bit inside of the SDR's dimensional space.)");
 
-        py_SDR.def("setSDR", [](SDR &self, SDR &other) {
-            NTA_CHECK( self.dimensions == other.dimensions );
-            self.setSDR( other ); },
+        py_SDR.def("setSDR", [](SDR *self, SDR &other) {
+            NTA_CHECK( self->dimensions == other.dimensions );
+            self->setSDR( other );
+            return self; },
 R"(Deep Copy the given SDR to this SDR.  This overwrites the current value of this
 SDR.  This SDR and the given SDR will have no shared data and they can be
 modified without affecting each other.)");
@@ -258,9 +259,10 @@ RNGs must be instances of "nupic.bindings.math.Random".)",
                 py::arg("sparsity"),
                 py::arg("rng"));
 
-        py_SDR.def("addNoise", [](SDR &self, Real fractionNoise, UInt seed = 0) {
+        py_SDR.def("addNoise", [](SDR *self, Real fractionNoise, UInt seed) {
             Random rng( seed );
-            self.addNoise( fractionNoise, rng ); },
+            self->addNoise( fractionNoise, rng );
+            return self; },
 R"(Modify the SDR by moving a fraction of the active bits to different
 locations.  This method does not change the sparsity of the SDR, it moves
 the locations of the true values.  The resulting SDR has a controlled
