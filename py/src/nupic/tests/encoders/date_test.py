@@ -26,6 +26,7 @@ import numpy
 import unittest
 
 from nupic.encoders.date import DateEncoder
+from nupic.bindings.sdr import SDR
 
 
 class DateEncoderTest(unittest.TestCase):
@@ -54,16 +55,21 @@ class DateEncoderTest(unittest.TestCase):
     # min = 48min 14:55 is minute 14*60 + 55 = 895; 895/48 = bit 18.6
     # should be 30 bits total (30 * 48 minutes = 24 hours)
     timeOfDayExpected = (
-      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0])
+      [0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,1,1,1,1,
+       1,0,0,0,0,0,0,0,0,0])
     expected = numpy.array(seasonExpected +
                            dayOfWeekExpected +
                            weekendExpected +
                            timeOfDayExpected)
+    expectedSdr = SDR(51)
+    expectedSdr.dense = expected
 
     print(enc.timeOfDayEncoder.size)
-    print(expected)
-    print(bits.dense)
-    self.assertEqual(expected, bits.dense)
+    print(expectedSdr)
+    print(bits)
+    self.assertEqual(expectedSdr.size, bits.size)
+    self.assertEqual(expectedSdr, bits)
 
 
   def testMissingValues(self):
