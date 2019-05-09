@@ -26,8 +26,17 @@ import numpy
 import unittest
 
 from nupic.encoders.date import DateEncoder
-from nupic.bindings.sdr import SDR
 
+"""
+def __init__(self,
+season=0,
+dayOfWeek=0,
+weekend=0,
+holiday=0,
+timeOfDay=0,
+customDays=0,
+holidays=((12, 25),)):
+"""
 
 class DateEncoderTest(unittest.TestCase):
   """ Unit tests for DateEncoder class. """
@@ -58,18 +67,94 @@ class DateEncoderTest(unittest.TestCase):
       [0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,1,1,1,1,
        1,0,0,0,0,0,0,0,0,0])
-    expected = numpy.array(seasonExpected +
-                           dayOfWeekExpected +
-                           weekendExpected +
-                           timeOfDayExpected)
-    expectedSdr = SDR(51)
-    expectedSdr.dense = expected
+    expected = seasonExpected + dayOfWeekExpected + weekendExpected + timeOfDayExpected
 
     print(enc.timeOfDayEncoder.size)
-    print(expectedSdr)
-    print(bits)
-    self.assertEqual(expectedSdr.size, bits.size)
-    self.assertEqual(expectedSdr, bits)
+    print(expected)
+    print(bits.dense.tolist())
+    self.assertEqual(bits.size, 51)
+    self.assertEqual(expected, bits.dense.tolist())
+
+
+
+  def testDayOfWeek(self):
+    """ Creating date encoder instance. """
+    # 1 bit for days in a week (x7 days -> 7 bits), no other fields encoded
+    enc = DateEncoder(dayOfWeek=1)
+    # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
+    # 2010, 14:55
+    d = datetime.datetime(2010, 11, 4, 14, 55)
+    # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
+    bits = enc.encode(d)
+
+    # Week is MTWTFSS contrary to localtime documentation, Monday = 0 (for
+    # python datetime.datetime.timetuple()
+    dayOfWeekExpected = [0,0,0,1,0,0,0] #Thu
+
+    expected = dayOfWeekExpected
+    self.assertEqual(bits.size, 7)
+    self.assertEqual(expected, bits.dense.tolist())
+
+
+  def testSeason(self):
+    """ Creating date encoder instance. """
+    # 3 bits for season (x4 seasons -> 12 bits), no other fields encoded
+    enc = DateEncoder(season=3)
+    # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
+    # 2010, 14:55
+    d = datetime.datetime(2010, 11, 4, 14, 55)
+    # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
+    bits = enc.encode(d)
+
+    # Season is aaabbbcccddd (1 bit/month)
+    seasonExpected = [0,0,0,0,0,0,0,0,0,1,1,1]
+
+    expected = seasonExpected
+    self.assertEqual(bits.size, 12)
+    self.assertEqual(expected, bits.dense.tolist())
+
+
+  def testWeekend(self):
+    """ Creating date encoder instance. """
+    # 1 bit for weekend (x2 possible values (True=is weekend/False=is not)-> 2 bits), no other fields encoded
+    enc = DateEncoder(weekend=1)
+    # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
+    # 2010, 14:55
+    d = datetime.datetime(2010, 11, 4, 14, 55)
+    # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
+    bits = enc.encode(d)
+ 
+    # Not a weekend, so it should be "False"
+    weekendExpected = [1, 0] # "[1,0] = False (category1), [0,1] = True (category2)
+
+    expected = weekendExpected
+    self.assertEqual(bits.size, 2)
+    self.assertEqual(expected, bits.dense.tolist())
+
+
+  def testTime(self):
+    """ Creating date encoder instance. """
+    # 3 bits for season (x4 seasons -> 12 bits), no other fields encoded
+    enc = DateEncoder(timeOfDay=5)
+    # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
+    # 2010, 14:55
+    d = datetime.datetime(2010, 11, 4, 14, 55)
+    # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
+    bits = enc.encode(d)
+
+    # Time of day has radius of 4 hours and w of 5,
+    # so each bit = 240/5min = 48min. 
+    # 14:55 is minute 14*60 + 55 = 895; 895/48 = cetral bit= bit 18.6 ->18 #FIXME we should round this, so becomes bit19
+    # We activate our 5(=w)bits around the central bit -> thus [18-(5-1)/2, 18+(5-1)/2] = [16, 20]
+    # Encoder should be 30 bits total (30 * 48 minutes = 24 hours)
+    timeOfDayExpected = (
+      [0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,1,1,1,1,
+       1,0,0,0,0,0,0,0,0,0])
+
+    expected = timeOfDayExpected
+    self.assertEqual(bits.size, 30)
+    self.assertEqual(expected, bits.dense.tolist())
 
 
   def testMissingValues(self):
@@ -88,16 +173,16 @@ class DateEncoderTest(unittest.TestCase):
     notholiday = [1,1,1,1,1,0,0,0,0,0]
     holiday2   = [0,0,0,1,1,1,1,1,0,0]
 
-    d = datetime.datetime(2010, 12, 25, 4, 55)
+    d = datetime.datetime(2010, 12, 25, 4, 55) #Christmas day 25th Dec, a default holiday
     assert(all( e.encode(d).dense == holiday ))
 
-    d = datetime.datetime(2008, 12, 27, 4, 55)
+    d = datetime.datetime(2008, 12, 27, 4, 55) #12/27 is not a holiday
     assert(all( e.encode(d).dense == notholiday ))
 
-    d = datetime.datetime(1999, 12, 26, 8, 00)
+    d = datetime.datetime(1999, 12, 26, 8, 00) #day after holiday, approaching
     assert(all( e.encode(d).dense == holiday2 ))
 
-    d = datetime.datetime(2011, 12, 24, 16, 00)
+    d = datetime.datetime(2011, 12, 24, 16, 00) #day before holiday, approaching
     assert(all( e.encode(d).dense == holiday2 ))
 
 
