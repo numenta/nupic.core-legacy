@@ -219,5 +219,14 @@ class DateEncoderTest(unittest.TestCase):
       self.assertEqual( e.encode(d), e2.encode(d) )
 
 
+  def testYearsDiffer(self):
+    """ Creating date encoder instance. """
+    enc = DateEncoder(season=1, dayOfWeek=1, weekend=1) #all info for recognizing days 
+    # 1.1. 2007 & 2018 was Monday, can you recognize the days?
+    first2007 = datetime.datetime(2007, 1, 1) #FIXME enc fails to encode this? 
+    first2018 = datetime.datetime(2018, 1, 1)
+    self.assertNotEqual(enc.encode(first2007).dense.tolist(), 
+                        enc.encode(first2018).dense.tolist()) 
+
 if __name__ == "__main__":
   unittest.main()
