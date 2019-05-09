@@ -63,6 +63,7 @@ class DateEncoder:
     Argument weekend: (int) Is a weekend or not. A block of bits either 0s or 1s.
 
         - (int) width of attribute
+        - TODO remove and replace by customDays=(width, ["Saturday", "Sunday"]) ?
 
     Argument holiday: (int) Is a holiday or not, boolean: 0, 1
 
