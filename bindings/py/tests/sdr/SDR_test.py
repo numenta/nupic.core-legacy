@@ -480,6 +480,17 @@ class ConcatenationTest(unittest.TestCase):
         CD.concatenate([C, D], axis=1)
         CD.concatenate(inputs=[C, D], axis=1)
 
+    def testReturn(self):
+        """
+        Check that the following short hand will work, and will not incur extra copying:
+        >>> C = SDR( A.size + B.size ).concatenate( A.flatten(), B.flatten() )
+        """
+        A = SDR(( 10, 10 )).randomize( .5 )
+        B = SDR(( 10, 10 )).randomize( .5 )
+        C = SDR( A.size + B.size )
+        D = C.concatenate( A.flatten(), B.flatten() )
+        assert( C is D )
+
     def testMirroring(self):
         A = SDR( 100 )
         A.randomize( .05 )
