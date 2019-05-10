@@ -240,6 +240,9 @@ class SdrTest(unittest.TestCase):
             pass
         else:
             self.fail()
+        # Check return value.
+        D = A.setSDR( B )
+        assert( D is A )
 
     def testGetSum(self):
         A = SDR((103,))
@@ -304,6 +307,11 @@ class SdrTest(unittest.TestCase):
         z = SDR(1000).randomize(.5, Random(77))
         assert( x == z )
 
+    def testRandomizeReturn(self):
+        X = SDR( 100 )
+        Y = X.randomize( .2 )
+        assert( X is Y )
+
     def testAddNoise(self):
         A = SDR((103,))
         B = SDR((103,))
@@ -311,18 +319,21 @@ class SdrTest(unittest.TestCase):
         B.setSDR( A )
         A.addNoise( .5 )
         assert( A.getOverlap(B) == 5 )
-
+        # Check different seed makes different results.
         A.randomize( .3, 42 )
         B.randomize( .3, 42 )
         A.addNoise( .5 )
         B.addNoise( .5 )
         assert( A != B )
-
+        # Check same seed makes same results.
         A.randomize( .3, 42 )
         B.randomize( .3, 42 )
         A.addNoise( .5, 42 )
         B.addNoise( .5, 42 )
         assert( A == B )
+        # Check that it returns itself.
+        C = A.addNoise( .5 )
+        assert( C is A )
 
     def testStr(self):
         A = SDR((103,))
@@ -403,6 +414,13 @@ class IntersectionTest(unittest.TestCase):
         A.intersection( B, A )
         assert( A.getSparsity() == .5 )
 
+    def testReturn(self):
+        A = SDR( 10 ).randomize( .5 )
+        B = SDR( 10 ).randomize( .5 )
+        X = SDR( A.dimensions )
+        Y = X.intersection( A, B )
+        assert( X is Y )
+
     def testSparsity(self):
         test_cases = [
             ( 0.5,  0.5 ),
@@ -467,6 +485,17 @@ class ConcatenationTest(unittest.TestCase):
         CD.concatenate(C, D, axis=1)
         CD.concatenate([C, D], axis=1)
         CD.concatenate(inputs=[C, D], axis=1)
+
+    def testReturn(self):
+        """
+        Check that the following short hand will work, and will not incur extra copying:
+        >>> C = SDR( A.size + B.size ).concatenate( A.flatten(), B.flatten() )
+        """
+        A = SDR(( 10, 10 )).randomize( .5 )
+        B = SDR(( 10, 10 )).randomize( .5 )
+        C = SDR( A.size + B.size )
+        D = C.concatenate( A.flatten(), B.flatten() )
+        assert( C is D )
 
     def testMirroring(self):
         A = SDR( 100 )
