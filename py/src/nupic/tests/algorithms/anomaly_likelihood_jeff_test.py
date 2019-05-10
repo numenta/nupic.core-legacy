@@ -35,7 +35,7 @@ import datetime
 import unittest
 
 from nupic.algorithms import anomaly_likelihood as an
-from nupic.support.unittesthelpers.testcasebase import TestCaseBase
+from unittest import TestCase as TestCaseBase
 
 
 

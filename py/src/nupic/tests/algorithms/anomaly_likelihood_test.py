@@ -34,8 +34,7 @@ import unittest
 import mock
 
 from nupic.algorithms import anomaly_likelihood as an
-from nupic.support.unittesthelpers.testcasebase import TestCaseBase
-
+from unittest import TestCase as TestCaseBase
 
 def _sampleDistribution(params, numSamples, verbosity=0):
   """
