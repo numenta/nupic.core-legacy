@@ -657,6 +657,8 @@ void Network::load(std::istream &f) {
 
     // The Links will not be initialized. So must call net.initialize() after load().
   } // links
+ 
+
 
   f >> tag;
   NTA_CHECK(tag == "]");  // end of links
@@ -669,7 +671,12 @@ void Network::load(std::istream &f) {
 
 void Network::post_load() {
   // Post Load operations
-  initialize();   //  re-initialize everything
+  for (size_t i = 0; i < regions_.getCount(); i++) {
+    // Create the input buffers.
+    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
+    r->evaluateLinks();
+  }
+
   NTA_CHECK(maxEnabledPhase_ < phaseInfo_.size())
       << "maxphase: " << maxEnabledPhase_ << " size: " << phaseInfo_.size();
 
@@ -702,6 +709,10 @@ void Network::post_load() {
       }
     }
   }
+
+  // If we made it this far without an exception, we are good to go.
+  initialized_ = true;
+
 }
 
 void Network::enableProfiling() {

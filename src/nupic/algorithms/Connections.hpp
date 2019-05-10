@@ -519,15 +519,14 @@ public:
     }
   }
 
-
-  // Debugging
-
   /**
    * Gets the number of cells.
    *
    * @retval Number of cells.
    */
   size_t numCells() const { return cells_.size(); }
+
+  Permanence getConnectedThreshold() const { return connectedThreshold_; }
 
   /**
    * Gets the number of segments.

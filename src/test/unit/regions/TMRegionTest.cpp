@@ -81,7 +81,7 @@ static bool verbose = false; // turn this on to print extra stuff for debugging 
 
 // The following string should contain a valid expected Spec - manually
 // verified.
-#define EXPECTED_SPEC_COUNT 17 // The number of parameters expected in the TMRegion Spec
+#define EXPECTED_SPEC_COUNT 18 // The number of parameters expected in the TMRegion Spec
 
 using namespace nupic;
 using namespace nupic::utils;
@@ -260,6 +260,11 @@ TEST(TMRegionTest, testLinking) {
   EXPECT_EQ(r1OutputArray.getCount(), dataWidth);
   EXPECT_TRUE(r1OutputArray.getType() == NTA_BasicType_Real32);
 
+  // check anomaly
+  EXPECT_FLOAT_EQ(region3->getParameterReal32("anomaly"), 1.0f);
+  const Real32 *anomalyBuffer = reinterpret_cast<const Real32*>(region3->getOutputData("anomaly").getBuffer());
+  EXPECT_FLOAT_EQ(anomalyBuffer[0], 0.0f); // Note: it is zero because no links are connected to this output.
+
 
   VERBOSE << "  SPRegion Output " << std::endl;
   Array r2OutputArray = region2->getOutputData("bottomUpOut");
@@ -370,6 +375,7 @@ TEST(TMRegionTest, testSerialization) {
     net2 = new Network();
     net2->loadFromFile("TestOutputDir/tmRegionTest.stream");
 
+
     VERBOSE << "checked restored network" << std::endl;
     std::shared_ptr<Region> n2region2 = net2->getRegion("region2");
     ASSERT_TRUE(n2region2->getType() == "TMRegion")
@@ -377,6 +383,7 @@ TEST(TMRegionTest, testSerialization) {
            "TMRegion, found "
         << n2region2->getType();
 
+    EXPECT_FLOAT_EQ(n2region2->getParameterReal32("anomaly"), 1.0f);
     EXPECT_TRUE(compareParameters(n2region2, parameterMap))
         << "Conflict when comparing TMRegion parameters after restore with "
            "before save.";

@@ -25,6 +25,7 @@
 
 #include <cstdint> //uint8_t
 #include <iostream>
+#include <fstream>      // std::ofstream
 #include <vector>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
@@ -79,7 +80,12 @@ void setup() {
     /* spVerbosity */                 1u,
     /* wrapAround */                  false); //wrap is false for this problem
 
-  clsr.initialize( /* alpha */ .001f);
+  // Save the connections to file for postmortem analysis.
+  ofstream dump("mnist_sp_initial.connections", ofstream::binary | ofstream::trunc | ofstream::out);
+  sp.connections.save( dump );
+  dump.close();
+
+  clsr.initialize( /* alpha */ 0.001f);
 
   dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(string("../ThirdParty/mnist_data/mnist-src/")); //from CMake
 }
@@ -121,6 +127,11 @@ void train() {
   cout << "inputStats "  << inputStats << endl;
   cout << "columnStats " << columnStats << endl;
   cout << sp << endl;
+
+  // Save the connections to file for postmortem analysis.
+  ofstream dump("mnist_sp_learned.connections", ofstream::binary | ofstream::trunc | ofstream::out);
+  sp.connections.save( dump );
+  dump.close();
 }
 
 void test() {

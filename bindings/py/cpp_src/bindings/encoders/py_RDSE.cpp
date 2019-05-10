@@ -36,8 +36,8 @@ R"(Parameters for the RandomDistributedScalarEncoder (RDSE)
 Members "activeBits" & "sparsity" are mutually exclusive, specify exactly one
 of them.
 
-Members "radius" & "resolution" are mutually exclusive, specify exactly one of
-them.)");
+Members "radius", "resolution", and "category" are mutually exclusive, specify
+exactly one of them.)");
 
         py_RDSE_args.def(py::init<>());
 
@@ -61,6 +61,11 @@ the input.)");
         py_RDSE_args.def_readwrite("resolution", &RDSE_Parameters::resolution,
 R"(Two inputs separated by greater than, or equal to the resolution are
 guaranteed to have different representations.)");
+
+        py_RDSE_args.def_readwrite("category", &RDSE_Parameters::category,
+R"(Member "category" means that the inputs are enumerated categories.
+If true then this encoder will only encode unsigned integers, and all
+inputs will have unique / non-overlapping representations.)");
 
         py_RDSE_args.def_readwrite("seed", &RDSE_Parameters::seed,
 R"(Member "seed" forces different encoders to produce different outputs, even if

@@ -280,7 +280,7 @@ void Region::setOutputDimensions(std::string name, const Dimensions& dim) {
 
 // This is for backward compatability with API
 // Normally Output dimensions are set by setting parameters known to the implementation.
-// This set a global dimension.
+// This sets a global dimension.
 void Region::setDimensions(Dimensions dim) {
   NTA_CHECK(!initialized_) << "Cannot set region dimensions after initialization.";
   impl_->setDimensions(dim);
@@ -331,6 +331,8 @@ void Region::save(std::ostream &f) const {
   // Now serialize the RegionImpl plugin.
   BundleIO bundle(&f);
   impl_->serialize(bundle);
+
+  f << "dim: " << getDimensions() << "\n";
 
   f << "}\n";
 }
@@ -390,8 +392,10 @@ void Region::load(std::istream &f) {
     while(!f.eof() && tag != "]") {
       f >> d;
       auto itr = outputs_.find(tag);
-      if (itr != outputs_.end())
+      if (itr != outputs_.end()) {
         itr->second->setDimensions(d);
+        itr->second->initialize();
+      }
       f >> tag;
     }
     NTA_CHECK(tag == "]") << "Expected end of sequence of outputs.";
@@ -407,8 +411,9 @@ void Region::load(std::istream &f) {
     while(!f.eof() && tag != "]") {
       f >> d;
       auto itr = inputs_.find(tag);
-      if (itr != inputs_.end())
+      if (itr != inputs_.end()) {
         itr->second->setDimensions(d);
+      }
       f >> tag;
     }
     NTA_CHECK(tag == "]") << "Expected end of sequence of inputs.";
@@ -421,6 +426,15 @@ void Region::load(std::istream &f) {
 
   BundleIO bundle(&f);
   impl_.reset(factory.deserializeRegionImpl(type_, bundle, this));
+
+
+  // region level dimensions
+  f >> tag;
+  NTA_CHECK(tag == "dim:");
+  f >> d;
+  setDimensions(d);
+
+  initialized_ = true;
 
   f >> tag;
   NTA_CHECK(tag == "}") << "Expected end of region. Found '" << tag << "'.";

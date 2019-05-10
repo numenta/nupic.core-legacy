@@ -29,18 +29,10 @@
 #include <string>
 #include <vector>
 
-#include <nupic/algorithms/Anomaly.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
+#include <nupic/regions/TMRegion.hpp>
+
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/Value.hpp>
-#include <nupic/regions/TMRegion.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/VectorHelpers.hpp>
 
@@ -120,11 +112,15 @@ Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
   if (name == "bottomUpOut" && args_.orColumnOutputs) {
     // It's size is numberOfCols.
     return region_dim;
-  } else if (name == "bottomUpOut" || name == "activeCells" || name == "predictedActiveCells") {
+  } else if (name == "bottomUpOut" || name == "activeCells" 
+          || name == "predictedActiveCells" || name == "predictiveCells") {
     // It's size is numberOfCols * args_.cellsPerColumn.
     // So insert a new dimension to what was provided by input.
     Dimensions dim = region_dim;
     dim.insert(dim.begin(), args_.cellsPerColumn);
+    return dim;
+  } else if (name == "anomaly") {
+    Dimensions dim{1};
     return dim;
   }
   return RegionImpl::askImplForOutputDimensions(name);
@@ -193,7 +189,6 @@ void TMRegion::initialize() {
 
 void TMRegion::compute() {
 
-  std::cerr << "compute 0 " << std::endl;
   NTA_ASSERT(tm_) << "TM not initialized";
 
   if (computeCallback_ != nullptr)
@@ -220,17 +215,16 @@ void TMRegion::compute() {
   // Check for 'extra' inputs
   static SDR nullSDR({0});
   Array &extraActive = getInput("extraActive")->getData();
-  SDR& extraActiveCells = (args_.extra)?(extraActive.getSDR()):nullSDR;
+  SDR& extraActiveCells = (args_.extra) ? (extraActive.getSDR()) : nullSDR;
 
   Array &extraWinners = getInput("extraWinners")->getData();
-  SDR& extraWinnerCells = (args_.extra)?(extraWinners.getSDR()):nullSDR;
+  SDR& extraWinnerCells = (args_.extra) ? (extraWinners.getSDR()) : nullSDR;
 
   NTA_DEBUG << "compute " << *in << std::endl;
 
   // Perform Bottom up compute()
 
   tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
-  tm_->activateDendrites();
 
   args_.sequencePos++;
 
@@ -248,28 +242,33 @@ void TMRegion::compute() {
   Output *out;
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    auto active = tm_->getActiveCells();         // sparse
-    auto predictive = tm_->getPredictiveCells(); // sparse
-    if (args_.orColumnOutputs) {
-      // aggregate to columns
-      active = VectorHelpers::sparse_cellsToColumns<CellIdx>(active, args_.cellsPerColumn);
-      predictive = VectorHelpers::sparse_cellsToColumns<CellIdx>(predictive, args_.cellsPerColumn);
-    }
     SDR& sdr = out->getData().getSDR();
-    VectorHelpers::unionOfVectors<CellIdx>(sdr.getSparse(), active, predictive);
-    sdr.setSparse(sdr.getSparse()); // to update the cache in SDR.
-
-    NTA_DEBUG << "compute " << *out << std::endl;
+    tm_->getActiveCells(sdr); //active cells
+    if (args_.orColumnOutputs) { //output as columns
+      sdr = tm_->cellsToColumns(sdr);
+    }
+    NTA_DEBUG << "bottomUpOut " << *out << std::endl;
   }
   out = getOutput("activeCells");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     tm_->getActiveCells(out->getData().getSDR());
-    NTA_DEBUG << "compute " << *out << std::endl;
+    NTA_DEBUG << "active " << *out << std::endl;
   }
   out = getOutput("predictedActiveCells");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     tm_->getWinnerCells(out->getData().getSDR());
-    NTA_DEBUG << "compute " << *out << std::endl;
+    NTA_DEBUG << "winners " << *out << std::endl;
+  }
+  out = getOutput("anomaly");
+  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+    Real32* buffer = reinterpret_cast<Real32*>(out->getData().getBuffer());
+    buffer[0] = tm_->anomaly;
+    NTA_DEBUG << "anomaly " << *out << std::endl;
+  }
+  out = getOutput("predictiveCells");
+  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+    out->getData().getSDR() = tm_->getPredictiveCells();
+    NTA_DEBUG << "predictive " << *out << std::endl;
   }
 }
 
@@ -459,6 +458,16 @@ Spec *TMRegion::createSpec() {
                     ParameterSpec::ReadOnlyAccess)); // access
 
   ns->parameters.add(
+      "anomaly",
+      ParameterSpec("(Real) The anomaly Score computed for the current iteration. "
+                   "This is the same as the output anomaly.",
+                    NTA_BasicType_Real32,            // type
+                    1,                               // elementCount
+                    "",                              // constraints
+                    "",                              // defaultValue
+                    ParameterSpec::ReadOnlyAccess)); // access
+
+  ns->parameters.add(
       "orColumnOutputs",
       ParameterSpec("1 if the bottomUpOut is to be aggregated by column "
                     "by ORing all cells in a column.  Note that if this "
@@ -533,7 +542,9 @@ Spec *TMRegion::createSpec() {
       "bottomUpOut",
       OutputSpec("The output signal generated from the bottom-up inputs "
                  "from lower levels. The width is 'numberOfCols' "
-                 "* 'cellsPerColumn'.",
+                 "* 'cellsPerColumn' by default; if orColumnOutputs is "
+		 "set, then this returns only numberOfCols. "
+		 "The activations come from TM::getActiveCells(). ",
                  NTA_BasicType_SDR,    // type
                  0,                    // count 0 means is dynamic
                  false,                // isRegionLevel
@@ -553,6 +564,25 @@ Spec *TMRegion::createSpec() {
   ns->outputs.add(
       "predictedActiveCells",
       OutputSpec("The cells that are active and predicted, the winners. "
+                 "The width is 'numberOfCols' * 'cellsPerColumn'.",
+                NTA_BasicType_SDR,    // type
+                0,                    // count 0 means is dynamic
+                false,                // isRegionLevel
+                false                 // isDefaultOutput
+                ));
+
+  ns->outputs.add(
+      "anomaly",
+      OutputSpec("The anomaly score for current iteration",
+                NTA_BasicType_Real32,    // type
+                1,                    // count 1 means a single value
+                false,                // isRegionLevel
+                false                 // isDefaultOutput
+                ));
+
+  ns->outputs.add(
+      "predictiveCells",
+      OutputSpec("The cells that are predicted. "
                  "The width is 'numberOfCols' * 'cellsPerColumn'.",
                 NTA_BasicType_SDR,    // type
                 0,                    // count 0 means is dynamic
@@ -644,6 +674,11 @@ Int32 TMRegion::getParameterInt32(const std::string &name, Int64 index) {
 
 Real32 TMRegion::getParameterReal32(const std::string &name, Int64 index) {
 
+    if (name == "anomaly") {
+      if (tm_)
+        return tm_->anomaly;
+      return -1.0f;
+    }
     if (name == "connectedPermanence") {
       if (tm_)
         return tm_->getConnectedPermanence();
@@ -807,8 +842,18 @@ void TMRegion::serialize(BundleIO &bundle) {
   f.write((const char*)&args_, sizeof(args_));
   f << columnDimensions_ << " ";
   f << std::endl;
+	// Need to save the output buffers
+  f << "outputs [";
+  std::map<std::string, Output *> outputs = region_->getOutputs();
+  for (auto iter : outputs) {
+    const Array &outputBuffer = iter.second->getData();
+    if (outputBuffer.getCount() != 0) {
+      f << iter.first << " ";
+      outputBuffer.save(f);
+    }
+  }
+  f << "] "; // end of all output buffers
   if (tm_) {
-    // Note: tm_ saves the output buffers
     tm_->save(f);
   }
   f << "~TMRegion ";
@@ -840,6 +885,21 @@ void TMRegion::deserialize(BundleIO &bundle) {
   f.ignore(1);
   f.read((char *)&args_, len);
   f >> columnDimensions_;
+	
+	// restore output buffers
+	f >> tag;
+  NTA_CHECK(tag == "outputs");
+  f.ignore(1);
+  NTA_CHECK(f.get() == '['); // start of outputs
+  while (true) {
+    f >> tag;
+    f.ignore(1);
+    if (tag == "]")
+      break;
+    Array& a = getOutput(tag)->getData();
+    a.load(f);
+  }
+
   f >> std::ws;  // ignore whitespace
 
   if (args_.init) {
