@@ -85,7 +85,6 @@ void Connections::unsubscribe(UInt32 token) {
 }
 
 Segment Connections::createSegment(CellIdx cell) {
-if (cell == 7269) std::cout << "Connections::createSegment( cell=" << cell << ")\n";
   Segment segment;
   if (!destroyedSegments_.empty() ) { //reuse old, destroyed segs
     segment = destroyedSegments_.back();
@@ -416,7 +415,6 @@ void Connections::computeActivity(
 
   // Iterate through all connected synapses.
   for (const auto& cell : activePresynapticCells) {
-if (mark && cell == 8359) std::cout << "Connections_418; cell " << cell << " is connected.\n";
     if (connectedSegmentsForPresynapticCell_.count(cell)) {
       for(const auto& segment : connectedSegmentsForPresynapticCell_.at(cell)) {
         ++numActiveConnectedSynapsesForSegment[segment];
@@ -442,7 +440,6 @@ void Connections::computeActivity(
              numActiveConnectedSynapsesForSegment.end(),
              numActivePotentialSynapsesForSegment.begin());
   for (const auto& cell : activePresynapticCells) {
-if (mark && cell == 8359) std::cout << "Connections_444; cell " << cell << " is potential.\n";
     if (potentialSegmentsForPresynapticCell_.count(cell)) {
       for(const auto& segment : potentialSegmentsForPresynapticCell_.at(cell)) {
         ++numActivePotentialSynapsesForSegment[segment];
@@ -486,8 +483,6 @@ void Connections::adaptSegment(const Segment segment,
       Permanence permanence = synapseData.permanence;
       if( inputArray[synapseData.presynapticCell] ) {
         permanence += increment;
-//if (mark) std::cout << "Connections_488; cell " << synapseData.presynapticCell << " seg:" << segment << " incr permanence.\n";
-
       } else {
         permanence -= decrement;
       }

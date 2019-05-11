@@ -37,9 +37,10 @@ namespace nupic_ext
     py::class_<ScalarEncoderParameters> py_ScalarEncParams(m, "ScalarEncoderParameters",
         R"(
 
-The following three (3) members define the total number of bits in the output:
+The following four (4) members define the total number of bits in the output:
      size,
      radius,
+     category,
      resolution.
 
 These are mutually exclusive and only one of them should be non-zero when
@@ -64,10 +65,15 @@ R"(This controls what happens near the edges of the input range.
 
 If true, then the minimum & maximum input values are adjacent and the first and
 last bits of the output SDR are also adjacent.  The contiguous block of 1's
-wraps around the end back to the begining.
+wraps around the end back to the beginning.
 
 If false, then minimum & maximum input values are the endpoints of the input
 range, are not adjacent, and activity does not wrap around.)");
+
+    py_ScalarEncParams.def_readwrite("category", &ScalarEncoderParameters::category,
+R"(This means that the inputs are enumerated categories.
+If true then this encoder will only encode unsigned integers, and all inputs
+will have unique / non-overlapping representations.)");
 
     py_ScalarEncParams.def_readwrite("activeBits", &ScalarEncoderParameters::activeBits,
 R"(This is the number of true bits in the encoded output SDR. The output

@@ -478,20 +478,7 @@ void SpatialPooler::initialize(
 }
 
 
-void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArray[]) {
-  SDR input( inputDimensions_ );
-  input.setDense( inputArray );
-
-  SDR active( columnDimensions_ );
-  compute( input, learn, active );
-  copy(
-      active.getDense().begin(),
-      active.getDense().end(),
-      activeArray);
-}
-
-
-void SpatialPooler::compute(const SDR &input, bool learn, SDR &active) {
+void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
   NTA_CHECK( input.dimensions  == inputDimensions_ );
   NTA_CHECK( active.dimensions == columnDimensions_ );
   updateBookeepingVars_(learn);
@@ -892,7 +879,7 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
     activeColumns.push_back(i);
   // Compare the column indexes by their overlap.
   auto compare = [&overlaps_](const UInt &a, const UInt &b) -> bool
-    {return overlaps_[a] > overlaps_[b];};
+    {return (overlaps_[a] == overlaps_[b]) ? a > b : overlaps_[a] > overlaps_[b];};
   // Do a partial sort to divide the winners from the losers.  This sort is
   // faster than a regular sort because it stops after it partitions the
   // elements about the Nth element, with all elements on their correct side of

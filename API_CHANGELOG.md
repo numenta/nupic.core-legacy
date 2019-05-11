@@ -75,3 +75,13 @@ are ignored.  PR #271
 longer accept a synapse permanence threshold argument. PR #305
 
 * SDRClassifier class is replaced by `Classifier` and `Predictor` classes.
+
+* Anomaly class removed as obsolete, use `TM.anomaly` which is simpler to use, and `MovingAverage` when you need to emulate 
+  running averages. Internaly the code still uses `computeRawAnomalyScore()` but there's no need to call it directly. `AnomalyLikelihood` 
+  is still available and can be used in addition to TM.getAnomalyScore(). PR #406 
+
+* TemporalMemory::getPredictiveCells() now returns a SDR. This ensures more convenient API and that the SDR object has correct
+  dimensions matching TM. use TM.getPredictiveCells().getSparse() to obtain the sparse vector as before. PR #437, #442 
+
+* TemporalMemory `compute()` and `activateCells()` now use only SDR variants, old overloads with C-style arrays removed. Bindings and 
+  tests also updated. 

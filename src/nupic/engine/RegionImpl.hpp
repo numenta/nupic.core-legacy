@@ -37,6 +37,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include <nupic/engine/Output.hpp>
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
