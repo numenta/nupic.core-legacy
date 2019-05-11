@@ -35,6 +35,16 @@
 namespace nupic {
 namespace encoders {
 
+  /**
+   * These four (4) members define the total number of bits in the output:
+   *      size,
+   *      radius,
+   *      category,
+   *      resolution.
+   *
+   * These are mutually exclusive and only one of them should be non-zero when
+   * constructing the encoder.
+   */
   struct ScalarEncoderParameters
   {
     /**
@@ -58,12 +68,19 @@ namespace encoders {
      *
      * If true, then the minimum & maximum input values are the same and the
      * first and last bits of the output SDR are adjacent.  The contiguous
-     * block of 1's wraps around the end back to the begining.
+     * block of 1's wraps around the end back to the beginning.
      *
      * If false, then minimum & maximum input values are the endpoints of the
      * input range, are not adjacent, and activity does not wrap around.
      */
     bool periodic = false;
+
+    /**
+     * Member "category" means that the inputs are enumerated categories.
+     * If true then this encoder will only encode unsigned integers, and all
+     * inputs will have unique / non-overlapping representations.
+     */
+    bool category = false;
 
     /**
      * Member "activeBits" is the number of true bits in the encoded output SDR.
@@ -77,16 +94,6 @@ namespace encoders {
      * Specify only one of: activeBits or sparsity.
      */
     Real sparsity = 0.0f;
-
-    /**
-     * These three (3) members define the total number of bits in the output:
-     *      size,
-     *      radius,
-     *      resolution.
-     *
-     * These are mutually exclusive and only one of them should be non-zero when
-     * constructing the encoder.
-     */
 
     /**
      * Member "size" is the total number of bits in the encoded output SDR.
@@ -123,8 +130,8 @@ namespace encoders {
   {
   public:
     ScalarEncoder() {};
-    ScalarEncoder( ScalarEncoderParameters &parameters );
-    void initialize( ScalarEncoderParameters &parameters );
+    ScalarEncoder( const ScalarEncoderParameters &parameters );
+    void initialize( const ScalarEncoderParameters &parameters );
 
     const ScalarEncoderParameters &parameters = args_;
 

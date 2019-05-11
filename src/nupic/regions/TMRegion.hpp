@@ -33,6 +33,8 @@
 
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+
+#include <nupic/ntypes/Value.hpp>
 //----------------------------------------------------------------------
 
 namespace nupic {

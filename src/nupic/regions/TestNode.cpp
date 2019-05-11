@@ -157,6 +157,9 @@ void TestNode::compute() {
   if (computeCallback_ != nullptr)
     computeCallback_(getName());
 
+  bottomUpOut_ = getOutput("bottomUpOut");
+  bottomUpIn_ = getInput("bottomUpIn");
+
   Array &outputArray = bottomUpOut_->getData();
   NTA_CHECK(outputArray.getCount() > 0) << "buffer not allocated.";
   NTA_CHECK(outputArray.getCount() == nodeCount_ * outputElementCount_)

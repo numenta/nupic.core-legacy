@@ -25,9 +25,7 @@ public:
   );
 
   //timers
-  Timer tInit, tAll, tRng, tEnc, tSPloc, tSPglob, tTM,
-        tAn, tAnLikelihood;
-
+  Timer tInit, tAll, tRng, tEnc, tSPloc, tSPglob, tTM, tAnLikelihood;
 };
 
 } //-ns

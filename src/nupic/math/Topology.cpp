@@ -60,8 +60,8 @@ Topology_t  DefaultTopology(
     vector<vector<UInt>> inputCoords;
     for(auto i = 0u; i < cell.dimensions.size(); i++)
     {
-      const Real columnCoord = cell.getCoordinates()[i][0];
-      const Real inputCoord = (columnCoord + 0.5f) *
+      const UInt32 columnCoord = cell.getCoordinates()[i][0];
+      const Real inputCoord = (static_cast<Real>(columnCoord) + 0.5f) *
                               (inputTopology[i] / (Real)cell.dimensions[i]);
       inputCoords.push_back({ (UInt32)floor(inputCoord) });
     }
@@ -71,7 +71,7 @@ Topology_t  DefaultTopology(
 
     vector<UInt> columnInputs;
     if( wrapAround ) {
-      for( UInt input : WrappingNeighborhood(centerInput, potentialRadius, inputTopology)) {
+      for( UInt input : WrappingNeighborhood(centerInput, (UInt)floor(potentialRadius), inputTopology)) {
         for( UInt extra = 0; extra < extraDimensions; ++extra ) {
           columnInputs.push_back( input * extraDimensions + extra );
         }
@@ -79,7 +79,7 @@ Topology_t  DefaultTopology(
     }
     else {
       for( UInt input :
-           Neighborhood(centerInput, potentialRadius, inputTopology)) {
+           Neighborhood(centerInput, (UInt32)floor(potentialRadius), inputTopology)) {
         for( UInt extra = 0; extra < extraDimensions; ++extra ) {
           columnInputs.push_back( input * extraDimensions + extra );
         }

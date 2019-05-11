@@ -237,7 +237,7 @@ namespace sdr {
 
 
     void SparseDistributedRepresentation::setSDR( const SparseDistributedRepresentation &value ) {
-        NTA_CHECK( value.dimensions == dimensions );
+        NTA_CHECK( value.dimensions == dimensions ) << "Failed to assign value=" << value << " to SDR=" << *this;
         clear();
 
         dense_valid = value.dense_valid;

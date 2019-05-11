@@ -299,7 +299,8 @@ void Input::initialize() {
     } else {
       d = inD;
     }
-    region_->setDimensions(d);
+    if (!region_->isInitialized())
+      region_->setDimensions(d);
   }
 
   if (links_.size() > 0) {
