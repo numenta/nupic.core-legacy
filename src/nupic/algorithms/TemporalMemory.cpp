@@ -214,6 +214,7 @@ static void adaptSegment(Connections &connections, Segment segment,
 static void destroyMinPermanenceSynapses(Connections &connections, Random &rng,
                                          Segment segment, Int nDestroy,
                                          const vector<CellIdx> &excludeCells) {
+  if (nDestroy <= 0) return;
   // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
   for (Synapse synapse : connections.synapsesForSegment(segment)) {
@@ -277,7 +278,7 @@ static void growSynapses(Connections &connections,
   const size_t nActual = std::min(static_cast<size_t>(nDesiredNewSynapses), candidates.size());
 
   // Check if we're going to surpass the maximum number of synapses. //TODO delegate this to createSynapse(segment)
-  const size_t overrun = (connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
+  Int overrun = static_cast<Int>(connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
   if (overrun > 0) {
     destroyMinPermanenceSynapses(connections, rng, segment, static_cast<Int>(overrun), prevWinnerCells);
   }
@@ -484,8 +485,8 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
            matchingSegments_, columnForSegment)) {
     UInt column;
     vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
-	columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
-	columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
+	       columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
+         columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
 
     std::tie(column, activeColumnsBegin, activeColumnsEnd, columnActiveSegmentsBegin,
              columnActiveSegmentsEnd, columnMatchingSegmentsBegin, columnMatchingSegmentsEnd
