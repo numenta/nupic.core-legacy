@@ -31,6 +31,13 @@ There are 3 ways to use the code:
 - using the convenience Anomaly class with `mode=LIKELIHOOD` (method `compute()`),
 - using the AnomalyLikelihood helper class (method `anomalyProbability()`), or
 - using the raw individual functions.
+
+STATUS
+------
+Our AnomalyLikelihood C++ code is not tested and proven correct. There are also no 
+Python bindings. For python code you can use `nupic.algorithms.AnomalyLikelihood` 
+in pure python, which is located under the `py/` path. 
+
 **/
 
 
