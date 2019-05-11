@@ -437,10 +437,13 @@ public:
   void bumpSegment(const Segment segment, const Permanence delta);
 
   /**
-   * This method is useful for making room for more synapses on a segment which
-   * is already full.
+   * Destroy the synapses with the lowest permanence values.  This method is
+   * useful for making room for more synapses on a segment which is already
+   * full.
    *
-   * TODO: Documentation!
+   * @param segment - Index of segment in Connections, to be modified.
+   * @param nDestroy - Must be greater than or equal to zero!
+   * @param excludeCells - Presynaptic cells which will NOT have any synapses destroyed.
    */
   void destroyMinPermanenceSynapses(const Segment segment, Int nDestroy,
                                     const sdr::SDR_sparse_t &excludeCells = {});
