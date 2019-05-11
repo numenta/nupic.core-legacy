@@ -99,15 +99,6 @@ class SPRegion  : public RegionImpl, Serializable
 			ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
-	      // save the output buffers
-        std::map<std::string, Array> buffers;
-	      // The output buffers are saved as part of the Region Implementation.
-	      std::map<std::string, Output *> outputs = region_->getOutputs();
-	      for (auto iter : outputs) {
-          buffers[iter.first] = iter.second->getData();
-	      }
-	      ar(cereal::make_nvp("outputs", buffers));
-
         // Save the algorithm state
 	      ar(cereal::make_nvp("SP", sp_));
 	    }
@@ -138,13 +129,6 @@ class SPRegion  : public RegionImpl, Serializable
 			ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
-	      // restore the output buffers
-        std::map<std::string, Array> buffers;
-	      ar(cereal::make_nvp("outputs", buffers));
-	      for (auto output: buffers) {
-	        Array& outputBuffer = getOutput(output.first)->getData();
-	        outputBuffer = output.second;
-	      }
 	      // Restore algorithm state
 	      algorithms::spatial_pooler::SpatialPooler* sp = new algorithms::spatial_pooler::SpatialPooler();
 	      sp_.reset(sp);

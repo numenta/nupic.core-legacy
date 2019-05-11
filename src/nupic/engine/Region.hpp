@@ -462,13 +462,20 @@ public:
   void save_ar(Archive& ar) const {
     ar(cereal::make_nvp("name", name_),
        cereal::make_nvp("nodeType", type_),
+       cereal::make_nvp("initialized", initialized_),
        cereal::make_nvp("phases", phases_));
 
     std::map<std::string, Dimensions> outDims;
     std::map<std::string, Dimensions> inDims;
     getDims_(outDims, inDims);
-    ar(cereal::make_nvp("outputs", outDims));
-    ar(cereal::make_nvp("inputs",  inDims));
+    ar(cereal::make_nvp("output_dims", outDims));
+    ar(cereal::make_nvp("input_dims",  inDims));
+		
+		// save the output buffers
+    std::map<std::string, Array> buffers;
+    getOutputBuffers_(buffers);
+	  ar(cereal::make_nvp("outputs", buffers));
+
     // Now serialize the RegionImpl plugin.
     ArWrapper arw(&ar);
     serializeImpl(arw);
@@ -476,45 +483,42 @@ public:
 
 
   // FOR Cereal Deserialization
+  // Note: custom region implementations must be registered
+  //       before deserializing a region.
   template<class Archive>
   void load_ar(Archive& ar) {
-    initialized_ = false;
-    ar(cereal::make_nvp("name", name_),
-       cereal::make_nvp("nodeType", type_),
-       cereal::make_nvp("phases", phases_));
+    ar(cereal::make_nvp("name", name_));
+    ar(cereal::make_nvp("nodeType", type_));
+    ar(cereal::make_nvp("initialized", initialized_));
+    ar(cereal::make_nvp("phases", phases_));
 
     std::map<std::string, Dimensions> outDims;
     std::map<std::string, Dimensions> inDims;
-    ar(cereal::make_nvp("outputs", outDims));
-    ar(cereal::make_nvp("inputs",  inDims));
+    ar(cereal::make_nvp("output_dims", outDims));
+    ar(cereal::make_nvp("input_dims",  inDims));
+
+    // deserialize the output buffers for this region.
+    std::map<std::string, Array> buffers;
+    ar(cereal::make_nvp("outputs", buffers));
+    restoreOutputBuffers_(buffers);
+    loadDims_(outDims, inDims);
 
     // deserialize the RegionImpl plugin and its algorithm
     ArWrapper arw(&ar);
     deserializeImpl(arw);
-
-    loadDims_(outDims, inDims);
   }
 
-  // Tell Cereal to construct it with an argument if it is used
-  // in a smart pointer.  Called by Cereal when loading shared_ptr<Region>.
- // template <class Archive>
- // static void load_and_construct( Archive & ar, cereal::construct<Region>& construct )
- // {
- //   construct();      // allocates Region without link to Network.
- //   construct->load_ar(ar);  // populates Region
- // }
-
-
-  friend class Network;
+  friend class Network;  // so Network can set Network* network_; during addRegion( ).
   friend std::ostream &operator<<(std::ostream &f, const Region &r);
 
 
 private:
   //Region(Region &){}  // copy not allowed
 
-  // common method used by both constructors
-  // Can be called after nodespec_ has been set.
+  // local functions
   void createInputsAndOutputs_();
+  void getOutputBuffers_(std::map<std::string, Array>& buffers) const;
+  void restoreOutputBuffers_(const std::map<std::string, Array>& buffers);
   void getDims_(std::map<std::string,Dimensions>& outDims,
                std::map<std::string,Dimensions>& inDims) const;
   void loadDims_(std::map<std::string,Dimensions>& outDims,

@@ -190,8 +190,8 @@ public:
    * @returns A pointer to the newly created Region
    */
   std::shared_ptr<Region> addRegion(const std::string &name,
-  					const std::string &nodeType,
-                    const std::string &nodeParams);
+  					                        const std::string &nodeType,
+                                    const std::string &nodeParams);
 
     /**
      * Add a region in a network from deserialized region
@@ -423,6 +423,21 @@ public:
 
   /*
    * Adds a region implementation to the RegionImplFactory's list of packages
+   *
+   * NOTE: Built-in C++ regions are automatically registered by the factory
+   *       so this function does not need to be called.
+   *
+   * NOTE: How does C++ register a custom C++ implemented region?
+   *       Allocate a templated wrapper RegisteredRegionImplCpp class
+   *       and pass it to this function with the name of the region type.
+   *       Network::registerRegion("MyRegion", new RegisteredRegionImplCpp<MyRegion>());
+   *   
+   * NOTE: How does Python register a .py implemented region?
+   *       Python code should call Network.registerPyRegion(module, className).
+   *       The python bindings will actually call the static function
+   *       nupic::RegisteredRegionImplPy::registerPyRegion(module, className);
+   *       which will register the C++ class PyBindRegion as the stand-in for the 
+   *       python implementation.
    */
   static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper);
   /*

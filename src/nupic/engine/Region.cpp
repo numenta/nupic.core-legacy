@@ -55,22 +55,23 @@ Region::Region(std::string name, const std::string &nodeType,
                const std::string &nodeParams, Network *network)
     : name_(std::move(name)), type_(nodeType), initialized_(false),
       network_(network), profilingEnabled_(false) {
-  // Set region info before creating the RegionImpl so that the
+  // Set region spec and input/outputs before creating the RegionImpl so that the
   // Impl has access to the region info in its constructor.
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   spec_ = factory.getSpec(nodeType);
+  createInputsAndOutputs_();
   impl_.reset(factory.createRegionImpl(nodeType, nodeParams, this));
 }
 
 Region::Region(Network *net) {
-      network_ = net;
-      initialized_ = false;
-      profilingEnabled_ = false;
+  network_ = net;
+  initialized_ = false;
+  profilingEnabled_ = false;
 } // for deserialization of region.
 Region::Region() {
-      network_ = nullptr;
-      initialized_ = false;
-      profilingEnabled_ = false;
+  network_ = nullptr;
+  initialized_ = false;
+  profilingEnabled_ = false;
 } // for deserialization of region.
 
 
@@ -689,14 +690,28 @@ void Region::loadDims_(std::map<std::string,Dimensions>& outDims,
   }
 }
 
+void Region::getOutputBuffers_(std::map<std::string, Array>& buffers) const {
+	for (auto iter : outputs_) {
+    buffers[iter.first] = iter.second->getData();
+	}
+}
+
+void Region::restoreOutputBuffers_(const std::map<std::string, Array>& buffers) {
+  RegionImplFactory &factory = RegionImplFactory::getInstance();
+  spec_ = factory.getSpec(type_);
+  createInputsAndOutputs_();
+  for (auto output: buffers) {
+    Array& outputBuffer = getOutput(output.first)->getData();
+    outputBuffer = output.second;
+  }
+}
+
+
 void Region::serializeImpl(ArWrapper& arw) const{
     impl_->cereal_adapter_save(arw);
 }
 void Region::deserializeImpl(ArWrapper& arw) {
     RegionImplFactory &factory = RegionImplFactory::getInstance();
-    spec_ = factory.getSpec(type_);
-    createInputsAndOutputs_();
-
     impl_.reset(factory.deserializeRegionImpl(type_, arw, this));
 }
 

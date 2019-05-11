@@ -102,7 +102,6 @@ std::shared_ptr<Region> Network::addRegion(const std::string &name, const std::s
     NTA_THROW << "Region with name '" << name << "' already exists in network";
   std::shared_ptr<Region> r = std::make_shared<Region>(name, nodeType, nodeParams, this);
   regions_.add(name, r);
-  r->createInputsAndOutputs_();
   initialized_ = false;
 
 
