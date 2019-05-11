@@ -557,40 +557,38 @@ void Connections::bumpSegment(const Segment segment, const Permanence delta) {
 }
 
 
-void Connections::destroyMinPermanenceSynapses(Segment segment, Int nDestroy,
-                                         const vector<CellIdx> &excludeCells) {
+void Connections::destroyMinPermanenceSynapses(
+                              const Segment segment, Int nDestroy,
+                              const vector<CellIdx> &excludeCells)
+{
+  NTA_ASSERT( nDestroy >= 0 );
+  if( nDestroy <= 0 ) return; // Nothing to do.
+
   // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
-  for (Synapse synapse : synapsesForSegment(segment)) {
+  for( Synapse synapse : synapsesForSegment(segment)) {
     const CellIdx presynapticCell = dataForSynapse(synapse).presynapticCell;
 
-    if (!std::binary_search(excludeCells.begin(), excludeCells.end(),
-                            presynapticCell)) {
+    if( not std::binary_search(excludeCells.cbegin(), excludeCells.cend(), presynapticCell)) {
       destroyCandidates.push_back(synapse);
     }
   }
 
-  // Find cells one at a time. This is slow, but this code rarely runs, and it
-  // needs to work around floating point differences between environments.
-  for (Int32 i = 0; i < nDestroy && !destroyCandidates.empty(); i++) {
-    Permanence minPermanence = std::numeric_limits<Permanence>::max();
-    vector<Synapse>::iterator minSynapse = destroyCandidates.end();
-
-    for (auto synapse = destroyCandidates.begin();
-         synapse != destroyCandidates.end(); synapse++) {
-      const Permanence permanence =
-          dataForSynapse(*synapse).permanence;
-
-      // Use special Epsilon logic to compensate for floating point
-      // differences between C++ and other environments.
-      if (permanence < minPermanence - nupic::Epsilon) {
-        minSynapse = synapse;
-        minPermanence = permanence;
-      }
+  const auto comparePermanences = [&](const Synapse A, const Synapse B) {
+    const Permanence A_perm = dataForSynapse(A).permanence;
+    const Permanence B_perm = dataForSynapse(B).permanence;
+    if( A_perm == B_perm ) {
+      return A < B;
     }
+    else {
+      return A_perm < B_perm;
+    }
+  };
+  std::sort(destroyCandidates.begin(), destroyCandidates.end(), comparePermanences);
 
-    destroySynapse(*minSynapse);
-    destroyCandidates.erase(minSynapse);
+  nDestroy = std::min( nDestroy, (Int) destroyCandidates.size() );
+  for(Int i = 0; i < nDestroy; i++) {
+    destroySynapse( destroyCandidates[i] );
   }
 }
 

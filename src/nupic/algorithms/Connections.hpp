@@ -442,7 +442,7 @@ public:
    *
    * TODO: Documentation!
    */
-  void destroyMinPermanenceSynapses(Segment segment, Int nDestroy,
+  void destroyMinPermanenceSynapses(const Segment segment, Int nDestroy,
                                     const sdr::SDR_sparse_t &excludeCells = {});
 
   /**

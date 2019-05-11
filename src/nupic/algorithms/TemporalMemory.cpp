@@ -237,7 +237,7 @@ static void growSynapses(Connections &connections,
 
   const size_t nActual = std::min(static_cast<size_t>(nDesiredNewSynapses), candidates.size());
 
-  // Check if we're going to surpass the maximum number of synapses. //TODO delegate this to createSynapse(segment)
+  // Check if we're going to surpass the maximum number of synapses.
   Int overrun = static_cast<Int>(connections.numSynapses(segment) + nActual - maxSynapsesPerSegment);
   if (overrun > 0) {
     connections.destroyMinPermanenceSynapses(segment, static_cast<Int>(overrun), prevWinnerCells);
