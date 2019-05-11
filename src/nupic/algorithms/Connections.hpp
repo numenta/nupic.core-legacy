@@ -41,13 +41,17 @@ namespace nupic {
 namespace algorithms {
 namespace connections {
 
-//TODO instead of typedefs, use templates for proper type-checking?
-using CellIdx   = nupic::sdr::ElemSparse; // CellIdx must match with sdr::ElemSparse, to change, change it there
-using SegmentIdx= UInt16; /** Index of segment in cell. */
-using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
-using Segment   = UInt32;    /** Index of segment's data. */
-using Synapse   = UInt32;    /** Index of synapse's data. */
-using Permanence= Real32; //TODO experiment with half aka float16
+// TODO instead of typedefs, use templates for proper type-checking?
+// TODO profile to use better (smaller?) types
+// TODO Permanence experiment with half aka float16
+// Note: CellIdx must match with sdr::ElemSparse, to change, change it there
+
+using CellIdx    = nupic::sdr::ElemSparse;
+using SegmentIdx = UInt16; /** Index of segment in cell. */
+using SynapseIdx = UInt16; /** Index of synapse in segment. */
+using Segment    = UInt32; /** Index of segment's data. */
+using Synapse    = UInt32; /** Index of synapse's data. */
+using Permanence = Real32;
 const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
 
@@ -422,11 +426,31 @@ public:
    * values until the desired number of synapses have permanences above the
    * connectedThreshold.  This is applied to a single segment.
    *
-   * @param segment  Index of segment on cell.   Is returned by method getSegment.
+   * @param segment  Index of segment in connections. Is returned by method getSegment.
    * @param segmentThreshold  Desired number of connected synapses.
    */
   void raisePermanencesToThreshold(const Segment    segment,
                                    const UInt       segmentThreshold);
+
+  /**
+   * Ensures that the number of connected synapses is sane.  This method
+   * controls the sparsity of the synaptic connections, which is important for
+   * the segment to detect things.  If there are too few connections then the
+   * segment will not detect anything, and if there are too many connections
+   * then the segment will detect everything.
+   *
+   * This method connects and disconnects synapses by uniformly changing the
+   * permanences of all synapses on the segment.  Synapses keep learning even
+   * after a limit is reached, at which point synapses change permanence
+   * relative to each other.
+   *
+   * @param segment
+   * @param minimumSynapses
+   * @param maximumSynapses
+   */
+  void synapseCompetition(  const Segment    segment,
+                            const SynapseIdx minimumSynapses,
+                            const SynapseIdx maximumSynapses);
 
   /**
    * Modify all permanence on the given segment, uniformly.

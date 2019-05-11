@@ -28,6 +28,8 @@
 #include <fstream>
 #include <iostream>
 #include <nupic/algorithms/Connections.hpp>
+#include <nupic/math/Math.hpp> // nupic::Epsilon
+
 
 namespace testing {
     
@@ -37,6 +39,7 @@ using namespace nupic::algorithms::connections;
 using nupic::sdr::SDR;
 using nupic::sdr::SDR_dense_t;
 
+// EPSILON used for testing, Connections uses nupic::Epsilon internally
 #define EPSILON 0.0000001
 
 
@@ -486,6 +489,143 @@ TEST(ConnectionsTest, testRaisePermanencesToThresholdOutOfBounds) {
   NTA_CHECK(con.synapsesForSegment(segWith3Syn).size() == 3) << "We failed to create 3 synapses on a segment";
   EXPECT_NO_THROW( con.raisePermanencesToThreshold(segWith3Syn, 5u) )
     << "raisePermanence fails when lower number of available synapses than requested by threshold";
+}
+
+TEST(ConnectionsTest, testSynapseCompetition) {
+
+  struct testCase {
+    UInt nsyn; // Total number of potential synapses on segment
+    UInt ncon; // Number of connected synapses, before calling synapseCompetition
+    UInt min;  // Bounds of synapseCompetition
+    UInt max;  // Bounds of synapseCompetition
+    // The target number of synapses can't be met, just make sure it does not crash.
+    bool dont_check = false;
+  };
+  const testCase emptySegment = {
+    .nsyn = 0,
+    .ncon = 0,
+    .min  = 3,
+    .max  = 100,
+    .dont_check = true
+  };
+  const testCase fullSegment = {
+    .nsyn = 100,
+    .ncon = 100,
+    .min  = 3,
+    .max  = 100
+  };
+  const testCase disconnect1 = {
+    .nsyn = 100,
+    .ncon = 100,
+    .min  = 3,
+    .max  = 99
+  };
+  const testCase minimum = {
+    .nsyn = 100,
+    .ncon = 5,
+    .min  = 10,
+    .max  = 30
+  };
+  const testCase maximum = {
+    .nsyn = 100,
+    .ncon = 77,
+    .min  = 10,
+    .max  = 30
+  };
+  const testCase no_change1 = {
+    .nsyn = 100,
+    .ncon = 10,
+    .min  = 10,
+    .max  = 30
+  };
+  const testCase no_change2 = {
+    .nsyn = 100,
+    .ncon = 20,
+    .min  = 10,
+    .max  = 30
+  };
+  const testCase no_change3 = {
+    .nsyn = 100,
+    .ncon = 30,
+    .min  = 10,
+    .max  = 30
+  };
+  const testCase exact1 = {
+    .nsyn = 100,
+    .ncon = 33,
+    .min  = 33,
+    .max  = 33
+  };
+  const testCase exact2 = {
+    .nsyn = 100,
+    .ncon = 0,
+    .min  = 33,
+    .max  = 33
+  };
+  const testCase exact3 = {
+    .nsyn = 100,
+    .ncon = 88,
+    .min  = 33,
+    .max  = 33
+  };
+  const testCase corner1 = {
+    .nsyn = 100,
+    .ncon = 30,
+    .min  = 200,
+    .max  = 300,
+    .dont_check = true
+  };
+  const testCase corner2 = {
+    .nsyn = 100,
+    .ncon = 30,
+    .min  = 0,
+    .max  = 0
+  };
+
+  Connections con(1u, 0.5f);
+  Random rnd( 42u );
+  CellIdx presyn = 0u;
+  for(const testCase &test : {
+          emptySegment, fullSegment, disconnect1, minimum, maximum, no_change1,
+          no_change2, no_change3, exact1, exact2, exact3, corner1, corner2, })
+  {
+    const auto segment = con.createSegment( 0 );
+    UInt ncon_done = 0;
+    for(UInt i = test.nsyn; i > 0 ; --i) {
+      if( rnd.getReal64() <= Real64(test.ncon - ncon_done) / i ) {
+        ncon_done++;
+        con.createSynapse( segment, presyn++, rnd.getReal64() * 0.5f + 0.5f );
+      }
+      else {
+        con.createSynapse( segment, presyn++, rnd.getReal64() * 0.5f );
+      }
+    }
+    // Check test setup is good.
+    const auto &segData = con.dataForSegment( segment );
+    ASSERT_EQ( test.nsyn, segData.synapses.size() );
+    ASSERT_EQ( test.ncon, segData.numConnected );
+
+    con.synapseCompetition( segment, test.min, test.max );
+
+    // Check synapse data "numConnected" is accurate.
+    int real_ncon = 0;
+    for( const auto syn : segData.synapses ) {
+      const auto &synData = con.dataForSynapse( syn );
+      if( synData.permanence >= 0.5f - nupic::Epsilon ) {
+        real_ncon++;
+      }
+    }
+    EXPECT_EQ( segData.numConnected, real_ncon );
+
+    // Check results of synapse competition.
+    if( not test.dont_check ) {
+      EXPECT_GE( segData.numConnected, test.min );
+      EXPECT_LE( segData.numConnected, test.max );
+      if( test.ncon >= test.min and test.ncon <= test.max ) {
+        EXPECT_EQ( segData.numConnected, test.ncon );
+      }
+    }
+  }
 }
 
 TEST(ConnectionsTest, testBumpSegment) {
