@@ -501,86 +501,86 @@ TEST(ConnectionsTest, testSynapseCompetition) {
     // The target number of synapses can't be met, just make sure it does not crash.
     bool dont_check = false;
   };
-  const testCase emptySegment = {
-    .nsyn = 0,
-    .ncon = 0,
-    .min  = 3,
-    .max  = 100,
-    .dont_check = true
-  };
-  const testCase fullSegment = {
-    .nsyn = 100,
-    .ncon = 100,
-    .min  = 3,
-    .max  = 100
-  };
-  const testCase disconnect1 = {
-    .nsyn = 100,
-    .ncon = 100,
-    .min  = 3,
-    .max  = 99
-  };
-  const testCase minimum = {
-    .nsyn = 100,
-    .ncon = 5,
-    .min  = 10,
-    .max  = 30
-  };
-  const testCase maximum = {
-    .nsyn = 100,
-    .ncon = 77,
-    .min  = 10,
-    .max  = 30
-  };
-  const testCase no_change1 = {
-    .nsyn = 100,
-    .ncon = 10,
-    .min  = 10,
-    .max  = 30
-  };
-  const testCase no_change2 = {
-    .nsyn = 100,
-    .ncon = 20,
-    .min  = 10,
-    .max  = 30
-  };
-  const testCase no_change3 = {
-    .nsyn = 100,
-    .ncon = 30,
-    .min  = 10,
-    .max  = 30
-  };
-  const testCase exact1 = {
-    .nsyn = 100,
-    .ncon = 33,
-    .min  = 33,
-    .max  = 33
-  };
-  const testCase exact2 = {
-    .nsyn = 100,
-    .ncon = 0,
-    .min  = 33,
-    .max  = 33
-  };
-  const testCase exact3 = {
-    .nsyn = 100,
-    .ncon = 88,
-    .min  = 33,
-    .max  = 33
-  };
-  const testCase corner1 = {
-    .nsyn = 100,
-    .ncon = 30,
-    .min  = 200,
-    .max  = 300,
-    .dont_check = true
-  };
-  const testCase corner2 = {
-    .nsyn = 100,
-    .ncon = 30,
-    .min  = 0,
-    .max  = 0
-  };
+
+  testCase emptySegment;
+  emptySegment.nsyn = 0;
+  emptySegment.ncon = 0;
+  emptySegment.min  = 3;
+  emptySegment.max  = 100;
+  emptySegment.dont_check = true;
+
+  testCase fullSegment;
+  fullSegment.nsyn = 100;
+  fullSegment.ncon = 100;
+  fullSegment.min  = 3;
+  fullSegment.max  = 100;
+
+  testCase disconnect1;
+  disconnect1.nsyn = 100;
+  disconnect1.ncon = 100;
+  disconnect1.min  = 3;
+  disconnect1.max  = 99;
+
+  testCase minimum;
+  minimum.nsyn = 100;
+  minimum.ncon = 5;
+  minimum.min  = 10;
+  minimum.max  = 30;
+
+  testCase maximum;
+  maximum.nsyn = 100;
+  maximum.ncon = 77;
+  maximum.min  = 10;
+  maximum.max  = 30;
+
+  testCase no_change1;
+  no_change1.nsyn = 100;
+  no_change1.ncon = 10;
+  no_change1.min  = 10;
+  no_change1.max  = 30;
+
+  testCase no_change2;
+  no_change2.nsyn = 100;
+  no_change2.ncon = 20;
+  no_change2.min  = 10;
+  no_change2.max  = 30;
+
+  testCase no_change3;
+  no_change3.nsyn = 100;
+  no_change3.ncon = 30;
+  no_change3.min  = 10;
+  no_change3.max  = 30;
+
+  testCase exact1;
+  exact1.nsyn = 100;
+  exact1.ncon = 33;
+  exact1.min  = 33;
+  exact1.max  = 33;
+
+  testCase exact2;
+  exact2.nsyn = 100;
+  exact2.ncon = 0;
+  exact2.min  = 33;
+  exact2.max  = 33;
+
+  testCase exact3;
+  exact3.nsyn = 100;
+  exact3.ncon = 88;
+  exact3.min  = 33;
+  exact3.max  = 33;
+
+  testCase corner1;
+  corner1.nsyn = 100;
+  corner1.ncon = 30;
+  corner1.min  = 200;
+  corner1.max  = 300;
+  corner1.dont_check = true;
+
+  testCase corner2;
+  corner2.nsyn = 100;
+  corner2.ncon = 30;
+  corner2.min  = 0;
+  corner2.max  = 0;
 
   Connections con(1u, 0.5f);
   Random rnd( 42u );
