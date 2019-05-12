@@ -1,9 +1,24 @@
 #!/usr/bin/python3
+# ------------------------------------------------------------------------------
+# Numenta Platform for Intelligent Computing (NuPIC)
+#
+# Copyright (C) 2018-2019, David McDougall
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Affero Public License version 3 as published by the Free
+# Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Affero Public License for more details.
+#
+# You should have received a copy of the GNU Affero Public License along with
+# this program.  If not, see http://www.gnu.org/licenses.
+# ------------------------------------------------------------------------------
 """
 Automatic Experimenter
-Written by David McDougall, 2018-2019
 
-This is a parameter optimization framework.
+This is a framework for parameter optimization.
  * It methodically records the results of different sets of parameters and
 analyses the results.  It then automatically suggests and evaluates
 modifications to the parameters.
@@ -69,20 +84,21 @@ progress experiment, and when the experiment finishes running they are copied to
 their journal and then the ".log" file is deleted.
 """
 
-# TODO: Default parameters need better handling...
-
-# TODO: ExperimentSummary should X-Ref with journal file.  Journal should
-# contain complete parameter set, needed for full automatic reproducibility.
-# Changing default parameters should not make experiments inaccessible.
+# TODO: Default parameters need better handling...  When they change, update
+# all of the modifications to be diffs of the current parameters.
 
 # TODO: Maybe the command line invocation should be included in the experiment
 # hash?  Then I could experiment with the CLI args within a single lab report.
 
 # TODO: Every run should track elapsed time and report the average in the
-# experiment journal & summary.  Some of these experiments clearly take 4x
-# longer than others but its not recorded.
+# experiment journal & summary.  Some of these experiments clearly take longer
+# than others but its not recorded.
 
-# TODO: Log files should have memory usage ...
+# TODO: Log files should report memory usage ...
+
+# TODO: Remove LabReport.experiment, then rename lab.experiment_ids to experiments
+
+# TODO: Reject experiments which have failed a few times.
 
 import argparse
 import os
@@ -98,89 +114,11 @@ import resource
 import signal # Probably not X-platform ...
 from copy import copy, deepcopy
 import re
-import hashlib
 import numpy as np
 import scipy
 import math
 
-
-class ParameterSet(dict):
-    def __init__(self, data):
-        super().__init__(self)
-        if isinstance(data, str):
-            try:
-                data = eval(data.strip())
-            except:
-                print("Error parsing: " + data.strip())
-                raise
-        assert(isinstance(data, dict))
-        self.update(data)
-
-    def __hash__(self):
-        string = pprint.pformat(self).encode('utf-8')
-        checksum = hashlib.md5(string).hexdigest()
-        return abs(int(checksum[:8], base=16))
-
-    def __eq__(self, other):
-        assert(isinstance(other, type(self)))
-        return _recursive_equal(self, other)
-
-    def diff(a, b):
-        return _recursive_diff(a, b)
-
-    def get(self, path):
-        try:
-            return eval('self' + path)
-        except:
-            print('Failed to get self' + path)
-            raise
-
-    def apply(self, modification, value):
-        try:
-            _recursive_apply(self, modification.strip(), value)
-        except:
-            print('Failed to apply modification %s = %s'%(modification, str(value)))
-            raise
-
-
-def _recursive_equal(a, b):
-    if isinstance(a, dict):
-        return all(_recursive_equal(a[k], b[k]) for k in a)
-    elif isinstance(a, tuple):
-        return all(_recursive_equal(ai, bi) for ai, bi in zip(a, b))
-    else:
-        return a == b
-
-def _recursive_diff(old, new):
-    diffs = []
-    if isinstance(old, dict):
-        for key in old:
-            inner_diffs = _recursive_diff(old[key], new[key])
-            for path, new_value in inner_diffs:
-                diffs.append(("['%s']%s"%(key, path), new_value))
-    elif isinstance(old, tuple):
-        for idx in range(len(old)):
-            inner_diffs = _recursive_diff(old[idx], new[idx])
-            for path, new_value in inner_diffs:
-                diffs.append(("[%d]%s"%(idx, path), new_value))
-    elif old != new:
-        diffs.append(('', new))
-    return diffs
-
-def _recursive_apply(self, mod, value):
-    access = mod.split(']')[0].strip('[]"\' ')
-    if not access:
-        return value
-    tail = mod.split(']', maxsplit=1)[1]
-    if isinstance(self, dict):
-        self[access] = _recursive_apply(self[access], tail, value)
-        return self
-    if isinstance(self, tuple):
-        self        = list(self)
-        index       = int(access)
-        self[index] = _recursive_apply(self[index], tail, value)
-        return tuple(self)
-
+from .nupic.optimization.parameter_set import ParameterSet
 
 class ExperimentSummary:
     """
@@ -265,6 +203,8 @@ class ExperimentSummary:
             # from defaults + modifications, and the defaults might have changed.
             self._hash    = int(re.search("Hash: (.*)", string).groups()[0], base=16)
 
+    # TODO: This should accept the baseline to compare against, and then have
+    # the defaults parameters as the default baseline.
     def significance(self):
         """
         Returns the P-Value of the Null-Hypothesis test (these parameters
@@ -362,7 +302,7 @@ class LabReport:
         self.save()
 
     def init_header(self):
-        self.header = self.name
+        self.header = str(self.name)
         if self.tag:
             self.header += ' - ' + self.tag
         self.header += ' - Automatic Experiments\n'
@@ -383,7 +323,7 @@ class LabReport:
         self.module = exec_globals[self.name]
 
         self.default_parameters = ParameterSet(self.module.default_parameters)
-        self.structure = _recursive_parameter_structure(self.default_parameters)
+        self.structure = self.default_parameters.get_types()
 
     def parse_lab_report(self, report):
         if not report.strip():
@@ -395,6 +335,7 @@ class LabReport:
         sorted_pval_table   = sections[2]
         experiment_sections = sections[3:]
         file_defaults = ParameterSet(default_parameters)
+        # TODO: Better instructions here!
         # Consistency check for parameters.
         if file_defaults != self.default_parameters:
             while True:
@@ -411,7 +352,10 @@ class LabReport:
         # Consistency check for experiment.
         if cli != self.argv:
             while True:
-                q = input("Experiment command line invocation have changed, options: old new abort: ")
+                q = input(  "Experiment command line invocation has changed, options:\n" + 
+                            "    old - Ignore the given invocation, use what's on file.\n" +
+                            "    new - Use the given arguments, overwrites the old invocation!\n" +
+                            "    abort.\n")
                 q = q.strip().lower()
                 if q == 'old':
                     self.argv = cli
@@ -578,7 +522,22 @@ class LabReport:
         return exec_globals['score'], journal.name
 
     def typecast_parameters(self, parameters):
-        return _recursive_typecast_parameters(parameters, self.structure)
+        def recursive_typecast_parameters(values, structure):
+            # Recurse through the parameter data structure.
+            if isinstance(structure, dict):
+                for key in structure:
+                    values[key] = recursive_typecast_parameters(values[key], structure[key])
+                return values
+            elif isinstance(structure, tuple):
+                return tuple(recursive_typecast_parameters(*args)
+                    for args in zip(values, structure))
+            # Type cast values.
+            elif structure == float:
+                value = float(values)
+                return float(str(value))
+            elif structure == int:
+                return int(round(float(values)))
+        return recursive_typecast_parameters(parameters, self.structure)
 
     def save_results(self, parameters, result):
         # Update this experiment
@@ -616,53 +575,6 @@ def Experiment_evaluate_parameters(self, *args, **kwds):
 def _timeout_callback(signum, frame):
     raise ValueError("Time limit exceded.")
 
-def _recursive_parameter_structure(default_parameters):
-    """
-    Convert a set of parameters into the data types used to represent them.
-    Returned result has the same structure as the parameters.
-    """
-    # Recurse through the parameter data structure.
-    if isinstance(default_parameters, dict):
-        return {key: _recursive_parameter_structure(value)
-            for key, value in default_parameters.items()}
-    elif isinstance(default_parameters, tuple):
-        return tuple(_recursive_parameter_structure(value)
-            for value in default_parameters)
-    # Determine data type of each entry in parameter data structure.
-    elif isinstance(default_parameters, float):
-        return float
-    elif isinstance(default_parameters, int):
-        return int
-    raise TypeError('Unaccepted type in experiment parameters: type "%s".'%(type(default_parameters).__name__))
-
-def _recursive_typecast_parameters(values, structure):
-    # Recurse through the parameter data structure.
-    if isinstance(structure, dict):
-        for key in structure:
-            values[key] = _recursive_typecast_parameters(values[key], structure[key])
-        return values
-    elif isinstance(structure, tuple):
-        return tuple(_recursive_typecast_parameters(*args)
-            for args in zip(values, structure))
-    # Type cast values.
-    elif structure == float:
-        value = float(values)
-        return float(str(value))
-    elif structure == int:
-        return int(round(float(values)))
-
-def paths(structure):
-    retval = []
-    if isinstance(structure, dict):
-        for key, value in structure.items():
-            retval.extend( "['%s']%s"%(key, path) for path in paths(value) )
-    elif isinstance(structure, tuple):
-        for idx, value in enumerate(structure):
-            retval.extend( "[%d]%s"%(idx, path) for path in paths(value) )
-    else:
-        retval.append('')
-    return sorted(retval)
-
 ################################################################################
 
 
@@ -692,143 +604,12 @@ def evaluate_all(lab):
 
 
 def evaluate_best(lab):
-    rnd = random.random
-    best = max(lab.experiments, key = lambda X: X.mean() + rnd() )
+    best = max(lab.experiments, key = lambda X: X.mean() )
     return best.parameters
-
-
-class GridSearch(object):
-    """docstring for GridSearch"""
-    mod_funcs = [
-        lambda v: v *  .40,
-        lambda v: v *  .60,
-        lambda v: v *  .80,
-        lambda v: v * 1.00,     # Include the default parameters.
-        lambda v: v * 1.20,
-        lambda v: v * 1.40,
-        lambda v: v * 1.60,
-    ]
-
-    def __init__(self, directive):
-        self.directive = directive
-
-    def __call__(self, lab):
-
-        if lab.experiment_ids[hash(lab.default_parameters)].attempts < 10:
-            return lab.default_parameters
-
-        # Get a list of every parameter to experiment with.
-        if self.directive:
-            manifest = []
-            for start in self.directive.split(','):
-                node = eval("lab.default_parameters" + start)
-                manifest.extend(start + end for end in paths(node))
-        else:
-            manifest = paths(lab.default_parameters)
-
-        # Suggest the following modifications to each parameter.
-        experiments = []
-        for path in manifest:
-            value = lab.default_parameters.get(path)
-            for mod in self.mod_funcs:
-                params = deepcopy(lab.default_parameters)
-                params.apply( path, mod(value) )
-                try:
-                    experiments.append(
-                        ExperimentSummary(lab, parameters=params))
-                except ValueError:
-                    # ExperimentSummary raises ValueError if it detects
-                    # duplicate entry in the database.
-                    experiments.append(
-                        lab.experiment_ids[hash(params)])
-
-        lab.save() # Write all of the new grid-search experiments to the lab report.
-
-        # TODO: Reject experiments which have failed a few times.
-
-        rnd = random.random
-        return min(experiments, key=lambda x: x.attempts + rnd()).parameters
-
-
-class CombineBest:
-    def __init__(self, n=20):
-        self.n = n
-
-    def merge(self, lab, ideas):
-        """ Take several experiments and return the best combination of them. """
-        # Marshal all of the modifications together.
-        ideas  = sorted(ideas, key = lambda x: -x.mean())
-        paths  = []
-        values = []
-        for x in ideas:
-            for path, value in x.modifications:
-                if path in paths:
-                    continue # Higher scoring experiments take precedence.
-                paths.append(path)
-                values.append(value)
-        # Create or get the experiment object.
-        mods = list(zip(paths, values))
-        try:
-            return ExperimentSummary(lab, modifications=mods)
-        except ValueError:
-            # ExperimentSummary raises ValueError if it detects duplicate entry
-            # in the database.
-            params = deepcopy(lab.default_parameters)
-            for p, v in mods:
-                params.apply(p, v)
-            return lab.experiment_ids[hash(params)]
-
-    def __call__(self, lab):
-
-        suggest = [] # Retval accumulator
-        # Ignore all underperforming experiments.
-        null = lab.experiment_ids[hash(lab.default_parameters)]
-        ex   = [x for x in lab.experiments if x.mean() > null.mean()]
-        # For sanity: Limit to the top experiments.
-        ex = sorted(ex, key = lambda x: -x.mean())[ : self.n]
-        # Keep trying experiments which are not yet significant.  Experiments
-        # with a single datum have a significance of NaN...
-        trymore = [x for x in ex if (x.significance() > .50 or math.isnan(x.significance()))]
-        ex = [x for x in ex if x not in trymore]
-        suggest.extend(trymore)
-        # Suggests combinations
-        import itertools
-        for ideas in itertools.combinations(ex, 2):
-            suggest.append( self.merge(lab, ideas) )
-
-        if False: # Dump the suggestions for debugging
-            for x in suggest:
-                for p, v in x.modifications:
-                    print(p , v)
-                print()
-            1/0
-        rnd = random.random
-        return min(suggest, key=lambda x: x.attempts + rnd()).parameters
 
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
-
-    arg_parser.add_argument('--parse',  action='store_true',
-        help='Parse the lab report and write it back to the same file, then exits.')
-
-    arg_parser.add_argument('--rmz', action='store_true',
-        help='Remove all experiments which have zero attempts.')
-
-    arg_parser.add_argument('--default_parameters', action='store_true',)
-
-    arg_parser.add_argument('--all_experiments', action='store_true',
-        help='Evaluate all experiments in the lab report, don\'t start new experiments')
-
-    arg_parser.add_argument('--hashes', type=str,)
-
-    arg_parser.add_argument('--best', action='store_true',
-        help='Evaluate the best set of parameters on file, with verbose=True.')
-
-    arg_parser.add_argument('--grid_search', type=str)
-
-    arg_parser.add_argument('--combine', type=int, default=0, help='Combine the NUM best experiments.')
-
     arg_parser.add_argument('--verbose', action='store_true',)
     arg_parser.add_argument('--tag', type=str,
         help='Optional string appended to the name of the AE directory.  Use tags to '
@@ -840,6 +621,28 @@ if __name__ == '__main__':
         help='Gigabytes, RAM memory limit for each run of the experiment.')
     arg_parser.add_argument('experiment', nargs=argparse.REMAINDER,
         help='Name of experiment module followed by its command line arguments.')
+
+    action_parser = arg_parser.add_mutually_exclusive_group(required=True)
+
+    action_parser.add_argument('--parse',  action='store_true',
+        help='Parse the lab report and write it back to the same file, then exits.')
+
+    action_parser.add_argument('--rmz', action='store_true',
+        help='Remove all experiments which have zero attempts.')
+
+    action_parser.add_argument('--default_parameters', action='store_true',)
+
+    action_parser.add_argument('--all_experiments', action='store_true',
+        help='Evaluate all experiments in the lab report, don\'t start new experiments')
+
+    action_parser.add_argument('--hashes', type=str,)
+
+    action_parser.add_argument('--best', action='store_true',
+        help='Evaluate the best set of parameters on file, with verbose=True.')
+
+    action_parser.add_argument('--grid_search', type=str)
+
+    action_parser.add_argument('--combine', type=int, default=0, help='Combine the NUM best experiments.')
 
     args = arg_parser.parse_args()
     giga = 2**30
@@ -878,9 +681,11 @@ if __name__ == '__main__':
         method = evaluate_best # Test this!
 
     elif args.grid_search:
+        from .nupic.optimization.basic_search import GridSearch
         method = GridSearch(args.grid_search)
 
     elif args.combine:
+        from .nupic.optimization.basic_search import CombineBest
         method = CombineBest(args.combine)
 
     else:
