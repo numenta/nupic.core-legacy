@@ -74,7 +74,7 @@
 #include "RegionTestUtilities.hpp"
 
 #define VERBOSE if(verbose)std::cerr << "[          ] "
-static bool verbose = false;  // turn this on to print extra stuff for debugging the test.
+static bool verbose = true;  // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually verified. 
 #define EXPECTED_SPEC_COUNT  22  // The number of parameters expected in the SPRegion Spec
@@ -330,12 +330,12 @@ TEST(SPRegionTest, testSerialization)
     // It is apparently checking that it is not in array mode.
 
     Directory::removeTree("TestOutputDir", true);
-	  //net1.saveToFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
-	  net1.saveToFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::BINARY);
+    VERBOSE << "Writing stream to " << Path::makeAbsolute("TestOutputDir/spRegionTest.stream") << "\n";
+	  net1.saveToFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
 
-	  VERBOSE << "Restore into a second network and compare." << std::endl;
-    //net2.loadFromFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
-    net2.loadFromFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::BINARY);
+    VERBOSE << "Restore from " << Path::makeAbsolute("TestOutputDir/spRegionTest.stream") 
+            << " into a second network and compare." << std::endl;
+    net2.loadFromFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
 
 
 	  std::shared_ptr<Region> n2region2 = net2.getRegion("region2");

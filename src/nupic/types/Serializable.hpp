@@ -251,7 +251,6 @@ public:
 		std::ios_base::openmode mode = std::ios_base::out;
 		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
 	  std::ofstream out(filePath, mode);
-	  out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 	  out.precision(std::numeric_limits<double>::digits10 + 1);
 	  out.precision(std::numeric_limits<float>::digits10 + 1);
 		saveToStream_ar(out, fmt);
@@ -291,11 +290,14 @@ public:
 		std::ios_base::openmode mode = std::ios_base::in;
 		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
 	  std::ifstream in(filePath, mode);
-    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    // NOTE: do NOT set stream exceptions:
+    //       in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    //       The JSON parser will not be able to find the end of the parse.
 		loadFromStream_ar(in, fmt);
 		in.close();
 	}
   // NOTE: for BINARY and PORTABLE the stream must opened with ios_base::binary or it will crash on Windows.
+  //       Stream exceptions should NOT be set.
 	virtual inline void loadFromStream_ar(std::istream &in,  SerializableFormat fmt=SerializableFormat::BINARY) {
     ArWrapper arw;
     arw.fmt = fmt;
