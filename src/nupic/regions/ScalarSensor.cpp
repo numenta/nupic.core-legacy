@@ -80,13 +80,22 @@ Dimensions ScalarSensor::askImplForOutputDimensions(const std::string &name) {
   if (name == "encoded") {
     // just in case parameters changed since instantiation, we call the
     // encoder's initialize() again. Note that if dimensions have been manually set, 
-    // it is ignored. The dimensions are determined only by the encoder's algorithm.
+    // use those if same number of elements, else the dimensions are determined 
+    // only by the encoder's algorithm.
     encoder_->initialize(params_); 
 
     // get the dimensions determined by the encoder.
-    const std::vector<UInt> &dimensions = encoder_->dimensions;
-    setDimensions(dimensions);  // This output is 'isRegionLevel' so set region level dimensions.
-    return dimensions;
+    Dimensions encDim(encoder_->dimensions); // get dimensions from encoder
+    Dimensions regionDim = getDimensions();  // get the region level dimensions.
+    if (regionDim.isSpecified()) {
+      // region level dimensions were explicitly specified.
+      NTA_CHECK(regionDim.getCount() == encDim.getCount()) 
+        << "Manually set dimensions are incompatible with encoder parameters; region: " 
+        << regionDim << "  encoder: " << encDim;
+      encDim = regionDim;
+    }
+    setDimensions(encDim);  // This output is 'isRegionLevel' so set region level dimensions.
+    return encDim;
   } 
   else if (name == "bucket") {
     return 1;

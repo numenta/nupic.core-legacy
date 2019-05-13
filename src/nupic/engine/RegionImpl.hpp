@@ -27,8 +27,86 @@
  * implementation of a Region, including algorithms.
  *
  * The RegionImpl class is expected to be subclassed for particular
- * node types (e.g. FDRNode, PyNode, etc) and RegionImpls are created
- * by the RegionImplFactory
+ * node types (e.g. TestNode, SPRegion, TMRegion, etc) and RegionImpls are 
+ * instatiated by the RegionImplFactory.
+ *
+ * This is a wrapper or interface for an algorithm so that it
+ * can be used within the NetworkAPI framework.
+ *
+ * Normal Processing flow for a Region implemementation:
+ * 1) Registration:
+ *    If this is a custom region, C++ users must call
+ *       Network.registerRegion(name, RegisteredRegionImpl)
+ *    and Python users must call Network.registerPyRegion(module, class)
+ *    to register their implementations.  Built-in C++ implementations
+ *    are already registered by RegionImplFactory.
+ *
+ * 2) Region Creation:
+ *    When a region is added to the Network with Network.addRegion(name, params),
+ *    The Region and its corresponding region implementation will be
+ *    instantiated.  When the region implementation's constructors are
+ *    called, they are passed the parameters provided in the addRegion() call
+ *    merged with the default parameters from the Spec.  The constructor
+ *    must pick up these parameters and store locally.
+ *
+ *    The parameter 'dim' will already be handled and will set the region
+ *    level dimensions.
+ *
+ *    During this call, the Inputs and Output objects are created for 
+ *    each input and output specified in the Spec and attached to the
+ *    region. The buffers and dimensions are set later.
+ *
+ * 3) Link Creation:
+ *    After regions are created, they may be used in a link() call to 
+ *    create a path for data to flow between the regions. 
+ *
+ * 4) Configuration:
+ *    Following region creation, a user may make setParameterXXX() calls
+ *    that can modify parameters for a region.  It may also call setDimensions() to 
+ *    manually set or override the dimensions. Normally these are not
+ *    needed but this provides a way to handle unique situations.
+ *
+ * 5) Initialize:
+ *    Next the user should call Network.initialize(). If this is not
+ *    called, the first call to Network.run() will call initialize.
+ *
+ *    This call will first evaluate the links, determine the dimensions
+ *    for all inputs and outputs and create the buffers. If it cannot
+ *    determine dimensions it will call askImplForInputDimensions()
+ *    and askImplForOutputDimensions() on a region implementation to 
+ *    obtain dimensions.  If the region impl did not implement those functions
+ *    it will call getNodeInputElementCount() and getNodeOutputElementCount()
+ *    to obtain buffer size to use as a dimension. See Link.hpp for a
+ *    more complete description of how dimensions are set.
+ *
+ *    At this point, when all dimensions are determined and all buffers
+ *    have been allocated, it will then call initialize() on each region 
+ *    implementation.  This is normally when the region's algorithm
+ *    object is instatiated and parameters and dimensions are passed in.
+ *
+ *    Any parameter changes made by setParameterXXX() must be passed
+ *    on to the algorithm if allowed and getParameterXXX()  must query 
+ *    the algorithm if allowed.
+ *
+ * 6) Run:
+ *    At this point we are ready to execute everything. When Network.run()
+ *    is called, the Network class will sequentually call the compute() 
+ *    method on each region implementation in the phase order and within 
+ *    each phase in the order of region declaration.
+ *
+ *    This will iterate for as many times as given in the run() argument.
+ *    At the beginning of each iteration any callbacks that were configured
+ *    during Configuration time will be called allowing the user to sample
+ *    data or adjust parameters.
+ *
+ *    Prior to each region's compute() call, all links are traversed and 
+ *    all connected region outputs are copied (or moved) to the corresponding 
+ *    region inputs.  A previously executed region's outputs are then
+ *    available to a subsequent region, allowing data to cascade through 
+ *    the links within the same iteration. Buffering and data type conversions 
+ *    are automatically performed as needed based on the data types declared 
+ *    in the region Spec for each input and output.
+ *
  */
 
 #ifndef NTA_REGION_IMPL_HPP

@@ -46,7 +46,7 @@ class Input;
  *
  * How to use Links:  The big picture.
  *
- * At Specification time.
+ * At Configuration time.
  *
  * An application writer would define a pair of links as in the following
  * example given the declaration of a network and three regions,
