@@ -51,7 +51,7 @@ class DateEncoderTest(unittest.TestCase):
     # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
     bits = enc.encode(d)
     # Season is aaabbbcccddd (1 bit/month)
-    seasonExpected = [0,0,0,0,0,0,0,0,0,1,1,1]
+    seasonExpected = [1,0,0,0,0,0,0,0,0,0,1,1]
 
     # Week is MTWTFSS contrary to localtime documentation, Monday = 0 (for
     # python datetime.datetime.timetuple()
@@ -65,13 +65,10 @@ class DateEncoderTest(unittest.TestCase):
     # should be 30 bits total (30 * 48 minutes = 24 hours)
     timeOfDayExpected = (
       [0,0,0,0,0,0,0,0,0,0,
-       0,0,0,0,0,0,1,1,1,1,
-       1,0,0,0,0,0,0,0,0,0])
+       0,0,0,0,0,0,0,0,0,1,
+       1,1,1,1,0,0,0,0,0,0])
     expected = seasonExpected + dayOfWeekExpected + weekendExpected + timeOfDayExpected
 
-    print(enc.timeOfDayEncoder.size)
-    print(expected)
-    print(bits.dense.tolist())
     self.assertEqual(bits.size, 51)
     self.assertEqual(expected, bits.dense.tolist())
 
@@ -107,7 +104,7 @@ class DateEncoderTest(unittest.TestCase):
     bits = enc.encode(d)
 
     # Season is aaabbbcccddd (1 bit/month)
-    seasonExpected = [0,0,0,0,0,0,0,0,0,1,1,1]
+    seasonExpected = [1,0,0,0,0,0,0,0,0,0,1,1]
 
     expected = seasonExpected
     self.assertEqual(bits.size, 12)
@@ -149,10 +146,12 @@ class DateEncoderTest(unittest.TestCase):
     # Encoder should be 30 bits total (30 * 48 minutes = 24 hours)
     timeOfDayExpected = (
       [0,0,0,0,0,0,0,0,0,0,
-       0,0,0,0,0,0,1,1,1,1,
-       1,0,0,0,0,0,0,0,0,0])
+       0,0,0,0,0,0,0,0,0,1,
+       1,1,1,1,0,0,0,0,0,0])
 
     expected = timeOfDayExpected
+    print(expected)
+    print(bits.dense.tolist())
     self.assertEqual(bits.size, 30)
     self.assertEqual(expected, bits.dense.tolist())
 
@@ -218,7 +217,8 @@ class DateEncoderTest(unittest.TestCase):
       d = d+datetime.timedelta(days=1)
       self.assertEqual( e.encode(d), e2.encode(d) )
 
-
+  
+  @unittest.skip("Encoding years not supported, DateTime now works at weekly basis only")
   def testYearsDiffer(self):
     """ Creating date encoder instance. """
     enc = DateEncoder(season=1, dayOfWeek=1, weekend=1) #all info for recognizing days 
