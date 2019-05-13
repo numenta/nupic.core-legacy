@@ -107,11 +107,11 @@ TEST(TMRegionTest, testSpecAndParameters) {
 TEST(TMRegionTest, checkTMRegionImpl) {
   Network net;
 
-  size_t regionCntBefore = net.getRegions().getCount();
+  size_t regionCntBefore = net.getRegions().size();
 
   VERBOSE << "Adding a built-in TMRegion region..." << std::endl;
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TMRegion", "");
-  size_t regionCntAfter = net.getRegions().getCount();
+  size_t regionCntAfter = net.getRegions().size();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << " Expected number of regions to increase by one.  ";
   ASSERT_TRUE(region1->getType() == "TMRegion")
@@ -130,7 +130,7 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   VERBOSE << "Creating network..." << std::endl;
   Network net;
 
-  size_t regionCntBefore = net.getRegions().getCount();
+  size_t regionCntBefore = net.getRegions().size();
 
   // make sure the custom region registration works for CPP.
   // We will just use the same TMRegion class but it could be a subclass or some
@@ -150,7 +150,7 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   VERBOSE << "Adding a custom-built TMRegion region..." << std::endl;
   net.registerRegion("TMRegionCustom", new RegisteredRegionImplCpp<TMRegion>());
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TMRegionCustom", nodeParams);
-  size_t regionCntAfter = net.getRegions().getCount();
+  size_t regionCntAfter = net.getRegions().size();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << "  Expected number of regions to increase by one.  ";
   ASSERT_TRUE(region2->getType() == "TMRegionCustom")
@@ -377,7 +377,7 @@ TEST(TMRegionTest, testSerialization) {
 
 
     VERBOSE << "checked restored network" << std::endl;
-    std::shared_ptr<Region> n2region2 = net2->getRegions().getByName("region2");
+    std::shared_ptr<Region> n2region2 = net2->getRegion("region2");
     ASSERT_TRUE(n2region2->getType() == "TMRegion")
         << " Restored TMRegion region does not have the right type.  Expected "
            "TMRegion, found "
@@ -413,7 +413,7 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "Restore into a third network and compare changed parameters." << std::endl;
     net3 = new Network();
     net3->loadFromFile("TestOutputDir/tmRegionTest.stream");
-    std::shared_ptr<Region> n3region2 = net3->getRegions().getByName("region2");
+    std::shared_ptr<Region> n3region2 = net3->getRegion("region2");
     EXPECT_TRUE(n3region2->getType() == "TMRegion")
         << "Failure: Restored region does not have the right type. "
            " Expected \"TMRegion\", found \""

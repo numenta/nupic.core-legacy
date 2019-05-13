@@ -76,6 +76,10 @@ longer accept a synapse permanence threshold argument. PR #305
 
 * SDRClassifier class is replaced by `Classifier` and `Predictor` classes.
 
+
+* In NetworkAPI, access to a Region object was accessed using `net.getRegions()->getByName('name');`. 
+This is obsolete. Use getRegion('name') instead. 
+
 * Anomaly class removed as obsolete, use `TM.anomaly` which is simpler to use, and `MovingAverage` when you need to emulate 
   running averages. Internaly the code still uses `computeRawAnomalyScore()` but there's no need to call it directly. `AnomalyLikelihood` 
   is still available and can be used in addition to TM.getAnomalyScore(). PR #406 

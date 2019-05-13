@@ -201,12 +201,12 @@ TEST(CppRegionTest, testYAML) {
 TEST(CppRegionTest, realmain) {
   Network n;
 
-  size_t count1 = n.getRegions().getCount();
+  size_t count1 = n.getRegions().size();
   EXPECT_TRUE(count1 == 0u);
   std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "{count: 2}");
 
 
-  size_t count = n.getRegions().getCount();
+  size_t count = n.getRegions().size();
   EXPECT_TRUE(count == 1u);
   std::string region_type = level1->getType();
   EXPECT_STREQ(region_type.c_str(), "TestNode");

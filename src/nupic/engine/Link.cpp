@@ -393,25 +393,20 @@ bool Link::operator==(const Link &o) const {
  * This is not part of the save/load facility.
  */
 std::ostream &operator<<(std::ostream &f, const Link &link) {
-  f << "<Link>\n";
-  f << "  <type>" << link.getLinkType() << "</type>\n";
-  f << "  <params>" << link.getLinkParams() << "</params>\n";
-  f << "  <srcRegion>" << link.getSrcRegionName() << "</srcRegion>\n";
-  f << "  <destRegion>" << link.getDestRegionName() << "</destRegion>\n";
-  f << "  <srcOutput>" << link.getSrcOutputName() << "</srcOutput>\n";
-  f << "  <destInput>" << link.getDestInputName() << "</destInput>\n";
-  f << "  <offset>" << link.destOffset_ << "</offset>\n";
-  f << "  <fanIn>" << link.is_FanIn_ << "</fanIn>\n";
-  f << "  <propagationDelay>" << link.getPropagationDelay()
-    << "</propagationDelay>\n";
+  f << "Link: {\n";
+  f << "  src: " << link.getSrcRegionName() << "." << link.getSrcOutputName() << ",\n";
+  f << "  dest: " << link.getDestRegionName() << "." << link.getDestInputName() << ",\n";
+  f << "  type: " << link.getLinkType() << ",  params: " << link.getLinkParams() << ",\n";
+  f << "  fanIn: " << link.is_FanIn_ << ",  offset: " << link.destOffset_ << ",\n";
+  f << "  propagationDelay: " << link.getPropagationDelay()<< ",\n";
   if (link.getPropagationDelay() > 0) {
-  	f <<   "   <propagationDelayBuffer>\n";
-	for (auto buf : link.propagationDelayBuffer_) {
-		f << buf << "\n";
-	}
-	f <<   "   </propagationDelayBuffer>\n";
+  	f <<   "   [\n";
+	  for (auto buf : link.propagationDelayBuffer_) {
+		  f << "    " << buf << "\n";
+	  }
+	  f <<   "   ]\n";
   }
-  f << "</Link>\n";
+  f << "}\n";
   return f;
 }
 

@@ -51,6 +51,7 @@ public:
   virtual ~Collection() {}
 
   typedef typename std::vector<std::pair<std::string, T>>::iterator Iterator;
+  typedef typename std::vector<std::pair<std::string, T>>::const_iterator ConstIterator;
 
   inline bool operator==(const Collection<T> &other) const {
       const static auto compare = [](std::pair<std::string, T> a,
@@ -63,6 +64,7 @@ public:
     return !operator==(other);
   }
   inline size_t getCount() const { return vec_.size(); }
+  inline size_t size() const { return vec_.size(); }
 
   // This method provides access by index to the contents of the collection
   // The indices are in insertion order.
@@ -90,6 +92,12 @@ public:
   	return vec_.begin();
   }
   inline Iterator end() {
+  	return vec_.end();
+  }
+  inline ConstIterator cbegin() const {
+  	return vec_.begin();
+  }
+  inline ConstIterator cend() const {
   	return vec_.end();
   }
 

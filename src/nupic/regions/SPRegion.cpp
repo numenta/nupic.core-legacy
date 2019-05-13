@@ -88,6 +88,11 @@ SPRegion::SPRegion(BundleIO &bundle, Region *region)
 
   deserialize(bundle);
 }
+SPRegion::SPRegion(ArWrapper &wrapper, Region *region)
+  : RegionImpl(region), computeCallback_(nullptr)  {
+  cereal_adapter_load(wrapper);
+}
+
 
 SPRegion::~SPRegion() {}
 
