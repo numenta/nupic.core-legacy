@@ -97,6 +97,11 @@ source_group("test"       FILES ${src_py_test_files})
 # Build the shared binding libraries for the Python Interface
 #
 ############################################################
+#
+# Note: if you need a debuggable version of the Python interface 
+#       See: https://bugs.python.org/issue22411
+#       and: https://github.com/pybind/pybind11/issues/1295
+#          
 
 # setup the distr directory
 set(distr ${CMAKE_INSTALL_PREFIX}/distr)

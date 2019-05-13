@@ -557,6 +557,42 @@ void Connections::bumpSegment(const Segment segment, const Permanence delta) {
 }
 
 
+void Connections::destroyMinPermanenceSynapses(
+                              const Segment segment, Int nDestroy,
+                              const vector<CellIdx> &excludeCells)
+{
+  NTA_ASSERT( nDestroy >= 0 );
+  if( nDestroy <= 0 ) return; // Nothing to do.
+
+  // Don't destroy any cells that are in excludeCells.
+  vector<Synapse> destroyCandidates;
+  for( Synapse synapse : synapsesForSegment(segment)) {
+    const CellIdx presynapticCell = dataForSynapse(synapse).presynapticCell;
+
+    if( not std::binary_search(excludeCells.cbegin(), excludeCells.cend(), presynapticCell)) {
+      destroyCandidates.push_back(synapse);
+    }
+  }
+
+  const auto comparePermanences = [&](const Synapse A, const Synapse B) {
+    const Permanence A_perm = dataForSynapse(A).permanence;
+    const Permanence B_perm = dataForSynapse(B).permanence;
+    if( A_perm == B_perm ) {
+      return A < B;
+    }
+    else {
+      return A_perm < B_perm;
+    }
+  };
+  std::sort(destroyCandidates.begin(), destroyCandidates.end(), comparePermanences);
+
+  nDestroy = std::min( nDestroy, (Int) destroyCandidates.size() );
+  for(Int i = 0; i < nDestroy; i++) {
+    destroySynapse( destroyCandidates[i] );
+  }
+}
+
+
 namespace nupic {
   namespace algorithms {
     namespace connections {

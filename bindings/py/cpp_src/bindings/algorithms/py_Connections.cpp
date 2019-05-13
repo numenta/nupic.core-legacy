@@ -147,6 +147,8 @@ R"(Returns pair of:
 
     py_Connections.def("bumpSegment", &Connections::bumpSegment);
 
+    py_Connections.def("destroyMinPermanenceSynapses", &Connections::destroyMinPermanenceSynapses);
+
     py_Connections.def("numCells", &Connections::numCells);
 
     py_Connections.def("numSegments",
