@@ -61,6 +61,7 @@ class DateEncoder:
         - (tuple) dayOfWeek[0] = width; dayOfWeek[1] = radius
 
     Argument weekend: (int) Is a weekend or not. A block of bits either 0s or 1s.
+    Note: the implementation treats "weekend" as starting Fri 6pm, till Sun midnight. 
 
         - (int) width of attribute
         - TODO remove and replace by customDays=(width, ["Saturday", "Sunday"]) ?
