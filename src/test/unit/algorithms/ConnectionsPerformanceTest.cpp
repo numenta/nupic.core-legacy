@@ -31,10 +31,10 @@
 
 #include <nupic/algorithms/SpatialPooler.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/algorithms/Anomaly.hpp>
 #include <nupic/utils/Random.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Types.hpp> // macro "UNUSED"
+#include <nupic/utils/MovingAverage.hpp>
 
 namespace testing {
 
@@ -44,19 +44,22 @@ using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections;
 using ::nupic::algorithms::spatial_pooler::SpatialPooler;
 using ::nupic::algorithms::temporal_memory::TemporalMemory;
-using namespace nupic::algorithms::anomaly;
+using nupic::util::MovingAverage;
 
 #define SEED 42
 
 Random rng(SEED);
 
-float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
+float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences, //TODO rather than learning large/small TM, test on large sequence vs many small seqs
                                                        int numElements,
                                                        string label) {
   Timer timer(true);
+  MovingAverage anom10(numSequences * numElements); //used for averaging anomaly scores
+  Real avgAnomBefore = 1.0f, avgAnomAfter = 1.0f;
+  NTA_CHECK(avgAnomBefore >= avgAnomAfter) << "TM should lear and avg anomalies improve, but we got: "
+	  << avgAnomBefore << " and now: " << avgAnomAfter; //invariant
 
   // Initialize
-
   TemporalMemory tm;
   tm.initialize( {numColumns} );
 
@@ -80,10 +83,13 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
     for (auto sequence : sequences) {
       for (auto sdr : sequence) {
         tm.compute(sdr, true);
-	//TODO get untrained anomaly score here
+	avgAnomAfter = anom10.compute(tm.anomaly); //average anomaly score
       }
       tm.reset();
     }
+    NTA_CHECK(avgAnomBefore >= avgAnomAfter) << "TM should learn and avg anomalies improve, but we got: "
+      << avgAnomBefore << " and now: " << avgAnomAfter; //invariant
+    avgAnomBefore = avgAnomAfter; //update
   }
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn"  << endl;
 
@@ -91,11 +97,14 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences,
   for (auto sequence : sequences) {
     for (auto sdr : sequence) {
       tm.compute(sdr, false);
-      //TODO get trained (lower) anomaly
+      avgAnomAfter = anom10.compute(tm.anomaly);
     }
     tm.reset();
   }
-  //TODO check anomaly trained < anomaly untrained
+
+#if defined NDEBUG && !defined(NTA_OS_WINDOWS) //because Win & Debug run shorter training due to time, so learning is not as good
+  NTA_CHECK(avgAnomAfter <= 0.021f) << "Anomaly scores diverged: "<< avgAnomAfter;
+#endif
   cout << (float)timer.getElapsed() << " in " << label << ": initialize + learn + test"  << endl;
   timer.stop();
   return (float)timer.getElapsed();

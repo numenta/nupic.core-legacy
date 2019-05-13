@@ -40,6 +40,7 @@ set(unit_tests_executable unit_tests)
 
 set(algorithm_tests
 	   unit/algorithms/AnomalyTest.cpp
+	   unit/algorithms/AnomalyLikelihoodTest.cpp
 	   unit/algorithms/ConnectionsPerformanceTest.cpp
 	   unit/algorithms/ConnectionsTest.cpp
 	   unit/algorithms/HelloSPTPTest.cpp
@@ -149,6 +150,7 @@ target_link_libraries(${unit_tests_executable}
 #    ${src_lib_shared}
     ${gtest_LIBRARIES}
     ${COMMON_OS_LIBS}
+    ${INTERNAL_LINKER_FLAGS}
 )
 target_include_directories(${unit_tests_executable} PRIVATE 
 	${gtest_INCLUDE_DIRS}
@@ -156,7 +158,6 @@ target_include_directories(${unit_tests_executable} PRIVATE
 	${EXTERNAL_INCLUDES})
 target_compile_definitions(${unit_tests_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_compile_options(${unit_tests_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
-set_target_properties(${unit_tests_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
 add_dependencies(${unit_tests_executable} ${core_library}) 
 #add_dependencies(${unit_tests_executable} ${src_lib_shared})
 

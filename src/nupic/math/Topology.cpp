@@ -17,8 +17,7 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- * ----------------------------------------------------------------------
- */
+ * ---------------------------------------------------------------------- */
 
 /** @file
  * Topology helpers
@@ -31,10 +30,82 @@
 using std::vector;
 using namespace nupic;
 using namespace nupic::math::topology;
+using nupic::sdr::SDR;
 
 namespace nupic {
 namespace math {
 namespace topology {
+
+
+Topology_t  DefaultTopology(
+    Real potentialPct,
+    Real potentialRadius,
+    bool wrapAround)
+{
+  NTA_CHECK( potentialPct >= 0.0f );
+  NTA_CHECK( potentialPct <= 1.0f );
+  NTA_CHECK( potentialRadius >= 0.0f );
+  return [=] (const SDR& cell, const vector<UInt>& potentialPoolDimensions, Random &rng) -> SDR {
+    // Uniform topology over trailing input dimensions.
+    auto inputTopology = potentialPoolDimensions;
+    UInt extraDimensions = 1u;
+    while( inputTopology.size() > cell.dimensions.size() ) {
+      extraDimensions *= inputTopology.back();
+      inputTopology.pop_back();
+    }
+
+    // Convert the coordinates of the target cell, from a location in
+    // cellDimensions to inputTopology.
+    NTA_ASSERT( cell.getSum() == 1u );
+    vector<vector<UInt>> inputCoords;
+    for(auto i = 0u; i < cell.dimensions.size(); i++)
+    {
+      const UInt32 columnCoord = cell.getCoordinates()[i][0];
+      const Real inputCoord = (static_cast<Real>(columnCoord) + 0.5f) *
+                              (inputTopology[i] / (Real)cell.dimensions[i]);
+      inputCoords.push_back({ (UInt32)floor(inputCoord) });
+    }
+    SDR inputTopologySDR( inputTopology );
+    inputTopologySDR.setCoordinates( inputCoords );
+    const auto centerInput = inputTopologySDR.getSparse()[0];
+
+    vector<UInt> columnInputs;
+    if( wrapAround ) {
+      for( UInt input : WrappingNeighborhood(centerInput, (UInt)floor(potentialRadius), inputTopology)) {
+        for( UInt extra = 0; extra < extraDimensions; ++extra ) {
+          columnInputs.push_back( input * extraDimensions + extra );
+        }
+      }
+    }
+    else {
+      for( UInt input :
+           Neighborhood(centerInput, (UInt32)floor(potentialRadius), inputTopology)) {
+        for( UInt extra = 0; extra < extraDimensions; ++extra ) {
+          columnInputs.push_back( input * extraDimensions + extra );
+        }
+      }
+    }
+
+    const UInt numPotential = (UInt)round(columnInputs.size() * potentialPct);
+    const auto selectedInputs = rng.sample<UInt>(columnInputs, numPotential);
+    SDR potentialPool( potentialPoolDimensions );
+    potentialPool.setSparse( selectedInputs );
+    return potentialPool;
+  };
+}
+
+
+Topology_t NoTopology(Real potentialPct)
+{
+  NTA_CHECK( potentialPct >= 0.0f );
+  NTA_CHECK( potentialPct <= 1.0f );
+  return [=](const SDR& cell, const vector<UInt>& potentialPoolDimensions, Random &rng) -> SDR {
+    SDR potentialPool( potentialPoolDimensions );
+    potentialPool.randomize( potentialPct, rng );
+    return potentialPool;
+  };
+}
+
 
 vector<UInt> coordinatesFromIndex(UInt index, const vector<UInt> &dimensions) {
   vector<UInt> coordinates(dimensions.size(), 0);
@@ -68,6 +139,7 @@ UInt indexFromCoordinates(const vector<UInt> &coordinates,
 } // end namespace topology
 } // namespace math
 } // end namespace nupic
+
 
 // ============================================================================
 // NEIGHBORHOOD

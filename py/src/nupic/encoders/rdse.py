@@ -47,9 +47,9 @@ if __name__ == '__main__':
     parser.add_argument('--activeBits', type=int, default=0,
                         help=RDSE_Parameters.activeBits.__doc__)
     parser.add_argument('--minimum', type=float, required=True,
-                        help="TODO")
+                        help="Boundary of input range to display.")
     parser.add_argument('--maximum', type=float, required=True,
-                        help="TODO")
+                        help="Boundary of input range to display.")
     parser.add_argument('--radius', type=float, default=0,
                         help=RDSE_Parameters.radius.__doc__)
     parser.add_argument('--resolution', type=float, default=0,
@@ -58,6 +58,10 @@ if __name__ == '__main__':
                         help=RDSE_Parameters.size.__doc__)
     parser.add_argument('--sparsity', type=float, default=0,
                         help=RDSE_Parameters.sparsity.__doc__)
+    parser.add_argument('--category', action='store_true',
+                        help=RDSE_Parameters.category.__doc__)
+    parser.add_argument('--seed', type=int, default=0,
+                        help=RDSE_Parameters.seed.__doc__)
     args = parser.parse_args()
 
     #
@@ -69,6 +73,8 @@ if __name__ == '__main__':
     parameters.resolution = args.resolution
     parameters.size       = args.size
     parameters.sparsity   = args.sparsity
+    parameters.category   = args.category
+    parameters.seed       = args.seed
 
     # Try initializing the encoder.
     try:
@@ -83,9 +89,13 @@ if __name__ == '__main__':
     #
     # Run the encoder and measure some statistics about its output.
     #
+    if args.category:
+        n_samples = int(args.maximum - args.minimum + 1)
+    else:
+        n_samples = (args.maximum - args.minimum) / enc.parameters.resolution
+        oversample = 2 # Use more samples than needed to avoid aliasing & artifacts.
+        n_samples  = int(round( oversample * n_samples ))
     sdrs = []
-    n_samples = (args.maximum - args.minimum) / enc.parameters.resolution
-    n_samples = int(round( 5 * n_samples ))
     for i in np.linspace(args.minimum, args.maximum, n_samples):
       sdrs.append( enc.encode( i ) )
 

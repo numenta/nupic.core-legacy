@@ -478,20 +478,7 @@ void SpatialPooler::initialize(
 }
 
 
-void SpatialPooler::compute(const UInt inputArray[], bool learn, UInt activeArray[]) {
-  SDR input( inputDimensions_ );
-  input.setDense( inputArray );
-
-  SDR active( columnDimensions_ );
-  compute( input, learn, active );
-  copy(
-      active.getDense().begin(),
-      active.getDense().end(),
-      activeArray);
-}
-
-
-void SpatialPooler::compute(const SDR &input, bool learn, SDR &active) {
+void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
   NTA_CHECK( input.dimensions  == inputDimensions_ );
   NTA_CHECK( active.dimensions == columnDimensions_ );
   updateBookeepingVars_(learn);
@@ -747,10 +734,10 @@ void SpatialPooler::bumpUpWeakColumns_() {
 
 
 void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                            SDR &newValues,
-                                            UInt period) {
+                                            const SDR &newValues,
+                                            const UInt period) {
   NTA_ASSERT(period > 0);
-  NTA_ASSERT(dutyCycles.size() == newValues.size);
+  NTA_ASSERT(dutyCycles.size() == newValues.size) << "duty dims: " << dutyCycles.size() << " SDR dims: " << newValues.size;
 
   // Duty cycles are exponential moving averages, typically written like:
   //   alpha = 1 / period
@@ -758,12 +745,12 @@ void SpatialPooler::updateDutyCyclesHelper_(vector<Real> &dutyCycles,
   // However since the values are sparse this equation is split into two loops,
   // and the second loop iterates over only the non-zero values.
 
-  const Real decay = (Real) (period - 1) / period;
+  const Real decay = (period - 1) / static_cast<Real>(period);
   for (Size i = 0; i < dutyCycles.size(); i++)
     dutyCycles[i] *= decay;
 
   const Real increment = 1.0f / period;  // All non-zero values are 1.
-  for(const auto &idx : newValues.getSparse())
+  for(const auto idx : newValues.getSparse())
     dutyCycles[idx] += increment;
 }
 
@@ -892,7 +879,7 @@ void SpatialPooler::inhibitColumnsGlobal_(const vector<Real> &overlaps,
     activeColumns.push_back(i);
   // Compare the column indexes by their overlap.
   auto compare = [&overlaps_](const UInt &a, const UInt &b) -> bool
-    {return overlaps_[a] > overlaps_[b];};
+    {return (overlaps_[a] == overlaps_[b]) ? a > b : overlaps_[a] > overlaps_[b];};
   // Do a partial sort to divide the winners from the losers.  This sort is
   // faster than a regular sort because it stops after it partitions the
   // elements about the Nth element, with all elements on their correct side of

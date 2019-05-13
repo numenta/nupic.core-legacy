@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <iterator>
 #include <numeric>
+#include <cmath> //isnan
 
 using namespace std;
 using namespace nupic;
@@ -43,9 +44,19 @@ MovingAverage::MovingAverage(UInt wSize) : slidingWindow_(wSize), total_(0) {}
 
 
 Real MovingAverage::compute(Real newVal) {
+  NTA_CHECK(not std::isnan(newVal));
+
   Real droppedVal = 0.0;
   const bool hasDropped = slidingWindow_.append(newVal, &droppedVal);
   if(hasDropped) { total_ -= droppedVal; }
   total_ += newVal;
   return getCurrentAvg();
 }
+
+Real MovingAverage::getCurrentAvg() const {
+  if(slidingWindow_.size() == 0) {
+    return 0.0f; //avoid division by zero/nan! 
+  }
+  return total_ / static_cast<Real>(slidingWindow_.size());
+}
+

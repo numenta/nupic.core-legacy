@@ -85,10 +85,10 @@ TEST(HelloRegionTest, demo) {
   net.initialize();
 
   // Compute
-  region->compute();  // This should fetch the first row into buffer
+  net.run(1);  // This should fetch the first row into buffer
 
   // Get output
-  const Array outputArray = region->getOutputData("dataOut");
+  const Array& outputArray = region->getOutputData("dataOut");
   EXPECT_TRUE(outputArray.getType() == NTA_BasicType_Real32);
   EXPECT_EQ(outputArray.getCount(), testdata[0].size());
   const Real32 *buffer = (const Real32 *)outputArray.getBuffer();
@@ -111,13 +111,16 @@ TEST(HelloRegionTest, demo) {
   EXPECT_EQ(net, net2) << "Restored network should be the same as original.";
 
   std::shared_ptr<Region> region2 = net2.getRegion("region");
-  const Array outputArray2 = region2->getOutputData("dataOut");
+  const Array& outputArray2 = region2->getOutputData("dataOut");
 
   // fetch the data rows for both networks.
   net.run((int)data_rows-1);
   net2.run((int)data_rows-1);
 
   // The last row should be currently in the buffer
+  if (verbose) std::cout << "outputArray =" << outputArray << std::endl;
+  if (verbose) std::cout << "outputArray2=" << outputArray2 << std::endl;
+
   const Real32 *buffer2 = (const Real32 *)outputArray2.getBuffer();
   EXPECT_EQ(data_cols, outputArray.getCount());
   ASSERT_EQ(outputArray2.getCount(), outputArray.getCount());
