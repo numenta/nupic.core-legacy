@@ -99,9 +99,9 @@ namespace nupic_ext
                 , const std::string&, const std::string&
                 , const std::string&, const std::string&
                 , size_t>()
-                , "Creates links between regions."
+                , ""
+                , py::arg("linkType"), py::arg("linkParams")
                 , py::arg("srcRegionName"), py::arg("destRegionName")
-                , py::arg("linkType") = "", py::arg("linkParams") = ""
                 , py::arg("srcOutputName") = "", py::arg("destInputName") = ""
                 , py::arg("propagationDelay") = 0);
 
@@ -276,8 +276,9 @@ namespace nupic_ext
         py_Network.def("link", &nupic::Network::link
             , "Defines a link between regions"
             , py::arg("srcName"), py::arg("destName")
-            , py::arg("linkType"), py::arg("linkParams")
-            , py::arg("srcOutput") = "", py::arg("destInput") = "", py::arg("propagationDelay") = 0);
+            , py::arg("linkType") = "", py::arg("linkParams") = ""
+            , py::arg("srcOutput") = "", py::arg("destInput") = ""
+						, py::arg("propagationDelay") = 0);
 
 
         // plugin registration

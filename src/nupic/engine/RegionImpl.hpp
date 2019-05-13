@@ -31,7 +31,26 @@
  * instatiated by the RegionImplFactory.
  *
  * This is a wrapper or interface for an algorithm so that it
- * can be used within the NetworkAPI framework.
+ * can be used within the NetworkAPI framework.  
+ *
+ * A region implementation must subclass this class and implement the following:
+ *   a) Implement the static function getSpec() to return a
+ *      specification that describes how this region will be handled.
+ *      It must describe parameters, inputs, outputs, and commands.
+ *   b) Obtain the parameters passed in the Constructor.
+ *   c) Implement either askImplForOutputDimensions() -preferred, or
+ *      getNodeOutputElementCount() to provide information needed to 
+ *      allocate output buffers.
+ *   d) implement getParameterXXX() and setParameterXXX() as needed.
+ *      Spec parameter access specification dictates which of these
+ *      functions need to be implemented for each parameter.
+ *   e) Implement executeCommand() for each command defined in the Spec.
+ *   f) Implement initialize().  This is normally where its algorithm is
+ *      initantiated because parameters and dimensions will have been set.
+ *   g) Implement compute().  This is where we execute the algorithm, passing
+ *      in the input data and obtaining the output data.
+ *   h) Implement serialization using save_ar() and load_ar() functions.
+ *
  *
  * Normal Processing flow for a Region implemementation:
  * 1) Registration:
@@ -107,6 +126,11 @@
  *    are automatically performed as needed based on the data types declared 
  *    in the region Spec for each input and output.
  *
+ * 7) Serialization:
+ *    Serialization will save the current state of the region and its 
+ *    algorithm in such a way that when restored, execution may resume
+ *    where it left off.  Input and Output buffers do not need to be
+ *    saved because they are handled by the Region class.
  */
 
 #ifndef NTA_REGION_IMPL_HPP
