@@ -111,7 +111,7 @@ import datetime
 import tempfile
 import multiprocessing
 import resource
-import signal # Probably not X-platform ...
+import signal # TODO: X-Plat issue: Replace signal with threading.timer
 from copy import copy, deepcopy
 import re
 import numpy as np
@@ -152,7 +152,7 @@ class ExperimentSummary:
         else:
             raise TypeError("Not enough arguments to ExperimentSummary.__init__()")
 
-        self.parameters    = self.lab.typecast_parameters(self.parameters)
+        self.parameters    = self.parameters.typecast_parameters( self.lab.structure )
         self.modifications = self.lab.default_parameters.diff(self.parameters)
 
         if hash(self) not in self.lab.experiment_ids:
@@ -335,33 +335,20 @@ class LabReport:
         sorted_pval_table   = sections[2]
         experiment_sections = sections[3:]
         file_defaults = ParameterSet(default_parameters)
-        # TODO: Better instructions here!
         # Consistency check for parameters.
-        if file_defaults != self.default_parameters:
+        if file_defaults != self.default_parameters or cli != self.argv:
             while True:
-                q = input("Default parameters have changed, options: old new abort: ")
+                q = input("Default parameters or invovation have changed, options:\n" + 
+                          "    old - Ignore the new/given, use what's on file.\n" +
+                          "    new - Use the new/given, overwrites the old file!\n" +
+                          "    abort.\n")
                 q = q.strip().lower()
                 if q == 'old':
                     self.default_parameters = file_defaults
+                    self.argv               = cli
                     break
                 elif q == 'new':
-                    shutil.copy(self.lab_report, self.lab_report + '.backup_defaults')
-                    break
-                elif q == 'abort':
-                    sys.exit()
-        # Consistency check for experiment.
-        if cli != self.argv:
-            while True:
-                q = input(  "Experiment command line invocation has changed, options:\n" + 
-                            "    old - Ignore the given invocation, use what's on file.\n" +
-                            "    new - Use the given arguments, overwrites the old invocation!\n" +
-                            "    abort.\n")
-                q = q.strip().lower()
-                if q == 'old':
-                    self.argv = cli
-                    break
-                elif q == 'new':
-                    shutil.copy(self.lab_report, self.lab_report + '.backup_argv')
+                    shutil.copy(self.lab_report, self.lab_report + '.backup')
                     break
                 elif q == 'abort':
                     sys.exit()
@@ -442,7 +429,7 @@ class LabReport:
                 pickle_self.experiments    = None
                 pickle_self.experiment_ids = None
                 value = self.method(self)
-                value = self.typecast_parameters(value)
+                value = value.typecast_parameters( self.structure )
                 if self.verbose:
                     print("%X"%hash(value))
                 promise = pool.apply_async(
@@ -475,7 +462,7 @@ class LabReport:
         """
         This function executes in a child processes.
         """
-        parameters = self.typecast_parameters(parameters)
+        parameters = parameters.typecast_parameters( self.structure )
         # Redirect stdour & stderr to a temporary file.
         journal = tempfile.NamedTemporaryFile(
             mode      = 'w+t',
@@ -521,24 +508,6 @@ class LabReport:
 
         return exec_globals['score'], journal.name
 
-    def typecast_parameters(self, parameters):
-        def recursive_typecast_parameters(values, structure):
-            # Recurse through the parameter data structure.
-            if isinstance(structure, dict):
-                for key in structure:
-                    values[key] = recursive_typecast_parameters(values[key], structure[key])
-                return values
-            elif isinstance(structure, tuple):
-                return tuple(recursive_typecast_parameters(*args)
-                    for args in zip(values, structure))
-            # Type cast values.
-            elif structure == float:
-                value = float(values)
-                return float(str(value))
-            elif structure == int:
-                return int(round(float(values)))
-        return recursive_typecast_parameters(parameters, self.structure)
-
     def save_results(self, parameters, result):
         # Update this experiment
         param_hash = hash(ParameterSet(parameters))
@@ -579,7 +548,6 @@ def _timeout_callback(signum, frame):
 
 
 def evaluate_default_parameters(lab):
-    # print('%X'%hash(lab.default_parameters))
     return lab.default_parameters
 
 
@@ -644,58 +612,62 @@ if __name__ == '__main__':
 
     action_parser.add_argument('--combine', type=int, default=0, help='Combine the NUM best experiments.')
 
+    action_parser.add_argument('--swarming', type=int, default=0, help='Particle Swarm Optimization.')
+
     args = arg_parser.parse_args()
     giga = 2**30
     if args.memory_limit is not None:
         memory_limit = int(args.memory_limit * giga)
     else:
+        # TODO: Not X-Platform ...
         available_memory = int(os.popen("free -b").readlines()[1].split()[3])
         memory_limit = int(available_memory / args.processes)
     print("Memory Limit %.2g GB per instance."%(memory_limit / giga))
 
+    ae = LabReport(args.experiment,
+        tag     = args.tag,
+        verbose = args.verbose)
+
     if args.parse:
-        ae = LabReport(args.experiment, None, args.tag)
         print("Lab Report written to %s"%ae.lab_report)
         print("Exit.")
         sys.exit(0) # All done.
 
     elif args.rmz:
-        ae = LabReport(args.experiment, None, args.tag)
         rm = [x for x in ae.experiments if x.attempts == 0]
         for x in rm:
             ae.experiments.remove(x)
             ae.experiment_ids.pop(hash(x))
         ae.save()
-        sys.exit(0)
+        sys.exit(0) # All done.
 
     elif args.default_parameters:
-        method = evaluate_default_parameters
+        ae.method = evaluate_default_parameters
 
     elif args.all_experiments:
-        method = evaluate_all
+        ae.method = evaluate_all
 
     elif args.hashes:
-        method = EvaluateHashes(args.hashes.split(','))
+        ae.method = EvaluateHashes(args.hashes.split(','))
 
     elif args.best:
-        method = evaluate_best # Test this!
+        ae.method = evaluate_best
 
     elif args.grid_search:
         from .nupic.optimization.basic_search import GridSearch
-        method = GridSearch(args.grid_search)
+        ae.method = GridSearch(args.grid_search)
 
     elif args.combine:
         from .nupic.optimization.basic_search import CombineBest
-        method = CombineBest(args.combine)
+        ae.method = CombineBest(args.combine)
+
+    elif args.swarming:
+        from .nupic.optimization.swarming import ParticleSwarmOptimizations
+        ae.method = ParticleSwarmOptimizations( ae, args.swarming )
 
     else:
         print("Missing command line argument: what to do?")
         sys.exit(1)
-
-    ae = LabReport(args.experiment,
-        method  = method,
-        tag     = args.tag,
-        verbose = args.verbose)
 
     ae.run(
         processes    = args.processes,

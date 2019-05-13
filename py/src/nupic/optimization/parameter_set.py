@@ -109,6 +109,24 @@ class ParameterSet(dict):
             return int
         raise TypeError('Unaccepted type in experiment parameters: type "%s".'%(type(self).__name__))
 
+    def typecast_parameters(self, structure):
+        def recursive_typecast_parameters(values, structure):
+            # Recurse through the parameter data structure.
+            if isinstance(structure, dict):
+                for key in structure:
+                    values[key] = recursive_typecast_parameters(values[key], structure[key])
+                return values
+            elif isinstance(structure, tuple):
+                return tuple(recursive_typecast_parameters(*args)
+                    for args in zip(values, structure))
+            # Type cast values.
+            elif structure == float:
+                value = float(values)
+                return float(str(value))
+            elif structure == int:
+                return int(round(float(values)))
+        return recursive_typecast_parameters(parameters, structure)
+
     def enumerate(self):
         """
         Convert parameters from a recursive structure into a list of parameters.
