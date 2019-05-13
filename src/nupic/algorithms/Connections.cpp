@@ -604,6 +604,9 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
          << ") ~> Outputs (" << self.cells_.size()
          << ") via Segments (" << self.numSegments() << ")" << std::endl;
 
+  UInt        segmentsMin   = -1;
+  Real        segmentsMean  = 0.0f;
+  UInt        segmentsMax   = 0u;
   UInt        potentialMin  = -1;
   Real        potentialMean = 0.0f;
   UInt        potentialMax  = 0;
@@ -612,9 +615,16 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
   SynapseIdx  connectedMax  = 0;
   UInt        synapsesDead      = 0;
   UInt        synapsesSaturated = 0;
-  for( const auto cellData : self.cells_ ) {
+  for( const auto cellData : self.cells_ )
+  {
+    const UInt numSegments = (UInt) cellData.segments.size();
+    segmentsMin   = std::min( segmentsMin, numSegments );
+    segmentsMax   = std::max( segmentsMax, numSegments );
+    segmentsMean += numSegments;
+
     for( const auto seg : cellData.segments ) {
       const auto &segData = self.dataForSegment( seg );
+
       const UInt numPotential = (UInt) segData.synapses.size();
       potentialMin   = std::min( potentialMin, numPotential );
       potentialMax   = std::max( potentialMax, numPotential );
@@ -633,9 +643,12 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
       }
     }
   }
+  segmentsMean  = segmentsMean  / self.numCells();
   potentialMean = potentialMean / self.numSegments();
   connectedMean = connectedMean / self.numSegments();
 
+  stream << "    Segments on Cell Min/Mean/Max "
+         << segmentsMin << " / " << segmentsMean << " / " << segmentsMax << std::endl;
   stream << "    Potential Synapses on Segment Min/Mean/Max "
          << potentialMin << " / " << potentialMean << " / " << potentialMax << std::endl;
   stream << "    Connected Synapses on Segment Min/Mean/Max "
