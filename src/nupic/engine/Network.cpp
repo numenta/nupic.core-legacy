@@ -109,7 +109,7 @@ std::shared_ptr<Region> Network::addRegion(const std::string &name, const std::s
   return r;
 }
 
-std::shared_ptr<Region> Network::addRegion(std::shared_ptr<Region> r) {
+std::shared_ptr<Region> Network::addRegion(std::shared_ptr<Region>& r) {
   NTA_CHECK(r != nullptr);
   r->network_ = this;
   regions_.add(r->getName(), r);
@@ -672,7 +672,7 @@ void Network::post_load() {
   // Post Load operations
   for (size_t i = 0; i < regions_.getCount(); i++) {
     // Create the input buffers.
-    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
+    std::shared_ptr<Region>& r = regions_.getByIndex(i).second;
     r->evaluateLinks();
   }
 
@@ -680,16 +680,16 @@ void Network::post_load() {
       << "maxphase: " << maxEnabledPhase_ << " size: " << phaseInfo_.size();
 
   // Note: When serialized, the output buffers are saved
-  //       by each RegionImpl.  After restore we need to
+  //       by each Region.  After restore we need to
   //       copy restored outputs to connected inputs.
   //
   //       Input buffers are not saved, they are restored by
   //       copying from their source output buffers via links.
   //       If an input is manually set then the input would be
   //       lost after restore.
-
+  
   for (auto p: regions_) {
-    std::shared_ptr<Region>  r = p.second;
+    std::shared_ptr<Region>&  r = p.second;
 
     // If a propogation Delay is specified, the Link serialization
 	  // saves the current input buffer at the top of the

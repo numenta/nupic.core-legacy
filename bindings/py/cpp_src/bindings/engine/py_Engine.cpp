@@ -99,12 +99,13 @@ namespace nupic_ext
                 , const std::string&, const std::string&
                 , const std::string&, const std::string&
                 , size_t>()
-                , ""
-                , py::arg("linkType"), py::arg("linkParams")
+                , "Creates links between regions."
                 , py::arg("srcRegionName"), py::arg("destRegionName")
+                , py::arg("linkType") = "", py::arg("linkParams") = ""
                 , py::arg("srcOutputName") = "", py::arg("destInputName") = ""
                 , py::arg("propagationDelay") = 0);
 
+				// member functions
         py_Link.def("toString", &Link::toString);
         py_Link.def("getDestRegionName", &Link::getDestRegionName);
         py_Link.def("getSrcRegionName",  &Link::getSrcRegionName);

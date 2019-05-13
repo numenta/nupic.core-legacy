@@ -155,7 +155,6 @@ public:
     for(auto p: regions) {
 			addRegion(p.second);
     }
-    
     ar(cereal::make_nvp("links", links));
     for(auto alink: links) {
       auto l = link( alink->getSrcRegionName(),
@@ -200,7 +199,7 @@ public:
      *
      * @returns A pointer to the newly created Region
      */
-    std::shared_ptr<Region> addRegion(std::shared_ptr<Region> region);
+    std::shared_ptr<Region> addRegion(std::shared_ptr<Region>& region);
 
 
     /**

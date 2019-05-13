@@ -74,7 +74,7 @@
 #include "RegionTestUtilities.hpp"
 
 #define VERBOSE if(verbose)std::cerr << "[          ] "
-static bool verbose = true;  // turn this on to print extra stuff for debugging the test.
+static bool verbose = false;  // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually verified. 
 #define EXPECTED_SPEC_COUNT  22  // The number of parameters expected in the SPRegion Spec
@@ -337,7 +337,7 @@ TEST(SPRegionTest, testSerialization)
             << " into a second network and compare." << std::endl;
     net2.loadFromFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
 
-
+	  std::shared_ptr<Region> n2region1 = net2.getRegion("region1");
 	  std::shared_ptr<Region> n2region2 = net2.getRegion("region2");
 
 	  ASSERT_TRUE (n2region2->getType() == "SPRegion") 
@@ -353,12 +353,8 @@ TEST(SPRegionTest, testSerialization)
 
 
 	  // can we continue with execution?  See if we get any exceptions.
-    n1region1->setParameterReal64("sensedValue", 5.5);
-    n1region1->prepareInputs();
-    n1region1->compute();
-
-    n2region2->prepareInputs();
-    n2region2->compute();
+    n2region1->setParameterReal64("sensedValue", 5.5);
+    net2.run(2);
 
 	  // Change some parameters and see if they are retained after a restore.
     n2region2->setParameterBool("globalInhibition", true);
@@ -367,15 +363,16 @@ TEST(SPRegionTest, testSerialization)
     n2region2->setParameterReal32("synPermActiveInc", 0.04f);
     n2region2->setParameterReal32("synPermInactiveDec", 0.005f);
     n2region2->setParameterReal32("boostStrength", 3.0f);
-    n2region2->compute();
+    net2.run(1);
 
     parameterMap.clear();
     EXPECT_TRUE(captureParameters(n2region2, parameterMap)) 
       << "Capturing parameters before second save.";
 	  net2.saveToFile_ar("TestOutputDir/spRegionTest.stream");
 
-	  VERBOSE << "Restore into a third network and compare changed parameters.\n";
+	  VERBOSE << "Restore into a third network.\n";
     net3.loadFromFile_ar("TestOutputDir/spRegionTest.stream");
+	  VERBOSE << "Compare changed parameters.\n";
 	  std::shared_ptr<Region> n3region2 = net3.getRegion("region2");
     EXPECT_TRUE(n3region2->getType() == "SPRegion")
         << "Failure: Restored region does not have the right type. "
@@ -385,10 +382,8 @@ TEST(SPRegionTest, testSerialization)
     EXPECT_TRUE(compareParameters(n3region2, parameterMap))
         << "Comparing parameters after second restore with before save.";
 
-
     // cleanup
     Directory::removeTree("TestOutputDir", true);
-
 	}
 
 
