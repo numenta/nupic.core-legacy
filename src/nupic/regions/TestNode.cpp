@@ -44,7 +44,6 @@ namespace nupic {
 
 TestNode::TestNode(const ValueMap &params, Region *region)
     : RegionImpl(region), computeCallback_(nullptr), nodeCount_(1)
-
 {
   // params for get/setParameter testing
     // Populate the parameters with values.
@@ -90,13 +89,18 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   // params used for computation
   delta_ = 1;
   iter_ = 0;
+  ArWrapper arw;
 }
 
-TestNode::TestNode(BundleIO &bundle, Region *region) :
-    RegionImpl(region),
-	computeCallback_(nullptr), nodeCount_(1)
-{
+TestNode::TestNode(BundleIO &bundle, Region *region) 
+  : RegionImpl(region), computeCallback_(nullptr), nodeCount_(1)
+{   // TODO:cereal remove when Cereal is complete
   deserialize(bundle);
+}
+TestNode::TestNode(ArWrapper& wrapper, Region *region)
+  : RegionImpl(region), computeCallback_(nullptr), nodeCount_(1) 
+{
+  cereal_adapter_load(wrapper);
 }
 
 
@@ -152,6 +156,9 @@ std::string TestNode::executeCommand(const std::vector<std::string> &args,
 void TestNode::compute() {
   if (computeCallback_ != nullptr)
     computeCallback_(getName());
+
+  bottomUpOut_ = getOutput("bottomUpOut");
+  bottomUpIn_ = getInput("bottomUpIn");
 
   Array &outputArray = bottomUpOut_->getData();
   NTA_CHECK(outputArray.getCount() > 0) << "buffer not allocated.";

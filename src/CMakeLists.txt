@@ -251,6 +251,9 @@ add_library(${src_objlib} OBJECT
 )
 # shared libraries need PIC
 target_compile_options( ${src_objlib} PUBLIC ${INTERNAL_CXX_FLAGS})
+if(MSVC)
+  set_property(TARGET ${src_objlib} PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
+endif()
 target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
@@ -268,7 +271,9 @@ endif()
 
 set(src_lib_static nupic_core_solo)
 add_library(${src_lib_static} STATIC $<TARGET_OBJECTS:${src_objlib}>)
-
+if(MSVC)
+  set_property(TARGET ${src_lib_static} PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
+endif()
 #
 # Create the libnupic_core.a as a "combined" static library by merging nupic_core_static
 # with our external static libraries
@@ -316,7 +321,7 @@ else()
 		${all_object_locations})
 	set_target_properties(${src_lib_shared} PROPERTIES OUTPUT_NAME ${core_library})
 	target_link_libraries(${src_lib_shared}  
-    		${COMMON_OS_LIBS}
+		${COMMON_OS_LIBS}
 	        )
 endif()
 
@@ -336,19 +341,16 @@ add_subdirectory(test)
 #
 set(src_executable_hotgym benchmark_hotgym)
 add_executable(${src_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp examples/hotgym/HelloSPTP.cpp)
-if(MSVC)
-  # for Windows, link with the static library
-  target_link_libraries(${src_executable_hotgym} 
+# link with the static library
+target_link_libraries(${src_executable_hotgym} 
+    ${INTERNAL_LINKER_FLAGS}
     ${core_library}
     ${COMMON_OS_LIBS}
-		)
-else()
-  # for Linux,OSx, link with the shared library
-  target_link_libraries(${src_executable_hotgym} 
-    ${src_lib_shared}
-    ${COMMON_OS_LIBS}
-		)
-endif()
+)
+    
+# for future reference; to link to shared library, (Not on MSVC)
+#          link with ${src_lib_shared} rather than ${core_library}
+                  
 target_compile_options( ${src_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
 target_compile_definitions(${src_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_executable_hotgym} PRIVATE 
@@ -361,16 +363,35 @@ add_custom_target(hotgym
           COMMENT "Executing ${src_executable_hotgym}"
           VERBATIM)
 
-
+#########################################################
+## Dynamicly linked version of hotgym
+if(MSVC)
+else()
+  set(src_dyn_executable_hotgym dynamic_hotgym)
+  add_executable(${src_dyn_executable_hotgym} examples/hotgym/Hotgym.cpp examples/hotgym/HelloSPTP.hpp examples/hotgym/HelloSPTP.cpp)
+  # for Linux,OSx, link with the shared library
+  target_link_libraries(${src_dyn_executable_hotgym} 
+    ${INTERNAL_LINKER_FLAGS}
+    ${src_lib_shared}
+    ${COMMON_OS_LIBS}
+  )
+  target_compile_options( ${src_dyn_executable_hotgym} PUBLIC ${INTERNAL_CXX_FLAGS})
+  target_compile_definitions(${src_dyn_executable_hotgym} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+  target_include_directories(${src_dyn_executable_hotgym} PRIVATE 
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		)
+endif()
 #########################################################
 ## MNIST Spatial Pooler Example
 #
 set(src_executable_mnistsp mnist_sp)
 add_executable(${src_executable_mnistsp} examples/mnist/MNIST_SP.cpp)
 target_link_libraries(${src_executable_mnistsp} 
+        ${INTERNAL_LINKER_FLAGS}
         ${core_library}
         ${COMMON_OS_LIBS}
-	    )
+)
   target_compile_options(${src_executable_mnistsp} PUBLIC ${INTERNAL_CXX_FLAGS})
   target_compile_definitions(${src_executable_mnistsp} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
   # Pass MNIST data directory to main.cpp
@@ -401,6 +422,7 @@ install(TARGETS
 if(MSVC)
 else()	
   install(TARGETS
+        ${src_dyn_executable_hotgym}
         ${src_lib_shared}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib

@@ -27,8 +27,110 @@
  * implementation of a Region, including algorithms.
  *
  * The RegionImpl class is expected to be subclassed for particular
- * node types (e.g. FDRNode, PyNode, etc) and RegionImpls are created
- * by the RegionImplFactory
+ * node types (e.g. TestNode, SPRegion, TMRegion, etc) and RegionImpls are 
+ * instatiated by the RegionImplFactory.
+ *
+ * This is a wrapper or interface for an algorithm so that it
+ * can be used within the NetworkAPI framework.  
+ *
+ * A region implementation must subclass this class and implement the following:
+ *   a) Implement the static function getSpec() to return a
+ *      specification that describes how this region will be handled.
+ *      It must describe parameters, inputs, outputs, and commands.
+ *   b) Obtain the parameters passed in the Constructor.
+ *   c) Implement either askImplForOutputDimensions() -preferred, or
+ *      getNodeOutputElementCount() to provide information needed to 
+ *      allocate output buffers.
+ *   d) implement getParameterXXX() and setParameterXXX() as needed.
+ *      Spec parameter access specification dictates which of these
+ *      functions need to be implemented for each parameter.
+ *   e) Implement executeCommand() for each command defined in the Spec.
+ *   f) Implement initialize().  This is normally where its algorithm is
+ *      initantiated because parameters and dimensions will have been set.
+ *   g) Implement compute().  This is where we execute the algorithm, passing
+ *      in the input data and obtaining the output data.
+ *   h) Implement serialization using save_ar() and load_ar() functions.
+ *
+ *
+ * Normal Processing flow for a Region implemementation:
+ * 1) Registration:
+ *    If this is a custom region, C++ users must call
+ *       Network.registerRegion(name, RegisteredRegionImpl)
+ *    and Python users must call Network.registerPyRegion(module, class)
+ *    to register their implementations.  Built-in C++ implementations
+ *    are already registered by RegionImplFactory.
+ *
+ * 2) Region Creation:
+ *    When a region is added to the Network with Network.addRegion(name, params),
+ *    The Region and its corresponding region implementation will be
+ *    instantiated.  When the region implementation's constructors are
+ *    called, they are passed the parameters provided in the addRegion() call
+ *    merged with the default parameters from the Spec.  The constructor
+ *    must pick up these parameters and store locally.
+ *
+ *    The parameter 'dim' will already be handled and will set the region
+ *    level dimensions.
+ *
+ *    During this call, the Inputs and Output objects are created for 
+ *    each input and output specified in the Spec and attached to the
+ *    region. The buffers and dimensions are set later.
+ *
+ * 3) Link Creation:
+ *    After regions are created, they may be used in a link() call to 
+ *    create a path for data to flow between the regions. 
+ *
+ * 4) Configuration:
+ *    Following region creation, a user may make setParameterXXX() calls
+ *    that can modify parameters for a region.  It may also call setDimensions() to 
+ *    manually set or override the dimensions. Normally these are not
+ *    needed but this provides a way to handle unique situations.
+ *
+ * 5) Initialize:
+ *    Next the user should call Network.initialize(). If this is not
+ *    called, the first call to Network.run() will call initialize.
+ *
+ *    This call will first evaluate the links, determine the dimensions
+ *    for all inputs and outputs and create the buffers. If it cannot
+ *    determine dimensions it will call askImplForInputDimensions()
+ *    and askImplForOutputDimensions() on a region implementation to 
+ *    obtain dimensions.  If the region impl did not implement those functions
+ *    it will call getNodeInputElementCount() and getNodeOutputElementCount()
+ *    to obtain buffer size to use as a dimension. See Link.hpp for a
+ *    more complete description of how dimensions are set.
+ *
+ *    At this point, when all dimensions are determined and all buffers
+ *    have been allocated, it will then call initialize() on each region 
+ *    implementation.  This is normally when the region's algorithm
+ *    object is instatiated and parameters and dimensions are passed in.
+ *
+ *    Any parameter changes made by setParameterXXX() must be passed
+ *    on to the algorithm if allowed and getParameterXXX()  must query 
+ *    the algorithm if allowed.
+ *
+ * 6) Run:
+ *    At this point we are ready to execute everything. When Network.run()
+ *    is called, the Network class will sequentually call the compute() 
+ *    method on each region implementation in the phase order and within 
+ *    each phase in the order of region declaration.
+ *
+ *    This will iterate for as many times as given in the run() argument.
+ *    At the beginning of each iteration any callbacks that were configured
+ *    during Configuration time will be called allowing the user to sample
+ *    data or adjust parameters.
+ *
+ *    Prior to each region's compute() call, all links are traversed and 
+ *    all connected region outputs are copied (or moved) to the corresponding 
+ *    region inputs.  A previously executed region's outputs are then
+ *    available to a subsequent region, allowing data to cascade through 
+ *    the links within the same iteration. Buffering and data type conversions 
+ *    are automatically performed as needed based on the data types declared 
+ *    in the region Spec for each input and output.
+ *
+ * 7) Serialization:
+ *    Serialization will save the current state of the region and its 
+ *    algorithm in such a way that when restored, execution may resume
+ *    where it left off.  Input and Output buffers do not need to be
+ *    saved because they are handled by the Region class.
  */
 
 #ifndef NTA_REGION_IMPL_HPP
@@ -37,7 +139,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include <nupic/engine/Output.hpp>
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
+#include <nupic/ntypes/BundleIO.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -48,7 +156,6 @@ class Input;
 class Output;
 class Array;
 class NodeSet;
-class BundleIO;
 
 class RegionImpl
 {
@@ -113,17 +220,19 @@ public:
    */
   // static Spec* createSpec();
 
-  // Serialize state.
+  // Serialize/Deserialize state.
   virtual void serialize(BundleIO &bundle) = 0;
-
-  // De-serialize state. Must be called from deserializing constructor
   virtual void deserialize(BundleIO &bundle) = 0;
 
-    /**
-     * Inputs/Outputs are made available in initialize()
-     * It is always called after the constructor (or load from serialized state)
-     */
-    virtual void initialize() = 0;
+  // overridden by including the macro CerealAdapter in subclass.
+  virtual void cereal_adapter_save(ArWrapper& a) const {};
+  virtual void cereal_adapter_load(ArWrapper& a) {};
+
+  /**
+    * Inputs/Outputs are made available in initialize()
+    * It is always called after the constructor (or load from serialized state)
+    */
+  virtual void initialize() = 0;
 
   // Compute outputs from inputs and internal state
   virtual void compute() = 0;
@@ -139,8 +248,8 @@ public:
   // It is the total element count.
   // This method is called only for buffers whose size is not
   // specified in the Spec.  This is used to allocate
-  // buffers during initialization.  New implementations should instead 
-  // override askImplForOutputDimensions() or askImplForInputDimensions() 
+  // buffers during initialization.  New implementations should instead
+  // override askImplForOutputDimensions() or askImplForInputDimensions()
   // and return a full dimension.
   // Return 0 for outputs that are not used or size does not matter.
   virtual size_t getNodeInputElementCount(const std::string &outputName) const {
@@ -160,7 +269,7 @@ public:
   // dimensions from elsewhere.
   //
   // If this is not overridden, the default implementation will call
-  // getNodeOutputElementCount() or getNodeInputElementCount() to obtain 
+  // getNodeOutputElementCount() or getNodeInputElementCount() to obtain
   // a 1D dimension for this input/output.
   virtual Dimensions askImplForInputDimensions(const std::string &name);
   virtual Dimensions askImplForOutputDimensions(const std::string &name);

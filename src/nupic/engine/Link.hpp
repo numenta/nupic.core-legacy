@@ -30,10 +30,10 @@
 #include <string>
 #include <deque>
 
-#include <nupic/engine/Input.hpp> 
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 
 namespace nupic {
 
@@ -46,27 +46,27 @@ class Input;
  *
  * How to use Links:  The big picture.
  *
- * At Specification time.
+ * At Configuration time.
  *
- * An application writer would define a pair of links as in the following 
- * example given the declaration of a network and three regions, 
+ * An application writer would define a pair of links as in the following
+ * example given the declaration of a network and three regions,
  *  | Network net;
  *  | auto region1 = net.addRegion("region1", "TestNode", "{count: 64}");
  *  | auto region2 = net.addRegion("region2", "TestNode", "{dim: [64,2]}");
  *  | auto region3 = net.addRegion("region3", "TestNode", "");
  *
  * We can define links from both region1 and region2 into region3 as follows.
- *  | net.link("region1", "region3"); 
- *  | net.link("region2", "region3"); 
+ *  | net.link("region1", "region3");
+ *  | net.link("region2", "region3");
  *
  * Since only the region names are given, the links connect from the outputs
  * defined as Default in the Spec of each source regions into the input defined as
  * default in the Spec of the destination region (region3 in this case).
  *
- * If we want to be more specific as to which inputs and outputs on each 
+ * If we want to be more specific as to which inputs and outputs on each
  * region are to be used, we could use some of the optional fields.
- *  | net.link("region1", "region3", "", "", "bottomUpOut", "bottomUpIn"); 
- *  | net.link("region2", "region3", "", "", "bottomUpOut", "bottomUpIn"); 
+ *  | net.link("region1", "region3", "", "", "bottomUpOut", "bottomUpIn");
+ *  | net.link("region2", "region3", "", "", "bottomUpOut", "bottomUpIn");
  *
  * This is equivalent to the link definitions above because the input and outputs
  * specified are the defaults for the 'TestNode' region used in this example.
@@ -87,8 +87,8 @@ class Input;
  *   |   region1->setOutputDimensions("bottomUpOut", dim);
  *
  * - Declared for region
- *   Dimensions can be manually defined for a region.  Region dimensions are 
- *   not directly tied to an input or an output but rather are for the region 
+ *   Dimensions can be manually defined for a region.  Region dimensions are
+ *   not directly tied to an input or an output but rather are for the region
  *   as a whole. The region dimensions can be manually defined as follows:
  *   |   region1->setDimensions(dim);
  *
@@ -99,15 +99,15 @@ class Input;
  *   connected output) and its 'regionLevel' field is true, then its dimensions
  *   will be propogated to the region dimensions.  It can also flow the other
  *   direction. If the region dimensions is specified and the input and its
- *   connected output are not, the input will inherit the region dimensions 
+ *   connected output are not, the input will inherit the region dimensions
  *   and it will also be propogated to the input's connected output.
  *
- *   If an output is defined with the 'regionLevel' field true and the region 
+ *   If an output is defined with the 'regionLevel' field true and the region
  *   dimension is specified, that output will inherit the region dimensions.
  *   The reverse is also true. An output with dimensions can set the region
  *   dimensions if it has not already been set.
 
- * - Region Dimensions can also be configured on a region using region parameters 
+ * - Region Dimensions can also be configured on a region using region parameters
  *   as described below.  The advantage is that it can then be included in the
  *   yaml parameter set that is prepared for the application as a whole.
  *   |   auto region2 = net.addRegion("region2", "TestNode", "{dim: [64,2]}");
@@ -115,15 +115,15 @@ class Input;
  *   for a region in the spec. It can be used with any region to set the region's
  *   dimensions.
  *
- * - Dimensions can be indirectly specified for an input or output by the 
+ * - Dimensions can be indirectly specified for an input or output by the
  *   region implementation when asked for dimensions during initialization.
- *   So, during initialization, the engine attempts to resolve dimensions 
+ *   So, during initialization, the engine attempts to resolve dimensions
  *   for all inputs and outputs.  If an output does not have a dimension
- *   explicitly defined, it will next ask the associated region impl for a 
+ *   explicitly defined, it will next ask the associated region impl for a
  *   dimension by calling region->askImplForOutputDimensions(output_name);
  *   The region can override this function and provide anything it wants to
- *   ususally something computed from its parameters.  If it does not 
- *   override this function, or returns DONTCARE, the base class will call it 
+ *   ususally something computed from its parameters.  If it does not
+ *   override this function, or returns DONTCARE, the base class will call it
  *   with region->getNodeOutputElementCount(output_name) for a 1D dimension.
  *   If this function is not overridden, the base class will return DONTCARE
  *   which tells the engine to use the region in an attempt to derive the dimensions.
@@ -139,20 +139,20 @@ class Input;
  *   and outputs.  Note that if the count parameter on the TestNode had a
  *   default value, everything will get configured without the application
  *   implementer needing to specify any dimensions or buffer sizes.
- *   
+ *
  * At initialization time:
  *
  *   the linking logic will create the links between the regions as defined,
  *   determine the dimensions of all inputs and outputs, and then
- *   create the Array buffers for each input and output which match the type 
+ *   create the Array buffers for each input and output which match the type
  *   defined in each region's Spec and consistant with it's dimensions.
  *
- *   The Link logic tries to derive any unspecified dimensions so if an 
+ *   The Link logic tries to derive any unspecified dimensions so if an
  *   input still does not have a dimension after checking for direct assignment
  *   of a dimension and asking the region for one, it will look at the other
  *   end of its link and propagate the dimensions of the connected output.
  *   But if it still does not have a dimension it will get it from its region
- *   dimension if it was marked as 'regionLevel' in the spec and also propogate 
+ *   dimension if it was marked as 'regionLevel' in the spec and also propogate
  *   that to its connected output.
  *
  *   If an output does not have a dimension after checking for direct assignment
@@ -161,7 +161,7 @@ class Input;
  *   If it still does not have a dimension, it tries to get it from its connected
  *   input as indicated above.
  *
- *   As it is propagating dimensions there may be a FanIn condition. This is 
+ *   As it is propagating dimensions there may be a FanIn condition. This is
  *   where more than one output connects to a single input.  In this case the
  *   buffers of all connected outputs are concatinated into the input's buffer.
  *   If the output's dimensions very only in the upper dimension (slowest moving
@@ -169,7 +169,7 @@ class Input;
  *   same except that the upper dimension will be the sum of all of the top
  *   level dimensions from the outputs.  example: [100,4] + [100,6] => [100,10].
  *   If the output dimensions are not consistent then everything is flattened
- *   and the input will have the 1D dimensions which is the total number of 
+ *   and the input will have the 1D dimensions which is the total number of
  *   elements.  However, if the input also has been configured with dimensions
  *   it will use that as long as the total number of elements are the same.
  *
@@ -182,12 +182,12 @@ class Input;
  *
  * At Runtime:
  *   For each iteration, the engine walks through all regions in phase order.
- *   It first prepares the inputs for a region and then calls compute() 
+ *   It first prepares the inputs for a region and then calls compute()
  *   on the region which executes the region's algorithm.
  *
  *   Preparing a input for a region means propagating outputs on the other
- *   end of the link into our inputs on our region. If the buffer types are 
- *   not the same on each end of the link, a data conversion takes place during 
+ *   end of the link into our inputs on our region. If the buffer types are
+ *   not the same on each end of the link, a data conversion takes place during
  *   the propagation.  If the types are the same on both ends of the link and
  *   no propagation delay specified, and it is not a FanIn condition, then
  *   the Array is propogated along the link as a shared_ptr and the actual
@@ -200,7 +200,7 @@ class Input;
 * @nosubgrouping
  *
  */
-class Link
+class Link : public Serializable
 {
 public:
   /**
@@ -277,6 +277,9 @@ public:
    *
    */
   Link();
+
+  friend class Network;
+
 
   /**
    * Initialization Phase 2: connecting inputs/outputs to
@@ -452,7 +455,7 @@ public:
   const std::string toString() const;
 
   /**
-   * Serialize the link.
+   * Display and compare the link.
    *
    * @param f
    *            The output stream being serialized to
@@ -460,24 +463,43 @@ public:
    *            The Link being serialized
    */
   friend std::ostream &operator<<(std::ostream &f, const Link &link);
-
   bool operator==(const Link &o) const;
   bool operator!=(const Link &o) const { return !operator==(o); }
 
   /**
-   * Serialize the link using a stream.
-   *
-   * @param f -- The stream to output to.
+   * Serialize/Deserialize the link.
    */
-  void serialize(std::ostream &f);
-
-  /**
-   * Deserialize the link from binary stream.
-   *
-   * @param f -- the stream to read from
-   *
-   */
+  void serialize(std::ostream &f);  // TODO:cereal Remove
   void deserialize(std::istream &f);
+
+  CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(cereal::make_nvp("srcRegionName", srcRegionName_),
+       cereal::make_nvp("srcOutputName", srcOutputName_),
+       cereal::make_nvp("destRegionName",destRegionName_),
+       cereal::make_nvp("destInputName", destInputName_),
+       cereal::make_nvp("destOffset",    destOffset_),
+       cereal::make_nvp("is_FanIn",      is_FanIn_),
+       cereal::make_nvp("propagationDelayBuffer", propagationDelayBuffer_)
+      );
+  }
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(cereal::make_nvp("srcRegionName", srcRegionName_),
+       cereal::make_nvp("srcOutputName", srcOutputName_),
+       cereal::make_nvp("destRegionName",destRegionName_),
+       cereal::make_nvp("destInputName", destInputName_),
+       cereal::make_nvp("destOffset",    destOffset_),
+       cereal::make_nvp("is_FanIn",      is_FanIn_),
+       cereal::make_nvp("propagationDelayBuffer", propagationDelayBuffer_)
+      );
+    propagationDelay_ = propagationDelayBuffer_.size();
+    initialized_ = false;
+  }
+
 
 private:
   // common initialization for the two Link constructors.

@@ -994,4 +994,16 @@ TEST(SdrReshapeTest, TestSaveLoad) {
     ASSERT_TRUE( coord   == coord_2 );
 }
 
+TEST(SdrTest, TestAssignmentOperator) 
+{
+  SDR a({10, 10});
+  a.setSparse<UInt>({1, 3, 5, 7});
+  SDR copy; //notice the no dimensions
+  ASSERT_EQ(copy.dimensions.size(), 0u);
+  EXPECT_NO_THROW(copy = a);
+  EXPECT_EQ(a, copy);
+  EXPECT_EQ(a.getSparse(), copy.getSparse());
+  EXPECT_EQ(a.dimensions, copy.dimensions);
+}
+
 } // End namespace testing

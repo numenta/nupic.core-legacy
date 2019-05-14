@@ -112,7 +112,7 @@ TEST(BasicTypeTest, parse)
 
 class convertArrayTester {
 public:
-  Byte bufByte[8] = {0, 1, 2, 3, 4, 5, -128, 127};
+  Byte bufByte[8] = {0, 1, 2, 3, 4, 5, static_cast<Byte>(-128), 127}; //Byte is unsigned on ARM, signed on x86, therefore the cast is needed for ARM
   Int16 bufInt16[8] = {0, 1, 2, 3, 4, 5, -32768, 32767};
   UInt16 bufUInt16[8] = {0, 1, 2, 3, 4, 5, 0, 0xffff};
   Int32 bufInt32[8] = {0, 1, 2, 3, 4, 5, -2147483647L, 2147483647L};
@@ -204,7 +204,7 @@ TEST(BasicTypeTest, convertArray) {
   BasicType::convertArray(ca.dest, NTA_BasicType_Int16, ca.bufByte,
                           NTA_BasicType_Byte, 8);
   ASSERT_TRUE(ca.checkArray<Int16>(ca.dest)) << "Byte to Int16 conversion";
-  // Note: Bytes are char, not unsigned char.
+  // Note: Bytes are char, not unsigned char on x86, but on ARM char is unsigned type.
 
   BasicType::convertArray(ca.dest, NTA_BasicType_Int16, ca.bufInt16,
                           NTA_BasicType_Int16, 8);

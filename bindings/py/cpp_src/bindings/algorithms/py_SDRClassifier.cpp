@@ -1,8 +1,11 @@
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * Copyright (C) 2018, Numenta, Inc.
+ *               2018, chhenning
+ *               2019, David McDougall
+ *
+ * Unless you have an agreement with Numenta, Inc., for a separate license for
+ * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -17,91 +20,185 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
  * http://numenta.org/licenses/
- *
- * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
-PyBind11 bindings for SDRClassifier class
-*/
-
+ * PyBind11 bindings for SDRClassifier class
+ */
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
-#include <pybind11/iostream.h>
-#include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
 #include <nupic/algorithms/SDRClassifier.hpp>
 
-
 namespace nupic_ext
 {
-namespace py = pybind11;
-using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::sdr_classifier;
+    namespace py = pybind11;
+    using namespace std;
+    using namespace nupic;
+    using nupic::sdr::SDR;
+    using namespace nupic::algorithms::sdr_classifier;
 
     void init_SDR_Classifier(py::module& m)
     {
-        typedef std::vector<UInt> steps_t;
+        py::class_<Classifier> py_Classifier(m, "Classifier",
+R"(The SDR Classifier takes the form of a single layer classification network.
+It accepts SDRs as input and outputs a predicted distribution of categories.
 
-        py::class_<SDRClassifier> py_SDR_Classifier(m, "SDRClassifier");
+Categories are labeled using unsigned integers.  Other data types must be
+enumerated or transformed into postitive integers.  There are as many output
+units as the maximum category label.
 
-        py_SDR_Classifier.def(py::init<>())
-            .def(py::init<steps_t, Real64, Real64, UInt>(), py::arg("steps"), py::arg("alpha") = 0.001, py::arg("actValueAlpha") = 0.3, py::arg("verbosity") = 0);
+Example Usage:
+    # Make a random SDR and associate it with a category.
+    inputData  = SDR( 1000 ).randomize( 0.02 )
+    categories = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 }
+    clsr = Classifier()
+    clsr.learn( inputData, categories['B'] )
+    numpy.argmax( clsr.infer( inputData ) )  ->  categories['B']
 
-        py_SDR_Classifier.def("compute", [](
-            SDRClassifier& self,
-            UInt recordNum,
-            const std::vector<UInt>& patternNZ,
-            const std::vector<UInt>& bucketIdx,
-            const std::vector<Real64>& actValue,
-            bool category, bool learn, bool infer)
-        {
-            ClassifierResult result;
+    # Estimate a scalar value.  The Classifier only accepts categories, so
+    # put real valued inputs into bins (AKA buckets) by subtracting the
+    # minimum value and dividing by a resolution.
+    scalar     = 567.8
+    minimum    = 500
+    resolution = 10
+    clsr.learn( inputData, int((scalar - minimum) / resolution) )
+    numpy.argmax( clsr.infer( inputData ) ) * resolution + minimum  ->  560
 
-            self.compute(recordNum, patternNZ, bucketIdx, actValue,
-                                    category, learn, infer, result);
+During inference, the output is calculated by first doing a weighted
+summation of all the inputs, and then perform a softmax nonlinear function to
+get the predicted distribution of category labels.
 
-            py::dict dict;
+During learning, the connection weights between input units and output units
+are adjusted to maximize the likelihood of the model.
 
-            for (map<Int, PDF>::const_iterator it = result.begin(); it != result.end(); ++it)
-            {
-                std::string key = "actualValues";
+References:
+    - Alex Graves. Supervised Sequence Labeling with Recurrent Neural Networks,
+     PhD Thesis, 2008
+    - J. S. Bridle. Probabilistic interpretation of feedforward classification
+     network outputs, with relationships to statistical pattern recognition
+    - In F. Fogleman-Soulie and J.Herault, editors, Neurocomputing: Algorithms,
+     Architectures and Applications, pp 227-236, Springer-Verlag, 1990)");
 
-                if (it->first != -1)
-                {
-                    key = it->first;
-                }
+        py_Classifier.def(py::init<Real>(),
+R"(Argument alpha is used to adapt the weight matrix during learning.
+A larger alpha results in faster adaptation to the data.)",
+            py::arg("alpha") = 0.001);
 
-                py::list value;
-                for (UInt i = 0; i < it->second.size(); ++i)
-                {
-                    value.append(it->second.at(i));
-                }
+        py_Classifier.def("infer", &Classifier::infer,
+R"(Compute the likelihoods for each category / bucket.
 
-                dict[key.c_str()] = value;
-            }
+Argument pattern is the SDR containing the active input bits.
 
-            return dict;
-        },
-        py::arg("recordNum") = 0u,
-        py::arg("patternNZ") = std::vector<UInt>({}),
-        py::arg("bucketIdx") = std::vector<UInt>({}),
-        py::arg("actValue") = std::vector<Real64>({}),
-        py::arg("category") = false,
-        py::arg("learn") = true,
-        py::arg("infer") = true
-        );
+Returns the Probablility Distribution Function (PDF) of the categories.
+The PDF is a list of probablilities which sums to 1.  Each index in this list is
+a category label, and each value is the likelihood of the that category.
+Use "numpy.argmax" to find the category with the greatest probablility.)",
 
-        py_SDR_Classifier.def("loadFromString", [](SDRClassifier& self, const std::string& inString)
-        {
-            std::istringstream inStream(inString);
-            self.load(inStream);
-        });
+            py::arg("pattern"));
+
+        py_Classifier.def("learn", &Classifier::learn,
+R"(Learn from example data.
+
+Argument pattern is the SDR containing the active input bits.
+
+Argument classification is the current category or bucket index.
+This may also be a list for when the input has multiple categories.)",
+                py::arg("pattern"),
+                py::arg("classification"));
+
+        py_Classifier.def("learn", [](Classifier &self, const SDR &pattern, UInt categoryIdx)
+            { self.learn( pattern, {categoryIdx} ); },
+                py::arg("pattern"),
+                py::arg("classification"));
+
+        // TODO: Pickle support
 
 
+        py::class_<Predictor> py_Predictor(m, "Predictor",
+R"(The Predictor class does N-Step ahead predictions.
+
+Internally, this class uses Classifiers to associate SDRs with future values.
+This class handles missing datapoints.
+
+Compatibility Note:  This class is the replacement for the old SDRClassifier.
+It no longer provides estimates of the actual value.
+
+Example Usage:
+    # Predict 1 and 2 time steps into the future.
+
+    # Make a sequence of 4 random SDRs, each SDR has 1000 bits and 2% sparsity.
+    sequence = [ SDR( 1000 ).randomize( 0.02 ) for i in range(4) ]
+
+    # Make category labels for the sequence.
+    labels = [ 4, 5, 6, 7 ]
+
+    # Make a Predictor and train it.
+    pred = Predictor([ 1, 2 ])
+    pred.learn( 0, sequence[0], labels[0] )
+    pred.learn( 1, sequence[1], labels[1] )
+    pred.learn( 2, sequence[2], labels[2] )
+    pred.learn( 3, sequence[3], labels[3] )
+
+    # Give the predictor partial information, and make predictions
+    # about the future.
+    pred.reset()
+    A = pred.infer( 0, sequence[0] )
+    numpy.argmax( A[1] )  ->  labels[1]
+    numpy.argmax( A[2] )  ->  labels[2]
+
+    B = pred.infer( 1, sequence[1] )
+    numpy.argmax( B[1] )  ->  labels[2]
+    numpy.argmax( B[2] )  ->  labels[3]
+)");
+
+        py_Predictor.def(py::init<const std::vector<UInt> &, Real>(),
+R"(Argument steps is the number of steps into the future to learn and predict.
+The Predictor accepts a list of steps.
+
+Argument alpha is used to adapt the weight matrix during learning.
+A larger alpha results in faster adaptation to the data.)",
+            py::arg("steps"),
+            py::arg("alpha") = 0.001);
+
+        py_Predictor.def("reset", &Predictor::reset,
+R"(For use with time series datasets.)");
+
+        py_Predictor.def("infer", &Predictor::infer,
+R"(Compute the likelihoods.
+
+Argument recordNum is an incrementing integer for each record.
+Gaps in numbers correspond to missing records.
+
+Argument pattern is the SDR containing the active input bits.
+
+Returns a dictionary whos keys are prediction steps, and values are PDFs.
+See help(Classifier.infer) for details about PDFs.)",
+            py::arg("recordNum"),
+            py::arg("pattern"));
+
+        py_Predictor.def("learn", &Predictor::learn,
+R"(Learn from example data.
+
+Argument recordNum is an incrementing integer for each record.
+Gaps in numbers correspond to missing records.
+
+Argument pattern is the SDR containing the active input bits.
+
+Argument classification is the current category or bucket index.
+This may also be a list for when the input has multiple categories.)",
+            py::arg("recordNum"),
+            py::arg("pattern"),
+            py::arg("classification"));
+
+        py_Predictor.def("learn", [](Predictor &self, UInt recordNum, const SDR &pattern, UInt categoryIdx)
+            { self.learn( recordNum, pattern, {categoryIdx} ); },
+                py::arg("recordNum"),
+                py::arg("pattern"),
+                py::arg("classification"));
+
+        // TODO: Pickle support
     }
 } // namespace nupic_ext

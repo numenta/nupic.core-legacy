@@ -81,7 +81,7 @@ static bool verbose = false; // turn this on to print extra stuff for debugging 
 
 // The following string should contain a valid expected Spec - manually
 // verified.
-#define EXPECTED_SPEC_COUNT 17 // The number of parameters expected in the TMRegion Spec
+#define EXPECTED_SPEC_COUNT 18 // The number of parameters expected in the TMRegion Spec
 
 using namespace nupic;
 using namespace nupic::utils;
@@ -107,11 +107,11 @@ TEST(TMRegionTest, testSpecAndParameters) {
 TEST(TMRegionTest, checkTMRegionImpl) {
   Network net;
 
-  size_t regionCntBefore = net.getRegions().getCount();
+  size_t regionCntBefore = net.getRegions().size();
 
   VERBOSE << "Adding a built-in TMRegion region..." << std::endl;
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TMRegion", "");
-  size_t regionCntAfter = net.getRegions().getCount();
+  size_t regionCntAfter = net.getRegions().size();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << " Expected number of regions to increase by one.  ";
   ASSERT_TRUE(region1->getType() == "TMRegion")
@@ -130,7 +130,7 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   VERBOSE << "Creating network..." << std::endl;
   Network net;
 
-  size_t regionCntBefore = net.getRegions().getCount();
+  size_t regionCntBefore = net.getRegions().size();
 
   // make sure the custom region registration works for CPP.
   // We will just use the same TMRegion class but it could be a subclass or some
@@ -150,7 +150,7 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   VERBOSE << "Adding a custom-built TMRegion region..." << std::endl;
   net.registerRegion("TMRegionCustom", new RegisteredRegionImplCpp<TMRegion>());
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TMRegionCustom", nodeParams);
-  size_t regionCntAfter = net.getRegions().getCount();
+  size_t regionCntAfter = net.getRegions().size();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << "  Expected number of regions to increase by one.  ";
   ASSERT_TRUE(region2->getType() == "TMRegionCustom")
@@ -259,6 +259,11 @@ TEST(TMRegionTest, testLinking) {
   VERBOSE << "    " << r1OutputArray << "\n";
   EXPECT_EQ(r1OutputArray.getCount(), dataWidth);
   EXPECT_TRUE(r1OutputArray.getType() == NTA_BasicType_Real32);
+
+  // check anomaly
+  EXPECT_FLOAT_EQ(region3->getParameterReal32("anomaly"), 1.0f);
+  const Real32 *anomalyBuffer = reinterpret_cast<const Real32*>(region3->getOutputData("anomaly").getBuffer());
+  EXPECT_FLOAT_EQ(anomalyBuffer[0], 0.0f); // Note: it is zero because no links are connected to this output.
 
 
   VERBOSE << "  SPRegion Output " << std::endl;
@@ -370,13 +375,15 @@ TEST(TMRegionTest, testSerialization) {
     net2 = new Network();
     net2->loadFromFile("TestOutputDir/tmRegionTest.stream");
 
+
     VERBOSE << "checked restored network" << std::endl;
-    std::shared_ptr<Region> n2region2 = net2->getRegions().getByName("region2");
+    std::shared_ptr<Region> n2region2 = net2->getRegion("region2");
     ASSERT_TRUE(n2region2->getType() == "TMRegion")
         << " Restored TMRegion region does not have the right type.  Expected "
            "TMRegion, found "
         << n2region2->getType();
 
+    EXPECT_FLOAT_EQ(n2region2->getParameterReal32("anomaly"), 1.0f);
     EXPECT_TRUE(compareParameters(n2region2, parameterMap))
         << "Conflict when comparing TMRegion parameters after restore with "
            "before save.";
@@ -406,7 +413,7 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "Restore into a third network and compare changed parameters." << std::endl;
     net3 = new Network();
     net3->loadFromFile("TestOutputDir/tmRegionTest.stream");
-    std::shared_ptr<Region> n3region2 = net3->getRegions().getByName("region2");
+    std::shared_ptr<Region> n3region2 = net3->getRegion("region2");
     EXPECT_TRUE(n3region2->getType() == "TMRegion")
         << "Failure: Restored region does not have the right type. "
            " Expected \"TMRegion\", found \""

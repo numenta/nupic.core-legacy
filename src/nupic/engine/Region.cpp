@@ -33,6 +33,8 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <stdexcept>
 #include <string>
 
+#include <nupic/engine/Input.hpp>
+#include <nupic/engine/Output.hpp>
 #include <nupic/engine/Link.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImpl.hpp>
@@ -53,25 +55,31 @@ Region::Region(std::string name, const std::string &nodeType,
                const std::string &nodeParams, Network *network)
     : name_(std::move(name)), type_(nodeType), initialized_(false),
       network_(network), profilingEnabled_(false) {
-  // Set region info before creating the RegionImpl so that the
+  // Set region spec and input/outputs before creating the RegionImpl so that the
   // Impl has access to the region info in its constructor.
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   spec_ = factory.getSpec(nodeType);
+  createInputsAndOutputs_();
   impl_.reset(factory.createRegionImpl(nodeType, nodeParams, this));
 }
 
 Region::Region(Network *net) {
-      network_ = net;
-      initialized_ = false;
-      profilingEnabled_ = false;
-    } // for deserialization of region.
+  network_ = net;
+  initialized_ = false;
+  profilingEnabled_ = false;
+} // for deserialization of region.
+Region::Region() {
+  network_ = nullptr;
+  initialized_ = false;
+  profilingEnabled_ = false;
+} // for deserialization of region.
 
 
 Network *Region::getNetwork() { return network_; }
 
 void Region::createInputsAndOutputs_() {
   // This is called when a Region is added.
-  // Create all the outputs for this region from the Spec. 
+  // Create all the outputs for this region from the Spec.
   // By default outputs are zero size, no dimensions.
   for (size_t i = 0; i < spec_->outputs.getCount(); ++i) {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
@@ -197,7 +205,7 @@ void Region::compute() {
 
 void Region::evaluateLinks() {
   for (auto &elem : inputs_) {
-    (elem.second)->initialize(); 
+    (elem.second)->initialize();
   }
 }
 
@@ -237,7 +245,7 @@ Dimensions Region::getInputDimensions(std::string name) const {
     name = spec_->getDefaultOutputName();
   }
   Input* in = getInput(name);
-  NTA_CHECK(in != nullptr) 
+  NTA_CHECK(in != nullptr)
     << "Unknown input (" << name << ") requested on " << name_;
   return in->getDimensions();
 }
@@ -246,7 +254,7 @@ Dimensions Region::getOutputDimensions(std::string name) const {
     name = spec_->getDefaultOutputName();
   }
   Output* out = getOutput(name);
-  NTA_CHECK(out != nullptr) 
+  NTA_CHECK(out != nullptr)
     << "Unknown output (" << name << ") requested on " << name_;
   return out->getDimensions();
 }
@@ -256,7 +264,7 @@ void Region::setInputDimensions(std::string name, const Dimensions& dim) {
     name = spec_->getDefaultOutputName();
   }
   Input* in = getInput(name);
-  NTA_CHECK(in != nullptr) 
+  NTA_CHECK(in != nullptr)
     << "Unknown input (" << name << ") requested on " << name_;
   return in->setDimensions(dim);
 }
@@ -265,7 +273,7 @@ void Region::setOutputDimensions(std::string name, const Dimensions& dim) {
     name = spec_->getDefaultOutputName();
   }
   Output* out = getOutput(name);
-  NTA_CHECK(out != nullptr) 
+  NTA_CHECK(out != nullptr)
     << "Unknown output (" << name << ") requested on " << name_;
   return out->setDimensions(dim);
 }
@@ -273,7 +281,7 @@ void Region::setOutputDimensions(std::string name, const Dimensions& dim) {
 
 // This is for backward compatability with API
 // Normally Output dimensions are set by setting parameters known to the implementation.
-// This set a global dimension.
+// This sets a global dimension.
 void Region::setDimensions(Dimensions dim) {
   NTA_CHECK(!initialized_) << "Cannot set region dimensions after initialization.";
   impl_->setDimensions(dim);
@@ -324,6 +332,8 @@ void Region::save(std::ostream &f) const {
   // Now serialize the RegionImpl plugin.
   BundleIO bundle(&f);
   impl_->serialize(bundle);
+
+  f << "dim: " << getDimensions() << "\n";
 
   f << "}\n";
 }
@@ -383,8 +393,10 @@ void Region::load(std::istream &f) {
     while(!f.eof() && tag != "]") {
       f >> d;
       auto itr = outputs_.find(tag);
-      if (itr != outputs_.end())
+      if (itr != outputs_.end()) {
         itr->second->setDimensions(d);
+        itr->second->initialize();
+      }
       f >> tag;
     }
     NTA_CHECK(tag == "]") << "Expected end of sequence of outputs.";
@@ -400,8 +412,9 @@ void Region::load(std::istream &f) {
     while(!f.eof() && tag != "]") {
       f >> d;
       auto itr = inputs_.find(tag);
-      if (itr != inputs_.end())
+      if (itr != inputs_.end()) {
         itr->second->setDimensions(d);
+      }
       f >> tag;
     }
     NTA_CHECK(tag == "]") << "Expected end of sequence of inputs.";
@@ -414,6 +427,15 @@ void Region::load(std::istream &f) {
 
   BundleIO bundle(&f);
   impl_.reset(factory.deserializeRegionImpl(type_, bundle, this));
+
+
+  // region level dimensions
+  f >> tag;
+  NTA_CHECK(tag == "dim:");
+  f >> d;
+  setDimensions(d);
+
+  initialized_ = true;
 
   f >> tag;
   NTA_CHECK(tag == "}") << "Expected end of region. Found '" << tag << "'.";
@@ -441,7 +463,7 @@ bool Region::operator==(const Region &o) const {
     return false;
   }
 
-  if (name_ != o.name_ || type_ != o.type_ || 
+  if (name_ != o.name_ || type_ != o.type_ ||
       spec_ != o.spec_ || phases_ != o.phases_ ) {
     return false;
   }
@@ -640,5 +662,86 @@ bool Region::isParameter(const std::string &name) const {
   return (spec_->parameters.contains(name));
 }
 
+// Some functions used to prevent symbles from being in Region.hpp
+void Region::getDims_(std::map<std::string,Dimensions>& outDims,
+                      std::map<std::string,Dimensions>& inDims) const {
+  for(auto out: outputs_) {
+    Dimensions& dim = out.second->getDimensions();
+    outDims[out.first] = dim;
+  }
+  for(auto in: inputs_) {
+    Dimensions& dim = in.second->getDimensions();
+    inDims[in.first] = dim;
+  }
+}
+void Region::loadDims_(std::map<std::string,Dimensions>& outDims,
+                     std::map<std::string,Dimensions>& inDims) const {
+  for(auto out: outDims) {
+      auto itr = outputs_.find(out.first);
+      if (itr != outputs_.end()) {
+        itr->second->setDimensions(out.second);
+      }
+  }
+  for(auto in: inDims) {
+      auto itr = inputs_.find(in.first);
+      if (itr != inputs_.end()) {
+        itr->second->setDimensions(in.second);
+      }
+  }
+}
+
+void Region::getOutputBuffers_(std::map<std::string, Array>& buffers) const {
+	for (auto iter : outputs_) {
+    buffers[iter.first] = iter.second->getData();
+	}
+}
+
+void Region::restoreOutputBuffers_(const std::map<std::string, Array>& buffers) {
+  RegionImplFactory &factory = RegionImplFactory::getInstance();
+  spec_ = factory.getSpec(type_);
+  createInputsAndOutputs_();
+  for (auto output: buffers) {
+    Array& outputBuffer = getOutput(output.first)->getData();
+    outputBuffer = output.second;
+  }
+}
+
+
+void Region::serializeImpl(ArWrapper& arw) const{
+    impl_->cereal_adapter_save(arw);
+}
+void Region::deserializeImpl(ArWrapper& arw) {
+    RegionImplFactory &factory = RegionImplFactory::getInstance();
+    impl_.reset(factory.deserializeRegionImpl(type_, arw, this));
+}
+
+std::ostream &operator<<(std::ostream &f, const Region &r) {
+  f << "Region: {\n";
+  f << "name: " << r.name_ << "\n";
+  f << "nodeType: " << r.type_ << "\n";
+  f << "phases: [ ";
+  for (const auto &phases_phase : r.phases_) {
+      f << phases_phase << " ";
+  }
+  f << "]\n";
+  f << "outputs: [\n";
+  for(auto out: r.outputs_) {
+    f << out.first << " " << out.second->getDimensions() << "\n";
+  }
+  f << "]\n";
+  f << "inputs: [\n";
+  for(auto in: r.inputs_) {
+    f << in.first << " " << in.second->getDimensions() << "\n";
+  }
+  f << "]\n";
+	// TODO: add region impl...maybe
+  //f << "RegionImpl:\n";
+  // Now serialize the RegionImpl plugin.
+  //BundleIO bundle(&f);
+  //impl_->serialize(bundle);
+
+  f << "}\n";
+  return f;
+}
 
 } // namespace nupic

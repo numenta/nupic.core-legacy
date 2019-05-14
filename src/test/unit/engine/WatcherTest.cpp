@@ -108,7 +108,7 @@ TEST(WatcherTest, SampleNetwork) {
   // n.getRegions().getByName("level1")->getNodeAtIndex(1).setParameterUInt32("unclonedParam",(UInt32)1);
   //n.run(3);
   // see if Watcher notices change in parameter values  after 3 iterations
-  n.getRegions().getByName("level1")->setParameterUInt64("uint64Param", (UInt64)66);
+  n.getRegion("level1")->setParameterUInt64("uint64Param", (UInt64)66);
   n.run(3);
 
   // test flushFile() - this should produce output

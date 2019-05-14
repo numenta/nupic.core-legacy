@@ -33,10 +33,12 @@
 
 #include <nupic/engine/RegionImpl.hpp>
 #include <nupic/algorithms/TemporalMemory.hpp>
+
+#include <nupic/ntypes/Value.hpp>
 //----------------------------------------------------------------------
 
 namespace nupic {
-class TMRegion : public RegionImpl {
+class TMRegion : public RegionImpl, Serializable {
   typedef void (*computeCallbackFunc)(const std::string &);
   typedef std::map<std::string, Spec> SpecMap;
 
@@ -45,6 +47,9 @@ public:
   TMRegion(const TMRegion &) = delete;
   TMRegion(const ValueMap &params, Region *region);
   TMRegion(BundleIO &bundle, Region *region);
+  TMRegion(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
+      // TODO:cereal  complete.
+    }
   virtual ~TMRegion();
 
   /* -----------  Required RegionImpl Interface methods ------- */

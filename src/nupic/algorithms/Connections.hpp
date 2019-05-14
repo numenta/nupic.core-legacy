@@ -32,6 +32,7 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include <deque>
 
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Serializable.hpp>
@@ -64,11 +65,23 @@ const Permanence maxPermanence = 1.0f;
  * @param permanence
  * Permanence of synapse.
  */
-struct SynapseData {
+struct SynapseData: public Serializable {
   CellIdx presynapticCell;
   Permanence permanence;
   Segment segment;
   Synapse presynapticMapIndex_;
+
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+    ar(cereal::make_nvp("perm", permanence),
+      cereal::make_nvp("presyn", presynapticCell));
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+    ar( permanence, presynapticCell);
+  }
+
 };
 
 /**
@@ -436,6 +449,24 @@ public:
    */
   void bumpSegment(const Segment segment, const Permanence delta);
 
+  /**
+   * Destroy the synapses with the lowest permanence values.  This method is
+   * useful for making room for more synapses on a segment which is already
+   * full.
+   *
+   * @param segment - Index of segment in Connections, to be modified.
+   * @param nDestroy - Must be greater than or equal to zero!
+   * @param excludeCells - Presynaptic cells which will NOT have any synapses destroyed.
+   */
+  void destroyMinPermanenceSynapses(const Segment segment, Int nDestroy,
+                                    const sdr::SDR_sparse_t &excludeCells = {});
+
+  /**
+   * Print diagnostic info
+   */
+  friend std::ostream& operator<< (std::ostream& stream, const Connections& self);
+
+
   // Serialization
 
   /**
@@ -452,55 +483,52 @@ public:
   CerealAdapter;
   template<class Archive>
   void save_ar(Archive & ar) const {
-    ar( CEREAL_NVP(connectedThreshold_), cereal::make_size_tag(cells_.size()));
+    // make this look like a set of nested vectors with a 
+    // single numeric value in innermost vector. Cannot mix objects and sequences.
+    std::deque<SynapseData> syndata;
+    std::deque<size_t> sizes;
+    sizes.push_back(cells_.size());
     for (CellData cellData : cells_) {
       const std::vector<Segment> &segments = cellData.segments;
-      ar(cereal::make_size_tag(segments.size()));
-
+      sizes.push_back(segments.size());
       for (Segment segment : segments) {
         const SegmentData &segmentData = segments_[segment];
-
         const std::vector<Synapse> &synapses = segmentData.synapses;
-        ar(cereal::make_size_tag(synapses.size()));
-
+        sizes.push_back(synapses.size());
         for (Synapse synapse : synapses) {
           const SynapseData &synapseData = synapses_[synapse];
-          ar(CEREAL_NVP(synapseData.presynapticCell), 
-             CEREAL_NVP(synapseData.permanence));
+          syndata.push_back(synapseData);
         }
       }
     }
+    ar(CEREAL_NVP(connectedThreshold_));
+    ar(CEREAL_NVP(sizes));
+    ar(CEREAL_NVP(syndata));
   }
+
   template<class Archive>
   void load_ar(Archive & ar) {
-    Permanence  connectedThreshold;
-    cereal::size_type numCells;
-    ar(connectedThreshold, cereal::make_size_tag(numCells));
-    initialize(static_cast<CellIdx>(numCells), connectedThreshold);
+    std::deque<size_t> sizes;
+    std::deque<SynapseData> syndata;
+    ar(CEREAL_NVP(connectedThreshold_));
+    ar(CEREAL_NVP(sizes));
+    ar(CEREAL_NVP(syndata));
 
+    CellIdx numCells = static_cast<CellIdx>(sizes.front()); sizes.pop_front();
+    initialize(numCells, connectedThreshold_);
     for (UInt cell = 0; cell < numCells; cell++) {
-
-      cereal::size_type numSegments;
-      ar(cereal::make_size_tag(numSegments));
-
+      size_t numSegments = sizes.front(); sizes.pop_front();
       for (SegmentIdx j = 0; j < static_cast<SegmentIdx>(numSegments); j++) {
         Segment segment = createSegment( cell );
 
-        cereal::size_type numSynapses;
-        ar(cereal::make_size_tag(numSynapses));
-
+        size_t numSynapses = sizes.front(); sizes.pop_front();
         for (SynapseIdx k = 0; k < static_cast<SynapseIdx>(numSynapses); k++) {
-          CellIdx     presyn;
-          Permanence  perm;
-          ar(presyn, perm);
-          createSynapse( segment, presyn, perm );
+          SynapseData& syn = syndata.front(); syndata.pop_front();
+          createSynapse( segment, syn.presynapticCell, syn.permanence );
         }
       }
     }
   }
-
-
-  // Debugging
 
   /**
    * Gets the number of cells.
@@ -508,6 +536,8 @@ public:
    * @retval Number of cells.
    */
   size_t numCells() const { return cells_.size(); }
+
+  Permanence getConnectedThreshold() const { return connectedThreshold_; }
 
   /**
    * Gets the number of segments.

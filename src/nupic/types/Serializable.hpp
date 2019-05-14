@@ -41,6 +41,7 @@
 
 #define CEREAL_SAVE_FUNCTION_NAME save_ar
 #define CEREAL_LOAD_FUNCTION_NAME load_ar
+#define CEREAL_SERIALIZE_FUNCTION_NAME serialize_ar
 #include <cereal/cereal.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/portable_binary.hpp>
@@ -77,13 +78,21 @@
 #include <cereal/types/vector.hpp>  // for serializing std::vector
 #include <cereal/types/string.hpp>  // for serializing std::string
 #include <cereal/types/map.hpp>     // for serializing std::map
+#include <cereal/types/set.hpp>     // for serializing std::set
+#include <cereal/types/deque.hpp>   // for serializing std::deque
 
 #define SERIALIZABLE_VERSION 3
 
 
 namespace nupic {
 
-
+/**
+ * Mode of serialization:   (See Cereal docs)
+ *   BINARY   - A binary format which is the fastest but not portable between platforms (default).
+ *   PORTABLE - Another Binary format, not quite as fast but is portable between platforms.
+ *   JSON     - Human readable JSON text format. Slow.
+ *   XML      - Human readable XML text format. Even slower.
+ */
 typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 
 // Design explanation:
@@ -98,7 +107,7 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 // These Archive variants seem to indirectly subclass off of iostream because function
 // overloads like this will give a compile error saying they are ambiguous.
 //    void save(ostream& f);
-//    void save(BinaryOutputArchive& f);
+//    void save_ar(BinaryOutputArchive& f);
 // And like iostream there is no default constructors and no assignment operators.
 // In other words it cannot be copied. They cannot be dynamically allocated and
 // they cannot be a member of a class unless it is initialized at instantiation time
@@ -106,17 +115,17 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 //
 // What's this CerealAdapter macro?
 // What we would like to do is have functions in this base class that can call the 
-// save(Archive& ar ) and load(Archive& ar ) in the target class.  Normally we 
+// save_ar(Archive& ar ) and load_ar(Archive& ar ) in the target class.  Normally we 
 // would just use inheritance and setup a virtual method and matching functions 
 // in the derived class that override it.  But these are templated functions so will
 // not work. We have to do this indirectly.  The macro CerealAdapter adds some 
 // non-templeted helper functions to the derived class that can use inheritance.  
 // We wrap the Archive in the ArWrapper class and pass it to these helper classes.  
-// The helper classes can then call save(Archive& ar ) and load(Archive& ar ) with 
+// The helper classes can then call save_ar(Archive& ar ) and load_ar(Archive& ar ) with 
 // the templates since they are in the same class.
 //
 // Note that care must be taken to be sure that the selected Archive object (the thing
-// being pointed to) remains in scope while the save(Archive& ar ) and load(Archive& ar ) 
+// being pointed to) remains in scope while the save_ar(Archive& ar ) and load_ar(Archive& ar ) 
 // are called but that they must go out of scope as soon as they return.  This causes the
 // serialization to be flushed to the underlining stream.
 //
@@ -129,8 +138,8 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 // nice but C++ rejects any use of a union in this situation.
 //
 // Since we are doing our selection at run time, we need an enum in the ArWrapper
-// to select the right type that matches the template when calling save(Archive& ar ) 
-// and load(Archive& ar ).  So that is why we have the switch(fmt) selection in
+// to select the right type that matches the template when calling save_ar(Archive& ar ) 
+// and load_ar(Archive& ar ).  So that is why we have the switch(fmt) selection in
 // the CerealAdapter macro.
 //
 // Now we can use saveToFile(filename, fmt) and saveToStream(stream, fmt) and 
@@ -139,10 +148,10 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 // them. The Cereal package does not need to be exposed in the API.
 //
 // When setting up a new class that should be serialized, do the following:
-// 1) subclass it from Serialization.
-// 2) Add CerealAdapter macro and save(Archive& ar) and load(Archive& ar) methods
+// 1) subclass it from Serializable (This class).
+// 2) Add CerealAdapter macro and save_ar(Archive& ar) and load_ar(Archive& ar) methods
 //    to the class as shown at the end of this file.
-// 3) Implement the save and load functions as described in the Cereal documentation
+// 3) Implement the save_ar and load_ar functions as described in the Cereal documentation
 //    see http://uscilab.github.io/cereal/index.html
 //    - Note that you can directly serialize:
 //      a) Any fundemental data type (numeric values).
@@ -150,7 +159,7 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 //      c) Most of the STL containers.
 //      d) Any other class that is subclassed from Serialize.
 //      e) Any smart pointer (std::shared_ptr) if contains above types, non-array.
-//    - It will not serialize pointers or arrays directly.
+//    - It will NOT serialize pointers or arrays directly.
 //    - You can use the syntax of 
 //            ar( arg1, arg2, arg3 );
 //      or
@@ -158,10 +167,13 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 //    - Use the macro CEREAL_NVP(sdr); or ar(cereal::make_nvp("SDR", sdr));
 //      to give names to variables in the JSON serialization.
 //    - Serialize a raw array, start with length followed by serialization of each element.
-//      the sizeTag starts a sequence in JSON.
+//      the sizeTag starts a sequence.
 //            ar(cereal::make_size_tag(static_cast<cereal::size_type>(count_)));
 //            for (size_t i = 0; i < count_; i++)
 //              ar( array[i] );
+//      NOTE: this has some problems. Sometimes, particularly in JSON, it will crash.
+//            Recommend creating a std::vector<> and then serializing the vector.
+//            In other words, always serialize objects, not a sequence.
 //    - Serialize an std::pair
 //            ar(cereal::make_map_item(it->first, it->second));
 //    - Extra attention is needed if a variable is in a base class. See docs.
@@ -171,6 +183,15 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 class ArWrapper {
 public:
   ArWrapper() { }
+  ArWrapper(cereal::BinaryOutputArchive* ar)         { fmt = SerializableFormat::BINARY; binary_out = ar; }
+  ArWrapper(cereal::PortableBinaryOutputArchive* ar) { fmt = SerializableFormat::PORTABLE; portable_out = ar; }
+  ArWrapper(cereal::JSONOutputArchive* ar)           { fmt = SerializableFormat::JSON; json_out = ar; }
+  ArWrapper(cereal::XMLOutputArchive* ar)            { fmt = SerializableFormat::XML; xml_out = ar; }
+  ArWrapper(cereal::BinaryInputArchive* ar)          { fmt = SerializableFormat::BINARY; binary_in = ar; }
+  ArWrapper(cereal::PortableBinaryInputArchive* ar)  { fmt = SerializableFormat::PORTABLE; portable_in = ar; }
+  ArWrapper(cereal::JSONInputArchive* ar)            { fmt = SerializableFormat::JSON; json_in = ar; }
+  ArWrapper(cereal::XMLInputArchive* ar)             { fmt = SerializableFormat::XML; xml_in = ar; }
+
   SerializableFormat fmt;
   cereal::BinaryOutputArchive* binary_out;
   cereal::PortableBinaryOutputArchive* portable_out;
@@ -180,6 +201,7 @@ public:
   cereal::PortableBinaryInputArchive* portable_in;
   cereal::JSONInputArchive* json_in;
   cereal::XMLInputArchive* xml_in;
+
 };
 
 
@@ -213,24 +235,29 @@ public:
   }
 	// TODO:Cereal- after all serialization using Cereal is complete, 
   //       remove save() and load() pairs from all derived classes
-	//       change all save_ar() load_ar() pairs to be save() load().
-	//       Remove the following two lines.
+	//       change saveToStream_ar()   to save()
+  //       change loadFromStream_ar() to load().
+  //       change saveToFile_ar() to saveToFile().
+  //       change loadFromFile_ar() to loadFromFile().
 
   // These must be implemented by the subclass.
-  virtual void save(std::ostream &stream) const {};
-  virtual void load(std::istream &stream) {};
+  virtual void save(std::ostream &stream) const { };
+  virtual void load(std::istream &stream) { };
 
 
   virtual inline void saveToFile_ar(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) const {
-      std::string dirPath = Path::getParent(filePath);
+    std::string dirPath = Path::getParent(filePath);
 	  Directory::create(dirPath, true, true);
-	  std::ofstream out(filePath, std::ios_base::out | std::ios_base::binary);
-	  out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+		std::ios_base::openmode mode = std::ios_base::out;
+		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
+	  std::ofstream out(filePath, mode);
 	  out.precision(std::numeric_limits<double>::digits10 + 1);
 	  out.precision(std::numeric_limits<float>::digits10 + 1);
 		saveToStream_ar(out, fmt);
 		out.close();
 	}
+
+  // NOTE: for BINARY and PORTABLE the stream must be ios_base::binary or it will crash on Windows.
   virtual inline void saveToStream_ar(std::ostream &out, SerializableFormat fmt=SerializableFormat::BINARY) const {
     ArWrapper arw;
     arw.fmt = fmt;
@@ -246,12 +273,12 @@ public:
       cereal_adapter_save(arw); 
     } break;
 		case SerializableFormat::JSON: {
-      cereal::JSONOutputArchive ar(out);
+      cereal::JSONOutputArchive ar(out, cereal::JSONOutputArchive::Options::Default());
       arw.json_out = &ar;
       cereal_adapter_save(arw);
     } break;
 		case SerializableFormat::XML: {
-      cereal::XMLOutputArchive ar(out);
+      cereal::XMLOutputArchive ar(out, cereal::XMLOutputArchive::Options::Default());
       arw.xml_out = &ar;
       cereal_adapter_save(arw);
     } break;
@@ -260,11 +287,17 @@ public:
   }
   
   virtual inline void loadFromFile_ar(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) {
-    std::ifstream in(filePath, std::ios_base::in | std::ios_base::binary);
-    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		std::ios_base::openmode mode = std::ios_base::in;
+		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
+	  std::ifstream in(filePath, mode);
+    // NOTE: do NOT set stream exceptions:
+    //       in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    //       The JSON parser will not be able to find the end of the parse.
 		loadFromStream_ar(in, fmt);
 		in.close();
 	}
+  // NOTE: for BINARY and PORTABLE the stream must opened with ios_base::binary or it will crash on Windows.
+  //       Stream exceptions should NOT be set.
 	virtual inline void loadFromStream_ar(std::istream &in,  SerializableFormat fmt=SerializableFormat::BINARY) {
     ArWrapper arw;
     arw.fmt = fmt;
@@ -293,12 +326,17 @@ public:
 		}
   }
 
+    
+
+
   // Note: if you get a compile error saying this is not defined,
   //       or that "cannot instantiate abstract class"
   //       add the macro 'CerealAdapter' in the derived class.
   // TODO:Cereal- make these pure virtual when Cereal is included everywhere.
   virtual void cereal_adapter_save(ArWrapper& a) const {};
   virtual void cereal_adapter_load(ArWrapper& a) {};
+
+
 	
 
   virtual ~Serializable() {}

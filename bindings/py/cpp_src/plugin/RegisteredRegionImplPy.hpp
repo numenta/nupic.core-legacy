@@ -119,11 +119,30 @@ namespace nupic
         }
 	  }
 
-        // use PyBindRegion class to instantiate and deserialize the python class in the specified module.
+        // use PyBindRegion class to instantiate and deserialize the python class in the specified module.  TODO:cereal Remove
       RegionImpl* deserializeRegionImpl(BundleIO& bundle, Region *region) override
       {
 	  	try {
           return new PyBindRegion(module_.c_str(), bundle, region, classname_.c_str());
+        }
+        catch (const py::error_already_set& e)
+        {
+            throw Exception(__FILE__, __LINE__, e.what());
+        }
+        catch (nupic::Exception & e)
+        {
+            throw nupic::Exception(e);
+        }
+        catch (...)
+        {
+            NTA_THROW << "Something bad happed while deserializing a .py region";
+        }
+      }
+        // use PyBindRegion class to instantiate and deserialize the python class in the specified module.
+      RegionImpl* deserializeRegionImpl(ArWrapper& wrapper, Region *region) override
+      {
+	  	try {
+          return new PyBindRegion(module_.c_str(), wrapper, region, classname_.c_str());
         }
         catch (const py::error_already_set& e)
         {

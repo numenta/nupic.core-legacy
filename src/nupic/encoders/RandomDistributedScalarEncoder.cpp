@@ -51,11 +51,12 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
 
   UInt num_resolution_args = 0;
   if( parameters.radius     > 0.0f) { num_resolution_args++; }
+  if( parameters.category )         { num_resolution_args++; }
   if( parameters.resolution > 0.0f) { num_resolution_args++; }
   NTA_CHECK( num_resolution_args != 0u )
-      << "Missing argument, need one of: 'radius', 'resolution'.";
+      << "Missing argument, need one of: 'radius', 'resolution', 'category'.";
   NTA_CHECK( num_resolution_args == 1u )
-      << "Too many arguments, choose only one of: 'radius', 'resolution'.";
+      << "Too many arguments, choose only one of: 'radius', 'resolution', 'category'.";
 
   args_ = parameters;
   // Finish filling in all of parameters.
@@ -69,6 +70,10 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
   }
   // Determine sparsity. Always calculate this even if it was given, to correct for rounding error.
   args_.sparsity = (Real) args_.activeBits / args_.size;
+
+  if( args_.category ) {
+    args_.radius = 1.0f;
+  }
 
   // Determine resolution.
   if( args_.radius > 0.0f ) {
@@ -91,6 +96,10 @@ void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
   if( isnan(input) ) {
     output.zero();
     return;
+  }
+  else if( args_.category ) {
+    NTA_CHECK( input == Real64(UInt64(input)))
+      << "Input to category encoder must be an unsigned integer!";
   }
 
   auto &data = output.getDense();
@@ -124,6 +133,7 @@ void RandomDistributedScalarEncoder::save(std::ostream &stream) const
   stream << parameters.size << " ";
   stream << parameters.activeBits << " ";
   stream << parameters.resolution << " ";
+  stream << parameters.category << " ";
   stream << parameters.seed << " ";
   stream << "~RDSE~" << endl;
 }
@@ -138,6 +148,7 @@ void RandomDistributedScalarEncoder::load(std::istream &stream)
   stream >> p.size;
   stream >> p.activeBits;
   stream >> p.resolution;
+  stream >> p.category;
   stream >> p.seed;
 
   string postlude;
@@ -145,5 +156,8 @@ void RandomDistributedScalarEncoder::load(std::istream &stream)
   NTA_CHECK( postlude == "~RDSE~" );
   stream.ignore( 1 ); // Eat the trailing newline.
 
+  if( p.category ) {
+    p.resolution = 0.0f;
+  }
   initialize( p );
 }
