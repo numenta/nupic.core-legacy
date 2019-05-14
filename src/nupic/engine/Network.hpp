@@ -148,7 +148,6 @@ public:
 	  std::map<std::string, std::shared_ptr<Region>> regions;
     std::vector<std::shared_ptr<Link>> links;
     std::string name;
-    int marker;
     ar(cereal::make_nvp("name", name),  // ignore value
        cereal::make_nvp("iteration", iteration_));
     ar(cereal::make_nvp("Regions", regions));
