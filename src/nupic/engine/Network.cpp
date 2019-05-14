@@ -668,6 +668,23 @@ void Network::load(std::istream &f) {
   post_load();
 }
 
+void Network::post_load(std::map<std::string, std::shared_ptr<Region>>& regions,
+                        std::vector<std::shared_ptr<Link>>& links) {
+      for(auto p: regions) {
+			addRegion(p.second);
+    }
+    for(auto alink: links) {
+      auto l = link( alink->getSrcRegionName(),
+                     alink->getDestRegionName(),
+                     "", "",
+                     alink->getSrcOutputName(),
+                     alink->getDestInputName(),
+                     alink->getPropagationDelay());
+      l->propagationDelayBuffer_ = alink->propagationDelayBuffer_;
+    }
+    post_load();
+}
+
 void Network::post_load() {
   // Post Load operations
   for (size_t i = 0; i < regions_.getCount(); i++) {

@@ -71,6 +71,72 @@ public:
 
   void serialize(BundleIO &bundle) override;
   void deserialize(BundleIO &bundle) override;
+  
+  	CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    bool init = ((tm_) ? true : false);
+    ar(cereal::make_nvp("numberOfCols", args_.numberOfCols));
+    ar(cereal::make_nvp("cellsPerColumn", args_.cellsPerColumn));
+    ar(cereal::make_nvp("activationThreshold", args_.activationThreshold));
+    ar(cereal::make_nvp("initialPermanence", args_.initialPermanence));
+    ar(cereal::make_nvp("connectedPermanence", args_.connectedPermanence));
+    ar(cereal::make_nvp("maxNewSynapseCount", args_.maxNewSynapseCount));
+    ar(cereal::make_nvp("permanenceIncrement", args_.permanenceIncrement));
+    ar(cereal::make_nvp("permanenceDecrement", args_.permanenceDecrement));
+    ar(cereal::make_nvp("predictedSegmentDecrement", args_.predictedSegmentDecrement));
+    ar(cereal::make_nvp("seed", args_.seed));
+    ar(cereal::make_nvp("maxSegmentsPerCell", args_.maxSegmentsPerCell));
+    ar(cereal::make_nvp("maxSynapsesPerSegment", args_.maxSynapsesPerSegment));
+    ar(cereal::make_nvp("extra", args_.extra));
+    ar(cereal::make_nvp("checkInputs", args_.checkInputs));
+    ar(cereal::make_nvp("learningMode", args_.learningMode));
+    ar(cereal::make_nvp("sequencePos", args_.sequencePos));
+    ar(cereal::make_nvp("iter", args_.iter));
+    ar(cereal::make_nvp("orColumnOutputs", args_.orColumnOutputs));
+    ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
+    ar(cereal::make_nvp("init", init));
+    if (init) {
+      // Save the algorithm state
+      ar(cereal::make_nvp("TM", tm_));
+    }
+  }
+
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(cereal::make_nvp("numberOfCols", args_.numberOfCols));
+    ar(cereal::make_nvp("cellsPerColumn", args_.cellsPerColumn));
+    ar(cereal::make_nvp("activationThreshold", args_.activationThreshold));
+    ar(cereal::make_nvp("initialPermanence", args_.initialPermanence));
+    ar(cereal::make_nvp("connectedPermanence", args_.connectedPermanence));
+    ar(cereal::make_nvp("maxNewSynapseCount", args_.maxNewSynapseCount));
+    ar(cereal::make_nvp("permanenceIncrement", args_.permanenceIncrement));
+    ar(cereal::make_nvp("permanenceDecrement", args_.permanenceDecrement));
+    ar(cereal::make_nvp("predictedSegmentDecrement", args_.predictedSegmentDecrement));
+    ar(cereal::make_nvp("seed", args_.seed));
+    ar(cereal::make_nvp("maxSegmentsPerCell", args_.maxSegmentsPerCell));
+    ar(cereal::make_nvp("maxSynapsesPerSegment", args_.maxSynapsesPerSegment));
+    ar(cereal::make_nvp("extra", args_.extra));
+    ar(cereal::make_nvp("checkInputs", args_.checkInputs));
+    ar(cereal::make_nvp("learningMode", args_.learningMode));
+    ar(cereal::make_nvp("sequencePos", args_.sequencePos));
+    ar(cereal::make_nvp("iter", args_.iter));
+    ar(cereal::make_nvp("orColumnOutputs", args_.orColumnOutputs));
+    args_.outputWidth = (args_.orColumnOutputs)?args_.numberOfCols
+                      : (args_.numberOfCols * args_.cellsPerColumn);
+    ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
+    ar(cereal::make_nvp("init", args_.init));
+    if (args_.init) {
+      // Restore algorithm state
+      nupic::algorithms::temporal_memory::TemporalMemory* tm = new nupic::algorithms::temporal_memory::TemporalMemory();
+      tm_.reset(tm);
+      ar(cereal::make_nvp("TM", tm_));
+    }
+  }
+
+
 
   // Per-node size (in elements) of the given output.
   // For per-region outputs, it is the total element count.

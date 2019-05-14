@@ -140,7 +140,6 @@ public:
        cereal::make_nvp("iteration", iteration_));
     ar(cereal::make_nvp("Regions", regions));
     ar(cereal::make_nvp("links", links));
-
   }
   
   // FOR Cereal Deserialization
@@ -149,23 +148,12 @@ public:
 	  std::map<std::string, std::shared_ptr<Region>> regions;
     std::vector<std::shared_ptr<Link>> links;
     std::string name;
+    int marker;
     ar(cereal::make_nvp("name", name),  // ignore value
        cereal::make_nvp("iteration", iteration_));
     ar(cereal::make_nvp("Regions", regions));
-    for(auto p: regions) {
-			addRegion(p.second);
-    }
     ar(cereal::make_nvp("links", links));
-    for(auto alink: links) {
-      auto l = link( alink->getSrcRegionName(),
-                     alink->getDestRegionName(),
-                     "", "",
-                     alink->getSrcOutputName(),
-                     alink->getDestInputName(),
-                     alink->getPropagationDelay());
-      l->propagationDelayBuffer_ = alink->propagationDelayBuffer_;
-    }
-    post_load();
+    post_load(regions, links);
   }
 
   /**
@@ -464,6 +452,8 @@ private:
 
   // perform actions after serialization load
   void post_load();
+  void post_load(std::map<std::string, std::shared_ptr<Region>>& regions,
+                 std::vector<std::shared_ptr<Link>>& links);
 
   // internal method using region pointer instead of name
   void setPhases_(Region *r, std::set<UInt32> &phases);
