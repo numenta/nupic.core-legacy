@@ -16,39 +16,40 @@
 # ------------------------------------------------------------------------------
 
 from nupic.optimization.parameter_set import ParameterSet
-import itertools
 import random
+import itertools
+import math
 
 class BaseOptimizer:
     """
     TODO
     """
-    def addArguments(parser):
+    def add_arguments(parser):
         """
         TODO
         """
         pass
 
-    def useThisOptimizer(args):
+    def use_this_optimizer(args):
         """
         TODO
         """
         return False
 
-    def __init__(self, labReport, args):
+    def __init__(self, laboratory, args):
         """
         TODO
         """
-        self.lab  = labReport
+        self.lab  = laboratory
         self.args = args
 
-    def suggestExperiment(self):
+    def suggest_parameters(self): # TODO Rename this to suggest_parameters!
         """
         TODO
         """
-        pass
+        raise NotImplementedError("BaseOptimizer.suggest_parameters")
 
-    def collectResults(self, experiment, result):
+    def collect_results(self, parameters, result):
         """
         TODO
         """
@@ -56,50 +57,52 @@ class BaseOptimizer:
 
 
 class EvaluateDefaultParameters(BaseOptimizer):
-    def addArguments(parser):
-        parser.add_argument('--default_parameters', action='store_true',)
+    def add_arguments(parser):
+        parser.add_argument('--default_parameters', action='store_true',
+            help='Evaluate only "experiment_module.default_parameters".')
 
-    def useThisOptimizer(args):
+    def use_this_optimizer(args):
         return args.default_parameters
 
-    def suggestExperiment(self):
+    def suggest_parameters(self):
         return self.lab.default_parameters
 
 
 class EvaluateAllExperiments(BaseOptimizer):
-    def addArguments(parser):
+    def add_arguments(parser):
         parser.add_argument('--all_experiments', action='store_true',
-            help='Evaluate all experiments in the lab report, don\'t start new experiments')
+            help='Evaluate all experiments in the lab report, don\'t start new experiments.')
 
-    def useThisOptimizer(args):
+    def use_this_optimizer(args):
         return args.all_experiments
 
-    def suggestExperiment(self):
+    def suggest_parameters(self):
         rnd = lambda: random.random() / 100 # Random Tiebreaker
-        return min(self.lab.experiments, key=lambda x: x.attempts + rnd()).parameters
+        return min(self.lab.experiments, key=lambda X: X.attempts + rnd()).parameters
 
 
 class EvaluateBestExperiment(BaseOptimizer):
-    def addArguments(parser):
+    def add_arguments(parser):
         parser.add_argument('--best', action='store_true',
             help='Evaluate the best set of parameters on file.')
 
-    def useThisOptimizer(args):
+    def use_this_optimizer(args):
         return args.best
 
-    def suggestExperiment(self):
+    def suggest_parameters(self):
         best = max(self.lab.experiments, key = lambda X: X.mean() )
         return best.parameters
 
 
 class EvaluateHashes(BaseOptimizer):
-    def addArguments(parser):
-        parser.add_argument('--hashes', type=str,)
+    def add_arguments(parser):
+        parser.add_argument('--hashes', type=str,
+            help='Evaluate specific experiments, identified by their hashes.  Comma separated list.')
 
-    def useThisOptimizer(args):
+    def use_this_optimizer(args):
         return args.hashes
 
-    def __init__(self, labReport, args):
+    def __init__(self, lab, args):
         hashes = [int(h, base=16) for h in args.hashes.split(',')]
         try:
             self.experiments = [lab.experiment_ids[h] for h in hashes]
@@ -107,13 +110,13 @@ class EvaluateHashes(BaseOptimizer):
             unknown = [h for h in hashes if h not in lab.experiment_ids]
             raise ValueError('Hash not recognized: %X'%unknown[0])
 
-    def suggestExperiment(self):
+    def suggest_parameters(self):
         rnd = lambda: random.random() / 100 # Random Tiebreaker
-        return min(self.experiments, key=lambda x: x.attempts + rnd()).parameters
+        return min(self.experiments, key=lambda X: X.attempts + rnd()).parameters
 
 
 class GridSearch(BaseOptimizer):
-    # TODO: Make these into a CLI argument?
+    # TODO: Make these into a CLI argument.
     mod_funcs = [
         lambda v: v *  .40,
         lambda v: v *  .60,
@@ -123,55 +126,52 @@ class GridSearch(BaseOptimizer):
         lambda v: v * 1.60,
     ]
 
-    def addArguments(parser):
+    def add_arguments(parser):
         parser.add_argument('--grid_search', type=str,
-            help="TODO CLI argument help for GridSearch")
+            help="TODO: CLI argument help for GridSearch")
 
-    def useThisOptimizer(args):
-        return args.grid_search
+    def use_this_optimizer(args):
+        return args.grid_search is not None
 
-    def __init__(self, labReport, args):
-        self.lab = labReport
+    def __init__(self, laboratory, args):
+        self.lab = laboratory
 
         # Get a list of every parameter to experiment with.
         target_parameters = []
         for start in args.grid_search.split(','):
-            node = eval("lab.default_parameters" + start)
-            target_parameters.extend(start + end for end in paths(node))
+            node = self.lab.default_parameters.get( start )
+            subtree = ParameterSet.enumerate( node )
+            target_parameters.extend( start + end for end in subtree )
 
         # Suggest modifications to each parameter.
         self.experiments = []
         for path in target_parameters:
-            value = lab.default_parameters.get(path)
+            value = self.lab.default_parameters.get(path)
             for mod in self.mod_funcs:
-                params = deepcopy(lab.default_parameters)
+                params = ParameterSet(self.lab.default_parameters)
                 params.apply( path, mod(value) )
-                try:
-                    self.experiments.append(
-                        ExperimentSummary(lab, parameters=params))
-                except ValueError:
-                    # ExperimentSummary raises ValueError if it detects
-                    # duplicate entry in the database.
-                    self.experiments.append(
-                        lab.experiment_ids[hash(params)])
+                X = self.lab.get_experiment( params )
+                if not X.notes.strip():
+                    X.notes += "Suggested by Grid Search.\n"
+                self.experiments.append(X)
 
-        lab.save() # Write all of the new grid-search experiments to the lab report.
+        self.lab.save() # Write all of the new grid-search experiments to the lab report.
 
-    def suggestExperiment(self):
+    def suggest_parameters(self):
         # Start with a good baseline of the default parameters.
-        if self.lab.experiment_ids[hash(self.lab.default_parameters)].attempts < 7:
+        if self.lab.experiment_ids[hash(self.lab.default_parameters)].attempts < 5:
             return self.lab.default_parameters
 
         rnd = lambda: random.random() / 100 # Random Tiebreaker
-        return min(self.experiments, key=lambda x: x.attempts + rnd()).parameters
+        return min(self.experiments, key=lambda X: X.attempts + rnd()).parameters
 
 
-class CombineBest:
-    def addArguments(parser):
+class CombineBest(BaseOptimizer):
+    def add_arguments(parser):
         parser.add_argument('--combine', type=int, default=0,
             help='Combine the NUM best experiments.')
 
-    def useThisOptimizer(args):
+    def use_this_optimizer(args):
         return args.combine
 
     def merge(self, lab, ideas):
@@ -186,22 +186,16 @@ class CombineBest:
                     continue # Higher scoring experiments take precedence.
                 paths.append(path)
                 values.append(value)
-        # Create or get the experiment object.
-        mods = list(zip(paths, values))
-        try:
-            return ExperimentSummary(lab, modifications=mods)
-        except ValueError:
-            # ExperimentSummary raises ValueError if it detects duplicate entry
-            # in the database.
-            params = deepcopy(lab.default_parameters)
-            for p, v in mods:
-                params.apply(p, v)
-            return lab.experiment_ids[hash(params)]
+        # Create and get the experiment object.
+        params = ParameterSet(lab.default_parameters)
+        for p, v in zip(paths, values):
+            params.apply(p, v)
+        return lab.get_experiment(params)
 
-    def suggestExperiment(self):
-        suggest = [] # Retval accumulator
+    def suggest_parameters(self):
+        suggest = [] # Return value accumulator
 
-        # Ignore all underperforming experiments.
+        # Ignore all under-performing experiments.
         null = self.lab.experiment_ids[hash(self.lab.default_parameters)]
         ex   = [x for x in self.lab.experiments if x.mean() > null.mean()]
 
@@ -215,14 +209,10 @@ class CombineBest:
         suggest.extend(trymore)
         # Suggests combinations
         for ideas in itertools.combinations(ex, 2):
-            suggest.append( self.merge(self.lab, ideas) )
-
-        if False: # Dump the suggestions for debugging
-            for x in suggest:
-                for p, v in x.modifications:
-                    print(p , v)
-                print()
-            1/0
+            X = self.merge(self.lab, ideas)
+            if not X.notes.strip():
+                X.notes += "Suggested by Combine Best.\n"
+            suggest.append( X )
 
         rnd = lambda: random.random() / 100 # Random Tiebreaker
         return min(suggest, key=lambda x: x.attempts + rnd()).parameters

@@ -16,227 +16,194 @@
 # ------------------------------------------------------------------------------
 """ Swarming parameter search """
 
+# TODO: I'd like to see a big summary of what this is doing, Ideally in the main
+# lab report file.  It should include the min/mean/std/max of each value,
+# velocity, and score across the swarm.
+
+# TODO: Add notes to experiment summaries that they were created by swarming.
+
 # TODO: Make CLI Arguments for these global constants: particle_strength, global_strength, velocity_strength
 particle_strength   =  .25
 global_strength     =  .50
 velocity_strength   =  .95
 assert(velocity_strength + particle_strength / 2 + global_strength / 2 >= 1)
 
-import argparse
 import sys
 import os
 import random
-import pprint
+import pickle
 
 from nupic.optimization.parameter_set import ParameterSet
 from nupic.optimization.optimizers import BaseOptimizer
 
-class ParticleSwarmOptimizations(BaseOptimizer):
-    def addArguments(argparser):
-        argparser.add_argument('--swarming', type=int, default=0,
-            help='Particle Swarm Optimization.')
+class ParticleData:
+    """
+    Attributes:
+        p.parameters - ParameterSet
+        p.velocities - ParameterSet full of float
+        p.best       - ParameterSet
+        p.score      - float
+        p.age        - Number of times this particle has been evaluated/updated.
+    """
+    def __init__(self, default_parameters):
+        self.parameters = ParameterSet( default_parameters )
+        self.best       = None
+        self.best_score = None
+        self.age        = 0
+        self.initialize_velocities()
 
-    def useThisOptimizer(args):
-        return args.swarming
+    def initialize_velocities(self):
+        # Make a new parameter structure for the velocity data.
+        self.velocities = ParameterSet( self.parameters )
+        # Iterate through every field in the structure.
+        for path in self.parameters.enumerate():
+            value = self.parameters.get(path)
+            max_percent_change = 10
+            uniform = 2 * random.random() - 1
+            if isinstance(value, float):
+                velocity = value * uniform * (max_percent_change / 100.)
+            elif isinstance(value, int):
+                if abs(value) < 10:
+                    velocity = uniform
+                else:
+                    velocity = value * uniform * (max_percent_change / 100.)
+            else:
+                raise NotImplementedError()
+            self.velocities.apply( path, velocity )
+
+    def update_position(self):
+        for path in self.parameters.enumerate():
+            position = self.parameters.get( path )
+            velocity = self.velocities.get( path )
+            self.parameters.apply( path, position + velocity )
+
+    def update_velocity(self, global_best):
+        for path in self.parameters.enumerate():
+            postition     = self.parameters.get( path )
+            velocity      = self.velocities.get( path )
+            particle_best = self.best.get( path ) if self.best is not None else postition
+            global_best_x = global_best.get( path ) if global_best is not None else postition
+
+            # Update velocity.
+            particle_bias = (particle_best - postition) * particle_strength * random.random()
+            global_bias   = (global_best_x - postition)   * global_strength   * random.random()
+            velocity = velocity * velocity_strength + particle_bias + global_bias
+            self.velocities.apply( path, velocity )
+
+    def update(self, score, global_best):
+        self.age += 1
+        self.update_position()
+        self.update_velocity( global_best )
+        if self.best is None or score > self.best_score:
+            self.best       = self.parameters
+            self.best_score = score
+            print("New particle best score %g."%self.best_score)
+
+
+class ParticleSwarmOptimization(BaseOptimizer):
+    """
+    Attributes:
+        pso.lab           - Laboratory
+        pso.particles     - Number of particles to use.
+        pso.next_particle - Index into pso.swarm
+        pso.swarm_path    - Data File for this particle swarm.
+        pso.swarm         - List of ParticleData
+        pso.best          - ParameterSet
+        pso.best_score    - float
+    """
+    def add_arguments(parser):
+        parser.add_argument('--swarming', type=int,
+            help='Particle Swarm Optimization, number of particles to use.')
+
+        parser.add_argument('--clear_scores', action='store_true',
+            help=('Remove all scores from the particle swarm so that the '
+                  'experiment can be safely altered.'))
+
+    def use_this_optimizer(args):
+        return args.swarming or args.clear_scores
 
     def __init__(self, lab, args):
-        assert(args.particles >= args.processes)
-
+        self.swarm_path    = os.path.join( lab.ae_directory, 'particle_swarm.pickle' )
+        if args.clear_scores:
+            self.clear_scores()
+            sys.exit()
         # Setup the particle swarm.
-        self.particles     = args.particles
-        self.next_particle = random.randrange(args.particles)
-        self.swarm_path    = os.path.join(lab.ae_directory, 'swarm')
+        self.lab           = lab
+        self.swarm         = []
+        self.particles     = args.swarming
+        self.next_particle = random.randrange( self.particles )
+        self.best          = None
+        self.best_score    = None
+        assert( self.particles >= args.processes )
+        # Try loading an existing particle swarm.
         try:
-            with open(self.swarm_path, 'r') as swarm_file:
-                swarm_raw = swarm_file.read()
+            self.load()
+            if self.particles != len(self.swarm):
+                print("Warning: requested number of particles does not match number stored on file.")
         except FileNotFoundError:
-            # Initialize a new particle swarm.
-            self.swarm_data = {}
-            for particle in range(self.particles):
-                if particle in [0, 1, 2]:
-                    # Evaluate the default parameters a few times, before branching out
-                    # to the more experimential stuff.  Several evals are needed since
-                    # these defaults may have their random velocity applied.
-                    value = lab.default_parameters
-                else:
-                    value = ParameterSet( initial_parameters(lab.default_parameters))
-                self.swarm_data[particle] = {
-                    'value':      value,
-                    'velocity':   initial_velocity(lab.default_parameters),
-                    'best':       value,
-                    'best_score': None,
-                    'hash':       hash(value),
-                }
-            self.swarm_data['best']       = random.choice(list(self.swarm_data.values()))['best']
-            self.swarm_data['best_score'] = None
-            self.swarm_data['evals']      = 0
-        else:
-            # Load an existing particle swarm.
-            try:
-                self.swarm_data = eval(swarm_raw)
-            except SyntaxError:
-                while True:
-                    print("Corrupted particle swarm data file.  [B]ackup, [O]verwrite, or [EXIT]?")
-                    choice = input().upper()
-                    if choice == 'B':
-                        backup_path = self.swarm_path + ".backup"
-                        os.rename(self.swarm_path, backup_path)
-                        print("BACKUP PATH: %s"%backup_path)
-                        self.swarm_data = initialize_particle_swarm(lab.default_parameters, self.particles)
-                        break
-                    elif choice == 'O':
-                        self.swarm_data = initialize_particle_swarm(lab.default_parameters, self.particles)
-                        break
-                    elif choice in 'EXITQ':
-                        print("EXIT")
-                        sys.exit()
-                    else:
-                        print('Invalid input "%s".'%choice)
-
-            if self.particles != sum(isinstance(key, int) for key in self.swarm_data):
-                print("Warning: argument 'particles' does not match number of particles stored on file.")
-
-    def suggestExperiment(self, lab):
-        # Run the particle swarm optimization.
-        particle_data = self.swarm_data[self.next_particle]
-        self.next_particle = (self.next_particle + 1) % self.particles
-
-        # Update the particles velocity.
-        particle_data['velocity'] = update_particle_velocity(
-            particle_data['value'],
-            particle_data['velocity'],
-            particle_data['best'],
-            self.swarm_data['best'],)
-
-        # Update the particles postition.
-        particle_data['value'] = update_particle_position(
-            particle_data['value'],
-            particle_data['velocity'])
-
-        # Evaluate the particle.
-        promise = pool.apply_async(evaluate_particle, (particle_data,))
-
-        return parameters
-
-    def collectResults(self, experiment, results):
-        particle_data = self.swarm_data[particle_number]
-        try:
-            score = promise.get()
-        except (ValueError, MemoryError, ZeroDivisionError, AssertionError) as err:
-            print("")
-            print("Particle Number %d"%particle_number)
-            pprint.pprint(particle_data['value'])
-            print("%s:"%(type(err).__name__), err)
-            print("")
-            # Replace this particle.
-            particle_data['velocity'] = initial_velocity(default_parameters)
-            if particle_data['best_score'] is not None:
-                particle_data['value'] = particle_data['best']
-            elif self.swarm_data['best_score'] is not None:
-                particle_data['value'] = self.swarm_data['best']
+            pass
+        # Add new particles as necessary.
+        while len(self.swarm) < self.particles:
+            if self.best is not None:
+                new_particle = ParticleData( self.best )
             else:
-                particle_data['value'] = initial_parameters(default_parameters)
-        except Exception:
-            print("")
-            pprint.pprint(particle_data['value'])
-            raise
+                new_particle = ParticleData( self.lab.default_parameters )
+            self.swarm.append( new_particle )
+            # Evaluate the default parameters a few times, before branching out
+            # to the more experimental stuff.
+            if( len(self.swarm) > 3 ):
+                new_particle.update_position()
+                new_particle.update_position()
 
-        # Update best scoring particles.
-        if particle_data['best_score'] is None or score > particle_data['best_score']:
-            particle_data['best']       = particle_data['value']
-            particle_data['best_score'] = score
-            print("New particle (%d) best score %g"%(particle_number, particle_data['best_score']))
-        if self.swarm_data['best_score'] is None or score > self.swarm_data['best_score']:
-            self.swarm_data['best']       = typecast_parameters(particle_data['best'], parameter_structure)
-            self.swarm_data['best_score'] = particle_data['best_score']
-            self.swarm_data['best_particle'] = particle_number
-            print("New global best score %g"%self.swarm_data['best_score'])
+    def suggest_parameters(self):
+        particle_data = self.swarm[self.next_particle]
+        self.next_particle = (self.next_particle + 1) % self.particles
+        particle_data.parameters.typecast( self.lab.structure )
+        return particle_data.parameters
 
-        # Save the swarm to file.
-        self.swarm_data['evals'] += 1
-        with open(swarm_path, 'w') as swarm_file:
-            print('# ' + ' '.join(sys.argv), file=swarm_file) # TODO: Get this from lab-report object.
-            pprint.pprint(self.swarm_data, stream = swarm_file)
+    def collect_results(self, parameters, score):
+        for particle in self.swarm:
+            if particle.parameters == parameters:
+                break
 
-
-def initial_parameters(default_parameters):
-    # Recurse through the parameter data structure.
-    if isinstance(default_parameters, dict):
-        return {key: initial_parameters(value)
-            for key, value in default_parameters.items()}
-    elif isinstance(default_parameters, tuple):
-        return tuple(initial_parameters(value) for value in default_parameters)
-    # Calculate good initial values.
-    elif isinstance(default_parameters, float):
-        return default_parameters * 1.25 ** (random.random()*2-1)
-    elif isinstance(default_parameters, int):
-        if abs(default_parameters) < 10:
-            return default_parameters + random.choice([-1, 0, +1])
+        if isinstance(score, Exception):
+            # Program crashed, replace this particle.
+            if particle.best is not None:
+                particle.parameters = ParameterSet( particle.best )
+            elif self.best is not None:
+                particle.parameters = ParameterSet( self.best )
+            else:
+                particle.parameters = ParameterSet( self.lab.default_parameters)
+            particle.initialize_velocities()
+            particle.update_position()
         else:
-            initial_value_float = initial_parameters(float(default_parameters))
-            return int(round(initial_value_float))
+            # Update with results of this particles evaluation.
+            particle.update( score, self.best )
+            if self.best is None or score > self.best_score:
+                self.best       = particle.parameters
+                self.best_score = score
+                print("New global best score %g."%score)
+        self.save()
 
-def initial_velocity(default_parameters):
-    # Recurse through the parameter data structure.
-    if isinstance(default_parameters, dict):
-        return {key: initial_velocity(value)
-            for key, value in default_parameters.items()}
-    elif isinstance(default_parameters, tuple):
-        return tuple(initial_velocity(value) for value in default_parameters)
-    # Calculate good initial velocities.
-    elif isinstance(default_parameters, float):
-        max_percent_change = 10
-        uniform = 2 * random.random() - 1
-        return default_parameters * uniform * (max_percent_change / 100.)
-    elif isinstance(default_parameters, int):
-        if abs(default_parameters) < 10:
-            uniform = 2 * random.random() - 1
-            return uniform
+    def save(self):
+        data = (self.swarm, self.best, self.best_score)
+        with open(self.swarm_path, 'wb') as file:
+            pickle.dump(data, file)
+
+    def load(self):
+        with open(self.swarm_path, 'rb') as file:
+            data = pickle.load( file )
+        self.swarm, self.best, self.best_score = data
+
+    def clear_scores(self):
+        try:
+            self.load()
+        except FileNotFoundError:
+            print("Particle Swarm not initialized, nothing to do.")
         else:
-            return initial_velocity(float(default_parameters))
+            self.best_score = float('-inf')
+            for entry in self.swarm:
+                entry.best_score = float('-inf')
+            self.save()
+            print("Removed scores from Particle Swarm.")
 
-def update_particle_position(position, velocity):
-    # Recurse through the parameter data structure.
-    if isinstance(position, dict):
-        return {key: update_particle_position(value, velocity[key])
-            for key, value in position.items()}
-    elif isinstance(position, tuple):
-        return tuple(update_particle_position(value, velocity[index])
-            for index, value in enumerate(position))
-    else:
-        return position + velocity
-
-def update_particle_velocity(postition, velocity, particle_best, global_best):
-    # Recurse through the parameter data structure.
-    if isinstance(postition, dict):
-        return {key: update_particle_velocity(
-                        postition[key], 
-                        velocity[key], 
-                        particle_best[key],
-                        global_best[key])
-            for key in postition.keys()}
-    elif isinstance(postition, tuple):
-        return tuple(update_particle_velocity(
-                        postition[index], 
-                        velocity[index], 
-                        particle_best[index],
-                        global_best[index])
-            for index, value in enumerate(postition))
-    else:
-        # Update velocity.
-        particle_bias = (particle_best - postition) * particle_strength * random.random()
-        global_bias   = (global_best - postition)   * global_strength   * random.random()
-        return velocity * velocity_strength + particle_bias + global_bias
-
-
-if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser()
-
-    if args.clear_scores:
-        print("Removing Scores from Particle Swarm File %s."%swarm_path)
-        swarm_data['best_score'] = None
-        for entry in swarm_data:
-            if isinstance(entry, int):
-                swarm_data[entry]['best_score'] = None
-        with open(swarm_path, 'w') as swarm_file:
-            pprint.pprint(swarm_data, stream = swarm_file)

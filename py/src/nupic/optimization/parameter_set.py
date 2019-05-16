@@ -17,7 +17,7 @@
 
 import pprint
 import hashlib
-import number
+import copy
 
 # TODO: Consider allowing lists, and converting all lists into tuples.
 
@@ -32,6 +32,7 @@ class ParameterSet(dict):
     """
     def __init__(self, data):
         super().__init__(self)
+        data = copy.deepcopy( data )
         if isinstance(data, str):
             data = data.strip()
             try:
@@ -42,18 +43,22 @@ class ParameterSet(dict):
         self.update(data)
 
     def __hash__(self):
-        string = pprint.pformat(self).encode('utf-8')
+        string = str(self).encode('utf-8')
         checksum = hashlib.md5(string).hexdigest()
         return abs(int(checksum[:8], base=16))
 
     def __eq__(self, other):
-        assert(isinstance(other, type(self)))
         if isinstance(self, dict):
+            assert(isinstance(other, dict))
             return all(ParameterSet.__eq__(self[k], other[k]) for k in self)
         elif isinstance(self, tuple):
+            assert(isinstance(other, tuple))
             return all(ParameterSet.__eq__(X, Y) for X, Y in zip(self, other))
         else:
             return self == other
+
+    def __str__(self):
+        return pprint.pformat(self)
 
     def diff(old, new):
         """ Returns list of pairs of (path, new-value) """
@@ -84,7 +89,6 @@ class ParameterSet(dict):
         Modifies this set of parameters!
         """
         assert(isinstance(modification, str))
-        assert(isinstance(value, number.Number))
         try:
             access = modification.split(']')[0].strip('[]"\' ')
             if not access:
@@ -106,49 +110,45 @@ class ParameterSet(dict):
         Convert a set of parameters into the data types used to represent them.
         Returned result has the same structure as the parameters.
         """
-        # Recurse through the parameter data structure.
-        if isinstance(self, dict):
-            return {key: ParameterSet.get_types(value)
-                for key, value in self.items()}
-        elif isinstance(self, tuple):
-            return tuple(ParameterSet.get_types(value) for value in self)
-        # Determine data type of each entry in parameter data structure.
-        elif isinstance(self, float):
-            return float
-        elif isinstance(self, int):
-            return int
-        raise TypeError('Unaccepted type in experiment parameters: type "%s".'%(type(self).__name__))
+        structure = ParameterSet( self )
+        for path in structure.enumerate():
+            value = structure.get( path )
+            if type(value) not in (float, int):
+                raise TypeError('Unaccepted type in experiment parameters: type "%s".'%(type(value).__name__))
+            structure.apply( path, type(value) )
+        return structure
 
-    def typecast_parameters(self, structure):
-        def recursive_typecast_parameters(values, structure):
-            # Recurse through the parameter data structure.
-            if isinstance(structure, dict):
-                for key in structure:
-                    values[key] = recursive_typecast_parameters(values[key], structure[key])
-                return values
-            elif isinstance(structure, tuple):
-                return tuple(recursive_typecast_parameters(*args)
-                    for args in zip(values, structure))
+    def typecast(self, structure):
+        for path in structure.enumerate():
+            type_ = structure.get( path )
+            value = float( self.get( path ) )
             # Type cast values.
-            elif structure == float:
-                value = float(values)
-                return float(str(value))
-            elif structure == int:
-                return int(round(float(values)))
-        return recursive_typecast_parameters(self, structure)
+            if type_ == float:
+                value = float(str( value ))
+            elif type_ == int:
+                value = int(round( value ))
+            else:
+                raise TypeError('Unaccepted type in experiment parameters: type "%s".'%(type_.__name__))
+            self.apply( path, value )
+        return self
 
     def enumerate(self):
         """
-        Convert parameters from a recursive structure into a list of parameters.
+        Convert parameters from a recursive structure into a flat list of strings.
         Returned parameters are represented as executable strings.
+
+        Use this to iterate through all of the leaves in the structure, which is
+        where the numbers are stored.
         """
         retval = []
         if isinstance(self, dict):
             for key, value in self.items():
-                retval.extend( "['%s']%s"%(key, path) for path in paths(value) )
+                subtree = ParameterSet.enumerate( value )
+                retval.extend( "['%s']%s"%(key, path) for path in subtree )
         elif isinstance(self, tuple):
             for idx, value in enumerate(self):
-                retval.extend( "[%d]%s"%(idx, path) for path in paths(value) )
+                subtree = ParameterSet.enumerate( value )
+                retval.extend( "[%d]%s"%(idx, path) for path in subtree )
         else:
             retval.append('')
         return sorted(retval)

@@ -85,22 +85,40 @@ their journal and then the ".log" file is deleted.
 """
 
 # TODO: Default parameters need better handling...  When they change, update
-# all of the modifications to be diffs of the current parameters.
+# all of the modifications to be diffs of the current parameters?
 
 # TODO: Maybe the command line invocation should be included in the experiment
 # hash?  Then I could experiment with the CLI args within a single lab report.
 
 # TODO: Every run should track elapsed time and report the average in the
 # experiment journal & summary.  Some of these experiments clearly take longer
-# than others but its not recorded.
+# than others but its not recorded & displayed.
 
 # TODO: Log files should report memory usage ...
 
-# TODO: Remove LabReport.experiment, then rename lab.experiment_ids to experiments
+# TODO: Remove Laboratory.experiment, then rename lab.experiment_ids to experiments
 
-# TODO: Reject experiments which have failed a few times.
+# TODO: Failed experiments should have its own section in the Laboratory.  Maybe
+# organize them by the exception type & string?
 
-# TODO: Failed experiments should have its own section in the LabReport.
+# TODO: Consider renaming *log files to *tmp for clarity.
+
+# TODO: Make the leader board base the P-Values off of the best experiment, and
+# always keep the default parameters on the board.
+
+# TODO: Do not lose the log file when worker process crashes!  With this fixed I
+# won't need to explain what the temp files are for, the user shouldn't need to
+# know about them...
+
+# TODO: How hard would it be to allow the user to edit the lab report while the
+# program is running?  Read timestamps to detect user writes.  All of the latest
+# data is loaded in the program, so it should be simple to load in the new
+# version and merge the human readable text into the latest data, write out to
+# new file and attempt to swap it into place.
+
+# TODO: Experiment if all of the parameters are modified, show the
+# parameters instead of the modifications.  This is useful for swarming which
+# touches every parameter.
 
 import argparse
 import os
@@ -113,19 +131,17 @@ import datetime
 import tempfile
 import multiprocessing
 import resource
-import signal # TODO: X-Plat issue: Replace signal with threading.timer
-from copy import copy, deepcopy
+import signal # TODO: X-Plat issue: Replace signal with threading.timer?
 import re
 import numpy as np
-import scipy
-import math
+import scipy.stats
 
 from nupic.optimization.parameter_set import ParameterSet
 
-class ExperimentSummary:
+class Experiment:
     """
     Attributes:
-        lab           - circular reference to LabReport instance
+        lab           - circular reference to Laboratory instance
         attempts      -
         scores        -
         notes         -
@@ -144,66 +160,63 @@ class ExperimentSummary:
         self.notes    = ' '
         # Load or create this experiment's data.
         if string is not None:
-            self.parse(string)
+            self.parse( string )
         elif modifications is not None:
-            self.parameters = deepcopy(self.lab.default_parameters)
+            self.parameters = ParameterSet( self.lab.default_parameters )
             for path, value in modifications:
-                self.parameters.apply(path, value)
+                self.parameters.apply( path, value )
         elif parameters is not None:
-            self.parameters = ParameterSet(parameters)
+            self.parameters = ParameterSet( parameters )
         else:
-            raise TypeError("Not enough arguments to ExperimentSummary.__init__()")
+            raise TypeError("Not enough arguments to Experiment.__init__()")
 
-        self.parameters    = self.parameters.typecast_parameters( self.lab.structure )
-        self.modifications = self.lab.default_parameters.diff(self.parameters)
+        self.parameters    = self.parameters.typecast( self.lab.structure )
+        self.modifications = self.lab.default_parameters.diff( self.parameters )
 
         if hash(self) not in self.lab.experiment_ids:
             self.lab.experiments.append(self)
             self.lab.experiment_ids[hash(self)] = self
         else:
-            raise ValueError("Duplicate Parameters Hash %X"%hash(self))
+            existing = self.lab.experiment_ids[hash(self)]
+            if existing.parameters == self.parameters:
+                raise ValueError("Duplicate Parameters, Hash %X"%hash(self))
+            else:
+                raise SystemExit("Hash Collision!")
 
         # Start a journal file for this experiment.
         if not hasattr(self, 'journal'):
             self.journal = os.path.join(self.lab.ae_directory, "%X.journal"%hash(self))
             with open(self.journal, 'a') as file:
                 file.write('Experiment Journal For Parameters:\n')
-                file.write(pprint.pformat(self.parameters) + '\n')
+                file.write( str(self.parameters) + '\n')
                 file.write('Hash: %X\n'%hash(self))
                 file.write('Command Line Invocation: $ ' + ' '.join(self.lab.argv) + '\n')
-        else:
-            # Scrape some info from the journal file.
-            with open(self.journal, 'r') as file:
-                journal = file.read()
-            journal = journal.split(self.lab.section_divider)
-            journal.pop(0) # Discard header
-            elapsed_times = []
-            memory_usages = []
 
     def parse(self, string):
         # Reconstruct the parameters.
         self.modifications = []
         if "Modification:" in string:
-            for change in re.findall("Modification: (.*)", string):
+            for change in re.findall("Modification:(.*)", string):
                 path, eq, value = change.partition('=')
                 self.modifications.append((path.strip(), value.strip()))
-        self.parameters = deepcopy(self.lab.default_parameters)
+        self.parameters = ParameterSet(self.lab.default_parameters)
         for path, value in self.modifications:
             self.parameters.apply(path, value)
-        #
-        if "Attempts:" in string:
-            self.attempts = int(re.search("Attempts: (.*)", string).groups()[0])
-        if "Scores:" in string:
-            self.scores   = re.search("Scores: (.*)", string).groups()[0].strip()
-            self.scores   = [float(s.strip()) for s in self.scores.split(',') if s.strip()]
-        if "Journal:" in string:
-            self.journal  = re.search("Journal: (.*)", string).groups()[0]
-        if "Notes:" in string:
-            self.notes    = string.partition('Notes:')[2]
-        if "Hash:" in string:
+
+        if "Hash: " in string:
             # Override hash(self) with whats on file since this is reconstructed
             # from defaults + modifications, and the defaults might have changed.
             self._hash    = int(re.search("Hash: (.*)", string).groups()[0], base=16)
+        if "Journal: " in string:
+            self.journal  = re.search("Journal: (.*)", string).groups()[0]
+        if "Attempts: " in string:
+            self.attempts = int(re.search("Attempts: (.*)", string).groups()[0])
+        if "Scores: " in string:
+            self.scores = re.search("Scores: (.*)", string).groups()[0].strip()
+            self.scores = [float(s.strip()) for s in self.scores.split(',') if s.strip()]
+            assert( len(self.scores) <= self.attempts ) # Attempts may fail and not return a score.
+        if "Notes:" in string:
+            self.notes    = string.partition('Notes:')[2]
 
     # TODO: This should accept the baseline to compare against, and then have
     # the defaults argument as the default baseline.
@@ -222,7 +235,7 @@ class ExperimentSummary:
             pass # TODO: How to pass probabilities & statistics?
         stat, pval = scipy.stats.ttest_ind(
             null_experiment.scores, self.scores, axis=None,
-            # Since both samples come from the same experimential setup  they
+            # Since both samples come from the same experimental setup  they
             # should have the same variance.
             equal_var=True,)
         return pval
@@ -230,6 +243,8 @@ class ExperimentSummary:
     def mean(self):
         return np.mean(self.scores) if self.scores else float('-inf')
 
+    # TODO: Consider showing min & max scores.
+    # TODO: Don't show scores & P-Value if attempts == 0.
     def __str__(self):
         s = ''
         if not self.modifications:
@@ -254,31 +269,32 @@ class ExperimentSummary:
         return self._hash
 
 
-class LabReport:
+class Laboratory:
     """
     Attributes:
         lab.module             - Experiment python module
         lab.name               - Name of experiment module
         lab.path               - Directory containing experiment module
         lab.structure          - Types of parameters
-        lab.default_parameters - ex.module.default_parameters
+        lab.default_parameters - lab.module.default_parameters
         lab.argv               - Command line invocation of experiment program
-        lab.tag                - Optional, identifier string for this LabReport
+        lab.tag                - Optional, identifier string for this Laboratory
         lab.ae_directory       - Directory containing all files created by this program
         lab.lab_report         - File path of Lab Report
-        lab.experiments        - List of ExperimentSummary
+        lab.experiments        - List of Experiment instances
         lab.experiment_ids     - Experiments accessed by their unique hash
     """
     default_extension = '_ae'
     section_divider = '\n' + ('=' * 80) + '\n'
     def __init__(self, experiment_argv, method=None, tag='', verbose=False):
+        if not experiment_argv:
+            raise ValueError('Missing arguments for the experiment to run!')
         if isinstance(experiment_argv, str):
             experiment_argv = experiment_argv.split()
         self.argv    = experiment_argv
         self.method  = method
         self.tag     = tag
         self.verbose = verbose
-        # TODO: Needs better error messages when user forgets CLI arg for experiment module!
         self.load_experiment_module(experiment_argv[0])
         self.ae_directory = os.path.join(self.path, self.name) + self.default_extension
         if self.tag:
@@ -289,7 +305,7 @@ class LabReport:
         if os.path.isdir(self.ae_directory):
             with open(self.lab_report, 'r') as file:
                 report = file.read()
-            self.parse_lab_report(report)
+            self.parse(report)
         else:
             # Initialize the Lab Reports attributes and write the skeleton of it
             # to file.
@@ -297,12 +313,9 @@ class LabReport:
             os.mkdir(self.ae_directory)
         # Always have an experiment for the default parameters.
         try:
-            ExperimentSummary(self,  parameters = self.default_parameters)
+            Experiment(self,  parameters = self.default_parameters)
         except ValueError:
             pass
-
-        # Parse & Write this file immediately at start up.
-        self.save()
 
     def init_header(self):
         self.header = str(self.name)
@@ -328,23 +341,24 @@ class LabReport:
         self.default_parameters = ParameterSet(self.module.default_parameters)
         self.structure = self.default_parameters.get_types()
 
-    def parse_lab_report(self, report):
+    def parse(self, report):
         if not report.strip():
-            raise ValueError("Empty lab report file.")
+            raise ValueError("Empty lab report file!")
         sections            = report.split(self.section_divider)
         self.header         = sections[0]
         default_parameters  = '\n'.join( sections[1].split('\n')[1:-1] )
         cli                 = sections[1].split('\n')[-1].strip('$ ').split()
         sorted_pval_table   = sections[2]
         experiment_sections = sections[3:]
-        file_defaults = ParameterSet(default_parameters)
-        # Consistency check for parameters.
+        file_defaults       = ParameterSet(default_parameters)
+        # Consistency check for parameters & experiment argv.
         if file_defaults != self.default_parameters or cli != self.argv:
             while True:
-                q = input("Default parameters or invovation have changed, options:\n" + 
-                          "    old - Ignore the new/given, use what's on file.\n" +
-                          "    new - Use the new/given, overwrites the old file!\n" +
-                          "    abort.\n")
+                q = input("Default parameters or invocation have changed, options:\n" + 
+                          "  old - Ignore the new/given, use what's on file.\n" +
+                          "  new - Use the new/given, overwrites the old file!\n" +
+                          "  abort.\n" +
+                          ">>> ")
                 q = q.strip().lower()
                 if q == 'old':
                     self.default_parameters = file_defaults
@@ -353,15 +367,21 @@ class LabReport:
                 elif q == 'new':
                     shutil.copy(self.lab_report, self.lab_report + '.backup')
                     break
-                elif q == 'abort':
+                elif q in ('abort', 'exit', 'quit') or q in 'aeq':
                     sys.exit()
 
-        [ExperimentSummary(self, s) for s in experiment_sections if s.strip()]
+        [Experiment(self, s) for s in experiment_sections if s.strip()]
+
+    def get_experiment(self, parameters):
+        p = ParameterSet( parameters ).typecast( self.structure )
+        h = hash(p)
+        if h in self.experiment_ids:
+            return self.experiment_ids[h]
+        else:
+            return Experiment(self, parameters=p)
 
     def significant_experiments_table(self):
-        """
-        Returns string
-        """
+        """ Returns string """
         ex = sorted(self.experiments, key = lambda x: -x.mean())
         ex = ex[:20]
         s = '    Hash |   N |      Score |   P-Value | Modifications\n'
@@ -406,8 +426,7 @@ class LabReport:
         """
         """
         pool = multiprocessing.Pool(processes, maxtasksperchild=1)
-        async_results = [] # Contains pairs of (Promise, Parameters)
-
+        async_results = [] # Contains pairs of (Promise, Experiment)
         while True:
             # Check for jobs which have finished
             run_slot = 0
@@ -415,49 +434,23 @@ class LabReport:
                 promise, value = async_results[run_slot]
                 if promise.ready():
                     # Experiment run has finished, deal with the results.
-                    result = self._get_promised_results(promise, value)
-                    self.save_results(value, result)
+                    self.collect_results(value, promise)
                     async_results.pop(run_slot)
                 else:
                     run_slot += 1
-
             # Start running new experiments
             while len(async_results) < processes:
-                # Pickle is picky, so clean up 'self' which is sent via pickle
-                # to the process pool. pickle_self only needs to work with
-                # evaluate_parameters
-                pickle_self = copy(self)
-                pickle_self.module = None  # Won't pickle, use self.module_reload instead.
-                # Pickle balks at circular references, remove them.
-                pickle_self.experiments    = None
-                pickle_self.experiment_ids = None
-                value = self.method(self)
-                value = value.typecast_parameters( self.structure )
+                X = self.get_experiment( self.method.suggest_parameters() )
                 if self.verbose:
-                    print("%X"%hash(value))
+                    print("Evaluating %X"%hash(X))
                 promise = pool.apply_async(
                     Experiment_evaluate_parameters,
-                    args = (pickle_self, value,),
+                    args = (self.argv, self.tag, self.verbose, X.parameters,),
                     kwds = {'time_limit'   : time_limit,
                             'memory_limit' : memory_limit,},)
-                async_results.append((promise, value))
+                async_results.append((promise, X))
             # Wait for experiments to complete
-            time.sleep(1)
-
-    def _get_promised_results(self, promise, value):
-        try:
-            return promise.get()
-        except (ValueError, MemoryError, ZeroDivisionError, AssertionError) as err:
-            print("")
-            pprint.pprint(value)
-            print("%s:"%(type(err).__name__), err)
-            print("")
-        except Exception:
-            print("")
-            pprint.pprint(value)
-            print("Unhandled Exception.")
-            print("")
-            raise
+            time.sleep(2)
 
     def evaluate_parameters(self, parameters,
         time_limit   = None,
@@ -465,8 +458,7 @@ class LabReport:
         """
         This function executes in a child processes.
         """
-        parameters = parameters.typecast_parameters( self.structure )
-        # Redirect stdour & stderr to a temporary file.
+        # Redirect stdout & stderr to a temporary file.
         journal = tempfile.NamedTemporaryFile(
             mode      = 'w+t',
             delete    = False,
@@ -496,6 +488,8 @@ class LabReport:
                 ', '.join(repr(arg) for arg in self.argv[1:]),
                 str(self.verbose)))
         exec_globals = {}
+        # TODO: Deal with all of the contingencies where this fails.  Do not
+        # lose the journal file!  Do append that time-stamp!
         exec(eval_str, exec_globals)
 
         # Clean up time limit
@@ -511,83 +505,95 @@ class LabReport:
 
         return exec_globals['score'], journal.name
 
-    def save_results(self, parameters, result):
-        # Update this experiment
-        param_hash = hash(ParameterSet(parameters))
-        if param_hash in self.experiment_ids:
-            experiment = self.experiment_ids[param_hash]
-        else:
-            experiment = ExperimentSummary(self, parameters = parameters)
-        experiment.attempts += 1
-        if result is not None:
-            score, run_journal = result
-            experiment.scores.append(score)
+    def collect_results(self, experiment, async_promise):
+        try:
+            score, run_journal = async_promise.get()
+        except (ValueError, MemoryError, ZeroDivisionError, AssertionError, RuntimeError) as err:
+            print("")
+            print( str( experiment.parameters ))
+            print("%s:"%(type(err).__name__), err)
+            print("")
+            score = err
+        except Exception:
+            print("")
+            print( str( experiment.parameters ))
+            print("Unhandled Exception.")
+            print("")
+            raise
 
+        # Update this experiment
+        experiment.attempts += 1
+        if not isinstance(score, Exception):
+            experiment.scores.append(score)
+            # Append the temporary journal file to the experiments journal.
+            # TODO !!! Don't lose the data vvv
+            # Sadly if the experiment crashes, the temp file is abandoned and
+            # the debugger (you) must search for it manually if they want to see it...
+            with open(run_journal) as journal:
+                content = journal.read()
+            with open(experiment.journal, 'a') as experiment_journal:
+                experiment_journal.write(self.section_divider)
+                experiment_journal.write(content)
+            os.remove(run_journal)
+        # Notify the parameter optimization method that the parameters which it
+        # suggested have finished evaluating.
+        self.method.collect_results(experiment.parameters, score)
         self.save()     # Write the updated Lab Report to file.
 
-        # Append the temporary journal file to the experiments journal.
-        if result is None:
-            # Sadly if the experiment crashes, the temp file is abandoned and
-            # the debugger must search for it manually if they want to see it...
-            return
-        with open(run_journal) as journal:
-            content = journal.read()
-        with open(experiment.journal, 'a') as experiment_journal:
-            experiment_journal.write(self.section_divider)
-            experiment_journal.write(content)
-        os.remove(run_journal)
-
-def Experiment_evaluate_parameters(self, *args, **kwds):
+def Experiment_evaluate_parameters(*args, **kwds):
     """
-    Global wrapper for LabReport.evaluate_parameters which is safe for
+    Global wrapper for Laboratory.evaluate_parameters which is safe for
     multiprocessing.
     """
-    return LabReport.evaluate_parameters(self, *args, **kwds)
+    experiment_argv, tag, verbose, parameters = args
+    self = Laboratory(experiment_argv, tag = tag, verbose = verbose)
+    return self.evaluate_parameters( parameters, **kwds)
 
 def _timeout_callback(signum, frame):
-    raise ValueError("Time limit exceded.")
+    raise ValueError("Time limit exceeded.")
 
 
 if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--verbose', action='store_true',)
-    arg_parser.add_argument('--tag', type=str,
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--verbose', action='store_true',
+        help='Passed onto the experiment\'s main function.')
+    parser.add_argument('--tag', type=str,
         help='Optional string appended to the name of the AE directory.  Use tags to '
-             'keep multiple variants of an experiment alive and working at the same time')
-    arg_parser.add_argument('-n', '--processes',  type=int, default=os.cpu_count(),
+             'keep multiple variants of an experiment alive and working at the same time.')
+    parser.add_argument('-n', '--processes',  type=int, default=os.cpu_count(),
         help='Number of experiments to run simultaneously, defaults to the number of CPU cores available.')
-    arg_parser.add_argument('--time_limit',  type=float, default=None,
+    parser.add_argument('--time_limit',  type=float, default=None,
         help='Hours, time limit for each run of the experiment.',)
-    arg_parser.add_argument('--memory_limit',  type=float, default=None,
+    parser.add_argument('--memory_limit',  type=float, default=None,
         help='Gigabytes, RAM memory limit for each run of the experiment.')
-    arg_parser.add_argument('experiment', nargs=argparse.REMAINDER,
+    parser.add_argument('--parse',  action='store_true',
+        help='Parse the lab report and write it back to the same file, then exit.')
+    parser.add_argument('--rmz', action='store_true',
+        help='Remove all experiments which have zero attempts.')
+    parser.add_argument('experiment', nargs=argparse.REMAINDER,
         help='Name of experiment module followed by its command line arguments.')
 
-    action_parser = arg_parser.add_mutually_exclusive_group(required=True)
-    action_parser.add_argument('--parse',  action='store_true',
-        help='Parse the lab report and write it back to the same file, then exit.')
-    action_parser.add_argument('--rmz', action='store_true',
-        help='Remove all experiments which have zero attempts.')
-
-    import nupic.optimization.optimizers
-    import nupic.optimization.swarming
+    import nupic.optimization.optimizers as optimizers
+    from nupic.optimization.swarming import ParticleSwarmOptimization
     actions = [
-        nupic.optimization.optimizers.EvaluateHashes,
-        nupic.optimization.optimizers.EvaluateDefaultParameters,
-        nupic.optimization.optimizers.EvaluateAllExperiments,
-        nupic.optimization.optimizers.EvaluateBestExperiment,
-        nupic.optimization.optimizers.GridSearch,
-        nupic.optimization.optimizers.CombineBest,
-        nupic.optimization.swarming.ParticleSwarmOptimizations,
-    ]
+        optimizers.EvaluateDefaultParameters,
+        optimizers.EvaluateAllExperiments,
+        optimizers.EvaluateBestExperiment,
+        optimizers.EvaluateHashes,
+        optimizers.GridSearch,
+        optimizers.CombineBest,
+        ParticleSwarmOptimization]
+    assert( all( issubclass(Z, optimizers.BaseOptimizer) for Z in actions))
     for method in actions:
-        method.addArguments(action_parser)
+        method.add_arguments(parser)
 
-    args = arg_parser.parse_args()
+    args = parser.parse_args()
+    selected_method = [X for X in actions if X.use_this_optimizer(args)]
 
-    ae = LabReport(args.experiment,
+    ae = Laboratory(args.experiment,
         tag      = args.tag,
         verbose  = args.verbose)
+    ae.save()
     print("Lab Report written to %s"%ae.lab_report)
 
     if args.parse:
@@ -601,23 +607,24 @@ if __name__ == '__main__':
         ae.save()
         print("Removed all experiments which had not yet been attempted.")
 
+    elif not selected_method:
+        print("Error: missing argument for what to to.")
+    elif len(selected_method) > 1:
+        print("Error: too many argument for what to to.")
     else:
-        selected_method = [X for X in actions if X.useThisOptimizer(args)]
-        assert(len(selected_method) == 1) # ArgParse should ensure this via "add_mutually_exclusive_group".
         ae.method = selected_method[0]( ae, args )
 
         giga = 2**30
         if args.memory_limit is not None:
             memory_limit = int(args.memory_limit * giga)
         else:
-            # TODO: Not X-Platform ...
+            # TODO: Not X-Platform, replace with "psutil.virtual_memory.available"
             available_memory = int(os.popen("free -b").readlines()[1].split()[3])
             memory_limit = int(available_memory / args.processes)
-        print("Memory Limit %.2g GB per instance."%(memory_limit / giga))
+            print("Memory Limit %.2g GB per instance."%(memory_limit / giga))
 
-        ae.run(
-            processes    = args.processes,
-            time_limit   = args.time_limit,
-            memory_limit = memory_limit,)
+        ae.run( processes    = args.processes,
+                time_limit   = args.time_limit,
+                memory_limit = memory_limit,)
 
     print("Exit.")
