@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # ------------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 #
@@ -17,9 +16,7 @@
 # ------------------------------------------------------------------------------
 """ Swarming parameter search """
 
-# TODO: Deal with global constants: particle_strength, global_strength, velocity_strength
-#       Maybe make them into CLI Arguments?
-
+# TODO: Make CLI Arguments for these global constants: particle_strength, global_strength, velocity_strength
 particle_strength   =  .25
 global_strength     =  .50
 velocity_strength   =  .95
@@ -31,10 +28,20 @@ import os
 import random
 import pprint
 
-from .nupic.optimization.parameter_set import ParameterSet
+from nupic.optimization.parameter_set import ParameterSet
+from nupic.optimization.optimizers import BaseOptimizer
 
-class ParticleSwarmOptimizations:
+class ParticleSwarmOptimizations(BaseOptimizer):
+    def addArguments(argparser):
+        argparser.add_argument('--swarming', type=int, default=0,
+            help='Particle Swarm Optimization.')
+
+    def useThisOptimizer(args):
+        return args.swarming
+
     def __init__(self, lab, args):
+        assert(args.particles >= args.processes)
+
         # Setup the particle swarm.
         self.particles     = args.particles
         self.next_particle = random.randrange(args.particles)
@@ -89,7 +96,7 @@ class ParticleSwarmOptimizations:
             if self.particles != sum(isinstance(key, int) for key in self.swarm_data):
                 print("Warning: argument 'particles' does not match number of particles stored on file.")
 
-    def __call__(self, lab):
+    def suggestExperiment(self, lab):
         # Run the particle swarm optimization.
         particle_data = self.swarm_data[self.next_particle]
         self.next_particle = (self.next_particle + 1) % self.particles
@@ -111,7 +118,7 @@ class ParticleSwarmOptimizations:
 
         return parameters
 
-    def collect(self, results):
+    def collectResults(self, experiment, results):
         particle_data = self.swarm_data[particle_number]
         try:
             score = promise.get()
@@ -129,7 +136,6 @@ class ParticleSwarmOptimizations:
                 particle_data['value'] = self.swarm_data['best']
             else:
                 particle_data['value'] = initial_parameters(default_parameters)
-            continue
         except Exception:
             print("")
             pprint.pprint(particle_data['value'])
@@ -225,7 +231,6 @@ def update_particle_velocity(postition, velocity, particle_best, global_best):
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
-    assert(args.particles >= args.processes)
 
     if args.clear_scores:
         print("Removing Scores from Particle Swarm File %s."%swarm_path)
@@ -235,5 +240,3 @@ if __name__ == '__main__':
                 swarm_data[entry]['best_score'] = None
         with open(swarm_path, 'w') as swarm_file:
             pprint.pprint(swarm_data, stream = swarm_file)
-        sys.exit()
-

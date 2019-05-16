@@ -17,17 +17,27 @@
 
 import pprint
 import hashlib
+import number
+
+# TODO: Consider allowing lists, and converting all lists into tuples.
 
 class ParameterSet(dict):
-    """ TODO: Documentation """
+    """
+    This class holds the arguments to an experiment, which the "AE" program will
+    modify as it attempts to optimize the experiment.
+
+    Parameters must be one of the following types: dict, tuple, float, int.
+    Parameters can be nested in multiple levels of dictionaries and tuples.
+    The outer most layer of parameters must be a dict.
+    """
     def __init__(self, data):
         super().__init__(self)
         if isinstance(data, str):
+            data = data.strip()
             try:
-                data = eval(data.strip())
+                data = eval(data)
             except:
-                print("Error parsing: " + data.strip())
-                raise
+                raise SyntaxError("Parsing parameters: " + data)
         assert(isinstance(data, dict))
         self.update(data)
 
@@ -63,16 +73,18 @@ class ParameterSet(dict):
         return diffs
 
     def get(self, path):
+        assert(isinstance(path, str))
         try:
             return eval('self' + path)
         except:
-            print('Failed to get self' + path)
-            raise
+            raise ValueError('Get parameters' + path)
 
     def apply(self, modification, value):
         """
         Modifies this set of parameters!
         """
+        assert(isinstance(modification, str))
+        assert(isinstance(value, number.Number))
         try:
             access = modification.split(']')[0].strip('[]"\' ')
             if not access:
@@ -87,8 +99,7 @@ class ParameterSet(dict):
                 self[index] = ParameterSet.apply(self[index], tail, value)
                 return tuple(self)
         except:
-            print('Failed to apply modification %s = %s'%(modification, str(value)))
-            raise
+            raise ValueError('Apply parameters%s = %s'%(modification, str(value)))
 
     def get_types(self):
         """
@@ -97,11 +108,10 @@ class ParameterSet(dict):
         """
         # Recurse through the parameter data structure.
         if isinstance(self, dict):
-            return {key: LabReport.get_types(value)
+            return {key: ParameterSet.get_types(value)
                 for key, value in self.items()}
         elif isinstance(self, tuple):
-            return tuple(LabReport.get_types(value)
-                for value in self)
+            return tuple(ParameterSet.get_types(value) for value in self)
         # Determine data type of each entry in parameter data structure.
         elif isinstance(self, float):
             return float
@@ -125,7 +135,7 @@ class ParameterSet(dict):
                 return float(str(value))
             elif structure == int:
                 return int(round(float(values)))
-        return recursive_typecast_parameters(parameters, structure)
+        return recursive_typecast_parameters(self, structure)
 
     def enumerate(self):
         """

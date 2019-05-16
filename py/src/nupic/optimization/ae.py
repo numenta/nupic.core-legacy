@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # ------------------------------------------------------------------------------
 # Numenta Platform for Intelligent Computing (NuPIC)
 #
@@ -38,6 +37,7 @@ To use this module, structure experiments as follows:
     This global dictionary contains all of the parameters to modify.
     Parameters must be one of the following types: dict, tuple, float, int.
     Parameters can be nested in multiple levels of dictionaries and tuples.
+    The outer most layer of parameters must be a dict.
 
     ExperimentModule.main(parameters=default_parameters, argv=None, verbose=True)
     Returns (float) performance of parameters, to be maximized.
@@ -100,6 +100,8 @@ their journal and then the ".log" file is deleted.
 
 # TODO: Reject experiments which have failed a few times.
 
+# TODO: Failed experiments should have its own section in the LabReport.
+
 import argparse
 import os
 import sys
@@ -118,7 +120,7 @@ import numpy as np
 import scipy
 import math
 
-from .nupic.optimization.parameter_set import ParameterSet
+from nupic.optimization.parameter_set import ParameterSet
 
 class ExperimentSummary:
     """
@@ -204,7 +206,7 @@ class ExperimentSummary:
             self._hash    = int(re.search("Hash: (.*)", string).groups()[0], base=16)
 
     # TODO: This should accept the baseline to compare against, and then have
-    # the defaults parameters as the default baseline.
+    # the defaults argument as the default baseline.
     def significance(self):
         """
         Returns the P-Value of the Null-Hypothesis test (these parameters
@@ -276,6 +278,7 @@ class LabReport:
         self.method  = method
         self.tag     = tag
         self.verbose = verbose
+        # TODO: Needs better error messages when user forgets CLI arg for experiment module!
         self.load_experiment_module(experiment_argv[0])
         self.ae_directory = os.path.join(self.path, self.name) + self.default_extension
         if self.tag:
@@ -544,37 +547,6 @@ def Experiment_evaluate_parameters(self, *args, **kwds):
 def _timeout_callback(signum, frame):
     raise ValueError("Time limit exceded.")
 
-################################################################################
-
-
-def evaluate_default_parameters(lab):
-    return lab.default_parameters
-
-
-class EvaluateHashes:
-    def __init__(self, hashes):
-        self.hashes = [int(h, base=16) for h in hashes]
-
-    def __call__(self, lab):
-        try:
-            experiments = [lab.experiment_ids[h] for h in self.hashes]
-        except KeyError:
-            unknown = [h for h in self.hashes if h not in lab.experiment_ids]
-            raise ValueError('Hash not recognized: %X'%unknown[0])
-        rnd = random.random
-        return min(experiments, key=lambda x: x.attempts + rnd()).parameters
-        return random.choice(experiments).parameters
-
-
-def evaluate_all(lab):
-    rnd = random.random
-    return min(lab.experiments, key=lambda x: x.attempts + rnd()).parameters
-
-
-def evaluate_best(lab):
-    best = max(lab.experiments, key = lambda X: X.mean() )
-    return best.parameters
-
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
@@ -582,7 +554,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('--tag', type=str,
         help='Optional string appended to the name of the AE directory.  Use tags to '
              'keep multiple variants of an experiment alive and working at the same time')
-    arg_parser.add_argument('-n', '--processes',  type=int, default=os.cpu_count(),)
+    arg_parser.add_argument('-n', '--processes',  type=int, default=os.cpu_count(),
+        help='Number of experiments to run simultaneously, defaults to the number of CPU cores available.')
     arg_parser.add_argument('--time_limit',  type=float, default=None,
         help='Hours, time limit for each run of the experiment.',)
     arg_parser.add_argument('--memory_limit',  type=float, default=None,
@@ -591,85 +564,60 @@ if __name__ == '__main__':
         help='Name of experiment module followed by its command line arguments.')
 
     action_parser = arg_parser.add_mutually_exclusive_group(required=True)
-
     action_parser.add_argument('--parse',  action='store_true',
-        help='Parse the lab report and write it back to the same file, then exits.')
-
+        help='Parse the lab report and write it back to the same file, then exit.')
     action_parser.add_argument('--rmz', action='store_true',
         help='Remove all experiments which have zero attempts.')
 
-    action_parser.add_argument('--default_parameters', action='store_true',)
-
-    action_parser.add_argument('--all_experiments', action='store_true',
-        help='Evaluate all experiments in the lab report, don\'t start new experiments')
-
-    action_parser.add_argument('--hashes', type=str,)
-
-    action_parser.add_argument('--best', action='store_true',
-        help='Evaluate the best set of parameters on file, with verbose=True.')
-
-    action_parser.add_argument('--grid_search', type=str)
-
-    action_parser.add_argument('--combine', type=int, default=0, help='Combine the NUM best experiments.')
-
-    action_parser.add_argument('--swarming', type=int, default=0, help='Particle Swarm Optimization.')
+    import nupic.optimization.optimizers
+    import nupic.optimization.swarming
+    actions = [
+        nupic.optimization.optimizers.EvaluateHashes,
+        nupic.optimization.optimizers.EvaluateDefaultParameters,
+        nupic.optimization.optimizers.EvaluateAllExperiments,
+        nupic.optimization.optimizers.EvaluateBestExperiment,
+        nupic.optimization.optimizers.GridSearch,
+        nupic.optimization.optimizers.CombineBest,
+        nupic.optimization.swarming.ParticleSwarmOptimizations,
+    ]
+    for method in actions:
+        method.addArguments(action_parser)
 
     args = arg_parser.parse_args()
-    giga = 2**30
-    if args.memory_limit is not None:
-        memory_limit = int(args.memory_limit * giga)
-    else:
-        # TODO: Not X-Platform ...
-        available_memory = int(os.popen("free -b").readlines()[1].split()[3])
-        memory_limit = int(available_memory / args.processes)
-    print("Memory Limit %.2g GB per instance."%(memory_limit / giga))
 
     ae = LabReport(args.experiment,
-        tag     = args.tag,
-        verbose = args.verbose)
+        tag      = args.tag,
+        verbose  = args.verbose)
+    print("Lab Report written to %s"%ae.lab_report)
 
     if args.parse:
-        print("Lab Report written to %s"%ae.lab_report)
-        print("Exit.")
-        sys.exit(0) # All done.
+        pass
 
     elif args.rmz:
-        rm = [x for x in ae.experiments if x.attempts == 0]
-        for x in rm:
-            ae.experiments.remove(x)
-            ae.experiment_ids.pop(hash(x))
+        for x in ae.experiments:
+            if x.attempts == 0:
+                ae.experiments.remove(x)
+                ae.experiment_ids.pop(hash(x))
         ae.save()
-        sys.exit(0) # All done.
-
-    elif args.default_parameters:
-        ae.method = evaluate_default_parameters
-
-    elif args.all_experiments:
-        ae.method = evaluate_all
-
-    elif args.hashes:
-        ae.method = EvaluateHashes(args.hashes.split(','))
-
-    elif args.best:
-        ae.method = evaluate_best
-
-    elif args.grid_search:
-        from .nupic.optimization.basic_search import GridSearch
-        ae.method = GridSearch(args.grid_search)
-
-    elif args.combine:
-        from .nupic.optimization.basic_search import CombineBest
-        ae.method = CombineBest(args.combine)
-
-    elif args.swarming:
-        from .nupic.optimization.swarming import ParticleSwarmOptimizations
-        ae.method = ParticleSwarmOptimizations( ae, args.swarming )
+        print("Removed all experiments which had not yet been attempted.")
 
     else:
-        print("Missing command line argument: what to do?")
-        sys.exit(1)
+        selected_method = [X for X in actions if X.useThisOptimizer(args)]
+        assert(len(selected_method) == 1) # ArgParse should ensure this via "add_mutually_exclusive_group".
+        ae.method = selected_method[0]( ae, args )
 
-    ae.run(
-        processes    = args.processes,
-        time_limit   = args.time_limit,
-        memory_limit = memory_limit,)
+        giga = 2**30
+        if args.memory_limit is not None:
+            memory_limit = int(args.memory_limit * giga)
+        else:
+            # TODO: Not X-Platform ...
+            available_memory = int(os.popen("free -b").readlines()[1].split()[3])
+            memory_limit = int(available_memory / args.processes)
+        print("Memory Limit %.2g GB per instance."%(memory_limit / giga))
+
+        ae.run(
+            processes    = args.processes,
+            time_limit   = args.time_limit,
+            memory_limit = memory_limit,)
+
+    print("Exit.")
