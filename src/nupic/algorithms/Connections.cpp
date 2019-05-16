@@ -557,6 +557,42 @@ void Connections::bumpSegment(const Segment segment, const Permanence delta) {
 }
 
 
+void Connections::destroyMinPermanenceSynapses(
+                              const Segment segment, Int nDestroy,
+                              const vector<CellIdx> &excludeCells)
+{
+  NTA_ASSERT( nDestroy >= 0 );
+  if( nDestroy <= 0 ) return; // Nothing to do.
+
+  // Don't destroy any cells that are in excludeCells.
+  vector<Synapse> destroyCandidates;
+  for( Synapse synapse : synapsesForSegment(segment)) {
+    const CellIdx presynapticCell = dataForSynapse(synapse).presynapticCell;
+
+    if( not std::binary_search(excludeCells.cbegin(), excludeCells.cend(), presynapticCell)) {
+      destroyCandidates.push_back(synapse);
+    }
+  }
+
+  const auto comparePermanences = [&](const Synapse A, const Synapse B) {
+    const Permanence A_perm = dataForSynapse(A).permanence;
+    const Permanence B_perm = dataForSynapse(B).permanence;
+    if( A_perm == B_perm ) {
+      return A < B;
+    }
+    else {
+      return A_perm < B_perm;
+    }
+  };
+  std::sort(destroyCandidates.begin(), destroyCandidates.end(), comparePermanences);
+
+  nDestroy = std::min( nDestroy, (Int) destroyCandidates.size() );
+  for(Int i = 0; i < nDestroy; i++) {
+    destroySynapse( destroyCandidates[i] );
+  }
+}
+
+
 namespace nupic {
   namespace algorithms {
     namespace connections {
@@ -568,6 +604,9 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
          << ") ~> Outputs (" << self.cells_.size()
          << ") via Segments (" << self.numSegments() << ")" << std::endl;
 
+  UInt        segmentsMin   = -1;
+  Real        segmentsMean  = 0.0f;
+  UInt        segmentsMax   = 0u;
   UInt        potentialMin  = -1;
   Real        potentialMean = 0.0f;
   UInt        potentialMax  = 0;
@@ -576,9 +615,16 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
   SynapseIdx  connectedMax  = 0;
   UInt        synapsesDead      = 0;
   UInt        synapsesSaturated = 0;
-  for( const auto cellData : self.cells_ ) {
+  for( const auto cellData : self.cells_ )
+  {
+    const UInt numSegments = (UInt) cellData.segments.size();
+    segmentsMin   = std::min( segmentsMin, numSegments );
+    segmentsMax   = std::max( segmentsMax, numSegments );
+    segmentsMean += numSegments;
+
     for( const auto seg : cellData.segments ) {
       const auto &segData = self.dataForSegment( seg );
+
       const UInt numPotential = (UInt) segData.synapses.size();
       potentialMin   = std::min( potentialMin, numPotential );
       potentialMax   = std::max( potentialMax, numPotential );
@@ -592,14 +638,17 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
         const auto &synData = self.dataForSynapse( syn );
         if( synData.permanence == minPermanence )
           { synapsesDead++; }
-        else if( synData.permanence == minPermanence )
+        else if( synData.permanence == maxPermanence )
           { synapsesSaturated++; }
       }
     }
   }
+  segmentsMean  = segmentsMean  / self.numCells();
   potentialMean = potentialMean / self.numSegments();
   connectedMean = connectedMean / self.numSegments();
 
+  stream << "    Segments on Cell Min/Mean/Max "
+         << segmentsMin << " / " << segmentsMean << " / " << segmentsMax << std::endl;
   stream << "    Potential Synapses on Segment Min/Mean/Max "
          << potentialMin << " / " << potentialMean << " / " << potentialMax << std::endl;
   stream << "    Connected Synapses on Segment Min/Mean/Max "

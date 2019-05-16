@@ -194,18 +194,14 @@ public:
    * Calculate the active cells, using the current active columns and
    * dendrite segments. Grow and reinforce synapses.
    *
-   * @param activeColumnsSize
-   * Size of activeColumns array (the 2nd param)
-   *
    * @param activeColumns
    * A sorted list of active column indices.
    *
    * @param learn
    * If true, reinforce / punish / grow synapses.
    */
-  void activateCells(const size_t activeColumnsSize, const UInt activeColumns[], //TODO remove old API?
-                     bool learn = true);
-  void activateCells(const sdr::SDR &activeColumns, bool learn = true);
+  void activateCells(const sdr::SDR &activeColumns, 
+		     const bool learn = true);
 
   /**
    * Calculate dendrite segment activity, using the current active cells.  Call
@@ -219,20 +215,27 @@ public:
    * used during segment cleanup.
    *
    * @param extraActive
-   * Vector of active external predictive inputs.  External inputs must be cell
+   * (optional) SDR of active external predictive inputs.  External inputs must be cell
    * indexes in the range [0, extra).
    *
    * @param extraWinners
-   * Vector of winning external predictive inputs.  When learning, only these
-   * inputs are considered active.  ExtraWinners should be a subset of
-   * extraActive.  External inputs must be cell indexes in the range [0,
-   * extra).
+   * (optional) SDR of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  
+   * ExtraWinners must be a subset of extraActive.  
+   * External inputs must be cell indices in the range [0, extra).
+   *
+   * See TM::compute() for details of the parameters. 
+   *
    */
-  void activateDendrites(bool learn = true,
-                         const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
-                         const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
-  void activateDendrites(bool learn,
-                         const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
+  void activateDendrites(const bool learn,
+                         const sdr::SDR &extraActive, 
+			                   const sdr::SDR &extraWinners);
+
+  inline void activateDendrites(const bool learn = true) {
+    const sdr::SDR extraActive(std::vector<UInt>{ extra });
+    const sdr::SDR extraWinners(std::vector<UInt>{extra });
+    activateDendrites(learn, extraActive, extraWinners);
+  }
 
   /**
    * Perform one time step of the Temporal Memory algorithm.
@@ -241,32 +244,31 @@ public:
    * the TemporalMemory via its compute method ensures that you'll always
    * be able to call getActiveCells at the end of the time step.
    *
-   * @param activeColumnsSize
-   * Number of active columns.
-   *
    * @param activeColumns
-   * Sorted list of indices of active columns.
+   * Sorted SDR of active columns.
    *
    * @param learn
    * Whether or not learning is enabled.
    *
    * @param extraActive
-   * Vector of active external predictive inputs.  External inputs must be cell
-   * indexes in the range [0, extra).
+   * (optional) Vector of active external predictive inputs.  
+   * External inputs must be cell indexes in the range [0, extra). 
+   * TM must be set up with the 'extra' constructor parameter for this use.
    *
    * @param extraWinners
-   * Vector of winning external predictive inputs.  When learning, only these
-   * inputs are considered active.  ExtraWinners should be a subset of
-   * extraActive.  External inputs must be cell indexes in the range [0,
-   * extra).
+   * (optional) Vector of winning external predictive inputs.  When learning, only these
+   * inputs are considered active.  
+   * ExtraWinners must be a subset of extraActive.  
+   * External inputs must be cell indexes in the range [0, extra).
+   *
    */
-  virtual void compute(size_t activeColumnsSize, const UInt activeColumns[],
-                       bool learn = true,
-                       const vector<UInt> &extraActive  = {std::numeric_limits<UInt>::max()},
-                       const vector<UInt> &extraWinners = {std::numeric_limits<UInt>::max()});
-  virtual void compute(const sdr::SDR &activeColumns, bool learn,
-                       const sdr::SDR &extraActive, const sdr::SDR &extraWinners);
-  virtual void compute(const sdr::SDR &activeColumns, bool learn); 
+  virtual void compute(const sdr::SDR &activeColumns, 
+		       const bool learn,
+                       const sdr::SDR &extraActive, 
+		       const sdr::SDR &extraWinners);
+
+  virtual void compute(const sdr::SDR &activeColumns, 
+		       const bool learn = true); 
 
   // ==============================
   //  Helper functions
@@ -298,7 +300,7 @@ public:
   /**
    * Returns the number of cells in this layer.
    *
-   * @return (int) Number of cells
+   * @return (size_t) Number of cells
    */
   size_t numberOfCells(void) const { return connections.numCells(); }
 
@@ -311,12 +313,10 @@ public:
   void getActiveCells(sdr::SDR &activeCells) const;
 
   /**
-   * Returns the indices of the predictive cells.
-   *
-   * @returns (std::vector<CellIdx>) Vector of indices of predictive cells.
+   * @return SDR with indices of the predictive cells.
+   * SDR dimensions are {TM column dims x TM cells per column}
    */
-  vector<CellIdx> getPredictiveCells() const; //TODO remove?
-  void getPredictiveCells(sdr::SDR &predictiveCells) const;
+  sdr::SDR getPredictiveCells() const;
 
   /**
    * Returns the indices of the winner cells.
@@ -474,6 +474,7 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(anomaly_),
        CEREAL_NVP(connections));
 
     ar( cereal::make_size_tag(activeSegments_.size()));
@@ -523,6 +524,7 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
+       CEREAL_NVP(anomaly_),
        CEREAL_NVP(connections));
 
     numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
@@ -558,8 +560,8 @@ public:
   }
 
 
-  virtual bool operator==(const TemporalMemory &other);
-  inline bool operator!=(const TemporalMemory &other) { return !operator==(other); }
+  virtual bool operator==(const TemporalMemory &other) const;
+  inline bool operator!=(const TemporalMemory &other) const { return not this->operator==(other); }
 
   //----------------------------------------------------------------------
   // Debugging helpers
@@ -593,13 +595,15 @@ public:
    *
    *  @param const SDR& cells - input cells, size must be a multiple of cellsPerColumn; ie. 
    *    all SDRs obtained from TM's get*Cells(SDR) are valid. 
+   *    The SDR cells dimensions must be: {TM.getColumnDimensions, TM.getCellsPerColumn()}
    *
-   *  @return SDR cols - which is size of numCells/cellsPerColumn
+   *  @return SDR cols - which is size of TM's getColumnDimensions()
    *
    */
   sdr::SDR cellsToColumns(const sdr::SDR& cells) const;
 
 protected:
+  //all these could be const
   CellIdx numColumns_;
   vector<CellIdx> columnDimensions_;
   CellIdx cellsPerColumn_;
@@ -613,7 +617,10 @@ protected:
   Permanence permanenceDecrement_;
   Permanence predictedSegmentDecrement_;
   UInt extra_;
+  SegmentIdx maxSegmentsPerCell_;
+  SynapseIdx maxSynapsesPerSegment_;
 
+private:
   vector<CellIdx> activeCells_;
   vector<CellIdx> winnerCells_;
   bool segmentsValid_;
@@ -622,16 +629,24 @@ protected:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  SegmentIdx maxSegmentsPerCell_;
-  SynapseIdx maxSynapsesPerSegment_;
   UInt64 iteration_;
   vector<UInt64> lastUsedIterationForSegment_;
+
+  Real anomaly_;
 
   Random rng_;
 
 public:
   Connections connections; //TODO not public!
   const UInt &extra = extra_;
+  /*
+   *  anomaly score computed for the current inputs
+   *  (auto-updates after each call to TM::compute())
+   *
+   *  @return a float value from computeRawAnomalyScore()
+   *  from Anomaly.hpp
+   */
+  const Real &anomaly = anomaly_;
 };
 
 } // end namespace temporal_memory

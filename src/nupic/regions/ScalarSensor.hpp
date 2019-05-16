@@ -67,8 +67,7 @@ public:
   virtual std::string executeCommand(const std::vector<std::string> &args,
                                      Int64 index) override;
 
-  virtual size_t
-  getNodeOutputElementCount(const std::string &outputName) const override;
+  virtual Dimensions askImplForOutputDimensions(const std::string &name) override;
 
   CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
@@ -83,7 +82,8 @@ public:
        cereal::make_nvp("sparsity", params_.sparsity),
        cereal::make_nvp("size", params_.size),
        cereal::make_nvp("radius", params_.radius),
-       cereal::make_nvp("resolution", params_.resolution));
+       cereal::make_nvp("resolution", params_.resolution),
+       cereal::make_nvp("sensedValue_", sensedValue_));
     // TODO:cereal   Also serialize the outputs
   }
   // FOR Cereal Deserialization
@@ -102,8 +102,10 @@ public:
        cereal::make_nvp("sparsity", params_.sparsity),
        cereal::make_nvp("size", params_.size),
        cereal::make_nvp("radius", params_.radius),
-       cereal::make_nvp("resolution", params_.resolution));
-    // TODO:cereal   Also serialize the outputs
+       cereal::make_nvp("resolution", params_.resolution),
+       cereal::make_nvp("sensedValue_", sensedValue_));
+    encoder_ = std::make_shared<encoders::ScalarEncoder>( params_ );
+    setDimensions(encoder_->dimensions); 
   }
 
 
@@ -111,8 +113,7 @@ private:
   Real64 sensedValue_;
   encoders::ScalarEncoderParameters params_;
 
-  encoders::ScalarEncoder *encoder_;
-  Output *encodedOutput_;
+  std::shared_ptr<encoders::ScalarEncoder> encoder_;
 };
 } // namespace nupic
 

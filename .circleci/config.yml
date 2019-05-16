@@ -1,5 +1,14 @@
+# CircleCI Build Config
+#   https://circleci.com/docs/2.0/configuration-reference/#section=configuration
+#
+# Targets:
+#   - Max OS/X
+#   - ARM64
+
 version: 2
 jobs:
+
+  # job: Mac OS/X raw ("build-and-test")
   build-and-test:
     macos:
       xcode: '10.1.0'
@@ -22,13 +31,12 @@ jobs:
           name: Restoring system python
           command: |
             echo 'python version: ' && python --version
-            echo 'pip version: ' && python -m pip --version 
+            echo 'pip version: ' && python -m pip --version
             echo 'python version: ' && python --version
       - run:
-          name: Installing cmake 
+          name: Installing cmake
           command: brew install cmake || brew install cmake
       - checkout
-
       # Dependencies
       # Restore the dependency cache
       #      - restore_cache:
@@ -37,21 +45,19 @@ jobs:
       #    - v1-dep-{{ .Branch }}-
       #    # Default branch if not
       #    - v1-dep-master-
-      #    # Any branch if there are none on the default branch - this should be 
+      #    # Any branch if there are none on the default branch - this should be
       #    # unnecessary if you have your default branch configured correctly
       #    - v1-dep-
-
       - run:
            name: Installing python dependencies
            command: |
                    python -m pip install --user --upgrade pip setuptools setuptools-scm
                    python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
-
       # Save dependency cache
       #      - save_cache:
       #    key: v1-dep-{{ .Branch }}-{{ epoch }}
       #    paths:
-      #    # This is a broad list of cache paths to include many possible 
+      #    # This is a broad list of cache paths to include many possible
       #    # development environments.
       #    - vendor/bundle
       #    - ~/virtualenvs
@@ -61,8 +67,7 @@ jobs:
       #    - ~/.go_workspace
       #    - ~/.gradle
       #    - ~/.cache/bower
-
-      # Build 
+      # Build
       - run:
           name: Compiling
           environment:
@@ -70,39 +75,32 @@ jobs:
           command: |
             mkdir -p build/scripts
             cd build/scripts
-            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release 
-            make | grep -v -F '\\-\\- Installing:'
+            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release
+            make -j2 | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
-       
-      - run:
-           name: Install Python extension
-           command: python setup.py install --user --prefix=
-
       # Test
       - run:
           name: Running C++ Tests
           command: |
-              mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
-              cd ./build/Release/bin
-              ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
+            cd ./build/Release/bin
+            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+      - run:
+           name: Install Python extension
+           command: python setup.py install --user --prefix=
       - run:
           name: Running python tests
           command: python setup.py test
-
-
       - store_test_results:
           path: tests
-    
       - store_artifacts:
           path: dist/*.whl
-        
       ##- persist_to_workspace:
       ##    root: dist
       ##    paths:
       ##    - nupic.bindings*.whl
       ##    - requirements.txt
       ##    - include/nupic
-
             #  deploy-s3:
             #machine: true
             #steps:
@@ -115,8 +113,40 @@ jobs:
             #tar -zcv -f nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
             #aws s3 cp nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
 
+  # job: ARM64 via Docker + QEMU ("arm64-build-test")
+  arm64-build-test:
+    parallelism: 1
+    docker:
+      # CircleCI base Ubuntu 18.04 LTS Bionic with remote Docker access, etc.
+      #   https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
+      - image: circleci/buildpack-deps:bionic
+    steps:
+      - run:
+          # This is for local test builds using the CircleCI terminal app.
+          #   Local Docker seems to use sudo, CircleCI Docker does not.
+          command: |
+            if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
+              echo "This is a local build. Enabling sudo for docker"
+              echo 'export CI_SUDO="sudo"' >> $BASH_ENV
+            else
+              echo 'export CI_SUDO=' >> $BASH_ENV
+            fi
+            source $BASH_ENV
+      - run: sudo apt-get -y install qemu-system
+      - checkout
+      - setup_remote_docker  # access circleci's custom docker service
+      # here we make circleci x86 hardware think it's arm64 via docker+qemu
+      - run: $CI_SUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - run:
+          name: Running docker build on ARM64
+          command: $CI_SUDO docker build -t nupic-arm64-docker --build-arg arch=arm64 .
+          no_output_timeout: 2h
+      - run: $CI_SUDO docker run -it nupic-arm64-docker 
+
 workflows:
   version: 2
   build-test-deploy:
     jobs:
-      - build-and-test
+      - build-and-test    # Mac OS/X raw ("build-and-test")
+      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")
+

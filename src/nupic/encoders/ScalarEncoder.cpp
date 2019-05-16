@@ -28,17 +28,17 @@
 
 #include <algorithm> // std::min
 #include <numeric>   // std::iota
-#include <cmath>     // std::isnan
+#include <cmath>     // std::isnan std::nextafter
 #include <nupic/encoders/ScalarEncoder.hpp>
 using nupic::sdr::SDR;
 
 namespace nupic {
 namespace encoders {
 
-ScalarEncoder::ScalarEncoder(ScalarEncoderParameters &parameters)
+ScalarEncoder::ScalarEncoder(const ScalarEncoderParameters &parameters)
   { initialize( parameters ); }
 
-void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
+void ScalarEncoder::initialize(const ScalarEncoderParameters &parameters)
 {
   // Check parameters
   NTA_CHECK( parameters.minimum < parameters.maximum );
@@ -54,31 +54,54 @@ void ScalarEncoder::initialize(ScalarEncoderParameters &parameters)
   UInt num_size_args = 0;
   if( parameters.size       > 0u)   { num_size_args++; }
   if( parameters.radius     > 0.0f) { num_size_args++; }
+  if( parameters.category )         { num_size_args++; }
   if( parameters.resolution > 0.0f) { num_size_args++; }
   NTA_CHECK( num_size_args != 0u )
-      << "Missing argument, need one of: 'size', 'radius', 'resolution'.";
+      << "Missing argument, need one of: 'size', 'radius', 'resolution', 'category'.";
   NTA_CHECK( num_size_args == 1u )
-      << "Too many arguments, choose only one of: 'size', 'radius', 'resolution'.";
+      << "Too many arguments, choose only one of: 'size', 'radius', 'resolution', 'category'.";
 
   if( parameters.periodic ) {
     NTA_CHECK( not parameters.clipInput )
       << "Will not clip periodic inputs.  Caller must apply modulus.";
     // TODO: Instead of balking, do the modulus!
   }
+  if( parameters.category ) {
+    NTA_CHECK( not parameters.clipInput )
+      << "Incompatible arguments: category & clipInput.";
+    NTA_CHECK( not parameters.periodic )
+      << "Incompatible arguments: category & periodic.";
+    NTA_CHECK( args_.minimum == Real64(UInt64(args_.minimum)) )
+      << "Minimum input value of category encoder must be an unsigned integer!";
+    NTA_CHECK( args_.maximum == Real64(UInt64(args_.maximum)) )
+      << "Maximum input value of category encoder must be an unsigned integer!";
+  }
 
   args_ = parameters;
   // Finish filling in all of parameters.
+
+  if( args_.category ) {
+    args_.radius = 1.0f;
+  }
 
   if( args_.sparsity > 0.0f ) {
     NTA_CHECK( parameters.sparsity >= 0.0f );
     NTA_CHECK( parameters.sparsity <= 1.0f );
     NTA_CHECK( args_.size > 0u )
-        << "'Sparsity' requires that the 'size' also be given.";
+        << "Argument 'sparsity' requires that the 'size' also be given.";
     args_.activeBits = (UInt) round( args_.size * args_.sparsity );
   }
 
   // Determine resolution & size.
-  const Real64 extentWidth = args_.maximum - args_.minimum;
+  Real64 extentWidth;
+  if( args_.periodic ) {
+    extentWidth = args_.maximum - args_.minimum;
+  }
+  else {
+    // Increase the max by the smallest possible amount.
+    Real64  maxInclusive = std::nextafter( args_.maximum, HUGE_VAL );
+    extentWidth = maxInclusive - args_.minimum;
+  }
   if( args_.size > 0u ) {
     // Distribute the active bits along the domain [minimum, maximum], including
     // the endpoints. The resolution is the width of each band between the
@@ -129,16 +152,23 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
     return;
   }
   else if( args_.clipInput ) {
-    input = std::max(input, parameters.minimum);
-    input = std::min(input, parameters.maximum);
+    if( args_.periodic ) {
+      // TODO: Apply modulus to inputs here!
+      NTA_THROW << "Unimplemented. This code is unreachable.";
+    }
+    else {
+      input = std::max(input, parameters.minimum);
+      input = std::min(input, parameters.maximum);
+    }
   }
   else {
+    if( args_.category ) {
+      NTA_CHECK( input == Real64(UInt64(input)))
+        << "Input to category encoder must be an unsigned integer!";
+    }
     NTA_CHECK(input >= parameters.minimum && input <= parameters.maximum)
         << "Input must be within range [minimum, maximum]!";
   }
-
-  auto &sparse = output.getSparse();
-  sparse.resize( parameters.activeBits );
 
   UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
 
@@ -150,11 +180,15 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
     start = std::min(start, output.size - parameters.activeBits);
   }
 
+  auto &sparse = output.getSparse();
+  sparse.resize( parameters.activeBits );
   std::iota( sparse.begin(), sparse.end(), start );
 
   if( parameters.periodic ) {
-    for(UInt wrap = output.size - start; wrap < parameters.activeBits; ++wrap) {
-      sparse[wrap] -= output.size;
+    for( auto & bit : sparse ) {
+      if( bit >= output.size ) {
+        bit -= output.size;
+      }
     }
   }
 
@@ -168,6 +202,7 @@ void ScalarEncoder::save(std::ostream &stream) const
   stream << parameters.maximum    << " ";
   stream << parameters.clipInput  << " ";
   stream << parameters.periodic   << " ";
+  stream << parameters.category   << " ";
   stream << parameters.activeBits << " ";
   // Save the resolution instead of the size BC it's higher precision.
   stream << parameters.resolution << " ";
@@ -185,6 +220,7 @@ void ScalarEncoder::load(std::istream &stream)
   stream >> p.maximum;
   stream >> p.clipInput;
   stream >> p.periodic;
+  stream >> p.category;
   stream >> p.activeBits;
   stream >> p.resolution;
 
@@ -193,6 +229,9 @@ void ScalarEncoder::load(std::istream &stream)
   NTA_CHECK( postlude == "~ScalarEncoder~" );
   stream.ignore( 1 ); // Eat the trailing newline.
 
+  if( p.category ) {
+    p.resolution = 0.0f;
+  }
   initialize( p );
 }
 

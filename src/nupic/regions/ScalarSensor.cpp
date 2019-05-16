@@ -21,7 +21,7 @@
  */
 
 /** @file
- * Implementation of the ScalarSensor
+ * Implementation of the ScalarSensor Region
  */
 
 #include <nupic/regions/ScalarSensor.hpp>
@@ -47,7 +47,9 @@ ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
   params_.maximum = params.getScalarT<Real64>("maxValue");
   params_.periodic = params.getScalarT<bool>("periodic");
   params_.clipInput = params.getScalarT<bool>("clipInput");
-  encoder_ = new encoders::ScalarEncoder( params_ );
+
+  encoder_ = std::make_shared<encoders::ScalarEncoder>( params_ );
+
 
   sensedValue_ = params.getScalarT<Real64>("sensedValue");
 }
@@ -57,17 +59,63 @@ ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
   deserialize(bundle);
 }
 ScalarSensor::ScalarSensor(ArWrapper &wrapper, Region *region):RegionImpl(region) {
-  // TODO:cereal Finish      cereal_adapter_load(wrapper);
+  cereal_adapter_load(wrapper);
 }
 
+
+void ScalarSensor::initialize() {
+  // Normally a region will create the algorithm here, at the point
+  // when the dimensions and parameters are known. But in this case
+  // it is the encoder that determines the dimensions so it must be
+  // allocated in the constructor.  
+  // If parameters are changed after the encoder is instantiated 
+  // then the encoder's initialization function must be called again 
+  // to reset the dimensions in the BaseEncoder.  This is done in
+  // askImplForOutputDimensions()
+}
+
+
+Dimensions ScalarSensor::askImplForOutputDimensions(const std::string &name) {
+
+  if (name == "encoded") {
+    // just in case parameters changed since instantiation, we call the
+    // encoder's initialize() again. Note that if dimensions have been manually set, 
+    // use those if same number of elements, else the dimensions are determined 
+    // only by the encoder's algorithm.
+    encoder_->initialize(params_); 
+
+    // get the dimensions determined by the encoder.
+    Dimensions encDim(encoder_->dimensions); // get dimensions from encoder
+    Dimensions regionDim = getDimensions();  // get the region level dimensions.
+    if (regionDim.isSpecified()) {
+      // region level dimensions were explicitly specified.
+      NTA_CHECK(regionDim.getCount() == encDim.getCount()) 
+        << "Manually set dimensions are incompatible with encoder parameters; region: " 
+        << regionDim << "  encoder: " << encDim;
+      encDim = regionDim;
+    }
+    setDimensions(encDim);  // This output is 'isRegionLevel' so set region level dimensions.
+    return encDim;
+  } 
+  else if (name == "bucket") {
+    return 1;
+  }
+  // for any other output name, let RegionImpl handle it.
+  return RegionImpl::askImplForOutputDimensions(name);
+}
+
+std::string ScalarSensor::executeCommand(const std::vector<std::string> &args,
+                                         Int64 index) {
+  NTA_THROW << "ScalarSensor::executeCommand -- commands not supported";
+}
 
 void ScalarSensor::compute()
 {
-  SDR &output = encodedOutput_->getData().getSDR();
+  SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
 }
 
-ScalarSensor::~ScalarSensor() { delete encoder_; }
+ScalarSensor::~ScalarSensor() {}
 
 /* static */ Spec *ScalarSensor::createSpec() {
   auto ns = new Spec;
@@ -191,25 +239,6 @@ void ScalarSensor::setParameterReal64(const std::string &name, Int64 index, Real
 
 
 
-void ScalarSensor::initialize() {
-  encodedOutput_ = getOutput("encoded");
-}
-
-size_t ScalarSensor::getNodeOutputElementCount(const std::string &outputName) const {
-  if (outputName == "encoded") {
-    return encoder_->size;
-  } else if (outputName == "bucket") {
-    return 1;
-  } else {
-    NTA_THROW << "ScalarSensor::getOutputSize -- unknown output " << outputName;
-  }
-}
-
-std::string ScalarSensor::executeCommand(const std::vector<std::string> &args,
-                                         Int64 index) {
-  NTA_THROW << "ScalarSensor::executeCommand -- commands not supported";
-}
-
 void ScalarSensor::serialize(BundleIO &bundle) {
     std::ostream &f = bundle.getOutputStream();
     f << "ScalerSensor ";
@@ -230,10 +259,9 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
   NTA_CHECK(tag == "~ScalerSensor");
   f.ignore(1);
 
-  encoder_ = new encoders::ScalarEncoder( params_ );
+  encoder_ = std::make_shared<encoders::ScalarEncoder>( params_ );
 
   initialize();
-  encodedOutput_->initialize();
 }
 
 

@@ -34,15 +34,19 @@ PyBind11 bindings for SpatialPooler class
 #include <pybind11/stl.h>
 
 #include <nupic/algorithms/SpatialPooler.hpp>
+#include <nupic/types/Sdr.hpp>
 
 #include "bindings/engine/py_utils.hpp"
 
-namespace py = pybind11;
-using namespace nupic;
-using namespace nupic::algorithms::spatial_pooler;
 
 namespace nupic_ext
 {
+namespace py = pybind11;
+using namespace nupic;
+using namespace nupic::algorithms::spatial_pooler;
+using namespace sdr;
+
+
     void init_Spatial_Pooler(py::module& m)
     {
         py::class_<SpatialPooler> py_SpatialPooler(m, "SpatialPooler");
@@ -54,7 +58,7 @@ namespace nupic_ext
             , Real
             , bool
             , Real
-            , UInt
+            , Int
             , UInt
             , Real
             , Real
@@ -169,23 +173,13 @@ namespace nupic_ext
         });
 
         // compute
-        py_SpatialPooler.def("compute", [](SpatialPooler& self, sdr::SDR& x, bool learn, sdr::SDR& y)
-            { self.compute( x, learn, y ); });
-
-        py_SpatialPooler.def("compute", [](SpatialPooler& self, py::array& x, bool learn, py::array& y)
-        {
-            if (py::isinstance<py::array_t<std::uint32_t>>(x) == false)
-            {
-                throw runtime_error("Incompatible format. Expect uint32");
-            }
-
-            if (py::isinstance<py::array_t<std::uint32_t>>(y) == false)
-            {
-                throw runtime_error("Incompatible format. Expect uint32");
-            }
-
-            self.compute(get_it<UInt>(x), learn, get_it<UInt>(y));
-        });
+        py_SpatialPooler.def("compute", [](SpatialPooler& self, sdr::SDR& input, bool learn, sdr::SDR& output)
+            { self.compute( input, learn, output ); },
+	    "SpatialPooler compute method",
+	    py::arg("input"),
+	    py::arg("learn") = true,
+	    py::arg("output")
+	    ); 
 
         // setBoostFactors
         py_SpatialPooler.def("setBoostFactors", [](SpatialPooler& self, py::array_t<Real>& x)

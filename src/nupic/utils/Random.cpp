@@ -37,7 +37,7 @@ bool Random::operator==(const Random &o) const {
 	 gen == o.gen;
 }
 
-bool static_gen_seeded = false;  //TODO avoid the static variables?
+bool static_gen_seeded = false;  //used only for seeding seed if 0/auto is passed for seed
 std::mt19937 static_gen;
 
 Random::Random(UInt64 seed) {
@@ -94,8 +94,6 @@ std::istream &operator>>(std::istream &inStream, Random &r) {
 }
 
 // helper function for seeding RNGs across the plugin barrier
-// Unless there is a logic error, should not be called if
-// the Random singleton has not been initialized.
 UInt32 GetRandomSeed() {
   return nupic::Random().getUInt32();
 }

@@ -81,14 +81,14 @@ Network::~Network() {
    */
 
   // 1. uninitialize
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
+  for(auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
     r->uninitialize();
   }
 
   // 2. remove all links
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
+  for(auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
     r->removeAllIncomingLinks();
   }
 
@@ -102,7 +102,6 @@ std::shared_ptr<Region> Network::addRegion(const std::string &name, const std::s
     NTA_THROW << "Region with name '" << name << "' already exists in network";
   std::shared_ptr<Region> r = std::make_shared<Region>(name, nodeType, nodeParams, this);
   regions_.add(name, r);
-  r->createInputsAndOutputs_();
   initialized_ = false;
 
 
@@ -110,22 +109,20 @@ std::shared_ptr<Region> Network::addRegion(const std::string &name, const std::s
   return r;
 }
 
-std::shared_ptr<Region> Network::addRegion( std::istream &stream, std::string name) {
-    std::shared_ptr<Region> r = std::make_shared<Region>(this);
-    r->load(stream);
-    if (!name.empty())
-      r->name_ = name;
-    regions_.add(r->getName(), r);
+std::shared_ptr<Region> Network::addRegion(std::shared_ptr<Region>& r) {
+  NTA_CHECK(r != nullptr);
+  r->network_ = this;
+  regions_.add(r->getName(), r);
 
-    // We must make a copy of the phases set here because
-    // setPhases_ will be passing this back down into
-    // the region.
-    std::set<UInt32> phases = r->getPhases();
-    setPhases_(r.get(), phases);
-    return r;
+  // We must make a copy of the phases set here because
+  // setPhases_ will be passing this back down into
+  // the region.
+  std::set<UInt32> phases = r->getPhases();
+  setPhases_(r.get(), phases);
+  return r;
 }
 
-
+// TODO:cereal Remove
 std::shared_ptr<Region> Network::addRegionFromBundle(const std::string name,
 					const std::string nodeType,
 					const Dimensions& dimensions,
@@ -213,7 +210,7 @@ std::set<UInt32> Network::getPhases(const std::string &name) const {
   if (!regions_.contains(name))
     NTA_THROW << "setPhases -- no region exists with name '" << name << "'";
 
-  std::shared_ptr<Region> r = regions_.getByName(name);
+  const std::shared_ptr<Region> r = regions_.getByName(name);
 
   std::set<UInt32> phases;
   // construct the set of phases enabled for this region
@@ -229,7 +226,7 @@ void Network::removeRegion(const std::string &name) {
   if (!regions_.contains(name))
     NTA_THROW << "removeRegion: no region named '" << name << "'";
 
-  std::shared_ptr<Region> r = getRegion(name);
+  const std::shared_ptr<Region> r = regions_.getByName(name);
   if (r->hasOutgoingLinks())
     NTA_THROW << "Unable to remove region '" << name
               << "' because it has one or more outgoing links";
@@ -266,7 +263,7 @@ void Network::removeRegion(const std::string &name) {
   return;
 }
 
-void Network::link(const std::string &srcRegionName,
+std::shared_ptr<Link> Network::link(const std::string &srcRegionName,
                    const std::string &destRegionName,
                    const std::string &linkType, const std::string &linkParams,
                    const std::string &srcOutputName,
@@ -278,6 +275,7 @@ void Network::link(const std::string &srcRegionName,
     NTA_THROW << "Network::link -- source region '" << srcRegionName
               << "' does not exist";
   std::shared_ptr<Region> srcRegion = regions_.getByName(srcRegionName);
+
   if (!regions_.contains(destRegionName))
     NTA_THROW << "Network::link -- dest region '" << destRegionName
               << "' does not exist";
@@ -311,6 +309,7 @@ void Network::link(const std::string &srcRegionName,
   // Create the link itself
   auto link = std::make_shared<Link>(linkType, linkParams, srcOutput, destInput, propagationDelay);
   destInput->addLink(link, srcOutput);
+  return link;
 }
 
 void Network::removeLink(const std::string &srcRegionName,
@@ -387,8 +386,8 @@ void Network::run(int n) {
 
     // Refresh all links in the network at the end of every timestamp so that
     // data in delayed links appears to change atomically between iterations
-    for (size_t i = 0; i < regions_.getCount(); i++) {
-      const std::shared_ptr<Region> r = regions_.getByIndex(i).second;
+    for (auto p: regions_) {
+      const std::shared_ptr<Region> r = p.second;
 
       for (const auto &inputTuple : r->getInputs()) {
         for (const auto pLink : inputTuple.second->getLinks()) {
@@ -417,11 +416,11 @@ void Network::initialize() {
   /*
    * 1. Calculate all Input/Output dimensions by evaluating links.
    */
-  for (size_t i = 0; i < regions_.getCount(); i++) {
+  for (auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
     // evaluateLinks returns the number
     // of links which still need to be
     // evaluated.
-    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
     r->evaluateLinks();
   }
 
@@ -429,8 +428,8 @@ void Network::initialize() {
   /*
    * 2. initialize region/impl
    */
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::shared_ptr<Region> r = regions_.getByIndex(i).second;
+  for (auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
     r->initialize();
   }
 
@@ -445,21 +444,25 @@ void Network::initialize() {
   initialized_ = true;
 }
 
-const Collection<std::shared_ptr<Region>> &Network::getRegions() const { return regions_; }
+const Collection<std::shared_ptr<Region>> &Network::getRegions() const { 
+  return regions_; 
+}
 
 std::shared_ptr<Region> Network::getRegion(const std::string& name) const {
-	return regions_.getByName(name);
+  if (!regions_.contains(name))
+    NTA_THROW << "Network::getRegion; '" << name << "' does not exist";
+  return regions_.getByName(name);
 }
 
 
-Collection<std::shared_ptr<Link>> Network::getLinks() {
-  Collection<std::shared_ptr<Link>> links;
+std::vector<std::shared_ptr<Link>> Network::getLinks() const {
+  std::vector<std::shared_ptr<Link>> links;
 
   for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++) {
     for (auto r : phaseInfo_[phase]) {
       for (auto &input : r->getInputs()) {
         for (auto &link : input.second->getLinks()) {
-          links.add(link->toString(), link);
+          links.push_back(link);
         }
       }
     }
@@ -519,25 +522,21 @@ UInt32 Network::getMaxEnabledPhase() const { return maxEnabledPhase_; }
 void Network::save(std::ostream &f) const {
   // save Network, Region, Links
 
-  f << "Network " << getSerializableVersion() << std::endl;
-  f << "{\n";
+  f << "Network: {\n";
   f << "iteration: " << iteration_ << "\n";
-  f << "Regions: " << "[ " << regions_.getCount() << "\n";
+  f << "Regions: " << "[ " << regions_.size() << "\n";
 
-  for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
-  {
-      const std::pair<std::string, std::shared_ptr<Region> >& info = regions_.getByIndex(regionIndex);
-      std::shared_ptr<Region>  r = info.second;
-      r->save(f);
+  for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter){
+    std::shared_ptr<Region>  r = iter->second;
+    r->save(f);
   }
   f << "]\n"; // end of regions
 
   // Save the Links
   // determine the number of links to save.
   Size count = 0;
-  for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
-  {
-    std::shared_ptr<Region>  r = regions_.getByIndex(regionIndex).second;
+  for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter){
+    std::shared_ptr<Region> r = iter->second;
     const std::map<std::string, Input*> inputs = r->getInputs();
     for (const auto & inputs_input : inputs)
     {
@@ -549,9 +548,8 @@ void Network::save(std::ostream &f) const {
   f << "Links: [ " << count << "\n";
 
   // Now serialize the links
-  for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
-  {
-    std::shared_ptr<Region>  r = regions_.getByIndex(regionIndex).second;
+  for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter){
+    std::shared_ptr<Region> r = iter->second;
     const std::map<std::string, Input*> inputs = r->getInputs();
     for (const auto & inputs_input : inputs)
     {
@@ -576,24 +574,18 @@ void Network::save(std::ostream &f) const {
 void Network::load(std::istream &f) {
 
   std::string tag;
-  int version;
-  int minimum_version = 1; // the lowest acceptable version
   Size count;
 
   // Remove all existing regions and links
-  for (size_t regionIndex = 0; regionIndex < regions_.getCount(); regionIndex++)
-  {
-    std::shared_ptr<Region>  r = regions_.getByIndex(regionIndex).second;
+  for (auto p: regions_) {
+    std::shared_ptr<Region>  r = p.second;
     removeRegion(r->getName());
   }
   initialized_ = false;
 
 
   f >> tag;
-  NTA_CHECK(tag == "Network")  << "Invalid network structure file -- does not contain 'Network' as starting tag.";
-  f >> version;
-  NTA_CHECK(version >= minimum_version) << "Expecting at least version "
-          << minimum_version << " for Network stream.";
+  NTA_CHECK(tag == "Network:")  << "Invalid network structure file -- does not contain 'Network' as starting tag.";
   f >> tag;
   NTA_CHECK(tag == "{") << "Expected beginning of a map.";
   f >> tag;
@@ -638,13 +630,15 @@ void Network::load(std::istream &f) {
 
   // Now connect the links to the regions
     const std::string srcRegionName = newLink->getSrcRegionName();
-    NTA_CHECK(regions_.contains(srcRegionName)) << "Invalid network structure file -- link specifies source region '"
+    NTA_CHECK(regions_.contains(srcRegionName)) 
+          << "Invalid network structure file -- link specifies source region '"
           << srcRegionName << "' but no such region exists";
     std::shared_ptr<Region> srcRegion = getRegion(srcRegionName);
 
     const std::string destRegionName = newLink->getDestRegionName();
-    NTA_CHECK(regions_.contains(destRegionName)) << "Invalid network structure file -- link specifies destination region '"
-                << destRegionName << "' but no such region exists";
+    NTA_CHECK(regions_.contains(destRegionName)) 
+          << "Invalid network structure file -- link specifies destination region '"
+          << destRegionName << "' but no such region exists";
     std::shared_ptr<Region> destRegion = getRegion(destRegionName);
 
     const std::string srcOutputName = newLink->getSrcOutputName();
@@ -662,6 +656,8 @@ void Network::load(std::istream &f) {
 
     // The Links will not be initialized. So must call net.initialize() after load().
   } // links
+ 
+
 
   f >> tag;
   NTA_CHECK(tag == "]");  // end of links
@@ -669,22 +665,31 @@ void Network::load(std::istream &f) {
   NTA_CHECK(tag == "}");  // end of network
   f.ignore(1);
 
+  post_load();
+}
+
+void Network::post_load() {
   // Post Load operations
-  initialize();   //  re-initialize everything
+  for (size_t i = 0; i < regions_.getCount(); i++) {
+    // Create the input buffers.
+    std::shared_ptr<Region>& r = regions_.getByIndex(i).second;
+    r->evaluateLinks();
+  }
+
   NTA_CHECK(maxEnabledPhase_ < phaseInfo_.size())
       << "maxphase: " << maxEnabledPhase_ << " size: " << phaseInfo_.size();
 
   // Note: When serialized, the output buffers are saved
-  //       by each RegionImpl.  After restore we need to
+  //       by each Region.  After restore we need to
   //       copy restored outputs to connected inputs.
   //
   //       Input buffers are not saved, they are restored by
   //       copying from their source output buffers via links.
   //       If an input is manually set then the input would be
   //       lost after restore.
-
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::shared_ptr<Region>  r = regions_.getByIndex(i).second;
+  
+  for (auto p: regions_) {
+    std::shared_ptr<Region>&  r = p.second;
 
     // If a propogation Delay is specified, the Link serialization
 	  // saves the current input buffer at the top of the
@@ -703,21 +708,31 @@ void Network::load(std::istream &f) {
       }
     }
   }
+
+  // If we made it this far without an exception, we are good to go.
+  initialized_ = true;
+
 }
 
 void Network::enableProfiling() {
-  for (size_t i = 0; i < regions_.getCount(); i++)
-    regions_.getByIndex(i).second->enableProfiling();
+  for (auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
+    r->enableProfiling();
+  }
 }
 
 void Network::disableProfiling() {
-  for (size_t i = 0; i < regions_.getCount(); i++)
-    regions_.getByIndex(i).second->disableProfiling();
+  for (auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
+    r->disableProfiling();
+  }
 }
 
 void Network::resetProfiling() {
-  for (size_t i = 0; i < regions_.getCount(); i++)
-    regions_.getByIndex(i).second->resetProfiling();
+  for (auto p: regions_) {
+    std::shared_ptr<Region>  r = p.second;
+    r->resetProfiling();
+  }
 }
 
   /*
@@ -741,18 +756,57 @@ bool Network::operator==(const Network &o) const {
   if (initialized_ != o.initialized_ || iteration_ != o.iteration_ ||
       minEnabledPhase_ != o.minEnabledPhase_ ||
       maxEnabledPhase_ != o.maxEnabledPhase_ ||
-      regions_.getCount() != o.regions_.getCount()) {
+      regions_.size() != o.regions_.size()) {
     return false;
   }
 
-  for (size_t i = 0; i < regions_.getCount(); i++) {
-    std::shared_ptr<Region> r1 = regions_.getByIndex(i).second;
-    std::shared_ptr<Region> r2 = o.regions_.getByIndex(i).second;
+  for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter){
+    std::shared_ptr<Region> r1 = iter->second;
+    if (!o.regions_.contains(r1->getName())) return false;
+    std::shared_ptr<Region> r2 = o.regions_.getByName(r1->getName());
     if (*(r1.get()) != *(r2.get())) {
       return false;
     }
   }
   return true;
 }
+
+std::ostream &operator<<(std::ostream &f, const Network &n) {
+  // Display Network, Region, Links
+
+  f << "Network: {\n";
+  f << "iteration: " << n.iteration_ << "\n";
+  f << "Regions: " << "[\n";
+
+  for(auto iter = n.regions_.cbegin(); iter != n.regions_.cend(); ++iter) {
+      std::shared_ptr<Region>  r = iter->second;
+      f << (*r.get());
+  }
+  f << "]\n"; // end of regions
+
+  // Display the Links
+  f << "Links: [\n";
+  for(auto iter = n.regions_.cbegin(); iter != n.regions_.cend(); ++iter) {
+    std::shared_ptr<Region> r = iter->second;
+    const std::map<std::string, Input*> inputs = r->getInputs();
+    for (const auto & inputs_input : inputs)
+    {
+      const std::vector<std::shared_ptr<Link>>& links = inputs_input.second->getLinks();
+      for (const auto & links_link : links)
+      {
+        auto l = links_link;
+        f << (*l.get());
+      }
+
+    }
+  }
+  f << "]\n"; // end of links
+
+  f << "}\n"; // end of network
+  f << std::endl;
+  return f;
+}
+
+
 
 } // namespace nupic

@@ -43,6 +43,7 @@ message(STATUS "Configuring Python interface")
 #
 set(src_py_algorithms_files
     bindings/algorithms/algorithm_module.cpp
+    bindings/algorithms/py_Connections.cpp
     bindings/algorithms/py_TemporalMemory.cpp
     bindings/algorithms/py_SDRClassifier.cpp
     bindings/algorithms/py_SpatialPooler.cpp
@@ -96,6 +97,11 @@ source_group("test"       FILES ${src_py_test_files})
 # Build the shared binding libraries for the Python Interface
 #
 ############################################################
+#
+# Note: if you need a debuggable version of the Python interface 
+#       See: https://bugs.python.org/issue22411
+#       and: https://github.com/pybind/pybind11/issues/1295
+#          
 
 # setup the distr directory
 set(distr ${CMAKE_INSTALL_PREFIX}/distr)

@@ -167,11 +167,11 @@ if(MSVC)
 							$<$<CONFIG:Debug>:/Ob0 /Od /Zi /sdl /RTC1 /MDd>)
 	#linker flags
 	if("${BITNESS}" STREQUAL "32")
-		set(machine "/MACHINE:X86")
+		set(machine "-MACHINE:X86")
 	else()
-		set(machine "/MACHINE:X${BITNESS}")
+		set(machine "-MACHINE:X${BITNESS}")
 	endif()
-	set(INTERNAL_LINKER_FLAGS "${machine} /NOLOGO /SAFESEH:NO /NODEFAULTLIB:LIBCMT /ignore:4099 /LTCG")
+	set(INTERNAL_LINKER_FLAGS ${machine} -NOLOGO -NODEFAULTLIB:LIBCMT -ignore:4099 $<$<CONFIG:Release>:-LTCG>)
 
 	set(COMMON_COMPILER_DEFINITIONS 	
 		_CONSOLE
@@ -409,19 +409,13 @@ endif()
 #
 # Provide a string variant of the COMMON_COMPILER_DEFINITIONS list
 #
-set(COMMON_COMPILER_DEFINITIONS_STR)
-foreach(compiler_definition ${COMMON_COMPILER_DEFINITIONS})
-  set(COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS_STR} ${compiler_definition}")
-endforeach()
+string (REPLACE ";" " " COMMON_COMPILER_DEFINITIONS_STR "${COMMON_COMPILER_DEFINITIONS}")
 
 # Provide a string variant of the INTERNAL_CXX_FLAGS list
-set(INTERNAL_CXX_FLAGS_STR)
-foreach(flag_item ${INTERNAL_CXX_FLAGS})
-     set(INTERNAL_CXX_FLAGS_STR "${INTERNAL_CXX_FLAGS_STR} ${flag_item}")
-endforeach()
+string (REPLACE ";" " " INTERNAL_CXX_FLAGS_STR "${INTERNAL_CXX_FLAGS}")
 
-set(INTERNAL_LINKER_FLAGS_STR)
-foreach(flag_item ${INTERNAL_LINKER_FLAGS})
-  set(flags "${INTERNAL_LINKER_FLAGS_STR} ${flag_item}")
-endforeach()
+# Provide a string variant of the INTERNAL_LINKER_FLAGS list
+string (REPLACE ";" " " INTERNAL_LINKER_FLAGS_STR "${INTERNAL_LINKER_FLAGS}")
+set_property(GLOBAL PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
+
 
