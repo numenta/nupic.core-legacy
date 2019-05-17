@@ -138,9 +138,11 @@ using namespace nupic::algorithms::connections;
 
         py_HTM.def("getActiveCells", [](const HTM_t& self)
         {
-            auto activeCells = self.getActiveCells();
-
-            return py::array_t<nupic::UInt32>(activeCells.size(), activeCells.data());
+            auto dims = self.getColumnDimensions();
+            dims.push_back( self.getCellsPerColumn() );
+            SDR *cells = new SDR( dims );
+            self.getActiveCells(*cells);
+            return cells;
         });
 
         py_HTM.def("activateDendrites", [](HTM_t &self, bool learn) {
