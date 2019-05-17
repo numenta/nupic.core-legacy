@@ -87,16 +87,16 @@ class BWImageEncoder:
 
 
 default_parameters = {
-    "columnDimensions": (10*1000,),
-    "potentialPct": .5,
-    "localAreaDensity": .015,
-    "stimulusThreshold": 6,
-    "synPermInactiveDec": 0.005,
-    "synPermActiveInc": 0.01,
-    "synPermConnected": 0.422,
-    "minPctOverlapDutyCycle": 0.001,
-    "dutyCyclePeriod": 1402,
-    "boostStrength": 2.5,
+    'boostStrength': 2.5,
+    'columnDimensions': (16000,),
+    'dutyCyclePeriod': 1402,
+    'localAreaDensity': 0.024,
+    'minPctOverlapDutyCycle': 0.001,
+    'potentialPct': 0.2,
+    'stimulusThreshold': 6,
+    'synPermActiveInc': 0.01,
+    'synPermConnected': 0.422,
+    'synPermInactiveDec': 0.005
 }
 
 
@@ -130,7 +130,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         minPctOverlapDutyCycle     = parameters['minPctOverlapDutyCycle'],
         dutyCyclePeriod            = int(round(parameters['dutyCyclePeriod'])),
         boostStrength              = parameters['boostStrength'],
-        seed                       = 42,
+        seed                       = 0,
         spVerbosity                = 99,
         wrapAround                 = False)
     columns = SDR( sp.getColumnDimensions() )
