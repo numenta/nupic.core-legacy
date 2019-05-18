@@ -58,7 +58,7 @@ using namespace sdr;
             , Real
             , bool
             , Real
-            , UInt
+            , Int
             , UInt
             , Real
             , Real
