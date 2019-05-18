@@ -325,8 +325,11 @@ Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
 R"(See class nupic.bindings.sdr.Reshape)");
 
         py_SDR.def("flatten", [](SDR &self)
-            { return new Reshape(self, {self.size}); },
-R"(See class nupic.bindings.sdr.Reshape)");
+            {
+                auto flat = new SDR({ self.size });
+                flat->setSparse( self.getSparse() );
+                return flat; },
+R"(Returns a copy of this SDR with one big dimension, like numpy.ndarray.flatten())");
 
         py_SDR.def("intersection", [](SDR *self, SDR& inp1, SDR& inp2)
             { self->intersection({ &inp1, &inp2}); return self; },
