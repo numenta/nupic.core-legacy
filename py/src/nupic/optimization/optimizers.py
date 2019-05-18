@@ -22,36 +22,58 @@ import math
 
 class BaseOptimizer:
     """
-    TODO
+    Optimizer classes control what parameters to try.  This class defines the
+    API which they must implement.
     """
+    @classmethod
     def add_arguments(parser):
         """
-        TODO
+        Argument parser is an instance of ArgumentParser, from the standard
+        library argparse.  Optimizer classes should add their command line
+        arguments to this.
         """
         pass
 
-    def use_this_optimizer(args):
+    @classmethod
+    def use_this_optimizer(arguments):
         """
-        TODO
+        Argument is the parsed arguments, result of add_arguments and the users
+            command line.
+
+        Returns bool, if the user has requested to use this optimizer via
+            command line arguments.
         """
         return False
 
-    def __init__(self, laboratory, args):
+    def __init__(self, laboratory, arguments):
         """
-        TODO
+        Argument laboratory is the main class of the framework.
+            See class nupic.optimization.ae.Laboratory
+
+        Argument arguments is the parsed arguments, result of add_arguments and
+            the users command line.
         """
         self.lab  = laboratory
-        self.args = args
+        self.args = arguments
 
-    def suggest_parameters(self): # TODO Rename this to suggest_parameters!
+    def suggest_parameters(self):
         """
-        TODO
+        Returns instance of ParameterSet, to be evaluated.  The parameters will
+            be type cast before being passed to the main function of the users
+            program/experiment.
         """
         raise NotImplementedError("BaseOptimizer.suggest_parameters")
 
     def collect_results(self, parameters, result):
         """
-        TODO
+        Argument parameters was returned by suggest_parameters, and has now been
+                 evaluated.
+
+        Argument results is either a float or an exception.
+            If results is a float, then it is the score to be maximized.
+            If results is an Exception, then it was raised by the experiment.
+
+        This method is optional, optimizers do not need to implement this.
         """
         pass
 
@@ -128,7 +150,7 @@ class GridSearch(BaseOptimizer):
 
     def add_arguments(parser):
         parser.add_argument('--grid_search', type=str,
-            help="TODO: CLI argument help for GridSearch")
+            help="Grid Search, parameter to search, use \"\" for all.")
 
     def use_this_optimizer(args):
         return args.grid_search is not None

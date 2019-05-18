@@ -78,6 +78,10 @@ class ParameterSet(dict):
         return diffs
 
     def get(self, path):
+        """
+        Gets a value stored in the ParameterSet.
+        Argument path is an executable string description of which parameter[s] to retrieve.
+        """
         assert(isinstance(path, str))
         try:
             return eval('self' + path)

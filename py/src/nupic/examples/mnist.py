@@ -87,16 +87,16 @@ class BWImageEncoder:
 
 
 default_parameters = {
-    'boostStrength': 2.5,
-    'columnDimensions': (16000,),
-    'dutyCyclePeriod': 1402,
-    'localAreaDensity': 0.024,
-    'minPctOverlapDutyCycle': 0.001,
-    'potentialPct': 0.2,
-    'stimulusThreshold': 6,
-    'synPermActiveInc': 0.01,
-    'synPermConnected': 0.422,
-    'synPermInactiveDec': 0.005
+    'boostStrength': 7.80643753517375,
+    'columnDimensions': (35415,),
+    'dutyCyclePeriod': 1321,
+    'localAreaDensity': 0.05361688506086096,
+    'minPctOverlapDutyCycle': 0.0016316043362658,
+    'potentialPct': 0.06799785776775163,
+    'stimulusThreshold': 8,
+    'synPermActiveInc': 0.01455789388651146,
+    'synPermConnected': 0.021649964738697944,
+    'synPermInactiveDec': 0.006442691852205935
 }
 
 

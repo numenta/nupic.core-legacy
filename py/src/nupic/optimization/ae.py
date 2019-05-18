@@ -15,34 +15,29 @@
 # this program.  If not, see http://www.gnu.org/licenses.
 # ------------------------------------------------------------------------------
 """
-Automatic Experimenter
+The Automatic Experimenter
 
-This is a framework for parameter optimization.
- * It methodically records the results of different sets of parameters and
-analyses the results.  It then automatically suggests and evaluates
-modifications to the parameters.
- * It exposes a convenient API for users to hook their program into this.
- * The framework allows for testing each set of parameters several times and
-calculates the average and standard deviation of the results.  It also
-calculates the confidence that a parameter change caused the score to change.
- * It is extensible: new methods for automated parameter optimization can be
-added.  Currently this implements a basic grid search strategy.  In the future I
-hope to add a particle swarming method.
+This is a framework for parameter optimization.  Key features include:
+ * An API for users to hook their programs/experiments into this framework.
+ * An API for adding optimization methods, and several good methods included.
+ * Records everything, and helps manage the data.
 
-To use this module, structure experiments as follows:
-    ExperimentModule is a python3 module containing the model to be optimized as
-    well as code to evaluate model performance.
+Structure your program as follows:
+    ExperimentModule is a python module containing the model to be optimized as
+    well as code to evaluate the models performance.
 
     ExperimentModule.default_parameters = {}
-    This global dictionary contains all of the parameters to modify.
+    Global dictionary containing all of the parameters to modify.
     Parameters must be one of the following types: dict, tuple, float, int.
     Parameters can be nested in multiple levels of dictionaries and tuples.
-    The outer most layer of parameters must be a dict.
+    For more details see nupic.optimization.parameter_set
 
     ExperimentModule.main(parameters=default_parameters, argv=None, verbose=True)
     Returns (float) performance of parameters, to be maximized.
+    For example, see file: py/src/nupic/examples/mnist.py
 
-Usage: $ ae.py [ae-arguments] ExperimentModule.py [experiment-arguments]
+Run your experiment with the AE program:
+$ python3 -m nupic.optimization.ae [ae-arguments] ExperimentModule.py [experiment-arguments]
 
 The outputs and data of this program are kept in a directory named after the
 experiment which generated it.  If the experiment is "foo/bar.py" then AE's
@@ -51,11 +46,15 @@ directory is "foo/bar_ae/".  The primary output of this program is the file
 report format is:
 
 1) Introduction.  This text is not parsed, it is preserved so you can keep notes
-here  This area is initialized with hopefully useful information, including
-the experiment name, timestamps.
+here.  This area is initialized with hopefully useful information, including the
+experiment name, timestamps.  Do not modify the lab report file while AE is
+running!
 
-2) Methods.  This section contains the default parameters and the command line
-invocation.
+2) Methods & Analysis.  These sections contain summaries and useful information,
+including:
+ * The default parameters and command line invocation,
+ * A leader board of the best experiments,
+ * A list of all parameters which crashed the program.
 
 3) Summary of each experiment.  Each experiments summary contains the following
 information:
@@ -65,8 +64,7 @@ information:
     lab report in this way.
     2) MD5 Checksum of Parameters and Command Line.  This hash checksum is used
     to uniquely identify an experimental setup, it's the name of the
-    experiment.  These hashes are used in filenames and searching for a hash
-    finds all references to it.
+    experiment.  These hashes are used in filenames and are searchable.
     3) File Path of Experiment Journal
     4) Number of Attempted Runs
     5) Score of each Completed Run
@@ -140,14 +138,15 @@ from nupic.optimization.parameter_set import ParameterSet
 
 class Experiment:
     """
+    An experiment represents a unique ParameterSet.
+
     Attributes:
-        lab           - circular reference to Laboratory instance
-        attempts      -
-        scores        -
-        notes         -
-        journal       -
-        parameters    -
-        modifications - 
+        parameters    - ParameterSet
+        lab           - Circular reference to Laboratory instance.
+        attempts      - Number of times attempted to evaluate.
+        scores        - List of float
+        notes         - string
+        journal       - File path to log file for this experiment.
     """
     def __init__(self, lab,
         string=None,
@@ -160,7 +159,7 @@ class Experiment:
         self.notes    = ' '
         # Load or create this experiment's data.
         if string is not None:
-            self.parse( string )
+            self._parse( string )
         elif modifications is not None:
             self.parameters = ParameterSet( self.lab.default_parameters )
             for path, value in modifications:
@@ -192,7 +191,7 @@ class Experiment:
                 file.write('Hash: %X\n'%hash(self))
                 file.write('Command Line Invocation: $ ' + ' '.join(self.lab.argv) + '\n')
 
-    def parse(self, string):
+    def _parse(self, string):
         # Reconstruct the parameters.
         self.modifications = []
         if "Modification:" in string:
@@ -241,6 +240,7 @@ class Experiment:
         return pval
 
     def mean(self):
+        """ Returns the average score. """
         return np.mean(self.scores) if self.scores else float('-inf')
 
     # TODO: Consider showing min & max scores.
@@ -271,8 +271,10 @@ class Experiment:
 
 class Laboratory:
     """
+    Main class of the AE program.
+
     Attributes:
-        lab.module             - Experiment python module
+        lab.module             - Users Experiment python module
         lab.name               - Name of experiment module
         lab.path               - Directory containing experiment module
         lab.structure          - Types of parameters
@@ -295,7 +297,7 @@ class Laboratory:
         self.method  = method
         self.tag     = tag
         self.verbose = verbose
-        self.load_experiment_module(experiment_argv[0])
+        self._load_experiment_module(experiment_argv[0])
         self.ae_directory = os.path.join(self.path, self.name) + self.default_extension
         if self.tag:
             self.ae_directory = self.ae_directory + '_' + self.tag
@@ -305,7 +307,7 @@ class Laboratory:
         if os.path.isdir(self.ae_directory):
             with open(self.lab_report, 'r') as file:
                 report = file.read()
-            self.parse(report)
+            self._parse(report)
         else:
             # Initialize the Lab Reports attributes and write the skeleton of it
             # to file.
@@ -318,13 +320,17 @@ class Laboratory:
             pass
 
     def init_header(self):
+        """
+        Sets attribute lab.header containing the initial text in the Notes
+            section at the top of the lab-report.
+        """
         self.header = str(self.name)
         if self.tag:
             self.header += ' - ' + self.tag
         self.header += ' - Automatic Experiments\n'
         self.header += time.asctime( time.localtime(time.time()) ) + '\n'
 
-    def load_experiment_module(self, experiment_module):
+    def _load_experiment_module(self, experiment_module):
         """
         Argument experiment_module is command line argument 0, specifying the
         file path to the experiment module.
@@ -341,7 +347,7 @@ class Laboratory:
         self.default_parameters = ParameterSet(self.module.default_parameters)
         self.structure = self.default_parameters.get_types()
 
-    def parse(self, report):
+    def _parse(self, report):
         if not report.strip():
             raise ValueError("Empty lab report file!")
         sections            = report.split(self.section_divider)
@@ -373,6 +379,10 @@ class Laboratory:
         [Experiment(self, s) for s in experiment_sections if s.strip()]
 
     def get_experiment(self, parameters):
+        """
+        Returns Experiment instance for the given parameters.  If one does not
+        already exist for these parameter then it is created.
+        """
         p = ParameterSet( parameters ).typecast( self.structure )
         h = hash(p)
         if h in self.experiment_ids:
@@ -423,8 +433,7 @@ class Laboratory:
     def run(self, processes,
         time_limit   = None,
         memory_limit = None,):
-        """
-        """
+        """ Main loop of the AE program. """
         pool = multiprocessing.Pool(processes, maxtasksperchild=1)
         async_results = [] # Contains pairs of (Promise, Experiment)
         while True:
@@ -444,7 +453,7 @@ class Laboratory:
                 if self.verbose:
                     print("Evaluating %X"%hash(X))
                 promise = pool.apply_async(
-                    Experiment_evaluate_parameters,
+                    _Experiment_evaluate_parameters,
                     args = (self.argv, self.tag, self.verbose, X.parameters,),
                     kwds = {'time_limit'   : time_limit,
                             'memory_limit' : memory_limit,},)
@@ -456,7 +465,8 @@ class Laboratory:
         time_limit   = None,
         memory_limit = None,):
         """
-        This function executes in a child processes.
+        Run the users program/experiment with the given parameters.
+        This function should execute in a child processes.
         """
         # Redirect stdout & stderr to a temporary file.
         journal = tempfile.NamedTemporaryFile(
@@ -506,6 +516,7 @@ class Laboratory:
         return exec_globals['score'], journal.name
 
     def collect_results(self, experiment, async_promise):
+        """ Deals with the aftermath & bookkeeping of running an experiment. """
         try:
             score, run_journal = async_promise.get()
         except (ValueError, MemoryError, ZeroDivisionError, AssertionError, RuntimeError) as err:
@@ -540,7 +551,7 @@ class Laboratory:
         self.method.collect_results(experiment.parameters, score)
         self.save()     # Write the updated Lab Report to file.
 
-def Experiment_evaluate_parameters(*args, **kwds):
+def _Experiment_evaluate_parameters(*args, **kwds):
     """
     Global wrapper for Laboratory.evaluate_parameters which is safe for
     multiprocessing.
@@ -575,20 +586,21 @@ if __name__ == '__main__':
 
     import nupic.optimization.optimizers as optimizers
     from nupic.optimization.swarming import ParticleSwarmOptimization
-    actions = [
+    all_optimizers = [
         optimizers.EvaluateDefaultParameters,
         optimizers.EvaluateAllExperiments,
         optimizers.EvaluateBestExperiment,
         optimizers.EvaluateHashes,
         optimizers.GridSearch,
         optimizers.CombineBest,
-        ParticleSwarmOptimization]
-    assert( all( issubclass(Z, optimizers.BaseOptimizer) for Z in actions))
-    for method in actions:
+        ParticleSwarmOptimization,
+    ]
+    assert( all( issubclass(Z, optimizers.BaseOptimizer) for Z in all_optimizers))
+    for method in all_optimizers:
         method.add_arguments(parser)
 
     args = parser.parse_args()
-    selected_method = [X for X in actions if X.use_this_optimizer(args)]
+    selected_method = [X for X in all_optimizers if X.use_this_optimizer(args)]
 
     ae = Laboratory(args.experiment,
         tag      = args.tag,
