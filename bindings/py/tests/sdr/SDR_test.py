@@ -89,8 +89,9 @@ class SdrTest(unittest.TestCase):
     def testZero(self):
         A = SDR((103,))
         A.sparse = list(range(20))
-        A.zero()
+        B = A.zero()
         assert( np.sum( A.dense ) == 0 )
+        assert( A is B )
 
     def testDense(self):
         A = SDR((103,))

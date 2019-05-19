@@ -139,7 +139,7 @@ other.)",
                 return self.size; },
             "The total number of boolean values in the SDR.");
 
-        py_SDR.def("zero", &SDR::zero,
+        py_SDR.def("zero", [](SDR *self) { self->zero(); return self; },
 R"(Set all of the values in the SDR to false.  This method overwrites the SDRs
 current value.)");
 
