@@ -93,6 +93,8 @@ class ParameterSet(dict):
         Modifies this set of parameters!
         """
         assert(isinstance(modification, str))
+        if isinstance(value, str):
+            value = eval(value.strip())
         try:
             access = modification.split(']')[0].strip('[]"\' ')
             if not access:
