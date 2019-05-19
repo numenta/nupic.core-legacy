@@ -2,6 +2,7 @@ import csv
 import datetime
 import os
 import numpy as np
+import random
 
 from nupic.bindings.algorithms import SpatialPooler
 from nupic.bindings.algorithms import TemporalMemory
@@ -14,36 +15,26 @@ _EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
 _INPUT_FILE_PATH = os.path.join(_EXAMPLE_DIR, "gymdata.csv")
 
 default_parameters = {
-  "time": {
-    "timeOfDay": (21, 1),
-    "weekend":21,
-  },
-  "enc": {
-    "size": 1000,
-    "sparsity": .02,
-    "resolution": .88,
-  },
-  "sp": {
-    "columnCount": 2048,
-    "numActiveColumnsPerInhArea": 40,
-    "potentialPct": 0.85,
-    "synPermConnected": 0.1,
-    "synPermActiveInc": 0.04,
-    "synPermInactiveDec": 0.005,
-    "boostStrength": 3.0,
-  },
-  "tm": {
-    "cellsPerColumn": 32,
-    "newSynapseCount": 20,
-    "initialPerm": 0.21,
-    "permanenceInc": 0.1,
-    "permanenceDec": 0.1,
-    "maxSynapsesPerSegment": 32,
-    "maxSegmentsPerCell": 128,
-    "minThreshold": 12,
-    "activationThreshold": 16,
-  },
-}
+ 'enc': {'resolution': 0.9551003024002529,
+         'size': 692,
+         'sparsity': 0.02349173387867304},
+ 'sp': {'boostStrength': 2.331600954004477,
+        'columnCount': 1905,
+        'numActiveColumnsPerInhArea': 34,
+        'potentialPct': 0.9616584936945282,
+        'synPermActiveInc': 0.034755234293843695,
+        'synPermConnected': 0.0709642810371415,
+        'synPermInactiveDec': 0.007365910271986643},
+ 'time': {'timeOfDay': (30, 2), 'weekend': 29},
+ 'tm': {'activationThreshold': 17,
+        'cellsPerColumn': 27,
+        'initialPerm': 0.20991245171830633,
+        'maxSegmentsPerCell': 152,
+        'maxSynapsesPerSegment': 25,
+        'minThreshold': 7,
+        'newSynapseCount': 20,
+        'permanenceDec': 0.09335662142342668,
+        'permanenceInc': 0.08673586267418514}}
 
 
 def main(parameters=default_parameters, argv=None, verbose=True):
@@ -98,64 +89,72 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
   anomaly_history = AnomalyLikelihood()
 
-  inputs  = []
-  anomaly = []
+  # Read the input file.
+  records = []
   with open(_INPUT_FILE_PATH, "r") as fin:
     reader = csv.reader(fin)
     headers = next(reader)
     next(reader)
     next(reader)
+    for record in reader:
+      records.append(record)
+  for i in range(100):
+    records.append( random.choice(records) )
 
-    for count, record in enumerate(reader):
+  inputs  = []
+  anomaly = []
+  for record in records:
 
-      # Convert data string into Python date object.
-      dateString = datetime.datetime.strptime(record[0], "%m/%d/%y %H:%M")
-      # Convert data value string into float.
-      consumption = float(record[1])
+    # Convert data string into Python date object.
+    dateString = datetime.datetime.strptime(record[0], "%m/%d/%y %H:%M")
+    # Convert data value string into float.
+    consumption = float(record[1])
 
-      # Now we call the encoders to create bit representations for each value.
-      timeOfDayBits   = timeOfDayEncoder.encode(dateString)
-      weekendBits     = weekendEncoder.encode(dateString)
-      consumptionBits = scalarEncoder.encode(consumption)
+    # Now we call the encoders to create bit representations for each value.
+    timeOfDayBits   = timeOfDayEncoder.encode(dateString)
+    weekendBits     = weekendEncoder.encode(dateString)
+    consumptionBits = scalarEncoder.encode(consumption)
 
-      # Concatenate all these encodings into one large encoding for Spatial
-      # Pooling.
-      encoding = SDR( encodingWidth ).concatenate(
-                                  [consumptionBits, timeOfDayBits, weekendBits])
-      enc_info.addData( encoding )
+    # Concatenate all these encodings into one large encoding for Spatial
+    # Pooling.
+    encoding = SDR( encodingWidth ).concatenate(
+                                [consumptionBits, timeOfDayBits, weekendBits])
+    enc_info.addData( encoding )
 
-      # Create an SDR to represent active columns, This will be populated by the
-      # compute method below. It must have the same dimensions as the Spatial
-      # Pooler.
-      activeColumns = SDR( sp.getColumnDimensions() )
+    # Create an SDR to represent active columns, This will be populated by the
+    # compute method below. It must have the same dimensions as the Spatial
+    # Pooler.
+    activeColumns = SDR( sp.getColumnDimensions() )
 
-      # Execute Spatial Pooling algorithm over input space.
-      sp.compute(encoding, True, activeColumns)
-      sp_info.addData( activeColumns )
+    # Execute Spatial Pooling algorithm over input space.
+    sp.compute(encoding, True, activeColumns)
+    sp_info.addData( activeColumns )
 
-      # Execute Temporal Memory algorithm over active mini-columns.
-      tm.compute(activeColumns, learn=True)
-      tm_info.addData( tm.getActiveCells().flatten() )
+    # Execute Temporal Memory algorithm over active mini-columns.
+    tm.compute(activeColumns, learn=True)
+    tm_info.addData( tm.getActiveCells().flatten() )
 
-      anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
+    anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
 
-      inputs.append( consumption )
-      anomaly.append( tm.anomaly )
-      # anomaly.append( anomalyLikelihood )
+    inputs.append( consumption )
+    anomaly.append( tm.anomaly )
+    # anomaly.append( anomalyLikelihood )
 
-    if verbose:
-      print("Encoder", enc_info)
-      print("")
-      print("Spatial Pooler", sp_info)
-      print("")
-      print("Temporal Memory", tm_info)
-      import matplotlib.pyplot as plt
-      inputs = np.array(inputs) / max(inputs)
-      plt.plot(np.arange(len(inputs)), inputs, 'blue',
-               np.arange(len(inputs)), anomaly, 'red')
-      plt.show()
+  if verbose:
+    print("Encoder", enc_info)
+    print("")
+    print("Spatial Pooler", sp_info)
+    print("")
+    print("Temporal Memory", tm_info)
+    import matplotlib.pyplot as plt
+    inputs = np.array(inputs) / max(inputs)
+    plt.plot(np.arange(len(inputs)), inputs, 'blue',
+             np.arange(len(inputs)), anomaly, 'red')
+    plt.show()
 
-    return -np.mean(anomaly)
+  anom_low  = np.mean(anomaly[-300:-100])
+  anom_high = np.mean(anomaly[-100:])
+  return anom_high - anom_low
 
 
 if __name__ == "__main__":
