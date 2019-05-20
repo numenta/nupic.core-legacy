@@ -69,6 +69,8 @@ using namespace sdr;
             , Int
             , UInt
             , bool>()
+            , py::call_guard<py::scoped_ostream_redirect,
+                             py::scoped_estream_redirect>()
             , py::arg("inputDimensions") = vector<UInt>({ 32, 32 })
             , py::arg("columnDimensions") = vector<UInt>({ 64, 64 })
             , py::arg("potentialRadius") = 16
@@ -89,6 +91,8 @@ using namespace sdr;
         );
 
         py_SpatialPooler.def("initialize", &SpatialPooler::initialize
+            , py::call_guard<py::scoped_ostream_redirect,
+                             py::scoped_estream_redirect>()
             , py::arg("inputDimensions") = vector<UInt>({ 32, 32 })
             , py::arg("columnDimensions") = vector<UInt>({ 64, 64 })
             , py::arg("potentialRadius") = 16
