@@ -451,6 +451,26 @@ public:
    */
   virtual void load(istream &inStream) override;
 
+  // a container to hold the data for one sequence item during serialization
+  struct container_ar {
+    SegmentIdx idx;
+    CellIdx cell;
+    SynapseIdx syn;
+
+    template<class Archive>
+    void save_ar(Archive & ar) const {
+      ar(CEREAL_NVP(idx),
+         CEREAL_NVP(cell),
+         CEREAL_NVP(syn));
+    }
+    template<class Archive>
+    void load_ar(Archive & ar) {
+      ar(CEREAL_NVP(idx),
+         CEREAL_NVP(cell),
+         CEREAL_NVP(syn));
+    }
+  };
+
   CerealAdapter;
   template<class Archive>
   void save_ar(Archive & ar) const {
@@ -477,28 +497,34 @@ public:
        CEREAL_NVP(anomaly_),
        CEREAL_NVP(connections));
 
-    ar( cereal::make_size_tag(activeSegments_.size()));
+    cereal::size_type numActiveSegments = activeSegments_.size();
+    ar( cereal::make_size_tag(numActiveSegments));
     for (Segment segment : activeSegments_) {
-      const CellIdx cell = connections.cellForSegment(segment);
-      const vector<Segment> &segments = connections.segmentsForCell(cell);
+      struct container_ar c;
+      c.cell = connections.cellForSegment(segment);
+      const vector<Segment> &segments = connections.segmentsForCell(c.cell);
 
-      SegmentIdx idx = (SegmentIdx)std::distance(
+      c.idx = (SegmentIdx)std::distance(
                           segments.begin(), 
                           std::find(segments.begin(), 
                           segments.end(), segment));
-      ar(idx, cell, numActiveConnectedSynapsesForSegment_[segment]);
+      c.syn = numActiveConnectedSynapsesForSegment_[segment];
+      ar(c); // to keep iteration counts correct, only serialize one item per iteration.
     }
 
-    ar(cereal::make_size_tag(matchingSegments_.size()));
+    cereal::size_type numMatchingSegments = matchingSegments_.size();
+    ar(cereal::make_size_tag(numMatchingSegments));
     for (Segment segment : matchingSegments_) {
-      const CellIdx cell = connections.cellForSegment(segment);
-      const vector<Segment> &segments = connections.segmentsForCell(cell);
+      struct container_ar c;
+      c.cell = connections.cellForSegment(segment);
+      const vector<Segment> &segments = connections.segmentsForCell(c.cell);
 
-      SegmentIdx idx = (SegmentIdx)std::distance(
+      c.idx = (SegmentIdx)std::distance(
                           segments.begin(), 
                           std::find(segments.begin(), 
                           segments.end(), segment));
-      ar(idx, cell, numActivePotentialSynapsesForSegment_[segment]);
+      c.syn = numActivePotentialSynapsesForSegment_[segment];
+      ar(c);
     }
 
   }
@@ -530,29 +556,25 @@ public:
     numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
     cereal::size_type numActiveSegments;
     ar(cereal::make_size_tag(numActiveSegments));
-    activeSegments_.resize(numActiveSegments);
-    for (cereal::size_type i = 0; i < numActiveSegments; i++) {
-      SegmentIdx idx;
-      CellIdx cellIdx;
-      SynapseIdx syn;
-      ar(idx, cellIdx, syn);
-      Segment segment = connections.getSegment(cellIdx, idx);
+    activeSegments_.resize(static_cast<size_t>(numActiveSegments));
+    for (size_t i = 0; i < static_cast<size_t>(numActiveSegments); i++) {
+      struct container_ar c;
+      ar(c);  
+      Segment segment = connections.getSegment(c.cell, c.idx);
       activeSegments_[i] = segment;
-      numActiveConnectedSynapsesForSegment_[segment] = syn;
+      numActiveConnectedSynapsesForSegment_[segment] = c.syn;
     }
 
     numActivePotentialSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
     cereal::size_type numMatchingSegments;
     ar(cereal::make_size_tag(numMatchingSegments));
-    matchingSegments_.resize(numMatchingSegments);
-    for (size_t i = 0; i < numMatchingSegments; i++) {
-      SegmentIdx idx;
-      CellIdx cellIdx;
-      SynapseIdx syn;
-      ar(idx, cellIdx, syn);
-      Segment segment = connections.getSegment(cellIdx, idx);
+    matchingSegments_.resize(static_cast<size_t>(numMatchingSegments));
+    for (size_t i = 0; i < static_cast<size_t>(numMatchingSegments); i++) {
+      struct container_ar c;
+      ar(c);
+      Segment segment = connections.getSegment(c.cell, c.idx);
       matchingSegments_[i] = segment;
-      numActivePotentialSynapsesForSegment_[segment] = syn;
+      numActivePotentialSynapsesForSegment_[segment] = c.syn;
     }
 
     lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());

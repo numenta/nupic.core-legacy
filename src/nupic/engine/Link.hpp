@@ -498,12 +498,6 @@ public:
        cereal::make_nvp("propagationDelayBuffer", propagationDelayBuffer_));
     initialized_ = false;
   }
-  // Help Cereal allocate the Link object.
-  template <class Archive>
-  static void load_and_construct( Archive& ar, cereal::construct<Link> & construct )
-  {
-    construct( );
-  }
 
 private:
   // common initialization for the two Link constructors.

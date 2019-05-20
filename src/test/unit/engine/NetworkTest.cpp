@@ -139,9 +139,7 @@ TEST(NetworkTest, Modification) {
 
   net.link("level1", "level2");
 
-  auto &regions = net.getRegions();
-
-  ASSERT_EQ((UInt32)2, regions.size());
+  ASSERT_EQ((UInt32)2, net.getRegions().size());
 
   // Should succeed since dimensions are set
   net.initialize();
@@ -156,7 +154,7 @@ TEST(NetworkTest, Modification) {
 
   net.removeRegion("level2");
   // net now only contains level1
-  ASSERT_EQ((UInt32)1, regions.size()) << "Should be only region 'level1' remaining\n";
+  ASSERT_EQ((UInt32)1, net.getRegions().size()) << "Should be only region 'level1' remaining\n";
   EXPECT_THROW(net.getRegion("level2"), std::exception);
 
   auto links = net.getLinks();
@@ -176,7 +174,7 @@ TEST(NetworkTest, Modification) {
   // network can be initialized now
   net.run(1);
 
-  ASSERT_EQ((UInt32)2, regions.size());
+  ASSERT_EQ((UInt32)2, net.getRegions().size());
   ASSERT_TRUE(l2 == net.getRegion("level2"));
 
   d2 = l2->getDimensions();
@@ -192,7 +190,7 @@ TEST(NetworkTest, Modification) {
   ASSERT_EQ((UInt32)1, phases.size());
   ASSERT_TRUE(phases.find(2) != phases.end());
 
-  ASSERT_EQ((UInt32)3, regions.size());
+  ASSERT_EQ((UInt32)3, net.getRegions().size());
 
   net.link("level2", "level3");
   net.initialize();
@@ -205,17 +203,17 @@ TEST(NetworkTest, Modification) {
   // this should fail because it would leave the network
   // unrunnable
   EXPECT_THROW(net.removeRegion("level2"), std::exception);
-  ASSERT_EQ((UInt32)3, regions.size());
+  ASSERT_EQ((UInt32)3, net.getRegions().size());
   EXPECT_THROW(net.removeRegion("level1"), std::exception);
-  ASSERT_EQ((UInt32)3, regions.size());
+  ASSERT_EQ((UInt32)3, net.getRegions().size());
 
   // this should be ok
   net.removeRegion("level3");
-  ASSERT_EQ((UInt32)2, regions.size());
+  ASSERT_EQ((UInt32)2, net.getRegions().size());
 
   net.removeRegion("level2");
   net.removeRegion("level1");
-  ASSERT_EQ((UInt32)0, regions.size());
+  ASSERT_EQ((UInt32)0, net.getRegions().size());
 
   // build up the network again -- slightly differently with
   // l1->l2 and l1->l3

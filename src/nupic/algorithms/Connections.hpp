@@ -483,8 +483,9 @@ public:
   CerealAdapter;
   template<class Archive>
   void save_ar(Archive & ar) const {
-    // make this look like a set of nested vectors with a 
-    // single numeric value in innermost vector. Cannot mix objects and sequences.
+    // make this look like a queue of items to be sent. 
+    // and a queue of sizes so we can distribute the 
+		// correct number for each level when deserializing.
     std::deque<SynapseData> syndata;
     std::deque<size_t> sizes;
     sizes.push_back(cells_.size());

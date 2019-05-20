@@ -382,17 +382,11 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "continue with execution." << std::endl;
     // can we continue with execution?  See if we get any exceptions.
     n1region1->setParameterReal64("sensedValue", 0.12);
-    n1region1->prepareInputs();
-    n1region1->compute();
+    net1->run(1);
+    net2->run(1);
 
-    n2region2->prepareInputs();
-    VERBOSE << "continue 4." << std::endl;
-    n2region2->compute();
-    VERBOSE << "continue 5." << std::endl;
-
-    // Change a parameters and see if it is retained after a restore.
+    // Change a parameter and see if it is retained after a restore.
     n2region2->setParameterReal32("permanenceDecrement", 0.099f);
-    n2region2->compute();
 
     parameterMap.clear();
     EXPECT_TRUE(captureParameters(n2region2, parameterMap))
@@ -409,6 +403,9 @@ TEST(TMRegionTest, testSerialization) {
         << "Failure: Restored region does not have the right type. "
            " Expected \"TMRegion\", found \""
         << n3region2->getType() << "\".";
+
+    Real32 p = n3region2->getParameterReal32("permanenceDecrement");
+    EXPECT_FLOAT_EQ(p, 0.099f);
 
     EXPECT_TRUE(compareParameters(n3region2, parameterMap))
         << "Comparing parameters after second restore with before save.";

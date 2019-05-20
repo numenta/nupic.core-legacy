@@ -47,9 +47,7 @@ public:
   TMRegion(const TMRegion &) = delete;
   TMRegion(const ValueMap &params, Region *region);
   TMRegion(BundleIO &bundle, Region *region);
-  TMRegion(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
-      // TODO:cereal  complete.
-    }
+  TMRegion(ArWrapper& wrapper, Region *region);
   virtual ~TMRegion();
 
   /* -----------  Required RegionImpl Interface methods ------- */
@@ -72,7 +70,7 @@ public:
   void serialize(BundleIO &bundle) override;
   void deserialize(BundleIO &bundle) override;
   
-  	CerealAdapter;  // see Serializable.hpp
+  CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
@@ -106,6 +104,7 @@ public:
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
+    bool init = false;
     ar(cereal::make_nvp("numberOfCols", args_.numberOfCols));
     ar(cereal::make_nvp("cellsPerColumn", args_.cellsPerColumn));
     ar(cereal::make_nvp("activationThreshold", args_.activationThreshold));
@@ -124,14 +123,13 @@ public:
     ar(cereal::make_nvp("sequencePos", args_.sequencePos));
     ar(cereal::make_nvp("iter", args_.iter));
     ar(cereal::make_nvp("orColumnOutputs", args_.orColumnOutputs));
+    ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
+    ar(cereal::make_nvp("init", init));
+
     args_.outputWidth = (args_.orColumnOutputs)?args_.numberOfCols
                       : (args_.numberOfCols * args_.cellsPerColumn);
-    ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
-    ar(cereal::make_nvp("init", args_.init));
-    if (args_.init) {
+    if (init) {
       // Restore algorithm state
-      nupic::algorithms::temporal_memory::TemporalMemory* tm = new nupic::algorithms::temporal_memory::TemporalMemory();
-      tm_.reset(tm);
       ar(cereal::make_nvp("TM", tm_));
     }
   }
@@ -187,7 +185,6 @@ private:
     bool orColumnOutputs;
 
     // some local variables
-    bool init;
     UInt32 padding; // to prevent the next field from spanning 8 byte boundary.
     UInt32 outputWidth; // columnCount *cellsPerColumn
     UInt32 sequencePos;
