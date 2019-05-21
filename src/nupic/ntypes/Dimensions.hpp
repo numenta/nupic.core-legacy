@@ -114,17 +114,7 @@ public:
 		if (humanReadable && isInvalid()) ss << "(Invalid) ";
     return ss.str();
   }
-  /****
-  CerealAdapter;
-  template<class Archive>
-  void save_ar(Archive & ar) const {
-    ar((std::vector<UInt>&) *this);
-  }
-  template<class Archive>
-  void load_ar(Archive & ar) {
-    ar((std::vector<UInt>&) *this);
-  }
-  ****/
+
   // TODO:Cereal- remove these two methods when Cereal is fully implmented.
   void save(std::ostream &f) const override {
     size_t n = size();

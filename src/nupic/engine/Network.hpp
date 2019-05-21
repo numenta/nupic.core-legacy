@@ -39,6 +39,7 @@
 
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 
@@ -122,10 +123,33 @@ public:
    *
 	 * See Serializable base class for definitions.
 	 */
-  virtual void save(std::ostream &f) const override;
+  virtual void save(std::ostream &f) const override;  // TODO:cereal Remove
   virtual void load(std::istream &stream)  override;
-  virtual void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
-  virtual void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
+
+  CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    const std::vector<std::shared_ptr<Link>> links = getLinks();
+    std::string name = "Network";
+    ar(cereal::make_nvp("name", name));
+    ar(cereal::make_nvp("iteration", iteration_));
+    ar(cereal::make_nvp("Regions", regions_));
+    ar(cereal::make_nvp("links", links));
+  }
+  
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    std::vector<std::shared_ptr<Link>> links;
+    std::string name;
+    ar(cereal::make_nvp("name", name));  // ignore value
+    ar(cereal::make_nvp("iteration", iteration_));
+    ar(cereal::make_nvp("Regions", regions_));
+    ar(cereal::make_nvp("links", links));
+
+    post_load(links);
+  }
 
   /**
    * @}
@@ -148,22 +172,17 @@ public:
    * @returns A pointer to the newly created Region
    */
   std::shared_ptr<Region> addRegion(const std::string &name,
-  					const std::string &nodeType,
-                    const std::string &nodeParams);
+  					                        const std::string &nodeType,
+                                    const std::string &nodeParams);
 
     /**
-     * Create a new region in a network from serialized region
+     * Add a region in a network from deserialized region
      *
-     * @param stream
-     *        opened stream
-     * @param name
-     *        Name of the region, Must be unique in the network.
-     *        If not given, it uses the name it was serialized with.
+     * @param Region shared_ptr
      *
      * @returns A pointer to the newly created Region
      */
-    std::shared_ptr<Region> addRegion( std::istream &stream,
-                       std::string name = "");
+    std::shared_ptr<Region> addRegion(std::shared_ptr<Region>& region);
 
 
     /**
@@ -207,7 +226,7 @@ public:
    *            iterations involving the link as input; the delay vectors, if
    *            any, are initially populated with 0's. Defaults to 0=no delay
    */
-  void link(const std::string &srcName, const std::string &destName,
+  std::shared_ptr<Link> link(const std::string &srcName, const std::string &destName,
             const std::string &linkType="", const std::string &linkParams="",
             const std::string &srcOutput = "",
             const std::string &destInput = "",
@@ -241,8 +260,9 @@ public:
    * Get all regions.
    *
    * @returns A Collection of Region objects in the network
+   *          Note: this is a copy of the region list.
    */
-  const Collection<std::shared_ptr<Region> > &getRegions() const;
+  const Collection<std::shared_ptr<Region> > getRegions() const;
   std::shared_ptr<Region> getRegion(const std::string& name) const;
 
   /**
@@ -250,7 +270,7 @@ public:
    *
    * @returns A Collection of Link objects in the network
    */
-  Collection<std::shared_ptr<Link>> getLinks();
+  std::vector<std::shared_ptr<Link>> getLinks() const;
 
   /**
    * Set phases for a region.
@@ -386,6 +406,21 @@ public:
 
   /*
    * Adds a region implementation to the RegionImplFactory's list of packages
+   *
+   * NOTE: Built-in C++ regions are automatically registered by the factory
+   *       so this function does not need to be called.
+   *
+   * NOTE: How does C++ register a custom C++ implemented region?
+   *       Allocate a templated wrapper RegisteredRegionImplCpp class
+   *       and pass it to this function with the name of the region type.
+   *       Network::registerRegion("MyRegion", new RegisteredRegionImplCpp<MyRegion>());
+   *   
+   * NOTE: How does Python register a .py implemented region?
+   *       Python code should call Network.registerPyRegion(module, className).
+   *       The python bindings will actually call the static function
+   *       nupic::RegisteredRegionImplPy::registerPyRegion(module, className);
+   *       which will register the C++ class PyBindRegion as the stand-in for the 
+   *       python implementation.
    */
   static void registerRegion(const std::string name, RegisteredRegionImpl *wrapper);
   /*
@@ -404,12 +439,16 @@ public:
     return !operator==(other);
   }
 
+  friend std::ostream &operator<<(std::ostream &, const Network &);
+
 private:
   // Both constructors use this common initialization method
   void commonInit();
 
 
-
+  // perform actions after serialization load
+  void post_load();
+  void post_load(std::vector<std::shared_ptr<Link>>& links);
 
   // internal method using region pointer instead of name
   void setPhases_(Region *r, std::set<UInt32> &phases);
@@ -423,7 +462,14 @@ private:
   void resetEnabledPhases_();
 
   bool initialized_;
-  Collection<std::shared_ptr<Region>> regions_;
+	
+	/**
+	 * The list of regions registered with the Network.
+	 * Internally this is a map so it is easy to serialize
+	 * but externally this is a Collection object so it
+	 * retains API compatability.
+	 */
+  std::map<std::string, std::shared_ptr<Region>> regions_;
 
   UInt32 minEnabledPhase_;
   UInt32 maxEnabledPhase_;

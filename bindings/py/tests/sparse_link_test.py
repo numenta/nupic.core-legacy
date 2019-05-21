@@ -237,7 +237,7 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("region2")
+    region = net.getRegion("region2")
     actual = region.getOutputArray("dataOut")
     assert_array_equal(actual, TEST_DATA_SPARSE)
 
@@ -248,7 +248,7 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("region2")
+    region = net.getRegion("region2")
     actual = region.getOutputArray("dataOut")
     assert_array_equal(actual, TEST_DATA_DENSE)
 

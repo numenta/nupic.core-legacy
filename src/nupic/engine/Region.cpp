@@ -55,18 +55,24 @@ Region::Region(std::string name, const std::string &nodeType,
                const std::string &nodeParams, Network *network)
     : name_(std::move(name)), type_(nodeType), initialized_(false),
       network_(network), profilingEnabled_(false) {
-  // Set region info before creating the RegionImpl so that the
+  // Set region spec and input/outputs before creating the RegionImpl so that the
   // Impl has access to the region info in its constructor.
   RegionImplFactory &factory = RegionImplFactory::getInstance();
   spec_ = factory.getSpec(nodeType);
+  createInputsAndOutputs_();
   impl_.reset(factory.createRegionImpl(nodeType, nodeParams, this));
 }
 
 Region::Region(Network *net) {
-      network_ = net;
-      initialized_ = false;
-      profilingEnabled_ = false;
-    } // for deserialization of region.
+  network_ = net;
+  initialized_ = false;
+  profilingEnabled_ = false;
+} // for deserialization of region.
+Region::Region() {
+  network_ = nullptr;
+  initialized_ = false;
+  profilingEnabled_ = false;
+} // for deserialization of region.
 
 
 Network *Region::getNetwork() { return network_; }
@@ -657,7 +663,7 @@ bool Region::isParameter(const std::string &name) const {
 }
 
 // Some functions used to prevent symbles from being in Region.hpp
-void Region::saveDims(std::map<std::string,Dimensions>& outDims,
+void Region::getDims_(std::map<std::string,Dimensions>& outDims,
                       std::map<std::string,Dimensions>& inDims) const {
   for(auto out: outputs_) {
     Dimensions& dim = out.second->getDimensions();
@@ -668,7 +674,7 @@ void Region::saveDims(std::map<std::string,Dimensions>& outDims,
     inDims[in.first] = dim;
   }
 }
-void Region::loadDims(std::map<std::string,Dimensions>& outDims,
+void Region::loadDims_(std::map<std::string,Dimensions>& outDims,
                      std::map<std::string,Dimensions>& inDims) const {
   for(auto out: outDims) {
       auto itr = outputs_.find(out.first);
@@ -684,17 +690,58 @@ void Region::loadDims(std::map<std::string,Dimensions>& outDims,
   }
 }
 
+void Region::getOutputBuffers_(std::map<std::string, Array>& buffers) const {
+	for (auto iter : outputs_) {
+    buffers[iter.first] = iter.second->getData();
+	}
+}
+
+void Region::restoreOutputBuffers_(const std::map<std::string, Array>& buffers) {
+  RegionImplFactory &factory = RegionImplFactory::getInstance();
+  spec_ = factory.getSpec(type_);
+  createInputsAndOutputs_();
+  for (auto output: buffers) {
+    Array& outputBuffer = getOutput(output.first)->getData();
+    outputBuffer = output.second;
+  }
+}
+
+
 void Region::serializeImpl(ArWrapper& arw) const{
     impl_->cereal_adapter_save(arw);
 }
 void Region::deserializeImpl(ArWrapper& arw) {
     RegionImplFactory &factory = RegionImplFactory::getInstance();
-    spec_ = factory.getSpec(type_);
-    createInputsAndOutputs_();
-
     impl_.reset(factory.deserializeRegionImpl(type_, arw, this));
 }
 
+std::ostream &operator<<(std::ostream &f, const Region &r) {
+  f << "Region: {\n";
+  f << "name: " << r.name_ << "\n";
+  f << "nodeType: " << r.type_ << "\n";
+  f << "phases: [ ";
+  for (const auto &phases_phase : r.phases_) {
+      f << phases_phase << " ";
+  }
+  f << "]\n";
+  f << "outputs: [\n";
+  for(auto out: r.outputs_) {
+    f << out.first << " " << out.second->getDimensions() << "\n";
+  }
+  f << "]\n";
+  f << "inputs: [\n";
+  for(auto in: r.inputs_) {
+    f << in.first << " " << in.second->getDimensions() << "\n";
+  }
+  f << "]\n";
+	// TODO: add region impl...maybe
+  //f << "RegionImpl:\n";
+  // Now serialize the RegionImpl plugin.
+  //BundleIO bundle(&f);
+  //impl_->serialize(bundle);
 
+  f << "}\n";
+  return f;
+}
 
 } // namespace nupic

@@ -139,7 +139,7 @@ other.)",
                 return self.size; },
             "The total number of boolean values in the SDR.");
 
-        py_SDR.def("zero", &SDR::zero,
+        py_SDR.def("zero", [](SDR *self) { self->zero(); return self; },
 R"(Set all of the values in the SDR to false.  This method overwrites the SDRs
 current value.)");
 
@@ -325,8 +325,11 @@ Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
 R"(See class nupic.bindings.sdr.Reshape)");
 
         py_SDR.def("flatten", [](SDR &self)
-            { return new Reshape(self, {self.size}); },
-R"(See class nupic.bindings.sdr.Reshape)");
+            {
+                auto flat = new SDR({ self.size });
+                flat->setSparse( self.getSparse() );
+                return flat; },
+R"(Returns a copy of this SDR with one big dimension, like numpy.ndarray.flatten())");
 
         py_SDR.def("intersection", [](SDR *self, SDR& inp1, SDR& inp2)
             { self->intersection({ &inp1, &inp2}); return self; },

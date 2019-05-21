@@ -109,11 +109,11 @@ namespace testing
 	  VERBOSE << "Creating network..." << std::endl;
 	  Network net;
 
-	  size_t regionCntBefore = net.getRegions().getCount();
+	  size_t regionCntBefore = net.getRegions().size();
 
 	  VERBOSE << "Adding a built-in SPRegion region..." << std::endl;
 	  std::shared_ptr<Region> region1 = net.addRegion("region1", "SPRegion", "");
-	  size_t regionCntAfter = net.getRegions().getCount();
+	  size_t regionCntAfter = net.getRegions().size();
 	  ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter) << " Expected number of regions to increase by one.  ";
 	  ASSERT_TRUE(region1->getType() == "SPRegion") << " Expected type for region1 to be \"SPRegion\" but type is: " << region1->getType();
 
@@ -135,7 +135,7 @@ namespace testing
     VERBOSE << "Creating network..." << std::endl;
     Network net;
 
-    size_t regionCntBefore = net.getRegions().getCount();
+    size_t regionCntBefore = net.getRegions().size();
 
     // make sure the custom region registration works for CPP.
     // We will just use the same SPRegion class but it could be a subclass or some different custom class.
@@ -147,7 +147,7 @@ namespace testing
     VERBOSE << "Adding a custom-built SPRegion region..." << std::endl;
     net.registerRegion("SPRegionCustom", new RegisteredRegionImplCpp<SPRegion>());
     std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegionCustom", nodeParams);
-    size_t regionCntAfter = net.getRegions().getCount();
+    size_t regionCntAfter = net.getRegions().size();
     ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter) 
       << "  Expected number of regions to increase by one.  ";
     ASSERT_TRUE(region2->getType() == "SPRegionCustom") 
@@ -303,105 +303,87 @@ namespace testing
 
 TEST(SPRegionTest, testSerialization)
 {
-	  // use default parameters the first time
-	  Network* net1 = new Network();
-	  Network* net2 = nullptr;
-	  Network* net3 = nullptr;
+  // NOTE: this test does end-to-end serialize and deserialize with the following modules:
+  //   Network, Region, Array, ScalerSensor, SPRegion, SpatialPooler, Connections, Random, Links
+  //
+	  // use default parameters
+	  Network net1;
+	  Network net2;
+	  Network net3;
 
-	  try {
+	  VERBOSE << "Setup first network and save it" << std::endl;
+    std::shared_ptr<Region> n1region1 = net1.addRegion("region1", "ScalarSensor", "{n: 100,w: 10,minValue: 1,maxValue: 10}");
+    std::shared_ptr<Region> n1region2 = net1.addRegion("region2", "SPRegion", "{columnCount: 20}");
+    net1.link("region1", "region2", "", "", "encoded", "bottomUpIn");
+    net1.initialize();
 
-		  VERBOSE << "Setup first network and save it" << std::endl;
-      std::shared_ptr<Region> n1region1 = net1->addRegion("region1", "ScalarSensor", "{n: 100,w: 10,minValue: 1,maxValue: 10}");
-      std::shared_ptr<Region> n1region2 = net1->addRegion("region2", "SPRegion", "{columnCount: 200}");
-      net1->link("region1", "region2", "UniformLink", "", "encoded", "bottomUpIn");
-      net1->initialize();
+    n1region1->setParameterReal64("sensedValue", 5.5);
+		net1.run(1);
 
-      n1region1->setParameterReal64("sensedValue", 5.5);
-      n1region1->prepareInputs();
-      n1region1->compute();
+    // take a snapshot of everything in SPRegion at this point
+    std::map<std::string, std::string> parameterMap;
+    EXPECT_TRUE(captureParameters(n1region2, parameterMap)) << "Capturing parameters before save.";
 
-      n1region2->prepareInputs();
-      n1region2->compute();
+    // TODO: JSON serialization does not work.
+    //    returns 3 (not really a crash)
+    // It fails returning from SpatialPooler, in rapidjson::PrettyWriter.h line 128
+    // It is apparently checking that it is not in array mode.
 
-      // take a snapshot of everything in SPRegion at this point
-      std::map<std::string, std::string> parameterMap;
-      EXPECT_TRUE(captureParameters(n1region2, parameterMap)) << "Capturing parameters before save.";
+    Directory::removeTree("TestOutputDir", true);
+    VERBOSE << "Writing stream to " << Path::makeAbsolute("TestOutputDir/spRegionTest.stream") << "\n";
+	  net1.saveToFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
 
-      Directory::removeTree("TestOutputDir", true);
-		  net1->saveToFile("TestOutputDir/spRegionTest.stream");
+    VERBOSE << "Restore from " << Path::makeAbsolute("TestOutputDir/spRegionTest.stream") 
+            << " into a second network and compare." << std::endl;
+    net2.loadFromFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
 
-		  VERBOSE << "Restore into a second network and compare." << std::endl;
-		  net2 = new Network();
-      net2->loadFromFile("TestOutputDir/spRegionTest.stream");
+	  std::shared_ptr<Region> n2region1 = net2.getRegion("region1");
+	  std::shared_ptr<Region> n2region2 = net2.getRegion("region2");
 
+	  ASSERT_TRUE (n2region2->getType() == "SPRegion") 
+	    << " Restored SPRegion region does not have the right type.  Expected SPRegion, found " << n2region2->getType();
 
-		  std::shared_ptr<Region> n2region2 = net2->getRegions().getByName("region2");
-
-		  ASSERT_TRUE (n2region2->getType() == "SPRegion") 
-		    << " Restored SPRegion region does not have the right type.  Expected SPRegion, found " << n2region2->getType();
-
-      EXPECT_TRUE(compareParameters(n2region2, parameterMap)) 
-        << "Conflict when comparing SPRegion parameters after restore with before save.";
+    EXPECT_TRUE(compareParameters(n2region2, parameterMap)) 
+      << "Conflict when comparing SPRegion parameters after restore with before save.";
       
-      EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spatialPoolerOutput", NTA_BasicType_SDR))
-          << " comparing Output arrays after restore with before save.";
-      EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spOutputNonZeros", NTA_BasicType_SDR))
-          << " comparing NZ out arrays after restore with before save.";
+    EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spatialPoolerOutput", NTA_BasicType_SDR))
+        << " comparing Output arrays after restore with before save.";
+    EXPECT_TRUE(compareParameterArrays(n1region2, n2region2, "spOutputNonZeros", NTA_BasicType_SDR))
+        << " comparing NZ out arrays after restore with before save.";
 
 
-		  // can we continue with execution?  See if we get any exceptions.
-      n1region1->setParameterReal64("sensedValue", 5.5);
-      n1region1->prepareInputs();
-      n1region1->compute();
+	  // can we continue with execution?  See if we get any exceptions.
+    n2region1->setParameterReal64("sensedValue", 5.5);
+    net2.run(2);
 
-      n2region2->prepareInputs();
-      n2region2->compute();
+	  // Change some parameters and see if they are retained after a restore.
+    n2region2->setParameterBool("globalInhibition", true);
+    n2region2->setParameterUInt32("numActiveColumnsPerInhArea", 20);
+    n2region2->setParameterReal32("potentialPct", 0.85f);
+    n2region2->setParameterReal32("synPermActiveInc", 0.04f);
+    n2region2->setParameterReal32("synPermInactiveDec", 0.005f);
+    n2region2->setParameterReal32("boostStrength", 3.0f);
+    net2.run(1);
 
-		  // Change some parameters and see if they are retained after a restore.
-      n2region2->setParameterBool("globalInhibition", true);
-      n2region2->setParameterUInt32("numActiveColumnsPerInhArea", 40);
-      n2region2->setParameterReal32("potentialPct", 0.85f);
-      n2region2->setParameterReal32("synPermActiveInc", 0.04f);
-      n2region2->setParameterReal32("synPermInactiveDec", 0.005f);
-      n2region2->setParameterReal32("boostStrength", 3.0f);
-      n2region2->compute();
+    parameterMap.clear();
+    EXPECT_TRUE(captureParameters(n2region2, parameterMap)) 
+      << "Capturing parameters before second save.";
+	  net2.saveToFile_ar("TestOutputDir/spRegionTest.stream");
 
-      parameterMap.clear();
-      EXPECT_TRUE(captureParameters(n2region2, parameterMap)) 
-        << "Capturing parameters before second save.";
-		  net2->saveToFile("TestOutputDir/spRegionTest.stream");
+	  VERBOSE << "Restore into a third network.\n";
+    net3.loadFromFile_ar("TestOutputDir/spRegionTest.stream");
+	  VERBOSE << "Compare changed parameters.\n";
+	  std::shared_ptr<Region> n3region2 = net3.getRegion("region2");
+    EXPECT_TRUE(n3region2->getType() == "SPRegion")
+        << "Failure: Restored region does not have the right type. "
+            " Expected \"SPRegion\", found \""
+        << n3region2->getType() << "\".";
 
-		  VERBOSE << "Restore into a third network and compare changed parameters.\n";
-		  net3 = new Network();
-      net3->loadFromFile("TestOutputDir/spRegionTest.stream");
-		  std::shared_ptr<Region> n3region2 = net3->getRegions().getByName("region2");
-      EXPECT_TRUE(n3region2->getType() == "SPRegion")
-          << "Failure: Restored region does not have the right type. "
-              " Expected \"SPRegion\", found \""
-          << n3region2->getType() << "\".";
-
-      EXPECT_TRUE(compareParameters(n3region2, parameterMap))
-          << "Comparing parameters after second restore with before save.";
-
-
-	  }
-	  catch (nupic::Exception& ex) {
-		  FAIL() << "Failure: Exception: " << ex.getFilename() << "(" 
-        << ex.getLineNumber() << ") " << ex.getMessage() << "" << std::endl;
-	  }
-	  catch (std::exception& e) {
-		  FAIL() << "Failure: Exception: " << e.what() << "" << std::endl;
-	  }
-
+    EXPECT_TRUE(compareParameters(n3region2, parameterMap))
+        << "Comparing parameters after second restore with before save.";
 
     // cleanup
-    if (net1 != nullptr) {
-      delete net1;
-    }
-	  if (net2 != nullptr) { delete net2; }
-	  if (net3 != nullptr) { delete net3; }
     Directory::removeTree("TestOutputDir", true);
-
 	}
 
 

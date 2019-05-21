@@ -396,8 +396,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
   net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream");
   net2.initialize();
 
-  auto n2region1 = net2.getRegions().getByName("region1");
-  auto n2region2 = net2.getRegions().getByName("region2");
+  auto n2region1 = net2.getRegion("region1");
+  auto n2region2 = net2.getRegion("region2");
 
   Input *n2in1 = n2region1->getInput("bottomUpIn");
   Input *n2in2 = n2region2->getInput("bottomUpIn");
