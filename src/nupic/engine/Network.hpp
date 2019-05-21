@@ -130,42 +130,25 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
-	  std::map<std::string, std::shared_ptr<Region>> regions;
-    for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter) {
-			regions[iter->first] = iter->second;
-		}
     const std::vector<std::shared_ptr<Link>> links = getLinks();
     std::string name = "Network";
-    ar(cereal::make_nvp("name", name),
-       cereal::make_nvp("iteration", iteration_));
-    ar(cereal::make_nvp("Regions", regions));
+    ar(cereal::make_nvp("name", name));
+    ar(cereal::make_nvp("iteration", iteration_));
+    ar(cereal::make_nvp("Regions", regions_));
     ar(cereal::make_nvp("links", links));
-
   }
   
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
-	  std::map<std::string, std::shared_ptr<Region>> regions;
     std::vector<std::shared_ptr<Link>> links;
     std::string name;
-    ar(cereal::make_nvp("name", name),  // ignore value
-       cereal::make_nvp("iteration", iteration_));
-    ar(cereal::make_nvp("Regions", regions));
-    for(auto p: regions) {
-			addRegion(p.second);
-    }
+    ar(cereal::make_nvp("name", name));  // ignore value
+    ar(cereal::make_nvp("iteration", iteration_));
+    ar(cereal::make_nvp("Regions", regions_));
     ar(cereal::make_nvp("links", links));
-    for(auto alink: links) {
-      auto l = link( alink->getSrcRegionName(),
-                     alink->getDestRegionName(),
-                     "", "",
-                     alink->getSrcOutputName(),
-                     alink->getDestInputName(),
-                     alink->getPropagationDelay());
-      l->propagationDelayBuffer_ = alink->propagationDelayBuffer_;
-    }
-    post_load();
+
+    post_load(links);
   }
 
   /**
@@ -277,8 +260,9 @@ public:
    * Get all regions.
    *
    * @returns A Collection of Region objects in the network
+   *          Note: this is a copy of the region list.
    */
-  const Collection<std::shared_ptr<Region> > &getRegions() const;
+  const Collection<std::shared_ptr<Region> > getRegions() const;
   std::shared_ptr<Region> getRegion(const std::string& name) const;
 
   /**
@@ -464,6 +448,7 @@ private:
 
   // perform actions after serialization load
   void post_load();
+  void post_load(std::vector<std::shared_ptr<Link>>& links);
 
   // internal method using region pointer instead of name
   void setPhases_(Region *r, std::set<UInt32> &phases);
@@ -477,7 +462,14 @@ private:
   void resetEnabledPhases_();
 
   bool initialized_;
-  Collection<std::shared_ptr<Region>> regions_;
+	
+	/**
+	 * The list of regions registered with the Network.
+	 * Internally this is a map so it is easy to serialize
+	 * but externally this is a Collection object so it
+	 * retains API compatability.
+	 */
+  std::map<std::string, std::shared_ptr<Region>> regions_;
 
   UInt32 minEnabledPhase_;
   UInt32 maxEnabledPhase_;
