@@ -75,7 +75,6 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   args_.sequencePos = 0;
   args_.outputWidth = (args_.orColumnOutputs)?args_.numberOfCols
                                              : (args_.numberOfCols * args_.cellsPerColumn);
-  args_.init = false;
   tm_ = nullptr;
 }
 
@@ -83,6 +82,11 @@ TMRegion::TMRegion(BundleIO &bundle, Region *region)
     : RegionImpl(region), computeCallback_(nullptr) {
   tm_ = nullptr;
   deserialize(bundle);
+}
+TMRegion::TMRegion(ArWrapper& wrapper, Region *region) 
+    : RegionImpl(region), computeCallback_(nullptr) {
+  tm_ = nullptr;
+  cereal_adapter_load(wrapper);
 }
 
 TMRegion::~TMRegion() {
@@ -183,8 +187,6 @@ void TMRegion::initialize() {
 
   args_.iter = 0;
   args_.sequencePos = 0;
-  args_.init = true;
-
 }
 
 void TMRegion::compute() {
@@ -835,9 +837,10 @@ void TMRegion::serialize(BundleIO &bundle) {
   // would make a readable format, or we could serialize directly to the
   // stream Choose the easier one.
   UInt version = VERSION;
-  args_.init = ((tm_) ? true : false);
+  bool init = ((tm_) ? true : false);
 
   f << "TMRegion " << version << std::endl;
+  f << init << " ";
   f << sizeof(args_) << " ";
   f.write((const char*)&args_, sizeof(args_));
   f << columnDimensions_ << " ";
@@ -869,6 +872,7 @@ void TMRegion::deserialize(BundleIO &bundle) {
   UInt version;
   Size len;
   std::string tag;
+  bool init = false;
 
   f >> tag;
   if (tag != "TMRegion") {
@@ -879,6 +883,7 @@ void TMRegion::deserialize(BundleIO &bundle) {
   }
   f >> version;
   NTA_CHECK(version >= VERSION) << "TMRegion deserialization, Expecting version 1 or greater.";
+  f >> init;
   f >> len;
   NTA_CHECK(len == sizeof(args_)) << "TMRegion deserialization, saved size of "
                                      "structure args_ is wrong: " << len;
@@ -902,7 +907,7 @@ void TMRegion::deserialize(BundleIO &bundle) {
 
   f >> std::ws;  // ignore whitespace
 
-  if (args_.init) {
+  if (init) {
     TemporalMemory* tm = new TemporalMemory();
     tm_.reset(tm);
 
