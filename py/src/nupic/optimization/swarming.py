@@ -23,15 +23,17 @@
 # TODO: Add notes to experiment summaries that they were created by swarming.
 
 # TODO: Make CLI Arguments for these global constants: particle_strength, global_strength, velocity_strength
-particle_strength   =  .25
-global_strength     =  .50
-velocity_strength   =  .95
+particle_strength   =  .12
+global_strength     =  .25
+velocity_strength   =  .90
 assert(velocity_strength + particle_strength / 2 + global_strength / 2 >= 1)
 
 import sys
 import os
 import random
 import pickle
+import numpy as np
+import math
 
 from nupic.optimization.parameter_set import ParameterSet
 from nupic.optimization.optimizers import BaseOptimizer
@@ -45,30 +47,37 @@ class ParticleData:
         p.score      - float
         p.age        - Number of times this particle has been evaluated/updated.
     """
-    def __init__(self, default_parameters):
-        self.parameters = ParameterSet( default_parameters )
+    def __init__(self, initial_parameters, swarm=None):
+        self.parameters = ParameterSet( initial_parameters )
         self.best       = None
         self.best_score = None
         self.age        = 0
-        self.initialize_velocities()
+        self.initialize_velocities(swarm)
 
-    def initialize_velocities(self):
+    def initialize_velocities(self, swarm=None):
         # Make a new parameter structure for the velocity data.
         self.velocities = ParameterSet( self.parameters )
         # Iterate through every field in the structure.
         for path in self.parameters.enumerate():
             value = self.parameters.get(path)
-            max_percent_change = 10
-            uniform = 2 * random.random() - 1
-            if isinstance(value, float):
-                velocity = value * uniform * (max_percent_change / 100.)
-            elif isinstance(value, int):
-                if abs(value) < 10:
-                    velocity = uniform
-                else:
-                    velocity = value * uniform * (max_percent_change / 100.)
+            if swarm is not None:
+                # Analyse the other particle velocities, so that the new
+                # velocity is not too large or too small.
+                data = [p.velocities.get(path) for p in swarm if p is not self]
+                velocity = np.random.normal(np.mean(data), np.std(data))
             else:
-                raise NotImplementedError()
+                # New swarm, start with a large random velocity.
+                max_percent_change = .10
+                uniform = 2 * random.random() - 1
+                if isinstance(value, float):
+                    velocity = value * uniform * max_percent_change
+                elif isinstance(value, int):
+                    if abs(value) < 1. / max_percent_change:
+                        velocity = uniform # Parameters are rounded, so 50% chance this will mutate.
+                    else:
+                        velocity = value * uniform * max_percent_change
+                else:
+                    raise NotImplementedError()
             self.velocities.apply( path, velocity )
 
     def update_position(self):
@@ -92,12 +101,12 @@ class ParticleData:
 
     def update(self, score, global_best):
         self.age += 1
-        self.update_position()
-        self.update_velocity( global_best )
         if self.best is None or score > self.best_score:
-            self.best       = self.parameters
+            self.best       = ParameterSet( self.parameters )
             self.best_score = score
             print("New particle best score %g."%self.best_score)
+        self.update_position()
+        self.update_velocity( global_best )
 
 
 class ParticleSwarmOptimization(BaseOptimizer):
@@ -148,12 +157,11 @@ class ParticleSwarmOptimization(BaseOptimizer):
                 new_particle = ParticleData( self.best )
             else:
                 new_particle = ParticleData( self.lab.default_parameters )
-            self.swarm.append( new_particle )
             # Evaluate the default parameters a few times, before branching out
             # to the more experimental stuff.
-            if( len(self.swarm) > 3 ):
+            if( len(self.swarm) >= 3 ):
                 new_particle.update_position()
-                new_particle.update_position()
+            self.swarm.append( new_particle )
 
     def suggest_parameters(self):
         particle_data = self.swarm[self.next_particle]
@@ -162,11 +170,14 @@ class ParticleSwarmOptimization(BaseOptimizer):
         return particle_data.parameters
 
     def collect_results(self, parameters, score):
+        # Get the particle for these parameters.
         for particle in self.swarm:
             if particle.parameters == parameters:
                 break
+        else:
+            raise Exception("Unrecognized parameters!")
 
-        if isinstance(score, Exception):
+        if isinstance(score, Exception) or math.isnan(score):
             # Program crashed, replace this particle.
             if particle.best is not None:
                 particle.parameters = ParameterSet( particle.best )
@@ -174,15 +185,15 @@ class ParticleSwarmOptimization(BaseOptimizer):
                 particle.parameters = ParameterSet( self.best )
             else:
                 particle.parameters = ParameterSet( self.lab.default_parameters)
-            particle.initialize_velocities()
+            particle.initialize_velocities( self.swarm )
             particle.update_position()
         else:
             # Update with results of this particles evaluation.
-            particle.update( score, self.best )
             if self.best is None or score > self.best_score:
-                self.best       = particle.parameters
+                self.best       = ParameterSet( particle.parameters )
                 self.best_score = score
                 print("New global best score %g."%score)
+            particle.update( score, self.best )
         self.save()
 
     def save(self):
@@ -194,6 +205,7 @@ class ParticleSwarmOptimization(BaseOptimizer):
         with open(self.swarm_path, 'rb') as file:
             data = pickle.load( file )
         self.swarm, self.best, self.best_score = data
+        print( self.summary() )
 
     def clear_scores(self):
         try:
@@ -206,4 +218,33 @@ class ParticleSwarmOptimization(BaseOptimizer):
                 entry.best_score = float('-inf')
             self.save()
             print("Removed scores from Particle Swarm.")
+
+    def summary(self):
+        swarm = [p for p in self.swarm if p.age > 0]
+        s  = "Number of particles %d\n"%len(swarm)
+        s += "Number of evaluations %d\n"%sum(p.age for p in swarm)
+        if not swarm:
+            return s
+        # Print statistical summary of swarm.
+        best = [p.best_score for p in swarm if p.best_score is not None]
+        s += ("Best score Min/Mean/Std/Max %g / %g / %g / %g\n"%
+                            (min(best), np.mean(best), np.std(best), max(best)))
+        str_len = max( len(p) for p in swarm[0].parameters.enumerate() )
+        s += "\nParameters, Min/Mean/Std/Max:\n"
+        for path in swarm[0].parameters.enumerate():
+            data = []
+            for p in swarm:
+                data.append( p.parameters.get( path ) )
+            s += path.ljust(str_len) + "\t%g / %g / %g / %g\n"%( # TODO: Center these data fields...
+                                min(data), np.mean(data), np.std(data), max(data))
+        s += "\nVelocities, Min/Mean/Std/Max:\n"
+        for path in swarm[0].parameters.enumerate():
+            data = []
+            for p in swarm:
+                data.append( p.velocities.get( path ) )
+            s += path.ljust(str_len) + "\t%g / %g / %g / %g\n"%( # TODO: Center these data fields...
+                                min(data), np.mean(data), np.std(data), max(data))
+
+        s += "\n\nBest Parameters " + str(self.best)
+        return s
 

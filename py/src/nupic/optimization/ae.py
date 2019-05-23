@@ -80,8 +80,9 @@ the program, as well as diagnostic information such as timestamps and memory
 usage reports.
 """
 
-# TODO: Default parameters need better handling...  When they change, update
-# all of the modifications to be diffs from the new parameters?
+# TODO: Default parameters need better handling...  When they change, update all
+# of the modifications to be diffs from the new parameters?  I could scrape the
+# correct parameters from the experiment journal.
 
 # TODO: Maybe the command line invocation should be included in the experiment
 # hash?  Then I could experiment with the CLI args within a single lab report.
@@ -107,6 +108,9 @@ usage reports.
 # parameters instead of the modifications.  This is useful for swarming which
 # touches every parameter.
 
+# TODO: Add a field to each experiment summary stating how many times it has
+# crashed?
+
 import argparse
 import os
 import sys
@@ -123,6 +127,14 @@ import numpy as np
 import scipy.stats
 
 from nupic.optimization.parameter_set import ParameterSet
+
+acceptable_exceptions = [
+    TypeError,
+    ValueError,
+    MemoryError,
+    ZeroDivisionError,
+    AssertionError,
+    RuntimeError,]
 
 class Experiment:
     """
@@ -537,34 +549,36 @@ class Worker(Process):
             experiment_journal.write(Laboratory.section_divider)
             experiment_journal.write(content)
         os.remove( self.journal )
+        self.journal = content
 
     def collect_score(self, experiment):
         """
         Get the score returned by this run, saved as attribute 'score'.
         Score may be an exception raised by the experiment.
         """
-        assert( self.output.poll(0) )
         experiment.attempts += 1
-        self.score = self.output.recv()
-        if not isinstance(self.score, Exception):
-            experiment.scores.append(self.score)
-        else:
-            for err in (ValueError, MemoryError, ZeroDivisionError, AssertionError, RuntimeError):
-                if isinstance( self.score, err ):
-                    print("")
-                    print( str( experiment.parameters ))
-                    print("Hash: %X" % hash( experiment.parameters ))
-                    print("%s:"%(type( self.score).__name__),  self.score)
-                    print("")
-                    break
+        if self.output.poll(0):
+            self.score = self.output.recv()
+            if not isinstance(self.score, Exception):
+                experiment.scores.append(self.score)
             else:
                 print("")
-                print( str( experiment.parameters ))
+                print("Parameters", str( experiment.parameters ))
                 print("Hash: %X" % hash( experiment.parameters ))
-                print("%s:"%(type(self.result).__name__), self.result)
-                print("Unhandled Exception.")
                 print("")
-                raise
+                print("%s:"%(type( self.score).__name__),  self.score)
+                print("")
+                for err in acceptable_exceptions:
+                    if isinstance( self.score, err ):
+                        break
+                else:
+                    print("Unhandled Exception, Exit.")
+                    sys.exit(1)
+        else:
+            # No output from python?  Something went very wrong!
+            print( self.journal )
+            print("Error, Exit.")
+            sys.exit(1)
 
 
 if __name__ == '__main__':
