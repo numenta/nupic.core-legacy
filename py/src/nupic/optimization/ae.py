@@ -583,7 +583,7 @@ class Worker(Process):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--verbose', action='store_true',
+    parser.add_argument('-v', '--verbose', action='store_true',
         help='Passed onto the experiment\'s main function.')
     parser.add_argument('--tag', type=str,
         help='Optional string appended to the name of the AE directory.  Use tags to '

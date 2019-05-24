@@ -22,10 +22,11 @@
 
 # TODO: Add notes to experiment summaries that they were created by swarming.
 
-# TODO: Make CLI Arguments for these global constants: particle_strength, global_strength, velocity_strength
+# TODO: Make CLI Arguments for these global constants?
 particle_strength   =  .12
 global_strength     =  .25
 velocity_strength   =  .90
+score_decay_rate    =  .001
 assert(velocity_strength + particle_strength / 2 + global_strength / 2 >= 1)
 
 import sys
@@ -101,6 +102,8 @@ class ParticleData:
 
     def update(self, score, global_best):
         self.age += 1
+        if self.best_score is not None:
+            self.best_score *= 1 - score_decay_rate
         if self.best is None or score > self.best_score:
             self.best       = ParameterSet( self.parameters )
             self.best_score = score
@@ -189,6 +192,8 @@ class ParticleSwarmOptimization(BaseOptimizer):
             particle.update_position()
         else:
             # Update with results of this particles evaluation.
+            if self.best_score is not None:
+                self.best_score *= 1 - score_decay_rate / len(self.swarm)
             if self.best is None or score > self.best_score:
                 self.best       = ParameterSet( particle.parameters )
                 self.best_score = score
