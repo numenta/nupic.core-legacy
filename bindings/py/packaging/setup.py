@@ -204,10 +204,6 @@ def generateExtensions():
     PY_VER = "-DBINDING_BUILD=Python2"
 
   print("Python version: {}\n".format(sys.version))
-  #detect Anaconda python interpreter
-  is_conda = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
-  if is_conda:
-    raise Exception("Anaconda python not supported!\n")
 
   scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
   try:
