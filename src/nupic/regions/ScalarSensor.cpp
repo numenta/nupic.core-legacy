@@ -264,5 +264,22 @@ void ScalarSensor::deserialize(BundleIO &bundle) {
   initialize();
 }
 
+bool ScalarSensor::operator==(const RegionImpl &o) const {
+  if (o.getType() != "ScalarSensor") return false;
+  ScalarSensor& other = (ScalarSensor&)o;
+  if (params_.minimum != other.params_.minimum) return false;
+  if (params_.maximum != other.params_.maximum) return false;
+  if (params_.clipInput != other.params_.clipInput) return false;
+  if (params_.periodic != other.params_.periodic) return false;
+  if (params_.activeBits != other.params_.activeBits) return false;
+  if (params_.sparsity != other.params_.sparsity) return false;
+  if (params_.size != other.params_.size) return false;
+  if (params_.radius != other.params_.radius) return false;
+  if (params_.resolution != other.params_.resolution) return false;
+  if (sensedValue_ != other.sensedValue_) return false;
+
+  return true;
+}
+
 
 } // namespace nupic

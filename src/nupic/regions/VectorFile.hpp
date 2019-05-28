@@ -120,9 +120,7 @@ public:
 
   /// Save vectors, unscaled, to a file with the specified format.
   void saveVectors(std::ostream &out, Size nColumns, UInt32 fileFormat,
-                   Int64 begin = 0, const char *lineEndings = nullptr);
-  void saveVectors(std::ostream &out, Size nColumns, UInt32 fileFormat,
-                   Int64 begin, Int64 end, const char *lineEndings = nullptr);
+                   Int64 begin, Int64 end, const char *lineEndings = nullptr) const;
 
   void save(std::ostream &f);
   void load(std::istream &f);
@@ -132,9 +130,9 @@ public:
 	void save_ar(Archive& ar) const { 
 	  UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
 		size_t nRows = fileVectors_.size();
-		size_t nCols = scaleVector_.size();
+		Size nCols = scaleVector_.size();
 		std::stringstream ss;
-	  saveVectors(ss, nCols, format);
+	  saveVectors(ss, nCols, format, 0, fileVectors_.size(), nullptr);
 		std::string data = ss.str();
     ar(cereal::make_nvp("format", format),
 		   cereal::make_nvp("nRows", nRows),
@@ -144,7 +142,7 @@ public:
 			 cereal::make_nvp("data", data));
 	}
   template<class Archive>
-	void load(Archive& ar) { 
+	void load_ar(Archive& ar) { 
 	  UInt32 format;     // format (1 if labled, 2 if not)
 		size_t nRows;
 		size_t nCols;

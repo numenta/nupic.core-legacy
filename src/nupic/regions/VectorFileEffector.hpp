@@ -72,9 +72,7 @@ public:
   VectorFileEffector(const ValueMap &params, Region *region);
 
   VectorFileEffector(BundleIO &bundle, Region *region);
-  VectorFileEffector(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
-    // TODO:cereal  complete.
-  }
+  VectorFileEffector(ArWrapper& wrapper, Region *region);
 
   virtual ~VectorFileEffector();
 
@@ -94,6 +92,7 @@ public:
   template<class Archive>
   void save_ar(Archive& ar) const {
     ar(cereal::make_nvp("outputFile", filename_));
+    ar(CEREAL_NVP(dim_));  // in base class
   }
 
   // FOR Cereal Deserialization
@@ -102,7 +101,13 @@ public:
     ar(cereal::make_nvp("outputFile", filename_));
 		if (filename_ != "")
 		      openFile(filename_);
+    ar(CEREAL_NVP(dim_));  // in base class
   }	
+
+  bool operator==(const RegionImpl &other) const override;
+  inline bool operator!=(const VectorFileEffector &other) const {
+    return !operator==(other);
+  }
 
 
   void compute() override;

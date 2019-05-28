@@ -56,6 +56,7 @@
 #include <nupic/os/Directory.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
 #include <nupic/regions/SPRegion.hpp>
+#include <nupic/utils/LogItem.hpp>
 
 
 #include <string>
@@ -76,11 +77,11 @@
 #include "RegionTestUtilities.hpp"
 
 #define VERBOSE if(verbose)std::cerr << "[          ] "
-static bool verbose = true;  // turn this on to print extra stuff for debugging the test.
+static bool verbose = false;  // turn this on to print extra stuff for debugging the test.
 
 // The following string should contain a valid expected Spec - manually verified. 
 #define EXPECTED_EFFECTOR_SPEC_COUNT  1  // The number of parameters expected in the VectorFileEffector Spec
-#define EXPECTED_SENSOR_SPEC_COUNT  9    // The number of parameters expected in the VectorFileSensor Spec
+#define EXPECTED_SENSOR_SPEC_COUNT  11    // The number of parameters expected in the VectorFileSensor Spec
 
 using namespace nupic;
 namespace testing 
@@ -88,7 +89,8 @@ namespace testing
 
   //  forward declarations;  Find function body below.
   static bool compareFiles(const std::string& p1, const std::string& p2); 
-	static void createTestData(size_t dataWidth,
+	static void createTestData(size_t dataRows, 
+                             size_t dataWidth,
                              const std::string& test_input_file,
                              const std::string& test_output_file);
 
@@ -115,14 +117,50 @@ namespace testing
     // create an Sensor region with default parameters
     std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor", "");  // use default configuration
 
-		std::set<std::string> excluded;
+    std::set<std::string> excluded = {"scalingMode", "position"};
     checkGetSetAgainstSpec(region1, EXPECTED_SENSOR_SPEC_COUNT, excluded, verbose);
     checkInputOutputsAgainstSpec(region1, verbose);
 
   }
 
+  
+	TEST(VectorFileTest, Seeking)
+	{
+    std::string test_input_file = "TestOutputDir/TestInput.csv";
+    std::string test_output_file = "TestOutputDir/TestOutput.csv";
+    size_t dataWidth = 10;
+    size_t dataRows = 10;
+		createTestData(dataRows, dataWidth, test_input_file, test_output_file);
 
-	TEST(SPRegionTest, testLinking)
+    Network net;
+    std::string params = "{dim: " + std::to_string(dataWidth) + "}";
+    std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor", params);
+    EXPECT_EQ(region1->getParameterInt32("position"), -1);
+
+    region1->executeCommand({ "loadFile", test_input_file });
+    EXPECT_EQ(region1->getParameterInt32("position"), 9);
+    net.run(1);
+
+    EXPECT_EQ(region1->getParameterInt32("position"), 0);
+    Array a = region1->getOutputData("dataOut");
+    VERBOSE << "1st vector=" << a << std::endl;
+    Array expected1(std::vector<Real32>({ 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f }));
+    EXPECT_TRUE(a == expected1);
+
+
+    region1->setParameterInt32("position", 5);
+    net.run(1);
+    EXPECT_EQ(region1->getParameterInt32("position"), 5);
+    a = region1->getOutputData("dataOut");
+    VERBOSE << "5th vector=" << a << std::endl;
+    Array expected5(std::vector<Real32>({ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f }));
+    EXPECT_TRUE(a == expected5);
+
+    // cleanup
+    Directory::removeTree("TestOutputDir", true);
+  }
+
+	TEST(VectorFileTest, testLinking)
 	{
     // This is a minimal end-to-end test containing an Effector and a Sensor region
     // this test will hook up the VectorFileSensor to a VectorFileEffector to capture the results.
@@ -130,7 +168,8 @@ namespace testing
     std::string test_input_file = "TestOutputDir/TestInput.csv";
     std::string test_output_file = "TestOutputDir/TestOutput.csv";
     size_t dataWidth = 10;
-		createTestData(dataWidth, test_input_file, test_output_file);
+    size_t dataRows = 10;
+		createTestData(dataRows, dataWidth, test_input_file, test_output_file);
 
 
     VERBOSE << "Setup Network; add 2 regions and 1 link." << std::endl;
@@ -153,51 +192,59 @@ namespace testing
     net.initialize();
 
     VERBOSE << "Execute once." << std::endl;
+    //LogItem::setLogLevel(LogLevel_Verbose);
     net.run(1);
+    //LogItem::setLogLevel(LogLevel_None);
 
 	  VERBOSE << "Checking data after first iteration..." << std::endl;
+    EXPECT_EQ(region1->getParameterInt32("position"), 0);
     VERBOSE << "  VectorFileSensor Output" << std::endl;
     Array r1OutputArray = region1->getOutputData("dataOut");
     EXPECT_EQ(r1OutputArray.getCount(), dataWidth);
     EXPECT_TRUE(r1OutputArray.getType() == NTA_BasicType_Real32)
             << "actual type is " << BasicType::getName(r1OutputArray.getType());
 
-    Real32 *buffer1 = (Real32*) r1OutputArray.getBuffer();
-		VERBOSE << "  VectorFileEffector output: " << r1OutputArray << std::endl;
-    VERBOSE << "  SPRegion input: " << std::endl;
-		
-
-	  // execute network several more times and check that it has output.
-    VERBOSE << "Execute 9 times." << std::endl;
-    net.run(9);
-
-    VERBOSE << "  VectorFileEffector input" << std::endl;
     Array r3InputArray = region3->getInputData("dataIn");
     ASSERT_TRUE(r3InputArray.getType() == NTA_BasicType_Real32)
       << "actual type is " << BasicType::getName(r3InputArray.getType());
     ASSERT_TRUE(r3InputArray.getCount() == dataWidth);
-    const Real32 *buffer4 = (const Real32*)r3InputArray.getBuffer();
-    for (size_t i = 0; i < r3InputArray.getCount(); i++)
-    {
-      //VERBOSE << "  [" << i << "]=    " << buffer4[i] << "" << std::endl;
-      ASSERT_TRUE(buffer1[i] == buffer4[i])
-        << " Buffer content different. Element[" << i << "] from Sensor out is " << buffer1[i] << ", input to VectorFileEffector is " << buffer4[i];
-    }
+
+		VERBOSE << "  VectorFileSensor  output: " << r1OutputArray << std::endl;
+    VERBOSE << "  VectorFileEffector input: " << r3InputArray << std::endl;
+		
+
+	  // execute network several more times and check that it has output.
+    VERBOSE << "Execute 9 more times." << std::endl;
+    net.run(9);
+    EXPECT_EQ(region1->getParameterInt32("position"), 9);
+
+
+    r1OutputArray = region1->getOutputData("dataOut");
+    r3InputArray = region3->getInputData("dataIn");
+		VERBOSE << "  VectorFileSensor  output: " << r1OutputArray << std::endl;
+    VERBOSE << "  VectorFileEffector input: " << r3InputArray << std::endl;
+    EXPECT_TRUE(r3InputArray == r1OutputArray);
 
     // cleanup
     region3->executeCommand({ "closeFile" });
 		
 		// Compare files
     ASSERT_TRUE(compareFiles(test_input_file, test_output_file)) << "Files should be the same.";
+
+    VERBOSE << "Execute 1 more time to verify the wrap." << std::endl;
+    net.run(1);
+    // The current position should be 0 because it wraps at 10.
+    EXPECT_EQ(region1->getParameterInt32("position"), 0);
 }
 
 
-TEST(SPRegionTest, testSerialization)
+TEST(VectorFileTest, testSerialization)
 {
     std::string test_input_file = "TestOutputDir/TestInput.csv";
     std::string test_output_file = "TestOutputDir/TestOutput.csv";
     size_t dataWidth = 10;
-		createTestData(dataWidth, test_input_file, test_output_file);
+    size_t dataRows = 10;
+		createTestData(dataRows, dataWidth, test_input_file, test_output_file);
 		
 	  // use default parameters the first time
 	  Network net1;
@@ -218,12 +265,12 @@ TEST(SPRegionTest, testSerialization)
 	  net1.saveToFile_ar("TestOutputDir/VectorFileTest.stream");
 
 	  VERBOSE << "Restore into a second network and compare." << std::endl;
-    net3.loadFromFile("TestOutputDir/VectorFileTest.stream");
+    net3.loadFromFile_ar("TestOutputDir/VectorFileTest.stream");
 	  std::shared_ptr<Region> n3region1 = net3.getRegion("region1");
 	  std::shared_ptr<Region> n3region3 = net3.getRegion("region3");
 
-    EXPECT_TRUE(n1region1 == n3region1);
-    EXPECT_TRUE(n1region3 == n3region3);
+    EXPECT_TRUE(*n1region1.get() == *n3region1.get());
+    EXPECT_TRUE(*n1region3.get() == *n3region3.get());
 
     // cleanup
     Directory::removeTree("TestOutputDir", true);
@@ -252,7 +299,7 @@ TEST(SPRegionTest, testSerialization)
 	                    std::istreambuf_iterator<char>(f2.rdbuf()));
 	}
 	
-	static void createTestData(size_t dataWidth,
+	static void createTestData(size_t dataRows, size_t dataWidth,
                              const std::string& test_input_file,
                              const std::string& test_output_file) {
 	    // make a place to put test data.
@@ -262,13 +309,13 @@ TEST(SPRegionTest, testSerialization)
 
     // Create a csv file to use as input.
     // The SDR data we will feed it will be a matrix with 1's on the diagonal
-    // and we will feed it one row at a time, for 10 rows.
-    size_t dataRows = 10;
+    // and we will feed it one row at a time, for 'dataRows' rows.
     std::ofstream  f(test_input_file.c_str());
-    for (size_t i = 0; i < 10; i++) {
+    for (size_t i = 0; i < dataRows; i++) {
       for (size_t j = 0; j < dataWidth; j++) {
-        if ((j % dataRows) == i) f << "1.0,";
-        else f << "0.0,";
+        if (j > 0) f << ",";
+        if ((j % dataRows) == i) f << "1";
+        else f << "0";
       }
       f << std::endl;
     }

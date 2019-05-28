@@ -500,6 +500,13 @@ public:
   // De-serialize state. Must be called from deserializing constructor
   void deserialize(BundleIO &bundle) override {}
 
+  
+  bool operator==(const RegionImpl &other) const override { return true; }
+  inline bool operator!=(const TestRegionBase &other) const {
+    return !operator==(other);
+  }
+
+
 
   // Execute a command
   std::string executeCommand(const std::vector<std::string> &args,

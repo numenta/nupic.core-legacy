@@ -94,6 +94,7 @@ public:
        CEREAL_NVP(real32Param_),
        CEREAL_NVP(real64Param_),
        CEREAL_NVP(boolParam_),
+       CEREAL_NVP(stringParam_),
        CEREAL_NVP(outputElementCount_),
        CEREAL_NVP(delta_),
        CEREAL_NVP(iter_));
@@ -104,6 +105,7 @@ public:
        CEREAL_NVP(boolArrayParam_),
        CEREAL_NVP(unclonedParam_),
        CEREAL_NVP(shouldCloneParam_),
+       CEREAL_NVP(possiblyUnclonedParam_),
        CEREAL_NVP(unclonedInt64ArrayParam_));
   }
   // FOR Cereal Deserialization
@@ -121,6 +123,7 @@ public:
        CEREAL_NVP(real32Param_),
        CEREAL_NVP(real64Param_),
        CEREAL_NVP(boolParam_),
+       CEREAL_NVP(stringParam_),
        CEREAL_NVP(outputElementCount_),
        CEREAL_NVP(delta_),
        CEREAL_NVP(iter_));
@@ -131,7 +134,13 @@ public:
        CEREAL_NVP(boolArrayParam_),
        CEREAL_NVP(unclonedParam_),
        CEREAL_NVP(shouldCloneParam_),
+       CEREAL_NVP(possiblyUnclonedParam_),
        CEREAL_NVP(unclonedInt64ArrayParam_));
+  }
+
+  bool operator==(const RegionImpl &other) const override;
+  inline bool operator!=(const TestNode &other) const {
+    return !operator==(other);
   }
 
 

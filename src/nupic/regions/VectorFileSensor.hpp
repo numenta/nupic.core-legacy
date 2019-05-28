@@ -189,9 +189,11 @@ public:
   //                       "0" /* defaultValue */);
   //
   //      nsb.addParameter("position",
-  //                       "uint32",
+  //                       "int32",
   //                       "Set or get the current position within the list of
-  //                       vectors in memory.", 1, /* elementCount */ "getset",
+  //                       vectors in memory. Index of last output.  Will wrap.", 
+  //                       1, /* elementCount */ 
+  //                       "getset",
   //                       "interval: [0, ...]",
   //                       "0" /* defaultValue */);
   //
@@ -273,11 +275,13 @@ public:
   size_t getNodeOutputElementCount(const std::string &outputName) const override;
 
   virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
+  virtual Int32 getParameterInt32(const std::string &name, Int64 index = -1) override;
   virtual std::string getParameterString(const std::string &name, Int64 index = -1) override;
   virtual void getParameterArray(const std::string &name, Int64 index, Array &array) override;
   virtual size_t getParameterArrayCount(const std::string &name, Int64 index) override;
 
   virtual void setParameterUInt32(const std::string &name, Int64 index, UInt32 value) override;
+  virtual void setParameterInt32(const std::string &name, Int64 index, Int32 value) override;
   virtual void setParameterString(const std::string &name, Int64 index, const std::string& value) override;
   virtual void setParameterArray(const std::string &name, Int64 index,const Array &array) override;
 
@@ -286,9 +290,7 @@ public:
   VectorFileSensor(const ValueMap &params, Region *region);
 
   VectorFileSensor(BundleIO &bundle, Region *region);
-  VectorFileSensor(ArWrapper& wrapper, Region *region) : RegionImpl(region) {
-    // TODO:cereal  complete.
-  }
+  VectorFileSensor(ArWrapper& wrapper, Region *region);
 
   virtual ~VectorFileSensor();
 
@@ -308,6 +310,7 @@ public:
   template<class Archive>
   void save_ar(Archive& ar) const {
     ar(cereal::make_nvp("repeatCount_", repeatCount_));
+    ar(cereal::make_nvp("iterations_", iterations_));
     ar(cereal::make_nvp("activeOutputCount_", activeOutputCount_));
     ar(cereal::make_nvp("curVector_", curVector_));
     ar(cereal::make_nvp("hasCategoryOut_", hasCategoryOut_));
@@ -316,22 +319,13 @@ public:
     ar(cereal::make_nvp("scalingMode_", scalingMode_));
     ar(cereal::make_nvp("recentFile_", recentFile_));
     ar(cereal::make_nvp("vectorFile", vectorFile_));
-    // save the output buffers
-    // The output buffers are saved as part of the Region Implementation.
-    cereal::size_type numBuffers = 0;
-    std::map<std::string, Output *> outputs = region_->getOutputs();
-    numBuffers = outputs.size();
-    ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
-    for (auto iter : outputs) {
-      const Array &outputBuffer = iter.second->getData();
-      ar(cereal::make_map_item(iter.first, outputBuffer));
-    }
   }
 
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
     ar(cereal::make_nvp("repeatCount_", repeatCount_));
+    ar(cereal::make_nvp("iterations_", iterations_));
     ar(cereal::make_nvp("activeOutputCount_", activeOutputCount_));
     ar(cereal::make_nvp("curVector_", curVector_));
     ar(cereal::make_nvp("hasCategoryOut_", hasCategoryOut_));
@@ -340,19 +334,13 @@ public:
     ar(cereal::make_nvp("scalingMode_", scalingMode_));
     ar(cereal::make_nvp("recentFile_", recentFile_));
     ar(cereal::make_nvp("vectorFile", vectorFile_));
-    // restore the output buffers
-    // The output buffers are saved as part of the Region Implementation.
-    cereal::size_type numBuffers;
-    ar(cereal::make_nvp("outputs", cereal::make_size_tag(numBuffers)));
-    for (cereal::size_type i = 0; i < numBuffers; i++) {
-      std::string name;
-      Array output;
-      ar(cereal::make_map_item(name, output));
-      Array& outputBuffer = getOutput(name)->getData();
-      outputBuffer = output;
-    }
   }	
 
+
+  bool operator==(const RegionImpl &other) const override;
+  inline bool operator!=(const VectorFileSensor &other) const {
+    return !operator==(other);
+  }
 
   void compute() override;
   virtual std::string executeCommand(const std::vector<std::string> &args,
@@ -365,7 +353,7 @@ private:
 private:
   UInt32 repeatCount_; // Repeat count for output vectors
   UInt32 iterations_;  // Number of times compute() has been called
-  UInt32 curVector_;   // The index of the vector currently being output
+  int curVector_;      // The index of the vector that was just output
   UInt32 activeOutputCount_; // The number of elements in each input vector
   bool hasCategoryOut_;          // determine if a category output is needed
   bool hasResetOut_;             // determine if a reset output is needed
