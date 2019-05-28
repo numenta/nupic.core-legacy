@@ -98,13 +98,13 @@ namespace sdr {
         destroyCallbacks.clear();
     }
 
-    //constructors
+    // Constructors
     SparseDistributedRepresentation::SparseDistributedRepresentation() {}
 
-    SparseDistributedRepresentation::SparseDistributedRepresentation( const vector<UInt> dimensions )
+    SparseDistributedRepresentation::SparseDistributedRepresentation( const vector<UInt> &dimensions )
         { initialize( dimensions ); }
 
-    void SparseDistributedRepresentation::initialize( const vector<UInt> dimensions ) {
+    void SparseDistributedRepresentation::initialize( const vector<UInt> &dimensions ) {
         dimensions_ = dimensions;
         NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
 
@@ -134,6 +134,24 @@ namespace sdr {
 
     SparseDistributedRepresentation::~SparseDistributedRepresentation()
         { deconstruct(); }
+
+
+    void SparseDistributedRepresentation::reshape(const vector<UInt> &dimensions) const {
+        // Make sure we have the data in a format which does not care about the
+        // dimensions, IE: dense or sparse but not coordinates
+        if( not dense_valid and not sparse_valid )
+            getSparse();
+        coordinates_valid = false;
+        coordinates_.assign( dimensions.size(), {} );
+        dimensions_ = dimensions;
+        const auto oldSize = size;
+        // Calculate the SDR's size.
+        UInt newSize = 1;
+        for(UInt dim : dimensions)
+            newSize *= dim;
+        NTA_CHECK( oldSize == newSize ) << "SDR.reshape changed the size of the SDR!";
+    }
+
 
     void SparseDistributedRepresentation::zero() {
         sparse_.clear();
@@ -237,29 +255,9 @@ namespace sdr {
 
 
     void SparseDistributedRepresentation::setSDR( const SparseDistributedRepresentation &value ) {
-        NTA_CHECK( value.dimensions == dimensions ) << "Failed to assign value=" << value << " to SDR=" << *this;
-        clear();
-
-        dense_valid = value.dense_valid;
-        if( dense_valid ) {
-            dense_.assign( value.dense_.begin(), value.dense_.end() );
-        }
-        sparse_valid = value.sparse_valid;
-        if( sparse_valid ) {
-            sparse_.assign( value.sparse_.begin(), value.sparse_.end() );
-        }
-        coordinates_valid = value.coordinates_valid;
-        if( coordinates_valid ) {
-            for(UInt dim = 0; dim < dimensions.size(); dim++)
-                coordinates_[dim].assign( value.coordinates_[dim].begin(), value.coordinates_[dim].end() );
-        }
-        // Subclasses may override these getters and ignore the valid flags...
-        if( !dense_valid and !sparse_valid and !coordinates_valid ) {
-            const auto data = value.getSparse();
-            sparse_.assign( data.begin(), data.end() );
-            sparse_valid = true;
-        }
-        do_callbacks();
+        NTA_CHECK( value.dimensions == dimensions )
+                    << "Failed to assign value=" << value << " to SDR=" << *this;
+        setSparse( (const SDR_sparse_t) value.getSparse() );
     }
 
 
@@ -546,65 +544,6 @@ namespace sdr {
         NTA_CHECK( destroyCallbacks[index] != nullptr )
             << "SparseDistributedRepresentation::removeDestroyCallback, Callback already removed!";
         destroyCallbacks[index] = nullptr;
-    }
-
-
-    /**************************************************************************/
-
-    Reshape::Reshape(const SDR &sdr, const vector<UInt> &dimensions)
-        : SDR( dimensions )
-    {
-        clear();
-        parent = &sdr;
-        NTA_CHECK( size == parent->size ) << "SDR Reshape must have same size as given SDR.";
-        callback_handle = parent->addCallback( [&] () {
-            clear();
-            do_callbacks();
-        });
-        destroyCallback_handle = parent->addDestroyCallback( [&] () {
-            deconstruct();
-        });
-    }
-
-    SDR_dense_t& Reshape::getDense() const {
-        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        return parent->getDense();
-    }
-
-    SDR_sparse_t& Reshape::getSparse() const {
-        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        return parent->getSparse();
-    }
-
-    SDR_coordinate_t& Reshape::getCoordinates() const {
-        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        if( dimensions.size() == parent->dimensions.size() &&
-            equal( dimensions.begin(), dimensions.end(),
-                   parent->dimensions.begin() )) {
-            // All things equal, prefer reusing the parent's cached value.
-            return parent->getCoordinates();
-        }
-        else {
-            // Don't override getCoordinates().  It will call either getDense()
-            // or getSparse() to get its data, and will use this SDR Reshape's
-            // dimensions.
-            return SDR::getCoordinates();
-        }
-    }
-
-    void Reshape::save(std::ostream &outStream) const {
-        NTA_CHECK( parent != nullptr ) << "Parent SDR has been destroyed!";
-        parent->save( outStream );
-    }
-
-    void Reshape::deconstruct() {
-        // Unlink this SDR from the parent SDR.
-        if( parent != nullptr ) {
-            parent->removeCallback( callback_handle );
-            parent->removeDestroyCallback( destroyCallback_handle );
-            parent = nullptr;
-            SDR::deconstruct();
-        }
     }
 
 } // end namespace sdr

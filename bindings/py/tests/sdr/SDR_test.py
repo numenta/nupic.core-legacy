@@ -26,7 +26,7 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.sdr import SDR, Reshape
+from nupic.bindings.sdr import SDR
 from nupic.bindings.math import Random
 
 class SdrTest(unittest.TestCase):
@@ -360,37 +360,13 @@ class SdrTest(unittest.TestCase):
             B = pickle.loads( P )
             assert( A == B )
 
-
-class ReshapeTest(unittest.TestCase):
-    def testExampleUsage(self):
-        assert( issubclass(Reshape, SDR) )
+    def testReshape(self):
         # Convert SDR dimensions from (4 x 4) to (8 x 2)
         A = SDR([ 4, 4 ])
-        B = Reshape( A, [8, 2])
-        A.coordinates =  ([1, 1, 2], [0, 1, 2])
+        A.coordinates = ([1, 1, 2], [0, 1, 2])
+        B = A.reshape([8, 2])
         assert( (np.array(B.coordinates) == ([2, 2, 5], [0, 1, 0]) ).all() )
-
-    def testLostSDR(self):
-        # You need to keep a reference to the SDR, since SDR class does not use smart pointers.
-        B = Reshape(SDR((1000,)), [1000])
-        with self.assertRaises(RuntimeError):
-            B.dense
-
-    def testChaining(self):
-        A = SDR([10,10])
-        B = Reshape(A, [100])
-        C = Reshape(B, [4, 25])
-        D = B.reshape([1, 100]) # Test convenience method.
-
-        A.dense.fill( 1 )
-        A.dense = A.dense
-        assert( len(C.sparse) == A.size )
-        assert( len(D.sparse) == A.size )
-        del B
-
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
-    def testPickle(self):
-        assert(False) # TODO: Unimplemented
+        assert( A is B )
 
 
 class IntersectionTest(unittest.TestCase):

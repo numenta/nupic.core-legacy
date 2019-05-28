@@ -298,31 +298,9 @@ special, it is replaced with the system time.  The default seed is 0.)",
                 return self;
         }));
 
-
-        py::class_<Reshape, shared_ptr<Reshape>, SDR> py_Reshape(m, "Reshape",
-R"(Reshape presents a view onto an SDR with different dimensions.
-    * The resulting SDR always has the same value as its source SDR.
-    * The resulting SDR is read only.
-
-Example Usage:
-    # Convert SDR dimensions from (4 x 4) to (8 x 2)
-    A = SDR([ 4, 4 ])
-    B = Reshape( A, [8, 2])
-    A.coordinates =  ([1, 1, 2], [0, 1, 2])
-    B.coordinates -> ([2, 2, 5], [0, 1, 0])
-
-Reshape supports pickle, however loading a pickled SDR Reshape will return
-an SDR object, not a Reshape object.)");
-
-        py_Reshape.def( py::init<SDR&, vector<UInt>>(),
-R"(Argument sdr is the data source to reshape.
-
-Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
-            py::arg("sdr"), py::arg("dimensions"));
-
-        py_SDR.def("reshape", [](SDR &self, vector<UInt> dimensions)
-            { return new Reshape(self, dimensions); },
-R"(See class nupic.bindings.sdr.Reshape)");
+        py_SDR.def("reshape", [](SDR *self, const vector<UInt> &dimensions)
+            { self->reshape( dimensions ); return self; },
+R"(Change the dimensions of the SDR.  The total size must not change.)");
 
         py_SDR.def("flatten", [](SDR &self)
             {
