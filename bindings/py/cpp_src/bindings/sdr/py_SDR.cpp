@@ -356,6 +356,24 @@ Example Usage:
         py_SDR.def("intersection", [](SDR *self, vector<const SDR*> inputs)
             { self->intersection(inputs); return self; });
 
+        py_SDR.def("union", [](SDR *self, SDR& inp1, SDR& inp2)
+            { self->set_union({ &inp1, &inp2}); return self; },
+R"(This method calculates the set union of the active bits in each input SDR.
+
+The output is stored in this SDR.  This method discards the SDRs current value!
+
+Example Usage:
+    A = SDR( 10 )
+    B = SDR( 10 )
+    U = SDR( 10 )
+    A.sparse = [0, 1, 2, 3]
+    B.sparse =       [2, 3, 4, 5]
+    U.union( A, B )
+    U.sparse -> [0, 1, 2, 3, 4, 5]
+)");
+        py_SDR.def("union", [](SDR *self, vector<const SDR*> inputs)
+            { self->set_union(inputs); return self; });
+
         py_SDR.def("concatenate", [](SDR *self, const SDR& inp1, const SDR& inp2, UInt axis)
             { self->concatenate(inp1, inp2, axis); return self; },
 R"(Concatenates SDRs and stores the result in this SDR.

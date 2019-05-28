@@ -490,6 +490,31 @@ public:
     void intersection(std::vector<const SparseDistributedRepresentation*> inputs);
 
     /**
+     * This method calculates the set union of the active bits in all input SDRs.
+     *
+     * @params This method has two overloads:
+     *          1) Accepts two SDRs, for convenience.
+     *          2) Accepts a list of SDRs, must contain at least two SDRs, can
+     *             contain as many SDRs as needed.
+     *
+     * @returns In both cases the output is stored in this SDR.  This method
+     * modifies this SDR and discards its current value!
+     *
+     * Example Usage:
+     *     SDR A({ 10 });
+     *     SDR B({ 10 });
+     *     SDR C({ 10 });
+     *     A.setSparse({0, 1, 2, 3});
+     *     B.setSparse(      {2, 3, 4, 5});
+     *     C.set_union(A, B);
+     *     C.getSparse() -> {0, 1, 2, 3, 4, 5}
+     */
+    void set_union(const SparseDistributedRepresentation &input1,
+                   const SparseDistributedRepresentation &input2);
+
+    void set_union(std::vector<const SparseDistributedRepresentation*> inputs);
+
+    /**
      * Concatenates SDRs and stores the result in this SDR.
      *
      * @params This method has two overloads:
