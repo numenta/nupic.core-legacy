@@ -942,8 +942,8 @@ bool TMRegion::operator==(const RegionImpl &o) const {
   if (args_.iter != other.args_.iter) return false;
   if (args_.orColumnOutputs != other.args_.orColumnOutputs) return false;
   if (dim_ != other.dim_) return false;  // from RegionImpl
-  if (tm_ && !other.tm_ || (other.tm_ && !tm_)) return false;
-  if (tm_ && *tm_ != *other.tm_) return false;
+  if ((tm_ && !other.tm_) || (other.tm_ && !tm_)) return false;
+  if (tm_ && (*tm_ != *other.tm_)) return false;
 
   return true;
 }

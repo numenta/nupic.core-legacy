@@ -111,7 +111,7 @@ public:
   }
 
   /// Save the scale and offset vectors to this stream
-  void saveState(std::ostream &str);
+  void saveState(std::ostream &str) const;
 
   /// Initialize the scaling and offset vectors from this stream
   /// If vectorCount() > 0, it is an error if numElements()
@@ -122,8 +122,8 @@ public:
   void saveVectors(std::ostream &out, Size nColumns, UInt32 fileFormat,
                    Int64 begin, Int64 end, const char *lineEndings = nullptr) const;
 
-  void save(std::ostream &f);
-  void load(std::istream &f);
+  void save(std::ostream &f) const override;
+  void load(std::istream &f) override;
 	
 	CerealAdapter;  // See Serializable.hpp
   template<class Archive>

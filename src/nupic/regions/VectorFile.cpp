@@ -349,7 +349,7 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
 
 
 // For serialization
-void VectorFile::save(std::ostream &f) { 
+void VectorFile::save(std::ostream &f) const { 
   UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
   f << scaleVector_.size() << " "        // columns in vector
     << fileVectors_.size() << " "        // number of rows
@@ -795,7 +795,7 @@ void VectorFile::setStandardScaling() {
 }
 
 /// Save the scale and offset vectors to this stream
-void VectorFile::saveState(ostream &str) {
+void VectorFile::saveState(ostream &str) const {
   if (!str.good())
     NTA_THROW << "saveState(): Internal error - Bad stream";
 

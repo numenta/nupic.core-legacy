@@ -1020,8 +1020,8 @@ bool SPRegion::operator==(const RegionImpl &o) const {
   if (args_.learningMode != other.args_.learningMode) return false;
 
   if (dim_ != other.dim_) return false;  // from RegionImpl
-  if (sp_ && !other.sp_ || (other.sp_ && !sp_)) return false;
-  if (sp_ && *sp_ != *other.sp_) return false;
+  if ((sp_ && !other.sp_) || (other.sp_ && !sp_)) return false;
+  if (sp_ && (*sp_ != *other.sp_)) return false;
 
   return true;
 }

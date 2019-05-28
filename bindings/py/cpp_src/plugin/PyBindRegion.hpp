@@ -74,6 +74,12 @@ namespace nupic
         void deserialize(BundleIO& bundle) override;
 
 
+		    bool operator==(const RegionImpl &other) const override {return true;}
+		    inline bool operator!=(const SPRegion &other) const {
+		      return !operator==(other);
+		    }
+				// TODO: implement compare of two .py implemented Regions.
+
 
         ////////////////////////////
         // RegionImpl
