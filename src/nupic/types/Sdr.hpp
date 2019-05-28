@@ -464,6 +464,18 @@ public:
     void addNoise(Real fractionNoise, Random &rng);
 
     /**
+     * Modify the SDR by setting a fraction of the bits to zero.
+     *
+     * @param fraction The fraction of bits to set to zero.  Must be between 0
+     * and 1 (inclusive).
+     *
+     * @param seed The seed for the random number generator to draw from.  If not
+     * given, this uses the magic seed 0.  Use the same seed to consistently
+     * kill the same cells.
+     */
+    void killCells(Real fraction, UInt seed=0u);
+
+    /**
      * This method calculates the set intersection of the active bits in each
      * input SDR.
      *

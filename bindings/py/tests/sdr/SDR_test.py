@@ -336,6 +336,36 @@ class SdrTest(unittest.TestCase):
         C = A.addNoise( .5 )
         assert( C is A )
 
+    def testKillCells(self):
+        A = SDR(1000).randomize(1.00)
+        # Test killing zero/no cells.
+        A.killCells( .00 ) # Check no seed does not crash.
+        assert( A.getSparsity() == 1.00 )
+        # Test killing half of the cells, 3 times in a row.
+        A.killCells( .50, 123 ) # Check seed as positional argument
+        assert( A.getSparsity() == .5 )
+        A.killCells( .50, seed=456 )
+        assert( A.getSparsity() >= .25 - .05 and A.getSparsity() <= .25 + .05 )
+        A.killCells( .50, seed=789 )
+        assert( A.getSparsity() >= .125 - .05 and A.getSparsity() <= .125 + .05 )
+        # Test killing all cells.
+        A.killCells( 1.00, seed=101 )
+        assert( A.getSparsity() == 0 )
+        # Check that the same seed always kills the same cells.
+        B = SDR(1000).randomize(1.00)
+        B.killCells(.50, seed=444)
+        B.killCells(.50, seed=444) # Kill the same cells twice, so no further change of sparsity.
+        assert( B.getSparsity() == .50 )
+        # Check different seeds kill different cells.
+        D = SDR(1000).randomize(1.00)
+        D.killCells(.50, seed=5)
+        D.killCells(.50, seed=6)
+        assert( D.getSparsity() < .50 )
+        # Check return value
+        X = SDR(100).randomize(.5)
+        Y = X.killCells(.10)
+        assert( X is Y )
+
     def testStr(self):
         A = SDR((103,))
         B = SDR((100, 100, 1))

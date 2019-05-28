@@ -330,6 +330,22 @@ namespace sdr {
     }
 
 
+    void SparseDistributedRepresentation::killCells(Real fraction, UInt seed) {
+        NTA_CHECK( fraction >= 0.0 );
+        NTA_CHECK( fraction <= 1.0 );
+        int nkill = round( size * fraction );
+        Random rng(seed);
+        auto &data = getDense();
+        for( int i = size - 1; i >= 0; --i ) {
+            if( rng.getReal64() <= (Real64) nkill / (i+1) ) {
+                data[i] = 0;
+                nkill--;
+            }
+        }
+        setDense( data );
+    }
+
+
     void SparseDistributedRepresentation::intersection(
             const SDR &input1,
             const SDR &input2) {
