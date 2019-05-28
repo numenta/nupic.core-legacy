@@ -19,6 +19,7 @@ import unittest
 
 from nupic.bindings.sdr import SDR
 from nupic.bindings.algorithms import SpatialPooler as SP
+import numpy as np
 
 class SpatialPoolerTest(unittest.TestCase):
 
@@ -29,6 +30,100 @@ class SpatialPoolerTest(unittest.TestCase):
     sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
     sp.compute( inputs, True, active )
     assert( active.getSum() > 0 )
+
+
+  def _runGetPermanenceTrial(self, float_type):
+    """ 
+    Check that getPermanence() returns values for a given float_type. 
+    These tests are sensitive to the data type. This because if you pass a 
+    numpy array of the type matching the C++ argument then PyBind11 does not
+    convert the data, and the C++ code can modify the data in-place
+    If you pass the wrong data type, then PyBind11 does a conversion so 
+    your C++ function only gets a converted copy of a numpy array, and any changes 
+    are lost after returning
+    """
+    inputs = SDR( 100 ).randomize( .05 )
+    active = SDR( 100 )
+    sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
+
+    # Make sure that the perms start off zero.
+    perms_in = np.zeros(sp.getNumInputs(), dtype=float_type)
+    sp.setPermanence(0, perms_in)
+    perms = np.zeros(sp.getNumInputs(), dtype=float_type)
+    sp.getPermanence(0, perms)
+    assert( perms.sum() == 0.0 )
+    
+    for i in range(10):
+      sp.compute( inputs, True, active )
+    
+    # There should be at least one perm none zero
+    total = np.zeros(sp.getNumInputs(), dtype=float_type)
+    for i in range(100):
+      perms = np.zeros(sp.getNumInputs(), dtype=float_type)
+      sp.getPermanence(i, perms)
+      total = total + perms
+    assert( total.sum() > 0.0 )
+    
+  def testGetPermanence(self):
+    """ Check that getPermanence() returns values. """
+    try:
+      # This is when NTA_DOUBLE_PRECISION is true
+      self._runGetPermanenceTrial(np.float64)
+      
+    except:
+      # This is the normal precision
+      self._runGetPermanenceTrial(np.float32)     
+
+  def _runGetConnectedSynapses(self, uint_type):
+    """ Check that getConnectedSynapses() returns values. """
+    inputs = SDR( 100 ).randomize( .05 )
+    active = SDR( 100 )
+    sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
+
+    for i in range(10):
+      sp.compute( inputs, True, active )
+    
+    # There should be at least one connected none zero
+    total = np.zeros(sp.getNumInputs(), dtype=uint_type)
+    for i in range(100):
+      connected = np.zeros(sp.getNumInputs(), dtype=uint_type)
+      sp.getConnectedSynapses(i, connected)
+      total = total + connected
+    assert( total.sum() > 0 )
+
+  def testGetConnectedSynapses(self):
+    """ Check that getConnectedSynapses() returns values. """
+    try:
+      # This is when NTA_DOUBLE_PRECISION is true
+      self._runGetConnectedSynapses(np.uint64)
+      
+    except:
+      # This is the normal precision
+      self._runGetConnectedSynapses(np.uint32)
+
+  def _runGetConnectedCounts(self, uint_type):
+    """ Check that getConnectedCounts() returns values. """
+    inputs = SDR( 100 ).randomize( .05 )
+    active = SDR( 100 )
+    sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
+
+    for _ in range(10):
+      sp.compute( inputs, True, active )
+    
+    # There should be at least one connected none zero
+    connected = np.zeros(sp.getNumColumns(), dtype=uint_type)
+    sp.getConnectedCounts(connected)
+    assert( connected.sum() > 0 )
+
+  def testGetConnectedCounts(self):
+    """ Check that getConnectedCounts() returns values. """
+    try:
+      # This is when NTA_DOUBLE_PRECISION is true
+      self._runGetConnectedCounts(np.uint64)
+      
+    except:
+      # This is the normal precision
+      self._runGetConnectedCounts(np.uint32)
 
 
 if __name__ == "__main__":
