@@ -123,10 +123,8 @@ typedef std::size_t Size;
  */
 #ifdef NTA_DOUBLE_PRECISION
   typedef Real64 Real;
-  const int FLOAT_PRECISION = 8; // bytes
 #else
   typedef Real32 Real;
-  const int FLOAT_PRECISION = 4; // bytes
 #endif
 
 /**
@@ -136,10 +134,8 @@ typedef std::size_t Size;
  */
 #ifdef NTA_BIG_INTEGER
   typedef Int64 Int;
-  const int INT_PRECISION = 8; // bytes
 #else
   typedef Int32 Int;
-  const int INT_PRECISION = 4; // bytes
 #endif
 
 /**
