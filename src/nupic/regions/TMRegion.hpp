@@ -93,7 +93,6 @@ public:
     ar(cereal::make_nvp("sequencePos", args_.sequencePos));
     ar(cereal::make_nvp("iter", args_.iter));
     ar(cereal::make_nvp("orColumnOutputs", args_.orColumnOutputs));
-    ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
     ar(cereal::make_nvp("init", init));
     if (init) {
       // Save the algorithm state
@@ -123,7 +122,6 @@ public:
     ar(cereal::make_nvp("sequencePos", args_.sequencePos));
     ar(cereal::make_nvp("iter", args_.iter));
     ar(cereal::make_nvp("orColumnOutputs", args_.orColumnOutputs));
-    ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
     ar(cereal::make_nvp("init", init));
 
     args_.outputWidth = (args_.orColumnOutputs)?args_.numberOfCols
@@ -134,7 +132,10 @@ public:
     }
   }
 
-
+  bool operator==(const RegionImpl &other) const override;
+  inline bool operator!=(const TMRegion &other) const {
+    return !operator==(other);
+  }
 
   // Per-node size (in elements) of the given output.
   // For per-region outputs, it is the total element count.

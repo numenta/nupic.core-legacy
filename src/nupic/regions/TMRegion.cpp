@@ -920,3 +920,32 @@ void TMRegion::deserialize(BundleIO &bundle) {
   f.ignore(1);
 }
 
+bool TMRegion::operator==(const RegionImpl &o) const {
+  if (o.getType() != "TMRegion") return false;
+  TMRegion& other = (TMRegion&)o;
+  if (args_.numberOfCols != other.args_.numberOfCols) return false;
+  if (args_.cellsPerColumn != other.args_.cellsPerColumn) return false;
+  if (args_.activationThreshold != other.args_.activationThreshold) return false;
+  if (args_.initialPermanence != other.args_.initialPermanence) return false;
+  if (args_.connectedPermanence != other.args_.connectedPermanence) return false;
+  if (args_.maxNewSynapseCount != other.args_.maxNewSynapseCount) return false;
+  if (args_.permanenceIncrement != other.args_.permanenceIncrement) return false;
+  if (args_.permanenceDecrement != other.args_.permanenceDecrement) return false;
+  if (args_.predictedSegmentDecrement != other.args_.predictedSegmentDecrement) return false;
+  if (args_.seed != other.args_.seed) return false;
+  if (args_.maxSegmentsPerCell != other.args_.maxSegmentsPerCell) return false;
+  if (args_.maxSynapsesPerSegment != other.args_.maxSynapsesPerSegment) return false;
+  if (args_.extra != other.args_.extra) return false;
+  if (args_.checkInputs != other.args_.checkInputs) return false;
+  if (args_.learningMode != other.args_.learningMode) return false;
+  if (args_.sequencePos != other.args_.sequencePos) return false;
+  if (args_.iter != other.args_.iter) return false;
+  if (args_.orColumnOutputs != other.args_.orColumnOutputs) return false;
+  if (dim_ != other.dim_) return false;  // from RegionImpl
+  if ((tm_ && !other.tm_) || (other.tm_ && !tm_)) return false;
+  if (tm_ && (*tm_ != *other.tm_)) return false;
+
+  return true;
+}
+
+

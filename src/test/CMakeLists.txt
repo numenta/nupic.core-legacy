@@ -91,6 +91,7 @@ set(regions_tests
 	   unit/regions/RegionTestUtilities.hpp
 	   unit/regions/SPRegionTest.cpp
            unit/regions/TMRegionTest.cpp
+           unit/regions/VectorFileTest.cpp
 	   )
 
 	   

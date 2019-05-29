@@ -78,7 +78,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
           if (negativeCheck) {
 				    negativeCheck = false;
 				    VERBOSE << "negative check..." << std::endl;
-				    EXPECT_THROW(region1->getParameterInt32("numberOfCols"), nupic::Exception); 
+				    EXPECT_THROW(region1->getParameterInt32("bad_parameter"), nupic::Exception); 
 			    }
           VERBOSE << "Parameter \"" << name << "\" type: " << BasicType::getName(p.second.dataType) << std::endl;
 

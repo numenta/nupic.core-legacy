@@ -206,31 +206,16 @@ static bool dosEndings(std::istream &inFile) {
   return unixLines;
 }
 
-void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
-                             Int64 begin, const char *lineEndings) {
-  saveVectors(out, nColumns, fileFormat, begin, fileVectors_.size(),
-              lineEndings);
-}
 
 void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
-                             Int64 begin, Int64 end, const char *lineEndings) {
+                             Int64 begin, Int64 end, const char *lineEndings) const {
   out.exceptions(ios_base::failbit | ios_base::badbit);
 
   Size n = fileVectors_.size();
-  if (begin < 0)
-    begin += n;
-  if (end < 0)
-    end += n;
-  if (begin > Int64(n)) {
-    stringstream msg;
-    msg << "Begin (" << begin << ") out of bounds.";
-    throw runtime_error(msg.str());
-  }
-  if (end > Int64(n)) {
-    stringstream msg;
-    msg << "End (" << begin << ") out of bounds.";
-    throw runtime_error(msg.str());
-  }
+  while (begin < 0) begin += n;
+  while (end < 0)  end += n;
+  NTA_CHECK(begin <= Int64(n)) << "Begin (" << begin << ") out of bounds.";
+  NTA_CHECK(end <= Int64(n)) << "End (" << begin << ") out of bounds.";
   if (end < begin)
     end = begin;
 
@@ -265,14 +250,9 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
       // case 3: // Could be supported, but is not.
       {
         hasRowLabels = !vectorLabels_.empty();
-        if (Int64(vectorLabels_.size()) < end) {
-          stringstream msg;
-          msg << "Too few vector labels (" << vectorLabels_.size()
-              << ") "
-                 "to write to file (writing to row "
-              << end << ").";
-          throw runtime_error(msg.str());
-        }
+        NTA_CHECK (Int64(vectorLabels_.size()) >= end) 
+          << "Too few vector labels (" << vectorLabels_.size() << ") "
+                 "to write to file (writing to row "  << end << ").";
         break;
       }
     default:
@@ -282,8 +262,8 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
     // Output the column labels.
     switch (fileFormat) {
     case 1: {
-      if (nColumns && !elementLabels_.size())
-        throw runtime_error("Format '1' requires column labels.");
+      NTA_CHECK (nColumns && elementLabels_.size()) 
+        << "Format '1' requires column labels.";
       vector<string>::const_iterator iLabel = elementLabels_.begin(),
                                      labelEnd = elementLabels_.end();
       if (hasRowLabels)
@@ -361,9 +341,7 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
     break;
   }
   default: {
-    stringstream msg;
-    msg << "File format '" << fileFormat << "' not supported for writing.";
-    throw runtime_error(msg.str());
+    NTA_THROW << "File format '" << fileFormat << "' not supported for writing.";
   }
   }
   out.flush();
@@ -371,13 +349,13 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
 
 
 // For serialization
-void VectorFile::save(std::ostream &f) { 
+void VectorFile::save(std::ostream &f) const { 
   UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
   f << scaleVector_.size() << " "        // columns in vector
     << fileVectors_.size() << " "        // number of rows
     << format << " ";
   saveState(f); 
-  saveVectors(f, scaleVector_.size(), format);
+  saveVectors(f, scaleVector_.size(), format, 0, scaleVector_.size());
 }
 void VectorFile::load(std::istream &f) { 
   size_t nCols;
@@ -396,8 +374,7 @@ class AutoReleaseFile {  //TODO rm this class
 public:
   FILE *file_;
   AutoReleaseFile(const string &filename) : file_(fopen(filename.c_str(), "rb")) {
-    if (!file_)
-      throw runtime_error("Unable to open file '" + filename + "'.");
+    NTA_CHECK (file_) << "Unable to open file '" + filename + "'.";
   }
   ~AutoReleaseFile() {
     fclose(file_);
@@ -405,8 +382,7 @@ public:
   }
   void read(void *out, size_t objSize, int n) {
     size_t result = fread(out, objSize, n, file_); //TODO remove this class? use fstream instead of cstdio::fread
-    if ((int)result < n)
-      throw runtime_error("Failed to read requested bytes from file.");
+    NTA_CHECK ((int)result == n) << "Failed to read requested bytes from file.";
   }
 };
 
@@ -420,26 +396,17 @@ void VectorFile::appendFloat32File(const string &filename,
 
   Size nRows = totalBytes / (expectedElements * sizeof(Real32));
   Size totalElements = nRows * expectedElements;
-  if ((totalElements * sizeof(Real32)) != totalBytes) {
-    stringstream msg;
-    msg << "Binary file size (" << totalBytes
-        << "b) is not a multiple of "
-           "expected elements ("
+  NTA_CHECK ((totalElements * sizeof(Real32)) == totalBytes) 
+        << "Binary file size (" << totalBytes
+        << "b) is not a multiple of expected elements ("
         << expectedElements
-        << ") and "
-           "32-bit float size.";
-    throw runtime_error(msg.str());
-  }
+        << ") and 32-bit float size.";
   const bool needConversion = (sizeof(Real32) == sizeof(Real));
 
   Size offset = fileVectors_.size();
-  if (offset != own_.size()) {
-    throw logic_error("Invalid ownership flags.");
-  }
+  NTA_CHECK (offset == own_.size()) << "Invalid ownership flags.";
   Size nRowLabels = vectorLabels_.size();
-  if (nRowLabels && (nRowLabels != offset)) {
-    throw logic_error("Invalid number of row labels.");
-  }
+  NTA_CHECK (nRowLabels && (nRowLabels == offset)) << "Invalid number of row labels.";
 
   Real *block = nullptr; //TODO use Real[] block; instead of pointers! will require more changes in the file
 
@@ -602,13 +569,10 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements) {
   }
 
   Size offset = fileVectors_.size();
-  if (offset != own_.size()) {
-    throw logic_error("Invalid ownership flags.");
-  }
+  NTA_CHECK (offset == own_.size()) << "Invalid ownership flags.";
+  
   Size nRowLabels = vectorLabels_.size();
-  if (nRowLabels && (nRowLabels != offset)) {
-    throw logic_error("Invalid number of row labels.");
-  }
+  NTA_CHECK (!nRowLabels || (nRowLabels == offset)) << "Invalid number of row labels.";
 
   // We will read into one block and copy across to the final destination.
   // This is not as efficient as it could be in the optimized case, but that
@@ -688,7 +652,7 @@ void VectorFile::appendIDXFile(const string &filename, int expectedElements) {
       break;
     }
     default:
-      throw logic_error("Unsupported type.");
+      NTA_THROW << "Unsupported type.";
       break;
     }
 
@@ -759,6 +723,10 @@ void VectorFile::getRawVector(const UInt v, Real *out, UInt offset,
 /// output must have size at least 'count' elements
 void VectorFile::getScaledVector(const UInt v, Real *out, UInt offset,
                                  Size count) {
+  // Check if we have scaling. If not, use getRawVector().
+  if (scaleVector_.size() == 0)
+    getRawVector(v, out, offset, count);  
+
   if (v >= vectorCount())
     NTA_THROW << "Requested non-existent vector: " << v;
 
@@ -827,7 +795,7 @@ void VectorFile::setStandardScaling() {
 }
 
 /// Save the scale and offset vectors to this stream
-void VectorFile::saveState(ostream &str) {
+void VectorFile::saveState(ostream &str) const {
   if (!str.good())
     NTA_THROW << "saveState(): Internal error - Bad stream";
 

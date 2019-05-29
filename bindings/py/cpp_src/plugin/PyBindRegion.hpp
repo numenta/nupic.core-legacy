@@ -74,6 +74,14 @@ namespace nupic
         void deserialize(BundleIO& bundle) override;
 
 
+		    bool operator==(const RegionImpl &other) const override {
+					NTA_THROW << " ==  not implemented yet for PyBindRegion.";
+				}
+		    inline bool operator!=(const PyBindRegion &other) const {
+		      return !operator==(other);
+		    }
+				// TODO: implement compare of two .py implemented Regions.
+
 
         ////////////////////////////
         // RegionImpl
