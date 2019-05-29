@@ -242,20 +242,14 @@ std::string VectorFileSensor::executeCommand(const std::vector<std::string>& arg
   }
 
   else if (command == "dump") {
-    char message[256];
-    Size n = ::sprintf(message,
-                       "VectorFileSensor isLabeled = %d "
-                       "repeatCount = %d "
-                       "vectorWidth = %d "
-                       "vectorCount = %d "
-                       "iterations = %d\n",
-                       (int)vectorFile_.isLabeled(), 
-                       (int)repeatCount_, 
-                       (int)vectorFile_.getElementCount(),
-                       (int)vectorFile_.vectorCount(), 
-                       (int)iterations_);
-    // out.write(message, n);
-    return string(message, n);
+    std::string message;
+    message = "VectorFileSensor isLabeled = " + to_string(vectorFile_.isLabeled())
+      + ", repeatCount = " + to_string(repeatCount_)
+      + ", vectorWidth = " + to_string(vectorFile_.getElementCount())
+      + ", vectorCount = " + to_string(vectorFile_.vectorCount())
+      + ", iterations = " + to_string(iterations_)
+      + "\n";
+    return message;
   }
 
   else if (command == "saveFile") {
@@ -302,7 +296,7 @@ std::string VectorFileSensor::executeCommand(const std::vector<std::string>& arg
 //----------------------------------------------------------------------
 /**
  * Position to a vector within the vector file.
- * A negative number for n positions n from the end (wrapping backward). 
+ * A negative number for n will position n from the end (wrapping backward). 
  */
 void VectorFileSensor::seek(int n) {
   // Set curVector_ to be one before the vector we want and reset iterations
@@ -313,6 +307,7 @@ void VectorFileSensor::seek(int n) {
   // circular-buffer, reached one end of vector/line, wrap around.
   if (curVector_ < 0) // make n >= 0.
     curVector_ += static_cast<int>(vectorFile_.vectorCount()); 
+  NTA_ASSERT(curVector_ >= 0);
   curVector_ %= vectorFile_.vectorCount();
 }
 
@@ -621,7 +616,7 @@ void VectorFileSensor::setParameterInt32(const std::string &name, Int64 index, I
   const char *where = "setParameterInt32() VectorFileSensor, parameter ";
   if (name == "position") {
     if (vectorFile_.vectorCount() == 0) return; // not yet initialized.
-    NTA_CHECK(value >= 0 && value < vectorFile_.vectorCount())
+    NTA_CHECK(value >= 0 && value < static_cast<Int32>(vectorFile_.vectorCount()))
       << where << "'position'." << " Requested position is out of range. [ 0 to "
       << (vectorFile_.vectorCount() - 1) << "]";
     seek(value);

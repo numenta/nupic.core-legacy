@@ -133,7 +133,7 @@ namespace testing
 		createTestData(dataRows, dataWidth, test_input_file, test_output_file);
 
     Network net;
-    std::string params = "{dim: " + std::to_string(dataWidth) + "}";
+    std::string params = "{dim: [" + std::to_string(dataWidth) + "]}";
     std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor", params);
     EXPECT_EQ(region1->getParameterInt32("position"), -1);
 

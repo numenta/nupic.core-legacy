@@ -249,17 +249,7 @@ ValueMap toValueMap(const char *yamlstring,
       Value v = toValue(i->second, ps.dataType);
       if (v.isScalar() && ps.count != 1)
       {
-        if (key == "dim") {
-          // Spacial case for 'dim'; allow dimensions to be either an array {dim: [5]} 
-          // or a Scalar {dim: 5} which is treated as a single dimension array.
-          std::shared_ptr<Array> a(new Array(NTA_BasicType_UInt32));
-          a->allocateBuffer(1);
-          UInt32* ptr = (UInt32*)a->getBuffer();
-          ptr[0] = v.getScalarT<UInt32>();
-          v = Value(a);
-        }
-        else
-          NTA_THROW << "Parameter '" << key << "'. Bad value in runtime parameters. Expected array value but got scalar value";
+        NTA_THROW << "Parameter '" << key << "'. Bad value in runtime parameters. Expected array value but got scalar value";
       }
       if (!v.isScalar() && ps.count == 1)
       {

@@ -501,7 +501,9 @@ public:
   void deserialize(BundleIO &bundle) override {}
 
   
-  bool operator==(const RegionImpl &other) const override { return true; }
+  bool operator==(const RegionImpl &other) const override { 
+    NTA_THROW << "equals not implemented for this test case";
+  }
   inline bool operator!=(const TestRegionBase &other) const {
     return !operator==(other);
   }
