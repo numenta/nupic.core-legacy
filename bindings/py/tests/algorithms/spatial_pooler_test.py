@@ -64,15 +64,26 @@ class SpatialPoolerTest(unittest.TestCase):
       total = total + perms
     assert( total.sum() > 0.0 )
     
-  def testGetPermanence(self):
+  def testGetPermanenceFloat64(self):
     """ Check that getPermanence() returns values. """
     try:
       # This is when NTA_DOUBLE_PRECISION is true
       self._runGetPermanenceTrial(np.float64)
       
-    except:
-      # This is the normal precision
-      self._runGetPermanenceTrial(np.float32)     
+    except ValueError:
+      # This has caught wrong precision error
+      print("Successfully caught incorrect float numpy data length")
+      pass     
+
+  def testGetPermanenceFloat32(self):
+    """ Check that getPermanence() returns values. """
+    try:
+      self._runGetPermanenceTrial(np.float32)
+      
+    except ValueError:
+      print("Successfully caught incorrect float numpy data length")
+      # This has correctly caught wrong precision error
+      pass     
 
   def _runGetConnectedSynapses(self, uint_type):
     """ Check that getConnectedSynapses() returns values. """
@@ -91,15 +102,27 @@ class SpatialPoolerTest(unittest.TestCase):
       total = total + connected
     assert( total.sum() > 0 )
 
-  def testGetConnectedSynapses(self):
+  def testGetConnectedSynapsesUint64(self):
     """ Check that getConnectedSynapses() returns values. """
     try:
       # This is when NTA_DOUBLE_PRECISION is true
       self._runGetConnectedSynapses(np.uint64)
       
-    except:
-      # This is the normal precision
+    except ValueError:
+      # This has correctly caught wrong precision error
+      print("Successfully caught incorrect uint numpy data length")
+      pass     
+
+  def testGetConnectedSynapsesUint32(self):
+    """ Check that getConnectedSynapses() returns values. """
+    try:
+      # This is when NTA_DOUBLE_PRECISION is true
       self._runGetConnectedSynapses(np.uint32)
+      
+    except ValueError:
+      # This has correctly caught wrong precision error
+      print("Successfully caught incorrect uint numpy data length")
+      pass     
 
   def _runGetConnectedCounts(self, uint_type):
     """ Check that getConnectedCounts() returns values. """
@@ -115,15 +138,27 @@ class SpatialPoolerTest(unittest.TestCase):
     sp.getConnectedCounts(connected)
     assert( connected.sum() > 0 )
 
-  def testGetConnectedCounts(self):
+  def testGetConnectedCountsUint64(self):
     """ Check that getConnectedCounts() returns values. """
     try:
       # This is when NTA_DOUBLE_PRECISION is true
       self._runGetConnectedCounts(np.uint64)
       
-    except:
-      # This is the normal precision
+    except ValueError:
+      # This has correctly caught wrong precision error
+      print("Successfully caught incorrect uint numpy data length")
+      pass     
+
+  def testGetConnectedCountsUint32(self):
+    """ Check that getConnectedCounts() returns values. """
+    try:
+      # This is when NTA_DOUBLE_PRECISION is true
       self._runGetConnectedCounts(np.uint32)
+      
+    except ValueError:
+      # This has correctly caught wrong precision error
+      print("Successfully caught incorrect uint numpy data length")
+      pass     
 
 
 if __name__ == "__main__":
