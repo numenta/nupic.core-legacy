@@ -24,7 +24,7 @@
 #include "nupic/types/Sdr.hpp"
 
 #include <numeric>
-#include <algorithm> // std::sort
+#include <algorithm> // std::sort, std::accumulate
 
 using namespace std;
 
@@ -109,9 +109,7 @@ namespace sdr {
         NTA_CHECK( dimensions.size() > 0 ) << "SDR has no dimensions!";
 
         // Calculate the SDR's size.
-        size_ = 1;
-        for(UInt dim : dimensions)
-            size_ *= dim;
+        size_ = std::accumulate(dimensions.begin(), dimensions.end(), 1u, std::multiplies<int>());
 
         // Special case: placeholder for SDR type used in NetworkAPI
         if(dimensions != vector<UInt>{0}) {
@@ -144,12 +142,9 @@ namespace sdr {
         coordinates_valid = false;
         coordinates_.assign( dimensions.size(), {} );
         dimensions_ = dimensions;
-        const auto oldSize = size;
-        // Calculate the SDR's size.
-        UInt newSize = 1;
-        for(UInt dim : dimensions)
-            newSize *= dim;
-        NTA_CHECK( oldSize == newSize ) << "SDR.reshape changed the size of the SDR!";
+        // Re-Calculate the SDRs size and check that it did not change.
+        UInt newSize = std::accumulate(dimensions.begin(), dimensions.end(), 1u, std::multiplies<int>());
+        NTA_CHECK( newSize == size ) << "SDR.reshape changed the size of the SDR!";
     }
 
 
@@ -257,7 +252,11 @@ namespace sdr {
     void SparseDistributedRepresentation::setSDR( const SparseDistributedRepresentation &value ) {
         NTA_CHECK( value.dimensions == dimensions )
                     << "Failed to assign value=" << value << " to SDR=" << *this;
-        setSparse( (const SDR_sparse_t) value.getSparse() );
+        // Cast the data to CONST, which forces the SDR to copy the vector
+        // instead of swapping it with its current data vector.  This protects
+        // the input SDR from being changed.
+        const SDR_sparse_t &copyDontSwap = value.getSparse();
+        setSparse( copyDontSwap );
     }
 
 
