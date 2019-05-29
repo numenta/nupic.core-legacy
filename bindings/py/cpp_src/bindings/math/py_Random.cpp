@@ -63,14 +63,14 @@ namespace nupic_ext {
 
 
         Random.def("sample",
-            [](Random_t& r, py::array_t<nupic::UInt32>& population, nupic::UInt32 nSelect)
+            [](Random_t& r, py::array& population, const nupic::UInt32 nSelect)
         {
             if (population.ndim() != 1 )
             {
                 throw std::runtime_error("Number of dimensions must be one.");
             }
 
-	    std::vector<nupic::UInt32> tmp_pop(get_it(population), get_it(population) + population.size()); //vector from numpy.array
+	    std::vector<nupic::UInt32> tmp_pop(get_it<nupic::UInt32>(population), get_it<nupic::UInt32>(population) + population.size()); //vector from numpy.array
             return r.sample(tmp_pop, nSelect);
         });
 
@@ -79,7 +79,7 @@ namespace nupic_ext {
         /////////////////
 
         Random.def("shuffle",
-            [](Random_t& r, py::array_t<nupic::UInt32>& a)
+            [](Random_t& r, py::array& a)
         {
             //py::scoped_ostream_redirect stream(
             //    std::cout,                               // std::ostream&
@@ -91,14 +91,14 @@ namespace nupic_ext {
                 throw std::runtime_error("Number of dimensions must be one.");
             }
 
-            r.shuffle(get_it(a), get_end(a));
+            r.shuffle(get_it<nupic::UInt32>(a), get_end<nupic::UInt32>(a));
         });
 
         ////////////////////
 
-        Random.def("initializeUInt32Array", [](Random_t& self, py::array_t<nupic::UInt32>& a, nupic::UInt32 max_value)
+        Random.def("initializeUInt32Array", [](Random_t& self, py::array& a, nupic::UInt32 max_value)
         {
-            auto array_data = get_it(a);
+            auto array_data = get_it<nupic::UInt32>(a);
 
             for (nupic::UInt32 i = 0; i != a.size(); ++i)
                 array_data[i] = self.getUInt32() % max_value;

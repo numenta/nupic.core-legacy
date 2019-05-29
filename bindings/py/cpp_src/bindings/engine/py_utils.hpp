@@ -37,9 +37,6 @@ namespace py = pybind11;
 
 namespace nupic_ext {
 
-    template<typename T> T* get_it(py::array_t<T>& a) { return (T*)a.request().ptr; } //TODO remove array_t variants
-    template<typename T> T* get_end(py::array_t<T>& a) { return ((T*)a.request().ptr) + a.size(); }
-
     // Check that the precision in bytes matches the data size of the array
     template<typename T> T* get_it(py::array& a) //TODO add explanation why array, and not array_t
 	{

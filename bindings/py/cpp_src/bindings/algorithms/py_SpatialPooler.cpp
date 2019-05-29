@@ -185,69 +185,69 @@ using namespace sdr;
 	    ); 
 
         // setBoostFactors
-        py_SpatialPooler.def("setBoostFactors", [](SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("setBoostFactors", [](SpatialPooler& self, py::array& x)
         {
-            self.setBoostFactors(get_it(x));
+            self.setBoostFactors(get_it<Real>(x));
         });
 
         // getBoostFactors
-        py_SpatialPooler.def("getBoostFactors", [](const SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("getBoostFactors", [](const SpatialPooler& self, py::array& x)
         {
-            self.getBoostFactors(get_it(x));
+            self.getBoostFactors(get_it<Real>(x));
         });
 
         // setOverlapDutyCycles
-        py_SpatialPooler.def("setOverlapDutyCycles", [](SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("setOverlapDutyCycles", [](SpatialPooler& self, py::array& x)
         {
-            self.setOverlapDutyCycles(get_it(x));
+            self.setOverlapDutyCycles(get_it<Real>(x));
         });
 
         // getOverlapDutyCycles
-        py_SpatialPooler.def("getOverlapDutyCycles", [](const SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("getOverlapDutyCycles", [](const SpatialPooler& self, py::array& x)
         {
-            self.getOverlapDutyCycles(get_it(x));
+            self.getOverlapDutyCycles(get_it<Real>(x));
         });
 
         // setActiveDutyCycles
-        py_SpatialPooler.def("setActiveDutyCycles", [](SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("setActiveDutyCycles", [](SpatialPooler& self, py::array& x)
         {
-            self.setActiveDutyCycles(get_it(x));
+            self.setActiveDutyCycles(get_it<Real>(x));
         });
 
         // getActiveDutyCycles
-        py_SpatialPooler.def("getActiveDutyCycles", [](const SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("getActiveDutyCycles", [](const SpatialPooler& self, py::array& x)
         {
-            self.getActiveDutyCycles(get_it(x));
+            self.getActiveDutyCycles(get_it<Real>(x));
         });
 
         // setMinOverlapDutyCycles
-        py_SpatialPooler.def("setMinOverlapDutyCycles", [](SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("setMinOverlapDutyCycles", [](SpatialPooler& self, py::array& x)
         {
-            self.setMinOverlapDutyCycles(get_it(x));
+            self.setMinOverlapDutyCycles(get_it<Real>(x));
         });
 
         // getMinOverlapDutyCycles
-        py_SpatialPooler.def("getMinOverlapDutyCycles", [](const SpatialPooler& self, py::array_t<Real>& x)
+        py_SpatialPooler.def("getMinOverlapDutyCycles", [](const SpatialPooler& self, py::array& x)
         {
-            self.getMinOverlapDutyCycles(get_it(x));
+            self.getMinOverlapDutyCycles(get_it<Real>(x));
         });
 
         // setPotential
-        py_SpatialPooler.def("setPotential", [](SpatialPooler& self, UInt column, py::array_t<UInt>& x)
+        py_SpatialPooler.def("setPotential", [](SpatialPooler& self, UInt column, py::array& x)
         {
-            self.setPotential(column, get_it(x));
+            self.setPotential(column, get_it<UInt>(x));
         });
 
         // getPotential
-        py_SpatialPooler.def("getPotential", [](const SpatialPooler& self, UInt column, py::array_t<UInt>& x)
+        py_SpatialPooler.def("getPotential", [](const SpatialPooler& self, UInt column, py::array& x)
         {
-            self.getPotential(column, get_it(x));
+            self.getPotential(column, get_it<UInt>(x));
         });
 
         // setPermanence
-        py_SpatialPooler.def("setPermanence", [](SpatialPooler& self, UInt column, py::array_t<Real>& x)
+        py_SpatialPooler.def("setPermanence", [](SpatialPooler& self, UInt column, py::array& x)
         {
-            self.setPermanence(column, get_it(x));
+            self.setPermanence(column, get_it<Real>(x));
         });
 
         // getPermanence
@@ -288,9 +288,9 @@ using namespace sdr;
         ////////////////////
         // inhibitColumns
 
-        auto inhibitColumns_func = [](SpatialPooler& self, py::array_t<Real>& overlaps)
+        auto inhibitColumns_func = [](SpatialPooler& self, py::array& overlaps)
         {
-            std::vector<nupic::Real> overlapsVector(get_it(overlaps), get_end(overlaps));
+            std::vector<nupic::Real> overlapsVector(get_it<Real>(overlaps), get_end<Real>(overlaps));
 
             std::vector<nupic::UInt> activeColumnsVector;
 
