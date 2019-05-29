@@ -100,11 +100,11 @@ TEST(HelloRegionTest, demo) {
   Network net2;
   {
     std::stringstream ss;
-    net.save(ss);
+    net.saveToStream_ar(ss, SerializableFormat::JSON);
 	  if(verbose) std::cout << "Loading from stream. \n";
     if(verbose) std::cout << ss.str() << std::endl;
     ss.seekg(0);
-    net2.load(ss);
+    net2.loadFromStream_ar(ss, SerializableFormat::JSON);
   }
 
   // Note: this compares the structure (regions, links, etc) not data content or state.

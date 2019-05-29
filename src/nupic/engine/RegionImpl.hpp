@@ -228,6 +228,12 @@ public:
   virtual void cereal_adapter_save(ArWrapper& a) const {};
   virtual void cereal_adapter_load(ArWrapper& a) {};
 
+  virtual bool operator==(const RegionImpl &other) const = 0;
+  virtual inline bool operator!=(const RegionImpl &other) const {
+    return !operator==(other);
+  }
+
+
   /**
     * Inputs/Outputs are made available in initialize()
     * It is always called after the constructor (or load from serialized state)

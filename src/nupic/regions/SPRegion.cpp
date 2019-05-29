@@ -997,4 +997,33 @@ void SPRegion::deserialize(BundleIO &bundle) {
     sp_ = nullptr;
 }
 
+bool SPRegion::operator==(const RegionImpl &o) const {
+  if (o.getType() != "SPRegion") return false;
+  SPRegion& other = (SPRegion&)o;
+  if (args_.inputWidth != other.args_.inputWidth) return false;
+  if (args_.columnCount != other.args_.columnCount) return false;
+  if (args_.potentialRadius != other.args_.potentialRadius) return false;
+  if (args_.potentialPct != other.args_.potentialPct) return false;
+  if (args_.globalInhibition != other.args_.globalInhibition) return false;
+  if (args_.localAreaDensity != other.args_.localAreaDensity) return false;
+  if (args_.numActiveColumnsPerInhArea != other.args_.numActiveColumnsPerInhArea) return false;
+  if (args_.stimulusThreshold != other.args_.stimulusThreshold) return false;
+  if (args_.synPermInactiveDec != other.args_.synPermInactiveDec) return false;
+  if (args_.synPermActiveInc != other.args_.synPermActiveInc) return false;
+  if (args_.synPermConnected != other.args_.synPermConnected) return false;
+  if (args_.minPctOverlapDutyCycles != other.args_.minPctOverlapDutyCycles) return false;
+  if (args_.dutyCyclePeriod != other.args_.dutyCyclePeriod) return false;
+  if (args_.boostStrength != other.args_.boostStrength) return false;
+  if (args_.seed != other.args_.seed) return false;
+  if (args_.spVerbosity != other.args_.spVerbosity) return false;
+  if (args_.wrapAround != other.args_.wrapAround) return false;
+  if (args_.learningMode != other.args_.learningMode) return false;
+
+  if (dim_ != other.dim_) return false;  // from RegionImpl
+  if ((sp_ && !other.sp_) || (other.sp_ && !sp_)) return false;
+  if (sp_ && (*sp_ != *other.sp_)) return false;
+
+  return true;
+}
+
 } // namespace nupic

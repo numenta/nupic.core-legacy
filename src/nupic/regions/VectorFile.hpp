@@ -32,7 +32,9 @@
 //----------------------------------------------------------------------
 
 #include <fstream>
+#include <sstream>
 #include <nupic/types/Types.hpp>
+#include <nupic/types/Serializable.hpp>
 #include <vector>
 
 namespace nupic {
@@ -42,7 +44,7 @@ namespace nupic {
  *  interest are its ability to read in different text file formats and its
  *  ability to dynamically scale its outputs.
  */
-class VectorFile {
+class VectorFile : public Serializable {
 public:
   VectorFile();
   virtual ~VectorFile();
@@ -109,7 +111,7 @@ public:
   }
 
   /// Save the scale and offset vectors to this stream
-  void saveState(std::ostream &str);
+  void saveState(std::ostream &str) const;
 
   /// Initialize the scaling and offset vectors from this stream
   /// If vectorCount() > 0, it is an error if numElements()
@@ -118,12 +120,38 @@ public:
 
   /// Save vectors, unscaled, to a file with the specified format.
   void saveVectors(std::ostream &out, Size nColumns, UInt32 fileFormat,
-                   Int64 begin = 0, const char *lineEndings = nullptr);
-  void saveVectors(std::ostream &out, Size nColumns, UInt32 fileFormat,
-                   Int64 begin, Int64 end, const char *lineEndings = nullptr);
+                   Int64 begin, Int64 end, const char *lineEndings = nullptr) const;
 
-  void save(std::ostream &f);
-  void load(std::istream &f);
+  void save(std::ostream &f) const override;
+  void load(std::istream &f) override;
+	
+	CerealAdapter;  // See Serializable.hpp
+  template<class Archive>
+	void save_ar(Archive& ar) const { 
+	  UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
+		size_t nRows = fileVectors_.size();
+		Size nCols = scaleVector_.size();
+		std::stringstream ss;
+	  saveVectors(ss, nCols, format, 0, fileVectors_.size(), nullptr);
+		std::string data = ss.str();
+    ar(cereal::make_nvp("format", format),
+		   cereal::make_nvp("nRows", nRows),
+			 cereal::make_nvp("nCols", nCols),
+		   cereal::make_nvp("scaleVector", scaleVector_),
+		   cereal::make_nvp("offsetVector", offsetVector_),
+			 cereal::make_nvp("data", data));
+	}
+  template<class Archive>
+	void load_ar(Archive& ar) { 
+	  UInt32 format;     // format (1 if labled, 2 if not)
+		size_t nRows;
+		size_t nCols;
+		std::string data;
+    ar( format, nRows,  nCols, scaleVector_, offsetVector_, data);
+		std::stringstream ss(data);
+	  loadVectors(ss, nRows, nCols, format);
+	}
+	
 
 private:
   std::vector<Real *> fileVectors_; // list of vectors
