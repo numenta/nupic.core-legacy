@@ -253,19 +253,19 @@ using namespace sdr;
         // getPermanence
         py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, UInt column, py::array& x)
         {
-            self.getPermanence(column, get_it<Real>(sizeof(Real), x));
+            self.getPermanence(column, get_it<Real>(x));
         });
 
         // getConnectedSynapses
         py_SpatialPooler.def("getConnectedSynapses", [](const SpatialPooler& self, UInt column, py::array& x)
         {
-            self.getConnectedSynapses(column, get_it<UInt>(sizeof(UInt), x));
+            self.getConnectedSynapses(column, get_it<UInt>(x));
         });
 
         // getConnectedCounts
         py_SpatialPooler.def("getConnectedCounts", [](const SpatialPooler& self, py::array& x)
         {
-            self.getConnectedCounts(get_it<UInt>(sizeof(UInt), x));
+            self.getConnectedCounts(get_it<UInt>(x));
         });
 
         // getOverlaps
