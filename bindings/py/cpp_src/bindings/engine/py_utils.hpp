@@ -41,6 +41,16 @@ namespace nupic_ext {
     template<typename T> T* get_end(py::array_t<T>& a) { return ((T*)a.request().ptr) + a.size(); }
 
     template<typename T> T* get_it(py::array& a) { return (T*)a.request().ptr; }
+
+    // Check that the precision in bytes matches the data size of the array
+    template<typename T> T* get_it( int precision, py::array& a)
+	{
+	if (precision != a.request().itemsize)
+		{throw std::invalid_argument("Invalid numpy array precision used.");}
+
+	return (T*)a.request().ptr;
+	}
+
     template<typename T> T* get_end(py::array& a) { return ((T*)a.request().ptr) + a.size(); }
 
     template<typename T> T* get_row_it(py::array_t<T>& a, int row)

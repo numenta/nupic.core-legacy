@@ -46,7 +46,6 @@ using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
 using namespace sdr;
 
-
     void init_Spatial_Pooler(py::module& m)
     {
         py::class_<SpatialPooler> py_SpatialPooler(m, "SpatialPooler");
@@ -252,21 +251,21 @@ using namespace sdr;
         });
 
         // getPermanence
-        py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, UInt column, py::array_t<Real>& x)
+        py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, UInt column, py::array& x)
         {
-            self.getPermanence(column, get_it(x));
+            self.getPermanence(column, get_it<Real>(FLOAT_PRECISION, x));
         });
 
         // getConnectedSynapses
-        py_SpatialPooler.def("getConnectedSynapses", [](const SpatialPooler& self, UInt column, py::array_t<UInt>& x)
+        py_SpatialPooler.def("getConnectedSynapses", [](const SpatialPooler& self, UInt column, py::array& x)
         {
-            self.getConnectedSynapses(column, get_it(x));
+            self.getConnectedSynapses(column, get_it<UInt>(INT_PRECISION, x));
         });
 
         // getConnectedCounts
-        py_SpatialPooler.def("getConnectedCounts", [](const SpatialPooler& self, py::array_t<UInt>& x)
+        py_SpatialPooler.def("getConnectedCounts", [](const SpatialPooler& self, py::array& x)
         {
-            self.getConnectedCounts(get_it(x));
+            self.getConnectedCounts(get_it<UInt>(INT_PRECISION, x));
         });
 
         // getOverlaps
