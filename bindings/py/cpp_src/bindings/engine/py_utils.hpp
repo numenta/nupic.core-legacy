@@ -51,15 +51,7 @@ namespace nupic_ext {
 
     template<typename T> T* get_end(py::array& a) { return (static_cast<T*>(a.request().ptr)) + a.size(); }
 
-    template<typename T> T* get_row_it(py::array_t<T>& a, int row) //TODO use array
-    {
-        auto buffer_info = a.request();
-
-        return (T*)((char*)buffer_info.ptr + (buffer_info.strides[0] * row));
-    }
-
-    inline
-    void enable_cout()
+    inline void enable_cout()
     {
         py::scoped_ostream_redirect stream(
             std::cout,                               // std::ostream&
