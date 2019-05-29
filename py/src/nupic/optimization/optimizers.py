@@ -111,6 +111,12 @@ class EvaluateBestExperiment(BaseOptimizer):
     def use_this_optimizer(args):
         return args.best
 
+    def __init__(self, lab, args):
+        super().__init__(lab, args)
+        if lab.verbose:
+            print("Best parameters:")
+            print(str( self.suggest_parameters() ))
+
     def suggest_parameters(self):
         best = max(self.lab.experiments, key = lambda X: X.mean() )
         return best.parameters
