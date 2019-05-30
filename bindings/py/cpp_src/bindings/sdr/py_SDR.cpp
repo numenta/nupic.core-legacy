@@ -277,6 +277,18 @@ special, it is replaced with the system time.  The default seed is 0.)",
             py::arg("fractionNoise"),
             py::arg("seed") = 0u);
 
+        py_SDR.def("killCells", [](SDR *self, Real fraction, UInt seed) {
+            self->killCells( fraction, seed ); return self; },
+R"(Modify the SDR by setting a fraction of the bits to zero.
+
+Argument fraction must be between 0 and 1 (inclusive).  This fraction of the
+cells in the SDR will be set to zero, regardless of their current state.
+
+Argument seed is for a random number generator.  If not given, this uses the
+magic seed 0.  Use the same seed to consistently kill the same cells.)",
+            py::arg("fraction"),
+            py::arg("seed") = 0u);
+
         py_SDR.def("__str__", [](SDR &self){
             stringstream buf;
             buf << self;
@@ -333,6 +345,24 @@ Example Usage:
 )");
         py_SDR.def("intersection", [](SDR *self, vector<const SDR*> inputs)
             { self->intersection(inputs); return self; });
+
+        py_SDR.def("union", [](SDR *self, SDR& inp1, SDR& inp2)
+            { self->set_union({ &inp1, &inp2}); return self; },
+R"(This method calculates the set union of the active bits in each input SDR.
+
+The output is stored in this SDR.  This method discards the SDRs current value!
+
+Example Usage:
+    A = SDR( 10 )
+    B = SDR( 10 )
+    U = SDR( 10 )
+    A.sparse = [0, 1, 2, 3]
+    B.sparse =       [2, 3, 4, 5]
+    U.union( A, B )
+    U.sparse -> [0, 1, 2, 3, 4, 5]
+)");
+        py_SDR.def("union", [](SDR *self, vector<const SDR*> inputs)
+            { self->set_union(inputs); return self; });
 
         py_SDR.def("concatenate", [](SDR *self, const SDR& inp1, const SDR& inp2, UInt axis)
             { self->concatenate(inp1, inp2, axis); return self; },

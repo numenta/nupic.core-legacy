@@ -327,6 +327,22 @@ namespace sdr {
     }
 
 
+    void SparseDistributedRepresentation::killCells(const Real fraction, const UInt seed) {
+        NTA_CHECK( fraction >= 0.0 );
+        NTA_CHECK( fraction <= 1.0 );
+        const UInt nkill = round( size * fraction );
+        Random rng(seed);
+        auto &data = getDense();
+	std::vector<ElemSparse> indices(size);
+	std::iota(indices.begin(), indices.end(), 0); //fills with 0,..,size-1
+	const auto toKill = rng.sample(indices, nkill); // select nkill indices to be "killed", set to OFF/0
+        for(const auto dis: toKill) {
+          data[dis] = 0;
+        }
+        setDense( data );
+    }
+
+
     void SparseDistributedRepresentation::intersection(
             const SDR &input1,
             const SDR &input2) {
@@ -360,6 +376,44 @@ namespace sdr {
             const auto &data = sdr_ptr->getDense();
             for(auto z = 0u; z < data.size(); ++z) {
                 dense_[z] = dense_[z] && data[z];
+            }
+        }
+        SDR::setDenseInplace();
+    }
+
+
+    void SparseDistributedRepresentation::set_union(
+            const SDR &input1, const SDR &input2) {
+        set_union( { &input1, &input2 } );
+    }
+
+    void SparseDistributedRepresentation::set_union(vector<const SDR*> inputs) {
+        NTA_CHECK( inputs.size() >= 2u );
+        bool inplace = false;
+        for( size_t i = 0; i < inputs.size(); i++ ) {
+            NTA_CHECK( inputs[i] != nullptr );
+            NTA_CHECK( inputs[i]->dimensions == dimensions );
+            // Check for modifying this SDR inplace.
+            if( inputs[i] == this ) {
+                inplace = true;
+                inputs[i--] = inputs.back();
+                inputs.pop_back();
+            }
+        }
+        if( inplace ) {
+            getDense(); // Make sure that the dense data is valid.
+        }
+        if( not inplace ) {
+            // Copy one of the SDRs over to the output SDR.
+            const auto &denseIn = inputs.back()->getDense();
+            dense_.assign( denseIn.begin(), denseIn.end() );
+            inputs.pop_back();
+            // inplace = true; // Now it's an inplace operation.
+        }
+        for(const auto &sdr_ptr : inputs) {
+            const auto &data = sdr_ptr->getDense();
+            for(auto z = 0u; z < data.size(); ++z) {
+                dense_[z] = dense_[z] || data[z];
             }
         }
         SDR::setDenseInplace();

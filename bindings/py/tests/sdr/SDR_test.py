@@ -336,6 +336,36 @@ class SdrTest(unittest.TestCase):
         C = A.addNoise( .5 )
         assert( C is A )
 
+    def testKillCells(self):
+        A = SDR(1000).randomize(1.00)
+        # Test killing zero/no cells.
+        A.killCells( .00 ) # Check no seed does not crash.
+        assert( A.getSparsity() == 1.00 )
+        # Test killing half of the cells, 3 times in a row.
+        A.killCells( .50, 123 ) # Check seed as positional argument
+        assert( A.getSparsity() == .5 )
+        A.killCells( .50, seed=456 )
+        assert( A.getSparsity() >= .25 - .05 and A.getSparsity() <= .25 + .05 )
+        A.killCells( .50, seed=789 )
+        assert( A.getSparsity() >= .125 - .05 and A.getSparsity() <= .125 + .05 )
+        # Test killing all cells.
+        A.killCells( 1.00, seed=101 )
+        assert( A.getSparsity() == 0 )
+        # Check that the same seed always kills the same cells.
+        B = SDR(1000).randomize(1.00)
+        B.killCells(.50, seed=444)
+        B.killCells(.50, seed=444) # Kill the same cells twice, so no further change of sparsity.
+        assert( B.getSparsity() == .50 )
+        # Check different seeds kill different cells.
+        D = SDR(1000).randomize(1.00)
+        D.killCells(.50, seed=5)
+        D.killCells(.50, seed=6)
+        assert( D.getSparsity() < .50 )
+        # Check return value
+        X = SDR(100).randomize(.5)
+        Y = X.killCells(.10)
+        assert( X is Y )
+
     def testStr(self):
         A = SDR((103,))
         B = SDR((100, 100, 1))
@@ -424,6 +454,61 @@ class IntersectionTest(unittest.TestCase):
             mean_sparsity = np.product( sparsities )
             assert( X.getSparsity() >= (2./3.) * mean_sparsity )
             assert( X.getSparsity() <= (4./3.) * mean_sparsity )
+
+
+class UnionTest(unittest.TestCase):
+    def testExampleUsage(self):
+        A = SDR( 10 )
+        B = SDR( 10 )
+        U = SDR( A.dimensions )
+        A.sparse = [0, 1, 2, 3]
+        B.sparse =       [2, 3, 4, 5]
+        U.union( A, B )
+        assert(set(U.sparse) == set([0, 1, 2, 3, 4, 5]))
+
+    def testInPlace(self):
+        A = SDR( 1000 )
+        B = SDR( 1000 )
+        A.randomize( .50 )
+        B.randomize( .50 )
+        A.union( A, B )
+        assert( A.getSparsity() >= .75 - .05 and A.getSparsity() <= .75 + .05 )
+        A.union( B.randomize( .50 ), A.randomize( .50 ) )
+        assert( A.getSparsity() >= .75 - .05 and A.getSparsity() <= .75 + .05 )
+
+    def testReturn(self):
+        A = SDR( 10 ).randomize( .5 )
+        B = SDR( 10 ).randomize( .5 )
+        X = SDR( A.dimensions )
+        Y = X.union( A, B )
+        assert( X is Y )
+
+    def testSparsity(self):
+        test_cases = [
+            ( 0.5,  0.5 ),
+            ( 0.1,  0.9 ),
+            ( 0.25, 0.3 ),
+            ( 0.5,  0.5,  0.5 ),
+            ( 0.95, 0.95, 0.95 ),
+            ( 0.10, 0.10, 0.60 ),
+            ( 0.0,  1.0,  1.0 ),
+            ( 0.5,  0.5,  0.5, 0.5),
+            ( 0.11, 0.20, 0.05, 0.04, 0.03, 0.01, 0.01, 0.02, 0.02, 0.02),
+        ]
+        size = 10000
+        seed = 99
+        X    = SDR( size )
+        for sparsities in test_cases:
+            sdrs = []
+            for S in sparsities:
+                inp = SDR( size )
+                inp.randomize( S, seed)
+                seed += 1
+                sdrs.append( inp )
+            X.union( sdrs )
+            mean_sparsity = np.product(list( 1 - s for s in sparsities ))
+            assert( X.getSparsity() >= (2./3.) * (1 - mean_sparsity) )
+            assert( X.getSparsity() <= (4./3.) * (1 - mean_sparsity) )
 
 
 class ConcatenationTest(unittest.TestCase):
