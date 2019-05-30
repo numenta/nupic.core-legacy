@@ -333,9 +333,12 @@ namespace sdr {
         int nkill = round( size * fraction );
         Random rng(seed);
         auto &data = getDense();
-        for( int i = size - 1; i >= 0; --i ) {
-            if( rng.getReal64() <= (Real64) nkill / (i+1) ) {
-                data[i] = 0;
+        for( int i = size; i > 0; --i ) {
+            // Random sample. The probability to kill a cell is equal to the
+            // number of cells left to be killed, divided by the number of cells
+            // left to be visited.
+            if( rng.getReal64() <= (Real64) nkill / i ) {
+                data[i-1] = 0;
                 nkill--;
             }
         }
