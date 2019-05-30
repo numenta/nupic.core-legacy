@@ -330,17 +330,14 @@ namespace sdr {
     void SparseDistributedRepresentation::killCells(Real fraction, UInt seed) {
         NTA_CHECK( fraction >= 0.0 );
         NTA_CHECK( fraction <= 1.0 );
-        int nkill = round( size * fraction );
+        const UInt nkill = round( size * fraction );
         Random rng(seed);
         auto &data = getDense();
-        for( int i = size; i > 0; --i ) {
-            // Random sample. The probability to kill a cell is equal to the
-            // number of cells left to be killed, divided by the number of cells
-            // left to be visited.
-            if( rng.getReal64() <= (Real64) nkill / i ) {
-                data[i-1] = 0;
-                nkill--;
-            }
+	std::vector<ElemSparse> indices(size);
+	std::iota(indices.begin(), indices.end(), 0); //fills with 0,..,size-1
+	const auto toKill = rng.sample(indices, nkill); // select nkill indices to be "killed", set to OFF/0
+        for(const auto dis: toKill) {
+          data[dis] = 0;
         }
         setDense( data );
     }
