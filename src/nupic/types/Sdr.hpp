@@ -478,7 +478,7 @@ public:
      * given, this uses the magic seed 0.  Use the same seed to consistently
      * kill the same cells.
      */
-    void killCells(Real fraction, UInt seed=0u);
+    void killCells(const Real fraction, const UInt seed=0u);
 
     /**
      * This method calculates the set intersection of the active bits in each

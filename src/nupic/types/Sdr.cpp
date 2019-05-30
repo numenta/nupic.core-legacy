@@ -327,7 +327,7 @@ namespace sdr {
     }
 
 
-    void SparseDistributedRepresentation::killCells(Real fraction, UInt seed) {
+    void SparseDistributedRepresentation::killCells(const Real fraction, const UInt seed) {
         NTA_CHECK( fraction >= 0.0 );
         NTA_CHECK( fraction <= 1.0 );
         const UInt nkill = round( size * fraction );
