@@ -38,8 +38,8 @@ TEST(DISABLED_AnomalyLikelihood, SerializationLikelihood)
   
   AnomalyLikelihood b;
   std::stringstream ss;
-  a.saveToStream_ar(ss);
-  b.loadFromStream_ar(ss);
+  a.save(ss);
+  b.load(ss);
   EXPECT_EQ(a, b);
 }
 

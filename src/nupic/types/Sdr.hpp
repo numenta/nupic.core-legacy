@@ -380,7 +380,7 @@ public:
       NTA_ASSERT(value.size() == dimensions.size());
       for(UInt dim = 0; dim < dimensions.size(); dim++) {
         coordinates_[dim].clear();
-		coordinates_[dim].resize(value[dim].size());
+		    coordinates_[dim].resize(value[dim].size());
         // Use an explicit type cast.  Otherwise Microsoft Visual Studio will
         // print an excessive number of warnings.  Do NOT replace this with:
         // coordinates_[dim].assign(value[dim].cbegin(), value[dim].cend());
@@ -563,6 +563,8 @@ public:
 
     /**
      * Print a human readable version of the SDR.
+     * Sample output:  
+     *   "SDR( 200 ) 190, 172, 23, 118, 178, 129, 113, 71, 185, 182\n"
      */
     friend std::ostream& operator<< (std::ostream& stream, const SparseDistributedRepresentation &sdr)
     {
@@ -582,32 +584,56 @@ public:
         }
         return stream << std::endl;
     }
+    friend std::istream& operator>> (std::istream& inStream, SparseDistributedRepresentation &sdr)
+    {
+        auto readVector = [&inStream] (std::vector<UInt> &vec) { 
+            inStream >> std::skipws;  // skip leading whitespace
+            vec.clear();
+            std::string val;
+            UInt elem = 0;
+            int c = 0;
+            while(c != '\n' && !inStream.eofbit) {
+              int c = inStream.get();
+              if (isdigit(c)) val.append(1, c);
+              else if (c == ',') {
+                vec.push_back( atoi(val.c_str()) );
+                val.clear();
+              }
+              else if (c != ' ') break;
+            }
+            if (!val.empty())
+              vec.push_back( atoi(val.c_str()) );
+        };
+
+        // Read the starting marker and version.
+        std::string tag;
+        inStream >> tag;
+        NTA_CHECK( tag == "SDR(" ) << "stream does not contain an SDR from <<.";
+
+        // Read the dimensions.
+        readVector( sdr.dimensions_ );
+
+        // Initialize the SDR.
+        // Calculate the SDR's size.
+        sdr.size_ = 1;
+        for(UInt dim : sdr.dimensions_)
+            sdr.size_ *= dim;
+        // Initialize sparse tuple.
+        sdr.coordinates_.assign( sdr.dimensions_.size(), {} );
+
+        // Read the data.
+        readVector( sdr.sparse_ );
+        sdr.setSparseInplace();
+        return inStream;
+    }
 
     bool operator==(const SparseDistributedRepresentation &sdr) const;
-
     inline bool operator!=(const SparseDistributedRepresentation &sdr) const
-        { return not ((*this) == sdr); }
-
-
-// TODO:Cereal- Remove these when Cereal is complete
-    /**
-     * Save (serialize) the current state of the SDR to the specified file.
-     * This method can NOT save callbacks!  Only the dimensions and current data
-     * are saved.
-     * 
-     * @param stream A valid output stream, such as an open file.
-     */
-    void save(std::ostream &outStream) const override;
+        {  return not ((*this) == sdr); }
 
     /**
-     * Load (deserialize) and initialize the SDR from the specified input
-     * stream.  This method does NOT load callbacks!  If the original SDR had
-     * callbacks then the user must re-add them after saving & loading the SDR.
-     *
-     * @param stream A input valid istream, such as an open file.
+     * Serialization routines.  See Serializable.hpp
      */
-    void load(std::istream &inStream) override;
-
     CerealAdapter;
 
     template<class Archive>
@@ -667,6 +693,7 @@ public:
      * registered your callback.
      */
     void removeDestroyCallback(UInt index) const;
+
 };
 
 typedef SparseDistributedRepresentation SDR;

@@ -71,21 +71,10 @@ public:
 
   VectorFileEffector(const ValueMap &params, Region *region);
 
-  VectorFileEffector(BundleIO &bundle, Region *region);
   VectorFileEffector(ArWrapper& wrapper, Region *region);
 
   virtual ~VectorFileEffector();
 
-  // ---
-  /// Serialize state to bundle
-  // ---
-  virtual void serialize(BundleIO &bundle) override;
-
-  // ---
-  /// De-serialize state from bundle
-  // ---
-  virtual void deserialize(BundleIO &bundle) override;
-	
 
 	CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization

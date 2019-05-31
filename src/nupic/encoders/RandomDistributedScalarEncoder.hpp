@@ -25,6 +25,7 @@
 #define NTA_ENCODERS_RDSE
 
 #include <nupic/encoders/BaseEncoder.hpp>
+#include <nupic/utils/Log.hpp>
 
 namespace nupic {
 namespace encoders {
@@ -122,16 +123,40 @@ public:
 
   void encode(Real64 input, sdr::SDR &output) override;
 
-  void save(std::ostream &stream) const override;
-  void load(std::istream &stream) override;
 
   ~RandomDistributedScalarEncoder() override {};
 
+  CerealAdapter;  // see Serializable.hpp
+  // FOR Cereal Serialization
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    std::string name = "RandomDistributedScalarEncoder";
+    ar(cereal::make_nvp("name", name));
+    ar(cereal::make_nvp("size", args_.size));
+    ar(cereal::make_nvp("activeBits", args_.activeBits));
+    ar(cereal::make_nvp("resolution", args_.resolution));
+    ar(cereal::make_nvp("category", args_.category));
+    ar(cereal::make_nvp("seed", args_.seed));
+  }
+  
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    std::string name;
+    ar(cereal::make_nvp("name", name));
+    ar(cereal::make_nvp("size", args_.size));
+    ar(cereal::make_nvp("activeBits", args_.activeBits));
+    ar(cereal::make_nvp("resolution", args_.resolution));
+    ar(cereal::make_nvp("category", args_.category));
+    ar(cereal::make_nvp("seed", args_.seed));
+  }
 private:
   RDSE_Parameters args_;
 };
 
 typedef RandomDistributedScalarEncoder RDSE;
+
+std::ostream & operator<<(std::ostream & out, const RandomDistributedScalarEncoder & self);
 
 }      // End namespace encoders
 }      // End namespace nupic

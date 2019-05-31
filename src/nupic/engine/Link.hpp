@@ -469,9 +469,6 @@ public:
   /**
    * Serialize/Deserialize the link.
    */
-  void serialize(std::ostream &f);  // TODO:cereal Remove
-  void deserialize(std::istream &f);
-
   CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
   template<class Archive>

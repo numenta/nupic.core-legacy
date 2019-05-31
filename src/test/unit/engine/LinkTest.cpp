@@ -40,7 +40,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/regions/TestNode.hpp>
 #include <nupic/types/Serializable.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/utils/Log.hpp>
@@ -129,7 +128,6 @@ TEST(LinkTest, DelayedLink) {
     MyTestNode(const ValueMap &params, Region *region)
         : TestNode(params, region) {}
 
-    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}  // TODO:cereal Remove
     MyTestNode(ArWrapper &wrapper, Region *region) : TestNode(wrapper, region) {}
 
 
@@ -258,7 +256,6 @@ TEST(LinkTest, DelayedLinkSerialization) {
     MyTestNode(const ValueMap &params, Region *region)
         : TestNode(params, region) {}
 
-    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}  // TODO:cereal Remove
     MyTestNode(ArWrapper &wrapper, Region *region) : TestNode(wrapper, region) {}
 
 
@@ -488,17 +485,10 @@ public:
     outputElementCount_ = 1;
   }
 
-  TestRegionBase(BundleIO &bundle, Region *region) : RegionImpl(region) {}  // TODO:cereal Remove
   TestRegionBase(ArWrapper &wrapper, Region *region) : RegionImpl(region) {}
 
 
   virtual ~TestRegionBase() {}
-
-  // Serialize state.
-  void serialize(BundleIO &bundle) override {}
-
-  // De-serialize state. Must be called from deserializing constructor
-  void deserialize(BundleIO &bundle) override {}
 
   
   bool operator==(const RegionImpl &other) const override { 
@@ -527,7 +517,16 @@ public:
     NTA_THROW << "TestRegionBase::getOutputSize -- unknown output "
               << outputName;
   }
-
+  // Include the required code for serialization.
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+      ar(cereal::make_nvp("outputElementCount", outputElementCount_));
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+      ar(cereal::make_nvp("outputElementCount", outputElementCount_));
+  }
 
 private:
   TestRegionBase();
@@ -544,8 +543,6 @@ public:
   L2TestRegion(const ValueMap &params, Region *region)
       : TestRegionBase(params, region) {}
 
-  L2TestRegion(BundleIO &bundle, Region *region)
-      : TestRegionBase(bundle, region) {}
   L2TestRegion(ArWrapper &wrapper, Region *region)
       : TestRegionBase(wrapper, region) {}
 
@@ -644,8 +641,6 @@ public:
   L4TestRegion(const ValueMap &params, Region *region)
       : TestRegionBase(params, region), k_(params.getScalarT<UInt64>("k")) {}
 
-  L4TestRegion(BundleIO &bundle, Region *region)  // TODO:cereal Remove
-      : TestRegionBase(bundle, region), k_(0) {}
   L4TestRegion(ArWrapper &wrapper, Region *region)
       : TestRegionBase(wrapper, region), k_(0) {}
 

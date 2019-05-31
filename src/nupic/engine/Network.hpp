@@ -106,26 +106,23 @@ public:
    * @{
    */
   /**
-   *    saveToFile(path)
-   *    save(ostream f)
-   *    f << net;
-   *          serialize everything into one stream.  This can be
-   *          opened to a file or a memory stream but must be binary.
+   *    saveToFile(path)          Open a file and stream to it. (Binary)
+   *    save(ostream f [, fmt])   Stream to your stream.  
+   *    f << net;                 Output human readable text. 
    *
    *    loadFromFile(path)
-   *    load(istream f)
-   *    f >> net;
-   *          restores the streamed Network and all its parts back to
-   *          what it was before being serialized.
+   *    load(istream f [, fmt])
    *
    * @path The filename into which to save/load the streamed serialization.
    * @f    The stream with which to save/load the serialization.
+   * @fmt  Format: One of following from enum SerializableFormat
+   *   BINARY   - A binary format which is the fastest but not portable between platforms (default).
+   *   PORTABLE - Another Binary format, not quite as fast but is portable between platforms.
+   *   JSON     - Human readable JSON text format. Slow.
+   *   XML      - Human readable XML text format. Even slower.
    *
-	 * See Serializable base class for definitions.
+	 * See Serializable base class for more details.
 	 */
-  virtual void save(std::ostream &f) const override;  // TODO:cereal Remove
-  virtual void load(std::istream &stream)  override;
-
   CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
   template<class Archive>
@@ -175,28 +172,15 @@ public:
   					                        const std::string &nodeType,
                                     const std::string &nodeParams);
 
-    /**
-     * Add a region in a network from deserialized region
-     *
-     * @param Region shared_ptr
-     *
-     * @returns A pointer to the newly created Region
-     */
-    std::shared_ptr<Region> addRegion(std::shared_ptr<Region>& region);
+  /**
+    * Add a region in a network from deserialized region
+    *
+    * @param Region shared_ptr
+    *
+    * @returns A pointer to the newly created Region
+    */
+  std::shared_ptr<Region> addRegion(std::shared_ptr<Region>& region);
 
-
-    /**
-     * Create a new region in a network from serialized region
-	 * The serialized file must have been created by calling SaveToFile()
-	 * directly on the region (not on Network).  It restores just this one region.
-	 * The fields dimensions and label are not used but provided for backward
-	 * compatability.
-	 */
-    std::shared_ptr<Region> addRegionFromBundle(const std::string name,
-					const std::string nodeType,
-					const Dimensions& dimensions,
-					const std::string& filename,
-					const std::string& label = "");
 
   /**
    * Removes an existing region from the network.

@@ -331,11 +331,11 @@ TEST(SPRegionTest, testSerialization)
 
     Directory::removeTree("TestOutputDir", true);
     VERBOSE << "Writing stream to " << Path::makeAbsolute("TestOutputDir/spRegionTest.stream") << "\n";
-	  net1.saveToFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
+	  net1.saveToFile("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
 
     VERBOSE << "Restore from " << Path::makeAbsolute("TestOutputDir/spRegionTest.stream") 
             << " into a second network and compare." << std::endl;
-    net2.loadFromFile_ar("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
+    net2.loadFromFile("TestOutputDir/spRegionTest.stream", SerializableFormat::JSON);
 
 	  std::shared_ptr<Region> n2region1 = net2.getRegion("region1");
 	  std::shared_ptr<Region> n2region2 = net2.getRegion("region2");
@@ -368,10 +368,10 @@ TEST(SPRegionTest, testSerialization)
     parameterMap.clear();
     EXPECT_TRUE(captureParameters(n2region2, parameterMap)) 
       << "Capturing parameters before second save.";
-	  net2.saveToFile_ar("TestOutputDir/spRegionTest.stream");
+	  net2.saveToFile("TestOutputDir/spRegionTest.stream");
 
 	  VERBOSE << "Restore into a third network.\n";
-    net3.loadFromFile_ar("TestOutputDir/spRegionTest.stream");
+    net3.loadFromFile("TestOutputDir/spRegionTest.stream");
 	  VERBOSE << "Compare changed parameters.\n";
 	  std::shared_ptr<Region> n3region2 = net3.getRegion("region2");
     EXPECT_TRUE(n3region2->getType() == "SPRegion")

@@ -435,22 +435,11 @@ public:
   SynapseIdx getMaxSynapsesPerSegment() const;
 
   /**
-   * Save (serialize) the current state of the spatial pooler to the
-   * specified file.
+   * Save (serialize) / Load (deserialize) the current state of the spatial pooler
+   * to the specified stream.
    *
-   * @param fd A valid file descriptor.
+   * @param Archive & ar   a Cereal container.
    */
-  virtual void save(ostream &outStream) const override;
-  
-
-  /**
-   * Load (deserialize) and initialize the spatial pooler from the
-   * specified input stream.
-   *
-   * @param inStream A valid istream.
-   */
-  virtual void load(istream &inStream) override;
-
   // a container to hold the data for one sequence item during serialization
   struct container_ar {
     SegmentIdx idx;
@@ -584,6 +573,7 @@ public:
 
   virtual bool operator==(const TemporalMemory &other) const;
   inline bool operator!=(const TemporalMemory &other) const { return not this->operator==(other); }
+  friend std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self);
 
   //----------------------------------------------------------------------
   // Debugging helpers
@@ -592,7 +582,7 @@ public:
   /**
    * Print the main TM creation parameters
    */
-  void printParameters();
+  void printParameters(std::ostream& out=std::cout) const;
 
   /**
    * Returns the index of the (mini-)column that a cell belongs to.

@@ -103,6 +103,16 @@ bool InputSpec::operator==(const InputSpec &o) const {
          dataType == o.dataType &&
          count == o.count && description == o.description;
 }
+std::ostream& operator<< (std::ostream& out, const InputSpec& self) {
+   out << "     description: " << self.description << "\n"
+       << "     type: " << BasicType::getName(self.dataType) << "\n"
+       << "     count: " << self.count << "\n"
+       << "     required: " << self.required << "\n"
+       << "     regionLevel: " << self.regionLevel << "\n"
+       << "     isDefaultInput: " << self.isDefaultInput << "\n";
+   return out;
+}
+
 OutputSpec::OutputSpec(std::string description,
                        NTA_BasicType dataType,
                        size_t count,
@@ -115,6 +125,14 @@ bool OutputSpec::operator==(const OutputSpec &o) const {
   return regionLevel == o.regionLevel && isDefaultOutput == o.isDefaultOutput &&
          dataType == o.dataType && count == o.count &&
          description == o.description;
+}
+std::ostream& operator<< (std::ostream& out, const OutputSpec& self) {
+   out << "     description: " << self.description << "\n"
+       << "     type: " << BasicType::getName(self.dataType) << "\n"
+       << "     count: " << self.count << "\n"
+       << "     regionLevel: " << self.regionLevel << "\n"
+       << "     isDefaultInput: " << self.isDefaultOutput << "\n";
+   return out;
 }
 
 CommandSpec::CommandSpec(std::string description)
@@ -139,6 +157,21 @@ bool ParameterSpec::operator==(const ParameterSpec &o) const {
          description == o.description && constraints == o.constraints &&
          defaultValue == o.defaultValue && accessMode == o.accessMode;
 }
+std::ostream& operator<< (std::ostream& out, const ParameterSpec& self) {
+    out << "     description: " << self.description << "\n"
+        << "     type: " << BasicType::getName(self.dataType) << "\n"
+        << "     count: " << self.count << "\n"
+        << "     access: ";
+    switch(self.accessMode) {
+    case ParameterSpec::CreateAccess:  out << "CreateAccess\n"; break;
+    case ParameterSpec::ReadOnlyAccess: out << "ReadOnlyAccess\n"; break;
+    case ParameterSpec::ReadWriteAccess: out << "ReadWriteAccess\n"; break;
+    default: "Unknown\n";
+    }
+    if (!self.constraints.empty())
+       out << "     constraints" << self.constraints << "\n";
+    return out;
+}
 
 std::string Spec::toString() const {
   // TODO -- minimal information here; fill out with the rest of
@@ -154,33 +187,42 @@ std::string Spec::toString() const {
   ss << "Parameters:"
      << "\n";
   for (size_t i = 0; i < parameters.getCount(); ++i) {
-    const std::pair<std::string, ParameterSpec> &item =
-        parameters.getByIndex(i);
-    ss << "  " << item.first << "\n"
-       << "     description: " << item.second.description << "\n"
-       << "     type: " << BasicType::getName(item.second.dataType) << "\n"
-       << "     count: " << item.second.count << "\n";
+    const std::pair<std::string, ParameterSpec> &item = parameters.getByIndex(i);
+    ss << "  " << item.first << "\n";
+    ss << item.second << "\n";
   }
 
   ss << "Inputs:"
      << "\n";
   for (size_t i = 0; i < inputs.getCount(); ++i) {
-    ss << "  " << inputs.getByIndex(i).first << "\n";
+    const std::pair<std::string, InputSpec> &item = inputs.getByIndex(i);
+    ss << "  " << item.first << "\n";
+    ss << item.second << "\n";
   }
 
   ss << "Outputs:"
      << "\n";
   for (size_t i = 0; i < outputs.getCount(); ++i) {
-    ss << "  " << outputs.getByIndex(i).first << "\n";
+    const std::pair<std::string, OutputSpec> &item = outputs.getByIndex(i);
+    ss << "  " << item.first << "\n";
+    ss << item.second << "\n";
   }
 
-  ss << "Commands:"
-     << "\n";
-  for (size_t i = 0; i < commands.getCount(); ++i) {
-    ss << "  " << commands.getByIndex(i).first << "\n";
+  if (commands.getCount() > 0) {
+    ss << "Commands:"
+       << "\n";
+    for (size_t i = 0; i < commands.getCount(); ++i) {
+      ss << "  " << commands.getByIndex(i).first << ": "
+         << commands.getByIndex(i).second.description << "\n";
+    }
   }
-
   return ss.str();
 }
+
+std::ostream& operator<< (std::ostream& out, const Spec& self) {
+  out << self.toString();
+  return out;
+}
+
 
 } // namespace nupic

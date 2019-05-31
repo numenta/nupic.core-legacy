@@ -958,159 +958,6 @@ bool SpatialPooler::isUpdateRound_() const {
 }
 
 
-void SpatialPooler::save(ostream &outStream) const {
-  // Write a starting marker and version.
-  outStream << std::setprecision(std::numeric_limits<Real>::max_digits10);
-  outStream << "SpatialPooler" << endl;
-  outStream << version_ << endl;
-
-  // Store the simple variables first.
-  outStream << numInputs_ << " " << numColumns_ << " " << potentialRadius_
-            << " ";
-
-  outStream << potentialPct_ << " ";
-  outStream << initConnectedPct_ << " " << globalInhibition_ << " "
-	  << numActiveColumnsPerInhArea_ << " " << localAreaDensity_ << " ";
-
-  outStream << stimulusThreshold_ << " " << inhibitionRadius_ << " "
-            << dutyCyclePeriod_ << " ";
-
-  outStream << boostStrength_ << " ";
-
-  outStream << iterationNum_ << " " << iterationLearnNum_ << " " << spVerbosity_
-            << " " << updatePeriod_ << " ";
-
-  outStream << synPermInactiveDec_ << " "
-    << synPermActiveInc_ << " " << synPermBelowStimulusInc_ << " "
-    << synPermConnected_ << " " << minPctOverlapDutyCycles_ << " ";
-
-  outStream << wrapAround_ << " " << endl;
-
-  // Store vectors.
-  outStream << inputDimensions_.size() << " ";
-  for (auto &elem : inputDimensions_) {
-    outStream << elem << " ";
-  }
-  outStream << endl;
-
-  outStream << columnDimensions_.size() << " ";
-  for (auto &elem : columnDimensions_) {
-    outStream << elem << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << boostFactors_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << overlapDutyCycles_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream <<  activeDutyCycles_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << minOverlapDutyCycles_[i] << " ";
-  }
-  outStream << endl;
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    outStream << tieBreaker_[i] << " ";
-  }
-  outStream << endl;
-
-  connections_.save( outStream );
-
-  //Random
-  outStream << rng_ << endl;
-
-  outStream << "~SpatialPooler" << endl;
-}
-
-// Implementation note: this method sets up the instance using data from
-// inStream. This method does not call initialize. As such we have to be careful
-// that everything in initialize is handled properly here.
-void SpatialPooler::load(istream &inStream) {
-  // Current version
-  version_ = 2;
-
-  // Check the marker
-  string marker;
-  inStream >> marker;
-  NTA_CHECK(marker == "SpatialPooler");
-
-  // Check the saved version.
-  UInt version;
-  inStream >> version;
-  NTA_CHECK(version == version_);
-
-  // Retrieve simple variables
-  inStream >> numInputs_ >> numColumns_ >> potentialRadius_ >> potentialPct_ >>
-      initConnectedPct_ >> globalInhibition_ >> numActiveColumnsPerInhArea_ >>
-      localAreaDensity_ >> stimulusThreshold_ >> inhibitionRadius_ >>
-      dutyCyclePeriod_ >> boostStrength_ >> iterationNum_ >>
-      iterationLearnNum_ >> spVerbosity_ >> updatePeriod_ >>
-      synPermInactiveDec_ >> synPermActiveInc_ >> synPermBelowStimulusInc_ >>
-      synPermConnected_ >> minPctOverlapDutyCycles_;
-  inStream >> wrapAround_;
-
-  // Retrieve vectors.
-  UInt numInputDimensions;
-  inStream >> numInputDimensions;
-  inputDimensions_.resize(numInputDimensions);
-  for (UInt i = 0; i < numInputDimensions; i++) {
-    inStream >> inputDimensions_[i];
-  }
-
-  UInt numColumnDimensions;
-  inStream >> numColumnDimensions;
-  columnDimensions_.resize(numColumnDimensions);
-  for (UInt i = 0; i < numColumnDimensions; i++) {
-    inStream >> columnDimensions_[i];
-  }
-
-  boostFactors_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> boostFactors_[i];
-  }
-
-  overlapDutyCycles_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> overlapDutyCycles_[i];
-  }
-
-  activeDutyCycles_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> activeDutyCycles_[i];
-  }
-
-  minOverlapDutyCycles_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> minOverlapDutyCycles_[i];
-  }
-
-  tieBreaker_.resize(numColumns_);
-  for (UInt i = 0; i < numColumns_; i++) {
-    inStream >> tieBreaker_[i];
-  }
-
-  connections_.load( inStream );
-
-  inStream >> rng_;
-
-  inStream >> marker;
-  NTA_CHECK(marker == "~SpatialPooler");
-
-  // initialize ephemeral members
-  overlaps_.resize(numColumns_);
-  overlapsPct_.resize(numColumns_);
-  boostedOverlaps_.resize(numColumns_);
-}
 
 
 //----------------------------------------------------------------------
@@ -1118,10 +965,9 @@ void SpatialPooler::load(istream &inStream) {
 //----------------------------------------------------------------------
 
 // Print the main SP creation parameters
-void SpatialPooler::printParameters() const {
-  std::cout << "------------CPP SpatialPooler Parameters ------------------\n";
-  std::cout
-      << "iterationNum                = " << getIterationNum() << std::endl
+void SpatialPooler::printParameters(std::ostream& out) const {
+  out << "------------CPP SpatialPooler Parameters ------------------\n";
+  out << "iterationNum                = " << getIterationNum() << std::endl
       << "iterationLearnNum           = " << getIterationLearnNum() << std::endl
       << "numInputs                   = " << getNumInputs() << std::endl
       << "numColumns                  = " << getNumColumns() << std::endl
@@ -1144,40 +990,62 @@ void SpatialPooler::printParameters() const {
       << "version                     = " << version() << std::endl;
 }
 
-void SpatialPooler::printState(vector<UInt> &state) {
-  std::cout << "[  ";
+void SpatialPooler::printState(const vector<UInt> &state, std::ostream& out) const {
+  out << "[  ";
   for (UInt i = 0; i != state.size(); ++i) {
     if (i > 0 && i % 10 == 0) {
-      std::cout << "\n   ";
+      out << "\n   ";
     }
-    std::cout << state[i] << " ";
+    out << state[i] << " ";
   }
-  std::cout << "]\n";
+  out << "]\n";
 }
 
-void SpatialPooler::printState(vector<Real> &state) {
-  std::cout << "[  ";
+void SpatialPooler::printState(const vector<Real> &state, std::ostream& out) const {
+  out << "[  ";
   for (UInt i = 0; i != state.size(); ++i) {
     if (i > 0 && i % 10 == 0) {
-      std::cout << "\n   ";
+      out << "\n   ";
     }
-    std::printf("%6.3f ", state[i]);
+    out << state[i];
   }
-  std::cout << "]\n";
+  out << "]\n";
 }
 
-/** equals implementation based on serialization */
+std::ostream & nupic::algorithms::spatial_pooler::operator<<(std::ostream & out, const SpatialPooler &sp)
+{
+  sp.printParameters(out);
+  out << "inputDimensions: ";
+  sp.printState(sp.getInputDimensions(), out);
+  out << "columnDimensions: ";
+  sp.printState(sp.getColumnDimensions(), out);
+  out << "boostFactors: ";
+  sp.printState(sp.boostFactors_, out);
+  out << "overlapDutyCycles: ";
+  sp.printState(sp.overlapDutyCycles_, out);
+  out << "activeDutyCycles: ";
+  sp.printState(sp.activeDutyCycles_, out);
+  out << "minOverlapDutyCycles: ";
+  sp.printState(sp.minOverlapDutyCycles_, out);
+  out << "tieBreaker: ";
+  sp.printState(sp.tieBreaker_, out);
+  out << "Connections: " << sp.connections_;
+  return out;
+}
+
+/** equals implementation based on text serialization */
 bool SpatialPooler::operator==(const SpatialPooler& o) const{
   stringstream s;
   s.flags(ios::scientific);
   s.precision(numeric_limits<double>::digits10 + 1);
 
-  this->save(s);
+  s << *this;
   const string thisStr = s.str();
 
   s.str(""); //clear stream
-  o.save(s);
+  s << o;
   const string otherStr = s.str();
 
   return thisStr == otherStr;
 }
+

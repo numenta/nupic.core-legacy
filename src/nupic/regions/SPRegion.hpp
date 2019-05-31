@@ -46,7 +46,6 @@ class SPRegion  : public RegionImpl, Serializable
 {		
   public:
     SPRegion(const ValueMap& params, Region *region);
-    SPRegion(BundleIO& bundle, Region* region);
     SPRegion(ArWrapper& wrapper, Region *region);
     virtual ~SPRegion();
 
@@ -68,10 +67,6 @@ class SPRegion  : public RegionImpl, Serializable
     * Region Impls are created at that time.
     */
     void initialize() override;
-
-    void serialize(BundleIO& bundle) override;
-    void deserialize(BundleIO& bundle) override;
-		
 
 		CerealAdapter;  // see Serializable.hpp
 	  // FOR Cereal Serialization

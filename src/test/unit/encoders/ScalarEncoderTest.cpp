@@ -196,14 +196,15 @@ TEST(ScalarEncoder, Serialization) {
 
   std::stringstream buf;
   for( const auto x : inputs ) {
-    x->save( buf );
+    x->save( buf, BINARY );
   }
-
-  // cerr << "SERIALIZED:" << endl << buf.str() << endl;
+  
+  //std::cerr << "SERIALIZED:" << std::endl << buf.str() << std::endl;
+  buf.seekg(0);
 
   for( const auto enc1 : inputs ) {
     ScalarEncoder enc2;
-    enc2.load( buf );
+    enc2.load( buf, BINARY );
 
     const auto &p1 = enc1->parameters;
     const auto &p2 = enc2.parameters;

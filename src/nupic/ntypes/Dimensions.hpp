@@ -41,7 +41,7 @@
 
 namespace nupic {
 
-class Dimensions : public std::vector<UInt>, public Serializable {
+class Dimensions : public Serializable {
 public:
   /**
    * Create a new Dimensions object.
@@ -51,18 +51,31 @@ public:
    *       Dimensions of size=1 and value [0] = 0 means "not known yet", see isDontCare()
    */
   Dimensions() {};
-  Dimensions(UInt x) { push_back(x); }
-  Dimensions(UInt x, UInt y) {  push_back(x); push_back(y); }
-  Dimensions(UInt x, UInt y, UInt z) { push_back(x); push_back(y); push_back(z); }
-  Dimensions(const std::vector<UInt>& v) : std::vector<UInt>(v){};
-  Dimensions(const Dimensions& d)  : std::vector<UInt>(d){};
+  Dimensions(UInt x) { vec_.push_back(x); }
+  Dimensions(UInt x, UInt y) {  vec_.push_back(x); vec_.push_back(y); }
+  Dimensions(UInt x, UInt y, UInt z) { vec_.push_back(x); vec_.push_back(y); vec_.push_back(z); }
+  Dimensions(const std::vector<UInt>& v) { vec_ = v; };
+  Dimensions(const Dimensions& d) : vec_(d.asVector()) {};
 
   /**
    * @returns  The count of cells in the grid which is the product of the sizes of
    * the dimensions.
    */
-  size_t getCount() const { return((size() > 0) ? std::accumulate(begin(), end(), 1, std::multiplies<UInt>()) : 0);}
+  size_t getCount() const { return((vec_.size() > 0) ? std::accumulate(vec_.begin(),vec_.end(), 1, std::multiplies<UInt>()) : 0);}
+  
+  std::vector<UInt>& asVector() { return vec_; }
+  const std::vector<UInt>& asVector() const { return vec_; }
 
+  const UInt operator[](size_t idx) const { return vec_[idx]; }
+  const UInt operator[](int idx) const { return vec_[idx]; }
+  size_t size() const { return vec_.size(); }
+  bool empty() const { return vec_.empty(); }
+  void clear() { vec_.clear(); }
+  void resize(size_t i) { vec_.resize(i); }
+  std::vector<UInt>::iterator begin() { return vec_.begin(); }
+  std::vector<UInt>::iterator end() { return vec_.end(); }
+  void push_back(UInt x) { vec_.push_back(x); }
+  void push_front(UInt x) { vec_.insert(vec_.begin(), x); }
 
   /**
    *
@@ -95,8 +108,8 @@ public:
    * There is a function to check for each of these states.
    */
   static const int DONTCARE = 0;
-  bool isUnspecified() const { return(size() == 0); }
-  bool isDontcare()    const { return(size() == 1 && at(0) == DONTCARE); }
+  bool isUnspecified() const { return(vec_.size() == 0); }
+  bool isDontcare()    const { return(vec_.size() == 1 && vec_[0] == DONTCARE); }
   bool isInvalid()     const { return(!isDontcare() && getCount() == 0); }
   bool isSpecified()   const { return(getCount() != 0); }
 
@@ -106,33 +119,37 @@ public:
     if (isDontcare())    return "[dontcare]";
     std::stringstream ss;
     ss << "[";
-    for (size_t i = 0; i < size(); i++) {
-      if (i)  ss << "," <<at(i);
-      else   ss << at(i);
+    for (size_t i = 0; i < vec_.size(); i++) {
+      if (i)  ss << "," <<vec_[i];
+      else   ss << vec_[i];
     }
     ss << "] ";
 		if (humanReadable && isInvalid()) ss << "(Invalid) ";
     return ss.str();
   }
 
-  // TODO:Cereal- remove these two methods when Cereal is fully implmented.
-  void save(std::ostream &f) const override {
-    size_t n = size();
-    f.write(reinterpret_cast<const char*>(&n), sizeof(size_t));
-    if (n > 0)
-      f.write(reinterpret_cast<const char*>(&at(0)), n * sizeof(at(0)));
+
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive& ar) const {
+    ar(vec_);
   }
-  void load(std::istream &f) override {
-    size_t n;
-    f.read(reinterpret_cast<char*>(&n), sizeof(size_t));
-    clear();
-    if (n > 0) {
-      resize(n);
-      f.read(reinterpret_cast<char*>(&at(0)), n * sizeof(at(0)));
-    }
+  template<class Archive>
+  void load_ar(Archive& ar) {
+    ar(vec_);
   }
 
+private:
+  std::vector<UInt> vec_;
+
 };
+
+
+  inline bool operator==(const Dimensions &lhs, const Dimensions &rhs) { return lhs.asVector() == rhs.asVector(); }
+  inline bool operator!=(const Dimensions &lhs, const Dimensions &rhs) { return !(lhs == rhs);}
+
+  inline bool operator==(const Dimensions &lhs, const std::vector<nupic::UInt> &rhs) { return lhs.asVector() == rhs; }
+  inline bool operator!=(const Dimensions &lhs, const std::vector<nupic::UInt> &rhs) { return !(lhs == rhs);}
   
 
   inline std::ostream &operator<<(std::ostream &f, const Dimensions& d) {
@@ -173,6 +190,7 @@ public:
     }
     return f;
   }
+
   
 
 } // namespace nupic

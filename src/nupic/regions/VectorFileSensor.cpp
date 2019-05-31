@@ -38,7 +38,6 @@
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/utils/StringUtils.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
 
 using namespace std;
@@ -65,14 +64,6 @@ VectorFileSensor::VectorFileSensor(const ValueMap &params, Region *region)
     filename_ = params.getString("inputFile");
 }
 
-VectorFileSensor::VectorFileSensor(BundleIO &bundle, Region *region)
-    : RegionImpl(region), repeatCount_(1), iterations_(0), curVector_(-1),
-      activeOutputCount_(0), hasCategoryOut_(false), hasResetOut_(false),
-      dataOut_(NTA_BasicType_Real32), categoryOut_(NTA_BasicType_Real32),
-      resetOut_(NTA_BasicType_Real32), filename_(""), scalingMode_("none"),
-      recentFile_("") {
-  deserialize(bundle);
-}
 VectorFileSensor::VectorFileSensor(ArWrapper& wrapper, Region *region) 
     : RegionImpl(region), repeatCount_(1), iterations_(0), curVector_(-1),
       activeOutputCount_(0), hasCategoryOut_(false), hasResetOut_(false),
@@ -671,61 +662,6 @@ size_t VectorFileSensor::getParameterArrayCount(const std::string &name, Int64 i
   return dataOut_.getCount();
 }
 
-
-
-void VectorFileSensor::serialize(BundleIO &bundle) {
-  std::ostream & f = bundle.getOutputStream();
-  f << repeatCount_ << " " << activeOutputCount_ << " " << curVector_ << " "
-    << iterations_ << " " << hasCategoryOut_ << " " << hasResetOut_ << " "
-    << ((filename_ == "")?std::string("empty"):filename_) << " "
-    << ((scalingMode_ == "")?std::string("empty"):scalingMode_) << " "
-    << ((recentFile_ == "")?std::string("empty"):recentFile_) << std::endl;
-  f << "outputs [";
-  std::map<std::string, Output *> outputs = region_->getOutputs();
-  for (auto iter : outputs) {
-    const Array &outputBuffer = iter.second->getData();
-    if (outputBuffer.getCount() != 0) {
-      f << iter.first << " ";
-      outputBuffer.save(f);
-    }
-  }
-  f << "] "; // end of all output buffers
-  
-  f << "[" << std::endl;
-  vectorFile_.save(f);
-  f << "]" << std::endl;
-  f.flush();
-}
-
-void VectorFileSensor::deserialize(BundleIO &bundle) {
-  std::istream& f = bundle.getInputStream();
-  std::string tag;
-  f >> repeatCount_ >> activeOutputCount_ >> curVector_ >> iterations_ >>
-      hasCategoryOut_ >> hasResetOut_;
-  f >>  filename_ >> scalingMode_ >> recentFile_;
-  if (filename_ == "empty") filename_ = "";
-  if (scalingMode_ == "empty") scalingMode_ = "";
-  if (recentFile_ == "empty") recentFile_ = "";
-  f >> tag;
-  NTA_CHECK(tag == "outputs");
-  f.ignore(1);
-  NTA_CHECK(f.get() == '['); // start of outputs
-  while (true) {
-    f >> tag;
-    f.ignore(1);
-    if (tag == "]")
-      break;
-    Array& a = getOutput(tag)->getData();
-    a.load(f);
-  }
-  f >> tag;
-  NTA_CHECK(tag == "[");
-  f.ignore(1);
-  vectorFile_.load(f);
-  f >> tag;
-  NTA_CHECK(tag == "]") << "Expected the end of vectorFile.load";
-  f.ignore(1);
-}
 
 
 bool VectorFileSensor::operator==(const RegionImpl &o) const {

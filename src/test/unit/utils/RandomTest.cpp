@@ -192,11 +192,11 @@ TEST(RandomTest, testSerialization_ar) {
   EXPECT_EQ(r1.getUInt32(), 2276275187u) << "Before serialization must be same";
   // serialize
   std::stringstream ss;
-  r1.saveToStream_ar(ss);
+  r1.save(ss);
 
   // deserialize into r2
   Random r2;
-  r2.loadFromStream_ar(ss);
+  r2.load(ss);
 
   // r1 and r2 should be identical
   EXPECT_EQ(r1, r2) << "load from serialization";
