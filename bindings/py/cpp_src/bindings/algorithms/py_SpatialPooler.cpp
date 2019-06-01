@@ -75,8 +75,8 @@ using namespace sdr;
             , py::arg("potentialRadius") = 16
             , py::arg("potentialPct") = 0.5
             , py::arg("globalInhibition") = false
-            , py::arg("localAreaDensity") = -1.0
-            , py::arg("numActiveColumnsPerInhArea") = 10
+            , py::arg("localAreaDensity") = 0.02f
+            , py::arg("numActiveColumnsPerInhArea") = -1
             , py::arg("stimulusThreshold") = 0
             , py::arg("synPermInactiveDec") = 0.01
             , py::arg("synPermActiveInc") = 0.1
