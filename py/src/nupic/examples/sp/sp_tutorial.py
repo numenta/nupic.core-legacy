@@ -35,84 +35,61 @@ sparse representations. Thus, the Spatial Pooler should exhibit some resilience
 to noise in its input.
 """
 
-import matplotlib
 import numpy as np
 import random
-
+import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from nupic.algorithms.spatial_pooler import SpatialPooler as SP
 
-def percentOverlap(x1, x2, size):
+from nupic.bindings.sdr import SDR
+from nupic.bindings.algorithms import SpatialPooler as SP
+
+
+def percentOverlap(x1, x2):
   """
-  Computes the percentage of overlap between vectors x1 and x2.
+  Computes the percentage of overlap between SDRs x1 and x2.
 
-  @param x1   (array) binary vector
-  @param x2   (array) binary vector
-  @param size (int)   length of binary vectors
+  Argument x1 is an SDR
+  Argument x2 is an SDR
 
-  @return percentOverlap (float) percentage overlap between x1 and x2
+  Returns percentOverlap (float) percentage overlap between x1 and x2
   """
-  nonZeroX1 = np.count_nonzero(x1)
-  nonZeroX2 = np.count_nonzero(x2)
-  minX1X2 = min(nonZeroX1, nonZeroX2)
+  minX1X2 = min(x1.getSum(), x2.getSum())
   percentOverlap = 0
   if minX1X2 > 0:
-    percentOverlap = float(np.dot(x1, x2))/float(minX1X2)
+    percentOverlap = float( x1.getOverlap( x2 )) / minX1X2
   return percentOverlap
 
 
-
-def corruptVector(vector, noiseLevel):
+def corruptSDR(sdr, noiseLevel):
   """
   Corrupts a binary vector by inverting noiseLevel percent of its bits.
 
-  @param vector     (array) binary vector to be corrupted
-  @param noiseLevel (float) amount of noise to be applied on the vector.
+  Argument vector     (array) binary vector to be corrupted
+  Argument noiseLevel (float) amount of noise to be applied on the vector.
   """
-  size = len(vector)
-  for i in range(size):
+  vector = sdr.flatten().dense
+  for i in range(sdr.size):
     rnd = random.random()
     if rnd < noiseLevel:
       if vector[i] == 1:
         vector[i] = 0
       else:
         vector[i] = 1
+  sdr.dense = vector
 
 
+inputSDR  = SDR( dimensions = (1000,1) ).randomize( .50 )
+outputSDR = SDR( dimensions = (2048,1) )
 
-def resetVector(x1, x2):
-  """
-  Copies the contents of vector x1 into vector x2.
-
-  @param x1 (array) binary vector to be copied
-  @param x2 (array) binary vector where x1 is copied
-  """
-  size = len(x1)
-  for i in range(size):
-    x2[i] = x1[i]
-
-random.seed(1)
-uintType = "uint32"
-inputDimensions = (1000,1)
-columnDimensions = (2048,1)
-inputSize = np.array(inputDimensions).prod()
-columnNumber = np.array(columnDimensions).prod()
-inputArray = np.zeros(inputSize, dtype=uintType)
-
-for i in range(inputSize):
-  inputArray[i] = random.randrange(2)
-
-activeCols = np.zeros(columnNumber, dtype=uintType)
-sp = SP(inputDimensions,
-        columnDimensions,
-        potentialRadius = int(0.5*inputSize),
-        numActiveColumnsPerInhArea = int(0.02*columnNumber),
+sp = SP(inputSDR.dimensions,
+        outputSDR.dimensions,
+        potentialRadius = int(0.5 * inputSDR.size),
+        localAreaDensity = .02,
         globalInhibition = True,
-        seed = 1,
+        seed = 0,
         synPermActiveInc = 0.01,
-        synPermInactiveDec = 0.008
-       )
+        synPermInactiveDec = 0.008)
 
 # Part 1:
 # -------
@@ -130,22 +107,22 @@ sp = SP(inputDimensions,
 # input. As well, the histogram will show the scores of those columns
 # that are chosen to build the sparse representation of the input.
 
-sp.compute(inputArray, False, activeCols)
+sp.compute(inputSDR, False, outputSDR)
 overlaps = sp.getOverlaps()
 activeColsScores = []
-for i in activeCols.nonzero():
+for i in outputSDR.sparse:
   activeColsScores.append(overlaps[i])
 
-print ""
-print "---------------------------------"
-print "Figure 1 shows a histogram of the overlap scores"
-print "from all the columns in the spatial pooler, as well as the"
-print "overlap scores of those columns that were selected to build a"
-print "sparse representation of the input (shown in green)."
-print "The SP chooses 2% of the columns with the largest overlap score"
-print "to make such sparse representation."
-print "---------------------------------"
-print ""
+print("")
+print("---------------------------------")
+print("Figure 1 shows a histogram of the overlap scores")
+print("from all the columns in the spatial pooler, as well as the")
+print("overlap scores of those columns that were selected to build a")
+print("sparse representation of the input (shown in green).")
+print("The SP chooses 2% of the columns with the largest overlap score")
+print("to make such sparse representation.")
+print("---------------------------------")
+print("")
 
 bins = np.linspace(min(overlaps), max(overlaps), 28)
 plt.hist(overlaps, bins, alpha=0.5, label="All cols")
@@ -167,38 +144,34 @@ plt.close()
 # will yield an overlap of 0. In this section we will see how the input overlap
 # of two binary vectors decrease as we add noise to one of them.
 
-inputX1 = np.zeros(inputSize, dtype=uintType)
-inputX2 = np.zeros(inputSize, dtype=uintType)
-outputX1 = np.zeros(columnNumber, dtype=uintType)
-outputX2 = np.zeros(columnNumber, dtype=uintType)
-
-for i in range(inputSize):
-  inputX1[i] = random.randrange(2)
+inputX1 = SDR( inputSDR.size ).randomize( .50 )
+inputX2 = SDR( inputSDR.size )
+outputX1 = SDR( outputSDR.size )
+outputX2 = SDR( outputSDR.size )
 
 x = []
 y = []
 for noiseLevel in np.arange(0, 1.1, 0.1):
-  resetVector(inputX1, inputX2)
-  corruptVector(inputX2, noiseLevel)
+  inputX2.setSDR( inputX1 )
+  corruptSDR(inputX2, noiseLevel)
   x.append(noiseLevel)
-  y.append(percentOverlap(inputX1, inputX2, inputSize))
+  y.append(percentOverlap(inputX1, inputX2))
 
-print ""
-print "---------------------------------"
-print "Figure 2 shows the input overlap between 2 identical binary vectors in"
-print "function of the noise applied to one of them."
-print "0 noise level means that the vector remains the same, whereas"
-print "1 means that the vector is the logical negation of the original vector. "
-print "The relationship between overlap and noise level is practically linear "
-print "and monotonically decreasing."
-print "---------------------------------"
-print ""
+print("")
+print("---------------------------------")
+print("Figure 2 shows the input overlap between 2 identical binary vectors in")
+print("function of the noise applied to one of them.")
+print("0 noise level means that the vector remains the same, whereas")
+print("1 means that the vector is the logical negation of the original vector. ")
+print("The relationship between overlap and noise level is practically linear ")
+print("and monotonically decreasing.")
+print("---------------------------------")
+print("")
 
 plt.plot(x, y)
 plt.xlabel("Noise level")
 plt.ylabel("Input overlap")
-plt.title("Figure 2: Input overlap between 2 identical vectors in function of "
-          "noiseLevel.")
+plt.title("Figure 2: Input overlap between 2 identical vectors in function of noiseLevel.")
 plt.savefig("figure_2")
 plt.close()
 
@@ -220,25 +193,25 @@ plt.close()
 x = []
 y = []
 for noiseLevel in np.arange(0, 1.1, 0.1):
-  resetVector(inputX1, inputX2)
-  corruptVector(inputX2, noiseLevel)
+  inputX2.setSDR( inputX1 )
+  corruptSDR(inputX2, noiseLevel)
 
   sp.compute(inputX1, False, outputX1)
   sp.compute(inputX2, False, outputX2)
 
-  x.append(percentOverlap(inputX1, inputX2, inputSize))
-  y.append(percentOverlap(outputX1, outputX2, columnNumber))
+  x.append(percentOverlap(inputX1, inputX2))
+  y.append(percentOverlap(outputX1, outputX2))
 
-print ""
-print "---------------------------------"
-print "Figure 3 shows the output overlap between two sparse representations"
-print "in function of their input overlap. Starting from two identical binary "
-print "vectors (which yield the same active columns) we add noise two one of "
-print "them, feed it to the SP, and estimate the output overlap between the two"
-print "representations in terms of the common active columns between them."
-print "As expected, as the input overlap decreases, so does the output overlap."
-print "---------------------------------"
-print ""
+print("")
+print("---------------------------------")
+print("Figure 3 shows the output overlap between two sparse representations")
+print("in function of their input overlap. Starting from two identical binary ")
+print("vectors (which yield the same active columns) we add noise two one of ")
+print("them, feed it to the SP, and estimate the output overlap between the two")
+print("representations in terms of the common active columns between them.")
+print("As expected, as the input overlap decreases, so does the output overlap.")
+print("---------------------------------")
+print("")
 
 plt.plot(x, y)
 plt.xlabel("Input overlap")
@@ -264,75 +237,67 @@ plt.close()
 # see how the SP behaves. Is there a relationship between the number of examples
 # and the number of times that we expose them to the SP?
 
-numExamples = 10
-inputVectors = np.zeros((numExamples, inputSize), dtype=uintType)
-outputColumns = np.zeros((numExamples, columnNumber), dtype=uintType)
-
-for i in range(numExamples):
-  for j in range(inputSize):
-    inputVectors[i][j] = random.randrange(2)
+numExamples   = 10
+inputVectors  = [SDR(inputSDR.size).randomize( .50 ) for _ in range(numExamples)]
+outputColumns = [SDR(outputSDR.size) for _ in range(numExamples)]
 
 # This is the number of times that we will present the input vectors to the SP
 epochs = 30
 
 for _ in range(epochs):
   for i in range(numExamples):
-    #Feed the examples to the SP
-    sp.compute(inputVectors[i][:], True, outputColumns[i][:])
+    # Feed the examples to the SP
+    sp.compute(inputVectors[i], True, outputColumns[i])
 
-print ""
-print "---------------------------------"
-print "Figure 4a shows the sorted overlap scores of all columns in a spatial"
-print "pooler with random input, before and after learning. The top 2% of "
-print "columns with the largest overlap scores, comprising the active columns "
-print "of the output sparse representation, are highlighted in green."
-print "---------------------------------"
-print ""
+print("")
+print("---------------------------------")
+print("Figure 4a shows the sorted overlap scores of all columns in a spatial")
+print("pooler with random input, before and after learning. The top 2% of ")
+print("columns with the largest overlap scores, comprising the active columns ")
+print("of the output sparse representation, are highlighted in green.")
+print("---------------------------------")
+print("")
 
 plt.plot(sorted(overlaps)[::-1], label="Before learning")
 overlaps = sp.getOverlaps()
 plt.plot(sorted(overlaps)[::-1], label="After learning")
-plt.axvspan(0, len(activeColsScores[0]), facecolor="g", alpha=0.3,
-            label="Active columns")
+plt.axvspan(0, len(activeColsScores), facecolor="g", alpha=0.3, label="Active columns")
 plt.legend(loc="upper right")
 plt.xlabel("Columns")
 plt.ylabel("Overlap scores")
-plt.title("Figure 4a: Sorted column overlaps of a SP with random "
-          "input.")
+plt.title("Figure 4a: Sorted column overlaps of a SP with random input.")
 plt.savefig("figure_4a")
 plt.close()
 
 
-inputVectorsCorrupted = np.zeros((numExamples, inputSize), dtype=uintType)
-outputColumnsCorrupted = np.zeros((numExamples, columnNumber), dtype=uintType)
+inputCorrupted  = SDR( inputSDR.dimensions )
+outputCorrupted = SDR( outputSDR.dimensions )
 
 x = []
 y = []
 # We will repeat the experiment in the last section for only one input vector
 # in the set of input vectors
 for noiseLevel in np.arange(0, 1.1, 0.1):
-  resetVector(inputVectors[0][:], inputVectorsCorrupted[0][:])
-  corruptVector(inputVectorsCorrupted[0][:], noiseLevel)
+  inputCorrupted.setSDR( inputVectors[0] )
+  corruptSDR(inputCorrupted, noiseLevel)
 
-  sp.compute(inputVectors[0][:], False, outputColumns[0][:])
-  sp.compute(inputVectorsCorrupted[0][:], False, outputColumnsCorrupted[0][:])
+  sp.compute(inputVectors[0], False, outputColumns[0])
+  sp.compute(inputCorrupted, False, outputCorrupted)
 
-  x.append(percentOverlap(inputVectors[0][:], inputVectorsCorrupted[0][:],
-                          inputSize))
-  y.append(percentOverlap(outputColumns[0][:], outputColumnsCorrupted[0][:],
-                          columnNumber))
+  x.append(percentOverlap(inputVectors[0], inputCorrupted))
+  y.append(percentOverlap(outputColumns[0], outputCorrupted))
 
-print ""
-print "---------------------------------"
-print "How robust is the SP to noise after learning?"
-print "Figure 4 shows again the output overlap between two binary vectors in "
-print "function of their input overlap. After training, the SP exhibits more "
-print "robustness to noise in its input, resulting in a -almost- sigmoid curve."
-print "This implies that even if a previous input is presented again with a "
-print "certain amount of noise its sparse representation still resembles its "
-print "original."
-print "---------------------------------"
-print ""
+print("")
+print("---------------------------------")
+print("How robust is the SP to noise after learning?")
+print("Figure 4 shows again the output overlap between two binary vectors in ")
+print("function of their input overlap. After training, the SP exhibits more ")
+print("robustness to noise in its input, resulting in a -almost- sigmoid curve.")
+print("This implies that even if a previous input is presented again with a ")
+print("certain amount of noise its sparse representation still resembles its ")
+print("original.")
+print("---------------------------------")
+print("")
 
 plt.plot(x, y)
 plt.xlabel("Input overlap")
@@ -342,9 +307,9 @@ plt.title("Figure 4: Output overlap in function of input overlap in a SP after "
 plt.savefig("figure_4")
 plt.close()
 
-print ""
-print "+++++++++++++++++++++++++++++++++++++++++++++++++++"
-print " All images generated by this script will be saved"
-print " in your current working directory."
-print "+++++++++++++++++++++++++++++++++++++++++++++++++++"
-print ""
+print("")
+print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
+print(" All images generated by this script will be saved")
+print(" in your current working directory.")
+print("+++++++++++++++++++++++++++++++++++++++++++++++++++")
+print("")
