@@ -84,7 +84,7 @@ using namespace sdr;
             , py::arg("minPctOverlapDutyCycle") = 0.001
             , py::arg("dutyCyclePeriod") = 1000
             , py::arg("boostStrength") = 0.0
-            , py::arg("seed") = -1
+            , py::arg("seed") = 1
             , py::arg("spVerbosity") = 0
             , py::arg("wrapAround") = true
         );
