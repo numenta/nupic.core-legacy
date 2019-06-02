@@ -2083,7 +2083,7 @@ TEST(SpatialPoolerTest, ExactOutput) {
   string gold =
     "SDR 1 "
     "1 200 "
-    "10 190 172 23 118 178 129 113 71 185 182 "
+    "10 23 71 113 118 129 172 178 182 185 190 "
     "~SDR"; // This is all one string.
 
   stringstream gold_stream( gold );

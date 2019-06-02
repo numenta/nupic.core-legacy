@@ -25,7 +25,7 @@
 
 #include <nupic/math/Topology.hpp>
 #include <nupic/utils/Log.hpp>
-#include <algorithm>
+#include <algorithm> // sort
 
 using std::vector;
 using namespace nupic;
@@ -87,7 +87,8 @@ Topology_t  DefaultTopology(
     }
 
     const UInt numPotential = (UInt)round(columnInputs.size() * potentialPct);
-    const auto selectedInputs = rng.sample<UInt>(columnInputs, numPotential);
+    auto selectedInputs = rng.sample<UInt>(columnInputs, numPotential);
+    std::sort( selectedInputs.begin(), selectedInputs.end() );
     SDR potentialPool( potentialPoolDimensions );
     potentialPool.setSparse( selectedInputs );
     return potentialPool;

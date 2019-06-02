@@ -184,10 +184,21 @@ date.  If you did't copy this data, then SDR won't copy either.)");
             },
             [](SDR &self, SDR_sparse_t data) {
                 NTA_CHECK( data.size() <= self.size );
+                // Sort data and check for duplicates.
+                if( ! is_sorted( data.begin(), data.end() ))
+                    sort( data.begin(), data.end() );
+                UInt previous = -1;
+                for( const UInt idx : data ) {
+                    NTA_CHECK( idx != previous )
+                        << "Sparse data must not contain duplicates!";
+                    previous = idx;
+                }
                 self.setSparse( data ); },
 R"(A numpy array containing the indices of only the true values in the SDR.
 These are indices into the flattened SDR. This format allows for quickly
-accessing all of the true bits in the SDR.)");
+accessing all of the true bits in the SDR.
+
+Sparse data must contain no duplicates.)");
 
         py_SDR.def_property("coordinates",
             [](shared_ptr<SDR> self) {
@@ -209,7 +220,9 @@ R"(List of numpy arrays, containing the coordinates of only the true values in
 the SDR.  This is a list of lists: the outter list contains an entry for each
 dimension in the SDR. The inner lists contain the coordinates of each true bit.
 The inner lists run in parallel. This format is useful because it contains the
-location of each true bit inside of the SDR's dimensional space.)");
+location of each true bit inside of the SDR's dimensional space.
+
+Coordinate data must be sorted and contain no duplicates.)");
 
         py_SDR.def("setSDR", [](SDR *self, SDR &other) {
             NTA_CHECK( self->dimensions == other.dimensions );

@@ -60,6 +60,14 @@ namespace sdr {
             for(auto idx : sparse_) {
                 NTA_ASSERT(idx < size);
             }
+            NTA_ASSERT( is_sorted(sparse_.begin(), sparse_.end()) )
+                << "Sparse & Coordinate data must be sorted!";
+            UInt previous = -1;
+            for( const UInt idx : sparse_ ) {
+                NTA_ASSERT( idx != previous )
+                    << "Sparse & Coordinate data must not contain duplicates!";
+                previous = idx;
+            }
         #endif
         // Set the valid flags.
         clear();
@@ -293,6 +301,7 @@ namespace sdr {
         SDR_sparse_t range( size );
         iota( range.begin(), range.end(), 0u );
         sparse_ = rng.sample( range, nbits);
+        sort( sparse_.begin(), sparse_.end() );
         setSparseInplace();
     }
 

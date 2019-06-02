@@ -26,7 +26,7 @@
  * Implementation of the ScalarEncoder
  */
 
-#include <algorithm> // std::min
+#include <algorithm> // std::min std::sort
 #include <numeric>   // std::iota
 #include <cmath>     // std::isnan std::nextafter
 #include <nupic/encoders/ScalarEncoder.hpp>
@@ -190,6 +190,7 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
         bit -= output.size;
       }
     }
+    std::sort( sparse.begin(),  sparse.end() );
   }
 
   output.setSparse( sparse );
