@@ -42,7 +42,6 @@ Implementation of the Network class
 #include <nupic/os/Path.hpp>
 #include <nupic/ntypes/BasicType.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/utils/StringUtils.hpp>
 
 namespace nupic {
 
