@@ -590,7 +590,6 @@ public:
             inStream >> std::skipws;  // skip leading whitespace
             vec.clear();
             std::string val;
-            UInt elem = 0;
             int c = 0;
             while(c != '\n' && !inStream.eofbit) {
               int c = inStream.get();
