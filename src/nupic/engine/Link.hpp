@@ -473,6 +473,7 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
+    std::deque<Array> delay = preSerialize();
     ar(cereal::make_nvp("srcRegionName", srcRegionName_),
        cereal::make_nvp("srcOutputName", srcOutputName_),
        cereal::make_nvp("destRegionName", destRegionName_),
@@ -480,7 +481,7 @@ public:
        cereal::make_nvp("destOffset", destOffset_),
        cereal::make_nvp("is_FanIn", is_FanIn_),
        cereal::make_nvp("propagationDelay", propagationDelay_),
-       cereal::make_nvp("propagationDelayBuffer", propagationDelayBuffer_));
+       cereal::make_nvp("propagationDelayBuffer", delay));
   }
   // FOR Cereal Deserialization
   template<class Archive>
@@ -506,15 +507,8 @@ private:
                               const std::string &destInputName,
                               const size_t propagationDelay);
 
+  std::deque<Array> preSerialize() const;
 
-
-  // TODO: The strings with src/dest names are redundant with
-  // the src_ and dest_ objects. For unit testing links,
-  // and for deserializing networks, we need to be able to create
-  // a link object without a network. and for deserializing, we
-  // need to be able to instantiate a link before we have instantiated
-  // all the regions. (Maybe this isn't true? Re-evaluate when
-  // more infrastructure is in place).
 
   std::string srcRegionName_;
   std::string destRegionName_;

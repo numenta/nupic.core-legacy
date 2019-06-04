@@ -134,6 +134,8 @@ public:
     ar(cereal::make_nvp("name", name));
     ar(cereal::make_nvp("size", args_.size));
     ar(cereal::make_nvp("activeBits", args_.activeBits));
+    ar(cereal::make_nvp("sparsity", args_.sparsity));
+    ar(cereal::make_nvp("radius", args_.radius));
     ar(cereal::make_nvp("resolution", args_.resolution));
     ar(cereal::make_nvp("category", args_.category));
     ar(cereal::make_nvp("seed", args_.seed));
@@ -142,13 +144,18 @@ public:
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
+    std::vector<UInt> dim;
     std::string name;
     ar(cereal::make_nvp("name", name));
+    NTA_CHECK(name == "RandomDistributedScalarEncoder");
     ar(cereal::make_nvp("size", args_.size));
     ar(cereal::make_nvp("activeBits", args_.activeBits));
+    ar(cereal::make_nvp("sparsity", args_.sparsity));
+    ar(cereal::make_nvp("radius", args_.radius));
     ar(cereal::make_nvp("resolution", args_.resolution));
     ar(cereal::make_nvp("category", args_.category));
     ar(cereal::make_nvp("seed", args_.seed));
+    BaseEncoder<Real64>::initialize({ parameters.size });
   }
 private:
   RDSE_Parameters args_;

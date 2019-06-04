@@ -184,6 +184,12 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 //    - Extra attention is needed if a variable is in a base class. See Cereal docs.
 //    - Extra attention may be needed for some private variables. See Cereal docs.
 //
+// NOTE: Another restruction in the use of serialization using Cereal:
+//       When an Archive is applied to a new stream it will parse to the end of the
+//       stream.  If you should then apply a second Archive to the same stream it will
+//       not be able to parse because it is already at the end of the stream and there
+//       will be a read error.  So, a stream can be applied only to a single Archive
+//       unless it is reset to the beginning of the stream with a seekg(0).
 
 class ArWrapper {
 public:

@@ -232,7 +232,35 @@ void Link::shiftBufferedData() {
   }
 }
 
+std::deque<Array> Link::preSerialize() const {
+  std::deque<Array> delay;
+  if (propagationDelay_ > 0) {
+    // we need to capture the propagationDelayBuffer_ used for propagationDelay
+    // Do not copy the last entry.  It is the same as the output buffer.
 
+    // The current contents of the Destination Input buffer also needs
+    // to be captured as if it were the top value of the propagationDelayBuffer.
+    // When restored, it will be copied to the dest input buffer and popped off
+    // before the next execution. If there is a fanIn, we only
+    // want to capture the amount of the input buffer contributed by
+    // this link.
+    size_t srcCount = 0;
+    if (src_) {
+      const Array& s = src_->getData();
+      srcCount = s.getCount();
+    }
+    Array a = dest_->getData().subset(destOffset_, srcCount);
+    delay.push_back(a); // our part of the current Dest Input buffer.
+
+    for (auto itr = propagationDelayBuffer_.begin();
+          itr != propagationDelayBuffer_.end(); itr++) {
+      if (itr + 1 == propagationDelayBuffer_.end())
+        break; // skip the last buffer. Its the current output.
+      delay.push_back(*itr);
+    } // end for
+  }
+  return delay;
+}
 
 bool Link::operator==(const Link &o) const {
   if (initialized_ != o.initialized_ ||

@@ -150,6 +150,9 @@ namespace encoders {
       ar(cereal::make_nvp("periodic", args_.periodic));
       ar(cereal::make_nvp("category", args_.category));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("size", args_.size));
+      ar(cereal::make_nvp("radius", args_.radius));
       ar(cereal::make_nvp("resolution", args_.resolution));
     }
   
@@ -164,6 +167,9 @@ namespace encoders {
       ar(cereal::make_nvp("periodic", args_.periodic));
       ar(cereal::make_nvp("category", args_.category));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("size", args_.size));
+      ar(cereal::make_nvp("radius", args_.radius));
       ar(cereal::make_nvp("resolution", args_.resolution));
     }
 

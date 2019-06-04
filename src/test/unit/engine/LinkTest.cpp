@@ -370,8 +370,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
   }
 
   // Serialize the current net
-  VERBOSE << "cwd=" << Directory::getCWD() << std::endl;
-  net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream");
+  VERBOSE << " cwd=" << Directory::getCWD() << std::endl;
+  net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream", JSON);
   {
     // Output values should still be all 100's
     // they were not modified by the save operation.
@@ -383,14 +383,16 @@ TEST(LinkTest, DelayedLinkSerialization) {
   }
 
   // What is serialized in the Delay buffer should be
-  // all 0's for first row and all 10's for the second.
+  // all 0's from the input buffer for first row and original
+  // top row of buffer (all 10's) for the second.
   // The stored output buffer would be all 100's.
-  // When restored, the first row (all 0's) will be moved to destination input buffer
-  // and the source output buffer (all 100's) would be rolled into bottom of delay buffer.
+  // When restored, the first row (all 0's) will be moved to destination input buffer.
+  // The last row of Delay buffer (all 10's) will roll to the first row of the Delay buffer.
+  // The source output buffer (all 100's) would be rolled into bottom of delay buffer.
 
   // De-serialize into a new net2
   Network net2;
-  net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream");
+  net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream", JSON);
   net2.initialize();
 
   auto n2region1 = net2.getRegion("region1");
@@ -399,6 +401,15 @@ TEST(LinkTest, DelayedLinkSerialization) {
   Input *n2in1 = n2region1->getInput("bottomUpIn");
   Input *n2in2 = n2region2->getInput("bottomUpIn");
   Output *n2out1 = n2region1->getOutput("bottomUpOut");
+
+  VERBOSE << "network1\n";
+  VERBOSE << " in1  buffer  =" << in1->getData() << std::endl;
+  VERBOSE << " out1 buffer  =" << out1->getData() << std::endl;
+  VERBOSE << " in2  buffer  =" << in2->getData() << std::endl;
+  VERBOSE << "\nnetwork2\n";
+  VERBOSE << " n2in1  buffer=" << n2in1->getData() << std::endl;
+  VERBOSE << " n2out1 buffer=" << n2out1->getData() << std::endl;
+  VERBOSE << " n2in2  buffer=" << n2in2->getData() << std::endl;
 
   // Make sure that the buffers in the restored network look exactly like the original.
   ASSERT_TRUE(n2in1->getData() == in1->getData())   << "Deserialized bottomUpIn region1 input buffer does not match";
