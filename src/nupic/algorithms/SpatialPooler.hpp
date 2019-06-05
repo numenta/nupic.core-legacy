@@ -1251,6 +1251,7 @@ public:
   const connections::Connections &connections = connections_;
 };
 
+std::ostream & operator<<(std::ostream & out, const SpatialPooler &sp);
 
 
 } // end namespace spatial_pooler

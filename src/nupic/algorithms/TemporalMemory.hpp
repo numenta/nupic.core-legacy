@@ -661,6 +661,8 @@ public:
   const Real &anomaly = anomaly_;
 };
 
+  std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self);
+
 } // end namespace temporal_memory
 } // end namespace algorithms
 } // namespace nupic

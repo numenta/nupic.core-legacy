@@ -195,7 +195,7 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
   output.setSparse( sparse );
 }
 
-std::ostream & nupic::encoders::operator<<(std::ostream & out, const ScalarEncoder &self)
+std::ostream & operator<<(std::ostream & out, const ScalarEncoder &self)
 {
   out << "ScalarEncoder ";
   out << "minimum: " << self.parameters.minimum    << ", ";
