@@ -24,7 +24,6 @@
 #include <pybind11/stl.h>
 
 #include <nupic/types/Sdr.hpp>
-#include <nupic/utils/StringUtils.hpp>  // trim
 
 #include <memory> // shared_ptr
 
@@ -292,7 +291,7 @@ magic seed 0.  Use the same seed to consistently kill the same cells.)",
         py_SDR.def("__str__", [](SDR &self){
             stringstream buf;
             buf << self;
-            return StringUtils::trim( buf.str() ); });
+            return py::str( buf.str() ).attr("strip")(); });
 
         py_SDR.def("__eq__", [](SDR &self, SDR &other){ return self == other; });
         py_SDR.def("__ne__", [](SDR &self, SDR &other){ return self != other; });

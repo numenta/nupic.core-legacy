@@ -47,7 +47,6 @@
 
 
 #include <nupic/utils/Log.hpp>
-#include <nupic/utils/StringUtils.hpp>
 
 // from http://stackoverflow.com/a/9096509/1781435
 #define stringify(x) #x
