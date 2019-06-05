@@ -66,8 +66,8 @@ public:
   std::vector<UInt>& asVector() { return vec_; }
   const std::vector<UInt>& asVector() const { return vec_; }
 
-  const UInt operator[](size_t idx) const { return vec_[idx]; }
-  const UInt operator[](int idx) const { return vec_[idx]; }
+  UInt operator[](size_t idx) const { return vec_[idx]; }
+  UInt operator[](int idx) const { return vec_[idx]; }
   size_t size() const { return vec_.size(); }
   bool empty() const { return vec_.empty(); }
   void clear() { vec_.clear(); }
