@@ -37,12 +37,19 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/regions/VectorFileSensor.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/utils/StringUtils.hpp>
 #include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
 
 using namespace std;
 namespace nupic {
+
+// Helper function
+UInt32 toUInt32(const std::string& s) {
+  std::istringstream ss(s);
+  UInt32 i;
+  ss >> i;
+  return i;
+}
 
 //----------------------------------------------------------------------------
 
@@ -186,7 +193,7 @@ std::string VectorFileSensor::executeCommand(const std::vector<std::string>& arg
     cout << "In VectorFileSensor " << filename << endl;
 
     if (argCount == 3) {
-      labeled = StringUtils::toUInt32(args[2]);
+      labeled = toUInt32(args[2]);
     } else {
       // Check for some common extensions.
       const char *csvExtensions[] = {".csv", ".CSV", nullptr};
@@ -263,17 +270,17 @@ std::string VectorFileSensor::executeCommand(const std::vector<std::string>& arg
     string filename(args[1]);
 
     if (argCount > 2) {
-      format = StringUtils::toUInt32(args[2]);
+      format = toUInt32(args[2]);
       if ((format < 0) || (format > VectorFile::maxFormat()))
         NTA_THROW << "VectorFileSensor: unknown file format '" << format << "'";
     }
 
     if (argCount > 3) {
-      begin = StringUtils::toUInt32(args[3]);
+      begin = toUInt32(args[3]);
     }
 
     if (argCount > 4) {
-      end = StringUtils::toUInt32(args[4]);
+      end = toUInt32(args[4]);
       hasEnd = true;
     }
 
