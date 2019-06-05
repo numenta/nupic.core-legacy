@@ -38,7 +38,6 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <nupic/engine/Output.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BasicType.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Path.hpp>
 
@@ -168,7 +167,7 @@ namespace py = pybind11;
     {
     }
 
-    std::string PyBindRegion::pickleSerialize()
+    std::string PyBindRegion::pickleSerialize() const
     {
         // 1. serialize main state using pickle
         // 2. call class method to serialize external state
@@ -199,21 +198,21 @@ namespace py = pybind11;
 		 		Path::remove(tmp_pickle);
 		    return content;
     }
-    std::string PyBindRegion::extraSerialize()
+    std::string PyBindRegion::extraSerialize() const
     {
 		    std::string tmp_extra = "extra.tmp";
 
         // 2. External state
         // Call the Python serializeExtraData() method to write additional data.
 
-        args = py::make_tuple(tmp_extra);
+        py::tuple args = py::make_tuple(tmp_extra);
         // Need to put the None result in py::Ptr to decrement the ref count
         node_.attr("serializeExtraData")(*args);
 
 				// copy the extra data into the extra string
-				std::ifstream efile(tmp_pickle.c_str(), std::ios::binary);
-				std::string extra((std::istreambuf_iterator<char>(pfile)), 
-				                     std::istreambuf_iterator<char>());
+				std::ifstream efile(tmp_extra.c_str(), std::ios::binary);
+				std::string extra((std::istreambuf_iterator<char>(efile)), 
+				                   std::istreambuf_iterator<char>());
 				efile.close();
 				Path::remove(tmp_extra);
 		    return extra;
@@ -258,7 +257,7 @@ namespace py = pybind11;
 				efile.close();
 
         // Call the Python deSerializeExtraData() method
-        args = py::make_tuple(tmp_extra);
+        py::tuple args = py::make_tuple(tmp_extra);
         node_.attr("deSerializeExtraData")(*args);
 				Path::remove(tmp_extra);
     }

@@ -57,7 +57,7 @@ namespace nupic
         // Constructors
         PyBindRegion() = delete;
         PyBindRegion(const char* module, const ValueMap& nodeParams, Region *region, const char* className);
-        PyBindRegion(const char* module, ArWrapper& wrapper, Region *region, const char* className) : RegionImpl(region);
+        PyBindRegion(const char* module, ArWrapper& wrapper, Region *region, const char* className);
 
         // no copy constructor
         PyBindRegion(const Region &) = delete;
@@ -80,7 +80,7 @@ namespace nupic
 						std::string e;
 						ar(p, e);
 						pickleDeserialize(p);
-						extraDeseerialize(e);
+						extraDeserialize(e);
 				}
 
 		    bool operator==(const RegionImpl &other) const override {
@@ -145,8 +145,8 @@ namespace nupic
 
         Spec nodeSpec_;   // locally cached version of spec.
 
-        std::string pickleSerialize();
-        std::string extraSerialize();
+        std::string pickleSerialize() const;
+        std::string extraSerialize() const;
 				void pickleDeserialize(std::string p);
 				void extraDeserialize(std::string e);
    };
