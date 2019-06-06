@@ -3,56 +3,59 @@ import datetime
 import os
 import numpy as np
 import random
+import math
 
-from nupic.bindings.algorithms import SpatialPooler
-from nupic.bindings.algorithms import TemporalMemory
 from nupic.bindings.sdr import SDR, Metrics
 from nupic.encoders.rdse import RDSE, RDSE_Parameters
 from nupic.encoders.date import DateEncoder
+from nupic.bindings.algorithms import SpatialPooler
+from nupic.bindings.algorithms import TemporalMemory
 from nupic.algorithms.anomaly_likelihood import AnomalyLikelihood
+from nupic.bindings.algorithms import Predictor
 
 _EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
 _INPUT_FILE_PATH = os.path.join(_EXAMPLE_DIR, "gymdata.csv")
 
 default_parameters = {
- 'enc': {'resolution': 0.9551003024002529,
-         'size': 692,
-         'sparsity': 0.02349173387867304},
- 'sp': {'boostStrength': 2.331600954004477,
-        'columnCount': 1905,
-        'numActiveColumnsPerInhArea': 34,
-        'potentialPct': 0.9616584936945282,
-        'synPermActiveInc': 0.034755234293843695,
-        'synPermConnected': 0.0709642810371415,
-        'synPermInactiveDec': 0.007365910271986643},
- 'time': {'timeOfDay': (30, 2), 'weekend': 29},
+ 'enc': {'resolution': 0.88, 'size': 700, 'sparsity': 0.02},
+ 'sdrc_alpha': 0.1,
+ 'sp': {'boostStrength': 3.0,
+        'columnCount': 1638,
+        'numActiveColumnsPerInhArea': 72,
+        'potentialPct': 0.85,
+        'synPermActiveInc': 0.04,
+        'synPermConnected': 0.13999999999999999,
+        'synPermInactiveDec': 0.006},
+ 'time': {'timeOfDay': (30, 1), 'weekend': 21},
  'tm': {'activationThreshold': 17,
-        'cellsPerColumn': 27,
-        'initialPerm': 0.20991245171830633,
-        'maxSegmentsPerCell': 152,
-        'maxSynapsesPerSegment': 25,
-        'minThreshold': 7,
-        'newSynapseCount': 20,
-        'permanenceDec': 0.09335662142342668,
-        'permanenceInc': 0.08673586267418514}}
-
+        'cellsPerColumn': 13,
+        'initialPerm': 0.21,
+        'maxSegmentsPerCell': 128,
+        'maxSynapsesPerSegment': 64,
+        'minThreshold': 10,
+        'newSynapseCount': 32,
+        'permanenceDec': 0.1,
+        'permanenceInc': 0.1}}
 
 def main(parameters=default_parameters, argv=None, verbose=True):
+  if verbose:
+    import pprint
+    print("Parameters:")
+    pprint.pprint(parameters, indent=4)
+    print("")
 
+  # Make the Encoders.  These will convert input data into binary representations.
   timeOfDayEncoder = DateEncoder(parameters["time"]["timeOfDay"])
   weekendEncoder   = DateEncoder(parameters["time"]["weekend"])
-
-  rdseParams = RDSE_Parameters()
-  rdseParams.size       = parameters["enc"]["size"]
-  rdseParams.sparsity   = parameters["enc"]["sparsity"]
-  rdseParams.resolution = parameters["enc"]["resolution"]
-  scalarEncoder = RDSE( rdseParams )
-
-  encodingWidth = (timeOfDayEncoder.size
-                   + weekendEncoder.size
-                   + scalarEncoder.size)
+  scalarEncoderParams            = RDSE_Parameters()
+  scalarEncoderParams.size       = parameters["enc"]["size"]
+  scalarEncoderParams.sparsity   = parameters["enc"]["sparsity"]
+  scalarEncoderParams.resolution = parameters["enc"]["resolution"]
+  scalarEncoder = RDSE( scalarEncoderParams )
+  encodingWidth = (timeOfDayEncoder.size + weekendEncoder.size + scalarEncoder.size)
   enc_info = Metrics( [encodingWidth], 999999999 )
 
+  # Make the HTM.  SpatialPooler & TemporalMemory & associated tools.
   spParams = parameters["sp"]
   sp = SpatialPooler(
     inputDimensions            = (encodingWidth,),
@@ -89,6 +92,9 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
   anomaly_history = AnomalyLikelihood()
 
+  predictor = Predictor( steps=[1, 5], alpha=parameters['sdrc_alpha'] )
+  predictor_resolution = 1
+
   # Read the input file.
   records = []
   with open(_INPUT_FILE_PATH, "r") as fin:
@@ -98,32 +104,30 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     next(reader)
     for record in reader:
       records.append(record)
-  for i in range(100):
-    records.append( random.choice(records) )
 
-  inputs  = []
-  anomaly = []
-  for record in records:
+  # Iterate through every datum in the dataset, record the inputs & outputs.
+  inputs      = []
+  anomaly     = []
+  predictions = {1: [], 5: []}
+  for count, record in enumerate(records):
 
-    # Convert data string into Python date object.
+    # Convert date string into Python date object.
     dateString = datetime.datetime.strptime(record[0], "%m/%d/%y %H:%M")
     # Convert data value string into float.
     consumption = float(record[1])
+    inputs.append( consumption )
 
-    # Now we call the encoders to create bit representations for each value.
+    # Call the encoders to create bit representations for each value.  These are SDR objects.
     timeOfDayBits   = timeOfDayEncoder.encode(dateString)
     weekendBits     = weekendEncoder.encode(dateString)
     consumptionBits = scalarEncoder.encode(consumption)
 
-    # Concatenate all these encodings into one large encoding for Spatial
-    # Pooling.
-    encoding = SDR( encodingWidth ).concatenate(
-                                [consumptionBits, timeOfDayBits, weekendBits])
+    # Concatenate all these encodings into one large encoding for Spatial Pooling.
+    encoding = SDR( encodingWidth ).concatenate([consumptionBits, timeOfDayBits, weekendBits])
     enc_info.addData( encoding )
 
     # Create an SDR to represent active columns, This will be populated by the
-    # compute method below. It must have the same dimensions as the Spatial
-    # Pooler.
+    # compute method below. It must have the same dimensions as the Spatial Pooler.
     activeColumns = SDR( sp.getColumnDimensions() )
 
     # Execute Spatial Pooling algorithm over input space.
@@ -134,27 +138,75 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     tm.compute(activeColumns, learn=True)
     tm_info.addData( tm.getActiveCells().flatten() )
 
-    anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
+    # Predict what will happen, and then train the predictor based on what just happened.
+    pdf = predictor.infer( count, tm.getActiveCells() )
+    for n in (1, 5):
+      if pdf[n]:
+        predictions[n].append( np.argmax( pdf[n] ) * predictor_resolution )
+      else:
+        predictions[n].append(float('nan'))
+    predictor.learn( count, tm.getActiveCells(), int(consumption / predictor_resolution))
 
-    inputs.append( consumption )
+    anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
     anomaly.append( tm.anomaly )
     # anomaly.append( anomalyLikelihood )
 
+  # Print information & statistics about the state of the HTM.
+  print("Encoded Input", enc_info)
+  print("")
+  print("Spatial Pooler Mini-Columns", sp_info)
+  print(str(sp))
+  print("")
+  print("Temporal Memory Cells", tm_info)
+  print(str(tm))
+  print("")
+
+  # Shift the predictions so that they are aligned with the input they predict.
+  for n_steps, pred_list in predictions.items():
+    for x in range(n_steps):
+        pred_list.insert(0, float('nan'))
+        pred_list.pop()
+
+  # Calculate the predictive accuracy, Root-Mean-Squared
+  accuracy         = {1: 0, 5: 0}
+  accuracy_samples = {1: 0, 5: 0}
+  for idx, inp in enumerate(inputs):
+    for n in predictions: # For each [N]umber of time steps ahead which was predicted.
+      val = predictions[n][ idx ]
+      if not math.isnan(val):
+        accuracy[n] += (inp - val) ** 2
+        accuracy_samples[n] += 1
+  for n in sorted(predictions):
+    accuracy[n] = (accuracy[n] / accuracy_samples[n]) ** .5
+    print("Predictive Error (RMS)", n, "steps ahead:", accuracy[n])
+
+  # Show info about the anomaly (mean & std)
+  print("Anomaly Mean", np.mean(anomaly))
+  print("Anomaly Std ", np.std(anomaly))
+
+  # Plot the Predictions and Anomalies.
   if verbose:
-    print("Encoder", enc_info)
-    print("")
-    print("Spatial Pooler", sp_info)
-    print("")
-    print("Temporal Memory", tm_info)
     import matplotlib.pyplot as plt
+    plt.subplot(2,1,1)
+    plt.title("Predictions")
+    plt.xlabel("Time")
+    plt.ylabel("Power Consumption")
+    plt.plot(np.arange(len(inputs)), inputs, 'red',
+             np.arange(len(inputs)), predictions[1], 'blue',
+             np.arange(len(inputs)), predictions[5], 'green',)
+    plt.legend(labels=('Input', '1 Step Prediction, Shifted 1 step', '5 Step Prediction, Shifted 5 steps'))
+
+    plt.subplot(2,1,2)
+    plt.title("Anomaly")
+    plt.xlabel("Time")
+    plt.ylabel("Power Consumption")
     inputs = np.array(inputs) / max(inputs)
-    plt.plot(np.arange(len(inputs)), inputs, 'blue',
-             np.arange(len(inputs)), anomaly, 'red')
+    plt.plot(np.arange(len(inputs)), inputs, 'red',
+             np.arange(len(inputs)), anomaly, 'blue',)
+    plt.legend(labels=('Input', 'Anomaly'))
     plt.show()
 
-  anom_low  = np.mean(anomaly[-300:-100])
-  anom_high = np.mean(anomaly[-100:])
-  return anom_high - anom_low
+  return -accuracy[5]
 
 
 if __name__ == "__main__":
