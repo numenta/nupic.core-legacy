@@ -108,6 +108,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
   # Iterate through every datum in the dataset, record the inputs & outputs.
   inputs      = []
   anomaly     = []
+  anomalyProb = []
   predictions = {1: [], 5: []}
   for count, record in enumerate(records):
 
@@ -149,7 +150,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
     anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
     anomaly.append( tm.anomaly )
-    # anomaly.append( anomalyLikelihood )
+    anomalyProb.append( anomalyLikelihood )
 
   # Print information & statistics about the state of the HTM.
   print("Encoded Input", enc_info)
@@ -197,13 +198,13 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     plt.legend(labels=('Input', '1 Step Prediction, Shifted 1 step', '5 Step Prediction, Shifted 5 steps'))
 
     plt.subplot(2,1,2)
-    plt.title("Anomaly")
+    plt.title("Anomaly Score")
     plt.xlabel("Time")
     plt.ylabel("Power Consumption")
     inputs = np.array(inputs) / max(inputs)
     plt.plot(np.arange(len(inputs)), inputs, 'red',
              np.arange(len(inputs)), anomaly, 'blue',)
-    plt.legend(labels=('Input', 'Anomaly'))
+    plt.legend(labels=('Input', 'Anomaly Score'))
     plt.show()
 
   return -accuracy[5]
