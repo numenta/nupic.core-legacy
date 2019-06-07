@@ -96,7 +96,6 @@ class SPRegion  : public RegionImpl, Serializable
 	    ar(cereal::make_nvp("spVerbosity", args_.spVerbosity));
 	    ar(cereal::make_nvp("wrapAround", args_.wrapAround));
 	    ar(cereal::make_nvp("learningMode", args_.learningMode));
-			ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
         // Save the algorithm state
@@ -126,7 +125,6 @@ class SPRegion  : public RegionImpl, Serializable
 	    ar(cereal::make_nvp("spVerbosity", args_.spVerbosity));
 	    ar(cereal::make_nvp("wrapAround", args_.wrapAround));
 	    ar(cereal::make_nvp("learningMode", args_.learningMode));
-			ar(cereal::make_nvp("dim", dim_));  // from RegionImpl
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
 	      // Restore algorithm state
@@ -136,6 +134,11 @@ class SPRegion  : public RegionImpl, Serializable
 	    }
 	  }
 
+
+    bool operator==(const RegionImpl &other) const override;
+    inline bool operator!=(const SPRegion &other) const {
+      return !operator==(other);
+    }
 
 
     // Per-node size (in elements) of the given output.

@@ -84,7 +84,6 @@ public:
        cereal::make_nvp("radius", params_.radius),
        cereal::make_nvp("resolution", params_.resolution),
        cereal::make_nvp("sensedValue_", sensedValue_));
-    // TODO:cereal   Also serialize the outputs
   }
   // FOR Cereal Deserialization
   // NOTE: the Region Implementation must have been allocated
@@ -108,6 +107,11 @@ public:
     setDimensions(encoder_->dimensions); 
   }
 
+
+  bool operator==(const RegionImpl &other) const override;
+  inline bool operator!=(const ScalarSensor &other) const {
+    return !operator==(other);
+  }
 
 private:
   Real64 sensedValue_;

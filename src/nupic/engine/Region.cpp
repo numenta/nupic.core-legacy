@@ -501,7 +501,7 @@ bool Region::operator==(const Region &o) const {
                   compareInput)) {
     return false;
   }
-  // Compare Regions's Output (checking only output buffer names and type.)
+  // Compare Regions's Output
   static auto compareOutput = [](decltype(*outputs_.begin()) a, decltype(*outputs_.begin()) b) {
     if (a.first != b.first ) {
       return false;
@@ -512,12 +512,17 @@ bool Region::operator==(const Region &o) const {
     if (output_a->getData().getType() != output_b->getData().getType() ||
         output_a->getData().getCount() != output_b->getData().getCount())
         return false;
+    // compare output buffer contents.
+    if (output_a->getData() != output_b->getData()) return false;
     return true;
   };
-  if (!std::equal(outputs_.begin(), outputs_.end(), o.outputs_.begin(),
-                  compareOutput)) {
+  if (!std::equal(outputs_.begin(), outputs_.end(), o.outputs_.begin(), compareOutput)) {
     return false;
   }
+
+  if (impl_ && !o.impl_) return false;
+  if (!impl_ && o.impl_) return false;
+  if (impl_ && *impl_.get() != *o.impl_.get()) return false;
 
   return true;
 }

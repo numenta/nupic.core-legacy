@@ -744,4 +744,64 @@ void TestNode::deserialize(BundleIO &bundle) {
   }
 
 
+  bool TestNode::operator==(const RegionImpl &o) const {
+    if (o.getType() != "TestNode") return false;
+    TestNode& other = (TestNode&)o;
+    if (nodeCount_ != other.nodeCount_) return false;
+    if (int32Param_ != other.int32Param_) return false;
+    if (uint32Param_ != other.uint32Param_) return false;
+    if (int64Param_ != other.int64Param_) return false;
+    if (uint64Param_ != other.uint64Param_) return false;
+    if (real32Param_ != other.real32Param_) return false;
+    if (real64Param_ != other.real64Param_) return false;
+    if (boolParam_ != other.boolParam_) return false;
+    if (stringParam_ != other.stringParam_) return false;
+    if (outputElementCount_ != other.outputElementCount_) return false;
+    if (delta_ != other.delta_) return false;
+    if (iter_ != other.iter_) return false;
+    if (dim_ != other.dim_) return false;
+
+    if (unclonedParam_.size() != other.unclonedParam_.size()) return false;
+    for (size_t i = 0; i < unclonedParam_.size(); i++) {
+      if (unclonedParam_[i] != other.unclonedParam_[i]) return false;
+    }
+
+    if (real32ArrayParam_.size() != other.real32ArrayParam_.size()) return false;
+    for (size_t i = 0; i < real32ArrayParam_.size(); i++) {
+      if (real32ArrayParam_[i] != other.real32ArrayParam_[i]) return false;
+    }
+
+    if (int64ArrayParam_.size() != other.int64ArrayParam_.size()) return false;
+    for (size_t i = 0; i < int64ArrayParam_.size(); i++) {
+      if (int64ArrayParam_[i] != other.int64ArrayParam_[i]) return false;
+    }
+
+
+    if (boolArrayParam_.size() != other.boolArrayParam_.size()) return false;
+    for (size_t i = 0; i < boolArrayParam_.size(); i++) {
+      if (boolArrayParam_[i] != other.boolArrayParam_[i]) return false;
+    }
+
+    if (shouldCloneParam_ != other.shouldCloneParam_) return false;
+    if (possiblyUnclonedParam_.size() != other.possiblyUnclonedParam_.size()) return false;
+    for (size_t i = 0; i < possiblyUnclonedParam_.size(); i++) {
+      if (possiblyUnclonedParam_[i] != other.possiblyUnclonedParam_[i]) return false;
+    }
+
+    if (unclonedInt64ArrayParam_.size() != other.unclonedInt64ArrayParam_.size()) return false;
+    for (size_t i = 0; i < unclonedInt64ArrayParam_.size(); i++)
+    {
+      if (unclonedInt64ArrayParam_[i].size() != other.unclonedInt64ArrayParam_[i].size())
+        return false;
+      for (size_t j = 0; j < unclonedInt64ArrayParam_[i].size(); j++) {
+        if (unclonedInt64ArrayParam_[i][j] != other.unclonedInt64ArrayParam_[i][j])
+          return false;
+      }
+    }
+
+    return true;
+  }
+
+
+
 } // namespace nupic

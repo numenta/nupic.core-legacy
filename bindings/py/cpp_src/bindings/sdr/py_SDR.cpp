@@ -24,7 +24,6 @@
 #include <pybind11/stl.h>
 
 #include <nupic/types/Sdr.hpp>
-#include <nupic/utils/StringUtils.hpp>  // trim
 
 #include <memory> // shared_ptr
 
@@ -277,10 +276,22 @@ special, it is replaced with the system time.  The default seed is 0.)",
             py::arg("fractionNoise"),
             py::arg("seed") = 0u);
 
+        py_SDR.def("killCells", [](SDR *self, Real fraction, UInt seed) {
+            self->killCells( fraction, seed ); return self; },
+R"(Modify the SDR by setting a fraction of the bits to zero.
+
+Argument fraction must be between 0 and 1 (inclusive).  This fraction of the
+cells in the SDR will be set to zero, regardless of their current state.
+
+Argument seed is for a random number generator.  If not given, this uses the
+magic seed 0.  Use the same seed to consistently kill the same cells.)",
+            py::arg("fraction"),
+            py::arg("seed") = 0u);
+
         py_SDR.def("__str__", [](SDR &self){
             stringstream buf;
             buf << self;
-            return StringUtils::trim( buf.str() ); });
+            return py::str( buf.str() ).attr("strip")(); });
 
         py_SDR.def("__eq__", [](SDR &self, SDR &other){ return self == other; });
         py_SDR.def("__ne__", [](SDR &self, SDR &other){ return self != other; });
@@ -298,31 +309,9 @@ special, it is replaced with the system time.  The default seed is 0.)",
                 return self;
         }));
 
-
-        py::class_<Reshape, shared_ptr<Reshape>, SDR> py_Reshape(m, "Reshape",
-R"(Reshape presents a view onto an SDR with different dimensions.
-    * The resulting SDR always has the same value as its source SDR.
-    * The resulting SDR is read only.
-
-Example Usage:
-    # Convert SDR dimensions from (4 x 4) to (8 x 2)
-    A = SDR([ 4, 4 ])
-    B = Reshape( A, [8, 2])
-    A.coordinates =  ([1, 1, 2], [0, 1, 2])
-    B.coordinates -> ([2, 2, 5], [0, 1, 0])
-
-Reshape supports pickle, however loading a pickled SDR Reshape will return
-an SDR object, not a Reshape object.)");
-
-        py_Reshape.def( py::init<SDR&, vector<UInt>>(),
-R"(Argument sdr is the data source to reshape.
-
-Argument dimensions A list of dimension sizes, defining the shape of the SDR.)",
-            py::arg("sdr"), py::arg("dimensions"));
-
-        py_SDR.def("reshape", [](SDR &self, vector<UInt> dimensions)
-            { return new Reshape(self, dimensions); },
-R"(See class nupic.bindings.sdr.Reshape)");
+        py_SDR.def("reshape", [](SDR *self, const vector<UInt> &dimensions)
+            { self->reshape( dimensions ); return self; },
+R"(Change the dimensions of the SDR.  The total size must not change.)");
 
         py_SDR.def("flatten", [](SDR &self)
             {
@@ -355,6 +344,24 @@ Example Usage:
 )");
         py_SDR.def("intersection", [](SDR *self, vector<const SDR*> inputs)
             { self->intersection(inputs); return self; });
+
+        py_SDR.def("union", [](SDR *self, SDR& inp1, SDR& inp2)
+            { self->set_union({ &inp1, &inp2}); return self; },
+R"(This method calculates the set union of the active bits in each input SDR.
+
+The output is stored in this SDR.  This method discards the SDRs current value!
+
+Example Usage:
+    A = SDR( 10 )
+    B = SDR( 10 )
+    U = SDR( 10 )
+    A.sparse = [0, 1, 2, 3]
+    B.sparse =       [2, 3, 4, 5]
+    U.union( A, B )
+    U.sparse -> [0, 1, 2, 3, 4, 5]
+)");
+        py_SDR.def("union", [](SDR *self, vector<const SDR*> inputs)
+            { self->set_union(inputs); return self; });
 
         py_SDR.def("concatenate", [](SDR *self, const SDR& inp1, const SDR& inp2, UInt axis)
             { self->concatenate(inp1, inp2, axis); return self; },

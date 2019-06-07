@@ -464,6 +464,7 @@ public:
        cereal::make_nvp("nodeType", type_),
        cereal::make_nvp("initialized", initialized_),
        cereal::make_nvp("phases", phases_));
+    ar(cereal::make_nvp("dim", getDimensions()));
 
     std::map<std::string, Dimensions> outDims;
     std::map<std::string, Dimensions> inDims;
@@ -487,10 +488,13 @@ public:
   //       before deserializing a region.
   template<class Archive>
   void load_ar(Archive& ar) {
+    Dimensions dim;
+    bool init;
     ar(cereal::make_nvp("name", name_));
     ar(cereal::make_nvp("nodeType", type_));
-    ar(cereal::make_nvp("initialized", initialized_));
+    ar(cereal::make_nvp("initialized", init));
     ar(cereal::make_nvp("phases", phases_));
+    ar(cereal::make_nvp("dim", dim));
 
     std::map<std::string, Dimensions> outDims;
     std::map<std::string, Dimensions> inDims;
@@ -506,6 +510,11 @@ public:
     // deserialize the RegionImpl plugin and its algorithm
     ArWrapper arw(&ar);
     deserializeImpl(arw);
+
+    // set the region dimensions.
+    initialized_ = false; // setDimensions requires initialization off.
+    setDimensions(dim);
+    initialized_ = init;
   }
 
   friend class Network;  // so Network can set Network* network_; during addRegion( ).

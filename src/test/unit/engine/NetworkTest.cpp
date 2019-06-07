@@ -527,11 +527,7 @@ TEST(NetworkTest, testEqualsOperator) {
   auto l1 = n1.addRegion("level1", "TestNode", "");
   ASSERT_TRUE(n1 != n2);
   auto l2 = n2.addRegion("level1", "TestNode", "");
-  ASSERT_TRUE(n1 == n2);   // NOTE: This only checks if the structure is the same
-                           // It does not know anything about internal state
-                           // or data content.
-                           // But maybe this is good enough; I don't know.
-
+  ASSERT_TRUE(n1 == n2);   
   l1->setDimensions(d);
   ASSERT_TRUE(n1 != n2);
   l2->setDimensions(d);
