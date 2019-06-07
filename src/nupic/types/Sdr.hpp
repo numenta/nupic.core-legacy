@@ -584,47 +584,6 @@ public:
         }
         return stream << std::endl;
     }
-    friend std::istream& operator>> (std::istream& inStream, SparseDistributedRepresentation &sdr)
-    {
-        auto readVector = [&inStream] (std::vector<UInt> &vec) { 
-            inStream >> std::skipws;  // skip leading whitespace
-            vec.clear();
-            std::string val;
-            int c = 0;
-            while(c != '\n' && !inStream.eofbit) {
-              int c = inStream.get();
-              if (isdigit(c)) val.append(1, c);
-              else if (c == ',') {
-                vec.push_back( atoi(val.c_str()) );
-                val.clear();
-              }
-              else if (c != ' ') break;
-            }
-            if (!val.empty())
-              vec.push_back( atoi(val.c_str()) );
-        };
-
-        // Read the starting marker and version.
-        std::string tag;
-        inStream >> tag;
-        NTA_CHECK( tag == "SDR(" ) << "stream does not contain an SDR from <<.";
-
-        // Read the dimensions.
-        readVector( sdr.dimensions_ );
-
-        // Initialize the SDR.
-        // Calculate the SDR's size.
-        sdr.size_ = 1;
-        for(UInt dim : sdr.dimensions_)
-            sdr.size_ *= dim;
-        // Initialize sparse tuple.
-        sdr.coordinates_.assign( sdr.dimensions_.size(), {} );
-
-        // Read the data.
-        readVector( sdr.sparse_ );
-        sdr.setSparseInplace();
-        return inStream;
-    }
 
     bool operator==(const SparseDistributedRepresentation &sdr) const;
     inline bool operator!=(const SparseDistributedRepresentation &sdr) const

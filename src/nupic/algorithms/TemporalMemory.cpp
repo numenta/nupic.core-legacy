@@ -846,74 +846,11 @@ void TemporalMemory::printParameters(std::ostream& out) const {
       << "connectedPermanence       = " << getConnectedPermanence() << std::endl
       << "minThreshold              = " << getMinThreshold() << std::endl
       << "maxNewSynapseCount        = " << getMaxNewSynapseCount() << std::endl
-      << "checkInputs               = " << checkInputs_ << std::endl
       << "permanenceIncrement       = " << getPermanenceIncrement() << std::endl
       << "permanenceDecrement       = " << getPermanenceDecrement() << std::endl
       << "predictedSegmentDecrement = " << getPredictedSegmentDecrement()
-      << "anomaly                   = " << anomaly_ << std::endl
       << std::endl
       << "maxSegmentsPerCell        = " << getMaxSegmentsPerCell() << std::endl
       << "maxSynapsesPerSegment     = " << getMaxSynapsesPerSegment()
-      << "extra                     = " << extra_ << std::endl
-      << "iteration                 = " << iteration_ << std::endl
       << std::endl;
 }
-
-
-std::ostream& nupic::algorithms::temporal_memory::operator<< (std::ostream& out, const TemporalMemory& tm) {
-  tm.printParameters(out);
-
-  out << "Connections: " << tm.connections  << endl;
-  out << "rng: " << tm.rng_ << endl;
-
-  out << "columnDimensions: [ ";
-  for (auto &elem : tm.columnDimensions_) {
-    out << elem << " ";
-  }
-  out << "]" << endl;
-
-  out << "activeCells: [ ";
-  for (CellIdx cell : tm.activeCells_) {
-    out << cell << " ";
-  }
-  out << "]" << endl;
-
-  out << "winnerCells: [ ";
-  for (CellIdx cell : tm.winnerCells_) {
-    out << cell << " ";
-  }
-  out << "]" << endl << endl;
-
-  out << "segmentsValid: " << tm.segmentsValid_ << " ";
-  out << "activeSegments: [";
-  for (Segment segment : tm.activeSegments_) {
-    const CellIdx cell = tm.connections.cellForSegment(segment);
-    const vector<Segment> &segments = tm.connections.segmentsForCell(cell);
-
-    SegmentIdx idx = (SegmentIdx)std::distance(
-        segments.begin(), std::find(segments.begin(), segments.end(), segment));
-
-    out << "   [" << endl;
-    out << idx << ",";
-    out << cell << ",";
-    out << tm.numActiveConnectedSynapsesForSegment_[segment] << "]" << endl;
-  }
-  out << "]" << endl << endl;
-
-  out << "matchingSegments: [" << endl;
-  for (Segment segment : tm.matchingSegments_) {
-    const CellIdx cell = tm.connections.cellForSegment(segment);
-    const vector<Segment> &segments = tm.connections.segmentsForCell(cell);
-
-    SegmentIdx idx = (SegmentIdx)std::distance(
-        segments.begin(), std::find(segments.begin(), segments.end(), segment));
-
-    out << "   [" << endl;
-    out << idx << ",";
-    out << cell << ",";
-    out << tm.numActivePotentialSynapsesForSegment_[segment] << "]" << endl;
-  }
-  out << "]" << endl << endl;
-  return out;
-}
-

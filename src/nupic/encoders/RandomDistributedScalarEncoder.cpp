@@ -130,10 +130,10 @@ void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
 std::ostream & nupic::encoders::operator<<(std::ostream & out, const RandomDistributedScalarEncoder &self)
 {
   out << "RDSE ";
-  out << "size: " << self.parameters.size << ", ";
-  out << "activeBits: " << self.parameters.activeBits << ", ";
-  out << "resolution: " << self.parameters.resolution << ", ";
-  out << "category: " << self.parameters.category << ", ";
-  out << "seed: " << self.parameters.seed << std::endl;
+  out << "  size:       " << self.parameters.size << ",\n";
+  out << "  activeBits: " << self.parameters.activeBits << ",\n";
+  out << "  resolution: " << self.parameters.resolution << ",\n";
+  out << "  category:   " << self.parameters.category << ",\n";
+  out << "  seed:       " << self.parameters.seed << std::endl;
   return out;
 }

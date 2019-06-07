@@ -1866,8 +1866,6 @@ TEST(SpatialPoolerTest, testSaveLoad) {
 
   ofstream outfile;
   outfile.open(filename, ifstream::binary);
-	outfile.precision(std::numeric_limits<double>::digits10 + 1);
-	outfile.precision(std::numeric_limits<float>::digits10 + 1);
   sp1.save(outfile);
   outfile.close();
 
@@ -2088,24 +2086,22 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
 }
 
 TEST(SpatialPoolerTest, ExactOutput) { 
-  /**** TODO:  fix it.
-  SDR copper_sdr();
-  string copper = "SDR( 200 ) 190, 172, 23, 118, 178, 129, 113, 71, 185, 182\n";
-  std::stringstream copper_stream( copper );
-  copper_stream >> copper_sdr;
-  ****/
-
+  // Silver is an SDR that is loaded by direct initalization from a vector.
   SDR silver_sdr({ 200 });
   SDR_sparse_t data = {190, 172, 23, 118, 178, 129, 113, 71, 185, 182};
   silver_sdr.setSparse(data);
-  //silver_sdr.save(std::cout, JSON);
 
+
+  // Gold tests initalizing an SDR from a manually created string in JSON format.
+	// hint: you can generate this string using
+	//       silver_sdr.save(std::cout, JSON);
   string gold = "{\"dimensions\": [200],\"sparse\": [190,172,23,118,178,129,113,71,185,182]}";
   std::stringstream gold_stream( gold );
   SDR gold_sdr;
   gold_sdr.load( gold_stream, JSON );
+	
+	// both SCR's should be the same
   EXPECT_EQ(silver_sdr, gold_sdr);
-  //EXPECT_EQ(copper_sdr, gold_sdr);
 
   SDR inputs({ 1000 });
   SDR columns({ 200 });

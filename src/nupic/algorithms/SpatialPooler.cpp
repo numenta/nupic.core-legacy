@@ -1022,40 +1022,48 @@ void SpatialPooler::printState(const vector<Real> &state, std::ostream& out) con
   out << "]\n";
 }
 
-std::ostream & nupic::algorithms::spatial_pooler::operator<<(std::ostream & out, const SpatialPooler &sp)
-{
-  sp.printParameters(out);
-  out << "inputDimensions: ";
-  sp.printState(sp.getInputDimensions(), out);
-  out << "columnDimensions: ";
-  sp.printState(sp.getColumnDimensions(), out);
-  out << "boostFactors: ";
-  sp.printState(sp.boostFactors_, out);
-  out << "overlapDutyCycles: ";
-  sp.printState(sp.overlapDutyCycles_, out);
-  out << "activeDutyCycles: ";
-  sp.printState(sp.activeDutyCycles_, out);
-  out << "minOverlapDutyCycles: ";
-  sp.printState(sp.minOverlapDutyCycles_, out);
-  out << "tieBreaker: ";
-  sp.printState(sp.tieBreaker_, out);
-  out << "Connections: " << sp.connections_;
-  return out;
-}
 
 /** equals implementation based on text serialization */
 bool SpatialPooler::operator==(const SpatialPooler& o) const{
-  stringstream s;
-  s.flags(ios::scientific);
-  s.precision(numeric_limits<double>::digits10 + 1);
+  // Store the simple variables first.
+  if (numInputs_ != o.numInputs_) return false;
+  if (numColumns_ != o.numColumns_) return false;
+  if (potentialRadius_ != o.potentialRadius_) return false;
+  if (potentialPct_ != o.potentialPct_) return false;
+  if (initConnectedPct_ != o.initConnectedPct_) return false;
+  if (globalInhibition_ != o.globalInhibition_) return false;
+  if (numActiveColumnsPerInhArea_ != o.numActiveColumnsPerInhArea_) return false;
+  if (localAreaDensity_ != o.localAreaDensity_) return false;
+  if (stimulusThreshold_ != o.stimulusThreshold_) return false;
+  if (inhibitionRadius_ != o.inhibitionRadius_) return false;
+  if (dutyCyclePeriod_ != o.dutyCyclePeriod_) return false;
+  if (boostStrength_ != o.boostStrength_) return false;
+  if (iterationNum_ != o.iterationNum_) return false;
+  if (iterationLearnNum_ != o.iterationLearnNum_) return false;
+  if (spVerbosity_ != o.spVerbosity_) return false;
+  if (updatePeriod_ != o.updatePeriod_) return false;
+  if (synPermInactiveDec_ != o.synPermInactiveDec_) return false;
+  if (synPermActiveInc_ != o.synPermActiveInc_) return false;
+  if (synPermBelowStimulusInc_ != o.synPermBelowStimulusInc_) return false;
+  if (synPermConnected_ != o.synPermConnected_) return false;
+  if (minPctOverlapDutyCycles_ != o.minPctOverlapDutyCycles_) return false;
+  if (wrapAround_ != o.wrapAround_) return false;
 
-  s << *this;
-  const string thisStr = s.str();
+  // compare vectors.
+  if (inputDimensions_      != o.inputDimensions_) return false;
+  if (columnDimensions_     != o.columnDimensions_) return false;
+  if (boostFactors_         != o.boostFactors_) return false;
+  if (overlapDutyCycles_    != o.overlapDutyCycles_) return false;
+  if (activeDutyCycles_     != o.activeDutyCycles_) return false;
+  if (minOverlapDutyCycles_ != o.minOverlapDutyCycles_) return false;
+  if (tieBreaker_           != o.tieBreaker_) return false;
 
-  s.str(""); //clear stream
-  s << o;
-  const string otherStr = s.str();
+  // compare connections
+  if (connections_ != o.connections_) return false;
 
-  return thisStr == otherStr;
+  //Random
+  if (rng_ != o.rng_) return false;
+  return true;
+
 }
 

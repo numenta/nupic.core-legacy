@@ -573,7 +573,6 @@ public:
 
   virtual bool operator==(const TemporalMemory &other) const;
   inline bool operator!=(const TemporalMemory &other) const { return not this->operator==(other); }
-  friend std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self);
 
   //----------------------------------------------------------------------
   // Debugging helpers
@@ -665,8 +664,6 @@ public:
    */
   const Real &anomaly = anomaly_;
 };
-
-  std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self);
 
 } // end namespace temporal_memory
 } // end namespace algorithms

@@ -220,7 +220,7 @@ std::string Spec::toString() const {
 }
 
 std::ostream& operator<< (std::ostream& out, const Spec& self) {
-  out << self.toString();
+  out << self.toString() << std::endl;
   return out;
 }
 
