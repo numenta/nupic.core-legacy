@@ -957,7 +957,17 @@ bool SpatialPooler::isUpdateRound_() const {
   return (iterationNum_ % updatePeriod_) == 0;
 }
 
-
+namespace nupic {
+  namespace algorithms {
+    namespace spatial_pooler {
+std::ostream& operator<< (std::ostream& stream, const SpatialPooler& self)
+{
+  stream << "Spatial Pooler " << self.connections;
+  return stream;
+}
+    }
+  }
+}
 
 
 //----------------------------------------------------------------------

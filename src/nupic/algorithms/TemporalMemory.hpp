@@ -263,12 +263,12 @@ public:
    *
    */
   virtual void compute(const sdr::SDR &activeColumns, 
-		       const bool learn,
+                       const bool learn,
                        const sdr::SDR &extraActive, 
 		       const sdr::SDR &extraWinners);
 
   virtual void compute(const sdr::SDR &activeColumns, 
-		       const bool learn = true); 
+                       const bool learn = true);
 
   // ==============================
   //  Helper functions
@@ -578,6 +578,11 @@ public:
   //----------------------------------------------------------------------
   // Debugging helpers
   //----------------------------------------------------------------------
+
+  /**
+   * Print diagnostic info
+   */
+  friend std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self);
 
   /**
    * Print the main TM creation parameters
