@@ -958,6 +958,18 @@ bool SpatialPooler::isUpdateRound_() const {
 }
 
 
+namespace nupic {
+  namespace algorithms {
+    namespace spatial_pooler {
+std::ostream& operator<< (std::ostream& stream, const SpatialPooler& self)
+{
+  stream << "Spatial Pooler " << self.connections;
+  return stream;
+}
+    }
+  }
+}
+
 void SpatialPooler::save(ostream &outStream) const {
   // Write a starting marker and version.
   outStream << std::setprecision(std::numeric_limits<Real>::max_digits10);

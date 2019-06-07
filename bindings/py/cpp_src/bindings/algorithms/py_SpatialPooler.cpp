@@ -309,6 +309,13 @@ using namespace sdr;
         py_SpatialPooler.def("getIterationLearnNum", &SpatialPooler::getIterationLearnNum);
 
 
+        py_SpatialPooler.def("__str__",
+            [](SpatialPooler &self) {
+                std::stringstream buf;
+                buf << self;
+                return buf.str(); });
+
+
         // pickle
 
         py_SpatialPooler.def(py::pickle(

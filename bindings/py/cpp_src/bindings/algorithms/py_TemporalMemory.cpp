@@ -184,6 +184,12 @@ using namespace nupic::algorithms::connections;
         py_HTM.def_property_readonly("anomaly", [](const HTM_t &self) { return self.anomaly; },
           "Anomaly score updated with each TM::compute() call. "
         );
+
+        py_HTM.def("__str__",
+            [](HTM_t &self) {
+                std::stringstream buf;
+                buf << self;
+                return buf.str(); });
     }
 
 } // namespace nupic_ext
