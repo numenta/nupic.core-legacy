@@ -65,13 +65,13 @@ INCLUDE_CPP_TM = 1    # Also test with CPP TM
 
 def printOneTrainingVector(x):
   "Print a single vector succinctly."
-  print ''.join('1' if k != 0 else '.' for k in x)
+  print(''.join('1' if k != 0 else '.' for k in x))
 
 
 
 def printAllTrainingSequences(trainingSequences, upTo = 99999):
   for i,trainingSequence in enumerate(trainingSequences):
-    print "============= Sequence",i,"================="
+    print("============= Sequence",i,"=================")
     for j,pattern in enumerate(trainingSequence):
       printOneTrainingVector(pattern)
 
@@ -97,7 +97,7 @@ def getSimplePatterns(numOnes, numPatterns, patternOverlap=0):
   numCols = numNewBitsInEachPattern * numPatterns + patternOverlap
 
   p = []
-  for i in xrange(numPatterns):
+  for i in range(numPatterns):
     x = numpy.zeros(numCols, dtype='float32')
 
     startBit = i*numNewBitsInEachPattern
@@ -150,16 +150,16 @@ def buildOverlappedSequences( numSequences = 2,
   # Create the training sequences
   trainingSequences = []
 
-  uniquePatternIndices = range(numSharedElements, numPatterns)
-  for _ in xrange(numSequences):
+  uniquePatternIndices = list(range(numSharedElements, numPatterns))
+  for _ in range(numSequences):
     sequence = []
 
     # pattern indices [0 ... numSharedElements-1] are reserved for the shared
     #  middle
-    sharedPatternIndices = range(numSharedElements)
+    sharedPatternIndices = list(range(numSharedElements))
 
     # Build up the sequence
-    for j in xrange(seqLen):
+    for j in range(seqLen):
       if j in sharedElements:
         patIdx = sharedPatternIndices.pop(0)
       else:
@@ -170,7 +170,7 @@ def buildOverlappedSequences( numSequences = 2,
 
 
   if VERBOSITY >= 3:
-    print "\nTraining sequences"
+    print("\nTraining sequences")
     printAllTrainingSequences(trainingSequences)
 
   return (numCols, trainingSequences)
@@ -212,13 +212,13 @@ def buildSequencePool(numSequences = 10,
   # -----------------------------------------------------------------------
   # Create the training sequences
   trainingSequences = []
-  for _ in xrange(numSequences):
+  for _ in range(numSequences):
 
     # Build it up from patterns
     sequence = []
     length = random.choice(seqLen)
-    for _ in xrange(length):
-      patIdx = random.choice(xrange(numPatterns))
+    for _ in range(length):
+      patIdx = random.choice(range(numPatterns))
       sequence.append(patterns[patIdx])
 
     # Put it in
@@ -226,7 +226,7 @@ def buildSequencePool(numSequences = 10,
 
 
   if VERBOSITY >= 3:
-    print "\nTraining sequences"
+    print("\nTraining sequences")
     printAllTrainingSequences(trainingSequences)
 
   return (numCols, trainingSequences)
@@ -266,7 +266,7 @@ def createTMs(includeCPP = True,
 
   if includeCPP:
     if VERBOSITY >= 2:
-      print "Creating BacktrackingTMCPP instance"
+      print("Creating BacktrackingTMCPP instance")
 
     cpp_tm = BacktrackingTMCPP(numberOfCols = numCols, cellsPerColumn = cellsPerCol,
                                initialPerm = initialPerm, connectedPerm = connectedPerm,
@@ -290,7 +290,7 @@ def createTMs(includeCPP = True,
 
   if includePy:
     if VERBOSITY >= 2:
-      print "Creating PY TM instance"
+      print("Creating PY TM instance")
 
     py_tm = BacktrackingTM(numberOfCols = numCols,
                            cellsPerColumn = cellsPerCol,
@@ -331,7 +331,7 @@ def assertNoTMDiffs(tms):
   if len(tms) > 2:
     raise "Not implemented for more than 2 TMs"
 
-  same = fdrutils.tmDiff2(tms.values(), verbosity=VERBOSITY)
+  same = fdrutils.tmDiff2(list(tms.values()), verbosity=VERBOSITY)
   assert(same)
   return
 
@@ -364,23 +364,23 @@ def evalSequences(tms,
 
   # First TM instance is used by default for verbose printing of input values,
   #  etc.
-  firstTM = tms.values()[0]
+  firstTM = list(tms.values())[0]
 
   assertNoTMDiffs(tms)
 
   # =====================================================================
   # Loop through the training set nTrainRepetitions times
   # ==========================================================================
-  for trainingNum in xrange(nTrainRepetitions):
+  for trainingNum in range(nTrainRepetitions):
     if VERBOSITY >= 2:
-      print "\n##############################################################"
-      print "################# Training round #%d of %d #################" \
-                % (trainingNum, nTrainRepetitions)
-      for (name,tm) in tms.iteritems():
-        print "TM parameters for %s: " % (name)
-        print "---------------------"
+      print("\n##############################################################")
+      print("################# Training round #%d of %d #################" \
+                % (trainingNum, nTrainRepetitions))
+      for (name,tm) in tms.items():
+        print("TM parameters for %s: " % (name))
+        print("---------------------")
         tm.printParameters()
-        print
+        print()
 
     # ======================================================================
     # Loop through the sequences in the training set
@@ -389,11 +389,11 @@ def evalSequences(tms,
       numTimeSteps = len(trainingSequence)
 
       if VERBOSITY >= 2:
-        print "\n================= Sequence #%d of %d ================" \
-                  % (sequenceNum, numSequences)
+        print("\n================= Sequence #%d of %d ================" \
+                  % (sequenceNum, numSequences))
 
       if doResets:
-        for tm in tms.itervalues():
+        for tm in tms.values():
           tm.reset()
 
       # --------------------------------------------------------------------
@@ -402,62 +402,62 @@ def evalSequences(tms,
 
         # Print Verbose info about this element
         if VERBOSITY >= 2:
-          print
+          print()
           if VERBOSITY >= 3:
-            print "------------------------------------------------------------"
-          print "--------- sequence: #%d of %d, timeStep: #%d of %d -----------" \
-                  % (sequenceNum, numSequences, t, numTimeSteps)
+            print("------------------------------------------------------------")
+          print("--------- sequence: #%d of %d, timeStep: #%d of %d -----------" \
+                  % (sequenceNum, numSequences, t, numTimeSteps))
           firstTM.printInput(x)
-          print "input nzs:", x.nonzero()
+          print("input nzs:", x.nonzero())
 
         # Train in this element
         x = numpy.array(x).astype('float32')
-        for tm in tms.itervalues():
+        for tm in tms.values():
           tm.learn(x, enableInference=True)
 
         # Print the input and output states
         if VERBOSITY >= 3:
-          for (name,tm) in tms.iteritems():
-            print "I/O states of %s TM:" % (name)
-            print "-------------------------------------",
+          for (name,tm) in tms.items():
+            print("I/O states of %s TM:" % (name))
+            print("-------------------------------------", end=' ')
             tm.printStates(printPrevious = (VERBOSITY >= 5))
-            print
+            print()
 
         assertNoTMDiffs(tms)
 
         # Print out number of columns that weren't predicted
         if VERBOSITY >= 2:
-          for (name,tm) in tms.iteritems():
+          for (name,tm) in tms.items():
             stats = tm.getStats()
-            print "# of unpredicted columns for %s TM: %d of %d" \
-                % (name, stats['curMissing'], x.sum())
+            print("# of unpredicted columns for %s TM: %d of %d" \
+                % (name, stats['curMissing'], x.sum()))
             numBurstingCols = tm.infActiveState['t'].min(axis=1).sum()
-            print "# of bursting columns for %s TM: %d of %d" \
-                % (name, numBurstingCols, x.sum())
+            print("# of bursting columns for %s TM: %d of %d" \
+                % (name, numBurstingCols, x.sum()))
 
 
       # Print the trained cells
       if VERBOSITY >= 4:
-        print "Sequence %d finished." % (sequenceNum)
-        for (name,tm) in tms.iteritems():
-          print "All cells of %s TM:" % (name)
-          print "-------------------------------------",
+        print("Sequence %d finished." % (sequenceNum))
+        for (name,tm) in tms.items():
+          print("All cells of %s TM:" % (name))
+          print("-------------------------------------", end=' ')
           tm.printCells()
-          print
+          print()
 
     # --------------------------------------------------------------------
     # Done training all sequences in this round, print the total number of
     #  missing, extra columns and make sure it's the same among the TMs
     if VERBOSITY >= 2:
-      print
+      print()
     prevResult = None
-    for (name,tm) in tms.iteritems():
+    for (name,tm) in tms.items():
       stats = tm.getStats()
       if VERBOSITY >= 1:
-        print "Stats for %s TM over all sequences for training round #%d of %d:" \
-                % (name, trainingNum, nTrainRepetitions)
-        print "   total missing:", stats['totalMissing']
-        print "   total extra:", stats['totalExtra']
+        print("Stats for %s TM over all sequences for training round #%d of %d:" \
+                % (name, trainingNum, nTrainRepetitions))
+        print("   total missing:", stats['totalMissing'])
+        print("   total extra:", stats['totalExtra'])
 
       if prevResult is None:
         prevResult = (stats['totalMissing'], stats['totalExtra'])
@@ -471,9 +471,9 @@ def evalSequences(tms,
   # =====================================================================
   # Finish up learning
   if VERBOSITY >= 3:
-    print "Calling trim segments"
+    print("Calling trim segments")
   prevResult = None
-  for tm in tms.itervalues():
+  for tm in tms.values():
     nSegsRemoved, nSynsRemoved = tm.trimSegments()
     if prevResult is None:
       prevResult = (nSegsRemoved, nSynsRemoved)
@@ -484,22 +484,22 @@ def evalSequences(tms,
   assertNoTMDiffs(tms)
 
   if VERBOSITY >= 4:
-    print "Training completed. Complete state:"
-    for (name,tm) in tms.iteritems():
-      print "%s:" % (name)
+    print("Training completed. Complete state:")
+    for (name,tm) in tms.items():
+      print("%s:" % (name))
       tm.printCells()
-      print
+      print()
 
 
   # ==========================================================================
   # Infer
   # ==========================================================================
   if VERBOSITY >= 2:
-    print "\n##############################################################"
-    print "########################## Inference #########################"
+    print("\n##############################################################")
+    print("########################## Inference #########################")
 
   # Reset stats in all TMs
-  for tm in tms.itervalues():
+  for tm in tms.values():
     tm.resetStats()
 
   # -------------------------------------------------------------------
@@ -510,12 +510,12 @@ def evalSequences(tms,
 
     # Identify this sequence
     if VERBOSITY >= 2:
-      print "\n================= Sequence %d of %d ================" \
-                % (sequenceNum, numSequences)
+      print("\n================= Sequence %d of %d ================" \
+                % (sequenceNum, numSequences))
 
     # Send in the rest
     if doResets:
-      for tm in tms.itervalues():
+      for tm in tms.values():
         tm.reset()
 
     # -------------------------------------------------------------------
@@ -524,66 +524,66 @@ def evalSequences(tms,
 
       # Print verbose info about this element
       if VERBOSITY >= 2:
-        print
+        print()
         if VERBOSITY >= 3:
-          print "------------------------------------------------------------"
-        print "--------- sequence: #%d of %d, timeStep: #%d of %d -----------" \
-                % (sequenceNum, numSequences, t, numTimeSteps)
+          print("------------------------------------------------------------")
+        print("--------- sequence: #%d of %d, timeStep: #%d of %d -----------" \
+                % (sequenceNum, numSequences, t, numTimeSteps))
         firstTM.printInput(x)
-        print "input nzs:", x.nonzero()
+        print("input nzs:", x.nonzero())
 
       # Infer on this element
-      for tm in tms.itervalues():
+      for tm in tms.values():
         tm.infer(x)
 
       assertNoTMDiffs(tms)
 
       # Print out number of columns that weren't predicted
       if VERBOSITY >= 2:
-        for (name,tm) in tms.iteritems():
+        for (name,tm) in tms.items():
           stats = tm.getStats()
-          print "# of unpredicted columns for %s TM: %d of %d" \
-              % (name, stats['curMissing'], x.sum())
+          print("# of unpredicted columns for %s TM: %d of %d" \
+              % (name, stats['curMissing'], x.sum()))
 
       # Debug print of internal state
       if VERBOSITY >= 3:
-        for (name,tm) in tms.iteritems():
-          print "I/O states of %s TM:" % (name)
-          print "-------------------------------------",
+        for (name,tm) in tms.items():
+          print("I/O states of %s TM:" % (name))
+          print("-------------------------------------", end=' ')
           tm.printStates(printPrevious = (VERBOSITY >= 5),
                          printLearnState = False)
-          print
+          print()
 
     # Done with this sequence
     # Debug print of all stats of the TMs
     if VERBOSITY >= 4:
-      print
-      for (name,tm) in tms.iteritems():
-        print "Interim internal stats for %s TM:" % (name)
-        print "---------------------------------"
+      print()
+      for (name,tm) in tms.items():
+        print("Interim internal stats for %s TM:" % (name))
+        print("---------------------------------")
         pprint.pprint(tm.getStats())
-        print
+        print()
 
 
   if VERBOSITY >= 2:
-    print "\n##############################################################"
-    print "####################### Inference Done #######################"
+    print("\n##############################################################")
+    print("####################### Inference Done #######################")
 
   # Get the overall stats for each TM and return them
   tmStats = dict()
-  for (name,tm) in tms.iteritems():
+  for (name,tm) in tms.items():
     tmStats[name] = stats = tm.getStats()
     if VERBOSITY >= 2:
-      print "Stats for %s TM over all sequences:" % (name)
-      print "   total missing:", stats['totalMissing']
-      print "   total extra:", stats['totalExtra']
+      print("Stats for %s TM over all sequences:" % (name))
+      print("   total missing:", stats['totalMissing'])
+      print("   total extra:", stats['totalExtra'])
 
-  for (name,tm) in tms.iteritems():
+  for (name,tm) in tms.items():
     if VERBOSITY >= 3:
-      print "\nAll internal stats for %s TM:" % (name)
-      print "-------------------------------------",
+      print("\nAll internal stats for %s TM:" % (name))
+      print("-------------------------------------", end=' ')
       pprint.pprint(tmStats[name])
-      print
+      print()
 
   return tmStats
 
@@ -632,16 +632,16 @@ def testConfig(baseParams, expMissingMin=0, expMissingMax=0, **mods):
 
   # -----------------------------------------------------------------------
   # Make sure there are the expected number of missing predictions
-  for (name, stats) in tmStats.iteritems():
-    print "Detected %d missing predictions overall during inference" \
-              % (stats['totalMissing'])
+  for (name, stats) in tmStats.items():
+    print("Detected %d missing predictions overall during inference" \
+              % (stats['totalMissing']))
     if expMissingMin is not None and stats['totalMissing'] < expMissingMin:
-      print "FAILURE: Expected at least %d total missing but got %d" \
-          % (expMissingMin, stats['totalMissing'])
+      print("FAILURE: Expected at least %d total missing but got %d" \
+          % (expMissingMin, stats['totalMissing']))
       assert False
     if expMissingMax is not None and stats['totalMissing'] > expMissingMax:
-      print "FAILURE: Expected at most %d total missing but got %d" \
-          % (expMissingMax, stats['totalMissing'])
+      print("FAILURE: Expected at most %d total missing but got %d" \
+          % (expMissingMax, stats['totalMissing']))
       assert False
 
 
@@ -689,13 +689,13 @@ class TMOverlappingSeqsTest(testcasebase.TestCaseBase):
     # ================================================================
     # Run various configs
     # No PAM, with 3 repetitions, still missing predictions
-    print "\nRunning without PAM, 3 repetitions of the training data..."
+    print("\nRunning without PAM, 3 repetitions of the training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=20,
                                expMissingMax=None, pamLength=1,
                                nTrainRepetitions=3))
 
     # With PAM, with only 3 repetitions, 0 missing predictions
-    print "\nRunning with PAM, 3 repetitions of the training data..."
+    print("\nRunning with PAM, 3 repetitions of the training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=0,
                                expMissingMax=0, pamLength=5,
                                nTrainRepetitions=3))
@@ -740,13 +740,13 @@ class TMOverlappingSeqsTest(testcasebase.TestCaseBase):
     # Run various configs
     # No PAM, requires 40 repetitions
     # No PAM, with 10 repetitions, still missing predictions
-    print "\nRunning without PAM, 10 repetitions of the training data..."
+    print("\nRunning without PAM, 10 repetitions of the training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=10,
                                expMissingMax=None, pamLength=1,
                                nTrainRepetitions=10))
 
     # With PAM, with only 10 repetitions, 0 missing predictions
-    print "\nRunning with PAM, 10 repetitions of the training data..."
+    print("\nRunning with PAM, 10 repetitions of the training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=0,
                                expMissingMax=0, pamLength=6,
                                nTrainRepetitions=10))
@@ -796,13 +796,13 @@ class TMOverlappingSeqsTest(testcasebase.TestCaseBase):
     # ================================================================
     # Run various configs
     # No PAM, with 10 repetitions, still missing predictions
-    print "\nRunning without PAM, 10 repetitions of the training data..."
+    print("\nRunning without PAM, 10 repetitions of the training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=10,
                                expMissingMax=None, pamLength=1,
                                nTrainRepetitions=10))
 
     # With PAM, with only 10 repetitions, 0 missing predictions
-    print "\nRunning with PAM, 10 repetitions of the training data..."
+    print("\nRunning with PAM, 10 repetitions of the training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=0,
                                expMissingMax=0, pamLength=6,
                                nTrainRepetitions=10))
@@ -856,29 +856,29 @@ class TMOverlappingSeqsTest(testcasebase.TestCaseBase):
     # Run various configs
     # Fast mode, no PAM
     # Fast mode, with PAM
-    print "\nRunning without PAM, fast learning, 2 repetitions of the " \
-          "training data..."
+    print("\nRunning without PAM, fast learning, 2 repetitions of the " \
+          "training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=50,
                                expMissingMax=None, pamLength=1,
                                nTrainRepetitions=2))
 
     # Fast mode, with PAM
-    print "\nRunning with PAM, fast learning, 2 repetitions of the " \
-          "training data..."
+    print("\nRunning with PAM, fast learning, 2 repetitions of the " \
+          "training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=0,
                                expMissingMax=0, pamLength=5,
                                nTrainRepetitions=2))
 
     # Slow mode, no PAM
-    print "\nRunning without PAM, slow learning, 8 repetitions of the " \
-          "training data..."
+    print("\nRunning without PAM, slow learning, 8 repetitions of the " \
+          "training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=1,
                                expMissingMax=None, initialPerm=0.31,
                                pamLength=1, nTrainRepetitions=8))
 
     # Fast mode, with PAM
-    print "\nRunning with PAM, slow learning, 8 repetitions of the " \
-          "training data..."
+    print("\nRunning with PAM, slow learning, 8 repetitions of the " \
+          "training data...")
     self.assertTrue(testConfig(baseParams=baseParams, expMissingMin=0,
                                expMissingMax=0, initialPerm=0.31, pamLength=5,
                                nTrainRepetitions=8))
@@ -907,9 +907,9 @@ if __name__=="__main__":
   random.seed(SEED)
 
   if not INCLUDE_CPP_TM:
-    print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    print "!!  WARNING: C++ TM testing is DISABLED until it can be updated."
-    print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("!!  WARNING: C++ TM testing is DISABLED until it can be updated.")
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
   # Form the command line for the unit test framework.
   args = [sys.argv[0]] + args

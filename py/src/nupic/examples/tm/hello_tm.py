@@ -20,7 +20,7 @@
 # ----------------------------------------------------------------------
 
 
-print """
+print("""
 This program shows how to access the Temporal Memory directly by demonstrating
 how to create a TM instance, train it with vectors, get predictions, and
 inspect the state.
@@ -34,11 +34,11 @@ cells per column?
 
 PLEASE READ THROUGH THE CODE COMMENTS - THEY EXPLAIN THE OUTPUT IN DETAIL
 
-"""
+""")
 
 # Can't live without numpy
 import numpy
-from itertools import izip as zip, count
+from itertools import count
 
 from nupic.algorithms.temporal_memory import TemporalMemory as TM
 
@@ -110,8 +110,8 @@ for i in range(10):
 # Step 3: send the same sequence of vectors and look at predictions made by
 # temporal memory
 for j in range(5):
-  print "\n\n--------","ABCDE"[j],"-----------"
-  print "Raw input vector : " + formatRow(x[j])
+  print("\n\n--------","ABCDE"[j],"-----------")
+  print("Raw input vector : " + formatRow(x[j]))
   activeColumns = set([i for i, j in zip(count(), x[j]) if j == 1])
   # Send each vector to the TM, with learning turned off
   tm.compute(activeColumns, learn = False)
@@ -122,7 +122,7 @@ for j in range(5):
   # What you should notice is that the columns where active state is 1
   # represent the SDR for the current input pattern and the columns where
   # predicted state is 1 represent the SDR for the next expected pattern
-  print "\nAll the active and predicted cells:"
+  print("\nAll the active and predicted cells:")
 
   print("active cells " + str(tm.getActiveCells()))
   print("predictive cells " + str(tm.getPredictiveCells()))
@@ -144,8 +144,8 @@ for j in range(5):
   # For convenience the cells are grouped
   # 10 at a time. When there are multiple cells per column the printout
   # is arranged so the cells in a column are stacked together
-  print "Active columns:    " + formatRow(actColStr)
-  print "Predicted columns: " + formatRow(predColStr)
+  print("Active columns:    " + formatRow(actColStr))
+  print("Predicted columns: " + formatRow(predColStr))
 
   # predictedCells[c][i] represents the state of the i'th cell in the c'th
   # column. To see if a column is predicted, we can simply take the OR

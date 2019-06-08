@@ -82,7 +82,7 @@ def showPredictions():
   """   
   for k in range(6):
     tm.reset()
-    print "--- " + "ABCDXY"[k] + " ---"
+    print("--- " + "ABCDXY"[k] + " ---")
     tm.compute(set(seqT[k][:].nonzero()[0].tolist()), learn=False)
     activeColumnsIndices = [tm.columnForCell(i) for i in tm.getActiveCells()]
     predictedColumnIndices = [tm.columnForCell(i) for i in tm.getPredictiveCells()]  
@@ -90,7 +90,7 @@ def showPredictions():
     predictedColumns = [1 if i in predictedColumnIndices else 0 for i in range(tm.numberOfColumns())]
     print("Active cols: " + str(np.nonzero(currentColumns)[0]))
     print("Predicted cols: " + str(np.nonzero(predictedColumns)[0]))
-    print ""
+    print("")
 
     
 def trainTM(sequence, timeSteps, noiseLevel):
@@ -164,15 +164,15 @@ seqT[5, 5*sparseCols:6*sparseCols] = 1   # Input SDR representing "Y"
 # PART 1. Feed the TM with sequence "ABCD". The TM will eventually learn
 # the pattern and it's prediction accuracy will go to 1.0 (except in-between sequences
 # where the TM doesn't output any prediction)
-print ""
-print "-"*50
-print "Part 1. We present the sequence ABCD to the TM. The TM will eventually"
-print "will learn the sequence and predict the upcoming characters. This can be"
-print "measured by the prediction accuracy in Fig 1."
-print "N.B. In-between sequences the accuracy is 0.0 as the TM does not output"
-print "any prediction."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Part 1. We present the sequence ABCD to the TM. The TM will eventually")
+print("will learn the sequence and predict the upcoming characters. This can be")
+print("measured by the prediction accuracy in Fig 1.")
+print("N.B. In-between sequences the accuracy is 0.0 as the TM does not output")
+print("any prediction.")
+print("-"*50)
+print("")
 
 x = []
 y = []
@@ -186,30 +186,30 @@ plt.title("Fig. 1: TM learns sequence ABCD")
 plt.savefig("figure_1")
 plt.close()
 
-print ""
-print "-"*50
-print "Once the TM has learned the sequence ABCD, we will present the individual"
-print "characters to the TM to know its prediction. The TM outputs the columns"
-print "that become active upon the presentation of a particular character as well"
-print "as the columns predicted in the next time step. Here, you should see that"
-print "A predicts B, B predicts C, C predicts D, and D does not output any"
-print "prediction."
-print "N.B. Here, we are presenting individual characters, that is, a character"
-print "deprived of context in a sequence. There is no prediction for characters"
-print "X and Y as we have not presented them to the TM in any sequence."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Once the TM has learned the sequence ABCD, we will present the individual")
+print("characters to the TM to know its prediction. The TM outputs the columns")
+print("that become active upon the presentation of a particular character as well")
+print("as the columns predicted in the next time step. Here, you should see that")
+print("A predicts B, B predicts C, C predicts D, and D does not output any")
+print("prediction.")
+print("N.B. Here, we are presenting individual characters, that is, a character")
+print("deprived of context in a sequence. There is no prediction for characters")
+print("X and Y as we have not presented them to the TM in any sequence.")
+print("-"*50)
+print("")
 
 showPredictions()
 
-print ""
-print "-"*50
-print "Part 2. We now present the sequence XBCY to the TM. As expected, the accuracy will"
-print "drop until the TM learns the new sequence (Fig 2). What will be the prediction of"
-print "the TM if presented with the sequence BC? This would depend on what character"
-print "anteceding B. This is an important feature of high-order sequences."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Part 2. We now present the sequence XBCY to the TM. As expected, the accuracy will")
+print("drop until the TM learns the new sequence (Fig 2). What will be the prediction of")
+print("the TM if presented with the sequence BC? This would depend on what character")
+print("anteceding B. This is an important feature of high-order sequences.")
+print("-"*50)
+print("")
 
 x = []
 y = []
@@ -227,30 +227,30 @@ plt.title("Fig. 2: TM learns new sequence XBCY")
 plt.savefig("figure_2")
 plt.close()
 
-print ""
-print "-"*50
-print "We will present again each of the characters individually to the TM, that is,"
-print "not within any of the two sequences. When presented with character A the TM"
-print "predicts B, B predicts C, but this time C outputs a simultaneous prediction of"
-print "both D and Y. In order to disambiguate, the TM would require to know if the"
-print "preceding characters were AB or XB. When presented with character X the TM"
-print "predicts B, whereas Y and D yield no prediction."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("We will present again each of the characters individually to the TM, that is,")
+print("not within any of the two sequences. When presented with character A the TM")
+print("predicts B, B predicts C, but this time C outputs a simultaneous prediction of")
+print("both D and Y. In order to disambiguate, the TM would require to know if the")
+print("preceding characters were AB or XB. When presented with character X the TM")
+print("predicts B, whereas Y and D yield no prediction.")
+print("-"*50)
+print("")
 
 showPredictions()
 
 # PART 3. Now we will present noisy inputs to the TM. We will add noise to the sequence XBCY
 # by corrupting 30% of its bits. We would like to see how the TM responds in the presence of
 # noise and how it recovers from it.
-print ""
-print "-"*50
-print "Part 3. We will add noise to the sequence XBCY by corrupting 30% of the bits in the vectors"
-print "encoding each character. We would expect to see a decrease in prediction accuracy as the"
-print "TM is unable to learn the random noise in the input (Fig 3). However, this decrease is not"
-print "significant."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Part 3. We will add noise to the sequence XBCY by corrupting 30% of the bits in the vectors")
+print("encoding each character. We would expect to see a decrease in prediction accuracy as the")
+print("TM is unable to learn the random noise in the input (Fig 3). However, this decrease is not")
+print("significant.")
+print("-"*50)
+print("")
 
 x = []
 y = []
@@ -264,41 +264,41 @@ plt.title("Fig. 3: Accuracy in TM with 30% noise in input")
 plt.savefig("figure_3")
 plt.close()
 
-print ""
-print "-"*50
-print "Let's have a look again at the output of the TM when presented with noisy"
-print "input (30%). Here, the noise is low that the TM is not affected by it,"
-print "which would be the case if we saw 'noisy' columns being predicted when"
-print "presented with individual characters. Thus, we could say that the TM exhibits"
-print "resilience to noise in its input."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Let's have a look again at the output of the TM when presented with noisy")
+print("input (30%). Here, the noise is low that the TM is not affected by it,")
+print("which would be the case if we saw 'noisy' columns being predicted when")
+print("presented with individual characters. Thus, we could say that the TM exhibits")
+print("resilience to noise in its input.")
+print("-"*50)
+print("")
 
 showPredictions()
 
 # Let's corrupt the sequence more by adding 50% of noise to each of its characters.
 # Here, we would expect to see some 'noisy' columns being predicted when the TM is
 # presented with the individual characters.
-print ""
-print "-"*50
-print "Now, we will set noise to be 50% of the bits in the characters X, B, C, and Y."
-print "As expected, the accuracy will decrease (Fig 5) and 'noisy' columns will be"
-print "predicted by the TM."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Now, we will set noise to be 50% of the bits in the characters X, B, C, and Y.")
+print("As expected, the accuracy will decrease (Fig 5) and 'noisy' columns will be")
+print("predicted by the TM.")
+print("-"*50)
+print("")
 
 x = []
 y = []
 trainTM(seq2, timeSteps=50, noiseLevel=0.5)
 
-print ""
-print "-"*50
-print "Let's have a look again at the output of the TM when presented with noisy"
-print "input. The prediction of some characters (eg. X) now includes columns that"
-print "are not related to any other character. This is because the TM tried to learn"
-print "the noise in the input patterns."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Let's have a look again at the output of the TM when presented with noisy")
+print("input. The prediction of some characters (eg. X) now includes columns that")
+print("are not related to any other character. This is because the TM tried to learn")
+print("the noise in the input patterns.")
+print("-"*50)
+print("")
 
 showPredictions()
 
@@ -318,13 +318,13 @@ x = []
 y = []
 trainTM(seq2, timeSteps=10, noiseLevel=0.0)
 
-print ""
-print "-"*50
-print "After presenting the original sequence XBCY to the TM, we would expect to see"
-print "the predicted noisy columns from the previous step disappear. We will verify that"
-print "by presenting the individual characters to the TM."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("After presenting the original sequence XBCY to the TM, we would expect to see")
+print("the predicted noisy columns from the previous step disappear. We will verify that")
+print("by presenting the individual characters to the TM.")
+print("-"*50)
+print("")
 
 showPredictions()
 
@@ -341,25 +341,25 @@ plt.close()
 # Let's corrupt the sequence even more and add 90% of noise to each of its characters.
 # Here, we would expect to see even more of a decrease in accuracy along with more 'noisy'
 # columns being predicted.
-print ""
-print "-"*50
-print "We will add more noise to the characters in the sequence XBCY. This time we will"
-print "corrupt 90% of its contents. As expected, the accuracy will decrease (Fig 6) and"
-print "'noisy' columns will be predicted by the TM."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("We will add more noise to the characters in the sequence XBCY. This time we will")
+print("corrupt 90% of its contents. As expected, the accuracy will decrease (Fig 6) and")
+print("'noisy' columns will be predicted by the TM.")
+print("-"*50)
+print("")
 
 x = []
 y = []
 trainTM(seq2, timeSteps=50, noiseLevel=0.9)
 
-print ""
-print "-"*50
-print "Next, we will have a look at the output of the TM when presented with the"
-print "individual characters of the sequence. As before, we see 'noisy' predicted"
-print "columns emerging as a result of the TM trying to learn the noise."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Next, we will have a look at the output of the TM when presented with the")
+print("individual characters of the sequence. As before, we see 'noisy' predicted")
+print("columns emerging as a result of the TM trying to learn the noise.")
+print("-"*50)
+print("")
 
 showPredictions()
 
@@ -394,15 +394,15 @@ plt.close()
 
 # The TM restores its prediction accuracy and it can be seen when presented with the individual characters.
 # There's no noisy columns being predicted.
-print ""
-print "-"*50
-print "After presenting noisy input to the TM, we present the original sequence in"
-print "order to make it re-learn XBCY. We verify that this was achieved by presenting"
-print "the TM with the individual characters and observing its output. Again, we can"
-print "see that the 'noisy' columns are not being predicted anymore, and that the"
-print "prediction accuracy goes back to 1.0 when the sequence is presented (Fig 7)."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("After presenting noisy input to the TM, we present the original sequence in")
+print("order to make it re-learn XBCY. We verify that this was achieved by presenting")
+print("the TM with the individual characters and observing its output. Again, we can")
+print("see that the 'noisy' columns are not being predicted anymore, and that the")
+print("prediction accuracy goes back to 1.0 when the sequence is presented (Fig 7).")
+print("-"*50)
+print("")
 
 showPredictions()
 
@@ -414,16 +414,16 @@ showPredictions()
 # TM sees ABCDXBCY, another quarter it sees XBCYXBCY, and the last quarter it saw
 # XBCYABCD, then the TM would exhibit simultaneous predictions for characters D, Y
 # and C.
-print ""
-print "-"*50
-print "Part 4. We will present both sequences ABCD and XBCY randomly to the TM."
-print "Here, we might observe simultaneous predictions occurring when the TM is"
-print "presented with characters D, Y, and C. For this purpose we will use a"
-print "blank TM"
-print "NB. Here we will not reset the TM after presenting each sequence with the"
-print "purpose of making the TM learn different predictions for D and Y."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("Part 4. We will present both sequences ABCD and XBCY randomly to the TM.")
+print("Here, we might observe simultaneous predictions occurring when the TM is")
+print("presented with characters D, Y, and C. For this purpose we will use a")
+print("blank TM")
+print("NB. Here we will not reset the TM after presenting each sequence with the")
+print("purpose of making the TM learn different predictions for D and Y.")
+print("-"*50)
+print("")
 
 tm = TM(columnDimensions = (2048,),
   cellsPerColumn=8,
@@ -445,25 +445,25 @@ for t in range(75):
     else:
       tm.compute(set(seq2[k][:].nonzero()[0].tolist()), learn=True)
 
-print ""
-print "-"*50
-print "We now have a look at the output of the TM when presented with the individual"
-print "characters A, B, C, D, X, and Y. We might observe simultaneous predictions when"
-print "presented with character D (predicting A and X), character Y (predicting A and X),"
-print "and when presented with character C (predicting D and Y)."
-print "N.B. Due to the stochasticity of this script, we might not observe simultaneous"
-print "predictions in *all* the aforementioned characters."
-print "-"*50
-print ""
+print("")
+print("-"*50)
+print("We now have a look at the output of the TM when presented with the individual")
+print("characters A, B, C, D, X, and Y. We might observe simultaneous predictions when")
+print("presented with character D (predicting A and X), character Y (predicting A and X),")
+print("and when presented with character C (predicting D and Y).")
+print("N.B. Due to the stochasticity of this script, we might not observe simultaneous")
+print("predictions in *all* the aforementioned characters.")
+print("-"*50)
+print("")
 
 showPredictions()
 
-print ""
-print "-*"*25
-print "Scroll up to see the development of this simple"
-print "tutorial. Also open the source file to see more"
-print "comments regarding each part of the script."
-print "All images generated by this script will be saved"
-print "in your current working directory."
-print "-*"*25
-print ""
+print("")
+print("-*"*25)
+print("Scroll up to see the development of this simple")
+print("tutorial. Also open the source file to see more")
+print("comments regarding each part of the script.")
+print("All images generated by this script will be saved")
+print("in your current working directory.")
+print("-*"*25)
+print("")
