@@ -145,6 +145,7 @@ Argument extra
                 , py::arg("extra") = 0u
             );
 
+        py_HTM.def("printParameters", &HTM_t::printParameters);
 
         // pickle
         // https://github.com/pybind/pybind11/issues/1061
@@ -299,6 +300,12 @@ R"(Returns list of indices of cells that belong to a mini-column.
 
 Argument column is sparse index of a mini-column.)");
 
+        py_HTM.def("columnForCell", &HTM_t::columnForCell,
+R"(Returns the index of the mini-column that a cell belongs to.
+
+Argument (int) cell index
+Returns (int) mini-column index)");
+
         py_HTM.def("createSegment", &HTM_t::createSegment,
 R"(Create a segment on the specified cell. This method calls
 createSegment on the underlying connections, and it does some extra
@@ -315,6 +322,10 @@ R"(Returns the number of cells in this TemporalMemory.)");
 
         py_HTM.def("numberOfColumns", &HTM_t::numberOfColumns,
 R"(Returns the total number of mini-columns.)");
+
+        py_HTM.def_property_readonly("connections", [](const HTM_t &self)
+            { return self.connections; },
+R"(TODO: Document the dangers of using this...)");
 
         py_HTM.def_property_readonly("extra", [](const HTM_t &self) { return self.extra; },
 R"()");
