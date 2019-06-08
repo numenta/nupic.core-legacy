@@ -254,6 +254,7 @@ if __name__ == "__main__":
     install_requires=findRequirements(platform),
     package_data={
         "nupic.bindings": ["*.so", "*.pyd"],
+        "nupic.examples": ["*.csv"],
     },
     extras_require = {},
     zip_safe=False,

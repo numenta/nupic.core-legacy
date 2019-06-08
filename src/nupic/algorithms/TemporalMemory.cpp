@@ -1025,6 +1025,20 @@ bool TemporalMemory::operator==(const TemporalMemory &other) const {
 // Debugging helpers
 //----------------------------------------------------------------------
 
+
+namespace nupic {
+  namespace algorithms {
+    namespace temporal_memory {
+std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self)
+{
+  stream << "Temporal Memory " << self.connections;
+  return stream;
+}
+    }
+  }
+}
+
+
 // Print the main TM creation parameters
 void TemporalMemory::printParameters() {
   std::cout << "------------CPP TemporalMemory Parameters ------------------\n";
