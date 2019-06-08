@@ -168,17 +168,28 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 //      to give names to variables in the JSON serialization.
 //    - Serialize a raw array, start with length followed by serialization of each element.
 //      the sizeTag starts a sequence.
-//            ar(cereal::make_size_tag(static_cast<cereal::size_type>(count_)));
-//            for (size_t i = 0; i < count_; i++)
+//            cereal::size_type count = array_size;
+//            ar(cereal::make_size_tag(count));
+//            for (size_t i = 0; i < static_cast<size_t>(count); i++)
 //              ar( array[i] );
-//      NOTE: this has some problems. Sometimes, particularly in JSON, it will crash.
-//            Recommend creating a std::vector<> and then serializing the vector.
-//            In other words, always serialize objects, not a sequence.
+//      Make sure the argument to make_size_tag(count) is cereal::size_type otherwise
+//      things will crash in strange ways. Inside the loop there must be exactly 'count' number
+//      of items passed to ar( a ).  Something like ar(a,b,c) is three items. If you are off
+//      by even one the load_ar( ) will crash on the next item because it will be the wrong
+//      thing in the stream.
+//      NOTE: If you have problems, recommend creating a std::vector<> and then serializing 
+//            the vector. In other words, serialize objects, not a sequence.
 //    - Serialize an std::pair
 //            ar(cereal::make_map_item(it->first, it->second));
-//    - Extra attention is needed if a variable is in a base class. See docs.
-//    - Extra attention may be needed for some private variables. See docs.
+//    - Extra attention is needed if a variable is in a base class. See Cereal docs.
+//    - Extra attention may be needed for some private variables. See Cereal docs.
 //
+// NOTE: Another restruction in the use of serialization using Cereal:
+//       When an Archive is applied to a new stream it will parse to the end of the
+//       stream.  If you should then apply a second Archive to the same stream it will
+//       not be able to parse because it is already at the end of the stream and there
+//       will be a read error.  So, a stream can be applied only to a single Archive
+//       unless it is reset to the beginning of the stream with a seekg(0).
 
 class ArWrapper {
 public:
@@ -214,25 +225,6 @@ public:
   Serializable() {}
   virtual inline int getSerializableVersion() const { return SERIALIZABLE_VERSION; }
 
-// TODO:Cereal- To be removed after Cereal is in place.
-  virtual inline void saveToFile(std::string filePath) const {
-    std::string dirPath = Path::getParent(filePath);
-	  Directory::create(dirPath, true, true);
-	  std::ofstream out(filePath, std::ios_base::out | std::ios_base::binary);
-	  out.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-	  out.precision(std::numeric_limits<double>::digits10 + 1);
-	  out.precision(std::numeric_limits<float>::digits10 + 1);
-	  save(out);
-	  out.close();
-  }
-
-// TODO:Cereal- To be removed after Cereal is in place.
-  virtual inline void loadFromFile(std::string filePath) {
-    std::ifstream in(filePath, std::ios_base::in | std::ios_base::binary);
-    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    load(in);
-    in.close();
-  }
 	// TODO:Cereal- after all serialization using Cereal is complete, 
   //       remove save() and load() pairs from all derived classes
 	//       change saveToStream_ar()   to save()
@@ -240,12 +232,9 @@ public:
   //       change saveToFile_ar() to saveToFile().
   //       change loadFromFile_ar() to loadFromFile().
 
-  // These must be implemented by the subclass.
-  virtual void save(std::ostream &stream) const { };
-  virtual void load(std::istream &stream) { };
 
 
-  virtual inline void saveToFile_ar(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) const {
+  virtual inline void saveToFile(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) const {
     std::string dirPath = Path::getParent(filePath);
 	  Directory::create(dirPath, true, true);
 		std::ios_base::openmode mode = std::ios_base::out;
@@ -253,12 +242,12 @@ public:
 	  std::ofstream out(filePath, mode);
 	  out.precision(std::numeric_limits<double>::digits10 + 1);
 	  out.precision(std::numeric_limits<float>::digits10 + 1);
-		saveToStream_ar(out, fmt);
+		save(out, fmt);
 		out.close();
 	}
 
   // NOTE: for BINARY and PORTABLE the stream must be ios_base::binary or it will crash on Windows.
-  virtual inline void saveToStream_ar(std::ostream &out, SerializableFormat fmt=SerializableFormat::BINARY) const {
+  virtual inline void save(std::ostream &out, SerializableFormat fmt=SerializableFormat::BINARY) const {
     ArWrapper arw;
     arw.fmt = fmt;
 		switch(fmt) {
@@ -286,19 +275,19 @@ public:
 		}
   }
   
-  virtual inline void loadFromFile_ar(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) {
+  virtual inline void loadFromFile(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) {
 		std::ios_base::openmode mode = std::ios_base::in;
 		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
 	  std::ifstream in(filePath, mode);
     // NOTE: do NOT set stream exceptions:
     //       in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     //       The JSON parser will not be able to find the end of the parse.
-		loadFromStream_ar(in, fmt);
+		load(in, fmt);
 		in.close();
 	}
   // NOTE: for BINARY and PORTABLE the stream must opened with ios_base::binary or it will crash on Windows.
   //       Stream exceptions should NOT be set.
-	virtual inline void loadFromStream_ar(std::istream &in,  SerializableFormat fmt=SerializableFormat::BINARY) {
+	virtual inline void load(std::istream &in,  SerializableFormat fmt=SerializableFormat::BINARY) {
     ArWrapper arw;
     arw.fmt = fmt;
 		switch(fmt) {
@@ -332,9 +321,8 @@ public:
   // Note: if you get a compile error saying this is not defined,
   //       or that "cannot instantiate abstract class"
   //       add the macro 'CerealAdapter' in the derived class.
-  // TODO:Cereal- make these pure virtual when Cereal is included everywhere.
-  virtual void cereal_adapter_save(ArWrapper& a) const {};
-  virtual void cereal_adapter_load(ArWrapper& a) {};
+  virtual void cereal_adapter_save(ArWrapper& a) const = 0;
+  virtual void cereal_adapter_load(ArWrapper& a) = 0;
 
 
 	
@@ -347,19 +335,19 @@ public:
 #define CerealAdapter \
   void cereal_adapter_save(ArWrapper& a) const override {                 \
     switch(a.fmt) {                                                       \
-    case SerializableFormat::BINARY:   save_ar(*a.binary_out); break;     \
-    case SerializableFormat::PORTABLE: save_ar(*a.portable_out); break;   \
-		case SerializableFormat::JSON:     save_ar(*a.json_out); break;       \
-		case SerializableFormat::XML:      save_ar(*a.xml_out); break;        \
+    case SerializableFormat::BINARY:   CEREAL_SAVE_FUNCTION_NAME(*a.binary_out); break;     \
+    case SerializableFormat::PORTABLE: CEREAL_SAVE_FUNCTION_NAME(*a.portable_out); break;   \
+		case SerializableFormat::JSON:     CEREAL_SAVE_FUNCTION_NAME(*a.json_out); break;       \
+		case SerializableFormat::XML:      CEREAL_SAVE_FUNCTION_NAME(*a.xml_out); break;        \
 		default: NTA_THROW << "unknown serialization format.";                \
 		}                                                                     \
   }                                                                       \
   void cereal_adapter_load(ArWrapper& a) override {                       \
     switch(a.fmt) {                                                       \
-    case SerializableFormat::BINARY:   load_ar(*a.binary_in); break;      \
-    case SerializableFormat::PORTABLE: load_ar(*a.portable_in); break;    \
-		case SerializableFormat::JSON:     load_ar(*a.json_in); break;        \
-		case SerializableFormat::XML:      load_ar(*a.xml_in); break;         \
+    case SerializableFormat::BINARY:   CEREAL_LOAD_FUNCTION_NAME(*a.binary_in); break;      \
+    case SerializableFormat::PORTABLE: CEREAL_LOAD_FUNCTION_NAME(*a.portable_in); break;    \
+		case SerializableFormat::JSON:     CEREAL_LOAD_FUNCTION_NAME(*a.json_in); break;        \
+		case SerializableFormat::XML:      CEREAL_LOAD_FUNCTION_NAME(*a.xml_in); break;         \
 		default: NTA_THROW << "unknown serialization format.";                \
 		}                                                                     \
   }                             

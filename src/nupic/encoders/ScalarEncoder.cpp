@@ -195,45 +195,19 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
   output.setSparse( sparse );
 }
 
-void ScalarEncoder::save(std::ostream &stream) const
+std::ostream & operator<<(std::ostream & out, const ScalarEncoder &self)
 {
-  stream << "ScalarEncoder ";
-  stream << parameters.minimum    << " ";
-  stream << parameters.maximum    << " ";
-  stream << parameters.clipInput  << " ";
-  stream << parameters.periodic   << " ";
-  stream << parameters.category   << " ";
-  stream << parameters.activeBits << " ";
-  // Save the resolution instead of the size BC it's higher precision.
-  stream << parameters.resolution << " ";
-  stream << "~ScalarEncoder~" << std::endl;
+  out << "ScalarEncoder \n";
+  out << "  minimum:   " << self.parameters.minimum    << ",\n";
+  out << "  maximum:   " << self.parameters.maximum    << ",\n";
+  out << "  clipInput: " << self.parameters.clipInput  << ",\n";
+  out << "  periodic:  " << self.parameters.periodic   << ",\n";
+  out << "  category:  " << self.parameters.category   << ",\n";
+  out << "  activeBits:" << self.parameters.activeBits << ",\n";
+  out << "  resolution:" << self.parameters.resolution << std::endl;
+  return out;
 }
 
-void ScalarEncoder::load(std::istream &stream)
-{
-  std::string prelude;
-  stream >> prelude;
-  NTA_CHECK( prelude == "ScalarEncoder" );
-
-  ScalarEncoderParameters p;
-  stream >> p.minimum;
-  stream >> p.maximum;
-  stream >> p.clipInput;
-  stream >> p.periodic;
-  stream >> p.category;
-  stream >> p.activeBits;
-  stream >> p.resolution;
-
-  std::string postlude;
-  stream >> postlude;
-  NTA_CHECK( postlude == "~ScalarEncoder~" );
-  stream.ignore( 1 ); // Eat the trailing newline.
-
-  if( p.category ) {
-    p.resolution = 0.0f;
-  }
-  initialize( p );
-}
 
 } // end namespace encoders
 } // end namespace nupic

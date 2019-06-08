@@ -229,7 +229,7 @@ Resets sequence state of the TM.)");
         py_HTM.def("getActiveCells", [](const HTM_t& self)
         {
             auto dims = self.getColumnDimensions();
-            dims.push_back( self.getCellsPerColumn() );
+            dims.push_back( static_cast<UInt32>(self.getCellsPerColumn()) );
             SDR *cells = new SDR( dims );
             self.getActiveCells(*cells);
             return cells;
@@ -274,7 +274,7 @@ R"()");
         py_HTM.def("getWinnerCells", [](const HTM_t& self)
         {
             auto dims = self.getColumnDimensions();
-            dims.push_back( self.getCellsPerColumn() );
+            dims.push_back( static_cast<UInt32>(self.getCellsPerColumn()) );
             SDR *winnerCells = new SDR( dims );
             self.getWinnerCells(*winnerCells);
             return winnerCells;

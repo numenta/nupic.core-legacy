@@ -144,7 +144,6 @@
 #include <nupic/engine/Input.hpp>
 #include <nupic/engine/Region.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/types/Serializable.hpp>
 
 namespace nupic {
@@ -219,10 +218,6 @@ public:
    * which is a map of shared_ptr's.
    */
   // static Spec* createSpec();
-
-  // Serialize/Deserialize state.
-  virtual void serialize(BundleIO &bundle) = 0;
-  virtual void deserialize(BundleIO &bundle) = 0;
 
   // overridden by including the macro CerealAdapter in subclass.
   virtual void cereal_adapter_save(ArWrapper& a) const {};

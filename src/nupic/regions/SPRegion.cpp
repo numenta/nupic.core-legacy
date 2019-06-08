@@ -35,7 +35,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/regions/SPRegion.hpp>
 #include <nupic/utils/Log.hpp>
@@ -83,11 +82,6 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
 
 }
 
-SPRegion::SPRegion(BundleIO &bundle, Region *region) 
-  : RegionImpl(region), computeCallback_(nullptr) {
-
-  deserialize(bundle);
-}
 SPRegion::SPRegion(ArWrapper &wrapper, Region *region)
   : RegionImpl(region), computeCallback_(nullptr)  {
   cereal_adapter_load(wrapper);
@@ -919,83 +913,6 @@ void SPRegion::setParameterBool(const std::string &name, Int64 index, bool value
 }
 
 
-
-void SPRegion::serialize(BundleIO &bundle) {
-  std::ostream &f = bundle.getOutputStream();
-  // There is more than one way to do this. We could serialize to YAML, which
-  // would make a readable format, or we could serialize directly to the stream
-  // Choose the fastest executing one.
-  f << "SPRegion " << (int)VERSION << std::endl;
-  f << "args " << sizeof(args_) << " ";
-  f.write((const char *)&args_, sizeof(args_));
-  f << std::endl;
-  f << spatialImp_ << std::endl;
-  f << "outputs [";
-  std::map<std::string, Output *> outputs = region_->getOutputs();
-  for (auto iter : outputs) {
-    const Array &outputBuffer = iter.second->getData();
-    if (outputBuffer.getCount() != 0) {
-      f << iter.first << " ";
-      outputBuffer.save(f);
-    }
-  }
-  f << "] "; // end of all output buffers
-
-  bool init = ((sp_) ? true : false);
-  f << init << " ";
-  if (init)
-    sp_->save(f);
-}
-
-void SPRegion::deserialize(BundleIO &bundle) {
-  std::istream &f = bundle.getInputStream();
-  // There is more than one way to do this. We could serialize to YAML, which
-  // would make a readable format, or we could serialize directly to the stream
-  // Choose the easier one.
-  char bigbuffer[5000];
-  bool init;
-  std::string tag;
-  Size v;
-  f >> tag;
-  NTA_CHECK(tag == "SPRegion")
-      << "Bad serialization for region '" << region_->getName()
-      << "' of type SPRegion. Main serialization file must start "
-      << "with \"SPRegion\" but instead it starts with '" << tag << "'";
-
-  f >> v;
-  NTA_CHECK(v >= 1)
-      << "Unexpected version for SPRegion deserialization stream, "
-      << region_->getName();
-  f >> tag;
-  NTA_CHECK(tag == "args");
-  f >> v;
-  NTA_CHECK(v == sizeof(args_));
-  f.ignore(1);
-  f.read((char *)&args_, v);
-  f.ignore(1);
-  f.getline(bigbuffer, sizeof(bigbuffer));
-  spatialImp_ = bigbuffer;
-  f >> tag;
-  NTA_CHECK(tag == "outputs");
-  f.ignore(1);
-  NTA_CHECK(f.get() == '['); // start of outputs
-  while (true) {
-    f >> tag;
-    f.ignore(1);
-    if (tag == "]")
-      break;
-    Array& a = getOutput(tag)->getData();
-    a.load(f);
-  }
-  f >> init;
-  f.ignore(1);
-  if (init) {
-    sp_ = std::unique_ptr<algorithms::spatial_pooler::SpatialPooler>(
-            new algorithms::spatial_pooler::SpatialPooler());
-    sp_->load(f);
-  } else
-    sp_ = nullptr;
-}
 
 bool SPRegion::operator==(const RegionImpl &o) const {
   if (o.getType() != "SPRegion") return false;

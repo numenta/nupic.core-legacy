@@ -311,7 +311,7 @@ void Input::initialize() {
   dim_ = inD;
 
   if (data_.getType() == NTA_BasicType_SDR) {
-    data_.allocateBuffer(dim_);
+    data_.allocateBuffer(dim_.asVector());
   } else if (dim_.isDontcare()) {
     data_.allocateBuffer(0);  // lets hope this is an unused input.
   } else {

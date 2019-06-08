@@ -604,7 +604,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       // Only SDR has dimensions
       std::vector<UInt> d({ 10u, 10u });
       Dimensions dim(d);
-      sdr::SDR sdr(dim);
+      sdr::SDR sdr(dim.asVector());
       Array s(sdr); // makes a copy of sdr
       Dimensions dim_s(s.getSDR().dimensions);
       EXPECT_EQ(dim_s, dim);

@@ -31,7 +31,6 @@
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/utils/Log.hpp>
 using nupic::sdr::SDR;
 
@@ -54,10 +53,6 @@ ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
   sensedValue_ = params.getScalarT<Real64>("sensedValue");
 }
 
-ScalarSensor::ScalarSensor(BundleIO &bundle, Region *region)
-    : RegionImpl(region) {  // TODO:cereal Remove
-  deserialize(bundle);
-}
 ScalarSensor::ScalarSensor(ArWrapper &wrapper, Region *region):RegionImpl(region) {
   cereal_adapter_load(wrapper);
 }
@@ -235,33 +230,6 @@ void ScalarSensor::setParameterReal64(const std::string &name, Int64 index, Real
   } else {
 	  RegionImpl::setParameterReal64(name, index, value);
   }
-}
-
-
-
-void ScalarSensor::serialize(BundleIO &bundle) {
-    std::ostream &f = bundle.getOutputStream();
-    f << "ScalerSensor ";
-    f.write((char*)&params_, sizeof(params_));
-    f << " " << sensedValue_ << " ";
-    f << "~ScalerSensor" << std::endl;
-}
-
-void ScalarSensor::deserialize(BundleIO &bundle) {
-  std::istream &f = bundle.getInputStream();
-  std::string tag;
-  f >> tag;
-  NTA_CHECK(tag == "ScalerSensor");
-  f.ignore(1);
-  f.read((char *)&params_, sizeof(params_));
-  f >> sensedValue_;
-  f >> tag;
-  NTA_CHECK(tag == "~ScalerSensor");
-  f.ignore(1);
-
-  encoder_ = std::make_shared<encoders::ScalarEncoder>( params_ );
-
-  initialize();
 }
 
 bool ScalarSensor::operator==(const RegionImpl &o) const {

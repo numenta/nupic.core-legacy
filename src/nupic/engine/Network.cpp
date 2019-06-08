@@ -37,7 +37,6 @@ Implementation of the Network class
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/ntypes/BasicType.hpp>
@@ -121,28 +120,6 @@ std::shared_ptr<Region> Network::addRegion(std::shared_ptr<Region>& r) {
   return r;
 }
 
-// TODO:cereal Remove
-std::shared_ptr<Region> Network::addRegionFromBundle(const std::string name,
-					const std::string nodeType,
-					const Dimensions& dimensions,
-					const std::string& filename,
-					const std::string& label) {
-	if (regions_.find(name) != regions_.end())
-		NTA_THROW << "addRegionFromBundle; region '"
-				  << name << "' already exists.";
-	if (!Path::exists(filename))
-		NTA_THROW << "addRegionFromBundle; file does not exist; '" << filename << "'";
-
-    std::ifstream in(filename, std::ios_base::in | std::ios_base::binary);
-    in.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	std::shared_ptr<Region> r = std::make_shared<Region>(this);
-	r->load(in);
-	regions_[name] = r;
-	initialized_ = false;
-
-	setDefaultPhase_(r.get());
-	return r;
-}
 
 void Network::setDefaultPhase_(Region *region) {
   UInt32 newphase = (UInt32)phaseInfo_.size();
@@ -527,156 +504,6 @@ UInt32 Network::getMinEnabledPhase() const { return minEnabledPhase_; }
 UInt32 Network::getMaxEnabledPhase() const { return maxEnabledPhase_; }
 
 
-
-
-void Network::save(std::ostream &f) const {
-  // save Network, Region, Links
-
-  f << "Network: {\n";
-  f << "iteration: " << iteration_ << "\n";
-  f << "Regions: " << "[ " << regions_.size() << "\n";
-
-  for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter){
-    std::shared_ptr<Region>  r = iter->second;
-    r->save(f);
-  }
-  f << "]\n"; // end of regions
-
-  // Save the Links
-  // determine the number of links to save.
-  Size count = 0;
-  for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter){
-    std::shared_ptr<Region> r = iter->second;
-    const std::map<std::string, Input*> inputs = r->getInputs();
-    for (const auto & inputs_input : inputs)
-    {
-      const std::vector<std::shared_ptr<Link>>& links = inputs_input.second->getLinks();
-      count += links.size();
-    }
-  }
-
-  f << "Links: [ " << count << "\n";
-
-  // Now serialize the links
-  for(auto iter = regions_.cbegin(); iter != regions_.cend(); ++iter){
-    std::shared_ptr<Region> r = iter->second;
-    const std::map<std::string, Input*> inputs = r->getInputs();
-    for (const auto & inputs_input : inputs)
-    {
-      const std::vector<std::shared_ptr<Link>>& links = inputs_input.second->getLinks();
-      for (const auto & links_link : links)
-      {
-        auto l = links_link;
-        l->serialize(f);
-      }
-
-    }
-  }
-  f << "]\n"; // end of links
-
-  f << "}\n"; // end of network
-  f << std::endl;
-}
-
-
-
-
-void Network::load(std::istream &f) {
-
-  std::string tag;
-  Size count;
-
-  // Remove all existing regions and links
-  for (auto p: regions_) {
-    std::shared_ptr<Region>  r = p.second;
-    removeRegion(r->getName());
-  }
-  initialized_ = false;
-
-
-  f >> tag;
-  NTA_CHECK(tag == "Network:")  << "Invalid network structure file -- does not contain 'Network' as starting tag.";
-  f >> tag;
-  NTA_CHECK(tag == "{") << "Expected beginning of a map.";
-  f >> tag;
-  NTA_CHECK(tag == "iteration:");
-  f >> iteration_;
-
-  // Regions
-  f >> tag;
-  NTA_CHECK(tag == "Regions:");
-  f >> tag;
-  NTA_CHECK(tag == "[") << "Expected the beginning of a list";
-  f >> count;
-  for (Size n = 0; n < count; n++)
-  {
-    std::shared_ptr<Region> r = std::make_shared<Region>(this);
-    r->load(f);
-    regions_[r->getName()] = r;
-
-    // We must make a copy of the phases set here because
-    // setPhases_ will be passing this back down into
-    // the region.
-    std::set<UInt32> phases = r->getPhases();
-    setPhases_(r.get(), phases);
-
-  }
-  f >> tag;
-  NTA_CHECK(tag == "]") << "Expected end of list of regions.";
-
-
-  //  Links
-  f >> tag;
-  NTA_CHECK(tag == "Links:");
-  f >> tag;
-  NTA_CHECK(tag == "[") << "Expected beginning of list of links.";
-  f >> count;
-
-  for (Size n=0; n < count; n++)
-  {
-    // Create the link
-    std::shared_ptr<Link> newLink = std::make_shared<Link>();
-    newLink->deserialize(f);
-
-  // Now connect the links to the regions
-    const std::string srcRegionName = newLink->getSrcRegionName();
-    NTA_CHECK(regions_.find(srcRegionName) != regions_.end()) 
-          << "Invalid network structure file -- link specifies source region '"
-          << srcRegionName << "' but no such region exists";
-    std::shared_ptr<Region> srcRegion = getRegion(srcRegionName);
-
-    const std::string destRegionName = newLink->getDestRegionName();
-    NTA_CHECK(regions_.find(destRegionName) != regions_.end()) 
-          << "Invalid network structure file -- link specifies destination region '"
-          << destRegionName << "' but no such region exists";
-    std::shared_ptr<Region> destRegion = getRegion(destRegionName);
-
-    const std::string srcOutputName = newLink->getSrcOutputName();
-    Output *srcOutput = srcRegion->getOutput(srcOutputName);
-    NTA_CHECK(srcOutput != nullptr) << "Invalid network structure file -- link specifies source output '"
-          << srcOutputName << "' but no such name exists";
-
-    const std::string destInputName = newLink->getDestInputName();
-    Input *destInput = destRegion->getInput(destInputName);
-    NTA_CHECK(destInput != nullptr) << "Invalid network structure file -- link specifies destination input '"
-                << destInputName << "' but no such name exists";
-
-    newLink->connectToNetwork(srcOutput, destInput);
-    destInput->addLink(newLink, srcOutput);
-
-    // The Links will not be initialized. So must call net.initialize() after load().
-  } // links
- 
-
-
-  f >> tag;
-  NTA_CHECK(tag == "]");  // end of links
-  f >> tag;
-  NTA_CHECK(tag == "}");  // end of network
-  f.ignore(1);
-
-  post_load();
-}
 
 void Network::post_load(std::vector<std::shared_ptr<Link>>& links) {
     for(auto alink: links) {

@@ -39,7 +39,6 @@
 // objects are returned by value.
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/os/Timer.hpp>
 #include <nupic/types/Serializable.hpp>
 #include <nupic/types/Types.hpp>
@@ -453,10 +452,7 @@ public:
 
 
   // These must be implemented for serialization.
-  void save(std::ostream &stream) const override;
-  void load(std::istream &stream) override;
-
-    CerealAdapter;  // see Serializable.hpp
+  CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
