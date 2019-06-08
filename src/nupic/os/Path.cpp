@@ -27,7 +27,6 @@
 #include <nupic/os/OS.hpp>
 #include <nupic/os/Path.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/utils/StringUtils.hpp>  // for trim
 #include <algorithm> // replace()
 #include <sstream>
 #include <string>
@@ -35,6 +34,7 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include <fstream>
+#include <cctype> // isspace
 #if defined(NTA_OS_WINDOWS)
   #include  <io.h>
 #else
@@ -53,6 +53,15 @@ const char *Path::pathSep = ";";
 const char *Path::sep = "/";
 const char *Path::pathSep = ":";
 #endif
+
+std::string trim(const std::string &s) {
+  size_t i,j;
+  for(i = 0; i < s.length(); i++)
+  if (!std::isspace(s[i])) break;
+  for(j = s.length(); j > i; j--)
+    if (!std::isspace(s[j-1])) break;
+  return s.substr(i, j-i);
+}
 
 bool Path::exists(const std::string &path) { return fs::exists(path); }
 
@@ -145,7 +154,7 @@ Size Path::getFileSize(const std::string &path) {
  *       Replace this when everyone is using C++17 or better.
  */
 std::string Path::normalize(const std::string &path) {
-  std::string trimmed_path = StringUtils::trim(path);
+  std::string trimmed_path = trim(path);
   if (trimmed_path.empty()) return ".";
   std::replace(trimmed_path.begin(), trimmed_path.end(), '\\', '/'); // in-place replace
   fs::path p(trimmed_path);
@@ -161,17 +170,17 @@ std::string Path::normalize(const std::string &path) {
   if (p.has_root_path()) normal_p.push_back((iter++)->string());
   size_t j = normal_p.size();  // minimum size.
   for ( ; iter != p.end(); iter++) {
-  	std::string ele = StringUtils::trim(iter->string());
+    std::string ele = trim(iter->string());
     if (ele == "." || ele == "") continue;
     if (ele == ".." && normal_p.size() > j && normal_p.back() != "..") {
       normal_p.pop_back();
       continue;
-	}
-	normal_p.push_back(ele);
+  }
+  normal_p.push_back(ele);
   }
   fs::path new_p;
   for(auto& ele : normal_p) {
-  	new_p /= ele;
+    new_p /= ele;
   }
   new_p = new_p.make_preferred();
   std::string result = new_p.string();
