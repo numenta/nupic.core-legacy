@@ -24,7 +24,7 @@
 """ A simple program that demonstrates the workings of the spatial pooler. """
 
 from nupic.bindings.sdr import SDR
-from nupic.bindings.algorithms import SpatialPooler as SP
+from nupic.algorithms import SpatialPooler as SP
 
 # Create the Spatial Pooler, and the SDR data structures needed to work with it.
 inputSDR  = SDR( dimensions = (32, 32) )

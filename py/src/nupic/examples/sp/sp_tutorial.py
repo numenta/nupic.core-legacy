@@ -42,7 +42,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from nupic.bindings.sdr import SDR
-from nupic.bindings.algorithms import SpatialPooler as SP
+from nupic.algorithms import SpatialPooler as SP
 
 
 def percentOverlap(x1, x2):
