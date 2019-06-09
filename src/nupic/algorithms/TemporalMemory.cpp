@@ -1041,7 +1041,7 @@ std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self)
 
 // Print the main TM creation parameters
 void TemporalMemory::printParameters() {
-  std::cout << "------------CPP TemporalMemory Parameters ------------------\n";
+  std::cout << "Temporal Memory Parameters\n";
   std::cout
       << "version                   = " << TM_VERSION << std::endl
       << "numColumns                = " << numberOfColumns() << std::endl

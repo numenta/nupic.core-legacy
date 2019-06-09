@@ -145,7 +145,9 @@ Argument extra
                 , py::arg("extra") = 0u
             );
 
-        py_HTM.def("printParameters", &HTM_t::printParameters);
+        py_HTM.def("printParameters", &HTM_t::printParameters,
+            py::call_guard<py::scoped_ostream_redirect,
+                           py::scoped_estream_redirect>());
 
         // pickle
         // https://github.com/pybind/pybind11/issues/1061
