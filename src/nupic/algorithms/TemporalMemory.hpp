@@ -55,16 +55,9 @@ using namespace nupic::algorithms::connections;
  *     while (true) {
  *        <get input vector, streaming spatiotemporal information>
  *        sp.compute(inputVector, learn, activeColumns)
- *        tm.compute(number of activeColumns, activeColumns, learn)
+ *        tm.compute(activeColumns, learn)
  *        <do something with the tm, e.g. classify tm.getActiveCells()>
  *     }
- *
- * The public API uses C arrays, not std::vectors, as inputs. C arrays are
- * a good lowest common denominator. You can get a C array from a vector,
- * but you can't get a vector from a C array without copying it. This is
- * important, for example, when using numpy arrays. The only way to
- * convert a numpy array into a std::vector is to copy it, but you can
- * access a numpy array's internal C array directly.
  */
     class TemporalMemory : public Serializable
 {
@@ -653,7 +646,7 @@ private:
   Random rng_;
 
 public:
-  Connections connections; //TODO not public!
+  Connections connections;
   const UInt &extra = extra_;
   /*
    *  anomaly score computed for the current inputs
