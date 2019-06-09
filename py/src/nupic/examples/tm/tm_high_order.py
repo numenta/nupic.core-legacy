@@ -24,7 +24,7 @@
 __doc__ = """
 A tutorial that shows some features of the Temporal Memory.
 
-This program has demonstrates some basic properties of the
+This program demonstrates some basic properties of the
 Temporal Memory, in particular how it handles high-order sequences.
 """
 
