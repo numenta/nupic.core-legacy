@@ -479,8 +479,8 @@ void SpatialPooler::initialize(
 
 
 void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
-  NTA_CHECK( input.dimensions  == inputDimensions_ );
-  NTA_CHECK( active.dimensions == columnDimensions_ );
+  input.reshape(  inputDimensions_ );
+  active.reshape( columnDimensions_ );
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);
   calculateOverlapPct_(overlaps_, overlapsPct_);

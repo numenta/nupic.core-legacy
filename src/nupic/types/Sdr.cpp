@@ -250,8 +250,7 @@ namespace sdr {
 
 
     void SparseDistributedRepresentation::setSDR( const SparseDistributedRepresentation &value ) {
-        NTA_CHECK( value.dimensions == dimensions )
-                    << "Failed to assign value=" << value << " to SDR=" << *this;
+        reshape( value.dimensions );
         // Cast the data to CONST, which forces the SDR to copy the vector
         // instead of swapping it with its current data vector.  This protects
         // the input SDR from being changed.
