@@ -313,12 +313,9 @@ magic seed 0.  Use the same seed to consistently kill the same cells.)",
             { self->reshape( dimensions ); return self; },
 R"(Change the dimensions of the SDR.  The total size must not change.)");
 
-        py_SDR.def("flatten", [](SDR &self)
-            {
-                auto flat = new SDR({ self.size });
-                flat->setSparse( self.getSparse() );
-                return flat; },
-R"(Returns a copy of this SDR with one big dimension, like numpy.ndarray.flatten())");
+        py_SDR.def("flatten", [](SDR *self)
+            { self->reshape({ self->size }); return self; },
+R"(Change the dimensions of the SDR into one big dimension.)");
 
         py_SDR.def("intersection", [](SDR *self, SDR& inp1, SDR& inp2)
             { self->intersection({ &inp1, &inp2}); return self; },
