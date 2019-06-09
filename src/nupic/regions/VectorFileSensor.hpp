@@ -289,21 +289,10 @@ public:
 
   VectorFileSensor(const ValueMap &params, Region *region);
 
-  VectorFileSensor(BundleIO &bundle, Region *region);
   VectorFileSensor(ArWrapper& wrapper, Region *region);
 
   virtual ~VectorFileSensor();
 
-  // ---
-  /// Serialize state to bundle
-  // ---
-  virtual void serialize(BundleIO &bundle) override;
-
-  // ---
-  /// De-serialize state from bundle
-  // ---
-  virtual void deserialize(BundleIO &bundle) override;
-	
 
 	CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization

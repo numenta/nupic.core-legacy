@@ -262,10 +262,10 @@ TEST(VectorFileTest, testSerialization)
 		net1.run(1);
 
     Directory::removeTree("TestOutputDir", true);
-	  net1.saveToFile_ar("TestOutputDir/VectorFileTest.stream");
+	  net1.saveToFile("TestOutputDir/VectorFileTest.stream");
 
 	  VERBOSE << "Restore into a second network and compare." << std::endl;
-    net3.loadFromFile_ar("TestOutputDir/VectorFileTest.stream");
+    net3.loadFromFile("TestOutputDir/VectorFileTest.stream");
 	  std::shared_ptr<Region> n3region1 = net3.getRegion("region1");
 	  std::shared_ptr<Region> n3region3 = net3.getRegion("region3");
 

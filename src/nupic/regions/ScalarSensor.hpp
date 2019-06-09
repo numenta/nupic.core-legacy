@@ -48,7 +48,6 @@ namespace nupic {
 class ScalarSensor : public RegionImpl, Serializable {
 public:
   ScalarSensor(const ValueMap &params, Region *region);
-  ScalarSensor(BundleIO &bundle, Region *region);  // TODO:cereal Remove
   ScalarSensor(ArWrapper& wrapper, Region *region);
 
   virtual ~ScalarSensor() override;
@@ -59,9 +58,6 @@ public:
   virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
   virtual void setParameterReal64(const std::string &name, Int64 index, Real64 value) override;
   virtual void initialize() override;
-
-  virtual void serialize(BundleIO &bundle) override;
-  virtual void deserialize(BundleIO &bundle) override;
 
   void compute() override;
   virtual std::string executeCommand(const std::vector<std::string> &args,

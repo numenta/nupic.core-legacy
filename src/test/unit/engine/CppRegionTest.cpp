@@ -279,10 +279,10 @@ TEST(CppRegionTest, RegionSerialization) {
 	std::shared_ptr<Region> r1 = n.addRegion("testnode", "TestNode", "{count: 2}");
 	
 	std::stringstream ss;
-	r1->saveToStream_ar(ss);
+	r1->save(ss);
 	
 	Region r2(&n);
-	r2.loadFromStream_ar(ss);
+	r2.load(ss);
 	EXPECT_EQ(*r1.get(), r2);
 
 }

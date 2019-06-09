@@ -63,7 +63,7 @@ void Output::initialize() {
 
   size_t count = dim_.getCount();
   if (data_.getType() == NTA_BasicType_SDR) {
-      data_.allocateBuffer(dim_);
+      data_.allocateBuffer(dim_.asVector());
   } else {
     data_.allocateBuffer(count);
     // Zero the buffer because unitialized outputs can screw up inspectors,

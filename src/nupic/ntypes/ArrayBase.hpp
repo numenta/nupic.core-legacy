@@ -177,10 +177,6 @@ namespace nupic
     /**
     * serialization and deserialization for an Array and ArrayBase
     */
-    // binary representation
-    void save(std::ostream &outStream) const override;  // TODO:Cereal- remove when Cereal is complete.
-    void load(std::istream &inStream) override;
-
 		CerealAdapter;  // see Serializable.hpp
 		
     // FOR Cereal Serialization

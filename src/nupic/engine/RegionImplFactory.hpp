@@ -46,7 +46,6 @@ namespace nupic {
 class RegionImpl;
 class Region;
 class Spec;
-class BundleIO;
 class ValueMap;
 class RegisteredRegionImpl;
 
@@ -61,9 +60,6 @@ public:
   RegionImpl *createRegionImpl(const std::string nodeType,
                                const std::string nodeParams, Region *region);
 
-  // Create a RegionImpl from serialized state; caller gets ownership. TODO:cereal Remove
-  RegionImpl *deserializeRegionImpl(const std::string nodeType,
-                                    BundleIO &bundle, Region *region);
   // Create a RegionImpl from serialized state; caller gets ownership.
   RegionImpl *deserializeRegionImpl(const std::string nodeType,
                                     ArWrapper &wrapper, Region *region);

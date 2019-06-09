@@ -468,18 +468,6 @@ public:
 
 
   // Serialization
-
-  /**
-   * Saves serialized data to output stream.
-   */
-  virtual void save(std::ostream &outStream) const override;
-
-
-  /**
-   * Loads serialized data from input stream.
-   */
-  virtual void load(std::istream &inStream) override;
-
   CerealAdapter;
   template<class Archive>
   void save_ar(Archive & ar) const {

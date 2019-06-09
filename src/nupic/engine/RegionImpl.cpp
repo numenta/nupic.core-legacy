@@ -25,7 +25,6 @@
 #include <nupic/engine/Region.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Dimensions.hpp>
 #include <nupic/ntypes/BasicType.hpp>
 #include <nupic/engine/RegionImpl.hpp>

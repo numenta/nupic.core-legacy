@@ -139,7 +139,7 @@ TEST(SdrTest, TestSDR_Examples) {
 
 TEST(SdrTest, TestReshape) {
     SDR A({3,4,5});
-    A.randomize( 5. / A.size );
+    A.randomize( 5.0f / A.size );
     const auto data = A.getSparse();
     // Make the SDR have only the coordinate dataformat, because that could get
     // corrupted by the reshape.
@@ -784,8 +784,8 @@ TEST(SdrTest, TestSaveLoad) {
 
     dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
     stringstream ss;
-    dense.saveToStream_ar(ss, SerializableFormat::BINARY);
-    dense_2.loadFromStream_ar(ss, SerializableFormat::BINARY);
+    dense.save(ss, SerializableFormat::BINARY);
+    dense_2.load(ss, SerializableFormat::BINARY);
     ASSERT_TRUE( dense   == dense_2 );
 
 }

@@ -46,7 +46,6 @@ public:
   TMRegion() = delete;
   TMRegion(const TMRegion &) = delete;
   TMRegion(const ValueMap &params, Region *region);
-  TMRegion(BundleIO &bundle, Region *region);
   TMRegion(ArWrapper& wrapper, Region *region);
   virtual ~TMRegion();
 
@@ -67,9 +66,6 @@ public:
    */
   void initialize() override;
 
-  void serialize(BundleIO &bundle) override;
-  void deserialize(BundleIO &bundle) override;
-  
   CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
   template<class Archive>

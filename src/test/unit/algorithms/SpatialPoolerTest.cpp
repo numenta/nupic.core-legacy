@@ -1865,11 +1865,11 @@ TEST(SpatialPoolerTest, testSaveLoad) {
   setup(sp1, numInputs, numColumns);
 
   ofstream outfile;
-  outfile.open(filename);
+  outfile.open(filename, ifstream::binary);
   sp1.save(outfile);
   outfile.close();
 
-  ifstream infile(filename);
+  ifstream infile(filename, ifstream::binary);
   sp2.load(infile);
   infile.close();
 
@@ -1901,6 +1901,8 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
   // Save initial trained model
   ofstream osC("outC.stream", ofstream::binary);
+	osC.precision(std::numeric_limits<double>::digits10 + 1);
+	osC.precision(std::numeric_limits<float>::digits10 + 1);
   sp1.save(osC);
   osC.close();
 
@@ -1930,6 +1932,8 @@ TEST(SpatialPoolerTest, testSerialization2) {
 
       // Serialize
       ofstream os("outC.stream", ofstream::binary);
+	    os.precision(std::numeric_limits<double>::digits10 + 1);
+	    os.precision(std::numeric_limits<float>::digits10 + 1);
       spTemp.save(os);
       os.close();
 
@@ -1989,7 +1993,9 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
   // Save initial trained model
   stringstream ss;
-  sp1.saveToStream_ar(ss);
+	ss.precision(std::numeric_limits<double>::digits10 + 1);
+	ss.precision(std::numeric_limits<float>::digits10 + 1);
+  sp1.save(ss);
 
   SpatialPooler sp2;
 
@@ -2010,7 +2016,7 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
       // Deserialize
       ss.seekg(0);
-      spTemp.loadFromStream_ar(ss);
+      spTemp.load(ss);
 
       // Feed new record through
       SDR outputC({numColumns});
@@ -2018,7 +2024,7 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
       // Serialize
       ss.clear();
-      spTemp.saveToStream_ar(ss);
+      spTemp.save(ss);
 
       testTimer.stop();
 
@@ -2080,15 +2086,22 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
 }
 
 TEST(SpatialPoolerTest, ExactOutput) { 
-  string gold =
-    "SDR 1 "
-    "1 200 "
-    "10 190 172 23 118 178 129 113 71 185 182 "
-    "~SDR"; // This is all one string.
+  // Silver is an SDR that is loaded by direct initalization from a vector.
+  SDR silver_sdr({ 200 });
+  SDR_sparse_t data = {190, 172, 23, 118, 178, 129, 113, 71, 185, 182};
+  silver_sdr.setSparse(data);
 
-  stringstream gold_stream( gold );
+
+  // Gold tests initalizing an SDR from a manually created string in JSON format.
+	// hint: you can generate this string using
+	//       silver_sdr.save(std::cout, JSON);
+  string gold = "{\"dimensions\": [200],\"sparse\": [190,172,23,118,178,129,113,71,185,182]}";
+  std::stringstream gold_stream( gold );
   SDR gold_sdr;
-  gold_sdr.load( gold_stream );
+  gold_sdr.load( gold_stream, JSON );
+	
+	// both SCR's should be the same
+  EXPECT_EQ(silver_sdr, gold_sdr);
 
   SDR inputs({ 1000 });
   SDR columns({ 200 });

@@ -34,7 +34,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/regions/TestNode.hpp>
 #include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Value.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/types/Types.hpp>
@@ -92,11 +91,6 @@ TestNode::TestNode(const ValueMap &params, Region *region)
   ArWrapper arw;
 }
 
-TestNode::TestNode(BundleIO &bundle, Region *region) 
-  : RegionImpl(region), computeCallback_(nullptr), nodeCount_(1)
-{   // TODO:cereal remove when Cereal is complete
-  deserialize(bundle);
-}
 TestNode::TestNode(ArWrapper& wrapper, Region *region)
   : RegionImpl(region), computeCallback_(nullptr), nodeCount_(1) 
 {
@@ -635,113 +629,6 @@ static void arrayIn(std::istream &s, std::vector<T> &array,
     s >> array[ix];
   }
 }
-
-void TestNode::serialize(BundleIO &bundle) {
-  {
-    std::ostream &f = bundle.getOutputStream();
-    // There is more than one way to do this. We could serialize to YAML, which
-    // would make a readable format, or we could serialize directly to the
-    // stream Choose the easier one.
-    f << "TestNode-v2"
-      << " " << nodeCount_ << " " << int32Param_ << " " << uint32Param_ << " "
-      << int64Param_ << " " << uint64Param_ << " " << real32Param_ << " "
-      << real64Param_ << " " << boolParam_ << " " << outputElementCount_ << " "
-      << delta_ << " " << iter_ << " " << dim_ << " ";
-
-    arrayOut(f, real32ArrayParam_, "real32ArrayParam_");
-    arrayOut(f, int64ArrayParam_, "int64ArrayParam_");
-    arrayOut(f, boolArrayParam_, "boolArrayParam_");
-    arrayOut(f, unclonedParam_, "unclonedParam_");
-    f << shouldCloneParam_ << " ";
-
-    // outer vector needs to be done by hand.
-    f << "unclonedArray ";
-    f << unclonedInt64ArrayParam_.size() << " "; // number of nodes
-    for (size_t i = 0; i < unclonedInt64ArrayParam_.size(); i++) {
-      std::stringstream name;
-      name << "unclonedInt64ArrayParam[" << i << "]";
-      arrayOut(f, unclonedInt64ArrayParam_[i], name.str());
-    }
-      // save the output buffers
-      f << "outputs [";
-      std::map<std::string, Output *> outputs = region_->getOutputs();
-      for (auto iter : outputs) {
-        const Array &outputBuffer = iter.second->getData();
-        if (outputBuffer.getCount() != 0) {
-          f << iter.first << " ";
-          outputBuffer.save(f);
-        }
-      }
-      f << "] "; // end of all output buffers
-  } // main file
-
- }
-
-void TestNode::deserialize(BundleIO &bundle) {
-  {
-    std::istream &f = bundle.getInputStream();
-    // There is more than one way to do this. We could serialize to YAML, which
-    // would make a readable format, or we could serialize directly to the
-    // stream Choose the easier one.
-    std::string versionString;
-    f >> versionString;
-    if (versionString != "TestNode-v2") {
-      NTA_THROW << "Bad serialization for region '" << region_->getName()
-                << "' of type TestNode. Main serialization file must start "
-                << "with \"TestNode-v2\" but instead it starts with '"
-                << versionString << "'";
-    }
-    f >> nodeCount_;
-    f >> int32Param_;
-    f >> uint32Param_;
-    f >> int64Param_;
-    f >> uint64Param_;
-    f >> real32Param_;
-    f >> real64Param_;
-    f >> boolParam_;
-    f >> outputElementCount_;
-    f >> delta_;
-    f >> iter_;
-    f >> dim_;
-
-    arrayIn(f, real32ArrayParam_, "real32ArrayParam_");
-    arrayIn(f, int64ArrayParam_, "int64ArrayParam_");
-    arrayIn(f, int64ArrayParam_, "boolArrayParam_");
-    arrayIn(f, unclonedParam_, "unclonedParam_");
-
-    f >> shouldCloneParam_;
-
-      std::string tag;
-      f >> tag;
-      if (tag != "unclonedArray")
-        NTA_THROW << "Missing label for uncloned array. Got '" << tag << "'";
-      size_t vecsize;
-      f >> vecsize;
-      unclonedInt64ArrayParam_.clear();
-      unclonedInt64ArrayParam_.resize(vecsize);
-      for (size_t i = 0; i < vecsize; i++)
-      {
-        std::stringstream name;
-        name << "unclonedInt64ArrayParam[" << i << "]";
-        arrayIn(f, unclonedInt64ArrayParam_[i], name.str());
-      }
-
-	    // Restore outputs
-	    f >> tag;
-	    NTA_CHECK(tag == "outputs");
-	    f.ignore(1);
-	    NTA_CHECK(f.get() == '['); // start of outputs
-
-	    while (true) {
-	      f >> tag;
-	      f.ignore(1);
-	      if (tag == "]")
-	        break;
-	      getOutput(tag)->getData().load(f);
-	    }
-	  }
-
-  }
 
 
   bool TestNode::operator==(const RegionImpl &o) const {
