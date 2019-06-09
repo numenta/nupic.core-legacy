@@ -2,6 +2,7 @@
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2018, Numenta, Inc.
  *               2018, chhenning
+ *               2019, David McDougall
  *
  * Unless you have an agreement with Numenta, Inc., for a separate license for
  * this software code, the following terms and conditions apply:
@@ -327,7 +328,9 @@ R"(Returns the total number of mini-columns.)");
 
         py_HTM.def_property_readonly("connections", [](const HTM_t &self)
             { return self.connections; },
-R"(TODO: Document the dangers of using this...)");
+R"(Internal Connections object. Danger!
+Modifying this may detrimentially effect the TM.
+The Connections class API is subject to change.)");
 
         py_HTM.def_property_readonly("extra", [](const HTM_t &self) { return self.extra; },
 R"()");
