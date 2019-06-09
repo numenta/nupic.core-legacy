@@ -109,6 +109,32 @@ namespace nupic_ext {
         //////////////////
         // serialization
         /////////////////
+				Random.def("saveToFile", [](Random_t& self, const std::string& name, int fmt) { 
+				  nupic::SerializableFormat fmt1;
+				  switch(fmt) {                                             
+			    case 0: fmt1 = nupic::SerializableFormat::BINARY; break;
+			    case 1: fmt1 = nupic::SerializableFormat::PORTABLE; break;
+					case 2: fmt1 = nupic::SerializableFormat::JSON; break;
+					case 3: fmt1 = nupic::SerializableFormat::XML; break;
+					default: NTA_THROW << "unknown serialization format.";
+					} 
+					self.saveToFile(name, fmt1); 
+				}, "serialize to a File, using BINARY=0, PORTABLE=1, JSON=2, or XML=3 format.",
+			  py::arg("name"), py::arg("fmt") = 0);
+				
+				Random.def("loadFromFile", [](Random_t& self, const std::string& name, int fmt) { 
+				  nupic::SerializableFormat fmt1;
+				  switch(fmt) {                                             
+			    case 0: fmt1 = nupic::SerializableFormat::BINARY; break;
+			    case 1: fmt1 = nupic::SerializableFormat::PORTABLE; break;
+					case 2: fmt1 = nupic::SerializableFormat::JSON; break;
+					case 3: fmt1 = nupic::SerializableFormat::XML; break;
+					default: NTA_THROW << "unknown serialization format.";
+					} 
+				  self.loadFromFile(name, fmt1);
+				}, "load from a File, using BINARY, PORTABLE, JSON, or XML format.",
+				py::arg("name"), py::arg("fmt") = 0);
+
         Random.def(py::pickle(
             [](const Random_t& r)
         {
@@ -130,9 +156,6 @@ namespace nupic_ext {
             return r;
         }
         ));
-
-        Random.def("saveToFile",   &Random_t::saveToFile);
-        Random.def("loadFromFile", &Random_t::loadFromFile);
 
     }
 

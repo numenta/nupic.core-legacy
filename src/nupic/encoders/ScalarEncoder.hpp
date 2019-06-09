@@ -137,14 +137,50 @@ namespace encoders {
 
     void encode(Real64 input, sdr::SDR &output) override;
 
-    void save(std::ostream &stream) const override;
-    void load(std::istream &stream) override;
+
+    CerealAdapter;  // see Serializable.hpp
+    // FOR Cereal Serialization
+    template<class Archive>
+    void save_ar(Archive& ar) const {
+      std::string name = "ScalarEncoder";
+      ar(cereal::make_nvp("name", name));
+      ar(cereal::make_nvp("minimum", args_.minimum));
+      ar(cereal::make_nvp("maximum", args_.maximum));
+      ar(cereal::make_nvp("clipInput", args_.clipInput));
+      ar(cereal::make_nvp("periodic", args_.periodic));
+      ar(cereal::make_nvp("category", args_.category));
+      ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("size", args_.size));
+      ar(cereal::make_nvp("radius", args_.radius));
+      ar(cereal::make_nvp("resolution", args_.resolution));
+    }
+  
+    // FOR Cereal Deserialization
+    template<class Archive>
+    void load_ar(Archive& ar) {
+      std::string name;
+      ar(cereal::make_nvp("name", name));
+      ar(cereal::make_nvp("minimum", args_.minimum));
+      ar(cereal::make_nvp("maximum", args_.maximum));
+      ar(cereal::make_nvp("clipInput", args_.clipInput));
+      ar(cereal::make_nvp("periodic", args_.periodic));
+      ar(cereal::make_nvp("category", args_.category));
+      ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("size", args_.size));
+      ar(cereal::make_nvp("radius", args_.radius));
+      ar(cereal::make_nvp("resolution", args_.resolution));
+    }
 
     ~ScalarEncoder() override {};
 
   private:
     ScalarEncoderParameters args_;
   };   // end class ScalarEncoder
+
+  std::ostream & operator<<(std::ostream & out, const ScalarEncoder &self);
+
 }      // end namespace encoders
 }      // end namespace nupic
 #endif // end NTA_ENCODERS_SCALAR

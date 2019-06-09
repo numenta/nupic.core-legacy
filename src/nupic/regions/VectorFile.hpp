@@ -122,9 +122,6 @@ public:
   void saveVectors(std::ostream &out, Size nColumns, UInt32 fileFormat,
                    Int64 begin, Int64 end, const char *lineEndings = nullptr) const;
 
-  void save(std::ostream &f) const override;
-  void load(std::istream &f) override;
-	
 	CerealAdapter;  // See Serializable.hpp
   template<class Archive>
 	void save_ar(Archive& ar) const { 

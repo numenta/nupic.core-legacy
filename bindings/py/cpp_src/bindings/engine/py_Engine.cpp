@@ -265,13 +265,10 @@ namespace nupic_ext
 
         py_Network.def("initialize", &nupic::Network::initialize);
 
-		py_Network.def("addRegionFromBundle", &nupic::Network::addRegionFromBundle
-			, "A function to load a serialized region into a Network framework."
-			, py::arg("name")
-			, py::arg("nodeType")
-			, py::arg("dimensions")
-			, py::arg("filename")
-			, py::arg("label") = "");
+     py_Network.def("save",            &nupic::Network::save)
+		           .def("load",            &nupic::Network::load)
+							 .def("saveToFile",      &nupic::Network::saveToFile)
+							 .def("loadFromFile",    &nupic::Network::loadFromFile);
 
         py_Network.def("link", &nupic::Network::link
             , "Defines a link between regions"

@@ -127,37 +127,13 @@ void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
   output.setDense( data );
 }
 
-void RandomDistributedScalarEncoder::save(std::ostream &stream) const
+std::ostream & nupic::encoders::operator<<(std::ostream & out, const RandomDistributedScalarEncoder &self)
 {
-  stream << "RDSE ";
-  stream << parameters.size << " ";
-  stream << parameters.activeBits << " ";
-  stream << parameters.resolution << " ";
-  stream << parameters.category << " ";
-  stream << parameters.seed << " ";
-  stream << "~RDSE~" << endl;
-}
-
-void RandomDistributedScalarEncoder::load(std::istream &stream)
-{
-  string prelude;
-  stream >> prelude;
-  NTA_CHECK( prelude == "RDSE" );
-
-  RDSE_Parameters p;
-  stream >> p.size;
-  stream >> p.activeBits;
-  stream >> p.resolution;
-  stream >> p.category;
-  stream >> p.seed;
-
-  string postlude;
-  stream >> postlude;
-  NTA_CHECK( postlude == "~RDSE~" );
-  stream.ignore( 1 ); // Eat the trailing newline.
-
-  if( p.category ) {
-    p.resolution = 0.0f;
-  }
-  initialize( p );
+  out << "RDSE ";
+  out << "  size:       " << self.parameters.size << ",\n";
+  out << "  activeBits: " << self.parameters.activeBits << ",\n";
+  out << "  resolution: " << self.parameters.resolution << ",\n";
+  out << "  category:   " << self.parameters.category << ",\n";
+  out << "  seed:       " << self.parameters.seed << std::endl;
+  return out;
 }

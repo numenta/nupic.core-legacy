@@ -348,28 +348,6 @@ void VectorFile::saveVectors(ostream &out, Size nColumns, UInt32 fileFormat,
 }
 
 
-// For serialization
-void VectorFile::save(std::ostream &f) const { 
-  UInt32 format = (isLabeled())?1:2;     // format (1 if labled, 2 if not)
-  f << scaleVector_.size() << " "        // columns in vector
-    << fileVectors_.size() << " "        // number of rows
-    << format << " ";
-  saveState(f); 
-  saveVectors(f, scaleVector_.size(), format, 0, scaleVector_.size());
-}
-void VectorFile::load(std::istream &f) { 
-  size_t nCols;
-  size_t nRows;
-  int format;
-  f >> nCols >> nRows >> format;
-
-  scaleVector_.resize(nCols);
-  offsetVector_.resize(nCols);
-  readState(f);
-  loadVectors(f, nRows, nCols, format);
-}
-
-
 class AutoReleaseFile {  //TODO rm this class
 public:
   FILE *file_;

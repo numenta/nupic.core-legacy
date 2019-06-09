@@ -60,7 +60,6 @@ class TestNode : public RegionImpl, Serializable {
 public:
   typedef void (*computeCallbackFunc)(const std::string &);
   TestNode(const ValueMap &params, Region *region);
-  TestNode(BundleIO &bundle, Region *region);  // TODO:cereal Remove
   TestNode(ArWrapper& wrapper, Region *region);
   virtual ~TestNode();
 
@@ -78,9 +77,6 @@ public:
   size_t getNodeOutputElementCount(const std::string &name) const override;
 
   void initialize() override;
-
-  void serialize(BundleIO &bundle) override;
-  void deserialize(BundleIO &bundle) override;
 
   CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
