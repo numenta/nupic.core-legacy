@@ -310,7 +310,7 @@ public:
      * argument!
      *
      * @param value A sparse vector<UInt> to swap into the SDR.
-     *              Sparse data must be sorted and contain no duplicates.
+     * @throws Sparse data must be sorted and contain no duplicates.
      */
     void setSparse( SDR_sparse_t &value );
 
@@ -319,7 +319,7 @@ public:
      * the flattened SDR space.  This overwrites the SDR's current value.
      *
      * @param value A vector of flat indices to copy into the SDR.
-     *              Sparse data must be sorted and contain no duplicates.
+     * @throws Sparse data must be sorted and contain no duplicates.
      */
     template<typename T>
     void setSparse( const std::vector<T> &value ) {
@@ -332,7 +332,8 @@ public:
      * the flattened SDR space.  This overwrites the SDR's current value.
      *
      * @param value A C-style array of indices to copy into the SDR.
-     *              Sparse data must be sorted and contain no duplicates.
+     * @throws Sparse data must be sorted and contain no duplicates.
+     *
      * @param num_values The number of elements in the 'value' array.
      */
     template<typename T>
@@ -366,7 +367,7 @@ public:
      * values to swap into the SDR.  The outter list is indexed using an index
      * into the sdr.dimensions list.  The inner lists are indexed in parallel.
      *
-     * Coordinate data must be sorted and contain no duplicates.
+     * @throws Coordinate data must be sorted and contain no duplicates.
      */
     void setCoordinates( SDR_coordinate_t &value );
 
@@ -380,7 +381,7 @@ public:
      * values to copy into the SDR.  The outter list is indexed using an index
      * into the sdr.dimensions list.  The inner lists are indexed in parallel.
      *
-     * Coordinate data must be sorted and contain no duplicates.
+     * @throws Coordinate data must be sorted and contain no duplicates.
      */
     template<typename T>
     void setCoordinates( const std::vector<std::vector<T>> &value ) {
