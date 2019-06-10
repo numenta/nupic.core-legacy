@@ -123,7 +123,6 @@ set(engine_files
 )
   
 set(math_files
-    nupic/math/Math.hpp
     nupic/math/StlIo.cpp
     nupic/math/StlIo.hpp
     nupic/math/Topology.cpp
