@@ -2,6 +2,7 @@
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2018, Numenta, Inc.
  *               2018, chhenning
+ *               2019, David McDougall
  *
  * Unless you have an agreement with Numenta, Inc., for a separate license for
  * this software code, the following terms and conditions apply:
@@ -145,6 +146,9 @@ Argument extra
                 , py::arg("extra") = 0u
             );
 
+        py_HTM.def("printParameters", &HTM_t::printParameters,
+            py::call_guard<py::scoped_ostream_redirect,
+                           py::scoped_estream_redirect>());
 
         // pickle
         // https://github.com/pybind/pybind11/issues/1061
@@ -229,7 +233,7 @@ Resets sequence state of the TM.)");
         py_HTM.def("getActiveCells", [](const HTM_t& self)
         {
             auto dims = self.getColumnDimensions();
-            dims.push_back( self.getCellsPerColumn() );
+            dims.push_back( static_cast<UInt32>(self.getCellsPerColumn()) );
             SDR *cells = new SDR( dims );
             self.getActiveCells(*cells);
             return cells;
@@ -274,7 +278,7 @@ R"()");
         py_HTM.def("getWinnerCells", [](const HTM_t& self)
         {
             auto dims = self.getColumnDimensions();
-            dims.push_back( self.getCellsPerColumn() );
+            dims.push_back( static_cast<UInt32>(self.getCellsPerColumn()) );
             SDR *winnerCells = new SDR( dims );
             self.getWinnerCells(*winnerCells);
             return winnerCells;
@@ -299,6 +303,12 @@ R"(Returns list of indices of cells that belong to a mini-column.
 
 Argument column is sparse index of a mini-column.)");
 
+        py_HTM.def("columnForCell", &HTM_t::columnForCell,
+R"(Returns the index of the mini-column that a cell belongs to.
+
+Argument (int) cell index
+Returns (int) mini-column index)");
+
         py_HTM.def("createSegment", &HTM_t::createSegment,
 R"(Create a segment on the specified cell. This method calls
 createSegment on the underlying connections, and it does some extra
@@ -315,6 +325,12 @@ R"(Returns the number of cells in this TemporalMemory.)");
 
         py_HTM.def("numberOfColumns", &HTM_t::numberOfColumns,
 R"(Returns the total number of mini-columns.)");
+
+        py_HTM.def_property_readonly("connections", [](const HTM_t &self)
+            { return self.connections; },
+R"(Internal Connections object. Danger!
+Modifying this may detrimentially effect the TM.
+The Connections class API is subject to change.)");
 
         py_HTM.def_property_readonly("extra", [](const HTM_t &self) { return self.extra; },
 R"()");

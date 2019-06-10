@@ -1571,10 +1571,10 @@ TEST(TemporalMemoryTest, testSaveArLoadAr) {
 
   // Using Cereal Serialization
   stringstream ss1;
-  tm1.saveToStream_ar(ss1);
+  tm1.save(ss1);
 
   TemporalMemory tm2;
-  tm2.loadFromStream_ar(ss1);
+  tm2.load(ss1);
 
   ASSERT_TRUE(tm1 == tm2);
 

@@ -182,9 +182,7 @@ TEST(YAMLUtilsTest, ParameterSpec) {
 	  << __FILE__ << ":" << __LINE__;
   ASSERT_FALSE(vm.getScalarT<bool>("boolParam"));
 
-  // disabled until we fix default string params
-  // TEST(vm.contains("stringParam"));
-  // EXPECT_STREQ("default value", vm.getString("stringParam")->c_str());
+  EXPECT_STREQ("default value", vm.getString("stringParam").c_str());
 
   // Test error message in case of invalid parameter with and without nodeType
   // and regionName

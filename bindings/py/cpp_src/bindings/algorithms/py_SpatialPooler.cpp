@@ -75,8 +75,8 @@ using namespace sdr;
             , py::arg("potentialRadius") = 16
             , py::arg("potentialPct") = 0.5
             , py::arg("globalInhibition") = false
-            , py::arg("localAreaDensity") = -1.0
-            , py::arg("numActiveColumnsPerInhArea") = 10
+            , py::arg("localAreaDensity") = 0.02f
+            , py::arg("numActiveColumnsPerInhArea") = -1
             , py::arg("stimulusThreshold") = 0
             , py::arg("synPermInactiveDec") = 0.01
             , py::arg("synPermActiveInc") = 0.1
@@ -84,7 +84,7 @@ using namespace sdr;
             , py::arg("minPctOverlapDutyCycle") = 0.001
             , py::arg("dutyCyclePeriod") = 1000
             , py::arg("boostStrength") = 0.0
-            , py::arg("seed") = -1
+            , py::arg("seed") = 1
             , py::arg("spVerbosity") = 0
             , py::arg("wrapAround") = true
         );

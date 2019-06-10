@@ -78,11 +78,6 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   tm_ = nullptr;
 }
 
-TMRegion::TMRegion(BundleIO &bundle, Region *region)
-    : RegionImpl(region), computeCallback_(nullptr) {
-  tm_ = nullptr;
-  deserialize(bundle);
-}
 TMRegion::TMRegion(ArWrapper& wrapper, Region *region) 
     : RegionImpl(region), computeCallback_(nullptr) {
   tm_ = nullptr;
@@ -121,7 +116,7 @@ Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
     // It's size is numberOfCols * args_.cellsPerColumn.
     // So insert a new dimension to what was provided by input.
     Dimensions dim = region_dim;
-    dim.insert(dim.begin(), args_.cellsPerColumn);
+    dim.push_front(args_.cellsPerColumn);
     return dim;
   } else if (name == "anomaly") {
     Dimensions dim{1};
@@ -178,7 +173,7 @@ void TMRegion::initialize() {
 
   nupic::algorithms::temporal_memory::TemporalMemory* tm =
     new nupic::algorithms::temporal_memory::TemporalMemory(
-      columnDimensions_, args_.cellsPerColumn, args_.activationThreshold,
+      columnDimensions_.asVector(), args_.cellsPerColumn, args_.activationThreshold,
       args_.initialPermanence, args_.connectedPermanence, args_.minThreshold,
       args_.maxNewSynapseCount, args_.permanenceIncrement, args_.permanenceDecrement,
       args_.predictedSegmentDecrement, args_.seed, args_.maxSegmentsPerCell,
@@ -827,98 +822,6 @@ void TMRegion::setParameterString(const std::string &name, Int64 index,
 }
 
 
-
-void TMRegion::serialize(BundleIO &bundle) {
-  std::ostream &f = bundle.getOutputStream();
-  f.precision(std::numeric_limits<double>::digits10 + 1);
-  f.precision(std::numeric_limits<float>::digits10 + 1);
-
-  // There is more than one way to do this. We could serialize to YAML, which
-  // would make a readable format, or we could serialize directly to the
-  // stream Choose the easier one.
-  UInt version = VERSION;
-  bool init = ((tm_) ? true : false);
-
-  f << "TMRegion " << version << std::endl;
-  f << init << " ";
-  f << sizeof(args_) << " ";
-  f.write((const char*)&args_, sizeof(args_));
-  f << columnDimensions_ << " ";
-  f << std::endl;
-	// Need to save the output buffers
-  f << "outputs [";
-  std::map<std::string, Output *> outputs = region_->getOutputs();
-  for (auto iter : outputs) {
-    const Array &outputBuffer = iter.second->getData();
-    if (outputBuffer.getCount() != 0) {
-      f << iter.first << " ";
-      outputBuffer.save(f);
-    }
-  }
-  f << "] "; // end of all output buffers
-  if (tm_) {
-    tm_->save(f);
-  }
-  f << "~TMRegion ";
-}
-
-
-void TMRegion::deserialize(BundleIO &bundle) {
-  std::istream &f = bundle.getInputStream();
-  // There is more than one way to do this. We could serialize to YAML, which
-  // would make a readable format, but that is a bit slow so we try to directly
-  // stream binary as much as we can.
-//  char bigbuffer[10000];
-  UInt version;
-  Size len;
-  std::string tag;
-  bool init = false;
-
-  f >> tag;
-  if (tag != "TMRegion") {
-    NTA_THROW << "Bad serialization for region '" << region_->getName()
-              << "' of type TMRegion. Main serialization file must start "
-              << "with \"TMRegion\" but instead it starts with '"
-              << tag << "'";
-  }
-  f >> version;
-  NTA_CHECK(version >= VERSION) << "TMRegion deserialization, Expecting version 1 or greater.";
-  f >> init;
-  f >> len;
-  NTA_CHECK(len == sizeof(args_)) << "TMRegion deserialization, saved size of "
-                                     "structure args_ is wrong: " << len;
-  f.ignore(1);
-  f.read((char *)&args_, len);
-  f >> columnDimensions_;
-	
-	// restore output buffers
-	f >> tag;
-  NTA_CHECK(tag == "outputs");
-  f.ignore(1);
-  NTA_CHECK(f.get() == '['); // start of outputs
-  while (true) {
-    f >> tag;
-    f.ignore(1);
-    if (tag == "]")
-      break;
-    Array& a = getOutput(tag)->getData();
-    a.load(f);
-  }
-
-  f >> std::ws;  // ignore whitespace
-
-  if (init) {
-    TemporalMemory* tm = new TemporalMemory();
-    tm_.reset(tm);
-
-    tm_->load(f);
-  } else {
-    tm_ = nullptr;
-  }
-  f >> tag;
-  NTA_CHECK(tag == "~TMRegion") << "expected end of TMRegion serialization";
-  f.ignore(1);
-}
 
 bool TMRegion::operator==(const RegionImpl &o) const {
   if (o.getType() != "TMRegion") return false;

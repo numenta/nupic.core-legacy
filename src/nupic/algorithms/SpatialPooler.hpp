@@ -258,61 +258,17 @@ public:
   virtual UInt version() const { return version_; };
 
   /**
-  Save (serialize) the current state of the spatial pooler to the
-  specified file.
+  save_ar()/load_ar() Serialize the current state of the spatial pooler to the
+  specified file and deserialize it.
 
-  @param fd A valid file descriptor.
+  @param Archive& ar  See Serializable.hpp
    */
-  virtual void save(ostream &outStream) const override;
-
-
-  /**
-  Load (deserialize) and initialize the spatial pooler from the
-  specified input stream.
-
-  @param inStream A valid istream.
-   */
-  virtual void load(istream &inStream) override;
-
   CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
-    ar(CEREAL_NVP(numInputs_),
-       CEREAL_NVP(numColumns_),
-       CEREAL_NVP(potentialRadius_),
-       CEREAL_NVP(potentialPct_),
-       CEREAL_NVP(initConnectedPct_),
-       CEREAL_NVP(globalInhibition_),
-       CEREAL_NVP(numActiveColumnsPerInhArea_),
-       CEREAL_NVP(localAreaDensity_),
-       CEREAL_NVP(stimulusThreshold_),
-       CEREAL_NVP(inhibitionRadius_),
-       CEREAL_NVP(dutyCyclePeriod_),
-       CEREAL_NVP(boostStrength_),
-       CEREAL_NVP(iterationNum_),
-       CEREAL_NVP(iterationLearnNum_),
-       CEREAL_NVP(spVerbosity_),
-       CEREAL_NVP(updatePeriod_),
-       CEREAL_NVP(synPermInactiveDec_),
-       CEREAL_NVP(synPermActiveInc_),
-       CEREAL_NVP(synPermBelowStimulusInc_),
-       CEREAL_NVP(synPermConnected_),
-       CEREAL_NVP(minPctOverlapDutyCycles_),
-       CEREAL_NVP(wrapAround_),
-       CEREAL_NVP(inputDimensions_),
-       CEREAL_NVP(columnDimensions_),
-       CEREAL_NVP(boostFactors_),
-       CEREAL_NVP(overlapDutyCycles_),
-       CEREAL_NVP(activeDutyCycles_),
-       CEREAL_NVP(minOverlapDutyCycles_),
-       CEREAL_NVP(tieBreaker_));
-    ar(CEREAL_NVP(connections_));
-    ar(CEREAL_NVP(rng_));
-  }
-  // FOR Cereal Deserialization
-  template<class Archive>
-  void load_ar(Archive& ar) {
+    ar(CEREAL_NVP(inputDimensions_),
+       CEREAL_NVP(columnDimensions_));
     ar(CEREAL_NVP(numInputs_),
        CEREAL_NVP(numColumns_),
        CEREAL_NVP(potentialRadius_),
@@ -335,13 +291,46 @@ public:
        CEREAL_NVP(synPermConnected_),
        CEREAL_NVP(minPctOverlapDutyCycles_),
        CEREAL_NVP(wrapAround_));
+    ar(CEREAL_NVP(boostFactors_));
+    ar(CEREAL_NVP(overlapDutyCycles_));
+    ar(CEREAL_NVP(activeDutyCycles_));
+    ar(CEREAL_NVP(minOverlapDutyCycles_));
+    ar(CEREAL_NVP(tieBreaker_));
+    ar(CEREAL_NVP(connections_));
+    ar(CEREAL_NVP(rng_));
+  }
+  // FOR Cereal Deserialization
+  template<class Archive>
+  void load_ar(Archive& ar) {
     ar(CEREAL_NVP(inputDimensions_),
        CEREAL_NVP(columnDimensions_));
-    ar(CEREAL_NVP(boostFactors_),
-       CEREAL_NVP(overlapDutyCycles_),
-       CEREAL_NVP(activeDutyCycles_),
-       CEREAL_NVP(minOverlapDutyCycles_),
-       CEREAL_NVP(tieBreaker_));
+    ar(CEREAL_NVP(numInputs_),
+       CEREAL_NVP(numColumns_),
+       CEREAL_NVP(potentialRadius_),
+       CEREAL_NVP(potentialPct_),
+       CEREAL_NVP(initConnectedPct_),
+       CEREAL_NVP(globalInhibition_),
+       CEREAL_NVP(numActiveColumnsPerInhArea_),
+       CEREAL_NVP(localAreaDensity_),
+       CEREAL_NVP(stimulusThreshold_),
+       CEREAL_NVP(inhibitionRadius_),
+       CEREAL_NVP(dutyCyclePeriod_),
+       CEREAL_NVP(boostStrength_),
+       CEREAL_NVP(iterationNum_),
+       CEREAL_NVP(iterationLearnNum_),
+       CEREAL_NVP(spVerbosity_),
+       CEREAL_NVP(updatePeriod_),
+       CEREAL_NVP(synPermInactiveDec_),
+       CEREAL_NVP(synPermActiveInc_),
+       CEREAL_NVP(synPermBelowStimulusInc_),
+       CEREAL_NVP(synPermConnected_),
+       CEREAL_NVP(minPctOverlapDutyCycles_),
+       CEREAL_NVP(wrapAround_));
+    ar(CEREAL_NVP(boostFactors_));
+    ar(CEREAL_NVP(overlapDutyCycles_));
+    ar(CEREAL_NVP(activeDutyCycles_));
+    ar(CEREAL_NVP(minOverlapDutyCycles_));
+    ar(CEREAL_NVP(tieBreaker_));
     ar(CEREAL_NVP(connections_));
     ar(CEREAL_NVP(rng_));
 
@@ -782,15 +771,6 @@ public:
   */
   void getConnectedCounts(UInt connectedCounts[]) const;
 
-  /**
-  Print the main SP creation parameters to stdout.
-   */
-  void printParameters() const;
-
-  /**
-   * Print diagnostic info
-   */
-  friend std::ostream& operator<< (std::ostream& stream, const SpatialPooler& self);
 
   /**
   Returns the overlap score for each column.
@@ -1202,11 +1182,19 @@ public:
   /**
    Print the given UInt array in a nice format
   */
-  void printState(vector<UInt> &state);
+  void printState(const vector<UInt> &state, std::ostream& out=std::cout) const ;
   /**
   Print the given Real array in a nice format
   */
-  void printState(vector<Real> &state);
+  void printState(const vector<Real> &state, std::ostream& out=std::cout) const;
+
+  /**
+  Print the main SP creation parameters to stdout.
+   */
+  void printParameters(std::ostream& out=std::cout) const;
+
+  friend std::ostream& operator<< (std::ostream& stream, const SpatialPooler& self);
+
 
 protected:
   UInt numInputs_;
@@ -1262,6 +1250,9 @@ protected:
 public:
   const connections::Connections &connections = connections_;
 };
+
+std::ostream & operator<<(std::ostream & out, const SpatialPooler &sp);
+
 
 } // end namespace spatial_pooler
 } // end namespace algorithms

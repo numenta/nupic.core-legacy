@@ -360,11 +360,11 @@ TEST(TMRegionTest, testSerialization) {
 
     VERBOSE << "saveToFile" << std::endl;
     Directory::removeTree("TestOutputDir", true);
-    net1->saveToFile_ar("TestOutputDir/tmRegionTest.stream");
+    net1->saveToFile("TestOutputDir/tmRegionTest.stream");
 
     VERBOSE << "Restore from bundle into a second network and compare." << std::endl;
     net2 = new Network();
-    net2->loadFromFile_ar("TestOutputDir/tmRegionTest.stream");
+    net2->loadFromFile("TestOutputDir/tmRegionTest.stream");
 
 
     VERBOSE << "checked restored network" << std::endl;
@@ -393,11 +393,11 @@ TEST(TMRegionTest, testSerialization) {
         << "Capturing parameters before second save.";
     // serialize using a stream to a single file
     VERBOSE << "save second network." << std::endl;
-    net2->saveToFile_ar("TestOutputDir/tmRegionTest.stream");
+    net2->saveToFile("TestOutputDir/tmRegionTest.stream");
 
     VERBOSE << "Restore into a third network and compare changed parameters." << std::endl;
     net3 = new Network();
-    net3->loadFromFile_ar("TestOutputDir/tmRegionTest.stream");
+    net3->loadFromFile("TestOutputDir/tmRegionTest.stream");
     std::shared_ptr<Region> n3region2 = net3->getRegion("region2");
     EXPECT_TRUE(n3region2->getType() == "TMRegion")
         << "Failure: Restored region does not have the right type. "

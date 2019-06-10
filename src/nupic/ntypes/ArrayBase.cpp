@@ -328,48 +328,6 @@ bool operator==(const std::vector<nupic::Byte> &lhs, const ArrayBase &rhs) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//         Stream Serialization (as binary)
-////////////////////////////////////////////////////////////////////////////////
-void ArrayBase::save(std::ostream &outStream) const {
-  outStream << "[ " << count_ << " " << BasicType::getName(type_) << " ";
-  if (has_buffer() && type_ == NTA_BasicType_SDR) {
-    const sdr::SDR& sdr = getSDR();
-    sdr.save(outStream);
-  } else {
-
-    if (count_ > 0) {
-      Size size = count_ * BasicType::getSize(type_);
-      outStream.write(reinterpret_cast<const char *>(buffer_.get()), size);
-    }
-  }
-  outStream << "]" << std::endl;
-}
-void ArrayBase::load(std::istream &inStream) {
-  std::string tag;
-  size_t count;
-
-  NTA_CHECK(inStream.get() == '[')
-      << "Binary load of Array, expected starting '['.";
-  inStream >> count;
-  inStream >> tag;
-  type_ = BasicType::parse(tag);
-  if (count > 0 && type_ == NTA_BasicType_SDR) {
-    sdr::SDR *sdr = new sdr::SDR();
-    sdr->load(inStream);
-    std::shared_ptr<char> sp(reinterpret_cast<char *>(sdr));
-    buffer_ = sp;
-    count_ = sdr->size;
-  } else {
-    allocateBuffer(count);
-    inStream.ignore(1);
-    inStream.read(buffer_.get(), count_ * BasicType::getSize(type_));
-  }
-  NTA_CHECK(inStream.get() == ']')
-      << "Binary load of Array, expected ending ']'.";
-  inStream.ignore(1); // skip over the endl
-}
-
-////////////////////////////////////////////////////////////////////////////////
 //         Stream Serialization  (as Ascii text character strings)
 //              [ type count ( item item item ...) ... ]
 ////////////////////////////////////////////////////////////////////////////////

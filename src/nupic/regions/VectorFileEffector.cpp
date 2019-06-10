@@ -51,10 +51,6 @@ VectorFileEffector::VectorFileEffector(const ValueMap &params, Region* region)
     filename_ = "";
 }
 
-VectorFileEffector::VectorFileEffector(BundleIO &bundle, Region* region)
-    : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
-      outFile_(nullptr) {}
-
 VectorFileEffector::VectorFileEffector(ArWrapper& wrapper, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {
@@ -237,11 +233,6 @@ VectorFileEffector::getNodeOutputElementCount(const std::string &outputName) con
       << "VectorFileEffector::getNodeOutputElementCount -- unknown output '"
       << outputName << "'";
 }
-
-
-void VectorFileEffector::serialize(BundleIO &bundle) { return; }
-
-void VectorFileEffector::deserialize(BundleIO &bundle) { return; }
 
 
 bool VectorFileEffector::operator==(const RegionImpl &o) const {

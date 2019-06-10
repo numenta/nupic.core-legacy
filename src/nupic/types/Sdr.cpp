@@ -258,8 +258,7 @@ namespace sdr {
 
 
     void SparseDistributedRepresentation::setSDR( const SparseDistributedRepresentation &value ) {
-        NTA_CHECK( value.dimensions == dimensions )
-                    << "Failed to assign value=" << value << " to SDR=" << *this;
+        reshape( value.dimensions );
         // Cast the data to CONST, which forces the SDR to copy the vector
         // instead of swapping it with its current data vector.  This protects
         // the input SDR from being changed.
@@ -339,12 +338,12 @@ namespace sdr {
     void SparseDistributedRepresentation::killCells(const Real fraction, const UInt seed) {
         NTA_CHECK( fraction >= 0.0 );
         NTA_CHECK( fraction <= 1.0 );
-        const UInt nkill = round( size * fraction );
+        const UInt nkill = static_cast<UInt>(round( size * fraction ));
         Random rng(seed);
         auto &data = getDense();
-	std::vector<ElemSparse> indices(size);
-	std::iota(indices.begin(), indices.end(), 0); //fills with 0,..,size-1
-	const auto toKill = rng.sample(indices, nkill); // select nkill indices to be "killed", set to OFF/0
+	      std::vector<ElemSparse> indices(size);
+	      std::iota(indices.begin(), indices.end(), 0); //fills with 0,..,size-1
+	      const auto toKill = rng.sample(indices, nkill); // select nkill indices to be "killed", set to OFF/0
         for(const auto dis: toKill) {
           data[dis] = 0;
         }
@@ -499,71 +498,6 @@ namespace sdr {
             getDense().begin(),
             getDense().end(), 
             sdr.getDense().begin());
-    }
-
-
-    void SparseDistributedRepresentation::save(std::ostream &outStream) const {
-
-        auto writeVector = [&outStream] (const vector<UInt> &vec) {
-            outStream << vec.size() << " ";
-            for( auto elem : vec ) {
-                outStream << elem << " ";
-            }
-            outStream << endl;
-        };
-
-        // Write a starting marker and version.
-        outStream << "SDR " << SERIALIZE_VERSION << " " << endl;
-
-        // Store the dimensions.
-        writeVector( dimensions );
-
-        // Store the data in the flat-sparse format.
-        writeVector( getSparse() );
-
-        outStream << "~SDR" << endl;
-    }
-
-    void SparseDistributedRepresentation::load(std::istream &inStream) {
-
-        auto readVector = [&inStream] (vector<UInt> &vec) { //TODO add to Serializable
-            vec.clear();
-            UInt size;
-            inStream >> size;
-            vec.reserve( size );
-            for( UInt i = 0; i < size; ++i ) {
-                UInt elem;
-                inStream >> elem;
-                vec.push_back( elem );
-            }
-        };
-
-        // Read the starting marker and version.
-        string marker;
-        UInt version;
-        inStream >> marker >> version;
-        NTA_CHECK( marker == "SDR" );
-        NTA_CHECK( version == SERIALIZE_VERSION );
-
-        // Read the dimensions.
-        readVector( dimensions_ );
-
-        // Initialize the SDR.
-        // Calculate the SDR's size.
-        size_ = 1;
-        for(UInt dim : dimensions)
-            size_ *= dim;
-        // Initialize sparse tuple.
-        coordinates_.assign( dimensions.size(), {} );
-
-        // Read the data.
-        readVector( sparse_ );
-        setSparseInplace();
-
-        // Consume the end marker.
-        inStream >> marker;
-        NTA_CHECK( marker == "~SDR" );
-        inStream.ignore(1);  // skip past endl.
     }
 
 

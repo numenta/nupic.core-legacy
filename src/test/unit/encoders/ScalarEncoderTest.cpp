@@ -195,16 +195,15 @@ TEST(ScalarEncoder, Serialization) {
   q.sparsity = 0.15f;
   inputs.push_back( new ScalarEncoder( q ) );
 
-  std::stringstream buf;
-  for( const auto x : inputs ) {
-    x->save( buf );
-  }
-
-  // cerr << "SERIALIZED:" << endl << buf.str() << endl;
-
   for( const auto enc1 : inputs ) {
+    std::stringstream buf;
+    enc1->save( buf, JSON );
+  
+    std::cerr << "SERIALIZED:" << std::endl << buf.str() << std::endl;
+    buf.seekg(0);
+
     ScalarEncoder enc2;
-    enc2.load( buf );
+    enc2.load( buf, JSON );
 
     const auto &p1 = enc1->parameters;
     const auto &p2 = enc2.parameters;

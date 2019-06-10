@@ -78,11 +78,6 @@ class Random : public Serializable  {
 public:
   Random(UInt64 seed = 0);
 
-  // save and load serialized data
-  void save(std::ostream &stream) const override { stream << *this; }
-  void load(std::istream &stream) override { stream >> *this; }
-  void saveToFile(std::string filePath) const override { Serializable::saveToFile(filePath); }
-  void loadFromFile(std::string filePath) override { Serializable::loadFromFile(filePath); }
 
   CerealAdapter;
   template<class Archive>

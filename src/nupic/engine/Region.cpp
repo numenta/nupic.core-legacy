@@ -41,7 +41,6 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <nupic/engine/RegionImplFactory.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/utils/Log.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/ntypes/BasicType.hpp>
 
@@ -307,141 +306,6 @@ void Region::uninitialize() { initialized_ = false; }
 void Region::setPhases(std::set<UInt32> &phases) { phases_ = phases; }
 
 std::set<UInt32> &Region::getPhases() { return phases_; }
-
-
-void Region::save(std::ostream &f) const {
-  f << "{\n";
-  f << "name: " << name_ << "\n";
-  f << "nodeType: " << type_ << "\n";
-  f << "phases: [ " << phases_.size() << "\n";
-  for (const auto &phases_phase : phases_) {
-      f << phases_phase << " ";
-  }
-  f << "]\n";
-  f << "outputs: [\n";
-  for(auto out: outputs_) {
-    f << out.first << " " << out.second->getDimensions() << "\n";
-  }
-  f << "]\n";
-  f << "inputs: [\n";
-  for(auto in: inputs_) {
-    f << in.first << " " << in.second->getDimensions() << "\n";
-  }
-  f << "]\n";
-  f << "RegionImpl:\n";
-  // Now serialize the RegionImpl plugin.
-  BundleIO bundle(&f);
-  impl_->serialize(bundle);
-
-  f << "dim: " << getDimensions() << "\n";
-
-  f << "}\n";
-}
-
-void Region::load(std::istream &f) {
-  char bigbuffer[5000];
-  std::string tag;
-  Size count;
-  Dimensions d;
-
-  // Each region is a map -- extract the 5 values in the map
-  f >> tag;
-  NTA_CHECK(tag == "{") << "bad region entry (not a map)";
-
-  // 1. name
-  f >> tag;
-  NTA_CHECK(tag == "name:");
-  f.ignore(1);
-  f.getline(bigbuffer, sizeof(bigbuffer));
-  name_ = bigbuffer;
-
-  // 2. nodeType
-  f >> tag;
-  NTA_CHECK(tag == "nodeType:");
-  f.ignore(1);
-  f.getline(bigbuffer, sizeof(bigbuffer));
-  type_ = bigbuffer;
-
-  // 3. phases
-  f >> tag;
-  NTA_CHECK(tag == "phases:");
-  f >> tag;
-  NTA_CHECK(tag == "[") << "Expecting a sequence of phases.";
-  f >> count;
-  phases_.clear();
-  for (Size i = 0; i < count; i++)
-  {
-    UInt32 val;
-    f >> val;
-    phases_.insert(val);
-  }
-  f >> tag;
-  NTA_CHECK(tag == "]") << "Expected end of sequence of phases.";
-
-  // create inputs and outputs
-  RegionImplFactory &factory = RegionImplFactory::getInstance();
-  spec_ = factory.getSpec(type_);
-  createInputsAndOutputs_();
-
-  // 4. Restore dimensions on outputs
-  {
-    f >> tag;
-    NTA_CHECK(tag == "outputs:");
-    f >> tag;
-    NTA_CHECK(tag == "[") << "Expecting a sequence of outputs.";
-    f >> tag;
-    while(!f.eof() && tag != "]") {
-      f >> d;
-      auto itr = outputs_.find(tag);
-      if (itr != outputs_.end()) {
-        itr->second->setDimensions(d);
-        itr->second->initialize();
-      }
-      f >> tag;
-    }
-    NTA_CHECK(tag == "]") << "Expected end of sequence of outputs.";
-  }
-
-  // 5. Restore dimensions on inputs
-  {
-    f >> tag;
-    NTA_CHECK(tag == "inputs:");
-    f >> tag;
-    NTA_CHECK(tag == "[") << "Expecting a sequence of inputs.";
-    f >> tag;
-    while(!f.eof() && tag != "]") {
-      f >> d;
-      auto itr = inputs_.find(tag);
-      if (itr != inputs_.end()) {
-        itr->second->setDimensions(d);
-      }
-      f >> tag;
-    }
-    NTA_CHECK(tag == "]") << "Expected end of sequence of inputs.";
-  }
-
-  // 6. impl
-  f >> tag;
-  NTA_CHECK(tag == "RegionImpl:") << "Expected beginning of RegionImpl.";
-  f.ignore(1);
-
-  BundleIO bundle(&f);
-  impl_.reset(factory.deserializeRegionImpl(type_, bundle, this));
-
-
-  // region level dimensions
-  f >> tag;
-  NTA_CHECK(tag == "dim:");
-  f >> d;
-  setDimensions(d);
-
-  initialized_ = true;
-
-  f >> tag;
-  NTA_CHECK(tag == "}") << "Expected end of region. Found '" << tag << "'.";
-}
-
-
 
 void Region::enableProfiling() { profilingEnabled_ = true; }
 
@@ -742,8 +606,6 @@ std::ostream &operator<<(std::ostream &f, const Region &r) {
 	// TODO: add region impl...maybe
   //f << "RegionImpl:\n";
   // Now serialize the RegionImpl plugin.
-  //BundleIO bundle(&f);
-  //impl_->serialize(bundle);
 
   f << "}\n";
   return f;

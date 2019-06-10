@@ -55,16 +55,9 @@ using namespace nupic::algorithms::connections;
  *     while (true) {
  *        <get input vector, streaming spatiotemporal information>
  *        sp.compute(inputVector, learn, activeColumns)
- *        tm.compute(number of activeColumns, activeColumns, learn)
+ *        tm.compute(activeColumns, learn)
  *        <do something with the tm, e.g. classify tm.getActiveCells()>
  *     }
- *
- * The public API uses C arrays, not std::vectors, as inputs. C arrays are
- * a good lowest common denominator. You can get a C array from a vector,
- * but you can't get a vector from a C array without copying it. This is
- * important, for example, when using numpy arrays. The only way to
- * convert a numpy array into a std::vector is to copy it, but you can
- * access a numpy array's internal C array directly.
  */
     class TemporalMemory : public Serializable
 {
@@ -436,22 +429,11 @@ public:
   SynapseIdx getMaxSynapsesPerSegment() const;
 
   /**
-   * Save (serialize) the current state of the spatial pooler to the
-   * specified file.
+   * Save (serialize) / Load (deserialize) the current state of the spatial pooler
+   * to the specified stream.
    *
-   * @param fd A valid file descriptor.
+   * @param Archive & ar   a Cereal container.
    */
-  virtual void save(ostream &outStream) const override;
-  
-
-  /**
-   * Load (deserialize) and initialize the spatial pooler from the
-   * specified input stream.
-   *
-   * @param inStream A valid istream.
-   */
-  virtual void load(istream &inStream) override;
-
   // a container to hold the data for one sequence item during serialization
   struct container_ar {
     SegmentIdx idx;
@@ -598,7 +580,7 @@ public:
   /**
    * Print the main TM creation parameters
    */
-  void printParameters();
+  void printParameters(std::ostream& out=std::cout) const;
 
   /**
    * Returns the index of the (mini-)column that a cell belongs to.
@@ -665,7 +647,7 @@ private:
   Random rng_;
 
 public:
-  Connections connections; //TODO not public!
+  Connections connections;
   const UInt &extra = extra_;
   /*
    *  anomaly score computed for the current inputs
