@@ -29,12 +29,9 @@
 
 using std::vector;
 using namespace nupic;
-using namespace nupic::math::topology;
 using nupic::sdr::SDR;
 
 namespace nupic {
-namespace math {
-namespace topology {
 
 
 Topology_t  DefaultTopology(
@@ -136,8 +133,6 @@ UInt indexFromCoordinates(const vector<UInt> &coordinates,
   return index;
 }
 
-} // end namespace topology
-} // namespace math
 } // end namespace nupic
 
 
