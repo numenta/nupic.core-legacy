@@ -583,7 +583,6 @@ public:
         }
         stream << " ) ";
         auto data = sdr.getSparse();
-        std::sort( data.begin(), data.end() );
         for( UInt i = 0; i < data.size(); i++ ) {
             stream << data[i];
             if( i + 1 != data.size() )
