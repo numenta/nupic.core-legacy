@@ -31,7 +31,6 @@ using namespace std;
 
 #include <nupic/math/Topology.hpp>
 using namespace nupic;
-using namespace nupic::math::topology;
 
 namespace nupic_ext {
 

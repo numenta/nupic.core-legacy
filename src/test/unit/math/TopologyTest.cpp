@@ -31,7 +31,6 @@ namespace testing {
 
 using std::vector;
 using namespace nupic;
-using namespace nupic::math::topology;
 
 TEST(TopologyTest, IndexFromCoordinates) {
   EXPECT_EQ(0u, indexFromCoordinates({0}, {100}));
