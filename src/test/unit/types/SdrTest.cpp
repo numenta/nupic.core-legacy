@@ -323,13 +323,13 @@ TEST(SdrTest, TestGetDenseFromSparse) {
 
     // Test 1-D
     SDR d1({30});
-    d1.setSparse(SDR_sparse_t({1, 29, 4, 5, 7}));
+    d1.setSparse(SDR_sparse_t({1, 4, 5, 7, 29}));
     vector<Byte> ans(30, 0);
     ans[1] = 1;
-    ans[29] = 1;
     ans[4] = 1;
     ans[5] = 1;
     ans[7] = 1;
+    ans[29] = 1;
     ASSERT_EQ( d1.getDense(), ans );
 
     // Test 3-D
@@ -350,7 +350,7 @@ TEST(SdrTest, TestGetDenseFromSparse) {
 TEST(SdrTest, TestGetDenseFromCoordinates) {
     // Test simple 2-D
     SDR a({3, 3});
-    a.setCoordinates(SDR_coordinate_t({{1, 0, 2}, {2, 0, 2}}));
+    a.setCoordinates(SDR_coordinate_t({{0, 1, 2}, {0, 2, 2}}));
     vector<Byte> ans(9, 0);
     ans[0] = 1;
     ans[5] = 1;
@@ -411,9 +411,9 @@ TEST(SdrTest, TestGetCoordinatesFromSparse) {
     ASSERT_EQ( index.size(), 2ul );
     ASSERT_EQ( index[0].size(), 0ul );
     ASSERT_EQ( index[1].size(), 0ul );
-    a.setSparse(SDR_sparse_t({ 4, 8, 5 }));
+    a.setSparse(SDR_sparse_t({ 4, 5, 8 }));
     ASSERT_EQ( a.getCoordinates(), vector<vector<UInt>>({
-        { 1, 2, 1 },
+        { 1, 1, 2 },
         { 1, 2, 2 } }) );
 
     // Test zero'd SDR.

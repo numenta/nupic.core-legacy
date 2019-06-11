@@ -490,6 +490,7 @@ void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
   // Notify the active SDR that its internal data vector has changed.  Always
   // call SDR's setter methods even if when modifying the SDR's own data
   // inplace.
+  sort( activeVector.begin(), activeVector.end() );
   active.setSparse( activeVector );
 
   if (learn) {

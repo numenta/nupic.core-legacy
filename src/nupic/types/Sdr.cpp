@@ -56,9 +56,17 @@ namespace sdr {
     void SparseDistributedRepresentation::setSparseInplace() const {
         // Check data is valid.
         #ifdef NTA_ASSERTIONS_ON
-            NTA_ASSERT(sparse_.size() <= size);
-            for(auto idx : sparse_) {
-                NTA_ASSERT(idx < size);
+            NTA_ASSERT( is_sorted(sparse_.begin(), sparse_.end()) )
+                << "Sparse & Coordinate data must be sorted!";
+            if( not sparse_.empty() ) {
+                NTA_ASSERT( sparse_.back() < size )
+                    << "Index out of bounds of the SDR!";
+            }
+            UInt previous = -1;
+            for( const UInt idx : sparse_ ) {
+                NTA_ASSERT( idx != previous )
+                    << "Sparse & Coordinate data must not contain duplicates!";
+                previous = idx;
             }
         #endif
         // Set the valid flags.
@@ -73,16 +81,20 @@ namespace sdr {
             NTA_ASSERT(coordinates_.size() == dimensions.size());
             for(UInt dim = 0; dim < dimensions.size(); dim++) {
                 const auto &coord_vec = coordinates_[dim];
-                NTA_ASSERT(coord_vec.size() <= size);
-                NTA_ASSERT(coord_vec.size() == coordinates_[0].size()); // All coordinate vectors have same size.
+                NTA_ASSERT(coord_vec.size() == coordinates_[0].size())
+                    << "All coordinate arrays must have the same size!";
                 for(const auto &idx : coord_vec) {
-                    NTA_ASSERT(idx < dimensions[dim]);
+                    NTA_ASSERT(idx < dimensions[dim])
+                        << "Index out of bounds of this dimensions of the SDR!";
                 }
             }
         #endif
         // Set the valid flags.
         clear();
         coordinates_valid = true;
+        #ifdef NTA_ASSERTIONS_ON
+            getSparse(); // Asserts that the data is sorted & unique.
+        #endif
         do_callbacks();
     }
 
@@ -292,6 +304,7 @@ namespace sdr {
         SDR_sparse_t range( size );
         iota( range.begin(), range.end(), 0u );
         sparse_ = rng.sample( range, nbits);
+        sort( sparse_.begin(), sparse_.end() );
         setSparseInplace();
     }
 

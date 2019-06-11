@@ -115,6 +115,7 @@ public:
    * @param checkInputs
    * Whether to check that the activeColumns are sorted without
    * duplicates. Disable this for a small speed boost.
+   * DEPRECATED: The SDR class now enforces these properties.
    *
    * @param extra
    * Number of external predictive inputs.  These inputs are used in addition to

@@ -422,8 +422,6 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
       NTA_CHECK(static_cast<size_t>(activeColumns.dimensions[i]) == static_cast<size_t>(columnDimensions_[i])) << "Dimensions must be the same.";
     }
     auto &sparse = activeColumns.getSparse();
-    std::sort(sparse.begin(), sparse.end()); //TODO remove sorted requirement? iterGroupBy depends on it
-
 
   vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
   for (CellIdx cell : activeCells_) {

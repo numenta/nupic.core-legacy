@@ -54,29 +54,6 @@ TEST(TemporalMemoryTest, testInitInvalidParams) {
   EXPECT_NO_THROW(tm1.initialize({2048}, 32));
 }
 
-/**
- * If you call compute with unsorted input, it should throw an exception.
- */
-TEST(TemporalMemoryTest, testCheckInputs_UnsortedColumns) {
-  TemporalMemory tm(
-      /*columnDimensions*/ {32},
-      /*cellsPerColumn*/ 4,
-      /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.21f,
-      /*connectedPermanence*/ 0.50f,
-      /*minThreshold*/ 2,
-      /*maxNewSynapseCount*/ 3,
-      /*permanenceIncrement*/ 0.10f,
-      /*permanenceDecrement*/ 0.10f,
-      /*predictedSegmentDecrement*/ 0.0f,
-      /*seed*/ 42);
-
-  SDR activeColumns({tm.getColumnDimensions()});
-  activeColumns.setSparse(SDR_sparse_t{1u, 3u, 2u, 4u});
-
-  EXPECT_NO_THROW(tm.compute(activeColumns, true));
-}
-
 
 /**
  * When a predicted column is activated, only the predicted cells in the

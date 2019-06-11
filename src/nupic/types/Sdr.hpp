@@ -310,6 +310,7 @@ public:
      * argument!
      *
      * @param value A sparse vector<UInt> to swap into the SDR.
+     * @throws Sparse data must be sorted and contain no duplicates.
      */
     void setSparse( SDR_sparse_t &value );
 
@@ -318,6 +319,7 @@ public:
      * the flattened SDR space.  This overwrites the SDR's current value.
      *
      * @param value A vector of flat indices to copy into the SDR.
+     * @throws Sparse data must be sorted and contain no duplicates.
      */
     template<typename T>
     void setSparse( const std::vector<T> &value ) {
@@ -330,6 +332,8 @@ public:
      * the flattened SDR space.  This overwrites the SDR's current value.
      *
      * @param value A C-style array of indices to copy into the SDR.
+     * @throws Sparse data must be sorted and contain no duplicates.
+     *
      * @param num_values The number of elements in the 'value' array.
      */
     template<typename T>
@@ -362,6 +366,8 @@ public:
      * @param value A vector<vector<UInt>> containing the coordinates of the true
      * values to swap into the SDR.  The outter list is indexed using an index
      * into the sdr.dimensions list.  The inner lists are indexed in parallel.
+     *
+     * @throws Coordinate data must be sorted and contain no duplicates.
      */
     void setCoordinates( SDR_coordinate_t &value );
 
@@ -374,6 +380,8 @@ public:
      * @param value A list of lists containing the coordinates of the true
      * values to copy into the SDR.  The outter list is indexed using an index
      * into the sdr.dimensions list.  The inner lists are indexed in parallel.
+     *
+     * @throws Coordinate data must be sorted and contain no duplicates.
      */
     template<typename T>
     void setCoordinates( const std::vector<std::vector<T>> &value ) {
@@ -576,7 +584,6 @@ public:
         }
         stream << " ) ";
         auto data = sdr.getSparse();
-        std::sort( data.begin(), data.end() );
         for( UInt i = 0; i < data.size(); i++ ) {
             stream << data[i];
             if( i + 1 != data.size() )

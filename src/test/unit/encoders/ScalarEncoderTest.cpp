@@ -49,6 +49,7 @@ void doScalarValueCases(ScalarEncoder& e, std::vector<ScalarValueCase> cases)
   for( auto c : cases )
   {
     SDR expectedOutput( e.dimensions );
+    std::sort( c.expectedOutput.begin(), c.expectedOutput.end() );
     expectedOutput.setSparse( c.expectedOutput );
 
     SDR actualOutput( e.dimensions );
