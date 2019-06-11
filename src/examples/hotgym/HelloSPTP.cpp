@@ -39,7 +39,6 @@ namespace examples {
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::sdr;
 
 using Encoder = nupic::encoders::RandomDistributedScalarEncoder;
 using EncoderParameters = nupic::encoders::RDSE_Parameters;

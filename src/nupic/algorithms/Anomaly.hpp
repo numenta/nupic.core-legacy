@@ -42,8 +42,8 @@ namespace anomaly {
  * @param prevPredictedColumns: SDR of predictive columns indices from prev step (T-1)
  * @return anomaly score 0..1 (Real32)
  */
-Real32 computeRawAnomalyScore(const sdr::SDR& active, 
-		              const sdr::SDR& predicted);
+Real32 computeRawAnomalyScore(const SDR& active, 
+                              const SDR& predicted);
 
 }}} //end-ns
 

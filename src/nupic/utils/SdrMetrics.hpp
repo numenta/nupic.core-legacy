@@ -26,8 +26,6 @@
 #include <nupic/types/Types.hpp>
 
 namespace nupic {
-namespace sdr {
-
 
 /**
  * Helper for SDR metrics trackers, including: Sparsity,
@@ -390,6 +388,5 @@ private:
     Overlap             overlap_;
 };
 
-} // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_METRICS_HPP

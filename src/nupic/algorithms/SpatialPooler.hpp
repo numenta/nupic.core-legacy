@@ -247,7 +247,7 @@ public:
         inhibition. The size of the SDR is equal to the number of
         columns (also returned by the method getNumColumns).
    */
-  virtual void compute(const sdr::SDR &input, const bool learn, sdr::SDR &active);
+  virtual void compute(const SDR &input, const bool learn, SDR &active);
 
 
   /**
@@ -910,7 +910,7 @@ public:
      a "connected state" (connected synapses) that are connected to
      input bits which are turned on.
   */
-  void calculateOverlap_(const sdr::SDR &input, vector<SynapseIdx> &overlap);
+  void calculateOverlap_(const SDR &input, vector<SynapseIdx> &overlap);
   void calculateOverlapPct_(const vector<SynapseIdx> &overlaps, vector<Real> &overlapPct) const;
 
   /**
@@ -1000,7 +1000,7 @@ public:
       @param  activeColumns  an int vector containing the indices of the columns
      that survived inhibition.
    */
-  void adaptSynapses_(const sdr::SDR &input, const sdr::SDR &active);
+  void adaptSynapses_(const SDR &input, const SDR &active);
 
   /**
       This method increases the permanence values of synapses of columns whose
@@ -1094,8 +1094,8 @@ public:
       @return type void, the argument dutyCycles is updated with new values.
   */
   static void updateDutyCyclesHelper_(vector<Real> &dutyCycles,
-                                      const sdr::SDR &newValues, 
-				      const UInt period);
+                                      const SDR &newValues, 
+                                      const UInt period);
 
   /**
   Updates the duty cycles for each column. The OVERLAP duty cycle is a moving
@@ -1111,7 +1111,7 @@ public:
   @param activeArray  An int array containing the indices of the active columns,
                   the sprase set of columns which survived inhibition
   */
-  void updateDutyCycles_(const vector<SynapseIdx> &overlaps, sdr::SDR &active);
+  void updateDutyCycles_(const vector<SynapseIdx> &overlaps, SDR &active);
 
   /**
     Update the boost factors for all columns. The boost factors are used to

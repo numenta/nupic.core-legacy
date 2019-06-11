@@ -194,8 +194,8 @@ public:
    * @param learn
    * If true, reinforce / punish / grow synapses.
    */
-  void activateCells(const sdr::SDR &activeColumns, 
-		     const bool learn = true);
+  void activateCells(const SDR &activeColumns, 
+                     const bool learn = true);
 
   /**
    * Calculate dendrite segment activity, using the current active cells.  Call
@@ -222,12 +222,12 @@ public:
    *
    */
   void activateDendrites(const bool learn,
-                         const sdr::SDR &extraActive, 
-			                   const sdr::SDR &extraWinners);
+                         const SDR &extraActive, 
+                         const SDR &extraWinners);
 
   inline void activateDendrites(const bool learn = true) {
-    const sdr::SDR extraActive(std::vector<UInt>{ extra });
-    const sdr::SDR extraWinners(std::vector<UInt>{extra });
+    const SDR extraActive(std::vector<UInt>{ extra });
+    const SDR extraWinners(std::vector<UInt>{extra });
     activateDendrites(learn, extraActive, extraWinners);
   }
 
@@ -256,12 +256,12 @@ public:
    * External inputs must be cell indexes in the range [0, extra).
    *
    */
-  virtual void compute(const sdr::SDR &activeColumns, 
+  virtual void compute(const SDR &activeColumns, 
                        const bool learn,
-                       const sdr::SDR &extraActive, 
-		       const sdr::SDR &extraWinners);
+                       const SDR &extraActive, 
+                       const SDR &extraWinners);
 
-  virtual void compute(const sdr::SDR &activeColumns, 
+  virtual void compute(const SDR &activeColumns, 
                        const bool learn = true);
 
   // ==============================
@@ -304,13 +304,13 @@ public:
    * @returns (std::vector<CellIdx>) Vector of indices of active cells.
    */
   vector<CellIdx> getActiveCells() const; //TODO remove
-  void getActiveCells(sdr::SDR &activeCells) const;
+  void getActiveCells(SDR &activeCells) const;
 
   /**
    * @return SDR with indices of the predictive cells.
    * SDR dimensions are {TM column dims x TM cells per column}
    */
-  sdr::SDR getPredictiveCells() const;
+  SDR getPredictiveCells() const;
 
   /**
    * Returns the indices of the winner cells.
@@ -318,7 +318,7 @@ public:
    * @returns (std::vector<CellIdx>) Vector of indices of winner cells.
    */
   vector<CellIdx> getWinnerCells() const; //TODO remove?
-  void getWinnerCells(sdr::SDR &winnerCells) const;
+  void getWinnerCells(SDR &winnerCells) const;
 
   vector<Segment> getActiveSegments() const;
   vector<Segment> getMatchingSegments() const;
@@ -610,7 +610,7 @@ public:
    *  @return SDR cols - which is size of TM's getColumnDimensions()
    *
    */
-  sdr::SDR cellsToColumns(const sdr::SDR& cells) const;
+  SDR cellsToColumns(const SDR& cells) const;
 
 protected:
   //all these could be const

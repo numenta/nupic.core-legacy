@@ -26,7 +26,6 @@
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::anomaly;
-using namespace nupic::sdr;
 
 namespace nupic {
 namespace algorithms {

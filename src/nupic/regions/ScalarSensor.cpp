@@ -32,7 +32,6 @@
 #include <nupic/engine/Spec.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/utils/Log.hpp>
-using nupic::sdr::SDR;
 
 namespace nupic {
 

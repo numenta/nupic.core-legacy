@@ -30,7 +30,7 @@
 #include <numeric>   // std::iota
 #include <cmath>     // std::isnan std::nextafter
 #include <nupic/encoders/ScalarEncoder.hpp>
-using nupic::sdr::SDR;
+using nupic::SDR;
 
 namespace nupic {
 namespace encoders {
