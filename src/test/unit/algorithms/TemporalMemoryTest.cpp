@@ -26,7 +26,7 @@
 
 #include <cstring>
 #include <fstream>
-#include <nupic/math/StlIo.hpp>
+#include <nupic/utils/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/types/Sdr.hpp>
 #include <nupic/utils/Log.hpp>

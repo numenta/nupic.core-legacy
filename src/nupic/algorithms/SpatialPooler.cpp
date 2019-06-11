@@ -30,7 +30,7 @@
 #include <cmath> //fmod
 
 #include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/math/Topology.hpp>
+#include <nupic/utils/Topology.hpp>
 #include <nupic/utils/VectorHelpers.hpp>
 
 using namespace std;

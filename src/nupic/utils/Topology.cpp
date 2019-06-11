@@ -23,7 +23,7 @@
  * Topology helpers
  */
 
-#include <nupic/math/Topology.hpp>
+#include <nupic/utils/Topology.hpp>
 #include <nupic/utils/Log.hpp>
 #include <algorithm> // sort
 

@@ -33,7 +33,7 @@
 #include "gtest/gtest.h"
 #include <nupic/algorithms/SpatialPooler.hpp>
 
-#include <nupic/math/StlIo.hpp>
+#include <nupic/utils/StlIo.hpp>
 #include <nupic/types/Types.hpp>
 #include <nupic/utils/Log.hpp>
 #include <nupic/os/Timer.hpp>
