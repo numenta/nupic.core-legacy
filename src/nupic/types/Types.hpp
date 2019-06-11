@@ -128,6 +128,15 @@ typedef std::size_t Size;
 #endif
 
 /**
+ * Epsilon is defined for the whole math and algorithms of the Numenta
+ * Platform, independently of the concrete type chosen to handle floating point
+ * numbers.
+ *     numeric_limits<float>::epsilon()  == 1.19209e-7
+ *     numeric_limits<double>::epsilon() == 2.22045e-16
+ */
+static const nupic::Real32 Epsilon = nupic::Real(1e-6);
+
+/**
  * Represents a signed integer.
  *
  * Same as nupic::Int64 if `NTA_BIG_INTEGER` is defined, nupic::Int32 otherwise.
