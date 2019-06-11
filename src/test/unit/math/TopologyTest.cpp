@@ -25,7 +25,7 @@
  */
 
 #include "gtest/gtest.h"
-#include <nupic/math/Topology.hpp>
+#include <nupic/utils/Topology.hpp>
 
 namespace testing {
 
