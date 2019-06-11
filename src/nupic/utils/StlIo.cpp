@@ -25,7 +25,7 @@
  * structures.
  */
 
-#include <nupic/math/StlIo.hpp>
+#include <nupic/utils/StlIo.hpp>
 
 namespace nupic {
 
