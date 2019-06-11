@@ -46,7 +46,6 @@
 #include <nupic/algorithms/TemporalMemory.hpp>
 
 #include <nupic/utils/GroupBy.hpp>
-#include <nupic/math/Math.hpp> // nupic::Epsilon
 #include <nupic/algorithms/Anomaly.hpp>
 
 using namespace std;

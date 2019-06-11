@@ -34,8 +34,6 @@
 #include <nupic/utils/Random.hpp>
 
 namespace nupic {
-namespace math {
-namespace topology {
 
 /**
  * Topology_t is a function which returns the pool of potential synapses for a
@@ -274,8 +272,6 @@ private:
   const UInt radius_;
 };
 
-} // end namespace topology
-} // namespace math
 } // end namespace nupic
 
 #endif // NTA_TOPOLOGY_HPP

@@ -31,8 +31,6 @@
 
 #include <nupic/algorithms/Connections.hpp>
 
-#include <nupic/math/Math.hpp> // nupic::Epsilon
-
 using std::endl;
 using std::string;
 using std::vector;

@@ -53,7 +53,6 @@
 #include <nupic/engine/RegisteredRegionImplCpp.hpp>
 #include <nupic/engine/Spec.hpp>
 #include <nupic/engine/YAMLUtils.hpp>
-#include <nupic/math/Math.hpp>
 #include <nupic/ntypes/Array.hpp>
 #include <nupic/os/Directory.hpp>
 #include <nupic/os/Env.hpp>
