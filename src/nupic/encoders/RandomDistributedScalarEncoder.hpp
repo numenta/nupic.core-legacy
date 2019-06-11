@@ -121,7 +121,7 @@ public:
 
   const RDSE_Parameters &parameters = args_;
 
-  void encode(Real64 input, sdr::SDR &output) override;
+  void encode(Real64 input, SDR &output) override;
 
 
   ~RandomDistributedScalarEncoder() override {};

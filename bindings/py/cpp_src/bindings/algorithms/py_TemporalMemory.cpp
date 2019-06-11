@@ -38,7 +38,6 @@
 
 namespace py = pybind11;
 using namespace nupic;
-using nupic::sdr::SDR;
 using namespace nupic::algorithms::connections; 
 
 namespace nupic_ext

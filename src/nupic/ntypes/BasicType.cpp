@@ -94,7 +94,7 @@ template <> const char *BasicType::getName<Handle>() {
 template <> const char *BasicType::getName<bool>() {
   return getName(NTA_BasicType_Bool);
 }
-template <> const char *BasicType::getName<sdr::SDR>() {
+template <> const char *BasicType::getName<SDR>() {
   return getName(NTA_BasicType_SDR);
 }
 
@@ -142,7 +142,7 @@ template <> NTA_BasicType BasicType::getType<Handle>() {
 template <> NTA_BasicType BasicType::getType<bool>() {
   return NTA_BasicType_Bool;
 }
-template <> NTA_BasicType BasicType::getType<sdr::SDR>() {
+template <> NTA_BasicType BasicType::getType<SDR>() {
   return NTA_BasicType_SDR;
 }
 } // namespace nupic

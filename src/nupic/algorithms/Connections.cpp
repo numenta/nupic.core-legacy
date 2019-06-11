@@ -36,7 +36,6 @@ using std::string;
 using std::vector;
 using namespace nupic;
 using namespace nupic::algorithms::connections;
-using nupic::sdr::SDR;
 
 Connections::Connections(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
   initialize(numCells, connectedThreshold, timeseries);

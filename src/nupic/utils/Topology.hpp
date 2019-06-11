@@ -66,7 +66,7 @@ namespace nupic {
  *      };
  *    }
  */
-typedef std::function<sdr::SDR (const sdr::SDR&, const std::vector<UInt>&, Random&)> Topology_t;
+typedef std::function<SDR (const SDR&, const std::vector<UInt>&, Random&)> Topology_t;
 
 /**
  * @param potentialRadius: This parameter determines the extent of the

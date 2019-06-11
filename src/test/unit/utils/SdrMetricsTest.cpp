@@ -28,7 +28,6 @@ static bool verbose = false;
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::sdr;
 
 /**
  * Sparsity

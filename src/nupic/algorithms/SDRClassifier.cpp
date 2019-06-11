@@ -28,7 +28,6 @@
 #include <nupic/utils/Log.hpp>
 
 using namespace nupic;
-using nupic::sdr::SDR;
 using namespace nupic::algorithms::sdr_classifier;
 using namespace std;
 

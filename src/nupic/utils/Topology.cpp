@@ -29,7 +29,6 @@
 
 using std::vector;
 using namespace nupic;
-using nupic::sdr::SDR;
 
 namespace nupic {
 

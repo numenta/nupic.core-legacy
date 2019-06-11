@@ -26,7 +26,6 @@ namespace testing {
     
 using namespace std;
 using namespace nupic;
-using namespace nupic::sdr;
 
 /* This also tests the size and dimensions are correct */
 TEST(SdrTest, TestConstructor) {

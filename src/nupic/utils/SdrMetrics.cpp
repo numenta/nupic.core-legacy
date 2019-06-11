@@ -26,7 +26,6 @@
 using namespace std;
 
 namespace nupic {
-namespace sdr {
 
 
 MetricsHelper_::MetricsHelper_( const vector<UInt> &dimensions, UInt period ) {
@@ -327,5 +326,4 @@ std::ostream& operator<<(std::ostream& stream, const Metrics &M)
     return stream << "    " << data << endl;
 }
 
-} // end namespace sdr
 } // end namespace nupic

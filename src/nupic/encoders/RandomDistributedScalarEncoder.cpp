@@ -89,7 +89,7 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
   }
 }
 
-void RandomDistributedScalarEncoder::encode(Real64 input, sdr::SDR &output)
+void RandomDistributedScalarEncoder::encode(Real64 input, SDR &output)
 {
   // Check inputs
   NTA_CHECK( output.size == size );
