@@ -29,7 +29,7 @@ namespace py = pybind11;
 #include <vector>
 using namespace std;
 
-#include <nupic/math/Topology.hpp>
+#include <nupic/utils/Topology.hpp>
 using namespace nupic;
 
 namespace nupic_ext {
