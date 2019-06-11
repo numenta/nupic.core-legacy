@@ -36,7 +36,6 @@
 using namespace std;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
-using nupic::sdr::SDR;
 using nupic::utils::VectorHelpers;
 
 class CoordinateConverterND {

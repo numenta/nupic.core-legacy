@@ -32,7 +32,6 @@
 #include <nupic/utils/Random.hpp>
 
 namespace nupic {
-namespace sdr {
 
 using ElemDense        = Byte; //TODO allow changing this
 using ElemSparse       = UInt32; //must match with connections::CellIdx 
@@ -663,6 +662,5 @@ public:
 
 typedef SparseDistributedRepresentation SDR;
 
-} // end namespace sdr
 } // end namespace nupic
 #endif // end ifndef SDR_HPP

@@ -43,7 +43,7 @@ namespace algorithms {
 namespace connections {
 
 //TODO instead of typedefs, use templates for proper type-checking?
-using CellIdx   = nupic::sdr::ElemSparse; // CellIdx must match with sdr::ElemSparse, to change, change it there
+using CellIdx   = nupic::ElemSparse; // CellIdx must match with ElemSparse, defined in Sdr.hpp
 using SegmentIdx= UInt16; /** Index of segment in cell. */
 using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
 using Segment   = UInt32;    /** Index of segment's data. */
@@ -426,7 +426,7 @@ public:
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    */
   void adaptSegment(const Segment segment,
-                    const sdr::SDR &inputs,
+                    const SDR &inputs,
                     const Permanence increment,
                     const Permanence decrement);
 
@@ -459,7 +459,7 @@ public:
    * @param excludeCells - Presynaptic cells which will NOT have any synapses destroyed.
    */
   void destroyMinPermanenceSynapses(const Segment segment, Int nDestroy,
-                                    const sdr::SDR_sparse_t &excludeCells = {});
+                                    const SDR_sparse_t &excludeCells = {});
 
   /**
    * Print diagnostic info

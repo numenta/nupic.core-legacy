@@ -44,7 +44,6 @@ namespace nupic_ext
 namespace py = pybind11;
 using namespace nupic;
 using namespace nupic::algorithms::spatial_pooler;
-using namespace sdr;
 
     void init_Spatial_Pooler(py::module& m)
     {
@@ -176,7 +175,7 @@ using namespace sdr;
         });
 
         // compute
-        py_SpatialPooler.def("compute", [](SpatialPooler& self, sdr::SDR& input, bool learn, sdr::SDR& output)
+        py_SpatialPooler.def("compute", [](SpatialPooler& self, SDR& input, bool learn, SDR& output)
             { self.compute( input, learn, output ); },
 	    "SpatialPooler compute method",
 	    py::arg("input"),

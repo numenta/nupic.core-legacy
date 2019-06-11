@@ -40,7 +40,7 @@ namespace testing {
 
 using namespace nupic::algorithms::temporal_memory;
 using namespace nupic::algorithms::connections;
-using namespace nupic::sdr;
+using namespace nupic;
 using namespace std;
 #define EPSILON 0.0000001
 

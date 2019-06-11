@@ -37,7 +37,6 @@ namespace nupic_ext
     namespace py = pybind11;
     using namespace std;
     using namespace nupic;
-    using nupic::sdr::SDR;
     using namespace nupic::algorithms::sdr_classifier;
 
     void init_SDR_Classifier(py::module& m)

@@ -71,7 +71,7 @@ namespace nupic
     /**
      * Create an ArrayBase containing a copy of an SDR.
      */
-    ArrayBase(const sdr::SDR &sdr);
+    ArrayBase(const SDR &sdr);
 
     /**
      * Caller does not provide a buffer --
@@ -126,8 +126,8 @@ namespace nupic
      * Returns a reference to the underlining SDR.
      * If it is not an SDR type, throws exception.
      */
-    sdr::SDR& getSDR();
-    const sdr::SDR& getSDR() const;
+    SDR& getSDR();
+    const SDR& getSDR() const;
 
     /**
      * number of elements of given type in the buffer
@@ -151,7 +151,7 @@ namespace nupic
      * ArrayBase will NOT free the pointer when this instance goes out of scope.
      */
     virtual void setBuffer(void *buffer, size_t count);
-    virtual void setBuffer(sdr::SDR &sdr);
+    virtual void setBuffer(SDR &sdr);
 
 
     /**
@@ -170,7 +170,7 @@ namespace nupic
      */
     void inline RefreshCache() {
       if (type_ == NTA_BasicType_SDR) {
-        sdr::SDR& sdr = getSDR();
+        SDR& sdr = getSDR();
         sdr.setDense(sdr.getDense());
       }
     }
@@ -214,7 +214,7 @@ namespace nupic
       ar(cereal::make_nvp("type", name));
       type_ = BasicType::parse(name);
       if (type_ == NTA_BasicType_SDR){
-        sdr::SDR *sdr = new sdr::SDR();
+        SDR *sdr = new SDR();
         ar(cereal::make_nvp("SDR", *sdr));
         buffer_.reset(reinterpret_cast<char*>(sdr));
         count_ = sdr->size;
