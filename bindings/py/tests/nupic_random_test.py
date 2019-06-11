@@ -151,7 +151,6 @@ class TestNupicRandom(unittest.TestCase):
     self.assertRaises(ValueError, r.sample, population, 2)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSampleSequenceRaisesTypeError(self):
     """Check that passing lists throws a TypeError.
 
@@ -163,12 +162,14 @@ class TestNupicRandom(unittest.TestCase):
     self.assertRaises(TypeError, r.sample, population, 2)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSampleBadDtype(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="int64")
 
-    self.assertRaises(TypeError, r.sample, population, 2)
+    # throws std::invalid_argument("Invalid numpy array precision used.");
+    # in py_utils.hpp
+    # so thats why it is ValueError and not TypeError
+    self.assertRaises(ValueError, r.sample, population, 2)
 
 
   @pytest.mark.skip(reason="Does not throw...another PR")
