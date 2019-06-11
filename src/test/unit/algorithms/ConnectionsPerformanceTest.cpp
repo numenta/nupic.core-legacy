@@ -40,7 +40,6 @@ namespace testing {
 
 using namespace std;
 using namespace nupic;
-using nupic::util::MovingAverage;
 
 #define SEED 42
 

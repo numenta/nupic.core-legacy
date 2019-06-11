@@ -39,7 +39,6 @@
 #define VERSION 1
 
 using namespace nupic;
-using namespace nupic::utils;
 
 TMRegion::TMRegion(const ValueMap &params, Region *region)
     : RegionImpl(region), computeCallback_(nullptr) {

@@ -247,10 +247,10 @@ class AnomalyLikelihood : public Serializable {
     int lastTimestamp_ = -1;  //helper for time measurements
     int initialTimestamp_ = -1;
 
-    nupic::util::MovingAverage averagedAnomaly_; // running average of anomaly scores
-    nupic::util::SlidingWindow<Real> runningLikelihoods_; // sliding window of the likelihoods
-    nupic::util::SlidingWindow<Real> runningRawAnomalyScores_;
-    nupic::util::SlidingWindow<Real> runningAverageAnomalies_; //sliding window of running averages of anomaly scores
+    nupic::MovingAverage averagedAnomaly_; // running average of anomaly scores
+    nupic::SlidingWindow<Real> runningLikelihoods_; // sliding window of the likelihoods
+    nupic::SlidingWindow<Real> runningRawAnomalyScores_;
+    nupic::SlidingWindow<Real> runningAverageAnomalies_; //sliding window of running averages of anomaly scores
 
 };
 

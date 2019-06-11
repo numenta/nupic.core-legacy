@@ -40,8 +40,6 @@ namespace examples {
 using namespace std;
 using namespace nupic;
 
-using nupic::util::MovingAverage;
-
 
 // work-load
 Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool useTM, const UInt COLS, const UInt DIM_INPUT, const UInt CELLS) {

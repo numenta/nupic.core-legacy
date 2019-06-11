@@ -7,7 +7,6 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::util;
 
 namespace nupic {
 

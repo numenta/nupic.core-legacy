@@ -12,7 +12,6 @@
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
-  namespace util {
 
 template<class T> 
 class SlidingWindow : public Serializable {
@@ -162,5 +161,5 @@ class SlidingWindow : public Serializable {
         // Note: ID, maxCapacity, DEBUG are already set from constructor.
       }
 }; 
-}} //end ns
+} //end ns
 #endif //header

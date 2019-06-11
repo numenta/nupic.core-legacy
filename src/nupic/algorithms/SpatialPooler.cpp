@@ -35,7 +35,6 @@
 
 using namespace std;
 using namespace nupic;
-using nupic::utils::VectorHelpers;
 
 class CoordinateConverterND {
 
