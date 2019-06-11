@@ -43,7 +43,6 @@ namespace nupic_ext
 {
 namespace py = pybind11;
 using namespace nupic;
-using namespace nupic::algorithms::spatial_pooler;
 
     void init_Spatial_Pooler(py::module& m)
     {

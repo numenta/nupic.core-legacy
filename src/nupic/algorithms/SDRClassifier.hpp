@@ -37,8 +37,6 @@
 #include <nupic/types/Serializable.hpp>
 
 namespace nupic {
-namespace algorithms {
-namespace sdr_classifier {
 
 
 /**
@@ -287,7 +285,5 @@ private:
 
 };      // End of Predictor class
 
-}       // End of namespace sdr_classifier
-}       // End of namespace algorithms
 }       // End of namespace nupic
 #endif  // End of ifdef NTA_SDR_CLASSIFIER_HPP

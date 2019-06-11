@@ -35,7 +35,6 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::spatial_pooler;
 using nupic::utils::VectorHelpers;
 
 class CoordinateConverterND {
@@ -214,8 +213,8 @@ void SpatialPooler::setUpdatePeriod(UInt updatePeriod) {
 Real SpatialPooler::getSynPermActiveInc() const { return synPermActiveInc_; }
 
 void SpatialPooler::setSynPermActiveInc(Real synPermActiveInc) {
-  NTA_CHECK( synPermActiveInc > connections::minPermanence );
-  NTA_CHECK( synPermActiveInc <= connections::maxPermanence );
+  NTA_CHECK( synPermActiveInc > minPermanence );
+  NTA_CHECK( synPermActiveInc <= maxPermanence );
   synPermActiveInc_ = synPermActiveInc;
 }
 
@@ -224,8 +223,8 @@ Real SpatialPooler::getSynPermInactiveDec() const {
 }
 
 void SpatialPooler::setSynPermInactiveDec(Real synPermInactiveDec) {
-  NTA_CHECK( synPermInactiveDec >= connections::minPermanence );
-  NTA_CHECK( synPermInactiveDec <= connections::maxPermanence );
+  NTA_CHECK( synPermInactiveDec >= minPermanence );
+  NTA_CHECK( synPermInactiveDec <= maxPermanence );
   synPermInactiveDec_ = synPermInactiveDec;
 }
 
@@ -234,14 +233,14 @@ Real SpatialPooler::getSynPermBelowStimulusInc() const {
 }
 
 void SpatialPooler::setSynPermBelowStimulusInc(Real synPermBelowStimulusInc) {
-  NTA_CHECK( synPermBelowStimulusInc > connections::minPermanence );
-  NTA_CHECK( synPermBelowStimulusInc <= connections::maxPermanence );
+  NTA_CHECK( synPermBelowStimulusInc > minPermanence );
+  NTA_CHECK( synPermBelowStimulusInc <= maxPermanence );
   synPermBelowStimulusInc_ = synPermBelowStimulusInc;
 }
 
 Real SpatialPooler::getSynPermConnected() const { return synPermConnected_; }
 
-Real SpatialPooler::getSynPermMax() const { return connections::maxPermanence; }
+Real SpatialPooler::getSynPermMax() const { return maxPermanence; }
 
 Real SpatialPooler::getMinPctOverlapDutyCycles() const {
   return minPctOverlapDutyCycles_;
@@ -342,13 +341,13 @@ void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
     connections_.updateSynapsePermanence( syn, permanences[presyn] );
 
 #ifndef NDEBUG
-    check_data[presyn] = connections::minPermanence;
+    check_data[presyn] = minPermanence;
 #endif
   }
 
 #ifndef NDEBUG
   for(UInt i = 0; i < numInputs_; i++) {
-    NTA_ASSERT(check_data[i] == connections::minPermanence)
+    NTA_ASSERT(check_data[i] == minPermanence)
           << "Can't setPermanence for synapse which is not in potential pool!";
   }
 #endif
@@ -453,17 +452,17 @@ void SpatialPooler::initialize(
 
   connections_.initialize(numColumns_, synPermConnected_);
   for (Size i = 0; i < numColumns_; ++i) {
-    connections_.createSegment( (connections::CellIdx)i );
+    connections_.createSegment( (CellIdx)i );
 
     // Note: initMapPotential_ & initPermanence_ return dense arrays.
     vector<UInt> potential = initMapPotential_((UInt)i, wrapAround_);
     vector<Real> perm = initPermanence_(potential, initConnectedPct_);
     for(UInt presyn = 0; presyn < numInputs_; presyn++) {
       if( potential[presyn] )
-        connections_.createSynapse( (connections::Segment)i, presyn, perm[presyn] );
+        connections_.createSynapse( (Segment)i, presyn, perm[presyn] );
     }
 
-    connections_.raisePermanencesToThreshold( (connections::Segment)i, stimulusThreshold_ );
+    connections_.raisePermanencesToThreshold( (Segment)i, stimulusThreshold_ );
   }
 
   updateInhibitionRadius_();
@@ -556,12 +555,12 @@ vector<UInt> SpatialPooler::initMapPotential_(UInt column, bool wrapAround) {
 
 
 Real SpatialPooler::initPermConnected_() {
-  return rng_.realRange(synPermConnected_, connections::maxPermanence);
+  return rng_.realRange(synPermConnected_, maxPermanence);
 }
 
 
 Real SpatialPooler::initPermNonConnected_() {
-  return rng_.realRange(connections::minPermanence, synPermConnected_);
+  return rng_.realRange(minPermanence, synPermConnected_);
 }
 
 
@@ -956,15 +955,11 @@ bool SpatialPooler::isUpdateRound_() const {
 }
 
 namespace nupic {
-  namespace algorithms {
-    namespace spatial_pooler {
 std::ostream& operator<< (std::ostream& stream, const SpatialPooler& self)
 {
   stream << "Spatial Pooler " << self.connections;
   return stream;
 }
-    }
-  }
 }
 
 

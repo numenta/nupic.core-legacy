@@ -35,7 +35,6 @@ using std::endl;
 using std::string;
 using std::vector;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
 
 Connections::Connections(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
   initialize(numCells, connectedThreshold, timeseries);
@@ -591,8 +590,6 @@ void Connections::destroyMinPermanenceSynapses(
 
 
 namespace nupic {
-  namespace algorithms {
-    namespace connections {
 std::ostream& operator<< (std::ostream& stream, const Connections& self)
 {
   stream << "Connections:" << std::endl;
@@ -655,9 +652,7 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
          << "%) Saturated (" <<   (Real) synapsesSaturated / self.numSynapses() << "%)" << std::endl;
 
   return stream;
-      }
-    }
-  }
+}
 }
 
 

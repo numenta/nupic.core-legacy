@@ -42,9 +42,6 @@ using namespace nupic;
 
 using Encoder = nupic::encoders::RandomDistributedScalarEncoder;
 using EncoderParameters = nupic::encoders::RDSE_Parameters;
-using nupic::algorithms::spatial_pooler::SpatialPooler;
-using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
-using nupic::algorithms::anomaly::AnomalyLikelihood;
 using nupic::util::MovingAverage;
 
 
@@ -78,7 +75,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   spLocal.setGlobalInhibition(false);
   Random rnd(1); //uses fixed seed for deterministic output checks
 
-  TM tm(vector<UInt>{COLS}, CELLS);
+  TemporalMemory tm(vector<UInt>{COLS}, CELLS);
 
   AnomalyLikelihood anLikelihood;
   tInit.stop();

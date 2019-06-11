@@ -28,10 +28,9 @@
 #include <nupic/utils/Log.hpp>
 
 using namespace nupic;
-using namespace nupic::algorithms::sdr_classifier;
 using namespace std;
 
-UInt nupic::algorithms::sdr_classifier::argmax( const PDF & data )
+UInt nupic::argmax( const PDF & data )
   { return UInt( max_element( data.begin(), data.end() ) - data.begin() ); }
 
 
@@ -128,7 +127,7 @@ std::vector<Real> Classifier::calculateError_(
 }
 
 
-void nupic::algorithms::sdr_classifier::softmax(PDF::iterator begin, PDF::iterator end) {
+void nupic::softmax(PDF::iterator begin, PDF::iterator end) {
   if( begin == end ) {
     return;
   }

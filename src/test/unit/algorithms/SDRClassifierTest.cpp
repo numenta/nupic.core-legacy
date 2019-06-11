@@ -38,7 +38,6 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::sdr_classifier;
 
 namespace testing {
 

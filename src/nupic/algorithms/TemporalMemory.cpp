@@ -50,7 +50,6 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::temporal_memory;
 
 
 static const UInt TM_VERSION = 2;
@@ -561,7 +560,7 @@ void TemporalMemory::compute(const SDR &activeColumns,
 
   // Update Anomaly Metric.  The anomaly is the percent of active columns that
   // were not predicted.
-  anomaly_ = nupic::algorithms::anomaly::computeRawAnomalyScore(
+  anomaly_ = computeRawAnomalyScore(
                 activeColumns,
                 cellsToColumns( getPredictiveCells() ));
   // TODO: Update mean & standard deviation of anomaly here.
@@ -819,15 +818,11 @@ bool TemporalMemory::operator==(const TemporalMemory &other) const {
 
 
 namespace nupic {
-  namespace algorithms {
-    namespace temporal_memory {
 std::ostream& operator<< (std::ostream& stream, const TemporalMemory& self)
 {
   stream << "Temporal Memory " << self.connections;
   return stream;
 }
-    }
-  }
 }
 
 

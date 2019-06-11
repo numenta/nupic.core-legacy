@@ -40,8 +40,6 @@
 
 using namespace nupic;
 using namespace nupic::utils;
-using namespace nupic::algorithms::temporal_memory;
-using nupic::algorithms::connections::CellIdx;
 
 TMRegion::TMRegion(const ValueMap &params, Region *region)
     : RegionImpl(region), computeCallback_(nullptr) {
@@ -170,8 +168,7 @@ void TMRegion::initialize() {
 
 
 
-  nupic::algorithms::temporal_memory::TemporalMemory* tm =
-    new nupic::algorithms::temporal_memory::TemporalMemory(
+  TemporalMemory* tm = new TemporalMemory(
       columnDimensions_.asVector(), args_.cellsPerColumn, args_.activationThreshold,
       args_.initialPermanence, args_.connectedPermanence, args_.minThreshold,
       args_.maxNewSynapseCount, args_.permanenceIncrement, args_.permanenceDecrement,

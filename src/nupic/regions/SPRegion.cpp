@@ -138,8 +138,7 @@ void SPRegion::initialize() {
     args_.potentialRadius = args_.inputWidth;
 
   // instantiate a SpatialPooler.
-  sp_ = std::unique_ptr<algorithms::spatial_pooler::SpatialPooler>(
-          new algorithms::spatial_pooler::SpatialPooler(
+  sp_ = std::unique_ptr<SpatialPooler>( new SpatialPooler(
       inputDimensions, columnDimensions, args_.potentialRadius,
       args_.potentialPct, args_.globalInhibition, args_.localAreaDensity,
       args_.numActiveColumnsPerInhArea, args_.stimulusThreshold,

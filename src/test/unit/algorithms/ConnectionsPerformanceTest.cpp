@@ -40,9 +40,6 @@ namespace testing {
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
-using ::nupic::algorithms::spatial_pooler::SpatialPooler;
-using ::nupic::algorithms::temporal_memory::TemporalMemory;
 using nupic::util::MovingAverage;
 
 #define SEED 42

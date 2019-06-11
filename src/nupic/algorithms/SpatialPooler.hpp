@@ -37,11 +37,8 @@
 
 
 namespace nupic {
-namespace algorithms {
-namespace spatial_pooler {
 
 using namespace std;
-using nupic::algorithms::connections::SynapseIdx;
 
 static const int DISABLED = -1; //value denoting a feature is disabled
 
@@ -1236,7 +1233,7 @@ protected:
    * Each mini-column has a single segment.  Because all of these regularities,
    * each mini-column's index is also its Cell and Segment index.
    */
-  connections::Connections connections_;
+  Connections connections_;
 
   vector<SynapseIdx> overlaps_;
   vector<Real> overlapsPct_;
@@ -1248,13 +1245,11 @@ protected:
   Random rng_;
 
 public:
-  const connections::Connections &connections = connections_;
+  const Connections &connections = connections_;
 };
 
 std::ostream & operator<<(std::ostream & out, const SpatialPooler &sp);
 
 
-} // end namespace spatial_pooler
-} // end namespace algorithms
 } // end namespace nupic
 #endif // NTA_spatial_pooler_HPP

@@ -42,8 +42,6 @@ in pure python, which is located under the `py/` path.
 
 
 namespace nupic {
-  namespace algorithms {
-    namespace anomaly {
 
 using namespace std;
 
@@ -256,5 +254,5 @@ class AnomalyLikelihood : public Serializable {
 
 };
 
-}}} //end-ns
+} //end-ns
 #endif

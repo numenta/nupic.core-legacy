@@ -31,7 +31,6 @@
 
 namespace testing {
 
-using namespace nupic::algorithms::anomaly;
 using namespace nupic;
 
 TEST(ComputeRawAnomalyScore, NoActiveOrPredicted) {
