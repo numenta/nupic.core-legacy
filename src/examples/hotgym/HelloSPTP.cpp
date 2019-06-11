@@ -40,8 +40,6 @@ namespace examples {
 using namespace std;
 using namespace nupic;
 
-using Encoder = nupic::encoders::RandomDistributedScalarEncoder;
-using EncoderParameters = nupic::encoders::RDSE_Parameters;
 using nupic::util::MovingAverage;
 
 
@@ -62,13 +60,13 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   // initialize SP, TM, AnomalyLikelihood
   tInit.start();
-  EncoderParameters encParams;
+  RDSE_Parameters encParams;
   encParams.sparsity = 0.2f; //20% of the encoding are active bits (1's)
   encParams.size = DIM_INPUT; //the encoder is not optimal, it's to stress-test the SP,TM
 //  encParams.resolution = 0.002f;
   encParams.radius = 0.03f;
   encParams.seed = 2019u;
-  Encoder enc( encParams );
+  RandomDistributedScalarEncoder enc( encParams );
   SpatialPooler spGlobal(enc.dimensions, vector<UInt>{COLS}); // Spatial pooler with globalInh
   SpatialPooler  spLocal(enc.dimensions, vector<UInt>{COLS}); // Spatial pooler with local inh
   spGlobal.setGlobalInhibition(true);
