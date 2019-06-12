@@ -30,7 +30,6 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::util;
 
 
 MovingAverage::MovingAverage(UInt wSize, const vector<Real>& historicalValues)

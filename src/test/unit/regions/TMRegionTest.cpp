@@ -83,7 +83,6 @@ static bool verbose = false; // turn this on to print extra stuff for debugging 
 #define EXPECTED_SPEC_COUNT 18 // The number of parameters expected in the TMRegion Spec
 
 using namespace nupic;
-using namespace nupic::utils;
 
 namespace testing {
 

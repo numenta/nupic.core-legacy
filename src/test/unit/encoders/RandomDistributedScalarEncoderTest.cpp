@@ -28,7 +28,6 @@
 #include <vector>
 
 using namespace nupic;
-using namespace nupic::encoders;
 
 TEST(RDSE, testConstruct) {
   SDR  A({ 100u, 100u, 3u });

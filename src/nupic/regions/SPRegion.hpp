@@ -123,7 +123,7 @@ class SPRegion  : public RegionImpl, Serializable
 	    ar(cereal::make_nvp("init", init));
 	    if (init) {
 	      // Restore algorithm state
-	      algorithms::spatial_pooler::SpatialPooler* sp = new algorithms::spatial_pooler::SpatialPooler();
+	      SpatialPooler* sp = new SpatialPooler();
 	      sp_.reset(sp);
 	      ar(cereal::make_nvp("SP", sp_));
 	    }
@@ -190,7 +190,7 @@ private:
 
     std::string spatialImp_;         // SP variation selector. Currently not used.
 
-    std::unique_ptr<algorithms::spatial_pooler::SpatialPooler> sp_;
+    std::unique_ptr<SpatialPooler> sp_;
 
 };
 } // namespace nupic

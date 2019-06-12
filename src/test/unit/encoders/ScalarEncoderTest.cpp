@@ -33,8 +33,6 @@
 namespace testing {
     
 using namespace nupic;
-using nupic::encoders::ScalarEncoder;
-using nupic::encoders::ScalarEncoderParameters;
 
 
 struct ScalarValueCase

@@ -42,7 +42,6 @@ namespace testing {
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::spatial_pooler;
 
 UInt countNonzero(const vector<UInt> &vec) {
   UInt count = 0;

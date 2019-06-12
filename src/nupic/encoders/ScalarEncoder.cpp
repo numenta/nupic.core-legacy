@@ -30,10 +30,8 @@
 #include <numeric>   // std::iota
 #include <cmath>     // std::isnan std::nextafter
 #include <nupic/encoders/ScalarEncoder.hpp>
-using nupic::SDR;
 
 namespace nupic {
-namespace encoders {
 
 ScalarEncoder::ScalarEncoder(const ScalarEncoderParameters &parameters)
   { initialize( parameters ); }
@@ -209,6 +207,4 @@ std::ostream & operator<<(std::ostream & out, const ScalarEncoder &self)
   return out;
 }
 
-
-} // end namespace encoders
 } // end namespace nupic

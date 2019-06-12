@@ -31,7 +31,6 @@
 #include <nupic/utils/SlidingWindow.hpp>
 
 namespace nupic {
-namespace util {
 
 class MovingAverage : public Serializable {
 public:
@@ -97,7 +96,6 @@ private:
   SlidingWindow<Real> slidingWindow_;
   Real total_ = 0.0f;
 };
-} // namespace util
 } // namespace nupic
 
 #endif // NUPIC_UTIL_MOVING_AVERAGE_HPP

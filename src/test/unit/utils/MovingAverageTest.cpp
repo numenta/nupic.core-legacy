@@ -28,8 +28,7 @@
 
 namespace testing { 
     
-using nupic::Real32;
-using nupic::util::MovingAverage;
+using namespace nupic;
 
 TEST(MovingAverage, Instance) {
   MovingAverage m{3};

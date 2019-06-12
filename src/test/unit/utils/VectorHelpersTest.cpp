@@ -30,7 +30,6 @@
 
 namespace testing { 
     
-using namespace nupic::utils;
 using namespace nupic;
 using namespace std;
 

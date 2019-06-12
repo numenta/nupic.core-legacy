@@ -33,7 +33,6 @@ namespace testing {
     
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
 
 #define EPSILON 0.0000001
 

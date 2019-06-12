@@ -29,8 +29,7 @@ namespace py = pybind11;
 
 namespace nupic_ext
 {
-  using namespace nupic::encoders;
-  using nupic::SDR;
+  using namespace nupic;
 
   void init_ScalarEncoder(py::module& m)
   {

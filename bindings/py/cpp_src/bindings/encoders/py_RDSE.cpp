@@ -24,7 +24,6 @@
 namespace py = pybind11;
 
 using namespace nupic;
-using namespace nupic::encoders;
 
 namespace nupic_ext
 {

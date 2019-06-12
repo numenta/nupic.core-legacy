@@ -39,8 +39,6 @@
 #include <nupic/types/Sdr.hpp>
 
 namespace nupic {
-namespace algorithms {
-namespace connections {
 
 //TODO instead of typedefs, use templates for proper type-checking?
 using CellIdx   = nupic::ElemSparse; // CellIdx must match with ElemSparse, defined in Sdr.hpp
@@ -658,8 +656,6 @@ private:
   std::map<UInt32, ConnectionsEventHandler *> eventHandlers_;
 }; // end class Connections
 
-} // end namespace connections
-} // end namespace algorithms
 } // end namespace nupic
 
 #endif // NTA_CONNECTIONS_HPP

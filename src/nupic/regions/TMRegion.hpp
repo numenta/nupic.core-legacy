@@ -191,7 +191,7 @@ private:
 
 
   computeCallbackFunc computeCallback_;
-  std::unique_ptr<nupic::algorithms::temporal_memory::TemporalMemory> tm_;
+  std::unique_ptr<TemporalMemory> tm_;
 };
 
 } // namespace nupic
