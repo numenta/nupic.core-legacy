@@ -231,19 +231,19 @@ There are two sets of unit tests.
  * Specify the build system folder (`$NUPIC_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
 
-##Eclipse specific
-
- * File - new C/C++Project - Empty or Existing CMake Project
- * Location: (`$NUPIC_CORE`) - Finish
- * Project properties - C/C++ Build - build command set "make -C build/scripts VERBOSE=1 install -j 6"
- * There can be issue with indexer and boost library, which can cause OS memory to overflow -> add exclude filter to
-   your project properties - Resource Filters - Exclude all folders that matches boost, recursively
-
 #### For MS Visual Studio 2017 as the IDE
  * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
  * Double click build/scripts/nupic.cpp.sln -- This starts up Visual Studio
  * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
  * Start a debug session.
+
+#### For Eclipse as the IDE
+ * File - new C/C++Project - Empty or Existing CMake Project
+ * Location: (`$NUPIC_CORE`) - Finish
+ * Project properties - C/C++ Build - build command set "make -C build/scripts VERBOSE=1 install -j 6"
+ * There can be issue with indexer and boost library, which can cause OS memory to overflow -> add exclude filter to
+   your project properties - Resource Filters - Exclude all folders that matches boost, recursively
+ * (Eclipse IDE for C/C++ Developers, 2019-03)
 
 For all new work, tab settings are at 2 characters.
 The clang-format is LLVM style.
