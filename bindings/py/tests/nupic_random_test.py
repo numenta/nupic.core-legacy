@@ -77,6 +77,7 @@ class TestNupicRandom(unittest.TestCase):
         test1, test3,
         "NuPIC random serialization test gave the same result twice?!?")
 
+  @pytest.mark.skip(reason="Fails for python2 with segmentation fault")
   def testNupicRandomPickling(self):
     """Test pickling / unpickling of NuPIC randomness."""
 
