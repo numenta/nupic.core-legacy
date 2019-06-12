@@ -51,7 +51,10 @@ namespace nupic_ext {
             .def("getReal64", &Random_t::getReal64)
 			.def("getSeed", &Random_t::getSeed)
             .def("max", &Random_t::max)
-            .def("min", &Random_t::min);
+            .def("min", &Random_t::min)
+        	.def("__eq__", [](Random_t const & self, Random_t const & other) {//wrapping operator==
+            	return self == other;
+        	}, py::is_operator());
 
         Random.def_property_readonly_static("MAX32", [](py::object) {
 				return Random_t::MAX32;

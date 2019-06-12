@@ -220,22 +220,17 @@ class TestNupicRandom(unittest.TestCase):
     r1 = Random(42)
     v1 = r1.getReal64()
     i1 = r1.getUInt32()
-    s1 = r1.getSeed()
-    m1 = r1.min()
-    n1 = r1.max()
     
     r2 = Random(42)
     v2 = r2.getReal64()
     i2 = r2.getUInt32()
-    s2 = r2.getSeed()
-    m2 = r2.min()
-    n2 = r2.max()
+    
+    r3 = Random(66)
     
     self.assertEqual(v1, v2)
     self.assertEqual(i1, i2)
-    self.assertEqual(s1,s2)
-    self.assertEqual(m1,m2)
-    self.assertEqual(n1,n2)
+    self.assertEqual(r1,r2)
+    self.assertNotEqual(r1,r3)
     
 
   def testPlatformSame(self): 
