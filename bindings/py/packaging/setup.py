@@ -131,9 +131,9 @@ class TestCommand(BaseTestCommand):
     if errno != 0:
       sys.exit(errno)
     
-    # python tests (in /py/src/nupic/tests/)
+    # python tests (in /py/tests/)
     try:
-      os.chdir(os.path.join(REPO_DIR, "py", "src", "nupic", "tests"))
+      os.chdir(os.path.join(REPO_DIR, "py", "tests"))
       errno = pytest.main(self.pytest_args)
     finally:
       os.chdir(cwd)
@@ -227,9 +227,9 @@ if __name__ == "__main__":
   # Run CMake if extension files are missing.
   getExtensionFiles(platform)
 
-  # Copy the python code into place. (from /py/src/)
+  # Copy the python code into place. (from /py/nupic/)
   distutils.dir_util.copy_tree(
-            os.path.join(REPO_DIR, "py", "src"), os.path.join(DISTR_DIR, "src"))
+            os.path.join(REPO_DIR, "py", "nupic"), os.path.join(DISTR_DIR, "src", "nupic"))
   """
   set the default directory to the distr, and package it.
   """
