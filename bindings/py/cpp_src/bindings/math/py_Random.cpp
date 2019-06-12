@@ -51,7 +51,10 @@ namespace nupic_ext {
             .def("getReal64", &Random_t::getReal64)
 			.def("getSeed", &Random_t::getSeed)
             .def("max", &Random_t::max)
-            .def("min", &Random_t::min);
+            .def("min", &Random_t::min)
+        	.def("__eq__", [](Random_t const & self, Random_t const & other) {//wrapping operator==
+            	return self == other;
+        	}, py::is_operator());
 
         Random.def_property_readonly_static("MAX32", [](py::object) {
 				return Random_t::MAX32;
@@ -67,7 +70,7 @@ namespace nupic_ext {
         {
             if (population.ndim() != 1 )
             {
-                throw std::runtime_error("Number of dimensions must be one.");
+                throw std::invalid_argument("Number of dimensions must be one.");
             }
 
 	    std::vector<nupic::UInt32> tmp_pop(get_it<nupic::UInt32>(population), get_it<nupic::UInt32>(population) + population.size()); //vector from numpy.array
@@ -88,7 +91,7 @@ namespace nupic_ext {
 
             if (a.ndim() != 1)
             {
-                throw std::runtime_error("Number of dimensions must be one.");
+                throw std::invalid_argument("Number of dimensions must be one.");
             }
 
             r.shuffle(get_it<nupic::UInt32>(a), get_end<nupic::UInt32>(a));
