@@ -77,7 +77,6 @@ class TestNupicRandom(unittest.TestCase):
         test1, test3,
         "NuPIC random serialization test gave the same result twice?!?")
 
-  @pytest.mark.skip(reason="pickle support needs work...another PR")
   def testNupicRandomPickling(self):
     """Test pickling / unpickling of NuPIC randomness."""
 
@@ -107,8 +106,9 @@ class TestNupicRandom(unittest.TestCase):
         "NuPIC random pickle/unpickle didn't work for saving later state.")
 
     self.assertNotEqual(test1, test3,
-                        "NuPIC random gave the same result twice?!?")
-
+                        "NuPIC random gave the same result twice.")
+    self.assertNotEqual(test2, test4,
+                        "NuPIC random gave the same result twice.")
 
   def testSample(self):
     r = Random(42)
@@ -142,7 +142,6 @@ class TestNupicRandom(unittest.TestCase):
     self.assertEqual(choices[3], 3)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSampleWrongDimensionsPopulation(self):
     """Check that passing a multi-dimensional array throws a ValueError."""
     r = Random(42)
@@ -172,13 +171,14 @@ class TestNupicRandom(unittest.TestCase):
     self.assertRaises(ValueError, r.sample, population, 2)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSamplePopulationTooSmall(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="uint32")
 
+    #RuntimeError and not ValueError because it goes to Cpp code and there is
+    #just NTA_CHECK that raises runtime_error
     self.assertRaises(
-        ValueError, r.sample, population, 999)
+        RuntimeError, r.sample, population, 999)
 
 
   def testShuffle(self):
@@ -202,15 +202,13 @@ class TestNupicRandom(unittest.TestCase):
     self.assertEqual(arr.size, 0)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testShuffleEmpty2(self):
     r = Random(42)
-    arr = numpy.zeros([2, 2], dtype="uint32")
+    arr = numpy.zeros([2, 2], dtype="uint32")#2x2 array dimension
 
     self.assertRaises(ValueError, r.shuffle, arr)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testShuffleBadDtype(self):
     r = Random(42)
     arr = numpy.array([1, 2, 3, 4], dtype="int64")

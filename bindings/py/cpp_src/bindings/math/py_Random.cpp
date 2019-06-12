@@ -67,7 +67,7 @@ namespace nupic_ext {
         {
             if (population.ndim() != 1 )
             {
-                throw std::runtime_error("Number of dimensions must be one.");
+                throw std::invalid_argument("Number of dimensions must be one.");
             }
 
 	    std::vector<nupic::UInt32> tmp_pop(get_it<nupic::UInt32>(population), get_it<nupic::UInt32>(population) + population.size()); //vector from numpy.array
@@ -88,7 +88,7 @@ namespace nupic_ext {
 
             if (a.ndim() != 1)
             {
-                throw std::runtime_error("Number of dimensions must be one.");
+                throw std::invalid_argument("Number of dimensions must be one.");
             }
 
             r.shuffle(get_it<nupic::UInt32>(a), get_end<nupic::UInt32>(a));
