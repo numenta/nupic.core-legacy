@@ -99,7 +99,7 @@ public:
        cereal::make_nvp("radius", params_.radius),
        cereal::make_nvp("resolution", params_.resolution),
        cereal::make_nvp("sensedValue_", sensedValue_));
-    encoder_ = std::make_shared<encoders::ScalarEncoder>( params_ );
+    encoder_ = std::make_shared<ScalarEncoder>( params_ );
     setDimensions(encoder_->dimensions); 
   }
 
@@ -111,9 +111,9 @@ public:
 
 private:
   Real64 sensedValue_;
-  encoders::ScalarEncoderParameters params_;
+  ScalarEncoderParameters params_;
 
-  std::shared_ptr<encoders::ScalarEncoder> encoder_;
+  std::shared_ptr<ScalarEncoder> encoder_;
 };
 } // namespace nupic
 

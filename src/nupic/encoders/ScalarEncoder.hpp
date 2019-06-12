@@ -33,7 +33,6 @@
 #include <nupic/encoders/BaseEncoder.hpp>
 
 namespace nupic {
-namespace encoders {
 
   /**
    * These four (4) members define the total number of bits in the output:
@@ -181,6 +180,5 @@ namespace encoders {
 
   std::ostream & operator<<(std::ostream & out, const ScalarEncoder &self);
 
-}      // end namespace encoders
 }      // end namespace nupic
 #endif // end NTA_ENCODERS_SCALAR

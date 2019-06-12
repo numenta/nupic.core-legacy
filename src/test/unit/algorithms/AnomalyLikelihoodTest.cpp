@@ -7,7 +7,6 @@
 namespace testing {
 
 using namespace nupic;
-using nupic::algorithms::anomaly::AnomalyLikelihood;
 
 TEST(DISABLED_AnomalyLikelihood, SelectModeLikelihood)
 {

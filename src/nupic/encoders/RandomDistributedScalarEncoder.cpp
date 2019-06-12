@@ -26,7 +26,6 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::encoders;
 
 RandomDistributedScalarEncoder::RandomDistributedScalarEncoder(
                                               const RDSE_Parameters &parameters)
@@ -127,7 +126,7 @@ void RandomDistributedScalarEncoder::encode(Real64 input, SDR &output)
   output.setDense( data );
 }
 
-std::ostream & nupic::encoders::operator<<(std::ostream & out, const RandomDistributedScalarEncoder &self)
+std::ostream & nupic::operator<<(std::ostream & out, const RandomDistributedScalarEncoder &self)
 {
   out << "RDSE ";
   out << "  size:       " << self.parameters.size << ",\n";

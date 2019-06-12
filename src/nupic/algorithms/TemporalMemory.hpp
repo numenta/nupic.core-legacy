@@ -36,13 +36,9 @@
 
 
 namespace nupic {
-namespace algorithms {
-namespace temporal_memory {
-
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::connections;
 
 /**
  * Temporal Memory implementation in C++.
@@ -59,7 +55,7 @@ using namespace nupic::algorithms::connections;
  *        <do something with the tm, e.g. classify tm.getActiveCells()>
  *     }
  */
-    class TemporalMemory : public Serializable
+class TemporalMemory : public Serializable
 {
 public:
   TemporalMemory();
@@ -659,8 +655,6 @@ public:
   const Real &anomaly = anomaly_;
 };
 
-} // end namespace temporal_memory
-} // end namespace algorithms
 } // namespace nupic
 
 #endif // NTA_TEMPORAL_MEMORY_HPP

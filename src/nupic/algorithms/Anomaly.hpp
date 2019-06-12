@@ -27,8 +27,6 @@
 #include <nupic/types/Sdr.hpp> // sdr::SDR
 
 namespace nupic {
-namespace algorithms {
-namespace anomaly {
 
 
 /**
@@ -45,6 +43,6 @@ namespace anomaly {
 Real32 computeRawAnomalyScore(const SDR& active, 
                               const SDR& predicted);
 
-}}} //end-ns
+} //end-ns
 
 #endif // NUPIC_ALGORITHMS_ANOMALY_HPP

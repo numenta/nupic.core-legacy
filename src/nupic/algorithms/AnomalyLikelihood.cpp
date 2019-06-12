@@ -7,12 +7,8 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::util;
-using namespace nupic::algorithms::anomaly;
 
 namespace nupic {
-namespace algorithms {
-namespace anomaly {
 
 static Real compute_mean(const vector<Real>& v); //forward declaration
 static Real compute_var(const vector<Real>& v, Real mean);
@@ -334,4 +330,4 @@ bool AnomalyLikelihood::operator==(const AnomalyLikelihood &a) const {
 }
 
 
-}}} //ns
+} //ns

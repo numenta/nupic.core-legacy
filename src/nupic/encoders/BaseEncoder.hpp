@@ -25,7 +25,6 @@
 #include <nupic/types/Sdr.hpp>
 
 namespace nupic {
-namespace encoders {
 
 /**
  * Base class for all encoders.
@@ -80,6 +79,5 @@ private:
     std::vector<UInt> dimensions_;
     UInt              size_;
 };
-} // end namespace encoders
 } // end namespace nupic
 #endif // NTA_ENCODERS_BASE

@@ -38,13 +38,12 @@
 
 namespace py = pybind11;
 using namespace nupic;
-using namespace nupic::algorithms::connections; 
 
 namespace nupic_ext
 {
     void init_TemporalMemory(py::module& m)
     {
-        typedef nupic::algorithms::temporal_memory::TemporalMemory HTM_t;
+        typedef TemporalMemory HTM_t;
 
         py::class_<HTM_t> py_HTM(m, "TemporalMemory",
 R"(Temporal Memory implementation in C++.

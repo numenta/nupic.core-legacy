@@ -46,7 +46,7 @@ ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
   params_.periodic = params.getScalarT<bool>("periodic");
   params_.clipInput = params.getScalarT<bool>("clipInput");
 
-  encoder_ = std::make_shared<encoders::ScalarEncoder>( params_ );
+  encoder_ = std::make_shared<ScalarEncoder>( params_ );
 
 
   sensedValue_ = params.getScalarT<Real64>("sensedValue");

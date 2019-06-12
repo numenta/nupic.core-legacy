@@ -25,11 +25,8 @@
 
 using namespace std;
 using namespace nupic;
-using namespace nupic::algorithms::anomaly;
 
 namespace nupic {
-namespace algorithms {
-namespace anomaly {
 
 Real computeRawAnomalyScore(const SDR& active,
                             const SDR& predicted) {
@@ -50,4 +47,4 @@ Real computeRawAnomalyScore(const SDR& active,
   return score;
 }
 
-}}} // End namespace
+} // End namespace

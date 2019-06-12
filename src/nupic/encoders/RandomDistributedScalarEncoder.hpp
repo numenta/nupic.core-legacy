@@ -28,7 +28,6 @@
 #include <nupic/utils/Log.hpp>
 
 namespace nupic {
-namespace encoders {
 
 /**
  * Parameters for the RandomDistributedScalarEncoder (RDSE)
@@ -165,6 +164,5 @@ typedef RandomDistributedScalarEncoder RDSE;
 
 std::ostream & operator<<(std::ostream & out, const RandomDistributedScalarEncoder & self);
 
-}      // End namespace encoders
 }      // End namespace nupic
 #endif // End ifdef NTA_ENCODERS_RDSE

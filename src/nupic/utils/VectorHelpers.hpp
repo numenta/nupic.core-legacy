@@ -13,7 +13,6 @@
 
 
 namespace nupic {
-namespace utils {
 
 class VectorHelpers
 {
@@ -33,6 +32,5 @@ public:
   }
 };
 
-} // end namespace utils
 } // end namespace nupic
 #endif // end NTA_UTILS_VECTORHELPERS
