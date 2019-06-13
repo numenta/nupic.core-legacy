@@ -130,7 +130,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     # Training Loop
     for i in range(len(train_images)):
         img, lbl = random.choice(training_data)
-        enc.dense = img >= np.mean(img)
+        enc.dense = img >= np.mean(img) # Convert greyscale image to binary.
         sp.compute( enc, True, columns )
         sdrc.learn( columns, lbl )
 
@@ -140,7 +140,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     # Testing Loop
     score = 0
     for img, lbl in test_data:
-        enc.dense = img >= np.mean(img)
+        enc.dense = img >= np.mean(img) # Convert greyscale image to binary.
         sp.compute( enc, False, columns )
         if lbl == np.argmax( sdrc.infer( columns ) ):
             score += 1
