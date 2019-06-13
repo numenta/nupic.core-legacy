@@ -10,7 +10,7 @@ namespace nupic {
  * Don't worry about the technically undefined behavior when r >= 32, since this
  * is only used with a hardcoded r
  */
-inline UInt32 rotl32 ( UInt32 x, char r )
+inline unsigned int rotl32 ( unsigned int x, char r )
 {
   return (x << r) | (x >> (32 - r));
 }
@@ -18,7 +18,7 @@ inline UInt32 rotl32 ( UInt32 x, char r )
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
-inline UInt32 getblock32( const UInt32 * p, int i )
+inline unsigned int getblock32( const unsigned int * p, int i )
 {
   #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return p[i];
@@ -31,7 +31,7 @@ inline UInt32 getblock32( const UInt32 * p, int i )
 
 //-----------------------------------------------------------------------------
 // Finalization mix - force all bits of a hash block to avalanche
-inline UInt32 fmix32 ( UInt32 h )
+inline unsigned int fmix32 ( unsigned int h )
 {
   h ^= h >> 16;
   h *= 0x85ebca6b;
@@ -43,24 +43,24 @@ inline UInt32 fmix32 ( UInt32 h )
 }
 
 //-----------------------------------------------------------------------------
-UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
+unsigned int MurmurHash3_x86_32( const void * key, int len, unsigned int seed )
 {
   const unsigned char * data = (const unsigned char *) key;
   const int nblocks = len / 4;
 
-  UInt32 h1 = seed;
+  unsigned int h1 = seed;
 
-  const UInt32 c1 = 0xcc9e2d51;
-  const UInt32 c2 = 0x1b873593;
+  const unsigned int c1 = 0xcc9e2d51;
+  const unsigned int c2 = 0x1b873593;
 
   //----------
   // body
 
-  const UInt32 * blocks = (const UInt32 *)(data + nblocks * 4);
+  const unsigned int * blocks = (const unsigned int *)(data + nblocks * 4);
 
   for(int i = -nblocks; i; i++)
   {
-    UInt32 k1 = getblock32(blocks,i);
+    unsigned int k1 = getblock32(blocks,i);
 
     k1 *= c1;
     k1 = rotl32(k1,15);
@@ -76,7 +76,7 @@ UInt32 MurmurHash3_x86_32( const void * key, int len, UInt32 seed )
 
   const unsigned char * tail = (const unsigned char*)(data + nblocks * 4);
 
-  UInt32 k1 = 0;
+  unsigned int k1 = 0;
 
   const auto tail_switch = len & 3;
   if( tail_switch == 3 )

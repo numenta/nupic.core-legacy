@@ -193,8 +193,6 @@ set(utils_files
     nupic/utils/VectorHelpers.hpp
     nupic/utils/SdrMetrics.cpp
     nupic/utils/SdrMetrics.hpp
-    nupic/utils/MurmurHash3.hpp
-    nupic/utils/MurmurHash3.cpp
     nupic/utils/StlIo.cpp
     nupic/utils/StlIo.hpp
     nupic/utils/Topology.cpp
@@ -275,6 +273,7 @@ set(src_combined_nupiccore_source_archives
     ${src_lib_static}
     ${yaml-cpp_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${common_LIBRARIES}
     )
 merge_static_libraries(${core_library} "${src_combined_nupiccore_source_archives}")
 
@@ -294,6 +293,7 @@ else()
 	set(src_externLibs
             ${yaml-cpp_LIBRARIES}
             ${Boost_LIBRARIES}
+            ${common_LIBRARIES}
             )
 	set(lib_locations_separator "++++")
     string(REPLACE ";" ${lib_locations_separator}

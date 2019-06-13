@@ -70,6 +70,11 @@ set(EXPORT_FILE_NAME "${EP_BASE}/results.txt")
 FILE(REMOVE "${EXPORT_FILE_NAME}")
 
 ################
+# common
+include(common.cmake)
+
+
+################
 # Yaml-cpp
 include(YamlCppLib.cmake)
 
