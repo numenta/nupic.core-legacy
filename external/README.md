@@ -11,4 +11,7 @@ integrated into the cmake-based build of nupic.core.  The code that does this ar
 - eigen cmake   Downloads eigen 3.3.7  (header only)
 - mnist.zip     Downloads the mnist data set from repository master.
 
+External packages included within this repository are built into the common library.
+This includes:
+- MurmurHash3
 

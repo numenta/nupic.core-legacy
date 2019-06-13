@@ -10,7 +10,7 @@ namespace nupic {
  * Don't worry about the technically undefined behavior when r >= 32, since this
  * is only used with a hardcoded r
  */
-inline unsigned int rotl32 ( unsigned int x, char r )
+inline uint32_t rotl32 ( uint32_t x, char r )
 {
   return (x << r) | (x >> (32 - r));
 }
@@ -18,7 +18,7 @@ inline unsigned int rotl32 ( unsigned int x, char r )
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
-inline unsigned int getblock32( const unsigned int * p, int i )
+inline uint32_t getblock32( const uint32_t * p, int i )
 {
   #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return p[i];
@@ -31,7 +31,7 @@ inline unsigned int getblock32( const unsigned int * p, int i )
 
 //-----------------------------------------------------------------------------
 // Finalization mix - force all bits of a hash block to avalanche
-inline unsigned int fmix32 ( unsigned int h )
+inline uint32_t fmix32 ( uint32_t h )
 {
   h ^= h >> 16;
   h *= 0x85ebca6b;
@@ -43,24 +43,24 @@ inline unsigned int fmix32 ( unsigned int h )
 }
 
 //-----------------------------------------------------------------------------
-unsigned int MurmurHash3_x86_32( const void * key, int len, unsigned int seed )
+uint32_t MurmurHash3_x86_32( const void * key, int len, uint32_t seed )
 {
   const unsigned char * data = (const unsigned char *) key;
   const int nblocks = len / 4;
 
-  unsigned int h1 = seed;
+  uint32_t h1 = seed;
 
-  const unsigned int c1 = 0xcc9e2d51;
-  const unsigned int c2 = 0x1b873593;
+  const uint32_t c1 = 0xcc9e2d51;
+  const uint32_t c2 = 0x1b873593;
 
   //----------
   // body
 
-  const unsigned int * blocks = (const unsigned int *)(data + nblocks * 4);
+  const uint32_t * blocks = (const uint32_t *)(data + nblocks * 4);
 
   for(int i = -nblocks; i; i++)
   {
-    unsigned int k1 = getblock32(blocks,i);
+    uint32_t k1 = getblock32(blocks,i);
 
     k1 *= c1;
     k1 = rotl32(k1,15);
@@ -76,7 +76,7 @@ unsigned int MurmurHash3_x86_32( const void * key, int len, unsigned int seed )
 
   const unsigned char * tail = (const unsigned char*)(data + nblocks * 4);
 
-  unsigned int k1 = 0;
+  uint32_t k1 = 0;
 
   const auto tail_switch = len & 3;
   if( tail_switch == 3 )

@@ -23,7 +23,7 @@
 # that is physically included in this repository.
 #
 # Directions for adding a package:
-# 1) If it is an include only package, then just add it to external/include and skip the rest of these directions.
+# 1) If it is an header-only package, then just add it to external/include and skip the rest of these directions.
 # 2) Create a folder for the package in external/common/ and copy all files there.
 # 3) Add the .cpp files to the common_src list.
 # 4) The include files will be accessable with a path starting with the name of the folder created for your package.
@@ -32,12 +32,6 @@
 # Notes about MurmurHash3
 #   #include <murmurhash3/MurmurHash3.hpp>
 #   link with common.lib
-#    From IIRC The upstream repository for MurmurHash3 is not active. It is not merging fixes, even ones which 
-#    pass all of thier unit tests. The maintainer appears to be only interested in the algorithms, and not the implementations.
-#    @ctrl-z-9000-times modified the upstream code as follows:
-#      - to not use switch case statements with implicit fallthroughs because our build 
-#        settings disallow that. 
-#      - removed all the other functions which we dont need.
 #
 #
 # where to look for include files
@@ -52,14 +46,14 @@ set(common_src
 source_group("common" FILES ${common_src})
 
 # build a library of the common things.  It will be merged with the other libraries later.
-add_library(common OBJECT ${common_src})
+add_library(common STATIC ${common_src})
 target_compile_definitions(common PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 
 set(common_INCLUDE_DIR ${common_SOURCE_DIR})
 if (MSVC)
   set(common_LIBRARIES   "${CMAKE_BINARY_DIR}/common.dir/$<$<CONFIG:Release>:/Release/common.lib>$<$<CONFIG:Debug>:/Debug/common.lib>") 
 else()
-  set(common_LIBRARIES   ${CMAKE_BINARY_DIR}/common.dir/${CMAKE_STATIC_LIBRARY_PREFIX}common${CMAKE_STATIC_LIBRARY_SUFFIX}) 
+  set(common_LIBRARIES   ${CMAKE_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}common${CMAKE_STATIC_LIBRARY_SUFFIX}) 
 endif()
 
 message(STATUS "  common_INCLUDE_DIR= ${common_INCLUDE_DIR}")

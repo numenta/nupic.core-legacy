@@ -24,6 +24,7 @@
  * Basic C++ type definitions used throughout `nupic.core`
  */
 #include <cstdlib>  // defines size_t
+#include <cstdint>  // defines int of specific sizes.
 
 #ifndef NTA_TYPES_HPP
 #define NTA_TYPES_HPP
@@ -63,22 +64,22 @@ typedef unsigned short UInt16;
 /**
  * Represents a 32-bit signed integer.
  */
-typedef int Int32;
+typedef int32_t Int32;
 
 /**
  * Represents a 32-bit unsigned integer.
  */
-typedef unsigned int UInt32;
+typedef uint32_t UInt32;
 
 /**
  * Represents a 64-bit signed integer.
  */
-typedef long long Int64;
+typedef int64_t Int64;
 
 /**
  * Represents a 64-bit unsigned integer.
  */
-typedef unsigned long long UInt64;
+typedef uint64_t UInt64;
 
 /**
  * Represents a 32-bit real number(a floating-point number).
