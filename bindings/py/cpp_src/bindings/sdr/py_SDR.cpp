@@ -156,9 +156,17 @@ current value.)");
             },
             [](SDR &self, py::array_t<Byte> dense) {
                 py::buffer_info buf = dense.request();
-                NTA_CHECK( (UInt) buf.ndim == self.dimensions.size() );
-                for(auto dim = 0u; dim < self.dimensions.size(); dim++) {
-                    NTA_CHECK( (UInt) buf.shape[dim] == self.dimensions[dim] );
+                if( buf.ndim == 1 ) {
+                    NTA_CHECK( (UInt) buf.shape[0] == self.size )
+                        << "Bad input array size! expected " << self.size << ", got " << buf.shape[0];
+                }
+                else if( (UInt) buf.ndim == self.dimensions.size() ) {
+                    for(auto dim = 0u; dim < self.dimensions.size(); dim++) {
+                        NTA_CHECK( (UInt) buf.shape[dim] == self.dimensions[dim] );
+                    }
+                }
+                else {
+                    NTA_THROW << "Invalid input dimensions!";
                 }
                 Byte *data = (Byte*) buf.ptr;
                 if( data == self.getDense().data() )

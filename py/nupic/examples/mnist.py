@@ -63,8 +63,8 @@ def load_mnist(path):
                 # vec = [ord(c) for c in vec]   # python2
                 vec = list(vec)
                 vec = np.array(vec, dtype=np.uint8)
-                buf = np.reshape(vec, (rows, cols, 1))
-                imgs.append(buf)
+                # vec = np.reshape(vec, (rows, cols, 1))
+                imgs.append(vec)
             assert(len(raw) == data_start + img_size * num_imgs)   # All data should be used.
         return imgs
 
@@ -74,16 +74,6 @@ def load_mnist(path):
     test_images  = load_images(os.path.join(path, 't10k-images-idx3-ubyte.gz'))
 
     return train_labels, train_images, test_labels, test_images
-
-
-class BWImageEncoder:
-    """Simple grey scale image encoder for MNIST."""
-    def __init__(self, input_space):
-        self.output = SDR(tuple(input_space))
-
-    def encode(self, image):
-        self.output.dense = image >= np.mean(image)
-        return self.output
 
 
 default_parameters = {
@@ -114,9 +104,9 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     random.shuffle(test_data)
 
     # Setup the AI.
-    enc = BWImageEncoder(train_images[0].shape[:2])
+    enc = SDR(28 * 28)
     sp = SpatialPooler(
-        inputDimensions            = (enc.output.size,),
+        inputDimensions            = enc.dimensions,
         columnDimensions           = parameters['columnDimensions'],
         potentialRadius            = 99999999,
         potentialPct               = parameters['potentialPct'],
@@ -140,8 +130,8 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     # Training Loop
     for i in range(len(train_images)):
         img, lbl = random.choice(training_data)
-        enc.encode(np.squeeze(img))
-        sp.compute( enc.output.flatten(), True, columns )
+        enc.dense = img >= np.mean(img)
+        sp.compute( enc, True, columns )
         sdrc.learn( columns, lbl )
 
     print(str(sp))
@@ -150,8 +140,8 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     # Testing Loop
     score = 0
     for img, lbl in test_data:
-        enc.encode(np.squeeze(img))
-        sp.compute( enc.output.flatten(), False, columns )
+        enc.dense = img >= np.mean(img)
+        sp.compute( enc, False, columns )
         if lbl == np.argmax( sdrc.infer( columns ) ):
             score += 1
 
