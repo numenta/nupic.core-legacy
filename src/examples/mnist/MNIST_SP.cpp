@@ -33,6 +33,7 @@
 #include <nupic/utils/SdrMetrics.hpp>
 
 #include <mnist/mnist_reader.hpp> // MNIST data itself + read methods, namespace mnist::
+#include <mnist/mnist_utils.hpp>  // mnist::binarize_dataset
 
 namespace examples {
 
@@ -60,21 +61,21 @@ void setup() {
   sp.initialize(
     /* inputDimensions */             input.dimensions,
     /* columnDimensions */            columns.dimensions,
-    /* potentialRadius */             999999u,
-    /* potentialPct */                0.5f,
+    /* potentialRadius */             999999u, // No topology, all to all connections.
+    /* potentialPct */                0.65f,
     /* globalInhibition */            true,
-    /* localAreaDensity */            0.015f,  //% active bits, //quite important variable (speed x accuracy)
+    /* localAreaDensity */            0.05f,  // % active bits
     /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
     /* synPermInactiveDec */          0.005f,
-    /* synPermActiveInc */            0.01f,
-    /* synPermConnected */            0.4f,
+    /* synPermActiveInc */            0.014f,
+    /* synPermConnected */            0.1f,
     /* minPctOverlapDutyCycles */     0.001f,
     /* dutyCyclePeriod */             1402,
-    /* boostStrength */               2.5f, //boosting does help
+    /* boostStrength */               7.8f, // Boosting does help
     /* seed */                        93u,
     /* spVerbosity */                 1u,
-    /* wrapAround */                  false); //wrap is false for this problem
+    /* wrapAround */                  false); // No topology, turn off wrapping
 
   // Save the connections to file for postmortem analysis.
   ofstream dump("mnist_sp_initial.connections", ofstream::binary | ofstream::trunc | ofstream::out);
@@ -84,6 +85,7 @@ void setup() {
   clsr.initialize( /* alpha */ 0.001f);
 
   dataset = mnist::read_dataset<std::vector, std::vector, uint8_t, uint8_t>(string("../ThirdParty/mnist_data/mnist-src/")); //from CMake
+  mnist::binarize_dataset(dataset);
 }
 
 void train() {
