@@ -51,7 +51,7 @@ target_compile_definitions(common PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 
 set(common_INCLUDE_DIR ${common_SOURCE_DIR})
 if (MSVC)
-  set(common_LIBRARIES   "${CMAKE_BINARY_DIR}/common.dir/$<$<CONFIG:Release>:/Release/common.lib>$<$<CONFIG:Debug>:/Debug/common.lib>") 
+  set(common_LIBRARIES   "${CMAKE_BINARY_DIR}/$<$<CONFIG:Release>:Release/common.lib>$<$<CONFIG:Debug>:Debug/common.lib>") 
 else()
   set(common_LIBRARIES   ${CMAKE_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}common${CMAKE_STATIC_LIBRARY_SUFFIX}) 
 endif()
