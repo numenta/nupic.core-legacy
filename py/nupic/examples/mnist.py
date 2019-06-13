@@ -63,7 +63,7 @@ def load_mnist(path):
                 # vec = [ord(c) for c in vec]   # python2
                 vec = list(vec)
                 vec = np.array(vec, dtype=np.uint8)
-                # vec = np.reshape(vec, (rows, cols, 1))
+                vec = np.reshape(vec, (rows, cols))
                 imgs.append(vec)
             assert(len(raw) == data_start + img_size * num_imgs)   # All data should be used.
         return imgs
@@ -78,7 +78,7 @@ def load_mnist(path):
 
 default_parameters = {
     'boostStrength': 7.80643753517375,
-    'columnDimensions': (35415,),
+    'columnDimensions': (35415,1),
     'dutyCyclePeriod': 1321,
     'localAreaDensity': 0.05361688506086096,
     'minPctOverlapDutyCycle': 0.0016316043362658,
@@ -104,7 +104,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     random.shuffle(test_data)
 
     # Setup the AI.
-    enc = SDR(28 * 28)
+    enc = SDR((train_images[0].shape))
     sp = SpatialPooler(
         inputDimensions            = enc.dimensions,
         columnDimensions           = parameters['columnDimensions'],
