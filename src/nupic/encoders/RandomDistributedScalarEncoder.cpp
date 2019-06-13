@@ -20,7 +20,7 @@
  */
 
 #include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
-#include <nupic/utils/MurmurHash3.hpp>
+#include <murmurhash3/MurmurHash3.hpp>
 #include <nupic/utils/Random.hpp>
 #include <algorithm> // fill
 

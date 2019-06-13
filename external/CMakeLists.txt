@@ -59,6 +59,7 @@ add_compile_options(${EXTERNAL_CXX_FLAGS})
 
 message(STATUS "external import")
 message(STATUS "   REPOSITORY_DIR        = ${REPOSITORY_DIR}")
+message(STATUS "   CMAKE_BINARY_DIR      = ${CMAKE_BINARY_DIR}")
 message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "   CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
@@ -68,6 +69,11 @@ message(STATUS "   BINDING_BUILD         = ${BINDING_BUILD}")
 
 set(EXPORT_FILE_NAME "${EP_BASE}/results.txt")
 FILE(REMOVE "${EXPORT_FILE_NAME}")
+
+################
+# common
+include(common.cmake)
+
 
 ################
 # Yaml-cpp
