@@ -26,19 +26,19 @@
 
 #include "HelloSPTP.hpp"
 
-#include "nupic/algorithms/TemporalMemory.hpp"
-#include "nupic/algorithms/SpatialPooler.hpp"
-#include "nupic/encoders/RandomDistributedScalarEncoder.hpp"
-#include "nupic/algorithms/AnomalyLikelihood.hpp"
+#include "htm/algorithms/TemporalMemory.hpp"
+#include "htm/algorithms/SpatialPooler.hpp"
+#include "htm/encoders/RandomDistributedScalarEncoder.hpp"
+#include "htm/algorithms/AnomalyLikelihood.hpp"
 
-#include "nupic/types/Sdr.hpp"
-#include "nupic/utils/Random.hpp"
-#include "nupic/utils/MovingAverage.hpp"
+#include "htm/types/Sdr.hpp"
+#include "htm/utils/Random.hpp"
+#include "htm/utils/MovingAverage.hpp"
 
 namespace examples {
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 
 // work-load

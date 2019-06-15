@@ -21,7 +21,7 @@ The script uses a simple binary vector for input.
 After running this example and reading through the output you should have a basic understanding of the relationship between input and output of the spatial pooler.
 
 
-Further reading: [Encoders](https://discourse.numenta.org/t/nupic-encoders/2153)
+Further reading: [Encoders](https://discourse.numenta.org/t/htm-encoders/2153)
 
 ## Second Spatial Pooler Example
 

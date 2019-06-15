@@ -27,12 +27,12 @@
  */
 
 #include "gtest/gtest.h"
-#include <nupic/encoders/ScalarEncoder.hpp>
+#include <htm/encoders/ScalarEncoder.hpp>
 #include <vector>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 
 struct ScalarValueCase

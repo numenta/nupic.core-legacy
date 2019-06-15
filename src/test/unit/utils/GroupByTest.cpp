@@ -25,7 +25,7 @@
  */
 
 #include "gtest/gtest.h"
-#include <nupic/utils/GroupBy.hpp>
+#include <htm/utils/GroupBy.hpp>
 
 namespace testing {
 
@@ -33,7 +33,7 @@ using std::tie;
 using std::tuple;
 using std::vector;
 
-using nupic::groupBy;
+using htm::groupBy;
 
 struct ReturnValue3 {
   int key;

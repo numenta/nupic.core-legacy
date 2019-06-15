@@ -29,17 +29,17 @@
 #include <fstream>
 #include <iostream>
 
-#include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/utils/Random.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/types/Types.hpp> // macro "UNUSED"
-#include <nupic/utils/MovingAverage.hpp>
+#include <htm/algorithms/SpatialPooler.hpp>
+#include <htm/algorithms/TemporalMemory.hpp>
+#include <htm/utils/Random.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/types/Types.hpp> // macro "UNUSED"
+#include <htm/utils/MovingAverage.hpp>
 
 namespace testing {
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 #define SEED 42
 

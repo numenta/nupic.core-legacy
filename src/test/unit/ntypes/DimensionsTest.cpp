@@ -26,11 +26,11 @@
 
 #include <sstream>
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Dimensions.hpp>
+#include <htm/ntypes/Dimensions.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 class DimensionsTest : public ::testing::Test {
 public:

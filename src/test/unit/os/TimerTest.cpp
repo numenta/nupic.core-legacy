@@ -23,8 +23,8 @@
 /**
  * @file
  */
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/utils/Log.hpp>
+#include <htm/os/Timer.hpp>
 #include <gtest/gtest.h>
 
 namespace testing { 
@@ -45,7 +45,7 @@ namespace testing {
 #define nap()   usleep(SLEEP_MICROSECONDS);
 #endif
 
-using namespace nupic;
+using namespace htm;
 
 TEST(TimerTest, Basic) {
   // Tests are minimal because we have no way to run performance-sensitive tests

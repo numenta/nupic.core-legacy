@@ -39,7 +39,7 @@
 * 3071b8a5 DEVOPS-353: Update "setSparseOutput" documentation
 * 7ae0d64f NUP-2495: Check style using clang-format
 * 8a1d5eeb NUP-2475: Make sure Network API links use the same dtype at both ends
-* 4e800a64 DEVOPS-353: Fix tests to run with nupic.core directly instead of nupic
+* 4e800a64 DEVOPS-353: Fix tests to run with htm.core directly instead of htm
 * 9ae6155d DEVOPS-353: Implement sparse links
 * de88baaa DEVOPS-353: Add 'isSparse' attribute to input/output
 * 1e486fde DEVOPS-353: Allow element count to be smaller than buffer size
@@ -51,7 +51,7 @@
 
 ## 1.0.3
 
-* https://github.com/numenta/nupic.core/issues/1380 Added stronger type checking for SP compute input.
+* https://github.com/numenta/htm.core/issues/1380 Added stronger type checking for SP compute input.
 
 ## 1.0.2
 
@@ -68,7 +68,7 @@
 
 ## 1.0.0
 
-* Convert getProtoType to getSchema to be consistent with Python interface in nupic
+* Convert getProtoType to getSchema to be consistent with Python interface in htm
 * Add Circle badge to README
 * Make --user optional since manylinux doens't use it
 * Remove build tools setup for Linux CI jobs since new base image already provides these tools
@@ -115,7 +115,7 @@
 
 ## 0.6.1
 
-* Eliminate installation of unnecessary header files when building nupic.bindings. Install Version.hpp unconditionally for the sake of the deployment usage in .travis.yaml
+* Eliminate installation of unnecessary header files when building htm.bindings. Install Version.hpp unconditionally for the sake of the deployment usage in .travis.yaml
 * Fixed servicing of delayed links such that the circular buffers of all links within a network are refreshed at the end of each time step; and 0-delay links copy data directly from src to dest, bypassing the circular buffer altogether.
 * Add a nNonZerosPerRowOnCols SparseMatrix method
 * Fix up some out of date SWIG interface code
@@ -127,7 +127,7 @@
 * Add a unit test for mapSegmentsToCells
 * Change segments to UInt32 to speed up the bindings
 * Fix up fetch_remote script to properly poll until the build is complete.
-* Updates to tests moved over from nupic
+* Updates to tests moved over from htm
 * removed shebangs
 * Changed all copyright headers on all files to AGPL.
 * Tests folder refactored
@@ -169,7 +169,7 @@
 * SparseMatrix: setRandomZerosOnOuter with list of counts
 * SparseMatrix: rightVecSumAtNZ cleanup
 * SparseMatrix: Put cols in dense array even when not necessary
-* Removes experimental code that will now live in nupic.research.core.
+* Removes experimental code that will now live in htm.research.core.
 * Removed unused, obsolete NetworkFactory class.
 
 ## 0.4.16
@@ -194,12 +194,12 @@
 * Use VERSION file when generating docs.
 * 64-bit gcc on Windows build error
 * New: setZerosOnOuter, increaseRowNonZeroCountsOnOuterTo
-* Remove a nupic.math test that should stay in nupic
-* Use unittest, not unittest2, to match the nupic.core CI config
+* Remove a htm.math test that should stay in htm
+* Use unittest, not unittest2, to match the htm.core CI config
 * Add C++ unit tests for the new SparseMatrix methods
-* Finish moving nupic.bindings math tests to nupic.core
+* Finish moving htm.bindings math tests to htm.core
 * s/AboveAndBelow/BelowAndAbove
-* Moves some tests for SWIG bindings from nupic to nupic.core
+* Moves some tests for SWIG bindings from htm to htm.core
 * Better method names: s/AboveAndBelow/BelowAndAbove
 * Four new SparseMatrix methods, enabling batch synapse learning
 * Expose the nrows,ncols SparseBinaryMatrix ctor in the bindings
@@ -235,7 +235,7 @@
 * Obey wrapAround paramater for columns, not just inputs
 * Make sure exceptions are properly exposed when parsing dataType in region spec.
 * Network API: allow Bools to be used as creation params
-* DEVOPS-157 Remove now-unused RESULT_KEY env var from the build-and-test-nupic-bindings.sh interface.
+* DEVOPS-157 Remove now-unused RESULT_KEY env var from the build-and-test-htm-bindings.sh interface.
 * Handle new synapsesForSegment behavior in Connections perf test
 
 ## 0.4.8
@@ -249,8 +249,8 @@
 * Check that TM input is sorted indices in Release builds
 * Update inhibition comments and docstrings.
 * Use C arrays in TemporalMemory. Allows numpy array reuse.
-* Added that `-DNUPIC_BUILD_PYEXT_MODULES=ON` is the default at this time.
-* Added information about usage of the NUPIC_BUILD_PYEXT_MODULES cmake property.
+* Added that `-DHTM_BUILD_PYEXT_MODULES=ON` is the default at this time.
+* Added information about usage of the HTM_BUILD_PYEXT_MODULES cmake property.
 * Describe flatIdx in Connections docstring
 * Consistent param ordering between implementations.
 * Store "numActivePotentialSynapses". No more "SegmentOverlap".
@@ -269,18 +269,18 @@
 
 ## 0.4.5
 
-* Removed no longer used pre-built Swig executables for various flavors of Linux; nupic.core automatically builds Swig from embedded sources on non-Windows platforms.
-* DEVOPS-141 Apply an export map to OS X, Linux, and MINGW builds of nupic.bindings shared objects.
+* Removed no longer used pre-built Swig executables for various flavors of Linux; htm.core automatically builds Swig from embedded sources on non-Windows platforms.
+* DEVOPS-141 Apply an export map to OS X, Linux, and MINGW builds of htm.bindings shared objects.
 * Refactor extension build steps into a function shared by algorithms, math, engine_internal, etc. in preparation for adding export maps.
 * Work around issue in cmake 2.8.7: have external project AprUtil1StaticLib depend directly on external project Apr1StaticLib instead of its library wrapper ${APR1_STATIC_LIB_TARGET}; the latter was incorrectly interperting the dependency as another external project instead of library; but worked correctly on cmake 2.8.12.
 * Completed wrapping of external static libs in `add_library` targets
 * Represent external build of capnproto as single static library with target name ${CAPNP_STATIC_LIB_TARGET} and containing all capnproto library objects.
-* No need for custom target in CREATE_CAPNPC_COMMAND function, since nupic_core_solo is the only consumer of the custom command's outputs.
-* Try building nupic_core_solo intermediate static library without specifying system libraries. It's a static library and shouldn't need additional linking information.
-* Removed nupic_core_solo from installed targets, since it's only an intermediate artifact and not intended to be an output product.
-* issue-1034 Reorganized build to link nupic_core static library tests against the "combined" nupic_core static library, which is considered an output artifact, instead of nupic_core_solo static lib, which is only an intermediate step.
+* No need for custom target in CREATE_CAPNPC_COMMAND function, since htm_core_solo is the only consumer of the custom command's outputs.
+* Try building htm_core_solo intermediate static library without specifying system libraries. It's a static library and shouldn't need additional linking information.
+* Removed htm_core_solo from installed targets, since it's only an intermediate artifact and not intended to be an output product.
+* issue-1034 Reorganized build to link htm_core static library tests against the "combined" htm_core static library, which is considered an output artifact, instead of htm_core_solo static lib, which is only an intermediate step.
 * Use library utils to correctly combine multiple static libraries into a single one.
-* DEVOPS-135 Implement a hacky work-around by preloading pycapnp's exteions DLL in RTLD_GLOBAL mode, which enables resultion of capnproto references when nupic.bidnings extensions are loaded.
+* DEVOPS-135 Implement a hacky work-around by preloading pycapnp's exteions DLL in RTLD_GLOBAL mode, which enables resultion of capnproto references when htm.bidnings extensions are loaded.
 * Consider EPSILON while finding minPermanenceSynapse
 * Refactor to make GCC stop finding false positives
 * New implementation of GCC_UNINITIALIZED_VAR
@@ -288,7 +288,7 @@
 * Avoid clang error "unknown warning option '-Wno-maybe-uninitialized'"
 * Store EPSILON as a static const Permanence
 * Disable GCC's maybe-uninitialized warnings. Too many false positives.
-* Fixes nupic.core github issue #1031: rename EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR to EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED and turn it into a list.
+* Fixes htm.core github issue #1031: rename EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED_STR to EXTERNAL_STATICLIB_CONFIGURE_DEFINITIONS_OPTIMIZED and turn it into a list.
 * fixes floating point comparison bug
 * Use group_by in TemporalMemory. No more ExcitedColumns.
 * Work around another GCC maybe-uninitialized faulty error
@@ -312,7 +312,7 @@
 * Stable implementation of save/load for SDRClassifier
 * Ignore installed version of pip.
 * Make sure pip gets installed and that we get console output for everything.
-* DEVOPS-84 Add support for building nupic.bindings for OS X in bamboo
+* DEVOPS-84 Add support for building htm.bindings for OS X in bamboo
 * change heap allocation to stack allocation of Network
 * Merged upstream changes and backed out the disabling of link time optimizations since it now appears to work on the ARM.
 * Add a "formInternalConnections" parameter
@@ -355,7 +355,7 @@
 
 * Adds include-what-you-use option in CMake configuration.
 * Use the supported mingwpy toolchain from pypi.anaconda.org/carlkl/simple
-* Define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS for nupic.core source build in attempt to make build work with official mingwpy toolchain
+* Define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS for htm.core source build in attempt to make build work with official mingwpy toolchain
 * Protect all public member variables (except connections)
 * Move algorithm details out of the compute method
 * Split bamboo linux build into debug and release.
@@ -386,11 +386,11 @@
 * Swig needs `-include cmath` when building with mingw toolchain.
 * Initialize swig_generated_file_compile_flags directly from COMMON_CXX_FLAGS_OPTIMIZED to avoid -Werror.
 * Comment out header and binary install targets in CapnProto.cmake, since this is a duplicate of the exact same steps in srce/CMakeLists.txt, which installs other externals as well.
-* Attempt to fix execution of helloregion test from Travis build by modifying .travis.yml to change directory to build/release/bin just as instructed by nupic.core/README.md.
-* Added a comment about nupic.core's swig wraps relying on the macro CAPNP_LITE to have a value.
-* Fix windows build of nupic.core's Swig wraps that expects CAPNP_LITE not only to be defined (capnp recommends just defining it), but to actually have a value (non-zero).
-* Invoke additional nupic.core tests in Travis to make sure that things get tested and tests don't get broken again unnoticed:   connections_performance_test   helloregion   hello_sp_tp   prototest
-* Refactored CommonCompilerConfig.cmake to exposed optimized and unoptimized flag sets. Fixed linux GCC build of CapnProto components by changing its configuration to use unoptimized versions of common flags. Cleaned up use of local variables in src/CMakeFiles.txt. nupic.core/CmakeLists.txt is now the only place that defines REPOSITORY_DIR for use by other modules. Fixed dependency in add_custom_command function inside CREATE_CAPNPC_COMMAND to use passed-in arg SPEC_FILES instead of a property from src/CMakeLists.txt.
+* Attempt to fix execution of helloregion test from Travis build by modifying .travis.yml to change directory to build/release/bin just as instructed by htm.core/README.md.
+* Added a comment about htm.core's swig wraps relying on the macro CAPNP_LITE to have a value.
+* Fix windows build of htm.core's Swig wraps that expects CAPNP_LITE not only to be defined (capnp recommends just defining it), but to actually have a value (non-zero).
+* Invoke additional htm.core tests in Travis to make sure that things get tested and tests don't get broken again unnoticed:   connections_performance_test   helloregion   hello_sp_tp   prototest
+* Refactored CommonCompilerConfig.cmake to exposed optimized and unoptimized flag sets. Fixed linux GCC build of CapnProto components by changing its configuration to use unoptimized versions of common flags. Cleaned up use of local variables in src/CMakeFiles.txt. htm.core/CmakeLists.txt is now the only place that defines REPOSITORY_DIR for use by other modules. Fixed dependency in add_custom_command function inside CREATE_CAPNPC_COMMAND to use passed-in arg SPEC_FILES instead of a property from src/CMakeLists.txt.
 * Add BITNESS to Swig.cmake
 
 ## 0.4.1
@@ -399,7 +399,7 @@
 * Finish adding support for the Bool type
 * Expose encoder's 'n' so other regions' inputWidth is calculable from the outside
 * Remove reference to deleted Linear.cpp.
-* Run nupic.core encoders via boilerplate Sensor wrapper
+* Run htm.core encoders via boilerplate Sensor wrapper
 * Removes Linear.hpp, Linear.cpp, and reference in algorithms.i since it doesn't appear to be used anywhere.
 * Support Debug builds in Clang, put them in README
 * Add a NTA_BasicType_Bool so that we can parse bools in YAML
@@ -470,7 +470,7 @@
 * Adding Windows twine pip install and PyPi upload
 * Storing release version in VERSION in proj root.
 * Makes build-from-source the default behavior for capnp and swig, requiring the flags FIND_CAPNP or FIND_SWIG to be specified in order to use a preinstalled version.
-* Add Dockerfile for building nupic.core from source
+* Add Dockerfile for building htm.core from source
 * Update of Windows bindings setup
 * Add "python setup.py test" option (fixes #697)
 * Adding a CMake ExternalProject to download capnp win32 compiler tools

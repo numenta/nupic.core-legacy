@@ -20,15 +20,15 @@
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.7)
-project(nupic_core CXX)
+project(htm_core CXX)
 
-message(STATUS "Configuring nupic_core tests")
+message(STATUS "Configuring htm_core tests")
 ###############################################################
 ###                   TESTS                      ##############
 ###############################################################
 #
-# Build TESTS of the nupic core static library
-#   ${core_library}  references the nupic_core  static library which includes depencancy libraries
+# Build TESTS of the htm core static library
+#   ${core_library}  references the htm_core  static library which includes depencancy libraries
 #
 
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug 

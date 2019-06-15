@@ -25,13 +25,13 @@
  */
 
 #include "gtest/gtest.h"
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/engine/YAMLUtils.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/engine/YAMLUtils.hpp>
 
 namespace testing { 
     
-using namespace nupic;
+using namespace htm;
 
 TEST(YAMLUtilsTest, toValueTestInt) {
   const char *s1 = "10";
@@ -188,7 +188,7 @@ TEST(YAMLUtilsTest, ParameterSpec) {
   // and regionName
   try {
     YAMLUtils::toValueMap("{ blah: True }", ps, "nodeType", "regionName");
-  } catch (nupic::Exception &e) {
+  } catch (htm::Exception &e) {
     std::string s("Unknown parameter 'blah' for region 'regionName'");
     EXPECT_TRUE(std::string(e.getMessage()).find(s) == 0)
         << "assertion std::string(e.getMessage()).find(s) == 0 failed at "
@@ -197,7 +197,7 @@ TEST(YAMLUtilsTest, ParameterSpec) {
 
   try {
     YAMLUtils::toValueMap("{ blah: True }", ps);
-  } catch (nupic::Exception &e) {
+  } catch (htm::Exception &e) {
     std::string s("Unknown parameter 'blah'\nValid");
     EXPECT_TRUE(std::string(e.getMessage()).find(s) == 0)
         << "assertion std::string(e.getMessage()).find(s) == 0 failed at "

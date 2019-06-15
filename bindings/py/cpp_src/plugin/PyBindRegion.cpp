@@ -33,18 +33,18 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/BasicType.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/Path.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/ntypes/BasicType.hpp>
+#include <htm/utils/Log.hpp>
+#include <htm/os/Path.hpp>
 
 
-namespace nupic
+namespace htm
 {
-using namespace nupic;
+using namespace htm;
 namespace py = pybind11;
 
     py::array create_numpy_view(const ArrayBase& a)
@@ -444,7 +444,7 @@ namespace py = pybind11;
             NTA_CHECK(inp);
 
             // Set pa to point to the original input array
-            const nupic::Array * pa = &(inp->getData());
+            const htm::Array * pa = &(inp->getData());
 
             // Skip unlinked inputs of size 0
     		    if (pa->getCount() == 0)
@@ -767,5 +767,5 @@ namespace py = pybind11;
     }
 
 
-} // namespace nupic
+} // namespace htm
 

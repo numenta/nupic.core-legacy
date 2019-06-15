@@ -27,12 +27,12 @@
 #include "gtest/gtest.h"
 #include <fstream>
 #include <iostream>
-#include <nupic/algorithms/Connections.hpp>
+#include <htm/algorithms/Connections.hpp>
 
 namespace testing {
     
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 #define EPSILON 0.0000001
 

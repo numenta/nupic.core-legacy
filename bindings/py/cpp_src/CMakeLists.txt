@@ -31,7 +31,7 @@
 #######################################################################
 
 cmake_minimum_required(VERSION 3.7)
-project(nupic_core CXX)
+project(htm_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug

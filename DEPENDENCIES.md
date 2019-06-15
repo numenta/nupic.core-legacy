@@ -1,9 +1,9 @@
 # Dependencies
 
-This file declares all dependencies nupic.core has on third-party code, including their licenses.
+This file declares all dependencies htm.core has on third-party code, including their licenses.
 
-- Boost ([Boost Software License](https://github.com/numenta/nupic.core/blob/master/external/licenses/LICENSE.boost_1_52_0.txt))
-- googletest ([googletest License](https://github.com/numenta/nupic.core/blob/master/external/licenses/LICENSE.googletest-1.7.0.txt))
+- Boost ([Boost Software License](https://github.com/numenta/htm.core/blob/master/external/licenses/LICENSE.boost_1_52_0.txt))
+- googletest ([googletest License](https://github.com/numenta/htm.core/blob/master/external/licenses/LICENSE.googletest-1.7.0.txt))
 - yaml-cpp ([yaml-cpp License](https://github.com/jbeder/yaml-cpp/blob/master/LICENSE))
 
 ## Python Dependencies

@@ -26,15 +26,15 @@
 
 #include "gtest/gtest.h"
 
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/utils/Log.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"

@@ -24,11 +24,11 @@
  * @file
  */
 #include <gtest/gtest.h>
-#include <nupic/utils/Random.hpp>
+#include <htm/utils/Random.hpp>
 
-#include <nupic/os/Env.hpp>
-#include <nupic/utils/LoggingException.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/utils/LoggingException.hpp>
+#include <htm/os/Timer.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -36,7 +36,7 @@
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 using namespace std;
 
 TEST(RandomTest, Seeding) {
@@ -152,7 +152,7 @@ TEST(RandomTest, testSerialization2) {
   Random r1(7);
   Random r2;
 
-  nupic::Timer testTimer;
+  htm::Timer testTimer;
   testTimer.start();
   for (UInt i = 0; i < n; ++i) {
     r1.getUInt32();

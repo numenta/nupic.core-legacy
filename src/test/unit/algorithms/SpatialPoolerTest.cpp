@@ -31,17 +31,17 @@
 #include <numeric>
 
 #include "gtest/gtest.h"
-#include <nupic/algorithms/SpatialPooler.hpp>
+#include <htm/algorithms/SpatialPooler.hpp>
 
-#include <nupic/utils/StlIo.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/utils/StlIo.hpp>
+#include <htm/types/Types.hpp>
+#include <htm/utils/Log.hpp>
+#include <htm/os/Timer.hpp>
 
 namespace testing {
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 UInt countNonzero(const vector<UInt> &vec) {
   UInt count = 0;
@@ -1239,7 +1239,7 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SDR out1( {sp.getNumColumns()} );
   //throws
   sp.setLocalAreaDensity(0.02f);
-  EXPECT_THROW(sp.compute(input, false, out1), nupic::LoggingException);
+  EXPECT_THROW(sp.compute(input, false, out1), htm::LoggingException);
   //good parameter
   sp.setLocalAreaDensity(0.1f);
   EXPECT_NO_THROW(sp.compute(input, false, out1));
@@ -1902,7 +1902,7 @@ TEST(SpatialPoolerTest, testSerialization2) {
   sp1.save(osC);
   osC.close();
 
-  nupic::Timer testTimer;
+  htm::Timer testTimer;
 
   for (UInt i = 0; i < 10; ++i) {
     // Create new input
@@ -1995,7 +1995,7 @@ TEST(SpatialPoolerTest, testSerialization_ar) {
 
   SpatialPooler sp2;
 
-  nupic::Timer testTimer;
+  htm::Timer testTimer;
 
   for (UInt i = 0; i < 6; ++i) {
     // Create new input

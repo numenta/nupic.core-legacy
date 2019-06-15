@@ -27,14 +27,14 @@
 #include <fstream>
 #include <string>
 
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Path.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Path.hpp>
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 
 static bool verbose = false;
 

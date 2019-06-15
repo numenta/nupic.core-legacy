@@ -39,24 +39,24 @@
   */
 
 
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/RegisteredRegionImpl.hpp>
-#include <nupic/engine/RegisteredRegionImplCpp.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/types/Exception.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/engine/YAMLUtils.hpp>
-#include <nupic/regions/SPRegion.hpp>
-#include <nupic/utils/LogItem.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/RegisteredRegionImpl.hpp>
+#include <htm/engine/RegisteredRegionImplCpp.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/types/Exception.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/engine/YAMLUtils.hpp>
+#include <htm/regions/SPRegion.hpp>
+#include <htm/utils/LogItem.hpp>
 
 
 #include <string>
@@ -83,7 +83,7 @@ static bool verbose = false;  // turn this on to print extra stuff for debugging
 #define EXPECTED_EFFECTOR_SPEC_COUNT  1  // The number of parameters expected in the VectorFileEffector Spec
 #define EXPECTED_SENSOR_SPEC_COUNT  11    // The number of parameters expected in the VectorFileSensor Spec
 
-using namespace nupic;
+using namespace htm;
 namespace testing 
 {
 

@@ -4,7 +4,7 @@ This file serves two purposes:
 
 ## Demo C++ aplication 
 
-Using only C++ `nupic.core` implementations, currently the chain uses 
+Using only C++ `htm.core` implementations, currently the chain uses 
 ` SpatialPooler > TemporalPooler` 
 
 More classes should be added as they are ported (Encoders, Classifier, Anomaly, ...)

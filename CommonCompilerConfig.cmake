@@ -209,7 +209,7 @@ else()
 
 	# Compiler `-D*` definitions
 	#
-	# Compiler definitions specific to nupic.core code
+	# Compiler definitions specific to htm.core code
 	#
 	string(TOUPPER ${PLATFORM} platform_uppercase)
 
@@ -386,7 +386,7 @@ else()
 	# Assemble compiler and linker properties
 	#
 
-	# Settings for internal nupic.core code
+	# Settings for internal htm.core code
 	set(INTERNAL_CXX_FLAGS ${debug_specific_compile_flags} ${cxx_flags_unoptimized} ${internal_compiler_warning_flags} ${optimization_flags_cc})
 	set(INTERNAL_LINKER_FLAGS ${debug_specific_linker_flags} ${linker_flags_unoptimized} ${optimization_flags_lt})
 	

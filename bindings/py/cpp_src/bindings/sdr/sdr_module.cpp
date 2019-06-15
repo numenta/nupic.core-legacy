@@ -31,14 +31,14 @@
 
 namespace py = pybind11;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_SDR(py::module&);
     void init_SDR_Metrics(py::module&);
 
-} // namespace nupic_ext
+} // namespace htm_ext
 
-using namespace nupic_ext;
+using namespace htm_ext;
 
 PYBIND11_MODULE(sdr, m) {
     init_SDR(m);

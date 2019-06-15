@@ -27,13 +27,13 @@
 
 namespace py = pybind11;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_ScalarEncoder(py::module&);
     void init_RDSE(py::module&);
 }
 
-using namespace nupic_ext;
+using namespace htm_ext;
 
 PYBIND11_MODULE(encoders, m) {
     m.doc() =

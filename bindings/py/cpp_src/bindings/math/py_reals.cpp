@@ -32,10 +32,10 @@ PyBind11 bindings for the Real data type.
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/ntypes/BasicType.hpp>
+#include <htm/ntypes/BasicType.hpp>
 
 
-namespace nupic_ext
+namespace htm_ext
 {
 namespace py = pybind11;
 
@@ -78,8 +78,8 @@ namespace py = pybind11;
 
     void init_reals(py::module& m)
     {
-        m.def("GetBasicTypeFromName", [](const std::string& type) { return nupic::BasicType::parse(type); });
-        m.def("GetBasicTypeSize", [](const std::string& type) { return nupic::BasicType::getSize(nupic::BasicType::parse(type)); });
+        m.def("GetBasicTypeFromName", [](const std::string& type) { return htm::BasicType::parse(type); });
+        m.def("GetBasicTypeSize", [](const std::string& type) { return htm::BasicType::getSize(htm::BasicType::parse(type)); });
 
         m.def("GetNumpyDataType", &GetNumpyDataType);
 
@@ -94,4 +94,4 @@ namespace py = pybind11;
         }, "Gets the numpy dtype of the NuPIC floating point base type, which is used for most internal calculations. The returned value can be used with numpy functions like numpy.array(..., dtype = dtype) and numpy.astype(..., dtype = dtype).");
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

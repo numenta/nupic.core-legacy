@@ -33,12 +33,12 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
-#include <nupic/types/Types.hpp>
-#include <nupic/engine/RegionImpl.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Value.hpp>
+#include <htm/types/Types.hpp>
+#include <htm/engine/RegionImpl.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Value.hpp>
 
-namespace nupic
+namespace htm
 {
     class PyBindRegion : public RegionImpl, Serializable
     {
@@ -153,6 +153,6 @@ namespace nupic
 
 
 
-} // namespace nupic
+} // namespace htm
 
 #endif //NTA_PYBIND_REGION_HPP

@@ -29,10 +29,10 @@ namespace py = pybind11;
 #include <vector>
 using namespace std;
 
-#include <nupic/utils/Topology.hpp>
-using namespace nupic;
+#include <htm/utils/Topology.hpp>
+using namespace htm;
 
-namespace nupic_ext {
+namespace htm_ext {
 
     void init_Topology(py::module& m)
     {
@@ -150,4 +150,4 @@ Returns List of points in the neighborhood. Each point is expressed
 as a single index.)");
 
     } // End function init_Topology
-} // End namespace nupic_ext
+} // End namespace htm_ext

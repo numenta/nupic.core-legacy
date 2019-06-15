@@ -2,11 +2,11 @@
 #include <sstream>
 
 #include "gtest/gtest.h"
-#include <nupic/algorithms/AnomalyLikelihood.hpp>
+#include <htm/algorithms/AnomalyLikelihood.hpp>
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 
 TEST(DISABLED_AnomalyLikelihood, SelectModeLikelihood)
 {

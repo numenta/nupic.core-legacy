@@ -32,22 +32,22 @@ PyBind11 bindings for Random class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/utils/Random.hpp>
+#include <htm/utils/Random.hpp>
 
 #include "bindings/engine/py_utils.hpp"
 
 namespace py = pybind11;
 
-namespace nupic_ext {
+namespace htm_ext {
 
     void init_Random(py::module& m)
     {
-        typedef nupic::Random Random_t;
+        typedef htm::Random Random_t;
 
         py::class_<Random_t> Random(m, "Random");
 
-        Random.def(py::init<nupic::UInt64>(), py::arg("seed") = 0)
-            .def("getUInt32", &Random_t::getUInt32, py::arg("max") = (nupic::UInt32)-1l)
+        Random.def(py::init<htm::UInt64>(), py::arg("seed") = 0)
+            .def("getUInt32", &Random_t::getUInt32, py::arg("max") = (htm::UInt32)-1l)
             .def("getReal64", &Random_t::getReal64)
 			.def("getSeed", &Random_t::getSeed)
             .def("max", &Random_t::max)
@@ -66,14 +66,14 @@ namespace nupic_ext {
 
 
         Random.def("sample",
-            [](Random_t& r, py::array& population, const nupic::UInt32 nSelect)
+            [](Random_t& r, py::array& population, const htm::UInt32 nSelect)
         {
             if (population.ndim() != 1 )
             {
                 throw std::invalid_argument("Number of dimensions must be one.");
             }
 
-	    std::vector<nupic::UInt32> tmp_pop(get_it<nupic::UInt32>(population), get_it<nupic::UInt32>(population) + population.size()); //vector from numpy.array
+	    std::vector<htm::UInt32> tmp_pop(get_it<htm::UInt32>(population), get_it<htm::UInt32>(population) + population.size()); //vector from numpy.array
             return r.sample(tmp_pop, nSelect);
         });
 
@@ -94,16 +94,16 @@ namespace nupic_ext {
                 throw std::invalid_argument("Number of dimensions must be one.");
             }
 
-            r.shuffle(get_it<nupic::UInt32>(a), get_end<nupic::UInt32>(a));
+            r.shuffle(get_it<htm::UInt32>(a), get_end<htm::UInt32>(a));
         });
 
         ////////////////////
 
-        Random.def("initializeUInt32Array", [](Random_t& self, py::array& a, nupic::UInt32 max_value)
+        Random.def("initializeUInt32Array", [](Random_t& self, py::array& a, htm::UInt32 max_value)
         {
-            auto array_data = get_it<nupic::UInt32>(a);
+            auto array_data = get_it<htm::UInt32>(a);
 
-            for (nupic::UInt32 i = 0; i != a.size(); ++i)
+            for (htm::UInt32 i = 0; i != a.size(); ++i)
                 array_data[i] = self.getUInt32() % max_value;
 
         });
@@ -113,12 +113,12 @@ namespace nupic_ext {
         // serialization
         /////////////////
 				Random.def("saveToFile", [](Random_t& self, const std::string& name, int fmt) { 
-				  nupic::SerializableFormat fmt1;
+				  htm::SerializableFormat fmt1;
 				  switch(fmt) {                                             
-			    case 0: fmt1 = nupic::SerializableFormat::BINARY; break;
-			    case 1: fmt1 = nupic::SerializableFormat::PORTABLE; break;
-					case 2: fmt1 = nupic::SerializableFormat::JSON; break;
-					case 3: fmt1 = nupic::SerializableFormat::XML; break;
+			    case 0: fmt1 = htm::SerializableFormat::BINARY; break;
+			    case 1: fmt1 = htm::SerializableFormat::PORTABLE; break;
+					case 2: fmt1 = htm::SerializableFormat::JSON; break;
+					case 3: fmt1 = htm::SerializableFormat::XML; break;
 					default: NTA_THROW << "unknown serialization format.";
 					} 
 					self.saveToFile(name, fmt1); 
@@ -126,12 +126,12 @@ namespace nupic_ext {
 			  py::arg("name"), py::arg("fmt") = 0);
 				
 				Random.def("loadFromFile", [](Random_t& self, const std::string& name, int fmt) { 
-				  nupic::SerializableFormat fmt1;
+				  htm::SerializableFormat fmt1;
 				  switch(fmt) {                                             
-			    case 0: fmt1 = nupic::SerializableFormat::BINARY; break;
-			    case 1: fmt1 = nupic::SerializableFormat::PORTABLE; break;
-					case 2: fmt1 = nupic::SerializableFormat::JSON; break;
-					case 3: fmt1 = nupic::SerializableFormat::XML; break;
+			    case 0: fmt1 = htm::SerializableFormat::BINARY; break;
+			    case 1: fmt1 = htm::SerializableFormat::PORTABLE; break;
+					case 2: fmt1 = htm::SerializableFormat::JSON; break;
+					case 3: fmt1 = htm::SerializableFormat::XML; break;
 					default: NTA_THROW << "unknown serialization format.";
 					} 
 				  self.loadFromFile(name, fmt1);
@@ -162,4 +162,4 @@ namespace nupic_ext {
 
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

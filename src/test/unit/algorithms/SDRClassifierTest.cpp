@@ -33,11 +33,11 @@
 
 #include <gtest/gtest.h>
 
-#include <nupic/algorithms/SDRClassifier.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/algorithms/SDRClassifier.hpp>
+#include <htm/utils/Log.hpp>
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 namespace testing {
 

@@ -25,11 +25,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Scalar.hpp>
+#include <htm/ntypes/Scalar.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 TEST(ScalarTest, All) {
   Scalar a(NTA_BasicType_UInt16);

@@ -22,19 +22,19 @@
 
 #include "gtest/gtest.h"
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/types/Exception.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/types/Exception.hpp>
 
 #include <cmath>   // fabs/abs
 #include <cstdlib> // exit
@@ -48,7 +48,7 @@
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 using std::exception;
 
 static bool verbose = false;
