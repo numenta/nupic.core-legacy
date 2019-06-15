@@ -268,7 +268,7 @@ special, it is replaced with the system time  The default seed is 0.)",
             py::arg("sparsity"),
             py::arg("seed") = 0u);
 
-        py::module::import("nupic.bindings.math");
+        py::module::import("htm.bindings.math");
         py_SDR.def("randomize",
             [](SDR *self, Real sparsity, Random rng) {
             self->randomize( sparsity, rng );

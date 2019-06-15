@@ -25,8 +25,8 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
-from nupic.bindings.sdr import SDR, Metrics
+from htm.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
+from htm.bindings.sdr import SDR, Metrics
 
 class ScalarEncoder_Test(unittest.TestCase):
     def testConstructor(self):

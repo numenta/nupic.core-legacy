@@ -25,7 +25,7 @@ import datetime
 import numpy
 import unittest
 
-from nupic.encoders.date import DateEncoder
+from htm.encoders.date import DateEncoder
 
 """
 def __init__(self,

@@ -24,10 +24,10 @@ import unittest
 import pytest
 
 
-from nupic.bindings.regions.PyRegion import PyRegion
+from htm.bindings.regions.PyRegion import PyRegion
 
-import nupic.bindings.engine_internal as engine
-from nupic.bindings.tools.serialization_test_py_region import \
+import htm.bindings.engine_internal as engine
+from htm.bindings.tools.serialization_test_py_region import \
      SerializationTestPyRegion
 
 

@@ -25,7 +25,7 @@ import numpy as np
 import unittest
 import pytest
 
-from nupic.bindings import sdr
+from htm.bindings import sdr
 
 class MetricsTest(unittest.TestCase):
     def testSparsityExample(self):

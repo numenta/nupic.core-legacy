@@ -17,8 +17,8 @@
 
 import unittest
 
-from nupic.bindings.sdr import SDR
-from nupic.algorithms import SpatialPooler as SP
+from htm.bindings.sdr import SDR
+from htm.algorithms import SpatialPooler as SP
 import numpy as np
 
 class SpatialPoolerTest(unittest.TestCase):

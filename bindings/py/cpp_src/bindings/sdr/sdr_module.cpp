@@ -41,8 +41,6 @@ namespace nupic_ext
 using namespace nupic_ext;
 
 PYBIND11_MODULE(sdr, m) {
-    m.doc() = "nupic.core.sdr plugin"; // optional module docstring
-
     init_SDR(m);
     init_SDR_Metrics(m);
 }

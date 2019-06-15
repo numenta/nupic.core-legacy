@@ -144,7 +144,9 @@ Argument extra
                 , py::arg("extra") = 0u
             );
 
-        py_HTM.def("printParameters", &HTM_t::printParameters,
+        py_HTM.def("printParameters",
+            [](const HTM_t& self)
+                { self.printParameters( std::cout ); },
             py::call_guard<py::scoped_ostream_redirect,
                            py::scoped_estream_redirect>());
 

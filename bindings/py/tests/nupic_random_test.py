@@ -28,7 +28,7 @@ import pytest
 import numpy
 
 
-from nupic.bindings.math import Random
+from htm.bindings.math import Random
 
 
 
