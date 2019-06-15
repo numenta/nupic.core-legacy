@@ -26,8 +26,8 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.sdr import SDR
-from nupic.bindings.math import Random
+from htm.bindings.sdr import SDR
+from htm.bindings.math import Random
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):

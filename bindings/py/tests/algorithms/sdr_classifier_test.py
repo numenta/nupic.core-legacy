@@ -30,8 +30,8 @@ import sys
 import tempfile
 import unittest
 
-from nupic.bindings.sdr import SDR
-from nupic.bindings.algorithms import Classifier, Predictor
+from htm.bindings.sdr import SDR
+from htm.bindings.algorithms import Classifier, Predictor
 
 
 class ClassifierTest(unittest.TestCase):

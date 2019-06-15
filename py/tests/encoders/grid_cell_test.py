@@ -23,8 +23,8 @@ import unittest
 import pytest
 import time
 
-from nupic.encoders.grid_cell_encoder import GridCellEncoder
-from nupic.bindings.sdr import SDR, Metrics
+from htm.encoders.grid_cell_encoder import GridCellEncoder
+from htm.bindings.sdr import SDR, Metrics
 
 class GridCellEncoder_Test(unittest.TestCase):
 

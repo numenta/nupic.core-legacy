@@ -21,7 +21,7 @@
 
 import unittest
 
-from nupic.bindings.regions.PyRegion import PyRegion
+from htm.bindings.regions.PyRegion import PyRegion
 
 
 

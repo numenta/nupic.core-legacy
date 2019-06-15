@@ -34,7 +34,7 @@ import copy
 import datetime
 import unittest
 
-from nupic.algorithms import anomaly_likelihood as an
+from htm.algorithms import anomaly_likelihood as an
 from unittest import TestCase as TestCaseBase
 
 

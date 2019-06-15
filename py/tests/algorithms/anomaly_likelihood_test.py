@@ -33,7 +33,7 @@ import unittest
 
 import mock
 
-from nupic.algorithms import anomaly_likelihood as an
+from htm.algorithms import anomaly_likelihood as an
 from unittest import TestCase as TestCaseBase
 
 def _sampleDistribution(params, numSamples, verbosity=0):
@@ -192,7 +192,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 
     estimateAnomalyLikelihoodsPatch = mock.patch(
-      "nupic.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
+      "htm.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
       side_effect=estimateAnomalyLikelihoodsWrap, autospec=True)
     with estimateAnomalyLikelihoodsPatch as estimateAnomalyLikelihoodsMock:
       l = an.AnomalyLikelihood(claLearningPeriod=2,
@@ -229,7 +229,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       autospec=True)
 
     estimateAnomalyLikelihoodsPatch = mock.patch(
-      "nupic.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
+      "htm.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
       side_effect=estimateAnomalyLikelihoodsWrap, autospec=True)
     with estimateAnomalyLikelihoodsPatch:
       l = an.AnomalyLikelihood(claLearningPeriod=2,
@@ -269,7 +269,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 
     updateAnomalyLikelihoodsPatch = mock.patch(
-      "nupic.algorithms.anomaly_likelihood.updateAnomalyLikelihoods",
+      "htm.algorithms.anomaly_likelihood.updateAnomalyLikelihoods",
       side_effect=updateAnomalyLikelihoodsWrap, autospec=True)
     with updateAnomalyLikelihoodsPatch:
       l = an.AnomalyLikelihood(claLearningPeriod=2,

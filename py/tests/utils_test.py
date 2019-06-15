@@ -25,7 +25,7 @@ import pickle
 import tempfile
 import unittest
 
-from nupic.utils import MovingAverage
+from htm.utils import MovingAverage
 
 
 class UtilsTest(unittest.TestCase):
