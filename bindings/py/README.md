@@ -3,7 +3,7 @@
 Build and Install
 * Install Python 2.7 and/or 3.x
 * Download and install Boost. Place `BoostRoot` environment variable in path.
-* Downoad/fork the repository http://github.com/htm-community/htm.cpp
+* Downoad/fork the repository http://github.com/htm-community/nupic.cpp
 * `cd Repository`
 * `python setup.py install --user --prefix=`
 * Run C++ unit tests `cd Repository/Release/bin`  then execute `./unit_tests`

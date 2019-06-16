@@ -7,16 +7,16 @@
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/htm-cpp/branch/master)
 
 
-## Community NuPIC.cpp (former htm.core) repository
+## Community NuPIC.cpp (former nupic.core) repository
 
-This fork is a community version of the [htm.core](https://github.com/numenta/htm.core) C++ repository with Python bindings.
-Our aim is to provide an actively developed successor to the htm.core and htm repositories by Numenta,
+This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings.
+Our aim is to provide an actively developed successor to the nupic.core and nupic repositories by Numenta,
 which are not actively developed anymore.
 
 ### Our goals
 
-- [Goals for the next release](https://github.com/htm-community/htm.cpp/blob/master/RELEASE_V1_GOALS.md)
-- Actively developed C++ core library for HTM/htm.core (Numenta's repos are in maintanance mode only)
+- [Goals for the next release](https://github.com/htm-community/nupic.cpp/blob/master/RELEASE_V1_GOALS.md)
+- Actively developed C++ core library for nupic.core (Numenta's repos are in maintanance mode only)
 - Clean & lean, fast, modern codebase (dependency removal, c++11/17, modernized code, faster)
 - Stable and well tested code
 - API-compatibility with Numenta's code *)
@@ -27,11 +27,11 @@ which are not actively developed anymore.
 
 
 This repository contains the C++ source code for the Numenta Platform for
-Intelligent Computing ([NuPIC](http://numenta.org/htm.html)).
+Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)).
 It will eventually contain all algorithms for NuPIC, but is currently in a transition period.
 
-\*) Nupic API compatability: The objective is to stay as close as possible to the [Nupic API Docs](http://htm.docs.numenta.org/stable/api/index.html)
-with the aim that we don't break `.py` code written against the numenta's htm.core extension library if they were to be
+\*) Nupic API compatability: The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html)
+with the aim that we don't break `.py` code written against the numenta's nupic.core extension library if they were to be
 ran against this extention library. If you are porting your code to this codebase, please review [API Changelog](API_CHANGELOG.md).
 
 ### New Features
@@ -82,7 +82,7 @@ Some of the major differences between this library and Numenta's extension libra
 
 ### Building from Source
 
-Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/htm.cpp
+Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
 
 #### Simple Build for Python users (any platform)
 
@@ -190,18 +190,18 @@ docker build --build-arg arch=arm64 .
 
 #### Linux auto build @ TravisCI
 
- * [Build](https://travis-ci.org/htm-community/htm.cpp)
+ * [Build](https://travis-ci.org/htm-community/nupic.cpp)
  * [Config](./.travis.yml)
 
 #### Mac OS/X auto build @ CircleCI
 
- * [Build](https://circleci.com/gh/htm-community/htm.cpp/tree/master)
+ * [Build](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
  * [Config](./.circleci/config.yml)
  * Local Test Build: `circleci local execute --job build-and-test`
 
 #### Windows auto build @ AppVeyor
 
- * [Build](https://ci.appveyor.com/project/htm-community/htm-cpp/branch/master)
+ * [Build](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
  * [Config](./appveyor.yml)
 
 #### ARM64 auto build @ CircleCI

@@ -1,7 +1,7 @@
 # Breaking changes to the htm API
 
-We try to keep API as much as compatible with original [numenta/htm.core repo](https://github.com/numenta/htm.core). 
-The API is specified in the [API Docs](http://htm.docs.numenta.org/prerelease/api/index.html) 
+We try to keep API as much as compatible with original [numenta/nupic.core repo](https://github.com/numenta/nupic.core). 
+The API is specified in the [API Docs](http://nupic.docs.numenta.org/prerelease/api/index.html) 
 
 ## Motivation
 
@@ -13,7 +13,7 @@ features or implementation detail, etc.
 
 ## API breaking changes in this repo
 
-Compared to `Numenta/htm.core`; the changes here are listed in order from oldest to newest (at the bottom). 
+Compared to `Numenta/nupic.core`; the changes here are listed in order from oldest to newest (at the bottom). 
 
 * CapnProto serialization is replaced with binary streams in PR #62.  
 Calls to `read()` and `write()` are no longer available. Use `save()` and `load()`. 
@@ -28,7 +28,7 @@ is an input stream reading a file created by region->save(steam)  or region->sav
 Synapse trimming was an optimization which is no longer possible because of an implementation change. PR #153
 
 * Removed method `SpatialPooler::setSynPermMax` as the maximum permanence is now defined (hardcoded) as
-`htm::algorithms::connections::maxPermancence = 1.0f;` PR #153
+`nupic::algorithms::connections::maxPermancence = 1.0f;` PR #153
 
 * Changed callback `ConnectionsEventHandler::onUpdateSynapsePermanence()`.  Instead of being called
 every time a synapses permanence changes, it is now called when a synapse changes connected state,
