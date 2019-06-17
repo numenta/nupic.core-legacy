@@ -23,12 +23,12 @@
 
 #include "gtest/gtest.h"
 
-#include "nupic/types/Types.hpp"
-#include "nupic/utils/MovingAverage.hpp"
+#include "htm/types/Types.hpp"
+#include "htm/utils/MovingAverage.hpp"
 
 namespace testing { 
     
-using namespace nupic;
+using namespace htm;
 
 TEST(MovingAverage, Instance) {
   MovingAverage m{3};

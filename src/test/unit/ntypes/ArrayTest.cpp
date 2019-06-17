@@ -24,11 +24,11 @@
  * Implementation of ArrayBase test
  */
 
-#include <nupic/utils/Log.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/os/OS.hpp>
+#include <htm/utils/Log.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/ntypes/ArrayBase.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/os/OS.hpp>
 
 #include <map>
 #include <memory>
@@ -42,7 +42,7 @@ static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 #define UNUSED(x) (void)(x)
 
-using namespace nupic;
+using namespace htm;
 
 // First, some structures to help in testing.
 struct ArrayTestParameters {
@@ -342,7 +342,7 @@ TEST_F(ArrayTest, testArrayCreation) {
 
       try {
         arrayP = new Array(testCase->second.dataType);
-      } catch (nupic::Exception& e) {
+      } catch (htm::Exception& e) {
         UNUSED(e);
         caughtException = true;
       }
@@ -429,7 +429,7 @@ TEST_F(ArrayTest, testBufferAllocation) {
       {
         a.allocateBuffer(10);
       }
-      catch(nupic::Exception& e)
+      catch(htm::Exception& e)
       {
         UNUSED(e);
         caughtException = true;
@@ -476,7 +476,7 @@ TEST_F(ArrayTest, testUnownedBuffer) {
     {
       a.setBuffer(buf2.get(), testCase->second.allocationSize);
     }
-    catch(nupic::Exception& e)
+    catch(htm::Exception& e)
     {
       UNUSED(e);
       caughtException = true;

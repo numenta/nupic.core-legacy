@@ -33,11 +33,11 @@ PyBind11 bindings for Timer class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/os/Timer.hpp>
+#include <htm/os/Timer.hpp>
 
 namespace py = pybind11;
-using namespace nupic;
-namespace nupic_ext {
+using namespace htm;
+namespace htm_ext {
 
 
     void init_Timer(py::module& m)
@@ -58,4 +58,4 @@ namespace nupic_ext {
 
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

@@ -19,13 +19,13 @@
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
-#include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
+#include <htm/encoders/RandomDistributedScalarEncoder.hpp>
 
 namespace py = pybind11;
 
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_RDSE(py::module& m)
     {
@@ -94,7 +94,7 @@ of SDRs to prevent conflicts between different encodings.  This method does
 not allow for decoding SDRs into the inputs which likely created it.
 
 To inspect this run:
-$ python -m nupic.encoders.rdse --help)");
+$ python -m htm.encoders.rdse --help)");
         py_RDSE.def(py::init<RDSE_Parameters>());
 
         py_RDSE.def_property_readonly("parameters",

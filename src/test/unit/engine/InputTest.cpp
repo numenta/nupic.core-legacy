@@ -25,12 +25,12 @@
  */
 
 #include "gtest/gtest.h"
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/regions/TestNode.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/regions/TestNode.hpp>
 
 namespace testing { 
     
@@ -39,7 +39,7 @@ static bool verbose = false;
   if (verbose)                                                                 \
   std::cerr << "[          ]"
 
-using namespace nupic;
+using namespace htm;
 
 TEST(InputTest, BasicNetworkConstruction) {
   Network net;

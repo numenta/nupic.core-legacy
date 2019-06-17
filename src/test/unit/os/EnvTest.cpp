@@ -25,11 +25,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/os/Env.hpp>
+#include <htm/os/Env.hpp>
 
 namespace testing { 
     
-using namespace nupic;
+using namespace htm;
 
 TEST(EnvTest, Basic) {
   std::string name;

@@ -9,7 +9,7 @@ Build and Install
 * Run C++ unit tests `cd Repository/Release/bin`  then execute `./unit_tests`
 * Run Python unit tests `cd Repository` then `python setup.py test`
 
-This will build the C++ nupic.core library extension package and install it in the Python
+This will build the C++ htm.core library extension package and install it in the Python
 you have running.  
 
 If you run into problems due to caching of arguments in CMake, delete the folder `Repository/build` and try again.
@@ -37,12 +37,12 @@ This is where we build the distribution package
                            setup.py, requirements.txt will be here
 	      dist       --- pip egg is generated here
 	      src
-	         nupic
+	         htm
 		    bindings  -- python extension libraries installed here
 		       regions
 		       tools
            include      --- include files
-           lib          --- nupic.core.lib  static lib for core found here
+           lib          --- htm.core.lib  static lib for core found here
         scripts         --- CMake build artifacts are in here.
 `
 

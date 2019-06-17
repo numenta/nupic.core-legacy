@@ -16,8 +16,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/types/Sdr.hpp>
-#include <nupic/utils/SdrMetrics.hpp>
+#include <htm/types/Sdr.hpp>
+#include <htm/utils/SdrMetrics.hpp>
 #include <vector>
 #include <random>
 
@@ -27,7 +27,7 @@ static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 /**
  * Sparsity

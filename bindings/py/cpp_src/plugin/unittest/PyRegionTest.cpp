@@ -22,23 +22,23 @@
 
 /*
  This file is similar to CppRegionTest except that it also tests Python nodes.
- It is build in nupic.core but tested in nupic. So its execution and README
- instructions remains in nupic.
+ It is build in htm.core but tested in htm. So its execution and README
+ instructions remains in htm.
 */
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/types/Exception.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/types/Exception.hpp>
 #include <plugin/RegisteredRegionImplPy.hpp>
 #include <plugin/PyBindRegion.hpp>
 
@@ -69,7 +69,7 @@ bool ignore_negative_tests = false;
     }                                                                          \
   }
 
-using namespace nupic;
+using namespace htm;
 
 bool verbose = false;
 
@@ -220,11 +220,11 @@ void testSecondTimeLeak() {
 void testRegionDuplicateRegister() {
   std::cerr << "testRegionDuplicateRegister \n";
   // Register a region
-  RegisteredRegionImplPy::registerPyRegion("nupic.regions.TestDuplicateNodes",
+  RegisteredRegionImplPy::registerPyRegion("htm.regions.TestDuplicateNodes",
                             "TestDuplicateNodes");
   // Validate that the same region can be registered multiple times
   try {
-    RegisteredRegionImplPy::registerPyRegion("nupic.regions.TestDuplicateNodes",
+    RegisteredRegionImplPy::registerPyRegion("htm.regions.TestDuplicateNodes",
                               "TestDuplicateNodes");
   } catch (std::exception &e) {
     NTA_THROW << "testRegionDuplicateRegister failed with exception: '"
@@ -233,7 +233,7 @@ void testRegionDuplicateRegister() {
   // Validate that a region from a different module but with the same name
   // cannot be registered
   try {
-    RegisteredRegionImplPy::registerPyRegion("nupic.regions.DifferentModule",
+    RegisteredRegionImplPy::registerPyRegion("htm.regions.DifferentModule",
                               "TestDuplicateNodes");
     NTA_THROW << "testRegionDuplicateRegister failed to throw exception for "
               << "region with same name but different module as existing "
@@ -384,7 +384,7 @@ TEST(PyRegionTest, testAll) { //TODO former main method, could be splitted into 
   // initialize the numpy C API.
   Py_Initialize();
   NTA_CHECK(Py_IsInitialized());
-  nupic::initializeNumpy();
+  htm::initializeNumpy();
 
   // tell Python where to find src/bindings/region/TestNode.py
   std::string ext = Path::normalize(__FILE__ "/../../../../bindings/py/src");
@@ -405,7 +405,7 @@ TEST(PyRegionTest, testAll) { //TODO former main method, could be splitted into 
             << std::endl;
 
   std::cout << "Adding a PyNode region..." << std::endl;
-  RegisteredRegionImplPy::registerPyRegion("nupic.bindings.regions.TestNode", "TestNode");
+  RegisteredRegionImplPy::registerPyRegion("htm.bindings.regions.TestNode", "TestNode");
   Region *level2 = n.addRegion("level2", "py.TestNode", "{int32Param: 444}");
 
   std::cout << "Region count is " << n.getRegions().getCount() << ""

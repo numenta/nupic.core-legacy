@@ -43,7 +43,7 @@
 # Note: on MSVC, run startupMSVC.bat after deleting the build folder.
 
 cmake_minimum_required(VERSION 3.3)
-project(nupic_core CXX)
+project(htm_core CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 

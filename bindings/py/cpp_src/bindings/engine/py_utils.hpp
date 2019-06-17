@@ -1,5 +1,5 @@
-#ifndef NUPIC_EXT_BINDINGS_PY_UTILS_HPP
-#define NUPIC_EXT_BINDINGS_PY_UTILS_HPP
+#ifndef HTM_EXT_BINDINGS_PY_UTILS_HPP
+#define HTM_EXT_BINDINGS_PY_UTILS_HPP
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
@@ -35,7 +35,7 @@ Utility functions for PyBind11 bindings
 
 namespace py = pybind11;
 
-namespace nupic_ext {
+namespace htm_ext {
 
     // Check that the precision in bytes matches the data size of the array
     template<typename T> T* get_it(py::array& a) //TODO add explanation why array, and not array_t
@@ -57,7 +57,7 @@ namespace nupic_ext {
     }
 
 
-} // namespace nupic_ext
+} // namespace htm_ext
 
 
-#endif //NUPIC_EXT_BINDINGS_PY_UTILS_HPP
+#endif //HTM_EXT_BINDINGS_PY_UTILS_HPP

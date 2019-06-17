@@ -31,14 +31,14 @@
 
 namespace py = pybind11;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_Random(py::module&);
     void init_reals(py::module&);
     void init_Topology(py::module&);
-} // namespace nupic_ext
+} // namespace htm_ext
 
-using namespace nupic_ext;
+using namespace htm_ext;
 
 PYBIND11_MODULE(math, m) {
     m.doc() = 

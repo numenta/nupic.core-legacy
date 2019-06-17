@@ -26,20 +26,20 @@
 
 #include <cstring>
 #include <fstream>
-#include <nupic/utils/StlIo.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/types/Sdr.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/utils/StlIo.hpp>
+#include <htm/types/Types.hpp>
+#include <htm/types/Sdr.hpp>
+#include <htm/utils/Log.hpp>
 #include <stdio.h>
 
 #include "gtest/gtest.h"
-#include <nupic/algorithms/TemporalMemory.hpp>
+#include <htm/algorithms/TemporalMemory.hpp>
 
 
 namespace testing {
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 #define EPSILON 0.0000001
 
 

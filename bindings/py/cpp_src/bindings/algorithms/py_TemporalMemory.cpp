@@ -32,14 +32,14 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/algorithms/TemporalMemory.hpp>
+#include <htm/algorithms/TemporalMemory.hpp>
 
 #include "bindings/engine/py_utils.hpp"
 
 namespace py = pybind11;
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_TemporalMemory(py::module& m)
     {
@@ -297,7 +297,7 @@ R"()");
         {
             auto cells = self.cellsForColumn(columnIdx);
 
-            return py::array_t<nupic::UInt32>(cells.size(), cells.data());
+            return py::array_t<htm::UInt32>(cells.size(), cells.data());
         },
 R"(Returns list of indices of cells that belong to a mini-column.
 
@@ -346,4 +346,4 @@ R"()");
                 return buf.str(); });
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

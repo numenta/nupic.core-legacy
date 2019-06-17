@@ -31,19 +31,19 @@ Algorithm bindings Module file for pybind11
 
 namespace py = pybind11;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_Connections(py::module&);
     void init_TemporalMemory(py::module&);
     void init_SDR_Classifier(py::module&);
     void init_Spatial_Pooler(py::module&);
 
-} // namespace nupic_ext
+} // namespace htm_ext
 
-using namespace nupic_ext;
+using namespace htm_ext;
 
 PYBIND11_MODULE(algorithms, m) {
-    m.doc() = "nupic.core.algorithms plugin"; // optional module docstring
+    m.doc() = "htm.core.algorithms plugin"; // optional module docstring
 
     init_Connections(m);
     init_TemporalMemory(m);

@@ -27,11 +27,11 @@
 #include <limits>
 
 #include <gtest/gtest.h>
-#include <nupic/ntypes/BasicType.hpp>
+#include <htm/ntypes/BasicType.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 TEST(BasicTypeTest, isValid)
 {

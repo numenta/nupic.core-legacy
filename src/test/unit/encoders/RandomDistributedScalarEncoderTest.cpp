@@ -22,12 +22,12 @@
  */
 
 #include "gtest/gtest.h"
-#include <nupic/types/Sdr.hpp>
-#include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
+#include <htm/types/Sdr.hpp>
+#include <htm/encoders/RandomDistributedScalarEncoder.hpp>
 #include <string>
 #include <vector>
 
-using namespace nupic;
+using namespace htm;
 
 TEST(RDSE, testConstruct) {
   SDR  A({ 100u, 100u, 3u });

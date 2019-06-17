@@ -68,8 +68,8 @@
 
 #include <plugin/PyBindRegion.hpp>
 
-#include <nupic/engine/RegisteredRegionImpl.hpp>
-#include <nupic/engine/RegionImplFactory.hpp>
+#include <htm/engine/RegisteredRegionImpl.hpp>
+#include <htm/engine/RegionImplFactory.hpp>
 #include <string>
 
 namespace py = pybind11;
@@ -79,7 +79,7 @@ namespace py = pybind11;
 static int python_node_count = 0;
 
 
-namespace nupic
+namespace htm
 {
   class Spec;
   class PyRegionImpl;
@@ -108,9 +108,9 @@ namespace nupic
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
-        catch (nupic::Exception & e)
+        catch (htm::Exception & e)
         {
-            throw nupic::Exception(e);
+            throw htm::Exception(e);
         }
         catch (...)
         {
@@ -128,9 +128,9 @@ namespace nupic
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
-        catch (nupic::Exception & e)
+        catch (htm::Exception & e)
         {
-            throw nupic::Exception(e);
+            throw htm::Exception(e);
         }
         catch (...)
         {
@@ -144,7 +144,7 @@ namespace nupic
           try {
 			PyBindRegion::createSpec(module_.c_str(), *sp, classname_.c_str());
 		  }
-          catch (nupic::Exception & e) {
+          catch (htm::Exception & e) {
 		    UNUSED(e);
             delete sp;
             throw;

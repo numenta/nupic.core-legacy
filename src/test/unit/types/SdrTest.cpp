@@ -15,7 +15,7 @@
  * ---------------------------------------------------------------------- */
 
 #include <gtest/gtest.h>
-#include <nupic/types/Sdr.hpp>
+#include <htm/types/Sdr.hpp>
 #include <vector>
 #include <random>
 
@@ -25,7 +25,7 @@ static bool verbose = false;
 namespace testing {
     
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 /* This also tests the size and dimensions are correct */
 TEST(SdrTest, TestConstructor) {
