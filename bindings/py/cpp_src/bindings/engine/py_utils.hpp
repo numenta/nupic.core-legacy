@@ -1,5 +1,5 @@
-#ifndef NUPIC_EXT_BINDINGS_PY_UTILS_HPP
-#define NUPIC_EXT_BINDINGS_PY_UTILS_HPP
+#ifndef HTM_EXT_BINDINGS_PY_UTILS_HPP
+#define HTM_EXT_BINDINGS_PY_UTILS_HPP
 /* ---------------------------------------------------------------------
  * Numenta Platform for Intelligent Computing (NuPIC)
  * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
@@ -35,23 +35,20 @@ Utility functions for PyBind11 bindings
 
 namespace py = pybind11;
 
-namespace nupic_ext {
+namespace htm_ext {
 
-    template<typename T> T* get_it(py::array_t<T>& a) { return (T*)a.request().ptr; }
-    template<typename T> T* get_end(py::array_t<T>& a) { return ((T*)a.request().ptr) + a.size(); }
+    // Check that the precision in bytes matches the data size of the array
+    template<typename T> T* get_it(py::array& a) //TODO add explanation why array, and not array_t
+	{
+	if (sizeof(T) != a.request().itemsize)
+		{throw std::invalid_argument("Invalid numpy array precision used.");}
 
-    template<typename T> T* get_it(py::array& a) { return (T*)a.request().ptr; }
-    template<typename T> T* get_end(py::array& a) { return ((T*)a.request().ptr) + a.size(); }
+	return static_cast<T*>(a.request().ptr);
+	}
 
-    template<typename T> T* get_row_it(py::array_t<T>& a, int row)
-    {
-        auto buffer_info = a.request();
+    template<typename T> T* get_end(py::array& a) { return (static_cast<T*>(a.request().ptr)) + a.size(); }
 
-        return (T*)((char*)buffer_info.ptr + (buffer_info.strides[0] * row));
-    }
-
-    inline
-    void enable_cout()
+    inline void enable_cout()
     {
         py::scoped_ostream_redirect stream(
             std::cout,                               // std::ostream&
@@ -60,7 +57,7 @@ namespace nupic_ext {
     }
 
 
-} // namespace nupic_ext
+} // namespace htm_ext
 
 
-#endif //NUPIC_EXT_BINDINGS_PY_UTILS_HPP
+#endif //HTM_EXT_BINDINGS_PY_UTILS_HPP

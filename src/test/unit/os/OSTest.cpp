@@ -25,14 +25,14 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/OS.hpp>
-#include <nupic/os/Path.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/OS.hpp>
+#include <htm/os/Path.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 TEST(OSTest, Basic) {
 #if defined(NTA_OS_WINDOWS)

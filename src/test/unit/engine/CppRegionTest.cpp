@@ -22,19 +22,19 @@
 
 #include "gtest/gtest.h"
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/types/Exception.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/types/Exception.hpp>
 
 #include <cmath>   // fabs/abs
 #include <cstdlib> // exit
@@ -48,7 +48,7 @@
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 using std::exception;
 
 static bool verbose = false;
@@ -201,12 +201,12 @@ TEST(CppRegionTest, testYAML) {
 TEST(CppRegionTest, realmain) {
   Network n;
 
-  size_t count1 = n.getRegions().getCount();
+  size_t count1 = n.getRegions().size();
   EXPECT_TRUE(count1 == 0u);
   std::shared_ptr<Region> level1 = n.addRegion("level1", "TestNode", "{count: 2}");
 
 
-  size_t count = n.getRegions().getCount();
+  size_t count = n.getRegions().size();
   EXPECT_TRUE(count == 1u);
   std::string region_type = level1->getType();
   EXPECT_STREQ(region_type.c_str(), "TestNode");
@@ -279,10 +279,10 @@ TEST(CppRegionTest, RegionSerialization) {
 	std::shared_ptr<Region> r1 = n.addRegion("testnode", "TestNode", "{count: 2}");
 	
 	std::stringstream ss;
-	r1->saveToStream_ar(ss);
+	r1->save(ss);
 	
 	Region r2(&n);
-	r2.loadFromStream_ar(ss);
+	r2.load(ss);
 	EXPECT_EQ(*r1.get(), r2);
 
 }

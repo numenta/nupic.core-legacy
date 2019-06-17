@@ -24,13 +24,12 @@
 #include <pybind11/stl.h>
 namespace py = pybind11;
 
-#include <nupic/encoders/ScalarEncoder.hpp>
-#include <nupic/types/Sdr.hpp>
+#include <htm/encoders/ScalarEncoder.hpp>
+#include <htm/types/Sdr.hpp>
 
-namespace nupic_ext
+namespace htm_ext
 {
-  using namespace nupic::encoders;
-  using nupic::sdr::SDR;
+  using namespace htm;
 
   void init_ScalarEncoder(py::module& m)
   {
@@ -106,7 +105,7 @@ bits. The output is 0's except for a contiguous block of 1's. The location of
 this contiguous block varies continuously with the input value.
 
 To inspect this run:
-$ python -m nupic.encoders.scalar_encoder --help)");
+$ python -m htm.encoders.scalar_encoder --help)");
 
     py_ScalarEnc.def(py::init<ScalarEncoderParameters&>(), R"()");
     py_ScalarEnc.def_property_readonly("parameters",
@@ -121,7 +120,7 @@ fields are filled in automatically.)");
 
     py_ScalarEnc.def("encode", &ScalarEncoder::encode, R"()");
 
-    py_ScalarEnc.def("encode", [](ScalarEncoder &self, nupic::Real64 value) {
+    py_ScalarEnc.def("encode", [](ScalarEncoder &self, htm::Real64 value) {
         auto output = new SDR( self.dimensions );
         self.encode( value, *output );
         return output; },

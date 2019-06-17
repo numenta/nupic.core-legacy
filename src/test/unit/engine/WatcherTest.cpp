@@ -29,13 +29,13 @@
 #include <sstream>
 #include <string>
 
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/engine/Watcher.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/ntypes/ArrayBase.hpp>
+#include <htm/engine/Watcher.hpp>
 
 #include <gtest/gtest.h>
 
@@ -46,7 +46,7 @@ static bool verbose = false;
   if (verbose)                                                                 \
   std::cerr << "[          ] "
 
-using namespace nupic;
+using namespace htm;
 
 TEST(WatcherTest, SampleNetwork) {
   // NOTE:  This test generates files for the subsequent two tests.
@@ -108,7 +108,7 @@ TEST(WatcherTest, SampleNetwork) {
   // n.getRegions().getByName("level1")->getNodeAtIndex(1).setParameterUInt32("unclonedParam",(UInt32)1);
   //n.run(3);
   // see if Watcher notices change in parameter values  after 3 iterations
-  n.getRegions().getByName("level1")->setParameterUInt64("uint64Param", (UInt64)66);
+  n.getRegion("level1")->setParameterUInt64("uint64Param", (UInt64)66);
   n.run(3);
 
   // test flushFile() - this should produce output

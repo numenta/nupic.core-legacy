@@ -30,15 +30,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <nupic/algorithms/SDRClassifier.hpp>
+#include <htm/algorithms/SDRClassifier.hpp>
 
-namespace nupic_ext
+namespace htm_ext
 {
     namespace py = pybind11;
     using namespace std;
-    using namespace nupic;
-    using nupic::sdr::SDR;
-    using namespace nupic::algorithms::sdr_classifier;
+    using namespace htm;
 
     void init_SDR_Classifier(py::module& m)
     {
@@ -201,4 +199,4 @@ This may also be a list for when the input has multiple categories.)",
 
         // TODO: Pickle support
     }
-} // namespace nupic_ext
+} // namespace htm_ext

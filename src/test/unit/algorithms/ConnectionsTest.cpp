@@ -27,17 +27,12 @@
 #include "gtest/gtest.h"
 #include <fstream>
 #include <iostream>
-#include <nupic/algorithms/Connections.hpp>
-#include <nupic/math/Math.hpp> // nupic::Epsilon
-
+#include <htm/algorithms/Connections.hpp>
 
 namespace testing {
     
 using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::connections;
-using nupic::sdr::SDR;
-using nupic::sdr::SDR_dense_t;
+using namespace htm;
 
 // EPSILON used for testing, Connections uses nupic::Epsilon internally
 #define EPSILON 0.0000001
@@ -611,7 +606,7 @@ TEST(ConnectionsTest, testSynapseCompetition) {
     int real_ncon = 0;
     for( const auto syn : segData.synapses ) {
       const auto &synData = con.dataForSynapse( syn );
-      if( synData.permanence >= 0.5f - nupic::Epsilon ) {
+      if( synData.permanence >= 0.5f - htm::Epsilon ) {
         real_ncon++;
       }
     }
@@ -809,8 +804,8 @@ TEST(ConnectionsTest, testSaveLoad) {
 
   {
     stringstream ss;
-    c1.saveToStream_ar(ss);
-    c2.loadFromStream_ar(ss);
+    c1.save(ss);
+    c2.load(ss);
   }
 
   ASSERT_EQ(c1, c2);

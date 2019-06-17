@@ -26,27 +26,19 @@
 
 #include "HelloSPTP.hpp"
 
-#include "nupic/algorithms/TemporalMemory.hpp"
-#include "nupic/algorithms/SpatialPooler.hpp"
-#include "nupic/encoders/RandomDistributedScalarEncoder.hpp"
-#include "nupic/algorithms/AnomalyLikelihood.hpp"
+#include "htm/algorithms/TemporalMemory.hpp"
+#include "htm/algorithms/SpatialPooler.hpp"
+#include "htm/encoders/RandomDistributedScalarEncoder.hpp"
+#include "htm/algorithms/AnomalyLikelihood.hpp"
 
-#include "nupic/types/Sdr.hpp"
-#include "nupic/utils/Random.hpp"
-#include "nupic/utils/MovingAverage.hpp"
+#include "htm/types/Sdr.hpp"
+#include "htm/utils/Random.hpp"
+#include "htm/utils/MovingAverage.hpp"
 
 namespace examples {
 
 using namespace std;
-using namespace nupic;
-using namespace nupic::sdr;
-
-using Encoder = nupic::encoders::RandomDistributedScalarEncoder;
-using EncoderParameters = nupic::encoders::RDSE_Parameters;
-using nupic::algorithms::spatial_pooler::SpatialPooler;
-using TM =     nupic::algorithms::temporal_memory::TemporalMemory;
-using nupic::algorithms::anomaly::AnomalyLikelihood;
-using nupic::util::MovingAverage;
+using namespace htm;
 
 
 // work-load
@@ -66,20 +58,20 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
   // initialize SP, TM, AnomalyLikelihood
   tInit.start();
-  EncoderParameters encParams;
+  RDSE_Parameters encParams;
   encParams.sparsity = 0.2f; //20% of the encoding are active bits (1's)
   encParams.size = DIM_INPUT; //the encoder is not optimal, it's to stress-test the SP,TM
 //  encParams.resolution = 0.002f;
   encParams.radius = 0.03f;
   encParams.seed = 2019u;
-  Encoder enc( encParams );
+  RandomDistributedScalarEncoder enc( encParams );
   SpatialPooler spGlobal(enc.dimensions, vector<UInt>{COLS}); // Spatial pooler with globalInh
   SpatialPooler  spLocal(enc.dimensions, vector<UInt>{COLS}); // Spatial pooler with local inh
   spGlobal.setGlobalInhibition(true);
   spLocal.setGlobalInhibition(false);
   Random rnd(1); //uses fixed seed for deterministic output checks
 
-  TM tm(vector<UInt>{COLS}, CELLS);
+  TemporalMemory tm(vector<UInt>{COLS}, CELLS);
 
   AnomalyLikelihood anLikelihood;
   tInit.stop();

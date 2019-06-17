@@ -34,19 +34,19 @@ PyBind11 bindings for Region classes
 #include <pybind11/stl.h>
 
 #include <plugin/PyBindRegion.hpp>
-#include <nupic/regions/TestNode.hpp>
+#include <htm/regions/TestNode.hpp>
 
 namespace py = pybind11;
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_Regions(py::module& m)
     {
         ///////////////////
         // PyRegion Node
         ///////////////////
-        typedef nupic::PyBindRegion Region_t;
+        typedef htm::PyBindRegion Region_t;
         py::class_<Region_t> py_Region(m, "PyRegion");
 
         py_Region.def("initialize", &Region_t::initialize)
@@ -67,4 +67,4 @@ namespace nupic_ext
 
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

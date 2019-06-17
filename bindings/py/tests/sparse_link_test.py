@@ -23,8 +23,8 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_array_equal
-from nupic.bindings.regions.PyRegion import PyRegion
-import nupic.bindings.engine_internal as engine
+from htm.bindings.regions.PyRegion import PyRegion
+import htm.bindings.engine_internal as engine
 
 TEST_DATA_SPARSE = np.array([4, 7])
 MAX_ACTIVE = TEST_DATA_SPARSE.size
@@ -237,7 +237,7 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("region2")
+    region = net.getRegion("region2")
     actual = region.getOutputArray("dataOut")
     assert_array_equal(actual, TEST_DATA_SPARSE)
 
@@ -248,7 +248,7 @@ class SparseLinkTest(unittest.TestCase):
     net.initialize()
     net.run(1)
 
-    region = net.getRegions().getByName("region2")
+    region = net.getRegion("region2")
     actual = region.getOutputArray("dataOut")
     assert_array_equal(actual, TEST_DATA_DENSE)
 

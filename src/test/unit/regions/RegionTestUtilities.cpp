@@ -32,13 +32,13 @@
 
 #include "RegionTestUtilities.hpp"
 
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Array.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Array.hpp>
 
-using namespace nupic;
+using namespace htm;
 namespace testing {
 
 
@@ -78,7 +78,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
           if (negativeCheck) {
 				    negativeCheck = false;
 				    VERBOSE << "negative check..." << std::endl;
-				    EXPECT_THROW(region1->getParameterInt32("numberOfCols"), nupic::Exception); 
+				    EXPECT_THROW(region1->getParameterInt32("bad_parameter"), htm::Exception); 
 			    }
           VERBOSE << "Parameter \"" << name << "\" type: " << BasicType::getName(p.second.dataType) << std::endl;
 
@@ -260,7 +260,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
           break;
         } // end switch
       }
-    } catch (nupic::Exception &ex) {
+    } catch (htm::Exception &ex) {
       FAIL()
              << "Exception while processing parameter " << name << ":  "
              << ex.getFilename() << "(" << ex.getLineNumber() << ") "
@@ -440,9 +440,9 @@ captureParameters(std::shared_ptr<Region> region,
           break;
         } // end switch
       }
-    } catch (nupic::Exception &ex) {
+    } catch (htm::Exception &ex) {
       return ::testing::AssertionFailure()
-             << "nupic::Exception while processing parameter " << name << ":  "
+             << "htm::Exception while processing parameter " << name << ":  "
              << ex.getFilename() << "(" << ex.getLineNumber() << ") "
              << ex.getMessage();
     } catch (std::exception &e) {
@@ -524,9 +524,9 @@ compareParameters(std::shared_ptr<Region> region,
           break;
         } // end switch
       }
-    } catch (nupic::Exception &ex) {
+    } catch (htm::Exception &ex) {
       return ::testing::AssertionFailure()
-             << "nupic::Exception while processing parameter " << name << ":  "
+             << "htm::Exception while processing parameter " << name << ":  "
              << ex.getFilename() << "(" << ex.getLineNumber() << ") "
              << ex.getMessage();
     } catch (std::exception &e) {

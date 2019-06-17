@@ -31,7 +31,7 @@
 #######################################################################
 
 cmake_minimum_required(VERSION 3.7)
-project(nupic_core CXX)
+project(htm_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
@@ -240,7 +240,7 @@ target_include_directories(${math_shared_lib} PRIVATE
 
 ###################################################################
 #
-# Install targets into CMAKE_INSTALL_PREFIX/distr/src/nupic/bindings
+# Install targets into CMAKE_INSTALL_PREFIX/distr/src/htm/bindings
 #
 ###################################################################
 install(TARGETS
@@ -251,6 +251,6 @@ install(TARGETS
         math
 	${py_unit_test_executable}
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION ${distr}/src/nupic/bindings
+        LIBRARY DESTINATION ${distr}/src/htm/bindings
         ARCHIVE DESTINATION lib)
 	

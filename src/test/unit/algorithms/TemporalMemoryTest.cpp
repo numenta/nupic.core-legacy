@@ -26,22 +26,20 @@
 
 #include <cstring>
 #include <fstream>
-#include <nupic/math/StlIo.hpp>
-#include <nupic/types/Types.hpp>
-#include <nupic/types/Sdr.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/utils/StlIo.hpp>
+#include <htm/types/Types.hpp>
+#include <htm/types/Sdr.hpp>
+#include <htm/utils/Log.hpp>
 #include <stdio.h>
 
 #include "gtest/gtest.h"
-#include <nupic/algorithms/TemporalMemory.hpp>
+#include <htm/algorithms/TemporalMemory.hpp>
 
 
 namespace testing {
 
-using namespace nupic::algorithms::temporal_memory;
-using namespace nupic::algorithms::connections;
-using namespace nupic::sdr;
 using namespace std;
+using namespace htm;
 #define EPSILON 0.0000001
 
 
@@ -52,29 +50,6 @@ TEST(TemporalMemoryTest, testInitInvalidParams) {
   // Invalid cellsPerColumn
   EXPECT_ANY_THROW(tm1.initialize({2048}, 0));
   EXPECT_NO_THROW(tm1.initialize({2048}, 32));
-}
-
-/**
- * If you call compute with unsorted input, it should throw an exception.
- */
-TEST(TemporalMemoryTest, testCheckInputs_UnsortedColumns) {
-  TemporalMemory tm(
-      /*columnDimensions*/ {32},
-      /*cellsPerColumn*/ 4,
-      /*activationThreshold*/ 3,
-      /*initialPermanence*/ 0.21f,
-      /*connectedPermanence*/ 0.50f,
-      /*minThreshold*/ 2,
-      /*maxNewSynapseCount*/ 3,
-      /*permanenceIncrement*/ 0.10f,
-      /*permanenceDecrement*/ 0.10f,
-      /*predictedSegmentDecrement*/ 0.0f,
-      /*seed*/ 42);
-
-  SDR activeColumns({tm.getColumnDimensions()});
-  activeColumns.setSparse(SDR_sparse_t{1u, 3u, 2u, 4u});
-
-  EXPECT_NO_THROW(tm.compute(activeColumns, true));
 }
 
 
@@ -1594,10 +1569,10 @@ TEST(TemporalMemoryTest, testSaveArLoadAr) {
 
   // Using Cereal Serialization
   stringstream ss1;
-  tm1.saveToStream_ar(ss1);
+  tm1.save(ss1);
 
   TemporalMemory tm2;
-  tm2.loadFromStream_ar(ss1);
+  tm2.load(ss1);
 
   ASSERT_TRUE(tm1 == tm2);
 

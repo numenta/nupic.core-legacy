@@ -25,15 +25,15 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/types/Exception.hpp>
+#include <htm/types/Exception.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 TEST(ExceptionTest, Basic) {
   try {
-    throw nupic::Exception("FFF", 123ul, "MMM");
+    throw htm::Exception("FFF", 123ul, "MMM");
   } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123ul);
@@ -42,7 +42,7 @@ TEST(ExceptionTest, Basic) {
   }
 
   try {
-    throw nupic::Exception("FFF", 123ul, "MMM", "TB");
+    throw htm::Exception("FFF", 123ul, "MMM", "TB");
   } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123l);

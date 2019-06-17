@@ -24,11 +24,11 @@
  * Implementation of ArrayBase test
  */
 
-#include <nupic/utils/Log.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/os/OS.hpp>
+#include <htm/utils/Log.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/ntypes/ArrayBase.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/os/OS.hpp>
 
 #include <map>
 #include <memory>
@@ -42,7 +42,7 @@ static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 #define UNUSED(x) (void)(x)
 
-using namespace nupic;
+using namespace htm;
 
 // First, some structures to help in testing.
 struct ArrayTestParameters {
@@ -70,7 +70,7 @@ struct ArrayTestParameters {
 };
 
 // given a sparse array, populate a dense array of specified type.
-static void populateArray(const sdr::SDR_sparse_t& sparse, size_t cols, Array& a) {
+static void populateArray(const SDR_sparse_t& sparse, size_t cols, Array& a) {
   a.allocateBuffer(cols);
   a.zeroBuffer();
   void *buf = a.getBuffer();
@@ -93,7 +93,7 @@ static void populateArray(const sdr::SDR_sparse_t& sparse, size_t cols, Array& a
 	    }
   }
 }
-static void toSparse(const Array&a, sdr::SDR_sparse_t&sparse) {
+static void toSparse(const Array&a, SDR_sparse_t&sparse) {
   sparse.clear();
   if (a.getType() == NTA_BasicType_SDR) {
         sparse = a.getSDR().getSparse();
@@ -101,7 +101,7 @@ static void toSparse(const Array&a, sdr::SDR_sparse_t&sparse) {
   }
 
   char *buf = (char*)a.getBuffer();
-  for (sdr::ElemSparse idx = 0; idx < static_cast<sdr::ElemSparse>(a.getCount()); idx++) {
+  for (ElemSparse idx = 0; idx < static_cast<ElemSparse>(a.getCount()); idx++) {
     	switch (a.getType()) {
 	    case NTA_BasicType_Byte:   if((reinterpret_cast<Byte*>(buf))[idx])   sparse.push_back(idx); break;
 	    case NTA_BasicType_Int16:  if((reinterpret_cast<Int16*>(buf))[idx])  sparse.push_back(idx); break;
@@ -342,7 +342,7 @@ TEST_F(ArrayTest, testArrayCreation) {
 
       try {
         arrayP = new Array(testCase->second.dataType);
-      } catch (nupic::Exception& e) {
+      } catch (htm::Exception& e) {
         UNUSED(e);
         caughtException = true;
       }
@@ -429,7 +429,7 @@ TEST_F(ArrayTest, testBufferAllocation) {
       {
         a.allocateBuffer(10);
       }
-      catch(nupic::Exception& e)
+      catch(htm::Exception& e)
       {
         UNUSED(e);
         caughtException = true;
@@ -476,7 +476,7 @@ TEST_F(ArrayTest, testUnownedBuffer) {
     {
       a.setBuffer(buf2.get(), testCase->second.allocationSize);
     }
-    catch(nupic::Exception& e)
+    catch(htm::Exception& e)
     {
       UNUSED(e);
       caughtException = true;
@@ -548,7 +548,7 @@ TEST_F(ArrayTest, testArrayTyping) {
 TEST_F(ArrayTest, testArrayBasefunctions) {
   setupArrayTests();
 
-  sdr::SDR_sparse_t testdata = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0};
+  SDR_sparse_t testdata = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0};
   TestCaseIterator testCase;
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
@@ -604,7 +604,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       // Only SDR has dimensions
       std::vector<UInt> d({ 10u, 10u });
       Dimensions dim(d);
-      sdr::SDR sdr(dim);
+      SDR sdr(dim.asVector());
       Array s(sdr); // makes a copy of sdr
       Dimensions dim_s(s.getSDR().dimensions);
       EXPECT_EQ(dim_s, dim);
@@ -621,7 +621,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       EXPECT_EQ(m.getCount(), 100u);
 
       std::vector<Byte> row = a.asVector<Byte>();
-      const sdr::SDR_sparse_t& v = a.getSDR().getSparse();
+      const SDR_sparse_t& v = a.getSDR().getSparse();
 
       EXPECT_EQ(v.size(), 10u);
 
@@ -644,7 +644,7 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
 TEST_F(ArrayTest, testArrayBaseSerialization) {
   setupArrayTests();
 
-  sdr::SDR_sparse_t testdata = {1, 4, 5, 8, 9}; // sparse
+  SDR_sparse_t testdata = {1, 4, 5, 8, 9}; // sparse
   TestCaseIterator testCase;
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
@@ -676,7 +676,7 @@ TEST_F(ArrayTest, testArrayBaseSerialization) {
       cereal::BinaryInputArchive binaryIn_ar(ss);  // Create an input archive
       b.load_ar(binaryIn_ar);
     } // flush
-    sdr::SDR_sparse_t results;
+    SDR_sparse_t results;
     toSparse(b, results);
     EXPECT_EQ(testdata, results);
 

@@ -44,24 +44,23 @@
  *---------------------------------------------------------------------
  */
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegisteredRegionImplCpp.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/engine/YAMLUtils.hpp>
-#include <nupic/math/Math.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/regions/TMRegion.hpp>
-#include <nupic/types/Exception.hpp>
-#include <nupic/utils/VectorHelpers.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/RegisteredRegionImplCpp.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/engine/YAMLUtils.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/regions/TMRegion.hpp>
+#include <htm/types/Exception.hpp>
+#include <htm/utils/VectorHelpers.hpp>
 
 #include <cmath>   // fabs/abs
 #include <cstdlib> // exit
@@ -83,8 +82,7 @@ static bool verbose = false; // turn this on to print extra stuff for debugging 
 // verified.
 #define EXPECTED_SPEC_COUNT 18 // The number of parameters expected in the TMRegion Spec
 
-using namespace nupic;
-using namespace nupic::utils;
+using namespace htm;
 
 namespace testing {
 
@@ -107,11 +105,11 @@ TEST(TMRegionTest, testSpecAndParameters) {
 TEST(TMRegionTest, checkTMRegionImpl) {
   Network net;
 
-  size_t regionCntBefore = net.getRegions().getCount();
+  size_t regionCntBefore = net.getRegions().size();
 
   VERBOSE << "Adding a built-in TMRegion region..." << std::endl;
   std::shared_ptr<Region> region1 = net.addRegion("region1", "TMRegion", "");
-  size_t regionCntAfter = net.getRegions().getCount();
+  size_t regionCntAfter = net.getRegions().size();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << " Expected number of regions to increase by one.  ";
   ASSERT_TRUE(region1->getType() == "TMRegion")
@@ -130,7 +128,7 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   VERBOSE << "Creating network..." << std::endl;
   Network net;
 
-  size_t regionCntBefore = net.getRegions().getCount();
+  size_t regionCntBefore = net.getRegions().size();
 
   // make sure the custom region registration works for CPP.
   // We will just use the same TMRegion class but it could be a subclass or some
@@ -150,7 +148,7 @@ TEST(TMRegionTest, initialization_with_custom_impl) {
   VERBOSE << "Adding a custom-built TMRegion region..." << std::endl;
   net.registerRegion("TMRegionCustom", new RegisteredRegionImplCpp<TMRegion>());
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TMRegionCustom", nodeParams);
-  size_t regionCntAfter = net.getRegions().getCount();
+  size_t regionCntAfter = net.getRegions().size();
   ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter)
       << "  Expected number of regions to increase by one.  ";
   ASSERT_TRUE(region2->getType() == "TMRegionCustom")
@@ -345,21 +343,12 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "Setup first network and save it" << std::endl;
     std::shared_ptr<Region> n1region1 = net1->addRegion( "region1", "ScalarSensor",
                                              "{n: 48,w: 10,minValue: 0.05,maxValue: 10}");
-    n1region1->setParameterReal64("sensedValue", 5.0);
-
     std::shared_ptr<Region> n1region2 =  net1->addRegion("region2", "TMRegion", "{numberOfCols: 48}");
 
     net1->link("region1", "region2", "", "", "encoded", "bottomUpIn");
-    VERBOSE << "Initialize" << std::endl;
-    net1->initialize();
+    n1region1->setParameterReal64("sensedValue", 5.0);
 
-    VERBOSE << "compute region1" << std::endl;
-    n1region1->prepareInputs();
-    n1region1->compute();
-
-    VERBOSE << "compute region2" << std::endl;
-    n1region2->prepareInputs();
-    n1region2->compute();
+    net1->run(1);
 
     // take a snapshot of everything in TMRegion at this point
     // save to a bundle.
@@ -377,7 +366,7 @@ TEST(TMRegionTest, testSerialization) {
 
 
     VERBOSE << "checked restored network" << std::endl;
-    std::shared_ptr<Region> n2region2 = net2->getRegions().getByName("region2");
+    std::shared_ptr<Region> n2region2 = net2->getRegion("region2");
     ASSERT_TRUE(n2region2->getType() == "TMRegion")
         << " Restored TMRegion region does not have the right type.  Expected "
            "TMRegion, found "
@@ -391,17 +380,11 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "continue with execution." << std::endl;
     // can we continue with execution?  See if we get any exceptions.
     n1region1->setParameterReal64("sensedValue", 0.12);
-    n1region1->prepareInputs();
-    n1region1->compute();
+    net1->run(1);
+    net2->run(1);
 
-    n2region2->prepareInputs();
-    VERBOSE << "continue 4." << std::endl;
-    n2region2->compute();
-    VERBOSE << "continue 5." << std::endl;
-
-    // Change a parameters and see if it is retained after a restore.
+    // Change a parameter and see if it is retained after a restore.
     n2region2->setParameterReal32("permanenceDecrement", 0.099f);
-    n2region2->compute();
 
     parameterMap.clear();
     EXPECT_TRUE(captureParameters(n2region2, parameterMap))
@@ -413,15 +396,18 @@ TEST(TMRegionTest, testSerialization) {
     VERBOSE << "Restore into a third network and compare changed parameters." << std::endl;
     net3 = new Network();
     net3->loadFromFile("TestOutputDir/tmRegionTest.stream");
-    std::shared_ptr<Region> n3region2 = net3->getRegions().getByName("region2");
+    std::shared_ptr<Region> n3region2 = net3->getRegion("region2");
     EXPECT_TRUE(n3region2->getType() == "TMRegion")
         << "Failure: Restored region does not have the right type. "
            " Expected \"TMRegion\", found \""
         << n3region2->getType() << "\".";
 
+    Real32 p = n3region2->getParameterReal32("permanenceDecrement");
+    EXPECT_FLOAT_EQ(p, 0.099f);
+
     EXPECT_TRUE(compareParameters(n3region2, parameterMap))
         << "Comparing parameters after second restore with before save.";
-  } catch (nupic::Exception &ex) {
+  } catch (htm::Exception &ex) {
     FAIL() << "Failure: Exception: " << ex.getFilename() << "("
            << ex.getLineNumber() << ") " << ex.getMessage() << "" << std::endl;
   } catch (std::exception &e) {

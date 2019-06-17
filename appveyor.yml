@@ -35,7 +35,7 @@ skip_branch_with_pr: true
 init:
   - git config --global core.autocrlf input
 
-clone_folder: c:\projects\nupic-cpp
+clone_folder: c:\projects\htm-cpp
 clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
@@ -44,7 +44,7 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: MSVC
-  NUPIC_CORE: "C:\\projects\\nupic-cpp"
+  NUPIC_CORE: "C:\\projects\\htm-cpp"
   ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
 
 ## AWS S3 support (pip install boto)
@@ -153,7 +153,7 @@ artifacts:
 #       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
 #         Write-Host "Uploading bindings to PYPI"
 #         pip install httplib requests twine --upgrade
-#         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\nupic.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
+#         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
 #       }
 
 deploy:
@@ -166,8 +166,8 @@ deploy:
 #    bucket: "artifacts.numenta.org"
 #    region: us-west-2
 #    set_public: true
-#    artifact: "nupic.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
-#    folder: "numenta/nupic.core/releases/nupic.bindings"
+#    artifact: "htm.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
+#    folder: "numenta/htm.core/releases/htm.bindings"
 #    on:
 #      branch: master
 

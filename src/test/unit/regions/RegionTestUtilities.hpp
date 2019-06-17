@@ -30,11 +30,11 @@
 #define REGIONTESTUITLITIES_HPP
  
 #include <iostream>
-#include <nupic/engine/Region.hpp>
+#include <htm/engine/Region.hpp>
 
 #include "gtest/gtest.h"
 
-using namespace nupic;
+using namespace htm;
 namespace testing 
 {
 

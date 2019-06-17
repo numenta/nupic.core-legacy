@@ -33,12 +33,12 @@ Definition of the PyBindRegion class.  The base class for all Python Region impl
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
-#include <nupic/types/Types.hpp>
-#include <nupic/engine/RegionImpl.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Value.hpp>
+#include <htm/types/Types.hpp>
+#include <htm/engine/RegionImpl.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Value.hpp>
 
-namespace nupic
+namespace htm
 {
     class PyBindRegion : public RegionImpl, Serializable
     {
@@ -57,10 +57,7 @@ namespace nupic
         // Constructors
         PyBindRegion() = delete;
         PyBindRegion(const char* module, const ValueMap& nodeParams, Region *region, const char* className);
-        PyBindRegion(const char* module, BundleIO& bundle, Region* region, const char* className);
-        PyBindRegion(const char* module, ArWrapper& wrapper, Region *region, const char* className) : RegionImpl(region) {
-          // TODO:cereal  complete.
-        }
+        PyBindRegion(const char* module, ArWrapper& wrapper, Region *region, const char* className);
 
         // no copy constructor
         PyBindRegion(const Region &) = delete;
@@ -69,10 +66,30 @@ namespace nupic
         virtual ~PyBindRegion();
 
 
-        // Manual serialization methods. Current recommended method.
-        void serialize(BundleIO& bundle) override;
-        void deserialize(BundleIO& bundle) override;
+			  CerealAdapter;  // see Serializable.hpp
+			  // FOR Cereal Serialization
+			  template<class Archive>
+			  void save_ar(Archive& ar) const {
+				    std::string p = pickleSerialize();
+						std::string e = extraSerialize();
+						ar(p, e);
+				}
+			  template<class Archive>
+			  void load_ar(Archive& ar) {
+				    std::string p;
+						std::string e;
+						ar(p, e);
+						pickleDeserialize(p);
+						extraDeserialize(e);
+				}
 
+		    bool operator==(const RegionImpl &other) const override {
+					NTA_THROW << " ==  not implemented yet for PyBindRegion.";
+				}
+		    inline bool operator!=(const PyBindRegion &other) const {
+		      return !operator==(other);
+		    }
+				// TODO: implement compare of two .py implemented Regions.
 
 
         ////////////////////////////
@@ -128,10 +145,14 @@ namespace nupic
 
         Spec nodeSpec_;   // locally cached version of spec.
 
-    };
+        std::string pickleSerialize() const;
+        std::string extraSerialize() const;
+				void pickleDeserialize(std::string p);
+				void extraDeserialize(std::string e);
+   };
 
 
 
-} // namespace nupic
+} // namespace htm
 
 #endif //NTA_PYBIND_REGION_HPP

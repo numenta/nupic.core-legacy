@@ -16,9 +16,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/types/Sdr.hpp>
-#include <nupic/utils/SdrMetrics.hpp>
-/* Some of these tests also test SDR Reshape. */
+#include <htm/types/Sdr.hpp>
+#include <htm/utils/SdrMetrics.hpp>
 #include <vector>
 #include <random>
 
@@ -28,8 +27,7 @@ static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
 using namespace std;
-using namespace nupic;
-using namespace nupic::sdr;
+using namespace htm;
 
 /**
  * Sparsity
@@ -69,10 +67,9 @@ TEST(SdrMetricsTest, TestSparsityExample) {
  */
 TEST(SdrMetricsTest, TestSparsityShortTerm) {
     SDR A({1});
-    Reshape B( A );
     Real period = 10u;
     Real alpha  = 1.0f / period;
-    Sparsity S( B, (UInt)period );
+    Sparsity S( A, (UInt)period );
 
     A.setDense(SDR_dense_t{ 1 });
     ASSERT_FLOAT_EQ( S.sparsity, 1.0f );
@@ -140,8 +137,7 @@ TEST(SdrMetricsTest, TestSparsityLongTerm) {
     auto iterations = 1000u;
 
     SDR A({1000u});
-    Reshape B( A );
-    Sparsity S( B, period );
+    Sparsity S( A, period );
 
     vector<Real> test_means{ 0.01f,  0.05f,  0.20f, 0.50f, 0.50f, 0.75f, 0.99f };
     vector<Real> test_stdev{ 0.001f, 0.025f, 0.10f, 0.33f, 0.01f, 0.15f, 0.01f };
@@ -169,8 +165,7 @@ TEST(SdrMetricsTest, TestSparsityPrint) {
     // python unit tests.
     std::stringstream ss;
     SDR A({ 2000u });
-    Reshape B( A );
-    Sparsity S( B, 10u );
+    Sparsity S( A, 10u );
 
     A.randomize( 0.30f );
     A.randomize( 0.70f );
@@ -190,8 +185,7 @@ TEST(SdrMetricsTest, TestSparsityPrint) {
 TEST(SdrMetricsTest, TestAF_Construct) {
     // Test creating it.
     SDR *A = new SDR({ 5 });
-    Reshape *B = new Reshape( *A );
-    ActivationFrequency F( *B, 100 );
+    ActivationFrequency F( *A, 100 );
     ASSERT_ANY_THROW( ActivationFrequency F( *A, 0u ) ); // Period > 0!
     // Test nothing crashes with no data.
     F.min();
@@ -211,7 +205,6 @@ TEST(SdrMetricsTest, TestAF_Construct) {
     // Test use after freeing parent SDR.
     auto A_size = A->size;
     delete A;
-    delete B;
     F.min();
     F.mean();
     F.std();
@@ -225,8 +218,7 @@ TEST(SdrMetricsTest, TestAF_Construct) {
  */
 TEST(SdrMetricsTest, TestAF_Example) {
     SDR A({ 2u });
-    Reshape B( A );
-    ActivationFrequency F( B, 10u );
+    ActivationFrequency F( A, 10u );
 
     A.setDense(SDR_dense_t{ 0, 0 });
     ASSERT_EQ( F.activationFrequency, vector<Real>({ 0.0f, 0.0f }));
@@ -252,8 +244,7 @@ TEST(SdrMetricsTest, TestAF_LongTerm) {
     const auto period  =  1000u;
     const auto runtime = 10000u;
     SDR A({ 20u });
-    Reshape B( A );
-    ActivationFrequency F( B, period );
+    ActivationFrequency F( A, period );
 
 
     vector<Real> test_sparsity{ 0.0f, 0.05f, 1.0f, 0.25f, 0.5f };
@@ -279,8 +270,7 @@ TEST(SdrMetricsTest, TestAF_Entropy) {
     // Extact tests:
     // Test all zeros.
     SDR A({ size });
-    Reshape Px( A );
-    ActivationFrequency F( Px, period );
+    ActivationFrequency F( A, period );
     A.zero();
     EXPECT_FLOAT_EQ( F.entropy(), 0.0f );
 
@@ -382,8 +372,7 @@ TEST(SdrMetricsTest, TestOverlap_Construct) {
 
 TEST(SdrMetricsTest, TestOverlap_Example) {
     SDR A({ 10000u });
-    Reshape Px( A );
-    Overlap B( Px, 1000u );
+    Overlap B( A, 1000u );
     A.randomize( 0.05f );
     A.addNoise( 0.95f );         //   5% overlap
     A.addNoise( 0.55f );         //  45% overlap
@@ -397,8 +386,7 @@ TEST(SdrMetricsTest, TestOverlap_Example) {
 
 TEST(SdrMetricsTest, TestOverlap_ShortTerm) {
     SDR     A({ 1000u });
-    Reshape Px( A );
-    Overlap V( Px, 10u );
+    Overlap V( A, 10u );
 
     A.randomize( 0.20f ); // Initial value is taken after Overlap is created
 
@@ -431,8 +419,7 @@ TEST(SdrMetricsTest, TestOverlap_LongTerm) {
     const auto runtime = 1000u;
     const auto period  =  100u;
     SDR A({ 500u });
-    Reshape Px( A );
-    Overlap V( Px, period );
+    Overlap V( A, period );
     A.randomize( 0.45f );
 
     vector<Real> mean_ovlp{ 0.0f, 1.0f,
@@ -465,8 +452,7 @@ TEST(SdrMetricsTest, TestOverlap_Print) {
     // python unit tests.
     stringstream ss;
     SDR A({ 2000u });
-    Reshape Px( A );
-    Overlap V( Px, 100u );
+    Overlap V( A, 100u );
     A.randomize( 0.02f );
 
     vector<Real> overlaps{ 0.02f, 0.05f, 0.0f, 0.50f, 0.0f };
@@ -529,8 +515,7 @@ TEST(SdrMetricsTest, TestAllMetrics_Print) {
     // python unit tests.
   stringstream ss;
     SDR A({ 4097u });
-    Reshape Px( A );
-    Metrics M( Px, 100u );
+    Metrics M( A, 100u );
 
     vector<Real> sparsity{ 0.02f, 0.15f, 0.06f, 0.50f, 0.0f };
     vector<Real> overlaps{ 0.02f, 0.05f, 0.10f, 0.50f, 0.0f };

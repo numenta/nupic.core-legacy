@@ -20,7 +20,7 @@
 # ----------------------------------------------------------------------
 
 import unittest
-import nupic.bindings.check as check
+import htm.bindings.check as check
 
 
 

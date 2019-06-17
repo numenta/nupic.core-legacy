@@ -24,11 +24,11 @@
  * @file
  */
 #include <gtest/gtest.h>
-#include <nupic/utils/Random.hpp>
+#include <htm/utils/Random.hpp>
 
-#include <nupic/os/Env.hpp>
-#include <nupic/utils/LoggingException.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/utils/LoggingException.hpp>
+#include <htm/os/Timer.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -36,7 +36,7 @@
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 using namespace std;
 
 TEST(RandomTest, Seeding) {
@@ -152,7 +152,7 @@ TEST(RandomTest, testSerialization2) {
   Random r1(7);
   Random r2;
 
-  nupic::Timer testTimer;
+  htm::Timer testTimer;
   testTimer.start();
   for (UInt i = 0; i < n; ++i) {
     r1.getUInt32();
@@ -192,11 +192,11 @@ TEST(RandomTest, testSerialization_ar) {
   EXPECT_EQ(r1.getUInt32(), 2276275187u) << "Before serialization must be same";
   // serialize
   std::stringstream ss;
-  r1.saveToStream_ar(ss);
+  r1.save(ss);
 
   // deserialize into r2
   Random r2;
-  r2.loadFromStream_ar(ss);
+  r2.load(ss);
 
   // r1 and r2 should be identical
   EXPECT_EQ(r1, r2) << "load from serialization";

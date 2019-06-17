@@ -2,12 +2,11 @@
 #include <sstream>
 
 #include "gtest/gtest.h"
-#include <nupic/algorithms/AnomalyLikelihood.hpp>
+#include <htm/algorithms/AnomalyLikelihood.hpp>
 
 namespace testing {
 
-using namespace nupic;
-using nupic::algorithms::anomaly::AnomalyLikelihood;
+using namespace htm;
 
 TEST(DISABLED_AnomalyLikelihood, SelectModeLikelihood)
 {
@@ -38,8 +37,8 @@ TEST(DISABLED_AnomalyLikelihood, SerializationLikelihood)
   
   AnomalyLikelihood b;
   std::stringstream ss;
-  a.saveToStream_ar(ss);
-  b.loadFromStream_ar(ss);
+  a.save(ss);
+  b.load(ss);
   EXPECT_EQ(a, b);
 }
 

@@ -26,12 +26,12 @@
 
 #include <algorithm>
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Collection.hpp>
+#include <htm/ntypes/Collection.hpp>
 #include <sstream>
 
 namespace testing { 
     
-using namespace nupic;
+using namespace htm;
 
 struct CollectionTest : public ::testing::Test {
   struct Item {

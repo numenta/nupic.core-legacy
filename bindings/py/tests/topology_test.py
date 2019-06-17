@@ -23,15 +23,15 @@
 
 import unittest
 
-from nupic.bindings.math import (DefaultTopology,
+from htm.bindings.math import (DefaultTopology,
                                  NoTopology,
                                  coordinatesFromIndex,
                                  indexFromCoordinates,
                                  neighborhood,
                                  wrappingNeighborhood)
 
-from nupic.bindings.math import Random
-from nupic.bindings.sdr import SDR
+from htm.bindings.math import Random
+from htm.bindings.sdr import SDR
 
 class TestTopology(unittest.TestCase):
 

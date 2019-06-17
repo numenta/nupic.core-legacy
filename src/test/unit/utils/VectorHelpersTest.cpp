@@ -24,14 +24,13 @@
 
 #include <vector>
 #include <algorithm>
-#include "nupic/utils/VectorHelpers.hpp"
+#include "htm/utils/VectorHelpers.hpp"
 #include "gtest/gtest.h"
-#include "nupic/types/Types.hpp"
+#include "htm/types/Types.hpp"
 
 namespace testing { 
     
-using namespace nupic::utils;
-using namespace nupic;
+using namespace htm;
 using namespace std;
 
 TEST(VectorHelpersTest, sparseToBinary)

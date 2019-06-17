@@ -26,15 +26,15 @@
 
 #include "gtest/gtest.h"
 
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/utils/Log.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
@@ -76,12 +76,12 @@ TEST(NetworkTest, RegionAccess) {
 
   ASSERT_TRUE(l1->getNetwork() == &net);
 
-  EXPECT_THROW(net.getRegions().getByName("nosuchregion"), std::exception);
+  EXPECT_THROW(net.getRegion("nosuchregion"), std::exception);
 
   // Make sure partial matches don't work
-  EXPECT_THROW(net.getRegions().getByName("level"), std::exception);
+  EXPECT_THROW(net.getRegion("level"), std::exception);
 
-  std::shared_ptr<Region> l1a = net.getRegions().getByName("level1");
+  std::shared_ptr<Region> l1a = net.getRegion("level1");
   ASSERT_TRUE(l1a == l1);
 
   // Should not be able to add a second region with the same name
@@ -139,14 +139,12 @@ TEST(NetworkTest, Modification) {
 
   net.link("level1", "level2");
 
-  auto &regions = net.getRegions();
-
-  ASSERT_EQ((UInt32)2, regions.getCount());
+  ASSERT_EQ((UInt32)2, net.getRegions().size());
 
   // Should succeed since dimensions are set
   net.initialize();
   net.run(1);
-  l2 = regions.getByName("level2");
+  l2 = net.getRegion("level2");
   Dimensions d2 = l2->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
   ASSERT_EQ((UInt32)2, d2[0]);
@@ -156,13 +154,13 @@ TEST(NetworkTest, Modification) {
 
   net.removeRegion("level2");
   // net now only contains level1
-  ASSERT_EQ((UInt32)1, regions.getCount()) << "Should be only region 'level1' remaining\n";
-  EXPECT_THROW(regions.getByName("level2"), std::exception);
+  ASSERT_EQ((UInt32)1, net.getRegions().size()) << "Should be only region 'level1' remaining\n";
+  EXPECT_THROW(net.getRegion("level2"), std::exception);
 
   auto links = net.getLinks();
-  ASSERT_TRUE(links.getCount() == 0) << "Removing the destination region hould have removed the link.";
+  ASSERT_TRUE(links.size() == 0) << "Removing the destination region hould have removed the link.";
 
-  ASSERT_TRUE(l1 == regions.getByName("level1"));
+  ASSERT_TRUE(l1 == net.getRegion("level1"));
   l2 = net.addRegion("level2", "TestNode", "dim: [2,2]");
 
   // should have been added at phase1
@@ -176,8 +174,8 @@ TEST(NetworkTest, Modification) {
   // network can be initialized now
   net.run(1);
 
-  ASSERT_EQ((UInt32)2, regions.getCount());
-  ASSERT_TRUE(l2 == regions.getByName("level2"));
+  ASSERT_EQ((UInt32)2, net.getRegions().size());
+  ASSERT_TRUE(l2 == net.getRegion("level2"));
 
   d2 = l2->getDimensions();
   ASSERT_EQ((UInt32)2, d2.size());
@@ -192,7 +190,7 @@ TEST(NetworkTest, Modification) {
   ASSERT_EQ((UInt32)1, phases.size());
   ASSERT_TRUE(phases.find(2) != phases.end());
 
-  ASSERT_EQ((UInt32)3, regions.getCount());
+  ASSERT_EQ((UInt32)3, net.getRegions().size());
 
   net.link("level2", "level3");
   net.initialize();
@@ -205,17 +203,17 @@ TEST(NetworkTest, Modification) {
   // this should fail because it would leave the network
   // unrunnable
   EXPECT_THROW(net.removeRegion("level2"), std::exception);
-  ASSERT_EQ((UInt32)3, regions.getCount());
+  ASSERT_EQ((UInt32)3, net.getRegions().size());
   EXPECT_THROW(net.removeRegion("level1"), std::exception);
-  ASSERT_EQ((UInt32)3, regions.getCount());
+  ASSERT_EQ((UInt32)3, net.getRegions().size());
 
   // this should be ok
   net.removeRegion("level3");
-  ASSERT_EQ((UInt32)2, regions.getCount());
+  ASSERT_EQ((UInt32)2, net.getRegions().size());
 
   net.removeRegion("level2");
   net.removeRegion("level1");
-  ASSERT_EQ((UInt32)0, regions.getCount());
+  ASSERT_EQ((UInt32)0, net.getRegions().size());
 
   // build up the network again -- slightly differently with
   // l1->l2 and l1->l3
@@ -259,7 +257,7 @@ TEST(NetworkTest, Unlinking) {
   Dimensions d;
   d.push_back(4);
   d.push_back(2);
-  net.getRegions().getByName("level1")->setDimensions(d);
+  net.getRegion("level1")->setDimensions(d);
 
   net.link("level1", "level2");
   ASSERT_TRUE(
@@ -315,9 +313,9 @@ callbackData mydata;
 void testCallback(Network *net, UInt64 iteration, void *data) {
   callbackData &thedata = *(static_cast<callbackData *>(data));
   // push region names onto callback data
-  const nupic::Collection<std::shared_ptr<Region>> &regions = net->getRegions();
-  for (size_t i = 0; i < regions.getCount(); i++) {
-    thedata.push_back(regions.getByIndex(i).first);
+  const Collection<std::shared_ptr<Region>> &regions = net->getRegions();
+  for(auto iter = regions.cbegin(); iter != regions.cend(); ++iter) {
+    thedata.push_back(iter->first);
   }
 }
 
@@ -497,9 +495,9 @@ TEST(NetworkTest, Callback) {
   n.addRegion("level3", "TestNode", "");
   Dimensions d;
   d.push_back(1);
-  n.getRegions().getByName("level1")->setDimensions(d);
-  n.getRegions().getByName("level2")->setDimensions(d);
-  n.getRegions().getByName("level3")->setDimensions(d);
+  n.getRegion("level1")->setDimensions(d);
+  n.getRegion("level2")->setDimensions(d);
+  n.getRegion("level3")->setDimensions(d);
 
   Collection<Network::callbackItem> &callbacks = n.getCallbacks();
   Network::callbackItem callback(testCallback, (void *)(&mydata));
@@ -529,11 +527,7 @@ TEST(NetworkTest, testEqualsOperator) {
   auto l1 = n1.addRegion("level1", "TestNode", "");
   ASSERT_TRUE(n1 != n2);
   auto l2 = n2.addRegion("level1", "TestNode", "");
-  ASSERT_TRUE(n1 == n2);   // NOTE: This only checks if the structure is the same
-                           // It does not know anything about internal state
-                           // or data content.
-                           // But maybe this is good enough; I don't know.
-
+  ASSERT_TRUE(n1 == n2);   
   l1->setDimensions(d);
   ASSERT_TRUE(n1 != n2);
   l2->setDimensions(d);

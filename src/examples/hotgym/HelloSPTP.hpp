@@ -2,14 +2,14 @@
 #ifndef NTA_EXAMPLES_HOTGYM_
 #define NTA_EXAMPLES_HOTGYM_
 
-#include <nupic/types/Types.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/types/Types.hpp>
+#include <htm/os/Timer.hpp>
 
 namespace examples {
 
-using nupic::Real64;
-using nupic::UInt;
-using nupic::Timer;
+using htm::Real64;
+using htm::UInt;
+using htm::Timer;
 
 class BenchmarkHotgym {
 

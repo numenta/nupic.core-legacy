@@ -28,29 +28,28 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
-#include <nupic/engine/RegionImplFactory.hpp>
-#include <nupic/engine/RegisteredRegionImpl.hpp>
-#include <nupic/engine/RegisteredRegionImplCpp.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/regions/TestNode.hpp>
-#include <nupic/types/Serializable.hpp>
-#include <nupic/ntypes/BundleIO.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/RegionImpl.hpp>
+#include <htm/engine/RegionImplFactory.hpp>
+#include <htm/engine/RegisteredRegionImpl.hpp>
+#include <htm/engine/RegisteredRegionImplCpp.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/regions/TestNode.hpp>
+#include <htm/types/Serializable.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/utils/Log.hpp>
 
 namespace testing { 
     
 static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
-using namespace nupic;
+using namespace htm;
 
 TEST(LinkTest, Links) {
   Network net;
@@ -129,7 +128,6 @@ TEST(LinkTest, DelayedLink) {
     MyTestNode(const ValueMap &params, Region *region)
         : TestNode(params, region) {}
 
-    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}  // TODO:cereal Remove
     MyTestNode(ArWrapper &wrapper, Region *region) : TestNode(wrapper, region) {}
 
 
@@ -258,7 +256,6 @@ TEST(LinkTest, DelayedLinkSerialization) {
     MyTestNode(const ValueMap &params, Region *region)
         : TestNode(params, region) {}
 
-    MyTestNode(BundleIO &bundle, Region *region) : TestNode(bundle, region) {}  // TODO:cereal Remove
     MyTestNode(ArWrapper &wrapper, Region *region) : TestNode(wrapper, region) {}
 
 
@@ -373,8 +370,8 @@ TEST(LinkTest, DelayedLinkSerialization) {
   }
 
   // Serialize the current net
-  VERBOSE << "cwd=" << Directory::getCWD() << std::endl;
-  net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream");
+  VERBOSE << " cwd=" << Directory::getCWD() << std::endl;
+  net.saveToFile("TestOutputDir/DelayedLinkSerialization.stream", JSON);
   {
     // Output values should still be all 100's
     // they were not modified by the save operation.
@@ -386,22 +383,33 @@ TEST(LinkTest, DelayedLinkSerialization) {
   }
 
   // What is serialized in the Delay buffer should be
-  // all 0's for first row and all 10's for the second.
+  // all 0's from the input buffer for first row and original
+  // top row of buffer (all 10's) for the second.
   // The stored output buffer would be all 100's.
-  // When restored, the first row (all 0's) will be moved to destination input buffer
-  // and the source output buffer (all 100's) would be rolled into bottom of delay buffer.
+  // When restored, the first row (all 0's) will be moved to destination input buffer.
+  // The last row of Delay buffer (all 10's) will roll to the first row of the Delay buffer.
+  // The source output buffer (all 100's) would be rolled into bottom of delay buffer.
 
   // De-serialize into a new net2
   Network net2;
-  net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream");
+  net2.loadFromFile("TestOutputDir/DelayedLinkSerialization.stream", JSON);
   net2.initialize();
 
-  auto n2region1 = net2.getRegions().getByName("region1");
-  auto n2region2 = net2.getRegions().getByName("region2");
+  auto n2region1 = net2.getRegion("region1");
+  auto n2region2 = net2.getRegion("region2");
 
   Input *n2in1 = n2region1->getInput("bottomUpIn");
   Input *n2in2 = n2region2->getInput("bottomUpIn");
   Output *n2out1 = n2region1->getOutput("bottomUpOut");
+
+  VERBOSE << "network1\n";
+  VERBOSE << " in1  buffer  =" << in1->getData() << std::endl;
+  VERBOSE << " out1 buffer  =" << out1->getData() << std::endl;
+  VERBOSE << " in2  buffer  =" << in2->getData() << std::endl;
+  VERBOSE << "\nnetwork2\n";
+  VERBOSE << " n2in1  buffer=" << n2in1->getData() << std::endl;
+  VERBOSE << " n2out1 buffer=" << n2out1->getData() << std::endl;
+  VERBOSE << " n2in2  buffer=" << n2in2->getData() << std::endl;
 
   // Make sure that the buffers in the restored network look exactly like the original.
   ASSERT_TRUE(n2in1->getData() == in1->getData())   << "Deserialized bottomUpIn region1 input buffer does not match";
@@ -488,17 +496,19 @@ public:
     outputElementCount_ = 1;
   }
 
-  TestRegionBase(BundleIO &bundle, Region *region) : RegionImpl(region) {}  // TODO:cereal Remove
   TestRegionBase(ArWrapper &wrapper, Region *region) : RegionImpl(region) {}
 
 
   virtual ~TestRegionBase() {}
 
-  // Serialize state.
-  void serialize(BundleIO &bundle) override {}
+  
+  bool operator==(const RegionImpl &other) const override { 
+    NTA_THROW << "equals not implemented for this test case";
+  }
+  inline bool operator!=(const TestRegionBase &other) const {
+    return !operator==(other);
+  }
 
-  // De-serialize state. Must be called from deserializing constructor
-  void deserialize(BundleIO &bundle) override {}
 
 
   // Execute a command
@@ -518,7 +528,16 @@ public:
     NTA_THROW << "TestRegionBase::getOutputSize -- unknown output "
               << outputName;
   }
-
+  // Include the required code for serialization.
+  CerealAdapter;
+  template<class Archive>
+  void save_ar(Archive & ar) const {
+      ar(cereal::make_nvp("outputElementCount", outputElementCount_));
+  }
+  template<class Archive>
+  void load_ar(Archive & ar) {
+      ar(cereal::make_nvp("outputElementCount", outputElementCount_));
+  }
 
 private:
   TestRegionBase();
@@ -535,8 +554,6 @@ public:
   L2TestRegion(const ValueMap &params, Region *region)
       : TestRegionBase(params, region) {}
 
-  L2TestRegion(BundleIO &bundle, Region *region)
-      : TestRegionBase(bundle, region) {}
   L2TestRegion(ArWrapper &wrapper, Region *region)
       : TestRegionBase(wrapper, region) {}
 
@@ -635,8 +652,6 @@ public:
   L4TestRegion(const ValueMap &params, Region *region)
       : TestRegionBase(params, region), k_(params.getScalarT<UInt64>("k")) {}
 
-  L4TestRegion(BundleIO &bundle, Region *region)  // TODO:cereal Remove
-      : TestRegionBase(bundle, region), k_(0) {}
   L4TestRegion(ArWrapper &wrapper, Region *region)
       : TestRegionBase(wrapper, region), k_(0) {}
 

@@ -25,7 +25,7 @@ import numpy as np
 import unittest
 import pytest
 
-from nupic.bindings import sdr
+from htm.bindings import sdr
 
 class MetricsTest(unittest.TestCase):
     def testSparsityExample(self):
@@ -39,7 +39,7 @@ class MetricsTest(unittest.TestCase):
         self.assertAlmostEqual(B.max(),    0.15, places = 2)
         self.assertAlmostEqual(B.mean(),   0.07, places = 2)
         self.assertAlmostEqual(B.std(),    0.06, places = 2)
-        assert(str(B)     == "Sparsity Min/Mean/Std/Max 0.01 / 0.0700033 / 0.0588751 / 0.15")
+        assert(str(B) == "Sparsity Min/Mean/Std/Max 0.01 / 0.0700033 / 0.0588751 / 0.15")
 
     def testSparsityConstructor(self):
         A = sdr.SDR(1000)
@@ -138,8 +138,8 @@ Entropy 0.918296""")
         assert( type(M.overlap)             == sdr.Overlap)
         gold = """SDR( 2000 )
     Sparsity Min/Mean/Std/Max 0.1 / 0.0999989 / 5.20038e-06 / 0.1
-    Activation Frequency Min/Mean/Std/Max 0 / 0.100001 / 0.0974391 / 0.619048
-    Entropy 0.830798
+    Activation Frequency Min/Mean/Std/Max 0 / 0.100001 / 0.095393 / 0.571429
+    Entropy 0.834509
     Overlap Min/Mean/Std/Max 0.45 / 0.449998 / 1.06406e-05 / 0.45"""
         import re
         gold = re.sub(r'\s+', ' ', gold)

@@ -23,8 +23,8 @@ import pickle
 import numpy as np
 import unittest
 
-from nupic.bindings.sdr import SDR, Metrics
-from nupic.bindings.encoders import RDSE, RDSE_Parameters
+from htm.bindings.sdr import SDR, Metrics
+from htm.bindings.encoders import RDSE, RDSE_Parameters
 
 class RDSE_Test(unittest.TestCase):
     def testConstructor(self):

@@ -25,11 +25,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/ntypes/Value.hpp>
+#include <htm/ntypes/Value.hpp>
 
 namespace testing { 
     
-using namespace nupic;
+using namespace htm;
 
 TEST(ValueTest, Scalar) {
   std::shared_ptr<Scalar> s(new Scalar(NTA_BasicType_Int32));

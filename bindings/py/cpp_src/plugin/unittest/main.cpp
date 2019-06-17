@@ -30,10 +30,10 @@ Google test main program
 #endif
 
 #include <gtest/gtest.h>
-#include <nupic/utils/Log.hpp>
+#include <htm/utils/Log.hpp>
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 int main(int argc, char **argv) {
 

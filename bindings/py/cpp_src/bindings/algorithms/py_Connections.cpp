@@ -28,14 +28,12 @@
 #include <string>
 #include <sstream>
 
-#include <nupic/algorithms/Connections.hpp>
+#include <htm/algorithms/Connections.hpp>
 
 namespace py = pybind11;
-using namespace nupic;
-using namespace nupic::algorithms::connections;
-using nupic::sdr::SDR;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
   void init_Connections(py::module& m)
   {
@@ -149,6 +147,8 @@ R"(Returns pair of:
 
     py_Connections.def("bumpSegment", &Connections::bumpSegment);
 
+    py_Connections.def("destroyMinPermanenceSynapses", &Connections::destroyMinPermanenceSynapses);
+
     py_Connections.def("numCells", &Connections::numCells);
 
     py_Connections.def("numSegments",
@@ -199,4 +199,4 @@ R"(Returns pair of:
             return C; } );
 
   } // End function init_Connections
-}   // End namespace nupic_ext
+}   // End namespace htm_ext

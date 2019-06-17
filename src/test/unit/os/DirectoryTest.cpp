@@ -25,10 +25,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/OS.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/os/OS.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/utils/Log.hpp>
 
 static bool verbose = false;
 #define VERBOSE if (verbose) std::cerr << "[          ] "
@@ -49,7 +49,7 @@ static bool verbose = false;
 
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 namespace testing {
 
 static std::string getCurrDir() {

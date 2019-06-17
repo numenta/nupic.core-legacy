@@ -28,7 +28,7 @@ class TemporalMemoryBindingsTest(unittest.TestCase):
   def testIssue807():
     # The following should silently pass.  Previous versions segfaulted.
     # See https://github.com/numenta/nupic.core/issues/807 for context
-    from nupic.bindings.algorithms import TemporalMemory
+    from htm.bindings.algorithms import TemporalMemory
 
     tm = TemporalMemory()
     tm.compute(set(), True)

@@ -1,4 +1,4 @@
-# Breaking changes to the nupic API
+# Breaking changes to the htm API
 
 We try to keep API as much as compatible with original [numenta/nupic.core repo](https://github.com/numenta/nupic.core). 
 The API is specified in the [API Docs](http://nupic.docs.numenta.org/prerelease/api/index.html) 
@@ -76,6 +76,10 @@ longer accept a synapse permanence threshold argument. PR #305
 
 * SDRClassifier class is replaced by `Classifier` and `Predictor` classes.
 
+
+* In NetworkAPI, access to a Region object was accessed using `net.getRegions()->getByName('name');`. 
+This is obsolete. Use getRegion('name') instead. 
+
 * Anomaly class removed as obsolete, use `TM.anomaly` which is simpler to use, and `MovingAverage` when you need to emulate 
   running averages. Internaly the code still uses `computeRawAnomalyScore()` but there's no need to call it directly. `AnomalyLikelihood` 
   is still available and can be used in addition to TM.getAnomalyScore(). PR #406 
@@ -85,3 +89,17 @@ longer accept a synapse permanence threshold argument. PR #305
 
 * TemporalMemory `compute()` and `activateCells()` now use only SDR variants, old overloads with C-style arrays removed. Bindings and 
   tests also updated. 
+  
+* Changed all use of nupic to htm.   This means that Python users must import from 
+ - htm.bindings.algorithms
+ - htm.bindings.engine_internal
+ - htm.bindings.math
+ - htm.bindings.encoders
+ - htm.bindings.sdr
+ rather than
+ - nupic.bindings.algorithms
+ - nupic.bindings.engine_internal
+ - nupic.bindings.math
+ - nupic.bindings.encoders
+ - nupic.bindings.sdr
+

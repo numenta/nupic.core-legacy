@@ -15,7 +15,7 @@
  * ---------------------------------------------------------------------- */
 
 #include <gtest/gtest.h>
-#include <nupic/types/Sdr.hpp>
+#include <htm/types/Sdr.hpp>
 #include <vector>
 #include <random>
 
@@ -25,8 +25,7 @@ static bool verbose = false;
 namespace testing {
     
 using namespace std;
-using namespace nupic;
-using namespace nupic::sdr;
+using namespace htm;
 
 /* This also tests the size and dimensions are correct */
 TEST(SdrTest, TestConstructor) {
@@ -135,6 +134,19 @@ TEST(SdrTest, TestSDR_Examples) {
     after = X.getDense().data();
     ASSERT_EQ( X.getSparse(), SDR_sparse_t({ 2 }) );
     ASSERT_EQ( before, after );
+}
+
+TEST(SdrTest, TestReshape) {
+    SDR A({3,4,5});
+    A.randomize( 5.0f / A.size );
+    const auto data = A.getSparse();
+    // Make the SDR have only the coordinate dataformat, because that could get
+    // corrupted by the reshape.
+    A.setCoordinates( A.getCoordinates() );
+    A.reshape({5,4*3});
+    ASSERT_EQ( A.getSparse(), data );
+    ASSERT_EQ( A.dimensions, vector<UInt>({5,12}) );
+    ASSERT_ANY_THROW( A.reshape({ 2 }) );
 }
 
 TEST(SdrTest, TestSetDenseVec) {
@@ -310,13 +322,13 @@ TEST(SdrTest, TestGetDenseFromSparse) {
 
     // Test 1-D
     SDR d1({30});
-    d1.setSparse(SDR_sparse_t({1, 29, 4, 5, 7}));
+    d1.setSparse(SDR_sparse_t({1, 4, 5, 7, 29}));
     vector<Byte> ans(30, 0);
     ans[1] = 1;
-    ans[29] = 1;
     ans[4] = 1;
     ans[5] = 1;
     ans[7] = 1;
+    ans[29] = 1;
     ASSERT_EQ( d1.getDense(), ans );
 
     // Test 3-D
@@ -337,7 +349,7 @@ TEST(SdrTest, TestGetDenseFromSparse) {
 TEST(SdrTest, TestGetDenseFromCoordinates) {
     // Test simple 2-D
     SDR a({3, 3});
-    a.setCoordinates(SDR_coordinate_t({{1, 0, 2}, {2, 0, 2}}));
+    a.setCoordinates(SDR_coordinate_t({{0, 1, 2}, {0, 2, 2}}));
     vector<Byte> ans(9, 0);
     ans[0] = 1;
     ans[5] = 1;
@@ -398,9 +410,9 @@ TEST(SdrTest, TestGetCoordinatesFromSparse) {
     ASSERT_EQ( index.size(), 2ul );
     ASSERT_EQ( index[0].size(), 0ul );
     ASSERT_EQ( index[1].size(), 0ul );
-    a.setSparse(SDR_sparse_t({ 4, 8, 5 }));
+    a.setSparse(SDR_sparse_t({ 4, 5, 8 }));
     ASSERT_EQ( a.getCoordinates(), vector<vector<UInt>>({
-        { 1, 2, 1 },
+        { 1, 1, 2 },
         { 1, 2, 2 } }) );
 
     // Test zero'd SDR.
@@ -617,6 +629,35 @@ TEST(SdrTest, TestIntersection) {
     ASSERT_EQ( X.getSum(), 0u );
 }
 
+TEST(SdrTest, TestUnionExampleUsage) {
+    // Setup 2 SDRs to hold the inputs.
+    SDR A({ 10 });
+    SDR B({ 10 });
+    SDR C({ 10 });
+    A.setSparse(SDR_sparse_t{0, 1, 2, 3});
+    B.setSparse(SDR_sparse_t      {2, 3, 4, 5});
+    // Calculate the logical union
+    C.set_union(A, B);
+    ASSERT_EQ(C.getSparse(), SDR_sparse_t({0, 1, 2, 3, 4, 5}));
+}
+
+TEST(SdrTest, TestUnion) {
+    SDR A({1000});
+    SDR B(A.dimensions);
+    SDR U(A.dimensions);
+    A.randomize(.5);
+    B.randomize(.5);
+
+    // Test basic functionality
+    U.set_union(A, B);
+    U.getDense();
+    ASSERT_GT( U.getSparsity(), 1 - .25 * 2. );
+    ASSERT_LT( U.getSparsity(), 1 - .25 / 2. );
+    A.zero();
+    U.set_union(A, B);
+    ASSERT_EQ( U.getSparsity(), .5 );
+}
+
 TEST(SdrTest, TestConcatenationExampleUsage) {
     SDR A({ 10 });
     SDR B({ 10 });
@@ -742,8 +783,8 @@ TEST(SdrTest, TestSaveLoad) {
 
     dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
     stringstream ss;
-    dense.saveToStream_ar(ss, SerializableFormat::BINARY);
-    dense_2.loadFromStream_ar(ss, SerializableFormat::BINARY);
+    dense.save(ss, SerializableFormat::BINARY);
+    dense_2.load(ss, SerializableFormat::BINARY);
     ASSERT_TRUE( dense   == dense_2 );
 
 }
@@ -759,8 +800,6 @@ TEST(SdrTest, TestCallbacks) {
     SDR_callback_t call2 = [&](){ count2++; };
     int count3 = 0;
     SDR_callback_t call3 = [&](){ count3++; };
-    int count4 = 0;
-    SDR_callback_t call4 = [&](){ count4++; };
 
     A.zero();   // No effect on callbacks
     A.zero();   // No effect on callbacks
@@ -769,9 +808,6 @@ TEST(SdrTest, TestCallbacks) {
     UInt handle1 = A.addCallback( call1 );
     UInt handle2 = A.addCallback( call2 );
     UInt handle3 = A.addCallback( call3 );
-    // Test reshape gets callbacks
-    Reshape C(A);
-    C.addCallback( call4 );
 
     // Remove call 2 and add it back in.
     A.removeCallback( handle2 );
@@ -819,180 +855,8 @@ TEST(SdrTest, TestCallbacks) {
     SDR B(A);
     ASSERT_ANY_THROW( B.removeCallback( handle1 ) );
     ASSERT_ANY_THROW( B.removeCallback( 0 ) );
-    // Check SDR Reshape got all of the callbacks and passed them along.
-    ASSERT_EQ( count4, 4 );
 }
 
-
-TEST(SdrReshapeTest, TestReshapeExamples) {
-    SDR     A(    { 4, 4 });
-    Reshape B( A, { 8, 2 });
-    A.setCoordinates(SDR_coordinate_t({{1, 1, 2}, {0, 1, 2}}));
-    auto coords = B.getCoordinates();
-    ASSERT_EQ(coords, SDR_coordinate_t({{2, 2, 5}, {0, 1, 0}}));
-}
-
-TEST(SdrReshapeTest, TestReshapeConstructor) {
-    SDR       A({ 11 });
-    Reshape   B( A );
-    ASSERT_EQ( A.dimensions, B.dimensions );
-    Reshape   C( A, { 11 });
-    SDR       D({ 5, 4, 3, 2, 1 });
-    Reshape   E( D, {1, 1, 1, 120, 1});
-    Reshape   F( D, { 20, 6 });
-    Reshape   X( (SDR&) F );
-
-    // Test that SDR Reshapes can be safely made and destroyed.
-    Reshape *G = new Reshape( A );
-    Reshape *H = new Reshape( A );
-    Reshape *I = new Reshape( A );
-    A.zero();
-    H->getDense();
-    delete H;
-    I->getDense();
-    A.zero();
-    Reshape *J = new Reshape( A );
-    J->getDense();
-    Reshape *K = new Reshape( A );
-    delete K;
-    Reshape *L = new Reshape( A );
-    L->getCoordinates();
-    delete L;
-    delete G;
-    I->getCoordinates();
-    delete I;
-    delete J;
-    A.getDense();
-
-    // Test invalid dimensions
-    ASSERT_ANY_THROW( new Reshape( A, {2, 5}) );
-    ASSERT_ANY_THROW( new Reshape( A, {11, 0}) );
-}
-
-TEST(SdrReshapeTest, TestReshapeDeconstructor) {
-    SDR     *A = new SDR({12});
-    Reshape *B = new Reshape( *A );
-    Reshape *C = new Reshape( *A, {3, 4} );
-    Reshape *D = new Reshape( *C, {4, 3} );
-    Reshape *E = new Reshape( *C, {2, 6} );
-    D->getDense();
-    E->getCoordinates();
-    // Test subtree deletion
-    delete C;
-    ASSERT_ANY_THROW( D->getDense() );
-    ASSERT_ANY_THROW( E->getCoordinates() );
-    ASSERT_ANY_THROW( new Reshape( *E ) );
-    delete D;
-    // Test rest of tree is OK.
-    B->getSparse();
-    A->zero();
-    B->getSparse();
-    // Test delete root.
-    delete A;
-    ASSERT_ANY_THROW( B->getDense() );
-    ASSERT_ANY_THROW( E->getCoordinates() );
-    // Cleanup remaining Reshapes.
-    delete B;
-    delete E;
-}
-
-TEST(SdrReshapeTest, TestReshapeThrows) {
-    SDR A({10});
-    Reshape B(A, {2, 5});
-    SDR *C = &B;
-
-    ASSERT_ANY_THROW( C->setDense( SDR_dense_t( 10, 1 ) ));
-    ASSERT_ANY_THROW( C->setCoordinates( SDR_coordinate_t({ {0}, {0} }) ));
-    ASSERT_ANY_THROW( C->setSparse( SDR_sparse_t({ 0, 1, 2 }) ));
-    SDR X({10});
-    ASSERT_ANY_THROW( C->setSDR( X ));
-    ASSERT_ANY_THROW( C->randomize(0.10f) );
-    ASSERT_ANY_THROW( C->addNoise(0.10f) );
-}
-
-TEST(SdrReshapeTest, TestReshapeGetters) {
-    SDR A({ 2, 3 });
-    Reshape B( A, { 3, 2 });
-    SDR *C = &B;
-    // Test getting dense
-    A.setDense( SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
-    ASSERT_EQ( C->getDense(), SDR_dense_t({ 0, 1, 0, 0, 1, 0 }) );
-
-    // Test getting coordinates
-    A.setCoordinates( SDR_coordinate_t({ {0, 1}, {0, 1} }));
-    ASSERT_EQ( C->getCoordinates(), SDR_coordinate_t({ {0, 2}, {0, 0} }) );
-
-    // Test getting sparse
-    A.setSparse( SDR_sparse_t({ 2, 3 }));
-    ASSERT_EQ( C->getSparse(), SDR_sparse_t({ 2, 3 }) );
-
-    // Test getting coordinates, a second time.
-    A.setSparse( SDR_sparse_t({ 2, 3 }));
-    ASSERT_EQ( C->getCoordinates(), SDR_coordinate_t({ {1, 1}, {0, 1} }) );
-
-    // Test getting coordinates, when the parent SDR already has coordinates
-    // computed and the dimensions are the same.
-    A.zero();
-    Reshape D( A );
-    SDR *E = &D;
-    A.setCoordinates( SDR_coordinate_t({ {0, 1}, {0, 1} }));
-    ASSERT_EQ( E->getCoordinates(), SDR_coordinate_t({ {0, 1}, {0, 1} }) );
-}
-
-TEST(SdrReshapeTest, TestSaveLoad) {
-    const char *filename = "SdrReshapeSerialization.tmp";
-    ofstream outfile;
-    outfile.open(filename);
-
-    // Test zero value
-    SDR zero({ 3, 3 });
-    Reshape z( zero );
-    z.save( outfile );
-
-    // Test dense data
-    SDR dense({ 3, 3 });
-    Reshape d( dense );
-    dense.setDense(SDR_dense_t({ 0, 1, 0, 0, 1, 0, 0, 0, 1 }));
-    Serializable &ser = d;
-    ser.save( outfile );
-
-    // Test sparse data
-    SDR sparse({ 3, 3 });
-    Reshape f( sparse );
-    sparse.setSparse(SDR_sparse_t({ 1, 4, 8 }));
-    f.save( outfile );
-
-    // Test coordinate data
-    SDR coord({ 3, 3 });
-    Reshape x( coord );
-    coord.setCoordinates(SDR_coordinate_t({
-            { 0, 1, 2 },
-            { 1, 1, 2 }}));
-    x.save( outfile );
-
-    // Now load all of the data back into SDRs.
-    outfile.close();
-    ifstream infile( filename );
-
-    SDR zero_2;
-    zero_2.load( infile );
-    SDR dense_2;
-    dense_2.load( infile );
-    SDR sparse_2;
-    sparse_2.load( infile );
-    SDR coord_2;
-    coord_2.load( infile );
-
-    infile.close();
-    int ret = ::remove( filename );
-    EXPECT_TRUE(ret == 0) << "Failed to delete " << filename;
-
-    // Check that all of the data is OK
-    ASSERT_TRUE( zero    == zero_2 );
-    ASSERT_TRUE( dense   == dense_2 );
-    ASSERT_TRUE( sparse  == sparse_2 );
-    ASSERT_TRUE( coord   == coord_2 );
-}
 
 TEST(SdrTest, TestAssignmentOperator) 
 {

@@ -24,10 +24,10 @@ import unittest
 import pytest
 
 
-from nupic.bindings.regions.PyRegion import PyRegion
+from htm.bindings.regions.PyRegion import PyRegion
 
-import nupic.bindings.engine_internal as engine
-from nupic.bindings.tools.serialization_test_py_region import \
+import htm.bindings.engine_internal as engine
+from htm.bindings.tools.serialization_test_py_region import \
      SerializationTestPyRegion
 
 
@@ -109,8 +109,7 @@ class NetworkTest(unittest.TestCase):
       destNet = engine.Network()
       destNet.loadFromFile("SerializationTest.stream")
 
-      destRegion = destNet.getRegions().getByName(
-        SerializationTestPyRegion.__name__)
+      destRegion = destNet.getRegion(SerializationTestPyRegion.__name__)
 
       self.assertEqual(destRegion.getParameterUInt32("dataWidth"), 128)
       self.assertEqual(destRegion.getParameterUInt32("randomSeed"), 99)
@@ -128,21 +127,19 @@ class NetworkTest(unittest.TestCase):
     network.addRegion("region2", "TestNode", "")
 
     # Set dimensions on first region
-    region1 = network.getRegions().getByName("region1")
+    region1 = network.getRegion("region1")
     region1.setDimensions(engine.Dimensions([1, 1]))
 
     # Link region1 and region2
-    network.link("region1", "region2", "UniformLink", "")
+    network.link("region1", "region2")
 
     # Initialize network
     network.initialize()
 
-    for linkName, link in network.getLinks():
+    for link in network.getLinks():
       # Compare Link API to what we know about the network
-      self.assertEqual(link.toString(), linkName)
       self.assertEqual(link.getDestRegionName(), "region2")
       self.assertEqual(link.getSrcRegionName(), "region1")
-      self.assertEqual(link.getLinkType(), "UniformLink")
       self.assertEqual(link.getDestInputName(), "bottomUpIn")
       self.assertEqual(link.getSrcOutputName(), "bottomUpOut")
       break
@@ -162,10 +159,10 @@ class NetworkTest(unittest.TestCase):
 
 
     # Check for valid links
-    network.link("from", "to", "UniformLink", "", "UInt32", "UInt32")
-    network.link("from", "to", "UniformLink", "", "Real32", "Real32")
-    network.link("from", "to", "UniformLink", "", "Real32", "UInt32")
-    network.link("from", "to", "UniformLink", "", "UInt32", "Real32")
+    network.link("from", "to", "", "", "UInt32", "UInt32")
+    network.link("from", "to", "", "", "Real32", "Real32")
+    network.link("from", "to", "", "", "Real32", "UInt32")
+    network.link("from", "to", "", "", "UInt32", "Real32")
 	
 
   @pytest.mark.skip(reason="parameter types don't match.")

@@ -35,22 +35,22 @@ PyBind11 bindings for Engine classes
 #include <pybind11/stl.h>
 
 
-#include <nupic/os/OS.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/os/OS.hpp>
+#include <htm/os/Timer.hpp>
 
-#include <nupic/ntypes/Array.hpp>
+#include <htm/ntypes/Array.hpp>
 
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
 #include <plugin/PyBindRegion.hpp>
 #include <plugin/RegisteredRegionImplPy.hpp>
 
 namespace py = pybind11;
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
 
 	typedef std::shared_ptr<Region> Region_Ptr_t;
@@ -105,6 +105,7 @@ namespace nupic_ext
                 , py::arg("srcOutputName") = "", py::arg("destInputName") = ""
                 , py::arg("propagationDelay") = 0);
 
+				// member functions
         py_Link.def("toString", &Link::toString);
         py_Link.def("getDestRegionName", &Link::getDestRegionName);
         py_Link.def("getSrcRegionName",  &Link::getSrcRegionName);
@@ -218,14 +219,14 @@ namespace nupic_ext
         {
             auto array_ref = self.getInputData(name);
 
-            return py::array_t<nupic::Byte>();
+            return py::array_t<htm::Byte>();
         });
 
         py_Region.def("getOutputArray", [](const Region& self, const std::string& name)
         {
             auto array_ref = self.getOutputData(name);
 
-            return py::array_t<nupic::Byte>();
+            return py::array_t<htm::Byte>();
         });
 
 
@@ -241,50 +242,40 @@ namespace nupic_ext
 
 
 		py_Network.def("addRegion",
-			(Region_Ptr_t (nupic::Network::*)(
+			(Region_Ptr_t (htm::Network::*)(
 					const std::string&,
   					const std::string&,
                     const std::string&))
-					&nupic::Network::addRegion,
+					&htm::Network::addRegion,
 					"Normal add region."
 					, py::arg("name")
 					, py::arg("nodeType" )
 					, py::arg("nodeParams"));
-		py_Network.def("addRegion",
-			(Region_Ptr_t (nupic::Network::*)(
-			 		std::istream &stream,
-                    std::string))
-					&nupic::Network::addRegion,
-					"add deserialized region."
-					, py::arg("stream")
-					, py::arg("name") = "");
 
-        py_Network.def("getRegions", &nupic::Network::getRegions)
-            .def("getRegion",          &nupic::Network::getRegion)
-            .def("getLinks",           &nupic::Network::getLinks)
-            .def("getMinPhase",        &nupic::Network::getMinPhase)
-            .def("getMaxPhase",        &nupic::Network::getMaxPhase)
-            .def("setMinEnabledPhase", &nupic::Network::getMinPhase)
-            .def("setMaxEnabledPhase", &nupic::Network::getMaxPhase)
-            .def("getMinEnabledPhase", &nupic::Network::getMinPhase)
-            .def("getMaxEnabledPhase", &nupic::Network::getMaxPhase)
-			.def("run",                &nupic::Network::run);
+    py_Network.def("getRegions", &htm::Network::getRegions)
+            .def("getRegion",          &htm::Network::getRegion)
+            .def("getLinks",           &htm::Network::getLinks)
+            .def("getMinPhase",        &htm::Network::getMinPhase)
+            .def("getMaxPhase",        &htm::Network::getMaxPhase)
+            .def("setMinEnabledPhase", &htm::Network::getMinPhase)
+            .def("setMaxEnabledPhase", &htm::Network::getMaxPhase)
+            .def("getMinEnabledPhase", &htm::Network::getMinPhase)
+            .def("getMaxEnabledPhase", &htm::Network::getMaxPhase)
+			.def("run",                &htm::Network::run);
 
-        py_Network.def("initialize", &nupic::Network::initialize);
+        py_Network.def("initialize", &htm::Network::initialize);
 
-		py_Network.def("addRegionFromBundle", &nupic::Network::addRegionFromBundle
-			, "A function to load a serialized region into a Network framework."
-			, py::arg("name")
-			, py::arg("nodeType")
-			, py::arg("dimensions")
-			, py::arg("filename")
-			, py::arg("label") = "");
+     py_Network.def("save",            &htm::Network::save)
+		           .def("load",            &htm::Network::load)
+							 .def("saveToFile",      &htm::Network::saveToFile)
+							 .def("loadFromFile",    &htm::Network::loadFromFile);
 
-        py_Network.def("link", &nupic::Network::link
+        py_Network.def("link", &htm::Network::link
             , "Defines a link between regions"
             , py::arg("srcName"), py::arg("destName")
-            , py::arg("linkType"), py::arg("linkParams")
-            , py::arg("srcOutput") = "", py::arg("destInput") = "", py::arg("propagationDelay") = 0);
+            , py::arg("linkType") = "", py::arg("linkParams") = ""
+            , py::arg("srcOutput") = "", py::arg("destInput") = ""
+						, py::arg("propagationDelay") = 0);
 
 
         // plugin registration
@@ -293,14 +284,14 @@ namespace nupic_ext
         py_Network.def_static("registerPyRegion",
 		                 [](const std::string& module,
 							const std::string& className) {
-				nupic::RegisteredRegionImplPy::registerPyRegion(module, className);
+				htm::RegisteredRegionImplPy::registerPyRegion(module, className);
 			});
 
         py_Network.def_static("unregisterPyRegion",
 			             [](const std::string& typeName) {
-				nupic::RegisteredRegionImplPy::unregisterPyRegion(typeName);
+				htm::RegisteredRegionImplPy::unregisterPyRegion(typeName);
 			});
-		py_Network.def_static("cleanup", &nupic::Network::cleanup);
+		py_Network.def_static("cleanup", &htm::Network::cleanup);
 
 
 
@@ -314,6 +305,7 @@ namespace nupic_ext
         py_RegionCollection.def("getByName", &Region_Collection_t::getByName);
         py_RegionCollection.def("contains", &Region_Collection_t::contains);
         py_RegionCollection.def("getCount", &Region_Collection_t::getCount);
+        py_RegionCollection.def("size", &Region_Collection_t::size);
 
         // bare bone sequence protocol
         py_RegionCollection.def("__len__", &Region_Collection_t::getCount);
@@ -328,26 +320,24 @@ namespace nupic_ext
         });
 
         // Links
-        typedef Collection<std::shared_ptr<Link>> Link_Collection_t;
-        py::class_<Link_Collection_t> py_LinkCollection(m, "Link_Collection_t");
-        py_LinkCollection.def("getByName", &Link_Collection_t::getByName);
-        py_LinkCollection.def("contains", &Link_Collection_t::contains);
-        py_LinkCollection.def("getCount", &Link_Collection_t::getCount);
+        typedef std::vector<std::shared_ptr<Link>> Links_t;
+        py::class_<Links_t> py_LinkCollection(m, "Links_t");
+        py_LinkCollection.def("getCount", &Links_t::size);
 
         // bare bone sequence protocol
-        py_LinkCollection.def("__len__", &Link_Collection_t::getCount);
-        py_LinkCollection.def("__getitem__", [](Link_Collection_t& coll, size_t i)
+        py_LinkCollection.def("__len__", &Links_t::size);
+        py_LinkCollection.def("__getitem__", [](Links_t& coll, size_t i)
         {
-            if (i >= coll.getCount())
+            if (i >= coll.size())
             {
                 throw py::index_error();
             }
 
-            return coll.getByIndex(i);
+            return coll[i];
         });
 
         // not sure we need __iter__
-        //py_LinkCollection.def("__iter__", [](Link_Collection_t& coll) { return py::make_iterator(coll.begin(), coll.end()); }, py::keep_alive<0, 1>());
+        py_LinkCollection.def("__iter__", [](Links_t& coll) { return py::make_iterator(coll.begin(), coll.end()); }, py::keep_alive<0, 1>());
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext
