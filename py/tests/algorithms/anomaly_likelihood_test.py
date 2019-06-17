@@ -34,24 +34,27 @@ import unittest
 import mock
 
 from htm.algorithms import anomaly_likelihood as an
+from htm.bindings.math import Random
 from unittest import TestCase as TestCaseBase
 
-def _sampleDistribution(params, numSamples, verbosity=0):
+def _sampleDistribution(params, numSamples, seed=0, verbosity=0):
   """
   Given the parameters of a distribution, generate numSamples points from it.
   This routine is mostly for testing.
 
   :returns: A numpy array of samples.
-  """
+  """  
+  rng            = numpy.random.RandomState(seed = seed)
+
   if "name" in params:
     if params["name"] == "normal":
-      samples = numpy.random.normal(loc=params["mean"],
+      samples = rng.normal(loc=params["mean"],
                                     scale=math.sqrt(params["variance"]),
                                     size=numSamples)
     elif params["name"] == "pareto":
-      samples = numpy.random.pareto(params["alpha"], size=numSamples)
+      samples = rng.pareto(params["alpha"], size=numSamples)
     elif params["name"] == "beta":
-      samples = numpy.random.beta(a=params["alpha"], b=params["beta"],
+      samples = rng.beta(a=params["alpha"], b=params["beta"],
                                   size=numSamples)
     else:
       raise ValueError("Undefined distribution: " + params["name"])
@@ -66,7 +69,7 @@ def _sampleDistribution(params, numSamples, verbosity=0):
 
 
 def _generateSampleData(mean=0.2, variance=0.2, metricMean=0.2,
-                        metricVariance=0.2):
+                        metricVariance=0.2, seed=0):
   """
   Generate 1440 samples of fake metrics data with a particular distribution
   of anomaly scores and metric values. Here we generate values every minute.
@@ -76,12 +79,12 @@ def _generateSampleData(mean=0.2, variance=0.2, metricMean=0.2,
        "name": "normal",
        "stdev": math.sqrt(variance),
        "variance": variance}
-  samples = _sampleDistribution(p, 1440)
+  samples = _sampleDistribution(p, 1440, seed)
   p = {"mean": metricMean,
        "name": "normal",
        "stdev": math.sqrt(metricVariance),
        "variance": metricVariance}
-  metricValues = _sampleDistribution(p, 1440)
+  metricValues = _sampleDistribution(p, 1440, seed)
   for hour in range(0, 24):
     for minute in range(0, 60):
       data.append(
@@ -94,11 +97,9 @@ def _generateSampleData(mean=0.2, variance=0.2, metricMean=0.2,
 
   return data
 
-
-
+  
 class AnomalyLikelihoodClassTest(TestCaseBase):
   """Tests the high-level AnomalyLikelihood class"""
-
 
   def testCalcSkipRecords(self):
 
@@ -329,7 +330,10 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
   """Tests the low-level algorithm functions"""
-
+  #seed for function _generateSampleData()
+  #zero means really random and not deterministic
+  GLOBAL_TEST_SEED = 1
+  
 
   def assertWithinEpsilon(self, a, b, epsilon=0.005):
     self.assertLessEqual(abs(a - b), epsilon,
@@ -415,7 +419,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
          "name": "normal",
          "stdev": math.sqrt(0.1),
          "variance": 0.1}
-    samples = _sampleDistribution(p, 1000)
+    samples = _sampleDistribution(p, 1000, seed=Random(self.GLOBAL_TEST_SEED).getUInt32())
 
     # Ensure estimate is reasonable
     np = an.estimateNormal(samples)
@@ -432,7 +436,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate an estimate using fake distribution of anomaly scores.
-    data1 = _generateSampleData(mean=0.2)
+    data1 = _generateSampleData(mean=0.2,seed=Random(self.GLOBAL_TEST_SEED).getUInt32())
 
     likelihoods, avgRecordList, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:1000])
@@ -482,7 +486,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate a fake distribution of anomaly scores, and add malformed records
-    data1 = _generateSampleData(mean=0.2)
+    data1 = _generateSampleData(mean=0.2,seed=Random(self.GLOBAL_TEST_SEED).getUInt32())
     data1 = data1[0:1000] + [(2, 2)] + [(2, 2, 2, 2)] + [()] + [(2)]
 
     likelihoods, avgRecordList, estimatorParams = (
@@ -509,10 +513,11 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
     This calls estimateAnomalyLikelihoods with various values of skipRecords
     """
-
+    rnd = Random(self.GLOBAL_TEST_SEED)#we want different data for each generate
+    
     # Check happy path
-    data1 = _generateSampleData(mean=0.1)[0:200]
-    data1 = data1 + (_generateSampleData(mean=0.9)[0:200])
+    data1 = _generateSampleData(mean=0.1,seed=rnd.getUInt32())[0:200]
+    data1 = data1 + (_generateSampleData(mean=0.9,seed=rnd.getUInt32())[0:200])
 
     likelihoods, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1, skipRecords=200)
@@ -545,11 +550,12 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     to estimate the distribution on fake data, followed by several calls
     to updateAnomalyLikelihoods.
     """
-
+    rnd = Random(self.GLOBAL_TEST_SEED)#we want different data for each generate
+    
     #------------------------------------------
     # Step 1. Generate an initial estimate using fake distribution of anomaly
     # scores.
-    data1 = _generateSampleData(mean=0.2)[0:1000]
+    data1 = _generateSampleData(mean=0.2,seed=rnd.getUInt32())[0:1000]
     _, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1, averagingWindow=5)
     )
@@ -558,7 +564,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     # Step 2. Generate some new data with a higher average anomaly
     # score. Using the estimator from step 1, to compute likelihoods. Now we
     # should see a lot more anomalies.
-    data2 = _generateSampleData(mean=0.6)[0:300]
+    data2 = _generateSampleData(mean=0.6,seed=rnd.getUInt32())[0:300]
     likelihoods2, avgRecordList2, estimatorParams2 = (
       an.updateAnomalyLikelihoods(data2, estimatorParams)
     )
@@ -577,7 +583,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     #------------------------------------------
     # Step 3. Generate some new data with the expected average anomaly score. We
     # should see fewer anomalies than in Step 2.
-    data3 = _generateSampleData(mean=0.2)[0:1000]
+    data3 = _generateSampleData(mean=0.2,seed=rnd.getUInt32())[0:1000]
     likelihoods3, avgRecordList3, estimatorParams3 = (
       an.updateAnomalyLikelihoods(data3, estimatorParams2)
     )
@@ -620,8 +626,10 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     ensures things don't crash.
     """
 
+    rnd = Random(self.GLOBAL_TEST_SEED)#we want different data for each generate
+
     # Generate an estimate using fake distribution of anomaly scores.
-    data1 = _generateSampleData(mean=42.0, variance=1e-10)
+    data1 = _generateSampleData(mean=42.0, variance=1e-10,seed=rnd.getUInt32())
 
     likelihoods, avgRecordList, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:1000])
@@ -636,7 +644,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
 
     # If you deviate from the mean, you should get probability 0
     # Test this by sending in just slightly different values.
-    data2 = _generateSampleData(mean=42.5, variance=1e-10)
+    data2 = _generateSampleData(mean=42.5, variance=1e-10,seed=rnd.getUInt32())
     likelihoods2, _, _ = (
       an.updateAnomalyLikelihoods(data2[0:10], estimatorParams)
     )
@@ -649,13 +657,13 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     # In this case we don't let likelihood to get too low. An average
     # anomaly score of 0.1 should be essentially zero, but an average
     # of 0.04 should be higher
-    data3 = _generateSampleData(mean=0.01, variance=1e-6)
+    data3 = _generateSampleData(mean=0.01, variance=1e-6,seed=rnd.getUInt32())
 
     _, _, estimatorParams3 = (
       an.estimateAnomalyLikelihoods(data3[0:1000])
     )
 
-    data4 = _generateSampleData(mean=0.1, variance=1e-6)
+    data4 = _generateSampleData(mean=0.1, variance=1e-6,seed=rnd.getUInt32())
     likelihoods4, _, estimatorParams4 = (
       an.updateAnomalyLikelihoods(data4[0:20], estimatorParams3)
     )
@@ -663,7 +671,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     # Average of 0.1 should go to zero
     self.assertLessEqual(likelihoods4[10:].mean(), 0.002)
 
-    data5 = _generateSampleData(mean=0.05, variance=1e-6)
+    data5 = _generateSampleData(mean=0.05, variance=1e-6,seed=rnd.getUInt32())
     likelihoods5, _, _ = (
       an.updateAnomalyLikelihoods(data5[0:20], estimatorParams4)
     )
@@ -681,7 +689,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
     # Generate samples with very flat metric values
     data1 = _generateSampleData(
-      metricMean=42.0, metricVariance=1e-10)[0:1000]
+      metricMean=42.0, metricVariance=1e-10,seed=Random(self.GLOBAL_TEST_SEED).getUInt32())[0:1000]
 
     likelihoods, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1)
@@ -702,7 +710,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate an estimate using two data points
-    data1 = _generateSampleData(mean=42.0, variance=1e-10)
+    data1 = _generateSampleData(mean=42.0, variance=1e-10,seed=Random(self.GLOBAL_TEST_SEED).getUInt32())
 
     _, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:2])
@@ -730,7 +738,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate an estimate using one data point
-    data1 = _generateSampleData(mean=42.0, variance=1e-10)
+    data1 = _generateSampleData(mean=42.0, variance=1e-10,seed=Random(self.GLOBAL_TEST_SEED).getUInt32())
 
     _, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:1])
@@ -829,7 +837,24 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     self.assertFalse(numpy.array_equal(l3a, l3b),
                      msg="Failure in case (iii), list 3")
 
+def testManySeeds():
 
+  AnomalyLikelihoodAlgorithmTest.GLOBAL_TEST_SEED=72
+  unittest.main()
+    
+#  for i in range(1,100):
+#    print("SEEEEEEEEEEEEEEEEEEEEEED:"+str(i))
+#    AnomalyLikelihoodAlgorithmTest.GLOBAL_TEST_SEED=i
+#    unittest.main()
+
+def testDeeply():
+  """
+  This function will execute tests many times and it will use really random seeds.
+  """
+  AnomalyLikelihoodAlgorithmTest.GLOBAL_TEST_SEED=0
+  for i in range(1,1000):
+    unittest.main()
 
 if __name__ == "__main__":
-  unittest.main()
+  #unittest.main()
+  testManySeeds() 
