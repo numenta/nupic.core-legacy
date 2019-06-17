@@ -113,11 +113,11 @@ public:
    * duplicates. Disable this for a small speed boost.
    * DEPRECATED: The SDR class now enforces these properties.
    *
-   * @param extra
+   * @param externalPredictiveInputs
    * Number of external predictive inputs.  These inputs are used in addition to
    * the cells which are part of this TemporalMemory.  The TemporalMemory
    * requires all external inputs be identified by an index in the
-   * range [0, extra).
+   * range [0, externalPredictiveInputs).
    *
    * Notes:
    *
@@ -141,7 +141,7 @@ public:
       SegmentIdx      maxSegmentsPerCell          = 255,
       SynapseIdx      maxSynapsesPerSegment       = 255,
       bool            checkInputs                 = true,
-      UInt            extra                       = 0);
+      UInt            externalPredictiveInputs    = 0);
 
   virtual void
   initialize(
@@ -159,7 +159,7 @@ public:
     SegmentIdx    maxSegmentsPerCell          = 255,
     SynapseIdx    maxSynapsesPerSegment       = 255,
     bool          checkInputs                 = true,
-    UInt          extra                       = 0);
+    UInt          externalPredictiveInputs    = 0);
 
   virtual ~TemporalMemory();
 
@@ -204,27 +204,27 @@ public:
    * If true, segment activations will be recorded. This information is
    * used during segment cleanup.
    *
-   * @param extraActive
+   * @param externalPredictiveInputsActive
    * (optional) SDR of active external predictive inputs.  External inputs must be cell
-   * indexes in the range [0, extra).
+   * indexes in the range [0, externalPredictiveInputs).
    *
-   * @param extraWinners
+   * @param externalPredictiveInputsWinners
    * (optional) SDR of winning external predictive inputs.  When learning, only these
    * inputs are considered active.  
-   * ExtraWinners must be a subset of extraActive.  
-   * External inputs must be cell indices in the range [0, extra).
+   * externalPredictiveInputsWinners must be a subset of externalPredictiveInputsActive.  
+   * External inputs must be cell indices in the range [0, externalPredictiveInputs).
    *
    * See TM::compute() for details of the parameters. 
    *
    */
   void activateDendrites(const bool learn,
-                         const SDR &extraActive, 
-                         const SDR &extraWinners);
+                         const SDR &externalPredictiveInputsActive, 
+                         const SDR &externalPredictiveInputsWinners);
 
   inline void activateDendrites(const bool learn = true) {
-    const SDR extraActive(std::vector<UInt>{ extra });
-    const SDR extraWinners(std::vector<UInt>{extra });
-    activateDendrites(learn, extraActive, extraWinners);
+    const SDR externalPredictiveInputsActive(std::vector<UInt>{ externalPredictiveInputs });
+    const SDR externalPredictiveInputsWinners(std::vector<UInt>{externalPredictiveInputs });
+    activateDendrites(learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
   }
 
   /**
@@ -240,22 +240,22 @@ public:
    * @param learn
    * Whether or not learning is enabled.
    *
-   * @param extraActive
+   * @param externalPredictiveInputsActive
    * (optional) Vector of active external predictive inputs.  
-   * External inputs must be cell indexes in the range [0, extra). 
-   * TM must be set up with the 'extra' constructor parameter for this use.
+   * External inputs must be cell indexes in the range [0, externalPredictiveInputs). 
+   * TM must be set up with the 'externalPredictiveInputs' constructor parameter for this use.
    *
-   * @param extraWinners
+   * @param externalPredictiveInputsWinners
    * (optional) Vector of winning external predictive inputs.  When learning, only these
    * inputs are considered active.  
-   * ExtraWinners must be a subset of extraActive.  
-   * External inputs must be cell indexes in the range [0, extra).
+   * externalPredictiveInputsWinners must be a subset of externalPredictiveInputsActive.  
+   * External inputs must be cell indexes in the range [0, externalPredictiveInputs).
    *
    */
   virtual void compute(const SDR &activeColumns, 
                        const bool learn,
-                       const SDR &extraActive, 
-                       const SDR &extraWinners);
+                       const SDR &externalPredictiveInputsActive, 
+                       const SDR &externalPredictiveInputsWinners);
 
   virtual void compute(const SDR &activeColumns, 
                        const bool learn = true);
@@ -464,7 +464,7 @@ public:
        CEREAL_NVP(permanenceIncrement_),
        CEREAL_NVP(permanenceDecrement_),
        CEREAL_NVP(predictedSegmentDecrement_),
-       CEREAL_NVP(extra_),
+       CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
        CEREAL_NVP(iteration_),
@@ -520,7 +520,7 @@ public:
        CEREAL_NVP(permanenceIncrement_),
        CEREAL_NVP(permanenceDecrement_),
        CEREAL_NVP(predictedSegmentDecrement_),
-       CEREAL_NVP(extra_),
+       CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
        CEREAL_NVP(iteration_),
@@ -622,7 +622,7 @@ protected:
   Permanence permanenceIncrement_;
   Permanence permanenceDecrement_;
   Permanence predictedSegmentDecrement_;
-  UInt extra_;
+  UInt externalPredictiveInputs_;
   SegmentIdx maxSegmentsPerCell_;
   SynapseIdx maxSynapsesPerSegment_;
 
@@ -644,7 +644,7 @@ private:
 
 public:
   Connections connections;
-  const UInt &extra = extra_;
+  const UInt &externalPredictiveInputs = externalPredictiveInputs_;
   /*
    *  anomaly score computed for the current inputs
    *  (auto-updates after each call to TM::compute())

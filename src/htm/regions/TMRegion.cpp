@@ -62,7 +62,7 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   args_.maxSynapsesPerSegment = params.getScalarT<UInt32>("maxSynapsesPerSegment", 255);
   args_.checkInputs = params.getScalarT<bool>("checkInputs", true);
   args_.orColumnOutputs = params.getScalarT<bool>("orColumnOutputs", false);
-  args_.extra = 0;  // will be obtained from extra inputs dimensions.
+  args_.externalPredictiveInputs = 0;  // will be obtained from externalPredictiveInputs inputs dimensions.
 
   // variables used by this class and not passed on
   args_.learningMode = params.getScalarT<bool>("learningMode", true);
@@ -145,23 +145,25 @@ void TMRegion::initialize() {
     << ") does not match the configured value for 'numberOfCols' ("
     << args_.numberOfCols << ").";
 
-  // Look for extra data
+  // Look for externalPredictiveInputs data
   // This can come from anywhere and have any size.  The only restriction is
-  // that the buffer width of extraWinners must be the same as buffer width of extraActive.
-  // The extraWinners on bits should be a subset of on bits in extraWinners.
-  args_.extra = 0;
-  in = region_->getInput("extraActive");
+  // that the buffer width of externalPredictiveInputsWinners must be the same
+  // as buffer width of externalPredictiveInputsActive.
+  // The externalPredictiveInputsWinners on bits should be a subset of on bits
+  // in externalPredictiveInputsWinners.
+  args_.externalPredictiveInputs = 0;
+  in = region_->getInput("externalPredictiveInputsActive");
   if (in && in->hasIncomingLinks()) {
-    args_.extra = (UInt32)in->getDimensions().getCount();
+    args_.externalPredictiveInputs = (UInt32)in->getDimensions().getCount();
     NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
 
-    in = region_->getInput("extraWinners");
+    in = region_->getInput("externalPredictiveInputsWinners");
     NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
     NTA_CHECK(in
            && in->hasIncomingLinks()
-           && args_.extra == in->getDimensions().getCount())
-      << "The input 'extraActive' (width: " << args_.extra
-      << ") is connected but 'extraWinners' input "
+           && args_.externalPredictiveInputs == in->getDimensions().getCount())
+      << "The input 'externalPredictiveInputsActive' (width: " << args_.externalPredictiveInputs
+      << ") is connected but 'externalPredictiveInputsWinners' input "
       << "is not provided OR it has a different buffer size.";
   }
 
@@ -172,7 +174,7 @@ void TMRegion::initialize() {
       args_.initialPermanence, args_.connectedPermanence, args_.minThreshold,
       args_.maxNewSynapseCount, args_.permanenceIncrement, args_.permanenceDecrement,
       args_.predictedSegmentDecrement, args_.seed, args_.maxSegmentsPerCell,
-      args_.maxSynapsesPerSegment, args_.checkInputs, args_.extra);
+      args_.maxSynapsesPerSegment, args_.checkInputs, args_.externalPredictiveInputs);
   tm_.reset(tm);
 
   args_.iter = 0;
@@ -204,19 +206,19 @@ void TMRegion::compute() {
   NTA_ASSERT(bottomUpIn.getType() == NTA_BasicType_SDR);
   SDR& activeColumns = bottomUpIn.getSDR();
 
-  // Check for 'extra' inputs
+  // Check for 'externalPredictiveInputs' inputs
   static SDR nullSDR({0});
-  Array &extraActive = getInput("extraActive")->getData();
-  SDR& extraActiveCells = (args_.extra) ? (extraActive.getSDR()) : nullSDR;
+  Array &externalPredictiveInputsActive = getInput("externalPredictiveInputsActive")->getData();
+  SDR& externalPredictiveInputsActiveCells = (args_.externalPredictiveInputs) ? (externalPredictiveInputsActive.getSDR()) : nullSDR;
 
-  Array &extraWinners = getInput("extraWinners")->getData();
-  SDR& extraWinnerCells = (args_.extra) ? (extraWinners.getSDR()) : nullSDR;
+  Array &externalPredictiveInputsWinners = getInput("externalPredictiveInputsWinners")->getData();
+  SDR& externalPredictiveInputsWinnerCells = (args_.externalPredictiveInputs) ? (externalPredictiveInputsWinners.getSDR()) : nullSDR;
 
   NTA_DEBUG << "compute " << *in << std::endl;
 
   // Perform Bottom up compute()
 
-  tm_->compute(activeColumns, args_.learningMode, extraActiveCells, extraWinnerCells);
+  tm_->compute(activeColumns, args_.learningMode, externalPredictiveInputsActiveCells, externalPredictiveInputsWinnerCells);
 
   args_.sequencePos++;
 
@@ -489,10 +491,10 @@ Spec *TMRegion::createSpec() {
                 true                 // isDefaultInput
                 ));
   ns->inputs.add(
-      "extraActive",
+      "externalPredictiveInputsActive",
       InputSpec("External extra active bits from an external source. "
                 "These can come from anywhere and be any size. If provided, "
-                "the 'extra' flag is set to dense buffer size and both "
+                "the 'externalPredictiveInputs' flag is set to dense buffer size and both "
                 "extraActive and extraWinners must be provided and have the"
                 "same dense buffer size.  Dimensions are set by source.",
                 NTA_BasicType_SDR,   // type
@@ -502,10 +504,10 @@ Spec *TMRegion::createSpec() {
                 false                // isDefaultInput
                 ));
   ns->inputs.add(
-      "extraWinners",
+      "externalPredictiveInputsWinners",
       InputSpec("The winning active bits from an external source. "
                 "These can come from anywhere and be any size. If provided, "
-                "the 'extra' flag is set to dense buffer size and both "
+                "the 'externalPredictiveInputs' flag is set to dense buffer size and both "
                 "extraActive and extraWinners must be provided and have the"
                 "same dense buffer size.  Dimensions are set by source.",
                NTA_BasicType_SDR,   // type
@@ -833,7 +835,7 @@ bool TMRegion::operator==(const RegionImpl &o) const {
   if (args_.seed != other.args_.seed) return false;
   if (args_.maxSegmentsPerCell != other.args_.maxSegmentsPerCell) return false;
   if (args_.maxSynapsesPerSegment != other.args_.maxSynapsesPerSegment) return false;
-  if (args_.extra != other.args_.extra) return false;
+  if (args_.externalPredictiveInputs != other.args_.externalPredictiveInputs) return false;
   if (args_.checkInputs != other.args_.checkInputs) return false;
   if (args_.learningMode != other.args_.learningMode) return false;
   if (args_.sequencePos != other.args_.sequencePos) return false;
