@@ -292,7 +292,7 @@ public:
    * This cannot be used to override a fixed buffer setting in the Spec.
    * Args: dim   - The dimensions to set
    */
-  virtual void setDimensions(Dimensions dim) { dim_ = dim; }
+  virtual void setDimensions(Dimensions dim) { dim_ = std::move(dim); }
   virtual Dimensions getDimensions() const { return dim_; }
 
 

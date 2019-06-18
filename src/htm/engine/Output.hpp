@@ -177,7 +177,7 @@ public:
   /**
    * Set dimensions for this output
    */
-  void setDimensions(const Dimensions& dim) { dim_ = dim; }
+  void setDimensions(const Dimensions& dim) { dim_ = std::move(dim); }
 
   /**
    *  Print raw data...for debugging

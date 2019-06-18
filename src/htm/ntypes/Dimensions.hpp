@@ -55,7 +55,6 @@ public:
   Dimensions(UInt x, UInt y) {  vec_.push_back(x); vec_.push_back(y); }
   Dimensions(UInt x, UInt y, UInt z) { vec_.push_back(x); vec_.push_back(y); vec_.push_back(z); }
   Dimensions(const std::vector<UInt>& v) { vec_ = v; };
-  Dimensions(const Dimensions& d) : vec_(d.asVector()) {};
 
   /**
    * @returns  The count of cells in the grid which is the product of the sizes of
