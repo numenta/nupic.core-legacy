@@ -510,9 +510,8 @@ void TemporalMemory::activateDendrites(const bool learn,
 
   const size_t length = connections.segmentFlatListLength();
 
-  numActiveConnectedSynapsesForSegment_.assign(length, 0);
   numActivePotentialSynapsesForSegment_.assign(length, 0);
-  connections.computeActivity(numActiveConnectedSynapsesForSegment_,
+  numActiveConnectedSynapsesForSegment_ = connections.computeActivity(
                               numActivePotentialSynapsesForSegment_,
                               activeCells_);
 
