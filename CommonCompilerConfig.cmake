@@ -83,7 +83,8 @@ string(TOLOWER ${PLATFORM} PLATFORM)
 #	GCC 9   expected to support <filesystem>
 #       AppleClang as of (XCode 10.1) does not support C++17 or filesystem
 #           (although you can get llvm 7 from brew)
-#	Clang 7 has complete <filesystem> support for C++17
+#	Clang 7 has complete <filesystem> support for C++17, link with -lc++fs (cmake "stdc++fs" library)
+#       Clang 9 has complete <filesystem> support for C++17 by default. 
 #	Visual Studio 2017 15.7 (v19.14)supports <filesystem> with C++17
 #	MinGW has no support for filesystem.
 #
@@ -108,10 +109,13 @@ if(NOT FORCE_CPP11)
     endif()	 
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")  # see CMake Policy CMP0025
     # does not support C++17 and filesystem (as of XCode 10.1)
-  elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") # clang + std::filesystem, see https://libcxx.llvm.org/docs/UsingLibcxx.html#using-filesystem
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
          set(CMAKE_CXX_STANDARD 17)
 	 set(boost_required OFF)
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL "7") # special library for older clang-7
+        set(extra_lib_for_filesystem "stdc++fs")
+      endif()
     endif()
   elseif(MSVC)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.14")
