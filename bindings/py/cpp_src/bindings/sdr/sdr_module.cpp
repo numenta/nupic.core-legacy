@@ -1,11 +1,8 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2018, Numenta, Inc.
  *               2018, chhenning
  *               2019, David McDougall
- *
- * Unless you have an agreement with Numenta, Inc., for a separate license for
- * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -18,8 +15,6 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
  * --------------------------------------------------------------------- */
 
 /** @file
