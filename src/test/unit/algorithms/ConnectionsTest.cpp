@@ -71,12 +71,9 @@ void setupSampleConnections(Connections &connections) {
 void computeSampleActivity(Connections &connections) {
   vector<UInt32> input = {50, 52, 53, 80, 81, 82, 150, 151};
 
-  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
-      connections.segmentFlatListLength(), 0);
   vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  connections.computeActivity(numActiveConnectedSynapsesForSegment,
-                              numActivePotentialSynapsesForSegment, input);
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment = connections.computeActivity(numActivePotentialSynapsesForSegment, input);
 }
 
 /**
@@ -153,11 +150,9 @@ TEST(ConnectionsTest, testDestroySegment) {
   ASSERT_EQ(3ul, connections.numSegments());
   ASSERT_EQ(0ul, connections.numSynapses());
 
-  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
-      connections.segmentFlatListLength(), 0);
   vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  connections.computeActivity(numActiveConnectedSynapsesForSegment,
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment = connections.computeActivity(
                               numActivePotentialSynapsesForSegment,
                               {80, 81, 82});
 
@@ -184,11 +179,9 @@ TEST(ConnectionsTest, testDestroySynapse) {
   ASSERT_EQ(2ul, connections.numSynapses());
   ASSERT_EQ(2ul, connections.synapsesForSegment(segment).size());
 
-  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
-      connections.segmentFlatListLength(), 0);
   vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  connections.computeActivity(numActiveConnectedSynapsesForSegment,
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment = connections.computeActivity(
                               numActivePotentialSynapsesForSegment,
                               {80, 81, 82});
 
@@ -342,11 +335,9 @@ TEST(ConnectionsTest, testComputeActivity) {
 
   vector<UInt32> input = {50, 52, 53, 80, 81, 82, 150, 151};
 
-  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(
-      connections.segmentFlatListLength(), 0);
   vector<SynapseIdx> numActivePotentialSynapsesForSegment(
       connections.segmentFlatListLength(), 0);
-  connections.computeActivity(numActiveConnectedSynapsesForSegment,
+  vector<SynapseIdx> numActiveConnectedSynapsesForSegment = connections.computeActivity(
                               numActivePotentialSynapsesForSegment, input);
 
   ASSERT_EQ(1ul, numActiveConnectedSynapsesForSegment[segment1_1]);
@@ -714,7 +705,7 @@ TEST(ConnectionsTest, testTimeseries) {
   presyn.randomize( 0.5f );
   vector<SynapseIdx> output( 1u );
   for( int i = 0; i < 10; i++ ) {
-    C.computeActivity( output, presyn.getSparse() );
+    output = C.computeActivity( presyn.getSparse() );
     C.adaptSegment( seg, presyn, 0.1f, 0.1f );
   }
   // Check that the synapse permanences did not saturate.
@@ -727,7 +718,7 @@ TEST(ConnectionsTest, testTimeseries) {
   // effectively turns off the timeseries parameter.
   for( int i = 0; i < 10; i++ ) {
     C.reset();
-    C.computeActivity( output, presyn.getSparse() );
+    output = C.computeActivity( presyn.getSparse() );
     C.adaptSegment( seg, presyn, 0.1f, 0.1f );
   }
   // Check that the synapse permanences staturated.  This is the failure
