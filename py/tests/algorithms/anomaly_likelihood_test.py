@@ -154,7 +154,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 
   def testHistoricWindowSize(self):
-    l = an.AnomalyLikelihood(claLearningPeriod=2,
+    l = an.AnomalyLikelihood(learningPeriod=2,
                              estimationSamples=2,
                              historicWindowSize=3)
 
@@ -196,7 +196,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       "htm.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
       side_effect=estimateAnomalyLikelihoodsWrap, autospec=True)
     with estimateAnomalyLikelihoodsPatch as estimateAnomalyLikelihoodsMock:
-      l = an.AnomalyLikelihood(claLearningPeriod=2,
+      l = an.AnomalyLikelihood(learningPeriod=2,
                                estimationSamples=2,
                                historicWindowSize=3)
 
@@ -212,7 +212,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       l.anomalyProbability(40, 0.4, timestamp=4)
       self.assertEqual(estimateAnomalyLikelihoodsMock.call_count, 0)
 
-      # Estimation should kick in after claLearningPeriod + estimationSamples
+      # Estimation should kick in after learningPeriod + estimationSamples
       # samples have been ingested
       l.anomalyProbability(50, 0.5, timestamp=5)
       self.assertEqual(estimateAnomalyLikelihoodsMock.call_count, 1)
@@ -233,7 +233,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       "htm.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
       side_effect=estimateAnomalyLikelihoodsWrap, autospec=True)
     with estimateAnomalyLikelihoodsPatch:
-      l = an.AnomalyLikelihood(claLearningPeriod=2,
+      l = an.AnomalyLikelihood(learningPeriod=2,
                                estimationSamples=2,
                                historicWindowSize=3,
                                reestimationPeriod=2)
@@ -273,7 +273,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       "htm.algorithms.anomaly_likelihood.updateAnomalyLikelihoods",
       side_effect=updateAnomalyLikelihoodsWrap, autospec=True)
     with updateAnomalyLikelihoodsPatch:
-      l = an.AnomalyLikelihood(claLearningPeriod=2,
+      l = an.AnomalyLikelihood(learningPeriod=2,
                                estimationSamples=2,
                                historicWindowSize=3)
 
@@ -288,8 +288,8 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 
   def testEquals(self):
-    l = an.AnomalyLikelihood(claLearningPeriod=2, estimationSamples=2)
-    l2 = an.AnomalyLikelihood(claLearningPeriod=2, estimationSamples=2)
+    l = an.AnomalyLikelihood(learningPeriod=2, estimationSamples=2)
+    l2 = an.AnomalyLikelihood(learningPeriod=2, estimationSamples=2)
     self.assertEqual(l, l2)
 
     # Use 5 iterations to force the distribution to be created (4 probationary
@@ -315,7 +315,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
   def testSerialization(self):
     """serialization using pickle"""
-    l = an.AnomalyLikelihood(claLearningPeriod=2, estimationSamples=2)
+    l = an.AnomalyLikelihood(learningPeriod=2, estimationSamples=2)
 
     l.anomalyProbability("hi", 0.1, timestamp=1) # burn in
     l.anomalyProbability("hi", 0.1, timestamp=2)
