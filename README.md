@@ -2,12 +2,12 @@
 
 # NuPIC C++ Core Library
 
-[![Linux/OSX Build Status](https://travis-ci.org/htm-community/htm.cpp.svg?branch=master)](https://travis-ci.org/htm-community/htm.cpp)
-[![OSX CircleCI](https://circleci.com/gh/htm-community/htm.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/htm.cpp/tree/master)
+[![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp)
+[![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/htm-cpp/branch/master)
 
 
-## Community NuPIC.cpp (former nupic.core) repository
+## Community NuPIC.cpp (former [nupic.core](http://github.com/numenta/nupic.core)) repository
 
 This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings.
 Our aim is to provide an actively developed successor to the nupic.core and nupic repositories by Numenta,
@@ -21,7 +21,6 @@ which are not actively developed anymore.
 - Stable and well tested code
 - API-compatibility with Numenta's code *)
 - Open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful).
-- Cross Platform Support
 - [Modularity](bindings/py/README.md) through bindings to the core library
   - Currently only python has bindings, located in `bindings/py`
 
@@ -39,9 +38,9 @@ ran against this extention library. If you are porting your code to this codebas
 Some of the major differences between this library and Numenta's extension library are the following:
 
  * Support for Python 3 and Python 2.7 (Only Python 3 under windows)
- * Support for Linux, OSx, and Windows MS Visual Studio 2017
+ * Cross Platform Support for Linux, OSx, and Windows MS Visual Studio 2017
  * Support for C++11 through C++17
- * Replaced SWIG with PyBind11 for Python interface.
+ * Improved python interface, by replaced SWIG with PyBind11.
  * Removed CapnProto serialization.  It was prevasive and complicated the code considerably. It was replaced
  with simple binary streaming serialization in C++ library.
  * Many code optimizations, modernization (Spatial Pooler shares optimized Connections backend with Temporal memory)
@@ -52,7 +51,6 @@ Some of the major differences between this library and Numenta's extension libra
  * New and Improved Algorithms:
    - Sparse Distributed Representations
    - Anomaly Likelihood
-   - Backtracking Temporal Memory
    - Significantly faster Spatial Pooler and Connections
 
 ## Installation
@@ -269,7 +267,7 @@ To run: (assuming current directory is top of repository)
 LD_LIBRARY_PATH=build/Release/lib ./build/Release/bin/dynamic_hotgym
 ```
 
-#### NMIST benchmark
+#### MNIST benchmark
 
 The task is to recognise images of hand written numbers 0-9.
 This should score at least 95%.

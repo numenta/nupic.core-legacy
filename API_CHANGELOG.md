@@ -90,16 +90,16 @@ This is obsolete. Use getRegion('name') instead.
 * TemporalMemory `compute()` and `activateCells()` now use only SDR variants, old overloads with C-style arrays removed. Bindings and 
   tests also updated. 
   
-* Changed all use of nupic to htm.   This means that Python users must import from 
- - htm.bindings.algorithms
- - htm.bindings.engine_internal
- - htm.bindings.math
- - htm.bindings.encoders
- - htm.bindings.sdr
+* Changed all use of nupic to htm.   This means that C++ users must include from
+    - <htm/algorithms/*.hpp>
+    - <htm/engine/*.hpp>
+    - <htm/math/*.hpp>
+    - <htm/encoders/*.hpp>
+    - <htm/types/*.hpp>
  rather than
- - nupic.bindings.algorithms
- - nupic.bindings.engine_internal
- - nupic.bindings.math
- - nupic.bindings.encoders
- - nupic.bindings.sdr
+    - <nupic/algorithms/*.hpp>
+    - <nupic/engine/*.hpp>
+    - <nupic/math/*.hpp>
+    - <nupic/encoders/*.hpp>
+    - <nupic/types/*.hpp>
 
