@@ -427,13 +427,13 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
   const auto columnForSegment = [&](Segment segment) {
     return connections.cellForSegment(segment) / cellsPerColumn_;
   };
-  const auto identity = [](const UInt a) {return a;}; //TODO use std::identity when c++20
+  const auto identity = [](const ElemSparse a) {return a;}; //TODO use std::identity when c++20
 
   for (auto &&columnData : groupBy( //group by columns, and convert activeSegments & matchingSegments to cols. 
            sparse, identity,
            activeSegments_, columnForSegment,
            matchingSegments_, columnForSegment)) {
-    UInt column;
+    Segment column;
     vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
 	       columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
          columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
