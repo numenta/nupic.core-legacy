@@ -99,6 +99,11 @@ public:
    * @param predictedSegmentDecrement
    * Amount by which segments are punished for incorrect predictions.
    *
+   * Note: A good value is just a bit larger than
+   * (the column-level sparsity * permanenceIncrement). So, if column-level
+   * sparsity is 2% and permanenceIncrement is 0.01, this parameter should be
+   * something like 4% * 0.01 = 0.0004).
+   *
    * @param seed
    * Seed for the random number generator.
    *
@@ -114,17 +119,12 @@ public:
    * DEPRECATED: The SDR class now enforces these properties.
    *
    * @param externalPredictiveInputs
-   * Number of external predictive inputs.  These inputs are used in addition to
-   * the cells which are part of this TemporalMemory.  The TemporalMemory
-   * requires all external inputs be identified by an index in the
-   * range [0, externalPredictiveInputs).
-   *
-   * Notes:
-   *
-   * predictedSegmentDecrement: A good value is just a bit larger than
-   * (the column-level sparsity * permanenceIncrement). So, if column-level
-   * sparsity is 2% and permanenceIncrement is 0.01, this parameter should be
-   * something like 4% * 0.01 = 0.0004).
+   * Number of external predictive inputs.  These values are not related to this
+   * TM, they represent input from a different region.  This TM will form
+   * synapses with these inputs in addition to the cells which are part of this
+   * TemporalMemory.  If this is given (and greater than 0) then the active
+   * cells and winner cells of these external inputs must be given to methods
+   * TM.compute and TM.activateDendrites
    */
   TemporalMemory(
       vector<CellIdx> columnDimensions,
@@ -205,14 +205,12 @@ public:
    * used during segment cleanup.
    *
    * @param externalPredictiveInputsActive
-   * (optional) SDR of active external predictive inputs.  External inputs must be cell
-   * indexes in the range [0, externalPredictiveInputs).
+   * (optional) SDR of active external predictive inputs.
    *
    * @param externalPredictiveInputsWinners
    * (optional) SDR of winning external predictive inputs.  When learning, only these
    * inputs are considered active.  
    * externalPredictiveInputsWinners must be a subset of externalPredictiveInputsActive.  
-   * External inputs must be cell indices in the range [0, externalPredictiveInputs).
    *
    * See TM::compute() for details of the parameters. 
    *
@@ -242,15 +240,12 @@ public:
    *
    * @param externalPredictiveInputsActive
    * (optional) Vector of active external predictive inputs.  
-   * External inputs must be cell indexes in the range [0, externalPredictiveInputs). 
    * TM must be set up with the 'externalPredictiveInputs' constructor parameter for this use.
    *
    * @param externalPredictiveInputsWinners
    * (optional) Vector of winning external predictive inputs.  When learning, only these
    * inputs are considered active.  
    * externalPredictiveInputsWinners must be a subset of externalPredictiveInputsActive.  
-   * External inputs must be cell indexes in the range [0, externalPredictiveInputs).
-   *
    */
   virtual void compute(const SDR &activeColumns, 
                        const bool learn,

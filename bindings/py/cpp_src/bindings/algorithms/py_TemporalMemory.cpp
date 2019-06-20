@@ -122,10 +122,12 @@ Argument checkInputs
     duplicates. Disable this for a small speed boost.
 
 Argument externalPredictiveInputs
-    Number of external predictive inputs.  These inputs are used in addition to
-    the cells which are part of this TemporalMemory.  The TemporalMemory
-    requires all external inputs be identified by an index in the
-    range [0, externalPredictiveInputs).
+    Number of external predictive inputs.  These values are not related to this
+    TM, they represent input from a different region.  This TM will form
+    synapses with these inputs in addition to the cells which are part of this
+    TemporalMemory.  If this is given (and greater than 0) then the active
+    cells and winner cells of these external inputs must be given to methods
+    TM.compute and TM.activateDendrites
 )"
                 , py::arg("columnDimensions")
                 , py::arg("cellsPerColumn") = 32
@@ -213,7 +215,6 @@ Argument learn
 
 Argument externalPredictiveInputsActive
     (optional) SDR of active external predictive inputs.  
-    External inputs must be cell indexes in the range [0, externalPredictiveInputs). 
     TM must be set up with the 'externalPredictiveInputs' constructor parameter for this use.
 
 Argument externalPredictiveInputsWinners
