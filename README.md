@@ -242,13 +242,19 @@ distribution packages as listed and rename them as indicated. Copy these to
 
 # Testing
 
-### Unit tests for the library
+### There are two sets of Unit Tests:
 
-There are two sets of unit tests.
  * C++ Unit tests -- to run: `./build/Release/bin/unit_tests`
  * Python Unit tests -- to run: `python setup.py test`
 
 # Examples
+
+## Python Examples
+
+There are a number of python examples, which are runnable from the command line.
+They are located in the module `htm.examples`.
+
+Example Command Line Invocation: `$ python -m htm.examples.sp.hello_sp`
 
 ## Hot Gym
 
@@ -283,9 +289,3 @@ To run: (assuming current directory is top of repository)
 ```
   ./build/Release/bin/mnist_sp
 ```
-
-## Python Examples
-
-Python has a number of examples, which are runnable as py -m htm.examples.*
-
-TODO finish this section!  Add table of examples invocations & 1-line description of each.
