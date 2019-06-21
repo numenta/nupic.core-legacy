@@ -76,7 +76,7 @@ notifications:
 #    on_failure: change
   irc:
     channels:
-      - "irc.freenode.net#htm-hackers"
+      - "irc.freenode.net#nupic-hackers"
 #  webhooks:
 #    - urls:
 #        - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
