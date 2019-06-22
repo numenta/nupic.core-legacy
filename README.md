@@ -190,13 +190,7 @@ This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
  * Specify the build system folder (`$HTM_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
 
-## For MS Visual Studio 2017 as the IDE
- * Double click on startupMSVC.bat
-    - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
- * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project`
-   so debugger will run unit tests.
- * Start a debug session.
- * Perform a full build using either "Debug" or "Release".
+## [For MS Visual Studio 2017 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
 
 ## For Eclipse as the IDE
  * File - new C/C++Project - Empty or Existing CMake Project
