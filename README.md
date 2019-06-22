@@ -125,11 +125,12 @@ make -j install
 ## Simple Build On Windows (MS Visual Studio 2017)
 
 After downloading the repository, do the following:
- * CD to top of repository.
- * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
- * Double click build/scripts/htm.cpp.sln -- This starts up Visual Studio
+
+ * CD to the top of repository.
+ * Double click on startupMSVC.bat
+    - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
  * Select `Release` or `Debug` as the Solution Configuration. Solution Platform must remain at x64.
- * Build everything.  -- This will build the C++ library.
+ * Build everything.  This will build the C++ library.
  * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
  * If you also want the Python extension library; in a command prompt, cd to root of repository and run `python setup.py install --user --prefix=`.
 
@@ -190,10 +191,12 @@ This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
  * Click `Generate`.
 
 ## For MS Visual Studio 2017 as the IDE
- * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
- * Double click build/scripts/htm.cpp.sln -- This starts up Visual Studio
- * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
+ * Double click on startupMSVC.bat
+    - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
+ * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project`
+   so debugger will run unit tests.
  * Start a debug session.
+ * Perform a full build using either "Debug" or "Release".
 
 ## For Eclipse as the IDE
  * File - new C/C++Project - Empty or Existing CMake Project
