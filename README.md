@@ -106,10 +106,13 @@ make -j install
 ```
 
 | Build Artifact | File Location |
-| :---- | :--- |
-| static library | `build/Release/lib/libhtm-core.a`  |
-| shared library | `build/Release/lib/libhtm-core.so` |
-| header files   | `build/Release/include/`           |
+| :------------- | :------------ |
+| Static Library         | `build/Release/lib/libhtm-core.a`    |
+| Shared Library         | `build/Release/lib/libhtm-core.so`   |
+| Header Files           | `build/Release/include/`             |
+| Unit Tests             | `build/Release/bin/unit_tests`       |
+| Hotgym Dataset Example | `build/Release/bin/benchmark_hotgym` |
+| MNIST Dataset Example  | `build/Release/bin/mnist_sp`         |
 
  * A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.
    + The debug library will be put in `build/Debug`.
