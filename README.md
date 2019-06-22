@@ -8,38 +8,34 @@
 
 This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings.
 
-## Our goals
+## Project Goals
 
 - Actively developed C++ core library for nupic.core (Numenta's repos are in maintenance mode only)
-- Clean & lean, optimized, modern codebase (dependency removal, c++11/17)
+- Clean, lean, optimized, and modern codebase
 - Stable and well tested code
-- API-compatibility with Numenta's code *)
+    - API-compatibility with Numenta's code.
+An objective is to stay close to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html).
+This is a priority for the NetworkAPI.  The algorithms APIs on the other hand have deviated from their original API.
+If you are porting your code to this codebase, please review the [API Changelog](API_CHANGELOG.md).
 - Open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful).
-- [Modularity](bindings/py/README.md) through bindings to the core library
-  - Currently only python has bindings, located in `bindings/py`
+- Interfaces to other programming languages, currently C++ and Python
 
-\*) Nupic API compatibility: The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html)
-with the aim that we don't break `.py` code written against the numenta's nupic.core extension library if they were to be
-ran against this extension library. If you are porting your code to this codebase, please review [API Changelog](API_CHANGELOG.md).
+## Features
 
-## New Features
-
-Some of the major differences between this library and Numenta's extension library are the following:
-
- * Support for Python 3 and Python 2.7 (Only Python 3 under windows)
- * Cross Platform Support for Linux, OSx, Arm64, and Windows
- * Support for C++11 through C++17
- * Improved python interface, by replacing SWIG with PyBind11.
- * Removed CapnProto serialization.  It was pervasive and complicated the code considerably. It was replaced
- with simple binary streaming serialization in C++ library.
- * Many code optimizations, modernization (Spatial Pooler shares optimized Connections backend with Temporal memory)
- * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
- * Much easier installation (reduced dependencies, all are handled by CMake)
- * Static and shared lib files for use with C++ applications.
- * New and Improved Algorithms:
-   - Sparse Distributed Representations
-   - Anomaly Likelihood
-   - Significantly faster Spatial Pooler and Connections
+ * Implemented in C++11 through C++17
+    + Static and shared lib files for use with C++ applications.
+ * Interfaces to Python 3 and Python 2.7 (Only Python 3 under Windows)
+ * Cross Platform Support for Windows, Linux, OSx and Arm64
+ * Easy installation.  Many fewer dependencies than nupic.core, all are handled by CMake
+ * Significant speed optimizations
+ * Simplified codebase
+    + Removed CapnProto serialization.  It was pervasive and complicated the
+code considerably. It was replaced  with simple binary streaming serialization
+in C++ library.
+    + Removed sparse matrix libraries, use the optimized Connections class instead
+ * New and Improved Algorithms
+    + Revamped all algorithms APIs, making it easier for developers & researchers to use our codebase
+    + Sparse Distributed Representation class, integration, and tools for working with them
 
 # Installation
 
@@ -87,6 +83,10 @@ python --version
 
    * Option `--force` will install the library even if the same version of it is
    already installed, which is useful when developing the library.
+
+   * If you run into problems due to caching of arguments in CMake, delete the
+   folder `Repository/build` and try again.  This is only an issue when
+   developing C++ code.
 
 3) After that completes you are all set to import the python library:
 ```
