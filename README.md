@@ -88,10 +88,12 @@ python --version
    folder `Repository/build` and try again.  This is only an issue when
    developing C++ code.
 
-3) After that completes you are all set to import the python library:
-```
-python
->>> import htm
+3) After that completes you are ready to import the library:
+```python
+python.exe
+>>> import htm           # Python Library
+>>> import htm.bindings  # C++ Extensions
+>>> help( htm )          # Documentation
 ```
 
 ## Simple Build On Linux or OSX for C++ apps
