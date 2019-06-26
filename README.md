@@ -55,7 +55,7 @@ Fork or download the HTM-Community Nupic.cpp repository from https://github.com/
   Be sure that your Python executable is in the Path environment variable.
   The Python that is in your default path is the one that will determine which
   version of Python the extension library will be built for.
-  - NOTE: Anaconda Python not supported.
+  - NOTE: People have reported success with `Anaconda` python.
   - Other implementations of Python may not work.
   - Only the standard python from python.org have been tested.
 - Python tools: In a command prompt execute the following.
