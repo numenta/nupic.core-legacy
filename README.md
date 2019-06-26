@@ -15,7 +15,7 @@ This fork is a community version of the [nupic.core](https://github.com/numenta/
 - Stable and well tested code
     - API-compatibility with Numenta's code.
 An objective is to stay close to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html).
-This is a priority for the NetworkAPI.  The algorithms APIs on the other hand have deviated from their original API.
+This is a priority for the `NetworkAPI` and `python` bindings.  The C++ algorithms APIs on the other hand have deviated from their original API (but their logic is the same as Numenta's).
 If you are porting your code to this codebase, please review the [API Changelog](API_CHANGELOG.md).
 - Open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful).
 - Interfaces to other programming languages, currently C++ and Python
@@ -25,7 +25,7 @@ If you are porting your code to this codebase, please review the [API Changelog]
  * Implemented in C++11 through C++17
     + Static and shared lib files for use with C++ applications.
  * Interfaces to Python 3 and Python 2.7 (Only Python 3 under Windows)
- * Cross Platform Support for Windows, Linux, OSx and Arm64
+ * Cross Platform Support for Windows, Linux, OSX and ARM64
  * Easy installation.  Many fewer dependencies than nupic.core, all are handled by CMake
  * Significant speed optimizations
  * Simplified codebase
