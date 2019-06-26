@@ -435,11 +435,11 @@ Argument output An SDR representing the winning columns after
 
             sp.save(ss);
 
-            return ss.str();
+            return py::bytes( ss.str() );
         },
-            [](std::string& s)
+            [](py::bytes &s)
         {
-            std::istringstream ss(s);
+            std::stringstream ss( s.cast<std::string>() );
             SpatialPooler sp;
             sp.load(ss);
 

@@ -150,7 +150,7 @@ Argument externalPredictiveInputs
         // pickle
         // https://github.com/pybind/pybind11/issues/1061
         py_HTM.def(py::pickle(
-            [](const HTM_t& self) -> std::string
+            [](const HTM_t& self)
         {
             // __getstate__
             std::ostringstream os;
@@ -160,17 +160,17 @@ Argument externalPredictiveInputs
 
             self.save(os);
 
-            return os.str();
+            return py::bytes(os.str());
         },
-            [](const std::string& str) -> HTM_t
+            [](const py::bytes &str)
         {
             // __setstate__
-            if (str.empty())
+            if (py::len(str) == 0)
             {
                 throw std::runtime_error("Empty state");
             }
 
-            std::istringstream is(str);
+            std::stringstream is( str.cast<std::string>() );
 
             HTM_t htm;
             htm.load(is);
