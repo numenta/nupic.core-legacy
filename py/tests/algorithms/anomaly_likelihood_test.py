@@ -329,8 +329,8 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
   """Tests the low-level algorithm functions"""
-  #seed for function _generateSampleData()
-  #zero means really random and not deterministic 
+  #Seed for function _generateSampleData()
+  #Generator is really random and not deterministic when 'None' is given  
   GLOBAL_TEST_SEED = 1
   
 
@@ -580,7 +580,10 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     #------------------------------------------
     # Step 3. Generate some new data with the expected average anomaly score. We
     # should see fewer anomalies than in Step 2.
-    data3 = _generateSampleData(mean=0.2,seed=self.GLOBAL_TEST_SEED)[0:1000]
+    # Note: same data properties as in step1 but different seed
+    seed2 = self.GLOBAL_TEST_SEED+1 if self.GLOBAL_TEST_SEED!=None else None
+    
+    data3 = _generateSampleData(mean=0.2,seed=seed2)[0:1000]
     likelihoods3, avgRecordList3, estimatorParams3 = (
       an.updateAnomalyLikelihoods(data3, estimatorParams2)
     )
@@ -831,24 +834,5 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     self.assertFalse(numpy.array_equal(l3a, l3b),
                      msg="Failure in case (iii), list 3")
 
-#WILL BE REMOVED
-def testProblemSeed():
-  AnomalyLikelihoodAlgorithmTest.GLOBAL_TEST_SEED=315
-  unittest.main()
-    
-
-#WILL BE REMOVED
-def testDeeply():
-  """
-  This function will execute tests many times and it will use really random seeds.
-  """
-  #AnomalyLikelihoodAlgorithmTest.GLOBAL_TEST_SEED=0
-  for i in range(1,1000):
-    print("SEEEEEEEEEEEEEEEEEEEEEED:"+str(i))
-    AnomalyLikelihoodAlgorithmTest.GLOBAL_TEST_SEED=i
-    unittest.main()
-
 if __name__ == "__main__":
-  #unittest.main()
-  testProblemSeed() 
-  #testDeeply()
+  unittest.main()
