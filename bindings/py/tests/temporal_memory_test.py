@@ -18,6 +18,11 @@
 import unittest
 import pytest
 
+try:
+    import cPickle as pickle # For python 2
+except ImportError:
+    import pickle # For python 3
+
 class TemporalMemoryBindingsTest(unittest.TestCase):
   @pytest.mark.skip(reason="Calling arguments on compute()...another PR")
   @staticmethod
@@ -28,3 +33,16 @@ class TemporalMemoryBindingsTest(unittest.TestCase):
 
     tm = TemporalMemory()
     tm.compute(set(), True)
+
+  def testNupicTemporalMemoryPickling(self):
+    """Test pickling / unpickling of NuPIC TemporalMemory."""
+    from htm.bindings.algorithms import TemporalMemory
+
+    # Simple test: make sure that dumping / loading works...
+    tm = TemporalMemory(columnDimensions=(16,))
+    pickledTm = pickle.dumps(tm)
+
+    tm2 = pickle.loads(pickledTm)
+
+    self.assertEqual(tm.numberOfCells(), tm2.numberOfCells(),
+                     "Simple NuPIC TemporalMemory pickle/unpickle failed.")

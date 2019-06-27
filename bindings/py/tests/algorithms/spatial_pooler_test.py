@@ -21,6 +21,11 @@ from htm.bindings.sdr import SDR
 from htm.algorithms import SpatialPooler as SP
 import numpy as np
 
+try:
+    import cPickle as pickle # For python 2
+except ImportError:
+    import pickle # For python 3
+
 class SpatialPoolerTest(unittest.TestCase):
 
   def testCompute(self):
@@ -159,6 +164,18 @@ class SpatialPoolerTest(unittest.TestCase):
       # This has correctly caught wrong precision error
       print("Successfully caught incorrect uint numpy data length")
       pass     
+
+  def testNupicSpatialPoolerPickling(self):
+    """Test pickling / unpickling of NuPIC SpatialPooler."""
+
+    # Simple test: make sure that dumping / loading works...
+    sp = SP()
+    pickledSp = pickle.dumps(sp)
+
+    sp2 = pickle.loads(pickledSp)
+
+    self.assertEqual(sp.getNumColumns(), sp2.getNumColumns(),
+                     "Simple NuPIC SpatialPooler pickle/unpickle failed.")
 
 
 if __name__ == "__main__":
