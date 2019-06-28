@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,24 +13,21 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /**
  * @file
  */
 
 #include <gtest/gtest.h>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/OS.hpp>
-#include <nupic/os/Path.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/OS.hpp>
+#include <htm/os/Path.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 TEST(OSTest, Basic) {
 #if defined(NTA_OS_WINDOWS)

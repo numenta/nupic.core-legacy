@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
 PyBind11 bindings for Region classes
@@ -34,19 +29,19 @@ PyBind11 bindings for Region classes
 #include <pybind11/stl.h>
 
 #include <plugin/PyBindRegion.hpp>
-#include <nupic/regions/TestNode.hpp>
+#include <htm/regions/TestNode.hpp>
 
 namespace py = pybind11;
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_Regions(py::module& m)
     {
         ///////////////////
         // PyRegion Node
         ///////////////////
-        typedef nupic::PyBindRegion Region_t;
+        typedef htm::PyBindRegion Region_t;
         py::class_<Region_t> py_Region(m, "PyRegion");
 
         py_Region.def("initialize", &Region_t::initialize)
@@ -67,4 +62,4 @@ namespace nupic_ext
 
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

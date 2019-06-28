@@ -1,7 +1,6 @@
 /* ----------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2019, David McDougall
- * The following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -14,8 +13,6 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
  * ---------------------------------------------------------------------- */
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
@@ -23,14 +20,14 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-#include <nupic/utils/SdrMetrics.hpp>
+#include <htm/utils/SdrMetrics.hpp>
 
 namespace py = pybind11;
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_SDR_Metrics(py::module& m)
     {

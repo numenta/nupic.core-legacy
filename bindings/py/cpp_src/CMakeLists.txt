@@ -1,8 +1,6 @@
 # -----------------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-2015, Numenta, Inc.  Unless you have purchased from
-# Numenta, Inc. a separate commercial license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2013-2015, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,8 +13,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 #
 # This builds the Python language interface.  This consists of the following libs
@@ -31,7 +27,7 @@
 #######################################################################
 
 cmake_minimum_required(VERSION 3.7)
-project(nupic_core CXX)
+project(htm_core CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug

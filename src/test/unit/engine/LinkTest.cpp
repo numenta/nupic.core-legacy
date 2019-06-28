@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2017, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Implementation of Link test
@@ -28,28 +23,28 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegionImpl.hpp>
-#include <nupic/engine/RegionImplFactory.hpp>
-#include <nupic/engine/RegisteredRegionImpl.hpp>
-#include <nupic/engine/RegisteredRegionImplCpp.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/regions/TestNode.hpp>
-#include <nupic/types/Serializable.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/RegionImpl.hpp>
+#include <htm/engine/RegionImplFactory.hpp>
+#include <htm/engine/RegisteredRegionImpl.hpp>
+#include <htm/engine/RegisteredRegionImplCpp.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/regions/TestNode.hpp>
+#include <htm/types/Serializable.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/utils/Log.hpp>
 
 namespace testing { 
     
 static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
-using namespace nupic;
+using namespace htm;
 
 TEST(LinkTest, Links) {
   Network net;

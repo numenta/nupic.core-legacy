@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,12 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
-
-
  * Author: David Keeney, April, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /*---------------------------------------------------------------------
  * This is a test of the TMRegion module.  It does not check the
@@ -44,23 +38,23 @@
  *---------------------------------------------------------------------
  */
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/RegisteredRegionImplCpp.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/engine/YAMLUtils.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/regions/TMRegion.hpp>
-#include <nupic/types/Exception.hpp>
-#include <nupic/utils/VectorHelpers.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/RegisteredRegionImplCpp.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/engine/YAMLUtils.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/regions/TMRegion.hpp>
+#include <htm/types/Exception.hpp>
+#include <htm/utils/VectorHelpers.hpp>
 
 #include <cmath>   // fabs/abs
 #include <cstdlib> // exit
@@ -82,7 +76,7 @@ static bool verbose = false; // turn this on to print extra stuff for debugging 
 // verified.
 #define EXPECTED_SPEC_COUNT 18 // The number of parameters expected in the TMRegion Spec
 
-using namespace nupic;
+using namespace htm;
 
 namespace testing {
 
@@ -407,7 +401,7 @@ TEST(TMRegionTest, testSerialization) {
 
     EXPECT_TRUE(compareParameters(n3region2, parameterMap))
         << "Comparing parameters after second restore with before save.";
-  } catch (nupic::Exception &ex) {
+  } catch (htm::Exception &ex) {
     FAIL() << "Failure: Exception: " << ex.getFilename() << "("
            << ex.getLineNumber() << ") " << ex.getMessage() << "" << std::endl;
   } catch (std::exception &e) {

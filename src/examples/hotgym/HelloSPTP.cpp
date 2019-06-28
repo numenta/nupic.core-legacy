@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013-2015, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 #include <algorithm> // std::generate
 #include <iostream>
@@ -26,19 +21,19 @@
 
 #include "HelloSPTP.hpp"
 
-#include "nupic/algorithms/TemporalMemory.hpp"
-#include "nupic/algorithms/SpatialPooler.hpp"
-#include "nupic/encoders/RandomDistributedScalarEncoder.hpp"
-#include "nupic/algorithms/AnomalyLikelihood.hpp"
+#include "htm/algorithms/TemporalMemory.hpp"
+#include "htm/algorithms/SpatialPooler.hpp"
+#include "htm/encoders/RandomDistributedScalarEncoder.hpp"
+#include "htm/algorithms/AnomalyLikelihood.hpp"
 
-#include "nupic/types/Sdr.hpp"
-#include "nupic/utils/Random.hpp"
-#include "nupic/utils/MovingAverage.hpp"
+#include "htm/types/Sdr.hpp"
+#include "htm/utils/Random.hpp"
+#include "htm/utils/MovingAverage.hpp"
 
 namespace examples {
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 
 // work-load

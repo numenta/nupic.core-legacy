@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
-#include "nupic/utils/SlidingWindow.hpp"
+#include "htm/utils/SlidingWindow.hpp"
 
 namespace testing { 
     
-using nupic::util::SlidingWindow;
+using htm::util::SlidingWindow;
 
 
 TEST(SlidingWindow, Instance)

@@ -1,9 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2016, Numenta, Inc.  Unless you have purchased from
-# Numenta, Inc. a separate commercial license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2016, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -16,8 +14,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 set -o errexit
@@ -77,30 +73,30 @@ set -o xtrace
 BUILD_TYPE=${BUILD_TYPE-"Release"}
 
 
-NUPIC_CORE_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+HTM_CORE_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-DEST_WHEELHOUSE="${NUPIC_CORE_ROOT}/nupic_bindings_wheelhouse"
+DEST_WHEELHOUSE="${HTM_CORE_ROOT}/nupic_bindings_wheelhouse"
 
-TEST_RESULTS_DIR="${NUPIC_CORE_ROOT}/test_results"
+TEST_RESULTS_DIR="${HTM_CORE_ROOT}/test_results"
 
-echo "RUNNING NUPIC BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
+echo "RUNNING HTM BINDINGS BUILD: BUILD_TYPE=${BUILD_TYPE}, " \
      "DEST_WHEELHOUSE=${DEST_WHEELHOUSE}" >&2
 
 # Install nupic.bindings dependencies; the nupic.core cmake build depends on
 # some of them (e.g., numpy).
 pip install \
     --ignore-installed \
-    -r ${NUPIC_CORE_ROOT}/bindings/py/requirements.txt
+    -r ${HTM_CORE_ROOT}/bindings/py/requirements.txt
 
 #
 # Build nupic.bindings
 #
 
 # NOTE without -p to force build failure upon pre-existing build side-effects
-mkdir ${NUPIC_CORE_ROOT}/build
-mkdir ${NUPIC_CORE_ROOT}/build/scripts
+mkdir ${HTM_CORE_ROOT}/build
+mkdir ${HTM_CORE_ROOT}/build/scripts
 
-cd ${NUPIC_CORE_ROOT}/build/scripts
+cd ${HTM_CORE_ROOT}/build/scripts
 
 # Configure nupic.core build
 if [[ "$BUILD_TYPE" == "Debug" ]]; then
@@ -108,15 +104,15 @@ if [[ "$BUILD_TYPE" == "Debug" ]]; then
 
   # Only add iwyu for clang builds
   if [[ $CC == *"clang"* ]]; then
-    EXTRA_CMAKE_DEFINITIONS="-DNUPIC_IWYU=ON ${EXTRA_CMAKE_DEFINITIONS}"
+    EXTRA_CMAKE_DEFINITIONS="-DHTM_IWYU=ON ${EXTRA_CMAKE_DEFINITIONS}"
   fi
 fi
 
-cmake ${NUPIC_CORE_ROOT} \
+cmake ${HTM_CORE_ROOT} \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     ${EXTRA_CMAKE_DEFINITIONS} \
-    -DCMAKE_INSTALL_PREFIX=${NUPIC_CORE_ROOT}/build/release \
-    -DPY_EXTENSIONS_DIR=${NUPIC_CORE_ROOT}/bindings/py/src/nupic/bindings
+    -DCMAKE_INSTALL_PREFIX=${HTM_CORE_ROOT}/build/release \
+    -DPY_EXTENSIONS_DIR=${HTM_CORE_ROOT}/bindings/py/src/nupic/bindings
 
 # Build nupic.core
 make install
@@ -126,7 +122,7 @@ if [[ $WHEEL_PLAT ]]; then
   EXTRA_WHEEL_OPTIONS="--plat-name ${WHEEL_PLAT}"
 fi
 
-cd ${NUPIC_CORE_ROOT}
+cd ${HTM_CORE_ROOT}
 python setup.py bdist_wheel --dist-dir ${DEST_WHEELHOUSE} ${EXTRA_WHEEL_OPTIONS}
 
 
@@ -140,7 +136,7 @@ pip install \
     ${DEST_WHEELHOUSE}/nupic.bindings-*.whl
 
 # Run the nupic.core c++ tests
-cd ${NUPIC_CORE_ROOT}/build/release/bin
+cd ${HTM_CORE_ROOT}/build/release/bin
 ./cpp_region_test
 ./py_region_test
 ./unit_tests
@@ -160,4 +156,4 @@ mkdir ${TEST_RESULTS_DIR}
 cd ${TEST_RESULTS_DIR}    # so that py.test will deposit its artifacts here
 
 # Run tests with pytest options per nupic.core/setup.cfg
-py.test ${NUPIC_CORE_ROOT}/bindings/py/tests
+py.test ${HTM_CORE_ROOT}/bindings/py/tests

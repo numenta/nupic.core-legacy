@@ -1,8 +1,6 @@
 # -----------------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2016, Numenta, Inc.  Unless you have purchased from
-# Numenta, Inc. a separate commercial license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2016, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,20 +13,18 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # -----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.7)
-project(nupic_core CXX)
+project(htm_core CXX)
 
-message(STATUS "Configuring nupic_core tests")
+message(STATUS "Configuring htm_core tests")
 ###############################################################
 ###                   TESTS                      ##############
 ###############################################################
 #
-# Build TESTS of the nupic core static library
-#   ${core_library}  references the nupic_core  static library which includes depencancy libraries
+# Build TESTS of the htm core static library
+#   ${core_library}  references the htm_core  static library which includes depencancy libraries
 #
 
 set(CMAKE_VERBOSE_MAKEFILE ON) # toggle for cmake debug 

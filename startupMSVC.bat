@@ -14,8 +14,8 @@ rem //
 rem //     Python 2.7 or 3.x Download from https://www.python.org/downloads/windows/  (optional)
 rem // 
 rem //
-rem //   This script will create a Vsual Studio solution file at build/scripts/nupic_core.sln
-rem //   Double click nupic_core.sln to start up Visual Studio.  Then perform a full build.
+rem //   This script will create a Vsual Studio solution file at build/scripts/htm_core.sln
+rem //   Double click htm_core.sln to start up Visual Studio.  Then perform a full build.
 rem //
 rem // Tricks for executing Visual Studio is Release or Build mode.
 rem // https://stackoverflow.com/questions/24460486/cmake-build-type-not-being-used-in-cmakelists-txt
@@ -32,11 +32,11 @@ if %errorlevel% neq 0 (
   exit /B 1
 )
 
-rem // position to full path of NUPIC_BASE (the repository)
+rem // position to full path of HTM_BASE (the repository)
 pushd %~dp0
-set NUPIC_BASE=%CD%
-@echo NUPIC_BASE=%NUPIC_BASE%
-if not exist "%NUPIC_BASE%\CMakeLists.txt" (
+set HTM_BASE=%CD%
+@echo HTM_BASE=%HTM_BASE%
+if not exist "%HTM_BASE%\CMakeLists.txt" (
   @echo CMakeList.txt not found in base folder.
   popd
   pause
@@ -51,9 +51,9 @@ if not exist "%BUILDDIR%" (
 )
 cd "%BUILDDIR%"
 
-rem // If nupic_core.sln already exists, just startup Visual Studio
-if exist "nupic_core.sln" (
-  nupic_core.sln
+rem // If htm_core.sln already exists, just startup Visual Studio
+if exist "htm_core.sln" (
+  htm_core.sln
   popd
   exit /B 0
 )
@@ -68,20 +68,20 @@ rem //   ../..                       set the source directory (top of repository
 rem // cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release" -DBINDING_BUILD=Python3 ../..
 cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release"  ../..
   
-if exist "nupic_core.sln" (
+if exist "htm_core.sln" (
     rem //cmake --build . --target install --config "Release"
     @echo " "
-    @echo You can now start Visual Studio using solution file %NUPIC_BASE%\build\scripts\nupic_core.sln
+    @echo You can now start Visual Studio using solution file %HTM_BASE%\build\scripts\htm_core.sln
     @echo Press any key to start Visual Studio 
     pause >nul
 
-    rem // Location is %NUPIC_BASE%\build\scripts\nupic_core.sln
-    nupic_core.sln
+    rem // Location is %HTM_BASE%\build\scripts\htm_core.sln
+    htm_core.sln
 
     popd
     exit /B 0
 ) else (
-    @echo An error occured. Correct problem. Delete %NUPIC_BASE%\build before trying again.
+    @echo An error occured. Correct problem. Delete %HTM_BASE%\build before trying again.
     popd
     pause
     exit /B 1

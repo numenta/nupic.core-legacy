@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
 PyBind11 bindings for Timer class
@@ -33,11 +28,11 @@ PyBind11 bindings for Timer class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/os/Timer.hpp>
+#include <htm/os/Timer.hpp>
 
 namespace py = pybind11;
-using namespace nupic;
-namespace nupic_ext {
+using namespace htm;
+namespace htm_ext {
 
 
     void init_Timer(py::module& m)
@@ -58,4 +53,4 @@ namespace nupic_ext {
 
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

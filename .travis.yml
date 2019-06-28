@@ -43,7 +43,7 @@ env:
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
-    - BUNDLE_NAME="nupic_cpp-${TRAVIS_COMMIT}-${PLATFORM}64"
+    - BUNDLE_NAME="htm_cpp-${TRAVIS_COMMIT}-${PLATFORM}64"
     - GH_RELEASE_AUTH="HyRy03LIiUriPFW3HPmO+rRqmL1uxfsPLj6fqMykMq/Kmy478ROW/uOdNj42OEhsb6GwLngdjcHJtEzMGevnlNbWLLbTCuT2ykebysSt/oIKb/zAc/jYUI3OKuVWVEYFHlZa6fvkWZHKtWCcwa/jeF6bJFuPKkc3c3842aaW1SdEJG6osLGhJM+JtO1zD8+Z6RwL6T1Xbj+RYP/L28mejbphKxYL34bfLYse1lQ6/cFHzw8SdbvkDxWW+MRFHw8Ta8QiiV/7E83Z6N0+IRNi0s//3Affmkcs25modB4Auy8nrkUI4LQQr0NcUQZdo1RrylX9MH1B5KHs1hyNJvhRFiQlSBvXv0ezq6F5N8wamnBX12/2FDFI1nWl05hofQ7X07aWyQLu5v7Q34xX/pW5lca1G3H14auye8gSzC80692fOyId1F4QwcDIkeWiQwAMgE1qSifgTD3dEGJeDbAOPLd7I/fskxUjIvpEWR6dM3IKzMzr1dFilImhdvVsEEeROldpE0JleZFrv39NyMWTx6sGo9MLrtep+5/iRz1T0zKLfQjwUnAm/LW66g9vQ+lnhL9ktElnitnvaj1x5auAIsPNVdfagdwvGdeuZ65uJGtgEVAjOjspCDeYu9ztqPSZ3Hj3SAyELJkuu/RFScLOQayazg03O+zsvhDTtw8xfdo=" 
 
 virtualenv:
@@ -66,17 +66,17 @@ deploy:
   on:
     tags: true
     branch: master
-    repo: htm-community/nupic.cpp
+    repo: htm-community/htm.cpp
 
 notifications:
 #  email:
 #    recipients:
-#      - "discourse-nupic-developers@numenta.org"
+#      - "discourse-htm-developers@numenta.org"
 #    on_success: never
 #    on_failure: change
   irc:
     channels:
-      - "irc.freenode.net#nupic-hackers"
+      - "irc.freenode.net#htm-hackers"
 #  webhooks:
 #    - urls:
 #        - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
@@ -97,7 +97,7 @@ install:
   - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
   - cmake --version
   - echo "Configuring..."
-  # Builds nupic_code library and python2.7 interface. Enable test coverage for travis-ci build
+  # Builds htm_code library and python2.7 interface. Enable test coverage for travis-ci build
   - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release 
   - set -o pipefail
   - echo "Make & Install "
@@ -108,7 +108,7 @@ install:
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
-  #      this also matches current instructions in nupic.core/README.md
+  #      this also matches current instructions in htm.core/README.md
   # unit tests
   - "cd $TRAVIS_BUILD_DIR/build/Release/bin"
   - "${TRAVIS_BUILD_DIR}/build/Release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"

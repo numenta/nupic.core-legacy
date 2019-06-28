@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
 PyBind11 Module for engine classes
@@ -32,17 +27,17 @@ PyBind11 Module for engine classes
 
 namespace py = pybind11;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_Engine(py::module&);
     void init_Timer(py::module&);
     void init_OS(py::module&);
-} // namespace nupic_ext
+} // namespace htm_ext
 
-using namespace nupic_ext;
+using namespace htm_ext;
 
 PYBIND11_MODULE(engine_internal, m) {
-    m.doc() = "nupic.core.engine plugin"; // optional module docstring
+    m.doc() = "htm.core.engine plugin"; // optional module docstring
 
     init_Engine(m);
     init_OS(m);

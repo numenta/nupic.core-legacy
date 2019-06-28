@@ -13,7 +13,7 @@ Before installing the these hooks you must first install [clang-format](https://
 
 To use these git hooks, soft link the `githooks` directory into the appropriate location within your NuPIC repository. The following line shows how to link this directory into the git configuration in the right place.
 
-    ln -s /path/to/nupic.core/githooks /path/to/nupic.core/.git/hooks
+    ln -s /path/to/htm.core/githooks /path/to/htm.core/.git/hooks
 
 > **NOTE**: _When installed, git may have pre-populated the `.git/hooks` directory with some sample scripts. You may need to `rm -rf .git/hooks` before the link command above will work.
 
