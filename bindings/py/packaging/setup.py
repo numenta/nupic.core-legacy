@@ -217,7 +217,7 @@ if __name__ == "__main__":
   platform = getPlatformInfo()
 
   if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
-    raise Exception("To build NuPIC Core bindings in OS X, you must "
+    raise Exception("To build HTM.Core bindings in OS X, you must "
                     "`export ARCHFLAGS=\"-arch x86_64\"`.")
 
   # Run CMake if extension files are missing.
@@ -238,7 +238,7 @@ if __name__ == "__main__":
     #     https://opensourceforu.com/2010/OS/extending-python-via-shared-libraries
     #     https://docs.python.org/3/library/ctypes.html
     #     https://docs.python.org/2/library/imp.html
-    name="nupic.bindings",
+    name="htm.core",
     version=getExtensionVersion(),
     # This distribution contains platform-specific C++ libraries, but they are not
     # built with distutils. So we must create a dummy Extension object so when we
@@ -258,11 +258,11 @@ if __name__ == "__main__":
       "clean": CleanCommand,
       "test": TestCommand,
     },
-    description="Python bindings for htm-community nupic core.",
-    author="Numenta",
+    description="Python package for htm.core.",
+    author="Numenta & HTM Community",
     author_email="help@numenta.org",
-    url="https://github.com/htm-community/nupic.cpp",
-    long_description = "Numenta Platform for Intelligent Computing HTM-Community nupic core: nupic.bindings.[sdr,encoders,algorithms,engine_internal,math]",
+    url="https://github.com/htm-community/htm.core",
+    long_description = "HTM Community Edition of Numenta's Platform for Intelligent Computing (NuPIC)",
     license = "GNU Affero General Public License v3 or later (AGPLv3+)",
     classifiers=[
       "Programming Language :: Python",
