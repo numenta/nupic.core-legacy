@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2018, chhenning
  *               2019, David McDougall
  *
@@ -14,8 +14,6 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
  * --------------------------------------------------------------------- */
 
 /** @file
@@ -27,13 +25,13 @@
 
 namespace py = pybind11;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_ScalarEncoder(py::module&);
     void init_RDSE(py::module&);
 }
 
-using namespace nupic_ext;
+using namespace htm_ext;
 
 PYBIND11_MODULE(encoders, m) {
     m.doc() =
@@ -55,10 +53,10 @@ Reference: https://arxiv.org/pdf/1602.05925.pdf
 
 
 CategoryEncoders:
-    To make encode categories of input, make either a ScalarEncoder or a
-RandomDistributedScalarEncoder, and set the "radius" parameter to 1.  Then
-enumerate your categories into integers before encoding them.
-)";
+
+    To encode categories of input, make a ScalarEncoder or a Random Distributed
+Scalar Encoder (RDSE), and set the parameter category=True.  Then enumerate your
+categories into integers before encoding them. )";
 
     init_ScalarEncoder(m);
     init_RDSE(m);

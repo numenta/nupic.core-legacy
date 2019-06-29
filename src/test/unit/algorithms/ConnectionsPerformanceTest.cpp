@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2015-2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2015-2016, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 #include "gtest/gtest.h"
 
@@ -29,22 +24,17 @@
 #include <fstream>
 #include <iostream>
 
-#include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/algorithms/TemporalMemory.hpp>
-#include <nupic/utils/Random.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/types/Types.hpp> // macro "UNUSED"
-#include <nupic/utils/MovingAverage.hpp>
+#include <htm/algorithms/SpatialPooler.hpp>
+#include <htm/algorithms/TemporalMemory.hpp>
+#include <htm/utils/Random.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/types/Types.hpp> // macro "UNUSED"
+#include <htm/utils/MovingAverage.hpp>
 
 namespace testing {
 
 using namespace std;
-using namespace nupic;
-using nupic::sdr::SDR;
-using namespace nupic::algorithms::connections;
-using ::nupic::algorithms::spatial_pooler::SpatialPooler;
-using ::nupic::algorithms::temporal_memory::TemporalMemory;
-using nupic::util::MovingAverage;
+using namespace htm;
 
 #define SEED 42
 

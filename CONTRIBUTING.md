@@ -11,3 +11,27 @@ If you'd like to develop this library itself, we have put together a list of tas
 
 ### Discuss Nupic!
 We are open to new ideas and would be happy to discuss them.  To start the conversation, open an issue and we can talk about it.
+
+### Copyright & Licensing
+
+All files should have a copyright & license notice clearly displayed at the top of the file.
+We use the following copyright & license notice:
+
+> HTM Community Edition of NuPIC
+>
+> Copyright (C) 2019, Your Name Here
+> 
+> This program is free software: you can redistribute it and/or modify
+> it under the terms of the GNU Affero Public License version 3 as
+> published by the Free Software Foundation.
+> 
+> This program is distributed in the hope that it will be useful,
+> but WITHOUT ANY WARRANTY; without even the implied warranty of
+> MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+> See the GNU Affero Public License for more details.
+> 
+> You should have received a copy of the GNU Affero Public License
+> along with this program. If not, see http://www.gnu.org/licenses.
+
+Although we encourage all contributors to use the same license, it is not required.
+We will accept contributions which use a compatible license, such as the MIT License.

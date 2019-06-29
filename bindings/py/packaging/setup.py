@@ -1,8 +1,6 @@
 ﻿# ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2015, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,11 +13,9 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
-"""This file builds and installs the NuPIC Core Python bindings."""
+"""This file builds and installs the HTM Core Python bindings."""
  
 import glob
 import os
@@ -131,9 +127,9 @@ class TestCommand(BaseTestCommand):
     if errno != 0:
       sys.exit(errno)
     
-    # python tests (in /py/src/nupic/tests/)
+    # python tests (in /py/tests/)
     try:
-      os.chdir(os.path.join(REPO_DIR, "py", "src", "nupic", "tests"))
+      os.chdir(os.path.join(REPO_DIR, "py", "tests"))
       errno = pytest.main(self.pytest_args)
     finally:
       os.chdir(cwd)
@@ -157,20 +153,20 @@ def getPlatformInfo():
 
 
 def getExtensionFileNames(platform):
-  # look for extension libraries in Repository/build/Release/distr/src/nupic/bindings
+  # look for extension libraries in Repository/build/Release/distr/src/htm/bindings
   # library filenames:  
-  #     nupic.core.algorithms.so
-  #     nupic.core.engine.so
-  #     nupic.core.math.so
-  #     nupic.core.encoders.so
-  #     nupic.core.sdr.so
+  #     htm.core.algorithms.so
+  #     htm.core.engine.so
+  #     htm.core.math.so
+  #     htm.core.encoders.so
+  #     htm.core.sdr.so
   if platform in WINDOWS_PLATFORMS:
     libExtension = "pyd"
   else:
     libExtension = "so"
   libNames = ("sdr", "encoders", "algorithms", "engine_internal", "math")
-  libFiles = ["nupic.bindings.{}.{}".format(name, libExtension) for name in libNames]
-  files = [os.path.join(DISTR_DIR, "src", "nupic", "bindings", name)
+  libFiles = ["htm.bindings.{}.{}".format(name, libExtension) for name in libNames]
+  files = [os.path.join(DISTR_DIR, "src", "htm", "bindings", name)
            for name in list(libFiles)]
   return files
 
@@ -204,10 +200,6 @@ def generateExtensions():
     PY_VER = "-DBINDING_BUILD=Python2"
 
   print("Python version: {}\n".format(sys.version))
-  #detect Anaconda python interpreter
-  is_conda = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
-  if is_conda:
-    raise Exception("Anaconda python not supported!\n")
 
   scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
   try:
@@ -231,9 +223,9 @@ if __name__ == "__main__":
   # Run CMake if extension files are missing.
   getExtensionFiles(platform)
 
-  # Copy the python code into place. (from /py/src/)
+  # Copy the python code into place. (from /py/htm/)
   distutils.dir_util.copy_tree(
-            os.path.join(REPO_DIR, "py", "src"), os.path.join(DISTR_DIR, "src"))
+            os.path.join(REPO_DIR, "py", "htm"), os.path.join(DISTR_DIR, "src", "htm"))
   """
   set the default directory to the distr, and package it.
   """
@@ -251,13 +243,14 @@ if __name__ == "__main__":
     # This distribution contains platform-specific C++ libraries, but they are not
     # built with distutils. So we must create a dummy Extension object so when we
     # create a binary file it knows to make it platform-specific.
-    ext_modules=[Extension('nupic.dummy', sources = ['dummy.c'])],
+    ext_modules=[Extension('htm.dummy', sources = ['dummy.c'])],
     package_dir = {"": "src"},
     packages=find_packages("src"),
-    namespace_packages=["nupic"],
+    namespace_packages=["htm"],
     install_requires=findRequirements(platform),
     package_data={
-        "nupic.bindings": ["*.so", "*.pyd"],
+        "htm.bindings": ["*.so", "*.pyd"],
+        "htm.examples": ["*.csv"],
     },
     extras_require = {},
     zip_safe=False,
@@ -287,7 +280,7 @@ if __name__ == "__main__":
     ],
     entry_points = {
       "console_scripts": [
-        "nupic-bindings-check = nupic.bindings.check:checkMain",
+        "htm-bindings-check = htm.bindings.check:checkMain",
       ],
     },
   )

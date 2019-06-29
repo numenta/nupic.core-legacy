@@ -1,8 +1,6 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
+# HTM Community Edition of NuPIC
 # Copyright (C) 2019, David McDougall
-#
-# The following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -23,8 +21,8 @@ import pickle
 import numpy as np
 import unittest
 
-from nupic.bindings.sdr import SDR, Metrics
-from nupic.bindings.encoders import RDSE, RDSE_Parameters
+from htm.bindings.sdr import SDR, Metrics
+from htm.bindings.encoders import RDSE, RDSE_Parameters
 
 class RDSE_Test(unittest.TestCase):
     def testConstructor(self):

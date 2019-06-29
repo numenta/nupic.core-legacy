@@ -1,8 +1,6 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2017, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,8 +13,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 import json
@@ -24,10 +20,10 @@ import unittest
 import pytest
 
 
-from nupic.bindings.regions.PyRegion import PyRegion
+from htm.bindings.regions.PyRegion import PyRegion
 
-import nupic.bindings.engine_internal as engine
-from nupic.bindings.tools.serialization_test_py_region import \
+import htm.bindings.engine_internal as engine
+from htm.bindings.tools.serialization_test_py_region import \
      SerializationTestPyRegion
 
 

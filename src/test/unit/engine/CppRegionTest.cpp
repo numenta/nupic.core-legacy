@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,26 +13,23 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 #include "gtest/gtest.h"
 
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/types/Exception.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/types/Exception.hpp>
 
 #include <cmath>   // fabs/abs
 #include <cstdlib> // exit
@@ -48,7 +43,7 @@
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 using std::exception;
 
 static bool verbose = false;
@@ -279,10 +274,10 @@ TEST(CppRegionTest, RegionSerialization) {
 	std::shared_ptr<Region> r1 = n.addRegion("testnode", "TestNode", "{count: 2}");
 	
 	std::stringstream ss;
-	r1->saveToStream_ar(ss);
+	r1->save(ss);
 	
 	Region r2(&n);
-	r2.loadFromStream_ar(ss);
+	r2.load(ss);
 	EXPECT_EQ(*r1.get(), r2);
 
 }

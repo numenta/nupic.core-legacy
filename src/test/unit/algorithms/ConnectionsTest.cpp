@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2014-2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2014-2016, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Implementation of unit tests for Connections
@@ -27,15 +22,12 @@
 #include "gtest/gtest.h"
 #include <fstream>
 #include <iostream>
-#include <nupic/algorithms/Connections.hpp>
+#include <htm/algorithms/Connections.hpp>
 
 namespace testing {
     
 using namespace std;
-using namespace nupic;
-using namespace nupic::algorithms::connections;
-using nupic::sdr::SDR;
-using nupic::sdr::SDR_dense_t;
+using namespace htm;
 
 #define EPSILON 0.0000001
 
@@ -669,8 +661,8 @@ TEST(ConnectionsTest, testSaveLoad) {
 
   {
     stringstream ss;
-    c1.saveToStream_ar(ss);
-    c2.loadFromStream_ar(ss);
+    c1.save(ss);
+    c2.load(ss);
   }
 
   ASSERT_EQ(c1, c2);

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
+# HTM Community Edition of NuPIC
 # Copyright (C) 2019, David McDougall
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """Unit tests for Scalar Encoder."""
@@ -25,8 +23,8 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
-from nupic.bindings.sdr import SDR, Metrics
+from htm.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
+from htm.bindings.sdr import SDR, Metrics
 
 class ScalarEncoder_Test(unittest.TestCase):
     def testConstructor(self):

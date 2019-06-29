@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013-2014, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013-2014, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 #include "gtest/gtest.h"
 
@@ -27,14 +22,14 @@
 #include <fstream>
 #include <string>
 
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Path.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Path.hpp>
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 
 static bool verbose = false;
 
@@ -100,11 +95,11 @@ TEST(HelloRegionTest, demo) {
   Network net2;
   {
     std::stringstream ss;
-    net.save(ss);
+    net.save(ss, SerializableFormat::JSON);
 	  if(verbose) std::cout << "Loading from stream. \n";
     if(verbose) std::cout << ss.str() << std::endl;
     ss.seekg(0);
-    net2.load(ss);
+    net2.load(ss, SerializableFormat::JSON);
   }
 
   // Note: this compares the structure (regions, links, etc) not data content or state.

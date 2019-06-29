@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2017, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -16,8 +14,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """NuPIC random module tests."""
@@ -28,7 +24,7 @@ import pytest
 import numpy
 
 
-from nupic.bindings.math import Random
+from htm.bindings.math import Random
 
 
 
@@ -77,7 +73,7 @@ class TestNupicRandom(unittest.TestCase):
         test1, test3,
         "NuPIC random serialization test gave the same result twice?!?")
 
-  @pytest.mark.skip(reason="pickle support needs work...another PR")
+  @pytest.mark.skip(reason="Fails for python2 with segmentation fault")
   def testNupicRandomPickling(self):
     """Test pickling / unpickling of NuPIC randomness."""
 
@@ -107,8 +103,9 @@ class TestNupicRandom(unittest.TestCase):
         "NuPIC random pickle/unpickle didn't work for saving later state.")
 
     self.assertNotEqual(test1, test3,
-                        "NuPIC random gave the same result twice?!?")
-
+                        "NuPIC random gave the same result twice.")
+    self.assertNotEqual(test2, test4,
+                        "NuPIC random gave the same result twice.")
 
   def testSample(self):
     r = Random(42)
@@ -142,7 +139,6 @@ class TestNupicRandom(unittest.TestCase):
     self.assertEqual(choices[3], 3)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSampleWrongDimensionsPopulation(self):
     """Check that passing a multi-dimensional array throws a ValueError."""
     r = Random(42)
@@ -151,7 +147,6 @@ class TestNupicRandom(unittest.TestCase):
     self.assertRaises(ValueError, r.sample, population, 2)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSampleSequenceRaisesTypeError(self):
     """Check that passing lists throws a TypeError.
 
@@ -163,21 +158,24 @@ class TestNupicRandom(unittest.TestCase):
     self.assertRaises(TypeError, r.sample, population, 2)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSampleBadDtype(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="int64")
 
-    self.assertRaises(TypeError, r.sample, population, 2)
+    # throws std::invalid_argument("Invalid numpy array precision used.");
+    # in py_utils.hpp
+    # so thats why it is ValueError and not TypeError
+    self.assertRaises(ValueError, r.sample, population, 2)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testSamplePopulationTooSmall(self):
     r = Random(42)
     population = numpy.array([1, 2, 3, 4], dtype="uint32")
 
+    #RuntimeError and not ValueError because it goes to Cpp code and there is
+    #just NTA_CHECK that raises runtime_error
     self.assertRaises(
-        ValueError, r.sample, population, 999)
+        RuntimeError, r.sample, population, 999)
 
 
   def testShuffle(self):
@@ -201,15 +199,13 @@ class TestNupicRandom(unittest.TestCase):
     self.assertEqual(arr.size, 0)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testShuffleEmpty2(self):
     r = Random(42)
-    arr = numpy.zeros([2, 2], dtype="uint32")
+    arr = numpy.zeros([2, 2], dtype="uint32")#2x2 array dimension
 
     self.assertRaises(ValueError, r.shuffle, arr)
 
 
-  @pytest.mark.skip(reason="Does not throw...another PR")
   def testShuffleBadDtype(self):
     r = Random(42)
     arr = numpy.array([1, 2, 3, 4], dtype="int64")
@@ -217,18 +213,22 @@ class TestNupicRandom(unittest.TestCase):
     self.assertRaises(ValueError, r.shuffle, arr)
 
 
-  @pytest.mark.skip(reason="not equal...another PR")
   def testEquals(self):
     r1 = Random(42)
     v1 = r1.getReal64()
     i1 = r1.getUInt32()
+    
     r2 = Random(42)
     v2 = r2.getReal64()
     i2 = r2.getUInt32()
+    
+    r3 = Random(66)
+    
     self.assertEqual(v1, v2)
-    self.assertEqual(r1, r2)
     self.assertEqual(i1, i2)
-
+    self.assertEqual(r1,r2)
+    self.assertNotEqual(r1,r3)
+    
 
   def testPlatformSame(self): 
     r = Random(42)

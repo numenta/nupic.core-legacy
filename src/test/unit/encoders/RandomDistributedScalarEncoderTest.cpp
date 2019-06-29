@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2019, David McDougall
  *
  * This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,6 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
  * --------------------------------------------------------------------- */
 
 /** @file
@@ -22,14 +20,12 @@
  */
 
 #include "gtest/gtest.h"
-#include <nupic/types/Sdr.hpp>
-#include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
+#include <htm/types/Sdr.hpp>
+#include <htm/encoders/RandomDistributedScalarEncoder.hpp>
 #include <string>
 #include <vector>
 
-using namespace nupic;
-using namespace nupic::sdr;
-using namespace nupic::encoders;
+using namespace htm;
 
 TEST(RDSE, testConstruct) {
   SDR  A({ 100u, 100u, 3u });

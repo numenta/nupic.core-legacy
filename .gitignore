@@ -21,6 +21,11 @@ htmlcov/
 .kdev4
 nupic.core.kdev4
 
+# Eclipse project files
+.cproject
+.project
+.settings/language.settings.xml
+
 # Build files
 build/
 junit-test-results.xml

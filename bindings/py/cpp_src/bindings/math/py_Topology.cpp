@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2013, Numenta, Inc.
  *               2019, David McDougall
  *
@@ -29,11 +29,10 @@ namespace py = pybind11;
 #include <vector>
 using namespace std;
 
-#include <nupic/math/Topology.hpp>
-using namespace nupic;
-using namespace nupic::math::topology;
+#include <htm/utils/Topology.hpp>
+using namespace htm;
 
-namespace nupic_ext {
+namespace htm_ext {
 
     void init_Topology(py::module& m)
     {
@@ -151,4 +150,4 @@ Returns List of points in the neighborhood. Each point is expressed
 as a single index.)");
 
     } // End function init_Topology
-} // End namespace nupic_ext
+} // End namespace htm_ext

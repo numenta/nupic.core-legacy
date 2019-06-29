@@ -1,7 +1,6 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
+# HTM Community Edition of NuPIC
 # Copyright (C) 2019, David McDougall
-# The following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -14,8 +13,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """Unit tests for SDR."""
@@ -26,8 +23,8 @@ import unittest
 import pytest
 import time
 
-from nupic.bindings.sdr import SDR, Reshape
-from nupic.bindings.math import Random
+from htm.bindings.sdr import SDR
+from htm.bindings.math import Random
 
 class SdrTest(unittest.TestCase):
     def testExampleUsage(self):
@@ -89,8 +86,9 @@ class SdrTest(unittest.TestCase):
     def testZero(self):
         A = SDR((103,))
         A.sparse = list(range(20))
-        A.zero()
+        B = A.zero()
         assert( np.sum( A.dense ) == 0 )
+        assert( A is B )
 
     def testDense(self):
         A = SDR((103,))
@@ -335,6 +333,36 @@ class SdrTest(unittest.TestCase):
         C = A.addNoise( .5 )
         assert( C is A )
 
+    def testKillCells(self):
+        A = SDR(1000).randomize(1.00)
+        # Test killing zero/no cells.
+        A.killCells( .00 ) # Check no seed does not crash.
+        assert( A.getSparsity() == 1.00 )
+        # Test killing half of the cells, 3 times in a row.
+        A.killCells( .50, 123 ) # Check seed as positional argument
+        assert( A.getSparsity() == .5 )
+        A.killCells( .50, seed=456 )
+        assert( A.getSparsity() >= .25 - .05 and A.getSparsity() <= .25 + .05 )
+        A.killCells( .50, seed=789 )
+        assert( A.getSparsity() >= .125 - .05 and A.getSparsity() <= .125 + .05 )
+        # Test killing all cells.
+        A.killCells( 1.00, seed=101 )
+        assert( A.getSparsity() == 0 )
+        # Check that the same seed always kills the same cells.
+        B = SDR(1000).randomize(1.00)
+        B.killCells(.50, seed=444)
+        B.killCells(.50, seed=444) # Kill the same cells twice, so no further change of sparsity.
+        assert( B.getSparsity() == .50 )
+        # Check different seeds kill different cells.
+        D = SDR(1000).randomize(1.00)
+        D.killCells(.50, seed=5)
+        D.killCells(.50, seed=6)
+        assert( D.getSparsity() < .50 )
+        # Check return value
+        X = SDR(100).randomize(.5)
+        Y = X.killCells(.10)
+        assert( X is Y )
+
     def testStr(self):
         A = SDR((103,))
         B = SDR((100, 100, 1))
@@ -359,37 +387,13 @@ class SdrTest(unittest.TestCase):
             B = pickle.loads( P )
             assert( A == B )
 
-
-class ReshapeTest(unittest.TestCase):
-    def testExampleUsage(self):
-        assert( issubclass(Reshape, SDR) )
+    def testReshape(self):
         # Convert SDR dimensions from (4 x 4) to (8 x 2)
         A = SDR([ 4, 4 ])
-        B = Reshape( A, [8, 2])
-        A.coordinates =  ([1, 1, 2], [0, 1, 2])
+        A.coordinates = ([1, 1, 2], [0, 1, 2])
+        B = A.reshape([8, 2])
         assert( (np.array(B.coordinates) == ([2, 2, 5], [0, 1, 0]) ).all() )
-
-    def testLostSDR(self):
-        # You need to keep a reference to the SDR, since SDR class does not use smart pointers.
-        B = Reshape(SDR((1000,)), [1000])
-        with self.assertRaises(RuntimeError):
-            B.dense
-
-    def testChaining(self):
-        A = SDR([10,10])
-        B = Reshape(A, [100])
-        C = Reshape(B, [4, 25])
-        D = B.reshape([1, 100]) # Test convenience method.
-
-        A.dense.fill( 1 )
-        A.dense = A.dense
-        assert( len(C.sparse) == A.size )
-        assert( len(D.sparse) == A.size )
-        del B
-
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
-    def testPickle(self):
-        assert(False) # TODO: Unimplemented
+        assert( A is B )
 
 
 class IntersectionTest(unittest.TestCase):
@@ -447,6 +451,61 @@ class IntersectionTest(unittest.TestCase):
             mean_sparsity = np.product( sparsities )
             assert( X.getSparsity() >= (2./3.) * mean_sparsity )
             assert( X.getSparsity() <= (4./3.) * mean_sparsity )
+
+
+class UnionTest(unittest.TestCase):
+    def testExampleUsage(self):
+        A = SDR( 10 )
+        B = SDR( 10 )
+        U = SDR( A.dimensions )
+        A.sparse = [0, 1, 2, 3]
+        B.sparse =       [2, 3, 4, 5]
+        U.union( A, B )
+        assert(set(U.sparse) == set([0, 1, 2, 3, 4, 5]))
+
+    def testInPlace(self):
+        A = SDR( 1000 )
+        B = SDR( 1000 )
+        A.randomize( .50 )
+        B.randomize( .50 )
+        A.union( A, B )
+        assert( A.getSparsity() >= .75 - .05 and A.getSparsity() <= .75 + .05 )
+        A.union( B.randomize( .50 ), A.randomize( .50 ) )
+        assert( A.getSparsity() >= .75 - .05 and A.getSparsity() <= .75 + .05 )
+
+    def testReturn(self):
+        A = SDR( 10 ).randomize( .5 )
+        B = SDR( 10 ).randomize( .5 )
+        X = SDR( A.dimensions )
+        Y = X.union( A, B )
+        assert( X is Y )
+
+    def testSparsity(self):
+        test_cases = [
+            ( 0.5,  0.5 ),
+            ( 0.1,  0.9 ),
+            ( 0.25, 0.3 ),
+            ( 0.5,  0.5,  0.5 ),
+            ( 0.95, 0.95, 0.95 ),
+            ( 0.10, 0.10, 0.60 ),
+            ( 0.0,  1.0,  1.0 ),
+            ( 0.5,  0.5,  0.5, 0.5),
+            ( 0.11, 0.20, 0.05, 0.04, 0.03, 0.01, 0.01, 0.02, 0.02, 0.02),
+        ]
+        size = 10000
+        seed = 99
+        X    = SDR( size )
+        for sparsities in test_cases:
+            sdrs = []
+            for S in sparsities:
+                inp = SDR( size )
+                inp.randomize( S, seed)
+                seed += 1
+                sdrs.append( inp )
+            X.union( sdrs )
+            mean_sparsity = np.product(list( 1 - s for s in sparsities ))
+            assert( X.getSparsity() >= (2./3.) * (1 - mean_sparsity) )
+            assert( X.getSparsity() <= (4./3.) * (1 - mean_sparsity) )
 
 
 class ConcatenationTest(unittest.TestCase):

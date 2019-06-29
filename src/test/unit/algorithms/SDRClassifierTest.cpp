@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2016, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2016, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,8 +13,6 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
  * --------------------------------------------------------------------- */
 
 /** @file
@@ -33,13 +29,11 @@
 
 #include <gtest/gtest.h>
 
-#include <nupic/algorithms/SDRClassifier.hpp>
-#include <nupic/utils/Log.hpp>
+#include <htm/algorithms/SDRClassifier.hpp>
+#include <htm/utils/Log.hpp>
 
 using namespace std;
-using namespace nupic;
-using namespace nupic::sdr;
-using namespace nupic::algorithms::sdr_classifier;
+using namespace htm;
 
 namespace testing {
 
@@ -221,9 +215,9 @@ TEST(SDRClassifierTest, SaveLoad) {
 
   // Save and load.
   stringstream ss;
-  EXPECT_NO_THROW(c1.saveToStream_ar(ss));
+  EXPECT_NO_THROW(c1.save(ss));
   Predictor c2;
-  EXPECT_NO_THROW(c2.loadFromStream_ar(ss));
+  EXPECT_NO_THROW(c2.load(ss));
 
   // Expect identical results.
   const auto c2_out = c2.infer( 0u, A );

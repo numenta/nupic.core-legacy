@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2016, Numenta, Inc.
  *               2019, David McDougall
  *
@@ -17,25 +17,19 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Unit tests for the ScalarEncoder
  */
 
 #include "gtest/gtest.h"
-#include <nupic/encoders/ScalarEncoder.hpp>
+#include <htm/encoders/ScalarEncoder.hpp>
 #include <vector>
 
 namespace testing {
     
-using namespace nupic;
-using nupic::sdr::SDR;
-using nupic::encoders::ScalarEncoder;
-using nupic::encoders::ScalarEncoderParameters;
+using namespace htm;
 
 
 struct ScalarValueCase
@@ -49,6 +43,7 @@ void doScalarValueCases(ScalarEncoder& e, std::vector<ScalarValueCase> cases)
   for( auto c : cases )
   {
     SDR expectedOutput( e.dimensions );
+    std::sort( c.expectedOutput.begin(), c.expectedOutput.end() );
     expectedOutput.setSparse( c.expectedOutput );
 
     SDR actualOutput( e.dimensions );
@@ -194,16 +189,15 @@ TEST(ScalarEncoder, Serialization) {
   q.sparsity = 0.15f;
   inputs.push_back( new ScalarEncoder( q ) );
 
-  std::stringstream buf;
-  for( const auto x : inputs ) {
-    x->save( buf );
-  }
-
-  // cerr << "SERIALIZED:" << endl << buf.str() << endl;
-
   for( const auto enc1 : inputs ) {
+    std::stringstream buf;
+    enc1->save( buf, JSON );
+  
+    std::cerr << "SERIALIZED:" << std::endl << buf.str() << std::endl;
+    buf.seekg(0);
+
     ScalarEncoder enc2;
-    enc2.load( buf );
+    enc2.load( buf, JSON );
 
     const auto &p1 = enc1->parameters;
     const auto &p2 = enc2.parameters;

@@ -1,7 +1,6 @@
 /* ----------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2019, David McDougall
- * The following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -19,14 +18,13 @@
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 
-#include <nupic/encoders/RandomDistributedScalarEncoder.hpp>
+#include <htm/encoders/RandomDistributedScalarEncoder.hpp>
 
 namespace py = pybind11;
 
-using namespace nupic;
-using namespace nupic::encoders;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_RDSE(py::module& m)
     {
@@ -95,7 +93,7 @@ of SDRs to prevent conflicts between different encodings.  This method does
 not allow for decoding SDRs into the inputs which likely created it.
 
 To inspect this run:
-$ python -m nupic.encoders.rdse --help)");
+$ python -m htm.encoders.rdse --help)");
         py_RDSE.def(py::init<RDSE_Parameters>());
 
         py_RDSE.def_property_readonly("parameters",
@@ -111,7 +109,7 @@ fields are filled in automatically.)");
         py_RDSE.def("encode", &RDSE::encode, R"()");
 
         py_RDSE.def("encode", [](RDSE &self, Real64 value) {
-            auto sdr = new sdr::SDR({self.size});
+            auto sdr = new SDR({self.size});
             self.encode(value, *sdr);
             return sdr;
         });

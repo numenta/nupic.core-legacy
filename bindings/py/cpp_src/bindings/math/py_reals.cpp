@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
 PyBind11 bindings for the Real data type.
@@ -32,10 +27,10 @@ PyBind11 bindings for the Real data type.
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/ntypes/BasicType.hpp>
+#include <htm/ntypes/BasicType.hpp>
 
 
-namespace nupic_ext
+namespace htm_ext
 {
 namespace py = pybind11;
 
@@ -78,8 +73,8 @@ namespace py = pybind11;
 
     void init_reals(py::module& m)
     {
-        m.def("GetBasicTypeFromName", [](const std::string& type) { return nupic::BasicType::parse(type); });
-        m.def("GetBasicTypeSize", [](const std::string& type) { return nupic::BasicType::getSize(nupic::BasicType::parse(type)); });
+        m.def("GetBasicTypeFromName", [](const std::string& type) { return htm::BasicType::parse(type); });
+        m.def("GetBasicTypeSize", [](const std::string& type) { return htm::BasicType::getSize(htm::BasicType::parse(type)); });
 
         m.def("GetNumpyDataType", &GetNumpyDataType);
 
@@ -94,4 +89,4 @@ namespace py = pybind11;
         }, "Gets the numpy dtype of the NuPIC floating point base type, which is used for most internal calculations. The returned value can be used with numpy functions like numpy.array(..., dtype = dtype) and numpy.astype(..., dtype = dtype).");
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

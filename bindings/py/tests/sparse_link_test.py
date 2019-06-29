@@ -1,8 +1,6 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2018, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,16 +13,14 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 import unittest
 import pytest
 
 import numpy as np
 from numpy.testing import assert_array_equal
-from nupic.bindings.regions.PyRegion import PyRegion
-import nupic.bindings.engine_internal as engine
+from htm.bindings.regions.PyRegion import PyRegion
+import htm.bindings.engine_internal as engine
 
 TEST_DATA_SPARSE = np.array([4, 7])
 MAX_ACTIVE = TEST_DATA_SPARSE.size

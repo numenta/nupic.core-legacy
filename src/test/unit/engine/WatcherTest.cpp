@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Implementation of Watcher test
@@ -29,13 +24,13 @@
 #include <sstream>
 #include <string>
 
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/engine/Watcher.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/ntypes/ArrayBase.hpp>
+#include <htm/engine/Watcher.hpp>
 
 #include <gtest/gtest.h>
 
@@ -46,7 +41,7 @@ static bool verbose = false;
   if (verbose)                                                                 \
   std::cerr << "[          ] "
 
-using namespace nupic;
+using namespace htm;
 
 TEST(WatcherTest, SampleNetwork) {
   // NOTE:  This test generates files for the subsequent two tests.

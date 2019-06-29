@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,25 +13,22 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Implementation of Fraction test
  */
 
 #include <gtest/gtest.h>
-#include <nupic/types/Exception.hpp>
+#include <htm/types/Exception.hpp>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 TEST(ExceptionTest, Basic) {
   try {
-    throw nupic::Exception("FFF", 123ul, "MMM");
+    throw htm::Exception("FFF", 123ul, "MMM");
   } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123ul);
@@ -42,7 +37,7 @@ TEST(ExceptionTest, Basic) {
   }
 
   try {
-    throw nupic::Exception("FFF", 123ul, "MMM", "TB");
+    throw htm::Exception("FFF", 123ul, "MMM", "TB");
   } catch (const Exception &e) {
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123l);

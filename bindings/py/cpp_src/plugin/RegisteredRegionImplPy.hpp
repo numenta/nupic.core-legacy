@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2015, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2015, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Definition of the RegisteredRegionImplPy
@@ -68,8 +63,8 @@
 
 #include <plugin/PyBindRegion.hpp>
 
-#include <nupic/engine/RegisteredRegionImpl.hpp>
-#include <nupic/engine/RegionImplFactory.hpp>
+#include <htm/engine/RegisteredRegionImpl.hpp>
+#include <htm/engine/RegionImplFactory.hpp>
 #include <string>
 
 namespace py = pybind11;
@@ -79,10 +74,9 @@ namespace py = pybind11;
 static int python_node_count = 0;
 
 
-namespace nupic
+namespace htm
 {
   class Spec;
-  class BundleIO;
   class PyRegionImpl;
   class Region;
   class ValueMap;
@@ -109,9 +103,9 @@ namespace nupic
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
-        catch (nupic::Exception & e)
+        catch (htm::Exception & e)
         {
-            throw nupic::Exception(e);
+            throw htm::Exception(e);
         }
         catch (...)
         {
@@ -119,25 +113,6 @@ namespace nupic
         }
 	  }
 
-        // use PyBindRegion class to instantiate and deserialize the python class in the specified module.  TODO:cereal Remove
-      RegionImpl* deserializeRegionImpl(BundleIO& bundle, Region *region) override
-      {
-	  	try {
-          return new PyBindRegion(module_.c_str(), bundle, region, classname_.c_str());
-        }
-        catch (const py::error_already_set& e)
-        {
-            throw Exception(__FILE__, __LINE__, e.what());
-        }
-        catch (nupic::Exception & e)
-        {
-            throw nupic::Exception(e);
-        }
-        catch (...)
-        {
-            NTA_THROW << "Something bad happed while deserializing a .py region";
-        }
-      }
         // use PyBindRegion class to instantiate and deserialize the python class in the specified module.
       RegionImpl* deserializeRegionImpl(ArWrapper& wrapper, Region *region) override
       {
@@ -148,9 +123,9 @@ namespace nupic
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
-        catch (nupic::Exception & e)
+        catch (htm::Exception & e)
         {
-            throw nupic::Exception(e);
+            throw htm::Exception(e);
         }
         catch (...)
         {
@@ -164,7 +139,7 @@ namespace nupic
           try {
 			PyBindRegion::createSpec(module_.c_str(), *sp, classname_.c_str());
 		  }
-          catch (nupic::Exception & e) {
+          catch (htm::Exception & e) {
 		    UNUSED(e);
             delete sp;
             throw;
