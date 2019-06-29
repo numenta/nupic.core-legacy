@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # HTM Community Edition of NuPIC
-# Copyright (C) 2013, Numenta, Inc.
+# Copyright (C) 2013-2017, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,7 +15,11 @@
 # along with this program.  If not, see http://www.gnu.org/licenses.
 # ----------------------------------------------------------------------
 
-"""
-## @file
-"""
 __import__('pkg_resources').declare_namespace(__name__)
+
+from htm.bindings.sdr  import *
+
+__all__ = [
+    'SDR',
+    'Metrics',
+]

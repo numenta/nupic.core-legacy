@@ -12,7 +12,7 @@
 #include <cmath>
 
 /**
-Note: this is an implementation from python in htm repository.
+Note: this implementation was converted from python repository https://github.com/numenta/nupic
 
 This module analyzes and estimates the distribution of averaged anomaly scores
 from a given model. Given a new anomaly score `s`, estimates `P(score >= s)`.

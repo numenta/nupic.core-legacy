@@ -1,174 +1,145 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# NuPIC C++ Core Library
+# Community NuPIC.cpp repository (formerly [nupic.core](http://github.com/numenta/nupic.core))
 
-[![Linux/OSX Build Status](https://travis-ci.org/htm-community/htm.cpp.svg?branch=master)](https://travis-ci.org/htm-community/htm.cpp)
-[![OSX CircleCI](https://circleci.com/gh/htm-community/htm.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/htm.cpp/tree/master)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/htm-cpp/branch/master)
-
-
-## Community NuPIC.cpp (former nupic.core) repository
+[![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp)
+[![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
 
 This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings.
-Our aim is to provide an actively developed successor to the nupic.core and nupic repositories by Numenta,
-which are not actively developed anymore.
 
-### Our goals
+## Project Goals
 
-- [Goals for the next release](https://github.com/htm-community/nupic.cpp/blob/master/RELEASE_V1_GOALS.md)
-- Actively developed C++ core library for nupic.core (Numenta's repos are in maintanance mode only)
-- Clean & lean, fast, modern codebase (dependency removal, c++11/17, modernized code, faster)
+- Actively developed C++ core library for nupic.core (Numenta's repos are in maintenance mode only)
+- Clean, lean, optimized, and modern codebase
 - Stable and well tested code
-- API-compatibility with Numenta's code *)
 - Open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful).
-- Cross Platform Support
-- [Modularity](bindings/py/README.md) through bindings to the core library
-  - Currently only python has bindings, located in `bindings/py`
+- Interfaces to other programming languages, currently C++ and Python
 
+## Features
 
-This repository contains the C++ source code for the Numenta Platform for
-Intelligent Computing ([NuPIC](http://numenta.org/nupic.html)).
-It will eventually contain all algorithms for NuPIC, but is currently in a transition period.
+ * Implemented in C++11 through C++17
+    + Static and shared lib files for use with C++ applications.
+ * Interfaces to Python 3 and Python 2.7 (Only Python 3 under Windows)
+ * Cross Platform Support for Windows, Linux, OSX and ARM64
+ * Easy installation.  Many fewer dependencies than nupic.core, all are handled by CMake
+ * Significant speed optimizations
+ * Simplified codebase
+    + Removed CapnProto serialization.  It was pervasive and complicated the
+code considerably. It was replaced  with simple binary streaming serialization
+in C++ library.
+    + Removed sparse matrix libraries, use the optimized Connections class instead
+ * New and Improved Algorithms
+    + Revamped all algorithms APIs, making it easier for developers & researchers to use our codebase
+    + Sparse Distributed Representation class, integration, and tools for working with them
+ * API-compatibility with Numenta's code.
+   An objective is to stay close to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html).
+   This is a priority for the `NetworkAPI`.
+   The algorithms APIs on the other hand have deviated from their original API (but their logic is the same as Numenta's).
+   If you are porting your code to this codebase, please review the [API Changelog](API_CHANGELOG.md).
 
-\*) Nupic API compatability: The objective is to stay as close as possible to the [Nupic API Docs](http://nupic.docs.numenta.org/stable/api/index.html)
-with the aim that we don't break `.py` code written against the numenta's nupic.core extension library if they were to be
-ran against this extention library. If you are porting your code to this codebase, please review [API Changelog](API_CHANGELOG.md).
+# Installation
 
-### New Features
-
-Some of the major differences between this library and Numenta's extension library are the following:
-
- * Support for Python 3 and Python 2.7 (Only Python 3 under windows)
- * Support for Linux, OSx, and Windows MS Visual Studio 2017
- * Support for C++11 through C++17
- * Replaced SWIG with PyBind11 for Python interface.
- * Removed CapnProto serialization.  It was prevasive and complicated the code considerably. It was replaced
- with simple binary streaming serialization in C++ library.
- * Many code optimizations, modernization (Spatial Pooler shares optimized Connections backend with Temporal memory)
- * Modular structure
- * Interfaces & API stabilization, making it easier for developers & researchers to use our codebase
- * Much easier installation (reduced dependencies, all are handeled by CMake)
- * Static and shared lib files for use with C++ applications.
- * New and Improved Algorithms:
-   - Sparse Distributed Representations
-   - Anomaly Likelihood
-   - Backtracking Temporal Memory
-   - Significantly faster Spatial Pooler and Connections
-
-## Installation
-
-### Prerequisites
-
-- [CMake](http://www.cmake.org/)
-- [Python](https://python.org/downloads/)
-    - Version 2.7  We recommend you use the latest 2.7 version where possible. But the system version should be fine. (The extension library for Python 2.7 not supported on Windows.)
-    - Version 3.4+  The Nupic Python repository will need to be upgraded as well before this will be useful.
-  Be sure that your Python executable is in the Path environment variable. The Python that is in your default path is the one
-  that will determine which version of Python the extension library will be built for.
-  NOTE: Anaconda Python not supported.
-  Other implementations of Python may not work.
-  Only the standard python from python.org have been tested.
-- Python tools: In a command prompt execute the following.
-```
-  cd to-repository-root
-  python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
-  python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt
-```
-
-  Be sure you are running the right version of python. Check it with the following command:
-```
-  python --version
-```
-
-### Building from Source
+## Building from Source
 
 Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
 
-#### Simple Build for Python users (any platform)
+## Prerequisites
 
-The easiest way to build from source is as follows.
+- [CMake](http://www.cmake.org/)
+- [Python](https://python.org/downloads/)
+    - Version 3.4+
+    - Version 2.7
+      + We recommend the latest version of 2.7 where possible, but the system version should be fine.
+      + Python 2 is Not Supported on Windows, use Python 3 instead.
+
+  Be sure that your Python executable is in the Path environment variable.
+  The Python that is in your default path is the one that will determine which
+  version of Python the extension library will be built for.
+  - NOTE: People have reported success with `Anaconda` python.
+  - Other implementations of Python may not work.
+  - Only the standard python from python.org have been tested.
+- Python tools: In a command prompt execute the following.
 ```
-    cd to-repository-root
-    python setup.py install --user --force
+cd to-repository-root
+python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
+python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt
 ```
-Note that `--force` option will overwrite any existing files even if they are
-the same version, which is useful when developing the library & bindings.
 
-Note that `--user` option will install the extension libaries in ~/.local so
-that you don't need superuser permissions.
+Be sure you are running the right version of python. Check it with the following command:
+```
+python --version
+```
 
-This will build everything including the htm.core static library and Python extension libraries and then install them.
+## Simple Build for Python users (any platform)
 
-After that completes you are all set to run your .py programs which import the extensions:
- * htm.bindings.algorithms
- * htm.bindings.engine_internal
- * htm.bindings.math
- * htm.bindings.encoders
- * htm.bindings.sdr
+1) At a command prompt, go to the root directory of this repository.
 
-The installation scripts will automatically download and build the dependancies it needs.
- * Boost   (Not needed by C++17 compilers that support the filesystem module)
- * Yaml-cpp
- * Eigen
- * PyBind11
- * gtest
- * cereal
- * mnist test data
- * numpy
- * pytest
+2) Run: `python setup.py install --user --force`
 
- If you are installing on an air-gap computer (one without internet) then you can
- manually download the dependancies.  On another computer, download the distribution
- packages as listed and rename them as indicated. Copy these to
-  `${REPOSITORY_DIR}/build/ThirdParty/share` on the target machine.
+   This will build and install everything.
 
- | Name to give it | Where to obtain it |
- | :-------------- | :----------------- |
- | yaml-cpp.zip  *note1 | https://github.com/jbeder/yaml-cpp/archive/master.zip |
- | boost.tar.gz  *note2 | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz |
- | eigen.tar.bz2        | http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 |
- | googletest.tar.gz    | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
- | mnist.zip     *note3 | https://github.com/wichtounet/mnist/archive/master.zip |
- | pybind11.tar.gz      | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
- | cereal.tar.gz        | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
+   * Option `--user` will install the library in into your home directory so
+   that you don't need administrator/superuser permissions.
 
- *note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
- *note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.
- *note3: Data used for demo. Not required.
+   * Option `--force` will install the library even if the same version of it is
+   already installed, which is useful when developing the library.
 
-#### Simple Build On Linux or OSX for C++ apps
+   * If you run into problems due to caching of arguments in CMake, delete the
+   folder `Repository/build` and try again.  This is only an issue when
+   developing C++ code.
+
+3) After that completes you are ready to import the library:
+```python
+python.exe
+>>> import htm           # Python Library
+>>> import htm.bindings  # C++ Extensions
+>>> help( htm )          # Documentation
+```
+
+## Simple Build On Linux or OSX for C++ apps
 
 After downloading the repository, do the following:
 ```
-	cd path-to-repository
-	mkdir -p build/scripts
-	cd build/scripts
-	cmake ../..
-	make install
+cd path-to-repository
+mkdir -p build/scripts
+cd build/scripts
+cmake ../..
+make -j install
 ```
-This will build the Nupic.core library without the Python interface.
- * build/Release/lib/libhtm-core.a   static library
- * build/Release/lib/libhtm-core.so  shared library
- * The headers will be in `build/Release/include`.
 
-A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.  The -j3 could be used
-with the `make install` command to compile with multiple threads.
+| Build Artifact | File Location |
+| :------------- | :------------ |
+| Static Library         | `build/Release/lib/libhtm-core.a`    |
+| Shared Library         | `build/Release/lib/libhtm-core.so`   |
+| Header Files           | `build/Release/include/`             |
+| Unit Tests             | `build/Release/bin/unit_tests`       |
+| Hotgym Dataset Example | `build/Release/bin/benchmark_hotgym` |
+| MNIST Dataset Example  | `build/Release/bin/mnist_sp`         |
 
-#### Simple Build On Windows (MS Visual Studio 2017)
+ * A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.
+   + The debug library will be put in `build/Debug`.
+     Use the cmake option `-DCMAKE_INSTALL_PREFIX=../Release` to correct this.
+
+ * The -j option can be used with the `make install` command to compile with multiple threads.
+
+ * This will not build the Python interface.
+
+## Simple Build On Windows (MS Visual Studio 2017)
 
 After downloading the repository, do the following:
- * CD to top of repository.
- * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
- * Double click build/scripts/htm.cpp.sln -- This starts up Visual Studio
+
+ * CD to the top of repository.
+ * Double click on startupMSVC.bat
+    - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
  * Select `Release` or `Debug` as the Solution Configuration. Solution Platform must remain at x64.
- * Build everything.  -- This will build the C++ library.
+ * Build everything.  This will build the C++ library.
  * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
  * If you also want the Python extension library; in a command prompt, cd to root of repository and run `python setup.py install --user --prefix=`.
 
+## Docker Builds
 
-### Docker Builds
-
-#### Build for Docker x86_64
+### Build for Docker x86_64
 
 If you are on `x86_64` and would like to build a Docker image:
 
@@ -176,7 +147,7 @@ If you are on `x86_64` and would like to build a Docker image:
 docker build --build-arg arch=x86_64 .
 ```
 
-#### Docker build for ARM64
+### Docker build for ARM64
 
 If you are on `ARM64` and would like to build a Docker image, run the command
 below. The CircleCI automated ARM64 build (detailed below) uses this
@@ -186,25 +157,25 @@ specifically.
 docker build --build-arg arch=arm64 .
 ```
 
-### Automated Builds
+## Automated Builds
 
-#### Linux auto build @ TravisCI
+### Linux auto build @ TravisCI
 
  * [Build](https://travis-ci.org/htm-community/nupic.cpp)
  * [Config](./.travis.yml)
 
-#### Mac OS/X auto build @ CircleCI
+### Mac OS/X auto build @ CircleCI
 
  * [Build](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
  * [Config](./.circleci/config.yml)
  * Local Test Build: `circleci local execute --job build-and-test`
 
-#### Windows auto build @ AppVeyor
+### Windows auto build @ AppVeyor
 
  * [Build](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
  * [Config](./appveyor.yml)
 
-#### ARM64 auto build @ CircleCI
+### ARM64 auto build @ CircleCI
 
 This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
 
@@ -212,18 +183,9 @@ This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
  * [Config](./.circleci/config.yml)
  * Local Test Build: `circleci local execute --job arm64-build-test`
 
+# Using a Graphical Integrated Development Environment
 
-### Testing
-
-#### Unit tests for the library
-
-There are two sets of unit tests.
- * C++ Unit tests -- to run: `cd build/Release/bin; ./unit_tests`
- * Python Unit tests -- to run: `python setup.py test`
-
-### Using graphical interface
-
-#### Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
+## Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
 
  * Choose the IDE that interest you (remember that IDE choice is limited to your OS).
  * Open CMake executable in the IDE.
@@ -231,13 +193,9 @@ There are two sets of unit tests.
  * Specify the build system folder (`$HTM_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
 
-#### For MS Visual Studio 2017 as the IDE
- * Double click startupMSVC.bat  -- This will setup the build and create the solution file (.sln).
- * Double click build/scripts/htm.cpp.sln -- This starts up Visual Studio
- * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
- * Start a debug session.
+## [For MS Visual Studio 2017 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
 
-#### For Eclipse as the IDE
+## For Eclipse as the IDE
  * File - new C/C++Project - Empty or Existing CMake Project
  * Location: (`$HTM_CORE`) - Finish
  * Project properties - C/C++ Build - build command set "make -C build/scripts VERBOSE=1 install -j 6"
@@ -248,35 +206,89 @@ There are two sets of unit tests.
 For all new work, tab settings are at 2 characters.
 The clang-format is LLVM style.
 
-### Examples
+# Third Party Dependencies
 
-#### Hot Gym
-A simple example of an app that calls SP and TM algorithms directly is 
-the hot gym app.  This tries to predict the power consuption for a gym
-which has fluctuations in temporature.  This is often used as a benchmark.
+The installation scripts will automatically download and build the dependencies it needs.
 
-To run:  (assuming current directory is top of repository)
+ * Boost   (Not needed by C++17 compilers that support the filesystem module)
+ * Yaml-cpp
+ * Eigen
+ * PyBind11
+ * gtest
+ * cereal
+ * mnist test data
+ * numpy
+ * pytest
+
+Once these third party components have been downloaded and built they will not be
+re-visited again on subsequent builds.  So to refresh the third party components
+or rebuild them, delete the folder `build/ThirdParty` and then re-build.
+
+If you are installing on an air-gap computer (one without Internet) then you can
+manually download the dependencies.  On another computer, download the
+distribution packages as listed and rename them as indicated. Copy these to
+`${REPOSITORY_DIR}/build/ThirdParty/share` on the target machine.
+
+| Name to give it        | Where to obtain it |
+| :--------------------- | :----------------- |
+| yaml-cpp.zip  (*note1) | https://github.com/jbeder/yaml-cpp/archive/master.zip |
+| boost.tar.gz  (*note2) | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz |
+| eigen.tar.bz2          | http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 |
+| googletest.tar.gz      | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
+| mnist.zip     (*note3) | https://github.com/wichtounet/mnist/archive/master.zip |
+| pybind11.tar.gz        | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
+| cereal.tar.gz          | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
+
+ * note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
+ * note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.
+ * note3: Data used for demo. Not required.
+
+# Testing
+
+### There are two sets of Unit Tests:
+
+ * C++ Unit tests -- to run: `./build/Release/bin/unit_tests`
+ * Python Unit tests -- to run: `python setup.py test`
+
+# Examples
+
+## Python Examples
+
+There are a number of python examples, which are runnable from the command line.
+They are located in the module `htm.examples`.
+
+Example Command Line Invocation: `$ python -m htm.examples.sp.hello_sp`
+
+## Hot Gym
+
+This is a simple example application that calls the SpatialPooler and
+TemporalMemory algorithms directly.  This attempts to predict the electrical
+power consumption for a gymnasium over the course of several months.
+
+To run python version:
 ```
-  ./build/Release/bin/benchmark_hotgym
+python -m htm.examples.hotgym
+```
+
+To run C++ version: (assuming current directory is top of repository)
+```
+./build/Release/bin/benchmark_hotgym
 ```
 
 There is also a dynamically linked version of Hot Gym (not available on MSVC). 
-You will need specify the location
-of the shared library with LD_LIBRARY_PATH.
+You will need specify the location of the shared library with LD_LIBRARY_PATH.
 
 To run: (assuming current directory is top of repository)
 ```
 LD_LIBRARY_PATH=build/Release/lib ./build/Release/bin/dynamic_hotgym
 ```
 
-#### NMIST benchmark
+## MNIST benchmark
 
-The task is to recognise images of hand written numbers 0-9.
-This should score at least 95%.
-This is often used as a benchmark.  Adjust the number of iterations in 
-MNST_SP.cpp line 56 before compiling.
+The task is to recognize images of hand written numbers 0-9.
+This is often used as a benchmark.  This should score at least 95%.
 
-to run: (assuming current directory is top of repository)
+To run: (assuming current directory is top of repository)
 ```
   ./build/Release/bin/mnist_sp
 ```
