@@ -16,6 +16,7 @@
 # ----------------------------------------------------------------------
 
 import unittest
+import pytest
 
 from htm.bindings.sdr import SDR
 from htm.algorithms import SpatialPooler as SP
