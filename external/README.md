@@ -1,7 +1,7 @@
-NuPIC Core external libraries
+HTM Core external libraries
 =============================
 
-NuPIC Core depends on a number of external libraries. The download and build of these libraries is 
+HTM Core depends on a number of external libraries. The download and build of these libraries is
 integrated into the cmake-based build of htm.core.  The code that does this are in external/*.cmake
 
 - Boost.cmake   If needed, finds the boost installation 1.69.0. Boost needs to be built with -fPIC so cannot use externally installed.

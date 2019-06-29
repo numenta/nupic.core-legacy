@@ -1,7 +1,7 @@
-# Breaking changes to the htm API
+# Breaking changes to the NuPIC API
 
-We try to keep API as much as compatible with original [numenta/nupic.core repo](https://github.com/numenta/nupic.core). 
-The API is specified in the [API Docs](http://nupic.docs.numenta.org/prerelease/api/index.html) 
+We try to keep the API compatible with the original [numenta/nupic.core repo](https://github.com/numenta/nupic.core). 
+That API is specified in their [API Docs](http://nupic.docs.numenta.org/prerelease/api/index.html).
 
 ## Motivation
 
@@ -10,6 +10,15 @@ our implementation. And for developers to be easily able to navigate within the 
 Despite of this, sometimes changes need to happen - be it for optimization, removal/replacement of some 
 features or implementation detail, etc.
 
+## Summary
+
+The NetworkAPI is mostly unchanged, since it is a compatibility layer.
+Direct access to the algorithms APIs has changed:
+* All classes now use the `SDR` class where applicable instead of raw data lists.
+* All encoders have new API.
+* `SDRClassifier` split into two classes: `Classifier` and `Predictor` with new API.
+* `Anomaly` class is now built into the `TemporalMemory`
+* `SpatialPooler` & `TemporalMemory` have many small changes, see below.
 
 ## API breaking changes in this repo
 
@@ -59,8 +68,6 @@ are ignored.  PR #271
 
 * Removed `void SpatialPooler::stripUnlearnedColumns()` as unused and not useful (did not effectively remove any columns). PR #286 
 
-* Changed SDRClassifier::compute() signature to take parameter `ClassifierResult& result`, instead of a raw pointer. PR #301
-
 * Rewrote ScalarEncoder API, all code using it needs to be rewritten. PR #314
 
 * Removed old `TP` (Temporal Pooler, `Cells4.hpp`) as it was not maintained, users should default to `TemporalMemory, TM`. 
@@ -77,7 +84,7 @@ longer accept a synapse permanence threshold argument. PR #305
 This is obsolete. Use getRegion('name') instead. 
 
 * Anomaly class removed as obsolete, use `TM.anomaly` which is simpler to use, and `MovingAverage` when you need to emulate 
-  running averages. Internaly the code still uses `computeRawAnomalyScore()` but there's no need to call it directly. `AnomalyLikelihood` 
+  running averages. Internally the code still uses `computeRawAnomalyScore()` but there's no need to call it directly. `AnomalyLikelihood` 
   is still available and can be used in addition to TM.getAnomalyScore(). PR #406 
 
 * TemporalMemory::getPredictiveCells() now returns a SDR. This ensures more convenient API and that the SDR object has correct
