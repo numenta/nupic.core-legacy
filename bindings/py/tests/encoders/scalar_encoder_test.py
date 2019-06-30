@@ -301,6 +301,6 @@ class ScalarEncoder_Test(unittest.TestCase):
         assert( mtr.activationFrequency.max() < 1.75 * .10 )
         assert( mtr.overlap.min() > .85 )
 
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
     def testPickle(self):
         assert(False) # TODO: Unimplemented

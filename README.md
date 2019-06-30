@@ -2,8 +2,8 @@
 
 # Community NuPIC.cpp repository (formerly [nupic.core](http://github.com/numenta/nupic.core))
 
-[![Linux/OSX Build Status](https://travis-ci.org/htm-community/nupic.cpp.svg?branch=master)](https://travis-ci.org/htm-community/nupic.cpp)
-[![OSX CircleCI](https://circleci.com/gh/htm-community/nupic.cpp/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
+[![Linux/OSX Build Status](https://travis-ci.org/htm-community/htm.core.svg?branch=master)](https://travis-ci.org/htm-community/htm.core)
+[![OSX CircleCI](https://circleci.com/gh/htm-community/htm.core/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/htm.core/tree/master)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
 
 This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings.

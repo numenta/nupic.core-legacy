@@ -1,5 +1,8 @@
 # Changelog
 
+This file is no longer being updated.
+Instead see the [API_CHANGELOG](API_CHANGELOG.md).
+
 ## 1.1.0
 
 * Comunity release
