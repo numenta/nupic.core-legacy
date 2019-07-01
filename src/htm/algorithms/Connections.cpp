@@ -210,7 +210,7 @@ void Connections::destroySegment(Segment segment) {
   destroyedSegments_.push_back(segment);
 }
 
-void Connections::destroySynapse(Synapse synapse) {
+void Connections::destroySynapse(const Synapse synapse) {
   NTA_ASSERT(synapseExists_(synapse));
   for (auto h : eventHandlers_) {
     h.second->onDestroySynapse(synapse);

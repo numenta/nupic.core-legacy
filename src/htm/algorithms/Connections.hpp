@@ -251,7 +251,7 @@ public:
    *
    * @param synapse Synapse to destroy.
    */
-  void destroySynapse(Synapse synapse);
+  void destroySynapse(const Synapse synapse);
 
   /**
    * Updates a synapse's permanence.
