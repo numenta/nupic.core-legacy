@@ -186,10 +186,7 @@ static void adaptSegment(Connections &connections, Segment segment,
       permanence -= permanenceDecrement;
     }
 
-    permanence = min(permanence, (Permanence)1.0);
-    permanence = max(permanence, (Permanence)0.0);
-
-    if (permanence < htm::Epsilon) {
+    if (permanence < htm::minPermanence + htm::Epsilon) {
       connections.destroySynapse(synapses[i]);
       // Synapses vector is modified in-place, so don't update `i`.
     } else {
