@@ -17,6 +17,7 @@
 
 import unittest
 import pytest
+import sys
 
 from htm.bindings.sdr import SDR
 from htm.algorithms import SpatialPooler as SP
@@ -163,7 +164,7 @@ class SpatialPoolerTest(unittest.TestCase):
       print("Successfully caught incorrect uint numpy data length")
       pass     
 
-  @pytest.mark.skip(reason="Fails for python2 with segmentation fault")
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
   def testNupicSpatialPoolerPickling(self):
     """Test pickling / unpickling of NuPIC SpatialPooler."""
 

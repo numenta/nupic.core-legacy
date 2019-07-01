@@ -18,6 +18,7 @@
 import unittest
 import pytest
 import pickle
+import sys
 
 class TemporalMemoryBindingsTest(unittest.TestCase):
   @pytest.mark.skip(reason="Calling arguments on compute()...another PR")
@@ -30,7 +31,7 @@ class TemporalMemoryBindingsTest(unittest.TestCase):
     tm = TemporalMemory()
     tm.compute(set(), True)
 
-  @pytest.mark.skip(reason="Fails for python2 with segmentation fault")
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
   def testNupicTemporalMemoryPickling(self):
     """Test pickling / unpickling of NuPIC TemporalMemory."""
     from htm.bindings.algorithms import TemporalMemory
