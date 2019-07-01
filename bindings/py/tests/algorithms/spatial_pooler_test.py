@@ -16,10 +16,14 @@
 # ----------------------------------------------------------------------
 
 import unittest
+import pytest
+import sys
 
 from htm.bindings.sdr import SDR
 from htm.algorithms import SpatialPooler as SP
 import numpy as np
+
+import pickle
 
 class SpatialPoolerTest(unittest.TestCase):
 
@@ -159,6 +163,19 @@ class SpatialPoolerTest(unittest.TestCase):
       # This has correctly caught wrong precision error
       print("Successfully caught incorrect uint numpy data length")
       pass     
+
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
+  def testNupicSpatialPoolerPickling(self):
+    """Test pickling / unpickling of NuPIC SpatialPooler."""
+
+    # Simple test: make sure that dumping / loading works...
+    sp = SP()
+    pickledSp = pickle.dumps(sp)
+
+    sp2 = pickle.loads(pickledSp)
+
+    self.assertEqual(sp.getNumColumns(), sp2.getNumColumns(),
+                     "Simple NuPIC SpatialPooler pickle/unpickle failed.")
 
 
 if __name__ == "__main__":
