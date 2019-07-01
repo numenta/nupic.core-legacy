@@ -22,7 +22,6 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <climits>
 #include <map>
 #include <set>
 #include <utility>
@@ -36,9 +35,10 @@
 namespace htm {
 
 //TODO instead of typedefs, use templates for proper type-checking?
+//TODO profile to use better (smaller?) types
 using CellIdx   = htm::ElemSparse; // CellIdx must match with ElemSparse, defined in Sdr.hpp
-using SegmentIdx= UInt16; /** Index of segment in cell. */
-using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
+using SegmentIdx= unsigned char; /** Index of segment in cell. */
+using SynapseIdx= unsigned char; /** Index of synapse in segment. */
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
 using Permanence= Real32; //TODO experiment with half aka float16
