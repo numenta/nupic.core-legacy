@@ -378,7 +378,7 @@ class SdrTest(unittest.TestCase):
         B.dense = B.dense
         assert(str(B) == "SDR( 100, 100, 1 ) 0, 9999")
 
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
     def testPickle(self):
         for sparsity in (0, .3, 1):
             A = SDR((103,))

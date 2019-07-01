@@ -20,6 +20,7 @@ htmlcov/
 # KDevelop
 .kdev4
 nupic.core.kdev4
+htm.core.kdev4
 
 # Eclipse project files
 .cproject

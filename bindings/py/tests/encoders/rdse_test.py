@@ -255,6 +255,6 @@ class RDSE_Test(unittest.TestCase):
         B = R.encode( 987654 )
         assert( A != B )
 
-    @unittest.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    @unittest.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
     def testPickle(self):
         assert(False) # TODO: Unimplemented

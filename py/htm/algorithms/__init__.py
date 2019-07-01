@@ -1,4 +1,8 @@
-from htm.bindings.algorithms import __doc__
-
-from htm.bindings.algorithms import SpatialPooler
-from htm.bindings.algorithms import TemporalMemory
+from htm.bindings.algorithms import *
+__all__ = [
+    'SpatialPooler',
+    'TemporalMemory',
+    'Connections',
+    'Classifier',
+    'Predictor',
+]

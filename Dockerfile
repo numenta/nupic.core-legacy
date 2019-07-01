@@ -25,15 +25,15 @@ RUN pip install wheel
 ENV CC gcc-8
 ENV CXX g++-8
 
-ADD . /usr/local/src/nupic.cpp
-WORKDIR /usr/local/src/nupic.cpp
+ADD . /usr/local/src/htm.core
+WORKDIR /usr/local/src/htm.core
 
 # Explicitly specify --cache-dir, --build, and --no-clean so that build
 # artifacts may be extracted from the container later.  Final built python
-# packages can be found in /usr/local/src/nupic.cpp/bindings/py/dist
+# packages can be found in /usr/local/src/htm.core/bindings/py/dist
 RUN pip install \
-#        --cache-dir /usr/local/src/nupic.cpp/pip-cache \
-#        --build /usr/local/src/nupic.cpp/pip-build \
+#        --cache-dir /usr/local/src/htm.core/pip-cache \
+#        --build /usr/local/src/htm.core/pip-build \
 #        --no-clean \
         -r bindings/py/packaging/requirements.txt
 RUN python setup.py install
