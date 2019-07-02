@@ -90,6 +90,8 @@ struct SynapseData: public Serializable {
  * The cell that this segment is on.
  */
 struct SegmentData {
+  SegmentData(const CellIdx cell) : cell(cell), numConnected(0) {} //default constructor
+
   std::vector<Synapse> synapses;
   CellIdx cell;
   SynapseIdx numConnected;
@@ -224,7 +226,7 @@ public:
    *
    * @retval Created segment.
    */
-  Segment createSegment(CellIdx cell);
+  Segment createSegment(const CellIdx cell);
 
   /**
    * Creates a synapse on the specified segment.

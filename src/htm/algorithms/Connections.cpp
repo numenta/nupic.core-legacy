@@ -75,7 +75,7 @@ void Connections::unsubscribe(UInt32 token) {
   eventHandlers_.erase(token);
 }
 
-Segment Connections::createSegment(CellIdx cell) {
+Segment Connections::createSegment(const CellIdx cell) {
   Segment segment;
   if (!destroyedSegments_.empty() ) { //reuse old, destroyed segs
     segment = destroyedSegments_.back();
@@ -84,17 +84,14 @@ Segment Connections::createSegment(CellIdx cell) {
     NTA_CHECK(segments_.size() < std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
 	    << (size_t)segments_.size() << " < " << (size_t)std::numeric_limits<Segment>::max();
     segment = static_cast<Segment>(segments_.size());
-    segments_.push_back(SegmentData());
+    const SegmentData& segmentData = SegmentData(cell); 
+    segments_.push_back(segmentData);
     segmentOrdinals_.push_back(0);
   }
 
-  SegmentData &segmentData = segments_[segment];
-  segmentData.numConnected = 0;
-  segmentData.cell = cell;
-
   CellData &cellData = cells_[cell];
   segmentOrdinals_[segment] = nextSegmentOrdinal_++;
-  cellData.segments.push_back(segment);
+  cellData.segments.push_back(segment); //assign the new segment to its mother-cell
 
   for (auto h : eventHandlers_) {
     h.second->onCreateSegment(segment);
