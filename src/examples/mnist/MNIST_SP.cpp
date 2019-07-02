@@ -31,11 +31,11 @@
 #include <htm/algorithms/SpatialPooler.hpp>
 #include <htm/algorithms/SDRClassifier.hpp>
 #include <htm/utils/SdrMetrics.hpp>
+#include <htm/os/Timer.hpp>
 
 #include <mnist/mnist_reader.hpp> // MNIST data itself + read methods, namespace mnist::
 #include <mnist/mnist_utils.hpp>  // mnist::binarize_dataset
 
-namespace examples {
 
 using namespace std;
 using namespace htm;
@@ -99,6 +99,8 @@ void train() {
   Metrics inputStats(input,    1402);
   Metrics columnStats(columns, 1402);
 
+  Timer tTrain(true);
+
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
     NTA_INFO << "epoch " << epoch;
     // Shuffle the training data.
@@ -120,11 +122,15 @@ void train() {
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
     }
     if( verbosity ) cout << endl;
-  }
+  
   cout << "epoch ended" << endl;
   cout << "inputStats "  << inputStats << endl;
   cout << "columnStats " << columnStats << endl;
   cout << sp << endl;
+  }
+  
+  tTrain.stop();
+  cout << "MNIST train time: " << tTrain.getElapsed() << endl; 
 
   // Save the connections to file for postmortem analysis.
   ofstream dump("mnist_sp_learned.connections", ofstream::binary | ofstream::trunc | ofstream::out);
@@ -153,14 +159,14 @@ void test() {
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }
   if( verbosity ) cout << endl;
-  cout << "Score: " << 100.0 * score / n_samples << "% " << endl;
+  cout << "===========RESULTs=================" << endl;
+  cout << "Score: " << 100.0 * score / n_samples << "% ("<< (n_samples - score) << " / " << n_samples << " wrong). "   << endl;
 }
 
 };  // End class MNIST
-}   // End namespace examples
 
 int main(int argc, char **argv) {
-  examples::MNIST m;
+  MNIST m;
   m.setup();
   m.train();
   m.test();
