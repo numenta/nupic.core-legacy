@@ -170,7 +170,7 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   NTA_THROW << "getLeastUsedCell failed to find a cell";
 }
 
-static void adaptSegment(Connections &connections, Segment segment,
+static void adaptSegment(Connections &connections, Segment segment, //TODO replace with Connections::adaptSegment
                          const vector<bool> &prevActiveCellsDense,
                          Permanence permanenceIncrement,
                          Permanence permanenceDecrement) {
@@ -179,18 +179,18 @@ static void adaptSegment(Connections &connections, Segment segment,
   for (SynapseIdx i = 0; i < synapses.size();) {
     const SynapseData &synapseData = connections.dataForSynapse(synapses[i]);
 
-    Permanence permanence = synapseData.permanence;
+    Permanence update;
     if (prevActiveCellsDense[synapseData.presynapticCell]) {
-      permanence += permanenceIncrement;
+      update = permanenceIncrement;
     } else {
-      permanence -= permanenceDecrement;
+      update = -permanenceDecrement;
     }
 
-    if (permanence < htm::minPermanence + htm::Epsilon) {
+    if (synapseData.permanence + update < htm::minPermanence + htm::Epsilon) {
       connections.destroySynapse(synapses[i]);
       // Synapses vector is modified in-place, so don't update `i`.
     } else {
-      connections.updateSynapsePermanence(synapses[i], permanence);
+      connections.updateSynapsePermanence(synapses[i], synapseData.permanence + update);
       i++;
     }
   }
