@@ -448,8 +448,8 @@ void Connections::adaptSegment(const Segment segment,
   const auto &inputArray = inputs.getDense();
 
   if( timeseries_ ) {
-    previousUpdates_.resize( synapses_.size(), 0.0f );
-    currentUpdates_.resize(  synapses_.size(), 0.0f );
+    previousUpdates_.resize( synapses_.size(), minPermanence );
+    currentUpdates_.resize(  synapses_.size(), minPermanence );
   }
 
   for( const auto synapse : synapsesForSegment(segment) ) {
