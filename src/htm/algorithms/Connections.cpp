@@ -77,14 +77,14 @@ void Connections::unsubscribe(UInt32 token) {
 
 Segment Connections::createSegment(const CellIdx cell, 
 	                           const SegmentIdx maxSegmentsPerCell,
-				   vector<UInt64>* usage, //TODO move usage to SegmentData.lastUsed ?
-				   const UInt64 iteration) { //TODO move iteration to Connections.iteration_ ?
+				   const UInt32 iteration) { //TODO move iteration to Connections.iteration_ ?
 
   //limit number of segmets per cell. If exceeded, remove the least recently used ones.
-  while (usage != nullptr && numSegments(cell) >= maxSegmentsPerCell) {
+  NTA_ASSERT(maxSegmentsPerCell > 0);
+  while (maxSegmentsPerCell > 1 && numSegments(cell) >= maxSegmentsPerCell) {
     const auto& destroyCandidates = segmentsForCell(cell);
     const auto compareSegmentsByLRU = [&](const Segment a, const Segment b) {
-      return (usage->operator[](a) < usage->operator[](b)); };
+      return (dataForSegment(a).lastUsed < dataForSegment(b).lastUsed); };
     const auto leastRecentlyUsedSegment = std::min_element(destroyCandidates.cbegin(), 
         destroyCandidates.cend(), compareSegmentsByLRU);
 
@@ -100,14 +100,9 @@ Segment Connections::createSegment(const CellIdx cell,
     NTA_CHECK(segments_.size() < std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
 	    << (size_t)segments_.size() << " < " << (size_t)std::numeric_limits<Segment>::max();
     segment = static_cast<Segment>(segments_.size());
-    const SegmentData& segmentData = SegmentData(cell); 
+    const SegmentData& segmentData = SegmentData(cell, iteration);
     segments_.push_back(segmentData);
     segmentOrdinals_.push_back(0);
-  }
-
-  if(maxSegmentsPerCell > 0) {
-    usage->resize(segmentFlatListLength());
-    usage->operator[](segment) = iteration;
   }
 
   CellData &cellData = cells_[cell];
@@ -366,17 +361,6 @@ void Connections::mapSegmentsToCells(const Segment *segments_begin,
   }
 }
 
-Segment Connections::segmentForSynapse(Synapse synapse) const {
-  return synapses_[synapse].segment;
-}
-
-const SegmentData &Connections::dataForSegment(Segment segment) const {
-  return segments_[segment];
-}
-
-const SynapseData &Connections::dataForSynapse(Synapse synapse) const {
-  return synapses_[synapse];
-}
 
 bool Connections::compareSegments(const Segment a, const Segment b) const {
   const SegmentData &aData = segments_[a];

@@ -261,7 +261,7 @@ static Segment createSegment(Connections &connections,  //TODO remove, use TM::c
                              CellIdx cell, UInt64 iteration,
                              UInt maxSegmentsPerCell) {
 
-  const Segment segment = connections.createSegment(cell, maxSegmentsPerCell, &lastUsedIterationForSegment, iteration);
+  const Segment segment = connections.createSegment(cell, maxSegmentsPerCell, static_cast<UInt32>(iteration));
   return segment;
 }
 
@@ -474,11 +474,11 @@ void TemporalMemory::activateDendrites(const bool learn,
     }
   }
   const auto compareSegments = [&](const Segment a, const Segment b) { return connections.compareSegments(a, b); };
-  std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments);
+  std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments); //TODO why sorted?
   // Update segment bookkeeping.
   if (learn) {
-    for (const auto &segment : activeSegments_) {
-      lastUsedIterationForSegment_[segment] = iteration_;
+    for (auto &segment : activeSegments_) {
+      connections.dataForSegment(segment).lastUsed = iteration_; //TODO the destroySegments based on LRU is expensive. Better random? or "energy" based on sum permanences? 
     }
     iteration_++;
   }

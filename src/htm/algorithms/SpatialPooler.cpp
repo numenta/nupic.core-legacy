@@ -361,7 +361,7 @@ void SpatialPooler::getConnectedSynapses(UInt column,
 }
 
 void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
-  for(UInt seg = 0; seg < numColumns_; seg++) {
+  for(UInt seg = 0; seg < numColumns_; seg++) { //in SP each column = 1 cell with 1 segment only.
     const auto &segment = connections_.dataForSegment( seg );
     connectedCounts[ seg ] = segment.numConnected;
   }

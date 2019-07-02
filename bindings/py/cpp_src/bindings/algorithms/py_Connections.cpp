@@ -51,7 +51,6 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
     py_Connections.def("createSegment", &Connections::createSegment,
         py::arg("cell"),
 	py::arg("maxSegmentsPerCell") = 0,
-	py::arg("usage") = nullptr,
 	py::arg("iteration") = 0
 	);
 

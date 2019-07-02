@@ -90,12 +90,12 @@ struct SynapseData: public Serializable {
  * The cell that this segment is on.
  */
 struct SegmentData {
-  SegmentData(const CellIdx cell) : cell(cell), numConnected(0) {} //default constructor
+  SegmentData(const CellIdx cell, UInt32 lastUsed = 0) : cell(cell), numConnected(0), lastUsed(lastUsed) {} //default constructor
 
   std::vector<Synapse> synapses;
   CellIdx cell; //mother cell that this segment originates from
   SynapseIdx numConnected; //number of permanences from `synapses` that are >= synPermConnected, ie connected synapses
-//  UInt32 lastUsed = 0; //last used time (iteration). Used for segment pruning by "least recently used" (LRU) in `createSegment`
+  UInt32 lastUsed = 0; //last used time (iteration). Used for segment pruning by "least recently used" (LRU) in `createSegment`
 };
 
 /**
@@ -225,12 +225,19 @@ public:
    *
    * @param cell Cell to create segment on.
    *
-   * @retval Created segment.
+   * @param maxSegmetsPerCell Optional, default 1. Enforce limit on maximum number of segments that can be
+   * created on a Cell. `createSegment` checks this limit only if `maxSegmentsPerCell > 1`. If the limit 
+   * is exceeded, call `destroySegment` to remove least used segments (ordered by LRU `SegmentData.lastUsed`)
+   *
+   * @param iteration Optional. Used only if `maxSegmentsPerCell` > 1. In that case, `iteration` is assigned as
+   * "timestamp" to SegmentData.lastUsed. 
+   *
+   * @retval Created segment `seg`. Use `dataForSegment(seg)` to obtain the segment's data. Use  `idxOfSegmentOnCell()` 
+   * to get SegmentIdx of `seg` on this `cell`. 
    */
   Segment createSegment(const CellIdx cell, 
-		        const SegmentIdx maxSegmentsPerCell = 0,
-			std::vector<UInt64>* usage = nullptr,
-			const UInt64 iteration = 0); //TODO document
+		        const SegmentIdx maxSegmentsPerCell = 1,
+			const UInt32 iteration = 0);
 
   /**
    * Creates a synapse on the specified segment.
@@ -324,7 +331,9 @@ public:
    *
    * @retval Segment that this synapse is on.
    */
-  Segment segmentForSynapse(Synapse synapse) const;
+  Segment segmentForSynapse(const Synapse synapse) const {
+    return synapses_[synapse].segment;
+  }
 
   /**
    * Gets the data for a segment.
@@ -333,7 +342,12 @@ public:
    *
    * @retval Segment data.
    */
-  const SegmentData &dataForSegment(Segment segment) const;
+  const SegmentData &dataForSegment(const Segment segment) const {
+    return segments_[segment];
+  }
+  SegmentData& dataForSegment(const Segment segment) { //editable access, needed by SP 
+    return segments_[segment];
+  }
 
   /**
    * Gets the data for a synapse.
@@ -342,7 +356,9 @@ public:
    *
    * @retval Synapse data.
    */
-  const SynapseData &dataForSynapse(Synapse synapse) const;
+  const SynapseData &dataForSynapse(const Synapse synapse) const {
+    return synapses_[synapse];
+  }
 
   /**
    * Get the segment at the specified cell and offset.
