@@ -184,21 +184,10 @@ static void adaptSegment(Connections &connections, Segment segment,
   }
   SDR tmp({(CellIdx)sz});
   tmp.setSparse(v); //TODO get setDense working to avoid the loop with `v` above!
-  connections.adaptSegment(segment, tmp, permanenceIncrement, permanenceDecrement);
+  connections.adaptSegment(segment, tmp, permanenceIncrement, permanenceDecrement, true);
 
   //2. remove disconnected synapses & empty segments
   const vector<Synapse> &synapses = connections.synapsesForSegment(segment);
-  for (SynapseIdx i = 0; i < synapses.size();) {
-    const SynapseData &synapseData = connections.dataForSynapse(synapses[i]);
-    //2.1 remove synapse with permanence == 0.0
-    if (synapseData.permanence < htm::minPermanence + htm::Epsilon) { //TODO make the pruning part of connections::adaptSegment
-      connections.destroySynapse(synapses[i]);
-      // Synapses vector is modified in-place, so don't update `i`.
-    } else {
-      i++;
-    }
-  }
-
   //2.2 remove empty segments
   if (synapses.size() == 0) {
     connections.destroySegment(segment);

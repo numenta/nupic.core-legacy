@@ -259,7 +259,8 @@ public:
    * @param synapse    Synapse to update.
    * @param permanence New permanence.
    */
-  void updateSynapsePermanence(Synapse synapse, Permanence permanence);
+  void updateSynapsePermanence(const Synapse synapse, 
+		               Permanence permanence);
 
   /**
    * Gets the segments for a cell.
@@ -417,11 +418,14 @@ public:
    * @param inputVector  An SDR
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
+   * @param pruneZeroSynapses (default false) If set, synapses that reach minPermanence(aka. "zero")
+   *        are removed. This is used in TemporalMemory. 
    */
   void adaptSegment(const Segment segment,
                     const SDR &inputs,
                     const Permanence increment,
-                    const Permanence decrement);
+                    const Permanence decrement,
+		    const bool pruneZeroSynapses = false);
 
   /**
    * Ensures a minimum number of connected synapses.  This raises permance

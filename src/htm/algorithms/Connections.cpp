@@ -259,7 +259,7 @@ void Connections::destroySynapse(const Synapse synapse) {
   destroyedSynapses_.push_back(synapse);
 }
 
-void Connections::updateSynapsePermanence(Synapse synapse,
+void Connections::updateSynapsePermanence(const Synapse synapse,
                                           Permanence permanence) {
   permanence = std::min(permanence, maxPermanence );
   permanence = std::max(permanence, minPermanence );
@@ -443,7 +443,8 @@ void Connections::computeActivity(
 void Connections::adaptSegment(const Segment segment, 
                                const SDR &inputs,
                                const Permanence increment,
-                               const Permanence decrement)
+                               const Permanence decrement, 
+			       const bool pruneZeroSynapses)
 {
   const auto &inputArray = inputs.getDense();
 
@@ -452,7 +453,9 @@ void Connections::adaptSegment(const Segment segment,
     currentUpdates_.resize(  synapses_.size(), minPermanence );
   }
 
-  for( const auto synapse : synapsesForSegment(segment) ) {
+  const auto& synapses = synapsesForSegment(segment);
+  for( size_t i = 0; i <  synapses.size(); i++) {
+      const auto synapse = synapses[i];
       const SynapseData &synapseData = dataForSynapse(synapse);
 
       Permanence update;
@@ -461,6 +464,15 @@ void Connections::adaptSegment(const Segment segment,
       } else {
         update = -decrement;
       }
+
+    //prune permanences that reached zero
+    if (pruneZeroSynapses && synapseData.permanence + update < htm::minPermanence + htm::Epsilon) {
+      destroySynapse(synapse);
+      i--; // do not advance `i`, as `destroySynapse` just modified inplace the synapses_, so now a `synapses_[i]`
+      // is the "next" synapse. 
+      continue;
+    }
+
     //update synapse, but for TS only if changed
     if(timeseries_) {
       if( update != previousUpdates_[synapse] ) {
