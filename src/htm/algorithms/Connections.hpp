@@ -93,8 +93,9 @@ struct SegmentData {
   SegmentData(const CellIdx cell) : cell(cell), numConnected(0) {} //default constructor
 
   std::vector<Synapse> synapses;
-  CellIdx cell;
-  SynapseIdx numConnected;
+  CellIdx cell; //mother cell that this segment originates from
+  SynapseIdx numConnected; //number of permanences from `synapses` that are >= synPermConnected, ie connected synapses
+//  UInt32 lastUsed = 0; //last used time (iteration). Used for segment pruning by "least recently used" (LRU) in `createSegment`
 };
 
 /**
@@ -226,7 +227,10 @@ public:
    *
    * @retval Created segment.
    */
-  Segment createSegment(const CellIdx cell);
+  Segment createSegment(const CellIdx cell, 
+		        const SegmentIdx maxSegmentsPerCell = 0,
+			std::vector<UInt64>* usage = nullptr,
+			const UInt64 iteration = 0); //TODO document
 
   /**
    * Creates a synapse on the specified segment.

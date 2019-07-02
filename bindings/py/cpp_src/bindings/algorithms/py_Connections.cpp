@@ -49,7 +49,11 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
         [](const Connections &self) { return self.getConnectedThreshold(); });
 
     py_Connections.def("createSegment", &Connections::createSegment,
-        py::arg("cell"));
+        py::arg("cell"),
+	py::arg("maxSegmentsPerCell") = 0,
+	py::arg("usage") = nullptr,
+	py::arg("iteration") = 0
+	);
 
     py_Connections.def("destroySegment", &Connections::destroySegment);
 

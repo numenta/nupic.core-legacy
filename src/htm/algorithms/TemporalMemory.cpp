@@ -238,12 +238,12 @@ static void activatePredictedColumn(
 
     // This cell might have multiple active segments.
     do {
-      if (learn) {
+      if (learn) { 
         connections.adaptSegment(*activeSegment, prevActiveCells,
                      permanenceIncrement, permanenceDecrement, true);
 
         const Int32 nGrowDesired =
-            maxNewSynapseCount -
+            static_cast<Int32>(maxNewSynapseCount) -
             numActivePotentialSynapsesForSegment[*activeSegment];
         if (nGrowDesired > 0) {
           growSynapses(connections, rng, *activeSegment, nGrowDesired,
@@ -260,24 +260,8 @@ static Segment createSegment(Connections &connections,  //TODO remove, use TM::c
                              vector<UInt64> &lastUsedIterationForSegment,
                              CellIdx cell, UInt64 iteration,
                              UInt maxSegmentsPerCell) {
-  while (connections.numSegments(cell) >= maxSegmentsPerCell) {
-    const vector<Segment> &destroyCandidates =
-        connections.segmentsForCell(cell);
 
-    auto leastRecentlyUsedSegment =
-        std::min_element(destroyCandidates.begin(), destroyCandidates.end(),
-                         [&](Segment a, Segment b) {
-                           return (lastUsedIterationForSegment[a] <
-                                   lastUsedIterationForSegment[b]);
-                         });
-
-    connections.destroySegment(*leastRecentlyUsedSegment);
-  }
-
-  const Segment segment = connections.createSegment(cell);
-  lastUsedIterationForSegment.resize(connections.segmentFlatListLength());
-  lastUsedIterationForSegment[segment] = iteration;
-
+  const Segment segment = connections.createSegment(cell, maxSegmentsPerCell, &lastUsedIterationForSegment, iteration);
   return segment;
 }
 

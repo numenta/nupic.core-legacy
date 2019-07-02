@@ -75,7 +75,23 @@ void Connections::unsubscribe(UInt32 token) {
   eventHandlers_.erase(token);
 }
 
-Segment Connections::createSegment(const CellIdx cell) {
+Segment Connections::createSegment(const CellIdx cell, 
+	                           const SegmentIdx maxSegmentsPerCell,
+				   vector<UInt64>* usage, //TODO move usage to SegmentData.lastUsed ?
+				   const UInt64 iteration) { //TODO move iteration to Connections.iteration_ ?
+
+  //limit number of segmets per cell. If exceeded, remove the least recently used ones.
+  while (usage != nullptr && numSegments(cell) >= maxSegmentsPerCell) {
+    const auto& destroyCandidates = segmentsForCell(cell);
+    const auto compareSegmentsByLRU = [&](const Segment a, const Segment b) {
+      return (usage->operator[](a) < usage->operator[](b)); };
+    const auto leastRecentlyUsedSegment = std::min_element(destroyCandidates.cbegin(), 
+        destroyCandidates.cend(), compareSegmentsByLRU);
+
+    destroySegment(*leastRecentlyUsedSegment);
+  }
+
+  //proceed to create a new segment
   Segment segment;
   if (!destroyedSegments_.empty() ) { //reuse old, destroyed segs
     segment = destroyedSegments_.back();
@@ -89,6 +105,11 @@ Segment Connections::createSegment(const CellIdx cell) {
     segmentOrdinals_.push_back(0);
   }
 
+  if(maxSegmentsPerCell > 0) {
+    usage->resize(segmentFlatListLength());
+    usage->operator[](segment) = iteration;
+  }
+
   CellData &cellData = cells_[cell];
   segmentOrdinals_[segment] = nextSegmentOrdinal_++;
   cellData.segments.push_back(segment); //assign the new segment to its mother-cell
@@ -99,6 +120,7 @@ Segment Connections::createSegment(const CellIdx cell) {
 
   return segment;
 }
+
 
 Synapse Connections::createSynapse(Segment segment,
                                    CellIdx presynapticCell,
