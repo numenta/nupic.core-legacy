@@ -170,31 +170,36 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   NTA_THROW << "getLeastUsedCell failed to find a cell";
 }
 
-static void adaptSegment(Connections &connections, Segment segment, //TODO replace with Connections::adaptSegment
-                         const vector<bool> &prevActiveCellsDense,
+static void adaptSegment(Connections &connections, Segment segment,
+                         const vector<bool> &prevActiveCellsDense, //TODO use SDR here to match connections::adaptSegment
                          Permanence permanenceIncrement,
                          Permanence permanenceDecrement) {
-  const vector<Synapse> &synapses = connections.synapsesForSegment(segment);
+  //1. update synapses
+  const auto sz = prevActiveCellsDense.size();
+  SDR_sparse_t v(sz);
+  for(ElemSparse i = 0; i < (ElemSparse)sz; i++) {
+    if(prevActiveCellsDense[i]) {
+      v.push_back(i);
+    }
+  }
+  SDR tmp({(CellIdx)sz});
+  tmp.setSparse(v); //TODO get setDense working to avoid the loop with `v` above!
+  connections.adaptSegment(segment, tmp, permanenceIncrement, permanenceDecrement);
 
+  //2. remove disconnected synapses & empty segments
+  const vector<Synapse> &synapses = connections.synapsesForSegment(segment);
   for (SynapseIdx i = 0; i < synapses.size();) {
     const SynapseData &synapseData = connections.dataForSynapse(synapses[i]);
-
-    Permanence update;
-    if (prevActiveCellsDense[synapseData.presynapticCell]) {
-      update = permanenceIncrement;
-    } else {
-      update = -permanenceDecrement;
-    }
-
-    if (synapseData.permanence + update < htm::minPermanence + htm::Epsilon) {
+    //2.1 remove synapse with permanence == 0.0
+    if (synapseData.permanence < htm::minPermanence + htm::Epsilon) { //TODO make the pruning part of connections::adaptSegment
       connections.destroySynapse(synapses[i]);
       // Synapses vector is modified in-place, so don't update `i`.
     } else {
-      connections.updateSynapsePermanence(synapses[i], synapseData.permanence + update);
       i++;
     }
   }
 
+  //2.2 remove empty segments
   if (synapses.size() == 0) {
     connections.destroySegment(segment);
   }
