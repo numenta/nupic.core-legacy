@@ -46,12 +46,15 @@ class MNIST {
  *
  * Order :	score				: column dimensions 	: #passes on train	: time to run (s)	: git commit	: comment
  * -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- * 1/	Score: 97.11% (289 / 10000 wrong)	: 28x28x16		: 4			: 557			: 		: epochs help, at cost of time 
+ * 1/	Score: 97.11% (289 / 10000 wrong)	: 28x28x16		: 4			: 557			: 1f0187fc6 	: epochs help, at cost of time 
  *
  * 2/	Score: 96.56% (344 / 10000 wrong)	: 28x28x16		: 1			: 142			: 3ccadc6d6  
  *
  * 3/	Score: 96.1% (390 / 10000 wrong).  	: 28x28x30 	  	: 1  			: 256			: 454f7a9d8 
  *
+ * others/
+ * 	Score: 95.35% (465 / 10000 wrong)	: 28x28x16		: 2			: 125			: 		: smaller boosting (2.0)
+ * 	 -- this will be my working model, reasonable performance/speed ratio
  *
  */
 
@@ -64,13 +67,13 @@ class MNIST {
 
   public:
     UInt verbosity = 1;
-    const UInt train_dataset_iterations = 4u; //epochs somewhat help, at linear time
+    const UInt train_dataset_iterations = 2u; //epochs somewhat help, at linear time
 
 
 void setup() {
 
   input.initialize({28, 28,1}); 
-  columns.initialize({28, 28, 16}); //1D vs 2D no big difference, 2D seems more natural for the problem. Speed-----, Results+++++++++; #columns HIGHEST impact. 
+  columns.initialize({28, 28, 8}); //1D vs 2D no big difference, 2D seems more natural for the problem. Speed-----, Results+++++++++; #columns HIGHEST impact. 
   sp.initialize(
     /* inputDimensions */             input.dimensions,
     /* columnDimensions */            columns.dimensions,
@@ -85,8 +88,8 @@ void setup() {
     /* synPermConnected */            0.5f, //no difference, let's leave at 0.5 in the middle
     /* minPctOverlapDutyCycles */     0.2f, //speed of re-learning?
     /* dutyCyclePeriod */             1402,
-    /* boostStrength */               11.0f, // Boosting does help, but entropy is high, on MNIST it does not matter, for learning with TM prefer boosting off (=0.0), or "neutral"=1.0
-    /* seed */                        3u,
+    /* boostStrength */               2.0f, // Boosting does help, but entropy is high, on MNIST it does not matter, for learning with TM prefer boosting off (=0.0), or "neutral"=1.0
+    /* seed */                        4u,
     /* spVerbosity */                 1u,
     /* wrapAround */                  true); // does not matter (helps slightly)
 
