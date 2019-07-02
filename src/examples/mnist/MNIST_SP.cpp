@@ -44,7 +44,12 @@ class MNIST {
 /**
  * RESULTS:
  *
- * 1/ Score: 96.1% (390 / 10000 wrong). : 28x28x20 cols : commit 
+ * Order :	score				: column dimensions 	: #passes on train	: time to run (s)	: git commit for reproducibility
+ * ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 1/	Score: 96.56% (344 / 10000 wrong)	: 28x28x16		: 1			: 142			: 
+ *
+ * 2/	Score: 96.1% (390 / 10000 wrong).  	: 28x28x30 	  	: 1  			: 256			: 454f7a9d8 
+ *
  *
  */
 
@@ -63,7 +68,7 @@ class MNIST {
 void setup() {
 
   input.initialize({28, 28,1}); 
-  columns.initialize({28, 28, 30}); //1D vs 2D no big difference, 2D seems more natural for the problem. Speed-----, Results+++++++++; #columns HIGHEST impact. 
+  columns.initialize({28, 28, 16}); //1D vs 2D no big difference, 2D seems more natural for the problem. Speed-----, Results+++++++++; #columns HIGHEST impact. 
   sp.initialize(
     /* inputDimensions */             input.dimensions,
     /* columnDimensions */            columns.dimensions,
