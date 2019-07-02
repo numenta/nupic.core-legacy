@@ -44,11 +44,13 @@ class MNIST {
 /**
  * RESULTS:
  *
- * Order :	score				: column dimensions 	: #passes on train	: time to run (s)	: git commit for reproducibility
- * ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
- * 1/	Score: 96.56% (344 / 10000 wrong)	: 28x28x16		: 1			: 142			: 
+ * Order :	score				: column dimensions 	: #passes on train	: time to run (s)	: git commit	: comment
+ * -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 1/	Score: 97.11% (289 / 10000 wrong)	: 28x28x16		: 4			: 557			: 		: epochs help, at cost of time 
  *
- * 2/	Score: 96.1% (390 / 10000 wrong).  	: 28x28x30 	  	: 1  			: 256			: 454f7a9d8 
+ * 2/	Score: 96.56% (344 / 10000 wrong)	: 28x28x16		: 1			: 142			: 3ccadc6d6  
+ *
+ * 3/	Score: 96.1% (390 / 10000 wrong).  	: 28x28x30 	  	: 1  			: 256			: 454f7a9d8 
  *
  *
  */
@@ -62,7 +64,7 @@ class MNIST {
 
   public:
     UInt verbosity = 1;
-    const UInt train_dataset_iterations = 1u;
+    const UInt train_dataset_iterations = 4u; //epochs somewhat help, at linear time
 
 
 void setup() {
