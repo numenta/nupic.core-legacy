@@ -41,6 +41,12 @@ using namespace std;
 using namespace htm;
 
 class MNIST {
+/**
+ * RESULTS:
+ *
+ * 1/ Score: 96.1% (390 / 10000 wrong). : 28x28x20 cols : commit 
+ *
+ */
 
   private:
     SpatialPooler sp;
@@ -56,26 +62,26 @@ class MNIST {
 
 void setup() {
 
-  input.initialize({28 * 28});
-  columns.initialize({10 * 1000});
+  input.initialize({28, 28,1}); 
+  columns.initialize({28, 28, 30}); //1D vs 2D no big difference, 2D seems more natural for the problem. Speed-----, Results+++++++++; #columns HIGHEST impact. 
   sp.initialize(
     /* inputDimensions */             input.dimensions,
     /* columnDimensions */            columns.dimensions,
-    /* potentialRadius */             999999u, // No topology, all to all connections.
-    /* potentialPct */                0.65f,
-    /* globalInhibition */            true,
-    /* localAreaDensity */            0.05f,  // % active bits
+    /* potentialRadius */             7, // with 2D, 7 results in 15x15 area, which is cca 25% for the input area. Slightly improves than 99999 aka "no topology, all to all connections"
+    /* potentialPct */                0.1f, //we have only 10 classes, and << #columns. So we want to force each col to specialize. Cca 0.3 w "7" above, or very small (0.1) for "no topology". Cannot be too small due to internal checks. Speed++
+    /* globalInhibition */            true, //Speed+++++++; SDR quality-- (global does have active nearby cols, which we want to avoid (local)); Results+-0
+    /* localAreaDensity */            0.1f,  // % active bits
     /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
-    /* synPermInactiveDec */          0.005f,
-    /* synPermActiveInc */            0.014f,
-    /* synPermConnected */            0.1f,
-    /* minPctOverlapDutyCycles */     0.001f,
+    /* synPermInactiveDec */          0.002f, //FIXME inactive decay permanence plays NO role, investigate! (slightly better w/o it)
+    /* synPermActiveInc */            0.14f, //takes upto 5x steps to get dis/connected
+    /* synPermConnected */            0.5f, //no difference, let's leave at 0.5 in the middle
+    /* minPctOverlapDutyCycles */     0.2f, //speed of re-learning?
     /* dutyCyclePeriod */             1402,
-    /* boostStrength */               7.8f, // Boosting does help
-    /* seed */                        93u,
+    /* boostStrength */               11.0f, // Boosting does help, but entropy is high, on MNIST it does not matter, for learning with TM prefer boosting off (=0.0), or "neutral"=1.0
+    /* seed */                        3u,
     /* spVerbosity */                 1u,
-    /* wrapAround */                  false); // No topology, turn off wrapping
+    /* wrapAround */                  true); // does not matter (helps slightly)
 
   // Save the connections to file for postmortem analysis.
   ofstream dump("mnist_sp_initial.connections", ofstream::binary | ofstream::trunc | ofstream::out);
@@ -161,6 +167,7 @@ void test() {
   if( verbosity ) cout << endl;
   cout << "===========RESULTs=================" << endl;
   cout << "Score: " << 100.0 * score / n_samples << "% ("<< (n_samples - score) << " / " << n_samples << " wrong). "   << endl;
+  cout << "SDR example: " << columns << endl;
 }
 
 };  // End class MNIST
