@@ -419,7 +419,8 @@ public:
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
    * @param pruneZeroSynapses (default false) If set, synapses that reach minPermanence(aka. "zero")
-   *        are removed. This is used in TemporalMemory. 
+   *        are removed. This is used in TemporalMemory.  If the segment becomes empty due to these
+   *        removed synapses, we remove the segment (see @ref `destroySegment`).
    */
   void adaptSegment(const Segment segment,
                     const SDR &inputs,

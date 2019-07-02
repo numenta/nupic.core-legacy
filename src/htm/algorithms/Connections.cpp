@@ -483,6 +483,11 @@ void Connections::adaptSegment(const Segment segment,
       updateSynapsePermanence(synapse, synapseData.permanence + update);
     }
   }
+
+  //destroy segment if it is empty
+  if(synapses.empty()) {
+    destroySegment(segment);
+  }
 }
 
 /**

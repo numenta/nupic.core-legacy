@@ -170,19 +170,6 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
   NTA_THROW << "getLeastUsedCell failed to find a cell";
 }
 
-static void adaptSegment(Connections &connections, Segment segment,
-                         const SDR &prevActiveCells,
-                         Permanence permanenceIncrement,
-                         Permanence permanenceDecrement) {
-  //1. update synapses
-  connections.adaptSegment(segment, prevActiveCells, permanenceIncrement, permanenceDecrement, true /* prune empty synapses */);
-
-  //2. remove empty segments //TODO move to Connections?
-  const vector<Synapse> &synapses = connections.synapsesForSegment(segment);
-  if (synapses.size() == 0) {
-    connections.destroySegment(segment);
-  }
-}
 
 static void growSynapses(Connections &connections, 
 		         Random &rng, 
@@ -252,8 +239,8 @@ static void activatePredictedColumn(
     // This cell might have multiple active segments.
     do {
       if (learn) {
-        adaptSegment(connections, *activeSegment, prevActiveCells,
-                     permanenceIncrement, permanenceDecrement);
+        connections.adaptSegment(*activeSegment, prevActiveCells,
+                     permanenceIncrement, permanenceDecrement, true);
 
         const Int32 nGrowDesired =
             maxNewSynapseCount -
@@ -340,8 +327,8 @@ burstColumn(vector<CellIdx> &activeCells,
   if (learn) {
     if (bestMatchingSegment != columnMatchingSegmentsEnd) {
       // Learn on the best matching segment.
-      adaptSegment(connections, *bestMatchingSegment, prevActiveCells,
-                   permanenceIncrement, permanenceDecrement);
+      connections.adaptSegment(*bestMatchingSegment, prevActiveCells,
+                   permanenceIncrement, permanenceDecrement, true);
 
       const Int32 nGrowDesired =
           maxNewSynapseCount -
@@ -379,8 +366,8 @@ static void punishPredictedColumn(
   if (predictedSegmentDecrement > 0.0) {
     for (auto matchingSegment = columnMatchingSegmentsBegin;
          matchingSegment != columnMatchingSegmentsEnd; matchingSegment++) {
-      adaptSegment(connections, *matchingSegment, prevActiveCells,
-                   -predictedSegmentDecrement, 0.0);
+      connections.adaptSegment(*matchingSegment, prevActiveCells,
+                   -predictedSegmentDecrement, 0.0, true);
     }
   }
 }
