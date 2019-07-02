@@ -172,7 +172,7 @@ void SpatialPooler::setDutyCyclePeriod(UInt dutyCyclePeriod) {
 Real SpatialPooler::getBoostStrength() const { return boostStrength_; }
 
 void SpatialPooler::setBoostStrength(Real boostStrength) {
-  NTA_CHECK(boostStrength >= 0.0f);
+  NTA_CHECK(boostStrength == 0.0f or boostStrength >= 1.0) << "Boost strength must be >= 1.0, or exactly 0.0 (=disabled).";
   boostStrength_ = boostStrength;
 }
 
@@ -421,7 +421,7 @@ void SpatialPooler::initialize(
   synPermConnected_ = synPermConnected;
   minPctOverlapDutyCycles_ = minPctOverlapDutyCycles;
   dutyCyclePeriod_ = dutyCyclePeriod;
-  boostStrength_ = boostStrength;
+  setBoostStrength(boostStrength);
   spVerbosity_ = spVerbosity;
   wrapAround_ = wrapAround;
   updatePeriod_ = 50u;
