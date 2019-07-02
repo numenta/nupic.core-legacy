@@ -437,7 +437,7 @@ void SpatialPooler::initialize(
   overlapDutyCycles_.assign(numColumns_, 0);
   activeDutyCycles_.assign(numColumns_, 0);
   minOverlapDutyCycles_.assign(numColumns_, 0.0);
-  boostFactors_.assign(numColumns_, 1);
+  boostFactors_.assign(numColumns_, 1.0); //1 is neutral value for boosting
   overlaps_.resize(numColumns_);
   overlapsPct_.resize(numColumns_);
   boostedOverlaps_.resize(numColumns_);
@@ -500,6 +500,11 @@ void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
 
 void SpatialPooler::boostOverlaps_(const vector<SynapseIdx> &overlaps, //TODO use Eigen sparse vector here
                                    vector<Real> &boosted) const {
+  if(boostStrength_ < htm::Epsilon) {
+    const auto begin = static_cast<const SynapseIdx*>(overlaps.data());
+    boosted.assign(begin, begin + overlaps.size());
+    return; //boost ~ 0.0, we can skip these computations. 
+  }
   for (UInt i = 0; i < numColumns_; i++) {
     boosted[i] = overlaps[i] * boostFactors_[i];
   }
@@ -755,6 +760,16 @@ void SpatialPooler::updateBoostFactors_() {
 }
 
 
+void applyBoosting_(const UInt i,
+		    const Real targetDensity, 
+		    const vector<Real>& actualDensity,
+		    const Real boost,
+	            vector<Real>& output) {
+  if(boost < htm::Epsilon) return; //skip for disabled boosting
+  output[i] = exp((targetDensity - actualDensity[i]) * boost); //TODO doc this code
+}
+
+
 void SpatialPooler::updateBoostFactorsGlobal_() {
   Real targetDensity;
   if (numActiveColumnsPerInhArea_ > 0) {
@@ -767,9 +782,9 @@ void SpatialPooler::updateBoostFactorsGlobal_() {
   } else {
     targetDensity = localAreaDensity_;
   }
-
-  for (UInt i = 0; i < numColumns_; ++i) {
-    boostFactors_[i] = exp((targetDensity - activeDutyCycles_[i]) * boostStrength_);
+  
+  for (UInt i = 0; i < numColumns_; ++i) { 
+    applyBoosting_(i, targetDensity, activeDutyCycles_, boostStrength_, boostFactors_);
   }
 }
 
@@ -792,8 +807,7 @@ void SpatialPooler::updateBoostFactorsLocal_() {
     }
 
     const Real targetDensity = localActivityDensity / numNeighbors;
-    boostFactors_[i] =
-        exp((targetDensity - activeDutyCycles_[i]) * boostStrength_);
+    applyBoosting_(i, targetDensity, activeDutyCycles_, boostStrength_, boostFactors_);
   }
 }
 
