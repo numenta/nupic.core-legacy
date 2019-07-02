@@ -266,7 +266,8 @@ public:
    * @return Segment
    * The created segment.
    */
-  Segment createSegment(const CellIdx& cell);
+  Segment createSegment(const CellIdx& cell, const UInt32 iteration = 0) { 
+	  return connections.createSegment(cell, maxSegmentsPerCell_, iteration); }
 
   /**
    * Returns the indices of cells that belong to a mini-column.
@@ -545,9 +546,6 @@ public:
       matchingSegments_[i] = segment;
       numActivePotentialSynapsesForSegment_[segment] = c.syn;
     }
-
-    lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
-
   }
 
 
@@ -625,8 +623,7 @@ private:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  UInt64 iteration_;
-  vector<UInt64> lastUsedIterationForSegment_;
+  UInt32 iteration_; //each call to `compute` increases this counter
 
   Real anomaly_;
 

@@ -262,7 +262,6 @@ burstColumn(vector<CellIdx> &activeCells,
             vector<CellIdx> &winnerCells,
             Connections &connections, 
             Random &rng,
-            vector<UInt64> &lastUsedIterationForSegment, 
             UInt column,
             vector<Segment>::const_iterator columnMatchingSegmentsBegin,
             vector<Segment>::const_iterator columnMatchingSegmentsEnd,
@@ -395,7 +394,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
             maxSynapsesPerSegment_, learn);
       } else {
         burstColumn(activeCells_, winnerCells_, connections, rng_,
-                    lastUsedIterationForSegment_, column,
+                    column,
                     columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
                     prevActiveCells, prevWinnerCells,
                     numActivePotentialSynapsesForSegment_, iteration_,

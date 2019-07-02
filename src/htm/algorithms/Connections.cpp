@@ -31,7 +31,9 @@ using std::string;
 using std::vector;
 using namespace htm;
 
-Connections::Connections(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
+Connections::Connections(const CellIdx numCells, 
+		         const Permanence connectedThreshold, 
+			 const bool timeseries) {
   initialize(numCells, connectedThreshold, timeseries);
 }
 
@@ -158,14 +160,14 @@ Synapse Connections::createSynapse(Segment segment,
   return synapse;
 }
 
-bool Connections::segmentExists_(Segment segment) const {
+bool Connections::segmentExists_(const Segment segment) const {
   const SegmentData &segmentData = segments_[segment];
   const vector<Segment> &segmentsOnCell = cells_[segmentData.cell].segments;
   return (std::find(segmentsOnCell.begin(), segmentsOnCell.end(), segment) !=
           segmentsOnCell.end());
 }
 
-bool Connections::synapseExists_(Synapse synapse) const {
+bool Connections::synapseExists_(const Synapse synapse) const {
   const SynapseData &synapseData = synapses_[synapse];
   const vector<Synapse> &synapsesOnSegment =
       segments_[synapseData.segment].synapses;
@@ -195,7 +197,8 @@ void Connections::removeSynapseFromPresynapticMap_(
   preSegments.pop_back();
 }
 
-void Connections::destroySegment(Segment segment) {
+
+void Connections::destroySegment(const Segment segment) {
   NTA_ASSERT(segmentExists_(segment));
   for (auto h : eventHandlers_) {
     h.second->onDestroySegment(segment);
@@ -223,6 +226,7 @@ void Connections::destroySegment(Segment segment) {
 
   destroyedSegments_.push_back(segment);
 }
+
 
 void Connections::destroySynapse(const Synapse synapse) {
   NTA_ASSERT(synapseExists_(synapse));
@@ -272,6 +276,7 @@ void Connections::destroySynapse(const Synapse synapse) {
 
   destroyedSynapses_.push_back(synapse);
 }
+
 
 void Connections::updateSynapsePermanence(const Synapse synapse,
                                           Permanence permanence) {
@@ -325,29 +330,14 @@ void Connections::updateSynapsePermanence(const Synapse synapse,
     }
 }
 
-const vector<Segment> &Connections::segmentsForCell(CellIdx cell) const {
-  return cells_[cell].segments;
-}
 
-Segment Connections::getSegment(CellIdx cell, SegmentIdx idx) const {
-  return cells_[cell].segments[idx];
-}
-
-const vector<Synapse> &Connections::synapsesForSegment(Segment segment) const {
-  NTA_ASSERT(segment < segments_.size()) << "Segment out of bounds! " << segment;
-  return segments_[segment].synapses;
-}
-
-CellIdx Connections::cellForSegment(Segment segment) const {
-  return segments_[segment].cell;
-}
-
-SegmentIdx Connections::idxOnCellForSegment(Segment segment) const {
+SegmentIdx Connections::idxOnCellForSegment(const Segment segment) const {
   const vector<Segment> &segments = segmentsForCell(cellForSegment(segment));
   const auto it = std::find(segments.begin(), segments.end(), segment);
   NTA_ASSERT(it != segments.end());
   return (SegmentIdx)std::distance(segments.begin(), it);
 }
+
 
 void Connections::mapSegmentsToCells(const Segment *segments_begin,
                                      const Segment *segments_end,
@@ -393,6 +383,7 @@ void Connections::reset()
   previousUpdates_.clear();
   currentUpdates_.clear();
 }
+
 
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
@@ -492,6 +483,7 @@ void Connections::adaptSegment(const Segment segment,
     destroySegment(segment);
   }
 }
+
 
 /**
  * Called for under-performing Segments (can have synapses pruned, etc.). After

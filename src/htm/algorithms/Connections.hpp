@@ -204,8 +204,9 @@ public:
    * instead of the usual HTM inputs which reliably change every cycle.  See
    * also (Kropff & Treves, 2007. http://dx.doi.org/10.2976/1.2793335).
    */
-  Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f,
-              bool timeseries = false);
+  Connections(const CellIdx numCells, 
+	      const Permanence connectedThreshold = 0.5f,
+              const bool timeseries = false);
 
   virtual ~Connections() {}
 
@@ -217,8 +218,9 @@ public:
    *                           disconnecting.
    * @param timeseries         See constructor.
    */
-  void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f,
-                  bool timeseries = false);
+  void initialize(const CellIdx numCells, 
+		  const Permanence connectedThreshold = 0.5f,
+                  const bool timeseries = false);
 
   /**
    * Creates a segment on the specified cell.
@@ -282,7 +284,9 @@ public:
    *
    * @retval Segments on cell.
    */
-  const std::vector<Segment> &segmentsForCell(CellIdx cell) const;
+  const std::vector<Segment> &segmentsForCell(const CellIdx cell) const {
+    return cells_[cell].segments;
+  }
 
   /**
    * Gets the synapses for a segment.
@@ -291,7 +295,10 @@ public:
    *
    * @retval Synapses on segment.
    */
-  const std::vector<Synapse> &synapsesForSegment(Segment segment) const;
+  const std::vector<Synapse> &synapsesForSegment(const Segment segment) const {
+    NTA_ASSERT(segment < segments_.size()) << "Segment out of bounds! " << segment;
+    return segments_[segment].synapses;
+  }
 
   /**
    * Gets the cell that this segment is on.
@@ -300,7 +307,9 @@ public:
    *
    * @retval Cell that this segment is on.
    */
-  CellIdx cellForSegment(Segment segment) const;
+  CellIdx cellForSegment(const Segment segment) const {
+    return segments_[segment].cell;
+  }
 
   /**
    * Gets the index of this segment on its respective cell.
@@ -368,7 +377,9 @@ public:
    *
    * @retval Segment
    */
-  Segment getSegment(CellIdx cell, SegmentIdx idx) const;
+  Segment getSegment(const CellIdx cell, const SegmentIdx idx) const {
+    return cells_[cell].segments[idx];
+  }
 
   /**
    * Get the vector length needed to use segments as indices.
@@ -387,7 +398,7 @@ public:
    *
    * @retval true if a < b, false otherwise.
    */
-  bool compareSegments(Segment a, Segment b) const;
+  bool compareSegments(const Segment a, const Segment b) const;
 
   /**
    * Returns the synapses for the source cell that they synapse on.
@@ -397,7 +408,7 @@ public:
    * @return Synapse indices
    */
   std::vector<Synapse>
-  synapsesForPresynapticCell(CellIdx presynapticCell) const;
+  synapsesForPresynapticCell(const CellIdx presynapticCell) const;
 
   /**
    * For use with time-series datasets.
@@ -546,7 +557,7 @@ public:
    */
   size_t numCells() const { return cells_.size(); }
 
-  Permanence getConnectedThreshold() const { return connectedThreshold_; }
+  constexpr Permanence getConnectedThreshold() const { return connectedThreshold_; }
 
   /**
    * Gets the number of segments.
@@ -562,7 +573,9 @@ public:
    *
    * @retval Number of segments.
    */
-  size_t numSegments(CellIdx cell) const { return cells_[cell].segments.size(); }
+  size_t numSegments(const CellIdx cell) const { 
+	  return cells_[cell].segments.size(); 
+  }
 
   /**
    * Gets the number of synapses.
@@ -579,7 +592,9 @@ public:
    *
    * @retval Number of synapses.
    */
-  size_t numSynapses(Segment segment) const { return segments_[segment].synapses.size(); }
+  size_t numSynapses(const Segment segment) const { 
+	  return segments_[segment].synapses.size(); 
+  }
 
   /**
    * Comparison operator.
@@ -619,7 +634,7 @@ protected:
    *
    * @retval True if it's still in its cell's segment list.
    */
-  bool segmentExists_(Segment segment) const;
+  bool segmentExists_(const Segment segment) const;
 
   /**
    * Check whether this synapse still exists on its segment.
@@ -628,7 +643,7 @@ protected:
    *
    * @retval True if it's still in its segment's synapse list.
    */
-  bool synapseExists_(Synapse synapse) const;
+  bool synapseExists_(const Synapse synapse) const;
 
   /**
    * Remove a synapse from presynaptic maps.

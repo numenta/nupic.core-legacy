@@ -1186,7 +1186,7 @@ TEST(TemporalMemoryTest, ConnectionsNeverChangeWhenLearningDisabled) {
                                0.5f);
   tm.connections.createSynapse(wrongMatchingSegment, previousInactiveCell, 0.5f);
 
-  Connections before = tm.connections;
+  const Connections before = tm.connections;
 
   tm.compute(previousActiveColumns, false);
   tm.compute(activeColumns, false);
@@ -1228,7 +1228,7 @@ TEST(TemporalMemoryTest, DestroySegmentsThenReachLimit) {
     tm.createSegment(11);
     EXPECT_EQ(2ul, tm.connections.numSegments());
     tm.createSegment(11);
-    EXPECT_EQ(2ul, tm.connections.numSegments());
+    EXPECT_EQ(2ul, tm.connections.numSegments()) << "Created 3 segments, but limit is 2, so this should be 2!";
     EXPECT_EQ(2ul, tm.connections.numSegments(11));
   }
 }
