@@ -256,14 +256,6 @@ static void activatePredictedColumn(
   } while (activeSegment != columnActiveSegmentsEnd);
 }
 
-static Segment createSegment(Connections &connections,  //TODO remove, use TM::createSegment
-                             vector<UInt64> &lastUsedIterationForSegment,
-                             CellIdx cell, UInt64 iteration,
-                             UInt maxSegmentsPerCell) {
-
-  const Segment segment = connections.createSegment(cell, maxSegmentsPerCell, static_cast<UInt32>(iteration));
-  return segment;
-}
 
 static void
 burstColumn(vector<CellIdx> &activeCells, 
@@ -330,8 +322,7 @@ burstColumn(vector<CellIdx> &activeCells,
           std::min(maxNewSynapseCount, (UInt32)prevWinnerCells.size());
       if (nGrowExact > 0) {
         const Segment segment =
-            createSegment(connections, lastUsedIterationForSegment, winnerCell,
-                          iteration, maxSegmentsPerCell);
+            connections.createSegment(winnerCell, maxSegmentsPerCell, iteration);
 
         growSynapses(connections, rng, segment, nGrowExact, prevWinnerCells,
                      initialPermanence, maxSynapsesPerSegment);
@@ -531,14 +522,7 @@ void TemporalMemory::reset(void) {
 // ==============================
 //  Helper functions
 // ==============================
-
-Segment TemporalMemory::createSegment(const CellIdx& cell) {
-  return ::createSegment(connections, lastUsedIterationForSegment_, cell,
-                         iteration_, maxSegmentsPerCell_);
-}
-
 UInt TemporalMemory::columnForCell(const CellIdx cell) const {
-
   NTA_ASSERT(cell < numberOfCells());
   return cell / cellsPerColumn_;
 }
