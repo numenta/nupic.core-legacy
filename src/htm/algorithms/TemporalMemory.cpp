@@ -171,24 +171,14 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
 }
 
 static void adaptSegment(Connections &connections, Segment segment,
-                         const vector<bool> &prevActiveCellsDense, //TODO use SDR here to match connections::adaptSegment
+                         const SDR &prevActiveCells,
                          Permanence permanenceIncrement,
                          Permanence permanenceDecrement) {
   //1. update synapses
-  const auto sz = prevActiveCellsDense.size();
-  SDR_sparse_t v(sz);
-  for(ElemSparse i = 0; i < (ElemSparse)sz; i++) {
-    if(prevActiveCellsDense[i]) {
-      v.push_back(i);
-    }
-  }
-  SDR tmp({(CellIdx)sz});
-  tmp.setSparse(v); //TODO get setDense working to avoid the loop with `v` above!
-  connections.adaptSegment(segment, tmp, permanenceIncrement, permanenceDecrement, true);
+  connections.adaptSegment(segment, prevActiveCells, permanenceIncrement, permanenceDecrement, true /* prune empty synapses */);
 
-  //2. remove disconnected synapses & empty segments
+  //2. remove empty segments //TODO move to Connections?
   const vector<Synapse> &synapses = connections.synapsesForSegment(segment);
-  //2.2 remove empty segments
   if (synapses.size() == 0) {
     connections.destroySegment(segment);
   }
@@ -244,7 +234,7 @@ static void activatePredictedColumn(
     Random &rng,
     vector<Segment>::const_iterator columnActiveSegmentsBegin,
     vector<Segment>::const_iterator columnActiveSegmentsEnd,
-    const vector<bool> &prevActiveCellsDense,
+    const SDR &prevActiveCells,
     const vector<CellIdx> &prevWinnerCells,
     const vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
     const UInt maxNewSynapseCount, 
@@ -262,7 +252,7 @@ static void activatePredictedColumn(
     // This cell might have multiple active segments.
     do {
       if (learn) {
-        adaptSegment(connections, *activeSegment, prevActiveCellsDense,
+        adaptSegment(connections, *activeSegment, prevActiveCells,
                      permanenceIncrement, permanenceDecrement);
 
         const Int32 nGrowDesired =
@@ -313,7 +303,7 @@ burstColumn(vector<CellIdx> &activeCells,
             UInt column,
             vector<Segment>::const_iterator columnMatchingSegmentsBegin,
             vector<Segment>::const_iterator columnMatchingSegmentsEnd,
-            const vector<bool> &prevActiveCellsDense,
+            const SDR &prevActiveCells,
             const vector<CellIdx> &prevWinnerCells,
             const vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
             UInt64 iteration, 
@@ -350,7 +340,7 @@ burstColumn(vector<CellIdx> &activeCells,
   if (learn) {
     if (bestMatchingSegment != columnMatchingSegmentsEnd) {
       // Learn on the best matching segment.
-      adaptSegment(connections, *bestMatchingSegment, prevActiveCellsDense,
+      adaptSegment(connections, *bestMatchingSegment, prevActiveCells,
                    permanenceIncrement, permanenceDecrement);
 
       const Int32 nGrowDesired =
@@ -384,12 +374,12 @@ static void punishPredictedColumn(
     Connections &connections,
     vector<Segment>::const_iterator columnMatchingSegmentsBegin,
     vector<Segment>::const_iterator columnMatchingSegmentsEnd,
-    const vector<bool> &prevActiveCellsDense,
+    const SDR &prevActiveCells,
     Permanence predictedSegmentDecrement) {
   if (predictedSegmentDecrement > 0.0) {
     for (auto matchingSegment = columnMatchingSegmentsBegin;
          matchingSegment != columnMatchingSegmentsEnd; matchingSegment++) {
-      adaptSegment(connections, *matchingSegment, prevActiveCellsDense,
+      adaptSegment(connections, *matchingSegment, prevActiveCells,
                    -predictedSegmentDecrement, 0.0);
     }
   }
@@ -407,10 +397,8 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
     }
     auto &sparse = activeColumns.getSparse();
 
-  vector<bool> prevActiveCellsDense(numberOfCells() + externalPredictiveInputs_, false);
-  for (CellIdx cell : activeCells_) {
-    prevActiveCellsDense[cell] = true;
-  }
+  SDR prevActiveCells({static_cast<CellIdx>(numberOfCells() + externalPredictiveInputs_)});
+  prevActiveCells.setSparse(activeCells_);
   activeCells_.clear();
 
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
@@ -439,7 +427,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
         activatePredictedColumn(
             activeCells_, winnerCells_, connections, rng_,
             columnActiveSegmentsBegin, columnActiveSegmentsEnd,
-            prevActiveCellsDense, prevWinnerCells,
+            prevActiveCells, prevWinnerCells,
             numActivePotentialSynapsesForSegment_, maxNewSynapseCount_,
             initialPermanence_, permanenceIncrement_, permanenceDecrement_,
             maxSynapsesPerSegment_, learn);
@@ -447,7 +435,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
         burstColumn(activeCells_, winnerCells_, connections, rng_,
                     lastUsedIterationForSegment_, column,
                     columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
-                    prevActiveCellsDense, prevWinnerCells,
+                    prevActiveCells, prevWinnerCells,
                     numActivePotentialSynapsesForSegment_, iteration_,
                     cellsPerColumn_, maxNewSynapseCount_, initialPermanence_,
                     permanenceIncrement_, permanenceDecrement_,
@@ -456,7 +444,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
     } else {
       if (learn) {
         punishPredictedColumn(connections, columnMatchingSegmentsBegin,
-                              columnMatchingSegmentsEnd, prevActiveCellsDense,
+                              columnMatchingSegmentsEnd, prevActiveCells,
                               predictedSegmentDecrement_);
       }
     }
