@@ -186,7 +186,7 @@ static void growSynapses(Connections &connections,
   vector<CellIdx> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
   NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
 
-  // Remove cells that are already synapsed on by this segment
+  // Skip cells that are already synapsed on by this segment //TODO is this biological? Randomly creating a synapse would be faster! 
   for (const Synapse& synapse : connections.synapsesForSegment(segment)) {
     const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
     const auto already = std::lower_bound(candidates.cbegin(), candidates.cend(), presynapticCell);
