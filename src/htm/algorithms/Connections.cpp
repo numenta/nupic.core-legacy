@@ -450,8 +450,9 @@ void Connections::adaptSegment(const Segment segment,
   if( timeseries_ ) {
     previousUpdates_.resize( synapses_.size(), 0.0f );
     currentUpdates_.resize(  synapses_.size(), 0.0f );
+  }
 
-    for( const auto synapse : synapsesForSegment(segment) ) {
+  for( const auto synapse : synapsesForSegment(segment) ) {
       const SynapseData &synapseData = dataForSynapse(synapse);
 
       Permanence update;
@@ -460,25 +461,14 @@ void Connections::adaptSegment(const Segment segment,
       } else {
         update = -decrement;
       }
-
+    //update synapse, but for TS only if changed
+    if(timeseries_) {
       if( update != previousUpdates_[synapse] ) {
         updateSynapsePermanence(synapse, synapseData.permanence + update);
       }
       currentUpdates_[ synapse ] = update;
-    }
-  }
-  else {
-    for( const auto synapse : synapsesForSegment(segment) ) {
-      const SynapseData &synapseData = dataForSynapse(synapse);
-
-      Permanence permanence = synapseData.permanence;
-      if( inputArray[synapseData.presynapticCell] ) {
-        permanence += increment;
-      } else {
-        permanence -= decrement;
-      }
-
-      updateSynapsePermanence(synapse, permanence);
+    } else {
+      updateSynapsePermanence(synapse, synapseData.permanence + update);
     }
   }
 }
