@@ -363,7 +363,7 @@ void SpatialPooler::getConnectedSynapses(UInt column,
 void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
   for(UInt seg = 0; seg < numColumns_; seg++) {
     const auto &segment = connections_.dataForSegment( seg );
-    connectedCounts[ seg ] = segment.numConnected;
+    connectedCounts[ seg ] = segment.numConnected; //TODO numConnected only used here, rm from SegmentData and compute for each segment.synapses?
   }
 }
 
