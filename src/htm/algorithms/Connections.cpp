@@ -576,16 +576,15 @@ void Connections::synapseCompetition(
   //   Corner case: the user has requested a maximum of 0 connected synapses...
   // }
 
-  const auto permanencesGreater = [&](const Synapse &A, const Synapse &B)
-    { return synapses_[A].permanence > synapses_[B].permanence; };
+  vector<Permanence> permanences; permanences.reserve( segData.synapses.size() );
+  for( Synapse syn : segData.synapses )
+    permanences.push_back( synapses_[syn].permanence );
 
-  // Sort a copy of the data, don't directly modify the original vector.
-  vector<Synapse> synapsesCopy( segData.synapses.begin(), segData.synapses.end() );
-  auto minPermSynPtr = synapsesCopy.begin() + N;
   // Do a partial sort, it's faster than a full sort.
-  std::nth_element(synapsesCopy.begin(), minPermSynPtr, synapsesCopy.end(), permanencesGreater);
+  auto minPermPtr = permanences.begin() + (segData.synapses.size() - 1 - N);
+  std::nth_element(permanences.begin(), minPermPtr, permanences.end());
 
-  Real delta = connectedThreshold_ - synapses_[ *minPermSynPtr ].permanence;
+  Real delta = connectedThreshold_ - *minPermPtr;
 
   // Corner case: disconnect all synapses.
   if( maximumSynapses == 0u ) {
