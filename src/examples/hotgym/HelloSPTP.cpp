@@ -29,6 +29,7 @@
 #include "htm/types/Sdr.hpp"
 #include "htm/utils/Random.hpp"
 #include "htm/utils/MovingAverage.hpp"
+#include "htm/utils/SdrMetrics.hpp"
 
 namespace examples {
 
@@ -79,6 +80,13 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
   SDR outTM(spGlobal.getColumnDimensions()); 
   Real an = 0.0f, anLikely = 0.0f; //for anomaly:
   MovingAverage avgAnom10(1000); //chose the window large enough so there's (some) periodicity in the patter, so TM can learn something
+
+  //metrics
+  Metrics statsInput(input, 1000);
+  Metrics statsSPlocal(outSPlocal, 1000);
+  Metrics statsSPglobal(outSPglobal, 1000);
+  Metrics statsTM(outTM, 1000);
+
   /*
    * For example: fn = sin(x) -> periodic >= 2Pi ~ 6.3 && x+=0.01 -> 630 steps to 1st period -> window >= 630
    */
@@ -148,9 +156,14 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       tAll.stop();
 
       //print connections stats
-      cout << "\nSP(local) " << spLocal.connections
+      cout << "\nInput :\n" << statsInput
+	   << "\nSP(local) " << spLocal.connections
+	   << "\nSP(local) " << statsSPlocal
            << "\nSP(global) " << spGlobal.connections
-           << "\nTM " << tm.connections << "\n";
+	   << "\nSP(global) " << statsSPglobal
+           << "\nTM " << tm.connections 
+	   << "\nTM " << statsTM
+	   << "\n";
 
       // output values
       cout << "Epoch = " << e << endl;
