@@ -1,6 +1,5 @@
 # ------------------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-#
+# HTM Community Edition of NuPIC
 # Copyright (C) 2018-2019, David McDougall
 #
 # This program is free software: you can redistribute it and/or modify it under
@@ -13,8 +12,6 @@
 #
 # You should have received a copy of the GNU Affero Public License along with
 # this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ------------------------------------------------------------------------------
 
 import numpy as np
@@ -168,16 +165,21 @@ if __name__ == '__main__':
 
     print(gc_statistics)
 
-    rows       = 5
-    cols       = 6
+    rows       = 4
+    cols       = 5
     n_subplots = rows * cols
     assert(gc.size > n_subplots)
     samples    = np.linspace( 0, gc.size-1, n_subplots, dtype=np.int )
     import matplotlib.pyplot as plt
     plt.figure('Grid Cell Receptive Fields')
+    plt.suptitle("Grid Cell Receptive Fields.\n" +
+        "Each figure is a map of a room, showing the areas in the room where a grid cell is active.")
+    i = 0
     for row in range(rows):
         for col in range(cols):
-            i = row * cols + col
+            cell_idx = samples[i]
             plt.subplot(rows, cols, i + 1)
-            plt.imshow(rf[samples[i]], interpolation='nearest')
+            plt.title("Cell #%d"%cell_idx)
+            plt.imshow(rf[cell_idx], interpolation='nearest')
+            i += 1
     plt.show()

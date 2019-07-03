@@ -2,7 +2,7 @@
 # See https://help.github.com/articles/dealing-with-line-endings/
 #     https://adaptivepatchwork.com/2012/03/01/mind-the-end-of-your-line/
 #
-# In general for nupic.cpp repository, line endings should remain Linux oriented.
+# In general for htm.core repository, line endings should remain Linux oriented.
 # For Text files this will enforce use of lf rather than crlf in the repository.  
 # Doing so make it much easier to avoid unexpected whitespace changes.
 #

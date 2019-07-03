@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2013, Numenta, Inc.
  *               2019, David McDougall
  *

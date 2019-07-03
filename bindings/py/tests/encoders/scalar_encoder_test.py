@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
+# HTM Community Edition of NuPIC
 # Copyright (C) 2019, David McDougall
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """Unit tests for Scalar Encoder."""
@@ -303,6 +301,6 @@ class ScalarEncoder_Test(unittest.TestCase):
         assert( mtr.activationFrequency.max() < 1.75 * .10 )
         assert( mtr.overlap.min() > .85 )
 
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
     def testPickle(self):
         assert(False) # TODO: Unimplemented

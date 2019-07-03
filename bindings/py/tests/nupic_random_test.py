@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2017, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2017, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -16,8 +14,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """NuPIC random module tests."""
@@ -26,6 +22,7 @@ import pickle
 import unittest
 import pytest
 import numpy
+import sys
 
 
 from htm.bindings.math import Random
@@ -77,7 +74,7 @@ class TestNupicRandom(unittest.TestCase):
         test1, test3,
         "NuPIC random serialization test gave the same result twice?!?")
 
-  @pytest.mark.skip(reason="Fails for python2 with segmentation fault")
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
   def testNupicRandomPickling(self):
     """Test pickling / unpickling of NuPIC randomness."""
 

@@ -1,11 +1,8 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2018, Numenta, Inc.
  *               2018, chhenning
  *               2019, David McDougall
- *
- * Unless you have an agreement with Numenta, Inc., for a separate license for
- * this software code, the following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -18,8 +15,6 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
  * --------------------------------------------------------------------- */
 
 /** @file
@@ -121,11 +116,13 @@ Argument checkInputs
     Whether to check that the activeColumns are sorted without
     duplicates. Disable this for a small speed boost.
 
-Argument extra
-    Number of external predictive inputs.  These inputs are used in addition to
-    the cells which are part of this TemporalMemory.  The TemporalMemory
-    requires all external inputs be identified by an index in the
-    range [0, extra).
+Argument externalPredictiveInputs
+    Number of external predictive inputs.  These values are not related to this
+    TM, they represent input from a different region.  This TM will form
+    synapses with these inputs in addition to the cells which are part of this
+    TemporalMemory.  If this is given (and greater than 0) then the active
+    cells and winner cells of these external inputs must be given to methods
+    TM.compute and TM.activateDendrites
 )"
                 , py::arg("columnDimensions")
                 , py::arg("cellsPerColumn") = 32
@@ -141,7 +138,7 @@ Argument extra
                 , py::arg("maxSegmentsPerCell") = 255
                 , py::arg("maxSynapsesPerSegment") = 255
                 , py::arg("checkInputs") = true
-                , py::arg("extra") = 0u
+                , py::arg("externalPredictiveInputs") = 0u
             );
 
         py_HTM.def("printParameters",
@@ -153,7 +150,7 @@ Argument extra
         // pickle
         // https://github.com/pybind/pybind11/issues/1061
         py_HTM.def(py::pickle(
-            [](const HTM_t& self) -> std::string
+            [](const HTM_t& self)
         {
             // __getstate__
             std::ostringstream os;
@@ -163,17 +160,17 @@ Argument extra
 
             self.save(os);
 
-            return os.str();
+            return py::bytes(os.str());
         },
-            [](const std::string& str) -> HTM_t
+            [](const py::bytes &str)
         {
             // __setstate__
-            if (str.empty())
+            if (py::len(str) == 0)
             {
                 throw std::runtime_error("Empty state");
             }
 
-            std::istringstream is(str);
+            std::stringstream is( str.cast<std::string>() );
 
             HTM_t htm;
             htm.load(is);
@@ -197,8 +194,8 @@ dendrite segments.  Grow and reinforce synapses.)"
                 py::arg("learn") = true);
 
         py_HTM.def("compute", [](HTM_t& self, const SDR &activeColumns, bool learn,
-                                 const SDR &extraActive, const SDR &extraWinners)
-            { self.compute(activeColumns, learn, extraActive, extraWinners); },
+                                 const SDR &externalPredictiveInputsActive, const SDR &externalPredictiveInputsWinners)
+            { self.compute(activeColumns, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners); },
 R"(Perform one time step of the Temporal Memory algorithm.
 
 This method calls activateDendrites, then calls activateCells. Using
@@ -211,20 +208,19 @@ Argument activeColumns
 Argument learn
     Whether or not learning is enabled.
 
-Argument extraActive
+Argument externalPredictiveInputsActive
     (optional) SDR of active external predictive inputs.  
-    External inputs must be cell indexes in the range [0, extra). 
-    TM must be set up with the 'extra' constructor parameter for this use.
+    TM must be set up with the 'externalPredictiveInputs' constructor parameter for this use.
 
-Argument extraWinners
+Argument externalPredictiveInputsWinners
     (optional) SDR of winning external predictive inputs.  When learning, only these
     inputs are considered active.  
-    ExtraWinners must be a subset of extraActive.
+    externalPredictiveInputsWinners must be a subset of externalPredictiveInputsActive.
 )",
                 py::arg("activeColumns"),
                 py::arg("learn") = true,
-                py::arg("extraActive"),
-                py::arg("extraWinners"));
+                py::arg("externalPredictiveInputsActive"),
+                py::arg("externalPredictiveInputsWinners"));
 
         py_HTM.def("reset", &HTM_t::reset,
 R"(Indicates the start of a new sequence.
@@ -240,14 +236,14 @@ Resets sequence state of the TM.)");
         });
 
         py_HTM.def("activateDendrites", [](HTM_t &self, bool learn) {
-            SDR extra({ self.extra });
-            self.activateDendrites(learn, extra, extra);
+            SDR externalPredictiveInputs({ self.externalPredictiveInputs });
+            self.activateDendrites(learn, externalPredictiveInputs, externalPredictiveInputs);
         },
             py::arg("learn"));
 
         py_HTM.def("activateDendrites",
-            [](HTM_t &self, bool learn,const SDR &extraActive, const SDR &extraWinners)
-                { self.activateDendrites(learn, extraActive, extraWinners); },
+            [](HTM_t &self, bool learn,const SDR &externalPredictiveInputsActive, const SDR &externalPredictiveInputsWinners)
+                { self.activateDendrites(learn, externalPredictiveInputsActive, externalPredictiveInputsWinners); },
 R"(Calculate dendrite segment activity, using the current active cells.  Call
 this method before calling getPredictiveCells, getActiveSegments, or
 getMatchingSegments.  In each time step, only the first call to this
@@ -258,18 +254,18 @@ Argument learn
     If true, segment activations will be recorded. This information is
     used during segment cleanup.
 
-Argument extraActive
+Argument externalPredictiveInputsActive
     (optional) SDR of active external predictive inputs.
 
-Argument extraWinners
+Argument externalPredictiveInputsWinners
     (optional) SDR of winning external predictive inputs.  When learning, only
     these inputs are considered active.
-    ExtraWinners must be a subset of extraActive.
+    externalPredictiveInputsWinners must be a subset of externalPredictiveInputsActive.
 
 See TM.compute() for details of the parameters.)",
             py::arg("learn"),
-            py::arg("extraActive"),
-            py::arg("extraWinners"));
+            py::arg("externalPredictiveInputsActive"),
+            py::arg("externalPredictiveInputsWinners"));
 
         py_HTM.def("getPredictiveCells", [](const HTM_t& self)
             { return self.getPredictiveCells();},
@@ -329,10 +325,11 @@ R"(Returns the total number of mini-columns.)");
         py_HTM.def_property_readonly("connections", [](const HTM_t &self)
             { return self.connections; },
 R"(Internal Connections object. Danger!
-Modifying this may detrimentially effect the TM.
+Modifying this may detrimentally effect the TM.
 The Connections class API is subject to change.)");
 
-        py_HTM.def_property_readonly("extra", [](const HTM_t &self) { return self.extra; },
+        py_HTM.def_property_readonly("externalPredictiveInputs", [](const HTM_t &self)
+            { return self.externalPredictiveInputs; },
 R"()");
 
         py_HTM.def_property_readonly("anomaly", [](const HTM_t &self) { return self.anomaly; },

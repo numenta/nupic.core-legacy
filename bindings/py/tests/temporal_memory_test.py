@@ -1,8 +1,6 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2014-2015, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2014-2015, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,12 +13,12 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 import unittest
 import pytest
+import pickle
+import sys
 
 class TemporalMemoryBindingsTest(unittest.TestCase):
   @pytest.mark.skip(reason="Calling arguments on compute()...another PR")
@@ -32,3 +30,17 @@ class TemporalMemoryBindingsTest(unittest.TestCase):
 
     tm = TemporalMemory()
     tm.compute(set(), True)
+
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
+  def testNupicTemporalMemoryPickling(self):
+    """Test pickling / unpickling of NuPIC TemporalMemory."""
+    from htm.bindings.algorithms import TemporalMemory
+
+    # Simple test: make sure that dumping / loading works...
+    tm = TemporalMemory(columnDimensions=(16,))
+    pickledTm = pickle.dumps(tm)
+
+    tm2 = pickle.loads(pickledTm)
+
+    self.assertEqual(tm.numberOfCells(), tm2.numberOfCells(),
+                     "Simple NuPIC TemporalMemory pickle/unpickle failed.")

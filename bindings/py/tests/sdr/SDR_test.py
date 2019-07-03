@@ -1,7 +1,6 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
+# HTM Community Edition of NuPIC
 # Copyright (C) 2019, David McDougall
-# The following terms and conditions apply:
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -14,8 +13,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """Unit tests for SDR."""
@@ -381,7 +378,7 @@ class SdrTest(unittest.TestCase):
         B.dense = B.dense
         assert(str(B) == "SDR( 100, 100, 1 ) 0, 9999")
 
-    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/nupic.cpp/issues/160")
+    @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
     def testPickle(self):
         for sparsity in (0, .3, 1):
             A = SDR((103,))

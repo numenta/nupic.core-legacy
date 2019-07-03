@@ -1,8 +1,6 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
-# Copyright (C) 2013-2015, Numenta, Inc.  Unless you have an agreement
-# with Numenta, Inc., for a separate license for this software code, the
-# following terms and conditions apply:
+# HTM Community Edition of NuPIC
+# Copyright (C) 2013-2015, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,8 +13,6 @@
 #
 # You should have received a copy of the GNU Affero Public License
 # along with this program.  If not, see http://www.gnu.org/licenses.
-#
-# http://numenta.org/licenses/
 # ----------------------------------------------------------------------
 
 """Unit tests for anomaly likelihood module."""
@@ -36,22 +32,24 @@ import mock
 from htm.algorithms import anomaly_likelihood as an
 from unittest import TestCase as TestCaseBase
 
-def _sampleDistribution(params, numSamples, verbosity=0):
+def _sampleDistribution(params, numSamples, seed=0, verbosity=0):
   """
   Given the parameters of a distribution, generate numSamples points from it.
   This routine is mostly for testing.
 
   :returns: A numpy array of samples.
-  """
+  """  
+  rng            = numpy.random.RandomState(seed = seed)
+
   if "name" in params:
     if params["name"] == "normal":
-      samples = numpy.random.normal(loc=params["mean"],
+      samples = rng.normal(loc=params["mean"],
                                     scale=math.sqrt(params["variance"]),
                                     size=numSamples)
     elif params["name"] == "pareto":
-      samples = numpy.random.pareto(params["alpha"], size=numSamples)
+      samples = rng.pareto(params["alpha"], size=numSamples)
     elif params["name"] == "beta":
-      samples = numpy.random.beta(a=params["alpha"], b=params["beta"],
+      samples = rng.beta(a=params["alpha"], b=params["beta"],
                                   size=numSamples)
     else:
       raise ValueError("Undefined distribution: " + params["name"])
@@ -66,7 +64,7 @@ def _sampleDistribution(params, numSamples, verbosity=0):
 
 
 def _generateSampleData(mean=0.2, variance=0.2, metricMean=0.2,
-                        metricVariance=0.2):
+                        metricVariance=0.2, seed=0):
   """
   Generate 1440 samples of fake metrics data with a particular distribution
   of anomaly scores and metric values. Here we generate values every minute.
@@ -76,12 +74,12 @@ def _generateSampleData(mean=0.2, variance=0.2, metricMean=0.2,
        "name": "normal",
        "stdev": math.sqrt(variance),
        "variance": variance}
-  samples = _sampleDistribution(p, 1440)
+  samples = _sampleDistribution(p, 1440, seed)
   p = {"mean": metricMean,
        "name": "normal",
        "stdev": math.sqrt(metricVariance),
        "variance": metricVariance}
-  metricValues = _sampleDistribution(p, 1440)
+  metricValues = _sampleDistribution(p, 1440, seed)
   for hour in range(0, 24):
     for minute in range(0, 60):
       data.append(
@@ -94,11 +92,9 @@ def _generateSampleData(mean=0.2, variance=0.2, metricMean=0.2,
 
   return data
 
-
-
+  
 class AnomalyLikelihoodClassTest(TestCaseBase):
   """Tests the high-level AnomalyLikelihood class"""
-
 
   def testCalcSkipRecords(self):
 
@@ -153,7 +149,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 
   def testHistoricWindowSize(self):
-    l = an.AnomalyLikelihood(claLearningPeriod=2,
+    l = an.AnomalyLikelihood(learningPeriod=2,
                              estimationSamples=2,
                              historicWindowSize=3)
 
@@ -195,7 +191,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       "htm.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
       side_effect=estimateAnomalyLikelihoodsWrap, autospec=True)
     with estimateAnomalyLikelihoodsPatch as estimateAnomalyLikelihoodsMock:
-      l = an.AnomalyLikelihood(claLearningPeriod=2,
+      l = an.AnomalyLikelihood(learningPeriod=2,
                                estimationSamples=2,
                                historicWindowSize=3)
 
@@ -211,7 +207,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       l.anomalyProbability(40, 0.4, timestamp=4)
       self.assertEqual(estimateAnomalyLikelihoodsMock.call_count, 0)
 
-      # Estimation should kick in after claLearningPeriod + estimationSamples
+      # Estimation should kick in after learningPeriod + estimationSamples
       # samples have been ingested
       l.anomalyProbability(50, 0.5, timestamp=5)
       self.assertEqual(estimateAnomalyLikelihoodsMock.call_count, 1)
@@ -232,7 +228,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       "htm.algorithms.anomaly_likelihood.estimateAnomalyLikelihoods",
       side_effect=estimateAnomalyLikelihoodsWrap, autospec=True)
     with estimateAnomalyLikelihoodsPatch:
-      l = an.AnomalyLikelihood(claLearningPeriod=2,
+      l = an.AnomalyLikelihood(learningPeriod=2,
                                estimationSamples=2,
                                historicWindowSize=3,
                                reestimationPeriod=2)
@@ -272,7 +268,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
       "htm.algorithms.anomaly_likelihood.updateAnomalyLikelihoods",
       side_effect=updateAnomalyLikelihoodsWrap, autospec=True)
     with updateAnomalyLikelihoodsPatch:
-      l = an.AnomalyLikelihood(claLearningPeriod=2,
+      l = an.AnomalyLikelihood(learningPeriod=2,
                                estimationSamples=2,
                                historicWindowSize=3)
 
@@ -287,8 +283,8 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 
   def testEquals(self):
-    l = an.AnomalyLikelihood(claLearningPeriod=2, estimationSamples=2)
-    l2 = an.AnomalyLikelihood(claLearningPeriod=2, estimationSamples=2)
+    l = an.AnomalyLikelihood(learningPeriod=2, estimationSamples=2)
+    l2 = an.AnomalyLikelihood(learningPeriod=2, estimationSamples=2)
     self.assertEqual(l, l2)
 
     # Use 5 iterations to force the distribution to be created (4 probationary
@@ -314,7 +310,7 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
   def testSerialization(self):
     """serialization using pickle"""
-    l = an.AnomalyLikelihood(claLearningPeriod=2, estimationSamples=2)
+    l = an.AnomalyLikelihood(learningPeriod=2, estimationSamples=2)
 
     l.anomalyProbability("hi", 0.1, timestamp=1) # burn in
     l.anomalyProbability("hi", 0.1, timestamp=2)
@@ -329,7 +325,10 @@ class AnomalyLikelihoodClassTest(TestCaseBase):
 
 class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
   """Tests the low-level algorithm functions"""
-
+  #Seed for function _generateSampleData()
+  #Generator is really random and not deterministic when 'None' is given  
+  GLOBAL_TEST_SEED = 1
+  
 
   def assertWithinEpsilon(self, a, b, epsilon=0.005):
     self.assertLessEqual(abs(a - b), epsilon,
@@ -415,7 +414,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
          "name": "normal",
          "stdev": math.sqrt(0.1),
          "variance": 0.1}
-    samples = _sampleDistribution(p, 1000)
+    samples = _sampleDistribution(p, 1000, seed=self.GLOBAL_TEST_SEED)
 
     # Ensure estimate is reasonable
     np = an.estimateNormal(samples)
@@ -432,7 +431,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate an estimate using fake distribution of anomaly scores.
-    data1 = _generateSampleData(mean=0.2)
+    data1 = _generateSampleData(mean=0.2,seed=self.GLOBAL_TEST_SEED)
 
     likelihoods, avgRecordList, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:1000])
@@ -482,7 +481,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate a fake distribution of anomaly scores, and add malformed records
-    data1 = _generateSampleData(mean=0.2)
+    data1 = _generateSampleData(mean=0.2,seed=self.GLOBAL_TEST_SEED)
     data1 = data1[0:1000] + [(2, 2)] + [(2, 2, 2, 2)] + [()] + [(2)]
 
     likelihoods, avgRecordList, estimatorParams = (
@@ -509,10 +508,10 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
     This calls estimateAnomalyLikelihoods with various values of skipRecords
     """
-
+    
     # Check happy path
-    data1 = _generateSampleData(mean=0.1)[0:200]
-    data1 = data1 + (_generateSampleData(mean=0.9)[0:200])
+    data1 = _generateSampleData(mean=0.1,seed=self.GLOBAL_TEST_SEED)[0:200]
+    data1 = data1 + (_generateSampleData(mean=0.9,seed=self.GLOBAL_TEST_SEED)[0:200])
 
     likelihoods, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1, skipRecords=200)
@@ -545,11 +544,11 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     to estimate the distribution on fake data, followed by several calls
     to updateAnomalyLikelihoods.
     """
-
+    
     #------------------------------------------
     # Step 1. Generate an initial estimate using fake distribution of anomaly
     # scores.
-    data1 = _generateSampleData(mean=0.2)[0:1000]
+    data1 = _generateSampleData(mean=0.2,seed=self.GLOBAL_TEST_SEED)[0:1000]
     _, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1, averagingWindow=5)
     )
@@ -558,7 +557,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     # Step 2. Generate some new data with a higher average anomaly
     # score. Using the estimator from step 1, to compute likelihoods. Now we
     # should see a lot more anomalies.
-    data2 = _generateSampleData(mean=0.6)[0:300]
+    data2 = _generateSampleData(mean=0.6,seed=self.GLOBAL_TEST_SEED)[0:300]
     likelihoods2, avgRecordList2, estimatorParams2 = (
       an.updateAnomalyLikelihoods(data2, estimatorParams)
     )
@@ -577,7 +576,10 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     #------------------------------------------
     # Step 3. Generate some new data with the expected average anomaly score. We
     # should see fewer anomalies than in Step 2.
-    data3 = _generateSampleData(mean=0.2)[0:1000]
+    # Note: same data properties as in step1 but different seed
+    seed2 = self.GLOBAL_TEST_SEED+1 if self.GLOBAL_TEST_SEED!=None else None
+    
+    data3 = _generateSampleData(mean=0.2,seed=seed2)[0:1000]
     likelihoods3, avgRecordList3, estimatorParams3 = (
       an.updateAnomalyLikelihoods(data3, estimatorParams2)
     )
@@ -621,7 +623,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate an estimate using fake distribution of anomaly scores.
-    data1 = _generateSampleData(mean=42.0, variance=1e-10)
+    data1 = _generateSampleData(mean=42.0, variance=1e-10,seed=self.GLOBAL_TEST_SEED)
 
     likelihoods, avgRecordList, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:1000])
@@ -636,7 +638,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
 
     # If you deviate from the mean, you should get probability 0
     # Test this by sending in just slightly different values.
-    data2 = _generateSampleData(mean=42.5, variance=1e-10)
+    data2 = _generateSampleData(mean=42.5, variance=1e-10,seed=self.GLOBAL_TEST_SEED)
     likelihoods2, _, _ = (
       an.updateAnomalyLikelihoods(data2[0:10], estimatorParams)
     )
@@ -649,13 +651,13 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     # In this case we don't let likelihood to get too low. An average
     # anomaly score of 0.1 should be essentially zero, but an average
     # of 0.04 should be higher
-    data3 = _generateSampleData(mean=0.01, variance=1e-6)
+    data3 = _generateSampleData(mean=0.01, variance=1e-6,seed=self.GLOBAL_TEST_SEED)
 
     _, _, estimatorParams3 = (
       an.estimateAnomalyLikelihoods(data3[0:1000])
     )
 
-    data4 = _generateSampleData(mean=0.1, variance=1e-6)
+    data4 = _generateSampleData(mean=0.1, variance=1e-6,seed=self.GLOBAL_TEST_SEED)
     likelihoods4, _, estimatorParams4 = (
       an.updateAnomalyLikelihoods(data4[0:20], estimatorParams3)
     )
@@ -663,7 +665,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     # Average of 0.1 should go to zero
     self.assertLessEqual(likelihoods4[10:].mean(), 0.002)
 
-    data5 = _generateSampleData(mean=0.05, variance=1e-6)
+    data5 = _generateSampleData(mean=0.05, variance=1e-6,seed=self.GLOBAL_TEST_SEED)
     likelihoods5, _, _ = (
       an.updateAnomalyLikelihoods(data5[0:20], estimatorParams4)
     )
@@ -681,7 +683,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
     # Generate samples with very flat metric values
     data1 = _generateSampleData(
-      metricMean=42.0, metricVariance=1e-10)[0:1000]
+      metricMean=42.0, metricVariance=1e-10,seed=self.GLOBAL_TEST_SEED)[0:1000]
 
     likelihoods, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1)
@@ -700,9 +702,8 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     This calls estimateAnomalyLikelihoods and updateAnomalyLikelihoods
     with one or no scores.
     """
-
     # Generate an estimate using two data points
-    data1 = _generateSampleData(mean=42.0, variance=1e-10)
+    data1 = _generateSampleData(mean=42.0, variance=1e-10,seed=self.GLOBAL_TEST_SEED)
 
     _, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:2])
@@ -730,7 +731,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     """
 
     # Generate an estimate using one data point
-    data1 = _generateSampleData(mean=42.0, variance=1e-10)
+    data1 = _generateSampleData(mean=42.0, variance=1e-10,seed=self.GLOBAL_TEST_SEED)
 
     _, _, estimatorParams = (
       an.estimateAnomalyLikelihoods(data1[0:1])
@@ -828,8 +829,6 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
 
     self.assertFalse(numpy.array_equal(l3a, l3b),
                      msg="Failure in case (iii), list 3")
-
-
 
 if __name__ == "__main__":
   unittest.main()

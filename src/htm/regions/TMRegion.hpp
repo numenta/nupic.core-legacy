@@ -1,8 +1,7 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Author: David Keeney, June, 2018  (ported from Python)
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,12 +14,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- *
- * Author: David Keeney, June, 2018  (ported from Python)
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Declarations for TMRegion class
@@ -83,7 +77,7 @@ public:
     ar(cereal::make_nvp("seed", args_.seed));
     ar(cereal::make_nvp("maxSegmentsPerCell", args_.maxSegmentsPerCell));
     ar(cereal::make_nvp("maxSynapsesPerSegment", args_.maxSynapsesPerSegment));
-    ar(cereal::make_nvp("extra", args_.extra));
+    ar(cereal::make_nvp("externalPredictiveInputs", args_.externalPredictiveInputs));
     ar(cereal::make_nvp("checkInputs", args_.checkInputs));
     ar(cereal::make_nvp("learningMode", args_.learningMode));
     ar(cereal::make_nvp("sequencePos", args_.sequencePos));
@@ -112,7 +106,7 @@ public:
     ar(cereal::make_nvp("seed", args_.seed));
     ar(cereal::make_nvp("maxSegmentsPerCell", args_.maxSegmentsPerCell));
     ar(cereal::make_nvp("maxSynapsesPerSegment", args_.maxSynapsesPerSegment));
-    ar(cereal::make_nvp("extra", args_.extra));
+    ar(cereal::make_nvp("externalPredictiveInputs", args_.externalPredictiveInputs));
     ar(cereal::make_nvp("checkInputs", args_.checkInputs));
     ar(cereal::make_nvp("learningMode", args_.learningMode));
     ar(cereal::make_nvp("sequencePos", args_.sequencePos));
@@ -174,7 +168,7 @@ private:
     Int32 seed;
     Int32 maxSegmentsPerCell;
     Int32 maxSynapsesPerSegment;
-    UInt32 extra;
+    UInt32 externalPredictiveInputs;
     bool checkInputs;
 
     // parameters used by this class and not passed on

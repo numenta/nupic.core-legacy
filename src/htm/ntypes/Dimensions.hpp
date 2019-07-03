@@ -1,9 +1,6 @@
-
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,10 +13,7 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Interface for the Dimensions class
@@ -55,7 +49,6 @@ public:
   Dimensions(UInt x, UInt y) {  vec_.push_back(x); vec_.push_back(y); }
   Dimensions(UInt x, UInt y, UInt z) { vec_.push_back(x); vec_.push_back(y); vec_.push_back(z); }
   Dimensions(const std::vector<UInt>& v) { vec_ = v; };
-  Dimensions(const Dimensions& d) : vec_(d.asVector()) {};
 
   /**
    * @returns  The count of cells in the grid which is the product of the sizes of
