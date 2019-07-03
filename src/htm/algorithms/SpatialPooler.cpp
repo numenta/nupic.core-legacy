@@ -842,7 +842,7 @@ void SpatialPooler::calculateOverlapPct_(const vector<SynapseIdx> &overlaps,
 
 
 void SpatialPooler::inhibitColumns_(const vector<Real> &overlaps,
-                                    vector<UInt> &activeColumns) const {
+                                    vector<CellIdx> &activeColumns) const {
   Real density = localAreaDensity_;
   if (numActiveColumnsPerInhArea_ > 0) {
     UInt inhibitionArea =

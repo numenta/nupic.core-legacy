@@ -921,7 +921,7 @@ public:
      columns.
   */
   void inhibitColumns_(const vector<Real> &overlaps,
-                       vector<UInt> &activeColumns) const;
+                       vector<CellIdx> &activeColumns) const;
 
   /**
      Perform global inhibition.
