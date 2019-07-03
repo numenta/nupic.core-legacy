@@ -289,13 +289,11 @@ TEST(TMRegionTest, testLinking) {
       << r3InputArray.getCount();
   EXPECT_TRUE(r3OutputArray.getType() == NTA_BasicType_SDR);
   VERBOSE << "   " << r3OutputArray << "\n";
-  std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>(
+  std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>( //TODO replace with SDR 
             {
 	     0, 1, 2, 3, 4, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 
 	     31, 32, 33, 34, 35, 36, 37, 38, 39, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 70,
-	     71, 72, 73, 74, 85, 86, 87, 88, 890, 1, 2, 3, 4, 10, 11, 12, 13, 14, 15, 16, 17,
-	     18, 19, 20, 21, 22, 23, 24, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 50, 51, 52, 53, 
-	     54, 55, 56, 57, 58, 59, 70, 71, 72, 73, 74, 85, 86, 87, 88, 89 
+	     71, 72, 73, 74, 85, 86, 87, 88, 89
 	     }, (UInt32)r3OutputArray.getCount());
   EXPECT_TRUE(r3OutputArray == expected3out) << r3OutputArray;
   EXPECT_EQ(r3OutputArray.getSDR().getSparse().size(), 50u);
