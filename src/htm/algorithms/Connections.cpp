@@ -124,7 +124,7 @@ Synapse Connections::createSynapse(Segment segment,
                                    Permanence permanence) {
   // Get an index into the synapses_ list, for the new synapse to reside at.
   Synapse synapse;
-  if (!destroyedSynapses_.empty() ) {
+  if (!destroyedSynapses_.empty() ) { //TODO implement some capping for mem footprint for destroyed synapses & segments
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
@@ -462,6 +462,7 @@ void Connections::adaptSegment(const Segment segment,
     //prune permanences that reached zero
     if (pruneZeroSynapses && synapseData.permanence + update < htm::minPermanence + htm::Epsilon) {
       destroySynapse(synapse);
+      prunedSyns_++; //for statistics
       i--; // do not advance `i`, as `destroySynapse` just modified inplace the synapses_, so now a `synapses_[i]`
       // is the "next" synapse. 
       continue;
@@ -481,6 +482,7 @@ void Connections::adaptSegment(const Segment segment,
   //destroy segment if it is empty
   if(synapses.empty()) {
     destroySegment(segment);
+    prunedSegs_++; //statistics
   }
 }
 
@@ -587,6 +589,9 @@ void Connections::destroyMinPermanenceSynapses(
 
 
 namespace htm {
+/**
+ * print statistics in human readable form
+ */ 
 std::ostream& operator<< (std::ostream& stream, const Connections& self)
 {
   stream << "Connections:" << std::endl;
@@ -627,9 +632,9 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
 
       for( const auto syn : segData.synapses ) {
         const auto &synData = self.dataForSynapse( syn );
-        if( synData.permanence == minPermanence )
+        if( synData.permanence <= minPermanence + Epsilon )
           { synapsesDead++; }
-        else if( synData.permanence == maxPermanence )
+        else if( synData.permanence >= maxPermanence - Epsilon )
           { synapsesSaturated++; }
       }
     }
@@ -638,7 +643,7 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
   potentialMean = potentialMean / self.numSegments();
   connectedMean = connectedMean / self.numSegments();
 
-  stream << "    Segments on Cell Min/Mean/Max "
+  stream << "    Segments on Cell Min/Mean/Max " //TODO print std dev too
          << segmentsMin << " / " << segmentsMean << " / " << segmentsMax << std::endl;
   stream << "    Potential Synapses on Segment Min/Mean/Max "
          << potentialMin << " / " << potentialMean << " / " << potentialMax << std::endl;
@@ -647,6 +652,10 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
 
   stream << "    Synapses Dead (" << (Real) synapsesDead / self.numSynapses()
          << "%) Saturated (" <<   (Real) synapsesSaturated / self.numSynapses() << "%)" << std::endl;
+  stream << "    Synapses pruned (" << (Real) self.prunedSyns_ / self.numSynapses() 
+	 << "%) Segments pruned (" << (Real) self.prunedSegs_ / self.numSegments() << "%)" << std::endl;
+  stream << "    Buffer for destroyed synapses: " << self.destroyedSynapses_.size() << " \t buffer for destr. segments: "
+	 << self.destroyedSegments_.size() << std::endl; 
 
   return stream;
 }

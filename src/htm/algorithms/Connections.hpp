@@ -689,6 +689,11 @@ private:
   std::vector<Permanence> previousUpdates_;
   std::vector<Permanence> currentUpdates_;
 
+  //for prune statistics
+  Synapse prunedSyns_ = 0; //how many synapses have been removed?
+  Segment prunedSegs_ = 0;
+
+  //for listeners
   UInt32 nextEventToken_;
   std::map<UInt32, ConnectionsEventHandler *> eventHandlers_;
 }; // end class Connections
