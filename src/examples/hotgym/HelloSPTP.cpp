@@ -147,6 +147,12 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
     if (e == EPOCHS - 1) {
       tAll.stop();
 
+      //print connections stats
+      cout << "\nSP(local) " << spLocal.connections
+           << "\nSP(global) " << spGlobal.connections
+           << "\nTM " << tm.connections << "\n";
+
+      // output values
       cout << "Epoch = " << e << endl;
       cout << "Anomaly = " << an << endl;
       cout << "Anomaly (avg) = " << avgAnom10.getCurrentAvg() << endl;
@@ -154,6 +160,8 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
       cout << "SP (g)= " << outSP << endl;
       cout << "SP (l)= " << outSPlocal <<endl;
       cout << "TM= " << outTM << endl;
+
+      //timers
       cout << "==============TIMERS============" << endl;
       cout << "Init:\t" << tInit.getElapsed() << endl;
       cout << "Random:\t" << tRng.getElapsed() << endl;
