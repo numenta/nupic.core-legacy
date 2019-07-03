@@ -44,16 +44,16 @@ class MNIST {
 /**
  * RESULTS:
  *
- * Order :	score				: column dimensions 	: #passes on train	: time to run (s)	: git commit	: comment
+ * Order :	score			: column dim	: #pass : time(s): git commit	: comment
  * -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- * 1/	Score: 97.11% (289 / 10000 wrong)	: 28x28x16		: 4			: 557			: 1f0187fc6 	: epochs help, at cost of time 
+ * 1/Score: 97.11% (289 / 10000 wrong)	: 28x28x16	: 4	: 557	: 1f0187fc6 	: epochs help, at cost of time 
  *
- * 2/	Score: 96.56% (344 / 10000 wrong)	: 28x28x16		: 1			: 142			: 3ccadc6d6  
+ * 2/Score: 96.56% (344 / 10000 wrong)	: 28x28x16	: 1	: 142	: 3ccadc6d6  
  *
- * 3/	Score: 96.1% (390 / 10000 wrong).  	: 28x28x30 	  	: 1  			: 256			: 454f7a9d8 
+ * 3/Score: 96.1% (390 / 10000 wrong).  : 28x28x30 	: 1  	: 256	: 454f7a9d8 
  *
  * others/
- * 	Score: 95.35% (465 / 10000 wrong)	: 28x28x16		: 2			: 125			: 		: smaller boosting (2.0)
+ * Score: 95.35% (465 / 10000 wrong)	: 28x28x16	: 2	: 125	: 		: smaller boosting (2.0)
  * 	 -- this will be my working model, reasonable performance/speed ratio
  *
  */
