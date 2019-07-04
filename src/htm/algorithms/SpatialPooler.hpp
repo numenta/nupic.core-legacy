@@ -328,7 +328,6 @@ public:
 
     // initialize ephemeral members
     overlaps_.resize(numColumns_);
-    overlapsPct_.resize(numColumns_);
     boostedOverlaps_.resize(numColumns_);
   }
 
@@ -1231,7 +1230,6 @@ protected:
   Connections connections_;
 
   vector<SynapseIdx> overlaps_;
-  vector<Real> overlapsPct_;
   vector<Real> boostedOverlaps_;
   vector<Real> tieBreaker_;
 
