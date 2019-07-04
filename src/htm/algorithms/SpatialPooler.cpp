@@ -434,7 +434,6 @@ void SpatialPooler::initialize(
   minOverlapDutyCycles_.assign(numColumns_, 0.0);
   boostFactors_.assign(numColumns_, 1);
   overlaps_.resize(numColumns_);
-  overlapsPct_.resize(numColumns_);
   boostedOverlaps_.resize(numColumns_);
 
   inhibitionRadius_ = 0;
@@ -468,7 +467,6 @@ void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
   active.reshape( columnDimensions_ );
   updateBookeepingVars_(learn);
   calculateOverlap_(input, overlaps_);
-  calculateOverlapPct_(overlaps_, overlapsPct_);
 
   boostOverlaps_(overlaps_, boostedOverlaps_);
 
@@ -805,20 +803,6 @@ void SpatialPooler::calculateOverlap_(const SDR &input,
                                       vector<SynapseIdx> &overlaps) {
   overlaps.assign( numColumns_, 0 );
   connections_.computeActivity(overlaps, input.getSparse());
-}
-
-
-void SpatialPooler::calculateOverlapPct_(const vector<SynapseIdx> &overlaps,
-                                         vector<Real> &overlapPct) const {
-  overlapPct.assign(numColumns_, 0);
-  vector<UInt> connectedCounts( numColumns_ );
-  getConnectedCounts( connectedCounts.data() );
-
-  for (UInt i = 0; i < numColumns_; i++) {
-    if (connectedCounts[i] != 0) {
-      overlapPct[i] = ((Real)overlaps[i]) / connectedCounts[i];
-    }
-  }
 }
 
 
