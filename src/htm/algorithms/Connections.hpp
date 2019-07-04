@@ -633,8 +633,8 @@ private:
   // Extra bookkeeping for faster computing of segment activity.
   std::unordered_map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
   std::unordered_map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
-  std::unordered_map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
-  std::unordered_map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
+  std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
+  std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
   std::vector<Segment> segmentOrdinals_;
   std::vector<Synapse> synapseOrdinals_;
