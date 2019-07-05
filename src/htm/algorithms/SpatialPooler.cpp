@@ -446,7 +446,7 @@ void SpatialPooler::initialize(
 
   connections_.initialize(numColumns_, synPermConnected_);
   for (Size i = 0; i < numColumns_; ++i) {
-    connections_.createSegment( (CellIdx)i );
+    connections_.createSegment( (CellIdx)i , 1 /* max segments per cell is fixed for SP to 1 */);
 
     // Note: initMapPotential_ & initPermanence_ return dense arrays.
     vector<UInt> potential = initMapPotential_((UInt)i, wrapAround_);

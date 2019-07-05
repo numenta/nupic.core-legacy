@@ -83,7 +83,7 @@ Segment Connections::createSegment(const CellIdx cell,
 
   //limit number of segmets per cell. If exceeded, remove the least recently used ones.
   NTA_ASSERT(maxSegmentsPerCell > 0);
-  while (maxSegmentsPerCell > 1 && numSegments(cell) >= maxSegmentsPerCell) {
+  while (numSegments(cell) >= maxSegmentsPerCell) {
     const auto& destroyCandidates = segmentsForCell(cell);
     const auto compareSegmentsByLRU = [&](const Segment a, const Segment b) {
       return (dataForSegment(a).lastUsed < dataForSegment(b).lastUsed); };

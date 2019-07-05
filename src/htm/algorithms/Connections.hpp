@@ -228,18 +228,19 @@ public:
    * @param cell Cell to create segment on.
    *
    * @param maxSegmetsPerCell Optional, default 1. Enforce limit on maximum number of segments that can be
-   * created on a Cell. `createSegment` checks this limit only if `maxSegmentsPerCell > 1`. If the limit 
-   * is exceeded, call `destroySegment` to remove least used segments (ordered by LRU `SegmentData.lastUsed`)
+   * created on a Cell. If the limit is exceeded, call `destroySegment` to remove least used segments 
+   * (ordered by LRU `SegmentData.lastUsed`)
    *
    * @param iteration Optional. Used only if `maxSegmentsPerCell` > 1. In that case, `iteration` is assigned as
    * "timestamp" to SegmentData.lastUsed. 
    *
-   * @retval Created segment `seg`. Use `dataForSegment(seg)` to obtain the segment's data. Use  `idxOfSegmentOnCell()` 
-   * to get SegmentIdx of `seg` on this `cell`. 
+   * @retval Unique ID of the created segment `seg`. Use `dataForSegment(seg)` to obtain the segment's data. 
+   * Use  `idxOfSegmentOnCell()` to get SegmentIdx of `seg` on this `cell`. 
+   *
    */
   Segment createSegment(const CellIdx cell, 
 		        const SegmentIdx maxSegmentsPerCell = 1,
-			const UInt32 iteration = 0);
+			const UInt32 iteration = 0); //TODO make max_int & check that it's provided when needed
 
   /**
    * Creates a synapse on the specified segment.
