@@ -22,7 +22,7 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <climits>
+#include <limits>
 #include <map>
 #include <set>
 #include <utility>
@@ -227,9 +227,10 @@ public:
    *
    * @param cell Cell to create segment on.
    *
-   * @param maxSegmetsPerCell Optional, default 1. Enforce limit on maximum number of segments that can be
+   * @param maxSegmetsPerCell Optional. Enforce limit on maximum number of segments that can be
    * created on a Cell. If the limit is exceeded, call `destroySegment` to remove least used segments 
-   * (ordered by LRU `SegmentData.lastUsed`)
+   * (ordered by LRU `SegmentData.lastUsed`). Default value is numeric_limits::max() of the data-type, 
+   * so effectively disabled. 
    *
    * @param iteration Optional. Used only if `maxSegmentsPerCell` > 1. In that case, `iteration` is assigned as
    * "timestamp" to SegmentData.lastUsed. 
@@ -239,7 +240,7 @@ public:
    *
    */
   Segment createSegment(const CellIdx cell, 
-		        const SegmentIdx maxSegmentsPerCell = 1,
+		        const SegmentIdx maxSegmentsPerCell = std::numeric_limits<SegmentIdx>::max(),
 			const UInt32 iteration = 0); //TODO make max_int & check that it's provided when needed
 
   /**
