@@ -4,7 +4,7 @@
 
 #include "MurmurHash3.hpp"
 
-namespace nupic {
+namespace htm {
 
 /*
  * Don't worry about the technically undefined behavior when r >= 32, since this
@@ -105,4 +105,4 @@ uint32_t MurmurHash3_x86_32( const void * key, int len, uint32_t seed )
 
   return h1;
 }
-} // End namespace nupic
+} // End namespace htm

@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
 Implementation for the PyBindRegion class.  This class acts as the base class for all Python implemented Regions.
@@ -33,18 +28,18 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/ntypes/BasicType.hpp>
-#include <nupic/utils/Log.hpp>
-#include <nupic/os/Path.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/ntypes/BasicType.hpp>
+#include <htm/utils/Log.hpp>
+#include <htm/os/Path.hpp>
 
 
-namespace nupic
+namespace htm
 {
-using namespace nupic;
+using namespace htm;
 namespace py = pybind11;
 
     py::array create_numpy_view(const ArrayBase& a)
@@ -444,7 +439,7 @@ namespace py = pybind11;
             NTA_CHECK(inp);
 
             // Set pa to point to the original input array
-            const nupic::Array * pa = &(inp->getData());
+            const htm::Array * pa = &(inp->getData());
 
             // Skip unlinked inputs of size 0
     		    if (pa->getCount() == 0)
@@ -767,5 +762,5 @@ namespace py = pybind11;
     }
 
 
-} // namespace nupic
+} // namespace htm
 

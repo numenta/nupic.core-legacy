@@ -1,4 +1,4 @@
-# Breaking changes to the nupic API
+# Breaking changes to the htm API
 
 We try to keep API as much as compatible with original [numenta/nupic.core repo](https://github.com/numenta/nupic.core). 
 The API is specified in the [API Docs](http://nupic.docs.numenta.org/prerelease/api/index.html) 
@@ -89,3 +89,17 @@ This is obsolete. Use getRegion('name') instead.
 
 * TemporalMemory `compute()` and `activateCells()` now use only SDR variants, old overloads with C-style arrays removed. Bindings and 
   tests also updated. 
+  
+* Changed all use of nupic to htm.   This means that Python users must import from 
+ - htm.bindings.algorithms
+ - htm.bindings.engine_internal
+ - htm.bindings.math
+ - htm.bindings.encoders
+ - htm.bindings.sdr
+ rather than
+ - nupic.bindings.algorithms
+ - nupic.bindings.engine_internal
+ - nupic.bindings.math
+ - nupic.bindings.encoders
+ - nupic.bindings.sdr
+

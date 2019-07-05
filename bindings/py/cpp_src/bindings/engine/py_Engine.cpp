@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
 PyBind11 bindings for Engine classes
@@ -35,22 +30,22 @@ PyBind11 bindings for Engine classes
 #include <pybind11/stl.h>
 
 
-#include <nupic/os/OS.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/os/OS.hpp>
+#include <htm/os/Timer.hpp>
 
-#include <nupic/ntypes/Array.hpp>
+#include <htm/ntypes/Array.hpp>
 
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
 #include <plugin/PyBindRegion.hpp>
 #include <plugin/RegisteredRegionImplPy.hpp>
 
 namespace py = pybind11;
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
 
 	typedef std::shared_ptr<Region> Region_Ptr_t;
@@ -219,14 +214,14 @@ namespace nupic_ext
         {
             auto array_ref = self.getInputData(name);
 
-            return py::array_t<nupic::Byte>();
+            return py::array_t<htm::Byte>();
         });
 
         py_Region.def("getOutputArray", [](const Region& self, const std::string& name)
         {
             auto array_ref = self.getOutputData(name);
 
-            return py::array_t<nupic::Byte>();
+            return py::array_t<htm::Byte>();
         });
 
 
@@ -242,35 +237,35 @@ namespace nupic_ext
 
 
 		py_Network.def("addRegion",
-			(Region_Ptr_t (nupic::Network::*)(
+			(Region_Ptr_t (htm::Network::*)(
 					const std::string&,
   					const std::string&,
                     const std::string&))
-					&nupic::Network::addRegion,
+					&htm::Network::addRegion,
 					"Normal add region."
 					, py::arg("name")
 					, py::arg("nodeType" )
 					, py::arg("nodeParams"));
 
-    py_Network.def("getRegions", &nupic::Network::getRegions)
-            .def("getRegion",          &nupic::Network::getRegion)
-            .def("getLinks",           &nupic::Network::getLinks)
-            .def("getMinPhase",        &nupic::Network::getMinPhase)
-            .def("getMaxPhase",        &nupic::Network::getMaxPhase)
-            .def("setMinEnabledPhase", &nupic::Network::getMinPhase)
-            .def("setMaxEnabledPhase", &nupic::Network::getMaxPhase)
-            .def("getMinEnabledPhase", &nupic::Network::getMinPhase)
-            .def("getMaxEnabledPhase", &nupic::Network::getMaxPhase)
-			.def("run",                &nupic::Network::run);
+    py_Network.def("getRegions", &htm::Network::getRegions)
+            .def("getRegion",          &htm::Network::getRegion)
+            .def("getLinks",           &htm::Network::getLinks)
+            .def("getMinPhase",        &htm::Network::getMinPhase)
+            .def("getMaxPhase",        &htm::Network::getMaxPhase)
+            .def("setMinEnabledPhase", &htm::Network::getMinPhase)
+            .def("setMaxEnabledPhase", &htm::Network::getMaxPhase)
+            .def("getMinEnabledPhase", &htm::Network::getMinPhase)
+            .def("getMaxEnabledPhase", &htm::Network::getMaxPhase)
+			.def("run",                &htm::Network::run);
 
-        py_Network.def("initialize", &nupic::Network::initialize);
+        py_Network.def("initialize", &htm::Network::initialize);
 
-     py_Network.def("save",            &nupic::Network::save)
-		           .def("load",            &nupic::Network::load)
-							 .def("saveToFile",      &nupic::Network::saveToFile)
-							 .def("loadFromFile",    &nupic::Network::loadFromFile);
+     py_Network.def("save",            &htm::Network::save)
+		           .def("load",            &htm::Network::load)
+							 .def("saveToFile",      &htm::Network::saveToFile)
+							 .def("loadFromFile",    &htm::Network::loadFromFile);
 
-        py_Network.def("link", &nupic::Network::link
+        py_Network.def("link", &htm::Network::link
             , "Defines a link between regions"
             , py::arg("srcName"), py::arg("destName")
             , py::arg("linkType") = "", py::arg("linkParams") = ""
@@ -284,14 +279,14 @@ namespace nupic_ext
         py_Network.def_static("registerPyRegion",
 		                 [](const std::string& module,
 							const std::string& className) {
-				nupic::RegisteredRegionImplPy::registerPyRegion(module, className);
+				htm::RegisteredRegionImplPy::registerPyRegion(module, className);
 			});
 
         py_Network.def_static("unregisterPyRegion",
 			             [](const std::string& typeName) {
-				nupic::RegisteredRegionImplPy::unregisterPyRegion(typeName);
+				htm::RegisteredRegionImplPy::unregisterPyRegion(typeName);
 			});
-		py_Network.def_static("cleanup", &nupic::Network::cleanup);
+		py_Network.def_static("cleanup", &htm::Network::cleanup);
 
 
 
@@ -340,4 +335,4 @@ namespace nupic_ext
         py_LinkCollection.def("__iter__", [](Links_t& coll) { return py::make_iterator(coll.begin(), coll.end()); }, py::keep_alive<0, 1>());
     }
 
-} // namespace nupic_ext
+} // namespace htm_ext

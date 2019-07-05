@@ -1,7 +1,6 @@
 /* ----------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2019, David McDougall
- * The following terms and conditions apply:
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -14,8 +13,6 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
  * ---------------------------------------------------------------------- */
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
@@ -23,16 +20,16 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/types/Sdr.hpp>
+#include <htm/types/Sdr.hpp>
 
 #include <memory> // shared_ptr
 
 namespace py = pybind11;
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
-namespace nupic_ext
+namespace htm_ext
 {
     void init_SDR(py::module& m)
     {
@@ -274,7 +271,7 @@ special, it is replaced with the system time  The default seed is 0.)",
             self->randomize( sparsity, rng );
             return self; },
 R"(This overload accepts Random Number Generators (RNG) intead of a random seed.
-RNGs must be instances of "nupic.bindings.math.Random".)",
+RNGs must be instances of "htm.bindings.math.Random".)",
                 py::arg("sparsity"),
                 py::arg("rng"));
 

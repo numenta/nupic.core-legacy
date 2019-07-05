@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- 
  * Author: David Keeney, April, 2019
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
  
 /*---------------------------------------------------------------------
   * This is a test of the VectorFileEffector and VectorFileSensor modules.  
@@ -39,24 +34,24 @@
   */
 
 
-#include <nupic/engine/NuPIC.hpp>
-#include <nupic/engine/Network.hpp>
-#include <nupic/engine/Region.hpp>
-#include <nupic/engine/Spec.hpp>
-#include <nupic/engine/Input.hpp>
-#include <nupic/engine/Output.hpp>
-#include <nupic/engine/Link.hpp>
-#include <nupic/engine/RegisteredRegionImpl.hpp>
-#include <nupic/engine/RegisteredRegionImplCpp.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/types/Exception.hpp>
-#include <nupic/os/Env.hpp>
-#include <nupic/os/Path.hpp>
-#include <nupic/os/Timer.hpp>
-#include <nupic/os/Directory.hpp>
-#include <nupic/engine/YAMLUtils.hpp>
-#include <nupic/regions/SPRegion.hpp>
-#include <nupic/utils/LogItem.hpp>
+#include <htm/engine/NuPIC.hpp>
+#include <htm/engine/Network.hpp>
+#include <htm/engine/Region.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Output.hpp>
+#include <htm/engine/Link.hpp>
+#include <htm/engine/RegisteredRegionImpl.hpp>
+#include <htm/engine/RegisteredRegionImplCpp.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/types/Exception.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/os/Path.hpp>
+#include <htm/os/Timer.hpp>
+#include <htm/os/Directory.hpp>
+#include <htm/engine/YAMLUtils.hpp>
+#include <htm/regions/SPRegion.hpp>
+#include <htm/utils/LogItem.hpp>
 
 
 #include <string>
@@ -83,7 +78,7 @@ static bool verbose = false;  // turn this on to print extra stuff for debugging
 #define EXPECTED_EFFECTOR_SPEC_COUNT  1  // The number of parameters expected in the VectorFileEffector Spec
 #define EXPECTED_SENSOR_SPEC_COUNT  11    // The number of parameters expected in the VectorFileSensor Spec
 
-using namespace nupic;
+using namespace htm;
 namespace testing 
 {
 

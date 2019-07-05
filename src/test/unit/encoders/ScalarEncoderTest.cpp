@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
+ * HTM Community Edition of NuPIC
  * Copyright (C) 2016, Numenta, Inc.
  *               2019, David McDougall
  *
@@ -17,22 +17,19 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Unit tests for the ScalarEncoder
  */
 
 #include "gtest/gtest.h"
-#include <nupic/encoders/ScalarEncoder.hpp>
+#include <htm/encoders/ScalarEncoder.hpp>
 #include <vector>
 
 namespace testing {
     
-using namespace nupic;
+using namespace htm;
 
 
 struct ScalarValueCase

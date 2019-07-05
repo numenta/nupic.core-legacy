@@ -12,11 +12,11 @@ jobs:
   build-and-test:
     macos:
       xcode: '10.1.0'
-    working_directory: ~/numenta/nupic.core
+    working_directory: ~/numenta/htm.core
     parallelism: 1
     environment:
-      XCODE_SCHEME: nupic
-      XCODE_WORKSPACE: nupic
+      XCODE_SCHEME: htm
+      XCODE_WORKSPACE: htm
       ARCHFLAGS: -arch x86_64
     steps:
       # Machine Setup
@@ -98,9 +98,9 @@ jobs:
       ##- persist_to_workspace:
       ##    root: dist
       ##    paths:
-      ##    - nupic.bindings*.whl
+      ##    - htm.bindings*.whl
       ##    - requirements.txt
-      ##    - include/nupic
+      ##    - include/htm
             #  deploy-s3:
             #machine: true
             #steps:
@@ -110,8 +110,8 @@ jobs:
             #name: Deploying to S3
             #command: |
             #pip install awscli --upgrade --user
-            #tar -zcv -f nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
-            #aws s3 cp nupic_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/nupic.core/circle/
+            #tar -zcv -f htm_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
+            #aws s3 cp htm_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/htm.core/circle/
 
   # job: ARM64 via Docker + QEMU ("arm64-build-test")
   arm64-build-test:
@@ -139,9 +139,9 @@ jobs:
       - run: $CI_SUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - run:
           name: Running docker build on ARM64
-          command: $CI_SUDO docker build -t nupic-arm64-docker --build-arg arch=arm64 .
+          command: $CI_SUDO docker build -t htm-arm64-docker --build-arg arch=arm64 .
           no_output_timeout: 2h
-      - run: $CI_SUDO docker run -it nupic-arm64-docker 
+      - run: $CI_SUDO docker run -it htm-arm64-docker 
 
 workflows:
   version: 2

@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,20 +13,17 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
  * Implementation of ArrayBase test
  */
 
-#include <nupic/utils/Log.hpp>
-#include <nupic/ntypes/Dimensions.hpp>
-#include <nupic/ntypes/ArrayBase.hpp>
-#include <nupic/ntypes/Array.hpp>
-#include <nupic/os/OS.hpp>
+#include <htm/utils/Log.hpp>
+#include <htm/ntypes/Dimensions.hpp>
+#include <htm/ntypes/ArrayBase.hpp>
+#include <htm/ntypes/Array.hpp>
+#include <htm/os/OS.hpp>
 
 #include <map>
 #include <memory>
@@ -42,7 +37,7 @@ static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 #define UNUSED(x) (void)(x)
 
-using namespace nupic;
+using namespace htm;
 
 // First, some structures to help in testing.
 struct ArrayTestParameters {
@@ -342,7 +337,7 @@ TEST_F(ArrayTest, testArrayCreation) {
 
       try {
         arrayP = new Array(testCase->second.dataType);
-      } catch (nupic::Exception& e) {
+      } catch (htm::Exception& e) {
         UNUSED(e);
         caughtException = true;
       }
@@ -429,7 +424,7 @@ TEST_F(ArrayTest, testBufferAllocation) {
       {
         a.allocateBuffer(10);
       }
-      catch(nupic::Exception& e)
+      catch(htm::Exception& e)
       {
         UNUSED(e);
         caughtException = true;
@@ -476,7 +471,7 @@ TEST_F(ArrayTest, testUnownedBuffer) {
     {
       a.setBuffer(buf2.get(), testCase->second.allocationSize);
     }
-    catch(nupic::Exception& e)
+    catch(htm::Exception& e)
     {
       UNUSED(e);
       caughtException = true;

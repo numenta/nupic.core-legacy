@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2018, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2018, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -16,11 +14,8 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  *
- * http://numenta.org/licenses/
- *
  * Author: @chhenning, 2018
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /** @file
 PyBind11 bindings for SpatialPooler class
@@ -33,16 +28,16 @@ PyBind11 bindings for SpatialPooler class
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/types/Sdr.hpp>
+#include <htm/algorithms/SpatialPooler.hpp>
+#include <htm/types/Sdr.hpp>
 
 #include "bindings/engine/py_utils.hpp"
 
 
-namespace nupic_ext
+namespace htm_ext
 {
 namespace py = pybind11;
-using namespace nupic;
+using namespace htm;
 
     void init_Spatial_Pooler(py::module& m)
     {
@@ -406,9 +401,9 @@ Argument output An SDR representing the winning columns after
 
         auto inhibitColumns_func = [](SpatialPooler& self, py::array& overlaps)
         {
-            std::vector<nupic::Real> overlapsVector(get_it<Real>(overlaps), get_end<Real>(overlaps));
+            std::vector<htm::Real> overlapsVector(get_it<Real>(overlaps), get_end<Real>(overlaps));
 
-            std::vector<nupic::UInt> activeColumnsVector;
+            std::vector<htm::UInt> activeColumnsVector;
 
             self.inhibitColumns_(overlapsVector, activeColumnsVector);
 
@@ -452,4 +447,4 @@ Argument output An SDR representing the winning columns after
         }));
 
     }
-} // namespace nupic_ext
+} // namespace htm_ext

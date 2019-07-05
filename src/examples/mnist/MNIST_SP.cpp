@@ -28,9 +28,9 @@
 #include <fstream>      // std::ofstream
 #include <vector>
 
-#include <nupic/algorithms/SpatialPooler.hpp>
-#include <nupic/algorithms/SDRClassifier.hpp>
-#include <nupic/utils/SdrMetrics.hpp>
+#include <htm/algorithms/SpatialPooler.hpp>
+#include <htm/algorithms/SDRClassifier.hpp>
+#include <htm/utils/SdrMetrics.hpp>
 
 #include <mnist/mnist_reader.hpp> // MNIST data itself + read methods, namespace mnist::
 #include <mnist/mnist_utils.hpp>  // mnist::binarize_dataset
@@ -38,7 +38,7 @@
 namespace examples {
 
 using namespace std;
-using namespace nupic;
+using namespace htm;
 
 class MNIST {
 

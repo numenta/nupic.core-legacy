@@ -4,7 +4,7 @@
 
 //this runs as executable
 int main(int argc, char* argv[]) {
-  nupic::UInt EPOCHS = 5000; // number of iterations (calls to SP/TP compute() )
+  htm::UInt EPOCHS = 5000; // number of iterations (calls to SP/TP compute() )
 
   if(argc == 2) {
     EPOCHS = std::stoi(argv[1]);

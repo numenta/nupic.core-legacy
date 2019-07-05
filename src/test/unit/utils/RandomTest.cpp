@@ -1,8 +1,6 @@
 /* ---------------------------------------------------------------------
- * Numenta Platform for Intelligent Computing (NuPIC)
- * Copyright (C) 2013, Numenta, Inc.  Unless you have an agreement
- * with Numenta, Inc., for a separate license for this software code, the
- * following terms and conditions apply:
+ * HTM Community Edition of NuPIC
+ * Copyright (C) 2013, Numenta, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -15,20 +13,17 @@
  *
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
- *
- * http://numenta.org/licenses/
- * ---------------------------------------------------------------------
- */
+ * --------------------------------------------------------------------- */
 
 /**
  * @file
  */
 #include <gtest/gtest.h>
-#include <nupic/utils/Random.hpp>
+#include <htm/utils/Random.hpp>
 
-#include <nupic/os/Env.hpp>
-#include <nupic/utils/LoggingException.hpp>
-#include <nupic/os/Timer.hpp>
+#include <htm/os/Env.hpp>
+#include <htm/utils/LoggingException.hpp>
+#include <htm/os/Timer.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -36,7 +31,7 @@
 
 namespace testing {
 
-using namespace nupic;
+using namespace htm;
 using namespace std;
 
 TEST(RandomTest, Seeding) {
@@ -152,7 +147,7 @@ TEST(RandomTest, testSerialization2) {
   Random r1(7);
   Random r2;
 
-  nupic::Timer testTimer;
+  htm::Timer testTimer;
   testTimer.start();
   for (UInt i = 0; i < n; ++i) {
     r1.getUInt32();

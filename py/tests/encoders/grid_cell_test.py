@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------
-# Numenta Platform for Intelligent Computing (NuPIC)
+# HTM Community Edition of NuPIC
 # Copyright (C) 2019, David McDougall
 #
 # This program is free software: you can redistribute it and/or modify
