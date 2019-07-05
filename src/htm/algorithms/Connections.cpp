@@ -218,9 +218,11 @@ void Connections::destroySegment(const Segment segment) {
   CellData &cellData = cells_[segmentData.cell];
 
   const auto segmentOnCell =
-      std::lower_bound(cellData.segments.begin(), cellData.segments.end(),
-                       segment, [&](Segment a, Segment b) {
-                         return segmentOrdinals_[a] < segmentOrdinals_[b];
+      std::lower_bound(cellData.segments.cbegin(), cellData.segments.cend(),
+                       segment, 
+		       [&](const Segment a, const Segment b) {
+		         if(segmentOrdinals_[a] == segmentOrdinals_[b]) return a < b;
+			 else return segmentOrdinals_[a] < segmentOrdinals_[b];
                        });
 
   NTA_ASSERT(segmentOnCell != cellData.segments.end());
@@ -268,9 +270,11 @@ void Connections::destroySynapse(const Synapse synapse) {
   }
 
   const auto synapseOnSegment =
-      std::lower_bound(segmentData.synapses.begin(), segmentData.synapses.end(),
-                       synapse, [&](Synapse a, Synapse b) {
-                         return synapseOrdinals_[a] < synapseOrdinals_[b];
+      std::lower_bound(segmentData.synapses.cbegin(), segmentData.synapses.cend(),
+                       synapse, 
+		       [&](const Synapse a, const Synapse b) {
+		         if(synapseOrdinals_[a] == synapseOrdinals_[b]) return a < b;
+			 else return synapseOrdinals_[a] < synapseOrdinals_[b];
                        });
 
   NTA_ASSERT(synapseOnSegment != segmentData.synapses.end());
@@ -359,13 +363,12 @@ void Connections::mapSegmentsToCells(const Segment *segments_begin,
 bool Connections::compareSegments(const Segment a, const Segment b) const {
   const SegmentData &aData = segments_[a];
   const SegmentData &bData = segments_[b];
-  if (aData.cell < bData.cell) {
-    return true;
-  } else if (bData.cell < aData.cell) {
-    return false;
-  } else {
-    return segmentOrdinals_[a] < segmentOrdinals_[b];
-  }
+  // default sort by cell
+  if (aData.cell == bData.cell)
+    //fallback to ordinals:
+    if(segmentOrdinals_[a] == segmentOrdinals_[b]) return a < b;
+    else return segmentOrdinals_[a] < segmentOrdinals_[b];
+  else return aData.cell < bData.cell;
 }
 
 vector<Synapse>
