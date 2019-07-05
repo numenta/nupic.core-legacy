@@ -86,7 +86,11 @@ Segment Connections::createSegment(const CellIdx cell,
   while (numSegments(cell) >= maxSegmentsPerCell) {
     const auto& destroyCandidates = segmentsForCell(cell);
     const auto compareSegmentsByLRU = [&](const Segment a, const Segment b) {
-      return (dataForSegment(a).lastUsed < dataForSegment(b).lastUsed); };
+	if(dataForSegment(a).lastUsed == dataForSegment(b).lastUsed) {
+	  return a < b; //needed for deterministic sort
+        } 
+	else return dataForSegment(a).lastUsed < dataForSegment(b).lastUsed; //sort segments by access time
+      };
     const auto leastRecentlyUsedSegment = std::min_element(destroyCandidates.cbegin(), 
         destroyCandidates.cend(), compareSegmentsByLRU);
 
