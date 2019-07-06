@@ -367,13 +367,13 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
   const auto columnForSegment = [&](Segment segment) {
     return connections.cellForSegment(segment) / cellsPerColumn_;
   };
-  const auto identity = [](const UInt a) {return a;}; //TODO use std::identity when c++20
+  const auto identity = [](const ElemSparse a) {return a;}; //TODO use std::identity when c++20
 
   for (auto &&columnData : groupBy( //group by columns, and convert activeSegments & matchingSegments to cols. 
            sparse, identity,
            activeSegments_, columnForSegment,
            matchingSegments_, columnForSegment)) {
-    UInt column;
+    CellIdx column;
     vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
 	       columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
          columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
@@ -531,8 +531,11 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   auto correctDims = getColumnDimensions(); //nD column dimensions (eg 10x100)
   correctDims.push_back(static_cast<CellIdx>(getCellsPerColumn())); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
 
-  NTA_CHECK(cells.dimensions == correctDims) 
+  NTA_CHECK(cells.dimensions.size() == correctDims.size()) 
 	  << "cells.dimensions must match TM's (column dims x cellsPerColumn) ";
+
+  for(size_t i = 0; i<correctDims.size(); i++) 
+	  NTA_CHECK(correctDims[i] == cells.dimensions[i]);
 
   SDR cols(getColumnDimensions());
   auto& dense = cols.getDense();
