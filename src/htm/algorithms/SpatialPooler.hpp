@@ -185,7 +185,7 @@ public:
         boost. Shorter values make it potentially more unstable and
         likely to oscillate.
 
-  @param boostStrength A number greater or equal than 1.0 or exactly 0.0, used to
+  @param boostStrength A number greater or equal than 0, used to
         control boosting strength. 
 	No boosting is applied if it is set to 0.0, (runs faster due to skipped code).
         The strength of boosting increases as a function of boostStrength.
