@@ -1774,7 +1774,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
   SDR activeColumns( {nColumns} );
   sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(activeColumns.getSum(), 4u);
+  EXPECT_EQ(activeColumns.getSum(), 3u);
 }
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
@@ -2037,14 +2037,16 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
 TEST(SpatialPoolerTest, ExactOutput) { 
   // Silver is an SDR that is loaded by direct initalization from a vector.
   SDR silver_sdr({ 200 });
-  SDR_sparse_t data = {23, 71, 113, 118, 129, 172, 178, 182, 185, 190};
+  SDR_sparse_t data = {
+    4, 64, 74, 78, 85, 113, 125, 126, 127, 153
+  };
   silver_sdr.setSparse(data);
 
 
   // Gold tests initalizing an SDR from a manually created string in JSON format.
 	// hint: you can generate this string using
 	//       silver_sdr.save(std::cout, JSON);
-  string gold = "{\"dimensions\": [200],\"sparse\": [23,71,113,118,129,172,178,182,185,190]}";
+  string gold = "{\"dimensions\": [200],\"sparse\": [4, 64, 74, 78, 85, 113, 125, 126, 127, 153]}";
   std::stringstream gold_stream( gold );
   SDR gold_sdr;
   gold_sdr.load( gold_stream, JSON );

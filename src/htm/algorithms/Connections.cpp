@@ -199,7 +199,7 @@ void Connections::destroySegment(Segment segment) {
   const auto segmentOnCell =
       std::lower_bound(cellData.segments.begin(), cellData.segments.end(),
                        segment, [&](Segment a, Segment b) {
-                         return segmentOrdinals_[a] < segmentOrdinals_[b];
+                         return segmentOrdinals_[a] < segmentOrdinals_[b]; //TODO will this be slow if ordinals moved to SegmentData?
                        });
 
   NTA_ASSERT(segmentOnCell != cellData.segments.end());
