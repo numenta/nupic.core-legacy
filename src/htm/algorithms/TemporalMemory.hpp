@@ -104,9 +104,13 @@ public:
    *
    * @param maxSegmentsPerCell
    * The maximum number of segments per cell.
+   * The value you can choose here is limited by the type SegmentIdx
+   * in Connections.hpp, change it if you need larger values. 
    *
    * @param maxSynapsesPerSegment
    * The maximum number of synapses per segment.
+   * The value you can choose here is limited by the type SynapseIdx
+   * in Connections.hpp, change it there if you needed to use large values.
    *
    * @param checkInputs
    * Whether to check that the activeColumns are sorted without

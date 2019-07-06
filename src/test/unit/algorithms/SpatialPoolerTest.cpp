@@ -1075,48 +1075,6 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
   }
 }
 
-TEST(SpatialPoolerTest, testCalculateOverlapPct) {
-  SpatialPooler sp;
-  UInt numInputs = 10;
-  UInt numColumns = 5;
-  UInt numTrials = 5;
-  setup(sp, numInputs, numColumns);
-  sp.setStimulusThreshold(0);
-
-  Real permArr[5][10] = {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-                         {0, 0, 1, 1, 1, 1, 1, 1, 1, 1},
-                         {0, 0, 0, 0, 1, 1, 1, 1, 1, 1},
-                         {0, 0, 0, 0, 0, 0, 1, 1, 1, 1},
-                         {0, 0, 0, 0, 0, 0, 0, 0, 1, 1}};
-
-  UInt overlapsArr[5][10] = {{0, 0, 0, 0, 0},
-                             {10, 8, 6, 4, 2},
-                             {5, 4, 3, 2, 1},
-                             {5, 3, 1, 0, 0},
-                             {1, 1, 1, 1, 1}};
-
-  Real32 trueOverlapsPct[5][5] = {{0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-                                  {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
-                                  {0.5f, 0.5f, 0.5f, 0.5f, 0.5f},
-                                  {0.5f, 3.0f / 8, 1.0f / 6, 0, 0},
-                                  {1.0f / 10, 1.0f / 8.0f, 1.0f / 6, 1.0f / 4, 1.0f / 2}};
-
-  for (UInt i = 0; i < numColumns; i++) {
-    vector<UInt> potential;
-    for(Size j=0; j < numInputs; j++)
-      potential.push_back((UInt)permArr[i][j]);
-    sp.setPotential(i, potential.data());
-    sp.setPermanence(i, permArr[i]);
-  }
-
-  for (UInt i = 0; i < numTrials; i++) {
-    vector<Real> overlapsPct;
-    vector<SynapseIdx> overlaps;
-    overlaps.assign(&overlapsArr[i][0], &overlapsArr[i][numColumns]);
-    sp.calculateOverlapPct_(overlaps, overlapsPct);
-    ASSERT_TRUE(check_vector_eq(trueOverlapsPct[i], overlapsPct));
-  }
-}
 
 TEST(SpatialPoolerTest, testInhibitColumns) {
   SpatialPooler sp;
@@ -1816,7 +1774,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
   SDR activeColumns( {nColumns} );
   sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(activeColumns.getSum(), 4u);
+  EXPECT_EQ(activeColumns.getSum(), 3u);
 }
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
@@ -2079,14 +2037,16 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
 TEST(SpatialPoolerTest, ExactOutput) { 
   // Silver is an SDR that is loaded by direct initalization from a vector.
   SDR silver_sdr({ 200 });
-  SDR_sparse_t data = {23, 71, 113, 118, 129, 172, 178, 182, 185, 190};
+  SDR_sparse_t data = {
+    4, 64, 74, 78, 85, 113, 125, 126, 127, 153
+  };
   silver_sdr.setSparse(data);
 
 
   // Gold tests initalizing an SDR from a manually created string in JSON format.
 	// hint: you can generate this string using
 	//       silver_sdr.save(std::cout, JSON);
-  string gold = "{\"dimensions\": [200],\"sparse\": [23,71,113,118,129,172,178,182,185,190]}";
+  string gold = "{\"dimensions\": [200],\"sparse\": [4, 64, 74, 78, 85, 113, 125, 126, 127, 153]}";
   std::stringstream gold_stream( gold );
   SDR gold_sdr;
   gold_sdr.load( gold_stream, JSON );

@@ -287,7 +287,6 @@ public:
     ar(CEREAL_NVP(overlapDutyCycles_));
     ar(CEREAL_NVP(activeDutyCycles_));
     ar(CEREAL_NVP(minOverlapDutyCycles_));
-    ar(CEREAL_NVP(tieBreaker_));
     ar(CEREAL_NVP(connections_));
     ar(CEREAL_NVP(rng_));
   }
@@ -322,13 +321,11 @@ public:
     ar(CEREAL_NVP(overlapDutyCycles_));
     ar(CEREAL_NVP(activeDutyCycles_));
     ar(CEREAL_NVP(minOverlapDutyCycles_));
-    ar(CEREAL_NVP(tieBreaker_));
     ar(CEREAL_NVP(connections_));
     ar(CEREAL_NVP(rng_));
 
     // initialize ephemeral members
     overlaps_.resize(numColumns_);
-    overlapsPct_.resize(numColumns_);
     boostedOverlaps_.resize(numColumns_);
   }
 
@@ -1231,9 +1228,7 @@ protected:
   Connections connections_;
 
   vector<SynapseIdx> overlaps_;
-  vector<Real> overlapsPct_;
   vector<Real> boostedOverlaps_;
-  vector<Real> tieBreaker_;
 
 
   UInt version_;
