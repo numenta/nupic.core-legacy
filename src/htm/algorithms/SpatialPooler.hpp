@@ -107,7 +107,7 @@ public:
         that each column can potentially be connected to every input
         bit. This parameter defines a square (or hyper square) area: a
         column will have a max square potential pool with sides of
-        length (2 * potentialRadius + 1).
+        length `(2 * potentialRadius + 1)`, rounded to fit into each dimension.
 
   @param potentialPct The percent of the inputs, within a column's
         potential radius, that a column can be connected to. If set to
@@ -186,7 +186,8 @@ public:
         likely to oscillate.
 
   @param boostStrength A number greater or equal than 0, used to
-        control boosting strength. No boosting is applied if it is set to 0.
+        control boosting strength. 
+	No boosting is applied if it is set to 0.0, (runs faster due to skipped code).
         The strength of boosting increases as a function of boostStrength.
         Boosting encourages columns to have similar activeDutyCycles as their
         neighbors, which will lead to more efficient use of columns. However,
@@ -917,7 +918,7 @@ public:
      columns.
   */
   void inhibitColumns_(const vector<Real> &overlaps,
-                       vector<UInt> &activeColumns) const;
+                       vector<CellIdx> &activeColumns) const;
 
   /**
      Perform global inhibition.
