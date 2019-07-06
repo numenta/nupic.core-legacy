@@ -22,7 +22,6 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <climits>
 #include <map>
 #include <set>
 #include <utility>
@@ -38,7 +37,7 @@ namespace htm {
 //TODO instead of typedefs, use templates for proper type-checking?
 using CellIdx   = htm::ElemSparse; // CellIdx must match with ElemSparse, defined in Sdr.hpp
 using SegmentIdx= UInt16; /** Index of segment in cell. */
-using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
+using SynapseIdx= UInt16; /** Index of synapse in segment. */
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
 using Permanence= Real32; //TODO experiment with half aka float16
@@ -631,7 +630,7 @@ private:
   Permanence               connectedThreshold_; //TODO make const
 
   // Extra bookkeeping for faster computing of segment activity.
-  std::map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
+  std::map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_; //TODO use unordered_map
   std::map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;

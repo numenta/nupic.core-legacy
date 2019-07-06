@@ -272,8 +272,10 @@ TEST(TMRegionTest, testLinking) {
   EXPECT_TRUE(r3InputArray.getType() == NTA_BasicType_SDR);
   VERBOSE << "   " << r3InputArray << "\n";
   std::vector<Byte> expected3in = VectorHelpers::sparseToBinary<Byte>(
-    { 1, 2, 3, 5, 6, 8, 11, 13, 17, 19 }, (UInt32)r3InputArray.getCount());
-  EXPECT_TRUE(r3InputArray == expected3in);
+    {
+      0, 2, 3, 4, 6, 7, 10, 11, 14, 17
+    }, (UInt32)r3InputArray.getCount());
+  EXPECT_TRUE(r3InputArray == expected3in) << r3InputArray;
 
   VERBOSE << "  TMRegion output "
           << region3->getOutputDimensions("bottomUpOut") << "\n";
@@ -287,12 +289,13 @@ TEST(TMRegionTest, testLinking) {
       << r3InputArray.getCount();
   EXPECT_TRUE(r3OutputArray.getType() == NTA_BasicType_SDR);
   VERBOSE << "   " << r3OutputArray << "\n";
-  std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>(
-            { 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u,
-             25u, 26u, 27u, 28u, 29u, 30u, 31u, 32u, 33u, 34u, 40u, 41u, 42u, 43u,
-             44u, 55u, 56u, 57u, 58u, 59u, 65u, 66u, 67u, 68u, 69u, 85u, 86u, 87u,
-             88u, 89u, 95u, 96u, 97u, 98u, 99u }, (UInt32)r3OutputArray.getCount());
-  EXPECT_TRUE(r3OutputArray == expected3out);
+  std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>( //TODO replace with SDR 
+            {
+	     0, 1, 2, 3, 4, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 
+	     31, 32, 33, 34, 35, 36, 37, 38, 39, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 70,
+	     71, 72, 73, 74, 85, 86, 87, 88, 89
+	     }, (UInt32)r3OutputArray.getCount());
+  EXPECT_TRUE(r3OutputArray == expected3out) << r3OutputArray;
   EXPECT_EQ(r3OutputArray.getSDR().getSparse().size(), 50u);
 
   // execute TMRegion several more times and check that it has output.
@@ -308,11 +311,12 @@ TEST(TMRegionTest, testLinking) {
       << numberOfCols << " * " << cellsPerColumn;
   VERBOSE << "   " << r3OutputArray << ")\n";
   std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
-            {20u, 21u, 22u, 23u, 24u, 25u, 26u, 27u, 28u, 29u, 35u, 36u, 37u, 38u,
-             39u, 45u, 46u, 47u, 48u, 49u, 50u, 51u, 52u, 53u, 54u, 60u, 61u, 62u,
-             63u, 64u, 70u, 71u, 72u, 73u, 74u, 80u, 81u, 82u, 83u, 84u, 90u, 91u,
-             92u, 93u, 94u, 95u, 96u, 97u, 98u, 99u}, (UInt32)r3OutputArray.getCount());
-  EXPECT_TRUE(r3OutputArray == expected3outa);
+            {
+	    10, 11, 12, 13, 14, 30, 31, 32, 33, 34, 45, 46, 47, 48, 49, 55, 56, 57, 58,
+	    59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 80, 81, 82, 83, 84, 85, 86, 87,
+	    88, 89, 90, 91, 92,93, 94, 95, 96, 97, 98, 99
+	     }, (UInt32)r3OutputArray.getCount());
+  EXPECT_TRUE(r3OutputArray == expected3outa) << r3OutputArray;
 
 
   VERBOSE << "   Input to VectorFileEffector "
@@ -320,7 +324,7 @@ TEST(TMRegionTest, testLinking) {
   Array r4InputArray = region4->getInputData("dataIn");
   EXPECT_TRUE(r4InputArray.getType() == NTA_BasicType_Real32);
   VERBOSE << "   " << r4InputArray << "\n";
-  EXPECT_TRUE(r4InputArray == expected3outa);
+  EXPECT_TRUE(r4InputArray == expected3outa) << r4InputArray;
 
   // cleanup
   region3->executeCommand({"closeFile"});
