@@ -391,10 +391,11 @@ void Connections::reset()
   currentUpdates_.clear();
 }
 
-vector<SynapseIdx> Connections::computeActivity(
+void Connections::computeActivity(
+    vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
     const vector<CellIdx> &activePresynapticCells)
 {
-  vector<SynapseIdx> numActiveConnectedSynapsesForSegment(segments_.size(), 0);
+  NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
 
   if( timeseries_ ) {
     // Before each cycle of computation move the currentUpdates to the previous
@@ -411,22 +412,24 @@ vector<SynapseIdx> Connections::computeActivity(
       }
     }
   }
-  return numActiveConnectedSynapsesForSegment;
 }
 
-vector<SynapseIdx> Connections::computeActivity(
+void Connections::computeActivity(
+    vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
     vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
     const vector<CellIdx> &activePresynapticCells) {
+  NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
   NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
 
   // Iterate through all connected synapses.
-  const vector<SynapseIdx> numActiveConnectedSynapsesForSegment = computeActivity( activePresynapticCells );
+  computeActivity(
+      numActiveConnectedSynapsesForSegment,
+      activePresynapticCells );
 
   // Iterate through all potential synapses.
   std::copy( numActiveConnectedSynapsesForSegment.begin(),
              numActiveConnectedSynapsesForSegment.end(),
              numActivePotentialSynapsesForSegment.begin());
-
   for (const auto& cell : activePresynapticCells) {
     if (potentialSegmentsForPresynapticCell_.count(cell)) {
       for(const auto& segment : potentialSegmentsForPresynapticCell_.at(cell)) {
@@ -434,7 +437,6 @@ vector<SynapseIdx> Connections::computeActivity(
       }
     }
   }
-  return numActiveConnectedSynapsesForSegment;
 }
 
 

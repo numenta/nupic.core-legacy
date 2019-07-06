@@ -101,7 +101,7 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
                 [](void *dataPtr) {
                     delete reinterpret_cast<std::vector<SynapseIdx>*>(dataPtr); });
             // Call the C++ method.
-            *activeConnectedSynapses = self.computeActivity(activePresynapticCells.getSparse());
+            self.computeActivity(*activeConnectedSynapses, activePresynapticCells.getSparse());
             // Wrap vector in numpy array.
             return py::array(activeConnectedSynapses->size(),
                              activeConnectedSynapses->data(),
@@ -124,7 +124,7 @@ R"(Returns numActiveConnectedSynapsesForSegment)");
                 [](void *dataPtr) {
                     delete reinterpret_cast<std::vector<SynapseIdx>*>(dataPtr); });
             // Call the C++ method.
-            *activeConnectedSynapses = self.computeActivity(*activePotentialSynapses,
+            self.computeActivity(*activeConnectedSynapses, *activePotentialSynapses,
                                             activePresynapticCells.getSparse());
             // Wrap vector in numpy array.
             return py::make_tuple(

@@ -389,20 +389,21 @@ public:
    * preinitialized with the length returned by
    * getSegmentFlatVectorLength().
    *
-   * @param (optional) numActivePotentialSynapsesForSegment
+   * @param numActiveConnectedSynapsesForSegment
+   * An output vector for active connected synapse counts per segment.
+   *
+   * @param numActivePotentialSynapsesForSegment
    * An output vector for active potential synapse counts per segment.
    *
    * @param activePresynapticCells
    * Active cells in the input.
-   *
-   * @return numActiveConnectedSynapsesForSegment
-   * An output vector for active connected synapse counts per segment.
    */
-  std::vector<SynapseIdx> computeActivity(
+  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
                        std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
                        const std::vector<CellIdx> &activePresynapticCells);
 
-  std::vector<SynapseIdx> computeActivity(const std::vector<CellIdx> &activePresynapticCells);
+  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+                       const std::vector<CellIdx> &activePresynapticCells);
 
   /**
    * The primary method in charge of learning.   Adapts the permanence values of
