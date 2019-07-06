@@ -500,10 +500,9 @@ void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
 
 void SpatialPooler::boostOverlaps_(const vector<SynapseIdx> &overlaps, //TODO use Eigen sparse vector here
                                    vector<Real> &boosted) const {
-  if(boostStrength_ < htm::Epsilon) {
-    const auto begin = static_cast<const SynapseIdx*>(overlaps.data());
-    boosted.assign(begin, begin + overlaps.size());
-    return; //boost ~ 0.0, we can skip these computations. 
+  if(boostStrength_ < htm::Epsilon) { //boost ~ 0.0, we can skip these computations, just copy the data
+    boosted.assign(overlaps.begin(), overlaps.end());
+    return;
   }
   for (UInt i = 0; i < numColumns_; i++) {
     boosted[i] = overlaps[i] * boostFactors_[i];
