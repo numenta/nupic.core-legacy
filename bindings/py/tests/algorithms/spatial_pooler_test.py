@@ -177,6 +177,19 @@ class SpatialPoolerTest(unittest.TestCase):
     self.assertEqual(sp.getNumColumns(), sp2.getNumColumns(),
                      "Simple NuPIC SpatialPooler pickle/unpickle failed.")
 
+  def testNupicSpatialPoolerSavingToString(self):
+    """Test writing to and reading from NuPIC SpatialPooler."""
+
+    # Simple test: make sure that writing/reading works...
+    sp = SP()
+    s = sp.writeToString()
+
+    sp2 = sp.readFromString(s)
+
+    self.assertEqual(sp.getNumColumns(), sp2.getNumColumns(),
+                     "NuPIC SpatialPooler write to/read from string failed.")
+
+
 
 if __name__ == "__main__":
   unittest.main()
