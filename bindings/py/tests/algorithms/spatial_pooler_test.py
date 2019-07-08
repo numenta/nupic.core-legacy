@@ -184,7 +184,8 @@ class SpatialPoolerTest(unittest.TestCase):
     sp = SP()
     s = sp.writeToString()
 
-    sp2 = sp.readFromString(s)
+    sp2 = SP(columnDimensions=[32, 32])
+    sp2.loadFromString(s)
 
     self.assertEqual(sp.getNumColumns(), sp2.getNumColumns(),
                      "NuPIC SpatialPooler write to/read from string failed.")
