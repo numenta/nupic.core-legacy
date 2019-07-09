@@ -131,8 +131,6 @@ void check_spatial_eq(const SpatialPooler& sp1, const SpatialPooler& sp2) {
   ASSERT_TRUE(sp1.getPotentialRadius() == sp2.getPotentialRadius());
   ASSERT_TRUE(sp1.getPotentialPct() == sp2.getPotentialPct());
   ASSERT_TRUE(sp1.getGlobalInhibition() == sp2.getGlobalInhibition());
-  ASSERT_TRUE(sp1.getNumActiveColumnsPerInhArea() ==
-              sp2.getNumActiveColumnsPerInhArea());
   ASSERT_TRUE(almost_eq(sp1.getLocalAreaDensity(), sp2.getLocalAreaDensity()));
   ASSERT_TRUE(sp1.getStimulusThreshold() == sp2.getStimulusThreshold());
   ASSERT_TRUE(sp1.getDutyCyclePeriod() == sp2.getDutyCyclePeriod());
@@ -429,8 +427,7 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCyclesLocal) {
         /*potentialRadius*/ 16,
         /*potentialPct*/ 0.5f,
         /*globalInhibition*/ false,
-        /*localAreaDensity*/ -1.0f,
-        /*numActiveColumnsPerInhArea*/ 3,
+        /*localAreaDensity*/ 0.1f,
         /*stimulusThreshold*/ 1,
         /*synPermInactiveDec*/ 0.008f,
         /*synPermActiveInc*/ 0.05f,
@@ -471,8 +468,7 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCyclesLocal) {
         /*potentialRadius*/ 16,
         /*potentialPct*/ 0.5f,
         /*globalInhibition*/ false,
-        /*localAreaDensity*/ -1.0f,
-        /*numActiveColumnsPerInhArea*/ 3,
+        /*localAreaDensity*/ 0.1f,
         /*stimulusThreshold*/ 1,
         /*synPermInactiveDec*/ 0.008f,
         /*synPermActiveInc*/ 0.05f,
@@ -994,7 +990,6 @@ TEST(SpatialPoolerTest, testUpdateBoostFactors) {
   sp.setGlobalInhibition(false);
   sp.setBoostStrength(2.0);
   sp.setInhibitionRadius(5);
-  sp.setNumActiveColumnsPerInhArea(1);
   sp.setBoostFactors(initBoostFactors3);
   sp.setActiveDutyCycles(initActiveDutyCycles3);
   sp.updateBoostFactors_();
@@ -1009,7 +1004,6 @@ TEST(SpatialPoolerTest, testUpdateBoostFactors) {
   vector<Real32> resultBoostFactors4(6, 0);
   sp.setGlobalInhibition(true);
   sp.setBoostStrength(10);
-  sp.setNumActiveColumnsPerInhArea(1);
   sp.setInhibitionRadius(3);
   sp.setBoostFactors(initBoostFactors4);
   sp.setActiveDutyCycles(initActiveDutyCycles4);
@@ -1121,7 +1115,6 @@ TEST(SpatialPoolerTest, testInhibitColumns) {
   density = 2.0f / 5;
 
   sp.setInhibitionRadius(inhibitionRadius);
-  sp.setNumActiveColumnsPerInhArea(2);
 
   overlapsReal.assign(&overlapsArray[0], &overlapsArray[numColumns]);
   sp.inhibitColumnsGlobal_(overlapsReal, density, activeColumnsGlobal);
@@ -1224,8 +1217,7 @@ TEST(SpatialPoolerTest, testInhibitColumnsLocal) {
         /*potentialRadius*/ 16,
         /*potentialPct*/ 0.5f,
         /*globalInhibition*/ false,
-        /*localAreaDensity*/ -1.0f,
-        /*numActiveColumnsPerInhArea*/ 3,
+        /*localAreaDensity*/ 0.1f,
         /*stimulusThreshold*/ 1,
         /*synPermInactiveDec*/ 0.008f,
         /*synPermActiveInc*/ 0.05f,
@@ -1289,8 +1281,7 @@ TEST(SpatialPoolerTest, testInhibitColumnsLocal) {
         /*potentialRadius*/ 16,
         /*potentialPct*/ 0.5f,
         /*globalInhibition*/ false,
-        /*localAreaDensity*/ -1.0f,
-        /*numActiveColumnsPerInhArea*/ 3,
+        /*localAreaDensity*/ 0.1f,
         /*stimulusThreshold*/ 1,
         /*synPermInactiveDec*/ 0.008f,
         /*synPermActiveInc*/ 0.05f,
@@ -1715,8 +1706,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
                    /*potentialRadius*/ 10,
                    /*potentialPct*/ 0.5f,
                    /*globalInhibition*/ true,
-                   /*localAreaDensity*/ -1.0f,
-                   /*numActiveColumnsPerInhArea*/ 3,
+                   /*localAreaDensity*/ 0.1f,
                    /*stimulusThreshold*/ 0,
                    /*synPermInactiveDec*/ 0.008f,
                    /*synPermActiveInc*/ 0.05f,
@@ -1743,8 +1733,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
                    /*potentialRadius*/ 5,
                    /*potentialPct*/ 0.5f,
                    /*globalInhibition*/ true,
-                   /*localAreaDensity*/ -1.0f,
-                   /*numActiveColumnsPerInhArea*/ 1,
+                   /*localAreaDensity*/ 0.1f,
                    /*stimulusThreshold*/ 1,
                    /*synPermInactiveDec*/ 0.008f,
                    /*synPermActiveInc*/ 0.05f,
@@ -1772,8 +1761,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
                    /*potentialRadius*/ 5,
                    /*potentialPct*/ 0.5f,
                    /*globalInhibition*/ false,
-                   /*localAreaDensity*/ -1.0,
-                   /*numActiveColumnsPerInhArea*/ 1,
+                   /*localAreaDensity*/ 0.1f,
                    /*stimulusThreshold*/ 0,
                    /*synPermInactiveDec*/ 0.008f,
                    /*synPermActiveInc*/ 0.05f,
@@ -1800,8 +1788,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
                    /*potentialRadius*/ 10,
                    /*potentialPct*/ 0.5f,
                    /*globalInhibition*/ false,
-                   /*localAreaDensity*/ -1.0f,
-                   /*numActiveColumnsPerInhArea*/ 3,
+                   /*localAreaDensity*/ 0.1f,
                    /*stimulusThreshold*/ 1,
                    /*synPermInactiveDec*/ 0.008f,
                    /*synPermActiveInc*/ 0.05f,
@@ -2009,8 +1996,7 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
       /*potentialRadius*/ 16,
       /*potentialPct*/ 0.5f,
       /*globalInhibition*/ true,
-      /*localAreaDensity*/ -1.0f,
-      /*numActiveColumnsPerInhArea*/ 10,
+      /*localAreaDensity*/ 0.1f,
       /*stimulusThreshold*/ 0,
       /*synPermInactiveDec*/ 0.008f,
       /*synPermActiveInc*/ 0.05f,
@@ -2030,8 +2016,7 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
       /*potentialRadius*/ 16,
       /*potentialPct*/ 0.5f,
       /*globalInhibition*/ true,
-      /*localAreaDensity*/ -1.0f,
-      /*numActiveColumnsPerInhArea*/ 10,
+      /*localAreaDensity*/ 0.1f,
       /*stimulusThreshold*/ 0,
       /*synPermInactiveDec*/ 0.008f,
       /*synPermActiveInc*/ 0.05f,
@@ -2076,7 +2061,6 @@ TEST(SpatialPoolerTest, ExactOutput) {
                    /*potentialPct*/ 0.5f,
                    /*globalInhibition*/ true,
                    /*localAreaDensity*/ 0.05f,
-                   /*numActiveColumnsPerInhArea*/ -1,
                    /*stimulusThreshold*/ 3u,
                    /*synPermInactiveDec*/ 0.008f,
                    /*synPermActiveInc*/ 0.05f,
