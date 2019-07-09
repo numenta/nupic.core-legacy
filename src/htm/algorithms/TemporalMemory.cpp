@@ -207,10 +207,8 @@ static void growSynapses(Connections &connections,
   const size_t nActualWithMax = std::min(nActual, static_cast<size_t>(maxSynapsesPerSegment) - connections.numSynapses(segment));
 
   // Pick nActual cells randomly.
-  for (size_t c = 0; c < nActualWithMax; c++) {
-    const auto i = rng.getUInt32(static_cast<UInt32>(candidates.size()));
-    connections.createSynapse(segment, candidates[i], initialPermanence); //TODO createSynapse consider creating a vector of new synapses at once?
-    candidates.erase(candidates.begin() + i); //TODO this is costly, optimize it (out)
+  for (const auto syn : rng.sample(candidates, nActualWithMax)) {
+    connections.createSynapse(segment, syn, initialPermanence); //TODO createSynapse consider creating a vector of new synapses at once?
   }
 }
 
