@@ -900,7 +900,7 @@ public:
      a "connected state" (connected synapses) that are connected to
      input bits which are turned on.
   */
-  void calculateOverlap_(const SDR &input, vector<SynapseIdx> &overlap);
+  void calculateOverlap_(const SDR &input, vector<SynapseIdx> &overlap, const bool learn = true);
   void calculateOverlapPct_(const vector<SynapseIdx> &overlaps, vector<Real> &overlapPct) const;
 
   /**

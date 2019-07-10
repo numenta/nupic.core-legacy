@@ -131,7 +131,6 @@ void TemporalMemory::initialize(
 
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
-  iteration_ = 0;
 
   reset();
 }
@@ -266,7 +265,6 @@ burstColumn(vector<CellIdx> &activeCells,
             const SDR &prevActiveCells,
             const vector<CellIdx> &prevWinnerCells,
             const vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-            UInt64 iteration, 
             CellIdx cellsPerColumn, 
             UInt maxNewSynapseCount,
             const Permanence initialPermanence, 
@@ -319,7 +317,7 @@ burstColumn(vector<CellIdx> &activeCells,
           std::min(maxNewSynapseCount, (UInt32)prevWinnerCells.size());
       if (nGrowExact > 0) {
         const Segment segment =
-            connections.createSegment(winnerCell, maxSegmentsPerCell, iteration);
+            connections.createSegment(winnerCell, maxSegmentsPerCell);
 
         growSynapses(connections, rng, segment, nGrowExact, prevWinnerCells,
                      initialPermanence, maxSynapsesPerSegment);
@@ -397,7 +395,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
                     column,
                     columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
                     prevActiveCells, prevWinnerCells,
-                    numActivePotentialSynapsesForSegment_, iteration_,
+                    numActivePotentialSynapsesForSegment_,
                     cellsPerColumn_, maxNewSynapseCount_, initialPermanence_,
                     permanenceIncrement_, permanenceDecrement_,
                     maxSegmentsPerCell_, maxSynapsesPerSegment_, learn);
@@ -454,7 +452,8 @@ void TemporalMemory::activateDendrites(const bool learn,
   numActivePotentialSynapsesForSegment_.assign(length, 0);
   connections.computeActivity(numActiveConnectedSynapsesForSegment_,
                               numActivePotentialSynapsesForSegment_,
-                              activeCells_);
+                              activeCells_,
+			      learn);
 
   // Active segments, connected synapses.
   activeSegments_.clear();
@@ -467,10 +466,9 @@ void TemporalMemory::activateDendrites(const bool learn,
   // std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments); //not needed (?)
   // Update segment bookkeeping.
   if (learn) {
-    for (auto &segment : activeSegments_) {
-      connections.dataForSegment(segment).lastUsed = iteration_; //TODO the destroySegments based on LRU is expensive. Better random? or "energy" based on sum permanences? 
+    for (const auto segment : activeSegments_) {
+      connections.dataForSegment(segment).lastUsed = connections.iteration(); //TODO the destroySegments based on LRU is expensive. Better random? or "energy" based on sum permanences?
     }
-    iteration_++;
   }
 
   // Matching segments, potential synapses.
@@ -724,7 +722,6 @@ bool TemporalMemory::operator==(const TemporalMemory &other) const {
       winnerCells_ != other.winnerCells_ ||
       maxSegmentsPerCell_ != other.maxSegmentsPerCell_ ||
       maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_ ||
-      iteration_ != other.iteration_ ||
       anomaly_ != other.anomaly_ ) {
     return false;
   }

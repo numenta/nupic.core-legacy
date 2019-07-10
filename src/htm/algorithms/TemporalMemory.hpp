@@ -270,8 +270,8 @@ public:
    * @return Segment
    * The created segment.
    */
-  Segment createSegment(const CellIdx& cell, const UInt32 iteration = 0) { 
-	  return connections.createSegment(cell, maxSegmentsPerCell_, iteration); }
+  Segment createSegment(const CellIdx& cell) { 
+	  return connections.createSegment(cell, maxSegmentsPerCell_); }
 
   /**
    * Returns the indices of cells that belong to a mini-column.
@@ -462,7 +462,6 @@ public:
        CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
-       CEREAL_NVP(iteration_),
        CEREAL_NVP(rng_),
        CEREAL_NVP(columnDimensions_),
        CEREAL_NVP(activeCells_),
@@ -518,7 +517,6 @@ public:
        CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
-       CEREAL_NVP(iteration_),
        CEREAL_NVP(rng_),
        CEREAL_NVP(columnDimensions_),
        CEREAL_NVP(activeCells_),
@@ -626,8 +624,6 @@ private:
   vector<Segment> matchingSegments_;
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
-
-  UInt32 iteration_; //each call to `compute` increases this counter
 
   Real anomaly_;
 

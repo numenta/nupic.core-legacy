@@ -53,6 +53,7 @@ void Connections::initialize(CellIdx numCells, Permanence connectedThreshold, bo
   NTA_CHECK(connectedThreshold >= minPermanence);
   NTA_CHECK(connectedThreshold <= maxPermanence);
   connectedThreshold_ = connectedThreshold - htm::Epsilon;
+  iteration_ = 0;
 
   // Every time a segment or synapse is created, we assign it an ordinal and
   // increment the nextOrdinal. Ordinals are never recycled, so they can be used
@@ -78,8 +79,7 @@ void Connections::unsubscribe(UInt32 token) {
 }
 
 Segment Connections::createSegment(const CellIdx cell, 
-	                           const SegmentIdx maxSegmentsPerCell,
-				   const UInt32 iteration) { //TODO move iteration to Connections.iteration_ ?
+	                           const SegmentIdx maxSegmentsPerCell) {
 
   //limit number of segmets per cell. If exceeded, remove the least recently used ones.
   NTA_ASSERT(maxSegmentsPerCell > 0);
@@ -106,7 +106,7 @@ Segment Connections::createSegment(const CellIdx cell,
     NTA_CHECK(segments_.size() < std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
 	    << (size_t)segments_.size() << " < " << (size_t)std::numeric_limits<Segment>::max();
     segment = static_cast<Segment>(segments_.size());
-    const SegmentData& segmentData = SegmentData(cell, iteration);
+    const SegmentData& segmentData = SegmentData(cell, iteration_);
     segments_.push_back(segmentData);
     segmentOrdinals_.push_back(0);
   }
@@ -394,9 +394,11 @@ void Connections::reset()
 
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
-    const vector<CellIdx> &activePresynapticCells)
+    const vector<CellIdx> &activePresynapticCells,
+    bool learn)
 {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
+  if(learn) iteration_++;
 
   if( timeseries_ ) {
     // Before each cycle of computation move the currentUpdates to the previous
@@ -410,6 +412,7 @@ void Connections::computeActivity(
     if (connectedSegmentsForPresynapticCell_.count(cell)) {
       for(const auto& segment : connectedSegmentsForPresynapticCell_.at(cell)) {
         ++numActiveConnectedSynapsesForSegment[segment];
+	//TODO move LRU update here from TM
       }
     }
   }
@@ -418,14 +421,16 @@ void Connections::computeActivity(
 void Connections::computeActivity(
     vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
     vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-    const vector<CellIdx> &activePresynapticCells) {
+    const vector<CellIdx> &activePresynapticCells,
+    bool learn) {
   NTA_ASSERT(numActiveConnectedSynapsesForSegment.size() == segments_.size());
   NTA_ASSERT(numActivePotentialSynapsesForSegment.size() == segments_.size());
 
   // Iterate through all connected synapses.
   computeActivity(
       numActiveConnectedSynapsesForSegment,
-      activePresynapticCells );
+      activePresynapticCells,
+      learn );
 
   // Iterate through all potential synapses.
   std::copy( numActiveConnectedSynapsesForSegment.begin(),
@@ -673,6 +678,8 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
 bool Connections::operator==(const Connections &other) const {
   if (cells_.size() != other.cells_.size())
     return false;
+
+  if(iteration_ != other.iteration_) return false;
 
   for (CellIdx i = 0; i < static_cast<CellIdx>(cells_.size()); i++) {
     const CellData &cellData = cells_[i];

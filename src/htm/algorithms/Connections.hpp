@@ -233,16 +233,12 @@ public:
    * (ordered by LRU `SegmentData.lastUsed`). Default value is numeric_limits::max() of the data-type, 
    * so effectively disabled. 
    *
-   * @param iteration Optional. Used only if `maxSegmentsPerCell` > 1. In that case, `iteration` is assigned as
-   * "timestamp" to SegmentData.lastUsed. 
-   *
    * @retval Unique ID of the created segment `seg`. Use `dataForSegment(seg)` to obtain the segment's data. 
    * Use  `idxOfSegmentOnCell()` to get SegmentIdx of `seg` on this `cell`. 
    *
    */
   Segment createSegment(const CellIdx cell, 
-		        const SegmentIdx maxSegmentsPerCell = std::numeric_limits<SegmentIdx>::max(),
-			const UInt32 iteration = 0); //TODO make max_int & check that it's provided when needed
+		        const SegmentIdx maxSegmentsPerCell = std::numeric_limits<SegmentIdx>::max());
 
   /**
    * Creates a synapse on the specified segment.
@@ -434,13 +430,18 @@ public:
    *
    * @param activePresynapticCells
    * Active cells in the input.
+   *
+   * @param bool learn : enable learning updates (default true)
+   *
    */
   void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
                        std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-                       const std::vector<CellIdx> &activePresynapticCells);
+                       const std::vector<CellIdx> &activePresynapticCells,
+		       const bool learn = true);
 
   void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
-                       const std::vector<CellIdx> &activePresynapticCells);
+                       const std::vector<CellIdx> &activePresynapticCells,
+		       const bool learn = true);
 
   /**
    * The primary method in charge of learning.   Adapts the permanence values of
@@ -474,6 +475,16 @@ public:
    */
   void raisePermanencesToThreshold(const Segment    segment,
                                    const UInt       segmentThreshold);
+
+  /**
+   *  iteration: ever increasing step count. 
+   *  Increases each main call to "compute". Since connections has more
+   *  methods that are called instead of compute (adaptSegment, computeActivity,..)
+   *  this counter is increased in @ref `computeActivity` as it is called by both
+   *  SP & TM. 
+   */
+//!  const UInt32& iteration = iteration_; //FIXME cannot construct iteration like this?
+  UInt32 iteration() const { return iteration_; }
 
   /**
    * Modify all permanence on the given segment, uniformly.
@@ -527,6 +538,7 @@ public:
     ar(CEREAL_NVP(connectedThreshold_));
     ar(CEREAL_NVP(sizes));
     ar(CEREAL_NVP(syndata));
+    ar(CEREAL_NVP(iteration_));
   }
 
   template<class Archive>
@@ -551,6 +563,7 @@ public:
         }
       }
     }
+    ar(CEREAL_NVP(iteration_));
   }
 
   /**
@@ -674,6 +687,7 @@ private:
   std::vector<SynapseData> synapses_;
   std::vector<Synapse>     destroyedSynapses_;
   Permanence               connectedThreshold_; //TODO make const
+  UInt32 iteration_ = 0;
 
   // Extra bookkeeping for faster computing of segment activity.
   std::unordered_map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
