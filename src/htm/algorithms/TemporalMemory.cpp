@@ -464,7 +464,7 @@ void TemporalMemory::activateDendrites(const bool learn,
     }
   }
   const auto compareSegments = [&](const Segment a, const Segment b) { return connections.compareSegments(a, b); };
-  std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments); //TODO why sorted?
+  // std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments); //not needed (?)
   // Update segment bookkeeping.
   if (learn) {
     for (auto &segment : activeSegments_) {

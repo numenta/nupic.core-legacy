@@ -487,7 +487,7 @@ void Connections::adaptSegment(const Segment segment,
   }
 
   //destroy segment if it is empty
-  if(synapses.empty()) {
+  if(pruneZeroSynapses and synapses.empty()) {
     destroySegment(segment);
     prunedSegs_++; //statistics
   }
