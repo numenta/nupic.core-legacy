@@ -376,8 +376,10 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
 	       columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
          columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
 
-    std::tie(column, activeColumnsBegin, activeColumnsEnd, columnActiveSegmentsBegin,
-             columnActiveSegmentsEnd, columnMatchingSegmentsBegin, columnMatchingSegmentsEnd
+    std::tie(column, 
+             activeColumnsBegin, activeColumnsEnd, 
+             columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
+             columnMatchingSegmentsBegin, columnMatchingSegmentsEnd
 	) = columnData;
 
     const bool isActiveColumn = activeColumnsBegin != activeColumnsEnd;

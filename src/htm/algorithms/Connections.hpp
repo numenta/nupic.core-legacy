@@ -24,6 +24,7 @@
 
 #include <limits>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <utility>
 #include <vector>
@@ -675,8 +676,8 @@ private:
   Permanence               connectedThreshold_; //TODO make const
 
   // Extra bookkeeping for faster computing of segment activity.
-  std::map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_; //TODO use unordered_map
-  std::map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
