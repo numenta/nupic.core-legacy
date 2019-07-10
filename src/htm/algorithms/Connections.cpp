@@ -410,7 +410,6 @@ void Connections::computeActivity(
     if (connectedSegmentsForPresynapticCell_.count(cell)) {
       for(const auto& segment : connectedSegmentsForPresynapticCell_.at(cell)) {
         ++numActiveConnectedSynapsesForSegment[segment];
-	//TODO move LRU update here from TM
       }
     }
   }

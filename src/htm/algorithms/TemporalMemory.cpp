@@ -135,6 +135,7 @@ void TemporalMemory::initialize(
   reset();
 }
 
+///*
 static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static methods, use private instead
                                 const Connections &connections,
                                 UInt cellsPerColumn) {
@@ -168,7 +169,7 @@ static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static m
 
   NTA_THROW << "getLeastUsedCell failed to find a cell";
 }
-
+//*/
 
 static void growSynapses(Connections &connections, 
 		         Random &rng, 
@@ -290,7 +291,7 @@ burstColumn(vector<CellIdx> &activeCells,
   const CellIdx winnerCell =
       (bestMatchingSegment != columnMatchingSegmentsEnd)
           ? connections.cellForSegment(*bestMatchingSegment)
-          : getLeastUsedCell(rng, column, connections, cellsPerColumn);
+          : getLeastUsedCell(rng, column, connections, cellsPerColumn); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
 
   winnerCells.push_back(winnerCell);
 
@@ -360,20 +361,35 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
 
   const vector<CellIdx> prevWinnerCells = std::move(winnerCells_);
 
-  const auto columnForSegment = [&](Segment segment) {
+  //maps segment S to a new segment that is at start of a column where
+  //S belongs. 
+  //for 3 cells per columns: 
+  //s1_1, s1_2, s1_3, s2_1, s2_2, s2_3, ...
+  //columnForSegment (for short here CFS)
+  //CFS(s1_1) = s1_1 = "start of column 1"
+  //CFS(s1_2) = s1_1
+  //CFS(s1_3) = s1_1
+  //CFS(s2_1) = s2_1 = "column 2"
+  //CFS(s2_2) = s2_1
+  //...
+  const auto toColumns = [&](const Segment segment) {
     return connections.cellForSegment(segment) / cellsPerColumn_;
   };
   const auto identity = [](const ElemSparse a) {return a;}; //TODO use std::identity when c++20
 
   for (auto &&columnData : groupBy( //group by columns, and convert activeSegments & matchingSegments to cols. 
            sparse, identity,
-           activeSegments_, columnForSegment,
-           matchingSegments_, columnForSegment)) {
-    CellIdx column;
+           activeSegments_,   toColumns,
+           matchingSegments_, toColumns)) {
+
+    Segment column; //we say "column", but it's the first segment of n-segments/cells that belong to the column
     vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
 	       columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
          columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
 
+    // for column in activeColumns (the 'sparse' above):
+    //   get its active segments ( >= connectedThr)
+    //   get its matching segs   ( >= mmm
     std::tie(column, 
              activeColumnsBegin, activeColumnsEnd, 
              columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
@@ -381,8 +397,9 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
 	) = columnData;
 
     const bool isActiveColumn = activeColumnsBegin != activeColumnsEnd;
-    if (isActiveColumn) {
+    if (isActiveColumn) { //current active column...
       if (columnActiveSegmentsBegin != columnActiveSegmentsEnd) {
+	//...was also predicted -> learn :o)
         activatePredictedColumn(
             activeCells_, winnerCells_, connections, rng_,
             columnActiveSegmentsBegin, columnActiveSegmentsEnd,
@@ -391,6 +408,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
             initialPermanence_, permanenceIncrement_, permanenceDecrement_,
             maxSynapsesPerSegment_, learn);
       } else {
+	//...has not been predicted -> 
         burstColumn(activeCells_, winnerCells_, connections, rng_,
                     column,
                     columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
@@ -400,13 +418,14 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
                     permanenceIncrement_, permanenceDecrement_,
                     maxSegmentsPerCell_, maxSynapsesPerSegment_, learn);
       }
-    } else {
+
+    } else { // predicted but not active column -> unlearn
       if (learn) {
         punishPredictedColumn(connections, columnMatchingSegmentsBegin,
                               columnMatchingSegmentsEnd, prevActiveCells,
                               predictedSegmentDecrement_);
       }
-    }
+    } //else: not predicted & not active -> no activity -> does not show up at all
   }
   segmentsValid_ = false;
 }
@@ -458,12 +477,12 @@ void TemporalMemory::activateDendrites(const bool learn,
   // Active segments, connected synapses.
   activeSegments_.clear();
   for (Segment segment = 0; segment < numActiveConnectedSynapsesForSegment_.size(); segment++) {
-    if (numActiveConnectedSynapsesForSegment_[segment] >= activationThreshold_) {
+    if (numActiveConnectedSynapsesForSegment_[segment] >= activationThreshold_) { //TODO move to SegmentData.numConnected?
       activeSegments_.push_back(segment);
     }
   }
   const auto compareSegments = [&](const Segment a, const Segment b) { return connections.compareSegments(a, b); };
-  // std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments); //not needed (?)
+  std::sort( activeSegments_.begin(), activeSegments_.end(), compareSegments); //SDR requires sorted when constructed from activeSegments_
   // Update segment bookkeeping.
   if (learn) {
     for (const auto segment : activeSegments_) {
