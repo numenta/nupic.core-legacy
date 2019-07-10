@@ -128,7 +128,7 @@ Synapse Connections::createSynapse(Segment segment,
                                    Permanence permanence) {
   // Get an index into the synapses_ list, for the new synapse to reside at.
   Synapse synapse;
-  if (!destroyedSynapses_.empty() ) { //TODO implement some capping for mem footprint for destroyed synapses & segments
+  if (!destroyedSynapses_.empty() ) {
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
@@ -221,8 +221,7 @@ void Connections::destroySegment(const Segment segment) {
       std::lower_bound(cellData.segments.cbegin(), cellData.segments.cend(),
                        segment, 
 		       [&](const Segment a, const Segment b) {
-		         if(segmentOrdinals_[a] == segmentOrdinals_[b]) return a < b;
-			 else return segmentOrdinals_[a] < segmentOrdinals_[b];
+			 return segmentOrdinals_[a] < segmentOrdinals_[b];
                        });
 
   NTA_ASSERT(segmentOnCell != cellData.segments.end());
@@ -366,8 +365,7 @@ bool Connections::compareSegments(const Segment a, const Segment b) const {
   // default sort by cell
   if (aData.cell == bData.cell)
     //fallback to ordinals:
-    if(segmentOrdinals_[a] == segmentOrdinals_[b]) return a < b;
-    else return segmentOrdinals_[a] < segmentOrdinals_[b];
+    return segmentOrdinals_[a] < segmentOrdinals_[b];
   else return aData.cell < bData.cell;
 }
 
