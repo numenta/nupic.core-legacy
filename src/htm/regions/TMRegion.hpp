@@ -77,7 +77,7 @@ public:
     ar(cereal::make_nvp("seed", args_.seed));
     ar(cereal::make_nvp("maxSegmentsPerCell", args_.maxSegmentsPerCell));
     ar(cereal::make_nvp("maxSynapsesPerSegment", args_.maxSynapsesPerSegment));
-    ar(cereal::make_nvp("extra", args_.extra));
+    ar(cereal::make_nvp("externalPredictiveInputs", args_.externalPredictiveInputs));
     ar(cereal::make_nvp("checkInputs", args_.checkInputs));
     ar(cereal::make_nvp("learningMode", args_.learningMode));
     ar(cereal::make_nvp("sequencePos", args_.sequencePos));
@@ -106,7 +106,7 @@ public:
     ar(cereal::make_nvp("seed", args_.seed));
     ar(cereal::make_nvp("maxSegmentsPerCell", args_.maxSegmentsPerCell));
     ar(cereal::make_nvp("maxSynapsesPerSegment", args_.maxSynapsesPerSegment));
-    ar(cereal::make_nvp("extra", args_.extra));
+    ar(cereal::make_nvp("externalPredictiveInputs", args_.externalPredictiveInputs));
     ar(cereal::make_nvp("checkInputs", args_.checkInputs));
     ar(cereal::make_nvp("learningMode", args_.learningMode));
     ar(cereal::make_nvp("sequencePos", args_.sequencePos));
@@ -168,7 +168,7 @@ private:
     Int32 seed;
     Int32 maxSegmentsPerCell;
     Int32 maxSynapsesPerSegment;
-    UInt32 extra;
+    UInt32 externalPredictiveInputs;
     bool checkInputs;
 
     // parameters used by this class and not passed on

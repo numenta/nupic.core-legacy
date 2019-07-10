@@ -22,7 +22,6 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <climits>
 #include <map>
 #include <unordered_map>
 #include <set>
@@ -39,7 +38,7 @@ namespace htm {
 //TODO instead of typedefs, use templates for proper type-checking?
 using CellIdx   = htm::ElemSparse; // CellIdx must match with ElemSparse, defined in Sdr.hpp
 using SegmentIdx= UInt16; /** Index of segment in cell. */
-using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
+using SynapseIdx= UInt16; /** Index of synapse in segment. */
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
 using Permanence= Real32; //TODO experiment with half aka float16
@@ -633,8 +632,8 @@ private:
   // Extra bookkeeping for faster computing of segment activity.
   std::unordered_map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
   std::unordered_map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
-  std::unordered_map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
-  std::unordered_map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
+  std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
+  std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
   std::vector<Segment> segmentOrdinals_;
   std::vector<Synapse> synapseOrdinals_;

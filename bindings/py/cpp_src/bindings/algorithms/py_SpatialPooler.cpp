@@ -246,9 +246,9 @@ Argument wrapAround boolean value that determines whether or not inputs
         py_SpatialPooler.def("setMinPctOverlapDutyCycles", &SpatialPooler::setMinPctOverlapDutyCycles);
 
         // loadFromString
-        py_SpatialPooler.def("loadFromString", [](SpatialPooler& self, const std::string& inString)
+        py_SpatialPooler.def("loadFromString", [](SpatialPooler& self, const py::bytes& inString)
         {
-            std::istringstream inStream(inString);
+            std::stringstream inStream(inString.cast<std::string>());
             self.load(inStream);
         });
 
@@ -261,7 +261,7 @@ Argument wrapAround boolean value that determines whether or not inputs
 
             self.save(os);
 
-            return os.str();
+            return py::bytes( os.str() );
         });
 
         // compute
@@ -435,11 +435,11 @@ Argument output An SDR representing the winning columns after
 
             sp.save(ss);
 
-            return ss.str();
+            return py::bytes( ss.str() );
         },
-            [](std::string& s)
+            [](py::bytes &s)
         {
-            std::istringstream ss(s);
+            std::stringstream ss( s.cast<std::string>() );
             SpatialPooler sp;
             sp.load(ss);
 

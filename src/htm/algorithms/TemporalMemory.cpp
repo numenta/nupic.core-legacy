@@ -66,12 +66,12 @@ TemporalMemory::TemporalMemory(
     SegmentIdx maxSegmentsPerCell,
     SynapseIdx maxSynapsesPerSegment, 
     bool checkInputs, 
-    UInt extra) {
+    UInt externalPredictiveInputs) {
   initialize(columnDimensions, cellsPerColumn, activationThreshold,
              initialPermanence, connectedPermanence, minThreshold,
              maxNewSynapseCount, permanenceIncrement, permanenceDecrement,
              predictedSegmentDecrement, seed, maxSegmentsPerCell,
-             maxSynapsesPerSegment, checkInputs, extra);
+             maxSynapsesPerSegment, checkInputs, externalPredictiveInputs);
 }
 
 TemporalMemory::~TemporalMemory() {}
@@ -91,7 +91,7 @@ void TemporalMemory::initialize(
     SegmentIdx maxSegmentsPerCell,
     SynapseIdx maxSynapsesPerSegment, 
     bool checkInputs, 
-    UInt extra) {
+    UInt externalPredictiveInputs) {
 
   // Validate all input parameters
   NTA_CHECK(columnDimensions.size() > 0) << "Number of column dimensions must be greater than 0";
@@ -123,7 +123,7 @@ void TemporalMemory::initialize(
   permanenceIncrement_ = permanenceIncrement;
   permanenceDecrement_ = permanenceDecrement;
   predictedSegmentDecrement_ = predictedSegmentDecrement;
-  extra_ = extra;
+  externalPredictiveInputs_ = externalPredictiveInputs;
 
   // Initialize member variables
   connections = Connections(static_cast<CellIdx>(numberOfColumns() * cellsPerColumn_), connectedPermanence_);
@@ -416,7 +416,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
     }
     auto &sparse = activeColumns.getSparse();
 
-  vector<bool> prevActiveCellsDense(numberOfCells() + extra_, false);
+  vector<bool> prevActiveCellsDense(numberOfCells() + externalPredictiveInputs_, false);
   for (CellIdx cell : activeCells_) {
     prevActiveCellsDense[cell] = true;
   }
@@ -433,9 +433,9 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
            sparse, identity,
            activeSegments_, columnForSegment,
            matchingSegments_, columnForSegment)) {
-    Segment column;
-    vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
-	       columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
+    CellIdx column;
+    vector<CellIdx>::const_iterator activeColumnsBegin, activeColumnsEnd;
+    vector<Segment>::const_iterator columnActiveSegmentsBegin, columnActiveSegmentsEnd,
          columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
 
     std::tie(column, 
@@ -477,23 +477,23 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
 
 
 void TemporalMemory::activateDendrites(const bool learn,
-                                       const SDR &extraActive,
-                                       const SDR &extraWinners)
+                                       const SDR &externalPredictiveInputsActive,
+                                       const SDR &externalPredictiveInputsWinners)
 {
-    if( extra_ > 0 )
+    if( externalPredictiveInputs_ > 0 )
     {
-        NTA_CHECK( extraActive.size  == extra_ );
-        NTA_CHECK( extraWinners.size == extra_ );
-	NTA_CHECK( extraActive.dimensions == extraWinners.dimensions);
+        NTA_CHECK( externalPredictiveInputsActive.size  == externalPredictiveInputs_ );
+        NTA_CHECK( externalPredictiveInputsWinners.size == externalPredictiveInputs_ );
+	NTA_CHECK( externalPredictiveInputsActive.dimensions == externalPredictiveInputsWinners.dimensions);
 #ifdef NTA_ASSERTIONS_ON
-  SDR both(extraActive.dimensions);
-  both.intersection(extraActive, extraWinners);
-  NTA_ASSERT(both == extraWinners) << "ExtraWinners must be a subset of ExtraActive";
+  SDR both(externalPredictiveInputsActive.dimensions);
+  both.intersection(externalPredictiveInputsActive, externalPredictiveInputsWinners);
+  NTA_ASSERT(both == externalPredictiveInputsWinners) << "externalPredictiveInputsWinners must be a subset of externalPredictiveInputsActive";
 #endif
     }
     else
     {
-        NTA_CHECK( extraActive.getSum() == 0u && extraWinners.getSum() == 0u )
+        NTA_CHECK( externalPredictiveInputsActive.getSum() == 0u && externalPredictiveInputsWinners.getSum() == 0u )
             << "External predictive inputs must be declared to TM constructor!";
     }
 
@@ -501,12 +501,12 @@ void TemporalMemory::activateDendrites(const bool learn,
   if( segmentsValid_ )
     return;
 
-  for(const auto &active : extraActive.getSparse()) {
-      NTA_ASSERT( active < extra_ );
+  for(const auto &active : externalPredictiveInputsActive.getSparse()) {
+      NTA_ASSERT( active < externalPredictiveInputs_ );
       activeCells_.push_back( static_cast<CellIdx>(active + numberOfCells()) ); 
   }
-  for(const auto &winner : extraWinners.getSparse()) {
-      NTA_ASSERT( winner < extra_ );
+  for(const auto &winner : externalPredictiveInputsWinners.getSparse()) {
+      NTA_ASSERT( winner < externalPredictiveInputs_ );
       winnerCells_.push_back( static_cast<CellIdx>(winner + numberOfCells()) );
   }
 
@@ -549,10 +549,10 @@ void TemporalMemory::activateDendrites(const bool learn,
 
 void TemporalMemory::compute(const SDR &activeColumns, 
                              const bool learn,
-                             const SDR &extraActive,
-                             const SDR &extraWinners)
+                             const SDR &externalPredictiveInputsActive,
+                             const SDR &externalPredictiveInputsWinners)
 {
-  activateDendrites(learn, extraActive, extraWinners);
+  activateDendrites(learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
 
   // Update Anomaly Metric.  The anomaly is the percent of active columns that
   // were not predicted.
@@ -565,9 +565,9 @@ void TemporalMemory::compute(const SDR &activeColumns,
 }
 
 void TemporalMemory::compute(const SDR &activeColumns, const bool learn) {
-  SDR extraActive({ extra });
-  SDR extraWinners({ extra });
-  compute( activeColumns, learn, extraActive, extraWinners );
+  SDR externalPredictiveInputsActive({ externalPredictiveInputs_ });
+  SDR externalPredictiveInputsWinners({ externalPredictiveInputs_ });
+  compute( activeColumns, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners );
 }
 
 void TemporalMemory::reset(void) {
@@ -599,8 +599,11 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
   auto correctDims = getColumnDimensions(); //nD column dimensions (eg 10x100)
   correctDims.push_back(static_cast<CellIdx>(getCellsPerColumn())); //add n+1-th dimension for cellsPerColumn (eg. 10x100x8)
 
-  NTA_CHECK(cells.dimensions == correctDims) 
+  NTA_CHECK(cells.dimensions.size() == correctDims.size()) 
 	  << "cells.dimensions must match TM's (column dims x cellsPerColumn) ";
+
+  for(size_t i = 0; i<correctDims.size(); i++) 
+	  NTA_CHECK(correctDims[i] == cells.dimensions[i]);
 
   SDR cols(getColumnDimensions());
   auto& dense = cols.getDense();

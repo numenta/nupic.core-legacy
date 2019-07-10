@@ -26,6 +26,7 @@ public:
   {
     std::vector<T> binary(width);
     for (auto sparseIdx: sparseVector) {
+      NTA_ASSERT(sparseIdx < binary.size()) << "attemping to insert out of bounds element! " << sparseIdx;
       binary[sparseIdx] = (T)1;
     }
     return binary;
