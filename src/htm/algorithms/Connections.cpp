@@ -470,7 +470,8 @@ void Connections::adaptSegment(const Segment segment,
       }
 
     //prune permanences that reached zero
-    if (pruneZeroSynapses && synapseData.permanence + update < htm::minPermanence + htm::Epsilon) {
+    if (pruneZeroSynapses and 
+        synapseData.permanence + update < htm::minPermanence + htm::Epsilon) { //new value will disconnect the synapse
       destroySynapse(synapse);
       prunedSyns_++; //for statistics
       i--; // do not advance `i`, as `destroySynapse` just modified inplace the synapses_, so now a `synapses_[i]`
@@ -489,8 +490,8 @@ void Connections::adaptSegment(const Segment segment,
     }
   }
 
-  //destroy segment if it is empty
-  if(pruneZeroSynapses and synapses.empty()) {
+  //destroy segment if it has too few synapses left -> will never be able to connect again
+  if(pruneZeroSynapses and synapses.size() < connectedThreshold_) {
     destroySegment(segment);
     prunedSegs_++; //statistics
   }

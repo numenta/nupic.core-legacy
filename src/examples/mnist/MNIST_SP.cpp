@@ -67,7 +67,7 @@ class MNIST {
 
   public:
     UInt verbosity = 1;
-    const UInt train_dataset_iterations = 2u; //epochs somewhat help, at linear time
+    const UInt train_dataset_iterations = 1u; //epochs somewhat help, at linear time
 
 
 void setup() {
