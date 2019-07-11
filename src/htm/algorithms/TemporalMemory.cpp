@@ -140,27 +140,14 @@ static CellIdx getLeastUsedCell(const vector<CellIdx>& cellsInMiniColumn, //TODO
 		                Random &rng, 
                                 const Connections &connections) {
   NTA_ASSERT(cellsInMiniColumn.size() > 0);
+  if(cellsInMiniColumn.size() == 1) return cellsInMiniColumn[0];
 
-/*  const auto compareByNumSegments = [&connections, &rng](const CellIdx a, const CellIdx b) -> bool {
-    if(connections.numSegments(a) == connections.numSegments(b)) return a < b;
+  const auto compareByNumSegments = [&connections, &rng](const CellIdx a, const CellIdx b) -> bool {
+    if(connections.numSegments(a) == connections.numSegments(b)) 
+      return (rng.getReal64() < 0.5f /*50% chance to flip on equally weak cells*/);
     else return connections.numSegments(a) < connections.numSegments(b);
   };
-  */
-
-  CellIdx leastUsedCell = cellsInMiniColumn[0];
-  size_t minNumSegments = std::numeric_limits<CellIdx>::max();
-  //for all cells in a mini-column
-  for (const auto cell : cellsInMiniColumn) {
-    const size_t numSegments = connections.numSegments(cell);
-    //..find a cell with least segments
-    if (numSegments < minNumSegments) {
-      minNumSegments = numSegments;
-      leastUsedCell = cell;
-    //..on tie between the weakest cells, randomly decide to flip to the new cell
-    } else if (numSegments == minNumSegments and rng.getReal64() < 0.5f /* 50% chance to flip */) {
-      leastUsedCell = cell;
-    }
-  }
+  const CellIdx leastUsedCell = *std::min_element(cellsInMiniColumn.begin(), cellsInMiniColumn.end(), compareByNumSegments);
   return leastUsedCell;
 }
 
