@@ -544,7 +544,7 @@ void Connections::synapseCompetition(
                     const SynapseIdx minimumSynapses,
                     const SynapseIdx maximumSynapses)
 {
-  NTA_ASSERT( minimumSynapses <= maximumSynapses);
+  NTA_ASSERT( minimumSynapses < maximumSynapses);
 
   const auto &segData = dataForSegment( segment );
 
@@ -556,24 +556,24 @@ void Connections::synapseCompetition(
   // synapses.  Then calculate how much to change the N'th synapses permance by
   // such that it becomes a connected synapse.  After that there will be exactly
   // N synapses connected.
-  SynapseIdx N;
+  SynapseIdx desiredConnected;
   if( segData.numConnected < minimumSynapses ) {
-    N = minimumSynapses;
+    desiredConnected = minimumSynapses;
   }
   else if( segData.numConnected > maximumSynapses ) {
-    N = maximumSynapses;
+    desiredConnected = maximumSynapses;
   }
   else {
     return;  // The segment already satisfies the requirements, done.
   }
   // Can't connect more synapses than there are in the potential pool.
-  N = std::min( N, (SynapseIdx) segData.synapses.size() );
+  desiredConnected = std::min( (SynapseIdx) segData.synapses.size(), desiredConnected);
   // The N'th synapse is at index N-1
-  if( N != 0 ) {
-    N--;
+  if( desiredConnected != 0 ) {
+    desiredConnected--;
   }
   // else {
-  //   Corner case: the user has requested a maximum of 0 connected synapses...
+  //   Corner case there are no synapses on this segment.
   // }
 
   vector<Permanence> permanences; permanences.reserve( segData.synapses.size() );
@@ -581,15 +581,10 @@ void Connections::synapseCompetition(
     permanences.push_back( synapses_[syn].permanence );
 
   // Do a partial sort, it's faster than a full sort.
-  auto minPermPtr = permanences.begin() + (segData.synapses.size() - 1 - N);
+  auto minPermPtr = permanences.begin() + (segData.synapses.size() - 1 - desiredConnected);
   std::nth_element(permanences.begin(), minPermPtr, permanences.end());
 
-  Real delta = connectedThreshold_ - *minPermPtr;
-
-  // Corner case: disconnect all synapses.
-  if( maximumSynapses == 0u ) {
-    delta -= htm::Epsilon;
-  }
+  Permanence delta = connectedThreshold_ - *minPermPtr;
 
   // Change the permance of all synapses in the potential pool uniformly.
   bumpSegment( segment, delta ) ;

@@ -441,10 +441,10 @@ public:
    * segment will not detect anything, and if there are too many connections
    * then the segment will detect everything.
    *
+   * See file: docs/synapse_competition.docx
+   *
    * This method connects and disconnects synapses by uniformly changing the
-   * permanences of all synapses on the segment.  Synapses keep learning even
-   * after a limit is reached, at which point synapses change permanence
-   * relative to each other.
+   * permanences of all synapses on the segment.
    *
    * @param segment
    * @param minimumSynapses
