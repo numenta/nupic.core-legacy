@@ -318,7 +318,7 @@ namespace htm {
         NTA_CHECK( ( 1 + fractionNoise) * getSparsity() <= 1. );
 
         const UInt num_move_bits = (UInt) std::round( fractionNoise * getSum() );
-        const vector<UInt> turn_off = rng.sample(getSparse(), num_move_bits);
+        const auto& turn_off = rng.sample(getSparse(), num_move_bits);
 
         auto& dns = getDense();
 

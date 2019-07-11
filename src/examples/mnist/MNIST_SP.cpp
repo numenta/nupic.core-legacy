@@ -31,16 +31,32 @@
 #include <htm/algorithms/SpatialPooler.hpp>
 #include <htm/algorithms/SDRClassifier.hpp>
 #include <htm/utils/SdrMetrics.hpp>
+#include <htm/os/Timer.hpp>
 
 #include <mnist/mnist_reader.hpp> // MNIST data itself + read methods, namespace mnist::
 #include <mnist/mnist_utils.hpp>  // mnist::binarize_dataset
 
-namespace examples {
 
 using namespace std;
 using namespace htm;
 
 class MNIST {
+/**
+ * RESULTS:
+ *
+ * Order :	score			: column dim	: #pass : time(s): git commit	: comment
+ * -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ * 1/Score: 97.11% (289 / 10000 wrong)	: 28x28x16	: 4	: 557	: 1f0187fc6 	: epochs help, at cost of time 
+ *
+ * 2/Score: 96.56% (344 / 10000 wrong)	: 28x28x16	: 1	: 142	: 3ccadc6d6  
+ *
+ * 3/Score: 96.1% (390 / 10000 wrong).  : 28x28x30 	: 1  	: 256	: 454f7a9d8 
+ *
+ * others/
+ * Score: 95.35% (465 / 10000 wrong)	: 28x28x16	: 2	: 125	: 		: smaller boosting (2.0)
+ * 	 -- this will be my working model, reasonable performance/speed ratio
+ *
+ */
 
   private:
     SpatialPooler sp;
@@ -51,31 +67,31 @@ class MNIST {
 
   public:
     UInt verbosity = 1;
-    const UInt train_dataset_iterations = 1u;
+    const UInt train_dataset_iterations = 2u; //epochs somewhat help, at linear time
 
 
 void setup() {
 
-  input.initialize({28 * 28});
-  columns.initialize({10 * 1000});
+  input.initialize({28, 28,1}); 
+  columns.initialize({28, 28, 8}); //1D vs 2D no big difference, 2D seems more natural for the problem. Speed-----, Results+++++++++; #columns HIGHEST impact. 
   sp.initialize(
     /* inputDimensions */             input.dimensions,
     /* columnDimensions */            columns.dimensions,
-    /* potentialRadius */             999999u, // No topology, all to all connections.
-    /* potentialPct */                0.65f,
-    /* globalInhibition */            true,
-    /* localAreaDensity */            0.05f,  // % active bits
+    /* potentialRadius */             7, // with 2D, 7 results in 15x15 area, which is cca 25% for the input area. Slightly improves than 99999 aka "no topology, all to all connections"
+    /* potentialPct */                0.1f, //we have only 10 classes, and << #columns. So we want to force each col to specialize. Cca 0.3 w "7" above, or very small (0.1) for "no topology". Cannot be too small due to internal checks. Speed++
+    /* globalInhibition */            true, //Speed+++++++; SDR quality-- (global does have active nearby cols, which we want to avoid (local)); Results+-0
+    /* localAreaDensity */            0.1f,  // % active bits
     /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
-    /* synPermInactiveDec */          0.005f,
-    /* synPermActiveInc */            0.014f,
-    /* synPermConnected */            0.1f,
-    /* minPctOverlapDutyCycles */     0.001f,
+    /* synPermInactiveDec */          0.002f, //FIXME inactive decay permanence plays NO role, investigate! (slightly better w/o it)
+    /* synPermActiveInc */            0.14f, //takes upto 5x steps to get dis/connected
+    /* synPermConnected */            0.5f, //no difference, let's leave at 0.5 in the middle
+    /* minPctOverlapDutyCycles */     0.2f, //speed of re-learning?
     /* dutyCyclePeriod */             1402,
-    /* boostStrength */               7.8f, // Boosting does help
-    /* seed */                        93u,
+    /* boostStrength */               2.0f, // Boosting does help, but entropy is high, on MNIST it does not matter, for learning with TM prefer boosting off (=0.0), or "neutral"=1.0
+    /* seed */                        4u,
     /* spVerbosity */                 1u,
-    /* wrapAround */                  false); // No topology, turn off wrapping
+    /* wrapAround */                  true); // does not matter (helps slightly)
 
   // Save the connections to file for postmortem analysis.
   ofstream dump("mnist_sp_initial.connections", ofstream::binary | ofstream::trunc | ofstream::out);
@@ -99,6 +115,8 @@ void train() {
   Metrics inputStats(input,    1402);
   Metrics columnStats(columns, 1402);
 
+  Timer tTrain(true);
+
   for(auto epoch = 0u; epoch < train_dataset_iterations; epoch++) {
     NTA_INFO << "epoch " << epoch;
     // Shuffle the training data.
@@ -120,11 +138,15 @@ void train() {
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
     }
     if( verbosity ) cout << endl;
-  }
+  
   cout << "epoch ended" << endl;
   cout << "inputStats "  << inputStats << endl;
   cout << "columnStats " << columnStats << endl;
   cout << sp << endl;
+  }
+  
+  tTrain.stop();
+  cout << "MNIST train time: " << tTrain.getElapsed() << endl; 
 
   // Save the connections to file for postmortem analysis.
   ofstream dump("mnist_sp_learned.connections", ofstream::binary | ofstream::trunc | ofstream::out);
@@ -153,14 +175,15 @@ void test() {
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
   }
   if( verbosity ) cout << endl;
-  cout << "Score: " << 100.0 * score / n_samples << "% " << endl;
+  cout << "===========RESULTs=================" << endl;
+  cout << "Score: " << 100.0 * score / n_samples << "% ("<< (n_samples - score) << " / " << n_samples << " wrong). "   << endl;
+  cout << "SDR example: " << columns << endl;
 }
 
 };  // End class MNIST
-}   // End namespace examples
 
 int main(int argc, char **argv) {
-  examples::MNIST m;
+  MNIST m;
   m.setup();
   m.train();
   m.test();

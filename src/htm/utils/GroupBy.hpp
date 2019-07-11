@@ -77,7 +77,7 @@ static KeyType minFrontKey(KeyType frontrunner, Iterator0 begin0,
   KeyType ret = frontrunner;
 
   if (begin0 != end0) {
-    ret = std::min(ret, keyFn0(*begin0));
+    ret = std::min(ret, static_cast<KeyType>(keyFn0(*begin0)));
   }
 
   if (begin1 != end1) {
