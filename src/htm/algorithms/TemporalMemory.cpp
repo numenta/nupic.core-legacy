@@ -136,17 +136,21 @@ void TemporalMemory::initialize(
   reset();
 }
 
-static CellIdx getLeastUsedCell(Random &rng, 
-		                const UInt column, //TODO remove static methods, use private instead
-                                const Connections &connections,
-                                const UInt cellsPerColumn) {
-  const CellIdx start = column * cellsPerColumn;
-  const CellIdx end = start + cellsPerColumn;
+static CellIdx getLeastUsedCell(const vector<CellIdx>& cellsInMiniColumn, //TODO remove static methods, use private instead
+		                Random &rng, 
+                                const Connections &connections) {
+  NTA_ASSERT(cellsInMiniColumn.size() > 0);
 
-  CellIdx leastUsedCell = start;
+/*  const auto compareByNumSegments = [&connections, &rng](const CellIdx a, const CellIdx b) -> bool {
+    if(connections.numSegments(a) == connections.numSegments(b)) return a < b;
+    else return connections.numSegments(a) < connections.numSegments(b);
+  };
+  */
+
+  CellIdx leastUsedCell = cellsInMiniColumn[0];
   size_t minNumSegments = std::numeric_limits<CellIdx>::max();
   //for all cells in a mini-column
-  for (CellIdx cell = start; cell < end; cell++) {
+  for (const auto cell : cellsInMiniColumn) {
     const size_t numSegments = connections.numSegments(cell);
     //..find a cell with least segments
     if (numSegments < minNumSegments) {
@@ -324,7 +328,7 @@ burstColumn(vector<CellIdx> &activeCells,
             const SegmentIdx maxSegmentsPerCell,
             const SynapseIdx maxSynapsesPerSegment, 
             const bool learn) {
-  // Calculate the active cells.
+  // Calculate the active cells: active become ALL the cells in this mini-column
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
   for (CellIdx cell = start; cell < end; cell++) {
@@ -341,7 +345,7 @@ burstColumn(vector<CellIdx> &activeCells,
   const CellIdx winnerCell =
       (bestMatchingSegment != columnMatchingSegmentsEnd)
           ? connections.cellForSegment(*bestMatchingSegment)
-          : getLeastUsedCell(rng, column, connections, cellsPerColumn);
+          : getLeastUsedCell(activeCells, rng, connections); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
 
   winnerCells.push_back(winnerCell);
 
