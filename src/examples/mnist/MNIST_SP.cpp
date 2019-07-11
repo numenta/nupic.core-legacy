@@ -56,6 +56,9 @@ class MNIST {
  * Score: 95.35% (465 / 10000 wrong)	: 28x28x16	: 2	: 125	: 		: smaller boosting (2.0)
  * 	 -- this will be my working model, reasonable performance/speed ratio
  *
+ * Baseline: 
+ * Score: 90.52% (948 / 10000 wrong).   : SP disabled   : 1     : 0.489	: 01a6c90297	: baseline with only classifier on raw images, on SP
+ *
  */
 
   private:
