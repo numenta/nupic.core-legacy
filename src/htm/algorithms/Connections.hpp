@@ -446,9 +446,9 @@ public:
    * This method connects and disconnects synapses by uniformly changing the
    * permanences of all synapses on the segment.
    *
-   * @param segment
-   * @param minimumSynapses
-   * @param maximumSynapses
+   * @param segment  Index of segment in connections. Is returned by method getSegment.
+   * @param minimumSynapses Minimum number of connected synapses allowed on this segment (inclusive).
+   * @param maximumSynapses Maximum number of connected synapses allowed on this segment (inclusive).
    */
   void synapseCompetition(  const Segment    segment,
                             const SynapseIdx minimumSynapses,

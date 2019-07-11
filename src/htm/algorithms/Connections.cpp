@@ -573,7 +573,7 @@ void Connections::synapseCompetition(
     desiredConnected--;
   }
   // else {
-  //   Corner case there are no synapses on this segment.
+  //   Corner case: there are no synapses on this segment.
   // }
 
   vector<Permanence> permanences; permanences.reserve( segData.synapses.size() );
@@ -584,7 +584,7 @@ void Connections::synapseCompetition(
   auto minPermPtr = permanences.begin() + (segData.synapses.size() - 1 - desiredConnected);
   std::nth_element(permanences.begin(), minPermPtr, permanences.end());
 
-  Permanence delta = connectedThreshold_ - *minPermPtr;
+  Permanence delta = (connectedThreshold_ + htm::Epsilon) - *minPermPtr;
 
   // Change the permance of all synapses in the potential pool uniformly.
   bumpSegment( segment, delta ) ;
