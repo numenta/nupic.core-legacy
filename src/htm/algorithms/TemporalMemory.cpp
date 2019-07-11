@@ -136,26 +136,30 @@ void TemporalMemory::initialize(
 }
 
 ///*
-static CellIdx getLeastUsedCell(Random &rng, UInt column, //TODO remove static methods, use private instead
+static CellIdx getLeastUsedCell(Random &rng, 
+		                const UInt column, //TODO remove static methods, use private instead
                                 const Connections &connections,
-                                UInt cellsPerColumn) {
+                                const UInt cellsPerColumn) {
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
 
   size_t minNumSegments = std::numeric_limits<CellIdx>::max();
   UInt32 numTiedCells = 0u;
+  //for all cells in a mini-column
   for (CellIdx cell = start; cell < end; cell++) {
     const size_t numSegments = connections.numSegments(cell);
+    //..find a cell with least segments
     if (numSegments < minNumSegments) {
       minNumSegments = numSegments;
       numTiedCells = 1u;
+    //..and how many of the cells have only these min segments? number of weakest
     } else if (numSegments == minNumSegments) {
       numTiedCells++;
     }
   }
 
+  //randomly select one of the tie-d cells from the losers
   const UInt32 tieWinnerIndex = rng.getUInt32(numTiedCells);
-
   UInt32 tieIndex = 0;
   for (CellIdx cell = start; cell < end; cell++) {
     if (connections.numSegments(cell) == minNumSegments) {
