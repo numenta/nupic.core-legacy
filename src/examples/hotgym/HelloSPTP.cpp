@@ -184,7 +184,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
 
       SDR goldTM({COLS});
       const SDR_sparse_t deterministicTM{
-        1965 //FIXME this is a really bad representation -> improve the params
+        72, 337, 1965 //FIXME this is a really bad representation -> improve the params
       };
       goldTM.setSparse(deterministicTM);
 
@@ -197,7 +197,7 @@ Real64 BenchmarkHotgym::run(UInt EPOCHS, bool useSPlocal, bool useSPglobal, bool
         if(useTM) {       NTA_CHECK(outTM == goldTM) << "Deterministic output of TM failed!\n" << outTM << "should be:\n" << goldTM; }
         NTA_CHECK(static_cast<UInt>(an *10000.0f) == static_cast<UInt>(goldAn *10000.0f)) //compare to 4 decimal places
 		               << "Deterministic output of Anomaly failed! " << an << "should be: " << goldAn;
-	      NTA_CHECK(avgAnom10.getCurrentAvg() <= 0.8f) << "Deterministic average anom score failed:" << avgAnom10.getCurrentAvg();
+	      NTA_CHECK(avgAnom10.getCurrentAvg() <= 0.72f) << "Deterministic average anom score failed:" << avgAnom10.getCurrentAvg();
       }
 
       // check runtime speed
