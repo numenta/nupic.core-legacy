@@ -24,12 +24,8 @@
 #include <iostream>
 #include <htm/algorithms/Connections.hpp>
 
-namespace testing {
-    
 using namespace std;
 using namespace htm;
-
-#define EPSILON 0.0000001
 
 
 void setupSampleConnections(Connections &connections) {
@@ -122,11 +118,11 @@ TEST(ConnectionsTest, testCreateSynapse) {
 
   SynapseData synapseData1 = connections.dataForSynapse(synapses[0]);
   ASSERT_EQ(50ul, synapseData1.presynapticCell);
-  ASSERT_NEAR((Permanence)0.34, synapseData1.permanence, EPSILON);
+  ASSERT_NEAR((Permanence)0.34, synapseData1.permanence, htm::Epsilon);
 
   SynapseData synapseData2 = connections.dataForSynapse(synapses[1]);
   ASSERT_EQ(synapseData2.presynapticCell, 150ul);
-  ASSERT_NEAR((Permanence)0.48, synapseData2.permanence, EPSILON);
+  ASSERT_NEAR((Permanence)0.48, synapseData2.permanence, htm::Epsilon);
 }
 
 /**
@@ -293,14 +289,14 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
   connections.updateSynapsePermanence(synapse, 0.21f);
 
   SynapseData synapseData = connections.dataForSynapse(synapse);
-  ASSERT_NEAR(synapseData.permanence, (Real)0.21, EPSILON);
+  ASSERT_NEAR(synapseData.permanence, (Real)0.21, htm::Epsilon);
 
   // Test permanence floor
   connections.updateSynapsePermanence(synapse, -0.02f);
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)0.0f );
 
-  connections.updateSynapsePermanence(synapse, (Real)(-EPSILON / 10.0));
+  connections.updateSynapsePermanence(synapse, (Real)(-htm::Epsilon / 10.0));
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)0.0f );
 
@@ -309,7 +305,7 @@ TEST(ConnectionsTest, testUpdateSynapsePermanence) {
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)1.0f );
 
-  connections.updateSynapsePermanence(synapse, 1.0f + (Real)(EPSILON / 10.0));
+  connections.updateSynapsePermanence(synapse, 1.0f + (Real)(htm::Epsilon / 10.0));
   synapseData = connections.dataForSynapse(synapse);
   ASSERT_EQ(synapseData.permanence, (Real)1.0f );
 }
@@ -407,7 +403,7 @@ TEST(ConnectionsTest, testAdaptSynapses) {
       perms[ synData.presynapticCell ] = synData.permanence;
     }
     for(UInt i = 0; i < numInputs; i++)
-      ASSERT_NEAR( truePerms[cell][i], perms[i], EPSILON );
+      ASSERT_NEAR( truePerms[cell][i], perms[i], htm::Epsilon );
   }
 }
 
@@ -478,6 +474,139 @@ TEST(ConnectionsTest, testRaisePermanencesToThresholdOutOfBounds) {
   NTA_CHECK(con.synapsesForSegment(segWith3Syn).size() == 3) << "We failed to create 3 synapses on a segment";
   EXPECT_NO_THROW( con.raisePermanencesToThreshold(segWith3Syn, 5u) )
     << "raisePermanence fails when lower number of available synapses than requested by threshold";
+}
+
+TEST(ConnectionsTest, testSynapseCompetition) {
+
+  struct testCase {
+    UInt nsyn; // Total number of potential synapses on segment
+    UInt ncon; // Number of connected synapses, before calling synapseCompetition
+    UInt min;  // Bounds of synapseCompetition
+    UInt max;  // Bounds of synapseCompetition
+    // The target number of synapses can't be met, just make sure it does not crash.
+    bool expect_fail = false;
+  };
+
+  testCase emptySegment;
+  emptySegment.nsyn = 0;
+  emptySegment.ncon = 0;
+  emptySegment.min  = 3;
+  emptySegment.max  = 100;
+  emptySegment.expect_fail = true;
+
+  testCase fullSegment;
+  fullSegment.nsyn = 100;
+  fullSegment.ncon = 100;
+  fullSegment.min  = 3;
+  fullSegment.max  = 100;
+
+  testCase disconnect1;
+  disconnect1.nsyn = 100;
+  disconnect1.ncon = 100;
+  disconnect1.min  = 3;
+  disconnect1.max  = 99;
+
+  testCase minimum;
+  minimum.nsyn = 100;
+  minimum.ncon = 5;
+  minimum.min  = 10;
+  minimum.max  = 30;
+
+  testCase maximum;
+  maximum.nsyn = 100;
+  maximum.ncon = 77;
+  maximum.min  = 10;
+  maximum.max  = 30;
+
+  testCase no_change1;
+  no_change1.nsyn = 100;
+  no_change1.ncon = 10;
+  no_change1.min  = 10;
+  no_change1.max  = 30;
+
+  testCase no_change2;
+  no_change2.nsyn = 100;
+  no_change2.ncon = 20;
+  no_change2.min  = 10;
+  no_change2.max  = 30;
+
+  testCase no_change3;
+  no_change3.nsyn = 100;
+  no_change3.ncon = 30;
+  no_change3.min  = 10;
+  no_change3.max  = 30;
+
+  testCase exact1;
+  exact1.nsyn = 100;
+  exact1.ncon = 33;
+  exact1.min  = 33;
+  exact1.max  = 33;
+
+  testCase exact2;
+  exact2.nsyn = 100;
+  exact2.ncon = 0;
+  exact2.min  = 33;
+  exact2.max  = 33;
+
+  testCase exact3;
+  exact3.nsyn = 100;
+  exact3.ncon = 88;
+  exact3.min  = 33;
+  exact3.max  = 33;
+
+  testCase corner1;
+  corner1.nsyn = 100;
+  corner1.ncon = 30;
+  corner1.min  = 200;
+  corner1.max  = 300;
+  corner1.expect_fail = true;
+
+  const Permanence thresh = 0.5f;
+  Connections con(1u, thresh);
+  Random rnd( 42u );
+  CellIdx presyn = 0u;
+  for(const testCase &test : {
+          emptySegment, fullSegment, disconnect1, minimum, maximum, no_change1,
+          no_change2, no_change3, exact1, exact2, exact3, corner1, })
+  {
+    const auto segment = con.createSegment( 0 );
+    UInt ncon_done = 0;
+    for(UInt i = test.nsyn; i > 0 ; --i) {
+      // Randomly sample which synapses will connected.
+      if( rnd.getReal64() <= Real64(test.ncon - ncon_done) / i ) {
+        ncon_done++;
+        con.createSynapse( segment, presyn++, rnd.realRange(thresh, 1.0f) );
+      }
+      else {
+        con.createSynapse( segment, presyn++, rnd.realRange(0.0f, thresh) );
+      }
+    }
+    // Check test setup is good.
+    const auto &segData = con.dataForSegment( segment );
+    ASSERT_EQ( test.nsyn, segData.synapses.size() );
+    ASSERT_EQ( test.ncon, segData.numConnected );
+
+    con.synapseCompetition( segment, test.min, test.max );
+
+    // Check synapse data "numConnected" is accurate.
+    int real_ncon = 0;
+    for( const auto syn : segData.synapses ) {
+      const auto &synData = con.dataForSynapse( syn );
+      if( synData.permanence >= thresh - htm::Epsilon ) {
+        real_ncon++;
+      }
+    }
+    EXPECT_EQ( segData.numConnected, real_ncon );
+
+    // Check results of synapse competition.
+    if( not test.expect_fail ) {
+      EXPECT_GE( segData.numConnected, test.min );
+      EXPECT_LE( segData.numConnected, test.max );
+      if( test.ncon >= test.min and test.ncon <= test.max ) {
+        EXPECT_EQ( segData.numConnected, test.ncon );
+      }
+    }
+  }
 }
 
 TEST(ConnectionsTest, testBumpSegment) {
@@ -737,5 +866,3 @@ TEST(ConnectionsTest, testTimeseries) {
     ASSERT_TRUE( (synData.permanence == 0.0f) or (synData.permanence == 1.0f) );
   }
 }
-
-} // namespace
