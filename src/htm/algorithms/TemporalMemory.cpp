@@ -136,20 +136,26 @@ void TemporalMemory::initialize(
   reset();
 }
 
-static CellIdx getLeastUsedCell(const vector<CellIdx>& cellsInMiniColumn, //TODO remove static methods, use private instead
-		                Random &rng, 
+static CellIdx getLeastUsedCell(const CellIdx column, //TODO remove static methods, use private instead
+		                const CellIdx cellsPerColumn,
+				Random &rng, 
                                 const Connections &connections) {
-  NTA_ASSERT(cellsInMiniColumn.size() > 0);
-  if(cellsInMiniColumn.size() == 1) return cellsInMiniColumn[0];
+  if(cellsPerColumn == 1) return column;
 
-  const auto compareByNumSegments = [&connections, &rng](const CellIdx a, const CellIdx b) -> bool {
+  const auto start = column * cellsPerColumn;
+  const auto end   = start  + cellsPerColumn;
+  vector<CellIdx> cells;
+  for( CellIdx i = start; i < end; i++) cells.push_back(i);
+  rng.shuffle(cells.begin(), cells.end()); //shuffle because min_element returns first minimal element. And we want random choice from the same minimals.
+
+  const auto compareByNumSegments = [&connections](const CellIdx a, const CellIdx b) {
     if(connections.numSegments(a) == connections.numSegments(b)) 
-      return (rng.getReal64() < 0.5f /*50% chance to flip on equally weak cells*/);
+      return a < b;
     else return connections.numSegments(a) < connections.numSegments(b);
   };
-  const CellIdx leastUsedCell = *std::min_element(cellsInMiniColumn.begin(), cellsInMiniColumn.end(), compareByNumSegments);
-  return leastUsedCell;
+  return *std::min_element(cells.begin(), cells.end(), compareByNumSegments);
 }
+
 
 static void adaptSegment(Connections &connections, Segment segment,
                          const vector<bool> &prevActiveCellsDense,
@@ -315,6 +321,7 @@ burstColumn(vector<CellIdx> &activeCells,
             const SegmentIdx maxSegmentsPerCell,
             const SynapseIdx maxSynapsesPerSegment, 
             const bool learn) {
+
   // Calculate the active cells: active become ALL the cells in this mini-column
   const CellIdx start = column * cellsPerColumn;
   const CellIdx end = start + cellsPerColumn;
@@ -332,7 +339,7 @@ burstColumn(vector<CellIdx> &activeCells,
   const CellIdx winnerCell =
       (bestMatchingSegment != columnMatchingSegmentsEnd)
           ? connections.cellForSegment(*bestMatchingSegment)
-          : getLeastUsedCell(activeCells, rng, connections); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
+          : getLeastUsedCell(column, cellsPerColumn, rng, connections); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
 
   winnerCells.push_back(winnerCell);
 
