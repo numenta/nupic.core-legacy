@@ -47,7 +47,7 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
   args_.potentialRadius = values.getScalarT<UInt32>("potentialRadius", 0);
   args_.potentialPct = values.getScalarT<Real32>("potentialPct", 0.5);
   args_.globalInhibition = values.getScalarT<bool>("globalInhibition", true);
-  args_.localAreaDensity = values.getScalarT<Real32>("localAreaDensity", -1.0f);
+  args_.localAreaDensity = values.getScalarT<Real32>("localAreaDensity", 0.1f);
   args_.stimulusThreshold = values.getScalarT<UInt32>("stimulusThreshold", 0);
   args_.synPermInactiveDec = values.getScalarT<Real32>("synPermInactiveDec", 0.008f);
   args_.synPermActiveInc = values.getScalarT<Real32>("synPermActiveInc", 0.05f);
@@ -289,47 +289,11 @@ Spec *SPRegion::createSpec() {
           "inhibition logic will insure that at most N columns remain ON "
           "within a local inhibition area, where N = localAreaDensity * "
           "(total number of columns in inhibition area). "
-          "Default 0.1 (10%)",
-	  NTA_BasicType_Real32,             // type
+	  "Default 0.1 (10%)",
+          NTA_BasicType_Real32,             // type
           1,                                // elementCount
           "",                               // constraints
           "0.1",                           // defaultValue
-          ParameterSpec::ReadWriteAccess)); // access
-
-  ns->parameters.add(
-      "numActiveColumnsPerInhArea", //TODO remove as depracated, but would break NetworkAPI compatibility
-      ParameterSpec("(int)\n"
-	  "WARNING: this parameter is deprecated and should not be used!"
-	  "Use @ref localAreaDensity instead."
-	  " "
-	  "If you use this parameter, we'll try to recompute it to localAreaDensity"
-	  " for compatibility reasons."
-	  " "
-          "An alternate way to control the density of the active columns.If "
-          "numActiveColumnsPerInhArea is specified then localAreaDensity is "
-          "set to -1 (disabled), and vice versa. When using "
-          "numActiveColumnsPerInhArea, the inhibition logic will insure that "
-          "at most 'numActiveColumnsPerInhArea' columns remain ON within a "
-          "local inhibition area (the size of which is set by the internally "
-          "calculated inhibitionRadius, which is in turn determined from "
-          "the average size of the connected receptive fields of all "
-          "columns).When using this method, as columns learn and grow "
-          "their effective receptive fields, the inhibitionRadius will grow, "
-          "and hence the net density of the active columns will *decrease*. "
-          "This is in contrast to the localAreaDensity method, which keeps "
-          "the density of active columns the same regardless of the size "
-          "of their receptive fields.\n"
-          "@rhyolight: numActiveColumnsPerInhArea is a manually set model "
-          "parameter. We almost always set it to 2% of the total column count "
-          "(if 2048 minicolumns, it is typically 40). Watch the HTM School video "
-          "about topology, it explains the minicolumn competition a bit better. "
-          "It makes more sense when you think about topology, which requires "
-          "local inhibition.\n"
-	  "Default ``-1``, DISABLED.",
-          NTA_BasicType_UInt32,             // type
-          1,                                // elementCount
-          "",                               // constraints
-          "-1",                             // defaultValue
           ParameterSpec::ReadWriteAccess)); // access
 
   ns->parameters.add(
@@ -614,31 +578,6 @@ UInt32 SPRegion::getParameterUInt32(const std::string &name, Int64 index) {
       return args_.learningMode;
     }
     break;
-  case 'n':
-    if (name == "numActiveColumnsPerInhArea") {
-      NTA_WARN << "SPRegion: `numActiveColumnsPerInhArea` is deprecated, use `localAreaDensity` instead.";
-      Real density = -1.0f;
-      UInt inhRadius = -1u;
-      vector<UInt> dims;
-      if (sp_ != nullptr) {
-        density = sp_->getLocalAreaDensity();
-        inhRadius = sp_->getInhibitionRadius();
-	dims = sp_->getColumnDimensions();
-      } else {
-        density = args_.localAreaDensity;
-	NTA_THROW << "Cannot compute from these params!";
-      }
-
-      //try to compute for compatibility reasons
-      Real colsPerArea = 1.0f;
-      const UInt R = (2* inhRadius +1);
-      for(const auto numColsInDim: dims) {
-        colsPerArea *= std::min(numColsInDim, R);
-      }
-      NTA_ASSERT(colsPerArea > 0.0f);
-      return static_cast<UInt>(round(density * colsPerArea));
-    }
-    break;
   case 'p':
     if (name == "potentialRadius") {
       if (sp_)
@@ -806,35 +745,6 @@ void SPRegion::setParameterUInt32(const std::string &name, Int64 index,
   case 'l':
     if (name == "learningMode") {
       args_.learningMode = (value != 0);
-      return;
-    }
-    break;
-  case 'n':
-    if (name == "numActiveColumnsPerInhArea") { //TODO remove, this is deprecated. But breaks NetworkAPI compatibility
-      NTA_WARN << "SPRegion: parameter `numActiveColumnsPerInhArea` is deprecated, use `localAreaDensity` instead!";
-
-      const auto numActiveColsPerInhArea = value;
-      Real dense = 1.0;
-      vector<UInt> dims;
-      UInt inhR = -1;
-      if (sp_) {
-        dims = sp_->getColumnDimensions();
-	inhR = sp_->getInhibitionRadius();
-      } else {
-	NTA_THROW << "SPRegion: Cannot compute without SP instance!";
-      }
-      // recompute to density for compatibility reasons
-      const UInt R = (2*inhR +1);
-      UInt numColsPerArea = 1;
-      for(const auto numColsInDim : dims) {
-        numColsPerArea *= std::min(R, numColsInDim);
-      }
-      dense = numActiveColsPerInhArea / static_cast<Real>(numColsPerArea);
-
-      //set recomputed density value
-      if(sp_)
-        sp_->setLocalAreaDensity(dense);
-      args_.localAreaDensity = dense;
       return;
     }
     break;
