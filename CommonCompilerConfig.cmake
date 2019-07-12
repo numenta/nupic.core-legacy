@@ -239,14 +239,22 @@ else()
 
 	#
 	# Set linker (ld)
-	# use ld.gold if available
+	# These linkers are tried for faster linking performance
+	# use ld.gold, or lld if available
 	#
-	execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE)
-	if(EXIT_CODE EQUAL 0)
+	execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE_GOLD)
+	if(EXIT_CODE_GOLD EQUAL 0)
 	  message("Using ld.gold as LINKER.")
 	  set(CMAKE_LINKER "ld.gold")
 	  set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=gold)
 	endif()
+	execute_process(COMMAND ld.lld --version RESULT_VARIABLE EXIT_CODE_LLD)
+	execute_process(COMMAND ld.lld-9 --version RESULT_VARIABLE EXIT_CODE_LLD9)
+        if(EXIT_CODE_LLD EQUAL 0 OR EXIT_CODE_LLD9 EQUAL 0)
+          message("Using ld.lld as LINKER.")
+          set(CMAKE_LINKER "ld.lld")
+          set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=lld)
+        endif()
 
 
 	#
