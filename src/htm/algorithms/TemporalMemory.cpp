@@ -190,7 +190,16 @@ static void growSynapses(Connections &connections,
   vector<CellIdx> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
   NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
 
-  // Skip cells that are already synapsed on by this segment //TODO is this biological? Randomly creating a synapse would be faster! 
+  // Skip cells that are already synapsed on by this segment
+  // Biological motivation (?):
+  // There are structural constraints on the shapes of axons & synapses 
+  // which prevent a large number duplicate of connections.
+  //
+  // It's important to prevent cells from growing duplicate synapses onto a segment, 
+  // because otherwise a strong input would be sampled many times and grow many synapses.
+  // That would give such input a stronger connection. 
+  // Synapses are supposed to have binary effects (0 or 1) but duplicate synapses give 
+  // them (synapses 0/1) varying levels of strength.
   for (const Synapse& synapse : connections.synapsesForSegment(segment)) {
     const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
     const auto already = std::lower_bound(candidates.cbegin(), candidates.cend(), presynapticCell);
