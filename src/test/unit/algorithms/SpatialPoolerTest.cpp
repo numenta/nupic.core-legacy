@@ -225,12 +225,15 @@ void check_spatial_eq(const SpatialPooler& sp1, const SpatialPooler& sp2) {
   delete[] conCounts2;
 }
 
-void setup(SpatialPooler &sp, UInt numInputs, UInt numColumns) {
-  vector<UInt> inputDim;
-  vector<UInt> columnDim;
-  inputDim.push_back(numInputs);
-  columnDim.push_back(numColumns);
-  sp.initialize(inputDim, columnDim);
+void setup(SpatialPooler &sp, vector<UInt> inputDim, vector<UInt> columnDim, Real sparsity = 0.5f) {
+  //we are interested in the sparsity, should make it artificially high.
+  //As we added SP check that sparsity*numColumns > 0, which is correct requirement.
+  //But many tests have very small (artificial) number of columns (for convenient results),
+  //therefore the check is failing -> we must set high sparsity at initialization. 
+  EXPECT_NO_THROW(sp.initialize(inputDim, columnDim, 16u, 0.5f, true, sparsity));
+}
+void setup(SpatialPooler& sp, UInt numIn, UInt numCols, Real sparsity = 0.5f) {
+  setup(sp, vector<UInt>{numIn}, vector<UInt>{numCols}, sparsity); 
 }
 
 TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
@@ -243,19 +246,20 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   inputDim.push_back(1);
   inputDim.push_back(1);
 
-  sp.initialize(inputDim, colDim);
+  EXPECT_NO_THROW(sp.initialize(inputDim, colDim));
   sp.setGlobalInhibition(true);
-  ASSERT_TRUE(sp.getInhibitionRadius() == 57);
+  ASSERT_EQ(sp.getInhibitionRadius(), 57u);
+
+  //test 2 - local inhibition radius
   colDim.clear();
   inputDim.clear();
   // avgColumnsPerInput = 4
   // avgConnectedSpanForColumn = 3
   UInt numInputs = 3;
-  inputDim.push_back(numInputs);
   UInt numCols = 12;
-  colDim.push_back(numCols);
-  sp.initialize(inputDim, colDim);
+  setup(sp, numInputs, numCols);
   sp.setGlobalInhibition(false);
+  sp.setInhibitionRadius(10); //must be < numColumns, otherwise this resorts to global inh
 
   for (UInt i = 0; i < numCols; i++) {
     sp.setPotential(i, vector<UInt>(numInputs, 1).data());
@@ -265,17 +269,16 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   UInt trueInhibitionRadius = 6;
   // ((3 * 4) - 1)/2 => round up
   sp.updateInhibitionRadius_();
-  ASSERT_TRUE(trueInhibitionRadius == sp.getInhibitionRadius());
+  ASSERT_EQ(trueInhibitionRadius, sp.getInhibitionRadius());
 
+  //test 3
   colDim.clear();
   inputDim.clear();
   // avgColumnsPerInput = 1.2
   // avgConnectedSpanForColumn = 0.5
   numInputs = 5;
-  inputDim.push_back(numInputs);
   numCols = 6;
-  colDim.push_back(numCols);
-  sp.initialize(inputDim, colDim);
+  setup(sp, numInputs, numCols);
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
@@ -288,17 +291,17 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   }
   trueInhibitionRadius = 1;
   sp.updateInhibitionRadius_();
-  ASSERT_TRUE(trueInhibitionRadius == sp.getInhibitionRadius());
+  ASSERT_EQ(trueInhibitionRadius, sp.getInhibitionRadius());
 
+
+  //test 4
   colDim.clear();
   inputDim.clear();
   // avgColumnsPerInput = 2.4
   // avgConnectedSpanForColumn = 2
   numInputs = 5;
-  inputDim.push_back(numInputs);
   numCols = 12;
-  colDim.push_back(numCols);
-  sp.initialize(inputDim, colDim);
+  setup(sp, numInputs, numCols);
   sp.setGlobalInhibition(false);
 
   for (UInt i = 0; i < numCols; i++) {
@@ -309,7 +312,7 @@ TEST(SpatialPoolerTest, testUpdateInhibitionRadius) {
   trueInhibitionRadius = 2;
   // ((2.4 * 2) - 1)/2 => round up
   sp.updateInhibitionRadius_();
-  ASSERT_TRUE(trueInhibitionRadius == sp.getInhibitionRadius());
+  ASSERT_EQ(trueInhibitionRadius, sp.getInhibitionRadius());
 }
 
 TEST(SpatialPoolerTest, testUpdateMinDutyCycles) {
@@ -352,6 +355,7 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCycles) {
       !check_vector_eq(resultMinOverlap, resultMinOverlapGlobal, numColumns));
 }
 
+
 TEST(SpatialPoolerTest, testUpdateMinDutyCyclesGlobal) {
   SpatialPooler sp;
   UInt numColumns = 5;
@@ -375,7 +379,7 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCyclesGlobal) {
   Real resultOverlap1[5];
   sp.getMinOverlapDutyCycles(resultOverlap1);
   for (UInt i = 0; i < numColumns; i++) {
-    ASSERT_TRUE(resultOverlap1[i] == trueMinOverlap1);
+    ASSERT_EQ(resultOverlap1[i], trueMinOverlap1);
   }
 
   minPctOverlap = 0.015f;
@@ -417,6 +421,7 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCyclesGlobal) {
   }
 }
 
+
 TEST(SpatialPoolerTest, testUpdateMinDutyCyclesLocal) {
   // wrapAround=false
   {
@@ -427,7 +432,7 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCyclesLocal) {
         /*potentialRadius*/ 16,
         /*potentialPct*/ 0.5f,
         /*globalInhibition*/ false,
-        /*localAreaDensity*/ 0.1f,
+        /*localAreaDensity*/ 0.2f,
         /*stimulusThreshold*/ 1,
         /*synPermInactiveDec*/ 0.008f,
         /*synPermActiveInc*/ 0.05f,
@@ -468,7 +473,7 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCyclesLocal) {
         /*potentialRadius*/ 16,
         /*potentialPct*/ 0.5f,
         /*globalInhibition*/ false,
-        /*localAreaDensity*/ 0.1f,
+        /*localAreaDensity*/ 0.2f,
         /*stimulusThreshold*/ 1,
         /*synPermInactiveDec*/ 0.008f,
         /*synPermActiveInc*/ 0.05f,
@@ -497,9 +502,10 @@ TEST(SpatialPoolerTest, testUpdateMinDutyCyclesLocal) {
     Real resultMinOverlapArr[8];
     sp.getMinOverlapDutyCycles(resultMinOverlapArr);
     ASSERT_TRUE(
-        check_vector_eq(resultMinOverlapArr, trueOverlapArr, numColumns));
+      check_vector_eq(resultMinOverlapArr, trueOverlapArr, numColumns));
   }
 }
+
 
 TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   SpatialPooler sp;
@@ -536,11 +542,10 @@ TEST(SpatialPoolerTest, testUpdateDutyCycles) {
   ASSERT_TRUE(check_vector_eq(resultOverlapArr2, trueOverlapArr2, numColumns));
 }
 
+
 TEST(SpatialPoolerTest, testAvgColumnsPerInput) {
   SpatialPooler sp;
   vector<UInt> inputDim, colDim;
-  inputDim.clear();
-  colDim.clear();
 
   UInt colDim1[4] = {2, 2, 2, 2};
   UInt inputDim1[4] = {4, 4, 4, 4};
@@ -548,7 +553,8 @@ TEST(SpatialPoolerTest, testAvgColumnsPerInput) {
 
   inputDim.assign(inputDim1, inputDim1 + 4);
   colDim.assign(colDim1, colDim1 + 4);
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
+
   Real result = sp.avgColumnsPerInput_();
   ASSERT_FLOAT_EQ(result, trueAvgColumnPerInput1);
 
@@ -556,11 +562,14 @@ TEST(SpatialPoolerTest, testAvgColumnsPerInput) {
   UInt inputDim2[4] = {7, 5, 1, 3};
   Real trueAvgColumnPerInput2 = (2.0f / 7 + 2.0f / 5 + 2.0f / 1 + 2.0f / 3) / 4;
 
+
   inputDim.assign(inputDim2, inputDim2 + 4);
   colDim.assign(colDim2, colDim2 + 4);
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
+
   result = sp.avgColumnsPerInput_();
   ASSERT_FLOAT_EQ(result, trueAvgColumnPerInput2);
+
 
   UInt colDim3[2] = {3, 3};
   UInt inputDim3[2] = {3, 3};
@@ -568,9 +577,10 @@ TEST(SpatialPoolerTest, testAvgColumnsPerInput) {
 
   inputDim.assign(inputDim3, inputDim3 + 2);
   colDim.assign(colDim3, colDim3 + 2);
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
   result = sp.avgColumnsPerInput_();
   ASSERT_FLOAT_EQ(result, trueAvgColumnPerInput3);
+
 
   UInt colDim4[1] = {25};
   UInt inputDim4[1] = {5};
@@ -578,9 +588,10 @@ TEST(SpatialPoolerTest, testAvgColumnsPerInput) {
 
   inputDim.assign(inputDim4, inputDim4 + 1);
   colDim.assign(colDim4, colDim4 + 1);
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
   result = sp.avgColumnsPerInput_();
   ASSERT_FLOAT_EQ(result, trueAvgColumnPerInput4);
+
 
   UInt colDim5[7] = {3, 5, 6};
   UInt inputDim5[7] = {3, 5, 6};
@@ -588,9 +599,10 @@ TEST(SpatialPoolerTest, testAvgColumnsPerInput) {
 
   inputDim.assign(inputDim5, inputDim5 + 3);
   colDim.assign(colDim5, colDim5 + 3);
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
   result = sp.avgColumnsPerInput_();
   ASSERT_FLOAT_EQ(result, trueAvgColumnPerInput5);
+
 
   UInt colDim6[4] = {2, 4, 6, 8};
   UInt inputDim6[4] = {2, 2, 2, 2};
@@ -599,7 +611,7 @@ TEST(SpatialPoolerTest, testAvgColumnsPerInput) {
 
   inputDim.assign(inputDim6, inputDim6 + 4);
   colDim.assign(colDim6, colDim6 + 4);
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
   result = sp.avgColumnsPerInput_();
   ASSERT_FLOAT_EQ(result, trueAvgColumnPerInput6);
 }
@@ -627,6 +639,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn1D) {
     ASSERT_TRUE(result == trueAvgConnectedSpan[i]);
   }
 }
+
 
 TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   SpatialPooler sp;
@@ -662,7 +675,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   inputDim.push_back(4);
   colDim.push_back(10);
   colDim.push_back(1);
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
 
   UInt trueAvgConnectedSpan1[7] = {3, 3, 4, 3, 2, 2, 0};
 
@@ -670,7 +683,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
     sp.setPotential(i, potential1.data());
     sp.setPermanence(i, permArr1[i]);
     UInt result = (UInt)floor(sp.avgConnectedSpanForColumnND_(i));
-    ASSERT_TRUE(result == (trueAvgConnectedSpan1[i]));
+    ASSERT_EQ(result,  trueAvgConnectedSpan1[i]);
   }
 
   // 1D tests repeated
@@ -684,7 +697,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
   colDim.push_back(numColumns);
   colDim.push_back(1);
 
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
 
   vector<UInt> potential2(numInputs, 1);
   Real permArr2[9][8] = {{0, 1, 0, 1, 0, 1, 0, 1}, {0, 0, 0, 1, 0, 0, 0, 1},
@@ -699,9 +712,10 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumn2D) {
     sp.setPotential(i, potential2.data());
     sp.setPermanence(i, permArr2[i]);
     UInt result = (UInt)floor(sp.avgConnectedSpanForColumnND_(i));
-    ASSERT_TRUE(result == (trueAvgConnectedSpan2[i] + 1) / 2);
+    ASSERT_EQ(result, static_cast<UInt>((trueAvgConnectedSpan2[i] + 1) / 2));
   }
 }
+
 
 TEST(SpatialPoolerTest, testAvgConnectedSpanForColumnND) {
   SpatialPooler sp;
@@ -715,7 +729,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumnND) {
   colDim.push_back(1);
   colDim.push_back(1);
 
-  sp.initialize(inputDim, colDim);
+  setup(sp, inputDim, colDim);
 
   UInt numInputs = 160;
   UInt numColumns = 5;
@@ -777,6 +791,7 @@ TEST(SpatialPoolerTest, testAvgConnectedSpanForColumnND) {
     ASSERT_EQ(result, trueAvgConnectedSpan[i]);
   }
 }
+
 
 TEST(SpatialPoolerTest, testAdaptSynapses) {
   SpatialPooler sp;
@@ -866,6 +881,7 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
   }
 }
 
+
 TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
   SpatialPooler sp;
   UInt numInputs = 8;
@@ -917,6 +933,7 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
   }
 }
 
+
 TEST(SpatialPoolerTest, testUpdateDutyCyclesHelper) {
   SpatialPooler sp;
   vector<Real> dutyCycles;
@@ -950,6 +967,7 @@ TEST(SpatialPoolerTest, testUpdateDutyCyclesHelper) {
   sp.updateDutyCyclesHelper_(dutyCycles, newValues, period);
   ASSERT_TRUE(check_vector_eq(trueDutyCycles4, dutyCycles));
 }
+
 
 TEST(SpatialPoolerTest, testUpdateBoostFactors) {
   SpatialPooler sp;
@@ -1013,6 +1031,7 @@ TEST(SpatialPoolerTest, testUpdateBoostFactors) {
   ASSERT_TRUE(check_vector_eq(trueBoostFactors3, resultBoostFactors3));
 }
 
+
 TEST(SpatialPoolerTest, testUpdateBookeepingVars) {
   SpatialPooler sp;
   sp.setIterationNum(5);
@@ -1025,6 +1044,7 @@ TEST(SpatialPoolerTest, testUpdateBookeepingVars) {
   ASSERT_TRUE(7 == sp.getIterationNum());
   ASSERT_TRUE(4 == sp.getIterationLearnNum());
 }
+
 
 TEST(SpatialPoolerTest, testCalculateOverlap) {
   SpatialPooler sp;
@@ -1128,6 +1148,7 @@ TEST(SpatialPoolerTest, testInhibitColumns) {
   ASSERT_TRUE(check_vector_eq(activeColumns, activeColumnsLocal));
 }
 
+
 TEST(SpatialPoolerTest, testInhibitColumnsGlobal) {
   SpatialPooler sp;
   UInt numInputs = 10;
@@ -1175,6 +1196,7 @@ TEST(SpatialPoolerTest, testInhibitColumnsGlobal) {
   ASSERT_TRUE(check_vector_eq(trueActive, active));
 }
 
+
 TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   // With 10 columns the minimum sparsity for global inhibition is 10%
   // Setting sparsity to 2% should throw an exception
@@ -1184,10 +1206,10 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SDR input( {sp.getNumInputs()} );
   SDR out1( {sp.getNumColumns()} );
   //throws
-  sp.setLocalAreaDensity(0.02f);
-  EXPECT_THROW(sp.compute(input, false, out1), htm::LoggingException);
+  EXPECT_ANY_THROW(sp.setLocalAreaDensity(0.02f));
+//  EXPECT_THROW(sp.compute(input, false, out1), htm::LoggingException);
   //good parameter
-  sp.setLocalAreaDensity(0.1f);
+  EXPECT_NO_THROW(sp.setLocalAreaDensity(0.1f));
   EXPECT_NO_THROW(sp.compute(input, false, out1));
 }
 
@@ -1422,12 +1444,12 @@ TEST(SpatialPoolerTest, testInitPermanence) {
   vector<UInt> inputDim;
   vector<UInt> columnDim;
   inputDim.push_back(8);
-  columnDim.push_back(2);
+  columnDim.push_back(20);
 
   SpatialPooler sp;
   Real synPermConnected = 0.2f;
   Real synPermActiveInc = 0.05f;
-  sp.initialize(inputDim, columnDim, 16u, 0.5f, true, -1, 10u, 0u, 0.01f, 0.1f,
+  sp.initialize(inputDim, columnDim, 16u, 0.5f, true, 0.5f, 0u, 0.01f, 0.1f,
                 synPermConnected);
   sp.setSynPermActiveInc(synPermActiveInc);
 
@@ -1436,9 +1458,9 @@ TEST(SpatialPoolerTest, testInitPermanence) {
   vector<Real> perm = sp.initPermanence_(potential, 1.0);
   for (UInt i = 0; i < 8; i++)
     if (potential[i])
-      ASSERT_TRUE(perm[i] >= synPermConnected);
+      ASSERT_GE(perm[i], synPermConnected);
     else
-      ASSERT_TRUE(perm[i] < 1e-5);
+      ASSERT_LT(perm[i], 1e-5);
 
   perm = sp.initPermanence_(potential, 0);
   for (UInt i = 0; i < 8; i++)
@@ -1448,7 +1470,7 @@ TEST(SpatialPoolerTest, testInitPermanence) {
       ASSERT_LT(perm[i], 1e-5);
 
   inputDim[0] = 100;
-  sp.initialize(inputDim, columnDim, 16u, 0.5f, true, -1, 10u, 0u, 0.01f, 0.1f,
+  sp.initialize(inputDim, columnDim, 16u, 0.5f, true, 0.5f, 0u, 0.01f, 0.1f,
                 synPermConnected);
   sp.setSynPermActiveInc(synPermActiveInc);
   potential.clear();
@@ -1465,10 +1487,11 @@ TEST(SpatialPoolerTest, testInitPermanence) {
   ASSERT_TRUE(count > 5 && count < 95);
 }
 
+
 TEST(SpatialPoolerTest, testInitPermConnected) {
   Real synPermConnected = 0.2f;
   Real synPermMax       = 1.0f;
-  SpatialPooler sp({10}, {10}, 16u, 0.5f, true, -1, 10u, 0u, 0.01f, 0.1f,
+  SpatialPooler sp({10}, {10}, 16u, 0.5f, true, 0.5f, 0u, 0.01f, 0.1f,
                    synPermConnected);
 
   for (UInt i = 0; i < 100; i++) {
@@ -1478,36 +1501,37 @@ TEST(SpatialPoolerTest, testInitPermConnected) {
   }
 }
 
+
 TEST(SpatialPoolerTest, testInitPermNonConnected) {
   Real32 synPermConnected = 0.2f;
-  SpatialPooler sp({10}, {10}, 16u, 0.5f, true, -1, 10u, 0u, 0.01f, 0.1f,
+  SpatialPooler sp({10}, {10}, 16u, 0.5f, true, 0.5f, 0u, 0.01f, 0.1f,
                    synPermConnected);
-  EXPECT_TRUE(sp.getSynPermMax() == 1.0) << sp.getSynPermMax();
+  EXPECT_EQ(sp.getSynPermMax(), 1.0f);
+
   for (UInt i = 0; i < 100; i++) {
     Real permVal = sp.initPermNonConnected_();
-    ASSERT_GE(permVal, 0);
+    ASSERT_GE(permVal, 0.0f);
     ASSERT_LE(permVal, synPermConnected);
   }
 }
 
+
 TEST(SpatialPoolerTest, testinitMapColumn) {
   {
     // Test 1D.
-    SpatialPooler sp(
-        /*inputDimensions*/ {12},
-        /*columnDimensions*/ {4});
+    SpatialPooler sp;
+    setup(sp, /*inputDimensions*/ {12}, /*columnDimensions*/ {4});
 
     EXPECT_EQ(1ul, sp.initMapColumn_(0));
     EXPECT_EQ(4ul, sp.initMapColumn_(1));
     EXPECT_EQ(7ul, sp.initMapColumn_(2));
-    EXPECT_EQ(10ul, sp.initMapColumn_(3));
+    EXPECT_EQ(10ul,sp.initMapColumn_(3));
   }
 
   {
     // Test 1D with same dimensions of columns and inputs.
-    SpatialPooler sp(
-        /*inputDimensions*/ {4},
-        /*columnDimensions*/ {4});
+    SpatialPooler sp;
+    setup(sp, /*inputDimensions*/ {4}, /*columnDimensions*/ {4});
 
     EXPECT_EQ(0ul, sp.initMapColumn_(0));
     EXPECT_EQ(1ul, sp.initMapColumn_(1));
@@ -1516,17 +1540,9 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
   }
 
   {
-    // Test 1D with dimensions of length 1.
-    SpatialPooler sp(
-        /*inputDimensions*/ {1},
-        /*columnDimensions*/ {1});
-
-    EXPECT_EQ(0ul, sp.initMapColumn_(0));
-  }
-
-  {
     // Test 2D.
-    SpatialPooler sp(
+    SpatialPooler sp;
+    setup(sp, 
         /*inputDimensions*/ {36, 12},
         /*columnDimensions*/ {12, 4});
 
@@ -1534,20 +1550,22 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
     EXPECT_EQ(49ul, sp.initMapColumn_(4));
     EXPECT_EQ(52ul, sp.initMapColumn_(5));
     EXPECT_EQ(58ul, sp.initMapColumn_(7));
-    EXPECT_EQ(418ul, sp.initMapColumn_(47));
+    EXPECT_EQ(418ul,sp.initMapColumn_(47));
   }
 
   {
     // Test 2D, some input dimensions smaller than column dimensions.
-    SpatialPooler sp(
+    SpatialPooler sp;
+    setup(sp, 
         /*inputDimensions*/ {3, 5},
         /*columnDimensions*/ {4, 4});
 
     EXPECT_EQ(0ul, sp.initMapColumn_(0));
     EXPECT_EQ(4ul, sp.initMapColumn_(3));
-    EXPECT_EQ(14ul, sp.initMapColumn_(15));
+    EXPECT_EQ(14ul,sp.initMapColumn_(15));
   }
 }
+
 
 TEST(SpatialPoolerTest, testinitMapPotential1D) {
   vector<UInt> inputDim, columnDim;
@@ -1556,7 +1574,7 @@ TEST(SpatialPoolerTest, testinitMapPotential1D) {
   UInt potentialRadius = 2;
 
   SpatialPooler sp;
-  sp.initialize(inputDim, columnDim);
+  setup(sp, inputDim, columnDim);
   sp.setPotentialRadius(potentialRadius);
 
   vector<UInt> mask;
@@ -1597,6 +1615,7 @@ TEST(SpatialPoolerTest, testinitMapPotential1D) {
   ASSERT_TRUE(check_vector_eq(unionMask1, supersetMask1, 12));
 }
 
+
 TEST(SpatialPoolerTest, testinitMapPotential2D) {
   vector<UInt> inputDim, columnDim;
   inputDim.push_back(6);
@@ -1607,7 +1626,7 @@ TEST(SpatialPoolerTest, testinitMapPotential2D) {
   Real potentialPct = 1.0;
 
   SpatialPooler sp;
-  sp.initialize(inputDim, columnDim);
+  setup(sp, inputDim, columnDim);
   sp.setPotentialRadius(potentialRadius);
   sp.setPotentialPct(potentialPct);
 
@@ -1651,7 +1670,7 @@ TEST(SpatialPoolerTest, getOverlaps) {
   SpatialPooler sp;
   const vector<UInt> inputDim = {5};
   const vector<UInt> columnDim = {3};
-  sp.initialize(inputDim, columnDim);
+  setup(sp, inputDim, columnDim);
 
   UInt potential[5] = {1, 1, 1, 1, 1};
   sp.setPotential(0, potential);
@@ -1698,6 +1717,7 @@ TEST(SpatialPoolerTest, getOverlaps) {
   EXPECT_EQ(expectedBoostedOverlaps2, boostedOverlaps2) << "SP with boost strength " << sp.getBoostStrength() << " must change boosting ";
 }
 
+
 TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
   const UInt inputSize = 10;
   const UInt nColumns = 20;
@@ -1722,8 +1742,9 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_GlobalInhibition) {
   SDR activeColumns( {nColumns} );
   sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(3ul, activeColumns.getSum());
+  EXPECT_GE(activeColumns.getSum(), 1u) << "zero overlap, but with no stim threshold -> some should be active";
 }
+
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
   const UInt inputSize = 10;
@@ -1749,7 +1770,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_GlobalInhibition) {
   SDR activeColumns( {nColumns} );
   sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(0ul, activeColumns.getSum());
+  EXPECT_EQ(0ul, activeColumns.getSum()) << "Zero overlap and stimulus threshold > 0 -> none active";
 }
 
 
@@ -1777,8 +1798,9 @@ TEST(SpatialPoolerTest, ZeroOverlap_NoStimulusThreshold_LocalInhibition) {
   SDR activeColumns( {nColumns} );
   sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(activeColumns.getSum(), 3u);
+  EXPECT_GE(activeColumns.getSum(), 1u) << "No overlap, but also no threshold -> some can be active";
 }
+
 
 TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
   const UInt inputSize = 10;
@@ -1804,7 +1826,7 @@ TEST(SpatialPoolerTest, ZeroOverlap_StimulusThreshold_LocalInhibition) {
   SDR activeColumns({nColumns});
   sp.compute(input, true, activeColumns);
 
-  EXPECT_EQ(0ul, activeColumns.getSum());
+  EXPECT_EQ(0ul, activeColumns.getSum()) << "No overlap and threshold > 0 -> none will be active";
 }
 
 
@@ -2034,6 +2056,7 @@ TEST(SpatialPoolerTest, testConstructorVsInitialize) {
   EXPECT_TRUE(sp1 == sp2) << "Spatial Poolers not equal";
 }
 
+
 TEST(SpatialPoolerTest, ExactOutput) { 
   // Silver is an SDR that is loaded by direct initalization from a vector.
   SDR silver_sdr({ 200 });
@@ -2079,5 +2102,6 @@ TEST(SpatialPoolerTest, ExactOutput) {
   }
   ASSERT_EQ( columns, gold_sdr );
 }
+
 
 } // end anonymous namespace

@@ -365,12 +365,22 @@ const vector<Real> &SpatialPooler::getBoostedOverlaps() const {
 }
 
 void SpatialPooler::initialize(
-    const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
-    UInt potentialRadius, Real potentialPct, bool globalInhibition,
+    const vector<UInt>& inputDimensions, 
+    const vector<UInt>& columnDimensions,
+    UInt potentialRadius, 
+    Real potentialPct, 
+    bool globalInhibition,
     Real localAreaDensity,
-    UInt stimulusThreshold, Real synPermInactiveDec, Real synPermActiveInc,
-    Real synPermConnected, Real minPctOverlapDutyCycles, UInt dutyCyclePeriod,
-    Real boostStrength, Int seed, UInt spVerbosity, bool wrapAround) {
+    UInt stimulusThreshold, 
+    Real synPermInactiveDec, 
+    Real synPermActiveInc,
+    Real synPermConnected, 
+    Real minPctOverlapDutyCycles, 
+    UInt dutyCyclePeriod,
+    Real boostStrength, 
+    Int seed, 
+    UInt spVerbosity, 
+    bool wrapAround) {
 
   numInputs_ = 1u;
   inputDimensions_.clear();
@@ -583,7 +593,7 @@ void SpatialPooler::updateInhibitionRadius_() {
 
 void SpatialPooler::updateMinDutyCycles_() {
   if (globalInhibition_ ||
-      inhibitionRadius_ >
+      inhibitionRadius_ >=
           *max_element(columnDimensions_.begin(), columnDimensions_.end())) {
     updateMinDutyCyclesGlobal_();
   } else {
@@ -869,7 +879,8 @@ void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
 
 
       if (wrapAround_) {
-        for(auto neighbor: WrappingNeighborhood(column, inhibitionRadius_,columnDimensions_)) {
+        for(auto neighbor: WrappingNeighborhood(column, inhibitionRadius_,columnDimensions_)) { //TODO if we don't change inh radius (changes only every isUpdateRound()),
+		// then these values can be cached -> faster local inh
           if (neighbor == column) {
             continue;
           }

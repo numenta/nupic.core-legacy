@@ -197,8 +197,10 @@ public:
 
    */
   virtual void
-  initialize(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
-             UInt potentialRadius = 16u, Real potentialPct = 0.5f,
+  initialize(const vector<UInt>& inputDimensions, 
+	     const vector<UInt>& columnDimensions,
+             UInt potentialRadius = 16u, 
+	     Real potentialPct = 0.5f,
              bool globalInhibition = true, 
 	     Real localAreaDensity = 0.05f,
              UInt stimulusThreshold = 0u,
