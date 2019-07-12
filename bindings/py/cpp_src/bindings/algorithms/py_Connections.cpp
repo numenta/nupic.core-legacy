@@ -153,6 +153,8 @@ R"(Returns pair of:
 
     py_Connections.def("raisePermanencesToThreshold", &Connections::raisePermanencesToThreshold);
 
+    py_Connections.def("synapseCompetition", &Connections::synapseCompetition);
+
     py_Connections.def("bumpSegment", &Connections::bumpSegment);
 
     py_Connections.def("destroyMinPermanenceSynapses", &Connections::destroyMinPermanenceSynapses);
