@@ -1520,7 +1520,7 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
   {
     // Test 1D.
     SpatialPooler sp;
-    setup(sp, /*inputDimensions*/ {12}, /*columnDimensions*/ {4});
+    setup(sp, /*inputDimensions*/ 12, /*columnDimensions*/ 4);
 
     EXPECT_EQ(1ul, sp.initMapColumn_(0));
     EXPECT_EQ(4ul, sp.initMapColumn_(1));
@@ -1531,7 +1531,7 @@ TEST(SpatialPoolerTest, testinitMapColumn) {
   {
     // Test 1D with same dimensions of columns and inputs.
     SpatialPooler sp;
-    setup(sp, /*inputDimensions*/ {4}, /*columnDimensions*/ {4});
+    setup(sp, /*inputDimensions*/ 4, /*columnDimensions*/ 4);
 
     EXPECT_EQ(0ul, sp.initMapColumn_(0));
     EXPECT_EQ(1ul, sp.initMapColumn_(1));
