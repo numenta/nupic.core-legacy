@@ -544,7 +544,8 @@ void Connections::synapseCompetition(
                     const SynapseIdx minimumSynapses,
                     const SynapseIdx maximumSynapses)
 {
-  NTA_ASSERT( minimumSynapses < maximumSynapses);
+  NTA_ASSERT( minimumSynapses <= maximumSynapses);
+  NTA_ASSERT( maximumSynapses > 0 );
 
   const auto &segData = dataForSegment( segment );
 
