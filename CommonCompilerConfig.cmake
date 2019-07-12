@@ -245,6 +245,7 @@ else()
 	if(EXIT_CODE EQUAL 0)
 	  message("Using ld.gold as LINKER.")
 	  set(CMAKE_LINKER "ld.gold")
+	  set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=gold)
 	endif()
 
 
@@ -344,7 +345,6 @@ else()
                 set(optimization_flags_cc ${optimization_flags_cc} -mtune=generic)
         endif()
         if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
-                set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=gold)
                 # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
                 # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
                 set(optimization_flags_cc ${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto -fno-fat-lto-objects) #TODO fix LTO for clang
