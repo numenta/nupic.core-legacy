@@ -47,7 +47,7 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
   args_.potentialRadius = values.getScalarT<UInt32>("potentialRadius", 0);
   args_.potentialPct = values.getScalarT<Real32>("potentialPct", 0.5);
   args_.globalInhibition = values.getScalarT<bool>("globalInhibition", true);
-  args_.localAreaDensity = values.getScalarT<Real32>("localAreaDensity", 0.1f);
+  args_.localAreaDensity = values.getScalarT<Real32>("localAreaDensity", 0.05f);
   args_.stimulusThreshold = values.getScalarT<UInt32>("stimulusThreshold", 0);
   args_.synPermInactiveDec = values.getScalarT<Real32>("synPermInactiveDec", 0.008f);
   args_.synPermActiveInc = values.getScalarT<Real32>("synPermActiveInc", 0.05f);
@@ -289,11 +289,11 @@ Spec *SPRegion::createSpec() {
           "inhibition logic will insure that at most N columns remain ON "
           "within a local inhibition area, where N = localAreaDensity * "
           "(total number of columns in inhibition area). "
-	  "Default 0.1 (10%)",
+	  "Default 0.05 (5%)",
           NTA_BasicType_Real32,             // type
           1,                                // elementCount
           "",                               // constraints
-          "0.1",                           // defaultValue
+          "0.05",                           // defaultValue
           ParameterSpec::ReadWriteAccess)); // access
 
   ns->parameters.add(

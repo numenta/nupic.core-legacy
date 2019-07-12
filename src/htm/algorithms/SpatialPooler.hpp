@@ -67,12 +67,18 @@ public:
   SpatialPooler();
   SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
                 UInt potentialRadius = 16u, Real potentialPct = 0.5f,
-                bool globalInhibition = true, Real localAreaDensity = 0.1f,
-                UInt stimulusThreshold = 0u, Real synPermInactiveDec = 0.008f,
-                Real synPermActiveInc = 0.05f, Real synPermConnected = 0.1f,
+                bool globalInhibition = true, 
+		Real localAreaDensity = 0.05f, //5%
+                UInt stimulusThreshold = 0u, 
+		Real synPermInactiveDec = 0.008f,
+                Real synPermActiveInc = 0.05f, 
+		Real synPermConnected = 0.1f,
                 Real minPctOverlapDutyCycles = 0.001f,
-                UInt dutyCyclePeriod = 1000u, Real boostStrength = 0.0f,
-                Int seed = 1, UInt spVerbosity = 0u, bool wrapAround = true);
+                UInt dutyCyclePeriod = 1000u, 
+		Real boostStrength = 0.0f,
+                Int seed = 1, 
+		UInt spVerbosity = 0u, 
+		bool wrapAround = true);
 
   virtual ~SpatialPooler() {}
 
@@ -132,7 +138,8 @@ public:
         pools of all columns). The inhibition logic will insure that at
         most N columns remain ON within a local inhibition area, where
         N = localAreaDensity * (total number of columns in inhibition
-        area). 
+        area)
+        Default: 0.05 (5%)	
 
   @param stimulusThreshold This is a number specifying the minimum
         number of synapses that must be active in order for a column to
@@ -192,7 +199,8 @@ public:
   virtual void
   initialize(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
              UInt potentialRadius = 16u, Real potentialPct = 0.5f,
-             bool globalInhibition = true, Real localAreaDensity = 0.1f,
+             bool globalInhibition = true, 
+	     Real localAreaDensity = 0.05f,
              UInt stimulusThreshold = 0u,
              Real synPermInactiveDec = 0.01f, Real synPermActiveInc = 0.1f,
              Real synPermConnected = 0.1f, Real minPctOverlapDutyCycles = 0.001f,
