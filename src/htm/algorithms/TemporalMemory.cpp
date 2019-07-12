@@ -146,14 +146,16 @@ static CellIdx getLeastUsedCell(const CellIdx column, //TODO remove static metho
   const auto end   = start  + cellsPerColumn;
   vector<CellIdx> cells;
   for( CellIdx i = start; i < end; i++) cells.push_back(i);
-  rng.shuffle(cells.begin(), cells.end()); //shuffle because min_element returns first minimal element. And we want random choice from the same minimals.
 
   const auto compareByNumSegments = [&connections](const CellIdx a, const CellIdx b) {
-    if(connections.numSegments(a) == connections.numSegments(b)) 
-      return a < b;
-    else return connections.numSegments(a) < connections.numSegments(b);
+    return connections.numSegments(a) < connections.numSegments(b);
   };
-  return *std::min_element(cells.begin(), cells.end(), compareByNumSegments);
+  std::sort(cells.begin(), cells.end(), compareByNumSegments);
+  const auto firstSmallest = cells[0];
+  auto upper = std::upper_bound(cells.begin(), cells.end(), firstSmallest);
+  cells.resize(std::distance(cells.begin(), upper));
+  std::sort(cells.begin(), cells.end());
+  return cells[rng.getUInt32(cells.size())];
 }
 
 
