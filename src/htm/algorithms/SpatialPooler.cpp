@@ -135,8 +135,10 @@ void SpatialPooler::setGlobalInhibition(bool globalInhibition) {
 
 Real SpatialPooler::getLocalAreaDensity() const { return localAreaDensity_; }
 
-void SpatialPooler::setLocalAreaDensity(Real localAreaDensity) {
+void SpatialPooler::setLocalAreaDensity(const Real localAreaDensity) {
   NTA_CHECK(localAreaDensity > 0.0f && localAreaDensity <= 1.0f);
+  NTA_CHECK(static_cast<UInt>(localAreaDensity * getNumColumns()) > 0) 
+	  << "Too small density or sp.getNumColumns() -> would have zero active output columns.";
   localAreaDensity_ = localAreaDensity;
 }
 
@@ -391,7 +393,7 @@ void SpatialPooler::initialize(
   NTA_CHECK(inputDimensions_.size() == columnDimensions_.size()); 
 
   NTA_CHECK(localAreaDensity > 0 && localAreaDensity <= MAX_LOCALAREADENSITY);
-  localAreaDensity_ = localAreaDensity;
+  setLocalAreaDensity(localAreaDensity); 
 
   rng_ = Random(seed);
 
