@@ -201,7 +201,8 @@ public:
    * instead of the usual HTM inputs which reliably change every cycle.  See
    * also (Kropff & Treves, 2007. http://dx.doi.org/10.2976/1.2793335).
    */
-  Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f,
+  Connections(const CellIdx numCells, 
+	      const Permanence connectedThreshold = 0.5f,
               bool timeseries = false);
 
   virtual ~Connections() {}
@@ -539,7 +540,7 @@ public:
    */
   size_t numCells() const { return cells_.size(); }
 
-  Permanence getConnectedThreshold() const { return connectedThreshold_; }
+  constexpr Permanence getConnectedThreshold() const { return connectedThreshold_; }
 
   /**
    * Gets the number of segments.

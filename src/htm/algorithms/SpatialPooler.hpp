@@ -704,8 +704,11 @@ public:
 
   @param permanence real array to store permanence values for the selected
   column.
+
+  @param threshold : only output synapses with `permanence >= threshold`.
+         This can be used to get connected synapses. 
   */
-  void getPermanence(UInt column, Real permanence[]) const;
+  void getPermanence(UInt column, Real permanence[], const Permanence threshold = 0.0f) const;
   /**
   Sets the permanence values for a given column. 'permanence' size
   must match the number of inputs.
@@ -716,16 +719,6 @@ public:
   */
   void setPermanence(UInt column, const Real permanence[]);
 
-  /**
-  Returns the connected synapses for a given column.
-  'connectedSynapses' size must match the number of inputs.
-
-  @param column integer of column index.
-
-  @param connectedSynapses integer array to store the connected synapses for a
-  given column.
-  */
-  void getConnectedSynapses(UInt column, UInt connectedSynapses[]) const;
 
   /**
   Returns the number of connected synapses for all columns.

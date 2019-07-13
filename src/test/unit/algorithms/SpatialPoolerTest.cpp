@@ -207,10 +207,10 @@ void check_spatial_eq(const SpatialPooler& sp1, const SpatialPooler& sp2) {
   }
 
   for (UInt i = 0; i < numColumns; i++) {
-    auto con1 = new UInt[numInputs];
-    auto con2 = new UInt[numInputs];
-    sp1.getConnectedSynapses(i, con1);
-    sp2.getConnectedSynapses(i, con2);
+    auto con1 = new Real[numInputs];
+    auto con2 = new Real[numInputs];
+    sp1.getPermanence(i, con1, sp1.connections.getConnectedThreshold());
+    sp2.getPermanence(i, con2, sp2.connections.getConnectedThreshold());
     ASSERT_TRUE(check_vector_eq(con1, con2, numInputs));
     delete[] con1;
     delete[] con2;
@@ -1414,7 +1414,7 @@ TEST(SpatialPoolerTest, testSetPermanence) {
                          //  -       -       -       -       -
                          {0.200f, 0.101f, 0.050f, 0.000f, 1.000f}};
                          //  -       -       -      Clip    Clip
-  UInt trueConnectedSynapses[5][5] = {{0, 1, 1, 0, 0},
+  Real trueConnectedSynapses[5][5] = {{0, 1, 1, 0, 0},
                                       {1, 0, 0, 1, 0},
                                       {0, 0, 1, 1, 0},
                                       {1, 0, 1, 0, 0},
@@ -1424,15 +1424,18 @@ TEST(SpatialPoolerTest, testSetPermanence) {
     sp.setPotential(i, potential);
     sp.setPermanence(i, permArr[i]);
     auto permArr = new Real[numInputs];
-    auto connectedArr = new UInt[numInputs];
+    auto connectedArr = new Real[numInputs];
     auto connectedCountsArr = new UInt[numColumns];
     sp.getPermanence(i, permArr);
-    sp.getConnectedSynapses(i, connectedArr);
+    sp.getPermanence(i, connectedArr, sp.connections.getConnectedThreshold());
     sp.getConnectedCounts(connectedCountsArr);
     ASSERT_TRUE(check_vector_eq(truePerm[i], permArr, numInputs));
-    ASSERT_TRUE(
-        check_vector_eq(trueConnectedSynapses[i], connectedArr, numInputs));
-    ASSERT_TRUE(trueConnectedCount[i] == connectedCountsArr[i]);
+    ASSERT_EQ(trueConnectedCount[i], connectedCountsArr[i]);
+    for(UInt j=0; j < numInputs; j++) {
+      if(trueConnectedSynapses[i][j] == 0) ASSERT_EQ(connectedArr[j], 0.0f);
+      else ASSERT_TRUE(connectedArr[j] > 0.0f);
+    }
+
     delete[] permArr;
     delete[] connectedArr;
     delete[] connectedCountsArr;

@@ -342,15 +342,9 @@ Argument output An SDR representing the winning columns after
         });
 
         // getPermanence
-        py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, UInt column, py::array& x)
+        py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, const UInt column, py::array& x, const Permanence threshold = 0.0f)
         {
-            self.getPermanence(column, get_it<Real>(x));
-        });
-
-        // getConnectedSynapses
-        py_SpatialPooler.def("getConnectedSynapses", [](const SpatialPooler& self, UInt column, py::array& x)
-        {
-            self.getConnectedSynapses(column, get_it<UInt>(x));
+            self.getPermanence(column, get_it<Real>(x), threshold);
         });
 
         // getConnectedCounts
