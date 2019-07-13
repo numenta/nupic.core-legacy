@@ -112,7 +112,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   Network net;
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "ScalarSensor", "{dim: [6,1], n: 6, w: 2}");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,3]}");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [20,3]}");
 
   net.link("region1", "region2"); 
 
@@ -130,7 +130,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   const Array r1OutputArray = region1->getOutputData("encoded");
   VERBOSE << r1OutputArray << "\n";
   std::vector<Byte> expected = {0, 0, 0, 0, 1, 1};
-  EXPECT_TRUE(r1OutputArray == expected);
+  EXPECT_EQ(r1OutputArray, expected);
 
   region2->prepareInputs();
   region2->compute();
@@ -139,12 +139,12 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   const Array r2InputArray = region2->getInputData("bottomUpIn");
   VERBOSE << r2InputArray << "\n";
   EXPECT_EQ(r2InputArray.getType(), NTA_BasicType_SDR);
-  EXPECT_TRUE(r2InputArray == expected);
+  EXPECT_EQ(r2InputArray,  expected);
 
   VERBOSE << "Region 2 input after first iteration:" << std::endl;
   const Dimensions r2dims = region2->getOutput("bottomUpOut")->getDimensions();
   EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[0], 2u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[0], 20u) << " actual dims: " << r2dims.toString(); //match dims of SPRegion constructed above
   EXPECT_EQ(r2dims[1], 3u) << " actual dims: " << r2dims.toString();
   
   const Array r2OutputArray = region2->getOutputData("bottomUpOut");
@@ -152,9 +152,11 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   EXPECT_EQ(r2OutputArray.getSDR().dimensions, r2dims)
       << "Expected dimensions on the output to match dimensions on the buffer.";
   VERBOSE << r2OutputArray << "\n";
-  std::vector<Byte> expected_output = {1, 0, 1, 0, 1, 0};
-  EXPECT_TRUE(r2OutputArray ==  expected_output) << "expected " << r2OutputArray;
-
+  SDR exp({20u, 3u});
+  exp.setSparse(SDR_sparse_t{
+    4, 21, 32, 46
+  });
+  EXPECT_EQ(r2OutputArray, exp.getDense()) << "got " << r2OutputArray;
 }
 
 

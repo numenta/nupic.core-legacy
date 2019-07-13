@@ -50,7 +50,6 @@ using namespace htm;
             , Real
             , bool
             , Real
-            , Int
             , UInt
             , Real
             , Real
@@ -112,22 +111,6 @@ Argument localAreaDensity The desired density of active columns within
         most N columns remain ON within a local inhibition area, where
         N = localAreaDensity * (total number of columns in inhibition
         area). 
-    If localAreaDensity is set to any value less than  0, 
-    output sparsity will be determined by the numActivePerInhArea.
-
-Argument numActiveColumnsPerInhArea An alternate way to control the sparsity of
-        active columns. When numActivePerInhArea > 0, the inhibition logic will insure that
-        at most 'numActivePerInhArea' columns remain ON within a local
-        inhibition area (the size of which is set by the internally
-        calculated inhibitionRadius). When using this method, as columns
-        learn and grow their effective receptive fields, the
-        inhibitionRadius will grow, and hence the net density of the
-        active columns will *decrease*. This is in contrast to the
-        localAreaDensity method, which keeps the density of active
-        columns the same regardless of the size of their receptive
-        fields.
-    If numActivePerInhArea is specified then 
-    localAreaDensity must be < 0, and vice versa.
 
 Argument stimulusThreshold This is a number specifying the minimum
         number of synapses that must be active in order for a column to
@@ -188,7 +171,6 @@ Argument wrapAround boolean value that determines whether or not inputs
             , py::arg("potentialPct") = 0.5
             , py::arg("globalInhibition") = false
             , py::arg("localAreaDensity") = 0.02f
-            , py::arg("numActiveColumnsPerInhArea") = -1
             , py::arg("stimulusThreshold") = 0
             , py::arg("synPermInactiveDec") = 0.01
             , py::arg("synPermActiveInc") = 0.1
@@ -212,8 +194,6 @@ Argument wrapAround boolean value that determines whether or not inputs
         py_SpatialPooler.def("getGlobalInhibition", &SpatialPooler::getGlobalInhibition);
         py_SpatialPooler.def("setGlobalInhibition", &SpatialPooler::setGlobalInhibition);
 
-        py_SpatialPooler.def("getNumActiveColumnsPerInhArea", &SpatialPooler::getNumActiveColumnsPerInhArea);
-        py_SpatialPooler.def("setNumActiveColumnsPerInhArea", &SpatialPooler::setNumActiveColumnsPerInhArea);
         py_SpatialPooler.def("getLocalAreaDensity", &SpatialPooler::getLocalAreaDensity);
         py_SpatialPooler.def("setLocalAreaDensity", &SpatialPooler::setLocalAreaDensity);
         py_SpatialPooler.def("getStimulusThreshold", &SpatialPooler::getStimulusThreshold);
