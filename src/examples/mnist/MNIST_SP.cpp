@@ -84,7 +84,6 @@ void setup() {
     /* potentialPct */                0.1f, //we have only 10 classes, and << #columns. So we want to force each col to specialize. Cca 0.3 w "7" above, or very small (0.1) for "no topology". Cannot be too small due to internal checks. Speed++
     /* globalInhibition */            true, //Speed+++++++; SDR quality-- (global does have active nearby cols, which we want to avoid (local)); Results+-0
     /* localAreaDensity */            0.1f,  // % active bits
-    /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
     /* synPermInactiveDec */          0.002f, //FIXME inactive decay permanence plays NO role, investigate! (slightly better w/o it)
     /* synPermActiveInc */            0.14f, //takes upto 5x steps to get dis/connected
