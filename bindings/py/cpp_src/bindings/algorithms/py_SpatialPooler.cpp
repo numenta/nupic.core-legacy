@@ -344,7 +344,9 @@ Argument output An SDR representing the winning columns after
         // getPermanence
         py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, const UInt column, py::array& x, const Permanence threshold = 0.0f)
         {
-            self.getPermanence(column, get_it<Real>(x), threshold);
+            const auto& perm = self.getPermanence(column, threshold);
+	    std::copy(perm.begin(), perm.end(), get_it<Real>(x)); //TODO pass-by-value here only for compatibility, could have just returned perm 
+	    return perm;
         });
 
         // getConnectedCounts

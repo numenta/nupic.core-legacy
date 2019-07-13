@@ -299,18 +299,18 @@ void SpatialPooler::setPotential(UInt column, const UInt potential[]) {
   }
 }
 
-void SpatialPooler::getPermanence(UInt column, 
-		                  Real permanences[], 
-				  const Permanence threshold) const {
+vector<Real> SpatialPooler::getPermanence(const UInt column, 
+				          const Permanence threshold) const {
   NTA_ASSERT(column < numColumns_);
-  std::fill( permanences, permanences + numInputs_, 0.0f );
   const auto &synapses = connections_.synapsesForSegment( column );
+  vector<Real> permanences(numInputs_, 0.0f);
   for( const auto syn : synapses ) {
     const auto &synData = connections_.dataForSynapse( syn );
     if( synData.permanence >= threshold) { // there must be >= for default case 0.0 where we want all permanences
       permanences[ synData.presynapticCell ] = synData.permanence;
     }
   }
+  return permanences;
 }
 
 
@@ -663,8 +663,7 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
   const UInt numDimensions = (UInt)inputDimensions_.size();
 
   //get connected synapses
-  vector<Real> connectedDense( numInputs_, 0 );
-  getPermanence( column, connectedDense.data() , synPermConnected_ + htm::Epsilon );
+  const auto& connectedDense = getPermanence( column, synPermConnected_ + htm::Epsilon );
 
   vector<UInt> maxCoord(numDimensions, 0);
   vector<UInt> minCoord(numDimensions, *max_element(inputDimensions_.begin(),

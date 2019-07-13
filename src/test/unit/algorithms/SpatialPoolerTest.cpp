@@ -196,24 +196,18 @@ void check_spatial_eq(const SpatialPooler& sp1, const SpatialPooler& sp2) {
     delete[] potential2;
   }
 
+  // check get permanences
   for (UInt i = 0; i < numColumns; i++) {
-    auto perm1 = new Real[numInputs];
-    auto perm2 = new Real[numInputs];
-    sp1.getPermanence(i, perm1);
-    sp2.getPermanence(i, perm2);
-    ASSERT_TRUE(check_vector_eq(perm1, perm2, numInputs));
-    delete[] perm1;
-    delete[] perm2;
+    const auto& perm1 = sp1.getPermanence(i);
+    const auto& perm2 = sp2.getPermanence(i);
+    ASSERT_TRUE(check_vector_eq(perm1, perm2));
   }
 
+  // check get connected synapses
   for (UInt i = 0; i < numColumns; i++) {
-    auto con1 = new Real[numInputs];
-    auto con2 = new Real[numInputs];
-    sp1.getPermanence(i, con1, sp1.connections.getConnectedThreshold());
-    sp2.getPermanence(i, con2, sp2.connections.getConnectedThreshold());
-    ASSERT_TRUE(check_vector_eq(con1, con2, numInputs));
-    delete[] con1;
-    delete[] con2;
+    const auto& con1 = sp1.getPermanence(i, sp1.connections.getConnectedThreshold());
+    const auto& con2 = sp2.getPermanence(i, sp2.connections.getConnectedThreshold());
+    ASSERT_TRUE(check_vector_eq(con1, con2));
   }
 
   auto conCounts1 = new UInt[numColumns];
@@ -834,10 +828,8 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
 
   sp.adaptSynapses_(input1, activeColumns);
   for (UInt column = 0; column < numColumns; column++) {
-    auto permArr = new Real[numInputs];
-    sp.getPermanence(column, permArr);
-    ASSERT_TRUE(check_vector_eq(truePermanences1[column], permArr, numInputs));
-    delete[] permArr;
+    const auto& permArr = sp.getPermanence(column);
+    ASSERT_TRUE(check_vector_eq(truePermanences1[column], permArr));
   }
 
   UInt potentialArr2[4][8] = {{1, 1, 1, 0, 0, 0, 0, 0},
@@ -874,10 +866,8 @@ TEST(SpatialPoolerTest, testAdaptSynapses) {
 
   sp.adaptSynapses_(input2, activeColumns);
   for (UInt column = 0; column < numColumns; column++) {
-    auto permArr = new Real[numInputs];
-    sp.getPermanence(column, permArr);
-    ASSERT_TRUE(check_vector_eq(truePermanences2[column], permArr, numInputs));
-    delete[] permArr;
+    const auto& permArr = sp.getPermanence(column);
+    ASSERT_TRUE(check_vector_eq(truePermanences2[column], permArr));
   }
 }
 
@@ -926,8 +916,7 @@ TEST(SpatialPoolerTest, testBumpUpWeakColumns) {
   sp.bumpUpWeakColumns_();
 
   for (UInt i = 0; i < numColumns; i++) {
-    Real perm[8];
-    sp.getPermanence(i, perm);
+    const auto& perm = sp.getPermanence(i);
     for(UInt z = 0; z < numInputs; z++)
       ASSERT_FLOAT_EQ( truePermArr[i][z], perm[z] );
   }
@@ -1423,21 +1412,17 @@ TEST(SpatialPoolerTest, testSetPermanence) {
   for (UInt i = 0; i < 5; i++) {
     sp.setPotential(i, potential);
     sp.setPermanence(i, permArr[i]);
-    auto permArr = new Real[numInputs];
-    auto connectedArr = new Real[numInputs];
     auto connectedCountsArr = new UInt[numColumns];
-    sp.getPermanence(i, permArr);
-    sp.getPermanence(i, connectedArr, sp.connections.getConnectedThreshold());
+    const auto& permArr = sp.getPermanence(i);
+    const auto& connectedArr = sp.getPermanence(i, sp.connections.getConnectedThreshold());
     sp.getConnectedCounts(connectedCountsArr);
-    ASSERT_TRUE(check_vector_eq(truePerm[i], permArr, numInputs));
+    
+    ASSERT_TRUE(check_vector_eq(truePerm[i], permArr));
     ASSERT_EQ(trueConnectedCount[i], connectedCountsArr[i]);
     for(UInt j=0; j < numInputs; j++) {
       if(trueConnectedSynapses[i][j] == 0) ASSERT_EQ(connectedArr[j], 0.0f);
       else ASSERT_TRUE(connectedArr[j] > 0.0f);
     }
-
-    delete[] permArr;
-    delete[] connectedArr;
     delete[] connectedCountsArr;
   }
 }

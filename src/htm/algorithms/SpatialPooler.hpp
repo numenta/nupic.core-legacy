@@ -702,13 +702,12 @@ public:
 
   @param column integer of column index.
 
-  @param permanence real array to store permanence values for the selected
-  column.
-
   @param threshold : only output synapses with `permanence >= threshold`.
          This can be used to get connected synapses. 
+
+  @return vector with Permanence values for given column, 
   */
-  void getPermanence(UInt column, Real permanence[], const Permanence threshold = 0.0f) const;
+  vector<Real> getPermanence(const UInt column, const Permanence threshold = 0.0f) const;
   /**
   Sets the permanence values for a given column. 'permanence' size
   must match the number of inputs.
