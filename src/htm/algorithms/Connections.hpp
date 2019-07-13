@@ -249,8 +249,8 @@ public:
    *
    * @reval Created synapse.
    */
-  Synapse createSynapse(Segment segment,
-                        CellIdx presynapticCell,
+  Synapse createSynapse(const Segment segment,
+                        const CellIdx presynapticCell,
                         Permanence permanence);
 
   /**
@@ -258,7 +258,7 @@ public:
    *
    * @param segment Segment to destroy.
    */
-  void destroySegment(Segment segment);
+  void destroySegment(const Segment segment);
 
   /**
    * Destroys synapse.
@@ -317,7 +317,7 @@ public:
    *
    * @retval Index of the segment.
    */
-  SegmentIdx idxOnCellForSegment(Segment segment) const;
+  SegmentIdx idxOnCellForSegment(const Segment segment) const;
 
   /**
    * Get the cell for each provided segment.
@@ -406,8 +406,7 @@ public:
    *
    * @return Synapse indices
    */
-  std::vector<Synapse>
-  synapsesForPresynapticCell(const CellIdx presynapticCell) const;
+  std::vector<Synapse> synapsesForPresynapticCell(const CellIdx presynapticCell) const;
 
   /**
    * For use with time-series datasets.
@@ -594,9 +593,9 @@ public:
    *
    * @retval Number of cells.
    */
-  size_t numCells() const { return cells_.size(); }
+  size_t numCells() const noexcept { return cells_.size(); }
 
-  constexpr Permanence getConnectedThreshold() const { return connectedThreshold_; }
+  constexpr Permanence getConnectedThreshold() const noexcept { return connectedThreshold_; }
 
   /**
    * Gets the number of segments.
@@ -689,7 +688,7 @@ protected:
    *
    * @param Synapse Index of synapse in presynaptic vector.
    *
-   * @param vector<Synapse> synapsesForPresynapticCell must a vector from be
+   * @param vector<Synapse> ynapsesForPresynapticCell must a vector from be
    * either potentialSynapsesForPresynapticCell_ or
    * connectedSynapsesForPresynapticCell_, depending on whether the synapse is
    * connected or not.

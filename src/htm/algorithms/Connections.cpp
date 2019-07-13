@@ -167,8 +167,8 @@ Synapse Connections::createSynapse(Segment segment,
 bool Connections::segmentExists_(const Segment segment) const {
   const SegmentData &segmentData = segments_[segment];
   const vector<Segment> &segmentsOnCell = cells_[segmentData.cell].segments;
-  return (std::find(segmentsOnCell.begin(), segmentsOnCell.end(), segment) !=
-          segmentsOnCell.end());
+  return (std::find(segmentsOnCell.cbegin(), segmentsOnCell.cend(), segment) !=
+          segmentsOnCell.cend());
 }
 
 bool Connections::synapseExists_(const Synapse synapse) const {
