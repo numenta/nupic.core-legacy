@@ -47,7 +47,6 @@ void Connections::initialize(CellIdx numCells, Permanence connectedThreshold, bo
   connectedSynapsesForPresynapticCell_.clear();
   potentialSegmentsForPresynapticCell_.clear();
   connectedSegmentsForPresynapticCell_.clear();
-  segmentOrdinals_.clear();
   eventHandlers_.clear();
   NTA_CHECK(connectedThreshold >= minPermanence);
   NTA_CHECK(connectedThreshold <= maxPermanence);
@@ -99,13 +98,11 @@ Segment Connections::createSegment(const CellIdx cell,
     NTA_CHECK(segments_.size() < std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
 	    << (size_t)segments_.size() << " < " << (size_t)std::numeric_limits<Segment>::max();
     segment = static_cast<Segment>(segments_.size());
-    const SegmentData& segmentData = SegmentData(cell, iteration_);
+    const SegmentData& segmentData = SegmentData(cell, iteration_, nextSegmentOrdinal_++);
     segments_.push_back(segmentData);
-    segmentOrdinals_.push_back(0);
   }
 
   CellData &cellData = cells_[cell];
-  segmentOrdinals_[segment] = nextSegmentOrdinal_++;
   cellData.segments.push_back(segment); //assign the new segment to its mother-cell
 
   for (auto h : eventHandlers_) {
@@ -213,7 +210,7 @@ void Connections::destroySegment(const Segment segment) {
       std::lower_bound(cellData.segments.cbegin(), cellData.segments.cend(),
                        segment, 
 		       [&](const Segment a, const Segment b) {
-			 return segmentOrdinals_[a] < segmentOrdinals_[b];
+			 return dataForSegment(a).id < dataForSegment(b).id;
                        });
 
   NTA_ASSERT(segmentOnCell != cellData.segments.end());
@@ -356,7 +353,7 @@ bool Connections::compareSegments(const Segment a, const Segment b) const {
   // default sort by cell
   if (aData.cell == bData.cell)
     //fallback to ordinals:
-    return segmentOrdinals_[a] < segmentOrdinals_[b];
+    return aData.id < bData.id;
   else return aData.cell < bData.cell;
 }
 

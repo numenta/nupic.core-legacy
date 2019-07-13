@@ -95,13 +95,13 @@ struct SynapseData: public Serializable {
  * The cell that this segment is on.
  */
 struct SegmentData {
-  SegmentData(const CellIdx cell, UInt32 lastUsed = 0) : cell(cell), numConnected(0), lastUsed(lastUsed) {} //default constructor
+  SegmentData(const CellIdx cell, Segment id, UInt32 lastUsed = 0) : cell(cell), numConnected(0), lastUsed(lastUsed), id(id) {} //default constructor
 
   std::vector<Synapse> synapses;
   CellIdx cell; //mother cell that this segment originates from
   SynapseIdx numConnected; //number of permanences from `synapses` that are >= synPermConnected, ie connected synapses
-  Segment id;
   UInt32 lastUsed = 0; //last used time (iteration). Used for segment pruning by "least recently used" (LRU) in `createSegment`
+  Segment id; 
 };
 
 /**
@@ -722,7 +722,6 @@ private:
   std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
   std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
-  std::vector<Segment> segmentOrdinals_;
   Segment nextSegmentOrdinal_ = 0;
   Synapse nextSynapseOrdinal_ = 0;
 
