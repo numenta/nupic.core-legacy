@@ -42,8 +42,8 @@ using SynapseIdx= UInt16; /** Index of synapse in segment. */
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
 using Permanence= Real32; //TODO experiment with half aka float16
-const Permanence minPermanence = 0.0f;
-const Permanence maxPermanence = 1.0f;
+constexpr const Permanence minPermanence = 0.0f;
+constexpr const Permanence maxPermanence = 1.0f;
 
 
 /**
