@@ -532,15 +532,68 @@ void Connections::raisePermanencesToThreshold(
   if( increment <= 0 ) // If minPermSynPtr is already connected then ...
     return;            // Enough synapses are already connected.
 
-  // Raise the permance of all synapses in the potential pool uniformly.
-  for( const auto &syn : synapses ) //TODO vectorize: vector + const to all members
-    updateSynapsePermanence(syn, synapses_[syn].permanence + increment); //this is performance HOTSPOT
+  // Raise the permanence of all synapses in the potential pool uniformly.
+  bumpSegment(segment, increment);
+}
+
+
+void Connections::synapseCompetition(
+                    const Segment    segment,
+                    const SynapseIdx minimumSynapses,
+                    const SynapseIdx maximumSynapses)
+{
+  NTA_ASSERT( minimumSynapses <= maximumSynapses);
+  NTA_ASSERT( maximumSynapses > 0 );
+
+  const auto &segData = dataForSegment( segment );
+
+  if( segData.synapses.empty())
+    return;   // No synapses to work with, no work to do.
+
+  // Sort the potential pool by permanence values, and look for the synapse with
+  // the N'th greatest permanence, where N is the desired number of connected
+  // synapses.  Then calculate how much to change the N'th synapses permance by
+  // such that it becomes a connected synapse.  After that there will be exactly
+  // N synapses connected.
+  SynapseIdx desiredConnected;
+  if( segData.numConnected < minimumSynapses ) {
+    desiredConnected = minimumSynapses;
+  }
+  else if( segData.numConnected > maximumSynapses ) {
+    desiredConnected = maximumSynapses;
+  }
+  else {
+    return;  // The segment already satisfies the requirements, done.
+  }
+  // Can't connect more synapses than there are in the potential pool.
+  desiredConnected = std::min( (SynapseIdx) segData.synapses.size(), desiredConnected);
+  // The N'th synapse is at index N-1
+  if( desiredConnected != 0 ) {
+    desiredConnected--;
+  }
+  // else {
+  //   Corner case: there are no synapses on this segment.
+  // }
+
+  vector<Permanence> permanences; permanences.reserve( segData.synapses.size() );
+  for( Synapse syn : segData.synapses )
+    permanences.push_back( synapses_[syn].permanence );
+
+  // Do a partial sort, it's faster than a full sort.
+  auto minPermPtr = permanences.begin() + (segData.synapses.size() - 1 - desiredConnected);
+  std::nth_element(permanences.begin(), minPermPtr, permanences.end());
+
+  Permanence delta = (connectedThreshold_ + htm::Epsilon) - *minPermPtr;
+
+  // Change the permance of all synapses in the potential pool uniformly.
+  bumpSegment( segment, delta ) ;
 }
 
 
 void Connections::bumpSegment(const Segment segment, const Permanence delta) {
   const vector<Synapse> &synapses = synapsesForSegment(segment);
-  for( const auto &syn : synapses ) {
+  // TODO: vectorize?
+  for( const auto syn : synapses ) {
     updateSynapsePermanence(syn, synapses_[syn].permanence + delta);
   }
 }

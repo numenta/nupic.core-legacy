@@ -56,6 +56,9 @@ class MNIST {
  * Score: 95.35% (465 / 10000 wrong)	: 28x28x16	: 2	: 125	: 		: smaller boosting (2.0)
  * 	 -- this will be my working model, reasonable performance/speed ratio
  *
+ * Baseline: 
+ * Score: 90.52% (948 / 10000 wrong).   : SP disabled   : 1     : 0.489	: 01a6c90297	: baseline with only classifier on raw images, on SP
+ *
  */
 
   private:
@@ -67,7 +70,7 @@ class MNIST {
 
   public:
     UInt verbosity = 1;
-    const UInt train_dataset_iterations = 2u; //epochs somewhat help, at linear time
+    const UInt train_dataset_iterations = 1u; //epochs somewhat help, at linear time
 
 
 void setup() {
@@ -81,7 +84,6 @@ void setup() {
     /* potentialPct */                0.1f, //we have only 10 classes, and << #columns. So we want to force each col to specialize. Cca 0.3 w "7" above, or very small (0.1) for "no topology". Cannot be too small due to internal checks. Speed++
     /* globalInhibition */            true, //Speed+++++++; SDR quality-- (global does have active nearby cols, which we want to avoid (local)); Results+-0
     /* localAreaDensity */            0.1f,  // % active bits
-    /* numActiveColumnsPerInhArea */  -1,
     /* stimulusThreshold */           6u,
     /* synPermInactiveDec */          0.002f, //FIXME inactive decay permanence plays NO role, investigate! (slightly better w/o it)
     /* synPermActiveInc */            0.14f, //takes upto 5x steps to get dis/connected
@@ -104,7 +106,13 @@ void setup() {
   mnist::binarize_dataset(dataset);
 }
 
-void train() {
+
+/**
+ *  train the SP on the training set. 
+ *  @param skipSP bool (default false) if set, output directly the input to the classifier.
+ *  This is used for a baseline benchmark (Classifier directly learns on input images)
+ */
+void train(const bool skipSP=false) {
   // Train
 
   if(verbosity)
@@ -133,8 +141,9 @@ void train() {
 
       // Compute & Train
       input.setDense( image );
-      sp.compute(input, true, columns);
-      clsr.learn( columns, {label} );
+      if(not skipSP) 
+        sp.compute(input, true, columns);
+      clsr.learn( skipSP ? input : columns, {label} );
       if( verbosity && (++i % 1000 == 0) ) cout << "." << flush;
     }
     if( verbosity ) cout << endl;
@@ -154,7 +163,7 @@ void train() {
   dump.close();
 }
 
-void test() {
+void test(const bool skipSP=false) {
   // Test
   Real score = 0;
   UInt n_samples = 0;
@@ -167,9 +176,11 @@ void test() {
 
     // Compute
     input.setDense( image );
-    sp.compute(input, false, columns);
+    if(not skipSP) 
+      sp.compute(input, false, columns);
+
     // Check results
-    if( argmax( clsr.infer( columns ) ) == label)
+    if( argmax( clsr.infer( skipSP ? input : columns ) ) == label)
         score += 1;
     n_samples += 1;
     if( verbosity && i % 1000 == 0 ) cout << "." << flush;
@@ -184,6 +195,11 @@ void test() {
 
 int main(int argc, char **argv) {
   MNIST m;
+  m.setup();
+  cout << "===========BASELINE: no SP====================" << endl;
+  m.train(true); //skip SP learning
+  m.test(true);
+  cout << "===========Spatial Pooler=====================" << endl;
   m.setup();
   m.train();
   m.test();
