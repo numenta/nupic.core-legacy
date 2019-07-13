@@ -89,7 +89,7 @@ class SpatialPoolerTest(unittest.TestCase):
       # This has correctly caught wrong precision error
       pass     
 
-  def _runGetConnectedSynapses(self, uint_type):
+  def _runGetConnectedSynapses(self, float_type):
     """ Check that getConnectedSynapses() returns values. """
     inputs = SDR( 100 ).randomize( .05 )
     active = SDR( 100 )
@@ -99,10 +99,10 @@ class SpatialPoolerTest(unittest.TestCase):
       sp.compute( inputs, True, active )
     
     # There should be at least one connected none zero
-    total = np.zeros(sp.getNumInputs(), dtype=uint_type)
+    total = np.zeros(sp.getNumInputs(), dtype=float_type)
     for i in range(100):
-      connected = np.zeros(sp.getNumInputs(), dtype=uint_type)
-      sp.getConnectedSynapses(i, connected)
+      connected = np.zeros(sp.getNumInputs(), dtype=float_type)
+      sp.getPermanence(i, connected, sp.getConnectedThreshold())
       total = total + connected
     assert( total.sum() > 0 )
 
@@ -121,7 +121,7 @@ class SpatialPoolerTest(unittest.TestCase):
     """ Check that getConnectedSynapses() returns values. """
     try:
       # This is when NTA_DOUBLE_PRECISION is true
-      self._runGetConnectedSynapses(np.uint32)
+      self._runGetConnectedSynapses(np.float32)
       
     except ValueError:
       # This has correctly caught wrong precision error

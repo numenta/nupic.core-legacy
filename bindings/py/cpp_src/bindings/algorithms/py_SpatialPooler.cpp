@@ -349,6 +349,11 @@ Argument output An SDR representing the winning columns after
 	    return perm;
         });
 
+	py_SpatialPooler.def("getConnectedThreshold", [](const SpatialPooler& self)
+        {
+          return self.connections.getConnectedThreshold();
+        });	
+
         // getConnectedCounts
         py_SpatialPooler.def("getConnectedCounts", [](const SpatialPooler& self, py::array& x)
         {
