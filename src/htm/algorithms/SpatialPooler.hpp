@@ -29,7 +29,7 @@
 #include <htm/types/Types.hpp>
 #include <htm/types/Serializable.hpp>
 #include <htm/types/Sdr.hpp>
-
+#include <htm/os/Timer.hpp> 
 
 namespace htm {
 
@@ -61,6 +61,7 @@ using namespace std;
 class SpatialPooler : public Serializable
 {
 public:
+  Timer tInh, tOverlap;
 
   const Real MAX_LOCALAREADENSITY = 0.5f; //require atleast 2 areas
 
