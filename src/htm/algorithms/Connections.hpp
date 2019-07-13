@@ -651,10 +651,13 @@ private:
   Permanence               connectedThreshold_; //TODO make const
 
   // Extra bookkeeping for faster computing of segment activity.
-  std::unordered_map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
-  std::unordered_map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
+ 
+  struct identity { constexpr size_t operator()( const CellIdx t ) const noexcept { return t; };   };	//TODO in c++20 use std::identity 
+
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> potentialSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> connectedSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> potentialSegmentsForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> connectedSegmentsForPresynapticCell_;
 
   std::vector<Segment> segmentOrdinals_;
   std::vector<Synapse> synapseOrdinals_;
