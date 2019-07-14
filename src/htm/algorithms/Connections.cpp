@@ -48,18 +48,11 @@ void Connections::initialize(CellIdx numCells, Permanence connectedThreshold, bo
   potentialSegmentsForPresynapticCell_.clear();
   connectedSegmentsForPresynapticCell_.clear();
   segmentOrdinals_.clear();
-  synapseOrdinals_.clear();
   eventHandlers_.clear();
   NTA_CHECK(connectedThreshold >= minPermanence);
   NTA_CHECK(connectedThreshold <= maxPermanence);
   connectedThreshold_ = connectedThreshold - htm::Epsilon;
   iteration_ = 0;
-
-  // Every time a segment or synapse is created, we assign it an ordinal and
-  // increment the nextOrdinal. Ordinals are never recycled, so they can be used
-  // to order segments or synapses by age.
-  nextSegmentOrdinal_ = 0;
-  nextSynapseOrdinal_ = 0;
 
   nextEventToken_ = 0;
 
@@ -136,14 +129,13 @@ Synapse Connections::createSynapse(Segment segment,
 	    << synapses_.size() << " < " << (size_t)std::numeric_limits<Synapse>::max();
     synapse = static_cast<Synapse>(synapses_.size());
     synapses_.push_back(SynapseData());
-    synapseOrdinals_.push_back(0);
   }
 
   // Fill in the new synapse's data
   SynapseData &synapseData    = synapses_[synapse];
   synapseData.presynapticCell = presynapticCell;
   synapseData.segment         = segment;
-  synapseOrdinals_[synapse]   = nextSynapseOrdinal_++;
+  synapseData.id              = nextSynapseOrdinal_++; //TODO move these to SynData constructor
   // Start in disconnected state.
   synapseData.permanence           = connectedThreshold_ - 1.0f;
   synapseData.presynapticMapIndex_ = 
@@ -271,9 +263,8 @@ void Connections::destroySynapse(const Synapse synapse) {
   const auto synapseOnSegment =
       std::lower_bound(segmentData.synapses.cbegin(), segmentData.synapses.cend(),
                        synapse, 
-		       [&](const Synapse a, const Synapse b) {
-		         if(synapseOrdinals_[a] == synapseOrdinals_[b]) return a < b;
-			 else return synapseOrdinals_[a] < synapseOrdinals_[b];
+		       [&](const Synapse a, const Synapse b) -> bool {
+			 return dataForSynapse(a).id < dataForSynapse(b).id;
                        });
 
   NTA_ASSERT(synapseOnSegment != segmentData.synapses.end());

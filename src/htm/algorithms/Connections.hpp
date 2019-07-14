@@ -47,6 +47,7 @@ const Permanence minPermanence = 0.0f;
 const Permanence maxPermanence = 1.0f;
 
 
+
 /**
  * SynapseData class used in Connections.
  *
@@ -64,6 +65,9 @@ struct SynapseData: public Serializable {
   Permanence permanence;
   Segment segment;
   Synapse presynapticMapIndex_;
+  Synapse id;
+
+  SynapseData() {}
 
   CerealAdapter;
   template<class Archive>
@@ -96,6 +100,7 @@ struct SegmentData {
   std::vector<Synapse> synapses;
   CellIdx cell; //mother cell that this segment originates from
   SynapseIdx numConnected; //number of permanences from `synapses` that are >= synPermConnected, ie connected synapses
+  Segment id;
   UInt32 lastUsed = 0; //last used time (iteration). Used for segment pruning by "least recently used" (LRU) in `createSegment`
 };
 
@@ -718,9 +723,8 @@ private:
   std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
 
   std::vector<Segment> segmentOrdinals_;
-  std::vector<Synapse> synapseOrdinals_;
-  Segment nextSegmentOrdinal_;
-  Synapse nextSynapseOrdinal_;
+  Segment nextSegmentOrdinal_ = 0;
+  Synapse nextSynapseOrdinal_ = 0;
 
   // These three members should be used when working with highly correlated
   // data. The vectors store the permanence changes made by adaptSegment.
