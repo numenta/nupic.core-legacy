@@ -268,11 +268,13 @@ void Connections::updateSynapsePermanence(Synapse synapse,
   
   const bool before = synData.permanence >= connectedThreshold_;
   const bool after  = permanence         >= connectedThreshold_;
-  if( before == after ) { //no change
-      return;
-  }
+
+  // update the permanence
   synData.permanence = permanence;
 
+  if( before == after ) { //no change in dis/connected status
+      return;
+  }
     const auto &presyn    = synData.presynapticCell;
     auto &potentialPresyn = potentialSynapsesForPresynapticCell_[presyn];
     auto &potentialPreseg = potentialSegmentsForPresynapticCell_[presyn];
