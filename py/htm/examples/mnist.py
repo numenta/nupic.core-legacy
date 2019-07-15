@@ -111,7 +111,6 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         potentialPct               = parameters['potentialPct'],
         globalInhibition           = True,
         localAreaDensity           = parameters['localAreaDensity'],
-        numActiveColumnsPerInhArea = -1,
         stimulusThreshold          = int(round(parameters['stimulusThreshold'])),
         synPermInactiveDec         = parameters['synPermInactiveDec'],
         synPermActiveInc           = parameters['synPermActiveInc'],
