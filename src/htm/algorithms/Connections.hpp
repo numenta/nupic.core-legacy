@@ -22,8 +22,8 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
-#include <climits>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <utility>
 #include <vector>
@@ -38,12 +38,12 @@ namespace htm {
 //TODO instead of typedefs, use templates for proper type-checking?
 using CellIdx   = htm::ElemSparse; // CellIdx must match with ElemSparse, defined in Sdr.hpp
 using SegmentIdx= UInt16; /** Index of segment in cell. */
-using SynapseIdx= UInt16; /** Index of synapse in segment. */ //TODO profile to use better (smaller?) types
+using SynapseIdx= UInt16; /** Index of synapse in segment. */
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
 using Permanence= Real32; //TODO experiment with half aka float16
-const Permanence minPermanence = 0.0f;
-const Permanence maxPermanence = 1.0f;
+constexpr const Permanence minPermanence = 0.0f;
+constexpr const Permanence maxPermanence = 1.0f;
 
 
 /**
@@ -428,11 +428,31 @@ public:
    * values until the desired number of synapses have permanences above the
    * connectedThreshold.  This is applied to a single segment.
    *
-   * @param segment  Index of segment on cell.   Is returned by method getSegment.
+   * @param segment  Index of segment in connections. Is returned by method getSegment.
    * @param segmentThreshold  Desired number of connected synapses.
    */
   void raisePermanencesToThreshold(const Segment    segment,
                                    const UInt       segmentThreshold);
+
+  /**
+   * Ensures that the number of connected synapses is sane.  This method
+   * controls the sparsity of the synaptic connections, which is important for
+   * the segment to detect things.  If there are too few connections then the
+   * segment will not detect anything, and if there are too many connections
+   * then the segment will detect everything.
+   *
+   * See file: docs/synapse_competition.docx
+   *
+   * This method connects and disconnects synapses by uniformly changing the
+   * permanences of all synapses on the segment.
+   *
+   * @param segment  Index of segment in connections. Is returned by method getSegment.
+   * @param minimumSynapses Minimum number of connected synapses allowed on this segment (inclusive).
+   * @param maximumSynapses Maximum number of connected synapses allowed on this segment (inclusive).
+   */
+  void synapseCompetition(  const Segment    segment,
+                            const SynapseIdx minimumSynapses,
+                            const SynapseIdx maximumSynapses);
 
   /**
    * Modify all permanence on the given segment, uniformly.
@@ -631,10 +651,13 @@ private:
   Permanence               connectedThreshold_; //TODO make const
 
   // Extra bookkeeping for faster computing of segment activity.
-  std::map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
-  std::map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
+ 
+  struct identity { constexpr size_t operator()( const CellIdx t ) const noexcept { return t; };   };	//TODO in c++20 use std::identity 
+
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> potentialSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> connectedSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> potentialSegmentsForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> connectedSegmentsForPresynapticCell_;
 
   std::vector<Segment> segmentOrdinals_;
   std::vector<Synapse> synapseOrdinals_;
