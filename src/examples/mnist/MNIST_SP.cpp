@@ -155,9 +155,7 @@ void train(const bool skipSP=false) {
   }
   
   tTrain.stop();
-  cout << "MNIST train time: " << tTrain.getElapsed() << endl;
-  cout << "inh " << sp.tInh.getElapsed() << endl;
-  cout << "over " << sp.tOverlap.getElapsed() << endl; 
+  cout << "MNIST train time: " << tTrain.getElapsed() << endl; 
 
   // Save the connections to file for postmortem analysis.
   ofstream dump("mnist_sp_learned.connections", ofstream::binary | ofstream::trunc | ofstream::out);
