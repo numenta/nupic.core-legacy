@@ -1,5 +1,5 @@
 @echo off
-rem // Runs CMake to configure Nupic.cpp for Visual Studio 2017
+rem // Runs CMake to configure htm.core for Visual Studio 2017
 rem // Execute this file to start up CMake and configure Visual Studio.
 rem //
 rem // There is no need to use Developer Command Prompt for running CMake with 
