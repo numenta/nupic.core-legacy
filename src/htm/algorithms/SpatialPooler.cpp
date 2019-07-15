@@ -463,10 +463,14 @@ void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
   input.reshape(  inputDimensions_ );
   active.reshape( columnDimensions_ );
   updateBookeepingVars_(learn);
+
+  tOverlap.start();
   calculateOverlap_(input, overlaps_);
+  tOverlap.stop();
 
   boostOverlaps_(overlaps_, boostedOverlaps_);
 
+  tInh.start();
   auto &activeVector = active.getSparse();
   inhibitColumns_(boostedOverlaps_, activeVector);
   // Notify the active SDR that its internal data vector has changed.  Always
@@ -474,6 +478,7 @@ void SpatialPooler::compute(const SDR &input, const bool learn, SDR &active) {
   // inplace.
   sort( activeVector.begin(), activeVector.end() );
   active.setSparse( activeVector );
+  tInh.stop();
 
   if (learn) {
     adaptSynapses_(input, active);
