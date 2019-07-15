@@ -89,6 +89,8 @@ set(encoders_files
     htm/encoders/ScalarEncoder.hpp
     htm/encoders/RandomDistributedScalarEncoder.hpp
     htm/encoders/RandomDistributedScalarEncoder.cpp
+    htm/encoders/SimHashDocumentEncoder.hpp
+    htm/encoders/SimHashDocumentEncoder.cpp
 )
     
 set(engine_files
