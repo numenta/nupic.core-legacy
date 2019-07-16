@@ -81,7 +81,7 @@ def load_mnist(path):
 default_parameters = {
     'potentialRadius': 7,
     'boostStrength': 7.0,
-    'columnDimensions': (28*28*8, 1),
+    'columnDimensions': (79, 79),
     'dutyCyclePeriod': 1402,
     'localAreaDensity': 0.1,
     'minPctOverlapDutyCycle': 0.2,
