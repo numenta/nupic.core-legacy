@@ -96,6 +96,7 @@ set(EXTERNAL_INCLUDES
 	${eigen_INCLUDE_DIRS}
 	${mnist_INCLUDE_DIRS}
 	${cereal_INCLUDE_DIRS}
+	${digestpp_INCLUDE_DIRS}
 	${common_INCLUDE_DIRS}
 	${REPOSITORY_DIR}/external/common/include
 )

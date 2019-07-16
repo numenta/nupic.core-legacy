@@ -21,9 +21,7 @@
  * Implementation of the SimHashDocumentEncoder
  */
 
-#include <algorithm> // std::min std::sort
-#include <numeric>   // std::iota
-#include <cmath>     // std::isnan std::nextafter
+#include <digestpp.hpp> // sha3+shake256
 #include <htm/encoders/SimHashDocumentEncoder.hpp>
 
 
@@ -83,10 +81,14 @@ namespace htm {
     NTA_CHECK(std::includes(args_.tokens.begin(), args_.tokens.end(), input.begin(), input.end()))
       << "Unrecognized input token, all 'tokens' required during encoder init.";
 
-    // LogItem::setLogLevel(htm::LogLevel_Verbose);
+    LogItem::setLogLevel(htm::LogLevel_Verbose);
+
     // for (auto i : input)
     //  NTA_DEBUG << "hi";
 
+    digestpp::shake256 digest;
+    digest.absorb("The quick brown fox jumps over the lazy dog");
+    NTA_DEBUG << "shake256-digest = " << digest.hexsqueeze(64) << std::endl;
   } // end method encode
 
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self)
