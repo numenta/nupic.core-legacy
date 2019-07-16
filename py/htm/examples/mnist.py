@@ -148,7 +148,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
     score = score / len(test_data)
 
-    assert score >= 0.951, "MNIST: score should be better than 95.1%"
+    assert score >= 0.901, "MNIST: score should be better than 90.1%, which is baseline for RAW image classification!"
     print('Score:', 100 * score, '%')
     return score
 
