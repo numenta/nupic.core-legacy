@@ -17,7 +17,6 @@
 
 import argparse
 import random
-import gzip
 import numpy as np
 import os
 
@@ -36,7 +35,7 @@ def load_mnist(path):
         return i
 
     def load_labels(file_name):
-        with gzip.open(file_name, 'rb') as f:
+        with open(file_name, 'rb') as f:
             raw = f.read()
             assert(int32(raw[0:4]) == 2049)  # Magic number
             labels = []
@@ -46,7 +45,7 @@ def load_mnist(path):
         return labels
 
     def load_images(file_name):
-        with gzip.open(file_name, 'rb') as f:
+        with open(file_name, 'rb') as f:
             raw = f.read()
             assert(int32(raw[0:4]) == 2051)    # Magic number
             num_imgs   = int32(raw[4:8])
@@ -67,10 +66,10 @@ def load_mnist(path):
             assert(len(raw) == data_start + img_size * num_imgs)   # All data should be used.
         return imgs
 
-    train_labels = load_labels(os.path.join(path, 'train-labels-idx1-ubyte.gz'))
-    train_images = load_images(os.path.join(path, 'train-images-idx3-ubyte.gz'))
-    test_labels  = load_labels(os.path.join(path, 't10k-labels-idx1-ubyte.gz'))
-    test_images  = load_images(os.path.join(path, 't10k-images-idx3-ubyte.gz'))
+    train_labels = load_labels(os.path.join(path, 'train-labels-idx1-ubyte'))
+    train_images = load_images(os.path.join(path, 'train-images-idx3-ubyte'))
+    test_labels  = load_labels(os.path.join(path, 't10k-labels-idx1-ubyte'))
+    test_images  = load_images(os.path.join(path, 't10k-images-idx3-ubyte'))
 
     return train_labels, train_images, test_labels, test_images
 
@@ -96,7 +95,7 @@ default_parameters = {
 def main(parameters=default_parameters, argv=None, verbose=True):
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str,
-        default = os.path.join( os.path.dirname(__file__), 'MNIST_data'))
+        default = os.path.join( os.path.dirname(__file__), '..', '..', '..', 'build', 'ThirdParty', 'mnist_data', 'mnist-src'))
     args = parser.parse_args(args = argv)
 
     # Load data.
