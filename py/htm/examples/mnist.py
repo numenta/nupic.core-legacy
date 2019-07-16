@@ -76,18 +76,30 @@ def load_mnist(path):
 # these parameters can be improved using parameter optimization, 
 # see py/htm/optimization/ae.py
 # For more explanation of relations between the parameters, see 
-# src/examples/mnist/MNIST_CPP.cpp 
+# src/examples/mnist/MNIST_CPP.cpp
+# Note: 
+# Some of these default parameters are commented out, 
+# that is to tell the parameter optimization we want to fix those values
+# (eg. for they are dependent variables (like boostStrength & dutyCyclePeriod), 
+# should be const (synPermConnected), 
+# or we don't want to optimize those (columnDimensions)). Overall this reduces
+# there hyper-parameter search space, which leads to faster search and possibly
+# better values obtained. 
+# Note: 
+# TODO: The experiment should do a proper split to train/eval/test datasets. 
+# Currently we are using the out of sample test data in the hyperparameter search, 
+# so we are essentially overfitting! 
 default_parameters = {
     'potentialRadius': 7,
     'boostStrength': 7.0,
-    'columnDimensions': 28*28*8,
-    'dutyCyclePeriod': 1402,
+#    'columnDimensions': 28*28*8,
+#    'dutyCyclePeriod': 1402,
     'localAreaDensity': 0.1,
     'minPctOverlapDutyCycle': 0.2,
     'potentialPct': 0.1,
     'stimulusThreshold': 6,
     'synPermActiveInc': 0.14,
-    'synPermConnected': 0.5,
+#    'synPermConnected': 0.5,
     'synPermInactiveDec': 0.02
 }
 
@@ -109,7 +121,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     enc = SDR((train_images[0].shape))
     sp = SpatialPooler(
         inputDimensions            = enc.dimensions,
-        columnDimensions           = (parameters['columnDimensions'], 1), #changed to match dimensionality of the encoder
+        columnDimensions           = (28*28*16, 1), # (parameters['columnDimensions'], 1), #changed to match dimensionality of the encoder
         potentialRadius            = parameters['potentialRadius'],
         potentialPct               = parameters['potentialPct'],
         globalInhibition           = True,
@@ -117,13 +129,13 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         stimulusThreshold          = int(round(parameters['stimulusThreshold'])), #param is requested to be an integer, but param optimization might find fractional value, so round it
         synPermInactiveDec         = parameters['synPermInactiveDec'],
         synPermActiveInc           = parameters['synPermActiveInc'],
-        synPermConnected           = parameters['synPermConnected'],
+        synPermConnected           = 0.5, # parameters['synPermConnected'],
         minPctOverlapDutyCycle     = parameters['minPctOverlapDutyCycle'],
-        dutyCyclePeriod            = int(round(parameters['dutyCyclePeriod'])),
+        dutyCyclePeriod            = 1402, # int(round(parameters['dutyCyclePeriod'])),
         boostStrength              = parameters['boostStrength'],
-        seed                       = 0,
+        seed                       = 0, # this is important, 0="random" seed which changes on each invocation
         spVerbosity                = 99,
-        wrapAround                 = False)
+        wrapAround                 = True)
     columns = SDR( sp.getColumnDimensions() )
     columns_stats = Metrics( columns, 99999999 )
     sdrc = Classifier()
