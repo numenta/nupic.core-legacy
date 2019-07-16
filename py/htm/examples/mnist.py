@@ -149,8 +149,8 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     score = score / len(test_data)
 
     print('Score:', 100 * score, '%')
-    return score < 0.95
+    return score
 
 
 if __name__ == '__main__':
-    sys.exit( main() )
+    sys.exit( main() < 0.95 )
