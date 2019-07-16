@@ -146,8 +146,11 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         if lbl == np.argmax( sdrc.infer( columns ) ):
             score += 1
 
-    print('Score:', 100 * score / len(test_data), '%')
-    return score / len(test_data)
+    score = score / len(test_data)
+
+    assert score >= 0.951, "MNIST: score should be better than 95.1%"
+    print('Score:', 100 * score, '%')
+    return score
 
 
 if __name__ == '__main__':
