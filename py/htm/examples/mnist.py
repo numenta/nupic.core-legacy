@@ -80,7 +80,7 @@ def load_mnist(path):
 default_parameters = {
     'potentialRadius': 7,
     'boostStrength': 7.0,
-    'columnDimensions': (28*28*8, 1),
+    'columnDimensions': 28*28*8,
     'dutyCyclePeriod': 1402,
     'localAreaDensity': 0.1,
     'minPctOverlapDutyCycle': 0.2,
@@ -109,7 +109,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     enc = SDR((train_images[0].shape))
     sp = SpatialPooler(
         inputDimensions            = enc.dimensions,
-        columnDimensions           = parameters['columnDimensions'],
+        columnDimensions           = (parameters['columnDimensions'], 1), #changed to match dimensionality of the encoder
         potentialRadius            = parameters['potentialRadius'],
         potentialPct               = parameters['potentialPct'],
         globalInhibition           = True,
