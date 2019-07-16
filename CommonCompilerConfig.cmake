@@ -154,7 +154,7 @@ set(COMMON_OS_LIBS)
 
 if(MSVC)
 	# MS Visual C
-	# on Windows using Visual Studio 2015, 2017   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
+	# on Windows using Visual Studio 2015, 2017, 2019   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
 	#  /permissive- forces standards behavior.  See https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance?view=vs-2017
 	#  /Zc:__cplusplus   This is required to force MSVC to pay attention to the standard setting and sets __cplusplus.
 	#                    NOTE: MSVC does not support C++11.  But does support C++14 and C++17.
