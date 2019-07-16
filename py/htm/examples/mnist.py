@@ -161,8 +161,9 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     score = score / len(test_data)
 
     print('Score:', 100 * score, '%')
-    return score < 0.901 # "MNIST: score should be better than 90.1%, which is baseline for RAW image classification!"
+    assert(score > 0.901), "MNIST: score should be better than 90.1%, which is baseline for RAW image classification!"
+    return score
 
 
 if __name__ == '__main__':
-    sys.exit( main() )
+    sys.exit( main() > 0.901)
