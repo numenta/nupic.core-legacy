@@ -74,18 +74,22 @@ def load_mnist(path):
 
     return train_labels, train_images, test_labels, test_images
 
-
+# these parameters can be improved using parameter optimization, 
+# see py/htm/optimization/ae.py
+# For more explanation of relations between the parameters, see 
+# src/examples/mnist/MNIST_CPP.cpp 
 default_parameters = {
-    'boostStrength': 7.80643753517375,
-    'columnDimensions': (35415,1),
-    'dutyCyclePeriod': 1321,
-    'localAreaDensity': 0.05361688506086096,
-    'minPctOverlapDutyCycle': 0.0016316043362658,
-    'potentialPct': 0.06799785776775163,
-    'stimulusThreshold': 8,
-    'synPermActiveInc': 0.01455789388651146,
-    'synPermConnected': 0.021649964738697944,
-    'synPermInactiveDec': 0.006442691852205935
+    'potentialRadius': 7,
+    'boostStrength': 7.0,
+    'columnDimensions': (28*28*8, 1),
+    'dutyCyclePeriod': 1402,
+    'localAreaDensity': 0.1,
+    'minPctOverlapDutyCycle': 0.2,
+    'potentialPct': 0.1,
+    'stimulusThreshold': 6,
+    'synPermActiveInc': 0.14,
+    'synPermConnected': 0.5,
+    'synPermInactiveDec': 0.02
 }
 
 
@@ -107,11 +111,11 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     sp = SpatialPooler(
         inputDimensions            = enc.dimensions,
         columnDimensions           = parameters['columnDimensions'],
-        potentialRadius            = 99999999,
+        potentialRadius            = parameters['potentialRadius'],
         potentialPct               = parameters['potentialPct'],
         globalInhibition           = True,
         localAreaDensity           = parameters['localAreaDensity'],
-        stimulusThreshold          = int(round(parameters['stimulusThreshold'])),
+        stimulusThreshold          = int(round(parameters['stimulusThreshold'])), #param is requested to be an integer, but param optimization might find fractional value, so round it
         synPermInactiveDec         = parameters['synPermInactiveDec'],
         synPermActiveInc           = parameters['synPermActiveInc'],
         synPermConnected           = parameters['synPermConnected'],
