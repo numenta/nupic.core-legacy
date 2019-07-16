@@ -39,3 +39,6 @@ bindings/py/tests/*.stream
 
 # Doxygen generated doc
 html/
+
+# produced by swarming, parameter optimization scripts
+*_ae/
