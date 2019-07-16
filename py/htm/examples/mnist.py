@@ -19,6 +19,7 @@ import argparse
 import random
 import numpy as np
 import os
+import sys
 
 from htm.bindings.algorithms import SpatialPooler, Classifier
 from htm.bindings.sdr import SDR, Metrics
@@ -73,7 +74,7 @@ def load_mnist(path):
 
     return train_labels, train_images, test_labels, test_images
 
-# these parameters can be improved using parameter optimization, 
+# These parameters can be improved using parameter optimization,
 # see py/htm/optimization/ae.py
 # For more explanation of relations between the parameters, see 
 # src/examples/mnist/MNIST_CPP.cpp
@@ -126,7 +127,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         potentialPct               = parameters['potentialPct'],
         globalInhibition           = True,
         localAreaDensity           = parameters['localAreaDensity'],
-        stimulusThreshold          = int(round(parameters['stimulusThreshold'])), #param is requested to be an integer, but param optimization might find fractional value, so round it
+        stimulusThreshold          = int(round(parameters['stimulusThreshold'])),
         synPermInactiveDec         = parameters['synPermInactiveDec'],
         synPermActiveInc           = parameters['synPermActiveInc'],
         synPermConnected           = 0.5, # parameters['synPermConnected'],
@@ -157,13 +158,11 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         sp.compute( enc, False, columns )
         if lbl == np.argmax( sdrc.infer( columns ) ):
             score += 1
-
     score = score / len(test_data)
 
-    assert score >= 0.901, "MNIST: score should be better than 90.1%, which is baseline for RAW image classification!"
     print('Score:', 100 * score, '%')
-    return score
+    return score < 0.901 # "MNIST: score should be better than 90.1%, which is baseline for RAW image classification!"
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit( main() )
