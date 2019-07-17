@@ -111,7 +111,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         default = os.path.join( os.path.dirname(__file__), '..', '..', '..', 'build', 'ThirdParty', 'mnist_data', 'mnist-src'))
     args = parser.parse_args(args = argv)
 
-    # Load data.
+    # Load data. #FIXME split into train/eval/test 
     train_labels, train_images, test_labels, test_images = load_mnist(args.data_dir)
     training_data = list(zip(train_images, train_labels))
     test_data     = list(zip(test_images, test_labels))
