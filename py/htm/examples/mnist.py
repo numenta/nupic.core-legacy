@@ -93,7 +93,7 @@ def load_mnist(path):
 default_parameters = {
     'potentialRadius': 7,
     'boostStrength': 7.0,
-#    'columnDimensions': 28*28*8,
+#    'columnDimensions': (79, 79),
 #    'dutyCyclePeriod': 1402,
     'localAreaDensity': 0.1,
     'minPctOverlapDutyCycle': 0.2,
@@ -161,9 +161,8 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     score = score / len(test_data)
 
     print('Score:', 100 * score, '%')
-    assert(score > 0.901), "MNIST: score should be better than 90.1%, which is baseline for RAW image classification!"
     return score
 
 
 if __name__ == '__main__':
-    sys.exit( main() > 0.901)
+    sys.exit( main() < 0.901) # baseline score (with no SP, no learning) is 90.1%, just classifier on raw images
