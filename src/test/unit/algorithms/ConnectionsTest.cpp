@@ -34,14 +34,14 @@ void setupSampleConnections(Connections &connections) {
   // - 1 connected synapse: active
   // - 2 matching synapses
   const Segment segment1_1 = connections.createSegment(10);
-  connections.createSynapse(segment1_1, 150, 0.85f);
+  connections.createSynapse(segment1_1, 150, 0.85f); //connected
   connections.createSynapse(segment1_1, 151, 0.15f);
 
   // Cell with 2 segments.
   // Segment with:
   // - 2 connected synapses: 2 active
   // - 3 matching synapses: 3 active
-  const Segment segment2_1 = connections.createSegment(20);
+  const Segment segment2_1 = connections.createSegment(20, 2/* max number of segments per cell*/);
   connections.createSynapse(segment2_1, 80, 0.85f);
   connections.createSynapse(segment2_1, 81, 0.85f);
   Synapse synapse = connections.createSynapse(segment2_1, 82, 0.85f);
@@ -51,7 +51,7 @@ void setupSampleConnections(Connections &connections) {
   // - 2 connected synapses: 1 active, 1 inactive
   // - 3 matching synapses: 2 active, 1 inactive
   // - 1 non-matching synapse: 1 active
-  const Segment segment2_2 = connections.createSegment(20);
+  const Segment segment2_2 = connections.createSegment(20, 2);
   connections.createSynapse(segment2_2, 50, 0.85f);
   connections.createSynapse(segment2_2, 51, 0.85f);
   connections.createSynapse(segment2_2, 52, 0.15f);

@@ -49,9 +49,13 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
         [](const Connections &self) { return self.getConnectedThreshold(); });
 
     py_Connections.def("createSegment", &Connections::createSegment,
-        py::arg("cell"));
+        py::arg("cell"),
+	py::arg("maxSegmentsPerCell") = 0
+	);
 
     py_Connections.def("destroySegment", &Connections::destroySegment);
+
+    py_Connections.def("iteration", &Connections::iteration);
 
     py_Connections.def("createSynapse", &Connections::createSynapse,
         py::arg("segment"),
@@ -93,9 +97,9 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
     py_Connections.def("reset", &Connections::reset);
 
     py_Connections.def("computeActivity",
-        [](Connections &self, SDR &activePresynapticCells) {
+        [](Connections &self, SDR &activePresynapticCells, bool learn=true) {
             // Call the C++ method.
-            auto activeConnectedSynapses = self.computeActivity(activePresynapticCells.getSparse());
+            auto activeConnectedSynapses = self.computeActivity(activePresynapticCells.getSparse(), learn);
             // Wrap vector in numpy array.
             return py::array(activeConnectedSynapses.size(),
                              activeConnectedSynapses.data());
@@ -103,7 +107,7 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
 R"(Returns numActiveConnectedSynapsesForSegment)");
 
     py_Connections.def("computeActivityFull",
-        [](Connections &self, SDR &activePresynapticCells) {
+        [](Connections &self, SDR &activePresynapticCells, bool learn=true) {
             // Allocate buffer to return & make a python destructor object for it.
             auto activePotentialSynapses =
                 new std::vector<SynapseIdx>( self.segmentFlatListLength(), 0u );
@@ -112,7 +116,8 @@ R"(Returns numActiveConnectedSynapsesForSegment)");
 		delete reinterpret_cast<std::vector<SynapseIdx>*>(dataPtr);});
             // Call the C++ method.
             auto activeConnectedSynapses = self.computeActivity(*activePotentialSynapses,
-                                            activePresynapticCells.getSparse());
+                                            activePresynapticCells.getSparse(), 
+					    learn);
             // Wrap vector in numpy array.
             return py::make_tuple(
                     py::array(activeConnectedSynapses.size(),

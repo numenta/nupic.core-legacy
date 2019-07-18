@@ -352,7 +352,7 @@ void SpatialPooler::getConnectedSynapses(UInt column,
 }
 
 void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
-  for(UInt seg = 0; seg < numColumns_; seg++) {
+  for(UInt seg = 0; seg < numColumns_; seg++) { //in SP each column = 1 cell with 1 segment only.
     const auto &segment = connections_.dataForSegment( seg );
     connectedCounts[ seg ] = segment.numConnected; //TODO numConnected only used here, rm from SegmentData and compute for each segment.synapses?
   }
@@ -435,7 +435,7 @@ void SpatialPooler::initialize(
 
   connections_.initialize(numColumns_, synPermConnected_);
   for (Size i = 0; i < numColumns_; ++i) {
-    connections_.createSegment( (CellIdx)i );
+    connections_.createSegment( (CellIdx)i , 1 /* max segments per cell is fixed for SP to 1 */);
 
     // Note: initMapPotential_ & initPermanence_ return dense arrays.
     vector<UInt> potential = initMapPotential_((UInt)i, wrapAround_);
@@ -462,7 +462,7 @@ const vector<SynapseIdx> SpatialPooler::compute(const SDR &input, const bool lea
   active.reshape( columnDimensions_ );
   updateBookeepingVars_(learn);
 
-  const auto& overlaps = calculateOverlap_(input);
+  const auto& overlaps = calculateOverlap_(input, learn);
 
   boostOverlaps_(overlaps, boostedOverlaps_);
 
@@ -800,8 +800,8 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
 }
 
 
-vector<SynapseIdx> SpatialPooler::calculateOverlap_(const SDR &input) { //TODO rm this method and replace with the conn.computeActivity()
-  return connections_.computeActivity(input.getSparse());
+vector<SynapseIdx> SpatialPooler::calculateOverlap_(const SDR &input, const bool learn) { //TODO rm this method and replace with the conn.computeActivity()
+  return connections_.computeActivity(input.getSparse(), learn);
 }
 
 
