@@ -1304,7 +1304,7 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
  * Hit the maxSegmentsPerCell threshold multiple times. Make sure it works
  * more than once.
  */
-TEST(ConnectionsTest, ReachSegmentLimitMultipleTimes) {
+TEST(TemporalMemoryTest, ReachSegmentLimitMultipleTimes) {
   TemporalMemory tm(
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 1,

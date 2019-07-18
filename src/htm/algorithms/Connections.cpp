@@ -206,18 +206,11 @@ void Connections::destroySegment(const Segment segment) {
 
   CellData &cellData = cells_[segmentData.cell];
 
-  const auto segmentOnCell =
-      std::lower_bound(cellData.segments.cbegin(), cellData.segments.cend(),
-                       segment, 
-		       [&](const Segment a, const Segment b) {
-			 return dataForSegment(a).id < dataForSegment(b).id;
-                       });
-
-  NTA_ASSERT(segmentOnCell != cellData.segments.end());
+  const auto segmentOnCell = std::find(cellData.segments.cbegin(), cellData.segments.cend(), segment);
+  NTA_ASSERT(segmentOnCell != cellData.segments.cend()) << "Segment to be destroyed not found on the cell!";
   NTA_ASSERT(*segmentOnCell == segment);
 
   cellData.segments.erase(segmentOnCell);
-
   destroyedSegments_.push_back(segment);
 }
 
