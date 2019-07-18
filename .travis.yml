@@ -49,7 +49,7 @@ env:
 virtualenv:
   system_site_packages: false
 
-# Successful builds are archived and uploaded to S3 for bamboo releases.
+# Successful merge/builds of the master are archived and released to pypi.
 before_deploy:
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - echo "Generating binary release:"
@@ -71,7 +71,7 @@ deploy:
 notifications:
 #  email:
 #    recipients:
-#      - "discourse-htm-developers@numenta.org"
+#      - "discourse-nupic-developers@numenta.org"
 #    on_success: never
 #    on_failure: change
   irc:
