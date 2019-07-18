@@ -1,16 +1,16 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# Community NuPIC.cpp repository (formerly [nupic.core](http://github.com/numenta/nupic.core))
+# htm.core
 
 [![Linux/OSX Build Status](https://travis-ci.org/htm-community/htm.core.svg?branch=master)](https://travis-ci.org/htm-community/htm.core)
 [![OSX CircleCI](https://circleci.com/gh/htm-community/htm.core/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/htm.core/tree/master)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
 
-This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings.
+This is a Community Fork of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository, with Python bindings.
 
 ## Project Goals
 
-- Actively developed C++ core library for nupic.core (Numenta's repos are in maintenance mode only)
+- Actively developed C++ core library (Numenta's NuPIC repos are in maintenance mode only)
 - Clean, lean, optimized, and modern codebase
 - Stable and well tested code
 - Open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful).
@@ -42,11 +42,11 @@ in C++ library.
 
 ## Building from Source
 
-Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
+Fork or download the HTM-Community htm.core repository from https://github.com/htm-community/htm.core
 
 ## Prerequisites
 
-- [CMake](http://www.cmake.org/)
+- [CMake](http://www.cmake.org/)  Version 3.8  (3.14 for Visual Studio 2019)
 - [Python](https://python.org/downloads/)
     - Version 3.4+
     - Version 2.7
@@ -125,10 +125,11 @@ make -j install
 
  * This will not build the Python interface.
 
-## Simple Build On Windows (MS Visual Studio 2017)
+## Simple Build On Windows (MS Visual Studio 2017 or 2019)
 
 After downloading the repository, do the following:
 
+ * NOTE: Visual Studio 2019 requires CMake version 3.14 or higher.
  * CD to the top of repository.
  * Double click on startupMSVC.bat
     - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
@@ -161,12 +162,12 @@ docker build --build-arg arch=arm64 .
 
 ### Linux auto build @ TravisCI
 
- * [Build](https://travis-ci.org/htm-community/nupic.cpp)
+ * [Build](https://travis-ci.org/htm-community/htm.core)
  * [Config](./.travis.yml)
 
 ### Mac OS/X auto build @ CircleCI
 
- * [Build](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
+ * [Build](https://circleci.com/gh/htm-community/htm.core/tree/master)
  * [Config](./.circleci/config.yml)
  * Local Test Build: `circleci local execute --job build-and-test`
 
@@ -179,7 +180,7 @@ docker build --build-arg arch=arm64 .
 
 This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
 
- * **TODO!** [Build]()
+ * [Build](https://circleci.com/gh/htm-community/htm.core/tree/master)
  * [Config](./.circleci/config.yml)
  * Local Test Build: `circleci local execute --job arm64-build-test`
 

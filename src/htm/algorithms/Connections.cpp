@@ -268,9 +268,11 @@ void Connections::updateSynapsePermanence(Synapse synapse,
   
   const bool before = synData.permanence >= connectedThreshold_;
   const bool after  = permanence         >= connectedThreshold_;
+
+  // update the permanence
   synData.permanence = permanence;
 
-  if( before == after ) { //no change
+  if( before == after ) { //no change in dis/connected status
       return;
   }
     const auto &presyn    = synData.presynapticCell;
@@ -371,16 +373,16 @@ bool Connections::compareSegments(const Segment a, const Segment b) const {
   }
 }
 
-vector<Synapse>
-Connections::synapsesForPresynapticCell(CellIdx presynapticCell) const {
-  vector<Synapse> all(
-      potentialSynapsesForPresynapticCell_.at(presynapticCell).begin(),
-      potentialSynapsesForPresynapticCell_.at(presynapticCell).end());
-  all.insert( all.end(),
-      connectedSynapsesForPresynapticCell_.at(presynapticCell).begin(),
-      connectedSynapsesForPresynapticCell_.at(presynapticCell).end());
+
+vector<Synapse> Connections::synapsesForPresynapticCell(const CellIdx presynapticCell) const {
+  const auto& potential = potentialSynapsesForPresynapticCell_.at(presynapticCell);
+  const auto& connected = connectedSynapsesForPresynapticCell_.at(presynapticCell);
+
+  vector<Synapse> all( potential.cbegin(), potential.cend());
+  all.insert( all.cend(), connected.cbegin(), connected.cend());
   return all;
 }
+
 
 void Connections::reset()
 {

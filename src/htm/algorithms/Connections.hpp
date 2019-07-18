@@ -42,8 +42,8 @@ using SynapseIdx= UInt16; /** Index of synapse in segment. */
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
 using Permanence= Real32; //TODO experiment with half aka float16
-const Permanence minPermanence = 0.0f;
-const Permanence maxPermanence = 1.0f;
+constexpr const Permanence minPermanence = 0.0f;
+constexpr const Permanence maxPermanence = 1.0f;
 
 
 /**
@@ -650,10 +650,13 @@ private:
   Permanence               connectedThreshold_; //TODO make const
 
   // Extra bookkeeping for faster computing of segment activity.
-  std::unordered_map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
-  std::unordered_map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
+ 
+  struct identity { constexpr size_t operator()( const CellIdx t ) const noexcept { return t; };   };	//TODO in c++20 use std::identity 
+
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> potentialSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> connectedSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> potentialSegmentsForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> connectedSegmentsForPresynapticCell_;
 
   std::vector<Segment> segmentOrdinals_;
   std::vector<Synapse> synapseOrdinals_;
