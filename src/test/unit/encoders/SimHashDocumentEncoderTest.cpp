@@ -29,23 +29,20 @@ namespace testing {
 
   using namespace htm;
 
-  std::vector<std::string> test_tokens = {"alpha", "beta", "delta", "echo"};
-
   // @TODO see RDSE TestSerialize
   // @TODO conform test names below to rest of codebase
+  // @TODO test param tokenSimilarity states
 
   /**
    * Make sure our encoder can initalize with basic params.
    */
   TEST(SimHashDocumentEncoder, validParametersTest) {
     SimHashDocumentEncoderParameters p;
-    p.tokens = test_tokens;
     p.size = 10u;
     p.activeBits = 2u;
 
     SimHashDocumentEncoder e(p);
 
-    ASSERT_EQ(e.parameters.tokens, test_tokens);
     ASSERT_EQ(e.parameters.size, 10u);
     ASSERT_EQ(e.parameters.activeBits, 2u);
   }
@@ -56,13 +53,11 @@ namespace testing {
    */
   TEST(SimHashDocumentEncoder, validSparsityParameterTest) {
     SimHashDocumentEncoderParameters p;
-    p.tokens = test_tokens;
     p.size = 10u;
     p.sparsity = 0.20f;
 
     SimHashDocumentEncoder e(p);
 
-    ASSERT_EQ(e.parameters.tokens, test_tokens);
     ASSERT_EQ(e.parameters.size, 10u);
     ASSERT_EQ(e.parameters.activeBits, 2u);
   }
@@ -72,32 +67,14 @@ namespace testing {
    */
   TEST(SimHashDocumentEncoder, validEncodingInputPassTest) {
     SimHashDocumentEncoderParameters p;
-    p.tokens = test_tokens;
-    p.size = 10u;
-    p.activeBits = 2u;
+    p.size = 400u;
+    p.activeBits = 21u;
 
     SDR output({ p.size });
     SimHashDocumentEncoder e(p);
 
     EXPECT_NO_THROW(e.encode({"beta", "delta"}, output));
     EXPECT_ANY_THROW(e.encode({}, output));
-  }
-
-  /**
-   * Make sure the tokens we use to encode() were already seen when our encoder
-   * was initialized (via 'tokens' param).
-   */
-  TEST(SimHashDocumentEncoder, validEncodingInputTokenTest) {
-    SimHashDocumentEncoderParameters p;
-    p.tokens = test_tokens;
-    p.size = 10u;
-    p.activeBits = 2u;
-
-    SDR output({ p.size });
-    SimHashDocumentEncoder e(p);
-
-    EXPECT_NO_THROW(e.encode({"beta", "delta"}, output));
-    EXPECT_ANY_THROW(e.encode({"beta", "foxtrot"}, output)); // no "foxtrot"
   }
 
 } // end namespace testing

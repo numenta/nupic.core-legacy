@@ -21,11 +21,40 @@
  * Implementation of the SimHashDocumentEncoder
  */
 
-#include <digestpp.hpp> // sha3+shake256
+#include <bitset>
+#include <climits> // CHAR_BIT
+#include <string>
 #include <htm/encoders/SimHashDocumentEncoder.hpp>
+
+// digestpp: sha3+shake256 hash digests
+#include <hasher.hpp>
+#include <algorithm/sha3.hpp>
+#include <algorithm/shake.hpp>
 
 
 namespace htm {
+
+  /**
+   * Convert vector of bytes to longer vector of bits
+   */
+  SDR_dense_t hashDigestBytesToBits(std::vector<unsigned char> bytes) {
+    SDR_dense_t bits;
+    for (auto byte : bytes) {
+      for (auto bit : std::bitset<CHAR_BIT>(byte).to_string()) {
+        bits.push_back((bool) ((UInt) (bit - '0')));
+      }
+    }
+    return bits;
+  }
+
+  /**
+   * Create a SimHash SDR from a vector array of Hash SDR's
+   */
+  SDR simHash(std::vector<SDR> hashes) {
+    SDR result;
+    return result;
+  }
+
 
   SimHashDocumentEncoder::SimHashDocumentEncoder(const SimHashDocumentEncoderParameters &parameters)
     { initialize(parameters); }
@@ -40,8 +69,6 @@ namespace htm {
       << "Need only one argument of: 'activeBits' or 'sparsity'.";
     NTA_CHECK(parameters.size > 0u)
       << "Missing 'size' argument.";
-    NTA_CHECK(parameters.tokens.size() > 0u)
-      << "Missing document corpus 'tokens', expecting at least 1 string member.";
 
     // Make local copy of arguments for processing
     args_ = parameters;
@@ -55,14 +82,10 @@ namespace htm {
       args_.activeBits = (UInt) round(args_.size * args_.sparsity);
     }
 
-    // process: make sure corpus token list is sorted
-    std::sort(args_.tokens.begin(), args_.tokens.end());
-
     // Post-processing, Sanity check the parameters
     NTA_CHECK(args_.size > 0u);
     NTA_CHECK(args_.activeBits > 0u);
     NTA_CHECK(args_.activeBits < args_.size);
-    NTA_CHECK(args_.tokens.size() > 0u);
 
     // Initialize parent class with finalized params
     BaseEncoder<std::vector<std::string>>::initialize({ args_.size });
@@ -73,31 +96,52 @@ namespace htm {
    */
   void SimHashDocumentEncoder::encode(std::vector<std::string> input, SDR &output)
   {
-    // verify input tokens were passed in
     NTA_CHECK(input.size() > 0u)
       << "Encoding input vector array should have at least 1 string member.";
-    // verify input tokens against corpus tokens (from init)
-    std::sort(input.begin(), input.end());
-    NTA_CHECK(std::includes(args_.tokens.begin(), args_.tokens.end(), input.begin(), input.end()))
-      << "Unrecognized input token, all 'tokens' required during encoder init.";
 
-    LogItem::setLogLevel(htm::LogLevel_Verbose);
+    digestpp::shake256 hasher;
 
-    // for (auto i : input)
-    //  NTA_DEBUG << "hi";
+    // split token list into individual tokens
+    for (auto token : input) {
+      LogItem::setLogLevel(htm::LogLevel_Verbose);
+      NTA_DEBUG << token;
 
-    digestpp::shake256 digest;
-    digest.absorb("The quick brown fox jumps over the lazy dog");
-    NTA_DEBUG << "shake256-digest = " << digest.hexsqueeze(64) << std::endl;
+      if (args_.tokenSimilarity) {
+        // each token is itself simhashed (each letter/char is individually hashed)
+        // split token into individual letter-characters
+        for (auto letter : token) {
+          // generate hash digest for single character
+          std::vector<unsigned char> digest;
+          hasher.absorb(std::string (1, letter));
+          hasher.squeeze(args_.size / CHAR_BIT, back_inserter(digest));
+          hasher.reset();
+          SDR_dense_t bits = hashDigestBytesToBits(digest);
+          SDR hash({args_.size});
+          hash.setDense(bits);
+          NTA_DEBUG << "  " << letter << " " << hash;
+        }
+      } // end if tokenSimilarity
+      else {
+        // generate hash digest for whole token string
+        std::vector<unsigned char> digest;
+        hasher.absorb(token);
+        hasher.squeeze(args_.size / CHAR_BIT, back_inserter(digest));
+        hasher.reset();
+        SDR_dense_t bits = hashDigestBytesToBits(digest);
+        SDR hash({args_.size});
+        hash.setDense(bits);
+        NTA_DEBUG << "  " << hash;
+      } // end else tokenSimilarity
+    }
   } // end method encode
 
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self)
   {
     out << "SimHashDocumentEncoder \n";
-    out << "  activeBits:" << self.parameters.activeBits << ",\n";
-    out << "  sparsity:  " << self.parameters.sparsity   << ",\n";
-    out << "  size:      " << self.parameters.size       << ",\n";
-    out << "  # tokens:  " << self.parameters.tokens.size() << std::endl;
+    out << "  activeBits:       " << self.parameters.activeBits       << ",\n";
+    out << "  sparsity:         " << self.parameters.sparsity         << ",\n";
+    out << "  size:             " << self.parameters.size             << ",\n";
+    out << "  tokenSimilarity:  " << self.parameters.tokenSimilarity  << ",\n";
     return out;
   }
 

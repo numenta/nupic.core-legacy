@@ -54,10 +54,15 @@ namespace htm {
     UInt size = 0u;
 
     /**
-     * Member "tokens" is all token strings from all documents. This is the
-     * corpus from which encodings will draw.
+     * Member "tokenSimilarity" is a switch to control if similar tokens will
+     * have similar representations. If True (default), similar tokens such as
+     * "cat" and "cats" will have very similar representations (each
+     * representation being a sub-SimHash of the hashes of each letter-character
+     * in the token). If False, similar tokens ("cat", "cats") will have
+     * completely unrelated representations (each representation being a hash of
+     * the complete token string).
      */
-    std::vector<std::string> tokens = {};
+    bool tokenSimilarity = true;
   }; // end struct SimHashDocumentEncoderParameters
 
   /**
@@ -83,7 +88,7 @@ namespace htm {
       ar(cereal::make_nvp("activeBits", args_.activeBits));
       ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("size", args_.size));
-      ar(cereal::make_nvp("tokens", args_.tokens));
+      ar(cereal::make_nvp("tokenSimilarity", args_.size));
     }
 
     // FOR Cereal Deserialization
@@ -94,7 +99,7 @@ namespace htm {
       ar(cereal::make_nvp("activeBits", args_.activeBits));
       ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("size", args_.size));
-      ar(cereal::make_nvp("tokens", args_.tokens));
+      ar(cereal::make_nvp("tokenSimilarity", args_.size));
     }
 
     ~SimHashDocumentEncoder() override {};
