@@ -462,7 +462,7 @@ const vector<SynapseIdx> SpatialPooler::compute(const SDR &input, const bool lea
   active.reshape( columnDimensions_ );
   updateBookeepingVars_(learn);
 
-  const auto& overlaps = calculateOverlap_(input, learn);
+  const auto& overlaps = connections_.computeActivity(input.getSparse(), learn);
 
   boostOverlaps_(overlaps, boostedOverlaps_);
 
@@ -797,11 +797,6 @@ void SpatialPooler::updateBookeepingVars_(bool learn) {
   if (learn) {
     iterationLearnNum_++;
   }
-}
-
-
-vector<SynapseIdx> SpatialPooler::calculateOverlap_(const SDR &input, const bool learn) { //TODO rm this method and replace with the conn.computeActivity()
-  return connections_.computeActivity(input.getSparse(), learn);
 }
 
 

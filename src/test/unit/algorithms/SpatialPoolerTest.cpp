@@ -1082,8 +1082,9 @@ TEST(SpatialPoolerTest, testCalculateOverlap) {
 
   for (UInt i = 0; i < numTrials; i++) {
     SDR input({numInputs});
+    SDR output(sp.getColumnDimensions());
     input.setDense(SDR_dense_t(inputs[i], inputs[i] + numInputs));
-    const auto overlaps = sp.calculateOverlap_(input);
+    const auto overlaps = sp.compute(input, false, output);
     ASSERT_TRUE(check_vector_eq(trueOverlaps[i], overlaps));
   }
 }

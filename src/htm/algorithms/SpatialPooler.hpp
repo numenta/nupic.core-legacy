@@ -857,28 +857,6 @@ public:
                                     const vector<UInt> &potential) const;
 
   /**
-     This function determines each column's overlap with the current
-     input vector.
-
-     The overlap of a column is the number of synapses for that column
-     that are connected (permanence value is greater than
-     '_synPermConnected') to input bits which are turned on.
-
-     @param inputVector
-     a int array of 0's and 1's that comprises the input to the spatial
-     pooler.
-
-     @param learn : bool, default true. See @ref `Connections::computeActivity()`
-
-     @return overlap
-     an int vector containing the overlap score for each column. The
-     overlap score for a column is defined as the number of synapses in
-     a "connected state" (connected synapses) that are connected to
-     input bits which are turned on.
-  */
-  vector<SynapseIdx> calculateOverlap_(const SDR &input, const bool learn = true);
-
-  /**
       Performs inhibition. This method calculates the necessary values needed to
       actually perform inhibition and then delegates the task of picking the
       active columns to helper functions.
