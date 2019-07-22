@@ -46,6 +46,7 @@ class ParticleData:
         p.best       - ParameterSet
         p.score      - float
         p.age        - Number of times this particle has been evaluated/updated.
+        p.lock       - Is this particle currently being evaluated?
     """
     def __init__(self, initial_parameters, swarm=None):
         self.parameters = ParameterSet( initial_parameters )
@@ -53,6 +54,7 @@ class ParticleData:
         self.best_score = None
         self.age        = 0
         self.initialize_velocities(swarm)
+        self.lock       = False
 
     def initialize_velocities(self, swarm=None):
         # Make a new parameter structure for the velocity data.
@@ -116,7 +118,6 @@ class ParticleSwarmOptimization(BaseOptimizer):
     Attributes:
         pso.lab           - Laboratory
         pso.particles     - Number of particles to use.
-        pso.next_particle - Index into pso.swarm
         pso.swarm_path    - Data File for this particle swarm.
         pso.swarm         - List of ParticleData
         pso.best          - ParameterSet
@@ -142,7 +143,6 @@ class ParticleSwarmOptimization(BaseOptimizer):
         self.lab           = lab
         self.swarm         = []
         self.particles     = args.swarming
-        self.next_particle = random.randrange( self.particles )
         self.best          = None
         self.best_score    = None
         assert( self.particles >= args.processes )
@@ -164,11 +164,20 @@ class ParticleSwarmOptimization(BaseOptimizer):
             if( len(self.swarm) >= 3 ):
                 new_particle.update_position()
             self.swarm.append( new_particle )
+        # Clear all of the mutex locks before starting.
+        for particle in self.swarm:
+            particle.lock = False
 
     def suggest_parameters(self):
-        particle_data = self.swarm[self.next_particle]
-        self.next_particle = (self.next_particle + 1) % self.particles
+        unlocked_particles = [p for p in self.swarm if not p.lock]
+        if not unlocked_particles:
+            print("Thread blocked waiting for particle to evaluate.")
+            time.sleep( 60 )
+            return self.suggest_parameters()
+
+        particle_data = random.choice( unlocked_particles )
         particle_data.parameters.typecast( self.lab.structure )
+        particle_data.lock = True
         return particle_data.parameters
 
     def collect_results(self, parameters, score):
@@ -198,6 +207,7 @@ class ParticleSwarmOptimization(BaseOptimizer):
                 self.best_score = score
                 print("New global best score %g."%score)
             particle.update( score, self.best )
+        particle.lock = False
         self.save()
 
     def save(self):
