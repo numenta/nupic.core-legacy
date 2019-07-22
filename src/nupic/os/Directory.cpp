@@ -255,8 +255,10 @@ void Iterator::init(const std::string &path) {
 Iterator::~Iterator() {
   apr_status_t res = ::apr_dir_close(handle_);
   ::apr_pool_destroy(pool_);
-  NTA_CHECK(res == 0) << "Couldn't close directory."
-                      << " OS num: " << APR_TO_OS_ERROR(res);
+  if (res != 0) {
+    NTA_WARN << "Couldn't close directory."
+             << " OS num: " << APR_TO_OS_ERROR(res);
+  }
 }
 
 void Iterator::reset() {
