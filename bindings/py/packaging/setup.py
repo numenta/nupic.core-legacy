@@ -175,14 +175,14 @@ def getExtensionFiles(platform):
   files = getExtensionFileNames(platform)
   for f in files:
     if not os.path.exists(f):
-      generateExtensions()
+      generateExtensions(platform)
       break
 
   return files
 
 
 
-def generateExtensions():
+def generateExtensions(platform):
   """
   This will perform a full Release build with default arguments.
   The CMake build will copy everything in the Repository/bindings/py/packaging 
@@ -206,7 +206,10 @@ def generateExtensions():
     if not os.path.isdir(scriptsDir):
       os.makedirs(scriptsDir)
     os.chdir(scriptsDir)
-    subprocess.check_call(["cmake", PY_VER, REPO_DIR])
+    if platform == WINDOWS_PLATFORMS:
+      subprocess.check_call(["cmake", PY_VER, REPO_DIR, "-A", "x64"])
+    else:
+      subprocess.check_call(["cmake", PY_VER, REPO_DIR])
     subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", "Release"])
   finally:
     os.chdir(cwd)
