@@ -686,7 +686,7 @@ TEST(SdrTest, TestConcatenation) {
     ASSERT_EQ( D.getSum(), 10u );
 
     //concat explicit vector
-    std::vector<SDR*> AB;
+    std::vector<const SDR*> AB;
     AB.push_back(&A);
     AB.push_back(&B);
     AB.push_back(&A);
