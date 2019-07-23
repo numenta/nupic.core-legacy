@@ -92,7 +92,8 @@ matrix:
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
-
+before_build:
+#  - ps: gitversion /l console /output buildserver
 
 install:
   # Dump appveyor build vars for diagnostics
