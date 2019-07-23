@@ -430,10 +430,8 @@ namespace htm {
         SDR::setDenseInplace();
     }
 
-    void SparseDistributedRepresentation::concatenate(const SDR &inp1, const SDR &inp2, UInt axis)
-        { concatenate({&inp1, &inp2}, axis); }
 
-    void SparseDistributedRepresentation::concatenate(vector<const SDR*> inputs, UInt axis)
+    void SparseDistributedRepresentation::concatenate(const std::vector<const SDR*>& inputs, const UInt axis)
     {
         // Check inputs.
         NTA_CHECK( inputs.size() >= 2u )
