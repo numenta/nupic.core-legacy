@@ -188,6 +188,7 @@ def generateExtensions(platform):
   The CMake build will copy everything in the Repository/bindings/py/packaging 
   directory to the distr directory (Repository/build/Release/distr)
   and then create the extension libraries in Repository/build/Release/distr/src/nupic/bindings.
+  Note: for Windows it will force a X64 build.
   """
   cwd = os.getcwd()
   
