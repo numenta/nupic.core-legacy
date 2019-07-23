@@ -95,7 +95,9 @@ if __name__ == '__main__':
     else:
         n_samples = (enc.parameters.maximum - enc.parameters.minimum) / enc.parameters.resolution
         oversample = 2 # Use more samples than needed to avoid aliasing & artifacts.
-        n_samples  = int(round( oversample * n_samples ))
+        n_samples  = int(round( oversample * n_samples )) #TODO should this be done already in the c++?
+    assert n_samples > 0
+
     sdrs = []
     for i in np.linspace(enc.parameters.minimum, enc.parameters.maximum, n_samples):
       sdrs.append( enc.encode( i ) )

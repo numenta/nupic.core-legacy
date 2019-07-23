@@ -21,7 +21,7 @@ import datetime
 import numpy
 import math
 
-from htm.encoders.scalar_encoder import ScalarEncoder, ScalarEncoderParameters
+from htm.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
 from htm.bindings.sdr import SDR
 
 
