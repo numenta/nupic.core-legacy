@@ -673,12 +673,25 @@ TEST(SdrTest, TestConcatenation) {
     SDR B({10});
     SDR C({20});
     SDR D({20});
+    SDR E({30});
     A.randomize( 0.30f );
     B.randomize( 0.70f );
-    C.concatenate( A, B );
+    
+    //concat 2 members
+    EXPECT_NO_THROW(C.concatenate( A, B ));
     ASSERT_EQ( C.getSum(), 10u );
-    D.concatenate({&A, &B});
+
+    //concat a vector
+    EXPECT_NO_THROW(D.concatenate({&A, &B}));
     ASSERT_EQ( D.getSum(), 10u );
+
+    //concat explicit vector
+    std::vector<const SDR*> AB;
+    AB.push_back(&A);
+    AB.push_back(&B);
+    AB.push_back(&A);
+    EXPECT_NO_THROW(E.concatenate(AB));
+    ASSERT_EQ(E.getSum(), 13u);
 }
 
 TEST(SdrTest, TestEquality) {

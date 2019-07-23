@@ -561,12 +561,14 @@ public:
      *      C.concatenate( A, B );
      *      C.getSparse() -> {0, 1, 2, 10, 11, 12}
      */
-    void concatenate(const SparseDistributedRepresentation &inp1,
-                     const SparseDistributedRepresentation &inp2,
-                     UInt  axis = 0u);
+    inline void concatenate(const SparseDistributedRepresentation &inp1,
+                            const SparseDistributedRepresentation &inp2,
+                            const UInt  axis = 0u) {
+      this->concatenate({&inp1, &inp2}, axis);
+    }
 
-    void concatenate(std::vector<const SparseDistributedRepresentation*> inputs,
-                     UInt axis = 0u);
+    void concatenate(const std::vector<const SparseDistributedRepresentation*>& inputs,
+                     const UInt axis = 0u);
 
     /**
      * Print a human readable version of the SDR.
