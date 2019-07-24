@@ -480,6 +480,7 @@ public:
        CEREAL_NVP(segmentsValid_),
        CEREAL_NVP(tmAnomaly_.anomaly_),
        CEREAL_NVP(tmAnomaly_.mode_),
+       CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
        CEREAL_NVP(connections));
 
     cereal::size_type numActiveSegments = activeSegments_.size();
@@ -536,6 +537,7 @@ public:
        CEREAL_NVP(segmentsValid_),
        CEREAL_NVP(tmAnomaly_.anomaly_),
        CEREAL_NVP(tmAnomaly_.mode_),
+       CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
        CEREAL_NVP(connections));
 
     numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
@@ -639,7 +641,6 @@ private:
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
   Random rng_;
-  AnomalyLikelihood anomalyLikelihood;
 
 public:
   Connections connections;
@@ -660,6 +661,7 @@ public:
       friend class TemporalMemory;
       Real anomaly_ = 0.5f; //default value
       ANMode mode_ = ANMode::RAW;
+      AnomalyLikelihood anomalyLikelihood_; //TODO provide default/customizable params here
   } tmAnomaly_;
 
 };

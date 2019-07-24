@@ -547,7 +547,7 @@ void TemporalMemory::compute(const SDR &activeColumns,
       const Real raww = computeRawAnomalyScore(
                          activeColumns,
                          cellsToColumns( getPredictiveCells() ));
-      tmAnomaly_.anomaly_ = anomalyLikelihood.anomalyProbability(raww);
+      tmAnomaly_.anomaly_ = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raww);
       }
       break;
 
@@ -556,8 +556,8 @@ void TemporalMemory::compute(const SDR &activeColumns,
       const Real raw = computeRawAnomalyScore(
                          activeColumns,
                          cellsToColumns( getPredictiveCells() ));
-      const Real like = anomalyLikelihood.anomalyProbability(raw);
-      const Real log  = anomalyLikelihood.computeLogLikelihood(like);
+      const Real like = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
+      const Real log  = tmAnomaly_.anomalyLikelihood_.computeLogLikelihood(like);
       tmAnomaly_.anomaly_ = log;
       }
       break;
@@ -584,7 +584,7 @@ void TemporalMemory::reset(void) {
   activeSegments_.clear();
   matchingSegments_.clear();
   segmentsValid_ = false;
-  tmAnomaly_.anomaly_ = 0.5f;
+  tmAnomaly_.anomaly_ = -1.0f; //TODO reset rather to 0.5 as default (undecided) anomaly
 }
 
 // ==============================
@@ -795,7 +795,7 @@ bool TemporalMemory::operator==(const TemporalMemory &other) const {
       maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_ ||
       tmAnomaly_.anomaly != other.tmAnomaly_.anomaly ||
       tmAnomaly_.mode_ != other.tmAnomaly_.mode_ || 
-      anomalyLikelihood != other.anomalyLikelihood ) {
+      tmAnomaly_.anomalyLikelihood_ != other.tmAnomaly_.anomalyLikelihood_ ) {
     return false;
   }
 
