@@ -105,7 +105,6 @@ install:
   - GitVersion.exe
   - GitVersion.exe /output buildserver
   - "echo SemVer for this push: %system.GitVersion.SemVer%"
-  - "echo %system.GitVersion.SemVer%" > VERSION
   
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
