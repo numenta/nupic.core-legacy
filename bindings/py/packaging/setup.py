@@ -208,7 +208,10 @@ def generateExtensions(platform):
       os.makedirs(scriptsDir)
     os.chdir(scriptsDir)
     if platform == WINDOWS_PLATFORMS:
-      subprocess.check_call(["cmake", PY_VER, REPO_DIR, "-A", "x64"])
+      if os.path.exists('C:\Program Files (x86)\Microsoft Visual Studio\2019'):
+        subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
+      else:
+        subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
     else:
       subprocess.check_call(["cmake", PY_VER, REPO_DIR])
     subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", "Release"])
