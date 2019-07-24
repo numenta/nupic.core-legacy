@@ -533,44 +533,38 @@ void TemporalMemory::compute(const SDR &activeColumns,
   // Must be computed here, between `activateDendrites()` and `activateCells()`.
   switch(tmAnomaly_.mode_) {
 
-    case ANMode::DISABLED:
-      break;
+    case ANMode::DISABLED: {
+      tmAnomaly_.anomaly_ = 0.5f; 
+			   } break;
 
-    case ANMode::RAW:
+    case ANMode::RAW: {
       tmAnomaly_.anomaly_ = computeRawAnomalyScore(
                              activeColumns,
                              cellsToColumns( getPredictiveCells() ));
-      break; 
+		      } break;
 
-    case ANMode::LIKELIHOOD:
-      {
-      const Real raww = computeRawAnomalyScore(
+    case ANMode::LIKELIHOOD: {
+      const Real raw = computeRawAnomalyScore(
                          activeColumns,
                          cellsToColumns( getPredictiveCells() ));
-      tmAnomaly_.anomaly_ = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raww);
-      }
-      break;
+      tmAnomaly_.anomaly_ = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
+			     } break;
 
-    case ANMode::LOGLIKELIHOOD:
-      {
+    case ANMode::LOGLIKELIHOOD: {
       const Real raw = computeRawAnomalyScore(
                          activeColumns,
                          cellsToColumns( getPredictiveCells() ));
       const Real like = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
       const Real log  = tmAnomaly_.anomalyLikelihood_.computeLogLikelihood(like);
       tmAnomaly_.anomaly_ = log;
-      }
-      break;
-
-    default:
-      NTA_THROW << "TM.anomaly got unknown mode during computation ";
-
+				} break;
   // TODO: Update mean & standard deviation of anomaly here.
-  }
-  NTA_ASSERT(tmAnomaly_.anomaly >= 0.0f and tmAnomaly_.anomaly <= 1.0f) << "TM.anomaly is out-of-bounds!";
+  };
+  NTA_ASSERT(tmAnomaly_.anomaly_ >= 0.0f and tmAnomaly_.anomaly_ <= 1.0f) << "TM.anomaly is out-of-bounds!";
 
   activateCells(activeColumns, learn);
 }
+
 
 void TemporalMemory::compute(const SDR &activeColumns, const bool learn) {
   SDR externalPredictiveInputsActive({ externalPredictiveInputs_ });
@@ -793,7 +787,7 @@ bool TemporalMemory::operator==(const TemporalMemory &other) const {
       winnerCells_ != other.winnerCells_ ||
       maxSegmentsPerCell_ != other.maxSegmentsPerCell_ ||
       maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_ ||
-      tmAnomaly_.anomaly != other.tmAnomaly_.anomaly ||
+      tmAnomaly_.anomaly_ != other.tmAnomaly_.anomaly_ ||
       tmAnomaly_.mode_ != other.tmAnomaly_.mode_ || 
       tmAnomaly_.anomalyLikelihood_ != other.tmAnomaly_.anomalyLikelihood_ ) {
     return false;

@@ -37,6 +37,7 @@ namespace htm {
 using namespace std;
 using namespace htm;
 
+
 /**
  * Temporal Memory implementation in C++.
  *
@@ -241,6 +242,10 @@ public:
    * This method calls activateDendrites, then calls activateCells. Using
    * the TemporalMemory via its compute method ensures that you'll always
    * be able to call getActiveCells at the end of the time step.
+   *
+   * Additionaly, this method computes anomaly for `TM.anomaly&`, if you
+   * use other learning methods (activateCells(), activateDendrites()) your
+   * anomaly scores will be off. 
    *
    * @param activeColumns
    * Sorted SDR of active columns.
@@ -642,10 +647,22 @@ private:
 
   Random rng_;
 
+  /**
+   * holds logic and data for TM's anomaly
+   */
+  struct anomaly_tm {
+    protected:
+      friend class TemporalMemory;
+      Real anomaly_ = 0.5f; //default value
+      ANMode mode_ = ANMode::RAW;
+      AnomalyLikelihood anomalyLikelihood_; //TODO provide default/customizable params here
+  };
+
 public:
   Connections connections;
   const UInt &externalPredictiveInputs = externalPredictiveInputs_;
 
+  anomaly_tm tmAnomaly_;
   /*
    *  anomaly score computed for the current inputs
    *  (auto-updates after each call to TM::compute())
@@ -653,16 +670,8 @@ public:
    *  @return a float value from computeRawAnomalyScore()
    *  from Anomaly.hpp
    */
-  const Real &anomaly = tmAnomaly_.anomaly;
-  struct anomaly_tm {
-    const Real& anomaly = anomaly_;
-
-    protected:
-      friend class TemporalMemory;
-      Real anomaly_ = 0.5f; //default value
-      ANMode mode_ = ANMode::RAW;
-      AnomalyLikelihood anomalyLikelihood_; //TODO provide default/customizable params here
-  } tmAnomaly_;
+const Real &anomaly = tmAnomaly_.anomaly_; //this is position dependant, the struct anomaly_tm must be defined before this use,
+// otherwise this surprisingly compiles, but a call to `tmAnomaly_.anomaly` segfaults!
 
 };
 
