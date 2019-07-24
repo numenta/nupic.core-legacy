@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------------
  * HTM Community Edition of NuPIC
  * Copyright (C) 2016, Numenta, Inc. https://numenta.com
- *               2019, David McDougall
  *               2019, Brev Patterson, Lux Rota LLC, https://luxrota.com
+ *               2019, David McDougall
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero Public License version 3 as published by
@@ -18,55 +18,56 @@
  * -------------------------------------------------------------------------- */
 
 /** @file
- * Define the SimHashDocumentEncoder
+ * SimHashDocumentEncoder.hpp
+ * @author Brev Patterson, Lux Rota LLC, https://luxrota.com
+ * @author David McDougall
+ * @since 0.2.3
  */
 
 #ifndef NTA_ENCODERS_SIMHASH_DOCUMENT
 #define NTA_ENCODERS_SIMHASH_DOCUMENT
 
+#include <Eigen/Dense>
+#include <string>
+#include <vector>
+
 #include <htm/encoders/BaseEncoder.hpp>
 #include <htm/types/Types.hpp>
+
+// @TODO py bind
+// @TODO article
 
 
 namespace htm {
 
   /**
-   * Encoder Parameters
+   * SimHashDocumentEncoderParameters
+   *
+   * @param :activeBits: The number of true bits in the encoded output SDR.
    *  Specify only one of: activeBits or sparsity.
+   * @param :size: Total number of bits in the encoded output SDR.
+   * @param :sparsity: An alternative way to specify the member
+   *  "activeBits". Sparsity requires that the size to also be specified.
+   *  Specify only one of: activeBits or sparsity.
+   * @param :tokenSimilarity: If True (default), similar tokens such as
+   *  "cat" and "cats" will have very similar representations. If False,
+   *  similar tokens ("cat", "cats") will have completely unrelated
+   *  representations.
    */
   struct SimHashDocumentEncoderParameters {
-    /**
-     * Member "activeBits" is the number of true bits in the encoded output SDR.
-     * Specify only one of: activeBits or sparsity.
-     */
     UInt activeBits = 0u;
-
-    /**
-     * Member "sparsity" is an alternative way to specify the member
-     * "activeBits". Sparsity requires that the size to also be specified.
-     * Specify only one of: activeBits or sparsity.
-     */
-    Real sparsity = 0.0f;
-
-    /**
-     * Member "size" is the total number of bits in the encoded output SDR.
-     */
     UInt size = 0u;
-
-    /**
-     * Member "tokenSimilarity" is a switch to control if similar tokens will
-     * have similar representations. If True (default), similar tokens such as
-     * "cat" and "cats" will have very similar representations (each
-     * representation being a sub-SimHash of the hashes of each letter-character
-     * in the token). If False, similar tokens ("cat", "cats") will have
-     * completely unrelated representations (each representation being a hash of
-     * the complete token string).
-     */
+    Real sparsity = 0.0f;
     bool tokenSimilarity = true;
   }; // end struct SimHashDocumentEncoderParameters
 
   /**
-   * @TODO
+   * SimHashDocumentEncoder
+   *
+   * High level API description here
+   *
+   * @see BaseEncoder.hpp
+   * @see SimHashDocumentEncoder.cpp
    */
   class SimHashDocumentEncoder : public BaseEncoder<std::vector<std::string>> {
   public:
@@ -75,12 +76,10 @@ namespace htm {
     void initialize(const SimHashDocumentEncoderParameters &parameters);
 
     const SimHashDocumentEncoderParameters &parameters = args_;
-
     void encode(std::vector<std::string> input, SDR &output) override;
 
-
     CerealAdapter;  // see Serializable.hpp
-    // FOR Cereal Serialization
+    // Cereal Serialization
     template<class Archive>
     void save_ar(Archive& ar) const {
       std::string name = "SimHashDocumentEncoder";
@@ -90,8 +89,7 @@ namespace htm {
       ar(cereal::make_nvp("size", args_.size));
       ar(cereal::make_nvp("tokenSimilarity", args_.size));
     }
-
-    // FOR Cereal Deserialization
+    // Cereal Deserialization
     template<class Archive>
     void load_ar(Archive& ar) {
       std::string name;
@@ -106,9 +104,14 @@ namespace htm {
 
   private:
     SimHashDocumentEncoderParameters args_;
+    void addColumnToMatrix_(Eigen::VectorXi column, Eigen::MatrixXi &matrix);
+    void hashBytesToBits_(std::vector<unsigned char> bytes, Eigen::VectorXi &bits);
+    void hashToken_(std::string text, Eigen::VectorXi &bits);
+    void simHashMatrix_(Eigen::MatrixXi hashes, std::vector<UInt> &simhash);
   }; // end class SimHashDocumentEncoder
 
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self);
 
 } // end namespace htm
+
 #endif // end define NTA_ENCODERS_SIMHASH_DOCUMENT
