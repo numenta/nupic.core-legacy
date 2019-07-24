@@ -66,12 +66,14 @@ TemporalMemory::TemporalMemory(
     SegmentIdx maxSegmentsPerCell,
     SynapseIdx maxSynapsesPerSegment, 
     bool checkInputs, 
-    UInt externalPredictiveInputs) {
+    UInt externalPredictiveInputs,
+    ANMode anomalyMode) {
+
   initialize(columnDimensions, cellsPerColumn, activationThreshold,
              initialPermanence, connectedPermanence, minThreshold,
              maxNewSynapseCount, permanenceIncrement, permanenceDecrement,
              predictedSegmentDecrement, seed, maxSegmentsPerCell,
-             maxSynapsesPerSegment, checkInputs, externalPredictiveInputs);
+             maxSynapsesPerSegment, checkInputs, externalPredictiveInputs, anomalyMode);
 }
 
 TemporalMemory::~TemporalMemory() {}
@@ -91,7 +93,8 @@ void TemporalMemory::initialize(
     SegmentIdx maxSegmentsPerCell,
     SynapseIdx maxSynapsesPerSegment, 
     bool checkInputs, 
-    UInt externalPredictiveInputs) {
+    UInt externalPredictiveInputs,
+    ANMode anomalyMode) {
 
   // Validate all input parameters
   NTA_CHECK(columnDimensions.size() > 0) << "Number of column dimensions must be greater than 0";
@@ -131,6 +134,8 @@ void TemporalMemory::initialize(
 
   maxSegmentsPerCell_ = maxSegmentsPerCell;
   maxSynapsesPerSegment_ = maxSynapsesPerSegment;
+
+  tmAnomaly_.mode_ = anomalyMode;
 
   reset();
 }
@@ -524,11 +529,45 @@ void TemporalMemory::compute(const SDR &activeColumns,
   activateDendrites(learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
 
   // Update Anomaly Metric.  The anomaly is the percent of active columns that
-  // were not predicted.
-  anomaly_ = computeRawAnomalyScore(
-                activeColumns,
-                cellsToColumns( getPredictiveCells() ));
+  // were not predicted. 
+  // Must be computed here, between `activateDendrites()` and `activateCells()`.
+  switch(tmAnomaly_.mode_) {
+
+    case ANMode::DISABLED:
+      break;
+
+    case ANMode::RAW:
+      tmAnomaly_.anomaly_ = computeRawAnomalyScore(
+                             activeColumns,
+                             cellsToColumns( getPredictiveCells() ));
+      break; 
+
+    case ANMode::LIKELIHOOD:
+      {
+      const Real raww = computeRawAnomalyScore(
+                         activeColumns,
+                         cellsToColumns( getPredictiveCells() ));
+      tmAnomaly_.anomaly_ = anomalyLikelihood.anomalyProbability(raww);
+      }
+      break;
+
+    case ANMode::LOGLIKELIHOOD:
+      {
+      const Real raw = computeRawAnomalyScore(
+                         activeColumns,
+                         cellsToColumns( getPredictiveCells() ));
+      const Real like = anomalyLikelihood.anomalyProbability(raw);
+      const Real log  = anomalyLikelihood.computeLogLikelihood(like);
+      tmAnomaly_.anomaly_ = log;
+      }
+      break;
+
+    default:
+      NTA_THROW << "TM.anomaly got unknown mode during computation ";
+
   // TODO: Update mean & standard deviation of anomaly here.
+  }
+  NTA_ASSERT(tmAnomaly_.anomaly >= 0.0f and tmAnomaly_.anomaly <= 1.0f) << "TM.anomaly is out-of-bounds!";
 
   activateCells(activeColumns, learn);
 }
@@ -545,7 +584,7 @@ void TemporalMemory::reset(void) {
   activeSegments_.clear();
   matchingSegments_.clear();
   segmentsValid_ = false;
-  anomaly_ = -1.0f;
+  tmAnomaly_.anomaly_ = 0.5f;
 }
 
 // ==============================
@@ -754,7 +793,9 @@ bool TemporalMemory::operator==(const TemporalMemory &other) const {
       winnerCells_ != other.winnerCells_ ||
       maxSegmentsPerCell_ != other.maxSegmentsPerCell_ ||
       maxSynapsesPerSegment_ != other.maxSynapsesPerSegment_ ||
-      anomaly_ != other.anomaly_ ) {
+      tmAnomaly_.anomaly != other.tmAnomaly_.anomaly ||
+      tmAnomaly_.mode_ != other.tmAnomaly_.mode_ || 
+      anomalyLikelihood != other.anomalyLikelihood ) {
     return false;
   }
 
