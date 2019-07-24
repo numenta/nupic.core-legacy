@@ -97,14 +97,15 @@ before_build:
 
 install:
   # Dump appveyor build vars for diagnostics
-  - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
-  - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
+  - "@ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
+  - "@ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
  
   # using GitVersion
   - cd %HTM_CORE%
   - GitVersion.exe
+  - "@echo ----"
   - GitVersion.exe /output buildserver
-  - "echo SemVer for this push: %system.GitVersion.SemVer%"
+  - "@echo SemVer for this push: %system.GitVersion.SemVer%"
   
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
