@@ -97,16 +97,16 @@ before_build:
 
 install: 
   # using GitVersion
-  - echo Branch name: %GIT_BRANCH_NAME%
+  - echo "Branch name: %GIT_BRANCH_NAME%"
   - cd %HTM_CORE%
   - git fetch --unshallow
   - rm -Rf .git/gitversion_cache/
-  - git checkout %GIT_BRANCH_NAME%
+  - git checkout "%GIT_BRANCH_NAME%"
   - GitVersion.exe
   - GitVersion.exe /showvariable SemVer
   
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
-  - echo Binding version = %BINDINGS_VERSION%
+  - echo "Binding version = %BINDINGS_VERSION%"
 
   - python -m pip install --user --upgrade pip setuptools setuptools-scm
   - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
