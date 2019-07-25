@@ -68,14 +68,15 @@ def main(parameters=default_parameters, argv=None, verbose=True):
       records.append(record)
 
   # Make the Encoders.  These will convert input data into binary representations.
-  timeOfDayEncoder = DateEncoder(parameters["enc"]["time"]["timeOfDay"])
-  weekendEncoder   = DateEncoder(parameters["enc"]["time"]["weekend"]) #TODO why are there separate encoders for time,weekend? a DateTime encoder can do both in a single enc
+  dateEncoder = DateEncoder(timeOfDay= parameters["enc"]["time"]["timeOfDay"], 
+                            weekend  = parameters["enc"]["time"]["weekend"]) 
+  
   scalarEncoderParams            = RDSE_Parameters()
   scalarEncoderParams.size       = parameters["enc"]["value"]["size"]
   scalarEncoderParams.sparsity   = parameters["enc"]["value"]["sparsity"]
   scalarEncoderParams.resolution = parameters["enc"]["value"]["resolution"]
   scalarEncoder = RDSE( scalarEncoderParams )
-  encodingWidth = (timeOfDayEncoder.size + weekendEncoder.size + scalarEncoder.size)
+  encodingWidth = (dateEncoder.size + scalarEncoder.size)
   enc_info = Metrics( [encodingWidth], 999999999 )
 
   # Make the HTM.  SpatialPooler & TemporalMemory & associated tools.
@@ -137,12 +138,11 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     inputs.append( consumption )
 
     # Call the encoders to create bit representations for each value.  These are SDR objects.
-    timeOfDayBits   = timeOfDayEncoder.encode(dateString)
-    weekendBits     = weekendEncoder.encode(dateString)
+    dateBits        = dateEncoder.encode(dateString)
     consumptionBits = scalarEncoder.encode(consumption)
 
     # Concatenate all these encodings into one large encoding for Spatial Pooling.
-    encoding = SDR( encodingWidth ).concatenate([consumptionBits, timeOfDayBits, weekendBits])
+    encoding = SDR( encodingWidth ).concatenate([consumptionBits, dateBits])
     enc_info.addData( encoding )
 
     # Create an SDR to represent active columns, This will be populated by the
