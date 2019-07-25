@@ -99,6 +99,7 @@ install:
   # using GitVersion
   - cd %HTM_CORE%
   - git fetch --unshallow
+  - rm -Rf .git/gitversion_cache/
   - GitVersion.exe
   - GitVersion.exe /output buildserver
   - "echo SemVer for this push: %system.GitVersion.SemVer%"
