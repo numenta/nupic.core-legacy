@@ -44,8 +44,8 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: MSVC
-  NUPIC_CORE: "C:\\projects\\htm-cpp"
-  ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
+  HTM_CORE: "C:\\projects\\htm-cpp"
+  ARTIFACTS_DIR: "%HTM_CORE%\\build\\artifacts"
 
 ## AWS S3 support (pip install boto)
 #  AWS_ACCESS_KEY_ID:
@@ -97,12 +97,13 @@ before_build:
 
 install: 
   # using GitVersion
+  - echo Branch name: %GIT_BRANCH_NAME%
   - cd %HTM_CORE%
   - git fetch --unshallow
   - rm -Rf .git/gitversion_cache/
+  - git checkout %GIT_BRANCH_NAME%
   - GitVersion.exe
-  - GitVersion.exe /output buildserver
-  - "echo SemVer for this push: %system.GitVersion.SemVer%"
+  - GitVersion.exe /showvariable SemVer
   
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
@@ -111,34 +112,34 @@ install:
   - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
 
-  - cd %NUPIC_CORE%
-  - mkdir %NUPIC_CORE%\build\
-  - mkdir %NUPIC_CORE%\build\scripts
+  - cd %HTM_CORE%
+  - mkdir %HTM_CORE%\build\
+  - mkdir %HTM_CORE%\build\scripts
 
   # http://www.cmake.org/Wiki/CmakeMingw
-  - cd %NUPIC_CORE%\build\scripts
-  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration%  %NUPIC_CORE%
+  - cd %HTM_CORE%\build\scripts
+  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration%  %HTM_CORE%
 
 build_script:
-  - cd %NUPIC_CORE%\build\scripts
+  - cd %HTM_CORE%\build\scripts
 
   # Run build (i.e. make install), using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration%
+  - cmake.exe --build "%HTM_CORE%\build\scripts" --target install --config %configuration%
 
-  - cd %NUPIC_CORE%
+  - cd %HTM_CORE%
 
   - python setup.py install --user
 
 after_build:
 
   # Run unit_tests (C++)
-  - cd %NUPIC_CORE%
+  - cd %HTM_CORE%
   - mkdir %ARTIFACTS_DIR%
-  - cd %NUPIC_CORE%\build\Release\bin
+  - cd %HTM_CORE%\build\Release\bin
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests
-  - cd %NUPIC_CORE%
+  - cd %HTM_CORE%
   - python setup.py test
 
 # Disable automatic tests
@@ -158,7 +159,7 @@ artifacts:
 #       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
 #         Write-Host "Uploading bindings to PYPI"
 #         pip install httplib requests twine --upgrade
-#         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
+#         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:HTM_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
 #       }
 
 deploy:
