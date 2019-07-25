@@ -98,6 +98,7 @@ before_build:
 install: 
   # using GitVersion
   - cd %HTM_CORE%
+  - git fetch --unshallow
   - GitVersion.exe
   - GitVersion.exe /output buildserver
   - "echo SemVer for this push: %system.GitVersion.SemVer%"
