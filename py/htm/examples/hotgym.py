@@ -205,7 +205,12 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
   # Plot the Predictions and Anomalies.
   if verbose:
-    import matplotlib.pyplot as plt
+    try:
+      import matplotlib.pyplot as plt
+    except:
+      print("WARNING: failed to import matplotlib, plots cannot be shown.")
+      return -accuracy[5]
+
     plt.subplot(2,1,1)
     plt.title("Predictions")
     plt.xlabel("Time")
