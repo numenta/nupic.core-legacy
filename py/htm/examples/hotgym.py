@@ -40,7 +40,14 @@ default_parameters = {
         'minThreshold': 10,
         'newSynapseCount': 32,
         'permanenceDec': 0.1,
-        'permanenceInc': 0.1}
+        'permanenceInc': 0.1},
+ 'anomaly': {
+   'likelihood': 
+       {#'learningPeriod': int(math.floor(self.probationaryPeriod / 2.0)),
+        #'probationaryPeriod': self.probationaryPeriod-default_parameters["anomaly"]["likelihood"]["learningPeriod"],
+        'probationaryPct': 0.1,
+        'reestimationPeriod': 100} #These settings are copied from NAB
+ }
 }
 
 def main(parameters=default_parameters, argv=None, verbose=True):
@@ -49,6 +56,16 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     print("Parameters:")
     pprint.pprint(parameters, indent=4)
     print("")
+
+  # Read the input file.
+  records = []
+  with open(_INPUT_FILE_PATH, "r") as fin:
+    reader = csv.reader(fin)
+    headers = next(reader)
+    next(reader)
+    next(reader)
+    for record in reader:
+      records.append(record)
 
   # Make the Encoders.  These will convert input data into binary representations.
   timeOfDayEncoder = DateEncoder(parameters["enc"]["time"]["timeOfDay"])
@@ -95,20 +112,16 @@ def main(parameters=default_parameters, argv=None, verbose=True):
   )
   tm_info = Metrics( [tm.numberOfCells()], 999999999 )
 
-  anomaly_history = AnomalyLikelihood()
+  # setup likelihood, these settings are used in NAB
+  anParams = parameters["anomaly"]["likelihood"]
+  probationaryPeriod = int(math.floor(float(anParams["probationaryPct"])*len(records)))
+  learningPeriod     = int(math.floor(probationaryPeriod / 2.0))
+  anomaly_history = AnomalyLikelihood(learningPeriod= learningPeriod,
+                                      estimationSamples= probationaryPeriod - learningPeriod,
+                                      reestimationPeriod= anParams["reestimationPeriod"])
 
   predictor = Predictor( steps=[1, 5], alpha=parameters["predictor"]['sdrc_alpha'] )
   predictor_resolution = 1
-
-  # Read the input file.
-  records = []
-  with open(_INPUT_FILE_PATH, "r") as fin:
-    reader = csv.reader(fin)
-    headers = next(reader)
-    next(reader)
-    next(reader)
-    for record in reader:
-      records.append(record)
 
   # Iterate through every datum in the dataset, record the inputs & outputs.
   inputs      = []
