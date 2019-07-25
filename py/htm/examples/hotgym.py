@@ -17,8 +17,14 @@ _EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
 _INPUT_FILE_PATH = os.path.join(_EXAMPLE_DIR, "gymdata.csv")
 
 default_parameters = {
- 'enc': {'resolution': 0.88, 'size': 700, 'sparsity': 0.02},
- 'sdrc_alpha': 0.1,
+  # there are 2 (3) encoders: "value" (RDSE) & "time" (DateTime weekend, timeOfDay)
+ 'enc': {
+      "value" :
+         {'resolution': 0.88, 'size': 700, 'sparsity': 0.02},
+      "time": 
+         {'timeOfDay': (30, 1), 'weekend': 21}
+ },
+ 'predictor': {'sdrc_alpha': 0.1},
  'sp': {'boostStrength': 3.0,
         'columnCount': 1638,
         'localAreaDensity': 0.04395604395604396,
@@ -26,7 +32,6 @@ default_parameters = {
         'synPermActiveInc': 0.04,
         'synPermConnected': 0.13999999999999999,
         'synPermInactiveDec': 0.006},
- 'time': {'timeOfDay': (30, 1), 'weekend': 21},
  'tm': {'activationThreshold': 17,
         'cellsPerColumn': 13,
         'initialPerm': 0.21,
@@ -35,7 +40,8 @@ default_parameters = {
         'minThreshold': 10,
         'newSynapseCount': 32,
         'permanenceDec': 0.1,
-        'permanenceInc': 0.1}}
+        'permanenceInc': 0.1}
+}
 
 def main(parameters=default_parameters, argv=None, verbose=True):
   if verbose:
@@ -45,12 +51,12 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     print("")
 
   # Make the Encoders.  These will convert input data into binary representations.
-  timeOfDayEncoder = DateEncoder(parameters["time"]["timeOfDay"])
-  weekendEncoder   = DateEncoder(parameters["time"]["weekend"])
+  timeOfDayEncoder = DateEncoder(parameters["enc"]["time"]["timeOfDay"])
+  weekendEncoder   = DateEncoder(parameters["enc"]["time"]["weekend"]) #TODO why are there separate encoders for time,weekend? a DateTime encoder can do both in a single enc
   scalarEncoderParams            = RDSE_Parameters()
-  scalarEncoderParams.size       = parameters["enc"]["size"]
-  scalarEncoderParams.sparsity   = parameters["enc"]["sparsity"]
-  scalarEncoderParams.resolution = parameters["enc"]["resolution"]
+  scalarEncoderParams.size       = parameters["enc"]["value"]["size"]
+  scalarEncoderParams.sparsity   = parameters["enc"]["value"]["sparsity"]
+  scalarEncoderParams.resolution = parameters["enc"]["value"]["resolution"]
   scalarEncoder = RDSE( scalarEncoderParams )
   encodingWidth = (timeOfDayEncoder.size + weekendEncoder.size + scalarEncoder.size)
   enc_info = Metrics( [encodingWidth], 999999999 )
@@ -91,7 +97,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
   anomaly_history = AnomalyLikelihood()
 
-  predictor = Predictor( steps=[1, 5], alpha=parameters['sdrc_alpha'] )
+  predictor = Predictor( steps=[1, 5], alpha=parameters["predictor"]['sdrc_alpha'] )
   predictor_resolution = 1
 
   # Read the input file.
