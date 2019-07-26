@@ -101,7 +101,6 @@ install:
   - "cd %HTM_CORE%"
   - "git fetch --unshallow"
   - "rm -Rf .git/gitversion_cache/"
-  - "git checkout %GIT_BRANCH_NAME%"
   - "GitVersion.exe"
   - "GitVersion.exe /showvariable SemVer"
   
