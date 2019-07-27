@@ -34,37 +34,69 @@
 #include <htm/encoders/BaseEncoder.hpp>
 #include <htm/types/Types.hpp>
 
-// @TODO py bind
-// @TODO article
-
 
 namespace htm {
 
-  /**
-   * SimHashDocumentEncoderParameters
-   *
-   * @param :activeBits: The number of true bits in the encoded output SDR.
-   *  Specify only one of: activeBits or sparsity.
-   * @param :size: Total number of bits in the encoded output SDR.
-   * @param :sparsity: An alternative way to specify the member
-   *  "activeBits". Sparsity requires that the size to also be specified.
-   *  Specify only one of: activeBits or sparsity.
-   * @param :tokenSimilarity: If True (default), similar tokens such as
-   *  "cat" and "cats" will have very similar representations. If False,
-   *  similar tokens ("cat", "cats") will have completely unrelated
-   *  representations.
-   */
   struct SimHashDocumentEncoderParameters {
+    /**
+     * @param :activeBits: The number of true bits in the encoded output SDR.
+     *  Specify only one of: activeBits or sparsity.
+     */
     UInt activeBits = 0u;
+
+    /**
+     * @param :size: Total number of bits in the encoded output SDR.
+     */
     UInt size = 0u;
+
+    /**
+     * @param :sparsity: An alternative way to specify the member
+     *  "activeBits". Sparsity requires that the size to also be specified.
+     *  Specify only one of: activeBits or sparsity.
+     */
     Real sparsity = 0.0f;
-    bool tokenSimilarity = true;
+
+    /**
+     * @param :tokenSimilarity: In addition to document similarity, we can also
+     *  achieve a kind of token similarity. Default is FALSE (providing better
+     *  document-level similarity, at the expense of token-level similarity).
+     *  Results are heavily dependent on the content of your input data.
+     *    If TRUE: Similar tokens ("cat", "cats") will have similar influence
+     *      on the output simhash. This benefit comes with the cost of a
+     *      probable reduction in document-level similarity accuracy.
+     *    If FALSE: Similar tokens ("cat", "cats") will have individually unique
+     *      and unrelated influence on the output simhash encoding, thus losing
+     *      token-level similarity and increasing document-level similarity.
+     */
+    bool tokenSimilarity = false;
   }; // end struct SimHashDocumentEncoderParameters
+
 
   /**
    * SimHashDocumentEncoder
    *
-   * High level API description here
+   * @TODO custom types like rest?
+   *
+   * Encodes documents and text into Sparse Distributed Representations (SDRs),
+   * ready for use with Hierarchical Temporal Memory (HTM). Similar document
+   * encodings will share similar representations, and vice versa.
+   *
+   * "Similarity" here refers to bitwise similarity (small hamming distance,
+   * high overlap), not semantic similarity (encodings for "apple" and
+   * "computer" will have no relation here.) For document encodings which are
+   * also semantic, please try Cortical.io and their Semantic Folding tech.
+   *
+   * Encoding is accomplished using SimHash, a Locality-Sensitive Hashing (LSH)
+   * algorithm from the world of nearest-neighbor document similarity search.
+   * As SDRs are variable-length, we use the SHA3+SHAKE256 hashing algorithm.
+   * We deviate slightly from the standard SimHash algorithm in order to
+   * achieve sparsity.
+   *
+   * In addition to document similarity, an option is provided to toggle if
+   * token similarity "near-spellings" (such as "cat" and "cats") will receieve
+   * similar encodings or not.
+   *
+   * Unicode is supported.
    *
    * @see BaseEncoder.hpp
    * @see SimHashDocumentEncoder.cpp
@@ -76,7 +108,11 @@ namespace htm {
     void initialize(const SimHashDocumentEncoderParameters &parameters);
 
     const SimHashDocumentEncoderParameters &parameters = args_;
-    void encode(std::vector<std::string> input, SDR &output) override;
+
+    void encode(const std::map<std::string, UInt> input, SDR &output);
+    void encode(const std::vector<std::string> input, SDR &output) override;
+
+    ~SimHashDocumentEncoder() override {};
 
     CerealAdapter;  // see Serializable.hpp
     // Cereal Serialization
@@ -100,14 +136,13 @@ namespace htm {
       ar(cereal::make_nvp("tokenSimilarity", args_.size));
     }
 
-    ~SimHashDocumentEncoder() override {};
-
   private:
     SimHashDocumentEncoderParameters args_;
-    void addColumnToMatrix_(Eigen::VectorXi column, Eigen::MatrixXi &matrix);
-    void hashBytesToBits_(std::vector<unsigned char> bytes, Eigen::VectorXi &bits);
-    void hashToken_(std::string text, Eigen::VectorXi &bits);
-    void simHashMatrix_(Eigen::MatrixXi hashes, std::vector<UInt> &simhash);
+    void addVectorToMatrix_(const Eigen::VectorXi vector, Eigen::MatrixXi &matrix);
+    void bitsToWeightedAdder_(const UInt weight, Eigen::VectorXi &vector);
+    void bytesToBits_(const std::vector<unsigned char> bytes, Eigen::VectorXi &bits);
+    void hashToken_(const std::string token, Eigen::VectorXi &hashBits);
+    void simHashAdders_(const Eigen::MatrixXi adders, std::vector<UInt> &simhash);
   }; // end class SimHashDocumentEncoder
 
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self);

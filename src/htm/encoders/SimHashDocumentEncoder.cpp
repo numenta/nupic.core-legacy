@@ -18,7 +18,9 @@
  * -------------------------------------------------------------------------- */
 
 /** @file
+ *
  * SimHashDocumentEncoder.cpp
+ *
  * @author Brev Patterson, Lux Rota LLC, https://luxrota.com
  * @author David McDougall
  * @since 0.2.3
@@ -36,6 +38,7 @@ namespace htm {
 
   /**
    * Constructor
+   *
    * @see SimHashDocumentEncoder.hpp
    */
   SimHashDocumentEncoder::SimHashDocumentEncoder(const SimHashDocumentEncoderParameters &parameters)
@@ -45,6 +48,7 @@ namespace htm {
 
   /**
    * Initialize
+   *
    * @see SimHashDocumentEncoder.hpp
    */
   void SimHashDocumentEncoder::initialize(const SimHashDocumentEncoderParameters &parameters)
@@ -77,7 +81,7 @@ namespace htm {
   } // end method initialize
 
   /**
-   * Encode
+   * Encode (Main calling style)
    *
    * Depending on param "tokenSimilarity", we'll either loop through
    *  the provided document tokens, or loop through all the letters in all
@@ -85,55 +89,126 @@ namespace htm {
    * Each token/letter will be hashed with SHA3+SHAKE256 to get
    *  a varible-length (param "size") binary digest output. These vectors will
    *  be stored in a matrix for the next step of processing.
+   * Weights are added in during hashing and simhashing.
    * After the loop, we SimHash the matrix of hashes, resulting in an
    *  output SDR.
    *
-   * @param :input: Document token strings to encode, ex: {"what","is","up"}.
-   * @param :output: Result SDR to fill with encoding.
+   * @param :input: Document token strings (with weights) to encode,
+   *  ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}.
+   * @param :output: Result SDR to fill with result output encoding.
+   *
    * @see SimHashDocumentEncoder.hpp
+   * @see encode(const std::vector<std::string> input, SDR &output)
    */
-  void SimHashDocumentEncoder::encode(std::vector<std::string> input, SDR &output)
+  void SimHashDocumentEncoder::encode(const std::map<std::string, UInt> input, SDR &output)
   {
-    Eigen::VectorXi hashBits(args_.size);
-    Eigen::MatrixXi hashes(args_.size, 0u);
-    std::vector<UInt> simBits(args_.size, 0u);
-
     NTA_CHECK(input.size() > 0u)
       << "Encoding input vector array should have at least 1 string member.";
+
+    Eigen::MatrixXi adders(args_.size, 0u);
+    Eigen::VectorXi hashBits(args_.size);
+    std::vector<UInt> simBits(args_.size, 0u);
 
     output.zero();
     hashBits = Eigen::VectorXi::Zero(args_.size);
 
-    for (auto token : input) {
+    for (const auto& member : input) {
+      const std::string token = member.first;
+      const UInt tokenWeight = member.second;
+
       if (args_.tokenSimilarity) {
-        // each token is itself simhashed (with hashes of token letter/chars)
-        for (auto letter : token) {
-          // generate hash digest for single character
+        // generate hash digest for every single character individually
+        for (const auto& letter : token) {
           hashToken_(std::string(1u, letter), hashBits);
-          addColumnToMatrix_(hashBits, hashes);
+          bitsToWeightedAdder_(tokenWeight, hashBits);
+          addVectorToMatrix_(hashBits, adders);
         }
       }
       else {
         // generate hash digest for whole token string
         hashToken_(token, hashBits);
-        addColumnToMatrix_(hashBits, hashes);
+        bitsToWeightedAdder_(tokenWeight, hashBits);
+        addVectorToMatrix_(hashBits, adders);
       }
     }
 
-    simHashMatrix_(hashes, simBits);
+    simHashAdders_(adders, simBits);
     output.setDense(simBits);
   } // end method encode
 
   /**
-   * AddColumnToMatrix_
-   * @param :column: Source eigen vector to be attached.
+   * Encode (Alternate calling style: Simple method)
+   *
+   * An alternate simple calling method for Encode, no weights need to be
+   * passed in with tokens (all weights assumed to be 1).
+   *
+   * @param :input: Document token strings to encode, ex: {"what","is","up"}.
+   * @param :output: Result SDR to fill with result output encoding.
+   *
+   * @see encode(const std::map<std::string, UInt> input, SDR &output)
+   */
+  void SimHashDocumentEncoder::encode(const std::vector<std::string> input, SDR &output)
+  {
+    std::map<std::string, UInt> inputWeighted;
+    for (const auto& token : input) {
+      inputWeighted[token] = 1u;
+    }
+    encode(inputWeighted, output);
+  } // end method encode (alternate)
+
+  /**
+   * AddVectorToMatrix_
+   *
+   * @param :vector: Source eigen vector column to be attached.
    * @param :matrix: Target eigen matrix that will be added to.
    */
-  void SimHashDocumentEncoder::addColumnToMatrix_(Eigen::VectorXi column, Eigen::MatrixXi &matrix)
+  void SimHashDocumentEncoder::addVectorToMatrix_(const Eigen::VectorXi vector, Eigen::MatrixXi &matrix)
   {
     matrix.conservativeResize(Eigen::NoChange, matrix.cols() + 1u);
-    matrix.col(matrix.cols() - 1u) = column;
-  } // end method addColumnToMatrix_
+    matrix.col(matrix.cols() - 1u) = vector;
+  } // end method addVectorToMatrix_
+
+  /**
+   * BitsToWeightedAdder_
+
+   * Take the bits from a hash, convert 0 to -1, and multiply by provided
+   *  weighting factor. For example:
+   *    In Column   = { 0, 1,  0,  0, 1,  0}
+   *    In Weight   = 3
+   *    Out Result  = {-3, 3, -3, -3, 3, -3}
+   *
+   * @param :weight: Weight to add to this column (positive integer, usually 1).
+   * @param :vector: Target eigen vector column to add weighting to.
+   */
+  void SimHashDocumentEncoder::bitsToWeightedAdder_(const UInt weight, Eigen::VectorXi &vector)
+  {
+    // convert hash bit columns to int adder columns (0 => -1)
+    vector = (vector.array() == 0u).select(-1, vector);
+    // weight the adders
+    vector *= weight;
+  } // end method bitsToWeightedAdder_
+
+  /**
+   * bytesToBits_
+   *
+   * Convert vector of hashed digest bytes to longer vector of bits.
+   *
+   * @param :bytes: Source hash digest eigen byte vector for binary conversion.
+   * @param :bits: Eigen vector to store converted binary hash digest in.
+   */
+  void SimHashDocumentEncoder::bytesToBits_(const std::vector<unsigned char> bytes, Eigen::VectorXi &bits)
+  {
+    UInt bitcount = 0u;
+    bits = Eigen::VectorXi::Zero(args_.size);
+
+    for (const auto& byte : bytes) {
+      for (const auto& bit : std::bitset<CHAR_BIT>(byte).to_string()) {
+        bits(bitcount) = (UInt) (bit - '0');
+        bitcount++;
+        if (bitcount >= args_.size) break;
+      }
+    }
+  } // end method bytesToBits_
 
   /**
    * HashToken_
@@ -141,47 +216,25 @@ namespace htm {
    * Hash (SHA3+SHAKE256 variable-length) a string into a byte digest.
    * Convert the byte vector to a binary vector and set output.
    *
-   * @param :text: Source text to be hashed.
-   * @param :bits: Eigen vector to store result binary hash digest in.
+   * @param :token: Source text to be hashed.
+   * @param :hashBits: Eigen vector to store result binary hash digest in.
    */
-  void SimHashDocumentEncoder::hashToken_(std::string text, Eigen::VectorXi &bits)
+  void SimHashDocumentEncoder::hashToken_(const std::string token, Eigen::VectorXi &hashBits)
   {
     digestpp::shake256 hasher;
     std::vector<unsigned char> digest;
-    hasher.absorb(text);
+
+    hasher.absorb(token);
     hasher.squeeze((UInt) ((args_.size / CHAR_BIT) + 1u), back_inserter(digest));
-    hashBytesToBits_(digest, bits);
+    bytesToBits_(digest, hashBits);
   } // end method hashToken_
 
   /**
-   * HashBytesToBits_
+   * SimHashAdders_
    *
-   * Convert vector of hashed digest bytes to longer vector of bits.
-   *
-   * @param :bytes: Source hash digest eigen byte vector for binary conversion.
-   * @param :bits: Eigen vector to store converted binary hash digest in.
-   */
-  void SimHashDocumentEncoder::hashBytesToBits_(std::vector<unsigned char> bytes, Eigen::VectorXi &bits)
-  {
-    UInt bitcount = 0u;
-    bits = Eigen::VectorXi::Zero(args_.size);
-    for (auto byte : bytes) {
-      for (auto bit : std::bitset<CHAR_BIT>(byte).to_string()) {
-        if (bitcount < args_.size) {
-          bits(bitcount) = (UInt) (bit - '0');
-          bitcount++;
-        }
-      }
-    }
-  } // end method hashBytesToBits_
-
-  /**
-   * SimHashMatrix_
-   *
-   * Create a SimHash SDR from Eigen vector array (matrix) of Hash digest bits.
-   * Convert all binary 0 values in input matrix to integer -1 values, leaving
-   *  us with "adders", instead of binary hashes.
-   * Sum all these "adder" vectors to get a type of binary histogram.
+   * Create a SimHash SDR from Eigen vector array (matrix) of Hash digest bits
+   *  (in slightly modified "Adder" SimHash form).
+   * Sum all these "Adder" vectors to get a type of binary histogram.
    * Choose the desired number (activeBits) of max values, use their indices
    *  to set output On bits. Rest of bits are Off. We now have our result
    *  sparse SimHash. (In an ordinary dense SimHash, sums >= 0 become binary 1,
@@ -190,20 +243,17 @@ namespace htm {
    * @param :hashes: Source eigen matrix of hashes to be simhashed.
    * @param :simhash: Stadard vector to store dense binary simhash result in.
    */
-  void SimHashDocumentEncoder::simHashMatrix_(Eigen::MatrixXi hashes, std::vector<UInt> &simhash)
+  void SimHashDocumentEncoder::simHashAdders_(const Eigen::MatrixXi adders, std::vector<UInt> &simhash)
   {
     Eigen::VectorXi::Index maxIndex;  // array index of current max member
-    Eigen::VectorXi sums(args_.size); // for bit sums of all hashes passed in
     Int minValue;                     // min value, used to neuter max vals during sparsify
+    Eigen::VectorXi sums(args_.size); // for bit sums of all hashes passed in
 
     std::fill(simhash.begin(), simhash.end(), 0u);
-    sums = Eigen::VectorXi::Zero(args_.size);
+    sums = Eigen::VectorXi::Zero(adders.cols());
 
-    // convert bit columns to adder columns (binary 0 => int -1)
-    hashes = (hashes.array() == 0u).select(-1, hashes);
     // sum adder columns
-    sums = hashes.rowwise().sum();
-
+    sums = adders.rowwise().sum();
     // sparse simhash: top-N sums replaced with a binary 1, rest 0.
     minValue = sums.minCoeff();
     for (UInt bit = 0u; bit < args_.activeBits; bit++) {
@@ -213,7 +263,7 @@ namespace htm {
       // neuter this max value so next iteration will get next highest max
       sums(maxIndex) = minValue;
     }
-  } // end method simHashMatrix_
+  } // end method simHashAdders_
 
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self)
   {

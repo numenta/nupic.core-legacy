@@ -33,12 +33,28 @@ namespace testing {
 
   using namespace htm;
 
-  // Caution! Tests further below are very sensitive to these exact strings.
-  const std::vector<std::string> testDoc1 = { "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
-  const std::vector<std::string> testDoc2 = { "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  };
-  const std::vector<std::string> testDoc3 = { "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  };
-  const std::vector<std::string> testDoc4 = { "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" };
+  // Shared Test Strings
+  const std::vector<std::string> testDoc1 =
+    { "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
+  const std::vector<std::string> testDoc2 =
+    { "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  };
+  const std::vector<std::string> testDoc3 =
+    { "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  };
+  const std::vector<std::string> testDoc4 =
+    { "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" };
+  const std::vector<std::string> testDocUni1 = {
+    u8"\u0395\u0396\u0397\u0398\u0399",
+    u8"\u0400\u0401\u0402\u0403\u0404",
+    u8"\u0405\u0406\u0407\u0408\u0409"
+  };
+  const std::vector<std::string> testDocUni2 = {
+    u8"\u0395\u0396\u0397\u0398\u0399\u0410",
+    u8"\u0400\u0401\u0402\u0403\u0404\u0410",
+    u8"\u0405\u0406\u0407\u0408\u0409\u0410"
+  };
 
+
+  // TESTS
 
   TEST(SimHashDocumentEncoder, testConstruct) {
     SimHashDocumentEncoderParameters params;
@@ -51,7 +67,7 @@ namespace testing {
     ASSERT_EQ(encoder.parameters.activeBits, 2u);
   }
 
-  TEST(SimHashDocumentEncoder, testConstructParameterSparsity) {
+  TEST(SimHashDocumentEncoder, testConstructParamSparsity) {
     SimHashDocumentEncoderParameters params;
     params.size = 10u;
     params.sparsity = 0.20f;
@@ -70,14 +86,34 @@ namespace testing {
     SDR output({ params.size });
     SimHashDocumentEncoder encoder(params);
 
-    EXPECT_ANY_THROW(encoder.encode({}, output));
-    EXPECT_NO_THROW(encoder.encode(testDoc1, output));
+    const std::vector<std::string> value({});
+    EXPECT_ANY_THROW(encoder.encode(value, output));   // empty
+    EXPECT_NO_THROW(encoder.encode(testDoc1, output)); // full
 
     ASSERT_EQ(output.size, params.size);
     ASSERT_EQ(output.getSum(), params.activeBits);
   }
 
-  TEST(SimHashDocumentEncoder, testEncodingTokenSimilarityOn) {
+  TEST(SimHashDocumentEncoder, testSerialize) {
+    SimHashDocumentEncoderParameters params;
+    params.size = 1000u;
+    params.sparsity = 0.25f;
+
+    SimHashDocumentEncoder encoderA(params);
+    std::stringstream buffer;
+    encoderA.save(buffer);
+    SDR outputA({ encoderA.parameters.size });
+    encoderA.encode(testDoc1, outputA);
+
+    SimHashDocumentEncoder encoderB;
+    encoderB.load(buffer);
+    SDR outputB({ encoderB.parameters.size });
+    encoderB.encode(testDoc1, outputB);
+
+    ASSERT_EQ(outputA, outputB);
+  }
+
+  TEST(SimHashDocumentEncoder, testTokenSimilarityOn) {
     SimHashDocumentEncoderParameters params;
     params.size = 100u;
     params.sparsity = 0.33f;
@@ -101,7 +137,7 @@ namespace testing {
     ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output4));
   }
 
-  TEST(SimHashDocumentEncoder, testEncodingTokenSimilarityOff) {
+  TEST(SimHashDocumentEncoder, testTokenSimilarityOff) {
     SimHashDocumentEncoderParameters params;
     params.size = 100u;
     params.sparsity = 0.33f;
@@ -125,27 +161,67 @@ namespace testing {
     ASSERT_GT(output3.getOverlap(output4), output1.getOverlap(output3));
   }
 
-  TEST(SimHashDocumentEncoder, testSerialize) {
+  TEST(SimHashDocumentEncoder, testTokenWeightMap) {
+    const std::map<std::string, UInt> testDocMap1 =
+      {{ "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "sss", 1 }};
+    const std::map<std::string, UInt> testDocMap2 =
+      {{ "eee", 2 }, { "bbb", 2 }, { "ccc", 2 }, { "fff", 2 }, { "sss", 1 }};
+    const std::map<std::string, UInt> testDocMap3 =
+      {{ "aaa", 4 }, { "eee", 2 }, { "fff", 2 }, { "ddd", 4 }};
+
     SimHashDocumentEncoderParameters params;
-    params.size = 1000u;
-    params.sparsity = 0.25f;
+    params.size = 100u;
+    params.sparsity = 0.33f;
+    params.tokenSimilarity = false;
 
     SimHashDocumentEncoder encoderA(params);
-    std::stringstream buffer;
-    encoderA.save(buffer);
-
-      LogItem::setLogLevel(LogLevel_Verbose);
-
     SDR outputA({ encoderA.parameters.size });
-    encoderA.encode(testDoc1, outputA);
+    encoderA.encode(testDocMap1, outputA);
 
-    SimHashDocumentEncoder encoderB;
-    encoderB.load(buffer);
-
+    SimHashDocumentEncoder encoderB(params);
     SDR outputB({ encoderB.parameters.size });
-    encoderB.encode(testDoc1, outputB);
+    encoderB.encode(testDocMap2, outputB);
 
-    ASSERT_EQ(outputA, outputB);
+    SimHashDocumentEncoder encoderC(params);
+    SDR outputC({ encoderC.parameters.size });
+    encoderC.encode(testDocMap3, outputC);
+
+    ASSERT_GT(outputA.getOverlap(outputC), outputA.getOverlap(outputB));
+    ASSERT_GT(outputA.getOverlap(outputB), outputB.getOverlap(outputC));
+  }
+
+  TEST(SimHashDocumentEncoder, testUnicodeSimilarityOn) {
+    SimHashDocumentEncoderParameters params;
+    params.size = 100u;
+    params.sparsity = 0.33f;
+    params.tokenSimilarity = true;
+
+    SimHashDocumentEncoder encoderA(params);
+    SDR outputA({ encoderA.parameters.size });
+    encoderA.encode(testDocUni1, outputA);
+
+    SimHashDocumentEncoder encoderB(params);
+    SDR outputB({ encoderB.parameters.size });
+    encoderB.encode(testDocUni2, outputB);
+
+    ASSERT_GT(outputA.getOverlap(outputB), 25u);
+  }
+
+  TEST(SimHashDocumentEncoder, testUnicodeSimilarityOff) {
+    SimHashDocumentEncoderParameters params;
+    params.size = 100u;
+    params.sparsity = 0.33f;
+    params.tokenSimilarity = false;
+
+    SimHashDocumentEncoder encoderA(params);
+    SDR outputA({ encoderA.parameters.size });
+    encoderA.encode(testDocUni1, outputA);
+
+    SimHashDocumentEncoder encoderB(params);
+    SDR outputB({ encoderB.parameters.size });
+    encoderB.encode(testDocUni2, outputB);
+
+    ASSERT_LT(outputA.getOverlap(outputB), 25u);
   }
 
 } // end namespace testing
