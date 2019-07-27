@@ -75,8 +75,6 @@ namespace htm {
   /**
    * SimHashDocumentEncoder
    *
-   * @TODO custom types like rest?
-   *
    * Encodes documents and text into Sparse Distributed Representations (SDRs),
    * ready for use with Hierarchical Temporal Memory (HTM). Similar document
    * encodings will share similar representations, and vice versa.
