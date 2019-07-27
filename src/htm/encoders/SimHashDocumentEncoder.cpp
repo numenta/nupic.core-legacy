@@ -26,7 +26,9 @@
  * @since 0.2.3
  */
 
+#include <bitset>
 #include <climits> // CHAR_BIT
+
 #include <hasher.hpp> // digestpp: sha3+shake256 hash digests
 #include <algorithm/sha3.hpp>
 #include <algorithm/shake.hpp>
