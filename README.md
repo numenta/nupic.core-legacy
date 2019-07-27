@@ -46,7 +46,7 @@ Fork or download the HTM-Community htm.core repository from https://github.com/h
 
 ## Prerequisites
 
-- [CMake](http://www.cmake.org/)
+- [CMake](http://www.cmake.org/)  Version 3.8  (3.14 for Visual Studio 2019)
 - [Python](https://python.org/downloads/)
     - Version 3.4+
     - Version 2.7
@@ -125,10 +125,11 @@ make -j install
 
  * This will not build the Python interface.
 
-## Simple Build On Windows (MS Visual Studio 2017)
+## Simple Build On Windows (MS Visual Studio 2017 or 2019)
 
 After downloading the repository, do the following:
 
+ * NOTE: Visual Studio 2019 requires CMake version 3.14 or higher.
  * CD to the top of repository.
  * Double click on startupMSVC.bat
     - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.

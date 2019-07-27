@@ -454,7 +454,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
 
     # Number of points with lower than 2% probability should be pretty low
     # but not zero. Can't use exact 2% here due to random variations
-    self.assertLessEqual(numpy.sum(likelihoods < 0.02), 50)
+    self.assertLessEqual(numpy.sum(likelihoods < 0.02), 66)
     self.assertGreaterEqual(numpy.sum(likelihoods < 0.02), 1)
 
 
@@ -519,7 +519,7 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
 
     # Check results are correct, i.e. we are actually skipping the first 50
     dParams = estimatorParams["distribution"]
-    self.assertWithinEpsilon(dParams["mean"], 0.9, epsilon=0.1)
+    self.assertWithinEpsilon(dParams["mean"], 0.9, epsilon=0.15)
 
     # Check case where skipRecords > num records
     # In this case a null distribution should be returned which makes all
@@ -693,8 +693,8 @@ class AnomalyLikelihoodAlgorithmTest(TestCaseBase):
     self.assertEqual(len(likelihoods), len(data1))
     self.assertTrue(likelihoods.sum() >= 0.4 * len(likelihoods))
 
-    # Check that we do indeed get null distribution
-    self.assertDictEqual(estimatorParams["distribution"], an.nullDistribution())
+    # Check that we do indeed get null distribution and with appropriate mean
+    self.assertDictEqual(estimatorParams["distribution"], an.nullDistribution(estimatorParams["distribution"]["mean"]))
 
 
   def testVeryFewScores(self):

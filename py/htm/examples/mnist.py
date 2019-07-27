@@ -17,9 +17,9 @@
 
 import argparse
 import random
-import gzip
 import numpy as np
 import os
+import sys
 
 from htm.bindings.algorithms import SpatialPooler, Classifier
 from htm.bindings.sdr import SDR, Metrics
@@ -36,7 +36,7 @@ def load_mnist(path):
         return i
 
     def load_labels(file_name):
-        with gzip.open(file_name, 'rb') as f:
+        with open(file_name, 'rb') as f:
             raw = f.read()
             assert(int32(raw[0:4]) == 2049)  # Magic number
             labels = []
@@ -46,7 +46,7 @@ def load_mnist(path):
         return labels
 
     def load_images(file_name):
-        with gzip.open(file_name, 'rb') as f:
+        with open(file_name, 'rb') as f:
             raw = f.read()
             assert(int32(raw[0:4]) == 2051)    # Magic number
             num_imgs   = int32(raw[4:8])
@@ -67,32 +67,36 @@ def load_mnist(path):
             assert(len(raw) == data_start + img_size * num_imgs)   # All data should be used.
         return imgs
 
-    train_labels = load_labels(os.path.join(path, 'train-labels-idx1-ubyte.gz'))
-    train_images = load_images(os.path.join(path, 'train-images-idx3-ubyte.gz'))
-    test_labels  = load_labels(os.path.join(path, 't10k-labels-idx1-ubyte.gz'))
-    test_images  = load_images(os.path.join(path, 't10k-images-idx3-ubyte.gz'))
+    train_labels = load_labels(os.path.join(path, 'train-labels-idx1-ubyte'))
+    train_images = load_images(os.path.join(path, 'train-images-idx3-ubyte'))
+    test_labels  = load_labels(os.path.join(path, 't10k-labels-idx1-ubyte'))
+    test_images  = load_images(os.path.join(path, 't10k-images-idx3-ubyte'))
 
     return train_labels, train_images, test_labels, test_images
 
-
+# These parameters can be improved using parameter optimization,
+# see py/htm/optimization/ae.py
+# For more explanation of relations between the parameters, see 
+# src/examples/mnist/MNIST_CPP.cpp 
 default_parameters = {
-    'boostStrength': 7.80643753517375,
-    'columnDimensions': (35415,1),
-    'dutyCyclePeriod': 1321,
-    'localAreaDensity': 0.05361688506086096,
-    'minPctOverlapDutyCycle': 0.0016316043362658,
-    'potentialPct': 0.06799785776775163,
-    'stimulusThreshold': 8,
-    'synPermActiveInc': 0.01455789388651146,
-    'synPermConnected': 0.021649964738697944,
-    'synPermInactiveDec': 0.006442691852205935
+    'potentialRadius': 7,
+    'boostStrength': 7.0,
+    'columnDimensions': (79, 79),
+    'dutyCyclePeriod': 1402,
+    'localAreaDensity': 0.1,
+    'minPctOverlapDutyCycle': 0.2,
+    'potentialPct': 0.1,
+    'stimulusThreshold': 6,
+    'synPermActiveInc': 0.14,
+    'synPermConnected': 0.5,
+    'synPermInactiveDec': 0.02
 }
 
 
 def main(parameters=default_parameters, argv=None, verbose=True):
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str,
-        default = os.path.join( os.path.dirname(__file__), 'MNIST_data'))
+        default = os.path.join( os.path.dirname(__file__), '..', '..', '..', 'build', 'ThirdParty', 'mnist_data', 'mnist-src'))
     args = parser.parse_args(args = argv)
 
     # Load data.
@@ -107,11 +111,10 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     sp = SpatialPooler(
         inputDimensions            = enc.dimensions,
         columnDimensions           = parameters['columnDimensions'],
-        potentialRadius            = 99999999,
+        potentialRadius            = parameters['potentialRadius'],
         potentialPct               = parameters['potentialPct'],
         globalInhibition           = True,
         localAreaDensity           = parameters['localAreaDensity'],
-        numActiveColumnsPerInhArea = -1,
         stimulusThreshold          = int(round(parameters['stimulusThreshold'])),
         synPermInactiveDec         = parameters['synPermInactiveDec'],
         synPermActiveInc           = parameters['synPermActiveInc'],
@@ -143,10 +146,11 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         sp.compute( enc, False, columns )
         if lbl == np.argmax( sdrc.infer( columns ) ):
             score += 1
+    score = score / len(test_data)
 
-    print('Score:', 100 * score / len(test_data), '%')
-    return score / len(test_data)
+    print('Score:', 100 * score, '%')
+    return score
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit( main() < 0.95 )
