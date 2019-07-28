@@ -215,7 +215,7 @@ namespace testing {
     SDR outputB({ params.size });
     encoderB.encode(testDocUni2, outputB);
 
-    ASSERT_GT(outputA.getOverlap(outputB), 60u);
+    ASSERT_GT(outputA.getOverlap(outputB), 65u);
   }
 
   // Test encoding unicode text with 'tokenSimilarity' Off
@@ -233,7 +233,7 @@ namespace testing {
     SDR outputB({ params.size });
     encoderB.encode(testDocUni2, outputB);
 
-    ASSERT_LT(outputA.getOverlap(outputB), 60u);
+    ASSERT_LT(outputA.getOverlap(outputB), 65u);
   }
 
 } // end namespace testing

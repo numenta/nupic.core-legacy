@@ -184,7 +184,7 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     encoder1.encode(testDocUni1, output1)
     encoder2.encode(testDocUni2, output2)
 
-    assert(output1.getOverlap(output2) > 60)
+    assert(output1.getOverlap(output2) > 65)
 
   # Test encoding unicode text with 'tokenSimilarity' Off
   def testUnicodeSimilarityOff(self):
@@ -200,7 +200,7 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     encoder1.encode(testDocUni1, output1)
     encoder2.encode(testDocUni2, output2)
 
-    assert(output1.getOverlap(output2) < 60)
+    assert(output1.getOverlap(output2) < 65)
 
   # Test serialization and deserialization
   @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
