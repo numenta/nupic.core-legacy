@@ -77,12 +77,13 @@ namespace htm {
    *
    * Encodes documents and text into Sparse Distributed Representations (SDRs),
    * ready for use with Hierarchical Temporal Memory (HTM). Similar document
-   * encodings will share similar representations, and vice versa.
+   * encodings will share similar representations, and vice versa. Unicode
+   * is supported.
    *
    * "Similarity" here refers to bitwise similarity (small hamming distance,
    * high overlap), not semantic similarity (encodings for "apple" and
    * "computer" will have no relation here.) For document encodings which are
-   * also semantic, please try Cortical.io and their Semantic Folding tech.
+   * also semantic, please try Cortical.io and their Semantic Folding encoding.
    *
    * Encoding is accomplished using SimHash, a Locality-Sensitive Hashing (LSH)
    * algorithm from the world of nearest-neighbor document similarity search.
@@ -94,10 +95,22 @@ namespace htm {
    * token similarity "near-spellings" (such as "cat" and "cats") will receieve
    * similar encodings or not.
    *
-   * Unicode is supported.
+   * @code
+   *    #include <htm/encoders/SimHashDocumentEncoder.hpp>
+   *    #include <htm/encoders/types/Sdr.hpp>
+   *
+   *    SimHashDocumentEncoderParameters params;
+   *    params.size = 400u;
+   *    params.activeBits = 21u;
+   *
+   *    SDR output({ params.size });
+   *    SimHashDocumentEncoder encoder(params);
+   *    encoder.encode({ "bravo", "delta", "echo" }, output)  // weights 1
+   *    encoder.encode({{ "bravo", 2 }, { "delta", 1 }, { "echo", 3 }}, output)
    *
    * @see BaseEncoder.hpp
    * @see SimHashDocumentEncoder.cpp
+   * @see Serializable.hpp
    */
   class SimHashDocumentEncoder : public BaseEncoder<std::vector<std::string>> {
   public:
@@ -112,7 +125,7 @@ namespace htm {
 
     ~SimHashDocumentEncoder() override {};
 
-    CerealAdapter;  // see Serializable.hpp
+    CerealAdapter;
     // Cereal Serialization
     template<class Archive>
     void save_ar(Archive& ar) const {

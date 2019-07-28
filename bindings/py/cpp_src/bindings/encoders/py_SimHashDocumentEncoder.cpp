@@ -26,6 +26,7 @@
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include <htm/encoders/SimHashDocumentEncoder.hpp>
 
@@ -117,6 +118,20 @@ achieve sparsity.
 
 To inspect this run:
 $ python -m htm.encoders.simhash_document_encoder --help
+
+Code Example:
+    from htm.bindings.encoders import SimHashDocumentEncoder
+    from htm.bindings.encoders import SimHashDocumentEncoderParameters
+    from htm.bindings.sdr import SDR
+
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.activeBits = 21
+
+    output = SDR(params.size)
+    encoder = SimHashDocumentEncoder(params)
+    encoder.encode([ "bravo", "delta", "echo" ], output)  # weights 1
+    encoder.encode({ "brevo": 3, "delta" : 1, "echo" : 2 }, output)
 )");
 
     py_SimHashDocumentEncoder.def(py::init<SimHashDocumentEncoderParameters&>());
@@ -134,11 +149,12 @@ are filled in automatically.
     py_SimHashDocumentEncoder.def_property_readonly("size",
       [](SimHashDocumentEncoder &self) { return self.size; });
 
+    // Handle case of class method overload + class method override
     // https://pybind11.readthedocs.io/en/master/classes.html#overloaded-methods
     py_SimHashDocumentEncoder.def("encode",
       (void (SimHashDocumentEncoder::*)(std::map<std::string, htm::UInt>, htm::SDR &))
         &SimHashDocumentEncoder::encode);
-    py_SimHashDocumentEncoder.def("encode",
+    py_SimHashDocumentEncoder.def("encode", // alternate: simple w/o weights
       (void (SimHashDocumentEncoder::*)(std::vector<std::string>, htm::SDR &))
         &SimHashDocumentEncoder::encode);
 
@@ -147,13 +163,22 @@ are filled in automatically.
         auto output = new SDR({ self.size });
         self.encode( value, *output );
         return output;
-      });
-    py_SimHashDocumentEncoder.def("encode",
+      },
+R"(
+Takes input in a python map of strings (tokens) => integer (weights).
+Ex: { "alpha": 2, "bravo": 1, "delta": 1, "echo": 3 }
+)");
+    py_SimHashDocumentEncoder.def("encode", // alternate: simple w/o weights
       [](SimHashDocumentEncoder &self, std::vector<std::string> value) {
         auto output = new SDR({ self.size });
         self.encode( value, *output );
         return output;
-      });
+      },
+R"(
+Simple alternate calling pattern using only strings, no weights (assumed
+to be 1). Takes input in a python list of strings (tokens).
+Ex: [ "alpha", "bravo", "delta", "echo" ]
+)");
 
   }
 }

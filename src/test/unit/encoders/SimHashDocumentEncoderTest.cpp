@@ -52,36 +52,47 @@ namespace testing {
     u8"\u0400\u0401\u0402\u0403\u0404\u0410",
     u8"\u0405\u0406\u0407\u0408\u0409\u0410"
   };
+  const std::map<std::string, UInt> testDocMap1 =
+    {{ "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "sss", 1 }};
+  const std::map<std::string, UInt> testDocMap2 =
+    {{ "eee", 2 }, { "bbb", 2 }, { "ccc", 2 }, { "fff", 2 }, { "sss", 1 }};
+  const std::map<std::string, UInt> testDocMap3 =
+    {{ "aaa", 4 }, { "eee", 2 }, { "fff", 2 }, { "ddd", 4 }};
 
 
-  // TESTS
+  /**
+   * TESTS
+   */
 
-  TEST(SimHashDocumentEncoder, testConstruct) {
+  // Test a basic construction with defaults
+  TEST(SimHashDocumentEncoder, testConstructor) {
     SimHashDocumentEncoderParameters params;
-    params.size = 10u;
-    params.activeBits = 2u;
+    params.size = 400u;
+    params.activeBits = 20u;
 
     SimHashDocumentEncoder encoder(params);
 
-    ASSERT_EQ(encoder.parameters.size, 10u);
-    ASSERT_EQ(encoder.parameters.activeBits, 2u);
+    ASSERT_EQ(encoder.parameters.size, params.size);
+    ASSERT_EQ(encoder.parameters.activeBits, params.activeBits);
   }
 
-  TEST(SimHashDocumentEncoder, testConstructParamSparsity) {
+  // Test a basic construction using 'sparsity' param instead of 'activeBits'
+  TEST(SimHashDocumentEncoder, testConstructorParamSparsity) {
     SimHashDocumentEncoderParameters params;
-    params.size = 10u;
-    params.sparsity = 0.20f;
+    params.size = 400u;
+    params.sparsity = 0.05f;
 
     SimHashDocumentEncoder encoder(params);
 
-    ASSERT_EQ(encoder.parameters.size, 10u);
-    ASSERT_EQ(encoder.parameters.activeBits, 2u);
+    ASSERT_EQ(encoder.parameters.size, params.size);
+    ASSERT_EQ(encoder.parameters.activeBits, 20u);
   }
 
+  // Test a basic encoding, try a few failure cases
   TEST(SimHashDocumentEncoder, testEncoding) {
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
-    params.activeBits = 21u;
+    params.activeBits = 20u;
 
     SDR output({ params.size });
     SimHashDocumentEncoder encoder(params);
@@ -94,28 +105,31 @@ namespace testing {
     ASSERT_EQ(output.getSum(), params.activeBits);
   }
 
+  // Test Serialization and Deserialization
   TEST(SimHashDocumentEncoder, testSerialize) {
     SimHashDocumentEncoderParameters params;
-    params.size = 1000u;
-    params.sparsity = 0.25f;
+    params.size = 400u;
+    params.sparsity = 0.33f;
 
     SimHashDocumentEncoder encoderA(params);
     std::stringstream buffer;
     encoderA.save(buffer);
-    SDR outputA({ encoderA.parameters.size });
+    SDR outputA({ params.size });
     encoderA.encode(testDoc1, outputA);
 
     SimHashDocumentEncoder encoderB;
     encoderB.load(buffer);
-    SDR outputB({ encoderB.parameters.size });
+    SDR outputB({ params.size });
     encoderB.encode(testDoc1, outputB);
 
     ASSERT_EQ(outputA, outputB);
   }
 
+  // Test encoding simple corpus with 'tokenSimilarity' On. Tokens of similar
+  // spelling will affect the output in shared manner.
   TEST(SimHashDocumentEncoder, testTokenSimilarityOn) {
     SimHashDocumentEncoderParameters params;
-    params.size = 100u;
+    params.size = 400u;
     params.sparsity = 0.33f;
     params.tokenSimilarity = true;
 
@@ -137,9 +151,11 @@ namespace testing {
     ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output4));
   }
 
+  // Test encoding a simple corpus with 'tokenSimilarity' Off (default). Tokens
+  // of similar spelling will NOT affect the output in shared manner, but apart.
   TEST(SimHashDocumentEncoder, testTokenSimilarityOff) {
     SimHashDocumentEncoderParameters params;
-    params.size = 100u;
+    params.size = 400u;
     params.sparsity = 0.33f;
     params.tokenSimilarity = false;
 
@@ -161,67 +177,63 @@ namespace testing {
     ASSERT_GT(output3.getOverlap(output4), output1.getOverlap(output3));
   }
 
+  // Test encoding with weighted tokens. Make sure output changes accordingly.
   TEST(SimHashDocumentEncoder, testTokenWeightMap) {
-    const std::map<std::string, UInt> testDocMap1 =
-      {{ "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "sss", 1 }};
-    const std::map<std::string, UInt> testDocMap2 =
-      {{ "eee", 2 }, { "bbb", 2 }, { "ccc", 2 }, { "fff", 2 }, { "sss", 1 }};
-    const std::map<std::string, UInt> testDocMap3 =
-      {{ "aaa", 4 }, { "eee", 2 }, { "fff", 2 }, { "ddd", 4 }};
-
     SimHashDocumentEncoderParameters params;
-    params.size = 100u;
+    params.size = 400u;
     params.sparsity = 0.33f;
     params.tokenSimilarity = false;
 
     SimHashDocumentEncoder encoderA(params);
-    SDR outputA({ encoderA.parameters.size });
+    SDR outputA({ params.size });
     encoderA.encode(testDocMap1, outputA);
 
     SimHashDocumentEncoder encoderB(params);
-    SDR outputB({ encoderB.parameters.size });
+    SDR outputB({ params.size });
     encoderB.encode(testDocMap2, outputB);
 
     SimHashDocumentEncoder encoderC(params);
-    SDR outputC({ encoderC.parameters.size });
+    SDR outputC({ params.size });
     encoderC.encode(testDocMap3, outputC);
 
     ASSERT_GT(outputA.getOverlap(outputC), outputA.getOverlap(outputB));
     ASSERT_GT(outputA.getOverlap(outputB), outputB.getOverlap(outputC));
   }
 
+  // Test encoding unicode text with 'tokenSimilarity' on
   TEST(SimHashDocumentEncoder, testUnicodeSimilarityOn) {
     SimHashDocumentEncoderParameters params;
-    params.size = 100u;
+    params.size = 400u;
     params.sparsity = 0.33f;
     params.tokenSimilarity = true;
 
     SimHashDocumentEncoder encoderA(params);
-    SDR outputA({ encoderA.parameters.size });
+    SDR outputA({ params.size });
     encoderA.encode(testDocUni1, outputA);
 
     SimHashDocumentEncoder encoderB(params);
-    SDR outputB({ encoderB.parameters.size });
+    SDR outputB({ params.size });
     encoderB.encode(testDocUni2, outputB);
 
-    ASSERT_GT(outputA.getOverlap(outputB), 25u);
+    ASSERT_GT(outputA.getOverlap(outputB), 60u);
   }
 
+  // Test encoding unicode text with 'tokenSimilarity' Off
   TEST(SimHashDocumentEncoder, testUnicodeSimilarityOff) {
     SimHashDocumentEncoderParameters params;
-    params.size = 100u;
+    params.size = 400u;
     params.sparsity = 0.33f;
     params.tokenSimilarity = false;
 
     SimHashDocumentEncoder encoderA(params);
-    SDR outputA({ encoderA.parameters.size });
+    SDR outputA({ params.size });
     encoderA.encode(testDocUni1, outputA);
 
     SimHashDocumentEncoder encoderB(params);
-    SDR outputB({ encoderB.parameters.size });
+    SDR outputB({ params.size });
     encoderB.encode(testDocUni2, outputB);
 
-    ASSERT_LT(outputA.getOverlap(outputB), 25u);
+    ASSERT_LT(outputA.getOverlap(outputB), 60u);
   }
 
 } // end namespace testing
