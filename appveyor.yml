@@ -100,6 +100,7 @@ install:
   - "echo Branch name: %GIT_BRANCH_NAME%"
   - "cd %HTM_CORE%"
   - "git fetch --unshallow"
+  - "git branch"
   - "rm -Rf .git/gitversion_cache/"
   - "GitVersion.exe"
   - "GitVersion.exe /showvariable SemVer"
@@ -107,7 +108,7 @@ install:
   - "for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i"
   - "echo Binding version = %BINDINGS_VERSION%"
 
-  - python -m pip install --user --upgrade pip setuptools setuptools-scm
+  - python -m pip install --user --upgrade pip setuptools setuptools-scm wheel || exit
   - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
 
@@ -127,7 +128,9 @@ build_script:
 
   - cd %HTM_CORE%
 
-  - python setup.py install --user
+  # Build the python interface and wheel (Release build)
+  - python3 setup.py install --user
+  - python3 setup.py bdist_wheel
 
 after_build:
 

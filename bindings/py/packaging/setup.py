@@ -160,12 +160,18 @@ def getExtensionFileNames(platform):
   #     htm.core.math.so
   #     htm.core.encoders.so
   #     htm.core.sdr.so
+  # (or on windows x64 with Python3.7:)
+  #     algorithms.cp37-win_amd64.pyd
+  #     engine_internal.cp37-win_amd64.pyd
+  #     math.cp37-win_amd64.pyd
+  #     encoders.cp37-win_amd64.pyd
+  #     sdr.cp37-win_amd64.pyd
   if platform in WINDOWS_PLATFORMS:
     libExtension = "pyd"
   else:
     libExtension = "so"
   libNames = ("sdr", "encoders", "algorithms", "engine_internal", "math")
-  libFiles = ["htm.bindings.{}.{}".format(name, libExtension) for name in libNames]
+  libFiles = ["{}.*.{}".format(name, libExtension) for name in libNames]
   files = [os.path.join(DISTR_DIR, "src", "htm", "bindings", name)
            for name in list(libFiles)]
   return files
@@ -174,7 +180,8 @@ def getExtensionFileNames(platform):
 def getExtensionFiles(platform):
   files = getExtensionFileNames(platform)
   for f in files:
-    if not os.path.exists(f):
+    print(f)
+    if not glob.glob(f):
       generateExtensions(platform)
       break
 

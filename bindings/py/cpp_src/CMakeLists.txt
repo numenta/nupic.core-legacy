@@ -108,7 +108,8 @@ file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
 # determine which version of binding to build
 if ("${BINDING_BUILD}" STREQUAL "Python2")
   set(PYBIND11_PYTHON_VERSION 2.7)
-  # else Python3
+else()
+  set(BINDING_BUILD Python3)
 endif()
 add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
 set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
@@ -231,22 +232,15 @@ target_include_directories(${math_shared_lib} PRIVATE
 #		${gtest_INCLUDE_DIR}
 #		)
 
-
-
-
-###################################################################
-#
-# Install targets into CMAKE_INSTALL_PREFIX/distr/src/htm/bindings
-#
-###################################################################
 install(TARGETS
         sdr
         encoders
         algorithms
         engine_internal
         math
-	${py_unit_test_executable}
+#	${py_unit_test_executable}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION ${distr}/src/htm/bindings
         ARCHIVE DESTINATION lib)
 	
+
