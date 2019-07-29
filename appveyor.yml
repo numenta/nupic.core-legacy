@@ -129,8 +129,9 @@ build_script:
   - cd %HTM_CORE%
 
   # Build the python interface and wheel (Release build)
-  - python3 setup.py install --user
-  - python3 setup.py bdist_wheel
+  - python setup.py install --user
+  - python setup.py bdist_wheel
+  - cmake.exe --build "%HTM_CORE%\build\scripts" --target package
 
 after_build:
 
