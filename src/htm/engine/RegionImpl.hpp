@@ -218,7 +218,11 @@ public:
   virtual void cereal_adapter_save(ArWrapper& a) const {};
   virtual void cereal_adapter_load(ArWrapper& a) {};
 
-  virtual bool operator==(const RegionImpl &other) const = 0;
+  // NOTE: all internal regions must implement an override of operator== by convention for unit testing.  
+  //            Customer written regions do not require it.
+  virtual bool operator==(const RegionImpl &other) const { 
+    NTA_THROW << "operator== not implmented for region "+getName(); 
+  };
   virtual inline bool operator!=(const RegionImpl &other) const {
     return !operator==(other);
   }
