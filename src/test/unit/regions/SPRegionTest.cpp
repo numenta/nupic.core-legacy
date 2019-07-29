@@ -353,7 +353,7 @@ TEST(SPRegionTest, testSerialization)
 
 	  // Change some parameters and see if they are retained after a restore.
     n2region2->setParameterBool("globalInhibition", true);
-    n2region2->setParameterReal32("localAreaDensity", 0.23);
+    n2region2->setParameterReal32("localAreaDensity", 0.23f);
     n2region2->setParameterReal32("potentialPct", 0.85f);
     n2region2->setParameterReal32("synPermActiveInc", 0.04f);
     n2region2->setParameterReal32("synPermInactiveDec", 0.005f);

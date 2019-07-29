@@ -78,6 +78,8 @@ class DateEncoderTest(unittest.TestCase):
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
     # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
+    # Any Monday morning (before noon) # DEBUG
+    # d = datetime.strptime("22/07/19 8:00", "%d/%m/%y %H:%M") # DEBUG
     bits = enc.encode(d)
 
     # Week is MTWTFSS contrary to localtime documentation, Monday = 0 (for

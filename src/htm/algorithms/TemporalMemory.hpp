@@ -270,7 +270,8 @@ public:
    * @return Segment
    * The created segment.
    */
-  Segment createSegment(const CellIdx& cell);
+  Segment createSegment(const CellIdx& cell) { 
+	  return connections.createSegment(cell, maxSegmentsPerCell_); }
 
   /**
    * Returns the indices of cells that belong to a mini-column.
@@ -461,7 +462,6 @@ public:
        CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
-       CEREAL_NVP(iteration_),
        CEREAL_NVP(rng_),
        CEREAL_NVP(columnDimensions_),
        CEREAL_NVP(activeCells_),
@@ -517,7 +517,6 @@ public:
        CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
-       CEREAL_NVP(iteration_),
        CEREAL_NVP(rng_),
        CEREAL_NVP(columnDimensions_),
        CEREAL_NVP(activeCells_),
@@ -549,9 +548,6 @@ public:
       matchingSegments_[i] = segment;
       numActivePotentialSynapsesForSegment_[segment] = c.syn;
     }
-
-    lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
-
   }
 
 
@@ -628,9 +624,6 @@ private:
   vector<Segment> matchingSegments_;
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
-
-  UInt64 iteration_;
-  vector<UInt64> lastUsedIterationForSegment_;
 
   Real anomaly_;
 
