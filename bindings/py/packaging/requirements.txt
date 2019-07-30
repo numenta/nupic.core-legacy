@@ -6,3 +6,4 @@ pytest-cov>=2.5.0
 ## for python code (in /py/)
 hexy>=1.4.3 # for grid cell encoder
 mock>=1.0.1 # for anomaly likelihood test
+random-word>=1.0.4 # for simhash document encoder tests

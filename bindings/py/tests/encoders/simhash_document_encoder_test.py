@@ -21,13 +21,17 @@
 
 import pickle
 import pytest
+import random
 import unittest
+
+from random_word import RandomWords
 
 from htm.bindings.encoders import SimHashDocumentEncoder, SimHashDocumentEncoderParameters
 from htm.bindings.sdr import SDR, Metrics
 
 
 # Shared Test Strings
+testCorpus = RandomWords().get_random_words(limit=100, maxLength=12)
 testDoc1 = [ "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  ]
 testDoc2 = [ "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  ]
 testDoc3 = [ "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  ]
@@ -98,6 +102,68 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
       encoder.encode([], output)
     with self.assertRaises(RuntimeError):
       encoder.encode({}, output)
+
+  # Test binary properties of a variety of output encodings
+  def testStatistics(self):
+    num_samples = 1000 # number of documents to run
+    num_tokens = 10 # tokens per document
+
+    # 1 = tokenSimilarity OFF
+    params1 = SimHashDocumentEncoderParameters()
+    params1.size = 400
+    params1.sparsity = 0.33
+    params1.tokenSimilarity = False
+    encoder1 = SimHashDocumentEncoder(params1)
+
+    # 2 = tokenSimilarity ON
+    params2 = params1
+    params2.tokenSimilarity = True
+    encoder2 = SimHashDocumentEncoder(params2)
+
+    sdrs1 = []
+    sdrs2 = []
+    for _ in range(num_samples):
+      document = []
+      for _ in range(num_tokens - 1):
+        document.append(testCorpus[random.randint(0, len(testCorpus) - 1)])
+      sdrs1.append(encoder1.encode(document))
+      sdrs2.append(encoder2.encode(document))
+
+    report1 = Metrics([encoder1.size], len(sdrs1) + 1)
+    report2 = Metrics([encoder2.size], len(sdrs2) + 1)
+
+    for sdr in sdrs1:
+      report1.addData(sdr)
+    for sdr in sdrs2:
+      report2.addData(sdr)
+
+    # 1 = tokenSimilarity OFF
+    assert(report1.activationFrequency.entropy() > 0.87)
+    assert(report1.activationFrequency.min() > 0.01)
+    assert(report1.activationFrequency.max() < 0.99)
+    assert(report1.activationFrequency.mean() > params1.sparsity - 0.005)
+    assert(report1.activationFrequency.mean() < params1.sparsity + 0.005)
+    assert(report1.overlap.min() > 0.21)
+    assert(report1.overlap.max() > 0.58)
+    assert(report1.overlap.mean() > 0.38)
+    assert(report1.sparsity.min() > params1.sparsity - 0.01)
+    assert(report1.sparsity.max() < params1.sparsity + 0.01)
+    assert(report1.sparsity.mean() > params1.sparsity - 0.005)
+    assert(report1.sparsity.mean() < params1.sparsity + 0.005)
+
+    # 2 = tokenSimilarity ON
+    assert(report2.activationFrequency.entropy() > 0.39)
+    assert(report2.activationFrequency.min() >= 0)
+    assert(report2.activationFrequency.max() <= 1)
+    assert(report2.activationFrequency.mean() > params2.sparsity - 0.005)
+    assert(report2.activationFrequency.mean() < params2.sparsity + 0.005)
+    assert(report2.overlap.min() > 0.50)
+    assert(report2.overlap.max() > 0.86)
+    assert(report2.overlap.mean() > 0.72)
+    assert(report2.sparsity.min() > params2.sparsity - 0.01)
+    assert(report2.sparsity.max() < params2.sparsity + 0.01)
+    assert(report2.sparsity.mean() > params2.sparsity - 0.005)
+    assert(report2.sparsity.mean() < params2.sparsity + 0.005)
 
   # Test encoding simple corpus with 'tokenSimilarity' On. Tokens of similar
   # spelling will affect the output in shared manner.
