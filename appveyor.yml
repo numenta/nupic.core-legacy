@@ -130,7 +130,7 @@ install:
   
   # Build the github package in build/scripts/*.zip and build/scripts/*.tar.gz
   - cd %HTM_CORE%\build\scripts
-  - cmake --build . --config %configuration% --target Package ../..
+  - cmake --build . --config %configuration% --target Package 
 
 after_build:
 

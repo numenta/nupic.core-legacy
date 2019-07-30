@@ -104,7 +104,12 @@ install:
   - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
   - make install 2>&1|grep -v -F 'Installing:'
   - echo "Installing Python bindings" 
-  - python $TRAVIS_BUILD_DIR/setup.py install
+  - cd "$TRAVIS_BUILD_DIR"
+  - python setup.py install
+  - python setup.py bdist_wheel
+  - cd build\scripts
+  - cmake --build . --config Release --target Package 
+
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
