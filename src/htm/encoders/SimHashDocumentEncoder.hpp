@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------------
  * HTM Community Edition of NuPIC
  * Copyright (C) 2016, Numenta, Inc. https://numenta.com
- *               2019, Brev Patterson, Lux Rota LLC, https://luxrota.com
  *               2019, David McDougall
+ *               2019, Brev Patterson, Lux Rota LLC, https://luxrota.com
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero Public License version 3 as published by
@@ -19,8 +19,6 @@
 
 /** @file
  * SimHashDocumentEncoder.hpp
- * @author Brev Patterson, Lux Rota LLC, https://luxrota.com
- * @author David McDougall
  * @since 0.2.3
  */
 
