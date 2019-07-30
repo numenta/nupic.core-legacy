@@ -107,7 +107,7 @@ install:
   - cd "$TRAVIS_BUILD_DIR"
   - python setup.py install
   - python setup.py bdist_wheel
-  - cd build\scripts
+  - cd "$TRAVIS_BUILD_DIR/build/scripts"
   - cmake --build . --config Release --target Package 
 
 

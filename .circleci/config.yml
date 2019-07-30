@@ -51,7 +51,7 @@ jobs:
       - run:
            name: Installing python dependencies
            command: |
-                   python -m pip install --user --upgrade pip setuptools setuptools-scm
+                   python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
                    python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
       # Save dependency cache
       #      - save_cache:
@@ -88,6 +88,12 @@ jobs:
       - run:
            name: Install Python extension
            command: python setup.py install --user --prefix=
+      - run:
+	       name: Build python wheel
+           command: python setup.py bdist_wheel
+      - run:
+	       name: Build github package
+           command: cmake --build . --config Release --target Package
       - run:
           name: Running python tests
           command: python setup.py test
