@@ -35,7 +35,7 @@ skip_branch_with_pr: true
 init:
   - git config --global core.autocrlf input
 
-clone_folder: c:\projects\htm-cpp
+clone_folder: c:\projects\htm-core
 clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
@@ -44,8 +44,9 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: MSVC
-  HTM_CORE: "C:\\projects\\htm-cpp"
+  HTM_CORE: "C:\\projects\\htm-core"
   ARTIFACTS_DIR: "%HTM_CORE%\\build\\artifacts"
+  configuration: "Release"
 
 ## AWS S3 support (pip install boto)
 #  AWS_ACCESS_KEY_ID:
@@ -96,14 +97,14 @@ before_build:
 #  - ps: gitversion /l console /output buildserver
 
 install: 
-  # using GitVersion
+  # using GitVersion to populate the file VERSION
   - "echo Branch name: %GIT_BRANCH_NAME%"
   - "cd %HTM_CORE%"
   - "git fetch --unshallow"
   #- "git branch"
   #- "rm -Rf .git/gitversion_cache/"
   #- "GitVersion.exe"
-  #- "GitVersion.exe /showvariable SemVer"
+  #- "GitVersion.exe /showvariable SemVer > VERSION"
   
   - "for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i"
   - "echo Binding version = %BINDINGS_VERSION%"
@@ -116,22 +117,20 @@ install:
   - mkdir %HTM_CORE%\build\
   - mkdir %HTM_CORE%\build\scripts
 
-  # http://www.cmake.org/Wiki/CmakeMingw
+  # initial cmake setup to build dependancies and create .sln
   - cd %HTM_CORE%\build\scripts
-  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration%  %HTM_CORE%
+  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration% %HTM_CORE%
 
-build_script:
-  - cd %HTM_CORE%\build\scripts
-
-  # Run build (i.e. make install), using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%HTM_CORE%\build\scripts" --target install --config %configuration%
-
+  # Build the library with python interface (Release build)
   - cd %HTM_CORE%
-
-  # Build the python interface and wheel (Release build)
   - python setup.py install --user
+  
+  # Build the wheel
   - python setup.py bdist_wheel
-  - cmake.exe --build "%HTM_CORE%\build\scripts" --target package
+  
+  # Build the github package in build/scripts/*.zip and build/scripts/*.tar.gz
+  - cd %HTM_CORE%\build\scripts
+  - cmake --build . --config %configuration% --target Package ../..
 
 after_build:
 

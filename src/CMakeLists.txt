@@ -401,16 +401,14 @@ add_custom_target(mnist
 install(TARGETS
         ${core_library}
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        COMPONENT cpp_components)
+        ARCHIVE DESTINATION lib)
         
 install(TARGETS
         ${src_executable_hotgym}
         ${src_executable_mnistsp}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        COMPONENT example_components)
+        ARCHIVE DESTINATION lib)
 if(MSVC)
 else()	
   install(TARGETS
@@ -418,27 +416,32 @@ else()
         ${src_lib_shared}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        COMPONENT example_components)
+        ARCHIVE DESTINATION lib)
 endif()
 
 # Version.hpp is also used by the htm.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
-      DESTINATION include
-      COMPONENT cpp_components)
+      DESTINATION include)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
       MESSAGE_NEVER
       DESTINATION include
-      COMPONENT cpp_components
       FILES_MATCHING PATTERN "htm/*/*.h*"
       PATTERN "htm/*/*.hpp.in" EXCLUDE)
 
 
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
       MESSAGE_NEVER
-      DESTINATION include
-      COMPONENT cpp_components)
+      DESTINATION include)
+      
+# include the python wheel if it exists.
+# run "python3 setup.py install --user"
+# and "python3 setup.py bdist_wheel"
+# prior to this to create the whl file.
+install(DIRECTORY "${CMAKE_INSTALL_PREFIX}/distr/dist/"
+	  MESSAGE_NEVER
+	  DESTINATION py
+	  FILES_MATCHING PATTERN "*.whl")
 
 
 ############### PACKAGE ###########################
@@ -455,22 +458,11 @@ set(CPACK_PACKAGE_VERSION_MINOR "0")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "htm.core")
 
-set(CPACK_COMPONENTS_ALL cpp_components py_components example_components)
-set(CPACK_COMPONENT_CPP_COMPONENTS_DISPLAY_NAME "C++ binaries")
-set(CPACK_COMPONENT_CPP_COMPONENTS_DESCRIPTION "Components needed for C++ development.  libs & headers")
-set(CPACK_COMPONENT_EXAMPLE_COMPONENTS_DISPLAY_NAME "Runtime")
-set(CPACK_COMPONENT_EXAMPLE_COMPONENTS_DESCRIPTION "Hotgym and mnist examples and the unit tests.")
-#set(CPACK_COMPONENT_PY_COMPONENTS_DISPLAY_NAME "Python Components")
-#set(CPACK_COMPONENT_PY_COMPONENTS_DESCRIPTION "Components needed for pip install for python.")
-
 if(MSVC)
-  set(CPACK_GENERATOR "ZIP")
+	set(CPACK_GENERATOR "ZIP")
 else()
-  set(CPACK_GENERATOR "TGZ")
+	set(CPACK_GENERATOR "TGZ")
 endif()
-set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX}/CPack)
 set(CPACK_RESOURCE_FILE_LICENSE "${REPOSITORY_DIR}/LICENSE.txt")
-set(CPACK_NSIS_MENU_LINKS CPP_COMPONENTS "C++ library"
-                          PY_COMPONENTS "Python Pkg")
-set(CPACK_PACKAGE_FILE_NAME "htm_cpp-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
+#set(CPACK_PACKAGE_FILE_NAME "htm_core-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
 include(CPack)
