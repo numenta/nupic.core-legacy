@@ -65,6 +65,11 @@ if exist "htm_core.sln" (
   exit /B 0
 )
 
+"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -legacy -prerelease -format json > vswhereTmp.jsn
+find /c "VisualStudio.15" vswhereTmp.jsn > vswhereTmp.cnt && (set Has2017=1) || (set Has2017=0)
+find /c "VisualStudio.16" vswhereTmp.jsn > vswhereTmp.cnt && (set Has2019=1) || (set Has2019=0)
+del vswhereTmp.*
+
 rem // Run CMake using the Visual Studio generator.  The generator can be one of these.
 rem //   cmake -G "Visual Studio 15 2017 Win64"
 rem //   cmake -G "Visual Studio 16 2017 ARM"
@@ -82,10 +87,17 @@ rem //   ../..                       set the source directory (top of repository
 rem //
 rem //  NOTE: only 64bit compiles supported.
 
-if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019" (
-    cmake -G "Visual Studio 16 2019" -A X64 -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release"  ../..
+if %Has2019%==1 (
+    cmake -G "Visual Studio 16 2019" -A X64 -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Release;Debug"  ../..
 ) else (
-    cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release"  ../..
+    if %Has2017%==1 (
+      cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Release;Debug"  ../..
+    ) else (
+      @echo Did not fond Visual studio 2017 or Visual Studio 2019.
+      popd
+      pause
+      exit /B 1
+    )
 )
 
   
