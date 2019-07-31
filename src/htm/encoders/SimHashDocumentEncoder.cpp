@@ -81,9 +81,8 @@ namespace htm {
   /**
    * Encode (Main calling style)
    *
-   * Depending on param "tokenSimilarity", we'll either loop through
-   *  the provided document tokens, or loop through all the letters in all
-   *  the tokens.
+   * If param "tokenSimilarity" is passed, we'll additionally loop through
+   *  all the letters in all the tokens.
    * Each token/letter will be hashed with SHA3+SHAKE256 to get
    *  a varible-length (param "size") binary digest output. These vectors will
    *  be stored in a matrix for the next step of processing.
@@ -112,7 +111,7 @@ namespace htm {
 
     for (const auto& member : input) {
       const std::string token = member.first;
-      const UInt tokenWeight = member.second;
+      UInt tokenWeight = member.second;
 
       if (args_.tokenSimilarity) {
         // generate hash digest for every single character individually
@@ -121,15 +120,14 @@ namespace htm {
           bitsToWeightedAdder_(tokenWeight, hashBits);
           addVectorToMatrix_(hashBits, adders);
         }
+        tokenWeight = (UInt) (tokenWeight * 1.5); // balance token with letters
       }
-      else {
-        // generate hash digest for whole token string
-        hashToken_(token, hashBits);
-        bitsToWeightedAdder_(tokenWeight, hashBits);
-        addVectorToMatrix_(hashBits, adders);
-      }
+      // generate hash digest for whole token string
+      hashToken_(token, hashBits);
+      bitsToWeightedAdder_(tokenWeight, hashBits);
+      addVectorToMatrix_(hashBits, adders);
     }
-
+    // simhash
     simHashAdders_(adders, simBits);
     output.setDense(simBits);
   } // end method encode

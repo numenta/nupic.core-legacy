@@ -161,14 +161,14 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     assert(report1.sparsity.mean() < params1.sparsity + 0.005)
 
     # Assertions for Case 2 = tokenSimilarity ON
-    assert(report2.activationFrequency.entropy() > 0.39)
+    assert(report2.activationFrequency.entropy() > 0.59)
     assert(report2.activationFrequency.min() >= 0)
     assert(report2.activationFrequency.max() <= 1)
     assert(report2.activationFrequency.mean() > params2.sparsity - 0.005)
     assert(report2.activationFrequency.mean() < params2.sparsity + 0.005)
-    assert(report2.overlap.min() > 0.43)
-    assert(report2.overlap.max() > 0.83)
-    assert(report2.overlap.mean() > 0.65)
+    assert(report2.overlap.min() > 0.40)
+    assert(report2.overlap.max() > 0.79)
+    assert(report2.overlap.mean() > 0.61)
     assert(report2.sparsity.min() > params2.sparsity - 0.01)
     assert(report2.sparsity.max() < params2.sparsity + 0.01)
     assert(report2.sparsity.mean() > params2.sparsity - 0.005)

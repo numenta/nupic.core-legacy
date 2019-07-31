@@ -80,13 +80,13 @@ document-level similarity, at the expense of token-level similarity).
 
 Results are heavily dependent on the content of your input data.
 
-If TRUE: Similar tokens ("cat", "cats") will have similar influence
-  on the output simhash. This benefit comes with the cost of a
-  probable reduction in document-level similarity accuracy.
+If TRUE: Similar tokens ("cat", "cats") will have similar influence on the
+  output simhash. This benefit comes with the cost of a reduction in
+  document-level similarity accuracy.
 
-If FALSE: Similar tokens ("cat", "cats") will have individually unique
-  and unrelated influence on the output simhash encoding, thus losing
-  token-level similarity and increasing document-level similarity.
+If FALSE: Similar tokens ("cat", "cats") will have individually unique and
+  unrelated influence on the output simhash encoding, thus losing token-level
+  similarity and increasing document-level similarity.
 )");
 
 
@@ -101,7 +101,7 @@ Encodes a document text into a distributed spray of 1's.
 The SimHashDocumentEncoder encodes a document (array of strings) value into an
 array of bits. The output is 0's except for a sparse distribution spray of 1's.
 Similar document encodings will share similar representations, and vice versa.
-Unicode is supported.
+Unicode is supported. No lookup tables are used.
 
 "Similarity" here refers to bitwise similarity (small hamming distance,
 high overlap), not semantic similarity (encodings for "apple" and

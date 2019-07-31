@@ -76,7 +76,7 @@ namespace htm {
    * Encodes documents and text into Sparse Distributed Representations (SDRs),
    * ready for use with Hierarchical Temporal Memory (HTM). Similar document
    * encodings will share similar representations, and vice versa. Unicode
-   * is supported.
+   * is supported. No lookup tables are used.
    *
    * "Similarity" here refers to bitwise similarity (small hamming distance,
    * high overlap), not semantic similarity (encodings for "apple" and
