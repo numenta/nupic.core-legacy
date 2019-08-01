@@ -354,11 +354,18 @@ bool Connections::compareSegments(const Segment a, const Segment b) const {
 
 
 vector<Synapse> Connections::synapsesForPresynapticCell(const CellIdx presynapticCell) const {
-  const auto& potential = potentialSynapsesForPresynapticCell_.at(presynapticCell);
-  const auto& connected = connectedSynapsesForPresynapticCell_.at(presynapticCell);
+  vector<Synapse> all;
 
-  vector<Synapse> all( potential.cbegin(), potential.cend());
-  all.insert( all.cend(), connected.cbegin(), connected.cend());
+  if (potentialSynapsesForPresynapticCell_.count(presynapticCell)) {
+    const auto& potential = potentialSynapsesForPresynapticCell_.at(presynapticCell);
+    all.assign(potential.cbegin(), potential.cend());
+  }
+
+  if (connectedSynapsesForPresynapticCell_.count(presynapticCell)) {
+    const auto& connected = connectedSynapsesForPresynapticCell_.at(presynapticCell);
+    all.insert( all.cend(), connected.cbegin(), connected.cend());
+  }
+
   return all;
 }
 
