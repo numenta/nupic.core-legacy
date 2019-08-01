@@ -65,31 +65,41 @@ if exist "htm_core.sln" (
   exit /B 0
 )
 
+"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -legacy -prerelease -format json > vswhereTmp.jsn
+find /c "VisualStudio.15" vswhereTmp.jsn > vswhereTmp.cnt && (set Has2017=1) || (set Has2017=0)
+find /c "VisualStudio.16" vswhereTmp.jsn > vswhereTmp.cnt && (set Has2019=1) || (set Has2019=0)
+del vswhereTmp.*
+
 rem // Run CMake using the Visual Studio generator.  The generator can be one of these.
-rem //   cmake -G "Visual Studio 15 2017" -A x64
-rem //   cmake -G "Visual Studio 16 2017" -A ARM
+rem //   cmake -G "Visual Studio 15 2017 Win64"
+rem //   cmake -G "Visual Studio 16 2017 ARM"
 rem //
 rem //   cmake -G "Visual Studio 16 2019" -A x64
 rem //   cmake -G "Visual Studio 16 2019" -A ARM64
 rem //      NOTE: MSVC 2019 tool set generator requires CMake V3.14 or greater)
 rem //   
 rem //  arguments:
-rem //   -G "Visual Studio 16 2019"  Sets the generator toolset (compilers/linkers) to use. 
-rem //   -A x64                      Sets the platform.  Note that 64bit only supported.
+rem //   -G "Visual Studio 16 2019" -A x64   Sets the generator toolset and platform (compilers/linkers) to use. 
 rem //   -Thost=x64                  Tell CMake to tell VS to use 64bit tools for compiler and linker
 rem //   --config "Release"          Start out in Release mode
 rem //   -DCMAKE_CONFIGURATION_TYPES="Debug;Release"   Specify the build types allowed.
 rem //   ../..                       set the source directory (top of repository)
+rem //
+rem //  NOTE: only 64bit compiles supported.
 
-if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019" (
-    set GENERATOR="Visual Studio 16 2019"
-    set PLATFORM=x64
+if %Has2019%==1 (
+    cmake -G "Visual Studio 16 2019" -A X64 -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Release;Debug"  ../..
 ) else (
-    set GENERATOR="Visual Studio 15 2017"
-    set PLATFORM=x64
+    if %Has2017%==1 (
+      cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Release;Debug"  ../..
+    ) else (
+      @echo Did not fond Visual studio 2017 or Visual Studio 2019.
+      popd
+      pause
+      exit /B 1
+    )
 )
 
-cmake -G %GENERATOR% -A %PLATFORM% -Thost=x64 --config "Release" -DCMAKE_CONFIGURATION_TYPES="Debug;Release"  ../..
   
 if exist "htm_core.sln" (
     @echo " "
