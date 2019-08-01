@@ -141,7 +141,6 @@ jobs:
           name: Running docker build on ARM64
           command: $CI_SUDO docker build -t htm-arm64-docker --build-arg arch=arm64 .
           no_output_timeout: 2h
-      - run: $CI_SUDO docker run -it htm-arm64-docker 
 
 workflows:
   version: 2
