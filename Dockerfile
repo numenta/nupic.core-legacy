@@ -4,7 +4,7 @@
 #   https://docs.docker.com/engine/reference/commandline/build/
 ARG arch=amd64
 
-# Multiarch Debian 10 Buster (Jun 2019) (amd64, arm64, etc).
+# Multiarch Debian 10 Buster (amd64, arm64, etc).
 #   https://hub.docker.com/r/multiarch/debian-debootstrap
 FROM multiarch/debian-debootstrap:$arch-buster
 

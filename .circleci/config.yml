@@ -117,9 +117,9 @@ jobs:
   arm64-build-test:
     parallelism: 1
     docker:
-      # CircleCI base Ubuntu 18.04 LTS Bionic with remote Docker access, etc.
+      # CircleCI base Debian 10 Buster with remote Docker access, etc.
       #   https://circleci.com/docs/2.0/circleci-images/#buildpack-deps
-      - image: circleci/buildpack-deps:bionic
+      - image: circleci/buildpack-deps:buster
     steps:
       - run:
           # This is for local test builds using the CircleCI terminal app.
@@ -135,7 +135,7 @@ jobs:
       - run: sudo apt-get -y install qemu-system
       - checkout
       - setup_remote_docker  # access circleci's custom docker service
-      # here we make circleci x86 hardware think it's arm64 via docker+qemu
+      # make circleci x86_64/amd64 hardware think it's arm64 via docker+qemu
       - run: $CI_SUDO docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - run:
           name: Running docker build on ARM64
