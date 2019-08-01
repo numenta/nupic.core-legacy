@@ -597,6 +597,10 @@ public:
    *
    */
   SDR cellsToColumns(const SDR& cells) const;
+private:
+  void punishPredictedColumn_(vector<Segment>::const_iterator columnMatchingSegmentsBegin, 
+		              vector<Segment>::const_iterator columnMatchingSegmentsEnd, 
+			      const SDR& prevActiveCells);
 
 protected:
   //all these could be const

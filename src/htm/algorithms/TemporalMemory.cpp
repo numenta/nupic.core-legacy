@@ -341,13 +341,11 @@ burstColumn(vector<CellIdx> &activeCells,
   }
 }
 
-static void punishPredictedColumn(
-    Connections &connections,
+void TemporalMemory::punishPredictedColumn_(
     vector<Segment>::const_iterator columnMatchingSegmentsBegin,
     vector<Segment>::const_iterator columnMatchingSegmentsEnd,
-    const SDR &prevActiveCells,
-    Permanence predictedSegmentDecrement) {
-  if (predictedSegmentDecrement > 0.0) {
+    const SDR &prevActiveCells) {
+  if (predictedSegmentDecrement_ > 0.0) {
     for (auto matchingSegment = columnMatchingSegmentsBegin;
          matchingSegment != columnMatchingSegmentsEnd; matchingSegment++) {
       connections.adaptSegment(*matchingSegment, prevActiveCells,
@@ -434,9 +432,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
 
     } else { // predicted but not active column -> unlearn
       if (learn) {
-        punishPredictedColumn(connections, columnMatchingSegmentsBegin,
-                              columnMatchingSegmentsEnd, prevActiveCells,
-                              predictedSegmentDecrement_);
+        punishPredictedColumn_(columnMatchingSegmentsBegin, columnMatchingSegmentsEnd, prevActiveCells);
       }
     } //else: not predicted & not active -> no activity -> does not show up at all
   }
