@@ -615,6 +615,10 @@ private:
 				    const vector<CellIdx> &prevWinnerCells,
 				    const bool learn);
 
+  void growSynapses_(const Segment& segment,
+		     const SynapseIdx nDesiredNewSynapses,
+		     const vector<CellIdx> &prevWinnerCells);
+
 protected:
   //all these could be const
   CellIdx numColumns_;
