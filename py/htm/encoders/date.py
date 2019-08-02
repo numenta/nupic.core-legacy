@@ -254,7 +254,7 @@ class DateEncoder:
 
     if self.dayOfWeekEncoder is not None:
       dayOfWeek = timetuple.tm_wday + (timeOfDay) / 24.0
-      dayOfWeek -= .5 # Round towards noon, not midnight
+      # dayOfWeek -= .5 # Round towards noon, not midnight | Throws an error for monday at midnight
       sdrs.append( self.dayOfWeekEncoder.encode(dayOfWeek) )
 
     if self.weekendEncoder is not None:
