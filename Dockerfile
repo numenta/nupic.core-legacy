@@ -1,40 +1,41 @@
 # Default arch. Pass in like "--build-arg arch=arm64".
+#   Supports Debian arches: amd64, arm64, etc.
 #   Our circleci arm64 build uses this specifically.
 #   https://docs.docker.com/engine/reference/commandline/build/
-ARG arch=x86_64
+ARG arch=amd64
 
-# Multiarch Ubuntu Bionic 18.04. arches: x86_64, arm64, etc.
-#   https://hub.docker.com/r/multiarch/ubuntu-core/tags/
-FROM multiarch/ubuntu-core:$arch-bionic
+# Multiarch Debian 10 Buster (amd64, arm64, etc).
+#   https://hub.docker.com/r/multiarch/debian-debootstrap
+FROM multiarch/debian-debootstrap:$arch-buster
 
 RUN apt-get update
 RUN apt-get install -y \
-    git-core \
-    g++-8 \
     cmake \
-    python \
-    python2.7 \
-    python2.7-dev \
-    python-numpy \
+    g++ \
+    git-core \
     libyaml-dev \
+    python \
+    python-dev \
+    python-numpy \
     python-pip
-
-RUN pip install --upgrade setuptools
-RUN pip install wheel
-
-ENV CC gcc-8
-ENV CXX g++-8
 
 ADD . /usr/local/src/htm.core
 WORKDIR /usr/local/src/htm.core
 
+# Install
+RUN pip install --upgrade setuptools
+RUN pip install wheel
+RUN pip install \
 # Explicitly specify --cache-dir, --build, and --no-clean so that build
 # artifacts may be extracted from the container later.  Final built python
 # packages can be found in /usr/local/src/htm.core/bindings/py/dist
-RUN pip install \
 #        --cache-dir /usr/local/src/htm.core/pip-cache \
 #        --build /usr/local/src/htm.core/pip-build \
 #        --no-clean \
         -r bindings/py/packaging/requirements.txt
 RUN python setup.py install
+
+# Test
+RUN ./build/Release/bin/unit_tests
+RUN python setup.py test
 
