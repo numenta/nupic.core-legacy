@@ -397,8 +397,8 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
 
     Segment column; //we say "column", but it's the first segment of n-segments/cells that belong to the column
     vector<Segment>::const_iterator activeColumnsBegin, activeColumnsEnd, 
-	       columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
-         columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
+	                            columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
+                                    columnMatchingSegmentsBegin, columnMatchingSegmentsEnd;
 
     // for column in activeColumns (the 'sparse' above):
     //   get its active segments ( >= connectedThr)
@@ -480,9 +480,8 @@ void TemporalMemory::activateDendrites(const bool learn,
 
   const size_t length = connections.segmentFlatListLength();
 
-  numActiveConnectedSynapsesForSegment_.assign(length, 0);
   numActivePotentialSynapsesForSegment_.assign(length, 0);
-  connections.computeActivity(numActiveConnectedSynapsesForSegment_,
+  numActiveConnectedSynapsesForSegment_ = connections.computeActivity(
                               numActivePotentialSynapsesForSegment_,
                               activeCells_,
 			      learn);
