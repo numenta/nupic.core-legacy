@@ -225,27 +225,18 @@ static void growSynapses(Connections &connections,
   }
 }
 
-static void activatePredictedColumn(
-    vector<CellIdx> &activeCells, 
-    vector<CellIdx> &winnerCells,
-    Connections &connections, 
-    Random &rng,
+void TemporalMemory::activatePredictedColumn_(
     vector<Segment>::const_iterator columnActiveSegmentsBegin,
     vector<Segment>::const_iterator columnActiveSegmentsEnd,
     const SDR &prevActiveCells,
     const vector<CellIdx> &prevWinnerCells,
-    const vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-    const UInt maxNewSynapseCount, 
-    const Permanence initialPermanence,
-    const Permanence permanenceIncrement, 
-    const Permanence permanenceDecrement,
-    const SynapseIdx maxSynapsesPerSegment, 
     const bool learn) {
+
   auto activeSegment = columnActiveSegmentsBegin;
   do {
     const CellIdx cell = connections.cellForSegment(*activeSegment);
-    activeCells.push_back(cell);
-    winnerCells.push_back(cell);
+    activeCells_.push_back(cell);
+    winnerCells_.push_back(cell);
 
     // This cell might have multiple active segments.
     do {
@@ -254,12 +245,12 @@ static void activatePredictedColumn(
                      permanenceIncrement, permanenceDecrement, true);
 
         const Int32 nGrowDesired =
-            static_cast<Int32>(maxNewSynapseCount) -
-            numActivePotentialSynapsesForSegment[*activeSegment];
+            static_cast<Int32>(maxNewSynapseCount_) -
+            numActivePotentialSynapsesForSegment_[*activeSegment];
         if (nGrowDesired > 0) {
-          growSynapses(connections, rng, *activeSegment, nGrowDesired,
-                       prevWinnerCells, initialPermanence,
-                       maxSynapsesPerSegment);
+          growSynapses(connections, rng_, *activeSegment, nGrowDesired,
+                       prevWinnerCells, initialPermanence_,
+                       maxSynapsesPerSegment_);
         }
       }
     } while (++activeSegment != columnActiveSegmentsEnd &&
@@ -411,13 +402,9 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
     if (isActiveColumn) { //current active column...
       if (columnActiveSegmentsBegin != columnActiveSegmentsEnd) {
 	//...was also predicted -> learn :o)
-        activatePredictedColumn(
-            activeCells_, winnerCells_, connections, rng_,
+        activatePredictedColumn_(
             columnActiveSegmentsBegin, columnActiveSegmentsEnd,
-            prevActiveCells, prevWinnerCells,
-            numActivePotentialSynapsesForSegment_, maxNewSynapseCount_,
-            initialPermanence_, permanenceIncrement_, permanenceDecrement_,
-            maxSynapsesPerSegment_, learn);
+            prevActiveCells, prevWinnerCells, learn);
       } else {
 	//...has not been predicted -> 
         burstColumn(activeCells_, winnerCells_, connections, rng_,

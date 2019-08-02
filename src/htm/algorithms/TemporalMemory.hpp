@@ -602,6 +602,12 @@ private:
 		              vector<Segment>::const_iterator columnMatchingSegmentsEnd, 
 			      const SDR& prevActiveCells);
 
+  void activatePredictedColumn_(vector<Segment>::const_iterator columnActiveSegmentsBegin,
+		                vector<Segment>::const_iterator columnActiveSegmentsEnd,
+				const SDR &prevActiveCells,
+				const vector<CellIdx> &prevWinnerCells,
+				const bool learn);
+
 protected:
   //all these could be const
   CellIdx numColumns_;
