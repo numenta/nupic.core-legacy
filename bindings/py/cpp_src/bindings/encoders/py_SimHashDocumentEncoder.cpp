@@ -117,7 +117,7 @@ achieve sparsity.
 To inspect this run:
 $ python -m htm.encoders.simhash_document_encoder --help
 
-Code Example:
+Python Code Example:
     from htm.bindings.encoders import SimHashDocumentEncoder
     from htm.bindings.encoders import SimHashDocumentEncoderParameters
     from htm.bindings.sdr import SDR
@@ -128,8 +128,15 @@ Code Example:
 
     output = SDR(params.size)
     encoder = SimHashDocumentEncoder(params)
+
+    # call style: output is reference
     encoder.encode([ "bravo", "delta", "echo" ], output)  # weights 1
     encoder.encode({ "brevo": 3, "delta" : 1, "echo" : 2 }, output)
+
+    # call style: output is returned
+    other = encoder.encode([ "bravo", "delta", "echo" ])  # weights 1
+    other = encoder.encode({ "brevo": 3, "delta" : 1, "echo" : 2 })
+
 )");
 
     py_SimHashDocumentEncoder.def(py::init<SimHashDocumentEncoderParameters&>());
