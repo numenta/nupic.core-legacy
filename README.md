@@ -140,12 +140,12 @@ After downloading the repository, do the following:
 
 ## Docker Builds
 
-### Build for Docker x86_64
+### Build for Docker amd64 (x86_64)
 
-If you are on `x86_64` and would like to build a Docker image:
+If you are on `amd64` (`x86_64`) and would like to build a Docker image:
 
 ```sh
-docker build --build-arg arch=x86_64 .
+docker build --build-arg arch=amd64 .
 ```
 
 ### Docker build for ARM64
@@ -178,7 +178,8 @@ docker build --build-arg arch=arm64 .
 
 ### ARM64 auto build @ CircleCI
 
-This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
+This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86_64/amd64
+hardware.
 
  * [Build](https://circleci.com/gh/htm-community/htm.core/tree/master)
  * [Config](./.circleci/config.yml)
