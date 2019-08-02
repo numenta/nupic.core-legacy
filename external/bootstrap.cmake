@@ -30,10 +30,10 @@
 
 FILE(MAKE_DIRECTORY  ${REPOSITORY_DIR}/build/ThirdParty)
 execute_process(COMMAND ${CMAKE_COMMAND} 
-                        -G ${CMAKE_GENERATOR}
+            -G ${CMAKE_GENERATOR}
 			-D CMAKE_INSTALL_PREFIX=. 
-                        -D NEEDS_BOOST:BOOL=${NEEDS_BOOST}
-                        -D BINDING_BUILD:STRING=${BINDING_BUILD}
+            -D NEEDS_BOOST:BOOL=${NEEDS_BOOST}
+            -D BINDING_BUILD:STRING=${BINDING_BUILD}
 			-D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 			-D REPOSITORY_DIR=${REPOSITORY_DIR}
 			 ../../external

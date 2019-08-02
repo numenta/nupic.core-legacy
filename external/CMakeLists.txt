@@ -38,10 +38,17 @@
 #  - cmake ../..
 # Note: on MSVC, run startupMSVC.bat after deleting the build folder.
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.7)
 project(htm_core CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(BITNESS 64)
+else()
+  set(BITNESS 32)
+endif()
+
 
 include(GNUInstallDirs)
 include(ExternalProject)
@@ -59,6 +66,7 @@ message(STATUS "   CMAKE_BINARY_DIR      = ${CMAKE_BINARY_DIR}")
 message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "   CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
+message(STATUS "   BITNESS               = ${BITNESS}")
 message(STATUS "   NEEDS_BOOST           = ${NEEDS_BOOST}")
 message(STATUS "   BINDING_BUILD         = ${BINDING_BUILD}")
 
