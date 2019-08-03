@@ -105,9 +105,10 @@ namespace htm {
     Eigen::MatrixXi adders(args_.size, 0u);
     Eigen::VectorXi hashBits(args_.size);
     std::vector<UInt> simBits(args_.size, 0u);
+    SDR result({ args_.size });
 
-    output.zero();
     hashBits = Eigen::VectorXi::Zero(args_.size);
+    result.zero();
 
     for (const auto& member : input) {
       const std::string token = member.first;
@@ -129,7 +130,8 @@ namespace htm {
     }
     // simhash
     simHashAdders_(adders, simBits);
-    output.setDense(simBits);
+    result.setDense(simBits);
+    output.setDense(result.getDense());
   } // end method encode
 
   /**
