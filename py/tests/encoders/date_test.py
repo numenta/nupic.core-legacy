@@ -77,17 +77,24 @@ class DateEncoderTest(unittest.TestCase):
     # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
-    # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
-    # Any Monday morning (before noon) # DEBUG
-    # d = datetime.strptime("22/07/19 8:00", "%d/%m/%y %H:%M") # DEBUG
     bits = enc.encode(d)
 
-    # Week is MTWTFSS contrary to localtime documentation, Monday = 0 (for
-    # python datetime.datetime.timetuple()
+    # Week is MTWTFSS, 
+    # Monday = 0 (for python datetime.datetime.timetuple())
     dayOfWeekExpected = [0,0,0,1,0,0,0] #Thu
 
     expected = dayOfWeekExpected
     self.assertEqual(bits.size, 7)
+    self.assertEqual(expected, bits.dense.tolist())
+
+    # check a day is encoded consistently during all of its hours (00:00-23:59):
+    dMorn = datetime.strptime("04/11/2010 0:00", "%d/%m/%y %H:%M")
+    dEve  = datetime.strptime("04/11/2010 23:59", "%d/%m/%y %H:%M")
+
+    bits = enc.encode(dMorn)
+    self.assertEqual(expected, bits.dense.tolist())
+
+    bits = enc.encode(dEve)
     self.assertEqual(expected, bits.dense.tolist())
 
 
@@ -98,7 +105,6 @@ class DateEncoderTest(unittest.TestCase):
     # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
-    # d = datetime.datetime(2010, 11, 1, 8, 55) # DEBUG
     bits = enc.encode(d)
 
     # Season is aaabbbcccddd (1 bit/month)
