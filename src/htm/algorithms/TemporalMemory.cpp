@@ -240,7 +240,7 @@ void TemporalMemory::activatePredictedColumn_(
     do {
       if (learn) { 
         connections.adaptSegment(*activeSegment, prevActiveCells,
-                     permanenceIncrement, permanenceDecrement, true);
+                     permanenceIncrement_, permanenceDecrement_, true);
 
         const Int32 nGrowDesired =
             static_cast<Int32>(maxNewSynapseCount_) -
@@ -288,7 +288,7 @@ void TemporalMemory::burstColumn_(
     if (bestMatchingSegment != columnMatchingSegmentsEnd) {
       // Learn on the best matching segment.
       connections.adaptSegment(*bestMatchingSegment, prevActiveCells,
-                   permanenceIncrement, permanenceDecrement, true);
+                   permanenceIncrement_, permanenceDecrement_, true);
 
       const Int32 nGrowDesired = maxNewSynapseCount_ - numActivePotentialSynapsesForSegment_[*bestMatchingSegment];
       if (nGrowDesired > 0) {
@@ -321,7 +321,7 @@ void TemporalMemory::punishPredictedColumn_(
     for (auto matchingSegment = columnMatchingSegmentsBegin;
          matchingSegment != columnMatchingSegmentsEnd; matchingSegment++) {
       connections.adaptSegment(*matchingSegment, prevActiveCells,
-                   -predictedSegmentDecrement, 0.0, true);
+                   -predictedSegmentDecrement_, 0.0, true);
     }
   }
 }
