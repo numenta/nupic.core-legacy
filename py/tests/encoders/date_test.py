@@ -88,8 +88,8 @@ class DateEncoderTest(unittest.TestCase):
     self.assertEqual(expected, bits.dense.tolist())
 
     # check a day is encoded consistently during all of its hours (00:00-23:59):
-    dMorn = datetime.strptime("04/11/2010 0:00", "%d/%m/%y %H:%M")
-    dEve  = datetime.strptime("04/11/2010 23:59", "%d/%m/%y %H:%M")
+    dMorn = datetime.datetime(2010, 11, 4, 00, 00) #strptime("04/11/2010 0:00", "%d/%m/%y %H:%M")
+    dEve  = datetime.datetime(2010, 11, 4, 23, 59) #strptime("04/11/2010 23:59", "%d/%m/%y %H:%M")
 
     bits = enc.encode(dMorn)
     self.assertEqual(expected, bits.dense.tolist())

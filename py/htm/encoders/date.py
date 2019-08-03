@@ -249,11 +249,15 @@ class DateEncoder:
     if self.seasonEncoder is not None:
       # Number the days starting at zero, intead of 1 like the datetime does.
       dayOfYear = timetuple.tm_yday - 1
+      assert(dayOfYear >= 0)
       # dayOfYear -= self.seasonEncoder.parameters.radius / 2. # Round towards the middle of the season.
       sdrs.append( self.seasonEncoder.encode(dayOfYear) )
 
     if self.dayOfWeekEncoder is not None:
-      dayOfWeek = timetuple.tm_wday + float(timeOfDay) / 24.0
+      hrs_ = float(timeOfDay) / 24.0 # add hours as decimal value in extension to day  
+      hrs_ = hrs_ * 0.5 # normalize hours to [0, 0.5], instead of [0, 1.0], because > 0.5 would cause rounding up to the next day
+      dayOfWeek = timetuple.tm_wday + hrs_
+      assert(dayOfWeek >= 0 and dayOfWeek < 7)
       sdrs.append( self.dayOfWeekEncoder.encode(dayOfWeek) )
 
     if self.weekendEncoder is not None:
