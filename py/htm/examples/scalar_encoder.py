@@ -18,8 +18,6 @@ import htm.bindings.encoders
 ScalarEncoder           = htm.bindings.encoders.ScalarEncoder
 ScalarEncoderParameters = htm.bindings.encoders.ScalarEncoderParameters
 
-__all__ = ['ScalarEncoder', 'ScalarEncoderParameters']
-
 if __name__ == '__main__':
     """
     Simple program to examine the ScalarEncoder.
