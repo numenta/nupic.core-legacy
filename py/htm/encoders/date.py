@@ -255,7 +255,6 @@ class DateEncoder:
 
     if self.dayOfWeekEncoder is not None:
       hrs_ = float(timeOfDay) / 24.0 # add hours as decimal value in extension to day  
-      hrs_ = hrs_ * 0.5 # normalize hours to [0, 0.5], instead of [0, 1.0], because > 0.5 would cause rounding up to the next day
       dayOfWeek = timetuple.tm_wday + hrs_
       assert(dayOfWeek >= 0 and dayOfWeek < 7)
       sdrs.append( self.dayOfWeekEncoder.encode(dayOfWeek) )
