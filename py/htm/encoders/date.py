@@ -230,7 +230,7 @@ class DateEncoder:
       output = SDR(self.dimensions)
     else:
       assert( isinstance(output, SDR) )
-      assert( output.dimensions == self.dimensions )
+      assert( all(x == y for x, y in zip( output.dimensions, self.dimensions )))
 
     if inp is None or (isinstance(inp, float) and math.isnan(inp)):
       output.zero()
