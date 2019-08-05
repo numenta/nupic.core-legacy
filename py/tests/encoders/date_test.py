@@ -22,6 +22,7 @@ import numpy
 import unittest
 
 from htm.encoders.date import DateEncoder
+from htm import SDR, Metrics
 
 """
 def __init__(self,
@@ -231,6 +232,35 @@ class DateEncoderTest(unittest.TestCase):
     first2018 = datetime.datetime(2018, 1, 1)
     self.assertNotEqual(enc.encode(first2007).dense.tolist(), 
                         enc.encode(first2018).dense.tolist()) 
+
+
+  def testStatistics(self):
+    enc = DateEncoder(
+                season=0,
+                dayOfWeek=300,
+                weekend=0,
+                holiday=0,
+                timeOfDay=0,
+                customDays=0,
+                holidays=((12, 25),))
+    sdr = SDR( enc.dimensions )
+    test_period = 1000
+    metrics = Metrics( sdr, test_period )
+    now = datetime.datetime.now()
+    inc = datetime.timedelta( hours=1 )
+    for i in range( test_period ):
+        enc.encode(now, sdr)
+        now += inc
+
+    print( metrics )
+
+    assert( metrics.sparsity.min() >= .05 )
+    assert( metrics.sparsity.max() <= .20 )
+    assert( metrics.activationFrequency.min() >= .05 )
+    assert( metrics.activationFrequency.max() <= .20 )
+    assert( metrics.overlap.max() <= .99 )
+    assert( metrics.overlap.min() >= .90 )
+
 
 if __name__ == "__main__":
   unittest.main()
