@@ -17,6 +17,7 @@
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
+#include <pybind11/iostream.h>
 
 #include <htm/encoders/RandomDistributedScalarEncoder.hpp>
 
@@ -113,5 +114,37 @@ fields are filled in automatically.)");
             self.encode(value, *sdr);
             return sdr;
         });
+
+
+	// Serialization
+	// loadFromString
+        py_RDSE.def("loadFromString", [](RDSE& self, const py::bytes& inString) {
+          std::stringstream inStream(inString.cast<std::string>());
+          self.load(inStream);
+        });
+
+        // writeToString
+        py_RDSE.def("writeToString", [](const RDSE& self) {
+          std::ostringstream os;
+          os.flags(ios::scientific);
+          os.precision(numeric_limits<double>::digits10 + 1);
+          self.save(os);
+          return py::bytes( os.str() );
+       });
+
+	// pickle
+        py_RDSE.def(py::pickle(
+          [](const RDSE& self) {
+            std::stringstream ss;
+            self.save(ss);
+            return py::bytes( ss.str() );
+          },
+          [](py::bytes &s) {
+            std::stringstream ss( s.cast<std::string>() );
+            RDSE self;
+            self.load(ss);
+            return self;
+        }));
+
     }
 }
