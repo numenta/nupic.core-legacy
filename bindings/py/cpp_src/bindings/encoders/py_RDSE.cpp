@@ -24,6 +24,7 @@
 namespace py = pybind11;
 
 using namespace htm;
+using namespace std;
 
 namespace htm_ext
 {
