@@ -106,7 +106,9 @@ This is obsolete. Use getRegion('name') instead.
     We also renamed the namespaces from `namespace nupic` to `namespace htm`.
 
 * SpatialPooler: removed param `numActiveColumnsPerInhArea`, as replaced by `localAreaDensity` which has better properties
-  (constant sparsity). PR #TODO
+  (constant sparsity). PR #549
+
+* SpatialPooler: `compute()` now returns overlaps. `SP.getOverlaps()` removed. PR #552
 
 
 ## Python API Changes

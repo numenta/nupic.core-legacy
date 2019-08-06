@@ -23,6 +23,7 @@ import subprocess
 import sys
 import tempfile
 import distutils.dir_util
+import json
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
@@ -186,7 +187,22 @@ def getExtensionFiles(platform):
       break
 
   return files
-
+  
+def isMSVC_installed(ver):
+  """
+  For windows we need to know the most recent version of Visual Studio that is installed.
+  This is because the calling arguments for setting x64 is different between 2017 and 2019.
+  
+  Run vswhere to get Visual Studio info.  (only available in MSVC 2017 and later)
+  Parse the json and look in displayName for "2017" or "2019"
+  return true if ver is found.
+  """
+  vswhere = "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe"
+  output = subprocess.check_output([vswhere, "-legacy", "-prerelease", "-format", "json"], universal_newlines=True)
+  data = json.loads(output);
+  for vs in data:
+    if 'displayName' in vs and ver in vs['displayName']: return True
+  return False
 
 
 def generateExtensions(platform):
@@ -206,6 +222,8 @@ def generateExtensions(platform):
   else:
     # Build a Python 2.7 library
     PY_VER = "-DBINDING_BUILD=Python2"
+    if platform == "windows":
+        raise Exception("Python2 is not supported on Windows.")
 
   print("Python version: {}\n".format(sys.version))
 
@@ -214,8 +232,16 @@ def generateExtensions(platform):
     if not os.path.isdir(scriptsDir):
       os.makedirs(scriptsDir)
     os.chdir(scriptsDir)
-    if platform == WINDOWS_PLATFORMS:
-      subprocess.check_call(["cmake", PY_VER, REPO_DIR, "-A", "x64"])
+    
+    if platform == "windows":
+      # Note: the calling arguments for MSVC 2017 is not the same as for MSVC 2019
+      if isMSVC_installed("2019"):
+        subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
+      elif isMSVC_installed("2017"):
+        subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
+      else:
+        raise Exception("Did not find Microsoft Visual Studio 2017 or 2019.")
+        
     else:
       subprocess.check_call(["cmake", PY_VER, REPO_DIR])
     subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", "Release"])

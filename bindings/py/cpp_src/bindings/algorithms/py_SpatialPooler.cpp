@@ -245,8 +245,11 @@ Argument wrapAround boolean value that determines whether or not inputs
         });
 
         // compute
-        py_SpatialPooler.def("compute", [](SpatialPooler& self, SDR& input, bool learn, SDR& output)
-            { self.compute( input, learn, output ); },
+        py_SpatialPooler.def("compute", [](SpatialPooler& self, const SDR& input, const bool learn, SDR& output)
+            { 
+	      const auto& overlaps = self.compute( input, learn, output ); 
+	      return py::array_t<SynapseIdx>( overlaps.size(), overlaps.data());  
+	    },
 R"(
 This is the main workhorse method of the SpatialPooler class. This method
 takes an input SDR and computes the set of output active columns. If 'learn' is
@@ -357,14 +360,6 @@ Argument output An SDR representing the winning columns after
         py_SpatialPooler.def("getConnectedCounts", [](const SpatialPooler& self, py::array& x)
         {
             self.getConnectedCounts(get_it<UInt>(x));
-        });
-
-        // getOverlaps
-        py_SpatialPooler.def("getOverlaps", [](SpatialPooler& self)
-        {
-            auto overlaps = self.getOverlaps();
-
-            return py::array_t<SynapseIdx>( overlaps.size(), overlaps.data());
         });
 
         // getBoostedOverlaps
