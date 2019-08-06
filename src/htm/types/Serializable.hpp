@@ -56,7 +56,9 @@
   #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 800    // gcc 8
     #pragma GCC diagnostic ignored "-Wclass-memaccess"
   #endif
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+  #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 700    // gcc 7
+    #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+  #endif
 #endif
 
 #include <cereal/archives/json.hpp>
@@ -95,7 +97,7 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 // Archive?
 // see: http://uscilab.github.io/cereal/serialization_archives.html
 // The Cereal package passes the varients of the Archive package around to act sort of
-// like ostream and such.  Archive acts like a base class but in fact it is nothing 
+// like ostream and such.  Archive acts like a base class but in fact it is nothing
 // but a typename in the template and is a placeholder for BinaryOutputArchive,
 // JSONInputArchive, etc. which determine the format and stream used by the output.
 //
@@ -109,18 +111,18 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 // with its stream argument. But we can make a pointer or reference to it.
 //
 // What's this CerealAdapter macro?
-// What we would like to do is have functions in this base class that can call the 
-// save_ar(Archive& ar ) and load_ar(Archive& ar ) in the target class.  Normally we 
-// would just use inheritance and setup a virtual method and matching functions 
+// What we would like to do is have functions in this base class that can call the
+// save_ar(Archive& ar ) and load_ar(Archive& ar ) in the target class.  Normally we
+// would just use inheritance and setup a virtual method and matching functions
 // in the derived class that override it.  But these are templated functions so will
-// not work. We have to do this indirectly.  The macro CerealAdapter adds some 
-// non-templeted helper functions to the derived class that can use inheritance.  
-// We wrap the Archive in the ArWrapper class and pass it to these helper classes.  
-// The helper classes can then call save_ar(Archive& ar ) and load_ar(Archive& ar ) with 
+// not work. We have to do this indirectly.  The macro CerealAdapter adds some
+// non-templeted helper functions to the derived class that can use inheritance.
+// We wrap the Archive in the ArWrapper class and pass it to these helper classes.
+// The helper classes can then call save_ar(Archive& ar ) and load_ar(Archive& ar ) with
 // the templates since they are in the same class.
 //
 // Note that care must be taken to be sure that the selected Archive object (the thing
-// being pointed to) remains in scope while the save_ar(Archive& ar ) and load_ar(Archive& ar ) 
+// being pointed to) remains in scope while the save_ar(Archive& ar ) and load_ar(Archive& ar )
 // are called but that they must go out of scope as soon as they return.  This causes the
 // serialization to be flushed to the underlining stream.
 //
@@ -128,16 +130,16 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 // Archive is not really a type but rather a template typename and it resolves
 // to the right real type at compile time.  But we are using our CerealAdapter to
 // resolve out type a run time.  So, our ArWrapper needs to contain all possible
-// variations of Archive, only one of which we will be actually using. The Archive 
-// variants have no default constructor so they must be pointers.  A union would 
+// variations of Archive, only one of which we will be actually using. The Archive
+// variants have no default constructor so they must be pointers.  A union would
 // nice but C++ rejects any use of a union in this situation.
 //
 // Since we are doing our selection at run time, we need an enum in the ArWrapper
-// to select the right type that matches the template when calling save_ar(Archive& ar ) 
+// to select the right type that matches the template when calling save_ar(Archive& ar )
 // and load_ar(Archive& ar ).  So that is why we have the switch(fmt) selection in
 // the CerealAdapter macro.
 //
-// Now we can use saveToFile(filename, fmt) and saveToStream(stream, fmt) and 
+// Now we can use saveToFile(filename, fmt) and saveToStream(stream, fmt) and
 // their corresponding load pairs and whatever else we might need in the future
 // without requiring all Serialization derived classes to independently implement
 // them. The Cereal package does not need to be exposed in the API.
@@ -155,7 +157,7 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 //      d) Any other class that is subclassed from Serialize.
 //      e) Any smart pointer (std::shared_ptr) if contains above types, non-array.
 //    - It will NOT serialize pointers or arrays directly.
-//    - You can use the syntax of 
+//    - You can use the syntax of
 //            ar( arg1, arg2, arg3 );
 //      or
 //            ar << arg1 << arg2 << arg3;
@@ -172,7 +174,7 @@ typedef enum {BINARY, PORTABLE, JSON, XML} SerializableFormat;
 //      of items passed to ar( a ).  Something like ar(a,b,c) is three items. If you are off
 //      by even one the load_ar( ) will crash on the next item because it will be the wrong
 //      thing in the stream.
-//      NOTE: If you have problems, recommend creating a std::vector<> and then serializing 
+//      NOTE: If you have problems, recommend creating a std::vector<> and then serializing
 //            the vector. In other words, serialize objects, not a sequence.
 //    - Serialize an std::pair
 //            ar(cereal::make_map_item(it->first, it->second));
@@ -220,7 +222,7 @@ public:
   Serializable() {}
   virtual inline int getSerializableVersion() const { return SERIALIZABLE_VERSION; }
 
-	// TODO:Cereal- after all serialization using Cereal is complete, 
+	// TODO:Cereal- after all serialization using Cereal is complete,
   //       remove save() and load() pairs from all derived classes
 	//       change saveToStream_ar()   to save()
   //       change loadFromStream_ar() to load().
@@ -246,15 +248,15 @@ public:
     ArWrapper arw;
     arw.fmt = fmt;
 		switch(fmt) {
-		case SerializableFormat::BINARY:  { 
+		case SerializableFormat::BINARY:  {
       cereal::BinaryOutputArchive ar(out);
       arw.binary_out = &ar;
-      cereal_adapter_save(arw); 
+      cereal_adapter_save(arw);
     } break;
 		case SerializableFormat::PORTABLE: {
-      cereal::PortableBinaryOutputArchive ar( out, cereal::PortableBinaryOutputArchive::Options::Default() ); 
+      cereal::PortableBinaryOutputArchive ar( out, cereal::PortableBinaryOutputArchive::Options::Default() );
       arw.portable_out = &ar;
-      cereal_adapter_save(arw); 
+      cereal_adapter_save(arw);
     } break;
 		case SerializableFormat::JSON: {
       cereal::JSONOutputArchive ar(out, cereal::JSONOutputArchive::Options::Default());
@@ -267,9 +269,10 @@ public:
       cereal_adapter_save(arw);
     } break;
 		default: NTA_THROW << "unknown serialization format.";
+      break;
 		}
   }
-  
+
   virtual inline void loadFromFile(std::string filePath, SerializableFormat fmt=SerializableFormat::BINARY) {
 		std::ios_base::openmode mode = std::ios_base::in;
 		if (fmt <= SerializableFormat::PORTABLE) mode |= std::ios_base::binary;
@@ -307,10 +310,11 @@ public:
       cereal_adapter_load(arw);
     } break;
 		default: NTA_THROW << "unknown serialization format.";
+      break;
 		}
   }
 
-    
+
 
 
   // Note: if you get a compile error saying this is not defined,
@@ -320,7 +324,7 @@ public:
   virtual void cereal_adapter_load(ArWrapper& a) = 0;
 
 
-	
+
 
   virtual ~Serializable() {}
 
@@ -334,7 +338,7 @@ public:
     case SerializableFormat::PORTABLE: CEREAL_SAVE_FUNCTION_NAME(*a.portable_out); break;   \
 		case SerializableFormat::JSON:     CEREAL_SAVE_FUNCTION_NAME(*a.json_out); break;       \
 		case SerializableFormat::XML:      CEREAL_SAVE_FUNCTION_NAME(*a.xml_out); break;        \
-		default: NTA_THROW << "unknown serialization format.";                \
+		default: NTA_THROW << "unknown serialization format.";   break;             \
 		}                                                                     \
   }                                                                       \
   void cereal_adapter_load(ArWrapper& a) override {                       \
@@ -343,9 +347,9 @@ public:
     case SerializableFormat::PORTABLE: CEREAL_LOAD_FUNCTION_NAME(*a.portable_in); break;    \
 		case SerializableFormat::JSON:     CEREAL_LOAD_FUNCTION_NAME(*a.json_in); break;        \
 		case SerializableFormat::XML:      CEREAL_LOAD_FUNCTION_NAME(*a.xml_in); break;         \
-		default: NTA_THROW << "unknown serialization format.";                \
+		default: NTA_THROW << "unknown serialization format."; break;                \
 		}                                                                     \
-  }                             
+  }
 
 
 /**** Example of derived Serializable class
