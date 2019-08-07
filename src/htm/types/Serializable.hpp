@@ -53,10 +53,10 @@
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic push
-  #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 800    // gcc 8
+  #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 800    // gcc 8.
     #pragma GCC diagnostic ignored "-Wclass-memaccess"
   #endif
-  #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 700    // gcc 7
+  #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 700    // gcc 7.
     #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
   #endif
 #endif
