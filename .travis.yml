@@ -66,8 +66,7 @@ deploy:
   on:
     tags: true
     branch: master
-    # repo must be "htm.cpp" and not "htm.core"
-    repo: htm-community/htm.cpp
+    repo: htm-community/htm.core
 
 notifications:
 #  email:
