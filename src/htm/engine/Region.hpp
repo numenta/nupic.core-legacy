@@ -222,6 +222,16 @@ public:
    */
   void setParameterArray(const std::string &name, const Array &array);
 
+	
+  /**
+   * Get the number of elements in the array parameter's value.
+   *
+   * @param name
+   *        The name of the parameter
+	 */
+  size_t getParameterArrayCount(const std::string &name);
+
+
   /**
    * Set the parameter to a @c std::string value.
    *

@@ -87,29 +87,41 @@ namespace htm_ext
         ///////////////////
         // Array
         ///////////////////
+				
+				// The Array object will be presented to python as a Buffer object.
+				// To create from a numpy array, use 
+				//      a = Array(numpy_array)  
+				//    optional parameter copy = False to avoid copying.
+				//
+				// 	can be cast to a numPy object for direct access.       
+				//      np.array(this_instance)
+				//     optional parameter copy = False to avoid copying.
+
         py::class_<Array>(m, "Array", py::buffer_protocol())
-			// as a Buffer object that can be cast to a numPy object for direct access.       example:   np.array(this_instance, copy = True)
 			.def_buffer([](Array &m) -> py::buffer_info {
 				if (!m.has_buffer())
 					throw std::runtime_error("Array object is not initalized.");
+				/* determine the Python struct-style format descriptor, see pybind11/buffer_info.h */
+				std::string fmt;
+				if      (m.getType() == NTA_BasicType_Int32)  fmt = py::format_descriptor<Int32>::format(); 
+				else if	(m.getType() == NTA_BasicType_UInt32) fmt = py::format_descriptor<UInt32>::format();
+				else if	(m.getType() == NTA_BasicType_Int64)  fmt = py::format_descriptor<Int64>::format();
+				else if	(m.getType() == NTA_BasicType_UInt64) fmt = py::format_descriptor<UInt64>::format();
+				else if	(m.getType() == NTA_BasicType_Real32) fmt = py::format_descriptor<Real32>::format();
+				else if	(m.getType() == NTA_BasicType_Real64) fmt = py::format_descriptor<Real64>::format();
+				else if	(m.getType() == NTA_BasicType_Bool)   fmt = py::format_descriptor<bool>::format();
+        else  fmt =  py::format_descriptor<Byte>::format();  /* for Byte and SDR data */
 				return py::buffer_info(
-					m.getBuffer(),                          /* Pointer to buffer */
+					m.getBuffer(),                            /* Pointer to buffer */
 					BasicType::getSize(m.getType()),          /* Size of one scalar */
-					(m.getType() == NTA_BasicType_Int32)?py::format_descriptor<Int32>::format(): /* Python struct-style format descriptor */
-					(m.getType() == NTA_BasicType_UInt32)?py::format_descriptor<UInt32>::format():
-					(m.getType() == NTA_BasicType_Int64)?py::format_descriptor<Int64>::format():
-					(m.getType() == NTA_BasicType_UInt64)?py::format_descriptor<UInt64>::format():
-					(m.getType() == NTA_BasicType_Real32)?py::format_descriptor<Real32>::format():
-					(m.getType() == NTA_BasicType_Real64)?py::format_descriptor<Real64>::format():
-					(m.getType() == NTA_BasicType_Bool)?py::format_descriptor<bool>::format():py::format_descriptor<Byte>::format(),
-					1,                                      /* Number of dimensions */
-					{ m.getCount() },                       /* Buffer dimensions */
+					fmt,                                      /* Python struct-style format descriptor */
+					1,                                        /* Number of dimensions */
+					{ m.getCount() },                         /* Buffer dimensions */
 					{ BasicType::getSize(m.getType())}        /* Strides (in bytes) for each index */
 				);
 			})
 			.def("__init__", [](Array &m, py::buffer b, bool copy=true){
-				/* Request a buffer descriptor from Python */
-				py::buffer_info info = b.request();
+				py::buffer_info info = b.request();  /* Request a buffer descriptor from Python */
 				if (info.ndim != 1)
 					throw std::runtime_error("Expected a one dimensional array!");
 			
@@ -220,6 +232,8 @@ namespace htm_ext
 			.def("getParameterBool",   &Region::getParameterBool)
 			.def("getParameterString", &Region::getParameterString)
 			.def("getParameterArray", &Region::getParameterArray);
+			
+		py_Region.def("getParameterArrayCount", &Region::getParameterArrayCount);
 
 		py_Region.def("setParameterInt32", &Region::setParameterInt32)
       .def("setParameterUInt32", &Region::setParameterUInt32)
@@ -288,6 +302,12 @@ namespace htm_ext
         */
 
 		// TODO: do we need a function like this?
+		//    This is used to allow python apps to access the python written region implimentations
+		//    so they can call arbitrary functions on them.
+		//    This breaks the plugin API such that apps or regions implemented in C++ or any other
+		//    language will not work.  Recommend using getParameter, setParmeter and setParameterArray
+		//    to accomplish the same objectives...not very clean but it works cross languages.
+		//    Alternative is to add a new feature to accomplish this with more style.
         //py_Region.def("getSelf", [](const Region& self)
         //{
         //    return self.getParameterHandle("self");
