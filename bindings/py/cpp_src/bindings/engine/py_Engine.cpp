@@ -39,6 +39,7 @@ PyBind11 bindings for Engine classes
 #include <htm/engine/Network.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
+#include <htm/types/Sdr.hpp>
 #include <plugin/PyBindRegion.hpp>
 #include <plugin/RegisteredRegionImplPy.hpp>
 
@@ -82,6 +83,89 @@ namespace htm_ext
         // python slots
         py_Dimensions.def("__str__", &Dimensions::toString)
             .def("__repr__", &Dimensions::toString);
+            
+        ///////////////////
+        // Array
+        ///////////////////
+        py::class_<Array>(m, "Array", py::buffer_protocol())
+			// as a Buffer object that can be cast to a numPy object for direct access.       example:   np.array(this_instance, copy = True)
+			.def_buffer([](Array &m) -> py::buffer_info {
+				if (!m.has_buffer())
+					throw std::runtime_error("Array object is not initalized.");
+				return py::buffer_info(
+					m.getBuffer(),                          /* Pointer to buffer */
+					BasicType::getSize(m.getType()),          /* Size of one scalar */
+					(m.getType() == NTA_BasicType_Int32)?py::format_descriptor<Int32>::format(): /* Python struct-style format descriptor */
+					(m.getType() == NTA_BasicType_UInt32)?py::format_descriptor<UInt32>::format():
+					(m.getType() == NTA_BasicType_Int64)?py::format_descriptor<Int64>::format():
+					(m.getType() == NTA_BasicType_UInt64)?py::format_descriptor<UInt64>::format():
+					(m.getType() == NTA_BasicType_Real32)?py::format_descriptor<Real32>::format():
+					(m.getType() == NTA_BasicType_Real64)?py::format_descriptor<Real64>::format():
+					(m.getType() == NTA_BasicType_Bool)?py::format_descriptor<bool>::format():py::format_descriptor<Byte>::format(),
+					1,                                      /* Number of dimensions */
+					{ m.getCount() },                       /* Buffer dimensions */
+					{ BasicType::getSize(m.getType())}        /* Strides (in bytes) for each index */
+				);
+			})
+			.def("__init__", [](Array &m, py::buffer b, bool copy=true){
+				/* Request a buffer descriptor from Python */
+				py::buffer_info info = b.request();
+				if (info.ndim != 1)
+					throw std::runtime_error("Expected a one dimensional array!");
+			
+				size_t size = static_cast<size_t>(info.shape[0]);
+				NTA_BasicType type;
+				if     (info.format == py::format_descriptor<Int32>::format()) type = NTA_BasicType_Int32;
+				else if (info.format == py::format_descriptor<UInt32>::format()) type = NTA_BasicType_UInt32;
+				else if (info.format == py::format_descriptor<Int64>::format()) type = NTA_BasicType_Int64;
+				else if (info.format == py::format_descriptor<UInt64>::format()) type = NTA_BasicType_UInt64;
+				else if (info.format == py::format_descriptor<Real32>::format()) type = NTA_BasicType_Real32;
+				else if (info.format == py::format_descriptor<Real64>::format()) type = NTA_BasicType_Real64;
+				else if (info.format == py::format_descriptor<bool>::format()) type = NTA_BasicType_Bool;
+				else if (info.format == py::format_descriptor<Byte>::format()) type = NTA_BasicType_Byte;
+				else throw std::runtime_error("Unexpected data type in the array!");
+				if (copy) {
+					new(&m) Array(type);
+					m.allocateBuffer(size);
+					std::memcpy(m.getBuffer(), info.ptr, size*info.itemsize);
+				}
+				new (&m) Array(type, info.ptr, info.shape[0]);
+			})
+			.def(py::init<>(),           "Create an empty Array object.")
+		    .def("zeroBuffer", &Array::zeroBuffer, "Fills array with zeros")
+			.def("getCount", &Array::getCount, "Returns the number of elements.")
+	
+			// boolean functions to determine the type of value in the Array
+			.def("getType", &Array::getType, "Returns an enum representing the data type.")
+			.def("isInt32",  [](const Array &self) { return self.getType() == NTA_BasicType_Int32; })
+			.def("isUInt32", [](const Array &self) { return self.getType() == NTA_BasicType_UInt32; })
+			.def("isInt64",  [](const Array &self) { return self.getType() == NTA_BasicType_Int64; })
+			.def("isUInt64", [](const Array &self) { return self.getType() == NTA_BasicType_UInt64; })
+			.def("isReal32", [](const Array &self) { return self.getType() == NTA_BasicType_Real32; })
+			.def("isReal64", [](const Array &self) { return self.getType() == NTA_BasicType_Real64; })
+			.def("isBool",   [](const Array &self) { return self.getType() == NTA_BasicType_Bool; })
+			.def("isSDR",    [](const Array &self) { return self.getType() == NTA_BasicType_SDR; })
+			.def(py::pickle(
+				[](const Array& self) {
+					std::stringstream ss;
+					self.save(ss);
+					return py::bytes(ss.str());
+			},
+				[](const py::bytes& s) {
+					std::istringstream ss(s);
+					Array self;
+					self.load(ss);
+					return self;
+			}));
+
+			
+//              py_Array..def(py::init<const SDR &sdr>(), "Create an Array object from an SDR object.",             py::arg("values"));
+//              py_Array.def("getSDR", &Array::getSDR, "Returns an SDR object if the Array contains type SDR.");
+
+        
+        
+        
+        
 
         ///////////////////
         // Link
@@ -128,25 +212,24 @@ namespace htm_ext
 			.def("getOutputElementCount", &Region::getNodeOutputElementCount);
 
 		py_Region.def("getParameterInt32", &Region::getParameterInt32)
-		    .def("getParameterUInt32", &Region::getParameterUInt32)
+      .def("getParameterUInt32", &Region::getParameterUInt32)
 			.def("getParameterInt64",  &Region::getParameterInt64)
 			.def("getParameterUInt64", &Region::getParameterUInt64)
 			.def("getParameterReal32", &Region::getParameterReal32)
 			.def("getParameterReal64", &Region::getParameterReal64)
 			.def("getParameterBool",   &Region::getParameterBool)
-			.def("getParameterString", &Region::getParameterString);
+			.def("getParameterString", &Region::getParameterString)
+			.def("getParameterArray", &Region::getParameterArray);
 
-        py_Region.def("setParameterInt32", &Region::setParameterInt32)
-		    .def("setParameterUInt32", &Region::setParameterUInt32)
+		py_Region.def("setParameterInt32", &Region::setParameterInt32)
+      .def("setParameterUInt32", &Region::setParameterUInt32)
 			.def("setParameterInt64",  &Region::setParameterInt64)
 			.def("setParameterUInt64", &Region::setParameterUInt64)
 			.def("setParameterReal32", &Region::setParameterReal32)
 			.def("setParameterReal64", &Region::setParameterReal64)
 			.def("setParameterBool",   &Region::setParameterBool)
-			.def("setParameterString", &Region::setParameterString);
-
-// TODO:		py_Region.def("getParameterArray", [](Region& r, const std::string &name, Array &array
-//			.def("setParameterArray",
+			.def("setParameterString", &Region::setParameterString)
+			.def("setParameterArray",  &Region::setParameterArray);
 
         py_Region.def("__setattr__", [](Region& r, const std::string& Name, py::dict& d)
         {
