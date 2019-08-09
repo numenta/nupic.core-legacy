@@ -32,9 +32,9 @@ if __name__ == '__main__':
   $ python -m htm.encoders.simhash_document_encoder --help
   """
   import argparse
-  import matplotlib.pyplot as plot
   import numpy
   import random
+  import sys
   import textwrap
 
   from sys import exit
@@ -146,11 +146,13 @@ if __name__ == '__main__':
   print("\t\t" + str(unsimilar["doc"]))
 
   # Plot the Receptive Field of each bit in the encoder.
-  field = numpy.zeros([encoder.size, len(sdrs)], dtype=numpy.uint8)
-  for i in range(len(sdrs)):
-    field[:, i] = sdrs[i].dense
-  plot.imshow(field, interpolation='nearest')
-  plot.title("SimHash Document Encoder - Receptive Fields")
-  plot.xlabel("Input Document #")
-  plot.ylabel("SDR Bit #")
-  plot.show()
+  import matplotlib.pyplot as plot
+  if 'matplotlib.pyplot' in sys.modules:
+    field = numpy.zeros([encoder.size, len(sdrs)], dtype=numpy.uint8)
+    for i in range(len(sdrs)):
+      field[:, i] = sdrs[i].dense
+    plot.imshow(field, interpolation='nearest')
+    plot.title("SimHash Document Encoder - Receptive Fields")
+    plot.xlabel("Input Document #")
+    plot.ylabel("SDR Bit #")
+    plot.show()
