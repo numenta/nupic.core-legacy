@@ -119,9 +119,9 @@ also semantic, please try Cortical.io and their Semantic Folding tech.
 
 Encoding is accomplished using SimHash, a Locality-Sensitive Hashing (LSH)
 algorithm from the world of nearest-neighbor document similarity search.
-As SDRs are variable-length, we use the SHA3+SHAKE256 hashing algorithm.
-We deviate slightly from the standard SimHash algorithm in order to
-achieve sparsity.
+As SDRs can be of any size, we use the SHA3 hashing algorithm with SHAKE256
+Extendible Output Function (XOF). We deviate slightly from the standard
+SimHash algorithm in order to achieve sparsity.
 
 To inspect this run:
 $ python -m htm.encoders.simhash_document_encoder --help

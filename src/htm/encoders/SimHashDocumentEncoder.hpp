@@ -94,9 +94,9 @@ namespace htm {
    *
    * Encoding is accomplished using SimHash, a Locality-Sensitive Hashing (LSH)
    * algorithm from the world of nearest-neighbor document similarity search.
-   * As SDRs are variable-length, we use the SHA3+SHAKE256 hashing algorithm.
-   * We deviate slightly from the standard SimHash algorithm in order to
-   * achieve sparsity.
+   * As SDRs can be of any size, we use the SHA3 hashing algorithm with the
+   * SHAKE256 Extendible Output Function (XOF). We deviate slightly from the
+   * standard SimHash algorithm in order to achieve sparsity.
    *
    * In addition to document similarity, an option is provided to toggle if
    * token similarity "near-spellings" (such as "cat" and "cats") will receieve

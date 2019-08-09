@@ -83,9 +83,9 @@ namespace htm {
   /**
    * Encode (Main calling style)
    *
-   * Each token/letter will be hashed with SHA3+SHAKE256 to get
-   *  a varible-length (param "size") binary digest output. These vectors will
-   *  be stored in a matrix for the next step of processing.
+   * Each token/letter will be hashed with SHA3+SHAKE256 to get a binary digest
+   *  output of desired `size`. These vectors will be stored in a matrix for
+   *  the next step of processing.
    * Weights are added in during hashing and simhashing.
    * After the loop, we SimHash the matrix of hashes, resulting in an
    *  output SDR.
@@ -220,7 +220,7 @@ namespace htm {
   /**
    * HashToken_
    *
-   * Hash (SHA3+SHAKE256 variable-length) a string into a byte digest.
+   * Hash (SHA3+SHAKE256) a string into a byte digest.
    * Convert the byte vector to a binary vector and set output.
    *
    * @param :token: Source text to be hashed.
