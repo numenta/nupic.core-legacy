@@ -24,7 +24,7 @@ import pytest
 import time
 
 from htm.encoders.scalar_encoder import ScalarEncoder, ScalarEncoderParameters
-from htm import SDR, Metrics
+from htm.bindings.sdr import SDR, Metrics
 
 class ScalarEncoder_Test(unittest.TestCase):
     def testConstructor(self):
