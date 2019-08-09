@@ -121,19 +121,70 @@ namespace htm {
    */
   class SimHashDocumentEncoder : public BaseEncoder<std::vector<std::string>> {
   public:
+    /**
+     * Constructor
+     * @public
+     * @see BaseEncoder.hpp
+     */
     SimHashDocumentEncoder() {};
     SimHashDocumentEncoder(const SimHashDocumentEncoderParameters &parameters);
+
+    /**
+     * Initialize
+     * @public
+     * @see BaseEncoder.hpp
+     */
     void initialize(const SimHashDocumentEncoderParameters &parameters);
 
+    // Public Params
     const SimHashDocumentEncoderParameters &parameters = args_;
 
+    /**
+     * Encode (Main calling style)
+     *
+     * Each token/letter will be hashed with SHA3+SHAKE256 to get a binary
+     *  digest output of desired `size`. These vectors will be stored in a
+     *  matrix for the next step of processing.
+     * Weights are added in during hashing and simhashing.
+     * After the loop, we SimHash the matrix of hashes, resulting in an
+     *  output SDR.
+     * If param "caseSensitivity" is passed, we'll lowercase all token strings.
+     * If param "tokenSimilarity" is passed, we'll additionally loop through
+     *  all the letters in all the tokens.
+     *
+     * @param :input: Document token strings (with weights) to encode,
+     *  ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}.
+     *  Documents can contain any number of tokens > 0. Token order in the
+     *  document is ignored and does not effect the output encoding.
+     * @param :output: Result SDR to fill with result output encoding.
+     *
+     * @public
+     * @see SimHashDocumentEncoder.hpp
+     * @see encode(const std::vector<std::string> input, SDR &output)
+     */
     void encode(const std::map<std::string, UInt> input, SDR &output);
+
+    /**
+     * Encode (Alternate calling style: Simple method)
+     *
+     * An alternate simple calling method for Encode, no weights need to be
+     * passed in with tokens (all weights assumed to be 1).
+     *
+     * @param :input: Document token strings to encode, ex: {"what","is","up"}.
+     *  Documents can contain any number of tokens > 0. Token order in the
+     *  document is ignored and does not effect the output encoding.
+     * @param :output: Result SDR to fill with result output encoding.
+     *
+     * @public
+     * @see encode(const std::map<std::string, UInt> input, SDR &output)
+     */
     void encode(const std::vector<std::string> input, SDR &output) override;
 
-    ~SimHashDocumentEncoder() override {};
-
+    /**
+     * Serialization
+     */
     CerealAdapter;
-    // Cereal Serialization
+    // Cereal Serialize
     template<class Archive>
     void save_ar(Archive& ar) const {
       std::string name = "SimHashDocumentEncoder";
@@ -144,7 +195,7 @@ namespace htm {
       ar(cereal::make_nvp("size", args_.size));
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
     }
-    // Cereal Deserialization
+    // Cereal Deserialize
     template<class Archive>
     void load_ar(Archive& ar) {
       std::string name;
@@ -156,15 +207,82 @@ namespace htm {
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
     }
 
+    ~SimHashDocumentEncoder() override {};
+    // end public
+
   private:
+    // Private Params
     SimHashDocumentEncoderParameters args_;
+
+    /**
+     * AddVectorToMatrix_
+     *
+     * @param :vector: Source eigen vector column to be attached.
+     * @param :matrix: Target eigen matrix that will be added to.
+     * @private
+     */
     void addVectorToMatrix_(const Eigen::VectorXi vector, Eigen::MatrixXi &matrix);
+
+    /**
+     * BitsToWeightedAdder_
+     *
+     * Take the bits from a hash, convert 0 to -1, and multiply by provided
+     *  weighting factor. For example:
+     *    In Column   = { 0, 1,  0,  0, 1,  0}
+     *    In Weight   = 3
+     *    Out Result  = {-3, 3, -3, -3, 3, -3}
+     *
+     * @param :weight: Weight to add to column (positive integer, usually 1).
+     * @param :vector: Target eigen vector column to add weighting to.
+     * @private
+     */
     void bitsToWeightedAdder_(const UInt weight, Eigen::VectorXi &vector);
+
+    /**
+     * BytesToBits_
+     *
+     * Convert vector of hashed digest bytes to longer vector of bits.
+     *
+     * @param :bytes: Source hash (eigen byte vector) for binary conversion.
+     * @param :bits: Eigen vector to store converted binary hash digest in.
+     * @private
+     */
     void bytesToBits_(const std::vector<unsigned char> bytes, Eigen::VectorXi &bits);
+
+    /**
+     * HashToken_
+     *
+     * Hash (SHA3+SHAKE256) a string into a byte digest.
+     * Convert the byte vector to a binary vector and set output.
+     *
+     * @param :token: Source text to be hashed.
+     * @param :hashBits: Eigen vector to store result binary hash digest in.
+     * @private
+     */
     void hashToken_(const std::string token, Eigen::VectorXi &hashBits);
+
+    /**
+     * SimHashAdders_
+     *
+     * Create a SimHash SDR from Eigen vector array (matrix) of Hash digest bits
+     *  (in slightly modified "Adder" SimHash form).
+     * Sum all these "Adder" vectors to get a type of binary histogram.
+     * Choose the desired number (activeBits) of max values, use their indices
+     *  to set output On bits. Rest of bits are Off. We now have our result
+     *  sparse SimHash. (In an ordinary dense SimHash, sums >= 0 become
+     *  binary 1, the rest 0.)
+     *
+     * @param :hashes: Source eigen matrix of hashes to be simhashed.
+     * @param :simhash: Stadard vector to store dense binary simhash result in.
+     * @private
+     */
     void simHashAdders_(const Eigen::MatrixXi adders, std::vector<UInt> &simhash);
+    // end private
+
   }; // end class SimHashDocumentEncoder
 
+
+  // Debug
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self);
 
 } // end namespace htm
