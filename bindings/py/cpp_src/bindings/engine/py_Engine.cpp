@@ -83,17 +83,17 @@ namespace htm_ext
         // python slots
         py_Dimensions.def("__str__", &Dimensions::toString)
             .def("__repr__", &Dimensions::toString);
-            
+
         ///////////////////
         // Array
         ///////////////////
-				
+
 				// The Array object will be presented to python as a Buffer object.
-				// To create from a numpy array, use 
-				//      a = Array(numpy_array)  
+				// To create from a numpy array, use
+				//      a = Array(numpy_array)
 				//    optional parameter copy = False to avoid copying.
 				//
-				// 	can be cast to a numPy object for direct access.       
+				// 	can be cast to a numPy object for direct access.
 				//      np.array(this_instance)
 				//     optional parameter copy = False to avoid copying.
 
@@ -103,7 +103,7 @@ namespace htm_ext
 					throw std::runtime_error("Array object is not initalized.");
 				/* determine the Python struct-style format descriptor, see pybind11/buffer_info.h */
 				std::string fmt;
-				if      (m.getType() == NTA_BasicType_Int32)  fmt = py::format_descriptor<Int32>::format(); 
+				if      (m.getType() == NTA_BasicType_Int32)  fmt = py::format_descriptor<Int32>::format();
 				else if	(m.getType() == NTA_BasicType_UInt32) fmt = py::format_descriptor<UInt32>::format();
 				else if	(m.getType() == NTA_BasicType_Int64)  fmt = py::format_descriptor<Int64>::format();
 				else if	(m.getType() == NTA_BasicType_UInt64) fmt = py::format_descriptor<UInt64>::format();
@@ -124,18 +124,19 @@ namespace htm_ext
 				py::buffer_info info = b.request();  /* Request a buffer descriptor from Python */
 				if (info.ndim != 1)
 					throw std::runtime_error("Expected a one dimensional array!");
-			
 				size_t size = static_cast<size_t>(info.shape[0]);
 				NTA_BasicType type;
-				if     (info.format == py::format_descriptor<Int32>::format()) type = NTA_BasicType_Int32;
-				else if (info.format == py::format_descriptor<UInt32>::format()) type = NTA_BasicType_UInt32;
-				else if (info.format == py::format_descriptor<Int64>::format()) type = NTA_BasicType_Int64;
-				else if (info.format == py::format_descriptor<UInt64>::format()) type = NTA_BasicType_UInt64;
-				else if (info.format == py::format_descriptor<Real32>::format()) type = NTA_BasicType_Real32;
-				else if (info.format == py::format_descriptor<Real64>::format()) type = NTA_BasicType_Real64;
+				if      (((info.format == "i") || (info.format == "l") ) && info.itemsize == 4) type = NTA_BasicType_Int32;
+				else if (((info.format == "I") || (info.format == "L") ) && info.itemsize == 4) type = NTA_BasicType_UInt32;
+				else if ((info.format == "l") || (info.format == "q") ) type = NTA_BasicType_Int64;
+				else if ((info.format == "L") || (info.format == "Q") ) type = NTA_BasicType_UInt64;
+				else if (info.format == "f") type = NTA_BasicType_Real32;
+				else if (info.format == "d") type = NTA_BasicType_Real64;
 				else if (info.format == py::format_descriptor<bool>::format()) type = NTA_BasicType_Bool;
 				else if (info.format == py::format_descriptor<Byte>::format()) type = NTA_BasicType_Byte;
-				else throw std::runtime_error("Unexpected data type in the array!");
+        else NTA_THROW << "Unexpected data type in the array!  info.format=" << info.format;
+        // for info.format codes, see https://docs.python.org/3.7/library/array.html
+
 				if (copy) {
 					new(&m) Array(type);
 					m.allocateBuffer(size);
@@ -146,7 +147,7 @@ namespace htm_ext
 			.def(py::init<>(),           "Create an empty Array object.")
 		    .def("zeroBuffer", &Array::zeroBuffer, "Fills array with zeros")
 			.def("getCount", &Array::getCount, "Returns the number of elements.")
-	
+
 			// boolean functions to determine the type of value in the Array
 			.def("getType", &Array::getType, "Returns an enum representing the data type.")
 			.def("isInt32",  [](const Array &self) { return self.getType() == NTA_BasicType_Int32; })
@@ -170,14 +171,14 @@ namespace htm_ext
 					return self;
 			}));
 
-			
+
 //              py_Array..def(py::init<const SDR &sdr>(), "Create an Array object from an SDR object.",             py::arg("values"));
 //              py_Array.def("getSDR", &Array::getSDR, "Returns an SDR object if the Array contains type SDR.");
 
-        
-        
-        
-        
+
+
+
+
 
         ///////////////////
         // Link
@@ -232,7 +233,7 @@ namespace htm_ext
 			.def("getParameterBool",   &Region::getParameterBool)
 			.def("getParameterString", &Region::getParameterString)
 			.def("getParameterArray", &Region::getParameterArray);
-			
+
 		py_Region.def("getParameterArrayCount", &Region::getParameterArrayCount);
 
 		py_Region.def("setParameterInt32", &Region::setParameterInt32)
