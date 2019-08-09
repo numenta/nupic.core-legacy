@@ -19,7 +19,6 @@
 
 /** @file
  * SimHashDocumentEncoder.cpp
- * @since 0.2.3
  */
 
 #include <algorithm>  // transform

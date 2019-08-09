@@ -19,7 +19,6 @@
 
 /** @file
  * SimHashDocumentEncoderTest.cpp
- * @since 0.2.3
  */
 
 #include "gtest/gtest.h"

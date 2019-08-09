@@ -19,7 +19,6 @@
 
 /** @file
  * SimHashDocumentEncoder.hpp
- * @since 0.2.3
  */
 
 #ifndef NTA_ENCODERS_SIMHASH_DOCUMENT
