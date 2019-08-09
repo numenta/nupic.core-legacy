@@ -6,14 +6,14 @@ matrix:
   include: 
     - os: linux
       compiler: gcc
-      dist: xenial #TODO upgrade to bionic when possible on Travis
+      dist: bionic
       # update required packages from Travis setup
       # https://docs.travis-ci.com/user/languages/cpp/
       addons:
         apt:
           update: true
-          sources:
-            - ubuntu-toolchain-r-test
+#          sources:
+#            - ubuntu-toolchain-r-test
           packages:
             - build-essential 
             - g++-8
