@@ -45,6 +45,11 @@ testDoc1 = [ "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  ]
 testDoc2 = [ "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  ]
 testDoc3 = [ "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  ]
 testDoc4 = [ "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" ]
+testDocCase1 = [ "alpha", "bravo",  "delta",  "echo",  "foxtrot", "hotel" ]
+testDocCase2 = [ "ALPHA", "BRAVO",  "DELTA",  "ECHO",  "FOXTROT", "HOTEL" ]
+testDocMap1 = { "aaa": 4, "bbb": 2, "ccc": 2, "ddd": 4, "sss": 1 }
+testDocMap2 = { "eee": 2, "bbb": 2, "ccc": 2, "fff": 2, "sss": 1 }
+testDocMap3 = { "aaa": 4, "eee": 2, "fff": 2, "ddd": 4  }
 testDocUni1 = [
   "\u0395\u0396\u0397\u0398\u0399",
   "\u0400\u0401\u0402\u0403\u0404",
@@ -55,9 +60,6 @@ testDocUni2 = [
   "\u0400\u0401\u0402\u0403\u0404\u0410",
   "\u0405\u0406\u0407\u0408\u0409\u0410"
 ]
-testDocMap1 = { "aaa": 4, "bbb": 2, "ccc": 2, "ddd": 4, "sss": 1 }
-testDocMap2 = { "eee": 2, "bbb": 2, "ccc": 2, "fff": 2, "sss": 1 }
-testDocMap3 = { "aaa": 4, "eee": 2, "fff": 2, "ddd": 4  }
 
 
 #
@@ -174,12 +176,42 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     assert(report2.sparsity.mean() > params2.sparsity - 0.005)
     assert(report2.sparsity.mean() < params2.sparsity + 0.005)
 
+  # Test encoding without case sensitivity
+  def testTokenCaseInsensitivity(self):
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.sparsity = 0.33
+
+    encoder1 = SimHashDocumentEncoder(params)
+    output1 = encoder1.encode(testDocCase1)
+
+    encoder2 = SimHashDocumentEncoder(params)
+    output2 = encoder2.encode(testDocCase2)
+
+    assert(output1 == output2)
+
+  # Test encoding with case sensitivity
+  def testTokenCaseSensitivity(self):
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.sparsity = 0.33
+    params.caseSensitivity = True
+
+    encoder1 = SimHashDocumentEncoder(params)
+    output1 = encoder1.encode(testDocCase1)
+
+    encoder2 = SimHashDocumentEncoder(params)
+    output2 = encoder2.encode(testDocCase2)
+
+    assert(output1 != output2)
+
   # Test encoding simple corpus with 'tokenSimilarity' On. Tokens of similar
   # spelling will affect the output in shared manner.
   def testTokenSimilarityOn(self):
     params = SimHashDocumentEncoderParameters()
     params.size = 400
     params.sparsity = 0.33
+    params.caseSensitivity = True
     params.tokenSimilarity = True
 
     encoder1 = SimHashDocumentEncoder(params)
@@ -206,6 +238,7 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     params = SimHashDocumentEncoderParameters()
     params.size = 400
     params.sparsity = 0.33
+    params.caseSensitivity = True
     params.tokenSimilarity = False
 
     encoder1 = SimHashDocumentEncoder(params)

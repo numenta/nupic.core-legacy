@@ -40,6 +40,16 @@ namespace testing {
     { "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  };
   const std::vector<std::string> testDoc4 =
     { "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" };
+  const std::vector<std::string> testDocCase1 =
+    { "alpha", "bravo",  "delta",  "echo",  "foxtrot", "hotel" };
+  const std::vector<std::string> testDocCase2 =
+    { "ALPHA", "BRAVO",  "DELTA",  "ECHO",  "FOXTROT", "HOTEL" };
+  const std::map<std::string, UInt> testDocMap1 =
+    {{ "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "sss", 1 }};
+  const std::map<std::string, UInt> testDocMap2 =
+    {{ "eee", 2 }, { "bbb", 2 }, { "ccc", 2 }, { "fff", 2 }, { "sss", 1 }};
+  const std::map<std::string, UInt> testDocMap3 =
+    {{ "aaa", 4 }, { "eee", 2 }, { "fff", 2 }, { "ddd", 4 }};
   const std::vector<std::string> testDocUni1 = {
     u8"\u0395\u0396\u0397\u0398\u0399",
     u8"\u0400\u0401\u0402\u0403\u0404",
@@ -50,12 +60,6 @@ namespace testing {
     u8"\u0400\u0401\u0402\u0403\u0404\u0410",
     u8"\u0405\u0406\u0407\u0408\u0409\u0410"
   };
-  const std::map<std::string, UInt> testDocMap1 =
-    {{ "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "sss", 1 }};
-  const std::map<std::string, UInt> testDocMap2 =
-    {{ "eee", 2 }, { "bbb", 2 }, { "ccc", 2 }, { "fff", 2 }, { "sss", 1 }};
-  const std::map<std::string, UInt> testDocMap3 =
-    {{ "aaa", 4 }, { "eee", 2 }, { "fff", 2 }, { "ddd", 4 }};
 
 
   /**
@@ -123,12 +127,48 @@ namespace testing {
     ASSERT_EQ(outputA, outputB);
   }
 
+  // Test encoding without case sensitivity
+  TEST(SimHashDocumentEncoder, testTokenCaseInsensitivity) {
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+
+    SDR output1({ params.size });
+    SimHashDocumentEncoder encoder1(params);
+    encoder1.encode(testDocCase1, output1);
+
+    SDR output2({ params.size });
+    SimHashDocumentEncoder encoder2(params);
+    encoder2.encode(testDocCase2, output2);
+
+    ASSERT_EQ(output1, output2);
+  }
+
+  // Test encoding with case sensitivity
+  TEST(SimHashDocumentEncoder, testTokenCaseSensitivity) {
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    params.caseSensitivity = true;
+
+    SDR output1({ params.size });
+    SimHashDocumentEncoder encoder1(params);
+    encoder1.encode(testDocCase1, output1);
+
+    SDR output2({ params.size });
+    SimHashDocumentEncoder encoder2(params);
+    encoder2.encode(testDocCase2, output2);
+
+    ASSERT_NE(output1, output2);
+  }
+
   // Test encoding simple corpus with 'tokenSimilarity' On. Tokens of similar
   // spelling will affect the output in shared manner.
   TEST(SimHashDocumentEncoder, testTokenSimilarityOn) {
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
+    params.caseSensitivity = true;
     params.tokenSimilarity = true;
 
     SDR output1({ params.size });
@@ -155,6 +195,7 @@ namespace testing {
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
+    params.caseSensitivity = true;
     params.tokenSimilarity = false;
 
     SDR output1({ params.size });

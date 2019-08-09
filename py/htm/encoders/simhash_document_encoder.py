@@ -50,6 +50,8 @@ if __name__ == '__main__':
       SimHashDocumentEncoderParameters.__doc__))
   parser.add_argument('--activeBits', type=int, default=0,
     help=SimHashDocumentEncoderParameters.activeBits.__doc__)
+  parser.add_argument('--caseSensitivity', action='store_true', default=False,
+    help=SimHashDocumentEncoderParameters.caseSensitivity.__doc__)
   parser.add_argument('--size', type=int, default=0,
     help=SimHashDocumentEncoderParameters.size.__doc__)
   parser.add_argument('--sparsity', type=float, default=0,
@@ -61,6 +63,7 @@ if __name__ == '__main__':
   # Copy the command line arguments into the parameter structure.
   parameters = SimHashDocumentEncoderParameters()
   parameters.activeBits = args.activeBits
+  parameters.caseSensitivity = args.caseSensitivity
   parameters.size = args.size
   parameters.sparsity = args.sparsity
   parameters.tokenSimilarity = args.tokenSimilarity

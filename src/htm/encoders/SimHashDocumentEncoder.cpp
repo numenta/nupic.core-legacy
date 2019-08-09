@@ -22,8 +22,10 @@
  * @since 0.2.3
  */
 
-#include <bitset>
-#include <climits> // CHAR_BIT
+#include <algorithm>  // transform
+#include <bitset>     // to_string
+#include <cctype>     // tolower
+#include <climits>    // CHAR_BIT
 
 #include <hasher.hpp> // digestpp: sha3+shake256 hash digests
 #include <algorithm/sha3.hpp>
@@ -81,14 +83,15 @@ namespace htm {
   /**
    * Encode (Main calling style)
    *
-   * If param "tokenSimilarity" is passed, we'll additionally loop through
-   *  all the letters in all the tokens.
    * Each token/letter will be hashed with SHA3+SHAKE256 to get
    *  a varible-length (param "size") binary digest output. These vectors will
    *  be stored in a matrix for the next step of processing.
    * Weights are added in during hashing and simhashing.
    * After the loop, we SimHash the matrix of hashes, resulting in an
    *  output SDR.
+   * If param "caseSensitivity" is passed, we'll lowercase all token strings.
+   * If param "tokenSimilarity" is passed, we'll additionally loop through
+   *  all the letters in all the tokens.
    *
    * @param :input: Document token strings (with weights) to encode,
    *  ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}.
@@ -111,8 +114,12 @@ namespace htm {
     result.zero();
 
     for (const auto& member : input) {
-      const std::string token = member.first;
+      std::string token = member.first;
       UInt tokenWeight = member.second;
+
+      if (!args_.caseSensitivity) {
+        transform(token.begin(), token.end(), token.begin(), ::tolower);
+      }
 
       if (args_.tokenSimilarity) {
         // generate hash digest for every single character individually
@@ -123,11 +130,13 @@ namespace htm {
         }
         tokenWeight = (UInt) (tokenWeight * 1.5); // balance token with letters
       }
+
       // generate hash digest for whole token string
       hashToken_(token, hashBits);
       bitsToWeightedAdder_(tokenWeight, hashBits);
       addVectorToMatrix_(hashBits, adders);
     }
+
     // simhash
     simHashAdders_(adders, simBits);
     result.setDense(simBits);
@@ -269,6 +278,7 @@ namespace htm {
     out << "  activeBits:       " << self.parameters.activeBits       << ",\n";
     out << "  size:             " << self.parameters.size             << ",\n";
     out << "  sparsity:         " << self.parameters.sparsity         << ",\n";
+    out << "  caseSensitivity:  " << self.parameters.caseSensitivity  << ",\n";
     out << "  tokenSimilarity:  " << self.parameters.tokenSimilarity  << ",\n";
     return out;
   }

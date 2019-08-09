@@ -43,6 +43,15 @@ namespace htm {
     UInt activeBits = 0u;
 
     /**
+     * @param :caseSensitivity: Should capitalized English letters (A-Z) have
+     *  differing influence on our output than their lower-cased (a-z)
+     *  counterparts?
+     *    If True:  "DOGS" and "dogs" will have completely different encodings.
+     *    If False: "DOGS" and "dogs" will share the same encoding (Default).
+     */
+    bool caseSensitivity = false;
+
+    /**
      * @param :size: Total number of bits in the encoded output SDR.
      */
     UInt size = 0u;
@@ -91,7 +100,8 @@ namespace htm {
    *
    * In addition to document similarity, an option is provided to toggle if
    * token similarity "near-spellings" (such as "cat" and "cats") will receieve
-   * similar encodings or not.
+   * similar encodings or not. Another option is provided for manging
+   * English-language token case in/sensitivity.
    *
    * @code
    *    #include <htm/encoders/SimHashDocumentEncoder.hpp>
@@ -130,9 +140,10 @@ namespace htm {
       std::string name = "SimHashDocumentEncoder";
       ar(cereal::make_nvp("name", name));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("caseSensitivity", args_.caseSensitivity));
       ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("size", args_.size));
-      ar(cereal::make_nvp("tokenSimilarity", args_.size));
+      ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
     }
     // Cereal Deserialization
     template<class Archive>
@@ -140,9 +151,10 @@ namespace htm {
       std::string name;
       ar(cereal::make_nvp("name", name));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("caseSensitivity", args_.caseSensitivity));
       ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("size", args_.size));
-      ar(cereal::make_nvp("tokenSimilarity", args_.size));
+      ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
     }
 
   private:

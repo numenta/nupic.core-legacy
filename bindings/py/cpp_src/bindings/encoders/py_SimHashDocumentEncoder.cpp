@@ -71,6 +71,15 @@ This is an alternate way (percentage) to specify the the number of active bits.
 Specify only one of: activeBits or sparsity.
 )");
 
+    py_SimHashDocumentEncoderParameters.def_readwrite("caseSensitivity",
+      &SimHashDocumentEncoderParameters::caseSensitivity,
+R"(
+Should capitalized English letters (A-Z) have different influence on our output
+than their lower-cased (a-z) counterparts? Or the same influence on output?
+  If TRUE:  "DOGS" and "dogs" will have completely different encodings.
+  If FALSE: "DOGS" and "dogs" will share the same encoding (Default).
+)");
+
     py_SimHashDocumentEncoderParameters.def_readwrite("tokenSimilarity",
       &SimHashDocumentEncoderParameters::tokenSimilarity,
 R"(
