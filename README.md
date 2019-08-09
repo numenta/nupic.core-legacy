@@ -241,7 +241,7 @@ distribution packages as listed and rename them as indicated. Copy these to
 | mnist.zip     (*note3) | https://github.com/wichtounet/mnist/archive/master.zip |
 | pybind11.tar.gz        | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
 | cereal.tar.gz          | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
-| digestpp.tar.gz        | https://github.com/kerukuro/digestpp/archive/master.tar.gz |
+| digestpp.zip           | https://github.com/kerukuro/digestpp/archive/36fa6ca2b85808bd171b13b65a345130dbe1d774.zip |
 
  * note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
  * note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.

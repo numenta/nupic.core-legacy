@@ -6,7 +6,7 @@ HTM Core depends on a number of external libraries. The download and build of th
 integrated into the cmake-based build of htm.core.  The code that does this are in external/*.cmake
 
 - Boost.cmake      - If needed, finds the boost installation 1.69.0. Boost needs to be built with -fPIC so cannot use externally installed.
-- digestpp.cmake   - Downloads digestpp hash digest lib (header only) from repo master.
+- digestpp.cmake   - Download/install digestpp @ 36fa6ca : Hash digest lib (header only)
 - eigen.cmake      - Downloads eigen 3.3.7  (header only)
 - gtest.cmake      - Downloads and installs googletest 1.8.1
 - mnist_data.cmake - Downloads the mnist data set from repository master.
