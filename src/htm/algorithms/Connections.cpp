@@ -476,7 +476,7 @@ void Connections::adaptSegment(const Segment segment,
   }
 
   //destroy segment if it has too few synapses left -> will never be able to connect again
-  if(pruneZeroSynapses and synapses.size() < connectedThreshold_) {
+  if(pruneZeroSynapses and synapses.size() < connectedThreshold_) { //FIXME this is incorrect! connectedThreshold_ is if > then syn = connected. We need stimulusThreshold_ from TM.
     destroySegment(segment);
     prunedSegs_++; //statistics
   }
