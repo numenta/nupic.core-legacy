@@ -159,7 +159,7 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
         << "Input to category encoder must be an unsigned integer!";
     }
     NTA_CHECK(input >= parameters.minimum && input <= parameters.maximum)
-        << "Input must be within range [minimum, maximum]!";
+        << "Input must be within range [minimum, maximum]! " << input << " vs [" << parameters.minimum << " , " << parameters.maximum << " ]";
   }
 
   UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);
