@@ -21,7 +21,7 @@ import datetime
 import numpy
 import math
 
-from htm.encoders.scalar_encoder import ScalarEncoder, ScalarEncoderParameters
+from htm.bindings.encoders import ScalarEncoder, ScalarEncoderParameters
 from htm.bindings.sdr import SDR
 
 
@@ -51,6 +51,7 @@ class DateEncoder:
         - (tuple)  season[0] = width; season[1] = radius
 
     Argument dayOfWeek: (int | tuple) Day of week, where monday = 0, units = 1 day.
+        The timestamp is compared against day:noon, so encodings of a day switch representation on midnight.
 
         - (int) width of attribute; default radius = 1 day
         - (tuple) dayOfWeek[0] = width; dayOfWeek[1] = radius
@@ -230,7 +231,7 @@ class DateEncoder:
       output = SDR(self.dimensions)
     else:
       assert( isinstance(output, SDR) )
-      assert( output.dimensions == self.dimensions )
+      assert( all(x == y for x, y in zip( output.dimensions, self.dimensions )))
 
     if inp is None or (isinstance(inp, float) and math.isnan(inp)):
       output.zero()
@@ -249,12 +250,18 @@ class DateEncoder:
     if self.seasonEncoder is not None:
       # Number the days starting at zero, intead of 1 like the datetime does.
       dayOfYear = timetuple.tm_yday - 1
+      assert(dayOfYear >= 0)
       # dayOfYear -= self.seasonEncoder.parameters.radius / 2. # Round towards the middle of the season.
       sdrs.append( self.seasonEncoder.encode(dayOfYear) )
 
     if self.dayOfWeekEncoder is not None:
-      dayOfWeek = timetuple.tm_wday + (timeOfDay) / 24.0
-      dayOfWeek -= .5 # Round towards noon, not midnight
+      hrs_ = float(timeOfDay) / 24.0 # add hours as decimal value in extension to day  
+      dayOfWeek = timetuple.tm_wday + hrs_
+      dayOfWeek -= .5 # Round towards noon, not midnight, this means similarity of representations changes at midnights, not noon.
+      # handle underflow: on Mon before noon -> move to Sun
+      if dayOfWeek < 0:
+        dayOfWeek += 7
+      assert(dayOfWeek >= 0 and dayOfWeek < 7)
       sdrs.append( self.dayOfWeekEncoder.encode(dayOfWeek) )
 
     if self.weekendEncoder is not None:
