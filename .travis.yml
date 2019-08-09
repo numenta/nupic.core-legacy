@@ -11,7 +11,7 @@ matrix:
       # https://docs.travis-ci.com/user/languages/cpp/
       addons:
         apt:
-          update: true
+          update: false
 #          sources:
 #            - ubuntu-toolchain-r-test
           packages:
