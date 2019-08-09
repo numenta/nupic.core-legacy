@@ -597,6 +597,27 @@ public:
    *
    */
   SDR cellsToColumns(const SDR& cells) const;
+private:
+  void punishPredictedColumn_(vector<Segment>::const_iterator columnMatchingSegmentsBegin, 
+		              vector<Segment>::const_iterator columnMatchingSegmentsEnd, 
+			      const SDR& prevActiveCells);
+
+  void activatePredictedColumn_(vector<Segment>::const_iterator columnActiveSegmentsBegin,
+		                vector<Segment>::const_iterator columnActiveSegmentsEnd,
+				const SDR &prevActiveCells,
+				const vector<CellIdx> &prevWinnerCells,
+				const bool learn);
+
+  void burstColumn_(const UInt column,
+		                    vector<Segment>::const_iterator columnMatchingSegmentsBegin,
+				    vector<Segment>::const_iterator columnMatchingSegmentsEnd,
+				    const SDR &prevActiveCells,
+				    const vector<CellIdx> &prevWinnerCells,
+				    const bool learn);
+
+  void growSynapses_(const Segment& segment,
+		     const SynapseIdx nDesiredNewSynapses,
+		     const vector<CellIdx> &prevWinnerCells);
 
 protected:
   //all these could be const
