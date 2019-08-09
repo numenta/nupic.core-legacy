@@ -51,6 +51,7 @@ class DateEncoder:
         - (tuple)  season[0] = width; season[1] = radius
 
     Argument dayOfWeek: (int | tuple) Day of week, where monday = 0, units = 1 day.
+        The timestamp is compared against day:noon, so encodings of a day switch representation on midnight.
 
         - (int) width of attribute; default radius = 1 day
         - (tuple) dayOfWeek[0] = width; dayOfWeek[1] = radius
@@ -256,6 +257,10 @@ class DateEncoder:
     if self.dayOfWeekEncoder is not None:
       hrs_ = float(timeOfDay) / 24.0 # add hours as decimal value in extension to day  
       dayOfWeek = timetuple.tm_wday + hrs_
+      dayOfWeek -= .5 # Round towards noon, not midnight, this means similarity of representations changes at midnights, not noon.
+      # handle underflow: on Mon before noon -> move to Sun
+      if dayOfWeek < 0:
+        dayOfWeek += 7
       assert(dayOfWeek >= 0 and dayOfWeek < 7)
       sdrs.append( self.dayOfWeekEncoder.encode(dayOfWeek) )
 

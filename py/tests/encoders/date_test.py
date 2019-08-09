@@ -22,7 +22,7 @@ import numpy
 import unittest
 
 from htm.encoders.date import DateEncoder
-from htm import SDR, Metrics
+from htm.bindings.sdr import SDR, Metrics
 
 """
 def __init__(self,
@@ -52,7 +52,7 @@ class DateEncoderTest(unittest.TestCase):
 
     # Week is MTWTFSS contrary to localtime documentation, Monday = 0 (for
     # python datetime.datetime.timetuple()
-    dayOfWeekExpected = [0,0,0,0,1,0,0]
+    dayOfWeekExpected = [0,0,0,1,0,0,0]
 
     # Not a weekend, so it should be "False"
     weekendExpected = [1, 0]
@@ -82,7 +82,7 @@ class DateEncoderTest(unittest.TestCase):
 
     # Week is MTWTFSS, 
     # Monday = 0 (for python datetime.datetime.timetuple())
-    dayOfWeekExpected = [0,0,0,0,1,0,0] #Thu
+    dayOfWeekExpected = [0,0,0,1,0,0,0] #Thu
 
     expected = dayOfWeekExpected
     self.assertEqual(bits.size, 7)
@@ -108,7 +108,7 @@ class DateEncoderTest(unittest.TestCase):
         enc.encode(now, sdr)
         now += inc
 
-    print( metrics )
+    #print( metrics )
 
     assert( metrics.sparsity.min() >= .05 )
     assert( metrics.sparsity.max() <= .20 )
