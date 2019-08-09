@@ -1,6 +1,6 @@
 language: python
 python: 
- - 2.7 #TODO change  to 3.x later
+ - 3
 
 matrix:
   include: 
