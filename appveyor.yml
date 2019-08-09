@@ -96,17 +96,13 @@ matrix:
 before_build:
 #  - ps: gitversion /l console /output buildserver
 
-install: 
-  # using GitVersion to populate the file VERSION
-  - "echo Branch name: %GIT_BRANCH_NAME%"
-  - "cd %HTM_CORE%"
-  - "git fetch --unshallow"
-  #- "rm -Rf .git/gitversion_cache/"
-  #- "GitVersion.exe"
-  #- "GitVersion.exe /showvariable SemVer > VERSION"
-  
-  - "for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i"
-  - "echo Binding version = %BINDINGS_VERSION%"
+install:
+  # Dump appveyor build vars for diagnostics
+  - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
+  - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
+
+  - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
+  - echo Binding version = %BINDINGS_VERSION%
 
   - python -m pip install --user --upgrade pip setuptools setuptools-scm wheel || exit
   - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
