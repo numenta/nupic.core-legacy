@@ -18,8 +18,6 @@ import htm.bindings.encoders
 ScalarEncoder           = htm.bindings.encoders.ScalarEncoder
 ScalarEncoderParameters = htm.bindings.encoders.ScalarEncoderParameters
 
-__all__ = ['ScalarEncoder', 'ScalarEncoderParameters']
-
 if __name__ == '__main__':
     """
     Simple program to examine the ScalarEncoder.
@@ -95,7 +93,7 @@ if __name__ == '__main__':
     else:
         n_samples = (enc.parameters.maximum - enc.parameters.minimum) / enc.parameters.resolution
         oversample = 2 # Use more samples than needed to avoid aliasing & artifacts.
-        n_samples  = int(round( oversample * n_samples )) #TODO should this be done already in the c++?
+        n_samples  = int(round( oversample * n_samples ))
     assert n_samples > 0
 
     sdrs = []
