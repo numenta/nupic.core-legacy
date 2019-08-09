@@ -28,7 +28,38 @@ from htm.bindings.encoders import SimHashDocumentEncoder, SimHashDocumentEncoder
 from htm.bindings.sdr import SDR, Metrics
 
 
-# Shared Test Strings
+### Shared Test Strings
+
+# Human-readable example use case strings (see `testBasicExampleUseCase` below):
+#   1 vs 2 = very similar and should receive similar encodings
+#   2 vs 3 = very different and should receive differeing encodings
+exampleDoc1 = [ "The", "sky", "is", "beautiful", "today" ]
+exampleDoc2 = [ "The", "sun", "is", "beautiful", "today" ] # similar above, differ below
+exampleDoc3 = [ "Who", "did", "my", "homework",  "today" ]
+# Basic test strings
+testDoc1 = [ "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  ]
+testDoc2 = [ "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  ]
+testDoc3 = [ "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  ]
+testDoc4 = [ "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" ]
+# Case-sensitivite strings
+testDocCase1 = [ "alpha", "bravo",  "delta",  "echo",  "foxtrot", "hotel" ]
+testDocCase2 = [ "ALPHA", "BRAVO",  "DELTA",  "ECHO",  "FOXTROT", "HOTEL" ]
+# Weighted strings
+testDocMap1 = { "aaa": 4, "bbb": 2, "ccc": 2, "ddd": 4, "sss": 1 }
+testDocMap2 = { "eee": 2, "bbb": 2, "ccc": 2, "fff": 2, "sss": 1 }
+testDocMap3 = { "aaa": 4, "eee": 2, "fff": 2, "ddd": 4  }
+# Unicode test strings
+testDocUni1 = [
+  "\u0395\u0396\u0397\u0398\u0399",
+  "\u0400\u0401\u0402\u0403\u0404",
+  "\u0405\u0406\u0407\u0408\u0409"
+]
+testDocUni2 = [
+  "\u0395\u0396\u0397\u0398\u0399\u0410",
+  "\u0400\u0401\u0402\u0403\u0404\u0410",
+  "\u0405\u0406\u0407\u0408\u0409\u0410"
+]
+# 100 random simple English words run mass encoding stats against
 testCorpus = [ "find", "any", "new", "work", "part", "take", "get", "place",
   "made", "live", "where", "after", "back", "little", "only", "round", "man",
   "year", "came", "show", "every", "good", "me", "give", "our", "under",
@@ -40,33 +71,38 @@ testCorpus = [ "find", "any", "new", "work", "part", "take", "get", "place",
   "here", "must", "big", "high", "such", "follow", "act", "why", "ask", "men",
   "change", "went", "light", "kind", "off", "need", "house", "picture", "try",
   "us", "again", "animal", "point", "mother", "world", "near", "build",
-  "self", "earth" ] # 100 simple common english words
-testDoc1 = [ "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  ]
-testDoc2 = [ "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  ]
-testDoc3 = [ "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  ]
-testDoc4 = [ "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" ]
-testDocCase1 = [ "alpha", "bravo",  "delta",  "echo",  "foxtrot", "hotel" ]
-testDocCase2 = [ "ALPHA", "BRAVO",  "DELTA",  "ECHO",  "FOXTROT", "HOTEL" ]
-testDocMap1 = { "aaa": 4, "bbb": 2, "ccc": 2, "ddd": 4, "sss": 1 }
-testDocMap2 = { "eee": 2, "bbb": 2, "ccc": 2, "fff": 2, "sss": 1 }
-testDocMap3 = { "aaa": 4, "eee": 2, "fff": 2, "ddd": 4  }
-testDocUni1 = [
-  "\u0395\u0396\u0397\u0398\u0399",
-  "\u0400\u0401\u0402\u0403\u0404",
-  "\u0405\u0406\u0407\u0408\u0409"
-]
-testDocUni2 = [
-  "\u0395\u0396\u0397\u0398\u0399\u0410",
-  "\u0400\u0401\u0402\u0403\u0404\u0410",
-  "\u0405\u0406\u0407\u0408\u0409\u0410"
-]
+  "self", "earth" ]
 
 
-#
-# TESTS
-#
+### TESTS
 
 class SimHashDocumentEncoder_Test(unittest.TestCase):
+
+  # Test a basic use-case in human-readable form.
+  #  Documents (from shared test strings above):
+  #    1: "The sky is beautiful today"
+  #    2: "The sun is beautiful today"  (similar above, differ below)
+  #    3: "Who did my homework  today"
+  #  Test Expectations:
+  #    1 vs 2 = very similar and should receive similar encodings
+  #    2 vs 3 = very different and should receive differing encodings
+  def testBasicExampleUseCase(self):
+    # setup params
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.sparsity = 0.33
+
+    # init encoder
+    encoder = SimHashDocumentEncoder(params)
+
+    # encode!
+    output1 = encoder.encode(exampleDoc1)
+    output2 = encoder.encode(exampleDoc2)
+    output3 = encoder.encode(exampleDoc3)
+
+    # encodings for Docs 1 and 2 should be more similar than the encodings
+    #   for Docs 2 and 3 (which should be more disparate).
+    assert(output1.getOverlap(output2) > output2.getOverlap(output3))
 
   # Test a basic construction with defaults
   def testConstructor(self):

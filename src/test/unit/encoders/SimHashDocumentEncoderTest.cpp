@@ -31,7 +31,17 @@ namespace testing {
 
   using namespace htm;
 
-  // Shared Test Strings
+  /* Shared Test Strings */
+  // Human-readable basic use-case strings (see `testBasicExampleUseCase` below)
+  //  1 vs 2 = very similar and should receive similar encodings
+  //  2 vs 3 = very different and should receive differeing encodings
+  const std::vector<std::string> exampleDoc1 =
+    { "The", "sky", "is", "beautiful", "today" };
+  const std::vector<std::string> exampleDoc2 =
+    { "The", "sun", "is", "beautiful", "today" }; // similar above, differ below
+  const std::vector<std::string> exampleDoc3 =
+    { "Who", "did", "my", "homework",  "today" };
+  // Basic test strings
   const std::vector<std::string> testDoc1 =
     { "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
   const std::vector<std::string> testDoc2 =
@@ -40,16 +50,19 @@ namespace testing {
     { "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  };
   const std::vector<std::string> testDoc4 =
     { "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" };
+  // Case-sensitivite strings
   const std::vector<std::string> testDocCase1 =
     { "alpha", "bravo",  "delta",  "echo",  "foxtrot", "hotel" };
   const std::vector<std::string> testDocCase2 =
     { "ALPHA", "BRAVO",  "DELTA",  "ECHO",  "FOXTROT", "HOTEL" };
+  // Weighted strings
   const std::map<std::string, UInt> testDocMap1 =
     {{ "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "sss", 1 }};
   const std::map<std::string, UInt> testDocMap2 =
     {{ "eee", 2 }, { "bbb", 2 }, { "ccc", 2 }, { "fff", 2 }, { "sss", 1 }};
   const std::map<std::string, UInt> testDocMap3 =
     {{ "aaa", 4 }, { "eee", 2 }, { "fff", 2 }, { "ddd", 4 }};
+  // Unicode test strings
   const std::vector<std::string> testDocUni1 = {
     u8"\u0395\u0396\u0397\u0398\u0399",
     u8"\u0400\u0401\u0402\u0403\u0404",
@@ -65,6 +78,38 @@ namespace testing {
   /**
    * TESTS
    */
+
+  // Test a basic use-case in human-readable form.
+  //  Documents (from shared test strings above):
+  //    1: "The sky is beautiful today"
+  //    2: "The sun is beautiful today"  (similar above, differ below)
+  //    3: "Who did my homework  today"
+  //  Test Expectations:
+  //    1 vs 2 = very similar and should receive similar encodings
+  //    2 vs 3 = very different and should receive differing encodings
+  TEST(SimHashDocumentEncoder, testBasicExampleUseCase) {
+    // setup params
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+
+    // init encoder
+    SimHashDocumentEncoder encoder(params);
+
+    // init document encoding outputs
+    SDR output1({ params.size });
+    SDR output2({ params.size });
+    SDR output3({ params.size });
+
+    // encode!
+    encoder.encode(exampleDoc1, output1);
+    encoder.encode(exampleDoc2, output2);
+    encoder.encode(exampleDoc3, output3);
+
+    // encodings for Docs 1 and 2 should be more similar than the encodings
+    //  for Docs 2 and 3 (which should be more disparate).
+    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
+  }
 
   // Test a basic construction with defaults
   TEST(SimHashDocumentEncoder, testConstructor) {
