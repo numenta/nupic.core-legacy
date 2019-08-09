@@ -1,7 +1,7 @@
 #See http://www.pip-installer.org/en/latest/requirements.html for details
 ## for python bindings (in /bindings/py/)
 numpy>=1.15
-pytest>=3.10.1
+pytest==4.6.5 #4.6.x series is last to support python2, once py2 dropped, we can switch to 5.x 
 pytest-cov>=2.5.0
 ## for python code (in /py/)
 hexy>=1.4.3 # for grid cell encoder
