@@ -181,6 +181,7 @@ are filled in automatically.
 R"(
 Takes input in a python map of strings (tokens) => integer (weights).
 Ex: { "alpha": 2, "bravo": 1, "delta": 1, "echo": 3 }
+Documents can contain any number of tokens > 0.
 )");
     py_SimHashDocumentEncoder.def("encode", // alternate: simple w/o weights
       [](SimHashDocumentEncoder &self, std::vector<std::string> value) {
@@ -192,6 +193,7 @@ R"(
 Simple alternate calling pattern using only strings, no weights (assumed
 to be 1). Takes input in a python list of strings (tokens).
 Ex: [ "alpha", "bravo", "delta", "echo" ]
+Documents can contain any number of tokens > 0.
 )");
 
   }

@@ -94,7 +94,8 @@ namespace htm {
    *  all the letters in all the tokens.
    *
    * @param :input: Document token strings (with weights) to encode,
-   *  ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}.
+   *  ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}. Documents can contain
+   *  any number of tokens > 0.
    * @param :output: Result SDR to fill with result output encoding.
    *
    * @see SimHashDocumentEncoder.hpp
@@ -150,6 +151,7 @@ namespace htm {
    * passed in with tokens (all weights assumed to be 1).
    *
    * @param :input: Document token strings to encode, ex: {"what","is","up"}.
+   *  Documents can contain any number of tokens > 0.
    * @param :output: Result SDR to fill with result output encoding.
    *
    * @see encode(const std::map<std::string, UInt> input, SDR &output)
