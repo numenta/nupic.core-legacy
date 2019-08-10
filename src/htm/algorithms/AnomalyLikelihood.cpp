@@ -27,6 +27,7 @@ AnomalyLikelihood::AnomalyLikelihood(UInt learningPeriod, UInt estimationSamples
         iteration_ = 0;
         NTA_CHECK(historicWindowSize >= estimationSamples); // cerr << "estimationSamples exceeds historicWindowSize";
         NTA_CHECK(aggregationWindow < reestimationPeriod && reestimationPeriod < historicWindowSize);
+	NTA_WARN << "C++ AnomalyLikelihood may still need some testing.";
     }
 
 

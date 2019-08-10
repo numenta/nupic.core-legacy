@@ -27,6 +27,8 @@
 #include <htm/types/Sdr.hpp>
 #include <htm/types/Serializable.hpp>
 #include <htm/utils/Random.hpp>
+#include <htm/algorithms/AnomalyLikelihood.hpp>
+
 #include <vector>
 
 
@@ -34,6 +36,7 @@ namespace htm {
 
 using namespace std;
 using namespace htm;
+
 
 /**
  * Temporal Memory implementation in C++.
@@ -53,6 +56,7 @@ using namespace htm;
 class TemporalMemory : public Serializable
 {
 public:
+  enum class ANMode { DISABLED = 0, RAW = 1, LIKELIHOOD = 2, LOGLIKELIHOOD = 3};
   TemporalMemory();
 
   /**
@@ -124,6 +128,10 @@ public:
    * TemporalMemory.  If this is given (and greater than 0) then the active
    * cells and winner cells of these external inputs must be given to methods
    * TM.compute and TM.activateDendrites
+   *
+   * @param anomalyMode (optional, default `ANMode::RAW`)from enum ANMode, how is 
+   * `TM.anomaly` computed. Options ANMode {DISABLED, RAW, LIKELIHOOD, LOGLIKELIHOOD}
+   * 
    */
   TemporalMemory(
       vector<CellIdx> columnDimensions,
@@ -140,13 +148,15 @@ public:
       SegmentIdx      maxSegmentsPerCell          = 255,
       SynapseIdx      maxSynapsesPerSegment       = 255,
       bool            checkInputs                 = true,
-      UInt            externalPredictiveInputs    = 0);
+      UInt            externalPredictiveInputs    = 0,
+      ANMode	      anomalyMode 		  = ANMode::RAW
+      );
 
   virtual void
   initialize(
-    vector<CellIdx>  columnDimensions            = {2048},
-    CellIdx          cellsPerColumn              = 32,
-    SynapseIdx       activationThreshold         = 13,
+    vector<CellIdx>  columnDimensions         = {2048},
+    CellIdx          cellsPerColumn           = 32,
+    SynapseIdx       activationThreshold      = 13,
     Permanence    initialPermanence           = 0.21,
     Permanence    connectedPermanence         = 0.50,
     SynapseIdx    minThreshold                = 10,
@@ -158,7 +168,9 @@ public:
     SegmentIdx    maxSegmentsPerCell          = 255,
     SynapseIdx    maxSynapsesPerSegment       = 255,
     bool          checkInputs                 = true,
-    UInt          externalPredictiveInputs    = 0);
+    UInt          externalPredictiveInputs    = 0,
+    ANMode        anomalyMode                 = ANMode::RAW
+    );
 
   virtual ~TemporalMemory();
 
@@ -230,6 +242,10 @@ public:
    * This method calls activateDendrites, then calls activateCells. Using
    * the TemporalMemory via its compute method ensures that you'll always
    * be able to call getActiveCells at the end of the time step.
+   *
+   * Additionaly, this method computes anomaly for `TM.anomaly&`, if you
+   * use other learning methods (activateCells(), activateDendrites()) your
+   * anomaly scores will be off. 
    *
    * @param activeColumns
    * Sorted SDR of active columns.
@@ -467,7 +483,9 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
-       CEREAL_NVP(anomaly_),
+       CEREAL_NVP(tmAnomaly_.anomaly_),
+       CEREAL_NVP(tmAnomaly_.mode_),
+       CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
        CEREAL_NVP(connections));
 
     cereal::size_type numActiveSegments = activeSegments_.size();
@@ -522,7 +540,9 @@ public:
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
-       CEREAL_NVP(anomaly_),
+       CEREAL_NVP(tmAnomaly_.anomaly_),
+       CEREAL_NVP(tmAnomaly_.mode_),
+       CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
        CEREAL_NVP(connections));
 
     numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
@@ -646,13 +666,24 @@ private:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  Real anomaly_;
-
   Random rng_;
+
+  /**
+   * holds logic and data for TM's anomaly
+   */
+  struct anomaly_tm {
+    protected:
+      friend class TemporalMemory;
+      Real anomaly_ = 0.5f; //default value
+      ANMode mode_ = ANMode::RAW;
+      AnomalyLikelihood anomalyLikelihood_; //TODO provide default/customizable params here
+  };
 
 public:
   Connections connections;
   const UInt &externalPredictiveInputs = externalPredictiveInputs_;
+
+  anomaly_tm tmAnomaly_;
   /*
    *  anomaly score computed for the current inputs
    *  (auto-updates after each call to TM::compute())
@@ -660,7 +691,9 @@ public:
    *  @return a float value from computeRawAnomalyScore()
    *  from Anomaly.hpp
    */
-  const Real &anomaly = anomaly_;
+const Real &anomaly = tmAnomaly_.anomaly_; //this is position dependant, the struct anomaly_tm must be defined before this use,
+// otherwise this surprisingly compiles, but a call to `tmAnomaly_.anomaly` segfaults!
+
 };
 
 } // namespace htm
