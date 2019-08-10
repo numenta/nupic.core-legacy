@@ -109,8 +109,11 @@ if(NOT FORCE_CPP11)
     endif()	 
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")  # see CMake Policy CMP0025
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11") # XCode 11 & AppleClang 11 do support c++17 with <filesystem>
-      set(CMAKE_CXX_STANDARD 17)
-      set(boost_required OFF)
+      ## TODO XCode11 on macOS 10.15 supports <filesystem>,
+      # https://developer.apple.com/documentation/xcode_release_notes/xcode_11_beta_5_release_notes
+      # but for now CircleCI uses macOS 10.14, so we cannot disable boost yet.
+      # set(boost_required OFF)
+      # set(CMAKE_CXX_STANDARD 17)
     endif()
   # does not support C++17 and filesystem (as of XCode 10.1)
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") # clang + std::filesystem, see https://libcxx.llvm.org/docs/UsingLibcxx.html#using-filesystem
