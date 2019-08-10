@@ -238,23 +238,16 @@ def generateExtensions(platform):
     # Also Visual Studio 2019 now wants a new argument -A to specify that we want x64.
     # Using -A on 2017 causes an error.  So we have to manually specify each.
     generator = os.environ.get('NC_CMAKE_GENERATOR')
-    if generator == "None":
+    if generator == None:
       # The generator is not specified, figure out which to use.
       if platform == "windows":
         # Check to see if the CMake cache already exists and defines BINDING_BUILD.  If it does, skip this step
         if not os.path.isfile('CMakeCache.txt') or not 'BINDING_BUILD:STRING=Python3' in open('CMakeCache.txt').read():
           # Note: the calling arguments for MSVC 2017 is not the same as for MSVC 2019
-          if generator == 'None':
-            if isMSVC_installed("2019"):
-              subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
-            elif isMSVC_installed("2017"):
-              subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
-            else:
-              raise Exception("Did not find Microsoft Visual Studio 2017 or 2019.")
-          elif '2017' in generator and isMSVC_installed("2017"):
-            subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
-          elif '2019' in generator and isMSVC_installed("2019"):
+          if isMSVC_installed("2019"):
             subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
+          elif isMSVC_installed("2017"):
+            subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
           else:
             raise Exception("Did not find Microsoft Visual Studio 2017 or 2019.")
         #else 
@@ -269,12 +262,12 @@ def generateExtensions(platform):
         # Check to see if cache already exists.  If it does, skip this step
         if not os.path.isfile("CMakeCache.txt"):
           # Note: the calling arguments for MSVC 2017 is not the same as for MSVC 2019
-          if isMSVC_installed("2019"):
+          if '2019' in generator and isMSVC_installed("2019"):
             subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
-          elif isMSVC_installed("2017"):
+          elif '2017' in generator and isMSVC_installed("2017"):
             subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
           else:
-            raise Exception('Did not find a compiler for generator "'+generator+ '".')
+            raise Exception('Did not find Visual Studio for generator "'+generator+ '".')
       else:
         subprocess.check_call(["cmake", "-G", generator, PY_VER, REPO_DIR])
         

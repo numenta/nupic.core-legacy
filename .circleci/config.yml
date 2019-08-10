@@ -73,11 +73,16 @@ jobs:
           environment:
             VERBOSE: 1
           command: |
-            mkdir -p build/scripts
-            cd build/scripts
-            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release
-            make -j2 | grep -v -F '\\-\\- Installing:'
-            make install 2>&1 | grep -v -F 'Installing:'
+             python setup.py install --user
+             python setup.py bdist_wheel
+             cd build/scripts
+             make package
+             cd ../..
+          #  mkdir -p build/scripts
+          #  cd build/scripts
+          #  cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release
+          #  make -j2 | grep -v -F '\\-\\- Installing:'
+          #  make install 2>&1 | grep -v -F 'Installing:'
       # Test
       - run:
           name: Running C++ Tests
@@ -85,15 +90,6 @@ jobs:
             mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
             cd ./build/Release/bin
             ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
-      - run:
-           name: Install Python extension
-           command: python setup.py install --user --prefix=
-      - run:
-	       name: Build python wheel
-           command: python setup.py bdist_wheel
-      - run:
-	       name: Build github package
-           command: cmake --build . --config Release --target Package
       - run:
           name: Running python tests
           command: python setup.py test

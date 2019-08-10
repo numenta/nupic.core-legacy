@@ -91,17 +91,13 @@ before_install:
   - pip install --upgrade pip setuptools wheel || exit
 
 install:
-  # Prepare directories
-  - mkdir -p "$TRAVIS_BUILD_DIR/build/scripts"
-  - cd "$TRAVIS_BUILD_DIR/build/scripts"
-  - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
   - cmake --version
   # Builds htm_code library and python interface. 
   - cd "$TRAVIS_BUILD_DIR"
-  - python setup.py install --user --force
+  - python setup.py install 
   - python setup.py bdist_wheel
   - cd "$TRAVIS_BUILD_DIR/build/scripts"
-  - cmake --build . --config Release --target Package 
+  - make package
 
 
 script:
