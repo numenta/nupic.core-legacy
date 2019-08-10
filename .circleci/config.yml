@@ -73,10 +73,10 @@ jobs:
           environment:
             VERBOSE: 1
           command: |
-             python setup.py install --user
+             python setup.py install --user  --prefix=
              python setup.py bdist_wheel
              cd build/scripts
-             make package
+             make PACKAGE
              cd ../..
           #  mkdir -p build/scripts
           #  cd build/scripts
