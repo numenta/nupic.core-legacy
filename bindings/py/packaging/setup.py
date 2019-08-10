@@ -181,7 +181,6 @@ def getExtensionFileNames(platform):
 def getExtensionFiles(platform):
   files = getExtensionFileNames(platform)
   for f in files:
-    print(f)
     if not glob.glob(f):
       generateExtensions(platform)
       break
@@ -233,17 +232,53 @@ def generateExtensions(platform):
       os.makedirs(scriptsDir)
     os.chdir(scriptsDir)
     
-    if platform == "windows":
-      # Note: the calling arguments for MSVC 2017 is not the same as for MSVC 2019
-      if isMSVC_installed("2019"):
-        subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
-      elif isMSVC_installed("2017"):
-        subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
+    # Call CMake to setup the cache for the build.
+    # Normally we would let CMake figure out the generator based on the platform.
+    # But Visual Studio gets it wrong.  By default it uses 32 bit and we support only x64.  
+    # Also Visual Studio 2019 now wants a new argument -A to specify that we want x64.
+    # Using -A on 2017 causes an error.  So we have to manually specify each.
+    generator = os.environ.get('NC_CMAKE_GENERATOR')
+    if generator == "None":
+      # The generator is not specified, figure out which to use.
+      if platform == "windows":
+        # Check to see if the CMake cache already exists and defines BINDING_BUILD.  If it does, skip this step
+        if not os.path.isfile('CMakeCache.txt') or not 'BINDING_BUILD:STRING=Python3' in open('CMakeCache.txt').read():
+          # Note: the calling arguments for MSVC 2017 is not the same as for MSVC 2019
+          if generator == 'None':
+            if isMSVC_installed("2019"):
+              subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
+            elif isMSVC_installed("2017"):
+              subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
+            else:
+              raise Exception("Did not find Microsoft Visual Studio 2017 or 2019.")
+          elif '2017' in generator and isMSVC_installed("2017"):
+            subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
+          elif '2019' in generator and isMSVC_installed("2019"):
+            subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
+          else:
+            raise Exception("Did not find Microsoft Visual Studio 2017 or 2019.")
+        #else 
+        #   we can skip this step, the cache is already setup and we have the right binding specified.
       else:
-        raise Exception("Did not find Microsoft Visual Studio 2017 or 2019.")
+        # For Linux and OSx we can let CMake figure it out.
+        subprocess.check_call(["cmake", PY_VER, REPO_DIR])
         
     else:
-      subprocess.check_call(["cmake", PY_VER, REPO_DIR])
+      # The generator is specified.
+      if platform == "windows":
+        # Check to see if cache already exists.  If it does, skip this step
+        if not os.path.isfile("CMakeCache.txt"):
+          # Note: the calling arguments for MSVC 2017 is not the same as for MSVC 2019
+          if isMSVC_installed("2019"):
+            subprocess.check_call(["cmake", "-G", "Visual Studio 16 2019", "-A", "x64", PY_VER, REPO_DIR])
+          elif isMSVC_installed("2017"):
+            subprocess.check_call(["cmake", "-G", "Visual Studio 15 2017 Win64", PY_VER, REPO_DIR])
+          else:
+            raise Exception('Did not find a compiler for generator "'+generator+ '".')
+      else:
+        subprocess.check_call(["cmake", "-G", generator, PY_VER, REPO_DIR])
+        
+    # Now do `make install`
     subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", "Release"])
   finally:
     os.chdir(cwd)
@@ -260,7 +295,10 @@ if __name__ == "__main__":
   # Run CMake if extension files are missing.
   getExtensionFiles(platform)
 
-  # Copy the python code into place. (from /py/htm/)
+  # Copy the packaging into place (from bindings/py/packaging/ to build/Release/distro)
+  distutils.dir_util.copy_tree(PY_BINDINGS, DISTR_DIR)
+
+  # Copy the python code into place. (from /py/htm/ to build/Release/distro/src/htm)
   distutils.dir_util.copy_tree(
             os.path.join(REPO_DIR, "py", "htm"), os.path.join(DISTR_DIR, "src", "htm"))
   """

@@ -96,16 +96,9 @@ install:
   - cd "$TRAVIS_BUILD_DIR/build/scripts"
   - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
   - cmake --version
-  - echo "Configuring..."
-  # Builds htm_code library and python2.7 interface. Enable test coverage for travis-ci build
-  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release 
-  - set -o pipefail
-  - echo "Make & Install "
-  - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
-  - make install 2>&1|grep -v -F 'Installing:'
-  - echo "Installing Python bindings" 
+  # Builds htm_code library and python interface. 
   - cd "$TRAVIS_BUILD_DIR"
-  - python setup.py install
+  - python setup.py install --user --force
   - python setup.py bdist_wheel
   - cd "$TRAVIS_BUILD_DIR/build/scripts"
   - cmake --build . --config Release --target Package 

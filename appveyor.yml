@@ -108,17 +108,9 @@ install:
   - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
 
+  # Build the library with the python interface (64bit Release build)
   - cd %HTM_CORE%
-  - mkdir %HTM_CORE%\build\
-  - mkdir %HTM_CORE%\build\scripts
-
-  # initial cmake setup to build dependancies and create .sln
-  - cd %HTM_CORE%\build\scripts
-  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration% %HTM_CORE%
-
-  # Build the library with python interface (Release build)
-  - cd %HTM_CORE%
-  - python setup.py install --user
+  - python setup.py install --user --force
   
   # Build the wheel
   - python setup.py bdist_wheel
