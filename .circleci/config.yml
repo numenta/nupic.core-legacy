@@ -30,6 +30,7 @@ jobs:
       - run:
           name: Restoring system python
           command: |
+            echo 'default to python3' && rm /usr/local/bin/python && ln -s /usr/local/bin/python3 /usr/local/bin/python
             echo 'python version: ' && python --version
             echo 'pip version: ' && python -m pip --version
       - run:
