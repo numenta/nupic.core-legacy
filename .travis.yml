@@ -1,19 +1,19 @@
 language: python
 python: 
- - 2.7 #TODO change  to 3.x later
+ - 3.7
 
 matrix:
   include: 
     - os: linux
       compiler: gcc
-      dist: xenial #TODO upgrade to bionic when possible on Travis
+      dist: bionic
       # update required packages from Travis setup
       # https://docs.travis-ci.com/user/languages/cpp/
       addons:
         apt:
-          update: true
-          sources:
-            - ubuntu-toolchain-r-test
+          update: false
+#          sources:
+#            - ubuntu-toolchain-r-test
           packages:
             - build-essential 
             - g++-8
@@ -24,7 +24,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
-        - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python2.7/site-packages/"
+        - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python3.7/site-packages/"
 
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
