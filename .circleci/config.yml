@@ -11,7 +11,7 @@ jobs:
   # job: Mac OS/X raw ("build-and-test")
   build-and-test:
     macos:
-      xcode: '10.1.0'
+      xcode: '11.0.0'
     working_directory: ~/numenta/htm.core
     parallelism: 1
     environment:
