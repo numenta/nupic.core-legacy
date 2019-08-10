@@ -5,9 +5,9 @@ image: Visual Studio 2017
 configuration: Release
 platform: x64
 
-build:
-  parallel: true
-  verbosity: minimal
+#build:
+#  parallel: true
+#  verbosity: minimal
 
 # version format
 version: 0.3.0.{build}
@@ -134,7 +134,7 @@ after_build:
 # Disable automatic tests
 test: off
 
-artifacts:
+#artifacts:
   # Non-recursive search in build folder for Wheels
 #  - path: '*.whl'
 
@@ -151,7 +151,7 @@ artifacts:
 #         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:HTM_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
 #       }
 
-deploy:
+#deploy:
   # Iterative builds
 ## AWS S3 deployment
 #  - provider: S3

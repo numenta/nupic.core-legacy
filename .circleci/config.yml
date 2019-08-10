@@ -76,7 +76,7 @@ jobs:
              python setup.py install --user  --prefix=
              python setup.py bdist_wheel
              cd build/scripts
-             make PACKAGE
+             make package
              cd ../..
           #  mkdir -p build/scripts
           #  cd build/scripts
