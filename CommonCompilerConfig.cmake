@@ -105,10 +105,14 @@ if(NOT FORCE_CPP11)
     elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
          set(CMAKE_CXX_STANDARD 17)
 	 set(extra_lib_for_filesystem "stdc++fs")
-	 set(boost_required "OFF")
+	 set(boost_required OFF)
     endif()	 
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")  # see CMake Policy CMP0025
-    # does not support C++17 and filesystem (as of XCode 10.1)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11") # XCode 11 & AppleClang 11 do support c++17 with <filesystem>
+      set(CMAKE_CXX_STANDARD 17)
+      set(boost_required OFF)
+    endif()
+  # does not support C++17 and filesystem (as of XCode 10.1)
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") # clang + std::filesystem, see https://libcxx.llvm.org/docs/UsingLibcxx.html#using-filesystem
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
          set(CMAKE_CXX_STANDARD 17)
