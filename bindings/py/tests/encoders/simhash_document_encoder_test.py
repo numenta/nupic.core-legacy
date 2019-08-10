@@ -22,6 +22,7 @@
 import pickle
 import pytest
 import random
+import sys
 import unittest
 
 from htm.bindings.encoders import SimHashDocumentEncoder, SimHashDocumentEncoderParameters
@@ -345,7 +346,41 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
 
     assert(output1.getOverlap(output2) < 65)
 
-  # Test serialization and deserialization
-  @pytest.mark.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
-  def testPickle(self):
-    assert(False)  # @TODO: Serialization Unimplemented
+  # Test de/serialization via Pickle method
+  @pytest.mark.skip("pickle deserialization getting corrupted @TODO")
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
+  def testSerializePickle(self):
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.activeBits = 21
+    encoder1 = SimHashDocumentEncoder(params)
+
+    pickled = pickle.dumps(encoder1)
+    encoder2 = pickle.loads(pickled)
+
+    assert(encoder1.size == encoder2.size)
+    assert(encoder1.parameters.size == encoder2.parameters.size)
+    assert(encoder1.parameters.activeBits == encoder2.parameters.activeBits)
+
+  # Test de/serialization via String
+  def testSerializeString(self):
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.activeBits = 21
+    encoder1 = SimHashDocumentEncoder(params)
+
+    params.size = 40
+    params.activeBits = 2
+    encoder2 = SimHashDocumentEncoder(params)
+
+    assert(encoder1.size != encoder2.size)
+    assert(encoder1.parameters.size != encoder2.parameters.size)
+    assert(encoder1.parameters.activeBits != encoder2.parameters.activeBits)
+
+    s = encoder1.writeToString()
+    encoder2.loadFromString(s)
+
+    assert(encoder1.size == encoder2.size)
+    assert(encoder1.parameters.size == encoder2.parameters.size)
+    assert(encoder1.parameters.activeBits == encoder2.parameters.activeBits)
+

@@ -19,18 +19,19 @@
 
 /** @file
  * py_SimHashDocumentEncoder.cpp
- * @since 0.2.3
  */
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/iostream.h>
 
 #include <htm/encoders/SimHashDocumentEncoder.hpp>
 
 namespace py = pybind11;
 
 using namespace htm;
+using namespace std;
 
 
 namespace htm_ext {
@@ -197,6 +198,37 @@ to be 1). Takes input in a python list of strings (tokens).
 Documents can contain any number of tokens > 0. Token order in the document is
   ignored and does not effect the output encoding.
 )");
+
+    // Serialization
+    // string in
+    py_SimHashDocumentEncoder.def("loadFromString", [](SimHashDocumentEncoder& self, const py::bytes& inString) {
+      std::stringstream inStream(inString.cast<std::string>());
+      self.load(inStream);
+    });
+    // string out
+    py_SimHashDocumentEncoder.def("writeToString", [](const SimHashDocumentEncoder& self) {
+      std::ostringstream os;
+      os.flags(ios::scientific);
+      os.precision(numeric_limits<double>::digits10 + 1);
+      self.save(os);
+      return py::bytes( os.str() );
+    });
+    // pickle
+    py_SimHashDocumentEncoder.def(py::pickle(
+      // pickle out
+      [](const SimHashDocumentEncoder& self) {
+        std::stringstream ss;
+        self.save(ss);
+        return py::bytes( ss.str() );
+      },
+      // pickle in
+      [](py::bytes &s) {
+        std::stringstream ss( s.cast<std::string>() );
+        SimHashDocumentEncoder self;
+        self.load(ss);
+        return self;
+      }
+    ));
 
   }
 }

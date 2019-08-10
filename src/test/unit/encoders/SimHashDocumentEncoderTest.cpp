@@ -160,15 +160,16 @@ namespace testing {
     SimHashDocumentEncoder encoderA(params);
     std::stringstream buffer;
     encoderA.save(buffer);
-    SDR outputA({ params.size });
+    SDR outputA({ encoderA.size });
     encoderA.encode(testDoc1, outputA);
 
     SimHashDocumentEncoder encoderB;
     encoderB.load(buffer);
-    SDR outputB({ params.size });
+    SDR outputB({ encoderB.size });
     encoderB.encode(testDoc1, outputB);
 
-    ASSERT_EQ(outputA, outputB);
+    ASSERT_EQ(outputA.size, outputB.size);
+    ASSERT_EQ(outputA.getDense(), outputB.getDense());
   }
 
   // Test encoding without case sensitivity

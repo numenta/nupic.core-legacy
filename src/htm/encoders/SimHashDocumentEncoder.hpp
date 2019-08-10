@@ -205,6 +205,7 @@ namespace htm {
       ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("size", args_.size));
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
+      BaseEncoder<std::vector<std::string>>::initialize({ args_.size });
     }
 
     ~SimHashDocumentEncoder() override {};
