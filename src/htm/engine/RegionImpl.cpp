@@ -105,11 +105,7 @@ void RegionImpl::getParameterArray(const std::string &name, Int64 index, Array &
       NTA_THROW << "setParameterArray: parameter " << name
                 << " does not exist in Spec";
   ParameterSpec p = region_->getSpec()->parameters.getByName(name);
-  if (p.dataType != array.getType()) {
-      NTA_THROW << "setParameterArray: parameter " << name
-                << " is of type " << BasicType::getName(p.dataType)
-                << " not " << BasicType::getName(array.getType());
-  }
+
   NTA_THROW << "getParameterArray: parameter '" << name
             << "' an array with a type of "
 			<< BasicType::getName(p.dataType)
