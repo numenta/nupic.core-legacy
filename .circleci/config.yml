@@ -115,14 +115,14 @@ jobs:
 
       # Build Release with python
       - run:
-        name: Build in Release mode
-        environment:
-          VERBOSE: 1
-        command: |
-            python setup.py install --user  --prefix=
-            python setup.py bdist_wheel
-            cd build/scripts
-            make package
+          name: Build in Release mode
+          environment:
+              VERBOSE: 1
+          command: |
+              python setup.py install --user  --prefix=
+              python setup.py bdist_wheel
+              cd build/scripts
+              make package
  
       # Test, run python unit test scripts
       - run:
