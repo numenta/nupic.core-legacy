@@ -37,13 +37,11 @@ jobs:
             VERBOSE: 1
           #     Building only the C++ library and unit_test executables.
           command: |
-            pwd
             mkdir -p build/scripts
             cd build/scripts
             cmake -DCMAKE_BUILD_TYPE=Debug  ../..
             make -j2 | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
-	    cd ../..
       - run:
           name: Test in Debug mode
           environment:
