@@ -8,8 +8,54 @@
 version: 2
 jobs:
 
-  # job: Mac OS/X raw ("build-and-test")
-  build-and-test:
+  # job: Mac OS/X raw ("build-debug")
+  build-debug:
+    macos:
+      xcode: '10.1.0'
+    working_directory: ~/numenta/htm.core
+    parallelism: 1
+    environment:
+      XCODE_SCHEME: htm
+      XCODE_WORKSPACE: htm
+      ARCHFLAGS: -arch x86_64
+    steps:
+      # Machine Setup
+      - run:
+          name: Make sure to use OS X in CircleCI Web UI
+          command: |
+            if [[ "$OSTYPE" != "darwin"* ]]; then
+              echo "Must set option to use OS X in CircleCI Web UI" && exit 1;
+            fi
+      - run: sudo systemsetup -settimezone 'GMT'
+      - run:
+          name: Installing cmake
+          command: brew install cmake || brew install cmake
+      - checkout
+      - run:
+          name: Build in Debug mode
+          environment:
+            VERBOSE: 1
+          #     Building only the C++ library and unit_test executables.
+          command: |
+            mkdir -p build/scripts
+            cd build/scripts
+            cmake -DCMAKE_BUILD_TYPE=Debug  ../..
+            make -j2 | grep -v -F '\\-\\- Installing:'
+            make install 2>&1 | grep -v -F 'Installing:'
+      - run:
+          name: Test in Debug mode
+          environment:
+            VERBOSE: 1
+          command: |
+            cd $CIRCLE_WORKING_DIRECTORY
+            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
+            cd ./build/Debug/bin
+            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+  
+  
+  
+  
+  build-release:
     macos:
       xcode: '10.1.0'
     working_directory: ~/numenta/htm.core
@@ -68,36 +114,13 @@ jobs:
       #    - ~/.gradle
       #    - ~/.cache/bower
       # Build
-      - run:
-          name: Build in Debug mode
-          environment:
-            VERBOSE: 1
-	    
-          # Build in Debug mode
-          #     Building only the C++ library and unit_test executables.
-          command: |
-            mkdir -p build/scripts
-            cd build/scripts
-            cmake -DCMAKE_BUILD_TYPE=Debug  ../..
-            make -j2 | grep -v -F '\\-\\- Installing:'
-            make install 2>&1 | grep -v -F 'Installing:'
-	    
-      - run:
-          name: Test in Debug mode
-          environment:
-            VERBOSE: 1
-	  command: |
-            cd $CIRCLE_WORKING_DIRECTORY
-            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
-            cd ./build/Debug/bin
-            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
 
       - run:
           name: Rebuild in Release mode
           environment:
             VERBOSE: 1
           # Build everything including py bindings.
-	  command: |
+      command: |
             cd $CIRCLE_WORKING_DIRECTORY
             rm -r build
             python setup.py install --user  --prefix=
@@ -105,7 +128,7 @@ jobs:
             cd build/scripts
             make package
             cd ../..
-	    
+        
       # Test
       - run:
           name: Running python tests
@@ -131,6 +154,10 @@ jobs:
             #pip install awscli --upgrade --user
             #tar -zcv -f htm_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
             #aws s3 cp htm_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/htm.core/circle/
+
+
+
+
 
   # job: ARM64 via Docker + QEMU ("arm64-build-test")
   arm64-build-test:
@@ -165,6 +192,7 @@ workflows:
   version: 2
   build-test-deploy:
     jobs:
-      - build-and-test    # Mac OS/X raw ("build-and-test")
+      - build-debug    # Mac OS/X raw ("build-debug")
+      - build-release  # Mac OS/X raw ("build-release")
       - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")
 
