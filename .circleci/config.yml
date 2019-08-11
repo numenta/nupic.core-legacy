@@ -54,7 +54,7 @@ jobs:
   
   
   
-  
+  # job: Mac OS/X raw ("build-release")
   build-release:
     macos:
       xcode: '10.1.0'
@@ -95,10 +95,10 @@ jobs:
       #    # unnecessary if you have your default branch configured correctly
       #    - v1-dep-
       - run:
-           name: Installing python dependencies
-           command: |
-                   python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
-                   python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
+          name: Installing python dependencies
+          command: |
+            python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
+            python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
       # Save dependency cache
       #      - save_cache:
       #    key: v1-dep-{{ .Branch }}-{{ epoch }}
@@ -116,11 +116,11 @@ jobs:
       # Build
 
       - run:
-          name: Rebuild in Release mode
-          environment:
-            VERBOSE: 1
-          # Build everything including py bindings.
-      command: |
+        name: Rebuild in Release mode
+        environment:
+          VERBOSE: 1
+        # Build everything including py bindings.
+        command: |
             cd $CIRCLE_WORKING_DIRECTORY
             rm -r build
             python setup.py install --user  --prefix=
