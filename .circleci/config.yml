@@ -73,8 +73,8 @@ jobs:
           environment:
             VERBOSE: 1
 	    
-	  # Build in Debug mode
-	  #     Building only the C++ library and unit_test executables.
+          # Build in Debug mode
+          #     Building only the C++ library and unit_test executables.
           command: |
             mkdir -p build/scripts
             cd build/scripts
@@ -87,8 +87,8 @@ jobs:
           environment:
             VERBOSE: 1
 	  command: |
-	    cd $CIRCLE_WORKING_DIRECTORY
-	    mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
+            cd $CIRCLE_WORKING_DIRECTORY
+            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
             cd ./build/Debug/bin
             ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
 
@@ -98,8 +98,8 @@ jobs:
             VERBOSE: 1
           # Build everything including py bindings.
 	  command: |
-	    cd $CIRCLE_WORKING_DIRECTORY
-	    rm -r build
+            cd $CIRCLE_WORKING_DIRECTORY
+            rm -r build
             python setup.py install --user  --prefix=
             python setup.py bdist_wheel
             cd build/scripts
