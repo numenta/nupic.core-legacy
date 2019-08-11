@@ -37,20 +37,21 @@ jobs:
             VERBOSE: 1
           #     Building only the C++ library and unit_test executables.
           command: |
+            pwd
             mkdir -p build/scripts
             cd build/scripts
             cmake -DCMAKE_BUILD_TYPE=Debug  ../..
             make -j2 | grep -v -F '\\-\\- Installing:'
             make install 2>&1 | grep -v -F 'Installing:'
+	    cd ../..
       - run:
           name: Test in Debug mode
           environment:
             VERBOSE: 1
           command: |
-            cd $CIRCLE_WORKING_DIRECTORY
-            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
             cd ./build/Debug/bin
-            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+            ./unit_tests 
+	    cd ../../..
   
   
   
@@ -121,13 +122,10 @@ jobs:
           VERBOSE: 1
         # Build everything including py bindings.
         command: |
-            cd $CIRCLE_WORKING_DIRECTORY
-            rm -r build
             python setup.py install --user  --prefix=
             python setup.py bdist_wheel
             cd build/scripts
             make package
-            cd ../..
         
       # Test
       - run:

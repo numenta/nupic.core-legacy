@@ -29,10 +29,7 @@ from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
 from distutils.core import Extension
 
-# NOTE:  You can request a DEBUG version of the build by setting the environment
-#        variable CMAKE_BUILD_TYPE=Debug  prior to running this script.
-#        However this requires a debug version of the python library which may not be available.
-#        An alternative way to debug the python bindings is to use the procedure
+# NOTE:  To debug the python bindings in a debugger, use the procedure
 #        described here: https://pythonextensionpatterns.readthedocs.io/en/latest/debugging/debug_in_ide.html
 #
 
@@ -45,12 +42,11 @@ from distutils.core import Extension
 #         on your machine. You many choose an older version as follows:
 #            set NC_CMAKE_GENERATOR="Visual Studio 15 2017 Win64"
 #            python setup.py install --user --force
-#         This script will override the default 32bit platform such that a 64bit build is created.
+#         This script will override the default 32bit bitness such that a 64bit build is created.
 #
 
 
-build_type = os.environ.get('CMAKE_BUILD_TYPE')
-if build_type == None: build_type = 'Release'
+build_type = 'Release'
 
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
