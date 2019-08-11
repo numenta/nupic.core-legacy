@@ -32,7 +32,7 @@ project(htm_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 message(STATUS "Configuring Python interface")
-
+message(STATUS "   installing in ${CMAKE_INSTALL_PREFIX}")
 
 #
 # Python support
@@ -203,42 +203,12 @@ target_include_directories(${math_shared_lib} PRIVATE
 		${PROJECT_SOURCE_DIR}
 		)
 
-
-############################################################
-#
-# Build tests of the Python interface
-#
-############################################################
-
-### TODO: Finish these tests
-#  
-#set(py_unit_test_executable  py_unit_test)
-#add_executable(${py_unit_test_executable} ${src_py_test_files})
-#target_link_libraries(${py_unit_test_executable} 
-#    ${core_library}
-#    gtest
-#    ${COMMON_OS_LIBS}
-#)
-#target_compile_definitions(${py_unit_test_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-#target_compile_options(${py_unit_test_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
-#set_target_properties(${py_unit_test_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
-#add_dependencies(${py_unit_test_executable} ${core_library} gtest)
-#target_include_directories(${py_unit_test_executable} PRIVATE 
-#		${PYTHON_INCLUDE_DIRS}
-#		${pybind11_INCLUDE_DIRS}
-#		${CORE_LIB_INCLUDES} 
-#		${EXTERNAL_INCLUDES}
-#		${PROJECT_SOURCE_DIR}
-#		${gtest_INCLUDE_DIR}
-#		)
-
 install(TARGETS
         sdr
         encoders
         algorithms
         engine_internal
         math
-#	${py_unit_test_executable}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION ${distr}/src/htm/bindings
         ARCHIVE DESTINATION lib)

@@ -69,27 +69,44 @@ jobs:
       #    - ~/.cache/bower
       # Build
       - run:
-          name: Compiling
+          name: Build in Debug mode
           environment:
             VERBOSE: 1
+	    
+	  # Build in Debug mode
+	  #     Building only the C++ library and unit_test executables.
           command: |
-             python setup.py install --user  --prefix=
-             python setup.py bdist_wheel
-             cd build/scripts
-             make package
-             cd ../..
-          #  mkdir -p build/scripts
-          #  cd build/scripts
-          #  cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release
-          #  make -j2 | grep -v -F '\\-\\- Installing:'
-          #  make install 2>&1 | grep -v -F 'Installing:'
-      # Test
+            mkdir -p build/scripts
+            cd build/scripts
+            cmake -DCMAKE_BUILD_TYPE=Debug  ../..
+            make -j2 | grep -v -F '\\-\\- Installing:'
+            make install 2>&1 | grep -v -F 'Installing:'
+	    
       - run:
-          name: Running C++ Tests
-          command: |
-            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
-            cd ./build/Release/bin
+          name: Test in Debug mode
+          environment:
+            VERBOSE: 1
+	  command: |
+	    cd $CIRCLE_WORKING_DIRECTORY
+	    mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
+            cd ./build/Debug/bin
             ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
+
+      - run:
+          name: Rebuild in Release mode
+          environment:
+            VERBOSE: 1
+          # Build everything including py bindings.
+	  command: |
+	    cd $CIRCLE_WORKING_DIRECTORY
+	    rm -r build
+            python setup.py install --user  --prefix=
+            python setup.py bdist_wheel
+            cd build/scripts
+            make package
+            cd ../..
+	    
+      # Test
       - run:
           name: Running python tests
           command: python setup.py test
