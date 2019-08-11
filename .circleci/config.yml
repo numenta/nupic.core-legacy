@@ -111,20 +111,20 @@ jobs:
       #    - ~/.go_workspace
       #    - ~/.gradle
       #    - ~/.cache/bower
-      # Build
 
+
+      # Build Release with python
       - run:
-        name: Rebuild in Release mode
+        name: Build in Release mode
         environment:
           VERBOSE: 1
-        # Build everything including py bindings.
         command: |
             python setup.py install --user  --prefix=
             python setup.py bdist_wheel
             cd build/scripts
             make package
-        
-      # Test
+ 
+      # Test, run python unit test scripts
       - run:
           name: Running python tests
           command: python setup.py test
