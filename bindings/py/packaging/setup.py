@@ -311,6 +311,9 @@ if __name__ == "__main__":
   # CMake also copies all py files into place in DISTR_DIR
   getExtensionFiles(platform, build_type)
 
+  with open(os.path.join(REPO_DIR, "README.md"), "r") as fh:
+    long_description = fh.read()
+
   """
   set the default directory to the distr, and package it.
   """
@@ -347,7 +350,9 @@ if __name__ == "__main__":
     author="Numenta & HTM Community",
     author_email="help@numenta.org",
     url="https://github.com/htm-community/htm.core",
-    long_description = "HTM Community Edition of Numenta's Platform for Intelligent Computing (NuPIC)",
+    description = "HTM Community Edition of Numenta's Platform for Intelligent Computing (NuPIC) htm.core",
+    long_description = long_description,
+    long_description_content_type="text/markdown",
     license = "GNU Affero General Public License v3 or later (AGPLv3+)",
     classifiers=[
       "Programming Language :: Python",
