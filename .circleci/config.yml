@@ -8,8 +8,8 @@
 version: 2
 jobs:
 
-  # job: Mac OS/X raw ("build-debug")
-  build-debug:
+  # job: Mac OS/X raw ("build-debug"). This job runs C++ tests in Debug mode (=with extra checks)
+  osx-build-debug:
     macos:
       xcode: '10.1.0'
     working_directory: ~/numenta/htm.core
@@ -52,8 +52,8 @@ jobs:
   
   
   
-  # job: Mac OS/X raw ("build-release")
-  build-release:
+  # job: Mac OS/X raw ("build-release"). This job builds in Release mode, used for Python tests & for providing OSX binary release. 
+  osx-build-release:
     macos:
       xcode: '10.1.0'
     working_directory: ~/numenta/htm.core
@@ -185,9 +185,18 @@ jobs:
 
 workflows:
   version: 2
-  build-test-deploy:
+  osx-build-test-deploy: #runs on each commit
     jobs:
-      - build-debug    # Mac OS/X raw ("build-debug")
-      - build-release  # Mac OS/X raw ("build-release")
-      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")
+      - osx-build-debug    # Mac OS/X raw ("build-debug")
+      - osx-build-release  # Mac OS/X raw ("build-release")
 
+  nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
+    triggers:
+      - schedule:
+          cron: "6 0 * * *" # 6am UTC every day
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")
