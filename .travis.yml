@@ -1,19 +1,19 @@
 language: python
 python: 
- - 2.7 #TODO change  to 3.x later
+ - 3.7
 
 matrix:
   include: 
     - os: linux
       compiler: gcc
-      dist: xenial #TODO upgrade to bionic when possible on Travis
+      dist: bionic
       # update required packages from Travis setup
       # https://docs.travis-ci.com/user/languages/cpp/
       addons:
         apt:
-          update: true
-          sources:
-            - ubuntu-toolchain-r-test
+          update: false
+#          sources:
+#            - ubuntu-toolchain-r-test
           packages:
             - build-essential 
             - g++-8
@@ -24,7 +24,7 @@ matrix:
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
-        - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python2.7/site-packages/"
+        - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python3.7/site-packages/"
 
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
@@ -49,8 +49,9 @@ env:
 virtualenv:
   system_site_packages: false
 
-# Successful builds are archived and uploaded to S3 for bamboo releases.
+# Successful merge/builds of the master are archived and released to pypi.
 before_deploy:
+  - python setup.py bdist_wheel
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - echo "Generating binary release:"
   - make package
@@ -61,17 +62,17 @@ deploy:
   provider: releases
   api_key:
     secure: "$GH_RELEASE_AUTH"
-  file: "$TRAVIS_BUILD_DIR/build/scripts/${BUNDLE_NAME}.tar.gz"
+  file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
   on:
-    tags: true
+    tags: true #GH requires tagged release
     branch: master
-    repo: htm-community/htm.cpp
+    repo: htm-community/htm.core
 
 notifications:
 #  email:
 #    recipients:
-#      - "discourse-htm-developers@numenta.org"
+#      - "discourse-nupic-developers@numenta.org"
 #    on_success: never
 #    on_failure: change
   irc:
@@ -91,20 +92,11 @@ before_install:
   - pip install --upgrade pip setuptools wheel || exit
 
 install:
-  # Prepare directories
-  - mkdir -p "$TRAVIS_BUILD_DIR/build/scripts"
-  - cd "$TRAVIS_BUILD_DIR/build/scripts"
-  - mkdir -p "$TRAVIS_BUILD_DIR/build/Release"
   - cmake --version
-  - echo "Configuring..."
-  # Builds htm_code library and python2.7 interface. Enable test coverage for travis-ci build
-  - cmake "$TRAVIS_BUILD_DIR" -DCMAKE_BUILD_TYPE=Release 
-  - set -o pipefail
-  - echo "Make & Install "
-  - VERBOSE=0 make |grep -v -F '\\-\\- Installing:'
-  - make install 2>&1|grep -v -F 'Installing:'
-  - echo "Installing Python bindings" 
-  - python $TRAVIS_BUILD_DIR/setup.py install
+  # Builds htm_code library and python interface. 
+  - cd "$TRAVIS_BUILD_DIR"
+  - python setup.py install 
+
 
 script:
   # Some tests (e.g., helloregion) expect this to be the current directory and
