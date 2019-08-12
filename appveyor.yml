@@ -124,6 +124,13 @@ after_build:
   - cd %HTM_CORE%
   - python setup.py test
 
+  # Create Binary & python packages
+  # Build the wheel
+  - python setup.py bdist_wheel
+  # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
+  - cd %HTM_CORE%\build\scripts
+  - cmake --build . --config Release --target PACKAGE
+
 # Disable automatic tests
 test: off
 
@@ -161,10 +168,10 @@ deploy:
 
 ## GitHub
 # Deploy to GitHub Releases
- - provider: GitHub
-   artifact: '*.whl'           # upload all NuGet packages to release assets
-   draft: false
-   prerelease: false
+- provider: GitHub
+  artifact: '*.whl'           # upload all NuGet packages to release assets
+  draft: false
+  prerelease: false
    on:
      branch: master                # release from master branch only
 #     appveyor_repo_tag: true       # deploy on tag push only
