@@ -118,6 +118,11 @@ high overlap), not semantic similarity (encodings for "apple" and
 "computer" will have no relation here.) For document encodings which are
 also semantic, please try Cortical.io and their Semantic Folding tech.
 
+Definition of Terms:
+  - A "corpus" is a collection of "documents".
+  - A "document" is made up of "tokens" (or "words").
+  - A "token" is made up of "characters" (or "letters").
+
 Encoding is accomplished using SimHash, a Locality-Sensitive Hashing (LSH)
 algorithm from the world of nearest-neighbor document similarity search.
 As SDRs can be of any size, we use the SHA3 hashing algorithm with SHAKE256
