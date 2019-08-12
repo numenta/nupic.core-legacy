@@ -133,9 +133,9 @@ after_build:
 # Disable automatic tests
 test: off
 
-artifacts:
-  # Non-recursive search in build folder for Wheels
-  - path: "%HTM_CORE%\build\scripts\*.zip"
+#artifacts:
+#  # Non-recursive search in build folder for Wheels
+#  - path: "%HTM_CORE%\build\scripts\*.zip"
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt
