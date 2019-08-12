@@ -49,8 +49,7 @@ environment:
   HTM_CORE: "C:\\projects\\htm-core"
   ARTIFACTS_DIR: "%HTM_CORE%\\build\\artifacts"
   configuration: "Release"
-  GITHUB_TOKEN:
-    secure: "fX0sRFrScPzNxDgmzcihMg3m42f85w4SFKN9T2Ezq/xUrYEBGaOWAWUANj+564JS8J/WwAVWZJctAp7sUaMMEaFqcDaY9US+megZJraX2C45BmgDaGQcKHIUjrXV39gizt2jCxBXTxUxafskKF1nx93SZkKuRmy2znFt1ewFooRJisl+IEnaGqtCtqt7TLq6lRw0rYGpX94VXhapk8izv4awjjUDR2KEZu4rcBcU+Xbpi9QWLR2qLEdcShZI++M/KU7STAjTzPgcADReVnL09nd99VnhPTwYIkPau22Q3+YUpcyxho9A522ZbYkgWCBAiIqFA9X1E8XsVXJ/p2Q17cQtNu97GkKerltlioxZFy9ck1533CNew3nXd8CprMQQd4uL5rCX3C6rhdossKpKmAkUSnzuh7Duy/emzy1jGEBkQagX1YBbFxkSUaQbDL+RHW89KFiU7C/WOsoauAc3twpNB/cJbdV4V/r/9SeenCOc1KGwMt61pbpAb6Gn0B51etqYvUnAE8ZQs3qB8+cqHn85Ej6P7XzuuMICrsNj2vNvtP+frz7KICmgLTf9TzkgBEzd60YhgD1tldcT9N7+FeiAeaeGIao3pleCiqlWjJN83pWl5Dwq4ZsNodDicDtO0A4lgub+YdSgdjqetF1GAmPaw/SX6eR8J3WCNE6V95A="
+  GITHUB_TOKEN: "fX0sRFrScPzNxDgmzcihMg3m42f85w4SFKN9T2Ezq/xUrYEBGaOWAWUANj+564JS8J/WwAVWZJctAp7sUaMMEaFqcDaY9US+megZJraX2C45BmgDaGQcKHIUjrXV39gizt2jCxBXTxUxafskKF1nx93SZkKuRmy2znFt1ewFooRJisl+IEnaGqtCtqt7TLq6lRw0rYGpX94VXhapk8izv4awjjUDR2KEZu4rcBcU+Xbpi9QWLR2qLEdcShZI++M/KU7STAjTzPgcADReVnL09nd99VnhPTwYIkPau22Q3+YUpcyxho9A522ZbYkgWCBAiIqFA9X1E8XsVXJ/p2Q17cQtNu97GkKerltlioxZFy9ck1533CNew3nXd8CprMQQd4uL5rCX3C6rhdossKpKmAkUSnzuh7Duy/emzy1jGEBkQagX1YBbFxkSUaQbDL+RHW89KFiU7C/WOsoauAc3twpNB/cJbdV4V/r/9SeenCOc1KGwMt61pbpAb6Gn0B51etqYvUnAE8ZQs3qB8+cqHn85Ej6P7XzuuMICrsNj2vNvtP+frz7KICmgLTf9TzkgBEzd60YhgD1tldcT9N7+FeiAeaeGIao3pleCiqlWjJN83pWl5Dwq4ZsNodDicDtO0A4lgub+YdSgdjqetF1GAmPaw/SX6eR8J3WCNE6V95A="
 
 ## PyPI support (pip install twine)
 #  PYPI_USERNAME: numenta
@@ -158,7 +157,8 @@ deploy:
   release: 'testing' #htmcore-win64-v$(appveyor_build_version)
   description: 'HTM.core binary release for Windows (64bit)' #desc is mandatory
   provider: GitHub
-  api_key: "%GITHUB_TOKEN%"
+  auth_token: 
+    secure: "%GITHUB_TOKEN%"
   artifact: '%HTM_CORE%\build\scripts\*.zip' # upload .zip from 'make package'
   draft: false
   prerelease: false
