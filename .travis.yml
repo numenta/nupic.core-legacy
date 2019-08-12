@@ -51,6 +51,7 @@ virtualenv:
 
 # Successful merge/builds of the master are archived and released to pypi.
 before_deploy:
+  - python setup.py bdist_wheel
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - echo "Generating binary release:"
   - make package
@@ -95,9 +96,6 @@ install:
   # Builds htm_code library and python interface. 
   - cd "$TRAVIS_BUILD_DIR"
   - python setup.py install 
-  - python setup.py bdist_wheel
-  - cd "$TRAVIS_BUILD_DIR/build/scripts"
-  - make package
 
 
 script:

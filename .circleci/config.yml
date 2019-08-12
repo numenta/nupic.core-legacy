@@ -120,9 +120,6 @@ jobs:
               VERBOSE: 1
           command: |
               python setup.py install --user  --prefix=
-              python setup.py bdist_wheel
-              cd build/scripts
-              make package
  
       # Test, run python unit test scripts
       - run:
@@ -130,6 +127,14 @@ jobs:
           command: python setup.py test
       - store_test_results:
           path: tests
+
+      - run:
+          name: Package Binary release for OSX
+          command: |
+            python setup.py bdist_wheel
+            cd build/scripts
+            make package
+
       - store_artifacts:
           path: dist/*.whl
       ##- persist_to_workspace:
