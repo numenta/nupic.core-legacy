@@ -11,7 +11,7 @@ jobs:
   # job: Mac OS/X raw ("build-debug"). This job runs C++ tests in Debug mode (=with extra checks)
   osx-build-debug:
     macos:
-      xcode: '10.1.0'
+      xcode: '11.0.0'
     working_directory: ~/numenta/htm.core
     parallelism: 1
     environment:
