@@ -360,12 +360,19 @@ if __name__ == "__main__":
       "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
       "Operating System :: MacOS :: MacOS X",
       "Operating System :: POSIX :: Linux",
+      "Operating System :: POSIX :: BSD",
       "Operating System :: Microsoft :: Windows",
+      "Operating System :: OS Independent",
       # It has to be "5 - Production/Stable" or else pypi rejects it!
       "Development Status :: 5 - Production/Stable",
       "Environment :: Console",
       "Intended Audience :: Science/Research",
-      "Topic :: Scientific/Engineering :: Artificial Intelligence"
+      "Intended Audience :: Developers",
+      "Intended Audience :: Education",
+      "Topic :: Scientific/Engineering :: Artificial Intelligence",
+      "Natural Language :: English",
+      "Programming Language :: C++",
+      "Programming Language :: Python"
     ],
     entry_points = {
       "console_scripts": [
