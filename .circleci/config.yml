@@ -8,8 +8,52 @@
 version: 2
 jobs:
 
-  # job: Mac OS/X raw ("build-and-test")
-  build-and-test:
+  # job: Mac OS/X raw ("build-debug"). This job runs C++ tests in Debug mode (=with extra checks)
+  osx-build-debug:
+    macos:
+      xcode: '10.1.0'
+    working_directory: ~/numenta/htm.core
+    parallelism: 1
+    environment:
+      XCODE_SCHEME: htm
+      XCODE_WORKSPACE: htm
+      ARCHFLAGS: -arch x86_64
+    steps:
+      # Machine Setup
+      - run:
+          name: Make sure to use OS X in CircleCI Web UI
+          command: |
+            if [[ "$OSTYPE" != "darwin"* ]]; then
+              echo "Must set option to use OS X in CircleCI Web UI" && exit 1;
+            fi
+      - run: sudo systemsetup -settimezone 'GMT'
+      - run:
+          name: Installing cmake
+          command: brew install cmake || brew install cmake
+      - checkout
+      - run:
+          name: Build in Debug mode
+          environment:
+            VERBOSE: 1
+          #     Building only the C++ library and unit_test executables.
+          command: |
+            mkdir -p build/scripts
+            cd build/scripts
+            cmake -DCMAKE_BUILD_TYPE=Debug  ../..
+            make -j2 | grep -v -F '\\-\\- Installing:'
+            make install 2>&1 | grep -v -F 'Installing:'
+      - run:
+          name: Test in Debug mode
+          environment:
+            VERBOSE: 1
+          command: |
+            cd ./build/Debug/bin
+            ./unit_tests 
+  
+  
+  
+  # job: Mac OS/X raw ("build-release"). This job builds in Release mode, used for Python tests & for providing OSX binary release. 
+  osx-build-release:
     macos:
       xcode: '11.0.0'
     working_directory: ~/numenta/htm.core
@@ -49,10 +93,10 @@ jobs:
       #    # unnecessary if you have your default branch configured correctly
       #    - v1-dep-
       - run:
-           name: Installing python dependencies
-           command: |
-                   python -m pip install --user --upgrade pip setuptools setuptools-scm
-                   python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
+          name: Installing python dependencies
+          command: |
+            python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
+            python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
       # Save dependency cache
       #      - save_cache:
       #    key: v1-dep-{{ .Branch }}-{{ epoch }}
@@ -67,32 +111,30 @@ jobs:
       #    - ~/.go_workspace
       #    - ~/.gradle
       #    - ~/.cache/bower
-      # Build
+
+
+      # Build Release with python
       - run:
-          name: Compiling
+          name: Build in Release mode
           environment:
-            VERBOSE: 1
+              VERBOSE: 1
           command: |
-            mkdir -p build/scripts
-            cd build/scripts
-            cmake ../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../Release
-            make -j2 | grep -v -F '\\-\\- Installing:'
-            make install 2>&1 | grep -v -F 'Installing:'
-      # Test
-      - run:
-          name: Running C++ Tests
-          command: |
-            mkdir -p $CIRCLE_WORKING_DIRECTORY/tests/cpp
-            cd ./build/Release/bin
-            ./unit_tests --gtest_output=xml:$CIRCLE_WORKING_DIRECTORY/tests/cpp/unit_tests_report.xml
-      - run:
-           name: Install Python extension
-           command: python setup.py install --user --prefix=
+              python setup.py install --user  --prefix=
+ 
+      # Test, run python unit test scripts
       - run:
           name: Running python tests
           command: python setup.py test
       - store_test_results:
           path: tests
+
+      - run:
+          name: Package Binary release for OSX
+          command: |
+            python setup.py bdist_wheel
+            cd build/scripts
+            make package
+
       - store_artifacts:
           path: dist/*.whl
       ##- persist_to_workspace:
@@ -112,6 +154,10 @@ jobs:
             #pip install awscli --upgrade --user
             #tar -zcv -f htm_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
             #aws s3 cp htm_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/htm.core/circle/
+
+
+
+
 
   # job: ARM64 via Docker + QEMU ("arm64-build-test")
   arm64-build-test:
@@ -144,8 +190,18 @@ jobs:
 
 workflows:
   version: 2
-  build-test-deploy:
+  osx-build-test-deploy: #runs on each commit
     jobs:
-      - build-and-test    # Mac OS/X raw ("build-and-test")
-      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")
+      - osx-build-debug    # Mac OS/X raw ("build-debug")
+      - osx-build-release  # Mac OS/X raw ("build-release")
 
+  nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
+    triggers:
+      - schedule:
+          cron: "6 0 * * *" # 6am UTC every day
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")

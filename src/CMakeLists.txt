@@ -400,12 +400,15 @@ add_custom_target(mnist
 #
 install(TARGETS
         ${core_library}
-        ${src_executable_hotgym}
-        ${src_executable_mnistsp}
-	RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-
+        
+install(TARGETS
+        ${src_executable_hotgym}
+        ${src_executable_mnistsp}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 if(MSVC)
 else()	
   install(TARGETS
@@ -418,24 +421,49 @@ endif()
 
 # Version.hpp is also used by the htm.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
-        DESTINATION include/htm)
+      DESTINATION include)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
-	  MESSAGE_NEVER
-	  FILES_MATCHING PATTERN "htm/*/*.h*"
-	  PATTERN "htm/*/*.hpp.in" EXCLUDE)
+      MESSAGE_NEVER
+      DESTINATION include
+      FILES_MATCHING PATTERN "htm/*/*.h*"
+      PATTERN "htm/*/*.hpp.in" EXCLUDE)
 
 
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
+      MESSAGE_NEVER
+      DESTINATION include)
+      
+# include the python wheel if it exists.
+# run "python3 setup.py install --user"
+# and "python3 setup.py bdist_wheel"
+# prior to this to create the whl file.
+install(DIRECTORY "${CMAKE_INSTALL_PREFIX}/distr/dist/"
 	  MESSAGE_NEVER
-	  DESTINATION include)
+	  DESTINATION py
+	  FILES_MATCHING PATTERN "*.whl")
 
-          
+
+############### PACKAGE ###########################
 #
 # `make package` results in
 # htm_cpp-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
 #
+#   TODO:  The version numbers need to be automatically incremented.
+set(CPACK_PACKAGE_NAME "htm.core")
+set(CPACK_PACKAGE_VENDOR "https://github.com/htm-community/htm.core")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "htm.core - Community implementation of Numenta's algorthms.")
+set(CPACK_PACKAGE_VERSION "2.0.0")
+set(CPACK_PACKAGE_VERSION_MAJOR "2")
+set(CPACK_PACKAGE_VERSION_MINOR "0")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "htm.core")
 
-set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_FILE_NAME "htm_cpp-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
+if(MSVC)
+	set(CPACK_GENERATOR "ZIP")
+else()
+	set(CPACK_GENERATOR "TGZ")
+endif()
+set(CPACK_RESOURCE_FILE_LICENSE "${REPOSITORY_DIR}/LICENSE.txt")
+set(CPACK_PACKAGE_FILE_NAME "htm_core-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
 include(CPack)
