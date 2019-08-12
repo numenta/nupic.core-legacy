@@ -145,13 +145,6 @@ test: off
 #       }
 
 deploy:
-  ## Create Binary & python packages
-  # Build the wheel
-  - python setup.py bdist_wheel
-  # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
-  - cd %HTM_CORE%\build\scripts
-  - cmake --build . --config Release --target PACKAGE
-
   # Iterative builds
 ## AWS S3 deployment
 #  - provider: S3
