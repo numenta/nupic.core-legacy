@@ -64,7 +64,6 @@ deploy:
     secure: "$GH_RELEASE_AUTH"
   file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
-  draft: true
   on:
     tags: true #GH requires tagged release
     branch: master
