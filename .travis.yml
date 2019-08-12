@@ -64,6 +64,7 @@ deploy:
 ## Github releases
   provider: releases
   api_key: "$GITHUB_TOKEN"
+  file_glob: true # allows '*' in file below
   file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
   on:
