@@ -1,6 +1,10 @@
 language: python
 python: 
  - 3.7
+branches:
+  only:
+    - master
+    - /^v.*\..*\..*$/ #regexp for tags "v*.*.*", eg v2.0.1
 
 matrix:
   include: 
@@ -43,28 +47,26 @@ env:
     - PATH=${TRAVIS_BUILD_DIR}/python/bin:$PATH
     - PLATFORM=${TRAVIS_OS_NAME}
     - ARCHFLAGS="-arch x86_64"
-    - BUNDLE_NAME="htm_cpp-${TRAVIS_COMMIT}-${PLATFORM}64"
-    - GH_RELEASE_AUTH="HyRy03LIiUriPFW3HPmO+rRqmL1uxfsPLj6fqMykMq/Kmy478ROW/uOdNj42OEhsb6GwLngdjcHJtEzMGevnlNbWLLbTCuT2ykebysSt/oIKb/zAc/jYUI3OKuVWVEYFHlZa6fvkWZHKtWCcwa/jeF6bJFuPKkc3c3842aaW1SdEJG6osLGhJM+JtO1zD8+Z6RwL6T1Xbj+RYP/L28mejbphKxYL34bfLYse1lQ6/cFHzw8SdbvkDxWW+MRFHw8Ta8QiiV/7E83Z6N0+IRNi0s//3Affmkcs25modB4Auy8nrkUI4LQQr0NcUQZdo1RrylX9MH1B5KHs1hyNJvhRFiQlSBvXv0ezq6F5N8wamnBX12/2FDFI1nWl05hofQ7X07aWyQLu5v7Q34xX/pW5lca1G3H14auye8gSzC80692fOyId1F4QwcDIkeWiQwAMgE1qSifgTD3dEGJeDbAOPLd7I/fskxUjIvpEWR6dM3IKzMzr1dFilImhdvVsEEeROldpE0JleZFrv39NyMWTx6sGo9MLrtep+5/iRz1T0zKLfQjwUnAm/LW66g9vQ+lnhL9ktElnitnvaj1x5auAIsPNVdfagdwvGdeuZ65uJGtgEVAjOjspCDeYu9ztqPSZ3Hj3SAyELJkuu/RFScLOQayazg03O+zsvhDTtw8xfdo=" 
+    - BUNDLE_NAME="htm_core-${TRAVIS_COMMIT}-${PLATFORM}64"
+    - secure: "CqicQmoGFaYb3g8KevEQAGC9sV7b7mruh/w3Sgf6xLaEVo6G7vs9Y8iy/g5PbuuREXWpj/xIRi0ao3GniG9R47XU7y7NurfBHv/ret8+wztVlM0viPBZDT8VOVyOsVs+v56QOYAwjr64IHlx3hdSrayLegtoocev0QUzSfvGgsFIdpwWHIU6bFmDdq4FS+8M+NEdi/sqEFTjgqliZzw25tVCN+n3BfCHzUEnzq/fH0v08xG4tF9zedka1XYGwBq5ci4PIrHRMo9nAdvmmj29advetW9k03L5EUXbgfHBu9w+iBqpsuWyhZm2lbrEk5ZUGyE4oh7x1BvtnQc6FYp9Z8TjZyvYeJkUwDDfOfdZPcmyrqMEj7MQ+P4Il8gfMC8EO+2gx7emrzsmvhPz9PdSP+j8waQxamDCabtOlL66DqeA7JGc0zJJ5XPBjct9VU69d2OaouxMQZCz4LD2dB4qtQYwYN0yDJvW7NCxTRa0Q1QDhLUBTNjg1XVub1ZsNPalG2f4dPHOmgwZL9anlIqG1eTt4oN5Gf2BRxw2wFkSIO3TZk7iJ3YUl3tc6ZZyMrad439vB38KQ+8/I9zDe9i54LFzswRuk8aZXZsl9xop8kR9jwPWuzgJSmt+1lUJkFZmPYh9U9IdJjszHrb99ZB02HDgD6d9ihK2gcEDoM53k28=" #This translates to GITHUB_TOKEN=<secure token>
 
 virtualenv:
   system_site_packages: false
 
 # Successful merge/builds of the master are archived and released to pypi.
 before_deploy:
-  - python setup.py bdist_wheel
   - cd $TRAVIS_BUILD_DIR/build/scripts
+  - python $TRAVIS_BUILD_DIR/setup.py bdist_wheel
   - echo "Generating binary release:"
   - make package
-  - echo "Release: ${BUNDLE_NAME} and file: " && ls -l "*.tar.gz"
 
 deploy:
 ## Github releases
   provider: releases
-  api_key:
-    secure: "$GH_RELEASE_AUTH"
+  api_key: "$GITHUB_TOKEN"
+  file_glob: true # allows '*' in file below
   file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
-  draft: true
   on:
     tags: true #GH requires tagged release
     branch: master

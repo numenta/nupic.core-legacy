@@ -10,11 +10,13 @@ build:
   verbosity: minimal
 
 # version format
-version: 0.3.0.{build}
+version: 2.0.0-{build}
 
 branches:
-  except:
-    - gh-pages
+  only:
+    - master
+    - /^v.*\..*\..*$/ #regexp for tags "v*.*.*", eg v2.0.1-pre
+
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -48,11 +50,6 @@ environment:
   ARTIFACTS_DIR: "%HTM_CORE%\\build\\artifacts"
   configuration: "Release"
 
-## AWS S3 support (pip install boto)
-#  AWS_ACCESS_KEY_ID:
-#    secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
-#  AWS_SECRET_ACCESS_KEY:
-#    secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
 ## PyPI support (pip install twine)
 #  PYPI_USERNAME: numenta
 #  PYPI_PASSWORD:
