@@ -111,9 +111,16 @@ build_script:
   # Build the library with the python interface (64bit Release build)
   - cd %HTM_CORE%
   - python setup.py install --user --force
-
+  
+  # Build the wheel
+  - python setup.py bdist_wheel
+  
+  # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
+  - cd %HTM_CORE%\build\scripts
+  - cmake --build . --config Release --target PACKAGE 
 
 after_build:
+
   # Run unit_tests (C++)
   - cd %HTM_CORE%
   - mkdir %ARTIFACTS_DIR%
@@ -123,13 +130,6 @@ after_build:
   # Run python tests
   - cd %HTM_CORE%
   - python setup.py test
-
-  # Create Binary & python packages
-  # Build the wheel
-  - python setup.py bdist_wheel
-  # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
-  - cd %HTM_CORE%\build\scripts
-  - cmake --build . --config Release --target PACKAGE
 
 # Disable automatic tests
 test: off
@@ -151,7 +151,7 @@ test: off
 #         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:HTM_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
 #       }
 
-deploy:
+#deploy:
   # Iterative builds
 ## AWS S3 deployment
 #  - provider: S3
@@ -168,10 +168,10 @@ deploy:
 
 ## GitHub
 # Deploy to GitHub Releases
-- provider: GitHub
-  artifact: '*.whl'           # upload all NuGet packages to release assets
-  draft: false
-  prerelease: false
-   on:
-     branch: master                # release from master branch only
+# - provider: GitHub
+#   artifact: '*.whl'           # upload all NuGet packages to release assets
+#   draft: false
+#   prerelease: false
+#   on:
+#     branch: master                # release from master branch only
 #     appveyor_repo_tag: true       # deploy on tag push only
