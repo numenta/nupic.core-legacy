@@ -4,6 +4,7 @@ python:
 branches:
   only:
     - master
+    - /^v\..*\..*\..*$/ #regexp for tags "v*.*.*", eg v2.0.1
 
 matrix:
   include: 
