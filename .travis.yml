@@ -55,7 +55,7 @@ before_deploy:
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - echo "Generating binary release:"
   - make package
-  - echo "Release: ${BUNDLE_NAME} and file: " && ls -l "*.tar.gz"
+  - echo "Release: ${BUNDLE_NAME}"
 
 deploy:
 ## Github releases
