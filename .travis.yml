@@ -67,6 +67,7 @@ deploy:
   file_glob: true # allows '*' in file below
   file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
+  name: "testing" # GH Release name, undocumented option
   on:
     tags: true #GH requires tagged release
     branch: master
