@@ -62,12 +62,12 @@ deploy:
   provider: releases
   api_key:
     secure: "$GH_RELEASE_AUTH"
-  file: "$TRAVIS_BUILD_DIR/build/scripts/${BUNDLE_NAME}.tar.gz"
+  file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
   on:
-    tags: true
+    tags: true #GH requires tagged release
     branch: master
-    repo: htm-community/htm.cpp
+    repo: htm-community/htm.core
 
 notifications:
 #  email:
