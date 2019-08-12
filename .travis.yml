@@ -55,7 +55,7 @@ before_deploy:
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - echo "Generating binary release:"
   - make package
-  - echo "Release: ${BUNDLE_NAME} and file: " && ls -l "*.tar.gz"
+  - echo "Release: ${BUNDLE_NAME}"
 
 deploy:
 ## Github releases
@@ -64,7 +64,6 @@ deploy:
     secure: "$GH_RELEASE_AUTH"
   file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
-  draft: true
   on:
     tags: true #GH requires tagged release
     branch: master
