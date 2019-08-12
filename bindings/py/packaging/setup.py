@@ -351,7 +351,6 @@ if __name__ == "__main__":
     license = "GNU Affero General Public License v3 or later (AGPLv3+)",
     classifiers=[
       "Programming Language :: Python",
-      "Programming Language :: Python :: 2",
       "Programming Language :: Python :: 3",
       "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
       "Operating System :: MacOS :: MacOS X",
