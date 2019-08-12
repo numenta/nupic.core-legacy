@@ -109,15 +109,8 @@ build_script:
   - cd %HTM_CORE%
   - python setup.py install --user --force
   
-  # Build the wheel
-  - python setup.py bdist_wheel
-  
-  # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
-  - cd %HTM_CORE%\build\scripts
-  - cmake --build . --config Release --target PACKAGE 
 
 after_build:
-
   # Run unit_tests (C++)
   - cd %HTM_CORE%
   - mkdir %ARTIFACTS_DIR%
@@ -128,12 +121,19 @@ after_build:
   - cd %HTM_CORE%
   - python setup.py test
 
+  # Build the wheel
+  - python setup.py bdist_wheel
+
+  # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
+  - cd %HTM_CORE%\build\scripts
+  - cmake --build . --config Release --target PACKAGE
+
 # Disable automatic tests
 test: off
 
-#artifacts:
+artifacts:
   # Non-recursive search in build folder for Wheels
-#  - path: '*.whl'
+  - path: "%HTM_CORE%\build\scripts\*.zip"
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt
@@ -148,27 +148,13 @@ test: off
 #         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:HTM_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
 #       }
 
-#deploy:
-  # Iterative builds
-## AWS S3 deployment
-#  - provider: S3
-#    access_key_id: AKIAIGHYSEHV3WFKOWNQ
-#    secret_access_key:
-#      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
-#    bucket: "artifacts.numenta.org"
-#    region: us-west-2
-#    set_public: true
-#    artifact: "htm.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
-#    folder: "numenta/htm.core/releases/htm.bindings"
-#    on:
-#      branch: master
-
+deploy:
 ## GitHub
 # Deploy to GitHub Releases
-# - provider: GitHub
-#   artifact: '*.whl'           # upload all NuGet packages to release assets
-#   draft: false
-#   prerelease: false
-#   on:
-#     branch: master                # release from master branch only
-#     appveyor_repo_tag: true       # deploy on tag push only
+  provider: GitHub
+  artifact: '*.zip'           # upload all NuGet packages to release assets
+  draft: false
+  prerelease: false
+  on:
+    branch: master                # release from master branch only
+    appveyor_repo_tag: true       # deploy on tag push only
