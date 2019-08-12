@@ -32,11 +32,11 @@ from htm.bindings.sdr import SDR, Metrics
 ### Shared Test Strings
 
 # Human-readable example use case strings (see `testBasicExampleUseCase` below):
-#   1 vs 2 = very similar and should receive similar encodings
-#   2 vs 3 = very different and should receive differeing encodings
-exampleDoc1 = [ "The", "sky", "is", "beautiful", "today" ]
-exampleDoc2 = [ "The", "sun", "is", "beautiful", "today" ] # similar above, differ below
-exampleDoc3 = [ "Who", "did", "my", "homework",  "today" ]
+#   * 1 vs 2 = very similar and should receive similar encodings
+#   * 2 vs 3 = very different and should receive differeing encodings
+testDocEasy1 = "The sky is beautiful today"
+testDocEasy2 = "The sun is beautiful today"  # similar above, differ below
+testDocEasy3 = "Who did my homework  today"
 # Basic test strings
 testDoc1 = [ "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  ]
 testDoc2 = [ "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  ]
@@ -97,9 +97,9 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     encoder = SimHashDocumentEncoder(params)
 
     # encode!
-    output1 = encoder.encode(exampleDoc1)
-    output2 = encoder.encode(exampleDoc2)
-    output3 = encoder.encode(exampleDoc3)
+    output1 = encoder.encode(testDocEasy1)
+    output2 = encoder.encode(testDocEasy2)
+    output3 = encoder.encode(testDocEasy3)
 
     # encodings for Docs 1 and 2 should be more similar than the encodings
     #   for Docs 2 and 3 (which should be more disparate).

@@ -117,8 +117,9 @@ namespace htm {
    *
    *    SDR output({ params.size });
    *    SimHashDocumentEncoder encoder(params);
-   *    encoder.encode({ "bravo", "delta", "echo" }, output)  // weights 1
    *    encoder.encode({{ "bravo", 2 }, { "delta", 1 }, { "echo", 3 }}, output)
+   *    encoder.encode({ "bravo", "delta", "echo" }, output)  // weights 1
+   *    encoder.encode("bravo delta echo", output)            // weights 1
    *
    * @see BaseEncoder.hpp
    * @see SimHashDocumentEncoder.cpp
@@ -166,13 +167,14 @@ namespace htm {
      * @public
      * @see SimHashDocumentEncoder.hpp
      * @see encode(const std::vector<std::string> input, SDR &output)
+     * @see encode(std::string input, SDR &output)
      */
     void encode(const std::map<std::string, UInt> input, SDR &output);
 
     /**
-     * Encode (Alternate calling style: Simple method)
+     * Encode (Alternate calling style: Simple token list method)
      *
-     * An alternate simple calling method for Encode, no weights need to be
+     * An alternate simple list calling method for Encode, no weights need to be
      * passed in with tokens (all weights assumed to be 1).
      *
      * @param :input: Document token strings to encode, ex: {"what","is","up"}.
@@ -182,8 +184,29 @@ namespace htm {
      *
      * @public
      * @see encode(const std::map<std::string, UInt> input, SDR &output)
+     * @see encode(std::string input, SDR &output)
      */
     void encode(const std::vector<std::string> input, SDR &output) override;
+
+    /**
+     * Encode (Alternate calling style: Simple string method)
+     *
+     * An alternate simple string calling method for Encode, no weights need to
+     * be passed in with tokens (all weights assumed to be 1). String will be
+     * split into tokens based on empty whitespace characters, after trimming.
+     *
+     * @param :input: Document token string to encode, ex: "what is up".
+     *  String will be split into tokens based on empty whitespace characters,
+     *  after trimming. Documents can contain any number of tokens > 0. Token
+     *  order in the document is ignored and does not effect the
+     *  output encoding.
+     * @param :output: Result SDR to fill with result output encoding.
+     *
+     * @public
+     * @see encode(const std::map<std::string, UInt> input, SDR &output)
+     * @see encode(const std::vector<std::string> input, SDR &output)
+     */
+    void encode(const std::string input, SDR &output);
 
     /**
      * Serialization

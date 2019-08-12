@@ -25,6 +25,7 @@
 #include <bitset>     // to_string
 #include <cctype>     // tolower
 #include <climits>    // CHAR_BIT
+#include <regex>
 
 #include <hasher.hpp> // digestpp: sha3+shake256 hash digests
 #include <algorithm/sha3.hpp>
@@ -81,6 +82,7 @@ namespace htm {
    * Encode (Main calling style)
    * @see SimHashDocumentEncoder.hpp
    * @see encode(const std::vector<std::string> input, SDR &output)
+   * @see encode(std::string input, SDR &output)
    */
   void SimHashDocumentEncoder::encode(const std::map<std::string, UInt> input, SDR &output)
   {
@@ -126,9 +128,10 @@ namespace htm {
   } // end method encode
 
   /**
-   * Encode (Alternate calling style: Simple method)
+   * Encode (Alternate calling style: Simple list method)
    * @see SimHashDocumentEncoder.hpp
    * @see encode(const std::map<std::string, UInt> input, SDR &output)
+   * @see encode(std::string input, SDR &output)
    */
   void SimHashDocumentEncoder::encode(const std::vector<std::string> input, SDR &output)
   {
@@ -137,7 +140,22 @@ namespace htm {
       inputWeighted[token] = 1u;
     }
     encode(inputWeighted, output);
-  } // end method encode (alternate)
+  } // end method encode (list alternate)
+
+  /**
+   * Encode (Alternate calling style: Simple string method)
+   * @see SimHashDocumentEncoder.hpp
+   * @see encode(const std::map<std::string, UInt> input, SDR &output)
+   * @see encode(const std::vector<std::string> input, SDR &output)
+   */
+  void SimHashDocumentEncoder::encode(const std::string input, SDR &output)
+  {
+    std::regex spaces("\\s+");
+    std::sregex_token_iterator iterate(input.begin(), input.end(), spaces, -1);
+    std::sregex_token_iterator end;
+    std::vector<std::string> inputSplit(iterate, end);
+    encode(inputSplit, output);
+  } // end method encode (string alternate)
 
   /**
    * AddVectorToMatrix_

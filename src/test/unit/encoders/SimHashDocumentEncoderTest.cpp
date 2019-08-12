@@ -32,14 +32,11 @@ namespace testing {
 
   /* Shared Test Strings */
   // Human-readable basic use-case strings (see `testBasicExampleUseCase` below)
-  //  1 vs 2 = very similar and should receive similar encodings
-  //  2 vs 3 = very different and should receive differeing encodings
-  const std::vector<std::string> exampleDoc1 =
-    { "The", "sky", "is", "beautiful", "today" };
-  const std::vector<std::string> exampleDoc2 =
-    { "The", "sun", "is", "beautiful", "today" }; // similar above, differ below
-  const std::vector<std::string> exampleDoc3 =
-    { "Who", "did", "my", "homework",  "today" };
+  //  * 1 vs 2 = very similar and should receive similar encodings
+  //  * 2 vs 3 = very different and should receive differeing encodings
+  std::string testDocEasy1 = "The sky is beautiful today";
+  std::string testDocEasy2 = "The sun is beautiful today"; // similar above, differ below
+  std::string testDocEasy3 = "Who did my homework  today";
   // Basic test strings
   const std::vector<std::string> testDoc1 =
     { "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
@@ -101,9 +98,9 @@ namespace testing {
     SDR output3({ params.size });
 
     // encode!
-    encoder.encode(exampleDoc1, output1);
-    encoder.encode(exampleDoc2, output2);
-    encoder.encode(exampleDoc3, output3);
+    encoder.encode(testDocEasy1, output1);
+    encoder.encode(testDocEasy2, output2);
+    encoder.encode(testDocEasy3, output3);
 
     // encodings for Docs 1 and 2 should be more similar than the encodings
     //  for Docs 2 and 3 (which should be more disparate).

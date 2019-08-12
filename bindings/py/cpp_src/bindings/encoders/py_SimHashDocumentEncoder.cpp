@@ -145,13 +145,14 @@ Python Code Example:
     encoder = SimHashDocumentEncoder(params)
 
     # call style: output is reference
-    encoder.encode([ "bravo", "delta", "echo" ], output)  # weights 1
     encoder.encode({ "brevo": 3, "delta" : 1, "echo" : 2 }, output)
+    encoder.encode([ "bravo", "delta", "echo" ], output)  # weights 1
+    encoder.encode("bravo delta echo", output)            # weights 1
 
     # call style: output is returned
-    other = encoder.encode([ "bravo", "delta", "echo" ])  # weights 1
     other = encoder.encode({ "brevo": 3, "delta" : 1, "echo" : 2 })
-
+    other = encoder.encode([ "bravo", "delta", "echo" ])  # weights 1
+    other = encoder.encode("bravo delta echo")            # weights 1
 )");
 
     py_SimHashDocumentEncoder.def(py::init<SimHashDocumentEncoderParameters&>());
@@ -174,8 +175,11 @@ are filled in automatically.
     py_SimHashDocumentEncoder.def("encode",
       (void (SimHashDocumentEncoder::*)(std::map<std::string, htm::UInt>, htm::SDR &))
         &SimHashDocumentEncoder::encode);
-    py_SimHashDocumentEncoder.def("encode", // alternate: simple w/o weights
+    py_SimHashDocumentEncoder.def("encode", // alt: simple list w/o weights
       (void (SimHashDocumentEncoder::*)(std::vector<std::string>, htm::SDR &))
+        &SimHashDocumentEncoder::encode);
+    py_SimHashDocumentEncoder.def("encode", // alt: simple string w/o weights
+      (void (SimHashDocumentEncoder::*)(std::string, htm::SDR &))
         &SimHashDocumentEncoder::encode);
 
     py_SimHashDocumentEncoder.def("encode",
@@ -190,16 +194,30 @@ Takes input in a python map of strings (tokens) => integer (weights).
 Documents can contain any number of tokens > 0. Token order in the document is
   ignored and does not effect the output encoding.
 )");
-    py_SimHashDocumentEncoder.def("encode", // alternate: simple w/o weights
+    py_SimHashDocumentEncoder.def("encode", // alt: simple list w/o weights
       [](SimHashDocumentEncoder &self, std::vector<std::string> value) {
         auto output = new SDR({ self.size });
         self.encode( value, *output );
         return output;
       },
 R"(
-Simple alternate calling pattern using only strings, no weights (assumed
-to be 1). Takes input in a python list of strings (tokens).
+Simple alternate calling pattern using only list of small strings, with no
+weights (assumed to be 1). Takes input in a python list of strings (tokens).
   Ex: [ "alpha", "bravo", "delta", "echo" ].
+Documents can contain any number of tokens > 0. Token order in the document is
+  ignored and does not effect the output encoding.
+)");
+    py_SimHashDocumentEncoder.def("encode", // alt: simple string w/o weights
+      [](SimHashDocumentEncoder &self, std::string value) {
+        auto output = new SDR({ self.size });
+        self.encode( value, *output );
+        return output;
+      },
+R"(
+Simple alternate calling pattern using only a single longer string, with no
+weights (assumed to be 1). Takes input as a long python string, which will
+automatically be tokenized (split on whitespace).
+  Ex: "alpha bravo delta echo".
 Documents can contain any number of tokens > 0. Token order in the document is
   ignored and does not effect the output encoding.
 )");
