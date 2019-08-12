@@ -135,7 +135,7 @@ test: off
 
 #artifacts:
 #  # Non-recursive search in build folder for Wheels
-#  - path: "%HTM_CORE%\build\scripts\*.zip"
+#  - path: '%HTM_CORE%\build\scripts\*.zip'
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt
@@ -159,7 +159,7 @@ deploy:
   description: 'HTM.core binary release for Windows (64bit)' #desc is mandatory
   provider: GitHub
   api_key: "%GITHUB_TOKEN%"
-  artifact: "%HTM_CORE%\build\scripts\*.zip" # upload .zip from 'make package'
+  artifact: '%HTM_CORE%\build\scripts\*.zip' # upload .zip from 'make package'
   draft: false
   prerelease: false
   on:
