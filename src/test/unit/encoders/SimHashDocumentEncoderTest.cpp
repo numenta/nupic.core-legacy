@@ -154,105 +154,82 @@ namespace testing {
     params.size = 400u;
     params.sparsity = 0.33f;
 
-    SimHashDocumentEncoder encoderA(params);
-    std::stringstream buffer;
-    encoderA.save(buffer);
-    SDR outputA({ encoderA.size });
-    encoderA.encode(testDoc1, outputA);
-
-    SimHashDocumentEncoder encoderB;
-    encoderB.load(buffer);
-    SDR outputB({ encoderB.size });
-    encoderB.encode(testDoc1, outputB);
-
-    ASSERT_EQ(outputA.size, outputB.size);
-    ASSERT_EQ(outputA.getDense(), outputB.getDense());
-  }
-
-  // Test encoding without case sensitivity
-  TEST(SimHashDocumentEncoder, testTokenCaseInsensitivity) {
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.33f;
-
-    SDR output1({ params.size });
     SimHashDocumentEncoder encoder1(params);
-    encoder1.encode(testDocCase1, output1);
+    std::stringstream buffer;
+    encoder1.save(buffer);
+    SDR output1({ encoder1.size });
+    encoder1.encode(testDoc1, output1);
 
-    SDR output2({ params.size });
-    SimHashDocumentEncoder encoder2(params);
-    encoder2.encode(testDocCase2, output2);
+    SimHashDocumentEncoder encoder2;
+    encoder2.load(buffer);
+    SDR output2({ encoder2.size });
+    encoder2.encode(testDoc1, output2);
 
-    ASSERT_EQ(output1, output2);
+    ASSERT_EQ(output1.size, output2.size);
+    ASSERT_EQ(output1.getDense(), output2.getDense());
   }
 
-  // Test encoding with case sensitivity
+  // Test encoding with case in/sensitivity
   TEST(SimHashDocumentEncoder, testTokenCaseSensitivity) {
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
+
+    // caseSensitivity ON
     params.caseSensitivity = true;
-
-    SDR output1({ params.size });
     SimHashDocumentEncoder encoder1(params);
-    encoder1.encode(testDocCase1, output1);
-
+    SDR output1({ params.size });
     SDR output2({ params.size });
-    SimHashDocumentEncoder encoder2(params);
-    encoder2.encode(testDocCase2, output2);
-
+    encoder1.encode(testDocCase1, output1);
+    encoder1.encode(testDocCase2, output2);
     ASSERT_NE(output1, output2);
+
+    // caseSensitivity OFF
+    params.caseSensitivity = false;
+    SimHashDocumentEncoder encoder2(params);
+    output1.zero();
+    output2.zero();
+    encoder2.encode(testDocCase1, output1);
+    encoder2.encode(testDocCase2, output2);
+    ASSERT_EQ(output1, output2);
   }
 
-  // Test encoding simple corpus with 'tokenSimilarity' On. Tokens of similar
-  // spelling will affect the output in shared manner.
-  TEST(SimHashDocumentEncoder, testTokenSimilarityOn) {
+  // Test encoding simple corpus with 'tokenSimilarity' On/Off. If ON, tokens of
+  //  similar spelling will affect the output in shared manner. If OFF, tokens
+  //  of similar spelling will NOT affect the output in shared manner,
+  //  but apart (Default).
+  TEST(SimHashDocumentEncoder, testTokenSimilarity) {
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
     params.caseSensitivity = true;
-    params.tokenSimilarity = true;
 
+    // tokenSimilarity ON
+    params.tokenSimilarity = true;
+    SimHashDocumentEncoder encoder1(params);
     SDR output1({ params.size });
     SDR output2({ params.size });
     SDR output3({ params.size });
     SDR output4({ params.size });
-    SimHashDocumentEncoder encoder1(params);
-    SimHashDocumentEncoder encoder2(params);
-    SimHashDocumentEncoder encoder3(params);
-    SimHashDocumentEncoder encoder4(params);
     encoder1.encode(testDoc1, output1);
-    encoder2.encode(testDoc2, output2);
-    encoder3.encode(testDoc3, output3);
-    encoder4.encode(testDoc4, output4);
-
+    encoder1.encode(testDoc2, output2);
+    encoder1.encode(testDoc3, output3);
+    encoder1.encode(testDoc4, output4);
     ASSERT_GT(output3.getOverlap(output4), output2.getOverlap(output3));
     ASSERT_GT(output2.getOverlap(output3), output1.getOverlap(output3));
     ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output4));
-  }
 
-  // Test encoding a simple corpus with 'tokenSimilarity' Off (default). Tokens
-  // of similar spelling will NOT affect the output in shared manner, but apart.
-  TEST(SimHashDocumentEncoder, testTokenSimilarityOff) {
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.33f;
-    params.caseSensitivity = true;
+    // tokenSimilarity OFF
     params.tokenSimilarity = false;
-
-    SDR output1({ params.size });
-    SDR output2({ params.size });
-    SDR output3({ params.size });
-    SDR output4({ params.size });
-    SimHashDocumentEncoder encoder1(params);
     SimHashDocumentEncoder encoder2(params);
-    SimHashDocumentEncoder encoder3(params);
-    SimHashDocumentEncoder encoder4(params);
-    encoder1.encode(testDoc1, output1);
+    output1.zero();
+    output2.zero();
+    output3.zero();
+    output4.zero();
+    encoder2.encode(testDoc1, output1);
     encoder2.encode(testDoc2, output2);
-    encoder3.encode(testDoc3, output3);
-    encoder4.encode(testDoc4, output4);
-
+    encoder2.encode(testDoc3, output3);
+    encoder2.encode(testDoc4, output4);
     ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
     ASSERT_GT(output2.getOverlap(output3), output3.getOverlap(output4));
     ASSERT_GT(output3.getOverlap(output4), output1.getOverlap(output3));
@@ -264,57 +241,41 @@ namespace testing {
     params.size = 400u;
     params.sparsity = 0.33f;
     params.tokenSimilarity = false;
+    SimHashDocumentEncoder encoder(params);
+    SDR output1({ params.size });
+    SDR output2({ params.size });
+    SDR output3({ params.size });
 
-    SimHashDocumentEncoder encoderA(params);
-    SDR outputA({ params.size });
-    encoderA.encode(testDocMap1, outputA);
-
-    SimHashDocumentEncoder encoderB(params);
-    SDR outputB({ params.size });
-    encoderB.encode(testDocMap2, outputB);
-
-    SimHashDocumentEncoder encoderC(params);
-    SDR outputC({ params.size });
-    encoderC.encode(testDocMap3, outputC);
-
-    ASSERT_GT(outputA.getOverlap(outputC), outputA.getOverlap(outputB));
-    ASSERT_GT(outputA.getOverlap(outputB), outputB.getOverlap(outputC));
+    encoder.encode(testDocMap1, output1);
+    encoder.encode(testDocMap2, output2);
+    encoder.encode(testDocMap3, output3);
+    ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output2));
+    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
   }
 
-  // Test encoding unicode text with 'tokenSimilarity' on
-  TEST(SimHashDocumentEncoder, testUnicodeSimilarityOn) {
+  // Test encoding unicode text, including with 'tokenSimilarity' on/off
+  TEST(SimHashDocumentEncoder, testUnicode) {
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
+
+    // unicode tokenSimilarity ON
     params.tokenSimilarity = true;
+    SimHashDocumentEncoder encoder1(params);
+    SDR output1({ params.size });
+    SDR output2({ params.size });
+    encoder1.encode(testDocUni1, output1);
+    encoder1.encode(testDocUni2, output2);
+    ASSERT_GT(output1.getOverlap(output2), 65u);
 
-    SimHashDocumentEncoder encoderA(params);
-    SDR outputA({ params.size });
-    encoderA.encode(testDocUni1, outputA);
-
-    SimHashDocumentEncoder encoderB(params);
-    SDR outputB({ params.size });
-    encoderB.encode(testDocUni2, outputB);
-
-    ASSERT_GT(outputA.getOverlap(outputB), 65u);
-  }
-
-  // Test encoding unicode text with 'tokenSimilarity' Off
-  TEST(SimHashDocumentEncoder, testUnicodeSimilarityOff) {
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.33f;
+    // unicode tokenSimilarity OFF
     params.tokenSimilarity = false;
-
-    SimHashDocumentEncoder encoderA(params);
-    SDR outputA({ params.size });
-    encoderA.encode(testDocUni1, outputA);
-
-    SimHashDocumentEncoder encoderB(params);
-    SDR outputB({ params.size });
-    encoderB.encode(testDocUni2, outputB);
-
-    ASSERT_LT(outputA.getOverlap(outputB), 65u);
+    SimHashDocumentEncoder encoder2(params);
+    output1.zero();
+    output2.zero();
+    encoder2.encode(testDocUni1, output1);
+    encoder2.encode(testDocUni2, output2);
+    ASSERT_LT(output1.getOverlap(output2), 65u);
   }
 
 } // end namespace testing

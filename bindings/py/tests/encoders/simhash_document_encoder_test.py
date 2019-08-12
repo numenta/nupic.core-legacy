@@ -151,6 +151,44 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     with self.assertRaises(RuntimeError):
       encoder.encode({}, output)
 
+  # Test de/serialization via Pickle method
+  @pytest.mark.skip("pickle deserialization getting corrupted somehow @TODO")
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
+  def testSerializePickle(self):
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.activeBits = 21
+    encoder1 = SimHashDocumentEncoder(params)
+
+    pickled = pickle.dumps(encoder1)
+    encoder2 = pickle.loads(pickled)
+
+    assert(encoder1.size == encoder2.size)
+    assert(encoder1.parameters.size == encoder2.parameters.size)
+    assert(encoder1.parameters.activeBits == encoder2.parameters.activeBits)
+
+  # Test de/serialization via String
+  def testSerializeString(self):
+    params = SimHashDocumentEncoderParameters()
+    params.size = 400
+    params.activeBits = 21
+    encoder1 = SimHashDocumentEncoder(params)
+
+    params.size = 40
+    params.activeBits = 2
+    encoder2 = SimHashDocumentEncoder(params)
+
+    assert(encoder1.size != encoder2.size)
+    assert(encoder1.parameters.size != encoder2.parameters.size)
+    assert(encoder1.parameters.activeBits != encoder2.parameters.activeBits)
+
+    s = encoder1.writeToString()
+    encoder2.loadFromString(s)
+
+    assert(encoder1.size == encoder2.size)
+    assert(encoder1.parameters.size == encoder2.parameters.size)
+    assert(encoder1.parameters.activeBits == encoder2.parameters.activeBits)
+
   # Test binary properties of a variety of output encodings
   def testStatistics(self):
     num_samples = 1000 # number of documents to run
@@ -213,84 +251,62 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     assert(report2.sparsity.mean() > params2.sparsity - 0.005)
     assert(report2.sparsity.mean() < params2.sparsity + 0.005)
 
-  # Test encoding without case sensitivity
-  def testTokenCaseInsensitivity(self):
-    params = SimHashDocumentEncoderParameters()
-    params.size = 400
-    params.sparsity = 0.33
-
-    encoder1 = SimHashDocumentEncoder(params)
-    output1 = encoder1.encode(testDocCase1)
-
-    encoder2 = SimHashDocumentEncoder(params)
-    output2 = encoder2.encode(testDocCase2)
-
-    assert(output1 == output2)
-
-  # Test encoding with case sensitivity
+  # Test encoding with case in/sensitivity
   def testTokenCaseSensitivity(self):
     params = SimHashDocumentEncoderParameters()
     params.size = 400
     params.sparsity = 0.33
-    params.caseSensitivity = True
 
+    # caseSensitivity ON
+    params.caseSensitivity = True
     encoder1 = SimHashDocumentEncoder(params)
     output1 = encoder1.encode(testDocCase1)
-
-    encoder2 = SimHashDocumentEncoder(params)
-    output2 = encoder2.encode(testDocCase2)
-
+    output2 = encoder1.encode(testDocCase2)
     assert(output1 != output2)
 
-  # Test encoding simple corpus with 'tokenSimilarity' On. Tokens of similar
-  # spelling will affect the output in shared manner.
-  def testTokenSimilarityOn(self):
+    # caseSensitivity OFF
+    params.caseSensitivity = False
+    encoder2 = SimHashDocumentEncoder(params)
+    output1 = encoder2.encode(testDocCase1)
+    output2 = encoder2.encode(testDocCase2)
+    assert(output1 == output2)
+
+  # Test encoding simple corpus with 'tokenSimilarity' On/Off. If ON, Tokens of
+  # similar spelling will affect the output in shared manner. If OFF, then
+  # Tokens of similar spelling will NOT affect the output in shared manner,
+  # but apart (Default).
+  def testTokenSimilarity(self):
     params = SimHashDocumentEncoderParameters()
     params.size = 400
     params.sparsity = 0.33
     params.caseSensitivity = True
-    params.tokenSimilarity = True
 
+    # tokenSimilarity ON
+    params.tokenSimilarity = True
     encoder1 = SimHashDocumentEncoder(params)
-    encoder2 = SimHashDocumentEncoder(params)
-    encoder3 = SimHashDocumentEncoder(params)
-    encoder4 = SimHashDocumentEncoder(params)
     output1 = SDR(params.size)
     output2 = SDR(params.size)
     output3 = SDR(params.size)
     output4 = SDR(params.size)
     encoder1.encode(testDoc1, output1)
-    encoder2.encode(testDoc2, output2)
-    encoder3.encode(testDoc3, output3)
-    encoder4.encode(testDoc4, output4)
-
-    assert(encoder1.parameters.tokenSimilarity)
+    encoder1.encode(testDoc2, output2)
+    encoder1.encode(testDoc3, output3)
+    encoder1.encode(testDoc4, output4)
     assert(output3.getOverlap(output4) > output2.getOverlap(output3))
     assert(output2.getOverlap(output3) > output1.getOverlap(output3))
     assert(output1.getOverlap(output3) > output1.getOverlap(output4))
 
-  # Test encoding a simple corpus with 'tokenSimilarity' Off (default). Tokens
-  # of similar spelling will NOT affect the output in shared manner, but apart.
-  def testTokenSimilarityOff(self):
-    params = SimHashDocumentEncoderParameters()
-    params.size = 400
-    params.sparsity = 0.33
-    params.caseSensitivity = True
+    # tokenSimilarity OFF
     params.tokenSimilarity = False
-
-    encoder1 = SimHashDocumentEncoder(params)
     encoder2 = SimHashDocumentEncoder(params)
-    encoder3 = SimHashDocumentEncoder(params)
-    encoder4 = SimHashDocumentEncoder(params)
-    output1 = SDR(params.size)
-    output2 = SDR(params.size)
-    output3 = SDR(params.size)
-    output4 = SDR(params.size)
-    encoder1.encode(testDoc1, output1)
+    output1.zero()
+    output2.zero()
+    output3.zero()
+    output4.zero()
+    encoder2.encode(testDoc1, output1)
     encoder2.encode(testDoc2, output2)
-    encoder3.encode(testDoc3, output3)
-    encoder4.encode(testDoc4, output4)
-
+    encoder2.encode(testDoc3, output3)
+    encoder2.encode(testDoc4, output4)
     assert(output1.getOverlap(output2) > output2.getOverlap(output3))
     assert(output2.getOverlap(output3) > output3.getOverlap(output4))
     assert(output3.getOverlap(output4) > output1.getOverlap(output3))
@@ -314,73 +330,26 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     assert(output1.getOverlap(output3) > output1.getOverlap(output2))
     assert(output1.getOverlap(output2) > output2.getOverlap(output3))
 
-  # Test encoding unicode text with 'tokenSimilarity' on
-  def testUnicodeSimilarityOn(self):
+  # Test encoding unicode text, including with 'tokenSimilarity' On/Off
+  def testUnicode(self):
     params = SimHashDocumentEncoderParameters()
     params.size = 400
     params.sparsity = 0.33
-    params.tokenSimilarity = True
 
+    # unicode 'tokenSimilarity' ON
+    params.tokenSimilarity = True
     encoder1 = SimHashDocumentEncoder(params)
-    encoder2 = SimHashDocumentEncoder(params)
     output1 = SDR(params.size)
     output2 = SDR(params.size)
     encoder1.encode(testDocUni1, output1)
-    encoder2.encode(testDocUni2, output2)
-
+    encoder1.encode(testDocUni2, output2)
     assert(output1.getOverlap(output2) > 65)
 
-  # Test encoding unicode text with 'tokenSimilarity' Off
-  def testUnicodeSimilarityOff(self):
-    params = SimHashDocumentEncoderParameters()
-    params.size = 400
-    params.sparsity = 0.33
+    # unicode 'tokenSimilarity' OFF
     params.tokenSimilarity = False
-
-    encoder1 = SimHashDocumentEncoder(params)
     encoder2 = SimHashDocumentEncoder(params)
-    output1 = SDR(params.size)
-    output2 = SDR(params.size)
-    encoder1.encode(testDocUni1, output1)
+    output1.zero()
+    output2.zero()
+    encoder2.encode(testDocUni1, output1)
     encoder2.encode(testDocUni2, output2)
-
     assert(output1.getOverlap(output2) < 65)
-
-  # Test de/serialization via Pickle method
-  @pytest.mark.skip("pickle deserialization getting corrupted @TODO")
-  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
-  def testSerializePickle(self):
-    params = SimHashDocumentEncoderParameters()
-    params.size = 400
-    params.activeBits = 21
-    encoder1 = SimHashDocumentEncoder(params)
-
-    pickled = pickle.dumps(encoder1)
-    encoder2 = pickle.loads(pickled)
-
-    assert(encoder1.size == encoder2.size)
-    assert(encoder1.parameters.size == encoder2.parameters.size)
-    assert(encoder1.parameters.activeBits == encoder2.parameters.activeBits)
-
-  # Test de/serialization via String
-  def testSerializeString(self):
-    params = SimHashDocumentEncoderParameters()
-    params.size = 400
-    params.activeBits = 21
-    encoder1 = SimHashDocumentEncoder(params)
-
-    params.size = 40
-    params.activeBits = 2
-    encoder2 = SimHashDocumentEncoder(params)
-
-    assert(encoder1.size != encoder2.size)
-    assert(encoder1.parameters.size != encoder2.parameters.size)
-    assert(encoder1.parameters.activeBits != encoder2.parameters.activeBits)
-
-    s = encoder1.writeToString()
-    encoder2.loadFromString(s)
-
-    assert(encoder1.size == encoder2.size)
-    assert(encoder1.parameters.size == encoder2.parameters.size)
-    assert(encoder1.parameters.activeBits == encoder2.parameters.activeBits)
-
