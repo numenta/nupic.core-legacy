@@ -59,7 +59,6 @@ before_deploy:
   - python $TRAVIS_BUILD_DIR/setup.py bdist_wheel
   - echo "Generating binary release:"
   - make package
-  - echo "Release: ${BUNDLE_NAME}"
 
 deploy:
 ## Github releases
