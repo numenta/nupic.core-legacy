@@ -425,11 +425,11 @@ endif()
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
       DESTINATION include)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/htm
       MESSAGE_NEVER
-      DESTINATION include
-      FILES_MATCHING PATTERN "htm/*/*.h*"
-      PATTERN "htm/*/*.hpp.in" EXCLUDE)
+      DESTINATION include/
+      FILES_MATCHING PATTERN "*.h*"
+      PATTERN "*.hpp.in" EXCLUDE)
 
 
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"

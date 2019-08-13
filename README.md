@@ -48,10 +48,11 @@ Fork or download the HTM-Community htm.core repository from https://github.com/h
 
 - [CMake](http://www.cmake.org/)  Version 3.8  (3.14 for Visual Studio 2019)
 - [Python](https://python.org/downloads/)
-    - Version 3.4+
+    - Version 3.4+ (Recommended)
     - Version 2.7
       + We recommend the latest version of 2.7 where possible, but the system version should be fine.
       + Python 2 is Not Supported on Windows, use Python 3 instead.
+      + Python 2 is not tested by our CI anomore. It may still work but we don't test it. We expect to drop support for Python2 around 2020. 
 
   Be sure that your Python executable is in the Path environment variable.
   The Python that is in your default path is the one that will determine which
