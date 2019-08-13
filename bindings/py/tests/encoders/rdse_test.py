@@ -255,6 +255,44 @@ class RDSE_Test(unittest.TestCase):
         B = R.encode( 987654 )
         assert( A != B )
 
-    @unittest.skip(reason="Known issue: https://github.com/htm-community/htm.core/issues/160")
-    def testPickle(self):
-        assert(False) # TODO: Unimplemented
+
+     def testPickle(self):
+        """
+        The pickling is successfull if pickle serializes and de-serialize the
+        RDSE object. 
+        Moreover, the de-serialized object shall give the same SDR than the 
+        original encoder given the same scalar value to encode.
+        """        
+        rdse_params = RDSE_Parameters()
+        rdse_params.sparsity = 0.1
+        rdse_params.size = 100
+        rdse_params.resolution = 0.1
+        rdse_params.seed = 1997
+
+        rdse = RDSE(rdse_params)
+        filename = "RDSE_testPickle"
+
+        try:
+            with open(filename, "wb") as f:
+                pickle.dump(rdse, f)
+        except:
+            dump_success = False
+        else:
+            dump_success = True
+
+        assert(dump_success)
+
+        try:
+            with open(filename, "rb") as f:
+                rdse_loaded = pickle.load(f)
+        except:
+            read_success = False
+        else:
+            read_success = True
+
+        assert(read_success)
+        value_to_encode = 69003        
+        SDR_original = rdse.encode(value_to_encode)
+        SDR_loaded = rdse_loaded.encode(value_to_encode)
+
+        assert(SDR_original == SDR_loaded)
