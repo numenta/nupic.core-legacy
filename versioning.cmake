@@ -96,7 +96,8 @@ function(get_versions version major minor patch)
 	string(REGEX REPLACE "^([vV][0-9]*[.][0-9]*[.])([0-9]*)(-?.*)$" "\\2" numbers ${m_version} )
 	set(m_patch ${numbers})
 	
-
+    # limiting ourselves to Major.Minor.Patch format for version.
+    set(m_version "${m_major}.${m_minor}.${patch}")
 
 	# Write it to the file VERSION if it is different.
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/VERSION)
