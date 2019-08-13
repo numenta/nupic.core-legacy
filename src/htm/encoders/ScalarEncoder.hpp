@@ -117,7 +117,7 @@ namespace htm {
    * location of this contiguous block varies continuously with the input value.
    *
    * To inspect this run:
-   * $ python -m htm.encoders.scalar_encoder --help
+   * $ python -m htm.examples.encoders.scalar_encoder --help
    */
   class ScalarEncoder : public BaseEncoder<Real64>
   {

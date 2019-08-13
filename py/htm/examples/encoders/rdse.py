@@ -15,69 +15,67 @@
 # ------------------------------------------------------------------------------
 
 import htm.bindings.encoders
-ScalarEncoder           = htm.bindings.encoders.ScalarEncoder
-ScalarEncoderParameters = htm.bindings.encoders.ScalarEncoderParameters
+RDSE            = htm.bindings.encoders.RDSE
+RDSE_Parameters = htm.bindings.encoders.RDSE_Parameters
+
 
 if __name__ == '__main__':
     """
-    Simple program to examine the ScalarEncoder.
+    This module is also a program to examine the Random Distributed Scalar
+    Encoder (RDSE).
 
     For help using this program run:
-    $ python -m htm.encoders.scalar_encoder --help
+    $ python -m htm.examples.encoders.rdse --help
     """
     import numpy as np
     from htm.bindings.sdr import SDR, Metrics
     import argparse
     import textwrap
-    import matplotlib.pyplot as plt
-    from sys import exit
+    from sys import exit, modules
 
     #
     # Gather input from the user.
     #
     parser = argparse.ArgumentParser(
         formatter_class = argparse.RawDescriptionHelpFormatter,
-        description = "Simple program to examine the ScalarEncoder.\n\n" +
-                        textwrap.dedent(ScalarEncoder.__doc__ + "\n\n" +
-                                        ScalarEncoderParameters.__doc__))
+        description = "Examine the Random Distributed Scalar Encoder (RDSE).\n\n" +
+                        textwrap.dedent(RDSE.__doc__ + "\n\n" +
+                                        RDSE_Parameters.__doc__))
     parser.add_argument('--activeBits', type=int, default=0,
-                        help=ScalarEncoderParameters.activeBits.__doc__)
-    parser.add_argument('--minimum', type=float, default=0,
-                        help=ScalarEncoderParameters.minimum.__doc__)
-    parser.add_argument('--maximum', type=float, default=0,
-                        help=ScalarEncoderParameters.maximum.__doc__)
-    parser.add_argument('--periodic', action='store_true', default=False,
-                        help=ScalarEncoderParameters.periodic.__doc__)
+                        help=RDSE_Parameters.activeBits.__doc__)
+    parser.add_argument('--minimum', type=float, required=True,
+                        help="Boundary of input range to display.")
+    parser.add_argument('--maximum', type=float, required=True,
+                        help="Boundary of input range to display.")
     parser.add_argument('--radius', type=float, default=0,
-                        help=ScalarEncoderParameters.radius.__doc__)
+                        help=RDSE_Parameters.radius.__doc__)
     parser.add_argument('--resolution', type=float, default=0,
-                        help=ScalarEncoderParameters.resolution.__doc__)
-    parser.add_argument('--size', type=int, default=0,
-                        help=ScalarEncoderParameters.size.__doc__)
+                        help=RDSE_Parameters.resolution.__doc__)
+    parser.add_argument('--size', type=int, required=True,
+                        help=RDSE_Parameters.size.__doc__)
     parser.add_argument('--sparsity', type=float, default=0,
-                        help=ScalarEncoderParameters.sparsity.__doc__)
+                        help=RDSE_Parameters.sparsity.__doc__)
     parser.add_argument('--category', action='store_true',
-                        help=ScalarEncoderParameters.category.__doc__)
+                        help=RDSE_Parameters.category.__doc__)
+    parser.add_argument('--seed', type=int, default=0,
+                        help=RDSE_Parameters.seed.__doc__)
     args = parser.parse_args()
 
     #
     # Setup the encoder.  First copy the command line arguments into the parameter structure.
     #
-    parameters = ScalarEncoderParameters()
+    parameters = RDSE_Parameters()
     parameters.activeBits = args.activeBits
-    parameters.clipInput  = False # This script does not encode values outside of the range [min, max]
-    parameters.minimum    = args.minimum
-    parameters.maximum    = args.maximum
-    parameters.periodic   = args.periodic
     parameters.radius     = args.radius
     parameters.resolution = args.resolution
     parameters.size       = args.size
     parameters.sparsity   = args.sparsity
     parameters.category   = args.category
+    parameters.seed       = args.seed
 
     # Try initializing the encoder.
     try:
-        enc = ScalarEncoder( parameters )
+        enc = RDSE( parameters )
     except RuntimeError as error:
         print("")
         print(error)
@@ -89,15 +87,13 @@ if __name__ == '__main__':
     # Run the encoder and measure some statistics about its output.
     #
     if args.category:
-        n_samples = int(enc.parameters.maximum - enc.parameters.minimum + 1)
+        n_samples = int(args.maximum - args.minimum + 1)
     else:
-        n_samples = (enc.parameters.maximum - enc.parameters.minimum) / enc.parameters.resolution
+        n_samples = (args.maximum - args.minimum) / enc.parameters.resolution
         oversample = 2 # Use more samples than needed to avoid aliasing & artifacts.
         n_samples  = int(round( oversample * n_samples ))
-    assert n_samples > 0
-
     sdrs = []
-    for i in np.linspace(enc.parameters.minimum, enc.parameters.maximum, n_samples):
+    for i in np.linspace(args.minimum, args.maximum, n_samples):
       sdrs.append( enc.encode( i ) )
 
     M = Metrics( [enc.size], len(sdrs) + 1 )
@@ -110,14 +106,17 @@ if __name__ == '__main__':
     #
     # Plot the Receptive Field of each bit in the encoder.
     #
-    rf = np.zeros([ enc.size, len(sdrs) ], dtype=np.uint8)
-    for i in range(len(sdrs)):
-        rf[ :, i ] = sdrs[i].dense
-    plt.imshow(rf, interpolation='nearest')
-    plt.title( "ScalarEncoder Receptive Fields")
-    plt.ylabel("Cell Number")
-    plt.xlabel("Input Value")
-    n_ticks = 11
-    plt.xticks( np.linspace(0, len(sdrs)-1, n_ticks),
-                np.linspace(enc.parameters.minimum, enc.parameters.maximum, n_ticks))
-    plt.show()
+    import matplotlib.pyplot as plt
+    if 'matplotlib.pyplot' in modules:
+      rf = np.zeros([ enc.size, len(sdrs) ], dtype=np.uint8)
+      for i in range(len(sdrs)):
+          rf[ :, i ] = sdrs[i].dense
+      plt.imshow(rf, interpolation='nearest')
+      plt.title( "RDSE Receptive Fields")
+      plt.ylabel("Cell Number")
+      plt.xlabel("Input Value")
+      n_ticks = 11
+      plt.xticks( np.linspace(0, len(sdrs)-1, n_ticks),
+                  np.linspace(args.minimum, args.maximum, n_ticks))
+      plt.show()
+

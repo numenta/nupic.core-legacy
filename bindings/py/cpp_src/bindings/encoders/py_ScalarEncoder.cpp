@@ -102,7 +102,7 @@ bits. The output is 0's except for a contiguous block of 1's. The location of
 this contiguous block varies continuously with the input value.
 
 To inspect this run:
-$ python -m htm.encoders.scalar_encoder --help)");
+$ python -m htm.examples.encoders.scalar_encoder --help)");
 
     py_ScalarEnc.def(py::init<ScalarEncoderParameters&>(), R"()");
     py_ScalarEnc.def_property_readonly("parameters",
