@@ -25,10 +25,12 @@ matrix:
             - cmake-data
             - xsltproc #only for doc transform to html , can be removed
             - valgrind
+            - wget # for downloading artifacts
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
         - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python3.7/site-packages/"
+        - WINDOWS_ARTIFACT_URL="https://ci.appveyor.com/api/buildjobs/by4cpqmul79tp9ag/artifacts/build/scripts/htm_core-6866bd13ece35608313709e82c29b2260ee7be73-windows64.zip"
 
 #    ## OSX builds take very long to start on OSX
 #    # moved to CircleCI for OSX
@@ -59,6 +61,23 @@ before_deploy:
   - python $TRAVIS_BUILD_DIR/setup.py bdist_wheel
   - echo "Generating binary release:"
   - make package
+  - echo "Fetching Windows artifacts:" |
+retry=false
+for i in `seq 10`; do
+  echo "Downloading artifacts. Try $i"
+  wget "$WINDOWS_ARTIFACT_URL" || retry=true
+  if [[ x"$retry" == "xtrue" ]]; then
+    echo "sleep for 5min is good"
+    sleep 300 # wait 5min to retry. Other CI needs to finish its build
+    retry=false
+  else
+    echo "happy"
+    ls *.zip
+    ls *.gz
+    break
+  fi
+done
+
 
 deploy:
 ## Github releases
