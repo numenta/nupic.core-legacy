@@ -107,31 +107,46 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
 
   # Test a basic construction with defaults
   def testConstructor(self):
-    params = SimHashDocumentEncoderParameters()
-    params.size = 400
-    params.activeBits = 20
+    params1 = SimHashDocumentEncoderParameters()
+    params1.size = 400
+    params1.activeBits = 20
+    encoder1 = SimHashDocumentEncoder(params1)
+    assert(encoder1)
+    assert(encoder1.dimensions == [params1.size])
+    assert(encoder1.size == params1.size)
+    assert(encoder1.parameters.size == params1.size)
+    assert(encoder1.parameters.activeBits == params1.activeBits)
+    assert(not encoder1.parameters.tokenSimilarity)
 
-    encoder = SimHashDocumentEncoder(params)
+    # test bad encoder params - both activeBits and sparsity
+    params2 = SimHashDocumentEncoderParameters()
+    params2.size = 400
+    params2.activeBits = 20
+    params2.sparsity = 0.666
+    encoder2 = None
+    assert(not encoder2)
+    with self.assertRaises(RuntimeError):
+      encoder2 = SimHashDocumentEncoder(params2)
 
-    assert(encoder.dimensions == [params.size])
-    assert(encoder.size == params.size)
-    assert(encoder.parameters.size == params.size)
-    assert(encoder.parameters.activeBits == params.activeBits)
-    assert(not encoder.parameters.tokenSimilarity)
+    # test bad encoder params - neither activeBits or sparsity
+    params3 = SimHashDocumentEncoderParameters()
+    params3.size = 400
+    encoder3 = None
+    assert(not encoder3)
+    with self.assertRaises(RuntimeError):
+      encoder3 = SimHashDocumentEncoder(params3)
 
-  # Test a basic construction using 'sparsity' param instead of 'activeBits'
-  def testConstructorParamSparsity(self):
-    params = SimHashDocumentEncoderParameters()
-    params.size = 400
-    params.sparsity = 0.05
-
-    encoder = SimHashDocumentEncoder(params)
-
-    assert(encoder.dimensions == [params.size])
-    assert(encoder.size == params.size)
-    assert(encoder.parameters.size == params.size)
-    assert(encoder.parameters.activeBits == 20)
-    assert(not encoder.parameters.tokenSimilarity)
+    # test good encoder param - using 'sparsity' instead of 'activeBits'
+    params4 = SimHashDocumentEncoderParameters()
+    params4.size = 400
+    params4.sparsity = 0.05
+    encoder4 = SimHashDocumentEncoder(params4)
+    assert(encoder4)
+    assert(encoder4.dimensions == [params4.size])
+    assert(encoder4.size == params4.size)
+    assert(encoder4.parameters.size == params4.size)
+    assert(encoder4.parameters.activeBits == 20)
+    assert(not encoder4.parameters.tokenSimilarity)
 
   # Make sure bits stay the same across uses and envrionments
   def testDeterminism(self):

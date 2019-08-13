@@ -109,26 +109,33 @@ namespace testing {
 
   // Test a basic construction with defaults
   TEST(SimHashDocumentEncoder, testConstructor) {
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.activeBits = 20u;
+    SimHashDocumentEncoderParameters params1;
+    params1.size = 400u;
+    params1.activeBits = 20u;
 
-    SimHashDocumentEncoder encoder(params);
+    SimHashDocumentEncoder encoder1(params1);
+    ASSERT_EQ(encoder1.parameters.size, params1.size);
+    ASSERT_EQ(encoder1.parameters.activeBits, params1.activeBits);
 
-    ASSERT_EQ(encoder.parameters.size, params.size);
-    ASSERT_EQ(encoder.parameters.activeBits, params.activeBits);
-  }
+    // test bad encoder params - both activeBits and sparsity
+    SimHashDocumentEncoderParameters params2;
+    params2.size = 400u;
+    params2.activeBits = 20u;
+    params2.sparsity = 0.666f;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder2(params2));
 
-  // Test a basic construction using 'sparsity' param instead of 'activeBits'
-  TEST(SimHashDocumentEncoder, testConstructorParamSparsity) {
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.05f;
+    // test bad encoder params - neither activeBits or sparsity
+    SimHashDocumentEncoderParameters params3;
+    params3.size = 400u;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder3(params3));
 
-    SimHashDocumentEncoder encoder(params);
-
-    ASSERT_EQ(encoder.parameters.size, params.size);
-    ASSERT_EQ(encoder.parameters.activeBits, 20u);
+    // test good encoder params - using 'sparsity' instead of 'activeBits'
+    SimHashDocumentEncoderParameters params4;
+    params4.size = 400u;
+    params4.sparsity = 0.05f;
+    SimHashDocumentEncoder encoder4(params4);
+    ASSERT_EQ(encoder4.parameters.size, params4.size);
+    ASSERT_EQ(encoder4.parameters.activeBits, 20u);
   }
 
   // Test a basic encoding, try a few failure cases

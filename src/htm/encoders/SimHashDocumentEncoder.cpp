@@ -52,7 +52,7 @@ namespace htm {
   void SimHashDocumentEncoder::initialize(const SimHashDocumentEncoderParameters &parameters)
   {
     // Pre-processing, Check parameters
-    NTA_CHECK((parameters.activeBits > 0u) || (parameters.sparsity > 0.0f))
+    NTA_CHECK((parameters.activeBits > 0u) != (parameters.sparsity > 0.0f))
       << "Need only one argument of: 'activeBits' or 'sparsity'.";
     NTA_CHECK(parameters.size > 0u)
       << "Missing 'size' argument.";
