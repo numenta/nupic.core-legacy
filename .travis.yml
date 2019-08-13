@@ -62,38 +62,38 @@ before_deploy:
   - python $TRAVIS_BUILD_DIR/setup.py bdist_wheel
   - echo "Generating binary release:"
   - make package
-  - echo "Fetching Windows artifacts:" |
-retry=false
-for i in `seq 10`; do
-  echo "Downloading artifacts. Try $i"
-  wget "$WINDOWS_ARTIFACT_URL" || retry=true
-  if [[ x"$retry" == "xtrue" ]]; then
-    echo "sleep for 5min is good"
-    sleep 300 # wait 5min to retry. Other CI needs to finish its build
-    retry=false
-  else
-    echo "happy"
-    ls *.zip
-    ls *.gz
-    break
-  fi
-done
-  - echo "Fetching OSX artifacts:" |
-retry=false
-for i in `seq 10`; do
-  echo "Downloading artifacts. Try $i"
-  wget "$OSX_ARTIFACT_URL" || retry=true
-  if [[ x"$retry" == "xtrue" ]]; then
-    echo "sleep for 5min is good"
-    sleep 300 # wait 5min to retry. Other CI needs to finish its build
-    retry=false
-  else
-    echo "happy"
-    ls *.zip
-    ls *.gz
-    break
-  fi
-done
+    #  - echo "Fetching Windows artifacts:" |
+    #retry=false
+    #for i in `seq 10`; do
+    #  echo "Downloading artifacts. Try $i"
+    #  wget "$WINDOWS_ARTIFACT_URL" || retry=true
+    #  if [[ x"$retry" == "xtrue" ]]; then
+    #    echo "sleep for 5min is good"
+    #    sleep 300 # wait 5min to retry. Other CI needs to finish its build
+    #    retry=false
+    #  else
+    #    echo "happy"
+    #    ls *.zip
+    #    ls *.gz
+    #    break
+    #  fi
+    #done
+    #  - echo "Fetching OSX artifacts:" |
+    #retry=false
+    #for i in `seq 10`; do
+    #  echo "Downloading artifacts. Try $i"
+    #  wget "$OSX_ARTIFACT_URL" || retry=true
+    #  if [[ x"$retry" == "xtrue" ]]; then
+    #    echo "sleep for 5min is good"
+    #    sleep 300 # wait 5min to retry. Other CI needs to finish its build
+    #    retry=false
+    #  else
+    #    echo "happy"
+    #    ls *.zip
+    #    ls *.gz
+    #    break
+    #  fi
+    #done
 
 
 deploy:
