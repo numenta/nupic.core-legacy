@@ -159,7 +159,7 @@ deploy:
   provider: GitHub
   auth_token: 
     secure: "%GITHUB_TOKEN%"
-  artifact: '%HTM_CORE%\build\scripts\*.zip' # upload .zip from 'make package'
+  artifact: '\build\scripts\*.zip' # upload .zip from 'make package'
   draft: false
   prerelease: false
   force_update: true #override files in existing release
