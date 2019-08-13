@@ -346,7 +346,6 @@ if __name__ == "__main__":
       "clean": CleanCommand,
       "test": TestCommand,
     },
-    description="Python package for htm.core.",
     author="Numenta & HTM Community",
     author_email="help@numenta.org",
     url="https://github.com/htm-community/htm.core",
