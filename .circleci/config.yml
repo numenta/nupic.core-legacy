@@ -181,7 +181,7 @@ workflows:
             - setup
       - osx-build-release:  # Mac OS/X raw ("build-release")
           requires:
-            - setup
+            # - setup # already in -debug, duplicit causes CI err
             - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
 
   nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
