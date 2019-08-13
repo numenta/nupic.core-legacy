@@ -136,7 +136,8 @@ jobs:
             make package
 
       - store_artifacts:
-          path: dist/*.whl
+          path: build/scripts/*.tar.gz
+
       ##- persist_to_workspace:
       ##    root: dist
       ##    paths:
