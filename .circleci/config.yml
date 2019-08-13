@@ -8,8 +8,7 @@
 version: 2
 jobs:
 
-  # job: Mac OS/X raw ("build-debug"). This job runs C++ tests in Debug mode (=with extra checks)
-  osx-build-debug:
+  setup:
     macos:
       xcode: '10.1.0'
     working_directory: ~/numenta/htm.core
@@ -31,6 +30,11 @@ jobs:
           name: Installing cmake
           command: brew install cmake || brew install cmake
       - checkout
+
+
+  # job: Mac OS/X raw ("build-debug"). This job runs C++ tests in Debug mode (=with extra checks)
+  osx-build-debug:
+    steps:
       - run:
           name: Build in Debug mode
           environment:
@@ -54,33 +58,12 @@ jobs:
   
   # job: Mac OS/X raw ("build-release"). This job builds in Release mode, used for Python tests & for providing OSX binary release. 
   osx-build-release:
-    macos:
-      xcode: '10.1.0'
-    working_directory: ~/numenta/htm.core
-    parallelism: 1
-    environment:
-      XCODE_SCHEME: htm
-      XCODE_WORKSPACE: htm
-      ARCHFLAGS: -arch x86_64
-    steps:
-      # Machine Setup
-      - run:
-          name: Make sure to use OS X in CircleCI Web UI
-          command: |
-            if [[ "$OSTYPE" != "darwin"* ]]; then
-              echo "Must set option to use OS X in CircleCI Web UI" && exit 1;
-            fi
-      - run: sudo systemsetup -settimezone 'GMT'
       - run:
           name: Restoring system python
           command: |
             echo 'python version: ' && python --version
             echo 'pip version: ' && python -m pip --version
             echo 'python version: ' && python --version
-      - run:
-          name: Installing cmake
-          command: brew install cmake || brew install cmake
-      - checkout
       # Dependencies
       # Restore the dependency cache
       #      - restore_cache:
@@ -136,7 +119,8 @@ jobs:
             make package
 
       - store_artifacts:
-          path: dist/*.whl
+          path: build/scripts/*.tar.gz
+
       ##- persist_to_workspace:
       ##    root: dist
       ##    paths:
@@ -193,7 +177,11 @@ workflows:
   osx-build-test-deploy: #runs on each commit
     jobs:
       - osx-build-debug    # Mac OS/X raw ("build-debug")
+          requires:
+            - setup
       - osx-build-release  # Mac OS/X raw ("build-release")
+          requires:
+            - setup
 
   nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
     triggers:
