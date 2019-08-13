@@ -49,9 +49,7 @@ set(CORE_LIB_INCLUDES  ${CORE_LIB_INCLUDES} PARENT_SCOPE)
 # Create Version.hpp
 # Extract current git sha and record in htm/Version.hpp.in
 #
-execute_process(COMMAND git rev-parse HEAD
-                OUTPUT_VARIABLE HTM_CORE_VERSION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(HTM_CORE_VERSION ${VERSION})
 configure_file(
   "${PROJECT_SOURCE_DIR}/htm/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")

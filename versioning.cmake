@@ -18,64 +18,75 @@
 # -----------------------------------------------------------------------------
 
 
-# figures out the version from git and returns Version, Major, Minor, Patch
+# This function figures out the version from git and returns Version, Major, Minor, Patch
 #
+#  This function will query git to find the most recent tag by calling 
+#       git describe --tags
+#  If there is a tag on the PR then this will be an exact match and this 
+#  determins the version.  If there have been commits
+#  since the tag it may contain additional info relating to the commit.
+#
+#  Once we have the version, we parse out the Major, Minor, and Patch components
+#  and we write the version into the VERSION file if its different.
+#  The components VERSION, MAJOR, MINOR, and PATCH are returned to
+#  the top level CMakeLists.txt file.  The VERSION file's value is also
+#  integrated into the created version.h file which is part of the 
+#  includes folder in the GitHub binary distribution.
+#
+#  These four components are used to create the GitHub release package during
+#  packaging.   The value in VERSION file will be used by setup.py to set
+#  the version when it creates the wheel file which is the package for PYPI.
+#
+#  If someone should try to build without having cloned the repository
+#  (just downloaded a tag.gz or zip), it will just use the current value 
+#  in the VERSION file.
 
 function(get_versions version major minor patch)
+    # do we have Git installed and are we in a repository?
 	find_package(Git)
 	if(GIT_FOUND)
 		execute_process(COMMAND "${GIT_EXECUTABLE}" log --pretty=format:'%h' -n 1
-	                OUTPUT_VARIABLE GIT_REV
+	        OUTPUT_VARIABLE GIT_REV
 			OUTPUT_STRIP_TRAILING_WHITESPACE
-	                ERROR_QUIET)
+	        ERROR_QUIET)
 	endif()
-	# Check whether we got any revision (which isn't
-	# always the case, e.g. when someone downloaded a zip
-	# file from Github instead of a checkout
+	# Check whether we got any revision; which isn't
+	# always the case, e.g. when someone downloaded a tar.gz or zip
+	# file from Github instead of a checkout...
+    # or maybe git is not even installed.
 	if ("${GIT_REV}" STREQUAL "")
-	    set(GIT_TAG "0.0.0")
-	    set(GIT_BRANCH "No branch")
 	    # use the version already in the VERSION file.
 	    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/VERSION)
-	       file(READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION m_m_p_)
-	    else()
-	       set(m_m_p_ "0.0.0")
+	       file(READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION GIT_TAG)
 	    endif()
-	    set(${m_version} ${m_m_p_} PARENT_SCOPE)	    
 	else()
-	    string(SUBSTRING "${GIT_REV}" 1 7 GIT_REV)
 	    
 	    # see if there as a tag set on this PR
 	    execute_process(
 	        COMMAND "${GIT_EXECUTABLE}" describe --exact-match --tags
 	        OUTPUT_VARIABLE GIT_TAG 
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		ERROR_QUIET)
-	    execute_process(
-	        COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
-	        OUTPUT_VARIABLE GIT_BRANCH
-		OUTPUT_STRIP_TRAILING_WHITESPACE)
-        
+		    OUTPUT_STRIP_TRAILING_WHITESPACE
+		    ERROR_QUIET)
     
 	    if ("${GIT_TAG}" STREQUAL "")
 	        execute_process(
 	            COMMAND "${GIT_EXECUTABLE}" describe --tags
 	            OUTPUT_VARIABLE GIT_TAG 
-		    OUTPUT_STRIP_TRAILING_WHITESPACE
-		    ERROR_QUIET)
+		        OUTPUT_STRIP_TRAILING_WHITESPACE
+		        ERROR_QUIET)
 	    endif()
+    endif()
     
-	    if ("${GIT_TAG}" STREQUAL "")
-	        set(m_version ${GIT_REV})
+    if ("${GIT_TAG}" STREQUAL "")
+        set(m_version ${GIT_REV})
 		set(${version} ${m_version} PARENT_SCOPE)
 		set(${major}   0 PARENT_SCOPE)
 		set(${minor}   0 PARENT_SCOPE)
 		set(${patch}   0 PARENT_SCOPE)
 		return()
-	    else()
-	        set(m_version ${GIT_TAG})
-	    endif()
-	endif()
+    else()
+        set(m_version ${GIT_TAG})
+    endif()
 
    
 	string(REGEX REPLACE "^([vV])([0-9]*)([.][0-9]*[.][0-9]*-?.*)$" "\\2" numbers ${m_version} )
