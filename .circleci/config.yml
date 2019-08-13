@@ -176,10 +176,10 @@ workflows:
   version: 2
   osx-build-test-deploy: #runs on each commit
     jobs:
-      - osx-build-debug    # Mac OS/X raw ("build-debug")
+      - osx-build-debug:    # Mac OS/X raw ("build-debug")
           requires:
             - setup
-      - osx-build-release  # Mac OS/X raw ("build-release")
+      - osx-build-release:  # Mac OS/X raw ("build-release")
           requires:
             - setup
             - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
