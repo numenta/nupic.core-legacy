@@ -853,9 +853,6 @@ public:
 
   void clip_(vector<Real> &perm) const;
 
-  void raisePermanencesToThreshold_(vector<Real> &perm,
-                                    const vector<UInt> &potential) const;
-
   /**
       Performs inhibition. This method calculates the necessary values needed to
       actually perform inhibition and then delegates the task of picking the

@@ -17,5 +17,5 @@
 # ----------------------------------------------------------------------
 """
 All modules here are runnable; they all have main functions.
-Run examples from the command line EG: `$ python -m htm.examples.hotgym`
+Run examples from the command line eg: `$ python -m htm.examples.hotgym`
 """
