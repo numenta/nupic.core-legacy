@@ -25,6 +25,7 @@ matrix:
             - cmake-data
             - xsltproc #only for doc transform to html , can be removed
             - valgrind
+            - wget # for downloading artifacts
       env:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
         - PLATFORM="linux"
@@ -59,13 +60,16 @@ before_deploy:
   - python $TRAVIS_BUILD_DIR/setup.py bdist_wheel
   - echo "Generating binary release:"
   - make package
+  - ../../ci/fetch-artifacts.sh
+
 
 deploy:
 ## Github releases
+# API: https://docs.travis-ci.com/user/deployment/releases/
   provider: releases
   api_key: "$GITHUB_TOKEN"
   file_glob: true # allows '*' in file below
-  file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
+  file: "$TRAVIS_BUILD_DIR/build/scripts/*.{tar.gz,zip}"
   skip_cleanup: true
   name: "testing" # GH Release name, undocumented option
   on:
