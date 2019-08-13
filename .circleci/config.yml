@@ -134,9 +134,14 @@ jobs:
             python setup.py bdist_wheel
             cd build/scripts
             make package
+            mkdir -p /tmp/uploads
+            cp -a *.tar.gz /tmp/uploads
 
+      # API for storing and downloading artifacts to/from CI:
+      # https://circleci.com/docs/2.0/artifacts/
       - store_artifacts:
-          path: dist/*.whl
+          path: /tmp/uploads
+
       ##- persist_to_workspace:
       ##    root: dist
       ##    paths:
@@ -190,10 +195,14 @@ jobs:
 
 workflows:
   version: 2
+
   osx-build-test-deploy: #runs on each commit
     jobs:
       - osx-build-debug    # Mac OS/X raw ("build-debug")
-      - osx-build-release  # Mac OS/X raw ("build-release")
+      - osx-build-release:  # Mac OS/X raw ("build-release")
+          requires:
+            - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
+
 
   nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
     triggers:
