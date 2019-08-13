@@ -133,6 +133,22 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
     assert(encoder.parameters.activeBits == 20)
     assert(not encoder.parameters.tokenSimilarity)
 
+  # Make sure bits stay the same across uses and envrionments
+  def testDeterminism(self):
+    GOLD = SDR(1000)
+    GOLD.sparse = [ 14, 16, 60, 76, 114, 117, 144, 174, 188, 242, 244, 246,
+      291, 315, 340, 368, 373, 378, 384, 387, 400, 402, 408, 412, 417, 431,
+      433, 449, 471, 475, 520, 539, 548, 552, 587, 613, 624, 639, 721, 726,
+      753, 799, 805, 807, 822, 843, 879, 912, 956, 975 ]
+
+    params = SimHashDocumentEncoderParameters()
+    params.size = GOLD.size
+    params.sparsity = 0.05
+    encoder = SimHashDocumentEncoder(params)
+    current = encoder.encode("I came to the fork in the road")
+
+    assert(current == GOLD)
+
   # Test a basic encoding, try a few failure cases
   def testEncoding(self):
     params = SimHashDocumentEncoderParameters()
