@@ -149,20 +149,20 @@ artifacts:
 #         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:HTM_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
 #       }
 
-deploy:
-## GitHub
-# Deploy to GitHub Releases
-# see https://www.appveyor.com/docs/deployment/github/
-#
-  release: 'testing' #htmcore-win64-v$(appveyor_build_version)
-  description: 'HTM.core binary release for Windows (64bit)' #desc is mandatory
-  provider: GitHub
-  auth_token: 
-    secure: "%GITHUB_TOKEN%"
-  artifact: '\build\scripts\*.zip' # upload .zip from 'make package'
-  draft: false
-  prerelease: false
-  force_update: true #override files in existing release
-  on:
-    branch: master                # release from master branch only
-    appveyor_repo_tag: true       # deploy on tag push only
+    #deploy:
+    ### GitHub
+    ## Deploy to GitHub Releases
+    ## see https://www.appveyor.com/docs/deployment/github/
+    ##
+    #  release: 'testing' #htmcore-win64-v$(appveyor_build_version)
+    #  description: 'HTM.core binary release for Windows (64bit)' #desc is mandatory
+    #  provider: GitHub
+    #  auth_token: 
+    #    secure: "%GITHUB_TOKEN%"
+    #  artifact: '\build\scripts\*.zip' # upload .zip from 'make package'
+    #  draft: false
+    #  prerelease: false
+    #  force_update: true #override files in existing release
+    #  on:
+    #    branch: master                # release from master branch only
+    #    appveyor_repo_tag: true       # deploy on tag push only
