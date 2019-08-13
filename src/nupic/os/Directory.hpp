@@ -79,7 +79,7 @@ class Iterator {
 public:
   Iterator(const Path &path);
   Iterator(const std::string &path);
-  ~Iterator();
+  ~Iterator() noexcept(false);
 
   // Resets directory to start. Subsequent call to next()
   // will retrieve the first entry
