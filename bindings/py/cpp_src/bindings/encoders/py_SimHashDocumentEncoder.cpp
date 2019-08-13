@@ -86,19 +86,17 @@ than their lower-cased (a-z) counterparts? Or the same influence on output?
 R"(
 This allows similar tokens ("cat", "cats") to also be represented similarly,
 at the cost of document similarity accuracy. Default is FALSE (providing better
-document-level similarity, at the expense of token-level similarity).
-
-Results are heavily dependent on the content of your input data.
-
-If TRUE: Similar tokens ("cat", "cats") will have similar influence on the
-  output simhash. This benefit comes with the cost of a reduction in
-  document-level similarity accuracy.
-
-If FALSE: Similar tokens ("cat", "cats") will have individually unique and
-  unrelated influence on the output simhash encoding, thus losing token-level
-  similarity and increasing document-level similarity.
+document-level similarity, at the expense of token-level similarity). This could
+be use to meaningfully encode plurals and mis-spellings as similar. It may also
+be hacked to create a complex dimensional category encoder. Results are heavily
+dependent on the content of your input data.
+  If TRUE: Similar tokens ("cat", "cats") will have similar influence on the
+    output simhash. This benefit comes with the cost of a reduction in
+    document-level similarity accuracy.
+  If FALSE: Similar tokens ("cat", "cats") will have individually unique and
+    unrelated influence on the output simhash encoding, thus losing token-level
+    similarity and increasing document-level similarity.
 )");
-
 
     /**
      * Class
@@ -130,7 +128,7 @@ Extendible Output Function (XOF). We deviate slightly from the standard
 SimHash algorithm in order to achieve sparsity.
 
 To inspect this run:
-$ python -m htm.encoders.simhash_document_encoder --help
+$ python -m htm.examples.encoders.simhash_document_encoder --help
 
 Python Code Example:
     from htm.bindings.encoders import SimHashDocumentEncoder
@@ -165,13 +163,20 @@ are filled in automatically.
 )");
 
     py_SimHashDocumentEncoder.def_property_readonly("dimensions",
-      [](SimHashDocumentEncoder &self) { return self.dimensions; });
+      [](SimHashDocumentEncoder &self) { return self.dimensions; },
+R"(
+This is the total number of bits in the encoded output SDR.
+)");
 
     py_SimHashDocumentEncoder.def_property_readonly("size",
-      [](SimHashDocumentEncoder &self) { return self.size; });
+      [](SimHashDocumentEncoder &self) { return self.size; },
+R"(
+This is the total number of bits in the encoded output SDR.
+)");
 
     // Handle case of class method overload + class method override
     // https://pybind11.readthedocs.io/en/master/classes.html#overloaded-methods
+    // prepare
     py_SimHashDocumentEncoder.def("encode",
       (void (SimHashDocumentEncoder::*)(std::map<std::string, htm::UInt>, htm::SDR &))
         &SimHashDocumentEncoder::encode);
@@ -181,7 +186,7 @@ are filled in automatically.
     py_SimHashDocumentEncoder.def("encode", // alt: simple string w/o weights
       (void (SimHashDocumentEncoder::*)(std::string, htm::SDR &))
         &SimHashDocumentEncoder::encode);
-
+    // define
     py_SimHashDocumentEncoder.def("encode",
       [](SimHashDocumentEncoder &self, std::map<std::string, htm::UInt> value) {
         auto output = new SDR({ self.size });
@@ -227,7 +232,10 @@ Documents can contain any number of tokens > 0. Token order in the document is
     py_SimHashDocumentEncoder.def("loadFromString", [](SimHashDocumentEncoder& self, const py::bytes& inString) {
       std::stringstream inStream(inString.cast<std::string>());
       self.load(inStream);
-    });
+    },
+R"(
+Deserialize bytestring into current instance.
+)");
     // string out
     py_SimHashDocumentEncoder.def("writeToString", [](const SimHashDocumentEncoder& self) {
       std::ostringstream os;
@@ -235,7 +243,10 @@ Documents can contain any number of tokens > 0. Token order in the document is
       os.precision(numeric_limits<double>::digits10 + 1);
       self.save(os);
       return py::bytes( os.str() );
-    });
+    },
+R"(
+Serialize current encoder instance out to a bytestring.
+)");
     // pickle
     py_SimHashDocumentEncoder.def(py::pickle(
       // pickle out

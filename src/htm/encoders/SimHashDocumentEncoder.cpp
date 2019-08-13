@@ -75,7 +75,7 @@ namespace htm {
     NTA_CHECK(args_.activeBits < args_.size);
 
     // Initialize parent class with finalized params
-    BaseEncoder<std::vector<std::string>>::initialize({ args_.size });
+    BaseEncoder<std::map<std::string, UInt>>::initialize({ args_.size });
   } // end method initialize
 
   /**

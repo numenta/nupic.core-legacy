@@ -66,7 +66,10 @@ namespace htm {
      * @param :tokenSimilarity: In addition to document similarity, we can also
      *  achieve a kind of token similarity. Default is FALSE (providing better
      *  document-level similarity, at the expense of token-level similarity).
-     *  Results are heavily dependent on the content of your input data.
+     *  This could be use to meaningfully encode plurals and mis-spellings as
+     *  similar. It may also be hacked to create a complex dimensional category
+     *  encoder. Results are heavily dependent on the content of your
+     *  input data.
      *    If TRUE: Similar tokens ("cat", "cats") will have similar influence
      *      on the output simhash. This benefit comes with the cost of a
      *      probable reduction in document-level similarity accuracy.
@@ -91,21 +94,18 @@ namespace htm {
    * "computer" will have no relation here.) For document encodings which are
    * also semantic, please try Cortical.io and their Semantic Folding encoding.
    *
+   * In addition to document similarity, an option is provided to toggle if
+   * token similarity "near-spellings" (such as "cat" and "cats") will receieve
+   * similar encodings or not. Another option is provided for manging
+   * English-language token case in/sensitivity.
+   *
    * Definition of Terms:
    *    A "corpus" is a collection of "documents".
    *    A "document" is made up of "tokens" (or "words").
    *    A "token" is made up of "characters" (or "letters").
    *
-   * Encoding is accomplished using SimHash, a Locality-Sensitive Hashing (LSH)
-   * algorithm from the world of nearest-neighbor document similarity search.
-   * As SDRs can be of any size, we use the SHA3 hashing algorithm with the
-   * SHAKE256 Extendible Output Function (XOF). We deviate slightly from the
-   * standard SimHash algorithm in order to achieve sparsity.
-   *
-   * In addition to document similarity, an option is provided to toggle if
-   * token similarity "near-spellings" (such as "cat" and "cats") will receieve
-   * similar encodings or not. Another option is provided for manging
-   * English-language token case in/sensitivity.
+   * For details on the SimHash Algorithm itself, please see nearby file:
+   *    SimHashDocumentEncoder.README.md
    *
    * @code
    *    #include <htm/encoders/SimHashDocumentEncoder.hpp>
@@ -123,9 +123,9 @@ namespace htm {
    *
    * @see BaseEncoder.hpp
    * @see SimHashDocumentEncoder.cpp
-   * @see Serializable.hpp
+   * @see SimHashDocumentEncoder.README.md
    */
-  class SimHashDocumentEncoder : public BaseEncoder<std::vector<std::string>> {
+  class SimHashDocumentEncoder : public BaseEncoder<std::map<std::string, UInt>> {
   public:
     /**
      * Constructor
@@ -169,7 +169,7 @@ namespace htm {
      * @see encode(const std::vector<std::string> input, SDR &output)
      * @see encode(std::string input, SDR &output)
      */
-    void encode(const std::map<std::string, UInt> input, SDR &output);
+    void encode(const std::map<std::string, UInt> input, SDR &output) override;
 
     /**
      * Encode (Alternate calling style: Simple token list method)
@@ -186,7 +186,7 @@ namespace htm {
      * @see encode(const std::map<std::string, UInt> input, SDR &output)
      * @see encode(std::string input, SDR &output)
      */
-    void encode(const std::vector<std::string> input, SDR &output) override;
+    void encode(const std::vector<std::string> input, SDR &output);
 
     /**
      * Encode (Alternate calling style: Simple string method)
@@ -233,7 +233,7 @@ namespace htm {
       ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("size", args_.size));
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
-      BaseEncoder<std::vector<std::string>>::initialize({ args_.size });
+      BaseEncoder<std::map<std::string, UInt>>::initialize({ args_.size });
     }
 
     ~SimHashDocumentEncoder() override {};
