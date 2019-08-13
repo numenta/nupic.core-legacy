@@ -196,8 +196,8 @@ workflows:
     jobs:
       - osx-build-debug    # Mac OS/X raw ("build-debug")
       - osx-build-release:  # Mac OS/X raw ("build-release")
-        requires:
-          - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
+          requires:
+            - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
 
 
   nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
