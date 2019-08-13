@@ -11,7 +11,7 @@ jobs:
   # job: Mac OS/X raw ("build-debug"). This job runs C++ tests in Debug mode (=with extra checks)
   osx-build-debug:
     macos:
-      xcode: '10.1.0'
+      xcode: '11.0.0'
     working_directory: ~/numenta/htm.core
     parallelism: 1
     environment:
@@ -55,7 +55,7 @@ jobs:
   # job: Mac OS/X raw ("build-release"). This job builds in Release mode, used for Python tests & for providing OSX binary release. 
   osx-build-release:
     macos:
-      xcode: '10.1.0'
+      xcode: '11.0.0'
     working_directory: ~/numenta/htm.core
     parallelism: 1
     environment:
@@ -74,9 +74,9 @@ jobs:
       - run:
           name: Restoring system python
           command: |
+            echo 'default to python3' && rm /usr/local/bin/python && ln -s /usr/local/bin/python3 /usr/local/bin/python
             echo 'python version: ' && python --version
             echo 'pip version: ' && python -m pip --version
-            echo 'python version: ' && python --version
       - run:
           name: Installing cmake
           command: brew install cmake || brew install cmake

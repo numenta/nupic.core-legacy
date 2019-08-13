@@ -311,6 +311,9 @@ if __name__ == "__main__":
   # CMake also copies all py files into place in DISTR_DIR
   getExtensionFiles(platform, build_type)
 
+  with open(os.path.join(REPO_DIR, "README.md"), "r") as fh:
+    long_description = fh.read()
+
   """
   set the default directory to the distr, and package it.
   """
@@ -343,25 +346,32 @@ if __name__ == "__main__":
       "clean": CleanCommand,
       "test": TestCommand,
     },
-    description="Python package for htm.core.",
     author="Numenta & HTM Community",
     author_email="help@numenta.org",
     url="https://github.com/htm-community/htm.core",
-    long_description = "HTM Community Edition of Numenta's Platform for Intelligent Computing (NuPIC)",
+    description = "HTM Community Edition of Numenta's Platform for Intelligent Computing (NuPIC) htm.core",
+    long_description = long_description,
+    long_description_content_type="text/markdown",
     license = "GNU Affero General Public License v3 or later (AGPLv3+)",
     classifiers=[
       "Programming Language :: Python",
-      "Programming Language :: Python :: 2",
       "Programming Language :: Python :: 3",
       "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
       "Operating System :: MacOS :: MacOS X",
       "Operating System :: POSIX :: Linux",
+      "Operating System :: POSIX :: BSD",
       "Operating System :: Microsoft :: Windows",
+      "Operating System :: OS Independent",
       # It has to be "5 - Production/Stable" or else pypi rejects it!
       "Development Status :: 5 - Production/Stable",
       "Environment :: Console",
       "Intended Audience :: Science/Research",
-      "Topic :: Scientific/Engineering :: Artificial Intelligence"
+      "Intended Audience :: Developers",
+      "Intended Audience :: Education",
+      "Topic :: Scientific/Engineering :: Artificial Intelligence",
+      "Natural Language :: English",
+      "Programming Language :: C++",
+      "Programming Language :: Python"
     ],
     entry_points = {
       "console_scripts": [
