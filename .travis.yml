@@ -78,7 +78,6 @@ for i in `seq 10`; do
     break
   fi
 done
-
   - echo "Fetching OSX artifacts:" |
 retry=false
 for i in `seq 10`; do
