@@ -18,7 +18,6 @@ for i in `seq 10`; do
   else
     echo "happy"
     ls *.zip
-    ls *.gz
     break
   fi
 done
@@ -34,8 +33,17 @@ for i in `seq 10`; do
     retry=false
   else
     echo "happy"
-    ls *.zip
     ls *.gz
     break
   fi
 done
+
+# extract the wheel files for deploying to PYPI
+mkdir artifacts
+unzip *.zip -d artifacts
+cd artifacts
+tar -xf ../*.gz
+cp */py/*.whl ..
+cd ..
+#rm -r artifacts
+

@@ -76,7 +76,22 @@ deploy:
     tags: true #GH requires tagged release
     branch: master
     repo: htm-community/htm.core
-
+   
+  ## PYPI releases 
+  provider: pypi 
+  user: "__token__"   # token for PYPI test account for David Keeney.  Not for production
+  password: "pypi-AgENdGVzdC5weXBpLm9yZwIkOTk0YmZjNGYtZTgxNS00Yjk2LTg5ZTAtODE1MGI4MjZhNGZlAAIleyJwZXJtaXNzaW9ucyI6ICJ1c2VyIiwgInZlcnNpb24iOiAxfQAABiDXJOuxvodsEDoD5dOH-e0td1DdUSwrl2NCl_lP_vy6RA"
+  server: "https://test.pypi.org/legacy/"
+  on:
+    tags: true
+    branch: master
+    repo: htm-community/htm.core
+  distributions: "bdist_wheel"
+  file_glob: true # allows '*' in file below
+  file: "$TRAVIS_BUILD_DIR/build/scripts/*.whl"
+  skip_existing: true
+  skip_cleanup: true
+     
 notifications:
 #  email:
 #    recipients:
