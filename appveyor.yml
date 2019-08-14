@@ -105,6 +105,8 @@ build_script:
   - python -m pip install --user --upgrade pip setuptools setuptools-scm wheel || exit
   - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
+  # we need to find the previous git tags so a shallow clone is not enough
+  - git fetch --unshallow
 
   # Build the library with the python interface (64bit Release build)
   - cd %HTM_CORE%
