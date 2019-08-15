@@ -49,9 +49,7 @@ set(CORE_LIB_INCLUDES  ${CORE_LIB_INCLUDES} PARENT_SCOPE)
 # Create Version.hpp
 # Extract current git sha and record in htm/Version.hpp.in
 #
-execute_process(COMMAND git rev-parse HEAD
-                OUTPUT_VARIABLE HTM_CORE_VERSION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(HTM_CORE_VERSION ${VERSION})
 configure_file(
   "${PROJECT_SOURCE_DIR}/htm/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")
@@ -455,10 +453,10 @@ install(DIRECTORY "${CMAKE_INSTALL_PREFIX}/distr/dist/"
 set(CPACK_PACKAGE_NAME "htm.core")
 set(CPACK_PACKAGE_VENDOR "https://github.com/htm-community/htm.core")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "htm.core - Community implementation of Numenta's algorthms.")
-set(CPACK_PACKAGE_VERSION "2.0.0")
-set(CPACK_PACKAGE_VERSION_MAJOR "2")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_VERSION ${VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR ${MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PATCH})
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "htm.core")
 
 if(MSVC)
@@ -467,5 +465,5 @@ else()
 	set(CPACK_GENERATOR "TGZ")
 endif()
 set(CPACK_RESOURCE_FILE_LICENSE "${REPOSITORY_DIR}/LICENSE.txt")
-set(CPACK_PACKAGE_FILE_NAME "htm_core-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
+set(CPACK_PACKAGE_FILE_NAME "htm_core-${VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
 include(CPack)
