@@ -56,6 +56,20 @@ namespace htm {
       << "Need only one argument of: 'activeBits' or 'sparsity'.";
     NTA_CHECK(parameters.size > 0u)
       << "Missing 'size' argument.";
+    if ((parameters.tokenFrequencyCeiling > 0) && (parameters.tokenFrequencyFloor > 0)) {
+      NTA_CHECK(parameters.tokenFrequencyCeiling > parameters.tokenFrequencyFloor)
+        << "Argument 'tokenFrequencyCeiling' should be greater than argument 'tokenFrequencyFloor'.";
+    }
+    if (!parameters.tokenSimilarity) {
+      NTA_CHECK(parameters.charFrequencyCeiling == 0)
+        << "Argument 'charFrequencyCeiling' requires argument 'tokenSimilarity'.";
+      NTA_CHECK(parameters.charFrequencyFloor == 0)
+        << "Argument 'charFrequencyFloor' requires argument 'tokenSimilarity'.";
+      if ((parameters.charFrequencyCeiling > 0) && (parameters.charFrequencyFloor > 0)) {
+        NTA_CHECK(parameters.charFrequencyCeiling > parameters.charFrequencyFloor)
+          << "Argument 'charFrequencyCeiling' should be greater than argument 'charFrequencyFloor'.";
+      }
+    }
 
     // Make local copy of arguments for processing
     args_ = parameters;
@@ -91,31 +105,70 @@ namespace htm {
 
     Eigen::MatrixXi adders(args_.size, 0u);
     Eigen::VectorXi hashBits(args_.size);
-    std::vector<UInt> simBits(args_.size, 0u);
+    std::map<std::string, UInt> histogramToken;
     SDR result({ args_.size });
+    std::vector<UInt> simBits(args_.size, 0u);
 
     hashBits = Eigen::VectorXi::Zero(args_.size);
     result.zero();
 
+    LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+    NTA_DEBUG << "! input.size = " << input.size();
+
     for (const auto& member : input) {
       std::string token = member.first;
       UInt tokenWeight = member.second;
+      std::map<std::string, UInt> histogramChar;
 
+      // caseSensitivity
       if (!args_.caseSensitivity) {
         transform(token.begin(), token.end(), token.begin(), ::tolower);
+      }
+
+      // token frequency floor and ceiling
+      if (histogramToken.count(token) <= 0) { histogramToken[token] = 1; }
+      else { histogramToken[token]++; }
+      LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+      NTA_DEBUG << "- hist  " << token << " " << histogramToken[token];
+      if ((histogramToken[token] < args_.tokenFrequencyFloor) ||
+          (histogramToken[token] > args_.tokenFrequencyCeiling) ) {
+        NTA_DEBUG << "-- skipping";
+        continue;  // discard token
       }
 
       if (args_.tokenSimilarity) {
         // generate hash digest for every single character individually
         for (const auto& letter : token) {
-          hashToken_(std::string(1u, letter), hashBits);
+          const std::string letterStr = std::string(1u, letter);
+
+          // char frequency floor and ceiling
+          // if (histogramChar.count(letterStr) <= 0) {
+          //   histogramChar[letterStr] = 1;
+          // }
+          // else {
+          //   histogramChar[letterStr]++;
+          // }
+          // if ((histogramChar[letterStr] < args_.charFrequencyFloor) ||
+          //     (histogramChar[letterStr] > args_.charFrequencyCeiling) ) {
+          //   continue;  // discard char
+          // }
+
+          // hash character
+          LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+          NTA_DEBUG << "  " << letterStr;
+          hashToken_(letterStr, hashBits);
           bitsToWeightedAdder_(tokenWeight, hashBits);
           addVectorToMatrix_(hashBits, adders);
         }
         tokenWeight = (UInt) (tokenWeight * 1.5); // balance token with letters
       }
 
+          LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+          NTA_DEBUG << "  ";
+
       // generate hash digest for whole token string
+      LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+      NTA_DEBUG << " " << token;
       hashToken_(token, hashBits);
       bitsToWeightedAdder_(tokenWeight, hashBits);
       addVectorToMatrix_(hashBits, adders);
@@ -242,11 +295,15 @@ namespace htm {
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self)
   {
     out << "SimHashDocumentEncoder \n";
-    out << "  activeBits:       " << self.parameters.activeBits       << ",\n";
-    out << "  size:             " << self.parameters.size             << ",\n";
-    out << "  sparsity:         " << self.parameters.sparsity         << ",\n";
-    out << "  caseSensitivity:  " << self.parameters.caseSensitivity  << ",\n";
-    out << "  tokenSimilarity:  " << self.parameters.tokenSimilarity  << ",\n";
+    out << "  activeBits:            " << self.parameters.activeBits            << ",\n";
+    out << "  size:                  " << self.parameters.size                  << ",\n";
+    out << "  sparsity:              " << self.parameters.sparsity              << ",\n";
+    out << "  charFrequencyCeiling:  " << self.parameters.charFrequencyCeiling  << ",\n";
+    out << "  charFrequencyFloor:    " << self.parameters.charFrequencyFloor    << ",\n";
+    out << "  caseSensitivity:       " << self.parameters.caseSensitivity       << ",\n";
+    out << "  tokenFrequencyCeiling: " << self.parameters.tokenFrequencyCeiling << ",\n";
+    out << "  tokenFrequencyFloor:   " << self.parameters.tokenFrequencyFloor   << ",\n";
+    out << "  tokenSimilarity:       " << self.parameters.tokenSimilarity       << ",\n";
     return out;
   }
 

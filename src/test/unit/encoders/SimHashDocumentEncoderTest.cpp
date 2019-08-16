@@ -34,9 +34,9 @@ namespace testing {
   // Human-readable basic use-case strings (see `testBasicExampleUseCase` below)
   //  * 1 vs 2 = very similar and should receive similar encodings
   //  * 2 vs 3 = very different and should receive differeing encodings
-  std::string testDocEasy1 = "The sky is beautiful today";
-  std::string testDocEasy2 = "The sun is beautiful today"; // similar above, differ below
-  std::string testDocEasy3 = "Who did my homework  today";
+  const std::string testDocEasy1 = "The sky is beautiful today";
+  const std::string testDocEasy2 = "The sun is beautiful today"; // similar above, differ below
+  const std::string testDocEasy3 = "Who did my homework  today";
   // Basic test strings
   const std::vector<std::string> testDoc1 =
     { "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
@@ -136,6 +136,24 @@ namespace testing {
     SimHashDocumentEncoder encoder4(params4);
     ASSERT_EQ(encoder4.parameters.size, params4.size);
     ASSERT_EQ(encoder4.parameters.activeBits, 20u);
+
+    // test bad encoder params - `charFrequency*` require `tokenSimilarity`
+    SimHashDocumentEncoderParameters params5;
+    params5.size = 400u;
+    params5.activeBits = 20u;
+    params5.charFrequencyCeiling = 6;
+    params5.charFrequencyFloor = 3;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
+
+    // test bad encoder params - charFrequency should be ceiling > floor
+    params5.charFrequencyCeiling = 3;
+    params5.charFrequencyFloor = 6;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
+
+    // test bad encoder params - tokenFrequency should be ceiling > floor
+    params5.tokenFrequencyCeiling = 3;
+    params5.tokenFrequencyFloor = 6;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
   }
 
   // Test a basic encoding, try a few failure cases
@@ -153,6 +171,67 @@ namespace testing {
 
     ASSERT_EQ(output.size, params.size);
     ASSERT_EQ(output.getSum(), params.activeBits);
+  }
+
+  // Test character frequency floor/ceiling
+  TEST(SimHashDocumentEncoder, testFrequencyChar) {
+    const std::string charTokens = "abbbbccc aabccc aaabcc aabc aabbcccc";
+
+    SimHashDocumentEncoderParameters params1;
+    params1.size = 400u;
+    params1.activeBits = 20u;
+    params1.tokenSimilarity = true;
+    SimHashDocumentEncoder encoder1(params1);
+    SDR output1({ encoder1.size });
+    encoder1.encode(charTokens, output1);
+
+    SimHashDocumentEncoderParameters params2;
+    params2 = params1;
+    params2.charFrequencyFloor = 1;
+    SimHashDocumentEncoder encoder2(params2);
+    SDR output2({ encoder2.size });
+    encoder2.encode(charTokens, output2);
+
+    SimHashDocumentEncoderParameters params3;
+    params3 = params1;
+    params2.charFrequencyCeiling = 4;
+    SimHashDocumentEncoder encoder3(params3);
+    SDR output3({ encoder3.size });
+    encoder3.encode(charTokens, output3);
+
+    ASSERT_NE(output1, output2);
+    ASSERT_NE(output1, output3);
+    ASSERT_NE(output2, output3);
+  }
+
+  // Test token frequency floor/ceiling
+  TEST(SimHashDocumentEncoder, testFrequencyToken) {
+    const std::string tokens = "a a a b b c d d d d e e f"; // min 1 max 4
+
+    SimHashDocumentEncoderParameters params1;
+    params1.size = 400u;
+    params1.activeBits = 20u;
+    SimHashDocumentEncoder encoder1(params1);
+    SDR output1({ encoder1.size });
+    encoder1.encode(tokens, output1);
+
+    SimHashDocumentEncoderParameters params2;
+    params2 = params1;
+    params2.tokenFrequencyFloor = 1;
+    SimHashDocumentEncoder encoder2(params2);
+    SDR output2({ encoder2.size });
+    encoder2.encode(tokens, output2);
+
+    SimHashDocumentEncoderParameters params3;
+    params3 = params1;
+    params2.tokenFrequencyCeiling = 4;
+    SimHashDocumentEncoder encoder3(params3);
+    SDR output3({ encoder3.size });
+    encoder3.encode(tokens, output3);
+
+    ASSERT_NE(output1, output2);
+    ASSERT_NE(output1, output3);
+    ASSERT_NE(output2, output3);
   }
 
   // Test Serialization and Deserialization
@@ -177,7 +256,7 @@ namespace testing {
   }
 
   // Test encoding with case in/sensitivity
-  TEST(SimHashDocumentEncoder, testTokenCaseSensitivity) {
+  TEST(SimHashDocumentEncoder, testTokenCase) {
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
@@ -242,24 +321,6 @@ namespace testing {
     ASSERT_GT(output3.getOverlap(output4), output1.getOverlap(output3));
   }
 
-  // Test encoding with weighted tokens. Make sure output changes accordingly.
-  TEST(SimHashDocumentEncoder, testTokenWeightMap) {
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.33f;
-    params.tokenSimilarity = false;
-    SimHashDocumentEncoder encoder(params);
-    SDR output1({ params.size });
-    SDR output2({ params.size });
-    SDR output3({ params.size });
-
-    encoder.encode(testDocMap1, output1);
-    encoder.encode(testDocMap2, output2);
-    encoder.encode(testDocMap3, output3);
-    ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output2));
-    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
-  }
-
   // Test encoding unicode text, including with 'tokenSimilarity' on/off
   TEST(SimHashDocumentEncoder, testUnicode) {
     SimHashDocumentEncoderParameters params;
@@ -283,6 +344,24 @@ namespace testing {
     encoder2.encode(testDocUni1, output1);
     encoder2.encode(testDocUni2, output2);
     ASSERT_LT(output1.getOverlap(output2), 65u);
+  }
+
+  // Test encoding with weighted tokens. Make sure output changes accordingly.
+  TEST(SimHashDocumentEncoder, testWeights) {
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    params.tokenSimilarity = false;
+    SimHashDocumentEncoder encoder(params);
+    SDR output1({ params.size });
+    SDR output2({ params.size });
+    SDR output3({ params.size });
+
+    encoder.encode(testDocMap1, output1);
+    encoder.encode(testDocMap2, output2);
+    encoder.encode(testDocMap3, output3);
+    ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output2));
+    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
   }
 
 } // end namespace testing
