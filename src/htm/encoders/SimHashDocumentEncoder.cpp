@@ -61,12 +61,35 @@ namespace htm {
     args_ = parameters;
 
     // process: handle 'sparsity' param instead of 'activeBits' param
-    if(args_.sparsity > 0.0f) {
+    if (args_.sparsity > 0.0f) {
       NTA_CHECK((args_.sparsity >= 0.0f) && (args_.sparsity <= 1.0f))
         << "Argument 'sparsity' must be a float in the range 0.0-1.0.";
       NTA_CHECK(args_.size > 0u)
         << "Argument 'sparsity' requires that the 'size' also be given.";
       args_.activeBits = (UInt) round(args_.size * args_.sparsity);
+    }
+    // Process: handle internal case insensitivity needs
+    if (!args_.caseSensitivity) {
+      // exclusions => case insensitive
+      if (!args_.excludes.empty()) {
+        std::vector<std::string> excludesLower;
+        for (auto& token : args_.excludes) {
+          transform(token.begin(), token.end(), token.begin(), ::tolower);
+          excludesLower.push_back(token);
+        }
+        args_.excludes = excludesLower;
+      }
+      // vocabulary => case insensitive
+      if (args_.vocabulary.size() > 0) {
+        std::map<std::string, UInt> vocabLower;
+        for (const auto& pair : args_.vocabulary) {
+          std::string token = pair.first;
+          const UInt weight = pair.second;
+          transform(token.begin(), token.end(), token.begin(), ::tolower);
+          vocabLower[token] = weight;
+        }
+        args_.vocabulary = vocabLower;
+      }
     }
 
     // Post-processing, Sanity check the parameters
@@ -75,16 +98,15 @@ namespace htm {
     NTA_CHECK(args_.activeBits < args_.size);
 
     // Initialize parent class with finalized params
-    BaseEncoder<std::map<std::string, UInt>>::initialize({ args_.size });
+    BaseEncoder<std::vector<std::string>>::initialize({ args_.size });
   } // end method initialize
 
   /**
    * Encode (Main calling style)
    * @see SimHashDocumentEncoder.hpp
-   * @see encode(const std::vector<std::string> input, SDR &output)
    * @see encode(std::string input, SDR &output)
    */
-  void SimHashDocumentEncoder::encode(const std::map<std::string, UInt> input, SDR &output)
+  void SimHashDocumentEncoder::encode(const std::vector<std::string> input, SDR &output)
   {
     NTA_CHECK(input.size() > 0u)
       << "Encoding input vector array should have at least 1 string member.";
@@ -98,21 +120,47 @@ namespace htm {
     result.zero();
 
     for (const auto& member : input) {
-      std::string token = member.first;
-      UInt tokenWeight = member.second;
+      std::string token = member;
+      UInt tokenWeight;
 
+      // caseSensitivity
       if (!args_.caseSensitivity) {
         transform(token.begin(), token.end(), token.begin(), ::tolower);
       }
 
+      // excludes
+      if (!args_.excludes.empty()) {
+        if(std::find(args_.excludes.begin(), args_.excludes.end(), token) != args_.excludes.end()) {
+          continue; // skip this excluded token
+        }
+      }
+
+      // vocabulary + encodeOrphans
+      if (args_.vocabulary[token]) {
+        tokenWeight = args_.vocabulary[token];
+      }
+      else {
+        if (args_.encodeOrphans) {
+          tokenWeight = 1; // encode non-vocab token with weight 1
+        }
+        else {
+          continue; // skip non-vocab token
+        }
+      }
+
+      // tokenSimilarity
       if (args_.tokenSimilarity) {
         // generate hash digest for every single character individually
         for (const auto& letter : token) {
-          hashToken_(std::string(1u, letter), hashBits);
-          bitsToWeightedAdder_(tokenWeight, hashBits);
+          std::string letterStr = std::string(1u, letter);
+          UInt charWeight = args_.vocabulary[letterStr] ?
+                            args_.vocabulary[letterStr] : tokenWeight;
+
+          hashToken_(letterStr, hashBits);
+          bitsToWeightedAdder_(charWeight, hashBits);
           addVectorToMatrix_(hashBits, adders);
         }
-        tokenWeight = (UInt) (tokenWeight * 1.5); // balance token with letters
+        tokenWeight = (UInt) (tokenWeight * 1.5); // try to balance token with letters
       }
 
       // generate hash digest for whole token string
@@ -128,24 +176,8 @@ namespace htm {
   } // end method encode
 
   /**
-   * Encode (Alternate calling style: Simple list method)
-   * @see SimHashDocumentEncoder.hpp
-   * @see encode(const std::map<std::string, UInt> input, SDR &output)
-   * @see encode(std::string input, SDR &output)
-   */
-  void SimHashDocumentEncoder::encode(const std::vector<std::string> input, SDR &output)
-  {
-    std::map<std::string, UInt> inputWeighted;
-    for (const auto& token : input) {
-      inputWeighted[token] = 1u;
-    }
-    encode(inputWeighted, output);
-  } // end method encode (list alternate)
-
-  /**
    * Encode (Alternate calling style: Simple string method)
    * @see SimHashDocumentEncoder.hpp
-   * @see encode(const std::map<std::string, UInt> input, SDR &output)
    * @see encode(const std::vector<std::string> input, SDR &output)
    */
   void SimHashDocumentEncoder::encode(const std::string input, SDR &output)
@@ -242,11 +274,14 @@ namespace htm {
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self)
   {
     out << "SimHashDocumentEncoder \n";
-    out << "  activeBits:       " << self.parameters.activeBits       << ",\n";
-    out << "  size:             " << self.parameters.size             << ",\n";
-    out << "  sparsity:         " << self.parameters.sparsity         << ",\n";
-    out << "  caseSensitivity:  " << self.parameters.caseSensitivity  << ",\n";
-    out << "  tokenSimilarity:  " << self.parameters.tokenSimilarity  << ",\n";
+    out << "  activeBits:       " << self.parameters.activeBits        << ",\n";
+    out << "  caseSensitivity:  " << self.parameters.caseSensitivity   << ",\n";
+    out << "  encodeOrphans:    " << self.parameters.encodeOrphans     << ",\n";
+    out << "  excludes.size:    " << self.parameters.excludes.size()   << ",\n";
+    out << "  size:             " << self.parameters.size              << ",\n";
+    out << "  sparsity:         " << self.parameters.sparsity          << ",\n";
+    out << "  tokenSimilarity:  " << self.parameters.tokenSimilarity   << ",\n";
+    out << "  vocabulary.size:  " << self.parameters.vocabulary.size() << ",\n";
     return out;
   }
 

@@ -51,6 +51,25 @@ namespace htm {
     bool caseSensitivity = false;
 
     /**
+     * @param :encodeOrphans: Should we `encode()` tokens that are not in our
+     *  `vocabulary`?
+     *    If True (default): Unrecognized tokens will be added to our encoding
+     *      with weight=1. Our `vocabulary` is useful as a simple weight map.
+     *    If False: Unrecognized tokens will be discarded. Our `vocabulary`
+     *      now serves more like a whitelist (also with weights).
+     *    Any tokens in the `exclude` list will be discarded.
+     */
+    bool encodeOrphans = true;
+
+    /**
+     * @param :excludes: List of tokens to discard when passed in to `encode()`.
+     *  Terms in the `vocabulary`, and orphan terms, will be ignored if excluded
+     *  here. If `tokenSimilarity` is enabled, you can also pass in single
+     *  character (letter) strings to discard.
+     */
+    std::vector<std::string> excludes = {};
+
+    /**
      * @param :size: Total number of bits in the encoded output SDR.
      */
     UInt size = 0u;
@@ -78,6 +97,18 @@ namespace htm {
      *      token-level similarity and increasing document-level similarity.
      */
     bool tokenSimilarity = false;
+
+    /**
+     * @param :vocabulary: Map of possible document tokens with weights.
+     *    ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}.
+     *  If `encodeOrphans` is True, this will be useful like a simple weight
+     *    map. If `encodeOrphans` is False, this will be more useful as a
+     *    whitelist (still with weights).
+     *  If `tokenSimilarity` is enabled, you can also pass in single
+     *    character (letter) strings to weight.
+     *  Any tokens in the `exclude` list will be discarded.
+     */
+    std::map<std::string, UInt> vocabulary = {};
   }; // end struct SimHashDocumentEncoderParameters
 
 
@@ -94,17 +125,12 @@ namespace htm {
    * "computer" will have no relation here.) For document encodings which are
    * also semantic, please try Cortical.io and their Semantic Folding encoding.
    *
-   * In addition to document similarity, an option is provided to toggle if
-   * token similarity "near-spellings" (such as "cat" and "cats") will receieve
-   * similar encodings or not. Another option is provided for manging
-   * English-language token case in/sensitivity.
-   *
    * Definition of Terms:
    *    A "corpus" is a collection of "documents".
    *    A "document" is made up of "tokens" (or "words").
    *    A "token" is made up of "characters" (or "letters").
    *
-   * For details on the SimHash Algorithm itself, please see nearby file:
+   * For details on the SimHash Algorithm itself, please see source code file:
    *    SimHashDocumentEncoder.README.md
    *
    * @code
@@ -117,28 +143,23 @@ namespace htm {
    *
    *    SDR output({ params.size });
    *    SimHashDocumentEncoder encoder(params);
-   *    encoder.encode({{ "bravo", 2 }, { "delta", 1 }, { "echo", 3 }}, output)
-   *    encoder.encode({ "bravo", "delta", "echo" }, output)  // weights 1
-   *    encoder.encode("bravo delta echo", output)            // weights 1
+   *    encoder.encode({ "bravo", "delta", "echo" }, output); // list
+   *    encoder.encode("bravo delta echo", output);           // string
    *
    * @see BaseEncoder.hpp
    * @see SimHashDocumentEncoder.cpp
    * @see SimHashDocumentEncoder.README.md
    */
-  class SimHashDocumentEncoder : public BaseEncoder<std::map<std::string, UInt>> {
+  class SimHashDocumentEncoder : public BaseEncoder<std::vector<std::string>> {
   public:
     /**
      * Constructor
-     * @public
-     * @see BaseEncoder.hpp
      */
     SimHashDocumentEncoder() {};
     SimHashDocumentEncoder(const SimHashDocumentEncoderParameters &parameters);
 
     /**
      * Initialize
-     * @public
-     * @see BaseEncoder.hpp
      */
     void initialize(const SimHashDocumentEncoderParameters &parameters);
 
@@ -148,62 +169,35 @@ namespace htm {
     /**
      * Encode (Main calling style)
      *
-     * Each token/letter will be hashed with SHA3+SHAKE256 to get a binary
-     *  digest output of desired `size`. These vectors will be stored in a
-     *  matrix for the next step of processing.
-     * Weights are added in during hashing and simhashing.
-     * After the loop, we SimHash the matrix of hashes, resulting in an
-     *  output SDR.
-     * If param "caseSensitivity" is passed, we'll lowercase all token strings.
-     * If param "tokenSimilarity" is passed, we'll additionally loop through
-     *  all the letters in all the tokens.
-     *
-     * @param :input: Document token strings (with weights) to encode,
-     *  ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}.
-     *  Documents can contain any number of tokens > 0. Token order in the
-     *  document is ignored and does not effect the output encoding.
-     * @param :output: Result SDR to fill with result output encoding.
-     *
-     * @public
-     * @see SimHashDocumentEncoder.hpp
-     * @see encode(const std::vector<std::string> input, SDR &output)
-     * @see encode(std::string input, SDR &output)
-     */
-    void encode(const std::map<std::string, UInt> input, SDR &output) override;
-
-    /**
-     * Encode (Alternate calling style: Simple token list method)
-     *
-     * An alternate simple list calling method for Encode, no weights need to be
-     * passed in with tokens (all weights assumed to be 1).
+     * Each token will be hashed with SHA3+SHAKE256 to get a binary digest
+     * output of desired `size`. These vectors will be stored in a matrix for
+     * the next step of processing. Weights from the `vocabulary` are added in
+     * during hashing and simhashing. After the loop, we SimHash the matrix of
+     * hashes, resulting in an output SDR. If param "tokenSimilarity" is set,
+     * we'll also loop and hash through all the letters in the tokens.
      *
      * @param :input: Document token strings to encode, ex: {"what","is","up"}.
      *  Documents can contain any number of tokens > 0. Token order in the
-     *  document is ignored and does not effect the output encoding.
+     *  document is ignored and does not effect the output encoding. Tokens in
+     *  the `vocabulary` will be weighted, while others may be encoded depending
+     *  on the `encodeOrphans` param. Tokens in the `exclude` list will be
+     *  discarded.
      * @param :output: Result SDR to fill with result output encoding.
      *
-     * @public
-     * @see encode(const std::map<std::string, UInt> input, SDR &output)
      * @see encode(std::string input, SDR &output)
      */
-    void encode(const std::vector<std::string> input, SDR &output);
+    void encode(const std::vector<std::string> input, SDR &output) override;
 
     /**
      * Encode (Alternate calling style: Simple string method)
      *
-     * An alternate simple string calling method for Encode, no weights need to
-     * be passed in with tokens (all weights assumed to be 1). String will be
+     * An alternate simple string calling method for Encode. String will be
      * split into tokens based on empty whitespace characters, after trimming.
      *
      * @param :input: Document token string to encode, ex: "what is up".
      *  String will be split into tokens based on empty whitespace characters,
-     *  after trimming. Documents can contain any number of tokens > 0. Token
-     *  order in the document is ignored and does not effect the
-     *  output encoding.
      * @param :output: Result SDR to fill with result output encoding.
      *
-     * @public
-     * @see encode(const std::map<std::string, UInt> input, SDR &output)
      * @see encode(const std::vector<std::string> input, SDR &output)
      */
     void encode(const std::string input, SDR &output);
@@ -215,13 +209,16 @@ namespace htm {
     // Cereal Serialize
     template<class Archive>
     void save_ar(Archive& ar) const {
-      std::string name = "SimHashDocumentEncoder";
+      const std::string name = "SimHashDocumentEncoder";
       ar(cereal::make_nvp("name", name));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
       ar(cereal::make_nvp("caseSensitivity", args_.caseSensitivity));
-      ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("encodeOrphans", args_.encodeOrphans));
+      ar(cereal::make_nvp("excludes", args_.excludes));
       ar(cereal::make_nvp("size", args_.size));
+      ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
+      ar(cereal::make_nvp("vocabulary", args_.vocabulary));
     }
     // Cereal Deserialize
     template<class Archive>
@@ -230,10 +227,13 @@ namespace htm {
       ar(cereal::make_nvp("name", name));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
       ar(cereal::make_nvp("caseSensitivity", args_.caseSensitivity));
-      ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("encodeOrphans", args_.encodeOrphans));
+      ar(cereal::make_nvp("excludes", args_.excludes));
       ar(cereal::make_nvp("size", args_.size));
+      ar(cereal::make_nvp("sparsity", args_.sparsity));
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
-      BaseEncoder<std::map<std::string, UInt>>::initialize({ args_.size });
+      ar(cereal::make_nvp("vocabulary", args_.vocabulary));
+      BaseEncoder<std::vector<std::string>>::initialize({ args_.size });
     }
 
     ~SimHashDocumentEncoder() override {};
@@ -248,7 +248,6 @@ namespace htm {
      *
      * @param :vector: Source eigen vector column to be attached.
      * @param :matrix: Target eigen matrix that will be added to.
-     * @private
      */
     void addVectorToMatrix_(const Eigen::VectorXi vector, Eigen::MatrixXi &matrix);
 
@@ -263,7 +262,6 @@ namespace htm {
      *
      * @param :weight: Weight to add to column (positive integer, usually 1).
      * @param :vector: Target eigen vector column to add weighting to.
-     * @private
      */
     void bitsToWeightedAdder_(const UInt weight, Eigen::VectorXi &vector);
 
@@ -274,7 +272,6 @@ namespace htm {
      *
      * @param :bytes: Source hash (eigen byte vector) for binary conversion.
      * @param :bits: Eigen vector to store converted binary hash digest in.
-     * @private
      */
     void bytesToBits_(const std::vector<unsigned char> bytes, Eigen::VectorXi &bits);
 
@@ -286,7 +283,6 @@ namespace htm {
      *
      * @param :token: Source text to be hashed.
      * @param :hashBits: Eigen vector to store result binary hash digest in.
-     * @private
      */
     void hashToken_(const std::string token, Eigen::VectorXi &hashBits);
 
@@ -303,7 +299,6 @@ namespace htm {
      *
      * @param :hashes: Source eigen matrix of hashes to be simhashed.
      * @param :simhash: Stadard vector to store dense binary simhash result in.
-     * @private
      */
     void simHashAdders_(const Eigen::MatrixXi adders, std::vector<UInt> &simhash);
     // end private

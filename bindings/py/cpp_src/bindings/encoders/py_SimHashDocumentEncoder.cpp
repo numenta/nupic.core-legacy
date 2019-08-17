@@ -81,6 +81,26 @@ than their lower-cased (a-z) counterparts? Or the same influence on output?
   If FALSE: "DOGS" and "dogs" will share the same encoding (Default).
 )");
 
+    py_SimHashDocumentEncoderParameters.def_readwrite("encodeOrphans",
+      &SimHashDocumentEncoderParameters::encodeOrphans,
+R"(
+Should we `encode()` tokens that are not in our `vocabulary`?
+  If True (default): Unrecognized tokens will be added to our encoding
+    with weight=1. Our `vocabulary` is useful as a simple weight map.
+  If False: Unrecognized tokens will be discarded. Our `vocabulary`
+    now serves more like a whitelist (also with weights).
+  Any tokens in the `exclude` list will be discarded.
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("excludes",
+      &SimHashDocumentEncoderParameters::excludes,
+R"(
+List of tokens to discard when passed in to `encode()`. Terms in the
+`vocabulary`, and orphan terms, will be ignored if excluded here. If
+`tokenSimilarity` is enabled, you can also pass in single character (letter)
+strings to discard.
+)");
+
     py_SimHashDocumentEncoderParameters.def_readwrite("tokenSimilarity",
       &SimHashDocumentEncoderParameters::tokenSimilarity,
 R"(
@@ -96,6 +116,19 @@ dependent on the content of your input data.
   If FALSE: Similar tokens ("cat", "cats") will have individually unique and
     unrelated influence on the output simhash encoding, thus losing token-level
     similarity and increasing document-level similarity.
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("vocabulary",
+      &SimHashDocumentEncoderParameters::vocabulary,
+R"(
+Map of possible document tokens with weights.
+    ex: {{ "what", 3 }, { "is", 1 }, { "up", 2 }}.
+  If `encodeOrphans` is True, this will be useful like a simple weight
+    map. If `encodeOrphans` is False, this will be more useful as a
+    whitelist (still with weights).
+  If `tokenSimilarity` is enabled, you can also pass in single
+    character (letter) strings to weight.
+  Any tokens in the `exclude` list will be discarded.
 )");
 
     /**
@@ -121,11 +154,8 @@ Definition of Terms:
   - A "document" is made up of "tokens" (or "words").
   - A "token" is made up of "characters" (or "letters").
 
-Encoding is accomplished using SimHash, a Locality-Sensitive Hashing (LSH)
-algorithm from the world of nearest-neighbor document similarity search.
-As SDRs can be of any size, we use the SHA3 hashing algorithm with SHAKE256
-Extendible Output Function (XOF). We deviate slightly from the standard
-SimHash algorithm in order to achieve sparsity.
+For details on the SimHash Algorithm itself, please see source code file:
+  - SimHashDocumentEncoder.README.md
 
 To inspect this run:
 $ python -m htm.examples.encoders.simhash_document_encoder --help
@@ -143,14 +173,12 @@ Python Code Example:
     encoder = SimHashDocumentEncoder(params)
 
     # call style: output is reference
-    encoder.encode({ "brevo": 3, "delta" : 1, "echo" : 2 }, output)
-    encoder.encode([ "bravo", "delta", "echo" ], output)  # weights 1
-    encoder.encode("bravo delta echo", output)            # weights 1
+    encoder.encode([ "bravo", "delta", "echo" ], output)
+    encoder.encode("bravo delta echo", output)
 
     # call style: output is returned
-    other = encoder.encode({ "brevo": 3, "delta" : 1, "echo" : 2 })
-    other = encoder.encode([ "bravo", "delta", "echo" ])  # weights 1
-    other = encoder.encode("bravo delta echo")            # weights 1
+    other = encoder.encode([ "bravo", "delta", "echo" ])
+    other = encoder.encode("bravo delta echo")
 )");
 
     py_SimHashDocumentEncoder.def(py::init<SimHashDocumentEncoderParameters&>());
@@ -177,9 +205,6 @@ This is the total number of bits in the encoded output SDR.
     // Handle case of class method overload + class method override
     // https://pybind11.readthedocs.io/en/master/classes.html#overloaded-methods
     // prepare
-    py_SimHashDocumentEncoder.def("encode",
-      (void (SimHashDocumentEncoder::*)(std::map<std::string, htm::UInt>, htm::SDR &))
-        &SimHashDocumentEncoder::encode);
     py_SimHashDocumentEncoder.def("encode", // alt: simple list w/o weights
       (void (SimHashDocumentEncoder::*)(std::vector<std::string>, htm::SDR &))
         &SimHashDocumentEncoder::encode);
@@ -187,18 +212,6 @@ This is the total number of bits in the encoded output SDR.
       (void (SimHashDocumentEncoder::*)(std::string, htm::SDR &))
         &SimHashDocumentEncoder::encode);
     // define
-    py_SimHashDocumentEncoder.def("encode",
-      [](SimHashDocumentEncoder &self, std::map<std::string, htm::UInt> value) {
-        auto output = new SDR({ self.size });
-        self.encode( value, *output );
-        return output;
-      },
-R"(
-Takes input in a python map of strings (tokens) => integer (weights).
-  Ex: { "alpha": 2, "bravo": 1, "delta": 1, "echo": 3 }.
-Documents can contain any number of tokens > 0. Token order in the document is
-  ignored and does not effect the output encoding.
-)");
     py_SimHashDocumentEncoder.def("encode", // alt: simple list w/o weights
       [](SimHashDocumentEncoder &self, std::vector<std::string> value) {
         auto output = new SDR({ self.size });
@@ -206,11 +219,18 @@ Documents can contain any number of tokens > 0. Token order in the document is
         return output;
       },
 R"(
-Simple alternate calling pattern using only list of small strings, with no
-weights (assumed to be 1). Takes input in a python list of strings (tokens).
+Encode (Main calling style).
+Each token will be hashed with SHA3+SHAKE256 to get a binary digest output of
+desired `size`. These vectors will be stored in a matrix for the next step of
+processing. Weights from the `vocabulary` are added in during hashing and
+simhashing. After the loop, we SimHash the matrix of hashes, resulting in an
+output SDR. If param "tokenSimilarity" is set, we'll also loop and hash through
+all the letters in the tokens. Takes input in a python list of strings (tokens).
   Ex: [ "alpha", "bravo", "delta", "echo" ].
 Documents can contain any number of tokens > 0. Token order in the document is
-  ignored and does not effect the output encoding.
+  ignored and does not effect the output encoding. Tokens in the `vocabulary`
+  will be weighted, while others may be encoded depending on the `encodeOrphans`
+  param. Tokens in the `exclude` list will always be discarded.
 )");
     py_SimHashDocumentEncoder.def("encode", // alt: simple string w/o weights
       [](SimHashDocumentEncoder &self, std::string value) {
@@ -219,12 +239,10 @@ Documents can contain any number of tokens > 0. Token order in the document is
         return output;
       },
 R"(
-Simple alternate calling pattern using only a single longer string, with no
-weights (assumed to be 1). Takes input as a long python string, which will
-automatically be tokenized (split on whitespace).
-  Ex: "alpha bravo delta echo".
-Documents can contain any number of tokens > 0. Token order in the document is
-  ignored and does not effect the output encoding.
+Encode (Alternate calling style: Simple string method).
+Simple alternate calling pattern using only a single longer string. Takes input
+as a long python string, which will automatically be tokenized (split on
+whitespace). Ex: "alpha bravo delta echo".
 )");
 
     // Serialization
@@ -238,11 +256,11 @@ Deserialize bytestring into current instance.
 )");
     // string out
     py_SimHashDocumentEncoder.def("writeToString", [](const SimHashDocumentEncoder& self) {
-      std::ostringstream os;
-      os.flags(ios::scientific);
-      os.precision(numeric_limits<double>::digits10 + 1);
-      self.save(os);
-      return py::bytes( os.str() );
+      std::ostringstream outStream;
+      outStream.flags(ios::scientific);
+      outStream.precision(numeric_limits<double>::digits10 + 1);
+      self.save(outStream);
+      return py::bytes( outStream.str() );
     },
 R"(
 Serialize current encoder instance out to a bytestring.
@@ -262,7 +280,10 @@ Serialize current encoder instance out to a bytestring.
         self.load(ss);
         return self;
       }
-    ));
+    ),
+R"(
+De/Serialize with Python Pickle.
+)");
 
   }
 }
