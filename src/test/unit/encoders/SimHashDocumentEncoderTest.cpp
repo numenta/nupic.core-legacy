@@ -31,13 +31,6 @@ namespace testing {
   using namespace htm;
 
   /* Shared Test Strings */
-  // Human-readable basic use-case strings (see `testBasicExampleUseCase` below)
-  //  * 1 vs 2 = very similar and should receive similar encodings
-  //  * 2 vs 3 = very different and should receive differeing encodings
-  const std::string testDocEasy1 = "The sky is beautiful today";
-  const std::string testDocEasy2 = "The sun is beautiful today"; // similar above, differ below
-  const std::string testDocEasy3 = "Who did my homework  today";
-  // Basic test strings
   const std::vector<std::string> testDoc1 =
     { "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
   const std::vector<std::string> testDoc2 =
@@ -46,29 +39,6 @@ namespace testing {
     { "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  };
   const std::vector<std::string> testDoc4 =
     { "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" };
-  // Case-sensitivite strings
-  const std::vector<std::string> testDocCase1 =
-    { "alpha", "bravo",  "delta",  "echo",  "foxtrot", "hotel" };
-  const std::vector<std::string> testDocCase2 =
-    { "ALPHA", "BRAVO",  "DELTA",  "ECHO",  "FOXTROT", "HOTEL" };
-  // Weighted strings
-  const std::map<std::string, UInt> testDocMap1 =
-    {{ "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "sss", 1 }};
-  const std::map<std::string, UInt> testDocMap2 =
-    {{ "eee", 2 }, { "bbb", 2 }, { "ccc", 2 }, { "fff", 2 }, { "sss", 1 }};
-  const std::map<std::string, UInt> testDocMap3 =
-    {{ "aaa", 4 }, { "eee", 2 }, { "fff", 2 }, { "ddd", 4 }};
-  // Unicode test strings
-  const std::vector<std::string> testDocUni1 = {
-    u8"\u0395\u0396\u0397\u0398\u0399",
-    u8"\u0400\u0401\u0402\u0403\u0404",
-    u8"\u0405\u0406\u0407\u0408\u0409"
-  };
-  const std::vector<std::string> testDocUni2 = {
-    u8"\u0395\u0396\u0397\u0398\u0399\u0410",
-    u8"\u0400\u0401\u0402\u0403\u0404\u0410",
-    u8"\u0405\u0406\u0407\u0408\u0409\u0410"
-  };
 
 
   /**
@@ -76,7 +46,7 @@ namespace testing {
    */
 
   // Test a basic use-case in human-readable form.
-  //  Documents (from shared test strings above):
+  //  Documents:
   //    1: "The sky is beautiful today"
   //    2: "The sun is beautiful today"  (similar above, differ below)
   //    3: "Who did my homework  today"
@@ -84,6 +54,10 @@ namespace testing {
   //    1 vs 2 = very similar and should receive similar encodings
   //    2 vs 3 = very different and should receive differing encodings
   TEST(SimHashDocumentEncoder, testBasicExampleUseCase) {
+    std::string testDocEasy1 = "The sky is beautiful today";
+    std::string testDocEasy2 = "The sun is beautiful today"; // similar above, differ below
+    std::string testDocEasy3 = "Who did my homework  today";
+
     // setup params
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
@@ -173,6 +147,36 @@ namespace testing {
     ASSERT_EQ(output.getSum(), params.activeBits);
   }
 
+  // Test excludes param
+  TEST(SimHashDocumentEncoder, testExcludes) {
+    std::vector<std::string> fullList = {
+      "seasons", "change", "mad", "things", "rearrange",
+      "but", "it", "all", "stays", "the", "same" };
+    std::vector<std::string> keepList = {
+      "but", "it", "all", "stays", "the", "same" };
+    std::vector<std::string> nopeList = {
+      "seasons", "change", "mad", "things", "rearrange" };
+
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    SimHashDocumentEncoder encoder1(params);
+    SDR output1({ params.size });
+    encoder1.encode(fullList, output1);
+
+    SimHashDocumentEncoder encoder2(params);
+    SDR output2({ params.size });
+    encoder2.encode(keepList, output2);
+
+    params.excludes = nopeList;
+    SimHashDocumentEncoder encoder3(params);
+    SDR output3({ params.size });
+    encoder3.encode(fullList, output3);
+
+    ASSERT_NE(output1, output2); // full != part
+    ASSERT_NE(output1, output3); // full != (full - nope)
+    ASSERT_EQ(output2, output3); // part == (full - nope)
+
   // Test character frequency floor/ceiling
   TEST(SimHashDocumentEncoder, testFrequencyChar) {
     const std::string charTokens = "abbbbccc aabccc aaabcc aabc aabbcccc";
@@ -256,12 +260,21 @@ namespace testing {
   }
 
   // Test encoding with case in/sensitivity
-  TEST(SimHashDocumentEncoder, testTokenCase) {
+  TEST(SimHashDocumentEncoder, testTokenCaseSensitivity) {
+    // local test strings
+    const std::vector<std::string> testDocCase1 =
+      { "alpha", "bravo",  "delta",  "echo",  "foxtrot", "hotel" };
+    const std::vector<std::string> testDocCase2 =
+      { "ALPHA", "BRAVO",  "DELTA",  "ECHO",  "FOXTROT", "HOTEL" };
+    const std::vector<std::string> part = { "eCHo", "foXTROt", "hOtEl" };
+    const std::vector<std::string> discard = { "AlPHa", "BRaVo", "dELTa" };
+    const std::map<std::string, UInt> vocab = {
+      { "EcHo", 1 }, { "FOxtRoT", 1 }, { "HoTeL", 1 }};
+
+    // caseSensitivity=ON
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
-
-    // caseSensitivity ON
     params.caseSensitivity = true;
     SimHashDocumentEncoder encoder1(params);
     SDR output1({ params.size });
@@ -270,7 +283,7 @@ namespace testing {
     encoder1.encode(testDocCase2, output2);
     ASSERT_NE(output1, output2);
 
-    // caseSensitivity OFF
+    // caseSensitivity=OFF
     params.caseSensitivity = false;
     SimHashDocumentEncoder encoder2(params);
     output1.zero();
@@ -278,6 +291,29 @@ namespace testing {
     encoder2.encode(testDocCase1, output1);
     encoder2.encode(testDocCase2, output2);
     ASSERT_EQ(output1, output2);
+
+    // caseSensitivity=OFF +excludes
+    params.excludes = discard;
+    SimHashDocumentEncoder encoder3(params);
+    SDR output3a({ params.size });
+    SDR output3b({ params.size });
+    encoder3.encode(testDocCase1, output3a);
+    encoder3.encode(part, output3b);
+    ASSERT_EQ(output3a, output3b);
+
+    // caseSensitivity=OFF +vocabulary
+    SimHashDocumentEncoderParameters params4;
+    params4.size = 400u;
+    params4.sparsity = 0.33f;
+    params4.caseSensitivity = false;
+    params4.encodeOrphans = false;
+    params4.vocabulary = vocab;
+    SimHashDocumentEncoder encoder4(params4);
+    SDR output4a({ params4.size });
+    SDR output4b({ params4.size });
+    encoder4.encode(testDocCase1, output4a);
+    encoder4.encode(part, output4b);
+    ASSERT_EQ(output4a, output4b);
   }
 
   // Test encoding simple corpus with 'tokenSimilarity' On/Off. If ON, tokens of
@@ -321,8 +357,74 @@ namespace testing {
     ASSERT_GT(output3.getOverlap(output4), output1.getOverlap(output3));
   }
 
+  // Test encoding with weighted tokens. Make sure output changes accordingly.
+  TEST(SimHashDocumentEncoder, testTokenWeightMap) {
+    const std::map<std::string, UInt> weights = {
+      { "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "eee", 2 },
+      { "fff", 2 }, { "sss", 1 } };
+    const std::vector<std::string> doc1 = { "aaa", "bbb", "ccc", "ddd", "sss" };
+    const std::vector<std::string> doc2 = { "eee", "bbb", "ccc", "fff", "sss" };
+    const std::vector<std::string> doc3 = { "aaa", "eee", "fff", "ddd" };
+
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    params.tokenSimilarity = false;
+    params.vocabulary = weights;
+    SimHashDocumentEncoder encoder(params);
+    SDR output1({ params.size });
+    SDR output2({ params.size });
+    SDR output3({ params.size });
+    encoder.encode(doc1, output1);
+    encoder.encode(doc2, output2);
+    encoder.encode(doc3, output3);
+    ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output2));
+    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
+  }
+
+  // test vocabulary
+  TEST(SimHashDocumentEncoder, testTokenVocabulary) {
+    std::map<std::string, UInt> vocabulary = {
+      { "a", 1 }, { "b", 2 }, { "c", 3 }, { "d", 4 }, { "e", 5 }, { "f", 6 },
+      { "g", 1 }, { "h", 2 }, { "i", 3 }, { "j", 4 }, { "k", 5 }, { "l", 6 }};
+    std::string input1 = "a b c d e f";
+    std::string input2 = "a b c d e f t u w x y z";
+
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    params.vocabulary = vocabulary;
+
+    // vocabulary +encodeOrphans
+    params.encodeOrphans = true;
+    SimHashDocumentEncoder encoder1(params);
+    SDR output1a({ params.size });
+    SDR output1b({ params.size });
+    encoder1.encode(input1, output1a);
+    encoder1.encode(input2, output1b);
+    ASSERT_NE(output1a.getDense(), output1b.getDense());
+
+    // vocabulary -encodeOrphans
+    params.encodeOrphans = false;
+    SimHashDocumentEncoder encoder2(params);
+    SDR output2a({ params.size });
+    SDR output2b({ params.size });
+    encoder2.encode(input1, output2a);
+    encoder2.encode(input2, output2b);
+    ASSERT_EQ(output2a.getDense(), output2b.getDense());
+  }
+
   // Test encoding unicode text, including with 'tokenSimilarity' on/off
   TEST(SimHashDocumentEncoder, testUnicode) {
+    const std::vector<std::string> testDocUni1 = {
+      u8"\u0395\u0396\u0397\u0398\u0399",
+      u8"\u0400\u0401\u0402\u0403\u0404",
+      u8"\u0405\u0406\u0407\u0408\u0409" };
+    const std::vector<std::string> testDocUni2 = {
+      u8"\u0395\u0396\u0397\u0398\u0399\u0410",
+      u8"\u0400\u0401\u0402\u0403\u0404\u0410",
+      u8"\u0405\u0406\u0407\u0408\u0409\u0410" };
+
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
@@ -344,24 +446,6 @@ namespace testing {
     encoder2.encode(testDocUni1, output1);
     encoder2.encode(testDocUni2, output2);
     ASSERT_LT(output1.getOverlap(output2), 65u);
-  }
-
-  // Test encoding with weighted tokens. Make sure output changes accordingly.
-  TEST(SimHashDocumentEncoder, testWeights) {
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.33f;
-    params.tokenSimilarity = false;
-    SimHashDocumentEncoder encoder(params);
-    SDR output1({ params.size });
-    SDR output2({ params.size });
-    SDR output3({ params.size });
-
-    encoder.encode(testDocMap1, output1);
-    encoder.encode(testDocMap2, output2);
-    encoder.encode(testDocMap3, output3);
-    ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output2));
-    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
   }
 
 } // end namespace testing
