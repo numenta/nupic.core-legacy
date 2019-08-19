@@ -48,10 +48,11 @@ Fork or download the HTM-Community htm.core repository from https://github.com/h
 
 - [CMake](http://www.cmake.org/)  Version 3.8  (3.14 for Visual Studio 2019)
 - [Python](https://python.org/downloads/)
-    - Version 3.4+
+    - Version 3.4+ (Recommended)
     - Version 2.7
       + We recommend the latest version of 2.7 where possible, but the system version should be fine.
       + Python 2 is Not Supported on Windows, use Python 3 instead.
+      + Python 2 is not tested by our CI anomore. It may still work but we don't test it. We expect to drop support for Python2 around 2020. 
 
   Be sure that your Python executable is in the Path environment variable.
   The Python that is in your default path is the one that will determine which
@@ -195,7 +196,7 @@ hardware.
  * Specify the build system folder (`$HTM_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
 
-## [For MS Visual Studio 2017 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
+## [For MS Visual Studio 2017 or 2019 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
 
 ## For Eclipse as the IDE
  * File - new C/C++Project - Empty or Existing CMake Project
@@ -205,8 +206,30 @@ hardware.
    your project properties - Resource Filters - Exclude all folders that matches boost, recursively
  * (Eclipse IDE for C/C++ Developers, 2019-03)
 
-For all new work, tab settings are at 2 characters.
+For all new work, tab settings are at 2 characters, replace tabs with spaces.
 The clang-format is LLVM style.
+
+## Debugging 
+
+Creeating a debug build of the htm.core library and unit tests is the same as building any C++ 
+application in Debug mode in any IDE as long as you do not include the python bindings. i.e. do 
+not include -DBINDING_BUILD=Python3 in the CMake command.
+```
+(on Linux)
+   rm -r build
+   mkdir -p build/scripts
+   cd build/scripts
+   CMake -DCMAKE_BUILD_TYPE=Debug ../..
+```
+
+However, if you need to debug the python bindings using an IDE debugger it becomes a little more difficult. 
+The problem is that it requires a debug version of the python library, python37_d.lib.  It is possible to
+obtain one and link with it, but a way to better isolate the python extension is to build a special main( )
+as explained here: https://pythonextensionpatterns.readthedocs.io/en/latest/debugging/debug_in_ide.html.
+
+Be aware that the CMake maintains a cache of build-time arguments and it will ignore some arguments passed
+to CMake if is already in the cache.  So, between runs you need to clear the cache or even better,
+entirely remove the build/ folder.
 
 # Third Party Dependencies
 

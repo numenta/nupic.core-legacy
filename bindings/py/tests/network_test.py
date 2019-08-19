@@ -18,7 +18,7 @@
 import json
 import unittest
 import pytest
-
+import numpy as np
 
 from htm.bindings.regions.PyRegion import PyRegion
 
@@ -194,3 +194,36 @@ class NetworkTest(unittest.TestCase):
         self.assertTrue(abs(x - newval) < 0.00001)
       else:
         self.assertEqual(x, newval)
+        
+  def testParameterArray(self):
+    """
+    Tests the setParameterArray( ) and getParameterArray( )
+    The TestNode contains 'int64ArrayParam' and 'real32ArrayParam' parameters which are vectors.
+    This test will write to each and read from each.
+    """
+    
+    network = engine.Network()
+    r1 = network.addRegion("region1", "TestNode", "")
+    
+    orig = np.array([1,2,3,4, 5,6,7,8], dtype=np.int64)
+    r1.setParameterArray("int64ArrayParam", engine.Array(orig, True))
+    self.assertEqual(r1.getParameterArrayCount("int64ArrayParam"), 8)
+    a = engine.Array()
+    r1.getParameterArray("int64ArrayParam", a)
+    result = np.array(a)
+    self.assertTrue( np.array_equal(orig, result))
+    
+    orig = np.array([1,2,3,4, 5,6,7,8], dtype=np.float32)
+    r1.setParameterArray("real32ArrayParam", engine.Array(orig, True))
+    self.assertEqual(r1.getParameterArrayCount("real32ArrayParam"), 8)
+    a = engine.Array()
+    r1.getParameterArray("real32ArrayParam", a)
+    result = np.array(a)
+    self.assertTrue( np.array_equal(orig, result))
+    
+
+    
+    
+
+
+

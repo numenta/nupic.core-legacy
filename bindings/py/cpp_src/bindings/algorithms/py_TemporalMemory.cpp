@@ -47,6 +47,13 @@ Example usage:
     TODO
 )");
 
+	py::enum_<TemporalMemory::ANMode>(m, "ANMode")
+	  .value("DISABLED",   TemporalMemory::ANMode::DISABLED)
+	  .value("RAW",        TemporalMemory::ANMode::RAW)
+	  .value("LIKELIHOOD", TemporalMemory::ANMode::LIKELIHOOD)
+	  .value("LOGLIKELIHOOD", TemporalMemory::ANMode::LOGLIKELIHOOD)
+	  .export_values();
+
         py_HTM.def(py::init<>());
         py_HTM.def(py::init<std::vector<CellIdx>
                 , CellIdx
@@ -62,7 +69,8 @@ Example usage:
                 , SegmentIdx
                 , SynapseIdx
                 , bool
-                , UInt>(),
+                , UInt
+		, TemporalMemory::ANMode>(),
 R"(Initialize the temporal memory (TM) using the given parameters.
 
 Argument columnDimensions
@@ -123,6 +131,10 @@ Argument externalPredictiveInputs
     TemporalMemory.  If this is given (and greater than 0) then the active
     cells and winner cells of these external inputs must be given to methods
     TM.compute and TM.activateDendrites
+
+Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomaly`.
+    Options are ANMode {DISABLED, RAW, LIKELIHOOD, LOGLIKELIHOOD}
+
 )"
                 , py::arg("columnDimensions")
                 , py::arg("cellsPerColumn") = 32
@@ -139,7 +151,8 @@ Argument externalPredictiveInputs
                 , py::arg("maxSynapsesPerSegment") = 255
                 , py::arg("checkInputs") = true
                 , py::arg("externalPredictiveInputs") = 0u
-            );
+		, py::arg("anomalyMode") = TemporalMemory::ANMode::RAW 
+		);
 
         py_HTM.def("printParameters",
             [](const HTM_t& self)
