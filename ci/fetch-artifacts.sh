@@ -24,7 +24,6 @@ export APPVEYOR_ARTIFACT_URL="https://ci.appveyor.com/api/projects/htm-community
 echo "Fetching Windows artifacts:" 
 # Perform authentication
 
-if false; then
 for i in `seq 10`; do
   echo "  Downloading artifacts. Try number $i"
   # get the headers from the query for the latest master build.  
@@ -49,7 +48,6 @@ echo "  $page \n"
   echo "  sleep for 5min is good"
   sleep 300 # wait 5min to retry. Other CI needs to finish its build
 done
-fi
 
 export CIRCLE_FILE="htm_core-$VERSION-darwin64.tar.gz"
 export CIRCLE_TOKEN='?circle-token=e4ec350f46372b0f9e0dc0f35453ee8c55d98838'    #token by david keeney  TODO, replace with project token.   Needs Admin permissions.
