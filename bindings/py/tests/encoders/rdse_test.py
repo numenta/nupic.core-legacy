@@ -256,7 +256,7 @@ class RDSE_Test(unittest.TestCase):
         assert( A != B )
 
 
-     def testPickle(self):
+    def testPickle(self):
         """
         The pickling is successfull if pickle serializes and de-serialize the
         RDSE object. 
