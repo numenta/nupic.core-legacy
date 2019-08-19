@@ -21,6 +21,9 @@
  * SimHashDocumentEncoderTest.cpp
  */
 
+#include <string>
+#include <vector>
+
 #include "gtest/gtest.h"
 
 #include <htm/encoders/SimHashDocumentEncoder.hpp>
@@ -31,14 +34,14 @@ namespace testing {
   using namespace htm;
 
   /* Shared Test Strings */
-  const std::vector<std::string> testDoc1 =
-    { "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
-  const std::vector<std::string> testDoc2 =
-    { "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  };
-  const std::vector<std::string> testDoc3 =
-    { "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  };
-  const std::vector<std::string> testDoc4 =
-    { "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" };
+  const std::vector<std::string> testDoc1 = {
+    "abcde", "fghij",  "klmno",  "pqrst",  "uvwxy"  };
+  const std::vector<std::string> testDoc2 = {
+    "klmno", "pqrst",  "uvwxy",  "z1234",  "56789"  };
+  const std::vector<std::string> testDoc3 = {
+    "z1234", "56789",  "0ABCD",  "EFGHI",  "JKLMN"  };
+  const std::vector<std::string> testDoc4 = {
+    "z1234", "56789P", "0ABCDP", "EFGHIP", "JKLMNP" };
 
 
   /**
@@ -110,6 +113,24 @@ namespace testing {
     SimHashDocumentEncoder encoder4(params4);
     ASSERT_EQ(encoder4.parameters.size, params4.size);
     ASSERT_EQ(encoder4.parameters.activeBits, 20u);
+
+    // test bad encoder params - `charFrequency*` require `tokenSimilarity`
+    SimHashDocumentEncoderParameters params5;
+    params5.size = 400u;
+    params5.activeBits = 20u;
+    params5.charFrequencyCeiling = 6;
+    params5.charFrequencyFloor = 3;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
+
+    // test bad encoder params - charFrequency should be ceiling > floor
+    params5.charFrequencyCeiling = 3;
+    params5.charFrequencyFloor = 6;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
+
+    // test bad encoder params - tokenFrequency should be ceiling > floor
+    params5.tokenFrequencyCeiling = 3;
+    params5.tokenFrequencyFloor = 6;
+    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
   }
 
   // Test a basic encoding, try a few failure cases
@@ -118,15 +139,23 @@ namespace testing {
     params.size = 400u;
     params.activeBits = 20u;
 
+    // basic list calling style
     SDR output({ params.size });
     SimHashDocumentEncoder encoder(params);
-
     const std::vector<std::string> value({});
-    EXPECT_ANY_THROW(encoder.encode(value, output));   // empty
-    EXPECT_NO_THROW(encoder.encode(testDoc1, output)); // full
-
+    EXPECT_ANY_THROW(encoder.encode(value, output));    // empty list
+    EXPECT_NO_THROW(encoder.encode(testDoc1, output));  // full list
     ASSERT_EQ(output.size, params.size);
     ASSERT_EQ(output.getSum(), params.activeBits);
+
+    // make sure simple alternate string calling style matches
+    SDR output2({ params.size });
+    SimHashDocumentEncoder encoder2(params);
+    std::string value2 = "";
+    EXPECT_ANY_THROW(encoder.encode(value2, output2));  // empty str
+    value2 = "abcde fghij klmno pqrst uvwxy";
+    encoder2.encode(value2, output2);                  // full str
+    ASSERT_EQ(output.getSparse(), output2.getSparse());
   }
 
   // Test excludes param
@@ -160,22 +189,85 @@ namespace testing {
     ASSERT_EQ(output2, output3); // part == (full - nope)
   }
 
-  // Test Serialization and Deserialization
-  TEST(SimHashDocumentEncoder, testSerialize) {
+  // Test character frequency floor/ceiling
+  TEST(SimHashDocumentEncoder, testFrequencyChar) {
+    const std::string charTokens = {
+      "abbbbbbcccdefg aaaaaabccchijk aaabcccccclmno" };
+
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
+    params.tokenSimilarity = true;
+    SimHashDocumentEncoder encoder1(params);
+    SDR output1({ encoder1.size });
+    encoder1.encode(charTokens, output1);
+
+    params.charFrequencyFloor = 1u;
+    SimHashDocumentEncoder encoder2(params);
+    SDR output2({ encoder2.size });
+    encoder2.encode(charTokens, output2);
+
+    params.charFrequencyFloor = 0;
+    params.charFrequencyCeiling = 3u;
+    SimHashDocumentEncoder encoder3(params);
+    SDR output3({ encoder3.size });
+    encoder3.encode(charTokens, output3);
+
+    ASSERT_NE(output1, output2);
+    ASSERT_NE(output1, output3);
+    ASSERT_NE(output2, output3);
+  }
+
+  // Test token frequency floor/ceiling
+  TEST(SimHashDocumentEncoder, testFrequencyToken) {
+    const std::string tokens = "a a a b b c d d d d e e f"; // min 1 max 4
+
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    SimHashDocumentEncoder encoder1(params);
+    SDR output1({ encoder1.size });
+    encoder1.encode(tokens, output1);
+
+    params.tokenFrequencyFloor = 1u;
+    SimHashDocumentEncoder encoder2(params);
+    SDR output2({ encoder2.size });
+    encoder2.encode(tokens, output2);
+
+    params.tokenFrequencyFloor = 0;
+    params.tokenFrequencyCeiling = 4u;
+    SimHashDocumentEncoder encoder3(params);
+    SDR output3({ encoder3.size });
+    encoder3.encode(tokens, output3);
+
+    ASSERT_NE(output1, output2);
+    ASSERT_NE(output1, output3);
+    ASSERT_NE(output2, output3);
+  }
+
+  // Test Serialization and Deserialization
+  TEST(SimHashDocumentEncoder, testSerialize) {
+    std::map<std::string, UInt> vocab = {
+      { "hear", 2 }, { "nothing", 4 }, { "but", 1 }, { "a", 1 },
+      { "rushing", 4 }, { "sound", 3 } };
+    std::vector<std::string> document = {
+      "hear", "any", "sound", "sound", "louder", "but", "walls" };
+
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    params.vocabulary = vocab;
 
     SimHashDocumentEncoder encoder1(params);
     std::stringstream buffer;
     encoder1.save(buffer);
     SDR output1({ encoder1.size });
-    encoder1.encode(testDoc1, output1);
+    encoder1.encode(document, output1);
 
     SimHashDocumentEncoder encoder2;
     encoder2.load(buffer);
     SDR output2({ encoder2.size });
-    encoder2.encode(testDoc1, output2);
+    encoder2.encode(document, output2);
 
     ASSERT_EQ(output1.size, output2.size);
     ASSERT_EQ(output1.getDense(), output2.getDense());
@@ -227,8 +319,6 @@ namespace testing {
     SimHashDocumentEncoderParameters params4;
     params4.size = 400u;
     params4.sparsity = 0.33f;
-    params4.caseSensitivity = false;
-    params4.encodeOrphans = false;
     params4.vocabulary = vocab;
     SimHashDocumentEncoder encoder4(params4);
     SDR output4a({ params4.size });
@@ -279,6 +369,30 @@ namespace testing {
     ASSERT_GT(output3.getOverlap(output4), output1.getOverlap(output3));
   }
 
+  // Test encoding with weighted tokens. Make sure output changes accordingly.
+  TEST(SimHashDocumentEncoder, testTokenWeightMap) {
+    const std::map<std::string, UInt> weights = {
+      { "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "eee", 2 },
+      { "fff", 2 }, { "sss", 1 } };
+    const std::vector<std::string> doc1 = { "aaa", "bbb", "ccc", "ddd", "sss" };
+    const std::vector<std::string> doc2 = { "eee", "bbb", "ccc", "fff", "sss" };
+    const std::vector<std::string> doc3 = { "aaa", "eee", "fff", "ddd" };
+
+    SimHashDocumentEncoderParameters params;
+    params.size = 400u;
+    params.sparsity = 0.33f;
+    params.vocabulary = weights;
+    SimHashDocumentEncoder encoder(params);
+    SDR output1({ params.size });
+    SDR output2({ params.size });
+    SDR output3({ params.size });
+    encoder.encode(doc1, output1);
+    encoder.encode(doc2, output2);
+    encoder.encode(doc3, output3);
+    ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output2));
+    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
+  }
+
   // test vocabulary
   TEST(SimHashDocumentEncoder, testTokenVocabulary) {
     std::map<std::string, UInt> vocabulary = {
@@ -309,31 +423,6 @@ namespace testing {
     encoder2.encode(input1, output2a);
     encoder2.encode(input2, output2b);
     ASSERT_EQ(output2a.getDense(), output2b.getDense());
-  }
-
-  // Test encoding with weighted tokens. Make sure output changes accordingly.
-  TEST(SimHashDocumentEncoder, testTokenWeightMap) {
-    const std::map<std::string, UInt> weights = {
-      { "aaa", 4 }, { "bbb", 2 }, { "ccc", 2 }, { "ddd", 4 }, { "eee", 2 },
-      { "fff", 2 }, { "sss", 1 } };
-    const std::vector<std::string> doc1 = { "aaa", "bbb", "ccc", "ddd", "sss" };
-    const std::vector<std::string> doc2 = { "eee", "bbb", "ccc", "fff", "sss" };
-    const std::vector<std::string> doc3 = { "aaa", "eee", "fff", "ddd" };
-
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.33f;
-    params.tokenSimilarity = false;
-    params.vocabulary = weights;
-    SimHashDocumentEncoder encoder(params);
-    SDR output1({ params.size });
-    SDR output2({ params.size });
-    SDR output3({ params.size });
-    encoder.encode(doc1, output1);
-    encoder.encode(doc2, output2);
-    encoder.encode(doc3, output3);
-    ASSERT_GT(output1.getOverlap(output3), output1.getOverlap(output2));
-    ASSERT_GT(output1.getOverlap(output2), output2.getOverlap(output3));
   }
 
   // Test encoding unicode text, including with 'tokenSimilarity' on/off

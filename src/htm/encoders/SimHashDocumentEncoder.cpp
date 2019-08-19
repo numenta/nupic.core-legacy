@@ -56,6 +56,24 @@ namespace htm {
       << "Need only one argument of: 'activeBits' or 'sparsity'.";
     NTA_CHECK(parameters.size > 0u)
       << "Missing 'size' argument.";
+    if ((parameters.tokenFrequencyCeiling > 0) && (parameters.tokenFrequencyFloor > 0)) {
+      NTA_CHECK(parameters.tokenFrequencyCeiling > parameters.tokenFrequencyFloor)
+        << "Argument 'tokenFrequencyCeiling' should be greater than argument 'tokenFrequencyFloor'.";
+    }
+    if (!parameters.tokenSimilarity) {
+      NTA_CHECK(parameters.charFrequencyCeiling == 0)
+        << "Argument 'charFrequencyCeiling' requires argument 'tokenSimilarity'.";
+      NTA_CHECK(parameters.charFrequencyFloor == 0)
+        << "Argument 'charFrequencyFloor' requires argument 'tokenSimilarity'.";
+      if ((parameters.charFrequencyCeiling > 0) && (parameters.charFrequencyFloor > 0)) {
+        NTA_CHECK(parameters.charFrequencyCeiling > parameters.charFrequencyFloor)
+          << "Argument 'charFrequencyCeiling' should be greater than argument 'charFrequencyFloor'.";
+      }
+    }
+    if (!parameters.vocabulary.size()) {
+      NTA_CHECK(!parameters.encodeOrphans)
+        << "Argument 'encodeOrphans' requires argument 'vocabulary'.";
+    }
 
     // Make local copy of arguments for processing
     args_ = parameters;
@@ -68,6 +86,7 @@ namespace htm {
         << "Argument 'sparsity' requires that the 'size' also be given.";
       args_.activeBits = (UInt) round(args_.size * args_.sparsity);
     }
+
     // Process: handle internal case insensitivity needs
     if (!args_.caseSensitivity) {
       // exclusions => case insensitive
@@ -79,8 +98,9 @@ namespace htm {
         }
         args_.excludes = excludesLower;
       }
+
       // vocabulary => case insensitive
-      if (args_.vocabulary.size() > 0) {
+      if (args_.vocabulary.size()) {
         std::map<std::string, UInt> vocabLower;
         for (const auto& pair : args_.vocabulary) {
           std::string token = pair.first;
@@ -113,15 +133,17 @@ namespace htm {
 
     Eigen::MatrixXi adders(args_.size, 0u);
     Eigen::VectorXi hashBits(args_.size);
-    std::vector<UInt> simBits(args_.size, 0u);
+    std::map<std::string, UInt> histogramToken = {};
     SDR result({ args_.size });
+    std::vector<UInt> simBits(args_.size, 0u);
 
     hashBits = Eigen::VectorXi::Zero(args_.size);
     result.zero();
 
     for (const auto& member : input) {
       std::string token = member;
-      UInt tokenWeight;
+      UInt tokenWeight = 1;  // default weight for non-vocab and vocab-orphan
+      std::map<std::string, UInt> histogramChar = {};
 
       // caseSensitivity
       if (!args_.caseSensitivity) {
@@ -136,26 +158,46 @@ namespace htm {
       }
 
       // vocabulary + encodeOrphans
-      if (args_.vocabulary[token]) {
-        tokenWeight = args_.vocabulary[token];
+      if (args_.vocabulary.size()) {
+        if (args_.vocabulary.count(token)) {
+          tokenWeight = args_.vocabulary.at(token);  // use weight from vocab map
+        }
+        else if (!args_.encodeOrphans) {
+          continue;  // discard this non-vocab token
+        }
       }
-      else {
-        if (args_.encodeOrphans) {
-          tokenWeight = 1; // encode non-vocab token with weight 1
-        }
-        else {
-          continue; // skip non-vocab token
-        }
+
+      // token frequency floor and ceiling
+      histogramToken[token]++;
+      if (args_.tokenFrequencyFloor > 0 &&
+          histogramToken.at(token) <= args_.tokenFrequencyFloor) {
+        continue;  // discard under char
+      }
+      if (args_.tokenFrequencyCeiling > 0 &&
+          histogramToken.at(token) >= args_.tokenFrequencyCeiling) {
+        continue;  // discard over char
       }
 
       // tokenSimilarity
       if (args_.tokenSimilarity) {
         // generate hash digest for every single character individually
         for (const auto& letter : token) {
-          std::string letterStr = std::string(1u, letter);
-          UInt charWeight = args_.vocabulary[letterStr] ?
-                            args_.vocabulary[letterStr] : tokenWeight;
+          const std::string letterStr = std::string(1u, letter);
+          UInt charWeight = args_.vocabulary.count(letterStr) ?
+                            args_.vocabulary.at(letterStr) : tokenWeight;
 
+          // char frequency floor and ceiling
+          histogramChar[letterStr]++;
+          if (args_.charFrequencyFloor > 0 &&
+              histogramChar.at(letterStr) <= args_.charFrequencyFloor) {
+            continue;  // discard under char
+          }
+          if (args_.charFrequencyCeiling > 0 &&
+              histogramChar.at(letterStr) >= args_.charFrequencyCeiling) {
+            continue;  // discard over char
+          }
+
+          // hash character
           hashToken_(letterStr, hashBits);
           bitsToWeightedAdder_(charWeight, hashBits);
           addVectorToMatrix_(hashBits, adders);
@@ -182,10 +224,17 @@ namespace htm {
    */
   void SimHashDocumentEncoder::encode(const std::string input, SDR &output)
   {
+    NTA_CHECK(input.length() > 0u)
+      << "Encoding input string should have at least lenth 1.";
+
     std::regex spaces("\\s+");
     std::sregex_token_iterator iterate(input.begin(), input.end(), spaces, -1);
     std::sregex_token_iterator end;
     std::vector<std::string> inputSplit(iterate, end);
+
+    NTA_CHECK(inputSplit.size() > 0u)
+      << "Encoding inputSplit list should have at least lenth 1.";
+
     encode(inputSplit, output);
   } // end method encode (string alternate)
 
@@ -274,14 +323,18 @@ namespace htm {
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self)
   {
     out << "SimHashDocumentEncoder \n";
-    out << "  activeBits:       " << self.parameters.activeBits        << ",\n";
-    out << "  caseSensitivity:  " << self.parameters.caseSensitivity   << ",\n";
-    out << "  encodeOrphans:    " << self.parameters.encodeOrphans     << ",\n";
-    out << "  excludes.size:    " << self.parameters.excludes.size()   << ",\n";
-    out << "  size:             " << self.parameters.size              << ",\n";
-    out << "  sparsity:         " << self.parameters.sparsity          << ",\n";
-    out << "  tokenSimilarity:  " << self.parameters.tokenSimilarity   << ",\n";
-    out << "  vocabulary.size:  " << self.parameters.vocabulary.size() << ",\n";
+    out << "  activeBits:            " << self.parameters.activeBits            << ",\n";
+    out << "  caseSensitivity:       " << self.parameters.caseSensitivity       << ",\n";
+    out << "  charFrequencyCeiling:  " << self.parameters.charFrequencyCeiling  << ",\n";
+    out << "  charFrequencyFloor:    " << self.parameters.charFrequencyFloor    << ",\n";
+    out << "  encodeOrphans:         " << self.parameters.encodeOrphans         << ",\n";
+    out << "  excludes.size:         " << self.parameters.excludes.size()       << ",\n";
+    out << "  size:                  " << self.parameters.size                  << ",\n";
+    out << "  sparsity:              " << self.parameters.sparsity              << ",\n";
+    out << "  tokenFrequencyCeiling: " << self.parameters.tokenFrequencyCeiling << ",\n";
+    out << "  tokenFrequencyFloor:   " << self.parameters.tokenFrequencyFloor   << ",\n";
+    out << "  tokenSimilarity:       " << self.parameters.tokenSimilarity       << ",\n";
+    out << "  vocabulary.size:       " << self.parameters.vocabulary.size()     << ",\n";
     return out;
   }
 

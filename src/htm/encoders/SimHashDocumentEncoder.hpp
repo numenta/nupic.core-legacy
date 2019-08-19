@@ -42,6 +42,23 @@ namespace htm {
     UInt activeBits = 0u;
 
     /**
+     * @param :charFrequencyCeiling: If param `tokenSimilarity` is on, this will
+     *  be the max number of times a char/letter can be repeated in a token.
+     *  Occurances of the character beyond this number will be discarded.
+     *  A setting of 1 will act as character de-duplication, guaranteeing each
+     *  character in a token is unique. Inverse to param `charFrequencyFloor`.
+     */
+    UInt charFrequencyCeiling = 0u;
+
+    /**
+     * @param :charFrequencyFloor: If param `tokenSimilarity` is on, and if this
+     *  option is set, a character/letter will be ignored until it occurs this
+     *  many times in the token. Occurances of the character before this number
+     *  will be discarded. Inverse to param `charFrequencyCeiling`.
+     */
+    UInt charFrequencyFloor = 0u;
+
+    /**
      * @param :caseSensitivity: Should capitalized English letters (A-Z) have
      *  differing influence on our output than their lower-cased (a-z)
      *  counterparts?
@@ -51,15 +68,15 @@ namespace htm {
     bool caseSensitivity = false;
 
     /**
-     * @param :encodeOrphans: Should we `encode()` tokens that are not in our
-     *  `vocabulary`?
-     *    If True (default): Unrecognized tokens will be added to our encoding
+     * @param :encodeOrphans: If param `vocabulary` is set, should we
+      `encode()` tokens not in that `vocabulary` ("orphan" tokens)?
+     *    If True: Unrecognized tokens will be added to our encoding
      *      with weight=1. Our `vocabulary` is useful as a simple weight map.
-     *    If False: Unrecognized tokens will be discarded. Our `vocabulary`
-     *      now serves more like a whitelist (also with weights).
+     *    If False (default): Unrecognized tokens will be discarded. Our
+     *      `vocabulary` now serves more like a whitelist (also with weights).
      *    Any tokens in the `exclude` list will be discarded.
      */
-    bool encodeOrphans = true;
+    bool encodeOrphans = false;
 
     /**
      * @param :excludes: List of tokens to discard when passed in to `encode()`.
@@ -82,6 +99,23 @@ namespace htm {
     Real sparsity = 0.0f;
 
     /**
+     * @param :tokenFrequencyCeiling: The max number of times a token can be
+     *  repeated in a document. Occurances of the token beyond this number will
+     *  be discarded. A setting of 1 will act as token de-duplication,
+     *  guaranteeing each token in a document is unique. Inverse to param
+     *  `tokenFrequencyFloor`.
+     */
+    UInt tokenFrequencyCeiling = 0u;
+
+    /**
+     * @param :tokenFrequencyFloor: If this option is set, a token will be
+     *  ignored until it occurs this many times in the document. Occurances of
+     *  the token before this number will be discarded. Inverse to param
+     *  `tokenFrequencyCeiling`.
+     */
+    UInt tokenFrequencyFloor = 0u;
+
+    /**
      * @param :tokenSimilarity: In addition to document similarity, we can also
      *  achieve a kind of token similarity. Default is FALSE (providing better
      *  document-level similarity, at the expense of token-level similarity).
@@ -91,10 +125,12 @@ namespace htm {
      *  input data.
      *    If TRUE: Similar tokens ("cat", "cats") will have similar influence
      *      on the output simhash. This benefit comes with the cost of a
-     *      probable reduction in document-level similarity accuracy.
+     *      probable reduction in document-level similarity accuracy. Params
+     *      `charFrequencyCeiling` and `charFrequencyFloor` are also available
+     *      for use with this.
      *    If FALSE: Similar tokens ("cat", "cats") will have individually unique
-     *      and unrelated influence on the output simhash encoding, thus losing
-     *      token-level similarity and increasing document-level similarity.
+     *      and unrelated influence on the output simhash encoding. This lowers
+     *      token-level similarity and increases document-level similarity.
      */
     bool tokenSimilarity = false;
 
@@ -212,11 +248,15 @@ namespace htm {
       const std::string name = "SimHashDocumentEncoder";
       ar(cereal::make_nvp("name", name));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("charFrequencyCeiling", args_.charFrequencyCeiling));
+      ar(cereal::make_nvp("charFrequencyFloor", args_.charFrequencyFloor));
       ar(cereal::make_nvp("caseSensitivity", args_.caseSensitivity));
       ar(cereal::make_nvp("encodeOrphans", args_.encodeOrphans));
       ar(cereal::make_nvp("excludes", args_.excludes));
       ar(cereal::make_nvp("size", args_.size));
       ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("tokenFrequencyCeiling", args_.tokenFrequencyCeiling));
+      ar(cereal::make_nvp("tokenFrequencyFloor", args_.tokenFrequencyFloor));
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
       ar(cereal::make_nvp("vocabulary", args_.vocabulary));
     }
@@ -226,11 +266,15 @@ namespace htm {
       std::string name;
       ar(cereal::make_nvp("name", name));
       ar(cereal::make_nvp("activeBits", args_.activeBits));
+      ar(cereal::make_nvp("charFrequencyCeiling", args_.charFrequencyCeiling));
+      ar(cereal::make_nvp("charFrequencyFloor", args_.charFrequencyFloor));
       ar(cereal::make_nvp("caseSensitivity", args_.caseSensitivity));
       ar(cereal::make_nvp("encodeOrphans", args_.encodeOrphans));
       ar(cereal::make_nvp("excludes", args_.excludes));
       ar(cereal::make_nvp("size", args_.size));
       ar(cereal::make_nvp("sparsity", args_.sparsity));
+      ar(cereal::make_nvp("tokenFrequencyCeiling", args_.tokenFrequencyCeiling));
+      ar(cereal::make_nvp("tokenFrequencyFloor", args_.tokenFrequencyFloor));
       ar(cereal::make_nvp("tokenSimilarity", args_.tokenSimilarity));
       ar(cereal::make_nvp("vocabulary", args_.vocabulary));
       BaseEncoder<std::vector<std::string>>::initialize({ args_.size });
