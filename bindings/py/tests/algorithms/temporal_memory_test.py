@@ -20,26 +20,32 @@ import pytest
 import pickle
 import sys
 
-class TemporalMemoryBindingsTest(unittest.TestCase):
-  @pytest.mark.skip(reason="Calling arguments on compute()...another PR")
-  @staticmethod
-  def testIssue807():
-    # The following should silently pass.  Previous versions segfaulted.
-    # See https://github.com/numenta/nupic.core/issues/807 for context
-    from htm.bindings.algorithms import TemporalMemory
+from htm.bindings.sdr import SDR
+from htm.algorithms import TemporalMemory as TM
+import numpy as np
 
-    tm = TemporalMemory()
-    tm.compute(set(), True)
+
+class TemporalMemoryBindingsTest(unittest.TestCase):
+
+  def testCompute(self):
+    """ Check that there are no errors in call to compute. """
+    inputs = SDR( 100 ).randomize( .05 )
+    
+    tm = TM( inputs.dimensions)
+    tm.compute( inputs, True )
+
+    active = tm.getActiveCells()
+    self.assertTrue( active.getSum() > 0 )
+
 
   @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
   def testNupicTemporalMemoryPickling(self):
     """Test pickling / unpickling of NuPIC TemporalMemory."""
-    from htm.bindings.algorithms import TemporalMemory
 
     # Simple test: make sure that dumping / loading works...
-    tm = TemporalMemory(columnDimensions=(16,))
-    pickledTm = pickle.dumps(tm)
+    tm = TM(columnDimensions=(16,))
 
+    pickledTm = pickle.dumps(tm)
     tm2 = pickle.loads(pickledTm)
 
     self.assertEqual(tm.numberOfCells(), tm2.numberOfCells(),

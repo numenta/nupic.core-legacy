@@ -514,6 +514,10 @@ void Region::setParameterArray(const std::string &name, const Array &array) {
   impl_->setParameterArray(name, (Int64)-1, array);
 }
 
+size_t Region::getParameterArrayCount(const std::string &name) {
+  return impl_->getParameterArrayCount(name, (Int64)-1);
+}
+
 void Region::setParameterString(const std::string &name, const std::string &s) {
   impl_->setParameterString(name, (Int64)-1, s);
 }

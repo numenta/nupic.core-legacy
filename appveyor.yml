@@ -10,11 +10,13 @@ build:
   verbosity: minimal
 
 # version format
-version: 0.3.0.{build}
+version: 2.0.0-{build}
 
 branches:
-  except:
-    - gh-pages
+  only:
+    - master
+    - /^v.*\..*\..*$/ #regexp for tags "v*.*.*", eg v2.0.1-pre
+
 
 skip_commits:
   # Add [av skip] to commit messages to skip AppVeyor building
@@ -35,7 +37,7 @@ skip_branch_with_pr: true
 init:
   - git config --global core.autocrlf input
 
-clone_folder: c:\projects\htm-cpp
+clone_folder: c:\projects\htm-core
 clone_depth: 1
 
 # Can't have a shallow clone because the CMake process will be
@@ -44,14 +46,11 @@ shallow_clone: false
 
 environment:
   COMPILER_FAMILY: MSVC
-  NUPIC_CORE: "C:\\projects\\htm-cpp"
-  ARTIFACTS_DIR: "%NUPIC_CORE%\\build\\artifacts"
+  HTM_CORE: "C:\\projects\\htm-core"
+  ARTIFACTS_DIR: "%HTM_CORE%\\build\\artifacts"
+  configuration: "Release"
+  GITHUB_TOKEN: "fX0sRFrScPzNxDgmzcihMg3m42f85w4SFKN9T2Ezq/xUrYEBGaOWAWUANj+564JS8J/WwAVWZJctAp7sUaMMEaFqcDaY9US+megZJraX2C45BmgDaGQcKHIUjrXV39gizt2jCxBXTxUxafskKF1nx93SZkKuRmy2znFt1ewFooRJisl+IEnaGqtCtqt7TLq6lRw0rYGpX94VXhapk8izv4awjjUDR2KEZu4rcBcU+Xbpi9QWLR2qLEdcShZI++M/KU7STAjTzPgcADReVnL09nd99VnhPTwYIkPau22Q3+YUpcyxho9A522ZbYkgWCBAiIqFA9X1E8XsVXJ/p2Q17cQtNu97GkKerltlioxZFy9ck1533CNew3nXd8CprMQQd4uL5rCX3C6rhdossKpKmAkUSnzuh7Duy/emzy1jGEBkQagX1YBbFxkSUaQbDL+RHW89KFiU7C/WOsoauAc3twpNB/cJbdV4V/r/9SeenCOc1KGwMt61pbpAb6Gn0B51etqYvUnAE8ZQs3qB8+cqHn85Ej6P7XzuuMICrsNj2vNvtP+frz7KICmgLTf9TzkgBEzd60YhgD1tldcT9N7+FeiAeaeGIao3pleCiqlWjJN83pWl5Dwq4ZsNodDicDtO0A4lgub+YdSgdjqetF1GAmPaw/SX6eR8J3WCNE6V95A="
 
-## AWS S3 support (pip install boto)
-#  AWS_ACCESS_KEY_ID:
-#    secure: /9U0mCHp3k1U8Y5CY/kDqwCKG2gqchG/T/UlVWo8SME=
-#  AWS_SECRET_ACCESS_KEY:
-#    secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
 ## PyPI support (pip install twine)
 #  PYPI_USERNAME: numenta
 #  PYPI_PASSWORD:
@@ -86,15 +85,16 @@ matrix:
   ##  Dont know where this goes: skip_branch_with_pr: true
   #allow_failures:
   #  # enable this to prevent CI from failing even if there are errors.
-  #  - NC_CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
+  
 
 
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
+before_build:
+#  - ps: gitversion /l console /output buildserver
 
-
-install:
+build_script:
   # Dump appveyor build vars for diagnostics
   - "ECHO APPVEYOR_FORCED_BUILD: %APPVEYOR_FORCED_BUILD%"
   - "ECHO APPVEYOR_RE_BUILD: %APPVEYOR_RE_BUILD%"
@@ -102,46 +102,42 @@ install:
   - for /f %%i in ('type VERSION') do set BINDINGS_VERSION=%%i
   - echo Binding version = %BINDINGS_VERSION%
 
-  - python -m pip install --user --upgrade pip setuptools setuptools-scm
+  - python -m pip install --user --upgrade pip setuptools setuptools-scm wheel || exit
   - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
+  # we need to find the previous git tags so a shallow clone is not enough
+  - git fetch --depth=200
 
-  - cd %NUPIC_CORE%
-  - mkdir %NUPIC_CORE%\build\
-  - mkdir %NUPIC_CORE%\build\scripts
-
-  # http://www.cmake.org/Wiki/CmakeMingw
-  - cd %NUPIC_CORE%\build\scripts
-  - cmake -G "%NC_CMAKE_GENERATOR%" -DCMAKE_BUILD_TYPE=%configuration%  %NUPIC_CORE%
-
-build_script:
-  - cd %NUPIC_CORE%\build\scripts
-
-  # Run build (i.e. make install), using portable, toolchain-agnostic mechanism to start it
-  - cmake.exe --build "%NUPIC_CORE%\build\scripts" --target install --config %configuration%
-
-  - cd %NUPIC_CORE%
-
-  - python setup.py install --user
+  # Build the library with the python interface (64bit Release build)
+  - cd %HTM_CORE%
+  - python setup.py install --user --force
+  
 
 after_build:
-
   # Run unit_tests (C++)
-  - cd %NUPIC_CORE%
+  - cd %HTM_CORE%
   - mkdir %ARTIFACTS_DIR%
-  - cd %NUPIC_CORE%\build\Release\bin
+  - cd %HTM_CORE%\build\Release\bin
   - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
 
   # Run python tests
-  - cd %NUPIC_CORE%
+  - cd %HTM_CORE%
   - python setup.py test
+
+  # Build the wheel
+  - python setup.py bdist_wheel
+
+  # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
+  - cd %HTM_CORE%\build\scripts
+  - cmake --build . --config Release --target PACKAGE
 
 # Disable automatic tests
 test: off
 
 artifacts:
-  # Non-recursive search in build folder for Wheels
-#  - path: '*.whl'
+  # Non-recursive search in build folder for github packages
+  - path: 'build\scripts\*.zip'
+    name: htm.core
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt
@@ -153,30 +149,23 @@ artifacts:
 #       If ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_REPO_TAG -eq "True") {
 #         Write-Host "Uploading bindings to PYPI"
 #         pip install httplib requests twine --upgrade
-#         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:NUPIC_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
+#         twine upload -u $env:PYPI_USERNAME -p $env:PYPI_PASSWORD -r pypi $env:HTM_CORE\bindings\py\dist\htm.bindings-$env:BINDINGS_VERSION-cp27-none-$env:wheel_name_suffix.whl
 #       }
 
-deploy:
-  # Iterative builds
-## AWS S3 deployment
-#  - provider: S3
-#    access_key_id: AKIAIGHYSEHV3WFKOWNQ
-#    secret_access_key:
-#      secure: /8wO17Gir0XAiecJkHeE3jxOJzvyl0+uWcl7BKCuN0FC795golsL8905VmNuRl1o
-#    bucket: "artifacts.numenta.org"
-#    region: us-west-2
-#    set_public: true
-#    artifact: "htm.bindings-$(APPVEYOR_REPO_COMMIT)-cp27-none-$(wheel_name_suffix).whl"
-#    folder: "numenta/htm.core/releases/htm.bindings"
-#    on:
-#      branch: master
-
-## GitHub
-# Deploy to GitHub Releases
-# - provider: GitHub
-#   artifact: '*.whl'           # upload all NuGet packages to release assets
-#   draft: false
-#   prerelease: false
-#   on:
-#     branch: master                # release from master branch only
-#     appveyor_repo_tag: true       # deploy on tag push only
+    #deploy:
+    ### GitHub
+    ## Deploy to GitHub Releases
+    ## see https://www.appveyor.com/docs/deployment/github/
+    ##
+    #  release: 'testing' #htmcore-win64-v$(appveyor_build_version)
+    #  description: 'HTM.core binary release for Windows (64bit)' #desc is mandatory
+    #  provider: GitHub
+    #  auth_token: 
+    #    secure: "%GITHUB_TOKEN%"
+    #  artifact: '\build\scripts\*.zip' # upload .zip from 'make package'
+    #  draft: false
+    #  prerelease: false
+    #  force_update: true #override files in existing release
+    #  on:
+    #    branch: master                # release from master branch only
+    #    appveyor_repo_tag: true       # deploy on tag push only

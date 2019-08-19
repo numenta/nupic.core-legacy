@@ -284,7 +284,7 @@ Spec *TestNode::createSpec() {
                                    0, // array
                                    "", // constraints
 								   "", // default Value
-								   ParameterSpec::ReadWriteAccess));
+								   ParameterSpec::ReadOnlyAccess));
 
   ns->parameters.add("computeCallback",
                      ParameterSpec("address of a function that is called at every compute()",
