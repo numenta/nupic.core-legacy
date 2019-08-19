@@ -70,6 +70,10 @@ namespace htm {
           << "Argument 'charFrequencyCeiling' should be greater than argument 'charFrequencyFloor'.";
       }
     }
+    if (!parameters.vocabulary.size()) {
+      NTA_CHECK(!parameters.encodeOrphans)
+        << "Argument 'encodeOrphans' requires argument 'vocabulary'.";
+    }
 
     // Make local copy of arguments for processing
     args_ = parameters;
@@ -82,6 +86,7 @@ namespace htm {
         << "Argument 'sparsity' requires that the 'size' also be given.";
       args_.activeBits = (UInt) round(args_.size * args_.sparsity);
     }
+
     // Process: handle internal case insensitivity needs
     if (!args_.caseSensitivity) {
       // exclusions => case insensitive
@@ -93,8 +98,9 @@ namespace htm {
         }
         args_.excludes = excludesLower;
       }
+
       // vocabulary => case insensitive
-      if (args_.vocabulary.size() > 0) {
+      if (args_.vocabulary.size()) {
         std::map<std::string, UInt> vocabLower;
         for (const auto& pair : args_.vocabulary) {
           std::string token = pair.first;
@@ -127,20 +133,17 @@ namespace htm {
 
     Eigen::MatrixXi adders(args_.size, 0u);
     Eigen::VectorXi hashBits(args_.size);
-    std::map<std::string, UInt> histogramToken;
+    std::map<std::string, UInt> histogramToken = {};
     SDR result({ args_.size });
     std::vector<UInt> simBits(args_.size, 0u);
 
     hashBits = Eigen::VectorXi::Zero(args_.size);
     result.zero();
 
-    LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
-    NTA_DEBUG << "! input.size = " << input.size();
-
     for (const auto& member : input) {
       std::string token = member;
-      UInt tokenWeight;
-      std::map<std::string, UInt> histogramChar;
+      UInt tokenWeight = 1;  // default weight for non-vocab and vocab-orphan
+      std::map<std::string, UInt> histogramChar = {};
 
       // caseSensitivity
       if (!args_.caseSensitivity) {
@@ -155,27 +158,24 @@ namespace htm {
       }
 
       // vocabulary + encodeOrphans
-      if (args_.vocabulary[token]) {
-        tokenWeight = args_.vocabulary[token];
-      }
-      else {
-        if (args_.encodeOrphans) {
-          tokenWeight = 1; // encode non-vocab token with weight 1
+      if (args_.vocabulary.size()) {
+        if (args_.vocabulary.count(token)) {
+          tokenWeight = args_.vocabulary.at(token);  // use weight from vocab map
         }
-        else {
-          continue; // skip non-vocab token
+        else if (!args_.encodeOrphans) {
+          continue;  // discard this non-vocab token
         }
       }
 
       // token frequency floor and ceiling
-      if (histogramToken.count(token) <= 0) { histogramToken[token] = 1; }
-      else { histogramToken[token]++; }
-      LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
-      NTA_DEBUG << "- hist  " << token << " " << histogramToken[token];
-      if ((histogramToken[token] < args_.tokenFrequencyFloor) ||
-          (histogramToken[token] > args_.tokenFrequencyCeiling) ) {
-        NTA_DEBUG << "-- skipping";
-        continue;  // discard token
+      histogramToken[token]++;
+      if (args_.tokenFrequencyFloor > 0 &&
+          histogramToken.at(token) <= args_.tokenFrequencyFloor) {
+        continue;  // discard under char
+      }
+      if (args_.tokenFrequencyCeiling > 0 &&
+          histogramToken.at(token) >= args_.tokenFrequencyCeiling) {
+        continue;  // discard over char
       }
 
       // tokenSimilarity
@@ -183,23 +183,19 @@ namespace htm {
         // generate hash digest for every single character individually
         for (const auto& letter : token) {
           const std::string letterStr = std::string(1u, letter);
-          UInt charWeight = args_.vocabulary[letterStr] ?
-                            args_.vocabulary[letterStr] : tokenWeight;
+          UInt charWeight = args_.vocabulary.count(letterStr) ?
+                            args_.vocabulary.at(letterStr) : tokenWeight;
 
           // char frequency floor and ceiling
-          // if (histogramChar.count(letterStr) <= 0) {
-          //   histogramChar[letterStr] = 1;
-          // }
-          // else {
-          //   histogramChar[letterStr]++;
-          // }
-          // if ((histogramChar[letterStr] < args_.charFrequencyFloor) ||
-          //     (histogramChar[letterStr] > args_.charFrequencyCeiling) ) {
-          //   continue;  // discard char
-          // }
-
-          LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
-          NTA_DEBUG << "  " << letterStr;
+          histogramChar[letterStr]++;
+          if (args_.charFrequencyFloor > 0 &&
+              histogramChar.at(letterStr) <= args_.charFrequencyFloor) {
+            continue;  // discard under char
+          }
+          if (args_.charFrequencyCeiling > 0 &&
+              histogramChar.at(letterStr) >= args_.charFrequencyCeiling) {
+            continue;  // discard over char
+          }
 
           // hash character
           hashToken_(letterStr, hashBits);
@@ -210,8 +206,6 @@ namespace htm {
       }
 
       // generate hash digest for whole token string
-      LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
-      NTA_DEBUG << " " << token;
       hashToken_(token, hashBits);
       bitsToWeightedAdder_(tokenWeight, hashBits);
       addVectorToMatrix_(hashBits, adders);
@@ -230,10 +224,17 @@ namespace htm {
    */
   void SimHashDocumentEncoder::encode(const std::string input, SDR &output)
   {
+    NTA_CHECK(input.length() > 0u)
+      << "Encoding input string should have at least lenth 1.";
+
     std::regex spaces("\\s+");
     std::sregex_token_iterator iterate(input.begin(), input.end(), spaces, -1);
     std::sregex_token_iterator end;
     std::vector<std::string> inputSplit(iterate, end);
+
+    NTA_CHECK(inputSplit.size() > 0u)
+      << "Encoding inputSplit list should have at least lenth 1.";
+
     encode(inputSplit, output);
   } // end method encode (string alternate)
 

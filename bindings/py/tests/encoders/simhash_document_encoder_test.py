@@ -114,14 +114,37 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(encoder4.parameters.activeBits == 20)
         assert(not encoder4.parameters.tokenSimilarity)
 
+        # test bad encoder params - `charFrequency*` require `tokenSimilarity`
+        encoder5 = None
+        params5 = SimHashDocumentEncoderParameters()
+        params5.size = 400
+        params5.activeBits = 20
+        params5.charFrequencyCeiling = 6
+        params5.charFrequencyFloor = 3
+        with self.assertRaises(RuntimeError):
+            encoder5 = SimHashDocumentEncoder(params5)
+
+        # test bad encoder params - charFrequency should be ceiling > floor
+        params5.charFrequencyCeiling = 3
+        params5.charFrequencyFloor = 6
+        with self.assertRaises(RuntimeError):
+            encoder5 = SimHashDocumentEncoder(params5)
+
+        # test bad encoder params - tokenFrequency should be ceiling > floor
+        params5.tokenFrequencyCeiling = 3
+        params5.tokenFrequencyFloor = 6
+        with self.assertRaises(RuntimeError):
+            encoder5 = SimHashDocumentEncoder(params5)
+        assert(not encoder5)
+
     # Make sure bits stay the same across uses and envrionments
     def testDeterminism(self):
         GOLD = SDR(1000)
         GOLD.sparse = [
-            16, 29, 60, 76, 117, 144, 149, 198, 221, 242, 291, 315, 340, 347,
-            368, 373, 384, 400, 402, 412, 431, 433, 447, 459, 471, 475, 488,
-            552, 587, 601, 613, 624, 639, 668, 721, 724, 726, 753, 799, 805,
-            807, 821, 822, 843, 879, 912, 929, 943, 956, 970]
+            2, 34, 37, 38, 69, 79, 114, 170, 200, 234, 254, 258, 279, 289, 291,
+            292, 295, 307, 321, 336, 345, 350, 361, 373, 378, 400, 450, 461,
+            462, 487, 520, 532, 539, 548, 576, 583, 616, 623, 626, 627, 663,
+            681, 695, 716, 794, 799, 830, 835, 837, 841]
         params = SimHashDocumentEncoderParameters()
         params.size = GOLD.size
         params.sparsity = 0.05
@@ -137,7 +160,6 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
 
         encoder = SimHashDocumentEncoder(params)
         output = encoder.encode(testDoc1)
-
         assert(encoder.size == params.size)
         assert(output.size == params.size)
         assert(output.getSum() == params.activeBits)
@@ -145,6 +167,12 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
             encoder.encode([], output)
         with self.assertRaises(RuntimeError):
             encoder.encode("", output)
+
+        # make sure simple alternate string calling style matches
+        encoder2 = SimHashDocumentEncoder(params)
+        value2 = "abcde fghij klmno pqrst uvwxy"
+        output2 = encoder2.encode(value2)
+        assert(output == output2)
 
     # Test excludes param
     def testExcludes(self):
@@ -170,45 +198,116 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(output1 != output3)  # full != (full - nope)
         assert(output2 == output3)  # part == (full - nope)
 
+    # Test character frequency floor/ceiling
+    def testFrequencyChar(self):
+        charTokens = "abbbbbbcccdefg aaaaaabccchijk aaabcccccclmno"
+
+        params = SimHashDocumentEncoderParameters()
+        params.size = 400
+        params.sparsity = 0.33
+        params.tokenSimilarity = True
+        encoder1 = SimHashDocumentEncoder(params)
+        output1 = encoder1.encode(charTokens)
+
+        params.charFrequencyFloor = 1
+        encoder2 = SimHashDocumentEncoder(params)
+        output2 = encoder2.encode(charTokens)
+
+        params.charFrequencyFloor = 0
+        params.charFrequencyCeiling = 3
+        encoder3 = SimHashDocumentEncoder(params)
+        output3 = encoder3.encode(charTokens)
+
+        assert(output1 != output2)
+        assert(output1 != output3)
+        assert(output2 != output3)
+
+    # Test token frequency floor/ceiling
+    def testFrequencyToken(self):
+        tokens = "a a a b b c d d d d e e f"  # min 1 max 4
+
+        params = SimHashDocumentEncoderParameters()
+        params.size = 400
+        params.sparsity = 0.33
+        encoder1 = SimHashDocumentEncoder(params)
+        output1 = encoder1.encode(tokens)
+
+        params.tokenFrequencyFloor = 1
+        encoder2 = SimHashDocumentEncoder(params)
+        output2 = encoder2.encode(tokens)
+
+        params.tokenFrequencyFloor = 0
+        params.tokenFrequencyCeiling = 4
+        encoder3 = SimHashDocumentEncoder(params)
+        output3 = encoder3.encode(tokens)
+
+        assert(output1 != output2)
+        assert(output1 != output3)
+        assert(output2 != output3)
+
     # Test de/serialization via Pickle method
     @pytest.mark.skip("pickle deserialization getting corrupted somehow @TODO")
     @pytest.mark.skipif(
         sys.version_info < (3, 6),
         reason="Fails for python2 with segmentation fault")
     def testSerializePickle(self):
+        vocab = {
+            "hear": 2, "nothing": 4, "but": 1, "a": 1, "rushing": 4,
+            "sound": 3}
+        document = [
+            "hear", "any", "sound", "sound", "louder", "but", "walls"]
+
         params = SimHashDocumentEncoderParameters()
         params.size = 400
-        params.activeBits = 21
-        enc1 = SimHashDocumentEncoder(params)
+        params.sparsity = 0.33
+        params.encodeOrphans = True
+        params.vocabulary = vocab
 
+        enc1 = SimHashDocumentEncoder(params)
         pickled = pickle.dumps(enc1)
+        output1 = enc1.encode(document)
+
         enc2 = pickle.loads(pickled)
+        output2 = enc2.encode(document)
 
         assert(enc1.size == enc2.size)
         assert(enc1.parameters.size == enc2.parameters.size)
         assert(enc1.parameters.activeBits == enc2.parameters.activeBits)
+        assert(output1 == output2)
 
     # Test de/serialization via String
     def testSerializeString(self):
+        vocab = {
+            "hear": 2, "nothing": 4, "but": 1, "a": 1, "rushing": 4,
+            "sound": 3}
+        document = [
+            "hear", "any", "sound", "sound", "louder", "but", "walls"]
+
         params = SimHashDocumentEncoderParameters()
         params.size = 400
-        params.activeBits = 21
+        params.sparsity = 0.33
+        params.encodeOrphans = True
+        params.vocabulary = vocab
+
         enc1 = SimHashDocumentEncoder(params)
+        serialized = enc1.writeToString()
+        output1 = enc1.encode(document)
 
         params.size = 40
-        params.activeBits = 2
+        params.sparsity = 0.1
         enc2 = SimHashDocumentEncoder(params)
 
         assert(enc1.size != enc2.size)
         assert(enc1.parameters.size != enc2.parameters.size)
         assert(enc1.parameters.activeBits != enc2.parameters.activeBits)
 
-        s = enc1.writeToString()
-        enc2.loadFromString(s)
+        enc2.loadFromString(serialized)
+        output2 = enc1.encode(document)
 
         assert(enc1.size == enc2.size)
         assert(enc1.parameters.size == enc2.parameters.size)
         assert(enc1.parameters.activeBits == enc2.parameters.activeBits)
+        assert(output1 == output2)
 
     # Test binary properties of a variety of output encodings
     def testStatistics(self):
@@ -375,6 +474,29 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(output2.getOverlap(output3) > output3.getOverlap(output4))
         assert(output3.getOverlap(output4) > output1.getOverlap(output3))
 
+    # Test encoding with weighted tokens. Make sure output changes accordingly.
+    def testTokenWeightMap(self):
+        weights = {
+          "aaa": 4, "bbb": 2, "ccc": 2, "ddd": 4, "eee": 2, "fff": 2, "sss": 1}
+        doc1 = ["aaa", "bbb", "ccc", "ddd", "sss"]
+        doc2 = ["eee", "bbb", "ccc", "fff", "sss"]
+        doc3 = ["aaa", "eee", "fff", "ddd"]
+
+        params = SimHashDocumentEncoderParameters()
+        params.size = 400
+        params.sparsity = 0.33
+        params.tokenSimilarity = False
+        params.encodeOrphans = False
+        params.vocabulary = weights
+        encoder = SimHashDocumentEncoder(params)
+
+        output1 = encoder.encode(doc1)
+        output2 = encoder.encode(doc2)
+        output3 = encoder.encode(doc3)
+
+        assert(output1.getOverlap(output3) > output1.getOverlap(output2))
+        assert(output1.getOverlap(output2) > output2.getOverlap(output3))
+
     # test vocabulary
     def testTokenVocabulary(self):
         vocabulary = {
@@ -401,28 +523,6 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         output2a = encoder2.encode(input1)
         output2b = encoder2.encode(input2)
         assert(output2a == output2b)
-
-    # Test encoding with weighted tokens. Make sure output changes accordingly.
-    def testTokenWeightMap(self):
-        weights = {
-          "aaa": 4, "bbb": 2, "ccc": 2, "ddd": 4, "eee": 2, "fff": 2, "sss": 1}
-        doc1 = ["aaa", "bbb", "ccc", "ddd", "sss"]
-        doc2 = ["eee", "bbb", "ccc", "fff", "sss"]
-        doc3 = ["aaa", "eee", "fff", "ddd"]
-
-        params = SimHashDocumentEncoderParameters()
-        params.size = 400
-        params.sparsity = 0.33
-        params.tokenSimilarity = False
-        params.vocabulary = weights
-        encoder = SimHashDocumentEncoder(params)
-
-        output1 = encoder.encode(doc1)
-        output2 = encoder.encode(doc2)
-        output3 = encoder.encode(doc3)
-
-        assert(output1.getOverlap(output3) > output1.getOverlap(output2))
-        assert(output1.getOverlap(output2) > output2.getOverlap(output3))
 
     # Test encoding unicode text, including with 'tokenSimilarity' On/Off
     def testUnicode(self):

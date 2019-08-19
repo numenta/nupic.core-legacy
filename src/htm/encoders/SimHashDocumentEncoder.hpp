@@ -68,15 +68,15 @@ namespace htm {
     bool caseSensitivity = false;
 
     /**
-     * @param :encodeOrphans: Should we `encode()` tokens that are not in our
-     *  `vocabulary`?
-     *    If True (default): Unrecognized tokens will be added to our encoding
+     * @param :encodeOrphans: If param `vocabulary` is set, should we
+      `encode()` tokens not in that `vocabulary` ("orphan" tokens)?
+     *    If True: Unrecognized tokens will be added to our encoding
      *      with weight=1. Our `vocabulary` is useful as a simple weight map.
-     *    If False: Unrecognized tokens will be discarded. Our `vocabulary`
-     *      now serves more like a whitelist (also with weights).
+     *    If False (default): Unrecognized tokens will be discarded. Our
+     *      `vocabulary` now serves more like a whitelist (also with weights).
      *    Any tokens in the `exclude` list will be discarded.
      */
-    bool encodeOrphans = true;
+    bool encodeOrphans = false;
 
     /**
      * @param :excludes: List of tokens to discard when passed in to `encode()`.

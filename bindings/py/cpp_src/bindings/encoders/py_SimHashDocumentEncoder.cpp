@@ -44,7 +44,8 @@ namespace htm_ext {
      * Parameters
      */
     py::class_<SimHashDocumentEncoderParameters>
-      py_SimHashDocumentEncoderParameters(m, "SimHashDocumentEncoderParameters",
+      py_SimHashDocumentEncoderParameters(m,
+        "SimHashDocumentEncoderParameters",
 R"(
 Parameters for the SimHashDocumentEncoder.
 )");
@@ -57,6 +58,55 @@ R"(
 This is the number of true bits in the encoded output SDR. The output encoding
 will have a distribution of this many 1's. Specify only one of: activeBits
 or sparsity.
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("caseSensitivity",
+      &SimHashDocumentEncoderParameters::caseSensitivity,
+R"(
+Should capitalized English letters (A-Z) have different influence on our output
+than their lower-cased (a-z) counterparts? Or the same influence on output?
+  If TRUE:  "DOGS" and "dogs" will have completely different encodings.
+  If FALSE: "DOGS" and "dogs" will share the same encoding (Default).
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("charFrequencyCeiling",
+      &SimHashDocumentEncoderParameters::charFrequencyCeiling,
+R"(
+If param `tokenSimilarity` is on, this will be the max number of times a
+char/letter can be repeated in a token. Occurances of the character beyond this
+number will be discarded. A setting of 1 will act as character de-duplication,
+guaranteeing each character in a token is unique. Inverse to param
+`charFrequencyFloor`.
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("charFrequencyFloor",
+      &SimHashDocumentEncoderParameters::charFrequencyFloor,
+R"(
+If param `tokenSimilarity` is on, and if this option is set, a character/letter
+will be ignored until it occurs this many times in the token. Occurances of the
+character before this number will be discarded. Inverse to param
+`charFrequencyCeiling`.
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("encodeOrphans",
+      &SimHashDocumentEncoderParameters::encodeOrphans,
+R"(
+If param `vocabulary` is set, should we `encode()` tokens not in our
+`vocabulary` ("orphan" tokens)?
+  If True: Unrecognized tokens will be added to our encoding
+    with weight=1. Our `vocabulary` is useful as a simple weight map.
+  If False (default): Unrecognized tokens will be discarded. Our `vocabulary`
+    now serves more like a whitelist (also with weights).
+  Any tokens in the `exclude` list will be discarded.
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("excludes",
+      &SimHashDocumentEncoderParameters::excludes,
+R"(
+List of tokens to discard when passed in to `encode()`. Terms in the
+`vocabulary`, and orphan terms, will be ignored if excluded here. If
+`tokenSimilarity` is enabled, you can also pass in single character (letter)
+strings to discard.
 )");
 
     py_SimHashDocumentEncoderParameters.def_readwrite("size",
@@ -72,33 +122,21 @@ This is an alternate way (percentage) to specify the the number of active bits.
 Specify only one of: activeBits or sparsity.
 )");
 
-    py_SimHashDocumentEncoderParameters.def_readwrite("caseSensitivity",
-      &SimHashDocumentEncoderParameters::caseSensitivity,
+    py_SimHashDocumentEncoderParameters.def_readwrite("tokenFrequencyCeiling",
+      &SimHashDocumentEncoderParameters::tokenFrequencyCeiling,
 R"(
-Should capitalized English letters (A-Z) have different influence on our output
-than their lower-cased (a-z) counterparts? Or the same influence on output?
-  If TRUE:  "DOGS" and "dogs" will have completely different encodings.
-  If FALSE: "DOGS" and "dogs" will share the same encoding (Default).
+The max number of times a token can be repeated in a document. Occurances of
+the token beyond this number will be discarded. A setting of 1 will act as
+token de-duplication, guaranteeing each token in a document is unique. Inverse
+to param `tokenFrequencyFloor`.
 )");
 
-    py_SimHashDocumentEncoderParameters.def_readwrite("encodeOrphans",
-      &SimHashDocumentEncoderParameters::encodeOrphans,
+    py_SimHashDocumentEncoderParameters.def_readwrite("tokenFrequencyFloor",
+      &SimHashDocumentEncoderParameters::tokenFrequencyFloor,
 R"(
-Should we `encode()` tokens that are not in our `vocabulary`?
-  If True (default): Unrecognized tokens will be added to our encoding
-    with weight=1. Our `vocabulary` is useful as a simple weight map.
-  If False: Unrecognized tokens will be discarded. Our `vocabulary`
-    now serves more like a whitelist (also with weights).
-  Any tokens in the `exclude` list will be discarded.
-)");
-
-    py_SimHashDocumentEncoderParameters.def_readwrite("excludes",
-      &SimHashDocumentEncoderParameters::excludes,
-R"(
-List of tokens to discard when passed in to `encode()`. Terms in the
-`vocabulary`, and orphan terms, will be ignored if excluded here. If
-`tokenSimilarity` is enabled, you can also pass in single character (letter)
-strings to discard.
+If this option is set, a token will be ignored until it occurs this many times
+in the document. Occurances of the token before this number will be discarded.
+Inverse to param `tokenFrequencyCeiling`.
 )");
 
     py_SimHashDocumentEncoderParameters.def_readwrite("tokenSimilarity",
@@ -106,10 +144,10 @@ strings to discard.
 R"(
 This allows similar tokens ("cat", "cats") to also be represented similarly,
 at the cost of document similarity accuracy. Default is FALSE (providing better
-document-level similarity, at the expense of token-level similarity). This could
-be use to meaningfully encode plurals and mis-spellings as similar. It may also
-be hacked to create a complex dimensional category encoder. Results are heavily
-dependent on the content of your input data.
+document-level similarity, at the expense of token-level similarity). This
+could be use to meaningfully encode plurals and mis-spellings as similar. It
+may also be hacked to create a complex dimensional category encoder. Results
+are heavily dependent on the content of your input data.
   If TRUE: Similar tokens ("cat", "cats") will have similar influence on the
     output simhash. This benefit comes with the cost of a reduction in
     document-level similarity accuracy.
@@ -181,19 +219,20 @@ Python Code Example:
     other = encoder.encode("bravo delta echo")
 )");
 
-    py_SimHashDocumentEncoder.def(py::init<SimHashDocumentEncoderParameters&>());
+    py_SimHashDocumentEncoder.def(
+      py::init<SimHashDocumentEncoderParameters&>());
+
+    py_SimHashDocumentEncoder.def_property_readonly("dimensions",
+      [](SimHashDocumentEncoder &self) { return self.dimensions; },
+R"(
+This is the total number of bits in the encoded output SDR.
+)");
 
     py_SimHashDocumentEncoder.def_property_readonly("parameters",
       [](SimHashDocumentEncoder &self) { return self.parameters; },
 R"(
 Contains the parameter structure which this encoder uses internally. All fields
 are filled in automatically.
-)");
-
-    py_SimHashDocumentEncoder.def_property_readonly("dimensions",
-      [](SimHashDocumentEncoder &self) { return self.dimensions; },
-R"(
-This is the total number of bits in the encoded output SDR.
 )");
 
     py_SimHashDocumentEncoder.def_property_readonly("size",
@@ -203,16 +242,29 @@ This is the total number of bits in the encoded output SDR.
 )");
 
     // Handle case of class method overload + class method override
-    // https://pybind11.readthedocs.io/en/master/classes.html#overloaded-methods
-    // prepare
-    py_SimHashDocumentEncoder.def("encode", // alt: simple list w/o weights
-      (void (SimHashDocumentEncoder::*)(std::vector<std::string>, htm::SDR &))
-        &SimHashDocumentEncoder::encode);
-    py_SimHashDocumentEncoder.def("encode", // alt: simple string w/o weights
+    // http://pybind11.readthedocs.io/en/master/classes.html#overloaded-methods
+    // Alternate calling patterns seem to have to come before the main ones.
+    //  1. Explain
+    py_SimHashDocumentEncoder.def("encode", // alt: simple string. Define 1st!
       (void (SimHashDocumentEncoder::*)(std::string, htm::SDR &))
         &SimHashDocumentEncoder::encode);
-    // define
-    py_SimHashDocumentEncoder.def("encode", // alt: simple list w/o weights
+    py_SimHashDocumentEncoder.def("encode", // main: list.
+      (void (SimHashDocumentEncoder::*)(std::vector<std::string>, htm::SDR &))
+        &SimHashDocumentEncoder::encode);
+    //  2. Details
+    py_SimHashDocumentEncoder.def("encode", // alt: simple string. Define 1st!
+      [](SimHashDocumentEncoder &self, std::string value) {
+        auto output = new SDR({ self.size });
+        self.encode( value, *output );
+        return output;
+      },
+R"(
+Encode (Alternate calling style: Simple string method).
+Simple alternate calling pattern using only a single longer string. Takes input
+as a long python string, which will automatically be tokenized (split on
+whitespace). Ex: "alpha bravo delta echo".
+)");
+    py_SimHashDocumentEncoder.def("encode", // main: list.
       [](SimHashDocumentEncoder &self, std::vector<std::string> value) {
         auto output = new SDR({ self.size });
         self.encode( value, *output );
@@ -225,29 +277,19 @@ desired `size`. These vectors will be stored in a matrix for the next step of
 processing. Weights from the `vocabulary` are added in during hashing and
 simhashing. After the loop, we SimHash the matrix of hashes, resulting in an
 output SDR. If param "tokenSimilarity" is set, we'll also loop and hash through
-all the letters in the tokens. Takes input in a python list of strings (tokens).
+all the letters in the tokens. Takes input in a python list of
+strings (tokens).
   Ex: [ "alpha", "bravo", "delta", "echo" ].
 Documents can contain any number of tokens > 0. Token order in the document is
   ignored and does not effect the output encoding. Tokens in the `vocabulary`
-  will be weighted, while others may be encoded depending on the `encodeOrphans`
-  param. Tokens in the `exclude` list will always be discarded.
-)");
-    py_SimHashDocumentEncoder.def("encode", // alt: simple string w/o weights
-      [](SimHashDocumentEncoder &self, std::string value) {
-        auto output = new SDR({ self.size });
-        self.encode( value, *output );
-        return output;
-      },
-R"(
-Encode (Alternate calling style: Simple string method).
-Simple alternate calling pattern using only a single longer string. Takes input
-as a long python string, which will automatically be tokenized (split on
-whitespace). Ex: "alpha bravo delta echo".
+  will be weighted, while others may be encoded depending on the
+  `encodeOrphans` param. Tokens in the `exclude` list will always be discarded.
 )");
 
     // Serialization
     // string in
-    py_SimHashDocumentEncoder.def("loadFromString", [](SimHashDocumentEncoder& self, const py::bytes& inString) {
+    py_SimHashDocumentEncoder.def("loadFromString",
+        [](SimHashDocumentEncoder& self, const py::bytes& inString) {
       std::stringstream inStream(inString.cast<std::string>());
       self.load(inStream);
     },
@@ -255,7 +297,8 @@ R"(
 Deserialize bytestring into current instance.
 )");
     // string out
-    py_SimHashDocumentEncoder.def("writeToString", [](const SimHashDocumentEncoder& self) {
+    py_SimHashDocumentEncoder.def("writeToString",
+        [](const SimHashDocumentEncoder& self) {
       std::ostringstream outStream;
       outStream.flags(ios::scientific);
       outStream.precision(numeric_limits<double>::digits10 + 1);
