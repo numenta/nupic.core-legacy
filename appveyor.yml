@@ -135,8 +135,9 @@ after_build:
 test: off
 
 artifacts:
-  # Non-recursive search in build folder for Wheels
+  # Non-recursive search in build folder for github packages
   - path: 'build\scripts\*.zip'
+    name: htm.core
 
 # NOTE: This is turned off and will likely be removed once deployments of
 #       releases are controlled from a central authority. -- Matt
