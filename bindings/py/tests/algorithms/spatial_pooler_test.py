@@ -219,7 +219,7 @@ class SpatialPoolerTest(unittest.TestCase):
                      "HTM SpatialPooler write to/read from string failed.")
 
   def testSpatialPoolerSerialization(self):
-     # Test serializing with each type of interface.
+     # Test serializing with saveToFile() and loadFromFile()
      inputs = SDR( 100 ).randomize( .05 )
      active = SDR( 100 )
      sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
@@ -231,9 +231,9 @@ class SpatialPoolerTest(unittest.TestCase):
      
      # The SP now has some data in it, try serialization.  
      file = "spatial_pooler_test_save2.bin"
-     sp.writeToFile(file)
+     sp.saveToFile(file)
      sp3 = SP()
-     sp3.readFromFile(file)
+     sp3.loadFromFile(file)
      self.assertEqual(str(sp), str(sp3), "HTM SpatialPooler serialization (using saveToFile/loadFromFile) failed.")
      os.remove(file)
 

@@ -38,15 +38,51 @@ class TemporalMemoryBindingsTest(unittest.TestCase):
     self.assertTrue( active.getSum() > 0 )
 
 
-  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
   def testNupicTemporalMemoryPickling(self):
     """Test pickling / unpickling of NuPIC TemporalMemory."""
 
     # Simple test: make sure that dumping / loading works...
-    tm = TM(columnDimensions=(16,))
+    inputs = SDR( 100 ).randomize( .05 ) 
+    tm = TM( inputs.dimensions)
+    for _ in range(10):
+      tm.compute( inputs, True)
 
-    pickledTm = pickle.dumps(tm)
+    pickledTm = pickle.dumps(tm, 2)
     tm2 = pickle.loads(pickledTm)
 
     self.assertEqual(tm.numberOfCells(), tm2.numberOfCells(),
                      "Simple NuPIC TemporalMemory pickle/unpickle failed.")
+
+
+  def testNupicTemporalMemorySavingToString(self):
+    """Test writing to and reading from TemporalMemory."""
+    inputs = SDR( 100 ).randomize( .05 ) 
+    tm = TM( inputs.dimensions)
+    for _ in range(10):
+      tm.compute( inputs, True)
+
+    # Simple test: make sure that writing/reading works...
+    s = tm.writeToString()
+
+    tm2 = TM()
+    tm2.loadFromString(s)
+
+    self.assertEqual(str(tm), str(tm),
+                     "TemporalMemory write to/read from string failed.")
+
+  def testNupicTemporalMemorySerialization(self):
+     # Test serializing with each type of interface.
+    inputs = SDR( 100 ).randomize( .05 ) 
+    tm = TM( inputs.dimensions)
+    for _ in range(10):
+      tm.compute( inputs, True)
+      
+     #print(str(tm))
+     
+     # The TM now has some data in it, try serialization.  
+     file = "temporalMemory_test_save2.bin"
+     tm.saveToFile(file)
+     tm3 = TM()
+     tm3.loadFromFile(file)
+     self.assertEqual(str(tm), str(tm3), "TemporalMemory serialization (using saveToFile/loadFromFile) failed.")
+     os.remove(file)
