@@ -236,9 +236,9 @@ Argument wrapAround boolean value that determines whether or not inputs
 				
 
         // loadFromString, loads SP from a JSON encoded string produced by writeToString().
-        py_SpatialPooler.def("loadFromString", [](SpatialPooler& self, const py::bytes& inString)
+        py_SpatialPooler.def("loadFromString", [](SpatialPooler& self, const std::string& inString)
         {
-            std::stringstream inStream(inString.cast<std::string>());
+            std::stringstream inStream(inString);
             self.load(inStream, JSON);
         });
 
@@ -251,7 +251,7 @@ Argument wrapAround boolean value that determines whether or not inputs
 
             self.save(os, JSON);
 
-            return py::bytes( os.str() );
+            return os.str();
         });
 
         // compute

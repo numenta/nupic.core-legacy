@@ -176,12 +176,12 @@ Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomal
 
             self.save(os, JSON);
 
-            return py::bytes( os.str() );
+            return os.str();
         });
         // loadFromString, loads TM from a JSON encoded string produced by writeToString().
-        py_HTM.def("loadFromString", [](TemporalMemory& self, const py::bytes& inString)
+        py_HTM.def("loadFromString", [](TemporalMemory& self, const std::string& inString)
         {
-            std::stringstream inStream(inString.cast<std::string>());
+            std::stringstream inStream(inString);
             self.load(inStream, JSON);
         });
 
@@ -208,10 +208,10 @@ Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomal
 
             std::stringstream is( str.cast<std::string>() );
 
-						htm = std::unique_ptr<TemporalMemory> sp(new TemporalMemory());
-            htm->load(is);
+						std::unique_ptr<TemporalMemory> tm(new TemporalMemory());
+            tm->load(is);
 
-            return htm;
+            return tm;
         }
         ));
 
