@@ -278,6 +278,8 @@ namespace htm_ext
 				.def("getParameterString", &Region::getParameterString)
 				.def("getParameterArray", &Region::getParameterArray);
 
+			py_Region.def("executeCommand", &Region::executeCommand);
+
 			py_Region.def("getParameterArrayCount", &Region::getParameterArrayCount);
 
 			py_Region.def("setParameterInt32", &Region::setParameterInt32)
