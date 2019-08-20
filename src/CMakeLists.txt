@@ -447,9 +447,10 @@ install(DIRECTORY "${CMAKE_INSTALL_PREFIX}/distr/dist/"
 ############### PACKAGE ###########################
 #
 # `make package` results in
-# htm_cpp-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
+# htm_cpp-${VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
 #
 #   TODO:  The version numbers need to be automatically incremented.
+message(STATUS "Packaging version: ${VERSION} in CPACK")
 set(CPACK_PACKAGE_NAME "htm.core")
 set(CPACK_PACKAGE_VENDOR "https://github.com/htm-community/htm.core")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "htm.core - Community implementation of Numenta's algorthms.")

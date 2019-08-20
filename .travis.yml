@@ -50,15 +50,22 @@ env:
     - ARCHFLAGS="-arch x86_64"
     - BUNDLE_NAME="htm_core-${TRAVIS_COMMIT}-${PLATFORM}64"
     - secure: "CqicQmoGFaYb3g8KevEQAGC9sV7b7mruh/w3Sgf6xLaEVo6G7vs9Y8iy/g5PbuuREXWpj/xIRi0ao3GniG9R47XU7y7NurfBHv/ret8+wztVlM0viPBZDT8VOVyOsVs+v56QOYAwjr64IHlx3hdSrayLegtoocev0QUzSfvGgsFIdpwWHIU6bFmDdq4FS+8M+NEdi/sqEFTjgqliZzw25tVCN+n3BfCHzUEnzq/fH0v08xG4tF9zedka1XYGwBq5ci4PIrHRMo9nAdvmmj29advetW9k03L5EUXbgfHBu9w+iBqpsuWyhZm2lbrEk5ZUGyE4oh7x1BvtnQc6FYp9Z8TjZyvYeJkUwDDfOfdZPcmyrqMEj7MQ+P4Il8gfMC8EO+2gx7emrzsmvhPz9PdSP+j8waQxamDCabtOlL66DqeA7JGc0zJJ5XPBjct9VU69d2OaouxMQZCz4LD2dB4qtQYwYN0yDJvW7NCxTRa0Q1QDhLUBTNjg1XVub1ZsNPalG2f4dPHOmgwZL9anlIqG1eTt4oN5Gf2BRxw2wFkSIO3TZk7iJ3YUl3tc6ZZyMrad439vB38KQ+8/I9zDe9i54LFzswRuk8aZXZsl9xop8kR9jwPWuzgJSmt+1lUJkFZmPYh9U9IdJjszHrb99ZB02HDgD6d9ihK2gcEDoM53k28=" #This translates to GITHUB_TOKEN=<secure token>
+    - TOKEN_APPVEYOR:
+        secure: "jOtKNjG4mjNrmckN9kycYa/5wtWx8oNfsUhA5386aBdz88VQxgYIzLFdgPAeCIzbmV5CaNxYIchHveqeXUusCFaWA73czE8gkVpIuGO9JwIUdELo+Fd5q4zHiZ1o5ZdVyZFDqf5NmtBOCHAqlS1x2lVFxKMp3OymQpnSi01j/AOXySgZoID8ISNQgTpYl3RqZ1cA4qVrvfn5VCfzyFldKf1D6wfW40UuiqGFigFkDKAcElbr6BAq4vsgf2VoTQOlQD6JJaQ0zHJBddHQQ1U35qj9EyA6J5IKEVcshnNQdEJaQKazWIyiAPXe5yScR/INQ5dSF56dOo3FUWPZtS9r3AmaSesN1gkOHHj5e3VXzXlDpJs5CzRQhtOXCsU7A03KZ0+1vRAMaqy+j0O4rn0jlXPk/9tgQrHRkShuSZr4JU3nlD+v14od84a8t+Lvqk8aetYjuOJIZSYxNA6crnazSAK7vxgKpPoLuPOalAB+7bInsGh4FGDbiMOmDj3tmgaiUJrExM6FDZ2SgVIpIe7VExlZBEOP1k9aCTWFNGupAZv0v/oyJmc2IeE8Y+3M6+cZIajHIvi6dn9+Ij+Z9L9gNl2XZwkGmz0S7kxae0WFTBppaBtHarvfl4jKlFb5XpnDpDa9G0mEsGQgUWOa+HeaC8C6EAP8bx3xxJJ43GAd4xY=" # Appveyor CI API token for fetching artifacts
+    - TOKEN_CIRCLECI:
+        secure: "YJNMoB6pXJCa8z2dNIvnggogE0Tf0rTxwoVEP6kSMd8jfn694k3RpuS1KtDhyAN42TYuBp0HEpAp2tHVJN8EsZJnVLC5vwYolnx6VfNQU8nw99eG4V6TTwKVeZXP5MJLJcyAS6DamNPXQb2q0U/OPzKfMQ/sDN7w+1M5+mIl6X9D+nJcKtHZlXzC6qagvx1uahgqF6/jTxJzLMrT2+W2EgjW5FV8PgxlAR0UO+YHGIX1yOZXsNPeFRuLrPfZ4k4SeyxgBJu8wqSgHPeog2xTU7KNT+D+vn8eNRcR+f+/SsFFj0rwQCXObAhc0xyQWb5n8NW2NlEC14L6XnSPPWPNJ8w9R30cwada/ZJeVECtk3TUUS2HII5qw1PCGC3JCi+WN5jHLRRT7eW8pTXPxY94pqVxBTVircRSg0r4CP3W1VcUuB7Bv+9QdRjMcO6gB29omeHL9InxlHfE1f/yfEWLCcMJKwsA2PyUJU3VxmV+hpFuuMTInFiPevgPeiC6TByKInz9bZyij0DTe9K+YVCnFQ7N32HeaXdngc/mGqKJdOAc8iBozjnkdzp3nMuw591XSHKcNmWwfxs3z8ifrc79m7GUYlpf+2+ZOtriDj6uUCfeR9rpnVIZpplMT4EAtSFmaNb8G8N1shrBS2FA51e5wd0xhYHwDJvqwRV4gcl+Sos=" # CircleCI API token for fetching artifacts
 
 virtualenv:
   system_site_packages: false
 
 # Successful merge/builds of the master are archived and released to pypi.
 before_deploy:
-  - cd $TRAVIS_BUILD_DIR/build/scripts
-  - python $TRAVIS_BUILD_DIR/setup.py bdist_wheel
   - echo "Generating binary release:"
+  - echo "  Build the Wheel
+  - cd $TRAVIS_BUILD_DIR/
+  - python ./setup.py bdist_wheel
+  - cd $TRAVIS_BUILD_DIR/build/scripts
+  - echo "  Build the GitHub Package"
   - make package
   - ../../ci/fetch-artifacts.sh
 
