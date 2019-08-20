@@ -18,6 +18,8 @@
 import unittest
 import pytest
 import sys
+import tempfile
+import os
 
 from htm.bindings.sdr import SDR
 from htm.algorithms import SpatialPooler as SP
@@ -166,22 +168,46 @@ class SpatialPoolerTest(unittest.TestCase):
 
   @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
   def testNupicSpatialPoolerPickling(self):
-    """Test pickling / unpickling of NuPIC SpatialPooler."""
+    """Test pickling / unpickling of HTM SpatialPooler."""
+    inputs = SDR( 100 ).randomize( .05 )
+    active = SDR( 100 )
+    sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
+
+    for _ in range(10):
+      sp.compute( inputs, True, active )
+      
+    if sys.version_info[0] >= 3:
+      proto = 3
+    else:
+      proto = 2
 
     # Simple test: make sure that dumping / loading works...
-    sp = SP()
-    pickledSp = pickle.dumps(sp)
-
+    pickledSp = pickle.dumps(sp, proto)
     sp2 = pickle.loads(pickledSp)
+    self.assertEqual(str(sp), str(sp2),  "Simple SpatialPooler pickle/unpickle failed.")
+    
+    
+    # or using File I/O
+    f = tempfile.TemporaryFile()  # simulates opening a file ('wb')
+    pickle.dump(sp,f, proto)
+    f.seek(0)
+    sp3 = pickle.load(f)
+    #print(str(sp3))
+    f.close();
+    self.assertEqual(str(sp), str(sp3),  "File I/O SpatialPooler pickle/unpickle failed.")
 
-    self.assertEqual(sp.getNumColumns(), sp2.getNumColumns(),
-                     "Simple NuPIC SpatialPooler pickle/unpickle failed.")
+    
 
   def testNupicSpatialPoolerSavingToString(self):
     """Test writing to and reading from NuPIC SpatialPooler."""
+    inputs = SDR( 100 ).randomize( .05 )
+    active = SDR( 100 )
+    sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
+
+    for _ in range(10):
+      sp.compute( inputs, True, active )
 
     # Simple test: make sure that writing/reading works...
-    sp = SP()
     s = sp.writeToString()
 
     sp2 = SP(columnDimensions=[32, 32])
@@ -189,7 +215,27 @@ class SpatialPoolerTest(unittest.TestCase):
 
     self.assertEqual(sp.getNumColumns(), sp2.getNumColumns(),
                      "NuPIC SpatialPooler write to/read from string failed.")
+    self.assertEqual(str(sp), str(sp2),
+                     "HTM SpatialPooler write to/read from string failed.")
 
+  def testSpatialPoolerSerialization(self):
+     # Test serializing with each type of interface.
+     inputs = SDR( 100 ).randomize( .05 )
+     active = SDR( 100 )
+     sp = SP( inputs.dimensions, active.dimensions, stimulusThreshold = 1 )
+
+     for _ in range(10):
+       sp.compute( inputs, True, active )
+      
+     #print(str(sp))
+     
+     # The SP now has some data in it, try serialization.  
+     file = "spatial_pooler_test_save2.bin"
+     sp.writeToFile(file)
+     sp3 = SP()
+     sp3.readFromFile(file)
+     self.assertEqual(str(sp), str(sp3), "HTM SpatialPooler serialization (using saveToFile/loadFromFile) failed.")
+     os.remove(file)
 
 
 if __name__ == "__main__":
