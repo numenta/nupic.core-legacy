@@ -386,7 +386,8 @@ namespace htm_ext
             .def("setMaxEnabledPhase", &htm::Network::getMaxPhase)
             .def("getMinEnabledPhase", &htm::Network::getMinPhase)
             .def("getMaxEnabledPhase", &htm::Network::getMaxPhase)
-			.def("run",                &htm::Network::run);
+            .def("setPhases",          &htm::Network::setPhases)
+            .def("run",                &htm::Network::run);
 
         py_Network.def("initialize", &htm::Network::initialize);
 
