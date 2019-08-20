@@ -61,7 +61,7 @@ virtualenv:
 # Successful merge/builds of the master are archived and released to pypi.
 before_deploy:
   - echo "Generating binary release:"
-  - echo "  Build the Wheel
+  - echo "  Build the Wheel"
   - cd $TRAVIS_BUILD_DIR/
   - python ./setup.py bdist_wheel
   - cd $TRAVIS_BUILD_DIR/build/scripts
