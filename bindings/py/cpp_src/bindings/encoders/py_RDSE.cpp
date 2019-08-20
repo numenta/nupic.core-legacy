@@ -121,7 +121,7 @@ fields are filled in automatically.)");
 	// loadFromString
         py_RDSE.def("loadFromString", [](RDSE& self, const py::bytes& inString) {
           std::stringstream inStream(inString.cast<std::string>());
-          self.load(inStream);
+          self.load(inStream, JSON);
         });
 
         // writeToString
@@ -129,7 +129,7 @@ fields are filled in automatically.)");
           std::ostringstream os;
           os.flags(ios::scientific);
           os.precision(numeric_limits<double>::digits10 + 1);
-          self.save(os);
+          self.save(os, JSON); // see serialization in bindings for SP, py_SpatialPooler.cpp for explanation
           return py::bytes( os.str() );
        });
 
@@ -141,11 +141,18 @@ fields are filled in automatically.)");
             return py::bytes( ss.str() );
           },
           [](py::bytes &s) {
-            std::stringstream ss( s.cast<std::string>() );
-            RDSE self;
-            self.load(ss);
+	    std::stringstream ss( s.cast<std::string>() );
+	    std::unique_ptr<RDSE> self(new RDSE());
+            self->load(ss);
             return self;
         }));
+
+        py_RDSE.def("saveToFile",
+	  [](RDSE &self, const std::string& filename) { self.saveToFile(filename, SerializableFormat::BINARY); });
+
+        py_RDSE.def("loadFromFile",
+	  [](RDSE &self, const std::string& filename) { return self.loadFromFile(filename, SerializableFormat::BINARY); });
+
 
     }
 }
