@@ -162,13 +162,13 @@ Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomal
 
 				// saving and loading from file
         py_HTM.def("saveToFile", 
-				    [](SpatialPooler &self, const std::string& filename) {self.saveToFile(filename,SerializableFormat::BINARY); });  
+				    [](TemporalMemory &self, const std::string& filename) {self.saveToFile(filename,SerializableFormat::BINARY); });  
 				
         py_HTM.def("loadFromFile",
-				    [](SpatialPooler &self, const std::string& filename) { return self.loadFromFile(filename,SerializableFormat::BINARY); }); 
+				    [](TemporalMemory &self, const std::string& filename) { return self.loadFromFile(filename,SerializableFormat::BINARY); }); 
 
         // writeToString, save TM to a JSON encoded string usable by loadFromString()
-        py_HTM.def("writeToString", [](const SpatialPooler& self)
+        py_HTM.def("writeToString", [](const TemporalMemory& self)
         {
             std::ostringstream os;
 					  os.precision(std::numeric_limits<double>::digits10 + 1);
@@ -179,7 +179,7 @@ Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomal
             return py::bytes( os.str() );
         });
         // loadFromString, loads TM from a JSON encoded string produced by writeToString().
-        py_HTM.def("loadFromString", [](SpatialPooler& self, const py::bytes& inString)
+        py_HTM.def("loadFromString", [](TemporalMemory& self, const py::bytes& inString)
         {
             std::stringstream inStream(inString.cast<std::string>());
             self.load(inStream, JSON);
