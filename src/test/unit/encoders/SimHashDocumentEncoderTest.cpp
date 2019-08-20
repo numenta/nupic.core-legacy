@@ -114,22 +114,12 @@ namespace testing {
     ASSERT_EQ(encoder4.parameters.size, params4.size);
     ASSERT_EQ(encoder4.parameters.activeBits, 20u);
 
-    // test bad encoder params - `charFrequency*` require `tokenSimilarity`
+    // test bad encoder params - frequency should be ceiling > floor
     SimHashDocumentEncoderParameters params5;
-    params5.size = 400u;
-    params5.activeBits = 20u;
-    params5.charFrequencyCeiling = 6;
-    params5.charFrequencyFloor = 3;
-    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
-
-    // test bad encoder params - charFrequency should be ceiling > floor
-    params5.charFrequencyCeiling = 3;
-    params5.charFrequencyFloor = 6;
-    EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
-
-    // test bad encoder params - tokenFrequency should be ceiling > floor
-    params5.tokenFrequencyCeiling = 3;
-    params5.tokenFrequencyFloor = 6;
+    params4.size = 400u;
+    params4.sparsity = 0.05f;
+    params5.frequencyCeiling = 3;
+    params5.frequencyFloor = 6;
     EXPECT_ANY_THROW(SimHashDocumentEncoder encoder5(params5));
   }
 
@@ -139,23 +129,32 @@ namespace testing {
     params.size = 400u;
     params.activeBits = 20u;
 
-    // basic list calling style
+    // test basic list calling style
     SDR output({ params.size });
     SimHashDocumentEncoder encoder(params);
-    const std::vector<std::string> value({});
-    EXPECT_ANY_THROW(encoder.encode(value, output));    // empty list
-    EXPECT_NO_THROW(encoder.encode(testDoc1, output));  // full list
+    EXPECT_NO_THROW(encoder.encode(testDoc1, output));
     ASSERT_EQ(output.size, params.size);
     ASSERT_EQ(output.getSum(), params.activeBits);
 
     // make sure simple alternate string calling style matches
     SDR output2({ params.size });
     SimHashDocumentEncoder encoder2(params);
-    std::string value2 = "";
-    EXPECT_ANY_THROW(encoder.encode(value2, output2));  // empty str
-    value2 = "abcde fghij klmno pqrst uvwxy";
+    std::string value2 = "abcde fghij klmno pqrst uvwxy";
     encoder2.encode(value2, output2);                  // full str
     ASSERT_EQ(output.getSparse(), output2.getSparse());
+
+    // test empty inputs => output of all zeros
+    const std::vector<std::string> value3({});
+    SDR outputZ({ params.size });
+    SDR output3({ params.size });
+    outputZ.zero();
+    encoder.encode(value3, output3);
+    ASSERT_EQ(output3.getSparse(), outputZ.getSparse());
+
+    std::string value4 = "";
+    SDR output4({ params.size });
+    encoder2.encode(value4, output4);
+    ASSERT_EQ(output4.getSparse(), outputZ.getSparse());
   }
 
   // Test excludes param
@@ -189,39 +188,13 @@ namespace testing {
     ASSERT_EQ(output2, output3); // part == (full - nope)
   }
 
-  // Test character frequency floor/ceiling
-  TEST(SimHashDocumentEncoder, testFrequencyChar) {
+  // Test token frequency floor/ceiling
+  TEST(SimHashDocumentEncoder, testFrequency) {
+    const std::string tokens = "a a a b b c d d d d e e f"; // min 1 max 4
     const std::string charTokens = {
       "abbbbbbcccdefg aaaaaabccchijk aaabcccccclmno" };
 
-    SimHashDocumentEncoderParameters params;
-    params.size = 400u;
-    params.sparsity = 0.33f;
-    params.tokenSimilarity = true;
-    SimHashDocumentEncoder encoder1(params);
-    SDR output1({ encoder1.size });
-    encoder1.encode(charTokens, output1);
-
-    params.charFrequencyFloor = 1u;
-    SimHashDocumentEncoder encoder2(params);
-    SDR output2({ encoder2.size });
-    encoder2.encode(charTokens, output2);
-
-    params.charFrequencyFloor = 0;
-    params.charFrequencyCeiling = 3u;
-    SimHashDocumentEncoder encoder3(params);
-    SDR output3({ encoder3.size });
-    encoder3.encode(charTokens, output3);
-
-    ASSERT_NE(output1, output2);
-    ASSERT_NE(output1, output3);
-    ASSERT_NE(output2, output3);
-  }
-
-  // Test token frequency floor/ceiling
-  TEST(SimHashDocumentEncoder, testFrequencyToken) {
-    const std::string tokens = "a a a b b c d d d d e e f"; // min 1 max 4
-
+    // test token frequency floor and ceiling
     SimHashDocumentEncoderParameters params;
     params.size = 400u;
     params.sparsity = 0.33f;
@@ -229,13 +202,13 @@ namespace testing {
     SDR output1({ encoder1.size });
     encoder1.encode(tokens, output1);
 
-    params.tokenFrequencyFloor = 1u;
+    params.frequencyFloor = 1u;
     SimHashDocumentEncoder encoder2(params);
     SDR output2({ encoder2.size });
     encoder2.encode(tokens, output2);
 
-    params.tokenFrequencyFloor = 0;
-    params.tokenFrequencyCeiling = 4u;
+    params.frequencyFloor = 0;
+    params.frequencyCeiling = 4u;
     SimHashDocumentEncoder encoder3(params);
     SDR output3({ encoder3.size });
     encoder3.encode(tokens, output3);
@@ -243,6 +216,22 @@ namespace testing {
     ASSERT_NE(output1, output2);
     ASSERT_NE(output1, output3);
     ASSERT_NE(output2, output3);
+
+    // test character frequency ceiling (only)
+    SimHashDocumentEncoderParameters params2;
+    params2.size = 400u;
+    params2.sparsity = 0.33f;
+    params2.tokenSimilarity = true;
+    SimHashDocumentEncoder encoder4(params2);
+    SDR output4({ encoder4.size });
+    encoder4.encode(charTokens, output4);
+
+    params2.frequencyCeiling = 3u;
+    SimHashDocumentEncoder encoder5(params2);
+    SDR output5({ encoder5.size });
+    encoder5.encode(charTokens, output5);
+
+    ASSERT_NE(output4, output5);
   }
 
   // Test Serialization and Deserialization

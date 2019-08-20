@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # HTM Community Edition of NuPIC
 # Copyright (C) 2016, Numenta, Inc. https://numenta.com
 #               2019, David McDougall
@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU Affero Public License along with
 # this program.  If not, see http://www.gnu.org/licenses.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """Unit tests for SimHashDocumentEncoder."""
 
@@ -114,25 +114,13 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(encoder4.parameters.activeBits == 20)
         assert(not encoder4.parameters.tokenSimilarity)
 
-        # test bad encoder params - `charFrequency*` require `tokenSimilarity`
-        encoder5 = None
+        # test bad encoder params - frequency should be ceiling > floor
         params5 = SimHashDocumentEncoderParameters()
         params5.size = 400
-        params5.activeBits = 20
-        params5.charFrequencyCeiling = 6
-        params5.charFrequencyFloor = 3
-        with self.assertRaises(RuntimeError):
-            encoder5 = SimHashDocumentEncoder(params5)
-
-        # test bad encoder params - charFrequency should be ceiling > floor
-        params5.charFrequencyCeiling = 3
-        params5.charFrequencyFloor = 6
-        with self.assertRaises(RuntimeError):
-            encoder5 = SimHashDocumentEncoder(params5)
-
-        # test bad encoder params - tokenFrequency should be ceiling > floor
-        params5.tokenFrequencyCeiling = 3
-        params5.tokenFrequencyFloor = 6
+        params5.sparsity = 0.05
+        params5.frequencyCeiling = 3
+        params5.frequencyFloor = 6
+        encoder5 = None
         with self.assertRaises(RuntimeError):
             encoder5 = SimHashDocumentEncoder(params5)
         assert(not encoder5)
@@ -158,21 +146,26 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         params.size = 400
         params.activeBits = 20
 
+        # main call style - list
         encoder = SimHashDocumentEncoder(params)
         output = encoder.encode(testDoc1)
         assert(encoder.size == params.size)
         assert(output.size == params.size)
         assert(output.getSum() == params.activeBits)
-        with self.assertRaises(RuntimeError):
-            encoder.encode([], output)
-        with self.assertRaises(RuntimeError):
-            encoder.encode("", output)
 
-        # make sure simple alternate string calling style matches
+        # simple alternate calling style - string
         encoder2 = SimHashDocumentEncoder(params)
         value2 = "abcde fghij klmno pqrst uvwxy"
         output2 = encoder2.encode(value2)
         assert(output == output2)
+
+        # encoding empty values leads to output of zeros
+        outputZ = SDR(params.size)
+        outputZ.zero()
+        output3 = encoder.encode([])
+        output4 = encoder.encode("")
+        assert(output3 == outputZ)
+        assert(output4 == outputZ)
 
     # Test excludes param
     def testExcludes(self):
@@ -198,52 +191,44 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(output1 != output3)  # full != (full - nope)
         assert(output2 == output3)  # part == (full - nope)
 
-    # Test character frequency floor/ceiling
-    def testFrequencyChar(self):
+    # Test token frequency floor/ceiling
+    def testFrequency(self):
+        tokens = "a a a b b c d d d d e e f"  # min 1 max 4
         charTokens = "abbbbbbcccdefg aaaaaabccchijk aaabcccccclmno"
 
-        params = SimHashDocumentEncoderParameters()
-        params.size = 400
-        params.sparsity = 0.33
-        params.tokenSimilarity = True
-        encoder1 = SimHashDocumentEncoder(params)
-        output1 = encoder1.encode(charTokens)
-
-        params.charFrequencyFloor = 1
-        encoder2 = SimHashDocumentEncoder(params)
-        output2 = encoder2.encode(charTokens)
-
-        params.charFrequencyFloor = 0
-        params.charFrequencyCeiling = 3
-        encoder3 = SimHashDocumentEncoder(params)
-        output3 = encoder3.encode(charTokens)
-
-        assert(output1 != output2)
-        assert(output1 != output3)
-        assert(output2 != output3)
-
-    # Test token frequency floor/ceiling
-    def testFrequencyToken(self):
-        tokens = "a a a b b c d d d d e e f"  # min 1 max 4
-
+        # Test token frequency floor/ceiling
         params = SimHashDocumentEncoderParameters()
         params.size = 400
         params.sparsity = 0.33
         encoder1 = SimHashDocumentEncoder(params)
         output1 = encoder1.encode(tokens)
 
-        params.tokenFrequencyFloor = 1
+        params.frequencyFloor = 1
         encoder2 = SimHashDocumentEncoder(params)
         output2 = encoder2.encode(tokens)
 
-        params.tokenFrequencyFloor = 0
-        params.tokenFrequencyCeiling = 4
+        params.frequencyFloor = 0
+        params.frequencyCeiling = 4
         encoder3 = SimHashDocumentEncoder(params)
         output3 = encoder3.encode(tokens)
 
         assert(output1 != output2)
         assert(output1 != output3)
         assert(output2 != output3)
+
+        # Test character frequency ceiling (only)
+        params4 = SimHashDocumentEncoderParameters()
+        params4.size = 400
+        params4.sparsity = 0.33
+        params4.tokenSimilarity = True
+        encoder4 = SimHashDocumentEncoder(params4)
+        output4 = encoder4.encode(charTokens)
+
+        params4.frequencyCeiling = 3
+        encoder5 = SimHashDocumentEncoder(params4)
+        output5 = encoder5.encode(charTokens)
+
+        assert(output4 != output5)
 
     # Test de/serialization via Pickle method
     @pytest.mark.skip("pickle deserialization getting corrupted somehow @TODO")

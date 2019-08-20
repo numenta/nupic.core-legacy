@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # HTM Community Edition of NuPIC
 # Copyright (C) 2019, David McDougall
 #               2019, Brev Patterson, Lux Rota LLC, https://luxrota.com
@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Affero Public License along with
 # this program.  If not, see http://www.gnu.org/licenses.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import htm.bindings.encoders
 SimHashDocumentEncoder = htm.bindings.encoders.SimHashDocumentEncoder
@@ -51,29 +51,23 @@ if __name__ == '__main__':
         '--caseSensitivity', action='store_true', default=False,
         help=SimHashDocumentEncoderParameters.caseSensitivity.__doc__)
     parser.add_argument(
-        '--charFrequencyCeiling', type=int, default=0,
-        help=SimHashDocumentEncoderParameters.charFrequencyCeiling.__doc__)
-    parser.add_argument(
-        '--charFrequencyFloor', type=int, default=0,
-        help=SimHashDocumentEncoderParameters.charFrequencyFloor.__doc__)
-    parser.add_argument(
         '--encodeOrphans', action='store_true', default=False,
         help=SimHashDocumentEncoderParameters.encodeOrphans.__doc__)
     parser.add_argument(
         '--excludes', type=list, default=[],
         help=SimHashDocumentEncoderParameters.excludes.__doc__)
     parser.add_argument(
+        '--frequencyCeiling', type=int, default=0,
+        help=SimHashDocumentEncoderParameters.frequencyCeiling.__doc__)
+    parser.add_argument(
+        '--frequencyFloor', type=int, default=0,
+        help=SimHashDocumentEncoderParameters.frequencyFloor.__doc__)
+    parser.add_argument(
         '--size', type=int, default=0,
         help=SimHashDocumentEncoderParameters.size.__doc__)
     parser.add_argument(
         '--sparsity', type=float, default=0,
         help=SimHashDocumentEncoderParameters.sparsity.__doc__)
-    parser.add_argument(
-        '--tokenFrequencyCeiling', type=int, default=0,
-        help=SimHashDocumentEncoderParameters.tokenFrequencyCeiling.__doc__)
-    parser.add_argument(
-        '--tokenFrequencyFloor', type=int, default=0,
-        help=SimHashDocumentEncoderParameters.tokenFrequencyFloor.__doc__)
     parser.add_argument(
         '--tokenSimilarity', action='store_true', default=False,
         help=SimHashDocumentEncoderParameters.tokenSimilarity.__doc__)
@@ -86,14 +80,12 @@ if __name__ == '__main__':
     parameters = SimHashDocumentEncoderParameters()
     parameters.activeBits = args.activeBits
     parameters.caseSensitivity = args.caseSensitivity
-    parameters.charFrequencyCeiling = args.charFrequencyCeiling
-    parameters.charFrequencyFloor = args.charFrequencyFloor
     parameters.encodeOrphans = args.encodeOrphans
     parameters.excludes = args.excludes
+    parameters.frequencyCeiling = args.frequencyCeiling
+    parameters.frequencyFloor = args.frequencyFloor
     parameters.size = args.size
     parameters.sparsity = args.sparsity
-    parameters.tokenFrequencyCeiling = args.tokenFrequencyCeiling
-    parameters.tokenFrequencyFloor = args.tokenFrequencyFloor
     parameters.tokenSimilarity = args.tokenSimilarity
     parameters.vocabulary = args.vocabulary
 

@@ -54,21 +54,13 @@ namespace htm {
     // Pre-processing, Check parameters
     NTA_CHECK((parameters.activeBits > 0u) != (parameters.sparsity > 0.0f))
       << "Need only one argument of: 'activeBits' or 'sparsity'.";
+    NTA_CHECK((args_.sparsity >= 0.0f) && (args_.sparsity <= 1.0f))
+      << "Argument 'sparsity' must be a float in the range 0.0-1.0.";
     NTA_CHECK(parameters.size > 0u)
       << "Missing 'size' argument.";
-    if ((parameters.tokenFrequencyCeiling > 0) && (parameters.tokenFrequencyFloor > 0)) {
-      NTA_CHECK(parameters.tokenFrequencyCeiling > parameters.tokenFrequencyFloor)
-        << "Argument 'tokenFrequencyCeiling' should be greater than argument 'tokenFrequencyFloor'.";
-    }
-    if (!parameters.tokenSimilarity) {
-      NTA_CHECK(parameters.charFrequencyCeiling == 0)
-        << "Argument 'charFrequencyCeiling' requires argument 'tokenSimilarity'.";
-      NTA_CHECK(parameters.charFrequencyFloor == 0)
-        << "Argument 'charFrequencyFloor' requires argument 'tokenSimilarity'.";
-      if ((parameters.charFrequencyCeiling > 0) && (parameters.charFrequencyFloor > 0)) {
-        NTA_CHECK(parameters.charFrequencyCeiling > parameters.charFrequencyFloor)
-          << "Argument 'charFrequencyCeiling' should be greater than argument 'charFrequencyFloor'.";
-      }
+    if ((parameters.frequencyCeiling > 0) && (parameters.frequencyFloor > 0)) {
+      NTA_CHECK(parameters.frequencyCeiling > parameters.frequencyFloor)
+        << "Argument 'frequencyCeiling' should be greater than argument 'frequencyFloor'.";
     }
     if (!parameters.vocabulary.size()) {
       NTA_CHECK(!parameters.encodeOrphans)
@@ -80,10 +72,6 @@ namespace htm {
 
     // process: handle 'sparsity' param instead of 'activeBits' param
     if (args_.sparsity > 0.0f) {
-      NTA_CHECK((args_.sparsity >= 0.0f) && (args_.sparsity <= 1.0f))
-        << "Argument 'sparsity' must be a float in the range 0.0-1.0.";
-      NTA_CHECK(args_.size > 0u)
-        << "Argument 'sparsity' requires that the 'size' also be given.";
       args_.activeBits = (UInt) round(args_.size * args_.sparsity);
     }
 
@@ -128,9 +116,6 @@ namespace htm {
    */
   void SimHashDocumentEncoder::encode(const std::vector<std::string> input, SDR &output)
   {
-    NTA_CHECK(input.size() > 0u)
-      << "Encoding input vector array should have at least 1 string member.";
-
     Eigen::MatrixXi adders(args_.size, 0u);
     Eigen::VectorXi hashBits(args_.size);
     std::map<std::string, UInt> histogramToken = {};
@@ -139,6 +124,11 @@ namespace htm {
 
     hashBits = Eigen::VectorXi::Zero(args_.size);
     result.zero();
+
+    if (!input.size()) {
+      output.setDense(result.getDense());
+      return;
+    }
 
     for (const auto& member : input) {
       std::string token = member;
@@ -169,12 +159,12 @@ namespace htm {
 
       // token frequency floor and ceiling
       histogramToken[token]++;
-      if (args_.tokenFrequencyFloor > 0 &&
-          histogramToken.at(token) <= args_.tokenFrequencyFloor) {
+      if (args_.frequencyFloor > 0 &&
+          histogramToken.at(token) <= args_.frequencyFloor) {
         continue;  // discard under char
       }
-      if (args_.tokenFrequencyCeiling > 0 &&
-          histogramToken.at(token) >= args_.tokenFrequencyCeiling) {
+      if (args_.frequencyCeiling > 0 &&
+          histogramToken.at(token) >= args_.frequencyCeiling) {
         continue;  // discard over char
       }
 
@@ -186,14 +176,10 @@ namespace htm {
           UInt charWeight = args_.vocabulary.count(letterStr) ?
                             args_.vocabulary.at(letterStr) : tokenWeight;
 
-          // char frequency floor and ceiling
+          // char frequency ceiling (only)
           histogramChar[letterStr]++;
-          if (args_.charFrequencyFloor > 0 &&
-              histogramChar.at(letterStr) <= args_.charFrequencyFloor) {
-            continue;  // discard under char
-          }
-          if (args_.charFrequencyCeiling > 0 &&
-              histogramChar.at(letterStr) >= args_.charFrequencyCeiling) {
+          if (args_.frequencyCeiling > 0 &&
+              histogramChar.at(letterStr) >= args_.frequencyCeiling) {
             continue;  // discard over char
           }
 
@@ -224,17 +210,14 @@ namespace htm {
    */
   void SimHashDocumentEncoder::encode(const std::string input, SDR &output)
   {
-    NTA_CHECK(input.length() > 0u)
-      << "Encoding input string should have at least lenth 1.";
-
     std::regex spaces("\\s+");
     std::sregex_token_iterator iterate(input.begin(), input.end(), spaces, -1);
     std::sregex_token_iterator end;
     std::vector<std::string> inputSplit(iterate, end);
 
-    NTA_CHECK(inputSplit.size() > 0u)
-      << "Encoding inputSplit list should have at least lenth 1.";
-
+    if (!input.length() || !inputSplit.size()) {
+      inputSplit = {};
+    }
     encode(inputSplit, output);
   } // end method encode (string alternate)
 
@@ -323,18 +306,16 @@ namespace htm {
   std::ostream & operator<<(std::ostream & out, const SimHashDocumentEncoder &self)
   {
     out << "SimHashDocumentEncoder \n";
-    out << "  activeBits:            " << self.parameters.activeBits            << ",\n";
-    out << "  caseSensitivity:       " << self.parameters.caseSensitivity       << ",\n";
-    out << "  charFrequencyCeiling:  " << self.parameters.charFrequencyCeiling  << ",\n";
-    out << "  charFrequencyFloor:    " << self.parameters.charFrequencyFloor    << ",\n";
-    out << "  encodeOrphans:         " << self.parameters.encodeOrphans         << ",\n";
-    out << "  excludes.size:         " << self.parameters.excludes.size()       << ",\n";
-    out << "  size:                  " << self.parameters.size                  << ",\n";
-    out << "  sparsity:              " << self.parameters.sparsity              << ",\n";
-    out << "  tokenFrequencyCeiling: " << self.parameters.tokenFrequencyCeiling << ",\n";
-    out << "  tokenFrequencyFloor:   " << self.parameters.tokenFrequencyFloor   << ",\n";
-    out << "  tokenSimilarity:       " << self.parameters.tokenSimilarity       << ",\n";
-    out << "  vocabulary.size:       " << self.parameters.vocabulary.size()     << ",\n";
+    out << "  activeBits:       " << self.parameters.activeBits        << ",\n";
+    out << "  caseSensitivity:  " << self.parameters.caseSensitivity   << ",\n";
+    out << "  frequencyCeiling: " << self.parameters.frequencyCeiling  << ",\n";
+    out << "  frequencyFloor:   " << self.parameters.frequencyFloor    << ",\n";
+    out << "  encodeOrphans:    " << self.parameters.encodeOrphans     << ",\n";
+    out << "  excludes.size:    " << self.parameters.excludes.size()   << ",\n";
+    out << "  size:             " << self.parameters.size              << ",\n";
+    out << "  sparsity:         " << self.parameters.sparsity          << ",\n";
+    out << "  tokenSimilarity:  " << self.parameters.tokenSimilarity   << ",\n";
+    out << "  vocabulary.size:  " << self.parameters.vocabulary.size() << ",\n";
     return out;
   }
 

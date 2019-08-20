@@ -69,25 +69,6 @@ than their lower-cased (a-z) counterparts? Or the same influence on output?
   If FALSE: "DOGS" and "dogs" will share the same encoding (Default).
 )");
 
-    py_SimHashDocumentEncoderParameters.def_readwrite("charFrequencyCeiling",
-      &SimHashDocumentEncoderParameters::charFrequencyCeiling,
-R"(
-If param `tokenSimilarity` is on, this will be the max number of times a
-char/letter can be repeated in a token. Occurances of the character beyond this
-number will be discarded. A setting of 1 will act as character de-duplication,
-guaranteeing each character in a token is unique. Inverse to param
-`charFrequencyFloor`.
-)");
-
-    py_SimHashDocumentEncoderParameters.def_readwrite("charFrequencyFloor",
-      &SimHashDocumentEncoderParameters::charFrequencyFloor,
-R"(
-If param `tokenSimilarity` is on, and if this option is set, a character/letter
-will be ignored until it occurs this many times in the token. Occurances of the
-character before this number will be discarded. Inverse to param
-`charFrequencyCeiling`.
-)");
-
     py_SimHashDocumentEncoderParameters.def_readwrite("encodeOrphans",
       &SimHashDocumentEncoderParameters::encodeOrphans,
 R"(
@@ -109,6 +90,27 @@ List of tokens to discard when passed in to `encode()`. Terms in the
 strings to discard.
 )");
 
+    py_SimHashDocumentEncoderParameters.def_readwrite("frequencyCeiling",
+      &SimHashDocumentEncoderParameters::frequencyCeiling,
+R"(
+The max number of times a token can be repeated in a document. Occurances of
+the token beyond this number will be discarded. A setting of 1 will act as
+token de-duplication, guaranteeing each token in a document is unique. Inverse
+to param `frequencyFloor`.
+  If param `tokenSimilarity` is on, this will be the max number of times a
+  char/letter can be repeated in a token. Occurances of the character beyond
+  this number will be discarded. A setting of 1 will act as character
+  de-duplication, guaranteeing each character in a token is unique.
+)");
+
+    py_SimHashDocumentEncoderParameters.def_readwrite("frequencyFloor",
+      &SimHashDocumentEncoderParameters::frequencyFloor,
+R"(
+If this option is set, a token will be ignored until it occurs this many times
+in the document. Occurances of the token before this number will be discarded.
+Inverse to param `frequencyCeiling`.
+)");
+
     py_SimHashDocumentEncoderParameters.def_readwrite("size",
       &SimHashDocumentEncoderParameters::size,
 R"(
@@ -122,23 +124,6 @@ This is an alternate way (percentage) to specify the the number of active bits.
 Specify only one of: activeBits or sparsity.
 )");
 
-    py_SimHashDocumentEncoderParameters.def_readwrite("tokenFrequencyCeiling",
-      &SimHashDocumentEncoderParameters::tokenFrequencyCeiling,
-R"(
-The max number of times a token can be repeated in a document. Occurances of
-the token beyond this number will be discarded. A setting of 1 will act as
-token de-duplication, guaranteeing each token in a document is unique. Inverse
-to param `tokenFrequencyFloor`.
-)");
-
-    py_SimHashDocumentEncoderParameters.def_readwrite("tokenFrequencyFloor",
-      &SimHashDocumentEncoderParameters::tokenFrequencyFloor,
-R"(
-If this option is set, a token will be ignored until it occurs this many times
-in the document. Occurances of the token before this number will be discarded.
-Inverse to param `tokenFrequencyCeiling`.
-)");
-
     py_SimHashDocumentEncoderParameters.def_readwrite("tokenSimilarity",
       &SimHashDocumentEncoderParameters::tokenSimilarity,
 R"(
@@ -150,7 +135,8 @@ may also be hacked to create a complex dimensional category encoder. Results
 are heavily dependent on the content of your input data.
   If TRUE: Similar tokens ("cat", "cats") will have similar influence on the
     output simhash. This benefit comes with the cost of a reduction in
-    document-level similarity accuracy.
+    document-level similarity accuracy. Param `frequencyCeiling` is also
+    available for use with this.
   If FALSE: Similar tokens ("cat", "cats") will have individually unique and
     unrelated influence on the output simhash encoding, thus losing token-level
     similarity and increasing document-level similarity.
