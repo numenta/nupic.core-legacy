@@ -272,15 +272,24 @@ Documents can contain any number of tokens > 0. Token order in the document is
   `encodeOrphans` param. Tokens in the `exclude` list will always be discarded.
 )");
 
-    // Serialization
-    // string in
-    py_SimHashDocumentEncoder.def("loadFromString",
-        [](SimHashDocumentEncoder& self, const py::bytes& inString) {
-      std::stringstream inStream(inString.cast<std::string>());
-      self.load(inStream);
-    },
+    /**
+     * Serialization
+     */
+    // file out
+    py_SimHashDocumentEncoder.def("saveToFile",
+      [](SimHashDocumentEncoder &self, const std::string& filename) {
+        self.saveToFile(filename, SerializableFormat::BINARY);
+      },
 R"(
-Deserialize bytestring into current instance.
+Serialize current encoder instance out to a file.
+)");
+    // file in
+    py_SimHashDocumentEncoder.def("loadFromFile",
+	    [](SimHashDocumentEncoder &self, const std::string& filename) {
+        return self.loadFromFile(filename, SerializableFormat::BINARY);
+      },
+R"(
+Deserialize file contents into current object.
 )");
     // string out
     py_SimHashDocumentEncoder.def("writeToString",
@@ -288,11 +297,20 @@ Deserialize bytestring into current instance.
       std::ostringstream outStream;
       outStream.flags(ios::scientific);
       outStream.precision(numeric_limits<double>::digits10 + 1);
-      self.save(outStream);
+      self.save(outStream, JSON);
       return py::bytes( outStream.str() );
     },
 R"(
 Serialize current encoder instance out to a bytestring.
+)");
+    // string in
+    py_SimHashDocumentEncoder.def("loadFromString",
+        [](SimHashDocumentEncoder& self, const py::bytes& inString) {
+      std::stringstream inStream(inString.cast<std::string>());
+      self.load(inStream, JSON);
+    },
+R"(
+Deserialize bytestring into current object.
 )");
     // pickle
     py_SimHashDocumentEncoder.def(py::pickle(
@@ -305,8 +323,9 @@ Serialize current encoder instance out to a bytestring.
       // pickle in
       [](py::bytes &s) {
         std::stringstream ss( s.cast<std::string>() );
-        SimHashDocumentEncoder self;
-        self.load(ss);
+        std::unique_ptr<SimHashDocumentEncoder>
+          self(new SimHashDocumentEncoder());
+        self->load(ss);
         return self;
       }
     ),

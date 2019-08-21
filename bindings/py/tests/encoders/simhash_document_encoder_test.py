@@ -231,10 +231,6 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(output4 != output5)
 
     # Test de/serialization via Pickle method
-    @pytest.mark.skip("pickle deserialization getting corrupted somehow @TODO")
-    @pytest.mark.skipif(
-        sys.version_info < (3, 6),
-        reason="Fails for python2 with segmentation fault")
     def testSerializePickle(self):
         vocab = {
             "hear": 2, "nothing": 4, "but": 1, "a": 1, "rushing": 4,
@@ -365,7 +361,7 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(report2.activationFrequency.mean() > params2.sparsity - 0.005)
         assert(report2.activationFrequency.mean() < params2.sparsity + 0.005)
         assert(report2.overlap.min() > 0.38)
-        assert(report2.overlap.max() > 0.79)
+        assert(report2.overlap.max() > 0.78)
         assert(report2.overlap.mean() > 0.61)
         assert(report2.sparsity.min() > params2.sparsity - 0.01)
         assert(report2.sparsity.max() < params2.sparsity + 0.01)
