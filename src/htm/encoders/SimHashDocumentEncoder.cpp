@@ -256,7 +256,7 @@ namespace htm {
       for (const auto& bit : std::bitset<CHAR_BIT>(byte).to_string()) {
         bits(bitcount) = (UInt) (bit - '0');
         bitcount++;
-        if (bitcount >= args_.size) break;
+        if (bitcount >= args_.size - 1) break;
       }
     }
   } // end method bytesToBits_
