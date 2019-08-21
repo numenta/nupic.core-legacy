@@ -21,6 +21,8 @@
 PyBind11 bindings for SpatialPooler class
 */
 
+#include <tuple>
+#include <iostream>
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
@@ -224,24 +226,32 @@ Argument wrapAround boolean value that determines whether or not inputs
         py_SpatialPooler.def("getSynPermMax", &SpatialPooler::getSynPermMax);
         py_SpatialPooler.def("getMinPctOverlapDutyCycles", &SpatialPooler::getMinPctOverlapDutyCycles);
         py_SpatialPooler.def("setMinPctOverlapDutyCycles", &SpatialPooler::setMinPctOverlapDutyCycles);
+				
+				// saving and loading from file
+        py_SpatialPooler.def("saveToFile", 
+				    [](SpatialPooler &self, const std::string& filename) {self.saveToFile(filename,SerializableFormat::BINARY); });  
+				
+        py_SpatialPooler.def("loadFromFile",
+				    [](SpatialPooler &self, const std::string& filename) { return self.loadFromFile(filename,SerializableFormat::BINARY); }); 
+				
 
-        // loadFromString
-        py_SpatialPooler.def("loadFromString", [](SpatialPooler& self, const py::bytes& inString)
+        // loadFromString, loads SP from a JSON encoded string produced by writeToString().
+        py_SpatialPooler.def("loadFromString", [](SpatialPooler& self, const std::string& inString)
         {
-            std::stringstream inStream(inString.cast<std::string>());
-            self.load(inStream);
+            std::stringstream inStream(inString);
+            self.load(inStream, JSON);
         });
 
-        // writeToString
+        // writeToString, save SP to a JSON encoded string usable by loadFromString()
         py_SpatialPooler.def("writeToString", [](const SpatialPooler& self)
         {
             std::ostringstream os;
-            os.flags(ios::scientific);
-            os.precision(numeric_limits<double>::digits10 + 1);
+					  os.precision(std::numeric_limits<double>::digits10 + 1);
+					  os.precision(std::numeric_limits<float>::digits10 + 1);
 
-            self.save(os);
+            self.save(os, JSON);
 
-            return py::bytes( os.str() );
+            return os.str();
         });
 
         // compute
@@ -402,24 +412,38 @@ Argument output An SDR representing the winning columns after
 
 
         // pickle
-
         py_SpatialPooler.def(py::pickle(
-            [](const SpatialPooler& sp)
+            [](const SpatialPooler& sp) // __getstate__
         {
             std::stringstream ss;
 
             sp.save(ss);
-
+						
+						/* The values in stringstream are binary so pickle will get confused
+						 * trying to treat it as utf8 if you just return ss.str().
+						 * So we must treat it as py::bytes.  Some characters could be null values.
+						 */
             return py::bytes( ss.str() );
         },
-            [](py::bytes &s)
+            [](py::bytes &s)   // __setstate__
         {
+				    /* pybind11 will pass in the bytes array without conversion.
+						 * so we should be able to just create a string to initalize the stringstream.
+						 */
             std::stringstream ss( s.cast<std::string>() );
-            SpatialPooler sp;
-            sp.load(ss);
+						std::unique_ptr<SpatialPooler> sp(new SpatialPooler());
+            sp->load(ss);
 
+						/*
+						 * The __setstate__ part of the py::pickle() is actually a py::init() with some options.
+						 * So the return value can be the object returned by value, by pointer, 
+						 * or by container (meaning a unique_ptr). SP has a problem with the copy constructor
+						 * and pointers have problems knowing who the owner is so lets use unique_ptr.
+						 * See: https://pybind11.readthedocs.io/en/stable/advanced/classes.html#custom-constructors
+						 */
             return sp;
         }));
+				
 
     }
 } // namespace htm_ext
