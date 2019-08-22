@@ -29,6 +29,7 @@ namespace htm_ext
 {
     void init_ScalarEncoder(py::module&);
     void init_RDSE(py::module&);
+    void init_SimHashDocumentEncoder(py::module&);
 }
 
 using namespace htm_ext;
@@ -60,4 +61,5 @@ categories into integers before encoding them. )";
 
     init_ScalarEncoder(m);
     init_RDSE(m);
+    init_SimHashDocumentEncoder(m);
 }

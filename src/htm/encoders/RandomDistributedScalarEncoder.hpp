@@ -107,7 +107,7 @@ struct RDSE_Parameters
  * not allow for decoding SDRs into the inputs which likely created it.
  *
  * To inspect this run:
- * $ python -m htm.encoders.rdse --help
+ * $ python -m htm.examples.encoders.rdse --help
  */
 class RandomDistributedScalarEncoder : public BaseEncoder<Real64>
 {
