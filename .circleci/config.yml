@@ -189,7 +189,8 @@ jobs:
       - run:
           name: "Publish Release on PYPI"
           command: |
-            python3 -m pip install twine
+            python3 -m pip install --upgrade pip
+            python3 -m pip install --user twine
             cd build/scripts
             mkdir artifact
             for file in ./*.tar.gz ; do
@@ -253,19 +254,22 @@ workflows:
           requires:
             - osx-build-release
           filters:
+            # ignore on any commit on any branch by default
             branches:
-              only: master
+              ignore: /.*/
+            # But act on tagged events
             tags:
-              only: /v.*/
+              only: /^v[0-9]+(\.[0-9]+)*$/
               
       - osx-deploy-pypi:
           requires:
             - osx-build-release
           filters:
+            # ignore on any commit on any branch by default
             branches:
-              only: master
-            tags:
-              only: /v.*/
+              ignore: /.*/
+            # But act on tagged events
+              only: /^v[0-9]+(\.[0-9]+)*$/
 
   nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
     triggers:
