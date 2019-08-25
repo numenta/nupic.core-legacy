@@ -67,7 +67,7 @@ before_deploy:
   - cd $TRAVIS_BUILD_DIR/build/scripts
   - echo "  Build the GitHub Package"
   - make package
-  - ../../ci/fetch-artifacts.sh
+  #- ../../ci/fetch-artifacts.sh
 
 
 deploy:
@@ -76,9 +76,9 @@ deploy:
   provider: releases
   api_key: "$GITHUB_TOKEN"
   file_glob: true # allows '*' in file below
-  file: "$TRAVIS_BUILD_DIR/build/scripts/*.{tar.gz,zip}"
+  file: "build/scripts/*.tar.gz"
   skip_cleanup: true
-  name: "testing" # GH Release name, undocumented option
+  overwrite: true
   on:
     tags: true #GH requires tagged release
     branch: master
@@ -95,7 +95,7 @@ deploy:
     repo: htm-community/htm.core
   distributions: "bdist_wheel"
   file_glob: true # allows '*' in file below
-  file: "$TRAVIS_BUILD_DIR/build/scripts/*.whl"
+  file: "build/Release/distr/dist/*.whl"
   skip_existing: true
   skip_cleanup: true
      
