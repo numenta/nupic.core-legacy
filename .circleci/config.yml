@@ -245,11 +245,11 @@ workflows:
   osx-build-test: #runs on each commit
     jobs:
       - osx-build-debug    # Mac OS/X raw ("build-debug")
-      - osx-build-release:  # Mac OS/X raw ("build-release")
+      - osx-build-release  # Mac OS/X raw ("build-release")
           #requires:
           #  - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
 
-      - osx-deploy-github
+      - osx-deploy-github:
           requires:
             - osx-build-release
           filters:
@@ -258,7 +258,7 @@ workflows:
             tags:
               only: /v.*/
               
-      - osx-deploy-pypi
+      - osx-deploy-pypi:
           requires:
             - osx-build-release
           filters:
