@@ -147,7 +147,7 @@ jobs:
       # in case this is a tagged master build.
       - persist_to_workspace:
           root: build/scripts
-          paths: *.tar.gz
+          paths: "*.tar.gz"
 
   # job: Mac OS/X tagged master, deply to GitHub Releases
   #
