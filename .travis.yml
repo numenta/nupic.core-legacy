@@ -68,6 +68,8 @@ before_deploy:
   - echo "  Build the GitHub Package"
   - make package
   #- ../../ci/fetch-artifacts.sh
+  - cd $TRAVIS_BUILD_DIR/
+
 
 
 deploy:
@@ -96,7 +98,7 @@ deploy:
   distributions: "bdist_wheel"
   file_glob: true # allows '*' in file below
   file: "build/Release/distr/dist/*.whl"
-  skip_existing: true
+  skip_existing: true   # avoids uploading artifacts more than once.
   skip_cleanup: true
      
 notifications:

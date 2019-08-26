@@ -247,8 +247,8 @@ workflows:
     jobs:
       - osx-build-debug    # Mac OS/X raw ("build-debug")
       - osx-build-release  # Mac OS/X raw ("build-release")
-          #requires:
-          #  - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
+          requires:
+            - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
 
       - osx-deploy-github:
           requires:
@@ -259,7 +259,7 @@ workflows:
               ignore: /.*/
             # But act on tagged events
             tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
+              only: /^v.*/
               
       - osx-deploy-pypi:
           requires:
@@ -269,7 +269,8 @@ workflows:
             branches:
               ignore: /.*/
             # But act on tagged events
-              only: /^v[0-9]+(\.[0-9]+)*$/
+            tags:
+              only: /^v.*/
 
   nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
     triggers:

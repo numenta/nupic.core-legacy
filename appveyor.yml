@@ -149,12 +149,12 @@ on_success:
         }
 
 deploy:
-  ## GitHub
-  ## Deploy to GitHub Releases
-  ## see https://www.appveyor.com/docs/deployment/github/
-  ##
-  - provider: GitHub
-    release: 'htm.core' #htmcore-win64-v$(appveyor_build_version)
+    ## GitHub
+    ## Deploy to GitHub Releases
+    ## see https://www.appveyor.com/docs/deployment/github/
+    ##
+    provider: GitHub
+    release: 'htm.core-$(appveyor_build_version)-win64'
     description: 'HTM.core binary release '
     auth_token: 
         secure: "%GITHUB_TOKEN%"
