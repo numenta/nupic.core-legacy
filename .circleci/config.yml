@@ -276,6 +276,8 @@ workflows:
             
       - osx-build-tagged:  # Mac OS/X raw ("build-release") for use with tagged master.
           filters:   # required since `deploy jobs` have tag filters AND requires `this job`
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/
 
