@@ -78,7 +78,7 @@ deploy:
   provider: releases
   api_key: "$GITHUB_TOKEN"
   file_glob: true # allows '*' in file below
-  file: "build/scripts/*.tar.gz"
+  file: "$TRAVIS_BUILD_DIR/build/scripts/*.tar.gz"
   skip_cleanup: true
   overwrite: true
   on:
@@ -97,7 +97,7 @@ deploy:
     repo: htm-community/htm.core
   distributions: "bdist_wheel"
   file_glob: true # allows '*' in file below
-  file: "build/Release/distr/dist/*.whl"
+  file: "$TRAVIS_BUILD_DIR/build/Release/distr/dist/*.whl"
   skip_existing: true   # avoids uploading artifacts more than once.
   skip_cleanup: true
      
