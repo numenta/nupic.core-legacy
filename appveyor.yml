@@ -126,6 +126,7 @@ after_build:
   # Build the github package in build/scripts/*.zip or build/scripts/*.tar.gz
   - cd %HTM_CORE%\build\scripts
   - cmake --build . --config Release --target PACKAGE
+  - cd %HTM_CORE%
 
 # Disable automatic tests
 test: off
@@ -142,7 +143,6 @@ on_success:
     # PYPI is not a known 'provider' so it cannot go in the deploy: section
     - cmd: echo "executing on_success"
     - ps: >-
-        cd %HTM_CORE%
         If ($env:APPVEYOR_REPO -eq "master" -or $env:APPVEYOR_REPO_TAG -eq "True") {
           Write-Host "Uploading bindings to GitHub"
           python ci/deploy-artifact-to-GitHub.py $env:APPVEYOR_REPO_TAG_NAME "build/scripts/*.zip" $env:GITHUB_TOKEN
