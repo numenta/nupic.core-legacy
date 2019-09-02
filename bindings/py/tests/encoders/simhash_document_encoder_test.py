@@ -231,6 +231,7 @@ class SimHashDocumentEncoder_Test(unittest.TestCase):
         assert(output4 != output5)
 
     # Test de/serialization via Pickle method
+    @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
     def testSerializePickle(self):
         vocab = {
             "hear": 2, "nothing": 4, "but": 1, "a": 1, "rushing": 4,
