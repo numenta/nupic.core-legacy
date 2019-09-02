@@ -38,7 +38,7 @@ class TemporalMemoryBindingsTest(unittest.TestCase):
     active = tm.getActiveCells()
     self.assertTrue( active.getSum() > 0 )
 
-
+  @pytest.mark.skipif(sys.version_info < (3, 6), reason="Fails for python2 with segmentation fault")
   def testNupicTemporalMemoryPickling(self):
     """Test pickling / unpickling of NuPIC TemporalMemory."""
 
