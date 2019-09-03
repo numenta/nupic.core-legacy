@@ -160,6 +160,32 @@ Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomal
             py::call_guard<py::scoped_ostream_redirect,
                            py::scoped_estream_redirect>());
 
+				// saving and loading from file
+        py_HTM.def("saveToFile", 
+				    [](TemporalMemory &self, const std::string& filename) {self.saveToFile(filename,SerializableFormat::BINARY); });  
+				
+        py_HTM.def("loadFromFile",
+				    [](TemporalMemory &self, const std::string& filename) { return self.loadFromFile(filename,SerializableFormat::BINARY); }); 
+
+        // writeToString, save TM to a JSON encoded string usable by loadFromString()
+        py_HTM.def("writeToString", [](const TemporalMemory& self)
+        {
+            std::ostringstream os;
+					  os.precision(std::numeric_limits<double>::digits10 + 1);
+					  os.precision(std::numeric_limits<float>::digits10 + 1);
+
+            self.save(os, JSON);
+
+            return os.str();
+        });
+        // loadFromString, loads TM from a JSON encoded string produced by writeToString().
+        py_HTM.def("loadFromString", [](TemporalMemory& self, const std::string& inString)
+        {
+            std::stringstream inStream(inString);
+            self.load(inStream, JSON);
+        });
+
+
         // pickle
         // https://github.com/pybind/pybind11/issues/1061
         py_HTM.def(py::pickle(
@@ -167,9 +193,6 @@ Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomal
         {
             // __getstate__
             std::ostringstream os;
-
-            os.flags(std::ios::scientific);
-            os.precision(std::numeric_limits<double>::digits10 + 1);
 
             self.save(os);
 
@@ -185,10 +208,10 @@ Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomal
 
             std::stringstream is( str.cast<std::string>() );
 
-            HTM_t htm;
-            htm.load(is);
+						std::unique_ptr<TemporalMemory> tm(new TemporalMemory());
+            tm->load(is);
 
-            return htm;
+            return tm;
         }
         ));
 

@@ -31,16 +31,6 @@ matrix:
         - PLATFORM="linux"
         - PYTHONPATH="$PYTHONPATH:$HOME/.local/lib/python3.7/site-packages/"
 
-#    ## OSX builds take very long to start on OSX
-#    # moved to CircleCI for OSX
-#    - os: osx
-#      osx_image: xcode8.3 #default
-#      compiler: clang
-#      env:
-#        - MATRIX_EVAL="CC=clang && CXX=clang++"
-#        - PLATFORM="darwin"
-#        - PATH="$HOME/Library/Python/2.7/bin:$PATH"
-#        - PYTHONPATH="$HOME/Library/Python/2.7/lib/python/site-packages:$PYTHONPATH"
 
 env:
   global:
@@ -57,61 +47,7 @@ env:
 
 virtualenv:
   system_site_packages: false
-
-# Successful merge/builds of the master are archived and released to pypi.
-before_deploy:
-  - echo "Generating binary release:"
-  - echo "  Build the Wheel"
-  - cd $TRAVIS_BUILD_DIR/
-  - python ./setup.py bdist_wheel
-  - cd $TRAVIS_BUILD_DIR/build/scripts
-  - echo "  Build the GitHub Package"
-  - make package
-  - ../../ci/fetch-artifacts.sh
-
-
-deploy:
-## Github releases
-# API: https://docs.travis-ci.com/user/deployment/releases/
-  provider: releases
-  api_key: "$GITHUB_TOKEN"
-  file_glob: true # allows '*' in file below
-  file: "$TRAVIS_BUILD_DIR/build/scripts/*.{tar.gz,zip}"
-  skip_cleanup: true
-  name: "testing" # GH Release name, undocumented option
-  on:
-    tags: true #GH requires tagged release
-    branch: master
-    repo: htm-community/htm.core
-   
-  ## PYPI releases 
-  provider: pypi 
-  user: "__token__"   # token for PYPI test account for David Keeney.  Not for production
-  password: "pypi-AgENdGVzdC5weXBpLm9yZwIkOTk0YmZjNGYtZTgxNS00Yjk2LTg5ZTAtODE1MGI4MjZhNGZlAAIleyJwZXJtaXNzaW9ucyI6ICJ1c2VyIiwgInZlcnNpb24iOiAxfQAABiDXJOuxvodsEDoD5dOH-e0td1DdUSwrl2NCl_lP_vy6RA"
-  server: "https://test.pypi.org/legacy/"
-  on:
-    tags: true
-    branch: master
-    repo: htm-community/htm.core
-  distributions: "bdist_wheel"
-  file_glob: true # allows '*' in file below
-  file: "$TRAVIS_BUILD_DIR/build/scripts/*.whl"
-  skip_existing: true
-  skip_cleanup: true
-     
-notifications:
-#  email:
-#    recipients:
-#      - "discourse-nupic-developers@numenta.org"
-#    on_success: never
-#    on_failure: change
-  irc:
-    channels:
-      - "irc.freenode.net#nupic-hackers"
-#  webhooks:
-#    - urls:
-#        - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
-#        - https://api.keen.io/3.0/projects/5555161e2fd4b1326f14444a/events/travis-webhooks?api_key=a2e613bbb19b9b1f71a5543b7b677563551b4c3fe98534269546ff666ae453f82505791772faefc48682ee882ac7e99d2c3bfae7c7c19db7b5e7bbda34039119e4b42f5bf41bcea62d4ea9731db4a455141be7d5e8c715cb06366922eae0358e84abc2704ce16bb77b01fec3476cbac6
+  
 
 before_install:
   - eval "${MATRIX_EVAL}"
@@ -146,3 +82,45 @@ script:
   - "cd $TRAVIS_BUILD_DIR/build/artifacts/"
   # transform the JUnit-style xml report to html
   - "xsltproc $TRAVIS_BUILD_DIR/docs/xunit.xslt unit_tests_report.xml > unit_tests_report.html"
+  
+
+# Successful merge/builds of the master are archived and released to pypi.
+before_deploy:
+  - pip install requests twine --upgrade --user
+  - echo "Generating binary release:"
+  - echo "  Build the Wheel"
+  - cd $TRAVIS_BUILD_DIR/
+  - python ./setup.py bdist_wheel
+  - cd $TRAVIS_BUILD_DIR/build/scripts
+  - echo "  Build the GitHub Package"
+  - make package
+  - cd $TRAVIS_BUILD_DIR/
+
+
+
+deploy:
+## Github releases
+# API: https://docs.travis-ci.com/user/deployment/releases/
+  provider: script
+  script: Bash ci/deploy.sh $TRAVIS_TAG 
+  skip_cleanup: true
+  overwrite: true
+  on:
+    tags: true #GH requires tagged release
+    branch: master
+    repo: htm-community/htm.core
+   
+     
+notifications:
+#  email:
+#    recipients:
+#      - "discourse-nupic-developers@numenta.org"
+#    on_success: never
+#    on_failure: change
+  irc:
+    channels:
+      - "irc.freenode.net#nupic-hackers"
+#  webhooks:
+#    - urls:
+#        - https://webhooks.gitter.im/e/68f77bae61efa5c931f8
+#        - https://api.keen.io/3.0/projects/5555161e2fd4b1326f14444a/events/travis-webhooks?api_key=a2e613bbb19b9b1f71a5543b7b677563551b4c3fe98534269546ff666ae453f82505791772faefc48682ee882ac7e99d2c3bfae7c7c19db7b5e7bbda34039119e4b42f5bf41bcea62d4ea9731db4a455141be7d5e8c715cb06366922eae0358e84abc2704ce16bb77b01fec3476cbac6

@@ -8,7 +8,7 @@
 version: 2
 jobs:
 
-  # job: Mac OS/X raw ("build-debug"). This job runs C++ tests in Debug mode (=with extra checks)
+  # job: Mac OS/X raw ("build-debug"). This job builds and runs C++ tests in Debug mode 
   osx-build-debug:
     macos:
       xcode: '11.0.0'
@@ -52,7 +52,7 @@ jobs:
   
   
   
-  # job: Mac OS/X raw ("build-release"). This job builds in Release mode, used for Python tests & for providing OSX binary release. 
+  # job: Mac OS/X raw ("build-release"). This job builds in Release mode, used for C++ and Python tests. 
   osx-build-release:
     macos:
       xcode: '11.0.0'
@@ -81,36 +81,11 @@ jobs:
           name: Installing cmake
           command: brew install cmake || brew install cmake
       - checkout
-      # Dependencies
-      # Restore the dependency cache
-      #      - restore_cache:
-      #    keys:
-      #    # This branch if available
-      #    - v1-dep-{{ .Branch }}-
-      #    # Default branch if not
-      #    - v1-dep-master-
-      #    # Any branch if there are none on the default branch - this should be
-      #    # unnecessary if you have your default branch configured correctly
-      #    - v1-dep-
       - run:
           name: Installing python dependencies
           command: |
             python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
             python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
-      # Save dependency cache
-      #      - save_cache:
-      #    key: v1-dep-{{ .Branch }}-{{ epoch }}
-      #    paths:
-      #    # This is a broad list of cache paths to include many possible
-      #    # development environments.
-      #    - vendor/bundle
-      #    - ~/virtualenvs
-      #    - ~/.m2
-      #    - ~/.ivy2
-      #    - ~/.bundle
-      #    - ~/.go_workspace
-      #    - ~/.gradle
-      #    - ~/.cache/bower
 
 
       # Build Release with python
@@ -134,33 +109,74 @@ jobs:
             python setup.py bdist_wheel
             cd build/scripts
             make package
+            # save artifacts so you can see them with circleCI web site
             mkdir -p /tmp/uploads
             cp -a *.tar.gz /tmp/uploads
 
+
+
+  # job: Mac OS/X raw ("build-release"). This job builds in Release mode, to build artifacts for deplyment
+  osx-build-tagged:
+    macos:
+      xcode: '11.0.0'
+    working_directory: ~/numenta/htm.core
+    parallelism: 1
+    environment:
+      XCODE_SCHEME: htm
+      XCODE_WORKSPACE: htm
+      ARCHFLAGS: -arch x86_64
+    steps:
+      # Machine Setup
+      - run:
+          name: Make sure to use OS X in CircleCI Web UI
+          command: |
+            if [[ "$OSTYPE" != "darwin"* ]]; then
+              echo "Must set option to use OS X in CircleCI Web UI" && exit 1;
+            fi
+      - run: sudo systemsetup -settimezone 'GMT'
+      - run:
+          name: Restoring system python
+          command: |
+            echo 'default to python3' && rm /usr/local/bin/python && ln -s /usr/local/bin/python3 /usr/local/bin/python
+            echo 'python version: ' && python --version
+            echo 'pip version: ' && python -m pip --version
+      - run:
+          name: Installing cmake
+          command: brew install cmake || brew install cmake
+      - checkout
+      - run:
+          name: Installing python dependencies
+          command: |
+            python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
+            python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
+      # Build Release with python
+      - run:
+          name: Build in Release mode
+          environment:
+              VERBOSE: 1
+          command: |
+              python setup.py install --user  --prefix=
+      - run:
+          name: Package Binary release for OSX
+          command: |
+            python setup.py bdist_wheel
+            pushd build/scripts
+            make package
+            # save artifacts so you can see them with circleCI web site
+            mkdir -p /tmp/uploads
+            cp -a *.tar.gz /tmp/uploads
+            popd
       # API for storing and downloading artifacts to/from CI:
-      # https://circleci.com/docs/2.0/artifacts/
+      # see https://circleci.com/docs/2.0/artifacts/
       - store_artifacts:
           path: /tmp/uploads
-
-      ##- persist_to_workspace:
-      ##    root: dist
-      ##    paths:
-      ##    - htm.bindings*.whl
-      ##    - requirements.txt
-      ##    - include/htm
-            #  deploy-s3:
-            #machine: true
-            #steps:
-            #- attach_workspace:
-            #at: dist
-            #- run:
-            #name: Deploying to S3
-            #command: |
-            #pip install awscli --upgrade --user
-            #tar -zcv -f htm_core-${CIRCLE_SHA1}-darwin64.tar.gz dist
-            #aws s3 cp htm_core-${CIRCLE_SHA1}-darwin64.tar.gz s3://artifacts.numenta.org/numenta/htm.core/circle/
-
-
+          
+      # Now deploy artifacts to GitHub and PYPI
+      - run:
+          name: deploy_artifacts
+          command: |
+            echo `pwd`
+            ./ci/deploy.sh $CIRCLE_TAG
 
 
 
@@ -196,21 +212,30 @@ jobs:
 workflows:
   version: 2
 
-  osx-build-test-deploy: #runs on each commit
+  osx-build-test: #runs on each commit
     jobs:
       - osx-build-debug    # Mac OS/X raw ("build-debug")
-      - osx-build-release:  # Mac OS/X raw ("build-release")
+      - osx-build-release: # Mac OS/X raw ("build-release")
           requires:
             - osx-build-debug # all C++ debug tests must pass before Release (and thus artifact) is created
-
-
-  nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
-    triggers:
-      - schedule:
-          cron: "6 0 * * *" # 6am UTC every day
-          filters:
+            
+      - osx-build-tagged:  # Mac OS/X raw ("build-release") for use with tagged master.
+          filters:   
             branches:
-              only:
-                - master
-    jobs:
-      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")
+              # do not trigger on any branch...
+              ignore: /.*/
+            tags:
+              # ...unless that build is a tagged build.
+              only: /^v.*/
+
+
+#  nightly: # build and tests taking long time (currecntly ARM64 build ~5hrs), runs only once a day
+#    triggers:
+#      - schedule:
+#          cron: "6 0 * * *" # 6am UTC every day
+#          filters:
+#            branches:
+#              only:
+#                - master
+#    jobs:
+#      - arm64-build-test  # ARM64 docker/qemu ("arm64-build-test")

@@ -55,6 +55,7 @@ set(src_py_encoders_files
     bindings/encoders/encoders_module.cpp
     bindings/encoders/py_ScalarEncoder.cpp
     bindings/encoders/py_RDSE.cpp
+    bindings/encoders/py_SimHashDocumentEncoder.cpp
     )
 
 set(src_py_engine_files

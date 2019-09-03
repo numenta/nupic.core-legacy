@@ -97,6 +97,17 @@ function(get_versions version major minor patch)
         set(${patch}   0 PARENT_SCOPE)
         return()
     endif()
+    
+    string(REGEX MATCH "^[vV][0-9]*[.][0-9]*[.][0-9]*-?.*$" matched ${GIT_TAG})
+    if ("${matched}" STREQUAL "")
+        # did not match vM.M.P-??? pattern
+        set(m_version ${GIT_TAG})
+        set(${version} ${m_version} PARENT_SCOPE)
+        set(${major}   0 PARENT_SCOPE)
+        set(${minor}   0 PARENT_SCOPE)
+        set(${patch}   0 PARENT_SCOPE)
+        return()
+    endif()        
 
     set(m_version ${GIT_TAG})
 
