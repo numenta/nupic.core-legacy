@@ -38,6 +38,7 @@ PyBind11 bindings for Engine classes
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Network.hpp>
 #include <htm/engine/Region.hpp>
+#include <htm/engine/Input.hpp>
 #include <htm/engine/Spec.hpp>
 #include <htm/types/Sdr.hpp>
 #include <plugin/PyBindRegion.hpp>
@@ -97,7 +98,7 @@ namespace htm_ext
 				//      np.array(this_instance)
 				//     optional parameter copy = False to avoid copying.
 
-        py::class_<Array>(m, "Array", py::buffer_protocol())
+      py::class_<Array>(m, "Array", py::buffer_protocol())
 			.def_buffer([](Array &m) -> py::buffer_info {
 				if (!m.has_buffer())
 					throw std::runtime_error("Array object is not initalized.");
@@ -120,7 +121,7 @@ namespace htm_ext
 					{ BasicType::getSize(m.getType())}        /* Strides (in bytes) for each index */
 				);
 			})
-			.def("__init__", [](Array &m, py::buffer b, bool copy=true){
+			.def("__init__", [](Array &m, py::buffer b, bool copy){
 				py::buffer_info info = b.request();  /* Request a buffer descriptor from Python */
 				if (info.ndim != 1)
 					throw std::runtime_error("Expected a one dimensional array!");
@@ -142,8 +143,9 @@ namespace htm_ext
 					m.allocateBuffer(size);
 					std::memcpy(m.getBuffer(), info.ptr, size*info.itemsize);
 				}
-				new (&m) Array(type, info.ptr, info.shape[0]);
-			})
+				else
+					new (&m) Array(type, info.ptr, info.shape[0]);
+			}, py::arg("b"), py::arg("copy")=true)
 			.def(py::init<>(),           "Create an empty Array object.")
 		    .def("zeroBuffer", &Array::zeroBuffer, "Fills array with zeros")
 			.def("getCount", &Array::getCount, "Returns the number of elements.")
@@ -169,11 +171,19 @@ namespace htm_ext
 					Array self;
 					self.load(ss);
 					return self;
-			}));
-
-
-//              py_Array..def(py::init<const SDR &sdr>(), "Create an Array object from an SDR object.",             py::arg("values"));
-//              py_Array.def("getSDR", &Array::getSDR, "Returns an SDR object if the Array contains type SDR.");
+			}))
+			.def("__init__", [](Array &m, SDR* sdr, bool copy){
+			  NTA_CHECK(sdr != NULL) << "SDR pointer is null.";
+				if (copy) {
+					new(&m) Array(*sdr); // makes a copy of the SDR
+				}
+				else {
+				  new (&m) Array();
+					m.setBuffer(*sdr);   // Does not copy the SDR.
+			  }}, "Create an Array object from an SDR object.", 
+			   py::arg("sdr"), py::arg("copy")=true)
+      .def("getSDR", [](Array& self){ return self.getSDR(); 
+			},  "Returns an SDR object if the Array contains type SDR.");
 
 
 
@@ -212,40 +222,77 @@ namespace htm_ext
         ///////////////////
         py::class_<Spec> py_Spec(m, "Spec");
 
+
+
+
         ///////////////////
         // Region
         ///////////////////
 
-        py::class_<Region, std::shared_ptr<Region>> py_Region(m, "Region");
+      py::class_<Region, std::shared_ptr<Region>> py_Region(m, "Region");
 
-        py_Region.def("getName", &Region::getName)
+      py_Region.def("getName", &Region::getName)
             .def("getType", &Region::getType)
             .def("getDimensions", &Region::getDimensions)
             .def("setDimensions", &Region::setDimensions)
-			.def("getOutputElementCount", &Region::getNodeOutputElementCount);
+            .def("getInputDimensions", &Region::getInputDimensions)
+            .def("getOutputDimensions", &Region::getOutputDimensions)
+            .def("setInputDimensions", &Region::setInputDimensions)
+            .def("setOutputDimensions", &Region::setOutputDimensions)
+            .def("getOutputElementCount", &Region::getNodeOutputElementCount)
+            .def("getInputElementCount", &Region::getNodeInputElementCount)
+            .def("askImplForOutputDimensions", &Region::askImplForOutputDimensions)
+            .def("askImplForInputDimensions", &Region::askImplForInputDimensions);
+						
+			py_Region.def("getInputArray", &Region::getInputData)
+			      .def("getOutputArray", &Region::getOutputData)
+						.def("setInputArray", [](Region& r, const std::string& name, py::buffer& b)
+						{ 
+							py::buffer_info info = b.request();  /* Request a buffer descriptor from Python */
+							if (info.ndim != 1)
+								throw std::runtime_error("Expected a one dimensional array!");
+							size_t size = static_cast<size_t>(info.shape[0]);
+							NTA_BasicType type;
+							if      (((info.format == "i") || (info.format == "l") ) && info.itemsize == 4) type = NTA_BasicType_Int32;
+							else if (((info.format == "I") || (info.format == "L") ) && info.itemsize == 4) type = NTA_BasicType_UInt32;
+							else if ((info.format == "l") || (info.format == "q") ) type = NTA_BasicType_Int64;
+							else if ((info.format == "L") || (info.format == "Q") ) type = NTA_BasicType_UInt64;
+							else if (info.format == "f") type = NTA_BasicType_Real32;
+							else if (info.format == "d") type = NTA_BasicType_Real64;
+							else if (info.format == py::format_descriptor<bool>::format()) type = NTA_BasicType_Bool;
+							else if (info.format == py::format_descriptor<Byte>::format()) type = NTA_BasicType_Byte;
+			        else NTA_THROW << "setInputArray(): Unexpected data type in the array!  info.format=" << info.format;
+			        // for info.format codes, see https://docs.python.org/3.7/library/array.html
+							Array s(type, info.ptr, size);
+							std::cout << "src: " << s << std::endl;
 
-		py_Region.def("getParameterInt32", &Region::getParameterInt32)
-      .def("getParameterUInt32", &Region::getParameterUInt32)
-			.def("getParameterInt64",  &Region::getParameterInt64)
-			.def("getParameterUInt64", &Region::getParameterUInt64)
-			.def("getParameterReal32", &Region::getParameterReal32)
-			.def("getParameterReal64", &Region::getParameterReal64)
-			.def("getParameterBool",   &Region::getParameterBool)
-			.def("getParameterString", &Region::getParameterString)
-			.def("getParameterArray", &Region::getParameterArray);
+							r.setInputData(name, s);
+						});
 
-		py_Region.def("getParameterArrayCount", &Region::getParameterArrayCount);
 
-		py_Region.def("setParameterInt32", &Region::setParameterInt32)
-      .def("setParameterUInt32", &Region::setParameterUInt32)
-			.def("setParameterInt64",  &Region::setParameterInt64)
-			.def("setParameterUInt64", &Region::setParameterUInt64)
-			.def("setParameterReal32", &Region::setParameterReal32)
-			.def("setParameterReal64", &Region::setParameterReal64)
-			.def("setParameterBool",   &Region::setParameterBool)
-			.def("setParameterString", &Region::setParameterString)
-			.def("setParameterArray",  &Region::setParameterArray);
+			py_Region.def("getParameterInt32", &Region::getParameterInt32)
+	      .def("getParameterUInt32", &Region::getParameterUInt32)
+				.def("getParameterInt64",  &Region::getParameterInt64)
+				.def("getParameterUInt64", &Region::getParameterUInt64)
+				.def("getParameterReal32", &Region::getParameterReal32)
+				.def("getParameterReal64", &Region::getParameterReal64)
+				.def("getParameterBool",   &Region::getParameterBool)
+				.def("getParameterString", &Region::getParameterString)
+				.def("getParameterArray", &Region::getParameterArray);
 
+			py_Region.def("getParameterArrayCount", &Region::getParameterArrayCount);
+
+			py_Region.def("setParameterInt32", &Region::setParameterInt32)
+	      .def("setParameterUInt32", &Region::setParameterUInt32)
+				.def("setParameterInt64",  &Region::setParameterInt64)
+				.def("setParameterUInt64", &Region::setParameterUInt64)
+				.def("setParameterReal32", &Region::setParameterReal32)
+				.def("setParameterReal64", &Region::setParameterReal64)
+				.def("setParameterBool",   &Region::setParameterBool)
+				.def("setParameterString", &Region::setParameterString)
+				.def("setParameterArray",  &Region::setParameterArray);
+			
+			
         py_Region.def("__setattr__", [](Region& r, const std::string& Name, py::dict& d)
         {
             //r.python_attributes.insert(std::pair<std::string, py::object>(Name, d));
@@ -294,39 +341,20 @@ namespace htm_ext
         });
 
 
-        /*
-
-        getSpec
-
-        static member
-        getSpecFromType
-        */
-
-		// TODO: do we need a function like this?
-		//    This is used to allow python apps to access the python written region implimentations
-		//    so they can call arbitrary functions on them.
-		//    This breaks the plugin API such that apps or regions implemented in C++ or any other
-		//    language will not work.  Recommend using getParameter, setParmeter and setParameterArray
-		//    to accomplish the same objectives...not very clean but it works cross languages.
-		//    Alternative is to add a new feature to accomplish this with more style.
+				// TODO: do we need a function like getSelf()?
+				//    This is used to allow python apps to access the python written region implimentations
+				//    so they can call arbitrary functions on them.
+				//    This breaks the plugin API such that apps or regions implemented in C++ or any other
+				//    language will not work.  Recommend using getParameter, setParmeter and setParameterArray
+				//    to accomplish the same objectives...not very clean but it works cross languages.
+				//    Alternative is to add a new feature to accomplish this with more style.
         //py_Region.def("getSelf", [](const Region& self)
         //{
         //    return self.getParameterHandle("self");
         //});
 
-        py_Region.def("getInputArray", [](const Region& self, const std::string& name)
-        {
-            auto array_ref = self.getInputData(name);
 
-            return py::array_t<htm::Byte>();
-        });
 
-        py_Region.def("getOutputArray", [](const Region& self, const std::string& name)
-        {
-            auto array_ref = self.getOutputData(name);
-
-            return py::array_t<htm::Byte>();
-        });
 
 
         ///////////////////
@@ -376,7 +404,15 @@ namespace htm_ext
             , py::arg("srcOutput") = "", py::arg("destInput") = ""
 						, py::arg("propagationDelay") = 0);
 
-
+        py::enum_<LogLevel>(m, "LogLevel", py::arithmetic(), "An enumeration of logging levels.")
+				   .value("None", LogLevel::LogLevel_None)        // default
+					 .value("Minimal", LogLevel::LogLevel_Minimal)
+					 .value("Normal",  LogLevel::LogLevel_Normal)
+					 .value("Verbose", LogLevel::LogLevel_Verbose)
+					 .export_values();
+        py_Network.def("setLogLevel", &htm::Network::setLogLevel);
+				
+				
         // plugin registration
         //     (note: we are re-directing these to static functions on the PyBindRegion class)
 		//     (node: the typeName is "py."+className )

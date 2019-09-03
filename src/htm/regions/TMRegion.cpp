@@ -245,6 +245,7 @@ void TMRegion::compute() {
   }
   out = getOutput("predictedActiveCells");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+    tm_->activateDendrites();
     tm_->getWinnerCells(out->getData().getSDR());
     NTA_DEBUG << "winners " << *out << std::endl;
   }
