@@ -495,7 +495,6 @@ namespace py = pybind11;
 
             auto pyNodeSpec = pyClass.attr("getSpec")();
             ns.description = pyNodeSpec["description"].cast<std::string>();
-            ns.singleNodeOnly = pyNodeSpec["singleNodeOnly"].cast<bool>();
 
             if (pyNodeSpec.contains("inputs"))
             {

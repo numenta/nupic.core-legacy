@@ -21,10 +21,15 @@ import pytest
 import numpy as np
 
 from htm.bindings.regions.PyRegion import PyRegion
-
+from htm.bindings.sdr import SDR
 import htm.bindings.engine_internal as engine
 from htm.bindings.tools.serialization_test_py_region import \
      SerializationTestPyRegion
+
+TEST_DATA = [0,1,2,3,4]
+EXPECTED_RESULT1 = [  4, 5 ]
+EXPECTED_RESULT2 = [  4,  11,  28,  42,  43,  87,  89,  93, 110, 127, 132, 137, 149, 187, 193]
+EXPECTED_RESULT3 = [ 134, 371, 924, 1358, 1386, 2791, 2876, 2996, 3526, 4089, 4242, 4406, 4778, 5994, 6199]
 
 
 class LinkRegion(PyRegion):
@@ -33,14 +38,19 @@ class LinkRegion(PyRegion):
   """
   def __init__(self): pass
   def initialize(self): pass
-  def compute(self): pass
+  def compute(self, inputs, outputs): 
+    # This will pass its inuts on to the outputs.
+    for key in inputs:
+      outputs[key][:] = inputs[key]
+      
+    
   def getOutputElementCount(self, name): 
-    return 1
+    return 5
+    
   @classmethod
   def getSpec(cls):
     return {
       "description": LinkRegion.__doc__,
-      "singleNodeOnly": True,
       "inputs": {
         "UInt32": {
           "description": "UInt32 Data",
@@ -151,7 +161,7 @@ class NetworkTest(unittest.TestCase):
     r_from = network.addRegion("from", "py.LinkRegion", "")
     r_to = network.addRegion("to", "py.LinkRegion", "")
     cnt = r_from.getOutputElementCount("UInt32")
-    self.assertEqual(1, cnt)
+    self.assertEqual(5, cnt)
 
 
     # Check for valid links
@@ -221,9 +231,75 @@ class NetworkTest(unittest.TestCase):
     result = np.array(a)
     self.assertTrue( np.array_equal(orig, result))
     
+  def testGetInputArray(self):
+    """
+    This tests whether the input to r_to is accessible and matches the output from the r_from region
+    """
+    engine.Network.registerPyRegion(LinkRegion.__module__, LinkRegion.__name__)
+    
+    network = engine.Network()
+    r_from = network.addRegion("from", "py.LinkRegion", "")
+    r_to = network.addRegion("to", "py.LinkRegion", "")
+    network.link("from", "to", "", "", "UInt32", "UInt32")
+    network.initialize()
+    
+    # Populate the input data
+    r_from.setInputArray("UInt32", np.array(TEST_DATA))
+        
+    network.run(1)
+    
+    to_input = np.array(r_to.getInputArray("UInt32"))
+    self.assertTrue(np.array_equal(to_input, TEST_DATA))
+
+  def testGetOutputArray(self):
+    """
+    This tests whether the final output of the network is accessible
+    """
+    engine.Network.registerPyRegion(LinkRegion.__module__, LinkRegion.__name__)
+    
+    network = engine.Network()
+    r_from = network.addRegion("from", "py.LinkRegion", "")
+    r_to = network.addRegion("to", "py.LinkRegion", "")
+    network.link("from", "to", "", "", "UInt32", "UInt32")
+    network.initialize()
+    r_from.setInputArray("UInt32", np.array(TEST_DATA))
+        
+    network.run(1)
+    
+    output = r_to.getOutputArray("UInt32")
+    self.assertTrue(np.array_equal(output, TEST_DATA))
 
     
+
+  def testBuiltInRegions(self):
+    """
+    This sets up a network with built-in regions.
+    """
     
+    net = engine.Network()
+    net.setLogLevel(engine.Verbose)     # Verbose shows data inputs and outputs while executing.
+    
+    encoder = net.addRegion("encoder", "ScalarSensor", "{n: 6, w: 2}");
+    sp = net.addRegion("sp", "SPRegion", "{columnCount: 200}");
+    tm = net.addRegion("tm", "TMRegion", "");
+    net.link("encoder", "sp"); 
+    net.link("sp", "tm"); 
+    net.initialize();
+
+    encoder.setParameterReal64("sensedValue", 0.8);  #Note: default range setting is -1.0 to +1.0
+    net.run(1)
+    
+    sp_input = sp.getInputArray("bottomUpIn")
+    sdr = sp_input.getSDR()
+    self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT1))
+    
+    sp_output = sp.getOutputArray("bottomUpOut")
+    sdr = sp_output.getSDR()
+    self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT2))
+    
+    tm_output = tm.getOutputArray("predictedActiveCells")
+    sdr = tm_output.getSDR()
+    self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT3))
 
 
 
