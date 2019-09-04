@@ -17,12 +17,14 @@
 
 #include <bindings/suppress_register.hpp>  //include before pybind11.h
 #include <pybind11/pybind11.h>
+#include <pybind11/iostream.h>
 
 #include <htm/encoders/RandomDistributedScalarEncoder.hpp>
 
 namespace py = pybind11;
 
 using namespace htm;
+using namespace std;
 
 namespace htm_ext
 {
@@ -113,5 +115,44 @@ fields are filled in automatically.)");
             self.encode(value, *sdr);
             return sdr;
         });
+
+
+	// Serialization
+	// loadFromString
+        py_RDSE.def("loadFromString", [](RDSE& self, const py::bytes& inString) {
+          std::stringstream inStream(inString.cast<std::string>());
+          self.load(inStream, JSON);
+        });
+
+        // writeToString
+        py_RDSE.def("writeToString", [](const RDSE& self) {
+          std::ostringstream os;
+          os.flags(ios::scientific);
+          os.precision(numeric_limits<double>::digits10 + 1);
+          self.save(os, JSON); // see serialization in bindings for SP, py_SpatialPooler.cpp for explanation
+          return py::bytes( os.str() );
+       });
+
+	// pickle
+        py_RDSE.def(py::pickle(
+          [](const RDSE& self) {
+            std::stringstream ss;
+            self.save(ss);
+            return py::bytes( ss.str() );
+          },
+          [](py::bytes &s) {
+	    std::stringstream ss( s.cast<std::string>() );
+	    std::unique_ptr<RDSE> self(new RDSE());
+            self->load(ss);
+            return self;
+        }));
+
+        py_RDSE.def("saveToFile",
+	  [](RDSE &self, const std::string& filename) { self.saveToFile(filename, SerializableFormat::BINARY); });
+
+        py_RDSE.def("loadFromFile",
+	  [](RDSE &self, const std::string& filename) { return self.loadFromFile(filename, SerializableFormat::BINARY); });
+
+
     }
 }
