@@ -78,7 +78,6 @@ set(ntypes_tests
 set(os_tests
 	   unit/os/DirectoryTest.cpp
 	   unit/os/EnvTest.cpp
-	   unit/os/OSTest.cpp
 	   unit/os/PathTest.cpp
 	   unit/os/TimerTest.cpp
 	   )

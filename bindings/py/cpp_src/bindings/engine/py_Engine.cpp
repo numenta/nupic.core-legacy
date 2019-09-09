@@ -29,8 +29,6 @@ PyBind11 bindings for Engine classes
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-
-#include <htm/os/OS.hpp>
 #include <htm/os/Timer.hpp>
 
 #include <htm/ntypes/Array.hpp>
