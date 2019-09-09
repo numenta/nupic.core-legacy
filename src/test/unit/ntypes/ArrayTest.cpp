@@ -23,11 +23,10 @@
 #include <htm/ntypes/Dimensions.hpp>
 #include <htm/ntypes/ArrayBase.hpp>
 #include <htm/ntypes/Array.hpp>
-#include <htm/os/OS.hpp>
 
 #include <map>
 #include <memory>
-#include <limits.h>
+#include <climits>
 
 #include <gtest/gtest.h>
 

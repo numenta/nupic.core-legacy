@@ -65,7 +65,6 @@ set(src_py_engine_files
     bindings/engine/engine_module.cpp
     bindings/engine/py_Engine.cpp
     bindings/engine/py_Region.cpp
-    bindings/engine/py_OS.cpp
     bindings/engine/py_Timer.cpp
     bindings/engine/py_utils.hpp
 	)

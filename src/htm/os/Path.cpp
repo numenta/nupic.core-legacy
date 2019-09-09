@@ -19,15 +19,14 @@
  */
 
 #include <htm/os/Directory.hpp> // also includes <filesystem> or <experimental/filesystem>
-#include <htm/os/OS.hpp>
 #include <htm/os/Path.hpp>
 #include <htm/utils/Log.hpp>
 #include <algorithm> // replace()
 #include <sstream>
 #include <string>
 #include <iterator>
-#include  <stdio.h>
-#include  <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <cctype> // isspace
 #if defined(NTA_OS_WINDOWS)

@@ -139,10 +139,6 @@ set(os_files
     htm/os/Env.cpp
     htm/os/Env.hpp
     htm/os/ImportFilesystem.hpp
-    htm/os/OS.cpp
-    htm/os/OS.hpp
-    htm/os/OSUnix.cpp
-    htm/os/OSWin.cpp
     htm/os/Path.cpp
     htm/os/Path.hpp
     htm/os/Timer.cpp
