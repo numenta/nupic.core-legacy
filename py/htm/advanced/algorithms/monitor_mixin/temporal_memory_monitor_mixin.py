@@ -23,11 +23,11 @@ Temporal Memory mixin that enables detailed monitoring of history.
 
 import copy
 from collections import defaultdict
-from htm.advanced.algorithms.monitor_mixin.metric import Metric
-from htm.advanced.algorithms.monitor_mixin.monitor_mixin_base import MonitorMixinBase
+from .metric import Metric
+from .monitor_mixin_base import MonitorMixinBase
 from prettytable import PrettyTable
 
-from htm.advanced import IndicesTrace, CountsTrace, BoolsTrace, StringsTrace
+from .trace import IndicesTrace, CountsTrace, BoolsTrace, StringsTrace
 
 
 

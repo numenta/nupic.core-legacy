@@ -23,9 +23,9 @@ ColumnPooler mixin that enables detailed monitoring of history.
 
 import copy
 
-from htm.advanced.algorithms.monitor_mixin.metric import Metric
-from htm.advanced.algorithms.monitor_mixin.monitor_mixin_base import MonitorMixinBase
-from htm.advanced.algorithms.monitor_mixin.trace import IndicesTrace, CountsTrace,BoolsTrace, StringsTrace
+from .metric import Metric
+from .monitor_mixin_base import MonitorMixinBase
+from .trace import IndicesTrace, CountsTrace,BoolsTrace, StringsTrace
 
 
 class ColumnPoolerMonitorMixin(MonitorMixinBase):

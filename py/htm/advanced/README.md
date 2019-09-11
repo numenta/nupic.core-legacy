@@ -1,4 +1,4 @@
-htm_advanced
+htm.advanced
 ==============
 
 This package contains a port to Python3 and htm.core of the location framework code from the [htmresearch repository](https://github.com/numenta/htmresearch) of Numenta. 
@@ -21,4 +21,9 @@ Other frameworks from htmresearch may be added in the future.
 
 Namespace
 =========
-The location framework is located in the htm_advanced namespace. In the future it may be promoted to the htm namespace.
+The location framework is located in the htm.advanced namespace. In the future it may be promoted to the htm namespace.
+
+Connections
+===========
+A subclass of the htm.core Connections class can be found in htm.advanced.algorithms.connections.py. This subclass supplies APIs that were provided in nupic.core and were not yet implemented in htm.core as well as some additional convenience methods.
+Hopefully, for performance and completeness, these will be added to the htm.core cpp implementation.

@@ -50,4 +50,5 @@ See [experiments.cfg](experiments.cfg) for details on the parameters used by the
 --------------------------------------------------------------------------------
 > This experiment is based on [PyExperimentSuite](https://github.com/rueckstiess/expsuite).
 > Numenta keep a local copy in `htmresearch/support/expsuite.py`.
-> For more details on how to configure the experiments see documentation.pdf
+> For more details on how to configure the experiments see [PyExperimentSuite Documentation](https://github.com/rueckstiess/expsuite/blob/master/documentation.pdf)  
+> For a local copy see see documentation.pdf
