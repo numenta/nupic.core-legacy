@@ -24,15 +24,12 @@ Using a monitor mixin with your algorithm
 -----------------------------------------
 
 1. Create a subclass of your algorithm class, with the first parent being the
-corresponding Monitor class. For example,
-
-        class MonitoredTemporalMemory(TemporalMemoryMonitorMixin,
-                                                                    TemporalMemory): pass
+corresponding Monitor class. For example, class MonitoredTemporalMemory(TemporalMemoryMonitorMixin, TemporalMemory): pass
 
 2. Create an instance of the monitored class and use that.
 
-        instance = MonitoredTemporalMemory()
-        # Run data through instance
+    instance = MonitoredTemporalMemory()
+    # Run data through instance
 
 3. Now you can call the following methods to print monitored data from of your
 instance:
@@ -49,19 +46,19 @@ Adding data to a monitor mixin
 1. Create a variable for the data you want to capture in your specific monitor's
 `mmClearHistory` method. For example,
 
-        self._mmTraces["predictedCells"] = IndicesTrace(self, "predicted cells")
+    self._mmTraces["predictedCells"] = IndicesTrace(self, "predicted cells")
 
 Make sure you use the correct type of trace for your data.
 
 2. Add data to this trace in your algorithm's `compute` method (or anywhere
 else).
 
-        self._mmTraces["predictedCells"].data.append(set(self.getPredictiveCells()))
+    self._mmTraces["predictedCells"].data.append(set(self.getPredictiveCells()))
 
 3. You can optionally add this trace as a default trace in `mmGetDefaultTraces`,
 or define a function to return that trace:
 
-        def mmGetTracePredictiveCells(self):
+    def mmGetTracePredictiveCells(self):
 
 Any trace can be converted to a metric using the utility functions provided in
 the framework (see `metric.py`).
@@ -95,7 +92,7 @@ class MonitorMixinBase(object, metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs):
         """
         Note: If you set the kwarg "mmName", then pretty-printing of traces and
-                    metrics will include the name you specify as a tag before every title.
+              metrics will include the name you specify as a tag before every title.
         """
         self.mmName = kwargs.get("mmName")
         if "mmName" in kwargs:
@@ -187,21 +184,20 @@ class MonitorMixinBase(object, metaclass=abc.ABCMeta):
         activities are input, matplotlib's image interpolation may omit activities
         (columns in the image).
 
-        @param cellTrace        (list)     a temporally ordered list of sets of cell
-                                                                 activities
+        @param cellTrace (list) a temporally ordered list of sets of cell activities
 
-        @param cellCount        (int)        number of cells in the space being rendered
+        @param cellCount (int) number of cells in the space being rendered
 
         @param activityType (string) type of cell activity being displayed
 
-        @param title                (string) an optional title for the figure
+        @param title  (string) an optional title for the figure
 
-        @param showReset        (bool)     if true, the first set of cell activities
-                                                                 after a reset will have a grayscale background
+        @param showReset  (bool) if true, the first set of cell activities
+                                 after a reset will have a grayscale background
 
-        @param resetShading (float)    applicable if showReset is true, specifies the
-                                                                 intensity of the reset background with 0.0
-                                                                 being white and 1.0 being black
+        @param resetShading (float) applicable if showReset is true, specifies the
+                                    intensity of the reset background with 0.0
+                                    being white and 1.0 being black
 
         @return (Plot) plot
         """

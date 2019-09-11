@@ -32,9 +32,8 @@ class Trace(object, metaclass=abc.ABCMeta):
 
     def __init__(self, monitor, title):
         """
-        @param monitor (MonitorMixinBase) Monitor Mixin instance that generated
-                                                                            this trace
-        @param title     (string)                     Title
+        @param monitor (MonitorMixinBase) Monitor Mixin instance that generated this trace
+        @param title (string) Title
         """
         self.monitor = monitor
         self.title = title
@@ -127,4 +126,4 @@ class MetricsTrace(Trace):
     @staticmethod
     def prettyPrintDatum(datum):
         return ("min: {0:.2f}, max: {1:.2f}, sum: {2:.2f}, "
-                        "mean: {3:.2f}, std dev: {4:.2f}").format(datum.min, datum.max, datum.sum, datum.mean, datum.standardDeviation)
+                "mean: {3:.2f}, std dev: {4:.2f}").format(datum.min, datum.max, datum.sum, datum.mean, datum.standardDeviation)

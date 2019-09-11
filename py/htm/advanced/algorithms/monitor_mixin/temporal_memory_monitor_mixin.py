@@ -27,7 +27,7 @@ from htm.advanced.algorithms.monitor_mixin.metric import Metric
 from htm.advanced.algorithms.monitor_mixin.monitor_mixin_base import MonitorMixinBase
 from prettytable import PrettyTable
 
-from htm.advanced import (IndicesTrace, CountsTrace, BoolsTrace, StringsTrace)
+from htm.advanced import IndicesTrace, CountsTrace, BoolsTrace, StringsTrace
 
 
 
@@ -245,11 +245,11 @@ class TemporalMemoryMonitorMixin(MonitorMixinBase):
 
         Transition traces are the following:
 
-                predicted => active cells
-                predicted => inactive cells
-                predicted => active columns
-                predicted => inactive columns
-                unpredicted => active columns
+            predicted => active cells
+            predicted => inactive cells
+            predicted => active columns
+            predicted => inactive columns
+            unpredicted => active columns
         """
         if not self._mmTransitionTracesStale:
             return
@@ -372,19 +372,18 @@ class TemporalMemoryMonitorMixin(MonitorMixinBase):
         """
         Returns plot of the cell activity.
 
-        @param title                (string)    an optional title for the figure
+        @param title (string) an optional title for the figure
 
-        @param showReset        (bool)        if true, the first set of cell activities
-                                                                    after a reset will have a gray background
+        @param showReset (bool) if true, the first set of cell activities after a reset will have a gray background
 
-        @param resetShading (float)     if showReset is true, this float specifies the
-                                                                    intensity of the reset background with 0.0
-                                                                    being white and 1.0 being black
+        @param resetShading (float) if showReset is true, this float specifies the
+                                    intensity of the reset background with 0.0
+                                    being white and 1.0 being black
 
-        @param activityType (string)    The type of cell activity to display. Valid
-                                                                    types include "activeCells",
-                                                                    "predictiveCells", "predictedCells",
-                                                                    and "predictedActiveCells"
+        @param activityType (string) The type of cell activity to display. Valid
+                                    types include "activeCells",
+                                    "predictiveCells", "predictedCells",
+                                    and "predictedActiveCells"
 
         @return (Plot) plot
         """

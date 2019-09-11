@@ -68,7 +68,8 @@ class LoggingDecorator(object):
 
     @staticmethod
     def __call__(fn):
-        """ Returns decorated function that logs calls
+        """ 
+        Returns decorated function that logs calls
         """
         def _fn(instance, *args, **kwargs):
             if not hasattr(instance, "callLog"):
@@ -91,8 +92,7 @@ class LoggingDecorator(object):
         """
         Save the call log history into this file.
 
-        @param    logFilename (path)
-                        Filename in which to save a pickled version of the call logs.
+        @param logFilename (path) Filename in which to save a pickled version of the call logs.
 
         """
         with open(logFilename, "wb") as outp:
@@ -105,8 +105,7 @@ class LoggingDecorator(object):
         Load a previously saved call log history from file, returns new
         LoggingDecorator instance separate from singleton.
 
-        @param    logFilename (path)
-                        Filename from which to load a pickled version of the call logs.
+        @param logFilename (path) Filename from which to load a pickled version of the call logs.
         """
         with open(logFilename, "rb") as inp:
             return pickle.load(inp)

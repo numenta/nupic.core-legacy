@@ -23,7 +23,7 @@ import numpy as np
 from htm.advanced.data.generators.pattern_machine import PatternMachine
 
 from htm.advanced.algorithms.column_pooler import ColumnPooler
-from htm.advanced.support.column_pooler_mixin import ColumnPoolerMonitorMixin
+from htm.advanced.algorithms.monitor_mixin.column_pooler_mixin import ColumnPoolerMonitorMixin
 
 
 class MonitoredColumnPooler(ColumnPoolerMonitorMixin, ColumnPooler):

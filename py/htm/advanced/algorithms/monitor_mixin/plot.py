@@ -43,10 +43,9 @@ class Plot(object):
     def __init__(self, monitor, title, show=True):
         """
 
-        @param monitor (MonitorMixinBase) Monitor Mixin instance that generated
-                                                                            this plot
+        @param monitor (MonitorMixinBase) Monitor Mixin instance that generated this plot
 
-        @param title    (string)                        Plot title
+        @param title (string) Plot title
         """
         self._monitor = monitor
         self._title = title

@@ -32,10 +32,9 @@ class Metric(object):
 
     def __init__(self, monitor, title, data):
         """
-        @param monitor (MonitorMixinBase) Monitor Mixin instance that generated
-                                                                            this trace
-        @param title     (string)                     Title
-        @param data        (list)                         List of numbers to compute metric from
+        @param monitor (MonitorMixinBase) Monitor Mixin instance that generated this trace
+        @param title (string) Title
+        @param data  (list) List of numbers to compute metric from
         """
         self.monitor = monitor
         self.title = title
@@ -89,7 +88,7 @@ class Metric(object):
         if self.mean is None:
             return [None, None, None, None, None]
         return [round(self.mean, sigFigs),
-                        round(self.standardDeviation, sigFigs),
-                        round(self.min, sigFigs),
-                        round(self.max, sigFigs),
-                        round(self.sum, sigFigs)]
+                round(self.standardDeviation, sigFigs),
+                round(self.min, sigFigs),
+                round(self.max, sigFigs),
+                round(self.sum, sigFigs)]
