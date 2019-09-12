@@ -23,6 +23,7 @@ from configparser import ConfigParser
 from multiprocessing import Pool, cpu_count
 import numpy as np
 import json, os, time, itertools, re, optparse
+from collections.abc import Iterable
 
 def mp_runrep(args):
     """ Helper function to allow multiprocessing support. """
@@ -47,6 +48,12 @@ def convert_param_to_dirname(param):
     else:
         return re.sub("0+$", '0', '%f'%param)
 
+def is_single_value(tags):
+    """
+    Answer if tags represents a single value.
+    """
+    return type(tags) == str or not isinstance(tags, Iterable) 
+    
 
 class PyExperimentSuite(object):
     
@@ -184,7 +191,7 @@ class PyExperimentSuite(object):
             raise SystemExit('experiment %s not found.'%exp)         
         
         # make list of tags, even if it is only one
-        if tags != 'all' and type(tags) != list:
+        if tags != 'all' and is_single_value(tags):
             tags = [tags] 
         
         results = {}
@@ -319,7 +326,7 @@ class PyExperimentSuite(object):
             tags = list(self.get_history(exp, 0, 'all').keys())
         
         # make list of tags if it is just a string
-        if type(tags) != list:
+        if is_single_value(tags):
             tags = [tags]
          
         results = {}
@@ -378,7 +385,7 @@ class PyExperimentSuite(object):
             tags = list(self.get_history(exp, 0, 'all').keys())
 
         # make list of tags if it is just a string
-        if type(tags) != list:
+        if is_single_value(tags):
             tags = [tags]
 
         results = {}
@@ -503,7 +510,7 @@ class PyExperimentSuite(object):
             if ('experiment' in params and params['experiment'] == 'single'):
                 iparamlist.append(params)
             else:
-                iterparams = [p for p in params if type(params[p]) == list]
+                iterparams = [p for p in params if not is_single_value(params[p])]
                 if len(iterparams) > 0:
                     # write intermediate config file
                     self.mkdir(os.path.join(params['path'], params['name']))

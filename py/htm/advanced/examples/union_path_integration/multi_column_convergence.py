@@ -33,12 +33,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from htm.bindings.engine_internal import Network
 
-from htm.advanced.frameworks.location.location_network_creation import L246aNetwork
-from htm.advanced.support.object_generation import generateObjects
-from htm.advanced.support.expsuite import PyExperimentSuite
-from htm.advanced.support.register_regions import registerAllAdvancedRegions
-from htm.advanced.regions.RawSensor import RawSensor as Sensors
-from htm.advanced.regions.RawValues import RawValues as Motors
+from htm_advanced.frameworks.location.location_network_creation import L246aNetwork
+from htm_advanced.support.object_generation import generateObjects
+from htm_advanced.support.expsuite import PyExperimentSuite
+from htm_advanced.support.register_regions import registerAllAdvancedRegions
+from htm_advanced.regions.RawSensor import RawSensor as Sensors
+from htm_advanced.regions.RawValues import RawValues as Motors
 
 
 
@@ -319,7 +319,7 @@ def plotDebugStatistics(suite, name):
 
         # Plot metrics
         for metric in metrics:
-            ax = plt.figure(tight_layout={"pad": 0}).gca()
+            ax = plt.figure().gca()
             for c in range(cols):
                 key = "{} C{}".format(metric, c)
                 data = history[key]
@@ -332,16 +332,15 @@ def plotDebugStatistics(suite, name):
             plt.xlabel("Number of sensations")
             plt.ylabel(metric)
             plt.title("{} by sensation ({} features, {} columns)".format(metric, features, cols))
-            plt.legend(framealpha=1.0)
 
             # save
             plotPath = os.path.join(path, "{}_{}_{}.pdf".format(metric, features, cols))
-            plt.savefig(plotPath)
+            plt.savefig(plotPath, tight_layout={"pad": 0})
             plt.close()
 
         # Plot L2 SDR
         for c in range(cols):
-            fig = plt.figure(tight_layout={"pad": 0})
+            fig = plt.figure()
             data = history["Full L2 SDR C{}".format(c)]
 
             # One SDR per object for every touch
@@ -358,7 +357,7 @@ def plotDebugStatistics(suite, name):
             plt.title("L2 SDR for col {} ({} features, {} columns)".format(c, features, cols), loc='right')
             # save
             plotPath = os.path.join(path, "Full L2 SDR_{}_{}_{}.pdf".format(features, cols, c))
-            plt.savefig(plotPath)
+            plt.savefig(plotPath, tight_layout={"pad": 0})
             plt.close()
 
 
