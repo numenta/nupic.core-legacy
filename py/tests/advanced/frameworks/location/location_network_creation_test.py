@@ -29,8 +29,8 @@ from htm.bindings.engine_internal import Network
 
 from htm.advanced.frameworks.location.location_network_creation import createL4L6aLocationColumn
 from htm.advanced.support.register_regions import registerAllAdvancedRegions
-from htm.advanced.regions.RawSensor import RawSensor as Sensors
-from htm.advanced.regions.RawValues import RawValues as Motors
+
+from htm.advanced.regions import executeCommand
 
 NUM_OF_COLUMNS = 150
 CELLS_PER_COLUMN = 16
@@ -160,13 +160,13 @@ class LocationNetworkFactoryTest(unittest.TestCase):
 
                 # Calculate displacement from previous location
                 if previousLocation is not None:
-                    Motors.addDataToQueue(motor, locationOnObject - previousLocation)
+                    executeCommand('addDataToQueue', motor, locationOnObject - previousLocation)
                 else:
-                    Motors.addDataToQueue(motor, [0, 0])
+                    executeCommand('addDataToQueue', motor, [0, 0])
                 previousLocation = locationOnObject
 
                 # Sense feature at location
-                Sensors.addDataToQueue(sensor, FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
+                executeCommand('addDataToQueue', sensor, FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
                 net.run(1)
                 reset = False
 
@@ -195,13 +195,13 @@ class LocationNetworkFactoryTest(unittest.TestCase):
 
                 # Calculate displacement from previous location
                 if previousLocation is not None:
-                    Motors.addDataToQueue(motor, locationOnObject - previousLocation)
+                    executeCommand('addDataToQueue', motor, locationOnObject - previousLocation)
                 else:
-                    Motors.addDataToQueue(motor, [0, 0])
+                    executeCommand('addDataToQueue', motor, [0, 0])
                 previousLocation = locationOnObject
 
                 # Sense feature at location
-                Sensors.addDataToQueue(sensor, FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
+                executeCommand('addDataToQueue', sensor, FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
                 net.run(1)
                 reset = False
 

@@ -31,15 +31,13 @@ from matplotlib.ticker import MaxNLocator
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from htm.bindings.engine_internal import Network
 
-from htm_advanced.frameworks.location.location_network_creation import L246aNetwork
-from htm_advanced.support.object_generation import generateObjects
-from htm_advanced.support.expsuite import PyExperimentSuite
-from htm_advanced.support.register_regions import registerAllAdvancedRegions
-from htm_advanced.regions.RawSensor import RawSensor as Sensors
-from htm_advanced.regions.RawValues import RawValues as Motors
+from htm.advanced.frameworks.location.location_network_creation import L246aNetwork
+from htm.advanced.support.object_generation import generateObjects
+from htm.advanced.support.expsuite import PyExperimentSuite
+from htm.advanced.support.register_regions import registerAllAdvancedRegions
 
+from htm.advanced.regions import executeCommand
 
 
 class MultiColumnExperiment(PyExperimentSuite):
@@ -187,8 +185,8 @@ class MultiColumnExperiment(PyExperimentSuite):
                     activeColumns = self.featureSDR[col][feature["name"]]
                     for _ in range(self.numLearningPoints):
                         # Sense feature at location
-                        Motors.addDataToQueue(self.network.motorInput[col], displacement)
-                        Sensors.addDataToQueue(self.network.sensorInput[col], activeColumns, False, 0)
+                        executeCommand('addDataToQueue', self.network.motorInput[col], displacement)
+                        executeCommand('addDataToQueue', self.network.sensorInput[col], activeColumns, False, 0)
                         # Only move to the location on the first sensation.
                         displacement = [0, 0]
 
@@ -229,8 +227,8 @@ class MultiColumnExperiment(PyExperimentSuite):
                 previousLocation[col] = locationOnObject
 
                 # Sense feature at location
-                Motors.addDataToQueue(self.network.motorInput[col], displacement)
-                Sensors.addDataToQueue(self.network.sensorInput[col], self.featureSDR[col][feature["name"]], False, 0)
+                executeCommand('addDataToQueue', self.network.motorInput[col], displacement)
+                executeCommand('addDataToQueue', self.network.sensorInput[col], self.featureSDR[col][feature["name"]], False, 0)
             self.network.network.run(1)
             if self.debug:
                 self.network.updateInferenceStats(stats, objectName=objName)

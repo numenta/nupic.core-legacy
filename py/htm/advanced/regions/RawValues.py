@@ -21,9 +21,7 @@
 from collections import deque
 
 from htm.bindings.regions.PyRegion import PyRegion
-from htm.bindings.engine_internal import Array
-import numpy as np
-
+from .import extractList
 
 
 class RawValues(PyRegion):
@@ -40,22 +38,6 @@ class RawValues(PyRegion):
     def __init__(self, outputWidth=1):
         self.outputWidth = outputWidth
         self.queue = deque()
-
-    @classmethod
-    def addDataToQueue(cls, rawSensor, dataIn, reset=0):
-        """
-        Add the given data item to the sensor's internal queue. Calls to compute
-        will cause items in the queue to be dequeued in FIFO order.
-
-        @param nonZeros     A list of the non-zero elements corresponding
-                            to the sparse output. This list can be specified in two
-                            ways, as a python list of integers or as a string which
-                            can evaluate to a python list of integers.
-        @param reset        An float, int or string that is 0 or 1. resetOut will be set to
-                            this value when this item is computed.
-        """
-        data = np.concatenate((np.array(dataIn, dtype=np.float32), [float(reset)]))
-        rawSensor.setParameterArray("inputQueueData", Array(data, True))
 
     @classmethod
     def getSpec(cls):
@@ -89,7 +71,7 @@ class RawValues(PyRegion):
                 )
             ),
             commands=dict(
-                inputQueueData=dict(
+                addDataToQueue=dict(
                     description="SDR as list with the last element indicating a reset or not (1, or 0)",
                     dataType="Real32",
                     accessMode="ReadWrite",
@@ -113,31 +95,21 @@ class RawValues(PyRegion):
         outputs["resetOut"][0] = data["reset"]
         outputs["dataOut"][:] = data["dataOut"]
 
-    def setParameterArray(self, name, index, sdr_reset):
+    def addDataToQueue(self, dataIn, reset='0'):
         """
         Add the given data item to the sensor's internal queue. Calls to compute
         will cause items in the queue to be dequeued in FIFO order.
-        
-        Using setParameterArray rather than an "addToQueue" method since we only
-        get a generic Region handle when adding a region and setParameterArray is
-        a method supported by the generic Region.
-  
-        @param array    Two floats representing translation vector [dx, dy] to
-                        be passed to the linked regions via 'dataOut'
-                          
-                        The last element is an float that is 0 or 1. 
-                        resetOut will be set to this value when this item is computed.
-                          
-                        sdr_reset = [1.0] will add a reset to the queue.
+
+        @param nonZeros     A list of the non-zero elements corresponding
+                            to the sparse output. This list can be specified in two
+                            ways, as a python list of integers or as a string which
+                            can evaluate to a python list of integers.
+        @param reset        An string that is 0 or 1. resetOut will be set to
+                            this value when this item is computed.
         """
-        assert(name =='inputQueueData')
-        assert(len(sdr_reset) >= 1)
-         
-        dataList = list(sdr_reset)
-        reset = dataList.pop()
         self.queue.appendleft({
-            "dataOut": dataList,
-            "reset": bool(reset),
+            "dataOut": extractList(dataIn, float),
+            "reset": bool(int(reset)),
         })
 
     def getOutputElementCount(self, name):

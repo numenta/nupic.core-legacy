@@ -27,8 +27,7 @@ from htm.bindings.engine_internal import Network
 
 from htm.advanced.frameworks.location.path_integration_union_narrowing import computeRatModuleParametersFromReadoutResolution
 from htm.advanced.support.register_regions import registerAllAdvancedRegions
-from htm.advanced.regions.RawSensor import RawSensor as Sensors
-from htm.advanced.regions.RawValues import RawValues as Motors
+from htm.advanced.regions import executeCommand
 
 NUM_OF_COLUMNS = 150
 CELLS_PER_COLUMN = 16
@@ -182,12 +181,12 @@ class GridCellLocationRegionTest(unittest.TestCase):
 
         # Start from a random location
         location.executeCommand(["activateRandomLocation"])
-        Motors.addDataToQueue(motor, [0, 0])
+        executeCommand('addDataToQueue', motor, [0, 0])
         net.run(1)
         start = np.array(location.getOutputArray("activeCells")).nonzero()[0]
 
         # Move up 10
-        Motors.addDataToQueue(motor, [0, 10])
+        executeCommand('addDataToQueue', motor, [0, 10])
         net.run(1)
 
         # mid location should not match the start location
@@ -200,8 +199,8 @@ class GridCellLocationRegionTest(unittest.TestCase):
             pass
 
         # Move down 10 in two steps ending at the initial location
-        Motors.addDataToQueue(motor, [0, -5])
-        Motors.addDataToQueue(motor, [0, -5])
+        executeCommand('addDataToQueue', motor, [0, -5])
+        executeCommand('addDataToQueue', motor, [0, -5])
         net.run(2)
 
         # end location should match the start location
@@ -237,14 +236,14 @@ class GridCellLocationRegionTest(unittest.TestCase):
                 locationOnObject = np.array([feature["top"] + feature["height"] / 2., feature["left"] + feature["width"] / 2.])
                 # Calculate displacement from previous location
                 if previousLocation is not None:
-                    Motors.addDataToQueue(motor, locationOnObject - previousLocation)
+                    executeCommand('addDataToQueue', motor, locationOnObject - previousLocation)
                 else:
-                    Motors.addDataToQueue(motor, [0, 0])
+                    executeCommand('addDataToQueue', motor, [0, 0])
                 previousLocation = locationOnObject
 
                 # Sense feature at location
-                Sensors.addDataToQueue(sensor, FEATURE_ACTIVE_COLUMNS[featureName], reset, 0)
-                Sensors.addDataToQueue(candidates, FEATURE_CANDIDATE_SDR[featureName], reset, 0)
+                executeCommand('addDataToQueue', sensor, FEATURE_ACTIVE_COLUMNS[featureName], reset, 0)
+                executeCommand('addDataToQueue', candidates, FEATURE_CANDIDATE_SDR[featureName], reset, 0)
                 net.run(1)
                 reset = False
 
@@ -273,14 +272,14 @@ class GridCellLocationRegionTest(unittest.TestCase):
 
                 # Calculate displacement from previous location
                 if previousLocation is not None:
-                    Motors.addDataToQueue(motor, locationOnObject - previousLocation)
+                    executeCommand('addDataToQueue', motor, locationOnObject - previousLocation)
                 else:
-                    Motors.addDataToQueue(motor, [0, 0])
+                    executeCommand('addDataToQueue', motor, [0, 0])
                 previousLocation = locationOnObject
 
                 # Sense feature at location
-                Sensors.addDataToQueue(sensor, FEATURE_ACTIVE_COLUMNS[featureName], reset, 0)
-                Sensors.addDataToQueue(candidates, FEATURE_CANDIDATE_SDR[featureName], reset, 0)
+                executeCommand('addDataToQueue', sensor, FEATURE_ACTIVE_COLUMNS[featureName], reset, 0)
+                executeCommand('addDataToQueue', candidates, FEATURE_CANDIDATE_SDR[featureName], reset, 0)
                 net.run(1)
 
                 representation = np.array(location.getOutputArray("sensoryAssociatedCells"))

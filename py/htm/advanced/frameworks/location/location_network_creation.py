@@ -29,9 +29,8 @@ from htm.bindings.engine_internal import Network
 from htm.advanced.frameworks.location.path_integration_union_narrowing import computeRatModuleParametersFromReadoutResolution
 from htm.advanced.frameworks.location.path_integration_union_narrowing import computeRatModuleParametersFromCellCount
 from htm.advanced.support.logging_decorator import LoggingDecorator
-from htm.advanced.regions.RawSensor import RawSensor as Sensors
-from htm.advanced.regions.RawValues import RawValues as Motors
 
+from htm.advanced.regions import executeCommand
 
 
 def createL4L6aLocationColumn(network, L4Params, L6aParams, inverseReadoutResolution=None, baselineCellsPerAxis=6, suffix=""):
@@ -469,8 +468,8 @@ class L246aNetwork(object):
     def sendReset(self):            
         for col in range(self.numColumns):
             displacement = [0] * self.dimensions
-            Sensors.addDataToQueue(self.sensorInput[col], [], True, 0)
-            Motors.addDataToQueue(self.motorInput[col], displacement, reset=True)
+            executeCommand('addDataToQueue', self.sensorInput[col], [], True, 0)
+            executeCommand('addDataToQueue', self.motorInput[col], displacement, True)
 
         self.network.run(1)
 
@@ -517,8 +516,8 @@ class L246aNetwork(object):
                     # learn each pattern multiple times
                     for _ in range(self.repeat):
                         # Sense feature at location
-                        Motors.addDataToQueue(self.motorInput[col], displacement)
-                        Sensors.addDataToQueue(self.sensorInput[col], feature, False, 0)
+                        executeCommand('addDataToQueue', self.motorInput[col], displacement)
+                        executeCommand('addDataToQueue', self.sensorInput[col], feature, False, 0)
                         # Only move to the location on the first sensation.
                         displacement = [0] * self.dimensions
 
@@ -563,8 +562,8 @@ class L246aNetwork(object):
                     displacement = location - prevLoc[col]
                 prevLoc[col] = location
 
-                Motors.addDataToQueue(self.motorInput[col], displacement)
-                Sensors.addDataToQueue(self.sensorInput[col], feature, False, 0)
+                executeCommand('addDataToQueue', self.motorInput[col], displacement)
+                executeCommand('addDataToQueue', self.sensorInput[col], feature, False, 0)
 
             self.network.run(1)
             if stats is not None:

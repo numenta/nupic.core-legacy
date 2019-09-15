@@ -19,8 +19,8 @@
 
 from collections import deque
 from htm.bindings.regions.PyRegion import PyRegion
-from htm.bindings.engine_internal import Array
-import numpy as np
+
+from .import extractList
 
 
 class RawSensor(PyRegion):
@@ -41,24 +41,6 @@ class RawSensor(PyRegion):
         self.outputWidth = outputWidth
         self.queue = deque()
 
-
-    @classmethod
-    def addDataToQueue(cls, rawSensor, nonZeros, reset, sequenceId):
-        """
-        Add the given data item to the sensor's internal queue. Calls to compute
-        will cause items in the queue to be dequeued in FIFO order.
-
-        @param nonZeros A list of the non-zero elements corresponding
-                        to the sparse output. This list can be specified in two
-                        ways, as a python list of integers or as a string which
-                        can evaluate to a python list of integers.
-        @param reset An int or string that is 0 or 1. resetOut will be set to
-                                            this value when this item is computed.
-        @param sequenceId An int or string with an integer ID associated with this
-                                            token and its sequence (document).
-        """
-        data = np.concatenate((np.array(nonZeros, dtype=np.uint32), [int(reset)], [int(sequenceId)]))
-        rawSensor.setParameterArray("inputQueueData", Array(data, True))
 
     @classmethod
     def getSpec(cls):
@@ -124,34 +106,22 @@ class RawSensor(PyRegion):
 
         return spec
 
-    def setParameterArray(self, name, index, sdr_reset):
+    def addDataToQueue(self, nonZeros, reset, sequenceId='0'):
         """
         Add the given data item to the sensor's internal queue. Calls to compute
         will cause items in the queue to be dequeued in FIFO order.
-        
-        Using setParameterArray rather than an "addToQueue" method since we only
-        get a generic Region handle when adding a region and setParameterArray is
-        a method supported by the generic Region.
-  
-        @param array    A list of the non-zero elements corresponding
-                        to the sparse output. This array is list of integers.
-                          
-                        The last element is the sequenceId
-                        The second last element is an int that is 0 or 1. 
-                        resetOut will be set to this value when this item is computed.
-                          
-                        sdr_reset = [1, sequenceID] will add a reset to the queue.
+
+        @param nonZeros A list as a string of the non-zero elements corresponding
+                        to the sparse output. This list can be specified in two
+                        ways, as a python list of integers or as a string which
+                        can evaluate to a python list of integers.
+        @param reset A string that is 0 or 1. resetOut will be set to this value when this item is computed.
+        @param sequenceId A string with an integer ID associated with this token and its sequence (document).
         """
-        assert(name =='inputQueueData')
-        assert(len(sdr_reset) >= 2)
-         
-        nonZeroList = list(sdr_reset)
-        sequenceId = nonZeroList.pop()
-        reset = nonZeroList.pop()
         self.queue.appendleft({
             "sequenceId": int(sequenceId),
             "reset": int(reset),
-            "nonZeros": nonZeroList,
+            "nonZeros": extractList(nonZeros, int)
         })
 
     def compute(self, _, outputs):
