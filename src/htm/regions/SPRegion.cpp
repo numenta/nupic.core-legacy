@@ -349,7 +349,7 @@ Spec *SPRegion::createSpec() {
                     1,                                // elementCount
                     "",                               // constraints
                     "0.1",                            // defaultValue
-                    ParameterSpec::ReadOnlyAccess)); // access
+                    ParameterSpec::ReadWriteAccess)); // access
 
   ns->parameters.add(
       "minPctOverlapDutyCycles",
