@@ -44,16 +44,11 @@ void Classifier::initialize(const Real alpha)
 }
 
 
-PDF Classifier::infer(const SDR & pattern) //TODO could be const
-{
-  // Check input dimensions, or if this is the first time the Classifier has
-  // been used then initialize it with the given SDR's dimensions.
+PDF Classifier::infer(const SDR & pattern) const {
+  // Check input dimensions, or if this is the first time the Classifier is used and dimensions
+  // are unset, return zeroes.
   if( dimensions_.empty() ) {
-    dimensions_ = pattern.dimensions;
-    while( weights_.size() < pattern.size ) {
-      const auto initialEmptyWeights = PDF( numCategories_, 0.0f );
-      weights_.push_back( initialEmptyWeights );
-    }
+    return PDF(numCategories_, 0.0f); //empty
   } else if( pattern.dimensions != dimensions_ ) {
       stringstream err_msg;
       err_msg << "Classifier input SDR.dimensions mismatch: previously given SDR with dimensions ( ";
@@ -82,6 +77,15 @@ PDF Classifier::infer(const SDR & pattern) //TODO could be const
 
 void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
 {
+  // If this is the first time the Classifier is being used, weights are empty, 
+  // so we set the dimensions to that of the input `pattern`
+  if( dimensions_.empty() ) {
+    dimensions_ = pattern.dimensions;
+    while( weights_.size() < pattern.size ) {
+      const auto initialEmptyWeights = PDF( numCategories_, 0.0f );
+      weights_.push_back( initialEmptyWeights );
+    }
+  }
   // Check if this is a new category & resize the weights table to hold it.
   const auto maxCategoryIdx = *max_element(categoryIdxList.begin(), categoryIdxList.end());
   if( maxCategoryIdx >= numCategories_ ) {
@@ -167,7 +171,7 @@ void Predictor::reset() {
 
 Predictions Predictor::infer(const UInt recordNum, const SDR &pattern)
 {
-  updateHistory_( recordNum, pattern );
+  updateHistory_( recordNum, pattern ); //TODO should we update here in inference, that changes state? Infer could be stateless, thus const. 
 
   Predictions result;
   for( const auto step : steps_ ) {

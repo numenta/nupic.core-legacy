@@ -122,7 +122,7 @@ public:
    * @returns: The Probablility Distribution Function (PDF) of the categories.
    *           This is indexed by the category label.
    */
-  PDF infer(const SDR & pattern);
+  PDF infer(const SDR & pattern) const;
 
   /**
    * Learn from example data.
