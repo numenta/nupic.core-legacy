@@ -44,14 +44,15 @@ void Classifier::initialize(const Real alpha)
 }
 
 
-PDF Classifier::infer(const SDR & pattern)
+PDF Classifier::infer(const SDR & pattern) //TODO could be const
 {
   // Check input dimensions, or if this is the first time the Classifier has
   // been used then initialize it with the given SDR's dimensions.
   if( dimensions_.empty() ) {
     dimensions_ = pattern.dimensions;
     while( weights_.size() < pattern.size ) {
-      weights_.push_back( vector<Real>( numCategories_, 0.0f ));
+      const auto initialEmptyWeights = PDF( numCategories_, 0.0f );
+      weights_.push_back( initialEmptyWeights );
     }
   } else if( pattern.dimensions != dimensions_ ) {
       stringstream err_msg;
@@ -93,7 +94,7 @@ void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
   }
 
   // Compute errors and update weights.
-  const vector<Real> error = calculateError_(categoryIdxList, pattern);
+  const auto& error = calculateError_(categoryIdxList, pattern);
   for( const auto& bit : pattern.getSparse() ) {
     for(size_t i = 0u; i < numCategories_; i++) {
       weights_[bit][i] += alpha_ * error[i];
@@ -103,9 +104,8 @@ void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
 
 
 // Helper function to compute the error signal in learning.
-std::vector<Real> Classifier::calculateError_(
-                    const std::vector<UInt> &categoryIdxList, const SDR &pattern)
-{
+std::vector<Real64> Classifier::calculateError_(const std::vector<UInt> &categoryIdxList, 
+		                                const SDR &pattern) const {
   // compute predicted likelihoods
   auto likelihoods = infer(pattern);
 

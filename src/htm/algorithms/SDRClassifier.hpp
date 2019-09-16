@@ -154,12 +154,13 @@ private:
   /**
    * 2D map used to store the data.
    * Use as: weights_[ input-bit ][ category-index ]
+   * Real64 (not just Real) so the computations do not lose precision.
    */
-  std::vector<std::vector<Real>> weights_;
+  std::vector<std::vector<Real64>> weights_;
 
   // Helper function to compute the error signal for learning.
-  std::vector<Real> calculateError_(const std::vector<UInt> &bucketIdxList,
-                                    const SDR &pattern);
+  std::vector<Real64> calculateError_(const std::vector<UInt> &bucketIdxList,
+                                      const SDR &pattern) const;
 };
 
 /**
@@ -190,6 +191,7 @@ using Predictions = std::map<UInt, PDF>;
  * from bucket-index. If more precision is needed, use more buckets in the encoder. 
  *
  * Example Usage:
+ *   ```
  *    // Predict 1 and 2 time steps into the future.
  *    // Make a sequence of 4 random SDRs. Each SDR has 1000 bits and 2% sparsity.
  *    vector<SDR> sequence( 4, { 1000 } );
@@ -216,6 +218,7 @@ using Predictions = std::map<UInt, PDF>;
  *    Predictions B = pred.infer( 1, sequence[1] );
  *    argmax( B[1] )  ->  labels[2]
  *    argmax( B[2] )  ->  labels[3]
+ *    ```
  */
 class Predictor : public Serializable
 {
