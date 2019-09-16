@@ -253,7 +253,7 @@ public:
    *
    * @returns: A mapping from prediction step to PDF.
    */
-  Predictions infer(UInt recordNum, const SDR &pattern);
+  Predictions infer(const UInt recordNum, const SDR &pattern) const;
 
   /**
    * Learn from example data.
@@ -263,7 +263,8 @@ public:
    * @param pattern: The active input SDR.
    * @param bucketIdxList: Vector of the current value bucket indices or categories.
    */
-  void learn(UInt recordNum, const SDR &pattern,
+  void learn(const UInt recordNum, 
+	     const SDR &pattern,
              const std::vector<UInt> &bucketIdxList);
 
   CerealAdapter;
@@ -287,7 +288,7 @@ private:
   // Stores the input pattern history, starting with the previous input.
   std::deque<SDR>  patternHistory_;
   std::deque<UInt> recordNumHistory_;
-  void updateHistory_(UInt recordNum, const SDR & pattern);
+  void checkMonotonic_(UInt recordNum) const;
 
   // One per prediction step
   std::map<UInt, Classifier> classifiers_;

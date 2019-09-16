@@ -169,13 +169,12 @@ void Predictor::reset() {
 }
 
 
-Predictions Predictor::infer(const UInt recordNum, const SDR &pattern)
-{
-  updateHistory_( recordNum, pattern ); //TODO should we update here in inference, that changes state? Infer could be stateless, thus const. 
+Predictions Predictor::infer(const UInt recordNum, const SDR &pattern) const {
+  checkMonotonic_(recordNum);
 
   Predictions result;
   for( const auto step : steps_ ) {
-    result[step] = classifiers_[step].infer( pattern );
+    result[step] = classifiers_.at(step).infer( pattern );
   }
   return result;
 }
@@ -184,7 +183,18 @@ Predictions Predictor::infer(const UInt recordNum, const SDR &pattern)
 void Predictor::learn(const UInt recordNum, const SDR &pattern,
                       const std::vector<UInt> &bucketIdxList)
 {
-  updateHistory_( recordNum, pattern );
+  checkMonotonic_(recordNum);
+
+  // Update pattern history if this is a new record.
+  const UInt lastRecordNum = recordNumHistory_.empty() ? -1 : recordNumHistory_.back();
+  if (recordNumHistory_.size() == 0u || recordNum > lastRecordNum) {
+    patternHistory_.emplace_back( pattern );
+    recordNumHistory_.push_back(recordNum);
+    if (patternHistory_.size() > steps_.back() + 1u) {
+      patternHistory_.pop_front();
+      recordNumHistory_.pop_front();
+    }
+  }
 
   // Iterate through all recently given inputs, starting from the furthest in the past.
   auto pastPattern   = patternHistory_.begin();
@@ -201,24 +211,10 @@ void Predictor::learn(const UInt recordNum, const SDR &pattern,
 }
 
 
-void Predictor::updateHistory_(const UInt recordNum, const SDR & pattern)
-{
+void Predictor::checkMonotonic_(const UInt recordNum) const {
   // Ensure that recordNum increases monotonically.
-  UInt lastRecordNum = -1;
+  const UInt lastRecordNum = recordNumHistory_.empty() ? -1 : recordNumHistory_.back();
   if( not recordNumHistory_.empty() ) {
-    lastRecordNum = recordNumHistory_.back();
-    if (recordNum < lastRecordNum) {
-      NTA_THROW << "The record number must increase monotonically.";
-    }
+    NTA_CHECK(recordNum >= lastRecordNum) << "The record number must increase monotonically.";
   }
-
-  // Update pattern history if this is a new record.
-  if (recordNumHistory_.size() == 0u || recordNum > lastRecordNum) {
-    patternHistory_.emplace_back( pattern );
-    recordNumHistory_.push_back(recordNum);
-    if (patternHistory_.size() > steps_.back() + 1u) {
-      patternHistory_.pop_front();
-      recordNumHistory_.pop_front();
-    }
-  } 
 }
