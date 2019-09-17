@@ -301,5 +301,15 @@ class NetworkTest(unittest.TestCase):
     sdr = tm_output.getSDR()
     self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT3))
 
-
+  def testExecuteCommand(self):
+    """
+    Check to confirm that the ExecuteCommand( ) funtion works.
+    """
+    net = engine.Network()
+    r = net.addRegion("test", "TestNode", "")
+    
+    lst = ["list arg", 86]
+    result = r.executeCommand("HelloWorld", 42, lst)
+    self.assertTrue(result == "Hello World says: arg1=42 arg2=['list arg', 86]")
+    
 
