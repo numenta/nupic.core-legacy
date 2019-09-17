@@ -46,7 +46,10 @@ class LinkRegion(PyRegion):
     
   def getOutputElementCount(self, name): 
     return 5
-    
+  
+  def HelloWorld(self, *args):
+    return 'Hello World says: arg1='+args[0]+' arg2='+args[1]
+  
   @classmethod
   def getSpec(cls):
     return {
@@ -301,9 +304,10 @@ class NetworkTest(unittest.TestCase):
     sdr = tm_output.getSDR()
     self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT3))
 
-  def testExecuteCommand(self):
+  def testExecuteCommand1(self):
     """
     Check to confirm that the ExecuteCommand( ) funtion works.
+    From Python calling a C++ region.
     """
     net = engine.Network()
     r = net.addRegion("test", "TestNode", "")
@@ -312,4 +316,19 @@ class NetworkTest(unittest.TestCase):
     result = r.executeCommand("HelloWorld", 42, lst)
     self.assertTrue(result == "Hello World says: arg1=42 arg2=['list arg', 86]")
     
+  def testExecuteCommand2(self):
+    """
+    Check to confirm that the ExecuteCommand( ) funtion works.
+    From Python calling a Python region.
+    """
+    engine.Network.cleanup()
+    engine.Network.registerPyRegion(LinkRegion.__module__, LinkRegion.__name__)
+    
+    net = engine.Network()
+    r = net.addRegion("test", "py.LinkRegion", "")
+    
+    lst = ["list arg", 86]
+    result = r.executeCommand("HelloWorld", 42, lst)
+    self.assertTrue(result == "Hello World says: arg1=42 arg2=['list arg', 86]")
+
 
