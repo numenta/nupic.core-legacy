@@ -48,6 +48,7 @@ set(algorithm_tests
 set(encoders_tests
            unit/encoders/ScalarEncoderTest.cpp
            unit/encoders/RandomDistributedScalarEncoderTest.cpp
+           unit/encoders/SimHashDocumentEncoderTest.cpp
            )
 	   
 set(engine_tests
@@ -77,7 +78,6 @@ set(ntypes_tests
 set(os_tests
 	   unit/os/DirectoryTest.cpp
 	   unit/os/EnvTest.cpp
-	   unit/os/OSTest.cpp
 	   unit/os/PathTest.cpp
 	   unit/os/TimerTest.cpp
 	   )

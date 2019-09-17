@@ -49,9 +49,7 @@ set(CORE_LIB_INCLUDES  ${CORE_LIB_INCLUDES} PARENT_SCOPE)
 # Create Version.hpp
 # Extract current git sha and record in htm/Version.hpp.in
 #
-execute_process(COMMAND git rev-parse HEAD
-                OUTPUT_VARIABLE HTM_CORE_VERSION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(HTM_CORE_VERSION ${VERSION})
 configure_file(
   "${PROJECT_SOURCE_DIR}/htm/Version.hpp.in"
   "${PROJECT_BINARY_DIR}/Version.hpp")
@@ -89,6 +87,8 @@ set(encoders_files
     htm/encoders/ScalarEncoder.hpp
     htm/encoders/RandomDistributedScalarEncoder.hpp
     htm/encoders/RandomDistributedScalarEncoder.cpp
+    htm/encoders/SimHashDocumentEncoder.hpp
+    htm/encoders/SimHashDocumentEncoder.cpp
 )
     
 set(engine_files
@@ -139,10 +139,6 @@ set(os_files
     htm/os/Env.cpp
     htm/os/Env.hpp
     htm/os/ImportFilesystem.hpp
-    htm/os/OS.cpp
-    htm/os/OS.hpp
-    htm/os/OSUnix.cpp
-    htm/os/OSWin.cpp
     htm/os/Path.cpp
     htm/os/Path.hpp
     htm/os/Timer.cpp
@@ -400,12 +396,15 @@ add_custom_target(mnist
 #
 install(TARGETS
         ${core_library}
-        ${src_executable_hotgym}
-        ${src_executable_mnistsp}
-	RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-
+        
+install(TARGETS
+        ${src_executable_hotgym}
+        ${src_executable_mnistsp}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 if(MSVC)
 else()	
   install(TARGETS
@@ -418,24 +417,50 @@ endif()
 
 # Version.hpp is also used by the htm.bindings release/deployment system
 install(FILES ${PROJECT_BINARY_DIR}/Version.hpp
-        DESTINATION include/htm)
+      DESTINATION include)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR} DESTINATION include
-	  MESSAGE_NEVER
-	  FILES_MATCHING PATTERN "htm/*/*.h*"
-	  PATTERN "htm/*/*.hpp.in" EXCLUDE)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/htm
+      MESSAGE_NEVER
+      DESTINATION include/
+      FILES_MATCHING PATTERN "*.h*"
+      PATTERN "*.hpp.in" EXCLUDE)
 
 
 install(DIRECTORY "${REPOSITORY_DIR}/external/common/include/"
+      MESSAGE_NEVER
+      DESTINATION include)
+      
+# include the python wheel if it exists.
+# run "python3 setup.py install --user"
+# and "python3 setup.py bdist_wheel"
+# prior to this to create the whl file.
+install(DIRECTORY "${CMAKE_INSTALL_PREFIX}/distr/dist/"
 	  MESSAGE_NEVER
-	  DESTINATION include)
+	  DESTINATION py
+	  FILES_MATCHING PATTERN "*.whl")
 
-          
+
+############### PACKAGE ###########################
 #
 # `make package` results in
-# htm_cpp-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
+# htm_cpp-${VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}.tar.gz binary release
 #
+#   TODO:  The version numbers need to be automatically incremented.
+message(STATUS "Packaging version: ${VERSION} in CPACK")
+set(CPACK_PACKAGE_NAME "htm.core")
+set(CPACK_PACKAGE_VENDOR "https://github.com/htm-community/htm.core")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "htm.core - Community implementation of Numenta's algorthms.")
+set(CPACK_PACKAGE_VERSION ${VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR ${MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PATCH})
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "htm.core")
 
-set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_FILE_NAME "htm_cpp-${HTM_CORE_VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
+if(MSVC)
+	set(CPACK_GENERATOR "ZIP")
+else()
+	set(CPACK_GENERATOR "TGZ")
+endif()
+set(CPACK_RESOURCE_FILE_LICENSE "${REPOSITORY_DIR}/LICENSE.txt")
+set(CPACK_PACKAGE_FILE_NAME "htm_core-${VERSION}-${PLATFORM}${BITNESS}${PLATFORM_SUFFIX}")
 include(CPack)

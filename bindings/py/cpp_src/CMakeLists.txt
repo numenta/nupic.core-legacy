@@ -32,7 +32,7 @@ project(htm_core CXX)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF) # toggle for cmake debug
 message(STATUS "Configuring Python interface")
-
+message(STATUS "   installing in ${CMAKE_INSTALL_PREFIX}")
 
 #
 # Python support
@@ -55,6 +55,7 @@ set(src_py_encoders_files
     bindings/encoders/encoders_module.cpp
     bindings/encoders/py_ScalarEncoder.cpp
     bindings/encoders/py_RDSE.cpp
+    bindings/encoders/py_SimHashDocumentEncoder.cpp
     )
 
 set(src_py_engine_files
@@ -64,7 +65,6 @@ set(src_py_engine_files
     bindings/engine/engine_module.cpp
     bindings/engine/py_Engine.cpp
     bindings/engine/py_Region.cpp
-    bindings/engine/py_OS.cpp
     bindings/engine/py_Timer.cpp
     bindings/engine/py_utils.hpp
 	)
@@ -102,13 +102,14 @@ source_group("test"       FILES ${src_py_test_files})
 # setup the distr directory
 set(distr ${CMAKE_INSTALL_PREFIX}/distr)
 file(MAKE_DIRECTORY ${distr})
-file(COPY ${REPOSITORY_DIR}/py/. DESTINATION ${distr} PATTERN *)
 file(COPY ../packaging/. DESTINATION ${distr} PATTERN *)
+file(COPY ${REPOSITORY_DIR}/py/. DESTINATION ${distr}/src PATTERN *)
 
 # determine which version of binding to build
 if ("${BINDING_BUILD}" STREQUAL "Python2")
   set(PYBIND11_PYTHON_VERSION 2.7)
-  # else Python3
+else()
+  set(BINDING_BUILD Python3)
 endif()
 add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
 set(pybind11_INCLUDE_DIRS ${pybind11_SOURCE_DIR}/include)
@@ -202,51 +203,14 @@ target_include_directories(${math_shared_lib} PRIVATE
 		${PROJECT_SOURCE_DIR}
 		)
 
-
-############################################################
-#
-# Build tests of the Python interface
-#
-############################################################
-
-### TODO: Finish these tests
-#  
-#set(py_unit_test_executable  py_unit_test)
-#add_executable(${py_unit_test_executable} ${src_py_test_files})
-#target_link_libraries(${py_unit_test_executable} 
-#    ${core_library}
-#    gtest
-#    ${COMMON_OS_LIBS}
-#)
-#target_compile_definitions(${py_unit_test_executable} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-#target_compile_options(${py_unit_test_executable} PUBLIC ${INTERNAL_CXX_FLAGS})
-#set_target_properties(${py_unit_test_executable} PROPERTIES LINK_FLAGS "${INTERNAL_LINKER_FLAGS_STR}")
-#add_dependencies(${py_unit_test_executable} ${core_library} gtest)
-#target_include_directories(${py_unit_test_executable} PRIVATE 
-#		${PYTHON_INCLUDE_DIRS}
-#		${pybind11_INCLUDE_DIRS}
-#		${CORE_LIB_INCLUDES} 
-#		${EXTERNAL_INCLUDES}
-#		${PROJECT_SOURCE_DIR}
-#		${gtest_INCLUDE_DIR}
-#		)
-
-
-
-
-###################################################################
-#
-# Install targets into CMAKE_INSTALL_PREFIX/distr/src/htm/bindings
-#
-###################################################################
 install(TARGETS
         sdr
         encoders
         algorithms
         engine_internal
         math
-	${py_unit_test_executable}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION ${distr}/src/htm/bindings
         ARCHIVE DESTINATION lib)
 	
+

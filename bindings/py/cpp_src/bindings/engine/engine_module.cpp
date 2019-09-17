@@ -31,7 +31,6 @@ namespace htm_ext
 {
     void init_Engine(py::module&);
     void init_Timer(py::module&);
-    void init_OS(py::module&);
 } // namespace htm_ext
 
 using namespace htm_ext;
@@ -40,6 +39,5 @@ PYBIND11_MODULE(engine_internal, m) {
     m.doc() = "htm.core.engine plugin"; // optional module docstring
 
     init_Engine(m);
-    init_OS(m);
     init_Timer(m);
 }

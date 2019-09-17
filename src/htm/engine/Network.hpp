@@ -377,6 +377,13 @@ public:
    * Reset profiling timers for all regions of this network.
    */
   void resetProfiling();
+	
+	/**
+	 * Set one of the debug levels: LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose
+   */
+	void setLogLevel(LogLevel level) {
+	    LogItem::setLogLevel(level);
+	}
 
 
   /**

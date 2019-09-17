@@ -47,6 +47,13 @@ Example usage:
     TODO
 )");
 
+	py::enum_<TemporalMemory::ANMode>(m, "ANMode")
+	  .value("DISABLED",   TemporalMemory::ANMode::DISABLED)
+	  .value("RAW",        TemporalMemory::ANMode::RAW)
+	  .value("LIKELIHOOD", TemporalMemory::ANMode::LIKELIHOOD)
+	  .value("LOGLIKELIHOOD", TemporalMemory::ANMode::LOGLIKELIHOOD)
+	  .export_values();
+
         py_HTM.def(py::init<>());
         py_HTM.def(py::init<std::vector<CellIdx>
                 , CellIdx
@@ -62,7 +69,8 @@ Example usage:
                 , SegmentIdx
                 , SynapseIdx
                 , bool
-                , UInt>(),
+                , UInt
+		, TemporalMemory::ANMode>(),
 R"(Initialize the temporal memory (TM) using the given parameters.
 
 Argument columnDimensions
@@ -123,6 +131,10 @@ Argument externalPredictiveInputs
     TemporalMemory.  If this is given (and greater than 0) then the active
     cells and winner cells of these external inputs must be given to methods
     TM.compute and TM.activateDendrites
+
+Argument anomalyMode (optional, default ANMode::RAW) selects mode for `TM.anomaly`.
+    Options are ANMode {DISABLED, RAW, LIKELIHOOD, LOGLIKELIHOOD}
+
 )"
                 , py::arg("columnDimensions")
                 , py::arg("cellsPerColumn") = 32
@@ -139,13 +151,40 @@ Argument externalPredictiveInputs
                 , py::arg("maxSynapsesPerSegment") = 255
                 , py::arg("checkInputs") = true
                 , py::arg("externalPredictiveInputs") = 0u
-            );
+		, py::arg("anomalyMode") = TemporalMemory::ANMode::RAW 
+		);
 
         py_HTM.def("printParameters",
             [](const HTM_t& self)
                 { self.printParameters( std::cout ); },
             py::call_guard<py::scoped_ostream_redirect,
                            py::scoped_estream_redirect>());
+
+				// saving and loading from file
+        py_HTM.def("saveToFile", 
+				    [](TemporalMemory &self, const std::string& filename) {self.saveToFile(filename,SerializableFormat::BINARY); });  
+				
+        py_HTM.def("loadFromFile",
+				    [](TemporalMemory &self, const std::string& filename) { return self.loadFromFile(filename,SerializableFormat::BINARY); }); 
+
+        // writeToString, save TM to a JSON encoded string usable by loadFromString()
+        py_HTM.def("writeToString", [](const TemporalMemory& self)
+        {
+            std::ostringstream os;
+					  os.precision(std::numeric_limits<double>::digits10 + 1);
+					  os.precision(std::numeric_limits<float>::digits10 + 1);
+
+            self.save(os, JSON);
+
+            return os.str();
+        });
+        // loadFromString, loads TM from a JSON encoded string produced by writeToString().
+        py_HTM.def("loadFromString", [](TemporalMemory& self, const std::string& inString)
+        {
+            std::stringstream inStream(inString);
+            self.load(inStream, JSON);
+        });
+
 
         // pickle
         // https://github.com/pybind/pybind11/issues/1061
@@ -154,9 +193,6 @@ Argument externalPredictiveInputs
         {
             // __getstate__
             std::ostringstream os;
-
-            os.flags(std::ios::scientific);
-            os.precision(std::numeric_limits<double>::digits10 + 1);
 
             self.save(os);
 
@@ -172,10 +208,10 @@ Argument externalPredictiveInputs
 
             std::stringstream is( str.cast<std::string>() );
 
-            HTM_t htm;
-            htm.load(is);
+						std::unique_ptr<TemporalMemory> tm(new TemporalMemory());
+            tm->load(is);
 
-            return htm;
+            return tm;
         }
         ));
 

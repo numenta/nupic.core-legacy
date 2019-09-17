@@ -20,8 +20,8 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <htm/os/Directory.hpp>
-#include <htm/os/OS.hpp>
 #include <htm/os/Path.hpp>
 #include <htm/utils/Log.hpp>
 
@@ -51,11 +51,11 @@ static std::string getCurrDir() {
     char buff[PATH_MAX];
 #if defined(NTA_OS_WINDOWS)
     DWORD res = ::GetCurrentDirectoryA(PATH_MAX - 1, (LPSTR)buff);
-    NTA_CHECK(res > 0) << OS::getErrorMessage();
+    NTA_CHECK(res > 0) << "Failed with " << res;
 
 #else
     char * s = ::getcwd(buff, PATH_MAX - 1);
-    NTA_CHECK(s != nullptr) << OS::getErrorMessage();
+    NTA_CHECK(s != nullptr) << "getcwd failed!";
 #endif
     return buff;
 }

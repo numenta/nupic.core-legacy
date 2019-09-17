@@ -44,6 +44,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
    set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install location" FORCE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
+# obtain the version from git and put it in the VERSION file
+include(versioning.cmake)
+get_versions(VERSION MAJOR MINOR PATCH)
+
 message(STATUS "REPOSITORY_DIR       = ${REPOSITORY_DIR}")
 message(STATUS "CMAKE_BINARY_DIR     = ${CMAKE_BINARY_DIR}")
 message(STATUS "CMAKE_BUILD_TYPE     = ${CMAKE_BUILD_TYPE}")
@@ -51,7 +55,10 @@ message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "FORCE_CPP11          = ${FORCE_CPP11}")
 message(STATUS "FORCE_BOOST          = ${FORCE_BOOST}")
 message(STATUS "BINDING_BUILD        = ${BINDING_BUILD}")
-message(STATUS "Environment var CXX  = $ENV{CXX}")
+message(STATUS "VERSION              = ${VERSION}")
+message(STATUS "MAJOR                = ${MAJOR}")
+message(STATUS "MINOR                = ${MINOR}")
+message(STATUS "PATCH                = ${PATCH}")
 message("")
 
 # Determine common toolchain settings, compiler and link flags
@@ -87,3 +94,4 @@ string(REGEX MATCH "Python" match ${BINDING_BUILD})
 if(match)
   add_subdirectory(bindings/py/cpp_src)
 endif()
+
