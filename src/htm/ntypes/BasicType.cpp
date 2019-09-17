@@ -142,7 +142,7 @@ template <> NTA_BasicType BasicType::getType<SDR>() {
 }
 } // namespace htm
 
-// Return the size in bits of a basic type
+// Return the size in bytes of a basic type
 size_t BasicType::getSize(NTA_BasicType t) {
   static size_t basicTypeSizes[] = {
       sizeof(Byte),   sizeof(Int16),  sizeof(UInt16), sizeof(Int32),

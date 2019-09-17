@@ -70,10 +70,11 @@ float runTemporalMemoryTest(UInt numColumns, UInt w,   int numSequences, //TODO 
 
   // learn
   for (int i = 0; i < 5; i++) {
-    for (auto sequence : sequences) {
-      for (auto sdr : sequence) {
+    for (const auto& sequence : sequences) {
+      for (const auto& sdr : sequence) {
         tm.compute(sdr, true);
-	avgAnomAfter = anom10.compute(tm.anomaly); //average anomaly score
+	const Real an = tm.anomaly;
+	avgAnomAfter = anom10.compute(an); //average anomaly score
       }
       tm.reset();
     }
