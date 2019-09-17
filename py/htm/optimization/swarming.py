@@ -206,6 +206,7 @@ class ParticleSwarmOptimization(BaseOptimizer):
                 self.best       = ParameterSet( particle.parameters )
                 self.best_score = score
                 print("New global best score %g."%score)
+                print(self.best) 
             particle.update( score, self.best )
         particle.lock = False
         self.save()
