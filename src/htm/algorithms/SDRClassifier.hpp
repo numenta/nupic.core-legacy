@@ -22,11 +22,14 @@
 /** @file
  * Definitions for the SDR Classifier & Predictor.
  * 
- * `Classifier` learns mapping from SDR->input value (encoder's output). This is used when you need to "explain" the HTM network back to real-world, ie. mapping SDRs 
- * back to digits in MNIST digit classification task. 
+ * `Classifier` learns mapping from SDR->input value (encoder's output). 
+ * This is used when you need to "explain" the HTM network back to real-world, 
+ * ie. mapping SDRs back to digits in MNIST digit classification task. 
  *
- * `Predictor` has similar functionality for time-sequences where you want to "predict" N-steps ahead and then return real-world value. 
- * Internally it uses (several) Classifiers, and in nupic.core this used to be part for SDRClassifier, for htm.core this is a separate class Predictor. 
+ * `Predictor` has similar functionality for time-sequences 
+ * where you want to "predict" N-steps ahead and then return real-world value. 
+ * Internally it uses (several) Classifiers, and in nupic.core this used to be 
+ * a part for SDRClassifier, for `htm.core` this is a separate class `Predictor`. 
  *
  */
 
@@ -50,7 +53,8 @@ namespace htm {
  *
  * See also:  https://en.wikipedia.org/wiki/Probability_distribution
  */
-using PDF = std::vector<Real64>; //Real64 (not Real/float) must be used here, otherwise precision is lost and Predictor never reaches sufficient results.
+using PDF = std::vector<Real64>; //Real64 (not Real/float) must be used here, 
+// ... otherwise precision is lost and Predictor never reaches sufficient results.
 
 /**
  * Returns the category with the greatest probablility.
