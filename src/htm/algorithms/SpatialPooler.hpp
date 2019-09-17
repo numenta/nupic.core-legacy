@@ -233,8 +233,15 @@ public:
   @param active An SDR representing the winning columns after
         inhibition. The size of the SDR is equal to the number of
         columns (also returned by the method getNumColumns).
+
+  @return overlap
+        an int vector containing the overlap score for each column. The
+        overlap score for a column is defined as the number of synapses in
+        a "connected state" (connected synapses) that are connected to
+        input bits which are turned on. 
+        Replaces: SP.calculateOverlaps_(), SP.getOverlaps()
    */
-  virtual void compute(const SDR &input, const bool learn, SDR &active);
+  virtual const vector<SynapseIdx> compute(const SDR &input, const bool learn, SDR &active);
 
 
   /**
@@ -318,7 +325,6 @@ public:
     ar(CEREAL_NVP(rng_));
 
     // initialize ephemeral members
-    overlaps_.resize(numColumns_);
     boostedOverlaps_.resize(numColumns_);
   }
 
@@ -730,11 +736,6 @@ public:
 
 
   /**
-  Returns the overlap score for each column.
-   */
-  const std::vector<SynapseIdx> &getOverlaps() const;
-
-  /**
   Returns the boosted overlap score for each column.
    */
   const vector<Real> &getBoostedOverlaps() const;
@@ -843,32 +844,6 @@ public:
   vector<Real> initPermanence_(const vector<UInt> &potential, Real connectedPct);
 
   void clip_(vector<Real> &perm) const;
-
-  void raisePermanencesToThreshold_(vector<Real> &perm,
-                                    const vector<UInt> &potential) const;
-
-  /**
-     This function determines each column's overlap with the current
-     input vector.
-
-     The overlap of a column is the number of synapses for that column
-     that are connected (permanence value is greater than
-     '_synPermConnected') to input bits which are turned on. The
-     implementation takes advantage of the SparseBinaryMatrix class to
-     perform this calculation efficiently.
-
-     @param inputVector
-     a int array of 0's and 1's that comprises the input to the spatial
-     pooler.
-
-     @param overlap
-     an int vector containing the overlap score for each column. The
-     overlap score for a column is defined as the number of synapses in
-     a "connected state" (connected synapses) that are connected to
-     input bits which are turned on.
-  */
-  void calculateOverlap_(const SDR &input, vector<SynapseIdx> &overlap);
-  void calculateOverlapPct_(const vector<SynapseIdx> &overlaps, vector<Real> &overlapPct) const;
 
   /**
       Performs inhibition. This method calculates the necessary values needed to
@@ -1193,7 +1168,6 @@ protected:
    */
   Connections connections_;
 
-  vector<SynapseIdx> overlaps_;
   vector<Real> boostedOverlaps_;
 
 

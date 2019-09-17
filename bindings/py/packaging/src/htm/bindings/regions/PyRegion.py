@@ -117,8 +117,6 @@ class PyRegion(_PyRegionMeta):
 
       - ``description`` (string) user-provided description
 
-      - ``singleNodeOnly`` (bool) True if this Region supports only a single
-        node
 
       - ``inputs`` (dict) keys are the names of the inputs and the values are
         dictionaries with these keys:
@@ -129,8 +127,6 @@ class PyRegion(_PyRegionMeta):
            - ``count`` (int) items in the input. 0 means unspecified.
            - ``required`` (bool) whether the input is must be connected
            - ``isDefaultInput`` (bool) must be True for exactly one input
-           - ``requireSplitterMap`` (bool) [just set this to False.]
-           - ``isSparse`` (bool) whether the input is sparse
 
       - ``outputs`` (dict) similar structure to inputs. The keys
         are:
@@ -140,7 +136,6 @@ class PyRegion(_PyRegionMeta):
            - ``count``
            - ``regionLevel``
            - ``isDefaultOutput``
-           - ``isSparse``
 
       - ``parameters`` (dict) of dicts with the following keys:
 
@@ -155,7 +150,7 @@ class PyRegion(_PyRegionMeta):
 
 
   @abstractmethod
-  def __init__(self, *args, **kwars):
+  def __init__(self, *args, **kwargs):
     """Initialize the node with creation parameters from the node spec
 
     Should be implemented by subclasses (unless there are no creation params)
@@ -178,6 +173,13 @@ class PyRegion(_PyRegionMeta):
     """Perform the main computation.
 
     This method is called in each iteration for each phase the node supports.
+    Note that the C++ modules call compute( ) with no arguments.  That is because
+    C++ implementations already have access to the inputs and outputs.
+    These inputs and outputs are dictionaries containing numpy arrays indexed
+    by the name of the input or output.  They are not Array objects.
+    
+    The compute method should call the algorithm that it is implementing
+    passing in the inputs and then populating the outputs with the results.
 
     :param inputs: (dict) of numpy arrays (one per input)
     :param outputs: (dict) of numpy arrays (one per output)
@@ -186,6 +188,7 @@ class PyRegion(_PyRegionMeta):
 
   def guardedCompute(self, inputs, outputs):
     """The C++ entry point to compute.
+    The subclass should not implement.
 
     :param inputs: (dict) of numpy arrays (one per input)
     :param outputs: (dict) of numpy arrays (one per output)
@@ -195,9 +198,8 @@ class PyRegion(_PyRegionMeta):
 
   def getOutputElementCount(self, name):
     """
-    If the region has multiple nodes (all must have the same output
-    size) then just the number of output elements of a single node
-    should be returned.
+    Return the number of elements in this output.  i.e. its width.
+    This is used to create the buffers on the C++ side.
 
     :param name: (string) the name of the output
     :returns: (int) number of elements in the output of a single node.
@@ -354,33 +356,3 @@ class PyRegion(_PyRegionMeta):
 
     return m(*args)
 
-  @staticmethod
-  def setSparseOutput(outputs, name, value):
-    """
-    Set region sparse output value.
-
-    The region output memory is owned by the c++ caller and cannot be changed  
-    directly from python. Use this method to update the sparse output fields in  
-    the "outputs" array so it can be resized from the c++ code.
-
-    :param outputs: (dict) of numpy arrays. This is the original outputs dict 
-           owned by the C++ caller, passed to region via the compute method to 
-           be updated.
-    :param name: (string) name of an existing output to modify
-    :param value: (list) list of UInt32 indices of all the nonzero entries 
-           representing the sparse array to be set 
-    """
-    # The region output memory is owned by the c++ and cannot be changed from
-    # python. We use a special attribule named "__{name}_len__" to pass
-    # the sparse array length back to c++
-    lenAttr = "__{}_len__".format(name)
-    if lenAttr not in outputs:
-      raise Exception("Output {} is not a valid sparse output".format(name))
-
-    if outputs[name].size < value.size:
-      raise Exception(
-        "Output {} must be less than {}. Given value size is {}".format(
-          name, outputs[name].size, value.size))
-          
-    outputs[lenAttr][0] = value.size
-    outputs[name][:value.size] = value

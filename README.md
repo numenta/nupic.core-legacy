@@ -1,16 +1,16 @@
 <img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
-# Community NuPIC.cpp repository (formerly [nupic.core](http://github.com/numenta/nupic.core))
+# htm.core
 
 [![Linux/OSX Build Status](https://travis-ci.org/htm-community/htm.core.svg?branch=master)](https://travis-ci.org/htm-community/htm.core)
 [![OSX CircleCI](https://circleci.com/gh/htm-community/htm.core/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/htm.core/tree/master)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
 
-This fork is a community version of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository with Python bindings.
+This is a Community Fork of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository, with Python bindings.
 
 ## Project Goals
 
-- Actively developed C++ core library for nupic.core (Numenta's repos are in maintenance mode only)
+- Actively developed C++ core library (Numenta's NuPIC repos are in maintenance mode only)
 - Clean, lean, optimized, and modern codebase
 - Stable and well tested code
 - Open and easier involvement of new ideas across HTM community (it's fun to contribute, we make master run stable, but are more open to experiments and larger revamps of the code if it proves useful).
@@ -42,16 +42,17 @@ in C++ library.
 
 ## Building from Source
 
-Fork or download the HTM-Community Nupic.cpp repository from https://github.com/htm-community/nupic.cpp
+Fork or download the HTM-Community htm.core repository from https://github.com/htm-community/htm.core
 
 ## Prerequisites
 
-- [CMake](http://www.cmake.org/)
+- [CMake](http://www.cmake.org/)  Version 3.8  (3.14 for Visual Studio 2019)
 - [Python](https://python.org/downloads/)
-    - Version 3.4+
+    - Version 3.4+ (Recommended)
     - Version 2.7
       + We recommend the latest version of 2.7 where possible, but the system version should be fine.
       + Python 2 is Not Supported on Windows, use Python 3 instead.
+      + Python 2 is not tested by our CI anomore. It may still work but we don't test it. We expect to drop support for Python2 around 2020. 
 
   Be sure that your Python executable is in the Path environment variable.
   The Python that is in your default path is the one that will determine which
@@ -125,10 +126,11 @@ make -j install
 
  * This will not build the Python interface.
 
-## Simple Build On Windows (MS Visual Studio 2017)
+## Simple Build On Windows (MS Visual Studio 2017 or 2019)
 
 After downloading the repository, do the following:
 
+ * NOTE: Visual Studio 2019 requires CMake version 3.14 or higher.
  * CD to the top of repository.
  * Double click on startupMSVC.bat
     - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
@@ -139,12 +141,12 @@ After downloading the repository, do the following:
 
 ## Docker Builds
 
-### Build for Docker x86_64
+### Build for Docker amd64 (x86_64)
 
-If you are on `x86_64` and would like to build a Docker image:
+If you are on `amd64` (`x86_64`) and would like to build a Docker image:
 
 ```sh
-docker build --build-arg arch=x86_64 .
+docker build --build-arg arch=amd64 .
 ```
 
 ### Docker build for ARM64
@@ -161,12 +163,12 @@ docker build --build-arg arch=arm64 .
 
 ### Linux auto build @ TravisCI
 
- * [Build](https://travis-ci.org/htm-community/nupic.cpp)
+ * [Build](https://travis-ci.org/htm-community/htm.core)
  * [Config](./.travis.yml)
 
 ### Mac OS/X auto build @ CircleCI
 
- * [Build](https://circleci.com/gh/htm-community/nupic.cpp/tree/master)
+ * [Build](https://circleci.com/gh/htm-community/htm.core/tree/master)
  * [Config](./.circleci/config.yml)
  * Local Test Build: `circleci local execute --job build-and-test`
 
@@ -177,9 +179,10 @@ docker build --build-arg arch=arm64 .
 
 ### ARM64 auto build @ CircleCI
 
-This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
+This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86_64/amd64
+hardware.
 
- * **TODO!** [Build]()
+ * [Build](https://circleci.com/gh/htm-community/htm.core/tree/master)
  * [Config](./.circleci/config.yml)
  * Local Test Build: `circleci local execute --job arm64-build-test`
 
@@ -193,7 +196,7 @@ This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
  * Specify the build system folder (`$HTM_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
 
-## [For MS Visual Studio 2017 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
+## [For MS Visual Studio 2017 or 2019 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
 
 ## For Eclipse as the IDE
  * File - new C/C++Project - Empty or Existing CMake Project
@@ -203,8 +206,30 @@ This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86 hardware.
    your project properties - Resource Filters - Exclude all folders that matches boost, recursively
  * (Eclipse IDE for C/C++ Developers, 2019-03)
 
-For all new work, tab settings are at 2 characters.
+For all new work, tab settings are at 2 characters, replace tabs with spaces.
 The clang-format is LLVM style.
+
+## Debugging 
+
+Creeating a debug build of the htm.core library and unit tests is the same as building any C++ 
+application in Debug mode in any IDE as long as you do not include the python bindings. i.e. do 
+not include -DBINDING_BUILD=Python3 in the CMake command.
+```
+(on Linux)
+   rm -r build
+   mkdir -p build/scripts
+   cd build/scripts
+   CMake -DCMAKE_BUILD_TYPE=Debug ../..
+```
+
+However, if you need to debug the python bindings using an IDE debugger it becomes a little more difficult. 
+The problem is that it requires a debug version of the python library, python37_d.lib.  It is possible to
+obtain one and link with it, but a way to better isolate the python extension is to build a special main( )
+as explained here: https://pythonextensionpatterns.readthedocs.io/en/latest/debugging/debug_in_ide.html.
+
+Be aware that the CMake maintains a cache of build-time arguments and it will ignore some arguments passed
+to CMake if is already in the cache.  So, between runs you need to clear the cache or even better,
+entirely remove the build/ folder.
 
 # Third Party Dependencies
 
@@ -219,6 +244,7 @@ The installation scripts will automatically download and build the dependencies 
  * mnist test data
  * numpy
  * pytest
+ * [digestpp](https://github.com/kerukuro/digestpp) (for SimHash encoders)
 
 Once these third party components have been downloaded and built they will not be
 re-visited again on subsequent builds.  So to refresh the third party components
@@ -238,6 +264,7 @@ distribution packages as listed and rename them as indicated. Copy these to
 | mnist.zip     (*note3) | https://github.com/wichtounet/mnist/archive/master.zip |
 | pybind11.tar.gz        | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
 | cereal.tar.gz          | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
+| digestpp.zip           | https://github.com/kerukuro/digestpp/archive/36fa6ca2b85808bd171b13b65a345130dbe1d774.zip |
 
  * note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
  * note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.

@@ -23,8 +23,8 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <htm/os/Directory.hpp>
-#include <htm/os/OS.hpp>
 #include <htm/os/Path.hpp>
 #include <htm/utils/Log.hpp>
 

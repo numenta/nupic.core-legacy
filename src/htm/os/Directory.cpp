@@ -23,7 +23,6 @@
 
 #include <htm/os/Directory.hpp>  // defines namespace fs
 #include <htm/os/Path.hpp>
-#include <htm/os/OS.hpp>
 #include <htm/utils/Log.hpp>
 #include <string>
 

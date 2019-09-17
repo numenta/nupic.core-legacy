@@ -29,7 +29,6 @@
 #include <htm/engine/YAMLUtils.hpp>
 #include <htm/ntypes/Value.hpp>
 #include <htm/os/Env.hpp>
-#include <htm/os/OS.hpp>
 #include <htm/os/Path.hpp>
 
 // Built-in Region implementations
