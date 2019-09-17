@@ -21,7 +21,6 @@ import json
 
 from htm.bindings.engine_internal import Network
 
-from htm.advanced.regions import executeCommand, extractList
 from htm.advanced.support.register_regions import registerAllAdvancedRegions
 import numpy as np
 
@@ -31,30 +30,6 @@ class RawValuesTests(unittest.TestCase):
     def setUpClass(cls):
         registerAllAdvancedRegions()
 
-    def testExtractListInt(self):
-        """
-        Test that extractList extracts ints.
-        """
-        list_string = '0, 1, 2, 3, 42'
-        extracted_list = extractList(list_string, int)
-        self.assertEqual([0,1,2,3,42], extracted_list)
-
-    def testExtractListFloat(self):
-        """
-        Test that extractList extracts ints.
-        """
-        list_string = '0., 1.0, 2., 3.1, 4.2'
-        extracted_list = extractList(list_string, float)
-        self.assertEqual([0.0,1.0,2.0,3.1,4.2], extracted_list)
-
-    def testExtractListEmpty(self):
-        """
-        Test that extractList extracts ints.
-        """
-        list_string = ''
-        extracted_list = extractList(list_string, float)
-        self.assertEqual([], extracted_list)
-
     def testExecuteCommandListWithReset(self):
         """
         Test that execute command executes the correct command with a list and reset set.
@@ -63,7 +38,7 @@ class RawValuesTests(unittest.TestCase):
     
         # Create simple region to pass motor commands as displacement vectors (dx, dy)
         motor = net.addRegion("motor", "py.RawValues", json.dumps({"outputWidth": 2}))
-        executeCommand('addDataToQueue', motor, [0, 0], 1)
+        motor.executeCommand('addDataToQueue', [0, 0], 1)
         
         net.run(1)
         
@@ -80,7 +55,7 @@ class RawValuesTests(unittest.TestCase):
     
         # Create simple region to pass motor commands as displacement vectors (dx, dy)
         motor = net.addRegion("motor", "py.RawValues", json.dumps({"outputWidth": 2}))
-        executeCommand('addDataToQueue', motor, [0, 0], 0)
+        motor.executeCommand('addDataToQueue', [0, 0], 0)
         
         net.run(1)
         
@@ -97,7 +72,7 @@ class RawValuesTests(unittest.TestCase):
     
         # Create simple region to pass motor commands as displacement vectors (dx, dy)
         motor = net.addRegion("motor", "py.RawValues", json.dumps({"outputWidth": 2}))
-        executeCommand('addDataToQueue', motor, [0, 0])
+        motor.executeCommand('addDataToQueue', [0, 0])
         
         net.run(1)
         
@@ -114,8 +89,8 @@ class RawValuesTests(unittest.TestCase):
     
         # Create simple region to pass motor commands as displacement vectors (dx, dy)
         motor = net.addRegion("motor", "py.RawValues", json.dumps({"outputWidth": 2}))
-        executeCommand('addDataToQueue', motor, [0, 0], 1)
-        executeCommand('addDataToQueue', motor, [1, 1])
+        motor.executeCommand('addDataToQueue', [0, 0], 1)
+        motor.executeCommand('addDataToQueue', [1, 1])
         
         net.run(1)
         
@@ -156,7 +131,7 @@ class RawValuesTests(unittest.TestCase):
     
         # Create simple region to pass motor commands as displacement vectors (dx, dy)
         motor = net.addRegion("motor", "py.RawValues", json.dumps({"outputWidth": 2}))
-        executeCommand('addDataToQueue', motor, np.array([0, 0]))
+        motor.executeCommand('addDataToQueue', np.array([0, 0]))
         
         net.run(1)
         

@@ -21,7 +21,6 @@ import json
 
 from htm.bindings.engine_internal import Network
 
-from htm.advanced.regions import executeCommand
 from htm.advanced.support.register_regions import registerAllAdvancedRegions
 import numpy as np
 
@@ -39,7 +38,7 @@ class SensorValuesTests(unittest.TestCase):
     
         # Create simple region to pass sensor commands as displacement vectors (dx, dy)
         sensor = net.addRegion("sensor", "py.RawSensor", json.dumps({"outputWidth": 8}))
-        executeCommand('addDataToQueue', sensor, [0, 1], 1, 0)
+        sensor.executeCommand('addDataToQueue', [0, 1], 1, 0)
         
         net.run(1)
         
@@ -56,7 +55,7 @@ class SensorValuesTests(unittest.TestCase):
     
         # Create simple region to pass sensor commands as displacement vectors (dx, dy)
         sensor = net.addRegion("sensor", "py.RawSensor", json.dumps({"outputWidth": 8}))
-        executeCommand('addDataToQueue', sensor, [0, 1], 0, 0)
+        sensor.executeCommand('addDataToQueue', [0, 1], 0, 0)
         
         net.run(1)
         
@@ -73,7 +72,7 @@ class SensorValuesTests(unittest.TestCase):
     
         # Create simple region to pass sensor commands as displacement vectors (dx, dy)
         sensor = net.addRegion("sensor", "py.RawSensor", json.dumps({"outputWidth": 8}))
-        executeCommand('addDataToQueue', sensor, [0, 1], 0, 0)
+        sensor.executeCommand('addDataToQueue', [0, 1], 0, 0)
         
         net.run(1)
         
@@ -90,9 +89,9 @@ class SensorValuesTests(unittest.TestCase):
     
         # Create simple region to pass sensor commands as displacement vectors (dx, dy)
         sensor = net.addRegion("sensor", "py.RawSensor", json.dumps({"outputWidth": 8}))
-        executeCommand('addDataToQueue', sensor, [0, 1], 1, 0)
-        executeCommand('addDataToQueue', sensor, [1, 2], 0, 1)
-        executeCommand('addDataToQueue', sensor, [2, 3], 0, 2)
+        sensor.executeCommand('addDataToQueue', [0, 1], 1, 0)
+        sensor.executeCommand('addDataToQueue', [1, 2], 0, 1)
+        sensor.executeCommand('addDataToQueue', [2, 3], 0, 2)
         
         net.run(1)
         
@@ -128,8 +127,8 @@ class SensorValuesTests(unittest.TestCase):
     
         # Create simple region to pass sensor commands as displacement vectors (dx, dy)
         sensor = net.addRegion("sensor", "py.RawSensor", json.dumps({"outputWidth": 8}))
-        executeCommand('addDataToQueue', sensor, [0, 1], 1, 0)
-        executeCommand('addDataToQueue', sensor, [1, 2], 0, 0)
+        sensor.executeCommand('addDataToQueue', [0, 1], 1, 0)
+        sensor.executeCommand('addDataToQueue', [1, 2], 0, 0)
         
         net.run(1)
         
@@ -170,7 +169,7 @@ class SensorValuesTests(unittest.TestCase):
     
         # Create simple region to pass sensor commands as displacement vectors (dx, dy)
         sensor = net.addRegion("sensor", "py.RawSensor", json.dumps({"outputWidth": 8}))
-        executeCommand('addDataToQueue', sensor, np.array([0, 1]), 0, 0)
+        sensor.executeCommand('addDataToQueue', np.array([0, 1]), 0, 0)
         
         net.run(1)
         

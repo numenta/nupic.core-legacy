@@ -20,7 +20,7 @@
 from collections import deque
 from htm.bindings.regions.PyRegion import PyRegion
 
-from .import extractList
+from .import extractList, asBool 
 
 
 class RawSensor(PyRegion):
@@ -120,7 +120,7 @@ class RawSensor(PyRegion):
         """
         self.queue.appendleft({
             "sequenceId": int(sequenceId),
-            "reset": int(reset),
+            "reset": int(asBool(reset)),
             "nonZeros": extractList(nonZeros, int)
         })
 

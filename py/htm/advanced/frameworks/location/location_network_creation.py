@@ -30,9 +30,6 @@ from htm.advanced.frameworks.location.path_integration_union_narrowing import co
 from htm.advanced.frameworks.location.path_integration_union_narrowing import computeRatModuleParametersFromCellCount
 from htm.advanced.support.logging_decorator import LoggingDecorator
 
-from htm.advanced.regions import executeCommand
-
-
 def createL4L6aLocationColumn(network, L4Params, L6aParams, inverseReadoutResolution=None, baselineCellsPerAxis=6, suffix=""):
     """
     Create a single column network containing L4 and L6a layers. L4 layer
@@ -468,8 +465,8 @@ class L246aNetwork(object):
     def sendReset(self):            
         for col in range(self.numColumns):
             displacement = [0] * self.dimensions
-            executeCommand('addDataToQueue', self.sensorInput[col], [], True, 0)
-            executeCommand('addDataToQueue', self.motorInput[col], displacement, True)
+            self.sensorInput[col].executeCommand('addDataToQueue', [], True, 0)
+            self.motorInput[col].executeCommand('addDataToQueue', displacement, True)
 
         self.network.run(1)
 
@@ -516,8 +513,8 @@ class L246aNetwork(object):
                     # learn each pattern multiple times
                     for _ in range(self.repeat):
                         # Sense feature at location
-                        executeCommand('addDataToQueue', self.motorInput[col], displacement)
-                        executeCommand('addDataToQueue', self.sensorInput[col], feature, False, 0)
+                        self.motorInput[col].executeCommand('addDataToQueue', displacement)
+                        self.sensorInput[col].executeCommand('addDataToQueue', feature, False, 0)
                         # Only move to the location on the first sensation.
                         displacement = [0] * self.dimensions
 
@@ -562,8 +559,8 @@ class L246aNetwork(object):
                     displacement = location - prevLoc[col]
                 prevLoc[col] = location
 
-                executeCommand('addDataToQueue', self.motorInput[col], displacement)
-                executeCommand('addDataToQueue', self.sensorInput[col], feature, False, 0)
+                self.motorInput[col].executeCommand('addDataToQueue', displacement)
+                self.sensorInput[col].executeCommand('addDataToQueue', feature, False, 0)
 
             self.network.run(1)
             if stats is not None:

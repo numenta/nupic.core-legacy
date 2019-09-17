@@ -21,7 +21,7 @@
 from collections import deque
 
 from htm.bindings.regions.PyRegion import PyRegion
-from .import extractList
+from .import extractList, asBool
 
 
 class RawValues(PyRegion):
@@ -109,7 +109,7 @@ class RawValues(PyRegion):
         """
         self.queue.appendleft({
             "dataOut": extractList(dataIn, float),
-            "reset": bool(int(reset)),
+            "reset": asBool(reset),
         })
 
     def getOutputElementCount(self, name):

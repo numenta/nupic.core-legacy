@@ -1,36 +1,46 @@
 
-from collections.abc import Iterable
+import json
 
-def executeCommand(command_name, region_instance, *args):
+def extractList(list_string, dataType=None):
     """
-    Send the command to the region instance together with the arguments.
+    Extract a list of dataType from list_string string.
+    The same separator must be used consistently in the string. Either ',' or single spaces.
+    If dataType is None, just return a parsed list.
     """
-    string_args = [command_name]
-    for arg in args:
-            
-        if type(arg) == str:
-            string_args.append(arg)
-
-        elif isinstance(arg, Iterable):
-            s = ','.join([str(a) for a in arg])
-            string_args.append(s)
-            
-        elif type(arg) == bool:
-            string_args.append(str(int(arg)))
-            
-        else:
-            string_args.append(str(arg))
-            
-    return region_instance.executeCommand(string_args)
-
-def extractList(list_string, dataType):
-    """
-    Extract a list if dataType from list string string.
-    """
+    data_list = []
+    
     if list_string:
-        data_list = list_string.split(',')
+        try:
+            data_list = json.loads(list_string)
+            
+        except json.decoder.JSONDecodeError:
+            try:
+                list_string = (',').join(list_string.split(' '))
+                data_list = json.loads(list_string)
+                
+            except json.decoder.JSONDecodeError:
+                list_string = list_string.replace('.,', '.0,')
+                list_string = list_string.replace('.]', '.0]')
+                data_list = json.loads(list_string)
+                
         if data_list:
-            return [dataType(s) for s in data_list]
+            if dataType is None:
+                return data_list
+            else:
+                return [dataType(s) for s in data_list]
 
     return []
     
+def asBool(arg):
+    """
+    Convert arg to a bool. 
+    Accepts int or ints as strings or bool or bool as string
+    """
+    if type(arg) == bool:
+        return arg
+    elif type(arg) == str and arg.upper() == 'TRUE':
+        return True
+    elif type(arg) == str and arg.upper() == 'FALSE':
+        return False
+    
+    return bool(int(arg))

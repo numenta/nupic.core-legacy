@@ -37,8 +37,6 @@ from htm.advanced.support.object_generation import generateObjects
 from htm.advanced.support.expsuite import PyExperimentSuite
 from htm.advanced.support.register_regions import registerAllAdvancedRegions
 
-from htm.advanced.regions import executeCommand
-
 
 class MultiColumnExperiment(PyExperimentSuite):
     """
@@ -185,8 +183,8 @@ class MultiColumnExperiment(PyExperimentSuite):
                     activeColumns = self.featureSDR[col][feature["name"]]
                     for _ in range(self.numLearningPoints):
                         # Sense feature at location
-                        executeCommand('addDataToQueue', self.network.motorInput[col], displacement)
-                        executeCommand('addDataToQueue', self.network.sensorInput[col], activeColumns, False, 0)
+                        self.network.motorInput[col].executeCommand('addDataToQueue', displacement)
+                        self.network.sensorInput[col].executeCommand('addDataToQueue', activeColumns, False, 0)
                         # Only move to the location on the first sensation.
                         displacement = [0, 0]
 
@@ -227,8 +225,8 @@ class MultiColumnExperiment(PyExperimentSuite):
                 previousLocation[col] = locationOnObject
 
                 # Sense feature at location
-                executeCommand('addDataToQueue', self.network.motorInput[col], displacement)
-                executeCommand('addDataToQueue', self.network.sensorInput[col], self.featureSDR[col][feature["name"]], False, 0)
+                self.network.motorInput[col].executeCommand('addDataToQueue', displacement)
+                self.network.sensorInput[col].executeCommand('addDataToQueue', self.featureSDR[col][feature["name"]], False, 0)
             self.network.network.run(1)
             if self.debug:
                 self.network.updateInferenceStats(stats, objectName=objName)

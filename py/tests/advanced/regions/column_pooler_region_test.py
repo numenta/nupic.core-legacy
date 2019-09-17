@@ -22,8 +22,6 @@ import unittest
 
 from htm.bindings.engine_internal import Network
 from htm.advanced.support.register_regions import registerAllAdvancedRegions
-from htm.advanced.regions import executeCommand
-
 
 
 class ColumnPoolerRegionTest(unittest.TestCase):
@@ -45,9 +43,9 @@ class ColumnPoolerRegionTest(unittest.TestCase):
 
         self.assertEqual(rawSensor.getParameterUInt32("outputWidth"), l2c.getParameterUInt32("inputWidth"), "Incorrect outputWidth parameter")
 
-        executeCommand('addDataToQueue', rawSensor, [2, 4, 6], 0, 42)
-        executeCommand('addDataToQueue', rawSensor, [2, 42, 1023], 1, 43)
-        executeCommand('addDataToQueue', rawSensor, [18, 19, 20], 0, 44)
+        rawSensor.executeCommand('addDataToQueue', [2, 4, 6], 0, 42)
+        rawSensor.executeCommand('addDataToQueue', [2, 42, 1023], 1, 43)
+        rawSensor.executeCommand('addDataToQueue', [18, 19, 20], 0, 44)
 
         # Run the network and check outputs are as expected
         net.run(3)
@@ -64,9 +62,9 @@ class ColumnPoolerRegionTest(unittest.TestCase):
 
         self.assertEqual(rawSensor.getParameterUInt32("outputWidth"), l2c.getParameterUInt32("inputWidth"), "Incorrect outputWidth parameter")
 
-        executeCommand('addDataToQueue', rawSensor, [2, 4, 6], 0, 42)
-        executeCommand('addDataToQueue', rawSensor, [2, 42, 1023], 1, 43)
-        executeCommand('addDataToQueue', rawSensor, [18, 19, 20], 0, 44)
+        rawSensor.executeCommand('addDataToQueue', [2, 4, 6], 0, 42)
+        rawSensor.executeCommand('addDataToQueue', [2, 42, 1023], 1, 43)
+        rawSensor.executeCommand('addDataToQueue', [18, 19, 20], 0, 44)
 
         # Run the network and check outputs are as expected
         net.run(3)

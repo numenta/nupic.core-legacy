@@ -30,8 +30,6 @@ from htm.bindings.engine_internal import Network
 from htm.advanced.frameworks.location.location_network_creation import createL4L6aLocationColumn
 from htm.advanced.support.register_regions import registerAllAdvancedRegions
 
-from htm.advanced.regions import executeCommand
-
 NUM_OF_COLUMNS = 150
 CELLS_PER_COLUMN = 16
 NUM_OF_CELLS = NUM_OF_COLUMNS * CELLS_PER_COLUMN
@@ -152,7 +150,7 @@ class LocationNetworkFactoryTest(unittest.TestCase):
         for objectDescription in OBJECTS:
             reset = True
             previousLocation = None
-            L6a.executeCommand(["activateRandomLocation"])
+            L6a.executeCommand("activateRandomLocation")
 
             for iFeature, feature in enumerate(objectDescription["features"]):
                 # Move the sensor to the center of the object
@@ -160,13 +158,13 @@ class LocationNetworkFactoryTest(unittest.TestCase):
 
                 # Calculate displacement from previous location
                 if previousLocation is not None:
-                    executeCommand('addDataToQueue', motor, locationOnObject - previousLocation)
+                    motor.executeCommand('addDataToQueue', list(locationOnObject - previousLocation))
                 else:
-                    executeCommand('addDataToQueue', motor, [0, 0])
+                    motor.executeCommand('addDataToQueue', [0, 0])
                 previousLocation = locationOnObject
 
                 # Sense feature at location
-                executeCommand('addDataToQueue', sensor, FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
+                sensor.executeCommand('addDataToQueue', FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
                 net.run(1)
                 reset = False
 
@@ -195,13 +193,13 @@ class LocationNetworkFactoryTest(unittest.TestCase):
 
                 # Calculate displacement from previous location
                 if previousLocation is not None:
-                    executeCommand('addDataToQueue', motor, locationOnObject - previousLocation)
+                    motor.executeCommand('addDataToQueue', locationOnObject - previousLocation)
                 else:
-                    executeCommand('addDataToQueue', motor, [0, 0])
+                    motor.executeCommand('addDataToQueue', [0, 0])
                 previousLocation = locationOnObject
 
                 # Sense feature at location
-                executeCommand('addDataToQueue', sensor, FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
+                sensor.executeCommand('addDataToQueue', FEATURE_ACTIVE_COLUMNS[feature["name"]], reset, 0)
                 net.run(1)
                 reset = False
 
