@@ -4,9 +4,10 @@ Parameter optimization is a technique for tuning model performance by finding op
 of a model for given task/dataset. 
 In *HTM.core* it is provided in python by `python -m htm.optimization.ae `. 
 
-There are two methods implemeted: 
+There are several methods implemented:
 - particle swarm optimization (PSO) by `swarming.py`
-- and exhausive search
+- manual search
+- exhaustive search
 
 ## Requirements
 
@@ -35,7 +36,51 @@ Uses PSO ("swarming") with 100 particles, 7 CPU threads, upto 14GB RAM, to optim
 
 `python -m htm.optimization.ae --grid_search "" -n 7 --memory_limit 14 mnist.py` 
 
-Does full exhausive search for all parameters (the `""`) on `mnist.py` script.
+Does full exhaustive search for all parameters (the `""`) on `mnist.py` script.
+
+`python -m htm.optimization.ae --grid_search '["potentialPct"]' -n 7 --memory_limit 14 mnist.py`
+
+Tries several different values for the "potentialPct" parameter.
+
+### Manual search
+
+It is possible to manually specify parameters to evaluate.  While the AE program
+is **not** running, append the following to the lab-report file:
+
+```
+================================================================================
+Modification: ['potentialPct'] = 0.66
+Modification: ['columnDimensions'][1] = 123
+```
+
+The 80 equal signs are significant!  The AE program uses them as section dividers.
+
+Each "modification" line is a snippet of python code which is applied to the
+default parameters.
+
+Then run the command: `python -m htm.optimization.ae --parse mnist.py`
+which will read the lab-report file, fill in any missing fields, and write it
+back to the same file, without running any experiments.  After running the AE
+program, the section which we appended to the lab-report will look like:
+
+```
+================================================================================
+Modification: ['columnDimensions'][1] = 123
+Modification: ['potentialPct'] = 0.66
+Hash: FFD67F4E
+Journal: mnist_ae/FFD67F4E.journal
+Attempts: 0
+Notes: 
+```
+
+Notice the "Hash" has been computed for this set of parameters.  The Hash is a
+unique identifier for these parameters.  Use the following command to evaluate
+these parameters:
+
+`python -m htm.optimization.ae --hashes FFD67F4E mnist.py`
+
+The option `--hashes` also accepts a comma separated list of hashes.
+
 
 ### Correct experiment methodology, unbiased results
 
@@ -46,8 +91,8 @@ out of sample `test` (true test set) data. Only run on these data once the optim
 #### Notes
 
 You may want to "lock" some of the parameters to exclude them from the search. For example parameters 
-that are dependant on each other (optimize only one of the dependency pair). That helps to reduce the parameter
-search-space, resulting in faster optimization times and possibly optaining better results. 
+that are dependent on each other (optimize only one of the dependency pair). That helps to reduce the parameter
+search-space, resulting in faster optimization times and possibly obtaining better results. 
 
 
 ### Results
