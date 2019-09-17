@@ -135,9 +135,21 @@ size_t TestNode::getNodeOutputElementCount(const std::string &outputName) const 
   return RegionImpl::getNodeOutputElementCount(outputName);  // default behavior
 }
 
-std::string TestNode::executeCommand(const std::vector<std::string> &args,
-                                     Int64 index) {
-  return "";
+std::string TestNode::executeCommand(const std::vector<std::string> &args, Int64 index) {
+  if (args.size() > 0) {
+      for(auto n:args) {
+        std::cout << "TestNode: args: " << n << std::endl;
+      }
+      std::string command = args[0];
+      if (command == "HelloWorld") {
+          NTA_CHECK(args.size() == 3) << "executeCommand(\"HelloWorld\") on TestNode requires "
+                  "command plus 2 arguments, received command plus " << (args.size()-1);
+          std::string result = "Hello World says: arg1="+args[1]+" arg2="+args[2];
+          std::cout << "TestNode: result: " << result << std::endl;
+          return result;
+      }
+  }
+  return RegionImpl::executeCommand(args, index);
 }
 
 

@@ -104,6 +104,18 @@ namespace htm_ext {
         });
 
 
+        ////////////////////
+
+        Random.def("initializeReal64Array", [](Random_t& self, py::array& a)
+        {
+            auto array_data = get_it<htm::Real64>(a);
+
+            for (htm::UInt32 i = 0; i != a.size(); ++i)
+                array_data[i] = self.getReal64();
+
+        });
+
+
         //////////////////
         // serialization
         /////////////////
