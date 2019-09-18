@@ -122,7 +122,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         minPctOverlapDutyCycle     = parameters['minPctOverlapDutyCycle'],
         dutyCyclePeriod            = int(round(parameters['dutyCyclePeriod'])),
         boostStrength              = parameters['boostStrength'],
-        seed                       = 0,
+        seed                       = 0, # this is important, 0="random" seed which changes on each invocation
         spVerbosity                = 99,
         wrapAround                 = False)
     columns = SDR( sp.getColumnDimensions() )
