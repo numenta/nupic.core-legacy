@@ -104,7 +104,7 @@ class SpatialPoolerTest(unittest.TestCase):
     total = np.zeros(sp.getNumInputs(), dtype=float_type)
     for i in range(100):
       connected = np.zeros(sp.getNumInputs(), dtype=float_type)
-      sp.getPermanence(i, connected, sp.connections.getConnectedThreshold())
+      sp.getPermanence(i, connected, sp.connections.connectedThreshold)
       total = total + connected
     assert( total.sum() > 0 )
 

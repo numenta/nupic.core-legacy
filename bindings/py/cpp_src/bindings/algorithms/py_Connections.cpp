@@ -45,8 +45,7 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
         py::arg("connectedThreshold"),
         py::arg("timeseries") = false);
 
-    py_Connections.def_property_readonly("connectedThreshold",
-        [](const Connections &self) { return self.getConnectedThreshold(); });
+    py_Connections.def_property_readonly("connectedThreshold", &Connections::getConnectedThreshold);
 
     py_Connections.def("createSegment", &Connections::createSegment,
         py::arg("cell"),

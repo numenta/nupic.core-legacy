@@ -342,5 +342,10 @@ class ConnectionsTest(unittest.TestCase):
         self.assertNotEqual(count, 0, "Segment should be active")
 
 
+  def testConnectedThreshold(self):
+    conn = Connections(1024, 0.123, False)
+    self.assertAlmostEqual(conn.connectedThreshold,  0.123, places=4)
+
+
 if __name__ == "__main__":
   unittest.main()
