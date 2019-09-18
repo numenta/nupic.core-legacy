@@ -46,7 +46,6 @@ class SPRegionTests(unittest.TestCase):
         # Create simple region to pass sensor commands as displacement vectors (dx, dy)
         sp = net.addRegion("sp", "SPRegion", json.dumps({}))
         
-    @unittest.skip("synPermConnected is rejected")
     def testSPRegionParametersAreWritable(self):
         """
         Test that the SPRegion parameters can be set.
