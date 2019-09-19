@@ -37,7 +37,7 @@
 #define NTA_SDR_CLASSIFIER_HPP
 
 #include <deque>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <htm/types/Types.hpp>
@@ -109,8 +109,11 @@ public:
   /**
    * Constructor.
    *
-   * @param alpha - The alpha used to adapt the weight matrix during learning. A
-   *                larger alpha results in faster adaptation to the data.
+   * @param alpha - The alpha used to adapt the weight matrix during learning. 
+   *                A larger alpha results in faster adaptation to the data.
+   *                Note: when SDRs are formed correctly, the classification task 
+   *                for this class is quite easy, so you likely will never need to 
+   *                optimize this parameter. 
    */
   Classifier(Real alpha = 0.001f );
 
@@ -182,7 +185,7 @@ void softmax(PDF::iterator begin, PDF::iterator end);
  * The value is a PDF (probability distribution function, of the result being in
  * each bucket or category).
  */
-using Predictions = std::map<UInt, PDF>;
+using Predictions = std::unordered_map<UInt, PDF>;
 
 /**
  * The Predictor class does N-Step ahead predictions.
@@ -231,8 +234,9 @@ public:
    * Constructor.
    *
    * @param steps - The number of steps into the future to learn and predict.
-   * @param alpha - The alpha used to adapt the weight matrix during learning. A
-   *                larger alpha results in faster adaptation to the data.
+   * @param alpha - The alpha used to adapt the weight matrix during learning. 
+   *                A larger alpha results in faster adaptation to the data.
+   *                (The default value will likely be OK in most cases.)
    */
   Predictor(const std::vector<UInt> &steps, Real alpha = 0.001f );
 
@@ -295,7 +299,7 @@ private:
   void checkMonotonic_(UInt recordNum) const;
 
   // One per prediction step
-  std::map<UInt, Classifier> classifiers_;
+  std::unordered_map<UInt, Classifier> classifiers_;
 
 };      // End of Predictor class
 
