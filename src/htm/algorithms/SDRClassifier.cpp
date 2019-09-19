@@ -38,7 +38,7 @@ void Classifier::initialize(const Real alpha)
 {
   NTA_CHECK(alpha > 0.0f);
   alpha_ = alpha;
-  dimensions_.clear();
+  dimensions_ = 0;
   numCategories_ = 0u;
   weights_.clear();
 }
@@ -47,19 +47,9 @@ void Classifier::initialize(const Real alpha)
 PDF Classifier::infer(const SDR & pattern) const {
   // Check input dimensions, or if this is the first time the Classifier is used and dimensions
   // are unset, return zeroes.
-  if( dimensions_.empty() ) {
-    return PDF(numCategories_, 0.0f); //empty
-  } else if( pattern.dimensions != dimensions_ ) {
-      stringstream err_msg;
-      err_msg << "Classifier input SDR.dimensions mismatch: previously given SDR with dimensions ( ";
-      for( auto dim : dimensions_ )
-        { err_msg << dim << " "; }
-      err_msg << "), now given SDR with dimensions ( ";
-      for( auto dim : pattern.dimensions )
-        { err_msg << dim << " "; }
-      err_msg << ").";
-      NTA_THROW << err_msg.str();
-  }
+  NTA_CHECK( dimensions_ != 0 )
+    << "Classifier: must call `learn` before `infer`.";
+  NTA_ASSERT(pattern.size == dimensions_) << "Input SDR does not match previously seen size!";
 
   // Accumulate feed forward input.
   PDF probabilities( numCategories_, 0.0f );
@@ -79,15 +69,17 @@ void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
 {
   // If this is the first time the Classifier is being used, weights are empty, 
   // so we set the dimensions to that of the input `pattern`
-  if( dimensions_.empty() ) {
-    dimensions_ = pattern.dimensions;
+  if( dimensions_ == 0 ) {
+    dimensions_ = pattern.size;
     while( weights_.size() < pattern.size ) {
       const auto initialEmptyWeights = PDF( numCategories_, 0.0f );
       weights_.push_back( initialEmptyWeights );
     }
   }
+  NTA_ASSERT(pattern.size == dimensions_) << "Input SDR does not match previously seen size!";
+
   // Check if this is a new category & resize the weights table to hold it.
-  const auto maxCategoryIdx = *max_element(categoryIdxList.begin(), categoryIdxList.end());
+  const auto maxCategoryIdx = *max_element(categoryIdxList.cbegin(), categoryIdxList.cend());
   if( maxCategoryIdx >= numCategories_ ) {
     numCategories_ = maxCategoryIdx + 1;
     for( auto & vec : weights_ ) {

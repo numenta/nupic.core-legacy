@@ -155,7 +155,7 @@ public:
 
 private:
   Real alpha_;
-  std::vector<UInt> dimensions_;
+  UInt dimensions_;
   UInt numCategories_;
 
   /**
