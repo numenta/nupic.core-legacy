@@ -218,11 +218,11 @@ using Predictions = std::unordered_map<UInt, PDF>;
  *    // Give the predictor partial information, and make predictions
  *    // about the future.
  *    pred.reset();
- *    Predictions A = pred.infer( 0, sequence[0] );
+ *    Predictions A = pred.infer( sequence[0] );
  *    argmax( A[1] )  ->  labels[1]
  *    argmax( A[2] )  ->  labels[2]
  *
- *    Predictions B = pred.infer( 1, sequence[1] );
+ *    Predictions B = pred.infer( sequence[1] );
  *    argmax( B[1] )  ->  labels[2]
  *    argmax( B[2] )  ->  labels[3]
  *    ```
@@ -254,14 +254,11 @@ public:
   /**
    * Compute the likelihoods.
    *
-   * @param recordNum: An incrementing integer for each record. Gaps in
-   *                   numbers correspond to missing records.
-   *
    * @param pattern: The active input SDR.
    *
    * @returns: A mapping from prediction step to PDF.
    */
-  Predictions infer(const UInt recordNum, const SDR &pattern) const;
+  Predictions infer(const SDR &pattern) const;
 
   /**
    * Learn from example data.

@@ -161,28 +161,27 @@ void Predictor::reset() {
 }
 
 
-Predictions Predictor::infer(const UInt recordNum, const SDR &pattern) const {
-  checkMonotonic_(recordNum);
-
+Predictions Predictor::infer(const SDR &pattern) const {
   Predictions result;
   for( const auto step : steps_ ) {
-    result[step] = classifiers_.at(step).infer( pattern );
+    result.insert({step, classifiers_.at(step).infer( pattern )});
   }
   return result;
 }
 
 
-void Predictor::learn(const UInt recordNum, const SDR &pattern,
+void Predictor::learn(const UInt recordNum, //TODO make recordNum optional, autoincrement as steps 
+		      const SDR &pattern,
                       const std::vector<UInt> &bucketIdxList)
 {
   checkMonotonic_(recordNum);
 
   // Update pattern history if this is a new record.
-  const UInt lastRecordNum = recordNumHistory_.empty() ? -1 : recordNumHistory_.back();
+  const UInt lastRecordNum = recordNumHistory_.empty() ? 0 : recordNumHistory_.back();
   if (recordNumHistory_.size() == 0u || recordNum > lastRecordNum) {
     patternHistory_.emplace_back( pattern );
     recordNumHistory_.push_back(recordNum);
-    if (patternHistory_.size() > steps_.back() + 1u) {
+    if (patternHistory_.size() > steps_.back() + 1u) { //steps_ are sorted, so steps_.back() is the "oldest/deepest" N-th step (ie 10 of [1,2,10])
       patternHistory_.pop_front();
       recordNumHistory_.pop_front();
     }
@@ -191,13 +190,13 @@ void Predictor::learn(const UInt recordNum, const SDR &pattern,
   // Iterate through all recently given inputs, starting from the furthest in the past.
   auto pastPattern   = patternHistory_.begin();
   auto pastRecordNum = recordNumHistory_.begin();
-  for( ; pastRecordNum != recordNumHistory_.end(); pastPattern++, pastRecordNum++ )
+  for( ; pastRecordNum != recordNumHistory_.cend(); pastPattern++, pastRecordNum++ )
   {
     const UInt nSteps = recordNum - *pastRecordNum;
 
     // Update weights.
     if( binary_search( steps_.begin(), steps_.end(), nSteps )) {
-      classifiers_[nSteps].learn( *pastPattern, bucketIdxList );
+      classifiers_.at(nSteps).learn( *pastPattern, bucketIdxList );
     }
   }
 }
@@ -205,8 +204,6 @@ void Predictor::learn(const UInt recordNum, const SDR &pattern,
 
 void Predictor::checkMonotonic_(const UInt recordNum) const {
   // Ensure that recordNum increases monotonically.
-  const UInt lastRecordNum = recordNumHistory_.empty() ? -1 : recordNumHistory_.back();
-  if( not recordNumHistory_.empty() ) {
-    NTA_CHECK(recordNum >= lastRecordNum) << "The record number must increase monotonically.";
-  }
+  const UInt lastRecordNum = recordNumHistory_.empty() ? 0 : recordNumHistory_.back();
+  NTA_CHECK(recordNum >= lastRecordNum) << "The record number must increase monotonically.";
 }

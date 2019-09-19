@@ -81,11 +81,11 @@ TEST(SDRClassifierTest, ExampleUsagePredictor)
   // Give the predictor partial information, and make predictions
   // about the future.
   pred.reset();
-  Predictions A = pred.infer( 0, sequence[0] );
+  Predictions A = pred.infer( sequence[0] );
   ASSERT_EQ( argmax( A[1] ),  labels[1] );
   ASSERT_EQ( argmax( A[2] ),  labels[2] );
 
-  Predictions B = pred.infer( 1, sequence[1] );
+  Predictions B = pred.infer( sequence[1] );
   ASSERT_EQ( argmax( B[1] ),  labels[2] );
   ASSERT_EQ( argmax( B[2] ),  labels[3] );
 }
@@ -103,7 +103,7 @@ TEST(SDRClassifierTest, SingleValue) {
   for (UInt i = 0u; i < 10u; ++i) {
     c.learn( i, input1, bucketIdxList );
   }
-  Predictions result1 = c.infer( 10u, input1 );
+  Predictions result1 = c.infer( input1 );
 
   ASSERT_EQ( argmax( result1[1u] ), 4u )
       << "Incorrect prediction for bucket 4";
@@ -138,7 +138,7 @@ TEST(SDRClassifierTest, ComputeComplex) {
   c.learn(1, input2, bucketIdxList2);
   c.learn(2, input3, bucketIdxList3);
   c.learn(3, input1, bucketIdxList4);
-  auto result = c.infer(4, input1);
+  auto result = c.infer(input1);
 
   // Check the one-step prediction
   ASSERT_EQ(result.size(), 1u)
@@ -211,7 +211,7 @@ TEST(SDRClassifierTest, SaveLoad) {
   // Measure and save some output.
   A.addNoise( 0.20f ); // Change two bits.
   c1.reset();
-  const auto c1_out = c1.infer( 0u, A );
+  const auto c1_out = c1.infer( A );
 
   // Save and load.
   stringstream ss;
@@ -220,7 +220,7 @@ TEST(SDRClassifierTest, SaveLoad) {
   EXPECT_NO_THROW(c2.load(ss));
 
   // Expect identical results.
-  const auto c2_out = c2.infer( 0u, A );
+  const auto c2_out = c2.infer( A );
   ASSERT_EQ(c1_out, c2_out);
 }
 
