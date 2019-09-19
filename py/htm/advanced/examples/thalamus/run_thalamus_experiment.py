@@ -28,7 +28,7 @@ from scipy import ndimage as ndi
 
 from htm.advanced.algorithms.thalamus import Thalamus
 from thalamus_utils import  createLocationEncoder, encodeLocation, getUnionLocations, trainThalamusLocations
-from filters import gabor_kernel
+from skimage.filters import gabor_kernel
 from htm.bindings.sdr import SDR
 
 

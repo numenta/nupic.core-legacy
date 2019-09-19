@@ -10,12 +10,6 @@ Data
 
 The data is a single image `cajal.jpg` 
 
-Filters
-=======
-
-To avoid adding [scikit-image](https://scikit-image.org/) as a requirement for running this example, a local copy of the gabor filter kernel is provided.
-
-
 Running
 =======
 
