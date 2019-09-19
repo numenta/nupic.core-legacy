@@ -50,6 +50,16 @@ def load_ds(name, num_test, shape=None):
 
     return train_labels, train_images, test_labels, test_images
 
+def encode(data, out):
+    """
+    encode the (image) data
+    @param data - raw data
+    @param out  - return SDR with encoded data
+    """
+    out.dense = data >= np.mean(data) # convert greyscale image to binary B/W.
+    #TODO improve. have a look in htm.vision etc. For MNIST this is ok, for fashionMNIST in already loses too much information
+
+
 # These parameters can be improved using parameter optimization,
 # see py/htm/optimization/ae.py
 # For more explanation of relations between the parameters, see 
@@ -72,7 +82,9 @@ default_parameters = {
 def main(parameters=default_parameters, argv=None, verbose=True):
 
     # Load data.
-    train_labels, train_images, test_labels, test_images = load_ds('mnist_784', 10000, shape=[28,28])
+    train_labels, train_images, test_labels, test_images = load_ds('mnist_784', 10000, shape=[28,28]) # HTM: ~95.6%
+    #train_labels, train_images, test_labels, test_images = load_ds('Fashion-MNIST', 10000, shape=[28,28]) # HTM baseline: ~83%
+
     training_data = list(zip(train_images, train_labels))
     test_data     = list(zip(test_images, test_labels))
     random.shuffle(training_data)
@@ -103,7 +115,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     # Training Loop
     for i in range(len(train_images)):
         img, lbl = random.choice(training_data)
-        enc.dense = img >= np.mean(img) # Convert greyscale image to binary.
+        encode(img, enc)
         sp.compute( enc, True, columns )
         sdrc.learn( columns, lbl ) #TODO SDRClassifier could accept string as a label, currently must be int
 
@@ -113,7 +125,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     # Testing Loop
     score = 0
     for img, lbl in test_data:
-        enc.dense = img >= np.mean(img) # Convert greyscale image to binary.
+        encode(img, enc)
         sp.compute( enc, False, columns )
         if lbl == np.argmax( sdrc.infer( columns ) ):
             score += 1
