@@ -42,3 +42,7 @@ html/
 
 # produced by swarming, parameter optimization scripts
 *_ae/
+
+## Experiments. Files produced by experiments
+/py/htm/advanced/examples/thalamus/images/
+
