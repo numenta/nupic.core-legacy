@@ -96,6 +96,26 @@ class Connections(CPPConnections):
         """
         return np.array([self.cellForSegment(s) for s in segments], dtype=np.uint32)
 
+    def growSynapses(self, segment, growthCandidates, initialPermanence):
+        """
+        For each specified segments, grow synapses to all specified inputs that
+        aren't already connected to the segment.
+        
+        @param segment
+        The segment to modify
+        
+        @param inputs
+        The inputs to connect to
+        
+        @param initialPermanence
+        The permanence for each added synapse
+        """
+        presynamptic_cells = [self.presynapticCellForSynapse(synapse) for synapse in self.synapsesForSegment(segment)]
+        active_cells_without_synapses = growthCandidates[np.isin(growthCandidates, presynamptic_cells, invert=True)]
+        
+        for c in active_cells_without_synapses:
+            self.createSynapse(segment, c, initialPermanence)
+    
     def growSynapsesToSample(self, segment, growthCandidates, maxNew, initialPermanence, rng):
         """
         For each specified segments, grow synapses to a random subset of the
