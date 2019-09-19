@@ -15,62 +15,38 @@
 # ------------------------------------------------------------------------------
 """ An MNIST classifier using Spatial Pooler."""
 
-import argparse
 import random
 import numpy as np
-import os
 import sys
+
+# fetch datasets from www.openML.org/ 
+from sklearn.datasets import fetch_openml
 
 from htm.bindings.algorithms import SpatialPooler, Classifier
 from htm.bindings.sdr import SDR, Metrics
 
 
-def load_mnist(path):
-    """See: http://yann.lecun.com/exdb/mnist/ for MNIST download and binary file format spec."""
-    def int32(b):
-        i = 0
-        for char in b:
-            i *= 256
-            # i += ord(char)    # python2
-            i += char
-        return i
+def load_ds(name, num_test, shape=None):
+    """ 
+    fetch dataset from openML.org and split to train/test
+    @param name - ID on openML (eg. 'mnist_784')
+    @param num_test - num. samples to take as test
+    @param shape - new reshape of a single data point (ie data['data'][0]) as a list. Eg. [28,28] for MNIST
+    """
+    data = fetch_openml(name, version=1)
+    sz=data['target'].shape[0]
 
-    def load_labels(file_name):
-        with open(file_name, 'rb') as f:
-            raw = f.read()
-            assert(int32(raw[0:4]) == 2049)  # Magic number
-            labels = []
-            for char in raw[8:]:
-                # labels.append(ord(char))      # python2
-                labels.append(char)
-        return labels
+    X = data['data']
+    if shape is not None:
+        new_shape = shape.insert(0, sz)
+        X = np.reshape(X, shape)
 
-    def load_images(file_name):
-        with open(file_name, 'rb') as f:
-            raw = f.read()
-            assert(int32(raw[0:4]) == 2051)    # Magic number
-            num_imgs   = int32(raw[4:8])
-            rows       = int32(raw[8:12])
-            cols       = int32(raw[12:16])
-            assert(rows == 28)
-            assert(cols == 28)
-            img_size   = rows*cols
-            data_start = 4*4
-            imgs = []
-            for img_index in range(num_imgs):
-                vec = raw[data_start + img_index*img_size : data_start + (img_index+1)*img_size]
-                # vec = [ord(c) for c in vec]   # python2
-                vec = list(vec)
-                vec = np.array(vec, dtype=np.uint8)
-                vec = np.reshape(vec, (rows, cols))
-                imgs.append(vec)
-            assert(len(raw) == data_start + img_size * num_imgs)   # All data should be used.
-        return imgs
-
-    train_labels = load_labels(os.path.join(path, 'train-labels-idx1-ubyte'))
-    train_images = load_images(os.path.join(path, 'train-images-idx3-ubyte'))
-    test_labels  = load_labels(os.path.join(path, 't10k-labels-idx1-ubyte'))
-    test_images  = load_images(os.path.join(path, 't10k-images-idx3-ubyte'))
+    y = data['target'].astype(np.int32)
+    # split to train/test data
+    train_labels = y[:sz-num_test]
+    train_images = X[:sz-num_test]
+    test_labels  = y[sz-num_test:]
+    test_images  = X[sz-num_test:]
 
     return train_labels, train_images, test_labels, test_images
 
@@ -94,20 +70,15 @@ default_parameters = {
 
 
 def main(parameters=default_parameters, argv=None, verbose=True):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str,
-        default = os.path.join( os.path.dirname(__file__), '..', '..', '..', 'build', 'ThirdParty', 'mnist_data', 'mnist-src'))
-    args = parser.parse_args(args = argv)
 
     # Load data.
-    train_labels, train_images, test_labels, test_images = load_mnist(args.data_dir)
+    train_labels, train_images, test_labels, test_images = load_ds('mnist_784', 10000, shape=[28,28])
     training_data = list(zip(train_images, train_labels))
     test_data     = list(zip(test_images, test_labels))
     random.shuffle(training_data)
-    random.shuffle(test_data)
 
     # Setup the AI.
-    enc = SDR((train_images[0].shape))
+    enc = SDR(train_images[0].shape)
     sp = SpatialPooler(
         inputDimensions            = enc.dimensions,
         columnDimensions           = parameters['columnDimensions'],
@@ -134,7 +105,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
         img, lbl = random.choice(training_data)
         enc.dense = img >= np.mean(img) # Convert greyscale image to binary.
         sp.compute( enc, True, columns )
-        sdrc.learn( columns, lbl )
+        sdrc.learn( columns, lbl ) #TODO SDRClassifier could accept string as a label, currently must be int
 
     print(str(sp))
     print(str(columns_stats))
@@ -151,6 +122,9 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     print('Score:', 100 * score, '%')
     return score
 
-
+# baseline: without SP (only Classifier = logistic regression): 90.1%
+# kNN: ~97%
+# human: ~98%
+# state of the art: https://paperswithcode.com/sota/image-classification-on-mnist , ~99.9%
 if __name__ == '__main__':
     sys.exit( main() < 0.95 )
