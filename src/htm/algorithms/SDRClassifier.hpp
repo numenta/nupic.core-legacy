@@ -21,13 +21,23 @@
 
 /** @file
  * Definitions for the SDR Classifier & Predictor.
+ * 
+ * `Classifier` learns mapping from SDR->input value (encoder's output). 
+ * This is used when you need to "explain" the HTM network back to real-world, 
+ * ie. mapping SDRs back to digits in MNIST digit classification task. 
+ *
+ * `Predictor` has similar functionality for time-sequences 
+ * where you want to "predict" N-steps ahead and then return real-world value. 
+ * Internally it uses (several) Classifiers, and in nupic.core this used to be 
+ * a part for SDRClassifier, for `htm.core` this is a separate class `Predictor`. 
+ *
  */
 
 #ifndef NTA_SDR_CLASSIFIER_HPP
 #define NTA_SDR_CLASSIFIER_HPP
 
 #include <deque>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <htm/types/Types.hpp>
@@ -43,7 +53,8 @@ namespace htm {
  *
  * See also:  https://en.wikipedia.org/wiki/Probability_distribution
  */
-using PDF = std::vector<Real>;
+using PDF = std::vector<Real64>; //Real64 (not Real/float) must be used here, 
+// ... otherwise precision is lost and Predictor never reaches sufficient results.
 
 /**
  * Returns the category with the greatest probablility.
@@ -98,8 +109,11 @@ public:
   /**
    * Constructor.
    *
-   * @param alpha - The alpha used to adapt the weight matrix during learning. A
-   *                larger alpha results in faster adaptation to the data.
+   * @param alpha - The alpha used to adapt the weight matrix during learning. 
+   *                A larger alpha results in faster adaptation to the data.
+   *                Note: when SDRs are formed correctly, the classification task 
+   *                for this class is quite easy, so you likely will never need to 
+   *                optimize this parameter. 
    */
   Classifier(Real alpha = 0.001f );
 
@@ -115,7 +129,7 @@ public:
    * @returns: The Probablility Distribution Function (PDF) of the categories.
    *           This is indexed by the category label.
    */
-  PDF infer(const SDR & pattern);
+  PDF infer(const SDR & pattern) const;
 
   /**
    * Learn from example data.
@@ -141,18 +155,19 @@ public:
 
 private:
   Real alpha_;
-  std::vector<UInt> dimensions_;
+  UInt dimensions_;
   UInt numCategories_;
 
   /**
    * 2D map used to store the data.
    * Use as: weights_[ input-bit ][ category-index ]
+   * Real64 (not just Real) so the computations do not lose precision.
    */
-  std::vector<std::vector<Real>> weights_;
+  std::vector<std::vector<Real64>> weights_;
 
   // Helper function to compute the error signal for learning.
-  std::vector<Real> calculateError_(const std::vector<UInt> &bucketIdxList,
-                                    const SDR &pattern);
+  std::vector<Real64> calculateError_(const std::vector<UInt> &bucketIdxList,
+                                      const SDR &pattern) const;
 };
 
 /**
@@ -170,7 +185,7 @@ void softmax(PDF::iterator begin, PDF::iterator end);
  * The value is a PDF (probability distribution function, of the result being in
  * each bucket or category).
  */
-using Predictions = std::map<UInt, PDF>;
+using Predictions = std::unordered_map<UInt, PDF>;
 
 /**
  * The Predictor class does N-Step ahead predictions.
@@ -179,9 +194,11 @@ using Predictions = std::map<UInt, PDF>;
  * This class handles missing datapoints.
  *
  * Compatibility Note:  This class is the replacement for the old SDRClassifier.
- * It no longer provides estimates of the actual value.
+ * It no longer provides estimates of the actual value. Instead, users can get a rough estimate
+ * from bucket-index. If more precision is needed, use more buckets in the encoder. 
  *
  * Example Usage:
+ *   ```
  *    // Predict 1 and 2 time steps into the future.
  *    // Make a sequence of 4 random SDRs. Each SDR has 1000 bits and 2% sparsity.
  *    vector<SDR> sequence( 4, { 1000 } );
@@ -201,13 +218,14 @@ using Predictions = std::map<UInt, PDF>;
  *    // Give the predictor partial information, and make predictions
  *    // about the future.
  *    pred.reset();
- *    Predictions A = pred.infer( 0, sequence[0] );
+ *    Predictions A = pred.infer( sequence[0] );
  *    argmax( A[1] )  ->  labels[1]
  *    argmax( A[2] )  ->  labels[2]
  *
- *    Predictions B = pred.infer( 1, sequence[1] );
+ *    Predictions B = pred.infer( sequence[1] );
  *    argmax( B[1] )  ->  labels[2]
  *    argmax( B[2] )  ->  labels[3]
+ *    ```
  */
 class Predictor : public Serializable
 {
@@ -216,8 +234,9 @@ public:
    * Constructor.
    *
    * @param steps - The number of steps into the future to learn and predict.
-   * @param alpha - The alpha used to adapt the weight matrix during learning. A
-   *                larger alpha results in faster adaptation to the data.
+   * @param alpha - The alpha used to adapt the weight matrix during learning. 
+   *                A larger alpha results in faster adaptation to the data.
+   *                (The default value will likely be OK in most cases.)
    */
   Predictor(const std::vector<UInt> &steps, Real alpha = 0.001f );
 
@@ -235,14 +254,11 @@ public:
   /**
    * Compute the likelihoods.
    *
-   * @param recordNum: An incrementing integer for each record. Gaps in
-   *                   numbers correspond to missing records.
-   *
    * @param pattern: The active input SDR.
    *
    * @returns: A mapping from prediction step to PDF.
    */
-  Predictions infer(UInt recordNum, const SDR &pattern);
+  Predictions infer(const SDR &pattern) const;
 
   /**
    * Learn from example data.
@@ -252,7 +268,8 @@ public:
    * @param pattern: The active input SDR.
    * @param bucketIdxList: Vector of the current value bucket indices or categories.
    */
-  void learn(UInt recordNum, const SDR &pattern,
+  void learn(const UInt recordNum, 
+	     const SDR &pattern,
              const std::vector<UInt> &bucketIdxList);
 
   CerealAdapter;
@@ -276,10 +293,10 @@ private:
   // Stores the input pattern history, starting with the previous input.
   std::deque<SDR>  patternHistory_;
   std::deque<UInt> recordNumHistory_;
-  void updateHistory_(UInt recordNum, const SDR & pattern);
+  void checkMonotonic_(UInt recordNum) const;
 
   // One per prediction step
-  std::map<UInt, Classifier> classifiers_;
+  std::unordered_map<UInt, Classifier> classifiers_;
 
 };      // End of Predictor class
 
