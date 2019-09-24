@@ -99,7 +99,6 @@ build_script:
   - echo Binding version = %BINDINGS_VERSION%
 
   - python -m pip install --user --upgrade pip setuptools setuptools-scm wheel || exit
-  - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
   # we need to find the previous git tags so a shallow clone is not enough
   - git fetch --depth=200

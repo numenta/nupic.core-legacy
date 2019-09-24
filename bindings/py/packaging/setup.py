@@ -111,7 +111,7 @@ def findRequirements(platform):
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  requirementsPath = fixPath(os.path.join(PY_BINDINGS, "requirements.txt"))
+  requirementsPath = fixPath(os.path.join(REPO_DIR, "requirements.txt"))
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
