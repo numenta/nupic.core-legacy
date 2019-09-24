@@ -275,7 +275,7 @@ distribution packages as listed and rename them as indicated. Copy these to
 ### There are two sets of Unit Tests:
 
  * C++ Unit tests -- to run: `./build/Release/bin/unit_tests`
- * Python Unit tests -- to run: `python setup.py test`
+ * Python Unit tests -- to run: `python setup.py test` (runs also the C++ tests above)
 
 # Examples
 

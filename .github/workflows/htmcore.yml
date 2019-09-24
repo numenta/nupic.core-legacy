@@ -39,9 +39,7 @@ jobs:
     - name: build htmcore with setup.py
       run: |
         python setup.py install --user 
-    - name: C++ Tests
-      run: ./build/Release/bin/unit_tests
-    - name: Python Tests
+    - name: C++ & Python Tests
       run: python setup.py test
 
       #TODO run valgrind

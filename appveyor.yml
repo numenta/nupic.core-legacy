@@ -109,13 +109,7 @@ build_script:
   
 
 after_build:
-  # Run unit_tests (C++)
-  - cd %HTM_CORE%
-  - mkdir %ARTIFACTS_DIR%
-  - cd %HTM_CORE%\build\Release\bin
-  - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
-
-  # Run python tests
+  # Run C++ & python tests
   - cd %HTM_CORE%
   - python setup.py test
 
