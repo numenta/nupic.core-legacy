@@ -40,7 +40,7 @@ jobs:
       run: |
         python setup.py install --user 
     - name: C++ Tests
-      run: make tests_all
+      run: ./build/Release/bin/unit_tests
     - name: Python Tests
       run: python setup.py test
 
