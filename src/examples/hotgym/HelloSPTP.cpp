@@ -237,7 +237,7 @@ EPOCHS = 2; // make test faster in Debug
       const size_t timeTotal = (size_t)floor(tAll.getElapsed());
       cout << "Total elapsed time = " << timeTotal << " seconds" << endl;
       if(EPOCHS >= 100) { //show only relevant values, ie don't run in valgrind (ndebug, epochs=5) run
-#ifndef _MSC_VER
+#ifdef NTA_OS_LINUX
         const size_t CI_avg_time = (size_t)floor(26*Timer::getSpeed()); //sec
         NTA_CHECK(timeTotal <= CI_avg_time) << //we'll see how stable the time result in CI is, if usable
           "HelloSPTP test slower than expected! (" << timeTotal << ",should be "<< CI_avg_time << "), speed coef.= " << Timer::getSpeed();
