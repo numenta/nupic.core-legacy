@@ -30,8 +30,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Config
       run: |
-        $CC --version
-        $CXX --version
         python --version
         cmake --version
     - name: Install dependencies
