@@ -38,7 +38,11 @@ jobs:
         pip install -r bindings/py/packaging/requirements.txt
         #TODO move to top level requirements.txt
     - name: build htmcore with setup.py
+      env:
+        ARCHFLAGS: "-arch x86_64"
+        #TODO set ARCH_FLAGS (for OSX) in setup.py
       run: |
+        echo $ARCHFLAGS
         python setup.py install --user 
     - name: C++ Tests
       run: make tests_all
