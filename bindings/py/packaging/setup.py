@@ -304,8 +304,7 @@ if __name__ == "__main__":
   platform = getPlatformInfo()
 
   if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
-    raise Exception("To build HTM.Core bindings in OS X, you must "
-                    "`export ARCHFLAGS=\"-arch x86_64\"`.")
+    os.system("export ARCHFLAGS=\"-arch x86_64\"")
 
   # Run CMake if extension files are missing.
   # CMake also copies all py files into place in DISTR_DIR
