@@ -233,18 +233,6 @@ else()
 	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_ASSERTIONS_ON)
 	endif()
 
-	if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
-	endif()
-
-	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_GNU)
-	elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_CLANG)
-	elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_GNU -D_hypot=hypot)
-	endif()
-
 	#
 	# Set linker (ld)
 	# These linkers are tried for faster linking performance
@@ -325,6 +313,9 @@ else()
 	# Don't allow undefined symbols when linking executables
 	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 	  set(linker_flags_unoptimized ${linker_flags_unoptimized} -Wl,--no-undefined)
+	  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9") #TODO this is a hack for gcc-9 and Eigen warning, when fixed in Eigen, this can be removed.
+            set(internal_compiler_warning_flags ${internal_compiler_warning_flags} -Wno-deprecated-copy)
+          endif()
 	elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 	  set(linker_flags_unoptimized ${linker_flags_unoptimized} -Wl,-undefined,error)
 	endif()

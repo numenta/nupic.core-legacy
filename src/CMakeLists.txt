@@ -238,7 +238,7 @@ endif()
 target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
 target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
-		${EXTERNAL_INCLUDES}
+		SYSTEM ${EXTERNAL_INCLUDES}
 		)
 
 if(${HTM_IWYU})
