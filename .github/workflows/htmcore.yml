@@ -50,6 +50,7 @@ jobs:
       env:
         CMAKE_BUILD_TYPE: Debug
       run: |
+        echo "built type: ${CMAKE_BUILD_TYPE}"
         python setup.py install --user
 
     - name: C++ & Python Tests
@@ -59,7 +60,7 @@ jobs:
       if: success() && matrix.os == 'ubuntu-latest'
       run:
         apt install valgrind
-        LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
+        LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind --leak-check=full --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
 
 
       #TODO build ARM64 on docker
