@@ -35,7 +35,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install -r bindings/py/packaging/requirements.txt #TODO move to top level requirements.txt
+        pip install -r bindings/py/packaging/requirements.txt
+        #TODO move to top level requirements.txt
     - name: build htmcore with setup.py
       run: |
         python setup.py install --user 
