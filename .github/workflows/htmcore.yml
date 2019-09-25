@@ -43,9 +43,7 @@ jobs:
       run: |
         python --version
         cmake --version
-        g++ --version
-        sudo update-alternatives --list cc
-        sudo update-alternatives --list gcc
+        c++ --version
 
     - name: Install dependencies
       run: |
