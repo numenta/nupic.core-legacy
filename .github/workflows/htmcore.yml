@@ -65,7 +65,7 @@ jobs:
 
   build-arm64-docker:
     name: Build for ARM64 on Docker
-    runs_on: ubuntu-18.04
+    runs-on: ubuntu-18.04
     steps:
       - name: Docker ARM64 image
         run: |
