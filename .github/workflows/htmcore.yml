@@ -36,8 +36,7 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
         sudo apt-get remove -y gcc-7 g++-7
-        sudo ln -s `which g++-8` /usr/local/bin/g++
-        sudo ln -s `which gcc-8` /usr/local/bin/gcc
+        sudo update-alternatives /usr/bin/gcc gcc `which gcc-8` --slave /usr/bin/g++ g++ `which g++-8`
 
     - name: Config
       run: |
@@ -53,22 +52,9 @@ jobs:
     - name: build htmcore with setup.py
       run: python setup.py install --user
 
-    - name: Debug build htmcore with setup.py
-      if: matrix.os == 'ubuntu-latest'
-      env:
-        CMAKE_BUILD_TYPE: Debug
-      run: |
-        echo "built type: ${CMAKE_BUILD_TYPE}"
-        python setup.py install --user
-
     - name: C++ & Python Tests
       run: python setup.py test
       
-    - name: Memory leaks check (valgrind)
-      if: success() && matrix.os == 'ubuntu-latest'
-      run:
-        sudo apt-get -y install valgrind
-        LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind  --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
 
   build-arm64-docker:
     name: Build for ARM64 on Docker
@@ -97,13 +83,9 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Set up Cpp compilers
-      if: matrix.os == 'ubuntu-18.04'
       run: |
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
-        sudo apt-get remove -y gcc-7 g++-7
-        sudo ln -s `which g++-8` /usr/local/bin/g++
-        sudo ln -s `which gcc-8` /usr/local/bin/gcc
 
     - name: Config
       run: |
@@ -111,6 +93,9 @@ jobs:
         g++ --version
 
     - name: Debug build htmcore with cmake
+      env:
+        CC: gcc-8
+        CXX: g++-8
       run: |
         echo "built type: ${CMAKE_BUILD_TYPE}"
         mkdir -p build/scripts
