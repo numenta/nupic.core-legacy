@@ -36,13 +36,16 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
         sudo apt-get remove -y gcc-7 g++-7
-        sudo update-alternatives /usr/bin/gcc gcc `which gcc-8` --slave /usr/bin/g++ g++ `which g++-8`
+        sudo update-alternatives --install /usr/bin/gcc gcc `which gcc-8` 9999 --slave /usr/bin/g++ g++ `which g++-8` 
+        sudo update-alternatives --install /usr/bin/cc cc gcc 9999 --slave /usr/bin/c++ c++ g++
 
     - name: Config
       run: |
         python --version
         cmake --version
         g++ --version
+        sudo update-alternatives --list cc
+        sudo update-alternatives --list gcc
 
     - name: Install dependencies
       run: |
