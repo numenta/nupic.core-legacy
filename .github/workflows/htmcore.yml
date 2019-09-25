@@ -28,10 +28,10 @@ jobs:
     - name: Docker image for ARM
       if: matrix.os == 'ubuntu-16.04' # ubuntu->QEMU->docker->ARM64 build
       run: |
-        apt-get install -y qemu-system docker.io
-        docker run --rm --privileged multiarch/qemu-user-static:register --reset
+        sudo apt-get install -y qemu-system docker.io
+        sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
         uname -a
-        docker build -t htm-arm64-docker --build-arg arch=arm64 .
+        sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
 
     - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
