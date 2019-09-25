@@ -47,7 +47,8 @@ from distutils.core import Extension
 
 
 build_type = 'Release'
-
+if os.environ['CMAKE_BUILD_TYPE'] == 'Debug':
+  build_type = 'Debug'
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir, os.pardir))
