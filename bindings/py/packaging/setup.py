@@ -59,14 +59,7 @@ LINUX_PLATFORM = "linux"
 UNIX_PLATFORMS = [LINUX_PLATFORM, DARWIN_PLATFORM]
 WINDOWS_PLATFORMS = ["windows"]
 
-# set CC, CXX if exist
-cc=""
-cxx=""
-try:
-  cc=os.environ['CC']
-  cxx=os.environ['CXX']
-except:
-  pass
+
 
 def getExtensionVersion():
   """
@@ -265,8 +258,6 @@ def generateExtensions(platform, build_type):
         
 
   BUILD_TYPE = "-DCMAKE_BUILD_TYPE="+build_type
-  CXX = "-DCMAKE_CXX_COMPILER="+cxx
-  CC  = "-DCMAKE_C_COMPILER="+cc
 
 
   scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
@@ -297,7 +288,7 @@ def generateExtensions(platform, build_type):
         #   we can skip this step, the cache is already setup and we have the right binding specified.
       else:
         # For Linux and OSx we can let CMake figure it out.
-        subprocess.check_call(["cmake",BUILD_TYPE , CC, CXX, PY_VER, REPO_DIR])
+        subprocess.check_call(["cmake",BUILD_TYPE , PY_VER, REPO_DIR])
         
     else:
       # The generator is specified.
@@ -312,7 +303,7 @@ def generateExtensions(platform, build_type):
           else:
             raise Exception('Did not find Visual Studio for generator "'+generator+ '".')
       else:
-        subprocess.check_call(["cmake", "-G", generator, BUILD_TYPE, CC, CXX, PY_VER, REPO_DIR])
+        subprocess.check_call(["cmake", "-G", generator, BUILD_TYPE, PY_VER, REPO_DIR])
         
     # Now do `make install`
     subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", build_type])
