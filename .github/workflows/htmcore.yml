@@ -69,9 +69,9 @@ jobs:
     - name: Release (make package)
       run: |
         python setup.py bdist_wheel
-        make install
         cd build/scripts
-        make package
+        cmake --build . --config Release --target install # aka make install ,but multiplatform
+        cmake --build . --config Release --target package # make package
 
     - name: Release (deploy)
       # from https://github.com/marketplace/actions/gh-release
