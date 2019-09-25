@@ -46,12 +46,10 @@ from distutils.core import Extension
 #
 
 
+# bindings cannot be compiled in Debug mode, unless a special python library also in
+# Debug is used, which is quite unlikely. So for any CMAKE_BUILD_TYPE setting, override 
+# to Release mode. 
 build_type = 'Release'
-try:
-  if os.environ['CMAKE_BUILD_TYPE'] == 'Debug':
-    build_type = 'Debug'
-except:
-  build_type = 'Release'
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir, os.pardir))
