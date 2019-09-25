@@ -55,12 +55,10 @@ jobs:
       run: |
         pwd
         ls -l
-        ls ${{ env.GITHUB_WORKSPACE }}
         mkdir -p build/scripts
         cd build/scripts
-        cmake ${{ env.GITHUB_WORKSPACE }}
+        cmake ../..
         python -m pip install --upgrade pip setuptools wheel
-        python -m pip install -r ${{env.GITHUB_WORKSPACE}}/requirements.txt
 
     - name: build htmcore with setup.py
       run: python setup.py install --user
