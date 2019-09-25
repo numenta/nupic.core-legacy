@@ -142,13 +142,9 @@ class TestCommand(BaseTestCommand):
     cwd = os.getcwd()
     errno = 0
     # run c++ tests (from python)
-    try:
-      cpp_tests = os.path.join(REPO_DIR, "build", build_dir, "bin", "unit_tests")
-      subprocess.check_call([cpp_tests])
-    finally:
-      os.chdir(cwd)
-    if errno != 0:
-      sys.exit(errno)
+    cpp_tests = os.path.join(REPO_DIR, "build", "Release", "bin", "unit_tests")
+    subprocess.check_call([cpp_tests])
+    os.chdir(cwd)
 
     # run python bindings tests (in /bindings/py/tests/)
     try:
