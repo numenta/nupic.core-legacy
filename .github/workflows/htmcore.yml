@@ -20,10 +20,19 @@ jobs:
       #max-parallel: 4
       matrix:
         python-version: [3.7]
-        os: [ubuntu-18.04, windows-2019, macOS-latest, ubuntu-latest]
+        os: [ubuntu-18.04, windows-2019, macOS-latest, ubuntu-latest, ubuntu-16.04]
         # ubuntu-latest is used for valgrind and Debug build
+        # ubuntu-16.04 is used for docker build for ARM64
 
     steps:
+    - name: Docker image for ARM
+      if: matrix.os == 'ubuntu-16.04' # ubuntu->QEMU->docker->ARM64 build
+      run: |
+        apt-get install -y qemu-system docker.io
+        docker run --rm --privileged multiarch/qemu-user-static:register --reset
+        uname -a
+        docker build -t htm-arm64-docker --build-arg arch=arm64 .
+
     - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
