@@ -65,6 +65,22 @@ jobs:
 
     - name: C++ & Python Tests
       run: python setup.py test
+
+    - name: Release (make package)
+      run: |
+        python setup.py bdist_wheel
+        cd build/scripts
+        make package
+
+    - name: Release (deploy)
+      # from https://github.com/marketplace/actions/gh-release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          build/scripts/htm_core-v*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
 
   build-arm64-docker:
