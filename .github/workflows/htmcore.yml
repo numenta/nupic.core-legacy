@@ -31,10 +31,18 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    -name: Set up C++ compilers
+     if: matrix.os == 'ubuntu-18.04'
+     run: |
+       sudo apt-get update
+       sudo apt-get -y install gcc-8 g++-8
+       sudo apt-get remove -y gcc-7 g++-7
+
     - name: Config
       run: |
         python --version
         cmake --version
+        g++ --version
 
     - name: Install dependencies
       run: |
