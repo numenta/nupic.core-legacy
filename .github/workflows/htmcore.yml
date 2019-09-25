@@ -69,6 +69,7 @@ jobs:
     - name: Release (make package)
       run: |
         python setup.py bdist_wheel
+        make install
         cd build/scripts
         make package
 
@@ -81,7 +82,20 @@ jobs:
           build/scripts/htm_core-v*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
+    - name: pre-PyPI
+      run: |
+        cp -a build/Release/distr/dist . #copy dist data to /dist, where PyPI Action expects it
+        ls dist
+
+    - name: Publish to PyPI
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
+        repository_url: https://test.pypi.org/legacy/ #TODO rm for real pypi
+
 
   build-arm64-docker:
     name: Build for ARM64 on Docker
@@ -102,6 +116,7 @@ jobs:
         run: |
           sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
           uname -a
+
 
   build-debug:
     name: Build and test in Debug mode
@@ -140,6 +155,3 @@ jobs:
         sudo apt-get -y install valgrind
         LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind  --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
 
-
-      #TODO GH Releases
-      #TODO PYPI deploy
