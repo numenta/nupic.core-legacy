@@ -53,13 +53,14 @@ jobs:
     - name: Install dependencies
       if: matrix.os != 'ubuntu-18.04'
       run: |
+        pwd
+        ls -l
+        ls ${{ env.GITHUB_WORKSPACE }}
         mkdir -p build/scripts
         cd build/scripts
-        cmake ../..
+        cmake ${{ env.GITHUB_WORKSPACE }}
         python -m pip install --upgrade pip setuptools wheel
-        cd ..
-        cd .. #dummy, but to avoid ../.. which is not multi-platform (Windows)
-        python -m pip install -r requirements.txt
+        python -m pip install -r ${{env.GITHUB_WORKSPACE}}/requirements.txt
 
     - name: build htmcore with setup.py
       run: python setup.py install --user
