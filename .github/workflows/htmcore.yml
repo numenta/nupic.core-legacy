@@ -37,6 +37,8 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
         sudo apt-get remove -y gcc-7 g++-7
+        sudo ln -s `which g++-8` /usr/local/bin/g++
+        sudo ln -s `which gcc-8` /usr/local/bin/gcc
 
     - name: Config
       run: |
