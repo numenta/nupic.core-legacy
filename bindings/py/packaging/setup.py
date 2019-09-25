@@ -110,12 +110,12 @@ def fixPath(path):
 
 
 
-def findRequirements(platform):
+def findRequirements(platform, fileName="requirements.txt"):
   """
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  requirementsPath = fixPath(os.path.join(REPO_DIR, "requirements.txt"))
+  requirementsPath = fixPath(os.path.join(REPO_DIR, fileName))
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
@@ -145,7 +145,7 @@ class TestCommand(BaseTestCommand):
     errno = 0
     # run c++ tests (from python)
     try:
-      cpp_tests = os.path.join(REPO_DIR, "build", "Release", "bin", "unit_tests")
+      cpp_tests = os.path.join(REPO_DIR, "build", build_dir, "bin", "unit_tests")
       subprocess.check_call([cpp_tests])
     finally:
       os.chdir(cwd)
@@ -330,9 +330,9 @@ if __name__ == "__main__":
   """
   set the default directory to the distr, and package it.
   """
+  print("\nbindings/py/setup.py: Setup htm.core Python module in " + DISTR_DIR+ "\n")
   os.chdir(DISTR_DIR)
 
-  print("\nbindings/py/setup.py: Setup htm.core Python module in " + DISTR_DIR+ "\n")
   setup(
     # See https://docs.python.org/2/distutils/apiref.html for descriptions of arguments.
     #     https://docs.python.org/2/distutils/setupscript.html
@@ -353,7 +353,14 @@ if __name__ == "__main__":
         "htm.bindings": ["*.so", "*.pyd"],
         "htm.examples": ["*.csv"],
     },
-    extras_require = {},
+    #install extras by `pip install htm.core[examples]`
+    extras_require={'prettytable>=0.7.2':'monitor-mixin',
+                    'scikit-image>0.15.0':'examples',
+                    'sklearn':'examples',
+                    'matplotlib':'examples',
+                    'PIL':'examples',
+                    'scipy':'examples'
+                   },
     zip_safe=False,
     cmdclass={
       "clean": CleanCommand,

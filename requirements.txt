@@ -2,10 +2,9 @@
 ## for python bindings (in /bindings/py/)
 numpy>=1.15
 pytest==4.6.5 #4.6.x series is last to support python2, once py2 dropped, we can switch to 5.x 
-pytest-cov>=2.5.0
 ## for python code (in /py/)
 hexy>=1.4.3 # for grid cell encoder
 mock>=1.0.1 # for anomaly likelihood test
-prettytable>=0.7.2 # For htm.advanced metric class mixins
-scikit-image>=0.15.0 # For thalamus example
-sklearn # for mnist.py example, dataset downloads from openML.org
+## optional dependencies, such as for visualizations, running examples
+# should be placed in setup.py section extras_require. Install those by
+# pip install htm.core[examples] and/or htm.core[monitor-mixin]

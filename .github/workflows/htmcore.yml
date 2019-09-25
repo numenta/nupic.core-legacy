@@ -52,15 +52,12 @@ jobs:
     - name: build htmcore with setup.py
       if: matrix.os != 'ubuntu-latest'
       run: |
-        python setup.py install --user
+        python setup.py install --user --force
 
     - name: Debug build htmcore with setup.py
       if: matrix.os == 'ubuntu-latest'
-      env:
-        CMAKE_BUILD_TYPE: Debug
       run: |
-        echo "built type: ${CMAKE_BUILD_TYPE}"
-        python setup.py install --user
+        CMAKE_BUILD_TYPE=Debug python setup.py install --user --force
 
     - name: C++ & Python Tests
       run: python setup.py test
