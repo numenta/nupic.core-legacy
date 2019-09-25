@@ -36,6 +36,8 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
         sudo update-alternatives --install /usr/bin/g++ g++ `which g++-8` 9999 --slave /usr/bin/gcc gcc `which gcc-8` 
+        sudo update-alternatives --remove cc /usr/bin/cc 
+        sudo update-alternatives --remove c++ /usr/bin/c++
         sudo update-alternatives --install /usr/bin/c++ c++ `which g++-8` 9999 --slave /usr/bin/cc cc `which gcc-8`
 
     - name: Config
