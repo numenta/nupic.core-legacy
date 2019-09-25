@@ -375,6 +375,16 @@ namespace htm_ext
 
 
 
+        ///////////////////
+        // Serialization
+        ///////////////////
+        py::enum_<SerializableFormat>(m, "SerializableFormat")
+            .value("BINARY", SerializableFormat::BINARY)
+            .value("PORTABLE", SerializableFormat::PORTABLE)
+            .value("JSON", SerializableFormat::JSON)
+            .value("XML", ::SerializableFormat::XML)
+            .export_values();
+        // NOTE: Registered python regions will be serialized in BINARY (i.e. pickle) regardless of the format specified.
 
 
         ///////////////////
@@ -414,8 +424,9 @@ namespace htm_ext
 
         py_Network.def("save",      &htm::Network::save)
             .def("load",            &htm::Network::load)
-            .def("saveToFile",      &htm::Network::saveToFile)
-            .def("loadFromFile",    &htm::Network::loadFromFile);
+            .def("saveToFile",      &htm::Network::saveToFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY)
+            .def("loadFromFile",    &htm::Network::loadFromFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY);
+            
 
         py_Network.def("link", &htm::Network::link
             , "Defines a link between regions"
