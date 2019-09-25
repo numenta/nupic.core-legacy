@@ -21,24 +21,29 @@ jobs:
       matrix:
         python-version: [3.7]
         os: [ubuntu-18.04, windows-2019, macOS-latest, ubuntu-latest, ubuntu-16.04]
-        # ubuntu-16.04 is used for valgrind and Debug build
-        # ubuntu-latest is used for docker build for ARM64
+        # ubuntu-latest is used for valgrind and Debug build
+        # ubuntu-16.04 is used for docker build for ARM64
 
     steps:
-    - name: Docker image for ARM
-      if: matrix.os == 'ubuntu-latest' # ubuntu->QEMU->docker->ARM64 build
+    - name: Docker ARM64 build 1/2 - image
+      if: matrix.os == 'ubuntu-16.04' # ubuntu->QEMU->docker->ARM64 build
       run: |
-        sudo apt-get remove --purge -y moby-engine moby-cli 
+        # bug in ubuntu, conflicts with docker.io
+        sudo apt-get update
+        sudo apt-get remove --purge -y moby-engine moby-cli
         sudo apt-get install -y qemu-system docker.io
+        uname -a
         sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
         uname -a
 
     - uses: actions/checkout@v1
 
-    - name: Docker ARM64 build
-      if: matrix.os == 'ubuntu-latest'
+    - name: Docker ARM64 build 2/2 - build
+      if: matrix.os == 'ubuntu-16.04'
       run: |
         sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
+        uname -a
+        exit 0
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
@@ -56,12 +61,12 @@ jobs:
         pip install -r requirements.txt
 
     - name: build htmcore with setup.py
-      if: matrix.os != 'ubuntu-16.04'
+      if: matrix.os != 'ubuntu-latest'
       run: |
         python setup.py install --user
 
     - name: Debug build htmcore with setup.py
-      if: matrix.os == 'ubuntu-16.04'
+      if: matrix.os == 'ubuntu-latest'
       env:
         CMAKE_BUILD_TYPE: Debug
       run: |
