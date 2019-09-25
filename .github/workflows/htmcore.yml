@@ -25,8 +25,6 @@ jobs:
         # ubuntu-16.04 is used for docker build for ARM64
 
     steps:
-    - uses: actions/checkout@v1
-
     - name: Docker image for ARM
       if: matrix.os == 'ubuntu-16.04' # ubuntu->QEMU->docker->ARM64 build
       run: |
@@ -35,6 +33,7 @@ jobs:
         uname -a
         docker build -t htm-arm64-docker --build-arg arch=arm64 .
 
+    - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
