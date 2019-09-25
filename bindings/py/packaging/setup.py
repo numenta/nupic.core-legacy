@@ -352,8 +352,7 @@ if __name__ == "__main__":
         "htm.examples": ["*.csv"],
     },
     #install extras by `pip install htm.core[examples]`
-    extras_require={'prettytable>=0.7.2':'monitor-mixin',
-                    'scikit-image>0.15.0':'examples',
+    extras_require={'scikit-image>0.15.0':'examples',
                     'sklearn':'examples',
                     'matplotlib':'examples',
                     'PIL':'examples',
