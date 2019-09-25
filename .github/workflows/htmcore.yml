@@ -35,15 +35,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
-        sudo apt-get remove -y gcc-7 g++-7
-        sudo update-alternatives --install /usr/bin/gcc gcc `which gcc-8` 9999 --slave /usr/bin/g++ g++ `which g++-8` 
-        sudo update-alternatives --install /usr/bin/cc cc `which gcc` 9999 --slave /usr/bin/c++ c++ `which g++`
+        echo "export CC=gcc-8" >> ~/.bashrc
+        echo "export CXX=g++-8" >> ~/.bashrc
 
     - name: Config
       run: |
         python --version
         cmake --version
         c++ --version
+
+    - name: gcc-8 check
+      if: matrix.os == 'ubuntu-18.04'
+      run: echo "CC= $CC"
 
     - name: Install dependencies
       run: |
