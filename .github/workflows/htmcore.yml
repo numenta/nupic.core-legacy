@@ -66,6 +66,7 @@ jobs:
       run: python setup.py test
 
     - name: Release (make package)
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       run: |
         python setup.py bdist_wheel
         cd build/scripts
@@ -73,9 +74,9 @@ jobs:
         cmake --build . --config Release --target package # make package
 
     - name: Release (deploy)
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       # from https://github.com/marketplace/actions/gh-release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
           build/scripts/htm_core-v*
@@ -83,6 +84,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: pre-PyPI
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       run: |
         cp -a build/Release/distr/dist . #copy dist data to /dist, where PyPI Action expects it
         ls dist
