@@ -28,7 +28,6 @@
 #include "gtest/gtest.h"
 #include <htm/algorithms/SpatialPooler.hpp>
 
-#include <htm/utils/StlIo.hpp>
 #include <htm/types/Types.hpp>
 #include <htm/utils/Log.hpp>
 #include <htm/os/Timer.hpp>
