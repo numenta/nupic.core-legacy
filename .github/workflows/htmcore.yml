@@ -61,6 +61,12 @@ jobs:
     - name: C++ & Python Tests
       run: python setup.py test
 
+    - name: Memory leaks check (valgrind)
+      if: matrix.os == 'ubuntu-18.04'
+      run: |
+        sudo apt-get -y install valgrind
+        LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind  --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
+
     - name: Release (make package)
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       run: |
@@ -98,19 +104,12 @@ jobs:
 
   build-debug:
     name: Build and test in Debug mode
-    runs-on: ubuntu-18.04
+    #currently cannot run on Linux & Debug due to a bug in YAML parser: issue #218
+    runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
 
-    - name: Set up Cpp compilers
-      run: |
-        sudo apt-get update
-        sudo apt-get -y install gcc-8 g++-8
-
     - name: Install dependencies (Debug)
-      env:
-        CC: gcc-8
-        CXX: g++-8
       run: |
         echo "built type: ${CMAKE_BUILD_TYPE}"
         mkdir -p build/scripts
@@ -125,9 +124,3 @@ jobs:
       run: |
         cd build/scripts
         ../Debug/bin/unit_tests
-      
-    - name: Memory leaks check (valgrind)
-      run:
-        sudo apt-get -y install valgrind
-        LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind  --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
-
