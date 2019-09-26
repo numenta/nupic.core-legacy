@@ -99,26 +99,6 @@ jobs:
         repository_url: https://test.pypi.org/legacy/ #TODO rm for real pypi
 
 
-  build-arm64-docker:
-    name: Build for ARM64 on Docker
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Docker ARM64 image
-        run: |
-          # bug in ubuntu, conflicts with docker.io
-          sudo apt-get update
-          sudo apt-get remove --purge -y moby-engine moby-cli
-          sudo apt-get install -y qemu-system docker.io
-          uname -a
-          sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-          uname -a
-          
-      - uses: actions/checkout@v1
-      - name: ARM64 build
-        run: |
-          sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
-          uname -a
-
 
   build-debug:
     name: Build and test in Debug mode
