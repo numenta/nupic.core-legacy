@@ -96,6 +96,29 @@ class CleanCommand(Command):
 
 
 
+class ConfigureCommand(Command):
+  """Setup C++ dependencies and call cmake for configuration"""
+
+  description = "Setup C++ dependencies and call cmake for configuration."
+  user_options = []
+
+  def initialize_options(self):
+    pass
+
+  def finalize_options(self):
+    pass
+
+  def run(self):
+    platform = getPlatformInfo()
+    if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
+      os.system("export ARCHFLAGS=\"-arch x86_64\"")
+
+    # Run CMake if extension files are missing.
+    # CMake also copies all py files into place in DISTR_DIR
+    configure(platform, build_type)
+
+
+
 def fixPath(path):
   """
   Ensures paths are correct for linux and windows
@@ -240,6 +263,27 @@ def generateExtensions(platform, build_type):
   Note: for Windows it will force a X64 build.
   """
   cwd = os.getcwd()
+  scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
+  try:
+    if not os.path.isdir(scriptsDir):
+      os.makedirs(scriptsDir)
+    os.chdir(scriptsDir)
+
+    # cmake ../..
+    configure(platform, build_type)
+
+    # build: make && make install
+    subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", build_type])
+
+  finally:
+    os.chdir(cwd)
+
+
+def configure(platform, build_type):
+  """
+  Setup C++ dependencies and call cmake for configuration.
+  """
+  cwd = os.getcwd()
   
   print("Python version: {}\n".format(sys.version))
   from sys import version_info
@@ -301,8 +345,6 @@ def generateExtensions(platform, build_type):
       else:
         subprocess.check_call(["cmake", "-G", generator, BUILD_TYPE, PY_VER, REPO_DIR])
         
-    # Now do `make install`
-    subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", build_type])
   finally:
     os.chdir(cwd)
 
@@ -316,7 +358,10 @@ if __name__ == "__main__":
 
   # Run CMake if extension files are missing.
   # CMake also copies all py files into place in DISTR_DIR
-  getExtensionFiles(platform, build_type)
+  if len(sys.argv) > 1 and sys.argv[1] == "configure":
+    configure(platform, build_type)
+  else: #full build
+    getExtensionFiles(platform, build_type)
 
   with open(os.path.join(REPO_DIR, "README.md"), "r") as fh:
     long_description = fh.read()
@@ -358,6 +403,7 @@ if __name__ == "__main__":
     cmdclass={
       "clean": CleanCommand,
       "test": TestCommand,
+      "configure": ConfigureCommand,
     },
     author="Numenta & HTM Community",
     author_email="help@numenta.org",
