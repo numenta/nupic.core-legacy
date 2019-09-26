@@ -99,7 +99,6 @@ build_script:
   - echo Binding version = %BINDINGS_VERSION%
 
   - python -m pip install --user --upgrade pip setuptools setuptools-scm wheel || exit
-  - python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  || exit
 
   # we need to find the previous git tags so a shallow clone is not enough
   - git fetch --depth=200
@@ -110,13 +109,7 @@ build_script:
   
 
 after_build:
-  # Run unit_tests (C++)
-  - cd %HTM_CORE%
-  - mkdir %ARTIFACTS_DIR%
-  - cd %HTM_CORE%\build\Release\bin
-  - unit_tests.exe --gtest_output=xml:%ARTIFACTS_DIR%\unit_tests_report.xml
-
-  # Run python tests
+  # Run C++ & python tests
   - cd %HTM_CORE%
   - python setup.py test
 

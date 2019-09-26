@@ -46,8 +46,10 @@ from distutils.core import Extension
 #
 
 
+# bindings cannot be compiled in Debug mode, unless a special python library also in
+# Debug is used, which is quite unlikely. So for any CMAKE_BUILD_TYPE setting, override 
+# to Release mode. 
 build_type = 'Release'
-
 
 PY_BINDINGS = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.abspath(os.path.join(PY_BINDINGS, os.pardir, os.pardir, os.pardir))
@@ -94,6 +96,29 @@ class CleanCommand(Command):
 
 
 
+class ConfigureCommand(Command):
+  """Setup C++ dependencies and call cmake for configuration"""
+
+  description = "Setup C++ dependencies and call cmake for configuration."
+  user_options = []
+
+  def initialize_options(self):
+    pass
+
+  def finalize_options(self):
+    pass
+
+  def run(self):
+    platform = getPlatformInfo()
+    if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
+      os.system("export ARCHFLAGS=\"-arch x86_64\"")
+
+    # Run CMake if extension files are missing.
+    # CMake also copies all py files into place in DISTR_DIR
+    configure(platform, build_type)
+
+
+
 def fixPath(path):
   """
   Ensures paths are correct for linux and windows
@@ -106,12 +131,12 @@ def fixPath(path):
 
 
 
-def findRequirements(platform):
+def findRequirements(platform, fileName="requirements.txt"):
   """
   Read the requirements.txt file and parse into requirements for setup's
   install_requirements option.
   """
-  requirementsPath = fixPath(os.path.join(PY_BINDINGS, "requirements.txt"))
+  requirementsPath = fixPath(os.path.join(REPO_DIR, fileName))
   return [
     line.strip()
     for line in open(requirementsPath).readlines()
@@ -138,6 +163,12 @@ class TestCommand(BaseTestCommand):
   def run_tests(self):
     import pytest
     cwd = os.getcwd()
+    errno = 0
+    # run c++ tests (from python)
+    cpp_tests = os.path.join(REPO_DIR, "build", "Release", "bin", "unit_tests")
+    subprocess.check_call([cpp_tests])
+    os.chdir(cwd)
+
     # run python bindings tests (in /bindings/py/tests/)
     try:
       os.chdir(os.path.join(REPO_DIR, "bindings", "py", "tests"))
@@ -232,6 +263,29 @@ def generateExtensions(platform, build_type):
   Note: for Windows it will force a X64 build.
   """
   cwd = os.getcwd()
+  scriptsDir = os.path.join(REPO_DIR, "build", "scripts")
+  try:
+    if not os.path.isdir(scriptsDir):
+      os.makedirs(scriptsDir)
+    os.chdir(scriptsDir)
+
+    # cmake ../..
+    configure(platform, build_type)
+
+    # build: make && make install
+    if platform != "windows": #TODO since cmake 3.12 "-j4" is directly supported (=crossplatform), for now -- passes other options to make
+      subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", build_type, "--", "-j", "4"]) 
+    else:
+      subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", build_type])
+  finally:
+    os.chdir(cwd)
+
+
+def configure(platform, build_type):
+  """
+  Setup C++ dependencies and call cmake for configuration.
+  """
+  cwd = os.getcwd()
   
   print("Python version: {}\n".format(sys.version))
   from sys import version_info
@@ -293,8 +347,6 @@ def generateExtensions(platform, build_type):
       else:
         subprocess.check_call(["cmake", "-G", generator, BUILD_TYPE, PY_VER, REPO_DIR])
         
-    # Now do `make install`
-    subprocess.check_call(["cmake", "--build", ".", "--target", "install", "--config", build_type])
   finally:
     os.chdir(cwd)
 
@@ -304,12 +356,14 @@ if __name__ == "__main__":
   platform = getPlatformInfo()
 
   if platform == DARWIN_PLATFORM and not "ARCHFLAGS" in os.environ:
-    raise Exception("To build HTM.Core bindings in OS X, you must "
-                    "`export ARCHFLAGS=\"-arch x86_64\"`.")
+    os.system("export ARCHFLAGS=\"-arch x86_64\"")
 
   # Run CMake if extension files are missing.
   # CMake also copies all py files into place in DISTR_DIR
-  getExtensionFiles(platform, build_type)
+  if len(sys.argv) > 1 and sys.argv[1] == "configure":
+    configure(platform, build_type)
+  else: #full build
+    getExtensionFiles(platform, build_type)
 
   with open(os.path.join(REPO_DIR, "README.md"), "r") as fh:
     long_description = fh.read()
@@ -317,9 +371,9 @@ if __name__ == "__main__":
   """
   set the default directory to the distr, and package it.
   """
+  print("\nbindings/py/setup.py: Setup htm.core Python module in " + DISTR_DIR+ "\n")
   os.chdir(DISTR_DIR)
 
-  print("\nbindings/py/setup.py: Setup htm.core Python module in " + DISTR_DIR+ "\n")
   setup(
     # See https://docs.python.org/2/distutils/apiref.html for descriptions of arguments.
     #     https://docs.python.org/2/distutils/setupscript.html
@@ -340,11 +394,18 @@ if __name__ == "__main__":
         "htm.bindings": ["*.so", "*.pyd"],
         "htm.examples": ["*.csv"],
     },
-    extras_require = {},
+    #install extras by `pip install htm.core[examples]`
+    extras_require={'scikit-image>0.15.0':'examples',
+                    'sklearn':'examples',
+                    'matplotlib':'examples',
+                    'PIL':'examples',
+                    'scipy':'examples'
+                   },
     zip_safe=False,
     cmdclass={
       "clean": CleanCommand,
       "test": TestCommand,
+      "configure": ConfigureCommand,
     },
     author="Numenta & HTM Community",
     author_email="help@numenta.org",

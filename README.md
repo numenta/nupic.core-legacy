@@ -64,7 +64,7 @@ Fork or download the HTM-Community htm.core repository from https://github.com/h
 ```
 cd to-repository-root
 python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
-python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt
+python -m pip install --no-cache-dir --user -r requirements.txt
 ```
 
 Be sure you are running the right version of python. Check it with the following command:
@@ -275,7 +275,7 @@ distribution packages as listed and rename them as indicated. Copy these to
 ### There are two sets of Unit Tests:
 
  * C++ Unit tests -- to run: `./build/Release/bin/unit_tests`
- * Python Unit tests -- to run: `python setup.py test`
+ * Python Unit tests -- to run: `python setup.py test` (runs also the C++ tests above)
 
 # Examples
 
