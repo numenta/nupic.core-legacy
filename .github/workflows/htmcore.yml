@@ -85,6 +85,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - uses: actions/upload-artifact@v1.0.0
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: "dist-${{ matrix.os }}"
+        path: build/Release/distr/dist
+
     - name: pre-PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && 1==0
       #copy dist data to /dist, where PyPI Action expects it
