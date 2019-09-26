@@ -118,6 +118,7 @@ jobs:
 
     - name: Debug build
       run: |
+        cd build/scripts
         make -j2 && make install
 
     - name: C++ Tests
