@@ -185,8 +185,6 @@ set(utils_files
     htm/utils/VectorHelpers.hpp
     htm/utils/SdrMetrics.cpp
     htm/utils/SdrMetrics.hpp
-    htm/utils/StlIo.cpp
-    htm/utils/StlIo.hpp
     htm/utils/Topology.cpp
     htm/utils/Topology.hpp
 )
