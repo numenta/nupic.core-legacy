@@ -439,6 +439,10 @@ install(DIRECTORY "${CMAKE_INSTALL_PREFIX}/distr/dist/"
 	  DESTINATION py
 	  FILES_MATCHING PATTERN "*.whl")
 
+# copy requirements.txt into dist/ 
+install(FILES ${REPOSITORY_DIR}/requirements.txt
+        DESTINATION distr/dist)
+
 
 ############### PACKAGE ###########################
 #
