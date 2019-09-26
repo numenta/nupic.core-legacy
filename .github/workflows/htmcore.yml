@@ -2,7 +2,7 @@ name: htm.core build
 
 on:
   push:
-    branches:
+    tags:
       - 'v*.*.*' # vX.Y.Z release tag
   # run on pull_request events that target the master branch
   pull_request:
