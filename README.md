@@ -40,6 +40,11 @@ in C++ library.
 
 # Installation
 
+## Binary releases
+
+If you intend to use `htm.core` as a library that provides you Python \& C++ HTM, 
+you can use our [binary releases](https://github.com/htm-community/htm.core/releases)
+
 ## Building from Source
 
 Fork or download the HTM-Community htm.core repository from https://github.com/htm-community/htm.core
