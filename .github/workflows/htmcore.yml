@@ -44,21 +44,20 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install -r requirements.txt
         mkdir -p build/scripts
         cd build/scripts
         cmake ../..
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip install -r ../../requirements.txt
 
     - name: Install dependencies
       if: matrix.os != 'ubuntu-18.04'
       run: |
-        pwd
-        ls -l
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install -r requirements.txt
         mkdir -p build/scripts
         cd build/scripts
         cmake ../..
-        python -m pip install --upgrade pip setuptools wheel
 
     - name: build htmcore with setup.py
       run: python setup.py install --user
