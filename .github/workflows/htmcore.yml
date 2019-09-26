@@ -91,12 +91,39 @@ jobs:
         name: "dist-${{ matrix.os }}"
         path: build/Release/distr/dist
 
+
+  publish-pypi:
+    name: Publish package to PYPI
+    needs:
+      build
+    runs-on: ubuntu-18.04
+    steps:
+
+    - uses: actions/checkout@master
+
+    - uses: actions/download-artifact@master
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: dist-ubuntu-18.04
+        path: dist1/
+
+    - uses: actions/download-artifact@master
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: dist-macOs-latest
+        path: dist2/
+
+    - uses: actions/download-artifact@master
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: dist-windows-2019
+        path: dist3/
+
     - name: pre-PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && 1==0
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       #copy dist data to /dist, where PyPI Action expects it
       run: |
-        cp -a build/Release/distr/dist .
-        ls dist
+        ls dist*
 
     - name: Publish to PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'ubuntu-18.04' && 1==0
