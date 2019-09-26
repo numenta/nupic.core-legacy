@@ -86,14 +86,15 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: pre-PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && 1==0
       #copy dist data to /dist, where PyPI Action expects it
       run: |
         cp -a build/Release/distr/dist .
         ls dist
 
     - name: Publish to PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'ubuntu-18.04'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'ubuntu-18.04' && 1==0
+      #FIXME temp disabled as pypi-publisher action must run on Linux only!
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
