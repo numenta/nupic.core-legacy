@@ -107,12 +107,7 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install gcc-8 g++-8
 
-    - name: Config
-      run: |
-        cmake --version
-        g++ --version
-
-    - name: Debug build htmcore with cmake
+    - name: Install dependencies (Debug)
       env:
         CC: gcc-8
         CXX: g++-8
@@ -121,7 +116,10 @@ jobs:
         mkdir -p build/scripts
         cd build/scripts
         cmake ../.. -DCMAKE_BUILD_TYPE=Debug
-        make -j4 && make install
+
+    - name: Debug build
+      run: |
+        make -j2 && make install
 
     - name: C++ Tests
       run: |
