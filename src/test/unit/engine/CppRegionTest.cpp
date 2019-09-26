@@ -50,7 +50,7 @@ static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
 
-#if !defined(NDEBUG) && defined(NTA_OS_LINUX) //TODO YAML libyaml-cpp failing on Linux in Debug mode, https://github.com/htm-community/htm.core/issues/218
+
 TEST(CppRegionTest, testCppLinkingFanIn) {
   Network net;
   Real64 *buffer1;
@@ -283,5 +283,5 @@ TEST(CppRegionTest, RegionSerialization) {
 	EXPECT_EQ(*r1.get(), r2);
 }
 
-#endif
+
 } //ns
