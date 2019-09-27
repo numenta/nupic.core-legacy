@@ -92,6 +92,12 @@ jobs:
         name: "dist-${{ matrix.os }}"
         path: build/Release/distr/dist
 
+    - name: Test python package is working
+      run: |
+        python -m pip uninstall -y htm.core 
+        python -m pip install build/Release/distr/dist/*.whl
+        python -m pytest bindings/py/packaging/tests
+
 
   publish-pypi:
     name: Publish package to PYPI
