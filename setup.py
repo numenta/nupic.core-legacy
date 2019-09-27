@@ -170,9 +170,9 @@ class TestCommand(BaseTestCommand):
     os.chdir(cwd)
     
 
-    # run python bindings tests (in /bindings/py/packaging/src/tests/)
+    # run python bindings tests (in /bindings/py/tests/)
     try:
-      os.chdir(os.path.join(REPO_DIR, "bindings", "py","packaging","src","tests"))
+      os.chdir(os.path.join(REPO_DIR, "bindings", "py","tests"))
       errno = pytest.main(self.pytest_args)
     finally:
       os.chdir(cwd)
