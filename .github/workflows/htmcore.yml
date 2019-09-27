@@ -86,10 +86,17 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - uses: actions/upload-artifact@v1.0.0
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #FIXME for testing in the PR, for going live, reenable the IF-filter
       with:
         name: "dist-${{ matrix.os }}"
         path: build/Release/distr/dist
+
+    - name: Test python package is working
+      run: |
+        python -m pip uninstall -y htm.core 
+        python -m pip install --force build/Release/distr/dist/*.whl
+        python -m pytest bindings/py/packaging/tests
 
 
   publish-pypi:
@@ -102,32 +109,32 @@ jobs:
     - uses: actions/checkout@master
 
     - uses: actions/download-artifact@master
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-ubuntu-18.04
-        path: dist1/
+        path: dist/
 
     - uses: actions/download-artifact@master
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-macOs-latest
-        path: dist2/
+        path: dist/
 
     - uses: actions/download-artifact@master
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-windows-2019
-        path: dist3/
+        path: dist/
 
     - name: pre-PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       #copy dist data to /dist, where PyPI Action expects it
       run: |
-        ls dist*
+        ls dist/
 
     - name: Publish to PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'ubuntu-18.04' && 1==0
-      #FIXME temp disabled as pypi-publisher action must run on Linux only!
+      #FIXME temp disabled as pypi-publisher action fails with linux wheel (must use manylinux) 
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
