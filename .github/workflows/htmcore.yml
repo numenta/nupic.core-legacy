@@ -98,8 +98,8 @@ jobs:
       shell: bash
       run: |
         python -m pip uninstall -y htm.core 
-        fileName=$(ls build/Release/distr/dist/*.whl) 
-        python -m pip install --force build/Release/distr/dist/$fileName
+        filePath=$(ls build/Release/distr/dist/*.whl) 
+        python -m pip install --force $filePath
         python -m pytest bindings/py/tests
 
 
