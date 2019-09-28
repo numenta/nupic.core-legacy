@@ -31,6 +31,7 @@ htm.core.kdev4
 # Build files
 build/
 junit-test-results.xml
+VERSION
 
 # Test Output files
 bindings/py/tests/*.stream
