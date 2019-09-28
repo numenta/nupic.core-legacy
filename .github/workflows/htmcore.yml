@@ -96,7 +96,7 @@ jobs:
       run: |
         python -m pip uninstall -y htm.core 
         python -m pip install --force build/Release/distr/dist/*.whl
-        python -m pytest bindings/py/packaging/tests
+        python -m pytest bindings/py/tests
 
 
   publish-pypi:
