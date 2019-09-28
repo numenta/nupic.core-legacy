@@ -68,7 +68,8 @@ jobs:
         LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind  --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
 
     - name: Release (make package)
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      #FIXME uncomment before merging the PR
       run: |
         python setup.py bdist_wheel
         cd build/scripts
@@ -76,7 +77,8 @@ jobs:
         cmake --build . --config Release --target package # make package
 
     - name: Release (deploy)
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && 0==1
+      #FIXME release temporarily disabled, enable again before merging this PR!
       # from https://github.com/marketplace/actions/gh-release
       uses: softprops/action-gh-release@v1
       with:
@@ -96,8 +98,8 @@ jobs:
       shell: bash
       run: |
         python -m pip uninstall -y htm.core 
-        x=$(ls build/Release/distr/dist/*.whl) 
-        python -m pip install --force build/Release/distr/dist/$x
+        fileName=$(ls build/Release/distr/dist/*.whl) 
+        python -m pip install --force build/Release/distr/dist/$fileName
         python -m pytest bindings/py/tests
 
 
