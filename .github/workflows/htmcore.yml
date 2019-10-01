@@ -137,7 +137,7 @@ jobs:
         ls dist/
 
     - name: Publish to PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'ubuntu-18.04' && 1==0
+      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'ubuntu-18.04' && 1==0
       #FIXME temp disabled as pypi-publisher action fails with linux wheel (must use manylinux) 
       uses: pypa/gh-action-pypi-publish@master
       with:
