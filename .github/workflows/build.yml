@@ -110,6 +110,11 @@ jobs:
 
     - uses: actions/checkout@master
 
+    - name: Set up Python 3.4
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.4
+
     - uses: actions/download-artifact@master
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
