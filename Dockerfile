@@ -49,7 +49,10 @@ RUN python setup.py test #Note, if you get weird import errors here,
 RUN python setup.py bdist_wheel
 RUN cd build/scripts && \
     make install && \
-    make package && \
-    ls * && \ 
-    ls ../Release/distr/dist/* 
+    make package
+
+RUN mkdir dist && \
+    cp -a build/scripts/*.tar.gz dist && \
+    cp -a build/Release/distr/dist/*.whl dist && \
+    ls -l dist
 

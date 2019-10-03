@@ -28,5 +28,17 @@ jobs:
     - name: ARM64 build
       run: |
         sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
-        uname -a
+
+    - name: Example switch to docker env
+      run: |
+        sudo docker run -it htm-arm64-docker
+        uname -a && echo "\nHello from ARM64 htm.core build!\n"
+        exit
+
+    - name: Copy files from docker
+      run: |
+        sudo docker cp `sudo docker ps -alq`:/usr/local/src/htm.core/dist dist
+        ls dist
+        
+
 
