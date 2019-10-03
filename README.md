@@ -36,18 +36,19 @@ in C++ library.
    The algorithms APIs on the other hand have deviated from their original API (but their logic is the same as Numenta's).
    If you are porting your code to this codebase, please review the [API Changelog](API_CHANGELOG.md).
 
-# Installation
+## Installation
 
-## Binary releases
+### Binary releases
 
 If you intend to use `htm.core` as a library that provides you Python \& C++ HTM, 
-you can use our [binary releases](https://github.com/htm-community/htm.core/releases)
+you can use our [binary releases](https://github.com/htm-community/htm.core/releases).
 
-## Building from Source
+
+### Building from Source
 
 Fork or download the HTM-Community htm.core repository from https://github.com/htm-community/htm.core
 
-## Prerequisites
+#### Prerequisites
 
 - [CMake](http://www.cmake.org/)  Version 3.8  (3.14 for Visual Studio 2019)
 - [Python](https://python.org/downloads/)
@@ -75,7 +76,7 @@ Be sure you are running the right version of python. Check it with the following
 python --version
 ```
 
-## Simple Build for Python users (any platform)
+#### Simple Python build (any platform)
 
 1) At a command prompt, go to the root directory of this repository.
 
@@ -101,7 +102,7 @@ python.exe
 >>> help( htm )          # Documentation
 ```
 
-## Simple Build On Linux or OSX for C++ apps
+#### Simple C++ build (Linux or OSX)
 
 After downloading the repository, do the following:
 ```
@@ -142,9 +143,9 @@ After downloading the repository, do the following:
  * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
  * If you also want the Python extension library; in a command prompt, cd to root of repository and run `python setup.py install --user --prefix=`.
 
-## Docker Builds
+### Docker Builds
 
-### Build for Docker amd64 (x86_64)
+#### Build for Docker amd64 (x86_64)
 
 If you are on `amd64` (`x86_64`) and would like to build a Docker image:
 
@@ -152,7 +153,7 @@ If you are on `amd64` (`x86_64`) and would like to build a Docker image:
 docker build --build-arg arch=amd64 .
 ```
 
-### Docker build for ARM64
+#### Docker build for ARM64
 
 If you are on `ARM64` and would like to build a Docker image, run the command
 below. The CircleCI automated ARM64 build (detailed below) uses this
@@ -162,7 +163,11 @@ specifically.
 docker build --build-arg arch=arm64 .
 ```
 
-## Automated Builds
+### Automated Builds, CI
+
+We use Github `Actions` to build and run multiplatform (OSX, Windows, Linux, ARM64) tests and releases. 
+
+[![CI Build Status](https://github.com/htm-community/htm.core/workflows/build/badge.svg)](https://github.com/htm-community/htm.core/actions)
 
 ### Linux auto build @ Github Actions
 
@@ -188,9 +193,9 @@ This uses Docker and QEMU to achieve an ARM64 build on Actions' x86_64/amd64 har
  * [Config](./.github/workflows/arm64-build.yml)
 
 
-# Using a Graphical Integrated Development Environment
+## Workflow: Using IDE
 
-## Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
+### Generate the IDE solution  (Netbeans, XCode, Eclipse, KDevelop, etc)
 
  * Choose the IDE that interest you (remember that IDE choice is limited to your OS).
  * Open CMake executable in the IDE.
@@ -198,9 +203,9 @@ This uses Docker and QEMU to achieve an ARM64 build on Actions' x86_64/amd64 har
  * Specify the build system folder (`$HTM_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
 
-## [For MS Visual Studio 2017 or 2019 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
+#### [For MS Visual Studio 2017 or 2019 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
 
-## For Eclipse as the IDE
+#### For Eclipse as the IDE
  * File - new C/C++Project - Empty or Existing CMake Project
  * Location: (`$HTM_CORE`) - Finish
  * Project properties - C/C++ Build - build command set "make -C build/scripts VERBOSE=1 install -j 6"
@@ -211,11 +216,11 @@ This uses Docker and QEMU to achieve an ARM64 build on Actions' x86_64/amd64 har
 For all new work, tab settings are at 2 characters, replace tabs with spaces.
 The clang-format is LLVM style.
 
-## Debugging 
+## Workflow: Debugging 
 
-Creeating a debug build of the htm.core library and unit tests is the same as building any C++ 
+Creating a debug build of the `htm.core` library and unit tests is the same as building any C++ 
 application in Debug mode in any IDE as long as you do not include the python bindings. i.e. do 
-not include -DBINDING_BUILD=Python3 in the CMake command.
+not include `-DBINDING_BUILD=Python3` in the CMake command.
 ```
 (on Linux)
    rm -r build
@@ -225,28 +230,27 @@ not include -DBINDING_BUILD=Python3 in the CMake command.
 ```
 
 However, if you need to debug the python bindings using an IDE debugger it becomes a little more difficult. 
-The problem is that it requires a debug version of the python library, python37_d.lib.  It is possible to
-obtain one and link with it, but a way to better isolate the python extension is to build a special main( )
-as explained here: https://pythonextensionpatterns.readthedocs.io/en/latest/debugging/debug_in_ide.html.
+The problem is that it requires a debug version of the python library, `python37_d.lib`.  It is possible to
+obtain one and link with it, but a way to better isolate the python extension is to build a special `main( )`
+as [explained in debugging Python](https://pythonextensionpatterns.readthedocs.io/en/latest/debugging/debug_in_ide.html).
 
 Be aware that the CMake maintains a cache of build-time arguments and it will ignore some arguments passed
 to CMake if is already in the cache.  So, between runs you need to clear the cache or even better,
-entirely remove the build/ folder.
+entirely remove the `build/` folder (ie. `git clean -xdf`).
 
-# Third Party Dependencies
+## Third Party Dependencies
 
 The installation scripts will automatically download and build the dependencies it needs.
 
- * Boost   (Not needed by C++17 compilers that support the filesystem module)
- * Yaml-cpp
- * Eigen
- * PyBind11
- * gtest
- * cereal
- * mnist test data
- * numpy
- * pytest
+ * [Boost](https://www.boost.org/)   (Not needed by C++17 compilers that support the filesystem module)
+ * [Yaml-cpp](https://github.com/jbeder/yaml-cpp)
+ * [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
+ * [PyBind11](https://github.com/pybind/pybind11)
+ * [gtest](https://github.com/google/googletest)
+ * [cereal](https://uscilab.github.io/cereal/)
+ * [mnist test data](https://github.com/wichtounet/mnist)
  * [digestpp](https://github.com/kerukuro/digestpp) (for SimHash encoders)
+ * and [python requirements.txt](./requirements.txt)
 
 Once these third party components have been downloaded and built they will not be
 re-visited again on subsequent builds.  So to refresh the third party components
@@ -264,31 +268,37 @@ distribution packages as listed and rename them as indicated. Copy these to
 | eigen.tar.bz2          | http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 |
 | googletest.tar.gz      | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
 | mnist.zip     (*note3) | https://github.com/wichtounet/mnist/archive/master.zip |
-| pybind11.tar.gz        | https://github.com/pybind/pybind11/archive/v2.2.4.tar.gz |
+| pybind11.tar.gz        | https://github.com/pybind/pybind11/archive/v2.4.2.tar.gz |
 | cereal.tar.gz          | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
 | digestpp.zip           | https://github.com/kerukuro/digestpp/archive/36fa6ca2b85808bd171b13b65a345130dbe1d774.zip |
 
  * note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
- * note2: Boost is not required for Windows (MSVC 2017) or any compiler that supports C++17 with std::filesystem.
+ * note2: Boost is not required for any compiler that supports C++17 with `std::filesystem` (MSVC2017, gcc-8, clang-9).
  * note3: Data used for demo. Not required.
 
-# Testing
+## Testing
 
 ### There are two sets of Unit Tests:
 
  * C++ Unit tests -- to run: `./build/Release/bin/unit_tests`
  * Python Unit tests -- to run: `python setup.py test` (runs also the C++ tests above)
+   - `py/tests/`
+   - `bindings/py/tests/`
 
-# Examples
+## Examples
 
-## Python Examples
+### Python Examples
 
 There are a number of python examples, which are runnable from the command line.
 They are located in the module `htm.examples`.
 
 Example Command Line Invocation: `$ python -m htm.examples.sp.hello_sp`
 
-## Hot Gym
+Look in: 
+- `py/htm/examples/`
+- `py/htm/advanced/examples/`
+
+### Hot Gym
 
 This is a simple example application that calls the SpatialPooler and
 TemporalMemory algorithms directly.  This attempts to predict the electrical
@@ -312,7 +322,7 @@ To run: (assuming current directory is top of repository)
 LD_LIBRARY_PATH=build/Release/lib ./build/Release/bin/dynamic_hotgym
 ```
 
-## MNIST benchmark
+### MNIST benchmark
 
 The task is to recognize images of hand written numbers 0-9.
 This is often used as a benchmark.  This should score at least 95%.
@@ -320,4 +330,9 @@ This is often used as a benchmark.  This should score at least 95%.
 To run: (assuming current directory is top of repository)
 ```
   ./build/Release/bin/mnist_sp
+```
+
+In Python: 
+```
+python py/htm/examples/mnist.py
 ```
