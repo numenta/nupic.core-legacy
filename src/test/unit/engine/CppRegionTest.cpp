@@ -281,7 +281,6 @@ TEST(CppRegionTest, RegionSerialization) {
 	Region r2(&n);
 	r2.load(ss);
 	EXPECT_EQ(*r1.get(), r2);
-
 }
 
 

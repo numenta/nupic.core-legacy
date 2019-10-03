@@ -85,8 +85,6 @@ jobs:
           name: Installing python dependencies
           command: |
             python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
-            python -m pip install --no-cache-dir --user -r bindings/py/packaging/requirements.txt  --verbose || exit
-
 
       # Build Release with python
       - run:

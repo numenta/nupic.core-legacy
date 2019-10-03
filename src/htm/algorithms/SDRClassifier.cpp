@@ -38,32 +38,18 @@ void Classifier::initialize(const Real alpha)
 {
   NTA_CHECK(alpha > 0.0f);
   alpha_ = alpha;
-  dimensions_.clear();
+  dimensions_ = 0;
   numCategories_ = 0u;
   weights_.clear();
 }
 
 
-PDF Classifier::infer(const SDR & pattern)
-{
-  // Check input dimensions, or if this is the first time the Classifier has
-  // been used then initialize it with the given SDR's dimensions.
-  if( dimensions_.empty() ) {
-    dimensions_ = pattern.dimensions;
-    while( weights_.size() < pattern.size ) {
-      weights_.push_back( vector<Real>( numCategories_, 0.0f ));
-    }
-  } else if( pattern.dimensions != dimensions_ ) {
-      stringstream err_msg;
-      err_msg << "Classifier input SDR.dimensions mismatch: previously given SDR with dimensions ( ";
-      for( auto dim : dimensions_ )
-        { err_msg << dim << " "; }
-      err_msg << "), now given SDR with dimensions ( ";
-      for( auto dim : pattern.dimensions )
-        { err_msg << dim << " "; }
-      err_msg << ").";
-      NTA_THROW << err_msg.str();
-  }
+PDF Classifier::infer(const SDR & pattern) const {
+  // Check input dimensions, or if this is the first time the Classifier is used and dimensions
+  // are unset, return zeroes.
+  NTA_CHECK( dimensions_ != 0 )
+    << "Classifier: must call `learn` before `infer`.";
+  NTA_ASSERT(pattern.size == dimensions_) << "Input SDR does not match previously seen size!";
 
   // Accumulate feed forward input.
   PDF probabilities( numCategories_, 0.0f );
@@ -81,8 +67,19 @@ PDF Classifier::infer(const SDR & pattern)
 
 void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
 {
+  // If this is the first time the Classifier is being used, weights are empty, 
+  // so we set the dimensions to that of the input `pattern`
+  if( dimensions_ == 0 ) {
+    dimensions_ = pattern.size;
+    while( weights_.size() < pattern.size ) {
+      const auto initialEmptyWeights = PDF( numCategories_, 0.0f );
+      weights_.push_back( initialEmptyWeights );
+    }
+  }
+  NTA_ASSERT(pattern.size == dimensions_) << "Input SDR does not match previously seen size!";
+
   // Check if this is a new category & resize the weights table to hold it.
-  const auto maxCategoryIdx = *max_element(categoryIdxList.begin(), categoryIdxList.end());
+  const auto maxCategoryIdx = *max_element(categoryIdxList.cbegin(), categoryIdxList.cend());
   if( maxCategoryIdx >= numCategories_ ) {
     numCategories_ = maxCategoryIdx + 1;
     for( auto & vec : weights_ ) {
@@ -93,7 +90,7 @@ void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
   }
 
   // Compute errors and update weights.
-  const vector<Real> error = calculateError_(categoryIdxList, pattern);
+  const auto& error = calculateError_(categoryIdxList, pattern);
   for( const auto& bit : pattern.getSparse() ) {
     for(size_t i = 0u; i < numCategories_; i++) {
       weights_[bit][i] += alpha_ * error[i];
@@ -103,9 +100,8 @@ void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
 
 
 // Helper function to compute the error signal in learning.
-std::vector<Real> Classifier::calculateError_(
-                    const std::vector<UInt> &categoryIdxList, const SDR &pattern)
-{
+std::vector<Real64> Classifier::calculateError_(const std::vector<UInt> &categoryIdxList, 
+		                                const SDR &pattern) const {
   // compute predicted likelihoods
   auto likelihoods = infer(pattern);
 
@@ -165,56 +161,49 @@ void Predictor::reset() {
 }
 
 
-Predictions Predictor::infer(const UInt recordNum, const SDR &pattern)
-{
-  updateHistory_( recordNum, pattern );
-
+Predictions Predictor::infer(const SDR &pattern) const {
   Predictions result;
   for( const auto step : steps_ ) {
-    result[step] = classifiers_[step].infer( pattern );
+    result.insert({step, classifiers_.at(step).infer( pattern )});
   }
   return result;
 }
 
 
-void Predictor::learn(const UInt recordNum, const SDR &pattern,
+void Predictor::learn(const UInt recordNum, //TODO make recordNum optional, autoincrement as steps 
+		      const SDR &pattern,
                       const std::vector<UInt> &bucketIdxList)
 {
-  updateHistory_( recordNum, pattern );
+  checkMonotonic_(recordNum);
+
+  // Update pattern history if this is a new record.
+  const UInt lastRecordNum = recordNumHistory_.empty() ? 0 : recordNumHistory_.back();
+  if (recordNumHistory_.size() == 0u || recordNum > lastRecordNum) {
+    patternHistory_.emplace_back( pattern );
+    recordNumHistory_.push_back(recordNum);
+    if (patternHistory_.size() > steps_.back() + 1u) { //steps_ are sorted, so steps_.back() is the "oldest/deepest" N-th step (ie 10 of [1,2,10])
+      patternHistory_.pop_front();
+      recordNumHistory_.pop_front();
+    }
+  }
 
   // Iterate through all recently given inputs, starting from the furthest in the past.
   auto pastPattern   = patternHistory_.begin();
   auto pastRecordNum = recordNumHistory_.begin();
-  for( ; pastRecordNum != recordNumHistory_.end(); pastPattern++, pastRecordNum++ )
+  for( ; pastRecordNum != recordNumHistory_.cend(); pastPattern++, pastRecordNum++ )
   {
     const UInt nSteps = recordNum - *pastRecordNum;
 
     // Update weights.
     if( binary_search( steps_.begin(), steps_.end(), nSteps )) {
-      classifiers_[nSteps].learn( *pastPattern, bucketIdxList );
+      classifiers_.at(nSteps).learn( *pastPattern, bucketIdxList );
     }
   }
 }
 
 
-void Predictor::updateHistory_(const UInt recordNum, const SDR & pattern)
-{
+void Predictor::checkMonotonic_(const UInt recordNum) const {
   // Ensure that recordNum increases monotonically.
-  UInt lastRecordNum = -1;
-  if( not recordNumHistory_.empty() ) {
-    lastRecordNum = recordNumHistory_.back();
-    if (recordNum < lastRecordNum) {
-      NTA_THROW << "The record number must increase monotonically.";
-    }
-  }
-
-  // Update pattern history if this is a new record.
-  if (recordNumHistory_.size() == 0u || recordNum > lastRecordNum) {
-    patternHistory_.emplace_back( pattern );
-    recordNumHistory_.push_back(recordNum);
-    if (patternHistory_.size() > steps_.back() + 1u) {
-      patternHistory_.pop_front();
-      recordNumHistory_.pop_front();
-    }
-  } 
+  const UInt lastRecordNum = recordNumHistory_.empty() ? 0 : recordNumHistory_.back();
+  NTA_CHECK(recordNum >= lastRecordNum) << "The record number must increase monotonically.";
 }
