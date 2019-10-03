@@ -91,6 +91,14 @@ jobs:
         name: "dist-${{ matrix.os }}"
         path: build/Release/distr/dist
 
+    - name: Test python package is working
+      shell: bash
+      run: |
+        python -m pip uninstall -y htm.core 
+        filePath=$(ls build/Release/distr/dist/*.whl) 
+        python -m pip install --force $filePath
+        python -m pytest bindings/py/tests
+
 
   publish-pypi:
     name: Publish package to PYPI
@@ -105,29 +113,32 @@ jobs:
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-ubuntu-18.04
-        path: dist1/
+        path: dist/
 
     - uses: actions/download-artifact@master
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-macOs-latest
-        path: dist2/
+        path: dist/
 
     - uses: actions/download-artifact@master
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-windows-2019
-        path: dist3/
+        path: dist/
 
     - name: pre-PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       #copy dist data to /dist, where PyPI Action expects it
       run: |
-        ls dist*
+        cd dist
+        mv `ls -1 htm*-linux_*.whl` `ls -1 htm*-linux_*.whl | sed -e's/linux/manylinux1/'` #rename to manylinux1 to make PYPI accept the package
+        rm *.egg #remove obsoleted egg format
+        cd ..
+        ls dist/
 
     - name: Publish to PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') && matrix.os == 'ubuntu-18.04' && 1==0
-      #FIXME temp disabled as pypi-publisher action must run on Linux only!
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__

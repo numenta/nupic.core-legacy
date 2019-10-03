@@ -20,7 +20,6 @@ message(STATUS "${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.zip")
 if(EXISTS "${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.zip")
     set(URL "${REPOSITORY_DIR}/build/ThirdParty/share/yaml-cpp.zip")
 else()
-    #set(URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz)
     # There seems to be something wrong with the 0.6.2 distribution.  Use the v0.6.3.
     set(URL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.3.zip)
 endif()
