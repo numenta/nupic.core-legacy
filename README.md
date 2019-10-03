@@ -40,6 +40,13 @@ in C++ library.
 
 ### Binary releases
 
+If you want to use `htm.core` from Python, the easiest method is to install from [PyPI](https://test.pypi.org/project/htm.core/)
+```
+python -m pip install -i https://test.pypi.org/simple/ htm.core
+```
+Note: to run all examples with visualizations, install including extra requirements:
+`pip install -i https://test.pypi.org/simple/ htm.core[examples]`
+
 If you intend to use `htm.core` as a library that provides you Python \& C++ HTM, 
 you can use our [binary releases](https://github.com/htm-community/htm.core/releases).
 
