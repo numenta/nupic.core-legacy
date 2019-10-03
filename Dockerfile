@@ -14,7 +14,6 @@ RUN apt-get install -y --no-install-suggests \
     g++-8 \
     git-core \
     libyaml-dev \
-    python3-minimal \
     python3-dev \
     python3-numpy \
     python3-pip \
@@ -24,12 +23,15 @@ ADD . /usr/local/src/htm.core
 WORKDIR /usr/local/src/htm.core
 
 # Setup py env
-#RUN python3 -m venv pyenv && . pyenv/bin/activate
-RUN pip3 install --upgrade setuptools pip wheel
-#RUN export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.7/dist-packages
+#! RUN python3 -m venv pyenv && . pyenv/bin/activate && python --version
+
+RUN ln -s /usr/bin/python3 /usr/local/bin/python && python --version 
+
+RUN python -m pip install --upgrade setuptools pip wheel
 
 # Install
-RUN pip3 install \
+RUN pip uninstall -y htm.core
+RUN python -m pip install \
 # Explicitly specify --cache-dir, --build, and --no-clean so that build
 # artifacts may be extracted from the container later.  Final built python
 # packages can be found in /usr/local/src/htm.core/bindings/py/dist
@@ -37,8 +39,17 @@ RUN pip3 install \
 #        --build /usr/local/src/htm.core/pip-build \
 #        --no-clean \
         -r requirements.txt
-RUN python3 setup.py install --force
+RUN python setup.py install --force
 
 # Test
-RUN python3 setup.py test
+RUN python setup.py test #Note, if you get weird import errors here, 
+# do `git clean -xdf` in your host system, and rerun the docker
+
+# build wheel and release package
+RUN python setup.py bdist_wheel
+RUN cd build/scripts && \
+    make install && \
+    make package && \
+    ls * && \ 
+    ls ../Release/distr/dist/* 
 
