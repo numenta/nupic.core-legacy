@@ -134,6 +134,9 @@ jobs:
       #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       #copy dist data to /dist, where PyPI Action expects it
       run: |
+        cd dist
+        mv `ls -1 htm*-linux_*.whl` `ls -1 htm*-linux_*.whl | sed -e's/linux/manylinux1/'` #rename to manylinux1 to make PYPI accept the package
+        cd ..
         ls dist/
 
     - name: Publish to PyPI
