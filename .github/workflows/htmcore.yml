@@ -92,6 +92,7 @@ jobs:
         path: build/Release/distr/dist
 
     - name: Test python package is working
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       shell: bash
       run: |
         python -m pip uninstall -y htm.core 
