@@ -136,6 +136,7 @@ jobs:
       run: |
         cd dist
         mv `ls -1 htm*-linux_*.whl` `ls -1 htm*-linux_*.whl | sed -e's/linux/manylinux1/'` #rename to manylinux1 to make PYPI accept the package
+        rm *.egg #remove obsoleted egg format
         cd ..
         ls dist/
 
