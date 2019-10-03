@@ -4,16 +4,11 @@ on:
   # run every day of the week at 06:00
   schedule:
     - cron: 0 6 * * *
-  pull_requests: #FIXME remove before merge, only for debug
-    branches:
-      - master
 
 jobs:
   build-arm64-docker:
     name: Build for ARM64 on Docker
     runs-on: ubuntu-18.04
-    needs:
-      build-debug
     steps:
     - name: Install docker
       run: |
@@ -34,8 +29,4 @@ jobs:
       run: |
         sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
         uname -a
-
-    - name: See env
-      run: |
-        uname -a #TODO build wheel, make package, copy to artifacts, make part of releases
 
