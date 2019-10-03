@@ -1,4 +1,4 @@
-name: ARM64 build
+name: arm64-build
 
 on:
   # run every day of the week at 06:00
