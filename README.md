@@ -2,9 +2,7 @@
 
 # htm.core
 
-[![Linux/OSX Build Status](https://travis-ci.org/htm-community/htm.core.svg?branch=master)](https://travis-ci.org/htm-community/htm.core)
-[![OSX CircleCI](https://circleci.com/gh/htm-community/htm.core/tree/master.svg?style=svg)](https://circleci.com/gh/htm-community/htm.core/tree/master)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/59f87and1x0ugss9/branch/master?svg=true)](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
+[![CI Build Status](https://github.com/htm-community/htm.core/workflows/build/badge.svg)](https://github.com/htm-community/htm.core/actions)
 
 This is a Community Fork of the [nupic.core](https://github.com/numenta/nupic.core) C++ repository, with Python bindings.
 
@@ -166,30 +164,29 @@ docker build --build-arg arch=arm64 .
 
 ## Automated Builds
 
-### Linux auto build @ TravisCI
+### Linux auto build @ Github Actions
 
- * [Build](https://travis-ci.org/htm-community/htm.core)
- * [Config](./.travis.yml)
+ * [![CI Build Status](https://github.com/htm-community/htm.core/workflows/build/badge.svg)](https://github.com/htm-community/htm.core/actions?workflow=build)
+ * [Config](./.github/workflows/build.yml)
 
-### Mac OS/X auto build @ CircleCI
+### Mac OS/X auto build @ Github Actions
 
- * [Build](https://circleci.com/gh/htm-community/htm.core/tree/master)
- * [Config](./.circleci/config.yml)
+ * [![CI Build Status](https://github.com/htm-community/htm.core/workflows/build/badge.svg)](https://github.com/htm-community/htm.core/actions?workflow=build)
+ * [Config](./.github/workflows/build.yml)
  * Local Test Build: `circleci local execute --job build-and-test`
 
-### Windows auto build @ AppVeyor
+### Windows auto build @ Github Actions
 
- * [Build](https://ci.appveyor.com/project/htm-community/nupic-cpp/branch/master)
- * [Config](./appveyor.yml)
+ * [![CI Build Status](https://github.com/htm-community/htm.core/workflows/build/badge.svg)](https://github.com/htm-community/htm.core/actions?workflow=build)
+ * [Config](./.github/workflows/build.yml)
 
-### ARM64 auto build @ CircleCI
+### ARM64 auto build @ Github Actions
 
-This uses Docker and QEMU to achieve an ARM64 build on CircleCI's x86_64/amd64
-hardware.
+This uses Docker and QEMU to achieve an ARM64 build on Actions' x86_64/amd64 hardware.
 
- * [Build](https://circleci.com/gh/htm-community/htm.core/tree/master)
- * [Config](./.circleci/config.yml)
- * Local Test Build: `circleci local execute --job arm64-build-test`
+ * [![CI Build Status](https://github.com/htm-community/htm.core/workflows/arm64-build/badge.svg)](https://github.com/htm-community/htm.core/actions?workflow=arm64-build)
+ * [Config](./.github/workflows/arm64-build.yml)
+
 
 # Using a Graphical Integrated Development Environment
 
