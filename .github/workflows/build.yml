@@ -105,6 +105,7 @@ jobs:
     name: Publish package to PYPI
     needs:
       build
+      build-debug
     runs-on: ubuntu-18.04
     steps:
 
