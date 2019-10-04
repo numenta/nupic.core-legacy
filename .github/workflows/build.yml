@@ -106,6 +106,7 @@ jobs:
     needs:
       build
       build-debug
+      build-arm64-docker
     runs-on: ubuntu-18.04
     steps:
 
@@ -132,6 +133,12 @@ jobs:
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-windows-2019
+        path: dist/
+
+    - uses: actions/download-artifact@master
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: dist-arm64
         path: dist/
 
     - name: pre-PyPI
