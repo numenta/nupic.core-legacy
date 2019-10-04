@@ -178,3 +178,38 @@ jobs:
       run: |
         cd build/scripts
         ../Debug/bin/unit_tests
+
+
+
+  build-arm64-docker:
+    name: Build for ARM64 on Docker
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Install docker
+      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
+      run: |
+        # bug in ubuntu, conflicts with docker.io
+        sudo apt-get update
+        sudo apt-get remove --purge -y moby-engine moby-cli
+        sudo apt-get install -y docker.io
+
+    - uses: actions/checkout@v1
+
+    - name: ARM64 build
+      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
+      run: |
+        sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
+
+    - name: Example switch to docker env
+      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
+      run: |
+        sudo docker run -it htm-arm64-docker
+        uname -a && echo "\nHello from ARM64 htm.core build!\n"
+        exit
+
+    - name: Copy files from docker
+      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
+      run: |
+        sudo docker cp `sudo docker ps -alq`:/usr/local/src/htm.core/dist dist
+        ls dist
+    
