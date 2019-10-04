@@ -11,7 +11,7 @@ ARG host=amd64
 FROM multiarch/qemu-user-static as bootstrap
 ARG arch
 ARG host
-RUN echo -e "Switching from $host to $arch \n" && uname -a
+RUN echo "Switching from $host to $arch" && uname -a
 
 ## Stage 1: build of htm.core on the target platform
 # Multiarch Debian 10 Buster (amd64, arm64, etc).
@@ -19,7 +19,7 @@ RUN echo -e "Switching from $host to $arch \n" && uname -a
 FROM multiarch/debian-debootstrap:${arch}-buster-slim as build
 ARG arch
 #copy value of ARG arch from above 
-RUN echo -n "Building HTM for${arch}\n" && uname -a
+RUN echo "Building HTM for${arch}" && uname -a
 
 RUN apt-get update && \
     apt-get install -y --no-install-suggests \

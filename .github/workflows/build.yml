@@ -192,7 +192,7 @@ jobs:
         # bug in ubuntu, conflicts with docker.io
         sudo apt-get update
         sudo apt-get remove --purge -y moby-engine moby-cli
-        sudo apt-get install -y docker.io
+        sudo apt-get install -y qemu-user-static docker.io
 
     - uses: actions/checkout@v1
 
