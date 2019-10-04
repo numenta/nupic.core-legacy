@@ -212,4 +212,23 @@ jobs:
       run: |
         sudo docker cp `sudo docker ps -alq`:/usr/local/src/htm.core/dist dist
         ls dist
+
+    - name: Release (deploy)
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      # from https://github.com/marketplace/actions/gh-release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/htm_core-v*gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Pre-upload artifact
+      run: rm dist/*.gz
+
+    - uses: actions/upload-artifact@v1.0.0
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: "dist-arm64"
+        path: ./dist
     
