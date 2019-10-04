@@ -32,10 +32,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Set up old Python for PyPI
-      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
       uses: actions/setup-python@v1
       with:
-        python-version: 3.5
+        python-version: 3.7 #FIXME for better PyPI compatibility, we need to compile on older python. But unittests  fail to import with <3.7
 
     - name: Versions
       run: |
