@@ -49,6 +49,11 @@ RUN python -m pip install \
 #        --build /usr/local/src/htm.core/pip-build \
 #        --no-clean \
         -r requirements.txt
+RUN mkdir -p build/scripts && \
+    cd build/scripts && \
+    cmake ../.. -DCMAKE_BUILD_TYPE=Release && \
+    make -j8 && make install
+
 RUN python setup.py install --force
 
 # Test
