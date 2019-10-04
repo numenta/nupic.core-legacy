@@ -154,6 +154,8 @@ After downloading the repository, do the following:
 
 #### Build for Docker amd64 (x86_64)
 
+Our [Dockerfile](./Dockerfile) allows easy (cross) compilation from/to many HW platforms. 
+
 If you are on `amd64` (`x86_64`) and would like to build a Docker image:
 
 ```sh
@@ -163,7 +165,7 @@ docker build --build-arg arch=amd64 .
 #### Docker build for ARM64
 
 If you are on `ARM64` and would like to build a Docker image, run the command
-below. The CircleCI automated ARM64 build (detailed below) uses this
+below. The CI automated ARM64 build (detailed below) uses this
 specifically.
 
 ```sh
