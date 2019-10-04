@@ -35,7 +35,7 @@ jobs:
       if: github.event_name == 'push'
       uses: actions/setup-python@v1
       with:
-        python-version: 3.4
+        python-version: 3.5
 
     - name: Versions
       run: |
@@ -75,7 +75,7 @@ jobs:
         LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind  --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
 
     - name: Release (make package)
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
       run: |
         python setup.py bdist_wheel
         cd build/scripts
@@ -110,6 +110,7 @@ jobs:
 
   publish-pypi:
     name: Publish package to PYPI
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
     needs: [build, build-debug, build-arm64-docker]
     runs-on: ubuntu-18.04
     steps:
@@ -117,31 +118,26 @@ jobs:
     - uses: actions/checkout@master
 
     - uses: actions/download-artifact@master
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-ubuntu-18.04
         path: dist/
 
     - uses: actions/download-artifact@master
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-macOs-latest
         path: dist/
 
     - uses: actions/download-artifact@master
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-windows-2019
         path: dist/
 
     - uses: actions/download-artifact@master
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       with:
         name: dist-arm64
         path: dist/
 
     - name: pre-PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       #copy dist data to /dist, where PyPI Action expects it
       run: |
         cd dist
@@ -152,7 +148,6 @@ jobs:
         ls dist/
 
     - name: Publish to PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
@@ -190,9 +185,9 @@ jobs:
   build-arm64-docker:
     name: Build for ARM64 on Docker
     runs-on: ubuntu-18.04
+    if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule' # tag or schedule
     steps:
     - name: Install docker
-      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
       run: |
         # bug in ubuntu, conflicts with docker.io
         sudo apt-get update
@@ -202,25 +197,22 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: ARM64 build
-      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
       run: |
         sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
 
     - name: Example switch to docker env
-      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
       run: |
         sudo docker run -it htm-arm64-docker
         uname -a && echo "\nHello from ARM64 htm.core build!\n"
         exit
 
     - name: Copy files from docker
-      if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule'
       run: |
         sudo docker cp `sudo docker ps -alq`:/usr/local/src/htm.core/dist dist
         ls dist
 
     - name: Release (deploy)
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') #only on tag/release
       # from https://github.com/marketplace/actions/gh-release
       uses: softprops/action-gh-release@v1
       with:
@@ -230,6 +222,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Pre-upload artifact
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       run: rm dist/*.gz
 
     - uses: actions/upload-artifact@v1.0.0
