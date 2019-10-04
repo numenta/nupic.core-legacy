@@ -185,7 +185,7 @@ jobs:
   build-arm64-docker:
     name: Build for ARM64 on Docker
     runs-on: ubuntu-18.04
-    #if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule' # tag or schedule
+    if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule' # tag or schedule
     steps:
     - name: Install docker
       run: |
