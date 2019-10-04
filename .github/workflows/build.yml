@@ -32,10 +32,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Set up old Python for PyPI
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
       uses: actions/setup-python@v1
       with:
-        python-version: 3.5
+        python-version: 3.6
 
     - name: Versions
       run: |
