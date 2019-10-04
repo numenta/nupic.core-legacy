@@ -29,7 +29,7 @@ jobs:
       if: github.event_name != 'push'
       uses: actions/setup-python@v1
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.6 #${{ matrix.python-version }}
 
     - name: Set up old Python for PyPI
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
