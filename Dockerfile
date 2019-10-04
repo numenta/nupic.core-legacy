@@ -2,14 +2,27 @@
 #   Supports Debian arches: amd64, arm64, etc.
 #   Our circleci arm64 build uses this specifically.
 #   https://docs.docker.com/engine/reference/commandline/build/
-ARG arch=amd64
+#target compile arch
+ARG arch=arm64
+#host HW arch
+ARG host=amd64
 
+## Stage 0: deboostrap: setup cross-compile env 
+FROM multiarch/qemu-user-static as bootstrap
+ARG arch
+ARG host
+RUN echo -e "Switching from $host to $arch \n" && uname -a
+
+## Stage 1: build of htm.core on the target platform
 # Multiarch Debian 10 Buster (amd64, arm64, etc).
 #   https://hub.docker.com/r/multiarch/debian-debootstrap
-FROM multiarch/debian-debootstrap:${arch}-buster
+FROM multiarch/debian-debootstrap:${arch}-buster-slim as build
+ARG arch
+#copy value of ARG arch from above 
+RUN echo -n "Building HTM for${arch}\n" && uname -a
 
-RUN apt-get update
-RUN apt-get install -y --no-install-suggests \
+RUN apt-get update && \
+    apt-get install -y --no-install-suggests \
     cmake \
     g++-8 \
     git-core \
@@ -45,7 +58,7 @@ RUN python setup.py install --force
 RUN python setup.py test #Note, if you get weird import errors here, 
 # do `git clean -xdf` in your host system, and rerun the docker
 
-# build wheel and release package
+## Stage 2: create release packages (for PyPI, GH Releases)
 RUN python setup.py bdist_wheel
 RUN cd build/scripts && \
     make install && \

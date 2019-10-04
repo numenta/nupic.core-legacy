@@ -15,13 +15,7 @@ jobs:
         # bug in ubuntu, conflicts with docker.io
         sudo apt-get update
         sudo apt-get remove --purge -y moby-engine moby-cli
-        sudo apt-get install -y qemu-system docker.io
-
-    - name: Setup ARM64 build env
-      run: |
-        uname -a
-        sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
-        uname -a
+        sudo apt-get install -y docker.io
 
     - uses: actions/checkout@v1
 
