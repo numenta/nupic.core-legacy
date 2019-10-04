@@ -33,14 +33,6 @@ jobs:
 
     - name: Set up old Python for PyPI
       #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
-      if: matrix.os == 'macOS-latest'
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.7 #TODO OSX image links properly only with py3.7 (XCode), otherwise builds, but tests fail
-
-    - name: Set up old Python for PyPI
-      #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
-      if: matrix.os != 'macOS-latest'
       uses: actions/setup-python@v1
       with:
         python-version: 3.5
