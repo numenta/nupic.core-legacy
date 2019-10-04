@@ -63,7 +63,7 @@ jobs:
         python setup.py configure
 
     - name: build htmcore with setup.py
-      run: python setup.py install --user
+      run: python setup.py install --user --force
 
     - name: C++ & Python Tests
       run: python setup.py test
