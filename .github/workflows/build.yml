@@ -32,10 +32,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Set up old Python for PyPI
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
       uses: actions/setup-python@v1
       with:
-        python-version: 3.5
+        python-version: 3.6
 
     - name: Versions
       run: |
@@ -63,7 +63,7 @@ jobs:
         python setup.py configure
 
     - name: build htmcore with setup.py
-      run: python setup.py install --user
+      run: python setup.py install --user --force
 
     - name: C++ & Python Tests
       run: python setup.py test
@@ -212,7 +212,7 @@ jobs:
         ls dist
 
     - name: Release (deploy)
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') #only on tag/release
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') #only on tag/release, not schedule
       # from https://github.com/marketplace/actions/gh-release
       uses: softprops/action-gh-release@v1
       with:
