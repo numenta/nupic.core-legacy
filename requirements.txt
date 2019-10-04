@@ -8,4 +8,4 @@ mock>=1.0.1 # for anomaly likelihood test
 prettytable>=0.7.2 # for monitor-mixin in htm.advanced (+its tests)
 ## optional dependencies, such as for visualizations, running examples
 # should be placed in setup.py section extras_require. Install those by
-# pip install htm.core[examples] and/or htm.core[monitor-mixin]
+# pip install htm.core[examples] 
