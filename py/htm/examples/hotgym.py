@@ -158,13 +158,15 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     tm_info.addData( tm.getActiveCells().flatten() )
 
     # Predict what will happen, and then train the predictor based on what just happened.
-    pdf = predictor.infer( count, tm.getActiveCells() )
-    for n in (1, 5):
-      if pdf[n]:
-        predictions[n].append( np.argmax( pdf[n] ) * predictor_resolution )
-      else:
-        predictions[n].append(float('nan'))
-    predictor.learn( count, tm.getActiveCells(), int(consumption / predictor_resolution))
+    if count > 5: #skip the n(=to the furthest predictions step) step, as predictor must learn something first
+      pdf = predictor.infer( tm.getActiveCells() )
+      for n in (1, 5):
+        if pdf[n]:
+          predictions[n].append( np.argmax( pdf[n] ) * predictor_resolution )
+        else:
+          predictions[n].append(float('nan'))
+
+    predictor.learn(count, tm.getActiveCells(), int(consumption / predictor_resolution))
 
     anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
     anomaly.append( tm.anomaly )
@@ -189,6 +191,8 @@ def main(parameters=default_parameters, argv=None, verbose=True):
   # Calculate the predictive accuracy, Root-Mean-Squared
   accuracy         = {1: 0, 5: 0}
   accuracy_samples = {1: 0, 5: 0}
+  inputs = inputs[6:] #crop the first max prediction-steps inputs (as those don't have inferences)
+
   for idx, inp in enumerate(inputs):
     for n in predictions: # For each [N]umber of time steps ahead which was predicted.
       val = predictions[n][ idx ]
