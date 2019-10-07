@@ -5,12 +5,12 @@ import numpy as np
 import random
 import math
 
+import htm
 from htm.bindings.sdr import SDR, Metrics
 from htm.encoders.rdse import RDSE, RDSE_Parameters
 from htm.encoders.date import DateEncoder
 from htm.bindings.algorithms import SpatialPooler
 from htm.bindings.algorithms import TemporalMemory
-from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
 from htm.bindings.algorithms import Predictor
 
 _EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -109,25 +109,17 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     permanenceDecrement       = tmParams["permanenceDec"],
     predictedSegmentDecrement = 0.0,
     maxSegmentsPerCell        = tmParams["maxSegmentsPerCell"],
-    maxSynapsesPerSegment     = tmParams["maxSynapsesPerSegment"]
+    maxSynapsesPerSegment     = tmParams["maxSynapsesPerSegment"],
+    anomalyMode               = htm.bindings.algorithms.ANMode.LIKELIHOOD,
   )
   tm_info = Metrics( [tm.numberOfCells()], 999999999 )
-
-  # setup likelihood, these settings are used in NAB
-  anParams = parameters["anomaly"]["likelihood"]
-  probationaryPeriod = int(math.floor(float(anParams["probationaryPct"])*len(records)))
-  learningPeriod     = int(math.floor(probationaryPeriod / 2.0))
-  anomaly_history = AnomalyLikelihood(learningPeriod= learningPeriod,
-                                      estimationSamples= probationaryPeriod - learningPeriod,
-                                      reestimationPeriod= anParams["reestimationPeriod"])
-
+  
   predictor = Predictor( steps=[1, 5], alpha=parameters["predictor"]['sdrc_alpha'] )
   predictor_resolution = 1
 
   # Iterate through every datum in the dataset, record the inputs & outputs.
   inputs      = []
   anomaly     = []
-  anomalyProb = []
   predictions = {1: [], 5: []}
   for count, record in enumerate(records):
 
@@ -165,12 +157,10 @@ def main(parameters=default_parameters, argv=None, verbose=True):
           predictions[n].append( np.argmax( pdf[n] ) * predictor_resolution )
         else:
           predictions[n].append(float('nan'))
+      anomaly.append( tm.anomaly )
 
     predictor.learn(count, tm.getActiveCells(), int(consumption / predictor_resolution))
 
-    anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
-    anomaly.append( tm.anomaly )
-    anomalyProb.append( anomalyLikelihood )
 
   # Print information & statistics about the state of the HTM.
   print("Encoded Input", enc_info)
