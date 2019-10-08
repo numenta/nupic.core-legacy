@@ -18,6 +18,7 @@
 
 """ Unit tests for Classifier & Predictor classes. """
 
+import math
 import numpy
 import pickle
 import random
@@ -131,14 +132,13 @@ class ClassifierTest(unittest.TestCase):
     inp.randomize( .3 )
 
     # learn only
-    with self.assertRaises(RuntimeError):
-      c.infer(pattern=inp) # crash with not enough training data.
+    prediction = c.infer(pattern=inp)[1]
+    self.assertTrue(prediction == []) # not enough training data -> []
     c.learn(recordNum=0, pattern=inp, classification=4)
-    with self.assertRaises(RuntimeError):
-      c.infer(pattern=inp) # crash with not enough training data.
+    self.assertTrue(c.infer(pattern=inp)[1] == []) # not enough training data.
     c.learn(recordNum=2, pattern=inp, classification=4)
     c.learn(recordNum=3, pattern=inp, classification=4)
-    c.infer(pattern=inp) # Don't crash with not enough training data.
+    self.assertTrue(c.infer(pattern=inp)[1] != []) # Don't crash with enough training data.
 
     # infer only
     retval1 = c.infer(pattern=inp)
