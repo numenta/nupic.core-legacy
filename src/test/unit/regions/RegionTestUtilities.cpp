@@ -68,11 +68,6 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
         switch (p.second.dataType) {
 
         case NTA_BasicType_UInt32: {
-          if (negativeCheck) {
-				    negativeCheck = false;
-				    VERBOSE << "negative check..." << std::endl;
-				    EXPECT_THROW(region1->getParameterInt32("bad_parameter"), htm::Exception); 
-			    }
           VERBOSE << "Parameter \"" << name << "\" type: " << BasicType::getName(p.second.dataType) << std::endl;
 
           // check the getter.

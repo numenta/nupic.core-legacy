@@ -65,6 +65,7 @@
 
 #include <htm/engine/RegisteredRegionImpl.hpp>
 #include <htm/engine/RegionImplFactory.hpp>
+#include <htm/ntypes/Value.hpp>
 #include <string>
 
 namespace py = pybind11;
@@ -79,7 +80,6 @@ namespace htm
   class Spec;
   class PyRegionImpl;
   class Region;
-  class ValueMap;
 
 
   class RegisteredRegionImplPy: public RegisteredRegionImpl {

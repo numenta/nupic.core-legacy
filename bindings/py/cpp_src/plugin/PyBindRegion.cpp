@@ -67,55 +67,62 @@ namespace py = pybind11;
         } // switch
     }
 
+    // recurseive helper for prepareCreationParams
+    static py::object make_args(const Value& vm) {
+        if (vm.isScalar()) {
+            return py::str(vm.as<std::string>());
+        }
+        if (vm.isMap()) {
+            py::kwargs kw;
+            for (auto it = vm.begin(); it != vm.end(); ++it)
+            {
+                std::string key = it->first.c_str();
+                Value v = it->second;
+                kw[key.c_str()] = make_args(v);  // recursive call
+            }
+            return kw;
+        }
+        if (vm.isSequence()) {
+            auto a = py::list();
+            for(size_t i = 0; i < vm.size(); i++) {
+                Value v = vm[i];
+                a.append(make_args(v));  // recursive call
+            }
+            return a;
+        }
+        throw Exception(__FILE__, __LINE__, "Not implemented.");
+    }
+
+
+    // make kwargs from ValueMap.
     static void prepareCreationParams(const ValueMap & vm, py::kwargs& kwargs)
     {
-        ValueMap::const_iterator it;
-        for (it = vm.begin(); it != vm.end(); ++it)
-        {
-            try
-            {
-                auto key = it->first.c_str();
-
-                auto value = it->second;
-                if (value->isScalar())
-                {
-                    auto s = value->getScalar();
-                    switch (s->getType())
-                    {
-                        case NTA_BasicType_Bool: { kwargs[key] = s->getValue<bool>(); break; }
-                        case NTA_BasicType_Byte: { kwargs[key] = s->getValue<Byte>(); break; }
-                        case NTA_BasicType_Int16: { kwargs[key] = s->getValue<Int16>(); break; }
-                        case NTA_BasicType_UInt16: { kwargs[key] = s->getValue<UInt16>(); break; }
-                        case NTA_BasicType_Int32: { kwargs[key] = s->getValue<Int32>(); break; }
-                        case NTA_BasicType_UInt32: { kwargs[key] = s->getValue<UInt32>(); break; }
-                        case NTA_BasicType_Int64: { kwargs[key] = s->getValue<Int64>(); break; }
-                        case NTA_BasicType_UInt64: { kwargs[key] = s->getValue<UInt64>(); break; }
-                        case NTA_BasicType_Real32: { kwargs[key] = s->getValue<Real32>(); break; }
-                        case NTA_BasicType_Real64: { kwargs[key] = s->getValue<Real64>(); break; }
-
-                        default:
-                            NTA_THROW << "Invalid type: " << s->getType();
-                    }
+        if (vm.isMap()) {
+            for (auto it = vm.begin(); it != vm.end(); ++it) {
+                std::string key = it->first.c_str();
+                try {
+                    Value value = it->second;
+                    kwargs[key.c_str()] = make_args(value);
                 }
-                else if(value->isString())
-                {
-                    kwargs[key] = value->getString();
+                catch (Exception& e) {
+                    NTA_THROW << "Unable to create a Python object for parameter '"
+                        << key << ": " << e.what();
                 }
-                else if (value->isArray())
-                {
-                    auto a = value->getArray();
-                    kwargs[key] = create_numpy_view(*a.get());
-
-                }
-                else
-                {
-                    throw Exception(__FILE__, __LINE__, "Not implemented.");
-                }
+            }
+        }
+        else if (vm.isScalar()) {
+            kwargs["arg"] = vm.str();
+        }
+        else if (vm.isSequence()) {
+            try {
+                kwargs["array"] = make_args(vm);
             }
             catch (Exception& e) {
-                NTA_THROW << "Unable to create a Python object for parameter '"
-                    << it->first << ": " << e.what();
+                NTA_THROW << "Unable to create a Python object for parameter 'array:' " << e.what();
             }
+        }
+        else {
+            NTA_THROW << "Unable to create a Python object for parameters.";
         }
     };
 
@@ -131,20 +138,24 @@ namespace py = pybind11;
         {
             realClassName = Path::getExtension(module_);
         }
+        
+        // Make a local copy of the Spec
+        createSpec(module_.c_str(), nodeSpec_, className_.c_str());
+        
+        // Validate parameters against the Spec and insert defaults from Spec.
+        ValueMap params = ValidateParameters(nodeParams, &nodeSpec_);
 
         // Prepare the creation params as a tuple of PyObject pointers
         py::args args;
         py::kwargs kwargs;
 
-        prepareCreationParams(nodeParams, kwargs);
+        prepareCreationParams(params, kwargs);
 
         // Instantiate a node and assign it  to the node_ member
         // node_.assign(py::Instance(module_, realClassName, args, kwargs));
         node_ = py::module::import(module_.c_str()).attr(realClassName.c_str())(*args, **kwargs);
         NTA_CHECK(node_);
 
-        // Make a local copy of the Spec
-        createSpec(module_.c_str(), nodeSpec_, className_.c_str());
 
     }
 
@@ -675,7 +686,7 @@ namespace py = pybind11;
                     auto am = parameter["accessMode"].cast<std::string>();
                     if (am == "Create")
                         accessMode = ParameterSpec::CreateAccess;
-                    else if (am == "Read")
+                    else if (am == "Read" || am == "ReadOnly")
                         accessMode = ParameterSpec::ReadOnlyAccess;
                     else if (am == "ReadWrite")
                         accessMode = ParameterSpec::ReadWriteAccess;

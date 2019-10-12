@@ -168,7 +168,6 @@ TEST(CppRegionTest, testYAML) {
 
   Network net;
   std::shared_ptr<Region> level1;
-  EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});
 

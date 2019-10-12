@@ -91,7 +91,7 @@ FOREACH(line ${lines})
   message(STATUS "  ${name} = ${${name}}")
 ENDFOREACH()
 set(EXTERNAL_INCLUDES
-	${yaml-cpp_INCLUDE_DIRS}
+	${yaml_INCLUDE_DIRS}
 	${Boost_INCLUDE_DIRS}
 	${eigen_INCLUDE_DIRS}
 	${mnist_INCLUDE_DIRS}

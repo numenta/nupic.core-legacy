@@ -129,7 +129,7 @@ void htm::softmax(PDF::iterator begin, PDF::iterator end) {
     *itr = std::exp(*itr - maxVal); // x[i] = e ^ (x[i] - maxVal)
   }
   // Sum of all elements raised to exp(elem) each.
-  const Real sum = (Real) std::accumulate(begin, end, 0.0f);
+  const Real sum = (Real) std::accumulate(begin, end, 0.0);
   NTA_ASSERT(sum > 0.0f);
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;
