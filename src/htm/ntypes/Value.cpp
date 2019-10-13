@@ -37,6 +37,7 @@ using namespace htm;
 
 ////#ifdef YAML_PARSER_yamlcpp
 #include <yaml-cpp/yaml.h>
+static void setNode(Value &val, const YAML::Node &node);
 
 // Parse YAML or JSON string document into the tree.
 Value &Value::parse(const std::string &yaml_string) {
@@ -51,46 +52,23 @@ Value &Value::parse(const std::string &yaml_string) {
   YAML::Node node = YAML::Load(yaml_string);
   // walk the tree and copy data into our structure
 
-  setNode(&node);
+  setNode(*this, node);
+  this->cleanup();
   return *this;
 }
 
-void Value::setNode(void *n) {
-  YAML::Node &node = *((YAML::Node *)n);
+static void setNode(Value &val, const YAML::Node &node) {
   std::pair<std::map<std::string, Value>::iterator, bool> ret;
-  bool first = true;
   if (node.IsScalar()) {
-    type_ = Value::Scalar;
-    scalar_ = node.as<std::string>();
+    val = node.as<std::string>();
   } else if (node.IsSequence()) {
-    type_ = Value::Sequence;
     for (size_t i = 0; i < node.size(); i++) {
-      Value itm;
-      itm.parent_ = this;
-      itm.index_ = vec_.size();
-      itm.key_ = std::to_string(i);
-      // insert empty sequence into parent. (makes copy of itm)
-      ret = map_.insert(std::pair<std::string, Value>(itm.key_, itm));
-      vec_.push_back(ret.first);
-
-      // Now populate the new node.
-      Value *new_location = &ret.first->second;
-      new_location->setNode(&node[i]);
+      setNode(val[i], node[i]);
     }
   } else if (node.IsMap()) {
-    type_ = Value::Map;
     for (auto it = node.begin(); it != node.end(); it++) {
-      Value itm;
-      itm.parent_ = this;
-      itm.index_ = vec_.size();
-      itm.key_ = it->first.as<std::string>(); // get the key
-      // insert empty map into parent. (makes copy of itm).
-      ret = map_.insert(std::pair<std::string, Value>(itm.key_, itm));
-      vec_.push_back(ret.first);
-
-      // Now populate the new node.
-      Value *new_location = &ret.first->second;
-      new_location->setNode(&it->second);
+      std::string key = it->first.as<std::string>();
+      setNode(val[key], it->second);
     }
   }
 }
@@ -176,7 +154,7 @@ Value& Value::operator[](size_t index) {
       if (map_.find(key) == map_.end())
         break;
       key += "-";
-    } 
+    }
     zombie_.reset(new Value());
     zombie_->parent_ = this;
     zombie_->key_ = key;
@@ -238,7 +216,7 @@ void Value::addToParent() {
 
   if (map_key)
     parent_->type_ = Value::Category::Map;
-  else if (parent_->type_ == Value::Category::Empty) 
+  else if (parent_->type_ == Value::Category::Empty)
     parent_->type_ = Value::Category::Sequence;
 }
 
@@ -305,6 +283,16 @@ void Value::copy(Value *target) const {
   }
 }
 
+void Value::cleanup() {
+  if (isEmpty())
+    return;
+
+  zombie_.reset();
+  if (isScalar()) return;
+  for (size_t i = 0; i < vec_.size(); i++)
+      vec_[i]->second.zombie_.reset();
+}
+
 
 void Value::remove() {
   Value *node = (assigned_) ? assigned_ : this;
@@ -368,20 +356,45 @@ static bool equals(const Value &n1, const Value &n2) {
 }
 bool Value::operator==(const Value &v) const { return equals(*this, v); }
 
-// Explicit instantiations for as()
-/***
-template int8_t Value::as<int8_t>() const;
-template int16_t Value::as<int16_t>() const;
-template uint16_t Value::as<uint16_t>() const;
-template int32_t Value::as<int32_t>() const;
-template uint32_t Value::as<uint32_t>() const;
-template int64_t Value::as<int64_t>() const;
-template uint64_t Value::as<uint64_t>() const;
-template float Value::as<float>() const;
-template double Value::as<double>() const;
-template std::string Value::as<std::string>() const;
-template bool Value::as<bool>() const;
-*/
+// Explicit implementations for as<T>()
+#define NTA_CONVERT(T, I)                                                                                              \
+  if (type_ != Value::Category::Scalar)                                                                                \
+    NTA_THROW << "value not found.";                                                                                   \
+  errno = 0;                                                                                                           \
+  char *end;                                                                                                           \
+  T val = (T)I;                                                                                                        \
+  if (errno)                                                                                                           \
+    NTA_THROW << "In '" << scalar_ << "' numeric conversion error: " << std::strerror(errno);                          \
+  if (*end != '\0')                                                                                                    \
+    NTA_THROW << "In '" << scalar_ << "' numeric conversion error: invalid char.";                                     \
+  return val;
+
+  int8_t Value::asInt8() const { NTA_CONVERT(int8_t, std::strtol(scalar_.c_str(), &end, 0)); }
+  int16_t Value::asInt16() const { NTA_CONVERT(int16_t, std::strtol(scalar_.c_str(), &end, 0)); }
+  uint16_t Value::asUInt16() const { NTA_CONVERT(uint16_t, std::strtoul(scalar_.c_str(), &end, 0)); }
+  int32_t Value::asInt32() const { NTA_CONVERT(int32_t, std::strtol(scalar_.c_str(), &end, 0)); }
+  uint32_t Value::asUInt32() const { NTA_CONVERT(uint32_t, std::strtoul(scalar_.c_str(), &end, 0)); }
+  int64_t Value::asInt64() const { NTA_CONVERT(int64_t, std::strtoll(scalar_.c_str(), &end, 0)); }
+  uint64_t Value::asUInt64() const { NTA_CONVERT(uint64_t, std::strtoull(scalar_.c_str(), &end, 0)); }
+  float Value::asFloat() const { NTA_CONVERT(float, std::strtof(scalar_.c_str(), &end)); }
+  double Value::asDouble() const { NTA_CONVERT(double, std::strtod(scalar_.c_str(), &end)); }
+  std::string Value::asString() const {
+    if (type_ != Value::Category::Scalar)
+      NTA_THROW << "value not found.";
+    return scalar_;
+  }
+  bool Value::asBool() const {
+    if (type_ != Value::Category::Scalar)
+      NTA_THROW << "value not found. " << scalar_;
+    std::string val = str();
+    transform(val.begin(), val.end(), val.begin(), ::tolower);
+    if (val == "true" || val == "on" || val == "1")
+      return true;
+    if (val == "false" || val == "off" || val == "0")
+      return false;
+    NTA_THROW << "Invalid value for a boolean. " << val;
+  }
+
 
 
 /**

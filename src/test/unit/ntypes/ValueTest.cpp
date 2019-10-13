@@ -203,7 +203,7 @@ TEST(ValueTest, inserts) {
   //std::cout << "inserts2: " << vm << "\n";
   EXPECT_STREQ("[[[1]], [100, 200, 300]]", vm.to_json().c_str());
 
-  EXPECT_ANY_THROW(vm[3]["hello"] = "world");
+  EXPECT_ANY_THROW(vm[3]["hello"] = std::string("world"));
 }
 
 
@@ -255,7 +255,7 @@ TEST(ValueTest, Iterations) {
   int cnt = 0;
 
   std::string data = R"(scalar: 123.45
-array: 
+array:
   - 1
   - 2
   - 3
@@ -300,34 +300,34 @@ TEST(ValueTest, deletes) {
   std::string src = "{scalar: 456, array: [1, 2, 3, 4], string: \"true\"}";
   vm.parse(src);
 
-  EXPECT_EQ(vm.size(), 3);
-  EXPECT_EQ(vm["array"].size(), 4);
+  EXPECT_EQ(vm.size(), 3u);
+  EXPECT_EQ(vm["array"].size(), 4u);
 
   vm["scalar"].remove();
-  EXPECT_EQ(vm.size(), 2);
+  EXPECT_EQ(vm.size(), 2u);
   EXPECT_ANY_THROW(vm["scalar"].str());
   EXPECT_TRUE(vm[0].isSequence());
   EXPECT_TRUE(vm[0][0].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 1);
   EXPECT_EQ(vm[0][3].as<int>(), 4);
-  EXPECT_EQ(vm[0].size(), 4);
+  EXPECT_EQ(vm[0].size(), 4u);
 
   vm[0][0].remove();
-  EXPECT_EQ(vm[0].size(), 3);
+  EXPECT_EQ(vm[0].size(), 3u);
   EXPECT_TRUE(vm[0][0].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
   EXPECT_EQ(vm[0][2].as<int>(), 4);
   EXPECT_ANY_THROW(vm[0][3].as<int>());
 
   vm[0][2].remove();
-  EXPECT_EQ(vm[0].size(), 2);
+  EXPECT_EQ(vm[0].size(), 2u);
   EXPECT_TRUE(vm[0][1].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
   EXPECT_EQ(vm[0][1].as<int>(), 3);
   EXPECT_ANY_THROW(vm[0][2].as<int>());
 
   vm[0][2] = 6;
-  EXPECT_EQ(vm[0].size(), 3);
+  EXPECT_EQ(vm[0].size(), 3u);
   EXPECT_TRUE(vm[0][1].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
   EXPECT_EQ(vm[0][1].as<int>(), 3);
@@ -335,18 +335,18 @@ TEST(ValueTest, deletes) {
   std::vector<int> v = vm[0].asVector<int>();
 
   std::vector<int> expected({2, 3, 6});
-  for (size_t i = 0; i < 3; i++) {
+  for (size_t i = 0; i < 3u; i++) {
     EXPECT_EQ(expected[i], v[i]);
   }
 
   vm[0][2].remove();
-  EXPECT_EQ(vm[0].size(), 2);
-  for (size_t i = 0; i < 2; i++) {
+  EXPECT_EQ(vm[0].size(), 2u);
+  for (size_t i = 0; i < 2u; i++) {
     EXPECT_EQ(expected[i], v[i]);
   }
 
   vm[0].remove();
-  EXPECT_EQ(vm.size(), 1);
+  EXPECT_EQ(vm.size(), 1u);
   EXPECT_TRUE(vm[0].isScalar());
   EXPECT_TRUE(vm.contains("string"));
 

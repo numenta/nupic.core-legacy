@@ -64,7 +64,7 @@ public:
   const Value &operator[](const std::string &key) const;
   const Value &operator[](size_t index) const;
 
-  template <typename T> T as() const {
+  template <typename T> inline T as() const {
     if (type_ != Category::Scalar)
       NTA_THROW << "not found. '" << scalar_ << "'";
     T result;
@@ -72,46 +72,21 @@ public:
     ss >> result;
     return result;
   }
-#define NTA_CONVERT(T, I)                                                                                              \
-  if (type_ != Value::Category::Scalar)                                                                                \
-    NTA_THROW << "value not found.";                                                                                   \
-  errno = 0;                                                                                                           \
-  char *end;                                                                                                           \
-  T val = (T)I;                                                                                                        \
-  if (errno)                                                                                                           \
-    NTA_THROW << "In '" << scalar_ << "' numeric conversion error: " << std::strerror(errno);                          \
-  if (*end != '\0')                                                                                                    \
-    NTA_THROW << "In '" << scalar_ << "' numeric conversion error: invalid char.";                                     \
-  return val;
-
-  // Return a value converted to the specified type T.
-  // explicit specializations. By default it uses streams to convert.
-  template <> int8_t as<int8_t>() const { NTA_CONVERT(int8_t, std::strtol(scalar_.c_str(), &end, 0)); }
-  template <> int16_t as<int16_t>() const { NTA_CONVERT(int16_t, std::strtol(scalar_.c_str(), &end, 0)); }
-  template <> uint16_t as<uint16_t>() const { NTA_CONVERT(uint16_t, std::strtoul(scalar_.c_str(), &end, 0)); }
-  template <> int32_t as<int32_t>() const { NTA_CONVERT(int32_t, std::strtol(scalar_.c_str(), &end, 0)); }
-  template <> uint32_t as<uint32_t>() const { NTA_CONVERT(uint32_t, std::strtoul(scalar_.c_str(), &end, 0)); }
-  template <> int64_t as<int64_t>() const { NTA_CONVERT(int64_t, std::strtoll(scalar_.c_str(), &end, 0)); }
-  template <> uint64_t as<uint64_t>() const { NTA_CONVERT(uint64_t, std::strtoull(scalar_.c_str(), &end, 0)); }
-  template <> float as<float>() const { NTA_CONVERT(float, std::strtof(scalar_.c_str(), &end)); }
-  template <> double as<double>() const { NTA_CONVERT(double, std::strtod(scalar_.c_str(), &end)); }
-  template <> std::string as<std::string>() const {
-    if (type_ != Value::Category::Scalar)
-      NTA_THROW << "value not found.";
-    return scalar_;
-  }
-  template <> bool as<bool>() const {
-    if (type_ != Value::Category::Scalar)
-      NTA_THROW << "value not found. " << scalar_;
-    std::string val = str();
-    transform(val.begin(), val.end(), val.begin(), ::tolower);
-    if (val == "true" || val == "on" || val == "1")
-      return true;
-    if (val == "false" || val == "off" || val == "0")
-      return false;
-    NTA_THROW << "Invalid value for a boolean. " << val;
-  }
-
+  /*
+  // A work-around for not allowing Explicit template specializations in the class scope.
+  // This is a bug in the GCC compiler before C++17, clang before C++14.  MSVC is ok.
+  inline int8_t as<int8_t>() const     { return asInt8();   }
+  inline int16_t as<int16_t>() const   { return asInt16();  }
+  inline uint16_t as<uint16_t>() const { return asUInt16(); }
+  inline int32_t as<int32_t>() const   { return asInt32();  }
+  inline uint32_t as<uint32_t>() const { return asUInt32(); }
+  inline int64_t as<int64_t>() const   { return asInt64();  }
+  inline uint64_t as<uint64_t>() const { return asUInt64(); }
+  inline float as<float>() const       { return asFloat();  }
+  inline double as<double>() const     { return asDouble(); }
+  inline std::string as<std::string>() const { return asString(); }
+  inline bool as<bool>() const         { return asBool(); }
+*/
 
   /** Assign a value to a Value node in the tree.
    * If a previous operator[] found a match, this does a replace.
@@ -209,7 +184,7 @@ public:
   std::string getString(const std::string &key, const std::string &defaultValue) const {
     if ((*this)[key].type_ != Value::Category::Scalar)
       return defaultValue;
-    return (*this)[key].as<std::string>();
+    return (*this)[key].str();
   }
 
   friend std::ostream &operator<<(std::ostream &f, const htm::Value &vm);
@@ -222,10 +197,23 @@ public:
   std::map<std::string, Value>::const_iterator cend() const { return map_.cend(); }
 
 private:
-  void setNode(void *node);     // add opaque node.
   void assign(std::string val); // add a scalar
   void addToParent();           // Assign to the map/vector in the parent
   void copy(Value *target) const;
+  void cleanup();
+
+  int8_t asInt8() const;
+  int16_t asInt16() const;
+  uint16_t asUInt16() const;
+  int32_t asInt32() const;
+  uint32_t asUInt32() const;
+  int64_t asInt64() const;
+  uint64_t asUInt64() const;
+  float asFloat() const;
+  double asDouble() const;
+  std::string asString() const;
+  bool asBool() const ;
+
 
   enum Category type_; // type of node
   std::map<std::string, Value> map_;
@@ -239,11 +227,25 @@ private:
 };
 
 
+
 using ValueMap = Value;
 
+
+
+// A work-around for not allowing Explicit template specializations in the class scope.
+// This is a bug in the GCC compiler before C++17, clang before C++14.  MSVC is ok.
+template<> inline int8_t Value::as<int8_t>() const     { return asInt8();   }
+template<> inline int16_t Value::as<int16_t>() const   { return asInt16();  }
+template<> inline uint16_t Value::as<uint16_t>() const { return asUInt16(); }
+template<> inline int32_t Value::as<int32_t>() const   { return asInt32();  }
+template<> inline uint32_t Value::as<uint32_t>() const { return asUInt32(); }
+template<> inline int64_t Value::as<int64_t>() const   { return asInt64();  }
+template<> inline uint64_t Value::as<uint64_t>() const { return asUInt64(); }
+template<> inline float Value::as<float>() const       { return asFloat();  }
+template<> inline double Value::as<double>() const     { return asDouble(); }
+template<> inline std::string Value::as<std::string>() const { return asString(); }
+template<> inline bool Value::as<bool>() const         { return asBool(); }
+
 } // namespace htm
-
-
-
 
 #endif //  NTA_VALUE_HPP
