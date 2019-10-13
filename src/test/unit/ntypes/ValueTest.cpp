@@ -255,7 +255,7 @@ TEST(ValueTest, Iterations) {
   int cnt = 0;
 
   std::string data = R"(scalar: 123.45
-array:
+array: 
   - 1
   - 2
   - 3

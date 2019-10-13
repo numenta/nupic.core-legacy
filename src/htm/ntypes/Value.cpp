@@ -34,8 +34,19 @@ using namespace htm;
 #define ZOMBIE_SEQ 0            // Means the key of zombie was a seq key
 
 //////////////////////////////////////////////////////////////
+// Parser interface.
+// Place code to interface with a yaml parser here.
+#define YAML_PARSER_yamlcpp
 
-////#ifdef YAML_PARSER_yamlcpp
+// Within the parse() function the interface should parse the yaml_string and then 
+// populate the resulting tree under the Value root (the 'this' object).
+// The parse function should return a reference to 'this' so additional 
+// functions can be chained.
+//
+// As a result of the parse, the root Value node may be a Scalar, Sequence, or a Map.
+
+#ifdef YAML_PARSER_yamlcpp
+// All interface for yaml-cpp parser must be encapulated in this section.
 #include <yaml-cpp/yaml.h>
 static void setNode(Value &val, const YAML::Node &node);
 
@@ -57,6 +68,7 @@ Value &Value::parse(const std::string &yaml_string) {
   return *this;
 }
 
+// Copy a yaml-cpp node to a Value node recursively.
 static void setNode(Value &val, const YAML::Node &node) {
   std::pair<std::map<std::string, Value>::iterator, bool> ret;
   if (node.IsScalar()) {
@@ -73,7 +85,7 @@ static void setNode(Value &val, const YAML::Node &node) {
   }
 }
 
-////#endif // YAML_PARSER_yamlcpp
+#endif // YAML_PARSER_yamlcpp
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -196,8 +208,9 @@ std::vector<std::string> Value::getKeys() const {
 // and if it was a string key, its index will be ZOMBIE_MAP.
 void Value::addToParent() {
   std::pair<std::map<std::string, Value>::iterator, bool> ret;
-  if (parent_ == nullptr)
+  if (parent_ == nullptr) {
     return; // This is the root
+  }
   NTA_CHECK(!key_.empty()) << "No key was provided.  Use node[key] = value.";
   if (parent_->type_ == Value::Category::Empty) {
     parent_->addToParent();
@@ -220,18 +233,36 @@ void Value::addToParent() {
     parent_->type_ = Value::Category::Sequence;
 }
 
+// Assign a Scalar value to a Value node.
 void Value::assign(std::string val) {
   std::pair<std::map<std::string, Value>::iterator, bool> ret;
+  if (parent_ == nullptr) {
+    // This is the root node.
+    map_.clear();
+    vec_.clear();
+    scalar_ = val;
+    type_ = Value::Category::Scalar;
+    return;
+  }
+  if (assigned_) {
+    // This is a zombie node but it has already been placed
+    // in the tree so use the real node.
+    assigned_->assign(val);
+    return;
+  }
+    
   if (type_ == Value::Category::Empty) { // previous search was false
     // This is a zombie node. By assigning a value we add it to the tree.
     // The key was already set in the operator[].
 
     // Add to parent.
     // If its parent is also a zombie, add it to the tree as well.
+    // When it returns, 'assigned_' will point to the real node.
     addToParent();
     assigned_->scalar_ = val;
     assigned_->type_ = Value::Category::Scalar;
   } else {
+    // Not a zombie
     // Must be a value already in the tree.  Do a replace.
     if (type_ != Value::Category::Scalar) {
       map_.clear();
