@@ -669,7 +669,6 @@ static void escape_yaml(std::ostream &o, const std::string &s, const std::string
 }
 
 static void to_yaml(std::ostream &f, const htm::Value &v, std::string indent) {
-  bool first = true;
   std::string s;
   switch (v.getCategory()) {
   case Value::Empty:
