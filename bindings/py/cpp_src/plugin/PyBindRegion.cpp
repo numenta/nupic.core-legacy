@@ -80,7 +80,7 @@ namespace py = pybind11;
                 Value v = it->second;
                 kw[key.c_str()] = make_args(v);  // recursive call
             }
-            return kw;
+            return std::move(kw);
         }
         if (vm.isSequence()) {
             auto a = py::list();
@@ -88,7 +88,7 @@ namespace py = pybind11;
                 Value v = vm[i];
                 a.append(make_args(v));  // recursive call
             }
-            return a;
+            return std::move(a);
         }
         throw Exception(__FILE__, __LINE__, "Not implemented.");
     }
@@ -138,10 +138,10 @@ namespace py = pybind11;
         {
             realClassName = Path::getExtension(module_);
         }
-        
+
         // Make a local copy of the Spec
         createSpec(module_.c_str(), nodeSpec_, className_.c_str());
-        
+
         // Validate parameters against the Spec and insert defaults from Spec.
         ValueMap params = ValidateParameters(nodeParams, &nodeSpec_);
 
@@ -195,10 +195,10 @@ namespace py = pybind11;
 		    args = py::make_tuple(node_, f, 2);   // use type 2 protocol
 		    pickle.attr("dump")(*args);
 		    pickle.attr("close")();
-		
+
 				// copy the pickle into the out string
 				std::ifstream pfile(tmp_pickle.c_str(), std::ios::binary);
-				std::string content((std::istreambuf_iterator<char>(pfile)), 
+				std::string content((std::istreambuf_iterator<char>(pfile)),
 				                     std::istreambuf_iterator<char>());
 				pfile.close();
 		 		Path::remove(tmp_pickle);
@@ -217,7 +217,7 @@ namespace py = pybind11;
 
 				// copy the extra data into the extra string
 				std::ifstream efile(tmp_extra.c_str(), std::ios::binary);
-				std::string extra((std::istreambuf_iterator<char>(efile)), 
+				std::string extra((std::istreambuf_iterator<char>(efile)),
 				                   std::istreambuf_iterator<char>());
 				efile.close();
 				Path::remove(tmp_extra);
@@ -232,11 +232,11 @@ namespace py = pybind11;
 				std::ofstream des;
 				std::string tmp_pickle = "pickle.tmp";
 
-		
+
 			  std::ofstream pfile(tmp_pickle.c_str(), std::ios::binary);
 				pfile.write(p.c_str(), p.size());
 				pfile.close();
-		
+
 
 		// Tell Python to un-pickle using what is now in the pickle.tmp file.
         py::args args = py::make_tuple(tmp_pickle, "rb");
@@ -545,7 +545,7 @@ namespace py = pybind11;
                     auto count = input["count"].cast<UInt32>();
 
 										bool required = false;
-                    if (input.contains("required")) 
+                    if (input.contains("required"))
 										{
                     	required = input["required"].cast<bool>();
 										}
@@ -620,7 +620,7 @@ namespace py = pybind11;
                         regionLevel = output["regionLevel"].cast<bool>();
                     }
 										bool isDefaultOutput = false;
-										if (output.contains("isDefaultOutput")) 
+										if (output.contains("isDefaultOutput"))
 										{
                     	isDefaultOutput = output["isDefaultOutput"].cast<bool>();
 										}
