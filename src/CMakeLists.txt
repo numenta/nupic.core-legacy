@@ -230,6 +230,7 @@ if(MSVC)
   set_property(TARGET ${src_objlib} PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
 endif()
 target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_compile_definitions(${src_objlib} PRIVATE ${yaml_DEFINE})
 target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
 		SYSTEM ${EXTERNAL_INCLUDES}

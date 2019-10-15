@@ -153,6 +153,8 @@ TEST(ValueTest, asMap) {
   vm.parse(src);
 
   //std::cout << vm << "\n";
+  std::string result = vm.to_json();
+  EXPECT_STREQ(result.c_str(), src.c_str());
 
   std::map<std::string,std::string> m;
   m = vm.asMap<std::string>();
@@ -165,7 +167,7 @@ TEST(ValueTest, asMap) {
     ss << itr->first << ": " << itr->second;
   }
   ss << "}";
-  std::string result = ss.str();
+  result = ss.str();
   std::cout << result << "\n";
   EXPECT_STREQ(result.c_str(), "{scalar: 456, string: true}");
 }

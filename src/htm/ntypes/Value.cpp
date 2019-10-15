@@ -22,11 +22,13 @@
 #include <htm/ntypes/Value.hpp>
 #include <htm/utils/Log.hpp>
 
+#include <algorithm> // transform
+#include <cerrno>
+#include <cstring> // std::strerror(errno)
 #include <iomanip>
 #include <iostream>
 #include <regex>
-#include <sstream>
-#include <string>
+#include <stack>
 
 using namespace htm;
 
@@ -36,22 +38,140 @@ using namespace htm;
 //////////////////////////////////////////////////////////////
 // Parser interface.
 // Place code to interface with a yaml parser here.
-#define YAML_PARSER_yamlcpp
+// Note: #define YAML_PARSERxxxx is set by the 'external' module that loaded the parser.
+//           Only one parser is loaded.  See external/CMakeLists.txt
 
-// Within the parse() function the interface should parse the yaml_string and then 
+// Within the parse() function the interface should parse the yaml_string and then
 // populate the resulting tree under the Value root (the 'this' object).
-// The parse function should return a reference to 'this' so additional 
+// The parse function should return a reference to 'this' so additional
 // functions can be chained.
 //
 // As a result of the parse, the root Value node may be a Scalar, Sequence, or a Map.
 
-#ifdef YAML_PARSER_yamlcpp
+#ifdef YAML_PARSER_libYaml
+// All interface for the libYaml parser must be encapulated in this section.
+// Documentation:
+//   http://staskobzar.blogspot.com/2017/04/yaml-documents-parsing-with-libyaml-in-c.html
+//   https://www.wpsoftware.net/andrew/pages/libyaml.html
+#define YAML_DECLARE_STATIC
+#include <yaml.h>
+
+// Parse YAML or JSON string document into the tree.
+Value &Value::parse(const std::string &yaml_string) {
+  if (assigned_)
+    return assigned_->parse(yaml_string);
+  std::stack<Value *> stack; // top of stack is parent.
+  // We need to clear variables, just in case it previously had a value.
+  vec_.clear();
+  map_.clear();
+  scalar_ = "";
+  type_ = Value::Category::Empty;
+  parent_ = nullptr;
+
+  Value *node = this;
+
+  yaml_parser_t parser;
+  yaml_event_t event;
+  enum { start_state = 0, seq_state, map_state, map_key } state;
+  int event_type = 0;
+  std::string key;
+
+  yaml_parser_initialize(&parser);
+  yaml_parser_set_input_string(&parser, (const unsigned char *)yaml_string.c_str(), yaml_string.size());
+
+  do {
+    if (!yaml_parser_parse(&parser, &event)) {
+      std::string err = "Parse Error " + std::to_string(parser.error) + ": " + std::string(parser.problem) +
+                        ", offset: " + std::to_string(parser.problem_offset) +
+                        ", context: " + std::string(parser.context);
+      yaml_parser_delete(&parser);
+      NTA_THROW << err;
+    }
+    event_type = event.type;
+    try {
+      switch (event_type) {
+      case YAML_NO_EVENT: break;
+      case YAML_STREAM_START_EVENT: break;
+      case YAML_STREAM_END_EVENT: break;
+      case YAML_DOCUMENT_START_EVENT:  state = start_state; break;
+      case YAML_DOCUMENT_END_EVENT:  NTA_CHECK(node->isRoot()); break;
+      case YAML_ALIAS_EVENT: break;
+      case YAML_MAPPING_START_EVENT:
+      case YAML_SEQUENCE_START_EVENT:
+        switch (state) {
+        case start_state:
+          break;
+        case seq_state:
+          stack.push(node);
+          node = &node->operator[](node->size());
+          break;
+        case map_key:
+          stack.push(node);
+          node = &node->operator[](key);
+          break;
+        default:
+          break;
+        }
+        state = (event_type == YAML_SEQUENCE_START_EVENT)?seq_state : map_state;
+        break;
+      case YAML_MAPPING_END_EVENT:
+      case YAML_SEQUENCE_END_EVENT:
+        if (stack.size() > 0) {
+          node = stack.top();
+          stack.pop();
+          state = (node->isSequence()) ? seq_state : (node->isMap()) ? map_state : start_state;
+        } else {
+          state = start_state;
+        }
+        break;
+      // Data
+      case YAML_SCALAR_EVENT: {
+        std::string val((char *)event.data.scalar.value, event.data.scalar.length);
+        switch (state) {
+        case map_state:
+          key = val;
+          state = map_key;
+          break;
+        case map_key:
+          (*node)[key] = val;
+          state = map_state;
+          break;
+        case seq_state:
+          (*node)[node->size()] = val;
+          state = seq_state;
+          break;
+        default:
+          (*node) = val;
+          break;
+        }
+      } break;
+      default:
+        break;
+      }
+    } catch (Exception &e) {
+      yaml_event_delete(&event);
+      yaml_parser_delete(&parser);
+      NTA_THROW << "Parser error " << e.what();
+    }
+    yaml_event_delete(&event);
+  } while (event_type != YAML_STREAM_END_EVENT);
+  yaml_parser_delete(&parser);
+
+  this->cleanup();
+  return *this;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+#else // YAML_PARSER_yamlcpp
+
 // All interface for yaml-cpp parser must be encapulated in this section.
 #include <yaml-cpp/yaml.h>
 static void setNode(Value &val, const YAML::Node &node);
 
 // Parse YAML or JSON string document into the tree.
 Value &Value::parse(const std::string &yaml_string) {
+  if (assigned_)
+    return assigned_->parse(yaml_string);
   // If this Value node is being re-used (like in unit tests)
   // we need to clear variables.
   vec_.clear();
@@ -86,9 +206,7 @@ static void setNode(Value &val, const YAML::Node &node) {
 }
 
 #endif // YAML_PARSER_yamlcpp
-
 /////////////////////////////////////////////////////////////////////////////////////////
-
 // Constructor
 Value::Value() {
   type_ = Value::Category::Empty;
@@ -98,19 +216,29 @@ Value::Value() {
   index_ = ZOMBIE_MAP;
 }
 
-
 // checking content of a parameter
 // enum ValueMap::Category { Empty = 0, Scalar, Sequence, Map };
-ValueMap::Category Value::getCategory() const { return type_; }
+ValueMap::Category Value::getCategory() const {
+  if (assigned_)
+    return assigned_->type_;
+  return type_;
+}
 
-bool Value::contains(const std::string& key) const { return (map_.find(key) != map_.end()); }
+bool Value::contains(const std::string &key) const {
+  if (assigned_)
+    return assigned_->contains(key);
+  return (map_.find(key) != map_.end());
+}
 
-bool Value::isScalar() const { return type_ == Value::Category::Scalar; }
-bool Value::isSequence() const { return type_ == Value::Category::Sequence; }
-bool Value::isMap() const { return type_ == Value::Category::Map; }
-bool Value::isEmpty() const { return type_ == Value::Category::Empty; }
+bool Value::isScalar() const { return getCategory() == Value::Category::Scalar; }
+bool Value::isSequence() const { return getCategory() == Value::Category::Sequence; }
+bool Value::isMap() const { return getCategory() == Value::Category::Map; }
+bool Value::isEmpty() const { return getCategory() == Value::Category::Empty; }
+bool Value::isRoot() const { return (parent_ == nullptr); }
 
 size_t Value::size() const {
+  if (assigned_)
+    return assigned_->size();
   NTA_CHECK(map_.size() == vec_.size()) << "Detected Corruption of ValueMap structure";
   return map_.size();
 }
@@ -119,7 +247,7 @@ size_t Value::size() const {
 // If not found, a Zombie Value object is returned.
 // An error will be displayed when you try to access the value in the Zombie Value object.
 // If you assign something to the Zombie Value, it will insert it into the tree with the saved key.
-Value& Value::operator[](const std::string& key) {
+Value &Value::operator[](const std::string &key) {
   if (assigned_)
     return (*assigned_)[key];
   auto it = map_.find(key);
@@ -133,11 +261,10 @@ Value& Value::operator[](const std::string& key) {
     zombie_->key_ = key;
     zombie_->index_ = ZOMBIE_MAP;
     return *zombie_;
-  }
-  else
+  } else
     return it->second;
 }
-const Value& Value::operator[](const std::string& key) const {
+const Value &Value::operator[](const std::string &key) const {
   if (assigned_)
     return (*assigned_)[key];
   auto it = map_.find(key);
@@ -146,13 +273,12 @@ const Value& Value::operator[](const std::string& key) const {
     // cannot be used with an assignment.  Its type is Value::Category::Empty.
     static Value const_zombie; // This is a constant
     return const_zombie;
-  }
-  else
+  } else
     return it->second;
 }
 
 // accessing members of a sequence
-Value& Value::operator[](size_t index) {
+Value &Value::operator[](size_t index) {
   if (assigned_)
     return (*assigned_)[index];
   if (index < vec_.size())
@@ -175,7 +301,7 @@ Value& Value::operator[](size_t index) {
   }
   NTA_THROW << "Index out of range; " << index;
 }
-const Value& Value::operator[](size_t index) const {
+const Value &Value::operator[](size_t index) const {
   if (assigned_)
     return (*assigned_)[index];
   if (index < vec_.size())
@@ -184,18 +310,28 @@ const Value& Value::operator[](size_t index) const {
 }
 
 std::string Value::str() const {
+  if (assigned_)
+    return assigned_->str();
   NTA_CHECK(type_ == Value::Category::Scalar);
   return scalar_;
 }
-const char* Value::c_str() const {
+const char *Value::c_str() const {
+  if (assigned_)
+    return assigned_->c_str();
   NTA_CHECK(type_ == Value::Category::Scalar);
   return scalar_.c_str();
 }
 
-std::string Value::key() const { return key_; }
+std::string Value::key() const {
+  if (assigned_)
+    return assigned_->key_;
+  return key_;
+}
 
 std::vector<std::string> Value::getKeys() const {
-  NTA_CHECK(isMap()) << "This is not a map.";
+  if (assigned_)
+    return assigned_->getKeys();
+  NTA_CHECK(type_ == Value::Category::Map) << "This is not a map.";
   std::vector<std::string> v;
   for (auto it = begin(); it != end(); it++) {
     v.push_back(it->first);
@@ -250,7 +386,7 @@ void Value::assign(std::string val) {
     assigned_->assign(val);
     return;
   }
-    
+
   if (type_ == Value::Category::Empty) { // previous search was false
     // This is a zombie node. By assigning a value we add it to the tree.
     // The key was already set in the operator[].
@@ -319,15 +455,15 @@ void Value::cleanup() {
     return;
 
   zombie_.reset();
-  if (isScalar()) return;
+  if (isScalar())
+    return;
   for (size_t i = 0; i < vec_.size(); i++)
-      vec_[i]->second.zombie_.reset();
+    vec_[i]->second.zombie_.reset();
 }
-
 
 void Value::remove() {
   Value *node = (assigned_) ? assigned_ : this;
-  NTA_CHECK(!node->isEmpty()) << "Item not found."; // current node is a zombie.
+  NTA_CHECK(!node->isEmpty()) << "Item not found."; // current node is a zombie not assigned.
   if (node->parent_ == nullptr) {
     // This is root.  Just clear the map.
     node->vec_.clear();
@@ -347,8 +483,8 @@ void Value::remove() {
   // adjust the index on all following items.
   // We have to do it here because as soon as we erase the map item
   // it will delete 'this'.
-  for (size_t i = index_+1; i < node->parent_->vec_.size(); i++) {
-    node->parent_->vec_[i]->second.index_ = i-1;
+  for (size_t i = index_ + 1; i < node->parent_->vec_.size(); i++) {
+    node->parent_->vec_[i]->second.index_ = i - 1;
   }
 
   node->parent_->vec_.erase(node->parent_->vec_.begin() + index_);
@@ -400,33 +536,31 @@ bool Value::operator==(const Value &v) const { return equals(*this, v); }
     NTA_THROW << "In '" << scalar_ << "' numeric conversion error: invalid char.";                                     \
   return val;
 
-  int8_t Value::asInt8() const { NTA_CONVERT(int8_t, std::strtol(scalar_.c_str(), &end, 0)); }
-  int16_t Value::asInt16() const { NTA_CONVERT(int16_t, std::strtol(scalar_.c_str(), &end, 0)); }
-  uint16_t Value::asUInt16() const { NTA_CONVERT(uint16_t, std::strtoul(scalar_.c_str(), &end, 0)); }
-  int32_t Value::asInt32() const { NTA_CONVERT(int32_t, std::strtol(scalar_.c_str(), &end, 0)); }
-  uint32_t Value::asUInt32() const { NTA_CONVERT(uint32_t, std::strtoul(scalar_.c_str(), &end, 0)); }
-  int64_t Value::asInt64() const { NTA_CONVERT(int64_t, std::strtoll(scalar_.c_str(), &end, 0)); }
-  uint64_t Value::asUInt64() const { NTA_CONVERT(uint64_t, std::strtoull(scalar_.c_str(), &end, 0)); }
-  float Value::asFloat() const { NTA_CONVERT(float, std::strtof(scalar_.c_str(), &end)); }
-  double Value::asDouble() const { NTA_CONVERT(double, std::strtod(scalar_.c_str(), &end)); }
-  std::string Value::asString() const {
-    if (type_ != Value::Category::Scalar)
-      NTA_THROW << "value not found.";
-    return scalar_;
-  }
-  bool Value::asBool() const {
-    if (type_ != Value::Category::Scalar)
-      NTA_THROW << "value not found. " << scalar_;
-    std::string val = str();
-    transform(val.begin(), val.end(), val.begin(), ::tolower);
-    if (val == "true" || val == "on" || val == "1")
-      return true;
-    if (val == "false" || val == "off" || val == "0")
-      return false;
-    NTA_THROW << "Invalid value for a boolean. " << val;
-  }
-
-
+int8_t Value::asInt8() const { NTA_CONVERT(int8_t, std::strtol(scalar_.c_str(), &end, 0)); }
+int16_t Value::asInt16() const { NTA_CONVERT(int16_t, std::strtol(scalar_.c_str(), &end, 0)); }
+uint16_t Value::asUInt16() const { NTA_CONVERT(uint16_t, std::strtoul(scalar_.c_str(), &end, 0)); }
+int32_t Value::asInt32() const { NTA_CONVERT(int32_t, std::strtol(scalar_.c_str(), &end, 0)); }
+uint32_t Value::asUInt32() const { NTA_CONVERT(uint32_t, std::strtoul(scalar_.c_str(), &end, 0)); }
+int64_t Value::asInt64() const { NTA_CONVERT(int64_t, std::strtoll(scalar_.c_str(), &end, 0)); }
+uint64_t Value::asUInt64() const { NTA_CONVERT(uint64_t, std::strtoull(scalar_.c_str(), &end, 0)); }
+float Value::asFloat() const { NTA_CONVERT(float, std::strtof(scalar_.c_str(), &end)); }
+double Value::asDouble() const { NTA_CONVERT(double, std::strtod(scalar_.c_str(), &end)); }
+std::string Value::asString() const {
+  if (type_ != Value::Category::Scalar)
+    NTA_THROW << "value not found.";
+  return scalar_;
+}
+bool Value::asBool() const {
+  if (type_ != Value::Category::Scalar)
+    NTA_THROW << "value not found. " << scalar_;
+  std::string val = str();
+  transform(val.begin(), val.end(), val.begin(), ::tolower);
+  if (val == "true" || val == "on" || val == "1")
+    return true;
+  if (val == "false" || val == "off" || val == "0")
+    return false;
+  NTA_THROW << "Invalid value for a boolean. " << val;
+}
 
 /**
  * a local function to apply escapes for a JSON string.
@@ -508,6 +642,8 @@ static void to_json(std::ostream &f, const htm::Value &v) {
 }
 
 std::string Value::to_json() const {
+  if (assigned_)
+    return assigned_->to_json();
   std::stringstream f;
   ::to_json(f, *this);
   return f.str();
@@ -516,7 +652,7 @@ std::string Value::to_json() const {
 static void escape_yaml(std::ostream &o, const std::string &s, const std::string &indent) {
   if (std::strchr(s.c_str(), '\n')) {
     // contains newlines
-    o << " |";  // all blanks are significant
+    o << " |"; // all blanks are significant
     const char *from = s.c_str();
     const char *to = from;
     while ((to = std::strchr(to, '\n')) != NULL) {
@@ -531,7 +667,7 @@ static void escape_yaml(std::ostream &o, const std::string &s, const std::string
   }
 }
 
-static void to_yaml(std::ostream & f, const htm::Value &v, std::string indent) {
+static void to_yaml(std::ostream &f, const htm::Value &v, std::string indent) {
   bool first = true;
   std::string s;
   switch (v.getCategory()) {
@@ -564,6 +700,8 @@ static void to_yaml(std::ostream & f, const htm::Value &v, std::string indent) {
 }
 
 std::string Value::to_yaml() const {
+  if (assigned_)
+    return assigned_->to_yaml();
   std::stringstream f;
   ::to_yaml(f, *this, "");
   return f.str();

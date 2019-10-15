@@ -24,11 +24,7 @@
 #include <vector>
 #include <map>
 #include <memory>
-#include <iostream>
 #include <sstream>
-#include <algorithm>  // transform
-#include <cerrno>
-#include <cstring>    // std::strerror(errno)
 
 namespace htm {
 
@@ -50,8 +46,8 @@ public:
   bool isScalar() const;
   bool isSequence() const;
   bool isMap() const;
-  bool isEmpty() const; // false if current node has a value,sequence,or map
-                        // true if operator[] did not find a value or was not assigned to.
+  bool isEmpty() const; // true if operator[] did not find a value or was not yet assigned to.
+  bool isRoot() const;
 
   // Access
   std::string str() const;   // return copy of raw value as a string
