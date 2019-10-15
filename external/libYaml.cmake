@@ -20,15 +20,25 @@
 # -----------------------------------------------------------------------------
 # This downloads and builds the libyaml library.
 #
-# libyaml  - see https://github.com/yaml/libyaml
-#            This is a SAX parser which means that it performs callbacks
+# libyaml  - This is a SAX parser which means that it performs callbacks
 #            for each token it parses from the yaml text.  Therefore
-#            the interface (Value-libyaml.cpp) must create the internal structure.
+#            the interface (Value.cpp) must create the internal structure.
+#            This is a YAML 1.1 implementation.
 #
-if(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.zip)
+#            The current release is 0.2.2
+#            The repository is at https://github.com/yaml/libyaml
+#            Documentation is at https://pyyaml.org/wiki/LibYAML
+#
+#            There is a problem in version 0.2.2; it does not build.
+#            Use the current master.
+#
+if(EXISTS   ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.zip)
     set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.zip)
+elif(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.tar.gz)
+    set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.tar.gz)
 else()
     set(URL "https://github.com/yaml/libyaml/archive/master.zip")
+    #set(URL "http://pyyaml.org/download/libyaml/yaml-0.2.2.tar.gz")
 endif()
 
 message(STATUS "Obtaining libyaml")
@@ -42,14 +52,14 @@ download_project(PROJ libyaml
 	)
     
 set(YAML_DECLARE_STATIC ON)
-set(YAML_STATIC_LIB_NAME yaml)
+set(YAML_STATIC_LIB_NAME "yaml" CACHE STRING "The core library name." )
 add_subdirectory(${libyaml_SOURCE_DIR} ${libyaml_BINARY_DIR})
 
 set(yaml_INCLUDE_DIRS ${libyaml_SOURCE_DIR}/include) 
 if (MSVC)
-  set(yaml_LIBRARIES   "${libyaml_BINARY_DIR}$<$<CONFIG:Release>:/Release/OFF.lib>$<$<CONFIG:Debug>:/Debug/OFF.lib>") 
+  set(yaml_LIBRARIES   "${libyaml_BINARY_DIR}$<$<CONFIG:Release>:/Release/yaml.lib>$<$<CONFIG:Debug>:/Debug/yaml.lib>") 
 else()
-  set(yaml_LIBRARIES   ${libyaml_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}libyaml${CMAKE_STATIC_LIBRARY_SUFFIX}) 
+  set(yaml_LIBRARIES   ${libyaml_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}yaml${CMAKE_STATIC_LIBRARY_SUFFIX}) 
 endif()
 FILE(APPEND "${EXPORT_FILE_NAME}" "yaml_INCLUDE_DIRS@@@${yaml_INCLUDE_DIRS}\n")
 FILE(APPEND "${EXPORT_FILE_NAME}" "yaml_LIBRARIES@@@${yaml_LIBRARIES}\n")

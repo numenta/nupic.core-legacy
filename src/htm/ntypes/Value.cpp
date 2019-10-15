@@ -51,6 +51,7 @@ using namespace htm;
 #ifdef YAML_PARSER_libYaml
 // All interface for the libYaml parser must be encapulated in this section.
 // Documentation:
+//   https://pyyaml.org/wiki/LibYAML
 //   http://staskobzar.blogspot.com/2017/04/yaml-documents-parsing-with-libyaml-in-c.html
 //   https://www.wpsoftware.net/andrew/pages/libyaml.html
 #define YAML_DECLARE_STATIC
@@ -72,7 +73,7 @@ Value &Value::parse(const std::string &yaml_string) {
 
   yaml_parser_t parser;
   yaml_event_t event;
-  enum { start_state = 0, seq_state, map_state, map_key } state;
+  enum { start_state = 0, seq_state, map_state, map_key }  state = start_state;
   int event_type = 0;
   std::string key;
 
