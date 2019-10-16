@@ -52,12 +52,12 @@
 |        Parses the yaml_string as a tree with the current object ('this') as the root.
 |        Returns a reference to 'this' so you can do chaining of calls.  The tree consist
 |        of Value objects that are linked together.  The root is also a Value object.
-|        Value objects can a Scalar, a Sequence, or a Map.  It can also be Empty.
+|        A Value object can be a Scalar, a Sequence, or a Map.  It can also be Empty.
 |
 |  Usage: Access
 |     Value& v[key]
 |        Indexes into the Value node with the given key and returns a reference to the selected
-|        item simular to the way STL objects can be accesssed.
+|        item similar to the way STL objects can be accessed.
 |        - If the base Value (v) is a Scalar, this will give an error.
 |
 |        - The 'key' can be a string; in which case it does a key lookup in that base Value node 
@@ -110,17 +110,18 @@
 |     T value = v.as<T>()
 |         Converts the internal string value into the specified type T.  
 |         T can be any numeric, boolean or an std::string.  It can also be
-|         anything that stringstream can convert.
+|         anything that std::stringstream can convert.
 |         The base Value (v) must be a Scaler or it will throw an exception.
 |
 |     std::vector<T> v.asVector<T>()
 |     std::map<std::string, T>  v.asMap<T>()
 |         Converts a base Value into a vector or a map.
 |         The base Value (v) must be a Sequence or a Map or it will throw an exception.
+|         Any element that is not a Scalar will be skipped.
 |
 |  Usage: Iterators
 |     Iterations are similar to STL objects.
-|     The iterated value must be a Sequence or a Map or it throws an exception.
+|     The iterated Value node must be a Sequence or a Map or it throws an exception.
 |
 |     By range:
 |         for (auto itm : vm) {
@@ -150,12 +151,13 @@
 |         Returns a JSON formatted string from the contents of the tree.
 |
 |  Usage: Direct Modification
-|     Any Value node can be assigned to.  If the node was a zombie (the result
-|     of allocation or a failed lookup) the node is added to the tree.  If the
-|     node was already in the tree this changes its value and it becomes a Scalar.
-|     If the node had previously been a Map or Sequence, all subordinate nodes 
-|     are released.  Right hand side of expression can be any type of number,
-|     a bool, a string, or a vector<UInt32>.
+|     Any Value node can be assigned to.  If the node was a zombie the node 
+|     is added to the tree. A zombie node can be the result of a new allocation 
+|     or a failed lookup i.e. v[key].   If the node was already in the tree the 
+|     assignment changes its value and it becomes a Scalar. If the node had 
+|     previously been a Map or Sequence, all subordinate nodes  are released.  
+|     The right hand side of the expression can be any type of number, a bool, 
+|     a string, or a vector<UInt32>.
 |            v = "abc";            -- assigns a string value to the node.
 |            v = 25.6f;            -- converts to a string and assigns to the node.
 |            v[2]["name"][0] = 6;  -- assigns, creating maps and sequences as needed.
@@ -165,17 +167,19 @@
 |          Indexes of Sequences are adjusted.  References to Values in the tree become invalid.
 |
 |     Value copy()
-|          Performs a deep copy of that node and below.
+|          Performs a deep copy of that Value node and below. The returned node
+|          is the root of the new tree.
 |
 |  Usage:  Backward Compatability
 |     ValueMap is the same as a Value object.
 |
 |     std::string getString(const std::string &key, const std::string &defaultValue);
-|        Return the raw string value coresponding to the key.
+|        Return the raw string value coresponding to the key.  Same as str() with a
+|        check to see if it exists.
 |
 |     T getScalarT(const std::string &key);
 |     T getScalarT(const std::string &key, T defaultValue);
-|        Return a converted value coresponding to the key.
+|        Return a converted value from the Value object corresponding to the key.
 |        If the default value is not provided it throws an exception when the key is not found.
 |        These are the same as:  T value = v[key].as<T>();
 |
