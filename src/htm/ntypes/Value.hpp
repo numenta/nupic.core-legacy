@@ -16,6 +16,170 @@
  * You should have received a copy of the GNU Affero Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  * --------------------------------------------------------------------- */
+
+/***********************************************
+|  Value object - a container for data structures that have been parsed
+|  from a YAML or JSON string.  It can hold any structure that can be
+|  parsed from these but does not implement Alias or reference features.
+|  YAML is a superset of JSON format but we only use the JSON compatible features.
+|
+|  Example:
+|   Consider the JSON string:  {scalar: 456, array: [1, 2, 3, 4], string: "true"}
+|   Written as YAML it is:
+|          scalar: 456
+|          array:
+|            - 1
+|            - 2
+|            - 3
+|            - 4
+|          string: "true"
+|
+|   When parsed this is a Map containing three elements indexed as "scalar", "array", and "string".
+|   - The "scalar" element contains the number 456.
+|   - The "array" element contains a Sequence object which holds 4 elements which happen to be numbers.
+|   - The "string" element contains string with the value "true".
+|
+|         std::string source = "{scalar: 456, array: [1, 2, 3, 4], string: \"true\"}";
+|         Value v;
+|         v.parse(source);
+|
+|         v["scalar"].as<int>      --will contain 456 as an integer
+|         v["array"][1].as<int>    --will contain 2 as an integer
+|         v["string"].str()        --will contain "true" as a string.
+|
+|  Usage: Parsing
+|     Value &parse(const std::string &yaml_string);
+|        Parses the yaml_string as a tree with the current object ('this') as the root.
+|        Returns a reference to 'this' so you can do chaining of calls.  The tree consist
+|        of Value objects that are linked together.  The root is also a Value object.
+|        Value objects can a Scalar, a Sequence, or a Map.  It can also be Empty.
+|
+|  Usage: Access
+|     Value& v[key]
+|        Indexes into the Value node with the given key and returns a reference to the selected
+|        item simular to the way STL objects can be accesssed.
+|        - If the base Value (v) is a Scalar, this will give an error.
+|
+|        - The 'key' can be a string; in which case it does a key lookup in that base Value node 
+|          as if it were a std::map<string, Value>. If found, the returned reference is to 
+|          the Value object corresponding to that key which can be a Scalar, a Sequence, or a Map.
+|          If not found it returns a reference to a zombie Value node which has an isEmpty() attribute.  
+|          Unlike STL, it is not added to the tree until it is assigned a value.
+|
+|        - The 'key' can also be an integer in which case  it indexes as if it were std::vector<Value>.
+|          If the numeric index is within range the Value node returned is the Value at that position
+|          in the sequence.  This can be a Scalar, a Sequence, or a Map.
+|          An index of v.size() will return a reference to a zombie Value node as with the string key.
+|          All other out-of-range numeric indexes will give an error.
+|          If the base Value node is a Map type, the values returned will be in the order the values 
+|          were added so this allows Map Values to be accessed by numeric indexes.
+|
+|        - keys can be stacked with conversions... for example:  T val = v[key1][key2].as<T>();
+|
+|     bool contains(const std::string& key)
+|        Returns true if the key matches something in the base Value node.
+|
+|     std::vector<std::string> getKeys()
+|        Returns a vector containing all keys in the base Value node.
+|
+|     size_t size()
+|         Returns the number of elements in the base Value node.
+|
+|     bool operator==()
+|         Deep compare of two Value objects for attributes and content being the same.
+|
+|  Usage:  Attributes
+|      Value::Category getCategory()
+|          Returns the type of Value object.
+|      Value objects can have an attribute or type of:
+|        - Value::Category::Scalar - holds a value; a leaf on the tree. All values are strings.
+|                     v.isScaler()
+|        - Value::Category::Sequence - An array of Value nodes.
+|                     v.isSequence()
+|        - Value::Category::Map - holds a string key plus a Value node.
+|                     v.isMap()
+|        - Value::Category::Empty - A Value node that has not been assigned a value. (a zombie node).
+|                     v.isEmpty()
+|
+|  Usage: Conversions
+|     std::string str()
+|     char* c_str()
+|         Returns the raw string value.   Same as v.as<std::string>() but faster.
+|         The base Value (v) must be a Scaler or it will throw an exception.
+|
+|     T value = v.as<T>()
+|         Converts the internal string value into the specified type T.  
+|         T can be any numeric, boolean or an std::string.  It can also be
+|         anything that stringstream can convert.
+|         The base Value (v) must be a Scaler or it will throw an exception.
+|
+|     std::vector<T> v.asVector<T>()
+|     std::map<std::string, T>  v.asMap<T>()
+|         Converts a base Value into a vector or a map.
+|         The base Value (v) must be a Sequence or a Map or it will throw an exception.
+|
+|  Usage: Iterators
+|     Iterations are similar to STL objects.
+|     The iterated value must be a Sequence or a Map or it throws an exception.
+|
+|     By range:
+|         for (auto itm : vm) {
+|            std::string key = itm.first;
+|            Value& v = itm.second;
+|         }
+|
+|     By iterator:     const and non-const begin() and cbegin() supported.
+|         for (auto itr = vm.begin(); itr != vm.end(); itr++) {
+|            std::string key = itr->first;
+|            Value& v = itr->second;
+|         }
+|
+|     By index:
+|         for (size_t i = 0; i < vm.size(); i++) {
+|            Value& v = vm[i];
+|         }
+|
+|  Usage: Serialization
+|     std::string to_yaml();
+|         Returns a yaml formatted string from the contents of the tree.
+|
+|     std::string to_json();
+|         Returns a JSON formatted string from the contents of the tree.
+|
+|     operator<<(std::ostream &f, const htm::Value &vm);
+|         Returns a JSON formatted string from the contents of the tree.
+|
+|  Usage: Direct Modification
+|     Any Value node can be assigned to.  If the node was a zombie (the result
+|     of allocation or a failed lookup) the node is added to the tree.  If the
+|     node was already in the tree this changes its value and it becomes a Scalar.
+|     If the node had previously been a Map or Sequence, all subordinate nodes 
+|     are released.  Right hand side of expression can be any type of number,
+|     a bool, a string, or a vector<UInt32>.
+|            v = "abc";            -- assigns a string value to the node.
+|            v = 25.6f;            -- converts to a string and assigns to the node.
+|            v[2]["name"][0] = 6;  -- assigns, creating maps and sequences as needed.
+|
+|     void remove()
+|          Will remove the base Value node and all subordinate nodes.
+|          Indexes of Sequences are adjusted.  References to Values in the tree become invalid.
+|
+|     Value copy()
+|          Performs a deep copy of that node and below.
+|
+|  Usage:  Backward Compatability
+|     ValueMap is the same as a Value object.
+|
+|     std::string getString(const std::string &key, const std::string &defaultValue);
+|        Return the raw string value coresponding to the key.
+|
+|     T getScalarT(const std::string &key);
+|     T getScalarT(const std::string &key, T defaultValue);
+|        Return a converted value coresponding to the key.
+|        If the default value is not provided it throws an exception when the key is not found.
+|        These are the same as:  T value = v[key].as<T>();
+|
+************************************************/
 #ifndef NTA_VALUE_HPP
 #define NTA_VALUE_HPP
 
@@ -68,21 +232,6 @@ public:
     ss >> result;
     return result;
   }
-  /*
-  // A work-around for not allowing Explicit template specializations in the class scope.
-  // This is a bug in the GCC compiler before C++17, clang before C++14.  MSVC is ok.
-  inline int8_t as<int8_t>() const     { return asInt8();   }
-  inline int16_t as<int16_t>() const   { return asInt16();  }
-  inline uint16_t as<uint16_t>() const { return asUInt16(); }
-  inline int32_t as<int32_t>() const   { return asInt32();  }
-  inline uint32_t as<uint32_t>() const { return asUInt32(); }
-  inline int64_t as<int64_t>() const   { return asInt64();  }
-  inline uint64_t as<uint64_t>() const { return asUInt64(); }
-  inline float as<float>() const       { return asFloat();  }
-  inline double as<double>() const     { return asDouble(); }
-  inline std::string as<std::string>() const { return asString(); }
-  inline bool as<bool>() const         { return asBool(); }
-*/
 
   /** Assign a value to a Value node in the tree.
    * If a previous operator[] found a match, this does a replace.
