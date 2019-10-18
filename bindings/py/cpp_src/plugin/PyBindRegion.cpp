@@ -27,6 +27,9 @@ In this case, the C++ engine is actually calling into the Python code.
 #include <pybind11/embed.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#include <pybind11/pytypes.h>
+#include <regex>
+#include <vector>
 
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Input.hpp>
@@ -58,72 +61,169 @@ namespace py = pybind11;
         case NTA_BasicType_Real64: { return py::array({ a.getCount() }, { sizeof(Real64) }, (Real64*)a.getBuffer(), py::capsule(a.getBuffer())); }
 
         default:
-        {
             throw Exception(__FILE__, __LINE__, "Data type not implemented");
-
-            break;
-        }
 
         } // switch
     }
 
     // recurseive helper for prepareCreationParams
-    static py::object make_args(const Value& vm) {
-        if (vm.isScalar()) {
-            return py::str(vm.as<std::string>());
+    static py::object make_args(const Value& vm, NTA_BasicType dataType) {
+      //std::cerr << "make_args(\"" << vm << "\", " << dataType << ")\n";
+      if (vm.isScalar() ) {
+        switch(dataType) {
+        case NTA_BasicType_Int16:
+        case NTA_BasicType_UInt16:
+        case NTA_BasicType_Int32:
+        case NTA_BasicType_UInt32:
+        case NTA_BasicType_Int64:
+        case NTA_BasicType_UInt64:
+          return py::int_(vm.as<Int64>());
+        case NTA_BasicType_Real32:
+        case NTA_BasicType_Real64:
+          return py::float_(vm.as<Real64>());
+        case NTA_BasicType_Bool:
+          return py::bool_(vm.as<bool>());
+        case NTA_BasicType_Byte:
+          return py::str(vm.str());
+        default:   // NTA_BasicType_Last
+          // use the format of the data in the string to determine type.
+          std::string s = vm.str();
+          if (std::regex_match(s, std::regex("^[-+]?[0-9]+$"))) {
+            // it is an integer.
+            return py::int_(vm.as<Int64>());
+          }
+          if (std::regex_match(s, std::regex("^[-+]?[0-9]+([.][0-9]+)?$"))) {
+            // it is floating point.
+            return py::float_(vm.as<double>());
+          }
+          else if (std::regex_match(s, std::regex("^(true|false|off|on)$", std::regex::icase))) {
+            return py::bool_(vm.as<bool>());
+          }
+          else 
+            return py::str(s);
         }
-        if (vm.isMap()) {
-            py::kwargs kw;
-            for (auto it = vm.begin(); it != vm.end(); ++it)
-            {
-                std::string key = it->first.c_str();
-                Value v = it->second;
-                kw[key.c_str()] = make_args(v);  // recursive call
+      }
+      else if (vm.isMap()) {
+        py::kwargs kw;
+        for (auto it = vm.begin(); it != vm.end(); ++it)
+        {
+          std::string key = it->first.c_str();
+          Value v = it->second;
+          kw[key.c_str()] = make_args(v, NTA_BasicType_Last);  // recursive call
+        }
+        return std::move(kw);
+      }
+      else if (vm.isSequence()) {
+        switch(dataType) {
+          case NTA_BasicType_Int16:
+          case NTA_BasicType_UInt16:
+          case NTA_BasicType_Int32:
+          case NTA_BasicType_UInt32:
+          case NTA_BasicType_Int64:
+          case NTA_BasicType_UInt64:
+          {
+            py::array_t<Int64> arr({vm.size()});     
+            for (size_t i = 0; i < vm.size(); i++) {
+              arr[py::int_(i)] = make_args(vm[i], dataType); // recursive call
             }
-            return std::move(kw);
-        }
-        if (vm.isSequence()) {
-            auto a = py::list();
-            for(size_t i = 0; i < vm.size(); i++) {
-                Value v = vm[i];
-                a.append(make_args(v));  // recursive call
+            return arr;
+          }
+          case NTA_BasicType_Real32:
+          case NTA_BasicType_Real64:
+          {
+            py::array_t<double> arr({vm.size()});     
+            for (size_t i = 0; i < vm.size(); i++) {
+              arr[py::int_(i)] = make_args(vm[i], dataType); // recursive call
             }
-            return std::move(a);
+            return arr;
+          }
+          case NTA_BasicType_Bool:
+          {
+            py::array_t<bool> arr({vm.size()});     
+            for (size_t i = 0; i < vm.size(); i++) {
+              arr[py::int_(i)] = make_args(vm[i], dataType); // recursive call
+            }
+            return arr;
+          }
+          case NTA_BasicType_Byte:
+          {
+            // return a py::list
+            py::list lst;
+            for (size_t i = 0; i < vm.size(); i++) {
+              if (vm[i].isScalar())
+                lst.append(vm[i].str());
+              else
+                lst.append(vm[i].to_json());
+            }
+            return lst;
+          }
+          default:   // NTA_BasicType_Last
+          {
+            // return a py::list
+            py::list lst;
+            for (size_t i = 0; i < vm.size(); i++) {
+              lst.append(make_args(vm[i], NTA_BasicType_Last)); // recursive call
+            }
+            return lst;
+          }
         }
-        throw Exception(__FILE__, __LINE__, "Not implemented.");
+      }
+      throw Exception(__FILE__, __LINE__, "Not implemented.");
     }
 
 
     // make kwargs from ValueMap.
-    static void prepareCreationParams(const ValueMap & vm, py::kwargs& kwargs)
+    // Basically this will construct the kwargs based on the Spec provided by the
+    // py implemented region.  For each parameter it uses the type specification in the Spec.
+    //  - integer types (Intxx & UIntxx) will be passed as python ints.
+    //  - floating point types (Realxx) will be passed as python floats.
+    //  - boolean types (Bool) will be passed as a python boolean.
+    //  - string types (Byte) will be passed as a python string.
+    //  - NTA_BasicType_Last in Spec as type will mean type based on inspecting the value
+    //    and can contain a nesting of Map, Sequence, and Scalar formatting.
+    // If the ValueMap contains a Sequence for a parameter, numeric types will be 
+    // passed as a numpy array.  String types or anything else will be passed as a python list.
+    // If the ValueMap conatins a Map for a parameter, the spec is ignored and it is 
+    // returned as a python dict (a kwargs) with each element type based on inspecting the value.
+    // 
+    static void prepareCreationParams(const ValueMap & vm, py::kwargs& kwargs, Spec* ns)
     {
-        if (vm.isMap()) {
-            for (auto it = vm.begin(); it != vm.end(); ++it) {
-                std::string key = it->first.c_str();
-                try {
-                    Value value = it->second;
-                    kwargs[key.c_str()] = make_args(value);
-                }
-                catch (Exception& e) {
-                    NTA_THROW << "Unable to create a Python object for parameter '"
-                        << key << ": " << e.what();
-                }
-            }
+      // Look for parameters that don't belong
+      if (vm.isMap()) {
+        for (auto p: vm) {
+          std::string key = p.first;
+          if (key == "dim")
+            continue;
+          if (!ns->parameters.contains(key))
+            NTA_THROW << "Parameter '" << key << "' is not expected for this Region.";
         }
-        else if (vm.isScalar()) {
-            kwargs["arg"] = vm.str();
+      }
+      
+      // apply defaults and encode into py types
+      for (auto p : ns->parameters) {
+        std::string key = p.first;
+        try {
+          ParameterSpec &ps = p.second;
+          if (vm.contains(key) && !(vm[key].isScalar() && vm[key].str().empty())) {
+            kwargs[key.c_str()] = make_args(vm[key], ps.dataType);
+          }
+          else if (!ps.defaultValue.empty()) {
+              // a missing or empty parameter that has a default.
+              // std::cerr << "  default: " << ps.defaultValue << "\n";
+              Value default_value;
+              default_value.parse(ps.defaultValue);
+              kwargs[key.c_str()] = make_args(default_value, ps.dataType);
+          }
+        } 
+        catch(Exception& e) {
+          NTA_THROW << "Unable to create a Python object for parameter '"
+                     << key << ": " << e.what();
         }
-        else if (vm.isSequence()) {
-            try {
-                kwargs["array"] = make_args(vm);
-            }
-            catch (Exception& e) {
-                NTA_THROW << "Unable to create a Python object for parameter 'array:' " << e.what();
-            }
+        catch(std::exception& e) {
+          NTA_THROW << "Unable to create a Python object for parameter '"
+                     << key << ": " << e.what();
         }
-        else {
-            NTA_THROW << "Unable to create a Python object for parameters.";
-        }
+      }
     };
 
     PyBindRegion::PyBindRegion(const char * module, const ValueMap & nodeParams, Region * region, const char* className)
@@ -142,20 +242,24 @@ namespace py = pybind11;
         // Make a local copy of the Spec
         createSpec(module_.c_str(), nodeSpec_, className_.c_str());
 
-        // Validate parameters against the Spec and insert defaults from Spec.
-        ValueMap params = ValidateParameters(nodeParams, &nodeSpec_);
-
         // Prepare the creation params as a tuple of PyObject pointers
         py::args args;
         py::kwargs kwargs;
 
-        prepareCreationParams(params, kwargs);
-
+        //std::cerr << "calling creation of " << module_ << "\n";
+        //std::cerr << "nodeParams: " << nodeParams << "\n";
+        try {
+            prepareCreationParams(nodeParams, kwargs, &nodeSpec_);
+        }
+        catch(Exception &e) {
+            NTA_THROW << "Python region: " << module_ << "; " << e.what();
+        }
+        //std::cerr << "calling arguments: " << kwargs << "\n";
         // Instantiate a node and assign it  to the node_ member
         // node_.assign(py::Instance(module_, realClassName, args, kwargs));
         node_ = py::module::import(module_.c_str()).attr(realClassName.c_str())(*args, **kwargs);
         NTA_CHECK(node_);
-
+        //std::cerr << "return from creation\n";
 
     }
 
@@ -267,6 +371,10 @@ namespace py = pybind11;
         node_.attr("deSerializeExtraData")(*args);
 				Path::remove(tmp_extra);
     }
+
+
+
+
 
     template<typename T>
     T PyBindRegion::getParameterT(const std::string & name, Int64 index)
@@ -411,12 +519,20 @@ namespace py = pybind11;
         py::args args = py::make_tuple(name, index);
         return node_.attr("getParameterArrayCount")(*args).cast<size_t>();
     }
+    
+    
+    
+    
+    
 
     size_t PyBindRegion::getNodeOutputElementCount(const std::string& outputName) const
     {
         py::args args = py::make_tuple(outputName);
-        return node_.attr("getOutputElementCount")(*args).cast<size_t>();
+        return (size_t)node_.attr("getOutputElementCount")(*args).cast<int>();
     }
+    
+    
+    
 
     std::string PyBindRegion::executeCommand(const std::vector<std::string>& args, Int64 index)
     {
@@ -493,11 +609,13 @@ namespace py = pybind11;
     //
     void PyBindRegion::createSpec(const char * module, Spec& ns, const char* className)
     {
+    
         std::string realClassName(className);
         if (realClassName.empty())
         {
             realClassName = Path::getExtension(module);
         }
+        //std::cerr << "createSpec for " << std::string(module) << "." << realClassName << "\n";
 
         try
         {
@@ -715,17 +833,6 @@ namespace py = pybind11;
                             defaultValue,
                             accessMode));
                 }
-
-                // Add the automatic "self" parameter
-                ns.parameters.add(
-                    "self",
-                    ParameterSpec(
-                        "The PyObject * of the region's Python classd",
-                        NTA_BasicType_Handle,
-                        1,
-                        "",
-                        "",
-                        ParameterSpec::ReadOnlyAccess));
             }
 
             if (pyNodeSpec.contains("commands"))

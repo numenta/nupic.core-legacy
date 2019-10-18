@@ -257,6 +257,7 @@ Dimensions RegionImpl::getOutputDimensions(const std::string &name) const {
  * is not consistant with the Spec.  If a field in the Spec is not given
  * in the ValueMap, insert it with its default value.
  * Returns a modifiable deep copy of the ValueMap with defaults inserted.
+ * For optional use by C++ implemented Regions.
  */
 ValueMap RegionImpl::ValidateParameters(const ValueMap &vm, Spec* ns) {
   
@@ -277,9 +278,11 @@ ValueMap RegionImpl::ValidateParameters(const ValueMap &vm, Spec* ns) {
   for (auto p : ns->parameters) {
     std::string key = p.first;
     ParameterSpec &ps = p.second;
-    if (new_vm.getString(key, "").length() == 0) {
-      // a missing or empty parameter.
-      new_vm[key] = ps.defaultValue;
+    if (!ps.defaultValue.empty()) {
+      if (new_vm.getString(key, "").length() == 0) {
+        // a missing or empty parameter.
+        new_vm[key] = ps.defaultValue;
+      }
     }
   }
   

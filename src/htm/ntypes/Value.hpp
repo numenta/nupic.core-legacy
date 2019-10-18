@@ -43,9 +43,10 @@
 |         Value v;
 |         v.parse(source);
 |
-|         v["scalar"].as<int>      --will contain 456 as an integer
-|         v["array"][1].as<int>    --will contain 2 as an integer
-|         v["string"].str()        --will contain "true" as a string.
+|         v["scalar"].as<int>      --will return 456 as an integer
+|         v["array"][1].as<int>    --will return 2 as an integer
+|         v["string"].str()        --will return "true" as a string.
+|         v["string"].as<bool>()   --will return True as a boolean.
 |
 |  Usage: Parsing
 |     Value &parse(const std::string &yaml_string);
@@ -63,18 +64,20 @@
 |        - The 'key' can be a string; in which case it does a key lookup in that base Value node 
 |          as if it were a std::map<string, Value>. If found, the returned reference is to 
 |          the Value object corresponding to that key which can be a Scalar, a Sequence, or a Map.
-|          If not found it returns a reference to a zombie Value node which has an isEmpty() attribute.  
-|          Unlike STL, it is not added to the tree until it is assigned a value.
+|          If not found it returns a reference to a zombie Value node which has an isEmpty() 
+|          attribute. Unlike STL, it is not added to the tree until it is assigned a value.
 |
-|        - The 'key' can also be an integer in which case  it indexes as if it were std::vector<Value>.
-|          If the numeric index is within range the Value node returned is the Value at that position
-|          in the sequence.  This can be a Scalar, a Sequence, or a Map.
-|          An index of v.size() will return a reference to a zombie Value node as with the string key.
-|          All other out-of-range numeric indexes will give an error.
-|          If the base Value node is a Map type, the values returned will be in the order the values 
-|          were added so this allows Map Values to be accessed by numeric indexes.
+|        - The 'key' can also be an integer in which case  it indexes as if it were 
+|          std::vector<Value>. If the numeric index is within range the Value node 
+|          returned is the Value at that position in the sequence.  This can be a Scalar, 
+|          a Sequence, or a Map. An index of v.size() will return a reference to a zombie 
+|          Value node as with the string key. All other out-of-range numeric indexes will 
+|          give an error. If the base Value node is a Map type, the values returned will 
+|          be in the order the values were added so this allows Map Values to be accessed 
+|          by numeric indexes.
 |
-|        - keys can be stacked with conversions... for example:  T val = v[key1][key2].as<T>();
+|        - keys can be stacked with conversions... for example:  
+|                 T val = v[key1][key2].as<T>();
 |
 |     bool contains(const std::string& key)
 |        Returns true if the key matches something in the base Value node.
@@ -92,14 +95,13 @@
 |      Value::Category getCategory()
 |          Returns the type of Value object.
 |      Value objects can have an attribute or type of:
-|        - Value::Category::Scalar - holds a value; a leaf on the tree. All values are strings.
-|                     v.isScaler()
-|        - Value::Category::Sequence - An array of Value nodes.
-|                     v.isSequence()
-|        - Value::Category::Map - holds a string key plus a Value node.
-|                     v.isMap()
-|        - Value::Category::Empty - A Value node that has not been assigned a value. (a zombie node).
-|                     v.isEmpty()
+|        - Value::Category::Scalar   - holds a value; a leaf on the tree. All values are 
+|                                      strings.  v.isScaler() is true.
+|        - Value::Category::Sequence - An array of Value nodes. v.isSequence() is true;
+|        - Value::Category::Map      - holds a string key plus a Value node. 
+|                                      v.isMap() is true;
+|        - Value::Category::Empty    - A Value node that has not been assigned a value. 
+|                                     (i.e. it is a zombie node).  v.isEmpty() is true.
 |
 |  Usage: Conversions
 |     std::string str()
@@ -115,7 +117,7 @@
 |
 |     std::vector<T> v.asVector<T>()
 |     std::map<std::string, T>  v.asMap<T>()
-|         Converts a base Value into a vector or a map.
+|         Converts the scalar items in a base Value into a vector or a map.
 |         The base Value (v) must be a Sequence or a Map or it will throw an exception.
 |         Any element that is not a Scalar will be skipped.
 |

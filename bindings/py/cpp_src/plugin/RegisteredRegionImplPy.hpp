@@ -107,6 +107,10 @@ namespace htm
         {
             throw htm::Exception(e);
         }
+        catch (std::exception &e)
+        {
+            NTA_THROW << std::string(e.what());
+        }
         catch (...)
         {
             NTA_THROW << "Something bad happed while creating a .py region";

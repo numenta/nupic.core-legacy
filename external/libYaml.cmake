@@ -21,8 +21,8 @@
 # This downloads and builds the libyaml library.
 #
 # libyaml  - This is a SAX parser which means that it performs callbacks
-#            for each token it parses from the yaml text.  Therefore
-#            the interface (Value.cpp) must create the internal structure.
+#            or returns tokens for each symbol it parses from the yaml text.  
+#            Therefore the interface (Value.cpp) must create the internal structure.
 #            This is a YAML 1.1 implementation.
 #
 #            The current release is 0.2.2

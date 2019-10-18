@@ -210,6 +210,8 @@ static void setNode(Value &val, const YAML::Node &node) {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
+// The remaining code is independent of the parser
+
 
 // Constructor
 Value::Value() {
