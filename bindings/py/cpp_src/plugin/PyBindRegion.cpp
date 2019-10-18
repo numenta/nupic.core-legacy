@@ -65,6 +65,17 @@ namespace py = pybind11;
 
         } // switch
     }
+    
+    template<class T>
+    py::array_t<T> create_matrix(size_t width, T *data_ptr  = nullptr) {
+      return py::array_t<T>(
+        	py::buffer_info( data_ptr,
+		                       sizeof(T), //itemsize
+		                       py::format_descriptor<T>::format(),
+		                       1, // ndim
+		                       std::vector<size_t> { width }, // shape
+		                       std::vector<size_t> { sizeof(T)} ));// strides
+    }
 
     // recurseive helper for prepareCreationParams
     static py::object make_args(const Value& vm, NTA_BasicType dataType) {
@@ -122,28 +133,28 @@ namespace py = pybind11;
           case NTA_BasicType_Int64:
           case NTA_BasicType_UInt64:
           {
-            py::array_t<Int64> arr({vm.size()});     
+            py::array_t<Int64> arr = create_matrix<Int64>(vm.size());
             for (size_t i = 0; i < vm.size(); i++) {
               arr[py::int_(i)] = make_args(vm[i], dataType); // recursive call
             }
-            return arr;
+            return std::move(arr);
           }
           case NTA_BasicType_Real32:
           case NTA_BasicType_Real64:
           {
-            py::array_t<double> arr({vm.size()});     
+            py::array_t<double> arr = create_matrix<double>(vm.size());
             for (size_t i = 0; i < vm.size(); i++) {
               arr[py::int_(i)] = make_args(vm[i], dataType); // recursive call
             }
-            return arr;
+            return std::move(arr);
           }
           case NTA_BasicType_Bool:
           {
-            py::array_t<bool> arr({vm.size()});     
+            py::array_t<bool> arr = create_matrix<bool>(vm.size());
             for (size_t i = 0; i < vm.size(); i++) {
               arr[py::int_(i)] = make_args(vm[i], dataType); // recursive call
             }
-            return arr;
+            return std::move(arr);
           }
           case NTA_BasicType_Byte:
           {
@@ -155,7 +166,7 @@ namespace py = pybind11;
               else
                 lst.append(vm[i].to_json());
             }
-            return lst;
+            return std::move(lst);
           }
           default:   // NTA_BasicType_Last
           {
@@ -164,7 +175,7 @@ namespace py = pybind11;
             for (size_t i = 0; i < vm.size(); i++) {
               lst.append(make_args(vm[i], NTA_BasicType_Last)); // recursive call
             }
-            return lst;
+            return std::move(lst);
           }
         }
       }
