@@ -2,7 +2,7 @@
  * HTM Community Edition of NuPIC
  * Copyright (C) 2019, Numenta, Inc.
  *
- * David Keeney dkeeney@gmail.com
+ * author: David Keeney dkeeney@gmail.com, 10/2019
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -195,12 +195,37 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <thread>
 
 namespace htm {
 
 
 
 class Value {
+public:
+  enum Category { Empty = 0, Scalar, Sequence, Map };
+
+private:
+  // All internal data held by the Value node is contained in this structure
+  // within a shared_ptr.  When a Zombie node is assigned a value, this data
+  // is copied to the real node as it is inserted into the map in the parent.
+  // So a reference to the Zombie or the real node will access the same data.
+  struct internals {
+    enum Value::Category type_;         // type of node, Map, Sequence, Scalar, Empty
+    std::map<std::string, Value> map_;  // values in a Map or Sequence
+    std::vector<std::map<std::string, Value>::iterator> vec_;
+                                        // index of iterators pointing to Map entries.
+    Value *parent_;                     // a pointer to the parent node  (do not delete)
+    std::string scalar_;                // scalar value.  Not used on Map or Sequence nodes
+    std::string key_;                   // The key for this node.
+    size_t index_;                      // initial index or ZOMBIE_MAP/ZOMBIE_SEQ in zombie nodes.
+    std::map<std::thread::id, std::shared_ptr<Value>> zombie_; 
+                                        // map of pointers to zombie child Value nodes.
+                                        // One element for each thread accessing the class.
+                                        // Returned when operator[] not found.
+  };
+  std::shared_ptr<struct internals> core_;
+
 public:
   Value();
 
@@ -211,7 +236,6 @@ public:
   size_t size() const;
 
   // type of value in the Value node
-  enum Category { Empty = 0, Scalar, Sequence, Map };
   Category getCategory() const;
   bool isScalar() const;
   bool isSequence() const;
@@ -231,10 +255,10 @@ public:
   const Value &operator[](size_t index) const;
 
   template <typename T> inline T as() const {
-    if (type_ != Category::Scalar)
-      NTA_THROW << "not found. '" << scalar_ << "'";
+    if (core_->type_ != Category::Scalar)
+      NTA_THROW << "not found. '" << core_->scalar_ << "'";
     T result;
-    std::stringstream ss(scalar_);
+    std::stringstream ss(core_->scalar_);
     ss >> result;
     return result;
   }
@@ -307,13 +331,13 @@ public:
       const Value &n = iter->second;
       try {
         if (n.isScalar()) {
-          v[n.key_] = n.as<T>();
+          v[n.core_->key_] = n.as<T>();
         } else {
           // non-scalar field.  Ignore
         }
       } catch (std::exception &e) {
         // probably bad conversion of scalar to requested type.
-        NTA_THROW << "Invalid map element[\"" << n.key_ << "\"] " << e.what();
+        NTA_THROW << "Invalid map element[\"" << n.core_->key_ << "\"] " << e.what();
       }
     }
     return v;
@@ -328,28 +352,31 @@ public:
     return (*this)[key].as<T>();
   }
   template <typename T> T getScalarT(const std::string &key, T defaultValue) const { // with default
-    if ((*this)[key].type_ != Value::Category::Scalar)
+    if ((*this)[key].core_->type_ != Value::Category::Scalar)
       return defaultValue;
     return (*this)[key].as<T>();
   }
   std::string getString(const std::string &key, const std::string &defaultValue) const {
-    if ((*this)[key].type_ != Value::Category::Scalar)
+    if ((*this)[key].core_->type_ != Value::Category::Scalar)
       return defaultValue;
     return (*this)[key].str();
   }
 
   friend std::ostream &operator<<(std::ostream &f, const htm::Value &vm);
 
-  std::map<std::string, Value>::iterator begin() { return map_.begin(); }
-  std::map<std::string, Value>::iterator end() { return map_.end(); }
-  std::map<std::string, Value>::const_iterator begin() const { return map_.begin(); }
-  std::map<std::string, Value>::const_iterator end() const { return map_.end(); }
-  std::map<std::string, Value>::const_iterator cbegin() const { return map_.cbegin(); }
-  std::map<std::string, Value>::const_iterator cend() const { return map_.cend(); }
+  std::map<std::string, Value>::iterator begin() { return core_->map_.begin(); }
+  std::map<std::string, Value>::iterator end() { return core_->map_.end(); }
+  std::map<std::string, Value>::const_iterator begin() const { return core_->map_.begin(); }
+  std::map<std::string, Value>::const_iterator end() const { return core_->map_.end(); }
+  std::map<std::string, Value>::const_iterator cbegin() const { return core_->map_.cbegin(); }
+  std::map<std::string, Value>::const_iterator cend() const { return core_->map_.cend(); }
+
+  // for validating linkages within tree -- for debugging only.
+  bool check(const Value *parent, const std::string &indent) const;
 
 private:
   void assign(std::string val); // add a scalar
-  void addToParent();           // Assign to the map/vector in the parent
+  Value* addToParent();         // Assign to the map/vector in the parent
   void copy(Value *target) const;
   void cleanup();
 
@@ -365,16 +392,6 @@ private:
   std::string asString() const;
   bool asBool() const ;
 
-
-  enum Category type_; // type of node
-  std::map<std::string, Value> map_;
-  std::vector<std::map<std::string, Value>::iterator> vec_;
-  Value *parent_;      // a pointer to the parent node  (do not delete)
-  std::string scalar_; // scalar value.  Not used on Map or Sequence nodes
-  std::string key_;    // The key for this node.
-  size_t index_;       // initial index  Also,  ZOMBIE_MAP in zombie nodes.
-  std::shared_ptr<Value> zombie_;      // pointer to a zombie child Value node. Returned when operator[] not found.
-  Value *assigned_;   // For a zombie, a pointer to assigned node in tree.
 };
 
 

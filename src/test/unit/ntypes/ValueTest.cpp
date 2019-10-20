@@ -202,6 +202,7 @@ TEST(ValueTest, inserts) {
   for (int i = 0; i < 3; i++) {
     v[i] = i*100+100; // assign to an array on a zombie which should add it to the tree.
   }
+
   //std::cout << "inserts2: " << vm << "\n";
   EXPECT_STREQ("[[[1]], [100, 200, 300]]", vm.to_json().c_str());
 
@@ -267,6 +268,7 @@ string: this is a string
 
   vm.parse(data);
   //std::cout << vm << "\n";
+  EXPECT_TRUE(vm.check(nullptr, ""));
   for (auto itr = vm.begin(); itr != vm.end(); itr++) {
     std::string key = itr->first;
     if (key == "scalar")
@@ -305,7 +307,10 @@ TEST(ValueTest, deletes) {
   EXPECT_EQ(vm.size(), 3u);
   EXPECT_EQ(vm["array"].size(), 4u);
 
+  //std::cout << "reference: " << vm << "\n";
+
   vm["scalar"].remove();
+  //std::cout << "scalar removed: " << vm << "\n";
   EXPECT_EQ(vm.size(), 2u);
   EXPECT_ANY_THROW(vm["scalar"].str());
   EXPECT_TRUE(vm[0].isSequence());
@@ -315,6 +320,7 @@ TEST(ValueTest, deletes) {
   EXPECT_EQ(vm[0].size(), 4u);
 
   vm[0][0].remove();
+  //std::cout << "[0][0] removed: " << vm << "\n";
   EXPECT_EQ(vm[0].size(), 3u);
   EXPECT_TRUE(vm[0][0].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
@@ -322,6 +328,7 @@ TEST(ValueTest, deletes) {
   EXPECT_ANY_THROW(vm[0][3].as<int>());
 
   vm[0][2].remove();
+  //std::cout << "[0][2] removed: " << vm << "\n";
   EXPECT_EQ(vm[0].size(), 2u);
   EXPECT_TRUE(vm[0][1].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
@@ -329,6 +336,7 @@ TEST(ValueTest, deletes) {
   EXPECT_ANY_THROW(vm[0][2].as<int>());
 
   vm[0][2] = 6;
+  //std::cout << "[0][2] = 6 : " << vm << "\n";
   EXPECT_EQ(vm[0].size(), 3u);
   EXPECT_TRUE(vm[0][1].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
@@ -340,14 +348,17 @@ TEST(ValueTest, deletes) {
   for (size_t i = 0; i < 3u; i++) {
     EXPECT_EQ(expected[i], v[i]);
   }
+  EXPECT_TRUE(vm.check(nullptr, ""));
 
   vm[0][2].remove();
+  //std::cout << "[0][2] removed : " << vm << "\n";
   EXPECT_EQ(vm[0].size(), 2u);
   for (size_t i = 0; i < 2u; i++) {
     EXPECT_EQ(expected[i], v[i]);
   }
 
   vm[0].remove();
+  //std::cout << "[0][2] removed : " << vm << "\n";
   EXPECT_EQ(vm.size(), 1u);
   EXPECT_TRUE(vm[0].isScalar());
   EXPECT_TRUE(vm.contains("string"));
