@@ -211,18 +211,20 @@ private:
   // is copied to the real node as it is inserted into the map in the parent.
   // So a reference to the Zombie or the real node will access the same data.
   struct internals {
-    enum Value::Category type_;         // type of node, Map, Sequence, Scalar, Empty
-    std::map<std::string, Value> map_;  // values in a Map or Sequence
+    enum Value::Category type_;                // type of node, Map, Sequence, Scalar, Empty
+    std::map<std::string, Value> map_;         // values in a Map or Sequence
     std::vector<std::map<std::string, Value>::iterator> vec_;
-                                        // index of iterators pointing to Map entries.
-    Value *parent_;                     // a pointer to the parent node  (do not delete)
-    std::string scalar_;                // scalar value.  Not used on Map or Sequence nodes
-    std::string key_;                   // The key for this node.
-    size_t index_;                      // initial index or ZOMBIE_MAP/ZOMBIE_SEQ in zombie nodes.
+                                               // index of iterators pointing to Map entries.
+    std::shared_ptr<struct internals> parent_; // a pointer to the parent's core 
+    std::string scalar_;                       // scalar value.  Not used on Map or Sequence nodes
+    std::string key_;                          // The key for this node.
+    size_t index_;                             // initial index or ZOMBIE_MAP/ZOMBIE_SEQ in zombie nodes.
     std::map<std::thread::id, std::shared_ptr<Value>> zombie_; 
-                                        // map of pointers to zombie child Value nodes.
-                                        // One element for each thread accessing the class.
-                                        // Returned when operator[] not found.
+                                               // map of pointers to zombie child Value nodes.
+                                               // One element for each thread accessing the class.
+                                               // Returned by operator[] when it does not found a key.
+    void addToParent(Value& node);             // Assign to the map/vector in the parent
+    void remove();                             // Remove this node from parent
   };
   std::shared_ptr<struct internals> core_;
 
@@ -372,11 +374,10 @@ public:
   std::map<std::string, Value>::const_iterator cend() const { return core_->map_.cend(); }
 
   // for validating linkages within tree -- for debugging only.
-  bool check(const Value *parent, const std::string &indent) const;
+  bool check(const std::string &indent = "") const;
 
 private:
   void assign(std::string val); // add a scalar
-  Value* addToParent();         // Assign to the map/vector in the parent
   void copy(Value *target) const;
   void cleanup();
 

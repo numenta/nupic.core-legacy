@@ -268,7 +268,7 @@ string: this is a string
 
   vm.parse(data);
   //std::cout << vm << "\n";
-  EXPECT_TRUE(vm.check(nullptr, ""));
+  EXPECT_TRUE(vm.check());
   for (auto itr = vm.begin(); itr != vm.end(); itr++) {
     std::string key = itr->first;
     if (key == "scalar")
@@ -311,6 +311,7 @@ TEST(ValueTest, deletes) {
 
   vm["scalar"].remove();
   //std::cout << "scalar removed: " << vm << "\n";
+  EXPECT_TRUE(vm.check());
   EXPECT_EQ(vm.size(), 2u);
   EXPECT_ANY_THROW(vm["scalar"].str());
   EXPECT_TRUE(vm[0].isSequence());
@@ -321,6 +322,7 @@ TEST(ValueTest, deletes) {
 
   vm[0][0].remove();
   //std::cout << "[0][0] removed: " << vm << "\n";
+  EXPECT_TRUE(vm.check());
   EXPECT_EQ(vm[0].size(), 3u);
   EXPECT_TRUE(vm[0][0].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
@@ -329,6 +331,7 @@ TEST(ValueTest, deletes) {
 
   vm[0][2].remove();
   //std::cout << "[0][2] removed: " << vm << "\n";
+  EXPECT_TRUE(vm.check());
   EXPECT_EQ(vm[0].size(), 2u);
   EXPECT_TRUE(vm[0][1].isScalar());
   EXPECT_EQ(vm[0][0].as<int>(), 2);
@@ -348,7 +351,7 @@ TEST(ValueTest, deletes) {
   for (size_t i = 0; i < 3u; i++) {
     EXPECT_EQ(expected[i], v[i]);
   }
-  EXPECT_TRUE(vm.check(nullptr, ""));
+  EXPECT_TRUE(vm.check());
 
   vm[0][2].remove();
   //std::cout << "[0][2] removed : " << vm << "\n";

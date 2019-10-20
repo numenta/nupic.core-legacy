@@ -68,7 +68,7 @@ Value &Value::parse(const std::string &yaml_string) {
   core_->map_.clear();
   core_->scalar_ = "";
   core_->type_ = Value::Category::Empty;
-  //core_->parent_ = nullptr;
+  //core_->parent_.reset();
 
   Value *node = this;
 
@@ -219,7 +219,6 @@ static void setNode(Value &val, const YAML::Node &node) {
 Value::Value() {
   core_ = std::make_shared<struct internals>();
   core_->type_ = Value::Category::Empty;
-  core_->parent_ = nullptr;
   core_->index_ = ZOMBIE_MAP;
 }
 
@@ -237,7 +236,7 @@ bool Value::isScalar() const { return getCategory() == Value::Category::Scalar; 
 bool Value::isSequence() const { return getCategory() == Value::Category::Sequence; }
 bool Value::isMap() const { return getCategory() == Value::Category::Map; }
 bool Value::isEmpty() const { return getCategory() == Value::Category::Empty; }
-bool Value::isRoot() const { return (core_->parent_ == nullptr); }
+bool Value::isRoot() const { return (!core_->parent_); }
 
 size_t Value::size() const {
   NTA_CHECK(core_->map_.size() == core_->vec_.size()) << "Detected Corruption of ValueMap structure";
@@ -277,16 +276,11 @@ Value &Value::operator[](const std::string &key) {
     // NOTE: only one zombie per parent per thread can exist at a time.
     //       Its scope is until the next call to operator[].
 
-    // determine the parent to use for new zombies
-    Value *realParent = this;
-    if (!isEmpty() && !isRoot())
-      realParent = &core_->parent_->core_->vec_[core_->index_]->second;
-
     // create the zombie for this thread.
     std::thread::id this_id = std::this_thread::get_id();
     std::shared_ptr<Value> zombie = std::make_shared<Value>();
     core_->zombie_[this_id] = zombie;
-    zombie->core_->parent_ = realParent;
+    zombie->core_->parent_ = this->core_;
     zombie->core_->key_ = key;
     zombie->core_->index_ = ZOMBIE_MAP;
     return (*zombie);
@@ -318,16 +312,12 @@ Value &Value::operator[](size_t index) {
         break;
       key += "-";
     }
-    // determine the parent to use for this new zombie
-    Value *realParent = this;
-    if (!isEmpty() && !isRoot())
-      realParent = &core_->parent_->core_->vec_[core_->index_]->second;
 
     // Create the zombie for this thread
     std::thread::id this_id = std::this_thread::get_id();
     std::shared_ptr<Value> zombie = std::make_shared<Value>();
     core_->zombie_[this_id] = zombie;
-    zombie->core_->parent_ = realParent;
+    zombie->core_->parent_ = this->core_;
     zombie->core_->key_ = key;
     zombie->core_->index_ = ZOMBIE_SEQ;
     return (*zombie);
@@ -363,47 +353,47 @@ std::vector<std::string> Value::getKeys() const {
 // Insert this node into the parent.
 // Requires that there was a key (either string or index) unless it is root
 // and if it was a string key, its index will be ZOMBIE_MAP.
-Value* Value::addToParent() {
-  std::pair<std::map<std::string, Value>::iterator, bool> ret;
-  if (isRoot()) {
-    return this; 
+void Value::internals::addToParent(Value& node) {
+  if (!parent_) {
+    return; // This is root
   }
-  NTA_CHECK(!core_->key_.empty()) << "No key was provided.  Use node[key] = value.";
+  NTA_CHECK(!key_.empty()) << "No key was provided.  Use node[key] = value.";
   // Make sure the parent is in the tree.
-  if (core_->parent_->core_->type_ == Value::Category::Empty) {
-    core_->parent_ = core_->parent_->addToParent();
+  if (parent_->type_ == Value::Category::Empty) {
+    Value pnode;
+    pnode.core_ = parent_;
+    parent_->addToParent(pnode);
   }
-  bool isKeyForMap = (core_->index_ == ZOMBIE_MAP);
+  bool isKeyForMap = (index_ == ZOMBIE_MAP);
 
   // Add the node to the parent.
-  Value *assigned;
   g_tree_mutex.lock();
-  auto itr = core_->parent_->core_->map_.find(core_->key_);
-  if (itr == core_->parent_->core_->map_.end()) {
-    core_->index_ = core_->parent_->core_->vec_.size();
-    ret = core_->parent_->core_->map_.insert(std::pair<std::string, Value>(core_->key_, *this));
-    core_->parent_->core_->vec_.push_back(ret.first);
-    assigned = &ret.first->second;
-  } else {
-    assigned = &itr->second;
+  try {
+    auto itr = parent_->map_.find(key_);
+    if (itr == parent_->map_.end()) {
+      index_ = parent_->vec_.size();
+      auto ret = parent_->map_.insert(std::pair<std::string, Value>(key_, node));
+      parent_->vec_.push_back(ret.first);
+    }
+  } catch (std::exception &e) {
+    g_tree_mutex.unlock();
+    NTA_THROW << e.what();
   }
   g_tree_mutex.unlock();
 
-  NTA_CHECK(core_->parent_->core_->map_.size() == core_->parent_->core_->vec_.size())
+  NTA_CHECK(parent_->map_.size() == parent_->vec_.size())
       << "Detected Corruption of ValueMap structure";
 
   // determine the type on the parent
   if (isKeyForMap)
-    core_->parent_->core_->type_ = Value::Category::Map;
-  else if (core_->parent_->core_->type_ == Value::Category::Empty)
-    core_->parent_->core_->type_ = Value::Category::Sequence;
-  return assigned;
+    parent_->type_ = Value::Category::Map;
+  else if (parent_->type_ == Value::Category::Empty)
+    parent_->type_ = Value::Category::Sequence;
 }
 
 // Assign a Scalar value to a Value node.
 void Value::assign(std::string val) {
-  if (core_->parent_ == nullptr) {
-    // This is the root node.
+  if (isRoot()) {
     core_->map_.clear();
     core_->vec_.clear();
     core_->scalar_ = val;
@@ -417,8 +407,7 @@ void Value::assign(std::string val) {
 
     // Add to parent.
     // If its parent is also a zombie, add it to the tree as well.
-    // When it returns, 'assigned_' will point to the real node.
-    addToParent();
+    core_->addToParent(*this);
     core_->scalar_ = val;
     core_->type_ = Value::Category::Scalar;
   } else {
@@ -460,14 +449,24 @@ void Value::copy(Value *target) const {
   target->core_->key_ = core_->key_;
   target->core_->index_ = core_->index_;
 
-  std::pair<std::map<std::string, Value>::iterator, bool> ret;
   for (size_t i = 0; i < core_->vec_.size(); i++) {
+    std::pair<std::map<std::string, Value>::iterator, bool> ret;
     std::string key = core_->vec_[i]->first;
-    Value itm;
-    ret = target->core_->map_.insert(std::pair<std::string, Value>(key, itm));
-    target->core_->vec_.push_back(ret.first);
+    Value child_target; 
+    child_target.core_->parent_ = target->core_;
+    g_tree_mutex.lock();
+    try {
+      auto itr = target->core_->map_.find(key);
+      if (itr == target->core_->map_.end()) {
+        ret = target->core_->map_.insert(std::pair<std::string, Value>(key, child_target));
+        target->core_->vec_.push_back(ret.first);
+      }
+    } catch (std::exception &e) {
+      g_tree_mutex.unlock();
+      NTA_THROW << e.what();
+    }
+    g_tree_mutex.unlock();
     core_->vec_[i]->second.copy(&ret.first->second);
-    core_->vec_[i]->second.core_->parent_ = target;
   }
 }
 
@@ -482,34 +481,35 @@ void Value::cleanup() {
     core_->vec_[i]->second.core_->zombie_.clear();
 }
 
-void Value::remove() {
-  NTA_CHECK(!isEmpty()) << "Item not found."; // current node is a zombie not assigned.
-  if (core_->parent_ == nullptr) {
+void Value::remove() { core_->remove(); }
+
+void Value::internals::remove() {
+  if (!parent_) {
     // This is root.  Just clear the map.
-    core_->vec_.clear();
-    core_->map_.clear();
-    core_->type_ = Value::Category::Empty;
+    vec_.clear();
+    map_.clear();
+    type_ = Value::Category::Empty;
     return;
   }
-  NTA_CHECK(core_->parent_->core_->vec_[core_->index_]->second == *this);
-  if (core_->parent_->core_->vec_.size() == 1) {
+  NTA_CHECK(type_ != Value::Category::Empty) << "Item not found."; // current node is a zombie not assigned.
+  if (parent_->vec_.size() == 1) {
     // Last node in parent, remove parent.
-    core_->parent_->remove();
+    parent_->remove();
     return;
   }
-  std::string key = core_->parent_->core_->vec_[core_->index_]->first;
-  auto itr = core_->parent_->core_->map_.find(key);
+  std::string key = parent_->vec_[index_]->first;
+  auto itr = parent_->map_.find(key);
 
   // adjust the index on all following items.
   // We have to do it here because as soon as we erase the map item
   // it will delete 'this'.
-  for (size_t i = core_->index_ + 1; i < core_->parent_->core_->vec_.size(); i++) {
-    core_->parent_->core_->vec_[i]->second.core_->index_ = i - 1;
+  for (size_t i = index_ + 1; i < parent_->vec_.size(); i++) {
+    parent_->vec_[i]->second.core_->index_ = i - 1;
   }
 
-  core_->parent_->core_->vec_.erase(core_->parent_->core_->vec_.begin() + core_->index_);
-  core_->parent_->core_->map_.erase(itr);
-  // The node object is deleted. Do no try to access it.
+  parent_->vec_.erase(parent_->vec_.begin() + index_);
+  parent_->map_.erase(itr);
+  // The 'this' object is deleted. Do no try to access it.
 }
 
 // Compare two nodes recursively to see if content is same.
@@ -724,17 +724,17 @@ std::string Value::to_yaml() const {
 
 // Keep this around for debugging.  Useful for unit tests.
 // A validation routine -- only useful validating that all internal links are valid.
-// to call:   status = vm.check(nullptr, "");
-bool Value::check(const Value *parent, const std::string& indent) const {
+// to call:   status = vm.check();
+bool Value::check(const std::string& indent) const {
   bool status = true;
-  if (core_->parent_ != parent) {
-    std::cout << indent << "parents do not match.\n";
-    status = false;
-  }
   if (core_->type_ == Scalar) {
     // std::cout << indent << "Scalar(value=\"" << core_->scalar_ << "\")\n";
   } else if (core_->type_ == Empty) {
     // std::cout << indent << "Empty(value=\"" << core_->scalar_ << "\)\n";
+    if (core_->parent_) {
+      std::cout << indent << "ERROR: No Zombies should be in the tree.\n";
+      status = false;
+    }
   } else if (core_->type_ == Sequence) {
     //std::cout << indent << "Sequence()\n";
   } else if (core_->type_ == Map) {
@@ -744,10 +744,19 @@ bool Value::check(const Value *parent, const std::string& indent) const {
   for (size_t i = 0; i < core_->vec_.size(); i++) {
     //std::cout << indent << "  - index(" << core_->vec_[i]->second.core_->index_ << ")  key(\"" << core_->vec_[i]->first << "\")\n";
     if (core_->vec_[i]->second.core_->index_ != i) {
-      std::cout << indent << "i = " << i << "; index_ does not match vec_ index\n";
+      std::cout << indent << "i = " << i << "; ERROR: index_ does not match vec_ index\n";
       status = false;
     }
-    if (!core_->vec_[i]->second.check(this, indent + "  ")) status = false;
+    if (core_->vec_[i]->second.core_->key_ != core_->vec_[i]->first) {
+      std::cout << indent << "i = " << i << "; ERROR: key in node does not match map_ key\n";
+      status = false;
+    }
+    if (core_->parent_.get() != core_->parent_.get()) {
+      std::cout << indent << "ERROR: parents do not match.\n";
+      status = false;
+    }
+    if (!core_->vec_[i]->second.check(indent + "  "))
+      status = false;
   }
   return status;
 }
