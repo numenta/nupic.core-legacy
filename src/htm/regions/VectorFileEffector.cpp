@@ -29,7 +29,6 @@
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
-#include <htm/ntypes/Value.hpp>
 #include <htm/regions/VectorFileEffector.hpp>
 #include <htm/utils/Log.hpp>
 
@@ -39,7 +38,7 @@ VectorFileEffector::VectorFileEffector(const ValueMap &params, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {
   if (params.contains("outputFile")) {
-    std::string s = params.getString("outputFile");
+    std::string s = params.getString("outputFile", "");
     openFile(s);
   }
   else

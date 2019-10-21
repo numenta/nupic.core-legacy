@@ -26,7 +26,6 @@
 #include <htm/engine/Output.hpp>
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Spec.hpp>
-#include <htm/engine/YAMLUtils.hpp>
 #include <htm/ntypes/Value.hpp>
 #include <htm/os/Env.hpp>
 #include <htm/os/Path.hpp>
@@ -112,9 +111,8 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
                                                 Region *region) {
 
   RegionImpl *impl = nullptr;
-  std::shared_ptr<Spec>& ns = getSpec(nodeType);
-  ValueMap vm = YAMLUtils::toValueMap(nodeParams.c_str(), ns->parameters,
-                                      nodeType, region->getName());
+  ValueMap vm;
+  vm.parse(nodeParams);
 
   if (regionTypeMap.find(nodeType) != regionTypeMap.end()) {
     impl = regionTypeMap[nodeType]->createRegionImpl(vm, region);
@@ -124,9 +122,8 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
 
   // If the parameter 'dim' was defined, parse that out as a global parameter.
   if (vm.contains("dim")) {
-    std::shared_ptr<Array> dim = vm.getArray("dim");
-    Dimensions d(dim->asVector<UInt32>());
-    impl->setDimensions(d);
+    std::vector<UInt32> dim = vm["dim"].asVector<UInt32>();
+    impl->setDimensions(dim);
   }
 
   return impl;

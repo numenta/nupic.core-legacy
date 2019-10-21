@@ -54,7 +54,7 @@ include(GNUInstallDirs)
 include(ExternalProject)
 set(EP_BASE ${CMAKE_BINARY_DIR})
 if (MSVC)
-  set(EXTERNAL_CXX_FLAGS /EHsc "$<$<CONFIG:Release>:/MD>" "$<$<CONFIG:Debug>:/MDd>")
+  set(EXTERNAL_CXX_FLAGS /EHsc /W0 "$<$<CONFIG:Release>:/MD>" "$<$<CONFIG:Debug>:/MDd>")
 else()
   set(EXTERNAL_CXX_FLAGS -fPIC)
 endif()
@@ -80,8 +80,13 @@ include(common.cmake)
 
 
 ################
+# Yaml Parser
+# you can select either Yaml-cpp or libYaml but not both.
 # Yaml-cpp
-include(YamlCppLib.cmake)
+###include(YamlCppLib.cmake)
+
+# LibYaml
+include(libYaml.cmake)
 
 
 ################

@@ -57,7 +57,6 @@ set(engine_tests
 	   unit/engine/InputTest.cpp
 	   unit/engine/LinkTest.cpp
 	   unit/engine/NetworkTest.cpp
-	   unit/engine/YAMLUtilsTest.cpp
 	   unit/engine/WatcherTest.cpp
 	   )
 	   
@@ -71,7 +70,6 @@ set(ntypes_tests
 	   unit/ntypes/BasicTypeTest.cpp
 	   unit/ntypes/CollectionTest.cpp
 	   unit/ntypes/DimensionsTest.cpp
-	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
@@ -86,8 +84,8 @@ set(regions_tests
 	   unit/regions/RegionTestUtilities.cpp
 	   unit/regions/RegionTestUtilities.hpp
 	   unit/regions/SPRegionTest.cpp
-           unit/regions/TMRegionTest.cpp
-           unit/regions/VectorFileTest.cpp
+       unit/regions/TMRegionTest.cpp
+       unit/regions/VectorFileTest.cpp
 	   )
 
 	   

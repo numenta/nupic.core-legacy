@@ -61,8 +61,8 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "{count: 64}");
   std::shared_ptr<Region> region3 = net.addRegion("region3", "TestNode", "");
 
-  net.link("region1", "region3"); 
-  net.link("region2", "region3"); 
+  net.link("region1", "region3");
+  net.link("region2", "region3");
 
   net.initialize();
 
@@ -114,7 +114,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   std::shared_ptr<Region> region1 = net.addRegion("region1", "ScalarSensor", "{dim: [6,1], n: 6, w: 2}");
   std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [20,3]}");
 
-  net.link("region1", "region2"); 
+  net.link("region1", "region2");
 
   net.initialize();
 
@@ -125,7 +125,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   EXPECT_EQ(r1dims[1], 1u) << " actual dims: " << r1dims.toString();
 
 
-  region1->compute(); 
+  region1->compute();
   VERBOSE << "Checking region1 output after first iteration..." << std::endl;
   const Array r1OutputArray = region1->getOutputData("encoded");
   VERBOSE << r1OutputArray << "\n";
@@ -146,7 +146,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
   EXPECT_EQ(r2dims[0], 20u) << " actual dims: " << r2dims.toString(); //match dims of SPRegion constructed above
   EXPECT_EQ(r2dims[1], 3u) << " actual dims: " << r2dims.toString();
-  
+
   const Array r2OutputArray = region2->getOutputData("bottomUpOut");
   EXPECT_EQ(r2OutputArray.getType(), NTA_BasicType_SDR);
   EXPECT_EQ(r2OutputArray.getSDR().dimensions, r2dims)
@@ -163,12 +163,9 @@ TEST(CppRegionTest, testCppLinkingSDR) {
 
 TEST(CppRegionTest, testYAML) {
   const char *params = "{count: 42, int32Param: 1234, real64Param: 23.1}";
-  //  badparams contains a non-existent parameter
-  const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
   Network net;
   std::shared_ptr<Region> level1;
-  EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});
 
@@ -272,12 +269,12 @@ TEST(CppRegionTest, realmain) {
 
 TEST(CppRegionTest, RegionSerialization) {
 	Network n;
-	
+
 	std::shared_ptr<Region> r1 = n.addRegion("testnode", "TestNode", "{count: 2}");
-	
+
 	std::stringstream ss;
 	r1->save(ss);
-	
+
 	Region r2(&n);
 	r2.load(ss);
 	EXPECT_EQ(*r1.get(), r2);
