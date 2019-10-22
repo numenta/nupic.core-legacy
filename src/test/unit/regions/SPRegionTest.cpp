@@ -50,7 +50,6 @@
 #include <htm/os/Path.hpp>
 #include <htm/os/Timer.hpp>
 #include <htm/os/Directory.hpp>
-#include <htm/engine/YAMLUtils.hpp>
 #include <htm/regions/SPRegion.hpp>
 
 
@@ -64,7 +63,6 @@
 #include <streambuf>
 
 
-#include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 #include "RegionTestUtilities.hpp"
 

@@ -112,8 +112,6 @@ set(engine_files
     htm/engine/RegisteredRegionImplCpp.hpp
     htm/engine/Spec.cpp
     htm/engine/Spec.hpp
-    htm/engine/YAMLUtils.cpp
-    htm/engine/YAMLUtils.hpp
     htm/engine/Watcher.cpp
     htm/engine/Watcher.hpp
 )
@@ -127,8 +125,6 @@ set(ntypes_files
     htm/ntypes/BasicType.hpp
     htm/ntypes/Collection.hpp
     htm/ntypes/Dimensions.hpp
-    htm/ntypes/Scalar.cpp
-    htm/ntypes/Scalar.hpp
     htm/ntypes/Value.cpp
     htm/ntypes/Value.hpp
 )
@@ -234,6 +230,7 @@ if(MSVC)
   set_property(TARGET ${src_objlib} PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
 endif()
 target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_compile_definitions(${src_objlib} PRIVATE ${yaml_DEFINE})
 target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
 		SYSTEM ${EXTERNAL_INCLUDES}
@@ -261,7 +258,7 @@ endif()
 #
 set(src_combined_htmcore_source_archives
     ${src_lib_static}
-    ${yaml-cpp_LIBRARIES}
+    ${yaml_LIBRARIES}
     ${Boost_LIBRARIES}
     ${common_LIBRARIES}
     )
@@ -281,7 +278,7 @@ else()
 	# Note that these libraries must already exist (from depenancies)
 	set(all_object_locations)
 	set(src_externLibs
-            ${yaml-cpp_LIBRARIES}
+            ${yaml_LIBRARIES}
             ${Boost_LIBRARIES}
             ${common_LIBRARIES}
             )

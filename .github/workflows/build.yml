@@ -32,10 +32,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Set up old Python for PyPI
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
       uses: actions/setup-python@v1
       with:
-        python-version: 3.5
+        python-version: 3.7 #FIXME for better PyPI compatibility, we need to compile on older python. But unittests  fail to import with <3.7
 
     - name: Versions
       run: |
@@ -192,7 +192,7 @@ jobs:
         # bug in ubuntu, conflicts with docker.io
         sudo apt-get update
         sudo apt-get remove --purge -y moby-engine moby-cli
-        sudo apt-get install -y docker.io
+        sudo apt-get install -y qemu-user-static docker.io
 
     - uses: actions/checkout@v1
 
@@ -212,7 +212,7 @@ jobs:
         ls dist
 
     - name: Release (deploy)
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') #only on tag/release
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') #only on tag/release, not schedule
       # from https://github.com/marketplace/actions/gh-release
       uses: softprops/action-gh-release@v1
       with:

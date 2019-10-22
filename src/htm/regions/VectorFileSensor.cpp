@@ -32,7 +32,6 @@
 #include <htm/engine/Spec.hpp>
 #include <htm/regions/VectorFileSensor.hpp>
 #include <htm/utils/Log.hpp>
-#include <htm/ntypes/Value.hpp>
 
 using namespace std;
 namespace htm {
@@ -58,12 +57,12 @@ VectorFileSensor::VectorFileSensor(const ValueMap &params, Region *region)
   activeOutputCount_ = params.getScalarT<UInt32>("activeOutputCount", 0);
   hasCategoryOut_ = params.getScalarT<UInt32>("hasCategoryOut", 0) == 1;
   hasResetOut_ = params.getScalarT<UInt32>("hasResetOut", 0) == 1;
-  scalingMode_ = params.getString("scalingMode");
+  scalingMode_ = params.getString("scalingMode", "none");
   if (scalingMode_ != "standardForm")
     scalingMode_ = "none";
 
   if (params.contains("inputFile"))
-    filename_ = params.getString("inputFile");
+    filename_ = params.getString("inputFile", "");
 }
 
 VectorFileSensor::VectorFileSensor(ArWrapper& wrapper, Region *region) 

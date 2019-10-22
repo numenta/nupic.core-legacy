@@ -41,6 +41,8 @@ in C++ library.
 ### Binary releases
 
 If you want to use `htm.core` from Python, the easiest method is to install from [PyPI](https://test.pypi.org/project/htm.core/)
+  - Note: to install from `pip` you'll need Python 3.7+ 
+
 ```
 python -m pip install -i https://test.pypi.org/simple/ htm.core
 ```
@@ -107,7 +109,7 @@ python.exe
 >>> help( htm )          # Documentation
 ```
 
-#### Simple C++ build (Linux or OSX)
+#### Simple C++ build 
 
 After downloading the repository, do the following:
 ```
@@ -135,18 +137,6 @@ make -j install
 
  * This will not build the Python interface.
 
-## Simple Build On Windows (MS Visual Studio 2017 or 2019)
-
-After downloading the repository, do the following:
-
- * NOTE: Visual Studio 2019 requires CMake version 3.14 or higher.
- * CD to the top of repository.
- * Double click on startupMSVC.bat
-    - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
- * Select `Release` or `Debug` as the Solution Configuration. Solution Platform must remain at x64.
- * Build everything.  This will build the C++ library.
- * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
- * If you also want the Python extension library; in a command prompt, cd to root of repository and run `python setup.py install --user --prefix=`.
 
 ### Docker Builds
 
@@ -210,7 +200,46 @@ This uses Docker and QEMU to achieve an ARM64 build on Actions' x86_64/amd64 har
  * Specify the build system folder (`$HTM_CORE/build/scripts`), i.e. where IDE solution will be created.
  * Click `Generate`.
 
-#### [For MS Visual Studio 2017 or 2019 as the IDE](#simple-build-on-windows-ms-visual-studio-2017)
+#### For MS Visual Studio 2017 or 2019 as the IDE
+
+After downloading the repository, do the following:
+ * NOTE: Visual Studio 2019 requires CMake version 3.14 or higher.
+ * CD to the top of repository.
+ * Double click on `startupMSVC.bat`
+    - This will setup the build, create the solution file (build/scripts/htm.cpp.sln), and start MS Visual Studio.
+ * Select `Release` or `Debug` as the Solution Configuration. Solution Platform must remain at x64.
+ * Build everything.  This will build the C++ library.
+ * In the solution explorer window, right Click on 'unit_tests' and select `Set as StartUp Project` so debugger will run unit tests.
+ * If you also want the Python extension library; then delete the `build` folder and then in a command prompt, cd to root of repository and run `python setup.py install --user --force`.
+
+#### For Visual Studio Code as the IDE
+[Visual Studio Code](https://code.visualstudio.com/) can be used on any of our three platforms (Windows, Linux, OSx). 
+You will need the C/C++ Tools extension by Microsoft and CMake Tools by vector-of-bool.
+
+Startup Visual Studio Code and open the folder containing your htm.core repository which will set the workspace. Let it scan for a kit.  Clear all of the notifications (lower right) so it can let you do the scan.
+
+Then set your project level settings by initializing  <repository>/.vscode/settings.json to the following as a starting point.
+
+For Windows 10:
+```
+  .vscode\settings.json          
+    {
+    "cmake.buildDirectory": "${workspaceRoot}/build/scripts",
+    "cmake.generator": "Visual Studio 16 2019",
+    "cmake.platform": "x64",
+    }
+```
+To use Visual Studio 2017 as the tool chain, change generator to "Visual Studio 15 2017" and set the platform to "win32".  Note that the ninja generator, the default, did not work very well on Windows.
+
+For Ubuntu and OSx:
+```
+   .vscode/settings.json
+    {
+    "cmake.buildDirectory": "${workspaceRoot}/build/scripts",
+    "cmake.generator": "gcc",
+    }
+```
+
 
 #### For Eclipse as the IDE
  * File - new C/C++Project - Empty or Existing CMake Project
@@ -250,7 +279,7 @@ entirely remove the `build/` folder (ie. `git clean -xdf`).
 The installation scripts will automatically download and build the dependencies it needs.
 
  * [Boost](https://www.boost.org/)   (Not needed by C++17 compilers that support the filesystem module)
- * [Yaml-cpp](https://github.com/jbeder/yaml-cpp)
+ * [LibYaml](https://pyyaml.org/wiki/LibYAML) or [Yaml-cpp](https://github.com/jbeder/yaml-cpp)
  * [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
  * [PyBind11](https://github.com/pybind/pybind11)
  * [gtest](https://github.com/google/googletest)
@@ -270,18 +299,20 @@ distribution packages as listed and rename them as indicated. Copy these to
 
 | Name to give it        | Where to obtain it |
 | :--------------------- | :----------------- |
-| yaml-cpp.zip  (*note1) | https://github.com/jbeder/yaml-cpp/archive/master.zip |
-| boost.tar.gz  (*note2) | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz |
+| libyaml.zip   (*node1) | https://github.com/yaml/libyaml/archive/master.zip |
+| yaml-cpp.zip  (*note2) | https://github.com/jbeder/yaml-cpp/archive/master.zip |
+| boost.tar.gz  (*note3) | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz |
 | eigen.tar.bz2          | http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 |
 | googletest.tar.gz      | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
-| mnist.zip     (*note3) | https://github.com/wichtounet/mnist/archive/master.zip |
+| mnist.zip     (*note4) | https://github.com/wichtounet/mnist/archive/master.zip |
 | pybind11.tar.gz        | https://github.com/pybind/pybind11/archive/v2.4.2.tar.gz |
 | cereal.tar.gz          | https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz |
 | digestpp.zip           | https://github.com/kerukuro/digestpp/archive/36fa6ca2b85808bd171b13b65a345130dbe1d774.zip |
 
- * note1: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
- * note2: Boost is not required for any compiler that supports C++17 with `std::filesystem` (MSVC2017, gcc-8, clang-9).
- * note3: Data used for demo. Not required.
+ * note1: Version 0.2.2 of libyaml is broken so use the master for the repository.
+ * note2: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
+ * note3: Boost is not required for any compiler that supports C++17 with `std::filesystem` (MSVC2017, gcc-8, clang-9).
+ * note4: Data used for demo. Not required.
 
 ## Testing
 

@@ -47,7 +47,7 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   args_.activationThreshold = params.getScalarT<UInt32>("activationThreshold", 13);
   args_.initialPermanence = params.getScalarT<Real32>("initialPermanence", 0.21f);
   args_.connectedPermanence = params.getScalarT<Real32>("connectedPermanence", 0.50f);
-  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 10);
+  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 8);
   args_.maxNewSynapseCount = params.getScalarT<UInt32>("maxNewSynapseCount", 20);
   args_.permanenceIncrement = params.getScalarT<Real32>("permanenceIncrement", 0.10f);
   args_.permanenceDecrement = params.getScalarT<Real32>("permanenceDecrement", 0.10f);
