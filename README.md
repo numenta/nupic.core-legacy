@@ -52,20 +52,17 @@ Note: to run all examples with visualizations, install including extra requireme
 If you intend to use `htm.core` as a library that provides you Python \& C++ HTM, 
 you can use our [binary releases](https://github.com/htm-community/htm.core/releases).
 
-
-### Building from Source
-
-Fork or download the HTM-Community htm.core repository from https://github.com/htm-community/htm.core
-
 #### Prerequisites
 
-- [CMake](http://www.cmake.org/)  Version 3.8  (3.14 for Visual Studio 2019)
+For running C++ apps/examples/tests from binary release: none. 
+If you want to use python, then obviously:
+
 - [Python](https://python.org/downloads/)
     - Version 3.4+ (Recommended)
     - Version 2.7
       + We recommend the latest version of 2.7 where possible, but the system version should be fine.
       + Python 2 is Not Supported on Windows, use Python 3 instead.
-      + Python 2 is not tested by our CI anomore. It may still work but we don't test it. We expect to drop support for Python2 around 2020. 
+      + Python 2 is not tested by our CI anomore. It may still work but we don't test it. We expect to drop support for Python2 around 2020.
 
   Be sure that your Python executable is in the Path environment variable.
   The Python that is in your default path is the one that will determine which
@@ -73,12 +70,19 @@ Fork or download the HTM-Community htm.core repository from https://github.com/h
   - NOTE: People have reported success with `Anaconda` python.
   - Other implementations of Python may not work.
   - Only the standard python from python.org have been tested.
-- Python tools: In a command prompt execute the following.
-```
-cd to-repository-root
-python -m pip install --user --upgrade pip setuptools setuptools-scm wheel
-python -m pip install --no-cache-dir --user -r requirements.txt
-```
+
+
+### Building from Source
+
+Fork or download the HTM-Community htm.core repository from https://github.com/htm-community/htm.core
+
+#### Prerequisites
+
+- same as for Binary releases, plus:
+- [CMake](http://www.cmake.org/)  Version 3.7  (3.14 for MSVC 2019)
+    - You should use `cmake` provided by your distribution,
+    - if not available, you can install it from Python: `python -m pip install cmake>=3.10`
+- **C++ compiler**: c++11/17 compatible (ie. g++, clang++)
 
 Be sure you are running the right version of python. Check it with the following command:
 ```
@@ -92,12 +96,6 @@ python --version
 2) Run: `python setup.py install --user --force`
 
    This will build and install everything.
-
-   * Option `--user` will install the library in into your home directory so
-   that you don't need administrator/superuser permissions.
-
-   * Option `--force` will install the library even if the same version of it is
-   already installed, which is useful when developing the library.
 
    * If you run into problems due to caching of arguments in CMake, delete the
    folder `Repository/build` and try again.  This is only an issue when
@@ -254,7 +252,7 @@ For Ubuntu and OSx:
 For all new work, tab settings are at 2 characters, replace tabs with spaces.
 The clang-format is LLVM style.
 
-## Workflow: Debugging 
+### Workflow: Debugging 
 
 Creating a debug build of the `htm.core` library and unit tests is the same as building any C++ 
 application in Debug mode in any IDE as long as you do not include the python bindings. i.e. do 
@@ -276,7 +274,7 @@ Be aware that the CMake maintains a cache of build-time arguments and it will ig
 to CMake if is already in the cache.  So, between runs you need to clear the cache or even better,
 entirely remove the `build/` folder (ie. `git clean -xdf`).
 
-## Third Party Dependencies
+### Workflow: Dependency management
 
 The installation scripts will automatically download and build the dependencies it needs.
 
