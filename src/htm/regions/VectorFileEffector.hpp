@@ -30,10 +30,10 @@
 #include <htm/ntypes/Array.hpp>
 #include <htm/types/Types.hpp>
 #include <htm/types/Serializable.hpp>
+#include <htm/ntypes/Value.hpp>
 
 namespace htm {
 
-class ValueMap;
 
 /**
  *  VectorFileEffector is a node that takes its input vectors and

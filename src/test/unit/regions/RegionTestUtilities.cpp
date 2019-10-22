@@ -39,7 +39,7 @@ namespace testing {
 // Assumes that the default value in the Spec is the same as the default when
 // creating a region with default constructor.  The Set checks might not work if
 // the range of a ReadWriteAccess parameter is restricted. In this case, add a constraint to Spec.
-void checkGetSetAgainstSpec(std::shared_ptr<Region> region1, 
+void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
                             size_t expectedSpecCount,
                             std::set<std::string>& excluded,
                             bool verbose) {
@@ -57,7 +57,6 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
 
   // Look through the Spec and look for every instance of a parameter.
   // get/set/verify each parameter
-  bool negativeCheck = true;
   for (size_t i = 0; i < specCount; i++) {
     std::pair<std::string, ParameterSpec> p = ns->parameters.getByIndex(i);
     std::string name = p.first;
@@ -68,11 +67,6 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
         switch (p.second.dataType) {
 
         case NTA_BasicType_UInt32: {
-          if (negativeCheck) {
-				    negativeCheck = false;
-				    VERBOSE << "negative check..." << std::endl;
-				    EXPECT_THROW(region1->getParameterInt32("bad_parameter"), htm::Exception); 
-			    }
           VERBOSE << "Parameter \"" << name << "\" type: " << BasicType::getName(p.second.dataType) << std::endl;
 
           // check the getter.
@@ -156,7 +150,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
               region1->setParameterReal32(name, v); // return to original value.
             }
           }
-          break; 
+          break;
         }
 
         case NTA_BasicType_Real64: {
@@ -218,7 +212,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
 
         // Array types
         switch (p.second.dataType) {
-        case NTA_BasicType_Byte: 
+        case NTA_BasicType_Byte:
         {
           std::string v = region1->getParameterString(name);
           if (!p.second.defaultValue.empty()) {
@@ -268,14 +262,14 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1,
 }
 
 // --- Tests the input/output access for a C++ implemented region against the Spec.
-void checkInputOutputsAgainstSpec(std::shared_ptr<Region> region1, bool verbose) 
+void checkInputOutputsAgainstSpec(std::shared_ptr<Region> region1, bool verbose)
 {
   const std::shared_ptr<Spec> ns = region1->getSpec();
 
   for (Size i = 0; i < ns->outputs.getCount(); i++) {
     std::string name = ns->outputs.getByIndex(i).first;
     OutputSpec ospec = ns->outputs.getByIndex(i).second;
-    
+
     VERBOSE << "Output \"" << name << "\" type: " << BasicType::getName(ospec.dataType) << std::endl;
     Output *O = region1->getOutput(name);
     ASSERT_TRUE(O != nullptr) << "The output obj could not be found.";
@@ -287,7 +281,7 @@ void checkInputOutputsAgainstSpec(std::shared_ptr<Region> region1, bool verbose)
   for (Size j = 0; j < ns->inputs.getCount(); j++) {
     std::string name = ns->inputs.getByIndex(j).first;
     InputSpec ispec = ns->inputs.getByIndex(j).second;
-    
+
     VERBOSE << "Input \"" << name << "\" type: " << BasicType::getName(ispec.dataType) << std::endl;
     Input *I = region1->getInput(name);
     ASSERT_TRUE(I != nullptr) << "The input obj could not be found.";
@@ -532,8 +526,8 @@ compareParameters(std::shared_ptr<Region> region,
 }
 
 ::testing::AssertionResult
-compareOutputs(std::shared_ptr<Region> region1, 
-               std::shared_ptr<Region> region2, 
+compareOutputs(std::shared_ptr<Region> region1,
+               std::shared_ptr<Region> region2,
                std::string name) {
   // Compare the Array objects.
   if (region1->getOutput(name)->getData() ==

@@ -47,8 +47,10 @@ void Classifier::initialize(const Real alpha)
 PDF Classifier::infer(const SDR & pattern) const {
   // Check input dimensions, or if this is the first time the Classifier is used and dimensions
   // are unset, return zeroes.
-  NTA_CHECK( dimensions_ != 0 )
-    << "Classifier: must call `learn` before `infer`.";
+  if( dimensions_ == 0 ) {
+    NTA_WARN << "Classifier: must call `learn` before `infer`.";
+    return PDF(numCategories_, std::nan("")); //empty array []
+  }
   NTA_ASSERT(pattern.size == dimensions_) << "Input SDR does not match previously seen size!";
 
   // Accumulate feed forward input.
@@ -127,7 +129,7 @@ void htm::softmax(PDF::iterator begin, PDF::iterator end) {
     *itr = std::exp(*itr - maxVal); // x[i] = e ^ (x[i] - maxVal)
   }
   // Sum of all elements raised to exp(elem) each.
-  const Real sum = (Real) std::accumulate(begin, end, 0.0f);
+  const Real sum = (Real) std::accumulate(begin, end, 0.0);
   NTA_ASSERT(sum > 0.0f);
   for (auto itr = begin; itr != end; ++itr) {
     *itr /= sum;

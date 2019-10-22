@@ -501,7 +501,7 @@ class GridCellLocationRegion(PyRegion):
         Returns the size of the output array
         """
         if name in ["activeCells", "learnableCells", "sensoryAssociatedCells"]:
-            return self.cellCount * self.moduleCount
+            return (self.cellCount * self.moduleCount)
         else:
             raise Exception("Invalid output name specified: " + name)
 

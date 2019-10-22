@@ -11,26 +11,23 @@ ARG host=amd64
 FROM multiarch/qemu-user-static as bootstrap
 ARG arch
 ARG host
-RUN echo -e "Switching from $host to $arch \n" && uname -a
+RUN echo "Switching from $host to $arch" && uname -a
 
 ## Stage 1: build of htm.core on the target platform
 # Multiarch Debian 10 Buster (amd64, arm64, etc).
 #   https://hub.docker.com/r/multiarch/debian-debootstrap
-FROM multiarch/debian-debootstrap:${arch}-buster-slim as build
+FROM multiarch/alpine:${arch}-latest-stable as build
 ARG arch
 #copy value of ARG arch from above 
-RUN echo -n "Building HTM for${arch}\n" && uname -a
+RUN echo "Building HTM for${arch}" && uname -a
 
-RUN apt-get update && \
-    apt-get install -y --no-install-suggests \
+RUN apk add --update  \
     cmake \
-    g++-8 \
-    git-core \
-    libyaml-dev \
+    make \
+    g++ \
+    git \
     python3-dev \
-    python3-numpy \
-    python3-pip \
-    python3-venv
+    py3-numpy 
 
 ADD . /usr/local/src/htm.core
 WORKDIR /usr/local/src/htm.core
@@ -43,7 +40,7 @@ RUN ln -s /usr/bin/python3 /usr/local/bin/python && python --version
 RUN python -m pip install --upgrade setuptools pip wheel
 
 # Install
-RUN pip uninstall -y htm.core
+RUN python -m pip uninstall -y htm.core
 RUN python -m pip install \
 # Explicitly specify --cache-dir, --build, and --no-clean so that build
 # artifacts may be extracted from the container later.  Final built python
@@ -52,6 +49,11 @@ RUN python -m pip install \
 #        --build /usr/local/src/htm.core/pip-build \
 #        --no-clean \
         -r requirements.txt
+RUN mkdir -p build/scripts && \
+    cd build/scripts && \
+    cmake ../.. -DCMAKE_BUILD_TYPE=Release && \
+    make -j8 && make install
+
 RUN python setup.py install --force
 
 # Test

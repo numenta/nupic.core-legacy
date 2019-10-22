@@ -41,7 +41,6 @@ namespace htm {
 class RegionImpl;
 class Region;
 class Spec;
-class ValueMap;
 class RegisteredRegionImpl;
 
 class RegionImplFactory {

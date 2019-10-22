@@ -59,7 +59,6 @@ namespace htm
   class ArWrapper;
   class RegionImpl;
   class Region;
-  class ValueMap;
 
 
   template <class T>

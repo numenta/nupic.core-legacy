@@ -103,8 +103,7 @@ sp = SP(inputSDR.dimensions,
 # input. As well, the histogram will show the scores of those columns
 # that are chosen to build the sparse representation of the input.
 
-sp.compute(inputSDR, False, outputSDR)
-overlaps = sp.getOverlaps()
+overlaps = sp.compute(inputSDR, False, outputSDR)
 activeColsScores = []
 for i in outputSDR.sparse:
   activeColsScores.append(overlaps[i])
@@ -240,10 +239,12 @@ outputColumns = [SDR(outputSDR.size) for _ in range(numExamples)]
 # This is the number of times that we will present the input vectors to the SP
 epochs = 30
 
+overlapsUntrained = overlaps
+
 for _ in range(epochs):
   for i in range(numExamples):
     # Feed the examples to the SP
-    sp.compute(inputVectors[i], True, outputColumns[i])
+    overlaps = sp.compute(inputVectors[i], True, outputColumns[i])
 
 print("")
 print("---------------------------------")
@@ -254,8 +255,7 @@ print("of the output sparse representation, are highlighted in green.")
 print("---------------------------------")
 print("")
 
-plt.plot(sorted(overlaps)[::-1], label="Before learning")
-overlaps = sp.getOverlaps()
+plt.plot(sorted(overlapsUntrained)[::-1], label="Before learning")
 plt.plot(sorted(overlaps)[::-1], label="After learning")
 plt.axvspan(0, len(activeColsScores), facecolor="g", alpha=0.3, label="Active columns")
 plt.legend(loc="upper right")

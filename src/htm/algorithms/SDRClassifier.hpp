@@ -128,6 +128,7 @@ public:
    * @param pattern: The SDR containing the active input bits.
    * @returns: The Probablility Distribution Function (PDF) of the categories.
    *           This is indexed by the category label.
+   *           Or empty array ([]) if Classifier hasn't called learn() before. 
    */
   PDF infer(const SDR & pattern) const;
 
