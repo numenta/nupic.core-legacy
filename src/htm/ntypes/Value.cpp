@@ -610,10 +610,10 @@ static void escape_json(std::ostream &o, const std::string &s) {
       o << "\\t";
       break;
     default:
-      if ('\x00' <= *c && *c <= '\x1f') {
+      if (*c <= '\x1f' || *c >= '\x7f') { //unprintable or non-ascii chars -> convert to hex.
         o << "\\u" << std::hex << std::setw(4) << std::setfill('0') << (int)*c;
       } else {
-        o << *c;
+        o << *c; 
       }
     }
   }
