@@ -51,7 +51,7 @@ RUN python -m pip install \
         -r requirements.txt
 RUN mkdir -p build/scripts && \
     cd build/scripts && \
-    cmake ../.. -DCMAKE_BUILD_TYPE=Release && \
+    cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBINDING_BUILD=Python3 && \
     make -j8 && make install
 
 RUN python setup.py install --force
