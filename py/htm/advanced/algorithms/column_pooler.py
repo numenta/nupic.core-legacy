@@ -598,6 +598,7 @@ class ColumnPooler(object):
         For remaining parameters, see the __init__ docstring.
         """
 
+        active_intput_array = np.array(activeInput.sparse)
         for cell in self.activeCells:
             segments = permanences.segmentsForCell(cell)
             if not segments:
@@ -606,17 +607,16 @@ class ColumnPooler(object):
                 segment = segments[0] # Should only have one segment per cell
                 
             permanences.adaptSegment(segment, activeInput, permanenceIncrement, permanenceDecrement, False)
-            
-            presynamptic_cells = [permanences.presynapticCellForSynapse(synapse) for synapse in permanences.synapsesForSegment(segment)]
+            presynamptic_cells = np.array([permanences.presynapticCellForSynapse(synapse) for synapse in permanences.synapsesForSegment(segment)])
             
             if sampleSize == -1:
-                active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells)
+                active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells, assume_unique=True)
 
             else:      
-                existingSynapseCounts = len(np.intersect1d(presynamptic_cells, activeInput.sparse))
+                existingSynapseCounts = len(np.intersect1d(presynamptic_cells, active_intput_array, assume_unique=True))
                 effective_sample_size = sampleSize - existingSynapseCounts
                 if effective_sample_size > 0:
-                    active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells)
+                    active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells, assume_unique=True)
                     if effective_sample_size < len(active_cells_without_synapses):
                         active_cells_without_synapses = self._sample(active_cells_without_synapses, effective_sample_size)
                 else:

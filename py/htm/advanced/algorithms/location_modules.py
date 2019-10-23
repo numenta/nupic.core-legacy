@@ -165,18 +165,18 @@ class AbstractLocationModule(ABC):
 
         # Cells with a active segment: reinforce the segment
         cellsForActiveSegments = self.connections.mapSegmentsToCells(activeSegments)
-        learningActiveSegments = activeSegments[np.in1d(cellsForActiveSegments, self.getLearnableCells())]
-        remainingCells = np.setdiff1d(self.getLearnableCells(), cellsForActiveSegments)
+        learningActiveSegments = activeSegments[np.in1d(cellsForActiveSegments, self.getLearnableCells(), assume_unique=True)]
+        remainingCells = np.setdiff1d(self.getLearnableCells(), cellsForActiveSegments, assume_unique=True)
 
         # Remaining cells with a matching segment: reinforce the best
         # matching segment.
         candidateSegments = self.connections.filterSegmentsByCell(matchingSegments, remainingCells)
         cellsForCandidateSegments = (self.connections.mapSegmentsToCells(candidateSegments))
-        candidateSegments = candidateSegments[np.in1d(cellsForCandidateSegments, remainingCells)]
+        candidateSegments = candidateSegments[np.in1d(cellsForCandidateSegments, remainingCells, assume_unique=True)]
         onePerCellFilter = np2.argmaxMulti(potentialOverlaps[candidateSegments], cellsForCandidateSegments)
         learningMatchingSegments = candidateSegments[onePerCellFilter]
 
-        newSegmentCells = np.setdiff1d(remainingCells, cellsForCandidateSegments)
+        newSegmentCells = np.setdiff1d(remainingCells, cellsForCandidateSegments, assume_unique=True)
 
         for learningSegments in (learningActiveSegments, learningMatchingSegments):
             self._learn(learningSegments, anchorInput, potentialOverlaps)
@@ -754,12 +754,12 @@ class Superficial2DLocationModule(AbstractLocationModule):
 
         sensorySupportedCells = np.unique(self.connections.mapSegmentsToCells(activeSegments))
 
-        inactivated = np.setdiff1d(self.activeCells, sensorySupportedCells)
-        inactivatedIndices = np.in1d(self.cellsForActivePhases, inactivated).nonzero()[0]
+        inactivated = np.setdiff1d(self.activeCells, sensorySupportedCells, assume_unique=True)
+        inactivatedIndices = np.in1d(self.cellsForActivePhases, inactivated, assume_unique=True).nonzero()[0]
         if inactivatedIndices.size > 0:
             self.activePhases = np.delete(self.activePhases, inactivatedIndices, axis=0)
 
-        activated = np.setdiff1d(sensorySupportedCells, self.activeCells)
+        activated = np.setdiff1d(sensorySupportedCells, self.activeCells, assume_unique=True)
 
         # Find centers of point clouds
         if "corners" in self.anchoringMethod:
