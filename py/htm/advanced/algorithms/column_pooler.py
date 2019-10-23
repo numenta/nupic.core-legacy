@@ -598,7 +598,7 @@ class ColumnPooler(object):
         For remaining parameters, see the __init__ docstring.
         """
 
-        active_input_array = np.array(activeInput.sparse)
+        active_input_array = activeInput.sparse
         
         for cell in self.activeCells:
             segments = permanences.segmentsForCell(cell)
@@ -614,22 +614,22 @@ class ColumnPooler(object):
                 active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells, assume_unique=True)
 
             else:      
+                active_cells_without_synapses = []
+                
                 existingSynapseCounts = len(np.intersect1d(presynamptic_cells, active_input_array, assume_unique=True))
                 effective_sample_size = sampleSize - existingSynapseCounts
+                
                 if effective_sample_size > 0:
                     active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells, assume_unique=True)
                     if effective_sample_size < len(active_cells_without_synapses):
-                        active_cells_without_synapses = self._sample(active_cells_without_synapses, effective_sample_size)
-                else:
-                    active_cells_without_synapses = []
+                        active_cells_without_synapses = self._random.sample(active_cells_without_synapses, effective_sample_size)
                     
             for c in active_cells_without_synapses:
                 permanences.createSynapse(segment, c, initialPermanence)
  
     #
     # Functionality that could be added to the C code or bindings
-    #
-    
+    #    
     def _sampleRange(self, start, end, step, k):
         """
         Equivalent to:
@@ -639,8 +639,7 @@ class ColumnPooler(object):
         except it uses our random number generator.
         """
         return np.array(self._random.sample(np.arange(start, end, step, dtype="uint32"), k), dtype="uint32")
-    
-    
+        
     def _sample(self, arr, k):
         """
         Equivalent to:
