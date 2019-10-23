@@ -587,7 +587,8 @@ bool Value::asBool() const {
  */
 static void escape_json(std::ostream &o, const std::string &s) {
   for (auto c = s.cbegin(); c != s.cend(); c++) {
-    switch (*c) {
+    const signed char sc = static_cast<signed char>(*c);
+    switch (sc) {
     case '"':
       o << "\\\"";
       break;
@@ -610,10 +611,10 @@ static void escape_json(std::ostream &o, const std::string &s) {
       o << "\\t";
       break;
     default:
-      if ('\x00' <= *c && *c <= '\x1f') {
-        o << "\\u" << std::hex << std::setw(4) << std::setfill('0') << (int)*c;
+      if ('\x00' <= sc && sc <= '\x1f') {
+        o << "\\u" << std::hex << std::setw(4) << std::setfill('0') << (int)sc;
       } else {
-        o << *c;
+        o << sc;
       }
     }
   }
