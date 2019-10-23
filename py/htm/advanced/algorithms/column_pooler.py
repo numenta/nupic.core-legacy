@@ -598,7 +598,8 @@ class ColumnPooler(object):
         For remaining parameters, see the __init__ docstring.
         """
 
-        active_intput_array = np.array(activeInput.sparse)
+        active_input_array = np.array(activeInput.sparse)
+        
         for cell in self.activeCells:
             segments = permanences.segmentsForCell(cell)
             if not segments:
@@ -613,7 +614,7 @@ class ColumnPooler(object):
                 active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells, assume_unique=True)
 
             else:      
-                existingSynapseCounts = len(np.intersect1d(presynamptic_cells, active_intput_array, assume_unique=True))
+                existingSynapseCounts = len(np.intersect1d(presynamptic_cells, active_input_array, assume_unique=True))
                 effective_sample_size = sampleSize - existingSynapseCounts
                 if effective_sample_size > 0:
                     active_cells_without_synapses = np.setdiff1d(growthCandidateInput, presynamptic_cells, assume_unique=True)
