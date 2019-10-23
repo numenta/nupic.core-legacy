@@ -584,6 +584,7 @@ bool Value::asBool() const {
 
 /**
  * a local function to apply escapes for a JSON string.
+ See: http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
  */
 static void escape_json(std::ostream &o, const std::string &s) {
   for (auto c = s.cbegin(); c != s.cend(); c++) {
@@ -610,7 +611,8 @@ static void escape_json(std::ostream &o, const std::string &s) {
       o << "\\t";
       break;
     default:
-      if (*c <= '\x1f' || *c >= '\x7f') { //unprintable or non-ascii chars -> convert to hex.
+      if (*c <= '\x1f' || *c == '\x7f') { 
+        //control characters -> convert to hex.
         o << "\\u" << std::hex << std::setw(4) << std::setfill('0') << (int)*c;
       } else {
         o << *c; 
