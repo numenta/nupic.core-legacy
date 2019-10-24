@@ -421,7 +421,7 @@ class ColumnPooler(object):
             n = min(n, len(remainingFFcells))
 
             if len(remainingFFcells) > n:
-                selected = self._sample(remainingFFcells, n)
+                selected = self._random.sample(remainingFFcells, n)
                 chosenCells = np.append(chosenCells, selected)
             else:
                 chosenCells = np.append(chosenCells, remainingFFcells)
@@ -599,6 +599,7 @@ class ColumnPooler(object):
         """
 
         active_input_array = activeInput.sparse
+        growthCandidateInput = np.uint32(growthCandidateInput)
         
         for cell in self.activeCells:
             segments = permanences.segmentsForCell(cell)
@@ -640,14 +641,3 @@ class ColumnPooler(object):
         """
         return np.array(self._random.sample(np.arange(start, end, step, dtype="uint32"), k), dtype="uint32")
         
-    def _sample(self, arr, k):
-        """
-        Equivalent to:
-    
-        random.sample(arr, k)
-    
-        except it uses our random number generator.
-        """
-        return np.array(self._random.sample(np.asarray(arr, dtype="uint32"), k), dtype="uint32")
-
-
