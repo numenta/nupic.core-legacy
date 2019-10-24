@@ -181,7 +181,7 @@ class GridCellLocationRegion(PyRegion):
                     dataType="Real32",
                     accessMode="ReadWrite",
                     count=1,
-                    defaultValue=0.18172,
+                    defaultValue="0.18172",
                 ),
                 activationThreshold=dict(
                     description="If the number of active connected synapses on a "
@@ -191,7 +191,7 @@ class GridCellLocationRegion(PyRegion):
                     dataType="UInt32",
                     count=1,
                     constraints="",
-                    defaultValue=10
+                    defaultValue="10"
                 ),
                 initialPermanence=dict(
                     description="Initial permanence of a new synapse",
@@ -199,7 +199,7 @@ class GridCellLocationRegion(PyRegion):
                     dataType="Real32",
                     count=1,
                     constraints="",
-                    defaultValue=0.21
+                    defaultValue="0.21"
                 ),
                 connectedPermanence=dict(
                     description="If the permanence value for a synapse is greater "
@@ -208,14 +208,14 @@ class GridCellLocationRegion(PyRegion):
                     dataType="Real32",
                     count=1,
                     constraints="",
-                    defaultValue=0.50
+                    defaultValue="0.50"
                 ),
                 learningThreshold=dict(
                     description="Minimum overlap required for a segment to learned",
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    defaultValue=10
+                    defaultValue="10"
                 ),
                 sampleSize=dict(
                     description="The desired number of active synapses for an "
@@ -223,7 +223,7 @@ class GridCellLocationRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    defaultValue=20
+                    defaultValue="20"
                 ),
                 permanenceIncrement=dict(
                     description="Amount by which permanences of synapses are "
@@ -231,7 +231,7 @@ class GridCellLocationRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    defaultValue=0.1
+                    defaultValue="0.1"
                 ),
                 permanenceDecrement=dict(
                     description="Amount by which permanences of synapses are "
@@ -239,14 +239,14 @@ class GridCellLocationRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    defaultValue=0.0
+                    defaultValue="0.0"
                 ),
                 maxSynapsesPerSegment=dict(
                     description="The maximum number of synapses per segment",
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    defaultValue=-1
+                    defaultValue="-1"
                 ),
                 bumpOverlapMethod=dict(
                     description="Specifies the firing rate of a cell when it's part of "
@@ -264,7 +264,7 @@ class GridCellLocationRegion(PyRegion):
                     dataType="Bool",
                     accessMode="ReadWrite",
                     count=1,
-                    defaultValue=False
+                    defaultValue="False"
                 ),
                 dualPhase=dict(
                     description="A boolean flag that indicates whether or not we should "
@@ -276,21 +276,21 @@ class GridCellLocationRegion(PyRegion):
                     dataType="Bool",
                     accessMode="ReadWrite",
                     count=1,
-                    defaultValue=True
+                    defaultValue="True"
                 ),
                 dimensions=dict(
                     description="The number of dimensions represented in the displacement",
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    defaultValue=2
+                    defaultValue="2"
                 ),
                 seed=dict(
                     description="Seed for the random number generator",
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    defaultValue=42
+                    defaultValue="42"
                 )
             ),
             commands=dict(

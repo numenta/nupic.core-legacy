@@ -149,19 +149,21 @@ class ColumnPoolerRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    defaultValue="false"),
+                    defaultValue="0"),
                 cellCount=dict(
                     description="Number of cells in this layer",
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="4096"),
                 inputWidth=dict(
                     description='Number of inputs to the layer.',
                     accessMode='ReadWrite',
                     dataType='UInt32',
                     count=1,
-                    constraints=''),
+                    constraints='',
+                    defaultValue="16384"),
                 numOtherCorticalColumns=dict(
                     description="The number of lateral inputs that this L2 will receive. "
                                 "This region assumes that every lateral input is of size "
@@ -169,20 +171,23 @@ class ColumnPoolerRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="0"),
                 sdrSize=dict(
                     description="The number of active cells invoked per object",
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="40"),
                 maxSdrSize=dict(
                     description="The largest number of active cells in an SDR tolerated "
                                 "during learning. Stops learning when unions are active.",
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue=""),
                 minSdrSize=dict(
                     description="The smallest number of active cells in an SDR tolerated "
                                 "during learning.    Stops learning when possibly on a "
@@ -190,7 +195,8 @@ class ColumnPoolerRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue=""),
 
                 #
                 # Proximal
@@ -200,24 +206,28 @@ class ColumnPoolerRegion(PyRegion):
                                 "incremented during learning.",
                     accessMode="ReadWrite",
                     dataType="Real32",
-                    count=1),
+                    count=1,
+                    defaultValue="0.1"),
                 synPermProximalDec=dict(
                     description="Amount by which permanences of proximal synapses are "
                                 "decremented during learning.",
                     accessMode="ReadWrite",
                     dataType="Real32",
-                    count=1),
+                    count=1,
+                    defaultValue="0.001"),
                 initialProximalPermanence=dict(
                     description="Initial permanence of a new proximal synapse.",
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="0.6"),
                 sampleSizeProximal=dict(
                     description="The desired number of active synapses for an active cell",
                     accessMode="ReadWrite",
                     dataType="Int32",
-                    count=1),
+                    count=1,
+                    defaultValue="20"),
                 minThresholdProximal=dict(
                     description="If the number of synapses active on a proximal segment "
                                 "is at least this threshold, it is considered as a "
@@ -225,14 +235,16 @@ class ColumnPoolerRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="1"),
                 connectedPermanenceProximal=dict(
                     description="If the permanence value for a synapse is greater "
                                 "than this value, it is said to be connected.",
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="0.50"),
                 predictedInhibitionThreshold=dict(
                     description="How many predicted cells are required to cause "
                                 "inhibition in the pooler.    Only has an effect if online "
@@ -240,7 +252,8 @@ class ColumnPoolerRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="20"),
 
                 #
                 # Distal
@@ -250,25 +263,29 @@ class ColumnPoolerRegion(PyRegion):
                                 "incremented during learning.",
                     accessMode="ReadWrite",
                     dataType="Real32",
-                    count=1),
+                    count=1,
+                    defaultValue="0.10"),
                 synPermDistalDec=dict(
                     description="Amount by which permanences of synapses are "
                                 "decremented during learning.",
                     accessMode="ReadWrite",
                     dataType="Real32",
-                    count=1),
+                    count=1,
+                    defaultValue="0.10"),
                 initialDistalPermanence=dict(
                     description="Initial permanence of a new synapse.",
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="0.21"),
                 sampleSizeDistal=dict(
                     description="The desired number of active synapses for an active "
                                 "segment.",
                     accessMode="ReadWrite",
                     dataType="Int32",
-                    count=1),
+                    count=1,
+                    defaultValue="20"),
                 activationThresholdDistal=dict(
                     description="If the number of synapses active on a distal segment is "
                                 "at least this threshold, the segment is considered "
@@ -276,14 +293,16 @@ class ColumnPoolerRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="UInt32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="13"),
                 connectedPermanenceDistal=dict(
                     description="If the permanence value for a synapse is greater "
                                 "than this value, it is said to be connected.",
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="0.50"),
                 inertiaFactor=dict(
                     description="Controls the proportion of previously active cells that "
                                 "remain active through inertia in the next timestep (in    "
@@ -291,7 +310,8 @@ class ColumnPoolerRegion(PyRegion):
                     accessMode="ReadWrite",
                     dataType="Real32",
                     count=1,
-                    constraints=""),
+                    constraints="",
+                    defaultValue="1.0"),
 
 
 
@@ -299,7 +319,8 @@ class ColumnPoolerRegion(PyRegion):
                     description="Seed for the random number generator.",
                     accessMode="ReadWrite",
                     dataType="UInt32",
-                    count=1),
+                    count=1,
+                    defaultValue="42"),
                 defaultOutputType=dict(
                     description="Controls what type of cell output is placed into"
                                 " the default output 'feedForwardOutput'",
