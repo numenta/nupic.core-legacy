@@ -27,9 +27,9 @@ import json
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
-#from distutils.core import Extension
+from distutils.core import Extension
 # see https://stackoverflow.com/questions/44323474/distutils-core-vs-setuptools-with-c-extension
-from setuptools import Extension
+#from setuptools import Extension
 
 # NOTE:  To debug the python bindings in a debugger, use the procedure
 #        described here: https://pythonextensionpatterns.readthedocs.io/en/latest/debugging/debug_in_ide.html
