@@ -27,7 +27,9 @@ import json
 
 from setuptools import Command, find_packages, setup
 from setuptools.command.test import test as BaseTestCommand
-from distutils.core import Extension
+#from distutils.core import Extension
+# see https://stackoverflow.com/questions/44323474/distutils-core-vs-setuptools-with-c-extension
+from setuptools import Extension
 
 # NOTE:  To debug the python bindings in a debugger, use the procedure
 #        described here: https://pythonextensionpatterns.readthedocs.io/en/latest/debugging/debug_in_ide.html
@@ -376,8 +378,7 @@ if __name__ == "__main__":
   os.chdir(DISTR_DIR)
 
   setup(
-    # See https://docs.python.org/2/distutils/apiref.html for descriptions of arguments.
-    #     https://docs.python.org/2/distutils/setupscript.html
+    # See https://setuptools.readthedocs.io/en/latest/setuptools.html
     #     https://opensourceforu.com/2010/OS/extending-python-via-shared-libraries
     #     https://docs.python.org/3/library/ctypes.html
     #     https://docs.python.org/2/library/imp.html
