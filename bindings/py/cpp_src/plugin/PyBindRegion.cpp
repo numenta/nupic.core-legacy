@@ -79,7 +79,7 @@ namespace py = pybind11;
 
     // recurseive helper for prepareCreationParams
     static py::object make_args(const Value& vm, NTA_BasicType dataType) {
-      //std::cerr << "make_args(\"" << vm << "\", " << dataType << ")\n";
+      //std::cerr << "[" << vm.key() << "]; make_args(\"" << vm << "\", " << BasicType::getName(dataType) << ")\n";
       if (vm.isScalar() ) {
         switch(dataType) {
         case NTA_BasicType_Int16:
@@ -207,6 +207,12 @@ namespace py = pybind11;
             continue;
           if (!ns->parameters.contains(key))
             NTA_THROW << "Parameter '" << key << "' is not expected for this Region.";
+            
+          // Prevent parameters with ReadOnlyAccess from being used
+          // to initialize a region.  They must have CreateAccess or ReadWriteAccess.
+          auto ps = ns->parameters.getByName(key);
+          if (ps.accessMode == ParameterSpec::ReadOnlyAccess)
+            NTA_THROW << "Parameter '" << key << "' is ReadOnly. Cannot be used for creation.";
         }
       }
       
@@ -219,11 +225,15 @@ namespace py = pybind11;
             kwargs[key.c_str()] = make_args(vm[key], ps.dataType);
           }
           else if (!ps.defaultValue.empty()) {
-              // a missing or empty parameter that has a default.
-              // std::cerr << "  default: " << ps.defaultValue << "\n";
-              Value default_value;
-              default_value.parse(ps.defaultValue);
-              kwargs[key.c_str()] = make_args(default_value, ps.dataType);
+              // a missing or empty parameter that has a default value.
+              //std::cerr << "  parse default for " << key << ": " << ps.defaultValue << "\n";
+              try {
+                Value default_value;
+                default_value.parse(ps.defaultValue);
+                kwargs[key.c_str()] = make_args(default_value, ps.dataType);
+              } catch(Exception& e) {
+                NTA_THROW << "In default value for " << key << "; " << e.what();
+              }
           }
         } 
         catch(Exception& e) {
@@ -249,15 +259,16 @@ namespace py = pybind11;
         {
             realClassName = Path::getExtension(module_);
         }
+        //std::cerr << "calling creation of " << module_ << "\n";
 
         // Make a local copy of the Spec
         createSpec(module_.c_str(), nodeSpec_, className_.c_str());
+        //std::cerr << nodeSpec_ << "\n";    
 
         // Prepare the creation params as a tuple of PyObject pointers
         py::args args;
         py::kwargs kwargs;
 
-        //std::cerr << "calling creation of " << module_ << "\n";
         //std::cerr << "nodeParams: " << nodeParams << "\n";
         try {
             prepareCreationParams(nodeParams, kwargs, &nodeSpec_);
@@ -265,7 +276,7 @@ namespace py = pybind11;
         catch(Exception &e) {
             NTA_THROW << "Python region: " << module_ << "; " << e.what();
         }
-        //std::cerr << "calling arguments: " << kwargs << "\n";
+        // std::cerr << "calling arguments: " << kwargs << "\n";
         // Instantiate a node and assign it  to the node_ member
         // node_.assign(py::Instance(module_, realClassName, args, kwargs));
         node_ = py::module::import(module_.c_str()).attr(realClassName.c_str())(*args, **kwargs);
@@ -405,6 +416,14 @@ namespace py = pybind11;
     template <typename T>
     void PyBindRegion::setParameterT(const std::string & name, Int64 index, T value)
     {
+        NTA_CHECK(nodeSpec_.parameters.contains(name)) 
+               << "module " << module_ << "; Parameter '" << name 
+               << "' is not known. Cannot be set.";
+        auto ps = nodeSpec_.parameters.getByName(name);
+        NTA_CHECK(ps.accessMode == ParameterSpec::ReadWriteAccess) 
+               << "module " << module_ << "; Parameter '" << name 
+               << "' does not have ReadWriteAccess. Cannot be set.";
+
         try
         {
             py::args args = py::make_tuple(name, index, value);
@@ -773,63 +792,87 @@ namespace py = pybind11;
                 // Add parameters
                 for (auto it = parameters.begin(); it != parameters.end(); ++it)
                 {
-                    auto name = it->cast<std::string>();
+                    std::string name;
+                    std::string description;
+                    UInt32 count;
+                    std::string constraints;
+                    ParameterSpec::AccessMode accessMode;
+                    std::string defaultValue;
+                    
+                    name = std::string(py::str(*it));
+                    
                     auto parameter = parameters[*it];
-
                     // Add an ParameterSpec object for each output spec dict
-                    std::ostringstream parameterMessagePrefix;
-                    parameterMessagePrefix << "Region " << realClassName
-                        << " spec has missing key for parameter section " << name << ": ";
+                    std::string parameterMessagePrefix = " parameter " + name + ": ";
 
                     NTA_ASSERT(parameter.contains("description"))
-                        << parameterMessagePrefix.str() << "description";
-                    auto description = parameter["description"].cast<std::string>();
+                        << parameterMessagePrefix << "missing description";
+                    try {
+                      description = parameter["description"].cast<std::string>();
+                    }
+                    catch (const py::cast_error& e) {
+                        NTA_THROW << parameterMessagePrefix << ":description; " << e.what();
+                    }
 
                     NTA_ASSERT(parameter.contains("dataType"))
-                        << parameterMessagePrefix.str() << "dataType";
-                    auto dt = parameter["dataType"].cast<std::string>();
+                        << parameterMessagePrefix << "missing dataType";
                     NTA_BasicType dataType;
                     try {
+                        auto dt = parameter["dataType"].cast<std::string>();
                         dataType = BasicType::parse(dt);
                     }
-                    catch (Exception &) {
-                        std::stringstream stream;
-                        stream << "Invalid 'dataType' specificed for parameter '" << name
-                            << "' when getting spec for region '" << realClassName << "'.";
-                        throw Exception(__FILE__, __LINE__, stream.str());
+                    catch (const py::cast_error& e) {
+                      NTA_THROW << parameterMessagePrefix << "dataType " << e.what();
+                    }
+                    catch (Exception &e) {
+                      NTA_THROW << parameterMessagePrefix << "dataType " << e.what();
                     }
 
                     NTA_ASSERT(parameter.contains("count"))
-                        << parameterMessagePrefix.str() << "count";
-                    auto count = parameter["count"].cast<UInt32>();
+                        << parameterMessagePrefix << "missing count";
+                    try {
+                        count = (UInt32)parameter["count"].cast<int>();
+                    }
+                    catch (const py::cast_error& e) {
+                      NTA_THROW << parameterMessagePrefix << "dataType " << e.what();
+                    }
 
-                    std::string constraints = "";
                     // This parameter is optional
                     if (parameter.contains("constraints")) {
+                      try {
                         constraints = parameter["constraints"].cast<std::string>();
+                      }
+                      catch (const py::cast_error& e) {
+                        NTA_THROW << parameterMessagePrefix << "constraints " << e.what();
+                      }
                     }
 
                     NTA_ASSERT(parameter.contains("accessMode"))
-                        << parameterMessagePrefix.str() << "accessMode";
-                    ParameterSpec::AccessMode accessMode;
-                    auto am = parameter["accessMode"].cast<std::string>();
-                    if (am == "Create")
+                        << parameterMessagePrefix << "missing accessMode";
+                    std::string am;
+                    try {
+                      am = parameter["accessMode"].cast<std::string>();
+                    }
+                    catch (const py::cast_error& e) {
+                      NTA_THROW << parameterMessagePrefix << "accessMode " << e.what();
+                    }                      
+                    if (am == "Create" || am == "CreateAccess")
                         accessMode = ParameterSpec::CreateAccess;
-                    else if (am == "Read" || am == "ReadOnly")
+                    else if (am == "Read" || am == "ReadOnly" || am == "ReadOnlyAccess")
                         accessMode = ParameterSpec::ReadOnlyAccess;
-                    else if (am == "ReadWrite")
+                    else if (am == "ReadWrite" || am == "ReadWriteAccess")
                         accessMode = ParameterSpec::ReadWriteAccess;
                     else
-                        NTA_THROW << "Invalid access mode: " << am;
+                        NTA_THROW << parameterMessagePrefix << "Invalid access mode: " << am;
 
-                    // Get default value as a string if it's a create parameter
-                    std::string defaultValue;
-                    if (am == "Create")
-                    {
-                        NTA_ASSERT(parameter.contains("defaultValue"))
-                            << parameterMessagePrefix.str() << "defaultValue";
-                        auto dv = parameter["defaultValue"];
-                        defaultValue = dv.attr("__str__").cast<std::string>();
+                    // Get default value as a string
+                    if (parameter.contains("defaultValue")) {
+                      try {
+                          defaultValue = std::string(py::str(parameter["defaultValue"]));
+                      } catch (const py::cast_error& e) {
+                        NTA_THROW << parameterMessagePrefix << "defaultValue " << e.what();
+                      }
+                        
                     }
                     if (defaultValue == "None")
                         defaultValue = "";
@@ -870,17 +913,17 @@ namespace py = pybind11;
                 }
             }
         }
-        catch (const py::error_already_set& e)
-        {
-            std::cout << e.what() << std::endl;
+        catch (const py::error_already_set& e) {
+            NTA_THROW << "createSpec() Region: " << module << " " << e.what();
         }
-        catch (const py::cast_error& e)
-        {
-            std::cout << e.what() << std::endl;
+        catch (const py::cast_error& e) {
+            NTA_THROW << "createSpec() Region: " << module << " " << e.what();
         }
-        catch (...)
-        {
-            throw std::runtime_error("Unknown error.");
+        catch (std::exception& e) {
+            NTA_THROW << "createSpec() Region: " << module << " " << e.what();
+        }
+        catch (...) {
+            NTA_THROW << "createSpec()  Region: " << module << " Unknown error.";
         }
     }
 

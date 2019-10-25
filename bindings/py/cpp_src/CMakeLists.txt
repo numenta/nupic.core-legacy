@@ -106,6 +106,7 @@ file(COPY ${REPOSITORY_DIR}/bindings/py/packaging/. DESTINATION ${distr} REGEX  
 #file(COPY ${REPOSITORY_DIR}/bindings/py/tests/. DESTINATION ${distr}/src/htm/tests REGEX  ".*__pycache__" EXCLUDE)
 file(COPY ${REPOSITORY_DIR}/py/htm/. DESTINATION ${distr}/src/htm REGEX  ".*__pycache__" EXCLUDE)
 #file(COPY ${REPOSITORY_DIR}/py/tests/. DESTINATION ${distr}/src/htm/tests REGEX  ".*__pycache__" EXCLUDE)
+message(STATUS "Copied .py sources to ${distr}/src/htm")
 
 # determine which version of binding to build
 if ("${BINDING_BUILD}" STREQUAL "Python2")
