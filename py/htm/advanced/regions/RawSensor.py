@@ -85,7 +85,7 @@ class RawSensor(PyRegion):
                     "dataType":"UInt32",
                     "accessMode":"ReadWrite",
                     "count":1,
-                    "defaultValue": 2048,
+                    "defaultValue": "2048",
                     "constraints":"",
                 },
                 "inputQueueData":{

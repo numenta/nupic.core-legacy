@@ -179,10 +179,12 @@ NTA_BasicType BasicType::parse(const std::string &s) {
     return NTA_BasicType_Real;
   else if (s == std::string("Handle"))
     return NTA_BasicType_Handle;
-  else if (s == std::string("Bool"))
+  else if (s == std::string("Bool") || s == std::string("bool"))
     return NTA_BasicType_Bool;
   else if (s == std::string("SDR"))
     return NTA_BasicType_SDR;
+  else if (s == std::string("Last"))
+    return NTA_BasicType_Last;  // Means none-of-the-above.
   else
     throw Exception(__FILE__, __LINE__,
                     std::string("Invalid basic type name: ") + s);
