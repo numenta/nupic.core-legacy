@@ -67,7 +67,7 @@ class RawValues(PyRegion):
                     dataType="UInt32",
                     accessMode="ReadWrite",
                     count=1,
-                    defaultValue=1,
+                    defaultValue="1",
                 )
             ),
             commands=dict(

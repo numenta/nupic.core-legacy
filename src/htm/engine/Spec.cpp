@@ -163,8 +163,10 @@ std::ostream& operator<< (std::ostream& out, const ParameterSpec& self) {
     case ParameterSpec::ReadWriteAccess: out << "ReadWriteAccess\n"; break;
     default: out << "UnknownAccess\n"; break;
     }
+    if (!self.defaultValue.empty())
+       out << "     defaultValue: " << self.defaultValue << "\n";
     if (!self.constraints.empty())
-       out << "     constraints" << self.constraints << "\n";
+       out << "     constraints: " << self.constraints << "\n";
     return out;
 }
 

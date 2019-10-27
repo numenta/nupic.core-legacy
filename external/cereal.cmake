@@ -20,7 +20,7 @@
 if(EXISTS "${REPOSITORY_DIR}/build/ThirdParty/share/cereal.tar.gz")
     set(URL "${REPOSITORY_DIR}/build/ThirdParty/share/cereal.tar.gz")
 else()
-    set(URL https://github.com/USCiLab/cereal/archive/v1.2.2.tar.gz)
+    set(URL https://github.com/USCiLab/cereal/archive/v1.3.0.tar.gz)
 endif()
 
 message(STATUS "obtaining Cereal")
