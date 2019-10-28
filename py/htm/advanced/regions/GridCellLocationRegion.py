@@ -131,14 +131,14 @@ class GridCellLocationRegion(PyRegion):
                 moduleCount=dict(
                     description="Number of grid cell modules",
                     dataType="UInt32",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     count=1
                 ),
                 cellsPerAxis=dict(
                     description="Determines the number of cells. Determines how space is "
                                 "divided between the cells",
                     dataType="UInt32",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     count=1
                 ),
                 scale=dict(
@@ -148,7 +148,7 @@ class GridCellLocationRegion(PyRegion):
                                 "for each grid cell module. Array size must match "
                                 "'moduleCount' parameter",
                     dataType="Real32",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     count=0,
                 ),
                 orientation=dict(
@@ -156,20 +156,20 @@ class GridCellLocationRegion(PyRegion):
                                 "orientation value for each grid cell module. Array size "
                                 "must match 'moduleCount' parameter",
                     dataType="Real32",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     count=0,
                 ),
                 anchorInputSize=dict(
                     description="The number of input bits in the anchor input",
                     dataType="UInt32",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     count=1,
                 ),
                 activeFiringRate=dict(
                     description="Between 0.0 and 1.0. A cell is considered active if its "
                                 "firing rate is at least this value",
                     dataType="Real32",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     count=1,
                 ),
                 bumpSigma=dict(
@@ -179,7 +179,7 @@ class GridCellLocationRegion(PyRegion):
                                 "often use 0.18172 as an estimate for the sigma of a rat "
                                 "entorhinal bump",
                     dataType="Real32",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     count=1,
                     defaultValue="0.18172",
                 ),
@@ -187,7 +187,7 @@ class GridCellLocationRegion(PyRegion):
                     description="If the number of active connected synapses on a "
                                 "segment is at least this threshold, the segment "
                                 "is said to be active",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="UInt32",
                     count=1,
                     constraints="",
@@ -195,7 +195,7 @@ class GridCellLocationRegion(PyRegion):
                 ),
                 initialPermanence=dict(
                     description="Initial permanence of a new synapse",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="Real32",
                     count=1,
                     constraints="",
@@ -204,7 +204,7 @@ class GridCellLocationRegion(PyRegion):
                 connectedPermanence=dict(
                     description="If the permanence value for a synapse is greater "
                                 "than this value, it is said to be connected",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="Real32",
                     count=1,
                     constraints="",
@@ -212,7 +212,7 @@ class GridCellLocationRegion(PyRegion):
                 ),
                 learningThreshold=dict(
                     description="Minimum overlap required for a segment to learned",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="UInt32",
                     count=1,
                     defaultValue="10"
@@ -220,7 +220,7 @@ class GridCellLocationRegion(PyRegion):
                 sampleSize=dict(
                     description="The desired number of active synapses for an "
                                 "active cell",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="UInt32",
                     count=1,
                     defaultValue="20"
@@ -228,7 +228,7 @@ class GridCellLocationRegion(PyRegion):
                 permanenceIncrement=dict(
                     description="Amount by which permanences of synapses are "
                                 "incremented during learning",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="Real32",
                     count=1,
                     defaultValue="0.1"
@@ -236,14 +236,14 @@ class GridCellLocationRegion(PyRegion):
                 permanenceDecrement=dict(
                     description="Amount by which permanences of synapses are "
                                 "decremented during learning",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="Real32",
                     count=1,
                     defaultValue="0.0"
                 ),
                 maxSynapsesPerSegment=dict(
                     description="The maximum number of synapses per segment",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="UInt32",
                     count=1,
                     defaultValue="-1"
@@ -252,7 +252,7 @@ class GridCellLocationRegion(PyRegion):
                     description="Specifies the firing rate of a cell when it's part of "
                                 "two bumps. ('probabilistic' or 'sum')",
                     dataType="Byte",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     constraints=("enum: probabilistic, sum"),
                     defaultValue="probabilistic",
                     count=0,
@@ -280,14 +280,14 @@ class GridCellLocationRegion(PyRegion):
                 ),
                 dimensions=dict(
                     description="The number of dimensions represented in the displacement",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="UInt32",
                     count=1,
                     defaultValue="2"
                 ),
                 seed=dict(
                     description="Seed for the random number generator",
-                    accessMode="ReadWrite",
+                    accessMode="Create",
                     dataType="UInt32",
                     count=1,
                     defaultValue="42"

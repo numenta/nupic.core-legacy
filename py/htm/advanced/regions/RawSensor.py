@@ -83,18 +83,10 @@ class RawSensor(PyRegion):
                 "outputWidth":{
                     "description":"Size of output vector",
                     "dataType":"UInt32",
-                    "accessMode":"ReadWrite",
+                    "accessMode":"Create",
                     "count":1,
                     "defaultValue": "2048",
                     "constraints":"",
-                },
-                "inputQueueData":{
-                  "description":"SDR as list with the second last element indicating a reset or not (1, or 0) and the last element being a sequence Id",
-                  "dataType":"UInt32",
-                  "count":0, # array
-                  "constraints":"",
-                  "defaultValue":"",
-                  "accessMode":"ReadWrite"
                 },
             },
             "commands":{
