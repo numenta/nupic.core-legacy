@@ -37,7 +37,7 @@ if(EXISTS   ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.zip)
 elif(EXISTS ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.tar.gz)
     set(URL ${REPOSITORY_DIR}/build/ThirdParty/share/libyaml.tar.gz)
 else()
-    set(URL "https://github.com/yaml/libyaml/archive/master.zip")
+    set(URL "https://github.com/yaml/libyaml/archive/53f5b8682317d8dbe9082d1eeab3cc0e1adbb34b.zip")
     #set(URL "http://pyyaml.org/download/libyaml/yaml-0.2.2.tar.gz")
 endif()
 
