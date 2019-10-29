@@ -378,7 +378,7 @@ python py/htm/examples/mnist.py
 ## Cite us
 
 We're happy that you can use the community work in this repository or even join the development! 
-Please give us attribution by [linking to us as htm.core](https://github.com/htm-community/htm.core/), 
+Please give us attribution by linking to us as [htm.core](https://github.com/htm-community/htm.core/) at https://github.com/htm-community/htm.core/ , 
 and for papers we suggest to use the following BibTex citation: 
 
 ```
