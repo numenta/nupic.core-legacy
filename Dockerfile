@@ -1,7 +1,12 @@
-# Default arch. Pass in like "--build-arg arch=arm64".
+## Default arch. Pass in like "--build-arg arch=arm64".
 #   Supports Debian arches: amd64, arm64, etc.
 #   Our circleci arm64 build uses this specifically.
 #   https://docs.docker.com/engine/reference/commandline/build/
+## To run a build using this file locally, do: 
+# docker run --privileged --rm -it multiarch/qemu-user-static:register
+# docker build -t htm-arm64-docker --build-arg arch=arm64 .
+# docker run -it htm-arm64-docker
+
 #target compile arch
 ARG arch=arm64
 #host HW arch
@@ -52,12 +57,12 @@ RUN python -m pip install \
 RUN mkdir -p build/scripts && \
     cd build/scripts && \
     cmake ../.. -DCMAKE_BUILD_TYPE=Release -DBINDING_BUILD=Python3 && \
-    make -j8 && make install
+    make -j4 && make install
 
 RUN python setup.py install --force
 
 # Test
-RUN python setup.py test #Note, if you get weird import errors here, 
+#RUN python setup.py test #Note, if you get weird import errors here, 
 # do `git clean -xdf` in your host system, and rerun the docker
 
 ## Stage 2: create release packages (for PyPI, GH Releases)

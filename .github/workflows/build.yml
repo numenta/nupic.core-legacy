@@ -198,15 +198,16 @@ jobs:
       run: |
         sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
 
-    - name: Example switch to docker env
+    - name: Tests
       run: |
         sudo docker run -it htm-arm64-docker
         uname -a && echo "\nHello from ARM64 htm.core build!\n"
+        python setup.py test
         exit
 
     - name: Copy files from docker
       run: |
-        sudo docker cp `sudo docker ps -alq`:/usr/local/src/htm.core/dist dist
+        sudo docker cp `sudo docker ps -alq`:/usr/local/src/htm.core/dist dist #TODO the `command` is not 100% reliable, replace with some name/id
         ls dist
 
     - name: Release (deploy)
