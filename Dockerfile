@@ -62,7 +62,7 @@ RUN mkdir -p build/scripts && \
 RUN python setup.py install --force
 
 # Test
-RUN python setup.py test #Note, if you get weird import errors here, 
+#RUN python setup.py test #Note, if you get weird import errors here, 
 # do `git clean -xdf` in your host system, and rerun the docker
 
 ## Stage 2: create release packages (for PyPI, GH Releases)
