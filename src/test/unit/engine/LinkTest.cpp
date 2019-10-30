@@ -70,8 +70,8 @@ TEST(LinkTest, Links) {
   ASSERT_EQ(2u, d2[1]);
 
   // test getName() and setName()
-  Input *in1 = region1->getInput("bottomUpIn");
-  Input *in2 = region2->getInput("bottomUpIn");
+  std::shared_ptr<Input> in1 = region1->getInput("bottomUpIn");
+  std::shared_ptr<Input> in2 = region2->getInput("bottomUpIn");
   EXPECT_STREQ("bottomUpIn", in1->getName().c_str());
   EXPECT_STREQ("bottomUpIn", in2->getName().c_str());
   in1->setName("uselessName");
@@ -159,9 +159,9 @@ TEST(LinkTest, DelayedLink) {
   // test initialize(), which is called by net.initialize()
   net.initialize();
 
-  Input *in1   = region1->getInput("bottomUpIn");
-  Output *out1 = region1->getOutput("bottomUpOut");
-  Input *in2   = region2->getInput("bottomUpIn");
+  std::shared_ptr<Input> in1 = region1->getInput("bottomUpIn");
+  std::shared_ptr<Output> out1 = region1->getOutput("bottomUpOut");
+  std::shared_ptr<Input> in2 = region2->getInput("bottomUpIn");
 
   // test isInitialized()
   ASSERT_TRUE(in1->isInitialized());
@@ -277,9 +277,9 @@ TEST(LinkTest, DelayedLinkSerialization) {
 
   net.initialize();
 
-  Input *in1 = region1->getInput("bottomUpIn");
-  Input *in2 = region2->getInput("bottomUpIn");
-  Output *out1 = region1->getOutput("bottomUpOut");
+  std::shared_ptr<Input> in1 = region1->getInput("bottomUpIn");
+  std::shared_ptr<Input> in2 = region2->getInput("bottomUpIn");
+  std::shared_ptr<Output> out1 = region1->getOutput("bottomUpOut");
 
   // test isInitialized()
   ASSERT_TRUE(in1->isInitialized());
@@ -393,9 +393,9 @@ TEST(LinkTest, DelayedLinkSerialization) {
   auto n2region1 = net2.getRegion("region1");
   auto n2region2 = net2.getRegion("region2");
 
-  Input *n2in1 = n2region1->getInput("bottomUpIn");
-  Input *n2in2 = n2region2->getInput("bottomUpIn");
-  Output *n2out1 = n2region1->getOutput("bottomUpOut");
+  std::shared_ptr<Input> n2in1 = n2region1->getInput("bottomUpIn");
+  std::shared_ptr<Input> n2in2 = n2region2->getInput("bottomUpIn");
+  std::shared_ptr<Output> n2out1 = n2region1->getOutput("bottomUpOut");
 
   VERBOSE << "network1\n";
   VERBOSE << " in1  buffer  =" << in1->getData() << std::endl;
@@ -634,9 +634,9 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  Input *feedForwardIn_;
-  Input *lateralIn_;
-  Output *out_;
+  std::shared_ptr<Input> feedForwardIn_;
+  std::shared_ptr<Input> lateralIn_;
+  std::shared_ptr<Output> out_;
 };
 
 class L4TestRegion : public TestRegionBase {
@@ -738,8 +738,8 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  Input *feedbackIn_;
-  Output *out_;
+  std::shared_ptr<Input> feedbackIn_;
+  std::shared_ptr<Output> out_;
 };
 ////////////////////////////////////////////////////////
 

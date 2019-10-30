@@ -96,7 +96,7 @@ private:
         UInt32 watchID; // starts at 1
         std::string varName;
         watcherType wType;
-        Output *output;
+        std::shared_ptr<Output> output;
         // Need regionName because we create data structure before
         // we have the actual Network to attach it to.
         std::string regionName;

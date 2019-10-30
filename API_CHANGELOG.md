@@ -110,6 +110,8 @@ This is obsolete. Use getRegion('name') instead.
 
 * SpatialPooler: `compute()` now returns overlaps. `SP.getOverlaps()` removed. PR #552
 
+* Region:  `GetInput()` and `GetOutput()` now return std::shared_ptr's rather than raw pointers.
+
 
 ## Python API Changes
 

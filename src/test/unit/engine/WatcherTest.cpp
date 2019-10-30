@@ -25,7 +25,6 @@
 #include <string>
 
 #include <htm/engine/Network.hpp>
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/ntypes/Dimensions.hpp>
 #include <htm/os/Path.hpp>

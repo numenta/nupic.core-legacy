@@ -84,7 +84,7 @@ SPRegion::~SPRegion() {}
 
 void SPRegion::initialize() {
   // Output buffers should already have been created diring initialize or deserialize.
-  Output *out = getOutput("bottomUpOut");
+  std::shared_ptr<Output> out = getOutput("bottomUpOut");
   Array &outputBuffer = out->getData();
   NTA_CHECK(outputBuffer.getType() == NTA_BasicType_SDR);
   UInt32 columnCount = (UInt32)outputBuffer.getCount();
@@ -98,7 +98,7 @@ void SPRegion::initialize() {
   //
   // If there are more than one input link (FAN-IN), the input buffer will be the
   // concatination of all incomming buffers.  
-  Input *in = getInput("bottomUpIn");
+  std::shared_ptr<Input> in = getInput("bottomUpIn");
   NTA_CHECK(in != nullptr);
   if (!in->hasIncomingLinks())
      NTA_THROW << "SPRegion::initialize - No input links were configured for this SP region.\n";

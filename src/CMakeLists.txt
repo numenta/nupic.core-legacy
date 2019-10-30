@@ -98,8 +98,6 @@ set(engine_files
     htm/engine/Link.hpp
     htm/engine/Network.cpp
     htm/engine/Network.hpp
-    htm/engine/NuPIC.cpp
-    htm/engine/NuPIC.hpp
     htm/engine/Output.cpp
     htm/engine/Output.hpp
     htm/engine/Region.cpp

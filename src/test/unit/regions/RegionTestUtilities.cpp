@@ -271,7 +271,7 @@ void checkInputOutputsAgainstSpec(std::shared_ptr<Region> region1, bool verbose)
     OutputSpec ospec = ns->outputs.getByIndex(i).second;
 
     VERBOSE << "Output \"" << name << "\" type: " << BasicType::getName(ospec.dataType) << std::endl;
-    Output *O = region1->getOutput(name);
+    std::shared_ptr<Output> O = region1->getOutput(name);
     ASSERT_TRUE(O != nullptr) << "The output obj could not be found.";
     EXPECT_TRUE(ospec.dataType == O->getData().getType())
       << "Output type for \"" << name << "\" does not match spec. "
@@ -283,7 +283,7 @@ void checkInputOutputsAgainstSpec(std::shared_ptr<Region> region1, bool verbose)
     InputSpec ispec = ns->inputs.getByIndex(j).second;
 
     VERBOSE << "Input \"" << name << "\" type: " << BasicType::getName(ispec.dataType) << std::endl;
-    Input *I = region1->getInput(name);
+    std::shared_ptr<Input> I = region1->getInput(name);
     ASSERT_TRUE(I != nullptr) << "The input obj could not be found.";
     if (I->isInitialized()) {
       EXPECT_TRUE(ispec.dataType == I->getData().getType())
