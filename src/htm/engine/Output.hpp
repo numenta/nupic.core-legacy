@@ -48,15 +48,8 @@ public:
    *        The type of the output
    */
   Output(Region* region,
-         const std::string& outputName,
-         NTA_BasicType type);
+         const std::string& outputName, NTA_BasicType type);
 
-  /**
-   * Destructor
-   * noexcept(false) : as C++11 forces noexcept(true) in destructors by default,
-   * we override that here to throw NTA_CHECK
-   */
-  ~Output() noexcept(false);
 
   /**
    * Set the name for the output.

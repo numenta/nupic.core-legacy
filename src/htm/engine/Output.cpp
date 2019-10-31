@@ -34,13 +34,6 @@ Output::Output(Region* region, const std::string& outputName, NTA_BasicType type
   data_ = Array(type);
 }
 
-Output::~Output() noexcept(false) {
-  // If we have any outgoing links, then there has been an
-  // error in the shutdown process. Not good to thow an exception
-  // from a destructor, but we need to catch this error, and it
-  // should never occur if htm internal logic is correct.
-  NTA_CHECK(links_.size() == 0) << "Internal error in region deletion, still has links.";
-}
 
 
 // allocate buffer
