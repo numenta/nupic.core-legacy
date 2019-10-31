@@ -237,6 +237,14 @@ public:
   }
 
   /**
+	* Calculate anomaly score depending on the mode given at initialization
+	*
+	* @param activeColumns
+	* currently activeColumns
+	*/
+  void calculateAnomalyScore(const SDR &activeColumns);
+
+  /**
    * Perform one time step of the Temporal Memory algorithm.
    *
    * This method calls activateDendrites, then calls activateCells. Using
