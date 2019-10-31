@@ -27,6 +27,7 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <memory>
 
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Output.hpp>
@@ -79,7 +80,7 @@ void Region::createInputsAndOutputs_() {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
     const std::string& outputName = p.first;
     const OutputSpec &os = p.second;
-    auto output = std::make_shared<Output>(this, outputName, os.dataType);
+    std::shared_ptr<Output> output = std::make_shared<Output>(this, outputName, os.dataType);
     outputs_[outputName] = output;
   }
 
