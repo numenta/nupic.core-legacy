@@ -900,11 +900,12 @@ TEST(LinkTest, L2L4WithDelayedLinksAndPhases) {
 
   // Initialize the network
   net.initialize();
-
-  UInt64 *r1OutBuf = (UInt64 *)(r1->getOutput("out")->getData().getBuffer());
-  UInt64 *r2OutBuf = (UInt64 *)(r2->getOutput("out")->getData().getBuffer());
-  UInt64 *r3OutBuf = (UInt64 *)(r3->getOutput("out")->getData().getBuffer());
-  UInt64 *r4OutBuf = (UInt64 *)(r4->getOutput("out")->getData().getBuffer());
+  std::shared_ptr<Output> o = r1->getOutput("out");
+  Array& a = o->getData();
+  UInt64 *r1OutBuf = (UInt64 *)a.getBuffer();
+  UInt64 *r2OutBuf = (UInt64 *)r2->getOutput("out")->getData().getBuffer();
+  UInt64 *r3OutBuf = (UInt64 *)r3->getOutput("out")->getData().getBuffer();
+  UInt64 *r4OutBuf = (UInt64 *)r4->getOutput("out")->getData().getBuffer();
 
   // ITERATION #1
   net.run(1);

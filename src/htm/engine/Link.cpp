@@ -154,12 +154,12 @@ void Link::connectToNetwork(std::shared_ptr<Output> src, std::shared_ptr<Input> 
   NTA_CHECK(src != nullptr);
   NTA_CHECK(dest != nullptr);
 
-  src_ = src;
-  dest_ = dest;
+  src_ = src.get();
+  dest_ = dest.get();
 }
 
 // The methods below only work on connected links.
-std::shared_ptr<Output> Link::getSrc() const
+Output* Link::getSrc() const
 
 {
   NTA_CHECK(src_)
@@ -167,7 +167,7 @@ std::shared_ptr<Output> Link::getSrc() const
   return src_;
 }
 
-std::shared_ptr<Input> Link::getDest() const {
+Input* Link::getDest() const {
   NTA_CHECK(dest_)
       << "Link::getDest() can only be called on a connected link";
   return dest_;

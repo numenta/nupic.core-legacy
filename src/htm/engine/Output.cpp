@@ -114,7 +114,7 @@ void Output::addLink(const std::shared_ptr<Link> link) {
   links_.insert(link);
 }
 
-void Output::removeLink(std::shared_ptr<Link> link) {
+void Output::removeLink(const std::shared_ptr<Link>& link) {
   // Should only be called internally. Logic error if link not found
   const auto linkIter = links_.find(link);
   NTA_CHECK(linkIter != links_.end()) << "Link not found.";

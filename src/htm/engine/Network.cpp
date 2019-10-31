@@ -58,8 +58,28 @@ void Network::commonInit() {
 }
 
 Network::~Network() {
-  // The regions are deleted when the map goes out of scope.
+  /**
+   * Teardown choreography:
+   * - unintialize all regions because otherwise we won't be able to disconnect
+   * - remove all links, because we can't delete connected regions
+   *   This also removes Input and Output objects.
+   * - delete the regions themselves.
+   */
 
+  // 1. uninitialize
+  for(auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
+    r->uninitialize();
+  }
+
+  // 2. remove all links
+  for(auto p: regions_) {
+    std::shared_ptr<Region> r = p.second;
+    r->removeAllIncomingLinks();
+  }
+
+  // 3. delete the regions
+  // They are in a map of Shared_ptr so regions are deleted when it goes out of scope.
 }
 
 std::shared_ptr<Region> Network::addRegion(const std::string &name, const std::string &nodeType,

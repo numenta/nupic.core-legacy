@@ -108,7 +108,7 @@ public:
    * @param link
    *        The Link to remove
    */
-  void removeLink(std::shared_ptr<Link> link);
+  void removeLink(const std::shared_ptr<Link>& link);
 
   /**
    * Tells whether the output has outgoing links.
@@ -172,7 +172,7 @@ public:
   /**
    * Set dimensions for this output
    */
-  void setDimensions(const Dimensions& dim) { dim_ = std::move(dim); }
+  void setDimensions(const Dimensions& dim) { dim_ = dim; }
 
   /**
    *  Print raw data...for debugging

@@ -54,8 +54,8 @@ void Input::addLink(const std::shared_ptr<Link> link, std::shared_ptr<Output> sr
 
   // Make sure we don't already have a link to the same output
   for (const auto &it : links_) {
-    std::shared_ptr<Output> o = (*it).getSrc();
-    NTA_CHECK(srcOutput != o) << "addLink -- link from region "
+    const Output* o = (*it).getSrc();
+    NTA_CHECK(srcOutput.get() != o) << "addLink -- link from region "
                 << srcOutput->getRegion()->getName() << " output "
                 << srcOutput->getName() << " to region " << region_->getName()
                 << " input " << getName() << " already exists";
@@ -91,7 +91,7 @@ std::shared_ptr<Link> Input::findLink(const std::string &srcRegionName,
                                       const std::string &srcOutputName) {
   // Note: cannot use a map here because the link items are ordered.
   for (const auto &it: links_) {
-    const std::shared_ptr<Output> output = it->getSrc();
+    const Output* output = it->getSrc();
     if (output->getName() == srcOutputName &&
         output->getRegion()->getName() == srcRegionName) {
       return it;
@@ -187,7 +187,7 @@ void Input::initialize() {
     // Try to determine source dimensions.
     std::vector<Dimensions> Ds;
     for (auto link : links_) {
-      std::shared_ptr<Output> out = link->getSrc();
+      Output* out = link->getSrc();
       // determines source dimensions based on configuration.
       d = out->determineDimensions();
       NTA_CHECK(!d.isUnspecified());

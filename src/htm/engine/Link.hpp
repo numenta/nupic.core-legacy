@@ -408,7 +408,7 @@ public:
    * @returns
    *         The source Output of the link
    */
-  std::shared_ptr<Output> getSrc() const;
+  Output* getSrc() const;
 
   /**
    *
@@ -417,7 +417,7 @@ public:
    * @returns
    *         The destination Input of the link
    */
-  std::shared_ptr<Input> getDest() const;
+  Input* getDest() const;
 
   /**
    * Copy data from source to destination.
@@ -514,9 +514,9 @@ private:
   std::string linkType_;
   std::string linkParams_;
 
-
-  std::shared_ptr<Output> src_;
-  std::shared_ptr<Input> dest_;
+  // Note: these must be raw pointers to avoid circular linkages with shared_ptrs.
+  Output* src_;
+  Input* dest_;
 
   // Each link contributes a contiguous chunk of the destination
   // input. The link needs to know its offset within the destination

@@ -618,7 +618,7 @@ namespace py = pybind11;
             const std::pair<std::string, OutputSpec> & p = ns.outputs.getByIndex(i);
 
             // Get the corresponding output buffer
-            Output * out = region_->getOutput(p.first);
+            auto out = region_->getOutput(p.first);
             // Skip optional outputs
             if (!out)
                 continue;
