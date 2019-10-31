@@ -399,3 +399,13 @@ and for papers we suggest to use the following BibTex citation:
 making the research reproducible. 
 
 
+##Related community work
+
+Community projects for working with HTM. 
+
+### Visualization
+#### HTMPandaVis
+This project aspires to create tool that helps **visualize HTM systems in 3D** by using opensource framework for 3D rendering https://www.panda3d.org/
+
+![pandaVis1](docs/images/pandaVis1.png)
+
