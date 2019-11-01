@@ -22,7 +22,6 @@
 #include "gtest/gtest.h"
 
 #include <htm/engine/Network.hpp>
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/ntypes/Dimensions.hpp>
 #include <htm/utils/Log.hpp>
@@ -34,32 +33,6 @@ using namespace htm;
 static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
-
-TEST(NetworkTest, AutoInitialization) {
-
-  // Uninitialize NuPIC since this test checks auto-initialization
-  // If shutdown fails, there is probably a problem with another test which
-  // is not cleaning up its networks.
-  if (NuPIC::isInitialized())
-    NuPIC::shutdown();
-
-  ASSERT_TRUE(!NuPIC::isInitialized());
-  // creating a network should auto-initialize NuPIC
-  {
-    Network net;
-    ASSERT_TRUE(NuPIC::isInitialized());
-    std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
-
-    // Use l1 to avoid a compiler warning
-    EXPECT_STREQ("level1", l1->getName().c_str());
-
-    // Network still exists, so this should fail.
-    EXPECT_THROW(NuPIC::shutdown(), std::exception);
-  }
-  // net destructor has been called so we should be able to shut down NuPIC now
-  NuPIC::shutdown();
-  
-}
 
 TEST(NetworkTest, RegionAccess) {
   Network net;

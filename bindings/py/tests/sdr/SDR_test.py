@@ -21,7 +21,8 @@ import pickle
 import numpy as np
 import unittest
 import pytest
-import time
+import timeit
+
 
 from htm.bindings.sdr import SDR
 from htm.bindings.math import Random
@@ -137,19 +138,15 @@ class SdrTest(unittest.TestCase):
 
         # Also, it should not be *too* much faster because this test-case is
         # tuned to very fast in both situations.
-        A = SDR( 100*1000 )
-        B = np.copy(A.dense)
-
-        copy_time = time.clock()
-        for i in range(100):
-            A.dense = B
-        copy_time = time.clock() - copy_time
-
-        inplace_time = time.clock()
-        for i in range(100):
-            A.dense = A.dense
-        inplace_time = time.clock() - inplace_time
-
+       
+       
+        
+        copy_time = timeit.timeit(stmt='A.dense = B', 
+                                  setup='import numpy as np;from htm.bindings.sdr import SDR;A = SDR( 100*1000 ); B = np.copy(A.dense)', 
+                                  number=100)
+        inplace_time = timeit.timeit(stmt='A.dense = A.dense', 
+                                  setup='from htm.bindings.sdr import SDR;A = SDR( 100*1000 )',
+                                  number=100)
         assert( inplace_time < copy_time / 3 )
 
     def testSparse(self):

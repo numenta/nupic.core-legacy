@@ -58,9 +58,8 @@ public:
 
   /**
    *
-   * Create an new Network and register it to NuPIC.
+   * Create an new Network
    *
-   * @note Creating a Network will auto-initialize NuPIC.
    */
   Network();
   Network(const std::string& filename);

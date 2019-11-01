@@ -285,7 +285,7 @@ public:
    * @param dest
    *            The destination Input of the link
    */
-  void connectToNetwork(Output *src, Input *dest);
+  void connectToNetwork(std::shared_ptr<Output> src, std::shared_ptr<Input> dest);
 
   /*
    * Initialization Phase 1 and 2.
@@ -304,7 +304,7 @@ public:
    *            any, are initially populated with 0's. Defaults to 0=no delay
    */
   Link(const std::string &linkType, const std::string &linkParams,
-       Output *srcOutput, Input *destInput, size_t propagationDelay = 0);
+       std::shared_ptr<Output> srcOutput, std::shared_ptr<Input> destInput, size_t propagationDelay = 0);
 
 
   /**
@@ -408,7 +408,7 @@ public:
    * @returns
    *         The source Output of the link
    */
-  Output &getSrc() const;
+  Output* getSrc() const;
 
   /**
    *
@@ -417,7 +417,7 @@ public:
    * @returns
    *         The destination Input of the link
    */
-  Input &getDest() const;
+  Input* getDest() const;
 
   /**
    * Copy data from source to destination.
@@ -514,9 +514,9 @@ private:
   std::string linkType_;
   std::string linkParams_;
 
-
-  Output *src_;
-  Input *dest_;
+  // Note: these must be raw pointers to avoid circular linkages with shared_ptrs.
+  Output* src_;
+  Input* dest_;
 
   // Each link contributes a contiguous chunk of the destination
   // input. The link needs to know its offset within the destination

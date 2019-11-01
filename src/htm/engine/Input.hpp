@@ -92,7 +92,7 @@ public:
    * @param srcOutput
    *        The output of previous Region, which is also the source of the input
    */
-  void addLink(const std::shared_ptr<Link> link, Output *srcOutput);
+  void addLink(const std::shared_ptr<Link> link, std::shared_ptr<Output> srcOutput);
 
   /**
    * Locate an existing Link to the input.

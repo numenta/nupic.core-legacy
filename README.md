@@ -374,3 +374,39 @@ In Python:
 ```
 python py/htm/examples/mnist.py
 ```
+
+## Cite us
+
+We're happy that you can use the community work in this repository or even join the development! 
+Please give us attribution by linking to us as [htm.core](https://github.com/htm-community/htm.core/) at https://github.com/htm-community/htm.core/ , 
+and for papers we suggest to use the following BibTex citation: 
+
+```
+@misc{htmcore2019,
+	abstract = "Implementation of cortical algorithms based on HTM theory in C++ \& Python. Research \& development library.",
+	author = "M. Otahal and D. Keeney and D. McDougall and others",
+	commit = bf6a2b2b0e04a1d439bb0492ea115b6bc254ce18,
+	howpublished = "\url{https://github.com/htm-community/htm.core/}",
+	journal = "Github repository",
+	keywords = "HTM; Hierarchical Temporal Memory; NuPIC; Numenta; cortical algorithm; sparse distributed representation; anomaly; prediction; bioinspired; neuromorphic",
+	publisher = "Github",
+	series = "{Community edition}",
+	title = "{HTM.core implementation of Hierarchical Temporal Memory}",
+	year = "2019"
+}
+```
+> Note: you can update the commit to reflect the latest version you have been working with to help 
+making the research reproducible. 
+
+
+## Related community work
+
+Community projects for working with HTM. 
+
+### Visualization
+#### HTMPandaVis
+This project aspires to create tool that helps **visualize HTM systems in 3D** by using opensource framework for 3D rendering https://www.panda3d.org/
+
+For more info, visit [repository of the project](https://github.com/htm-community/HTMpandaVis)
+![pandaVis1](docs/images/pandaVis1.png)
+

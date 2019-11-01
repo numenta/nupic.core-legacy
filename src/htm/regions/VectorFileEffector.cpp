@@ -57,7 +57,7 @@ VectorFileEffector::~VectorFileEffector() { closeFile(); }
 void VectorFileEffector::initialize() {
   NTA_CHECK(region_ != nullptr);
   // We have no outputs or parameters; just need our input.
-  Input *in = region_->getInput("dataIn");
+  std::shared_ptr<Input> in = region_->getInput("dataIn");
   NTA_ASSERT(in) << "VectorFileEffector::init - 'dataIn' input not configured\n";
 
   if (!in->hasIncomingLinks() || in->getData().getCount() == 0) {

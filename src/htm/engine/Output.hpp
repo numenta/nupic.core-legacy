@@ -48,15 +48,8 @@ public:
    *        The type of the output
    */
   Output(Region* region,
-         const std::string& outputName,
-         NTA_BasicType type);
+         const std::string& outputName, NTA_BasicType type);
 
-  /**
-   * Destructor
-   * noexcept(false) : as C++11 forces noexcept(true) in destructors by default,
-   * we override that here to throw NTA_CHECK
-   */
-  ~Output() noexcept(false);
 
   /**
    * Set the name for the output.
@@ -108,7 +101,7 @@ public:
    * @param link
    *        The Link to remove
    */
-  void removeLink(std::shared_ptr<Link> link);
+  void removeLink(const std::shared_ptr<Link>& link);
 
   /**
    * Tells whether the output has outgoing links.
@@ -172,7 +165,7 @@ public:
   /**
    * Set dimensions for this output
    */
-  void setDimensions(const Dimensions& dim) { dim_ = std::move(dim); }
+  void setDimensions(const Dimensions& dim) { dim_ = dim; }
 
   /**
    *  Print raw data...for debugging

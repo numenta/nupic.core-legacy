@@ -27,6 +27,7 @@ Methods related to inputs and outputs are in Region_io.cpp
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <memory>
 
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Output.hpp>
@@ -79,7 +80,7 @@ void Region::createInputsAndOutputs_() {
     const std::pair<std::string, OutputSpec> &p = spec_->outputs.getByIndex(i);
     const std::string& outputName = p.first;
     const OutputSpec &os = p.second;
-    auto output = new Output(this, outputName, os.dataType);
+    std::shared_ptr<Output> output = std::make_shared<Output>(this, outputName, os.dataType);
     outputs_[outputName] = output;
   }
 
@@ -89,7 +90,7 @@ void Region::createInputsAndOutputs_() {
     const std::string& inputName = p.first;
     const InputSpec &is = p.second;
 
-    Input* input = new Input(this, inputName, is.dataType);
+    auto input = std::make_shared<Input>(this, inputName, is.dataType);
     inputs_[inputName] = input;
   }
 }
@@ -106,15 +107,8 @@ bool Region::hasOutgoingLinks() const {
 Region::~Region() {
   if (initialized_)
     uninitialize();
-
-  // If there are any links connected to our outputs, this should fail.
-  // We catch this error in the Network class and give the
-  // user a good error message (regions may be removed either in
-  // Network::removeRegion or Network::~Network())
-  for (auto &elem : outputs_) {
-    delete elem.second;
-    elem.second = nullptr;
-  }
+    
+  removeAllIncomingLinks();  // Note: link objects are stored on the Input object.
   outputs_.clear();
 
   clearInputs(); // just in case there are some still around.
@@ -126,11 +120,9 @@ void Region::clearInputs() {
   for (auto &input : inputs_) {
     auto &links = input.second->getLinks();
     for (auto &link : links) {
-      	link->getSrc().removeLink(link); // remove it from the Output object.
+      	link->getSrc()->removeLink(link); // remove it from the Output object.
     }
-	links.clear();
-    delete input.second; // This is an Input object. Its destructor deletes the links.
-    input.second = nullptr;
+	  links.clear();
   }
   inputs_.clear();
 }
@@ -238,7 +230,7 @@ Dimensions Region::getInputDimensions(std::string name) const {
   if (name.empty()) {
     name = spec_->getDefaultOutputName();
   }
-  Input* in = getInput(name);
+  std::shared_ptr<Input> in = getInput(name);
   NTA_CHECK(in != nullptr)
     << "Unknown input (" << name << ") requested on " << name_;
   return in->getDimensions();
@@ -247,7 +239,7 @@ Dimensions Region::getOutputDimensions(std::string name) const {
   if (name.empty()) {
     name = spec_->getDefaultOutputName();
   }
-  Output* out = getOutput(name);
+  std::shared_ptr<Output> out = getOutput(name);
   NTA_CHECK(out != nullptr)
     << "Unknown output (" << name << ") requested on " << name_;
   return out->getDimensions();
@@ -257,7 +249,7 @@ void Region::setInputDimensions(std::string name, const Dimensions& dim) {
   if (name.empty()) {
     name = spec_->getDefaultOutputName();
   }
-  Input* in = getInput(name);
+  std::shared_ptr<Input> in = getInput(name);
   NTA_CHECK(in != nullptr)
     << "Unknown input (" << name << ") requested on " << name_;
   return in->setDimensions(dim);
@@ -266,7 +258,7 @@ void Region::setOutputDimensions(std::string name, const Dimensions& dim) {
   if (name.empty()) {
     name = spec_->getDefaultOutputName();
   }
-  Output* out = getOutput(name);
+  std::shared_ptr<Output> out = getOutput(name);
   NTA_CHECK(out != nullptr)
     << "Unknown output (" << name << ") requested on " << name_;
   return out->setDimensions(dim);
@@ -392,14 +384,14 @@ bool Region::operator==(const Region &o) const {
 
 // Internal methods called by RegionImpl.
 
-Output *Region::getOutput(const std::string &name) const {
+std::shared_ptr<Output> Region::getOutput(const std::string &name) const {
   auto o = outputs_.find(name);
   if (o == outputs_.end())
     return nullptr;
   return o->second;
 }
 
-Input *Region::getInput(const std::string &name) const {
+std::shared_ptr<Input> Region::getInput(const std::string &name) const {
   auto i = inputs_.find(name);
   if (i == inputs_.end())
     return nullptr;
@@ -407,11 +399,11 @@ Input *Region::getInput(const std::string &name) const {
 }
 
 // Called by Network during serialization
-const std::map<std::string, Input *> &Region::getInputs() const {
+const std::map<std::string, std::shared_ptr<Input>> &Region::getInputs() const {
   return inputs_;
 }
 
-const std::map<std::string, Output *> &Region::getOutputs() const {
+const std::map<std::string, std::shared_ptr<Output>> &Region::getOutputs() const {
   return outputs_;
 }
 
@@ -440,7 +432,7 @@ void Region::setInputData(const std::string &inputName, const Array& data) {
   if (ii == inputs_.end())
     NTA_THROW << "setInputData -- unknown input '" << inputName << "' on region "
               << getName();
-  Input *in = ii->second;
+  std::shared_ptr<Input> in = ii->second;
 	in->setDimensions( { (UInt)data.getCount() } );
   Array& a = in->getData();
 	data.convertInto(a);
