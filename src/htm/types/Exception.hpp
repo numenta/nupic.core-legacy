@@ -23,8 +23,10 @@
 #define NTA_EXCEPTION_HPP
 
 #include <htm/types/Types.hpp>
+
 #include <stdexcept>
 #include <string>
+#include <sstream>
 #include <utility>
 
 //----------------------------------------------------------------------
@@ -62,7 +64,7 @@ namespace htm {
  *  only if you have access to the source code. It is not recommended
  *  to display this information to users most of the time.
  */
-class Exception : public std::runtime_error {
+class Exception : public std::runtime_error { //TODO rename to NTAException to be less confusing?
 public:
   /**
    * Constructor
@@ -77,10 +79,18 @@ public:
    *
    * @param message [const std::string &] the description of exception
    */
-  Exception(std::string filename, UInt32 lineno, std::string message,
+  Exception(std::string filename, 
+            UInt32 lineno, 
+	    std::string message = "",
             std::string stacktrace = "")
       : std::runtime_error(""), filename_(std::move(filename)), lineno_(lineno),
-        message_(std::move(message)), stackTrace_(std::move(stacktrace)) {}
+        message_(std::move(message)), stackTrace_(std::move(stacktrace)),ss_("") {}
+
+  Exception(const Exception& copy):
+    std::runtime_error("")	{
+    Exception(filename_, lineno_, copy.getMessage(), stackTrace_);
+  }
+    
 
   /**
    * Destructor
@@ -104,12 +114,8 @@ public:
    *
    * @retval [const Byte *] the exception message
    */
-  virtual const char *what() const throw() {
-    try {
+  virtual const char *what() const noexcept override {
       return getMessage();
-    } catch (...) {
-      return "Exception caught in non-throwing Exception::what()";
-    }
   }
 
   /**
@@ -120,7 +126,7 @@ public:
    *
    * @retval [const Byte *] the source filename
    */
-  const char *getFilename() const { return filename_.c_str(); }
+  const char *getFilename() const noexcept { return filename_.c_str(); }
 
   /**
    * Get the line number in the source file
@@ -130,14 +136,17 @@ public:
    *
    * @retval [UInt32] the line number in the source file
    */
-  UInt32 getLineNumber() const { return lineno_; }
+  UInt32 getLineNumber() const noexcept { return lineno_; }
 
   /**
    * Get the error message
    *
    * @retval [const char *] the error message
    */
-  virtual const char *getMessage() const { return message_.c_str(); }
+  virtual const char *getMessage() const noexcept { 
+	  message_ += ss_.str();
+	  ss_.clear();
+	  return message_.c_str(); }
 
   /**
    * Get the stack trace
@@ -147,13 +156,22 @@ public:
    *
    * @retval [const Byte *] the stack trace
    */
-  virtual const char *getStackTrace() const { return stackTrace_.c_str(); }
+  virtual const char *getStackTrace() const noexcept { return stackTrace_.c_str(); }
+
+
+  template <typename T> 
+  Exception &operator<<(const T &obj) {
+    ss_ << obj;
+    return *this;
+  }
 
 protected:
   std::string filename_;
   UInt32 lineno_;
-  std::string message_;
+  mutable std::string message_; //mutable bcs modified in getMessage which is used in what() but that needs be const
   std::string stackTrace_;
+private:
+  mutable std::stringstream ss_;
 
 }; // end class Exception
 } // end namespace htm

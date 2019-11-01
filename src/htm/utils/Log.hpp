@@ -24,12 +24,12 @@
 #define NTA_LOG2_HPP
 
 #include <iostream>
+#include <htm/types/Exception.hpp>
 #include <htm/utils/LogItem.hpp>
-#include <htm/utils/LoggingException.hpp>
 
 namespace htm {
 //enum class LogLevel { LogLevel_None = 0, LogLevel_Minimal=1, LogLevel_Normal=2, LogLevel_Verbose=3 };
-static LogLevel NTA_LOG_LEVEL = LogLevel::LogLevel_None; // change this in your class to set log level
+static LogLevel NTA_LOG_LEVEL = LogLevel::LogLevel_Minimal; // change this in your class to set log level
 
 //this code intentionally uses "if() dosomething" instead of "if() { dosomething }" 
 // as the macro expects another "<< "my clever message";
@@ -58,7 +58,7 @@ static LogLevel NTA_LOG_LEVEL = LogLevel::LogLevel_None; // change this in your 
 
 // To throw an exception and make sure the exception message is logged
 // appropriately
-#define NTA_THROW throw htm::LoggingException(__FILE__, __LINE__)
+#define NTA_THROW throw htm::Exception(__FILE__, __LINE__)
 
 // The difference between CHECK and ASSERT is that ASSERT is for
 // performance critical code and can be disabled in a release
