@@ -31,13 +31,6 @@
   } else                                                                      \
     htm::LogItem(__FILE__, __LINE__, htm::LogType_debug).stream()
 
-// Can be used in Loggable classes   
-//    level is one of (LogLevel_None, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose)
-#define NTA_LDEBUG(level)                                                      \
-  if (htm::LogItem::getLogLevel() < (level)) {                             \
-  } else                                                                       \
-    htm::LogItem(__FILE__, __LINE__, htm::LogType_debug).stream()
-
 // For informational messages that report status but do not indicate that
 // anything is wrong
 #define NTA_INFO                                                               \
