@@ -16,6 +16,7 @@
 # ----------------------------------------------------------------------
 
 import unittest
+import sys
 
 from htm.bindings.regions.PyRegion import PyRegion
 
@@ -103,6 +104,23 @@ class PyRegionTest(unittest.TestCase):
 
     self.assertEqual(str(cw.exception),
                      "The method setParameter is not implemented.")
+
+  def testPickle(self):
+    """
+    Test region pickling/unpickling.
+    """
+    y = Y()
+
+    if sys.version_info[0] >= 3:
+      proto = 3
+    else:
+      proto = 2
+
+    # Simple test: make sure that dumping / loading works...
+    pickledRegion = pickle.dumps(y, proto)
+    y2 = pickle.loads(pickledRegion)
+    self.assertEqual(str(y), str(y2),  "Simple Region pickle/unpickle failed.")
+    
 
 
 

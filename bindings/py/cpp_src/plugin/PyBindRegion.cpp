@@ -304,30 +304,32 @@ namespace py = pybind11;
         // 1. serialize main state using pickle
         // 2. call class method to serialize external state
 
-        // 1. Serialize main state of the Python module
-				//    We want this to end up in the open stream obtained from bundle.
-				//    a. We first pickle the python into a temporary file.
-				//    b. copy the file into our open stream.
+        //    Serialize main state of the Python module
+				//    We want this to end up in a string that we pass back to Cereal.
+				//    a. We first pickle the python into an in-memory byte stream.
+				//    b. We then convert that to a Base64 std::string that is returned.
 
-				std::string tmp_pickle = "pickle.tmp";
-		    py::tuple args = py::make_tuple(tmp_pickle, "wb");
-		    auto f = py::module::import("__builtin__").attr("file")(*args);
+		    py::tuple args;
+		    auto f = py::module::import("io").attr("BytesIO")();
 
 #if PY_MAJOR_VERSION >= 3
 		    auto pickle = py::module::import("pickle");
+		    args = py::make_tuple(node_, f, 3);   // use type 3 protocol
 #else
 		    auto pickle = py::module::import("cPickle");
-#endif
 		    args = py::make_tuple(node_, f, 2);   // use type 2 protocol
+#endif
+std::cerr << "before pickle.dump()\n";
 		    pickle.attr("dump")(*args);
-		    pickle.attr("close")();
+std::cerr << "after pickle.dump()\n";
 
-				// copy the pickle into the out string
-				std::ifstream pfile(tmp_pickle.c_str(), std::ios::binary);
-				std::string content((std::istreambuf_iterator<char>(pfile)),
-				                     std::istreambuf_iterator<char>());
-				pfile.close();
-		 		Path::remove(tmp_pickle);
+				// copy the pickle stream into the content as a base64 encoded utf8 string
+        py::bytes b = f.attr("getvalue")();
+        args = py::make_tuple(b);
+		    std::string content = py::str(py::module::import("base64").attr("b64encode")(*args));
+       
+std::cerr << "after getting content.\n'" << content << "'\n";
+		    f.attr("close")();
 		    return content;
     }
     std::string PyBindRegion::extraSerialize() const
@@ -355,18 +357,17 @@ namespace py = pybind11;
         // 1. deserialize main state using pickle
         // 2. call class method to deserialize external state
 
-				std::ofstream des;
-				std::string tmp_pickle = "pickle.tmp";
-
-
-			  std::ofstream pfile(tmp_pickle.c_str(), std::ios::binary);
-				pfile.write(p.c_str(), p.size());
-				pfile.close();
-
-
-		// Tell Python to un-pickle using what is now in the pickle.tmp file.
-        py::args args = py::make_tuple(tmp_pickle, "rb");
-        auto f = py::module::import("__builtin__").attr("file")(*args);
+std::cerr << "PyBindRegion pickleDeserialize() " << className_ << "\n";
+std::cerr << "'" << p << "'\n";
+		    // Tell Python to un-pickle using what is in the string p.
+        // but first we need to convert the base64 string into bytes.
+        py::args args;
+        args = py::make_tuple(py::bytes(p));
+        py::bytes b = py::module::import("base64").attr("b64decode")(*args);
+std::cerr << "PyBindRegion after decode \n";
+        args = py::make_tuple(b);
+		    auto f = py::module::import("io").attr("BytesIO")(*args);
+std::cerr << "PyBindRegion after BytesIO created. \n";
 
 #if PY_MAJOR_VERSION >= 3
         auto pickle = py::module::import("pickle");
@@ -375,10 +376,11 @@ namespace py = pybind11;
 #endif
 
         args = py::make_tuple(node_, f);
+ std::cerr << "PyBindRegion before load.\n";
         pickle.attr("load")(*args);
 
-        pickle.attr("close")();
-				Path::remove(tmp_pickle);
+        f.attr("close")();
+ std::cerr << "PyBindRegion after close.\n";
 		}
 
 		void PyBindRegion::extraDeserialize(std::string e) {

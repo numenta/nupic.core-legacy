@@ -66,8 +66,9 @@ public:
   Network(const std::string& filename);
 
   /**
-   * Cannot copy or assign a Network object.
+   * Cannot copy or assign a Network object. But can be moved.
    */
+  Network(Network&&);  // move is allowed
   Network(const Network&) = delete;
   void operator=(const Network&) = delete;
 
@@ -122,6 +123,7 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
+std::cerr << "Network.save_ar called\n";
     const std::vector<std::shared_ptr<Link>> links = getLinks();
     std::string name = "Network";
     ar(cereal::make_nvp("name", name));
@@ -133,13 +135,17 @@ public:
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
+std::cerr << "Network.load_ar called\n";
     std::vector<std::shared_ptr<Link>> links;
     std::string name;
     ar(cereal::make_nvp("name", name));  // ignore value
     ar(cereal::make_nvp("iteration", iteration_));
+std::cerr << "Network.load_ar regions\n";
     ar(cereal::make_nvp("Regions", regions_));
+std::cerr << "Network.load_ar links\n";
     ar(cereal::make_nvp("links", links));
 
+std::cerr << "Network.load_ar post_load\n";
     post_load(links);
   }
 

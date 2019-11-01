@@ -46,6 +46,16 @@ Network::Network() {
   NuPIC::registerNetwork(this);
 }
 
+// move constructor
+Network::Network(Network && n) {
+  regions_ = std::move(n.regions_);
+  minEnabledPhase_ = n.minEnabledPhase_;
+  maxEnabledPhase_ = n.maxEnabledPhase_;
+  phaseInfo_ = std::move(n.phaseInfo_);
+  callbacks_ = n.callbacks_;
+  iteration_ = n.iteration_;
+}  
+
 Network::Network(const std::string& filename) {
   commonInit();
   NuPIC::registerNetwork(this);

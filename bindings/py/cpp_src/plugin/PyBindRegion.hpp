@@ -65,12 +65,14 @@ namespace htm
 			  // FOR Cereal Serialization
 			  template<class Archive>
 			  void save_ar(Archive& ar) const {
+ std::cerr << "PyBindRegion save_ar() " << className_ << "\n";
 				    std::string p = pickleSerialize();
 						std::string e = extraSerialize();
 						ar(p, e);
 				}
 			  template<class Archive>
 			  void load_ar(Archive& ar) {
+ std::cerr << "PyBindRegion load_ar() " << className_ << "\n";
 				    std::string p;
 						std::string e;
 						ar(p, e);
