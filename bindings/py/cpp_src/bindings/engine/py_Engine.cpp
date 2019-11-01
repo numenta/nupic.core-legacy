@@ -30,8 +30,8 @@ PyBind11 bindings for Engine classes
 #include <pybind11/stl.h>
 
 #include <htm/os/Timer.hpp>
-
 #include <htm/ntypes/Array.hpp>
+#include <htm/utils/Log.hpp>
 
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Network.hpp>
@@ -39,6 +39,7 @@ PyBind11 bindings for Engine classes
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Spec.hpp>
 #include <htm/types/Sdr.hpp>
+
 #include <plugin/PyBindRegion.hpp>
 #include <plugin/RegisteredRegionImplPy.hpp>
 
@@ -435,13 +436,13 @@ namespace htm_ext
             , py::arg("srcOutput") = "", py::arg("destInput") = ""
             , py::arg("propagationDelay") = 0);
 
-        py::enum_<LogLevel>(m, "LogLevel", py::arithmetic(), "An enumeration of logging levels.")
-                     .value("None", LogLevel::LogLevel_None)        // default
-                     .value("Minimal", LogLevel::LogLevel_Minimal)
-                     .value("Normal",  LogLevel::LogLevel_Normal)
-                     .value("Verbose", LogLevel::LogLevel_Verbose)
+        py::enum_<htm::LogLevel>(m, "LogLevel", "An enumeration of logging levels.")
+                     .value("None",    htm::LogLevel::LogLevel_None)        // default
+                     .value("Minimal", htm::LogLevel::LogLevel_Minimal)
+                     .value("Normal",  htm::LogLevel::LogLevel_Normal)
+                     .value("Verbose", htm::LogLevel::LogLevel_Verbose)
                      .export_values();
-        py_Network.def("setLogLevel", &htm::Network::setLogLevel);
+        py_Network.def("setLogLevel", &htm::Network::setLogLevel, py::arg("level") = htm::LogLevel::LogLevel_None);
                 
                 
         // plugin registration
