@@ -23,27 +23,38 @@
 #ifndef NTA_LOG2_HPP
 #define NTA_LOG2_HPP
 
+#include <iostream>
 #include <htm/utils/LogItem.hpp>
 #include <htm/utils/LoggingException.hpp>
 
-#define NTA_DEBUG                                                             \
-  if (htm::LogItem::getLogLevel() < htm::LogLevel_Verbose) {                \
-  } else                                                                      \
-    htm::LogItem(__FILE__, __LINE__, htm::LogType_debug).stream()
+namespace htm {
+//enum class LogLevel { LogLevel_None = 0, LogLevel_Minimal=1, LogLevel_Normal=2, LogLevel_Verbose=3 };
+static LogLevel NTA_LOG_LEVEL = LogLevel::LogLevel_None; // change this in your class to set log level
+
+//this code intentionally uses "if() dosomething" instead of "if() { dosomething }" 
+// as the macro expects another "<< "my clever message";
+// so it eventually becomes: `if() std::cout << "DEBUG:\t" << "users message";`
+//
+//Expected usage: 
+//<your class>:
+//NTA_LOG_LEVEL = LogLevel::LogLevel_Normal;
+//NTA_WARN << "Hello World!" << std::endl; //shows
+//NTA_DEBUG << "more details how cool this is"; //not showing under "Normal" log level
+//NTA_ERR << "You'll always see this, HAHA!";
+//NTA_THROW << "crashing for a good cause";
+
+#define NTA_DEBUG \
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Verbose ) std::cout << "DEBUG:\t" << __FILE__ << ":" << __LINE__ << ":" 
 
 // For informational messages that report status but do not indicate that
 // anything is wrong
 #define NTA_INFO                                                               \
-  if (htm::LogItem::getLogLevel() < htm::LogLevel_Normal) {                \
-  } else                                                                      \
-  htm::LogItem(__FILE__, __LINE__, htm::LogType_info).stream()
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal ) std::cout << "INFO:\t" << __FILE__ << ":" << __LINE__ << ":"
 
 // For messages that indicate a recoverable error or something else that it may
 // be important for the end user to know about.
 #define NTA_WARN                                                               \
-  if (htm::LogItem::getLogLevel() < htm::LogLevel_Normal) {                \
-  } else                                                                      \
-  htm::LogItem(__FILE__, __LINE__, htm::LogType_warn).stream()
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal ) std::cout << "WARN:\t" << __FILE__ << ":" << __LINE__ << ":"
 
 // To throw an exception and make sure the exception message is logged
 // appropriately
@@ -64,13 +75,11 @@
 
 #else
 // Without NTA_ASSERTIONS_ON, NTA_ASSERT macro does nothing.
-// The second line (with LogItem) should never be executed, or even compiled, but we
-// need something that is syntactically compatible with NTA_ASSERT
+// The second line (with `if(false)`) should never be executed, or even compiled, but we
+// need something that is syntactically compatible with NTA_ASSERT << "msg";
 #define NTA_ASSERT(condition)                                                  \
-  if (1) {                                                                     \
-  } else                                                                       \
-    htm::LogItem(__FILE__, __LINE__, htm::LogType_debug).stream()
+  if (false) std::cerr << "This line should never happen"
 
 #endif // NTA_ASSERTIONS_ON
-
+}
 #endif // NTA_LOG2_HPP
