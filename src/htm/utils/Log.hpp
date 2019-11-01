@@ -61,17 +61,13 @@
 // build. Both throw an exception on error (if NTA_ASSERTIONS_ON is set).
 
 #define NTA_CHECK(condition)                                                   \
-  if (condition) {                                                             \
-  } else                                                                       \
+  if (not (condition) )                                                        \
     NTA_THROW << "CHECK FAILED: \"" << #condition << "\" "
 
 #ifdef NTA_ASSERTIONS_ON
 // With NTA_ASSERTIONS_ON, NTA_ASSERT macro throws exception if condition is false.
 // NTA_ASSERTIONS_ON should be set ON only in debug mode.
-#define NTA_ASSERT(condition)                                                  \
-  if (condition) {                                                             \
-  } else                                                                       \
-    NTA_THROW << "ASSERTION FAILED: \"" << #condition << "\" "
+#define NTA_ASSERT(condition) NTA_CHECK(condition)
 
 #else
 // Without NTA_ASSERTIONS_ON, NTA_ASSERT macro does nothing.
