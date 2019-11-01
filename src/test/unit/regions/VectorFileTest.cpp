@@ -34,7 +34,6 @@
   */
 
 
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Network.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>

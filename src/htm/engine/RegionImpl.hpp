@@ -333,8 +333,8 @@ protected:
   // These methods provide access to inputs and outputs
   // They raise an exception if the named input or output is
   // not found.
-  Input *getInput(const std::string &name) const;
-  Output *getOutput(const std::string &name) const;
+  std::shared_ptr<Input> getInput(const std::string &name) const;
+  std::shared_ptr<Output> getOutput(const std::string &name) const;
   Dimensions getInputDimensions(const std::string &name="") const;
   Dimensions getOutputDimensions(const std::string &name="") const;
 

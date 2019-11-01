@@ -238,11 +238,11 @@ std::string RegionImpl::executeCommand(const std::vector<std::string> &args,Int6
 
 // Provide data access for subclasses
 
-Input *RegionImpl::getInput(const std::string &name) const {
+std::shared_ptr<Input> RegionImpl::getInput(const std::string &name) const {
   return region_->getInput(name);
 }
 
-Output *RegionImpl::getOutput(const std::string &name) const {
+std::shared_ptr<Output> RegionImpl::getOutput(const std::string &name) const {
   return region_->getOutput(name);
 }
 Dimensions RegionImpl::getInputDimensions(const std::string &name) const {

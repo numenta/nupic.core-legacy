@@ -58,18 +58,21 @@ public:
 
   /**
    *
-   * Create an new Network and register it to NuPIC.
+   * Create an new Network
    *
-   * @note Creating a Network will auto-initialize NuPIC.
+   * @Note if the Network object gets copied it does not do a
+   *       deep copy.  So both copies point to the same set of
+   *       regions and links.  The last Network object to go 
+   *       out-of-scope will delete the regions and links.
    */
   Network();
   Network(const std::string& filename);
 
-  /**
-   * Cannot copy or assign a Network object.
+  /*
+   * @Note: the pickle functions in the python bindings
+   *        require that the Network object be copyable.
+   *        The default copy constructor is ok.
    */
-  Network(const Network&) = delete;
-  void operator=(const Network&) = delete;
 
   /**
    * Destructor.

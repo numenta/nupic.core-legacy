@@ -27,7 +27,6 @@ Implementation of the Network class
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Network.hpp>
-#include <htm/engine/NuPIC.hpp> // for register/unregister
 #include <htm/engine/Output.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/RegionImplFactory.hpp>
@@ -43,12 +42,10 @@ class RegisteredRegionImpl;
 
 Network::Network() {
   commonInit();
-  NuPIC::registerNetwork(this);
 }
 
 Network::Network(const std::string& filename) {
   commonInit();
-  NuPIC::registerNetwork(this);
   loadFromFile(filename);
 }
 
@@ -58,13 +55,9 @@ void Network::commonInit() {
   iteration_ = 0;
   minEnabledPhase_ = 0;
   maxEnabledPhase_ = 0;
-  // automatic initialization of NuPIC, so users don't
-  // have to call NuPIC::initialize
-  NuPIC::init();
 }
 
 Network::~Network() {
-  NuPIC::unregisterNetwork(this);
   /**
    * Teardown choreography:
    * - unintialize all regions because otherwise we won't be able to disconnect
@@ -86,7 +79,7 @@ Network::~Network() {
   }
 
   // 3. delete the regions
-  // They are in Shared_ptr so no need to delete regions.
+  // They are in a map of Shared_ptr so regions are deleted when it goes out of scope.
 }
 
 std::shared_ptr<Region> Network::addRegion(const std::string &name, const std::string &nodeType,
@@ -263,7 +256,7 @@ std::shared_ptr<Link> Network::link(const std::string &srcRegionName,
     outputName = srcSpec->getDefaultOutputName();
   }
 
-  Output *srcOutput = srcRegion->getOutput(outputName);
+  std::shared_ptr<Output> srcOutput = srcRegion->getOutput(outputName);
   if (srcOutput == nullptr)
     NTA_THROW << "Network::link -- output " << outputName
               << " does not exist on region " << srcRegionName;
@@ -274,7 +267,7 @@ std::shared_ptr<Link> Network::link(const std::string &srcRegionName,
     inputName = destSpec->getDefaultInputName();
   }
 
-  Input *destInput = destRegion->getInput(inputName);
+  std::shared_ptr<Input> destInput = destRegion->getInput(inputName);
   if (destInput == nullptr) {
     NTA_THROW << "Network::link -- input '" << inputName
               << " does not exist on region " << destRegionName;
@@ -313,7 +306,7 @@ void Network::removeLink(const std::string &srcRegionName,
   else
     inputName = destInputName;
 
-  Input *destInput = destRegion->getInput(inputName);
+  std::shared_ptr<Input> destInput = destRegion->getInput(inputName);
   if (destInput == nullptr) {
     NTA_THROW << "Network::unlink -- input '" << inputName
               << " does not exist on region " << destRegionName;
@@ -637,7 +630,7 @@ std::ostream &operator<<(std::ostream &f, const Network &n) {
   f << "Links: [\n";
   for(auto iter = n.regions_.cbegin(); iter != n.regions_.cend(); ++iter) {
     std::shared_ptr<Region> r = iter->second;
-    const std::map<std::string, Input*> inputs = r->getInputs();
+    const std::map<std::string, std::shared_ptr<Input>> inputs = r->getInputs();
     for (const auto & inputs_input : inputs)
     {
       const std::vector<std::shared_ptr<Link>>& links = inputs_input.second->getLinks();
