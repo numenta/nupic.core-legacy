@@ -381,12 +381,12 @@ public:
    */
   void resetProfiling();
 	
-	/**
-	 * Set one of the debug levels: LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose
+  /**
+   * Set one of the debug levels: LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose
    */
-	void setLogLevel(LogLevel level) {
-	    LogItem::setLogLevel(level);
-	}
+  static void setLogLevel(LogLevel level) {
+    NTA_LOG_LEVEL = level;
+  }
 
 
   /**

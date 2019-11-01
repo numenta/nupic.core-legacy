@@ -167,8 +167,6 @@ set(types_files
 set(utils_files
     htm/utils/GroupBy.hpp
     htm/utils/Log.hpp
-    htm/utils/LogItem.cpp
-    htm/utils/LogItem.hpp
     htm/utils/MovingAverage.cpp
     htm/utils/MovingAverage.hpp
     htm/utils/Random.cpp

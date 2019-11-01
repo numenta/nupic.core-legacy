@@ -49,20 +49,8 @@ namespace htm {
  *  This class may be used directly by instatiating an instance
  *  and throwing it, but usually you will use the NTA_THROW macro
  *  that makes it much simpler by automatically retreiving the __FILE__
- *  and __LINE__ for you and also using a wrapping LogItem that allows
- *  you to construct the exception message conveniently using the <<
- *  streame operator (see htm/utils/Log.hpp for further details).
+ *  and __LINE__ for you.
  *
- * @b Notes:
- *  1. Exception is a subclass of the standard std::runtime_error.
- *  This is useful if your code needs to interoperate with other
- *  code that is not aware of the Exception class, but understands
- *  std::runtime_error. The what() method will return the exception message
- *  and the location information will not be avaialable to such code.
- *
- *  2. Source file and line number information is useful of course
- *  only if you have access to the source code. It is not recommended
- *  to display this information to users most of the time.
  */
 class Exception : public std::runtime_error { //TODO rename to NTAException to be less confusing?
 public:

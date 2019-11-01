@@ -27,7 +27,7 @@
 #include <htm/ntypes/BasicType.hpp>
 #include <htm/utils/Log.hpp>
 
-// By calling  LogItem::setLogLevel(LogLevel_Verbose)
+// By calling  NTA_LOG_LEVEL = LogLevel::LogLevel_Verbose
 // you can enable the NTA_DEBUG macros below.
 
 namespace htm {

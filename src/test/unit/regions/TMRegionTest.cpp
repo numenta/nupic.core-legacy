@@ -84,7 +84,7 @@ TEST(TMRegionTest, testSpecAndParameters) {
   Network net;
 
   // Turn on runtime Debug logging.
- //if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+ //if (verbose)  NTA_LOG_LEVEL = LogLevel::LogLevel_Verbose;
 
   // create a TM region with default parameters
   std::set<std::string> excluded;

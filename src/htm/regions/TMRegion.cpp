@@ -230,7 +230,9 @@ void TMRegion::compute() {
   //
   std::shared_ptr<Output> out;
   out = getOutput("bottomUpOut");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+  //set NTA_LOG_LEVEL = htm::LogLevel::LogLevel_Verbose
+  //to output the NTA_DEBUG statements below
+  if (out && (out->hasOutgoingLinks() || NTA_LOG_LEVEL == LogLevel::LogLevel_Verbose)) {
     SDR& sdr = out->getData().getSDR();
     tm_->getActiveCells(sdr); //active cells
     if (args_.orColumnOutputs) { //output as columns
@@ -239,24 +241,24 @@ void TMRegion::compute() {
     NTA_DEBUG << "bottomUpOut " << *out << std::endl;
   }
   out = getOutput("activeCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+  if (out && (out->hasOutgoingLinks() || NTA_LOG_LEVEL == LogLevel::LogLevel_Verbose)) {
     tm_->getActiveCells(out->getData().getSDR());
     NTA_DEBUG << "active " << *out << std::endl;
   }
   out = getOutput("predictedActiveCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+  if (out && (out->hasOutgoingLinks() || NTA_LOG_LEVEL == LogLevel::LogLevel_Verbose)) {
     tm_->activateDendrites();
     tm_->getWinnerCells(out->getData().getSDR());
     NTA_DEBUG << "winners " << *out << std::endl;
   }
   out = getOutput("anomaly");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+  if (out && (out->hasOutgoingLinks() || NTA_LOG_LEVEL == LogLevel::LogLevel_Verbose)) {
     Real32* buffer = reinterpret_cast<Real32*>(out->getData().getBuffer());
     buffer[0] = tm_->anomaly;
     NTA_DEBUG << "anomaly " << *out << std::endl;
   }
   out = getOutput("predictiveCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+  if (out && (out->hasOutgoingLinks() || NTA_LOG_LEVEL == LogLevel::LogLevel_Verbose)) {
     out->getData().getSDR() = tm_->getPredictiveCells();
     NTA_DEBUG << "predictive " << *out << std::endl;
   }

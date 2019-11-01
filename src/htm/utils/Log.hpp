@@ -25,10 +25,9 @@
 
 #include <iostream>
 #include <htm/types/Exception.hpp>
-#include <htm/utils/LogItem.hpp>
 
 namespace htm {
-//enum class LogLevel { LogLevel_None = 0, LogLevel_Minimal=1, LogLevel_Normal=2, LogLevel_Verbose=3 };
+enum class LogLevel { LogLevel_None = 0, LogLevel_Minimal=1, LogLevel_Normal=2, LogLevel_Verbose=3 };
 static LogLevel NTA_LOG_LEVEL = LogLevel::LogLevel_Minimal; // change this in your class to set log level
 
 //this code intentionally uses "if() dosomething" instead of "if() { dosomething }" 
