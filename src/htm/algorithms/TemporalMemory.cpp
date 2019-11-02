@@ -492,7 +492,7 @@ void TemporalMemory::compute(const SDR &activeColumns,
   activateCells(activeColumns, learn);
 }
 
-static void TemporalMemory::calculateAnomalyScore_(const SDR &activeColumns){
+void TemporalMemory::calculateAnomalyScore_(const SDR &activeColumns){
 
   // Update Anomaly Metric.  The anomaly is the percent of active columns that
   // were not predicted. 

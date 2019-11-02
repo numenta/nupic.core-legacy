@@ -237,14 +237,6 @@ public:
   }
 
   /**
-	* Calculate anomaly score depending on the mode given at initialization
-	*
-	* @param activeColumns
-	* currently activeColumns
-	*/
-  static void calculateAnomalyScore_(const SDR &activeColumns);
-
-  /**
    * Perform one time step of the Temporal Memory algorithm.
    *
    * This method calls activateDendrites, then calls activateCells. Using
@@ -646,6 +638,8 @@ private:
   void growSynapses_(const Segment& segment,
 		     const SynapseIdx nDesiredNewSynapses,
 		     const vector<CellIdx> &prevWinnerCells);
+
+  void calculateAnomalyScore_(const SDR &activeColumns);
 
 protected:
   //all these could be const
