@@ -242,7 +242,7 @@ public:
 	* @param activeColumns
 	* currently activeColumns
 	*/
-  void calculateAnomalyScore(const SDR &activeColumns);
+  static void calculateAnomalyScore_(const SDR &activeColumns);
 
   /**
    * Perform one time step of the Temporal Memory algorithm.

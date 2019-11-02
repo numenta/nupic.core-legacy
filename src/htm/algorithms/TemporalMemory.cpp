@@ -487,12 +487,12 @@ void TemporalMemory::compute(const SDR &activeColumns,
 {
   activateDendrites(learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
 
-  calculateAnomalyScore(activeColumns);
+  calculateAnomalyScore_(activeColumns);
 
   activateCells(activeColumns, learn);
 }
 
-void TemporalMemory::calculateAnomalyScore(const SDR &activeColumns){
+static void TemporalMemory::calculateAnomalyScore_(const SDR &activeColumns){
 
   // Update Anomaly Metric.  The anomaly is the percent of active columns that
   // were not predicted. 

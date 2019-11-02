@@ -224,13 +224,6 @@ R"(Calculate the active cells, using the current active columns and
 dendrite segments.  Grow and reinforce synapses.)"
             , py::arg("activeColumns"), py::arg("learn") = true);
 
-        py_HTM.def("calculateAnomalyScore", [](HTM_t& self, const SDR& activeColumns)
-                {
-                    self.calculateAnomalyScore(activeColumns);
-                },
-        R"(Calculate anomaly score depending on the mode given at initialization.)"
-                    , py::arg("activeColumns"));
-
         py_HTM.def("compute", [](HTM_t& self, const SDR &activeColumns, bool learn)
             { self.compute(activeColumns, learn); },
                 py::arg("activeColumns"),
