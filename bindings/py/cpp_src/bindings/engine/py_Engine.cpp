@@ -442,7 +442,7 @@ namespace htm_ext
                      .value("Normal",  htm::LogLevel::LogLevel_Normal)
                      .value("Verbose", htm::LogLevel::LogLevel_Verbose)
                      .export_values();
-        py_Network.def("setLogLevel", &htm::Network::setLogLevel, py::arg("level") = htm::LogLevel::LogLevel_None);
+        py_Network.def_static("setLogLevel", &htm::Network::setLogLevel, py::arg("level") = htm::LogLevel::LogLevel_None);
                 
                 
         // plugin registration

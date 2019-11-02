@@ -384,7 +384,7 @@ public:
   /**
    * Set one of the debug levels: LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose
    */
-  void setLogLevel(LogLevel level) const {
+  static void setLogLevel(LogLevel level) {
     NTA_LOG_LEVEL = level;
   }
 
