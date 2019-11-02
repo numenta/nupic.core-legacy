@@ -36,6 +36,7 @@
 #include <iterator>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 
 #include <htm/algorithms/TemporalMemory.hpp>
@@ -377,7 +378,7 @@ void TemporalMemory::activateCells(const SDR &activeColumns, const bool learn) {
 
     // for column in activeColumns (the 'sparse' above):
     //   get its active segments ( >= connectedThr)
-    //   get its matching segs   ( >= mmm
+    //   get its matching segs   ( >= TODO
     std::tie(column, 
              activeColumnsBegin, activeColumnsEnd, 
              columnActiveSegmentsBegin, columnActiveSegmentsEnd, 
@@ -603,16 +604,15 @@ SDR TemporalMemory::getPredictiveCells() const {
   correctDims.push_back(static_cast<CellIdx>(getCellsPerColumn()));
   SDR predictive(correctDims);
 
-  auto& predictiveCells = predictive.getSparse();
+  std::unordered_set<CellIdx> uniqueCells;
+  uniqueCells.reserve(activeSegments_.size());
 
-  for (auto segment = activeSegments_.cbegin(); segment != activeSegments_.cend();
-       segment++) {
-    const CellIdx cell = connections.cellForSegment(*segment);
-    if (segment == activeSegments_.begin() || cell != predictiveCells.back()) {
-      predictiveCells.push_back(cell);
-    }
+  for (const auto segment : activeSegments_) {
+    const CellIdx cell = connections.cellForSegment(segment);
+    uniqueCells.insert(cell); //set keeps the cells unique
   }
 
+  vector<CellIdx> predictiveCells(uniqueCells.begin(), uniqueCells.end());
   predictive.setSparse(predictiveCells);
   return predictive;
 }
