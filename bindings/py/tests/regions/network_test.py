@@ -302,6 +302,8 @@ class NetworkTest(unittest.TestCase):
     
     tm_output = tm.getOutputArray("predictedActiveCells")
     sdr = tm_output.getSDR()
+    print(sdr.sparse)
+    print(EXPECTED_RESULT3)
     self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT3))
 
   def testExecuteCommand1(self):
