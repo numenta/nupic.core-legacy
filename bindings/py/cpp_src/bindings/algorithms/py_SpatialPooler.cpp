@@ -355,12 +355,16 @@ Argument output An SDR representing the winning columns after
         });
 
         // getPermanence
-        py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, const UInt column, py::array& x, const Permanence threshold = 0.0f)
+        py_SpatialPooler.def("getPermanence", [](const SpatialPooler& self, const UInt column, py::array& x, const Permanence threshold)
         {
             const auto& perm = self.getPermanence(column, threshold);
 	    std::copy(perm.begin(), perm.end(), get_it<Real>(x)); //TODO pass-by-value here only for compatibility, could have just returned perm 
 	    return perm;
-        });
+        },
+	"",
+	py::arg("column"),
+	py::arg("x"),
+	py::arg("threshold") = 0.0);
 
 
         // getConnectedCounts
@@ -405,7 +409,7 @@ Argument output An SDR representing the winning columns after
                 buf << self;
                 return buf.str(); });
 
-	py_SpatialPooler.def_property_readonly("connections", &SpatialPooler::connections, "SP's internal connections (read-only) Warning: the Connections is subject to change.");
+	//FIXME py_SpatialPooler.def_property_readonly("connections", &SpatialPooler::connections, "SP's internal connections (read-only) Warning: the Connections is subject to change.");
 
 
         // pickle
