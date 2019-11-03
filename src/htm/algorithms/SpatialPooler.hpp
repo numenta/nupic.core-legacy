@@ -1175,7 +1175,8 @@ protected:
   Random rng_;
 
 public:
-  const Connections &connections = connections_;
+  const Connections& connections = connections_; //for inspection of details in connections. Const, so users cannot break the SP internals.
+  const Connections& getConnections() const { return connections_; } // as above, but for use in pybind11
 };
 
 std::ostream & operator<<(std::ostream & out, const SpatialPooler &sp);
