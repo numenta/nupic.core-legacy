@@ -140,6 +140,8 @@
 #include <htm/engine/Region.hpp>
 #include <htm/ntypes/Dimensions.hpp>
 #include <htm/types/Serializable.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Value.hpp>
 
 namespace htm {
 
@@ -294,6 +296,7 @@ public:
   virtual void setDimensions(Dimensions dim) { dim_ = std::move(dim); }
   virtual Dimensions getDimensions() const { return dim_; }
 
+  virtual ValueMap ValidateParameters(const ValueMap &vm, Spec* ns);
 
 protected:
   // A pointer to the Region object. This is the portion visible
@@ -330,8 +333,8 @@ protected:
   // These methods provide access to inputs and outputs
   // They raise an exception if the named input or output is
   // not found.
-  Input *getInput(const std::string &name) const;
-  Output *getOutput(const std::string &name) const;
+  std::shared_ptr<Input> getInput(const std::string &name) const;
+  std::shared_ptr<Output> getOutput(const std::string &name) const;
   Dimensions getInputDimensions(const std::string &name="") const;
   Dimensions getOutputDimensions(const std::string &name="") const;
 

@@ -10,7 +10,7 @@ from htm.encoders.rdse import RDSE, RDSE_Parameters
 from htm.encoders.date import DateEncoder
 from htm.bindings.algorithms import SpatialPooler
 from htm.bindings.algorithms import TemporalMemory
-from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
+from htm.algorithms.anomaly_likelihood import AnomalyLikelihood #FIXME use TM.anomaly instead, but it gives worse results than the py.AnomalyLikelihood now
 from htm.bindings.algorithms import Predictor
 
 _EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -158,17 +158,19 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     tm_info.addData( tm.getActiveCells().flatten() )
 
     # Predict what will happen, and then train the predictor based on what just happened.
-    pdf = predictor.infer( count, tm.getActiveCells() )
+    pdf = predictor.infer( tm.getActiveCells() )
     for n in (1, 5):
       if pdf[n]:
         predictions[n].append( np.argmax( pdf[n] ) * predictor_resolution )
       else:
         predictions[n].append(float('nan'))
-    predictor.learn( count, tm.getActiveCells(), int(consumption / predictor_resolution))
 
     anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
     anomaly.append( tm.anomaly )
     anomalyProb.append( anomalyLikelihood )
+
+    predictor.learn(count, tm.getActiveCells(), int(consumption / predictor_resolution))
+
 
   # Print information & statistics about the state of the HTM.
   print("Encoded Input", enc_info)
@@ -189,6 +191,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
   # Calculate the predictive accuracy, Root-Mean-Squared
   accuracy         = {1: 0, 5: 0}
   accuracy_samples = {1: 0, 5: 0}
+
   for idx, inp in enumerate(inputs):
     for n in predictions: # For each [N]umber of time steps ahead which was predicted.
       val = predictions[n][ idx ]

@@ -90,53 +90,23 @@ class RegionInitTests(unittest.TestCase):
         extracted_list = extractList(list_string)
         self.assertEqual([0, 1, 2, 3, 42, [67, 89], "Hello World"], extracted_list)
 
-    def testAsBoolTrue(self):
+    def testAsBool(self):
         """"
-        Check that a bool gives the correct result.
+        Check that casting to a bool gives the correct result for supported variants.
         """
         self.assertTrue(asBool(True))
         
-    def testAsBoolFalse(self):
-        """"
-        Check that a bool gives the correct result.
-        """
         self.assertFalse(asBool(False))
 
-    def testAsBoolStringTrue(self):
-        """"
-        Check that a bool gives the correct result.
-        """
         self.assertTrue(asBool('True'))
         
-    def testAsBoolStringFalse(self):
-        """"
-        Check that a bool gives the correct result.
-        """
         self.assertFalse(asBool('False'))
         
-    def testAsBool1(self):
-        """"
-        Check that a bool gives the correct result.
-        """
         self.assertTrue(asBool(1))
         
-    def testAsBool0(self):
-        """"
-        Check that a bool gives the correct result.
-        """
         self.assertFalse(asBool(0))
         
-    def testAsBoolString1(self):
-        """"
-        Check that a bool gives the correct result.
-        """
         self.assertTrue(asBool('1'))
         
-    def testAsBoolString0(self):
-        """"
-        Check that a bool gives the correct result.
-        """
         self.assertFalse(asBool('0'))
-        
-        
         

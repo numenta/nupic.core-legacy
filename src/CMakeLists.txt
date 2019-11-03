@@ -98,8 +98,6 @@ set(engine_files
     htm/engine/Link.hpp
     htm/engine/Network.cpp
     htm/engine/Network.hpp
-    htm/engine/NuPIC.cpp
-    htm/engine/NuPIC.hpp
     htm/engine/Output.cpp
     htm/engine/Output.hpp
     htm/engine/Region.cpp
@@ -112,8 +110,6 @@ set(engine_files
     htm/engine/RegisteredRegionImplCpp.hpp
     htm/engine/Spec.cpp
     htm/engine/Spec.hpp
-    htm/engine/YAMLUtils.cpp
-    htm/engine/YAMLUtils.hpp
     htm/engine/Watcher.cpp
     htm/engine/Watcher.hpp
 )
@@ -127,8 +123,6 @@ set(ntypes_files
     htm/ntypes/BasicType.hpp
     htm/ntypes/Collection.hpp
     htm/ntypes/Dimensions.hpp
-    htm/ntypes/Scalar.cpp
-    htm/ntypes/Scalar.hpp
     htm/ntypes/Value.cpp
     htm/ntypes/Value.hpp
 )
@@ -185,8 +179,6 @@ set(utils_files
     htm/utils/VectorHelpers.hpp
     htm/utils/SdrMetrics.cpp
     htm/utils/SdrMetrics.hpp
-    htm/utils/StlIo.cpp
-    htm/utils/StlIo.hpp
     htm/utils/Topology.cpp
     htm/utils/Topology.hpp
 )
@@ -236,9 +228,10 @@ if(MSVC)
   set_property(TARGET ${src_objlib} PROPERTY LINK_LIBRARIES ${INTERNAL_LINKER_FLAGS})
 endif()
 target_compile_definitions(${src_objlib} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_compile_definitions(${src_objlib} PRIVATE ${yaml_DEFINE})
 target_include_directories(${src_objlib} PRIVATE 
 		${CORE_LIB_INCLUDES} 
-		${EXTERNAL_INCLUDES}
+		SYSTEM ${EXTERNAL_INCLUDES}
 		)
 
 if(${HTM_IWYU})
@@ -263,7 +256,7 @@ endif()
 #
 set(src_combined_htmcore_source_archives
     ${src_lib_static}
-    ${yaml-cpp_LIBRARIES}
+    ${yaml_LIBRARIES}
     ${Boost_LIBRARIES}
     ${common_LIBRARIES}
     )
@@ -283,7 +276,7 @@ else()
 	# Note that these libraries must already exist (from depenancies)
 	set(all_object_locations)
 	set(src_externLibs
-            ${yaml-cpp_LIBRARIES}
+            ${yaml_LIBRARIES}
             ${Boost_LIBRARIES}
             ${common_LIBRARIES}
             )
@@ -438,6 +431,10 @@ install(DIRECTORY "${CMAKE_INSTALL_PREFIX}/distr/dist/"
 	  MESSAGE_NEVER
 	  DESTINATION py
 	  FILES_MATCHING PATTERN "*.whl")
+
+# copy requirements.txt into dist/ 
+install(FILES ${REPOSITORY_DIR}/requirements.txt
+        DESTINATION distr/dist)
 
 
 ############### PACKAGE ###########################

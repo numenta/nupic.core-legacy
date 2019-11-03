@@ -34,7 +34,6 @@
   */
 
 
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Network.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
@@ -49,7 +48,6 @@
 #include <htm/os/Path.hpp>
 #include <htm/os/Timer.hpp>
 #include <htm/os/Directory.hpp>
-#include <htm/engine/YAMLUtils.hpp>
 #include <htm/regions/SPRegion.hpp>
 #include <htm/utils/LogItem.hpp>
 
@@ -67,7 +65,6 @@
 
 
 
-#include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 #include "RegionTestUtilities.hpp"
 

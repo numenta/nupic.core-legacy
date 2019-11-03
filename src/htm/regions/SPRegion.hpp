@@ -30,6 +30,7 @@
 
 #include <htm/engine/RegionImpl.hpp>
 #include <htm/algorithms/SpatialPooler.hpp>
+#include <htm/ntypes/Value.hpp>
 //----------------------------------------------------------------------
 
 

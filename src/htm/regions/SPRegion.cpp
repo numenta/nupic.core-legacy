@@ -30,7 +30,6 @@
 #include <htm/engine/Spec.hpp>
 #include <htm/ntypes/Array.hpp>
 #include <htm/ntypes/ArrayBase.hpp>
-#include <htm/ntypes/Value.hpp>
 #include <htm/regions/SPRegion.hpp>
 #include <htm/utils/Log.hpp>
 
@@ -46,7 +45,7 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
   args_.columnCount = values.getScalarT<UInt32>("columnCount", 0);
   args_.potentialRadius = values.getScalarT<UInt32>("potentialRadius", 0);
   args_.potentialPct = values.getScalarT<Real32>("potentialPct", 0.5);
-  args_.globalInhibition = values.getScalarT<bool>("globalInhibition", true);
+  args_.globalInhibition = values.getScalarT<bool>("globalInhibition", false);
   args_.localAreaDensity = values.getScalarT<Real32>("localAreaDensity", 0.05f);
   args_.stimulusThreshold = values.getScalarT<UInt32>("stimulusThreshold", 0);
   args_.synPermInactiveDec = values.getScalarT<Real32>("synPermInactiveDec", 0.008f);
@@ -55,7 +54,7 @@ SPRegion::SPRegion(const ValueMap &values, Region *region)
   args_.minPctOverlapDutyCycles = values.getScalarT<Real32>("minPctOverlapDutyCycles", 0.001f);
   args_.dutyCyclePeriod = values.getScalarT<UInt32>("dutyCyclePeriod", 1000);
   args_.boostStrength = values.getScalarT<Real32>("boostStrength", 0.0f);
-  args_.seed = values.getScalarT<Int32>("seed", 1);
+  args_.seed = values.getScalarT<Int32>("seed", -1);
   args_.spVerbosity = values.getScalarT<UInt32>("spVerbosity", 0);
   args_.wrapAround = values.getScalarT<bool>("wrapAround", true);
   spatialImp_ = values.getString("spatialImp", "");
@@ -85,7 +84,7 @@ SPRegion::~SPRegion() {}
 
 void SPRegion::initialize() {
   // Output buffers should already have been created diring initialize or deserialize.
-  Output *out = getOutput("bottomUpOut");
+  std::shared_ptr<Output> out = getOutput("bottomUpOut");
   Array &outputBuffer = out->getData();
   NTA_CHECK(outputBuffer.getType() == NTA_BasicType_SDR);
   UInt32 columnCount = (UInt32)outputBuffer.getCount();
@@ -99,7 +98,7 @@ void SPRegion::initialize() {
   //
   // If there are more than one input link (FAN-IN), the input buffer will be the
   // concatination of all incomming buffers.  
-  Input *in = getInput("bottomUpIn");
+  std::shared_ptr<Input> in = getInput("bottomUpIn");
   NTA_CHECK(in != nullptr);
   if (!in->hasIncomingLinks())
      NTA_THROW << "SPRegion::initialize - No input links were configured for this SP region.\n";
@@ -349,7 +348,7 @@ Spec *SPRegion::createSpec() {
                     1,                                // elementCount
                     "",                               // constraints
                     "0.1",                            // defaultValue
-                    ParameterSpec::ReadOnlyAccess)); // access
+                    ParameterSpec::CreateAccess)); // access
 
   ns->parameters.add(
       "minPctOverlapDutyCycles",

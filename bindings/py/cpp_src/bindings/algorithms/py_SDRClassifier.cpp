@@ -138,11 +138,11 @@ Example Usage:
     # Give the predictor partial information, and make predictions
     # about the future.
     pred.reset()
-    A = pred.infer( 0, sequence[0] )
+    A = pred.infer( sequence[0] )
     numpy.argmax( A[1] )  ->  labels[1]
     numpy.argmax( A[2] )  ->  labels[2]
 
-    B = pred.infer( 1, sequence[1] )
+    B = pred.infer( sequence[1] )
     numpy.argmax( B[1] )  ->  labels[2]
     numpy.argmax( B[2] )  ->  labels[3]
 )");
@@ -162,14 +162,10 @@ R"(For use with time series datasets.)");
         py_Predictor.def("infer", &Predictor::infer,
 R"(Compute the likelihoods.
 
-Argument recordNum is an incrementing integer for each record.
-Gaps in numbers correspond to missing records.
-
 Argument pattern is the SDR containing the active input bits.
 
 Returns a dictionary whos keys are prediction steps, and values are PDFs.
 See help(Classifier.infer) for details about PDFs.)",
-            py::arg("recordNum"),
             py::arg("pattern"));
 
         py_Predictor.def("learn", &Predictor::learn,

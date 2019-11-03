@@ -47,7 +47,7 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   args_.activationThreshold = params.getScalarT<UInt32>("activationThreshold", 13);
   args_.initialPermanence = params.getScalarT<Real32>("initialPermanence", 0.21f);
   args_.connectedPermanence = params.getScalarT<Real32>("connectedPermanence", 0.50f);
-  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 10);
+  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 8);
   args_.maxNewSynapseCount = params.getScalarT<UInt32>("maxNewSynapseCount", 20);
   args_.permanenceIncrement = params.getScalarT<Real32>("permanenceIncrement", 0.10f);
   args_.permanenceDecrement = params.getScalarT<Real32>("permanenceDecrement", 0.10f);
@@ -126,7 +126,7 @@ void TMRegion::initialize() {
   // If there are more than one input link, the input buffer will be the
   // concatination of all incomming buffers. This width sets the number
   // columns for the TM.
-  Input* in = region_->getInput("bottomUpIn");
+  std::shared_ptr<Input> in = region_->getInput("bottomUpIn");
   if (!in || !in->hasIncomingLinks())
       NTA_THROW << "TMRegion::initialize - No input was provided.\n";
   NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
@@ -196,7 +196,7 @@ void TMRegion::compute() {
 
   // Check the input buffer
   // The buffer width is the number of columns.
-  Input *in = getInput("bottomUpIn");
+  std::shared_ptr<Input> in = getInput("bottomUpIn");
   Array &bottomUpIn = in->getData();
   NTA_ASSERT(bottomUpIn.getType() == NTA_BasicType_SDR);
   SDR& activeColumns = bottomUpIn.getSDR();
@@ -228,7 +228,7 @@ void TMRegion::compute() {
   //       - The total number of elements in the outputs must be
   //         numberOfCols * cellsPerColumn.
   //
-  Output *out;
+  std::shared_ptr<Output> out;
   out = getOutput("bottomUpOut");
   if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     SDR& sdr = out->getData().getSDR();

@@ -41,12 +41,10 @@
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Network.hpp>
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Output.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/RegisteredRegionImplCpp.hpp>
 #include <htm/engine/Spec.hpp>
-#include <htm/engine/YAMLUtils.hpp>
 #include <htm/ntypes/Array.hpp>
 #include <htm/os/Directory.hpp>
 #include <htm/os/Env.hpp>
@@ -66,7 +64,6 @@
 #include <vector>
 
 #include "RegionTestUtilities.hpp"
-#include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "

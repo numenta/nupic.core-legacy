@@ -21,11 +21,12 @@
 
 #include <cstring>
 #include <fstream>
-#include <htm/utils/StlIo.hpp>
+
 #include <htm/types/Types.hpp>
 #include <htm/types/Sdr.hpp>
 #include <htm/utils/Log.hpp>
-#include <stdio.h>
+
+#include <cstdio>
 
 #include "gtest/gtest.h"
 #include <htm/algorithms/TemporalMemory.hpp>

@@ -423,13 +423,13 @@ public:
   bool isInitialized() const { return initialized_; }
 
   // Used by RegionImpl to get inputs/outputs
-  Output *getOutput(const std::string &name) const;
+  std::shared_ptr<Output> getOutput(const std::string &name) const;
 
-  Input *getInput(const std::string &name) const;
+  std::shared_ptr<Input> getInput(const std::string &name) const;
 
-  const std::map<std::string, Input *> &getInputs() const;
+  const std::map<std::string, std::shared_ptr<Input>> &getInputs() const;
 
-  const std::map<std::string, Output *> &getOutputs() const;
+  const std::map<std::string, std::shared_ptr<Output>> &getOutputs() const;
 
   void clearInputs();
 
@@ -560,8 +560,8 @@ private:
   std::string type_;
   std::shared_ptr<Spec> spec_;
 
-  typedef std::map<std::string, Output *> OutputMap;
-  typedef std::map<std::string, Input *> InputMap;
+  typedef std::map<std::string, std::shared_ptr<Output>> OutputMap;
+  typedef std::map<std::string, std::shared_ptr<Input>> InputMap;
 
   OutputMap outputs_;
   InputMap inputs_;

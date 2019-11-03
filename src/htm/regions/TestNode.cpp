@@ -29,7 +29,6 @@
 #include <htm/engine/Spec.hpp>
 #include <htm/regions/TestNode.hpp>
 #include <htm/ntypes/Array.hpp>
-#include <htm/ntypes/Value.hpp>
 #include <htm/utils/Log.hpp>
 #include <htm/types/Types.hpp>
 
@@ -52,7 +51,7 @@ TestNode::TestNode(const ValueMap &params, Region *region)
 
 
   shouldCloneParam_ = params.getScalarT<UInt32>("shouldCloneParam", 1) != 0;
-  stringParam_ = params.getString("stringParam");
+  stringParam_ = params.getString("stringParam", "nodespec value");
 
   real32ArrayParam_.resize(8);
   for (size_t i = 0; i < 8; i++) {

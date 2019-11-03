@@ -65,13 +65,8 @@ install:
 
 
 script:
-  # Some tests (e.g., helloregion) expect this to be the current directory and
-  #      this also matches current instructions in htm.core/README.md
-  # unit tests
-  - "cd $TRAVIS_BUILD_DIR/build/Release/bin"
-  - "${TRAVIS_BUILD_DIR}/build/Release/bin/unit_tests --gtest_output=xml:${TRAVIS_BUILD_DIR}/build/artifacts/unit_tests_report.xml"
-  # run python bindings tests
-  - echo "Python bindings tests"
+  # run c++ & python bindings tests
+  - echo "C++ & Python tests"
   - cd ${TRAVIS_BUILD_DIR}
   - "python setup.py test"
   # run memory leak tests with valgrind

@@ -222,12 +222,6 @@ public:
   Serializable() {}
   virtual inline int getSerializableVersion() const { return SERIALIZABLE_VERSION; }
 
-	// TODO:Cereal- after all serialization using Cereal is complete,
-  //       remove save() and load() pairs from all derived classes
-	//       change saveToStream_ar()   to save()
-  //       change loadFromStream_ar() to load().
-  //       change saveToFile_ar() to saveToFile().
-  //       change loadFromFile_ar() to loadFromFile().
 
 
 

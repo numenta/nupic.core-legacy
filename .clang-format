@@ -2,4 +2,6 @@
 Language: Cpp
 BasedOnStyle: LLVM
 DisableFormat: false
+IndentWidth: 2
+ColumnLimit: 120
 ...

@@ -200,8 +200,8 @@ private:
   size_t nodeCount_;
 
   // Input/output buffers for the whole region
-  Input *bottomUpIn_;   // required
-  Output *bottomUpOut_; // required
+  std::shared_ptr<Input> bottomUpIn_;   // required
+  std::shared_ptr<Output> bottomUpOut_; // required
 };
 } // namespace htm
 

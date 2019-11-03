@@ -95,13 +95,13 @@ class SerializationTestPyRegion(PyRegion):
         "parameters":{
           "dataWidth":{
             "description":"Size of inputs",
-            "accessMode":"Read",
+            "accessMode":"Create",
             "dataType":"UInt32",
             "count":1,
             "constraints":""},
           "randomSeed":{
             "description":"Seed for constructing the Random instance",
-            "accessMode":"Read",
+            "accessMode":"Create",
             "dataType":"UInt32",
             "count":1,
             "constraints":""},

@@ -42,19 +42,20 @@ Input::~Input() {
   uninitialize();
   for (auto &link : links_) {
     std::cout << "Input::~Input: \n";
-    link->getSrc().removeLink(link); // remove it from the Output object.
+    link->getSrc()->removeLink(link); // remove it from the Output object.
     // the link is a shared_ptr so it will be deleted when links_ is cleared.
   }
   links_.clear();
 }
 
-void Input::addLink(const std::shared_ptr<Link> link, Output *srcOutput) {
+void Input::addLink(const std::shared_ptr<Link> link, std::shared_ptr<Output> srcOutput) {
   NTA_CHECK(initialized_ == false) << "Attempt to add link to input " << name_ << " on region "
               << region_->getName() << " when input is already initialized";
 
   // Make sure we don't already have a link to the same output
   for (const auto &it : links_) {
-    NTA_CHECK(srcOutput != &(*it).getSrc()) << "addLink -- link from region "
+    const Output* o = (*it).getSrc();
+    NTA_CHECK(srcOutput.get() != o) << "addLink -- link from region "
                 << srcOutput->getRegion()->getName() << " output "
                 << srcOutput->getName() << " to region " << region_->getName()
                 << " input " << getName() << " already exists";
@@ -81,7 +82,7 @@ void Input::removeLink(const std::shared_ptr<Link> &link) {
   // We may have been initialized even if our containing region
   // was not. If so, uninitialize.
   uninitialize();
-  link->getSrc().removeLink(link);
+  link->getSrc()->removeLink(link);
   links_.erase(linkiter);
   // Link is deleted when the std::shared_ptr<Link> goes out of scope.
 }
@@ -90,9 +91,9 @@ std::shared_ptr<Link> Input::findLink(const std::string &srcRegionName,
                                       const std::string &srcOutputName) {
   // Note: cannot use a map here because the link items are ordered.
   for (const auto &it: links_) {
-    const Output &output = it->getSrc();
-    if (output.getName() == srcOutputName &&
-        output.getRegion()->getName() == srcRegionName) {
+    const Output* output = it->getSrc();
+    if (output->getName() == srcOutputName &&
+        output->getRegion()->getName() == srcRegionName) {
       return it;
     }
   }
@@ -186,19 +187,19 @@ void Input::initialize() {
     // Try to determine source dimensions.
     std::vector<Dimensions> Ds;
     for (auto link : links_) {
-      Output &out = link->getSrc();
+      Output* out = link->getSrc();
       // determines source dimensions based on configuration.
-      d = out.determineDimensions();
+      d = out->determineDimensions();
       NTA_CHECK(!d.isUnspecified());
       if (d.isDontcare()) {
         d = inD; // use destination dimensions for source. rare.
-        out.setDimensions(d);
+        out->setDimensions(d);
       }
       NTA_CHECK(d.isSpecified())
-          << "Cannot determine the dimensions for Output " << out.getRegion()->getName()
-          << "." << out.getName();
+          << "Cannot determine the dimensions for Output " << out->getRegion()->getName()
+          << "." << out->getName();
 
-      out.initialize(); // creates the output buffers.
+      out->initialize(); // creates the output buffers.
 
       // Initialize Link.  'total_width' at this point is the byte offset
       // into the input buffer where the output will start writing.
@@ -220,7 +221,7 @@ void Input::initialize() {
               << "Dimensions were specified for input "
               << region_->getName() << "." << name_ << " " << inD
               << " but it is inconsistant with the dimensions of the source "
-              << out.getRegion()->getName() << "." << out.getName() << " " << d;
+              << out->getRegion()->getName() << "." << out->getName() << " " << d;
           // else keep the manually configured dimensions.
         } else {
           inD = d;  // set the destination dimensions to be same as source.

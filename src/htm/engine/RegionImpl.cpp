@@ -238,11 +238,11 @@ std::string RegionImpl::executeCommand(const std::vector<std::string> &args,Int6
 
 // Provide data access for subclasses
 
-Input *RegionImpl::getInput(const std::string &name) const {
+std::shared_ptr<Input> RegionImpl::getInput(const std::string &name) const {
   return region_->getInput(name);
 }
 
-Output *RegionImpl::getOutput(const std::string &name) const {
+std::shared_ptr<Output> RegionImpl::getOutput(const std::string &name) const {
   return region_->getOutput(name);
 }
 Dimensions RegionImpl::getInputDimensions(const std::string &name) const {
@@ -251,6 +251,45 @@ Dimensions RegionImpl::getInputDimensions(const std::string &name) const {
 Dimensions RegionImpl::getOutputDimensions(const std::string &name) const {
   return region_->getOutputDimensions(name);
 }
+
+/**
+ * Checks the parameters in the ValueMap and gives an error if it
+ * is not consistant with the Spec.  If a field in the Spec is not given
+ * in the ValueMap, insert it with its default value.
+ * Returns a modifiable deep copy of the ValueMap with defaults inserted.
+ * For optional use by C++ implemented Regions.
+ */
+ValueMap RegionImpl::ValidateParameters(const ValueMap &vm, Spec* ns) {
+  
+  ValueMap new_vm = vm.copy();
+
+  // Look for parameters that don't belong
+  for (auto p: new_vm) {
+    std::string key = p.first;
+    Value v = p.second;
+    if (key == "dim")
+      continue;
+    if (!ns->parameters.contains(key))
+      NTA_THROW << "Parameter '" << key << "' is not expected for this Region.";
+  }
+  
+
+  // Look for missing parameters and apply their default value.
+  for (auto p : ns->parameters) {
+    std::string key = p.first;
+    ParameterSpec &ps = p.second;
+    if (!ps.defaultValue.empty()) {
+      if (new_vm.getString(key, "").length() == 0) {
+        // a missing or empty parameter.
+        new_vm[key] = ps.defaultValue;
+      }
+    }
+  }
+  
+  return new_vm;
+
+}
+
 
 
 } // namespace htm

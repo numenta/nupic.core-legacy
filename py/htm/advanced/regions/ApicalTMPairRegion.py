@@ -152,7 +152,7 @@ class ApicalTMPairRegion(PyRegion):
                 "columnCount": {
                     "description": ("The size of the 'activeColumns' input "
                                     "(i.e. the number of columns)"),
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "constraints": "",
@@ -161,7 +161,7 @@ class ApicalTMPairRegion(PyRegion):
 
                 "basalInputWidth": {
                     "description": "The size of the 'basalInput' input",
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "constraints": "",
@@ -170,7 +170,7 @@ class ApicalTMPairRegion(PyRegion):
 
                 "apicalInputWidth": {
                     "description": "The size of the 'apicalInput' input",
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "constraints": "",
@@ -186,7 +186,7 @@ class ApicalTMPairRegion(PyRegion):
                 },
                 "cellsPerColumn": {
                     "description": "Number of cells per column",
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "constraints": "",
@@ -196,7 +196,6 @@ class ApicalTMPairRegion(PyRegion):
                     "description": ("If the number of active connected synapses on a "
                                     "segment is at least this threshold, the segment "
                                     "is said to be active."),
-                    "accessMode": "Read",
                     "dataType": "UInt32",
                     "count": 1,
                     "constraints": "",
@@ -206,7 +205,7 @@ class ApicalTMPairRegion(PyRegion):
                     "description": ("Activation threshold of basal segments for cells "
                                     "with active apical segments (with apicalTiebreak "
                                     "implementation). "),
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "constraints": "",
@@ -214,7 +213,7 @@ class ApicalTMPairRegion(PyRegion):
                 },
                 "initialPermanence": {
                     "description": "Initial permanence of a new synapse.",
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "Real32",
                     "count": 1,
                     "constraints": "",
@@ -233,7 +232,7 @@ class ApicalTMPairRegion(PyRegion):
                     "description": ("If the number of synapses active on a segment is at "
                                     "least this threshold, it is selected as the best "
                                     "matching cell in a bursting column."),
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "constraints": "",
@@ -242,7 +241,7 @@ class ApicalTMPairRegion(PyRegion):
                 "sampleSize": {
                     "description": ("The desired number of active synapses for an "
                                     "active cell"),
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "accessMode":"ReadWrite"
@@ -250,7 +249,7 @@ class ApicalTMPairRegion(PyRegion):
                 "learnOnOneCell": {
                     "description": ("If True, the winner cell for each column will be"
                                     " fixed between resets."),
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "Bool",
                     "count": 1,
                     "defaultValue": "false",
@@ -274,7 +273,7 @@ class ApicalTMPairRegion(PyRegion):
                 "permanenceIncrement": {
                     "description": ("Amount by which permanences of synapses are "
                                                     "incremented during learning."),
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "Real32",
                     "count": 1,
                     "accessMode":"ReadWrite"
@@ -282,7 +281,7 @@ class ApicalTMPairRegion(PyRegion):
                 "permanenceDecrement": {
                     "description": ("Amount by which permanences of synapses are "
                                     "decremented during learning."),
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "Real32",
                     "count": 1,
                     "accessMode":"ReadWrite"
@@ -307,14 +306,14 @@ class ApicalTMPairRegion(PyRegion):
                 },
                 "seed": {
                     "description": "Seed for the random number generator.",
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "UInt32",
                     "count": 1,
                     "accessMode":"ReadWrite"
                 },
                 "implementation": {
                     "description": "Apical implementation",
-                    "accessMode": "Read",
+                    "accessMode": "Create",
                     "dataType": "Byte",
                     "count": 0,
                     "constraints": ("enum: ApicalTiebreak, ApicalTiebreakCPP, ApicalDependent"),

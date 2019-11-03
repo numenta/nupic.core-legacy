@@ -33,9 +33,9 @@
 #include <htm/regions/VectorFile.hpp>
 #include <htm/types/Types.hpp>
 #include <htm/types/Serializable.hpp>
+#include <htm/ntypes/Value.hpp>
 
 namespace htm {
-class ValueMap;
 
 /**
  *  VectorFileSensor is a sensor that reads in files containing lists of
