@@ -36,7 +36,7 @@
 #include <iterator>
 #include <string>
 #include <vector>
-#include <unordered_set>
+#include <set>
 
 
 #include <htm/algorithms/TemporalMemory.hpp>
@@ -604,8 +604,8 @@ SDR TemporalMemory::getPredictiveCells() const {
   correctDims.push_back(static_cast<CellIdx>(getCellsPerColumn()));
   SDR predictive(correctDims);
 
-  std::unordered_set<CellIdx> uniqueCells;
-  uniqueCells.reserve(activeSegments_.size());
+  std::set<CellIdx> uniqueCells;
+  //uniqueCells.reserve(activeSegments_.size());
 
   for (const auto segment : activeSegments_) {
     const CellIdx cell = connections.cellForSegment(segment);
