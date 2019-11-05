@@ -457,7 +457,7 @@ namespace htm_ext
                 std::istringstream ss(s);
                 Network self;
                 self.load(ss);
-                return std::move(self);  
+                return self;  
         }));
 
         py_Network.def("link", &htm::Network::link

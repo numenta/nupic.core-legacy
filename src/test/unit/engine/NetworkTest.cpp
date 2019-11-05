@@ -515,8 +515,8 @@ public:
   LinkRegion(const ValueMap &params, Region *region) : RegionImpl(region) { param = 52; }
   LinkRegion(ArWrapper &wrapper, Region *region) : RegionImpl(region) { cereal_adapter_load(wrapper);}
 
-  void initialize() {}
-  void compute() {
+  void initialize() override {}
+  void compute() override {
     // This will pass its inputs on to the outputs.
     Array &input_data = getInput("inputs")->getData();
     Array &output_data = getOutput("outputs")->getData();
@@ -524,7 +524,7 @@ public:
   }
   size_t getNodeOutputElementCount(const std::string &name) const override { return 5; }
 
-  std::string executeCommand(const std::vector<std::string> &args, Int64 index) {
+  std::string executeCommand(const std::vector<std::string> &args, Int64 index) override {
     if (args[0] == "HelloWorld" && args.size() == 3)
       return "Hello World says: arg1=" + args[1] + " arg2=" + args[2];
     return "";
