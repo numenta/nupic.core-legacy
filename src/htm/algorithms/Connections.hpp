@@ -312,6 +312,7 @@ public:
    * @retval Cell that this segment is on.
    */
   CellIdx cellForSegment(const Segment segment) const {
+    NTA_ASSERT(segmentExists_(segment));
     return segments_[segment].cell;
   }
 
@@ -323,19 +324,6 @@ public:
    * @retval Index of the segment.
    */
   SegmentIdx idxOnCellForSegment(const Segment segment) const;
-
-  /**
-   * Get the cell for each provided segment.
-   *
-   * @param segments
-   * The segments to query
-   *
-   * @param cells
-   * Output array with the same length as 'segments'
-   */
-  void mapSegmentsToCells(const Segment *segments_begin,
-                          const Segment *segments_end,
-                          CellIdx *cells_begin) const;
 
   /**
    * Gets the segment that this synapse is on.

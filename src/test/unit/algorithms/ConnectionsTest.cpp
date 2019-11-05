@@ -644,9 +644,9 @@ TEST(ConnectionsTest, testBumpSegment) {
 }
 
 /**
- * Test the mapSegmentsToCells method.
+ * Test the mapping semgnets to cells by cellForSegment() method.
  */
-TEST(ConnectionsTest, testMapSegmentsToCells) {
+TEST(ConnectionsTest, testCellForSegment) {
   Connections connections(1024);
 
   const Segment segment1 = connections.createSegment(42);
@@ -654,12 +654,12 @@ TEST(ConnectionsTest, testMapSegmentsToCells) {
   const Segment segment3 = connections.createSegment(43);
 
   const vector<Segment> segments = {segment1, segment2, segment3, segment1};
-  vector<CellIdx> cells(segments.size());
-
-  connections.mapSegmentsToCells(
-      segments.data(), segments.data() + segments.size(), cells.data());
-
   const vector<CellIdx> expected = {42, 42, 43, 42};
+  vector<CellIdx> cells;
+
+  for(auto seg : segments) {
+    cells.push_back(connections.cellForSegment(seg));
+  }
   ASSERT_EQ(expected, cells);
 }
 

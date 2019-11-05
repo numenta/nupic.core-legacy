@@ -154,6 +154,7 @@ Synapse Connections::createSynapse(Segment segment,
 }
 
 bool Connections::segmentExists_(const Segment segment) const {
+  NTA_CHECK(segment < segments_.size());
   const SegmentData &segmentData = segments_[segment];
   const vector<Segment> &segmentsOnCell = cells_[segmentData.cell].segments;
   return (std::find(segmentsOnCell.cbegin(), segmentsOnCell.cend(), segment) !=
@@ -326,19 +327,6 @@ SegmentIdx Connections::idxOnCellForSegment(const Segment segment) const {
   const auto it = std::find(segments.begin(), segments.end(), segment);
   NTA_ASSERT(it != segments.end());
   return (SegmentIdx)std::distance(segments.begin(), it);
-}
-
-
-void Connections::mapSegmentsToCells(const Segment *segments_begin,
-                                     const Segment *segments_end,
-                                     CellIdx *cells_begin) const {
-  CellIdx *out = cells_begin;
-
-  for (auto segment = segments_begin; segment != segments_end;
-       ++segment, ++out) {
-    NTA_ASSERT(segmentExists_(*segment));
-    *out = segments_[*segment].cell;
-  }
 }
 
 

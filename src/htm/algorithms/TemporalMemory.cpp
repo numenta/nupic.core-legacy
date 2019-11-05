@@ -198,13 +198,13 @@ void TemporalMemory::growSynapses_(
   // There are structural constraints on the shapes of axons & synapses 
   // which prevent a large number duplicate of connections.
   //
-  // It's important to prevent cells from growing duplicate synapses onto a segment, 
+  // It's important to prevent cells from growing duplicate synapses onto a segment, //TODO 2: move this cleaup as pruneDuplicateSynapsesOnSegment() to Connections 
   // because otherwise a strong input would be sampled many times and grow many synapses.
   // That would give such input a stronger connection. 
   // Synapses are supposed to have binary effects (0 or 1) but duplicate synapses give 
   // them (synapses 0/1) varying levels of strength.
   for (const Synapse& synapse : connections.synapsesForSegment(segment)) {
-    const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
+    const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell; //TODO 1; use set to replace all this ugly code
     const auto already = std::lower_bound(candidates.cbegin(), candidates.cend(), presynapticCell);
     if (already != candidates.cend() && *already == presynapticCell) {
       candidates.erase(already);
