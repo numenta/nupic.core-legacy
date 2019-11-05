@@ -120,6 +120,20 @@ TEST(ConnectionsTest, testCreateSynapse) {
   SynapseData synapseData2 = connections.dataForSynapse(synapses[1]);
   ASSERT_EQ(synapseData2.presynapticCell, 150ul);
   ASSERT_NEAR((Permanence)0.48, synapseData2.permanence, htm::Epsilon);
+  //TODO add tests for failures
+}
+
+
+TEST(ConnectionsTest, testCreateSynapseAvoidDuplicitPresynapticConnections) {
+  Connections connections(1024);
+  UInt32 cell = 10;
+  Segment segment = connections.createSegment(cell);
+
+  connections.createSynapse(segment, 50, 0.34f);
+  connections.createSynapse(segment, 51, 0.34f);
+  const size_t numSynapses = connections.synapsesForSegment(segment).size(); //created 2 synapses above
+  connections.createSynapse(segment, 50, 0.48f); //attempt to create already existing synapse (to presyn cell "50") -> skips as no duplication should happen
+  ASSERT_EQ(connections.synapsesForSegment(segment).size(), numSynapses) << "Duplicit synapses should not be created!";
 }
 
 /**

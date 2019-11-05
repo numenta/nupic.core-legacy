@@ -116,10 +116,28 @@ Segment Connections::createSegment(const CellIdx cell,
 Synapse Connections::createSynapse(Segment segment,
                                    CellIdx presynapticCell,
                                    Permanence permanence) {
+
+  // Skip cells that are already synapsed on by this segment
+  // Biological motivation (?):
+  // There are structural constraints on the shapes of axons & synapses
+  // which prevent a large number duplicate of connections.
+  //
+  // It's important to prevent cells from growing duplicate synapses onto a segment,
+  // because otherwise a strong input would be sampled many times and grow many synapses.
+  // That would give such input a stronger connection.
+  // Synapses are supposed to have binary effects (0 or 1) but duplicate synapses give
+  // them (synapses 0/1) varying levels of strength.
+  for (const Synapse& syn : synapsesForSegment(segment)) {
+    const CellIdx existingPresynapticCell = dataForSynapse(syn).presynapticCell; //TODO 1; add way to get all presynaptic cells for segment (fast)
+    if (presynapticCell == existingPresynapticCell) {
+      return syn; //synapse (connecting to this presyn cell) already exists on the segment; don't create a new one, exit early and return the existing
+    }
+  } //else: the new synapse is not duplicit, so keep creating it. 
+
   // Get an index into the synapses_ list, for the new synapse to reside at.
   Synapse synapse;
   if (!destroyedSynapses_.empty() ) {
-    synapse = destroyedSynapses_.back();
+    synapse = destroyedSynapses_.back(); //TODO get rid of the destroyedSynapses_ buffer
     destroyedSynapses_.pop_back();
   } else {
     NTA_ASSERT(synapses_.size() < std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
