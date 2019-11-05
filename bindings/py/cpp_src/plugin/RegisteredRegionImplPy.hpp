@@ -124,11 +124,14 @@ namespace htm
         // use PyBindRegion class to instantiate and deserialize the python class in the specified module.
       RegionImpl* deserializeRegionImpl(ArWrapper& wrapper, Region *region) override
       {
-std::cerr << "Region.deserializeRegionImpl called: " << classname_ << "\n";
 	  	try {
           return new PyBindRegion(module_.c_str(), wrapper, region, classname_.c_str());
         }
         catch (const py::error_already_set& e)
+        {
+            throw Exception(__FILE__, __LINE__, e.what());
+        }
+        catch (const py::cast_error& e)
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }

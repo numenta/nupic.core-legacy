@@ -308,7 +308,17 @@ namespace py = pybind11;
 				//    We want this to end up in a string that we pass back to Cereal.
 				//    a. We first pickle the python into an in-memory byte stream.
 				//    b. We then convert that to a Base64 std::string that is returned.
-
+        //
+        //  Basicly, we are executing the following Python code:
+        //    import io
+        //    import base64
+        //    import pickle
+        //    f = io.BytesIO()
+        //    pickle.dump(node, f, 3)
+        //    b = f.getvalue()
+        //    content = str(base64.b64encode(b))
+        //    f.close()
+        
 		    py::tuple args;
 		    auto f = py::module::import("io").attr("BytesIO")();
 
@@ -319,16 +329,13 @@ namespace py = pybind11;
 		    auto pickle = py::module::import("cPickle");
 		    args = py::make_tuple(node_, f, 2);   // use type 2 protocol
 #endif
-std::cerr << "before pickle.dump()\n";
 		    pickle.attr("dump")(*args);
-std::cerr << "after pickle.dump()\n";
 
 				// copy the pickle stream into the content as a base64 encoded utf8 string
         py::bytes b = f.attr("getvalue")();
         args = py::make_tuple(b);
 		    std::string content = py::str(py::module::import("base64").attr("b64encode")(*args));
        
-std::cerr << "after getting content.\n'" << content << "'\n";
 		    f.attr("close")();
 		    return content;
     }
@@ -356,31 +363,34 @@ std::cerr << "after getting content.\n'" << content << "'\n";
 		void PyBindRegion::pickleDeserialize(std::string p) {
         // 1. deserialize main state using pickle
         // 2. call class method to deserialize external state
-
-std::cerr << "PyBindRegion pickleDeserialize() " << className_ << "\n";
-std::cerr << "'" << p << "'\n";
+        //
 		    // Tell Python to un-pickle using what is in the string p.
         // but first we need to convert the base64 string into bytes.
+        //
+        // Basically we are executing the following Python code:
+        //   import base64
+        //   import io
+        //   import pickle
+        //   b = base64.b64decode(bytes(p))
+        //   f = io.BytesIO(b)
+        //   node = pickle.load(f)
+        //   f.close()
+        
         py::args args;
         args = py::make_tuple(py::bytes(p));
         py::bytes b = py::module::import("base64").attr("b64decode")(*args);
-std::cerr << "PyBindRegion after decode \n";
         args = py::make_tuple(b);
 		    auto f = py::module::import("io").attr("BytesIO")(*args);
-std::cerr << "PyBindRegion after BytesIO created. \n";
 
 #if PY_MAJOR_VERSION >= 3
         auto pickle = py::module::import("pickle");
 #else
         auto pickle = py::module::import("cPickle");
 #endif
-
-        args = py::make_tuple(node_, f);
- std::cerr << "PyBindRegion before load.\n";
-        pickle.attr("load")(*args);
+        args = py::make_tuple(f);
+        node_ = pickle.attr("load")(*args);
 
         f.attr("close")();
- std::cerr << "PyBindRegion after close.\n";
 		}
 
 		void PyBindRegion::extraDeserialize(std::string e) {

@@ -271,12 +271,7 @@ namespace htm_ext
         py_Region.def(py::pickle(
             [](const Region& self) {
                 std::stringstream ss;
-                try {
                   self.save(ss);
-                }
-                catch(Exception& e) {
-std::cerr << "Exception performing pickle on Region: " << e.what() << "\n";
-                }
                 return py::bytes(ss.str());
             },
             // Note: a de-serialized Region will need to be reattached to a Network
