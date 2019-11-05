@@ -478,7 +478,6 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
-std::cerr << "Region.save_ar called: " << name_ << "\n";
     ar(cereal::make_nvp("name", name_),
        cereal::make_nvp("nodeType", type_),
        cereal::make_nvp("initialized", initialized_),
@@ -507,7 +506,6 @@ std::cerr << "Region.save_ar called: " << name_ << "\n";
   //       before deserializing a region.
   template<class Archive>
   void load_ar(Archive& ar) {
-std::cerr << "Region.load_ar called: " << name_ << "\n";
     Dimensions dim;
     bool init;
     ar(cereal::make_nvp("name", name_));

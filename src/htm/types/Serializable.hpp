@@ -235,7 +235,6 @@ public:
 	  out.precision(std::numeric_limits<float>::digits10 + 1);
 		save(out, fmt);
 		out.close();
-std::cerr << "returning from saveToFile()\n";
 	}
 
   // NOTE: for BINARY and PORTABLE the stream must be ios_base::binary or it will crash on Windows.
@@ -247,7 +246,6 @@ std::cerr << "returning from saveToFile()\n";
       cereal::BinaryOutputArchive ar(out);
       arw.binary_out = &ar;
       cereal_adapter_save(arw);
-std::cerr << "returning from save\n";
     } break;
 		case SerializableFormat::PORTABLE: {
       cereal::PortableBinaryOutputArchive ar( out, cereal::PortableBinaryOutputArchive::Options::Default() );

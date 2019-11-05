@@ -100,7 +100,6 @@ class NetworkTest(unittest.TestCase):
     engine.Network.cleanup()
     engine.Network.registerPyRegion(LinkRegion.__module__, LinkRegion.__name__)
 
-  @pytest.mark.skip(reason="pickle support needs work...another PR")
   def testSerializationWithPyRegion(self):
     """Test  (de)serialization of network containing a python region"""
     engine.Network.registerPyRegion(__name__,
@@ -136,8 +135,6 @@ class NetworkTest(unittest.TestCase):
 
       self.assertEqual(destRegion.getParameterUInt32("dataWidth"), 128)
       self.assertEqual(destRegion.getParameterUInt32("randomSeed"), 99)
-      
-      print("network_test.py done\n")
 
     finally:
       engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
@@ -192,7 +189,6 @@ class NetworkTest(unittest.TestCase):
     network.link("from", "to", "", "", "UInt32", "Real32")
 	
 
-  @pytest.mark.skip(reason="parameter types don't match.")
   def testParameters(self):
 
     n = engine.Network()
@@ -363,7 +359,8 @@ class NetworkTest(unittest.TestCase):
     network.link("from", "to", "", "", "Real32", "Real32")
     network.link("from", "to", "", "", "Real32", "UInt32")
     network.link("from", "to", "", "", "UInt32", "Real32")
-  
+    network.initialize()
+    
     if sys.version_info[0] >= 3:
       proto = 3
     else:
@@ -372,6 +369,11 @@ class NetworkTest(unittest.TestCase):
     # Simple test: make sure that dumping / loading works...
     pickledNetwork = pickle.dumps(network, proto)
     network2 = pickle.loads(pickledNetwork)
-    self.assertEqual(str(network), str(network2),  "Simple Network pickle/unpickle failed.")
+    
+    s1 = network.getRegion("to").executeCommand("HelloWorld", "26", "64");
+    s2 = network2.getRegion("to").executeCommand("HelloWorld", "26", "64");
+
+    self.assertEqual(s1,"Hello World says: arg1=26 arg2=64")
+    self.assertEqual(s1, s2,  "Simple Network pickle/unpickle failed.")
 
 

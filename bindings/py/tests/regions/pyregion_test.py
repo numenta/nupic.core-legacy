@@ -112,14 +112,16 @@ class PyRegionTest(unittest.TestCase):
     y = Y()
 
     if sys.version_info[0] >= 3:
+      import pickle
       proto = 3
     else:
+      import cpickle as pickle
       proto = 2
 
     # Simple test: make sure that dumping / loading works...
     pickledRegion = pickle.dumps(y, proto)
     y2 = pickle.loads(pickledRegion)
-    self.assertEqual(str(y), str(y2),  "Simple Region pickle/unpickle failed.")
+    self.assertEqual(y.zzz, y2.zzz,  "Simple Region pickle/unpickle failed.")
     
 
 

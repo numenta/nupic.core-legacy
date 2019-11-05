@@ -132,7 +132,6 @@ RegionImpl *RegionImplFactory::createRegionImpl(const std::string nodeType,
 RegionImpl *RegionImplFactory::deserializeRegionImpl(const std::string nodeType,
                                                      ArWrapper &wrapper,
                                                      Region *region) {
-std::cerr << "RegionImplFactory.deserializeRegionImpl called. " << nodeType << "\n";
   RegionImpl *impl = nullptr;
   if (regionTypeMap.find(nodeType) != regionTypeMap.end()) {
     impl = regionTypeMap[nodeType]->deserializeRegionImpl(wrapper, region);

@@ -74,13 +74,6 @@ public:
   /**
    * Destructor.
    *
-   * Destruct the network and unregister it from NuPIC:
-   *
-   * - Uninitialize all regions
-   * - Remove all links
-   * - Delete the regions themselves
-   *
-   * @todo Should we document the tear down steps above?
    */
   ~Network();
 
@@ -122,7 +115,6 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
-std::cerr << "Network.save_ar called\n";
     const std::vector<std::shared_ptr<Link>> links = getLinks();
     std::string name = "Network";
     ar(cereal::make_nvp("name", name));
@@ -134,17 +126,13 @@ std::cerr << "Network.save_ar called\n";
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
-std::cerr << "Network.load_ar called\n";
     std::vector<std::shared_ptr<Link>> links;
     std::string name;
     ar(cereal::make_nvp("name", name));  // ignore value
     ar(cereal::make_nvp("iteration", iteration_));
-std::cerr << "Network.load_ar regions\n";
     ar(cereal::make_nvp("Regions", regions_));
-std::cerr << "Network.load_ar links\n";
     ar(cereal::make_nvp("links", links));
 
-std::cerr << "Network.load_ar post_load\n";
     post_load(links);
   }
 
