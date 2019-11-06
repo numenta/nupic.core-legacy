@@ -612,8 +612,8 @@ public:
    * @retval Number of segments.
    */
   size_t numSegments() const { 
-	  NTA_ASSERT(segments_.size() >= destroyedSegments_.size());
-	  return segments_.size() - destroyedSegments_.size(); }
+	  NTA_ASSERT(segments_.size() >= destroyedSegments_);
+	  return segments_.size() - destroyedSegments_; }
 
   /**
    * Gets the number of segments on a cell.
@@ -630,8 +630,8 @@ public:
    * @retval Number of synapses.
    */
   size_t numSynapses() const {
-    NTA_ASSERT(synapses_.size() >= destroyedSynapses_.size());
-    return synapses_.size() - destroyedSynapses_.size();
+    NTA_ASSERT(synapses_.size() >= destroyedSynapses_);
+    return synapses_.size() - destroyedSynapses_;
   }
 
   /**
@@ -714,9 +714,9 @@ protected:
 private:
   std::vector<CellData>    cells_;
   std::vector<SegmentData> segments_;
-  std::vector<Segment>     destroyedSegments_;
+  Segment     destroyedSegments_ = 0;
   std::vector<SynapseData> synapses_;
-  std::vector<Synapse>     destroyedSynapses_;
+  Synapse     destroyedSynapses_ = 0; //number of destroyed synapses
   Permanence               connectedThreshold_; //TODO make const
   UInt32 iteration_ = 0;
 

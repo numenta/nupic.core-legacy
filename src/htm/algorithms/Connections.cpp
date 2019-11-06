@@ -40,9 +40,7 @@ Connections::Connections(const CellIdx numCells,
 void Connections::initialize(CellIdx numCells, Permanence connectedThreshold, bool timeseries) {
   cells_ = vector<CellData>(numCells);
   segments_.clear();
-  destroyedSegments_.clear();
   synapses_.clear();
-  destroyedSynapses_.clear();
   potentialSynapsesForPresynapticCell_.clear();
   connectedSynapsesForPresynapticCell_.clear();
   potentialSegmentsForPresynapticCell_.clear();
@@ -90,17 +88,11 @@ Segment Connections::createSegment(const CellIdx cell,
   }
 
   //proceed to create a new segment
-  Segment segment;
-  if (!destroyedSegments_.empty() ) { //reuse old, destroyed segs
-    segment = destroyedSegments_.back();
-    destroyedSegments_.pop_back();
-  } else { //create a new segment
-    NTA_CHECK(segments_.size() < std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
+  NTA_CHECK(segments_.size() < std::numeric_limits<Segment>::max()) << "Add segment failed: Range of Segment (data-type) insufficinet size."
 	    << (size_t)segments_.size() << " < " << (size_t)std::numeric_limits<Segment>::max();
-    segment = static_cast<Segment>(segments_.size());
-    const SegmentData& segmentData = SegmentData(cell, iteration_, nextSegmentOrdinal_++);
-    segments_.push_back(segmentData);
-  }
+  const Segment segment = static_cast<Segment>(segments_.size());
+  const SegmentData& segmentData = SegmentData(cell, iteration_, nextSegmentOrdinal_++);
+  segments_.push_back(segmentData);
 
   CellData &cellData = cells_[cell];
   cellData.segments.push_back(segment); //assign the new segment to its mother-cell
@@ -134,17 +126,13 @@ Synapse Connections::createSynapse(Segment segment,
     }
   } //else: the new synapse is not duplicit, so keep creating it. 
 
+
+
   // Get an index into the synapses_ list, for the new synapse to reside at.
-  Synapse synapse;
-  if (!destroyedSynapses_.empty() ) {
-    synapse = destroyedSynapses_.back(); //TODO get rid of the destroyedSynapses_ buffer
-    destroyedSynapses_.pop_back();
-  } else {
-    NTA_ASSERT(synapses_.size() < std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
+  NTA_ASSERT(synapses_.size() < std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
 	    << synapses_.size() << " < " << (size_t)std::numeric_limits<Synapse>::max();
-    synapse = static_cast<Synapse>(synapses_.size());
-    synapses_.emplace_back(SynapseData());
-  }
+  const Synapse synapse = static_cast<Synapse>(synapses_.size()); //TODO work on cache locality. Have all Synapse, SynapseData on Segment in continuous mem block ?
+  synapses_.emplace_back(SynapseData());
 
   // Fill in the new synapse's data
   SynapseData &synapseData    = synapses_[synapse];
@@ -230,7 +218,7 @@ void Connections::destroySegment(const Segment segment) {
   NTA_ASSERT(*segmentOnCell == segment);
 
   cellData.segments.erase(segmentOnCell);
-  destroyedSegments_.push_back(segment);
+  destroyedSegments_++;
 }
 
 
@@ -280,8 +268,7 @@ void Connections::destroySynapse(const Synapse synapse) {
   NTA_ASSERT(*synapseOnSegment == synapse);
 
   segmentData.synapses.erase(synapseOnSegment);
-
-  destroyedSynapses_.push_back(synapse);
+  destroyedSynapses_++;
 }
 
 
@@ -612,7 +599,6 @@ void Connections::destroyMinPermanenceSynapses(
                               const vector<CellIdx> &excludeCells)
 {
   NTA_ASSERT( nDestroy >= 0 );
-  if( nDestroy <= 0 ) return; // Nothing to do.
 
   // Don't destroy any cells that are in excludeCells.
   vector<Synapse> destroyCandidates;
@@ -709,8 +695,6 @@ std::ostream& operator<< (std::ostream& stream, const Connections& self)
          << "%) Saturated (" <<   (Real) synapsesSaturated / self.numSynapses() << "%)" << std::endl;
   stream << "    Synapses pruned (" << (Real) self.prunedSyns_ / self.numSynapses() 
 	 << "%) Segments pruned (" << (Real) self.prunedSegs_ / self.numSegments() << "%)" << std::endl;
-  stream << "    Buffer for destroyed synapses: " << self.destroyedSynapses_.size() << " \t buffer for destr. segments: "
-	 << self.destroyedSegments_.size() << std::endl; 
 
   return stream;
 }
