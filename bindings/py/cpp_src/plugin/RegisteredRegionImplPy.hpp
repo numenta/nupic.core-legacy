@@ -103,6 +103,10 @@ namespace htm
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
+        catch (const py::cast_error& e)
+        {
+            throw Exception(__FILE__, __LINE__, e.what());
+        }
         catch (htm::Exception & e)
         {
             throw htm::Exception(e);
@@ -124,6 +128,10 @@ namespace htm
           return new PyBindRegion(module_.c_str(), wrapper, region, classname_.c_str());
         }
         catch (const py::error_already_set& e)
+        {
+            throw Exception(__FILE__, __LINE__, e.what());
+        }
+        catch (const py::cast_error& e)
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
