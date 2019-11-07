@@ -83,8 +83,10 @@ private:
 
 
   // Mappings for region nodeTypes that map to Class and module
-  std::map<const std::string, std::shared_ptr<RegisteredRegionImpl> > regionTypeMap;
-  std::map<const std::string, std::shared_ptr<Spec> > regionSpecMap;
+  // The registrations apply accross all RegionImplFactory instances in a process.
+  // (i.e. for all Networks). Each process must perform its own registrations.
+  static std::map<const std::string, std::shared_ptr<RegisteredRegionImpl> > regionTypeMap;
+  static std::map<const std::string, std::shared_ptr<Spec> > regionSpecMap;
   void addRegionType(const std::string nodeType, RegisteredRegionImpl* wrapper);
 
 };

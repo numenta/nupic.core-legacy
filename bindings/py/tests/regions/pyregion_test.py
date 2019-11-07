@@ -50,30 +50,7 @@ class Z(object):
 class PyRegionTest(unittest.TestCase):
 
 
-  def testNoInit(self):
-    """Test unimplemented init method"""
-    class NoInit(PyRegion):
-      pass
 
-    with self.assertRaises(TypeError) as cw:
-      _ni = NoInit()
-
-    self.assertEqual(str(cw.exception), "Can't instantiate abstract class " +
-      "NoInit with abstract methods __init__, compute, initialize")
-
-
-  def testUnimplementedAbstractMethods(self):
-    """Test unimplemented abstract methods"""
-    # Test unimplemented getSpec (results in NotImplementedError)
-    with self.assertRaises(NotImplementedError):
-      X.getSpec()
-
-    # Test unimplemented abstract methods (x can't be instantiated)
-    with self.assertRaises(TypeError) as cw:
-      _x = X()
-
-    self.assertEqual(str(cw.exception), "Can't instantiate abstract class " +
-      "X with abstract methods compute, initialize")
 
   def testUnimplementedNotImplementedMethods(self):
     """Test unimplemented @not_implemented methods"""
