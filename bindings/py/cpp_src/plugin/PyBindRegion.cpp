@@ -304,30 +304,39 @@ namespace py = pybind11;
         // 1. serialize main state using pickle
         // 2. call class method to serialize external state
 
-        // 1. Serialize main state of the Python module
-				//    We want this to end up in the open stream obtained from bundle.
-				//    a. We first pickle the python into a temporary file.
-				//    b. copy the file into our open stream.
-
-				std::string tmp_pickle = "pickle.tmp";
-		    py::tuple args = py::make_tuple(tmp_pickle, "wb");
-		    auto f = py::module::import("__builtin__").attr("file")(*args);
+        //    Serialize main state of the Python module
+				//    We want this to end up in a string that we pass back to Cereal.
+				//    a. We first pickle the python into an in-memory byte stream.
+				//    b. We then convert that to a Base64 std::string that is returned.
+        //
+        //  Basicly, we are executing the following Python code:
+        //    import io
+        //    import base64
+        //    import pickle
+        //    f = io.BytesIO()
+        //    pickle.dump(node, f, 3)
+        //    b = f.getvalue()
+        //    content = str(base64.b64encode(b))
+        //    f.close()
+        
+		    py::tuple args;
+		    auto f = py::module::import("io").attr("BytesIO")();
 
 #if PY_MAJOR_VERSION >= 3
 		    auto pickle = py::module::import("pickle");
+		    args = py::make_tuple(node_, f, 3);   // use type 3 protocol
 #else
 		    auto pickle = py::module::import("cPickle");
-#endif
 		    args = py::make_tuple(node_, f, 2);   // use type 2 protocol
+#endif
 		    pickle.attr("dump")(*args);
-		    pickle.attr("close")();
 
-				// copy the pickle into the out string
-				std::ifstream pfile(tmp_pickle.c_str(), std::ios::binary);
-				std::string content((std::istreambuf_iterator<char>(pfile)),
-				                     std::istreambuf_iterator<char>());
-				pfile.close();
-		 		Path::remove(tmp_pickle);
+				// copy the pickle stream into the content as a base64 encoded utf8 string
+        py::bytes b = f.attr("getvalue")();
+        args = py::make_tuple(b);
+		    std::string content = py::str(py::module::import("base64").attr("b64encode")(*args));
+       
+		    f.attr("close")();
 		    return content;
     }
     std::string PyBindRegion::extraSerialize() const
@@ -354,31 +363,34 @@ namespace py = pybind11;
 		void PyBindRegion::pickleDeserialize(std::string p) {
         // 1. deserialize main state using pickle
         // 2. call class method to deserialize external state
-
-				std::ofstream des;
-				std::string tmp_pickle = "pickle.tmp";
-
-
-			  std::ofstream pfile(tmp_pickle.c_str(), std::ios::binary);
-				pfile.write(p.c_str(), p.size());
-				pfile.close();
-
-
-		// Tell Python to un-pickle using what is now in the pickle.tmp file.
-        py::args args = py::make_tuple(tmp_pickle, "rb");
-        auto f = py::module::import("__builtin__").attr("file")(*args);
+        //
+		    // Tell Python to un-pickle using what is in the string p.
+        // but first we need to convert the base64 string into bytes.
+        //
+        // Basically we are executing the following Python code:
+        //   import base64
+        //   import io
+        //   import pickle
+        //   b = base64.b64decode(bytes(p))
+        //   f = io.BytesIO(b)
+        //   node = pickle.load(f)
+        //   f.close()
+        
+        py::args args;
+        args = py::make_tuple(py::bytes(p));
+        py::bytes b = py::module::import("base64").attr("b64decode")(*args);
+        args = py::make_tuple(b);
+		    auto f = py::module::import("io").attr("BytesIO")(*args);
 
 #if PY_MAJOR_VERSION >= 3
         auto pickle = py::module::import("pickle");
 #else
         auto pickle = py::module::import("cPickle");
 #endif
+        args = py::make_tuple(f);
+        node_ = pickle.attr("load")(*args);
 
-        args = py::make_tuple(node_, f);
-        pickle.attr("load")(*args);
-
-        pickle.attr("close")();
-				Path::remove(tmp_pickle);
+        f.attr("close")();
 		}
 
 		void PyBindRegion::extraDeserialize(std::string e) {
