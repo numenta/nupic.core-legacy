@@ -122,10 +122,10 @@ Synapse Connections::createSynapse(Segment segment,
     synapse = destroyedSynapses_.back();
     destroyedSynapses_.pop_back();
   } else {
-    NTA_CHECK(synapses_.size() < std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
+    NTA_ASSERT(synapses_.size() < std::numeric_limits<Synapse>::max()) << "Add synapse failed: Range of Synapse (data-type) insufficient size."
 	    << synapses_.size() << " < " << (size_t)std::numeric_limits<Synapse>::max();
     synapse = static_cast<Synapse>(synapses_.size());
-    synapses_.push_back(SynapseData());
+    synapses_.emplace_back(SynapseData());
   }
 
   // Fill in the new synapse's data

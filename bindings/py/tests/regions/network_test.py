@@ -19,7 +19,11 @@ import json
 import unittest
 import pytest
 import numpy as np
+import sys
+import os
+import pickle
 
+    
 from htm.bindings.regions.PyRegion import PyRegion
 from htm.bindings.sdr import SDR
 import htm.bindings.engine_internal as engine
@@ -96,11 +100,12 @@ class NetworkTest(unittest.TestCase):
     engine.Network.cleanup()
     engine.Network.registerPyRegion(LinkRegion.__module__, LinkRegion.__name__)
 
-  @pytest.mark.skip(reason="pickle support needs work...another PR")
   def testSerializationWithPyRegion(self):
     """Test  (de)serialization of network containing a python region"""
     engine.Network.registerPyRegion(__name__,
                                     SerializationTestPyRegion.__name__)
+                                    
+    file_path = "SerializationTest.stream"
     try:
       srcNet = engine.Network()
       srcNet.addRegion(SerializationTestPyRegion.__name__,
@@ -111,12 +116,20 @@ class NetworkTest(unittest.TestCase):
                        }))
 
       # Serialize
-      srcNet.saveToFile("SerializationTest.stream")
+      # Note: This will do the following:
+      #    - Call network.saveToFile(), in C++. this opens the file.
+      #    - that calls network.save(stream) 
+      #    - that will use Cereal to serialize the Network object.
+      #    - that will serialize the Region object.
+      #    - that will serialize PyBindRegion object because this is a python Region.
+      #    - that will use pickle to serialize SerializationTestPyRegion in
+      #                serialization_test_py_region.py into Base64.
+      srcNet.saveToFile(file_path, engine.SerializableFormat.BINARY)
 
 
       # Deserialize
       destNet = engine.Network()
-      destNet.loadFromFile("SerializationTest.stream")
+      destNet.loadFromFile(file_path)
 
       destRegion = destNet.getRegion(SerializationTestPyRegion.__name__)
 
@@ -125,6 +138,8 @@ class NetworkTest(unittest.TestCase):
 
     finally:
       engine.Network.unregisterPyRegion(SerializationTestPyRegion.__name__)
+      if os.path.isfile(file_path):
+        os.unlink("SerializationTest.stream")
 
 
   def testSimpleTwoRegionNetworkIntrospection(self):
@@ -174,7 +189,6 @@ class NetworkTest(unittest.TestCase):
     network.link("from", "to", "", "", "UInt32", "Real32")
 	
 
-  @pytest.mark.skip(reason="parameter types don't match.")
   def testParameters(self):
 
     n = engine.Network()
@@ -330,5 +344,36 @@ class NetworkTest(unittest.TestCase):
     lst = ["list arg", 86]
     result = r.executeCommand("HelloWorld", 42, lst)
     self.assertTrue(result == "Hello World says: arg1=42 arg2=['list arg', 86]")
+
+  def testNetworkPickle(self):
+    """
+    Test region pickling/unpickling.
+    """
+    network = engine.Network()
+    r_from = network.addRegion("from", "py.LinkRegion", "")
+    r_to = network.addRegion("to", "py.LinkRegion", "")
+    cnt = r_from.getOutputElementCount("UInt32")
+    self.assertEqual(5, cnt)
+
+    network.link("from", "to", "", "", "UInt32", "UInt32")
+    network.link("from", "to", "", "", "Real32", "Real32")
+    network.link("from", "to", "", "", "Real32", "UInt32")
+    network.link("from", "to", "", "", "UInt32", "Real32")
+    network.initialize()
+    
+    if sys.version_info[0] >= 3:
+      proto = 3
+    else:
+      proto = 2
+
+    # Simple test: make sure that dumping / loading works...
+    pickledNetwork = pickle.dumps(network, proto)
+    network2 = pickle.loads(pickledNetwork)
+    
+    s1 = network.getRegion("to").executeCommand("HelloWorld", "26", "64");
+    s2 = network2.getRegion("to").executeCommand("HelloWorld", "26", "64");
+
+    self.assertEqual(s1,"Hello World says: arg1=26 arg2=64")
+    self.assertEqual(s1, s2,  "Simple Network pickle/unpickle failed.")
 
 
