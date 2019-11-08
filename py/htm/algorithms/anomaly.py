@@ -29,52 +29,35 @@ Was created for reason resulting from situation when TM.compute call is break do
 Simple calculates what is the overlap ratio between active columns
 and columns with predictive cells.
 
-anomaly 1.0 = all active columns were predicted (every active column is overlapping with column with predictive cell),
-anomaly 0.0 = none of active columns were predicted (none of active columns is overlapping with column with predictive cell)
+anomaly 0.0 = all active columns were predicted (every active column is overlapping with column with predictive cell),
+anomaly 1.0 = none of active columns were predicted (none of active columns is overlapping with column with predictive cell)
 
 """
 from htm.bindings.sdr import SDR
-
+from htm.bindings.algorithms import TemporalMemory
 class Anomaly:
 
 
   @staticmethod
-  def calculateRawAnomaly(activeColSDR, predictiveCellsSDR ):
+  def calculateRawAnomaly(activeCols, predictiveCols ):
     """
 
-    :param activeColSDR: SDR with active columns - one dimensional - like SDR(100)
-    :param predictiveCellsSDR: SDR with predictive cells - two dimensional - like SDR(100,30), means 30 cells per column
-    :return:
+    :param activeColSDR: SDR with active columns
+    :param predictiveColsSDR: SDR with predictive columns, means columns where some of the cells are predictive
+    :return: Raw anomaly score in range <0.0, 1.0>
     """
-    if len(activeColSDR.dimensions) !=1:
-      raise ValueError("activeColumns SDR must be of dimension 1")
-    if len(predictiveCellsSDR.dimensions) != 2:
-      raise ValueError("predictiveCells SDR must be of dimension 2")
+    if activeCols.dimensions != predictiveCols.dimensions:
+      raise ValueError("activeColumns must have same dimension as predictiveCellsSDR!")
 
-    if activeColSDR.getSum() != 0:
-      intersect = SDR(activeColSDR.dimensions)
+    if activeCols.getSum() != 0:
+      intersect = SDR(activeCols.dimensions)
 
-      intersect.intersection(activeColSDR, Anomaly._cellsToColumns(predictiveCellsSDR))
-      rawAnomaly = (activeColSDR.getSum() - intersect.getSum()) / activeColSDR.getSum()
+      intersect.intersection(activeCols, predictiveCols)
+      rawAnomaly = (activeCols.getSum() - intersect.getSum()) / activeCols.getSum()
+
+      if rawAnomaly<0 or rawAnomaly>1.0:
+        raise ValueError("rawAnomaly out of bounds! <0.0, 1.0>")
     else:
       rawAnomaly = 0
 
     return rawAnomaly
-
-  # converts cells SDR to columns SDR
-  # expects two dimensional SDR, like SDR(100,30) - means 100 columns with 30 cells for each column
-  @staticmethod
-  def _cellsToColumns(cells):
-    nOfColumns = cells.dimensions[0]
-    cellsPerColumn = cells.dimensions[1]
-
-    arr = []
-    for cell in cells.sparse:
-      a = (int)(cell / cellsPerColumn)
-      if a not in arr:
-        arr.append(a)
-
-    columns = SDR(nOfColumns)
-    columns.sparse = arr
-
-    return columns

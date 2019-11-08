@@ -352,6 +352,14 @@ Argument cell
 
 Returns the created segment (index handle).)");
 
+        py_HTM.def("cellsToColumns", &HTM_t::cellsToColumns,
+R"(Converts cells SDR to corresponding columns SDR.
+
+Argument cells
+	SDR with bits that represents cells.
+
+Returns SDR with bits that represents columns.)");
+
         py_HTM.def("numberOfCells",   &HTM_t::numberOfCells,
 R"(Returns the number of cells in this TemporalMemory.)");
 

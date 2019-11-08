@@ -39,12 +39,12 @@ class AnomalyTest(TestCaseBase):
     """
 
     activeCols = SDR(100)
-    predictiveCells = SDR([100, 30])
+    predictiveCols = SDR(100)
 
-    activeCols.sparse = [0, 2]
-    predictiveCells.sparse = [0, 29, 60, 89]  # this means cells in column 0 and 2
+    activeCols.sparse = [0, 2, 89, 99]
+    predictiveCols.sparse = [0, 2, 89, 99]
 
-    score = an.calculateRawAnomaly(activeCols, predictiveCells)
+    score = an.calculateRawAnomaly(activeCols, predictiveCols)
 
     self.assertEqual(score, 0.0)
 
@@ -55,12 +55,12 @@ class AnomalyTest(TestCaseBase):
     """
 
     activeCols = SDR(100)
-    predictiveCells = SDR([100, 30])
+    predictiveCols = SDR(100)
 
-    activeCols.sparse = [0, 2]
-    predictiveCells.sparse = [90, 95, 160, 300]  # this means cells in column 0 and 2
+    activeCols.sparse = [60, 69, 80, 91]
+    predictiveCols.sparse = [56, 95, 68, 2]
 
-    score = an.calculateRawAnomaly(activeCols, predictiveCells)
+    score = an.calculateRawAnomaly(activeCols, predictiveCols)
 
     self.assertEqual(score, 1.0)
 
@@ -71,16 +71,24 @@ class AnomalyTest(TestCaseBase):
     """
 
     activeCols = SDR(100)
-    predictiveCells = SDR([100, 30])
+    predictiveCols = SDR(100)
 
-    activeCols.sparse = [20, 5]
-    predictiveCells.sparse = [20*30, 20*30+2, 950, 10, 8, 9, 0] # only cells (20*30) and (20*30+2) are matching with active col 20
+    activeCols.sparse = [60, 69, 80, 91]
+    predictiveCols.sparse = [60, 80, 55, 1]
 
-    score = an.calculateRawAnomaly(activeCols, predictiveCells)
+    score = an.calculateRawAnomaly(activeCols, predictiveCols)
 
     self.assertEqual(score, 0.5)
 
+  def testWrongDim(self):
+    """
+    Tests given wrong dimensions of SDRs
+    """
 
+    activeCols = SDR(50)
+    predictiveCols = SDR(40)
+
+    self.assertRaises(ValueError, an.calculateRawAnomaly, activeCols, predictiveCols)
 
 if __name__ == "__main__":
   unittest.main()
