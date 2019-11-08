@@ -103,6 +103,10 @@ namespace htm
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
+        catch (const py::cast_error& e)
+        {
+            throw Exception(__FILE__, __LINE__, e.what());
+        }
         catch (htm::Exception & e)
         {
             throw htm::Exception(e);
@@ -124,6 +128,10 @@ namespace htm
           return new PyBindRegion(module_.c_str(), wrapper, region, classname_.c_str());
         }
         catch (const py::error_already_set& e)
+        {
+            throw Exception(__FILE__, __LINE__, e.what());
+        }
+        catch (const py::cast_error& e)
         {
             throw Exception(__FILE__, __LINE__, e.what());
         }
@@ -160,7 +168,7 @@ namespace htm
 		* when its name is used in a Network::addRegion() call.
 		*
 		* @param className -- the name of the Python class that implements the region.
-		* @param module    -- the module (shared library) in which the class resides.
+		* @param module    -- the module (full path and file) in which the class resides.
 		*/
 		inline static void registerPyRegion(const std::string& module, const std::string& className) {
 		    std::string nodeType = "py." + className;

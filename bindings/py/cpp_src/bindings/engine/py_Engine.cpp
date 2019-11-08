@@ -268,6 +268,21 @@ namespace htm_ext
 
                 r.setInputData(name, s);
             });
+            
+        py_Region.def(py::pickle(
+            [](const Region& self) {
+                std::stringstream ss;
+                  self.save(ss);
+                return py::bytes(ss.str());
+            },
+            // Note: a de-serialized Region will need to be reattached to a Network
+            //           before it could be used.  See Network::addRegion( Region*)
+            [](const py::bytes& s) {
+                std::istringstream ss(s);
+                Region self;
+                self.load(ss);
+                return self;
+        }));
 
 
         py_Region.def("getParameterInt32", &Region::getParameterInt32)
@@ -408,6 +423,11 @@ namespace htm_ext
                     , py::arg("name")
                     , py::arg("nodeType" )
                     , py::arg("nodeParams"));
+        py_Network.def("addRegion", (Region_Ptr_t (htm::Network::*)(
+                    Region_Ptr_t&))
+                    &htm::Network::addRegion,
+                    "add region for deserialization."
+                    , py::arg("region"));
 
         py_Network.def("getRegions", &htm::Network::getRegions)
             .def("getRegion",          &htm::Network::getRegion)
@@ -426,8 +446,21 @@ namespace htm_ext
         py_Network.def("save",      &htm::Network::save)
             .def("load",            &htm::Network::load)
             .def("saveToFile",      &htm::Network::saveToFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY)
-            .def("loadFromFile",    &htm::Network::loadFromFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY);
+            .def("loadFromFile",    &htm::Network::loadFromFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY)
+            .def("__eq__",          &htm::Network::operator==);
             
+        py_Network.def(py::pickle(
+            [](const Network& self) {
+                std::stringstream ss;
+                self.save(ss);
+                return py::bytes(ss.str());
+            },
+            [](const py::bytes& s) {
+                std::istringstream ss(s);
+                Network self;
+                self.load(ss);
+                return self;  
+        }));
 
         py_Network.def("link", &htm::Network::link
             , "Defines a link between regions"
