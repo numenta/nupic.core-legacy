@@ -177,15 +177,6 @@ void TMRegion::initialize() {
 }
 
 
-bool TMRegion::isConnected_(string name) const {
-  const auto in = getInput(name);
-  const auto out = getOutput(name);
-  const bool hasOutput = (out != nullptr) and out->hasOutgoingLinks();
-  const bool hasInput  = (in  != nullptr) and in->hasIncomingLinks();
-  return hasInput or hasOutput;
-}
-
-
 void TMRegion::compute() {
 
   NTA_ASSERT(tm_) << "TM not initialized";
@@ -244,36 +235,30 @@ void TMRegion::compute() {
   NTA_LOG_LEVEL = htm::LogLevel::LogLevel_Verbose;
   NTA_CHECK(NTA_LOG_LEVEL == LogLevel::LogLevel_Verbose) << "setting Verbose failed, man";
   //to output the NTA_DEBUG statements below
-  if (isConnected_("bottomUpOut") ) {
     SDR& sdr = out->getData().getSDR();
     tm_->getActiveCells(sdr); //active cells
     if (args_.orColumnOutputs) { //output as columns
       sdr = tm_->cellsToColumns(sdr);
     }
     NTA_DEBUG << "bottomUpOut " << *out << std::endl;
-  }
+  
   out = getOutput("activeCells");
-  if (isConnected_("activeCells")) {
     tm_->getActiveCells(out->getData().getSDR());
     NTA_DEBUG << "active " << *out << std::endl;
-  }
+  
   out = getOutput("predictedActiveCells");
-  if (isConnected_("predictedActiveCells") ) {
     tm_->activateDendrites();
     tm_->getWinnerCells(out->getData().getSDR());
     NTA_DEBUG << "winners " << *out << std::endl;
-  }
+  
   out = getOutput("anomaly");
-  if (isConnected_("anomaly") ) {
     Real32* buffer = reinterpret_cast<Real32*>(out->getData().getBuffer());
     buffer[0] = tm_->anomaly; //only the first field is valid
     NTA_DEBUG << "anomaly " << *out << std::endl;
-  }
+  
   out = getOutput("predictiveCells");
-  if (isConnected_("predictiveCells") ) {
     out->getData().getSDR() = tm_->getPredictiveCells();
     NTA_DEBUG << "predictive " << *out << std::endl;
-  }
 }
 
 

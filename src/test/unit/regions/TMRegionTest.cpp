@@ -252,7 +252,7 @@ TEST(TMRegionTest, testLinking) {
   // check anomaly
   EXPECT_FLOAT_EQ(region3->getParameterReal32("anomaly"), 1.0f);
   const Real32 *anomalyBuffer = reinterpret_cast<const Real32*>(region3->getOutputData("anomaly").getBuffer());
-  EXPECT_FLOAT_EQ(anomalyBuffer[0], 0.0f); // Note: it is zero because no links are connected to this output.
+  EXPECT_FLOAT_EQ(anomalyBuffer[0], 1.0f);
 
 
   VERBOSE << "  SPRegion Output " << std::endl;
