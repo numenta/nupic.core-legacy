@@ -118,7 +118,7 @@ void Output::removeLink(const std::shared_ptr<Link>& link) {
 
 namespace htm {
   std::ostream &operator<<(std::ostream &f, const Output &d) {
-    f << "Output:" << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
+    f << "Output: " << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
     return f;
   }
 }

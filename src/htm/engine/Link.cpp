@@ -27,7 +27,7 @@
 #include <htm/ntypes/BasicType.hpp>
 #include <htm/utils/Log.hpp>
 
-// By calling  NTA_LOG_LEVEL = LogLevel::LogLevel_Verbose
+// By calling  Network::setLogLevel(LogLevel_Verbose)
 // you can enable the NTA_DEBUG macros below.
 
 namespace htm {
@@ -187,7 +187,7 @@ void Link::compute() {
   const Array &src = propagationDelay_ ? propagationDelayBuffer_.front() : src_->getData();
   Array &dest = dest_->getData();
 
-  NTA_DEBUG << "Link::compute: " << getMoniker() << "; copying to dest input"
+  NTA_DEBUG << "compute Link: copying " << getMoniker()
               << "; delay=" << propagationDelay_ << "; size=" << src.getCount()
               << " type=" << BasicType::getName(src.getType())
               << " --> " << BasicType::getName(dest.getType()) << std::endl;

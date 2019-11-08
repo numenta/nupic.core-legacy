@@ -28,7 +28,8 @@
 
 namespace htm {
 enum class LogLevel { LogLevel_None = 0, LogLevel_Minimal=1, LogLevel_Normal=2, LogLevel_Verbose=3 };
-static LogLevel NTA_LOG_LEVEL = LogLevel::LogLevel_Minimal; // change this in your class to set log level
+// change this in your class to set log level using Network.setLogLevel(level);
+extern thread_local LogLevel NTA_LOG_LEVEL; 
 
 //this code intentionally uses "if() dosomething" instead of "if() { dosomething }" 
 // as the macro expects another "<< "my clever message";
@@ -36,24 +37,27 @@ static LogLevel NTA_LOG_LEVEL = LogLevel::LogLevel_Minimal; // change this in yo
 //
 //Expected usage: 
 //<your class>:
-//NTA_LOG_LEVEL = LogLevel::LogLevel_Normal;
+//Network::setLogLevel(LogLevel::LogLevel_Verbose);
 //NTA_WARN << "Hello World!" << std::endl; //shows
 //NTA_DEBUG << "more details how cool this is"; //not showing under "Normal" log level
 //NTA_ERR << "You'll always see this, HAHA!";
 //NTA_THROW << "crashing for a good cause";
 
-#define NTA_DEBUG \
-  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Verbose ) std::cout << "DEBUG:\t" << __FILE__ << ":" << __LINE__ << ":" 
+#define NTA_DEBUG                                                \
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Verbose)               \
+    std::cout << "DEBUG:\t" << Path::getBasename(__FILE__) << ":" << __LINE__ << ": " 
 
 // For informational messages that report status but do not indicate that
 // anything is wrong
 #define NTA_INFO                                                               \
-  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal ) std::cout << "INFO:\t" << __FILE__ << ":" << __LINE__ << ":"
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal)                              \
+  std::cout << "INFO:\t" << Path::getBasename(__FILE__) << ":" << __LINE__ << ": "
 
 // For messages that indicate a recoverable error or something else that it may
 // be important for the end user to know about.
 #define NTA_WARN                                                               \
-  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal ) std::cout << "WARN:\t" << __FILE__ << ":" << __LINE__ << ":"
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal)                              \
+  std::cout << "WARN:\t" << Path::getBasename(__FILE__) << ":" << __LINE__ << ": "
 
 // To throw an exception and make sure the exception message is logged
 // appropriately

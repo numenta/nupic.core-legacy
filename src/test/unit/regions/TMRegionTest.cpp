@@ -240,7 +240,17 @@ TEST(TMRegionTest, testLinking) {
   ASSERT_EQ(region3->getParameterUInt32("inputWidth"), (UInt32)dataWidth);
 
   VERBOSE << "Execute once." << std::endl;
+
+  // turn on trace...for one iteration
+  LogLevel prev;
+  VERBOSE << "Turning on Trace =========\n";
+  if (verbose) { prev = net.setLogLevel(LogLevel::LogLevel_Verbose); }
+
   net.run(1);
+
+  // turn off trace
+  if (verbose) { net.setLogLevel(prev); }
+  VERBOSE << "Turned off Trace =========\n";
 
   VERBOSE << "Checking data after first iteration..." << std::endl;
   VERBOSE << "  VectorFileSensor Output" << std::endl;

@@ -182,7 +182,7 @@ private:
     Size iter;
   } args_;
 
-  bool isConnected_(std::string name) const;
+
 
   computeCallbackFunc computeCallback_;
   std::unique_ptr<TemporalMemory> tm_;

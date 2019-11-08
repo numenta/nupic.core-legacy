@@ -67,7 +67,7 @@ public:
   /**
    * Cannot copy or assign a Network object. But can be moved.
    */
-  Network(Network&&);  // move is allowed
+  Network(Network &&) noexcept; // move is allowed
   Network(const Network&) = delete;
   void operator=(const Network&) = delete;
 
@@ -378,8 +378,10 @@ public:
   /**
    * Set one of the debug levels: LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose
    */
-  static void setLogLevel(LogLevel level) {
+  static LogLevel setLogLevel(LogLevel level) {
+    LogLevel prev = NTA_LOG_LEVEL;
     NTA_LOG_LEVEL = level;
+    return prev;
   }
 
 

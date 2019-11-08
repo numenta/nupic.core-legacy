@@ -210,6 +210,7 @@ void TMRegion::compute() {
   Array &externalPredictiveInputsWinners = getInput("externalPredictiveInputsWinners")->getData();
   SDR& externalPredictiveInputsWinnerCells = (args_.externalPredictiveInputs) ? (externalPredictiveInputsWinners.getSDR()) : nullSDR;
 
+  // Trace facility
   NTA_DEBUG << "compute " << *in << std::endl;
 
   // Perform Bottom up compute()
@@ -231,34 +232,32 @@ void TMRegion::compute() {
   //
   std::shared_ptr<Output> out;
   out = getOutput("bottomUpOut");
-  //set 
-  NTA_LOG_LEVEL = htm::LogLevel::LogLevel_Verbose;
-  NTA_CHECK(NTA_LOG_LEVEL == LogLevel::LogLevel_Verbose) << "setting Verbose failed, man";
-  //to output the NTA_DEBUG statements below
+  //call Network::setLogLevel(LogLevel::LogLevel_Verbose);
+  //     to output the NTA_DEBUG statements below
     SDR& sdr = out->getData().getSDR();
     tm_->getActiveCells(sdr); //active cells
     if (args_.orColumnOutputs) { //output as columns
       sdr = tm_->cellsToColumns(sdr);
     }
-    NTA_DEBUG << "bottomUpOut " << *out << std::endl;
+    NTA_DEBUG << "compute "<< *out << std::endl;
   
   out = getOutput("activeCells");
     tm_->getActiveCells(out->getData().getSDR());
-    NTA_DEBUG << "active " << *out << std::endl;
+    NTA_DEBUG << "compute "<< *out << std::endl;
   
   out = getOutput("predictedActiveCells");
     tm_->activateDendrites();
     tm_->getWinnerCells(out->getData().getSDR());
-    NTA_DEBUG << "winners " << *out << std::endl;
+    NTA_DEBUG << "compute "<< *out << std::endl;
   
   out = getOutput("anomaly");
     Real32* buffer = reinterpret_cast<Real32*>(out->getData().getBuffer());
     buffer[0] = tm_->anomaly; //only the first field is valid
-    NTA_DEBUG << "anomaly " << *out << std::endl;
+    NTA_DEBUG << "compute "<< *out << std::endl;
   
   out = getOutput("predictiveCells");
     out->getData().getSDR() = tm_->getPredictiveCells();
-    NTA_DEBUG << "predictive " << *out << std::endl;
+    NTA_DEBUG << "compute " << *out << std::endl;
 }
 
 

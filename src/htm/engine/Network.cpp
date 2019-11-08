@@ -40,19 +40,22 @@ namespace htm {
 
 class RegisteredRegionImpl;
 
+thread_local LogLevel NTA_LOG_LEVEL; 
+
+
 Network::Network() {
   commonInit();
 }
 
 // move constructor
-Network::Network(Network && n) {
+Network::Network(Network &&n) noexcept {
   regions_ = std::move(n.regions_);
   minEnabledPhase_ = n.minEnabledPhase_;
   maxEnabledPhase_ = n.maxEnabledPhase_;
   phaseInfo_ = std::move(n.phaseInfo_);
   callbacks_ = n.callbacks_;
   iteration_ = n.iteration_;
-}  
+}
 
 Network::Network(const std::string& filename) {
   commonInit();
