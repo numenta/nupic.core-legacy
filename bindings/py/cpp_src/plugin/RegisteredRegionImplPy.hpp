@@ -168,7 +168,7 @@ namespace htm
 		* when its name is used in a Network::addRegion() call.
 		*
 		* @param className -- the name of the Python class that implements the region.
-		* @param module    -- the module (shared library) in which the class resides.
+		* @param module    -- the module (full path and file) in which the class resides.
 		*/
 		inline static void registerPyRegion(const std::string& module, const std::string& className) {
 		    std::string nodeType = "py." + className;

@@ -109,12 +109,11 @@ std::shared_ptr<Region> Network::addRegion(std::shared_ptr<Region>& r) {
   NTA_CHECK(r != nullptr);
   r->network_ = this;
   regions_[r->getName()] = r;
+  
+  // If a region is added, initially set the phase to the default phase.
+  // The phase can be changed later.
+  setDefaultPhase_(r.get());
 
-  // We must make a copy of the phases set here because
-  // setPhases_ will be passing this back down into
-  // the region.
-  std::set<UInt32> phases = r->getPhases();
-  setPhases_(r.get(), phases);
   return r;
 }
 
@@ -155,13 +154,11 @@ void Network::setPhases_(Region *r, std::set<UInt32> &phases) {
     if (item != phaseInfo_[i].end() && !insertPhase) {
       phaseInfo_[i].erase(item);
     } else if (insertPhase) {
+      // add the new phase(s_
       phaseInfo_[i].insert(r);
     }
   }
 
-  // keep track (redundantly) of phases inside the Region also, for
-  // serialization
-  r->setPhases(phases);
 
   resetEnabledPhases_();
 }
@@ -443,12 +440,10 @@ std::shared_ptr<Region> Network::getRegion(const std::string& name) const {
 std::vector<std::shared_ptr<Link>> Network::getLinks() const {
   std::vector<std::shared_ptr<Link>> links;
 
-  for (UInt32 phase = minEnabledPhase_; phase <= maxEnabledPhase_; phase++) {
-    for (auto r : phaseInfo_[phase]) {
-      for (auto &input : r->getInputs()) {
-        for (auto &link : input.second->getLinks()) {
-          links.push_back(link);
-        }
+  for (auto p : regions_) {
+    for (auto &input : p.second->getInputs()) {
+      for (auto &link : input.second->getLinks()) {
+        links.push_back(link);
       }
     }
   }
@@ -521,13 +516,9 @@ void Network::post_load() {
   for(auto p: regions_) {
     std::shared_ptr<Region>& r = p.second;
     r->network_ = this;
-    std::set<UInt32> phases = r->getPhases();
-    setPhases_(r.get(), phases);
     r->evaluateLinks();      // Create the input buffers.
   }
 
-  NTA_CHECK(maxEnabledPhase_ < phaseInfo_.size())
-      << "maxphase: " << maxEnabledPhase_ << " size: " << phaseInfo_.size();
 
   // Note: When serialized, the output buffers are saved
   //       by each Region.  After restore we need to
@@ -563,6 +554,65 @@ void Network::post_load() {
   initialized_ = true;
 
 }
+
+std::string Network::phasesToString() const {
+  std::stringstream ss;
+  ss << "{";
+  ss << "minEnabledPhase_: " << minEnabledPhase_ << ", ";
+  ss << "maxEnabledPhase_: " << maxEnabledPhase_ << ", ";
+  ss << "info: [";
+  for (auto phase : phaseInfo_) {
+    ss << "[";
+    for (auto region : phase) {
+      ss << region->getName() << ", ";
+    }
+    ss << "]";
+  }
+  ss << "]}";
+  return ss.str();
+}
+void Network::phasesFromString(const std::string& phaseString) {
+  std::string content = phaseString;
+  content.erase(std::remove(content.begin(), content.end(), ','), content.end());
+  std::stringstream ss(content);
+  std::string tag;
+  std::set<Region *> phase;
+  
+  NTA_CHECK(ss.peek() == '{') << "Invalid phase deserialization";
+  ss.ignore(1);
+  ss >> tag;
+  NTA_CHECK(tag == "minEnabledPhase_:");
+  ss >> minEnabledPhase_;
+  ss >> tag;
+  NTA_CHECK(tag == "maxEnabledPhase_:");
+  ss >> maxEnabledPhase_;
+  ss >> tag;
+  NTA_CHECK(tag == "info:") << "Invalid phase deserialization";
+  ss >> std::ws;
+  NTA_CHECK(ss.peek() == '[') << "Invalid phase deserialization";
+  ss.ignore(1);
+  ss >> std::ws;
+  while (ss.peek() != ']') {
+    ss >> std::ws;
+    if (ss.peek() == '[') {
+      ss.ignore(1);
+      ss >> std::ws;
+      while (ss.peek() != ']') {
+        ss >> tag;
+        auto it = regions_.find(tag);
+        NTA_CHECK(it != regions_.end()) << "Region '" << tag << "' not found while decoding phase.";
+        phase.insert(it->second.get());
+        ss >> std::ws;
+      }
+      ss.ignore(1); // ']'
+      phaseInfo_.push_back(phase);
+      phase.clear();
+    }
+  }
+  ss >> std::ws;
+  ss.ignore(1); // ']'
+}
+
 
 void Network::enableProfiling() {
   for (auto p: regions_) {

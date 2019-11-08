@@ -55,10 +55,10 @@ void Input::addLink(const std::shared_ptr<Link> link, std::shared_ptr<Output> sr
   // Make sure we don't already have a link to the same output
   for (const auto &it : links_) {
     const Output* o = (*it).getSrc();
-    NTA_CHECK(srcOutput.get() != o) << "addLink -- link from region "
-                << srcOutput->getRegion()->getName() << " output "
-                << srcOutput->getName() << " to region " << region_->getName()
-                << " input " << getName() << " already exists";
+    NTA_CHECK(srcOutput.get() != o) << "Input::addLink() -- link from output="
+                << srcOutput->getRegion()->getName() << "."
+                << srcOutput->getName() << " to input=" << region_->getName()
+                << "." << getName() << " already exists";
   }
 
   links_.push_back(link);

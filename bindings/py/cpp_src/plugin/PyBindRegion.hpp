@@ -131,8 +131,8 @@ namespace htm
 
 
     private:
-        std::string module_;
-        std::string className_;
+        std::string module_;     // Full path to the class.
+        std::string className_;  // Just the name of the class.
 
         pybind11::object node_;
 
