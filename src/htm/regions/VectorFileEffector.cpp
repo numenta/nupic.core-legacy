@@ -67,7 +67,8 @@ void VectorFileEffector::initialize() {
 }
 
 void VectorFileEffector::compute() {
-  NTA_DEBUG << "VectorFileEffector compute() input: " << *region_->getInput("dataIn") << "\n";
+  // trace facility
+  NTA_DEBUG << "compute " << *region_->getInput("dataIn") << "\n";
   dataIn_ = region_->getInput("dataIn")->getData();
   // It's not necessarily an error to have no inputs. In this case we just
   // return

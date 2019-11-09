@@ -330,7 +330,7 @@ void Input::uninitialize() {
 
 namespace htm {
   std::ostream &operator<<(std::ostream &f, const Input &d) {
-    f << "Input: " << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
+    f << "Input:  " << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
     return f;
   }
 }

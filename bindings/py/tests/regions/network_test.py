@@ -292,10 +292,10 @@ class NetworkTest(unittest.TestCase):
     """
     This sets up a network with built-in regions.
     """
-    
+    import htm    
     net = engine.Network()
-    net.setLogLevel(engine.Verbose)     # Verbose shows data inputs and outputs while executing.
-    
+    #net.setLogLevel(htm.bindings.engine_internal.LogLevel.Verbose)     # Verbose shows data inputs and outputs while executing.
+
     encoder = net.addRegion("encoder", "ScalarSensor", "{n: 6, w: 2}");
     sp = net.addRegion("sp", "SPRegion", "{columnCount: 200}");
     tm = net.addRegion("tm", "TMRegion", "");
@@ -316,6 +316,8 @@ class NetworkTest(unittest.TestCase):
     
     tm_output = tm.getOutputArray("predictedActiveCells")
     sdr = tm_output.getSDR()
+    print(sdr.sparse)
+    print(EXPECTED_RESULT3)
     self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT3))
 
   def testExecuteCommand1(self):
