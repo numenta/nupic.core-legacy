@@ -352,7 +352,8 @@ Argument cell
 
 Returns the created segment (index handle).)");
 
-        py_HTM.def("cellsToColumns", &HTM_t::cellsToColumns,
+        py_HTM.def("cellsToColumns", [](const HTM_t& self, const SDR &cellsSDR )
+	{ return self.cellsToColumns(cellsSDR); },
 R"(Converts cells SDR to corresponding columns SDR.
 
 Argument cells
