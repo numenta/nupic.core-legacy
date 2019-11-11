@@ -144,6 +144,9 @@ namespace htm
      * This allows wrapping an existing SDR without copying it.
      * Caller must ensure that the pointer remains valid over the life of this instance.
      * ArrayBase will NOT free the pointer when this instance goes out of scope.
+     *
+     * Note: it is ok to use a pointer that is also in a shared_ptr someplace because
+     *       this will not delete the pointer.
      */
     virtual void setBuffer(void *buffer, size_t count);
     virtual void setBuffer(SDR &sdr);
@@ -195,7 +198,8 @@ namespace htm
 	      case NTA_BasicType_Real32:save_array(ar, reinterpret_cast<const Real32*>(ptr), count); break;
 	      case NTA_BasicType_Real64:save_array(ar, reinterpret_cast<const Real64*>(ptr), count); break;
 	      case NTA_BasicType_Bool:  save_array(ar, reinterpret_cast<const bool*>(ptr),   count); break;
-	      default:
+        case NTA_BasicType_Str:   save_array(ar, reinterpret_cast<const std ::string *>(ptr), count); break;
+        default:
 	        NTA_THROW << "Unexpected Element Type: " << type_;
 	        break;
 	      }
@@ -227,6 +231,7 @@ namespace htm
 	      case NTA_BasicType_Real32:load_array(ar, reinterpret_cast<Real32*>(ptr), count); break;
 	      case NTA_BasicType_Real64:load_array(ar, reinterpret_cast<Real64*>(ptr), count); break;
 	      case NTA_BasicType_Bool:  load_array(ar, reinterpret_cast<bool*>(ptr),   count); break;
+        case NTA_BasicType_Str:   load_array(ar, reinterpret_cast<std::string *>(ptr), count); break;
 	      default:
 	        NTA_THROW << "Unexpected Element Type: " << type_;
 	        break;
@@ -280,6 +285,16 @@ namespace htm
     void operator()(char *p) const {
     }
   };
+
+  // If the buffer being stored is an array of strings we need a slightly
+  // different deleter function so that destructors get called for each string object.
+  struct StrDeleter { 
+    void operator()(char *p) const {
+      std::string *s = (std::string *)p;
+      delete[] s;
+    }
+  };
+
   ///////////////////////////////////////////////////////////
   // for stream serialization on an Array
   //    [ type count ( item item item ) ]
