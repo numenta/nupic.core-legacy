@@ -16,6 +16,7 @@
 # ----------------------------------------------------------------------
 
 import unittest
+import sys
 
 from htm.bindings.regions.PyRegion import PyRegion
 
@@ -49,30 +50,7 @@ class Z(object):
 class PyRegionTest(unittest.TestCase):
 
 
-  def testNoInit(self):
-    """Test unimplemented init method"""
-    class NoInit(PyRegion):
-      pass
 
-    with self.assertRaises(TypeError) as cw:
-      _ni = NoInit()
-
-    self.assertEqual(str(cw.exception), "Can't instantiate abstract class " +
-      "NoInit with abstract methods __init__, compute, initialize")
-
-
-  def testUnimplementedAbstractMethods(self):
-    """Test unimplemented abstract methods"""
-    # Test unimplemented getSpec (results in NotImplementedError)
-    with self.assertRaises(NotImplementedError):
-      X.getSpec()
-
-    # Test unimplemented abstract methods (x can't be instantiated)
-    with self.assertRaises(TypeError) as cw:
-      _x = X()
-
-    self.assertEqual(str(cw.exception), "Can't instantiate abstract class " +
-      "X with abstract methods compute, initialize")
 
   def testUnimplementedNotImplementedMethods(self):
     """Test unimplemented @not_implemented methods"""
@@ -103,6 +81,25 @@ class PyRegionTest(unittest.TestCase):
 
     self.assertEqual(str(cw.exception),
                      "The method setParameter is not implemented.")
+
+  def testPickle(self):
+    """
+    Test region pickling/unpickling.
+    """
+    y = Y()
+
+    if sys.version_info[0] >= 3:
+      import pickle
+      proto = 3
+    else:
+      import cpickle as pickle
+      proto = 2
+
+    # Simple test: make sure that dumping / loading works...
+    pickledRegion = pickle.dumps(y, proto)
+    y2 = pickle.loads(pickledRegion)
+    self.assertEqual(y.zzz, y2.zzz,  "Simple Region pickle/unpickle failed.")
+    
 
 
 

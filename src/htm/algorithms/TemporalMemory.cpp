@@ -469,43 +469,49 @@ void TemporalMemory::compute(const SDR &activeColumns,
 {
   activateDendrites(learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
 
+  calculateAnomalyScore_(activeColumns);
+
+  activateCells(activeColumns, learn);
+}
+
+void TemporalMemory::calculateAnomalyScore_(const SDR &activeColumns){
+
   // Update Anomaly Metric.  The anomaly is the percent of active columns that
   // were not predicted. 
   // Must be computed here, between `activateDendrites()` and `activateCells()`.
   switch(tmAnomaly_.mode_) {
 
-    case ANMode::DISABLED: {
-      tmAnomaly_.anomaly_ = 0.5f; 
+	case ANMode::DISABLED: {
+	  tmAnomaly_.anomaly_ = 0.5f;
 			   } break;
 
-    case ANMode::RAW: {
-      tmAnomaly_.anomaly_ = computeRawAnomalyScore(
-                             activeColumns,
-                             cellsToColumns( getPredictiveCells() ));
-		      } break;
+	case ANMode::RAW: {
+	  tmAnomaly_.anomaly_ = computeRawAnomalyScore(
+							 activeColumns,
+							 cellsToColumns( getPredictiveCells() ));
+			  } break;
 
-    case ANMode::LIKELIHOOD: {
-      const Real raw = computeRawAnomalyScore(
-                         activeColumns,
-                         cellsToColumns( getPredictiveCells() ));
-      tmAnomaly_.anomaly_ = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
-			     } break;
+	case ANMode::LIKELIHOOD: {
+	  const Real raw = computeRawAnomalyScore(
+						 activeColumns,
+						 cellsToColumns( getPredictiveCells() ));
+	  tmAnomaly_.anomaly_ = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
+				 } break;
 
-    case ANMode::LOGLIKELIHOOD: {
-      const Real raw = computeRawAnomalyScore(
-                         activeColumns,
-                         cellsToColumns( getPredictiveCells() ));
-      const Real like = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
-      const Real log  = tmAnomaly_.anomalyLikelihood_.computeLogLikelihood(like);
-      tmAnomaly_.anomaly_ = log;
+	case ANMode::LOGLIKELIHOOD: {
+	  const Real raw = computeRawAnomalyScore(
+						 activeColumns,
+						 cellsToColumns( getPredictiveCells() ));
+	  const Real like = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
+	  const Real log  = tmAnomaly_.anomalyLikelihood_.computeLogLikelihood(like);
+	  tmAnomaly_.anomaly_ = log;
 				} break;
   // TODO: Update mean & standard deviation of anomaly here.
   };
   NTA_ASSERT(tmAnomaly_.anomaly_ >= 0.0f and tmAnomaly_.anomaly_ <= 1.0f) << "TM.anomaly is out-of-bounds!";
 
-  activateCells(activeColumns, learn);
-}
 
+}
 
 void TemporalMemory::compute(const SDR &activeColumns, const bool learn) {
   SDR externalPredictiveInputsActive({ externalPredictiveInputs_ });

@@ -30,8 +30,8 @@ PyBind11 bindings for Engine classes
 #include <pybind11/stl.h>
 
 #include <htm/os/Timer.hpp>
-
 #include <htm/ntypes/Array.hpp>
+#include <htm/utils/Log.hpp>
 
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Network.hpp>
@@ -39,6 +39,7 @@ PyBind11 bindings for Engine classes
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Spec.hpp>
 #include <htm/types/Sdr.hpp>
+
 #include <plugin/PyBindRegion.hpp>
 #include <plugin/RegisteredRegionImplPy.hpp>
 
@@ -158,6 +159,7 @@ namespace htm_ext
             .def("isReal64", [](const Array &self) { return self.getType() == NTA_BasicType_Real64; })
             .def("isBool",   [](const Array &self) { return self.getType() == NTA_BasicType_Bool; })
             .def("isSDR",    [](const Array &self) { return self.getType() == NTA_BasicType_SDR; })
+            .def("isStr",    [](const Array &self) { return self.getType() == NTA_BasicType_Str; })
             .def(py::pickle(
                 [](const Array& self) {
                     std::stringstream ss;
@@ -267,6 +269,21 @@ namespace htm_ext
 
                 r.setInputData(name, s);
             });
+            
+        py_Region.def(py::pickle(
+            [](const Region& self) {
+                std::stringstream ss;
+                  self.save(ss);
+                return py::bytes(ss.str());
+            },
+            // Note: a de-serialized Region will need to be reattached to a Network
+            //           before it could be used.  See Network::addRegion( Region*)
+            [](const py::bytes& s) {
+                std::istringstream ss(s);
+                Region self;
+                self.load(ss);
+                return self;
+        }));
 
 
         py_Region.def("getParameterInt32", &Region::getParameterInt32)
@@ -407,6 +424,11 @@ namespace htm_ext
                     , py::arg("name")
                     , py::arg("nodeType" )
                     , py::arg("nodeParams"));
+        py_Network.def("addRegion", (Region_Ptr_t (htm::Network::*)(
+                    Region_Ptr_t&))
+                    &htm::Network::addRegion,
+                    "add region for deserialization."
+                    , py::arg("region"));
 
         py_Network.def("getRegions", &htm::Network::getRegions)
             .def("getRegion",          &htm::Network::getRegion)
@@ -425,8 +447,21 @@ namespace htm_ext
         py_Network.def("save",      &htm::Network::save)
             .def("load",            &htm::Network::load)
             .def("saveToFile",      &htm::Network::saveToFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY)
-            .def("loadFromFile",    &htm::Network::loadFromFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY);
+            .def("loadFromFile",    &htm::Network::loadFromFile, py::arg("file"), py::arg("fmt") = SerializableFormat::BINARY)
+            .def("__eq__",          &htm::Network::operator==);
             
+        py_Network.def(py::pickle(
+            [](const Network& self) {
+                std::stringstream ss;
+                self.save(ss);
+                return py::bytes(ss.str());
+            },
+            [](const py::bytes& s) {
+                std::istringstream ss(s);
+                Network self;
+                self.load(ss);
+                return self;  
+        }));
 
         py_Network.def("link", &htm::Network::link
             , "Defines a link between regions"
@@ -435,13 +470,13 @@ namespace htm_ext
             , py::arg("srcOutput") = "", py::arg("destInput") = ""
             , py::arg("propagationDelay") = 0);
 
-        py::enum_<LogLevel>(m, "LogLevel", py::arithmetic(), "An enumeration of logging levels.")
-                     .value("None", LogLevel::LogLevel_None)        // default
-                     .value("Minimal", LogLevel::LogLevel_Minimal)
-                     .value("Normal",  LogLevel::LogLevel_Normal)
-                     .value("Verbose", LogLevel::LogLevel_Verbose)
+        py::enum_<htm::LogLevel>(m, "LogLevel", "An enumeration of logging levels.")
+                     .value("None",    htm::LogLevel::LogLevel_None)        // default
+                     .value("Minimal", htm::LogLevel::LogLevel_Minimal)
+                     .value("Normal",  htm::LogLevel::LogLevel_Normal)
+                     .value("Verbose", htm::LogLevel::LogLevel_Verbose)
                      .export_values();
-        py_Network.def("setLogLevel", &htm::Network::setLogLevel);
+        py_Network.def_static("setLogLevel", &htm::Network::setLogLevel, py::arg("level") = htm::LogLevel::LogLevel_None);
                 
                 
         // plugin registration

@@ -31,18 +31,25 @@
 
 namespace htm {
 
+
 /**
  * This makes a deep copy of the buffer so this class will own the buffer.
  */
 ArrayBase::ArrayBase(NTA_BasicType type, void *buffer, size_t count) {
   if (!BasicType::isValid(type)) {
-    NTA_THROW << "Invalid NTA_BasicType " << type
-              << " used in array constructor";
+    NTA_THROW << "Invalid NTA_BasicType " << type << " used in array constructor";
   }
   type_ = type;
   allocateBuffer(count);
   if (has_buffer()) {
-    std::memcpy(reinterpret_cast<char *>(getBuffer()), reinterpret_cast<char *>(buffer),
+    if (type == NTA_BasicType_Str) {
+      std::string *ptr1 = reinterpret_cast<std::string *>(getBuffer());
+      std::string *ptr2 = reinterpret_cast<std::string *>(buffer);
+      for (size_t i = 0; i < count; i++) {
+        ptr1[i] = ptr2[i];
+      }
+    } else
+      std::memcpy(reinterpret_cast<char *>(getBuffer()), reinterpret_cast<char *>(buffer),
                 count * BasicType::getSize(type));
   }
 }
@@ -68,8 +75,7 @@ ArrayBase::ArrayBase(const SDR &sdr) {
  */
 ArrayBase::ArrayBase(NTA_BasicType type) {
   if (!BasicType::isValid(type)) {
-    NTA_THROW << "Invalid NTA_BasicType " << type
-              << " used in array constructor";
+    NTA_THROW << "Invalid NTA_BasicType " << type << " used in array constructor";
   }
   type_ = type;
   releaseBuffer();
@@ -98,15 +104,18 @@ char *ArrayBase::allocateBuffer(size_t count) {
     std::vector<UInt> dimension;
     dimension.push_back((UInt)count);
     allocateBuffer(dimension);
+  } else if (type_ == NTA_BasicType_Str) {
+    //Need to allocate and delete std::string such that it can initialize.
+    char *s = reinterpret_cast<char *>(new std::string[count_]);
+    buffer_.reset(s, StrDeleter());
   } else {
-    std::shared_ptr<char> sp(new char[count_ * BasicType::getSize(type_)],
-                             std::default_delete<char[]>());
+    std::shared_ptr<char> sp(new char[count_ * BasicType::getSize(type_)], std::default_delete<char[]>());
     buffer_ = sp;
   }
   return buffer_.get();
 }
 
-char *ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only for SDR
+char *ArrayBase::allocateBuffer(const std::vector<UInt> &dimensions) { // only for SDR
   NTA_CHECK(type_ == NTA_BasicType_SDR) << "Dimensions can only be set on the SDR payload";
   SDR *sdr = new SDR(dimensions);
   std::shared_ptr<char> sp(reinterpret_cast<char *>(sdr));
@@ -121,7 +130,11 @@ char *ArrayBase::allocateBuffer( const std::vector<UInt>& dimensions) { // only 
 void ArrayBase::zeroBuffer() {
   if (has_buffer()) {
     if (type_ == NTA_BasicType_SDR) {
-        getSDR().zero();
+      getSDR().zero();
+    } else if (type_ == NTA_BasicType_Str) {
+      std::string *ptr = reinterpret_cast<std::string *>(buffer_.get());
+      for (size_t i = 0; i < count_; i++)
+        ptr[i] = "";
     } else
       std::memset(buffer_.get(), 0, count_ * BasicType::getSize(type_));
   }
@@ -283,8 +296,16 @@ bool operator==(const ArrayBase &lhs, const ArrayBase &rhs) {
   if (lhs.getType() == NTA_BasicType_SDR) {
     return (lhs.getSDR() == rhs.getSDR());
   }
-  return (std::memcmp(lhs.getBuffer(), rhs.getBuffer(),
-                      lhs.getCount() * BasicType::getSize(lhs.getType())) == 0);
+  if (lhs.getType() == NTA_BasicType_Str) {
+    const std::string *ptr1 = reinterpret_cast<const std::string *>(lhs.getBuffer());
+    const std::string *ptr2 = reinterpret_cast<const std::string *>(rhs.getBuffer());
+    for (size_t i = 0; i < lhs.getCount(); i++) {
+      if (ptr1[i] != ptr2[i])
+        return false;
+    }
+    return true;
+  }
+  return (std::memcmp(lhs.getBuffer(), rhs.getBuffer(), lhs.getCount() * BasicType::getSize(lhs.getType())) == 0);
 }
 
 template<typename T>
@@ -306,7 +327,7 @@ static bool compare_array_0_and_non0s_(const ArrayBase &a_side, const std::vecto
   size_t size = a_side.getCount();
   const void *a_ptr = a_side.getBuffer();
   const Byte *v_ptr = &v_side[0];
-  switch(ele_size) { 
+  switch (ele_size) {
   default:
   case 1: return compare_array_0_and_non0s_helper_(reinterpret_cast<const Byte*  >(a_ptr), v_ptr, size);
   case 2: return compare_array_0_and_non0s_helper_(reinterpret_cast<const UInt16*>(a_ptr), v_ptr, size);
@@ -355,10 +376,15 @@ std::string ArrayBase::toString() const {
       outStream << "[ SDR(0) nullptr ]";
     else
       outStream << "[ " << getSDR() << " ]";
-  }
-  else {
-    outStream << "[ " << BasicType::getName(elementType) << " " << numElements
-              << " ";
+  } else if (elementType == NTA_BasicType_Str) {
+    outStream << "[ Str(" << numElements << ") ";
+    const std::string *it = reinterpret_cast<const std::string *>(inbuf);
+    for (size_t i = 0; i < numElements; i++) {
+      outStream << "\"" << it[i] << "\" ";
+    }
+    outStream << "] ";
+  } else {
+    outStream << "[ " << BasicType::getName(elementType) << " " << numElements << " ";
 
     switch (elementType) {
     case NTA_BasicType_Byte:
@@ -401,8 +427,8 @@ std::string ArrayBase::toString() const {
 }
 
 std::ostream &operator<<(std::ostream &outStream, const ArrayBase &a) {
-	outStream << a.toString(); 
-	return outStream;
+  outStream << a.toString();
+  return outStream;
 }
 
 

@@ -23,65 +23,66 @@
 #ifndef NTA_LOG2_HPP
 #define NTA_LOG2_HPP
 
-#include <htm/utils/LogItem.hpp>
-#include <htm/utils/LoggingException.hpp>
+#include <iostream>
+#include <htm/types/Exception.hpp>
 
-#define NTA_DEBUG                                                             \
-  if (htm::LogItem::getLogLevel() < htm::LogLevel_Verbose) {                \
-  } else                                                                      \
-    htm::LogItem(__FILE__, __LINE__, htm::LogType_debug).stream()
+namespace htm {
+enum class LogLevel { LogLevel_None = 0, LogLevel_Minimal=1, LogLevel_Normal=2, LogLevel_Verbose=3 };
+// change this in your class to set log level using Network.setLogLevel(level);
+extern thread_local LogLevel NTA_LOG_LEVEL; 
 
-// Can be used in Loggable classes   
-//    level is one of (LogLevel_None, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose)
-#define NTA_LDEBUG(level)                                                      \
-  if (htm::LogItem::getLogLevel() < (level)) {                             \
-  } else                                                                       \
-    htm::LogItem(__FILE__, __LINE__, htm::LogType_debug).stream()
+//this code intentionally uses "if() dosomething" instead of "if() { dosomething }" 
+// as the macro expects another "<< "my clever message";
+// so it eventually becomes: `if() std::cout << "DEBUG:\t" << "users message";`
+//
+//Expected usage: 
+//<your class>:
+//Network::setLogLevel(LogLevel::LogLevel_Verbose);
+//NTA_WARN << "Hello World!" << std::endl; //shows
+//NTA_DEBUG << "more details how cool this is"; //not showing under "Normal" log level
+//NTA_ERR << "You'll always see this, HAHA!";
+//NTA_THROW << "crashing for a good cause";
+
+#define NTA_DEBUG                                                \
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Verbose)               \
+    std::cout << "DEBUG:\t" << Path::getBasename(__FILE__) << ":" << __LINE__ << ": " 
 
 // For informational messages that report status but do not indicate that
 // anything is wrong
 #define NTA_INFO                                                               \
-  if (htm::LogItem::getLogLevel() < htm::LogLevel_Normal) {                \
-  } else                                                                      \
-  htm::LogItem(__FILE__, __LINE__, htm::LogType_info).stream()
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal)                              \
+  std::cout << "INFO:\t" << Path::getBasename(__FILE__) << ":" << __LINE__ << ": "
 
 // For messages that indicate a recoverable error or something else that it may
 // be important for the end user to know about.
 #define NTA_WARN                                                               \
-  if (htm::LogItem::getLogLevel() < htm::LogLevel_Normal) {                \
-  } else                                                                      \
-  htm::LogItem(__FILE__, __LINE__, htm::LogType_warn).stream()
+  if (NTA_LOG_LEVEL >= LogLevel::LogLevel_Normal)                              \
+  std::cout << "WARN:\t" << Path::getBasename(__FILE__) << ":" << __LINE__ << ": "
 
 // To throw an exception and make sure the exception message is logged
 // appropriately
-#define NTA_THROW throw htm::LoggingException(__FILE__, __LINE__)
+#define NTA_THROW throw htm::Exception(__FILE__, __LINE__)
 
 // The difference between CHECK and ASSERT is that ASSERT is for
 // performance critical code and can be disabled in a release
 // build. Both throw an exception on error (if NTA_ASSERTIONS_ON is set).
 
 #define NTA_CHECK(condition)                                                   \
-  if (condition) {                                                             \
-  } else                                                                       \
+  if (not (condition) )                                                        \
     NTA_THROW << "CHECK FAILED: \"" << #condition << "\" "
 
 #ifdef NTA_ASSERTIONS_ON
 // With NTA_ASSERTIONS_ON, NTA_ASSERT macro throws exception if condition is false.
 // NTA_ASSERTIONS_ON should be set ON only in debug mode.
-#define NTA_ASSERT(condition)                                                  \
-  if (condition) {                                                             \
-  } else                                                                       \
-    NTA_THROW << "ASSERTION FAILED: \"" << #condition << "\" "
+#define NTA_ASSERT(condition) NTA_CHECK(condition)
 
 #else
 // Without NTA_ASSERTIONS_ON, NTA_ASSERT macro does nothing.
-// The second line (with LogItem) should never be executed, or even compiled, but we
-// need something that is syntactically compatible with NTA_ASSERT
+// The second line (with `if(false)`) should never be executed, or even compiled, but we
+// need something that is syntactically compatible with NTA_ASSERT << "msg";
 #define NTA_ASSERT(condition)                                                  \
-  if (1) {                                                                     \
-  } else                                                                       \
-    htm::LogItem(__FILE__, __LINE__, htm::LogType_debug).stream()
+  if (false) std::cerr << "This line should never happen"
 
 #endif // NTA_ASSERTIONS_ON
-
+}
 #endif // NTA_LOG2_HPP

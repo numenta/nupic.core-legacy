@@ -639,6 +639,8 @@ private:
 		     const SynapseIdx nDesiredNewSynapses,
 		     const vector<CellIdx> &prevWinnerCells);
 
+  void calculateAnomalyScore_(const SDR &activeColumns);
+
 protected:
   //all these could be const
   CellIdx numColumns_;

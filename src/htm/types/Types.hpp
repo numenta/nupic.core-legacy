@@ -229,6 +229,11 @@ typedef enum NTA_BasicType {
   NTA_BasicType_SDR,
 
   /**
+    * Represents a std::string object.
+    */
+  NTA_BasicType_Str,
+
+  /**
    * @note This is not an actual type, just a marker for validation purposes
    */
   NTA_BasicType_Last,

@@ -243,7 +243,9 @@ std::shared_ptr<Input> RegionImpl::getInput(const std::string &name) const {
 }
 
 std::shared_ptr<Output> RegionImpl::getOutput(const std::string &name) const {
-  return region_->getOutput(name);
+  auto out = region_->getOutput(name);
+  NTA_CHECK(out != nullptr) << "Requested output not found: " << name;
+  return out;
 }
 Dimensions RegionImpl::getInputDimensions(const std::string &name) const {
   return region_->getInputDimensions(name);

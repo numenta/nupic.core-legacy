@@ -22,7 +22,7 @@
 #include <htm/utils/Random.hpp>
 
 #include <htm/os/Env.hpp>
-#include <htm/utils/LoggingException.hpp>
+#include <htm/utils/Log.hpp>
 #include <htm/os/Timer.hpp>
 
 #include <fstream>
@@ -315,7 +315,7 @@ TEST(RandomTest, Sampling) {
 
   {
     // nChoices > nPopulation
-    EXPECT_THROW(r.sample<UInt>(population, 5), LoggingException) << "checking for exception from population too small";
+    EXPECT_THROW(r.sample<UInt>(population, 5), Exception) << "checking for exception from population too small";
   }
 }
 

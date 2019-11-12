@@ -84,7 +84,7 @@ TEST(TMRegionTest, testSpecAndParameters) {
   Network net;
 
   // Turn on runtime Debug logging.
- //if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+ //if (verbose)  NTA_LOG_LEVEL = LogLevel::LogLevel_Verbose;
 
   // create a TM region with default parameters
   std::set<std::string> excluded;
@@ -240,7 +240,17 @@ TEST(TMRegionTest, testLinking) {
   ASSERT_EQ(region3->getParameterUInt32("inputWidth"), (UInt32)dataWidth);
 
   VERBOSE << "Execute once." << std::endl;
+
+  // turn on trace...for one iteration
+  LogLevel prev;
+  VERBOSE << "Turning on Trace =========\n";
+  if (verbose) { prev = net.setLogLevel(LogLevel::LogLevel_Verbose); }
+
   net.run(1);
+
+  // turn off trace
+  if (verbose) { net.setLogLevel(prev); }
+  VERBOSE << "Turned off Trace =========\n";
 
   VERBOSE << "Checking data after first iteration..." << std::endl;
   VERBOSE << "  VectorFileSensor Output" << std::endl;
@@ -252,7 +262,7 @@ TEST(TMRegionTest, testLinking) {
   // check anomaly
   EXPECT_FLOAT_EQ(region3->getParameterReal32("anomaly"), 1.0f);
   const Real32 *anomalyBuffer = reinterpret_cast<const Real32*>(region3->getOutputData("anomaly").getBuffer());
-  EXPECT_FLOAT_EQ(anomalyBuffer[0], 0.0f); // Note: it is zero because no links are connected to this output.
+  EXPECT_FLOAT_EQ(anomalyBuffer[0], 1.0f);
 
 
   VERBOSE << "  SPRegion Output " << std::endl;

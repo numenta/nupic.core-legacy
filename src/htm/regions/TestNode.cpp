@@ -172,6 +172,10 @@ void TestNode::compute() {
   Array &inputArray = bottomUpIn_->getData();
   Real64* inputBuffer = (Real64*)inputArray.getBuffer();
   size_t count = inputArray.getCount();
+
+    // trace facility
+  NTA_DEBUG << "compute " << bottomUpIn_ << std::endl;
+
 	
   // See TestNode.hpp for description of the computation
 	
@@ -197,6 +201,10 @@ void TestNode::compute() {
 		  }
     }
   }
+
+  // trace facility
+  NTA_DEBUG << "compute " << bottomUpOut_ << "\n";
+
 
   iter_++;
 }

@@ -102,6 +102,9 @@ void ScalarSensor::compute()
 {
   SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
+
+  // trace facility
+  NTA_DEBUG << "compute " << getOutput("encoded") << std::endl;
 }
 
 ScalarSensor::~ScalarSensor() {}
