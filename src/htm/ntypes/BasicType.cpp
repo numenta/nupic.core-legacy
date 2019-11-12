@@ -16,6 +16,8 @@
  * --------------------------------------------------------------------- */
 
 #include <limits>
+#include <cerrno>
+#include <cstring> // std::strerror(errno)
 
 #include <htm/ntypes/BasicType.hpp>
 
@@ -33,7 +35,7 @@ bool BasicType::isValid(NTA_BasicType t) {
 const char *BasicType::getName(NTA_BasicType t) {
   static const char *names[] = {
       "Byte",   "Int16",  "UInt16", "Int32",  "UInt32", "Int64",
-      "UInt64", "Real32", "Real64", "Handle", "Bool", "SDR"
+      "UInt64", "Real32", "Real64", "Handle", "Bool", "SDR", "String"
   };
 
   if (!isValid(t))
@@ -140,14 +142,15 @@ template <> NTA_BasicType BasicType::getType<bool>() {
 template <> NTA_BasicType BasicType::getType<SDR>() {
   return NTA_BasicType_SDR;
 }
+template <> NTA_BasicType BasicType::getType<std::string>() { return NTA_BasicType_Str; }
 } // namespace htm
 
-// Return the size in bytes of a basic type
+// Return the size in bytes of a basic type (element of the array)
 size_t BasicType::getSize(NTA_BasicType t) {
   static size_t basicTypeSizes[] = {
       sizeof(Byte),   sizeof(Int16),  sizeof(UInt16), sizeof(Int32),
-      sizeof(UInt32), sizeof(Int64),  sizeof(UInt64), sizeof(Real32),
-      sizeof(Real64), sizeof(Handle), sizeof(bool),   sizeof(char)
+      sizeof(UInt32), sizeof(Int64),  sizeof(UInt64), sizeof(Real32), 
+      sizeof(Real64), sizeof(Handle), sizeof(bool),  sizeof(char), sizeof(std::string)
   };
 
   if (!isValid(t))
@@ -183,6 +186,8 @@ NTA_BasicType BasicType::parse(const std::string &s) {
     return NTA_BasicType_Bool;
   else if (s == std::string("SDR"))
     return NTA_BasicType_SDR;
+  else if (s == std::string("String") || s == std::string("std::string"))
+    return NTA_BasicType_Str;
   else if (s == std::string("Last"))
     return NTA_BasicType_Last;  // Means none-of-the-above.
   else
@@ -226,6 +231,47 @@ static void cpyIntoSDR(Byte *toPtr, const T *fromPtr, size_t count) {
   for(size_t i = 0u; i < count; i++)
     toPtr[i] = fromPtr[i] != zero; // 1 or 0
 }
+template <typename T> 
+static void cpyIntoStr(std::string *toPtr, const T *fromPtr, size_t count) {
+  for (size_t i = 0u; i < count; i++)
+    toPtr[i] = std::to_string(fromPtr[i]);
+}
+
+
+// Create a set of static copyFromStr() functions to convert from an array of strings to 
+// an array of type T.
+#define NTA_CONVERT_FROM_STR(T, I)                                                                        \
+static void cpyFromStr(T *toPtr, const std::string *fromPtr, size_t count) {                              \
+  errno = 0;                                                                                              \
+  char *end;                                                                                              \
+  for (size_t i = 0u; i < count; i++) {                                                                   \
+    toPtr[i] = (T)I;                                                                                        \
+    if (errno)  NTA_THROW << "In '" << fromPtr[i] << "' numeric conversion error: " << std::strerror(errno);\
+    if (*end != '\0') NTA_THROW << "In '" << fromPtr[i] << "' numeric conversion error: invalid char.";     \
+  }                                                                                                       \
+}
+NTA_CONVERT_FROM_STR(Byte, std::strtol(fromPtr[i].c_str(), &end, 0) );
+NTA_CONVERT_FROM_STR(int16_t, std::strtol(fromPtr[i].c_str(), &end, 0));
+NTA_CONVERT_FROM_STR(uint16_t, std::strtoul(fromPtr[i].c_str(), &end, 0));
+NTA_CONVERT_FROM_STR(int32_t, std::strtol(fromPtr[i].c_str(), &end, 0));
+NTA_CONVERT_FROM_STR(uint32_t, std::strtoul(fromPtr[i].c_str(), &end, 0));
+NTA_CONVERT_FROM_STR(int64_t, std::strtoll(fromPtr[i].c_str(), &end, 0));
+NTA_CONVERT_FROM_STR(uint64_t, std::strtoull(fromPtr[i].c_str(), &end, 0));
+NTA_CONVERT_FROM_STR(float, std::strtof(fromPtr[i].c_str(), &end));
+NTA_CONVERT_FROM_STR(double, std::strtod(fromPtr[i].c_str(), &end));
+static void cpyFromStr(bool *toPtr, const std::string *fromPtr, size_t count) {
+  for (size_t i = 0u; i < count; i++) {
+    std::string val = fromPtr[i];
+    std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+    if (val == "true" || val == "on" || val == "1")
+      toPtr[i] = true;
+    else if (val == "false" || val == "off" || val == "0")
+      toPtr[i] = false;
+    else NTA_THROW << "Invalid value for a boolean. " << val;
+  }
+}
+
+
 
 
 void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
@@ -270,6 +316,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_SDR:
         cpyIntoSDR((Byte*)ptr1, (Byte*)ptr2, count);
         break;
+      case NTA_BasicType_Str:
+        cpyIntoStr((std::string*)ptr1, (Byte*)ptr2, count);
+        break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
 	      break;
@@ -311,6 +360,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const Int16*>(ptr2), count);
         break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const Int16 *>(ptr2), count);
+        break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
 	      break;
@@ -351,6 +403,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
         break;
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const UInt16*>(ptr2), count);
+        break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const UInt16 *>(ptr2), count);
         break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
@@ -394,6 +449,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const Int32*>(ptr2), count);
         break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const Int32 *>(ptr2), count);
+        break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
 	      break;
@@ -433,6 +491,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
         break;
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const UInt32*>(ptr2), count);
+        break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const UInt32 *>(ptr2), count);
         break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
@@ -477,6 +538,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const Int64*>(ptr2), count);
         break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const Int64 *>(ptr2), count);
+        break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
 	      break;
@@ -517,6 +581,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
         break;
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const UInt64*>(ptr2), count);
+        break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const UInt64 *>(ptr2), count);
         break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
@@ -561,6 +628,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
         break;
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const Real32*>(ptr2), count);
+        break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const Real32 *>(ptr2), count);
         break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
@@ -608,6 +678,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const Real64*>(ptr2), count);
         break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const Real64 *>(ptr2), count);
+        break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
 	      break;
@@ -647,6 +720,9 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
         break;
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const bool*>(ptr2), count);
+        break;
+      case NTA_BasicType_Str:
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const bool *>(ptr2), count);
         break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
@@ -688,11 +764,58 @@ void BasicType::convertArray(void *ptr1, NTA_BasicType toType, const void *ptr2,
       case NTA_BasicType_SDR:
         cpyIntoSDR(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const Byte*>(ptr2), count);
         break;
+      case NTA_BasicType_Str:  // array of bytes in SDR becomes an array of strings.
+        cpyIntoStr(reinterpret_cast<std::string *>(ptr1), reinterpret_cast<const Byte*>(ptr2), count);
+        break;
       default:
         NTA_THROW << "Could not perform array type conversion.";
 	      break;
       }
       break;
+    case NTA_BasicType_Str:
+      switch (toType) {
+      case NTA_BasicType_Byte:
+        cpyFromStr(reinterpret_cast<Byte *>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_Int16:
+        cpyFromStr(reinterpret_cast<Int16 *>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_UInt16:
+        cpyFromStr(reinterpret_cast<UInt16 *>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_Int32:
+        cpyFromStr(reinterpret_cast<Int32 *>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_UInt32:
+        cpyFromStr(reinterpret_cast<UInt32 *>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_Int64:
+        cpyFromStr(reinterpret_cast<Int64 *>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_UInt64:
+        cpyFromStr(reinterpret_cast<UInt64 *>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_Real32:
+        cpyFromStr(reinterpret_cast<Real32*>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_Real64:
+        cpyFromStr(reinterpret_cast<Real64*>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_Bool:
+        cpyFromStr(reinterpret_cast<bool*>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_SDR:  // expecting an array of strings, each a string representation of a Byte.
+        cpyFromStr(reinterpret_cast<Byte*>(ptr1), reinterpret_cast<const std::string *>(ptr2), count);
+        break;
+      case NTA_BasicType_Str:
+        cpyarray<std::string, std::string>(ptr1, ptr2, count);
+        break;
+      default:
+        NTA_THROW << "Could not perform array type conversion.";
+        break;
+      }
+      break;
+
     default:
       break;
     }

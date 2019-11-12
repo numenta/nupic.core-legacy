@@ -159,6 +159,7 @@ namespace htm_ext
             .def("isReal64", [](const Array &self) { return self.getType() == NTA_BasicType_Real64; })
             .def("isBool",   [](const Array &self) { return self.getType() == NTA_BasicType_Bool; })
             .def("isSDR",    [](const Array &self) { return self.getType() == NTA_BasicType_SDR; })
+            .def("isStr",    [](const Array &self) { return self.getType() == NTA_BasicType_Str; })
             .def(py::pickle(
                 [](const Array& self) {
                     std::stringstream ss;
