@@ -120,6 +120,20 @@ TEST(ConnectionsTest, testCreateSynapse) {
   SynapseData synapseData2 = connections.dataForSynapse(synapses[1]);
   ASSERT_EQ(synapseData2.presynapticCell, 150ul);
   ASSERT_NEAR((Permanence)0.48, synapseData2.permanence, htm::Epsilon);
+  //TODO add tests for failures
+}
+
+
+TEST(ConnectionsTest, testCreateSynapseAvoidDuplicitPresynapticConnections) {
+  Connections connections(1024);
+  UInt32 cell = 10;
+  Segment segment = connections.createSegment(cell);
+
+  connections.createSynapse(segment, 50, 0.34f);
+  connections.createSynapse(segment, 51, 0.34f);
+  const size_t numSynapses = connections.synapsesForSegment(segment).size(); //created 2 synapses above
+  connections.createSynapse(segment, 50, 0.48f); //attempt to create already existing synapse (to presyn cell "50") -> skips as no duplication should happen
+  ASSERT_EQ(connections.synapsesForSegment(segment).size(), numSynapses) << "Duplicit synapses should not be created!";
 }
 
 /**
@@ -644,9 +658,9 @@ TEST(ConnectionsTest, testBumpSegment) {
 }
 
 /**
- * Test the mapSegmentsToCells method.
+ * Test the mapping semgnets to cells by cellForSegment() method.
  */
-TEST(ConnectionsTest, testMapSegmentsToCells) {
+TEST(ConnectionsTest, testCellForSegment) {
   Connections connections(1024);
 
   const Segment segment1 = connections.createSegment(42);
@@ -654,12 +668,12 @@ TEST(ConnectionsTest, testMapSegmentsToCells) {
   const Segment segment3 = connections.createSegment(43);
 
   const vector<Segment> segments = {segment1, segment2, segment3, segment1};
-  vector<CellIdx> cells(segments.size());
-
-  connections.mapSegmentsToCells(
-      segments.data(), segments.data() + segments.size(), cells.data());
-
   const vector<CellIdx> expected = {42, 42, 43, 42};
+  vector<CellIdx> cells;
+
+  for(auto seg : segments) {
+    cells.push_back(connections.cellForSegment(seg));
+  }
   ASSERT_EQ(expected, cells);
 }
 
