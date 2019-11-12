@@ -518,7 +518,6 @@ TEST_F(ArrayTest, testArrayTyping) {
       continue;
     }
     NTA_BasicType type = testCase->second.dataType;
-    size_t count = static_cast<size_t>(testCase->second.allocationSize);
 
     Array a(type);
 
@@ -548,7 +547,6 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
     }
     NTA_BasicType type = testCase->second.dataType;
     size_t count = static_cast<size_t>(testCase->second.allocationSize);
-    size_t bufsize = testCase->second.dataTypeSize * count;
 
 
     VERBOSE << "  Iteration " << testCase->first << std::endl;
@@ -645,12 +643,11 @@ TEST_F(ArrayTest, testArrayBaseSerialization) {
     }
     NTA_BasicType type = testCase->second.dataType;
     size_t count = static_cast<size_t>(testCase->second.allocationSize);
-    size_t bufsize = testCase->second.dataTypeSize * count;
 
     //VERBOSE << "  Iteration " << testCase->first << " element size: " << bufsize << std::endl;
 
     // constructors;  Allocate and populate an array using the test data.
-    Array a(testCase->second.dataType);
+    Array a(type);
     populateArray(testdata, count, a);
 
     //VERBOSE << "starting with a = " << a << std::endl;
