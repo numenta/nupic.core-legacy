@@ -2,7 +2,7 @@
  * HTM Community Edition of NuPIC
  * Copyright (C) 2019, Numenta, Inc.
  *
- * Author: David Keeney, 2019   dkeeney@gmail.com
+ * Author: David Keeney, Nov. 2019   dkeeney@gmail.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as

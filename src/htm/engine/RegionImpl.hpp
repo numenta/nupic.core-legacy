@@ -301,9 +301,6 @@ public:
   static Spec *parseSpec(const std::string &yaml);
 
 protected:
-  /*
-   * -------- Methods and data provided by the base class for use by subclasses --------
-   */
   // A pointer to the Region object. This is the portion visible
 	// to the applications.  This class and it's subclasses are the
 	// hidden implementations behind the Region class.
@@ -313,7 +310,7 @@ protected:
 	//       This pointer must NOT be deleted.
   Region* region_;
 
-  // A copy of the spec.
+  // A local copy of the spec.
   std::shared_ptr<Spec> spec_;
 
   // Region level dimensions.  This is set by the parameter "{dim: [2,3]}"

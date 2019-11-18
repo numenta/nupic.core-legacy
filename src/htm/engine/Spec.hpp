@@ -33,7 +33,7 @@ namespace htm {
 class InputSpec {
 public:
   InputSpec(std::string description = "", 
-            NTA_BasicType dataType = NTA_BasicType_Real32,
+            NTA_BasicType dataType = NTA_BasicType_SDR,
             UInt32 count = 0u,
             bool required = false,
             bool regionLevel = true,
@@ -63,7 +63,7 @@ public:
 class OutputSpec {
 public:
   OutputSpec(std::string description = "", 
-             NTA_BasicType dataType = NTA_BasicType_Real64,
+             NTA_BasicType dataType = NTA_BasicType_SDR,
              size_t count = 0u,              // set size of buffer, 0 means unknown size.
              bool regionLevel = true,
              bool isDefaultOutput = false);

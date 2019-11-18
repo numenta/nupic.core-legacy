@@ -26,8 +26,6 @@
 
 namespace htm {
 
-
-
 RegionImpl::RegionImpl(Region *region) : region_(region) {}
 
 RegionImpl::~RegionImpl() {}
@@ -239,6 +237,7 @@ std::string RegionImpl::executeCommand(const std::vector<std::string> &args,Int6
 }
 
 // Provide data access for subclasses
+
 std::shared_ptr<Input> RegionImpl::getInput(const std::string &name) const {
   return region_->getInput(name);
 }
@@ -292,5 +291,7 @@ ValueMap RegionImpl::ValidateParameters(const ValueMap &vm, Spec* ns) {
   return new_vm;
 
 }
+
+
 
 } // namespace htm

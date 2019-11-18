@@ -50,7 +50,7 @@
 #include "RegionTestUtilities.hpp"
 
 #define VERBOSE if(verbose)std::cerr << "[          ] "
-static bool verbose = true;  // turn this on to print extra stuff for debugging the test.
+static bool verbose = false;  // turn this on to print extra stuff for debugging the test.
 
 const UInt EXPECTED_SPEC_COUNT =  8u;  // The number of parameters expected in the RDSERegion Spec
 
