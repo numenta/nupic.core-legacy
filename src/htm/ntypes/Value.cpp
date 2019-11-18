@@ -91,7 +91,7 @@ Value &Value::parse(const std::string &yaml_string) {
     int status;
     try {
       status = yaml_parser_parse(&parser, &event);
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
       std::string err = "Parse Error, Exception in yaml parser: " + std::string(e.what());
       yaml_parser_delete(&parser);
       NTA_THROW << err;
