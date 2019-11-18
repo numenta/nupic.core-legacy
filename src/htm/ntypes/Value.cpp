@@ -60,6 +60,11 @@ using namespace htm;
 #define YAML_DECLARE_STATIC
 #include <yaml.h>
 
+// Set verbose to true if you need to debug your yaml string.
+// somethings this is the only way to unscriable a syntax problem.
+#define VERBOSE  if (verbose) std::cerr << "[          ] "
+static bool verbose = false; 
+
 // Parse YAML or JSON string document into the tree root.
 Value &Value::parse(const std::string &yaml_string) {
   std::stack<Value *> stack; // top of stack is parent.
@@ -76,21 +81,36 @@ Value &Value::parse(const std::string &yaml_string) {
   yaml_event_t event;
   enum state_t { start_state = 0, seq_state, map_state, map_key };
   state_t  state = state_t::start_state;
-  int event_type = 0;
+  yaml_event_type_e event_type = YAML_NO_EVENT;
   std::string key;
 
   yaml_parser_initialize(&parser);
   yaml_parser_set_input_string(&parser, (const unsigned char *)yaml_string.c_str(), yaml_string.size());
 
   do {
-    if (!yaml_parser_parse(&parser, &event)) {
+    int status;
+    try {
+      status = yaml_parser_parse(&parser, &event);
+    } catch (std::exception e) {
+      std::string err = "Parse Error, Exception in yaml parser: " + std::string(e.what());
+      yaml_parser_delete(&parser);
+      NTA_THROW << err;
+    } catch (...) {
+      std::string err = "Parse Error, Unknown Exception in yaml parser.";
+      yaml_parser_delete(&parser);
+      NTA_THROW << err;
+    }
+
+    if (!status) {
       std::string err = "Parse Error " + std::to_string(parser.error) + ": " + std::string(parser.problem) +
                         ", offset: " + std::to_string(parser.problem_offset) +
                         ", context: " + std::string(parser.context);
       yaml_parser_delete(&parser);
+      VERBOSE << err << std::endl;
       NTA_THROW << err;
     }
     event_type = event.type;
+    VERBOSE << "Event: " << event_type << std::endl;
     try {
       switch (event_type) {
       case YAML_NO_EVENT: break;
@@ -133,17 +153,21 @@ Value &Value::parse(const std::string &yaml_string) {
         switch (state) {
         case map_state:
           key = val;
+          VERBOSE << "key: " << key << std::endl;
           state = map_key;
           break;
         case map_key:
+          VERBOSE << "map Scalar value: " << val << std::endl;
           (*node)[key] = val;
           state = map_state;
           break;
         case seq_state:
+          VERBOSE << "Seq Scalar value: " << val << std::endl;
           (*node)[node->size()] = val;
           state = seq_state;
           break;
         default:
+          VERBOSE << "Scalar value: " << val << std::endl;
           (*node) = val;
           break;
         }
@@ -151,14 +175,21 @@ Value &Value::parse(const std::string &yaml_string) {
       default:
         break;
       }
-    } catch (Exception &e) {
+    } catch (const Exception &e) {
       yaml_event_delete(&event);
       yaml_parser_delete(&parser);
       NTA_THROW << "Parser error " << e.what();
+    } catch (...) {
+      yaml_event_delete(&event);
+      yaml_parser_delete(&parser);
+      NTA_THROW << "Parser error: unknown exception. ";
     }
+
     yaml_event_delete(&event);
   } while (event_type != YAML_STREAM_END_EVENT);
   yaml_parser_delete(&parser);
+
+  NTA_CHECK(stack.empty()) << "Parsing syntax error. check your brackets.";
 
   this->cleanup();
   return *this;
@@ -575,9 +606,9 @@ bool Value::asBool() const {
     NTA_THROW << "value not found. " << core_->scalar_;
   std::string val = str();
   transform(val.begin(), val.end(), val.begin(), ::tolower);
-  if (val == "true" || val == "on" || val == "1")
+  if (val == "true" || val == "on" || val == "1" || val == "yes")
     return true;
-  if (val == "false" || val == "off" || val == "0")
+  if (val == "false" || val == "off" || val == "0" || val == "no")
     return false;
   NTA_THROW << "Invalid value for a boolean. " << val;
 }

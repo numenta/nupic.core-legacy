@@ -141,7 +141,9 @@ set(os_files
 
 set(regions_files
     htm/regions/ScalarSensor.cpp
-    htm/regions/ScalarSensor.hpp
+    htm/regions/ScalarSensor.hpp    
+    htm/regions/RDSERegion.cpp
+    htm/regions/RDSERegion.hpp
     htm/regions/SPRegion.cpp
     htm/regions/SPRegion.hpp
     htm/regions/TestNode.cpp

@@ -28,12 +28,13 @@ Definition of Spec data structures
 #include <string>
 
 namespace htm {
+
+
 class InputSpec {
 public:
-  InputSpec() {}
-  InputSpec(std::string description,
-            NTA_BasicType dataType,
-            UInt32 count = 0,
+  InputSpec(std::string description = "", 
+            NTA_BasicType dataType = NTA_BasicType_Real32,
+            UInt32 count = 0u,
             bool required = false,
             bool regionLevel = true,
             bool isDefaultInput = false);
@@ -43,7 +44,7 @@ public:
   }
   std::string description;   // description of input
 	
-  NTA_BasicType dataType;    // declare type of input
+  NTA_BasicType dataType; // declare type of input
 
   // width of buffer if fixed. 0 means variable.
   // If non-zero positive value it means this region was developed
@@ -61,10 +62,9 @@ public:
 
 class OutputSpec {
 public:
-  OutputSpec() {}
-  OutputSpec(std::string description,
-             const NTA_BasicType dataType,
-             size_t count = 0,              // set size of buffer, 0 means unknown size.
+  OutputSpec(std::string description = "", 
+             NTA_BasicType dataType = NTA_BasicType_Real64,
+             size_t count = 0u,              // set size of buffer, 0 means unknown size.
              bool regionLevel = true,
              bool isDefaultOutput = false);
     bool operator==(const OutputSpec &other) const;
@@ -73,7 +73,7 @@ public:
   }
   std::string description;   // description of output
 	
-	NTA_BasicType dataType;    // The type of the output buffer.
+	NTA_BasicType dataType; // The type of the output buffer.
 
   size_t count;              // Size, in number of elements. If size is fixed.  
 	                           // If non-zero value it means this region 
@@ -89,8 +89,7 @@ public:
 
 class CommandSpec {
 public:
-  CommandSpec() {}
-  CommandSpec(std::string description);
+  CommandSpec(std::string description = "");
   bool operator==(const CommandSpec &other) const;
   inline bool operator!=(const CommandSpec &other) const {
     return !operator==(other);
@@ -102,21 +101,22 @@ class ParameterSpec {
 public:
   typedef enum { CreateAccess, ReadOnlyAccess, ReadWriteAccess } AccessMode;
 
-  ParameterSpec() {}
   /**
    * @param defaultValue -- a JSON-encoded value
    */
-  ParameterSpec(std::string description, NTA_BasicType dataType, size_t count,
-                std::string constraints, std::string defaultValue,
-                AccessMode accessMode);
+  ParameterSpec(std::string description = "", 
+                NTA_BasicType dataType = NTA_BasicType_Real64, 
+                size_t count = 1u,
+                std::string constraints = "", 
+                std::string defaultValue = "0", 
+                AccessMode accessMode = AccessMode::CreateAccess);
   bool operator==(const ParameterSpec &other) const;
   inline bool operator!=(const ParameterSpec &other) const {
     return !operator==(other);
   }
   std::string description;
 
-  // [open: current basic types are Byte/{U}Int16/32/64, Real32/64. Is
-  // this the right list? Should we have std::string, jsonstd::string?]
+  // current basic types are string, Byte, {U}Int16/32/64, Real32/64, Bool. 
   NTA_BasicType dataType;
   // 1 = scalar; > 1 = array o fixed sized; 0 = array of unknown size
   // TODO: should be size_t? Serialization issues?
@@ -139,6 +139,9 @@ public:
   // Such regions always have dimension [1]
   bool singleNodeOnly;
 
+  // Region type name
+  std::string name;
+
   // Description of the node as a whole
   std::string description;
 
@@ -156,11 +159,17 @@ public:
 
   // a value that applys to the count field in inputs, outputs, parameters.
   // It means that the field is an array and its size is not fixed.
-  static const int VARIABLE = 0; 
+  static const size_t VARIABLE = 0u;
 
   // a value that applys to the count field in inputs, outputs, parameters.
   // It means that the field not an array and has a single scaler value.
-  static const int SCALER = 1; 
+  static const size_t SCALER = 1u;
+
+
+  // An alternative format.  Parses a Yaml or JSON format string
+  // into a Spec structure.
+  void parseSpec(const std::string &yaml);
+
 
 };
 

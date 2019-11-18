@@ -57,7 +57,8 @@ void RandomDistributedScalarEncoder::initialize( const RDSE_Parameters &paramete
   NTA_CHECK( num_resolution_args == 1u )
       << "Too many arguments, choose only one of: 'radius', 'resolution', 'category'.";
 
-  args_ = parameters;
+  if (&args_ != &parameters)
+    args_ = parameters;
   // Finish filling in all of parameters.
 
   // Determine number of activeBits.

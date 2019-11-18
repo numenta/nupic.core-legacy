@@ -23,6 +23,7 @@
 #define NTA_EXCEPTION_HPP
 
 #include <htm/types/Types.hpp>
+#include <htm/os/Path.hpp>
 
 #include <stdexcept>
 #include <string>
@@ -52,7 +53,7 @@ namespace htm {
  *  and __LINE__ for you.
  *
  */
-class Exception : public std::runtime_error { //TODO rename to NTAException to be less confusing?
+class Exception : public std::runtime_error { 
 public:
   /**
    * Constructor
@@ -67,16 +68,16 @@ public:
    *
    * @param message [const std::string &] the description of exception
    */
-  Exception(std::string filename, 
-            UInt32 lineno, 
-	    std::string message = "",
-            std::string stacktrace = "")
+  Exception(std::string filename="",  UInt32 lineno=0,  std::string message = "", std::string stacktrace = "")
       : std::runtime_error(""), filename_(std::move(filename)), lineno_(lineno),
-        message_(std::move(message)), stackTrace_(std::move(stacktrace)),ss_("") {}
+        message_(std::move(message)), stackTrace_(std::move(stacktrace))  {}
 
-  Exception(const Exception& copy):
-    std::runtime_error("")	{
-    Exception(filename_, lineno_, copy.getMessage(), stackTrace_);
+
+  Exception(const Exception &copy) : std::runtime_error("") {
+    filename_ = copy.filename_;
+    lineno_ = copy.lineno_;
+    message_ = copy.getMessage();
+    stackTrace_ = copy.stackTrace_;
   }
     
 
@@ -103,7 +104,11 @@ public:
    * @retval [const Byte *] the exception message
    */
   virtual const char *what() const noexcept override {
-      return getMessage();
+    try {
+      what_ = "Exception: " + Path::getBasename(filename_) + "(" + std::to_string(lineno_) + ") message: " + message_;
+    } catch (...) {
+    }
+    return what_.c_str();
   }
 
   /**
@@ -158,6 +163,8 @@ protected:
   UInt32 lineno_;
   mutable std::string message_; //mutable bcs modified in getMessage which is used in what() but that needs be const
   std::string stackTrace_;
+  mutable std::string what_;
+
 private:
   mutable std::stringstream ss_;
 

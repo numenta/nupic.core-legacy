@@ -21,6 +21,7 @@
 
 #include <gtest/gtest.h>
 #include <htm/types/Exception.hpp>
+#include <htm/utils/Log.hpp>
 
 namespace testing {
     
@@ -44,5 +45,15 @@ TEST(ExceptionTest, Basic) {
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
     ASSERT_EQ(std::string(e.getStackTrace()), std::string("TB"));
   }
+
 }
+
+TEST(ExceptionTest, Argument_Streaming)
+  try {
+  NTA_THROW << "This msg";
+} catch (const Exception &e) {
+  EXPECT_STREQ(e.getMessage(), "This msg");
+  EXPECT_STREQ(e.what(), "Exception: ExceptionTest.cpp(52) message: This msg");
 }
+
+} // namespace testing
