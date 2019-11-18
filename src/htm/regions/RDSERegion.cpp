@@ -63,7 +63,6 @@ RDSERegion::RDSERegion(const ValueMap &par, Region *region) : RegionImpl(region)
   ValueMap params = ValidateParameters(par, spec_.get());
     
   RDSE_Parameters args;
-  std::memset(&args, 0, sizeof(args)); // structure compares require being cleared first.
   args.size =       params.getScalarT<UInt32>("size");
   args.activeBits = params.getScalarT<UInt32>("activeBits");
   args.sparsity =   params.getScalarT<Real32>("sparsity");
@@ -134,7 +133,19 @@ bool RDSERegion::getParameterBool(const std::string &name, Int64 index) {
 
 bool RDSERegion::operator==(const RDSERegion &other) const {
   if (other.getType() != "RDSERegion") return false;
-  if (memcmp(&encoder_->parameters, &other.encoder_->parameters, sizeof(RDSE_Parameters)))
+  if (encoder_->parameters.size != other.encoder_->parameters.size) 
+    return false;
+  if (encoder_->parameters.activeBits != other.encoder_->parameters.activeBits)
+    return false;
+  if (encoder_->parameters.sparsity != other.encoder_->parameters.sparsity)
+    return false;
+  if (encoder_->parameters.radius != other.encoder_->parameters.radius)
+    return false;
+  if (encoder_->parameters.resolution != other.encoder_->parameters.resolution)
+    return false;
+  if (encoder_->parameters.category != other.encoder_->parameters.category)
+    return false;
+  if (encoder_->parameters.seed != other.encoder_->parameters.seed)
     return false;
   if (sensedValue_ != other.sensedValue_) return false;
 
