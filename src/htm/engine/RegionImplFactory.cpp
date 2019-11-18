@@ -33,6 +33,7 @@
 // Built-in Region implementations
 #include <htm/regions/TestNode.hpp>
 #include <htm/regions/ScalarSensor.hpp>
+#include <htm/regions/RDSERegion.hpp>
 #include <htm/regions/VectorFileEffector.hpp>
 #include <htm/regions/VectorFileSensor.hpp>
 #include <htm/regions/SPRegion.hpp>
@@ -87,11 +88,12 @@ RegionImplFactory &RegionImplFactory::getInstance() {
     // Create internal C++ regions
 
 	  instance.addRegionType("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
+    instance.addRegionType("RDSERegion",         new RegisteredRegionImplCpp<RDSERegion>());
     instance.addRegionType("TestNode",           new RegisteredRegionImplCpp<TestNode>());
     instance.addRegionType("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
     instance.addRegionType("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
     instance.addRegionType("SPRegion",           new RegisteredRegionImplCpp<SPRegion>());
-    instance.addRegionType("TMRegion",            new RegisteredRegionImplCpp<TMRegion>());
+    instance.addRegionType("TMRegion",           new RegisteredRegionImplCpp<TMRegion>());
   }
 
   return instance;
