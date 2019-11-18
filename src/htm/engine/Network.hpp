@@ -67,7 +67,7 @@ public:
   /**
    * Cannot copy or assign a Network object. But can be moved.
    */
-  Network(Network&&);  // move is allowed
+  Network(Network &&) noexcept; // move is allowed
   Network(const Network&) = delete;
   void operator=(const Network&) = delete;
 
@@ -116,24 +116,28 @@ public:
   template<class Archive>
   void save_ar(Archive& ar) const {
     const std::vector<std::shared_ptr<Link>> links = getLinks();
+    std::string phases = phasesToString();
     std::string name = "Network";
     ar(cereal::make_nvp("name", name));
     ar(cereal::make_nvp("iteration", iteration_));
     ar(cereal::make_nvp("Regions", regions_));
     ar(cereal::make_nvp("links", links));
+    ar(cereal::make_nvp("phases", phases));
   }
   
   // FOR Cereal Deserialization
   template<class Archive>
   void load_ar(Archive& ar) {
     std::vector<std::shared_ptr<Link>> links;
-    std::string name;
+    std::string name, phases;
     ar(cereal::make_nvp("name", name));  // ignore value
     ar(cereal::make_nvp("iteration", iteration_));
     ar(cereal::make_nvp("Regions", regions_));
     ar(cereal::make_nvp("links", links));
+    ar(cereal::make_nvp("phases", phases));
 
     post_load(links);
+    phasesFromString(phases);
   }
 
   /**
@@ -371,12 +375,14 @@ public:
    */
   void resetProfiling();
 	
-	/**
-	 * Set one of the debug levels: LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose
+  /**
+   * Set one of the debug levels: LogLevel_None = 0, LogLevel_Minimal, LogLevel_Normal, LogLevel_Verbose
    */
-	void setLogLevel(LogLevel level) {
-	    LogItem::setLogLevel(level);
-	}
+  static LogLevel setLogLevel(LogLevel level) {
+    LogLevel prev = NTA_LOG_LEVEL;
+    NTA_LOG_LEVEL = level;
+    return prev;
+  }
 
 
   /**
@@ -439,6 +445,8 @@ private:
   // information, we set enabled phases to min/max for
   // the network
   void resetEnabledPhases_();
+  std::string phasesToString() const;
+  void phasesFromString(const std::string& phaseString);
 
   bool initialized_;
 	

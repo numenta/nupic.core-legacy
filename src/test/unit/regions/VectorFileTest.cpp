@@ -49,7 +49,6 @@
 #include <htm/os/Timer.hpp>
 #include <htm/os/Directory.hpp>
 #include <htm/regions/SPRegion.hpp>
-#include <htm/utils/LogItem.hpp>
 
 
 #include <string>
@@ -184,9 +183,9 @@ namespace testing
     net.initialize();
 
     VERBOSE << "Execute once." << std::endl;
-    //LogItem::setLogLevel(LogLevel_Verbose);
+    //NTA_LOG_LEVEL = LogLevel::LogLevel_Verbose;
     net.run(1);
-    //LogItem::setLogLevel(LogLevel_None);
+    //NTA_LOG_LEVEL = LogLevel::LogLevel_None;
 
 	  VERBOSE << "Checking data after first iteration..." << std::endl;
     EXPECT_EQ(region1->getParameterInt32("position"), 0);

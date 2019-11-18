@@ -158,4 +158,9 @@ void RegionImplFactory::cleanup() {
   instance.regionSpecMap.clear();
 }
 
+// definitions for our class variables.
+std::map<const std::string, std::shared_ptr<RegisteredRegionImpl> > RegionImplFactory::regionTypeMap;
+std::map<const std::string, std::shared_ptr<Spec> > RegionImplFactory::regionSpecMap;
+
+
 } // namespace htm

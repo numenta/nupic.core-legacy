@@ -1195,7 +1195,7 @@ TEST(SpatialPoolerTest, testValidateGlobalInhibitionParameters) {
   SDR out1( {sp.getNumColumns()} );
   //throws
   EXPECT_ANY_THROW(sp.setLocalAreaDensity(0.02f));
-//  EXPECT_THROW(sp.compute(input, false, out1), htm::LoggingException);
+//  EXPECT_THROW(sp.compute(input, false, out1), htm::Exception);
   //good parameter
   EXPECT_NO_THROW(sp.setLocalAreaDensity(0.1f));
   EXPECT_NO_THROW(sp.compute(input, false, out1));

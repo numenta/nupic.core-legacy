@@ -185,45 +185,26 @@ void TemporalMemory::growSynapses_(
 			 const Segment& segment,
                          const SynapseIdx nDesiredNewSynapses,
                          const vector<CellIdx> &prevWinnerCells) {
-  // It's possible to optimize this, swapping candidates to the end as
-  // they're used. But this is awkward to mimic in other
-  // implementations, especially because it requires iterating over
-  // the existing synapses in a particular order.
-
+  
   vector<CellIdx> candidates(prevWinnerCells.begin(), prevWinnerCells.end());
   NTA_ASSERT(std::is_sorted(candidates.begin(), candidates.end()));
 
-  // Skip cells that are already synapsed on by this segment
-  // Biological motivation (?):
-  // There are structural constraints on the shapes of axons & synapses 
-  // which prevent a large number duplicate of connections.
-  //
-  // It's important to prevent cells from growing duplicate synapses onto a segment, 
-  // because otherwise a strong input would be sampled many times and grow many synapses.
-  // That would give such input a stronger connection. 
-  // Synapses are supposed to have binary effects (0 or 1) but duplicate synapses give 
-  // them (synapses 0/1) varying levels of strength.
-  for (const Synapse& synapse : connections.synapsesForSegment(segment)) {
-    const CellIdx presynapticCell = connections.dataForSynapse(synapse).presynapticCell;
-    const auto already = std::lower_bound(candidates.cbegin(), candidates.cend(), presynapticCell);
-    if (already != candidates.cend() && *already == presynapticCell) {
-      candidates.erase(already);
-    }
-  }
-
+  //figure the number of new synapses to grow
   const size_t nActual = std::min(static_cast<size_t>(nDesiredNewSynapses), candidates.size());
-
-  // Check if we're going to surpass the maximum number of synapses.
+  // ..Check if we're going to surpass the maximum number of synapses.
   Int overrun = static_cast<Int>(connections.numSynapses(segment) + nActual - maxSynapsesPerSegment_);
   if (overrun > 0) {
     connections_.destroyMinPermanenceSynapses(segment, static_cast<Int>(overrun), prevWinnerCells);
   }
-
-  // Recalculate in case we weren't able to destroy as many synapses as needed.
+  // ..Recalculate in case we weren't able to destroy as many synapses as needed.
   const size_t nActualWithMax = std::min(nActual, static_cast<size_t>(maxSynapsesPerSegment_) - connections.numSynapses(segment));
 
   // Pick nActual cells randomly.
-  for (const auto syn : rng_.sample(candidates, static_cast<UInt>(nActualWithMax))) {
+  rng_.shuffle(candidates.begin(), candidates.end());
+  const size_t nDesired = connections.numSynapses(segment) + nActualWithMax; //num synapses on seg after this function (+-), see #COND
+  for (const auto syn : candidates) {
+    // #COND: this loop finishes two folds: a) we ran out of candidates (above), b) we grew the desired number of new synapses (below)
+    if(connections.numSynapses(segment) == nDesired) break;
     connections_.createSynapse(segment, syn, initialPermanence_); //TODO createSynapse consider creating a vector of new synapses at once?
   }
 }
@@ -488,43 +469,49 @@ void TemporalMemory::compute(const SDR &activeColumns,
 {
   activateDendrites(learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
 
+  calculateAnomalyScore_(activeColumns);
+
+  activateCells(activeColumns, learn);
+}
+
+void TemporalMemory::calculateAnomalyScore_(const SDR &activeColumns){
+
   // Update Anomaly Metric.  The anomaly is the percent of active columns that
   // were not predicted. 
   // Must be computed here, between `activateDendrites()` and `activateCells()`.
   switch(tmAnomaly_.mode_) {
 
-    case ANMode::DISABLED: {
-      tmAnomaly_.anomaly_ = 0.5f; 
+	case ANMode::DISABLED: {
+	  tmAnomaly_.anomaly_ = 0.5f;
 			   } break;
 
-    case ANMode::RAW: {
-      tmAnomaly_.anomaly_ = computeRawAnomalyScore(
-                             activeColumns,
-                             cellsToColumns( getPredictiveCells() ));
-		      } break;
+	case ANMode::RAW: {
+	  tmAnomaly_.anomaly_ = computeRawAnomalyScore(
+							 activeColumns,
+							 cellsToColumns( getPredictiveCells() ));
+			  } break;
 
-    case ANMode::LIKELIHOOD: {
-      const Real raw = computeRawAnomalyScore(
-                         activeColumns,
-                         cellsToColumns( getPredictiveCells() ));
-      tmAnomaly_.anomaly_ = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
-			     } break;
+	case ANMode::LIKELIHOOD: {
+	  const Real raw = computeRawAnomalyScore(
+						 activeColumns,
+						 cellsToColumns( getPredictiveCells() ));
+	  tmAnomaly_.anomaly_ = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
+				 } break;
 
-    case ANMode::LOGLIKELIHOOD: {
-      const Real raw = computeRawAnomalyScore(
-                         activeColumns,
-                         cellsToColumns( getPredictiveCells() ));
-      const Real like = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
-      const Real log  = tmAnomaly_.anomalyLikelihood_.computeLogLikelihood(like);
-      tmAnomaly_.anomaly_ = log;
+	case ANMode::LOGLIKELIHOOD: {
+	  const Real raw = computeRawAnomalyScore(
+						 activeColumns,
+						 cellsToColumns( getPredictiveCells() ));
+	  const Real like = tmAnomaly_.anomalyLikelihood_.anomalyProbability(raw);
+	  const Real log  = tmAnomaly_.anomalyLikelihood_.computeLogLikelihood(like);
+	  tmAnomaly_.anomaly_ = log;
 				} break;
   // TODO: Update mean & standard deviation of anomaly here.
   };
   NTA_ASSERT(tmAnomaly_.anomaly_ >= 0.0f and tmAnomaly_.anomaly_ <= 1.0f) << "TM.anomaly is out-of-bounds!";
 
-  activateCells(activeColumns, learn);
-}
 
+}
 
 void TemporalMemory::compute(const SDR &activeColumns, const bool learn) {
   SDR externalPredictiveInputsActive({ externalPredictiveInputs_ });

@@ -24,9 +24,12 @@ import numpy
 import collections
 
 RealNumpyDType = numpy.float32
-from abc import ABCMeta, abstractmethod
-
-class DictReadOnlyWrapper(collections.Mapping):
+if sys.version > '3':                                                           
+    from abc import ABC,abstractmethod       
+    # see http://www.programmersought.com/article/7351237937/                               
+else:                                                                           
+    from abc import ABCMeta, abstractmethod 
+class DictReadOnlyWrapper(collections.abc.Mapping):
   """
   Provides read-only access to a dict. When dict items are mutable, they can
   still be mutated in-place, but dict items can't be reassigned.
@@ -44,10 +47,10 @@ class DictReadOnlyWrapper(collections.Mapping):
   def __getitem__(self, key):
     return self._d[key]
 
-if sys.version_info[0] >= 3:
+if sys.version > '3':
   # Compile the metaclass at runtime because it's invalid python2 syntax.
   exec("""
-class _PyRegionMeta(object, metaclass=ABCMeta):
+class _PyRegionMeta(object):
   pass
 """)
 else:

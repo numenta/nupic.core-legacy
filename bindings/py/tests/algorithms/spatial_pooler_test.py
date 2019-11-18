@@ -186,7 +186,14 @@ class SpatialPoolerTest(unittest.TestCase):
     sp2 = pickle.loads(pickledSp)
     self.assertEqual(str(sp), str(sp2),  "Simple SpatialPooler pickle/unpickle failed.")
     
-    
+    # Test unpickled functionality
+    sp.compute( inputs, False, active )
+    result =  np.array(active.sparse).tolist()
+
+    sp2.compute( inputs, False, active )
+    result2 = np.array(active.sparse).tolist()
+    self.assertEqual(result, result2, "Simple SpatialPooler pickle/unpickle failed functional test.")
+            
     # or using File I/O
     f = tempfile.TemporaryFile()  # simulates opening a file ('wb')
     pickle.dump(sp,f, proto)

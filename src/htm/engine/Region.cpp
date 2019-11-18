@@ -56,6 +56,11 @@ Region::Region(std::string name, const std::string &nodeType,
   spec_ = factory.getSpec(nodeType);
   createInputsAndOutputs_();
   impl_.reset(factory.createRegionImpl(nodeType, nodeParams, this));
+  
+  //std::cerr << "Region created " << getName() << "=" << nodeType << "\n";
+  //auto outputs = getOutputs();
+  //for (auto out : outputs) std::cerr << "   " << getName() << "." << out.first << "\n";
+  
 }
 
 Region::Region(Network *net) {
@@ -289,11 +294,6 @@ void Region::removeAllIncomingLinks() {
 }
 
 void Region::uninitialize() { initialized_ = false; }
-
-void Region::setPhases(std::set<UInt32> &phases) { phases_ = phases; }
-
-std::set<UInt32> &Region::getPhases() { return phases_; }
-
 void Region::enableProfiling() { profilingEnabled_ = true; }
 
 void Region::disableProfiling() { profilingEnabled_ = false; }
@@ -314,8 +314,7 @@ bool Region::operator==(const Region &o) const {
     return false;
   }
 
-  if (name_ != o.name_ || type_ != o.type_ ||
-      spec_ != o.spec_ || phases_ != o.phases_ ) {
+  if (name_ != o.name_ || type_ != o.type_ || spec_ != o.spec_ ) {
     return false;
   }
   if (getDimensions() != o.getDimensions()) {
@@ -589,11 +588,6 @@ std::ostream &operator<<(std::ostream &f, const Region &r) {
   f << "Region: {\n";
   f << "name: " << r.name_ << "\n";
   f << "nodeType: " << r.type_ << "\n";
-  f << "phases: [ ";
-  for (const auto &phases_phase : r.phases_) {
-      f << phases_phase << " ";
-  }
-  f << "]\n";
   f << "outputs: [\n";
   for(auto out: r.outputs_) {
     f << out.first << " " << out.second->getDimensions() << "\n";

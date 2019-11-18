@@ -291,6 +291,8 @@ namespace py = pybind11;
         , className_(className)
 
     {
+        // Make a local copy of the Spec
+        createSpec(module_.c_str(), nodeSpec_, className_.c_str());
 
         cereal_adapter_load(wrapper);
     }

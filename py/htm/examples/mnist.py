@@ -114,7 +114,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
     # Training Loop
     for i in range(len(train_images)):
-        img, lbl = random.choice(training_data)
+        img, lbl = training_data[i]
         encode(img, enc)
         sp.compute( enc, True, columns )
         sdrc.learn( columns, lbl ) #TODO SDRClassifier could accept string as a label, currently must be int

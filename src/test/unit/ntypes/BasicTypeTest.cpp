@@ -23,6 +23,7 @@
 
 #include <gtest/gtest.h>
 #include <htm/ntypes/BasicType.hpp>
+#include <htm/types/Sdr.hpp>
 
 namespace testing {
     
@@ -42,6 +43,8 @@ TEST(BasicTypeTest, isValid)
   ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Real));
   ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Handle));
   ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Bool));
+  ASSERT_TRUE(BasicType::isValid(NTA_BasicType_SDR));
+  ASSERT_TRUE(BasicType::isValid(NTA_BasicType_Str));
 
   
   ASSERT_TRUE(!BasicType::isValid(NTA_BasicType_Last));
@@ -51,6 +54,7 @@ TEST(BasicTypeTest, isValid)
 
 TEST(BasicTypeTest, getSize)
 {
+  // This is the size of an element of the array
   ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Byte) == 1);
   ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Int16) == 2);
   ASSERT_TRUE(BasicType::getSize(NTA_BasicType_UInt16) == 2);
@@ -67,6 +71,8 @@ TEST(BasicTypeTest, getSize)
     ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Real) == 4); // Real32
   #endif
   ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Handle) == sizeof(void *));
+  ASSERT_TRUE(BasicType::getSize(NTA_BasicType_SDR) == sizeof(char));
+  ASSERT_TRUE(BasicType::getSize(NTA_BasicType_Str) == sizeof(std::string));
 }
 
 TEST(BasicTypeTest, getName)
@@ -87,6 +93,8 @@ TEST(BasicTypeTest, getName)
   #endif      
   ASSERT_TRUE(BasicType::getName(NTA_BasicType_Handle) == std::string("Handle"));
   ASSERT_TRUE(BasicType::getName(NTA_BasicType_Bool) == std::string("Bool"));
+  ASSERT_TRUE(BasicType::getName(NTA_BasicType_SDR) == std::string("SDR"));
+  ASSERT_TRUE(BasicType::getName(NTA_BasicType_Str) == std::string("String"));
 }
 
 TEST(BasicTypeTest, parse)
@@ -103,6 +111,8 @@ TEST(BasicTypeTest, parse)
   ASSERT_TRUE(BasicType::parse("Real") == NTA_BasicType_Real);
   ASSERT_TRUE(BasicType::parse("Handle") == NTA_BasicType_Handle);
   ASSERT_TRUE(BasicType::parse("Bool") == NTA_BasicType_Bool);
+  ASSERT_TRUE(BasicType::parse("SDR") == NTA_BasicType_SDR);
+  ASSERT_TRUE(BasicType::parse("std::string") == NTA_BasicType_Str);
 }
 
 class convertArrayTester {

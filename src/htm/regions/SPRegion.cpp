@@ -158,7 +158,7 @@ void SPRegion::compute() {
   // Call SpatialPooler compute
   sp_->compute(inputBuffer.getSDR(), args_.learningMode, outputBuffer.getSDR());
 
-
+  // trace facility
   NTA_DEBUG << "compute " << *getOutput("bottomUpOut") << "\n";
 
 }

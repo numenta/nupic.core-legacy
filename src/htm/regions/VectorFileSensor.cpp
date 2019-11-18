@@ -127,7 +127,9 @@ void VectorFileSensor::compute() {
     Real *categoryOut = reinterpret_cast<Real *>(categoryOut_.getBuffer());
     vectorFile_.getRawVector((htm::UInt)curVector_, categoryOut, offset, 1);
     offset++;
-    NTA_DEBUG << "VectorFileSensor compute() CategoryOut= " << *region_->getOutput("categoryOut") << "\n";
+
+    // trace facility
+    NTA_DEBUG << "compute " << region_->getOutput("categoryOut") << std::endl;
   }
 
   if (hasResetOut_) {
@@ -135,11 +137,15 @@ void VectorFileSensor::compute() {
     Real *resetOut = reinterpret_cast<Real *>(resetOut_.getBuffer());
     vectorFile_.getRawVector((htm::UInt)curVector_, resetOut, offset, 1);
     offset++;
-    NTA_DEBUG << "VectorFileSensor compute() reset= " << *region_->getOutput("reset") << "\n";
+
+    // trace facility
+    NTA_DEBUG << "compute " << *region_->getOutput("reset") << std::endl;
   }
 
   vectorFile_.getScaledVector((htm::UInt)curVector_, out, offset, count);
-  NTA_DEBUG << "VectorFileSensor compute() dataOut= " << *region_->getOutput("dataOut") << "\n";
+
+  // trace facility
+  NTA_DEBUG << "compute " << *region_->getOutput("dataOut") << std::endl;
   iterations_++;
 }
 
