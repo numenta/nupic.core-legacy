@@ -31,6 +31,7 @@ TEST(ExceptionTest, Basic) {
   try {
     throw htm::Exception("FFF", 123ul, "MMM");
   } catch (const Exception &e) {
+    EXPECT_STREQ(e.what(), "Exception: FFF(123) message: MMM");
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123ul);
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
@@ -40,19 +41,22 @@ TEST(ExceptionTest, Basic) {
   try {
     throw htm::Exception("FFF", 123ul, "MMM", "TB");
   } catch (const Exception &e) {
+    EXPECT_STREQ(e.what(), "Exception: FFF(123) message: MMM");
     ASSERT_EQ(std::string(e.getFilename()), std::string("FFF"));
     ASSERT_EQ(e.getLineNumber(), 123l);
     ASSERT_EQ(std::string(e.getMessage()), std::string("MMM"));
     ASSERT_EQ(std::string(e.getStackTrace()), std::string("TB"));
   }
+
 }
 
-TEST(ExceptionTest, Argument_Streaming)
+TEST(ExceptionTest, Argument_Streaming) {
   try {
   NTA_THROW << "This msg";
-} catch (const Exception &e) {
-  EXPECT_STREQ(e.getMessage(), "This msg");
-  EXPECT_STREQ(e.what(), "Exception: ExceptionTest.cpp(52) message: This msg");
+  } catch (const Exception &e) {
+    EXPECT_STREQ(e.getMessage(), "This msg");
+    EXPECT_STREQ(e.what(), "Exception: ExceptionTest.cpp(55) message: This msg");
+  }
 }
 
-}
+} // namespace testing
