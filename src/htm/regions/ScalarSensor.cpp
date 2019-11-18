@@ -127,7 +127,7 @@ ScalarSensor::~ScalarSensor() {}
                                         1,   // elementCount
                                         "",  // constraints
                                         "0", // defaultValue
-                                        ParameterSpec::ReadWriteAccess));
+                                        ParameterSpec::CreateAccess));
 
   ns->parameters.add("w",
                      ParameterSpec("The number of active bits in the encoding. i.e. how sparse",
@@ -135,7 +135,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,   // elementCount
                                    "",  // constraints
                                    "0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("resolution",
                      ParameterSpec("The resolution for the encoder",
@@ -143,14 +143,14 @@ ScalarSensor::~ScalarSensor() {}
                                    1,   // elementCount
                                    "",  // constraints
                                    "0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("radius", ParameterSpec("The radius for the encoder",
                                   NTA_BasicType_Real64,
                                   1,   // elementCount
                                   "",  // constraints
                                   "0", // defaultValue
-                                  ParameterSpec::ReadWriteAccess));
+                                  ParameterSpec::CreateAccess));
 
   ns->parameters.add("minValue",
                      ParameterSpec("The minimum value for the input",
@@ -158,7 +158,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,    // elementCount
                                    "",   // constraints
                                    "-1.0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("maxValue",
                      ParameterSpec("The maximum value for the input",
@@ -166,7 +166,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,    // elementCount
                                    "",   // constraints
                                    "+1.0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("periodic",
                      ParameterSpec("Whether the encoder is periodic",
@@ -174,7 +174,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,       // elementCount
                                    "",      // constraints
                                    "false", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("clipInput",
                     ParameterSpec(
@@ -183,7 +183,7 @@ ScalarSensor::~ScalarSensor() {}
                                   1,       // elementCount
                                   "",      // constraints
                                   "false", // defaultValue
-                                  ParameterSpec::ReadWriteAccess));
+                                  ParameterSpec::CreateAccess));
 
   /* ----- outputs ----- */
 
