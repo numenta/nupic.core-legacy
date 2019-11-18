@@ -424,8 +424,9 @@ public:
 
   // Used by RegionImpl to get inputs/outputs
   std::shared_ptr<Output> getOutput(const std::string &name) const;
-
   std::shared_ptr<Input> getInput(const std::string &name) const;
+  inline bool hasOutput(const std::string &name) const { return outputs_.find(name) != outputs_.end(); }
+  inline bool hasInput(const std::string &name) const { return inputs_.find(name) != inputs_.end(); }
 
   const std::map<std::string, std::shared_ptr<Input>> &getInputs() const;
 

@@ -84,9 +84,10 @@ set(regions_tests
 	   unit/regions/RegionTestUtilities.cpp
 	   unit/regions/RegionTestUtilities.hpp
 	   unit/regions/ScalarSensorTest.cpp
+	   unit/regions/RDSERegionTest.cpp
 	   unit/regions/SPRegionTest.cpp
-       unit/regions/TMRegionTest.cpp
-       unit/regions/VectorFileTest.cpp
+     unit/regions/TMRegionTest.cpp
+     unit/regions/VectorFileTest.cpp
 	   )
 
 	   

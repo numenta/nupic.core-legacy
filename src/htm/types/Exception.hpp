@@ -105,7 +105,8 @@ public:
    */
   virtual const char *what() const noexcept override {
     try {
-      what_ = "Exception: " + Path::getBasename(filename_) + "(" + std::to_string(lineno_) + ") message: " + message_;
+      what_ = "Exception: " + Path::getBasename(filename_) + "(" + std::to_string(lineno_) 
+                      + ") message: " + std::string(getMessage());
     } catch (...) {
     }
     return what_.c_str();
