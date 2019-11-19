@@ -125,7 +125,7 @@ namespace testing
       << " Expected type for region2 to be \"ScalarSensorCustom\" but type is: " 
       << region2->getType();
 
-    ASSERT_FLOAT_EQ(region2->getParameterReal32("radius"), 16);
+    ASSERT_DOUBLE_EQ(region2->getParameterReal64("radius"), 0.039840637450199202);
 
     net.run(1);
     region2->compute();
@@ -185,7 +185,7 @@ namespace testing
 
 
 	  // check actual dimensions
-    ASSERT_EQ(region2->getParameterUInt32("size"), 100u);
+    ASSERT_EQ(region2->getParameterUInt32("n"), 100u);
 
     VERBOSE << "Execute once." << std::endl;
     net.run(1);
@@ -237,7 +237,7 @@ namespace testing
     net1.link("region1", "region2", "", "", "encoded", "bottomUpIn");
     net1.initialize();
 
-    n1region1->setParameterReal64("sensedValue", 5.5);
+    n1region1->setParameterReal64("sensedValue", 0.5);
 		net1.run(1);
 
     // take a snapshot of everything in ScalarSensor at this point
@@ -268,7 +268,7 @@ namespace testing
 
 
 	  // can we continue with execution?  See if we get any exceptions.
-    n2region1->setParameterReal64("sensedValue", 5.5);
+    n2region1->setParameterReal64("sensedValue", 0.5);
     net2.run(2);
 
     // cleanup

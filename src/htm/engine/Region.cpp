@@ -382,6 +382,16 @@ bool Region::operator==(const Region &o) const {
 
 
 // Internal methods called by RegionImpl.
+bool Region::hasOutput(const std::string &name) const {
+  auto out = getOutput(name);
+  if (out) return out->hasOutgoingLinks();
+  return false;
+}
+bool Region::hasInput(const std::string &name) const {
+  auto in = getInput(name);
+  if (in) return in->hasIncomingLinks();
+  return false;
+}
 
 std::shared_ptr<Output> Region::getOutput(const std::string &name) const {
   auto o = outputs_.find(name);

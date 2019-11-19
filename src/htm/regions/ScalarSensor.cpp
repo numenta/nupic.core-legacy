@@ -100,6 +100,10 @@ std::string ScalarSensor::executeCommand(const std::vector<std::string> &args,
 
 void ScalarSensor::compute()
 {
+  if (hasInput("values")) {
+    Array &a = getInput("values")->getData();
+    sensedValue_ = ((Real64 *)(a.getBuffer()))[0];
+  }
   SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
 
@@ -185,6 +189,16 @@ ScalarSensor::~ScalarSensor() {}
                                   "false", // defaultValue
                                   ParameterSpec::CreateAccess));
 
+   /* ----- inputs ------- */
+  ns->inputs.add("values",
+                 InputSpec("The input values to be encoded.", // description
+                           NTA_BasicType_Real64,   // type
+                           1,                   // count.
+                           false,                // required?
+                           false,               // isRegionLevel,
+                           true                 // isDefaultInput
+                           ));
+
   /* ----- outputs ----- */
 
   ns->outputs.add("encoded", OutputSpec("Encoded value", NTA_BasicType_SDR,
@@ -196,7 +210,7 @@ ScalarSensor::~ScalarSensor() {}
   ns->outputs.add("bucket", OutputSpec("Bucket number for this sensedValue",
                                        NTA_BasicType_Int32,
                                        0,    // elementCount
-                                       true, // isRegionLevel
+                                       false, // isRegionLevel
                                        false // isDefaultOutput
                                        ));
 
