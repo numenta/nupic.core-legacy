@@ -100,6 +100,10 @@ std::string ScalarSensor::executeCommand(const std::vector<std::string> &args,
 
 void ScalarSensor::compute()
 {
+  if (hasInput("values")) {
+    Array &a = getInput("values")->getData();
+    sensedValue_ = ((Real64 *)(a.getBuffer()))[0];
+  }
   SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
 
@@ -127,7 +131,7 @@ ScalarSensor::~ScalarSensor() {}
                                         1,   // elementCount
                                         "",  // constraints
                                         "0", // defaultValue
-                                        ParameterSpec::ReadWriteAccess));
+                                        ParameterSpec::CreateAccess));
 
   ns->parameters.add("w",
                      ParameterSpec("The number of active bits in the encoding. i.e. how sparse",
@@ -135,7 +139,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,   // elementCount
                                    "",  // constraints
                                    "0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("resolution",
                      ParameterSpec("The resolution for the encoder",
@@ -143,14 +147,14 @@ ScalarSensor::~ScalarSensor() {}
                                    1,   // elementCount
                                    "",  // constraints
                                    "0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("radius", ParameterSpec("The radius for the encoder",
                                   NTA_BasicType_Real64,
                                   1,   // elementCount
                                   "",  // constraints
                                   "0", // defaultValue
-                                  ParameterSpec::ReadWriteAccess));
+                                  ParameterSpec::CreateAccess));
 
   ns->parameters.add("minValue",
                      ParameterSpec("The minimum value for the input",
@@ -158,7 +162,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,    // elementCount
                                    "",   // constraints
                                    "-1.0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("maxValue",
                      ParameterSpec("The maximum value for the input",
@@ -166,7 +170,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,    // elementCount
                                    "",   // constraints
                                    "+1.0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("periodic",
                      ParameterSpec("Whether the encoder is periodic",
@@ -174,7 +178,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,       // elementCount
                                    "",      // constraints
                                    "false", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("clipInput",
                     ParameterSpec(
@@ -183,7 +187,17 @@ ScalarSensor::~ScalarSensor() {}
                                   1,       // elementCount
                                   "",      // constraints
                                   "false", // defaultValue
-                                  ParameterSpec::ReadWriteAccess));
+                                  ParameterSpec::CreateAccess));
+
+   /* ----- inputs ------- */
+  ns->inputs.add("values",
+                 InputSpec("The input values to be encoded.", // description
+                           NTA_BasicType_Real64,   // type
+                           1,                   // count.
+                           false,                // required?
+                           false,               // isRegionLevel,
+                           true                 // isDefaultInput
+                           ));
 
   /* ----- outputs ----- */
 
@@ -196,7 +210,7 @@ ScalarSensor::~ScalarSensor() {}
   ns->outputs.add("bucket", OutputSpec("Bucket number for this sensedValue",
                                        NTA_BasicType_Int32,
                                        0,    // elementCount
-                                       true, // isRegionLevel
+                                       false, // isRegionLevel
                                        false // isDefaultOutput
                                        ));
 

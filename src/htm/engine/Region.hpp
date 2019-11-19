@@ -423,13 +423,11 @@ public:
   bool isInitialized() const { return initialized_; }
 
   // Used by RegionImpl to get inputs/outputs
+  bool hasOutput(const std::string &name) const;
+  bool hasInput(const std::string &name) const;
   std::shared_ptr<Output> getOutput(const std::string &name) const;
   std::shared_ptr<Input> getInput(const std::string &name) const;
-  inline bool hasOutput(const std::string &name) const { return outputs_.find(name) != outputs_.end(); }
-  inline bool hasInput(const std::string &name) const { return inputs_.find(name) != inputs_.end(); }
-
   const std::map<std::string, std::shared_ptr<Input>> &getInputs() const;
-
   const std::map<std::string, std::shared_ptr<Output>> &getOutputs() const;
 
   void clearInputs();
