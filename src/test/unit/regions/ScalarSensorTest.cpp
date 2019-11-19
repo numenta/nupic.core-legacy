@@ -44,7 +44,7 @@
 #include <htm/engine/RegisteredRegionImpl.hpp>
 #include <htm/engine/RegisteredRegionImplCpp.hpp>
 #include <htm/ntypes/Array.hpp>
-#include <htm/Utils/Log.hpp>
+#include <htm/utils/Log.hpp>
 
 #include "gtest/gtest.h"
 #include "RegionTestUtilities.hpp"
