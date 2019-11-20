@@ -185,6 +185,7 @@ set(examples_files
     examples/hotgym/Hotgym.cpp # contains conflicting main()
     examples/hotgym/HelloSPTP.cpp
     examples/hotgym/HelloSPTP.hpp
+    examples/hotgym_NetworkAPI/hotgym_napi.cpp
     examples/mnist/MNIST_SP.cpp
 )
 
@@ -356,6 +357,30 @@ else()
 		${EXTERNAL_INCLUDES}
 		)
 endif()
+
+#########################################################
+## NetworkAPI version of hotgym
+
+set(src_executable_hotgym_napi hotgym_napi)
+add_executable(${src_executable_hotgym_napi} examples/hotgym_NetworkAPI/hotgym_napi.cpp)
+# link with the static library
+target_link_libraries(${src_executable_hotgym_napi} 
+    ${INTERNAL_LINKER_FLAGS}
+    ${core_library}
+    ${COMMON_OS_LIBS}
+)                  
+target_compile_options( ${src_executable_hotgym_napi} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${src_executable_hotgym_napi} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${src_executable_hotgym_napi} PRIVATE 
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		)
+add_custom_target(hotgym_napi_run
+          COMMAND ${src_executable_hotgym_napi}
+          DEPENDS ${src_executable_hotgym_napi}
+          COMMENT "Executing ${src_executable_hotgym_napi}"
+          VERBATIM)
+
 #########################################################
 ## MNIST Spatial Pooler Example
 #
