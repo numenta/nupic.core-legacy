@@ -23,22 +23,22 @@
 
 using namespace htm;
 
-static bool verbose = true;
+static bool verbose = false;
 #define VERBOSE if (verbose)  std::cout << "    "
 
 
 //this runs as an executable
 
 int main(int argc, char* argv[]) {
-  htm::UInt EPOCHS = 10;      // number of iterations (calls to encoder/SP/TP compute() )
-  const UInt DIM_INPUT = 50;  // Width of encoder output
-  const UInt COLS = 100;       // number of columns in SP, TP
+  htm::UInt EPOCHS = 5000;      // number of iterations (calls to encoder/SP/TP compute() )
+  const UInt DIM_INPUT = 1000;  // Width of encoder output
+  const UInt COLS = 2048;       // number of columns in SP, TP
   const UInt CELLS = 8;         // cells per column in TP
   Random rnd(42);               // uses fixed seed for deterministic output
   std::ofstream ofs;
 
   std::string encoder_params   = "{size: " + std::to_string(DIM_INPUT) + ", activeBits: 4, radius: 0.5, seed: 2019 }";
-  std::string sp_local_params  = "{columnCount: " + std::to_string(COLS) + "}";
+//  std::string sp_local_params  = "{columnCount: " + std::to_string(COLS) + "}";
   std::string sp_global_params = "{columnCount: " + std::to_string(COLS) + ", globalInhibition: true}";
   std::string tm_params        = "{activationThreshold: 9, cellsPerColumn: " + std::to_string(CELLS) + "}";
 
@@ -58,12 +58,12 @@ int main(int argc, char* argv[]) {
 
     // Declare the regions to use
     std::shared_ptr<Region> encoder   = net.addRegion("encoder",   "RDSERegion", encoder_params);
-    std::shared_ptr<Region> sp_local  = net.addRegion("sp_local",  "SPRegion",   sp_local_params);
+//    std::shared_ptr<Region> sp_local  = net.addRegion("sp_local",  "SPRegion",   sp_local_params);
     std::shared_ptr<Region> sp_global = net.addRegion("sp_global", "SPRegion",   sp_global_params);
     std::shared_ptr<Region> tm        = net.addRegion("tm",        "TMRegion",   tm_params);
 
     // Setup data flows between regions
-    net.link("encoder",   "sp_local",  "", "", "encoded", "bottomUpIn");
+//    net.link("encoder",   "sp_local",  "", "", "encoded", "bottomUpIn");
     net.link("encoder",   "sp_global", "", "", "encoded", "bottomUpIn");
     net.link("sp_global", "tm",        "", "", "bottomUpOut", "bottomUpIn");
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
       VERBOSE << "Epoch = " << i << std::endl;
       VERBOSE << "  Data        = " << data << std::endl;
       VERBOSE << "  Encoder out = " << encoder->getOutputData("encoded").getSDR();
-      VERBOSE << "  SP (local)  = " << sp_local->getOutputData("bottomUpOut").getSDR();
+//      VERBOSE << "  SP (local)  = " << sp_local->getOutputData("bottomUpOut").getSDR();
       VERBOSE << "  SP (global) = " << sp_global->getOutputData("bottomUpOut").getSDR();
       VERBOSE << "  TM output   = " << tm->getOutputData("bottomUpOut").getSDR();
       VERBOSE << "  ActiveCells = " << tm->getOutputData("activeCells").getSDR();
@@ -124,6 +124,8 @@ int main(int argc, char* argv[]) {
     }
     if (ofs.is_open())
       ofs.close();
+    std::cout << "finished\n";
+
 
   } catch (Exception &e) {
     std::cerr << e.what();
