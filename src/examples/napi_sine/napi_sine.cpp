@@ -18,27 +18,33 @@
 #include <htm/engine/Network.hpp>
 #include <htm/utils/Random.hpp>
 #include <htm/utils/Log.hpp>
+#include <htm/ntypes/Value.hpp>
 #include <fstream>
 
 using namespace htm;
 
-static bool verbose = false;
+static bool verbose = true;
 #define VERBOSE if (verbose)  std::cout << "    "
 
 
 //this runs as an executable
 
 int main(int argc, char* argv[]) {
-  htm::UInt EPOCHS = 5000;      // number of iterations (calls to encoder/SP/TP compute() )
-  const UInt DIM_INPUT = 1000;  // Width of encoder output
-  const UInt COLS = 2048;       // number of columns in SP, TP
+  htm::UInt EPOCHS = 10;      // number of iterations (calls to encoder/SP/TP compute() )
+  const UInt DIM_INPUT = 50;  // Width of encoder output
+  const UInt COLS = 100;       // number of columns in SP, TP
   const UInt CELLS = 8;         // cells per column in TP
   Random rnd(42);               // uses fixed seed for deterministic output
   std::ofstream ofs;
 
-  //  Runtime arguments:  hotgym_napi [epochs [filename]]
+  std::string encoder_params   = "{size: " + std::to_string(DIM_INPUT) + ", activeBits: 4, radius: 0.5, seed: 2019 }";
+  std::string sp_local_params  = "{columnCount: " + std::to_string(COLS) + "}";
+  std::string sp_global_params = "{columnCount: " + std::to_string(COLS) + ", globalInhibition: true}";
+  std::string tm_params        = "{activationThreshold: 9, cellsPerColumn: " + std::to_string(CELLS) + "}";
+
+  //  Runtime arguments:  napi_sine [epochs [filename]]
   if(argc >= 2) {
-    EPOCHS = std::stoi(argv[1]);         // number of iterations (default 5000)
+    EPOCHS = std::stoi(argv[1]);         // number of iterations (default 500)
   }
   if (argc >= 3) {
     ofs.open(argv[2], std::ios::out);    // output filename (for plotting)
@@ -51,16 +57,15 @@ int main(int argc, char* argv[]) {
     Network net;
 
     // Declare the regions to use
-    std::string encoder_parameters = "{size: " + std::to_string(DIM_INPUT) + ", activeBits: 4, radius: 0.5, seed: 2019 }";
-    std::shared_ptr<Region> region1 =  net.addRegion("region1", "RDSERegion", encoder_parameters);
-    std::shared_ptr<Region> region2a = net.addRegion("region2a", "SPRegion", "{columnCount: " + std::to_string(COLS) + "}");
-    std::shared_ptr<Region> region2b = net.addRegion("region2b", "SPRegion", "{columnCount: " + std::to_string(COLS) + ", globalInhibition: true}");
-    std::shared_ptr<Region> region3 =  net.addRegion("region3", "TMRegion", "{activationThreshold: 9, cellsPerColumn: " + std::to_string(CELLS) + "}");
+    std::shared_ptr<Region> encoder   = net.addRegion("encoder",   "RDSERegion", encoder_params);
+    std::shared_ptr<Region> sp_local  = net.addRegion("sp_local",  "SPRegion",   sp_local_params);
+    std::shared_ptr<Region> sp_global = net.addRegion("sp_global", "SPRegion",   sp_global_params);
+    std::shared_ptr<Region> tm        = net.addRegion("tm",        "TMRegion",   tm_params);
 
     // Setup data flows between regions
-    net.link("region1", "region2a", "", "", "encoded", "bottomUpIn");
-    net.link("region1", "region2b", "", "", "encoded", "bottomUpIn");
-    net.link("region2b", "region3", "", "", "bottomUpOut", "bottomUpIn");
+    net.link("encoder",   "sp_local",  "", "", "encoded", "bottomUpIn");
+    net.link("encoder",   "sp_global", "", "", "encoded", "bottomUpIn");
+    net.link("sp_global", "tm",        "", "", "bottomUpOut", "bottomUpIn");
 
     net.initialize();
 
@@ -73,13 +78,13 @@ int main(int argc, char* argv[]) {
     //                 `------------------'
     //                     |           |
     //      .------------------.    .------------------.
-    //      |   SP (local)     |    |   SP (global)    |
-    //      |                  |    |                  |
+    //      |    sp_local      |    |   sp_global      |
+    //      |   (SPRegion)     |    |  (SPRegion)      |
     //      |                  |    |                  |
     //      `------------------'    `------------------'
     //                                       |
     //                              .------------------.
-    //                              |      TM          |
+    //                              |      tm          |
     //                              |   (TMRegion)     |
     //                              |                  |
     //                              `------------------'
@@ -88,7 +93,7 @@ int main(int argc, char* argv[]) {
 
 
     // enable this to see a trace as it executes
-    // net.setLogLevel(LogLevel::LogLevel_Verbose);
+    //net.setLogLevel(LogLevel::LogLevel_Verbose);
 
     std::cout << "Running: \n";
     // RUN
@@ -96,21 +101,21 @@ int main(int argc, char* argv[]) {
       // genarate some data to send to the encoder
       //  -- A sin wave, one degree rotation per iteration, 1% noise added
       double data = std::sin(i * (3.1415 / 180)) + (double)rnd.realRange(-0.01f, +0.1f);
-      region1->setParameterReal64("sensedValue", data); // feed data into RDSE encoder for this iteration.
+      encoder->setParameterReal64("sensedValue", data); // feed data into RDSE encoder for this iteration.
 
       // Execute an iteration.
       net.run(1);
 
       // output values
-      double an = ((double *)region3->getOutputData("anomaly").getBuffer())[0];
+      float an = ((float *)tm->getOutputData("anomaly").getBuffer())[0];
       VERBOSE << "Epoch = " << i << std::endl;
       VERBOSE << "  Data        = " << data << std::endl;
-      VERBOSE << "  Encoder out = " << region1->getOutputData("encoded").getSDR() << std::endl;
-      VERBOSE << "  SP (local)  = " << region2a->getOutputData("bottomUpOut").getSDR() << std::endl;
-      VERBOSE << "  SP (global) = " << region2b->getOutputData("bottomUpOut").getSDR() << std::endl;
-      VERBOSE << "  TM output   = " << region3->getOutputData("bottomUpOut").getSDR() << std::endl;
-      VERBOSE << "  ActiveCells = " << region3->getOutputData("activeCells").getSDR() << std::endl;
-      VERBOSE << "  winners     = " << region3->getOutputData("predictedActiveCells").getSDR() << std::endl;
+      VERBOSE << "  Encoder out = " << encoder->getOutputData("encoded").getSDR();
+      VERBOSE << "  SP (local)  = " << sp_local->getOutputData("bottomUpOut").getSDR();
+      VERBOSE << "  SP (global) = " << sp_global->getOutputData("bottomUpOut").getSDR();
+      VERBOSE << "  TM output   = " << tm->getOutputData("bottomUpOut").getSDR();
+      VERBOSE << "  ActiveCells = " << tm->getOutputData("activeCells").getSDR();
+      VERBOSE << "  winners     = " << tm->getOutputData("predictedActiveCells").getSDR();
       VERBOSE << "  Anomaly     = " << an << std::endl;
 
       // Save the data for plotting.   <iteration>, <sin data>, <anomaly>\n

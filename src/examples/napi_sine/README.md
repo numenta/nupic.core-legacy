@@ -1,5 +1,12 @@
 ﻿# C++ example using Network API
-The program `hotgym_napi` is an example of an app using the Network API tools available in the htm.core library.  In this example we generate a sin wave with some noise as the input.  This is passed to an encoder to turn that into SDR format.  This is passed to two instances of SpatialPooler (SP), one is configured for local inhibition and one for global inhibition.  The output of the SP for global inhibition is passed on to the temporalMemory (TM) algorithm.  The output of the TM can be written to a file so that it can be plotted.
+The program `sine_napi` is an example of an app using the Network API tools 
+available in the htm.core library.  In this example we generate a sine wave 
+with some noise as the input.  This is passed to an encoder to turn that 
+into SDR format.  This is passed to two instances of SpatialPooler (SP), 
+one is configured for local inhibition and one for global inhibition.  
+
+The output of the SP for global inhibition is passed on to the temporalMemory (TM) 
+algorithm.  The output of the TM can be written to a file so that it can be plotted.
 
 ```
   ///////////////////////////////////////////////////////////////
@@ -64,7 +71,7 @@ Each "region" is a wrapper around an algorithm.  This wrapper provides a uniform
 ## Usage
 
 ```
-   hotgym_napi  [iterations [filename]]
+   sine_napi  [iterations [filename]]
 ```
 - *iterations* is the number of times to execute the regions configured into the network. The default is 5000.
 - *filename* is the path for a file to be written which contains the following for each iteration.  The default is no file written.
@@ -72,9 +79,6 @@ Each "region" is a wrapper around an algorithm.  This wrapper provides a uniform
         <iteration>, <sin data>, <anomaly>\n
 ```
 
-## Plotting
-
-The `hotgym_napi` program can output data if a filename is specified. Any plotting program can be used to display this CSD data.
 
 ## Experimentation
 It is intended that this program be used as a launching point for experimenting with combinations of the regions and using different parameters.  Try it and see what happens...

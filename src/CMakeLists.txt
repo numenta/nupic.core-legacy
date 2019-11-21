@@ -185,7 +185,7 @@ set(examples_files
     examples/hotgym/Hotgym.cpp # contains conflicting main()
     examples/hotgym/HelloSPTP.cpp
     examples/hotgym/HelloSPTP.hpp
-    examples/hotgym_NetworkAPI/hotgym_napi.cpp
+    examples/napi_sine/napi_sine.cpp
     examples/mnist/MNIST_SP.cpp
 )
 
@@ -359,26 +359,26 @@ else()
 endif()
 
 #########################################################
-## NetworkAPI version of hotgym
+## NetworkAPI version of benchmark_sine
 
-set(src_executable_hotgym_napi hotgym_napi)
-add_executable(${src_executable_hotgym_napi} examples/hotgym_NetworkAPI/hotgym_napi.cpp)
+set(src_executable_napi_sine napi_sine)
+add_executable(${src_executable_napi_sine} examples/napi_sine/napi_sine.cpp)
 # link with the static library
-target_link_libraries(${src_executable_hotgym_napi} 
+target_link_libraries(${src_executable_napi_sine} 
     ${INTERNAL_LINKER_FLAGS}
     ${core_library}
     ${COMMON_OS_LIBS}
 )                  
-target_compile_options( ${src_executable_hotgym_napi} PUBLIC ${INTERNAL_CXX_FLAGS})
-target_compile_definitions(${src_executable_hotgym_napi} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
-target_include_directories(${src_executable_hotgym_napi} PRIVATE 
+target_compile_options( ${src_executable_napi_sine} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${src_executable_napi_sine} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${src_executable_napi_sine} PRIVATE 
 		${CORE_LIB_INCLUDES} 
 		${EXTERNAL_INCLUDES}
 		)
-add_custom_target(hotgym_napi_run
-          COMMAND ${src_executable_hotgym_napi}
-          DEPENDS ${src_executable_hotgym_napi}
-          COMMENT "Executing ${src_executable_hotgym_napi}"
+add_custom_target(sine_napi_run
+          COMMAND ${src_executable_napi_sine}
+          DEPENDS ${src_executable_napi_sine}
+          COMMENT "Executing ${src_executable_napi_sine}"
           VERBATIM)
 
 #########################################################
