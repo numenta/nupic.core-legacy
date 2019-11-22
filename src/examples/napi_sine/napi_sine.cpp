@@ -38,13 +38,12 @@ int main(int argc, char* argv[]) {
   std::ofstream ofs;
 
   std::string encoder_params   = "{size: " + std::to_string(DIM_INPUT) + ", activeBits: 4, radius: 0.5, seed: 2019 }";
-//  std::string sp_local_params  = "{columnCount: " + std::to_string(COLS) + "}";
   std::string sp_global_params = "{columnCount: " + std::to_string(COLS) + ", globalInhibition: true}";
   std::string tm_params        = "{activationThreshold: 9, cellsPerColumn: " + std::to_string(CELLS) + "}";
 
   //  Runtime arguments:  napi_sine [epochs [filename]]
   if(argc >= 2) {
-    EPOCHS = std::stoi(argv[1]);         // number of iterations (default 500)
+    EPOCHS = std::stoi(argv[1]);         // number of iterations (default 5000)
   }
   if (argc >= 3) {
     ofs.open(argv[2], std::ios::out);    // output filename (for plotting)
@@ -58,12 +57,10 @@ int main(int argc, char* argv[]) {
 
     // Declare the regions to use
     std::shared_ptr<Region> encoder   = net.addRegion("encoder",   "RDSERegion", encoder_params);
-//    std::shared_ptr<Region> sp_local  = net.addRegion("sp_local",  "SPRegion",   sp_local_params);
     std::shared_ptr<Region> sp_global = net.addRegion("sp_global", "SPRegion",   sp_global_params);
     std::shared_ptr<Region> tm        = net.addRegion("tm",        "TMRegion",   tm_params);
 
     // Setup data flows between regions
-//    net.link("encoder",   "sp_local",  "", "", "encoded", "bottomUpIn");
     net.link("encoder",   "sp_global", "", "", "encoded", "bottomUpIn");
     net.link("sp_global", "tm",        "", "", "bottomUpOut", "bottomUpIn");
 
@@ -71,23 +68,23 @@ int main(int argc, char* argv[]) {
 
     ///////////////////////////////////////////////////////////////
     //
-    //                 .------------------.
-    //                 |    encoder       |
-    //         data--->|  (RDSERegion)    |
-    //                 |                  |
-    //                 `------------------'
-    //                     |           |
-    //      .------------------.    .------------------.
-    //      |    sp_local      |    |   sp_global      |
-    //      |   (SPRegion)     |    |  (SPRegion)      |
-    //      |                  |    |                  |
-    //      `------------------'    `------------------'
-    //                                       |
-    //                              .------------------.
-    //                              |      tm          |
-    //                              |   (TMRegion)     |
-    //                              |                  |
-    //                              `------------------'
+    //                          .----------------.
+    //                         |    encoder      |
+    //                 data--->|  (RDSERegion)   |
+    //                         |                 |
+    //                         `-----------------'
+    //                                 |
+    //                         .-----------------.
+    //                         |   sp_global     |
+    //                         |  (SPRegion)     |
+    //                         |                 |
+    //                         `-----------------'
+    //                                 |
+    //                         .-----------------.
+    //                         |      tm         |
+    //                         |   (TMRegion)    |
+    //                         |                 |
+    //                         `-----------------'
     //
     //////////////////////////////////////////////////////////////////
 
@@ -111,7 +108,6 @@ int main(int argc, char* argv[]) {
       VERBOSE << "Epoch = " << i << std::endl;
       VERBOSE << "  Data        = " << data << std::endl;
       VERBOSE << "  Encoder out = " << encoder->getOutputData("encoded").getSDR();
-//      VERBOSE << "  SP (local)  = " << sp_local->getOutputData("bottomUpOut").getSDR();
       VERBOSE << "  SP (global) = " << sp_global->getOutputData("bottomUpOut").getSDR();
       VERBOSE << "  TM output   = " << tm->getOutputData("bottomUpOut").getSDR();
       VERBOSE << "  ActiveCells = " << tm->getOutputData("activeCells").getSDR();

@@ -2,26 +2,25 @@
 The program `sine_napi` is an example of an app using the Network API tools 
 available in the htm.core library.  In this example we generate a sine wave 
 with some noise as the input.  This is passed to an encoder to turn that 
-into SDR format.  This is passed to two instances of SpatialPooler (SP), 
-one is configured for local inhibition and one for global inhibition.  
+into a quantized format.  This is passed to an instance of SpatialPooler (SP).  
 
-The output of the SP for global inhibition is passed on to the temporalMemory (TM) 
-algorithm.  The output of the TM can be written to a file so that it can be plotted.
+The output of the SP passed on to the temporalMemory (TM)  algorithm.  The 
+output of the TM can be written to a file so that it can be plotted.
 
 ```
   ///////////////////////////////////////////////////////////////
   //
-  //                 .------------------.
-  //                 |    encoder       |
-  //         data--->|  (RDSERegion)    |
-  //                 |                  |
-  //                 `------------------'
-  //                     |           |
-  //      .------------------.    .------------------.
-  //      |   SP (local)     |    |   SP (global)    |
-  //      |    (SPRegion)    |    |   (SPRegion)     |
-  //      |                  |    |                  |
-  //      `------------------'    `------------------'
+  //                              .------------------.
+  //                              |    encoder       |
+  //                      data--->|  (RDSERegion)    |
+  //                              |                  |
+  //                              `------------------'
+  //                                       |
+  //                              .------------------.
+  //                              |   SP (global)    |
+  //                              |   (SPRegion)     |
+  //                              |                  |
+  //                              `------------------'
   //                                       |
   //                              .------------------.
   //                              |      TM          |
