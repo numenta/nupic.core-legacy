@@ -135,8 +135,8 @@ int main(int argc, char* argv[]) {
       {
 
         // output values
-        float final_an = ((float *)tm->getOutputData("anomaly").getBuffer())[0];
         VERBOSE << "Result after " << e + 1 << " iterations.\n";
+        VERBOSE << "  Anomaly             = " << an << std::endl;
         VERBOSE << "  Anomaly(avg)        = " << avgAnomaly.getCurrentAvg() << std::endl;
         VERBOSE << "  Anomaly(Likelihood) = " << anLikely << endl;
         VERBOSE << "  Encoder out         = " << encoder->getOutputData("encoded").getSDR();
