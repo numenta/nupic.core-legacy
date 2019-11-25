@@ -43,18 +43,18 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   //       algorithm when we create it during initialization().
   memset((char *)&args_, 0, sizeof(args_));
   args_.numberOfCols = params.getScalarT<UInt32>("numberOfCols", 0);  // normally not passed in.
-  args_.cellsPerColumn = params.getScalarT<UInt32>("cellsPerColumn", 32);
-  args_.activationThreshold = params.getScalarT<UInt32>("activationThreshold", 13);
+  args_.cellsPerColumn = params.getScalarT<UInt32>("cellsPerColumn", 32u);
+  args_.activationThreshold = params.getScalarT<UInt32>("activationThreshold", 13u);
   args_.initialPermanence = params.getScalarT<Real32>("initialPermanence", 0.21f);
   args_.connectedPermanence = params.getScalarT<Real32>("connectedPermanence", 0.50f);
-  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 8);
-  args_.maxNewSynapseCount = params.getScalarT<UInt32>("maxNewSynapseCount", 20);
+  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 10u);
+  args_.maxNewSynapseCount = params.getScalarT<UInt32>("maxNewSynapseCount", 20u);
   args_.permanenceIncrement = params.getScalarT<Real32>("permanenceIncrement", 0.10f);
   args_.permanenceDecrement = params.getScalarT<Real32>("permanenceDecrement", 0.10f);
   args_.predictedSegmentDecrement = params.getScalarT<Real32>("predictedSegmentDecrement", 0.0f);
   args_.seed = params.getScalarT<Int32>("seed", 42);
-  args_.maxSegmentsPerCell = params.getScalarT<UInt32>("maxSegmentsPerCell", 255);
-  args_.maxSynapsesPerSegment = params.getScalarT<UInt32>("maxSynapsesPerSegment", 255);
+  args_.maxSegmentsPerCell = params.getScalarT<UInt32>("maxSegmentsPerCell", 255u);
+  args_.maxSynapsesPerSegment = params.getScalarT<UInt32>("maxSynapsesPerSegment", 255u);
   args_.checkInputs = params.getScalarT<bool>("checkInputs", true);
   args_.orColumnOutputs = params.getScalarT<bool>("orColumnOutputs", false);
   args_.externalPredictiveInputs = 0;  // will be obtained from externalPredictiveInputs inputs dimensions.
@@ -101,6 +101,8 @@ Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
 
   if (name == "bottomUpOut" && args_.orColumnOutputs) {
     // It's size is numberOfCols.
+    return region_dim;
+  } else if (name == "predictiveCells" && args_.orColumnOutputs) {
     return region_dim;
   } else if (name == "bottomUpOut" || name == "activeCells" 
           || name == "predictedActiveCells" || name == "predictiveCells") {
@@ -234,12 +236,13 @@ void TMRegion::compute() {
   out = getOutput("bottomUpOut");
   //call Network::setLogLevel(LogLevel::LogLevel_Verbose);
   //     to output the NTA_DEBUG statements below
-    SDR& sdr = out->getData().getSDR();
-    tm_->getActiveCells(sdr); //active cells
-    if (args_.orColumnOutputs) { //output as columns
-      sdr = tm_->cellsToColumns(sdr);
-    }
-    NTA_DEBUG << "compute "<< *out << std::endl;
+    SDR active({args_.numberOfCols, args_.cellsPerColumn});
+    tm_->getActiveCells(active); //active cells
+    if (args_.orColumnOutputs) // output as columns
+      out->getData().getSDR() = tm_->cellsToColumns(active);
+    else
+      out->getData().getSDR() = active;
+    NTA_DEBUG << "compute " << *out << std::endl;
   
   out = getOutput("activeCells");
     tm_->getActiveCells(out->getData().getSDR());
@@ -256,7 +259,11 @@ void TMRegion::compute() {
     NTA_DEBUG << "compute "<< *out << std::endl;
   
   out = getOutput("predictiveCells");
-    out->getData().getSDR() = tm_->getPredictiveCells();
+    SDR predictive = tm_->getPredictiveCells();
+    if (args_.orColumnOutputs)  // output as columns
+      out->getData().getSDR() = tm_->cellsToColumns(predictive);
+    else
+      out->getData().getSDR() = predictive;
     NTA_DEBUG << "compute " << *out << std::endl;
 }
 

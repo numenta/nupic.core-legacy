@@ -66,17 +66,18 @@ public:
 
   SpatialPooler();
   SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
-                UInt potentialRadius = 16u, Real potentialPct = 0.5f,
-                bool globalInhibition = true, 
+    UInt potentialRadius = 16u, 
+    Real potentialPct = 0.5f,
+    bool globalInhibition = false, 
 		Real localAreaDensity = 0.05f, //5%
-                UInt stimulusThreshold = 0u, 
+    UInt stimulusThreshold = 0u, 
 		Real synPermInactiveDec = 0.008f,
-                Real synPermActiveInc = 0.05f, 
+    Real synPermActiveInc = 0.05f, 
 		Real synPermConnected = 0.1f,
-                Real minPctOverlapDutyCycles = 0.001f,
-                UInt dutyCyclePeriod = 1000u, 
+    Real minPctOverlapDutyCycles = 0.001f,
+    UInt dutyCyclePeriod = 1000u, 
 		Real boostStrength = 0.0f,
-                Int seed = 1, 
+    Int seed = 1, 
 		UInt spVerbosity = 0u, 
 		bool wrapAround = true);
 

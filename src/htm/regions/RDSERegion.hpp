@@ -67,6 +67,8 @@ public:
   template<class Archive>
   void save_ar(Archive& ar) const {
     ar(CEREAL_NVP(sensedValue_));
+    ar(CEREAL_NVP(noise_));
+    ar(CEREAL_NVP(rnd_));
     ar(cereal::make_nvp("encoder", encoder_));
   }
   // FOR Cereal Deserialization
@@ -77,6 +79,8 @@ public:
   template<class Archive>
   void load_ar(Archive& ar) {
     ar(CEREAL_NVP(sensedValue_));
+    ar(CEREAL_NVP(noise_));
+    ar(CEREAL_NVP(rnd_));
     ar(cereal::make_nvp("encoder", encoder_));
     setDimensions(encoder_->dimensions); 
   }
@@ -89,6 +93,8 @@ public:
 
 private:
   Real64 sensedValue_;
+  Real32 noise_;
+  Random rnd_;
   std::shared_ptr<RandomDistributedScalarEncoder> encoder_;
 };
 } // namespace htm

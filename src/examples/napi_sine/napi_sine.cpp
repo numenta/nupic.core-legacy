@@ -19,11 +19,13 @@
 #include <htm/utils/Random.hpp>
 #include <htm/utils/Log.hpp>
 #include <htm/ntypes/Value.hpp>
+#include "htm/utils/MovingAverage.hpp"
+#include "htm/algorithms/AnomalyLikelihood.hpp"
 #include <fstream>
 
 using namespace htm;
 
-static bool verbose = false;
+static bool verbose = true;
 #define VERBOSE if (verbose)  std::cout << "    "
 
 
@@ -31,15 +33,19 @@ static bool verbose = false;
 
 int main(int argc, char* argv[]) {
   htm::UInt EPOCHS = 5000;      // number of iterations (calls to encoder/SP/TP compute() )
+#ifndef NDEBUG
+  EPOCHS = 2; // make test faster in Debug
+#endif
+
   const UInt DIM_INPUT = 1000;  // Width of encoder output
   const UInt COLS = 2048;       // number of columns in SP, TP
   const UInt CELLS = 8;         // cells per column in TP
   Random rnd(42);               // uses fixed seed for deterministic output
   std::ofstream ofs;
 
-  std::string encoder_params   = "{size: " + std::to_string(DIM_INPUT) + ", activeBits: 4, radius: 0.5, seed: 2019 }";
+  std::string encoder_params   = "{size: " + std::to_string(DIM_INPUT) + ", sparsity: 0.2, radius: 0.03, seed: 2019, noise: 0.01}";
   std::string sp_global_params = "{columnCount: " + std::to_string(COLS) + ", globalInhibition: true}";
-  std::string tm_params        = "{activationThreshold: 9, cellsPerColumn: " + std::to_string(CELLS) + "}";
+  std::string tm_params        = "{cellsPerColumn: " + std::to_string(CELLS) + ", orColumnOutputs: true}";
 
   //  Runtime arguments:  napi_sine [epochs [filename]]
   if(argc >= 2) {
@@ -51,7 +57,7 @@ int main(int argc, char* argv[]) {
 
   try {
 
-    std::cout << "initializing\n";
+    std::cout << "initializing. DIM_INPUT=" << DIM_INPUT << ", COLS=" << COLS << ", CELLS=" << CELLS << "\n";
 
     Network net;
 
@@ -65,6 +71,7 @@ int main(int argc, char* argv[]) {
     net.link("sp_global", "tm",        "", "", "bottomUpOut", "bottomUpIn");
 
     net.initialize();
+
 
     ///////////////////////////////////////////////////////////////
     //
@@ -92,39 +99,60 @@ int main(int argc, char* argv[]) {
     // enable this to see a trace as it executes
     //net.setLogLevel(LogLevel::LogLevel_Verbose);
 
-    std::cout << "Running: \n";
+    std::cout << "Running: " << EPOCHS << " Iterations.\n ";
+
+    float anLikely = 0.0f;
+    MovingAverage avgAnomaly(1000); 
+    AnomalyLikelihood anLikelihood;
+
     // RUN
-    for (size_t i = 0; i < EPOCHS; i++) {
+    float x = 0.00f; 
+    for (size_t e = 0; e < EPOCHS; e++) {
       // genarate some data to send to the encoder
-      //  -- A sin wave, one degree rotation per iteration, 1% noise added
-      double data = std::sin(i * (3.1415 / 180)) + (double)rnd.realRange(-0.01f, +0.1f);
+      
+      //  -- A sine wave, one degree rotation per iteration (an alternate function)
+      //double data = std::sin(i * (3.1415 / 180));
+      
+      // -- sine wave, 0.01 radians per iteration   (Note: first iteration is for x=0.01, not 0)
+      x += 0.01f; // step size for fn(x)
+      double data = std::sin(x);
       encoder->setParameterReal64("sensedValue", data); // feed data into RDSE encoder for this iteration.
 
       // Execute an iteration.
       net.run(1);
 
-      // output values
       float an = ((float *)tm->getOutputData("anomaly").getBuffer())[0];
-      VERBOSE << "Epoch = " << i << std::endl;
-      VERBOSE << "  Data        = " << data << std::endl;
-      VERBOSE << "  Encoder out = " << encoder->getOutputData("encoded").getSDR();
-      VERBOSE << "  SP (global) = " << sp_global->getOutputData("bottomUpOut").getSDR();
-      VERBOSE << "  TM output   = " << tm->getOutputData("bottomUpOut").getSDR();
-      VERBOSE << "  ActiveCells = " << tm->getOutputData("activeCells").getSDR();
-      VERBOSE << "  winners     = " << tm->getOutputData("predictedActiveCells").getSDR();
-      VERBOSE << "  Anomaly     = " << an << std::endl;
+      avgAnomaly.compute(an);
+      anLikely = anLikelihood.anomalyProbability(an); 
 
-      // Save the data for plotting.   <iteration>, <sin data>, <anomaly>\n
-      if (ofs.is_open())
-        ofs << i << "," << data << "," << an << std::endl;
+
+      // Save the data for plotting.   <iteration>, <sin data>, <anomaly>, <likelyhood>\n
+      if (ofs.is_open()) {
+        ofs << e << "," << data << "," << an << "," << anLikely << std::endl;
+      }
+
+      if (e == EPOCHS - 1) 
+      {
+
+        // output values
+        float final_an = ((float *)tm->getOutputData("anomaly").getBuffer())[0];
+        VERBOSE << "Result after " << e + 1 << " iterations.\n";
+        VERBOSE << "  Anomaly(avg)        = " << avgAnomaly.getCurrentAvg() << std::endl;
+        VERBOSE << "  Anomaly(Likelihood) = " << anLikely << endl;
+        VERBOSE << "  Encoder out         = " << encoder->getOutputData("encoded").getSDR();
+        VERBOSE << "  SP (global)         = " << sp_global->getOutputData("bottomUpOut").getSDR();
+        VERBOSE << "  TM predictive       = " << tm->getOutputData("predictiveCells").getSDR();
+      }
     }
     if (ofs.is_open())
       ofs.close();
+
+
     std::cout << "finished\n";
 
 
-  } catch (Exception &e) {
-    std::cerr << e.what();
+  } catch (Exception &ex) {
+    std::cerr << ex.what();
     if (ofs.is_open())
       ofs.close();
     return 1;

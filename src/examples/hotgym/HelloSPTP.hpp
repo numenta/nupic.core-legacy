@@ -16,7 +16,7 @@ class BenchmarkHotgym {
 public:	
   Real64 run(
     UInt EPOCHS = 5000,
-    bool useSPlocal=true, //can toggle which (long running) components are tested, default all
+    bool useSPlocal=false, //can toggle which (long running) components are tested, default all
     bool useSPglobal=true,
     bool useTM=true,
     const UInt COLS = 2048, // number of columns in SP, TP

@@ -417,6 +417,7 @@ install(TARGETS
         
 install(TARGETS
         ${src_executable_hotgym}
+        ${src_executable_napi_sine}
         ${src_executable_mnistsp}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
