@@ -68,7 +68,7 @@ public:
   SpatialPooler(const vector<UInt> inputDimensions, const vector<UInt> columnDimensions,
     UInt potentialRadius = 16u, 
     Real potentialPct = 0.5f,
-    bool globalInhibition = false, 
+    bool globalInhibition = true, 
 		Real localAreaDensity = 0.05f, //5%
     UInt stimulusThreshold = 0u, 
 		Real synPermInactiveDec = 0.008f,
