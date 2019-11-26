@@ -152,9 +152,7 @@ TEST(CppRegionTest, testCppLinkingSDR) {
       << "Expected dimensions on the output to match dimensions on the buffer.";
   VERBOSE << r2OutputArray << "\n";
   SDR exp({20u, 3u});
-  exp.setSparse(SDR_sparse_t{
-    4, 21, 32, 46
-  });
+  exp.setSparse(SDR_sparse_t { 10, 18, 28, 38, 45, 57 });
   EXPECT_EQ(r2OutputArray, exp.getDense()) << "got " << r2OutputArray;
 }
 

@@ -49,7 +49,7 @@ namespace htm {
           category:    {type: Bool,   default: "false"},
           seed:        {type: UInt32, default: "0"},
           noise:       {description: "amount of noise to add to the output SDR. 0.01 is 1%",
-                        type: Real32, default: "0.0"},
+                        type: Real32, default: "0.0", access: ReadWrite },
           sensedValue: {description: "The value to encode. Overriden by input 'values'.",
                         type: Real64, default: "0.0", access: ReadWrite }},
       inputs: {
@@ -117,6 +117,10 @@ void RDSERegion::setParameterReal64(const std::string &name, Int64 index, Real64
   if (name == "sensedValue")  sensedValue_ = value;
   else  RegionImpl::setParameterReal64(name, index, value);
 }
+void RDSERegion::setParameterReal32(const std::string &name, Int64 index, Real32 value) {
+  if (name == "noise") noise_ = value;
+  else RegionImpl::setParameterReal32(name, index, value);
+}
 
 Real64 RDSERegion::getParameterReal64(const std::string &name, Int64 index) {
   if (name == "sensedValue") { return sensedValue_;}
@@ -125,6 +129,7 @@ Real64 RDSERegion::getParameterReal64(const std::string &name, Int64 index) {
 
 Real32 RDSERegion::getParameterReal32(const std::string &name, Int64 index) {
   if (name == "resolution")    return encoder_->parameters.resolution;
+  else if (name == "noise")    return noise_;
   else if (name == "radius")   return encoder_->parameters.radius;
   else if (name == "sparsity") return encoder_->parameters.sparsity;
   else return RegionImpl::getParameterReal32(name, index);

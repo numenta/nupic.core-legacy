@@ -213,7 +213,7 @@ TEST(TMRegionTest, testLinking) {
   std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor",parameters);
   std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,10]}");
   std::shared_ptr<Region> region3 = net.addRegion("region3", "TMRegion",
-                                        "{activationThreshold: 9, cellsPerColumn: 5}");
+                                        "{activationThreshold: 11, cellsPerColumn: 5}");
   std::shared_ptr<Region> region4 = net.addRegion("region4", "VectorFileEffector",
                                         "{outputFile: '" + test_output_file + "'}");
 
@@ -316,9 +316,7 @@ TEST(TMRegionTest, testLinking) {
       << numberOfCols << " * " << cellsPerColumn;
   VERBOSE << "   " << r3OutputArray << ")\n";
   std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
-            {
-	      95, 96, 97, 98, 99
-	    }, (UInt32)r3OutputArray.getCount());
+            {70, 71, 72, 73, 74 }, (UInt32)r3OutputArray.getCount());
   EXPECT_EQ(r3OutputArray, expected3outa) << r3OutputArray;
 
 

@@ -425,7 +425,7 @@ Spec *SPRegion::createSpec() {
           NTA_BasicType_Int32,           // type
           1,                             // elementCount
           "",                            // constraints
-          "-1",                          // defaultValue
+          "1",                          // defaultValue
           ParameterSpec::CreateAccess)); // access
 
   ns->parameters.add(
