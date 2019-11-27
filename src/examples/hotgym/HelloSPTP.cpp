@@ -154,7 +154,7 @@ EPOCHS = 2; // make test faster in Debug
       avgAnomOld_ = avgAnom10.getCurrentAvg(); //update
     }
     tAnLikelihood.start();
-    anLikely = anLikelihood.anomalyProbability(an); //FIXME AnLikelihood is 0.0, probably not working correctly
+    anLikely = anLikelihood.anomalyProbability(an); 
     tAnLikelihood.stop();
 
 
