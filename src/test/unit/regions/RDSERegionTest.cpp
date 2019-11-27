@@ -52,7 +52,7 @@
 #define VERBOSE if(verbose)std::cerr << "[          ] "
 static bool verbose = false;  // turn this on to print extra stuff for debugging the test.
 
-const UInt EXPECTED_SPEC_COUNT =  8u;  // The number of parameters expected in the RDSERegion Spec
+const UInt EXPECTED_SPEC_COUNT =  9u;  // The number of parameters expected in the RDSERegion Spec
 
 using namespace htm;
 namespace testing 

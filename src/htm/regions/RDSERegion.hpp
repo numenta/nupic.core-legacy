@@ -55,7 +55,8 @@ public:
   virtual Real32 getParameterReal32(const std::string &name, Int64 index = -1) override;
   virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
   virtual bool getParameterBool(const std::string &name,   Int64 index = -1) override;
-  virtual void setParameterReal64(const std::string &name, Int64 index,  Real64 value) override;
+  virtual void setParameterReal32(const std::string &name, Int64 index, Real32 value) override;
+  virtual void setParameterReal64(const std::string &name, Int64 index, Real64 value) override;
   virtual void initialize() override;
 
   void compute() override;
@@ -67,6 +68,8 @@ public:
   template<class Archive>
   void save_ar(Archive& ar) const {
     ar(CEREAL_NVP(sensedValue_));
+    ar(CEREAL_NVP(noise_));
+    ar(CEREAL_NVP(rnd_));
     ar(cereal::make_nvp("encoder", encoder_));
   }
   // FOR Cereal Deserialization
@@ -77,6 +80,8 @@ public:
   template<class Archive>
   void load_ar(Archive& ar) {
     ar(CEREAL_NVP(sensedValue_));
+    ar(CEREAL_NVP(noise_));
+    ar(CEREAL_NVP(rnd_));
     ar(cereal::make_nvp("encoder", encoder_));
     setDimensions(encoder_->dimensions); 
   }
@@ -89,6 +94,8 @@ public:
 
 private:
   Real64 sensedValue_;
+  Real32 noise_;
+  Random rnd_;
   std::shared_ptr<RandomDistributedScalarEncoder> encoder_;
 };
 } // namespace htm

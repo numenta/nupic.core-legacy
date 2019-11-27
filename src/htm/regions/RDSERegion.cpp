@@ -28,6 +28,7 @@
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
 #include <htm/ntypes/Array.hpp>
+#include "htm/utils/Random.hpp"
 #include <htm/utils/Log.hpp>
 
 #include <memory>
@@ -47,18 +48,23 @@ namespace htm {
           resolution:  {type: Real32, default: "0.0"},
           category:    {type: Bool,   default: "false"},
           seed:        {type: UInt32, default: "0"},
-          sensedValue: {type: Real64, default: "0.0", access: ReadWrite }},
+          noise:       {description: "amount of noise to add to the output SDR. 0.01 is 1%",
+                        type: Real32, default: "0.0", access: ReadWrite },
+          sensedValue: {description: "The value to encode. Overriden by input 'values'.",
+                        type: Real64, default: "0.0", access: ReadWrite }},
       inputs: {
-          values:      {type: Real64, count: 1, isDefaultInput: yes, isRegionLevel: yes}}, 
+          values:      {description: "Values to encode. Overrides sensedValue.",
+                        type: Real64, count: 1, isDefaultInput: yes, isRegionLevel: yes}}, 
       outputs: {
-          encoded:     {type: SDR,    count: 0, isDefaultOutput: yes, isRegionLevel: yes }}} )");
+          encoded:     {description: "Encoded bits. Not a true Sparse Data Representation.",
+                        type: SDR,    count: 0, isDefaultOutput: yes, isRegionLevel: yes }}} )");
 
   return ns;
 }
 
 
 RDSERegion::RDSERegion(const ValueMap &par, Region *region) : RegionImpl(region) {
-
+  rnd_ = Random(42);
   spec_.reset(createSpec());
   ValueMap params = ValidateParameters(par, spec_.get());
     
@@ -73,7 +79,7 @@ RDSERegion::RDSERegion(const ValueMap &par, Region *region) : RegionImpl(region)
 
   encoder_ = std::make_shared<RandomDistributedScalarEncoder>(args);
   sensedValue_ = params.getScalarT<Real64>("sensedValue");
-
+  noise_ = params.getScalarT<Real32>("noise");
 }
 
 RDSERegion::RDSERegion(ArWrapper &wrapper, Region *region)
@@ -99,12 +105,21 @@ void RDSERegion::compute() {
   }
   SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
+
+  // Add some noise.
+  // noise_ = 0.01 means change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
+  if (noise_ != 0.0f)
+    output.addNoise(noise_, rnd_);
 }
 
 
 void RDSERegion::setParameterReal64(const std::string &name, Int64 index, Real64 value) {
   if (name == "sensedValue")  sensedValue_ = value;
   else  RegionImpl::setParameterReal64(name, index, value);
+}
+void RDSERegion::setParameterReal32(const std::string &name, Int64 index, Real32 value) {
+  if (name == "noise") noise_ = value;
+  else RegionImpl::setParameterReal32(name, index, value);
 }
 
 Real64 RDSERegion::getParameterReal64(const std::string &name, Int64 index) {
@@ -114,6 +129,7 @@ Real64 RDSERegion::getParameterReal64(const std::string &name, Int64 index) {
 
 Real32 RDSERegion::getParameterReal32(const std::string &name, Int64 index) {
   if (name == "resolution")    return encoder_->parameters.resolution;
+  else if (name == "noise")    return noise_;
   else if (name == "radius")   return encoder_->parameters.radius;
   else if (name == "sparsity") return encoder_->parameters.sparsity;
   else return RegionImpl::getParameterReal32(name, index);

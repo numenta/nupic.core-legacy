@@ -32,8 +32,9 @@ from htm.bindings.tools.serialization_test_py_region import \
 
 TEST_DATA = [0,1,2,3,4]
 EXPECTED_RESULT1 = [  4, 5 ]
-EXPECTED_RESULT2 = [  4,  11,  28,  42,  43,  87,  89,  93, 110, 127, 132, 137, 149, 187, 193]
-EXPECTED_RESULT3 = [ 134, 371, 924, 1358, 1386, 2791, 2876, 2996, 3526, 4089, 4242, 4406, 4778, 5994, 6199]
+#EXPECTED_RESULT2 = [  4,  11,  28,  42,  43,  87,  89,  93, 110, 127, 132, 137, 149, 187, 193]
+EXPECTED_RESULT2 = [ 16, 32, 44, 81, 104, 109, 114, 166, 197, 198 ]
+EXPECTED_RESULT3 = [ 518, 1043, 1436, 2606, 3338, 3495, 3676, 5332, 6310, 6361 ]
 
 
 class LinkRegion(PyRegion):
@@ -312,12 +313,13 @@ class NetworkTest(unittest.TestCase):
     
     sp_output = sp.getOutputArray("bottomUpOut")
     sdr = sp_output.getSDR()
+    #print(sdr)
     self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT2))
     
     tm_output = tm.getOutputArray("predictedActiveCells")
     sdr = tm_output.getSDR()
-    print(sdr.sparse)
-    print(EXPECTED_RESULT3)
+    #print(sdr)
+    #print(EXPECTED_RESULT3)
     self.assertTrue(np.array_equal(sdr.sparse, EXPECTED_RESULT3))
 
   def testExecuteCommand1(self):

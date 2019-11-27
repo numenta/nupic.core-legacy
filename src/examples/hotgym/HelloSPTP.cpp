@@ -121,7 +121,7 @@ EPOCHS = 2; // make test faster in Debug
     input.addNoise(0.01f, rnd); //change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
     tRng.stop();
 
-    //SP (global x local)
+    //SP (global and local)
     if(useSPlocal) {
     tSPloc.start();
     spLocal.compute(input, true, outSPlocal);
@@ -154,7 +154,7 @@ EPOCHS = 2; // make test faster in Debug
       avgAnomOld_ = avgAnom10.getCurrentAvg(); //update
     }
     tAnLikelihood.start();
-    anLikelihood.anomalyProbability(an); //FIXME AnLikelihood is 0.0, probably not working correctly
+    anLikely = anLikelihood.anomalyProbability(an); 
     tAnLikelihood.stop();
 
 
@@ -173,13 +173,14 @@ EPOCHS = 2; // make test faster in Debug
 	   << "\n";
 
       // output values
-      cout << "Epoch = " << e << endl;
+      cout << "Epoch = " << e+1 << endl;
       cout << "Anomaly = " << an << endl;
       cout << "Anomaly (avg) = " << avgAnom10.getCurrentAvg() << endl;
       cout << "Anomaly (Likelihood) = " << anLikely << endl;
-      cout << "SP (g)= " << outSP << endl;
-      cout << "SP (l)= " << outSPlocal <<endl;
-      cout << "TM= " << outTM << endl;
+      cout << "input = " << input << endl;
+      if(useSPlocal) cout << "SP (g)= " << outSP << endl;
+      if(useSPlocal) cout << "SP (l)= " << outSPlocal <<endl;
+      if(useTM) cout << "TM= " << outTM << endl;
 
       //timers
       cout << "==============TIMERS============" << endl;
@@ -220,7 +221,7 @@ EPOCHS = 2; // make test faster in Debug
       const float goldAnAvg = 0.411894f; // ...the averaged value, on the other hand, should improve/decrease. 
 
 #ifdef _ARCH_DETERMINISTIC
-      if(EPOCHS == 5000) {
+      if(e+1 == 5000) {
         //these hand-written values are only valid for EPOCHS = 5000 (default), but not for debug and custom runs.
         NTA_CHECK(input == goldEnc) << "Deterministic output of Encoder failed!\n" << input << "should be:\n" << goldEnc;
         if(useSPglobal) { NTA_CHECK(outSPglobal == goldSP) << "Deterministic output of SP (g) failed!\n" << outSP << "should be:\n" << goldSP; }
@@ -230,6 +231,7 @@ EPOCHS = 2; // make test faster in Debug
                   << "Deterministic output of Anomaly failed! " << an << "should be: " << goldAn;
         NTA_CHECK(static_cast<UInt>(avgAnom10.getCurrentAvg() * 10000.0f) == static_cast<UInt>(goldAnAvg * 10000.0f))
                   << "Deterministic average anom score failed:" << avgAnom10.getCurrentAvg() << " should be: " << goldAnAvg;
+        std::cout << "outputs match\n";
       }
 #endif
 

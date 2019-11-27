@@ -185,6 +185,7 @@ set(examples_files
     examples/hotgym/Hotgym.cpp # contains conflicting main()
     examples/hotgym/HelloSPTP.cpp
     examples/hotgym/HelloSPTP.hpp
+    examples/napi_sine/napi_sine.cpp
     examples/mnist/MNIST_SP.cpp
 )
 
@@ -356,6 +357,30 @@ else()
 		${EXTERNAL_INCLUDES}
 		)
 endif()
+
+#########################################################
+## NetworkAPI version of benchmark_sine
+
+set(src_executable_napi_sine napi_sine)
+add_executable(${src_executable_napi_sine} examples/napi_sine/napi_sine.cpp)
+# link with the static library
+target_link_libraries(${src_executable_napi_sine} 
+    ${INTERNAL_LINKER_FLAGS}
+    ${core_library}
+    ${COMMON_OS_LIBS}
+)                  
+target_compile_options( ${src_executable_napi_sine} PUBLIC ${INTERNAL_CXX_FLAGS})
+target_compile_definitions(${src_executable_napi_sine} PRIVATE ${COMMON_COMPILER_DEFINITIONS})
+target_include_directories(${src_executable_napi_sine} PRIVATE 
+		${CORE_LIB_INCLUDES} 
+		${EXTERNAL_INCLUDES}
+		)
+add_custom_target(sine_napi_run
+          COMMAND ${src_executable_napi_sine}
+          DEPENDS ${src_executable_napi_sine}
+          COMMENT "Executing ${src_executable_napi_sine}"
+          VERBATIM)
+
 #########################################################
 ## MNIST Spatial Pooler Example
 #
@@ -392,6 +417,7 @@ install(TARGETS
         
 install(TARGETS
         ${src_executable_hotgym}
+        ${src_executable_napi_sine}
         ${src_executable_mnistsp}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
