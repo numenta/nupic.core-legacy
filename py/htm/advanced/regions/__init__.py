@@ -1,13 +1,14 @@
 
 import json
 
-def extractList(list_string, dataType=None):
+def extractList(listString, dataType=None):
     """
     Extract a list of dataType from list_string string.
     The same separator must be used consistently in the string. Either ',' or single spaces.
     If dataType is None, just return a parsed list.
     """
     data_list = []
+    list_string = listString
     
     if list_string:
         try:
@@ -15,6 +16,8 @@ def extractList(list_string, dataType=None):
             
         except json.decoder.JSONDecodeError:
             try:
+                if list_string.startswith('[ '):
+                    list_string = list_string.replace('[ ', '[')
                 list_string = (',').join(list_string.split(' '))
                 data_list = json.loads(list_string)
                 
