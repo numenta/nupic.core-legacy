@@ -16,6 +16,8 @@ def extractList(listString, dataType=None):
             
         except json.decoder.JSONDecodeError:
             try:
+                list_string = list_string.replace('   ', ' ')
+                list_string = list_string.replace('  ', ' ')
                 if list_string.startswith('[ '):
                     list_string = list_string.replace('[ ', '[')
                 list_string = (',').join(list_string.split(' '))
@@ -24,7 +26,12 @@ def extractList(listString, dataType=None):
             except json.decoder.JSONDecodeError:
                 list_string = list_string.replace('.,', '.0,')
                 list_string = list_string.replace('.]', '.0]')
-                data_list = json.loads(list_string)
+                try:
+                    data_list = json.loads(list_string)
+                except json.decoder.JSONDecodeError as ex:
+                    # Got something really out of bounds
+                    # Catch and then ass on as a debugging hook
+                    raise ex
                 
         if data_list:
             if dataType is None:

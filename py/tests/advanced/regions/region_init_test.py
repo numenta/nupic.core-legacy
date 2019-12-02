@@ -104,8 +104,18 @@ class RegionInitTests(unittest.TestCase):
         self.assertEqual([20.0, -20.0], extracted_list)
         list_string = '[ 20.0, -20.0]'
         extracted_list = extractList(list_string, float)
+        list_string = '[  20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        list_string = '[   20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
         self.assertEqual([20.0, -20.0], extracted_list)
         list_string = '[-20.0,20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, 20.0], extracted_list)
+        list_string = '[-20.0, 20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, 20.0], extracted_list)
+        list_string = '[-20.0,  20.0]'
         extracted_list = extractList(list_string, float)
         self.assertEqual([-20.0, 20.0], extracted_list)
         list_string = '[ -20.0,20.0]'
