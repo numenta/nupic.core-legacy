@@ -1,4 +1,4 @@
-<img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
+﻿<img src="http://numenta.org/87b23beb8a4b7dea7d88099bfb28d182.svg" alt="NuPIC Logo" width=100/>
 
 # htm.core
 
@@ -58,16 +58,19 @@ For running C++ apps/examples/tests from binary release: none.
 If you want to use python, then obviously:
 
 - [Python](https://python.org/downloads/)
-    - Version 3.4+ (Recommended)
-    - Version 2.7
+    - Standard Python 3.4+ (Recommended)
+    - Standard Python 2.7
       + We recommend the latest version of 2.7 where possible, but the system version should be fine.
       + Python 2 is Not Supported on Windows, use Python 3 instead.
       + Python 2 is not tested by our CI anomore. It may still work but we don't test it. We expect to drop support for Python2 around 2020.
+    - Anaconda Python 3.7+
+      + On windows you must run from within 'Anaconda Prompt' not 'Command Prompt'.
+      + The pre-built binary releases only work with Standard Python so you must build from sources.
+      + Anaconda Python is not tested in our CI.
 
   Be sure that your Python executable is in the Path environment variable.
   The Python that is in your default path is the one that will determine which
   version of Python the extension library will be built for.
-  - NOTE: People have reported success with `Anaconda` python.
   - Other implementations of Python may not work.
   - Only the standard python from python.org have been tested.
 
@@ -91,23 +94,33 @@ python --version
 
 #### Simple Python build (any platform)
 
-1) At a command prompt, go to the root directory of this repository.
+1) At a command prompt, cd to the root directory of this repository.
 
 2) Run: `python setup.py install --user --force`
 
-   This will build and install everything.
+   This will build and install everything.  The `--user` option prevents the system installed site-packages folder from being changed and avoids the need for admin privileges.  The `--force` option forces the package to be replaced if it already exists from a previous build. Alternatively you can type `pip uninstall htm.core` to remove a previous package before performing a build.
+   
+   * If you are using `virtualenv` you do not need the --user or --force options.
+   * If you are using Anaconda Python you must run within the `Anaconda Prompt` on Windows. Do not use --user or --force options.
 
    * If you run into problems due to caching of arguments in CMake, delete the
    folder `Repository/build` and try again.  This is only an issue when
    developing C++ code.
 
 3) After that completes you are ready to import the library:
-```python
-python.exe
->>> import htm           # Python Library
->>> import htm.bindings  # C++ Extensions
->>> help( htm )          # Documentation
-```
+    ```python
+    python.exe
+    >>> import htm           # Python Library
+    >>> import htm.bindings  # C++ Extensions
+    >>> help( htm )          # Documentation
+    ```
+    
+    You can run the unit tests with
+    
+    ```python
+    python setup.py test
+    ```
+
 
 #### Simple C++ build 
 
@@ -131,11 +144,11 @@ make -j install
 
  * A debug library can be created by adding `-DCMAKE_BUILD_TYPE=Debug` to the cmake command above.
    + The debug library will be put in `build/Debug`.
-     Use the cmake option `-DCMAKE_INSTALL_PREFIX=../Release` to correct this.
+     Use the cmake option `-DCMAKE_INSTALL_PREFIX=../Release` to change this.
 
  * The -j option can be used with the `make install` command to compile with multiple threads.
 
- * This will not build the Python interface.
+ * This will not build the Python interface. Use the Python build described above to build and install the python interface.
 
 
 ### Docker Builds
@@ -300,7 +313,6 @@ distribution packages as listed and rename them as indicated. Copy these to
 | Name to give it        | Where to obtain it |
 | :--------------------- | :----------------- |
 | libyaml.zip   (*node1) | https://github.com/yaml/libyaml/archive/master.zip |
-| yaml-cpp.zip  (*note2) | https://github.com/jbeder/yaml-cpp/archive/master.zip |
 | boost.tar.gz  (*note3) | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz |
 | eigen.tar.bz2          | http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 |
 | googletest.tar.gz      | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
@@ -310,9 +322,8 @@ distribution packages as listed and rename them as indicated. Copy these to
 | digestpp.zip           | https://github.com/kerukuro/digestpp/archive/36fa6ca2b85808bd171b13b65a345130dbe1d774.zip |
 
  * note1: Version 0.2.2 of libyaml is broken so use the master for the repository.
- * note2: Version 0.6.2 of yaml-cpp is broken so use the master from the repository.
  * note3: Boost is not required for any compiler that supports C++17 with `std::filesystem` (MSVC2017, gcc-8, clang-9).
- * note4: Data used for demo. Not required.
+ * note4: Data used for demo. Not required to run but the build expects it.
 
 ## Testing
 
