@@ -65,7 +65,7 @@ TEST(ClassifierRegionTest, testSpecAndParameters) {
   // create an RDSERegion region with default parameters
   Network net;
 
-  Spec *ns = ClassifierRegion::createSpec();
+  //Spec *ns = ClassifierRegion::createSpec();
   //VERBOSE << *ns << std::endl;
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "ClassifierRegion", "{}"); // use default configuration
@@ -155,7 +155,7 @@ TEST(ClassifierRegionTest, asRealDecoder) {
   Random rnd(42);
 
   VERBOSE << "With RDSE encoder, Leaning with random numbers between -1.0 and +1.0 with radius of 0.1" << std::endl;
-  for (int i = 0; i < EPOCH; i++) {
+  for (size_t i = 0; i < EPOCH; i++) {
     // learn values between -1.0 and 1.0, with a bucket size of 0.1  (100 buckets)
     // Note, to use a smaller bucket or higher probability, there needs to be a lot more iterations.
     encoder->setParameterReal64("sensedValue", rnd.realRange(-1.0f, +1.0f));
