@@ -47,7 +47,8 @@ void Classifier::initialize(const Real alpha)
 PDF Classifier::infer(const SDR & pattern) const {
   // Check input dimensions, or if this is the first time the Classifier is used and dimensions
   // are unset, return zeroes.
-  if( dimensions_ == 0 ) {
+  NTA_CHECK(pattern.size > 0) << "No Data pased to Classifier. Pattern is empty.";
+  if (dimensions_ == 0) {
     NTA_WARN << "Classifier: must call `learn` before `infer`.";
     return PDF(numCategories_, std::nan("")); //empty array []
   }
@@ -78,6 +79,7 @@ void Classifier::learn(const SDR &pattern, const vector<UInt> &categoryIdxList)
       weights_.push_back( initialEmptyWeights );
     }
   }
+  NTA_CHECK(pattern.size > 0) << "No Data pased to Classifier. Pattern is empty.";
   NTA_ASSERT(pattern.size == dimensions_) << "Input SDR does not match previously seen size!";
 
   // Check if this is a new category & resize the weights table to hold it.
@@ -135,6 +137,22 @@ void htm::softmax(PDF::iterator begin, PDF::iterator end) {
     *itr /= sum;
   }
 }
+
+
+bool Classifier::operator==(const Classifier &other) const {
+  if (alpha_ != other.alpha_) return false;
+  if (dimensions_ != other.dimensions_) return false; 
+  if (numCategories_ != other.numCategories_) return false;
+  if (weights_.size() != other.weights_.size()) return false;
+  for (size_t i = 0; i < weights_.size();  i++) {
+    if (weights_[i].size() != other.weights_[i].size()) return false;
+    for (size_t j = 0; j < weights_[i].size(); j++) {
+      if (weights_[i][j] != other.weights_[i][j]) return false;
+    }
+  }
+  return true;
+}
+
 
 
 /******************************************************************************/

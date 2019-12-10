@@ -105,6 +105,8 @@ Value &Value::parse(const std::string &yaml_string) {
       std::string err = "Parse Error " + std::to_string(parser.error) + ": " + std::string(parser.problem) +
                         ", offset: " + std::to_string(parser.problem_offset) +
                         ", context: " + std::string(parser.context);
+      if (!key.empty())
+        err += " following key: `" + key + "'.";
       yaml_parser_delete(&parser);
       VERBOSE << err << std::endl;
       NTA_THROW << err;

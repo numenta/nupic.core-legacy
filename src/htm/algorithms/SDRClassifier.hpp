@@ -151,8 +151,15 @@ public:
   }
 
   template<class Archive>
-  void load_ar(Archive & ar)
-    { ar( alpha_, dimensions_, numCategories_, weights_ ); }
+  void load_ar(Archive & ar) {
+    ar(cereal::make_nvp("alpha", alpha_), 
+       cereal::make_nvp("dimensions", dimensions_),
+       cereal::make_nvp("numCategories", numCategories_), 
+       cereal::make_nvp("weights", weights_));
+  }
+
+  bool operator==(const Classifier &other) const;
+  bool operator!=(const Classifier &other) const { return !operator==(other); }
 
 private:
   Real alpha_;

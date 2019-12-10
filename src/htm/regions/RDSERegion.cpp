@@ -56,8 +56,11 @@ namespace htm {
           values:      {description: "Values to encode. Overrides sensedValue.",
                         type: Real64, count: 1, isDefaultInput: yes, isRegionLevel: yes}}, 
       outputs: {
-          encoded:     {description: "Encoded bits. Not a true Sparse Data Representation.",
-                        type: SDR,    count: 0, isDefaultOutput: yes, isRegionLevel: yes }}} )");
+          bucket:      {description: "Quantized sample based on the radius. Becomes the title for this sample in Classifier.",
+                        type: Real64, count: 1, isDefaultOutput: false, isRegionLevel: false },
+          encoded:     {description: "Encoded bits. Not a true Sparse Data Representation (SP does that).",
+    type: SDR,    count: 0, isDefaultOutput: yes, isRegionLevel: yes }}
+  } )");
 
   return ns;
 }
@@ -103,6 +106,10 @@ void RDSERegion::compute() {
     Array &a = getInput("values")->getData();
     sensedValue_ = ((Real64 *)(a.getBuffer()))[0];
   }
+  if (!std::isfinite(sensedValue_))
+    sensedValue_ = 0;  // prevents an exception in case of nan or inf
+  //std::cout << "RDSERegion compute() sensedValue=" << sensedValue_ << std::endl;
+
   SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
 
@@ -110,6 +117,16 @@ void RDSERegion::compute() {
   // noise_ = 0.01 means change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
   if (noise_ != 0.0f)
     output.addNoise(noise_, rnd_);
+    
+  // output a quantized value (for use by Classifier)
+  // This is a quantification of the data being encoded (the sample) 
+  // and becomes the title in the Classifier.
+  if (encoder_->parameters.radius != 0.0f) {
+    Real64 *buf = (Real64 *)getOutput("bucket")->getData().getBuffer();
+    buf[0] = sensedValue_ - std::fmod(sensedValue_, encoder_->parameters.radius);
+    //std::cout << "RDSERegion compute() bucket=" << buf[0] << std::endl;
+  }
+  
 }
 
 
@@ -147,23 +164,24 @@ bool RDSERegion::getParameterBool(const std::string &name, Int64 index) {
   else  return RegionImpl::getParameterBool(name, index);
 }
 
-bool RDSERegion::operator==(const RDSERegion &other) const {
+bool RDSERegion::operator==(const RegionImpl &other) const {
   if (other.getType() != "RDSERegion") return false;
-  if (encoder_->parameters.size != other.encoder_->parameters.size) 
+  const RDSERegion &o = reinterpret_cast<const RDSERegion&>(other);
+  if (encoder_->parameters.size != o.encoder_->parameters.size) 
     return false;
-  if (encoder_->parameters.activeBits != other.encoder_->parameters.activeBits)
+  if (encoder_->parameters.activeBits != o.encoder_->parameters.activeBits)
     return false;
-  if (encoder_->parameters.sparsity != other.encoder_->parameters.sparsity)
+  if (encoder_->parameters.sparsity != o.encoder_->parameters.sparsity)
     return false;
-  if (encoder_->parameters.radius != other.encoder_->parameters.radius)
+  if (encoder_->parameters.radius != o.encoder_->parameters.radius)
     return false;
-  if (encoder_->parameters.resolution != other.encoder_->parameters.resolution)
+  if (encoder_->parameters.resolution != o.encoder_->parameters.resolution)
     return false;
-  if (encoder_->parameters.category != other.encoder_->parameters.category)
+  if (encoder_->parameters.category != o.encoder_->parameters.category)
     return false;
-  if (encoder_->parameters.seed != other.encoder_->parameters.seed)
+  if (encoder_->parameters.seed != o.encoder_->parameters.seed)
     return false;
-  if (sensedValue_ != other.sensedValue_) return false;
+  if (sensedValue_ != o.sensedValue_) return false;
 
   return true;
 }

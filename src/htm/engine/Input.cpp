@@ -328,9 +328,24 @@ void Input::uninitialize() {
   data_.releaseBuffer();
 }
 
+// This is called when an output is resized.
+// We need to change the size of the dimensions and the input buffer.
+// If this is a Fan-in then we need to adjust the offset on the links.
+void Input::resize() {
+  if (!initialized_) return;
+  size_t count = 0;
+  for (auto link : links_) {
+    Output *out = link->getSrc();
+    link->setOffset(count);
+    count += out->getData().getCount();
+  }
+  dim_ = {static_cast<UInt32>(count)};
+  data_.allocateBuffer(count);
+}
+
 namespace htm {
   std::ostream &operator<<(std::ostream &f, const Input &d) {
-    f << "Input:  " << d.getRegion()->getName() << "." << d.getName() << " " << d.getData();
+    f << "Input:  " << d.getRegion()->getName() << "." << d.getName() << " dim:" << d.dim_ << " buffer:" << d.getData();
     return f;
   }
 }
