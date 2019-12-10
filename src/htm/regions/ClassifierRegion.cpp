@@ -33,14 +33,15 @@
  * to the bucket that has the highest probability of a match with the given pattern.
  *
  * An example of the bucket values are:
- * Assume the radius of the encoder is 0.01
+ *   Assume the radius of the encoder is 0.01
+ *   The bucket 1.00 will contain all values >= 1.00 and < 1.01.
  *      value encoded         quantized value (or title) of bucket
  *         1.0                     1.00
  *         6.23463745              6.23
  *        -0.45679278             -0.45
  *         0.0045                  0.00
  * The quality of the prediction will depend on the number of samples it is able to learn 
- * for each bucket.  So it there are a lot of potential buckets it will take a lot of samples
+ * for each bucket.  So if there are a lot of potential buckets it will take a lot of samples
  * in order to match a pattern with a bucket with any confidence.
  * For a range of +10.00 to -10.00 with a radius of 0.01 there will be 20000 buckets,
  * each will need at least 100 or so samples before the 'predicted' output is significant.
