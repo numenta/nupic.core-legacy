@@ -274,7 +274,10 @@ Path operator+(const Path & p1, const Path & p2);
 Path operator+(const std::string & p1, const Path & p2);
 Path operator+(const Path & p1, const std::string & p2);
 
+std::string trim(const std::string &s);
+
 } // namespace htm
+
 
 #endif // NTA_PATH_HPP
 

@@ -83,6 +83,8 @@ set(algorithm_files
 
 set(encoders_files 
     htm/encoders/BaseEncoder.hpp
+    htm/encoders/DateEncoder.cpp
+    htm/encoders/DateEncoder.hpp
     htm/encoders/ScalarEncoder.cpp
     htm/encoders/ScalarEncoder.hpp
     htm/encoders/RandomDistributedScalarEncoder.hpp
