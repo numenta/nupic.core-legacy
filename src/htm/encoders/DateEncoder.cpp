@@ -205,7 +205,7 @@ void DateEncoder::encode(std::chrono::system_clock::time_point time_point, SDR &
 void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
   // -------------------------------------------------------------------------
   // Encode each sub-field
-  std::vector<SDR *> sdrs;
+  std::vector<const SDR *> sdrs;
   SDR season_output;
   SDR dayOfWeek_output;
   SDR weekend_output;
@@ -318,29 +318,12 @@ void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
     VERBOSE << "  timeOfDay: " << timeOfDay << "hrs ==> " << timeOfDay_output;
     sdrs.push_back(&timeOfDay_output);
   }
-
-  output = concatenateSDR(sdrs);
+  if (sdrs.size() > 1)
+    output.concatenate(sdrs);
+  else
+    output = *sdrs[0];
 }
 
-// Copy all of the component SDR's into one concatinated SDR.
-// The component SDR's have different dimensions so the output is a flat SDR.
-SDR DateEncoder::concatenateSDR(const std::vector<SDR *> &sdrs) const {
-  UInt count = 0;
-  for (SDR *sdr : sdrs) {
-    count += sdr->size;
-  }
-  SDR output({count});
-  auto &dense = output.getDense();
-  Byte *to = dense.data();
-  for (SDR *sdr : sdrs) {
-    Byte *from = sdr->getDense().data();
-    for (size_t i = 0; i < sdr->size; i++) {
-      *to++ = *from++;
-    }
-  }
-  output.setDense(dense);
-  return output;
-}
 
 bool DateEncoder::operator==(const DateEncoder &other) const {
   if (args_.season_width != other.args_.season_width)

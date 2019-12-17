@@ -214,8 +214,6 @@ private:
   std::shared_ptr<ScalarEncoder> timeOfDayEncoder_;
   std::set<int> customDays_;
 
-  SDR concatenateSDR(const std::vector<SDR *> &sdrs) const;
-
 }; // end class DateEncoder
 
 std::ostream &operator<<(std::ostream &out, const DateEncoder &self);
