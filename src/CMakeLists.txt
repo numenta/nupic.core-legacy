@@ -142,6 +142,8 @@ set(os_files
 )
 
 set(regions_files
+    htm/regions/DateEncoderRegion.cpp
+    htm/regions/DateEncoderRegion.hpp    
     htm/regions/ScalarSensor.cpp
     htm/regions/ScalarSensor.hpp    
     htm/regions/RDSERegion.cpp

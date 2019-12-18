@@ -27,7 +27,7 @@
 
 #include <htm/encoders/DateEncoder.hpp>
 #include <htm/encoders/ScalarEncoder.hpp>
-#include <htm/os/Path.hpp>  // trim()
+#include <htm/os/Path.hpp>  // trim(), split()
 
 #define VERBOSE   if (args_.verbose) std::cerr << "[          ] "
 
@@ -384,19 +384,6 @@ std::ostream &operator<<(std::ostream &out, const DateEncoder &self) {
     }
   }
   return out;
-}
-
-std::vector<std::string> split(const std::string &str, char delim) {
-  std::vector<std::string> cont;
-  std::size_t current, previous = 0;
-  current = str.find(delim);
-  while (current != std::string::npos) {
-    cont.push_back(str.substr(previous, current - previous));
-    previous = current + 1;
-    current = str.find(delim, previous);
-  }
-  cont.push_back(str.substr(previous, current - previous));
-  return cont;
 }
 
 

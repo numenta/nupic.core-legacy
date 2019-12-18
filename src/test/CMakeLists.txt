@@ -84,6 +84,7 @@ set(os_tests
 set(regions_tests
 	   unit/regions/RegionTestUtilities.cpp
 	   unit/regions/RegionTestUtilities.hpp
+	   unit/regions/DateEncoderRegionTest.cpp
 	   unit/regions/ScalarSensorTest.cpp
 	   unit/regions/RDSERegionTest.cpp
 	   unit/regions/SPRegionTest.cpp

@@ -32,6 +32,7 @@
 
 // Built-in Region implementations
 #include <htm/regions/TestNode.hpp>
+#include <htm/regions/DateEncoderRegion.hpp>
 #include <htm/regions/ScalarSensor.hpp>
 #include <htm/regions/RDSERegion.hpp>
 #include <htm/regions/VectorFileEffector.hpp>
@@ -87,8 +88,9 @@ RegionImplFactory &RegionImplFactory::getInstance() {
   if (instance.regionTypeMap.empty()) {
     // Create internal C++ regions
 
-	  instance.addRegionType("ScalarSensor",       new RegisteredRegionImplCpp<ScalarSensor>());
-    instance.addRegionType("RDSERegion",         new RegisteredRegionImplCpp<RDSERegion>());
+	  instance.addRegionType("DateEncoderRegion", new RegisteredRegionImplCpp<DateEncoderRegion>());
+    instance.addRegionType("ScalarSensor", new RegisteredRegionImplCpp<ScalarSensor>());
+    instance.addRegionType("RDSERegion", new RegisteredRegionImplCpp<RDSERegion>());
     instance.addRegionType("TestNode",           new RegisteredRegionImplCpp<TestNode>());
     instance.addRegionType("VectorFileEffector", new RegisteredRegionImplCpp<VectorFileEffector>());
     instance.addRegionType("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
