@@ -45,6 +45,7 @@
 #include <htm/engine/RegisteredRegionImplCpp.hpp>
 #include <htm/ntypes/Array.hpp>
 #include <htm/utils/Log.hpp>
+#include <htm/types/Sdr.hpp>
 
 #include "gtest/gtest.h"
 #include "RegionTestUtilities.hpp"
@@ -69,8 +70,8 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     Spec* ns = DateEncoderRegion::createSpec();
     VERBOSE << *ns << std::endl;
 
-    std::shared_ptr<Region> region1 = net.addRegion("region1", "DateEncoderRegion", "dayOfWeek_width: 5"); 
-    std::set<std::string> excluded = {};
+    std::shared_ptr<Region> region1 = net.addRegion("region1", "DateEncoderRegion", "season_width: 5"); 
+    std::set<std::string> excluded = {"season_width"};
     checkGetSetAgainstSpec(region1, EXPECTED_SPEC_COUNT, excluded, verbose);
     checkInputOutputsAgainstSpec(region1, verbose);
   }
@@ -121,8 +122,8 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     // Explicit parameters:  (Yaml format...but since YAML is a superset of JSON, you can use JSON format as well)
     std::string nodeParams = "{season_width: 5}";
 
-    VERBOSE << "Adding a custom-built ScalarSensor region..." << std::endl;
-    net.registerRegion("DateEncoderRegion", new RegisteredRegionImplCpp<DateEncoderRegion>());
+    VERBOSE << "Adding a custom-built DateEncoderRegion region..." << std::endl;
+    net.registerRegion("DateEncoderRegionCustom", new RegisteredRegionImplCpp<DateEncoderRegion>());
     std::shared_ptr<Region> region2 = net.addRegion("region2", "DateEncoderRegionCustom", nodeParams);
     size_t regionCntAfter = net.getRegions().size();
     ASSERT_TRUE(regionCntBefore + 1 == regionCntAfter) 
@@ -165,20 +166,22 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     // The data we will feed it will be a sin wave over 365 degrees in one degree increments.
     size_t dataRows = 360;
     std::ofstream f(test_input_file.c_str());
-    f << 123 << std::endl;
-    f << 123 << std::endl;
+    f << 1577870116 << std::endl;  // Jan 1, 2020 01:15:00
+    f << 1587182400 << std::endl;  // Apr 17, 2020 22:00:00
     f.close();
 
     VERBOSE << "Setup Network; add 3 regions and 2 links." << std::endl;
 	  Network net;
 
-
+    std::string params = "{timeOfDay_width: 5, holiday_width: 2, holiday_dates: \"[[1,1]]\", verbose: " +
+                               std::string((verbose) ? "true" : "false") + "}";
+      
     std::shared_ptr<Region> reader = net.addRegion("filereader", "VectorFileSensor", "{activeOutputCount: 1}");
-    std::shared_ptr<Region> encoder = net.addRegion("dateEncoder", "DateEncoderRegion", "{timeOfDay_width: 5}");
+    std::shared_ptr<Region> encoder = net.addRegion("dateEncoder", "DateEncoderRegion", params);
     std::shared_ptr<Region> sp = net.addRegion("sp", "SPRegion", "{columnCount: 200}");
 
 
-    net.link("readfile", "dateEncoder", "", "", "dataOut", "values");
+    net.link("filereader", "dateEncoder", "", "", "dataOut", "values");
     net.link("dateEncoder", "sp", "", "", "encoded", "bottomUpIn");
 
     VERBOSE << "Load Data." << std::endl;
@@ -191,7 +194,7 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
 
 
 	  // check actual dimensions
-    ASSERT_EQ(encoder->getParameterUInt32("size"), 10u);
+    ASSERT_EQ(encoder->getParameterUInt32("size"), 34u);
 
     VERBOSE << "Execute" << std::endl;
     net.run(1);
@@ -208,19 +211,29 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     ASSERT_TRUE(r1OutputArray.getCount() == r2InputArray.getCount()) 
 		<< "Buffer length different. Output from reader is " << r1OutputArray.getCount() << ", input to encoder is " << r2InputArray.getCount();
     
+    VERBOSE << "Check the buckets\n";
+    Array b = encoder->getOutputData("bucket");
+    Array expected_bucket1(std::vector<Real64>({1.0, 0.0}));
+    EXPECT_TRUE(b == expected_bucket1) << "Expected " << expected_bucket1 << " Found " << b;
+    
     Array r2OutputArray = encoder->getOutputData("encoded");
     VERBOSE << "  encoder output" << r2OutputArray << std::endl;
     EXPECT_TRUE(r2OutputArray.getType() == NTA_BasicType_SDR) 
       << "actual type is " << BasicType::getName(r2OutputArray.getType());
-    std::vector<UInt> expected1 = {};
-    EXPECT_TRUE(r2OutputArray.getSDR() == expected1);
+    SDR expected1({34});
+    expected1.setSparse(SDR_sparse_t({2, 3, 6, 7, 8, 9, 10}));
+    EXPECT_TRUE(r2OutputArray.getSDR() == expected1) << "Expected " << expected1 << "  Found: " << r2OutputArray;
 
     VERBOSE << "Execute one more time.\n";
 
     net.run(1);
+
+    Array expected_bucket2(std::vector<Real64>({0.0, 20.0}));
+    EXPECT_TRUE(b == expected_bucket2) << "Expected " << expected_bucket2 << " Found " << b;
     r2OutputArray = encoder->getOutputData("encoded");
-    std::vector<UInt> expected2 = {};
-    EXPECT_TRUE(r2OutputArray.getSDR() == expected2);
+    SDR expected2({34});
+    expected2.setSparse(SDR_sparse_t({0, 1, 4, 30, 31, 32, 33}));
+    EXPECT_TRUE(r2OutputArray.getSDR() == expected2) << "Expected " << expected2 << "  Found: " << r2OutputArray;
 
 
     // cleanup
@@ -237,12 +250,15 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
 	  Network net3;
 
 	  VERBOSE << "Setup first network and save it" << std::endl;
-    std::shared_ptr<Region> encoder1 = net1.addRegion("encoder", "DateEncoderRegion", "{n: 100, w: 4}");
+
+    std::string params = "{dayOfWeek_width: 5, weekend_width: 5, verbose: "+std::string((verbose)?"true":"false")+"}";
+
+    std::shared_ptr<Region> encoder1 = net1.addRegion("encoder", "DateEncoderRegion", params);
     std::shared_ptr<Region> sp1 = net1.addRegion("sp", "SPRegion", "{columnCount: 200}");
     net1.link("encoder", "sp", "", "", "encoded", "bottomUpIn");
     net1.initialize();
 
-    encoder1->setParameterReal64("sensedTime", 123);
+    encoder1->setParameterInt64("sensedTime", 1577870116);  // Jan 1, 2020 01:15:00
 		net1.run(1);
 
     std::string filename = "TestOutputDir/spRegionTest.stream";
@@ -263,7 +279,7 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     EXPECT_TRUE(net1 == net2);
 
 	  // can we continue with execution?  See if we get any exceptions.
-    encoder2->setParameterInt64("sensedTime", 234);
+    encoder2->setParameterInt64("sensedTime", 1587182400);  // Apr 17, 2020 22:00:00
     net2.run(2);
 
     // cleanup

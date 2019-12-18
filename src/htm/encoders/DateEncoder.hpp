@@ -137,7 +137,7 @@ public:
   void initialize(const DateEncoderParameters &parameters);
 
   /**
-   * Access to the parameters with which the DateEncoder was configured.
+   * Const Access to the parameters with which the DateEncoder was configured.
    * Some parameters may have been modified/computed during initialize().
    */
   const DateEncoderParameters &parameters = args_;
@@ -146,6 +146,14 @@ public:
    * Turn on/off verbose on-the-fly.
    */
   void setVerbose(bool verbose) { args_.verbose = verbose; }
+
+  /**
+   * Const Access to the buckets configured with this encoder.
+   * For each attribute encoded, this is the quantized value used as title in Classifier.
+   * This only provides values for the attributes that were enabled.
+   * The order is: season, dayofweek, weekend, custom, holiday, timeofday
+   */
+  const std::vector<Real64> &buckets = buckets_;
 
   /**
    * encode the input and generate the output pattern.
@@ -158,7 +166,6 @@ public:
   void encode(std::time_t input, SDR &output) override;                  // unix EPOCH time
   void encode(std::chrono::system_clock::time_point, SDR &output);  // python datetime
   void encode(struct std::tm input, SDR &output);
-
 
   /**
    * Serialization Facility.
@@ -218,6 +225,10 @@ private:
   std::shared_ptr<ScalarEncoder> holidayEncoder_;
   std::shared_ptr<ScalarEncoder> timeOfDayEncoder_;
   std::set<int> customDays_;
+
+  // Titles from the last encoding
+  size_t bucketMap_[6];
+  std::vector<Real64> buckets_;
 
 }; // end class DateEncoder
 

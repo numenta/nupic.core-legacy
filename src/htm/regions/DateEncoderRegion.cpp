@@ -58,7 +58,7 @@ namespace htm {
           verbose:          {description: "if true, display debug info for each member encoded.",
                              type: Bool,   default: "false", access: ReadWrite },
           size:             {description: "Total width of encoded output.",
-                             type: UInt32, access: ReadOnly },
+                             type: UInt32, default: "", access: ReadOnly },
           noise:            {description: "amount of noise to add to the output SDR. 0.01 is 1%",
                              type: Real32, default: "0.0", access: ReadWrite },
           sensedTime:       {description: "The value to encode. Unix EPOCH time. Overriden by input 'values'. A value of 0 means current time.",
@@ -68,7 +68,7 @@ namespace htm {
                              type: Int64, count: 1, isDefaultInput: yes, isRegionLevel: yes}
       }, 
       outputs: {
-          bucket:          {description: "Quantized sample based on the radius. One sample for each attribute used. Becomes the title for this sample in Classifier.",
+          bucket:          {description: "Quantized samples based on the radius. One sample for each attribute used. Becomes the title for this sample in Classifier.",
                              type: Real64, count: 0, isDefaultOutput: false, isRegionLevel: false },
           encoded:          {description: "Encoded bits. Not a true Sparse Data Representation.",
                              type: SDR,    count: 0, isDefaultOutput: yes, isRegionLevel: yes }}
@@ -136,6 +136,10 @@ Dimensions DateEncoderRegion::askImplForOutputDimensions(const std::string &name
     // get the dimensions determined by the encoder (comes from parameters.size).
     Dimensions encoderDim(encoder_->dimensions); // get dimensions from encoder
     return encoderDim;
+  } else if (name == "bucket") {
+    // get the dimensions determined by the number of attributes enabled in the encoder.
+    Dimensions bucketDim(static_cast<UInt32>(encoder_->buckets.size()));
+    return bucketDim;
   }  return RegionImpl::askImplForOutputDimensions(name);
 }
 
@@ -151,11 +155,18 @@ void DateEncoderRegion::compute() {
   // noise_ = 0.01 means change 1% of the SDR for each iteration, this makes a random sequence, but seemingly stable
   if (noise_ != 0.0f)
     output.addNoise(noise_, rnd_);
+
+  // get the bucket values for each attribute configured.
+  Array &bucket_array = getOutput("bucket")->getData();
+  Real64 *ptr = reinterpret_cast<Real64*>(bucket_array.getBuffer());
+  for (size_t i = 0; i < encoder_->buckets.size(); i++) {
+    ptr[i] = encoder_->buckets[i];
+  }
 }
 
 
 void DateEncoderRegion::setParameterInt64(const std::string &name, Int64 index, Int64 value) {
-  if (name == "sensedValue")  sensedTime_ = static_cast<time_t>(value);
+  if (name == "sensedTime")  sensedTime_ = static_cast<time_t>(value);
   else  RegionImpl::setParameterInt64(name, index, value);
 }
 void DateEncoderRegion::setParameterReal32(const std::string &name, Int64 index, Real32 value) {
@@ -170,7 +181,7 @@ void DateEncoderRegion::setParameterBool(const std::string &name, Int64 index, b
 }
 
 Int64 DateEncoderRegion::getParameterInt64(const std::string &name, Int64 index) {
-  if (name == "sensedValue") { return static_cast<Int64>(sensedTime_);}
+  if (name == "sensedTime") { return static_cast<Int64>(sensedTime_);}
   else return RegionImpl::getParameterInt64(name, index);
 }
 
@@ -224,14 +235,14 @@ std::string DateEncoderRegion::getParameterString(const std::string& name, Int64
     std::string buffer;
     if (encoder_->parameters.custom_days.size()) {
       buffer = "[";
-      for (size_t i = 0; i < encoder_->parameters.custom_days.size(); i++) {
+      for (size_t i = 0; i < encoder_->parameters.holiday_dates.size(); i++) {
         if (i > 0)
           buffer += ",";
         buffer += "[";
-        for (size_t j = 0; j < encoder_->parameters.custom_days[i].size(); j++) {
+        for (size_t j = 0; j < encoder_->parameters.holiday_dates[i].size(); j++) {
           if (j > 0)
             buffer += ",";
-          buffer += std::to_string(encoder_->parameters.custom_days[i][j]);
+          buffer += std::to_string(encoder_->parameters.holiday_dates[i][j]);
         }
         buffer += "]";
       }

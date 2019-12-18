@@ -68,7 +68,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1, size_t expectedSpec
           UInt32 v = region1->getParameterUInt32(name);
           if (!p.second.defaultValue.empty()) {
             UInt32 d = std::stoul(p.second.defaultValue, nullptr, 0);
-            EXPECT_TRUE(v == d) << "Failure: Parameter \"" << name
+            EXPECT_EQ(v, d) << "Failure: Parameter \"" << name
                                 << "\" Actual value does not match default. Expected=" << d << ", Actual=" << v;
           }
           // check the setter.
@@ -110,6 +110,28 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1, size_t expectedSpec
                   << "Parameter \"" << name << "\" Actual value does not match Int32 max. Expected=" << 0x7FFFFFFF
                   << ", Actual=" << s;
               region1->setParameterInt32(name, v); // return to original value.
+            }
+          }
+          break;
+        }
+        case NTA_BasicType_Int64: {
+          VERBOSE << "Parameter \"" << name << "\" type: " << BasicType::getName(p.second.dataType) << std::endl;
+          // check the getter.
+          Int64 v = region1->getParameterInt64(name);
+          if (!p.second.defaultValue.empty()) {
+            Int64 d = std::stoull(p.second.defaultValue, nullptr, 0);
+            EXPECT_TRUE(v == d) << "Failure: Parameter \"" << name
+                                << "\" Actual value does not match default. Expected=" << d << ", Actual=" << v;
+          }
+          // check the setter.
+          if (p.second.accessMode == ParameterSpec::ReadWriteAccess) {
+            if (p.second.constraints == "") {
+              region1->setParameterInt64(name, 0x7FFFFFFFFFFFFFFF); // set max value
+              Int64 s = region1->getParameterInt64(name);
+              EXPECT_TRUE(s == 0x7FFFFFFFFFFFFFFF)
+                  << "Parameter \"" << name << "\" Actual value does not match Int32 max. Expected=" << 0x7FFFFFFFFFFFFFFF
+                  << ", Actual=" << s;
+              region1->setParameterInt64(name, v); // return to original value.
             }
           }
           break;
@@ -194,7 +216,7 @@ void checkGetSetAgainstSpec(std::shared_ptr<Region> region1, size_t expectedSpec
           std::string v = region1->getParameterString(name);
           if (!p.second.defaultValue.empty()) {
             std::string d = p.second.defaultValue;
-            EXPECT_TRUE(v == d) << "Parameter \"" << name << "\" Actual value does not match default. Expected=" << d
+            EXPECT_EQ(v, d) << "Parameter \"" << name << "\" Actual value does not match default. Expected=" << d
                                 << ", Actual=" << v;
           }
           break;
