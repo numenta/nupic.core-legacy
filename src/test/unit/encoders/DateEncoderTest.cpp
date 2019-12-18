@@ -32,10 +32,11 @@ namespace testing {
 using namespace htm;
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "
-static bool verbose = true; // turn this on to print extra stuff for debugging.
+static bool verbose = false; // turn this on to print extra stuff for debugging.
 
 struct DateValueCase {
   std::vector<UInt> time;           // year,mon,day,hr,min,sec
+  std::vector<Real64> bucket;       // titles for samples (quantized values)
   std::vector<UInt> expectedOutput; // Sparse indices of active bits.
 };
 
@@ -68,6 +69,7 @@ void doDateValueCases(DateEncoder &e, std::vector<DateValueCase> cases) {
     SDR actualOutput(e.dimensions);
     e.encode(input, actualOutput);
 
+    EXPECT_EQ(e.buckets, c.bucket);
     EXPECT_EQ(actualOutput, expectedOutput);
   }
 }
@@ -82,16 +84,16 @@ TEST(DateEncoderTest, season) {
   DateEncoder encoder(p);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time             expected
-      {{2020,  1,  1,  0,  0}, {0, 1, 2, 3, 4}},     // New years day, midnight local time
-      {{2019, 12, 11, 14, 45}, {0, 1, 2, 3, 19}},    // winter, Wed, afternoon
-      {{2010, 11,  4, 14, 55}, {0, 1, 17, 18, 19}},  // Nov 4th, fall, thursday
-      {{2019,  7,  4,  0,  0}, {10, 11, 12, 13, 14}},// July 4, summer, holiday
-      {{2019,  4, 21,  0,  0}, {6, 7, 8, 9, 10}},    // sunday, Easter holiday
-      {{2017,  4, 17,  0,  0}, {6, 7, 8, 9, 10}},    // start of my special day
-      {{2017,  4, 17, 22, 59}, {6, 7, 8, 9, 10}},    // end of my special day
-      {{1988,  5, 29, 20, 00}, {8, 9, 10, 11, 12}},  // Sun afternoon, a weekend
-      {{1988,  5, 27, 20, 00}, {8, 9, 10, 11, 12}}   // Fri afternoon, a weekend
+      //    date/time          bucket  expected output
+      {{2020, 1, 1, 0, 0},     {0.0}, {0, 1, 2, 3, 4}},       // New years day, midnight local time
+      {{2019, 12, 11, 14, 45}, {3.0}, {0, 1, 2, 3, 19}},      // winter, Wed, afternoon
+      {{2010, 11, 4, 14, 55},  {3.0}, {0, 1, 17, 18, 19}},    // Nov 4th, fall, thursday
+      {{2019, 7, 4, 0, 0},     {2.0}, {10, 11, 12, 13, 14}},  // July 4, summer, holiday
+      {{2019, 4, 21, 0, 0},    {1.0}, {6, 7, 8, 9, 10}},      // sunday, Easter holiday
+      {{2017, 4, 17, 0, 0},    {1.0}, {6, 7, 8, 9, 10}},      // start of my special day
+      {{2017, 4, 17, 22, 59},  {1.0}, {6, 7, 8, 9, 10}},      // end of my special day
+      {{1988, 5, 29, 20, 00},  {1.0}, {8, 9, 10, 11, 12}},    // Sun afternoon, a weekend
+      {{1988, 5, 27, 20, 00},  {1.0}, {8, 9, 10, 11, 12}}     // Fri afternoon, a weekend
   };
 
   doDateValueCases(encoder, cases);
@@ -105,16 +107,16 @@ TEST(DateEncoderTest, dayOfWeek) {
   DateEncoder encoder(p);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time             expected
-      {{2020, 1, 1, 0, 0},      { 4, 5}}, // Wed, New years day 2020, midnight local time
-      {{2019, 12, 11, 14, 45},  { 4, 5}}, // Wed, afternoon, winter
-      {{2010, 11, 4, 14, 55},   { 6, 7}}, // Thu, Nov 4th, fall
-      {{2019, 7, 4, 0, 0},      { 6, 7}}, // Thu, July 4, summer, holiday
-      {{2019, 4, 21, 0, 0},     {12,13}}, // sunday, Easter holiday
-      {{2017, 4, 17, 0, 0},     { 0, 1}}, // Mon, start of my special day
-      {{2017, 4, 17, 22, 59},   { 0, 1}}, // Mon, end of my special day
-      {{1988, 5, 29, 20, 00},   {12,13}}, // Sun, afternoon, a weekend
-      {{1988, 5, 27, 20, 00},   { 8, 9}}  // Fri, afternoon, a weekend
+      //    date/time          bucket    expected
+      {{2020, 1, 1, 0, 0},     {2.0}, {4, 5}},  // Wed, New years day 2020, midnight local time
+      {{2019, 12, 11, 14, 45}, {2.0}, {4, 5}},  // Wed, afternoon, winter
+      {{2010, 11, 4, 14, 55},  {3.0}, {6, 7}},  // Thu, Nov 4th, fall
+      {{2019, 7, 4, 0, 0},     {3.0}, {6, 7}},  // Thu, July 4, summer, holiday
+      {{2019, 4, 21, 0, 0},    {6.0}, {12, 13}},// Sun, Easter holiday
+      {{2017, 4, 17, 0, 0},    {0.0}, {0, 1}},  // Mon, start of my special day
+      {{2017, 4, 17, 22, 59},  {0.0}, {0, 1}},  // Mon, end of my special day
+      {{1988, 5, 29, 20, 00},  {6.0}, {12, 13}},// Sun, afternoon, a weekend
+      {{1988, 5, 27, 20, 00},  {4.0}, {8, 9}}   // Fri, afternoon, a weekend
   };
 
   doDateValueCases(encoder, cases);
@@ -129,17 +131,17 @@ TEST(DateEncoderTest, weekend) {
   DateEncoder encoder(p);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time             expected
-      {{2020, 1, 1, 0, 0},        {0, 1}},  // Wed, New years day 2020, midnight local time
-      {{2019, 12, 11, 14, 45},    {0, 1}},  // Wed, afternoon, winter
-      {{2010, 11, 4, 14, 55},     {0, 1}},  // Thu, Nov 4th, fall
-      {{2019, 7, 4, 0, 0},        {0, 1}},  // Thu, July 4, summer, holiday
-      {{2019, 4, 21, 0, 0},       {2, 3}},  // sunday, Easter holiday
-      {{2017, 4, 17, 0, 0},       {0, 1}},  // Mon, start of my special day
-      {{2017, 4, 17, 22, 59},     {0, 1}},  // Mon, end of my special day
-      {{1988, 5, 29, 20, 00},     {2, 3}},  // Sun, afternoon, a weekend
-      {{1988, 5, 27,  11, 00},    {0, 1}},  // Fri, morning, not a weekend
-      {{1988, 5, 27, 20, 00},     {2, 3}}   // Fri, afternoon, a weekend
+      //    date/time             bucket  expected
+      {{2020, 1, 1, 0, 0},        {0.0}, {0, 1}},  // Wed, New years day 2020, midnight local time
+      {{2019, 12, 11, 14, 45},    {0.0}, {0, 1}},  // Wed, afternoon, winter
+      {{2010, 11, 4, 14, 55},     {0.0}, {0, 1}},  // Thu, Nov 4th, fall
+      {{2019, 7, 4, 0, 0},        {0.0}, {0, 1}},  // Thu, July 4, summer, holiday
+      {{2019, 4, 21, 0, 0},       {1.0}, {2, 3}},  // sunday, Easter holiday
+      {{2017, 4, 17, 0, 0},       {0.0}, {0, 1}},  // Mon, start of my special day
+      {{2017, 4, 17, 22, 59},     {0.0}, {0, 1}},  // Mon, end of my special day
+      {{1988, 5, 29, 20, 00},     {1.0}, {2, 3}},  // Sun, afternoon, a weekend
+      {{1988, 5, 27, 11, 00},     {0.0}, {0, 1}},  // Fri, morning, not a weekend
+      {{1988, 5, 27, 20, 00},     {1.0}, {2, 3}}   // Fri, afternoon, a weekend
   };
 
   doDateValueCases(encoder, cases);
@@ -155,19 +157,19 @@ TEST(DateEncoderTest, holiday) {
   DateEncoder encoder(p);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time             expected
-      {{2019, 12, 31, 0, 0},     {0, 1, 2, 3}},  //off - 24 hrs before new years day
-      {{2019, 12, 31, 12, 0},    {2, 3, 4, 5}},  //50% - noon on day before new years day
-      {{2020, 1, 1, 0, 0},       {4, 5, 6, 7}},  //on  - start of New years day 2020, midnight local time
-      {{2020, 1, 1, 12, 0},      {4, 5, 6, 7}},  //on  - noon on new years day
-      {{2020, 1, 1, 23, 59},     {4, 5, 6, 7}},  //on  - at end of new years day
-      {{2020, 1, 2, 12, 0},      {0, 1, 6, 7}},  // 50% - noon day after new years day
-      {{2020, 1, 3, 0, 0},       {0, 1, 2, 3}},  //off - 24hrs after new years day end
-      {{2019, 12, 11, 14, 45},   {0, 1, 2, 3}},  //off - Wed, afternoon, winter
-      {{2010, 11, 4, 14, 55},    {0, 1, 2, 3}},  //off - Thu, Nov 4th, fall
-      {{2019, 7, 4, 0, 0},       {4, 5, 6, 7}},  //on  - Thu, July 4, summer, holiday
-      {{2019, 4, 21, 0, 0},      {4, 5, 6, 7}},  //on  - Sunday, Easter holiday
-      {{2017, 4, 17, 0, 0},      {0, 1, 2, 3}},  //off - Mon, start of my special day
+      //    date/time             bucket    expected
+      {{2019, 12, 31, 0, 0},     {0.0}, {0, 1, 2, 3}}, // off - 24 hrs before new years day
+      {{2019, 12, 31, 12, 0},    {0.0}, {2, 3, 4, 5}}, // 50% - noon on day before new years day
+      {{2020, 1, 1, 0, 0},       {1.0}, {4, 5, 6, 7}}, // on  - start of New years day 2020, midnight local time
+      {{2020, 1, 1, 12, 0},      {1.0}, {4, 5, 6, 7}}, // on  - noon on new years day
+      {{2020, 1, 1, 23, 59},     {1.0}, {4, 5, 6, 7}}, // on  - at end of new years day
+      {{2020, 1, 2, 12, 0},      {1.0}, {0, 1, 6, 7}}, // 50% - noon day after new years day
+      {{2020, 1, 3, 0, 0},       {0.0}, {0, 1, 2, 3}}, // off - 24hrs after new years day end
+      {{2019, 12, 11, 14, 45},   {0.0}, {0, 1, 2, 3}}, // off - Wed, afternoon, winter
+      {{2010, 11, 4, 14, 55},    {0.0}, {0, 1, 2, 3}}, // off - Thu, Nov 4th, fall
+      {{2019, 7, 4, 0, 0},       {1.0}, {4, 5, 6, 7}}, // on  - Thu, July 4, summer, holiday
+      {{2019, 4, 21, 0, 0},      {1.0}, {4, 5, 6, 7}}, // on  - Sunday, Easter holiday
+      {{2017, 4, 17, 0, 0},      {0.0}, {0, 1, 2, 3}}, // off - Mon, start of my special day
   };
 
   doDateValueCases(encoder, cases);
@@ -189,17 +191,17 @@ TEST(DateEncoderTest, timeOfDay) {
   DateEncoder encoder(p);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time           expected
-      {{2020, 1, 1, 0, 0},     {0, 1, 2, 3}},      // hr=0.0     Wed, New years day 2020, midnight local time
-      {{2019, 12, 11, 14, 45}, {15, 16, 17, 18}},  // hr=14.75   Wed, afternoon, winter
-      {{2010, 11, 4, 14, 55},  {15, 16, 17, 18}},  // hr=14.9167 Thu, Nov 4th, fall dst
-      {{2019, 7, 4, 0, 0},     {0, 1, 2, 3}},      // hr=0       Thu, July 4, summer, holiday, nidnight dst
-      {{2019, 4, 21, 12, 0},   {12, 13, 14, 15}},  // hr=12      Sun, Easter holiday dst, noon dst
-      {{2017, 4, 17, 1, 0},    {1, 2, 3, 4}},      // hr=1       Mon, start of my special day 1:00am dst
-      {{2017, 4, 17, 22, 59},  {0, 1, 2, 23}},     // hr=22.9833 Mon, end of my special day dst
-      {{1988, 5, 29, 20, 00},  {20, 21, 22, 23}},  // hr=20      Sun, afternoon, a weekend
-      {{1988, 5, 27, 11, 00},  {11, 12, 13, 14}},  // hr=11      Fri, morning, not a weekend
-      {{1988, 5, 27, 20, 00},  {20, 21, 22, 23}}   // hr=20      Fri, afternoon, a weekend
+      //    date/time          bucket    expected
+      {{2020, 1, 1, 0, 0},     { 0.0}, {0, 1, 2, 3}},    // hr=0       Wed, New years day 2020, midnight local time
+      {{2019, 12, 11, 14, 45}, {12.0}, {15, 16, 17, 18}},// hr=14.75   Wed, afternoon, winter
+      {{2010, 11, 4, 14, 55},  {12.0}, {15, 16, 17, 18}},// hr=14.9167 Thu, Nov 4th, fall dst
+      {{2019, 7, 4, 0, 0},     { 0.0}, {0, 1, 2, 3}},    // hr=0       Thu, July 4, summer, holiday, nidnight dst
+      {{2019, 4, 21, 12, 0},   {12.0}, {12, 13, 14, 15}},// hr=12      Sun, Easter holiday dst, noon dst
+      {{2017, 4, 17, 1, 0},    { 0.0}, {1, 2, 3, 4}},    // hr=1       Mon, start of my special day 1:00am dst
+      {{2017, 4, 17, 22, 59},  {20.0}, {0, 1, 2, 23}},   // hr=22.9833 Mon, end of my special day dst
+      {{1988, 5, 29, 20, 00},  {20.0}, {20, 21, 22, 23}},// hr=20      Sun, afternoon, a weekend
+      {{1988, 5, 27, 11, 00},  { 8.0}, {11, 12, 13, 14}},// hr=11      Fri, morning, not a weekend
+      {{1988, 5, 27, 20, 00},  {20.0}, {20, 21, 22, 23}} // hr=20      Fri, afternoon, a weekend
   };
 
   doDateValueCases(encoder, cases);
@@ -214,17 +216,17 @@ TEST(DateEncoderTest, customDay) {
   DateEncoder encoder(p);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time             expected
-      {{2020, 1, 1, 0, 0},        {2, 3}}, // Wed, New years day 2020, midnight local time
-      {{2019, 12, 11, 14, 45},    {2, 3}}, // Wed, afternoon, winter
-      {{2010, 11, 4, 14, 55},     {0, 1}}, // Thu, Nov 4th, fall
-      {{2019, 7, 4, 0, 0},        {0, 1}}, // Thu, July 4, summer, holiday
-      {{2019, 4, 21, 0, 0},       {0, 1}}, // sunday, Easter holiday
-      {{2017, 4, 17, 0, 0},       {2, 3}}, // Mon, start of my special day
-      {{2017, 4, 17, 22, 59},     {2, 3}}, // Mon, end of my special day
-      {{1988, 5, 29, 20, 00},     {0, 1}}, // Sun, afternoon, a weekend
-      {{1988, 5, 27, 11, 00},     {2, 3}}, // Fri, morning, not a weekend
-      {{1988, 5, 27, 20, 00},     {2, 3}}  // Fri, afternoon, a weekend
+      //    date/time            bucket   expected
+      {{2020, 1, 1, 0, 0},     {1.0},    {2, 3}}, // Wed, New years day 2020, midnight local time
+      {{2019, 12, 11, 14, 45}, {1.0},    {2, 3}}, // Wed, afternoon, winter
+      {{2010, 11, 4, 14, 55},  {0.0},    {0, 1}}, // Thu, Nov 4th, fall
+      {{2019, 7, 4, 0, 0},     {0.0},    {0, 1}}, // Thu, July 4, summer, holiday
+      {{2019, 4, 21, 0, 0},    {0.0},    {0, 1}}, // sunday, Easter holiday
+      {{2017, 4, 17, 0, 0},    {1.0},    {2, 3}}, // Mon, start of my special day
+      {{2017, 4, 17, 22, 59},  {1.0},    {2, 3}},  // Mon, end of my special day
+      {{1988, 5, 29, 20, 00},  {0.0},    {0, 1}},  // Sun, afternoon, a weekend
+      {{1988, 5, 27, 11, 00},  {1.0},    {2, 3}},  // Fri, morning, not a weekend
+      {{1988, 5, 27, 20, 00},  {1.0},    {2, 3}}   // Fri, afternoon, a weekend
   };
 
   doDateValueCases(encoder, cases);
@@ -246,17 +248,17 @@ TEST(DateEncoderTest, combined) {
   DateEncoder encoder(p);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time             expected
-      {{2020, 1, 1, 0, 0},     {0, 1, 2, 3, 4, 24, 25, 34, 35, 40, 41, 44, 45, 46, 47, 48, 49}},
-      {{2019, 12, 11, 14, 45}, {0, 1, 2, 3, 19, 24, 25, 34, 35, 40, 41, 42, 43, 61, 62, 63, 64}},
-      {{2010, 11, 4, 14, 55},  {0, 1, 17, 18, 19, 26, 27, 34, 35, 38, 39, 42, 43, 61, 62, 63, 64}},
-      {{2019, 7, 4, 0, 0},     {10, 11, 12, 13, 14, 26, 27, 34, 35, 38, 39, 44, 45, 46, 47, 48, 49}},
-      {{2019, 4, 21, 0, 0},    {6, 7, 8, 9, 10, 32, 33, 36, 37, 38, 39, 44, 45, 46, 47, 48, 49}},
-      {{2017, 4, 17, 0, 0},    {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 49}},
-      {{2017, 4, 17, 22, 59},  {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 69}},
-      {{1988, 5, 29, 20, 00},  {8, 9, 10, 11, 12, 32, 33, 36, 37, 38, 39, 42, 43, 66, 67, 68, 69}},
-      {{1988, 5, 27, 11, 00},  {8, 9, 10, 11, 12, 28, 29, 34, 35, 40, 41, 42, 43, 57, 58, 59, 60}},
-      {{1988, 5, 27, 20, 00},  {8, 9, 10, 11, 12, 28, 29, 36, 37, 40, 41, 42, 43, 66, 67, 68, 69}}};
+      //    date/time               buckets             expected
+      {{2020, 1, 1, 0, 0},     {0, 2, 0, 1, 1, 0},  {0, 1, 2, 3, 4, 24, 25, 34, 35, 40, 41, 44, 45, 46, 47, 48, 49}},
+      {{2019, 12, 11, 14, 45}, {3, 2, 0, 1, 0, 12}, {0, 1, 2, 3, 19, 24, 25, 34, 35, 40, 41, 42, 43, 61, 62, 63, 64}},
+      {{2010, 11, 4, 14, 55},  {3, 3, 0, 0, 0, 12}, {0, 1, 17, 18, 19, 26, 27, 34, 35, 38, 39, 42, 43, 61, 62, 63, 64}},
+      {{2019, 7, 4, 0, 0},     {2, 3, 0, 0, 1, 0},  {10, 11, 12, 13, 14, 26, 27, 34, 35, 38, 39, 44, 45, 46, 47, 48, 49}},
+      {{2019, 4, 21, 0, 0},    {1, 6, 1, 0, 1, 0},  {6, 7, 8, 9, 10, 32, 33, 36, 37, 38, 39, 44, 45, 46, 47, 48, 49}},
+      {{2017, 4, 17, 0, 0},    {1, 0, 0, 1, 0, 0},  {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 49}},
+      {{2017, 4, 17, 22, 59},  {1, 0, 0, 1, 0, 20}, {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 69}},
+      {{1988, 5, 29, 20, 00},  {1, 6, 1, 0, 0, 20}, {8, 9, 10, 11, 12, 32, 33, 36, 37, 38, 39, 42, 43, 66, 67, 68, 69}},
+      {{1988, 5, 27, 11, 00},  {1, 4, 0, 1, 0, 8},  {8, 9, 10, 11, 12, 28, 29, 34, 35, 40, 41, 42, 43, 57, 58, 59, 60}},
+      {{1988, 5, 27, 20, 00},  {1, 4, 1, 1, 0, 20}, {8, 9, 10, 11, 12, 28, 29, 36, 37, 40, 41, 42, 43, 66, 67, 68, 69}}};
 
   doDateValueCases(encoder, cases);
 }
@@ -287,17 +289,17 @@ TEST(DateEncoderTest, Serialization) {
   EXPECT_EQ(encoder, enc2);
 
   static std::vector<DateValueCase> cases = {
-      //    date/time             expected
-      {{2020, 1, 1, 0, 0},     {0, 1, 2, 3, 4, 24, 25, 34, 35, 40, 41, 44, 45, 46, 47, 48, 49}},
-      {{2019, 12, 11, 14, 45}, {0, 1, 2, 3, 19, 24, 25, 34, 35, 40, 41, 42, 43, 61, 62, 63, 64}},
-      {{2010, 11, 4, 14, 55},  {0, 1, 17, 18, 19, 26, 27, 34, 35, 38, 39, 42, 43, 61, 62, 63, 64}},
-      {{2019, 7, 4, 0, 0},     {10, 11, 12, 13, 14, 26, 27, 34, 35, 38, 39, 44, 45, 46, 47, 48, 49}},
-      {{2019, 4, 21, 0, 0},    {6, 7, 8, 9, 10, 32, 33, 36, 37, 38, 39, 44, 45, 46, 47, 48, 49}},
-      {{2017, 4, 17, 0, 0},    {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 49}},
-      {{2017, 4, 17, 22, 59},  {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 69}},
-      {{1988, 5, 29, 20, 00},  {8, 9, 10, 11, 12, 32, 33, 36, 37, 38, 39, 42, 43, 66, 67, 68, 69}},
-      {{1988, 5, 27, 11, 00},  {8, 9, 10, 11, 12, 28, 29, 34, 35, 40, 41, 42, 43, 57, 58, 59, 60}},
-      {{1988, 5, 27, 20, 00},  {8, 9, 10, 11, 12, 28, 29, 36, 37, 40, 41, 42, 43, 66, 67, 68, 69}}};
+      //    date/time               buckets              expected
+      {{2020, 1, 1, 0, 0},     {0, 2, 0, 1, 1, 0},  {0, 1, 2, 3, 4, 24, 25, 34, 35, 40, 41, 44, 45, 46, 47, 48, 49}},
+      {{2019, 12, 11, 14, 45}, {3, 2, 0, 1, 0, 12}, {0, 1, 2, 3, 19, 24, 25, 34, 35, 40, 41, 42, 43, 61, 62, 63, 64}},
+      {{2010, 11, 4, 14, 55},  {3, 3, 0, 0, 0, 12}, {0, 1, 17, 18, 19, 26, 27, 34, 35, 38, 39, 42, 43, 61, 62, 63, 64}},
+      {{2019, 7, 4, 0, 0},     {2, 3, 0, 0, 1, 0},  {10, 11, 12, 13, 14, 26, 27, 34, 35, 38, 39, 44, 45, 46, 47, 48, 49}},
+      {{2019, 4, 21, 0, 0},    {1, 6, 1, 0, 1, 0},  {6, 7, 8, 9, 10, 32, 33, 36, 37, 38, 39, 44, 45, 46, 47, 48, 49}},
+      {{2017, 4, 17, 0, 0},    {1, 0, 0, 1, 0, 0},  {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 49}},
+      {{2017, 4, 17, 22, 59},  {1, 0, 0, 1, 0, 20}, {6, 7, 8, 9, 10, 20, 21, 34, 35, 40, 41, 42, 43, 46, 47, 48, 69}},
+      {{1988, 5, 29, 20, 00},  {1, 6, 1, 0, 0, 20}, {8, 9, 10, 11, 12, 32, 33, 36, 37, 38, 39, 42, 43, 66, 67, 68, 69}},
+      {{1988, 5, 27, 11, 00},  {1, 4, 0, 1, 0, 8},  {8, 9, 10, 11, 12, 28, 29, 34, 35, 40, 41, 42, 43, 57, 58, 59, 60}},
+      {{1988, 5, 27, 20, 00},  {1, 4, 1, 1, 0, 20}, {8, 9, 10, 11, 12, 28, 29, 36, 37, 40, 41, 42, 43, 66, 67, 68, 69}}};
 
   doDateValueCases(enc2, cases);
 }

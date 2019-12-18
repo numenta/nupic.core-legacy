@@ -33,7 +33,7 @@
 
 namespace htm {
 
-
+enum bucketType {season=0, dayofweek, weekend, custom, holiday, timeofday};
 
 
 DateEncoder::DateEncoder(const DateEncoderParameters &parameters) { initialize(parameters); }
@@ -61,6 +61,9 @@ void DateEncoder::initialize(const DateEncoderParameters &parameters) {
             << seasonEncoder_->parameters.activeBits << " bits per bucket, width " 
             << seasonEncoder_->size << std::endl;
     size += seasonEncoder_->size;
+
+    bucketMap_[season] = buckets_.size();
+    buckets_.push_back(0.0);
   }
 
   // Day-of-week attribute
@@ -79,6 +82,9 @@ void DateEncoder::initialize(const DateEncoderParameters &parameters) {
             << dayOfWeekEncoder_->parameters.activeBits << " bits per bucket, width " 
             << dayOfWeekEncoder_->size << std::endl;
     size += dayOfWeekEncoder_->size;
+
+    bucketMap_[dayofweek] = buckets_.size();
+    buckets_.push_back(0.0);
   }
 
   // Weekend attribute
@@ -95,6 +101,9 @@ void DateEncoder::initialize(const DateEncoderParameters &parameters) {
             << weekendEncoder_->parameters.activeBits << " bits per bucket, width " 
             << weekendEncoder_->size << std::endl;
     size += weekendEncoder_->size;
+
+    bucketMap_[weekend] = buckets_.size();
+    buckets_.push_back(0.0);
   }
 
   // Custom Days attribute
@@ -128,6 +137,9 @@ void DateEncoder::initialize(const DateEncoderParameters &parameters) {
     VERBOSE << "  create customDays Encoder: boolean, On or Off, " << customDaysEncoder_->parameters.activeBits
             << " bits per bucket, width " << customDaysEncoder_->size << std::endl;
     size += customDaysEncoder_->size;
+
+    bucketMap_[custom] = buckets_.size();
+    buckets_.push_back(0.0);
   }
 
   // Holiday attribute
@@ -151,6 +163,8 @@ void DateEncoder::initialize(const DateEncoderParameters &parameters) {
             << holidayEncoder_->size << std::endl;
     size += holidayEncoder_->size;
 
+    bucketMap_[holiday] = buckets_.size();
+    buckets_.push_back(0.0);
   }
 
   // Time-of-day attribute
@@ -171,6 +185,9 @@ void DateEncoder::initialize(const DateEncoderParameters &parameters) {
             << timeOfDayEncoder_->parameters.activeBits << " bits per bucket, width " 
             << timeOfDayEncoder_->size << std::endl;
     size += timeOfDayEncoder_->size;
+
+    bucketMap_[timeofday] = buckets_.size();
+    buckets_.push_back(0.0);
   }
 
 
@@ -223,6 +240,7 @@ void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
     Real64 dayOfYear = static_cast<Real64>(timeinfo.tm_yday);
     season_output = SDR(seasonEncoder_->dimensions);
     seasonEncoder_->encode(dayOfYear, season_output);
+    buckets_[bucketMap_[season]] = std::floor(dayOfYear/seasonEncoder_->parameters.radius);
     VERBOSE << "  season: " << dayOfYear << " ==> " << season_output;
     sdrs.push_back(&season_output);
   }
@@ -231,19 +249,21 @@ void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
     Real64 dayOfWeek = static_cast<Real64>((timeinfo.tm_wday + 6) % 7);
     dayOfWeek_output = SDR(dayOfWeekEncoder_->dimensions);
     dayOfWeekEncoder_->encode(dayOfWeek, dayOfWeek_output);
+    buckets_[bucketMap_[dayofweek]] = dayOfWeek - std::fmod(dayOfWeek, dayOfWeekEncoder_->parameters.radius);
     VERBOSE << "  dayOfWeek: " << dayOfWeek << " ==> " << dayOfWeek_output;
     sdrs.push_back(&dayOfWeek_output);
   }
   if (weekendEncoder_) {
     // Weekend is defined as: friday(5) evenng(after 6pm), saturday(6), and sunday(0)
-    Real64 weekend;
+    Real64 val;
     if (timeinfo.tm_wday == 0 or timeinfo.tm_wday == 6 or (timeinfo.tm_wday == 5 and timeinfo.tm_hour > 18)) {
-      weekend = 1.0;
+      val = 1.0;
     } else {
-      weekend = 0.0;
+      val = 0.0;
     }
     weekend_output = SDR(weekendEncoder_->dimensions);
-    weekendEncoder_->encode(weekend, weekend_output);
+    weekendEncoder_->encode(val, weekend_output);
+    buckets_[bucketMap_[weekend]] = val;
     VERBOSE << "  weekend: " << weekend << " ==> " << weekend_output;
     sdrs.push_back(&weekend_output);
   }
@@ -255,6 +275,7 @@ void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
     }
     customDay_output = SDR(customDaysEncoder_->dimensions);
     customDaysEncoder_->encode(customDay, customDay_output);
+    buckets_[bucketMap_[custom]] = customDay;
     VERBOSE << "  custom Day: " << customDay << " ==> " << customDay_output;
     sdrs.push_back(&customDay_output);
   }
@@ -308,6 +329,7 @@ void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
     }
     holiday_output = SDR(holidayEncoder_->dimensions);
     holidayEncoder_->encode(val, holiday_output);
+    buckets_[bucketMap_[holiday]] = std::floor(val);
     VERBOSE << "  holiday: " << val << " ==> " << holiday_output;
     sdrs.push_back(&holiday_output);
   }
@@ -315,6 +337,7 @@ void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
     Real64 timeOfDay = timeinfo.tm_hour + timeinfo.tm_min / 60.0f + timeinfo.tm_sec / (60.0 * 60.0);
     timeOfDay_output = SDR(timeOfDayEncoder_->dimensions);
     timeOfDayEncoder_->encode(timeOfDay, timeOfDay_output);
+    buckets_[bucketMap_[timeofday]] = timeOfDay - std::fmod(timeOfDay, timeOfDayEncoder_->parameters.radius);
     VERBOSE << "  timeOfDay: " << timeOfDay << "hrs ==> " << timeOfDay_output;
     sdrs.push_back(&timeOfDay_output);
   }
