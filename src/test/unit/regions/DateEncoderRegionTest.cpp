@@ -164,7 +164,6 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
 
     // Create a csv data file to use as input.
     // The data we will feed it will be a sin wave over 365 degrees in one degree increments.
-    size_t dataRows = 360;
     std::ofstream f(test_input_file.c_str());
     f << 1577870116 << std::endl;  // Jan 1, 2020 01:15:00
     f << 1587182400 << std::endl;  // Apr 17, 2020 22:00:00
