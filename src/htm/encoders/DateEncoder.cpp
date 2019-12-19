@@ -289,20 +289,10 @@ void DateEncoder::encode(struct std::tm timeinfo, SDR &output) {
     time_t input = std::mktime(&timeinfo);
     for (auto h : args_.holiday_dates) {
       std::time_t hdate;
-      struct tm holidayinfo;
-      memset(&holidayinfo, 0, sizeof(holidayinfo));
       if (h.size() == 3) {
-        holidayinfo.tm_year = h[0] - 1900;
-        holidayinfo.tm_mon = h[1] - 1;
-        holidayinfo.tm_mday = h[2];
-        holidayinfo.tm_isdst = -1;
-        hdate = mktime(&holidayinfo);
+        hdate = mktime(h[0], h[1], h[2]);
       } else {
-        holidayinfo.tm_year = timeinfo.tm_year;
-        holidayinfo.tm_mon = h[0] - 1;
-        holidayinfo.tm_mday = h[1];
-        holidayinfo.tm_isdst = -1;
-        hdate = mktime(&holidayinfo);
+        hdate = mktime(timeinfo.tm_year + 1900, h[0], h[1]);
       }
       if (input > hdate) {
         // start of holiday is in the past.
@@ -387,6 +377,21 @@ bool DateEncoder::operator==(const DateEncoder &other) const {
 
   return true;
 }
+
+
+time_t DateEncoder::mktime(int year, int mon, int day, int hr, int min, int sec) { 
+  struct tm tm; 
+  tm.tm_year = year - 1900;
+  tm.tm_mon = mon - 1;
+  tm.tm_mday = day;
+  tm.tm_hour = hr;
+  tm.tm_min = min;
+  tm.tm_sec = sec;
+  tm.tm_isdst = -1;
+  time_t t = std::mktime(&tm);
+  return t;
+}
+
 
 std::ostream &operator<<(std::ostream &out, const DateEncoder &self) {
   out << "DateEncoder \n";

@@ -48,22 +48,7 @@ void doDateValueCases(DateEncoder &e, std::vector<DateValueCase> cases) {
     std::sort(c.expectedOutput.begin(), c.expectedOutput.end());
     expectedOutput.setSparse(c.expectedOutput);
 
-    struct tm dateinfo;
-    memset(&dateinfo, 0, sizeof(dateinfo));
-    if (c.time.size() > 0)
-      dateinfo.tm_year = c.time[0] - 1900;
-    if (c.time.size() > 1)
-      dateinfo.tm_mon = c.time[1] - 1;
-    if (c.time.size() > 2)
-      dateinfo.tm_mday = c.time[2];
-    if (c.time.size() > 3)
-      dateinfo.tm_hour = c.time[3];
-    if (c.time.size() > 4)
-      dateinfo.tm_min = c.time[4];
-    if (c.time.size() > 5)
-      dateinfo.tm_sec = c.time[5];
-    dateinfo.tm_isdst = -1;
-    time_t input = mktime(&dateinfo);
+    time_t input = DateEncoder::mktime(c.time[0], c.time[1], c.time[2], c.time[3], c.time[4], (c.time.size()>5)?c.time[5]:0);
     NTA_CHECK(input != -1) << "DateEncoder: Input date is invalid or before Jan 1 1970.";
 
     SDR actualOutput(e.dimensions);

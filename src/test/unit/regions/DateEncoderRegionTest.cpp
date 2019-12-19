@@ -96,12 +96,7 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
 
     net.initialize();
 
-    struct tm tm;
-    memset(&tm, 0, sizeof(tm));
-    tm.tm_year = 2020 - 1900;
-    tm.tm_mon = 0;
-    tm.tm_mday = 1;
-    time_t t = mktime(&tm); // new years day 2020.
+    time_t t = DateEncoder::mktime(2020, 1, 1); // new years day 2020.
     region1->setParameterInt64("sensedTime", t);
     net.run(1);
 	  region1->compute();
@@ -134,12 +129,7 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
 
     ASSERT_DOUBLE_EQ(region2->getParameterReal32("season_radius"), 91.5f);
 
-    struct tm tm;
-    memset(&tm, 0, sizeof(tm));
-    tm.tm_year = 2020 - 1900;
-    tm.tm_mon = 3;
-    tm.tm_mday = 17;
-    time_t t = mktime(&tm); // April 17, 2020
+    time_t t = DateEncoder::mktime(2020, 04, 17);
     region2->setParameterInt64("sensedTime", t);
     net.run(1);
     region2->compute();
@@ -163,10 +153,9 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     if (Path::exists(test_input_file)) Path::remove(test_input_file);
 
     // Create a csv data file to use as input.
-    // The data we will feed it will be a sin wave over 365 degrees in one degree increments.
     std::ofstream f(test_input_file.c_str());
-    f << 1577870116 << std::endl;  // Jan 1, 2020 01:15:00
-    f << 1587182400 << std::endl;  // Apr 17, 2020 22:00:00
+    f << DateEncoder::mktime(2020, 1, 1, 1, 15, 0) << std::endl;  // Jan 1, 2020 01:15:00
+    f << DateEncoder::mktime(2020, 4, 17, 22, 0, 0) << std::endl; // Apr 17, 2020 22:00:00
     f.close();
 
     VERBOSE << "Setup Network; add 3 regions and 2 links." << std::endl;
@@ -212,7 +201,7 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     
     VERBOSE << "Check the buckets\n";
     Array b = encoder->getOutputData("bucket");
-    Array expected_bucket1(std::vector<Real64>({1.0, 0.0}));
+    Array expected_bucket1(std::vector<Real64>({1.0, 0.0}));    // OSx 1, 8
     EXPECT_TRUE(b == expected_bucket1) << "Expected " << expected_bucket1 << " Found " << b;
     
     Array r2OutputArray = encoder->getOutputData("encoded");
@@ -220,18 +209,18 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     EXPECT_TRUE(r2OutputArray.getType() == NTA_BasicType_SDR) 
       << "actual type is " << BasicType::getName(r2OutputArray.getType());
     SDR expected1({34});
-    expected1.setSparse(SDR_sparse_t({2, 3, 6, 7, 8, 9, 10}));
+    expected1.setSparse(SDR_sparse_t({2, 3, 6, 7, 8, 9, 10}));  // OSx 2, 3, 16, 17, 18, 19, 20
     EXPECT_TRUE(r2OutputArray.getSDR() == expected1) << "Expected " << expected1 << "  Found: " << r2OutputArray;
 
     VERBOSE << "Execute one more time.\n";
 
     net.run(1);
 
-    Array expected_bucket2(std::vector<Real64>({0.0, 20.0}));
+    Array expected_bucket2(std::vector<Real64>({0.0, 20.0}));  // on OSx and linux 0, 0
     EXPECT_TRUE(b == expected_bucket2) << "Expected " << expected_bucket2 << " Found " << b;
     r2OutputArray = encoder->getOutputData("encoded");
     SDR expected2({34});
-    expected2.setSparse(SDR_sparse_t({0, 1, 4, 30, 31, 32, 33}));
+    expected2.setSparse(SDR_sparse_t({0, 1, 4, 5, 6, 32, 33})); // on OSx and linux 0, 1, 9, 10, 11, 12, 13
     EXPECT_TRUE(r2OutputArray.getSDR() == expected2) << "Expected " << expected2 << "  Found: " << r2OutputArray;
 
 
@@ -257,7 +246,7 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     net1.link("encoder", "sp", "", "", "encoded", "bottomUpIn");
     net1.initialize();
 
-    encoder1->setParameterInt64("sensedTime", 1577870116);  // Jan 1, 2020 01:15:00
+    encoder1->setParameterInt64("sensedTime", DateEncoder::mktime(2020, 1, 1, 1, 15, 0));  // Jan 1, 2020 01:15:00
 		net1.run(1);
 
     std::string filename = "TestOutputDir/spRegionTest.stream";
@@ -278,7 +267,7 @@ TEST(DateEncoderRegionTest, testSpecAndParameters)
     EXPECT_TRUE(net1 == net2);
 
 	  // can we continue with execution?  See if we get any exceptions.
-    encoder2->setParameterInt64("sensedTime", 1587182400);  // Apr 17, 2020 22:00:00
+    encoder2->setParameterInt64("sensedTime", DateEncoder::mktime(2020, 4, 17, 22, 0, 0));  // Apr 17, 2020 22:00:00
     net2.run(2);
 
     // cleanup
