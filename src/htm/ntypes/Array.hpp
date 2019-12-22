@@ -299,6 +299,14 @@ public:
     return a;
   }
 
+  template <typename T> inline T item(size_t index) const {
+    NTA_CHECK(index < count_) << "index out of range.";
+    NTA_CHECK(BasicType::getType<T>() == type_) << "incorrect type. Expecting " << BasicType::getName(type_);
+    const T *buf = static_cast<const T *>(getBuffer());
+    return buf[index];
+  }
+
+
   /**
     * Type conversion
     * This will do a full copy into a shared buffer.

@@ -107,6 +107,10 @@ void ScalarSensor::compute()
   SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
 
+  // create the quantized sample or bucket. This becomes the title in the ClassifierRegion.
+  Real64 *quantizedSample = (Real64*)getOutput("bucket")->getData().getBuffer();
+  quantizedSample[0] = sensedValue_ - std::fmod(sensedValue_, encoder_->parameters.radius);
+
   // trace facility
   NTA_DEBUG << "compute " << getOutput("encoded") << std::endl;
 }
@@ -207,9 +211,9 @@ ScalarSensor::~ScalarSensor() {}
                                         true  // isDefaultOutput
                                         ));
 
-  ns->outputs.add("bucket", OutputSpec("Bucket number for this sensedValue",
-                                       NTA_BasicType_Int32,
-                                       0,    // elementCount
+  ns->outputs.add("bucket", OutputSpec("Quantized sensedValue for this iteration.  Becomres the title in ClassifierRegion.",
+                                       NTA_BasicType_Real64,
+                                       1,    // elementCount
                                        false, // isRegionLevel
                                        false // isDefaultOutput
                                        ));

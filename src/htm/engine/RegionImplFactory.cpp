@@ -39,6 +39,7 @@
 #include <htm/regions/VectorFileSensor.hpp>
 #include <htm/regions/SPRegion.hpp>
 #include <htm/regions/TMRegion.hpp>
+#include <htm/regions/ClassifierRegion.hpp>
 
 
 #include <htm/utils/Log.hpp>
@@ -96,6 +97,7 @@ RegionImplFactory &RegionImplFactory::getInstance() {
     instance.addRegionType("VectorFileSensor",   new RegisteredRegionImplCpp<VectorFileSensor>());
     instance.addRegionType("SPRegion",           new RegisteredRegionImplCpp<SPRegion>());
     instance.addRegionType("TMRegion",           new RegisteredRegionImplCpp<TMRegion>());
+    instance.addRegionType("ClassifierRegion",   new RegisteredRegionImplCpp<ClassifierRegion>());
   }
 
   return instance;

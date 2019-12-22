@@ -22,6 +22,7 @@
 
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Output.hpp>
+#include <htm/engine/Input.hpp>
 #include <htm/engine/Spec.hpp>
 #include <htm/ntypes/BasicType.hpp>
 #include <htm/engine/Region.hpp>
@@ -136,4 +137,34 @@ size_t Output::getNodeOutputElementCount() const {
 bool Output::hasOutgoingLinks() { return (!links_.empty()); }
 
 NTA_BasicType Output::getDataType() const { return data_.getType(); }
+
+void Output::resize(size_t count) {
+  NTA_CHECK(data_.getType() != NTA_BasicType_SDR) << "Cannot resize SDR buffer.";
+  NTA_CHECK(data_.getType() != NTA_BasicType_Str) << "Cannot resize Str buffer.";
+  // Allocate a new buffer and copy previous data.
+  Array d(data_.getType());
+  d.allocateBuffer(count);
+  size_t w = BasicType::getSize(data_.getType());
+  char *p = reinterpret_cast<char *>(data_.getBuffer());
+  char *s = reinterpret_cast<char *>(d.getBuffer());
+  size_t i;
+  for (i = 0; i < data_.getCount() * w; i++) {
+    if (i < count)
+      s[i] = p[i];
+  }
+  for (; i < count * w; i++) {
+    s[i] = 0;
+  }
+  data_ = d;
+  dim_ = {static_cast<UInt32>(count)};
+
+  // If the output is resized then the inputs to which it is connected
+  // must also be resized.  If the input is a Fan-in, the offsets into
+  // that buffer must be adjusted.
+  for (auto link : links_) {
+    Input *dest = link->getDest();
+    dest->resize();
+  }
+}
+
 
