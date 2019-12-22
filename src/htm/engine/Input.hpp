@@ -208,6 +208,11 @@ public:
   bool hasIncomingLinks() { return !links_.empty(); }
 
   /**
+   * Resize the input buffer.  This is called if a connected output is resized.
+   */
+  void resize();
+
+  /**
    *  Print raw data...for debugging
    */
   friend std::ostream &operator<<(std::ostream &f, const Input &d);

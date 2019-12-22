@@ -18,11 +18,11 @@
  * --------------------------------------------------------------------- */
 
 /** @file
- * Defines RDSERegion, a Region implementation for the RandomDistributedScalarEncoder.
+ * Defines ClassifierRegion, a Region implementation for the Classifier algorithm (SDRClassifier.cpp).
  */
 
-#ifndef NTA_RDSEREGION_HPP
-#define NTA_RDSEREGION_HPP
+#ifndef NTA_CLASSIFIERREGION_HPP
+#define NTA_CLASSIFIERREGION_HPP
 
 #include <string>
 #include <vector>
@@ -30,33 +30,33 @@
 #include <htm/engine/RegionImpl.hpp>
 #include <htm/ntypes/Value.hpp>
 #include <htm/types/Serializable.hpp>
-#include <htm/encoders/RandomDistributedScalarEncoder.hpp>
+#include <htm/algorithms/SDRClassifier.hpp>
 
 namespace htm {
 /**
- * A network region that encapsulates the RandomDistributedScalarEncoder.
+ * A network region that encapsulates the Classifier algorithm.
  *
  * @b Description
- * A RDSERegion encapsulates RandomDistributedScalarEncoder, connecting it to the Network
- * API. As a network runs, the client will specify new encoder inputs by
- * setting the "sensedValue" parameter or connecting a link which provides values for "sensedValue". 
- * On each compute, the ScalarSensor will encode its "sensedValue" to output.
+ * Definitions for the SDR Classifier.
+ *
+ * `Classifier` learns mapping from SDR->input value (encoder's output).
+ * This is used when you need to "explain" the HTM network back to real-world,
+ * ie. mapping SDRs back to digits in MNIST digit classification task.
+ *
+ *
  */
-class RDSERegion : public RegionImpl, Serializable {
+class ClassifierRegion : public RegionImpl, Serializable {
 public:
-  RDSERegion(const ValueMap &params, Region *region);
-  RDSERegion(ArWrapper &wrapper, Region *region);
+  ClassifierRegion(const ValueMap &params, Region *region);
+  ClassifierRegion(ArWrapper &wrapper, Region *region);
 
-  virtual ~RDSERegion() override;
+  virtual ~ClassifierRegion() override;
 
   static Spec *createSpec();
 
-  virtual Real64 getParameterReal64(const std::string &name, Int64 index = -1) override;
-  virtual Real32 getParameterReal32(const std::string &name, Int64 index = -1) override;
-  virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
   virtual bool getParameterBool(const std::string &name,   Int64 index = -1) override;
-  virtual void setParameterReal32(const std::string &name, Int64 index, Real32 value) override;
-  virtual void setParameterReal64(const std::string &name, Int64 index, Real64 value) override;
+  virtual void setParameterBool(const std::string &name, Int64 index, bool value) override;
+
   virtual void initialize() override;
 
   void compute() override;
@@ -65,12 +65,11 @@ public:
 
   CerealAdapter;  // see Serializable.hpp
   // FOR Cereal Serialization
-  template<class Archive>
-  void save_ar(Archive& ar) const {
-    ar(CEREAL_NVP(sensedValue_));
-    ar(CEREAL_NVP(noise_));
-    ar(CEREAL_NVP(rnd_));
-    ar(cereal::make_nvp("encoder", encoder_));
+  template<class Archive> void save_ar(Archive &ar) const {
+    ar(cereal::make_nvp("learn", learn_));
+    ar(cereal::make_nvp("bucketListMap", bucketListMap));
+    ar(cereal::make_nvp("bucketList", bucketList));
+    ar(cereal::make_nvp("classifier", classifier_));
   }
   // FOR Cereal Deserialization
   // NOTE: the Region Implementation must have been allocated
@@ -79,25 +78,25 @@ public:
   //       the region_ field in the Base class.
   template<class Archive>
   void load_ar(Archive& ar) {
-    ar(CEREAL_NVP(sensedValue_));
-    ar(CEREAL_NVP(noise_));
-    ar(CEREAL_NVP(rnd_));
-    ar(cereal::make_nvp("encoder", encoder_));
-    setDimensions(encoder_->dimensions); 
+    ar(cereal::make_nvp("learn", learn_));
+    ar(cereal::make_nvp("bucketListMap", bucketListMap));
+    ar(cereal::make_nvp("bucketList", bucketList));
+    ar(cereal::make_nvp("classifier", classifier_));
   }
 
 
   bool operator==(const RegionImpl &other) const override;
-  inline bool operator!=(const RDSERegion &other) const {
+  inline bool operator!=(const ClassifierRegion &other) const {
     return !operator==(other);
   }
 
 private:
-  Real64 sensedValue_;
-  Real32 noise_;
-  Random rnd_;
-  std::shared_ptr<RandomDistributedScalarEncoder> encoder_;
+  std::shared_ptr<Classifier> classifier_;
+  bool learn_;
+
+  std::map<Real64, UInt32> bucketListMap;  //  Map containing titles or buckets ordered by quantized values.
+  std::vector<Real64> bucketList;          //  Vector of titles ordered by order in which they were first seen to match Classifier.
 };
 } // namespace htm
 
-#endif // NTA_RDSEREGION_HPP
+#endif // NTA_CLASSIFIERREGION_HPP

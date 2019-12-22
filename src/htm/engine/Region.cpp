@@ -321,14 +321,15 @@ bool Region::operator==(const Region &o) const {
     return false;
   }
 
-  // Compare Regions's Input (checking only input buffer names and type)
+  // Compare Regions's Input (checking only input buffer names, size, and type)
   static auto compareInput = [](decltype(*inputs_.begin()) a, decltype(*inputs_.begin()) b) {
     if (a.first != b.first) {
       return false;
     }
     auto input_a = a.second;
     auto input_b = b.second;
-    if (input_a->getDimensions() != input_b->getDimensions()) return false;
+    if (input_a->getDimensions().getCount() != input_b->getDimensions().getCount())
+      return false;
     if (input_a->isInitialized() != input_b->isInitialized()) return false;
     if (input_a->isInitialized()) {
       if (input_a->getData().getType() != input_b->getData().getType() ||

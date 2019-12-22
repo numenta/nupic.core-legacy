@@ -487,35 +487,40 @@ public:
        CEREAL_NVP(tmAnomaly_.mode_),
        CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
        CEREAL_NVP(connections));
+    size_t activeSize = activeSegments_.size();
+    ar(CEREAL_NVP(activeSize));
 
-    cereal::size_type numActiveSegments = activeSegments_.size();
-    ar( cereal::make_size_tag(numActiveSegments));
-    for (Segment segment : activeSegments_) {
-      struct container_ar c;
-      c.cell = connections.cellForSegment(segment);
-      const vector<Segment> &segments = connections.segmentsForCell(c.cell);
+    if (activeSize > 0) {
+      cereal::size_type numActiveSegments = activeSegments_.size();
+      ar( cereal::make_size_tag(numActiveSegments));
+      for (Segment segment : activeSegments_) {
+        struct container_ar c;
+        c.cell = connections.cellForSegment(segment);
+        const vector<Segment> &segments = connections.segmentsForCell(c.cell);
 
-      c.idx = (SegmentIdx)std::distance(
-                          segments.begin(), 
-                          std::find(segments.begin(), 
-                          segments.end(), segment));
-      c.syn = numActiveConnectedSynapsesForSegment_[segment];
-      ar(c); // to keep iteration counts correct, only serialize one item per iteration.
+        c.idx = (SegmentIdx)std::distance(
+                            segments.begin(), 
+                            std::find(segments.begin(), 
+                            segments.end(), segment));
+        c.syn = numActiveConnectedSynapsesForSegment_[segment];
+        ar(c); // to keep iteration counts correct, only serialize one item per iteration.
+      }
     }
 
-    cereal::size_type numMatchingSegments = matchingSegments_.size();
-    ar(cereal::make_size_tag(numMatchingSegments));
-    for (Segment segment : matchingSegments_) {
-      struct container_ar c;
-      c.cell = connections.cellForSegment(segment);
-      const vector<Segment> &segments = connections.segmentsForCell(c.cell);
+    size_t matchSize = matchingSegments_.size();
+    ar(CEREAL_NVP(matchSize));
+    if (matchSize > 0) {
+      cereal::size_type numMatchingSegments = matchingSegments_.size();
+      ar(cereal::make_size_tag(numMatchingSegments));
+      for (Segment segment : matchingSegments_) {
+        struct container_ar c;
+        c.cell = connections.cellForSegment(segment);
+        const vector<Segment> &segments = connections.segmentsForCell(c.cell);
 
-      c.idx = (SegmentIdx)std::distance(
-                          segments.begin(), 
-                          std::find(segments.begin(), 
-                          segments.end(), segment));
-      c.syn = numActivePotentialSynapsesForSegment_[segment];
-      ar(c);
+        c.idx = (SegmentIdx)std::distance(segments.begin(), std::find(segments.begin(), segments.end(), segment));
+        c.syn = numActivePotentialSynapsesForSegment_[segment];
+        ar(c);
+      }
     }
 
   }
@@ -544,29 +549,35 @@ public:
        CEREAL_NVP(tmAnomaly_.mode_),
        CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
        CEREAL_NVP(connections));
-
-    numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
-    cereal::size_type numActiveSegments;
-    ar(cereal::make_size_tag(numActiveSegments));
-    activeSegments_.resize(static_cast<size_t>(numActiveSegments));
-    for (size_t i = 0; i < static_cast<size_t>(numActiveSegments); i++) {
-      struct container_ar c;
-      ar(c);  
-      Segment segment = connections.getSegment(c.cell, c.idx);
-      activeSegments_[i] = segment;
-      numActiveConnectedSynapsesForSegment_[segment] = c.syn;
+    size_t activeSize;
+    ar(CEREAL_NVP(activeSize));
+    if (activeSize > 0) {
+      numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
+      cereal::size_type numActiveSegments;
+      ar(cereal::make_size_tag(numActiveSegments));
+      activeSegments_.resize(static_cast<size_t>(numActiveSegments));
+      for (size_t i = 0; i < static_cast<size_t>(numActiveSegments); i++) {
+        struct container_ar c;
+        ar(c);  
+        Segment segment = connections.getSegment(c.cell, c.idx);
+        activeSegments_[i] = segment;
+        numActiveConnectedSynapsesForSegment_[segment] = c.syn;
+      }
     }
-
-    numActivePotentialSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
-    cereal::size_type numMatchingSegments;
-    ar(cereal::make_size_tag(numMatchingSegments));
-    matchingSegments_.resize(static_cast<size_t>(numMatchingSegments));
-    for (size_t i = 0; i < static_cast<size_t>(numMatchingSegments); i++) {
-      struct container_ar c;
-      ar(c);
-      Segment segment = connections.getSegment(c.cell, c.idx);
-      matchingSegments_[i] = segment;
-      numActivePotentialSynapsesForSegment_[segment] = c.syn;
+    size_t matchSize;
+    ar(CEREAL_NVP(matchSize));
+    if (matchSize > 0) {
+      numActivePotentialSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
+      cereal::size_type numMatchingSegments;
+      ar(cereal::make_size_tag(numMatchingSegments));
+      matchingSegments_.resize(static_cast<size_t>(numMatchingSegments));
+      for (size_t i = 0; i < static_cast<size_t>(numMatchingSegments); i++) {
+        struct container_ar c;
+        ar(c);
+        Segment segment = connections.getSegment(c.cell, c.idx);
+        matchingSegments_[i] = segment;
+        numActivePotentialSynapsesForSegment_[segment] = c.syn;
+      }
     }
   }
 

@@ -396,12 +396,10 @@ void Network::initialize() {
   /*
    * 1. Calculate all Input/Output dimensions by evaluating links.
    */
-  for (auto p: regions_) {
-    std::shared_ptr<Region> r = p.second;
-    // evaluateLinks returns the number
-    // of links which still need to be
-    // evaluated.
-    r->evaluateLinks();
+  for (auto phase : phaseInfo_) { // evaluate regions in execution order
+    for (auto r : phase) {
+      r->evaluateLinks();
+    }
   }
 
 
