@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # HTM Community Edition of NuPIC
-# Copyright (C) 2013, Numenta, Inc.
+# Copyright (C) 2020, Numenta, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero Public License version 3 as
@@ -15,13 +15,13 @@
 # along with this program.  If not, see http://www.gnu.org/licenses.
 # ----------------------------------------------------------------------
 
-""" Unit tests for .py implemented date encoder. """
+""" Unit tests for C++ implementation of the date encoder. """
 
 import datetime
 import numpy
 import unittest
 
-from htm.encoders.date import DateEncoder
+from htm.bindings.encoders import DateEncoder, DateEncoderParameters
 from htm.bindings.sdr import SDR, Metrics
 
 """
@@ -35,13 +35,19 @@ customDays=0,
 holidays=((12, 25),)):
 """
 
-class DateEncoderTest(unittest.TestCase):
+class DateEncoder_Test(unittest.TestCase):
   """ Unit tests for DateEncoder class. """
 
   def testDateEncoder(self):
     """ Creating date encoder instance. """
-    # 3 bits for season, 1 bit for day of week, 1 for weekend, 5 for time of day
-    enc = DateEncoder(season=3, dayOfWeek=1, weekend=1, timeOfDay=5)
+    # 3 bits for season(4seasons), 1 bit for day of week, 1 for weekend, 5 for time of day
+    p = DateEncoderParameters()
+    p.season_width = 3
+    p.dayOfWeek_width = 1
+    p.weekend_width = 1
+    p.timeOfDay_width = 5
+    p.verbose = False;
+    enc = DateEncoder(p)
     # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
@@ -74,7 +80,10 @@ class DateEncoderTest(unittest.TestCase):
   def testDayOfWeek(self):
     """ Creating date encoder instance. """
     # 1 bit for days in a week (x7 days -> 7 bits), no other fields encoded
-    enc = DateEncoder(dayOfWeek=1)
+    p = DateEncoderParameters()
+    p.dayOfWeek_width = 1
+    p.verbose = False
+    enc = DateEncoder(p)
     # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
@@ -89,7 +98,10 @@ class DateEncoderTest(unittest.TestCase):
     self.assertEqual(expected, bits.dense.tolist())
 
     # check a day is encoded consistently during most of its hours.
-    enc = DateEncoder(dayOfWeek = 40)
+    p = DateEncoderParameters()
+    p.dayOfWeek_width = 40
+    p.verbose = False;
+    enc = DateEncoder(p)
     dMorn = datetime.datetime(2010, 11, 4,  8,    00) # 8 AM to
     dEve  = datetime.datetime(2010, 11, 4,  8+12, 00) # 8 PM
 
@@ -98,7 +110,10 @@ class DateEncoderTest(unittest.TestCase):
     assert(bits1 .getOverlap( bits2 ) > 40 * .25 )
 
     # Check the long term statistics of the encoder.
-    enc = DateEncoder( dayOfWeek=300 )
+    p = DateEncoderParameters()
+    p.dayOfWeek_width = 300
+    p.verbose = False;
+    enc = DateEncoder(p)
     sdr = SDR( enc.dimensions )
     test_period = 1000
     metrics = Metrics( sdr, test_period )
@@ -114,14 +129,17 @@ class DateEncoderTest(unittest.TestCase):
     assert( metrics.sparsity.max() <= .20 )
     assert( metrics.activationFrequency.min() >= .05 )
     assert( metrics.activationFrequency.max() <= .20 )
-    assert( metrics.overlap.max() <= .99 )
-    assert( metrics.overlap.min() >= .90 )
+    #assert( metrics.overlap.max() <= .99 )
+    #assert( metrics.overlap.min() >= .90 )
 
 
   def testSeason(self):
     """ Creating date encoder instance. """
     # 3 bits for season (x4 seasons -> 12 bits), no other fields encoded
-    enc = DateEncoder(season=3)
+    p = DateEncoderParameters()
+    p.season_width = 3
+    p.verbose = False
+    enc = DateEncoder(p)
     # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
@@ -138,7 +156,10 @@ class DateEncoderTest(unittest.TestCase):
   def testWeekend(self):
     """ Creating date encoder instance. """
     # 1 bit for weekend (x2 possible values (True=is weekend/False=is not)-> 2 bits), no other fields encoded
-    enc = DateEncoder(weekend=1)
+    p = DateEncoderParameters()
+    p.weekend_width = 1
+    p.verbose = False
+    enc = DateEncoder(p)
     # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
@@ -153,10 +174,13 @@ class DateEncoderTest(unittest.TestCase):
     self.assertEqual(expected, bits.dense.tolist())
 
 
-  def testTime(self):
+  def testTimeOfDay(self):
     """ Creating date encoder instance. """
     # 3 bits for season (x4 seasons -> 12 bits), no other fields encoded
-    enc = DateEncoder(timeOfDay=5)
+    p = DateEncoderParameters()
+    p.timeOfDay_width = 5
+    p.verbose = False
+    enc = DateEncoder(p)
     # In the middle of fall, Thursday, not a weekend, afternoon - 4th Nov,
     # 2010, 14:55
     d = datetime.datetime(2010, 11, 4, 14, 55)
@@ -174,29 +198,24 @@ class DateEncoderTest(unittest.TestCase):
        1,1,1,1,0,0,0,0,0,0])
 
     expected = timeOfDayExpected
-    print(expected)
-    print(bits.dense.tolist())
     self.assertEqual(bits.size, 30)
     self.assertEqual(expected, bits.dense.tolist())
 
 
-  def testMissingValues(self):
-    """ Missing values. """
-    e = DateEncoder(timeOfDay=5)
-    mvOutput = e.encode(None)
-    self.assertEqual(sum(mvOutput.sparse), 0)
-    mvOutput = e.encode(float('nan'))
-    self.assertEqual(sum(mvOutput.sparse), 0)
 
 
   def testHoliday(self):
     """ Look at holiday more carefully because of the smooth transition. """
-    e = DateEncoder(holiday=5)
+    p = DateEncoderParameters()
+    p.holiday_width = 5
+    p.verbose = False
+    e = DateEncoder(p)
     notholiday = [1,1,1,1,1,0,0,0,0,0]  # Not a holiday
     holiday1   = [0,0,0,1,1,1,1,1,0,0]  # day before holiday
     holiday    = [0,0,0,0,0,1,1,1,1,1]  # day of holiday
     holiday2   = [1,1,0,0,0,0,0,1,1,1]  # day after holiday
-    
+
+
     d = datetime.datetime(2011, 12, 24, 16, 00) #day before holiday, approaching
     assert(all( e.encode(d).dense == holiday1 ))
     
@@ -210,9 +229,14 @@ class DateEncoderTest(unittest.TestCase):
     assert(all( e.encode(d).dense == notholiday ))
 
 
+
   def testHolidayMultiple(self):
     """ Look at holiday more carefully because of the smooth transition. """
-    e = DateEncoder(holiday=5, holidays=[(12, 25), (2018, 4, 1), (2017, 4, 16)])
+    p = DateEncoderParameters()
+    p.holiday_width = 5
+    p.holiday_dates = [[12, 25], [2018, 4, 1], [2017, 4, 16]]
+    p.verbose = False
+    e = DateEncoder(p)
     holiday    = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
     notholiday = [1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
 
@@ -231,11 +255,18 @@ class DateEncoderTest(unittest.TestCase):
 
   def testWeekend(self):
     """ Test weekend encoder. """
-    e  = DateEncoder(customDays=(21, ["sat", "sun", "fri"]))
-    e2 = DateEncoder(weekend=21)
+    p = DateEncoderParameters()
+    p.custom_width = 21
+    p.custom_days = ["sat,sun,fri"]
+    p.verbose = False
+    e = DateEncoder(p)
+    
+    p = DateEncoderParameters()
+    p.weekend_width = 21
+    e2 = DateEncoder(p)
 
     d = datetime.datetime(1988, 5, 29, 20, 00)
-    print(d)
+    #print(d)
     self.assertEqual( e.encode(d), e2.encode(d) )
 
     for _ in range(300):
@@ -243,7 +274,6 @@ class DateEncoderTest(unittest.TestCase):
       self.assertEqual( e.encode(d), e2.encode(d) )
 
   
-
-
+ 
 if __name__ == "__main__":
   unittest.main()

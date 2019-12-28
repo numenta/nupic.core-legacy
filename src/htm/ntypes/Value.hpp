@@ -351,12 +351,20 @@ public:
 
   // Access for backward compatability
   template <typename T> T getScalarT(const std::string &key) const { // throws
-    return (*this)[key].as<T>();
+    try {
+      return (*this)[key].as<T>();
+    } catch (Exception &e) {
+      NTA_THROW << "ValueMap.getScalarT(\"" << key << "\") - " << e.what();
+    }
   }
   template <typename T> T getScalarT(const std::string &key, T defaultValue) const { // with default
     if ((*this)[key].core_->type_ != Value::Category::Scalar)
       return defaultValue;
-    return (*this)[key].as<T>();
+    try {
+      return (*this)[key].as<T>();
+    } catch (Exception &e) {
+      NTA_THROW << "ValueMap.getScalarT(\"" << key << "\") - " << e.what();
+    }
   }
   std::string getString(const std::string &key, const std::string &defaultValue) const {
     if ((*this)[key].core_->type_ != Value::Category::Scalar)

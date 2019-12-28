@@ -184,8 +184,9 @@ class DateEncoder:
       # 0->1 on the day before the holiday and 1->0 on the day after the
       # holiday.
       p.minimum    = 0
-      p.maximum    = 1
+      p.maximum    = 2
       p.radius     = 1
+      p.periodic   = True
       p.activeBits = holiday
       self.holidayEncoder = ScalarEncoder(p)
       self.size += self.holidayEncoder.size
@@ -299,7 +300,7 @@ class DateEncoder:
             break
           elif diff.days == 1:
             # ramp smoothly from 1 -> 0 on the next day
-            val = 1.0 - (float(diff.seconds) / 86400)
+            val = 1.0 + (float(diff.seconds) / 86400)
             break
         else:
           diff = hdate - inp
