@@ -1,8 +1,8 @@
 /* ---------------------------------------------------------------------
  * HTM Community Edition of NuPIC
- * Copyright (C) 2019, Numenta, Inc.
+ * Copyright (C) 2020, Numenta, Inc.
  *
- * Author: David Keeney, Nov. 2019   dkeeney@gmail.com
+ * Author: David Keeney, Jan 2020   dkeeney@gmail.com
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero Public License version 3 as
@@ -18,11 +18,11 @@
  * --------------------------------------------------------------------- */
 
 /** @file
- * Defines RDSERegion, a Region implementation for the RandomDistributedScalarEncoder.
+ * Defines DateEncoderRegion, a Region implementation for the DateEncoder algorithm.
  */
 
-#ifndef NTA_RDSEREGION_HPP
-#define NTA_RDSEREGION_HPP
+#ifndef NTA_DATE_ENCODER_REGION_HPP
+#define NTA_DATE_ENCODER_REGION_HPP
 
 #include <string>
 #include <vector>
@@ -30,33 +30,35 @@
 #include <htm/engine/RegionImpl.hpp>
 #include <htm/ntypes/Value.hpp>
 #include <htm/types/Serializable.hpp>
-#include <htm/encoders/RandomDistributedScalarEncoder.hpp>
+#include <htm/encoders/DateEncoder.hpp>
 
 namespace htm {
 /**
- * A network region that encapsulates the RandomDistributedScalarEncoder.
+ * A network region that encapsulates the DateEncoder.
  *
  * @b Description
- * A RDSERegion encapsulates RandomDistributedScalarEncoder, connecting it to the Network
+ * A DateEncoderRegion encapsulates DateEncoder, connecting it to the Network
  * API. As a network runs, the client will specify new encoder inputs by
- * setting the "sensedValue" parameter or connecting a link which provides values for "sensedValue". 
- * On each compute, the ScalarSensor will encode its "sensedValue" to output.
+ * setting the "sensedTime" parameter or connecting a link which provides values for "sensedTime". 
+ * On each compute, the DateEncoder will encode its "sensedTime" to output.
  */
-class RDSERegion : public RegionImpl, Serializable {
+class DateEncoderRegion : public RegionImpl, Serializable {
 public:
-  RDSERegion(const ValueMap &params, Region *region);
-  RDSERegion(ArWrapper &wrapper, Region *region);
+  DateEncoderRegion(const ValueMap &params, Region *region);
+  DateEncoderRegion(ArWrapper &wrapper, Region *region);
 
-  virtual ~RDSERegion() override;
+  virtual ~DateEncoderRegion() override;
 
   static Spec *createSpec();
 
-  virtual Real64 getParameterReal64(const std::string &name, Int64 index = -1) override;
+  virtual Int64 getParameterInt64(const std::string &name, Int64 index = -1) override;
   virtual Real32 getParameterReal32(const std::string &name, Int64 index = -1) override;
   virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
   virtual bool getParameterBool(const std::string &name,   Int64 index = -1) override;
+  virtual std::string getParameterString(const std::string &name, Int64 index) override;
   virtual void setParameterReal32(const std::string &name, Int64 index, Real32 value) override;
-  virtual void setParameterReal64(const std::string &name, Int64 index, Real64 value) override;
+  virtual void setParameterInt64(const std::string &name, Int64 index, Int64 value) override;
+  virtual void setParameterBool(const std::string &name, Int64 index, bool value) override;
   virtual void initialize() override;
 
   void compute() override;
@@ -67,7 +69,7 @@ public:
   // FOR Cereal Serialization
   template<class Archive>
   void save_ar(Archive& ar) const {
-    ar(CEREAL_NVP(sensedValue_));
+    ar(CEREAL_NVP(sensedTime_));
     ar(CEREAL_NVP(noise_));
     ar(CEREAL_NVP(rnd_));
     ar(cereal::make_nvp("encoder", encoder_));
@@ -79,7 +81,7 @@ public:
   //       the region_ field in the Base class.
   template<class Archive>
   void load_ar(Archive& ar) {
-    ar(CEREAL_NVP(sensedValue_));
+    ar(CEREAL_NVP(sensedTime_));
     ar(CEREAL_NVP(noise_));
     ar(CEREAL_NVP(rnd_));
     ar(cereal::make_nvp("encoder", encoder_));
@@ -88,16 +90,16 @@ public:
 
 
   bool operator==(const RegionImpl &other) const override;
-  inline bool operator!=(const RDSERegion &other) const {
+  inline bool operator!=(const DateEncoderRegion &other) const {
     return !operator==(other);
   }
 
 private:
-  Real64 sensedValue_;
+  time_t sensedTime_;
   Real32 noise_;
   Random rnd_;
-  std::shared_ptr<RandomDistributedScalarEncoder> encoder_;
+  std::shared_ptr<DateEncoder> encoder_;
 };
 } // namespace htm
 
-#endif // NTA_RDSEREGION_HPP
+#endif // NTA_DATE_ENCODER_REGION_HPP

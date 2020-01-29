@@ -272,7 +272,7 @@ ValueMap RegionImpl::ValidateParameters(const ValueMap &vm, Spec* ns) {
     if (key == "dim")
       continue;
     if (!ns->parameters.contains(key))
-      NTA_THROW << "Parameter '" << key << "' is not expected for this Region.";
+      NTA_THROW << "Parameter '" << key << "' is not expected for region '" << getName() << "'.";
   }
   
 

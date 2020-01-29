@@ -168,6 +168,12 @@ public:
   void setDimensions(const Dimensions& dim) { dim_ = dim; }
 
   /**
+   *  Resize the buffer.  (does not work for SDR or Str buffers)
+   *  This is used when a Region needs to change the size of an output buffer at runtime.  (See ClassifierRegion.pdf)
+   */
+  void resize(size_t size);
+
+  /**
    *  Print raw data...for debugging
    */
   friend std::ostream &operator<<(std::ostream &f, const Output &d);

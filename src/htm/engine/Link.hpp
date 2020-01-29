@@ -449,6 +449,8 @@ public:
    */
   const std::string toString() const;
 
+  void setOffset(size_t count) { destOffset_ = count; }
+
   /**
    * Display and compare the link.
    *

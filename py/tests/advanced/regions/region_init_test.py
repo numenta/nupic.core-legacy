@@ -29,12 +29,18 @@ class RegionInitTests(unittest.TestCase):
         list_string = '[0, 1, 2, 3, 42]'
         extracted_list = extractList(list_string, int)
         self.assertEqual([0,1,2,3,42], extracted_list)
+        list_string = '[ 0, 1, 2, 3, 42]'
+        extracted_list = extractList(list_string, int)
+        self.assertEqual([0,1,2,3,42], extracted_list)
 
     def testExtractListFloat(self):
         """
         Test that extractList extracts floats.
         """
         list_string = '[0.0, 1.0, 2.0, 3.1, 4.2]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([0.0,1.0,2.0,3.1,4.2], extracted_list)
+        list_string = '[ 0.0, 1.0, 2.0, 3.1, 4.2]'
         extracted_list = extractList(list_string, float)
         self.assertEqual([0.0,1.0,2.0,3.1,4.2], extracted_list)
 
@@ -57,6 +63,9 @@ class RegionInitTests(unittest.TestCase):
         list_string = '[0 1 2 3 4]'
         extracted_list = extractList(list_string, int)
         self.assertEqual([0, 1, 2, 3, 4], extracted_list)
+        list_string = '[ 0 1 2 3 4]'
+        extracted_list = extractList(list_string, int)
+        self.assertEqual([0, 1, 2, 3, 4], extracted_list)
 
     def testExtractArrayFloat(self):
         """
@@ -65,12 +74,96 @@ class RegionInitTests(unittest.TestCase):
         list_string = '[0.0 1.0 2.0 3.1 4.2]'
         extracted_list = extractList(list_string, float)
         self.assertEqual([0.0, 1.0, 2.0, 3.1, 4.2], extracted_list)
+        list_string = '[ 0.0 1.0 2.0 3.1 4.2]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([0.0, 1.0, 2.0, 3.1, 4.2], extracted_list)
+
+    def testExtractNegativeFloat(self):
+        """
+        Test that extractList extracts floats from np.array string.
+        """
+        list_string = '[-20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, -20.0], extracted_list)
+        list_string = '[ -20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, -20.0], extracted_list)
+        list_string = '[-20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, -20.0], extracted_list)
+        list_string = '[ -20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, -20.0], extracted_list)
+
+    def testExtractArrayMixedSignFloat(self):
+        """
+        Test that extractList extracts floats from np.array string.
+        """
+        list_string = '[20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([20.0, -20.0], extracted_list)
+        list_string = '[ 20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        list_string = '[  20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        list_string = '[   20.0, -20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([20.0, -20.0], extracted_list)
+        list_string = '[-20.0,20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, 20.0], extracted_list)
+        list_string = '[-20.0, 20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, 20.0], extracted_list)
+        list_string = '[-20.0,  20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, 20.0], extracted_list)
+        list_string = '[ -20.0,20.0]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20.0, 20.0], extracted_list)
+
+    def testExtractArrayMixedSignInt(self):
+        """
+        Test that extractList extracts floats from np.array string.
+        """
+        list_string = '[20, -20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([20, -20], extracted_list)
+        list_string = '[ 20, -20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([20, -20], extracted_list)
+        list_string = '[-20, 20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20, 20], extracted_list)
+        list_string = '[ -20, 20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20, 20], extracted_list)
+
+    def testExtractArrayNegativeInt(self):
+        """
+        Test that extractList extracts floats from np.array string.
+        """
+        list_string = '[-20, -20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20, -20], extracted_list)
+        list_string = '[ -20, -20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20, -20], extracted_list)
+        list_string = '[-20,-20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20, -20], extracted_list)
+        list_string = '[ -20,-20]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([-20, -20], extracted_list)
 
     def testExtractArrayFloatNoTrailingZero(self):
         """
         Test that extractList extracts floats from np.array string.
         """
         list_string = '[0. 1. 2.]'
+        extracted_list = extractList(list_string, float)
+        self.assertEqual([0.0, 1.0, 2.0], extracted_list)
+        list_string = '[ 0. 1. 2.]'
         extracted_list = extractList(list_string, float)
         self.assertEqual([0.0, 1.0, 2.0], extracted_list)
 
@@ -89,6 +182,15 @@ class RegionInitTests(unittest.TestCase):
         list_string = '[0, 1, 2, 3, 42, [67, 89], "Hello World"]'
         extracted_list = extractList(list_string)
         self.assertEqual([0, 1, 2, 3, 42, [67, 89], "Hello World"], extracted_list)
+        list_string = '[ 0, 1, 2, 3, 42, [67, 89], "Hello World"]'
+        extracted_list = extractList(list_string)
+        self.assertEqual([0, 1, 2, 3, 42, [67, 89], "Hello World"], extracted_list)
+        list_string = '[ 0, 1, 2, 3, 42, [ 67, 89], "Hello World"]'
+        extracted_list = extractList(list_string)
+        self.assertEqual([0, 1, 2, 3, 42, [ 67, 89], "Hello World"], extracted_list)
+        list_string = '[0, 1, 2, 3, 42, [ 67, 89], "Hello World"]'
+        extracted_list = extractList(list_string)
+        self.assertEqual([0, 1, 2, 3, 42, [ 67, 89], "Hello World"], extracted_list)
 
     def testAsBool(self):
         """"

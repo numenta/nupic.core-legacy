@@ -28,7 +28,7 @@ Compared to `Numenta/nupic.core`; the changes here are listed in order from olde
 Calls to `read()` and `write()` are no longer available. Use `save()` and `load()`. 
 `Network(path)` is no longer used to deserialize a path. Use `Network net; net.load(stream);` to deserialize.  
 Helpers `SaveToFile(path)` and `LoadFromFile(path)` are used to stream to and from a file using save() 
-and load().
+and load().  This was later changed to use Cereal Serialization.
 
 * The function `Network::newRegionFromBundle() was replaced with `newRegion(stream, name)` where the stream 
 is an input stream reading a file created by region->save(steam)  or region->saveToFile(path).  PR#62
@@ -118,7 +118,7 @@ This is obsolete. Use getRegion('name') instead.
 Changes made to the C++ Library also effect the Python Library, since python is
 mostly just a thin wrapper around the C++ library.
 
-- `Serialization` not supported as canproto was removed. Serialization via Pickle is not yet supported.
+- `Serialization` using canproto was removed. This was replaced with Cereal Serialization and is available via saveToFile() and loadToFile().  Pickle of a component imported from C++ will cause Cereal serialization.  So Python apps should just use Pickle for serialization.
 
 - Changed all use of "nupic" to "htm".  This means that Python users must import from
 
@@ -128,6 +128,7 @@ mostly just a thin wrapper around the C++ library.
   | htm.bindings.engine_internal | nupic.bindings.engine_internal |
   | htm.bindings.math            | nupic.bindings.math            |
   | htm.bindings.encoders        | nupic.bindings.encoders        |
+  | htm.bindings.sdr             |  --                            |
 
 - Most algorithms now accept SDR's instead of numpy arrays.
   Recommend reading the documentation, see `python -m pydoc htm`

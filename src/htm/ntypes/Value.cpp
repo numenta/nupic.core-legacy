@@ -105,6 +105,8 @@ Value &Value::parse(const std::string &yaml_string) {
       std::string err = "Parse Error " + std::to_string(parser.error) + ": " + std::string(parser.problem) +
                         ", offset: " + std::to_string(parser.problem_offset) +
                         ", context: " + std::string(parser.context);
+      if (!key.empty())
+        err += " following key: `" + key + "'.";
       yaml_parser_delete(&parser);
       VERBOSE << err << std::endl;
       NTA_THROW << err;
@@ -576,15 +578,15 @@ bool Value::operator==(const Value &v) const { return equals(*this, v); }
 
 // Explicit implementations for as<T>()
 #define NTA_CONVERT(T, I)                                                                                              \
-  if (core_->type_ != Value::Category::Scalar)                                                                                \
+  if (core_->type_ != Value::Category::Scalar)                                                                         \
     NTA_THROW << "value not found.";                                                                                   \
   errno = 0;                                                                                                           \
   char *end;                                                                                                           \
   T val = (T)I;                                                                                                        \
   if (errno)                                                                                                           \
-    NTA_THROW << "In '" << core_->scalar_ << "' numeric conversion error: " << std::strerror(errno);                          \
+    NTA_THROW << "In '" << core_->scalar_ << "' numeric conversion error: " << std::strerror(errno);                   \
   if (*end != '\0')                                                                                                    \
-    NTA_THROW << "In '" << core_->scalar_ << "' numeric conversion error: invalid char.";                                     \
+    NTA_THROW << "In '" << core_->scalar_ << "' numeric conversion error: invalid char.";                              \
   return val;
 
 int8_t Value::asInt8() const { NTA_CONVERT(int8_t, std::strtol(core_->scalar_.c_str(), &end, 0)); }
