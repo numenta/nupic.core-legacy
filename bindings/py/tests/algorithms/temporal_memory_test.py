@@ -172,6 +172,11 @@ class TemporalMemoryBindingsTest(unittest.TestCase):
     _print("activeCells:"+str(len(tm.getActiveCells().sparse)))
     _print("predictiveCells:"+str(len(predictiveCellsSDR.sparse)))
     
+  def testTMexposesConnections(self):
+    """TM exposes internal connections as read-only object"""
+    tm = TM(columnDimensions=[2048], connectedPermanence=0.42)
+    self.assertAlmostEqual(tm.connections.connectedThreshold, 0.42, places=3)
+
 
 def _print(txt):
     if debugPrint:

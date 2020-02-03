@@ -286,8 +286,16 @@ public:
    * @return Segment
    * The created segment.
    */
-  Segment createSegment(const CellIdx& cell) { 
-	  return connections.createSegment(cell, maxSegmentsPerCell_); }
+  Segment createSegment(const CellIdx& cell) {
+    return connections_.createSegment(cell, maxSegmentsPerCell_); 
+  }
+  Synapse createSynapse(const Segment seg, CellIdx presyn, Permanence perm) {
+    return connections_.createSynapse(seg, presyn, perm); 
+  }
+  void destroySegment(const Segment rm) {
+    connections_.destroySegment(rm);
+  }
+  void destroySynapse(const Synapse syn) { connections_.destroySynapse(syn); }
 
   /**
    * Returns the indices of cells that belong to a mini-column.
@@ -486,7 +494,8 @@ public:
        CEREAL_NVP(tmAnomaly_.anomaly_),
        CEREAL_NVP(tmAnomaly_.mode_),
        CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
-       CEREAL_NVP(connections));
+       CEREAL_NVP(connections_));
+    
     size_t activeSize = activeSegments_.size();
     ar(CEREAL_NVP(activeSize));
 
@@ -548,7 +557,8 @@ public:
        CEREAL_NVP(tmAnomaly_.anomaly_),
        CEREAL_NVP(tmAnomaly_.mode_),
        CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
-       CEREAL_NVP(connections));
+       CEREAL_NVP(connections_));
+    
     size_t activeSize;
     ar(CEREAL_NVP(activeSize));
     if (activeSize > 0) {
@@ -691,9 +701,11 @@ private:
       ANMode mode_ = ANMode::RAW;
       AnomalyLikelihood anomalyLikelihood_; //TODO provide default/customizable params here
   };
+  Connections connections_;
 
 public:
-  Connections connections;
+  const Connections& connections = connections_; //const view of Connections for the public
+
   const UInt &externalPredictiveInputs = externalPredictiveInputs_;
 
   anomaly_tm tmAnomaly_;

@@ -709,10 +709,12 @@ public:
 
   @param column integer of column index.
 
-  @param permanence real array to store permanence values for the selected
-  column.
+  @param threshold : only output synapses with `permanence >= threshold`.
+         This can be used to get connected synapses. 
+
+  @return vector with Permanence values for given column, 
   */
-  void getPermanence(UInt column, Real permanence[]) const;
+  vector<Real> getPermanence(const UInt column, const Permanence threshold = 0.0f) const;
   /**
   Sets the permanence values for a given column. 'permanence' size
   must match the number of inputs.
@@ -723,16 +725,6 @@ public:
   */
   void setPermanence(UInt column, const Real permanence[]);
 
-  /**
-  Returns the connected synapses for a given column.
-  'connectedSynapses' size must match the number of inputs.
-
-  @param column integer of column index.
-
-  @param connectedSynapses integer array to store the connected synapses for a
-  given column.
-  */
-  void getConnectedSynapses(UInt column, UInt connectedSynapses[]) const;
 
   /**
   Returns the number of connected synapses for all columns.
@@ -1184,7 +1176,8 @@ protected:
   Random rng_;
 
 public:
-  const Connections &connections = connections_;
+  const Connections& connections = connections_; //for inspection of details in connections. Const, so users cannot break the SP internals.
+  const Connections& getConnections() const { return connections_; } // as above, but for use in pybind11
 };
 
 std::ostream & operator<<(std::ostream & out, const SpatialPooler &sp);

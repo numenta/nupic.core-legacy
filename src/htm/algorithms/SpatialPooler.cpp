@@ -299,15 +299,20 @@ void SpatialPooler::setPotential(UInt column, const UInt potential[]) {
   }
 }
 
-void SpatialPooler::getPermanence(UInt column, Real permanences[]) const {
+vector<Real> SpatialPooler::getPermanence(const UInt column, 
+				          const Permanence threshold) const {
   NTA_ASSERT(column < numColumns_);
-  std::fill( permanences, permanences + numInputs_, 0.0f );
   const auto &synapses = connections_.synapsesForSegment( column );
-  for( const auto &syn : synapses ) {
+  vector<Real> permanences(numInputs_, 0.0f);
+  for( const auto syn : synapses ) {
     const auto &synData = connections_.dataForSynapse( syn );
-    permanences[ synData.presynapticCell ] = synData.permanence;
+    if( synData.permanence >= threshold) { // there must be >= for default case 0.0 where we want all permanences
+      permanences[ synData.presynapticCell ] = synData.permanence;
+    }
   }
+  return permanences;
 }
+
 
 void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
   NTA_ASSERT(column < numColumns_);
@@ -338,18 +343,6 @@ void SpatialPooler::setPermanence(UInt column, const Real permanences[]) {
 #endif
 }
 
-void SpatialPooler::getConnectedSynapses(UInt column,
-                                         UInt connectedSynapses[]) const {
-  NTA_ASSERT(column < numColumns_);
-  std::fill( connectedSynapses, connectedSynapses + numInputs_, 0 );
-
-  const auto &synapses = connections_.synapsesForSegment( column );
-  for( const auto &syn : synapses ) {
-    const auto &synData = connections_.dataForSynapse( syn );
-    if( synData.permanence >= synPermConnected_ - htm::Epsilon )
-      connectedSynapses[ synData.presynapticCell ] = 1;
-  }
-}
 
 void SpatialPooler::getConnectedCounts(UInt connectedCounts[]) const {
   for(UInt seg = 0; seg < numColumns_; seg++) { //in SP each column = 1 cell with 1 segment only.
@@ -670,8 +663,8 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
 
   const UInt numDimensions = (UInt)inputDimensions_.size();
 
-  vector<UInt> connectedDense( numInputs_, 0 );
-  getConnectedSynapses( column, connectedDense.data() );
+  //get connected synapses
+  const auto& connectedDense = getPermanence( column, synPermConnected_ + htm::Epsilon );
 
   vector<UInt> maxCoord(numDimensions, 0);
   vector<UInt> minCoord(numDimensions, *max_element(inputDimensions_.begin(),
@@ -679,7 +672,7 @@ Real SpatialPooler::avgConnectedSpanForColumnND_(UInt column) const {
   const CoordinateConverterND conv(inputDimensions_);
   bool all_zero = true;
   for(UInt i = 0; i < numInputs_; i++) {
-    if( connectedDense[i] == 0 )
+    if( connectedDense[i] < synPermConnected_ ) // 0.0 for empty == not-conected values
       continue;
     all_zero = false;
     vector<UInt> columnCoord;
