@@ -1026,10 +1026,7 @@ TEST(TemporalMemoryTest, PunishMatchingSegmentsInInactiveColumns) {
  * Utilizes TM.getLeastUsedCell_() 
  */
 TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
-  bool grewOnCell1 = false;
-  bool grewOnCell2 = false;
-  for (UInt seed = 0; seed < 100; seed++) {
-    TemporalMemory tm(
+  TemporalMemory tm(
         /*columnDimensions*/ {32},
         /*cellsPerColumn*/ 4,
         /*activationThreshold*/ 3,
@@ -1040,7 +1037,7 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
         /*permanenceIncrement*/ 0.10f,
         /*permanenceDecrement*/ 0.10f,
         /*predictedSegmentDecrement*/ 0.02f,
-        /*seed*/ seed);
+        /*seed*/ 1);
 
     // enough for 4 winner cells
     SDR previousActiveColumns({32});
@@ -1068,19 +1065,11 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
     EXPECT_EQ(1ul, tm.connections.numSynapses(segment2));
 
     vector<Segment> segments = tm.connections.segmentsForCell(1);
-    if (segments.empty()) {
-      vector<Segment> segments2 = tm.connections.segmentsForCell(2);
-      EXPECT_FALSE(segments2.empty());
-      grewOnCell2 = true;
-      segments.insert(segments.end(), segments2.begin(), segments2.end());
-    } else {
-      grewOnCell1 = true;
-    }
+    vector<Segment> segments2 = tm.connections.segmentsForCell(2);
+    EXPECT_FALSE(segments2.empty() and segments.empty()); // a new connection grew on (at least) one of the cells (by getLeastUsedCell)
+    segments.insert(segments.end(), segments2.begin(), segments2.end());
+    ASSERT_EQ(1ul, segments.size()); // ...and on exactly one new cell, actually. 
 
-    EXPECT_TRUE(grewOnCell1);
-    EXPECT_TRUE(grewOnCell2);
-
-    ASSERT_EQ(1ul, segments.size());
     vector<Synapse> synapses = tm.connections.synapsesForSegment(segments[0]);
     EXPECT_EQ(4ul, synapses.size());
 
@@ -1097,7 +1086,6 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
       columnChecklist.erase(position);
     }
     EXPECT_TRUE(columnChecklist.empty());
-  }
 }
 
 /**
