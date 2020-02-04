@@ -141,26 +141,20 @@ void TemporalMemory::initialize(
   reset();
 }
 
-static CellIdx getLeastUsedCell(const CellIdx column, //TODO remove static methods, use private instead
-		                const CellIdx cellsPerColumn,
-				Random &rng, 
-                                const Connections &connections) {
-  if(cellsPerColumn == 1) return column;
+CellIdx TemporalMemory::getLeastUsedCell_(const CellIdx column) const { //TODO add test for this method
+  if(cellsPerColumn_ == 1) return column;
 
-  const auto start = column * cellsPerColumn;
-  const auto end   = start  + cellsPerColumn;
-  vector<CellIdx> cells;
-  for( CellIdx i = start; i < end; i++) cells.push_back(i);
-  rng.shuffle(cells.begin(), cells.end()); //shuffle because min_element returns first minimal element. And we want random choice from the same minimals.
+  vector<CellIdx> cells = cellsForColumn(column);
+  rng_.shuffle(cells.begin(), cells.end()); //shuffle because min_element returns first minimal element. And we want random choice from the same minimals.
 
-  const auto compareByNumSegments = [&connections](const CellIdx a, const CellIdx b) {
+  const auto compareByNumSegments = [&](const CellIdx a, const CellIdx b) {
     if(connections.numSegments(a) == connections.numSegments(b)) 
-      return a < b;
+      return a < b; //TODO rm? 
     else return connections.numSegments(a) < connections.numSegments(b);
   };
   return *std::min_element(cells.begin(), cells.end(), compareByNumSegments);
 }
-//*/
+
 
 void TemporalMemory::growSynapses_(
 			 const Segment& segment,
@@ -248,7 +242,7 @@ void TemporalMemory::burstColumn_(
   const CellIdx winnerCell =
       (bestMatchingSegment != columnMatchingSegmentsEnd)
           ? connections.cellForSegment(*bestMatchingSegment)
-          : getLeastUsedCell(column, cellsPerColumn_, rng, connections); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
+          : getLeastUsedCell_(column); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
 
   winnerCells_.push_back(winnerCell);
 
@@ -542,7 +536,7 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
 }
 
 
-vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) { 
+vector<CellIdx> TemporalMemory::cellsForColumn(const CellIdx column) const { 
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
 

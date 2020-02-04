@@ -304,7 +304,7 @@ public:
    *
    * @return (vector<CellIdx>) Cell indices
    */
-  vector<CellIdx> cellsForColumn(CellIdx column);
+  vector<CellIdx> cellsForColumn(const CellIdx column) const;
 
   /**
    * Returns the number of cells in this layer.
@@ -660,6 +660,8 @@ private:
 		     const SynapseIdx nDesiredNewSynapses,
 		     const vector<CellIdx> &prevWinnerCells);
 
+  CellIdx getLeastUsedCell_(const CellIdx column) const;
+
   void calculateAnomalyScore_(const SDR &activeColumns);
 
 protected:
@@ -689,7 +691,7 @@ private:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  Random rng_;
+  mutable Random rng_;
 
   /**
    * holds logic and data for TM's anomaly
