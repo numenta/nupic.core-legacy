@@ -1022,7 +1022,8 @@ TEST(TemporalMemoryTest, PunishMatchingSegmentsInInactiveColumns) {
 
 /**
  * In a bursting column with no matching segments, a segment should be added
- * to the cell with the fewest segments. When there's a tie, choose randomly.
+ * to the cell with the fewest segments. When there's a tie, choose "the first". 
+ * Utilizes TM.getLeastUsedCell_() 
  */
 TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
   bool grewOnCell1 = false;
@@ -1076,6 +1077,9 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
       grewOnCell1 = true;
     }
 
+    EXPECT_TRUE(grewOnCell1);
+    EXPECT_TRUE(grewOnCell2);
+
     ASSERT_EQ(1ul, segments.size());
     vector<Synapse> synapses = tm.connections.synapsesForSegment(segments[0]);
     EXPECT_EQ(4ul, synapses.size());
@@ -1094,9 +1098,6 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
     }
     EXPECT_TRUE(columnChecklist.empty());
   }
-
-  EXPECT_TRUE(grewOnCell1);
-  EXPECT_TRUE(grewOnCell2);
 }
 
 /**
