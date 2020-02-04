@@ -691,7 +691,7 @@ private:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  mutable Random rng_;
+  Random rng_;
 
   /**
    * holds logic and data for TM's anomaly

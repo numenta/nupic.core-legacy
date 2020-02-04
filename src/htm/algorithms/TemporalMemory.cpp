@@ -145,7 +145,6 @@ CellIdx TemporalMemory::getLeastUsedCell_(const CellIdx column) const { //TODO a
   if(cellsPerColumn_ == 1) return column;
 
   vector<CellIdx> cells = cellsForColumn(column);
-  rng_.shuffle(cells.begin(), cells.end()); //shuffle because min_element returns first minimal element. And we want random choice from the same minimals.
 
   const auto compareByNumSegments = [&](const CellIdx a, const CellIdx b) {
     if(connections.numSegments(a) == connections.numSegments(b)) 
