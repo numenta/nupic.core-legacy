@@ -34,7 +34,6 @@
   */
 
 
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Network.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
@@ -49,9 +48,7 @@
 #include <htm/os/Path.hpp>
 #include <htm/os/Timer.hpp>
 #include <htm/os/Directory.hpp>
-#include <htm/engine/YAMLUtils.hpp>
 #include <htm/regions/SPRegion.hpp>
-#include <htm/utils/LogItem.hpp>
 
 
 #include <string>
@@ -67,7 +64,6 @@
 
 
 
-#include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 #include "RegionTestUtilities.hpp"
 
@@ -187,9 +183,9 @@ namespace testing
     net.initialize();
 
     VERBOSE << "Execute once." << std::endl;
-    //LogItem::setLogLevel(LogLevel_Verbose);
+    //NTA_LOG_LEVEL = LogLevel::LogLevel_Verbose;
     net.run(1);
-    //LogItem::setLogLevel(LogLevel_None);
+    //NTA_LOG_LEVEL = LogLevel::LogLevel_None;
 
 	  VERBOSE << "Checking data after first iteration..." << std::endl;
     EXPECT_EQ(region1->getParameterInt32("position"), 0);

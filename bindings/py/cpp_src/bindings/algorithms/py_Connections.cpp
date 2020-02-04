@@ -45,13 +45,16 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
         py::arg("connectedThreshold"),
         py::arg("timeseries") = false);
 
-    py_Connections.def_property_readonly("connectedThreshold",
-        [](const Connections &self) { return self.getConnectedThreshold(); });
+    py_Connections.def_property_readonly("connectedThreshold", &Connections::getConnectedThreshold);
 
     py_Connections.def("createSegment", &Connections::createSegment,
-        py::arg("cell"));
+        py::arg("cell"),
+	py::arg("maxSegmentsPerCell") = 0
+	);
 
     py_Connections.def("destroySegment", &Connections::destroySegment);
+
+    py_Connections.def("iteration", &Connections::iteration);
 
     py_Connections.def("createSynapse", &Connections::createSynapse,
         py::arg("segment"),
@@ -93,44 +96,31 @@ R"(Compatibility Warning: This classes API is unstable and may change without wa
     py_Connections.def("reset", &Connections::reset);
 
     py_Connections.def("computeActivity",
-        [](Connections &self, SDR &activePresynapticCells) {
-            // Allocate buffer to return & make a python destructor object for it.
-            auto activeConnectedSynapses =
-                new std::vector<SynapseIdx>( self.segmentFlatListLength(), 0u );
-            auto destructor = py::capsule( activeConnectedSynapses,
-                [](void *dataPtr) {
-                    delete reinterpret_cast<std::vector<SynapseIdx>*>(dataPtr); });
+        [](Connections &self, SDR &activePresynapticCells, bool learn=true) {
             // Call the C++ method.
-            self.computeActivity(*activeConnectedSynapses, activePresynapticCells.getSparse());
+            auto activeConnectedSynapses = self.computeActivity(activePresynapticCells.getSparse(), learn);
             // Wrap vector in numpy array.
-            return py::array(activeConnectedSynapses->size(),
-                             activeConnectedSynapses->data(),
-                             destructor);
+            return py::array(activeConnectedSynapses.size(),
+                             activeConnectedSynapses.data());
         },
 R"(Returns numActiveConnectedSynapsesForSegment)");
 
     py_Connections.def("computeActivityFull",
-        [](Connections &self, SDR &activePresynapticCells) {
-            // Allocate buffer to return & make a python destructor object for it.
-            auto activeConnectedSynapses =
-                new std::vector<SynapseIdx>( self.segmentFlatListLength(), 0u );
-            auto connectedDestructor = py::capsule( activeConnectedSynapses,
-                [](void *dataPtr) {
-                    delete reinterpret_cast<std::vector<SynapseIdx>*>(dataPtr); });
+        [](Connections &self, SDR &activePresynapticCells, bool learn=true) {
             // Allocate buffer to return & make a python destructor object for it.
             auto activePotentialSynapses =
                 new std::vector<SynapseIdx>( self.segmentFlatListLength(), 0u );
             auto potentialDestructor = py::capsule( activePotentialSynapses,
-                [](void *dataPtr) {
-                    delete reinterpret_cast<std::vector<SynapseIdx>*>(dataPtr); });
+                [](void *dataPtr) { 
+		delete reinterpret_cast<std::vector<SynapseIdx>*>(dataPtr);});
             // Call the C++ method.
-            self.computeActivity(*activeConnectedSynapses, *activePotentialSynapses,
-                                            activePresynapticCells.getSparse());
+            auto activeConnectedSynapses = self.computeActivity(*activePotentialSynapses,
+                                            activePresynapticCells.getSparse(), 
+					    learn);
             // Wrap vector in numpy array.
             return py::make_tuple(
-                    py::array(activeConnectedSynapses->size(),
-                              activeConnectedSynapses->data(),
-                              connectedDestructor),
+                    py::array(activeConnectedSynapses.size(),
+                              activeConnectedSynapses.data()),
                     py::array(activePotentialSynapses->size(),
                               activePotentialSynapses->data(),
                               potentialDestructor));
@@ -142,6 +132,8 @@ R"(Returns pair of:
     py_Connections.def("adaptSegment", &Connections::adaptSegment);
 
     py_Connections.def("raisePermanencesToThreshold", &Connections::raisePermanencesToThreshold);
+
+    py_Connections.def("synapseCompetition", &Connections::synapseCompetition);
 
     py_Connections.def("bumpSegment", &Connections::bumpSegment);
 

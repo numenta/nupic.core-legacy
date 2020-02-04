@@ -35,7 +35,6 @@
   */
 
 
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Network.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
@@ -50,7 +49,6 @@
 #include <htm/os/Path.hpp>
 #include <htm/os/Timer.hpp>
 #include <htm/os/Directory.hpp>
-#include <htm/engine/YAMLUtils.hpp>
 #include <htm/regions/SPRegion.hpp>
 
 
@@ -64,15 +62,14 @@
 #include <streambuf>
 
 
-#include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 #include "RegionTestUtilities.hpp"
 
 #define VERBOSE if(verbose)std::cerr << "[          ] "
 static bool verbose = false;  // turn this on to print extra stuff for debugging the test.
 
-// The following string should contain a valid expected Spec - manually verified. 
-#define EXPECTED_SPEC_COUNT  22  // The number of parameters expected in the SPRegion Spec
+// The following string should contain a valid expected Spec length - manually verified. 
+const UInt EXPECTED_SPEC_COUNT =  21u;  // The number of parameters expected in the SPRegion Spec
 
 using namespace htm;
 namespace testing 
@@ -353,7 +350,7 @@ TEST(SPRegionTest, testSerialization)
 
 	  // Change some parameters and see if they are retained after a restore.
     n2region2->setParameterBool("globalInhibition", true);
-    n2region2->setParameterUInt32("numActiveColumnsPerInhArea", 20);
+    n2region2->setParameterReal32("localAreaDensity", 0.23f);
     n2region2->setParameterReal32("potentialPct", 0.85f);
     n2region2->setParameterReal32("synPermActiveInc", 0.04f);
     n2region2->setParameterReal32("synPermInactiveDec", 0.005f);

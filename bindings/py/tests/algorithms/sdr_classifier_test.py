@@ -18,6 +18,7 @@
 
 """ Unit tests for Classifier & Predictor classes. """
 
+import math
 import numpy
 import pickle
 import random
@@ -69,11 +70,11 @@ class ClassifierTest(unittest.TestCase):
     # Give the predictor partial information, and make predictions
     # about the future.
     pred.reset()
-    A = pred.infer( 0, sequence[0] )
+    A = pred.infer( sequence[0] )
     assert( numpy.argmax( A[1] )  ==  labels[1] )
     assert( numpy.argmax( A[2] )  ==  labels[2] )
 
-    B = pred.infer( 1, sequence[1] )
+    B = pred.infer( sequence[1] )
     assert( numpy.argmax( B[1] )  ==  labels[2] )
     assert( numpy.argmax( B[2] )  ==  labels[3] )
 
@@ -121,7 +122,7 @@ class ClassifierTest(unittest.TestCase):
     for recordNum in range(10):
       pred.learn(recordNum, inp, 2)
 
-    retval = pred.infer( 10, inp )
+    retval = pred.infer( inp )
     self.assertGreater(retval[0][2], 0.9)
 
 
@@ -131,15 +132,17 @@ class ClassifierTest(unittest.TestCase):
     inp.randomize( .3 )
 
     # learn only
-    c.infer(recordNum=0, pattern=inp) # Don't crash with not enough training data.
+    prediction = c.infer(pattern=inp)[1]
+    self.assertTrue(prediction == []) # not enough training data -> []
     c.learn(recordNum=0, pattern=inp, classification=4)
-    c.infer(recordNum=1, pattern=inp) # Don't crash with not enough training data.
+    self.assertTrue(c.infer(pattern=inp)[1] == []) # not enough training data.
     c.learn(recordNum=2, pattern=inp, classification=4)
     c.learn(recordNum=3, pattern=inp, classification=4)
+    self.assertTrue(c.infer(pattern=inp)[1] != []) # Don't crash with enough training data.
 
     # infer only
-    retval1 = c.infer(recordNum=5, pattern=inp)
-    retval2 = c.infer(recordNum=6, pattern=inp)
+    retval1 = c.infer(pattern=inp)
+    retval2 = c.infer(pattern=inp)
     self.assertSequenceEqual(list(retval1[1]), list(retval2[1]))
 
 
@@ -164,7 +167,7 @@ class ClassifierTest(unittest.TestCase):
               classification=4,)
 
     inp.sparse = [1, 5, 9]
-    result = c.infer(recordNum=4, pattern=inp)
+    result = c.infer(pattern=inp)
 
     self.assertSetEqual(set(result.keys()), set([1]))
     self.assertEqual(len(result[1]), 6)
@@ -206,7 +209,7 @@ class ClassifierTest(unittest.TestCase):
     for recordNum in range(10):
       classifier.learn(recordNum, inp, 0)
 
-    retval = classifier.infer(10, inp)
+    retval = classifier.infer(inp)
 
     # Should have a probability of 100% for that bucket.
     self.assertEqual(retval[1], [1.])
@@ -221,7 +224,7 @@ class ClassifierTest(unittest.TestCase):
       inp.sparse = [i % 10]
       classifier.learn(recordNum=i, pattern=inp, classification=(i % 10))
 
-    retval = classifier.infer(99, inp)
+    retval = classifier.infer(inp)
 
     self.assertGreater(retval[1][0], 0.99)
     for i in range(1, 10):
@@ -267,7 +270,7 @@ class ClassifierTest(unittest.TestCase):
     # At this point, we should have learned [1,3,5] => bucket 1
     #                                       [2,4,6] => bucket 2
     inp.sparse = [1, 3, 5]
-    result = c.infer(recordNum=recordNum, pattern=inp)
+    result = c.infer(pattern=inp)
     c.learn(recordNum=recordNum, pattern=inp, classification=2)
     recordNum += 1
     self.assertLess(result[1][0], 0.1)
@@ -275,7 +278,7 @@ class ClassifierTest(unittest.TestCase):
     self.assertLess(result[1][2], 0.1)
 
     inp.sparse = [2, 4, 6]
-    result = c.infer(recordNum=recordNum, pattern=inp)
+    result = c.infer(pattern=inp)
     c.learn(recordNum=recordNum, pattern=inp, classification=1)
     recordNum += 1
     self.assertLess(result[1][0], 0.1)
@@ -289,7 +292,7 @@ class ClassifierTest(unittest.TestCase):
     #  the previous learn associates with bucket 0
     recordNum += 1
     inp.sparse = [1, 3, 5]
-    result = c.infer(recordNum=recordNum, pattern=inp)
+    result = c.infer(pattern=inp)
     c.learn(recordNum=recordNum, pattern=inp, classification=0)
     recordNum += 1
     self.assertLess(result[1][0], 0.1)
@@ -300,7 +303,7 @@ class ClassifierTest(unittest.TestCase):
     #  the previous learn associates with bucket 0
     recordNum += 1
     inp.sparse = [2, 4, 6]
-    result = c.infer(recordNum=recordNum, pattern=inp)
+    result = c.infer(pattern=inp)
     c.learn(recordNum=recordNum, pattern=inp, classification=0)
     recordNum += 1
     self.assertLess(result[1][0], 0.1)
@@ -311,7 +314,7 @@ class ClassifierTest(unittest.TestCase):
     #  the previous learn associates with bucket 0
     recordNum += 1
     inp.sparse = [1, 3, 5]
-    result = c.infer(recordNum=recordNum, pattern=inp)
+    result = c.infer(pattern=inp)
     c.learn(recordNum=recordNum, pattern=inp, classification=0)
     recordNum += 1
     self.assertLess(result[1][0], 0.1)
@@ -548,8 +551,8 @@ class ClassifierTest(unittest.TestCase):
       c.learn(recordNum, pattern=SDR2, classification=1)
       recordNum += 1
 
-    result1 = c.infer(recordNum, SDR1)
-    result2 = c.infer(recordNum, SDR2)
+    result1 = c.infer(SDR1)
+    result2 = c.infer(SDR2)
 
     self.assertAlmostEqual(result1[0][0], 1.0, places=1)
     self.assertAlmostEqual(result1[0][1], 0.0, places=1)

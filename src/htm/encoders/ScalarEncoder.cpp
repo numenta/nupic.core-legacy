@@ -119,6 +119,10 @@ void ScalarEncoder::initialize(const ScalarEncoderParameters &parameters)
       args_.size = neededBands + (args_.activeBits - 1);
     }
   }
+  // Sanity check the parameters.
+  NTA_CHECK(args_.size > 0u);
+  NTA_CHECK(args_.activeBits > 0u);
+  NTA_CHECK(args_.activeBits < args_.size);
 
   // Determine radius. Always calculate this even if it was given, to correct for rounding error.
   args_.radius = args_.activeBits * args_.resolution;
@@ -126,10 +130,6 @@ void ScalarEncoder::initialize(const ScalarEncoderParameters &parameters)
   // Determine sparsity. Always calculate this even if it was given, to correct for rounding error.
   args_.sparsity = (Real) args_.activeBits / args_.size;
 
-  // Sanity check the parameters.
-  NTA_CHECK( args_.size       > 0u );
-  NTA_CHECK( args_.activeBits > 0u );
-  NTA_CHECK( args_.activeBits < args_.size );
 
   // Initialize parent class.
   BaseEncoder<Real64>::initialize({ args_.size });
@@ -159,7 +159,7 @@ void ScalarEncoder::encode(Real64 input, SDR &output)
         << "Input to category encoder must be an unsigned integer!";
     }
     NTA_CHECK(input >= parameters.minimum && input <= parameters.maximum)
-        << "Input must be within range [minimum, maximum]!";
+        << "Input must be within range [minimum, maximum]! " << input << " vs [" << parameters.minimum << " , " << parameters.maximum << " ]";
   }
 
   UInt start = (UInt) round((input - parameters.minimum) / parameters.resolution);

@@ -224,13 +224,27 @@ public:
   Array copy() const {
     Array a(type_);
     if (getCount() > 0) {
-      if (type_ == NTA_BasicType_SDR)
+      if (type_ == NTA_BasicType_SDR) {
         a.allocateBuffer(getSDR().dimensions);
-      else
+        // for an SDR, bulk copy the buffer inside the SDR
+        std::memcpy(static_cast<char *>(a.getBuffer()), static_cast<const char *>(getBuffer()),
+                    getCount() * BasicType::getSize(type_));
+      }
+      else if (type_ == NTA_BasicType_Str) {
         a.allocateBuffer(getCount());
-      std::memcpy(static_cast<char *>(a.getBuffer()), static_cast<const char *>(getBuffer()),
-             getCount() * BasicType::getSize(type_));
-    }
+        // String values must be copied one at a time.
+        const std::string *ptr1 = static_cast<const std::string *>(getBuffer());
+        std::string *ptr2 = static_cast<std::string *>(a.getBuffer());
+        for (size_t i = 0; i < getCount(); i++) {
+          ptr2[i] = ptr1[i];
+        }
+      } else {
+        a.allocateBuffer(getCount());
+        // numeric values can be bulk copied
+        std::memcpy(static_cast<char *>(a.getBuffer()), static_cast<const char *>(getBuffer()),
+                    getCount() * BasicType::getSize(type_));
+      }
+   }
     return a;
   }
 
@@ -285,6 +299,14 @@ public:
     return a;
   }
 
+  template <typename T> inline T item(size_t index) const {
+    NTA_CHECK(index < count_) << "index out of range.";
+    NTA_CHECK(BasicType::getType<T>() == type_) << "incorrect type. Expecting " << BasicType::getName(type_);
+    const T *buf = static_cast<const T *>(getBuffer());
+    return buf[index];
+  }
+
+
   /**
     * Type conversion
     * This will do a full copy into a shared buffer.
@@ -309,9 +331,18 @@ public:
     NTA_CHECK(type_ != NTA_BasicType_SDR) << "subset() not valid for SDR";
     Array a(type_);
     a.allocateBuffer(count);
-    std::memcpy(a.getBuffer(),
-            static_cast<const char *>(getBuffer()) + offset * BasicType::getSize(type_),
-            count * BasicType::getSize(type_));
+    if (type_ == NTA_BasicType_Str) {
+      // String values must be copied one at a time.
+      const std::string *ptr1 = static_cast<const std::string *>(getBuffer());
+      std::string *ptr2 = static_cast<std::string *>(a.getBuffer());
+      for (size_t i = 0; i < count; i++) {
+        ptr2[i] = ptr1[i + offset];
+      }
+    } else {
+      // bulk copy all numeric arrays
+      std::memcpy(a.getBuffer(), static_cast<const char *>(getBuffer()) + offset * BasicType::getSize(type_),
+                  count * BasicType::getSize(type_));
+    }
     return a;
   }
 };

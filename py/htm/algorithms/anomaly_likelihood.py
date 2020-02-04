@@ -375,7 +375,7 @@ def estimateAnomalyLikelihoods(anomalyScores,
                                           performLowerBoundCheck=False)
 
       if metricDistribution["variance"] < 1.5e-5:
-        distributionParams = nullDistribution(verbosity = verbosity)
+        distributionParams = nullDistribution(mean=distributionParams["mean"],verbosity = verbosity)
 
   # Estimate likelihoods based on this distribution
   likelihoods = numpy.array(dataValues, dtype=float)
@@ -613,7 +613,7 @@ def estimateNormal(sampleData, performLowerBoundCheck=True):
 
 
 
-def nullDistribution(verbosity=0):
+def nullDistribution(mean=0.5, verbosity=0):
   """
   :param verbosity: integer controlling extent of printouts for debugging
   :type verbosity: int
@@ -624,7 +624,7 @@ def nullDistribution(verbosity=0):
     print("Returning nullDistribution")
   return {
     "name": "normal",
-    "mean": 0.5,
+    "mean": mean,
     "variance": 1e6,
     "stdev": 1e3,
   }

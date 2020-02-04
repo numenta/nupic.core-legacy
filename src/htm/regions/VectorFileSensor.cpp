@@ -32,7 +32,6 @@
 #include <htm/engine/Spec.hpp>
 #include <htm/regions/VectorFileSensor.hpp>
 #include <htm/utils/Log.hpp>
-#include <htm/ntypes/Value.hpp>
 
 using namespace std;
 namespace htm {
@@ -58,12 +57,12 @@ VectorFileSensor::VectorFileSensor(const ValueMap &params, Region *region)
   activeOutputCount_ = params.getScalarT<UInt32>("activeOutputCount", 0);
   hasCategoryOut_ = params.getScalarT<UInt32>("hasCategoryOut", 0) == 1;
   hasResetOut_ = params.getScalarT<UInt32>("hasResetOut", 0) == 1;
-  scalingMode_ = params.getString("scalingMode");
+  scalingMode_ = params.getString("scalingMode", "none");
   if (scalingMode_ != "standardForm")
     scalingMode_ = "none";
 
   if (params.contains("inputFile"))
-    filename_ = params.getString("inputFile");
+    filename_ = params.getString("inputFile", "");
 }
 
 VectorFileSensor::VectorFileSensor(ArWrapper& wrapper, Region *region) 
@@ -128,7 +127,9 @@ void VectorFileSensor::compute() {
     Real *categoryOut = reinterpret_cast<Real *>(categoryOut_.getBuffer());
     vectorFile_.getRawVector((htm::UInt)curVector_, categoryOut, offset, 1);
     offset++;
-    NTA_DEBUG << "VectorFileSensor compute() CategoryOut= " << *region_->getOutput("categoryOut") << "\n";
+
+    // trace facility
+    NTA_DEBUG << "compute " << region_->getOutput("categoryOut") << std::endl;
   }
 
   if (hasResetOut_) {
@@ -136,11 +137,15 @@ void VectorFileSensor::compute() {
     Real *resetOut = reinterpret_cast<Real *>(resetOut_.getBuffer());
     vectorFile_.getRawVector((htm::UInt)curVector_, resetOut, offset, 1);
     offset++;
-    NTA_DEBUG << "VectorFileSensor compute() reset= " << *region_->getOutput("reset") << "\n";
+
+    // trace facility
+    NTA_DEBUG << "compute " << *region_->getOutput("reset") << std::endl;
   }
 
   vectorFile_.getScaledVector((htm::UInt)curVector_, out, offset, count);
-  NTA_DEBUG << "VectorFileSensor compute() dataOut= " << *region_->getOutput("dataOut") << "\n";
+
+  // trace facility
+  NTA_DEBUG << "compute " << *region_->getOutput("dataOut") << std::endl;
   iterations_++;
 }
 

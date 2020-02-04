@@ -38,16 +38,23 @@
 #  - cmake ../..
 # Note: on MSVC, run startupMSVC.bat after deleting the build folder.
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.7)
 project(htm_core CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(BITNESS 64)
+else()
+  set(BITNESS 32)
+endif()
+
 
 include(GNUInstallDirs)
 include(ExternalProject)
 set(EP_BASE ${CMAKE_BINARY_DIR})
 if (MSVC)
-  set(EXTERNAL_CXX_FLAGS /EHsc "$<$<CONFIG:Release>:/MD>" "$<$<CONFIG:Debug>:/MDd>")
+  set(EXTERNAL_CXX_FLAGS /EHsc /W0 "$<$<CONFIG:Release>:/MD>" "$<$<CONFIG:Debug>:/MDd>")
 else()
   set(EXTERNAL_CXX_FLAGS -fPIC)
 endif()
@@ -59,6 +66,7 @@ message(STATUS "   CMAKE_BINARY_DIR      = ${CMAKE_BINARY_DIR}")
 message(STATUS "   CMAKE_INSTALL_PREFIX  = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "   CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "   EXTERNAL_CXX_FLAGS    = ${EXTERNAL_CXX_FLAGS}")
+message(STATUS "   BITNESS               = ${BITNESS}")
 message(STATUS "   NEEDS_BOOST           = ${NEEDS_BOOST}")
 message(STATUS "   BINDING_BUILD         = ${BINDING_BUILD}")
 
@@ -72,8 +80,13 @@ include(common.cmake)
 
 
 ################
+# Yaml Parser
+# you can select either Yaml-cpp or libYaml but not both.
 # Yaml-cpp
-include(YamlCppLib.cmake)
+###include(YamlCppLib.cmake)
+
+# LibYaml
+include(libYaml.cmake)
 
 
 ################
@@ -108,4 +121,8 @@ include(mnist_data.cmake)
 #################
 # Cereal serialization package
 include(cereal.cmake)
+
+#################
+# digestpp hash digest repo
+include(digestpp.cmake)
 

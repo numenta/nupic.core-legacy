@@ -92,7 +92,7 @@ public:
    * @param srcOutput
    *        The output of previous Region, which is also the source of the input
    */
-  void addLink(const std::shared_ptr<Link> link, Output *srcOutput);
+  void addLink(const std::shared_ptr<Link> link, std::shared_ptr<Output> srcOutput);
 
   /**
    * Locate an existing Link to the input.
@@ -206,6 +206,11 @@ public:
    * true if we have links connected to this input.
    */
   bool hasIncomingLinks() { return !links_.empty(); }
+
+  /**
+   * Resize the input buffer.  This is called if a connected output is resized.
+   */
+  void resize();
 
   /**
    *  Print raw data...for debugging

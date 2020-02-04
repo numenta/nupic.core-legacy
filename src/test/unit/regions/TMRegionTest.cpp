@@ -41,12 +41,10 @@
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Network.hpp>
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Output.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/RegisteredRegionImplCpp.hpp>
 #include <htm/engine/Spec.hpp>
-#include <htm/engine/YAMLUtils.hpp>
 #include <htm/ntypes/Array.hpp>
 #include <htm/os/Directory.hpp>
 #include <htm/os/Env.hpp>
@@ -66,7 +64,6 @@
 #include <vector>
 
 #include "RegionTestUtilities.hpp"
-#include "yaml-cpp/yaml.h"
 #include "gtest/gtest.h"
 
 #define VERBOSE if (verbose) std::cerr << "[          ] "
@@ -87,7 +84,7 @@ TEST(TMRegionTest, testSpecAndParameters) {
   Network net;
 
   // Turn on runtime Debug logging.
- //if (verbose)  LogItem::setLogLevel(LogLevel::LogLevel_Verbose);
+ //if (verbose)  NTA_LOG_LEVEL = LogLevel::LogLevel_Verbose;
 
   // create a TM region with default parameters
   std::set<std::string> excluded;
@@ -216,7 +213,7 @@ TEST(TMRegionTest, testLinking) {
   std::shared_ptr<Region> region1 = net.addRegion("region1", "VectorFileSensor",parameters);
   std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,10]}");
   std::shared_ptr<Region> region3 = net.addRegion("region3", "TMRegion",
-                                        "{activationThreshold: 9, cellsPerColumn: 5}");
+                                        "{activationThreshold: 11, cellsPerColumn: 5}");
   std::shared_ptr<Region> region4 = net.addRegion("region4", "VectorFileEffector",
                                         "{outputFile: '" + test_output_file + "'}");
 
@@ -243,7 +240,17 @@ TEST(TMRegionTest, testLinking) {
   ASSERT_EQ(region3->getParameterUInt32("inputWidth"), (UInt32)dataWidth);
 
   VERBOSE << "Execute once." << std::endl;
+
+  // turn on trace...for one iteration
+  LogLevel prev;
+  VERBOSE << "Turning on Trace =========\n";
+  if (verbose) { prev = net.setLogLevel(LogLevel::LogLevel_Verbose); }
+
   net.run(1);
+
+  // turn off trace
+  if (verbose) { net.setLogLevel(prev); }
+  VERBOSE << "Turned off Trace =========\n";
 
   VERBOSE << "Checking data after first iteration..." << std::endl;
   VERBOSE << "  VectorFileSensor Output" << std::endl;
@@ -255,7 +262,7 @@ TEST(TMRegionTest, testLinking) {
   // check anomaly
   EXPECT_FLOAT_EQ(region3->getParameterReal32("anomaly"), 1.0f);
   const Real32 *anomalyBuffer = reinterpret_cast<const Real32*>(region3->getOutputData("anomaly").getBuffer());
-  EXPECT_FLOAT_EQ(anomalyBuffer[0], 0.0f); // Note: it is zero because no links are connected to this output.
+  EXPECT_FLOAT_EQ(anomalyBuffer[0], 1.0f);
 
 
   VERBOSE << "  SPRegion Output " << std::endl;
@@ -273,9 +280,9 @@ TEST(TMRegionTest, testLinking) {
   VERBOSE << "   " << r3InputArray << "\n";
   std::vector<Byte> expected3in = VectorHelpers::sparseToBinary<Byte>(
     {
-      0, 2, 3, 4, 6, 7, 10, 11, 14, 17
+      7
     }, (UInt32)r3InputArray.getCount());
-  EXPECT_TRUE(r3InputArray == expected3in) << r3InputArray;
+  EXPECT_EQ(r3InputArray, expected3in) << r3InputArray;
 
   VERBOSE << "  TMRegion output "
           << region3->getOutputDimensions("bottomUpOut") << "\n";
@@ -291,12 +298,10 @@ TEST(TMRegionTest, testLinking) {
   VERBOSE << "   " << r3OutputArray << "\n";
   std::vector<Byte> expected3out = VectorHelpers::sparseToBinary<Byte>( //TODO replace with SDR 
             {
-	     0, 1, 2, 3, 4, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 30, 
-	     31, 32, 33, 34, 35, 36, 37, 38, 39, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 70,
-	     71, 72, 73, 74, 85, 86, 87, 88, 89
-	     }, (UInt32)r3OutputArray.getCount());
-  EXPECT_TRUE(r3OutputArray == expected3out) << r3OutputArray;
-  EXPECT_EQ(r3OutputArray.getSDR().getSparse().size(), 50u);
+	      35, 36, 37, 38, 39
+	    }, (UInt32)r3OutputArray.getCount());
+  EXPECT_EQ(r3OutputArray, expected3out) << r3OutputArray;
+  EXPECT_EQ(r3OutputArray.getSDR().getSparse().size(), 5u);
 
   // execute TMRegion several more times and check that it has output.
   VERBOSE << "Execute 9 times." << std::endl;
@@ -311,20 +316,16 @@ TEST(TMRegionTest, testLinking) {
       << numberOfCols << " * " << cellsPerColumn;
   VERBOSE << "   " << r3OutputArray << ")\n";
   std::vector<Byte> expected3outa = VectorHelpers::sparseToBinary<Byte>(
-            {
-	    10, 11, 12, 13, 14, 30, 31, 32, 33, 34, 45, 46, 47, 48, 49, 55, 56, 57, 58,
-	    59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 80, 81, 82, 83, 84, 85, 86, 87,
-	    88, 89, 90, 91, 92,93, 94, 95, 96, 97, 98, 99
-	     }, (UInt32)r3OutputArray.getCount());
-  EXPECT_TRUE(r3OutputArray == expected3outa) << r3OutputArray;
+            {70, 71, 72, 73, 74 }, (UInt32)r3OutputArray.getCount());
+  EXPECT_EQ(r3OutputArray, expected3outa) << r3OutputArray;
 
 
   VERBOSE << "   Input to VectorFileEffector "
           << region4->getInputDimensions("dataIn") << "\n";
   Array r4InputArray = region4->getInputData("dataIn");
-  EXPECT_TRUE(r4InputArray.getType() == NTA_BasicType_Real32);
+  EXPECT_EQ(r4InputArray.getType(), NTA_BasicType_Real32);
   VERBOSE << "   " << r4InputArray << "\n";
-  EXPECT_TRUE(r4InputArray == expected3outa) << r4InputArray;
+  EXPECT_EQ(r4InputArray, expected3outa) << r4InputArray;
 
   // cleanup
   region3->executeCommand({"closeFile"});

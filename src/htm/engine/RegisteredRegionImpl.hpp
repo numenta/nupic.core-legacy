@@ -58,6 +58,7 @@
 #define NTA_REGISTERED_REGION_IMPL_HPP
 
 #include <string>
+#include <htm/ntypes/Value.hpp>
 
 namespace htm
 {
@@ -65,7 +66,6 @@ namespace htm
   class ArWrapper;
   class RegionImpl;
   class Region;
-  class ValueMap;
 
   class RegisteredRegionImpl {
   public:

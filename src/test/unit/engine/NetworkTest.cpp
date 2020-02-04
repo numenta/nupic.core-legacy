@@ -22,49 +22,24 @@
 #include "gtest/gtest.h"
 
 #include <htm/engine/Network.hpp>
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Region.hpp>
+#include <htm/engine/Input.hpp>
+#include <htm/engine/Output.hpp>
 #include <htm/ntypes/Dimensions.hpp>
+#include <htm/engine/RegionImpl.hpp>
+#include <htm/engine/RegisteredRegionImplCpp.hpp>
 #include <htm/utils/Log.hpp>
 
 namespace testing {
-    
+
 using namespace htm;
 
 static bool verbose = false;
 #define VERBOSE if(verbose) std::cerr << "[          ]"
 
-
-TEST(NetworkTest, AutoInitialization) {
-
-  // Uninitialize NuPIC since this test checks auto-initialization
-  // If shutdown fails, there is probably a problem with another test which
-  // is not cleaning up its networks.
-  if (NuPIC::isInitialized())
-    NuPIC::shutdown();
-
-  ASSERT_TRUE(!NuPIC::isInitialized());
-  // creating a network should auto-initialize NuPIC
-  {
-    Network net;
-    ASSERT_TRUE(NuPIC::isInitialized());
-    std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
-
-    // Use l1 to avoid a compiler warning
-    EXPECT_STREQ("level1", l1->getName().c_str());
-
-    // Network still exists, so this should fail.
-    EXPECT_THROW(NuPIC::shutdown(), std::exception);
-  }
-  // net destructor has been called so we should be able to shut down NuPIC now
-  NuPIC::shutdown();
-  
-}
-
 TEST(NetworkTest, RegionAccess) {
   Network net;
-  EXPECT_THROW(net.addRegion("level1", "nonexistent_nodetype", ""),
-               std::exception);
+  EXPECT_THROW(net.addRegion("level1", "nonexistent_nodetype", ""), std::exception);
 
   // Should be able to add a region
   std::shared_ptr<Region> l1 = net.addRegion("level1", "TestNode", "");
@@ -163,7 +138,6 @@ TEST(NetworkTest, Modification) {
   ASSERT_EQ((UInt32)1, phases.size());
   ASSERT_TRUE(phases.find(1) != phases.end());
 
-
   net.link("level1", "level2");
 
   // network can be initialized now
@@ -255,35 +229,27 @@ TEST(NetworkTest, Unlinking) {
   net.getRegion("level1")->setDimensions(d);
 
   net.link("level1", "level2");
-  ASSERT_TRUE(
-      net.getRegion("level2")->getDimensions().isUnspecified());
+  ASSERT_TRUE(net.getRegion("level2")->getDimensions().isUnspecified());
 
-  EXPECT_THROW(
-      net.removeLink("level1", "level2", "outputdoesnotexist", "bottomUpIn"),
-      std::exception);
-  EXPECT_THROW(
-      net.removeLink("level1", "level2", "bottomUpOut", "inputdoesnotexist"),
-      std::exception);
+  EXPECT_THROW(net.removeLink("level1", "level2", "outputdoesnotexist", "bottomUpIn"), std::exception);
+  EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut", "inputdoesnotexist"), std::exception);
   EXPECT_THROW(net.removeLink("level1", "leveldoesnotexist"), std::exception);
   EXPECT_THROW(net.removeLink("leveldoesnotexist", "level2"), std::exception);
 
   // remove the link from the uninitialized network
   net.removeLink("level1", "level2");
-  ASSERT_TRUE(
-      net.getRegion("level2")->getDimensions().isUnspecified());
+  ASSERT_TRUE(net.getRegion("level2")->getDimensions().isUnspecified());
 
   EXPECT_THROW(net.removeLink("level1", "level2"), std::exception);
 
   // remove, specifying output/input names
   net.link("level1", "level2");
   net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn");
-  EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn"),
-               std::exception);
+  EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut", "bottomUpIn"), std::exception);
 
   net.link("level1", "level2");
   net.removeLink("level1", "level2", "bottomUpOut");
-  EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut"),
-               std::exception);
+  EXPECT_THROW(net.removeLink("level1", "level2", "bottomUpOut"), std::exception);
 
   // add the link back and initialize (inducing dimensions)
   net.link("level1", "level2");
@@ -296,10 +262,10 @@ TEST(NetworkTest, Unlinking) {
 
   // remove the link. This will fail because we can't
   // remove a link to an initialized region
-  EXPECT_THROW(net.removeLink("level1", "level2"), std::exception) <<
-      "Cannot remove link [level1.bottomUpOut (region dims: [4 2])  to "
-      "level2.bottomUpIn (region dims: [2 1])  type: TestFanIn2] because "
-      "destination region level2 is initialized. Remove the region first.";
+  EXPECT_THROW(net.removeLink("level1", "level2"), std::exception)
+      << "Cannot remove link [level1.bottomUpOut (region dims: [4 2])  to "
+         "level2.bottomUpIn (region dims: [2 1])  type: TestFanIn2] because "
+         "destination region level2 is initialized. Remove the region first.";
 }
 
 typedef std::vector<std::string> callbackData;
@@ -309,15 +275,13 @@ void testCallback(Network *net, UInt64 iteration, void *data) {
   callbackData &thedata = *(static_cast<callbackData *>(data));
   // push region names onto callback data
   const Collection<std::shared_ptr<Region>> &regions = net->getRegions();
-  for(auto iter = regions.cbegin(); iter != regions.cend(); ++iter) {
+  for (auto iter = regions.cbegin(); iter != regions.cend(); ++iter) {
     thedata.push_back(iter->first);
   }
 }
 
 std::vector<std::string> computeHistory;
-static void recordCompute(const std::string &name) {
-  computeHistory.push_back(name);
-}
+static void recordCompute(const std::string &name) { computeHistory.push_back(name); }
 
 TEST(NetworkTest, Phases) {
   Network net;
@@ -336,7 +300,6 @@ TEST(NetworkTest, Phases) {
   phaseSet = net.getPhases("level2");
   ASSERT_TRUE(phaseSet.size() == 1);
   ASSERT_TRUE(phaseSet.find(1) != phaseSet.end());
-
 
   Dimensions d;
   d.push_back(2);
@@ -522,7 +485,7 @@ TEST(NetworkTest, testEqualsOperator) {
   auto l1 = n1.addRegion("level1", "TestNode", "");
   ASSERT_TRUE(n1 != n2);
   auto l2 = n2.addRegion("level1", "TestNode", "");
-  ASSERT_TRUE(n1 == n2);   
+  ASSERT_TRUE(n1 == n2);
   l1->setDimensions(d);
   ASSERT_TRUE(n1 != n2);
   l2->setDimensions(d);
@@ -543,5 +506,113 @@ TEST(NetworkTest, testEqualsOperator) {
   n2.run(1);
   ASSERT_TRUE(n1 == n2);
 }
+} // namespace testing
 
+namespace htm {
+// Note: this sort-of mimics the test in network_test.py "testNetworkPickle"
+class LinkRegion : public RegionImpl {
+public:
+  LinkRegion(const ValueMap &params, Region *region) : RegionImpl(region) { param = 52; }
+  LinkRegion(ArWrapper &wrapper, Region *region) : RegionImpl(region) { cereal_adapter_load(wrapper);}
+
+  void initialize() override {}
+  void compute() override {
+    // This will pass its inputs on to the outputs.
+    Array &input_data = getInput("inputs")->getData();
+    Array &output_data = getOutput("outputs")->getData();
+    input_data.convertInto(output_data);
+  }
+  size_t getNodeOutputElementCount(const std::string &name) const override { return 5; }
+
+  std::string executeCommand(const std::vector<std::string> &args, Int64 index) override {
+    if (args[0] == "HelloWorld" && args.size() == 3)
+      return "Hello World says: arg1=" + args[1] + " arg2=" + args[2];
+    return "";
+  }
+
+  // Include the required code for serialization.
+  CerealAdapter;
+  template <class Archive> void save_ar(Archive &ar) const {
+    ar(cereal::make_nvp("param", param));
+  }
+  template <class Archive> void load_ar(Archive &ar) {
+    ar(cereal::make_nvp("param", param));
+  }
+
+  static Spec *createSpec() {
+    auto ns = new Spec;
+    ns->description = "LinkRegion. Used as a plain simple plugin Region for unit tests only. "
+                      "This is not useful for any real applicaton.";
+    /* ----- inputs ------- */
+    ns->inputs.add("UInt32", InputSpec("UInt32 Data",
+                                       NTA_BasicType_UInt32, // type
+                                       0,                    // count
+                                       false,                // required
+                                       true,                 // isRegionLevel,
+                                       true                  // isDefaultInput
+                                       ));
+    ns->inputs.add("Real32", InputSpec("Real32 Data",
+                                       NTA_BasicType_Real32, // type
+                                       0,                    // count
+                                       false,                // required
+                                       true,                 // isRegionLevel,
+                                       false                 // isDefaultInput
+                                       ));
+
+    /* ----- outputs ------ */
+    ns->outputs.add("UInt32", OutputSpec("UInt32 Data",
+                                         NTA_BasicType_UInt32, // type
+                                         0,                    // count is dynamic
+                                         true,                 // isRegionLevel
+                                         true                  // isDefaultOutput
+                                         ));
+    ns->outputs.add("Real32", OutputSpec("UInt32 Data",
+                                         NTA_BasicType_Real32, // type
+                                         0,                    // count is dynamic
+                                         true,                 // isRegionLevel
+                                         false                 // isDefaultOutput
+                                         ));
+    /* ---- executeCommand ---- */
+    ns->commands.add("HelloWorld",  CommandSpec("Hello world command"));
+
+    return ns;
+  }
+
+  bool operator==(const RegionImpl &other) const override { return ((LinkRegion&)other).param == param;}
+  inline bool operator!=(const LinkRegion &other) const { return !operator==(other); }
+
+private:
+  int param;
+};
+
+} // namespace htm
+
+namespace testing {
+TEST(NetworkTest, SaveRestore) {
+  // Note: this sort-of mimics test in network_test.py "testNetworkPickle"
+  Network network;
+  network.registerRegion("LinkRegion", new RegisteredRegionImplCpp<LinkRegion>());
+  auto r_from = network.addRegion("from", "LinkRegion", "");
+  auto r_to = network.addRegion("to", "LinkRegion", "");
+  size_t cnt = r_from->getNodeOutputElementCount("from");
+  ASSERT_EQ(5u, cnt);
+
+  network.link("from", "to", "", "", "UInt32", "UInt32");
+  network.link("from", "to", "", "", "Real32", "Real32");
+  network.link("from", "to", "", "", "Real32", "UInt32");
+  network.link("from", "to", "", "", "UInt32", "Real32");
+  network.initialize();
+
+  std::stringstream ss;
+  network.save(ss);
+
+  Network network2;
+  network2.load(ss);
+
+  std::string s1 = network.getRegion("to")->executeCommand({"HelloWorld", "26", "64"});
+  std::string s2 = network2.getRegion("to")->executeCommand({"HelloWorld", "26", "64"});
+  ASSERT_STREQ(s1.c_str(), "Hello World says: arg1=26 arg2=64");
+  ASSERT_STREQ(s1.c_str(), s2.c_str());
 }
+
+} // namespace testing

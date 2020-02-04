@@ -29,7 +29,6 @@
 #include <htm/engine/Spec.hpp>
 #include <htm/regions/TestNode.hpp>
 #include <htm/ntypes/Array.hpp>
-#include <htm/ntypes/Value.hpp>
 #include <htm/utils/Log.hpp>
 #include <htm/types/Types.hpp>
 
@@ -52,7 +51,7 @@ TestNode::TestNode(const ValueMap &params, Region *region)
 
 
   shouldCloneParam_ = params.getScalarT<UInt32>("shouldCloneParam", 1) != 0;
-  stringParam_ = params.getString("stringParam");
+  stringParam_ = params.getString("stringParam", "nodespec value");
 
   real32ArrayParam_.resize(8);
   for (size_t i = 0; i < 8; i++) {
@@ -135,9 +134,21 @@ size_t TestNode::getNodeOutputElementCount(const std::string &outputName) const 
   return RegionImpl::getNodeOutputElementCount(outputName);  // default behavior
 }
 
-std::string TestNode::executeCommand(const std::vector<std::string> &args,
-                                     Int64 index) {
-  return "";
+std::string TestNode::executeCommand(const std::vector<std::string> &args, Int64 index) {
+  if (args.size() > 0) {
+      for(auto n:args) {
+        std::cout << "TestNode: args: " << n << std::endl;
+      }
+      std::string command = args[0];
+      if (command == "HelloWorld") {
+          NTA_CHECK(args.size() == 3) << "executeCommand(\"HelloWorld\") on TestNode requires "
+                  "command plus 2 arguments, received command plus " << (args.size()-1);
+          std::string result = "Hello World says: arg1="+args[1]+" arg2="+args[2];
+          std::cout << "TestNode: result: " << result << std::endl;
+          return result;
+      }
+  }
+  return RegionImpl::executeCommand(args, index);
 }
 
 
@@ -161,6 +172,10 @@ void TestNode::compute() {
   Array &inputArray = bottomUpIn_->getData();
   Real64* inputBuffer = (Real64*)inputArray.getBuffer();
   size_t count = inputArray.getCount();
+
+    // trace facility
+  NTA_DEBUG << "compute " << bottomUpIn_ << std::endl;
+
 	
   // See TestNode.hpp for description of the computation
 	
@@ -186,6 +201,10 @@ void TestNode::compute() {
 		  }
     }
   }
+
+  // trace facility
+  NTA_DEBUG << "compute " << bottomUpOut_ << "\n";
+
 
   iter_++;
 }
@@ -284,7 +303,7 @@ Spec *TestNode::createSpec() {
                                    0, // array
                                    "", // constraints
 								   "", // default Value
-								   ParameterSpec::ReadWriteAccess));
+								   ParameterSpec::ReadOnlyAccess));
 
   ns->parameters.add("computeCallback",
                      ParameterSpec("address of a function that is called at every compute()",

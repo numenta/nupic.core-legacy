@@ -105,10 +105,18 @@ if(NOT FORCE_CPP11)
     elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8")
          set(CMAKE_CXX_STANDARD 17)
 	 set(extra_lib_for_filesystem "stdc++fs")
-	 set(boost_required "OFF")
+	 set(boost_required OFF)
     endif()	 
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "AppleClang")  # see CMake Policy CMP0025
-    # does not support C++17 and filesystem (as of XCode 10.1)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11") # XCode 11 & AppleClang 11 do support c++17 with <filesystem>
+      ## TODO XCode11 on macOS 10.15 supports c++17 and <filesystem>,
+      # https://developer.apple.com/documentation/xcode_release_notes/xcode_11_beta_5_release_notes
+      # but for now CircleCI uses macOS 10.14, so we cannot disable boost yet.
+      # macOS 10.15 will be release in Sept 2019, so we can switch to it soon after it.
+      set(boost_required ON)
+      set(CMAKE_CXX_STANDARD 11)
+    endif()
+  # does not support C++17 and filesystem (as of XCode 10.1)
   elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") # clang + std::filesystem, see https://libcxx.llvm.org/docs/UsingLibcxx.html#using-filesystem
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "7")
          set(CMAKE_CXX_STANDARD 17)
@@ -154,7 +162,7 @@ set(COMMON_OS_LIBS)
 
 if(MSVC)
 	# MS Visual C
-	# on Windows using Visual Studio 2015, 2017   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
+	# on Windows using Visual Studio 2015, 2017, 2019   https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-by-category
 	#  /permissive- forces standards behavior.  See https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance?view=vs-2017
 	#  /Zc:__cplusplus   This is required to force MSVC to pay attention to the standard setting and sets __cplusplus.
 	#                    NOTE: MSVC does not support C++11.  But does support C++14 and C++17.
@@ -225,27 +233,24 @@ else()
 	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_ASSERTIONS_ON)
 	endif()
 
-	if(UNIX) # or UNIX like (i.e. APPLE and CYGWIN)
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DHAVE_UNISTD_H)
-	endif()
-
-	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_GNU)
-	elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_CLANG)
-	elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MinGW")
-	  set(COMMON_COMPILER_DEFINITIONS ${COMMON_COMPILER_DEFINITIONS} -DNTA_COMPILER_GNU -D_hypot=hypot)
-	endif()
-
 	#
 	# Set linker (ld)
-	# use ld.gold if available
+	# These linkers are tried for faster linking performance
+	# use ld.gold, or lld if available
 	#
-	execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE)
-	if(EXIT_CODE EQUAL 0)
-	  message("Using ld.gold as LINKER.")
-	  set(CMAKE_LINKER "ld.gold")
-	endif()
+#	execute_process(COMMAND ld.gold --version RESULT_VARIABLE EXIT_CODE_GOLD)
+#	if(EXIT_CODE_GOLD EQUAL 0)
+#	  message("Using ld.gold as LINKER.")
+#	  set(CMAKE_LINKER "ld.gold")
+#	  set(optimization_flags_lt ${optimization_flags_lt} -fuse-ld=gold)
+#	endif()
+#	execute_process(COMMAND ld.lld --version RESULT_VARIABLE EXIT_CODE_LLD)
+#	execute_process(COMMAND ld.lld-9 --version RESULT_VARIABLE EXIT_CODE_LLD9)
+#        if(EXIT_CODE_LLD EQUAL 0 OR EXIT_CODE_LLD9 EQUAL 0)
+#          message("Using ld.lld as LINKER.")
+#          set(CMAKE_LINKER "ld.lld")
+#          set(optimization_flags_lt ${optimization_flags_lt} -fuse-ld=lld)
+#        endif()
 
 
 	#
@@ -308,6 +313,9 @@ else()
 	# Don't allow undefined symbols when linking executables
 	if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 	  set(linker_flags_unoptimized ${linker_flags_unoptimized} -Wl,--no-undefined)
+	  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "9") #TODO this is a hack for gcc-9 and Eigen warning, when fixed in Eigen, this can be removed.
+            set(internal_compiler_warning_flags ${internal_compiler_warning_flags} -Wno-deprecated-copy)
+          endif()
 	elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 	  set(linker_flags_unoptimized ${linker_flags_unoptimized} -Wl,-undefined,error)
 	endif()
@@ -344,11 +352,10 @@ else()
                 set(optimization_flags_cc ${optimization_flags_cc} -mtune=generic)
         endif()
         if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
-                set(optimization_flags_cc ${optimization_flags_cc} -fuse-ld=gold)
                 # NOTE -flto must go together in both cc and ld flags; also, it's presently incompatible
                 # with the -g option in at least some GNU compilers (saw in `man gcc` on Ubuntu)
-                set(optimization_flags_cc ${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto) #TODO fix LTO for clang
-                set(optimization_flags_lt ${optimization_flags_lt} -flto) #TODO LTO for clang too
+                set(optimization_flags_cc ${optimization_flags_cc} -fuse-linker-plugin -flto-report -flto -fno-fat-lto-objects) #TODO fix LTO for clang
+                set(optimization_flags_lt ${optimization_flags_lt} -flto -fno-fat-lto-objects) #TODO LTO for clang too
         endif()
 
 

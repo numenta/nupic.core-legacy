@@ -21,11 +21,12 @@
 
 #include <cstring>
 #include <fstream>
-#include <htm/utils/StlIo.hpp>
+
 #include <htm/types/Types.hpp>
 #include <htm/types/Sdr.hpp>
 #include <htm/utils/Log.hpp>
-#include <stdio.h>
+
+#include <cstdio>
 
 #include "gtest/gtest.h"
 #include <htm/algorithms/TemporalMemory.hpp>
@@ -35,7 +36,7 @@ namespace testing {
 
 using namespace std;
 using namespace htm;
-#define EPSILON 0.0000001
+const Real EPSILON  = 0.0000001f;
 
 
 TEST(TemporalMemoryTest, testInitInvalidParams) {
@@ -74,10 +75,10 @@ TEST(TemporalMemoryTest, ActivateCorrectlyPredictiveCells) {
   const vector<CellIdx> expectedActiveCells = {4};
 
   Segment activeSegment = tm.createSegment(expectedActiveCells[0]);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[3], 0.5f);
 
   tm.compute(previousActiveColumns, true);
   tm.activateDendrites();
@@ -141,10 +142,10 @@ TEST(TemporalMemoryTest, ZeroActiveColumns) {
   const vector<CellIdx> expectedActiveCells = {4};
 
   Segment segment = tm.createSegment(expectedActiveCells[0]);
-  tm.connections.createSynapse(segment, previousActiveCells[0], 0.5f);
-  tm.connections.createSynapse(segment, previousActiveCells[1], 0.5f);
-  tm.connections.createSynapse(segment, previousActiveCells[2], 0.5f);
-  tm.connections.createSynapse(segment, previousActiveCells[3], 0.5f);
+  tm.createSynapse(segment, previousActiveCells[0], 0.5f);
+  tm.createSynapse(segment, previousActiveCells[1], 0.5f);
+  tm.createSynapse(segment, previousActiveCells[2], 0.5f);
+  tm.createSynapse(segment, previousActiveCells[3], 0.5f);
   tm.compute(previousActiveColumns, true);
   ASSERT_FALSE(tm.getActiveCells().empty());
   ASSERT_FALSE(tm.getWinnerCells().empty());
@@ -186,14 +187,14 @@ TEST(TemporalMemoryTest, PredictedActiveCellsAreAlwaysWinners) {
   const vector<CellIdx> expectedWinnerCells = {4, 6};
 
   Segment activeSegment1 = tm.createSegment(expectedWinnerCells[0]);
-  tm.connections.createSynapse(activeSegment1, previousActiveCells[0], 0.5f);
-  tm.connections.createSynapse(activeSegment1, previousActiveCells[1], 0.5f);
-  tm.connections.createSynapse(activeSegment1, previousActiveCells[2], 0.5f);
+  tm.createSynapse(activeSegment1, previousActiveCells[0], 0.5f);
+  tm.createSynapse(activeSegment1, previousActiveCells[1], 0.5f);
+  tm.createSynapse(activeSegment1, previousActiveCells[2], 0.5f);
 
   Segment activeSegment2 = tm.createSegment(expectedWinnerCells[1]);
-  tm.connections.createSynapse(activeSegment2, previousActiveCells[0], 0.5f);
-  tm.connections.createSynapse(activeSegment2, previousActiveCells[1], 0.5f);
-  tm.connections.createSynapse(activeSegment2, previousActiveCells[2], 0.5f);
+  tm.createSynapse(activeSegment2, previousActiveCells[0], 0.5f);
+  tm.createSynapse(activeSegment2, previousActiveCells[1], 0.5f);
+  tm.createSynapse(activeSegment2, previousActiveCells[2], 0.5f);
 
   tm.compute(previousActiveColumns, false);
   tm.compute(activeColumns, false);
@@ -258,13 +259,13 @@ TEST(TemporalMemoryTest, ReinforceCorrectlyActiveSegments) {
 
   Segment activeSegment = tm.createSegment(activeCell);
   Synapse activeSynapse1 =
-      tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
+      tm.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
   Synapse activeSynapse2 =
-      tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
+      tm.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
   Synapse activeSynapse3 =
-      tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
+      tm.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
   Synapse inactiveSynapse =
-      tm.connections.createSynapse(activeSegment, 81, 0.5f);
+      tm.createSynapse(activeSegment, 81, 0.5f);
 
   tm.compute(previousActiveColumns, true);
   tm.compute(activeColumns, true);
@@ -305,22 +306,22 @@ TEST(TemporalMemoryTest, ReinforceSelectedMatchingSegmentInBurstingColumn) {
   const vector<CellIdx> burstingCells = {4, 5, 6, 7};
 
   Segment selectedMatchingSegment = tm.createSegment(burstingCells[0]);
-  Synapse activeSynapse1 = tm.connections.createSynapse(
+  Synapse activeSynapse1 = tm.createSynapse(
       selectedMatchingSegment, previousActiveCells[0], 0.3f);
-  Synapse activeSynapse2 = tm.connections.createSynapse(
+  Synapse activeSynapse2 = tm.createSynapse(
       selectedMatchingSegment, previousActiveCells[1], 0.3f);
-  Synapse activeSynapse3 = tm.connections.createSynapse(
+  Synapse activeSynapse3 = tm.createSynapse(
       selectedMatchingSegment, previousActiveCells[2], 0.3f);
   Synapse inactiveSynapse =
-      tm.connections.createSynapse(selectedMatchingSegment, 81, 0.3f);
+      tm.createSynapse(selectedMatchingSegment, 81, 0.3f);
 
   // Add some competition.
   Segment otherMatchingSegment = tm.createSegment(burstingCells[1]);
-  tm.connections.createSynapse(otherMatchingSegment, previousActiveCells[0],
+  tm.createSynapse(otherMatchingSegment, previousActiveCells[0],
                                0.3f);
-  tm.connections.createSynapse(otherMatchingSegment, previousActiveCells[1],
+  tm.createSynapse(otherMatchingSegment, previousActiveCells[1],
                                0.3f);
-  tm.connections.createSynapse(otherMatchingSegment, 81, 0.3f);
+  tm.createSynapse(otherMatchingSegment, 81, 0.3f);
 
   tm.compute(previousActiveColumns, true);
   tm.compute(activeColumns, true);
@@ -362,21 +363,21 @@ TEST(TemporalMemoryTest,
   const vector<CellIdx> burstingCells = {4, 5, 6, 7};
 
   Segment selectedMatchingSegment = tm.createSegment(burstingCells[0]);
-  tm.connections.createSynapse(selectedMatchingSegment, previousActiveCells[0],
+  tm.createSynapse(selectedMatchingSegment, previousActiveCells[0],
                                0.3f);
-  tm.connections.createSynapse(selectedMatchingSegment, previousActiveCells[1],
+  tm.createSynapse(selectedMatchingSegment, previousActiveCells[1],
                                0.3f);
-  tm.connections.createSynapse(selectedMatchingSegment, previousActiveCells[2],
+  tm.createSynapse(selectedMatchingSegment, previousActiveCells[2],
                                0.3f);
-  tm.connections.createSynapse(selectedMatchingSegment, 81, 0.3f);
+  tm.createSynapse(selectedMatchingSegment, 81, 0.3f);
 
   Segment otherMatchingSegment = tm.createSegment(burstingCells[1]);
-  Synapse activeSynapse1 = tm.connections.createSynapse(
+  Synapse activeSynapse1 = tm.createSynapse(
       otherMatchingSegment, previousActiveCells[0], 0.3f);
-  Synapse activeSynapse2 = tm.connections.createSynapse(
+  Synapse activeSynapse2 = tm.createSynapse(
       otherMatchingSegment, previousActiveCells[1], 0.3f);
   Synapse inactiveSynapse =
-      tm.connections.createSynapse(otherMatchingSegment, 81, 0.3f);
+      tm.createSynapse(otherMatchingSegment, 81, 0.3f);
 
   tm.compute(previousActiveColumns, true);
   tm.compute(activeColumns, true);
@@ -416,21 +417,21 @@ TEST(TemporalMemoryTest, NoChangeToMatchingSegmentsInPredictedActiveColumn) {
   const vector<CellIdx> otherBurstingCells = {5, 6, 7};
 
   Segment activeSegment = tm.createSegment(expectedActiveCells[0]);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[3], 0.5f);
 
   Segment matchingSegmentOnSameCell = tm.createSegment(expectedActiveCells[0]);
-  Synapse synapse1 = tm.connections.createSynapse(matchingSegmentOnSameCell,
+  Synapse synapse1 = tm.createSynapse(matchingSegmentOnSameCell,
                                                   previousActiveCells[0], 0.3f);
-  Synapse synapse2 = tm.connections.createSynapse(matchingSegmentOnSameCell,
+  Synapse synapse2 = tm.createSynapse(matchingSegmentOnSameCell,
                                                   previousActiveCells[1], 0.3f);
 
   Segment matchingSegmentOnOtherCell = tm.createSegment(otherBurstingCells[0]);
-  Synapse synapse3 = tm.connections.createSynapse(matchingSegmentOnOtherCell,
+  Synapse synapse3 = tm.createSynapse(matchingSegmentOnOtherCell,
                                                   previousActiveCells[0], 0.3f);
-  Synapse synapse4 = tm.connections.createSynapse(matchingSegmentOnOtherCell,
+  Synapse synapse4 = tm.createSynapse(matchingSegmentOnOtherCell,
                                                   previousActiveCells[1], 0.3f);
 
   tm.compute(previousActiveColumns, true);
@@ -592,7 +593,7 @@ TEST(TemporalMemoryTest, MatchingSegmentAddSynapsesToSubsetOfWinnerCells) {
   const vector<CellIdx> prevWinnerCells = {0, 1, 2, 3};
 
   Segment matchingSegment = tm.createSegment(4);
-  tm.connections.createSynapse(matchingSegment, 0, 0.5f);
+  tm.createSynapse(matchingSegment, 0, 0.5f);
 
   tm.compute(previousActiveColumns);
 
@@ -638,7 +639,7 @@ TEST(TemporalMemoryTest, MatchingSegmentAddSynapsesToAllWinnerCells) {
   activeColumns.setSparse(SDR_sparse_t{4});
 
   Segment matchingSegment = tm.createSegment(4);
-  tm.connections.createSynapse(matchingSegment, 0, 0.5f);
+  tm.createSynapse(matchingSegment, 0, 0.5f);
 
   tm.compute(previousActiveColumns);
 
@@ -682,9 +683,9 @@ TEST(TemporalMemoryTest, ActiveSegmentGrowSynapsesAccordingToPotentialOverlap) {
   activeColumns.setSparse(SDR_sparse_t{5});
 
   Segment activeSegment = tm.createSegment(5);
-  tm.connections.createSynapse(activeSegment, 0, 0.5f);
-  tm.connections.createSynapse(activeSegment, 1, 0.5f);
-  tm.connections.createSynapse(activeSegment, 2, 0.2f);
+  tm.createSynapse(activeSegment, 0, 0.5f);
+  tm.createSynapse(activeSegment, 1, 0.5f);
+  tm.createSynapse(activeSegment, 2, 0.2f);
 
   tm.compute(previousActiveColumns);
 
@@ -728,12 +729,12 @@ TEST(TemporalMemoryTest, DestroyWeakSynapseOnWrongPrediction) {
   const CellIdx expectedActiveCell = 5;
 
   Segment activeSegment = tm.createSegment(expectedActiveCell);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
 
   // Weak synapse.
-  tm.connections.createSynapse(activeSegment, previousActiveCells[3], 0.015f);
+  tm.createSynapse(activeSegment, previousActiveCells[3], 0.015f);
 
   tm.compute(previousActiveColumns, true);
   tm.compute(activeColumns, true);
@@ -767,12 +768,12 @@ TEST(TemporalMemoryTest, DestroyWeakSynapseOnActiveReinforce) {
   const CellIdx activeCell = 5;
 
   Segment activeSegment = tm.createSegment(activeCell);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
-  tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
+  tm.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
 
   // Weak inactive synapse.
-  tm.connections.createSynapse(activeSegment, 81, 0.09f);
+  tm.createSynapse(activeSegment, 81, 0.09f);
 
   tm.compute(previousActiveColumns, true);
   tm.compute(activeColumns, true);
@@ -811,13 +812,13 @@ TEST(TemporalMemoryTest, RecycleWeakestSynapseToMakeRoomForNewSynapse) {
 
   // Create a weak synapse. Make sure it's not so weak that
   // permanenceDecrement destroys it.
-  tm.connections.createSynapse(matchingSegment, 0, 0.11f);
+  tm.createSynapse(matchingSegment, 0, 0.11f);
 
   // Create a synapse that will match.
-  tm.connections.createSynapse(matchingSegment, 1, 0.20f);
+  tm.createSynapse(matchingSegment, 1, 0.20f);
 
   // Create a synapse with a high permanence.
-  tm.connections.createSynapse(matchingSegment, 31, 0.6f);
+  tm.createSynapse(matchingSegment, 31, 0.6f);
 
   // Activate a synapse on the segment, making it "matching".
   tm.compute(previousActiveColumns);
@@ -941,10 +942,10 @@ TEST(TemporalMemoryTest, DestroySegmentsWithTooFewSynapsesToBeMatching) {
   const CellIdx expectedActiveCell = 5;
 
   Segment matchingSegment = tm.createSegment(expectedActiveCell);
-  tm.connections.createSynapse(matchingSegment, previousActiveCells[0], 0.015f);
-  tm.connections.createSynapse(matchingSegment, previousActiveCells[1], 0.015f);
-  tm.connections.createSynapse(matchingSegment, previousActiveCells[2], 0.015f);
-  tm.connections.createSynapse(matchingSegment, previousActiveCells[3], 0.015f);
+  tm.createSynapse(matchingSegment, previousActiveCells[0], 0.015f);
+  tm.createSynapse(matchingSegment, previousActiveCells[1], 0.015f);
+  tm.createSynapse(matchingSegment, previousActiveCells[2], 0.015f);
+  tm.createSynapse(matchingSegment, previousActiveCells[3], 0.015f);
 
   tm.compute(previousActiveColumns, true);
   tm.compute(activeColumns, true);
@@ -984,21 +985,21 @@ TEST(TemporalMemoryTest, PunishMatchingSegmentsInInactiveColumns) {
 
   Segment activeSegment = tm.createSegment(42);
   Synapse activeSynapse1 =
-      tm.connections.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
+      tm.createSynapse(activeSegment, previousActiveCells[0], 0.5f);
   Synapse activeSynapse2 =
-      tm.connections.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
+      tm.createSynapse(activeSegment, previousActiveCells[1], 0.5f);
   Synapse activeSynapse3 =
-      tm.connections.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
+      tm.createSynapse(activeSegment, previousActiveCells[2], 0.5f);
   Synapse inactiveSynapse1 =
-      tm.connections.createSynapse(activeSegment, previousInactiveCell, 0.5f);
+      tm.createSynapse(activeSegment, previousInactiveCell, 0.5f);
 
   Segment matchingSegment = tm.createSegment(43);
-  Synapse activeSynapse4 = tm.connections.createSynapse(
+  Synapse activeSynapse4 = tm.createSynapse(
       matchingSegment, previousActiveCells[0], 0.5f);
-  Synapse activeSynapse5 = tm.connections.createSynapse(
+  Synapse activeSynapse5 = tm.createSynapse(
       matchingSegment, previousActiveCells[1], 0.5f);
   Synapse inactiveSynapse2 =
-      tm.connections.createSynapse(matchingSegment, previousInactiveCell, 0.5f);
+      tm.createSynapse(matchingSegment, previousInactiveCell, 0.5f);
 
   tm.compute(previousActiveColumns, true);
   tm.compute(activeColumns, true);
@@ -1050,9 +1051,9 @@ TEST(TemporalMemoryTest, AddSegmentToCellWithFewestSegments) {
     vector<CellIdx> activeCells = {0, 1, 2, 3};
 
     Segment segment1 = tm.createSegment(nonmatchingCells[0]);
-    tm.connections.createSynapse(segment1, previousActiveCells[0], 0.5f);
+    tm.createSynapse(segment1, previousActiveCells[0], 0.5f);
     Segment segment2 = tm.createSegment(nonmatchingCells[1]);
-    tm.connections.createSynapse(segment2, previousActiveCells[1], 0.5f);
+    tm.createSynapse(segment2, previousActiveCells[1], 0.5f);
 
     tm.compute(previousActiveColumns, true);
     tm.compute(activeColumns, true);
@@ -1118,14 +1119,14 @@ TEST(TemporalMemoryTest, MaxNewSynapseCountOverflow) {
       /*seed*/ 42);
 
   Segment segment = tm.createSegment(8);
-  tm.connections.createSynapse(segment, 0, 0.2f);
-  tm.connections.createSynapse(segment, 1, 0.2f);
-  tm.connections.createSynapse(segment, 2, 0.2f);
-  tm.connections.createSynapse(segment, 3, 0.2f);
-  tm.connections.createSynapse(segment, 4, 0.2f);
-  Synapse sampleSynapse = tm.connections.createSynapse(segment, 5, 0.2f);
-  tm.connections.createSynapse(segment, 6, 0.2f);
-  tm.connections.createSynapse(segment, 7, 0.2f);
+  tm.createSynapse(segment, 0, 0.2f);
+  tm.createSynapse(segment, 1, 0.2f);
+  tm.createSynapse(segment, 2, 0.2f);
+  tm.createSynapse(segment, 3, 0.2f);
+  tm.createSynapse(segment, 4, 0.2f);
+  Synapse sampleSynapse = tm.createSynapse(segment, 5, 0.2f);
+  tm.createSynapse(segment, 6, 0.2f);
+  tm.createSynapse(segment, 7, 0.2f);
 
   SDR previousActiveColumns({32});
   previousActiveColumns.setSparse(SDR_sparse_t{0,1,3,4});
@@ -1172,21 +1173,21 @@ TEST(TemporalMemoryTest, ConnectionsNeverChangeWhenLearningDisabled) {
   const vector<CellIdx> expectedActiveCells = {4};
 
   Segment correctActiveSegment = tm.createSegment(expectedActiveCells[0]);
-  tm.connections.createSynapse(correctActiveSegment, previousActiveCells[0],
+  tm.createSynapse(correctActiveSegment, previousActiveCells[0],
                                0.5f);
-  tm.connections.createSynapse(correctActiveSegment, previousActiveCells[1],
+  tm.createSynapse(correctActiveSegment, previousActiveCells[1],
                                0.5f);
-  tm.connections.createSynapse(correctActiveSegment, previousActiveCells[2],
+  tm.createSynapse(correctActiveSegment, previousActiveCells[2],
                                0.5f);
 
   Segment wrongMatchingSegment = tm.createSegment(43);
-  tm.connections.createSynapse(wrongMatchingSegment, previousActiveCells[0],
+  tm.createSynapse(wrongMatchingSegment, previousActiveCells[0],
                                0.5f);
-  tm.connections.createSynapse(wrongMatchingSegment, previousActiveCells[1],
+  tm.createSynapse(wrongMatchingSegment, previousActiveCells[1],
                                0.5f);
-  tm.connections.createSynapse(wrongMatchingSegment, previousInactiveCell, 0.5f);
+  tm.createSynapse(wrongMatchingSegment, previousInactiveCell, 0.5f);
 
-  Connections before = tm.connections;
+  const Connections before = tm.connections;
 
   tm.compute(previousActiveColumns, false);
   tm.compute(activeColumns, false);
@@ -1217,8 +1218,8 @@ TEST(TemporalMemoryTest, DestroySegmentsThenReachLimit) {
     Segment segment1 = tm.createSegment(11);
     Segment segment2 = tm.createSegment(11);
     ASSERT_EQ(2ul, tm.connections.numSegments());
-    tm.connections.destroySegment(segment1);
-    tm.connections.destroySegment(segment2);
+    tm.destroySegment(segment1);
+    tm.destroySegment(segment2);
     ASSERT_EQ(0ul, tm.connections.numSegments());
   }
 
@@ -1228,7 +1229,7 @@ TEST(TemporalMemoryTest, DestroySegmentsThenReachLimit) {
     tm.createSegment(11);
     EXPECT_EQ(2ul, tm.connections.numSegments());
     tm.createSegment(11);
-    EXPECT_EQ(2ul, tm.connections.numSegments());
+    EXPECT_EQ(2ul, tm.connections.numSegments()) << "Created 3 segments, but limit is 2, so this should be 2!";
     EXPECT_EQ(2ul, tm.connections.numSegments(11));
   }
 }
@@ -1255,9 +1256,9 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
 
   Segment segment1 = tm.createSegment(12);
 
-  tm.connections.createSynapse(segment1, 1, 0.5f);
-  tm.connections.createSynapse(segment1, 2, 0.5f);
-  tm.connections.createSynapse(segment1, 3, 0.5f);
+  tm.createSynapse(segment1, 1, 0.5f);
+  tm.createSynapse(segment1, 2, 0.5f);
+  tm.createSynapse(segment1, 3, 0.5f);
 
   // Let some time pass.
   SDR empty({32});
@@ -1267,7 +1268,7 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
 
   // Create a segment with 1 synapse.
   Segment segment2 = tm.createSegment(12);
-  tm.connections.createSynapse(segment2, 1, 0.5f);
+  tm.createSynapse(segment2, 1, 0.5f);
 
   tm.compute(empty);
 
@@ -1283,8 +1284,8 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
 
   // Create a new segment with two synapses.
   Segment segment3 = tm.createSegment(12);
-  tm.connections.createSynapse(segment3, 1, 0.5);
-  tm.connections.createSynapse(segment3, 2, 0.5);
+  tm.createSynapse(segment3, 1, 0.5);
+  tm.createSynapse(segment3, 2, 0.5);
 
   vector<Segment> segments = tm.connections.segmentsForCell(12);
   ASSERT_EQ(2ul, segments.size());
@@ -1304,7 +1305,7 @@ TEST(TemporalMemoryTest, CreateSegmentDestroyOld) {
  * Hit the maxSegmentsPerCell threshold multiple times. Make sure it works
  * more than once.
  */
-TEST(ConnectionsTest, ReachSegmentLimitMultipleTimes) {
+TEST(TemporalMemoryTest, ReachSegmentLimitMultipleTimes) {
   TemporalMemory tm(
       /*columnDimensions*/ {32},
       /*cellsPerColumn*/ 1,
@@ -1407,26 +1408,26 @@ void serializationTestPrepare(TemporalMemory &tm) {
   // Create an active segment and a two matching segments.
   // Destroy a few to exercise the code.
   Segment destroyMe1 = tm.createSegment(4);
-  tm.connections.destroySegment(destroyMe1);
+  tm.destroySegment(destroyMe1);
 
   Segment activeSegment = tm.createSegment(4);
-  tm.connections.createSynapse(activeSegment, 0, 0.5f);
-  tm.connections.createSynapse(activeSegment, 1, 0.5f);
-  Synapse destroyMe2 = tm.connections.createSynapse(activeSegment, 42, 0.5f);
-  tm.connections.destroySynapse(destroyMe2);
-  tm.connections.createSynapse(activeSegment, 2, 0.5f);
-  tm.connections.createSynapse(activeSegment, 3, 0.5f);
+  tm.createSynapse(activeSegment, 0, 0.5f);
+  tm.createSynapse(activeSegment, 1, 0.5f);
+  Synapse destroyMe2 = tm.createSynapse(activeSegment, 42, 0.5f);
+  tm.destroySynapse(destroyMe2);
+  tm.createSynapse(activeSegment, 2, 0.5f);
+  tm.createSynapse(activeSegment, 3, 0.5f);
 
   Segment matchingSegment1 = tm.createSegment(8);
-  tm.connections.createSynapse(matchingSegment1, 0, 0.4f);
-  tm.connections.createSynapse(matchingSegment1, 1, 0.4f);
-  tm.connections.createSynapse(matchingSegment1, 2, 0.4f);
+  tm.createSynapse(matchingSegment1, 0, 0.4f);
+  tm.createSynapse(matchingSegment1, 1, 0.4f);
+  tm.createSynapse(matchingSegment1, 2, 0.4f);
 
   Segment matchingSegment2 = tm.createSegment(9);
-  tm.connections.createSynapse(matchingSegment2, 0, 0.4f);
-  tm.connections.createSynapse(matchingSegment2, 1, 0.4f);
-  tm.connections.createSynapse(matchingSegment2, 2, 0.4f);
-  tm.connections.createSynapse(matchingSegment2, 3, 0.4f);
+  tm.createSynapse(matchingSegment2, 0, 0.4f);
+  tm.createSynapse(matchingSegment2, 1, 0.4f);
+  tm.createSynapse(matchingSegment2, 2, 0.4f);
+  tm.createSynapse(matchingSegment2, 3, 0.4f);
 
   SDR activeColumns({32});
   activeColumns.setSparse(SDR_sparse_t{0});

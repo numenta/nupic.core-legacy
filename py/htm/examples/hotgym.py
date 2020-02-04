@@ -10,23 +10,28 @@ from htm.encoders.rdse import RDSE, RDSE_Parameters
 from htm.encoders.date import DateEncoder
 from htm.bindings.algorithms import SpatialPooler
 from htm.bindings.algorithms import TemporalMemory
-from htm.algorithms.anomaly_likelihood import AnomalyLikelihood
+from htm.algorithms.anomaly_likelihood import AnomalyLikelihood #FIXME use TM.anomaly instead, but it gives worse results than the py.AnomalyLikelihood now
 from htm.bindings.algorithms import Predictor
 
 _EXAMPLE_DIR = os.path.dirname(os.path.abspath(__file__))
 _INPUT_FILE_PATH = os.path.join(_EXAMPLE_DIR, "gymdata.csv")
 
 default_parameters = {
- 'enc': {'resolution': 0.88, 'size': 700, 'sparsity': 0.02},
- 'sdrc_alpha': 0.1,
+  # there are 2 (3) encoders: "value" (RDSE) & "time" (DateTime weekend, timeOfDay)
+ 'enc': {
+      "value" :
+         {'resolution': 0.88, 'size': 700, 'sparsity': 0.02},
+      "time": 
+         {'timeOfDay': (30, 1), 'weekend': 21}
+ },
+ 'predictor': {'sdrc_alpha': 0.1},
  'sp': {'boostStrength': 3.0,
         'columnCount': 1638,
-        'numActiveColumnsPerInhArea': 72,
+        'localAreaDensity': 0.04395604395604396,
         'potentialPct': 0.85,
         'synPermActiveInc': 0.04,
         'synPermConnected': 0.13999999999999999,
         'synPermInactiveDec': 0.006},
- 'time': {'timeOfDay': (30, 1), 'weekend': 21},
  'tm': {'activationThreshold': 17,
         'cellsPerColumn': 13,
         'initialPerm': 0.21,
@@ -35,7 +40,15 @@ default_parameters = {
         'minThreshold': 10,
         'newSynapseCount': 32,
         'permanenceDec': 0.1,
-        'permanenceInc': 0.1}}
+        'permanenceInc': 0.1},
+ 'anomaly': {
+   'likelihood': 
+       {#'learningPeriod': int(math.floor(self.probationaryPeriod / 2.0)),
+        #'probationaryPeriod': self.probationaryPeriod-default_parameters["anomaly"]["likelihood"]["learningPeriod"],
+        'probationaryPct': 0.1,
+        'reestimationPeriod': 100} #These settings are copied from NAB
+ }
+}
 
 def main(parameters=default_parameters, argv=None, verbose=True):
   if verbose:
@@ -44,15 +57,26 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     pprint.pprint(parameters, indent=4)
     print("")
 
+  # Read the input file.
+  records = []
+  with open(_INPUT_FILE_PATH, "r") as fin:
+    reader = csv.reader(fin)
+    headers = next(reader)
+    next(reader)
+    next(reader)
+    for record in reader:
+      records.append(record)
+
   # Make the Encoders.  These will convert input data into binary representations.
-  timeOfDayEncoder = DateEncoder(parameters["time"]["timeOfDay"])
-  weekendEncoder   = DateEncoder(parameters["time"]["weekend"])
+  dateEncoder = DateEncoder(timeOfDay= parameters["enc"]["time"]["timeOfDay"], 
+                            weekend  = parameters["enc"]["time"]["weekend"]) 
+  
   scalarEncoderParams            = RDSE_Parameters()
-  scalarEncoderParams.size       = parameters["enc"]["size"]
-  scalarEncoderParams.sparsity   = parameters["enc"]["sparsity"]
-  scalarEncoderParams.resolution = parameters["enc"]["resolution"]
+  scalarEncoderParams.size       = parameters["enc"]["value"]["size"]
+  scalarEncoderParams.sparsity   = parameters["enc"]["value"]["sparsity"]
+  scalarEncoderParams.resolution = parameters["enc"]["value"]["resolution"]
   scalarEncoder = RDSE( scalarEncoderParams )
-  encodingWidth = (timeOfDayEncoder.size + weekendEncoder.size + scalarEncoder.size)
+  encodingWidth = (dateEncoder.size + scalarEncoder.size)
   enc_info = Metrics( [encodingWidth], 999999999 )
 
   # Make the HTM.  SpatialPooler & TemporalMemory & associated tools.
@@ -63,8 +87,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     potentialPct               = spParams["potentialPct"],
     potentialRadius            = encodingWidth,
     globalInhibition           = True,
-    localAreaDensity           = -1,
-    numActiveColumnsPerInhArea = spParams["numActiveColumnsPerInhArea"],
+    localAreaDensity           = spParams["localAreaDensity"],
     synPermInactiveDec         = spParams["synPermInactiveDec"],
     synPermActiveInc           = spParams["synPermActiveInc"],
     synPermConnected           = spParams["synPermConnected"],
@@ -90,20 +113,16 @@ def main(parameters=default_parameters, argv=None, verbose=True):
   )
   tm_info = Metrics( [tm.numberOfCells()], 999999999 )
 
-  anomaly_history = AnomalyLikelihood()
+  # setup likelihood, these settings are used in NAB
+  anParams = parameters["anomaly"]["likelihood"]
+  probationaryPeriod = int(math.floor(float(anParams["probationaryPct"])*len(records)))
+  learningPeriod     = int(math.floor(probationaryPeriod / 2.0))
+  anomaly_history = AnomalyLikelihood(learningPeriod= learningPeriod,
+                                      estimationSamples= probationaryPeriod - learningPeriod,
+                                      reestimationPeriod= anParams["reestimationPeriod"])
 
-  predictor = Predictor( steps=[1, 5], alpha=parameters['sdrc_alpha'] )
+  predictor = Predictor( steps=[1, 5], alpha=parameters["predictor"]['sdrc_alpha'] )
   predictor_resolution = 1
-
-  # Read the input file.
-  records = []
-  with open(_INPUT_FILE_PATH, "r") as fin:
-    reader = csv.reader(fin)
-    headers = next(reader)
-    next(reader)
-    next(reader)
-    for record in reader:
-      records.append(record)
 
   # Iterate through every datum in the dataset, record the inputs & outputs.
   inputs      = []
@@ -119,12 +138,11 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     inputs.append( consumption )
 
     # Call the encoders to create bit representations for each value.  These are SDR objects.
-    timeOfDayBits   = timeOfDayEncoder.encode(dateString)
-    weekendBits     = weekendEncoder.encode(dateString)
+    dateBits        = dateEncoder.encode(dateString)
     consumptionBits = scalarEncoder.encode(consumption)
 
     # Concatenate all these encodings into one large encoding for Spatial Pooling.
-    encoding = SDR( encodingWidth ).concatenate([consumptionBits, timeOfDayBits, weekendBits])
+    encoding = SDR( encodingWidth ).concatenate([consumptionBits, dateBits])
     enc_info.addData( encoding )
 
     # Create an SDR to represent active columns, This will be populated by the
@@ -140,17 +158,19 @@ def main(parameters=default_parameters, argv=None, verbose=True):
     tm_info.addData( tm.getActiveCells().flatten() )
 
     # Predict what will happen, and then train the predictor based on what just happened.
-    pdf = predictor.infer( count, tm.getActiveCells() )
+    pdf = predictor.infer( tm.getActiveCells() )
     for n in (1, 5):
       if pdf[n]:
         predictions[n].append( np.argmax( pdf[n] ) * predictor_resolution )
       else:
         predictions[n].append(float('nan'))
-    predictor.learn( count, tm.getActiveCells(), int(consumption / predictor_resolution))
 
     anomalyLikelihood = anomaly_history.anomalyProbability( consumption, tm.anomaly )
     anomaly.append( tm.anomaly )
     anomalyProb.append( anomalyLikelihood )
+
+    predictor.learn(count, tm.getActiveCells(), int(consumption / predictor_resolution))
+
 
   # Print information & statistics about the state of the HTM.
   print("Encoded Input", enc_info)
@@ -171,6 +191,7 @@ def main(parameters=default_parameters, argv=None, verbose=True):
   # Calculate the predictive accuracy, Root-Mean-Squared
   accuracy         = {1: 0, 5: 0}
   accuracy_samples = {1: 0, 5: 0}
+
   for idx, inp in enumerate(inputs):
     for n in predictions: # For each [N]umber of time steps ahead which was predicted.
       val = predictions[n][ idx ]
@@ -187,7 +208,12 @@ def main(parameters=default_parameters, argv=None, verbose=True):
 
   # Plot the Predictions and Anomalies.
   if verbose:
-    import matplotlib.pyplot as plt
+    try:
+      import matplotlib.pyplot as plt
+    except:
+      print("WARNING: failed to import matplotlib, plots cannot be shown.")
+      return -accuracy[5]
+
     plt.subplot(2,1,1)
     plt.title("Predictions")
     plt.xlabel("Time")

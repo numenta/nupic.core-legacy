@@ -26,7 +26,7 @@ namespace htm {
 Real computeRawAnomalyScore(const SDR& active,
                             const SDR& predicted) {
 
-  NTA_ASSERT(active.dimensions == predicted.dimensions); 
+  NTA_ASSERT(active.dimensions == predicted.dimensions);
 
   // Return 0 if no active columns are present
   if (active.getSum() == 0) {

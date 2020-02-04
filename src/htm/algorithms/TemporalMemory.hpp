@@ -27,6 +27,8 @@
 #include <htm/types/Sdr.hpp>
 #include <htm/types/Serializable.hpp>
 #include <htm/utils/Random.hpp>
+#include <htm/algorithms/AnomalyLikelihood.hpp>
+
 #include <vector>
 
 
@@ -34,6 +36,7 @@ namespace htm {
 
 using namespace std;
 using namespace htm;
+
 
 /**
  * Temporal Memory implementation in C++.
@@ -53,6 +56,7 @@ using namespace htm;
 class TemporalMemory : public Serializable
 {
 public:
+  enum class ANMode { DISABLED = 0, RAW = 1, LIKELIHOOD = 2, LOGLIKELIHOOD = 3};
   TemporalMemory();
 
   /**
@@ -124,6 +128,10 @@ public:
    * TemporalMemory.  If this is given (and greater than 0) then the active
    * cells and winner cells of these external inputs must be given to methods
    * TM.compute and TM.activateDendrites
+   *
+   * @param anomalyMode (optional, default `ANMode::RAW`)from enum ANMode, how is 
+   * `TM.anomaly` computed. Options ANMode {DISABLED, RAW, LIKELIHOOD, LOGLIKELIHOOD}
+   * 
    */
   TemporalMemory(
       vector<CellIdx> columnDimensions,
@@ -140,13 +148,15 @@ public:
       SegmentIdx      maxSegmentsPerCell          = 255,
       SynapseIdx      maxSynapsesPerSegment       = 255,
       bool            checkInputs                 = true,
-      UInt            externalPredictiveInputs    = 0);
+      UInt            externalPredictiveInputs    = 0,
+      ANMode	      anomalyMode 		  = ANMode::RAW
+      );
 
   virtual void
   initialize(
-    vector<CellIdx>  columnDimensions            = {2048},
-    CellIdx          cellsPerColumn              = 32,
-    SynapseIdx       activationThreshold         = 13,
+    vector<CellIdx>  columnDimensions         = {2048},
+    CellIdx          cellsPerColumn           = 32,
+    SynapseIdx       activationThreshold      = 13,
     Permanence    initialPermanence           = 0.21,
     Permanence    connectedPermanence         = 0.50,
     SynapseIdx    minThreshold                = 10,
@@ -158,7 +168,9 @@ public:
     SegmentIdx    maxSegmentsPerCell          = 255,
     SynapseIdx    maxSynapsesPerSegment       = 255,
     bool          checkInputs                 = true,
-    UInt          externalPredictiveInputs    = 0);
+    UInt          externalPredictiveInputs    = 0,
+    ANMode        anomalyMode                 = ANMode::RAW
+    );
 
   virtual ~TemporalMemory();
 
@@ -231,6 +243,10 @@ public:
    * the TemporalMemory via its compute method ensures that you'll always
    * be able to call getActiveCells at the end of the time step.
    *
+   * Additionaly, this method computes anomaly for `TM.anomaly&`, if you
+   * use other learning methods (activateCells(), activateDendrites()) your
+   * anomaly scores will be off. 
+   *
    * @param activeColumns
    * Sorted SDR of active columns.
    *
@@ -270,7 +286,16 @@ public:
    * @return Segment
    * The created segment.
    */
-  Segment createSegment(const CellIdx& cell);
+  Segment createSegment(const CellIdx& cell) {
+    return connections_.createSegment(cell, maxSegmentsPerCell_); 
+  }
+  Synapse createSynapse(const Segment seg, CellIdx presyn, Permanence perm) {
+    return connections_.createSynapse(seg, presyn, perm); 
+  }
+  void destroySegment(const Segment rm) {
+    connections_.destroySegment(rm);
+  }
+  void destroySynapse(const Synapse syn) { connections_.destroySynapse(syn); }
 
   /**
    * Returns the indices of cells that belong to a mini-column.
@@ -461,43 +486,50 @@ public:
        CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
-       CEREAL_NVP(iteration_),
        CEREAL_NVP(rng_),
        CEREAL_NVP(columnDimensions_),
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
-       CEREAL_NVP(anomaly_),
-       CEREAL_NVP(connections));
+       CEREAL_NVP(tmAnomaly_.anomaly_),
+       CEREAL_NVP(tmAnomaly_.mode_),
+       CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
+       CEREAL_NVP(connections_));
+    
+    size_t activeSize = activeSegments_.size();
+    ar(CEREAL_NVP(activeSize));
 
-    cereal::size_type numActiveSegments = activeSegments_.size();
-    ar( cereal::make_size_tag(numActiveSegments));
-    for (Segment segment : activeSegments_) {
-      struct container_ar c;
-      c.cell = connections.cellForSegment(segment);
-      const vector<Segment> &segments = connections.segmentsForCell(c.cell);
+    if (activeSize > 0) {
+      cereal::size_type numActiveSegments = activeSegments_.size();
+      ar( cereal::make_size_tag(numActiveSegments));
+      for (Segment segment : activeSegments_) {
+        struct container_ar c;
+        c.cell = connections.cellForSegment(segment);
+        const vector<Segment> &segments = connections.segmentsForCell(c.cell);
 
-      c.idx = (SegmentIdx)std::distance(
-                          segments.begin(), 
-                          std::find(segments.begin(), 
-                          segments.end(), segment));
-      c.syn = numActiveConnectedSynapsesForSegment_[segment];
-      ar(c); // to keep iteration counts correct, only serialize one item per iteration.
+        c.idx = (SegmentIdx)std::distance(
+                            segments.begin(), 
+                            std::find(segments.begin(), 
+                            segments.end(), segment));
+        c.syn = numActiveConnectedSynapsesForSegment_[segment];
+        ar(c); // to keep iteration counts correct, only serialize one item per iteration.
+      }
     }
 
-    cereal::size_type numMatchingSegments = matchingSegments_.size();
-    ar(cereal::make_size_tag(numMatchingSegments));
-    for (Segment segment : matchingSegments_) {
-      struct container_ar c;
-      c.cell = connections.cellForSegment(segment);
-      const vector<Segment> &segments = connections.segmentsForCell(c.cell);
+    size_t matchSize = matchingSegments_.size();
+    ar(CEREAL_NVP(matchSize));
+    if (matchSize > 0) {
+      cereal::size_type numMatchingSegments = matchingSegments_.size();
+      ar(cereal::make_size_tag(numMatchingSegments));
+      for (Segment segment : matchingSegments_) {
+        struct container_ar c;
+        c.cell = connections.cellForSegment(segment);
+        const vector<Segment> &segments = connections.segmentsForCell(c.cell);
 
-      c.idx = (SegmentIdx)std::distance(
-                          segments.begin(), 
-                          std::find(segments.begin(), 
-                          segments.end(), segment));
-      c.syn = numActivePotentialSynapsesForSegment_[segment];
-      ar(c);
+        c.idx = (SegmentIdx)std::distance(segments.begin(), std::find(segments.begin(), segments.end(), segment));
+        c.syn = numActivePotentialSynapsesForSegment_[segment];
+        ar(c);
+      }
     }
 
   }
@@ -517,41 +549,46 @@ public:
        CEREAL_NVP(externalPredictiveInputs_),
        CEREAL_NVP(maxSegmentsPerCell_),
        CEREAL_NVP(maxSynapsesPerSegment_),
-       CEREAL_NVP(iteration_),
        CEREAL_NVP(rng_),
        CEREAL_NVP(columnDimensions_),
        CEREAL_NVP(activeCells_),
        CEREAL_NVP(winnerCells_),
        CEREAL_NVP(segmentsValid_),
-       CEREAL_NVP(anomaly_),
-       CEREAL_NVP(connections));
-
-    numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
-    cereal::size_type numActiveSegments;
-    ar(cereal::make_size_tag(numActiveSegments));
-    activeSegments_.resize(static_cast<size_t>(numActiveSegments));
-    for (size_t i = 0; i < static_cast<size_t>(numActiveSegments); i++) {
-      struct container_ar c;
-      ar(c);  
-      Segment segment = connections.getSegment(c.cell, c.idx);
-      activeSegments_[i] = segment;
-      numActiveConnectedSynapsesForSegment_[segment] = c.syn;
+       CEREAL_NVP(tmAnomaly_.anomaly_),
+       CEREAL_NVP(tmAnomaly_.mode_),
+       CEREAL_NVP(tmAnomaly_.anomalyLikelihood_),
+       CEREAL_NVP(connections_));
+    
+    size_t activeSize;
+    ar(CEREAL_NVP(activeSize));
+    if (activeSize > 0) {
+      numActiveConnectedSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
+      cereal::size_type numActiveSegments;
+      ar(cereal::make_size_tag(numActiveSegments));
+      activeSegments_.resize(static_cast<size_t>(numActiveSegments));
+      for (size_t i = 0; i < static_cast<size_t>(numActiveSegments); i++) {
+        struct container_ar c;
+        ar(c);  
+        Segment segment = connections.getSegment(c.cell, c.idx);
+        activeSegments_[i] = segment;
+        numActiveConnectedSynapsesForSegment_[segment] = c.syn;
+      }
     }
-
-    numActivePotentialSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
-    cereal::size_type numMatchingSegments;
-    ar(cereal::make_size_tag(numMatchingSegments));
-    matchingSegments_.resize(static_cast<size_t>(numMatchingSegments));
-    for (size_t i = 0; i < static_cast<size_t>(numMatchingSegments); i++) {
-      struct container_ar c;
-      ar(c);
-      Segment segment = connections.getSegment(c.cell, c.idx);
-      matchingSegments_[i] = segment;
-      numActivePotentialSynapsesForSegment_[segment] = c.syn;
+    size_t matchSize;
+    ar(CEREAL_NVP(matchSize));
+    if (matchSize > 0) {
+      numActivePotentialSynapsesForSegment_.assign(connections.segmentFlatListLength(), 0);
+      cereal::size_type numMatchingSegments;
+      ar(cereal::make_size_tag(numMatchingSegments));
+      matchingSegments_.resize(static_cast<size_t>(numMatchingSegments));
+      for (size_t i = 0; i < static_cast<size_t>(numMatchingSegments); i++) {
+        struct container_ar c;
+        ar(c);
+        Segment segment = connections.getSegment(c.cell, c.idx);
+        matchingSegments_[i] = segment;
+        numActivePotentialSynapsesForSegment_[segment] = c.syn;
+      }
     }
-
-    lastUsedIterationForSegment_.resize(connections.segmentFlatListLength());
-
   }
 
 
@@ -601,6 +638,29 @@ public:
    *
    */
   SDR cellsToColumns(const SDR& cells) const;
+private:
+  void punishPredictedColumn_(vector<Segment>::const_iterator columnMatchingSegmentsBegin, 
+		              vector<Segment>::const_iterator columnMatchingSegmentsEnd, 
+			      const SDR& prevActiveCells);
+
+  void activatePredictedColumn_(vector<Segment>::const_iterator columnActiveSegmentsBegin,
+		                vector<Segment>::const_iterator columnActiveSegmentsEnd,
+				const SDR &prevActiveCells,
+				const vector<CellIdx> &prevWinnerCells,
+				const bool learn);
+
+  void burstColumn_(const UInt column,
+		                    vector<Segment>::const_iterator columnMatchingSegmentsBegin,
+				    vector<Segment>::const_iterator columnMatchingSegmentsEnd,
+				    const SDR &prevActiveCells,
+				    const vector<CellIdx> &prevWinnerCells,
+				    const bool learn);
+
+  void growSynapses_(const Segment& segment,
+		     const SynapseIdx nDesiredNewSynapses,
+		     const vector<CellIdx> &prevWinnerCells);
+
+  void calculateAnomalyScore_(const SDR &activeColumns);
 
 protected:
   //all these could be const
@@ -629,16 +689,26 @@ private:
   vector<SynapseIdx> numActiveConnectedSynapsesForSegment_;
   vector<SynapseIdx> numActivePotentialSynapsesForSegment_;
 
-  UInt64 iteration_;
-  vector<UInt64> lastUsedIterationForSegment_;
-
-  Real anomaly_;
-
   Random rng_;
 
+  /**
+   * holds logic and data for TM's anomaly
+   */
+  struct anomaly_tm {
+    protected:
+      friend class TemporalMemory;
+      Real anomaly_ = 0.5f; //default value
+      ANMode mode_ = ANMode::RAW;
+      AnomalyLikelihood anomalyLikelihood_; //TODO provide default/customizable params here
+  };
+  Connections connections_;
+
 public:
-  Connections connections;
+  const Connections& connections = connections_; //const view of Connections for the public
+
   const UInt &externalPredictiveInputs = externalPredictiveInputs_;
+
+  anomaly_tm tmAnomaly_;
   /*
    *  anomaly score computed for the current inputs
    *  (auto-updates after each call to TM::compute())
@@ -646,7 +716,9 @@ public:
    *  @return a float value from computeRawAnomalyScore()
    *  from Anomaly.hpp
    */
-  const Real &anomaly = anomaly_;
+const Real &anomaly = tmAnomaly_.anomaly_; //this is position dependant, the struct anomaly_tm must be defined before this use,
+// otherwise this surprisingly compiles, but a call to `tmAnomaly_.anomaly` segfaults!
+
 };
 
 } // namespace htm

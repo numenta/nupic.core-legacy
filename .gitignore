@@ -7,6 +7,7 @@
 *.swp
 *.pyc
 *.pkl
+__pycache__
 
 # Coverage files 
 .coverage
@@ -30,6 +31,7 @@ htm.core.kdev4
 # Build files
 build/
 junit-test-results.xml
+VERSION
 
 # Test Output files
 bindings/py/tests/*.stream
@@ -39,3 +41,10 @@ bindings/py/tests/*.stream
 
 # Doxygen generated doc
 html/
+
+# produced by swarming, parameter optimization scripts
+*_ae/
+
+## Experiments. Files produced by experiments
+/py/htm/advanced/examples/thalamus/images/
+

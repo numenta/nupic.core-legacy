@@ -1,0 +1,232 @@
+name: build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # vX.Y.Z release tag
+  # run on pull_request events that target the master branch
+  pull_request:
+    branches:
+    - master
+  # run every day of the week at 02:00
+  schedule:
+  - cron: 0 2 * * *
+      
+jobs:
+  build:
+    name: Building on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      #max-parallel: 4
+      matrix:
+        python-version: [3.7]
+        os: [ubuntu-18.04, windows-2019, macOS-latest]
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Set up Python ${{ matrix.python-version }} for PR
+      if: github.event_name != 'push'
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up old Python for PyPI
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7 #FIXME for better PyPI compatibility, we need to compile on older python. But unittests  fail to import with <3.7
+
+    - name: Versions
+      run: |
+        python --version
+        cmake --version
+        c++ --version
+
+    - name: Install dependencies (gcc-8)
+      if: matrix.os == 'ubuntu-18.04'
+      env:
+        CC: gcc-8
+        CXX: g++-8
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install gcc-8 g++-8
+        python -m pip install -r requirements.txt
+        python setup.py configure
+
+    - name: Install dependencies
+      if: matrix.os != 'ubuntu-18.04'
+      run: |
+        python -m pip install -r requirements.txt
+        python setup.py configure
+
+    - name: build htmcore with setup.py
+      run: python setup.py install --user --force
+
+    - name: C++ & Python Tests
+      run: python setup.py test
+
+    - name: Memory leaks check (valgrind)
+      if: matrix.os == 'ubuntu-18.04'
+      run: |
+        sudo apt-get -y install valgrind
+        LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/build/Release/lib valgrind  --show-leak-kinds=definite,indirect,possible,reachable --track-origins=yes --num-callers=40 --error-exitcode=3 ./build/Release/bin/benchmark_hotgym 5 || exit 1
+
+    - name: Release (make package)
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
+      run: |
+        python setup.py bdist_wheel
+        cd build/scripts
+        cmake --build . --config Release --target install # aka make install ,but multiplatform
+        cmake --build . --config Release --target package # make package
+
+    - name: Release (deploy)
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      # from https://github.com/marketplace/actions/gh-release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/scripts/htm_core-v*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: actions/upload-artifact@v1.0.0
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: "dist-${{ matrix.os }}"
+        path: build/Release/distr/dist
+
+    - name: Test python package is working
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      shell: bash
+      run: |
+        python -m pip uninstall -y htm.core 
+        filePath=$(ls build/Release/distr/dist/*.whl) 
+        python -m pip install --force $filePath
+        python -m pytest bindings/py/tests
+
+
+  publish-pypi:
+    name: Publish package to PYPI
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') # only on tag/release
+    needs: [build, build-debug, build-arm64-docker]
+    runs-on: ubuntu-18.04
+    steps:
+
+    - uses: actions/checkout@master
+
+    - uses: actions/download-artifact@master
+      with:
+        name: dist-ubuntu-18.04
+        path: dist/
+
+    - uses: actions/download-artifact@master
+      with:
+        name: dist-macOs-latest
+        path: dist/
+
+    - uses: actions/download-artifact@master
+      with:
+        name: dist-windows-2019
+        path: dist/
+
+    - uses: actions/download-artifact@master
+      with:
+        name: dist-arm64
+        path: dist/
+
+    - name: pre-PyPI
+      #copy dist data to /dist, where PyPI Action expects it
+      run: |
+        cd dist
+        mv `ls -1 htm*-linux_*.whl` `ls -1 htm*-linux_*.whl | sed -e's/linux/manylinux1/'` #rename to manylinux1 to make PYPI accept the package
+        rm *.egg #remove obsoleted egg format
+        rm requirements.txt # PIPY upload has problem with non-*.whl files 
+        cd ..
+        ls dist/
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
+        repository_url: https://test.pypi.org/legacy/ #TODO rm for real pypi
+
+
+
+  build-debug:
+    name: Build and test in Debug mode
+    #currently cannot run on Linux & Debug due to a bug in YAML parser: issue #218
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install dependencies (Debug)
+      run: |
+        echo "built type: ${CMAKE_BUILD_TYPE}"
+        mkdir -p build/scripts
+        cd build/scripts
+        cmake ../.. -DCMAKE_BUILD_TYPE=Debug
+
+    - name: Debug build
+      run: |
+        cd build/scripts
+        make -j2 && make install
+
+    - name: C++ Tests
+      run: |
+        cd build/scripts
+        ../Debug/bin/unit_tests
+
+
+
+  build-arm64-docker:
+    name: Build for ARM64 on Docker
+    runs-on: ubuntu-18.04
+    if: (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')) || github.event_name == 'schedule' # tag or schedule
+    steps:
+    - name: Install docker
+      run: |
+        # bug in ubuntu, conflicts with docker.io
+        sudo apt-get update
+        sudo apt-get remove --purge -y moby-engine moby-cli
+        sudo apt-get install -y qemu-user-static docker.io
+
+    - uses: actions/checkout@v1
+
+    - name: ARM64 build
+      run: |
+        sudo docker build -t htm-arm64-docker --build-arg arch=arm64 .
+
+    - name: Tests
+      run: |
+        sudo docker run -it htm-arm64-docker
+        uname -a && echo "\nHello from ARM64 htm.core build!\n"
+        python setup.py test
+        exit
+
+    - name: Copy files from docker
+      run: |
+        sudo docker cp `sudo docker ps -alq`:/usr/local/src/htm.core/dist dist #TODO the `command` is not 100% reliable, replace with some name/id
+        ls dist
+
+    - name: Release (deploy)
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') #only on tag/release, not schedule
+      # from https://github.com/marketplace/actions/gh-release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/htm_core-v*gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Pre-upload artifact
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      run: rm dist/*.gz
+
+    - uses: actions/upload-artifact@v1.0.0
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        name: "dist-arm64"
+        path: ./dist
+    

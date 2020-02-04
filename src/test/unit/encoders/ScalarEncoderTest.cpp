@@ -193,7 +193,7 @@ TEST(ScalarEncoder, Serialization) {
     std::stringstream buf;
     enc1->save( buf, JSON );
   
-    std::cerr << "SERIALIZED:" << std::endl << buf.str() << std::endl;
+    //std::cerr << "SERIALIZED:" << std::endl << buf.str() << std::endl;
     buf.seekg(0);
 
     ScalarEncoder enc2;

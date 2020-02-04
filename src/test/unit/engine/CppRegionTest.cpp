@@ -20,7 +20,6 @@
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Link.hpp>
 #include <htm/engine/Network.hpp>
-#include <htm/engine/NuPIC.hpp>
 #include <htm/engine/Output.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
@@ -61,8 +60,8 @@ TEST(CppRegionTest, testCppLinkingFanIn) {
   std::shared_ptr<Region> region2 = net.addRegion("region2", "TestNode", "{count: 64}");
   std::shared_ptr<Region> region3 = net.addRegion("region3", "TestNode", "");
 
-  net.link("region1", "region3"); 
-  net.link("region2", "region3"); 
+  net.link("region1", "region3");
+  net.link("region2", "region3");
 
   net.initialize();
 
@@ -112,9 +111,9 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   Network net;
 
   std::shared_ptr<Region> region1 = net.addRegion("region1", "ScalarSensor", "{dim: [6,1], n: 6, w: 2}");
-  std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [2,3]}");
+  std::shared_ptr<Region> region2 = net.addRegion("region2", "SPRegion", "{dim: [20,3]}");
 
-  net.link("region1", "region2"); 
+  net.link("region1", "region2");
 
   net.initialize();
 
@@ -125,12 +124,12 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   EXPECT_EQ(r1dims[1], 1u) << " actual dims: " << r1dims.toString();
 
 
-  region1->compute(); 
+  region1->compute();
   VERBOSE << "Checking region1 output after first iteration..." << std::endl;
   const Array r1OutputArray = region1->getOutputData("encoded");
   VERBOSE << r1OutputArray << "\n";
   std::vector<Byte> expected = {0, 0, 0, 0, 1, 1};
-  EXPECT_TRUE(r1OutputArray == expected);
+  EXPECT_EQ(r1OutputArray, expected);
 
   region2->prepareInputs();
   region2->compute();
@@ -139,34 +138,31 @@ TEST(CppRegionTest, testCppLinkingSDR) {
   const Array r2InputArray = region2->getInputData("bottomUpIn");
   VERBOSE << r2InputArray << "\n";
   EXPECT_EQ(r2InputArray.getType(), NTA_BasicType_SDR);
-  EXPECT_TRUE(r2InputArray == expected);
+  EXPECT_EQ(r2InputArray,  expected);
 
   VERBOSE << "Region 2 input after first iteration:" << std::endl;
   const Dimensions r2dims = region2->getOutput("bottomUpOut")->getDimensions();
   EXPECT_EQ(r2dims.size(), 2u) << " actual dims: " << r2dims.toString();
-  EXPECT_EQ(r2dims[0], 2u) << " actual dims: " << r2dims.toString();
+  EXPECT_EQ(r2dims[0], 20u) << " actual dims: " << r2dims.toString(); //match dims of SPRegion constructed above
   EXPECT_EQ(r2dims[1], 3u) << " actual dims: " << r2dims.toString();
-  
+
   const Array r2OutputArray = region2->getOutputData("bottomUpOut");
   EXPECT_EQ(r2OutputArray.getType(), NTA_BasicType_SDR);
   EXPECT_EQ(r2OutputArray.getSDR().dimensions, r2dims)
       << "Expected dimensions on the output to match dimensions on the buffer.";
   VERBOSE << r2OutputArray << "\n";
-  std::vector<Byte> expected_output = {1, 0, 1, 0, 1, 0};
-  EXPECT_TRUE(r2OutputArray ==  expected_output) << "expected " << r2OutputArray;
-
+  SDR exp({20u, 3u});
+  exp.setSparse(SDR_sparse_t{10, 38, 57});
+  EXPECT_EQ(r2OutputArray, exp.getDense()) << "got " << r2OutputArray;
 }
 
 
 
 TEST(CppRegionTest, testYAML) {
   const char *params = "{count: 42, int32Param: 1234, real64Param: 23.1}";
-  //  badparams contains a non-existent parameter
-  const char *badparams = "{int32Param: 1234, real64Param: 23.1, badParam: 4}";
 
   Network net;
   std::shared_ptr<Region> level1;
-  EXPECT_THROW(net.addRegion("level1", "TestNode", badparams), exception);
 
   EXPECT_NO_THROW({level1 = net.addRegion("level1", "TestNode", params);});
 
@@ -270,16 +266,15 @@ TEST(CppRegionTest, realmain) {
 
 TEST(CppRegionTest, RegionSerialization) {
 	Network n;
-	
+
 	std::shared_ptr<Region> r1 = n.addRegion("testnode", "TestNode", "{count: 2}");
-	
+
 	std::stringstream ss;
 	r1->save(ss);
-	
+
 	Region r2(&n);
 	r2.load(ss);
 	EXPECT_EQ(*r1.get(), r2);
-
 }
 
 

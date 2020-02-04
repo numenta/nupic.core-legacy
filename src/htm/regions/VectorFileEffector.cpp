@@ -29,7 +29,6 @@
 #include <htm/engine/Input.hpp>
 #include <htm/engine/Region.hpp>
 #include <htm/engine/Spec.hpp>
-#include <htm/ntypes/Value.hpp>
 #include <htm/regions/VectorFileEffector.hpp>
 #include <htm/utils/Log.hpp>
 
@@ -39,7 +38,7 @@ VectorFileEffector::VectorFileEffector(const ValueMap &params, Region* region)
     : RegionImpl(region), dataIn_(NTA_BasicType_Real32), filename_(""),
       outFile_(nullptr) {
   if (params.contains("outputFile")) {
-    std::string s = params.getString("outputFile");
+    std::string s = params.getString("outputFile", "");
     openFile(s);
   }
   else
@@ -58,7 +57,7 @@ VectorFileEffector::~VectorFileEffector() { closeFile(); }
 void VectorFileEffector::initialize() {
   NTA_CHECK(region_ != nullptr);
   // We have no outputs or parameters; just need our input.
-  Input *in = region_->getInput("dataIn");
+  std::shared_ptr<Input> in = region_->getInput("dataIn");
   NTA_ASSERT(in) << "VectorFileEffector::init - 'dataIn' input not configured\n";
 
   if (!in->hasIncomingLinks() || in->getData().getCount() == 0) {
@@ -68,7 +67,8 @@ void VectorFileEffector::initialize() {
 }
 
 void VectorFileEffector::compute() {
-  NTA_DEBUG << "VectorFileEffector compute() input: " << *region_->getInput("dataIn") << "\n";
+  // trace facility
+  NTA_DEBUG << "compute " << *region_->getInput("dataIn") << "\n";
   dataIn_ = region_->getInput("dataIn")->getData();
   // It's not necessarily an error to have no inputs. In this case we just
   // return

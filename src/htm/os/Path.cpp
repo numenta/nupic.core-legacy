@@ -19,15 +19,14 @@
  */
 
 #include <htm/os/Directory.hpp> // also includes <filesystem> or <experimental/filesystem>
-#include <htm/os/OS.hpp>
 #include <htm/os/Path.hpp>
 #include <htm/utils/Log.hpp>
 #include <algorithm> // replace()
 #include <sstream>
 #include <string>
 #include <iterator>
-#include  <stdio.h>
-#include  <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <cctype> // isspace
 #if defined(NTA_OS_WINDOWS)
@@ -49,6 +48,8 @@ const char *Path::sep = "/";
 const char *Path::pathSep = ":";
 #endif
 
+
+/**** string handling functions ****/
 std::string trim(const std::string &s) {
   size_t i,j;
   for(i = 0; i < s.length(); i++)
@@ -57,6 +58,21 @@ std::string trim(const std::string &s) {
     if (!std::isspace(s[j-1])) break;
   return s.substr(i, j-i);
 }
+std::vector<std::string> split(const std::string &str, char delim) {
+  std::vector<std::string> cont;
+  std::size_t current, previous = 0;
+  current = str.find(delim);
+  while (current != std::string::npos) {
+    cont.push_back(str.substr(previous, current - previous));
+    previous = current + 1;
+    current = str.find(delim, previous);
+  }
+  std::string itm = trim(str.substr(previous, current - previous));
+  cont.push_back(itm);
+  return cont;
+}
+
+
 
 bool Path::exists(const std::string &path) { return fs::exists(path); }
 

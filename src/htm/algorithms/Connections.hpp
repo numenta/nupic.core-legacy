@@ -22,6 +22,7 @@
 #ifndef NTA_CONNECTIONS_HPP
 #define NTA_CONNECTIONS_HPP
 
+#include <limits>
 #include <map>
 #include <unordered_map>
 #include <set>
@@ -42,8 +43,9 @@ using SynapseIdx= UInt16; /** Index of synapse in segment. */
 using Segment   = UInt32;    /** Index of segment's data. */
 using Synapse   = UInt32;    /** Index of synapse's data. */
 using Permanence= Real32; //TODO experiment with half aka float16
-const Permanence minPermanence = 0.0f;
-const Permanence maxPermanence = 1.0f;
+constexpr const Permanence minPermanence = 0.0f;
+constexpr const Permanence maxPermanence = 1.0f;
+
 
 
 /**
@@ -63,6 +65,9 @@ struct SynapseData: public Serializable {
   Permanence permanence;
   Segment segment;
   Synapse presynapticMapIndex_;
+  Synapse id;
+
+  SynapseData() {}
 
   CerealAdapter;
   template<class Archive>
@@ -90,9 +95,13 @@ struct SynapseData: public Serializable {
  * The cell that this segment is on.
  */
 struct SegmentData {
+  SegmentData(const CellIdx cell, Segment id, UInt32 lastUsed = 0) : cell(cell), numConnected(0), lastUsed(lastUsed), id(id) {} //default constructor
+
   std::vector<Synapse> synapses;
-  CellIdx cell;
-  SynapseIdx numConnected;
+  CellIdx cell; //mother cell that this segment originates from
+  SynapseIdx numConnected; //number of permanences from `synapses` that are >= synPermConnected, ie connected synapses
+  UInt32 lastUsed = 0; //last used time (iteration). Used for segment pruning by "least recently used" (LRU) in `createSegment`
+  Segment id; 
 };
 
 /**
@@ -201,8 +210,9 @@ public:
    * instead of the usual HTM inputs which reliably change every cycle.  See
    * also (Kropff & Treves, 2007. http://dx.doi.org/10.2976/1.2793335).
    */
-  Connections(CellIdx numCells, Permanence connectedThreshold = 0.5f,
-              bool timeseries = false);
+  Connections(const CellIdx numCells, 
+	      const Permanence connectedThreshold = 0.5f,
+              const bool timeseries = false);
 
   virtual ~Connections() {}
 
@@ -214,29 +224,55 @@ public:
    *                           disconnecting.
    * @param timeseries         See constructor.
    */
-  void initialize(CellIdx numCells, Permanence connectedThreshold = 0.5f,
-                  bool timeseries = false);
+  void initialize(const CellIdx numCells, 
+		  const Permanence connectedThreshold = 0.5f,
+                  const bool timeseries = false);
 
   /**
    * Creates a segment on the specified cell.
    *
    * @param cell Cell to create segment on.
    *
-   * @retval Created segment.
+   * @param maxSegmetsPerCell Optional. Enforce limit on maximum number of segments that can be
+   * created on a Cell. If the limit is exceeded, call `destroySegment` to remove least used segments 
+   * (ordered by LRU `SegmentData.lastUsed`). Default value is numeric_limits::max() of the data-type, 
+   * so effectively disabled. 
+   *
+   * @retval Unique ID of the created segment `seg`. Use `dataForSegment(seg)` to obtain the segment's data. 
+   * Use  `idxOfSegmentOnCell()` to get SegmentIdx of `seg` on this `cell`. 
+   *
    */
-  Segment createSegment(CellIdx cell);
+  Segment createSegment(const CellIdx cell, 
+		        const SegmentIdx maxSegmentsPerCell = std::numeric_limits<SegmentIdx>::max());
 
   /**
-   * Creates a synapse on the specified segment.
+   * Creates a synapse on the specified segment that connects to the presynaptic cell.
+   *
+   * Note 1: If attemping to connect to an already synapsed presynaptic cell, we don't create
+   *   a duplicit synapse, and just return early with the existing synapse. 
+   *   This has an effect that `connections.synapsesForSegment()` is not ensured to grow (by +1)
+   *   after calling `createSynapse()` is the method conditionally skips. Users can query this by
+   *   `connections.numSynapses(segment)`.
+   *
+   *   Explanation:
+   *     Biological motivation (?):
+   *     There are structural constraints on the shapes of axons & synapses
+   *     which prevent a large number duplicate of connections.
+   *
+   *     It's important to prevent cells from growing duplicate synapses onto a segment,
+   *     because otherwise a strong input would be sampled many times and grow many synapses.
+   *     That would give such input a stronger connection.
+   *     Synapses are supposed to have binary effects (0 or 1) but duplicate synapses give
+   *     them (synapses 0/1) varying levels of strength.
    *
    * @param segment         Segment to create synapse on.
    * @param presynapticCell Cell to synapse on.
    * @param permanence      Initial permanence of new synapse.
    *
-   * @reval Created synapse.
+   * @return Created synapse. //TODO consider changing to void, or explain what's returned
    */
-  Synapse createSynapse(Segment segment,
-                        CellIdx presynapticCell,
+  Synapse createSynapse(const Segment segment,
+                        const CellIdx presynapticCell,
                         Permanence permanence);
 
   /**
@@ -244,14 +280,14 @@ public:
    *
    * @param segment Segment to destroy.
    */
-  void destroySegment(Segment segment);
+  void destroySegment(const Segment segment);
 
   /**
    * Destroys synapse.
    *
    * @param synapse Synapse to destroy.
    */
-  void destroySynapse(Synapse synapse);
+  void destroySynapse(const Synapse synapse);
 
   /**
    * Updates a synapse's permanence.
@@ -259,7 +295,8 @@ public:
    * @param synapse    Synapse to update.
    * @param permanence New permanence.
    */
-  void updateSynapsePermanence(Synapse synapse, Permanence permanence);
+  void updateSynapsePermanence(const Synapse synapse, 
+		               Permanence permanence);
 
   /**
    * Gets the segments for a cell.
@@ -268,7 +305,9 @@ public:
    *
    * @retval Segments on cell.
    */
-  const std::vector<Segment> &segmentsForCell(CellIdx cell) const;
+  const std::vector<Segment> &segmentsForCell(const CellIdx cell) const {
+    return cells_[cell].segments;
+  }
 
   /**
    * Gets the synapses for a segment.
@@ -277,7 +316,10 @@ public:
    *
    * @retval Synapses on segment.
    */
-  const std::vector<Synapse> &synapsesForSegment(Segment segment) const;
+  const std::vector<Synapse> &synapsesForSegment(const Segment segment) const {
+    NTA_ASSERT(segment < segments_.size()) << "Segment out of bounds! " << segment;
+    return segments_[segment].synapses;
+  }
 
   /**
    * Gets the cell that this segment is on.
@@ -286,7 +328,10 @@ public:
    *
    * @retval Cell that this segment is on.
    */
-  CellIdx cellForSegment(Segment segment) const;
+  CellIdx cellForSegment(const Segment segment) const {
+    NTA_ASSERT(segmentExists_(segment));
+    return segments_[segment].cell;
+  }
 
   /**
    * Gets the index of this segment on its respective cell.
@@ -295,20 +340,7 @@ public:
    *
    * @retval Index of the segment.
    */
-  SegmentIdx idxOnCellForSegment(Segment segment) const;
-
-  /**
-   * Get the cell for each provided segment.
-   *
-   * @param segments
-   * The segments to query
-   *
-   * @param cells
-   * Output array with the same length as 'segments'
-   */
-  void mapSegmentsToCells(const Segment *segments_begin,
-                          const Segment *segments_end,
-                          CellIdx *cells_begin) const;
+  SegmentIdx idxOnCellForSegment(const Segment segment) const;
 
   /**
    * Gets the segment that this synapse is on.
@@ -317,7 +349,9 @@ public:
    *
    * @retval Segment that this synapse is on.
    */
-  Segment segmentForSynapse(Synapse synapse) const;
+  Segment segmentForSynapse(const Synapse synapse) const {
+    return synapses_[synapse].segment;
+  }
 
   /**
    * Gets the data for a segment.
@@ -326,7 +360,12 @@ public:
    *
    * @retval Segment data.
    */
-  const SegmentData &dataForSegment(Segment segment) const;
+  const SegmentData &dataForSegment(const Segment segment) const {
+    return segments_[segment];
+  }
+  SegmentData& dataForSegment(const Segment segment) { //editable access, needed by SP 
+    return segments_[segment];
+  }
 
   /**
    * Gets the data for a synapse.
@@ -335,7 +374,9 @@ public:
    *
    * @retval Synapse data.
    */
-  const SynapseData &dataForSynapse(Synapse synapse) const;
+  const SynapseData &dataForSynapse(const Synapse synapse) const {
+    return synapses_[synapse];
+  }
 
   /**
    * Get the segment at the specified cell and offset.
@@ -345,7 +386,9 @@ public:
    *
    * @retval Segment
    */
-  Segment getSegment(CellIdx cell, SegmentIdx idx) const;
+  Segment getSegment(const CellIdx cell, const SegmentIdx idx) const {
+    return cells_[cell].segments[idx];
+  }
 
   /**
    * Get the vector length needed to use segments as indices.
@@ -364,7 +407,7 @@ public:
    *
    * @retval true if a < b, false otherwise.
    */
-  bool compareSegments(Segment a, Segment b) const;
+  bool compareSegments(const Segment a, const Segment b) const;
 
   /**
    * Returns the synapses for the source cell that they synapse on.
@@ -373,8 +416,7 @@ public:
    *
    * @return Synapse indices
    */
-  std::vector<Synapse>
-  synapsesForPresynapticCell(CellIdx presynapticCell) const;
+  std::vector<Synapse> synapsesForPresynapticCell(const CellIdx presynapticCell) const;
 
   /**
    * For use with time-series datasets.
@@ -389,21 +431,25 @@ public:
    * preinitialized with the length returned by
    * getSegmentFlatVectorLength().
    *
-   * @param numActiveConnectedSynapsesForSegment
-   * An output vector for active connected synapse counts per segment.
-   *
-   * @param numActivePotentialSynapsesForSegment
+   * @param (optional) numActivePotentialSynapsesForSegment
    * An output vector for active potential synapse counts per segment.
    *
    * @param activePresynapticCells
    * Active cells in the input.
+   *
+   * @param bool learn : enable learning updates (default true)
+   *
+   * @return numActiveConnectedSynapsesForSegment
+   * An output vector for active connected synapse counts per segment.
+   *
    */
-  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
+  std::vector<SynapseIdx> computeActivity(
                        std::vector<SynapseIdx> &numActivePotentialSynapsesForSegment,
-                       const std::vector<CellIdx> &activePresynapticCells);
+                       const std::vector<CellIdx> &activePresynapticCells,
+		       const bool learn = true);
 
-  void computeActivity(std::vector<SynapseIdx> &numActiveConnectedSynapsesForSegment,
-                       const std::vector<CellIdx> &activePresynapticCells);
+  std::vector<SynapseIdx> computeActivity(const std::vector<CellIdx> &activePresynapticCells, 
+		                          const bool learn = true);
 
   /**
    * The primary method in charge of learning.   Adapts the permanence values of
@@ -417,22 +463,59 @@ public:
    * @param inputVector  An SDR
    * @param increment  Change in permanence for synapses with active presynapses.
    * @param decrement  Change in permanence for synapses with inactive presynapses.
+   * @param pruneZeroSynapses (default false) If set, synapses that reach minPermanence(aka. "zero")
+   *        are removed. This is used in TemporalMemory.  If the segment becomes empty due to these
+   *        removed synapses, we remove the segment (see @ref `destroySegment`).
    */
   void adaptSegment(const Segment segment,
                     const SDR &inputs,
                     const Permanence increment,
-                    const Permanence decrement);
+                    const Permanence decrement,
+		    const bool pruneZeroSynapses = false);
 
   /**
    * Ensures a minimum number of connected synapses.  This raises permance
    * values until the desired number of synapses have permanences above the
    * connectedThreshold.  This is applied to a single segment.
    *
-   * @param segment  Index of segment on cell.   Is returned by method getSegment.
+   * @param segment  Index of segment in connections. Is returned by method getSegment.
    * @param segmentThreshold  Desired number of connected synapses.
    */
   void raisePermanencesToThreshold(const Segment    segment,
                                    const UInt       segmentThreshold);
+
+
+  /**
+   *  iteration: ever increasing step count. 
+   *  Increases each main call to "compute". Since connections has more
+   *  methods that are called instead of compute (adaptSegment, computeActivity,..)
+   *  this counter is increased in @ref `computeActivity` as it is called by both
+   *  SP & TM. 
+   */
+//!  const UInt32& iteration = iteration_; //FIXME cannot construct iteration like this?
+  UInt32 iteration() const { return iteration_; }
+
+
+  /**
+   * Ensures that the number of connected synapses is sane.  This method
+   * controls the sparsity of the synaptic connections, which is important for
+   * the segment to detect things.  If there are too few connections then the
+   * segment will not detect anything, and if there are too many connections
+   * then the segment will detect everything.
+   *
+   * See file: docs/synapse_competition.docx
+   *
+   * This method connects and disconnects synapses by uniformly changing the
+   * permanences of all synapses on the segment.
+   *
+   * @param segment  Index of segment in connections. Is returned by method getSegment.
+   * @param minimumSynapses Minimum number of connected synapses allowed on this segment (inclusive).
+   * @param maximumSynapses Maximum number of connected synapses allowed on this segment (inclusive).
+   */
+  void synapseCompetition(  const Segment    segment,
+                            const SynapseIdx minimumSynapses,
+                            const SynapseIdx maximumSynapses);
+
 
   /**
    * Modify all permanence on the given segment, uniformly.
@@ -486,6 +569,7 @@ public:
     ar(CEREAL_NVP(connectedThreshold_));
     ar(CEREAL_NVP(sizes));
     ar(CEREAL_NVP(syndata));
+    ar(CEREAL_NVP(iteration_));
   }
 
   template<class Archive>
@@ -510,6 +594,7 @@ public:
         }
       }
     }
+    ar(CEREAL_NVP(iteration_));
   }
 
   /**
@@ -517,9 +602,9 @@ public:
    *
    * @retval Number of cells.
    */
-  size_t numCells() const { return cells_.size(); }
+  size_t numCells() const noexcept { return cells_.size(); }
 
-  Permanence getConnectedThreshold() const { return connectedThreshold_; }
+  constexpr Permanence getConnectedThreshold() const noexcept { return connectedThreshold_; }
 
   /**
    * Gets the number of segments.
@@ -527,15 +612,17 @@ public:
    * @retval Number of segments.
    */
   size_t numSegments() const { 
-	  NTA_ASSERT(segments_.size() >= destroyedSegments_.size());
-	  return segments_.size() - destroyedSegments_.size(); }
+	  NTA_ASSERT(segments_.size() >= destroyedSegments_);
+	  return segments_.size() - destroyedSegments_; }
 
   /**
    * Gets the number of segments on a cell.
    *
    * @retval Number of segments.
    */
-  size_t numSegments(CellIdx cell) const { return cells_[cell].segments.size(); }
+  size_t numSegments(const CellIdx cell) const { 
+	  return cells_[cell].segments.size(); 
+  }
 
   /**
    * Gets the number of synapses.
@@ -543,8 +630,8 @@ public:
    * @retval Number of synapses.
    */
   size_t numSynapses() const {
-    NTA_ASSERT(synapses_.size() >= destroyedSynapses_.size());
-    return synapses_.size() - destroyedSynapses_.size();
+    NTA_ASSERT(synapses_.size() >= destroyedSynapses_);
+    return synapses_.size() - destroyedSynapses_;
   }
 
   /**
@@ -552,7 +639,9 @@ public:
    *
    * @retval Number of synapses.
    */
-  size_t numSynapses(Segment segment) const { return segments_[segment].synapses.size(); }
+  size_t numSynapses(const Segment segment) const { 
+	  return segments_[segment].synapses.size(); 
+  }
 
   /**
    * Comparison operator.
@@ -592,7 +681,7 @@ protected:
    *
    * @retval True if it's still in its cell's segment list.
    */
-  bool segmentExists_(Segment segment) const;
+  bool segmentExists_(const Segment segment) const;
 
   /**
    * Check whether this synapse still exists on its segment.
@@ -601,14 +690,14 @@ protected:
    *
    * @retval True if it's still in its segment's synapse list.
    */
-  bool synapseExists_(Synapse synapse) const;
+  bool synapseExists_(const Synapse synapse) const;
 
   /**
    * Remove a synapse from presynaptic maps.
    *
    * @param Synapse Index of synapse in presynaptic vector.
    *
-   * @param vector<Synapse> synapsesForPresynapticCell must a vector from be
+   * @param vector<Synapse> ynapsesForPresynapticCell must a vector from be
    * either potentialSynapsesForPresynapticCell_ or
    * connectedSynapsesForPresynapticCell_, depending on whether the synapse is
    * connected or not.
@@ -625,21 +714,23 @@ protected:
 private:
   std::vector<CellData>    cells_;
   std::vector<SegmentData> segments_;
-  std::vector<Segment>     destroyedSegments_;
+  Segment     destroyedSegments_ = 0;
   std::vector<SynapseData> synapses_;
-  std::vector<Synapse>     destroyedSynapses_;
+  Synapse     destroyedSynapses_ = 0; //number of destroyed synapses
   Permanence               connectedThreshold_; //TODO make const
+  UInt32 iteration_ = 0;
 
   // Extra bookkeeping for faster computing of segment activity.
-  std::unordered_map<CellIdx, std::vector<Synapse>> potentialSynapsesForPresynapticCell_;
-  std::unordered_map<CellIdx, std::vector<Synapse>> connectedSynapsesForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> potentialSegmentsForPresynapticCell_;
-  std::map<CellIdx, std::vector<Segment>> connectedSegmentsForPresynapticCell_;
+ 
+  struct identity { constexpr size_t operator()( const CellIdx t ) const noexcept { return t; };   };	//TODO in c++20 use std::identity 
 
-  std::vector<Segment> segmentOrdinals_;
-  std::vector<Synapse> synapseOrdinals_;
-  Segment nextSegmentOrdinal_;
-  Synapse nextSynapseOrdinal_;
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> potentialSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Synapse>, identity> connectedSynapsesForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> potentialSegmentsForPresynapticCell_;
+  std::unordered_map<CellIdx, std::vector<Segment>, identity> connectedSegmentsForPresynapticCell_;
+
+  Segment nextSegmentOrdinal_ = 0;
+  Synapse nextSynapseOrdinal_ = 0;
 
   // These three members should be used when working with highly correlated
   // data. The vectors store the permanence changes made by adaptSegment.
@@ -647,6 +738,11 @@ private:
   std::vector<Permanence> previousUpdates_;
   std::vector<Permanence> currentUpdates_;
 
+  //for prune statistics
+  Synapse prunedSyns_ = 0; //how many synapses have been removed?
+  Segment prunedSegs_ = 0;
+
+  //for listeners
   UInt32 nextEventToken_;
   std::map<UInt32, ConnectionsEventHandler *> eventHandlers_;
 }; // end class Connections

@@ -23,11 +23,9 @@
 #include <htm/ntypes/Dimensions.hpp>
 #include <htm/ntypes/ArrayBase.hpp>
 #include <htm/ntypes/Array.hpp>
-#include <htm/os/OS.hpp>
 
 #include <map>
 #include <memory>
-#include <limits.h>
 
 #include <gtest/gtest.h>
 
@@ -38,6 +36,8 @@ static bool verbose = false;
 #define UNUSED(x) (void)(x)
 
 using namespace htm;
+
+
 
 // First, some structures to help in testing.
 struct ArrayTestParameters {
@@ -64,8 +64,25 @@ struct ArrayTestParameters {
         testUsesInvalidParameters(testUsesInvalidParametersParam) {}
 };
 
+// This statically allocates a buffer of the specified type
+static void* getStaticBuffer(NTA_BasicType type, size_t count) {
+
+  static std::string strbufs[12];
+  static char charbufs[12 * 8];
+
+  // Manually create a buffer
+  void *buf;
+  if (type == NTA_BasicType_Str)  // asking for an array of strings
+    buf = (void *)strbufs;
+  else {
+    std::memset(charbufs, 0, count * BasicType::getSize(type));  // array of anything else
+    buf = (void *)charbufs;
+  }
+  return buf;
+}
+
 // given a sparse array, populate a dense array of specified type.
-static void populateArray(const SDR_sparse_t& sparse, size_t cols, Array& a) {
+static void populateArray(const SDR_sparse_t &sparse, size_t cols, Array &a) {
   a.allocateBuffer(cols);
   a.zeroBuffer();
   void *buf = a.getBuffer();
@@ -82,13 +99,14 @@ static void populateArray(const SDR_sparse_t& sparse, size_t cols, Array& a) {
 	    case NTA_BasicType_Real64: (reinterpret_cast<Real64*>(buf))[idx] = 1.0;  break;
 	    case NTA_BasicType_Bool:   (reinterpret_cast<bool*>(buf))[idx]   = true; break;
       case NTA_BasicType_SDR:    (reinterpret_cast<Byte*>(buf))[idx]   = 1;    break;
-	    default:
-	      NTA_THROW << "Unexpected Element Type: " << a.getType();
-	      break;
-	    }
+      case NTA_BasicType_Str:    (reinterpret_cast<std::string *>(buf))[idx] = "1"; break;
+    default:
+      NTA_THROW << "Unexpected Element Type: " << a.getType();
+      break;
+    }
   }
 }
-static void toSparse(const Array&a, SDR_sparse_t&sparse) {
+static void toSparse(const Array &a, SDR_sparse_t &sparse) {
   sparse.clear();
   if (a.getType() == NTA_BasicType_SDR) {
         sparse = a.getSDR().getSparse();
@@ -108,6 +126,8 @@ static void toSparse(const Array&a, SDR_sparse_t&sparse) {
 	    case NTA_BasicType_Real32: if((reinterpret_cast<Real32*>(buf))[idx]) sparse.push_back(idx); break;
 	    case NTA_BasicType_Real64: if((reinterpret_cast<Real64*>(buf))[idx]) sparse.push_back(idx); break;
 	    case NTA_BasicType_Bool:   if((reinterpret_cast<bool*>(buf))[idx])   sparse.push_back(idx); break;
+      case NTA_BasicType_Str: { std::string s = (reinterpret_cast<std::string *>(buf))[idx];
+                                if (s != "0" && s != "") sparse.push_back(idx); } break; 
 	    default:
 	      NTA_THROW << "Unexpected Element Type: " << a.getType();
 	      break;
@@ -328,49 +348,44 @@ TEST_F(ArrayTest, testArrayCreation) {
 
   TestCaseIterator testCase;
 
-  for (testCase = testCases_.begin(); testCase != testCases_.end();
-       testCase++) {
+  for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
     char *buf = reinterpret_cast<char *>(-1ll);
+    NTA_BasicType type = testCase->second.dataType;
+    size_t count = static_cast<size_t>(testCase->second.allocationSize);
 
     if (testCase->second.testUsesInvalidParameters) {
       bool caughtException = false;
 
       try {
-        arrayP = new Array(testCase->second.dataType);
-      } catch (htm::Exception& e) {
+        arrayP = new Array(type);
+      } catch (htm::Exception &e) {
         UNUSED(e);
         caughtException = true;
       }
 
-      ASSERT_TRUE(caughtException)
-          << "Test case: " + testCase->first +
-                 " - Should throw an exception on trying to create an invalid "
-                 "ArrayBase";
+      ASSERT_TRUE(caughtException) << "Test case: " + testCase->first +
+                                          " - Should throw an exception on trying to create an invalid "
+                                          "ArrayBase";
     } else {
-      arrayP = new Array(testCase->second.dataType);
+      arrayP = new Array(type);
       buf = reinterpret_cast<char *>(arrayP->getBuffer());
-      ASSERT_EQ(buf, nullptr)
-          << "Test case: " + testCase->first +
-                 " - When not passed a size, a newly created Array should "
-                 "have a NULL buffer";
-      ASSERT_EQ(0u, arrayP->getCount())
-          << "Test case: " + testCase->first +
-                 " - When not passed a size, a newly created Array should "
-                 "have a count equal to zero";
+      ASSERT_EQ(buf, nullptr) << "Test case: " + testCase->first +
+                                     " - When not passed a size, a newly created Array should "
+                                     "have a NULL buffer";
+      ASSERT_EQ(0u, arrayP->getCount()) << "Test case: " + testCase->first +
+                                               " - When not passed a size, a newly created Array should "
+                                               "have a count equal to zero";
       delete arrayP;
 
-	    size_t capacity = testCase->second.dataTypeSize * testCase->second.allocationSize;
-      std::shared_ptr<char> buf2(new char[capacity], std::default_delete<char[]>());
-      std::memset(buf2.get(), 0, capacity); // fill with 0's
+      void *buf2 = getStaticBuffer(type, count);
 
       // make copy of buffer into the Array
-      arrayP = new Array(testCase->second.dataType, 
-                         buf2.get(),
-                         testCase->second.allocationSize);
-      EXPECT_TRUE(arrayP->getType() == testCase->second.dataType)  << "The data type should have been copied to the Array.";
+      arrayP = new Array(type, buf2, count);
+      EXPECT_TRUE(arrayP->getType() == testCase->second.dataType)
+          << "The data type should have been copied to the Array.";
 
       buf = reinterpret_cast<char *>(arrayP->getBuffer());
-      ASSERT_EQ(static_cast<size_t>(testCase->second.allocationSize), arrayP->getCount())
+      ASSERT_EQ(count, arrayP->getCount())
           << "Test case: " + testCase->first +
                  " - Preallocating a buffer should have a count equal to our "
                  "allocation size";
@@ -394,8 +409,7 @@ TEST_F(ArrayTest, testBufferAllocation) {
 
   TestCaseIterator testCase;
 
-  for (testCase = testCases_.begin(); testCase != testCases_.end();
-       testCase++) {
+  for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
     caughtException = false;
     Array a(testCase->second.dataType);
 
@@ -412,101 +426,82 @@ TEST_F(ArrayTest, testBufferAllocation) {
                                           "invalid size should raise an "
                                           "exception";
     } else {
-      ASSERT_FALSE(caughtException)
-          << "Test case: " + testCase->first +
-                 " - Allocation of an ArrayBase of valid size should return a "
-                 "valid pointer";
+      ASSERT_FALSE(caughtException) << "Test case: " + testCase->first +
+                                           " - Allocation of an ArrayBase of valid size should return a "
+                                           "valid pointer";
 
       // Note: reallocating a buffer is now allowed.  dek, 08/07/2017
       caughtException = false;
 
-      try
-      {
+      try {
         a.allocateBuffer(10);
-      }
-      catch(htm::Exception& e)
-      {
+      } catch (htm::Exception &e) {
         UNUSED(e);
         caughtException = true;
       }
 
-      ASSERT_FALSE(caughtException)
-        << "Test case: " + testCase->first +
-            " - allocating a buffer when one is already allocated should "
-            "not raise an exception. The allocation will release the previous buffer.";
+      ASSERT_FALSE(caughtException) << "Test case: " + testCase->first +
+                                           " - allocating a buffer when one is already allocated should "
+                                           "not raise an exception. The allocation will release the previous buffer.";
 
-      ASSERT_EQ(10u, a.getCount())
-          << "Test case: " + testCase->first +
-                 " - Size of allocated ArrayBase should match requested size";
+      ASSERT_EQ(10u, a.getCount()) << "Test case: " + testCase->first +
+                                          " - Size of allocated ArrayBase should match requested size";
     }
   }
 }
 
-TEST_F(ArrayTest, testUnownedBuffer) {
+TEST_F(ArrayTest, testUnownedBufferAlreadyExists) {
+  UInt32 buf2[10];
   testCases_.clear();
   testCases_["NTA_BasicType_Int32, buffer assignment"] =
       ArrayTestParameters(NTA_BasicType_Int32, 4, 10, "Int32", false);
 
   TestCaseIterator testCase;
 
-  for (testCase = testCases_.begin(); testCase != testCases_.end();  testCase++) {
-    size_t capacity = testCase->second.dataTypeSize * testCase->second.allocationSize;
-    std::shared_ptr<char> buf(new char[capacity], std::default_delete<char[]>());
+  for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
+    NTA_BasicType type = testCase->second.dataType;
+    size_t count = static_cast<size_t>(testCase->second.allocationSize);
+    void *buf1 = getStaticBuffer(type, count);
 
-    Array a(testCase->second.dataType);
-    a.setBuffer(buf.get(), testCase->second.allocationSize);
+    Array a(type);
+    a.setBuffer(buf1, count);
 
-    ASSERT_EQ(buf.get(), a.getBuffer())
-        << "Test case: " + testCase->first +
-               " - setBuffer() should used the assigned buffer";
-
-    capacity = testCase->second.dataTypeSize * testCase->second.allocationSize;
-    std::shared_ptr<char> buf2(new char[capacity], std::default_delete<char[]>());
+    ASSERT_EQ(buf1, a.getBuffer()) << "Test case: " + testCase->first +
+                                               " - setBuffer() should use the assigned buffer";
 
     // setting a buffer when one is already set is NOW allowed. dek 08/07/2018
     // previous buffer is freed.
     bool caughtException = false;
 
-    try
-    {
-      a.setBuffer(buf2.get(), testCase->second.allocationSize);
-    }
-    catch(htm::Exception& e)
-    {
+    try {
+      a.setBuffer(buf2, 10);
+    } catch (htm::Exception &e) {
       UNUSED(e);
       caughtException = true;
     }
 
-    ASSERT_FALSE(caughtException)
-      << "Test case: " +
-          testCase->first +
-          " - setting a buffer when one is already set should not raise an "
-          "exception";
-    ASSERT_EQ(a.getCount(), static_cast<size_t>(testCase->second.allocationSize))
+    ASSERT_FALSE(caughtException) << "Test case: " + testCase->first +
+                 " - setting a buffer when one is already set should not raise an exception";
+    ASSERT_EQ(a.getCount(), count)
         << "Buffer size should be the requested amount.";
   }
 }
 
 TEST_F(ArrayTest, testBufferRelease) {
-  //testCases_.clear();
-  //testCases_["NTA_BasicType_Int32, buffer release"] =
-  //    ArrayTestParameters<Int32>(NTA_BasicType_Int32, 4, 10, "Int32", false);
-
   TestCaseIterator testCase;
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
-    std::shared_ptr<char> buf(new char[testCase->second.dataTypeSize *
-                                           testCase->second.allocationSize], std::default_delete<char[]>());
+    NTA_BasicType type = testCase->second.dataType;
+    size_t count = static_cast<size_t>(testCase->second.allocationSize);
+    void *buf = getStaticBuffer(type, count);
 
-    Array a(testCase->second.dataType);
-    a.setBuffer(buf.get(), testCase->second.allocationSize);
+    Array a(type);
+    a.setBuffer(buf, count);
     a.releaseBuffer();
 
-    ASSERT_EQ(nullptr, a.getBuffer())
-        << "Test case: " + testCase->first +
-               " - ArrayBase should no longer hold a reference to a locally "
-               "allocated "
-               "buffer after calling releaseBuffer";
+    ASSERT_EQ(nullptr, a.getBuffer()) << "Test case: " + testCase->first +
+                                         " - ArrayBase should no longer hold a reference to a locally "
+                                         "allocated buffer after calling releaseBuffer";
   }
 }
 
@@ -515,30 +510,27 @@ TEST_F(ArrayTest, testArrayTyping) {
 
   TestCaseIterator testCase;
 
-  for (testCase = testCases_.begin(); testCase != testCases_.end();
-       testCase++) {
+  for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
     // testArrayCreation() already validates that Array objects can't be
     // created using invalid NTA_BasicType parameters, so we skip those test
     // cases here
     if (testCase->second.testUsesInvalidParameters) {
       continue;
     }
+    NTA_BasicType type = testCase->second.dataType;
 
-    Array a(testCase->second.dataType);
+    Array a(type);
 
-    ASSERT_EQ(testCase->second.dataType, a.getType())
+    ASSERT_EQ(type, a.getType())
         << "Test case: " + testCase->first +
-               " - the type of a created ArrayBase should match the requested "
-               "type";
+               " - the type of a created ArrayBase should match the requested type";
 
     std::string name(BasicType::getName(a.getType()));
-    ASSERT_EQ(testCase->second.dataTypeText, name)
-        << "Test case: " + testCase->first +
-               " - the string representation of a type contained in a "
-               "created Array should match the expected string";
+    ASSERT_EQ(testCase->second.dataTypeText, name) << "Test case: " + testCase->first +
+                              " - the string representation of a type contained in a "
+                              "created Array should match the expected string";
   }
 }
-
 
 TEST_F(ArrayTest, testArrayBasefunctions) {
   setupArrayTests();
@@ -548,53 +540,51 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
 
   for (testCase = testCases_.begin(); testCase != testCases_.end(); testCase++) {
     // testArrayCreation() already validates that Array objects can't be
-    // created using invalid NTA_BasicType parameters, so we skip those 
+    // created using invalid NTA_BasicType parameters, so we skip those
     // negetive test cases here
     if (testCase->second.testUsesInvalidParameters) {
       continue;
     }
+    NTA_BasicType type = testCase->second.dataType;
+    size_t count = static_cast<size_t>(testCase->second.allocationSize);
+
+
     VERBOSE << "  Iteration " << testCase->first << std::endl;
 
-    size_t nCols = testCase->second.allocationSize;
-    size_t bufsize = testCase->second.dataTypeSize * testCase->second.allocationSize;
-    std::shared_ptr<char> buf(new char[bufsize], std::default_delete<char[]>());
-    std::memset(buf.get(), 0, bufsize);
+
+    // Manually create a buffer
+    void *buf = getStaticBuffer(type, count);
 
     // constructors;  Allocate an array using the test data.
-    Array a(testCase->second.dataType);
-    Array b(testCase->second.dataType, buf.get(), nCols);
+    Array a(type);
+    Array b(type, buf, count);  // this will make a copy of buf
     Array c;
 
     // getType
-    ASSERT_EQ(testCase->second.dataType, a.getType())
-        << "Test case: " + testCase->first + " type missmatch";
-    ASSERT_EQ(b.getType(), a.getType())
-        << "Test case: " + testCase->first + " type missmatch";
-
-
+    ASSERT_EQ(type, a.getType()) << "Test case: " + testCase->first + " type missmatch";
+    ASSERT_EQ(b.getType(), a.getType()) << "Test case: " + testCase->first + " type missmatch";
 
     // allocateBuffer
     // getCount
-    a.allocateBuffer(nCols);
-    EXPECT_EQ(a.getCount(), nCols);
+    a.allocateBuffer(count);
+    EXPECT_EQ(a.getCount(), count);
 
     // zeroBuffer
     // operator==
     a.zeroBuffer();
-    EXPECT_TRUE(a == b);
+    EXPECT_TRUE(a == b) << "both should be empty.";
 
     a.populate(testdata);
-    //std::cerr << "ArrayTest:testArrayBasefunctions a=" << a << std::endl;
-    nCols = testdata.size();
-
+    VERBOSE << "    ArrayTest:testArrayBasefunctions a=" << a << std::endl;
+    count = testdata.size();
 
     c = a; // shallow copy
     EXPECT_EQ(c.getCount(), a.getCount());
     EXPECT_TRUE(c.getBuffer() == a.getBuffer());
-    EXPECT_EQ(a.getCount(), nCols);
+    EXPECT_EQ(a.getCount(), count);
+    //VERBOSE << "    ArrayTest:testArrayBasefunctions c=" << c << std::endl;
 
-
-    if (testCase->second.dataType == NTA_BasicType_SDR) {
+    if (type == NTA_BasicType_SDR) {
       // Just to be sure an SDR can play here,
       // Only SDR has dimensions
       std::vector<UInt> d({ 10u, 10u });
@@ -627,12 +617,14 @@ TEST_F(ArrayTest, testArrayBasefunctions) {
       EXPECT_EQ(q.getCount(), 2u);
       std::vector<Int32> v = q.asVector<Int32>();
       EXPECT_EQ(v.size(), 2u);
-      if (testCase->second.dataType == NTA_BasicType_Bool) {
+      if (type == NTA_BasicType_Bool) {
         EXPECT_EQ(v[0], 1);
         EXPECT_EQ(v[1], 1);
+      } else {
+        EXPECT_EQ(v[0], 6);
+        EXPECT_EQ(v[1], 7);
       }
     }
-
   }
 }
 
@@ -649,23 +641,25 @@ TEST_F(ArrayTest, testArrayBaseSerialization) {
     if (testCase->second.testUsesInvalidParameters) {
       continue;
     }
+    NTA_BasicType type = testCase->second.dataType;
+    size_t count = static_cast<size_t>(testCase->second.allocationSize);
 
-    VERBOSE << "  Iteration " << testCase->first << " element size: " << testCase->second.dataTypeSize << std::endl;
+    //VERBOSE << "  Iteration " << testCase->first << " element size: " << bufsize << std::endl;
 
     // constructors;  Allocate and populate an array using the test data.
-    Array a(testCase->second.dataType);
-    populateArray(testdata, testCase->second.allocationSize, a);
+    Array a(type);
+    populateArray(testdata, count, a);
 
-    VERBOSE << "starting with a = " << a << std::endl;
+    //VERBOSE << "starting with a = " << a << std::endl;
 
     // binary serialization
     std::stringstream ss;
     {
       cereal::BinaryOutputArchive binaryOut_ar(ss); // Create an output archive
       a.save_ar(binaryOut_ar);
-    } //flush when archive goes out of scope
-    VERBOSE << "  binary size: " << ss.str().length() << std::endl;
-    ss.seekg(0);  // rewind
+    } // flush when archive goes out of scope
+    //VERBOSE << "  binary size: " << ss.str().length() << std::endl;
+    ss.seekg(0); // rewind
     Array b;
     {
       cereal::BinaryInputArchive binaryIn_ar(ss);  // Create an input archive
@@ -681,17 +675,16 @@ TEST_F(ArrayTest, testArrayBaseSerialization) {
       cereal::JSONOutputArchive jsonOut_ar(ss); // Create an output archive
       a.save_ar(jsonOut_ar);
     } // flush
-    VERBOSE << ss.str() << std::endl;
     ss.seekg(0);  // rewind
     {
       cereal::JSONInputArchive jsonIn_ar(ss);  // Create an input archive
       b.load_ar(jsonIn_ar);
     } // flush
     toSparse(b, results);
+    //VERBOSE << "Resulting b = " << b << std::endl;
     EXPECT_EQ(testdata, results);
   }
 }
-
 
 void ArrayTest::setupArrayTests() {
   // we're going to test using all types that can be stored in the ArrayBase...
@@ -701,37 +694,24 @@ void ArrayTest::setupArrayTests() {
   //       template<type-of-element>
   //       dataType,  dataTypeSize,  allocationSize, dataTypeText, testUsesInvalidParameters
   testCases_.clear();
-  testCases_["NTA_BasicType_Byte"] =
-      ArrayTestParameters(NTA_BasicType_Byte, sizeof(Byte), 10, "Byte", false);
-  testCases_["NTA_BasicType_Int16"] =
-      ArrayTestParameters(NTA_BasicType_Int16, sizeof(Int16), 10, "Int16", false);
-  testCases_["NTA_BasicType_UInt16"] =
-      ArrayTestParameters(NTA_BasicType_UInt16, sizeof(UInt16), 10, "UInt16", false);
-  testCases_["NTA_BasicType_Int32"] =
-      ArrayTestParameters(NTA_BasicType_Int32, sizeof(Int32), 10, "Int32", false);
-  testCases_["NTA_BasicType_UInt32"] =
-      ArrayTestParameters(NTA_BasicType_UInt32, sizeof(UInt32), 10, "UInt32", false);
-  testCases_["NTA_BasicType_Int64"] =
-      ArrayTestParameters(NTA_BasicType_Int64, sizeof(Int64), 10, "Int64", false);
-  testCases_["NTA_BasicType_UInt64"] =
-      ArrayTestParameters(NTA_BasicType_UInt64, sizeof(UInt64), 10, "UInt64", false);
-  testCases_["NTA_BasicType_Real32"] =
-      ArrayTestParameters(NTA_BasicType_Real32, sizeof(Real32), 10, "Real32", false);
-  testCases_["NTA_BasicType_Real64"] =
-      ArrayTestParameters(NTA_BasicType_Real64, sizeof(Real64), 10, "Real64", false);
-  testCases_["NTA_BasicType_Bool"] =
-      ArrayTestParameters(NTA_BasicType_Bool, sizeof(bool), 10, "Bool", false);
-  testCases_["NTA_BasicType_SDR"] =
-      ArrayTestParameters(NTA_BasicType_SDR, sizeof(char), 10, "SDR", false);
+  testCases_["NTA_BasicType_Byte"] = ArrayTestParameters(NTA_BasicType_Byte, sizeof(Byte), 10, "Byte", false);
+  testCases_["NTA_BasicType_Int16"] = ArrayTestParameters(NTA_BasicType_Int16, sizeof(Int16), 10, "Int16", false);
+  testCases_["NTA_BasicType_UInt16"] = ArrayTestParameters(NTA_BasicType_UInt16, sizeof(UInt16), 10, "UInt16", false);
+  testCases_["NTA_BasicType_Int32"] = ArrayTestParameters(NTA_BasicType_Int32, sizeof(Int32), 10, "Int32", false);
+  testCases_["NTA_BasicType_UInt32"] = ArrayTestParameters(NTA_BasicType_UInt32, sizeof(UInt32), 10, "UInt32", false);
+  testCases_["NTA_BasicType_Int64"] = ArrayTestParameters(NTA_BasicType_Int64, sizeof(Int64), 10, "Int64", false);
+  testCases_["NTA_BasicType_UInt64"] = ArrayTestParameters(NTA_BasicType_UInt64, sizeof(UInt64), 10, "UInt64", false);
+  testCases_["NTA_BasicType_Real32"] = ArrayTestParameters(NTA_BasicType_Real32, sizeof(Real32), 10, "Real32", false);
+  testCases_["NTA_BasicType_Real64"] = ArrayTestParameters(NTA_BasicType_Real64, sizeof(Real64), 10, "Real64", false);
+  testCases_["NTA_BasicType_Bool"] = ArrayTestParameters(NTA_BasicType_Bool, sizeof(bool), 10, "Bool", false);
+  testCases_["NTA_BasicType_SDR"] = ArrayTestParameters(NTA_BasicType_SDR, sizeof(char), 10, "SDR", false);
+  testCases_["NTA_BasicType_Str"] = ArrayTestParameters(NTA_BasicType_Str, sizeof(std::string), 10, "String", false);
 #ifdef NTA_DOUBLE_PRECISION
-  testCases_["NTA_BasicType_Real"] =
-      ArrayTestParameters(NTA_BasicType_Real, 8, 10, "Real64", false);
+  testCases_["NTA_BasicType_Real"] = ArrayTestParameters(NTA_BasicType_Real, 8, 10, "Real64", false);
 #else
-  testCases_["NTA_BasicType_Real"] =
-      ArrayTestParameters(NTA_BasicType_Real, 4, 10, "Real32", false);
+  testCases_["NTA_BasicType_Real"] = ArrayTestParameters(NTA_BasicType_Real, 4, 10, "Real32", false);
 #endif
-  testCases_["Non-existent NTA_BasicType"] =
-      ArrayTestParameters(NTA_BasicType_Last, 0, 10, "N/A", true);
+  testCases_["Non-existent NTA_BasicType"] = ArrayTestParameters(NTA_BasicType_Last, 0, 10, "N/A", true);
 }
 
-} //-ns
+} // namespace testing

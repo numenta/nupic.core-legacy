@@ -164,35 +164,26 @@ public:
    * Get the parameter as an @c Array value.
    *
    * @param name
-   *        The name of the parameter
+   *        The name of the parameter.  The name must be
+   *        declared in the Region Spec as a parameter.
    *
    * @param[out] array
-   *        The value of the parameter
+   *        The array to return the value of the parameter
    *
-   * @a array is a memory buffer. If the buffer is allocated,
-   * the value is copied into the supplied buffer; otherwise
-   * @a array would be asked to allocate the buffer and copy into it.
+   * @a array is a container to hold a buffer or SDR. The Region Implementation
+   * will allocate the buffer and copy the value of the parameter into it.
    *
    * A typical use might be that the caller would supply an
-   * unallocated buffer on the first call and then reuse the memory
-   * buffer on subsequent calls, i.e.
+   * unallocated Array
    *
    * @code{.cpp}
-   *
    *     {
    *       // no buffer allocated
-   *       Array buffer(NTA_BasicTypeInt64);
-   *
-   *       // buffer is allocated, and owned by Array object
+   *       Array buffer();
    *       getParameterArray("foo", buffer);
-   *
-   *       // uses already-allocated buffer
    *       getParameterArray("foo", buffer);
-   *
    *     } // Array destructor called -- frees the buffer
    * @endcode
-   *
-   * Throws an exception if the supplied @a array is not big enough.
    *
    */
   void getParameterArray(const std::string &name, Array &array) const;
@@ -201,16 +192,45 @@ public:
    * Set the parameter to an @c Array value.
    *
    * @param name
-   *        The name of the parameter
+   *        The name of the parameter.  The name must be
+   *        declared in the Region Spec as a parameter.
    *
    * @param array
    *        The value of the parameter
    *
    *
    * @note @a array must be initialized before calling setParameterArray().
+   *             if it is populated by passing in a vector, the buffer is allocated and data copied while creating the Array.
+   *             and the buffer is freed when the Array's destructor is called.
+   *
+   *             if it is populated by passing in a type, pointer and length, the pointer becomes the buffer
+   *             and is not freed when the Array's destructor is called.
+   *
+   * @code{.cpp}
+   *     {
+   *       std::vector<Real32> v1 = {1.0f, 2.0f, 3.0f};
+   *       Array a1(v);      // type and size set based on vector, buffer allocated and data copied.
+  *       setParameterArray("foo", a1);
+   *     } // Array destructor called -- frees the buffer
+   *     {
+  *        Int32 q[3] = {1, 2, 3};
+   *       Array buffer2(NTA_BasicType_Int32, q, 3);   // pointer q becomes the buffer
+   *       setParameterArray("foo", buffer2);
+   *     }  // Array destructor called -- buffer is not freed.
+   * @endcode
    *
    */
   void setParameterArray(const std::string &name, const Array &array);
+
+	
+  /**
+   * Get the number of elements in the array parameter's value.
+   *
+   * @param name
+   *        The name of the parameter
+	 */
+  size_t getParameterArrayCount(const std::string &name);
+
 
   /**
    * Set the parameter to a @c std::string value.
@@ -302,6 +322,13 @@ public:
    *			  region->getOutput(name)->getData();
    */
   virtual const Array &getOutputData(const std::string &outputName) const;
+	
+	/**
+	 * Set the input data.  The input buffer type remains, data is copied in
+	 * with conversion if needed.
+	 */
+	virtual void setInputData(const std::string &inputName, const Array& data);
+
 
   /**
    * @}
@@ -396,13 +423,12 @@ public:
   bool isInitialized() const { return initialized_; }
 
   // Used by RegionImpl to get inputs/outputs
-  Output *getOutput(const std::string &name) const;
-
-  Input *getInput(const std::string &name) const;
-
-  const std::map<std::string, Input *> &getInputs() const;
-
-  const std::map<std::string, Output *> &getOutputs() const;
+  bool hasOutput(const std::string &name) const;
+  bool hasInput(const std::string &name) const;
+  std::shared_ptr<Output> getOutput(const std::string &name) const;
+  std::shared_ptr<Input> getInput(const std::string &name) const;
+  const std::map<std::string, std::shared_ptr<Input>> &getInputs() const;
+  const std::map<std::string, std::shared_ptr<Output>> &getOutputs() const;
 
   void clearInputs();
 
@@ -439,11 +465,6 @@ public:
 
   void removeAllIncomingLinks();
 
-  // TODO: sort our phases api. Users should never call Region::setPhases
-  // and it is here for serialization only.
-  void setPhases(std::set<UInt32> &phases);
-
-  std::set<UInt32> &getPhases();
 
 
   // These must be implemented for serialization.
@@ -453,8 +474,7 @@ public:
   void save_ar(Archive& ar) const {
     ar(cereal::make_nvp("name", name_),
        cereal::make_nvp("nodeType", type_),
-       cereal::make_nvp("initialized", initialized_),
-       cereal::make_nvp("phases", phases_));
+       cereal::make_nvp("initialized", initialized_));
     ar(cereal::make_nvp("dim", getDimensions()));
 
     std::map<std::string, Dimensions> outDims;
@@ -484,7 +504,6 @@ public:
     ar(cereal::make_nvp("name", name_));
     ar(cereal::make_nvp("nodeType", type_));
     ar(cereal::make_nvp("initialized", init));
-    ar(cereal::make_nvp("phases", phases_));
     ar(cereal::make_nvp("dim", dim));
 
     std::map<std::string, Dimensions> outDims;
@@ -533,13 +552,11 @@ private:
   std::string type_;
   std::shared_ptr<Spec> spec_;
 
-  typedef std::map<std::string, Output *> OutputMap;
-  typedef std::map<std::string, Input *> InputMap;
+  typedef std::map<std::string, std::shared_ptr<Output>> OutputMap;
+  typedef std::map<std::string, std::shared_ptr<Input>> InputMap;
 
   OutputMap outputs_;
   InputMap inputs_;
-  // used for serialization only
-  std::set<UInt32> phases_;
   bool initialized_;
 
   // Region contains a backpointer to network_ only to be able

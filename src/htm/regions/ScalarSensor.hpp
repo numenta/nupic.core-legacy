@@ -51,6 +51,7 @@ public:
 
   virtual Real64 getParameterReal64(const std::string &name, Int64 index = -1) override;
   virtual UInt32 getParameterUInt32(const std::string &name, Int64 index = -1) override;
+  virtual bool getParameterBool(const std::string &name, Int64 index = -1) override;
   virtual void setParameterReal64(const std::string &name, Int64 index, Real64 value) override;
   virtual void initialize() override;
 

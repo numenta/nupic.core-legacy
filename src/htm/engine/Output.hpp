@@ -48,15 +48,8 @@ public:
    *        The type of the output
    */
   Output(Region* region,
-         const std::string& outputName,
-         NTA_BasicType type);
+         const std::string& outputName, NTA_BasicType type);
 
-  /**
-   * Destructor
-   * noexcept(false) : as C++11 forces noexcept(true) in destructors by default,
-   * we override that here to throw NTA_CHECK
-   */
-  ~Output() noexcept(false);
 
   /**
    * Set the name for the output.
@@ -108,7 +101,7 @@ public:
    * @param link
    *        The Link to remove
    */
-  void removeLink(std::shared_ptr<Link> link);
+  void removeLink(const std::shared_ptr<Link>& link);
 
   /**
    * Tells whether the output has outgoing links.
@@ -172,7 +165,13 @@ public:
   /**
    * Set dimensions for this output
    */
-  void setDimensions(const Dimensions& dim) { dim_ = std::move(dim); }
+  void setDimensions(const Dimensions& dim) { dim_ = dim; }
+
+  /**
+   *  Resize the buffer.  (does not work for SDR or Str buffers)
+   *  This is used when a Region needs to change the size of an output buffer at runtime.  (See ClassifierRegion.pdf)
+   */
+  void resize(size_t size);
 
   /**
    *  Print raw data...for debugging

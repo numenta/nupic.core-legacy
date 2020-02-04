@@ -42,8 +42,8 @@ TEST(InputTest, BasicNetworkConstruction) {
   std::shared_ptr<Region> r2 = net.addRegion("r2", "TestNode", "");
 
   // Test constructor
-  Input* x = r1->getInput("bottomUpIn");
-  Input* y = r2->getInput("bottomUpIn");
+  std::shared_ptr<Input> x = r1->getInput("bottomUpIn");
+  std::shared_ptr<Input> y = r2->getInput("bottomUpIn");
 
   // test getRegion()
   ASSERT_EQ(r1.get(), x->getRegion());
@@ -96,7 +96,7 @@ TEST(InputTest, LinkTwoRegionsOneInput1Dmatch) {
   Dimensions d3 = region3->getDimensions();
   EXPECT_EQ(d3, expected) << "Expected region3 region dimensions " << expected;
 
-  Input *in3 = region3->getInput("bottomUpIn");
+  std::shared_ptr<Input> in3 = region3->getInput("bottomUpIn");
   d3 = in3->getDimensions();
   EXPECT_EQ(d3, expected) << "Expected region3 input dimensions " << expected;
 
@@ -129,7 +129,7 @@ TEST(InputTest, LinkTwoRegionsOneInput1Dnomatch) {
   Dimensions d3 = region3->getDimensions();
   EXPECT_EQ(d3, expected) << "Expected region3 region dimensions " << expected;
 
-  Input *in3 = region3->getInput("bottomUpIn");
+  std::shared_ptr<Input> in3 = region3->getInput("bottomUpIn");
   d3 = in3->getDimensions();
   EXPECT_EQ(d3, expected) << "Expected region3 input dimensions " << expected;
 
@@ -164,7 +164,7 @@ TEST(InputTest, LinkTwoRegionsOneInput4X3) {
   Dimensions d3 = region3->getDimensions();
   EXPECT_EQ(d3, expected) << "Expected region3 region dimensions " << expected;
 
-  Input *in3 = region3->getInput("bottomUpIn");
+  std::shared_ptr<Input> in3 = region3->getInput("bottomUpIn");
   d3 = in3->getDimensions();
   EXPECT_EQ(d3, expected) << "Expected region3 input dimensions " << expected;
 
@@ -208,7 +208,7 @@ TEST(InputTest, LinkTwoRegionsOneInput4X4) {
   VERBOSE << "region3 region dims: " << d3 << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 region dimensions " << expected;
 
-  Input *in3 = region3->getInput("bottomUpIn");
+  std::shared_ptr<Input> in3 = region3->getInput("bottomUpIn");
   d3 = in3->getDimensions();
   VERBOSE << "region3 input dims: " << in3->getDimensions() << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 input dimensions " << expected;
@@ -250,7 +250,7 @@ TEST(InputTest, LinkTwoRegionsOneInput3D1) {
   VERBOSE << "region3 region dims: " << d3 << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 region dimensions " << expected;
 
-  Input *in3 = region3->getInput("bottomUpIn");
+  std::shared_ptr<Input> in3 = region3->getInput("bottomUpIn");
   d3 = in3->getDimensions();
   VERBOSE << "region3 input dims: " << in3->getDimensions() << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 input dimensions " << expected;
@@ -292,7 +292,7 @@ TEST(InputTest, LinkTwoRegionsOneInput3D2) {
   VERBOSE << "region3 region dims: " << d3 << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 region dimensions " << expected;
 
-  Input *in3 = region3->getInput("bottomUpIn");
+  std::shared_ptr<Input> in3 = region3->getInput("bottomUpIn");
   d3 = in3->getDimensions();
   VERBOSE << "region3 input dims: " << in3->getDimensions() << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 input dimensions " << expected;
@@ -335,7 +335,7 @@ TEST(InputTest, LinkTwoRegionsOneInputFlatten) {
   VERBOSE << "region3 region dims: " << d3 << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 region dimensions " << expected;
 
-  Input *in3 = region3->getInput("bottomUpIn");
+  std::shared_ptr<Input> in3 = region3->getInput("bottomUpIn");
   d3 = in3->getDimensions();
   VERBOSE << "region3 input dims: " << in3->getDimensions() << "\n";
   EXPECT_EQ(d3, expected) << "Expected region3 input dimensions " << expected;

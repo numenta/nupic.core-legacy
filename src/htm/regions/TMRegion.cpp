@@ -43,18 +43,18 @@ TMRegion::TMRegion(const ValueMap &params, Region *region)
   //       algorithm when we create it during initialization().
   memset((char *)&args_, 0, sizeof(args_));
   args_.numberOfCols = params.getScalarT<UInt32>("numberOfCols", 0);  // normally not passed in.
-  args_.cellsPerColumn = params.getScalarT<UInt32>("cellsPerColumn", 32);
-  args_.activationThreshold = params.getScalarT<UInt32>("activationThreshold", 13);
+  args_.cellsPerColumn = params.getScalarT<UInt32>("cellsPerColumn", 32u);
+  args_.activationThreshold = params.getScalarT<UInt32>("activationThreshold", 13u);
   args_.initialPermanence = params.getScalarT<Real32>("initialPermanence", 0.21f);
   args_.connectedPermanence = params.getScalarT<Real32>("connectedPermanence", 0.50f);
-  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 10);
-  args_.maxNewSynapseCount = params.getScalarT<UInt32>("maxNewSynapseCount", 20);
+  args_.minThreshold = params.getScalarT<UInt32>("minThreshold", 10u);
+  args_.maxNewSynapseCount = params.getScalarT<UInt32>("maxNewSynapseCount", 20u);
   args_.permanenceIncrement = params.getScalarT<Real32>("permanenceIncrement", 0.10f);
   args_.permanenceDecrement = params.getScalarT<Real32>("permanenceDecrement", 0.10f);
   args_.predictedSegmentDecrement = params.getScalarT<Real32>("predictedSegmentDecrement", 0.0f);
   args_.seed = params.getScalarT<Int32>("seed", 42);
-  args_.maxSegmentsPerCell = params.getScalarT<UInt32>("maxSegmentsPerCell", 255);
-  args_.maxSynapsesPerSegment = params.getScalarT<UInt32>("maxSynapsesPerSegment", 255);
+  args_.maxSegmentsPerCell = params.getScalarT<UInt32>("maxSegmentsPerCell", 255u);
+  args_.maxSynapsesPerSegment = params.getScalarT<UInt32>("maxSynapsesPerSegment", 255u);
   args_.checkInputs = params.getScalarT<bool>("checkInputs", true);
   args_.orColumnOutputs = params.getScalarT<bool>("orColumnOutputs", false);
   args_.externalPredictiveInputs = 0;  // will be obtained from externalPredictiveInputs inputs dimensions.
@@ -102,6 +102,8 @@ Dimensions TMRegion::askImplForOutputDimensions(const std::string &name) {
   if (name == "bottomUpOut" && args_.orColumnOutputs) {
     // It's size is numberOfCols.
     return region_dim;
+  } else if (name == "predictiveCells" && args_.orColumnOutputs) {
+    return region_dim;
   } else if (name == "bottomUpOut" || name == "activeCells" 
           || name == "predictedActiveCells" || name == "predictiveCells") {
     // It's size is numberOfCols * args_.cellsPerColumn.
@@ -126,7 +128,7 @@ void TMRegion::initialize() {
   // If there are more than one input link, the input buffer will be the
   // concatination of all incomming buffers. This width sets the number
   // columns for the TM.
-  Input* in = region_->getInput("bottomUpIn");
+  std::shared_ptr<Input> in = region_->getInput("bottomUpIn");
   if (!in || !in->hasIncomingLinks())
       NTA_THROW << "TMRegion::initialize - No input was provided.\n";
   NTA_ASSERT(in->getData().getType() == NTA_BasicType_SDR);
@@ -176,6 +178,7 @@ void TMRegion::initialize() {
   args_.sequencePos = 0;
 }
 
+
 void TMRegion::compute() {
 
   NTA_ASSERT(tm_) << "TM not initialized";
@@ -196,7 +199,7 @@ void TMRegion::compute() {
 
   // Check the input buffer
   // The buffer width is the number of columns.
-  Input *in = getInput("bottomUpIn");
+  std::shared_ptr<Input> in = getInput("bottomUpIn");
   Array &bottomUpIn = in->getData();
   NTA_ASSERT(bottomUpIn.getType() == NTA_BasicType_SDR);
   SDR& activeColumns = bottomUpIn.getSDR();
@@ -209,6 +212,7 @@ void TMRegion::compute() {
   Array &externalPredictiveInputsWinners = getInput("externalPredictiveInputsWinners")->getData();
   SDR& externalPredictiveInputsWinnerCells = (args_.externalPredictiveInputs) ? (externalPredictiveInputsWinners.getSDR()) : nullSDR;
 
+  // Trace facility
   NTA_DEBUG << "compute " << *in << std::endl;
 
   // Perform Bottom up compute()
@@ -228,37 +232,39 @@ void TMRegion::compute() {
   //       - The total number of elements in the outputs must be
   //         numberOfCols * cellsPerColumn.
   //
-  Output *out;
+  std::shared_ptr<Output> out;
   out = getOutput("bottomUpOut");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    SDR& sdr = out->getData().getSDR();
-    tm_->getActiveCells(sdr); //active cells
-    if (args_.orColumnOutputs) { //output as columns
-      sdr = tm_->cellsToColumns(sdr);
-    }
-    NTA_DEBUG << "bottomUpOut " << *out << std::endl;
-  }
+  //call Network::setLogLevel(LogLevel::LogLevel_Verbose);
+  //     to output the NTA_DEBUG statements below
+    SDR active({args_.numberOfCols, args_.cellsPerColumn});
+    tm_->getActiveCells(active); //active cells
+    if (args_.orColumnOutputs) // output as columns
+      out->getData().getSDR() = tm_->cellsToColumns(active);
+    else
+      out->getData().getSDR() = active;
+    NTA_DEBUG << "compute " << *out << std::endl;
+  
   out = getOutput("activeCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     tm_->getActiveCells(out->getData().getSDR());
-    NTA_DEBUG << "active " << *out << std::endl;
-  }
+    NTA_DEBUG << "compute "<< *out << std::endl;
+  
   out = getOutput("predictedActiveCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
+    tm_->activateDendrites();
     tm_->getWinnerCells(out->getData().getSDR());
-    NTA_DEBUG << "winners " << *out << std::endl;
-  }
+    NTA_DEBUG << "compute "<< *out << std::endl;
+  
   out = getOutput("anomaly");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
     Real32* buffer = reinterpret_cast<Real32*>(out->getData().getBuffer());
-    buffer[0] = tm_->anomaly;
-    NTA_DEBUG << "anomaly " << *out << std::endl;
-  }
+    buffer[0] = tm_->anomaly; //only the first field is valid
+    NTA_DEBUG << "compute "<< *out << std::endl;
+  
   out = getOutput("predictiveCells");
-  if (out && (out->hasOutgoingLinks() || LogItem::isDebug())) {
-    out->getData().getSDR() = tm_->getPredictiveCells();
-    NTA_DEBUG << "predictive " << *out << std::endl;
-  }
+    SDR predictive = tm_->getPredictiveCells();
+    if (args_.orColumnOutputs)  // output as columns
+      out->getData().getSDR() = tm_->cellsToColumns(predictive);
+    else
+      out->getData().getSDR() = predictive;
+    NTA_DEBUG << "compute " << *out << std::endl;
 }
 
 
@@ -337,7 +343,7 @@ Spec *TMRegion::createSpec() {
           NTA_BasicType_UInt32,          // type
           1,                             // elementCount
           "",                            // constraints
-          "8",                           // defaultValue
+          "10",                          // defaultValue
           ParameterSpec::CreateAccess)); // access
 
   ns->parameters.add(

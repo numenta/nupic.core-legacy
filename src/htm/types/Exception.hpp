@@ -23,8 +23,11 @@
 #define NTA_EXCEPTION_HPP
 
 #include <htm/types/Types.hpp>
+#include <htm/os/Path.hpp>
+
 #include <stdexcept>
 #include <string>
+#include <sstream>
 #include <utility>
 
 //----------------------------------------------------------------------
@@ -47,22 +50,10 @@ namespace htm {
  *  This class may be used directly by instatiating an instance
  *  and throwing it, but usually you will use the NTA_THROW macro
  *  that makes it much simpler by automatically retreiving the __FILE__
- *  and __LINE__ for you and also using a wrapping LogItem that allows
- *  you to construct the exception message conveniently using the <<
- *  streame operator (see htm/utils/Log.hpp for further details).
+ *  and __LINE__ for you.
  *
- * @b Notes:
- *  1. Exception is a subclass of the standard std::runtime_error.
- *  This is useful if your code needs to interoperate with other
- *  code that is not aware of the Exception class, but understands
- *  std::runtime_error. The what() method will return the exception message
- *  and the location information will not be avaialable to such code.
- *
- *  2. Source file and line number information is useful of course
- *  only if you have access to the source code. It is not recommended
- *  to display this information to users most of the time.
  */
-class Exception : public std::runtime_error {
+class Exception : public std::runtime_error { 
 public:
   /**
    * Constructor
@@ -77,10 +68,18 @@ public:
    *
    * @param message [const std::string &] the description of exception
    */
-  Exception(std::string filename, UInt32 lineno, std::string message,
-            std::string stacktrace = "")
+  Exception(std::string filename="",  UInt32 lineno=0,  std::string message = "", std::string stacktrace = "")
       : std::runtime_error(""), filename_(std::move(filename)), lineno_(lineno),
-        message_(std::move(message)), stackTrace_(std::move(stacktrace)) {}
+        message_(std::move(message)), stackTrace_(std::move(stacktrace))  {}
+
+
+  Exception(const Exception &copy) : std::runtime_error("") {
+    filename_ = copy.filename_;
+    lineno_ = copy.lineno_;
+    message_ = copy.getMessage();
+    stackTrace_ = copy.stackTrace_;
+  }
+    
 
   /**
    * Destructor
@@ -104,12 +103,13 @@ public:
    *
    * @retval [const Byte *] the exception message
    */
-  virtual const char *what() const throw() {
+  virtual const char *what() const noexcept override {
     try {
-      return getMessage();
+      what_ = "Exception: " + Path::getBasename(filename_) + "(" + std::to_string(lineno_) 
+                      + ") message: " + std::string(getMessage());
     } catch (...) {
-      return "Exception caught in non-throwing Exception::what()";
     }
+    return what_.c_str();
   }
 
   /**
@@ -120,7 +120,7 @@ public:
    *
    * @retval [const Byte *] the source filename
    */
-  const char *getFilename() const { return filename_.c_str(); }
+  const char *getFilename() const noexcept { return filename_.c_str(); }
 
   /**
    * Get the line number in the source file
@@ -130,14 +130,17 @@ public:
    *
    * @retval [UInt32] the line number in the source file
    */
-  UInt32 getLineNumber() const { return lineno_; }
+  UInt32 getLineNumber() const noexcept { return lineno_; }
 
   /**
    * Get the error message
    *
    * @retval [const char *] the error message
    */
-  virtual const char *getMessage() const { return message_.c_str(); }
+  virtual const char *getMessage() const noexcept { 
+	  message_ += ss_.str();
+	  ss_.clear();
+	  return message_.c_str(); }
 
   /**
    * Get the stack trace
@@ -147,13 +150,24 @@ public:
    *
    * @retval [const Byte *] the stack trace
    */
-  virtual const char *getStackTrace() const { return stackTrace_.c_str(); }
+  virtual const char *getStackTrace() const noexcept { return stackTrace_.c_str(); }
+
+
+  template <typename T> 
+  Exception &operator<<(const T &obj) {
+    ss_ << obj;
+    return *this;
+  }
 
 protected:
   std::string filename_;
   UInt32 lineno_;
-  std::string message_;
+  mutable std::string message_; //mutable bcs modified in getMessage which is used in what() but that needs be const
   std::string stackTrace_;
+  mutable std::string what_;
+
+private:
+  mutable std::stringstream ss_;
 
 }; // end class Exception
 } // end namespace htm

@@ -32,19 +32,19 @@ namespace htm {
 
 ScalarSensor::ScalarSensor(const ValueMap &params, Region *region)
     : RegionImpl(region) {
-  params_.size = params.getScalarT<UInt32>("n");
-  params_.activeBits = params.getScalarT<UInt32>("w");
-  params_.resolution = params.getScalarT<Real64>("resolution");
-  params_.radius = params.getScalarT<Real64>("radius");
-  params_.minimum = params.getScalarT<Real64>("minValue");
-  params_.maximum = params.getScalarT<Real64>("maxValue");
-  params_.periodic = params.getScalarT<bool>("periodic");
-  params_.clipInput = params.getScalarT<bool>("clipInput");
+  params_.size = params.getScalarT<UInt32>("n", 0);
+  params_.activeBits = params.getScalarT<UInt32>("w", 0);
+  params_.resolution = params.getScalarT<Real64>("resolution", 0.0);
+  params_.radius = params.getScalarT<Real64>("radius", 0.0);
+  params_.minimum = params.getScalarT<Real64>("minValue", -1.0);
+  params_.maximum = params.getScalarT<Real64>("maxValue", +1.0);
+  params_.periodic = params.getScalarT<bool>("periodic", false);
+  params_.clipInput = params.getScalarT<bool>("clipInput", false);
 
   encoder_ = std::make_shared<ScalarEncoder>( params_ );
 
 
-  sensedValue_ = params.getScalarT<Real64>("sensedValue");
+  sensedValue_ = params.getScalarT<Real64>("sensedValue", -1.0);
 }
 
 ScalarSensor::ScalarSensor(ArWrapper &wrapper, Region *region):RegionImpl(region) {
@@ -100,8 +100,19 @@ std::string ScalarSensor::executeCommand(const std::vector<std::string> &args,
 
 void ScalarSensor::compute()
 {
+  if (hasInput("values")) {
+    Array &a = getInput("values")->getData();
+    sensedValue_ = ((Real64 *)(a.getBuffer()))[0];
+  }
   SDR &output = getOutput("encoded")->getData().getSDR();
   encoder_->encode((Real64)sensedValue_, output);
+
+  // create the quantized sample or bucket. This becomes the title in the ClassifierRegion.
+  Real64 *quantizedSample = (Real64*)getOutput("bucket")->getData().getBuffer();
+  quantizedSample[0] = sensedValue_ - std::fmod(sensedValue_, encoder_->parameters.radius);
+
+  // trace facility
+  NTA_DEBUG << "compute " << getOutput("encoded") << std::endl;
 }
 
 ScalarSensor::~ScalarSensor() {}
@@ -124,7 +135,7 @@ ScalarSensor::~ScalarSensor() {}
                                         1,   // elementCount
                                         "",  // constraints
                                         "0", // defaultValue
-                                        ParameterSpec::ReadWriteAccess));
+                                        ParameterSpec::CreateAccess));
 
   ns->parameters.add("w",
                      ParameterSpec("The number of active bits in the encoding. i.e. how sparse",
@@ -132,7 +143,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,   // elementCount
                                    "",  // constraints
                                    "0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("resolution",
                      ParameterSpec("The resolution for the encoder",
@@ -140,14 +151,14 @@ ScalarSensor::~ScalarSensor() {}
                                    1,   // elementCount
                                    "",  // constraints
                                    "0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("radius", ParameterSpec("The radius for the encoder",
                                   NTA_BasicType_Real64,
                                   1,   // elementCount
                                   "",  // constraints
                                   "0", // defaultValue
-                                  ParameterSpec::ReadWriteAccess));
+                                  ParameterSpec::CreateAccess));
 
   ns->parameters.add("minValue",
                      ParameterSpec("The minimum value for the input",
@@ -155,7 +166,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,    // elementCount
                                    "",   // constraints
                                    "-1.0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("maxValue",
                      ParameterSpec("The maximum value for the input",
@@ -163,7 +174,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,    // elementCount
                                    "",   // constraints
                                    "+1.0", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("periodic",
                      ParameterSpec("Whether the encoder is periodic",
@@ -171,7 +182,7 @@ ScalarSensor::~ScalarSensor() {}
                                    1,       // elementCount
                                    "",      // constraints
                                    "false", // defaultValue
-                                   ParameterSpec::ReadWriteAccess));
+                                   ParameterSpec::CreateAccess));
 
   ns->parameters.add("clipInput",
                     ParameterSpec(
@@ -180,7 +191,17 @@ ScalarSensor::~ScalarSensor() {}
                                   1,       // elementCount
                                   "",      // constraints
                                   "false", // defaultValue
-                                  ParameterSpec::ReadWriteAccess));
+                                  ParameterSpec::CreateAccess));
+
+   /* ----- inputs ------- */
+  ns->inputs.add("values",
+                 InputSpec("The input values to be encoded.", // description
+                           NTA_BasicType_Real64,   // type
+                           1,                   // count.
+                           false,                // required?
+                           false,               // isRegionLevel,
+                           true                 // isDefaultInput
+                           ));
 
   /* ----- outputs ----- */
 
@@ -190,10 +211,10 @@ ScalarSensor::~ScalarSensor() {}
                                         true  // isDefaultOutput
                                         ));
 
-  ns->outputs.add("bucket", OutputSpec("Bucket number for this sensedValue",
-                                       NTA_BasicType_Int32,
-                                       0,    // elementCount
-                                       true, // isRegionLevel
+  ns->outputs.add("bucket", OutputSpec("Quantized sensedValue for this iteration.  Becomres the title in ClassifierRegion.",
+                                       NTA_BasicType_Real64,
+                                       1,    // elementCount
+                                       false, // isRegionLevel
                                        false // isDefaultOutput
                                        ));
 
@@ -203,9 +224,25 @@ ScalarSensor::~ScalarSensor() {}
 Real64 ScalarSensor::getParameterReal64(const std::string &name, Int64 index) {
   if (name == "sensedValue") {
     return sensedValue_;
-  }
+  } else if (name == "resolution") return encoder_->parameters.resolution;
+  else if (name == "radius")
+    return encoder_->parameters.radius;
+  else if (name == "minValue")
+    return encoder_->parameters.minimum;
+  else if (name == "maxValue")
+    return encoder_->parameters.maximum;
   else {
     return RegionImpl::getParameterReal64(name, index);
+  }
+}
+
+bool ScalarSensor::getParameterBool(const std::string& name, Int64 index) {
+  if (name == "periodic") 
+    return encoder_->parameters.periodic;
+  if (name == "clipInput")
+    return encoder_->parameters.clipInput;
+  else {
+    return RegionImpl::getParameterBool(name, index);
   }
 }
 
@@ -213,10 +250,13 @@ UInt32 ScalarSensor::getParameterUInt32(const std::string &name, Int64 index) {
   if (name == "n") {
     return (UInt32)encoder_->size;
   }
-  else {
+  else if (name == "w") {
+    return encoder_->parameters.activeBits;
+  } else {
     return RegionImpl::getParameterUInt32(name, index);
   }
 }
+
 
 void ScalarSensor::setParameterReal64(const std::string &name, Int64 index, Real64 value) {
   if (name == "sensedValue") {

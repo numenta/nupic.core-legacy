@@ -46,8 +46,10 @@ set(algorithm_tests
 	   )
                
 set(encoders_tests
+           unit/encoders/DateEncoderTest.cpp
            unit/encoders/ScalarEncoderTest.cpp
            unit/encoders/RandomDistributedScalarEncoderTest.cpp
+           unit/encoders/SimHashDocumentEncoderTest.cpp
            )
 	   
 set(engine_tests
@@ -56,7 +58,6 @@ set(engine_tests
 	   unit/engine/InputTest.cpp
 	   unit/engine/LinkTest.cpp
 	   unit/engine/NetworkTest.cpp
-	   unit/engine/YAMLUtilsTest.cpp
 	   unit/engine/WatcherTest.cpp
 	   )
 	   
@@ -70,14 +71,12 @@ set(ntypes_tests
 	   unit/ntypes/BasicTypeTest.cpp
 	   unit/ntypes/CollectionTest.cpp
 	   unit/ntypes/DimensionsTest.cpp
-	   unit/ntypes/ScalarTest.cpp
 	   unit/ntypes/ValueTest.cpp
 	   )
 	   
 set(os_tests
 	   unit/os/DirectoryTest.cpp
 	   unit/os/EnvTest.cpp
-	   unit/os/OSTest.cpp
 	   unit/os/PathTest.cpp
 	   unit/os/TimerTest.cpp
 	   )
@@ -85,9 +84,13 @@ set(os_tests
 set(regions_tests
 	   unit/regions/RegionTestUtilities.cpp
 	   unit/regions/RegionTestUtilities.hpp
+	   unit/regions/DateEncoderRegionTest.cpp
+	   unit/regions/ClassifierRegionTest.cpp
+	   unit/regions/ScalarSensorTest.cpp
+	   unit/regions/RDSERegionTest.cpp
 	   unit/regions/SPRegionTest.cpp
-           unit/regions/TMRegionTest.cpp
-           unit/regions/VectorFileTest.cpp
+       unit/regions/TMRegionTest.cpp
+       unit/regions/VectorFileTest.cpp
 	   )
 
 	   

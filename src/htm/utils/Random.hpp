@@ -129,7 +129,7 @@ public:
    * return random from range [from, to)
    */
   Real realRange(Real from, Real to) {
-    NTA_ASSERT(from <= to);
+    NTA_ASSERT(from <= to) << "realRange: invalid range.";
     const Real split = to - from;
     return from + static_cast<Real>(split * getReal64());
   }

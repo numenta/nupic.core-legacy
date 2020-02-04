@@ -140,6 +140,8 @@
 #include <htm/engine/Region.hpp>
 #include <htm/ntypes/Dimensions.hpp>
 #include <htm/types/Serializable.hpp>
+#include <htm/engine/Spec.hpp>
+#include <htm/ntypes/Value.hpp>
 
 namespace htm {
 
@@ -218,7 +220,11 @@ public:
   virtual void cereal_adapter_save(ArWrapper& a) const {};
   virtual void cereal_adapter_load(ArWrapper& a) {};
 
-  virtual bool operator==(const RegionImpl &other) const = 0;
+  // NOTE: all internal regions must implement an override of operator== by convention for unit testing.  
+  //            Customer written regions do not require it.
+  virtual bool operator==(const RegionImpl &other) const { 
+    NTA_THROW << "operator== not implmented for region "+getName(); 
+  };
   virtual inline bool operator!=(const RegionImpl &other) const {
     return !operator==(other);
   }
@@ -290,6 +296,9 @@ public:
   virtual void setDimensions(Dimensions dim) { dim_ = std::move(dim); }
   virtual Dimensions getDimensions() const { return dim_; }
 
+  virtual ValueMap ValidateParameters(const ValueMap &vm, Spec* ns);
+
+  static Spec *parseSpec(const std::string &yaml);
 
 protected:
   // A pointer to the Region object. This is the portion visible
@@ -301,8 +310,8 @@ protected:
 	//       This pointer must NOT be deleted.
   Region* region_;
 
-  /* -------- Methods provided by the base class for use by subclasses --------
-   */
+  // A local copy of the spec.
+  std::shared_ptr<Spec> spec_;
 
   // Region level dimensions.  This is set by the parameter "{dim: [2,3]}"
   // or by region->setDimensions(d);
@@ -310,24 +319,15 @@ protected:
   // applied to the default output buffer.
   Dimensions dim_;
 
-  // ---
-  /// Callback for subclasses to get an output stream during serialize()
-  /// (for output) and the deserializing constructor (for input)
-  /// It is invalid to call this method except inside serialize() in a subclass.
-  ///
-  /// Only one serialization stream may be open at a time. Calling
-  /// getSerializationXStream a second time automatically closes the
-  /// first stream. Any open stream is closed when serialize() returns.
-  // ---
-  //std::ostream &getSerializationOutputStream(const std::string &name);
-  //std::istream &getSerializationInputStream(const std::string &name);
-  //std::string getSerializationPath(const std::string &name);
 
   // These methods provide access to inputs and outputs
   // They raise an exception if the named input or output is
   // not found.
-  Input *getInput(const std::string &name) const;
-  Output *getOutput(const std::string &name) const;
+  inline bool hasOutput(const std::string &name) const { return region_->hasOutput(name); }
+  inline bool hasInput(const std::string &name) const { return region_->hasInput(name); }
+
+  std::shared_ptr<Input> getInput(const std::string &name) const;
+  std::shared_ptr<Output> getOutput(const std::string &name) const;
   Dimensions getInputDimensions(const std::string &name="") const;
   Dimensions getOutputDimensions(const std::string &name="") const;
 
