@@ -225,11 +225,8 @@ void TemporalMemory::burstColumn_(
             const bool learn) {
 
   // Calculate the active cells: active become ALL the cells in this mini-column
-  const CellIdx start = column * cellsPerColumn_;
-  const CellIdx end = start + cellsPerColumn_;
-  for (CellIdx cell = start; cell < end; cell++) {
-    activeCells_.push_back(cell);
-  }
+  const auto newCells = cellsForColumn(column);
+  activeCells_.insert(activeCells_.end(), newCells.begin(), newCells.end());
 
   const auto bestMatchingSegment =
       std::max_element(columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
