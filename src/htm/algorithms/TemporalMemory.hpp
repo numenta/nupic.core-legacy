@@ -304,7 +304,7 @@ public:
    *
    * @return (vector<CellIdx>) Cell indices
    */
-  vector<CellIdx> cellsForColumn(CellIdx column);
+  vector<CellIdx> cellsForColumn(const CellIdx column) const;
 
   /**
    * Returns the number of cells in this layer.
@@ -659,6 +659,8 @@ private:
   void growSynapses_(const Segment& segment,
 		     const SynapseIdx nDesiredNewSynapses,
 		     const vector<CellIdx> &prevWinnerCells);
+
+  CellIdx getLeastUsedCell_(const CellIdx column);
 
   void calculateAnomalyScore_(const SDR &activeColumns);
 

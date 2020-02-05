@@ -32,9 +32,8 @@ from htm.bindings.tools.serialization_test_py_region import \
 
 TEST_DATA = [0,1,2,3,4]
 EXPECTED_RESULT1 = [  4, 5 ]
-#EXPECTED_RESULT2 = [  4,  11,  28,  42,  43,  87,  89,  93, 110, 127, 132, 137, 149, 187, 193]
 EXPECTED_RESULT2 = [ 16, 32, 44, 81, 104, 109, 114, 166, 197, 198 ]
-EXPECTED_RESULT3 = [ 518, 1043, 1436, 2606, 3338, 3495, 3676, 5332, 6310, 6361 ]
+EXPECTED_RESULT3 = [ 512, 1024, 1408, 2592, 3328, 3488, 3648, 5312, 6304, 6336 ]
 
 
 class LinkRegion(PyRegion):
