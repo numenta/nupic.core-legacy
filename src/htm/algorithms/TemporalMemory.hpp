@@ -660,7 +660,7 @@ private:
 		     const SynapseIdx nDesiredNewSynapses,
 		     const vector<CellIdx> &prevWinnerCells);
 
-  CellIdx getLeastUsedCell_(const CellIdx column) const;
+  CellIdx getLeastUsedCell_(const CellIdx column);
 
   void calculateAnomalyScore_(const SDR &activeColumns);
 

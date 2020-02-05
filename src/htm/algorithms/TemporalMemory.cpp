@@ -141,10 +141,15 @@ void TemporalMemory::initialize(
   reset();
 }
 
-CellIdx TemporalMemory::getLeastUsedCell_(const CellIdx column) const { //TODO add test for this method
+CellIdx TemporalMemory::getLeastUsedCell_(const CellIdx column) {
   if(cellsPerColumn_ == 1) return column;
 
   vector<CellIdx> cells = cellsForColumn(column);
+
+  //TODO: decide if we need to choose randomly from the "least used" cells, or if 1st is fine. 
+  //In that case the line below is not needed, and this method can become const, deterministic results in tests need to be updated
+  //un/comment line below: 
+  rng_.shuffle(cells.begin(), cells.end()); //as min_element selects 1st minimal element, and we want to randomly choose 1 from the minimals.
 
   const auto compareByNumSegments = [&](const CellIdx a, const CellIdx b) {
     if(connections.numSegments(a) == connections.numSegments(b)) 
