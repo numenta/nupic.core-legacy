@@ -20,6 +20,7 @@
  */
 #include <cstdlib>  // defines size_t
 #include <cstdint>  // defines int of specific sizes.
+#include <limits.h> // CHAR_BIT
 
 #ifndef NTA_TYPES_HPP
 #define NTA_TYPES_HPP
@@ -154,6 +155,10 @@ static const htm::Real32 Epsilon = htm::Real(1e-6);
 #else
   typedef UInt32 UInt;
 #endif
+
+
+  static const UInt SizeInt = sizeof(Int);
+  static const UInt shftInt = (SizeInt*CHAR_BIT)-1;
 
 
 /**
