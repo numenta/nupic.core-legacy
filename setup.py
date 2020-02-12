@@ -251,7 +251,7 @@ def isMSVC_installed(ver):
   return true if ver is found.
   """
   vswhere = "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe"
-  output = subprocess.check_output([vswhere, "-legacy", "-prerelease", "-format", "json"], universal_newlines=True)
+  output = subprocess.check_output([vswhere, "-products", "*", "-legacy", "-prerelease", "-format", "json"], universal_newlines=True)
   data = json.loads(output);
   for vs in data:
     if 'displayName' in vs and ver in vs['displayName']: return True
