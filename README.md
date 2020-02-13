@@ -313,7 +313,7 @@ distribution packages as listed and rename them as indicated. Copy these to
 | Name to give it        | Where to obtain it |
 | :--------------------- | :----------------- |
 | libyaml.zip   (*node1) | https://github.com/yaml/libyaml/archive/master.zip |
-| boost.tar.gz  (*note3) | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz |
+| boost.tar.gz  (*note3) | https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz | 
 | eigen.tar.bz2          | http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2 |
 | googletest.tar.gz      | https://github.com/abseil/googletest/archive/release-1.8.1.tar.gz |
 | mnist.zip     (*note4) | https://github.com/wichtounet/mnist/archive/master.zip |
@@ -386,6 +386,26 @@ In Python:
 python py/htm/examples/mnist.py
 ```
 
+
+## License
+
+The htm.core library is distributed under GNU Affero Public License version 3.  The full text of the license can be found at http://www.gnu.org/licenses.
+
+Libraries that are incorporated into htm.core have the following licenses:
+
+| Library | Source Location | License |
+| :------ | :-------------- | :------ |
+| libyaml | http://eigen.tuxfamily.org/ | MIT  (https://github.com/yaml/libyaml/blob/master/LICENSE) |
+| boost (*note3)  | https://www.boost.org/      | https://www.boost.org/LICENSE_1_0.txt |
+| eigen   | http://eigen.tuxfamily.org/ | https://www.mozilla.org/en-US/MPL/2.0/ |
+| pybind11 | https://github.com/pybind/pybind11 | https://github.com/pybind/pybind11/blob/master/LICENSE |
+| cereal | https://uscilab.github.io/cereal/ | https://opensource.org/licenses/BSD-3-Clause |
+| digestpp | https://github.com/kerukuro/digestpp | released into public domain |
+
+
+ * note3: Boost is not used if built with any compiler that supports C++17 with `std::filesystem` (MSVC2017, gcc-8, clang-9).
+ 
+ 
 ## Cite us
 
 We're happy that you can use the community work in this repository or even join the development! 
@@ -420,4 +440,5 @@ This project aspires to create tool that helps **visualize HTM systems in 3D** b
 
 For more info, visit [repository of the project](https://github.com/htm-community/HTMpandaVis)
 ![pandaVis1](docs/images/pandaVis1.png)
+
 
