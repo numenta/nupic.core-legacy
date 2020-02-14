@@ -395,7 +395,7 @@ Libraries that are incorporated into htm.core have the following licenses:
 
 | Library | Source Location | License |
 | :------ | :-------------- | :------ |
-| libyaml | http://eigen.tuxfamily.org/ | MIT  (https://github.com/yaml/libyaml/blob/master/LICENSE) |
+| libyaml | http://eigen.tuxfamily.org/ | https://github.com/yaml/libyaml/blob/master/LICENSE |
 | boost (*note3)  | https://www.boost.org/      | https://www.boost.org/LICENSE_1_0.txt |
 | eigen   | http://eigen.tuxfamily.org/ | https://www.mozilla.org/en-US/MPL/2.0/ |
 | pybind11 | https://github.com/pybind/pybind11 | https://github.com/pybind/pybind11/blob/master/LICENSE |
