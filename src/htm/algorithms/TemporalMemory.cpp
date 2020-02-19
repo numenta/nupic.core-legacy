@@ -141,45 +141,24 @@ void TemporalMemory::initialize(
   reset();
 }
 
-///*
-static CellIdx getLeastUsedCell(Random &rng, 
-		                const UInt column, //TODO remove static methods, use private instead
-                                const Connections &connections,
-                                const UInt cellsPerColumn) {
-  const CellIdx start = column * cellsPerColumn;
-  const CellIdx end = start + cellsPerColumn;
+CellIdx TemporalMemory::getLeastUsedCell_(const CellIdx column) {
+  if(cellsPerColumn_ == 1) return column;
 
-  size_t minNumSegments = std::numeric_limits<CellIdx>::max();
-  UInt32 numTiedCells = 0u;
-  //for all cells in a mini-column
-  for (CellIdx cell = start; cell < end; cell++) {
-    const size_t numSegments = connections.numSegments(cell);
-    //..find a cell with least segments
-    if (numSegments < minNumSegments) {
-      minNumSegments = numSegments;
-      numTiedCells = 1u;
-    //..and how many of the cells have only these min segments? number of weakest
-    } else if (numSegments == minNumSegments) {
-      numTiedCells++;
-    }
-  }
+  vector<CellIdx> cells = cellsForColumn(column);
 
-  //randomly select one of the tie-d cells from the losers
-  const UInt32 tieWinnerIndex = rng.getUInt32(numTiedCells);
-  UInt32 tieIndex = 0;
-  for (CellIdx cell = start; cell < end; cell++) {
-    if (connections.numSegments(cell) == minNumSegments) {
-      if (tieIndex == tieWinnerIndex) {
-        return cell;
-      } else {
-        tieIndex++;
-      }
-    }
-  }
+  //TODO: decide if we need to choose randomly from the "least used" cells, or if 1st is fine. 
+  //In that case the line below is not needed, and this method can become const, deterministic results in tests need to be updated
+  //un/comment line below: 
+  rng_.shuffle(cells.begin(), cells.end()); //as min_element selects 1st minimal element, and we want to randomly choose 1 from the minimals.
 
-  NTA_THROW << "getLeastUsedCell failed to find a cell";
+  const auto compareByNumSegments = [&](const CellIdx a, const CellIdx b) {
+    if(connections.numSegments(a) == connections.numSegments(b)) 
+      return a < b; //TODO rm? 
+    else return connections.numSegments(a) < connections.numSegments(b);
+  };
+  return *std::min_element(cells.begin(), cells.end(), compareByNumSegments);
 }
-//*/
+
 
 void TemporalMemory::growSynapses_(
 			 const Segment& segment,
@@ -249,12 +228,10 @@ void TemporalMemory::burstColumn_(
             const SDR &prevActiveCells,
             const vector<CellIdx> &prevWinnerCells,
             const bool learn) {
-  // Calculate the active cells.
-  const CellIdx start = column * cellsPerColumn_;
-  const CellIdx end = start + cellsPerColumn_;
-  for (CellIdx cell = start; cell < end; cell++) {
-    activeCells_.push_back(cell);
-  }
+
+  // Calculate the active cells: active become ALL the cells in this mini-column
+  const auto newCells = cellsForColumn(column);
+  activeCells_.insert(activeCells_.end(), newCells.begin(), newCells.end());
 
   const auto bestMatchingSegment =
       std::max_element(columnMatchingSegmentsBegin, columnMatchingSegmentsEnd,
@@ -266,7 +243,7 @@ void TemporalMemory::burstColumn_(
   const CellIdx winnerCell =
       (bestMatchingSegment != columnMatchingSegmentsEnd)
           ? connections.cellForSegment(*bestMatchingSegment)
-          : getLeastUsedCell(rng_, column, connections, cellsPerColumn_); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
+          : getLeastUsedCell_(column); //TODO replace (with random?) this is extremely costly, removing makes TM 6x faster!
 
   winnerCells_.push_back(winnerCell);
 
@@ -560,7 +537,7 @@ SDR TemporalMemory::cellsToColumns(const SDR& cells) const {
 }
 
 
-vector<CellIdx> TemporalMemory::cellsForColumn(CellIdx column) { 
+vector<CellIdx> TemporalMemory::cellsForColumn(const CellIdx column) const { 
   const CellIdx start = cellsPerColumn_ * column;
   const CellIdx end = start + cellsPerColumn_;
 
