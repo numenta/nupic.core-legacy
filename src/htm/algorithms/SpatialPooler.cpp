@@ -866,16 +866,27 @@ void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
 
 
       if (wrapAround_) {
+         numNeighbors = 0;  // In wrapAround, number of neighbors to be considered is solely a function of the inhibition radius, 
+	 // ... the number of dimensions, and of the size of each of those dimenion
+         UInt predN = 1;
+	 const UInt diam = 2*inhibitionRadius_ + 1; //the inh radius can change, that's why we recompute here
+         for (const auto dim : columnDimensions_) {
+           predN *= std::min(diam, dim);
+         }
+         predN -= 1;
+         numNeighbors = predN;
+         const UInt numActive_wrap = static_cast<UInt>(0.5f + (density * (numNeighbors + 1)));
+
         for(auto neighbor: WrappingNeighborhood(column, inhibitionRadius_,columnDimensions_)) { //TODO if we don't change inh radius (changes only every isUpdateRound()),
 		// then these values can be cached -> faster local inh
           if (neighbor == column) {
             continue;
           }
-          numNeighbors++;
 
           const Real difference = overlaps[neighbor] - overlaps[column];
           if (difference > 0 || (difference == 0 && activeColumnsDense[neighbor])) {
             numBigger++;
+	    if (numBigger >= numActive_wrap) { break; }
           }
 	}
       } else {
