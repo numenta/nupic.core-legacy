@@ -870,7 +870,7 @@ void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
          UInt predN = 1;
          for (UInt i = 0; i<columnDimensions_.size();i++) {
            UInt diam = 2*inhibitionRadius_ + 1;
-           predN *= ( diam + ((columnDimensions_[i] - diam) * ((UInt) (columnDimensions_[i] - diam) >> (shftInt))) ); // max(diam, columDimenions_[i]);
+           predN *= std::min(diam, columnDimensions_[i]);
          }
          predN -= 1;
          numNeighbors = predN;
