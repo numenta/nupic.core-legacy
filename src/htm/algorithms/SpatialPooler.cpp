@@ -869,8 +869,8 @@ void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
          numNeighbors = 0;  // In wrapAround, number of neighbors to be considered is solely a function of the inhibition radius, 
 	 // ... the number of dimensions, and of the size of each of those dimenion
          UInt predN = 1;
-         for (auto dim : columnDimensions_) {
-           const UInt diam = 2*inhibitionRadius_ + 1; //the inh radius can change, that's why we recompute here
+	 const UInt diam = 2*inhibitionRadius_ + 1; //the inh radius can change, that's why we recompute here
+         for (const auto dim : columnDimensions_) {
            predN *= std::min(diam, dim);
          }
          predN -= 1;
