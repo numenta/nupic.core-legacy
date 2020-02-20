@@ -213,12 +213,12 @@ Neighborhood::Iterator Neighborhood::end() const { return {*this, true}; }
 WrappingNeighborhood::WrappingNeighborhood(UInt centerIndex, UInt radius,
                                            const vector<UInt> &dimensions)
     : centerPosition_(coordinatesFromIndex(centerIndex, dimensions)),
-      dimensions_(dimensions), radius_(radius), ndimensions_(dimensions.size()) {}
+      dimensions_(dimensions), radius_(radius) {}
 
 WrappingNeighborhood::Iterator::Iterator(
     const WrappingNeighborhood &neighborhood, bool end)
     : neighborhood_(neighborhood),
-      offset_(neighborhood.ndimensions_, -(Int)neighborhood.radius_),
+      offset_(neighborhood.dimensions_.size(), -(Int)neighborhood.radius_),
       finished_(end) {}
 
 bool WrappingNeighborhood::Iterator::operator!=(const Iterator &other) const {
@@ -227,39 +227,22 @@ bool WrappingNeighborhood::Iterator::operator!=(const Iterator &other) const {
 
 UInt WrappingNeighborhood::Iterator::operator*() const {
   UInt index = 0;
-  for (size_t i = 0; i < neighborhood_.ndimensions_; i++) {
+  for (size_t i = 0; i < neighborhood_.dimensions_.size(); i++) {
     Int coordinate = neighborhood_.centerPosition_[i] + offset_[i];
-    const UInt a = neighborhood_.dimensions_[i]; // the compiler doesn't seem to voluntarily hold on to this value
-
 
     // With a large radius, it may have wrapped around multiple times, so use
     // `while`, not `if`.
 
+    while (coordinate < 0) {
+      coordinate += neighborhood_.dimensions_[i];
+    }
 
-//    while (coordinate < 0) {
-//      coordinate += neighborhood_.dimensions_[i];
-//    }
+    while (coordinate >= (Int)neighborhood_.dimensions_[i]) {
+      coordinate -= neighborhood_.dimensions_[i];
+    }
 
-
-//    while (coordinate >= (Int)neighborhood_.dimensions_[i]) {
-
-
- //     coordinate -= neighborhood_.dimensions_[i];
-
-
- //   }
-
-
-    coordinate = coordinate % (Int) a; 
-// C++, depending on the version of the STD, may produce negative "mod n" values.
-    coordinate += ((UInt) coordinate >> shftInt) * (Int) a; // both this line and the one commented out below produced the same number of assembly instructions on my system, however this line was slightly faster for whatever reason (the instructions produced for each line were different)
-//    coordinate += (coordinate < 0) * (Int) a;
-
-
-
-    index *= a;
+    index *= neighborhood_.dimensions_[i];
     index += coordinate;
-
   }
 
   return index;
@@ -275,17 +258,15 @@ void WrappingNeighborhood::Iterator::advance_() {
   // When it overflows, we need to "carry the 1" to the next dimension.
   bool overflowed = true;
 
-  for (Int i = (Int)neighborhood_.ndimensions_ - 1; i >= 0; i--) {
-    const Int a = ++offset_[i]; // the compiler doesn't seem to voluntarily hold on to this value
-
-
+  for (Int i = (Int)offset_.size() - 1; i >= 0; i--) {
+    offset_[i]++;
 
     // If the offset has moved by more than the dimension size, i.e. if
     // offset_[i] - (-radius) is greater than the dimension size, then we're
     // about to run into points that we've already seen. This happens when given
     // small dimensions, a large radius, and wrap-around.
-    overflowed = a > (Int)neighborhood_.radius_ ||
-                 a + (Int)neighborhood_.radius_ >=
+    overflowed = offset_[i] > (Int)neighborhood_.radius_ ||
+                 offset_[i] + (Int)neighborhood_.radius_ >=
                      (Int)neighborhood_.dimensions_[i];
 
     if (overflowed) {
@@ -297,10 +278,9 @@ void WrappingNeighborhood::Iterator::advance_() {
   }
 
   // When the final coordinate overflows, we're done.
-  // if (overflowed) { // there's no need for this "if" statement if there's no parallelization
-  //  finished_ = true;
-  finished_ = overflowed;
-  //} //
+  if (overflowed) {
+    finished_ = true;
+  }
 }
 
 WrappingNeighborhood::Iterator WrappingNeighborhood::begin() const {

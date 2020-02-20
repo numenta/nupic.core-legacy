@@ -266,7 +266,6 @@ private:
   const std::vector<UInt> centerPosition_;
   const std::vector<UInt> &dimensions_;
   const UInt radius_;
-  const UInt ndimensions_;
 };
 
 } // end namespace htm

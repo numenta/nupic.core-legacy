@@ -866,40 +866,24 @@ void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
 
 
       if (wrapAround_) {
-        numNeighbors = 0;  // In wrapAround, number of neighbors to be considered is solely a function of the inhibition radius, the number of dimensions, and of the size of each of those dimenions
-        UInt predN = 1;
-        for (UInt i = 0; i<columnDimensions_.size();i++) {
-          UInt diam = 2*inhibitionRadius_ + 1;
-          predN *= ( diam + ((columnDimensions_[i] - diam) * ((UInt) (columnDimensions_[i] - diam) >> (shftInt))) ); // max(diam, columDimenions_[i]);
-        }
-        predN -= 1;
-        numNeighbors = predN;
-        const UInt numActive_wrap = (UInt)(0.5f + (density * (numNeighbors + 1)));
-
         for(auto neighbor: WrappingNeighborhood(column, inhibitionRadius_,columnDimensions_)) { //TODO if we don't change inh radius (changes only every isUpdateRound()),
 		// then these values can be cached -> faster local inh
-
-	  UInt a = neighbor; // don't abuse the "operator*" function
-	  if (a == column) {
+          if (neighbor == column) {
             continue;
           }
-	  //	 numNeighbors++;
+          numNeighbors++;
 
-          const Real difference = overlaps[a] - overlaps[column];
-	            if (difference > 0 || (difference == 0 && activeColumnsDense[a])) {
-	  //	  numBigger += (difference > 0 || (difference == 0 && activeColumnsDense[a])); // this is actually slower than the "if" statement
-		      numBigger++;
-		      if (numBigger >= numActive_wrap) { break; } //bail
-	            }
+          const Real difference = overlaps[neighbor] - overlaps[column];
+          if (difference > 0 || (difference == 0 && activeColumnsDense[neighbor])) {
+            numBigger++;
+          }
 	}
-
-
       } else {
         for(auto neighbor: Neighborhood(column, inhibitionRadius_, columnDimensions_)) {
           if (neighbor == column) {
             continue;
           }
-	  numNeighbors++;
+          numNeighbors++;
 
           const Real difference = overlaps[neighbor] - overlaps[column];
           if (difference > 0 || (difference == 0 && activeColumnsDense[neighbor])) {
@@ -908,13 +892,11 @@ void SpatialPooler::inhibitColumnsLocal_(const vector<Real> &overlaps,
 	}
       }
 
-
       const UInt numActive = (UInt)(0.5f + (density * (numNeighbors + 1)));
       if (numBigger < numActive) {
         activeColumns.push_back(column);
         activeColumnsDense[column] = true;
       }
-
   }
 }
 
