@@ -232,9 +232,9 @@ vector<Real64> SDRClassifier::calculateError_(const vector<UInt> &bucketIdxList,
 
 void SDRClassifier::softmax_(vector<Real64>::iterator begin,
                              vector<Real64>::iterator end) {
-  vector<Real64>::iterator maxItr = max_element(begin, end);
+  Real64 maxValue = *max_element(begin, end);
   for (auto itr = begin; itr != end; ++itr) {
-    *itr -= *maxItr;
+    *itr -= maxValue;
   }
   range_exp(1.0, begin, end);
   Real64 sum = accumulate(begin, end, 0.0);
