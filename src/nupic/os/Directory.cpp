@@ -252,7 +252,7 @@ void Iterator::init(const std::string &path) {
                       << ". OS num: " << APR_TO_OS_ERROR(res);
 }
 
-Iterator::~Iterator() {
+Iterator::~Iterator() noexcept(false) {
   apr_status_t res = ::apr_dir_close(handle_);
   ::apr_pool_destroy(pool_);
   if (res != 0) {
