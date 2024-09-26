@@ -98,8 +98,20 @@ public:
    */
   Dimensions(std::vector<size_t> v);
 
-  /** Create a new 1-dimension Dimensions object.
+#if (defined(NTA_ARCH_32) && defined(NTA_OS_LINUX))
+  /**
+   * Create a new Dimensions object from a @c std::vector<unsigned long>.
+   *
+   * @param v
+   *        A @c std::vector of @c unsigned long, the value with the index
+   *        of @a n is the size of the @a n th dimension
+   *
+   */
+  Dimensions(std::vector<unsigned long> v);
+#endif
 
+  /** Create a new 1-dimension Dimensions object.
+   *
    * @param x
    *        The size of the 1st dimension
    *

@@ -25,12 +25,24 @@
 #include <nupic/utils/Log.hpp>
 #include <utility>
 
+#if (defined(NTA_ARCH_32) && defined(NTA_OS_LINUX))
+#include <climits>
+#endif
+
 using namespace nupic;
 
 Dimensions::Dimensions(){};
 
 Dimensions::Dimensions(std::vector<size_t> v)
     : std::vector<size_t>(std::move(v)){};
+
+#if (defined(NTA_ARCH_32) && defined(NTA_OS_LINUX))
+Dimensions::Dimensions(std::vector<unsigned long> v) {
+  for (size_t i = 0; i < v.size(); i++) {
+    push_back(v[i] & UINT_MAX);
+  }
+}
+#endif
 
 Dimensions::Dimensions(size_t x) { push_back(x); }
 
