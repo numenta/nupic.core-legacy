@@ -225,7 +225,7 @@ if __name__ == "__main__":
     classifiers=[
       "Programming Language :: Python",
       "Programming Language :: Python :: 2",
-      "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+      "License :: OSI Approved :: MIT License",
       "Operating System :: MacOS :: MacOS X",
       "Operating System :: POSIX :: Linux",
       "Operating System :: Microsoft :: Windows",
