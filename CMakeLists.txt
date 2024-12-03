@@ -1,4 +1,4 @@
-# Copyright 2013 Numenta Inc.
+# Copyright 2015-2017 Numenta Inc.
 #
 # Copyright may exist in Contributors' modifications
 # and/or contributions to the work.
