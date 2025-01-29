@@ -170,7 +170,7 @@ TEST_F(ArrayTest, testArrayCreation) {
 
       try {
         arrayP.reset(new ArrayBase(testCase->second.dataType));
-      } catch (nupic::Exception) {
+      } catch (nupic::Exception const&) {
         caughtException = true;
       }
 
@@ -250,7 +250,7 @@ TEST_F(ArrayTest, testBufferAllocation) {
 
       try {
         a.allocateBuffer(10);
-      } catch (nupic::Exception) {
+      } catch (nupic::Exception const&) {
         caughtException = true;
       }
 
@@ -292,7 +292,7 @@ TEST_F(ArrayTest, testBufferAssignment) {
 
     try {
       a.setBuffer(buf2.get(), testCase->second.allocationSize);
-    } catch (nupic::Exception) {
+    } catch (nupic::Exception const&) {
       caughtException = true;
     }
 
